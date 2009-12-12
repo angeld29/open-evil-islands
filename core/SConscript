@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os.path
+
+VariantDir("build", "src", duplicate=False)
+
+Import("env")
+env = env.Clone()
+
+env.AppendUnique(
+	CPPDEFINES=["_GNU_SOURCE"],
+	CPPPATH=["include"],
+	CFLAGS=["-std=c99"],
+)
+
+targets = [builder(os.path.join("lib", "core"),
+					[os.path.join("build", node.name)
+						for node in env.Glob(os.path.join("src", "*.c"))])
+			for builder in (env.StaticLibrary, env.SharedLibrary)]
+
+Return("targets")

@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os.path
+
+VariantDir("build", "src", duplicate=False)
+
+Import("env")
+env = env.Clone()
+
+env.AppendUnique(
+	CPPPATH=[os.path.join("#core", "include"), "include"],
+	LIBPATH=[os.path.join("#core", "lib")],
+	LIBS=["core", "glut"],
+	LINKFLAGS=["-Wl,-rpath,core/lib"],
+)
+
+targets = [env.Program(os.path.join("bin", "test"),
+					[os.path.join("build", "test.cpp")])]
+
+Return("targets")
