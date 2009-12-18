@@ -7,19 +7,11 @@
 #include "memfile.h"
 #include "resfile.h"
 
-static const int32_t RES_SIGNATURE = 0x19ce23c;
+enum {
+	RES_SIGNATURE = 0x19ce23c
+};
 
-static int name_hash(const char* name, int limit)
-{
-	int sum = 0;
-	while (*name) {
-		sum += tolower(*name++);
-	}
-	return sum % limit;
-}
-
-typedef struct
-{
+typedef struct {
 	char* name;
 	int32_t next_index;
 	int32_t data_length;
@@ -39,6 +31,15 @@ struct resfile {
 	void* client_data;
 	resfile_node* nodes;
 };
+
+static int name_hash(const char* name, int limit)
+{
+	int sum = 0;
+	while (*name) {
+		sum += tolower(*name++);
+	}
+	return sum % limit;
+}
 
 resfile* resfile_open_callbacks(io_callbacks callbacks,
 								void* client_data, const char* name)

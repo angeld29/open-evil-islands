@@ -11,11 +11,13 @@ env = env.Clone()
 env.AppendUnique(
 	CPPPATH=[os.path.join("#core", "include"), "include"],
 	LIBPATH=[os.path.join("#core", "lib")],
-	LIBS=["core", "glut"],
+	CFLAGS=["-std=c99"],
 	LINKFLAGS=["-Wl,-rpath,core/lib"],
+	LIBS=["core", "glut"],
 )
 
 targets = [env.Program(os.path.join("bin", "test"),
-					[os.path.join("build", "test.cpp")])]
+				[os.path.join("build", node.name)
+		 			for node in env.Glob(os.path.join("src", "*.c"))])]
 
 Return("targets")

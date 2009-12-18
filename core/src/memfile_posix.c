@@ -3,8 +3,7 @@
 
 #include "memfile.h"
 
-struct memfile
-{
+struct memfile {
 	void* data;
 	FILE* file;
 };

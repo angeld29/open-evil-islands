@@ -13,23 +13,30 @@
 #include "resfile.h"
 #include "mprfile.h"
 
-static const int32_t MP_SIGNATURE = 0xce4af672;
-static const int32_t SEC_SIGNATURE = 0xcf4bf774;
+enum {
+	MP_SIGNATURE = 0xce4af672,
+	SEC_SIGNATURE = 0xcf4bf774
+};
 
-static const int32_t TOT_UNDEF = 0;
-static const int32_t TOT_TERRAIN = 1;
-static const int32_t TOT_WATER_NOTEXTURE = 2;
-static const int32_t TOT_WATER = 3;
-static const int32_t TOT_GRASS = 4;
+enum {
+	TOT_UNDEF = 0,
+	TOT_TERRAIN = 1,
+	TOT_WATER_NOTEXTURE = 2,
+	TOT_WATER = 3,
+	TOT_GRASS = 4,
+};
 
-static const int VERTEX_SIDE = 33;
-static const int VERTEX_COUNT = 33 * 33;
+enum {
+	VERTEX_SIDE = 33,
+	VERTEX_COUNT = 33 * 33
+};
 
-static const int TEXTURE_SIDE = 16;
-static const int TEXTURE_COUNT = 16 * 16;
+enum {
+	TEXTURE_SIDE = 16,
+	TEXTURE_COUNT = 16 * 16
+};
 
-typedef struct
-{
+typedef struct {
 	int32_t type;
 	float colour_r;
 	float colour_g;
@@ -43,22 +50,19 @@ typedef struct
 	float reserved3;         // specular_color_b ?
 } material;
 
-typedef struct
-{
+typedef struct {
 	int16_t index;
 	int16_t phases;
 } anim_tile;
 
-typedef struct
-{
+typedef struct {
 	int8_t offset_x;
 	int8_t offset_y;
 	uint16_t coord_z;
 	uint32_t normal;
 } vertex;
 
-typedef struct
-{
+typedef struct {
 	int8_t water;
 	vertex* land_vertices;
 	vertex* water_vertices;
@@ -67,8 +71,7 @@ typedef struct
 	int16_t* water_allow;
 } sector;
 
-struct mprfile
-{
+struct mprfile {
 	float max_z;
 	int32_t sector_x_count;
 	int32_t sector_y_count;

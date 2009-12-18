@@ -5,25 +5,32 @@
 #include "str.h"
 #include "mobfile.h"
 
-static const int32_t MOB_SIGNATURE = 0xa000;
+enum {
+	MOB_SIGNATURE = 0xa000
+};
 
-static const int64_t MAIN_BLOCK_QUEST_SIGNATURE = 0x80000d000;
-static const int64_t MAIN_BLOCK_ZONAL_SIGNATURE = 0x80000c000;
+enum {
+	MAIN_BLOCK_QUEST_SIGNATURE = 0x80000d000,
+	MAIN_BLOCK_ZONAL_SIGNATURE = 0x80000c000
+};
 
-static const int32_t TEXT_BLOCK_SIGNATURE = 0xacceeccb;
-static const int32_t OBJECT_BLOCK_SIGNATURE = 0xb000;
+enum {
+	TEXT_BLOCK_SIGNATURE = 0xacceeccb,
+	OBJECT_BLOCK_SIGNATURE = 0xb000
+};
 
-static const int32_t OBJECT_BLOCK_UNIT_SIGNATURE = 0xbbbb0000;
-static const int32_t OBJECT_BLOCK_OBJECT_SIGNATURE = 0xb001;
-static const int32_t OBJECT_BLOCK_LEVER_SIGNATURE = 0xbbac0000;
-static const int32_t OBJECT_BLOCK_TRAP_SIGNATURE = 0xbbab0000;
-static const int32_t OBJECT_BLOCK_FLAME_SIGNATURE = 0xbbbf;
-static const int32_t OBJECT_BLOCK_PARTICLE1_SIGNATURE = 0xaa01;
-static const int32_t OBJECT_BLOCK_PARTICLE2_SIGNATURE = 0xcc01;
-static const int32_t OBJECT_BLOCK_PARTICLE3_SIGNATURE = 0xdd01;
+enum {
+	OBJECT_BLOCK_UNIT_SIGNATURE = 0xbbbb0000,
+	OBJECT_BLOCK_OBJECT_SIGNATURE = 0xb001,
+	OBJECT_BLOCK_LEVER_SIGNATURE = 0xbbac0000,
+	OBJECT_BLOCK_TRAP_SIGNATURE = 0xbbab0000,
+	OBJECT_BLOCK_FLAME_SIGNATURE = 0xbbbf,
+	OBJECT_BLOCK_PARTICLE1_SIGNATURE = 0xaa01,
+	OBJECT_BLOCK_PARTICLE2_SIGNATURE = 0xcc01,
+	OBJECT_BLOCK_PARTICLE3_SIGNATURE = 0xdd01
+};
 
-struct mobfile
-{
+struct mobfile {
 	io_callbacks callbacks;
 	void* client_data;
 };
@@ -39,7 +46,7 @@ static void decrypt_script(char* buf, uint32_t key, int32_t size)
 mobfile* mobfile_open_callbacks(io_callbacks callbacks,
 								void* client_data, const char* name)
 {
-	mobfile* mob = (mobfile*)calloc(1, sizeof(mobfile));
+	mobfile* mob = calloc(1, sizeof(mobfile));
 	if (NULL == mob) {
 		return NULL;
 	}
