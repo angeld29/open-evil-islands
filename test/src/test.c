@@ -1,14 +1,32 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include <GL/glut.h>
 
+#include "memfile.h"
 #include "resfile.h"
 #include "mmpfile.h"
 
 resfile* res;
+GLuint texid;
 
-void display(void)
+static bool bindtex(int index)
+{
+	memfile* mem = resfile_node_memfile(index, res);
+	if (NULL == mem) {
+		return false;
+	}
+	texid = mmpfile_create_texture(texid, mem);
+	memfile_close(mem);
+	if (0 == texid) {
+		return false;
+	}
+	glBindTexture(GL_TEXTURE_2D, texid);
+	return true;
+}
+
+static void display(void)
 {
 	const float w = 2.0f, h = 2.0f;
 
@@ -31,7 +49,7 @@ void display(void)
 	glutSwapBuffers();
 }
 
-void reshape(int width, int height)
+static void reshape(int width, int height)
 {
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
@@ -40,18 +58,19 @@ void reshape(int width, int height)
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void keyboard(unsigned char key, int x, int y)
+static void keyboard(unsigned char key, int x, int y)
 {
 	x = x;
 	y = y;
 	switch (key) {
 	case 27: // escape
+		resfile_close(res);
 		exit(0);
 		break;
 	}
 }
 
-void timer(int index)
+static void timer(int index)
 {
 	if (0 == resfile_node_count(res)) {
 		return;
@@ -61,16 +80,10 @@ void timer(int index)
 		index = 0;
 	}
 
-	memfile* mem = resfile_node_memfile(index, res);
-	if (NULL != mem) {
-		GLuint texid = mmpfile_gentex(mem);
-		if (0 != texid) {
-			glBindTexture(GL_TEXTURE_2D, texid);
-		} else {
-			printf("Could not load texture '%s'\n", resfile_node_name(index, res));
-		}
-	} else {
-		printf("Could not open texture '%s'\n", resfile_node_name(index, res));
+	if (!bindtex(index)) {
+		printf("Could not load texture '%s'\n", resfile_node_name(index, res));
+		glutTimerFunc(0, timer, index + 1);
+		return;
 	}
 
 	glutTimerFunc(1000, timer, index + 1);
@@ -79,8 +92,8 @@ void timer(int index)
 
 int main(int argc, char* argv[])
 {
-	if (2 != argc) {
-		printf("Usage: %s <res>\n", argv[0]);
+	if (argc < 2) {
+		printf("Usage: %s res <name>\n", argv[0]);
 		return 1;
 	}
 
@@ -100,7 +113,6 @@ int main(int argc, char* argv[])
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
-	glutTimerFunc(1000, timer, 0);
 
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glColor3f(1.0f, 1.0f, 1.0f);
@@ -109,6 +121,17 @@ int main(int argc, char* argv[])
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	if (argc > 2) {
+		int index = resfile_node_index(argv[2], res);
+		if (index < 0) {
+			printf("Could not find texture '%s'\n", argv[2]);
+		} else if (!bindtex(index)) {
+			printf("Could not load texture '%s'\n", argv[2]);
+		}
+	} else {
+		glutTimerFunc(0, timer, 0);
+	}
 
 	glutMainLoop();
 	return 0;

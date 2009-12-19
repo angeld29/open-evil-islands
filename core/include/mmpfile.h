@@ -10,8 +10,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern GLuint mmpfile_gentex(memfile* mem);
-extern GLuint mmpfile_gentex_file(const char* path);
+extern GLuint mmpfile_create_texture(GLuint texid, memfile* mem);
 
 #ifdef __cplusplus
 }

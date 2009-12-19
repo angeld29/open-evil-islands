@@ -1,12 +1,14 @@
 /* Based on:
    1. MSDN website (Programming Guide for DDS, Reference for DDS).
    2. DDS GIMP plugin (C) 2004-2008 Shawn Kirst <skirst@insightbb.com>,
-      with parts (C) 2003 Arne Reuter <homepage@arnereuter.de>. */
+      with parts (C) 2003 Arne Reuter <homepage@arnereuter.de>.
+   3. SOIL (Simple OpenGL Image Library) (C) Jonathan Dummer. */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include <assert.h>
 
 #include "byteorder.h"
@@ -37,26 +39,27 @@ typedef struct mmpfile {
 	uint32_t r_bit_mask;
 	uint32_t g_bit_mask;
 	uint32_t b_bit_mask;
-	uint8_t* data;
-	GLint internal_format;
-	GLenum data_format;
-	GLenum data_type;
 } mmpfile;
 
-static int blerp(int a, int b, int x)
+static bool gl_extension_supported(const char* extension)
+{
+	return NULL != strstr((const char*)glGetString(GL_EXTENSIONS), extension);
+}
+
+static int dxt_blerp(int a, int b, int x)
 {
 	int t = (b - a) * x + 128;
 	return a + ((t + (t >> 8)) >> 8);
 }
 
-static void lerp_rgb(uint8_t* dst, uint8_t* a, uint8_t* b, int f)
+static void dxt_lerp_rgb(uint8_t* dst, uint8_t* a, uint8_t* b, int f)
 {
-	dst[0] = blerp(a[0], b[0], f);
-	dst[1] = blerp(a[1], b[1], f);
-	dst[2] = blerp(a[2], b[2], f);
+	dst[0] = dxt_blerp(a[0], b[0], f);
+	dst[1] = dxt_blerp(a[1], b[1], f);
+	dst[2] = dxt_blerp(a[2], b[2], f);
 }
 
-static void rgb565_to_bgr(uint8_t* dst, uint16_t v)
+static void dxt_rgb565_to_bgr(uint8_t* dst, uint16_t v)
 {
 	uint8_t r = (v >> 11) & 0x1f;
 	uint8_t g = (v >> 5) & 0x3f;
@@ -75,12 +78,12 @@ static void dxt_decode_color_block(uint8_t* dst, uint8_t* src,
 	uint16_t c0 = (uint16_t)src[0] | ((uint16_t)src[1] << 8);
 	uint16_t c1 = (uint16_t)src[2] | ((uint16_t)src[3] << 8);
 
-	rgb565_to_bgr(colors[0], c0);
-	rgb565_to_bgr(colors[1], c1);
+	dxt_rgb565_to_bgr(colors[0], c0);
+	dxt_rgb565_to_bgr(colors[1], c1);
 
 	if (c0 > c1) {
-		lerp_rgb(colors[2], colors[0], colors[1], 0x55);
-		lerp_rgb(colors[3], colors[0], colors[1], 0xaa);
+		dxt_lerp_rgb(colors[2], colors[0], colors[1], 0x55);
+		dxt_lerp_rgb(colors[3], colors[0], colors[1], 0xaa);
 	} else {
 		for (int i = 0; i < 3; ++i) {
 			colors[2][i] = (colors[0][i] + colors[1][i] + 1) >> 1;
@@ -144,72 +147,83 @@ static bool dxt_decompress(uint8_t* dst, uint8_t* src,
 	return true;
 }
 
-static bool mmpfile_read_dxt(mmpfile* mmp, memfile* mem)
+static bool dxt_create_texture_indirectly(mmpfile* mmp, memfile* mem)
 {
-	mmp->data = malloc(mmp->width * mmp->height * 4);
-	if (NULL == mmp->data) {
-		return false;
-	}
+	size_t buffer_size = ((mmp->width + 3) >> 2) * ((mmp->height + 3) >> 2);
+	buffer_size *= (MMP_DXT1 == mmp->type) ? 8 : 16;
 
-	size_t linear_size = ((mmp->width + 3) >> 2) * ((mmp->height + 3) >> 2);
-	linear_size *= (MMP_DXT1 == mmp->type) ? 8 : 16;
-
-	uint8_t* buffer = malloc(linear_size);
-	if (NULL == buffer) {
-		return false;
-	}
-
-	if (1 != memfile_read(buffer, linear_size, 1, mem)) {
+	void* buffer = malloc(buffer_size);
+	if (NULL == buffer || 1 != memfile_read(buffer, buffer_size, 1, mem)) {
 		free(buffer);
 		return false;
 	}
 
-	if (!dxt_decompress(mmp->data, buffer, mmp->width, mmp->height, mmp->type)) {
+	void* data = malloc(mmp->width * mmp->height * 4);
+	if (NULL == data || !dxt_decompress(data, buffer,
+							mmp->width, mmp->height, mmp->type)) {
 		free(buffer);
-		return false;
+		free(data);
+		return false;;
 	}
 
-	mmp->internal_format = GL_RGBA;
-	mmp->data_format = GL_RGBA;
-	mmp->data_type = GL_UNSIGNED_BYTE;
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mmp->width,
+		mmp->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 	free(buffer);
+	free(data);
 	return true;
 }
 
-static bool mmpfile_read_raw(GLint internal_format, GLenum data_format,
+static bool dxt_create_texture_directly(mmpfile* mmp, memfile* mem)
+{
+	size_t data_size = ((mmp->width + 3) >> 2) * ((mmp->height + 3) >> 2);
+	data_size *= (MMP_DXT1 == mmp->type) ? 8 : 16;
+
+	void* data = malloc(data_size);
+	if (NULL == data || 1 != memfile_read(data, data_size, 1, mem)) {
+		free(data);
+		return false;
+	}
+
+	glCompressedTexImage2D(GL_TEXTURE_2D, 0, (MMP_DXT1 == mmp->type) ?
+		GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
+		mmp->width, mmp->height, 0, data_size, data);
+
+	free(data);
+	return true;
+}
+
+static bool raw_create_texture(GLint internal_format, GLenum data_format,
 					GLenum data_type, int bpp, mmpfile* mmp, memfile* mem)
 {
 	size_t data_size = mmp->width * mmp->height * bpp;
 
-	mmp->data = malloc(data_size);
-	if (NULL == mmp->data) {
+	void* data = malloc(data_size);
+	if (NULL == data || 1 != memfile_read(data, data_size, 1, mem)) {
+		free(data);
 		return false;
 	}
 
-	if (1 != memfile_read(mmp->data, data_size, 1, mem)) {
-		return false;
-	}
+	// TODO: check capability POWER_OF_TWO and tex max supported size
 
-	mmp->internal_format = internal_format;
-	mmp->data_format = data_format;
-	mmp->data_type = data_type;
+	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, mmp->width,
+			mmp->height, 0, data_format, data_type, data);
 
+	free(data);
 	return true;
 }
 
-static bool mmpfile_read_dd(mmpfile* mmp, memfile* mem)
+static bool dd_create_texture(mmpfile* mmp, memfile* mem)
 {
 	assert(2 == (mmp->rgb_bit_count >> 3));
 	assert(0xf00 == mmp->r_bit_mask);
 	assert(0xf0 == mmp->g_bit_mask);
 	assert(0xf == mmp->b_bit_mask);
 	assert(0xf000 == mmp->a_bit_mask);
-	return mmpfile_read_raw(GL_RGBA, GL_BGRA,
-		GL_UNSIGNED_SHORT_4_4_4_4_REV, 2, mmp, mem);
+	return raw_create_texture(GL_RGBA, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV, 2, mmp, mem);
 }
 
-static bool mmpfile_read_pnt3(mmpfile* mmp, memfile* mem)
+static bool pnt3_create_texture(mmpfile* mmp, memfile* mem)
 {
 	assert(4 == (mmp->rgb_bit_count >> 3));
 	assert(0 == mmp->r_bit_mask);
@@ -219,130 +233,118 @@ static bool mmpfile_read_pnt3(mmpfile* mmp, memfile* mem)
 	if (mmp->mipmap_count_or_size < 1024 * 256) {
 		return false;
 	}
-	return mmpfile_read_raw(GL_RGBA, GL_BGRA,
-		GL_UNSIGNED_INT_8_8_8_8_REV, 4, mmp, mem);
+	return raw_create_texture(GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 4, mmp, mem);
 }
 
-static bool mmpfile_read_pv(mmpfile* mmp, memfile* mem)
+static bool pv_create_texture(mmpfile* mmp, memfile* mem)
 {
 	assert(2 == (mmp->rgb_bit_count >> 3));
 	assert(0xf800 == mmp->r_bit_mask);
 	assert(0x7e0 == mmp->g_bit_mask);
 	assert(0x1f == mmp->b_bit_mask);
 	assert(0 == mmp->a_bit_mask);
-	return mmpfile_read_raw(GL_RGB, GL_RGB,
-		GL_UNSIGNED_SHORT_5_6_5, 2, mmp, mem);
+	return raw_create_texture(GL_RGB, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 2, mmp, mem);
 }
 
-static bool mmpfile_read_qu(mmpfile* mmp, memfile* mem)
+static bool qu_create_texture(mmpfile* mmp, memfile* mem)
 {
 	assert(2 == (mmp->rgb_bit_count >> 3));
 	assert(0x7c00 == mmp->r_bit_mask);
 	assert(0x3e0 == mmp->g_bit_mask);
 	assert(0x1f == mmp->b_bit_mask);
 	assert(0x8000 == mmp->a_bit_mask);
-	return mmpfile_read_raw(GL_RGBA, GL_BGRA,
-		GL_UNSIGNED_SHORT_1_5_5_5_REV, 2, mmp, mem);
+	return raw_create_texture(GL_RGBA, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, 2, mmp, mem);
 }
 
-static bool mmpfile_read_xx(mmpfile* mmp, memfile* mem)
+static bool xx_create_texture(mmpfile* mmp, memfile* mem)
 {
 	assert(4 == (mmp->rgb_bit_count >> 3));
 	assert(0xff0000 == mmp->r_bit_mask);
 	assert(0xff00 == mmp->g_bit_mask);
 	assert(0xff == mmp->b_bit_mask);
 	assert(0xff000000 == mmp->a_bit_mask);
-	return mmpfile_read_raw(GL_RGBA, GL_BGRA,
-		GL_UNSIGNED_INT_8_8_8_8_REV, 4, mmp, mem);
+	return raw_create_texture(GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 4, mmp, mem);
 }
 
-static int mmpfile_close(mmpfile* mmp)
+GLuint mmpfile_create_texture(GLuint texid, memfile* mem)
 {
-	if (NULL == mmp) {
+	if (0 == texid) {
+		glGenTextures(1, &texid);
+	}
+
+	if (0 == texid) {
 		return 0;
 	}
 
-	free(mmp->data);
-
-	free(mmp);
-
-	return 0;
-}
-
-static mmpfile* mmpfile_open(memfile* mem)
-{
-	mmpfile* mmp = calloc(1, sizeof(mmpfile));
-	if (NULL == mmp) {
-		return NULL;
-	}
+	glBindTexture(GL_TEXTURE_2D, texid);
 
 	uint32_t signature;
 	if (1 != memfile_read(&signature, sizeof(uint32_t), 1, mem)) {
-		mmpfile_close(mmp);
-		return NULL;
+		return 0;
 	}
 
 	le2cpu32s(&signature);
 	if (MMP_SIGNATURE != signature) {
-		mmpfile_close(mmp);
-		return NULL;
+		return 0;
 	}
 
+	// TODO: remove mmpfile
+	mmpfile mmp;
 	uint32_t unknown;
-	if (1 != memfile_read(&mmp->width, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mmp->height, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mmp->mipmap_count_or_size, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mmp->type, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mmp->rgb_bit_count, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mmp->a_bit_mask, sizeof(uint32_t), 1, mem) ||
+
+	if (1 != memfile_read(&mmp.width, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mmp.height, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mmp.mipmap_count_or_size, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mmp.type, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mmp.rgb_bit_count, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mmp.a_bit_mask, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&unknown, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&unknown, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mmp->r_bit_mask, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mmp.r_bit_mask, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&unknown, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&unknown, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mmp->g_bit_mask, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mmp.g_bit_mask, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&unknown, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&unknown, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mmp->b_bit_mask, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mmp.b_bit_mask, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&unknown, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&unknown, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&unknown, sizeof(uint32_t), 1, mem)) {
-		mmpfile_close(mmp);
-		return NULL;
+		return 0;
 	}
 
-	le2cpu32s(&mmp->width);
-	le2cpu32s(&mmp->height);
-	le2cpu32s(&mmp->mipmap_count_or_size);
-	le2cpu32s(&mmp->type);
-	le2cpu32s(&mmp->rgb_bit_count);
-	le2cpu32s(&mmp->a_bit_mask);
-	le2cpu32s(&mmp->r_bit_mask);
-	le2cpu32s(&mmp->g_bit_mask);
-	le2cpu32s(&mmp->b_bit_mask);
-
-	// TODO: check capability POWER_OF_TWO and tex max supported size
+	le2cpu32s(&mmp.width);
+	le2cpu32s(&mmp.height);
+	le2cpu32s(&mmp.mipmap_count_or_size);
+	le2cpu32s(&mmp.type);
+	le2cpu32s(&mmp.rgb_bit_count);
+	le2cpu32s(&mmp.a_bit_mask);
+	le2cpu32s(&mmp.r_bit_mask);
+	le2cpu32s(&mmp.g_bit_mask);
+	le2cpu32s(&mmp.b_bit_mask);
 
 	bool ok;
-	switch (mmp->type) {
+	switch (mmp.type) {
 	case MMP_DXT1:
 	case MMP_DXT3:
-		ok = mmpfile_read_dxt(mmp, mem);
+		ok = gl_extension_supported("GL_EXT_texture_compression_s3tc") ?
+			dxt_create_texture_directly(&mmp, mem) :
+			dxt_create_texture_indirectly(&mmp, mem);
 		break;
 	case MMP_DD:
-		ok = mmpfile_read_dd(mmp, mem);
+		ok = dd_create_texture(&mmp, mem);
 		break;
 	case MMP_PNT3:
-		ok = mmpfile_read_pnt3(mmp, mem);
+		ok = pnt3_create_texture(&mmp, mem);
 		break;
 	case MMP_PV:
-		ok = mmpfile_read_pv(mmp, mem);
+		ok = pv_create_texture(&mmp, mem);
 		break;
 	case MMP_QU:
-		ok = mmpfile_read_qu(mmp, mem);
+		ok = qu_create_texture(&mmp, mem);
 		break;
 	case MMP_XX:
-		ok = mmpfile_read_xx(mmp, mem);
+		ok = xx_create_texture(&mmp, mem);
 		break;
 	default:
 		assert(false);
@@ -350,59 +352,13 @@ static mmpfile* mmpfile_open(memfile* mem)
 	}
 
 	if (!ok) {
-		mmpfile_close(mmp);
-		return NULL;
-	}
-
-	return mmp;
-}
-
-GLuint mmpfile_gentex(memfile* mem)
-{
-	GLuint texid;
-	glGenTextures(1, &texid);
-
-	if (0 == texid) {
 		return 0;
 	}
-
-	mmpfile* mmp = mmpfile_open(mem);
-	if (NULL == mmp) {
-		return 0;
-	}
-
-	glBindTexture(GL_TEXTURE_2D, texid);
-	glTexImage2D(GL_TEXTURE_2D, 0, mmp->internal_format, mmp->width,
-		mmp->height, 0, mmp->data_format, mmp->data_type, mmp->data);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-	mmpfile_close(mmp);
-	return texid;
-}
-
-GLuint mmpfile_gentex_file(const char* path)
-{
-	FILE* file = fopen(path, "rb");
-	if (NULL == file) {
-		return 0;
-	}
-
-	fseek(file, 0, SEEK_END);
-	int size = ftell(file);
-	fseek(file, 0, SEEK_SET);
-
-	void* data = malloc(size);
-	fread(data, 1, size, file);
-
-	memfile* mem = memfile_open(data, size, "rb");
-
-	GLuint texid = mmpfile_gentex(mem);
-
-	memfile_close(mem);
 
 	return texid;
 }
