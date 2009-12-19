@@ -15,6 +15,26 @@
 #include "memfile.h"
 #include "mmpfile.h"
 
+/* MPP file format:
+   width: uint32 little-endian
+   height: uint32 little-endian
+   size (PNT3) or mipmap count (other): uint32 little-endian
+   type: uint32 little-endian
+   rgb_bit_count: uint32 little-endian
+   a_bit_mask: uint32 little-endian
+   unknown: uint32 little-endian
+   unknown: uint32 little-endian
+   r_bit_mask: uint32 little-endian
+   unknown: uint32 little-endian
+   unknown: uint32 little-endian
+   g_bit_mask: uint32 little-endian
+   unknown: uint32 little-endian
+   unknown: uint32 little-endian
+   b_bit_mask: uint32 little-endian
+   unknown: uint32 little-endian
+   unknown: uint32 little-endian
+   unknown: uint32 little-endian */
+
 enum {
 	MMP_SIGNATURE = 0x504d4d
 };
@@ -29,6 +49,7 @@ enum {
 	MMP_XX = 0x8888
 };
 
+// TODO: remove mmpfile
 typedef struct mmpfile {
 	uint32_t width;
 	uint32_t height;
@@ -230,7 +251,8 @@ static bool pnt3_create_texture(mmpfile* mmp, memfile* mem)
 	assert(0 == mmp->g_bit_mask);
 	assert(0 == mmp->b_bit_mask);
 	assert(0 == mmp->a_bit_mask);
-	if (mmp->mipmap_count_or_size < 1024 * 256) {
+	if (mmp->mipmap_count_or_size < mmp->width * mmp->height * 4) {
+		// TODO: compressed texture
 		return false;
 	}
 	return raw_create_texture(GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, 4, mmp, mem);
@@ -288,7 +310,6 @@ GLuint mmpfile_create_texture(GLuint texid, memfile* mem)
 		return 0;
 	}
 
-	// TODO: remove mmpfile
 	mmpfile mmp;
 	uint32_t unknown;
 
