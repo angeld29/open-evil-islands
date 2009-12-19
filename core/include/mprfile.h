@@ -10,7 +10,7 @@ extern "C"
 
 typedef struct mprfile mprfile;
 
-extern mprfile* mprfile_open(resfile* res);
+extern mprfile* mprfile_open(resfile* mpr_res, resfile* textures_res);
 
 extern int mprfile_close(mprfile* mpr);
 

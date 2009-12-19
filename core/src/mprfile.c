@@ -11,6 +11,7 @@
 #include "str.h"
 #include "memfile.h"
 #include "resfile.h"
+#include "mmpfile.h"
 #include "mprfile.h"
 
 enum {
@@ -85,16 +86,17 @@ struct mprfile {
 	int32_t* tiles;
 	anim_tile* anim_tiles;
 	sector* sectors;
+	GLuint* texture_ids;
 };
 
-static void normal2vector(uint32_t normal, float vector[3])
+/*static void normal2vector(uint32_t normal, float vector[3])
 {
 	vector[2] = (normal >> 22) / 1000.0f;
 	vector[0] = (((normal >> 11) & 0x7ff) - 1000.0f) / 1000.0f;
 	vector[1] = ((normal & 0x7ff) - 1000.0f) / 1000.0f;
-};
+};*/
 
-static uint32_t vector2normal(float vector[3])
+/*static uint32_t vector2normal(float vector[3])
 {
 	assert(isgreaterequal(vector[2], 0.0f) && islessequal(vector[2], 1.0f));
 	assert(isgreaterequal(vector[0], -1.0f) && islessequal(vector[0], 1.0f));
@@ -102,7 +104,7 @@ static uint32_t vector2normal(float vector[3])
 	return ((uint32_t)(vector[2] * 1000.0f) << 22 ) |
 			((uint32_t)(vector[0] * 1000.0f + 1000.0f) << 11) |
 			(uint32_t)(vector[1] * 1000.0f + 1000.0f);
-};
+};*/
 
 inline uint8_t texture_index(uint16_t value)
 {
@@ -149,11 +151,9 @@ static bool read_anim_tile(anim_tile* at, memfile* mem)
 	return true;
 }
 
-static bool read_header(mprfile* mpr, resfile* res)
+static bool read_header(mprfile* mpr, const char* mpr_name,
+						size_t mpr_name_length, resfile* res)
 {
-	const char* mpr_name = resfile_name(res);
-	size_t mpr_name_length = strlen(mpr_name);
-
 	if (0 == mpr_name_length) {
 		return false;
 	}
@@ -172,13 +172,13 @@ static bool read_header(mprfile* mpr, resfile* res)
 		return false;
 	}
 
-	int32_t signature;
-	if (1 != memfile_read(&signature, sizeof(int32_t), 1, mem)) {
+	uint32_t signature;
+	if (1 != memfile_read(&signature, sizeof(uint32_t), 1, mem)) {
 		memfile_close(mem);
 		return false;
 	}
 
-	le2cpu32s((uint32_t*)&signature);
+	le2cpu32s(&signature);
 	if (MP_SIGNATURE != signature) {
 		memfile_close(mem);
 		return false;
@@ -272,13 +272,13 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 		return false;
 	}
 
-	int32_t signature;
-	if (1 != memfile_read(&signature, sizeof(int32_t), 1, mem)) {
+	uint32_t signature;
+	if (1 != memfile_read(&signature, sizeof(uint32_t), 1, mem)) {
 		memfile_close(mem);
 		return false;
 	}
 
-	le2cpu32s((uint32_t*)&signature);
+	le2cpu32s(&signature);
 	if (SEC_SIGNATURE != signature) {
 		memfile_close(mem);
 		return false;
@@ -318,7 +318,7 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 	}
 
 	sec->land_textures = malloc(TEXTURE_COUNT * sizeof(uint16_t));
-	if (NULL == sec->land_textures || (size_t)TEXTURE_COUNT != memfile_read(
+	if (NULL == sec->land_textures || TEXTURE_COUNT != memfile_read(
 			sec->land_textures, sizeof(uint16_t), TEXTURE_COUNT, mem)) {
 		memfile_close(mem);
 		return false;
@@ -333,9 +333,9 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 		sec->water_allow = malloc(TEXTURE_COUNT * sizeof(int16_t));
 
 		if (NULL == sec->water_textures || NULL == sec->water_allow ||
-				(size_t)TEXTURE_COUNT != memfile_read(sec->water_textures,
+				TEXTURE_COUNT != memfile_read(sec->water_textures,
 					sizeof(uint16_t), TEXTURE_COUNT, mem) ||
-				(size_t)TEXTURE_COUNT != memfile_read(sec->water_allow,
+				TEXTURE_COUNT != memfile_read(sec->water_allow,
 					sizeof(int16_t), TEXTURE_COUNT, mem)) {
 			memfile_close(mem);
 			return false;
@@ -351,16 +351,14 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 	return true;
 }
 
-static bool read_sectors(mprfile* mpr, resfile* res)
+static bool read_sectors(mprfile* mpr, const char* mpr_name,
+							size_t mpr_name_length, resfile* res)
 {
 	mpr->sectors = calloc(mpr->sector_x_count *
 							mpr->sector_y_count, sizeof(sector));
 	if (NULL == mpr->sectors) {
 		return false;
 	}
-
-	const char* mpr_name = resfile_name(res);
-	size_t mpr_name_length = strlen(mpr_name);
 
 	if (mpr_name_length < 4) {
 		return false;
@@ -389,19 +387,81 @@ static bool read_sectors(mprfile* mpr, resfile* res)
 	return true;
 }
 
-mprfile* mprfile_open(resfile* res)
+static bool create_texture(GLuint* texture_id,
+			const char* mmp_name, resfile* res)
+{
+	int mmp_index = resfile_node_index(mmp_name, res);
+	if (mmp_index < 0) {
+		return false;
+	}
+
+	memfile* mem = resfile_node_memfile(mmp_index, res);
+	if (NULL == mem) {
+		return false;
+	}
+
+	*texture_id = mmpfile_create_texture(0, mem);
+
+	if (0 == *texture_id) {
+		memfile_close(mem);
+		return false;
+	}
+
+	memfile_close(mem);
+	return true;
+}
+
+static bool create_textures(mprfile* mpr, const char* mpr_name,
+							size_t mpr_name_length, resfile* res)
+{
+	mpr->texture_ids = malloc(mpr->texture_count * sizeof(GLuint));
+	if (NULL == mpr->texture_ids) {
+		return false;
+	}
+
+	if (mpr_name_length < 4) {
+		return false;
+	}
+
+	// mpr_name without extension
+	char mmp_tmpl_name[mpr_name_length - 4 + 1];
+	strlcpy(mmp_tmpl_name, mpr_name, sizeof(mmp_tmpl_name));
+
+	// mmp_tmpl_name + xxx.mmp
+	char mmp_name[sizeof(mmp_tmpl_name) + 3 + 4];
+
+	for (int i = 0; i < mpr->texture_count; ++i) {
+		snprintf(mmp_name, sizeof(mmp_name), "%s%03d.mmp", mmp_tmpl_name, i);
+
+		if (!create_texture(mpr->texture_ids + i, mmp_name, res)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+mprfile* mprfile_open(resfile* mpr_res, resfile* textures_res)
 {
 	mprfile* mpr = calloc(1, sizeof(mprfile));
 	if (NULL == mpr) {
 		return NULL;
 	}
 
-	if (!read_header(mpr, res)) {
+	const char* mpr_name = resfile_name(mpr_res);
+	size_t mpr_name_length = strlen(mpr_name);
+
+	if (!read_header(mpr, mpr_name, mpr_name_length, mpr_res)) {
 		mprfile_close(mpr);
 		return NULL;
 	}
 
-	if (!read_sectors(mpr, res)) {
+	if (!read_sectors(mpr, mpr_name, mpr_name_length, mpr_res)) {
+		mprfile_close(mpr);
+		return NULL;
+	}
+
+	if (!create_textures(mpr, mpr_name, mpr_name_length, textures_res)) {
 		mprfile_close(mpr);
 		return NULL;
 	}
@@ -431,6 +491,7 @@ int mprfile_close(mprfile* mpr)
 	free(mpr->tiles);
 	free(mpr->anim_tiles);
 	free(mpr->sectors);
+	free(mpr->texture_ids);
 
 	free(mpr);
 
@@ -515,6 +576,8 @@ void mprfile_debug_print(mprfile* mpr)
 
 void mprfile_debug_render(mprfile* mpr)
 {
+	glColor3f(0.0f, 0.0f, 0.5f);
+
 	for (int i = 0; i < mpr->sector_x_count; ++i) {
 		for (int j = 0; j < mpr->sector_y_count; ++j) {
 			sector* sec = mpr->sectors + (i * mpr->sector_y_count + j);

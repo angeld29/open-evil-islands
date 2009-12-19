@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include <GL/glut.h>
 
@@ -86,12 +87,16 @@ static void timer(int index)
 		return;
 	}
 
-	glutTimerFunc(1000, timer, index + 1);
+	glutTimerFunc(1000, timer, true ?
+		rand() % resfile_node_count(res) : index + 1);
+
 	glutPostRedisplay();
 }
 
 int main(int argc, char* argv[])
 {
+	srand(time(NULL));
+
 	if (argc < 2) {
 		printf("Usage: %s res <name>\n", argv[0]);
 		return 1;
@@ -114,13 +119,13 @@ int main(int argc, char* argv[])
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
 
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glColor3f(1.0f, 1.0f, 1.0f);
-
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glColor3f(1.0f, 1.0f, 1.0f);
 
 	if (argc > 2) {
 		int index = resfile_node_index(argv[2], res);

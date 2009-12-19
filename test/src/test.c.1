@@ -1,18 +1,14 @@
-#include <iostream>
-#include <string>
-
-#include <boost/shared_ptr.hpp>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 
 #include <GL/glut.h>
 
 #include "resfile.h"
 #include "mprfile.h"
 
-boost::shared_ptr<resfile> tex_res;
-boost::shared_ptr<resfile> mpr_res;
-boost::shared_ptr<mprfile> mpr;
-
-int elapsed;
+mprfile* mpr;
 
 double eye[3] = { 15.0, -10.0, 15.0 };
 double target[3] = { 15.0, 30.0, 5.0 };
@@ -27,7 +23,7 @@ float camera_angle_x;
 float camera_angle_y;
 float camera_distance;
 
-int drawMode;
+int draw_mode;
 
 void display(void)
 {
@@ -39,9 +35,7 @@ void display(void)
 	glRotatef(camera_angle_x, 1, 0, 0);
 	glRotatef(camera_angle_y, 0, 1, 0);
 
-	glColor3f(0.0f, 0.0f, 0.5f);
-
-	mprfile_debug_render(mpr.get());
+	mprfile_debug_render(mpr);
 
 	glPopMatrix();
 
@@ -59,15 +53,17 @@ void reshape(int width, int height)
 
 void keyboard(unsigned char key, int x, int y)
 {
+	x = x;
+	y = y;
     switch (key) {
 		case 'd': // switch rendering modes (fill -> wire -> point)
 		case 'D':
-			drawMode = ++drawMode % 3;
-			if(drawMode == 0) {				// fill mode
+			draw_mode = (draw_mode + 1) % 3;
+			if(draw_mode == 0) {			// fill mode
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				glEnable(GL_DEPTH_TEST);
 				glEnable(GL_CULL_FACE);
-			} else if(drawMode == 1) {		// wireframe mode
+			} else if(draw_mode == 1) {		// wireframe mode
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 				glDisable(GL_DEPTH_TEST);
 				glDisable(GL_CULL_FACE);
@@ -79,6 +75,7 @@ void keyboard(unsigned char key, int x, int y)
 			break;
 
     	case 27: // escape
+			mprfile_close(mpr);
 			exit(0);
 			break;
 
@@ -130,47 +127,15 @@ void motion(int x, int y)
 
 void idle(void)
 {
-	static int prev_time = glutGet(GLUT_ELAPSED_TIME);
-	int time = glutGet(GLUT_ELAPSED_TIME);
-	elapsed = time - prev_time;
-	prev_time = time;
-
     glutPostRedisplay();
 }
 
 int main(int argc, char* argv[])
 {
 	if (3 != argc) {
-		std::cout << "Usage: " << argv[0] <<
-			" <ei_path> <mpr_name>" << std::endl;
+		printf("Usage: %s ei_path mpr_name\n", argv[0]);
 		return 1;
 	}
-
-	std::string ei_path(argv[1]);
-	std::string tex_path(ei_path + "/Res/textures.res");
-	std::string mpr_path(ei_path + "/Maps/" + argv[2]);
-
-	tex_res = boost::shared_ptr<resfile>(
-		resfile_open_file(tex_path.c_str()), resfile_close);
-	if (!tex_res) {
-		std::cout << "Could not open file '" << tex_path << "'" << std::endl;
-		return 1;
-	}
-
-	mpr_res = boost::shared_ptr<resfile>(
-		resfile_open_file(mpr_path.c_str()), resfile_close);
-	if (!mpr_res) {
-		std::cout << "Could not open file '" << mpr_path << "'" << std::endl;
-		return 1;
-	}
-
-	mpr = boost::shared_ptr<mprfile>(mprfile_open(mpr_res.get()), mprfile_close);
-	if (!mpr) {
-		std::cout << "Could not open file '" << mpr_path << "'" << std::endl;
-		return 1;
-	}
-
-	mprfile_debug_print(mpr.get());
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
@@ -178,7 +143,7 @@ int main(int argc, char* argv[])
 	glutInitWindowSize(800, 600);
 	glutInit(&argc, argv);
 
-	glutCreateWindow("CE");
+	glutCreateWindow("Cursed Earth");
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboard);
 	glutMouseFunc(mouse);
@@ -187,15 +152,51 @@ int main(int argc, char* argv[])
 	glutIdleFunc(idle);
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glClearDepth(1.0f);
+	glClearDepth(1.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(eye[0], eye[1], eye[2],
 			target[0], target[1], target[2],
 			up[0], up[1], up[2]);
+
+	char tex_path[512];
+	snprintf(tex_path, sizeof(tex_path), "%s/Res/textures.res", argv[1]);
+
+	char mpr_path[512];
+	snprintf(mpr_path, sizeof(mpr_path), "%s/Maps/%s", argv[1], argv[2]);
+
+	resfile* tex_res = resfile_open_file(tex_path);
+	if (NULL == tex_res) {
+		printf("Could not open file '%s'\n", tex_path);
+		return 1;
+	}
+
+	resfile* mpr_res = resfile_open_file(mpr_path);
+	if (NULL == mpr_res) {
+		printf("Could not open file '%s'\n", mpr_path);
+		resfile_close(tex_res);
+		return 1;
+	}
+
+	mpr = mprfile_open(mpr_res, tex_res);
+	if (!mpr) {
+		printf("Could not open file '%s'\n", mpr_path);
+		resfile_close(tex_res);
+		resfile_close(mpr_res);
+		return 1;
+	}
+
+	resfile_close(tex_res);
+	resfile_close(mpr_res);
+
+	mprfile_debug_print(mpr);
 
 	glutMainLoop();
 	return 0;
