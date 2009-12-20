@@ -3,6 +3,7 @@
 #include <ctype.h>
 
 #include "byteorder.h"
+#include "io.h"
 #include "str.h"
 #include "memfile.h"
 #include "resfile.h"
@@ -41,7 +42,7 @@ static int name_hash(const char* name, int limit)
 	return sum % limit;
 }
 
-resfile* resfile_open_callbacks(io_callbacks callbacks,
+static resfile* open_callbacks(io_callbacks callbacks,
 								void* client_data, const char* name)
 {
 	resfile* res = calloc(1, sizeof(resfile));
@@ -55,13 +56,13 @@ resfile* resfile_open_callbacks(io_callbacks callbacks,
 		return NULL;
 	}
 
-	int32_t signature;
-	if (1 != (callbacks.read)(&signature, sizeof(int32_t), 1, client_data)) {
+	uint32_t signature;
+	if (1 != (callbacks.read)(&signature, sizeof(uint32_t), 1, client_data)) {
 		resfile_close(res);
 		return NULL;
 	}
 
-	le2cpu32s((uint32_t*)&signature);
+	le2cpu32s(&signature);
 	if (RES_SIGNATURE != signature) {
 		resfile_close(res);
 		return NULL;
@@ -141,7 +142,7 @@ resfile* resfile_open_callbacks(io_callbacks callbacks,
 	return res;
 }
 
-resfile* resfile_open_file(const char* path)
+resfile* resfile_open(const char* path)
 {
 	FILE* file = fopen(path, "rb");
 	if (NULL == file) {
@@ -155,7 +156,7 @@ resfile* resfile_open_file(const char* path)
 		++name;
 	}
 
-	resfile* res = resfile_open_callbacks(IO_CALLBACKS_FILE, file, name);
+	resfile* res = open_callbacks(IO_CALLBACKS_FILE, file, name);
 	if (NULL == res) {
 		fclose(file);
 		return NULL;

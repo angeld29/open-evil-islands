@@ -3,7 +3,6 @@
 
 #include <time.h>
 
-#include "io.h"
 #include "memfilefwd.h"
 #include "resfilefwd.h"
 
@@ -12,10 +11,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern resfile* resfile_open_callbacks(io_callbacks callbacks,
-										void* client_data, const char* name);
-extern resfile* resfile_open_file(const char* path);
-
+extern resfile* resfile_open(const char* path);
 extern int resfile_close(resfile* res);
 
 extern const char* resfile_name(const resfile* res);

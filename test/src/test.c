@@ -102,12 +102,6 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	res = resfile_open_file(argv[1]);
-	if (NULL == res) {
-		printf("Could not open file '%s'\n", argv[1]);
-		return 1;
-	}
-
 	glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA);
 
 	glutInitWindowPosition(300, 500);
@@ -126,6 +120,12 @@ int main(int argc, char* argv[])
 
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glColor3f(1.0f, 1.0f, 1.0f);
+
+	res = resfile_open(argv[1]);
+	if (NULL == res) {
+		printf("Could not open file '%s'\n", argv[1]);
+		return 1;
+	}
 
 	if (argc > 2) {
 		int index = resfile_node_index(argv[2], res);
