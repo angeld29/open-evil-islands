@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "ceio.h"
+#include "cestr.h"
 #include "byteorder.h"
-#include "str.h"
 #include "mobfile.h"
 
 enum {
@@ -43,7 +44,7 @@ static void decrypt_script(char* buf, uint32_t key, int32_t size)
 	}
 }
 
-mobfile* mobfile_open_callbacks(io_callbacks callbacks,
+static mobfile* open_callbacks(io_callbacks callbacks,
 								void* client_data, const char* name)
 {
 	mobfile* mob = calloc(1, sizeof(mobfile));
@@ -133,7 +134,7 @@ mobfile* mobfile_open_callbacks(io_callbacks callbacks,
 	return mob;
 }
 
-mobfile* mobfile_open_file(const char* path)
+mobfile* mobfile_open(const char* path)
 {
 	FILE* file = fopen(path, "rb");
 	if (NULL == file) {
@@ -147,7 +148,7 @@ mobfile* mobfile_open_file(const char* path)
 		++name;
 	}
 
-	mobfile* mob = mobfile_open_callbacks(IO_CALLBACKS_FILE, file, name);
+	mobfile* mob = open_callbacks(IO_CALLBACKS_FILE, file, name);
 	if (NULL == mob) {
 		fclose(file);
 		return NULL;

@@ -2,9 +2,9 @@
 #include <stdint.h>
 #include <ctype.h>
 
+#include "ceio.h"
+#include "cestr.h"
 #include "byteorder.h"
-#include "io.h"
-#include "str.h"
 #include "memfile.h"
 #include "resfile.h"
 

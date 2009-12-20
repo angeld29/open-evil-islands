@@ -7,8 +7,8 @@
 
 #include <GL/gl.h>
 
+#include "cestr.h"
 #include "byteorder.h"
-#include "str.h"
 #include "memfile.h"
 #include "resfile.h"
 #include "mmpfile.h"
@@ -106,17 +106,17 @@ struct mprfile {
 			(uint32_t)(vector[1] * 1000.0f + 1000.0f);
 };*/
 
-inline uint8_t texture_index(uint16_t value)
+static inline uint8_t texture_index(uint16_t value)
 {
 	return value & 0x003f;
 }
 
-inline uint8_t texture_number(uint16_t value)
+static inline uint8_t texture_number(uint16_t value)
 {
 	return (value & 0x3fc0) >> 6;
 }
 
-inline uint8_t texture_angle(uint16_t value)
+static inline uint8_t texture_angle(uint16_t value)
 {
 	return (value & 0xc000) >> 14;
 }
@@ -540,9 +540,9 @@ void mprfile_debug_print(mprfile* mpr)
 		printf("sector %d:\n", i);
 		printf("\twater: %hhd\n", sec->water);
 		for (int j = 0; j < VERTEX_COUNT; ++j) {
-			/*float vector[3];
-			normal2vector(sec->land_vertices[j].normal, vector);
-			printf("\tland vertex %3d: %hhd %hhd %hu %f %f %f\n", j,
+			//float vector[3] = { 0.0f };
+			//normal2vector(sec->land_vertices[j].normal, vector);
+			/*printf("\tland vertex %3d: %hhd %hhd %hu %f %f %f\n", j,
 				sec->land_vertices[j].offset_x,
 				sec->land_vertices[j].offset_y,
 				sec->land_vertices[j].coord_z,
@@ -574,29 +574,43 @@ void mprfile_debug_print(mprfile* mpr)
 	}
 }
 
-void mprfile_debug_render(mprfile* mpr)
+void mprfile_debug_render(int val, mprfile* mpr)
 {
-	glColor3f(0.0f, 0.0f, 0.5f);
-
 	for (int i = 0; i < mpr->sector_x_count; ++i) {
 		for (int j = 0; j < mpr->sector_y_count; ++j) {
 			sector* sec = mpr->sectors + (i * mpr->sector_y_count + j);
-			for (int k = 0; k < VERTEX_SIDE - 1; ++k) {
-				for (int l = 0; l < VERTEX_SIDE - 1; ++l) {
+			for (int k = 0; k < VERTEX_SIDE - 2; k += 2) {
+				for (int l = 0; l < VERTEX_SIDE - 2; l += 2) {
+					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+					glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(sec->land_textures[(k / 2) * TEXTURE_SIDE + l / 2])]);
 					glBegin(GL_TRIANGLE_STRIP);
-
-					glVertex3f(k + j * VERTEX_SIDE, l + i * VERTEX_SIDE,
+					glTexCoord2f(1.0f / 16.0f, 1.0f / 16.0f);
+					glVertex3f(k + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
 							0.025f * (sec->land_vertices[k * VERTEX_SIDE + l].coord_z / mpr->max_z));
-
-					glVertex3f(k + 1 + j * VERTEX_SIDE, l + i * VERTEX_SIDE,
+					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
 							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + l].coord_z / mpr->max_z));
-
-					glVertex3f(k + j * VERTEX_SIDE, l + 1 + i * VERTEX_SIDE,
+					glVertex3f(k + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
 							0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z));
-
-					glVertex3f(k + 1 + j * VERTEX_SIDE, l + 1 + i * VERTEX_SIDE,
+					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
 							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z));
-
+					glVertex3f(k + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z));
+					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z));
+					glEnd();
+					glBegin(GL_TRIANGLE_STRIP);
+					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + l].coord_z / mpr->max_z));
+					glVertex3f(k + 2 + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + l].coord_z / mpr->max_z));
+					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z));
+					glVertex3f(k + 2 + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z));
+					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z));
+					glVertex3f(k + 2 + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z));
 					glEnd();
 				}
 			}

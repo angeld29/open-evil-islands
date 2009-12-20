@@ -1,8 +1,6 @@
 #ifndef CE_MOBFILE_H
 #define CE_MOBFILE_H
 
-#include "io.h"
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -10,10 +8,7 @@ extern "C"
 
 typedef struct mobfile mobfile;
 
-extern mobfile* mobfile_open_callbacks(io_callbacks callbacks,
-										void* client_data, const char* name);
-extern mobfile* mobfile_open_file(const char* path);
-
+extern mobfile* mobfile_open(const char* path);
 extern int mobfile_close(mobfile* mob);
 
 extern void mobfile_debug_print(mobfile* mob);

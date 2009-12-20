@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "str.h"
+#include "cestr.h"
 
 char* strleft(const char* s, size_t n)
 {

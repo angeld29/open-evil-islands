@@ -1,142 +1,208 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <time.h>
+#include <string.h>
 
 #include <GL/glut.h>
 
-#include "memfile.h"
 #include "resfile.h"
-#include "mmpfile.h"
+#include "mprfile.h"
 
-resfile* res;
-GLuint texid;
+mprfile* mpr;
 
-static bool bindtex(int index)
+double eye[3] = { 15.0, -10.0, 15.0 };
+double target[3] = { 15.0, 30.0, 5.0 };
+double up[3] = { 0.0, 1.0, 0.0 };
+
+bool mouse_left_down;
+bool mouse_right_down;
+bool mouse_middle_down;
+
+float mouse_x, mouse_y;
+float camera_angle_x;
+float camera_angle_y;
+float camera_distance;
+
+int draw_mode;
+int val;
+
+void display(void)
 {
-	memfile* mem = resfile_node_memfile(index, res);
-	if (NULL == mem) {
-		return false;
-	}
-	texid = mmpfile_create_texture(texid, mem);
-	memfile_close(mem);
-	if (0 == texid) {
-		return false;
-	}
-	glBindTexture(GL_TEXTURE_2D, texid);
-	return true;
-}
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-static void display(void)
-{
-	const float w = 2.0f, h = 2.0f;
+	glPushMatrix();
 
-	glClear(GL_COLOR_BUFFER_BIT);
+	glTranslatef(0, camera_distance, 0);
+	glRotatef(camera_angle_x, 1, 0, 0);
+	glRotatef(camera_angle_y, 0, 1, 0);
 
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -10.0f);
+	mprfile_debug_render(val, mpr);
 
-	glBegin(GL_QUADS);
-	glTexCoord2f(1.0f, 1.0f); glVertex2f(w, -h);
-	glTexCoord2f(1.0f, 0.0f); glVertex2f(w, h);
-	glTexCoord2f(0.0f, 0.0f); glVertex2f(-w, h);
-	glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h);
-	glTexCoord2f(1.0f, 1.0f); glVertex2f(-w, -h);
-	glTexCoord2f(1.0f, 0.0f); glVertex2f(-w, h);
-	glTexCoord2f(0.0f, 0.0f); glVertex2f(w, h);
-	glTexCoord2f(0.0f, 1.0f); glVertex2f(w, -h);
-	glEnd();
+	glPopMatrix();
 
 	glutSwapBuffers();
 }
 
-static void reshape(int width, int height)
+void reshape(int width, int height)
 {
-	glViewport(0, 0, width, height);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(30.0, (GLdouble)width / height, 1.0, 100.0);
+    glViewport(0, 0, width, height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-10.0, 150.0, -10.0, 150.0, -50.0, 1000.0);
 	glMatrixMode(GL_MODELVIEW);
 }
 
-static void keyboard(unsigned char key, int x, int y)
+void keyboard(unsigned char key, int x, int y)
 {
 	x = x;
 	y = y;
-	switch (key) {
-	case 27: // escape
-		resfile_close(res);
-		exit(0);
-		break;
+    switch (key) {
+		case 'd': // switch rendering modes (fill -> wire -> point)
+		case 'D':
+			draw_mode = (draw_mode + 1) % 3;
+			if(draw_mode == 0) {			// fill mode
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				glEnable(GL_DEPTH_TEST);
+				glEnable(GL_CULL_FACE);
+			} else if(draw_mode == 1) {		// wireframe mode
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				glDisable(GL_DEPTH_TEST);
+				glDisable(GL_CULL_FACE);
+			} else {						// point mode
+				glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+				glDisable(GL_DEPTH_TEST);
+				glDisable(GL_CULL_FACE);
+			}
+			break;
+
+		case 't':
+		case 'T':
+			++val;
+			break;
+
+    	case 27: // escape
+			mprfile_close(mpr);
+			exit(0);
+			break;
+
+		default:
+			break;
+    }
+}
+
+void mouse(int button, int state, int x, int y)
+{
+    mouse_x = x;
+    mouse_y = y;
+
+    if (button == GLUT_LEFT_BUTTON) {
+		if (state == GLUT_DOWN) {
+			mouse_left_down = true;
+		} else if (state == GLUT_UP) {
+			mouse_left_down = false;
+		}
+	} else if (button == GLUT_RIGHT_BUTTON) {
+		if (state == GLUT_DOWN) {
+			mouse_right_down = true;
+		} else if(state == GLUT_UP) {
+			mouse_right_down = false;
+		}
+	} else if(button == GLUT_MIDDLE_BUTTON) {
+		if (state == GLUT_DOWN) {
+			mouse_middle_down = true;
+        } else if(state == GLUT_UP) {
+			mouse_middle_down = false;
+		}
 	}
 }
 
-static void timer(int index)
+void motion(int x, int y)
 {
-	if (0 == resfile_node_count(res)) {
-		return;
-	}
+    if (mouse_left_down) {
+        camera_angle_y += (x - mouse_x);
+        camera_angle_x += (y - mouse_y);
+        mouse_x = x;
+        mouse_y = y;
+    }
 
-	if (index >= resfile_node_count(res)) {
-		index = 0;
-	}
+    if (mouse_right_down) {
+        camera_distance += (y - mouse_y) * 0.2f;
+        mouse_y = y;
+    }
+}
 
-	if (!bindtex(index)) {
-		printf("Could not load texture '%s'\n", resfile_node_name(index, res));
-		glutTimerFunc(0, timer, index + 1);
-		return;
-	}
-
-	glutTimerFunc(1000, timer, true ?
-		rand() % resfile_node_count(res) : index + 1);
-
-	glutPostRedisplay();
+void idle(void)
+{
+    glutPostRedisplay();
 }
 
 int main(int argc, char* argv[])
 {
-	srand(time(NULL));
-
-	if (argc < 2) {
-		printf("Usage: %s res <name>\n", argv[0]);
+	if (3 != argc) {
+		printf("Usage: %s ei_path mpr_name\n", argv[0]);
 		return 1;
 	}
 
-	glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA);
+	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
-	glutInitWindowPosition(300, 500);
-	glutInitWindowSize(400, 300);
+	glutInitWindowPosition(100, 100);
+	glutInitWindowSize(800, 600);
 	glutInit(&argc, argv);
 
-	glutCreateWindow("test");
+	glutCreateWindow("Cursed Earth");
 	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
+	glutMouseFunc(mouse);
+	glutMotionFunc(motion);
+	glutReshapeFunc(reshape);
+	glutIdleFunc(idle);
 
-	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glColor3f(1.0f, 1.0f, 1.0f);
+	glClearDepth(1.0);
 
-	res = resfile_open(argv[1]);
-	if (NULL == res) {
-		printf("Could not open file '%s'\n", argv[1]);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(eye[0], eye[1], eye[2],
+			target[0], target[1], target[2],
+			up[0], up[1], up[2]);
+
+	char tex_path[512];
+	snprintf(tex_path, sizeof(tex_path), "%s/Res/textures.res", argv[1]);
+
+	char mpr_path[512];
+	snprintf(mpr_path, sizeof(mpr_path), "%s/Maps/%s", argv[1], argv[2]);
+
+	resfile* tex_res = resfile_open(tex_path);
+	if (NULL == tex_res) {
+		printf("Could not open file '%s'\n", tex_path);
 		return 1;
 	}
 
-	if (argc > 2) {
-		int index = resfile_node_index(argv[2], res);
-		if (index < 0) {
-			printf("Could not find texture '%s'\n", argv[2]);
-		} else if (!bindtex(index)) {
-			printf("Could not load texture '%s'\n", argv[2]);
-		}
-	} else {
-		glutTimerFunc(0, timer, 0);
+	resfile* mpr_res = resfile_open(mpr_path);
+	if (NULL == mpr_res) {
+		printf("Could not open file '%s'\n", mpr_path);
+		resfile_close(tex_res);
+		return 1;
 	}
+
+	mpr = mprfile_open(mpr_res, tex_res);
+	if (!mpr) {
+		printf("Could not open file '%s'\n", mpr_path);
+		resfile_close(tex_res);
+		resfile_close(mpr_res);
+		return 1;
+	}
+
+	resfile_close(tex_res);
+	resfile_close(mpr_res);
+
+	mprfile_debug_print(mpr);
 
 	glutMainLoop();
 	return 0;

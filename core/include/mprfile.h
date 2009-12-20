@@ -15,7 +15,7 @@ extern mprfile* mprfile_open(resfile* mpr_res, resfile* textures_res);
 extern int mprfile_close(mprfile* mpr);
 
 extern void mprfile_debug_print(mprfile* mpr);
-extern void mprfile_debug_render(mprfile* mpr);
+extern void mprfile_debug_render(int val, mprfile* mpr);
 
 #ifdef __cplusplus
 }
