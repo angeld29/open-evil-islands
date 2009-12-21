@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "ceio.h"
 
 static int close_file(void* client_data)

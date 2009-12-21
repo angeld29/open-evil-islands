@@ -1,7 +1,7 @@
 #ifndef CE_STR_H
 #define CE_STR_H
 
-#include <string.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C"

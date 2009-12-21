@@ -11,7 +11,9 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern resfile* resfile_open(const char* path);
+/* Resfile takes ownership of the memfile if successfull. */
+extern resfile* resfile_open_memfile(const char* name, memfile* mem);
+extern resfile* resfile_open_file(const char* path);
 extern int resfile_close(resfile* res);
 
 extern const char* resfile_name(const resfile* res);

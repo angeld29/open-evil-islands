@@ -1,7 +1,7 @@
 #ifndef CE_IO_H
 #define CE_IO_H
 
-#include <stdio.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C"

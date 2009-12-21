@@ -1,8 +1,9 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <ctype.h>
 
-#include "ceio.h"
 #include "cestr.h"
 #include "byteorder.h"
 #include "memfile.h"
@@ -28,9 +29,8 @@ struct resfile {
 	int32_t metadata_offset;
 	int32_t names_length;
 	char* names;
-	io_callbacks callbacks;
-	void* client_data;
 	resfile_node* nodes;
+	memfile* mem;
 };
 
 static int name_hash(const char* name, int limit)
@@ -42,8 +42,7 @@ static int name_hash(const char* name, int limit)
 	return sum % limit;
 }
 
-static resfile* open_callbacks(io_callbacks callbacks,
-								void* client_data, const char* name)
+extern resfile* resfile_open_memfile(const char* name, memfile* mem)
 {
 	resfile* res = calloc(1, sizeof(resfile));
 	if (NULL == res) {
@@ -57,7 +56,7 @@ static resfile* open_callbacks(io_callbacks callbacks,
 	}
 
 	uint32_t signature;
-	if (1 != (callbacks.read)(&signature, sizeof(uint32_t), 1, client_data)) {
+	if (1 != memfile_read(&signature, sizeof(uint32_t), 1, mem)) {
 		resfile_close(res);
 		return NULL;
 	}
@@ -68,12 +67,9 @@ static resfile* open_callbacks(io_callbacks callbacks,
 		return NULL;
 	}
 
-	if (1 != (callbacks.read)(&res->node_count,
-						sizeof(int32_t), 1, client_data) ||
-			1 != (callbacks.read)(&res->metadata_offset,
-						sizeof(int32_t), 1, client_data) ||
-			1 != (callbacks.read)(&res->names_length,
-						sizeof(int32_t), 1, client_data)) {
+	if (1 != memfile_read(&res->node_count, sizeof(int32_t), 1, mem) ||
+			1 != memfile_read(&res->metadata_offset, sizeof(int32_t), 1, mem) ||
+			1 != memfile_read(&res->names_length, sizeof(int32_t), 1, mem)) {
 		resfile_close(res);
 		return NULL;
 	}
@@ -88,25 +84,19 @@ static resfile* open_callbacks(io_callbacks callbacks,
 		return NULL;
 	}
 
-	if (0 != (callbacks.seek)(res->metadata_offset, SEEK_SET, client_data)) {
+	if (0 != memfile_seek(res->metadata_offset, SEEK_SET, mem)) {
 		resfile_close(res);
 		return NULL;
 	}
 
 	for (int i = 0; i < res->node_count; ++i) {
 		resfile_node* node = res->nodes + i;
-		if (1 != (callbacks.read)(&node->next_index,
-							sizeof(int32_t), 1, client_data) ||
-				1 != (callbacks.read)(&node->data_length,
-							sizeof(int32_t), 1, client_data) ||
-				1 != (callbacks.read)(&node->data_offset,
-							sizeof(int32_t), 1, client_data) ||
-				1 != (callbacks.read)(&node->modified,
-							sizeof(int32_t), 1, client_data) ||
-				1 != (callbacks.read)(&node->name_length,
-							sizeof(int16_t), 1, client_data) ||
-				1 != (callbacks.read)(&node->name_offset,
-							sizeof(int32_t), 1, client_data)) {
+		if (1 != memfile_read(&node->next_index, sizeof(int32_t), 1, mem) ||
+				1 != memfile_read(&node->data_length, sizeof(int32_t), 1, mem) ||
+				1 != memfile_read(&node->data_offset, sizeof(int32_t), 1, mem) ||
+				1 != memfile_read(&node->modified, sizeof(int32_t), 1, mem) ||
+				1 != memfile_read(&node->name_length, sizeof(int16_t), 1, mem) ||
+				1 != memfile_read(&node->name_offset, sizeof(int32_t), 1, mem)) {
 			resfile_close(res);
 			return NULL;
 		}
@@ -120,32 +110,35 @@ static resfile* open_callbacks(io_callbacks callbacks,
 
 	res->names = malloc(res->names_length);
 	if (NULL == res->names ||
-			(size_t)res->names_length != (callbacks.read)(res->names,
-									1, res->names_length, client_data)) {
+			1 != memfile_read(res->names, res->names_length, 1, mem)) {
 		resfile_close(res);
 		return NULL;
 	}
 
 	for (int i = 0; i < res->node_count; ++i) {
 		resfile_node* node = res->nodes + i;
-		node->name = strndup(res->names +
-			node->name_offset, node->name_length);
+		node->name = strndup(res->names + node->name_offset, node->name_length);
 		if (NULL == node->name) {
 			resfile_close(res);
 			return NULL;
 		}
 	}
 
-	res->callbacks = callbacks;
-	res->client_data = client_data;
+	res->mem = mem;
 
 	return res;
 }
 
-resfile* resfile_open(const char* path)
+resfile* resfile_open_file(const char* path)
 {
 	FILE* file = fopen(path, "rb");
 	if (NULL == file) {
+		return NULL;
+	}
+
+	memfile* mem = memfile_open_callbacks(IO_CALLBACKS_FILE, file);
+	if (NULL == mem) {
+		fclose(file);
 		return NULL;
 	}
 
@@ -156,9 +149,9 @@ resfile* resfile_open(const char* path)
 		++name;
 	}
 
-	resfile* res = open_callbacks(IO_CALLBACKS_FILE, file, name);
+	resfile* res = resfile_open_memfile(name, mem);
 	if (NULL == res) {
-		fclose(file);
+		memfile_close(mem);
 		return NULL;
 	}
 
@@ -171,10 +164,6 @@ int resfile_close(resfile* res)
 		return 0;
 	}
 
-	if (NULL != res->callbacks.close && NULL != res->client_data) {
-		(res->callbacks.close)(res->client_data);
-	}
-
 	if (NULL != res->nodes) {
 		for (int i = 0; i < res->node_count; ++i) {
 			free(res->nodes[i].name);
@@ -184,6 +173,8 @@ int resfile_close(resfile* res)
 	free(res->name);
 	free(res->names);
 	free(res->nodes);
+
+	memfile_close(res->mem);
 
 	free(res);
 
@@ -237,15 +228,13 @@ memfile* resfile_node_memfile(int index, resfile* res)
 		return NULL;
 	}
 
-	if (0 != (res->callbacks.seek)(node->data_offset,
-									SEEK_SET, res->client_data) ||
-			(size_t)node->data_length != (res->callbacks.read)(data,
-							1, node->data_length, res->client_data)) {
+	if (0 != memfile_seek(node->data_offset, SEEK_SET, res->mem) ||
+			1 != memfile_read(data, node->data_length, 1, res->mem)) {
 		free(data);
 		return NULL;
 	}
 
-	memfile* mem = memfile_open(data, node->data_length, "rb");
+	memfile* mem = memfile_open_data(data, node->data_length, "rb");
 	if (NULL == mem) {
 		free(data);
 		return NULL;

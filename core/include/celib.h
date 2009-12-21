@@ -1,8 +1,6 @@
 #ifndef CE_LIB_H
 #define CE_LIB_H
 
-#include <stdlib.h>
-
 #ifdef __cplusplus
 extern "C"
 {

@@ -171,8 +171,14 @@ static bool dxt_decompress(uint8_t* dst, uint8_t* src,
 static bool dxt_create_texture_indirectly(int width, int height,
 						int mipmap_count, int format, memfile* mem)
 {
-	// TODO: add mipmaps
-	assert(false);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	if (mipmap_count > 1) {
+		glTexParameteri(GL_TEXTURE_2D,
+			GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
+	}
 
 	size_t buffer_size = ((width + 3) >> 2) * ((height + 3) >> 2);
 	buffer_size *= (MMP_DXT1 == format) ? 8 : 16;
@@ -194,6 +200,26 @@ static bool dxt_create_texture_indirectly(int width, int height,
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width,
 		height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
+	for (int i = 1; i < mipmap_count; ++i) {
+		int mipmap_width = width >> i;
+		int mipmap_height = height >> i;
+
+		size_t mipmap_buffer_size = ((mipmap_width + 3) >> 2) *
+									((mipmap_height + 3) >> 2);
+		mipmap_buffer_size *= (MMP_DXT1 == format) ? 8 : 16;
+
+		if (1 != memfile_read(buffer, mipmap_buffer_size, 1, mem) ||
+				!dxt_decompress(data, buffer, mipmap_width,
+									mipmap_height, format)) {
+			free(buffer);
+			free(data);
+			return false;
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA, mipmap_width,
+			mipmap_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	}
+
 	free(buffer);
 	free(data);
 	return true;
@@ -204,6 +230,7 @@ static bool dxt_create_texture_directly(int width, int height,
 {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 	if (mipmap_count > 1) {
 		glTexParameteri(GL_TEXTURE_2D,
 			GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -251,6 +278,7 @@ static bool raw_create_texture(GLenum internal_format,
 {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 	if (mipmap_count > 1) {
 		glTexParameteri(GL_TEXTURE_2D,
 			GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -305,10 +333,37 @@ static bool pnt3_create_texture(mmpfile* mmp, memfile* mem)
 	assert(0 == mmp->g_bit_mask);
 	assert(0 == mmp->b_bit_mask);
 	assert(0 == mmp->a_bit_mask);
+
 	if (mmp->mipmap_count_or_size < mmp->width * mmp->height * 4) {
-		// TODO: compressed texture
-		return false;
+		uint8_t* data = malloc(mmp->width * mmp->height * 4);
+
+		for (uint8_t* d = data; ;) {
+			uint32_t value;
+			if (0 == memfile_read(&value, sizeof(uint32_t), 1, mem)) {
+				break;
+			}
+			if (0 < le2cpu32(value) && le2cpu32(value) < 1000000) {
+				memset(d, '\0', value);
+				d += value;
+			} else {
+				memcpy(d, &value, sizeof(uint32_t));
+				d += sizeof(uint32_t);
+			}
+		}
+
+		memfile* mem = memfile_open_data(data, mmp->width * mmp->height * 4, "rb");
+		if (NULL == mem) {
+			free(data);
+			return false;
+		}
+
+		bool ok = raw_create_texture(GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
+			mmp->width, mmp->height, 0, 4, mem);
+
+		memfile_close(mem);
+		return ok;
 	}
+
 	return raw_create_texture(GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
 		mmp->width, mmp->height, 0, 4, mem);
 }
