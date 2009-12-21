@@ -401,7 +401,7 @@ static bool create_texture(GLuint* texture_id,
 		return false;
 	}
 
-	*texture_id = mmpfile_create_texture(0, mem);
+	*texture_id = mmpfile_generate_texture(0, mem);
 
 	if (0 == *texture_id) {
 		memfile_close(mem);
