@@ -581,6 +581,12 @@ void mprfile_debug_print(mprfile* mpr)
 
 void mprfile_debug_render(int val, mprfile* mpr)
 {
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
 	for (unsigned int i = 0; i < mpr->sector_x_count; ++i) {
 		for (unsigned int j = 0; j < mpr->sector_y_count; ++j) {
 			sector* sec = mpr->sectors + (i * mpr->sector_y_count + j);
@@ -588,37 +594,65 @@ void mprfile_debug_render(int val, mprfile* mpr)
 				for (unsigned int l = 0; l < VERTEX_SIDE - 2; l += 2) {
 					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 					glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(sec->land_textures[(k / 2) * TEXTURE_SIDE + l / 2])]);
-					glBegin(GL_TRIANGLE_STRIP);
-					glTexCoord2f(1.0f / 16.0f, 1.0f / 16.0f);
-					glVertex3f(k + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[k * VERTEX_SIDE + l].coord_z / mpr->max_z));
-					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + l].coord_z / mpr->max_z));
-					glVertex3f(k + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z));
-					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z));
-					glVertex3f(k + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z));
-					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z));
-					glEnd();
-					glBegin(GL_TRIANGLE_STRIP);
-					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + l].coord_z / mpr->max_z));
-					glVertex3f(k + 2 + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + l].coord_z / mpr->max_z));
-					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z));
-					glVertex3f(k + 2 + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z));
-					glVertex3f(k + 1 + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z));
-					glVertex3f(k + 2 + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z));
-					glEnd();
+
+					int idx = texture_index(sec->land_textures[(k / 2) * TEXTURE_SIDE + l / 2]);
+					float u = idx / 8;
+					float v = idx - u * 8.0f;
+					u /= 8.0f;
+					v /= 8.0f;
+					float uv_step = 1.0f / 8.0f;
+					float uv_half_step = uv_step / 2.0f;
+
+					GLfloat vertices[] = {
+						k + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[k * VERTEX_SIDE + l].coord_z / mpr->max_z),
+						k + 1 + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + l].coord_z / mpr->max_z),
+						k + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z),
+						k + 1 + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z),
+						k + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z),
+						k + 1 + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z),
+						k + 2 + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + l].coord_z / mpr->max_z),
+						k + 2 + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z),
+						k + 2 + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
+							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z)
+					};
+
+					GLfloat texcoords[] = {
+						u + uv_step, v,
+						u + uv_step, v + uv_half_step,
+						u + uv_half_step, v,
+						u + uv_half_step, v + uv_half_step,
+						u, v,
+						u, v + uv_half_step,
+						u + uv_step, v + uv_step,
+						u + uv_half_step, v + uv_step,
+						u, v + uv_step,
+					};
+
+					glVertexPointer(3, GL_FLOAT, 0, vertices);
+					glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
+
+					GLubyte indices[2][6] = {
+						{ 0, 1, 2, 3, 4, 5 },
+						{ 1, 6, 2, 7, 5, 8 }
+					};
+
+					glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[0]);
+					glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[1]);
 				}
 			}
 		}
 	}
+
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
