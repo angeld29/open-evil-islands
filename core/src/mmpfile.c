@@ -1,8 +1,9 @@
-/* Based on:
-   1. MSDN website (Programming Guide for DDS, Reference for DDS).
-   2. DDS GIMP plugin (C) 2004-2008 Shawn Kirst <skirst@insightbb.com>,
-      with parts (C) 2003 Arne Reuter <homepage@arnereuter.de>.
-   3. SOIL (Simple OpenGL Image Library) (C) Jonathan Dummer. */
+/*  Based on:
+ *  1. MSDN website (Programming Guide for DDS, Reference for DDS).
+ *  2. DDS GIMP plugin (C) 2004-2008 Shawn Kirst <skirst@insightbb.com>,
+ *     with parts (C) 2003 Arne Reuter <homepage@arnereuter.de>.
+ *  3. SOIL (Simple OpenGL Image Library) (C) Jonathan Dummer.
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,30 +12,32 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
+#include "gllib.h"
 #include "byteorder.h"
 #include "memfile.h"
 #include "mmpfile.h"
 
-/* MPP file format:
-   width: uint32 little-endian
-   height: uint32 little-endian
-   size (PNT3) or mipmap count (other): uint32 little-endian
-   format: uint32 little-endian
-   rgb_bit_count: uint32 little-endian
-   a_bit_mask: uint32 little-endian
-   unknown: uint32 little-endian
-   unknown: uint32 little-endian
-   r_bit_mask: uint32 little-endian
-   unknown: uint32 little-endian
-   unknown: uint32 little-endian
-   g_bit_mask: uint32 little-endian
-   unknown: uint32 little-endian
-   unknown: uint32 little-endian
-   b_bit_mask: uint32 little-endian
-   unknown: uint32 little-endian
-   unknown: uint32 little-endian
-   unknown: uint32 little-endian */
+/*  MPP file format:
+ *
+ *  width: uint32 little-endian
+ *  height: uint32 little-endian
+ *  size (PNT3) or mipmap count (other): uint32 little-endian
+ *  format: uint32 little-endian
+ *  rgb_bit_count: uint32 little-endian
+ *  a_bit_mask: uint32 little-endian
+ *  unknown: uint32 little-endian
+ *  unknown: uint32 little-endian
+ *  r_bit_mask: uint32 little-endian
+ *  unknown: uint32 little-endian
+ *  unknown: uint32 little-endian
+ *  g_bit_mask: uint32 little-endian
+ *  unknown: uint32 little-endian
+ *  unknown: uint32 little-endian
+ *  b_bit_mask: uint32 little-endian
+ *  unknown: uint32 little-endian
+ *  unknown: uint32 little-endian
+ *  unknown: uint32 little-endian
+*/
 
 enum {
 	MMP_SIGNATURE = 0x504d4d
@@ -49,6 +52,47 @@ enum {
 	MMP_QU = 0x5551,
 	MMP_XX = 0x8888
 };
+
+static bool raw_generate_texture(GLenum internal_format,
+		GLenum data_format, GLenum data_type, int width,
+		int height, int mipmap_count, int bpp, memfile* mem)
+{
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	if (mipmap_count > 1) {
+		glTexParameteri(GL_TEXTURE_2D,
+			GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
+	}
+
+	size_t data_size = width * height * bpp;
+
+	void* data = malloc(data_size);
+	if (NULL == data || 1 != memfile_read(data, data_size, 1, mem)) {
+		free(data);
+		return false;
+	}
+
+	glTexImage2D(GL_TEXTURE_2D, 0, internal_format,
+		width, height, 0, data_format, data_type, data);
+
+	for (int i = 1; i < mipmap_count; ++i) {
+		int mipmap_width = width >> i;
+		int mipmap_height = height >> i;
+
+		if (1 != memfile_read(data, mipmap_width * mipmap_height * bpp, 1, mem)) {
+			free(data);
+			return false;
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, i, internal_format,
+			mipmap_width, mipmap_height, 0, data_format, data_type, data);
+	}
+
+	free(data);
+	return true;
+}
 
 static int dxt_blerp(int a, int b, int x)
 {
@@ -163,7 +207,7 @@ static bool dxt_generate_texture_indirectly(int width, int height,
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
 	}
 
-	size_t buffer_size = ((width + 3) >> 2) * ((height + 3) >> 2);
+	int buffer_size = ((width + 3) >> 2) * ((height + 3) >> 2);
 	buffer_size *= (MMP_DXT1 == format) ? 8 : 16;
 
 	void* buffer = malloc(buffer_size);
@@ -177,7 +221,7 @@ static bool dxt_generate_texture_indirectly(int width, int height,
 							width, height, format)) {
 		free(buffer);
 		free(data);
-		return false;;
+		return false;
 	}
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width,
@@ -187,7 +231,7 @@ static bool dxt_generate_texture_indirectly(int width, int height,
 		int mipmap_width = width >> i;
 		int mipmap_height = height >> i;
 
-		size_t mipmap_buffer_size = ((mipmap_width + 3) >> 2) *
+		int mipmap_buffer_size = ((mipmap_width + 3) >> 2) *
 									((mipmap_height + 3) >> 2);
 		mipmap_buffer_size *= (MMP_DXT1 == format) ? 8 : 16;
 
@@ -220,7 +264,7 @@ static bool dxt_generate_texture_directly(int width, int height,
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
 	}
 
-	size_t data_size = ((width + 3) >> 2) * ((height + 3) >> 2);
+	int data_size = ((width + 3) >> 2) * ((height + 3) >> 2);
 	data_size *= (MMP_DXT1 == format) ? 8 : 16;
 
 	void* data = malloc(data_size);
@@ -237,7 +281,7 @@ static bool dxt_generate_texture_directly(int width, int height,
 		int mipmap_width = width >> i;
 		int mipmap_height = height >> i;
 
-		size_t mipmap_data_size = ((mipmap_width + 3) >> 2) *
+		int mipmap_data_size = ((mipmap_width + 3) >> 2) *
 									((mipmap_height + 3) >> 2);
 		mipmap_data_size *= (MMP_DXT1 == format) ? 8 : 16;
 
@@ -255,85 +299,54 @@ static bool dxt_generate_texture_directly(int width, int height,
 	return true;
 }
 
-static bool raw_generate_texture(GLenum internal_format,
-		GLenum data_format, GLenum data_type, int width,
-		int height, int mipmap_count, int bpp, memfile* mem)
+static bool pnt3_generate_texture(int width, int height, int size, memfile* mem)
 {
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	uint8_t* data;
+	int data_size = width * height * 4;
 
-	if (mipmap_count > 1) {
-		glTexParameteri(GL_TEXTURE_2D,
-			GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
-	}
-
-	size_t data_size = width * height * bpp;
-
-	void* data = malloc(data_size);
-	if (NULL == data || 1 != memfile_read(data, data_size, 1, mem)) {
-		free(data);
-		return false;
-	}
-
-	glTexImage2D(GL_TEXTURE_2D, 0, internal_format,
-		width, height, 0, data_format, data_type, data);
-
-	for (int i = 1; i < mipmap_count; ++i) {
-		int mipmap_width = width >> i;
-		int mipmap_height = height >> i;
-
-		if (1 != memfile_read(data, mipmap_width * mipmap_height * bpp, 1, mem)) {
-			free(data);
+	if (size < data_size) { // PNT3 compressed
+		data = malloc(data_size);
+		if (NULL == data) {
 			return false;
 		}
 
-		glTexImage2D(GL_TEXTURE_2D, i, internal_format,
-			mipmap_width, mipmap_height, 0, data_format, data_type, data);
+		for (uint8_t* d = data; ;) {
+			uint32_t le_value;
+			if (0 == memfile_read(&le_value, sizeof(uint32_t), 1, mem)) {
+				break;
+			}
+			uint32_t cpu_value = le2cpu32(le_value);
+			if (0 < cpu_value && cpu_value < 1000000) {
+				memset(d, '\0', cpu_value);
+				d += cpu_value;
+			} else {
+				memcpy(d, &le_value, sizeof(uint32_t));
+				d += sizeof(uint32_t);
+			}
+		}
+
+		mem = memfile_open_data(data, data_size, "rb");
+		if (NULL == mem) {
+			free(data);
+			return false;
+		}
 	}
 
-	free(data);
-	return true;
-}
-
-static bool pnt3_uncompressed_generate_texture(int width, int height, memfile* mem)
-{
-	return raw_generate_texture(GL_RGBA, GL_BGRA,
+	bool ok = raw_generate_texture(GL_RGBA, GL_BGRA,
 		GL_UNSIGNED_INT_8_8_8_8_REV, width, height, 0, 4, mem);
-}
 
-static bool pnt3_compressed_generate_texture(int width, int height, memfile* mem)
-{
-	uint8_t* data = malloc(width * height * 4);
-
-	for (uint8_t* d = data; ;) {
-		uint32_t value;
-		if (0 == memfile_read(&value, sizeof(uint32_t), 1, mem)) {
-			break;
-		}
-		if (0 < le2cpu32(value) && le2cpu32(value) < 1000000) {
-			memset(d, '\0', value);
-			d += value;
-		} else {
-			memcpy(d, &value, sizeof(uint32_t));
-			d += sizeof(uint32_t);
-		}
-	}
-
-	mem = memfile_open_data(data, width * height * 4, "rb");
-	if (NULL == mem) {
+	if (size < data_size) {
+		memfile_close(mem);
 		free(data);
-		return false;
 	}
 
-	bool ok = pnt3_uncompressed_generate_texture(width, height, mem);
-
-	memfile_close(mem);
 	return ok;
 }
 
 GLuint mmpfile_generate_texture(GLuint id, memfile* mem)
 {
+	// TODO: possible leak
+
 	if (0 == id) {
 		glGenTextures(1, &id);
 	}
@@ -380,7 +393,7 @@ GLuint mmpfile_generate_texture(GLuint id, memfile* mem)
 	switch (format) {
 	case MMP_DXT1:
 	case MMP_DXT3:
-		ok = gl_extension_supported("GL_EXT_texture_compression_s3tc") ?
+		ok = gl_query_feature(GL_FEATURE_TEXTURE_COMPRESSION_S3TC) ?
 			dxt_generate_texture_directly(width, height,
 				mipmap_count_or_size, format, mem) :
 			dxt_generate_texture_indirectly(width, height,
@@ -391,9 +404,7 @@ GLuint mmpfile_generate_texture(GLuint id, memfile* mem)
 			width, height, mipmap_count_or_size, 2, mem);
 		break;
 	case MMP_PNT3:
-		ok = mipmap_count_or_size < width * height * 4 ?
-			pnt3_compressed_generate_texture(width, height, mem) :
-			pnt3_uncompressed_generate_texture(width, height, mem);
+		ok = pnt3_generate_texture(width, height, mipmap_count_or_size, mem);
 		break;
 	case MMP_PV:
 		ok = raw_generate_texture(GL_RGB, GL_RGB, GL_UNSIGNED_SHORT_5_6_5,

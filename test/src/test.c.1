@@ -80,6 +80,7 @@ static void timer(int index)
 	}
 
 	if (0 > index || index >= resfile_node_count(res)) {
+		printf("Next cycle...\n");
 		index = 0;
 	}
 
@@ -89,7 +90,7 @@ static void timer(int index)
 		return;
 	}
 
-	glutTimerFunc(1000, timer, random ?
+	glutTimerFunc(10, timer, random ?
 		rand() % resfile_node_count(res) : index + 1);
 
 	glutPostRedisplay();
@@ -110,7 +111,7 @@ int main(int argc, char* argv[])
 	glutInitWindowSize(400, 300);
 	glutInit(&argc, argv);
 
-	glutCreateWindow("test");
+	glutCreateWindow("Cursed Earth");
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);

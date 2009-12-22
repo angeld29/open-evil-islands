@@ -1,9 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
+#include "celib.h"
 #include "cestr.h"
 #include "byteorder.h"
 #include "memfile.h"
@@ -16,33 +19,72 @@ enum {
 typedef struct {
 	char* name;
 	int32_t next_index;
-	int32_t data_length;
-	int32_t data_offset;
+	uint32_t data_length;
+	uint32_t data_offset;
 	int32_t modified;
-	int16_t name_length;
-	int32_t name_offset;
+	uint16_t name_length;
+	uint32_t name_offset;
+	resfile* res;
 } resfile_node;
 
 struct resfile {
 	char* name;
-	int32_t node_count;
-	int32_t metadata_offset;
-	int32_t names_length;
+	uint32_t node_count;
+	uint32_t metadata_offset;
+	uint32_t names_length;
 	char* names;
 	resfile_node* nodes;
+	int ref_count;
 	memfile* mem;
 };
 
-static int name_hash(const char* name, int limit)
+static int node_close(void* client_data)
+{
+	resfile_node* node = client_data;
+	--node->res->ref_count;
+	return 0;
+}
+
+static size_t node_read(void* data, size_t size, size_t n, void* client_data)
+{
+	resfile_node* node = client_data;
+	return memfile_read(data, size, smin(n,
+		(node->data_offset + node->data_length -
+		memfile_tell(node->res->mem)) / size), node->res->mem);
+}
+
+static int node_seek(long int offset, int whence, void* client_data)
+{
+	assert(false);
+	resfile_node* node = client_data;
+
+	node = node;
+	offset = offset;
+	whence = whence;
+
+	return 1;
+}
+
+static long int node_tell(void* client_data)
+{
+	assert(false);
+	resfile_node* node = client_data;
+
+	node = node;
+
+	return 0;
+}
+
+static int name_hash(const char* name, int lim)
 {
 	int sum = 0;
 	while (*name) {
 		sum += tolower(*name++);
 	}
-	return sum % limit;
+	return sum % lim;
 }
 
-extern resfile* resfile_open_memfile(const char* name, memfile* mem)
+resfile* resfile_open_memfile(const char* name, memfile* mem)
 {
 	resfile* res = calloc(1, sizeof(resfile));
 	if (NULL == res) {
@@ -67,16 +109,16 @@ extern resfile* resfile_open_memfile(const char* name, memfile* mem)
 		return NULL;
 	}
 
-	if (1 != memfile_read(&res->node_count, sizeof(int32_t), 1, mem) ||
-			1 != memfile_read(&res->metadata_offset, sizeof(int32_t), 1, mem) ||
-			1 != memfile_read(&res->names_length, sizeof(int32_t), 1, mem)) {
+	if (1 != memfile_read(&res->node_count, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&res->metadata_offset, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&res->names_length, sizeof(uint32_t), 1, mem)) {
 		resfile_close(res);
 		return NULL;
 	}
 
-	le2cpu32s((uint32_t*)&res->node_count);
-	le2cpu32s((uint32_t*)&res->metadata_offset);
-	le2cpu32s((uint32_t*)&res->names_length);
+	le2cpu32s(&res->node_count);
+	le2cpu32s(&res->metadata_offset);
+	le2cpu32s(&res->names_length);
 
 	res->nodes = calloc(res->node_count, sizeof(resfile_node));
 	if (NULL == res->nodes) {
@@ -89,23 +131,24 @@ extern resfile* resfile_open_memfile(const char* name, memfile* mem)
 		return NULL;
 	}
 
-	for (int i = 0; i < res->node_count; ++i) {
+	for (size_t i = 0; i < res->node_count; ++i) {
 		resfile_node* node = res->nodes + i;
+		node->res = res;
 		if (1 != memfile_read(&node->next_index, sizeof(int32_t), 1, mem) ||
-				1 != memfile_read(&node->data_length, sizeof(int32_t), 1, mem) ||
-				1 != memfile_read(&node->data_offset, sizeof(int32_t), 1, mem) ||
+				1 != memfile_read(&node->data_length, sizeof(uint32_t), 1, mem) ||
+				1 != memfile_read(&node->data_offset, sizeof(uint32_t), 1, mem) ||
 				1 != memfile_read(&node->modified, sizeof(int32_t), 1, mem) ||
-				1 != memfile_read(&node->name_length, sizeof(int16_t), 1, mem) ||
-				1 != memfile_read(&node->name_offset, sizeof(int32_t), 1, mem)) {
+				1 != memfile_read(&node->name_length, sizeof(uint16_t), 1, mem) ||
+				1 != memfile_read(&node->name_offset, sizeof(uint32_t), 1, mem)) {
 			resfile_close(res);
 			return NULL;
 		}
 		le2cpu32s((uint32_t*)&node->next_index);
-		le2cpu32s((uint32_t*)&node->data_length);
-		le2cpu32s((uint32_t*)&node->data_offset);
+		le2cpu32s(&node->data_length);
+		le2cpu32s(&node->data_offset);
 		le2cpu32s((uint32_t*)&node->modified);
-		le2cpu16s((uint16_t*)&node->name_length);
-		le2cpu32s((uint32_t*)&node->name_offset);
+		le2cpu16s(&node->name_length);
+		le2cpu32s(&node->name_offset);
 	}
 
 	res->names = malloc(res->names_length);
@@ -115,7 +158,7 @@ extern resfile* resfile_open_memfile(const char* name, memfile* mem)
 		return NULL;
 	}
 
-	for (int i = 0; i < res->node_count; ++i) {
+	for (size_t i = 0; i < res->node_count; ++i) {
 		resfile_node* node = res->nodes + i;
 		node->name = strndup(res->names + node->name_offset, node->name_length);
 		if (NULL == node->name) {
@@ -131,14 +174,8 @@ extern resfile* resfile_open_memfile(const char* name, memfile* mem)
 
 resfile* resfile_open_file(const char* path)
 {
-	FILE* file = fopen(path, "rb");
-	if (NULL == file) {
-		return NULL;
-	}
-
-	memfile* mem = memfile_open_callbacks(IO_CALLBACKS_FILE, file);
+	memfile* mem = memfile_open_path(path, "rb");
 	if (NULL == mem) {
-		fclose(file);
 		return NULL;
 	}
 
@@ -164,8 +201,10 @@ int resfile_close(resfile* res)
 		return 0;
 	}
 
+	assert(0 == res->ref_count);
+
 	if (NULL != res->nodes) {
-		for (int i = 0; i < res->node_count; ++i) {
+		for (size_t i = 0; i < res->node_count; ++i) {
 			free(res->nodes[i].name);
 		}
 	}
@@ -223,22 +262,18 @@ memfile* resfile_node_memfile(int index, resfile* res)
 {
 	resfile_node* node = res->nodes + index;
 
-	void* data = malloc(node->data_length);
-	if (NULL == data) {
+	if (0 != memfile_seek(node->data_offset, SEEK_SET, res->mem)) {
 		return NULL;
 	}
 
-	if (0 != memfile_seek(node->data_offset, SEEK_SET, res->mem) ||
-			1 != memfile_read(data, node->data_length, 1, res->mem)) {
-		free(data);
-		return NULL;
-	}
+	io_callbacks callbacks = { node_close, node_read, NULL, node_seek, node_tell };
 
-	memfile* mem = memfile_open_data(data, node->data_length, "rb");
+	memfile* mem = memfile_open_callbacks(callbacks, node);
 	if (NULL == mem) {
-		free(data);
 		return NULL;
 	}
+
+	++res->ref_count;
 
 	return mem;
 }

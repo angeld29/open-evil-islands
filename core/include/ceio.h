@@ -1,5 +1,5 @@
-#ifndef CE_IO_H
-#define CE_IO_H
+#ifndef CE_CEIO_H
+#define CE_CEIO_H
 
 #include <stddef.h>
 
@@ -22,4 +22,4 @@ extern const io_callbacks IO_CALLBACKS_FILE;
 }
 #endif /* __cplusplus */
 
-#endif /* CE_IO_H */
+#endif /* CE_CEIO_H */

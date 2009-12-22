@@ -9,13 +9,15 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-/* You may to instruct memfile to either automatically close or not to close
-   the resource in memfile_close. Automatic closure is disabled by passing
-   NULL as the close callback. The client is responsible for closing
-   a resource when a call to memfile_open_callbacks is unsuccessful. */
+/**
+ *  You may to instruct memfile to either automatically close or not to close
+ *  the resource in memfile_close. Automatic closure is disabled by passing
+ *  NULL as the close callback. The client is responsible for closing
+ *  a resource when a call to memfile_open_callbacks is unsuccessful.
+*/
 extern memfile* memfile_open_callbacks(io_callbacks callbacks, void* client_data);
-/* Memfile takes ownership of the data if successfull. */
 extern memfile* memfile_open_data(void* data, size_t size, const char* mode);
+extern memfile* memfile_open_path(const char* path, const char* mode);
 extern int memfile_close(memfile* mem);
 
 extern size_t memfile_read(void* data, size_t size, size_t n, memfile* mem);

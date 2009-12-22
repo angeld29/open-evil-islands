@@ -39,7 +39,7 @@ enum {
 };
 
 typedef struct {
-	int32_t type;
+	uint32_t type;
 	float colour_r;
 	float colour_g;
 	float colour_b;
@@ -53,8 +53,8 @@ typedef struct {
 } material;
 
 typedef struct {
-	int16_t index;
-	int16_t phases;
+	uint16_t index;
+	uint16_t phases;
 } anim_tile;
 
 typedef struct {
@@ -65,7 +65,7 @@ typedef struct {
 } vertex;
 
 typedef struct {
-	int8_t water;
+	uint8_t water;
 	vertex* land_vertices;
 	vertex* water_vertices;
 	uint16_t* land_textures;
@@ -75,16 +75,16 @@ typedef struct {
 
 struct mprfile {
 	float max_z;
-	int32_t sector_x_count;
-	int32_t sector_y_count;
-	int32_t texture_count;
-	int32_t texture_size;
-	int32_t tile_count;
-	int32_t tile_size;
-	int16_t material_count;
-	int32_t anim_tile_count;
+	uint32_t sector_x_count;
+	uint32_t sector_y_count;
+	uint32_t texture_count;
+	uint32_t texture_size;
+	uint32_t tile_count;
+	uint32_t tile_size;
+	uint16_t material_count;
+	uint32_t anim_tile_count;
 	material* materials;
-	int32_t* tiles;
+	uint32_t* tiles;
 	anim_tile* anim_tiles;
 	sector* sectors;
 	GLuint* texture_ids;
@@ -124,7 +124,7 @@ static inline uint8_t texture_angle(uint16_t value)
 
 static bool read_material(material* mat, memfile* mem)
 {
-	if (1 != memfile_read(&mat->type, sizeof(int32_t), 1, mem) ||
+	if (1 != memfile_read(&mat->type, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&mat->colour_r, sizeof(float), 1, mem) ||
 			1 != memfile_read(&mat->colour_g, sizeof(float), 1, mem) ||
 			1 != memfile_read(&mat->colour_b, sizeof(float), 1, mem) ||
@@ -137,18 +137,18 @@ static bool read_material(material* mat, memfile* mem)
 			1 != memfile_read(&mat->reserved3, sizeof(float), 1, mem)) {
 		return false;
 	}
-	le2cpu32s((uint32_t*)&mat->type);
+	le2cpu32s(&mat->type);
 	return true;
 }
 
 static bool read_anim_tile(anim_tile* at, memfile* mem)
 {
-	if (1 != memfile_read(&at->index, sizeof(int16_t), 1, mem) ||
-			1 != memfile_read(&at->phases, sizeof(int16_t), 1, mem)) {
+	if (1 != memfile_read(&at->index, sizeof(uint16_t), 1, mem) ||
+			1 != memfile_read(&at->phases, sizeof(uint16_t), 1, mem)) {
 		return false;
 	}
-	le2cpu16s((uint16_t*)&at->index);
-	le2cpu16s((uint16_t*)&at->phases);
+	le2cpu16s(&at->index);
+	le2cpu16s(&at->phases);
 	return true;
 }
 
@@ -186,26 +186,26 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 	}
 
 	if (1 != memfile_read(&mpr->max_z, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mpr->sector_x_count, sizeof(int32_t), 1, mem) ||
-			1 != memfile_read(&mpr->sector_y_count, sizeof(int32_t), 1, mem) ||
-			1 != memfile_read(&mpr->texture_count, sizeof(int32_t), 1, mem) ||
-			1 != memfile_read(&mpr->texture_size, sizeof(int32_t), 1, mem) ||
-			1 != memfile_read(&mpr->tile_count, sizeof(int32_t), 1, mem) ||
-			1 != memfile_read(&mpr->tile_size, sizeof(int32_t), 1, mem) ||
-			1 != memfile_read(&mpr->material_count, sizeof(int16_t), 1, mem) ||
-			1 != memfile_read(&mpr->anim_tile_count, sizeof(int32_t), 1, mem)) {
+			1 != memfile_read(&mpr->sector_x_count, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mpr->sector_y_count, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mpr->texture_count, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mpr->texture_size, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mpr->tile_count, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mpr->tile_size, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mpr->material_count, sizeof(uint16_t), 1, mem) ||
+			1 != memfile_read(&mpr->anim_tile_count, sizeof(uint32_t), 1, mem)) {
 		memfile_close(mem);
 		return false;
 	}
 
-	le2cpu32s((uint32_t*)&mpr->sector_x_count);
-	le2cpu32s((uint32_t*)&mpr->sector_y_count);
-	le2cpu32s((uint32_t*)&mpr->texture_count);
-	le2cpu32s((uint32_t*)&mpr->texture_size);
-	le2cpu32s((uint32_t*)&mpr->tile_count);
-	le2cpu32s((uint32_t*)&mpr->tile_size);
-	le2cpu16s((uint16_t*)&mpr->material_count);
-	le2cpu32s((uint32_t*)&mpr->anim_tile_count);
+	le2cpu32s(&mpr->sector_x_count);
+	le2cpu32s(&mpr->sector_y_count);
+	le2cpu32s(&mpr->texture_count);
+	le2cpu32s(&mpr->texture_size);
+	le2cpu32s(&mpr->tile_count);
+	le2cpu32s(&mpr->tile_size);
+	le2cpu16s(&mpr->material_count);
+	le2cpu32s(&mpr->anim_tile_count);
 
 	mpr->materials = malloc(mpr->material_count * sizeof(material));
 	if (NULL == mpr->materials) {
@@ -213,22 +213,22 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 		return false;
 	}
 
-	for (int i = 0; i < mpr->material_count; ++i) {
+	for (unsigned int i = 0; i < mpr->material_count; ++i) {
 		if (!read_material(mpr->materials + i, mem)) {
 			memfile_close(mem);
 			return false;
 		}
 	}
 
-	mpr->tiles = malloc(mpr->tile_count * sizeof(int32_t));
+	mpr->tiles = malloc(mpr->tile_count * sizeof(uint32_t));
 	if (NULL == mpr->tiles || (size_t)mpr->tile_count !=
-			memfile_read(mpr->tiles, sizeof(int32_t), mpr->tile_count, mem)) {
+			memfile_read(mpr->tiles, sizeof(uint32_t), mpr->tile_count, mem)) {
 		memfile_close(mem);
 		return false;
 	}
 
-	for (int i = 0; i < mpr->tile_count; ++i) {
-		le2cpu32s((uint32_t*)(mpr->tiles + i));
+	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
+		le2cpu32s(mpr->tiles + i);
 	}
 
 	mpr->anim_tiles = malloc(mpr->anim_tile_count * sizeof(anim_tile));
@@ -237,7 +237,7 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 		return false;
 	}
 
-	for (int i = 0; i < mpr->anim_tile_count; ++i) {
+	for (unsigned int i = 0; i < mpr->anim_tile_count; ++i) {
 		if (!read_anim_tile(mpr->anim_tiles + i, mem)) {
 			memfile_close(mem);
 			return false;
@@ -285,7 +285,7 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 		return false;
 	}
 
-	if (1 != memfile_read(&sec->water, sizeof(int8_t), 1, mem)) {
+	if (1 != memfile_read(&sec->water, sizeof(uint8_t), 1, mem)) {
 		memfile_close(mem);
 		return false;
 	}
@@ -296,7 +296,7 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 		return false;
 	}
 
-	for (int i = 0; i < VERTEX_COUNT; ++i) {
+	for (unsigned int i = 0; i < VERTEX_COUNT; ++i) {
 		if (!read_vertex(sec->land_vertices + i, mem)) {
 			memfile_close(mem);
 			return false;
@@ -310,7 +310,7 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 			return false;
 		}
 
-		for (int i = 0; i < VERTEX_COUNT; ++i) {
+		for (unsigned int i = 0; i < VERTEX_COUNT; ++i) {
 			if (!read_vertex(sec->water_vertices + i, mem)) {
 				memfile_close(mem);
 				return false;
@@ -325,7 +325,7 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 		return false;
 	}
 
-	for (int i = 0; i < TEXTURE_COUNT; ++i) {
+	for (unsigned int i = 0; i < TEXTURE_COUNT; ++i) {
 		le2cpu16s(sec->land_textures + i);
 	}
 
@@ -342,8 +342,8 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 			return false;
 		}
 
-		for (int i = 0; i < TEXTURE_COUNT; ++i) {
-			le2cpu16s(sec->land_textures + i);
+		for (unsigned int i = 0; i < TEXTURE_COUNT; ++i) {
+			le2cpu16s(sec->water_textures + i);
 			le2cpu16s((uint16_t*)(sec->water_allow + i));
 		}
 	}
@@ -372,12 +372,12 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 	// sec_tmpl_name + xxxyyy.sec
 	char sec_name[sizeof(sec_tmpl_name) + 3 + 3 + 4];
 
-	for (int i = 0; i < mpr->sector_x_count; ++i) {
-		for (int j = 0; j < mpr->sector_y_count; ++j) {
+	for (unsigned int i = 0; i < mpr->sector_x_count; ++i) {
+		for (unsigned int j = 0; j < mpr->sector_y_count; ++j) {
 			sector* sec = mpr->sectors + (i * mpr->sector_y_count + j);
 
 			snprintf(sec_name, sizeof(sec_name),
-				"%s%03d%03d.sec", sec_tmpl_name, i, j);
+				"%s%03u%03u.sec", sec_tmpl_name, i, j);
 
 			if (!read_sector(sec, sec_name, res)) {
 				return false;
@@ -431,8 +431,8 @@ static bool create_textures(mprfile* mpr, const char* mpr_name,
 	// mmp_tmpl_name + xxx.mmp
 	char mmp_name[sizeof(mmp_tmpl_name) + 3 + 4];
 
-	for (int i = 0; i < mpr->texture_count; ++i) {
-		snprintf(mmp_name, sizeof(mmp_name), "%s%03d.mmp", mmp_tmpl_name, i);
+	for (unsigned int i = 0; i < mpr->texture_count; ++i) {
+		snprintf(mmp_name, sizeof(mmp_name), "%s%03u.mmp", mmp_tmpl_name, i);
 
 		if (!create_texture(mpr->texture_ids + i, mmp_name, res)) {
 			return false;
@@ -476,6 +476,10 @@ int mprfile_close(mprfile* mpr)
 		return 0;
 	}
 
+	if (NULL != mpr->texture_ids) {
+		glDeleteTextures(mpr->texture_count, mpr->texture_ids);
+	}
+
 	if (NULL != mpr->sectors) {
 		for (int i = 0, n = mpr->sector_x_count *
 				mpr->sector_y_count; i < n; ++i) {
@@ -502,19 +506,19 @@ int mprfile_close(mprfile* mpr)
 void mprfile_debug_print(mprfile* mpr)
 {
 	printf("max z: %f\n", mpr->max_z);
-	printf("sector x count: %d\n", mpr->sector_x_count);
-	printf("sector y count: %d\n", mpr->sector_y_count);
-	printf("texture count: %d\n", mpr->texture_count);
-	printf("texture size: %d\n", mpr->texture_size);
-	printf("tile count: %d\n", mpr->tile_count);
-	printf("tile size: %d\n", mpr->tile_size);
-	printf("material count: %hd\n", mpr->material_count);
-	printf("anim tile count: %d\n", mpr->anim_tile_count);
+	printf("sector x count: %u\n", mpr->sector_x_count);
+	printf("sector y count: %u\n", mpr->sector_y_count);
+	printf("texture count: %u\n", mpr->texture_count);
+	printf("texture size: %u\n", mpr->texture_size);
+	printf("tile count: %u\n", mpr->tile_count);
+	printf("tile size: %u\n", mpr->tile_size);
+	printf("material count: %hu\n", mpr->material_count);
+	printf("anim tile count: %u\n", mpr->anim_tile_count);
 
-	for (int i = 0; i < mpr->material_count; ++i) {
+	for (unsigned int i = 0; i < mpr->material_count; ++i) {
 		material* mat = mpr->materials + i;
-		printf("material %d:\n", i);
-		printf("\ttype: %d\n", mat->type);
+		printf("material %u:\n", i);
+		printf("\ttype: %u\n", mat->type);
 		printf("\tcolour_r: %f\n", mat->colour_r);
 		printf("\tcolour_g: %f\n", mat->colour_g);
 		printf("\tcolour_b: %f\n", mat->colour_b);
@@ -526,20 +530,20 @@ void mprfile_debug_print(mprfile* mpr)
 		printf("\treserved2: %f\n", mat->reserved2);
 		printf("\treserved3: %f\n", mat->reserved3);
 	}
-	for (int i = 0; i < mpr->tile_count; ++i) {
-		//printf("id %d: %d\n", i, mpr->tiles[i]);
+	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
+		//printf("id %u: %u\n", i, mpr->tiles[i]);
 	}
-	for (int i = 0; i < mpr->anim_tile_count; ++i) {
+	for (unsigned int i = 0; i < mpr->anim_tile_count; ++i) {
 		anim_tile* at = mpr->anim_tiles + i;
-		printf("anim tile %d:\n", i);
-		printf("\tindex: %hd\n", at->index);
-		printf("\tphases: %hd\n", at->phases);
+		printf("anim tile %u:\n", i);
+		printf("\tindex: %hu\n", at->index);
+		printf("\tphases: %hu\n", at->phases);
 	}
-	for (int i = 0, n = mpr->sector_x_count *
+	for (unsigned int i = 0, n = mpr->sector_x_count *
 				mpr->sector_y_count; i < n; ++i) {
 		sector* sec = mpr->sectors + i;
-		printf("sector %d:\n", i);
-		printf("\twater: %hhd\n", sec->water);
+		//printf("sector %u:\n", i);
+		//printf("\twater: %hhu\n", sec->water);
 		for (int j = 0; j < VERTEX_COUNT; ++j) {
 			//float vector[3] = { 0.0f };
 			//normal2vector(sec->land_vertices[j].normal, vector);
@@ -550,7 +554,7 @@ void mprfile_debug_print(mprfile* mpr)
 				vector[0], vector[1], vector[2]);*/
 		}
 		if (0 != sec->water) {
-			for (int j = 0; j < VERTEX_COUNT; ++j) {
+			for (unsigned int j = 0; j < VERTEX_COUNT; ++j) {
 				/*printf("\twater vertex %3d: %hhd %hhd %hu %u\n", j,
 					sec->water_vertices[j].offset_x,
 					sec->water_vertices[j].offset_y,
@@ -558,17 +562,17 @@ void mprfile_debug_print(mprfile* mpr)
 					sec->water_vertices[j].normal);*/
 			}
 		}
-		for (int j = 0; j < TEXTURE_COUNT; ++j) {
+		for (unsigned int j = 0; j < TEXTURE_COUNT; ++j) {
 			/*printf("\tland textures %3d: %2hhu %hhu %hhu\n", j,
 				texture_index(sec->land_textures[j]),
 				texture_number(sec->land_textures[j]),
 				texture_angle(sec->land_textures[j]));*/
 		}
 		if (0 != sec->water) {
-			for (int j = 0; j < TEXTURE_COUNT; ++j) {
+			for (unsigned int j = 0; j < TEXTURE_COUNT; ++j) {
 				//printf("\t water textures %3d: %hd\n", j, sec->water_textures[j]);
 			}
-			for (int j = 0; j < TEXTURE_COUNT; ++j) {
+			for (unsigned int j = 0; j < TEXTURE_COUNT; ++j) {
 				//printf("\twater allow %d: %hd\n", j, sec->water_allow[j]);
 			}
 		}
@@ -577,11 +581,11 @@ void mprfile_debug_print(mprfile* mpr)
 
 void mprfile_debug_render(int val, mprfile* mpr)
 {
-	for (int i = 0; i < mpr->sector_x_count; ++i) {
-		for (int j = 0; j < mpr->sector_y_count; ++j) {
+	for (unsigned int i = 0; i < mpr->sector_x_count; ++i) {
+		for (unsigned int j = 0; j < mpr->sector_y_count; ++j) {
 			sector* sec = mpr->sectors + (i * mpr->sector_y_count + j);
-			for (int k = 0; k < VERTEX_SIDE - 2; k += 2) {
-				for (int l = 0; l < VERTEX_SIDE - 2; l += 2) {
+			for (unsigned int k = 0; k < VERTEX_SIDE - 2; k += 2) {
+				for (unsigned int l = 0; l < VERTEX_SIDE - 2; l += 2) {
 					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 					glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(sec->land_textures[(k / 2) * TEXTURE_SIDE + l / 2])]);
 					glBegin(GL_TRIANGLE_STRIP);
