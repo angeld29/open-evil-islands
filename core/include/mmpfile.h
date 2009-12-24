@@ -3,8 +3,6 @@
 
 #include <GL/gl.h>
 
-#include "memfilefwd.h"
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -14,7 +12,7 @@ extern "C"
  *  @param id Generate a new texture id if 0, otherwise reuse the texture id.
  *  @return The OpenGL texture handle if successfull or 0 if failed.
 */
-extern GLuint mmpfile_generate_texture(GLuint id, memfile* mem);
+extern GLuint mmpfile_generate_texture(GLuint id, void* data);
 
 #ifdef __cplusplus
 }

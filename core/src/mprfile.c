@@ -396,20 +396,16 @@ static bool create_texture(GLuint* texture_id,
 		return false;
 	}
 
-	memfile* mem = resfile_node_memfile(mmp_index, res);
-	if (NULL == mem) {
+	void* data = malloc(resfile_node_size(mmp_index, res));
+	if (NULL == data || !resfile_node_data(mmp_index, data, res)) {
+		free(data);
 		return false;
 	}
 
-	*texture_id = mmpfile_generate_texture(0, mem);
+	*texture_id = mmpfile_generate_texture(0, data);
 
-	if (0 == *texture_id) {
-		memfile_close(mem);
-		return false;
-	}
-
-	memfile_close(mem);
-	return true;
+	free(data);
+	return 0 != *texture_id;
 }
 
 static bool create_textures(mprfile* mpr, const char* mpr_name,

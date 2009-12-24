@@ -258,6 +258,13 @@ time_t resfile_node_modified(int index, const resfile* res)
 	return res->nodes[index].modified;
 }
 
+bool resfile_node_data(int index, void* data, resfile* res)
+{
+	resfile_node* node = res->nodes + index;
+	return 0 == memfile_seek(node->data_offset, SEEK_SET, res->mem) &&
+		1 == memfile_read(data, node->data_length, 1, res->mem);
+}
+
 memfile* resfile_node_memfile(int index, resfile* res)
 {
 	resfile_node* node = res->nodes + index;

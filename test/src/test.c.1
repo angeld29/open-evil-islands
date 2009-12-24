@@ -15,12 +15,13 @@ bool random = true;
 
 static bool generate_texture(int index)
 {
-	memfile* mem = resfile_node_memfile(index, res);
-	if (NULL == mem) {
+	void* data = malloc(resfile_node_size(index, res));
+	if (NULL == data || !resfile_node_data(index, data, res)) {
+		free(data);
 		return false;
 	}
-	texid = mmpfile_generate_texture(texid, mem);
-	memfile_close(mem);
+	texid = mmpfile_generate_texture(texid, data);
+	free(data);
 	if (0 == texid) {
 		return false;
 	}

@@ -1,1 +1,2 @@
 1. Textures: check capability POWER_OF_TWO and max supported size.
+2. glGetError: loop.
