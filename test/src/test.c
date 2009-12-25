@@ -12,7 +12,7 @@
 
 mprfile* mpr;
 
-double eye[3] = { 10.0, 10.0, -10.0 };
+double eye[3] = { 50.0, 100.0, 50.0 };
 double target[3] = { 0.0, 0.0, 0.0 };
 double up[3] = { 0.0, 1.0, 0.0 };
 
@@ -32,28 +32,28 @@ static void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	GLUquadric* q = gluNewQuadric();
+	GLUquadric* quadric = gluNewQuadric();
 
 	glColor3f(1.0f, 0.0f, 0.0f);
-	glBegin(GL_LINE);
+	glBegin(GL_LINES);
 	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(3.0f, 0.0f, 0.0f);
+	glVertex3f(100.0f, 0.0f, 0.0f);
 	glEnd();
 	glColor3f(0.0f, 1.0f, 0.0f);
-	glBegin(GL_LINE);
+	glBegin(GL_LINES);
 	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 3.0f, 0.0f);
+	glVertex3f(0.0f, 100.0f, 0.0f);
 	glEnd();
 	glColor3f(0.0f, 0.0f, 1.0f);
-	glBegin(GL_LINE);
+	glBegin(GL_LINES);
 	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 3.0f);
+	glVertex3f(0.0f, 0.0f, 100.0f);
 	glEnd();
 
 	/*glPushMatrix();
 	glTranslatef(target[0], target[1], target[2]);
 	glColor3f(1.0f, 0.0f, 0.0f);
-	gluSphere(q, 0.5, 5, 5);
+	gluSphere(quadric, 0.5, 5, 5);
 	glPopMatrix();*/
 
 	glPushMatrix();
@@ -62,11 +62,11 @@ static void display(void)
 	glRotatef(camera_angle_x, 1.0f, 0.0f, 0.0f);
 	glRotatef(camera_angle_y, 0.0f, 1.0f, 0.0f);
 
-	glColor3f(0.0f, 1.0f, 0.0f);
-	gluSphere(q, 1.0, 10, 10);
-	//mprfile_debug_render(val, mpr);
+	mprfile_debug_render(val, mpr);
 
 	glPopMatrix();
+
+	gluDeleteQuadric(quadric);
 
 	glutSwapBuffers();
 }
@@ -76,7 +76,7 @@ static void reshape(int width, int height)
     glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-	gluPerspective(60.0, 1.0, 1.0, 20.0);
+	gluPerspective(60.0, 1.0, 1.0, 500.0);
 	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -177,8 +177,8 @@ int main(int argc, char* argv[])
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
-	glutInitWindowPosition(300, 600);
-	glutInitWindowSize(400, 300);
+	glutInitWindowPosition(100, 100);
+	glutInitWindowSize(800, 600);
 	glutInit(&argc, argv);
 
 	glutCreateWindow("Cursed Earth");

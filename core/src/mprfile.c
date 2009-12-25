@@ -38,6 +38,9 @@ enum {
 	TEXTURE_COUNT = 16 * 16
 };
 
+static const float TEXTURE_UV_STEP = 1.0f / 8.0f;
+static const float TEXTURE_UV_HALF_STEP = 1.0f / 16.0f;
+
 typedef struct {
 	uint32_t type;
 	float colour_r;
@@ -59,8 +62,8 @@ typedef struct {
 
 typedef struct {
 	int8_t offset_x;
-	int8_t offset_y;
-	uint16_t coord_z;
+	int8_t offset_z;
+	uint16_t coord_y;
 	uint32_t normal;
 } vertex;
 
@@ -74,9 +77,9 @@ typedef struct {
 } sector;
 
 struct mprfile {
-	float max_z;
+	float max_y;
 	uint32_t sector_x_count;
-	uint32_t sector_y_count;
+	uint32_t sector_z_count;
 	uint32_t texture_count;
 	uint32_t texture_size;
 	uint32_t tile_count;
@@ -164,9 +167,9 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 		return false;
 	}
 
-	if (1 != memfile_read(&mpr->max_z, sizeof(float), 1, mem) ||
+	if (1 != memfile_read(&mpr->max_y, sizeof(float), 1, mem) ||
 			1 != memfile_read(&mpr->sector_x_count, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mpr->sector_y_count, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mpr->sector_z_count, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&mpr->texture_count, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&mpr->texture_size, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&mpr->tile_count, sizeof(uint32_t), 1, mem) ||
@@ -177,7 +180,7 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 	}
 
 	le2cpu32s(&mpr->sector_x_count);
-	le2cpu32s(&mpr->sector_y_count);
+	le2cpu32s(&mpr->sector_z_count);
 	le2cpu32s(&mpr->texture_count);
 	le2cpu32s(&mpr->texture_size);
 	le2cpu32s(&mpr->tile_count);
@@ -259,12 +262,12 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 static bool read_vertex(vertex* ver, memfile* mem)
 {
 	if (1 != memfile_read(&ver->offset_x, sizeof(int8_t), 1, mem) ||
-			1 != memfile_read(&ver->offset_y, sizeof(int8_t), 1, mem) ||
-			1 != memfile_read(&ver->coord_z, sizeof(uint16_t), 1, mem) ||
+			1 != memfile_read(&ver->offset_z, sizeof(int8_t), 1, mem) ||
+			1 != memfile_read(&ver->coord_y, sizeof(uint16_t), 1, mem) ||
 			1 != memfile_read(&ver->normal, sizeof(uint32_t), 1, mem)) {
 		return false;
 	}
-	le2cpu16s(&ver->coord_z);
+	le2cpu16s(&ver->coord_y);
 	le2cpu32s(&ver->normal);
 	return true;
 }
@@ -371,7 +374,7 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 							size_t mpr_name_length, resfile* res)
 {
 	mpr->sectors = calloc(mpr->sector_x_count *
-							mpr->sector_y_count, sizeof(sector));
+							mpr->sector_z_count, sizeof(sector));
 	if (NULL == mpr->sectors) {
 		return false;
 	}
@@ -387,12 +390,12 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 	// sec_tmpl_name + xxxyyy.sec
 	char sec_name[sizeof(sec_tmpl_name) + 3 + 3 + 4];
 
-	for (unsigned int i = 0; i < mpr->sector_x_count; ++i) {
-		for (unsigned int j = 0; j < mpr->sector_y_count; ++j) {
-			sector* sec = mpr->sectors + (i * mpr->sector_y_count + j);
+	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
+		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
+			sector* sec = mpr->sectors + (z * mpr->sector_x_count + x);
 
 			snprintf(sec_name, sizeof(sec_name),
-				"%s%03u%03u.sec", sec_tmpl_name, i, j);
+				"%s%03u%03u.sec", sec_tmpl_name, x, z);
 
 			if (!read_sector(sec, sec_name, res)) {
 				return false;
@@ -493,7 +496,7 @@ int mprfile_close(mprfile* mpr)
 
 	if (NULL != mpr->sectors) {
 		for (int i = 0, n = mpr->sector_x_count *
-				mpr->sector_y_count; i < n; ++i) {
+				mpr->sector_z_count; i < n; ++i) {
 			sector* sec = mpr->sectors + i;
 			free(sec->land_vertices);
 			free(sec->water_vertices);
@@ -516,9 +519,9 @@ int mprfile_close(mprfile* mpr)
 
 void mprfile_debug_print(mprfile* mpr)
 {
-	printf("max z: %f\n", mpr->max_z);
+	printf("max y: %f\n", mpr->max_y);
 	printf("sector x count: %u\n", mpr->sector_x_count);
-	printf("sector y count: %u\n", mpr->sector_y_count);
+	printf("sector z count: %u\n", mpr->sector_z_count);
 	printf("texture count: %u\n", mpr->texture_count);
 	printf("texture size: %u\n", mpr->texture_size);
 	printf("tile count: %u\n", mpr->tile_count);
@@ -551,7 +554,7 @@ void mprfile_debug_print(mprfile* mpr)
 		printf("\tphases: %hu\n", at->phases);
 	}
 	for (unsigned int i = 0, n = mpr->sector_x_count *
-				mpr->sector_y_count; i < n; ++i) {
+				mpr->sector_z_count; i < n; ++i) {
 		sector* sec = mpr->sectors + i;
 		//printf("sector %u:\n", i);
 		//printf("\twater: %hhu\n", sec->water);
@@ -560,16 +563,16 @@ void mprfile_debug_print(mprfile* mpr)
 			//normal2vector(sec->land_vertices[j].normal, vector);
 			/*printf("\tland vertex %3d: %hhd %hhd %hu %f %f %f\n", j,
 				sec->land_vertices[j].offset_x,
-				sec->land_vertices[j].offset_y,
-				sec->land_vertices[j].coord_z,
+				sec->land_vertices[j].offset_z,
+				sec->land_vertices[j].coord_y,
 				vector[0], vector[1], vector[2]);*/
 		}
 		if (0 != sec->water) {
 			for (unsigned int j = 0; j < VERTEX_COUNT; ++j) {
 				/*printf("\twater vertex %3d: %hhd %hhd %hu %u\n", j,
 					sec->water_vertices[j].offset_x,
-					sec->water_vertices[j].offset_y,
-					sec->water_vertices[j].coord_z,
+					sec->water_vertices[j].offset_z,
+					sec->water_vertices[j].coord_y,
 					sec->water_vertices[j].normal);*/
 			}
 		}
@@ -590,70 +593,105 @@ void mprfile_debug_print(mprfile* mpr)
 	}
 }
 
+int old_val = -1;
 void mprfile_debug_render(int val, mprfile* mpr)
 {
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	for (unsigned int i = 0; i < mpr->sector_x_count; ++i) {
-		for (unsigned int j = 0; j < mpr->sector_y_count; ++j) {
-			sector* sec = mpr->sectors + (i * mpr->sector_y_count + j);
+	for (unsigned int i = 0; i < mpr->sector_z_count; ++i) {
+		for (unsigned int j = 0; j < mpr->sector_x_count; ++j) {
+			sector* sec = mpr->sectors + (i * mpr->sector_x_count + j);
 			for (unsigned int k = 0; k < VERTEX_SIDE - 2; k += 2) {
 				for (unsigned int l = 0; l < VERTEX_SIDE - 2; l += 2) {
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-					glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(sec->land_textures[(k / 2) * TEXTURE_SIDE + l / 2])]);
-
-					int idx = texture_index(sec->land_textures[(k / 2) * TEXTURE_SIDE + l / 2]);
-					float u = idx / 8;
-					float v = idx - u * 8.0f;
-					u /= 8.0f;
-					v /= 8.0f;
-					float uv_step = 1.0f / 8.0f;
-					float uv_half_step = uv_step / 2.0f;
-
 					GLfloat vertices[] = {
-						k + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[k * VERTEX_SIDE + l].coord_z / mpr->max_z),
-						k + 1 + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + l].coord_z / mpr->max_z),
-						k + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z),
-						k + 1 + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z),
-						k + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z),
-						k + 1 + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z),
-						k + 2 + j * (VERTEX_SIDE - 1), l + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + l].coord_z / mpr->max_z),
-						k + 2 + j * (VERTEX_SIDE - 1), l + 1 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 1)].coord_z / mpr->max_z),
-						k + 2 + j * (VERTEX_SIDE - 1), l + 2 + i * (VERTEX_SIDE - 1),
-							0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 2)].coord_z / mpr->max_z)
+						k + i * (VERTEX_SIDE - 1),
+						0.025f * (sec->land_vertices[k * VERTEX_SIDE + l].coord_y / mpr->max_y),
+						l + j * (VERTEX_SIDE - 1),
+
+						k + 1 + i * (VERTEX_SIDE - 1),
+						0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + l].coord_y / mpr->max_y),
+						l + j * (VERTEX_SIDE - 1),
+
+						k + i * (VERTEX_SIDE - 1),
+						0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 1)].coord_y / mpr->max_y),
+						l + 1 + j * (VERTEX_SIDE - 1),
+
+						k + 1 + i * (VERTEX_SIDE - 1),
+						0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 1)].coord_y / mpr->max_y),
+						l + 1 + j * (VERTEX_SIDE - 1),
+
+						k + i * (VERTEX_SIDE - 1),
+						0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 2)].coord_y / mpr->max_y),
+						l + 2 + j * (VERTEX_SIDE - 1),
+
+						k + 1 + i * (VERTEX_SIDE - 1),
+						0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 2)].coord_y / mpr->max_y),
+						l + 2 + j * (VERTEX_SIDE - 1),
+
+						k + 2 + i * (VERTEX_SIDE - 1),
+						0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + l].coord_y / mpr->max_y),
+						l + j * (VERTEX_SIDE - 1),
+
+						k + 2 + i * (VERTEX_SIDE - 1),
+						0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 1)].coord_y / mpr->max_y),
+						l + 1 + j * (VERTEX_SIDE - 1),
+
+						k + 2 + i * (VERTEX_SIDE - 1),
+						0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 2)].coord_y / mpr->max_y),
+						l + 2 + j * (VERTEX_SIDE - 1)
 					};
 
+					uint16_t texture = sec->land_textures[k / 2 * TEXTURE_SIDE + l / 2];
+
+					int idx = texture_index(texture);
+					float u = (idx - idx / 8 * 8) / 8.0f;
+					float v = (7 - idx / 8) / 8.0f;
+
+					if (0 == i * mpr->sector_x_count + j) {
+						if ((unsigned int)val == k * VERTEX_SIDE + l) {
+							if (old_val != val) {
+								printf("%d,%d %hhu %hhu %hhu\n",
+									texture_index(texture) / 8,
+									texture_index(texture) - (texture_index(texture) / 8) * 8,
+									texture_index(texture), texture_number(texture), texture_angle(texture));
+								old_val = val;
+							}
+							glColor3f(0.0f, 1.0f, 0.0f);
+							glPointSize(2.0f);
+						} else {
+							glColor3f(0.0f, 0.0f, 1.0f);
+							glPointSize(1.0f);
+						}
+					}
+
+					int angle = texture_angle(texture);
+
 					GLfloat texcoords[] = {
-						u + uv_step, v,
-						u + uv_step, v + uv_half_step,
-						u + uv_half_step, v,
-						u + uv_half_step, v + uv_half_step,
+						u + TEXTURE_UV_STEP, v,
+						u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
+						u + TEXTURE_UV_HALF_STEP, v,
+						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP,
 						u, v,
-						u, v + uv_half_step,
-						u + uv_step, v + uv_step,
-						u + uv_half_step, v + uv_step,
-						u, v + uv_step,
+						u, v + TEXTURE_UV_HALF_STEP,
+						u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
+						u, v + TEXTURE_UV_STEP,
 					};
 
 					glVertexPointer(3, GL_FLOAT, 0, vertices);
 					glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
 
 					GLubyte indices[2][6] = {
-						{ 0, 1, 2, 3, 4, 5 },
-						{ 1, 6, 2, 7, 5, 8 }
+						{ 0, 2, 1, 3, 6, 7 },
+						{ 2, 4, 3, 5, 7, 8 }
 					};
+
+					glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(texture)]);
 
 					glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[0]);
 					glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[1]);
