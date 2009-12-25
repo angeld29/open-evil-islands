@@ -4,9 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
-#include <assert.h>
 
-#include "celib.h"
 #include "cestr.h"
 #include "byteorder.h"
 #include "memfile.h"
@@ -24,7 +22,6 @@ typedef struct {
 	int32_t modified;
 	uint16_t name_length;
 	uint32_t name_offset;
-	resfile* res;
 } resfile_node;
 
 struct resfile {
@@ -34,46 +31,8 @@ struct resfile {
 	uint32_t names_length;
 	char* names;
 	resfile_node* nodes;
-	int ref_count;
 	memfile* mem;
 };
-
-static int node_close(void* client_data)
-{
-	resfile_node* node = client_data;
-	--node->res->ref_count;
-	return 0;
-}
-
-static size_t node_read(void* data, size_t size, size_t n, void* client_data)
-{
-	resfile_node* node = client_data;
-	return memfile_read(data, size, smin(n,
-		(node->data_offset + node->data_length -
-		memfile_tell(node->res->mem)) / size), node->res->mem);
-}
-
-static int node_seek(long int offset, int whence, void* client_data)
-{
-	assert(false);
-	resfile_node* node = client_data;
-
-	node = node;
-	offset = offset;
-	whence = whence;
-
-	return 1;
-}
-
-static long int node_tell(void* client_data)
-{
-	assert(false);
-	resfile_node* node = client_data;
-
-	node = node;
-
-	return 0;
-}
 
 static int name_hash(const char* name, int lim)
 {
@@ -133,7 +92,6 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 
 	for (size_t i = 0; i < res->node_count; ++i) {
 		resfile_node* node = res->nodes + i;
-		node->res = res;
 		if (1 != memfile_read(&node->next_index, sizeof(int32_t), 1, mem) ||
 				1 != memfile_read(&node->data_length, sizeof(uint32_t), 1, mem) ||
 				1 != memfile_read(&node->data_offset, sizeof(uint32_t), 1, mem) ||
@@ -201,8 +159,6 @@ int resfile_close(resfile* res)
 		return 0;
 	}
 
-	assert(0 == res->ref_count);
-
 	if (NULL != res->nodes) {
 		for (size_t i = 0; i < res->node_count; ++i) {
 			free(res->nodes[i].name);
@@ -263,24 +219,4 @@ bool resfile_node_data(int index, void* data, resfile* res)
 	resfile_node* node = res->nodes + index;
 	return 0 == memfile_seek(node->data_offset, SEEK_SET, res->mem) &&
 		1 == memfile_read(data, node->data_length, 1, res->mem);
-}
-
-memfile* resfile_node_memfile(int index, resfile* res)
-{
-	resfile_node* node = res->nodes + index;
-
-	if (0 != memfile_seek(node->data_offset, SEEK_SET, res->mem)) {
-		return NULL;
-	}
-
-	io_callbacks callbacks = { node_close, node_read, NULL, node_seek, node_tell };
-
-	memfile* mem = memfile_open_callbacks(callbacks, node);
-	if (NULL == mem) {
-		return NULL;
-	}
-
-	++res->ref_count;
-
-	return mem;
 }

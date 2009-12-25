@@ -25,7 +25,6 @@ extern const char* resfile_node_name(int index, const resfile* res);
 extern size_t resfile_node_size(int index, const resfile* res);
 extern time_t resfile_node_modified(int index, const resfile* res);
 extern bool resfile_node_data(int index, void* data, resfile* res);
-extern memfile* resfile_node_memfile(int index, resfile* res);
 
 #ifdef __cplusplus
 }

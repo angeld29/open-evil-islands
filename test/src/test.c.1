@@ -5,6 +5,7 @@
 
 #include <GL/glut.h>
 
+#include "cegl.h"
 #include "memfile.h"
 #include "resfile.h"
 #include "mmpfile.h"
@@ -124,6 +125,8 @@ int main(int argc, char* argv[])
 
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glColor3f(1.0f, 1.0f, 1.0f);
+
+	gl_init_features();
 
 	res = resfile_open_file(argv[1]);
 	if (NULL == res) {

@@ -8,11 +8,11 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern bool fisequal(float a, float b, float tolerance);
+extern bool fisequalf(float a, float b, float tolerance);
 
-static inline bool fiszero(float a, float tolerance)
+static inline bool fiszerof(float a, float tolerance)
 {
-	return fisequal(a, 0.0f, tolerance);
+	return fisequalf(a, 0.0f, tolerance);
 }
 
 #ifdef __cplusplus

@@ -152,36 +152,15 @@ static bool read_anim_tile(anim_tile* at, memfile* mem)
 	return true;
 }
 
-static bool read_header(mprfile* mpr, const char* mpr_name,
-						size_t mpr_name_length, resfile* res)
+static bool read_header_impl(mprfile* mpr, memfile* mem)
 {
-	if (0 == mpr_name_length) {
-		return false;
-	}
-
-	// make mp_name by truncation of one last mpr_name character
-	char mp_name[mpr_name_length];
-	strlcpy(mp_name, mpr_name, sizeof(mp_name));
-
-	int mp_index = resfile_node_index(mp_name, res);
-	if (mp_index < 0) {
-		return false;
-	}
-
-	memfile* mem = resfile_node_memfile(mp_index, res);
-	if (NULL == mem) {
-		return false;
-	}
-
 	uint32_t signature;
 	if (1 != memfile_read(&signature, sizeof(uint32_t), 1, mem)) {
-		memfile_close(mem);
 		return false;
 	}
 
 	le2cpu32s(&signature);
 	if (MP_SIGNATURE != signature) {
-		memfile_close(mem);
 		return false;
 	}
 
@@ -194,7 +173,6 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 			1 != memfile_read(&mpr->tile_size, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&mpr->material_count, sizeof(uint16_t), 1, mem) ||
 			1 != memfile_read(&mpr->anim_tile_count, sizeof(uint32_t), 1, mem)) {
-		memfile_close(mem);
 		return false;
 	}
 
@@ -209,13 +187,11 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 
 	mpr->materials = malloc(mpr->material_count * sizeof(material));
 	if (NULL == mpr->materials) {
-		memfile_close(mem);
 		return false;
 	}
 
 	for (unsigned int i = 0; i < mpr->material_count; ++i) {
 		if (!read_material(mpr->materials + i, mem)) {
-			memfile_close(mem);
 			return false;
 		}
 	}
@@ -223,7 +199,6 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 	mpr->tiles = malloc(mpr->tile_count * sizeof(uint32_t));
 	if (NULL == mpr->tiles || (size_t)mpr->tile_count !=
 			memfile_read(mpr->tiles, sizeof(uint32_t), mpr->tile_count, mem)) {
-		memfile_close(mem);
 		return false;
 	}
 
@@ -233,19 +208,52 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 
 	mpr->anim_tiles = malloc(mpr->anim_tile_count * sizeof(anim_tile));
 	if (NULL == mpr->anim_tiles) {
-		memfile_close(mem);
 		return false;
 	}
 
 	for (unsigned int i = 0; i < mpr->anim_tile_count; ++i) {
 		if (!read_anim_tile(mpr->anim_tiles + i, mem)) {
-			memfile_close(mem);
 			return false;
 		}
 	}
 
-	memfile_close(mem);
 	return true;
+}
+
+static bool read_header(mprfile* mpr, const char* mpr_name,
+						size_t mpr_name_length, resfile* res)
+{
+	if (0 == mpr_name_length) {
+		return false;
+	}
+
+	// make mp_name by truncation of one last mpr_name character
+	char mp_name[mpr_name_length];
+	strlcpy(mp_name, mpr_name, sizeof(mp_name));
+
+	int index = resfile_node_index(mp_name, res);
+	if (index < 0) {
+		return false;
+	}
+
+	void* data = malloc(resfile_node_size(index, res));
+	if (NULL == data || !resfile_node_data(index, data, res)) {
+		free(data);
+		return false;
+	}
+
+	memfile* mem = memfile_open_data(data, resfile_node_size(index, res), "rb");
+	if (NULL == mem) {
+		free(data);
+		return false;
+	}
+
+	bool ok = read_header_impl(mpr, mem);
+
+	memfile_close(mem);
+	free(data);
+
+	return ok;
 }
 
 static bool read_vertex(vertex* ver, memfile* mem)
@@ -261,44 +269,29 @@ static bool read_vertex(vertex* ver, memfile* mem)
 	return true;
 }
 
-static bool read_sector(sector* sec, const char* sec_name, resfile* res)
+static bool read_sector_impl(sector* sec, memfile* mem)
 {
-	int sec_index = resfile_node_index(sec_name, res);
-	if (sec_index < 0) {
-		return false;
-	}
-
-	memfile* mem = resfile_node_memfile(sec_index, res);
-	if (NULL == mem) {
-		return false;
-	}
-
 	uint32_t signature;
 	if (1 != memfile_read(&signature, sizeof(uint32_t), 1, mem)) {
-		memfile_close(mem);
 		return false;
 	}
 
 	le2cpu32s(&signature);
 	if (SEC_SIGNATURE != signature) {
-		memfile_close(mem);
 		return false;
 	}
 
 	if (1 != memfile_read(&sec->water, sizeof(uint8_t), 1, mem)) {
-		memfile_close(mem);
 		return false;
 	}
 
 	sec->land_vertices = malloc(VERTEX_COUNT * sizeof(vertex));
 	if (NULL == sec->land_vertices) {
-		memfile_close(mem);
 		return false;
 	}
 
 	for (unsigned int i = 0; i < VERTEX_COUNT; ++i) {
 		if (!read_vertex(sec->land_vertices + i, mem)) {
-			memfile_close(mem);
 			return false;
 		}
 	}
@@ -306,13 +299,11 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 	if (0 != sec->water) {
 		sec->water_vertices = malloc(VERTEX_COUNT * sizeof(vertex));
 		if (NULL == sec->water_vertices) {
-			memfile_close(mem);
 			return false;
 		}
 
 		for (unsigned int i = 0; i < VERTEX_COUNT; ++i) {
 			if (!read_vertex(sec->water_vertices + i, mem)) {
-				memfile_close(mem);
 				return false;
 			}
 		}
@@ -321,7 +312,6 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 	sec->land_textures = malloc(TEXTURE_COUNT * sizeof(uint16_t));
 	if (NULL == sec->land_textures || TEXTURE_COUNT != memfile_read(
 			sec->land_textures, sizeof(uint16_t), TEXTURE_COUNT, mem)) {
-		memfile_close(mem);
 		return false;
 	}
 
@@ -338,7 +328,6 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 					sizeof(uint16_t), TEXTURE_COUNT, mem) ||
 				TEXTURE_COUNT != memfile_read(sec->water_allow,
 					sizeof(int16_t), TEXTURE_COUNT, mem)) {
-			memfile_close(mem);
 			return false;
 		}
 
@@ -348,8 +337,34 @@ static bool read_sector(sector* sec, const char* sec_name, resfile* res)
 		}
 	}
 
-	memfile_close(mem);
 	return true;
+}
+
+static bool read_sector(sector* sec, const char* name, resfile* res)
+{
+	int index = resfile_node_index(name, res);
+	if (index < 0) {
+		return false;
+	}
+
+	void* data = malloc(resfile_node_size(index, res));
+	if (NULL == data || !resfile_node_data(index, data, res)) {
+		free(data);
+		return false;
+	}
+
+	memfile* mem = memfile_open_data(data, resfile_node_size(index, res), "rb");
+	if (NULL == mem) {
+		free(data);
+		return false;
+	}
+
+	bool ok = read_sector_impl(sec, mem);
+
+	memfile_close(mem);
+	free(data);
+
+	return ok;
 }
 
 static bool read_sectors(mprfile* mpr, const char* mpr_name,
@@ -388,16 +403,15 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 	return true;
 }
 
-static bool create_texture(GLuint* texture_id,
-			const char* mmp_name, resfile* res)
+static bool create_texture(GLuint* texture_id, const char* name, resfile* res)
 {
-	int mmp_index = resfile_node_index(mmp_name, res);
-	if (mmp_index < 0) {
+	int index = resfile_node_index(name, res);
+	if (index < 0) {
 		return false;
 	}
 
-	void* data = malloc(resfile_node_size(mmp_index, res));
-	if (NULL == data || !resfile_node_data(mmp_index, data, res)) {
+	void* data = malloc(resfile_node_size(index, res));
+	if (NULL == data || !resfile_node_data(index, data, res)) {
 		free(data);
 		return false;
 	}
@@ -405,6 +419,7 @@ static bool create_texture(GLuint* texture_id,
 	*texture_id = mmpfile_generate_texture(0, data);
 
 	free(data);
+
 	return 0 != *texture_id;
 }
 

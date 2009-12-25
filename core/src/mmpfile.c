@@ -6,7 +6,6 @@
 */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -17,8 +16,9 @@
 
 #include "celib.h"
 #include "cemath.h"
-#include "gllib.h"
+#include "cegl.h"
 #include "byteorder.h"
+#include "logging.h"
 #include "memfile.h"
 #include "mmpfile.h"
 
@@ -81,10 +81,10 @@ static bool scale_texture(int* width, int* height,
 		float fract_width = modff(log2f(new_width), &int_width);
 		float fract_height = modff(log2f(new_height), &int_height);
 
-		if (!fiszero(fract_width, 0.001f)) {
+		if (!fiszerof(fract_width, 0.001f)) {
 			new_width = powf(2.0f, int_width);
 		}
-		if (!fiszero(fract_height, 0.001f)) {
+		if (!fiszerof(fract_height, 0.001f)) {
 			new_height = powf(2.0f, int_height);
 		}
 	}
@@ -93,7 +93,7 @@ static bool scale_texture(int* width, int* height,
 		int error_code = gluScaleImage(data_format, *width, *height,
 			data_type, data, new_width, new_height, data_type, data);
 		if (GL_NO_ERROR != error_code) {
-			printf("gluScaleImage failed: %d (%s)\n",
+			logging_error("gluScaleImage failed: %d (%s)\n",
 				error_code, gluErrorString(error_code));
 			return false;
 		}
@@ -109,7 +109,7 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 		int height, GLenum data_format, GLenum data_type, void* data)
 {
 	if (!scale_texture(&width, &height, data_format, data_type, data)) {
-		printf("Could not scale texture\n");
+		logging_error("Could not scale texture\n");
 		return false;
 	}
 
@@ -118,7 +118,7 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 
 	int error_code = glGetError();
 	if (GL_NO_ERROR != error_code) {
-		printf("glTexImage2D failed: %d (%s)\n",
+		logging_error("glTexImage2D failed: %d (%s)\n",
 			error_code, gluErrorString(error_code));
 		return false;
 	}
@@ -134,7 +134,7 @@ static bool generate_texture(int mipmap_count, GLenum internal_format, int width
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		if (!specify_texture(i, internal_format, width,
 				height, data_format, data_type, data)) {
-			printf("Could not specify texture\n");
+			logging_error("Could not specify texture\n");
 			return false;
 		}
 		data += width * height * bpp;
@@ -253,7 +253,7 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 
 		int error_code = glGetError();
 		if (GL_NO_ERROR != error_code) {
-			printf("glCompressedTexImage2D failed: %d (%s)\n",
+			logging_error("glCompressedTexImage2D failed: %d (%s)\n",
 				error_code, gluErrorString(error_code));
 			return false;
 		}
@@ -282,7 +282,7 @@ static bool dxt_generate_texture(int mipmap_count,
 	}
 
 	if (NULL == (data = malloc(data_size))) {
-		printf("Could not allocate memory\n");
+		logging_error("Could not allocate memory\n");
 		return false;
 	}
 
@@ -311,7 +311,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		uint32_t* end = data + size;
 
 		if (NULL == (data = malloc(data_size))) {
-			printf("Could not allocate memory\n");
+			logging_error("Could not allocate memory\n");
 			return false;
 		}
 
@@ -363,7 +363,7 @@ GLuint mmpfile_generate_texture(GLuint id, void* data)
 	uint32_t* mmp = data;
 
 	if (MMP_SIGNATURE != le2cpu32(*mmp++)) {
-		printf("Wrong signature\n");
+		logging_error("Wrong signature\n");
 		return 0;
 	}
 

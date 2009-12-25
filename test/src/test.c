@@ -5,13 +5,15 @@
 
 #include <GL/glut.h>
 
+#include "logging.h"
+#include "cegl.h"
 #include "resfile.h"
 #include "mprfile.h"
 
 mprfile* mpr;
 
-double eye[3] = { 15.0, -10.0, 15.0 };
-double target[3] = { 15.0, 30.0, 5.0 };
+double eye[3] = { 10.0, 10.0, -10.0 };
+double target[3] = { 0.0, 0.0, 0.0 };
 double up[3] = { 0.0, 1.0, 0.0 };
 
 bool mouse_left_down;
@@ -26,33 +28,59 @@ float camera_distance;
 int draw_mode;
 int val;
 
-void display(void)
+static void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	GLUquadric* q = gluNewQuadric();
+
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_LINE);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(3.0f, 0.0f, 0.0f);
+	glEnd();
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glBegin(GL_LINE);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 3.0f, 0.0f);
+	glEnd();
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glBegin(GL_LINE);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 0.0f, 3.0f);
+	glEnd();
+
+	/*glPushMatrix();
+	glTranslatef(target[0], target[1], target[2]);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	gluSphere(q, 0.5, 5, 5);
+	glPopMatrix();*/
+
 	glPushMatrix();
 
-	glTranslatef(0, camera_distance, 0);
-	glRotatef(camera_angle_x, 1, 0, 0);
-	glRotatef(camera_angle_y, 0, 1, 0);
+	glTranslatef(0.0f, 0.0f, camera_distance);
+	glRotatef(camera_angle_x, 1.0f, 0.0f, 0.0f);
+	glRotatef(camera_angle_y, 0.0f, 1.0f, 0.0f);
 
-	mprfile_debug_render(val, mpr);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	gluSphere(q, 1.0, 10, 10);
+	//mprfile_debug_render(val, mpr);
 
 	glPopMatrix();
 
 	glutSwapBuffers();
 }
 
-void reshape(int width, int height)
+static void reshape(int width, int height)
 {
     glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-10.0, 150.0, -10.0, 150.0, -50.0, 1000.0);
+	gluPerspective(60.0, 1.0, 1.0, 20.0);
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void keyboard(unsigned char key, int x, int y)
+static void keyboard(unsigned char key, int x, int y)
 {
 	x = x;
 	y = y;
@@ -82,6 +110,7 @@ void keyboard(unsigned char key, int x, int y)
 
     	case 27: // escape
 			mprfile_close(mpr);
+			logging_close();
 			exit(0);
 			break;
 
@@ -90,7 +119,7 @@ void keyboard(unsigned char key, int x, int y)
     }
 }
 
-void mouse(int button, int state, int x, int y)
+static void mouse(int button, int state, int x, int y)
 {
     mouse_x = x;
     mouse_y = y;
@@ -116,7 +145,7 @@ void mouse(int button, int state, int x, int y)
 	}
 }
 
-void motion(int x, int y)
+static void motion(int x, int y)
 {
     if (mouse_left_down) {
         camera_angle_y += (x - mouse_x);
@@ -131,7 +160,7 @@ void motion(int x, int y)
     }
 }
 
-void idle(void)
+static void idle(void)
 {
     glutPostRedisplay();
 }
@@ -143,10 +172,13 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	logging_open();
+	logging_set_level(LOGGING_DEBUG_LEVEL);
+
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
-	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(800, 600);
+	glutInitWindowPosition(300, 600);
+	glutInitWindowSize(400, 300);
 	glutInit(&argc, argv);
 
 	glutCreateWindow("Cursed Earth");
@@ -157,14 +189,8 @@ int main(int argc, char* argv[])
 	glutReshapeFunc(reshape);
 	glutIdleFunc(idle);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+	gl_init();
 
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glClearDepth(1.0);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 	gluLookAt(eye[0], eye[1], eye[2],
 			target[0], target[1], target[2],
 			up[0], up[1], up[2]);
