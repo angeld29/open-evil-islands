@@ -5,24 +5,21 @@
 
 #include <GL/glut.h>
 
-#include "logging.h"
+#include "cemath.h"
 #include "cegl.h"
+#include "logging.h"
+#include "camera.h"
 #include "resfile.h"
 #include "mprfile.h"
 
 mprfile* mpr;
-
-double eye[3] = { 50.0, 100.0, 50.0 };
-double target[3] = { 0.0, 0.0, 0.0 };
-double up[3] = { 0.0, 1.0, 0.0 };
+camera* cam;
 
 bool mouse_left_down;
 bool mouse_right_down;
 bool mouse_middle_down;
 
 float mouse_x, mouse_y;
-float camera_angle_x;
-float camera_angle_y;
 float camera_distance;
 
 int draw_mode;
@@ -32,7 +29,7 @@ static void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	GLUquadric* quadric = gluNewQuadric();
+	camera_setup(cam);
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
@@ -50,23 +47,7 @@ static void display(void)
 	glVertex3f(0.0f, 0.0f, 100.0f);
 	glEnd();
 
-	/*glPushMatrix();
-	glTranslatef(target[0], target[1], target[2]);
-	glColor3f(1.0f, 0.0f, 0.0f);
-	gluSphere(quadric, 0.5, 5, 5);
-	glPopMatrix();*/
-
-	glPushMatrix();
-
-	glTranslatef(0.0f, 0.0f, camera_distance);
-	glRotatef(camera_angle_x, 1.0f, 0.0f, 0.0f);
-	glRotatef(camera_angle_y, 0.0f, 1.0f, 0.0f);
-
 	mprfile_debug_render(val, mpr);
-
-	glPopMatrix();
-
-	gluDeleteQuadric(quadric);
 
 	glutSwapBuffers();
 }
@@ -109,6 +90,7 @@ static void keyboard(unsigned char key, int x, int y)
 			break;
 
     	case 27: // escape
+			camera_delete(cam);
 			mprfile_close(mpr);
 			logging_close();
 			exit(0);
@@ -133,13 +115,13 @@ static void mouse(int button, int state, int x, int y)
 	} else if (button == GLUT_RIGHT_BUTTON) {
 		if (state == GLUT_DOWN) {
 			mouse_right_down = true;
-		} else if(state == GLUT_UP) {
+		} else if (state == GLUT_UP) {
 			mouse_right_down = false;
 		}
 	} else if(button == GLUT_MIDDLE_BUTTON) {
 		if (state == GLUT_DOWN) {
 			mouse_middle_down = true;
-        } else if(state == GLUT_UP) {
+        } else if (state == GLUT_UP) {
 			mouse_middle_down = false;
 		}
 	}
@@ -147,17 +129,13 @@ static void mouse(int button, int state, int x, int y)
 
 static void motion(int x, int y)
 {
-    if (mouse_left_down) {
-        camera_angle_y += (x - mouse_x);
-        camera_angle_x += (y - mouse_y);
-        mouse_x = x;
-        mouse_y = y;
+	if (mouse_right_down) {
+		camera_yaw_pitch(deg2rad(-0.1f * (x - mouse_x)),
+						deg2rad(-0.1f * (y - mouse_y)), cam);
     }
 
-    if (mouse_right_down) {
-        camera_distance += (y - mouse_y) * 0.2f;
-        mouse_y = y;
-    }
+	mouse_x = x;
+	mouse_y = y;
 }
 
 static void idle(void)
@@ -177,8 +155,8 @@ int main(int argc, char* argv[])
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
-	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(800, 600);
+	glutInitWindowPosition(400, 500);
+	glutInitWindowSize(400, 300);
 	glutInit(&argc, argv);
 
 	glutCreateWindow("Cursed Earth");
@@ -191,9 +169,11 @@ int main(int argc, char* argv[])
 
 	gl_init();
 
-	gluLookAt(eye[0], eye[1], eye[2],
-			target[0], target[1], target[2],
-			up[0], up[1], up[2]);
+	float eye[3] = { 50.0f, 100.0f, 50.0f };
+
+	cam = camera_new();
+	camera_set_eye(eye, cam);
+	camera_yaw_pitch(deg2rad(0.0f), deg2rad(60.0f), cam);
 
 	char tex_path[512];
 	snprintf(tex_path, sizeof(tex_path), "%s/Res/textures.res", argv[1]);

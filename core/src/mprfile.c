@@ -93,22 +93,12 @@ struct mprfile {
 	GLuint* texture_ids;
 };
 
-/*static void normal2vector(uint32_t normal, float vector[3])
+static void normal2vector(uint32_t normal, float vector[3])
 {
-	vector[2] = (normal >> 22) / 1000.0f;
-	vector[0] = (((normal >> 11) & 0x7ff) - 1000.0f) / 1000.0f;
-	vector[1] = ((normal & 0x7ff) - 1000.0f) / 1000.0f;
-};*/
-
-/*static uint32_t vector2normal(float vector[3])
-{
-	assert(isgreaterequal(vector[2], 0.0f) && islessequal(vector[2], 1.0f));
-	assert(isgreaterequal(vector[0], -1.0f) && islessequal(vector[0], 1.0f));
-	assert(isgreaterequal(vector[1], -1.0f) && islessequal(vector[1], 1.0f));
-	return ((uint32_t)(vector[2] * 1000.0f) << 22 ) |
-			((uint32_t)(vector[0] * 1000.0f + 1000.0f) << 11) |
-			(uint32_t)(vector[1] * 1000.0f + 1000.0f);
-};*/
+	vector[0] = ((normal & 0x7ff) - 1000.0f) / 1000.0f;
+	vector[1] = (normal >> 22) / 1000.0f;
+	vector[2] = (((normal >> 11) & 0x7ff) - 1000.0f) / 1000.0f;
+};
 
 static inline uint8_t texture_index(uint16_t value)
 {
@@ -556,36 +546,7 @@ void mprfile_debug_print(mprfile* mpr)
 	for (unsigned int i = 0, n = mpr->sector_x_count *
 				mpr->sector_z_count; i < n; ++i) {
 		sector* sec = mpr->sectors + i;
-		//printf("sector %u:\n", i);
-		//printf("\twater: %hhu\n", sec->water);
-		for (int j = 0; j < VERTEX_COUNT; ++j) {
-			//float vector[3] = { 0.0f };
-			//normal2vector(sec->land_vertices[j].normal, vector);
-			/*printf("\tland vertex %3d: %hhd %hhd %hu %f %f %f\n", j,
-				sec->land_vertices[j].offset_x,
-				sec->land_vertices[j].offset_z,
-				sec->land_vertices[j].coord_y,
-				vector[0], vector[1], vector[2]);*/
-		}
 		if (0 != sec->water) {
-			for (unsigned int j = 0; j < VERTEX_COUNT; ++j) {
-				/*printf("\twater vertex %3d: %hhd %hhd %hu %u\n", j,
-					sec->water_vertices[j].offset_x,
-					sec->water_vertices[j].offset_z,
-					sec->water_vertices[j].coord_y,
-					sec->water_vertices[j].normal);*/
-			}
-		}
-		for (unsigned int j = 0; j < TEXTURE_COUNT; ++j) {
-			/*printf("\tland textures %3d: %2hhu %hhu %hhu\n", j,
-				texture_index(sec->land_textures[j]),
-				texture_number(sec->land_textures[j]),
-				texture_angle(sec->land_textures[j]));*/
-		}
-		if (0 != sec->water) {
-			for (unsigned int j = 0; j < TEXTURE_COUNT; ++j) {
-				//printf("\t water textures %3d: %hd\n", j, sec->water_textures[j]);
-			}
 			for (unsigned int j = 0; j < TEXTURE_COUNT; ++j) {
 				//printf("\twater allow %d: %hd\n", j, sec->water_allow[j]);
 			}
@@ -593,14 +554,14 @@ void mprfile_debug_print(mprfile* mpr)
 	}
 }
 
-int old_val = -1;
 void mprfile_debug_render(int val, mprfile* mpr)
 {
 	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	for (unsigned int i = 0; i < mpr->sector_z_count; ++i) {
@@ -608,43 +569,66 @@ void mprfile_debug_render(int val, mprfile* mpr)
 			sector* sec = mpr->sectors + (i * mpr->sector_x_count + j);
 			for (unsigned int k = 0; k < VERTEX_SIDE - 2; k += 2) {
 				for (unsigned int l = 0; l < VERTEX_SIDE - 2; l += 2) {
+					vertex* ver1 = sec->land_vertices + ((k + 0) * VERTEX_SIDE + (l + 0));
+					vertex* ver2 = sec->land_vertices + ((k + 0) * VERTEX_SIDE + (l + 1));
+					vertex* ver3 = sec->land_vertices + ((k + 0) * VERTEX_SIDE + (l + 2));
+					vertex* ver4 = sec->land_vertices + ((k + 1) * VERTEX_SIDE + (l + 2));
+					vertex* ver5 = sec->land_vertices + ((k + 2) * VERTEX_SIDE + (l + 2));
+					vertex* ver6 = sec->land_vertices + ((k + 2) * VERTEX_SIDE + (l + 1));
+					vertex* ver7 = sec->land_vertices + ((k + 2) * VERTEX_SIDE + (l + 0));
+					vertex* ver8 = sec->land_vertices + ((k + 1) * VERTEX_SIDE + (l + 0));
+					vertex* ver9 = sec->land_vertices + ((k + 1) * VERTEX_SIDE + (l + 1));
+
+					float coef = val % 2 ? 1.0f : 0.0f;
+
 					GLfloat vertices[] = {
-						k + i * (VERTEX_SIDE - 1),
-						0.025f * (sec->land_vertices[k * VERTEX_SIDE + l].coord_y / mpr->max_y),
-						l + j * (VERTEX_SIDE - 1),
+						k + i * (VERTEX_SIDE - 1) + coef * ver1->offset_x / 127.0f,
+						0.025f * (ver1->coord_y / mpr->max_y),
+						l + j * (VERTEX_SIDE - 1) + coef * ver1->offset_z / 127.0f,
 
-						k + 1 + i * (VERTEX_SIDE - 1),
-						0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + l].coord_y / mpr->max_y),
-						l + j * (VERTEX_SIDE - 1),
+						k + i * (VERTEX_SIDE - 1) + coef * ver2->offset_x / 127.0f,
+						0.025f * (ver2->coord_y / mpr->max_y),
+						l + 1 + j * (VERTEX_SIDE - 1) + coef * ver2->offset_z / 127.0f,
 
-						k + i * (VERTEX_SIDE - 1),
-						0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 1)].coord_y / mpr->max_y),
-						l + 1 + j * (VERTEX_SIDE - 1),
+						k + i * (VERTEX_SIDE - 1) + coef * ver3->offset_x / 127.0f,
+						0.025f * (ver3->coord_y / mpr->max_y),
+						l + 2 + j * (VERTEX_SIDE - 1) + coef * ver3->offset_z / 127.0f,
 
-						k + 1 + i * (VERTEX_SIDE - 1),
-						0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 1)].coord_y / mpr->max_y),
-						l + 1 + j * (VERTEX_SIDE - 1),
+						k + 1 + i * (VERTEX_SIDE - 1) + coef * ver4->offset_x / 127.0f,
+						0.025f * (ver4->coord_y / mpr->max_y),
+						l + 2 + j * (VERTEX_SIDE - 1) + coef * ver4->offset_z / 127.0f,
 
-						k + i * (VERTEX_SIDE - 1),
-						0.025f * (sec->land_vertices[k * VERTEX_SIDE + (l + 2)].coord_y / mpr->max_y),
-						l + 2 + j * (VERTEX_SIDE - 1),
+						k + 2 + i * (VERTEX_SIDE - 1) + coef * ver5->offset_x / 127.0f,
+						0.025f * (ver5->coord_y / mpr->max_y),
+						l + 2 + j * (VERTEX_SIDE - 1) + coef * ver5->offset_z / 127.0f,
 
-						k + 1 + i * (VERTEX_SIDE - 1),
-						0.025f * (sec->land_vertices[(k + 1) * VERTEX_SIDE + (l + 2)].coord_y / mpr->max_y),
-						l + 2 + j * (VERTEX_SIDE - 1),
+						k + 2 + i * (VERTEX_SIDE - 1) + coef * ver6->offset_x / 127.0f,
+						0.025f * (ver6->coord_y / mpr->max_y),
+						l + 1 + j * (VERTEX_SIDE - 1) + coef * ver6->offset_z / 127.0f,
 
-						k + 2 + i * (VERTEX_SIDE - 1),
-						0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + l].coord_y / mpr->max_y),
-						l + j * (VERTEX_SIDE - 1),
+						k + 2 + i * (VERTEX_SIDE - 1) + coef * ver7->offset_x / 127.0f,
+						0.025f * (ver7->coord_y / mpr->max_y),
+						l + j * (VERTEX_SIDE - 1) + coef * ver7->offset_z / 127.0f,
 
-						k + 2 + i * (VERTEX_SIDE - 1),
-						0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 1)].coord_y / mpr->max_y),
-						l + 1 + j * (VERTEX_SIDE - 1),
+						k + 1 + i * (VERTEX_SIDE - 1) + coef * ver8->offset_x / 127.0f,
+						0.025f * (ver8->coord_y / mpr->max_y),
+						l + j * (VERTEX_SIDE - 1) + coef * ver8->offset_z / 127.0f,
 
-						k + 2 + i * (VERTEX_SIDE - 1),
-						0.025f * (sec->land_vertices[(k + 2) * VERTEX_SIDE + (l + 2)].coord_y / mpr->max_y),
-						l + 2 + j * (VERTEX_SIDE - 1)
+						k + 1 + i * (VERTEX_SIDE - 1) + coef * ver9->offset_x / 127.0f,
+						0.025f * (ver9->coord_y / mpr->max_y),
+						l + 1 + j * (VERTEX_SIDE - 1) + coef * ver9->offset_z / 127.0f
 					};
+
+					GLfloat normals[3 * 9];
+					normal2vector(ver1->normal, normals + 0);
+					normal2vector(ver2->normal, normals + 3);
+					normal2vector(ver3->normal, normals + 6);
+					normal2vector(ver4->normal, normals + 9);
+					normal2vector(ver5->normal, normals + 12);
+					normal2vector(ver6->normal, normals + 15);
+					normal2vector(ver7->normal, normals + 18);
+					normal2vector(ver8->normal, normals + 21);
+					normal2vector(ver9->normal, normals + 24);
 
 					uint16_t texture = sec->land_textures[k / 2 * TEXTURE_SIDE + l / 2];
 
@@ -652,43 +636,55 @@ void mprfile_debug_render(int val, mprfile* mpr)
 					float u = (idx - idx / 8 * 8) / 8.0f;
 					float v = (7 - idx / 8) / 8.0f;
 
-					if (0 == i * mpr->sector_x_count + j) {
-						if ((unsigned int)val == k * VERTEX_SIDE + l) {
-							if (old_val != val) {
-								printf("%d,%d %hhu %hhu %hhu\n",
-									texture_index(texture) / 8,
-									texture_index(texture) - (texture_index(texture) / 8) * 8,
-									texture_index(texture), texture_number(texture), texture_angle(texture));
-								old_val = val;
-							}
-							glColor3f(0.0f, 1.0f, 0.0f);
-							glPointSize(2.0f);
-						} else {
-							glColor3f(0.0f, 0.0f, 1.0f);
-							glPointSize(1.0f);
-						}
-					}
-
-					int angle = texture_angle(texture);
-
-					GLfloat texcoords[] = {
-						u + TEXTURE_UV_STEP, v,
+					GLfloat texcoords[4][18] = {
+						{ u, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
 						u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
+						u + TEXTURE_UV_STEP, v,
 						u + TEXTURE_UV_HALF_STEP, v,
-						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP,
 						u, v,
 						u, v + TEXTURE_UV_HALF_STEP,
-						u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP },
+
+						{ u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
+						u + TEXTURE_UV_STEP, v,
+						u + TEXTURE_UV_HALF_STEP, v,
+						u, v,
+						u, v + TEXTURE_UV_HALF_STEP,
 						u, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP },
+
+						{ u + TEXTURE_UV_STEP, v,
+						u + TEXTURE_UV_HALF_STEP, v,
+						u, v,
+						u, v + TEXTURE_UV_HALF_STEP,
+						u, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
+						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP },
+
+						{ u, v,
+						u, v + TEXTURE_UV_HALF_STEP,
+						u, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
+						u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
+						u + TEXTURE_UV_STEP, v,
+						u + TEXTURE_UV_HALF_STEP, v,
+						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP },
 					};
 
 					glVertexPointer(3, GL_FLOAT, 0, vertices);
-					glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
+					glNormalPointer(GL_FLOAT, 0, normals);
+					glTexCoordPointer(2, GL_FLOAT, 0, texcoords[texture_angle(texture)]);
 
 					GLubyte indices[2][6] = {
-						{ 0, 2, 1, 3, 6, 7 },
-						{ 2, 4, 3, 5, 7, 8 }
+						{ 7, 0, 8, 1, 3, 2 },
+						{ 6, 7, 5, 8, 4, 3 }
 					};
 
 					glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(texture)]);
@@ -701,7 +697,8 @@ void mprfile_debug_render(int val, mprfile* mpr)
 	}
 
 	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
+	//glDisable(GL_BLEND);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
