@@ -110,16 +110,16 @@ static void special(int key, int x, int y)
 {
 	switch (key) {
 	case GLUT_KEY_LEFT:
-		camera_move((float[]){ -1.0f, 0.0f }, cam);
+		camera_move(-1.0f, 0.0f, cam);
 		break;
 	case GLUT_KEY_UP:
-		camera_move((float[]){ 0.0f, 1.0f }, cam);
+		camera_move(0.0f, 1.0f, cam);
 		break;
 	case GLUT_KEY_RIGHT:
-		camera_move((float[]){ 1.0f, 0.0f }, cam);
+		camera_move(1.0f, 0.0f, cam);
 		break;
 	case GLUT_KEY_DOWN:
-		camera_move((float[]){ 0.0f, -1.0f }, cam);
+		camera_move(0.0f, -1.0f, cam);
 		break;
 	};
 }

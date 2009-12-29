@@ -76,11 +76,11 @@ float* camera_eye(float eye[3], const camera* cam)
 	return vector3_copy(cam->eye, eye);
 }
 
-float* camera_dir(float dir[3], const camera* cam)
+float* camera_forward(float forward[3], const camera* cam)
 {
 	float q[4];
 	return vector3_rot(VECTOR3_NEG_UNIT_Z,
-		quaternion_inverse(cam->look, q), dir);
+		quaternion_inverse(cam->look, q), forward);
 }
 
 float* camera_up(float up[3], const camera* cam)
@@ -109,23 +109,34 @@ void camera_set_look(const float look[4], camera* cam)
 	cam->look_changed = true;
 }
 
-void camera_move(const float offset[2], camera* cam)
+void camera_move(float offsetx, float offsetz, camera* cam)
 {
-	vector3_add(cam->eye, (float[]){ offset[0], 0.0f, offset[1] }, cam->eye);
+	float forward[3], right[3];
+	camera_forward(forward, cam);
+	camera_right(right, cam);
 
-	/*float t[3];
-	vector3_add(cam->eye, vector3_rot((float[]){ offset[0], 0.0f, offset[1] },
-		cam->look, t), cam->eye);*/
+	// Ignore pitch difference angle.
+	forward[1] = 0.0f;
+	right[1] = 0.0f;
+
+	vector3_normalise(forward, forward);
+	vector3_normalise(right, right);
+
+	vector3_mul_scalar(forward, offsetz, forward);
+	vector3_mul_scalar(right, offsetx, right);
+
+	vector3_add(cam->eye, forward, cam->eye);
+	vector3_add(cam->eye, right, cam->eye);
 
 	cam->eye_changed = true;
 }
 
 void camera_zoom(float offset, camera* cam)
 {
-	float dir[3];
-	camera_dir(dir, cam);
-	vector3_mul_scalar(dir, offset, dir);
-	vector3_add(cam->eye, dir, cam->eye);
+	float forward[3];
+	camera_forward(forward, cam);
+	vector3_mul_scalar(forward, offset, forward);
+	vector3_add(cam->eye, forward, cam->eye);
 	cam->eye_changed = true;
 }
 
