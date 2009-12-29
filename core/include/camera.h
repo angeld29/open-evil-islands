@@ -19,9 +19,8 @@ extern float* camera_right(float right[3], const camera* cam);
 extern void camera_set_eye(const float eye[3], camera* cam);
 extern void camera_set_look(const float look[4], camera* cam);
 
-extern void camera_move(const float vec[3], camera* cam);
-extern void camera_move_rel(const float vec[3], camera* cam);
-
+extern void camera_move(const float offset[2], camera* cam);
+extern void camera_zoom(float offset, camera* cam);
 extern void camera_yaw_pitch(float psi, float theta, camera* cam);
 
 extern void camera_setup(camera* cam);

@@ -14,12 +14,17 @@ const float RAD2DEG = 180.0f / CE_PI;
 const float VECTOR2_ZERO[2] = { 0.0f, 0.0f };
 const float VECTOR2_UNIT_X[2] = { 1.0f, 0.0f };
 const float VECTOR2_UNIT_Y[2] = { 0.0f, 1.0f };
+const float VECTOR2_NEG_UNIT_X[2] = { -1.0f, 0.0f };
+const float VECTOR2_NEG_UNIT_Y[2] = { 0.0f, -1.0f };
 const float VECTOR2_UNIT_SCALE[2] = { 1.0f, 1.0f };
 
 const float VECTOR3_ZERO[3] = { 0.0f, 0.0f, 0.0f };
 const float VECTOR3_UNIT_X[3] = { 1.0f, 0.0f, 0.0f };
 const float VECTOR3_UNIT_Y[3] = { 0.0f, 1.0f, 0.0f };
 const float VECTOR3_UNIT_Z[3] = { 0.0f, 0.0f, 1.0f };
+const float VECTOR3_NEG_UNIT_X[3] = { -1.0f, 0.0f, 0.0f };
+const float VECTOR3_NEG_UNIT_Y[3] = { 0.0f, -1.0f, 0.0f };
+const float VECTOR3_NEG_UNIT_Z[3] = { 0.0f, 0.0f, -1.0f };
 const float VECTOR3_UNIT_SCALE[3] = { 1.0f, 1.0f, 1.0f };
 
 const float QUATERNION_ZERO[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -54,15 +59,15 @@ const float MATRIX4_IDENTITY[16] = {
 /**
  *  Based on http://www.c-faq.com/fp/fpequal.html.
 */
-static float reldiff(float a, float b)
+static float reldif(float a, float b)
 {
 	float c = fmaxf(fabsf(a), fabsf(b));
 	return 0.0f == c ? 0.0f : fabsf(a - b) / c;
 }
 
-bool fisequalf(float a, float b, float tolerance)
+bool fisequal(float a, float b, float tolerance)
 {
-	return a == b || fabsf(a - b) <= tolerance || reldiff(a, b) <= tolerance;
+	return a == b || fabsf(a - b) <= tolerance || reldif(a, b) <= tolerance;
 }
 
 float* vector2_zero(float r[2])
@@ -83,6 +88,20 @@ float* vector2_unit_y(float r[2])
 {
 	r[0] = 0.0f;
 	r[1] = 1.0f;
+	return r;
+}
+
+float* vector2_neg_unit_x(float r[2])
+{
+	r[0] = -1.0f;
+	r[1] = 0.0f;
+	return r;
+}
+
+float* vector2_neg_unit_y(float r[2])
+{
+	r[0] = 0.0f;
+	r[1] = -1.0f;
 	return r;
 }
 
@@ -122,6 +141,30 @@ float* vector3_unit_z(float r[3])
 	r[0] = 0.0f;
 	r[1] = 0.0f;
 	r[2] = 1.0f;
+	return r;
+}
+
+float* vector3_neg_unit_x(float r[3])
+{
+	r[0] = -1.0f;
+	r[1] = 0.0f;
+	r[2] = 0.0f;
+	return r;
+}
+
+float* vector3_neg_unit_y(float r[3])
+{
+	r[0] = 0.0f;
+	r[1] = -1.0f;
+	r[2] = 0.0f;
+	return r;
+}
+
+float* vector3_neg_unit_z(float r[3])
+{
+	r[0] = 0.0f;
+	r[1] = 0.0f;
+	r[2] = -1.0f;
 	return r;
 }
 
@@ -222,12 +265,12 @@ float* vector3_div_scalar(const float a[3], float s, float r[3])
 	return r;
 }
 
-float vector3_len(const float a[3])
+float vector3_abs(const float a[3])
 {
-	return sqrtf(vector3_len2(a));
+	return sqrtf(vector3_abs2(a));
 }
 
-float vector3_len2(const float a[3])
+float vector3_abs2(const float a[3])
 {
 	return a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
 }
@@ -235,18 +278,18 @@ float vector3_len2(const float a[3])
 float vector3_dist(const float a[3], const float b[3])
 {
 	float r[3];
-	return vector3_len(vector3_sub(a, b, r));
+	return vector3_abs(vector3_sub(a, b, r));
 }
 
 float vector3_dist2(const float a[3], const float b[3])
 {
 	float r[3];
-	return vector3_len2(vector3_sub(a, b, r));
+	return vector3_abs2(vector3_sub(a, b, r));
 }
 
 float* vector3_normalise(const float a[3], float r[3])
 {
-	float i = 1.0f / vector3_len(a);
+	float i = 1.0f / vector3_abs(a);
 	r[0] = a[0] * i;
 	r[1] = a[1] * i;
 	r[2] = a[2] * i;
@@ -385,25 +428,25 @@ float* quaternion_mul_scalar(const float a[4], float s, float r[4])
 	return r;
 }
 
-float quaternion_len(const float a[4])
+float quaternion_abs(const float a[4])
 {
-	return sqrtf(quaternion_len2(a));
+	return sqrtf(quaternion_abs2(a));
 }
 
-float quaternion_len2(const float a[4])
+float quaternion_abs2(const float a[4])
 {
 	return a[0] * a[0] + a[1] * a[1] + a[2] * a[2] + a[3] * a[3];
 }
 
 float quaternion_arg(const float a[4])
 {
-	float l = quaternion_len(a);
+	float l = quaternion_abs(a);
 	return 0.0f == l ? 0.0f : acosf(a[0] / l);
 }
 
 float* quaternion_normalise(const float a[4], float r[4])
 {
-	float i = 1.0f / quaternion_len(a);
+	float i = 1.0f / quaternion_abs(a);
 	r[0] = a[0] * i;
 	r[1] = a[1] * i;
 	r[2] = a[2] * i;
@@ -411,9 +454,9 @@ float* quaternion_normalise(const float a[4], float r[4])
 	return r;
 }
 
-float* quaternion_invert(const float a[4], float r[4])
+float* quaternion_inverse(const float a[4], float r[4])
 {
-	float i = 1.0f / quaternion_len2(a);
+	float i = 1.0f / quaternion_abs2(a);
 	r[0] = a[0] * i;
 	r[1] = a[1] * -i;
 	r[2] = a[2] * -i;

@@ -31,6 +31,11 @@ static inline size_t smax(size_t a, size_t b)
 	return CE_MAX(a, b);
 }
 
+static inline int clamp(int v, int a, int b)
+{
+	return v < a ? a : (v > b ? b : v);
+}
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

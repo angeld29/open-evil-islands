@@ -696,9 +696,9 @@ void mprfile_debug_render(int val, mprfile* mpr)
 		}
 	}
 
-	glDisable(GL_TEXTURE_2D);
-	//glDisable(GL_BLEND);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	//glDisable(GL_BLEND);
+	glDisable(GL_TEXTURE_2D);
 }
