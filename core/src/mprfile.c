@@ -38,6 +38,8 @@ enum {
 	TEXTURE_COUNT = 16 * 16
 };
 
+static const float OFFSET_XZ_COEF = 1.0f / 256.0f;
+
 static const float TEXTURE_UV_STEP = 1.0f / 8.0f;
 static const float TEXTURE_UV_HALF_STEP = 1.0f / 16.0f;
 
@@ -534,14 +536,14 @@ void mprfile_debug_print(mprfile* mpr)
 		printf("\treserved2: %f\n", mat->reserved2);
 		printf("\treserved3: %f\n", mat->reserved3);
 	}
-	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
-		//printf("id %u: %u\n", i, mpr->tiles[i]);
-	}
 	for (unsigned int i = 0; i < mpr->anim_tile_count; ++i) {
 		anim_tile* at = mpr->anim_tiles + i;
 		printf("anim tile %u:\n", i);
 		printf("\tindex: %hu\n", at->index);
 		printf("\tphases: %hu\n", at->phases);
+	}
+	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
+		//printf("id %u: %u\n", i, mpr->tiles[i]);
 	}
 	for (unsigned int i = 0, n = mpr->sector_x_count *
 				mpr->sector_z_count; i < n; ++i) {
@@ -579,44 +581,44 @@ void mprfile_debug_render(int val, mprfile* mpr)
 					vertex* ver8 = sec->land_vertices + ((k + 1) * VERTEX_SIDE + (l + 0));
 					vertex* ver9 = sec->land_vertices + ((k + 1) * VERTEX_SIDE + (l + 1));
 
-					float coef = val % 2 ? 1.0f : 0.0f;
+					float y_coef = 0.025f / mpr->max_y;
 
 					GLfloat vertices[] = {
-						k + i * (VERTEX_SIDE - 1) + coef * ver1->offset_x / 127.0f,
-						0.025f * (ver1->coord_y / mpr->max_y),
-						l + j * (VERTEX_SIDE - 1) + coef * ver1->offset_z / 127.0f,
+						k + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver1->offset_x,
+						y_coef * ver1->coord_y,
+						l + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver1->offset_z,
 
-						k + i * (VERTEX_SIDE - 1) + coef * ver2->offset_x / 127.0f,
-						0.025f * (ver2->coord_y / mpr->max_y),
-						l + 1 + j * (VERTEX_SIDE - 1) + coef * ver2->offset_z / 127.0f,
+						k + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver2->offset_x,
+						y_coef * ver2->coord_y,
+						l + 1 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver2->offset_z,
 
-						k + i * (VERTEX_SIDE - 1) + coef * ver3->offset_x / 127.0f,
-						0.025f * (ver3->coord_y / mpr->max_y),
-						l + 2 + j * (VERTEX_SIDE - 1) + coef * ver3->offset_z / 127.0f,
+						k + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver3->offset_x,
+						y_coef * ver3->coord_y,
+						l + 2 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver3->offset_z,
 
-						k + 1 + i * (VERTEX_SIDE - 1) + coef * ver4->offset_x / 127.0f,
-						0.025f * (ver4->coord_y / mpr->max_y),
-						l + 2 + j * (VERTEX_SIDE - 1) + coef * ver4->offset_z / 127.0f,
+						k + 1 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver4->offset_x,
+						y_coef * ver4->coord_y,
+						l + 2 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver4->offset_z,
 
-						k + 2 + i * (VERTEX_SIDE - 1) + coef * ver5->offset_x / 127.0f,
-						0.025f * (ver5->coord_y / mpr->max_y),
-						l + 2 + j * (VERTEX_SIDE - 1) + coef * ver5->offset_z / 127.0f,
+						k + 2 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver5->offset_x,
+						y_coef * ver5->coord_y,
+						l + 2 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver5->offset_z,
 
-						k + 2 + i * (VERTEX_SIDE - 1) + coef * ver6->offset_x / 127.0f,
-						0.025f * (ver6->coord_y / mpr->max_y),
-						l + 1 + j * (VERTEX_SIDE - 1) + coef * ver6->offset_z / 127.0f,
+						k + 2 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver6->offset_x,
+						y_coef * ver6->coord_y,
+						l + 1 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver6->offset_z,
 
-						k + 2 + i * (VERTEX_SIDE - 1) + coef * ver7->offset_x / 127.0f,
-						0.025f * (ver7->coord_y / mpr->max_y),
-						l + j * (VERTEX_SIDE - 1) + coef * ver7->offset_z / 127.0f,
+						k + 2 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver7->offset_x,
+						y_coef * ver7->coord_y,
+						l + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver7->offset_z,
 
-						k + 1 + i * (VERTEX_SIDE - 1) + coef * ver8->offset_x / 127.0f,
-						0.025f * (ver8->coord_y / mpr->max_y),
-						l + j * (VERTEX_SIDE - 1) + coef * ver8->offset_z / 127.0f,
+						k + 1 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver8->offset_x,
+						y_coef * ver8->coord_y,
+						l + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver8->offset_z,
 
-						k + 1 + i * (VERTEX_SIDE - 1) + coef * ver9->offset_x / 127.0f,
-						0.025f * (ver9->coord_y / mpr->max_y),
-						l + 1 + j * (VERTEX_SIDE - 1) + coef * ver9->offset_z / 127.0f
+						k + 1 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver9->offset_x,
+						y_coef * ver9->coord_y,
+						l + 1 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver9->offset_z
 					};
 
 					GLfloat normals[3 * 9];
