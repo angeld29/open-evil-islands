@@ -7,18 +7,25 @@
 
 #include "logging.h"
 
+static bool opened;
+
 void logging_open(void)
 {
+	assert(!opened);
 	openlog(NULL, LOG_PERROR, LOG_USER);
+	opened = true;
 }
 
 void logging_close(void)
 {
+	assert(opened);
 	closelog();
+	opened = false;
 }
 
 void logging_set_level(logging_level level)
 {
+	assert(opened);
 	switch (level) {
 	case LOGGING_NO_LEVELS:
 		setlogmask(LOG_MASK(0x10));
@@ -52,6 +59,7 @@ void logging_set_level(logging_level level)
 
 void logging_debug(const char* format, ...)
 {
+	assert(opened);
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_DEBUG, format, args);
@@ -60,6 +68,7 @@ void logging_debug(const char* format, ...)
 
 void logging_info(const char* format, ...)
 {
+	assert(opened);
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_INFO, format, args);
@@ -68,6 +77,7 @@ void logging_info(const char* format, ...)
 
 void logging_warning(const char* format, ...)
 {
+	assert(opened);
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_WARNING, format, args);
@@ -76,6 +86,7 @@ void logging_warning(const char* format, ...)
 
 void logging_error(const char* format, ...)
 {
+	assert(opened);
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_ERR, format, args);
@@ -84,6 +95,7 @@ void logging_error(const char* format, ...)
 
 void logging_critical(const char* format, ...)
 {
+	assert(opened);
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_CRIT, format, args);
@@ -92,6 +104,7 @@ void logging_critical(const char* format, ...)
 
 void logging_fatal(const char* format, ...)
 {
+	assert(opened);
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_ALERT, format, args);
@@ -100,6 +113,7 @@ void logging_fatal(const char* format, ...)
 
 void logging_write(const char* format, ...)
 {
+	assert(opened);
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_EMERG, format, args);

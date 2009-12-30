@@ -556,7 +556,7 @@ void mprfile_debug_print(mprfile* mpr)
 	}
 }
 
-void mprfile_debug_render(int val, mprfile* mpr)
+void mprfile_debug_render(mprfile* mpr)
 {
 	glEnable(GL_TEXTURE_2D);
 	//glEnable(GL_BLEND);
