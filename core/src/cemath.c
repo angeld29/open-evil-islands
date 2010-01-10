@@ -2,30 +2,36 @@
 
 #include "cemath.h"
 
-#define CE_PI 3.1415926f
+const float PI = 3.14159265f;
+const float PI2 = 6.28318531f;
+const float PI_DIV_2 = 1.57079633f;
+const float PI_DIV_4 = 0.78539816f;
+const float PI_INV = 0.31830989f;
 
-const float PI = CE_PI;
-const float HALF_PI = 0.5f * CE_PI;
-const float TWO_PI = 2.0f * CE_PI;
+const float EPS_E4 = 1e-4f;
+const float EPS_E5 = 1e-5f;
+const float EPS_E6 = 1e-6f;
 
-const float DEG2RAD = CE_PI / 180.0f;
-const float RAD2DEG = 180.0f / CE_PI;
+static const float DEG2RAD = 0.01745329f;
+static const float RAD2DEG = 57.2957795f;
 
 const float VECTOR2_ZERO[2] = { 0.0f, 0.0f };
 const float VECTOR2_UNIT_X[2] = { 1.0f, 0.0f };
 const float VECTOR2_UNIT_Y[2] = { 0.0f, 1.0f };
+const float VECTOR2_UNIT_SCALE[2] = { 1.0f, 1.0f };
 const float VECTOR2_NEG_UNIT_X[2] = { -1.0f, 0.0f };
 const float VECTOR2_NEG_UNIT_Y[2] = { 0.0f, -1.0f };
-const float VECTOR2_UNIT_SCALE[2] = { 1.0f, 1.0f };
+const float VECTOR2_NEG_UNIT_SCALE[2] = { -1.0f, -1.0f };
 
 const float VECTOR3_ZERO[3] = { 0.0f, 0.0f, 0.0f };
 const float VECTOR3_UNIT_X[3] = { 1.0f, 0.0f, 0.0f };
 const float VECTOR3_UNIT_Y[3] = { 0.0f, 1.0f, 0.0f };
 const float VECTOR3_UNIT_Z[3] = { 0.0f, 0.0f, 1.0f };
+const float VECTOR3_UNIT_SCALE[3] = { 1.0f, 1.0f, 1.0f };
 const float VECTOR3_NEG_UNIT_X[3] = { -1.0f, 0.0f, 0.0f };
 const float VECTOR3_NEG_UNIT_Y[3] = { 0.0f, -1.0f, 0.0f };
 const float VECTOR3_NEG_UNIT_Z[3] = { 0.0f, 0.0f, -1.0f };
-const float VECTOR3_UNIT_SCALE[3] = { 1.0f, 1.0f, 1.0f };
+const float VECTOR3_NEG_UNIT_SCALE[3] = { -1.0f, -1.0f, -1.0f };
 
 const float QUATERNION_ZERO[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 const float QUATERNION_IDENTITY[4] = { 1.0f, 0.0f, 0.0f, 0.0f };
@@ -70,49 +76,88 @@ bool fisequal(float a, float b, float tolerance)
 	return a == b || fabsf(a - b) <= tolerance || reldif(a, b) <= tolerance;
 }
 
-float* vector2_zero(float r[2])
+bool fiszero(float a, float tolerance)
+{
+	return fisequal(a, 0.0f, tolerance);
+}
+
+void fswap(float* a, float* b)
+{
+	float t = *a;
+	*a = *b;
+	*b = t;
+}
+
+float fclamp(float v, float a, float b)
+{
+	return v < a ? a : (v > b ? b : v);
+}
+
+float flerp(float u, float a, float b)
+{
+	return a + u * (b - a);
+}
+
+float deg2rad(float angle)
+{
+	return DEG2RAD * angle;
+}
+
+float rad2deg(float angle)
+{
+	return RAD2DEG * angle;
+}
+
+float* vector2_zero(float* r)
 {
 	r[0] = 0.0f;
 	r[1] = 0.0f;
 	return r;
 }
 
-float* vector2_unit_x(float r[2])
+float* vector2_unit_x(float* r)
 {
 	r[0] = 1.0f;
 	r[1] = 0.0f;
 	return r;
 }
 
-float* vector2_unit_y(float r[2])
+float* vector2_unit_y(float* r)
 {
 	r[0] = 0.0f;
 	r[1] = 1.0f;
 	return r;
 }
 
-float* vector2_neg_unit_x(float r[2])
+float* vector2_unit_scale(float* r)
+{
+	r[0] = 1.0f;
+	r[1] = 1.0f;
+	return r;
+}
+
+float* vector2_neg_unit_x(float* r)
 {
 	r[0] = -1.0f;
 	r[1] = 0.0f;
 	return r;
 }
 
-float* vector2_neg_unit_y(float r[2])
+float* vector2_neg_unit_y(float* r)
 {
 	r[0] = 0.0f;
 	r[1] = -1.0f;
 	return r;
 }
 
-float* vector2_unit_scale(float r[2])
+float* vector2_neg_unit_scale(float* r)
 {
-	r[0] = 1.0f;
-	r[1] = 1.0f;
+	r[0] = -1.0f;
+	r[1] = -1.0f;
 	return r;
 }
 
-float* vector3_zero(float r[3])
+float* vector3_zero(float* r)
 {
 	r[0] = 0.0f;
 	r[1] = 0.0f;
@@ -120,7 +165,7 @@ float* vector3_zero(float r[3])
 	return r;
 }
 
-float* vector3_unit_x(float r[3])
+float* vector3_unit_x(float* r)
 {
 	r[0] = 1.0f;
 	r[1] = 0.0f;
@@ -128,7 +173,7 @@ float* vector3_unit_x(float r[3])
 	return r;
 }
 
-float* vector3_unit_y(float r[3])
+float* vector3_unit_y(float* r)
 {
 	r[0] = 0.0f;
 	r[1] = 1.0f;
@@ -136,7 +181,7 @@ float* vector3_unit_y(float r[3])
 	return r;
 }
 
-float* vector3_unit_z(float r[3])
+float* vector3_unit_z(float* r)
 {
 	r[0] = 0.0f;
 	r[1] = 0.0f;
@@ -144,7 +189,15 @@ float* vector3_unit_z(float r[3])
 	return r;
 }
 
-float* vector3_neg_unit_x(float r[3])
+float* vector3_unit_scale(float* r)
+{
+	r[0] = 1.0f;
+	r[1] = 1.0f;
+	r[2] = 1.0f;
+	return r;
+}
+
+float* vector3_neg_unit_x(float* r)
 {
 	r[0] = -1.0f;
 	r[1] = 0.0f;
@@ -152,7 +205,7 @@ float* vector3_neg_unit_x(float r[3])
 	return r;
 }
 
-float* vector3_neg_unit_y(float r[3])
+float* vector3_neg_unit_y(float* r)
 {
 	r[0] = 0.0f;
 	r[1] = -1.0f;
@@ -160,7 +213,7 @@ float* vector3_neg_unit_y(float r[3])
 	return r;
 }
 
-float* vector3_neg_unit_z(float r[3])
+float* vector3_neg_unit_z(float* r)
 {
 	r[0] = 0.0f;
 	r[1] = 0.0f;
@@ -168,15 +221,15 @@ float* vector3_neg_unit_z(float r[3])
 	return r;
 }
 
-float* vector3_unit_scale(float r[3])
+float* vector3_neg_unit_scale(float* r)
 {
-	r[0] = 1.0f;
-	r[1] = 1.0f;
-	r[2] = 1.0f;
+	r[0] = -1.0f;
+	r[1] = -1.0f;
+	r[2] = -1.0f;
 	return r;
 }
 
-float* vector3_init(float x, float y, float z, float r[3])
+float* vector3_init(float x, float y, float z, float* r)
 {
 	r[0] = x;
 	r[1] = y;
@@ -184,7 +237,7 @@ float* vector3_init(float x, float y, float z, float r[3])
 	return r;
 }
 
-float* vector3_copy(const float a[3], float r[3])
+float* vector3_copy(const float* a, float* r)
 {
 	r[0] = a[0];
 	r[1] = a[1];
@@ -192,7 +245,7 @@ float* vector3_copy(const float a[3], float r[3])
 	return r;
 }
 
-float* vector3_neg(const float a[3], float r[3])
+float* vector3_neg(const float* a, float* r)
 {
 	r[0] = -a[0];
 	r[1] = -a[1];
@@ -200,7 +253,7 @@ float* vector3_neg(const float a[3], float r[3])
 	return r;
 }
 
-float* vector3_add(const float a[3], const float b[3], float r[3])
+float* vector3_add(const float* a, const float* b, float* r)
 {
 	r[0] = a[0] + b[0];
 	r[1] = a[1] + b[1];
@@ -208,7 +261,7 @@ float* vector3_add(const float a[3], const float b[3], float r[3])
 	return r;
 }
 
-float* vector3_sub(const float a[3], const float b[3], float r[3])
+float* vector3_sub(const float* a, const float* b, float* r)
 {
 	r[0] = a[0] - b[0];
 	r[1] = a[1] - b[1];
@@ -216,7 +269,7 @@ float* vector3_sub(const float a[3], const float b[3], float r[3])
 	return r;
 }
 
-float* vector3_mul(const float a[3], const float b[3], float r[3])
+float* vector3_mul(const float* a, const float* b, float* r)
 {
 	r[0] = a[0] * b[0];
 	r[1] = a[1] * b[1];
@@ -224,7 +277,7 @@ float* vector3_mul(const float a[3], const float b[3], float r[3])
 	return r;
 }
 
-float* vector3_div(const float a[3], const float b[3], float r[3])
+float* vector3_div(const float* a, const float* b, float* r)
 {
 	r[0] = a[0] / b[0];
 	r[1] = a[1] / b[1];
@@ -232,23 +285,7 @@ float* vector3_div(const float a[3], const float b[3], float r[3])
 	return r;
 }
 
-float* vector3_add_scalar(const float a[3], float s, float r[3])
-{
-	r[0] = a[0] + s;
-	r[1] = a[1] + s;
-	r[2] = a[2] + s;
-	return r;
-}
-
-float* vector3_sub_scalar(const float a[3], float s, float r[3])
-{
-	r[0] = a[0] - s;
-	r[1] = a[1] - s;
-	r[2] = a[2] - s;
-	return r;
-}
-
-float* vector3_mul_scalar(const float a[3], float s, float r[3])
+float* vector3_scale(const float* a, float s, float* r)
 {
 	r[0] = a[0] * s;
 	r[1] = a[1] * s;
@@ -256,52 +293,43 @@ float* vector3_mul_scalar(const float a[3], float s, float r[3])
 	return r;
 }
 
-float* vector3_div_scalar(const float a[3], float s, float r[3])
-{
-	float i = 1.0f / s;
-	r[0] = a[0] * i;
-	r[1] = a[1] * i;
-	r[2] = a[2] * i;
-	return r;
-}
-
-float vector3_abs(const float a[3])
+float vector3_abs(const float* a)
 {
 	return sqrtf(vector3_abs2(a));
 }
 
-float vector3_abs2(const float a[3])
+float vector3_abs2(const float* a)
 {
 	return a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
 }
 
-float vector3_dist(const float a[3], const float b[3])
+float vector3_dist(const float* a, const float* b)
 {
 	float r[3];
 	return vector3_abs(vector3_sub(a, b, r));
 }
 
-float vector3_dist2(const float a[3], const float b[3])
+float vector3_dist2(const float* a, const float* b)
 {
 	float r[3];
 	return vector3_abs2(vector3_sub(a, b, r));
 }
 
-float* vector3_normalise(const float a[3], float r[3])
+float* vector3_normalise(const float* a, float* r)
 {
-	float i = 1.0f / vector3_abs(a);
-	r[0] = a[0] * i;
-	r[1] = a[1] * i;
-	r[2] = a[2] * i;
+	float s = 1.0f / vector3_abs(a);
+	r[0] = a[0] * s;
+	r[1] = a[1] * s;
+	r[2] = a[2] * s;
 	return r;
 }
 
-float vector3_dot(const float a[3], const float b[3])
+float vector3_dot(const float* a, const float* b)
 {
 	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
-float* vector3_cross(const float a[3], const float b[3], float r[restrict 3])
+float* vector3_cross(const float* a, const float* b, float* restrict r)
 {
 	r[0] = a[1] * b[2] - a[2] * b[1];
 	r[1] = a[2] * b[0] - a[0] * b[2];
@@ -309,7 +337,7 @@ float* vector3_cross(const float a[3], const float b[3], float r[restrict 3])
 	return r;
 }
 
-float* vector3_mid(const float a[3], const float b[3], float r[3])
+float* vector3_mid(const float* a, const float* b, float* r)
 {
 	r[0] = 0.5f * (a[0] + b[0]);
 	r[1] = 0.5f * (a[1] + b[1]);
@@ -317,17 +345,17 @@ float* vector3_mid(const float a[3], const float b[3], float r[3])
 	return r;
 }
 
-float* vector3_rot(const float vec[3], const float quat[4], float r[3])
+float* vector3_rot(const float* a, const float* q, float* r)
 {
-	float qvec[3] = { quat[1], quat[2], quat[3] }, uv[3], uuv[3];
-	vector3_cross(qvec, vec, uv);
-	vector3_cross(qvec, uv, uuv);
-	vector3_mul_scalar(uv, 2.0f * quat[0], uv);
-	vector3_mul_scalar(uuv, 2.0f, uuv);
-	return vector3_add(vector3_add(vec, uv, r), uuv, r);
+	float qv[3] = { q[1], q[2], q[3] }, uv[3], uuv[3];
+	vector3_cross(qv, a, uv);
+	vector3_cross(qv, uv, uuv);
+	vector3_scale(uv, 2.0f * q[0], uv);
+	vector3_scale(uuv, 2.0f, uuv);
+	return vector3_add(vector3_add(a, uv, r), uuv, r);
 }
 
-float* quaternion_zero(float r[4])
+float* quaternion_zero(float* r)
 {
 	r[0] = 0.0f;
 	r[1] = 0.0f;
@@ -336,7 +364,7 @@ float* quaternion_zero(float r[4])
 	return r;
 }
 
-float* quaternion_identity(float r[4])
+float* quaternion_identity(float* r)
 {
 	r[0] = 1.0f;
 	r[1] = 0.0f;
@@ -345,7 +373,7 @@ float* quaternion_identity(float r[4])
 	return r;
 }
 
-float* quaternion_init(float w, float x, float y, float z, float r[4])
+float* quaternion_init(float w, float x, float y, float z, float* r)
 {
 	r[0] = w;
 	r[1] = x;
@@ -354,7 +382,7 @@ float* quaternion_init(float w, float x, float y, float z, float r[4])
 	return r;
 }
 
-float* quaternion_copy(const float a[4], float r[4])
+float* quaternion_copy(const float* a, float* r)
 {
 	r[0] = a[0];
 	r[1] = a[1];
@@ -363,7 +391,7 @@ float* quaternion_copy(const float a[4], float r[4])
 	return r;
 }
 
-float* quaternion_polar(float theta, const float axis[3], float r[4])
+float* quaternion_polar(float theta, const float* axis, float* r)
 {
 	float t = 0.5f * theta;
 	float s = sinf(t);
@@ -374,7 +402,7 @@ float* quaternion_polar(float theta, const float axis[3], float r[4])
 	return r;
 }
 
-float* quaternion_neg(const float a[4], float r[4])
+float* quaternion_neg(const float* a, float* r)
 {
 	r[0] = -a[0];
 	r[1] = -a[1];
@@ -383,7 +411,7 @@ float* quaternion_neg(const float a[4], float r[4])
 	return r;
 }
 
-float* quaternion_conj(const float a[4], float r[4])
+float* quaternion_conj(const float* a, float* r)
 {
 	r[0] = a[0];
 	r[1] = -a[1];
@@ -392,7 +420,7 @@ float* quaternion_conj(const float a[4], float r[4])
 	return r;
 }
 
-float* quaternion_add(const float a[4], const float b[4], float r[4])
+float* quaternion_add(const float* a, const float* b, float* r)
 {
 	r[0] = a[0] + b[0];
 	r[1] = a[1] + b[1];
@@ -401,7 +429,7 @@ float* quaternion_add(const float a[4], const float b[4], float r[4])
 	return r;
 }
 
-float* quaternion_sub(const float a[4], const float b[4], float r[4])
+float* quaternion_sub(const float* a, const float* b, float* r)
 {
 	r[0] = a[0] - b[0];
 	r[1] = a[1] - b[1];
@@ -410,7 +438,7 @@ float* quaternion_sub(const float a[4], const float b[4], float r[4])
 	return r;
 }
 
-float* quaternion_mul(const float a[4], const float b[4], float r[restrict 4])
+float* quaternion_mul(const float* a, const float* b, float* restrict r)
 {
 	r[0] = a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3];
 	r[1] = a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2];
@@ -419,8 +447,25 @@ float* quaternion_mul(const float a[4], const float b[4], float r[restrict 4])
 	return r;
 }
 
-float* quaternion_mul_scalar(const float a[4], float s, float r[4])
+float quaternion_abs(const float* a)
 {
+	return sqrtf(quaternion_abs2(a));
+}
+
+float quaternion_abs2(const float* a)
+{
+	return a[0] * a[0] + a[1] * a[1] + a[2] * a[2] + a[3] * a[3];
+}
+
+float quaternion_arg(const float* a)
+{
+	float l = quaternion_abs(a);
+	return 0.0f == l ? 0.0f : acosf(a[0] / l);
+}
+
+float* quaternion_normalise(const float* a, float* r)
+{
+	float s = 1.0f / quaternion_abs(a);
 	r[0] = a[0] * s;
 	r[1] = a[1] * s;
 	r[2] = a[2] * s;
@@ -428,48 +473,22 @@ float* quaternion_mul_scalar(const float a[4], float s, float r[4])
 	return r;
 }
 
-float quaternion_abs(const float a[4])
+float* quaternion_inverse(const float* a, float* r)
 {
-	return sqrtf(quaternion_abs2(a));
-}
-
-float quaternion_abs2(const float a[4])
-{
-	return a[0] * a[0] + a[1] * a[1] + a[2] * a[2] + a[3] * a[3];
-}
-
-float quaternion_arg(const float a[4])
-{
-	float l = quaternion_abs(a);
-	return 0.0f == l ? 0.0f : acosf(a[0] / l);
-}
-
-float* quaternion_normalise(const float a[4], float r[4])
-{
-	float i = 1.0f / quaternion_abs(a);
-	r[0] = a[0] * i;
-	r[1] = a[1] * i;
-	r[2] = a[2] * i;
-	r[3] = a[3] * i;
+	float s = 1.0f / quaternion_abs2(a);
+	r[0] = a[0] * s;
+	r[1] = a[1] * -s;
+	r[2] = a[2] * -s;
+	r[3] = a[3] * -s;
 	return r;
 }
 
-float* quaternion_inverse(const float a[4], float r[4])
-{
-	float i = 1.0f / quaternion_abs2(a);
-	r[0] = a[0] * i;
-	r[1] = a[1] * -i;
-	r[2] = a[2] * -i;
-	r[3] = a[3] * -i;
-	return r;
-}
-
-float quaternion_dot(const float a[4], const float b[4])
+float quaternion_dot(const float* a, const float* b)
 {
 	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
 }
 
-float* matrix3_zero(float r[9])
+float* matrix3_zero(float* r)
 {
 	r[0] = 0.0f; r[1] = 0.0f; r[2] = 0.0f;
 	r[3] = 0.0f; r[4] = 0.0f; r[5] = 0.0f;
@@ -477,7 +496,7 @@ float* matrix3_zero(float r[9])
 	return r;
 }
 
-float* matrix3_identity(float r[9])
+float* matrix3_identity(float* r)
 {
 	r[0] = 1.0f; r[1] = 0.0f; r[2] = 0.0f;
 	r[3] = 0.0f; r[4] = 1.0f; r[5] = 0.0f;
@@ -485,7 +504,7 @@ float* matrix3_identity(float r[9])
 	return r;
 }
 
-float* matrix4_zero(float r[16])
+float* matrix4_zero(float* r)
 {
 	r[0]  = 0.0f; r[1]  = 0.0f; r[2]  = 0.0f; r[3]  = 0.0f;
 	r[4]  = 0.0f; r[5]  = 0.0f; r[6]  = 0.0f; r[7]  = 0.0f;
@@ -494,7 +513,7 @@ float* matrix4_zero(float r[16])
 	return r;
 }
 
-float* matrix4_identity(float r[16])
+float* matrix4_identity(float* r)
 {
 	r[0]  = 1.0f; r[1]  = 0.0f; r[2]  = 0.0f; r[3]  = 0.0f;
 	r[4]  = 0.0f; r[5]  = 1.0f; r[6]  = 0.0f; r[7]  = 0.0f;

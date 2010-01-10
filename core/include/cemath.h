@@ -9,27 +9,32 @@ extern "C"
 #endif /* __cplusplus */
 
 extern const float PI;
-extern const float HALF_PI;
-extern const float TWO_PI;
+extern const float PI2;
+extern const float PI_DIV_2;
+extern const float PI_DIV_4;
+extern const float PI_INV;
 
-extern const float DEG2RAD;
-extern const float RAD2DEG;
+extern const float EPS_E4;
+extern const float EPS_E5;
+extern const float EPS_E6;
 
 extern const float VECTOR2_ZERO[2];
 extern const float VECTOR2_UNIT_X[2];
 extern const float VECTOR2_UNIT_Y[2];
+extern const float VECTOR2_UNIT_SCALE[2];
 extern const float VECTOR2_NEG_UNIT_X[2];
 extern const float VECTOR2_NEG_UNIT_Y[2];
-extern const float VECTOR2_UNIT_SCALE[2];
+extern const float VECTOR2_NEG_UNIT_SCALE[2];
 
 extern const float VECTOR3_ZERO[3];
 extern const float VECTOR3_UNIT_X[3];
 extern const float VECTOR3_UNIT_Y[3];
 extern const float VECTOR3_UNIT_Z[3];
+extern const float VECTOR3_UNIT_SCALE[3];
 extern const float VECTOR3_NEG_UNIT_X[3];
 extern const float VECTOR3_NEG_UNIT_Y[3];
 extern const float VECTOR3_NEG_UNIT_Z[3];
-extern const float VECTOR3_UNIT_SCALE[3];
+extern const float VECTOR3_NEG_UNIT_SCALE[3];
 
 extern const float QUATERNION_ZERO[4];
 extern const float QUATERNION_IDENTITY[4];
@@ -41,105 +46,88 @@ extern const float MATRIX4_ZERO[16];
 extern const float MATRIX4_IDENTITY[16];
 
 extern bool fisequal(float a, float b, float tolerance);
+extern bool fiszero(float a, float tolerance);
 
-static inline bool fiszero(float a, float tolerance)
-{
-	return fisequal(a, 0.0f, tolerance);
-}
+extern void fswap(float* a, float* b);
+extern float fclamp(float v, float a, float b);
+extern float flerp(float u, float a, float b);
 
-static inline float deg2rad(float angle)
-{
-	return angle * DEG2RAD;
-}
+extern float deg2rad(float angle);
+extern float rad2deg(float angle);
 
-static inline float rad2deg(float angle)
-{
-	return angle * RAD2DEG;
-}
+extern float* vector2_zero(float* r);
+extern float* vector2_unit_x(float* r);
+extern float* vector2_unit_y(float* r);
+extern float* vector2_unit_scale(float* r);
+extern float* vector2_neg_unit_x(float* r);
+extern float* vector2_neg_unit_y(float* r);
+extern float* vector2_neg_unit_scale(float* r);
 
-static inline float fclamp(float v, float a, float b)
-{
-	return v < a ? a : (v > b ? b : v);
-}
+extern float* vector3_zero(float* r);
+extern float* vector3_unit_x(float* r);
+extern float* vector3_unit_y(float* r);
+extern float* vector3_unit_z(float* r);
+extern float* vector3_unit_scale(float* r);
+extern float* vector3_neg_unit_x(float* r);
+extern float* vector3_neg_unit_y(float* r);
+extern float* vector3_neg_unit_z(float* r);
+extern float* vector3_neg_unit_scale(float* r);
 
-extern float* vector2_zero(float r[2]);
-extern float* vector2_unit_x(float r[2]);
-extern float* vector2_unit_y(float r[2]);
-extern float* vector2_neg_unit_x(float r[2]);
-extern float* vector2_neg_unit_y(float r[2]);
-extern float* vector2_unit_scale(float r[2]);
+extern float* vector3_init(float x, float y, float z, float* r);
+extern float* vector3_copy(const float* a, float* r);
 
-extern float* vector3_zero(float r[3]);
-extern float* vector3_unit_x(float r[3]);
-extern float* vector3_unit_y(float r[3]);
-extern float* vector3_unit_z(float r[3]);
-extern float* vector3_neg_unit_x(float r[3]);
-extern float* vector3_neg_unit_y(float r[3]);
-extern float* vector3_neg_unit_z(float r[3]);
-extern float* vector3_unit_scale(float r[3]);
+extern float* vector3_neg(const float* a, float* r);
 
-extern float* vector3_init(float x, float y, float z, float r[3]);
-extern float* vector3_copy(const float a[3], float r[3]);
+extern float* vector3_add(const float* a, const float* b, float* r);
+extern float* vector3_sub(const float* a, const float* b, float* r);
+extern float* vector3_mul(const float* a, const float* b, float* r);
+extern float* vector3_div(const float* a, const float* b, float* r);
 
-extern float* vector3_neg(const float a[3], float r[3]);
+extern float* vector3_scale(const float* a, float s, float* r);
 
-extern float* vector3_add(const float a[3], const float b[3], float r[3]);
-extern float* vector3_sub(const float a[3], const float b[3], float r[3]);
-extern float* vector3_mul(const float a[3], const float b[3], float r[3]);
-extern float* vector3_div(const float a[3], const float b[3], float r[3]);
+extern float vector3_abs(const float* a);
+extern float vector3_abs2(const float* a);
 
-extern float* vector3_add_scalar(const float a[3], float s, float r[3]);
-extern float* vector3_sub_scalar(const float a[3], float s, float r[3]);
-extern float* vector3_mul_scalar(const float a[3], float s, float r[3]);
-extern float* vector3_div_scalar(const float a[3], float s, float r[3]);
+extern float vector3_dist(const float* a, const float* b);
+extern float vector3_dist2(const float* a, const float* b);
 
-extern float vector3_abs(const float a[3]);
-extern float vector3_abs2(const float a[3]);
+extern float* vector3_normalise(const float* a, float* r);
 
-extern float vector3_dist(const float a[3], const float b[3]);
-extern float vector3_dist2(const float a[3], const float b[3]);
+extern float vector3_dot(const float* a, const float* b);
+extern float* vector3_cross(const float* a, const float* b, float* restrict r);
 
-extern float* vector3_normalise(const float a[3], float r[3]);
+extern float* vector3_mid(const float* a, const float* b, float* r);
+extern float* vector3_rot(const float* a, const float* q, float* r);
 
-extern float vector3_dot(const float a[3], const float b[3]);
-extern float* vector3_cross(const float a[3],
-							const float b[3], float r[restrict 3]);
+extern float* quaternion_zero(float* r);
+extern float* quaternion_identity(float* r);
 
-extern float* vector3_mid(const float a[3], const float b[3], float r[3]);
-extern float* vector3_rot(const float vec[3], const float quat[4], float r[3]);
+extern float* quaternion_init(float w, float x, float y, float z, float* r);
+extern float* quaternion_copy(const float* a, float* r);
+extern float* quaternion_polar(float theta, const float* axis, float* r);
 
-extern float* quaternion_zero(float r[4]);
-extern float* quaternion_identity(float r[4]);
+extern float* quaternion_neg(const float* a, float* r);
+extern float* quaternion_conj(const float* a, float* r);
 
-extern float* quaternion_init(float w, float x, float y, float z, float r[4]);
-extern float* quaternion_copy(const float a[4], float r[4]);
-extern float* quaternion_polar(float theta, const float axis[3], float r[4]);
+extern float* quaternion_add(const float* a, const float* b, float* r);
+extern float* quaternion_sub(const float* a, const float* b, float* r);
+extern float* quaternion_mul(const float* a, const float* b, float* restrict r);
 
-extern float* quaternion_neg(const float a[4], float r[4]);
-extern float* quaternion_conj(const float a[4], float r[4]);
+extern float quaternion_abs(const float* a);
+extern float quaternion_abs2(const float* a);
 
-extern float* quaternion_add(const float a[4], const float b[4], float r[4]);
-extern float* quaternion_sub(const float a[4], const float b[4], float r[4]);
-extern float* quaternion_mul(const float a[4],
-							const float b[4], float r[restrict 4]);
+extern float quaternion_arg(const float* a);
 
-extern float* quaternion_mul_scalar(const float a[4], float s, float r[4]);
+extern float* quaternion_normalise(const float* a, float* r);
+extern float* quaternion_inverse(const float* a, float* r);
 
-extern float quaternion_abs(const float a[4]);
-extern float quaternion_abs2(const float a[4]);
+extern float quaternion_dot(const float* a, const float* b);
 
-extern float quaternion_arg(const float a[4]);
+extern float* matrix3_zero(float* r);
+extern float* matrix3_identity(float* r);
 
-extern float* quaternion_normalise(const float a[4], float r[4]);
-extern float* quaternion_inverse(const float a[4], float r[4]);
-
-extern float quaternion_dot(const float a[4], const float b[4]);
-
-extern float* matrix3_zero(float r[9]);
-extern float* matrix3_identity(float r[9]);
-
-extern float* matrix4_zero(float r[16]);
-extern float* matrix4_identity(float r[16]);
+extern float* matrix4_zero(float* r);
+extern float* matrix4_identity(float* r);
 
 #ifdef __cplusplus
 }

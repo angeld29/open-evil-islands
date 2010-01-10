@@ -3,38 +3,18 @@
 
 #include <stddef.h>
 
-#define CE_MIN(a, b) ((a) < (b) ? (a) : (b))
-#define CE_MAX(a, b) ((a) > (b) ? (a) : (b))
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-static inline int min(int a, int b)
-{
-	return CE_MIN(a, b);
-}
+extern int min(int a, int b);
+extern int max(int a, int b);
+extern size_t smin(size_t a, size_t b);
+extern size_t smax(size_t a, size_t b);
 
-static inline int max(int a, int b)
-{
-	return CE_MAX(a, b);
-}
-
-static inline size_t smin(size_t a, size_t b)
-{
-	return CE_MIN(a, b);
-}
-
-static inline size_t smax(size_t a, size_t b)
-{
-	return CE_MAX(a, b);
-}
-
-static inline int clamp(int v, int a, int b)
-{
-	return v < a ? a : (v > b ? b : v);
-}
+extern void swap(int* a, int* b);
+extern int clamp(int v, int a, int b);
 
 #ifdef __cplusplus
 }

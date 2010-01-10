@@ -81,10 +81,10 @@ static bool scale_texture(int* width, int* height,
 		float fract_width = modff(log2f(new_width), &int_width);
 		float fract_height = modff(log2f(new_height), &int_height);
 
-		if (!fiszero(fract_width, 0.001f)) {
+		if (!fiszero(fract_width, EPS_E4)) {
 			new_width = powf(2.0f, int_width);
 		}
-		if (!fiszero(fract_height, 0.001f)) {
+		if (!fiszero(fract_height, EPS_E4)) {
 			new_height = powf(2.0f, int_height);
 		}
 	}

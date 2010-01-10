@@ -142,8 +142,8 @@ void camera_move(float offsetx, float offsetz, camera* cam)
 	vector3_normalise(forward, forward);
 	vector3_normalise(right, right);
 
-	vector3_mul_scalar(forward, offsetz, forward);
-	vector3_mul_scalar(right, offsetx, right);
+	vector3_scale(forward, offsetz, forward);
+	vector3_scale(right, offsetx, right);
 
 	vector3_add(cam->eye, forward, cam->eye);
 	vector3_add(cam->eye, right, cam->eye);
@@ -155,7 +155,7 @@ void camera_zoom(float offset, camera* cam)
 {
 	float forward[3];
 	camera_forward(forward, cam);
-	vector3_mul_scalar(forward, offset, forward);
+	vector3_scale(forward, offset, forward);
 	vector3_add(cam->eye, forward, cam->eye);
 	cam->eye_changed = true;
 }
