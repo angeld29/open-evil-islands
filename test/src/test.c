@@ -8,6 +8,7 @@
 #include "cemath.h"
 #include "cegl.h"
 #include "logging.h"
+#include "timer.h"
 #include "input.h"
 #include "camera.h"
 #include "resfile.h"
@@ -18,6 +19,12 @@ camera* cam;
 
 static void idle(void)
 {
+	timer_advance();
+
+	float elapsed = timer_elapsed();
+
+	input_advance(elapsed);
+
 	if (input_test(KB_ESCAPE)) {
 		camera_delete(cam);
 		mprfile_close(mpr);
@@ -154,6 +161,8 @@ int main(int argc, char* argv[])
 	cam = camera_new();
 	camera_set_eye((float[]){ 50.0f, 100.0f, 50.0f }, cam);
 	camera_yaw_pitch(deg2rad(0.0f), deg2rad(60.0f), cam);
+
+	timer_start();
 
 	glutMainLoop();
 	return 0;

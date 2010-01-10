@@ -18,6 +18,9 @@ static int mouse_prev_x;
 static int mouse_prev_y;
 static int mouse_offset_x;
 static int mouse_offset_y;
+static int mouse_offset_delay;
+static int wheel_up_delay;
+static int wheel_down_delay;
 
 static input_button keyboard_ascii_map(unsigned char key);
 static input_button keyboard_special_map(int key);
@@ -53,15 +56,26 @@ static void special_up(int key, int x, int y)
 
 static void mouse(int button, int state, int x, int y)
 {
-	buttons[mouse_map(button)] = GLUT_DOWN == state;
 	mouse_prev_x = x;
 	mouse_prev_y = y;
+	if (GLUT_UP == state) {
+		if (GLUT_WHEEL_UP == button) {
+			wheel_up_delay = 2;
+			return;
+		}
+		if (GLUT_WHEEL_DOWN == button) {
+			wheel_down_delay = 2;
+			return;
+		}
+	}
+	buttons[mouse_map(button)] = GLUT_DOWN == state;
 }
 
 static void motion(int x, int y)
 {
 	mouse_offset_x = x - mouse_prev_x;
 	mouse_offset_y = y - mouse_prev_y;
+	mouse_offset_delay = 2;
 	mouse_prev_x = x;
 	mouse_prev_y = y;
 }
@@ -112,6 +126,19 @@ void input_advance(float elapsed)
 {
 	assert(opened);
 	elapsed = elapsed;
+
+	if (mouse_offset_delay > 0 && 0 == --mouse_offset_delay) {
+		mouse_offset_x = 0.0f;
+		mouse_offset_y = 0.0f;
+	}
+
+	if (wheel_up_delay > 0 && 0 == --wheel_up_delay) {
+		buttons[MB_WHEELUP] = false;
+	}
+
+	if (wheel_down_delay > 0 && 0 == --wheel_down_delay) {
+		buttons[MB_WHEELDOWN] = false;
+	}
 }
 
 static input_button keyboard_ascii_map(unsigned char key)
