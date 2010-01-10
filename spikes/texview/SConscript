@@ -9,14 +9,13 @@ Import("env")
 env = env.Clone()
 
 env.AppendUnique(
-	CPPPATH=[os.path.join("#core", "include"), "include"],
-	LIBPATH=[os.path.join("#core", "lib")],
-	CFLAGS=["-std=c99"],
-	LINKFLAGS=["-Wl,-rpath,core/lib"],
-	LIBS=["core", "glut"],
+	CPPPATH=[os.path.join("#game", "include")],
+	LIBPATH=[os.path.join("#game", "lib")],
+	LINKFLAGS=["-Wl,-rpath,game/lib"],
+	LIBS=["game", "glut"],
 )
 
-targets = [env.Program(os.path.join("bin", "test"),
+targets = [env.Program(os.path.join("bin", "texview"),
 				[os.path.join("build", node.name)
 		 			for node in env.Glob(os.path.join("src", "*.c"))])]
 

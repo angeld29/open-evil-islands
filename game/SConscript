@@ -9,12 +9,10 @@ Import("env")
 env = env.Clone()
 
 env.AppendUnique(
-	CPPDEFINES=["_GNU_SOURCE"],
 	CPPPATH=["include"],
-	CFLAGS=["-std=c99", "-pedantic-errors"],
 )
 
-targets = [builder(os.path.join("lib", "core"),
+targets = [builder(os.path.join("lib", "game"),
 					[os.path.join("build", node.name)
 						for node in env.Glob(os.path.join("src", "*.c"))])
 			for builder in (env.StaticLibrary, env.SharedLibrary)]

@@ -10,8 +10,13 @@ variables.Add(SCons.Variables.BoolVariable("RELEASE",
 env = Environment(variables=variables)
 
 env.AppendUnique(
-	CPPFLAGS=["-pipe"] + (["-O2", "-w"] if env["RELEASE"]
-						else ["-g", "-Wall", "-Wextra"]),
+	CPPDEFINES=["_GNU_SOURCE"],
+	CFLAGS=["-std=c99"],
+	CPPFLAGS=["-pipe", "-pedantic-errors"],
+)
+
+env.AppendUnique(
+	CPPFLAGS=["-O2", "-w"] if env["RELEASE"] else ["-g", "-Wall", "-Wextra"],
 )
 
 env.AppendUnique(
@@ -20,11 +25,11 @@ env.AppendUnique(
 
 Export("env")
 
-core = env.Alias("core", env.SConscript(dirs="core"))
-test = env.Alias("test", env.SConscript(dirs="test"))
+game = env.Alias("game", env.SConscript(dirs="game"))
+spikes = env.Alias("spikes", env.SConscript(dirs="spikes"))
 
-env.Depends(test, core)
+env.Depends(spikes, game)
 
-env.Default(env.Alias("all", [core, test]))
+env.Default(env.Alias("all", [game, spikes]))
 
 Help(variables.GenerateHelpText(env))
