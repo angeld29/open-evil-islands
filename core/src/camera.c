@@ -87,21 +87,21 @@ float* camera_forward(float forward[3], const camera* cam)
 {
 	float q[4];
 	return vector3_rot(VECTOR3_NEG_UNIT_Z,
-		quaternion_inverse(cam->look, q), forward);
+		quaternion_conj(cam->look, q), forward);
 }
 
 float* camera_up(float up[3], const camera* cam)
 {
 	float q[4];
 	return vector3_rot(VECTOR3_UNIT_Y,
-		quaternion_inverse(cam->look, q), up);
+		quaternion_conj(cam->look, q), up);
 }
 
 float* camera_right(float right[3], const camera* cam)
 {
 	float q[4];
 	return vector3_rot(VECTOR3_UNIT_X,
-		quaternion_inverse(cam->look, q), right);
+		quaternion_conj(cam->look, q), right);
 }
 
 void camera_set_fov(double fov, camera* cam)
