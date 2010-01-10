@@ -113,8 +113,6 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 		return false;
 	}
 
-	// TODO: glPixelStore
-
 	glTexImage2D(GL_TEXTURE_2D, level, internal_format,
 		width, height, 0, data_format, data_type, data);
 
