@@ -32,27 +32,27 @@ static void idle(void)
 	}
 
 	if (input_test(KB_LEFT)) {
-		camera_move(-1.0f, 0.0f, cam);
+		camera_move(-10.0f * elapsed, 0.0f, cam);
 	}
 
 	if (input_test(KB_UP)) {
-		camera_move(0.0f, 1.0f, cam);
+		camera_move(0.0f, 10.0f * elapsed, cam);
 	}
 
 	if (input_test(KB_RIGHT)) {
-		camera_move(1.0f, 0.0f, cam);
+		camera_move(10.0f * elapsed, 0.0f, cam);
 	}
 
 	if (input_test(KB_DOWN)) {
-		camera_move(0.0f, -1.0f, cam);
+		camera_move(0.0f, -10.0f * elapsed, cam);
 	}
 
 	if (input_test(MB_WHEELUP)) {
-		camera_zoom(10.0f, cam);
+		camera_zoom(5.0f, cam);
 	}
 
 	if (input_test(MB_WHEELDOWN)) {
-		camera_zoom(-10.0f, cam);
+		camera_zoom(-5.0f, cam);
 	}
 
 	if (input_test(MB_RIGHT)) {
@@ -93,10 +93,7 @@ static void display(void)
 static void reshape(int width, int height)
 {
 	glViewport(0, 0, width, height);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(60.0, 1.0, 1.0, 500.0);
-	glMatrixMode(GL_MODELVIEW);
+	camera_set_aspect(width, height, cam);
 }
 
 int main(int argc, char* argv[])

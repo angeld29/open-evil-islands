@@ -2,14 +2,18 @@
 #include <stdbool.h>
 
 #include <GL/gl.h>
+#include <GL/glu.h>
 
 #include "cemath.h"
 #include "camera.h"
 
 struct camera {
+	double fov;
+	double aspect;
 	float eye[3];
 	float look[4];
 	float view[16];
+	bool proj_changed;
 	bool eye_changed;
 	bool look_changed;
 };
@@ -55,12 +59,15 @@ camera* camera_new(void)
 	if (NULL == cam) {
 		return NULL;
 	}
+	cam->fov = 60.0;
+	cam->aspect = 1.0;
 	vector3_zero(cam->eye);
 	quaternion_identity(cam->look);
 	cam->view[3] = 0.0f;
 	cam->view[7] = 0.0f;
 	cam->view[11] = 0.0f;
 	cam->view[15] = 1.0f;
+	cam->proj_changed = true;
 	cam->eye_changed = true;
 	cam->look_changed = true;
 	return cam;
@@ -97,6 +104,18 @@ float* camera_right(float right[3], const camera* cam)
 		quaternion_inverse(cam->look, q), right);
 }
 
+void camera_set_fov(double fov, camera* cam)
+{
+	cam->fov = fov;
+	cam->proj_changed = true;
+}
+
+void camera_set_aspect(int width, int height, camera* cam)
+{
+	cam->aspect = (double)width / height;
+	cam->proj_changed = true;
+}
+
 void camera_set_eye(const float eye[3], camera* cam)
 {
 	vector3_copy(eye, cam->eye);
@@ -112,6 +131,7 @@ void camera_set_look(const float look[4], camera* cam)
 void camera_move(float offsetx, float offsetz, camera* cam)
 {
 	float forward[3], right[3];
+
 	camera_forward(forward, cam);
 	camera_right(right, cam);
 
@@ -151,15 +171,24 @@ void camera_yaw_pitch(float psi, float theta, camera* cam)
 
 void camera_setup(camera* cam)
 {
+	if (cam->proj_changed) {
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(cam->fov, cam->aspect, 1.0, 100.0);
+		glMatrixMode(GL_MODELVIEW);
+	}
+
 	if (cam->look_changed) {
 		update_rotation(cam->look, cam->view);
 		update_translation(cam->eye, cam->view);
+		glLoadMatrixf(cam->view);
 		cam->look_changed = false;
 		cam->eye_changed = false;
 	}
+
 	if (cam->eye_changed) {
 		update_translation(cam->eye, cam->view);
+		glLoadMatrixf(cam->view);
 		cam->eye_changed = false;
 	}
-	glLoadMatrixf(cam->view);
 }
