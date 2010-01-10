@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os.path
+import os
 
 VariantDir("build", "src", duplicate=False)
 
@@ -15,8 +15,14 @@ env.AppendUnique(
 	LIBS=["game", "glut"],
 )
 
-targets = [env.Program(os.path.join("bin", "texview"),
-				[os.path.join("build", node.name)
-		 			for node in env.Glob(os.path.join("src", "*.c"))])]
+targets = []
+
+for name in os.listdir("."):
+	if os.path.isdir(name):
+		VariantDir(os.path.join(name, "build"),
+			os.path.join(name, "src"), duplicate=False)
+		targets.append(env.Alias(name, env.Program(os.path.join(
+			name, "bin", name), [os.path.join(name, "build", node.name)
+			for node in env.Glob(os.path.join(name, "src", "*.c"))])))
 
 Return("targets")
