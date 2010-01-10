@@ -15,10 +15,8 @@
 #include "mmpfile.h"
 #include "mprfile.h"
 
-enum {
-	MP_SIGNATURE = 0xce4af672,
-	SEC_SIGNATURE = 0xcf4bf774
-};
+static const uint32_t MP_SIGNATURE = 0xce4af672;
+static const uint32_t SEC_SIGNATURE = 0xcf4bf774;
 
 enum {
 	TOT_UNDEF = 0,
@@ -100,7 +98,7 @@ static void normal2vector(uint32_t normal, float vector[3])
 	vector[0] = ((normal & 0x7ff) - 1000.0f) / 1000.0f;
 	vector[1] = (normal >> 22) / 1000.0f;
 	vector[2] = (((normal >> 11) & 0x7ff) - 1000.0f) / 1000.0f;
-};
+}
 
 static inline uint8_t texture_index(uint16_t value)
 {

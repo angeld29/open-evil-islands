@@ -131,13 +131,15 @@ static bool generate_texture(int mipmap_count, GLenum internal_format, int width
 {
 	setup_mag_min_params(mipmap_count);
 
+	uint8_t* src = data;
+
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		if (!specify_texture(i, internal_format, width,
-				height, data_format, data_type, data)) {
+				height, data_format, data_type, src)) {
 			logging_error("Could not specify texture\n");
 			return false;
 		}
-		data += width * height * bpp;
+		src += width * height * bpp;
 	}
 
 	return true;
@@ -216,18 +218,18 @@ static void dxt_decode_alpha_block(uint8_t* dst, uint8_t* src, int rowbytes)
 	}
 }
 
-static void dxt_decompress(void* dst, void* src,
+static void dxt_decompress(uint8_t* dst, uint8_t* src,
 							int width, int height, int format)
 {
 	assert(0 == (width & 3) && 0 == (height & 3));
 	assert(width >= 4 && height >= 4);
 
-	void* s = src;
+	uint8_t* s = src;
 	int rowbytes = width * 4;
 
 	for (int y = 0; y < height; y += 4) {
 		for (int x = 0; x < width; x += 4) {
-			void* d = dst + (y * width + x) * 4;
+			uint8_t* d = dst + (y * width + x) * 4;
 			if (MMP_DXT3 == format) {
 				dxt_decode_alpha_block(d + 3, s, rowbytes);
 				s += 8;
@@ -243,13 +245,15 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 {
 	setup_mag_min_params(mipmap_count);
 
+	uint8_t* src = data;
+
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		int data_size = ((width + 3) >> 2) *
 						((height + 3) >> 2) * (MMP_DXT1 == format ? 8 : 16);
 
 		glCompressedTexImage2D(GL_TEXTURE_2D, i, MMP_DXT1 == format ?
 			GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
-			width, height, 0, data_size, data);
+			width, height, 0, data_size, src);
 
 		int error_code = glGetError();
 		if (GL_NO_ERROR != error_code) {
@@ -258,7 +262,7 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 			return false;
 		}
 
-		data += data_size;
+		src += data_size;
 	}
 
 	return true;
@@ -273,7 +277,7 @@ static bool dxt_generate_texture(int mipmap_count,
 		return true;
 	}
 
-	void* src = data;
+	uint8_t* src = data;
 
 	int data_size = 0;
 	for (int i = 0, w = width, h = height;
@@ -286,7 +290,7 @@ static bool dxt_generate_texture(int mipmap_count,
 		return false;
 	}
 
-	void* dst = data;
+	uint8_t* dst = data;
 
 	for (int i = 0, w = width, h = height;
 			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
@@ -308,14 +312,14 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 
 	if (size < data_size) { // PNT3 compressed
 		uint32_t* src = data;
-		uint32_t* end = data + size;
+		uint32_t* end = src + size / sizeof(uint32_t);
 
 		if (NULL == (data = malloc(data_size))) {
 			logging_error("Could not allocate memory\n");
 			return false;
 		}
 
-		void* dst = data;
+		uint8_t* dst = data;
 		int n = 0;
 
 		while (src != end) {

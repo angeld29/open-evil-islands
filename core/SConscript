@@ -11,7 +11,7 @@ env = env.Clone()
 env.AppendUnique(
 	CPPDEFINES=["_GNU_SOURCE"],
 	CPPPATH=["include"],
-	CFLAGS=["-std=c99"],
+	CFLAGS=["-std=c99", "-pedantic-errors"],
 )
 
 targets = [builder(os.path.join("lib", "core"),

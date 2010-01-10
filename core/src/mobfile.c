@@ -11,26 +11,20 @@ enum {
 	MOB_SIGNATURE = 0xa000
 };
 
-enum {
-	MAIN_BLOCK_QUEST_SIGNATURE = 0x80000d000,
-	MAIN_BLOCK_ZONAL_SIGNATURE = 0x80000c000
-};
+static const uint64_t MAIN_BLOCK_QUEST_SIGNATURE = 0x80000d000;
+static const uint64_t MAIN_BLOCK_ZONAL_SIGNATURE = 0x80000c000;
 
-enum {
-	TEXT_BLOCK_SIGNATURE = 0xacceeccb,
-	OBJECT_BLOCK_SIGNATURE = 0xb000
-};
+static const uint32_t TEXT_BLOCK_SIGNATURE = 0xacceeccb;
+//static const uint64_t OBJECT_BLOCK_SIGNATURE = 0xb000;
 
-enum {
-	OBJECT_BLOCK_UNIT_SIGNATURE = 0xbbbb0000,
-	OBJECT_BLOCK_OBJECT_SIGNATURE = 0xb001,
-	OBJECT_BLOCK_LEVER_SIGNATURE = 0xbbac0000,
-	OBJECT_BLOCK_TRAP_SIGNATURE = 0xbbab0000,
-	OBJECT_BLOCK_FLAME_SIGNATURE = 0xbbbf,
-	OBJECT_BLOCK_PARTICLE1_SIGNATURE = 0xaa01,
-	OBJECT_BLOCK_PARTICLE2_SIGNATURE = 0xcc01,
-	OBJECT_BLOCK_PARTICLE3_SIGNATURE = 0xdd01
-};
+/*static const uint64_t OBJECT_BLOCK_UNIT_SIGNATURE = 0xbbbb0000;
+static const uint64_t OBJECT_BLOCK_OBJECT_SIGNATURE = 0xb001;
+static const uint64_t OBJECT_BLOCK_LEVER_SIGNATURE = 0xbbac0000;
+static const uint64_t OBJECT_BLOCK_TRAP_SIGNATURE = 0xbbab0000;
+static const uint64_t OBJECT_BLOCK_FLAME_SIGNATURE = 0xbbbf;
+static const uint64_t OBJECT_BLOCK_PARTICLE1_SIGNATURE = 0xaa01;
+static const uint64_t OBJECT_BLOCK_PARTICLE2_SIGNATURE = 0xcc01;
+static const uint64_t OBJECT_BLOCK_PARTICLE3_SIGNATURE = 0xdd01;*/
 
 struct mobfile {
 	io_callbacks callbacks;
@@ -48,18 +42,20 @@ static void decrypt_script(char* buf, uint32_t key, int32_t size)
 static mobfile* open_callbacks(io_callbacks callbacks,
 								void* client_data, const char* name)
 {
+	name = name;
+
 	mobfile* mob = calloc(1, sizeof(mobfile));
 	if (NULL == mob) {
 		return NULL;
 	}
 
-	int32_t signature;
-	if (1 != (callbacks.read)(&signature, sizeof(int32_t), 1, client_data)) {
+	uint32_t signature;
+	if (1 != (callbacks.read)(&signature, sizeof(uint32_t), 1, client_data)) {
 		mobfile_close(mob);
 		return NULL;
 	}
 
-	le2cpu32s((uint32_t*)&signature);
+	le2cpu32s(&signature);
 	if (MOB_SIGNATURE != signature) {
 		mobfile_close(mob);
 		return NULL;
@@ -74,14 +70,14 @@ static mobfile* open_callbacks(io_callbacks callbacks,
 	le2cpu32s((uint32_t*)&main_block_length);
 	printf("main_block_length: %d\n", main_block_length);
 
-	int64_t main_block_type;
-	if (1 != (callbacks.read)(&main_block_type, sizeof(int64_t), 1, client_data)) {
+	uint64_t main_block_type;
+	if (1 != (callbacks.read)(&main_block_type, sizeof(uint64_t), 1, client_data)) {
 		mobfile_close(mob);
 		return NULL;
 	}
 
-	le2cpu64s((uint64_t*)&main_block_type);
-	printf("main_block_type: %#lx\n", main_block_type);
+	le2cpu64s(&main_block_type);
+	printf("main_block_type: %#llx\n", main_block_type);
 	if (MAIN_BLOCK_QUEST_SIGNATURE != main_block_type &&
 			MAIN_BLOCK_ZONAL_SIGNATURE != main_block_type) {
 		mobfile_close(mob);
@@ -89,13 +85,13 @@ static mobfile* open_callbacks(io_callbacks callbacks,
 	}
 
 	do {
-		int32_t signature;
-		if (1 != (callbacks.read)(&signature, sizeof(int32_t), 1, client_data)) {
+		uint32_t signature;
+		if (1 != (callbacks.read)(&signature, sizeof(uint32_t), 1, client_data)) {
 			mobfile_close(mob);
 			return NULL;
 		}
 
-		le2cpu32s((uint32_t*)&signature);
+		le2cpu32s(&signature);
 		printf("signature: %u %#x\n", signature, signature);
 
 		int32_t length;
@@ -175,4 +171,5 @@ int mobfile_close(mobfile* mob)
 
 void mobfile_debug_print(mobfile* mob)
 {
+	mob = mob;
 }
