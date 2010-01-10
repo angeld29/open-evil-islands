@@ -634,6 +634,7 @@ void mprfile_debug_render(mprfile* mpr)
 					float u = (idx - idx / 8 * 8) / 8.0f;
 					float v = (7 - idx / 8) / 8.0f;
 
+					// TODO: try GL_TEXTURE + rotate
 					GLfloat texcoords[4][18] = {
 						{ u, v + TEXTURE_UV_STEP,
 						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
