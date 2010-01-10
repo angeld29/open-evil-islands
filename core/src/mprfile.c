@@ -47,12 +47,12 @@ typedef struct {
 	float colour_g;
 	float colour_b;
 	float colour_a;
-	float self_illumination; // diffuse_color_r ?
-	float wave_multiplier;   // diffuse_color_g ?
-	float warp_speed;        // diffuse_color_b ?
-	float reserved1;         // specular_color_r ?
-	float reserved2;         // specular_color_g ?
-	float reserved3;         // specular_color_b ?
+	float selfillum;       // diffuse_color_r ?
+	float wave_multiplier; // diffuse_color_g ?
+	float warp_speed;      // diffuse_color_b ?
+	float reserved1;       // specular_color_r ?
+	float reserved2;       // specular_color_g ?
+	float reserved3;       // specular_color_b ?
 } material;
 
 typedef struct {
@@ -122,7 +122,7 @@ static bool read_material(material* mat, memfile* mem)
 			1 != memfile_read(&mat->colour_g, sizeof(float), 1, mem) ||
 			1 != memfile_read(&mat->colour_b, sizeof(float), 1, mem) ||
 			1 != memfile_read(&mat->colour_a, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mat->self_illumination, sizeof(float), 1, mem) ||
+			1 != memfile_read(&mat->selfillum, sizeof(float), 1, mem) ||
 			1 != memfile_read(&mat->wave_multiplier, sizeof(float), 1, mem) ||
 			1 != memfile_read(&mat->warp_speed, sizeof(float), 1, mem) ||
 			1 != memfile_read(&mat->reserved1, sizeof(float), 1, mem) ||
@@ -527,7 +527,7 @@ void mprfile_debug_print(mprfile* mpr)
 		printf("\tcolour_g: %f\n", mat->colour_g);
 		printf("\tcolour_b: %f\n", mat->colour_b);
 		printf("\tcolour_a: %f\n", mat->colour_a);
-		printf("\tself_illumination: %f\n", mat->self_illumination);
+		printf("\tselfillum: %f\n", mat->selfillum);
 		printf("\twave_multiplier: %f\n", mat->wave_multiplier);
 		printf("\twarp_speed: %f\n", mat->warp_speed);
 		printf("\treserved1: %f\n", mat->reserved1);
@@ -557,8 +557,6 @@ void mprfile_debug_print(mprfile* mpr)
 void mprfile_debug_render(mprfile* mpr)
 {
 	glEnable(GL_TEXTURE_2D);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -699,6 +697,5 @@ void mprfile_debug_render(mprfile* mpr)
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
-	//glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
 }
