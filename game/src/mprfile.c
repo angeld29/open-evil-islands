@@ -86,7 +86,7 @@ struct mprfile {
 	GLuint* texture_ids;
 };
 
-static void normal2vector(uint32_t normal, float vector[3])
+static void normal2vector(uint32_t normal, float* vector)
 {
 	vector[0] = ((normal & 0x7ff) - 1000.0f) / 1000.0f;
 	vector[1] = (normal >> 22) / 1000.0f;
@@ -531,9 +531,79 @@ void mprfile_debug_print(mprfile* mpr)
 	}
 }
 
-static void render_sector(vertex* vertices, uint16_t* textures)
+/*static void render_vertices(unsigned int sector_x, unsigned int sector_z,
+							vertex* vertices, uint16_t* textures,
+							int16_t* allow, mprfile* mpr)
 {
-}
+	float vertex_array[3 * VERTEX_COUNT];
+	float normal_array[3 * VERTEX_COUNT];
+
+	for (unsigned int k = 0, idx = 0; k < VERTEX_SIDE; ++k) {
+		for (unsigned int l = 0; l < VERTEX_SIDE; ++l, idx += 3) {
+			vertex* ver = vertices + (k * VERTEX_SIDE + l);
+
+			vertex_array[idx + 0] = z + sector_x * (VERTEX_SIDE - 1) ;//+ xz_coef * ver->offset_x;
+			vertex_array[idx + 1] = y_coef * ver->coord_y;
+			vertex_array[idx + 2] = x + sector_z * (VERTEX_SIDE - 1) ;//+ xz_coef * ver->offset_z;
+
+			normal2vector(ver->normal, normal_array + idx);
+		}
+	}
+
+	glVertexPointer(3, GL_FLOAT, 0, vertex_array);
+	glNormalPointer(GL_FLOAT, 0, normal_array);
+
+	for (unsigned int z = 0; z < VERTEX_SIDE - 2; z += 2) {
+		for (unsigned int x = 0; x < VERTEX_SIDE - 2; x += 2) {
+			if (NULL != allow && -1 == allow[z / 2 * TEXTURE_SIDE + x / 2]) {
+				//continue;
+			}
+
+			uint16_t tex = textures[z / 2 * TEXTURE_SIDE + x / 2];
+
+			int tex_idx = texture_index(tex);
+			float u = (tex_idx - tex_idx / 8 * 8) / 8.0f;
+			float v = (7 - tex_idx / 8) / 8.0f;
+
+			GLfloat texcoords[2 * 9] = {
+				u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
+				u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
+				u + TEXTURE_UV_STEP, v,
+				u + TEXTURE_UV_HALF_STEP, v,
+				u, v,
+				u, v + TEXTURE_UV_HALF_STEP,
+				u, v + TEXTURE_UV_STEP,
+				u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
+				u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP
+			};
+
+			glTexCoordPointer(2, GL_FLOAT, 0, texcoords); // texture_angle(tex)
+			glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(tex)]);
+
+			unsigned int ver_idxs[9] = {
+				(z + 0) * VERTEX_SIDE + (x + 0),
+				(z + 0) * VERTEX_SIDE + (x + 1),
+				(z + 0) * VERTEX_SIDE + (x + 2),
+				(z + 1) * VERTEX_SIDE + (x + 2),
+				(z + 2) * VERTEX_SIDE + (x + 2),
+				(z + 2) * VERTEX_SIDE + (x + 1),
+				(z + 2) * VERTEX_SIDE + (x + 0),
+				(z + 1) * VERTEX_SIDE + (x + 0),
+				(z + 1) * VERTEX_SIDE + (x + 1)
+			};
+
+			GLubyte indices[2][6] = {
+				{ ver_idxs[7], ver_idxs[0], ver_idxs[8], ver_idxs[1], ver_idxs[3], ver_idxs[2] },
+				{ ver_idxs[6], ver_idxs[7], ver_idxs[5], ver_idxs[8], ver_idxs[4], ver_idxs[3] }
+			};
+
+			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[0]);
+			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[1]);
+
+			return;
+		}
+	}
+}*/
 
 void mprfile_debug_render(mprfile* mpr)
 {
@@ -544,6 +614,19 @@ void mprfile_debug_render(mprfile* mpr)
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glMatrixMode(GL_TEXTURE);
+
+	/*
+	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
+		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
+			sector* sec = mpr->sectors + (z * mpr->sector_x_count + x);
+			render_vertices(x, z, sec->land_vertices, sec->land_textures, NULL, mpr);
+			if (0 != sec->water) {
+				//render_vertices(x, z, sec->water_vertices, sec->water_textures, sec->water_allow, mpr);
+			}
+		}
+	}
+	*/
 
 	for (unsigned int i = 0; i < mpr->sector_z_count; ++i) {
 		for (unsigned int j = 0; j < mpr->sector_x_count; ++j) {
@@ -611,15 +694,14 @@ void mprfile_debug_render(mprfile* mpr)
 					normal2vector(ver8->normal, normals + 21);
 					normal2vector(ver9->normal, normals + 24);
 
-					uint16_t texture = sec->land_textures[k / 2 * TEXTURE_SIDE + l / 2];
+					uint16_t tex = sec->land_textures[k / 2 * TEXTURE_SIDE + l / 2];
 
-					int idx = texture_index(texture);
+					int idx = texture_index(tex);
 					float u = (idx - idx / 8 * 8) / 8.0f;
 					float v = (7 - idx / 8) / 8.0f;
 
-					// TODO: try GL_TEXTURE + rotate
-					GLfloat texcoords[4][18] = {
-						{ u, v + TEXTURE_UV_STEP,
+					GLfloat texcoords[2 * 9] = {
+						u, v + TEXTURE_UV_STEP,
 						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
 						u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
 						u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
@@ -627,49 +709,24 @@ void mprfile_debug_render(mprfile* mpr)
 						u + TEXTURE_UV_HALF_STEP, v,
 						u, v,
 						u, v + TEXTURE_UV_HALF_STEP,
-						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP },
-
-						{ u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
-						u + TEXTURE_UV_STEP, v,
-						u + TEXTURE_UV_HALF_STEP, v,
-						u, v,
-						u, v + TEXTURE_UV_HALF_STEP,
-						u, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP },
-
-						{ u + TEXTURE_UV_STEP, v,
-						u + TEXTURE_UV_HALF_STEP, v,
-						u, v,
-						u, v + TEXTURE_UV_HALF_STEP,
-						u, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
-						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP },
-
-						{ u, v,
-						u, v + TEXTURE_UV_HALF_STEP,
-						u, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
-						u + TEXTURE_UV_STEP, v,
-						u + TEXTURE_UV_HALF_STEP, v,
-						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP },
+						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP
 					};
 
 					glVertexPointer(3, GL_FLOAT, 0, vertices);
 					glNormalPointer(GL_FLOAT, 0, normals);
-					glTexCoordPointer(2, GL_FLOAT, 0, texcoords[texture_angle(texture)]);
+					glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
+
+					glLoadIdentity();
+					glTranslatef(u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP, 0.0f);
+					glRotatef(-90.0f * texture_angle(tex), 0.0f, 0.0f, 1.0f);
+					glTranslatef(-u - TEXTURE_UV_HALF_STEP, -v - TEXTURE_UV_HALF_STEP, 0.0f);
 
 					GLubyte indices[2][6] = {
 						{ 7, 0, 8, 1, 3, 2 },
 						{ 6, 7, 5, 8, 4, 3 }
 					};
 
-					glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(texture)]);
+					glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(tex)]);
 
 					glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[0]);
 					glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[1]);
@@ -678,8 +735,10 @@ void mprfile_debug_render(mprfile* mpr)
 		}
 	}
 
+	glMatrixMode(GL_MODELVIEW);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	//glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
 }
