@@ -174,7 +174,7 @@ void camera_setup(camera* cam)
 	if (cam->proj_changed) {
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective(cam->fov, cam->aspect, 1.0, 100.0);
+		gluPerspective(cam->fov, cam->aspect, 1.0, 500.0);
 		glMatrixMode(GL_MODELVIEW);
 	}
 

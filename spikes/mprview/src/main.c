@@ -156,8 +156,8 @@ int main(int argc, char* argv[])
 	mprfile_debug_print(mpr);
 
 	cam = camera_new();
-	camera_set_eye((float[]){ 50.0f, 100.0f, 50.0f }, cam);
-	camera_yaw_pitch(deg2rad(0.0f), deg2rad(60.0f), cam);
+	camera_set_eye((float[]){ 25.0f, 50.0f, 25.0f }, cam);
+	camera_yaw_pitch(deg2rad(90.0f), deg2rad(60.0f), cam);
 
 	timer_start();
 

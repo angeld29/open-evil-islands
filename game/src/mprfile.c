@@ -43,16 +43,9 @@ static const float TEXTURE_UV_HALF_STEP = 1.0f / 16.0f;
 
 typedef struct {
 	uint32_t type;
-	float colour_r;
-	float colour_g;
-	float colour_b;
-	float colour_a;
-	float selfillum;       // diffuse_color_r ?
-	float wave_multiplier; // diffuse_color_g ?
-	float warp_speed;      // diffuse_color_b ?
-	float reserved1;       // specular_color_r ?
-	float reserved2;       // specular_color_g ?
-	float reserved3;       // specular_color_b ?
+	float color[4];
+	float selfillum;
+	float wavemult;
 } material;
 
 typedef struct {
@@ -117,19 +110,18 @@ static inline uint8_t texture_angle(uint16_t value)
 
 static bool read_material(material* mat, memfile* mem)
 {
+	float unknown[4];
 	if (1 != memfile_read(&mat->type, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mat->colour_r, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mat->colour_g, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mat->colour_b, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mat->colour_a, sizeof(float), 1, mem) ||
+			4 != memfile_read(mat->color, sizeof(float), 4, mem) ||
 			1 != memfile_read(&mat->selfillum, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mat->wave_multiplier, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mat->warp_speed, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mat->reserved1, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mat->reserved2, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mat->reserved3, sizeof(float), 1, mem)) {
+			1 != memfile_read(&mat->wavemult, sizeof(float), 1, mem) ||
+			4 != memfile_read(unknown, sizeof(float), 4, mem)) {
 		return false;
 	}
+	assert(0.0f == unknown[0]);
+	assert(0.0f == unknown[1]);
+	assert(0.0f == unknown[2]);
+	assert(0.0f == unknown[3]);
 	le2cpu32s(&mat->type);
 	return true;
 }
@@ -377,7 +369,7 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 	char sec_tmpl_name[mpr_name_length - 4 + 1];
 	strlcpy(sec_tmpl_name, mpr_name, sizeof(sec_tmpl_name));
 
-	// sec_tmpl_name + xxxyyy.sec
+	// sec_tmpl_name + xxxzzz.sec
 	char sec_name[sizeof(sec_tmpl_name) + 3 + 3 + 4];
 
 	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
@@ -432,7 +424,7 @@ static bool create_textures(mprfile* mpr, const char* mpr_name,
 	char mmp_tmpl_name[mpr_name_length - 4 + 1];
 	strlcpy(mmp_tmpl_name, mpr_name, sizeof(mmp_tmpl_name));
 
-	// mmp_tmpl_name + xxx.mmp
+	// mmp_tmpl_name + nnn.mmp
 	char mmp_name[sizeof(mmp_tmpl_name) + 3 + 4];
 
 	for (unsigned int i = 0; i < mpr->texture_count; ++i) {
@@ -523,16 +515,10 @@ void mprfile_debug_print(mprfile* mpr)
 		material* mat = mpr->materials + i;
 		printf("material %u:\n", i);
 		printf("\ttype: %u\n", mat->type);
-		printf("\tcolour_r: %f\n", mat->colour_r);
-		printf("\tcolour_g: %f\n", mat->colour_g);
-		printf("\tcolour_b: %f\n", mat->colour_b);
-		printf("\tcolour_a: %f\n", mat->colour_a);
+		printf("\trgba: %f %f %f %f\n",
+			mat->color[0], mat->color[1], mat->color[2], mat->color[3]);
 		printf("\tselfillum: %f\n", mat->selfillum);
-		printf("\twave_multiplier: %f\n", mat->wave_multiplier);
-		printf("\twarp_speed: %f\n", mat->warp_speed);
-		printf("\treserved1: %f\n", mat->reserved1);
-		printf("\treserved2: %f\n", mat->reserved2);
-		printf("\treserved3: %f\n", mat->reserved3);
+		printf("\twavemult: %f\n", mat->wavemult);
 	}
 	for (unsigned int i = 0; i < mpr->anim_tile_count; ++i) {
 		anim_tile* at = mpr->anim_tiles + i;
@@ -543,21 +529,18 @@ void mprfile_debug_print(mprfile* mpr)
 	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
 		//printf("id %u: %u\n", i, mpr->tiles[i]);
 	}
-	for (unsigned int i = 0, n = mpr->sector_x_count *
-				mpr->sector_z_count; i < n; ++i) {
-		sector* sec = mpr->sectors + i;
-		if (0 != sec->water) {
-			for (unsigned int j = 0; j < TEXTURE_COUNT; ++j) {
-				//printf("\twater allow %d: %hd\n", j, sec->water_allow[j]);
-			}
-		}
-	}
+}
+
+static void render_sector(vertex* vertices, uint16_t* textures)
+{
 }
 
 void mprfile_debug_render(mprfile* mpr)
 {
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
