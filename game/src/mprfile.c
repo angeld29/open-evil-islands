@@ -36,11 +36,6 @@ enum {
 	TEXTURE_COUNT = 16 * 16
 };
 
-static const float OFFSET_XZ_COEF = 1.0f / 256.0f;
-
-static const float TEXTURE_UV_STEP = 1.0f / 8.0f;
-static const float TEXTURE_UV_HALF_STEP = 1.0f / 16.0f;
-
 typedef struct {
 	uint32_t type;
 	float color[4];
@@ -539,7 +534,8 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 	GLfloat narray[3 * VERTEX_COUNT];
 	GLfloat tcarray[2 * VERTEX_COUNT];
 
-	float y_coef = 0.025f / mpr->max_y;
+	static const float offset_xz_coef = 1.0f / 256.0f;
+	const float y_coef = mpr->max_y / UINT16_MAX;
 
 	for (unsigned int z = 0; z < VERTEX_SIDE; ++z) {
 		for (unsigned int x = 0; x < VERTEX_SIDE; ++x) {
@@ -547,10 +543,10 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 			vertex* ver = vertices + (z * VERTEX_SIDE + x);
 
 			varray[i + 0] = z + sector_z * (VERTEX_SIDE - 1) +
-								OFFSET_XZ_COEF * ver->offset_x;
+								offset_xz_coef * ver->offset_x;
 			varray[i + 1] = y_coef * ver->coord_y;
 			varray[i + 2] = x + sector_x * (VERTEX_SIDE - 1) +
-								OFFSET_XZ_COEF * ver->offset_z;
+								offset_xz_coef * ver->offset_z;
 
 			normal2vector(ver->normal, narray + i);
 		}
@@ -563,6 +559,9 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 	glVertexPointer(3, GL_FLOAT, 0, varray);
 	glNormalPointer(GL_FLOAT, 0, narray);
 	glTexCoordPointer(2, GL_FLOAT, 0, tcarray);
+
+	static const float texture_uv_step = 1.0f / 8.0f;
+	static const float texture_uv_half_step = 1.0f / 16.0f;
 
 	static unsigned int offx[9] = { 0, 0, 0, 1, 2, 2, 2, 1, 1 };
 	static unsigned int offz[9] = { 0, 1, 2, 2, 2, 1, 0, 0, 1 };
@@ -586,39 +585,39 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 
 			unsigned int tc_idx = (x + 0) * VERTEX_SIDE * 2 + (z + 0) * 2;
 			tcarray[tc_idx + 0] = u;
-			tcarray[tc_idx + 1] = v + TEXTURE_UV_STEP;
+			tcarray[tc_idx + 1] = v + texture_uv_step;
 			tc_idx = (x + 0) * VERTEX_SIDE * 2 + (z + 1) * 2;
-			tcarray[tc_idx + 0] = u + TEXTURE_UV_HALF_STEP;
-			tcarray[tc_idx + 1] = v + TEXTURE_UV_STEP;
+			tcarray[tc_idx + 0] = u + texture_uv_half_step;
+			tcarray[tc_idx + 1] = v + texture_uv_step;
 			tc_idx = (x + 0) * VERTEX_SIDE * 2 + (z + 2) * 2;
-			tcarray[tc_idx + 0] = u + TEXTURE_UV_STEP;
-			tcarray[tc_idx + 1] = v + TEXTURE_UV_STEP;
+			tcarray[tc_idx + 0] = u + texture_uv_step;
+			tcarray[tc_idx + 1] = v + texture_uv_step;
 			tc_idx = (x + 1) * VERTEX_SIDE * 2 + (z + 2) * 2;
-			tcarray[tc_idx + 0] = u + TEXTURE_UV_STEP;
-			tcarray[tc_idx + 1] = v + TEXTURE_UV_HALF_STEP;
+			tcarray[tc_idx + 0] = u + texture_uv_step;
+			tcarray[tc_idx + 1] = v + texture_uv_half_step;
 			tc_idx = (x + 2) * VERTEX_SIDE * 2 + (z + 2) * 2;
-			tcarray[tc_idx + 0] = u + TEXTURE_UV_STEP;
+			tcarray[tc_idx + 0] = u + texture_uv_step;
 			tcarray[tc_idx + 1] = v;
 			tc_idx = (x + 2) * VERTEX_SIDE * 2 + (z + 1) * 2;
-			tcarray[tc_idx + 0] = u + TEXTURE_UV_HALF_STEP;
+			tcarray[tc_idx + 0] = u + texture_uv_half_step;
 			tcarray[tc_idx + 1] = v;
 			tc_idx = (x + 2) * VERTEX_SIDE * 2 + (z + 0) * 2;
 			tcarray[tc_idx + 0] = u;
 			tcarray[tc_idx + 1] = v;
 			tc_idx = (x + 1) * VERTEX_SIDE * 2 + (z + 0) * 2;
 			tcarray[tc_idx + 0] = u;
-			tcarray[tc_idx + 1] = v + TEXTURE_UV_HALF_STEP;
+			tcarray[tc_idx + 1] = v + texture_uv_half_step;
 			tc_idx = (x + 1) * VERTEX_SIDE * 2 + (z + 1) * 2;
-			tcarray[tc_idx + 0] = u + TEXTURE_UV_HALF_STEP;
-			tcarray[tc_idx + 1] = v + TEXTURE_UV_HALF_STEP;
+			tcarray[tc_idx + 0] = u + texture_uv_half_step;
+			tcarray[tc_idx + 1] = v + texture_uv_half_step;
 
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
-			glTranslatef(u + TEXTURE_UV_HALF_STEP,
-							v + TEXTURE_UV_HALF_STEP, 0.0f);
+			glTranslatef(u + texture_uv_half_step,
+							v + texture_uv_half_step, 0.0f);
 			glRotatef(-90.0f * texture_angle(tex), 0.0f, 0.0f, 1.0f);
-			glTranslatef(-u - TEXTURE_UV_HALF_STEP,
-							-v - TEXTURE_UV_HALF_STEP, 0.0f);
+			glTranslatef(-u - texture_uv_half_step,
+							-v - texture_uv_half_step, 0.0f);
 			glMatrixMode(GL_MODELVIEW);
 
 			GLushort ver_idxs[9] = {
