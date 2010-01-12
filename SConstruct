@@ -20,7 +20,7 @@ env.AppendUnique(
 )
 
 env.AppendUnique(
-	CPPDEFINES=["CE_NEED_STRRPBRK", "CE_NEED_STRLCPY"],
+	CPPDEFINES=["GL_GLEXT_PROTOTYPES", "CE_NEED_STRRPBRK", "CE_NEED_STRLCPY"],
 )
 
 Export("env")

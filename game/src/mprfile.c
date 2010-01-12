@@ -578,38 +578,24 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 			float u = (tex_idx - tex_idx / 8 * 8) / 8.0f;
 			float v = (7 - tex_idx / 8) / 8.0f;
 
-			/*for (unsigned int i = 0; i < 9; ++i) {
-				unsigned int tc_idx = (z + offz[i]) * VERTEX_SIDE * 2 +
-														(x + offx[i]) * 2;
-			}*/
+			float texcoords[2 * 9] = {
+				u, v + texture_uv_step,
+				u + texture_uv_half_step, v + texture_uv_step,
+				u + texture_uv_step, v + texture_uv_step,
+				u + texture_uv_step, v + texture_uv_half_step,
+				u + texture_uv_step, v,
+				u + texture_uv_half_step, v,
+				u, v,
+				u, v + texture_uv_half_step,
+				u + texture_uv_half_step, v + texture_uv_half_step
+			};
 
-			unsigned int tc_idx = (x + 0) * VERTEX_SIDE * 2 + (z + 0) * 2;
-			tcarray[tc_idx + 0] = u;
-			tcarray[tc_idx + 1] = v + texture_uv_step;
-			tc_idx = (x + 0) * VERTEX_SIDE * 2 + (z + 1) * 2;
-			tcarray[tc_idx + 0] = u + texture_uv_half_step;
-			tcarray[tc_idx + 1] = v + texture_uv_step;
-			tc_idx = (x + 0) * VERTEX_SIDE * 2 + (z + 2) * 2;
-			tcarray[tc_idx + 0] = u + texture_uv_step;
-			tcarray[tc_idx + 1] = v + texture_uv_step;
-			tc_idx = (x + 1) * VERTEX_SIDE * 2 + (z + 2) * 2;
-			tcarray[tc_idx + 0] = u + texture_uv_step;
-			tcarray[tc_idx + 1] = v + texture_uv_half_step;
-			tc_idx = (x + 2) * VERTEX_SIDE * 2 + (z + 2) * 2;
-			tcarray[tc_idx + 0] = u + texture_uv_step;
-			tcarray[tc_idx + 1] = v;
-			tc_idx = (x + 2) * VERTEX_SIDE * 2 + (z + 1) * 2;
-			tcarray[tc_idx + 0] = u + texture_uv_half_step;
-			tcarray[tc_idx + 1] = v;
-			tc_idx = (x + 2) * VERTEX_SIDE * 2 + (z + 0) * 2;
-			tcarray[tc_idx + 0] = u;
-			tcarray[tc_idx + 1] = v;
-			tc_idx = (x + 1) * VERTEX_SIDE * 2 + (z + 0) * 2;
-			tcarray[tc_idx + 0] = u;
-			tcarray[tc_idx + 1] = v + texture_uv_half_step;
-			tc_idx = (x + 1) * VERTEX_SIDE * 2 + (z + 1) * 2;
-			tcarray[tc_idx + 0] = u + texture_uv_half_step;
-			tcarray[tc_idx + 1] = v + texture_uv_half_step;
+			for (unsigned int i = 0; i < 9; ++i) {
+				unsigned int tci = (x + offx[i]) * VERTEX_SIDE * 2 +
+													(z + offz[i]) * 2;
+				tcarray[tci + 0] = texcoords[i * 2 + 0];
+				tcarray[tci + 1] = texcoords[i * 2 + 1];
+			}
 
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
@@ -620,27 +606,23 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 							-v - texture_uv_half_step, 0.0f);
 			glMatrixMode(GL_MODELVIEW);
 
-			GLushort ver_idxs[9] = {
-				(x + 0) * VERTEX_SIDE + (z + 0),
-				(x + 0) * VERTEX_SIDE + (z + 1),
-				(x + 0) * VERTEX_SIDE + (z + 2),
-				(x + 1) * VERTEX_SIDE + (z + 2),
-				(x + 2) * VERTEX_SIDE + (z + 2),
-				(x + 2) * VERTEX_SIDE + (z + 1),
-				(x + 2) * VERTEX_SIDE + (z + 0),
-				(x + 1) * VERTEX_SIDE + (z + 0),
-				(x + 1) * VERTEX_SIDE + (z + 1)
-			};
+			GLushort vind[9];
+			for (unsigned int i = 0; i < 9; ++i) {
+				vind[i] = (x + offx[i]) * VERTEX_SIDE + (z + offz[i]);
+			}
 
 			GLushort indices[2][6] = {
-				{ ver_idxs[7], ver_idxs[0], ver_idxs[8], ver_idxs[1], ver_idxs[3], ver_idxs[2] },
-				{ ver_idxs[6], ver_idxs[7], ver_idxs[5], ver_idxs[8], ver_idxs[4], ver_idxs[3] }
+				{ vind[7], vind[0], vind[8], vind[1], vind[3], vind[2] },
+				{ vind[6], vind[7], vind[5], vind[8], vind[4], vind[3] }
 			};
 
 			glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(tex)]);
 
 			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[0]);
 			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[1]);
+			// Segmentation fault on MESA
+			//glMultiDrawElements(GL_TRIANGLE_STRIP, (const GLsizei[]){ 6, 6 },
+			//					GL_UNSIGNED_SHORT, (const GLvoid**)indices, 2);
 		}
 	}
 
