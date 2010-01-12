@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <time.h>
 
+#include <getopt.h>
 #include <GL/glut.h>
 
 #include "cegl.h"
@@ -15,7 +16,10 @@
 
 resfile* res;
 GLuint texid;
-bool rnd = true;
+
+bool rnd = false;
+int delay = 500;
+bool slideshow = true;
 
 static void idle(void)
 {
@@ -66,7 +70,6 @@ static bool generate_texture(int index)
 	if (0 == texid) {
 		return false;
 	}
-	glBindTexture(GL_TEXTURE_2D, texid);
 	return true;
 }
 
@@ -83,28 +86,65 @@ static void next_texture(int index)
 
 	if (!generate_texture(index)) {
 		printf("Could not load texture '%s'\n", resfile_node_name(index, res));
-		glutTimerFunc(0, next_texture, index + 1);
-		return;
+	} else {
+		glutPostRedisplay();
 	}
 
-	glutTimerFunc(500, next_texture, rnd ?
-		rand() % resfile_node_count(res) : index + 1);
+	if (slideshow) {
+		glutTimerFunc(delay, next_texture, rnd ?
+			rand() % resfile_node_count(res) : index + 1);
+	}
+}
 
-	glutPostRedisplay();
+static void usage(const char* name)
+{
+	printf("Usage: %s [options] <resfile>\n"
+			"Options:\n"
+			"-r Random texture mode\n"
+			"-d <delay, msec> Slideshow delay (default %d)\n"
+			"-i <index> Specify texture index (slideshow disabled)\n"
+			"-n <name> Specify texture name (slideshow disabled)\n"
+			"-h Show this message\n", name, delay);
 }
 
 int main(int argc, char* argv[])
 {
 	srand(time(NULL));
 
-	if (argc < 2) {
-		printf("Usage: %s res <rnd flag or texture name>\n", argv[0]);
+	int c, index = -1;
+	const char* name = NULL;
+
+	while (-1 != (c = getopt(argc, argv, "rd:i:n:h")))  {
+		switch (c) {
+		case 'r':
+			rnd = true;
+			break;
+		case 'd':
+			delay = atoi(optarg);
+			break;
+		case 'i':
+			slideshow = false;
+			index = atoi(optarg);
+			break;
+		case 'n':
+			slideshow = false;
+			name = optarg;
+			break;
+		case 'h':
+		case '?':
+			usage(argv[0]);
+			return 1;
+		}
+	}
+
+	if (optind >= argc) {
+		usage(argv[0]);
 		return 1;
 	}
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA | GLUT_DOUBLE);
 
-	glutInitWindowPosition(300, 300);
+	glutInitWindowPosition(300, 500);
 	glutInitWindowSize(400, 300);
 	glutInit(&argc, argv);
 
@@ -120,6 +160,8 @@ int main(int argc, char* argv[])
 	input_open();
 	atexit(input_close);
 
+	timer_start();
+
 	gl_init();
 
 	glEnable(GL_TEXTURE_2D);
@@ -127,27 +169,28 @@ int main(int argc, char* argv[])
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	res = resfile_open_file(argv[1]);
+	res = resfile_open_file(argv[optind]);
 	if (NULL == res) {
-		printf("Could not open file '%s'\n", argv[1]);
+		printf("Could not open file '%s'\n", argv[optind]);
 		return 1;
 	}
 
-	if (argc > 2) {
-		int index = resfile_node_index(argv[2], res);
-		if (index < 0) {
-			printf("Could not find texture '%s', "
-					"switch to show all mode\n", argv[2]);
-			rnd = atoi(argv[2]);
-			glutTimerFunc(0, next_texture, 0);
-		} else if (!generate_texture(index)) {
-			printf("Could not load texture '%s'\n", argv[2]);
+	if (NULL != name) {
+		index = resfile_node_index(name, res);
+		if (-1 == index) {
+			printf("Could not find texture '%s'\n", name);
+			return 1;
+		}
+	} else if (-1 != index) {
+		if (0 > index || index >= resfile_node_count(res)) {
+			printf("Invalid index '%d'\n", index);
+			return 1;
 		}
 	} else {
-		glutTimerFunc(0, next_texture, 0);
+		index = 0;
 	}
 
-	timer_start();
+	glutTimerFunc(0, next_texture, index);
 
 	glutMainLoop();
 	return 0;
