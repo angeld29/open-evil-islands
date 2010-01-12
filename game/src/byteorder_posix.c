@@ -1,14 +1,10 @@
+#include <assert.h>
+
 #if __GNUC__ == 4 && __GNUC_MINOR__ == 2
 // Hack for gcc 4.2
-#if __WORDSIZE == 64
-typedef unsigned long int __le64;
-typedef unsigned long int __be64;
-#else
-typedef unsigned long long int __le64;
-typedef unsigned long long int __be64;
+typedef unsigned long long __le64;
+typedef unsigned long long __be64;
 #endif
-#endif
-
 #include <asm/byteorder.h>
 
 #include "byteorder.h"
@@ -115,7 +111,11 @@ void cpu2be32s(uint32_t* val)
 
 void cpu2be64s(uint64_t* val)
 {
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 2
+	assert(0);
+#else
 	__cpu_to_be64s(val);
+#endif
 }
 
 void be2cpu16s(uint16_t* val)
@@ -130,5 +130,9 @@ void be2cpu32s(uint32_t* val)
 
 void be2cpu64s(uint64_t* val)
 {
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 2
+	assert(0);
+#else
 	__be64_to_cpus(val);
+#endif
 }
