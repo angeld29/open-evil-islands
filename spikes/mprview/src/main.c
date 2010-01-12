@@ -99,7 +99,7 @@ static void reshape(int width, int height)
 int main(int argc, char* argv[])
 {
 	if (3 != argc) {
-		printf("Usage: %s ei_path mpr_name\n", argv[0]);
+		printf("Usage: %s <ei_path> <mpr_name>\n", argv[0]);
 		return 1;
 	}
 

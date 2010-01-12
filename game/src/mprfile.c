@@ -531,79 +531,124 @@ void mprfile_debug_print(mprfile* mpr)
 	}
 }
 
-/*static void render_vertices(unsigned int sector_x, unsigned int sector_z,
+static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 							vertex* vertices, uint16_t* textures,
 							int16_t* allow, mprfile* mpr)
 {
-	float vertex_array[3 * VERTEX_COUNT];
-	float normal_array[3 * VERTEX_COUNT];
+	GLfloat varray[3 * VERTEX_COUNT];
+	GLfloat narray[3 * VERTEX_COUNT];
+	GLfloat tcarray[2 * VERTEX_COUNT];
 
-	for (unsigned int k = 0, idx = 0; k < VERTEX_SIDE; ++k) {
-		for (unsigned int l = 0; l < VERTEX_SIDE; ++l, idx += 3) {
-			vertex* ver = vertices + (k * VERTEX_SIDE + l);
+	float y_coef = 0.025f / mpr->max_y;
 
-			vertex_array[idx + 0] = z + sector_x * (VERTEX_SIDE - 1) ;//+ xz_coef * ver->offset_x;
-			vertex_array[idx + 1] = y_coef * ver->coord_y;
-			vertex_array[idx + 2] = x + sector_z * (VERTEX_SIDE - 1) ;//+ xz_coef * ver->offset_z;
+	for (unsigned int z = 0; z < VERTEX_SIDE; ++z) {
+		for (unsigned int x = 0; x < VERTEX_SIDE; ++x) {
+			unsigned int i = z * VERTEX_SIDE * 3 + x * 3;
+			vertex* ver = vertices + (z * VERTEX_SIDE + x);
 
-			normal2vector(ver->normal, normal_array + idx);
+			varray[i + 0] = z + sector_z * (VERTEX_SIDE - 1) +
+								OFFSET_XZ_COEF * ver->offset_x;
+			varray[i + 1] = y_coef * ver->coord_y;
+			varray[i + 2] = x + sector_x * (VERTEX_SIDE - 1) +
+								OFFSET_XZ_COEF * ver->offset_z;
+
+			normal2vector(ver->normal, narray + i);
 		}
 	}
 
-	glVertexPointer(3, GL_FLOAT, 0, vertex_array);
-	glNormalPointer(GL_FLOAT, 0, normal_array);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glVertexPointer(3, GL_FLOAT, 0, varray);
+	glNormalPointer(GL_FLOAT, 0, narray);
+	glTexCoordPointer(2, GL_FLOAT, 0, tcarray);
+
+	static unsigned int offx[9] = { 0, 0, 0, 1, 2, 2, 2, 1, 1 };
+	static unsigned int offz[9] = { 0, 1, 2, 2, 2, 1, 0, 0, 1 };
 
 	for (unsigned int z = 0; z < VERTEX_SIDE - 2; z += 2) {
 		for (unsigned int x = 0; x < VERTEX_SIDE - 2; x += 2) {
-			if (NULL != allow && -1 == allow[z / 2 * TEXTURE_SIDE + x / 2]) {
-				//continue;
+			if (NULL != allow && -1 == allow[x / 2 * TEXTURE_SIDE + z / 2]) {
+				continue;
 			}
 
-			uint16_t tex = textures[z / 2 * TEXTURE_SIDE + x / 2];
+			uint16_t tex = textures[x / 2 * TEXTURE_SIDE + z / 2];
 
 			int tex_idx = texture_index(tex);
 			float u = (tex_idx - tex_idx / 8 * 8) / 8.0f;
 			float v = (7 - tex_idx / 8) / 8.0f;
 
-			GLfloat texcoords[2 * 9] = {
-				u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
-				u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
-				u + TEXTURE_UV_STEP, v,
-				u + TEXTURE_UV_HALF_STEP, v,
-				u, v,
-				u, v + TEXTURE_UV_HALF_STEP,
-				u, v + TEXTURE_UV_STEP,
-				u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
-				u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP
+			/*for (unsigned int i = 0; i < 9; ++i) {
+				unsigned int tc_idx = (z + offz[i]) * VERTEX_SIDE * 2 +
+														(x + offx[i]) * 2;
+			}*/
+
+			unsigned int tc_idx = (x + 0) * VERTEX_SIDE * 2 + (z + 0) * 2;
+			tcarray[tc_idx + 0] = u;
+			tcarray[tc_idx + 1] = v + TEXTURE_UV_STEP;
+			tc_idx = (x + 0) * VERTEX_SIDE * 2 + (z + 1) * 2;
+			tcarray[tc_idx + 0] = u + TEXTURE_UV_HALF_STEP;
+			tcarray[tc_idx + 1] = v + TEXTURE_UV_STEP;
+			tc_idx = (x + 0) * VERTEX_SIDE * 2 + (z + 2) * 2;
+			tcarray[tc_idx + 0] = u + TEXTURE_UV_STEP;
+			tcarray[tc_idx + 1] = v + TEXTURE_UV_STEP;
+			tc_idx = (x + 1) * VERTEX_SIDE * 2 + (z + 2) * 2;
+			tcarray[tc_idx + 0] = u + TEXTURE_UV_STEP;
+			tcarray[tc_idx + 1] = v + TEXTURE_UV_HALF_STEP;
+			tc_idx = (x + 2) * VERTEX_SIDE * 2 + (z + 2) * 2;
+			tcarray[tc_idx + 0] = u + TEXTURE_UV_STEP;
+			tcarray[tc_idx + 1] = v;
+			tc_idx = (x + 2) * VERTEX_SIDE * 2 + (z + 1) * 2;
+			tcarray[tc_idx + 0] = u + TEXTURE_UV_HALF_STEP;
+			tcarray[tc_idx + 1] = v;
+			tc_idx = (x + 2) * VERTEX_SIDE * 2 + (z + 0) * 2;
+			tcarray[tc_idx + 0] = u;
+			tcarray[tc_idx + 1] = v;
+			tc_idx = (x + 1) * VERTEX_SIDE * 2 + (z + 0) * 2;
+			tcarray[tc_idx + 0] = u;
+			tcarray[tc_idx + 1] = v + TEXTURE_UV_HALF_STEP;
+			tc_idx = (x + 1) * VERTEX_SIDE * 2 + (z + 1) * 2;
+			tcarray[tc_idx + 0] = u + TEXTURE_UV_HALF_STEP;
+			tcarray[tc_idx + 1] = v + TEXTURE_UV_HALF_STEP;
+
+			glMatrixMode(GL_TEXTURE);
+			glLoadIdentity();
+			glTranslatef(u + TEXTURE_UV_HALF_STEP,
+							v + TEXTURE_UV_HALF_STEP, 0.0f);
+			glRotatef(-90.0f * texture_angle(tex), 0.0f, 0.0f, 1.0f);
+			glTranslatef(-u - TEXTURE_UV_HALF_STEP,
+							-v - TEXTURE_UV_HALF_STEP, 0.0f);
+			glMatrixMode(GL_MODELVIEW);
+
+			GLushort ver_idxs[9] = {
+				(x + 0) * VERTEX_SIDE + (z + 0),
+				(x + 0) * VERTEX_SIDE + (z + 1),
+				(x + 0) * VERTEX_SIDE + (z + 2),
+				(x + 1) * VERTEX_SIDE + (z + 2),
+				(x + 2) * VERTEX_SIDE + (z + 2),
+				(x + 2) * VERTEX_SIDE + (z + 1),
+				(x + 2) * VERTEX_SIDE + (z + 0),
+				(x + 1) * VERTEX_SIDE + (z + 0),
+				(x + 1) * VERTEX_SIDE + (z + 1)
 			};
 
-			glTexCoordPointer(2, GL_FLOAT, 0, texcoords); // texture_angle(tex)
-			glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(tex)]);
-
-			unsigned int ver_idxs[9] = {
-				(z + 0) * VERTEX_SIDE + (x + 0),
-				(z + 0) * VERTEX_SIDE + (x + 1),
-				(z + 0) * VERTEX_SIDE + (x + 2),
-				(z + 1) * VERTEX_SIDE + (x + 2),
-				(z + 2) * VERTEX_SIDE + (x + 2),
-				(z + 2) * VERTEX_SIDE + (x + 1),
-				(z + 2) * VERTEX_SIDE + (x + 0),
-				(z + 1) * VERTEX_SIDE + (x + 0),
-				(z + 1) * VERTEX_SIDE + (x + 1)
-			};
-
-			GLubyte indices[2][6] = {
+			GLushort indices[2][6] = {
 				{ ver_idxs[7], ver_idxs[0], ver_idxs[8], ver_idxs[1], ver_idxs[3], ver_idxs[2] },
 				{ ver_idxs[6], ver_idxs[7], ver_idxs[5], ver_idxs[8], ver_idxs[4], ver_idxs[3] }
 			};
 
-			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[0]);
-			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[1]);
+			glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(tex)]);
 
-			return;
+			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[0]);
+			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[1]);
 		}
 	}
-}*/
+
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
 
 void mprfile_debug_render(mprfile* mpr)
 {
@@ -611,134 +656,19 @@ void mprfile_debug_render(mprfile* mpr)
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glMatrixMode(GL_TEXTURE);
 
-	/*
 	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
 		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
 			sector* sec = mpr->sectors + (z * mpr->sector_x_count + x);
-			render_vertices(x, z, sec->land_vertices, sec->land_textures, NULL, mpr);
+			render_vertices(x, z, sec->land_vertices,
+							sec->land_textures, NULL, mpr);
 			if (0 != sec->water) {
-				//render_vertices(x, z, sec->water_vertices, sec->water_textures, sec->water_allow, mpr);
-			}
-		}
-	}
-	*/
-
-	for (unsigned int i = 0; i < mpr->sector_z_count; ++i) {
-		for (unsigned int j = 0; j < mpr->sector_x_count; ++j) {
-			sector* sec = mpr->sectors + (i * mpr->sector_x_count + j);
-			for (unsigned int k = 0; k < VERTEX_SIDE - 2; k += 2) {
-				for (unsigned int l = 0; l < VERTEX_SIDE - 2; l += 2) {
-					vertex* ver1 = sec->land_vertices + ((k + 0) * VERTEX_SIDE + (l + 0));
-					vertex* ver2 = sec->land_vertices + ((k + 0) * VERTEX_SIDE + (l + 1));
-					vertex* ver3 = sec->land_vertices + ((k + 0) * VERTEX_SIDE + (l + 2));
-					vertex* ver4 = sec->land_vertices + ((k + 1) * VERTEX_SIDE + (l + 2));
-					vertex* ver5 = sec->land_vertices + ((k + 2) * VERTEX_SIDE + (l + 2));
-					vertex* ver6 = sec->land_vertices + ((k + 2) * VERTEX_SIDE + (l + 1));
-					vertex* ver7 = sec->land_vertices + ((k + 2) * VERTEX_SIDE + (l + 0));
-					vertex* ver8 = sec->land_vertices + ((k + 1) * VERTEX_SIDE + (l + 0));
-					vertex* ver9 = sec->land_vertices + ((k + 1) * VERTEX_SIDE + (l + 1));
-
-					float y_coef = 0.025f / mpr->max_y;
-
-					GLfloat vertices[] = {
-						k + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver1->offset_x,
-						y_coef * ver1->coord_y,
-						l + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver1->offset_z,
-
-						k + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver2->offset_x,
-						y_coef * ver2->coord_y,
-						l + 1 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver2->offset_z,
-
-						k + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver3->offset_x,
-						y_coef * ver3->coord_y,
-						l + 2 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver3->offset_z,
-
-						k + 1 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver4->offset_x,
-						y_coef * ver4->coord_y,
-						l + 2 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver4->offset_z,
-
-						k + 2 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver5->offset_x,
-						y_coef * ver5->coord_y,
-						l + 2 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver5->offset_z,
-
-						k + 2 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver6->offset_x,
-						y_coef * ver6->coord_y,
-						l + 1 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver6->offset_z,
-
-						k + 2 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver7->offset_x,
-						y_coef * ver7->coord_y,
-						l + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver7->offset_z,
-
-						k + 1 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver8->offset_x,
-						y_coef * ver8->coord_y,
-						l + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver8->offset_z,
-
-						k + 1 + i * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver9->offset_x,
-						y_coef * ver9->coord_y,
-						l + 1 + j * (VERTEX_SIDE - 1) + OFFSET_XZ_COEF * ver9->offset_z
-					};
-
-					GLfloat normals[3 * 9];
-					normal2vector(ver1->normal, normals + 0);
-					normal2vector(ver2->normal, normals + 3);
-					normal2vector(ver3->normal, normals + 6);
-					normal2vector(ver4->normal, normals + 9);
-					normal2vector(ver5->normal, normals + 12);
-					normal2vector(ver6->normal, normals + 15);
-					normal2vector(ver7->normal, normals + 18);
-					normal2vector(ver8->normal, normals + 21);
-					normal2vector(ver9->normal, normals + 24);
-
-					uint16_t tex = sec->land_textures[k / 2 * TEXTURE_SIDE + l / 2];
-
-					int idx = texture_index(tex);
-					float u = (idx - idx / 8 * 8) / 8.0f;
-					float v = (7 - idx / 8) / 8.0f;
-
-					GLfloat texcoords[2 * 9] = {
-						u, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_STEP, v + TEXTURE_UV_STEP,
-						u + TEXTURE_UV_STEP, v + TEXTURE_UV_HALF_STEP,
-						u + TEXTURE_UV_STEP, v,
-						u + TEXTURE_UV_HALF_STEP, v,
-						u, v,
-						u, v + TEXTURE_UV_HALF_STEP,
-						u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP
-					};
-
-					glVertexPointer(3, GL_FLOAT, 0, vertices);
-					glNormalPointer(GL_FLOAT, 0, normals);
-					glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
-
-					glLoadIdentity();
-					glTranslatef(u + TEXTURE_UV_HALF_STEP, v + TEXTURE_UV_HALF_STEP, 0.0f);
-					glRotatef(-90.0f * texture_angle(tex), 0.0f, 0.0f, 1.0f);
-					glTranslatef(-u - TEXTURE_UV_HALF_STEP, -v - TEXTURE_UV_HALF_STEP, 0.0f);
-
-					GLubyte indices[2][6] = {
-						{ 7, 0, 8, 1, 3, 2 },
-						{ 6, 7, 5, 8, 4, 3 }
-					};
-
-					glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(tex)]);
-
-					glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[0]);
-					glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, indices[1]);
-				}
+				render_vertices(x, z, sec->water_vertices,
+								sec->water_textures, sec->water_allow, mpr);
 			}
 		}
 	}
 
-	glMatrixMode(GL_MODELVIEW);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
 	//glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
 }
