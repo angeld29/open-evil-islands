@@ -12,10 +12,10 @@
 #include "input.h"
 #include "memfile.h"
 #include "resfile.h"
-#include "mmpfile.h"
+#include "texture.h"
 
 resfile* res;
-GLuint texid;
+texture* tex;
 
 bool rnd = false;
 int delay = 500;
@@ -30,6 +30,7 @@ static void idle(void)
 	input_advance(elapsed);
 
 	if (input_test(KB_ESCAPE)) {
+		texture_close(tex);
 		resfile_close(res);
 		exit(0);
 	}
@@ -39,12 +40,23 @@ static void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	if (NULL != tex) {
+  		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		texture_bind(tex);
+	} else {
+		glColor3f(1.0f, 0.0f, 0.0f);
+	}
+
 	glBegin(GL_QUADS);
 	glTexCoord2f(1.0f, 1.0f); glVertex2f(1.0f, 0.0f);
 	glTexCoord2f(1.0f, 0.0f); glVertex2f(1.0f, 1.0f);
 	glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f, 1.0f);
 	glTexCoord2f(0.0f, 1.0f); glVertex2f(0.0f, 0.0f);
 	glEnd();
+
+	if (NULL != tex) {
+		texture_unbind(tex);
+	}
 
 	glutSwapBuffers();
 }
@@ -60,17 +72,19 @@ static void reshape(int width, int height)
 
 static bool generate_texture(int index)
 {
+	texture_close(tex);
+	tex = NULL;
+
 	void* data = malloc(resfile_node_size(index, res));
 	if (NULL == data || !resfile_node_data(index, data, res)) {
 		free(data);
 		return false;
 	}
-	texid = mmpfile_generate_texture(texid, data);
+
+	tex = texture_open(data);
 	free(data);
-	if (0 == texid) {
-		return false;
-	}
-	return true;
+
+	return NULL != tex;
 }
 
 static void next_texture(int index)
@@ -84,14 +98,17 @@ static void next_texture(int index)
 		index = 0;
 	}
 
+	int d = delay;
+
 	if (!generate_texture(index)) {
 		printf("Could not load texture '%s'\n", resfile_node_name(index, res));
+		d = 0;
 	} else {
 		glutPostRedisplay();
 	}
 
 	if (slideshow) {
-		glutTimerFunc(delay, next_texture, rnd ?
+		glutTimerFunc(d, next_texture, rnd ?
 			rand() % resfile_node_count(res) : index + 1);
 	}
 }
@@ -163,11 +180,6 @@ int main(int argc, char* argv[])
 	timer_start();
 
 	gl_init();
-
-	glEnable(GL_TEXTURE_2D);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	res = resfile_open_file(argv[optind]);
 	if (NULL == res) {

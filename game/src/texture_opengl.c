@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <math.h>
 
+#include <GL/gl.h>
 #include <GL/glu.h>
 
 #include "celib.h"
@@ -19,43 +20,12 @@
 #include "cegl.h"
 #include "byteorder.h"
 #include "logging.h"
-#include "memfile.h"
 #include "mmpfile.h"
+#include "texture.h"
 
-/*  MPP file format:
- *  signature: uint32 little-endian
- *  width: uint32 little-endian
- *  height: uint32 little-endian
- *  size (PNT3) or mipmap count (other): uint32 little-endian
- *  format: uint32 little-endian
- *  rgb_bit_count: uint32 little-endian
- *  a_bit_mask: uint32 little-endian
- *  a_bit_shift: uint32 little-endian
- *  a_bit_count: uint32 little-endian
- *  r_bit_mask: uint32 little-endian
- *  r_bit_shift: uint32 little-endian
- *  r_bit_count: uint32 little-endian
- *  g_bit_mask: uint32 little-endian
- *  g_bit_shift: uint32 little-endian
- *  g_bit_count: uint32 little-endian
- *  b_bit_mask: uint32 little-endian
- *  b_bit_shift: uint32 little-endian
- *  b_bit_count: uint32 little-endian
- *  user_data_shift: uint32 little-endian
-*/
-
-enum {
-	MMP_SIGNATURE = 0x504d4d
-};
-
-enum {
-	MMP_DD = 0x4444,
-	MMP_DXT1 = 0x31545844,
-	MMP_DXT3 = 0x33545844,
-	MMP_PNT3 = 0x33544e50,
-	MMP_PV = 0x5650,
-	MMP_QU = 0x5551,
-	MMP_XX = 0x8888
+struct texture {
+	GLuint id;
+	bool has_alpha;
 };
 
 static void setup_mag_min_params(int mipmap_count)
@@ -90,11 +60,11 @@ static bool scale_texture(int* width, int* height,
 	}
 
 	if (*width != new_width || *height != new_height) {
-		int error_code = gluScaleImage(data_format, *width, *height,
+		int error = gluScaleImage(data_format, *width, *height,
 			data_type, data, new_width, new_height, data_type, data);
-		if (GL_NO_ERROR != error_code) {
+		if (GL_NO_ERROR != error) {
 			logging_error("gluScaleImage failed: %d (%s)\n",
-				error_code, gluErrorString(error_code));
+				error, gluErrorString(error));
 			return false;
 		}
 
@@ -119,10 +89,8 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 	glTexImage2D(GL_TEXTURE_2D, level, internal_format,
 		width, height, 0, data_format, data_type, data);
 
-	int error_code = glGetError();
-	if (GL_NO_ERROR != error_code) {
-		logging_error("glTexImage2D failed: %d (%s)\n",
-			error_code, gluErrorString(error_code));
+	if (gl_has_errors()) {
+		logging_error("glTexImage2D failed\n");
 		return false;
 	}
 
@@ -258,10 +226,8 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 			GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
 			width, height, 0, data_size, src);
 
-		int error_code = glGetError();
-		if (GL_NO_ERROR != error_code) {
-			logging_error("glCompressedTexImage2D failed: %d (%s)\n",
-				error_code, gluErrorString(error_code));
+		if (gl_has_errors()) {
+			logging_error("glCompressedTexImage2D failed\n");
 			return false;
 		}
 
@@ -350,19 +316,16 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 	return ok;
 }
 
-GLuint mmpfile_generate_texture(GLuint id, void* data)
+texture* texture_open(void* data)
 {
-	// TODO: possible leak
-
-	if (0 == id) {
-		glGenTextures(1, &id);
+	texture* tex = malloc(sizeof(texture));
+	if (NULL == tex) {
+		return NULL;
 	}
 
-	if (0 == id) {
-		return 0;
-	}
+	glGenTextures(1, &tex->id);
 
-	glBindTexture(GL_TEXTURE_2D, id);
+	glBindTexture(GL_TEXTURE_2D, tex->id);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -370,8 +333,9 @@ GLuint mmpfile_generate_texture(GLuint id, void* data)
 	uint32_t* mmp = data;
 
 	if (MMP_SIGNATURE != le2cpu32(*mmp++)) {
-		logging_error("Wrong signature\n");
-		return 0;
+		logging_error("mmpfile: wrong signature\n");
+		texture_close(tex);
+		return NULL;
 	}
 
 	uint32_t width = le2cpu32(*mmp++);
@@ -382,6 +346,8 @@ GLuint mmpfile_generate_texture(GLuint id, void* data)
 	mmp += 14;
 
 	bool ok;
+	tex->has_alpha = true;
+
 	switch (format) {
 	case MMP_DXT1:
 	case MMP_DXT3:
@@ -391,19 +357,20 @@ GLuint mmpfile_generate_texture(GLuint id, void* data)
 	case MMP_PNT3:
 		ok = pnt3_generate_texture(mipmap_count_or_size, width, height, mmp);
 		break;
-	case MMP_DD:
-		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
-			width, height, 2, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV, mmp);
-		break;
-	case MMP_PV:
+	case MMP_R5G6B5:
 		ok = generate_texture(mipmap_count_or_size, GL_RGB,
 			width, height, 2, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, mmp);
+		tex->has_alpha = false;
 		break;
-	case MMP_QU:
+	case MMP_A1RGB5:
 		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
 			width, height, 2, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, mmp);
 		break;
-	case MMP_XX:
+	case MMP_ARGB4:
+		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
+			width, height, 2, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV, mmp);
+		break;
+	case MMP_ARGB8:
 		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
 			width, height, 4, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, mmp);
 		break;
@@ -413,8 +380,41 @@ GLuint mmpfile_generate_texture(GLuint id, void* data)
 	}
 
 	if (!ok) {
-		return 0;
+		texture_close(tex);
+		return NULL;
 	}
 
-	return id;
+	return tex;
+}
+
+void texture_close(texture* tex)
+{
+	if (NULL == tex) {
+		return;
+	}
+
+	glDeleteTextures(1, &tex->id);
+
+	free(tex);
+}
+
+void texture_bind(texture* tex)
+{
+	glEnable(GL_TEXTURE_2D);
+
+	if (tex->has_alpha) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
+	glBindTexture(GL_TEXTURE_2D, tex->id);
+}
+
+void texture_unbind(texture* tex)
+{
+	if (tex->has_alpha) {
+		glDisable(GL_BLEND);
+	}
+
+	glDisable(GL_TEXTURE_2D);
 }

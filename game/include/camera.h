@@ -11,15 +11,15 @@ typedef struct camera camera;
 extern camera* camera_new(void);
 extern void camera_delete(camera* cam);
 
-extern float* camera_eye(float eye[3], const camera* cam);
-extern float* camera_forward(float forward[3], const camera* cam);
-extern float* camera_up(float up[3], const camera* cam);
-extern float* camera_right(float right[3], const camera* cam);
+extern float* camera_eye(float* eye, const camera* cam);
+extern float* camera_forward(float* forward, const camera* cam);
+extern float* camera_up(float* up, const camera* cam);
+extern float* camera_right(float* right, const camera* cam);
 
 extern void camera_set_fov(double fov, camera* cam);
 extern void camera_set_aspect(int width, int height, camera* cam);
-extern void camera_set_eye(const float eye[3], camera* cam);
-extern void camera_set_look(const float look[4], camera* cam);
+extern void camera_set_eye(const float* eye, camera* cam);
+extern void camera_set_look(const float* look, camera* cam);
 
 extern void camera_move(float offsetx, float offsetz, camera* cam);
 extern void camera_zoom(float offset, camera* cam);

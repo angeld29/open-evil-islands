@@ -18,7 +18,7 @@ struct camera {
 	bool look_changed;
 };
 
-static void update_rotation(float look[4], float view[16])
+static void update_rotation(float* look, float* view)
 {
 	float tx  = 2.0f * look[1];
 	float ty  = 2.0f * look[2];
@@ -46,7 +46,7 @@ static void update_rotation(float look[4], float view[16])
 	view[10] = 1.0f - (txx + tyy);
 }
 
-static void update_translation(float eye[3], float view[16])
+static void update_translation(float* eye, float* view)
 {
 	view[12] = -view[0] * eye[0] - view[4] * eye[1] - view[8] * eye[2];
 	view[13] = -view[1] * eye[0] - view[5] * eye[1] - view[9] * eye[2];
@@ -78,30 +78,28 @@ void camera_delete(camera* cam)
 	free(cam);
 }
 
-float* camera_eye(float eye[3], const camera* cam)
+float* camera_eye(float* eye, const camera* cam)
 {
 	return vector3_copy(cam->eye, eye);
 }
 
-float* camera_forward(float forward[3], const camera* cam)
+float* camera_forward(float* forward, const camera* cam)
 {
 	float q[4];
 	return vector3_rot(VECTOR3_NEG_UNIT_Z,
 		quaternion_conj(cam->look, q), forward);
 }
 
-float* camera_up(float up[3], const camera* cam)
+float* camera_up(float* up, const camera* cam)
 {
 	float q[4];
-	return vector3_rot(VECTOR3_UNIT_Y,
-		quaternion_conj(cam->look, q), up);
+	return vector3_rot(VECTOR3_UNIT_Y, quaternion_conj(cam->look, q), up);
 }
 
-float* camera_right(float right[3], const camera* cam)
+float* camera_right(float* right, const camera* cam)
 {
 	float q[4];
-	return vector3_rot(VECTOR3_UNIT_X,
-		quaternion_conj(cam->look, q), right);
+	return vector3_rot(VECTOR3_UNIT_X, quaternion_conj(cam->look, q), right);
 }
 
 void camera_set_fov(double fov, camera* cam)
@@ -116,13 +114,13 @@ void camera_set_aspect(int width, int height, camera* cam)
 	cam->proj_changed = true;
 }
 
-void camera_set_eye(const float eye[3], camera* cam)
+void camera_set_eye(const float* eye, camera* cam)
 {
 	vector3_copy(eye, cam->eye);
 	cam->eye_changed = true;
 }
 
-void camera_set_look(const float look[4], camera* cam)
+void camera_set_look(const float* look, camera* cam)
 {
 	quaternion_copy(look, cam->look);
 	cam->look_changed = true;

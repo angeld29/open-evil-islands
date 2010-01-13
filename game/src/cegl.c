@@ -13,7 +13,7 @@ static inline bool check_extension(const char* name)
 
 static void report_extension(const char* name, bool ok)
 {
-	logging_write("checking for '%s' extension... %s\n", name, ok ? "yes" : "no");
+	logging_write("Checking for '%s' extension... %s\n", name, ok ? "yes" : "no");
 }
 
 void gl_init(void)
@@ -38,6 +38,17 @@ void gl_init(void)
 		features[GL_FEATURE_TEXTURE_RECTANGLE]);
 	report_extension("texture compression s3tc",
 		features[GL_FEATURE_TEXTURE_COMPRESSION_S3TC]);
+}
+
+bool gl_has_errors(void)
+{
+	bool ok = false;
+	GLenum error;
+	while (GL_NO_ERROR != (error = glGetError())) {
+		logging_error("OpenGL error %u: %s\n", error, gluErrorString(error));
+		ok = true;
+	}
+	return ok;
 }
 
 bool gl_query_feature(gl_feature feature)

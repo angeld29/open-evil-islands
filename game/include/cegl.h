@@ -16,9 +16,9 @@ typedef enum {
 } gl_feature;
 
 extern void gl_init(void);
+extern bool gl_has_errors(void);
 
 extern bool gl_query_feature(gl_feature feature);
-
 extern int gl_max_texture_size(void);
 
 #ifdef __cplusplus

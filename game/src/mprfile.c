@@ -12,29 +12,25 @@
 #include "byteorder.h"
 #include "memfile.h"
 #include "resfile.h"
-#include "mmpfile.h"
+#include "texture.h"
 #include "mprfile.h"
 
 static const uint32_t MP_SIGNATURE = 0xce4af672;
 static const uint32_t SEC_SIGNATURE = 0xcf4bf774;
 
 enum {
-	TOT_UNDEF = 0,
-	TOT_TERRAIN = 1,
-	TOT_WATER_NOTEXTURE = 2,
-	TOT_WATER = 3,
-	TOT_GRASS = 4,
+	TOT_UNDEF,
+	TOT_TERRAIN,
+	TOT_WATER_NOTEXTURE,
+	TOT_WATER,
+	TOT_GRASS,
 };
 
-enum {
-	VERTEX_SIDE = 33,
-	VERTEX_COUNT = 33 * 33
-};
+static const unsigned int VERTEX_SIDE = 33;
+static const unsigned int VERTEX_COUNT = 33 * 33;
 
-enum {
-	TEXTURE_SIDE = 16,
-	TEXTURE_COUNT = 16 * 16
-};
+static const unsigned int TEXTURE_SIDE = 16;
+static const unsigned int TEXTURE_COUNT = 16 * 16;
 
 typedef struct {
 	uint32_t type;
@@ -78,7 +74,7 @@ struct mprfile {
 	uint32_t* tiles;
 	anim_tile* anim_tiles;
 	sector* sectors;
-	GLuint* texture_ids;
+	texture** textures;
 };
 
 static void normal2vector(uint32_t normal, float* vector)
@@ -383,7 +379,7 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 	return true;
 }
 
-static bool create_texture(GLuint* texture_id, const char* name, resfile* res)
+static bool create_texture(texture** tex, const char* name, resfile* res)
 {
 	int index = resfile_node_index(name, res);
 	if (index < 0) {
@@ -396,18 +392,18 @@ static bool create_texture(GLuint* texture_id, const char* name, resfile* res)
 		return false;
 	}
 
-	*texture_id = mmpfile_generate_texture(0, data);
+	*tex = texture_open(data);
 
 	free(data);
 
-	return 0 != *texture_id;
+	return NULL != *tex;
 }
 
 static bool create_textures(mprfile* mpr, const char* mpr_name,
 							size_t mpr_name_length, resfile* res)
 {
-	mpr->texture_ids = malloc(mpr->texture_count * sizeof(GLuint));
-	if (NULL == mpr->texture_ids) {
+	mpr->textures = calloc(mpr->texture_count, sizeof(texture*));
+	if (NULL == mpr->textures) {
 		return false;
 	}
 
@@ -425,7 +421,7 @@ static bool create_textures(mprfile* mpr, const char* mpr_name,
 	for (unsigned int i = 0; i < mpr->texture_count; ++i) {
 		snprintf(mmp_name, sizeof(mmp_name), "%s%03u.mmp", mmp_tmpl_name, i);
 
-		if (!create_texture(mpr->texture_ids + i, mmp_name, res)) {
+		if (!create_texture(mpr->textures + i, mmp_name, res)) {
 			return false;
 		}
 	}
@@ -467,12 +463,8 @@ int mprfile_close(mprfile* mpr)
 		return 0;
 	}
 
-	if (NULL != mpr->texture_ids) {
-		glDeleteTextures(mpr->texture_count, mpr->texture_ids);
-	}
-
 	if (NULL != mpr->sectors) {
-		for (int i = 0, n = mpr->sector_x_count *
+		for (unsigned int i = 0, n = mpr->sector_x_count *
 				mpr->sector_z_count; i < n; ++i) {
 			sector* sec = mpr->sectors + i;
 			free(sec->land_vertices);
@@ -483,11 +475,17 @@ int mprfile_close(mprfile* mpr)
 		}
 	}
 
+	if (NULL != mpr->textures) {
+		for (unsigned int i = 0; i < mpr->texture_count; ++i) {
+			texture_close(mpr->textures[i]);
+		}
+	}
+
 	free(mpr->materials);
 	free(mpr->tiles);
 	free(mpr->anim_tiles);
 	free(mpr->sectors);
-	free(mpr->texture_ids);
+	free(mpr->textures);
 
 	free(mpr);
 
@@ -496,15 +494,9 @@ int mprfile_close(mprfile* mpr)
 
 void mprfile_debug_print(mprfile* mpr)
 {
-	printf("max y: %f\n", mpr->max_y);
-	printf("sector x count: %u\n", mpr->sector_x_count);
-	printf("sector z count: %u\n", mpr->sector_z_count);
-	printf("texture count: %u\n", mpr->texture_count);
 	printf("texture size: %u\n", mpr->texture_size);
 	printf("tile count: %u\n", mpr->tile_count);
 	printf("tile size: %u\n", mpr->tile_size);
-	printf("material count: %hu\n", mpr->material_count);
-	printf("anim tile count: %u\n", mpr->anim_tile_count);
 
 	for (unsigned int i = 0; i < mpr->material_count; ++i) {
 		material* mat = mpr->materials + i;
@@ -521,9 +513,11 @@ void mprfile_debug_print(mprfile* mpr)
 		printf("\tindex: %hu\n", at->index);
 		printf("\tphases: %hu\n", at->phases);
 	}
+	/*printf("tiles:");
 	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
-		//printf("id %u: %u\n", i, mpr->tiles[i]);
+		printf(" %u", mpr->tiles[i]);
 	}
+	printf("\n");*/
 }
 
 static void render_vertices(unsigned int sector_x, unsigned int sector_z,
@@ -560,12 +554,6 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 	glNormalPointer(GL_FLOAT, 0, narray);
 	glTexCoordPointer(2, GL_FLOAT, 0, tcarray);
 
-	static const float texture_uv_step = 1.0f / 8.0f;
-	static const float texture_uv_half_step = 1.0f / 16.0f;
-
-	static unsigned int offx[9] = { 0, 0, 0, 1, 2, 2, 2, 1, 1 };
-	static unsigned int offz[9] = { 0, 1, 2, 2, 2, 1, 0, 0, 1 };
-
 	for (unsigned int z = 0; z < VERTEX_SIDE - 2; z += 2) {
 		for (unsigned int x = 0; x < VERTEX_SIDE - 2; x += 2) {
 			if (NULL != allow && -1 == allow[x / 2 * TEXTURE_SIDE + z / 2]) {
@@ -578,6 +566,9 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 			float u = (tex_idx - tex_idx / 8 * 8) / 8.0f;
 			float v = (7 - tex_idx / 8) / 8.0f;
 
+			static const float texture_uv_step = 1.0f / 8.0f;
+			static const float texture_uv_half_step = 1.0f / 16.0f;
+
 			float texcoords[2 * 9] = {
 				u, v + texture_uv_step,
 				u + texture_uv_half_step, v + texture_uv_step,
@@ -589,6 +580,9 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 				u, v + texture_uv_half_step,
 				u + texture_uv_half_step, v + texture_uv_half_step
 			};
+
+			static unsigned int offx[9] = { 0, 0, 0, 1, 2, 2, 2, 1, 1 };
+			static unsigned int offz[9] = { 0, 1, 2, 2, 2, 1, 0, 0, 1 };
 
 			for (unsigned int i = 0; i < 9; ++i) {
 				unsigned int tci = (x + offx[i]) * VERTEX_SIDE * 2 +
@@ -616,13 +610,12 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 				{ vind[6], vind[7], vind[5], vind[8], vind[4], vind[3] }
 			};
 
-			glBindTexture(GL_TEXTURE_2D, mpr->texture_ids[texture_number(tex)]);
+			texture_bind(mpr->textures[texture_number(tex)]);
 
 			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[0]);
 			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[1]);
-			// Segmentation fault on MESA
-			//glMultiDrawElements(GL_TRIANGLE_STRIP, (const GLsizei[]){ 6, 6 },
-			//					GL_UNSIGNED_SHORT, (const GLvoid**)indices, 2);
+
+			texture_unbind(mpr->textures[texture_number(tex)]);
 		}
 	}
 
@@ -633,10 +626,7 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 
 void mprfile_debug_render(mprfile* mpr)
 {
-	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
 		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
@@ -649,7 +639,4 @@ void mprfile_debug_render(mprfile* mpr)
 			}
 		}
 	}
-
-	//glDisable(GL_BLEND);
-	glDisable(GL_TEXTURE_2D);
 }
