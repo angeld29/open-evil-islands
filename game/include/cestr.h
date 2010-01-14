@@ -8,6 +8,9 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+extern char* strset(char* s, char c);
+extern char* strnset(char* s, char c, size_t n);
+
 /**
  *  Return a malloc'd string that contains the n leftmost characters of the s.
  *  The entire string is returned if n is greater than string length.
@@ -38,6 +41,12 @@ extern char* strlwr(char* s);
 /// Reverse a string in place.
 extern char* strrev(char* s);
 
+/**
+ *  Replaces all occurrences of a character in a string with another character.
+ *  Return number of replacements made.
+*/
+extern size_t strrepc(char* s, char from, char to);
+
 #ifdef CE_NEED_STRCASECMP
 /// Compare s1 and s2, ignoring case.
 extern int strcasecmp(const char* s1, const char* s2);
@@ -55,7 +64,7 @@ extern char* strdup(const char* s);
 
 #ifdef CE_NEED_STRLCAT
 /**
- *  @brief Consistent, safe, string concatenation.
+ *  @brief Consistent, safe string concatenation.
  *  Based on http://www.gratisoft.us/todd/papers/strlcpy.html
  *
  *  Appends src to string dst of size size (unlike strncat, size is the
@@ -69,7 +78,7 @@ extern size_t strlcat(char* dst, const char* src, size_t size);
 
 #ifdef CE_NEED_STRLCPY
 /**
- *  @brief Consistent, safe, string copy.
+ *  @brief Consistent, safe string copy.
  *  Based on http://www.gratisoft.us/todd/papers/strlcpy.html
  *
  *  Copy src to string dst of size size. At most size-1 characters
