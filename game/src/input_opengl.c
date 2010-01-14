@@ -145,6 +145,10 @@ static input_button keyboard_ascii_map(unsigned char key)
 {
 	input_button button = IB_UNKNOWN;
 	switch (key) {
+	case '0': case '1': case '2': case '3': case '4':
+	case '5': case '6': case '7': case '8': case '9':
+		button = KB_0 + key - '0';
+		break;
     case 27:
 		button = KB_ESCAPE;
 		break;
