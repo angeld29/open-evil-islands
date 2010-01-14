@@ -19,11 +19,8 @@ static const uint32_t MP_SIGNATURE = 0xce4af672;
 static const uint32_t SEC_SIGNATURE = 0xcf4bf774;
 
 enum {
-	TOT_UNDEF,
-	TOT_TERRAIN,
-	TOT_WATER_NOTEXTURE,
-	TOT_WATER,
-	TOT_GRASS,
+	MAT_GROUND = 1,
+	MAT_WATER = 3,
 };
 
 static const unsigned int VERTEX_SIDE = 33;
@@ -99,6 +96,17 @@ static inline uint8_t texture_angle(uint16_t value)
 	return (value & 0xc000) >> 14;
 }
 
+static material* find_water_material(mprfile* mpr)
+{
+	for (unsigned int i = 0; i < mpr->material_count; ++i) {
+		material* mat = mpr->materials + i;
+		if (MAT_WATER == mat->type) {
+			return mat;
+		}
+	}
+	return NULL;
+}
+
 static bool read_material(material* mat, memfile* mem)
 {
 	float unknown[4];
@@ -109,10 +117,6 @@ static bool read_material(material* mat, memfile* mem)
 			4 != memfile_read(unknown, sizeof(float), 4, mem)) {
 		return false;
 	}
-	assert(0.0f == unknown[0]);
-	assert(0.0f == unknown[1]);
-	assert(0.0f == unknown[2]);
-	assert(0.0f == unknown[3]);
 	le2cpu32s(&mat->type);
 	return true;
 }
@@ -494,10 +498,6 @@ int mprfile_close(mprfile* mpr)
 
 void mprfile_debug_print(mprfile* mpr)
 {
-	printf("texture size: %u\n", mpr->texture_size);
-	printf("tile count: %u\n", mpr->tile_count);
-	printf("tile size: %u\n", mpr->tile_size);
-
 	for (unsigned int i = 0; i < mpr->material_count; ++i) {
 		material* mat = mpr->materials + i;
 		printf("material %u:\n", i);
@@ -513,16 +513,16 @@ void mprfile_debug_print(mprfile* mpr)
 		printf("\tindex: %hu\n", at->index);
 		printf("\tphases: %hu\n", at->phases);
 	}
-	/*printf("tiles:");
+	printf("tiles:");
 	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
 		printf(" %u", mpr->tiles[i]);
 	}
-	printf("\n");*/
+	printf("\n");
 }
 
 static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 							vertex* vertices, uint16_t* textures,
-							int16_t* allow, mprfile* mpr)
+							int16_t* water_allow, mprfile* mpr)
 {
 	GLfloat varray[3 * VERTEX_COUNT];
 	GLfloat narray[3 * VERTEX_COUNT];
@@ -556,7 +556,8 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 
 	for (unsigned int z = 0; z < VERTEX_SIDE - 2; z += 2) {
 		for (unsigned int x = 0; x < VERTEX_SIDE - 2; x += 2) {
-			if (NULL != allow && -1 == allow[x / 2 * TEXTURE_SIDE + z / 2]) {
+			if (NULL != water_allow &&
+					-1 == water_allow[x / 2 * TEXTURE_SIDE + z / 2]) {
 				continue;
 			}
 
@@ -610,16 +611,29 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 				{ vind[6], vind[7], vind[5], vind[8], vind[4], vind[3] }
 			};
 
-			texture_bind(mpr->textures[texture_number(tex)]);
+			//unsigned int tile_idx = texture_number(tex) * 64 + texture_index(tex);
+			//mpr->tiles[tile_idx] ???
 
-			//glEnable(GL_BLEND);
-			//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			//glDisable(GL_BLEND);
+			if (NULL != water_allow) {
+				glEnable(GL_LIGHTING);
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				material* mat = find_water_material(mpr);
+				assert(mat);
+				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat->color);
+			}
+
+			texture_bind(mpr->textures[texture_number(tex)]);
 
 			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[0]);
 			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[1]);
 
 			texture_unbind(mpr->textures[texture_number(tex)]);
+
+			if (NULL != water_allow) {
+				glDisable(GL_BLEND);
+				glDisable(GL_LIGHTING);
+			}
 		}
 	}
 
@@ -630,7 +644,7 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 
 void mprfile_debug_render(mprfile* mpr)
 {
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
 	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
 		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
