@@ -13,7 +13,7 @@
 #include "input.h"
 
 static bool opened;
-static bool buttons[BUTTON_COUNT];
+static bool buttons[IB_COUNT];
 static int mouse_prev_x;
 static int mouse_prev_y;
 static int mouse_offset_x;
@@ -143,7 +143,7 @@ void input_advance(float elapsed)
 
 static input_button keyboard_ascii_map(unsigned char key)
 {
-	input_button button = BUTTON_UNKNOWN;
+	input_button button = IB_UNKNOWN;
 	switch (key) {
     case 27:
 		button = KB_ESCAPE;
@@ -154,7 +154,7 @@ static input_button keyboard_ascii_map(unsigned char key)
 
 static input_button keyboard_special_map(int key)
 {
-	input_button button = BUTTON_UNKNOWN;
+	input_button button = IB_UNKNOWN;
 	switch (key) {
 	case GLUT_KEY_F1:
 		button = KB_F1;
@@ -225,7 +225,7 @@ static input_button keyboard_special_map(int key)
 
 static input_button mouse_map(int key)
 {
-	input_button button = BUTTON_UNKNOWN;
+	input_button button = IB_UNKNOWN;
 	switch (key) {
 	case GLUT_LEFT_BUTTON:
 		button = MB_LEFT;

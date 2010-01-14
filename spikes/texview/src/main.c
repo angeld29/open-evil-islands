@@ -16,6 +16,7 @@
 
 resfile* res;
 texture* tex;
+timer* tmr;
 
 bool rnd = false;
 int delay = 500;
@@ -23,15 +24,18 @@ bool slideshow = true;
 
 static void idle(void)
 {
-	timer_advance();
+	timer_advance(tmr);
 
-	float elapsed = timer_elapsed();
+	float elapsed = timer_elapsed(tmr);
 
 	input_advance(elapsed);
 
 	if (input_test(KB_ESCAPE)) {
+		timer_close(tmr);
 		texture_close(tex);
 		resfile_close(res);
+		input_close();
+		logging_close();
 		exit(0);
 	}
 }
@@ -172,12 +176,8 @@ int main(int argc, char* argv[])
 
 	logging_open();
 	logging_set_level(LOGGING_DEBUG_LEVEL);
-	atexit(logging_close);
 
 	input_open();
-	atexit(input_close);
-
-	timer_start();
 
 	gl_init();
 
@@ -203,6 +203,8 @@ int main(int argc, char* argv[])
 	}
 
 	glutTimerFunc(0, next_texture, index);
+
+	tmr = timer_open();
 
 	glutMainLoop();
 	return 0;

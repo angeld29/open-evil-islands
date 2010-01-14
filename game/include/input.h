@@ -9,7 +9,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef enum {
-	BUTTON_UNKNOWN,
+	IB_UNKNOWN,
 	KB_ESCAPE,
 	KB_F1,
 	KB_F2,
@@ -119,7 +119,7 @@ typedef enum {
 	MB_RIGHT,
 	MB_WHEELUP,
 	MB_WHEELDOWN,
-	BUTTON_COUNT
+	IB_COUNT
 } input_button;
 
 extern void input_open(void);

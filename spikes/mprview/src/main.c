@@ -16,18 +16,22 @@
 
 mprfile* mpr;
 camera* cam;
+timer* tmr;
 
 static void idle(void)
 {
-	timer_advance();
+	timer_advance(tmr);
 
-	float elapsed = timer_elapsed();
+	float elapsed = timer_elapsed(tmr);
 
 	input_advance(elapsed);
 
 	if (input_test(KB_ESCAPE)) {
+		timer_close(tmr);
 		camera_delete(cam);
 		mprfile_close(mpr);
+		input_close();
+		logging_close();
 		exit(0);
 	}
 
@@ -105,8 +109,8 @@ int main(int argc, char* argv[])
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
-	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(1024, 768);
+	glutInitWindowPosition(300, 500);
+	glutInitWindowSize(400, 300);
 	glutInit(&argc, argv);
 
 	glutCreateWindow("Cursed Earth Spikes: MPR Viewer");
@@ -116,10 +120,8 @@ int main(int argc, char* argv[])
 
 	logging_open();
 	logging_set_level(LOGGING_DEBUG_LEVEL);
-	atexit(logging_close);
 
 	input_open();
-	atexit(input_close);
 
 	gl_init();
 
@@ -159,7 +161,7 @@ int main(int argc, char* argv[])
 	camera_set_eye((float[]){ 25.0f, 50.0f, 25.0f }, cam);
 	camera_yaw_pitch(deg2rad(90.0f), deg2rad(60.0f), cam);
 
-	timer_start();
+	tmr = timer_open();
 
 	glutMainLoop();
 	return 0;
