@@ -612,6 +612,10 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 
 			texture_bind(mpr->textures[texture_number(tex)]);
 
+			//glEnable(GL_BLEND);
+			//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			//glDisable(GL_BLEND);
+
 			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[0]);
 			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[1]);
 

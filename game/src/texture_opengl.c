@@ -25,7 +25,6 @@
 
 struct texture {
 	GLuint id;
-	bool has_alpha;
 };
 
 static void setup_mag_min_params(int mipmap_count)
@@ -346,7 +345,6 @@ texture* texture_open(void* data)
 	mmp += 14;
 
 	bool ok;
-	tex->has_alpha = true;
 
 	switch (format) {
 	case MMP_DXT1:
@@ -360,7 +358,6 @@ texture* texture_open(void* data)
 	case MMP_R5G6B5:
 		ok = generate_texture(mipmap_count_or_size, GL_RGB,
 			width, height, 2, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, mmp);
-		tex->has_alpha = false;
 		break;
 	case MMP_A1RGB5:
 		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
@@ -401,20 +398,11 @@ void texture_close(texture* tex)
 void texture_bind(texture* tex)
 {
 	glEnable(GL_TEXTURE_2D);
-
-	if (tex->has_alpha) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-
 	glBindTexture(GL_TEXTURE_2D, tex->id);
 }
 
 void texture_unbind(texture* tex)
 {
-	if (tex->has_alpha) {
-		glDisable(GL_BLEND);
-	}
-
+	tex = tex;
 	glDisable(GL_TEXTURE_2D);
 }
