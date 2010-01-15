@@ -85,7 +85,7 @@ static void passive_motion(int x, int y)
 	motion(x, y);
 }
 
-void input_open(void)
+bool input_open(void)
 {
 	assert(!opened);
 	glutKeyboardFunc(keyboard);
@@ -96,6 +96,7 @@ void input_open(void)
 	glutMotionFunc(motion);
 	glutPassiveMotionFunc(passive_motion);
 	opened = true;
+	return true;
 }
 
 void input_close(void)

@@ -122,7 +122,7 @@ typedef enum {
 	IB_COUNT
 } input_button;
 
-extern void input_open(void);
+extern bool input_open(void);
 extern void input_close(void);
 
 extern bool input_test(input_button button);

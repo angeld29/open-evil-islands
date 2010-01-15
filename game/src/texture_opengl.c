@@ -1,4 +1,5 @@
-/*  Based on:
+/*
+ *  Based on:
  *  1. MSDN website (Programming Guide for DDS, Reference for DDS).
  *  2. DDS GIMP plugin (C) 2004-2008 Shawn Kirst <skirst@insightbb.com>,
  *     with parts (C) 2003 Arne Reuter <homepage@arnereuter.de>.

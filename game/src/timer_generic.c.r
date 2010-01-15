@@ -1,13 +1,11 @@
 #include <stdlib.h>
-
-#include <sys/time.h>
+#include <time.h>
 
 #include "timer.h"
 
 struct timer {
-	struct timeval elapsed_old;
-	struct timeval elapsed_new;
-	struct timeval elapsed_sub;
+	clock_t elapsed_old;
+	clock_t elapsed_new;
 	float elapsed_diff;
 };
 
@@ -17,7 +15,7 @@ timer* timer_open(void)
 	if (NULL == tmr) {
 		return NULL;
 	}
-	gettimeofday(&tmr->elapsed_old, NULL);
+	tmr->elapsed_old = clock();
 	return tmr;
 }
 
@@ -28,10 +26,9 @@ void timer_close(timer* tmr)
 
 void timer_advance(timer* tmr)
 {
-	gettimeofday(&tmr->elapsed_new, NULL);
-	timersub(&tmr->elapsed_new, &tmr->elapsed_old, &tmr->elapsed_sub);
-	tmr->elapsed_diff = tmr->elapsed_sub.tv_sec +
-						tmr->elapsed_sub.tv_usec * 1e-6f;
+	tmr->elapsed_new = clock();
+	tmr->elapsed_diff = (tmr->elapsed_new -
+							tmr->elapsed_old) / (float)CLOCKS_PER_SEC;
 	tmr->elapsed_old = tmr->elapsed_new;
 }
 
