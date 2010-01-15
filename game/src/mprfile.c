@@ -19,8 +19,8 @@ static const uint32_t MP_SIGNATURE = 0xce4af672;
 static const uint32_t SEC_SIGNATURE = 0xcf4bf774;
 
 enum {
-	MAT_GROUND = 1,
-	MAT_WATER = 3,
+	MATERIAL_GROUND = 1,
+	MATERIAL_WATER = 3,
 };
 
 static const unsigned int VERTEX_SIDE = 33;
@@ -100,7 +100,7 @@ static material* find_water_material(mprfile* mpr)
 {
 	for (unsigned int i = 0; i < mpr->material_count; ++i) {
 		material* mat = mpr->materials + i;
-		if (MAT_WATER == mat->type) {
+		if (MATERIAL_WATER == mat->type) {
 			return mat;
 		}
 	}
@@ -513,11 +513,11 @@ void mprfile_debug_print(mprfile* mpr)
 		printf("\tindex: %hu\n", at->index);
 		printf("\tphases: %hu\n", at->phases);
 	}
-	printf("tiles:");
+	/*printf("tiles:");
 	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
 		printf(" %u", mpr->tiles[i]);
 	}
-	printf("\n");
+	printf("\n");*/
 }
 
 static void render_vertices(unsigned int sector_x, unsigned int sector_z,
