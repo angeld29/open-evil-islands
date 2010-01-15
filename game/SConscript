@@ -3,6 +3,8 @@
 
 import os.path
 
+import ceutils
+
 VariantDir("build", "src", duplicate=False)
 
 Import("env")
@@ -12,9 +14,9 @@ env.AppendUnique(
 	CPPPATH=["include"],
 )
 
-targets = [builder(os.path.join("lib", "game"),
-					[os.path.join("build", node.name)
-						for node in env.Glob(os.path.join("src", "*.c"))])
-			for builder in (env.StaticLibrary, env.SharedLibrary)]
+sources = ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))
+
+targets = [builder(os.path.join("lib", "game"), [os.path.join("build", node.name)
+	for node in sources]) for builder in (env.StaticLibrary, env.SharedLibrary)]
 
 Return("targets")

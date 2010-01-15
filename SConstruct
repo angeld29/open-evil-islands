@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import site
+
 import SCons.Script
+
+site.addsitedir("scripts")
 
 variables = SCons.Variables.Variables(args=SCons.Script.ARGUMENTS)
 variables.Add(SCons.Variables.BoolVariable("RELEASE",
@@ -23,6 +27,9 @@ env.AppendUnique(
 	CPPDEFINES=["GL_GLEXT_PROTOTYPES",
 				"CE_NEED_STRRPBRK", "CE_NEED_STRLCAT", "CE_NEED_STRLCPY"],
 )
+
+env["COMPILER"] = "gcc"
+env["GRAPHLIB"] = "opengl"
 
 Export("env")
 
