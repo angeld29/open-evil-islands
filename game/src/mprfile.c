@@ -38,7 +38,7 @@ typedef struct {
 
 typedef struct {
 	uint16_t index;
-	uint16_t phases;
+	uint16_t count;
 } anim_tile;
 
 typedef struct {
@@ -68,7 +68,7 @@ struct mprfile {
 	uint16_t material_count;
 	uint32_t anim_tile_count;
 	material* materials;
-	uint32_t* tiles;
+	uint32_t* tiles; // TODO: id for bind sound
 	anim_tile* anim_tiles;
 	sector* sectors;
 	texture** textures;
@@ -124,11 +124,11 @@ static bool read_material(material* mat, memfile* mem)
 static bool read_anim_tile(anim_tile* at, memfile* mem)
 {
 	if (1 != memfile_read(&at->index, sizeof(uint16_t), 1, mem) ||
-			1 != memfile_read(&at->phases, sizeof(uint16_t), 1, mem)) {
+			1 != memfile_read(&at->count, sizeof(uint16_t), 1, mem)) {
 		return false;
 	}
 	le2cpu16s(&at->index);
-	le2cpu16s(&at->phases);
+	le2cpu16s(&at->count);
 	return true;
 }
 
@@ -507,17 +507,6 @@ void mprfile_debug_print(mprfile* mpr)
 		printf("\tselfillum: %f\n", mat->selfillum);
 		printf("\twavemult: %f\n", mat->wavemult);
 	}
-	for (unsigned int i = 0; i < mpr->anim_tile_count; ++i) {
-		anim_tile* at = mpr->anim_tiles + i;
-		printf("anim tile %u:\n", i);
-		printf("\tindex: %hu\n", at->index);
-		printf("\tphases: %hu\n", at->phases);
-	}
-	/*printf("tiles:");
-	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
-		printf(" %u", mpr->tiles[i]);
-	}
-	printf("\n");*/
 }
 
 static void render_vertices(unsigned int sector_x, unsigned int sector_z,
@@ -610,9 +599,6 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 				{ vind[7], vind[0], vind[8], vind[1], vind[3], vind[2] },
 				{ vind[6], vind[7], vind[5], vind[8], vind[4], vind[3] }
 			};
-
-			//unsigned int tile_idx = texture_number(tex) * 64 + texture_index(tex);
-			//mpr->tiles[tile_idx] ???
 
 			if (NULL != water_allow) {
 				glEnable(GL_LIGHTING);
