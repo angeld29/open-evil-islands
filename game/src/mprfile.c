@@ -517,7 +517,7 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 	GLfloat narray[3 * VERTEX_COUNT];
 	GLfloat tcarray[2 * VERTEX_COUNT];
 
-	static const float offset_xz_coef = 1.0f / 256.0f;
+	static const float offset_xz_coef = 1.0f / UINT8_MAX;
 	const float y_coef = mpr->max_y / UINT16_MAX;
 
 	for (unsigned int z = 0; z < VERTEX_SIDE; ++z) {
@@ -634,7 +634,7 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 
 void mprfile_debug_render(mprfile* mpr)
 {
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
 		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
