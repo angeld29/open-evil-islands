@@ -556,19 +556,23 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 			float u = (tex_idx - tex_idx / 8 * 8) / 8.0f;
 			float v = (7 - tex_idx / 8) / 8.0f;
 
-			static const float texture_uv_step = 1.0f / 8.0f;
-			static const float texture_uv_half_step = 1.0f / 16.0f;
+			static const float tile_uv_step = 1.0f / 8.0f;
+			static const float tile_uv_half_step = 1.0f / 16.0f;
+
+			static const float tile_border_size = 4.0f;
+			const float tile_border_offset = tile_border_size /
+											(0.5f * mpr->texture_size);
 
 			float texcoords[2 * 9] = {
-				u, v + texture_uv_step,
-				u + texture_uv_half_step, v + texture_uv_step,
-				u + texture_uv_step, v + texture_uv_step,
-				u + texture_uv_step, v + texture_uv_half_step,
-				u + texture_uv_step, v,
-				u + texture_uv_half_step, v,
-				u, v,
-				u, v + texture_uv_half_step,
-				u + texture_uv_half_step, v + texture_uv_half_step
+				u + tile_border_offset, v + tile_uv_step - tile_border_offset,
+				u + tile_uv_half_step, v + tile_uv_step - tile_border_offset,
+				u + tile_uv_step - tile_border_offset, v + tile_uv_step - tile_border_offset,
+				u + tile_uv_step - tile_border_offset, v + tile_uv_half_step,
+				u + tile_uv_step - tile_border_offset, v + tile_border_offset,
+				u + tile_uv_half_step, v + tile_border_offset,
+				u + tile_border_offset, v + tile_border_offset,
+				u + tile_border_offset, v + tile_uv_half_step,
+				u + tile_uv_half_step, v + tile_uv_half_step
 			};
 
 			static unsigned int offx[9] = { 0, 0, 0, 1, 2, 2, 2, 1, 1 };
@@ -583,11 +587,11 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
-			glTranslatef(u + texture_uv_half_step,
-							v + texture_uv_half_step, 0.0f);
+			glTranslatef(u + tile_uv_half_step,
+							v + tile_uv_half_step, 0.0f);
 			glRotatef(-90.0f * texture_angle(tex), 0.0f, 0.0f, 1.0f);
-			glTranslatef(-u - texture_uv_half_step,
-							-v - texture_uv_half_step, 0.0f);
+			glTranslatef(-u - tile_uv_half_step,
+							-v - tile_uv_half_step, 0.0f);
 			glMatrixMode(GL_MODELVIEW);
 
 			GLushort vind[9];
