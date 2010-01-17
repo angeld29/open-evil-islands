@@ -541,10 +541,10 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 			vertex* ver = vertices + (x * VERTEX_SIDE + z);
 
 			varray[i + 0] = x + sector_x * (VERTEX_SIDE - 1) +
-								offset_xz_coef * ver->offset_x;
+								offset_xz_coef * ver->offset_z;
 			varray[i + 1] = y_coef * ver->coord_y;
 			varray[i + 2] = z + sector_z * (VERTEX_SIDE - 1) +
-								offset_xz_coef * ver->offset_z;
+								offset_xz_coef * ver->offset_x;
 
 			normal2vector(ver->normal, narray + i);
 		}
