@@ -94,6 +94,8 @@ extern float vector3_dist2(const float* a, const float* b);
 extern float* vector3_normalise(const float* a, float* r);
 
 extern float vector3_dot(const float* a, const float* b);
+extern float vector3_absdot(const float* a, const float* b);
+
 extern float* vector3_cross(const float* a, const float* b, float* restrict r);
 
 extern float* vector3_mid(const float* a, const float* b, float* r);
@@ -128,6 +130,13 @@ extern float* matrix3_identity(float* r);
 
 extern float* matrix4_zero(float* r);
 extern float* matrix4_identity(float* r);
+
+extern float* matrix4_mul(const float* a, const float* b, float* restrict r);
+extern float* matrix4_inverse(const float* a, float* r);
+
+extern float* plane_tri(const float* a, const float* b, const float* c, float* r);
+
+extern float plane_dist(const float* p, const float* v);
 
 #ifdef __cplusplus
 }

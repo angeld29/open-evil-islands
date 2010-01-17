@@ -9,6 +9,7 @@
 #include <GL/gl.h>
 
 #include "cestr.h"
+#include "cemath.h"
 #include "byteorder.h"
 #include "memfile.h"
 #include "resfile.h"
@@ -68,9 +69,10 @@ struct mprfile {
 	uint16_t material_count;
 	uint32_t anim_tile_count;
 	material* materials;
-	uint32_t* tiles; // TODO: id for bind sound
+	uint32_t* tiles; // TODO: id for bind sound ?
 	anim_tile* anim_tiles;
 	sector* sectors;
+	bool* sector_allow;
 	texture** textures;
 };
 
@@ -380,6 +382,16 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 		}
 	}
 
+	if (NULL == (mpr->sector_allow = malloc(mpr->sector_x_count *
+										mpr->sector_z_count * sizeof(bool)))) {
+		return false;
+	}
+
+	for (unsigned int i = 0, n = mpr->sector_x_count *
+			mpr->sector_z_count; i < n; ++i) {
+		mpr->sector_allow[i] = true;
+	}
+
 	return true;
 }
 
@@ -489,6 +501,7 @@ int mprfile_close(mprfile* mpr)
 	free(mpr->tiles);
 	free(mpr->anim_tiles);
 	free(mpr->sectors);
+	free(mpr->sector_allow);
 	free(mpr->textures);
 
 	free(mpr);
@@ -496,16 +509,18 @@ int mprfile_close(mprfile* mpr)
 	return 0;
 }
 
-void mprfile_debug_print(mprfile* mpr)
+void mprfile_apply_frustum(const frustum* f, mprfile* mpr)
 {
-	for (unsigned int i = 0; i < mpr->material_count; ++i) {
-		material* mat = mpr->materials + i;
-		printf("material %u:\n", i);
-		printf("\ttype: %u\n", mat->type);
-		printf("\trgba: %f %f %f %f\n",
-			mat->color[0], mat->color[1], mat->color[2], mat->color[3]);
-		printf("\tselfillum: %f\n", mat->selfillum);
-		printf("\twavemult: %f\n", mat->wavemult);
+	float pmin[3], pmax[3];
+	for (unsigned int z = 0, i; z < mpr->sector_z_count; ++z) {
+		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
+			vector3_init(z * (VERTEX_SIDE - 1), 0.0f,
+							x * (VERTEX_SIDE - 1), pmin);
+			vector3_init(z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), mpr->max_y,
+							x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), pmax);
+			mpr->sector_allow[z * mpr->sector_x_count + x] =
+				frustum_test_box(pmin, pmax, f);
+		}
 	}
 }
 
@@ -632,15 +647,23 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void mprfile_debug_render(mprfile* mpr)
+void mprfile_render(mprfile* mpr)
 {
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
+	for (unsigned int z = 0, i; z < mpr->sector_z_count; ++z) {
 		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
-			sector* sec = mpr->sectors + (z * mpr->sector_x_count + x);
+			i = z * mpr->sector_x_count + x;
+
+			if (!mpr->sector_allow[i]) {
+				continue;
+			}
+
+			sector* sec = mpr->sectors + i;
+
 			render_vertices(x, z, sec->land_vertices,
 							sec->land_textures, NULL, mpr);
+
 			if (0 != sec->water) {
 				render_vertices(x, z, sec->water_vertices,
 								sec->water_textures, sec->water_allow, mpr);

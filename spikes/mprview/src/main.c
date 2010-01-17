@@ -10,6 +10,7 @@
 #include "logging.h"
 #include "timer.h"
 #include "input.h"
+#include "frustum.h"
 #include "camera.h"
 #include "resfile.h"
 #include "mprfile.h"
@@ -60,8 +61,8 @@ static void idle(void)
 	}
 
 	if (input_test(MB_RIGHT)) {
-		camera_yaw_pitch(deg2rad(-0.13f * input_mouse_offset_x()),
-						deg2rad(-0.13f * input_mouse_offset_y()), cam);
+		camera_yaw_pitch(deg2rad(-0.25f * input_mouse_offset_x()),
+						deg2rad(-0.25f * input_mouse_offset_y()), cam);
 	}
 
 	glutPostRedisplay();
@@ -72,6 +73,16 @@ static void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	camera_setup(cam);
+
+	float eye[3], forward[3], right[3], up[3];
+	frustum f;
+
+	frustum_init(camera_get_fov(cam), camera_get_aspect(cam),
+		camera_get_near(cam), camera_get_far(cam),
+		camera_get_eye(eye, cam), camera_get_forward(forward, cam),
+		camera_get_right(right, cam), camera_get_up(up, cam), &f);
+
+	mprfile_apply_frustum(&f, mpr);
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
@@ -89,7 +100,7 @@ static void display(void)
 	glVertex3f(0.0f, 0.0f, 100.0f);
 	glEnd();
 
-	mprfile_debug_render(mpr);
+	mprfile_render(mpr);
 
 	glutSwapBuffers();
 }
@@ -154,8 +165,6 @@ int main(int argc, char* argv[])
 
 	resfile_close(tex_res);
 	resfile_close(mpr_res);
-
-	mprfile_debug_print(mpr);
 
 	cam = camera_new();
 	camera_set_eye((float[]){ 25.0f, 50.0f, 25.0f }, cam);

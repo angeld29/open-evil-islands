@@ -1,6 +1,7 @@
 #ifndef CE_MPRFILE_H
 #define CE_MPRFILE_H
 
+#include "frustum.h"
 #include "resfilefwd.h"
 
 #ifdef __cplusplus
@@ -13,8 +14,9 @@ typedef struct mprfile mprfile;
 extern mprfile* mprfile_open(resfile* mpr_res, resfile* textures_res);
 extern int mprfile_close(mprfile* mpr);
 
-extern void mprfile_debug_print(mprfile* mpr);
-extern void mprfile_debug_render(mprfile* mpr);
+extern void mprfile_apply_frustum(const frustum* f, mprfile* mpr);
+
+extern void mprfile_render(mprfile* mpr);
 
 #ifdef __cplusplus
 }

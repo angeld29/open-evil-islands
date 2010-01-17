@@ -8,8 +8,10 @@
 #include "camera.h"
 
 struct camera {
-	double fov;
-	double aspect;
+	float fov;
+	float aspect;
+	float near;
+	float far;
 	float eye[3];
 	float look[4];
 	float view[16];
@@ -59,8 +61,10 @@ camera* camera_new(void)
 	if (NULL == cam) {
 		return NULL;
 	}
-	cam->fov = 60.0;
-	cam->aspect = 1.0;
+	cam->fov = 60.0f;
+	cam->aspect = 1.0f;
+	cam->near = 1.0f;
+	cam->far = 500.0f;
 	vector3_zero(cam->eye);
 	quaternion_identity(cam->look);
 	cam->view[3] = 0.0f;
@@ -78,31 +82,51 @@ void camera_delete(camera* cam)
 	free(cam);
 }
 
-float* camera_eye(float* eye, const camera* cam)
+float camera_get_fov(camera* cam)
+{
+	return cam->fov;
+}
+
+float camera_get_aspect(camera* cam)
+{
+	return cam->aspect;
+}
+
+float camera_get_near(camera* cam)
+{
+	return cam->near;
+}
+
+float camera_get_far(camera* cam)
+{
+	return cam->far;
+}
+
+float* camera_get_eye(float* eye, camera* cam)
 {
 	return vector3_copy(cam->eye, eye);
 }
 
-float* camera_forward(float* forward, const camera* cam)
+float* camera_get_forward(float* forward, camera* cam)
 {
 	float q[4];
 	return vector3_rot(VECTOR3_NEG_UNIT_Z,
 		quaternion_conj(cam->look, q), forward);
 }
 
-float* camera_up(float* up, const camera* cam)
+float* camera_get_up(float* up, camera* cam)
 {
 	float q[4];
 	return vector3_rot(VECTOR3_UNIT_Y, quaternion_conj(cam->look, q), up);
 }
 
-float* camera_right(float* right, const camera* cam)
+float* camera_get_right(float* right, camera* cam)
 {
 	float q[4];
 	return vector3_rot(VECTOR3_UNIT_X, quaternion_conj(cam->look, q), right);
 }
 
-void camera_set_fov(double fov, camera* cam)
+void camera_set_fov(float fov, camera* cam)
 {
 	cam->fov = fov;
 	cam->proj_changed = true;
@@ -110,7 +134,19 @@ void camera_set_fov(double fov, camera* cam)
 
 void camera_set_aspect(int width, int height, camera* cam)
 {
-	cam->aspect = (double)width / height;
+	cam->aspect = (float)width / height;
+	cam->proj_changed = true;
+}
+
+void camera_set_near(float near, camera* cam)
+{
+	cam->near = near;
+	cam->proj_changed = true;
+}
+
+void camera_set_far(float far, camera* cam)
+{
+	cam->far = far;
 	cam->proj_changed = true;
 }
 
@@ -130,8 +166,8 @@ void camera_move(float offsetx, float offsetz, camera* cam)
 {
 	float forward[3], right[3];
 
-	camera_forward(forward, cam);
-	camera_right(right, cam);
+	camera_get_forward(forward, cam);
+	camera_get_right(right, cam);
 
 	// Ignore pitch difference angle.
 	forward[1] = 0.0f;
@@ -152,7 +188,7 @@ void camera_move(float offsetx, float offsetz, camera* cam)
 void camera_zoom(float offset, camera* cam)
 {
 	float forward[3];
-	camera_forward(forward, cam);
+	camera_get_forward(forward, cam);
 	vector3_scale(forward, offset, forward);
 	vector3_add(cam->eye, forward, cam->eye);
 	cam->eye_changed = true;
@@ -172,7 +208,7 @@ void camera_setup(camera* cam)
 	if (cam->proj_changed) {
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective(cam->fov, cam->aspect, 1.0, 500.0);
+		gluPerspective(cam->fov, cam->aspect, cam->near, cam->far);
 		glMatrixMode(GL_MODELVIEW);
 	}
 
