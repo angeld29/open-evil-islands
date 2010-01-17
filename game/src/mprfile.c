@@ -60,8 +60,8 @@ typedef struct {
 
 struct mprfile {
 	float max_y;
-	uint32_t sector_x_count;
 	uint32_t sector_z_count;
+	uint32_t sector_x_count;
 	uint32_t texture_count;
 	uint32_t texture_size;
 	uint32_t tile_count;
@@ -147,8 +147,8 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 	}
 
 	if (1 != memfile_read(&mpr->max_y, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mpr->sector_x_count, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&mpr->sector_z_count, sizeof(uint32_t), 1, mem) ||
+			1 != memfile_read(&mpr->sector_x_count, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&mpr->texture_count, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&mpr->texture_size, sizeof(uint32_t), 1, mem) ||
 			1 != memfile_read(&mpr->tile_count, sizeof(uint32_t), 1, mem) ||
@@ -158,8 +158,8 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 		return false;
 	}
 
-	le2cpu32s(&mpr->sector_x_count);
 	le2cpu32s(&mpr->sector_z_count);
+	le2cpu32s(&mpr->sector_x_count);
 	le2cpu32s(&mpr->texture_count);
 	le2cpu32s(&mpr->texture_size);
 	le2cpu32s(&mpr->tile_count);
@@ -366,15 +366,15 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 	char sec_tmpl_name[mpr_name_length - 4 + 1];
 	strlcpy(sec_tmpl_name, mpr_name, sizeof(sec_tmpl_name));
 
-	// sec_tmpl_name + xxxzzz.sec
+	// sec_tmpl_name + zzzxxx.sec
 	char sec_name[sizeof(sec_tmpl_name) + 3 + 3 + 4];
 
-	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
-		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
-			sector* sec = mpr->sectors + (z * mpr->sector_x_count + x);
+	for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
+		for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
+			sector* sec = mpr->sectors + (x * mpr->sector_z_count + z);
 
 			snprintf(sec_name, sizeof(sec_name),
-				"%s%03u%03u.sec", sec_tmpl_name, x, z);
+				"%s%03u%03u.sec", sec_tmpl_name, z, x);
 
 			if (!read_sector(sec, sec_name, res)) {
 				return false;
@@ -512,13 +512,13 @@ int mprfile_close(mprfile* mpr)
 void mprfile_apply_frustum(const frustum* f, mprfile* mpr)
 {
 	float pmin[3], pmax[3];
-	for (unsigned int z = 0, i; z < mpr->sector_z_count; ++z) {
-		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
-			vector3_init(z * (VERTEX_SIDE - 1), 0.0f,
-							x * (VERTEX_SIDE - 1), pmin);
-			vector3_init(z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), mpr->max_y,
-							x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), pmax);
-			mpr->sector_allow[z * mpr->sector_x_count + x] =
+	for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
+		for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
+			vector3_init(x * (VERTEX_SIDE - 1), 0.0f,
+							z * (VERTEX_SIDE - 1), pmin);
+			vector3_init(x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), mpr->max_y,
+							z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), pmax);
+			mpr->sector_allow[x * mpr->sector_z_count + z] =
 				frustum_test_box(pmin, pmax, f);
 		}
 	}
@@ -535,15 +535,15 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 	static const float offset_xz_coef = 1.0f / UINT8_MAX;
 	const float y_coef = mpr->max_y / UINT16_MAX;
 
-	for (unsigned int z = 0; z < VERTEX_SIDE; ++z) {
-		for (unsigned int x = 0; x < VERTEX_SIDE; ++x) {
-			unsigned int i = z * VERTEX_SIDE * 3 + x * 3;
-			vertex* ver = vertices + (z * VERTEX_SIDE + x);
+	for (unsigned int x = 0; x < VERTEX_SIDE; ++x) {
+		for (unsigned int z = 0; z < VERTEX_SIDE; ++z) {
+			unsigned int i = x * VERTEX_SIDE * 3 + z * 3;
+			vertex* ver = vertices + (x * VERTEX_SIDE + z);
 
-			varray[i + 0] = z + sector_z * (VERTEX_SIDE - 1) +
+			varray[i + 0] = x + sector_x * (VERTEX_SIDE - 1) +
 								offset_xz_coef * ver->offset_x;
 			varray[i + 1] = y_coef * ver->coord_y;
-			varray[i + 2] = x + sector_x * (VERTEX_SIDE - 1) +
+			varray[i + 2] = z + sector_z * (VERTEX_SIDE - 1) +
 								offset_xz_coef * ver->offset_z;
 
 			normal2vector(ver->normal, narray + i);
@@ -558,8 +558,8 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 	glNormalPointer(GL_FLOAT, 0, narray);
 	glTexCoordPointer(2, GL_FLOAT, 0, tcarray);
 
-	for (unsigned int z = 0; z < VERTEX_SIDE - 2; z += 2) {
-		for (unsigned int x = 0; x < VERTEX_SIDE - 2; x += 2) {
+	for (unsigned int x = 0; x < VERTEX_SIDE - 2; x += 2) {
+		for (unsigned int z = 0; z < VERTEX_SIDE - 2; z += 2) {
 			if (NULL != water_allow &&
 					-1 == water_allow[x / 2 * TEXTURE_SIDE + z / 2]) {
 				continue;
@@ -651,9 +651,9 @@ void mprfile_render(mprfile* mpr)
 {
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	for (unsigned int z = 0, i; z < mpr->sector_z_count; ++z) {
-		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
-			i = z * mpr->sector_x_count + x;
+	for (unsigned int x = 0, i; x < mpr->sector_x_count; ++x) {
+		for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
+			i = x * mpr->sector_z_count + z;
 
 			if (!mpr->sector_allow[i]) {
 				continue;
@@ -670,4 +670,15 @@ void mprfile_render(mprfile* mpr)
 			}
 		}
 	}
+
+	/*glBegin(GL_LINES);
+	glColor3f(1, 0, 0);
+	glVertex3f(49.5f, 5, 118.5f);
+	glColor3f(0, 1, 0);
+	glVertex3f(50.5f, 5, 119.5f);
+	glColor3f(0, 1, 0);
+	glVertex3f(118.5f, 5, 49.5f);
+	glColor3f(0, 0, 1);
+	glVertex3f(119.5f, 5, 50.5f);
+	glEnd();*/
 }
