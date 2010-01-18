@@ -88,14 +88,14 @@ void fswap(float* a, float* b)
 	*b = t;
 }
 
-float fclamp(float v, float a, float b)
+float fclamp(float t, float a, float b)
 {
-	return v < a ? a : (v > b ? b : v);
+	return t < a ? a : (t > b ? b : t);
 }
 
-float flerp(float u, float a, float b)
+float flerp(float t, float a, float b)
 {
-	return a + u * (b - a);
+	return a + t * (b - a);
 }
 
 float deg2rad(float angle)

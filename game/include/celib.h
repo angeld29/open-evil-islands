@@ -14,7 +14,9 @@ extern size_t smin(size_t a, size_t b);
 extern size_t smax(size_t a, size_t b);
 
 extern void swap(int* a, int* b);
-extern int clamp(int v, int a, int b);
+
+extern int clamp(int t, int a, int b);
+extern size_t sclamp(size_t t, size_t a, size_t b);
 
 #ifdef __cplusplus
 }
