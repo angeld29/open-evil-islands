@@ -574,19 +574,22 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 			static const float tile_uv_step = 1.0f / 8.0f;
 			static const float tile_uv_half_step = 1.0f / 16.0f;
 
-			static const float tile_border_size = 4.0f;
-			const float tile_border_offset = tile_border_size /
-											(0.5f * mpr->texture_size);
+			static const float tile_border_size = 8.0f; // in pixels
+			const float tile_uv_border_offset = tile_border_size /
+													mpr->texture_size;
 
 			float texcoords[2 * 9] = {
-				u + tile_border_offset, v + tile_uv_step - tile_border_offset,
-				u + tile_uv_half_step, v + tile_uv_step - tile_border_offset,
-				u + tile_uv_step - tile_border_offset, v + tile_uv_step - tile_border_offset,
-				u + tile_uv_step - tile_border_offset, v + tile_uv_half_step,
-				u + tile_uv_step - tile_border_offset, v + tile_border_offset,
-				u + tile_uv_half_step, v + tile_border_offset,
-				u + tile_border_offset, v + tile_border_offset,
-				u + tile_border_offset, v + tile_uv_half_step,
+				u + tile_uv_border_offset,
+					v + tile_uv_step - tile_uv_border_offset,
+				u + tile_uv_half_step, v + tile_uv_step - tile_uv_border_offset,
+				u + tile_uv_step - tile_uv_border_offset,
+					v + tile_uv_step - tile_uv_border_offset,
+				u + tile_uv_step - tile_uv_border_offset, v + tile_uv_half_step,
+				u + tile_uv_step - tile_uv_border_offset,
+					v + tile_uv_border_offset,
+				u + tile_uv_half_step, v + tile_uv_border_offset,
+				u + tile_uv_border_offset, v + tile_uv_border_offset,
+				u + tile_uv_border_offset, v + tile_uv_half_step,
 				u + tile_uv_half_step, v + tile_uv_half_step
 			};
 
