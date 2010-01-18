@@ -532,7 +532,7 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 	GLfloat narray[3 * VERTEX_COUNT];
 	GLfloat tcarray[2 * VERTEX_COUNT];
 
-	static const float offset_xz_coef = 1.0f / UINT8_MAX;
+	static const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
 	const float y_coef = mpr->max_y / UINT16_MAX;
 
 	for (unsigned int x = 0; x < VERTEX_SIDE; ++x) {
