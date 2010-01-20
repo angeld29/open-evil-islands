@@ -89,7 +89,7 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 	glTexImage2D(GL_TEXTURE_2D, level, internal_format,
 		width, height, 0, data_format, data_type, data);
 
-	if (gl_has_errors()) {
+	if (gl_report_errors()) {
 		logging_error("glTexImage2D failed\n");
 		return false;
 	}
@@ -226,7 +226,7 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 			GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
 			width, height, 0, data_size, src);
 
-		if (gl_has_errors()) {
+		if (gl_report_errors()) {
 			logging_error("glCompressedTexImage2D failed\n");
 			return false;
 		}

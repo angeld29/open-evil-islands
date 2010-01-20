@@ -40,15 +40,15 @@ void gl_init(void)
 		features[GL_FEATURE_TEXTURE_COMPRESSION_S3TC]);
 }
 
-bool gl_has_errors(void)
+bool gl_report_errors(void)
 {
-	bool ok = false;
+	bool reported = false;
 	GLenum error;
 	while (GL_NO_ERROR != (error = glGetError())) {
 		logging_error("OpenGL error %u: %s\n", error, gluErrorString(error));
-		ok = true;
+		reported = true;
 	}
-	return ok;
+	return reported;
 }
 
 bool gl_query_feature(gl_feature feature)
