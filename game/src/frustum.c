@@ -1,3 +1,7 @@
+/*
+ *  Based on http://www.lighthouse3d.com/opengl/viewfrustum/.
+*/
+
 #include <stddef.h>
 #include <math.h>
 
