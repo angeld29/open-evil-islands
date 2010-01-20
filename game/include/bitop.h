@@ -1,6 +1,7 @@
 #ifndef CE_BITOP_H
 #define CE_BITOP_H
 
+#include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -9,25 +10,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-static inline uint8_t bitset(uint8_t val, int pos)
-{
-	return val | (1 << pos);
-}
-
-static inline uint8_t bitclr(uint8_t val, int pos)
-{
-	return val & ~(1 << pos);
-}
-
-static inline uint8_t bitflp(uint8_t val, int pos)
-{
-	return val ^ (1 << pos);
-}
-
-static inline bool bittst(uint8_t val, int pos)
-{
-	return val & (1 << pos);
-}
+extern uint8_t bitset(uint8_t v, size_t p);
+extern uint8_t bitclr(uint8_t v, size_t p);
+extern uint8_t bitflp(uint8_t v, size_t p);
+extern bool bittst(uint8_t v, size_t p);
 
 #ifdef __cplusplus
 }
