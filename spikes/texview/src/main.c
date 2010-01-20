@@ -46,6 +46,8 @@ static void display(void)
 
 	if (NULL != tex) {
   		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		texture_bind(tex);
 	} else {
 		glColor3f(1.0f, 0.0f, 0.0f);
@@ -60,6 +62,7 @@ static void display(void)
 
 	if (NULL != tex) {
 		texture_unbind(tex);
+		glDisable(GL_BLEND);
 	}
 
 	glutSwapBuffers();
