@@ -6,15 +6,22 @@
 */
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <limits.h>
 #include <assert.h>
 
 #include "celib.h"
-#include "smallobj.h"
+#include "memory.h"
+
+#define CE_MEMORY_DEBUG
 
 static const size_t PAGE_SIZE = 4096;
 static const size_t MAX_SMALL_OBJECT_SIZE = 256;
 static const size_t OBJECT_ALIGNMENT = 4;
+
+#ifdef CE_MEMORY_DEBUG
+static const uint32_t MEMORY_DEBUG_MAGIC = 0xdeadbeef;
+#endif
 
 typedef struct {
 	unsigned char* data;
@@ -29,7 +36,7 @@ typedef struct {
 	size_t chunk_capacity;
 	chunk* chunks;
 	chunk* alloc_chunk;
-	chunk* free_chunk;
+	chunk* dealloc_chunk;
 } portion;
 
 static struct {
@@ -42,10 +49,10 @@ static bool chunk_is_filled(const chunk* cnk)
 	return 0 == cnk->block_count;
 }
 
-static bool chunk_has_block(void* p, size_t chunk_size, chunk* cnk)
+static bool chunk_has_block(void* ptr, size_t chunk_size, chunk* cnk)
 {
-	unsigned char* pc = p;
-	return cnk->data <= pc && pc < cnk->data + chunk_size;
+	unsigned char* p = ptr;
+	return cnk->data <= p && p < cnk->data + chunk_size;
 }
 
 static bool chunk_init(size_t block_size, unsigned char block_count, chunk* cnk)
@@ -53,10 +60,11 @@ static bool chunk_init(size_t block_size, unsigned char block_count, chunk* cnk)
 	assert(block_size > 0);
 	assert(block_count > 0);
 
-	const size_t chunk_size = block_size * block_count;
-
-	// Overflow check.
-	assert(chunk_size / block_size == block_count);
+	const size_t chunk_size = block_size * block_count
+#ifdef CE_MEMORY_DEBUG
+		+ sizeof(uint32_t) * (block_count + 1);
+#endif
+	;
 
     if (NULL == (cnk->data = malloc(chunk_size))) {
 		return false;
@@ -65,9 +73,19 @@ static bool chunk_init(size_t block_size, unsigned char block_count, chunk* cnk)
     cnk->next_block = 0;
     cnk->block_count = block_count;
 
-	for (unsigned char i = 0, *p = cnk->data; i < block_count; p += block_size) {
+	unsigned char* p = cnk->data;
+
+	for (unsigned char i = 0; i < block_count; p += block_size) {
+#ifdef CE_MEMORY_DEBUG
+		*(uint32_t*)p = MEMORY_DEBUG_MAGIC;
+		p += sizeof(uint32_t);
+#endif
 		*p = ++i;
 	}
+
+#ifdef CE_MEMORY_DEBUG
+	*(uint32_t*)p = MEMORY_DEBUG_MAGIC;
+#endif
 
 	return true;
 }
@@ -89,7 +107,11 @@ static void* chunk_alloc(size_t block_size, chunk* cnk)
 
 	assert(cnk->next_block * block_size / block_size == cnk->next_block);
 
-	unsigned char* p = cnk->data + cnk->next_block * block_size;
+	unsigned char* p = cnk->data + block_size * cnk->next_block
+#ifdef CE_MEMORY_DEBUG
+		+ sizeof(uint32_t) * (cnk->next_block + 1)
+#endif
+	;
 	cnk->next_block = *p;
 
 	--cnk->block_count;
@@ -97,25 +119,29 @@ static void* chunk_alloc(size_t block_size, chunk* cnk)
 	return p;
 }
 
-static void chunk_free(void* p, size_t block_size, chunk* cnk)
+static void chunk_free(void* ptr, size_t block_size, chunk* cnk)
 {
-	unsigned char* pc = p;
+	unsigned char* p = ptr;
 
-	assert(pc >= cnk->data);
+	assert(p >= cnk->data);
 
 	// Alignment check.
-    assert(0 == (pc - cnk->data) % block_size);
+    assert(0 == (p - cnk->data) % block_size);
 
-	unsigned char index = (pc - cnk->data) / block_size;
+	unsigned char index = (p - cnk->data) / (block_size
+#ifdef CE_MEMORY_DEBUG
+		+ sizeof(uint32_t)
+#endif
+	);
 
 	// Check if block was already deleted.
 	assert(cnk->block_count > 0 ? cnk->next_block != index : true);
 
-	*pc = cnk->next_block;
+	*p = cnk->next_block;
 	cnk->next_block = index;
 
     // Truncation check.
-    assert((pc - cnk->data) / block_size == cnk->next_block);
+    assert((p - cnk->data) / block_size == cnk->next_block);
 
     ++cnk->block_count;
 }
@@ -135,7 +161,7 @@ static bool portion_init(size_t block_size, size_t page_size, portion* por)
 	}
 
 	por->alloc_chunk = NULL;
-	por->free_chunk = NULL;
+	por->dealloc_chunk = NULL;
 
 	return true;
 }
@@ -155,18 +181,6 @@ static void portion_clean(portion* por)
 	}
 
 	free(por->chunks);
-}
-
-static chunk* portion_find_chunk(void* p, portion* por)
-{
-	const size_t chunk_size = por->block_size * por->block_count;
-	for (size_t i = 0; i < por->chunk_count; ++i) {
-		chunk* cnk = por->chunks + i;
-		if (chunk_has_block(p, chunk_size, cnk)) {
-			return cnk;
-		}
-	}
-	return NULL;
 }
 
 static bool portion_ensure_alloc_chunk(portion* por)
@@ -191,6 +205,8 @@ static bool portion_ensure_alloc_chunk(portion* por)
 		}
 		por->chunk_capacity = chunk_capacity;
 		por->chunks = chunks;
+		por->alloc_chunk = NULL;
+		por->dealloc_chunk = NULL;
 	}
 
 	if (!chunk_init(por->block_size, por->block_count,
@@ -204,19 +220,69 @@ static bool portion_ensure_alloc_chunk(portion* por)
 	return true;
 }
 
+static void portion_ensure_dealloc_chunk(void* ptr, portion* por)
+{
+	assert(por->chunk_count > 0);
+
+	const size_t chunk_size = por->block_size * por->block_count
+#ifdef CE_MEMORY_DEBUG
+		+ sizeof(uint32_t) * (por->block_count + 1);
+#endif
+	;
+	const chunk* const lo_bound = por->chunks;
+	const chunk* const hi_bound = por->chunks + por->chunk_count;
+	chunk* lo = NULL != por->dealloc_chunk ? por->dealloc_chunk : por->chunks;
+	chunk* hi = lo + 1;
+
+	assert(lo_bound <= lo && hi <= hi_bound);
+
+	if (hi_bound == hi) {
+		hi = NULL;
+	}
+
+	for (;;) {
+		if (NULL != lo) {
+			if (chunk_has_block(ptr, chunk_size, lo)) {
+				por->dealloc_chunk = lo;
+				return;
+			}
+			if (lo_bound == lo) {
+				lo = NULL;
+				if (NULL == hi) {
+					break;
+				}
+			} else {
+				--lo;
+			}
+		}
+
+		if (NULL != hi) {
+			if (chunk_has_block(ptr, chunk_size, hi)) {
+				por->dealloc_chunk = hi;
+				return;
+			}
+			if (hi_bound == ++hi) {
+				hi = NULL;
+				if (NULL == lo) {
+					break;
+				}
+			}
+		}
+	}
+
+	assert(false);
+}
+
 static void* portion_alloc(portion* por)
 {
 	return portion_ensure_alloc_chunk(por) ?
 		chunk_alloc(por->block_size, por->alloc_chunk) : NULL;
 }
 
-static void portion_free(void* p, chunk* hint, portion* por)
+static void portion_free(void* ptr, portion* por)
 {
-	if (NULL == hint) {
-		hint = portion_find_chunk(p, por);
-	}
-	assert(NULL != hint);
-	chunk_free(p, por->block_size, hint);
+	portion_ensure_dealloc_chunk(ptr, por);
+	chunk_free(ptr, por->block_size, por->dealloc_chunk);
 }
 
 /// Calculates offset into array where an element of size is located.
@@ -225,7 +291,7 @@ static size_t get_offset(size_t size, size_t alignment)
 	return (size + alignment - 1) / alignment;
 }
 
-bool smallobj_open(void)
+bool memory_open(void)
 {
 	assert(NULL == smallobj.pool);
 
@@ -237,7 +303,7 @@ bool smallobj_open(void)
 	for (size_t i = 0; i < smallobj.count; ++i) {
 		if (!portion_init((i + 1) * OBJECT_ALIGNMENT,
 				PAGE_SIZE, smallobj.pool + i)) {
-			smallobj_close();
+			memory_close();
 			return false;
 		}
 	}
@@ -245,7 +311,7 @@ bool smallobj_open(void)
 	return true;
 }
 
-void smallobj_close(void)
+void memory_close(void)
 {
 	assert(NULL != smallobj.pool);
 
@@ -259,10 +325,13 @@ void smallobj_close(void)
 	smallobj.pool = NULL;
 }
 
-void* smallobj_alloc(size_t size)
+void* memory_alloc(size_t size)
 {
 	assert(NULL != smallobj.pool);
-	assert(size <= MAX_SMALL_OBJECT_SIZE);
+
+	if (size > MAX_SMALL_OBJECT_SIZE) {
+		return malloc(size);
+	}
 
 	if (0 == size) {
 		size = 1;
@@ -278,12 +347,16 @@ void* smallobj_alloc(size_t size)
 	return portion_alloc(por);
 }
 
-void smallobj_free(void* p, size_t size)
+void memory_free(void* ptr, size_t size)
 {
 	assert(NULL != smallobj.pool);
-	assert(size <= MAX_SMALL_OBJECT_SIZE);
 
-	if (NULL == p) {
+	if (size > MAX_SMALL_OBJECT_SIZE) {
+		free(ptr);
+		return;
+	}
+
+	if (NULL == ptr) {
 		return;
 	}
 
@@ -298,10 +371,5 @@ void smallobj_free(void* p, size_t size)
 	assert(por->block_size >= size);
 	assert(por->block_size < size + OBJECT_ALIGNMENT);
 
-	portion_free(p, NULL, por);
-}
-
-size_t smallobj_max_size(void)
-{
-	return MAX_SMALL_OBJECT_SIZE;
+	portion_free(ptr, por);
 }
