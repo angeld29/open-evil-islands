@@ -40,32 +40,32 @@ static void* swap_endian(void* p, int n)
 	return s;
 }
 
-static inline uint16_t swap_uint16(uint16_t v)
+static uint16_t swap_uint16(uint16_t v)
 {
 	return *(uint16_t*)swap_endian(&v, sizeof(uint16_t));
 }
 
-static inline uint32_t swap_uint32(uint32_t v)
+static uint32_t swap_uint32(uint32_t v)
 {
 	return *(uint32_t*)swap_endian(&v, sizeof(uint32_t));
 }
 
-static inline uint64_t swap_uint64(uint64_t v)
+static uint64_t swap_uint64(uint64_t v)
 {
 	return *(uint64_t*)swap_endian(&v, sizeof(uint64_t));
 }
 
-static inline void swap_uint16s(uint16_t* v)
+static void swap_uint16s(uint16_t* v)
 {
 	*v = *(uint16_t*)swap_endian(v, sizeof(uint16_t));
 }
 
-static inline void swap_uint32s(uint32_t* v)
+static void swap_uint32s(uint32_t* v)
 {
 	*v = *(uint32_t*)swap_endian(v, sizeof(uint32_t));
 }
 
-static inline void swap_uint64s(uint64_t* v)
+static void swap_uint64s(uint64_t* v)
 {
 	*v = *(uint64_t*)swap_endian(v, sizeof(uint64_t));
 }
