@@ -6,7 +6,7 @@
 
 static bool features[GL_FEATURE_COUNT];
 
-static inline bool check_extension(const char* name)
+static bool check_extension(const char* name)
 {
 	return gluCheckExtension((const GLubyte*)name, glGetString(GL_EXTENSIONS));
 }

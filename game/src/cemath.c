@@ -62,7 +62,7 @@ const float MATRIX4_IDENTITY[16] = {
 	0.0f, 0.0f, 0.0f, 1.0f
 };
 
-/**
+/*
  *  Based on http://www.c-faq.com/fp/fpequal.html.
 */
 static float reldif(float a, float b)
@@ -88,14 +88,14 @@ void fswap(float* a, float* b)
 	*b = t;
 }
 
-float fclamp(float t, float a, float b)
+float fclamp(float v, float a, float b)
 {
-	return t < a ? a : (t > b ? b : t);
+	return v < a ? a : (v > b ? b : v);
 }
 
-float flerp(float t, float a, float b)
+float flerp(float u, float a, float b)
 {
-	return a + t * (b - a);
+	return a + u * (b - a);
 }
 
 float deg2rad(float angle)

@@ -49,8 +49,8 @@ extern bool fisequal(float a, float b, float tolerance);
 extern bool fiszero(float a, float tolerance);
 
 extern void fswap(float* a, float* b);
-extern float fclamp(float t, float a, float b);
-extern float flerp(float t, float a, float b);
+extern float fclamp(float v, float a, float b);
+extern float flerp(float u, float a, float b);
 
 extern float deg2rad(float angle);
 extern float rad2deg(float angle);
