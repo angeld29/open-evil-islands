@@ -5,23 +5,22 @@
  *  2. The Loki Library (C) 2001 by Andrei Alexandrescu.
 */
 
+/*
+ *  Notes:
+ *  1. Minimum error checking. Disable smallobj and use malloc/free
+ *     with valgrind on Linux to perform full error checking.
+*/
+
 #include <stdlib.h>
-#include <stdint.h>
 #include <limits.h>
 #include <assert.h>
 
 #include "celib.h"
 #include "memory.h"
 
-#define CE_MEMORY_DEBUG
-
 static const size_t PAGE_SIZE = 4096;
 static const size_t MAX_SMALL_OBJECT_SIZE = 256;
 static const size_t OBJECT_ALIGNMENT = 4;
-
-#ifdef CE_MEMORY_DEBUG
-static const uint32_t MEMORY_DEBUG_MAGIC = 0xdeadbeef;
-#endif
 
 typedef struct {
 	unsigned char* data;
@@ -57,35 +56,16 @@ static bool chunk_has_block(void* ptr, size_t chunk_size, chunk* cnk)
 
 static bool chunk_init(size_t block_size, unsigned char block_count, chunk* cnk)
 {
-	assert(block_size > 0);
-	assert(block_count > 0);
-
-	const size_t chunk_size = block_size * block_count
-#ifdef CE_MEMORY_DEBUG
-		+ sizeof(uint32_t) * (block_count + 1);
-#endif
-	;
-
-    if (NULL == (cnk->data = malloc(chunk_size))) {
+    if (NULL == (cnk->data = malloc(block_size * block_count))) {
 		return false;
 	}
 
     cnk->next_block = 0;
     cnk->block_count = block_count;
 
-	unsigned char* p = cnk->data;
-
-	for (unsigned char i = 0; i < block_count; p += block_size) {
-#ifdef CE_MEMORY_DEBUG
-		*(uint32_t*)p = MEMORY_DEBUG_MAGIC;
-		p += sizeof(uint32_t);
-#endif
+	for (unsigned char i = 0, *p = cnk->data; i < block_count; p += block_size) {
 		*p = ++i;
 	}
-
-#ifdef CE_MEMORY_DEBUG
-	*(uint32_t*)p = MEMORY_DEBUG_MAGIC;
-#endif
 
 	return true;
 }
@@ -105,13 +85,7 @@ static void* chunk_alloc(size_t block_size, chunk* cnk)
 		return NULL;
 	}
 
-	assert(cnk->next_block * block_size / block_size == cnk->next_block);
-
-	unsigned char* p = cnk->data + block_size * cnk->next_block
-#ifdef CE_MEMORY_DEBUG
-		+ sizeof(uint32_t) * (cnk->next_block + 1)
-#endif
-	;
+	unsigned char* p = cnk->data + block_size * cnk->next_block;
 	cnk->next_block = *p;
 
 	--cnk->block_count;
@@ -123,40 +97,21 @@ static void chunk_free(void* ptr, size_t block_size, chunk* cnk)
 {
 	unsigned char* p = ptr;
 
-	assert(p >= cnk->data);
-
-	// Alignment check.
-    assert(0 == (p - cnk->data) % block_size);
-
-	unsigned char index = (p - cnk->data) / (block_size
-#ifdef CE_MEMORY_DEBUG
-		+ sizeof(uint32_t)
-#endif
-	);
-
-	// Check if block was already deleted.
-	assert(cnk->block_count > 0 ? cnk->next_block != index : true);
-
 	*p = cnk->next_block;
-	cnk->next_block = index;
-
-    // Truncation check.
-    assert((p - cnk->data) / block_size == cnk->next_block);
+	cnk->next_block = (p - cnk->data) / block_size;
 
     ++cnk->block_count;
 }
 
 static bool portion_init(size_t block_size, size_t page_size, portion* por)
 {
-	assert(block_size > 0);
-	assert(page_size >= block_size);
-
 	por->block_size = block_size;
 	por->block_count = sclamp(page_size / block_size, CHAR_BIT, UCHAR_MAX);
 
 	por->chunk_count = 0;
 	por->chunk_capacity = 16;
-	if (NULL == (por->chunks = malloc(por->chunk_capacity * sizeof(chunk)))) {
+
+	if (NULL == (por->chunks = malloc(sizeof(chunk) * por->chunk_capacity))) {
 		return false;
 	}
 
@@ -175,7 +130,7 @@ static void portion_clean(portion* por)
 	if (NULL != por->chunks) {
 		for (size_t i = 0; i < por->chunk_count; ++i) {
 			assert(por->chunks[i].block_count ==
-				por->block_count && "Memleak!");
+					por->block_count && "Memory leak detected");
 			chunk_clean(por->chunks + i);
 		}
 	}
@@ -199,7 +154,7 @@ static bool portion_ensure_alloc_chunk(portion* por)
 
 	if (por->chunk_count == por->chunk_capacity) {
 		size_t chunk_capacity = 2 * por->chunk_capacity;
-		chunk* chunks = realloc(por->chunks, chunk_capacity * sizeof(chunk));
+		chunk* chunks = realloc(por->chunks, sizeof(chunk) * chunk_capacity);
 		if (NULL == chunks) {
 			return false;
 		}
@@ -209,12 +164,13 @@ static bool portion_ensure_alloc_chunk(portion* por)
 		por->dealloc_chunk = NULL;
 	}
 
-	if (!chunk_init(por->block_size, por->block_count,
-			por->chunks + por->chunk_count)) {
+	chunk* alloc_chunk = por->chunks + por->chunk_count;
+
+	if (!chunk_init(por->block_size, por->block_count, alloc_chunk)) {
 		return false;
 	}
 
-	por->alloc_chunk = por->chunks + por->chunk_count;
+	por->alloc_chunk = alloc_chunk;
 	++por->chunk_count;
 
 	return true;
@@ -222,13 +178,7 @@ static bool portion_ensure_alloc_chunk(portion* por)
 
 static void portion_ensure_dealloc_chunk(void* ptr, portion* por)
 {
-	assert(por->chunk_count > 0);
-
-	const size_t chunk_size = por->block_size * por->block_count
-#ifdef CE_MEMORY_DEBUG
-		+ sizeof(uint32_t) * (por->block_count + 1);
-#endif
-	;
+	const size_t chunk_size = por->block_size * por->block_count;
 	const chunk* const lo_bound = por->chunks;
 	const chunk* const hi_bound = por->chunks + por->chunk_count;
 	chunk* lo = NULL != por->dealloc_chunk ? por->dealloc_chunk : por->chunks;
@@ -337,14 +287,7 @@ void* memory_alloc(size_t size)
 		size = 1;
 	}
 
-	const size_t index = get_offset(size, OBJECT_ALIGNMENT) - 1;
-	assert(index < smallobj.count);
-
-	portion* por = smallobj.pool + index;
-	assert(por->block_size >= size);
-	assert(por->block_size < size + OBJECT_ALIGNMENT);
-
-	return portion_alloc(por);
+	return portion_alloc(smallobj.pool + get_offset(size, OBJECT_ALIGNMENT) - 1);
 }
 
 void memory_free(void* ptr, size_t size)
@@ -364,12 +307,5 @@ void memory_free(void* ptr, size_t size)
 		size = 1;
 	}
 
-	const size_t index = get_offset(size, OBJECT_ALIGNMENT) - 1;
-	assert(index < smallobj.count);
-
-	portion* por = smallobj.pool + index;
-	assert(por->block_size >= size);
-	assert(por->block_size < size + OBJECT_ALIGNMENT);
-
-	portion_free(ptr, por);
+	portion_free(ptr, smallobj.pool + get_offset(size, OBJECT_ALIGNMENT) - 1);
 }

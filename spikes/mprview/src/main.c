@@ -7,6 +7,7 @@
 
 #include "cemath.h"
 #include "cegl.h"
+#include "memory.h"
 #include "logging.h"
 #include "timer.h"
 #include "input.h"
@@ -33,6 +34,7 @@ static void idle(void)
 		mprfile_close(mpr);
 		input_close();
 		logging_close();
+		memory_close();
 		exit(0);
 	}
 
@@ -128,6 +130,8 @@ int main(int argc, char* argv[])
 	glutIdleFunc(idle);
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
+
+	memory_open();
 
 	logging_open();
 	logging_set_level(LOGGING_DEBUG_LEVEL);
