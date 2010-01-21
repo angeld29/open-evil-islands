@@ -9,7 +9,7 @@
 #include <GL/gl.h>
 
 #include "cestr.h"
-#include "cemath.h"
+#include "vec3.h"
 #include "byteorder.h"
 #include "memfile.h"
 #include "resfile.h"
@@ -509,17 +509,22 @@ int mprfile_close(mprfile* mpr)
 	return 0;
 }
 
+float mprfile_get_max_height(const mprfile* mpr)
+{
+	return mpr->max_y;
+}
+
 void mprfile_apply_frustum(const frustum* f, mprfile* mpr)
 {
-	float pmin[3], pmax[3];
+	vec3 pmin, pmax;
 	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
 		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
-			vector3_init(x * (VERTEX_SIDE - 1), 0.0f,
-				-1.0f * (z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1)), pmin);
-			vector3_init(x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), mpr->max_y,
-				-1.0f * (z * (VERTEX_SIDE - 1)), pmax);
+			vec3_init(x * (VERTEX_SIDE - 1), 0.0f,
+				-1.0f * (z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1)), &pmin);
+			vec3_init(x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), mpr->max_y,
+				-1.0f * (z * (VERTEX_SIDE - 1)), &pmax);
 			mpr->sector_allow[z * mpr->sector_x_count + x] =
-				frustum_test_box(pmin, pmax, f);
+				frustum_test_box(&pmin, &pmax, f);
 		}
 	}
 }

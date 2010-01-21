@@ -3,6 +3,9 @@
 
 #include <stdbool.h>
 
+#include "vec3fwd.h"
+#include "planedef.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -19,16 +22,16 @@ typedef enum {
 } frustum_plane;
 
 typedef struct {
-	float p[FRUSTUM_PLANE_COUNT][4];
+	plane p[FRUSTUM_PLANE_COUNT];
 } frustum;
 
 extern frustum* frustum_init(float fov, float aspect, float near, float far,
-							const float* eye, const float* forward,
-							const float* right, const float* up, frustum* f);
+							const vec3* eye, const vec3* forward,
+							const vec3* right, const vec3* up, frustum* f);
 
-extern bool frustum_test_point(const float* p, const frustum* f);
-extern bool frustum_test_sphere(const float* p, float r, const frustum* f);
-extern bool frustum_test_box(const float* pmin, const float* pmax,
+extern bool frustum_test_point(const vec3* p, const frustum* f);
+extern bool frustum_test_sphere(const vec3* p, float r, const frustum* f);
+extern bool frustum_test_box(const vec3* pmin, const vec3* pmax,
 												const frustum* f);
 
 #ifdef __cplusplus

@@ -11,6 +11,7 @@
 #include "logging.h"
 #include "timer.h"
 #include "input.h"
+#include "vec3.h"
 #include "frustum.h"
 #include "camera.h"
 #include "resfile.h"
@@ -76,13 +77,13 @@ static void display(void)
 
 	camera_setup(cam);
 
-	float eye[3], forward[3], right[3], up[3];
+	vec3 eye, forward, right, up;
 	frustum f;
 
 	frustum_init(camera_get_fov(cam), camera_get_aspect(cam),
 		camera_get_near(cam), camera_get_far(cam),
-		camera_get_eye(eye, cam), camera_get_forward(forward, cam),
-		camera_get_right(right, cam), camera_get_up(up, cam), &f);
+		camera_get_eye(&eye, cam), camera_get_forward(&forward, cam),
+		camera_get_right(&right, cam), camera_get_up(&up, cam), &f);
 
 	mprfile_apply_frustum(&f, mpr);
 
@@ -170,9 +171,12 @@ int main(int argc, char* argv[])
 	resfile_close(tex_res);
 	resfile_close(mpr_res);
 
+	vec3 eye;
+	vec3_init(0.0f, mprfile_get_max_height(mpr), 0.0f, &eye);
+
 	cam = camera_new();
-	camera_set_eye((float[]){ 25.0f, 50.0f, 25.0f }, cam);
-	camera_yaw_pitch(deg2rad(90.0f), deg2rad(60.0f), cam);
+	camera_set_eye(&eye, cam);
+	camera_yaw_pitch(deg2rad(45.0f), deg2rad(30.0f), cam);
 
 	tmr = timer_open();
 
