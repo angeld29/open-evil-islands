@@ -60,7 +60,7 @@ static void update_translation(const vec3* eye, mat4* view)
 		-view->m[2] * eye->x - view->m[6] * eye->y - view->m[10] * eye->z;
 }
 
-camera* camera_new(void)
+camera* camera_open(void)
 {
 	camera* cam = cealloc(sizeof(camera));
 	if (NULL == cam) {
@@ -79,7 +79,7 @@ camera* camera_new(void)
 	return cam;
 }
 
-void camera_delete(camera* cam)
+void camera_close(camera* cam)
 {
 	cefree(cam, sizeof(camera));
 }

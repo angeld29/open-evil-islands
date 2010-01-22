@@ -14,9 +14,9 @@ typedef struct {
 	size_t (*write)(const void* data, size_t size, size_t n, void* client_data);
 	int (*seek)(long int offset, int whence, void* client_data);
 	long int (*tell)(void* client_data);
-} io_callbacks;
+} ceio_callbacks;
 
-extern const io_callbacks IO_CALLBACKS_FILE;
+extern const ceio_callbacks CEIO_CALLBACKS_FILE;
 
 #ifdef __cplusplus
 }

@@ -8,8 +8,8 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern const mat4 MATRIX4_ZERO;
-extern const mat4 MATRIX4_IDENTITY;
+extern const mat4 MAT4_ZERO;
+extern const mat4 MAT4_IDENTITY;
 
 extern mat4* mat4_zero(mat4* r);
 extern mat4* mat4_identity(mat4* r);

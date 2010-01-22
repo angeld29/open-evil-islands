@@ -4,8 +4,8 @@
 #include <ctype.h>
 
 #include "cealloc.h"
+#include "cebyteorder.h"
 #include "cestr.h"
-#include "byteorder.h"
 #include "memfile.h"
 #include "resfile.h"
 
@@ -62,7 +62,7 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 		return NULL;
 	}
 
-	le2cpu32s(&signature);
+	cele2cpu32s(&signature);
 	if (RES_SIGNATURE != signature) {
 		resfile_close(res);
 		return NULL;
@@ -75,9 +75,9 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 		return NULL;
 	}
 
-	le2cpu32s(&res->node_count);
-	le2cpu32s(&res->metadata_offset);
-	le2cpu32s(&res->names_length);
+	cele2cpu32s(&res->node_count);
+	cele2cpu32s(&res->metadata_offset);
+	cele2cpu32s(&res->names_length);
 
 	if (NULL == (res->nodes = cealloczero(sizeof(resfile_node) *
 											res->node_count))) {
@@ -101,12 +101,12 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 			resfile_close(res);
 			return NULL;
 		}
-		le2cpu32s((uint32_t*)&node->next_index);
-		le2cpu32s(&node->data_length);
-		le2cpu32s(&node->data_offset);
-		le2cpu32s((uint32_t*)&node->modified);
-		le2cpu16s(&node->name_length);
-		le2cpu32s(&node->name_offset);
+		cele2cpu32s((uint32_t*)&node->next_index);
+		cele2cpu32s(&node->data_length);
+		cele2cpu32s(&node->data_offset);
+		cele2cpu32s((uint32_t*)&node->modified);
+		cele2cpu16s(&node->name_length);
+		cele2cpu32s(&node->name_offset);
 	}
 
 	res->names = cealloc(res->names_length + 1);

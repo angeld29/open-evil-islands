@@ -10,10 +10,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern uint8_t bitset(uint8_t v, size_t p);
-extern uint8_t bitclr(uint8_t v, size_t p);
-extern uint8_t bitflp(uint8_t v, size_t p);
-extern bool bittst(uint8_t v, size_t p);
+extern uint8_t cebitset(uint8_t v, size_t p);
+extern uint8_t cebitclr(uint8_t v, size_t p);
+extern uint8_t cebitflp(uint8_t v, size_t p);
+extern bool cebittst(uint8_t v, size_t p);
 
 #ifdef __cplusplus
 }

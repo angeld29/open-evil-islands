@@ -1,6 +1,5 @@
 #include <stddef.h>
 #include <stdarg.h>
-#include <stdbool.h>
 #include <assert.h>
 
 #include <syslog.h>
@@ -9,11 +8,11 @@
 
 static bool opened;
 
-void logging_open(void)
+bool logging_open(void)
 {
 	assert(!opened);
 	openlog(NULL, LOG_PERROR, LOG_USER);
-	opened = true;
+	return opened = true;
 }
 
 void logging_close(void)

@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "cebyteorder.h"
 #include "ceio.h"
 #include "cestr.h"
-#include "byteorder.h"
 #include "mobfile.h"
 
 enum {
@@ -27,7 +27,7 @@ static const uint64_t OBJECT_BLOCK_PARTICLE2_SIGNATURE = 0xcc01;
 static const uint64_t OBJECT_BLOCK_PARTICLE3_SIGNATURE = 0xdd01;*/
 
 struct mobfile {
-	io_callbacks callbacks;
+	ceio_callbacks callbacks;
 	void* client_data;
 };
 
@@ -39,7 +39,7 @@ static void decrypt_script(char* buf, uint32_t key, int32_t size)
 	}
 }
 
-static mobfile* open_callbacks(io_callbacks callbacks,
+static mobfile* open_callbacks(ceio_callbacks callbacks,
 								void* client_data, const char* name)
 {
 	name = name;
@@ -55,7 +55,7 @@ static mobfile* open_callbacks(io_callbacks callbacks,
 		return NULL;
 	}
 
-	le2cpu32s(&signature);
+	cele2cpu32s(&signature);
 	if (MOB_SIGNATURE != signature) {
 		mobfile_close(mob);
 		return NULL;
@@ -67,7 +67,7 @@ static mobfile* open_callbacks(io_callbacks callbacks,
 		return NULL;
 	}
 
-	le2cpu32s((uint32_t*)&main_block_length);
+	cele2cpu32s((uint32_t*)&main_block_length);
 	printf("main_block_length: %d\n", main_block_length);
 
 	uint64_t main_block_type;
@@ -76,7 +76,7 @@ static mobfile* open_callbacks(io_callbacks callbacks,
 		return NULL;
 	}
 
-	le2cpu64s(&main_block_type);
+	cele2cpu64s(&main_block_type);
 	printf("main_block_type: %#llx\n", main_block_type);
 	if (MAIN_BLOCK_QUEST_SIGNATURE != main_block_type &&
 			MAIN_BLOCK_ZONAL_SIGNATURE != main_block_type) {
@@ -91,7 +91,7 @@ static mobfile* open_callbacks(io_callbacks callbacks,
 			return NULL;
 		}
 
-		le2cpu32s(&signature);
+		cele2cpu32s(&signature);
 		printf("signature: %u %#x\n", signature, signature);
 
 		int32_t length;
@@ -100,14 +100,14 @@ static mobfile* open_callbacks(io_callbacks callbacks,
 			return NULL;
 		}
 
-		le2cpu32s((uint32_t*)&length);
+		cele2cpu32s((uint32_t*)&length);
 		printf("length: %d\n", length);
 
 		if (TEXT_BLOCK_SIGNATURE == signature) {
 			int32_t script_key;
 			(callbacks.read)(&script_key, sizeof(int32_t), 1, client_data);
 
-			le2cpu32s((uint32_t*)&script_key);
+			cele2cpu32s((uint32_t*)&script_key);
 			printf("script_key: %d\n", script_key);
 
 			char* data = malloc(length - 4 - 4 - 4);
@@ -145,7 +145,7 @@ mobfile* mobfile_open(const char* path)
 		++name;
 	}
 
-	mobfile* mob = open_callbacks(IO_CALLBACKS_FILE, file, name);
+	mobfile* mob = open_callbacks(CEIO_CALLBACKS_FILE, file, name);
 	if (NULL == mob) {
 		fclose(file);
 		return NULL;

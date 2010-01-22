@@ -23,7 +23,7 @@ frustum* frustum_init(float fov, float aspect, float near, float far,
 						const vec3* eye, const vec3* forward,
 						const vec3* right, const vec3* up, frustum* f)
 {
-	float tang = tanf(0.5f * deg2rad(fov));
+	float tang = tanf(0.5f * cedeg2rad(fov));
 	float nh = tang * near;
 	float nw = nh * aspect;
 	float fh = tang * far;

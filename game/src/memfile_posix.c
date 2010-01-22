@@ -9,7 +9,7 @@ memfile* memfile_open_data(void* data, size_t size, const char* mode)
 		return NULL;
 	}
 
-	memfile* mem = memfile_open_callbacks(IO_CALLBACKS_FILE, file);
+	memfile* mem = memfile_open_callbacks(CEIO_CALLBACKS_FILE, file);
 	if (NULL == mem) {
 		fclose(file);
 		return NULL;

@@ -8,25 +8,26 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern const float PI;
-extern const float PI2;
-extern const float PI_DIV_2;
-extern const float PI_DIV_4;
-extern const float PI_INV;
+extern const float CEPI;
+extern const float CEPI2;
+extern const float CEPI_DIV_2;
+extern const float CEPI_DIV_4;
+extern const float CEPI_INV;
 
-extern const float EPS_E4;
-extern const float EPS_E5;
-extern const float EPS_E6;
+extern const float CEEPS_E4;
+extern const float CEEPS_E5;
+extern const float CEEPS_E6;
 
-extern bool fisequal(float a, float b, float tolerance);
-extern bool fiszero(float a, float tolerance);
+extern bool cefisequal(float a, float b, float tolerance);
+extern bool cefiszero(float a, float tolerance);
 
-extern void fswap(float* a, float* b);
-extern float fclamp(float v, float a, float b);
-extern float flerp(float u, float a, float b);
+extern void cefswap(float* a, float* b);
+extern float cefclamp(float v, float a, float b);
 
-extern float deg2rad(float d);
-extern float rad2deg(float r);
+extern float celerp(float u, float a, float b);
+
+extern float cedeg2rad(float d);
+extern float cerad2deg(float r);
 
 #ifdef __cplusplus
 }

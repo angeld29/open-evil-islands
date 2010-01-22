@@ -11,8 +11,8 @@ extern "C"
 
 typedef struct camera camera;
 
-extern camera* camera_new(void);
-extern void camera_delete(camera* cam);
+extern camera* camera_open(void);
+extern void camera_close(camera* cam);
 
 extern float camera_get_fov(camera* cam);
 extern float camera_get_aspect(camera* cam);

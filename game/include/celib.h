@@ -8,15 +8,15 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern int min(int a, int b);
-extern int max(int a, int b);
-extern size_t smin(size_t a, size_t b);
-extern size_t smax(size_t a, size_t b);
+extern int cemin(int a, int b);
+extern int cemax(int a, int b);
+extern size_t cesmin(size_t a, size_t b);
+extern size_t cesmax(size_t a, size_t b);
 
-extern void swap(int* a, int* b);
+extern void ceswap(int* a, int* b);
 
-extern int clamp(int v, int a, int b);
-extern size_t sclamp(size_t v, size_t a, size_t b);
+extern int ceclamp(int v, int a, int b);
+extern size_t cesclamp(size_t v, size_t a, size_t b);
 
 #ifdef __cplusplus
 }

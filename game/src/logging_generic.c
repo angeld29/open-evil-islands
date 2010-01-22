@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdarg.h>
-#include <stdbool.h>
 #include <assert.h>
 
 #include "logging.h"
@@ -17,10 +16,10 @@ static void report(logging_level lvl, const char* format, va_list args)
 	}
 }
 
-void logging_open(void)
+bool logging_open(void)
 {
 	assert(!opened);
-	opened = true;
+	return opened = true;
 }
 
 void logging_close(void)

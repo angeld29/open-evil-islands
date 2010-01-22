@@ -28,6 +28,6 @@ static long int file_tell(void* client_data)
 	return ftell((FILE*)client_data);
 }
 
-const io_callbacks IO_CALLBACKS_FILE = {
+const ceio_callbacks CEIO_CALLBACKS_FILE = {
 	file_close, file_read, file_write, file_seek, file_tell
 };

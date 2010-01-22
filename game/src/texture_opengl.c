@@ -16,10 +16,10 @@
 #include <GL/glu.h>
 
 #include "cealloc.h"
+#include "cebyteorder.h"
 #include "celib.h"
 #include "cemath.h"
 #include "cegl.h"
-#include "byteorder.h"
 #include "logging.h"
 #include "mmpfile.h"
 #include "texture.h"
@@ -43,18 +43,18 @@ static void setup_mag_min_params(int mipmap_count)
 static bool scale_texture(int* width, int* height,
 		GLenum data_format, GLenum data_type, void* data)
 {
-	int new_width = min(*width, cegl_max_texture_size());
-	int new_height = min(*height, cegl_max_texture_size());
+	int new_width = cemin(*width, cegl_max_texture_size());
+	int new_height = cemin(*height, cegl_max_texture_size());
 
 	if (!cegl_query_feature(CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO)) {
 		float int_width, int_height;
 		float fract_width = modff(log2f(new_width), &int_width);
 		float fract_height = modff(log2f(new_height), &int_height);
 
-		if (!fiszero(fract_width, EPS_E4)) {
+		if (!cefiszero(fract_width, CEEPS_E4)) {
 			new_width = powf(2.0f, int_width);
 		}
-		if (!fiszero(fract_height, EPS_E4)) {
+		if (!cefiszero(fract_height, CEEPS_E4)) {
 			new_height = powf(2.0f, int_height);
 		}
 	}
@@ -63,7 +63,7 @@ static bool scale_texture(int* width, int* height,
 		int error = gluScaleImage(data_format, *width, *height,
 			data_type, data, new_width, new_height, data_type, data);
 		if (GL_NO_ERROR != error) {
-			logging_error("gluScaleImage failed: %d (%s)\n",
+			logging_error("gluScaleImage failed: %d (%s)",
 				error, gluErrorString(error));
 			return false;
 		}
@@ -79,7 +79,7 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 		int height, GLenum data_format, GLenum data_type, void* data)
 {
 	if (!scale_texture(&width, &height, data_format, data_type, data)) {
-		logging_error("Could not scale texture\n");
+		logging_error("Could not scale texture");
 		return false;
 	}
 
@@ -90,7 +90,7 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 		width, height, 0, data_format, data_type, data);
 
 	if (cegl_report_errors()) {
-		logging_error("glTexImage2D failed\n");
+		logging_error("glTexImage2D failed");
 		return false;
 	}
 
@@ -107,7 +107,7 @@ static bool generate_texture(int mipmap_count, GLenum internal_format, int width
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		if (!specify_texture(i, internal_format, width,
 				height, data_format, data_type, src)) {
-			logging_error("Could not specify texture\n");
+			logging_error("Could not specify texture");
 			return false;
 		}
 		src += width * height * bpp;
@@ -227,7 +227,7 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 			width, height, 0, data_size, src);
 
 		if (cegl_report_errors()) {
-			logging_error("glCompressedTexImage2D failed\n");
+			logging_error("glCompressedTexImage2D failed");
 			return false;
 		}
 
@@ -255,7 +255,7 @@ static bool dxt_generate_texture(int mipmap_count,
 	}
 
 	if (NULL == (data = cealloc(data_size))) {
-		logging_error("Could not allocate memory\n");
+		logging_error("Could not allocate memory");
 		return false;
 	}
 
@@ -284,7 +284,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		uint32_t* end = src + size / sizeof(uint32_t);
 
 		if (NULL == (data = cealloc(data_size))) {
-			logging_error("Could not allocate memory\n");
+			logging_error("Could not allocate memory");
 			return false;
 		}
 
@@ -292,7 +292,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		int n = 0;
 
 		while (src != end) {
-			uint32_t value = le2cpu32(*src++);
+			uint32_t value = cele2cpu32(*src++);
 			if (0 < value && value < 1000000) {
 				memcpy(dst, src - 1 - n, n * sizeof(uint32_t));
 				dst += n * sizeof(uint32_t);
@@ -332,16 +332,16 @@ texture* texture_open(void* data)
 
 	uint32_t* mmp = data;
 
-	if (MMP_SIGNATURE != le2cpu32(*mmp++)) {
-		logging_error("mmpfile: wrong signature\n");
+	if (MMP_SIGNATURE != cele2cpu32(*mmp++)) {
+		logging_error("mmpfile: wrong signature");
 		texture_close(tex);
 		return NULL;
 	}
 
-	uint32_t width = le2cpu32(*mmp++);
-	uint32_t height = le2cpu32(*mmp++);
-	uint32_t mipmap_count_or_size = le2cpu32(*mmp++);
-	uint32_t format = le2cpu32(*mmp++);
+	uint32_t width = cele2cpu32(*mmp++);
+	uint32_t height = cele2cpu32(*mmp++);
+	uint32_t mipmap_count_or_size = cele2cpu32(*mmp++);
+	uint32_t format = cele2cpu32(*mmp++);
 
 	mmp += 14;
 

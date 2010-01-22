@@ -31,7 +31,7 @@ static void idle(void)
 
 	if (input_test(KB_ESCAPE)) {
 		timer_close(tmr);
-		camera_delete(cam);
+		camera_close(cam);
 		mprfile_close(mpr);
 		input_close();
 		logging_close();
@@ -64,8 +64,8 @@ static void idle(void)
 	}
 
 	if (input_test(MB_RIGHT)) {
-		camera_yaw_pitch(deg2rad(-0.25f * input_mouse_offset_x()),
-						deg2rad(-0.25f * input_mouse_offset_y()), cam);
+		camera_yaw_pitch(cedeg2rad(-0.25f * input_mouse_offset_x()),
+						cedeg2rad(-0.25f * input_mouse_offset_y()), cam);
 	}
 
 	glutPostRedisplay();
@@ -174,9 +174,9 @@ int main(int argc, char* argv[])
 	vec3 eye;
 	vec3_init(0.0f, mprfile_get_max_height(mpr), 0.0f, &eye);
 
-	cam = camera_new();
+	cam = camera_open();
 	camera_set_eye(&eye, cam);
-	camera_yaw_pitch(deg2rad(45.0f), deg2rad(30.0f), cam);
+	camera_yaw_pitch(cedeg2rad(45.0f), cedeg2rad(30.0f), cam);
 
 	tmr = timer_open();
 

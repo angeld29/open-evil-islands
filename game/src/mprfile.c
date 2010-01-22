@@ -8,9 +8,9 @@
 #include <GL/gl.h>
 
 #include "cealloc.h"
+#include "cebyteorder.h"
 #include "cestr.h"
 #include "vec3.h"
-#include "byteorder.h"
 #include "texture.h"
 #include "memfile.h"
 #include "resfile.h"
@@ -119,7 +119,7 @@ static bool read_material(material* mat, memfile* mem)
 			4 != memfile_read(unknown, sizeof(float), 4, mem)) {
 		return false;
 	}
-	le2cpu32s(&mat->type);
+	cele2cpu32s(&mat->type);
 	return true;
 }
 
@@ -129,8 +129,8 @@ static bool read_anim_tile(anim_tile* at, memfile* mem)
 			1 != memfile_read(&at->count, sizeof(uint16_t), 1, mem)) {
 		return false;
 	}
-	le2cpu16s(&at->index);
-	le2cpu16s(&at->count);
+	cele2cpu16s(&at->index);
+	cele2cpu16s(&at->count);
 	return true;
 }
 
@@ -141,7 +141,7 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 		return false;
 	}
 
-	le2cpu32s(&signature);
+	cele2cpu32s(&signature);
 	if (MP_SIGNATURE != signature) {
 		return false;
 	}
@@ -158,14 +158,14 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 		return false;
 	}
 
-	le2cpu32s(&mpr->sector_x_count);
-	le2cpu32s(&mpr->sector_z_count);
-	le2cpu32s(&mpr->texture_count);
-	le2cpu32s(&mpr->texture_size);
-	le2cpu32s(&mpr->tile_count);
-	le2cpu32s(&mpr->tile_size);
-	le2cpu16s(&mpr->material_count);
-	le2cpu32s(&mpr->anim_tile_count);
+	cele2cpu32s(&mpr->sector_x_count);
+	cele2cpu32s(&mpr->sector_z_count);
+	cele2cpu32s(&mpr->texture_count);
+	cele2cpu32s(&mpr->texture_size);
+	cele2cpu32s(&mpr->tile_count);
+	cele2cpu32s(&mpr->tile_size);
+	cele2cpu16s(&mpr->material_count);
+	cele2cpu32s(&mpr->anim_tile_count);
 
 	mpr->materials = cealloc(sizeof(material) * mpr->material_count);
 	if (NULL == mpr->materials) {
@@ -185,7 +185,7 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 	}
 
 	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
-		le2cpu32s(mpr->tiles + i);
+		cele2cpu32s(mpr->tiles + i);
 	}
 
 	mpr->anim_tiles = cealloc(sizeof(anim_tile) * mpr->anim_tile_count);
@@ -247,8 +247,8 @@ static bool read_vertex(vertex* ver, memfile* mem)
 			1 != memfile_read(&ver->normal, sizeof(uint32_t), 1, mem)) {
 		return false;
 	}
-	le2cpu16s(&ver->coord_y);
-	le2cpu32s(&ver->normal);
+	cele2cpu16s(&ver->coord_y);
+	cele2cpu32s(&ver->normal);
 	return true;
 }
 
@@ -259,7 +259,7 @@ static bool read_sector_impl(sector* sec, memfile* mem)
 		return false;
 	}
 
-	le2cpu32s(&signature);
+	cele2cpu32s(&signature);
 	if (SEC_SIGNATURE != signature) {
 		return false;
 	}
@@ -299,7 +299,7 @@ static bool read_sector_impl(sector* sec, memfile* mem)
 	}
 
 	for (unsigned int i = 0; i < TEXTURE_COUNT; ++i) {
-		le2cpu16s(sec->land_textures + i);
+		cele2cpu16s(sec->land_textures + i);
 	}
 
 	if (0 != sec->water) {
@@ -315,8 +315,8 @@ static bool read_sector_impl(sector* sec, memfile* mem)
 		}
 
 		for (unsigned int i = 0; i < TEXTURE_COUNT; ++i) {
-			le2cpu16s(sec->water_textures + i);
-			le2cpu16s((uint16_t*)(sec->water_allow + i));
+			cele2cpu16s(sec->water_textures + i);
+			cele2cpu16s((uint16_t*)(sec->water_allow + i));
 		}
 	}
 

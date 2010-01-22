@@ -15,7 +15,7 @@ extern "C"
  *  NULL as the close callback. The client is responsible for closing
  *  a resource when a call to memfile_open_callbacks is unsuccessful.
 */
-extern memfile* memfile_open_callbacks(io_callbacks callbacks, void* client_data);
+extern memfile* memfile_open_callbacks(ceio_callbacks callbacks, void* client_data);
 extern memfile* memfile_open_data(void* data, size_t size, const char* mode);
 extern memfile* memfile_open_path(const char* path, const char* mode);
 extern void memfile_close(memfile* mem);
