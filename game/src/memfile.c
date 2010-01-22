@@ -1,6 +1,6 @@
-#include <stdlib.h>
 #include <stdio.h>
 
+#include "memory.h"
 #include "memfile.h"
 
 struct memfile {
@@ -10,7 +10,7 @@ struct memfile {
 
 memfile* memfile_open_callbacks(io_callbacks callbacks, void* client_data)
 {
-	memfile* mem = calloc(1, sizeof(memfile));
+	memfile* mem = memory_alloc(sizeof(memfile));
 	if (NULL == mem) {
 		return NULL;
 	}
@@ -37,19 +37,17 @@ memfile* memfile_open_path(const char* path, const char* mode)
 	return mem;
 }
 
-int memfile_close(memfile* mem)
+void memfile_close(memfile* mem)
 {
 	if (NULL == mem) {
-		return 0;
+		return;
 	}
 
 	if (NULL != mem->callbacks.close && NULL != mem->client_data) {
 		(mem->callbacks.close)(mem->client_data);
 	}
 
-	free(mem);
-
-	return 0;
+	memory_free(mem, sizeof(memfile));
 }
 
 size_t memfile_read(void* data, size_t size, size_t n, memfile* mem)

@@ -1,73 +1,29 @@
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-#include "celib.h"
+#include "memory.h"
 #include "cestr.h"
 
-char* strset(char* s, char c)
+char* cestrdup(const char* s)
 {
-	for (char* p = s; *p; ++p) {
-		*p = c;
+	char* p = memory_alloc(strlen(s) + 1);
+	if (NULL != p) {
+		strcpy(p, s);
 	}
-	return s;
-}
-
-char* strnset(char* s, char c, size_t n)
-{
-	if (0 == n) {
-		return s;
-	}
-	for (char* p = s; n-- > 0 && *p; ++p) {
-		*p = c;
-	}
-	return s;
-}
-
-char* strleft(const char* s, size_t n)
-{
-	size_t l = strlen(s);
-	if (n > l) {
-		n = l;
-	}
-	char* p = malloc(n + 1);
-	if (NULL == p) {
-		return NULL;
-	}
-	strncpy(p, s, n);
-	p[n] = '\0';
 	return p;
 }
 
-char* strright(const char* s, size_t n)
+char* cestrndup(const char* s, size_t n)
 {
-	size_t l = strlen(s);
-	if (n > l) {
-		n = l;
+	char* p = memory_alloc(n + 1);
+	if (NULL != p) {
+		strncpy(p, s, n);
+		p[n] = '\0';
 	}
-	char* p = malloc(n + 1);
-	if (NULL == p) {
-		return NULL;
-	}
-	strcpy(p, s + l - n);
 	return p;
 }
 
-char* strmid(const char* s, size_t pos, size_t n)
-{
-	size_t l = strlen(s);
-	if (pos > l) {
-		return NULL;
-	}
-	if (n > (l - pos)) {
-		n = l - pos;
-	}
-	char* p = malloc(n + 1);
-	strncpy(p, s + pos, n);
-	p[n] = '\0';
-	return p;
-}
-
+#ifdef CE_NEED_STRUPR
 char* strupr(char* s)
 {
 	for (char* p = s; *p; ++p) {
@@ -75,7 +31,9 @@ char* strupr(char* s)
 	}
 	return s;
 }
+#endif /* CE_NEED_STRUPR */
 
+#ifdef CE_NEED_STRLWR
 char* strlwr(char* s)
 {
 	for (char* p = s; *p; ++p) {
@@ -83,7 +41,9 @@ char* strlwr(char* s)
 	}
 	return s;
 }
+#endif /* CE_NEED_STRLWR */
 
+#ifdef CE_NEED_STRREV
 char* strrev(char* s)
 {
 	if (!*s) {
@@ -96,7 +56,9 @@ char* strrev(char* s)
 	}
 	return s;
 }
+#endif /* CE_NEED_STRREV */
 
+#ifdef CE_NEED_STRREPC
 size_t strrepc(char* s, char from, char to)
 {
 	size_t n = 0;
@@ -105,6 +67,7 @@ size_t strrepc(char* s, char from, char to)
 	}
 	return n;
 }
+#endif /* CE_NEED_STRREPC */
 
 #ifdef CE_NEED_STRCASECMP
 int strcasecmp(const char* s1, const char* s2)
@@ -138,17 +101,6 @@ char* strcasestr(const char* haystack, const char* needle)
 	return NULL;
 }
 #endif /* CE_NEED_STRCASESTR */
-
-#ifdef CE_NEED_STRDUP
-char* strdup(const char* s)
-{
-	char* p = malloc(strlen(s) + 1);
-	if (NULL != p) {
-		strcpy(p, s);
-	}
-	return p;
-}
-#endif /* CE_NEED_STRDUP */
 
 #ifdef CE_NEED_STRLCAT
 size_t strlcat(char* dst, const char* src, size_t size)
@@ -210,18 +162,6 @@ int strncasecmp(const char* s1, const char* s2, size_t n)
 	return c1 - c2;
 }
 #endif /* CE_NEED_STRNCASECMP */
-
-#ifdef CE_NEED_STRNDUP
-char* strndup(const char* s, size_t n)
-{
-	char* p = malloc(n + 1);
-	if (NULL != p) {
-		strncpy(p, s, n);
-		p[n] = '\0';
-	}
-	return p;
-}
-#endif /* CE_NEED_STRNDUP */
 
 #ifdef CE_NEED_STRNLEN
 size_t strnlen(const char* s, size_t n)

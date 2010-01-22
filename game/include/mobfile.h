@@ -9,7 +9,7 @@ extern "C"
 typedef struct mobfile mobfile;
 
 extern mobfile* mobfile_open(const char* path);
-extern int mobfile_close(mobfile* mob);
+extern void mobfile_close(mobfile* mob);
 
 extern void mobfile_debug_print(mobfile* mob);
 

@@ -6,7 +6,6 @@
  *  3. SOIL (Simple OpenGL Image Library) (C) Jonathan Dummer.
 */
 
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -19,6 +18,7 @@
 #include "celib.h"
 #include "cemath.h"
 #include "cegl.h"
+#include "memory.h"
 #include "byteorder.h"
 #include "logging.h"
 #include "mmpfile.h"
@@ -254,7 +254,7 @@ static bool dxt_generate_texture(int mipmap_count,
 		data_size += w * h * 4;
 	}
 
-	if (NULL == (data = malloc(data_size))) {
+	if (NULL == (data = memory_alloc(data_size))) {
 		logging_error("Could not allocate memory\n");
 		return false;
 	}
@@ -271,7 +271,7 @@ static bool dxt_generate_texture(int mipmap_count,
 	bool ok = generate_texture(mipmap_count, GL_RGBA, width, height,
 		4, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-	free(data);
+	memory_free(data, data_size);
 	return ok;
 }
 
@@ -283,7 +283,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		uint32_t* src = data;
 		uint32_t* end = src + size / sizeof(uint32_t);
 
-		if (NULL == (data = malloc(data_size))) {
+		if (NULL == (data = memory_alloc(data_size))) {
 			logging_error("Could not allocate memory\n");
 			return false;
 		}
@@ -310,7 +310,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		4, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
 
 	if (size < data_size) {
-		free(data);
+		memory_free(data, data_size);
 	}
 
 	return ok;
@@ -318,7 +318,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 
 texture* texture_open(void* data)
 {
-	texture* tex = malloc(sizeof(texture));
+	texture* tex = memory_alloc(sizeof(texture));
 	if (NULL == tex) {
 		return NULL;
 	}
@@ -393,7 +393,7 @@ void texture_close(texture* tex)
 
 	glDeleteTextures(1, &tex->id);
 
-	free(tex);
+	memory_free(tex, sizeof(texture));
 }
 
 void texture_bind(texture* tex)

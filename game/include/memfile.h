@@ -18,7 +18,7 @@ extern "C"
 extern memfile* memfile_open_callbacks(io_callbacks callbacks, void* client_data);
 extern memfile* memfile_open_data(void* data, size_t size, const char* mode);
 extern memfile* memfile_open_path(const char* path, const char* mode);
-extern int memfile_close(memfile* mem);
+extern void memfile_close(memfile* mem);
 
 extern size_t memfile_read(void* data, size_t size, size_t n, memfile* mem);
 extern size_t memfile_write(const void* data, size_t size, size_t n, memfile* mem);

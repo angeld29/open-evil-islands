@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <stdbool.h>
 
 #include <GL/gl.h>
@@ -7,6 +6,7 @@
 #include "vec3.h"
 #include "quat.h"
 #include "mat4.h"
+#include "memory.h"
 #include "camera.h"
 
 struct camera {
@@ -62,7 +62,7 @@ static void update_translation(const vec3* eye, mat4* view)
 
 camera* camera_new(void)
 {
-	camera* cam = malloc(sizeof(camera));
+	camera* cam = memory_alloc(sizeof(camera));
 	if (NULL == cam) {
 		return NULL;
 	}
@@ -81,7 +81,7 @@ camera* camera_new(void)
 
 void camera_delete(camera* cam)
 {
-	free(cam);
+	memory_free(cam, sizeof(camera));
 }
 
 float camera_get_fov(camera* cam)

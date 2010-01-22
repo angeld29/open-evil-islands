@@ -8,44 +8,38 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern char* strset(char* s, char c);
-extern char* strnset(char* s, char c, size_t n);
+/// Duplicate string, returning an identical memory_alloc'd string.
+extern char* cestrdup(const char* s);
 
 /**
- *  Return a malloc'd string that contains the n leftmost characters of the s.
- *  The entire string is returned if n is greater than string length.
+ *  Return a memory_alloc'd copy of at most n bytes of s. The
+ *  resultant string is terminated even if no null terminator
+ *  appears before s[n].
 */
-extern char* strleft(const char* s, size_t n);
+extern char* cestrndup(const char* s, size_t n);
 
-/**
- *  Return a malloc'd string that contains the n rightmost characters of the s.
- *  The entire string is returned if n is greater than string length.
-*/
-extern char* strright(const char* s, size_t n);
-
-/**
- *  Return a malloc'd string, n characters long beginning at position pos.
- *  Return a NULL if the pos exceeds the length of the string.
- *  If there are less than n characters available in the string
- *  starting at the given position, the function returns all
- *  characters that are available from the specified position.
-*/
-extern char* strmid(const char* s, size_t pos, size_t n);
-
+#ifdef CE_NEED_STRUPR
 /// Convert a string into upper case in place.
 extern char* strupr(char* s);
+#endif /* CE_NEED_STRUPR */
 
+#ifdef CE_NEED_STRLWR
 /// Convert a string into lower case in place.
 extern char* strlwr(char* s);
+#endif /* CE_NEED_STRLWR */
 
+#ifdef CE_NEED_STRREV
 /// Reverse a string in place.
 extern char* strrev(char* s);
+#endif /* CE_NEED_STRREV */
 
+#ifdef CE_NEED_STRREPC
 /**
  *  Replaces all occurrences of a character in a string with another character.
  *  Return number of replacements made.
 */
 extern size_t strrepc(char* s, char from, char to);
+#endif /* CE_NEED_STRREPC */
 
 #ifdef CE_NEED_STRCASECMP
 /// Compare s1 and s2, ignoring case.
@@ -56,11 +50,6 @@ extern int strcasecmp(const char* s1, const char* s2);
 /// Similar to strstr but this function ignores the case of both strings.
 extern char* strcasestr(const char* haystack, const char* needle);
 #endif /* CE_NEED_STRCASESTR */
-
-#ifdef CE_NEED_STRDUP
-/// Duplicate string, returning an identical malloc'd string.
-extern char* strdup(const char* s);
-#endif /* CE_NEED_STRDUP */
 
 #ifdef CE_NEED_STRLCAT
 /**
@@ -92,15 +81,6 @@ extern size_t strlcpy(char* dst, const char* src, size_t size);
 /// Compare no more than n chars of s1 and s2, ignoring case.
 extern int strncasecmp(const char* s1, const char* s2, size_t n);
 #endif /* CE_NEED_STRNCASECMP */
-
-#ifdef CE_NEED_STRNDUP
-/**
- *  Return a malloc'd copy of at most n bytes of s. The
- *  resultant string is terminated even if no null terminator
- *  appears before s[n].
-*/
-extern char* strndup(const char* s, size_t n);
-#endif /* CE_NEED_STRNDUP */
 
 #ifdef CE_NEED_STRNLEN
 /**

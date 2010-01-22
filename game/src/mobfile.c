@@ -154,10 +154,10 @@ mobfile* mobfile_open(const char* path)
 	return mob;
 }
 
-int mobfile_close(mobfile* mob)
+void mobfile_close(mobfile* mob)
 {
 	if (NULL == mob) {
-		return 0;
+		return;
 	}
 
 	if (NULL != mob->callbacks.close && NULL != mob->client_data) {
@@ -165,8 +165,6 @@ int mobfile_close(mobfile* mob)
 	}
 
 	free(mob);
-
-	return 0;
 }
 
 void mobfile_debug_print(mobfile* mob)
