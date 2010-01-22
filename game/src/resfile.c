@@ -138,7 +138,7 @@ resfile* resfile_open_file(const char* path)
 		return NULL;
 	}
 
-	const char* name = strrpbrk(path, "\\/");
+	const char* name = cestrrpbrk(path, "\\/");
 	if (NULL == name) {
 		name = path;
 	} else {
@@ -192,7 +192,7 @@ int resfile_node_index(const char* name, const resfile* res)
 	int index = name_hash(name, res->node_count);
 	for (; index >= 0; index = node->next_index) {
 		node = res->nodes + index;
-		if (0 == strcasecmp(name, node->name)) {
+		if (0 == cestrcasecmp(name, node->name)) {
 			break;
 		}
 	}

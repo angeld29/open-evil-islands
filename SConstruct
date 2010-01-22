@@ -14,7 +14,6 @@ variables.Add(SCons.Variables.BoolVariable("RELEASE",
 env = Environment(variables=variables)
 
 env.AppendUnique(
-	CPPDEFINES=["_GNU_SOURCE"],
 	CFLAGS=["-std=c99"],
 	CPPFLAGS=["-pipe", "-pedantic-errors"],
 )
@@ -24,8 +23,11 @@ env.AppendUnique(
 )
 
 env.AppendUnique(
-	CPPDEFINES=["GL_GLEXT_PROTOTYPES", "CE_NEED_STRRPBRK",
-					"CE_NEED_STRLCAT", "CE_NEED_STRLCPY"],
+	CPPDEFINES=["_GNU_SOURCE"],
+)
+
+env.AppendUnique(
+	CPPDEFINES=["GL_GLEXT_PROTOTYPES"],
 )
 
 env["COMPILER"] = "gcc"

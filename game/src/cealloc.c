@@ -293,7 +293,17 @@ void* cealloc(size_t size)
 
 void* cealloczero(size_t size)
 {
-	void* ptr = cealloc(size);
+	assert(NULL != smallobj.pool);
+
+	if (size > MAX_SMALL_OBJECT_SIZE) {
+		return calloc(1, size);
+	}
+
+	if (0 == size) {
+		size = 1;
+	}
+
+	void* ptr = portion_alloc(smallobj.pool + get_offset(size, OBJECT_ALIGNMENT) - 1);
 	return NULL != ptr ? memset(ptr, 0, size) : NULL;
 }
 

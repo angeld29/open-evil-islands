@@ -43,10 +43,10 @@ static void setup_mag_min_params(int mipmap_count)
 static bool scale_texture(int* width, int* height,
 		GLenum data_format, GLenum data_type, void* data)
 {
-	int new_width = min(*width, gl_max_texture_size());
-	int new_height = min(*height, gl_max_texture_size());
+	int new_width = min(*width, cegl_max_texture_size());
+	int new_height = min(*height, cegl_max_texture_size());
 
-	if (!gl_query_feature(GL_FEATURE_TEXTURE_NON_POWER_OF_TWO)) {
+	if (!cegl_query_feature(CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO)) {
 		float int_width, int_height;
 		float fract_width = modff(log2f(new_width), &int_width);
 		float fract_height = modff(log2f(new_height), &int_height);
@@ -89,7 +89,7 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 	glTexImage2D(GL_TEXTURE_2D, level, internal_format,
 		width, height, 0, data_format, data_type, data);
 
-	if (gl_report_errors()) {
+	if (cegl_report_errors()) {
 		logging_error("glTexImage2D failed\n");
 		return false;
 	}
@@ -226,7 +226,7 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 			GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
 			width, height, 0, data_size, src);
 
-		if (gl_report_errors()) {
+		if (cegl_report_errors()) {
 			logging_error("glCompressedTexImage2D failed\n");
 			return false;
 		}
@@ -240,7 +240,7 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 static bool dxt_generate_texture(int mipmap_count,
 		int width, int height, int format, void* data)
 {
-	if (gl_query_feature(GL_FEATURE_TEXTURE_COMPRESSION_S3TC) &&
+	if (cegl_query_feature(CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC) &&
 			dxt_generate_texture_directly(mipmap_count, width,
 											height, format, data)) {
 		return true;

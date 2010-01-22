@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
 
 	input_open();
 
-	gl_init();
+	cegl_init();
 
 	res = resfile_open_file(argv[optind]);
 	if (NULL == res) {

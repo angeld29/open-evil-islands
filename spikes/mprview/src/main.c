@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 
 	input_open();
 
-	gl_init();
+	cegl_init();
 
 	char tex_path[512];
 	snprintf(tex_path, sizeof(tex_path), "%s/Res/textures.res", argv[1]);

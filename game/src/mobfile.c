@@ -138,7 +138,7 @@ mobfile* mobfile_open(const char* path)
 		return NULL;
 	}
 
-	const char* name = strrpbrk(path, "\\/");
+	const char* name = cestrrpbrk(path, "\\/");
 	if (NULL == name) {
 		name = path;
 	} else {

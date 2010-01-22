@@ -9,17 +9,17 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef enum {
-	GL_FEATURE_TEXTURE_NON_POWER_OF_TWO,
-	GL_FEATURE_TEXTURE_RECTANGLE,
-	GL_FEATURE_TEXTURE_COMPRESSION_S3TC,
-	GL_FEATURE_COUNT
-} gl_feature;
+	CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO,
+	CEGL_FEATURE_TEXTURE_RECTANGLE,
+	CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC,
+	CEGL_FEATURE_COUNT
+} cegl_feature;
 
-extern void gl_init(void);
-extern bool gl_report_errors(void);
+extern void cegl_init(void);
+extern bool cegl_report_errors(void);
 
-extern bool gl_query_feature(gl_feature feature);
-extern int gl_max_texture_size(void);
+extern bool cegl_query_feature(cegl_feature feature);
+extern int cegl_max_texture_size(void);
 
 #ifdef __cplusplus
 }
