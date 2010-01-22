@@ -531,7 +531,7 @@ void mprfile_apply_frustum(const frustum* f, mprfile* mpr)
 	}
 }
 
-static void render_vertices(unsigned int sector_x, unsigned int sector_z,
+static void render_sector(unsigned int sector_x, unsigned int sector_z,
 							vertex* vertices, uint16_t* textures,
 							int16_t* water_allow, mprfile* mpr)
 {
@@ -631,6 +631,7 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 			};
 
 			if (NULL != water_allow) {
+				glDepthMask(GL_FALSE);
 				glEnable(GL_LIGHTING);
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -649,6 +650,7 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 			if (NULL != water_allow) {
 				glDisable(GL_BLEND);
 				glDisable(GL_LIGHTING);
+				glDepthMask(GL_TRUE);
 			}
 		}
 	}
@@ -658,10 +660,8 @@ static void render_vertices(unsigned int sector_x, unsigned int sector_z,
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void mprfile_render(mprfile* mpr)
+static void render_sectors(bool opacity, mprfile* mpr)
 {
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
 	for (unsigned int z = 0, i; z < mpr->sector_z_count; ++z) {
 		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
 			i = z * mpr->sector_x_count + x;
@@ -672,13 +672,20 @@ void mprfile_render(mprfile* mpr)
 
 			sector* sec = mpr->sectors + i;
 
-			render_vertices(x, z, sec->land_vertices,
-							sec->land_textures, NULL, mpr);
-
-			if (0 != sec->water) {
-				render_vertices(x, z, sec->water_vertices,
+			if (opacity) {
+				render_sector(x, z, sec->land_vertices,
+								sec->land_textures, NULL, mpr);
+			} else if (0 != sec->water) {
+				render_sector(x, z, sec->water_vertices,
 								sec->water_textures, sec->water_allow, mpr);
 			}
 		}
 	}
+}
+
+void mprfile_render(mprfile* mpr)
+{
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	render_sectors(true, mpr); // opacity geometry first
+	render_sectors(false, mpr); // then water/swamp/lava
 }

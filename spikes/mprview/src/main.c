@@ -123,8 +123,8 @@ int main(int argc, char* argv[])
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
 
-	glutInitWindowPosition(100, 600);
-	glutInitWindowSize(400, 300);
+	glutInitWindowPosition(100, 100);
+	glutInitWindowSize(1024, 768);
 	glutInit(&argc, argv);
 
 	glutCreateWindow("Cursed Earth Spikes: MPR Viewer");
