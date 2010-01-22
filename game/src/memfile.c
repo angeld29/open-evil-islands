@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "memory.h"
+#include "cealloc.h"
 #include "memfile.h"
 
 struct memfile {
@@ -10,7 +10,7 @@ struct memfile {
 
 memfile* memfile_open_callbacks(io_callbacks callbacks, void* client_data)
 {
-	memfile* mem = memory_alloc(sizeof(memfile));
+	memfile* mem = cealloc(sizeof(memfile));
 	if (NULL == mem) {
 		return NULL;
 	}
@@ -47,7 +47,7 @@ void memfile_close(memfile* mem)
 		(mem->callbacks.close)(mem->client_data);
 	}
 
-	memory_free(mem, sizeof(memfile));
+	cefree(mem, sizeof(memfile));
 }
 
 size_t memfile_read(void* data, size_t size, size_t n, memfile* mem)

@@ -5,9 +5,9 @@
 
 #include <GL/glut.h>
 
+#include "cealloc.h"
 #include "cemath.h"
 #include "cegl.h"
-#include "memory.h"
 #include "logging.h"
 #include "timer.h"
 #include "input.h"
@@ -35,7 +35,7 @@ static void idle(void)
 		mprfile_close(mpr);
 		input_close();
 		logging_close();
-		memory_close();
+		cealloc_close();
 		exit(0);
 	}
 
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 
-	memory_open();
+	cealloc_open();
 
 	logging_open();
 	logging_set_level(LOGGING_DEBUG_LEVEL);

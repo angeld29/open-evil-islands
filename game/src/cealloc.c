@@ -12,11 +12,12 @@
 */
 
 #include <stdlib.h>
+#include <string.h>
 #include <limits.h>
 #include <assert.h>
 
 #include "celib.h"
-#include "memory.h"
+#include "cealloc.h"
 
 static const size_t PAGE_SIZE = 4096;
 static const size_t MAX_SMALL_OBJECT_SIZE = 256;
@@ -241,7 +242,7 @@ static size_t get_offset(size_t size, size_t alignment)
 	return (size + alignment - 1) / alignment;
 }
 
-bool memory_open(void)
+bool cealloc_open(void)
 {
 	assert(NULL == smallobj.pool);
 
@@ -253,7 +254,7 @@ bool memory_open(void)
 	for (size_t i = 0; i < smallobj.count; ++i) {
 		if (!portion_init((i + 1) * OBJECT_ALIGNMENT,
 				PAGE_SIZE, smallobj.pool + i)) {
-			memory_close();
+			cealloc_close();
 			return false;
 		}
 	}
@@ -261,7 +262,7 @@ bool memory_open(void)
 	return true;
 }
 
-void memory_close(void)
+void cealloc_close(void)
 {
 	assert(NULL != smallobj.pool);
 
@@ -275,7 +276,7 @@ void memory_close(void)
 	smallobj.pool = NULL;
 }
 
-void* memory_alloc(size_t size)
+void* cealloc(size_t size)
 {
 	assert(NULL != smallobj.pool);
 
@@ -290,7 +291,13 @@ void* memory_alloc(size_t size)
 	return portion_alloc(smallobj.pool + get_offset(size, OBJECT_ALIGNMENT) - 1);
 }
 
-void memory_free(void* ptr, size_t size)
+void* cealloczero(size_t size)
+{
+	void* ptr = cealloc(size);
+	return NULL != ptr ? memset(ptr, 0, size) : NULL;
+}
+
+void cefree(void* ptr, size_t size)
 {
 	assert(NULL != smallobj.pool);
 

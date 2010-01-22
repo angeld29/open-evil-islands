@@ -1,5 +1,5 @@
-#ifndef CE_CEGL_H
-#define CE_CEGL_H
+#ifndef CE_GL_H
+#define CE_GL_H
 
 #include <stdbool.h>
 
@@ -25,4 +25,4 @@ extern int gl_max_texture_size(void);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_CEGL_H */
+#endif /* CE_GL_H */

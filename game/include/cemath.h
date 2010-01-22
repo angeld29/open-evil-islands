@@ -1,5 +1,5 @@
-#ifndef CE_CEMATH_H
-#define CE_CEMATH_H
+#ifndef CE_MATH_H
+#define CE_MATH_H
 
 #include <stdbool.h>
 
@@ -32,4 +32,4 @@ extern float rad2deg(float r);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_CEMATH_H */
+#endif /* CE_MATH_H */

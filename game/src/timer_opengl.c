@@ -1,6 +1,6 @@
 #include <GL/glut.h>
 
-#include "memory.h"
+#include "cealloc.h"
 #include "timer.h"
 
 struct timer {
@@ -11,7 +11,7 @@ struct timer {
 
 timer* timer_open(void)
 {
-	timer* tmr = memory_alloc(sizeof(timer));
+	timer* tmr = cealloc(sizeof(timer));
 	if (NULL == tmr) {
 		return NULL;
 	}
@@ -21,7 +21,7 @@ timer* timer_open(void)
 
 void timer_close(timer* tmr)
 {
-	memory_free(tmr, sizeof(timer));
+	cefree(tmr, sizeof(timer));
 }
 
 void timer_advance(timer* tmr)

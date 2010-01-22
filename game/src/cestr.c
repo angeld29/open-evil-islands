@@ -1,12 +1,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "memory.h"
+#include "cealloc.h"
 #include "cestr.h"
 
 char* cestrdup(const char* s)
 {
-	char* p = memory_alloc(strlen(s) + 1);
+	char* p = cealloc(strlen(s) + 1);
 	if (NULL != p) {
 		strcpy(p, s);
 	}
@@ -15,7 +15,7 @@ char* cestrdup(const char* s)
 
 char* cestrndup(const char* s, size_t n)
 {
-	char* p = memory_alloc(n + 1);
+	char* p = cealloc(n + 1);
 	if (NULL != p) {
 		strncpy(p, s, n);
 		p[n] = '\0';

@@ -3,9 +3,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "cealloc.h"
 #include "cestr.h"
 #include "byteorder.h"
-#include "memory.h"
 #include "memfile.h"
 #include "resfile.h"
 
@@ -45,11 +45,10 @@ static int name_hash(const char* name, int lim)
 
 resfile* resfile_open_memfile(const char* name, memfile* mem)
 {
-	resfile* res = memory_alloc(sizeof(resfile));
+	resfile* res = cealloczero(sizeof(resfile));
 	if (NULL == res) {
 		return NULL;
 	}
-	memset(res, 0, sizeof(resfile));
 
 	res->name_length = strlen(name);
 	if (NULL == (res->name = cestrdup(name))) {
@@ -80,12 +79,11 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 	le2cpu32s(&res->metadata_offset);
 	le2cpu32s(&res->names_length);
 
-	if (NULL == (res->nodes = memory_alloc(sizeof(resfile_node) *
+	if (NULL == (res->nodes = cealloczero(sizeof(resfile_node) *
 											res->node_count))) {
 		resfile_close(res);
 		return NULL;
 	}
-	memset(res->nodes, 0, sizeof(resfile_node) * res->node_count);
 
 	if (0 != memfile_seek(res->metadata_offset, SEEK_SET, mem)) {
 		resfile_close(res);
@@ -111,7 +109,7 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 		le2cpu32s(&node->name_offset);
 	}
 
-	res->names = memory_alloc(res->names_length + 1);
+	res->names = cealloc(res->names_length + 1);
 	if (NULL == res->names ||
 			1 != memfile_read(res->names, res->names_length, 1, mem)) {
 		resfile_close(res);
@@ -167,15 +165,15 @@ void resfile_close(resfile* res)
 	if (NULL != res->nodes) {
 		for (size_t i = 0; i < res->node_count; ++i) {
 			resfile_node* node = res->nodes + i;
-			memory_free(node->name, node->name_length + 1);
+			cefree(node->name, node->name_length + 1);
 		}
 	}
 
-	memory_free(res->nodes, sizeof(resfile_node) * res->node_count);
-	memory_free(res->names, res->names_length + 1);
-	memory_free(res->name, res->name_length + 1);
+	cefree(res->nodes, sizeof(resfile_node) * res->node_count);
+	cefree(res->names, res->names_length + 1);
+	cefree(res->name, res->name_length + 1);
 
-	memory_free(res, sizeof(resfile));
+	cefree(res, sizeof(resfile));
 }
 
 const char* resfile_name(const resfile* res)

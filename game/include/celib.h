@@ -1,5 +1,5 @@
-#ifndef CE_CELIB_H
-#define CE_CELIB_H
+#ifndef CE_LIB_H
+#define CE_LIB_H
 
 #include <stddef.h>
 
@@ -22,4 +22,4 @@ extern size_t sclamp(size_t v, size_t a, size_t b);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_CELIB_H */
+#endif /* CE_LIB_H */

@@ -1,5 +1,5 @@
-#ifndef CE_CESTR_H
-#define CE_CESTR_H
+#ifndef CE_STR_H
+#define CE_STR_H
 
 #include <stddef.h>
 
@@ -107,4 +107,4 @@ extern char* strsep(char** sp, const char* delim);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_CESTR_H */
+#endif /* CE_STR_H */
