@@ -7,15 +7,15 @@
 
 #include "cemath.h"
 #include "vec3.h"
+#include "aabb.h"
 #include "plane.h"
 #include "frustum.h"
 
-static vec3* get_box_vertex_positive(const vec3* n, const vec3* pmin,
-											const vec3* pmax, vec3* p)
+static vec3* get_box_vertex_positive(const vec3* n, const aabb* b, vec3* p)
 {
-	p->x = n->x > 0.0f ? pmax->x : pmin->x;
-	p->y = n->y > 0.0f ? pmax->y : pmin->y;
-	p->z = n->z > 0.0f ? pmax->z : pmin->z;
+	p->x = n->x > 0.0f ? b->max.x : b->min.x;
+	p->y = n->y > 0.0f ? b->max.y : b->min.y;
+	p->z = n->z > 0.0f ? b->max.z : b->min.z;
 	return p;
 }
 
@@ -81,12 +81,12 @@ bool frustum_test_sphere(const vec3* p, float r, const frustum* f)
 	return true;
 }
 
-bool frustum_test_box(const vec3* pmin, const vec3* pmax, const frustum* f)
+bool frustum_test_box(const aabb* b, const frustum* f)
 {
 	vec3 p;
 	for (size_t i = 0; i < FRUSTUM_PLANE_COUNT; ++i) {
 		if (plane_dist(&f->p[i],
-				get_box_vertex_positive(&f->p[i].n, pmin, pmax, &p)) < 0.0f) {
+				get_box_vertex_positive(&f->p[i].n, b, &p)) < 0.0f) {
 			return false;
 		}
 	}

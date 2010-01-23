@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "vec3fwd.h"
+#include "aabbfwd.h"
 #include "planedef.h"
 
 #ifdef __cplusplus
@@ -31,8 +32,7 @@ extern frustum* frustum_init(float fov, float aspect, float near, float far,
 
 extern bool frustum_test_point(const vec3* p, const frustum* f);
 extern bool frustum_test_sphere(const vec3* p, float r, const frustum* f);
-extern bool frustum_test_box(const vec3* pmin, const vec3* pmax,
-												const frustum* f);
+extern bool frustum_test_box(const aabb* b, const frustum* f);
 
 #ifdef __cplusplus
 }
