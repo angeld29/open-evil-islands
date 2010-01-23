@@ -63,6 +63,7 @@ struct mprfile {
 	float max_y;
 	uint32_t sector_x_count;
 	uint32_t sector_z_count;
+	unsigned int sector_count;
 	uint32_t texture_count;
 	uint32_t texture_size;
 	uint32_t tile_count;
@@ -73,6 +74,7 @@ struct mprfile {
 	uint32_t* tiles; // TODO: id for bind sound ?
 	anim_tile* anim_tiles;
 	sector* sectors;
+	aabb* sector_boxes;
 	bool* sector_allow;
 	texture** textures;
 };
@@ -167,6 +169,8 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 	cele2cpu32s(&mpr->tile_size);
 	cele2cpu16s(&mpr->material_count);
 	cele2cpu32s(&mpr->anim_tile_count);
+
+	mpr->sector_count = mpr->sector_x_count * mpr->sector_z_count;
 
 	mpr->materials = cealloc(sizeof(material) * mpr->material_count);
 	if (NULL == mpr->materials) {
@@ -355,8 +359,12 @@ static bool read_sector(sector* sec, const char* name, resfile* res)
 static bool read_sectors(mprfile* mpr, const char* mpr_name,
 							size_t mpr_name_length, resfile* res)
 {
-	if (NULL == (mpr->sectors = cealloczero(sizeof(sector) *
-			mpr->sector_x_count * mpr->sector_z_count))) {
+	if (NULL == (mpr->sectors =
+					cealloczero(sizeof(sector) * mpr->sector_count)) ||
+			NULL == (mpr->sector_boxes =
+						cealloc(sizeof(aabb) * mpr->sector_count)) ||
+			NULL == (mpr->sector_allow =
+						cealloc(sizeof(bool) * mpr->sector_count))) {
 		return false;
 	}
 
@@ -371,27 +379,25 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 	// sec_tmpl_name + zzzxxx.sec
 	char sec_name[sizeof(sec_tmpl_name) + 3 + 3 + 4];
 
-	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
+	for (unsigned int z = 0, i; z < mpr->sector_z_count; ++z) {
 		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
-			sector* sec = mpr->sectors + (z * mpr->sector_x_count + x);
+			i = z * mpr->sector_x_count + x;
 
 			snprintf(sec_name, sizeof(sec_name),
 				"%s%03u%03u.sec", sec_tmpl_name, x, z);
 
-			if (!read_sector(sec, sec_name, res)) {
+			if (!read_sector(mpr->sectors + i, sec_name, res)) {
 				return false;
 			}
+
+			aabb* b = mpr->sector_boxes + i;
+			vec3_init(x * (VERTEX_SIDE - 1), 0.0f,
+				-1.0f * (z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1)), &b->min);
+			vec3_init(x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), mpr->max_y,
+				-1.0f * (z * (VERTEX_SIDE - 1)), &b->max);
+
+			mpr->sector_allow[i] = true;
 		}
-	}
-
-	if (NULL == (mpr->sector_allow = cealloc(sizeof(bool) *
-			mpr->sector_x_count * mpr->sector_z_count))) {
-		return false;
-	}
-
-	for (unsigned int i = 0, n = mpr->sector_x_count *
-			mpr->sector_z_count; i < n; ++i) {
-		mpr->sector_allow[i] = true;
 	}
 
 	return true;
@@ -489,8 +495,7 @@ void mprfile_close(mprfile* mpr)
 	}
 
 	if (NULL != mpr->sectors) {
-		for (unsigned int i = 0, n = mpr->sector_x_count *
-				mpr->sector_z_count; i < n; ++i) {
+		for (unsigned int i = 0; i < mpr->sector_count; ++i) {
 			sector* sec = mpr->sectors + i;
 			cefree(sec->water_allow, sizeof(int16_t) * TEXTURE_COUNT);
 			cefree(sec->water_textures, sizeof(uint16_t) * TEXTURE_COUNT);
@@ -501,10 +506,9 @@ void mprfile_close(mprfile* mpr)
 	}
 
 	cefree(mpr->textures, sizeof(texture*) * mpr->texture_count);
-	cefree(mpr->sector_allow, sizeof(bool) * mpr->sector_x_count *
-												mpr->sector_z_count);
-	cefree(mpr->sectors, sizeof(sector) * mpr->sector_x_count *
-											mpr->sector_z_count);
+	cefree(mpr->sector_allow, sizeof(bool) * mpr->sector_count);
+	cefree(mpr->sector_boxes, sizeof(aabb) * mpr->sector_count);
+	cefree(mpr->sectors, sizeof(sector) * mpr->sector_count);
 	cefree(mpr->anim_tiles, sizeof(anim_tile) * mpr->anim_tile_count);
 	cefree(mpr->tiles, sizeof(uint32_t) * mpr->tile_count);
 	cefree(mpr->materials, sizeof(material) * mpr->material_count);
@@ -519,16 +523,15 @@ float mprfile_get_max_height(const mprfile* mpr)
 
 void mprfile_apply_frustum(const frustum* f, mprfile* mpr)
 {
-	aabb b;
-	for (unsigned int z = 0; z < mpr->sector_z_count; ++z) {
-		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
-			vec3_init(x * (VERTEX_SIDE - 1), 0.0f,
-				-1.0f * (z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1)), &b.min);
-			vec3_init(x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), mpr->max_y,
-				-1.0f * (z * (VERTEX_SIDE - 1)), &b.max);
-			mpr->sector_allow[z * mpr->sector_x_count + x] =
-				frustum_test_box(&b, f);
-		}
+	for (unsigned int i = 0; i < mpr->sector_count; ++i) {
+		mpr->sector_allow[i] = frustum_test_box(mpr->sector_boxes + i, f);
+
+		/*glBegin(GL_LINES);
+		glColor3f(1, 0, 0);
+		glVertex3f(mpr->sector_boxes[i].min.x, mpr->sector_boxes[i].min.y, mpr->sector_boxes[i].min.z);
+		glColor3f(0, 1, 0);
+		glVertex3f(mpr->sector_boxes[i].max.x, mpr->sector_boxes[i].max.y, mpr->sector_boxes[i].max.z);
+		glEnd();*/
 	}
 }
 
