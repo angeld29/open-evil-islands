@@ -144,10 +144,10 @@ static void next_texture(int index)
 
 static void usage(const char* name)
 {
-	printf("Usage: %s [options] <resfile>\n"
+	printf("Usage: %s [options] <res_path>\n"
 			"Options:\n"
 			"-r Random texture mode\n"
-			"-d <delay, msec> Slideshow delay (default %d)\n"
+			"-d <delay, msec> Slideshow delay (default: %d)\n"
 			"-i <index> Specify texture index (slideshow disabled)\n"
 			"-n <name> Specify texture name (slideshow disabled)\n"
 			"-h Show this message\n", name, delay);
@@ -176,8 +176,7 @@ int main(int argc, char* argv[])
 			slideshow = false;
 			name = optarg;
 			break;
-		case 'h':
-		case '?':
+		default:
 			usage(argv[0]);
 			return 1;
 		}

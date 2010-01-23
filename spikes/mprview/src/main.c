@@ -23,6 +23,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <getopt.h>
 #include <GL/glut.h>
 
 #include "cealloc.h"
@@ -134,10 +135,37 @@ static void reshape(int width, int height)
 	camera_set_aspect(width, height, cam);
 }
 
+static void usage(const char* name)
+{
+	printf("Usage: %s [options]\n"
+			"Options:\n"
+			"-t <tex_path> Path to EI/Res/textures.res\n"
+			"-m <mpr_path> Path to EI/Maps/*.mpr\n"
+			"-h Show this message\n", name);
+}
+
 int main(int argc, char* argv[])
 {
-	if (3 != argc) {
-		printf("Usage: %s <ei_path> <mpr_name>\n", argv[0]);
+	int c;
+	const char* tex_path = NULL;
+	const char* mpr_path = NULL;
+
+	while (-1 != (c = getopt(argc, argv, "t:m:h")))  {
+		switch (c) {
+		case 't':
+			tex_path = optarg;
+			break;
+		case 'm':
+			mpr_path = optarg;
+			break;
+		default:
+			usage(argv[0]);
+			return 1;
+		}
+	}
+
+	if (optind != argc || NULL == tex_path || NULL == mpr_path) {
+		usage(argv[0]);
 		return 1;
 	}
 
@@ -160,12 +188,6 @@ int main(int argc, char* argv[])
 	input_open();
 
 	cegl_init();
-
-	char tex_path[512];
-	snprintf(tex_path, sizeof(tex_path), "%s/Res/textures.res", argv[1]);
-
-	char mpr_path[512];
-	snprintf(mpr_path, sizeof(mpr_path), "%s/Maps/%s", argv[1], argv[2]);
 
 	resfile* tex_res = resfile_open_file(tex_path);
 	if (NULL == tex_res) {
