@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
 	glutInitWindowSize(400, 300);
 	glutInit(&argc, argv);
 
-	glutCreateWindow("Cursed Earth Spikes: Texture Viewer");
+	glutCreateWindow("Cursed Earth: Texture Viewer");
 	glutIdleFunc(idle);
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
