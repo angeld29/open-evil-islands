@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -10,6 +11,7 @@
 #include "cealloc.h"
 #include "cebyteorder.h"
 #include "cestr.h"
+#include "cemath.h"
 #include "vec3.h"
 #include "aabb.h"
 #include "texture.h"
@@ -51,6 +53,9 @@ typedef struct {
 } vertex;
 
 typedef struct {
+	unsigned int x, z;
+	aabb box;
+	float dist2; // for sorting on rendering
 	uint8_t water;
 	vertex* land_vertices;
 	vertex* water_vertices;
@@ -74,8 +79,8 @@ struct mprfile {
 	uint32_t* tiles; // TODO: id for bind sound ?
 	anim_tile* anim_tiles;
 	sector* sectors;
-	aabb* sector_boxes;
-	bool* sector_allow;
+	unsigned int visible_sector_count;
+	sector** visible_sectors;
 	texture** textures;
 };
 
@@ -361,10 +366,8 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 {
 	if (NULL == (mpr->sectors =
 					cealloczero(sizeof(sector) * mpr->sector_count)) ||
-			NULL == (mpr->sector_boxes =
-						cealloc(sizeof(aabb) * mpr->sector_count)) ||
-			NULL == (mpr->sector_allow =
-						cealloc(sizeof(bool) * mpr->sector_count))) {
+			NULL == (mpr->visible_sectors =
+						cealloc(sizeof(sector*) * mpr->sector_count))) {
 		return false;
 	}
 
@@ -386,19 +389,25 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 			snprintf(sec_name, sizeof(sec_name),
 				"%s%03u%03u.sec", sec_tmpl_name, x, z);
 
-			if (!read_sector(mpr->sectors + i, sec_name, res)) {
+			sector* sec = mpr->sectors + i;
+
+			if (!read_sector(sec, sec_name, res)) {
 				return false;
 			}
 
-			aabb* b = mpr->sector_boxes + i;
-			vec3_init(x * (VERTEX_SIDE - 1), 0.0f,
-				-1.0f * (z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1)), &b->min);
-			vec3_init(x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), mpr->max_y,
-				-1.0f * (z * (VERTEX_SIDE - 1)), &b->max);
+			sec->x = x;
+			sec->z = z;
 
-			mpr->sector_allow[i] = true;
+			vec3_init(x * (VERTEX_SIDE - 1), 0.0f, -1.0f *
+				(z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1)), &sec->box.min);
+			vec3_init(x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), mpr->max_y,
+				-1.0f * (z * (VERTEX_SIDE - 1)), &sec->box.max);
+
+			mpr->visible_sectors[i] = sec;
 		}
 	}
+
+	mpr->visible_sector_count = mpr->sector_count;
 
 	return true;
 }
@@ -506,8 +515,7 @@ void mprfile_close(mprfile* mpr)
 	}
 
 	cefree(mpr->textures, sizeof(texture*) * mpr->texture_count);
-	cefree(mpr->sector_allow, sizeof(bool) * mpr->sector_count);
-	cefree(mpr->sector_boxes, sizeof(aabb) * mpr->sector_count);
+	cefree(mpr->visible_sectors, sizeof(sector*) * mpr->sector_count);
 	cefree(mpr->sectors, sizeof(sector) * mpr->sector_count);
 	cefree(mpr->anim_tiles, sizeof(anim_tile) * mpr->anim_tile_count);
 	cefree(mpr->tiles, sizeof(uint32_t) * mpr->tile_count);
@@ -521,18 +529,30 @@ float mprfile_get_max_height(const mprfile* mpr)
 	return mpr->max_y;
 }
 
-void mprfile_apply_frustum(const frustum* f, mprfile* mpr)
+static int sector_dist_comp(const void* lhs, const void* rhs)
 {
-	for (unsigned int i = 0; i < mpr->sector_count; ++i) {
-		mpr->sector_allow[i] = frustum_test_box(mpr->sector_boxes + i, f);
+	const sector* sec1 = *(const sector**)lhs;
+	const sector* sec2 = *(const sector**)rhs;
+	return cefisequal(sec1->dist2, sec2->dist2, CEEPS_E4) ? 0 :
+		(sec1->dist2 < sec2->dist2 ? 1 : -1);
+}
 
-		/*glBegin(GL_LINES);
-		glColor3f(1, 0, 0);
-		glVertex3f(mpr->sector_boxes[i].min.x, mpr->sector_boxes[i].min.y, mpr->sector_boxes[i].min.z);
-		glColor3f(0, 1, 0);
-		glVertex3f(mpr->sector_boxes[i].max.x, mpr->sector_boxes[i].max.y, mpr->sector_boxes[i].max.z);
-		glEnd();*/
+void mprfile_apply_frustum(const vec3* eye, const frustum* f, mprfile* mpr)
+{
+	mpr->visible_sector_count = 0;
+
+	for (unsigned int i = 0; i < mpr->sector_count; ++i) {
+		sector* sec = mpr->sectors + i;
+		if (frustum_test_box(&sec->box, f)) {
+			vec3 mid;
+			vec3_mid(&sec->box.min, &sec->box.max, &mid);
+			sec->dist2 = vec3_dist2(eye, &mid);
+			mpr->visible_sectors[mpr->visible_sector_count++] = sec;
+		}
 	}
+
+	qsort(mpr->visible_sectors, mpr->visible_sector_count,
+		sizeof(sector*), sector_dist_comp);
 }
 
 static void render_sector(unsigned int sector_x, unsigned int sector_z,
@@ -635,7 +655,6 @@ static void render_sector(unsigned int sector_x, unsigned int sector_z,
 			};
 
 			if (NULL != water_allow) {
-				glDepthMask(GL_FALSE);
 				glEnable(GL_LIGHTING);
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -654,7 +673,6 @@ static void render_sector(unsigned int sector_x, unsigned int sector_z,
 			if (NULL != water_allow) {
 				glDisable(GL_BLEND);
 				glDisable(GL_LIGHTING);
-				glDepthMask(GL_TRUE);
 			}
 		}
 	}
@@ -666,23 +684,14 @@ static void render_sector(unsigned int sector_x, unsigned int sector_z,
 
 static void render_sectors(bool opacity, mprfile* mpr)
 {
-	for (unsigned int z = 0, i; z < mpr->sector_z_count; ++z) {
-		for (unsigned int x = 0; x < mpr->sector_x_count; ++x) {
-			i = z * mpr->sector_x_count + x;
-
-			if (!mpr->sector_allow[i]) {
-				continue;
-			}
-
-			sector* sec = mpr->sectors + i;
-
-			if (opacity) {
-				render_sector(x, z, sec->land_vertices,
-								sec->land_textures, NULL, mpr);
-			} else if (0 != sec->water) {
-				render_sector(x, z, sec->water_vertices,
-								sec->water_textures, sec->water_allow, mpr);
-			}
+	for (unsigned int i = 0; i < mpr->visible_sector_count; ++i) {
+		sector* sec = mpr->visible_sectors[i];
+		if (opacity) {
+			render_sector(sec->x, sec->z, sec->land_vertices,
+							sec->land_textures, NULL, mpr);
+		} else if (0 != sec->water) {
+			render_sector(sec->x, sec->z, sec->water_vertices,
+							sec->water_textures, sec->water_allow, mpr);
 		}
 	}
 }

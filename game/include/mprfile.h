@@ -16,7 +16,9 @@ extern void mprfile_close(mprfile* mpr);
 
 extern float mprfile_get_max_height(const mprfile* mpr);
 
-extern void mprfile_apply_frustum(const frustum* f, mprfile* mpr);
+extern void mprfile_apply_frustum(const vec3* eye,
+									const frustum* f, mprfile* mpr);
+
 extern void mprfile_render(mprfile* mpr);
 
 #ifdef __cplusplus

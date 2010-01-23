@@ -85,7 +85,7 @@ static void display(void)
 		camera_get_eye(&eye, cam), camera_get_forward(&forward, cam),
 		camera_get_right(&right, cam), camera_get_up(&up, cam), &f);
 
-	mprfile_apply_frustum(&f, mpr);
+	mprfile_apply_frustum(&eye, &f, mpr);
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
