@@ -29,9 +29,9 @@
 #include "cealloc.h"
 #include "cemath.h"
 #include "cegl.h"
+#include "ceinput.h"
 #include "logging.h"
 #include "timer.h"
-#include "input.h"
 #include "vec3.h"
 #include "frustum.h"
 #include "camera.h"
@@ -48,45 +48,45 @@ static void idle(void)
 
 	float elapsed = timer_elapsed(tmr);
 
-	input_advance(elapsed);
+	ceinput_advance(elapsed);
 
-	if (input_test(KB_ESCAPE)) {
+	if (ceinput_test(CEKB_ESCAPE)) {
 		timer_close(tmr);
 		camera_close(cam);
 		mprfile_close(mpr);
-		input_close();
+		ceinput_close();
 		logging_close();
 		cealloc_close();
 		exit(0);
 	}
 
-	if (input_test(KB_LEFT)) {
+	if (ceinput_test(CEKB_LEFT)) {
 		camera_move(-10.0f * elapsed, 0.0f, cam);
 	}
 
-	if (input_test(KB_UP)) {
+	if (ceinput_test(CEKB_UP)) {
 		camera_move(0.0f, 10.0f * elapsed, cam);
 	}
 
-	if (input_test(KB_RIGHT)) {
+	if (ceinput_test(CEKB_RIGHT)) {
 		camera_move(10.0f * elapsed, 0.0f, cam);
 	}
 
-	if (input_test(KB_DOWN)) {
+	if (ceinput_test(CEKB_DOWN)) {
 		camera_move(0.0f, -10.0f * elapsed, cam);
 	}
 
-	if (input_test(MB_WHEELUP)) {
+	if (ceinput_test(CEMB_WHEELUP)) {
 		camera_zoom(5.0f, cam);
 	}
 
-	if (input_test(MB_WHEELDOWN)) {
+	if (ceinput_test(CEMB_WHEELDOWN)) {
 		camera_zoom(-5.0f, cam);
 	}
 
-	if (input_test(MB_RIGHT)) {
-		camera_yaw_pitch(cedeg2rad(-0.25f * input_mouse_offset_x()),
-						cedeg2rad(-0.25f * input_mouse_offset_y()), cam);
+	if (ceinput_test(CEMB_RIGHT)) {
+		camera_yaw_pitch(cedeg2rad(-0.25f * ceinput_mouse_offset_x()),
+						cedeg2rad(-0.25f * ceinput_mouse_offset_y()), cam);
 	}
 
 	glutPostRedisplay();
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
 	logging_open();
 	logging_set_level(LOGGING_DEBUG_LEVEL);
 
-	input_open();
+	ceinput_open();
 
 	cegl_init();
 

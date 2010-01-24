@@ -28,9 +28,9 @@
 
 #include "cealloc.h"
 #include "cegl.h"
+#include "ceinput.h"
 #include "logging.h"
 #include "timer.h"
-#include "input.h"
 #include "memfile.h"
 #include "resfile.h"
 #include "texture.h"
@@ -49,13 +49,13 @@ static void idle(void)
 
 	float elapsed = timer_elapsed(tmr);
 
-	input_advance(elapsed);
+	ceinput_advance(elapsed);
 
-	if (input_test(KB_ESCAPE)) {
+	if (ceinput_test(CEKB_ESCAPE)) {
 		timer_close(tmr);
 		texture_close(tex);
 		resfile_close(res);
-		input_close();
+		ceinput_close();
 		logging_close();
 		cealloc_close();
 		exit(0);
@@ -204,7 +204,7 @@ int main(int argc, char* argv[])
 	logging_open();
 	logging_set_level(LOGGING_DEBUG_LEVEL);
 
-	input_open();
+	ceinput_open();
 
 	cegl_init();
 
