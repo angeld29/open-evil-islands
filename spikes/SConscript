@@ -27,7 +27,6 @@ env = env.Clone()
 env.AppendUnique(
 	CPPPATH=[os.path.join("#game", "include")],
 	LIBPATH=[os.path.join("#game", "lib")],
-	LINKFLAGS=["-Wl,-rpath,game/lib"],
 	LIBS=["game", "glut"],
 )
 

@@ -35,6 +35,6 @@ VariantDir("build", "src", duplicate=False)
 sources = ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))
 
 targets = [builder(os.path.join("lib", "game"), [os.path.join("build", node.name)
-	for node in sources]) for builder in (env.StaticLibrary, env.SharedLibrary)]
+	for node in sources]) for builder in (env.StaticLibrary,)]
 
 Return("targets")

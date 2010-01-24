@@ -31,6 +31,9 @@ variables.Add(SCons.Variables.BoolVariable("RELEASE",
 
 env = Environment(variables=variables)
 
+env["COMPILER"] = "gcc"
+env["GRAPHLIB"] = "opengl"
+
 env.AppendUnique(
 	CFLAGS=["-std=c99"],
 	CPPFLAGS=["-pipe", "-pedantic-errors"],
@@ -40,16 +43,20 @@ env.AppendUnique(
 	CPPFLAGS=["-O2", "-w"] if env["RELEASE"] else ["-g", "-Wall", "-Wextra"],
 )
 
-env.AppendUnique(
-	CPPDEFINES=["_GNU_SOURCE"],
-)
+if env["RELEASE"]:
+	env.AppendUnique(
+		CPPDEFINES=["NDEBUG"],
+	)
 
-env.AppendUnique(
-	CPPDEFINES=["GL_GLEXT_PROTOTYPES"],
-)
+if env["PLATFORM"] == "posix":
+	env.AppendUnique(
+		CPPDEFINES=["_GNU_SOURCE"],
+	)
 
-env["COMPILER"] = "gcc"
-env["GRAPHLIB"] = "opengl"
+if env["GRAPHLIB"] == "opengl":
+	env.AppendUnique(
+		CPPDEFINES=["GL_GLEXT_PROTOTYPES"],
+	)
 
 Export("env")
 
