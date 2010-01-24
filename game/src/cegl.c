@@ -18,6 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <string.h>
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 
@@ -28,7 +30,11 @@ static bool features[CEGL_FEATURE_COUNT];
 
 static bool check_extension(const char* name)
 {
+#ifdef GLU_VERSION_1_3
 	return gluCheckExtension((const GLubyte*)name, glGetString(GL_EXTENSIONS));
+#else
+	return NULL != strstr((const char*)glGetString(GL_EXTENSIONS), name);
+#endif
 }
 
 static void report_extension(const char* name, bool ok)
