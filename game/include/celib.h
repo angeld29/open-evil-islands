@@ -23,6 +23,8 @@
 
 #include <stddef.h>
 
+#define ceunused(var) (void)(var)
+
 #ifdef __cplusplus
 extern "C"
 {
