@@ -21,8 +21,6 @@
 
 import os
 
-VariantDir("build", "src", duplicate=False)
-
 Import("env")
 env = env.Clone()
 
@@ -32,6 +30,8 @@ env.AppendUnique(
 	LINKFLAGS=["-Wl,-rpath,game/lib"],
 	LIBS=["game", "glut"],
 )
+
+VariantDir("build", "src", duplicate=False)
 
 targets = []
 

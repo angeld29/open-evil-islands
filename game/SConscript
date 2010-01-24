@@ -23,14 +23,14 @@ import os.path
 
 import ceutils
 
-VariantDir("build", "src", duplicate=False)
-
 Import("env")
 env = env.Clone()
 
 env.AppendUnique(
 	CPPPATH=["include"],
 )
+
+VariantDir("build", "src", duplicate=False)
 
 sources = ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))
 
