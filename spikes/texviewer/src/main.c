@@ -183,6 +183,7 @@ int main(int argc, char* argv[])
 	}
 
 	if (optind >= argc) {
+		printf("Please, specify a path to any res file with textures\n");
 		usage(argv[0]);
 		return 1;
 	}

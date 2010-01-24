@@ -164,7 +164,14 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (optind != argc || NULL == tex_path || NULL == mpr_path) {
+	if (NULL == tex_path) {
+		printf("Please, specify a path to textures.res\n");
+		usage(argv[0]);
+		return 1;
+	}
+
+	if (NULL == mpr_path) {
+		printf("Please, specify a path to any mpr file\n");
 		usage(argv[0]);
 		return 1;
 	}
