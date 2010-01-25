@@ -56,14 +56,16 @@ static void setup_mag_min_params(int mipmap_count)
 	if (mipmap_count > 1) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 										GL_LINEAR_MIPMAP_LINEAR);
-#if defined GL_VERSION_1_2
+#ifdef GL_VERSION_1_2
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
-#elif defined GL_SGIS_texture_lod
-		// TODO: check extension
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL_SGIS, mipmap_count - 1);
-#else
-#error TODO: generate mipmaps?
-#endif
+#else /* TODO: must fix */
+#ifndef GL_TEXTURE_MAX_LEVEL_SGIS
+#define GL_TEXTURE_MAX_LEVEL_SGIS 0x813D
+#endif /* GL_TEXTURE_MAX_LEVEL_SGIS */
+		if (cegl_query_feature(CEGL_FEATURE_TEXTURE_LOD)) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL_SGIS, mipmap_count - 1);
+		}
+#endif /* GL_VERSION_1_2 */
 	}
 }
 
@@ -373,8 +375,13 @@ texture* texture_open(void* data)
 
 	glBindTexture(GL_TEXTURE_2D, tex->id);
 
+#ifdef GL_VERSION_1_2
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#else
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+#endif
 
 	uint32_t* mmp = data;
 

@@ -27,8 +27,18 @@ env = env.Clone()
 env.AppendUnique(
 	CPPPATH=[os.path.join("#game", "include")],
 	LIBPATH=[os.path.join("#game", "lib")],
-	LIBS=["game", "glut"],
+	LIBS=["game"],
 )
+
+if env["PLATFORM"] == "posix":
+	env.AppendUnique(
+		LIBS=["glut"],
+	)
+elif env["PLATFORM"] == "win32":
+	env.AppendUnique(
+		LIBS=["freeglut", "glu32",
+				"opengl32", "winmm", "gdi32"],
+	)
 
 VariantDir("build", "src", duplicate=False)
 

@@ -53,6 +53,11 @@ if env["PLATFORM"] == "posix":
 		CPPDEFINES=["_GNU_SOURCE"],
 	)
 
+if env["PLATFORM"] == "win32":
+	env.AppendUnique(
+		CPPDEFINES=["FREEGLUT_STATIC"],
+	)
+
 if env["GRAPHLIB"] == "opengl":
 	env.AppendUnique(
 		CPPDEFINES=["GL_GLEXT_PROTOTYPES"],
