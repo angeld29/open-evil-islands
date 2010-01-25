@@ -29,8 +29,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <assert.h>
 #include <math.h>
+#include <assert.h>
 
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -56,7 +56,14 @@ static void setup_mag_min_params(int mipmap_count)
 	if (mipmap_count > 1) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 										GL_LINEAR_MIPMAP_LINEAR);
+#if defined GL_VERSION_1_2
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
+#elif defined GL_SGIS_texture_lod
+		// TODO: check extension
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL_SGIS, mipmap_count - 1);
+#else
+#error TODO: generate mipmaps?
+#endif
 	}
 }
 
@@ -231,6 +238,7 @@ static void dxt_decompress(uint8_t* dst, uint8_t* src,
 	}
 }
 
+#ifdef GL_VERSION_1_3
 static bool dxt_generate_texture_directly(int mipmap_count,
 		int width, int height, int format, void* data)
 {
@@ -256,15 +264,18 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 
 	return true;
 }
+#endif /* GL_VERSION_1_3 */
 
 static bool dxt_generate_texture(int mipmap_count,
 		int width, int height, int format, void* data)
 {
+#ifdef GL_VERSION_1_3
 	if (cegl_query_feature(CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC) &&
 			dxt_generate_texture_directly(mipmap_count, width,
 											height, format, data)) {
 		return true;
 	}
+#endif /* GL_VERSION_1_3 */
 
 	uint8_t* src = data;
 
@@ -293,6 +304,21 @@ static bool dxt_generate_texture(int mipmap_count,
 
 	cefree(data, data_size);
 	return ok;
+}
+
+static void unpack_a1rgb5(uint16_t src, uint8_t* dst)
+{
+	assert(false);
+}
+
+static void unpack_argb4(uint16_t v, uint8_t* dst)
+{
+	assert(false);
+}
+
+static void unpack_argb8(uint32_t v, uint8_t* dst)
+{
+	assert(false);
 }
 
 static bool pnt3_generate_texture(int size, int width, int height, void* data)
