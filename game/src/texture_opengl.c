@@ -35,11 +35,11 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include "cealloc.h"
-#include "cebyteorder.h"
 #include "celib.h"
-#include "cemath.h"
 #include "cegl.h"
+#include "cebyteorder.h"
+#include "cealloc.h"
+#include "cemath.h"
 #include "logging.h"
 #include "mmpfile.h"
 #include "texture.h"
@@ -424,6 +424,6 @@ void texture_bind(texture* tex)
 
 void texture_unbind(texture* tex)
 {
-	tex = tex;
+	ceunused(tex);
 	glDisable(GL_TEXTURE_2D);
 }
