@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <assert.h>
 
 #include <getopt.h>
 #include <GL/glut.h>
@@ -135,13 +136,27 @@ static void reshape(int width, int height)
 	camera_set_aspect(width, height, cam);
 }
 
-static void usage(const char* name)
+static void usage()
 {
-	printf("Usage: %s [options]\n"
-			"Options:\n"
-			"-t <tex_path> Path to EI/Res/textures.res\n"
-			"-m <mpr_path> Path to EI/Maps/*.mpr\n"
-			"-h Show this message\n", name);
+	fprintf(stderr,
+		"===============================================================================\n"
+		"Cursed Earth is an open source, cross-platform port of Evil Islands.\n"
+		"Copyright (C) 2009-2010 Yanis Kurganov.\n\n"
+		"This program is free software: you can redistribute it and/or modify\n"
+		"it under the terms of the GNU General Public License as published by\n"
+		"the Free Software Foundation, either version 3 of the License, or\n"
+		"(at your option) any later version.\n\n"
+		"This program is distributed in the hope that it will be useful,\n"
+		"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
+		"GNU General Public License for more details.\n"
+		"===============================================================================\n\n"
+		"mprviewer - View and explore maps of Evil Islands.\n\n"
+		"Usage: mprviewer [options]\n"
+		"Options:\n"
+		"-t <tex_path> Path to EI/Res/textures.res\n"
+		"-m <mpr_path> Path to EI/Maps/*.mpr\n"
+		"-h Show this message\n");
 }
 
 int main(int argc, char* argv[])
@@ -150,7 +165,9 @@ int main(int argc, char* argv[])
 	const char* tex_path = NULL;
 	const char* mpr_path = NULL;
 
-	while (-1 != (c = getopt(argc, argv, "t:m:h")))  {
+	opterr = 0;
+
+	while (-1 != (c = getopt(argc, argv, ":t:m:h")))  {
 		switch (c) {
 		case 't':
 			tex_path = optarg;
@@ -158,21 +175,42 @@ int main(int argc, char* argv[])
 		case 'm':
 			mpr_path = optarg;
 			break;
+		case 'h':
+			usage();
+			return 0;
+		case ':':
+			usage();
+			fprintf(stderr, "\nOption '-%c' requires an argument.\n", optopt);
+			return 1;
+		case '?':
+			usage();
+			fprintf(stderr, "\nUnknown option '-%c'.\n", optopt);
+			return 1;
 		default:
-			usage(argv[0]);
+			assert(false);
+			usage();
 			return 1;
 		}
 	}
 
+	if (optind != argc) {
+		usage();
+		fprintf(stderr, "\nNon-option arguments are not permitted:\n");
+		for (int i = optind; i < argc; ++i) {
+			fprintf(stderr, "%s\n", argv[i]);
+		}
+		return 1;
+	}
+
 	if (NULL == tex_path) {
-		printf("Please, specify a path to textures.res\n");
-		usage(argv[0]);
+		usage();
+		fprintf(stderr, "\nPlease, specify a path to 'textures.res'.\n");
 		return 1;
 	}
 
 	if (NULL == mpr_path) {
-		printf("Please, specify a path to any mpr file\n");
-		usage(argv[0]);
+		usage();
+		fprintf(stderr, "\nPlease, specify a path to any MPR file.\n");
 		return 1;
 	}
 
@@ -198,20 +236,20 @@ int main(int argc, char* argv[])
 
 	resfile* tex_res = resfile_open_file(tex_path);
 	if (NULL == tex_res) {
-		printf("Could not open file '%s'\n", tex_path);
+		fprintf(stderr, "Could not open file '%s'.\n", tex_path);
 		return 1;
 	}
 
 	resfile* mpr_res = resfile_open_file(mpr_path);
 	if (NULL == mpr_res) {
-		printf("Could not open file '%s'\n", mpr_path);
+		fprintf(stderr, "Could not open file '%s'.\n", mpr_path);
 		resfile_close(tex_res);
 		return 1;
 	}
 
 	mpr = mprfile_open(mpr_res, tex_res);
 	if (!mpr) {
-		printf("Could not open file '%s'\n", mpr_path);
+		fprintf(stderr, "Could not open file '%s'.\n", mpr_path);
 		resfile_close(tex_res);
 		resfile_close(mpr_res);
 		return 1;
