@@ -108,14 +108,14 @@ static bool generate_texture(int index)
 	texture_close(tex);
 	tex = NULL;
 
-	void* data = malloc(resfile_node_size(index, res));
+	void* data = cealloc(resfile_node_size(index, res));
 	if (NULL == data || !resfile_node_data(index, data, res)) {
-		free(data);
+		cefree(data, resfile_node_size(index, res));
 		return false;
 	}
 
 	tex = texture_open(data);
-	free(data);
+	cefree(data, resfile_node_size(index, res));
 
 	return NULL != tex;
 }
