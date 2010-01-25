@@ -22,12 +22,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
+#include <assert.h>
 
 #include <getopt.h>
 #include <GL/glut.h>
 
-#include "cealloc.h"
+#include "celib.h"
 #include "cegl.h"
+#include "cealloc.h"
 #include "ceinput.h"
 #include "logging.h"
 #include "timer.h"
@@ -35,12 +37,14 @@
 #include "resfile.h"
 #include "texture.h"
 
+#define DEFAULT_DELAY 500
+
 resfile* res;
 texture* tex;
 timer* tmr;
 
-bool rnd = false;
-int delay = 500;
+bool rndmode = false;
+int delay = DEFAULT_DELAY;
 bool slideshow = true;
 
 static void idle(void)
@@ -123,34 +127,50 @@ static void next_texture(int index)
 	}
 
 	if (0 > index || index >= resfile_node_count(res)) {
-		printf("Next cycle...\n");
+		fprintf(stderr, "All textures (%d) have been browsed. "
+			"Let's make a fresh start.\n", resfile_node_count(res));
 		index = 0;
 	}
 
 	int d = delay;
 
 	if (!generate_texture(index)) {
-		printf("Could not load texture '%s'\n", resfile_node_name(index, res));
+		fprintf(stderr, "Could not load texture '%s'.\n",
+			resfile_node_name(index, res));
 		d = 0;
 	} else {
 		glutPostRedisplay();
 	}
 
 	if (slideshow) {
-		glutTimerFunc(d, next_texture, rnd ?
+		glutTimerFunc(d, next_texture, rndmode ?
 			rand() % resfile_node_count(res) : index + 1);
 	}
 }
 
-static void usage(const char* name)
+static void usage()
 {
-	printf("Usage: %s [options] <res_path>\n"
-			"Options:\n"
-			"-r Random texture mode\n"
-			"-d <delay, msec> Slideshow delay (default: %d)\n"
-			"-i <index> Specify texture index (slideshow disabled)\n"
-			"-n <name> Specify texture name (slideshow disabled)\n"
-			"-h Show this message\n", name, delay);
+	fprintf(stderr,
+		"===============================================================================\n"
+		"Cursed Earth is an open source, cross-platform port of Evil Islands.\n"
+		"Copyright (C) 2009-2010 Yanis Kurganov.\n\n"
+		"This program is free software: you can redistribute it and/or modify\n"
+		"it under the terms of the GNU General Public License as published by\n"
+		"the Free Software Foundation, either version 3 of the License, or\n"
+		"(at your option) any later version.\n\n"
+		"This program is distributed in the hope that it will be useful,\n"
+		"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
+		"GNU General Public License for more details.\n"
+		"===============================================================================\n\n"
+		"texviewer - View Evil Islands textures.\n\n"
+		"Usage: texviewer [options] <res_path>\n"
+		"Options:\n"
+		"-r Show textures in random mode.\n"
+		"-d <delay, msec> Slideshow delay (default: %d).\n"
+		"-n <name> Specify texture name (slideshow will be disabled).\n"
+		"-i <index> Specify texture index (slideshow will be disabled).\n"
+		"-h Show this message.\n", DEFAULT_DELAY);
 }
 
 int main(int argc, char* argv[])
@@ -160,31 +180,54 @@ int main(int argc, char* argv[])
 	int c, index = -1;
 	const char* name = NULL;
 
-	while (-1 != (c = getopt(argc, argv, "rd:i:n:h")))  {
+	opterr = 0;
+
+	while (-1 != (c = getopt(argc, argv, ":rd:n:i:h")))  {
 		switch (c) {
 		case 'r':
-			rnd = true;
+			rndmode = true;
 			break;
 		case 'd':
 			delay = atoi(optarg);
-			break;
-		case 'i':
-			slideshow = false;
-			index = atoi(optarg);
 			break;
 		case 'n':
 			slideshow = false;
 			name = optarg;
 			break;
+		case 'i':
+			slideshow = false;
+			index = atoi(optarg);
+			break;
+		case 'h':
+			usage();
+			return 0;
+		case ':':
+			usage();
+			fprintf(stderr, "\nOption '-%c' requires an argument.\n", optopt);
+			return 1;
+		case '?':
+			usage();
+			fprintf(stderr, "\nUnknown option '-%c'.\n", optopt);
+			return 1;
 		default:
-			usage(argv[0]);
+			assert(false);
+			usage();
 			return 1;
 		}
 	}
 
-	if (optind >= argc) {
-		printf("Please, specify a path to any res file with textures\n");
-		usage(argv[0]);
+	if (optind == argc) {
+		usage();
+		fprintf(stderr, "\nPlease, specify a path to any res file with textures.\n");
+		return 1;
+	}
+
+	if (argc - optind > 1) {
+		usage();
+		fprintf(stderr, "\nToo much non-option arguments:\n");
+		for (int i = optind; i < argc; ++i) {
+			fprintf(stderr, "%s\n", argv[i]);
+		}
 		return 1;
 	}
 
@@ -210,23 +253,25 @@ int main(int argc, char* argv[])
 
 	res = resfile_open_file(argv[optind]);
 	if (NULL == res) {
-		printf("Could not open file '%s'\n", argv[optind]);
+		fprintf(stderr, "Could not open file '%s'.\n", argv[optind]);
 		return 1;
 	}
 
 	if (NULL != name) {
 		index = resfile_node_index(name, res);
 		if (-1 == index) {
-			printf("Could not find texture '%s'\n", name);
+			fprintf(stderr, "Could not find texture '%s'.\n", name);
 			return 1;
 		}
 	} else if (-1 != index) {
 		if (0 > index || index >= resfile_node_count(res)) {
-			printf("Invalid index '%d'\n", index);
+			fprintf(stderr,
+				"Invalid index: %d. Allowed range for '%s' is [0...%d]\n",
+				index, argv[optind], resfile_node_count(res) - 1);
 			return 1;
 		}
 	} else {
-		index = 0;
+		index = rndmode ? rand() % resfile_node_count(res) : 0;
 	}
 
 	glutTimerFunc(0, next_texture, index);

@@ -151,12 +151,12 @@ static void usage()
 		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
 		"GNU General Public License for more details.\n"
 		"===============================================================================\n\n"
-		"mprviewer - View and explore maps of Evil Islands.\n\n"
+		"mprviewer - View and explore Evil Islands maps.\n\n"
 		"Usage: mprviewer [options]\n"
 		"Options:\n"
-		"-t <tex_path> Path to EI/Res/textures.res\n"
-		"-m <mpr_path> Path to EI/Maps/*.mpr\n"
-		"-h Show this message\n");
+		"-t <tex_path> Path to 'EI/Res/textures.res'.\n"
+		"-m <mpr_path> Path to 'EI/Maps/*.mpr'.\n"
+		"-h Show this message.\n");
 }
 
 int main(int argc, char* argv[])
@@ -249,7 +249,7 @@ int main(int argc, char* argv[])
 
 	mpr = mprfile_open(mpr_res, tex_res);
 	if (!mpr) {
-		fprintf(stderr, "Could not open file '%s'.\n", mpr_path);
+		fprintf(stderr, "Could not open mpr file.\n");
 		resfile_close(tex_res);
 		resfile_close(mpr_res);
 		return 1;
