@@ -23,8 +23,14 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#ifndef GL_TEXTURE_MAX_LEVEL_SGIS
+#define GL_TEXTURE_MAX_LEVEL_SGIS 0x813D
+#endif /* GL_TEXTURE_MAX_LEVEL_SGIS */
+
 #include "logging.h"
 #include "cegl.h"
+
+const GLenum CEGL_TEXTURE_MAX_LEVEL = GL_TEXTURE_MAX_LEVEL_SGIS;
 
 static bool features[CEGL_FEATURE_COUNT];
 
@@ -39,7 +45,7 @@ static bool check_extension(const char* name)
 
 static void report_extension(const char* name, bool ok)
 {
-	logging_write("Checking for '%s' extension... %s", name, ok ? "yes" : "no");
+	logging_write("Checking for '%s' extension... %s.", name, ok ? "yes" : "no");
 }
 
 void cegl_init(void)
@@ -58,9 +64,7 @@ void cegl_init(void)
 	features[CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
 		check_extension("GL_EXT_texture_compression_s3tc");
 	features[CEGL_FEATURE_TEXTURE_LOD] =
-		check_extension("GL_SGIS_texture_lod") ||
-		check_extension("GL_EXT_texture_lod") ||
-		check_extension("GL_EXT_texture_lod_bias");
+		check_extension("GL_SGIS_texture_lod");
 
 	report_extension("texture non power of two",
 		features[CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO]);
@@ -77,7 +81,7 @@ bool cegl_report_errors(void)
 	bool reported = false;
 	GLenum error;
 	while (GL_NO_ERROR != (error = glGetError())) {
-		logging_error("OpenGL error %u: %s", error, gluErrorString(error));
+		logging_error("OpenGL error %u: %s.", error, gluErrorString(error));
 		reported = true;
 	}
 	return reported;
