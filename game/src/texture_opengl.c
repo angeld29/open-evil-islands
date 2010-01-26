@@ -310,20 +310,133 @@ static bool dxt_generate_texture(int mipmap_count,
 	return ok;
 }
 
-static void unpack_a1rgb5(uint16_t src, uint8_t* dst)
+// !!!!!
+// test
+#undef GL_VERSION_1_2
+// !!!!!
+
+#ifndef GL_VERSION_1_2
+static bool generic16_generate_texture(int mipmap_count, int width,
+										int height, int format, void* data)
 {
-	assert(false);
+	GLenum internal_and_data_format;
+	int bpp;
+
+	switch (format) {
+	case MMP_R5G6B5:
+		internal_and_data_format = GL_RGB;
+		bpp = 3;
+		break;
+	case MMP_A1RGB5:
+	case MMP_ARGB4:
+		internal_and_data_format = GL_RGBA;
+		bpp = 4;
+		break;
+	default:
+		assert(false);
+	}
+
+	int pixel_count = 0;
+	for (int i = 0, w = width, h = height;
+			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
+		pixel_count += w * h;
+	}
+
+	uint16_t* src = data;
+	uint16_t* end = src + pixel_count;
+	int data_size = bpp * pixel_count;
+
+	if (NULL == (data = cealloc(data_size))) {
+		return false;
+	}
+
+	for (uint8_t* dst = data; src != end; ++src) {
+		switch (format) {
+		case MMP_R5G6B5:
+			*dst++ = *src >> 11;
+			*dst++ = (*src & 0x7e0) >> 5;
+			*dst++ = *src & 0x1f;
+			break;
+		case MMP_A1RGB5:
+			*dst++ = (*src & 0x7c00) >> 10;
+			*dst++ = (*src & 0x3e0) >> 5;
+			*dst++ = *src & 0x1f;
+			*dst++ = *src >> 15;
+			break;
+		case MMP_ARGB4:
+			//printf("%x\n", *src);
+			*dst++ = ((*src & 0xf00) >> 8) * 127;
+			*dst++ = ((*src & 0xf0) >> 4) * 127;
+			*dst++ = (*src & 0xf) * 127;
+			*dst++ = (*src >> 12) * 127;
+			//printf("%hhu %hhu %hhu %hhu\n", *(dst-4), *(dst-3), *(dst-2), *(dst-1));
+			break;
+		default:
+			assert(false);
+		}
+	}
+
+	bool ok = generate_texture(mipmap_count, internal_and_data_format,
+		width, height, bpp, internal_and_data_format, GL_UNSIGNED_BYTE, data);
+
+	cefree(data, data_size);
+	return ok;
 }
 
-static void unpack_argb4(uint16_t v, uint8_t* dst)
-{
-	assert(false);
-}
+/*
+RGBA4
+r mask: 240, bits: 4, shift: 8
+g mask: 240, bits: 4, shift: 4
+b mask: 240, bits: 4, shift: 0
+a mask: 240, bits: 4, shift: 12
 
-static void unpack_argb8(uint32_t v, uint8_t* dst)
+6666 102 102 102 102
+8888 136 136 136 136
+6666 102 102 102 102
+ffff 255 255 255 255
+eeee 238 238 238 238
+bbbb 187 187 187 187
+
+R5G6B5
+r mask: 248, bits: 5, shift: 11
+g mask: 252, bits: 6, shift: 5
+b mask: 248, bits: 5, shift: 0
+a mask: 0, bits: 0, shift: 0
+
+RGB5A1
+r mask: 248, bits: 5, shift: 10
+g mask: 248, bits: 5, shift: 5
+b mask: 248, bits: 5, shift: 0
+a mask: 128, bits: 1, shift: 15
+
+RGBA8
+r mask: 255, bits: 8, shift: 16
+g mask: 255, bits: 8, shift: 8
+b mask: 255, bits: 8, shift: 0
+a mask: 255, bits: 8, shift: 24
+*/
+
+static bool argb8_generate_texture(int mipmap_count, int width,
+										int height, void* data)
 {
-	assert(false);
+	static uint8_t dst[4];
+	uint32_t* src = data;
+
+	for (int i = 0, w = width, h = height;
+			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
+		for (uint32_t *end = src + w * h; src != end; ++src) {
+			dst[0] = (*src & 0xff0000) >> 16;
+			dst[1] = (*src & 0xff00) >> 8;
+			dst[2] = *src & 0xff;
+			dst[3] = *src >> 24;
+			*src = *(uint32_t*)dst;
+		}
+	}
+
+	return generate_texture(mipmap_count, GL_RGBA,
+		width, height, 4, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
+#endif /* GL_VERSION_1_2 */
 
 static bool pnt3_generate_texture(int size, int width, int height, void* data)
 {
@@ -356,8 +469,12 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		memcpy(dst, src - n, n * sizeof(uint32_t));
 	}
 
+#ifdef GL_VERSION_1_2
 	bool ok = generate_texture(1, GL_RGBA, width, height,
 		4, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
+#else
+	bool ok = argb8_generate_texture(1, width, height, data);
+#endif
 
 	if (size < data_size) {
 		cefree(data, data_size);
@@ -412,20 +529,39 @@ texture* texture_open(void* data)
 		ok = pnt3_generate_texture(mipmap_count_or_size, width, height, mmp);
 		break;
 	case MMP_R5G6B5:
+#ifdef GL_VERSION_1_2
 		ok = generate_texture(mipmap_count_or_size, GL_RGB,
 			width, height, 2, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, mmp);
+#else
+		ok = generic16_generate_texture(mipmap_count_or_size,
+										width, height, format, mmp);
+#endif
 		break;
 	case MMP_A1RGB5:
+#ifdef GL_VERSION_1_2
 		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
 			width, height, 2, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, mmp);
+#else
+		ok = generic16_generate_texture(mipmap_count_or_size,
+										width, height, format, mmp);
+#endif
 		break;
 	case MMP_ARGB4:
+#ifdef GL_VERSION_1_2
 		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
 			width, height, 2, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV, mmp);
+#else
+		ok = generic16_generate_texture(mipmap_count_or_size,
+										width, height, format, mmp);
+#endif
 		break;
 	case MMP_ARGB8:
+#ifdef GL_VERSION_1_2
 		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
 			width, height, 4, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, mmp);
+#else
+		ok = argb8_generate_texture(mipmap_count_or_size, width, height, mmp);
+#endif
 		break;
 	default:
 		assert(false);
