@@ -310,11 +310,6 @@ static bool dxt_generate_texture(int mipmap_count,
 	return ok;
 }
 
-// !!!!!
-// test
-#undef GL_VERSION_1_2
-// !!!!!
-
 #ifndef GL_VERSION_1_2
 static bool generic16_generate_texture(int mipmap_count, int width,
 										int height, int format, void* data)
@@ -353,23 +348,21 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 	for (uint8_t* dst = data; src != end; ++src) {
 		switch (format) {
 		case MMP_R5G6B5:
-			*dst++ = *src >> 11;
-			*dst++ = (*src & 0x7e0) >> 5;
-			*dst++ = *src & 0x1f;
+			*dst++ = (*src >> 11) * 255 / 31;
+			*dst++ = ((*src & 0x7e0) >> 5) * 255 / 63;
+			*dst++ = (*src & 0x1f) * 255 / 31;
 			break;
 		case MMP_A1RGB5:
-			*dst++ = (*src & 0x7c00) >> 10;
-			*dst++ = (*src & 0x3e0) >> 5;
-			*dst++ = *src & 0x1f;
-			*dst++ = *src >> 15;
+			*dst++ = ((*src & 0x7c00) >> 10) * 255 / 31;
+			*dst++ = ((*src & 0x3e0) >> 5) * 255 / 31;
+			*dst++ = (*src & 0x1f) * 255 / 31;
+			*dst++ = (*src >> 15) * 255;
 			break;
 		case MMP_ARGB4:
-			//printf("%x\n", *src);
-			*dst++ = ((*src & 0xf00) >> 8) * 127;
-			*dst++ = ((*src & 0xf0) >> 4) * 127;
-			*dst++ = (*src & 0xf) * 127;
-			*dst++ = (*src >> 12) * 127;
-			//printf("%hhu %hhu %hhu %hhu\n", *(dst-4), *(dst-3), *(dst-2), *(dst-1));
+			*dst++ = ((*src & 0xf00) >> 8) * 255 / 15;
+			*dst++ = ((*src & 0xf0) >> 4) * 255 / 15;
+			*dst++ = (*src & 0xf) * 255 / 15;
+			*dst++ = (*src >> 12) * 255 / 15;
 			break;
 		default:
 			assert(false);
@@ -382,39 +375,6 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 	cefree(data, data_size);
 	return ok;
 }
-
-/*
-RGBA4
-r mask: 240, bits: 4, shift: 8
-g mask: 240, bits: 4, shift: 4
-b mask: 240, bits: 4, shift: 0
-a mask: 240, bits: 4, shift: 12
-
-6666 102 102 102 102
-8888 136 136 136 136
-6666 102 102 102 102
-ffff 255 255 255 255
-eeee 238 238 238 238
-bbbb 187 187 187 187
-
-R5G6B5
-r mask: 248, bits: 5, shift: 11
-g mask: 252, bits: 6, shift: 5
-b mask: 248, bits: 5, shift: 0
-a mask: 0, bits: 0, shift: 0
-
-RGB5A1
-r mask: 248, bits: 5, shift: 10
-g mask: 248, bits: 5, shift: 5
-b mask: 248, bits: 5, shift: 0
-a mask: 128, bits: 1, shift: 15
-
-RGBA8
-r mask: 255, bits: 8, shift: 16
-g mask: 255, bits: 8, shift: 8
-b mask: 255, bits: 8, shift: 0
-a mask: 255, bits: 8, shift: 24
-*/
 
 static bool argb8_generate_texture(int mipmap_count, int width,
 										int height, void* data)
