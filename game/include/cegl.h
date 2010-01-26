@@ -36,6 +36,8 @@ typedef enum {
 	CEGL_FEATURE_COUNT
 } cegl_feature;
 
+extern const GLenum CEGL_COMPRESSED_RGB_S3TC_DXT1;
+extern const GLenum CEGL_COMPRESSED_RGBA_S3TC_DXT3;
 extern const GLenum CEGL_TEXTURE_MAX_LEVEL;
 
 extern void cegl_init(void);

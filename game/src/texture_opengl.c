@@ -255,7 +255,7 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 						((height + 3) >> 2) * (MMP_DXT1 == format ? 8 : 16);
 
 		glCompressedTexImage2D(GL_TEXTURE_2D, i, MMP_DXT1 == format ?
-			GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
+			CEGL_COMPRESSED_RGB_S3TC_DXT1 : CEGL_COMPRESSED_RGBA_S3TC_DXT3,
 			width, height, 0, data_size, src);
 
 		if (cegl_report_errors()) {
