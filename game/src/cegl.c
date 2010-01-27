@@ -73,6 +73,8 @@ void cegl_init(void)
 		check_extension("GL_NV_texture_rectangle");
 	features[CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
 		check_extension("GL_EXT_texture_compression_s3tc");
+	features[CEGL_FEATURE_TEXTURE_COMPRESSION_DXT1] =
+		check_extension("GL_EXT_texture_compression_dxt1");
 	features[CEGL_FEATURE_TEXTURE_LOD] =
 		check_extension("GL_SGIS_texture_lod") ||
 		check_extension("GL_EXT_texture_lod");
@@ -83,6 +85,8 @@ void cegl_init(void)
 		features[CEGL_FEATURE_TEXTURE_RECTANGLE]);
 	report_extension("texture compression s3tc",
 		features[CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC]);
+	report_extension("texture compression dxt1",
+		features[CEGL_FEATURE_TEXTURE_COMPRESSION_DXT1]);
 	report_extension("texture lod",
 		features[CEGL_FEATURE_TEXTURE_LOD]);
 }

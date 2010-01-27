@@ -246,6 +246,12 @@ static void dxt_decompress(uint8_t* dst, uint8_t* src,
 static bool dxt_generate_texture_directly(int mipmap_count,
 		int width, int height, int format, void* data)
 {
+	if (!cegl_query_feature(CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC) &&
+			!(MMP_DXT1 == format &&
+				cegl_query_feature(CEGL_FEATURE_TEXTURE_COMPRESSION_DXT1))) {
+		return false;
+	}
+
 	setup_mag_min_params(mipmap_count);
 
 	uint8_t* src = data;
@@ -274,9 +280,8 @@ static bool dxt_generate_texture(int mipmap_count,
 		int width, int height, int format, void* data)
 {
 #ifdef GL_VERSION_1_3
-	if (cegl_query_feature(CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC) &&
-			dxt_generate_texture_directly(mipmap_count, width,
-											height, format, data)) {
+	if (dxt_generate_texture_directly(mipmap_count, width,
+										height, format, data)) {
 		return true;
 	}
 #endif /* GL_VERSION_1_3 */
