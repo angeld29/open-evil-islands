@@ -21,15 +21,17 @@
 
 import site
 
-import SCons.Script
-
 site.addsitedir("scripts")
+
+import ceenv
+
+env = ceenv.create_environment()
+
+Export("env")
 
 variables = SCons.Variables.Variables(args=SCons.Script.ARGUMENTS)
 variables.Add(SCons.Variables.BoolVariable("RELEASE",
 	"Build the project in release mode", "no"))
-
-env = Environment(variables=variables)
 
 env["COMPILER"] = "gcc"
 env["GRAPHLIB"] = "opengl"
@@ -63,8 +65,6 @@ if env["GRAPHLIB"] == "opengl":
 		CPPDEFINES=["GL_GLEXT_PROTOTYPES"],
 	)
 
-Export("env")
-
 game = env.Alias("game", env.SConscript(dirs="game"))
 spikes = env.Alias("spikes", env.SConscript(dirs="spikes"))
 
@@ -72,4 +72,4 @@ env.Depends(spikes, game)
 
 env.Default(env.Alias("all", [game, spikes]))
 
-Help(variables.GenerateHelpText(env))
+Help(env["CEHELP"])
