@@ -35,12 +35,17 @@
 #define GL_TEXTURE_MAX_LEVEL_SGIS 0x813D
 #endif
 
+#ifndef GL_CLAMP_TO_EDGE_SGIS
+#define GL_CLAMP_TO_EDGE_SGIS 0x812F
+#endif
+
 #include "logging.h"
 #include "cegl.h"
 
 const GLenum CEGL_COMPRESSED_RGB_S3TC_DXT1 = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
 const GLenum CEGL_COMPRESSED_RGBA_S3TC_DXT3 = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 const GLenum CEGL_TEXTURE_MAX_LEVEL = GL_TEXTURE_MAX_LEVEL_SGIS;
+const GLenum CEGL_CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE_SGIS;
 
 static bool features[CEGL_FEATURE_COUNT];
 
@@ -78,6 +83,9 @@ void cegl_init(void)
 	features[CEGL_FEATURE_TEXTURE_LOD] =
 		check_extension("GL_SGIS_texture_lod") ||
 		check_extension("GL_EXT_texture_lod");
+	features[CEGL_FEATURE_TEXTURE_EDGE_CLAMP] =
+		check_extension("GL_SGIS_texture_edge_clamp") ||
+		check_extension("GL_EXT_texture_edge_clamp");
 
 	report_extension("texture non power of two",
 		features[CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO]);
@@ -89,6 +97,8 @@ void cegl_init(void)
 		features[CEGL_FEATURE_TEXTURE_COMPRESSION_DXT1]);
 	report_extension("texture lod",
 		features[CEGL_FEATURE_TEXTURE_LOD]);
+	report_extension("texture edge clamp",
+		features[CEGL_FEATURE_TEXTURE_EDGE_CLAMP]);
 }
 
 bool cegl_report_errors(void)
