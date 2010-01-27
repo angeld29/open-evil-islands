@@ -74,7 +74,8 @@ void cegl_init(void)
 	features[CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
 		check_extension("GL_EXT_texture_compression_s3tc");
 	features[CEGL_FEATURE_TEXTURE_LOD] =
-		check_extension("GL_SGIS_texture_lod");
+		check_extension("GL_SGIS_texture_lod") ||
+		check_extension("GL_EXT_texture_lod");
 
 	report_extension("texture non power of two",
 		features[CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO]);
