@@ -18,3 +18,22 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+import cedarwin
+import cemingw32cross
+import cemingw32
+import ceposix
+
+# Map SCons PLATFORM -> HOST
+defaults = {
+	"darwin": "darwin",
+	"posix": "posix",
+	"win32": "mingw32",
+}
+
+hosts = {
+	"darwin": cedarwin,
+	"mingw32cross": cemingw32cross,
+	"mingw32": cemingw32,
+	"posix": ceposix,
+}

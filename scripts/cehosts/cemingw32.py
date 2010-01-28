@@ -24,3 +24,10 @@ def configure(env):
 
 def get_tools():
 	return ["mingw"]
+
+"""
+if env["PLATFORM"] == "win32":
+	env.AppendUnique(
+		CPPDEFINES=["FREEGLUT_STATIC"],
+	)
+"""

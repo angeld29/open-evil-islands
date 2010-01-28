@@ -36,3 +36,14 @@ def configure(env):
 
 def get_tools():
 	return ["gnulink", "gcc", "g++", "gas", "ar"]
+
+"""
+env.AppendUnique(
+	CFLAGS=["-std=c99"],
+	CPPFLAGS=["-pipe", "-pedantic-errors"],
+)
+if env["PLATFORM"] == "posix":
+	env.AppendUnique(
+		CPPDEFINES=["_GNU_SOURCE"],
+	)
+"""
