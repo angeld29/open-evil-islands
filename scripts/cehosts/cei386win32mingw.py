@@ -23,5 +23,6 @@ def get_description():
 	return "Minimalist GNU for Windows."
 
 def configure(env):
-	env.Tool("mingw")
-	env["COMPILER"] = "gcc"
+	#env.Tool("mingw")
+	#env["COMPILER"] = "gcc"
+	raise NotImplementedError
