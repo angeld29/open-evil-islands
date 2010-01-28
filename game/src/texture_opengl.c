@@ -74,8 +74,11 @@ static void setup_mag_min_params(int mipmap_count)
 static bool scale_texture(int* width, int* height,
 		GLenum data_format, GLenum data_type, void* data)
 {
-	int new_width = cemin(*width, cegl_max_texture_size());
-	int new_height = cemin(*height, cegl_max_texture_size());
+	GLint max_texture_size;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
+
+	int new_width = cemin(*width, max_texture_size);
+	int new_height = cemin(*height, max_texture_size);
 
 	if (!cegl_query_feature(CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO)) {
 		float int_width, int_height;
@@ -114,11 +117,21 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 		return false;
 	}
 
-	assert(0 == width % 4);
-	assert(0 == height % 4);
+	GLint alignment;
+	glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
+
+	const bool not_aligned = 0 != width % alignment;
+
+	if (not_aligned) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	}
 
 	glTexImage2D(GL_TEXTURE_2D, level, internal_format,
 		width, height, 0, data_format, data_type, data);
+
+	if (not_aligned) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
+	}
 
 	if (cegl_report_errors()) {
 		logging_error("glTexImage2D failed.");

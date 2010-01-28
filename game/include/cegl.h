@@ -51,7 +51,6 @@ extern void cegl_init(void);
 extern bool cegl_report_errors(void);
 
 extern bool cegl_query_feature(cegl_feature feature);
-extern int cegl_max_texture_size(void);
 
 #ifdef __cplusplus
 }

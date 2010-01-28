@@ -135,10 +135,3 @@ bool cegl_query_feature(cegl_feature feature)
 {
 	return features[feature];
 }
-
-int cegl_max_texture_size(void)
-{
-	GLint max_texture_size;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
-	return max_texture_size;
-}
