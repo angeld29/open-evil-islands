@@ -244,17 +244,11 @@ static void dxt_decompress(uint8_t* dst, uint8_t* src,
 
 #ifdef GL_VERSION_1_3
 static bool dxt_generate_texture_directly(int mipmap_count,
-		int width, int height, int format, void* data)
+		int width, int height, int format, const void* data)
 {
-	if (!cegl_query_feature(CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC) &&
-			!(MMP_DXT1 == format &&
-				cegl_query_feature(CEGL_FEATURE_TEXTURE_COMPRESSION_DXT1))) {
-		return false;
-	}
-
 	setup_mag_min_params(mipmap_count);
 
-	uint8_t* src = data;
+	const uint8_t* src = data;
 
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		int data_size = ((width + 3) >> 2) *
@@ -280,8 +274,11 @@ static bool dxt_generate_texture(int mipmap_count,
 		int width, int height, int format, void* data)
 {
 #ifdef GL_VERSION_1_3
-	if (dxt_generate_texture_directly(mipmap_count, width,
-										height, format, data)) {
+	if ((cegl_query_feature(CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC) ||
+			(MMP_DXT1 == format &&
+				cegl_query_feature(CEGL_FEATURE_TEXTURE_COMPRESSION_DXT1))) &&
+			dxt_generate_texture_directly(mipmap_count, width,
+											height, format, data)) {
 		return true;
 	}
 #endif /* GL_VERSION_1_3 */
@@ -321,21 +318,16 @@ static bool generic16_argb_generate_texture_packed(int mipmap_count, int width,
 {
 	uint16_t* src = data;
 	GLenum data_type;
-	uint16_t amask;
 	int ashift, rgbshift;
 
 	switch (format) {
 	case MMP_A1RGB5:
 		data_type = CEGL_UNSIGNED_SHORT_5_5_5_1;
-		amask = 0x8000;
-		ashift = 15;
-		rgbshift = 1;
+		rgbshift = 1; ashift = 15;
 		break;
 	case MMP_ARGB4:
 		data_type = CEGL_UNSIGNED_SHORT_4_4_4_4;
-		amask = 0xf000;
-		ashift = 12;
-		rgbshift = 4;
+		rgbshift = 4; ashift = 12;
 		break;
 	default:
 		assert(false);
@@ -344,36 +336,50 @@ static bool generic16_argb_generate_texture_packed(int mipmap_count, int width,
 	for (int i = 0, w = width, h = height;
 			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
 		for (uint16_t *end = src + w * h; src != end; ++src) {
-			*src = (*src & amask) >> ashift | *src << rgbshift;
+			*src = *src << rgbshift | *src >> ashift;
 		}
 	}
 
 	return generate_texture(mipmap_count, GL_RGBA,
-		width, height, 4, GL_RGBA, data_type, data);
+		width, height, 2, GL_RGBA, data_type, data);
 }
 
 static bool generic16_generate_texture(int mipmap_count, int width,
 										int height, int format, void* data)
 {
 	GLenum internal_and_data_format;
-	int bpp;
+	int bpp, rshift, gshift, ashift, rdiv, gdiv, bdiv, adiv;
+	uint16_t rmask, gmask, bmask;
 
 	switch (format) {
 	case MMP_R5G6B5:
 		internal_and_data_format = GL_RGB;
 		bpp = 3;
+		rshift = 11; gshift = 5;
+		rdiv = 31; gdiv = 63; bdiv = 31;
+		rmask = 0xf800; gmask = 0x7e0; bmask = 0x1f;
 		break;
 	case MMP_A1RGB5:
-	case MMP_ARGB4:
-		if (cegl_query_feature(CEGL_FEATURE_PACKED_PIXELS)) {
-			return generic16_argb_generate_texture_packed(mipmap_count, width,
-														height, format, data);
-		}
 		internal_and_data_format = GL_RGBA;
 		bpp = 4;
+		rshift = 10; gshift = 5; ashift = 15;
+		rdiv = 31; gdiv = 31; bdiv = 31; adiv = 1;
+		rmask = 0x7c00; gmask = 0x3e0; bmask = 0x1f;
+		break;
+	case MMP_ARGB4:
+		internal_and_data_format = GL_RGBA;
+		bpp = 4;
+		rshift = 8; gshift = 4; ashift = 12;
+		rdiv = 15; gdiv = 15; bdiv = 15; adiv = 15;
+		rmask = 0xf00; gmask = 0xf0; bmask = 0xf;
 		break;
 	default:
 		assert(false);
+	}
+
+	if (4 == bpp && cegl_query_feature(CEGL_FEATURE_PACKED_PIXELS)) {
+		return generic16_argb_generate_texture_packed(mipmap_count, width,
+														height, format, data);
 	}
 
 	int pixel_count = 0;
@@ -391,26 +397,11 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 	}
 
 	for (uint8_t* dst = data; src != end; ++src) {
-		switch (format) {
-		case MMP_R5G6B5:
-			*dst++ = (*src >> 11) * 255 / 31;
-			*dst++ = ((*src & 0x7e0) >> 5) * 255 / 63;
-			*dst++ = (*src & 0x1f) * 255 / 31;
-			break;
-		case MMP_A1RGB5:
-			*dst++ = ((*src & 0x7c00) >> 10) * 255 / 31;
-			*dst++ = ((*src & 0x3e0) >> 5) * 255 / 31;
-			*dst++ = (*src & 0x1f) * 255 / 31;
-			*dst++ = (*src >> 15) * 255;
-			break;
-		case MMP_ARGB4:
-			*dst++ = ((*src & 0xf00) >> 8) * 255 / 15;
-			*dst++ = ((*src & 0xf0) >> 4) * 255 / 15;
-			*dst++ = (*src & 0xf) * 255 / 15;
-			*dst++ = (*src >> 12) * 255 / 15;
-			break;
-		default:
-			assert(false);
+		*dst++ = ((*src & rmask) >> rshift) * 255 / rdiv;
+		*dst++ = ((*src & gmask) >> gshift) * 255 / gdiv;
+		*dst++ = (*src & bmask) * 255 / bdiv;
+		if (4 == bpp) {
+			*dst++ = (*src >> ashift) * 255 / adiv;
 		}
 	}
 
@@ -431,7 +422,7 @@ static bool argb8_generate_texture(int mipmap_count, int width,
 			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
 		for (uint32_t *end = src + w * h; src != end; ++src) {
 			if (cegl_query_feature(CEGL_FEATURE_PACKED_PIXELS)) {
-				*src = (*src & 0xff000000) >> 24 | *src << 8;
+				*src = *src << 8 | *src >> 24;
 			} else {
 				dst[0] = (*src & 0xff0000) >> 16;
 				dst[1] = (*src & 0xff00) >> 8;
