@@ -77,6 +77,7 @@ def create_environment():
 		toolpath=os.path.join("#scripts", "cetools")) # TODO: tools=[] ?
 
 	env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
+	env["GEN_PATH"] = os.path.join("$HOST", "$BUILD_MODE")
 
 	cehosts.hosts[env["HOST"]].configure(env)
 	cegraphlibs.graphlibs[env["GRAPHICS_LIBRARY"]].configure(env)

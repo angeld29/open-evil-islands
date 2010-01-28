@@ -21,12 +21,14 @@
 
 import os
 
+import SCons.Util
+
 Import("env")
 env = env.Clone()
 
 env.AppendUnique(
 	CPPPATH=[os.path.join("#game", "include")],
-	LIBPATH=[os.path.join("#game", "lib")],
+	LIBPATH=[os.path.join("#game", "lib", "$GEN_PATH")],
 	LIBS=["game"],
 )
 
@@ -40,14 +42,16 @@ elif env["PLATFORM"] == "win32":
 				"opengl32", "winmm", "gdi32"],
 	)
 
-targets = []
+def make_target(name):
+	env.VariantDir(os.path.join(name, "build", "$GEN_PATH"),
+		os.path.join(name, "src"), duplicate=False)
+	return env.Alias(name, env.Command(os.path.join(name, "bin",
+		SCons.Util.adjustixes(name, env.subst("$PROGPREFIX"),
+		env.subst("$PROGSUFFIX"))), env.Program(os.path.join(name, "bin",
+		"$GEN_PATH", name), [os.path.join(name, "build", "$GEN_PATH",
+		node.name) for node in env.Glob(os.path.join(name, "src", "*.c"))]),
+		Copy("$TARGET", "$SOURCE")))
 
-for name in os.listdir("."):
-	if os.path.isdir(name):
-		VariantDir(os.path.join(name, "build"),
-			os.path.join(name, "src"), duplicate=False)
-		targets.append(env.Alias(name, env.Program(os.path.join(
-			name, "bin", name), [os.path.join(name, "build", node.name)
-			for node in env.Glob(os.path.join(name, "src", "*.c"))])))
+targets = [make_target(name) for name in os.listdir(".") if os.path.isdir(name)]
 
 Return("targets")

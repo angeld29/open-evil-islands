@@ -21,6 +21,8 @@
 
 import os.path
 
+import SCons.Util
+
 import ceutils
 
 Import("env")
@@ -30,11 +32,13 @@ env.AppendUnique(
 	CPPPATH=["include"],
 )
 
-VariantDir("build", "src", duplicate=False)
+env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
 
-sources = ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))
-
-targets = [env.StaticLibrary(os.path.join("lib", "game"),
-			[os.path.join("build", node.name) for node in sources])]
+targets = [env.Command(os.path.join("lib", SCons.Util.adjustixes("game",
+	env.subst("$LIBPREFIX"), env.subst("$LIBSUFFIX"))),
+	env.StaticLibrary(os.path.join("lib", "$GEN_PATH", "game"),
+	[os.path.join("build", "$GEN_PATH", node.name) for node in
+	ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))]),
+	Copy("$TARGET", "$SOURCE"))]
 
 Return("targets")
