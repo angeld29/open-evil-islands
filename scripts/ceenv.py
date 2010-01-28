@@ -31,17 +31,8 @@ import SCons.Variables.PathVariable
 import SCons.Variables.ListVariable
 import SCons.Variables.EnumVariable
 
-import ceposix
-import cewin32
-import cewin32cross
-import cedarwin
-
-targets = {
-	"posix": ceposix,
-	"win32": cewin32,
-	"win32cross": cewin32cross,
-	"darwin": cedarwin,
-}
+import cehosts
+import cegraphlibs
 
 def create_environment():
 	defenv = SCons.Defaults.DefaultEnvironment()
@@ -51,53 +42,60 @@ def create_environment():
 	config.read(os.path.join(topdir, cfg)
 				for cfg in ("cursedearth.cfg", "cursedearth_local.cfg"))
 
+	args_get = lambda opt, default=None: args.get(opt, default)
+	config_get = lambda opt, default=None: config.get("CE", opt) \
+								if config.has_option("CE", opt) else default
+
+	variables = SCons.Variables.Variables(args=SCons.Script.ARGUMENTS)
+
+	variables.Add(SCons.Variables.EnumVariable("HOST",
+		"Build for HOST",
+		config_get("HOST", cehosts.defaults[defenv["PLATFORM"]]),
+		cehosts.hosts.keys()))
+
+	variables.Add(SCons.Variables.EnumVariable("GRAPHICS_LIBRARY",
+		"Select graphics library",
+		config_get("GRAPHICS_LIBRARY", cegraphlibs.defaults[defenv["PLATFORM"]]),
+		cegraphlibs.graphlibs.keys()))
+
+	variables.Add(SCons.Variables.BoolVariable("RELEASE",
+		"Build the project in release mode", config_get("RELEASE", "yes")))
+
+	variables.Add("ADDITIONAL_INCLUDE_PATHS",
+		"Additional include directories (semicolon-separated list of names)",
+		config_get("ADDITIONAL_INCLUDE_PATHS", []))
+
+	variables.Add("ADDITIONAL_LIBRARY_PATHS",
+		"Additional library directories (semicolon-separated list of names)",
+		config_get("ADDITIONAL_LIBRARY_PATHS", []))
+
+	variables.Add("ADDITIONAL_LIBS",
+		"Additional libraries (semicolon-separated list of names)",
+		config_get("ADDITIONAL_LIBS", []))
+
+	env = SCons.Environment.Environment(variables=variables,
+		toolpath=os.path.join("#scripts", "cetools")) # TODO: tools=[] ?
+
+	env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
+
+	cehosts.hosts[env["HOST"]].configure(env)
+	cegraphlibs.graphlibs[env["GRAPHICS_LIBRARY"]].configure(env)
+
+	if env["RELEASE"]:
+		env.AppendUnique(CPPDEFINES=["NDEBUG"])
+
+	"""
 	split_by_sep = lambda name: name.split(';')
 	path_builder = lambda sec, opt: os.path.normpath(config.get(sec, opt))
 	path_list_builder = lambda sec, opt: [os.path.normpath(path) for path
 		in split_by_sep(config.get(sec, opt))]
-
-	variables = SCons.Variables.Variables(args=SCons.Script.ARGUMENTS)
-
-	target = config.get("CE", "CETARGET") \
-			if config.has_option("CE", "CETARGET") else defenv["PLATFORM"]
-
-	variables.Add(EnumVariable("CETARGET",
-		"Build target", target, targets.keys()))
-
-	variables.Add(SCons.Variables.BoolVariable("CERELEASE",
-		"Build the project in release mode",
-		config.get("CE", "CERELEASE")))
-
-	variables.Add("CEINCPATHS",
-		"Additional include directories (semicolon-separated list of names)",
-		raw_path_list_builder("CE", "CEINCPATHS")
-		if config.has_option("CE", "CEINCPATHS") else [])
-
-	variables.Add("CELIBPATHS",
-		"Additional library directories (semicolon-separated list of names)",
-		raw_path_list_builder("CE", "CELIBPATHS")
-		if config.has_option("CE", "CELIBPATHS") else [])
-
-	variables.Add("CELIBS",
-		"Additional libraries (semicolon-separated list of names)",
-		split_by_sep(config.get("CE", "CELIBS"))
-		if config.has_option("CE", "CELIBS") else [])
-
-	env = SCons.Environment.Environment(variables=variables,
-		tools=targets[].get_tools(),
-		toolpath=[os.path.join("#scripts", "tools")])
-
-	env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
-
-	configurations[env["PLATFORM"]].configure(env)
-
 	env.AppendUnique(
-		CPPPATH=["$QFLAC_INCPATHS"],
-		LIBPATH=["$QFLAC_LIBPATHS"],
-		LIBS=["$QFLAC_LIBS"],
-		CXXFLAGS=["$QFLAC_CXXFLAGS"],
+		CPPPATH=[],
+		LIBPATH=[],
+		LIBS=[],
 	)
+	"""
 
-	env["CEHELP"] = variables.GenerateHelpText(env)
+	env.Help(variables.GenerateHelpText(env))
 
 	return env

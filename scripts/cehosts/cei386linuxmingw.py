@@ -19,8 +19,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+def get_description():
+	return "Minimalist GNU win32 (cross) compiler. " \
+			"A Linux hosted, win32 target, cross compiler for C/C++."
+
 def configure(env):
 	raise NotImplementedError
-
-def get_tools():
-	return ["mingw"]

@@ -19,22 +19,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os.path
+def get_description():
+	return "Not available."
 
-import ceutils
-
-Import("env")
-env = env.Clone()
-
-env.AppendUnique(
-	CPPPATH=["include"],
-)
-
-VariantDir("build", "src", duplicate=False)
-
-sources = ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))
-
-targets = [env.StaticLibrary(os.path.join("lib", "game"),
-			[os.path.join("build", node.name) for node in sources])]
-
-Return("targets")
+def configure(env):
+	env.AppendUnique(
+		CPPDEFINES=["GL_GLEXT_PROTOTYPES", "FREEGLUT_STATIC"],
+	)

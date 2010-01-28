@@ -19,15 +19,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+def get_description():
+	return "Minimalist GNU for Windows."
+
 def configure(env):
-	raise NotImplementedError
-
-def get_tools():
-	return ["mingw"]
-
-"""
-if env["PLATFORM"] == "win32":
-	env.AppendUnique(
-		CPPDEFINES=["FREEGLUT_STATIC"],
-	)
-"""
+	env.Tool("mingw")
+	env["COMPILER"] = "gcc"

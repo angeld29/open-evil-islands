@@ -39,7 +39,7 @@ def filter_sources(env, nodes):
 			return (node, priority) if node else None
 		result = select_by_key(env["PLATFORM"], 0) or \
 				select_by_key(env["COMPILER"], 1) or \
-				select_by_key(env["GRAPHLIB"], 2) or \
+				select_by_key(env["GRAPHICS_LIBRARY"], 2) or \
 				select_by_key("generic", 3)
 		if result:
 			node, priority = result

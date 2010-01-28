@@ -19,8 +19,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+def get_description():
+	return "Not available."
+
 def configure(env):
 	raise NotImplementedError
-
-def get_tools():
-	return ["applelink", "gcc", "g++", "as", "ar"]

@@ -20,20 +20,20 @@
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import cedarwin
-import cemingw32cross
-import cemingw32
-import ceposix
-
-# Map SCons PLATFORM -> HOST
-defaults = {
-	"darwin": "darwin",
-	"posix": "posix",
-	"win32": "mingw32",
-}
+import cei386linuxgnu
+import cei386linuxmingw
+import cei386win32mingw
 
 hosts = {
 	"darwin": cedarwin,
-	"mingw32cross": cemingw32cross,
-	"mingw32": cemingw32,
-	"posix": ceposix,
+	"i386-linux-gnu": cei386linuxgnu,
+	"i386-linux-mingw": cei386linuxmingw,
+	"i386-win32-mingw": cei386win32mingw,
+}
+
+# SCons PLATFORM -> CE HOST
+defaults = {
+	"darwin": "darwin",
+	"posix": "i386-linux-gnu",
+	"win32": "i386-win32-mingw",
 }

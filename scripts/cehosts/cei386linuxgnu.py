@@ -19,11 +19,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+def get_description():
+	return "The GNU C/C++ compiler for Linux."
+
 def configure_release_mode(env):
-	env.AppendUnique(CXXFLAGS=["-O2", "-w"])
+	env.AppendUnique(
+		CCFLAGS=["-O2", "-w"],
+	)
 
 def configure_debug_mode(env):
-	env.AppendUnique(CXXFLAGS=["-g", "-Wall", "-Wextra"])
+	env.AppendUnique(
+		CCFLAGS=["-g", "-Wall", "-Wextra"],
+	)
 
 configure_build_mode = {
 	"release": configure_release_mode,
@@ -31,19 +38,12 @@ configure_build_mode = {
 }
 
 def configure(env):
-	env.AppendUnique(CXXFLAGS=["-pipe"])
-	configure_build_mode[env["BUILD_MODE"]](env)
-
-def get_tools():
-	return ["gnulink", "gcc", "g++", "gas", "ar"]
-
-"""
-env.AppendUnique(
-	CFLAGS=["-std=c99"],
-	CPPFLAGS=["-pipe", "-pedantic-errors"],
-)
-if env["PLATFORM"] == "posix":
+	for tool in ["gnulink", "gcc", "g++", "gas", "ar"]:
+		env.Tool(tool)
+	env["COMPILER"] = "gcc"
 	env.AppendUnique(
+		CFLAGS=["-std=c99"],
+		CCFLAGS=["-pipe", "-pedantic-errors"],
 		CPPDEFINES=["_GNU_SOURCE"],
 	)
-"""
+	configure_build_mode[env["BUILD_MODE"]](env)

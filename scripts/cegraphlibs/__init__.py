@@ -19,22 +19,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os.path
+import ceopengl
 
-import ceutils
+graphlibs = {
+	"opengl": ceopengl,
+}
 
-Import("env")
-env = env.Clone()
-
-env.AppendUnique(
-	CPPPATH=["include"],
-)
-
-VariantDir("build", "src", duplicate=False)
-
-sources = ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))
-
-targets = [env.StaticLibrary(os.path.join("lib", "game"),
-			[os.path.join("build", node.name) for node in sources])]
-
-Return("targets")
+# SCons PLATFORM -> CE GRAPHICS_LIBRARY
+defaults = {
+	"darwin": "opengl",
+	"posix": "opengl",
+	"win32": "opengl",
+}

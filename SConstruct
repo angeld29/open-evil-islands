@@ -29,47 +29,9 @@ env = ceenv.create_environment()
 
 Export("env")
 
-variables = SCons.Variables.Variables(args=SCons.Script.ARGUMENTS)
-variables.Add(SCons.Variables.BoolVariable("RELEASE",
-	"Build the project in release mode", "no"))
-
-env["COMPILER"] = "gcc"
-env["GRAPHLIB"] = "opengl"
-
-env.AppendUnique(
-	CFLAGS=["-std=c99"],
-	CPPFLAGS=["-pipe", "-pedantic-errors"],
-)
-
-env.AppendUnique(
-	CPPFLAGS=["-O2", "-w"] if env["RELEASE"] else ["-g", "-Wall", "-Wextra"],
-)
-
-if env["RELEASE"]:
-	env.AppendUnique(
-		CPPDEFINES=["NDEBUG"],
-	)
-
-if env["PLATFORM"] == "posix":
-	env.AppendUnique(
-		CPPDEFINES=["_GNU_SOURCE"],
-	)
-
-if env["PLATFORM"] == "win32":
-	env.AppendUnique(
-		CPPDEFINES=["FREEGLUT_STATIC"],
-	)
-
-if env["GRAPHLIB"] == "opengl":
-	env.AppendUnique(
-		CPPDEFINES=["GL_GLEXT_PROTOTYPES"],
-	)
-
 game = env.Alias("game", env.SConscript(dirs="game"))
 spikes = env.Alias("spikes", env.SConscript(dirs="spikes"))
 
 env.Depends(spikes, game)
 
 env.Default(env.Alias("all", [game, spikes]))
-
-Help(env["CEHELP"])

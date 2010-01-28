@@ -40,8 +40,6 @@ elif env["PLATFORM"] == "win32":
 				"opengl32", "winmm", "gdi32"],
 	)
 
-VariantDir("build", "src", duplicate=False)
-
 targets = []
 
 for name in os.listdir("."):
