@@ -19,9 +19,17 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import SCons.Errors
+
+import cecompilers.cegcc as gcc
+
 def get_description():
 	return "Minimalist GNU for Windows."
 
 def configure(env):
-	#env["TARGET_PLATFORM"] = "win32"
-	raise NotImplementedError
+	if env["PLATFORM"] != "win32":
+		raise SCons.Errors.StopError("This host is available only on Windows.")
+
+	env["TARGET_PLATFORM"] = "win32"
+
+	gcc.configure(env)
