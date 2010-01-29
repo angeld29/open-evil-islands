@@ -718,7 +718,11 @@ static void render_sectors(bool opacity, mprfile* mpr)
 
 void mprfile_render(mprfile* mpr)
 {
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	render_sectors(true, mpr); // opacity geometry first
 	render_sectors(false, mpr); // then water/swamp/lava
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
 }

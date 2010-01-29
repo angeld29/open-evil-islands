@@ -82,9 +82,6 @@ void cegl_init(void)
 {
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
 	features[CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO] =
 		check_extension("GL_ARB_texture_non_power_of_two");
 	features[CEGL_FEATURE_TEXTURE_RECTANGLE] =
