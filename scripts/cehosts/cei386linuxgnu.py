@@ -19,6 +19,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import SCons.Errors
+
 def get_description():
 	return "The GNU C/C++ compiler for Linux."
 
@@ -38,12 +40,19 @@ configure_build_mode = {
 }
 
 def configure(env):
+	if env["PLATFORM"] != "posix":
+		raise SCons.Errors.StopError("This host is available only on Linux.")
+
 	for tool in ["gnulink", "gcc", "g++", "gas", "ar"]:
 		env.Tool(tool)
+
+	env["OS"] = "posix"
 	env["COMPILER"] = "gcc"
+
 	env.AppendUnique(
 		CFLAGS=["-std=c99"],
 		CCFLAGS=["-pipe", "-pedantic-errors"],
 		CPPDEFINES=["_GNU_SOURCE"],
 	)
+
 	configure_build_mode[env["BUILD_MODE"]](env)

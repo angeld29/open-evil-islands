@@ -73,8 +73,7 @@ def create_environment():
 		"Additional libraries (semicolon-separated list of names)",
 		config_get("ADDITIONAL_LIBS", []))
 
-	env = SCons.Environment.Environment(variables=variables,
-		toolpath=os.path.join("#scripts", "cetools")) # TODO: tools=[] ?
+	env = SCons.Environment.Environment(variables=variables)
 
 	env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
 	env["GEN_PATH"] = os.path.join("$HOST", "$BUILD_MODE")

@@ -37,15 +37,16 @@ def filter_sources(env, nodes):
 		def select_by_key(key, priority):
 			node = next((node for node in values if get_key(node) == key), None)
 			return (node, priority) if node else None
-		result = select_by_key(env["PLATFORM"], 0) or \
-				select_by_key(env["COMPILER"], 1) or \
-				select_by_key(env["GRAPHICS_LIBRARY"], 2) or \
-				select_by_key("generic", 3)
+		result = select_by_key(env["HOST"], 0) or \
+				select_by_key(env["OS"], 1) or \
+				select_by_key(env["COMPILER"], 2) or \
+				select_by_key(env["GRAPHICS_LIBRARY"], 3) or \
+				select_by_key("generic", 4)
 		if result:
 			node, priority = result
 			print "'{0}': best match '{1}', priority {2} ({3}), " \
 					"selected from '{4}'".format(name, node.name,
-					priority, ("platform", "compiler",
+					priority, ("host", "os", "compiler",
 					"graphics library", "generic")[priority],
 					", ".join(node.name for node in values))
 			values.remove(node)

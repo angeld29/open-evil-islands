@@ -32,11 +32,11 @@ env.AppendUnique(
 	LIBS=["game"],
 )
 
-if env["PLATFORM"] == "posix":
+if env["OS"] == "posix":
 	env.AppendUnique(
 		LIBS=["glut"],
 	)
-elif env["PLATFORM"] == "win32":
+elif env["OS"] == "win32":
 	env.AppendUnique(
 		LIBS=["freeglut", "glu32",
 				"opengl32", "winmm", "gdi32"],

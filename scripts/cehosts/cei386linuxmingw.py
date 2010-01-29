@@ -19,9 +19,48 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import SCons.Errors
+
+import cetools.cemingwcross as mingw
+
 def get_description():
 	return "Minimalist GNU win32 (cross) compiler. " \
 			"A Linux hosted, win32 target, cross compiler for C/C++."
 
+def configure_release_mode(env):
+	env.AppendUnique(
+		CCFLAGS=["-O2", "-w"],
+	)
+
+def configure_debug_mode(env):
+	env.AppendUnique(
+		CCFLAGS=["-g", "-Wall", "-Wextra"],
+	)
+
+configure_build_mode = {
+	"release": configure_release_mode,
+	"debug": configure_debug_mode,
+}
+
 def configure(env):
-	raise NotImplementedError
+	if env["PLATFORM"] != "posix":
+		raise SCons.Errors.StopError("This host is available only on Linux.")
+
+	print "Checking for mingw32 cross compiler...",
+	if mingw.exists(env):
+		print mingw.find(env) + "."
+	else:
+		print "not found."
+		raise SCons.Errors.StopError("Could not locate mingw32 cross compiler.")
+
+	mingw.generate(env)
+
+	env["OS"] = "win32"
+	env["COMPILER"] = "gcc"
+
+	env.AppendUnique(
+		CFLAGS=["-std=c99"],
+		CCFLAGS=["-pedantic-errors"],
+	)
+
+	configure_build_mode[env["BUILD_MODE"]](env)

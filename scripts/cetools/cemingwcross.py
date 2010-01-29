@@ -19,10 +19,39 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-def get_description():
-	return "Open Graphics Library."
+import os.path
 
-def configure(env):
+import SCons.Util
+
+def find(env):
+	for variant in ((cpu, kernel) for cpu in xrange(3, 7)
+										for kernel in ["", "msvc"]):
+		key_name = "i%d86-mingw32%s" % variant
+		key_program = key_name + "-gcc"
+		key_program = env.WhereIs(key_program) or SCons.Util.WhereIs(key_program)
+		if key_program is not None:
+			return key_name
+	return None
+
+def generate(env):
+	env.Tool("mingw")
+
+	base_name = find(env) or "mingw32"
+
+	env["CC"] = base_name + "-gcc"
+	env["CXX"] = base_name + "-g++"
+	env["AS"] = base_name + "-as"
+	env["RC"] = base_name + "-windres"
+	env["AR"] = base_name + "-ar"
+	env["RANLIB"] = base_name + "-ranlib"
+
+	env["SHLIBSUFFIX"] = ".dll"
+	env["PROGSUFFIX"] = ".exe"
+
 	env.AppendUnique(
-		CPPDEFINES=["GL_GLEXT_PROTOTYPES", "FREEGLUT_STATIC"],
+		CPPPATH=[os.path.join("/", "usr", "local", base_name, "include")],
+		LIBPATH=[os.path.join("/", "usr", "local", base_name, "lib")],
 	)
+
+def exists(env):
+	return find(env)

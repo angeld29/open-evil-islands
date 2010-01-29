@@ -24,5 +24,6 @@ def get_description():
 
 def configure(env):
 	#env.Tool("mingw")
+	#env["OS"] = "win32"
 	#env["COMPILER"] = "gcc"
 	raise NotImplementedError
