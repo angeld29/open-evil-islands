@@ -151,7 +151,7 @@ static void usage()
 		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
 		"GNU General Public License for more details.\n"
 		"===============================================================================\n\n"
-		"mprviewer - View and explore Evil Islands maps.\n\n"
+		"mprviewer 0.1.0 - View and explore Evil Islands maps.\n\n"
 		"Usage: mprviewer [options]\n"
 		"Options:\n"
 		"-t <tex_path> Path to 'EI/Res/textures.res'.\n"

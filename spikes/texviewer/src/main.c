@@ -163,7 +163,7 @@ static void usage()
 		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
 		"GNU General Public License for more details.\n"
 		"===============================================================================\n\n"
-		"texviewer - View Evil Islands textures.\n\n"
+		"texviewer 0.1.0 - View Evil Islands textures.\n\n"
 		"Usage: texviewer [options] <res_path>\n"
 		"Options:\n"
 		"-r Show textures in random mode.\n"
