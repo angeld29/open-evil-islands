@@ -20,6 +20,7 @@
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os.path
+import logging
 import ConfigParser
 
 import SCons.Environment
@@ -34,6 +35,14 @@ import SCons.Variables.EnumVariable
 import cehosts
 import cegraphlibs
 
+logging_levels = {
+	"debug": logging.DEBUG,
+	"info": logging.INFO,
+	"warning": logging.WARNING,
+	"error": logging.ERROR,
+	"critical": logging.CRITICAL,
+}
+
 def create_environment():
 	defenv = SCons.Defaults.DefaultEnvironment()
 	topdir = defenv.Dir('#').get_abspath()
@@ -41,8 +50,6 @@ def create_environment():
 	config = ConfigParser.SafeConfigParser()
 	config.read(os.path.join(topdir, cfg)
 				for cfg in ("cursedearth.cfg", "cursedearth_local.cfg"))
-
-	args_get = lambda opt, default=None: args.get(opt, default)
 	config_get = lambda opt, default=None: config.get("CE", opt) \
 								if config.has_option("CE", opt) else default
 
@@ -61,6 +68,11 @@ def create_environment():
 	variables.Add(SCons.Variables.BoolVariable("RELEASE",
 		"Build the project in release mode", config_get("RELEASE", "yes")))
 
+	variables.Add(SCons.Variables.EnumVariable("LOGGING_LEVEL",
+		"Select logging level",
+		config_get("LOGGING_LEVEL", "info"),
+		logging_levels.keys()))
+
 	variables.Add("ADDITIONAL_INCLUDE_PATHS",
 		"Additional include directories (semicolon-separated list of names)",
 		config_get("ADDITIONAL_INCLUDE_PATHS", []))
@@ -74,6 +86,8 @@ def create_environment():
 		config_get("ADDITIONAL_LIBS", []))
 
 	env = SCons.Environment.Environment(variables=variables)
+
+	logging.basicConfig(level=logging_levels[env["LOGGING_LEVEL"]])
 
 	env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
 	env["GEN_PATH"] = os.path.join("$HOST", "$BUILD_MODE")

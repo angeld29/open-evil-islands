@@ -24,9 +24,9 @@ import os.path
 import SCons.Util
 
 def find(env):
-	for variant in ((cpu, kernel) for cpu in xrange(3, 7)
-										for kernel in ["", "msvc"]):
-		key_name = "i%d86-mingw32%s" % variant
+	for variants in ((cpu, kernel) for cpu in xrange(3, 7)
+										for kernel in ("", "msvc")):
+		key_name = "i%d86-mingw32%s" % variants
 		key_program = key_name + "-gcc"
 		key_program = env.WhereIs(key_program) or SCons.Util.WhereIs(key_program)
 		if key_program is not None:

@@ -20,6 +20,7 @@
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os.path
+import logging
 
 import SCons.Errors
 
@@ -37,18 +38,18 @@ def filter_sources(env, nodes):
 		def select_by_key(key, priority):
 			node = next((node for node in values if get_key(node) == key), None)
 			return (node, priority) if node else None
-		result = select_by_key(env["HOST"], 0) or \
-				select_by_key(env["OS"], 1) or \
+		result = select_by_key(env["HOST"].replace("-", ""), 0) or \
+				select_by_key(env["TARGET_PLATFORM"], 1) or \
 				select_by_key(env["COMPILER"], 2) or \
 				select_by_key(env["GRAPHICS_LIBRARY"], 3) or \
 				select_by_key("generic", 4)
 		if result:
 			node, priority = result
-			print "'{0}': best match '{1}', priority {2} ({3}), " \
-					"selected from '{4}'".format(name, node.name,
-					priority, ("host", "os", "compiler",
-					"graphics library", "generic")[priority],
-					", ".join(node.name for node in values))
+			logging.debug("'{0}': best match '{1}', priority {2} ({3}), "
+						"selected from '{4}'".format(name, node.name,
+						priority, ("host", "target platform", "compiler",
+						"graphics library", "generic")[priority],
+						", ".join(node.name for node in values)))
 			values.remove(node)
 			for node in values:
 				nodes.remove(node)

@@ -21,38 +21,19 @@
 
 import SCons.Errors
 
+import cecompilers.cegcc as gcc
+
 def get_description():
 	return "The GNU C/C++ compiler for Linux."
-
-def configure_release_mode(env):
-	env.AppendUnique(
-		CCFLAGS=["-O2", "-w"],
-	)
-
-def configure_debug_mode(env):
-	env.AppendUnique(
-		CCFLAGS=["-g", "-Wall", "-Wextra"],
-	)
-
-configure_build_mode = {
-	"release": configure_release_mode,
-	"debug": configure_debug_mode,
-}
 
 def configure(env):
 	if env["PLATFORM"] != "posix":
 		raise SCons.Errors.StopError("This host is available only on Linux.")
 
-	for tool in ["gnulink", "gcc", "g++", "gas", "ar"]:
-		env.Tool(tool)
+	env["TARGET_PLATFORM"] = "posix"
 
-	env["OS"] = "posix"
-	env["COMPILER"] = "gcc"
+	gcc.configure(env)
 
 	env.AppendUnique(
-		CFLAGS=["-std=c99"],
-		CCFLAGS=["-pipe", "-pedantic-errors"],
 		CPPDEFINES=["_GNU_SOURCE"],
 	)
-
-	configure_build_mode[env["BUILD_MODE"]](env)

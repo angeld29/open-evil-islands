@@ -19,9 +19,27 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-def get_description():
-	return "Minimalist GNU for Windows."
+def configure_release_mode(env):
+	env.AppendUnique(
+		CCFLAGS=["-O2", "-w"],
+	)
+
+def configure_debug_mode(env):
+	env.AppendUnique(
+		CCFLAGS=["-g", "-Wall", "-Wextra"],
+	)
+
+configure_build_mode = {
+	"release": configure_release_mode,
+	"debug": configure_debug_mode,
+}
 
 def configure(env):
-	#env["TARGET_PLATFORM"] = "win32"
-	raise NotImplementedError
+	env["COMPILER"] = "gcc"
+
+	env.AppendUnique(
+		CFLAGS=["-std=c99"],
+		CCFLAGS=["-pipe", "-pedantic-errors"],
+	)
+
+	configure_build_mode[env["BUILD_MODE"]](env)
