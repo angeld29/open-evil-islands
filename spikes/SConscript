@@ -34,7 +34,7 @@ env.AppendUnique(
 
 if env["TARGET_PLATFORM"] == "posix":
 	env.AppendUnique(
-		LIBS=["glut"],
+		LIBS=["glut", "GLU", "GL"],
 	)
 elif env["TARGET_PLATFORM"] == "win32":
 	env.AppendUnique(
