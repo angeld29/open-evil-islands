@@ -27,10 +27,22 @@
 static bool opened;
 static logging_level level = LOGGING_NO_LEVELS;
 
+static const char* level_names[LOGGING_ALL_LEVELS] = {
+	"UNUSED",
+	"DEBUG",
+	"INFO",
+	"WARNING",
+	"ERROR",
+	"CRITICAL",
+	"FATAL",
+	"WRITE"
+};
+
 static void report(logging_level lvl, const char* format, va_list args)
 {
 	if (LOGGING_NO_LEVELS != level &&
 			(lvl >= level || LOGGING_ALL_LEVELS == level)) {
+		fprintf(stderr, "%s: ", level_names[lvl]);
 		vfprintf(stderr, format, args);
 		fprintf(stderr, "\n");
 	}
