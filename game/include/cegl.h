@@ -36,6 +36,7 @@ typedef enum {
 	CEGL_FEATURE_TEXTURE_LOD,
 	CEGL_FEATURE_TEXTURE_EDGE_CLAMP,
 	CEGL_FEATURE_PACKED_PIXELS,
+	CEGL_FEATURE_GENERATE_MIPMAP,
 	CEGL_FEATURE_COUNT
 } cegl_feature;
 
@@ -46,6 +47,7 @@ extern const GLenum CEGL_CLAMP_TO_EDGE;
 extern const GLenum CEGL_UNSIGNED_SHORT_4_4_4_4;
 extern const GLenum CEGL_UNSIGNED_SHORT_5_5_5_1;
 extern const GLenum CEGL_UNSIGNED_INT_8_8_8_8;
+extern const GLenum CEGL_GENERATE_MIPMAP;
 
 extern void cegl_init(void);
 extern bool cegl_report_errors(void);

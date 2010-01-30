@@ -51,6 +51,10 @@
 #define GL_UNSIGNED_INT_8_8_8_8_EXT 0x8035
 #endif
 
+#ifndef GL_GENERATE_MIPMAP_SGIS
+#define GL_GENERATE_MIPMAP_SGIS 0x8191
+#endif
+
 #include "logging.h"
 #include "cegl.h"
 
@@ -61,6 +65,7 @@ const GLenum CEGL_CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE_SGIS;
 const GLenum CEGL_UNSIGNED_SHORT_4_4_4_4 = GL_UNSIGNED_SHORT_4_4_4_4_EXT;
 const GLenum CEGL_UNSIGNED_SHORT_5_5_5_1 = GL_UNSIGNED_SHORT_5_5_5_1_EXT;
 const GLenum CEGL_UNSIGNED_INT_8_8_8_8 = GL_UNSIGNED_INT_8_8_8_8_EXT;
+const GLenum CEGL_GENERATE_MIPMAP = GL_GENERATE_MIPMAP_SGIS;
 
 static bool features[CEGL_FEATURE_COUNT];
 
@@ -120,6 +125,8 @@ void cegl_init(void)
 		check_extension("GL_EXT_texture_edge_clamp");
 	features[CEGL_FEATURE_PACKED_PIXELS] =
 		check_extension("GL_EXT_packed_pixels");
+	features[CEGL_FEATURE_GENERATE_MIPMAP] =
+		check_extension("GL_SGIS_generate_mipmap");
 
 	report_extension("texture non power of two",
 		features[CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO]);
@@ -135,6 +142,8 @@ void cegl_init(void)
 		features[CEGL_FEATURE_TEXTURE_EDGE_CLAMP]);
 	report_extension("packed pixels",
 		features[CEGL_FEATURE_PACKED_PIXELS]);
+	report_extension("generate mipmap",
+		features[CEGL_FEATURE_GENERATE_MIPMAP]);
 }
 
 bool cegl_report_errors(void)

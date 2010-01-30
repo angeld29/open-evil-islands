@@ -62,10 +62,16 @@ static void setup_mag_min_params(int mipmap_count)
 		if (cegl_query_feature(CEGL_FEATURE_TEXTURE_LOD)) {
 			glTexParameteri(GL_TEXTURE_2D, CEGL_TEXTURE_MAX_LEVEL,
 												mipmap_count - 1);
+		} else if (cegl_query_feature(CEGL_FEATURE_GENERATE_MIPMAP)) {
+			glTexParameteri(GL_TEXTURE_2D, CEGL_GENERATE_MIPMAP, GL_TRUE);
 		} else {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			logging_warning("OpenGL feature 'texture lod' is missing. "
-											"Mipmapping was disabled.");
+			static bool reported;
+			if (!reported) {
+				logging_warning("Some OpenGL features are not available. "
+								"Mipmapping was disabled.");
+				reported = true;
+			}
 		}
 #endif /* GL_VERSION_1_2 */
 	}
