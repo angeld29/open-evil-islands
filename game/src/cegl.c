@@ -69,7 +69,27 @@ static bool check_extension(const char* name)
 #ifdef GLU_VERSION_1_3
 	return gluCheckExtension((const GLubyte*)name, glGetString(GL_EXTENSIONS));
 #else
-	return NULL != strstr((const char*)glGetString(GL_EXTENSIONS), name);
+	const size_t name_length = strlen(name);
+	const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
+
+	for (;;) {
+		const char* where = strstr(extensions, name);
+
+		if (NULL == where) {
+			break;
+		}
+
+		const char* terminator = where + name_length;
+
+		if ((extensions == where || ' ' == *(where - 1)) &&
+				(' ' == *terminator || '\0' == *terminator)) {
+			return true;
+		}
+
+		extensions = terminator;
+	}
+
+	return false;
 #endif
 }
 
