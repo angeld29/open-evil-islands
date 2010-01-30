@@ -21,6 +21,7 @@
 
 import os.path
 
+import SCons.Tool
 import SCons.Util
 
 def find(env):
@@ -34,7 +35,7 @@ def find(env):
 	return None
 
 def generate(env):
-	env.Tool("mingw")
+	SCons.Tool.Tool("mingw")(env)
 
 	base_name = find(env) or "mingw32"
 

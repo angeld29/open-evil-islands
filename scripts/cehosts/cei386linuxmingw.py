@@ -34,12 +34,14 @@ def configure(env):
 	if env["PLATFORM"] != "posix":
 		raise SCons.Errors.StopError("This host is available only on Linux.")
 
+	# Prefer MinGW on Linux for Windows.
 	if not mingw.exists(env):
 		raise SCons.Errors.StopError("Could not locate mingw32 cross compiler.")
 
 	logging.info("The mingw32 cross compiler was found as '%s'." % mingw.find(env))
 	mingw.generate(env)
 
+	env["CPU_TYPE"] = "i386"
 	env["TARGET_PLATFORM"] = "win32"
 
 	gcc.configure(env)

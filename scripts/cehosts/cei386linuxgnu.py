@@ -19,6 +19,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import SCons.Tool
 import SCons.Errors
 
 import cecompilers.cegcc as gcc
@@ -30,6 +31,11 @@ def configure(env):
 	if env["PLATFORM"] != "posix":
 		raise SCons.Errors.StopError("This host is available only on Linux.")
 
+	# Prefer GNU tools on Linux.
+	for tool in ("gnulink", "gcc", "g++", "gas", "ar"):
+		SCons.Tool.Tool(tool)(env)
+
+	env["CPU_TYPE"] = "i386"
 	env["TARGET_PLATFORM"] = "posix"
 
 	gcc.configure(env)
