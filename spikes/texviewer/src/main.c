@@ -37,6 +37,10 @@
 #include "resfile.h"
 #include "texture.h"
 
+#ifndef CE_SPIKE_VERSION
+#error CE_SPIKE_VERSION was not defined
+#endif
+
 #define DEFAULT_DELAY 500
 
 resfile* res;
@@ -163,14 +167,15 @@ static void usage()
 		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
 		"GNU General Public License for more details.\n"
 		"===============================================================================\n\n"
-		"texviewer 0.1.0 - View Evil Islands textures.\n\n"
+		"This program is part of Cursed Earth spikes.\n"
+		"texviewer %s - View Evil Islands textures.\n\n"
 		"Usage: texviewer [options] <res_path>\n"
 		"Options:\n"
 		"-r Show textures in random mode.\n"
 		"-d <delay, msec> Slideshow delay (default: %d).\n"
 		"-n <name> Specify texture name (slideshow will be disabled).\n"
 		"-i <index> Specify texture index (slideshow will be disabled).\n"
-		"-h Show this message.\n", DEFAULT_DELAY);
+		"-h Show this message.\n", CE_SPIKE_VERSION, DEFAULT_DELAY);
 }
 
 int main(int argc, char* argv[])

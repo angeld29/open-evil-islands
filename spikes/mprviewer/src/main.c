@@ -39,6 +39,10 @@
 #include "resfile.h"
 #include "mprfile.h"
 
+#ifndef CE_SPIKE_VERSION
+#error CE_SPIKE_VERSION was not defined
+#endif
+
 mprfile* mpr;
 camera* cam;
 timer* tmr;
@@ -151,12 +155,13 @@ static void usage()
 		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
 		"GNU General Public License for more details.\n"
 		"===============================================================================\n\n"
-		"mprviewer 0.1.0 - View and explore Evil Islands maps.\n\n"
+		"This program is part of Cursed Earth spikes.\n"
+		"mprviewer %s - View and explore Evil Islands maps.\n\n"
 		"Usage: mprviewer [options]\n"
 		"Options:\n"
 		"-t <tex_path> Path to 'EI/Res/textures.res'.\n"
 		"-m <mpr_path> Path to 'EI/Maps/*.mpr'.\n"
-		"-h Show this message.\n");
+		"-h Show this message.\n", CE_SPIKE_VERSION);
 }
 
 int main(int argc, char* argv[])
