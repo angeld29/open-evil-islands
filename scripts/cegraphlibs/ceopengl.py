@@ -20,9 +20,9 @@
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 def get_description():
-	return "Open Graphics Library."
+	return "Open Graphics Library"
 
 def configure(env):
 	env.AppendUnique(
-		CPPDEFINES=["GL_GLEXT_PROTOTYPES", "FREEGLUT_STATIC"],
+		CPPDEFINES=["FREEGLUT_STATIC"],
 	)

@@ -19,8 +19,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-def get_description():
-	return "Not available"
+from SCons.Errors import StopError
 
-def configure(env):
-	raise NotImplementedError
+def stop():
+	raise StopError("A critical error has occurred "
+					"and SCons can not continue building.")

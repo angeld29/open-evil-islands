@@ -21,24 +21,27 @@
 
 import logging
 
-import SCons.Errors
-
+import ceerrors
 import cetools.cemingwcross as mingw
 import cecompilers.cegcc as gcc
 
 def get_description():
-	return "Minimalist GNU win32 (cross) compiler. " \
-			"A Linux hosted, win32 target, cross compiler for C/C++."
+	return "Minimalist GNU win32 (cross) compiler"
 
 def configure(env):
 	if env["PLATFORM"] != "posix":
-		raise SCons.Errors.StopError("This host is available only on Linux.")
+		logging.critical("This host is available only on Linux.")
+		ceerrors.stop()
 
 	# Prefer MinGW on Linux for Windows.
 	if not mingw.exists(env):
-		raise SCons.Errors.StopError("Could not locate mingw32 cross compiler.")
+		logging.critical("Could not locate the mingw32 cross compiler. "
+			"Please, install 'mingw' package. On ubuntu, for example, install "
+			"'mingw32', 'mingw32-runtime' and 'mingw32-binutils' packages.")
+		ceerrors.stop()
 
-	logging.info("The mingw32 cross compiler was found as '%s'." % mingw.find(env))
+	logging.info("The mingw32 cross compiler "
+				"was detected as '%s'.", mingw.find(env))
 	mingw.generate(env)
 
 	env["CPU_TYPE"] = "i386"

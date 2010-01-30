@@ -19,17 +19,20 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import SCons.Tool
-import SCons.Errors
+import logging
 
+import SCons.Tool
+
+import ceerrors
 import cecompilers.cegcc as gcc
 
 def get_description():
-	return "Minimalist GNU for Windows."
+	return "Minimalist GNU for Windows"
 
 def configure(env):
 	if env["PLATFORM"] != "win32":
-		raise SCons.Errors.StopError("This host is available only on Windows.")
+		logging.critical("This host is available only on Windows.")
+		ceerrors.stop()
 
 	# Prefer MinGW on Windows.
 	SCons.Tool.Tool("mingw")(env)

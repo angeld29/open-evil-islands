@@ -22,7 +22,7 @@
 import os.path
 import logging
 
-import SCons.Errors
+import ceerrors
 
 def filter_sources(env, nodes):
 	nodes = nodes[:]
@@ -45,17 +45,17 @@ def filter_sources(env, nodes):
 				select_by_key("generic", 4)
 		if result:
 			node, priority = result
-			logging.debug("'{0}': best match '{1}', priority {2} ({3}), "
-						"selected from '{4}'".format(name, node.name,
+			logging.debug("'%s': best match '%s', priority %d (%s), "
+						"selected from '%s'", name, node.name,
 						priority, ("host", "target platform", "compiler",
 						"graphics library", "generic")[priority],
-						", ".join(node.name for node in values)))
+						", ".join(node.name for node in values))
 			values.remove(node)
 			for node in values:
 				nodes.remove(node)
 		else:
-			raise SCons.Errors.StopError(
-				"Can't deduct platform-depended "
-				"file for '{0}', searched in '{1}'".format(name,
-				", ".join(node.name for node in values)))
+			logging.critical("Can't deduct platform-depended "
+							"file for '%s', searched in '%s'", name,
+							", ".join(node.name for node in values))
+			ceerrors.stop()
 	return nodes

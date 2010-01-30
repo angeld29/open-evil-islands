@@ -87,10 +87,20 @@ def create_environment():
 
 	env = SCons.Environment.Environment(variables=variables, tools=[])
 
-	logging.basicConfig(level=logging_levels[env["LOGGING_LEVEL"]])
+	logging.basicConfig(
+		level=logging_levels[env["LOGGING_LEVEL"]],
+		format="%(levelname)s: %(message)s",
+		datefmt="%a, %d %b %Y %H:%M:%S",
+	)
 
 	env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
 	env["GEN_PATH"] = os.path.join("$HOST", "$BUILD_MODE")
+
+	logging.info("The build was started for:")
+	logging.info("\thost: '%s' (%s)", env["HOST"],
+		cehosts.hosts[env["HOST"]].get_description())
+	logging.info("\tgraphics library: '%s' (%s)", env["GRAPHICS_LIBRARY"],
+		cegraphlibs.graphlibs[env["GRAPHICS_LIBRARY"]].get_description())
 
 	cehosts.hosts[env["HOST"]].configure(env)
 	cegraphlibs.graphlibs[env["GRAPHICS_LIBRARY"]].configure(env)
