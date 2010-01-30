@@ -237,7 +237,11 @@ int main(int argc, char* argv[])
 
 	cealloc_open();
 	logging_open();
+#ifdef NDEBUG
+	logging_set_level(LOGGING_WARNING_LEVEL);
+#else
 	logging_set_level(LOGGING_DEBUG_LEVEL);
+#endif
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);

@@ -264,12 +264,14 @@ int main(int argc, char* argv[])
 	glutReshapeFunc(reshape);
 
 	cealloc_open();
-
 	logging_open();
+#ifdef NDEBUG
+	logging_set_level(LOGGING_WARNING_LEVEL);
+#else
 	logging_set_level(LOGGING_DEBUG_LEVEL);
+#endif
 
 	ceinput_open();
-
 	cegl_init();
 
 	res = resfile_open_file(argv[optind]);
