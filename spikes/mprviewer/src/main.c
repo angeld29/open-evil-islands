@@ -43,6 +43,7 @@
 #error CE_SPIKE_VERSION was not defined
 #endif
 
+bool fullscreen;
 mprfile* mpr;
 camera* cam;
 timer* tmr;
@@ -62,6 +63,9 @@ static void idle(void)
 		ceinput_close();
 		logging_close();
 		cealloc_close();
+		if (fullscreen) {
+			glutLeaveGameMode();
+		}
 		exit(0);
 	}
 
@@ -157,29 +161,33 @@ static void usage()
 		"===============================================================================\n\n"
 		"This program is part of Cursed Earth spikes.\n"
 		"mprviewer %s - View and explore Evil Islands maps.\n\n"
-		"Usage: mprviewer [options]\n"
+		"Usage: mprviewer [options] <mpr_path>\n"
+		"Where: <mpr_path> Path to 'EI/Maps/*.mpr'.\n"
 		"Options:\n"
-		"-t <tex_path> Path to 'EI/Res/textures.res'.\n"
-		"-m <mpr_path> Path to 'EI/Maps/*.mpr'.\n"
-		"-h Show this message.\n", CE_SPIKE_VERSION);
+		"-t <tex_path> Path to 'EI/Res/textures.res'. Required.\n"
+		"-f Start program in Full Screen mode.\n"
+		"-v Display program version.\n"
+		"-h Display this message.\n", CE_SPIKE_VERSION);
 }
 
 int main(int argc, char* argv[])
 {
 	int c;
 	const char* tex_path = NULL;
-	const char* mpr_path = NULL;
 
 	opterr = 0;
 
-	while (-1 != (c = getopt(argc, argv, ":t:m:h")))  {
+	while (-1 != (c = getopt(argc, argv, ":t:fvh")))  {
 		switch (c) {
 		case 't':
 			tex_path = optarg;
 			break;
-		case 'm':
-			mpr_path = optarg;
+		case 'f':
+			fullscreen = true;
 			break;
+		case 'v':
+			fprintf(stderr, "%s\n", CE_SPIKE_VERSION);
+			return 0;
 		case 'h':
 			usage();
 			return 0;
@@ -198,9 +206,15 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (optind != argc) {
+	if (optind == argc) {
 		usage();
-		fprintf(stderr, "\nNon-option arguments are not permitted:\n");
+		fprintf(stderr, "\nPlease, specify a path to any MPR file.\n");
+		return 1;
+	}
+
+	if (argc - optind > 1) {
+		usage();
+		fprintf(stderr, "\nToo much non-option arguments:\n");
 		for (int i = optind; i < argc; ++i) {
 			fprintf(stderr, "%s\n", argv[i]);
 		}
@@ -213,19 +227,21 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	if (NULL == mpr_path) {
-		usage();
-		fprintf(stderr, "\nPlease, specify a path to any MPR file.\n");
-		return 1;
-	}
-
+	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
 
-	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(1024, 768);
-	glutInit(&argc, argv);
+	if (fullscreen) {
+		char buffer[32];
+		snprintf(buffer, sizeof(buffer), "%dx%d:32",
+			glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));
+		glutGameModeString(buffer);
+		glutEnterGameMode();
+	} else {
+		glutInitWindowPosition(100, 100);
+		glutInitWindowSize(1024, 768);
+		glutCreateWindow("Cursed Earth: MPR Viewer");
+	}
 
-	glutCreateWindow("Cursed Earth: MPR Viewer");
 	glutIdleFunc(idle);
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
@@ -245,9 +261,9 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	resfile* mpr_res = resfile_open_file(mpr_path);
+	resfile* mpr_res = resfile_open_file(argv[optind]);
 	if (NULL == mpr_res) {
-		fprintf(stderr, "Could not open file '%s'.\n", mpr_path);
+		fprintf(stderr, "Could not open file '%s'.\n", argv[optind]);
 		resfile_close(tex_res);
 		return 1;
 	}

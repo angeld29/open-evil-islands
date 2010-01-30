@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <limits.h>
 #include <time.h>
 #include <assert.h>
 
@@ -170,12 +171,14 @@ static void usage()
 		"This program is part of Cursed Earth spikes.\n"
 		"texviewer %s - View Evil Islands textures.\n\n"
 		"Usage: texviewer [options] <res_path>\n"
+		"Where: <res_path> Path to *.res with textures.\n"
 		"Options:\n"
 		"-r Show textures in random mode.\n"
 		"-d <delay, msec> Slideshow delay (default: %d).\n"
 		"-n <name> Specify texture name (slideshow will be disabled).\n"
 		"-i <index> Specify texture index (slideshow will be disabled).\n"
-		"-h Show this message.\n", CE_SPIKE_VERSION, DEFAULT_DELAY);
+		"-v Display program version.\n"
+		"-h Display this message.\n", CE_SPIKE_VERSION, DEFAULT_DELAY);
 }
 
 int main(int argc, char* argv[])
@@ -187,7 +190,7 @@ int main(int argc, char* argv[])
 
 	opterr = 0;
 
-	while (-1 != (c = getopt(argc, argv, ":rd:n:i:h")))  {
+	while (-1 != (c = getopt(argc, argv, ":rd:n:i:vh")))  {
 		switch (c) {
 		case 'r':
 			rndmode = true;
@@ -201,8 +204,13 @@ int main(int argc, char* argv[])
 			break;
 		case 'i':
 			slideshow = false;
-			index = atoi(optarg);
+			if ((index = atoi(optarg)) < 0) {
+				index = INT_MAX;
+			}
 			break;
+		case 'v':
+			fprintf(stderr, "%s\n", CE_SPIKE_VERSION);
+			return 0;
 		case 'h':
 			usage();
 			return 0;
@@ -236,13 +244,13 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA | GLUT_DOUBLE);
 
-	glutInitWindowPosition(100, 600);
+	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(400, 300);
-	glutInit(&argc, argv);
-
 	glutCreateWindow("Cursed Earth: Texture Viewer");
+
 	glutIdleFunc(idle);
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
