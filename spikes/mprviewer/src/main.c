@@ -49,7 +49,6 @@
 #define CE_SPIKE_VERSION_PATCH 0
 #endif
 
-bool fullscreen;
 mprfile* mpr;
 camera* cam;
 timer* tmr;
@@ -69,7 +68,7 @@ static void idle(void)
 		ceinput_close();
 		logging_close();
 		cealloc_close();
-		if (fullscreen) {
+		if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
 			glutLeaveGameMode();
 		}
 		exit(0);
@@ -181,6 +180,7 @@ int main(int argc, char* argv[])
 {
 	int c;
 	const char* tex_path = NULL;
+	bool fullscreen = false;
 
 	opterr = 0;
 
@@ -235,6 +235,10 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	cealloc_open();
+	logging_open();
+	logging_set_level(LOGGING_DEBUG_LEVEL);
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
 
@@ -243,6 +247,13 @@ int main(int argc, char* argv[])
 		snprintf(buffer, sizeof(buffer), "%dx%d:32",
 			glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));
 		glutGameModeString(buffer);
+		if (!glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
+			logging_warning("Full Screen mode is not available.");
+			fullscreen = false;
+		}
+	}
+
+	if (fullscreen) {
 		glutEnterGameMode();
 	} else {
 		glutInitWindowPosition(100, 100);
@@ -254,13 +265,7 @@ int main(int argc, char* argv[])
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 
-	cealloc_open();
-
-	logging_open();
-	logging_set_level(LOGGING_DEBUG_LEVEL);
-
 	ceinput_open();
-
 	cegl_init();
 
 	resfile* tex_res = resfile_open_file(tex_path);
@@ -272,15 +277,12 @@ int main(int argc, char* argv[])
 	resfile* mpr_res = resfile_open_file(argv[optind]);
 	if (NULL == mpr_res) {
 		fprintf(stderr, "Could not open file '%s'.\n", argv[optind]);
-		resfile_close(tex_res);
 		return 1;
 	}
 
 	mpr = mprfile_open(mpr_res, tex_res);
 	if (!mpr) {
 		fprintf(stderr, "Could not open mpr file.\n");
-		resfile_close(tex_res);
-		resfile_close(mpr_res);
 		return 1;
 	}
 
