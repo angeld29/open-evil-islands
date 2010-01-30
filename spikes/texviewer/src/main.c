@@ -38,8 +38,14 @@
 #include "resfile.h"
 #include "texture.h"
 
-#ifndef CE_SPIKE_VERSION
-#error CE_SPIKE_VERSION was not defined
+#ifndef CE_SPIKE_VERSION_MAJOR
+#define CE_SPIKE_VERSION_MAJOR 0
+#endif
+#ifndef CE_SPIKE_VERSION_MINOR
+#define CE_SPIKE_VERSION_MINOR 0
+#endif
+#ifndef CE_SPIKE_VERSION_PATCH
+#define CE_SPIKE_VERSION_PATCH 0
 #endif
 
 #define DEFAULT_DELAY 500
@@ -169,7 +175,7 @@ static void usage()
 		"GNU General Public License for more details.\n"
 		"===============================================================================\n\n"
 		"This program is part of Cursed Earth spikes.\n"
-		"texviewer %s - View Evil Islands textures.\n\n"
+		"texviewer %d.%d.%d - View Evil Islands textures.\n\n"
 		"Usage: texviewer [options] <res_path>\n"
 		"Where: <res_path> Path to *.res with textures.\n"
 		"Options:\n"
@@ -178,7 +184,8 @@ static void usage()
 		"-n <name> Specify texture name (slideshow will be disabled).\n"
 		"-i <index> Specify texture index (slideshow will be disabled).\n"
 		"-v Display program version.\n"
-		"-h Display this message.\n", CE_SPIKE_VERSION, DEFAULT_DELAY);
+		"-h Display this message.\n", CE_SPIKE_VERSION_MAJOR,
+		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH, DEFAULT_DELAY);
 }
 
 int main(int argc, char* argv[])
@@ -209,7 +216,8 @@ int main(int argc, char* argv[])
 			}
 			break;
 		case 'v':
-			fprintf(stderr, "%s\n", CE_SPIKE_VERSION);
+			fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
+					CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
 			return 0;
 		case 'h':
 			usage();

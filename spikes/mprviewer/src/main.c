@@ -39,8 +39,14 @@
 #include "resfile.h"
 #include "mprfile.h"
 
-#ifndef CE_SPIKE_VERSION
-#error CE_SPIKE_VERSION was not defined
+#ifndef CE_SPIKE_VERSION_MAJOR
+#define CE_SPIKE_VERSION_MAJOR 0
+#endif
+#ifndef CE_SPIKE_VERSION_MINOR
+#define CE_SPIKE_VERSION_MINOR 0
+#endif
+#ifndef CE_SPIKE_VERSION_PATCH
+#define CE_SPIKE_VERSION_PATCH 0
 #endif
 
 bool fullscreen;
@@ -160,14 +166,15 @@ static void usage()
 		"GNU General Public License for more details.\n"
 		"===============================================================================\n\n"
 		"This program is part of Cursed Earth spikes.\n"
-		"mprviewer %s - View and explore Evil Islands maps.\n\n"
+		"mprviewer %d.%d.%d - View and explore Evil Islands maps.\n\n"
 		"Usage: mprviewer [options] <mpr_path>\n"
 		"Where: <mpr_path> Path to 'EI/Maps/*.mpr'.\n"
 		"Options:\n"
 		"-t <tex_path> Path to 'EI/Res/textures.res'. Required.\n"
 		"-f Start program in Full Screen mode.\n"
 		"-v Display program version.\n"
-		"-h Display this message.\n", CE_SPIKE_VERSION);
+		"-h Display this message.\n", CE_SPIKE_VERSION_MAJOR,
+		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
 }
 
 int main(int argc, char* argv[])
@@ -186,7 +193,8 @@ int main(int argc, char* argv[])
 			fullscreen = true;
 			break;
 		case 'v':
-			fprintf(stderr, "%s\n", CE_SPIKE_VERSION);
+			fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
+					CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
 			return 0;
 		case 'h':
 			usage();

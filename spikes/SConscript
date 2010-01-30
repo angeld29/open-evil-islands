@@ -27,7 +27,7 @@ import SCons.Util
 
 import ceerrors
 
-version_re = re.compile(r"^(\d+\.\d+\.\d+)\s*$")
+version_re = re.compile(r"^\s*(\d+)\.(\d+)\.(\d+)\s*$")
 
 Import("env")
 env = env.Clone()
@@ -60,10 +60,13 @@ def make_target(name):
 	version = version_re.match(version_file.get_contents())
 	if version is None:
 		logging.critical("Failed to build spike '%s': "
-						"'VERSION' file format was not recognized.", name)
+						"'VERSION' file format was not recognized "
+						"(hint: <major>.<minor>.<patch>).", name)
 		ceerrors.stop()
 	spike_env.AppendUnique(
-		CPPDEFINES=["CE_SPIKE_VERSION='\"%s\"'" % version.group(1)],
+		CPPDEFINES=["CE_SPIKE_VERSION_MAJOR=" + version.group(1),
+					"CE_SPIKE_VERSION_MINOR=" + version.group(2),
+					"CE_SPIKE_VERSION_PATCH=" + version.group(3)],
 	)
 	return spike_env.Alias(name, spike_env.Command(os.path.join(name, "bin",
 		SCons.Util.adjustixes(name, spike_env.subst("$PROGPREFIX"),
