@@ -52,6 +52,7 @@
 mprfile* mpr;
 camera* cam;
 timer* tmr;
+ce_single_front_event night_event;
 
 static void idle(void)
 {
@@ -103,6 +104,11 @@ static void idle(void)
 						cedeg2rad(-0.25f * ceinput_mouse_offset_y()), cam);
 	}
 
+	ce_single_front_event_advance(elapsed, &night_event);
+	if (night_event.triggered) {
+		mprfile_set_night(!mprfile_get_night(mpr), mpr);
+	}
+
 	glutPostRedisplay();
 }
 
@@ -110,17 +116,18 @@ static void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glLoadIdentity();
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+
+	glLightfv(GL_LIGHT0, GL_POSITION, (float[]){ 0.0f, 0.0f, 0.0f, 1.0f });
+	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, camera_get_fov(cam) / 2.0f);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, (float[]){ 2.0f, 2.0f, 2.0f, 1.0f });
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, (float[]){ 0.5f, 0.5f, 0.5f, 1.0f });
+	glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+
 	camera_setup(cam);
-
-	vec3 eye, forward, right, up;
-	frustum f;
-
-	frustum_init(camera_get_fov(cam), camera_get_aspect(cam),
-		camera_get_near(cam), camera_get_far(cam),
-		camera_get_eye(&eye, cam), camera_get_forward(&forward, cam),
-		camera_get_right(&right, cam), camera_get_up(&up, cam), &f);
-
-	mprfile_apply_frustum(&eye, &f, mpr);
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
@@ -138,7 +145,19 @@ static void display(void)
 	glVertex3f(0.0f, 0.0f, 100.0f);
 	glEnd();
 
+	vec3 eye, forward, right, up;
+	frustum f;
+
+	frustum_init(camera_get_fov(cam), camera_get_aspect(cam),
+		camera_get_near(cam), camera_get_far(cam),
+		camera_get_eye(&eye, cam), camera_get_forward(&forward, cam),
+		camera_get_right(&right, cam), camera_get_up(&up, cam), &f);
+
+	mprfile_apply_frustum(&eye, &f, mpr);
 	mprfile_render(mpr);
+
+	glDisable(GL_LIGHT0);
+	glDisable(GL_LIGHTING);
 
 	glutSwapBuffers();
 }
@@ -171,6 +190,8 @@ static void usage()
 		"Options:\n"
 		"-t <tex_path> Path to 'EI/Res/textures.res'. Required.\n"
 		"-f Start program in Full Screen mode.\n"
+		"-n Start at night (experimental). "
+			"Toggle the night by pressing 'N' key in game.\n"
 		"-v Display program version.\n"
 		"-h Display this message.\n", CE_SPIKE_VERSION_MAJOR,
 		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
@@ -181,16 +202,20 @@ int main(int argc, char* argv[])
 	int c;
 	const char* tex_path = NULL;
 	bool fullscreen = false;
+	bool night = false;
 
 	opterr = 0;
 
-	while (-1 != (c = getopt(argc, argv, ":t:fvh")))  {
+	while (-1 != (c = getopt(argc, argv, ":t:fnvh")))  {
 		switch (c) {
 		case 't':
 			tex_path = optarg;
 			break;
 		case 'f':
 			fullscreen = true;
+			break;
+		case 'n':
+			night = true;
 			break;
 		case 'v':
 			fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
@@ -293,6 +318,8 @@ int main(int argc, char* argv[])
 	resfile_close(tex_res);
 	resfile_close(mpr_res);
 
+	mprfile_set_night(night, mpr);
+
 	vec3 eye;
 	vec3_init(0.0f, mprfile_get_max_height(mpr), 0.0f, &eye);
 
@@ -301,6 +328,8 @@ int main(int argc, char* argv[])
 	camera_yaw_pitch(cedeg2rad(45.0f), cedeg2rad(30.0f), cam);
 
 	tmr = timer_open();
+
+	ce_single_front_event_init(CEKB_N, &night_event);
 
 	glutMainLoop();
 	return 0;

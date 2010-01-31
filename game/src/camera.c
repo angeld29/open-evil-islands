@@ -237,14 +237,14 @@ void camera_setup(camera* cam)
 	if (cam->look_changed) {
 		update_rotation(&cam->look, &cam->view);
 		update_translation(&cam->eye, &cam->view);
-		glLoadMatrixf(cam->view.m);
 		cam->look_changed = false;
 		cam->eye_changed = false;
 	}
 
 	if (cam->eye_changed) {
 		update_translation(&cam->eye, &cam->view);
-		glLoadMatrixf(cam->view.m);
 		cam->eye_changed = false;
 	}
+
+	glMultMatrixf(cam->view.m);
 }
