@@ -21,6 +21,8 @@
 #ifndef CE_MPRFILE_H
 #define CE_MPRFILE_H
 
+#include <stdbool.h>
+
 #include "frustum.h"
 #include "resfilefwd.h"
 
@@ -35,6 +37,9 @@ extern mprfile* mprfile_open(resfile* mpr_res, resfile* textures_res);
 extern void mprfile_close(mprfile* mpr);
 
 extern float mprfile_get_max_height(const mprfile* mpr);
+
+extern bool mprfile_get_night(mprfile* mpr);
+extern void mprfile_set_night(bool value, mprfile* mpr);
 
 extern void mprfile_apply_frustum(const vec3* eye,
 									const frustum* f, mprfile* mpr);

@@ -102,6 +102,7 @@ struct mprfile {
 	unsigned int visible_sector_count;
 	sector** visible_sectors;
 	texture** textures;
+	bool night;
 };
 
 static void normal2vector(uint32_t normal, float* vector)
@@ -126,11 +127,11 @@ static uint8_t texture_angle(uint16_t value)
 	return (value & 0xc000) >> 14;
 }
 
-static material* find_water_material(mprfile* mpr)
+static material* find_material(unsigned int type, mprfile* mpr)
 {
 	for (unsigned int i = 0; i < mpr->material_count; ++i) {
 		material* mat = mpr->materials + i;
-		if (MATERIAL_WATER == mat->type) {
+		if (type == mat->type) {
 			return mat;
 		}
 	}
@@ -508,6 +509,8 @@ mprfile* mprfile_open(resfile* mpr_res, resfile* textures_res)
 		return NULL;
 	}
 
+	mpr->night = false;
+
 	return mpr;
 }
 
@@ -547,6 +550,16 @@ void mprfile_close(mprfile* mpr)
 float mprfile_get_max_height(const mprfile* mpr)
 {
 	return mpr->max_y;
+}
+
+bool mprfile_get_night(mprfile* mpr)
+{
+	return mpr->night;
+}
+
+void mprfile_set_night(bool value, mprfile* mpr)
+{
+	mpr->night = value;
 }
 
 static int sector_dist_comp(const void* lhs, const void* rhs)
@@ -674,12 +687,17 @@ static void render_sector(unsigned int sector_x, unsigned int sector_z,
 				{ vind[6], vind[7], vind[5], vind[8], vind[4], vind[3] }
 			};
 
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,
+						mpr->night ? GL_MODULATE : GL_DECAL);
+
+			material* mat = find_material(NULL != water_allow ?
+							MATERIAL_WATER : MATERIAL_GROUND, mpr);
+			assert(mat);
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat->color);
+
 			if (NULL != water_allow) {
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				material* mat = find_water_material(mpr);
-				assert(mat);
-				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat->color);
 			}
 
 			texture_bind(mpr->textures[texture_number(tex)]);
@@ -716,15 +734,12 @@ static void render_sectors(bool opacity, mprfile* mpr)
 
 void mprfile_render(mprfile* mpr)
 {
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_LIGHTING);
 
 	render_sectors(true, mpr); // opacity geometry first
 	render_sectors(false, mpr); // then water/swamp/lava
 
-	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 }
