@@ -54,8 +54,7 @@ def filter_sources(env, nodes):
 			for node in values:
 				nodes.remove(node)
 		else:
-			logging.critical("Can't deduct platform-depended "
-							"file for '%s', searched in '%s'", name,
-							", ".join(node.name for node in values))
-			ceerrors.stop()
+			ceerrors.interrupt("Can't deduct platform-depended "
+								"file for '%s', searched in '%s'", name,
+								", ".join(node.name for node in values))
 	return nodes

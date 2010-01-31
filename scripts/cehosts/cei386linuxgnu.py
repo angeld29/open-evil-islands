@@ -19,8 +19,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-
 import SCons.Tool
 
 import ceerrors
@@ -31,8 +29,7 @@ def get_description():
 
 def configure(env):
 	if env["PLATFORM"] != "posix":
-		logging.critical("This host is available only on Linux.")
-		ceerrors.stop()
+		ceerrors.interrupt("This host is available only on Linux.")
 
 	# Prefer GNU tools on Linux.
 	for tool in ("gnulink", "gcc", "g++", "gas", "ar"):

@@ -19,8 +19,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from SCons.Errors import StopError
 
-def stop():
+def interrupt(message, *args, **kwargs):
+	logging.critical(message, *args, **kwargs)
 	raise StopError("A critical error has occurred "
 					"and SCons can not continue building.")

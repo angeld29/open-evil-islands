@@ -21,7 +21,6 @@
 
 import os
 import re
-import logging
 
 import SCons.Util
 
@@ -54,15 +53,13 @@ def make_target(name):
 		os.path.join(name, "src"), duplicate=False)
 	version_file = spike_env.File(os.path.join(name, "VERSION"))
 	if not version_file.exists():
-		logging.critical("Failed to build spike '%s': "
-						"'VERSION' file not exists.", name)
-		ceerrors.stop()
+		ceerrors.interrupt("Failed to build spike '%s': "
+							"'VERSION' file not exists.", name)
 	version = version_re.match(version_file.get_contents())
 	if version is None:
-		logging.critical("Failed to build spike '%s': "
-						"'VERSION' file format was not recognized "
-						"(hint: <major>.<minor>.<patch>).", name)
-		ceerrors.stop()
+		ceerrors.interrupt("Failed to build spike '%s': "
+							"'VERSION' file format was not recognized "
+							"(hint: <major>.<minor>.<patch>).", name)
 	spike_env.AppendUnique(
 		CPPDEFINES=["CE_SPIKE_VERSION_MAJOR=" + version.group(1),
 					"CE_SPIKE_VERSION_MINOR=" + version.group(2),

@@ -30,15 +30,13 @@ def get_description():
 
 def configure(env):
 	if env["PLATFORM"] != "posix":
-		logging.critical("This host is available only on Linux.")
-		ceerrors.stop()
+		ceerrors.interrupt("This host is available only on Linux.")
 
 	# Prefer MinGW on Linux for Windows.
 	if not mingw.exists(env):
-		logging.critical("Could not locate the mingw32 cross compiler. "
+		ceerrors.interrupt("Could not locate the mingw32 cross compiler. "
 			"Please, install 'mingw' package. On ubuntu, for example, install "
 			"'mingw32', 'mingw32-runtime' and 'mingw32-binutils' packages.")
-		ceerrors.stop()
 
 	logging.info("The mingw32 cross compiler "
 				"was detected as '%s'.", mingw.find(env))
