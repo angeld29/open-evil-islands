@@ -1,0 +1,106 @@
+   * This is an internal documentation currently available only on Russian.
+     Something more flexible will be later.
+
+   * Прежде всего, советую почитать это:
+
+     Про Git на пальцах (для переходящих с SVN)
+     http://habrahabr.ru/blogs/development/68341/
+
+     Ежедневный Git
+     http://habrahabr.ru/blogs/development/28268/
+
+   * Тем не менее я опишу здесь самые важные комманды,
+     чтобы шпаргалка всегда была под рукой.
+
+   * Ссылка на наш репозиторий для чтения:
+     git://cursedearth.git.sourceforge.net/gitroot/cursedearth/cursedearth
+
+     Ссылка на наш репозиторий для разработчиков:
+     ssh://USERNAME@cursedearth.git.sourceforge.net/gitroot/cursedearth/cursedearth
+
+     Создание консоли на SF.net для администрирования:
+     ssh -t USERNAME,cursedearth@shell.sourceforge.net create
+
+   * Клонирование репозитория себе на машину:
+     git clone ssh://USERNAME@cursedearth.git.sourceforge.net/gitroot/cursedearth/cursedearth
+
+   * Настройка своего имени:
+     git config user.name "YOUR NAME"
+     git config user.email "USERNAME@users.sourceforge.net"
+
+     Это важно! Ваши коммиты будут в формате: USERNAME <USEREMAIL>.
+     Имя лучше указать полное.
+
+     Можно вручную указать настройки (cursedearth/.git/config):
+     [user]
+     name = First Last
+     email = USERNAME@users.sourceforge.net
+
+   * Редактирование списка исключаемых файлов (cursedearth/.git/info/exclude):
+     *.py[co]
+     .sconsign.dblite
+     bin
+     build
+     lib
+     cursedearth_local.cfg
+     ...
+
+   * Важнейшие комманды:
+     git status, git diff, git add
+     git mv, git rm
+     git commit -m "message", git log
+     git pull, git push
+
+     В линуксе справку можно получить мгновенно:
+     man git status
+
+     Если хотите добавить абсолютно все файлы:
+     git add .
+
+   * Работа с ветками.
+     Посмотреть все имеющиеся ветки (включая те, которые на сервере):
+     git branch -a
+
+     Создание ветки:
+     git branch feature
+
+     Переключение между ветками:
+     git checkout feature
+
+     Создание ветки и переключение на неё:
+     git checkout -b feature
+
+     Залить изменения из feature в текущую ветку:
+     git merge feature
+
+     Опубликовать ветку на сервере (для работы над веткой с кем-то в команде):
+     git push origin feature:feature
+
+     Подключить удалённую ветку (для работы над веткой с кем-то в команде):
+     git checkout --track -b feature origin/feature
+
+     Удаление локальной ветки:
+     git branch -d feature
+
+     Удаление ветки на сервере:
+     git push origin :feature
+
+     Список подключенных веток с сервера:
+     git branch -r
+
+     Удаление ссылки на ветку (допустим, кто-то удалил ветку
+     на сервере, но у других остались на неё локальные ссылки):
+     git branch -rd public/feature
+
+   * Базовые действия для манипулирования ветками:
+     git checkout -b feature
+     ... working ...
+     git merge master
+     git checkout master
+     git merge feature
+     git branch -d feature
+
+   * Всё это можно попробовать сначала на тестовом репозитории:
+     mkdir test
+     cd test
+     git init
