@@ -142,6 +142,12 @@ typedef enum {
 	CEIB_COUNT
 } ceinput_button;
 
+typedef struct {
+	ceinput_button button;
+	bool activated;
+	bool triggered;
+} ce_single_front_event;
+
 extern bool ceinput_open(void);
 extern void ceinput_close(void);
 
@@ -151,6 +157,9 @@ extern int ceinput_mouse_offset_x();
 extern int ceinput_mouse_offset_y();
 
 extern void ceinput_advance(float elapsed);
+
+extern void ce_single_front_event_init(ceinput_button b, ce_single_front_event* e);
+extern void ce_single_front_event_advance(float elapsed, ce_single_front_event* e);
 
 #ifdef __cplusplus
 }
