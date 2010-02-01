@@ -28,26 +28,26 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern const float CEPI;
-extern const float CEPI2;
-extern const float CEPI_DIV_2;
-extern const float CEPI_DIV_4;
-extern const float CEPI_INV;
+extern const float CE_PI;
+extern const float CE_PI2;
+extern const float CE_PI_DIV_2;
+extern const float CE_PI_DIV_4;
+extern const float CE_PI_INV;
 
-extern const float CEEPS_E4;
-extern const float CEEPS_E5;
-extern const float CEEPS_E6;
+extern const float CE_EPS_E4;
+extern const float CE_EPS_E5;
+extern const float CE_EPS_E6;
 
-extern bool cefisequal(float a, float b, float tolerance);
-extern bool cefiszero(float a, float tolerance);
+extern bool ce_fisequal(float a, float b, float tolerance);
+extern bool ce_fiszero(float a, float tolerance);
 
-extern void cefswap(float* a, float* b);
-extern float cefclamp(float v, float a, float b);
+extern void ce_fswap(float* a, float* b);
+extern float ce_fclamp(float v, float a, float b);
 
-extern float celerp(float u, float a, float b);
+extern float ce_lerp(float u, float a, float b);
 
-extern float cedeg2rad(float d);
-extern float cerad2deg(float r);
+extern float ce_deg2rad(float angle);
+extern float ce_rad2deg(float angle);
 
 #ifdef __cplusplus
 }

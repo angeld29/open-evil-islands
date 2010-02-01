@@ -566,7 +566,7 @@ static int sector_dist_comp(const void* lhs, const void* rhs)
 {
 	const sector* sec1 = *(const sector**)lhs;
 	const sector* sec2 = *(const sector**)rhs;
-	return cefisequal(sec1->dist2, sec2->dist2, CEEPS_E4) ? 0 :
+	return ce_fisequal(sec1->dist2, sec2->dist2, CE_EPS_E4) ? 0 :
 		(sec1->dist2 < sec2->dist2 ? 1 : -1);
 }
 

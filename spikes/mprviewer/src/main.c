@@ -100,8 +100,8 @@ static void idle(void)
 	}
 
 	if (ce_input_test(CE_MB_RIGHT)) {
-		camera_yaw_pitch(cedeg2rad(-0.25f * ce_input_mouse_offset_x()),
-						cedeg2rad(-0.25f * ce_input_mouse_offset_y()), cam);
+		camera_yaw_pitch(ce_deg2rad(-0.25f * ce_input_mouse_offset_x()),
+						ce_deg2rad(-0.25f * ce_input_mouse_offset_y()), cam);
 	}
 
 	ce_input_single_front_event_advance(elapsed, &night_event);
@@ -325,7 +325,7 @@ int main(int argc, char* argv[])
 
 	cam = camera_open();
 	camera_set_eye(&eye, cam);
-	camera_yaw_pitch(cedeg2rad(45.0f), cedeg2rad(30.0f), cam);
+	camera_yaw_pitch(ce_deg2rad(45.0f), ce_deg2rad(30.0f), cam);
 
 	tmr = timer_open();
 
