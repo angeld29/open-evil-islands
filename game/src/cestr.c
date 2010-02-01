@@ -24,7 +24,7 @@
 #include "cealloc.h"
 #include "cestr.h"
 
-char* cestrdup(const char* s)
+char* ce_strdup(const char* s)
 {
 	char* p = ce_alloc(strlen(s) + 1);
 	if (NULL != p) {
@@ -33,7 +33,7 @@ char* cestrdup(const char* s)
 	return p;
 }
 
-char* cestrndup(const char* s, size_t n)
+char* ce_strndup(const char* s, size_t n)
 {
 	char* p = ce_alloc(n + 1);
 	if (NULL != p) {
@@ -43,7 +43,7 @@ char* cestrndup(const char* s, size_t n)
 	return p;
 }
 
-char* cestrupr(char* s)
+char* ce_strupr(char* s)
 {
 	for (char* p = s; *p; ++p) {
 		*p = toupper(*p);
@@ -51,7 +51,7 @@ char* cestrupr(char* s)
 	return s;
 }
 
-char* cestrlwr(char* s)
+char* ce_strlwr(char* s)
 {
 	for (char* p = s; *p; ++p) {
 		*p = tolower(*p);
@@ -59,7 +59,7 @@ char* cestrlwr(char* s)
 	return s;
 }
 
-char* cestrrev(char* s)
+char* ce_strrev(char* s)
 {
 	if (!*s) {
 		return s;
@@ -72,7 +72,7 @@ char* cestrrev(char* s)
 	return s;
 }
 
-size_t cestrrepc(char* s, char from, char to)
+size_t ce_strrepc(char* s, char from, char to)
 {
 	size_t n = 0;
 	for (char* p = strchr(s, from); p; p = strchr(p + 1, from), ++n) {
@@ -81,7 +81,7 @@ size_t cestrrepc(char* s, char from, char to)
 	return n;
 }
 
-int cestrcasecmp(const char* s1, const char* s2)
+int ce_strcasecmp(const char* s1, const char* s2)
 {
 	char c1, c2;
 	do {
@@ -91,7 +91,7 @@ int cestrcasecmp(const char* s1, const char* s2)
 	return c1 - c2;
 }
 
-int cestrncasecmp(const char* s1, const char* s2, size_t n)
+int ce_strncasecmp(const char* s1, const char* s2, size_t n)
 {
 	char c1, c2;
 	if (0 == n) {
@@ -104,7 +104,7 @@ int cestrncasecmp(const char* s1, const char* s2, size_t n)
 	return c1 - c2;
 }
 
-char* cestrcasestr(const char* haystack, const char* needle)
+char* ce_strcasestr(const char* haystack, const char* needle)
 {
 	for (char *p = (char*)haystack, *startn = NULL, *np = NULL; *p; ++p) {
 		if (np) {
@@ -127,7 +127,7 @@ char* cestrcasestr(const char* haystack, const char* needle)
  *  Based on OpenBSD source.
  *  Copyright (C) 1998 Todd C. Miller <Todd.Miller@courtesan.com>.
 */
-size_t cestrlcat(char* dst, const char* src, size_t size)
+size_t ce_strlcat(char* dst, const char* src, size_t size)
 {
 	char* d = dst;
 	const char* s = src;
@@ -158,7 +158,7 @@ size_t cestrlcat(char* dst, const char* src, size_t size)
 	return dlen + (s - src); // Count does not include NULL.
 }
 
-size_t cestrlcpy(char* dst, const char* src, size_t size)
+size_t ce_strlcpy(char* dst, const char* src, size_t size)
 {
 	size_t srclen = strlen(src);
 	if (0 != size) {
@@ -169,7 +169,7 @@ size_t cestrlcpy(char* dst, const char* src, size_t size)
 	return srclen;
 }
 
-size_t cestrnlen(const char* s, size_t n)
+size_t ce_strnlen(const char* s, size_t n)
 {
 	size_t i;
 	for (i = 0; i < n && *s; ++i, ++s) {
@@ -177,7 +177,7 @@ size_t cestrnlen(const char* s, size_t n)
 	return i;
 }
 
-char* cestrrpbrk(const char* s, const char* accept)
+char* ce_strrpbrk(const char* s, const char* accept)
 {
 	const char* p;
 	char *p0, *p1;
@@ -190,7 +190,7 @@ char* cestrrpbrk(const char* s, const char* accept)
 	return p0;
 }
 
-char* cestrsep(char** sp, const char* delim)
+char* ce_strsep(char** sp, const char* delim)
 {
 	char* s = *sp;
 	char* p = s + strcspn(s, delim);

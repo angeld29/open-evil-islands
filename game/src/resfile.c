@@ -71,7 +71,7 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 	}
 
 	res->name_length = strlen(name);
-	if (NULL == (res->name = cestrdup(name))) {
+	if (NULL == (res->name = ce_strdup(name))) {
 		resfile_close(res);
 		return NULL;
 	}
@@ -139,7 +139,7 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 
 	for (size_t i = 0; i < res->node_count; ++i) {
 		resfile_node* node = res->nodes + i;
-		if (NULL == (node->name = cestrndup(res->names + node->name_offset,
+		if (NULL == (node->name = ce_strndup(res->names + node->name_offset,
 											node->name_length))) {
 			resfile_close(res);
 			return NULL;
@@ -158,7 +158,7 @@ resfile* resfile_open_file(const char* path)
 		return NULL;
 	}
 
-	const char* name = cestrrpbrk(path, "\\/");
+	const char* name = ce_strrpbrk(path, "\\/");
 	if (NULL == name) {
 		name = path;
 	} else {
@@ -212,7 +212,7 @@ int resfile_node_index(const char* name, const resfile* res)
 	int index = name_hash(name, res->node_count);
 	for (; index >= 0; index = node->next_index) {
 		node = res->nodes + index;
-		if (0 == cestrcasecmp(name, node->name)) {
+		if (0 == ce_strcasecmp(name, node->name)) {
 			break;
 		}
 	}

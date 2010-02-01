@@ -242,7 +242,7 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 
 	// make mp_name by truncation of one last mpr_name character
 	char mp_name[mpr_name_length];
-	cestrlcpy(mp_name, mpr_name, sizeof(mp_name));
+	ce_strlcpy(mp_name, mpr_name, sizeof(mp_name));
 
 	int index = resfile_node_index(mp_name, res);
 	if (index < 0) {
@@ -398,7 +398,7 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 
 	// mpr_name without extension
 	char sec_tmpl_name[mpr_name_length - 4 + 1];
-	cestrlcpy(sec_tmpl_name, mpr_name, sizeof(sec_tmpl_name));
+	ce_strlcpy(sec_tmpl_name, mpr_name, sizeof(sec_tmpl_name));
 
 	// sec_tmpl_name + zzzxxx.sec
 	char sec_name[sizeof(sec_tmpl_name) + 3 + 3 + 4];
@@ -468,7 +468,7 @@ static bool create_textures(mprfile* mpr, const char* mpr_name,
 
 	// mpr_name without extension
 	char mmp_tmpl_name[mpr_name_length - 4 + 1];
-	cestrlcpy(mmp_tmpl_name, mpr_name, sizeof(mmp_tmpl_name));
+	ce_strlcpy(mmp_tmpl_name, mpr_name, sizeof(mmp_tmpl_name));
 
 	// mmp_tmpl_name + nnn.mmp
 	char mmp_name[sizeof(mmp_tmpl_name) + 3 + 4];

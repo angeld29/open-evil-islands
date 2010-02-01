@@ -29,38 +29,38 @@ extern "C"
 #endif /* __cplusplus */
 
 /// Duplicate string, returning an identical ce_alloc'd string.
-extern char* cestrdup(const char* s);
+extern char* ce_strdup(const char* s);
 
 /**
  *  Return a ce_alloc'd copy of at most n bytes of s. The
  *  resultant string is terminated even if no null terminator
  *  appears before s[n].
 */
-extern char* cestrndup(const char* s, size_t n);
+extern char* ce_strndup(const char* s, size_t n);
 
 /// Convert a string into upper case in place.
-extern char* cestrupr(char* s);
+extern char* ce_strupr(char* s);
 
 /// Convert a string into lower case in place.
-extern char* cestrlwr(char* s);
+extern char* ce_strlwr(char* s);
 
 /// Reverse a string in place.
-extern char* cestrrev(char* s);
+extern char* ce_strrev(char* s);
 
 /**
  *  Replaces all occurrences of a character in a string with another character.
  *  Return number of replacements made.
 */
-extern size_t cestrrepc(char* s, char from, char to);
+extern size_t ce_strrepc(char* s, char from, char to);
 
 /// Compare s1 and s2, ignoring case.
-extern int cestrcasecmp(const char* s1, const char* s2);
+extern int ce_strcasecmp(const char* s1, const char* s2);
 
 /// Compare no more than n chars of s1 and s2, ignoring case.
-extern int cestrncasecmp(const char* s1, const char* s2, size_t n);
+extern int ce_strncasecmp(const char* s1, const char* s2, size_t n);
 
 /// Similar to strstr but this function ignores the case of both strings.
-extern char* cestrcasestr(const char* haystack, const char* needle);
+extern char* ce_strcasestr(const char* haystack, const char* needle);
 
 /**
  *  @brief Consistent, safe string concatenation.
@@ -72,7 +72,7 @@ extern char* cestrcasestr(const char* haystack, const char* needle);
  *  Returns strlen(src) + MIN(size, strlen(initial dst)).
  *  If retval >= size, truncation occurred.
 */
-extern size_t cestrlcat(char* dst, const char* src, size_t size);
+extern size_t ce_strlcat(char* dst, const char* src, size_t size);
 
 /**
  *  @brief Consistent, safe string copy.
@@ -82,22 +82,22 @@ extern size_t cestrlcat(char* dst, const char* src, size_t size);
  *  will be copied. Always NULL terminates (unless size == 0).
  *  Return strlen(src); if retval >= size, truncation occurred.
 */
-extern size_t cestrlcpy(char* dst, const char* src, size_t size);
+extern size_t ce_strlcpy(char* dst, const char* src, size_t size);
 
 /**
  *  Find the length of s, but scan at most n characters.
  *  If no '\0' terminator is found in that many characters, return n.
 */
-extern size_t cestrnlen(const char* s, size_t n);
+extern size_t ce_strnlen(const char* s, size_t n);
 
 /// Find the last occurrence in string of any character in accept.
-extern char* cestrrpbrk(const char* s, const char* accept);
+extern char* ce_strrpbrk(const char* s, const char* accept);
 
 /**
  *  Return the next delimited token from sp, terminating
  *  it with a '\0', and update sp to point past it.
 */
-extern char* cestrsep(char** sp, const char* delim);
+extern char* ce_strsep(char** sp, const char* delim);
 
 #ifdef __cplusplus
 }
