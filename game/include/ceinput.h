@@ -144,9 +144,20 @@ typedef enum {
 
 typedef struct {
 	ce_input_button button;
+	bool triggered;
+} ce_input_button_event;
+
+typedef struct {
+	ce_input_button button;
 	bool activated;
 	bool triggered;
 } ce_input_single_front_event;
+
+typedef struct {
+	ce_input_button button;
+	bool activated;
+	bool triggered;
+} ce_input_single_back_event;
 
 extern bool ce_input_open(void);
 extern void ce_input_close(void);
@@ -158,10 +169,20 @@ extern int ce_input_mouse_offset_y();
 
 extern void ce_input_advance(float elapsed);
 
+extern void ce_input_button_event_init(ce_input_button button,
+										ce_input_button_event* event);
+extern void ce_input_button_event_advance(float elapsed,
+											ce_input_button_event* event);
+
 extern void ce_input_single_front_event_init(ce_input_button button,
 									ce_input_single_front_event* event);
 extern void ce_input_single_front_event_advance(float elapsed,
 									ce_input_single_front_event* event);
+
+extern void ce_input_single_back_event_init(ce_input_button button,
+									ce_input_single_back_event* event);
+extern void ce_input_single_back_event_advance(float elapsed,
+									ce_input_single_back_event* event);
 
 #ifdef __cplusplus
 }

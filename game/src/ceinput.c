@@ -21,6 +21,20 @@
 #include "celib.h"
 #include "ceinput.h"
 
+void ce_input_button_event_init(ce_input_button button,
+									ce_input_button_event* event)
+{
+	event->button = button;
+	event->triggered = false;
+}
+
+void ce_input_button_event_advance(float elapsed,
+									ce_input_button_event* event)
+{
+	ce_unused(elapsed);
+	event->triggered = ce_input_test(event->button);
+}
+
 void ce_input_single_front_event_init(ce_input_button button,
 										ce_input_single_front_event* event)
 {
@@ -35,5 +49,22 @@ void ce_input_single_front_event_advance(float elapsed,
 	ce_unused(elapsed);
 	bool triggered = ce_input_test(event->button);
 	event->triggered = !event->activated && triggered;
+	event->activated = triggered;
+}
+
+void ce_input_single_back_event_init(ce_input_button button,
+										ce_input_single_back_event* event)
+{
+	event->button = button;
+	event->activated = false;
+	event->triggered = false;
+}
+
+void ce_input_single_back_event_advance(float elapsed,
+										ce_input_single_back_event* event)
+{
+	ce_unused(elapsed);
+	bool triggered = ce_input_test(event->button);
+	event->triggered = event->activated && !triggered;
 	event->activated = triggered;
 }
