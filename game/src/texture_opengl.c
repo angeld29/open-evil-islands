@@ -39,8 +39,8 @@
 #include "cegl.h"
 #include "cebyteorder.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "cemath.h"
-#include "logging.h"
 #include "mmpfile.h"
 #include "texture.h"
 
@@ -68,8 +68,8 @@ static void setup_mag_min_params(int mipmap_count)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			static bool reported;
 			if (!reported) {
-				logging_warning("Some OpenGL features are not available. "
-								"Mipmapping was disabled.");
+				ce_logging_warning("Some OpenGL features are not available. "
+									"Mipmapping was disabled.");
 				reported = true;
 			}
 		}
@@ -103,8 +103,8 @@ static bool scale_texture(int* width, int* height,
 		int error = gluScaleImage(data_format, *width, *height,
 			data_type, data, new_width, new_height, data_type, data);
 		if (GL_NO_ERROR != error) {
-			logging_error("gluScaleImage failed: %d (%s).",
-				error, gluErrorString(error));
+			ce_logging_error("gluScaleImage failed: %d (%s).",
+								error, gluErrorString(error));
 			return false;
 		}
 
@@ -119,7 +119,7 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 		int height, GLenum data_format, GLenum data_type, void* data)
 {
 	if (!scale_texture(&width, &height, data_format, data_type, data)) {
-		logging_error("Could not scale texture.");
+		ce_logging_error("Could not scale texture.");
 		return false;
 	}
 
@@ -140,7 +140,7 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 	}
 
 	if (ce_gl_report_errors()) {
-		logging_error("glTexImage2D failed.");
+		ce_logging_error("glTexImage2D failed.");
 		return false;
 	}
 
@@ -157,7 +157,7 @@ static bool generate_texture(int mipmap_count, GLenum internal_format, int width
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		if (!specify_texture(i, internal_format, width,
 				height, data_format, data_type, src)) {
-			logging_error("Could not specify texture.");
+			ce_logging_error("Could not specify texture.");
 			return false;
 		}
 		src += width * height * bpp;
@@ -278,7 +278,7 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 			width, height, 0, data_size, src);
 
 		if (ce_gl_report_errors()) {
-			logging_error("glCompressedTexImage2D failed.");
+			ce_logging_error("glCompressedTexImage2D failed.");
 			return false;
 		}
 
@@ -311,7 +311,7 @@ static bool dxt_generate_texture(int mipmap_count,
 	}
 
 	if (NULL == (data = ce_alloc(data_size))) {
-		logging_error("Could not allocate memory.");
+		ce_logging_error("Could not allocate memory.");
 		return false;
 	}
 
@@ -467,7 +467,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		uint32_t* end = src + size / sizeof(uint32_t);
 
 		if (NULL == (data = ce_alloc(data_size))) {
-			logging_error("Could not allocate memory.");
+			ce_logging_error("Could not allocate memory.");
 			return false;
 		}
 
@@ -530,7 +530,7 @@ texture* texture_open(void* data)
 	uint32_t* mmp = data;
 
 	if (MMP_SIGNATURE != ce_le2cpu32(*mmp++)) {
-		logging_error("Wrong mmp signature.");
+		ce_logging_error("Wrong mmp signature.");
 		texture_close(tex);
 		return NULL;
 	}

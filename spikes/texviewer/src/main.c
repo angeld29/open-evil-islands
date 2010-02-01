@@ -31,8 +31,8 @@
 #include "celib.h"
 #include "cegl.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "ceinput.h"
-#include "logging.h"
 #include "timer.h"
 #include "memfile.h"
 #include "resfile.h"
@@ -71,7 +71,7 @@ static void idle(void)
 		texture_close(tex);
 		resfile_close(res);
 		ce_input_close();
-		logging_close();
+		ce_logging_close();
 		ce_alloc_close();
 		exit(0);
 	}
@@ -264,11 +264,11 @@ int main(int argc, char* argv[])
 	glutReshapeFunc(reshape);
 
 	ce_alloc_open();
-	logging_open();
+	ce_logging_open();
 #ifdef NDEBUG
-	logging_set_level(LOGGING_WARNING_LEVEL);
+	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
 #else
-	logging_set_level(LOGGING_DEBUG_LEVEL);
+	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
 #endif
 
 	ce_input_open();

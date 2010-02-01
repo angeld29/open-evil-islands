@@ -22,12 +22,12 @@
 #include <stdarg.h>
 #include <assert.h>
 
-#include "logging.h"
+#include "celogging.h"
 
 static bool opened;
-static logging_level level = LOGGING_NO_LEVELS;
+static ce_logging_level level = CE_LOGGING_LEVEL_NONE;
 
-static const char* level_names[LOGGING_ALL_LEVELS] = {
+static const char* level_names[CE_LOGGING_LEVEL_ALL] = {
 	"UNUSED",
 	"DEBUG",
 	"INFO",
@@ -38,93 +38,93 @@ static const char* level_names[LOGGING_ALL_LEVELS] = {
 	"WRITE"
 };
 
-static void report(logging_level lvl, const char* format, va_list args)
+static void report(ce_logging_level lvl, const char* format, va_list args)
 {
-	if (LOGGING_NO_LEVELS != level &&
-			(lvl >= level || LOGGING_ALL_LEVELS == level)) {
+	if (CE_LOGGING_LEVEL_NONE != level &&
+			(lvl >= level || CE_LOGGING_LEVEL_ALL == level)) {
 		fprintf(stderr, "%s: ", level_names[lvl]);
 		vfprintf(stderr, format, args);
 		fprintf(stderr, "\n");
 	}
 }
 
-bool logging_open(void)
+bool ce_logging_open(void)
 {
 	assert(!opened);
 	return opened = true;
 }
 
-void logging_close(void)
+void ce_logging_close(void)
 {
 	assert(opened);
 	opened = false;
 }
 
-void logging_set_level(logging_level lvl)
+void ce_logging_set_level(ce_logging_level lvl)
 {
 	assert(opened);
 	level = lvl;
 }
 
-void logging_debug(const char* format, ...)
+void ce_logging_debug(const char* format, ...)
 {
 	assert(opened);
 	va_list args;
 	va_start(args, format);
-	report(LOGGING_DEBUG_LEVEL, format, args);
+	report(CE_LOGGING_LEVEL_DEBUG, format, args);
 	va_end(args);
 }
 
-void logging_info(const char* format, ...)
+void ce_logging_info(const char* format, ...)
 {
 	assert(opened);
 	va_list args;
 	va_start(args, format);
-	report(LOGGING_INFO_LEVEL, format, args);
+	report(CE_LOGGING_LEVEL_INFO, format, args);
 	va_end(args);
 }
 
-void logging_warning(const char* format, ...)
+void ce_logging_warning(const char* format, ...)
 {
 	assert(opened);
 	va_list args;
 	va_start(args, format);
-	report(LOGGING_WARNING_LEVEL, format, args);
+	report(CE_LOGGING_LEVEL_WARNING, format, args);
 	va_end(args);
 }
 
-void logging_error(const char* format, ...)
+void ce_logging_error(const char* format, ...)
 {
 	assert(opened);
 	va_list args;
 	va_start(args, format);
-	report(LOGGING_ERROR_LEVEL, format, args);
+	report(CE_LOGGING_LEVEL_ERROR, format, args);
 	va_end(args);
 }
 
-void logging_critical(const char* format, ...)
+void ce_logging_critical(const char* format, ...)
 {
 	assert(opened);
 	va_list args;
 	va_start(args, format);
-	report(LOGGING_CRITICAL_LEVEL, format, args);
+	report(CE_LOGGING_LEVEL_CRITICAL, format, args);
 	va_end(args);
 }
 
-void logging_fatal(const char* format, ...)
+void ce_logging_fatal(const char* format, ...)
 {
 	assert(opened);
 	va_list args;
 	va_start(args, format);
-	report(LOGGING_FATAL_LEVEL, format, args);
+	report(CE_LOGGING_LEVEL_FATAL, format, args);
 	va_end(args);
 }
 
-void logging_write(const char* format, ...)
+void ce_logging_write(const char* format, ...)
 {
 	assert(opened);
 	va_list args;
 	va_start(args, format);
-	report(LOGGING_WRITE_LEVEL, format, args);
+	report(CE_LOGGING_LEVEL_WRITE, format, args);
 	va_end(args);
 }

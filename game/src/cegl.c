@@ -55,7 +55,7 @@
 #define GL_GENERATE_MIPMAP_SGIS 0x8191
 #endif
 
-#include "logging.h"
+#include "celogging.h"
 #include "cegl.h"
 
 const GLenum CE_GL_COMPRESSED_RGB_S3TC_DXT1 = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
@@ -100,7 +100,8 @@ static bool check_extension(const char* name)
 
 static void report_extension(const char* name, bool ok)
 {
-	logging_write("Checking for '%s' extension... %s.", name, ok ? "yes" : "no");
+	ce_logging_write("Checking for '%s' extension... %s.",
+									name, ok ? "yes" : "no");
 }
 
 void ce_gl_init(void)
@@ -151,7 +152,7 @@ bool ce_gl_report_errors(void)
 	bool reported = false;
 	GLenum error;
 	while (GL_NO_ERROR != (error = glGetError())) {
-		logging_error("OpenGL error %u: %s.", error, gluErrorString(error));
+		ce_logging_error("OpenGL error %u: %s.", error, gluErrorString(error));
 		reported = true;
 	}
 	return reported;

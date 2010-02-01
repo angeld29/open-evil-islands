@@ -27,11 +27,11 @@
 #include <getopt.h>
 #include <GL/glut.h>
 
-#include "cealloc.h"
-#include "cemath.h"
 #include "cegl.h"
+#include "cealloc.h"
+#include "celogging.h"
 #include "ceinput.h"
-#include "logging.h"
+#include "cemath.h"
 #include "timer.h"
 #include "vec3.h"
 #include "frustum.h"
@@ -67,7 +67,7 @@ static void idle(void)
 		camera_close(cam);
 		mprfile_close(mpr);
 		ce_input_close();
-		logging_close();
+		ce_logging_close();
 		ce_alloc_close();
 		if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
 			glutLeaveGameMode();
@@ -261,11 +261,11 @@ int main(int argc, char* argv[])
 	}
 
 	ce_alloc_open();
-	logging_open();
+	ce_logging_open();
 #ifdef NDEBUG
-	logging_set_level(LOGGING_WARNING_LEVEL);
+	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
 #else
-	logging_set_level(LOGGING_DEBUG_LEVEL);
+	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
 #endif
 
 	glutInit(&argc, argv);
@@ -277,7 +277,7 @@ int main(int argc, char* argv[])
 			glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));
 		glutGameModeString(buffer);
 		if (!glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
-			logging_warning("Full Screen mode is not available.");
+			ce_logging_warning("Full Screen mode is not available.");
 			fullscreen = false;
 		}
 	}
