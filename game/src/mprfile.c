@@ -33,7 +33,7 @@
 #include "cestr.h"
 #include "cemath.h"
 #include "vec3.h"
-#include "aabb.h"
+#include "ceaabb.h"
 #include "texture.h"
 #include "memfile.h"
 #include "resfile.h"
@@ -74,7 +74,7 @@ typedef struct {
 
 typedef struct {
 	unsigned int x, z;
-	aabb box;
+	ce_aabb box;
 	float dist2; // for sorting on rendering
 	uint8_t water;
 	vertex* land_vertices;
