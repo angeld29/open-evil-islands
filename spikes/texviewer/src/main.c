@@ -33,7 +33,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceinput.h"
-#include "timer.h"
+#include "cetimer.h"
 #include "memfile.h"
 #include "resfile.h"
 #include "texture.h"
@@ -52,7 +52,7 @@
 
 resfile* res;
 texture* tex;
-timer* tmr;
+ce_timer* tmr;
 
 bool rndmode = false;
 int delay = DEFAULT_DELAY;
@@ -60,14 +60,14 @@ bool slideshow = true;
 
 static void idle(void)
 {
-	timer_advance(tmr);
+	ce_timer_advance(tmr);
 
-	float elapsed = timer_elapsed(tmr);
+	float elapsed = ce_timer_elapsed(tmr);
 
 	ce_input_advance(elapsed);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
-		timer_close(tmr);
+		ce_timer_close(tmr);
 		texture_close(tex);
 		resfile_close(res);
 		ce_input_close();
@@ -299,7 +299,7 @@ int main(int argc, char* argv[])
 
 	glutTimerFunc(0, next_texture, index);
 
-	tmr = timer_open();
+	tmr = ce_timer_open();
 
 	glutMainLoop();
 	return 0;

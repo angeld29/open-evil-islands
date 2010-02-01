@@ -26,13 +26,13 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct timer timer;
+typedef struct ce_timer ce_timer;
 
-extern timer* timer_open(void);
-extern void timer_close(timer* tmr);
+extern ce_timer* ce_timer_open(void);
+extern void ce_timer_close(ce_timer* tmr);
 
-extern void timer_advance(timer* tmr);
-extern float timer_elapsed(timer* tmr);
+extern void ce_timer_advance(ce_timer* tmr);
+extern float ce_timer_elapsed(ce_timer* tmr);
 
 #ifdef __cplusplus
 }

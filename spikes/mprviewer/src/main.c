@@ -31,9 +31,9 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceinput.h"
+#include "cetimer.h"
 #include "cecamera.h"
 #include "cemath.h"
-#include "timer.h"
 #include "vec3.h"
 #include "frustum.h"
 #include "resfile.h"
@@ -51,19 +51,19 @@
 
 mprfile* mpr;
 ce_camera* cam;
-timer* tmr;
+ce_timer* tmr;
 ce_input_single_front_event night_event;
 
 static void idle(void)
 {
-	timer_advance(tmr);
+	ce_timer_advance(tmr);
 
-	float elapsed = timer_elapsed(tmr);
+	float elapsed = ce_timer_elapsed(tmr);
 
 	ce_input_advance(elapsed);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
-		timer_close(tmr);
+		ce_timer_close(tmr);
 		ce_camera_close(cam);
 		mprfile_close(mpr);
 		ce_input_close();
@@ -327,7 +327,7 @@ int main(int argc, char* argv[])
 	ce_camera_set_eye(&eye, cam);
 	ce_camera_yaw_pitch(ce_deg2rad(45.0f), ce_deg2rad(30.0f), cam);
 
-	tmr = timer_open();
+	tmr = ce_timer_open();
 
 	ce_input_single_front_event_init(CE_KB_N, &night_event);
 

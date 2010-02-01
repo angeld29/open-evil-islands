@@ -21,18 +21,18 @@
 #include <sys/time.h>
 
 #include "cealloc.h"
-#include "timer.h"
+#include "cetimer.h"
 
-struct timer {
+struct ce_timer {
 	struct timeval elapsed_old;
 	struct timeval elapsed_new;
 	struct timeval elapsed_sub;
 	float elapsed_diff;
 };
 
-timer* timer_open(void)
+ce_timer* ce_timer_open(void)
 {
-	timer* tmr = ce_alloc(sizeof(timer));
+	ce_timer* tmr = ce_alloc(sizeof(ce_timer));
 	if (NULL == tmr) {
 		return NULL;
 	}
@@ -40,12 +40,12 @@ timer* timer_open(void)
 	return tmr;
 }
 
-void timer_close(timer* tmr)
+void ce_timer_close(ce_timer* tmr)
 {
-	ce_free(tmr, sizeof(timer));
+	ce_free(tmr, sizeof(ce_timer));
 }
 
-void timer_advance(timer* tmr)
+void ce_timer_advance(ce_timer* tmr)
 {
 	gettimeofday(&tmr->elapsed_new, NULL);
 	timersub(&tmr->elapsed_new, &tmr->elapsed_old, &tmr->elapsed_sub);
@@ -54,7 +54,7 @@ void timer_advance(timer* tmr)
 	tmr->elapsed_old = tmr->elapsed_new;
 }
 
-float timer_elapsed(timer* tmr)
+float ce_timer_elapsed(ce_timer* tmr)
 {
 	return tmr->elapsed_diff;
 }
