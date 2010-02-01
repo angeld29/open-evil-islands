@@ -18,6 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+// WARNING!
+// Not fully implemented!
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -47,7 +50,7 @@ static const uint64_t OBJECT_BLOCK_PARTICLE2_SIGNATURE = 0xcc01;
 static const uint64_t OBJECT_BLOCK_PARTICLE3_SIGNATURE = 0xdd01;*/
 
 struct mobfile {
-	ceio_callbacks callbacks;
+	ce_io_callbacks callbacks;
 	void* client_data;
 };
 
@@ -59,7 +62,7 @@ static void decrypt_script(char* buf, uint32_t key, int32_t size)
 	}
 }
 
-static mobfile* open_callbacks(ceio_callbacks callbacks,
+static mobfile* open_callbacks(ce_io_callbacks callbacks,
 								void* client_data, const char* name)
 {
 	name = name;
@@ -165,7 +168,7 @@ mobfile* mobfile_open(const char* path)
 		++name;
 	}
 
-	mobfile* mob = open_callbacks(CEIO_CALLBACKS_FILE, file, name);
+	mobfile* mob = open_callbacks(CE_IO_CALLBACKS_FILE, file, name);
 	if (NULL == mob) {
 		fclose(file);
 		return NULL;

@@ -127,7 +127,7 @@ static void chunk_free(void* ptr, size_t block_size, chunk* cnk)
 static bool portion_init(size_t block_size, size_t page_size, portion* por)
 {
 	por->block_size = block_size;
-	por->block_count = cesclamp(page_size / block_size, CHAR_BIT, UCHAR_MAX);
+	por->block_count = ce_sclamp(page_size / block_size, CHAR_BIT, UCHAR_MAX);
 
 	por->chunk_count = 0;
 	por->chunk_capacity = 16;

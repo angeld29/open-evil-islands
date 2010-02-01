@@ -48,29 +48,29 @@ static ce_input_button mouse_map(int key);
 
 static void keyboard(unsigned char key, int x, int y)
 {
-	ceunused(x);
-	ceunused(y);
+	ce_unused(x);
+	ce_unused(y);
 	buttons[keyboard_ascii_map(key)] = true;
 }
 
 static void keyboard_up(unsigned char key, int x, int y)
 {
-	ceunused(x);
-	ceunused(y);
+	ce_unused(x);
+	ce_unused(y);
 	buttons[keyboard_ascii_map(key)] = false;
 }
 
 static void special(int key, int x, int y)
 {
-	ceunused(x);
-	ceunused(y);
+	ce_unused(x);
+	ce_unused(y);
 	buttons[keyboard_special_map(key)] = true;
 }
 
 static void special_up(int key, int x, int y)
 {
-	ceunused(x);
-	ceunused(y);
+	ce_unused(x);
+	ce_unused(y);
 	buttons[keyboard_special_map(key)] = false;
 }
 
@@ -145,7 +145,7 @@ int ce_input_mouse_offset_y()
 void ce_input_advance(float elapsed)
 {
 	assert(opened);
-	ceunused(elapsed);
+	ce_unused(elapsed);
 
 	if (mouse_offset_delay > 0 && 0 == --mouse_offset_delay) {
 		mouse_offset_x = 0.0f;

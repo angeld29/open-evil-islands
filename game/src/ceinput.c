@@ -32,7 +32,7 @@ void ce_input_single_front_event_init(ce_input_button button,
 void ce_input_single_front_event_advance(float elapsed,
 										ce_input_single_front_event* event)
 {
-	ceunused(elapsed);
+	ce_unused(elapsed);
 	bool triggered = ce_input_test(event->button);
 	event->triggered = !event->activated && triggered;
 	event->activated = triggered;

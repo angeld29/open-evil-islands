@@ -46,7 +46,7 @@ static size_t cookie_read(void* data, size_t size, size_t n, void* client_data)
 		return 0;
 	}
 
-	size_t avail_n = cesmin((c->size - c->pos) / size, n);
+	size_t avail_n = ce_smin((c->size - c->pos) / size, n);
 	size_t avail_size = size * avail_n;
 
 	memcpy(data, c->data + c->pos, avail_size);
@@ -59,36 +59,36 @@ static size_t cookie_write(const void* data, size_t size,
 							size_t n, void* client_data)
 {
 	assert(false && "Not implemented");
-	ceunused(data);
-	ceunused(size);
-	ceunused(n);
-	ceunused(client_data);
+	ce_unused(data);
+	ce_unused(size);
+	ce_unused(n);
+	ce_unused(client_data);
 	return 0;
 }
 
 static int cookie_seek(long int offset, int whence, void* client_data)
 {
 	assert(false && "Not implemented");
-	ceunused(offset);
-	ceunused(whence);
-	ceunused(client_data);
+	ce_unused(offset);
+	ce_unused(whence);
+	ce_unused(client_data);
 	return 0;
 }
 
 static long int cookie_tell(void* client_data)
 {
 	assert(false && "Not implemented");
-	ceunused(client_data);
+	ce_unused(client_data);
 	return 0;
 }
 
-static const ceio_callbacks cookie_callbacks = {
+static const ce_io_callbacks cookie_callbacks = {
 	cookie_close, cookie_read, cookie_write, cookie_seek, cookie_tell
 };
 
 memfile* memfile_open_data(void* data, size_t size, const char* mode)
 {
-	ceunused(mode);
+	ce_unused(mode);
 
 	cookie* c = ce_alloc(sizeof(cookie));
 	if (NULL == c) {

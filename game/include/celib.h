@@ -23,22 +23,22 @@
 
 #include <stddef.h>
 
-#define ceunused(var) (void)(var)
+#define ce_unused(var) (void)(var)
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-extern int cemin(int a, int b);
-extern int cemax(int a, int b);
-extern size_t cesmin(size_t a, size_t b);
-extern size_t cesmax(size_t a, size_t b);
+extern int ce_min(int a, int b);
+extern int ce_max(int a, int b);
+extern size_t ce_smin(size_t a, size_t b);
+extern size_t ce_smax(size_t a, size_t b);
 
-extern void ceswap(int* a, int* b);
+extern void ce_swap(int* a, int* b);
 
-extern int ceclamp(int v, int a, int b);
-extern size_t cesclamp(size_t v, size_t a, size_t b);
+extern int ce_clamp(int v, int a, int b);
+extern size_t ce_sclamp(size_t v, size_t a, size_t b);
 
 #ifdef __cplusplus
 }

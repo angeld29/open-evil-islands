@@ -83,8 +83,8 @@ static bool scale_texture(int* width, int* height,
 	GLint max_texture_size;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
 
-	int new_width = cemin(*width, max_texture_size);
-	int new_height = cemin(*height, max_texture_size);
+	int new_width = ce_min(*width, max_texture_size);
+	int new_height = ce_min(*height, max_texture_size);
 
 	if (!ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO)) {
 		float int_width, int_height;
@@ -620,6 +620,6 @@ void texture_bind(texture* tex)
 
 void texture_unbind(texture* tex)
 {
-	ceunused(tex);
+	ce_unused(tex);
 	glDisable(GL_TEXTURE_2D);
 }

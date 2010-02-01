@@ -24,11 +24,11 @@
 #include "memfile.h"
 
 struct memfile {
-	ceio_callbacks callbacks;
+	ce_io_callbacks callbacks;
 	void* client_data;
 };
 
-memfile* memfile_open_callbacks(ceio_callbacks callbacks, void* client_data)
+memfile* memfile_open_callbacks(ce_io_callbacks callbacks, void* client_data)
 {
 	memfile* mem = ce_alloc(sizeof(memfile));
 	if (NULL == mem) {
@@ -48,7 +48,7 @@ memfile* memfile_open_path(const char* path, const char* mode)
 		return NULL;
 	}
 
-	memfile* mem = memfile_open_callbacks(CEIO_CALLBACKS_FILE, file);
+	memfile* mem = memfile_open_callbacks(CE_IO_CALLBACKS_FILE, file);
 	if (NULL == mem) {
 		fclose(file);
 		return NULL;
