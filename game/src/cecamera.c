@@ -27,9 +27,9 @@
 #include "vec3.h"
 #include "quat.h"
 #include "mat4.h"
-#include "camera.h"
+#include "cecamera.h"
 
-struct camera {
+struct ce_camera {
 	float fov;
 	float aspect;
 	float near;
@@ -80,9 +80,9 @@ static void update_translation(const vec3* eye, mat4* view)
 		-view->m[2] * eye->x - view->m[6] * eye->y - view->m[10] * eye->z;
 }
 
-camera* camera_open(void)
+ce_camera* ce_camera_open(void)
 {
-	camera* cam = ce_alloc(sizeof(camera));
+	ce_camera* cam = ce_alloc(sizeof(ce_camera));
 	if (NULL == cam) {
 		return NULL;
 	}
@@ -99,96 +99,96 @@ camera* camera_open(void)
 	return cam;
 }
 
-void camera_close(camera* cam)
+void ce_camera_close(ce_camera* cam)
 {
-	ce_free(cam, sizeof(camera));
+	ce_free(cam, sizeof(ce_camera));
 }
 
-float camera_get_fov(camera* cam)
+float ce_camera_get_fov(ce_camera* cam)
 {
 	return cam->fov;
 }
 
-float camera_get_aspect(camera* cam)
+float ce_camera_get_aspect(ce_camera* cam)
 {
 	return cam->aspect;
 }
 
-float camera_get_near(camera* cam)
+float ce_camera_get_near(ce_camera* cam)
 {
 	return cam->near;
 }
 
-float camera_get_far(camera* cam)
+float ce_camera_get_far(ce_camera* cam)
 {
 	return cam->far;
 }
 
-vec3* camera_get_eye(vec3* eye, camera* cam)
+vec3* ce_camera_get_eye(vec3* eye, ce_camera* cam)
 {
 	return vec3_copy(&cam->eye, eye);
 }
 
-vec3* camera_get_forward(vec3* forward, camera* cam)
+vec3* ce_camera_get_forward(vec3* forward, ce_camera* cam)
 {
 	quat q;
 	return vec3_rot(&VEC3_NEG_UNIT_Z, quat_conj(&cam->look, &q), forward);
 }
 
-vec3* camera_get_up(vec3* up, camera* cam)
+vec3* ce_camera_get_up(vec3* up, ce_camera* cam)
 {
 	quat q;
 	return vec3_rot(&VEC3_UNIT_Y, quat_conj(&cam->look, &q), up);
 }
 
-vec3* camera_get_right(vec3* right, camera* cam)
+vec3* ce_camera_get_right(vec3* right, ce_camera* cam)
 {
 	quat q;
 	return vec3_rot(&VEC3_UNIT_X, quat_conj(&cam->look, &q), right);
 }
 
-void camera_set_fov(float fov, camera* cam)
+void ce_camera_set_fov(float fov, ce_camera* cam)
 {
 	cam->fov = fov;
 	cam->proj_changed = true;
 }
 
-void camera_set_aspect(int width, int height, camera* cam)
+void ce_camera_set_aspect(int width, int height, ce_camera* cam)
 {
 	cam->aspect = (float)width / height;
 	cam->proj_changed = true;
 }
 
-void camera_set_near(float near, camera* cam)
+void ce_camera_set_near(float near, ce_camera* cam)
 {
 	cam->near = near;
 	cam->proj_changed = true;
 }
 
-void camera_set_far(float far, camera* cam)
+void ce_camera_set_far(float far, ce_camera* cam)
 {
 	cam->far = far;
 	cam->proj_changed = true;
 }
 
-void camera_set_eye(const vec3* eye, camera* cam)
+void ce_camera_set_eye(const vec3* eye, ce_camera* cam)
 {
 	vec3_copy(eye, &cam->eye);
 	cam->eye_changed = true;
 }
 
-void camera_set_look(const quat* look, camera* cam)
+void ce_camera_set_look(const quat* look, ce_camera* cam)
 {
 	quat_copy(look, &cam->look);
 	cam->look_changed = true;
 }
 
-void camera_move(float offsetx, float offsetz, camera* cam)
+void ce_camera_move(float offset_x, float offset_z, ce_camera* cam)
 {
 	vec3 forward, right;
 
-	camera_get_forward(&forward, cam);
-	camera_get_right(&right, cam);
+	ce_camera_get_forward(&forward, cam);
+	ce_camera_get_right(&right, cam);
 
 	// Ignore pitch difference angle.
 	forward.y = 0.0f;
@@ -197,8 +197,8 @@ void camera_move(float offsetx, float offsetz, camera* cam)
 	vec3_normalise(&forward, &forward);
 	vec3_normalise(&right, &right);
 
-	vec3_scale(&forward, offsetz, &forward);
-	vec3_scale(&right, offsetx, &right);
+	vec3_scale(&forward, offset_z, &forward);
+	vec3_scale(&right, offset_x, &right);
 
 	vec3_add(&cam->eye, &forward, &cam->eye);
 	vec3_add(&cam->eye, &right, &cam->eye);
@@ -206,16 +206,16 @@ void camera_move(float offsetx, float offsetz, camera* cam)
 	cam->eye_changed = true;
 }
 
-void camera_zoom(float offset, camera* cam)
+void ce_camera_zoom(float offset, ce_camera* cam)
 {
 	vec3 forward;
-	camera_get_forward(&forward, cam);
+	ce_camera_get_forward(&forward, cam);
 	vec3_scale(&forward, offset, &forward);
 	vec3_add(&cam->eye, &forward, &cam->eye);
 	cam->eye_changed = true;
 }
 
-void camera_yaw_pitch(float psi, float theta, camera* cam)
+void ce_camera_yaw_pitch(float psi, float theta, ce_camera* cam)
 {
 	vec3 y;
 	quat q, t;
@@ -225,7 +225,7 @@ void camera_yaw_pitch(float psi, float theta, camera* cam)
 	cam->look_changed = true;
 }
 
-void camera_setup(camera* cam)
+void ce_camera_setup(ce_camera* cam)
 {
 	if (cam->proj_changed) {
 		glMatrixMode(GL_PROJECTION);

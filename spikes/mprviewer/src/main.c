@@ -31,11 +31,11 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceinput.h"
+#include "cecamera.h"
 #include "cemath.h"
 #include "timer.h"
 #include "vec3.h"
 #include "frustum.h"
-#include "camera.h"
 #include "resfile.h"
 #include "mprfile.h"
 
@@ -50,7 +50,7 @@
 #endif
 
 mprfile* mpr;
-camera* cam;
+ce_camera* cam;
 timer* tmr;
 ce_input_single_front_event night_event;
 
@@ -64,7 +64,7 @@ static void idle(void)
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		timer_close(tmr);
-		camera_close(cam);
+		ce_camera_close(cam);
 		mprfile_close(mpr);
 		ce_input_close();
 		ce_logging_close();
@@ -76,31 +76,31 @@ static void idle(void)
 	}
 
 	if (ce_input_test(CE_KB_LEFT)) {
-		camera_move(-10.0f * elapsed, 0.0f, cam);
+		ce_camera_move(-10.0f * elapsed, 0.0f, cam);
 	}
 
 	if (ce_input_test(CE_KB_UP)) {
-		camera_move(0.0f, 10.0f * elapsed, cam);
+		ce_camera_move(0.0f, 10.0f * elapsed, cam);
 	}
 
 	if (ce_input_test(CE_KB_RIGHT)) {
-		camera_move(10.0f * elapsed, 0.0f, cam);
+		ce_camera_move(10.0f * elapsed, 0.0f, cam);
 	}
 
 	if (ce_input_test(CE_KB_DOWN)) {
-		camera_move(0.0f, -10.0f * elapsed, cam);
+		ce_camera_move(0.0f, -10.0f * elapsed, cam);
 	}
 
 	if (ce_input_test(CE_MB_WHEELUP)) {
-		camera_zoom(5.0f, cam);
+		ce_camera_zoom(5.0f, cam);
 	}
 
 	if (ce_input_test(CE_MB_WHEELDOWN)) {
-		camera_zoom(-5.0f, cam);
+		ce_camera_zoom(-5.0f, cam);
 	}
 
 	if (ce_input_test(CE_MB_RIGHT)) {
-		camera_yaw_pitch(ce_deg2rad(-0.25f * ce_input_mouse_offset_x()),
+		ce_camera_yaw_pitch(ce_deg2rad(-0.25f * ce_input_mouse_offset_x()),
 						ce_deg2rad(-0.25f * ce_input_mouse_offset_y()), cam);
 	}
 
@@ -122,12 +122,12 @@ static void display(void)
 	glEnable(GL_LIGHT0);
 
 	glLightfv(GL_LIGHT0, GL_POSITION, (float[]){ 0.0f, 0.0f, 0.0f, 1.0f });
-	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, camera_get_fov(cam) / 2.0f);
+	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, ce_camera_get_fov(cam) / 2.0f);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, (float[]){ 2.0f, 2.0f, 2.0f, 1.0f });
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, (float[]){ 0.5f, 0.5f, 0.5f, 1.0f });
 	glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 
-	camera_setup(cam);
+	ce_camera_setup(cam);
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
@@ -148,10 +148,10 @@ static void display(void)
 	vec3 eye, forward, right, up;
 	frustum f;
 
-	frustum_init(camera_get_fov(cam), camera_get_aspect(cam),
-		camera_get_near(cam), camera_get_far(cam),
-		camera_get_eye(&eye, cam), camera_get_forward(&forward, cam),
-		camera_get_right(&right, cam), camera_get_up(&up, cam), &f);
+	frustum_init(ce_camera_get_fov(cam), ce_camera_get_aspect(cam),
+		ce_camera_get_near(cam), ce_camera_get_far(cam),
+		ce_camera_get_eye(&eye, cam), ce_camera_get_forward(&forward, cam),
+		ce_camera_get_right(&right, cam), ce_camera_get_up(&up, cam), &f);
 
 	mprfile_apply_frustum(&eye, &f, mpr);
 	mprfile_render(mpr);
@@ -165,7 +165,7 @@ static void display(void)
 static void reshape(int width, int height)
 {
 	glViewport(0, 0, width, height);
-	camera_set_aspect(width, height, cam);
+	ce_camera_set_aspect(width, height, cam);
 }
 
 static void usage()
@@ -323,9 +323,9 @@ int main(int argc, char* argv[])
 	vec3 eye;
 	vec3_init(0.0f, mprfile_get_max_height(mpr), 0.0f, &eye);
 
-	cam = camera_open();
-	camera_set_eye(&eye, cam);
-	camera_yaw_pitch(ce_deg2rad(45.0f), ce_deg2rad(30.0f), cam);
+	cam = ce_camera_open();
+	ce_camera_set_eye(&eye, cam);
+	ce_camera_yaw_pitch(ce_deg2rad(45.0f), ce_deg2rad(30.0f), cam);
 
 	tmr = timer_open();
 
