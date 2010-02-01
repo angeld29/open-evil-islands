@@ -82,7 +82,7 @@ static void update_translation(const vec3* eye, mat4* view)
 
 camera* camera_open(void)
 {
-	camera* cam = cealloc(sizeof(camera));
+	camera* cam = ce_alloc(sizeof(camera));
 	if (NULL == cam) {
 		return NULL;
 	}
@@ -101,7 +101,7 @@ camera* camera_open(void)
 
 void camera_close(camera* cam)
 {
-	cefree(cam, sizeof(camera));
+	ce_free(cam, sizeof(camera));
 }
 
 float camera_get_fov(camera* cam)

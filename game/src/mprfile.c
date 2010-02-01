@@ -148,7 +148,7 @@ static bool read_material(material* mat, memfile* mem)
 			4 != memfile_read(unknown, sizeof(float), 4, mem)) {
 		return false;
 	}
-	cele2cpu32s(&mat->type);
+	ce_le2cpu32s(&mat->type);
 	return true;
 }
 
@@ -158,8 +158,8 @@ static bool read_anim_tile(anim_tile* at, memfile* mem)
 			1 != memfile_read(&at->count, sizeof(uint16_t), 1, mem)) {
 		return false;
 	}
-	cele2cpu16s(&at->index);
-	cele2cpu16s(&at->count);
+	ce_le2cpu16s(&at->index);
+	ce_le2cpu16s(&at->count);
 	return true;
 }
 
@@ -170,7 +170,7 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 		return false;
 	}
 
-	cele2cpu32s(&signature);
+	ce_le2cpu32s(&signature);
 	if (MP_SIGNATURE != signature) {
 		return false;
 	}
@@ -187,18 +187,18 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 		return false;
 	}
 
-	cele2cpu32s(&mpr->sector_x_count);
-	cele2cpu32s(&mpr->sector_z_count);
-	cele2cpu32s(&mpr->texture_count);
-	cele2cpu32s(&mpr->texture_size);
-	cele2cpu32s(&mpr->tile_count);
-	cele2cpu32s(&mpr->tile_size);
-	cele2cpu16s(&mpr->material_count);
-	cele2cpu32s(&mpr->anim_tile_count);
+	ce_le2cpu32s(&mpr->sector_x_count);
+	ce_le2cpu32s(&mpr->sector_z_count);
+	ce_le2cpu32s(&mpr->texture_count);
+	ce_le2cpu32s(&mpr->texture_size);
+	ce_le2cpu32s(&mpr->tile_count);
+	ce_le2cpu32s(&mpr->tile_size);
+	ce_le2cpu16s(&mpr->material_count);
+	ce_le2cpu32s(&mpr->anim_tile_count);
 
 	mpr->sector_count = mpr->sector_x_count * mpr->sector_z_count;
 
-	mpr->materials = cealloc(sizeof(material) * mpr->material_count);
+	mpr->materials = ce_alloc(sizeof(material) * mpr->material_count);
 	if (NULL == mpr->materials) {
 		return false;
 	}
@@ -209,17 +209,17 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 		}
 	}
 
-	mpr->tiles = cealloc(sizeof(uint32_t) * mpr->tile_count);
+	mpr->tiles = ce_alloc(sizeof(uint32_t) * mpr->tile_count);
 	if (NULL == mpr->tiles || (size_t)mpr->tile_count !=
 			memfile_read(mpr->tiles, sizeof(uint32_t), mpr->tile_count, mem)) {
 		return false;
 	}
 
 	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
-		cele2cpu32s(mpr->tiles + i);
+		ce_le2cpu32s(mpr->tiles + i);
 	}
 
-	mpr->anim_tiles = cealloc(sizeof(anim_tile) * mpr->anim_tile_count);
+	mpr->anim_tiles = ce_alloc(sizeof(anim_tile) * mpr->anim_tile_count);
 	if (NULL == mpr->anim_tiles) {
 		return false;
 	}
@@ -250,22 +250,22 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 	}
 
 	const size_t data_size = resfile_node_size(index, res);
-	void* data = cealloc(data_size);
+	void* data = ce_alloc(data_size);
 	if (NULL == data || !resfile_node_data(index, data, res)) {
-		cefree(data, data_size);
+		ce_free(data, data_size);
 		return false;
 	}
 
 	memfile* mem = memfile_open_data(data, data_size, "rb");
 	if (NULL == mem) {
-		cefree(data, data_size);
+		ce_free(data, data_size);
 		return false;
 	}
 
 	bool ok = read_header_impl(mpr, mem);
 
 	memfile_close(mem);
-	cefree(data, data_size);
+	ce_free(data, data_size);
 
 	return ok;
 }
@@ -278,8 +278,8 @@ static bool read_vertex(vertex* ver, memfile* mem)
 			1 != memfile_read(&ver->normal, sizeof(uint32_t), 1, mem)) {
 		return false;
 	}
-	cele2cpu16s(&ver->coord_y);
-	cele2cpu32s(&ver->normal);
+	ce_le2cpu16s(&ver->coord_y);
+	ce_le2cpu32s(&ver->normal);
 	return true;
 }
 
@@ -290,7 +290,7 @@ static bool read_sector_impl(sector* sec, memfile* mem)
 		return false;
 	}
 
-	cele2cpu32s(&signature);
+	ce_le2cpu32s(&signature);
 	if (SEC_SIGNATURE != signature) {
 		return false;
 	}
@@ -299,7 +299,7 @@ static bool read_sector_impl(sector* sec, memfile* mem)
 		return false;
 	}
 
-	sec->land_vertices = cealloc(sizeof(vertex) * VERTEX_COUNT);
+	sec->land_vertices = ce_alloc(sizeof(vertex) * VERTEX_COUNT);
 	if (NULL == sec->land_vertices) {
 		return false;
 	}
@@ -311,7 +311,7 @@ static bool read_sector_impl(sector* sec, memfile* mem)
 	}
 
 	if (0 != sec->water) {
-		sec->water_vertices = cealloc(sizeof(vertex) * VERTEX_COUNT);
+		sec->water_vertices = ce_alloc(sizeof(vertex) * VERTEX_COUNT);
 		if (NULL == sec->water_vertices) {
 			return false;
 		}
@@ -323,19 +323,19 @@ static bool read_sector_impl(sector* sec, memfile* mem)
 		}
 	}
 
-	sec->land_textures = cealloc(sizeof(uint16_t) * TEXTURE_COUNT);
+	sec->land_textures = ce_alloc(sizeof(uint16_t) * TEXTURE_COUNT);
 	if (NULL == sec->land_textures || TEXTURE_COUNT != memfile_read(
 			sec->land_textures, sizeof(uint16_t), TEXTURE_COUNT, mem)) {
 		return false;
 	}
 
 	for (unsigned int i = 0; i < TEXTURE_COUNT; ++i) {
-		cele2cpu16s(sec->land_textures + i);
+		ce_le2cpu16s(sec->land_textures + i);
 	}
 
 	if (0 != sec->water) {
-		sec->water_textures = cealloc(sizeof(uint16_t) * TEXTURE_COUNT);
-		sec->water_allow = cealloc(sizeof(int16_t) * TEXTURE_COUNT);
+		sec->water_textures = ce_alloc(sizeof(uint16_t) * TEXTURE_COUNT);
+		sec->water_allow = ce_alloc(sizeof(int16_t) * TEXTURE_COUNT);
 
 		if (NULL == sec->water_textures || NULL == sec->water_allow ||
 				TEXTURE_COUNT != memfile_read(sec->water_textures,
@@ -346,8 +346,8 @@ static bool read_sector_impl(sector* sec, memfile* mem)
 		}
 
 		for (unsigned int i = 0; i < TEXTURE_COUNT; ++i) {
-			cele2cpu16s(sec->water_textures + i);
-			cele2cpu16s((uint16_t*)(sec->water_allow + i));
+			ce_le2cpu16s(sec->water_textures + i);
+			ce_le2cpu16s((uint16_t*)(sec->water_allow + i));
 		}
 	}
 
@@ -362,22 +362,22 @@ static bool read_sector(sector* sec, const char* name, resfile* res)
 	}
 
 	const size_t data_size = resfile_node_size(index, res);
-	void* data = cealloc(data_size);
+	void* data = ce_alloc(data_size);
 	if (NULL == data || !resfile_node_data(index, data, res)) {
-		cefree(data, data_size);
+		ce_free(data, data_size);
 		return false;
 	}
 
 	memfile* mem = memfile_open_data(data, data_size, "rb");
 	if (NULL == mem) {
-		cefree(data, data_size);
+		ce_free(data, data_size);
 		return false;
 	}
 
 	bool ok = read_sector_impl(sec, mem);
 
 	memfile_close(mem);
-	cefree(data, data_size);
+	ce_free(data, data_size);
 
 	return ok;
 }
@@ -386,9 +386,9 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 							size_t mpr_name_length, resfile* res)
 {
 	if (NULL == (mpr->sectors =
-					cealloczero(sizeof(sector) * mpr->sector_count)) ||
+					ce_alloc_zero(sizeof(sector) * mpr->sector_count)) ||
 			NULL == (mpr->visible_sectors =
-						cealloc(sizeof(sector*) * mpr->sector_count))) {
+						ce_alloc(sizeof(sector*) * mpr->sector_count))) {
 		return false;
 	}
 
@@ -441,15 +441,15 @@ static bool create_texture(texture** tex, const char* name, resfile* res)
 	}
 
 	const size_t data_size = resfile_node_size(index, res);
-	void* data = cealloc(data_size);
+	void* data = ce_alloc(data_size);
 	if (NULL == data || !resfile_node_data(index, data, res)) {
-		cefree(data, data_size);
+		ce_free(data, data_size);
 		return false;
 	}
 
 	*tex = texture_open(data);
 
-	cefree(data, data_size);
+	ce_free(data, data_size);
 
 	return NULL != *tex;
 }
@@ -457,7 +457,7 @@ static bool create_texture(texture** tex, const char* name, resfile* res)
 static bool create_textures(mprfile* mpr, const char* mpr_name,
 							size_t mpr_name_length, resfile* res)
 {
-	mpr->textures = cealloczero(sizeof(texture*) * mpr->texture_count);
+	mpr->textures = ce_alloc_zero(sizeof(texture*) * mpr->texture_count);
 	if (NULL == mpr->textures) {
 		return false;
 	}
@@ -486,7 +486,7 @@ static bool create_textures(mprfile* mpr, const char* mpr_name,
 
 mprfile* mprfile_open(resfile* mpr_res, resfile* textures_res)
 {
-	mprfile* mpr = cealloczero(sizeof(mprfile));
+	mprfile* mpr = ce_alloc_zero(sizeof(mprfile));
 	if (NULL == mpr) {
 		return NULL;
 	}
@@ -529,22 +529,22 @@ void mprfile_close(mprfile* mpr)
 	if (NULL != mpr->sectors) {
 		for (unsigned int i = 0; i < mpr->sector_count; ++i) {
 			sector* sec = mpr->sectors + i;
-			cefree(sec->water_allow, sizeof(int16_t) * TEXTURE_COUNT);
-			cefree(sec->water_textures, sizeof(uint16_t) * TEXTURE_COUNT);
-			cefree(sec->land_textures, sizeof(uint16_t) * TEXTURE_COUNT);
-			cefree(sec->water_vertices, sizeof(vertex) * VERTEX_COUNT);
-			cefree(sec->land_vertices, sizeof(vertex) * VERTEX_COUNT);
+			ce_free(sec->water_allow, sizeof(int16_t) * TEXTURE_COUNT);
+			ce_free(sec->water_textures, sizeof(uint16_t) * TEXTURE_COUNT);
+			ce_free(sec->land_textures, sizeof(uint16_t) * TEXTURE_COUNT);
+			ce_free(sec->water_vertices, sizeof(vertex) * VERTEX_COUNT);
+			ce_free(sec->land_vertices, sizeof(vertex) * VERTEX_COUNT);
 		}
 	}
 
-	cefree(mpr->textures, sizeof(texture*) * mpr->texture_count);
-	cefree(mpr->visible_sectors, sizeof(sector*) * mpr->sector_count);
-	cefree(mpr->sectors, sizeof(sector) * mpr->sector_count);
-	cefree(mpr->anim_tiles, sizeof(anim_tile) * mpr->anim_tile_count);
-	cefree(mpr->tiles, sizeof(uint32_t) * mpr->tile_count);
-	cefree(mpr->materials, sizeof(material) * mpr->material_count);
+	ce_free(mpr->textures, sizeof(texture*) * mpr->texture_count);
+	ce_free(mpr->visible_sectors, sizeof(sector*) * mpr->sector_count);
+	ce_free(mpr->sectors, sizeof(sector) * mpr->sector_count);
+	ce_free(mpr->anim_tiles, sizeof(anim_tile) * mpr->anim_tile_count);
+	ce_free(mpr->tiles, sizeof(uint32_t) * mpr->tile_count);
+	ce_free(mpr->materials, sizeof(material) * mpr->material_count);
 
-	cefree(mpr, sizeof(mprfile));
+	ce_free(mpr, sizeof(mprfile));
 }
 
 float mprfile_get_max_height(const mprfile* mpr)

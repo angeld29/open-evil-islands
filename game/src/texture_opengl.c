@@ -310,7 +310,7 @@ static bool dxt_generate_texture(int mipmap_count,
 		data_size += w * h * 4;
 	}
 
-	if (NULL == (data = cealloc(data_size))) {
+	if (NULL == (data = ce_alloc(data_size))) {
 		logging_error("Could not allocate memory.");
 		return false;
 	}
@@ -327,7 +327,7 @@ static bool dxt_generate_texture(int mipmap_count,
 	bool ok = generate_texture(mipmap_count, GL_RGBA, width, height,
 		4, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-	cefree(data, data_size);
+	ce_free(data, data_size);
 	return ok;
 }
 
@@ -411,7 +411,7 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 	uint16_t* end = src + pixel_count;
 	int data_size = bpp * pixel_count;
 
-	if (NULL == (data = cealloc(data_size))) {
+	if (NULL == (data = ce_alloc(data_size))) {
 		return false;
 	}
 
@@ -427,7 +427,7 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 	bool ok = generate_texture(mipmap_count, internal_and_data_format,
 		width, height, bpp, internal_and_data_format, GL_UNSIGNED_BYTE, data);
 
-	cefree(data, data_size);
+	ce_free(data, data_size);
 	return ok;
 }
 
@@ -466,7 +466,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		uint32_t* src = data;
 		uint32_t* end = src + size / sizeof(uint32_t);
 
-		if (NULL == (data = cealloc(data_size))) {
+		if (NULL == (data = ce_alloc(data_size))) {
 			logging_error("Could not allocate memory.");
 			return false;
 		}
@@ -475,7 +475,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		int n = 0;
 
 		while (src != end) {
-			uint32_t value = cele2cpu32(*src++);
+			uint32_t value = ce_le2cpu32(*src++);
 			if (0 < value && value < 1000000) {
 				memcpy(dst, src - 1 - n, n * sizeof(uint32_t));
 				dst += n * sizeof(uint32_t);
@@ -497,7 +497,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 #endif
 
 	if (size < data_size) {
-		cefree(data, data_size);
+		ce_free(data, data_size);
 	}
 
 	return ok;
@@ -505,7 +505,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 
 texture* texture_open(void* data)
 {
-	texture* tex = cealloc(sizeof(texture));
+	texture* tex = ce_alloc(sizeof(texture));
 	if (NULL == tex) {
 		return NULL;
 	}
@@ -529,16 +529,16 @@ texture* texture_open(void* data)
 
 	uint32_t* mmp = data;
 
-	if (MMP_SIGNATURE != cele2cpu32(*mmp++)) {
+	if (MMP_SIGNATURE != ce_le2cpu32(*mmp++)) {
 		logging_error("Wrong mmp signature.");
 		texture_close(tex);
 		return NULL;
 	}
 
-	uint32_t width = cele2cpu32(*mmp++);
-	uint32_t height = cele2cpu32(*mmp++);
-	uint32_t mipmap_count_or_size = cele2cpu32(*mmp++);
-	uint32_t format = cele2cpu32(*mmp++);
+	uint32_t width = ce_le2cpu32(*mmp++);
+	uint32_t height = ce_le2cpu32(*mmp++);
+	uint32_t mipmap_count_or_size = ce_le2cpu32(*mmp++);
+	uint32_t format = ce_le2cpu32(*mmp++);
 
 	mmp += 14;
 
@@ -609,7 +609,7 @@ void texture_close(texture* tex)
 
 	glDeleteTextures(1, &tex->id);
 
-	cefree(tex, sizeof(texture));
+	ce_free(tex, sizeof(texture));
 }
 
 void texture_bind(texture* tex)

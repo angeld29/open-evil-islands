@@ -262,7 +262,7 @@ static size_t get_offset(size_t size, size_t alignment)
 	return (size + alignment - 1) / alignment;
 }
 
-bool cealloc_open(void)
+bool ce_alloc_open(void)
 {
 	assert(NULL == smallobj.pool);
 
@@ -274,7 +274,7 @@ bool cealloc_open(void)
 	for (size_t i = 0; i < smallobj.count; ++i) {
 		if (!portion_init((i + 1) * OBJECT_ALIGNMENT,
 				PAGE_SIZE, smallobj.pool + i)) {
-			cealloc_close();
+			ce_alloc_close();
 			return false;
 		}
 	}
@@ -282,7 +282,7 @@ bool cealloc_open(void)
 	return true;
 }
 
-void cealloc_close(void)
+void ce_alloc_close(void)
 {
 	assert(NULL != smallobj.pool);
 
@@ -296,7 +296,7 @@ void cealloc_close(void)
 	smallobj.pool = NULL;
 }
 
-void* cealloc(size_t size)
+void* ce_alloc(size_t size)
 {
 	assert(NULL != smallobj.pool);
 
@@ -311,7 +311,7 @@ void* cealloc(size_t size)
 	return portion_alloc(smallobj.pool + get_offset(size, OBJECT_ALIGNMENT) - 1);
 }
 
-void* cealloczero(size_t size)
+void* ce_alloc_zero(size_t size)
 {
 	assert(NULL != smallobj.pool);
 
@@ -327,7 +327,7 @@ void* cealloczero(size_t size)
 	return NULL != ptr ? memset(ptr, 0, size) : NULL;
 }
 
-void cefree(void* ptr, size_t size)
+void ce_free(void* ptr, size_t size)
 {
 	assert(NULL != smallobj.pool);
 

@@ -34,7 +34,7 @@ typedef struct {
 
 static int cookie_close(void* client_data)
 {
-	cefree(client_data, sizeof(cookie));
+	ce_free(client_data, sizeof(cookie));
 	return 0;
 }
 
@@ -90,7 +90,7 @@ memfile* memfile_open_data(void* data, size_t size, const char* mode)
 {
 	ceunused(mode);
 
-	cookie* c = cealloc(sizeof(cookie));
+	cookie* c = ce_alloc(sizeof(cookie));
 	if (NULL == c) {
 		return NULL;
 	}
@@ -101,7 +101,7 @@ memfile* memfile_open_data(void* data, size_t size, const char* mode)
 
 	memfile* mem = memfile_open_callbacks(cookie_callbacks, c);
 	if (NULL == mem) {
-		cefree(c, sizeof(cookie));
+		ce_free(c, sizeof(cookie));
 		return NULL;
 	}
 

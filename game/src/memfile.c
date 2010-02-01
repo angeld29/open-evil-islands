@@ -30,7 +30,7 @@ struct memfile {
 
 memfile* memfile_open_callbacks(ceio_callbacks callbacks, void* client_data)
 {
-	memfile* mem = cealloc(sizeof(memfile));
+	memfile* mem = ce_alloc(sizeof(memfile));
 	if (NULL == mem) {
 		return NULL;
 	}
@@ -67,7 +67,7 @@ void memfile_close(memfile* mem)
 		(mem->callbacks.close)(mem->client_data);
 	}
 
-	cefree(mem, sizeof(memfile));
+	ce_free(mem, sizeof(memfile));
 }
 
 size_t memfile_read(void* data, size_t size, size_t n, memfile* mem)

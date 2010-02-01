@@ -65,7 +65,7 @@ static int name_hash(const char* name, int lim)
 
 resfile* resfile_open_memfile(const char* name, memfile* mem)
 {
-	resfile* res = cealloczero(sizeof(resfile));
+	resfile* res = ce_alloc_zero(sizeof(resfile));
 	if (NULL == res) {
 		return NULL;
 	}
@@ -82,7 +82,7 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 		return NULL;
 	}
 
-	cele2cpu32s(&signature);
+	ce_le2cpu32s(&signature);
 	if (RES_SIGNATURE != signature) {
 		resfile_close(res);
 		return NULL;
@@ -95,11 +95,11 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 		return NULL;
 	}
 
-	cele2cpu32s(&res->node_count);
-	cele2cpu32s(&res->metadata_offset);
-	cele2cpu32s(&res->names_length);
+	ce_le2cpu32s(&res->node_count);
+	ce_le2cpu32s(&res->metadata_offset);
+	ce_le2cpu32s(&res->names_length);
 
-	if (NULL == (res->nodes = cealloczero(sizeof(resfile_node) *
+	if (NULL == (res->nodes = ce_alloc_zero(sizeof(resfile_node) *
 											res->node_count))) {
 		resfile_close(res);
 		return NULL;
@@ -121,15 +121,15 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 			resfile_close(res);
 			return NULL;
 		}
-		cele2cpu32s((uint32_t*)&node->next_index);
-		cele2cpu32s(&node->data_length);
-		cele2cpu32s(&node->data_offset);
-		cele2cpu32s((uint32_t*)&node->modified);
-		cele2cpu16s(&node->name_length);
-		cele2cpu32s(&node->name_offset);
+		ce_le2cpu32s((uint32_t*)&node->next_index);
+		ce_le2cpu32s(&node->data_length);
+		ce_le2cpu32s(&node->data_offset);
+		ce_le2cpu32s((uint32_t*)&node->modified);
+		ce_le2cpu16s(&node->name_length);
+		ce_le2cpu32s(&node->name_offset);
 	}
 
-	res->names = cealloc(res->names_length + 1);
+	res->names = ce_alloc(res->names_length + 1);
 	if (NULL == res->names ||
 			1 != memfile_read(res->names, res->names_length, 1, mem)) {
 		resfile_close(res);
@@ -185,15 +185,15 @@ void resfile_close(resfile* res)
 	if (NULL != res->nodes) {
 		for (size_t i = 0; i < res->node_count; ++i) {
 			resfile_node* node = res->nodes + i;
-			cefree(node->name, node->name_length + 1);
+			ce_free(node->name, node->name_length + 1);
 		}
 	}
 
-	cefree(res->nodes, sizeof(resfile_node) * res->node_count);
-	cefree(res->names, res->names_length + 1);
-	cefree(res->name, res->name_length + 1);
+	ce_free(res->nodes, sizeof(resfile_node) * res->node_count);
+	ce_free(res->names, res->names_length + 1);
+	ce_free(res->name, res->name_length + 1);
 
-	cefree(res, sizeof(resfile));
+	ce_free(res, sizeof(resfile));
 }
 
 const char* resfile_name(const resfile* res)

@@ -32,7 +32,7 @@ struct timer {
 
 timer* timer_open(void)
 {
-	timer* tmr = cealloc(sizeof(timer));
+	timer* tmr = ce_alloc(sizeof(timer));
 	if (NULL == tmr) {
 		return NULL;
 	}
@@ -42,7 +42,7 @@ timer* timer_open(void)
 
 void timer_close(timer* tmr)
 {
-	cefree(tmr, sizeof(timer));
+	ce_free(tmr, sizeof(timer));
 }
 
 void timer_advance(timer* tmr)

@@ -29,12 +29,12 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern bool cealloc_open(void);
-extern void cealloc_close(void);
+extern bool ce_alloc_open(void);
+extern void ce_alloc_close(void);
 
-extern void* cealloc(size_t size);
-extern void* cealloczero(size_t size);
-extern void cefree(void* ptr, size_t size);
+extern void* ce_alloc(size_t size);
+extern void* ce_alloc_zero(size_t size);
+extern void ce_free(void* ptr, size_t size);
 
 #ifdef __cplusplus
 }

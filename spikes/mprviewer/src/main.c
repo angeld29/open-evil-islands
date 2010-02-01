@@ -68,7 +68,7 @@ static void idle(void)
 		mprfile_close(mpr);
 		ceinput_close();
 		logging_close();
-		cealloc_close();
+		ce_alloc_close();
 		if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
 			glutLeaveGameMode();
 		}
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	cealloc_open();
+	ce_alloc_open();
 	logging_open();
 #ifdef NDEBUG
 	logging_set_level(LOGGING_WARNING_LEVEL);

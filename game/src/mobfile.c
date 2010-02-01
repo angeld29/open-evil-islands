@@ -75,7 +75,7 @@ static mobfile* open_callbacks(ceio_callbacks callbacks,
 		return NULL;
 	}
 
-	cele2cpu32s(&signature);
+	ce_le2cpu32s(&signature);
 	if (MOB_SIGNATURE != signature) {
 		mobfile_close(mob);
 		return NULL;
@@ -87,7 +87,7 @@ static mobfile* open_callbacks(ceio_callbacks callbacks,
 		return NULL;
 	}
 
-	cele2cpu32s((uint32_t*)&main_block_length);
+	ce_le2cpu32s((uint32_t*)&main_block_length);
 	printf("main_block_length: %d\n", main_block_length);
 
 	uint64_t main_block_type;
@@ -96,7 +96,7 @@ static mobfile* open_callbacks(ceio_callbacks callbacks,
 		return NULL;
 	}
 
-	cele2cpu64s(&main_block_type);
+	ce_le2cpu64s(&main_block_type);
 	printf("main_block_type: %#llx\n", main_block_type);
 	if (MAIN_BLOCK_QUEST_SIGNATURE != main_block_type &&
 			MAIN_BLOCK_ZONAL_SIGNATURE != main_block_type) {
@@ -111,7 +111,7 @@ static mobfile* open_callbacks(ceio_callbacks callbacks,
 			return NULL;
 		}
 
-		cele2cpu32s(&signature);
+		ce_le2cpu32s(&signature);
 		printf("signature: %u %#x\n", signature, signature);
 
 		int32_t length;
@@ -120,14 +120,14 @@ static mobfile* open_callbacks(ceio_callbacks callbacks,
 			return NULL;
 		}
 
-		cele2cpu32s((uint32_t*)&length);
+		ce_le2cpu32s((uint32_t*)&length);
 		printf("length: %d\n", length);
 
 		if (TEXT_BLOCK_SIGNATURE == signature) {
 			int32_t script_key;
 			(callbacks.read)(&script_key, sizeof(int32_t), 1, client_data);
 
-			cele2cpu32s((uint32_t*)&script_key);
+			ce_le2cpu32s((uint32_t*)&script_key);
 			printf("script_key: %d\n", script_key);
 
 			char* data = malloc(length - 4 - 4 - 4);

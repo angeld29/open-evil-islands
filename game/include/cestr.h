@@ -28,11 +28,11 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-/// Duplicate string, returning an identical cealloc'd string.
+/// Duplicate string, returning an identical ce_alloc'd string.
 extern char* cestrdup(const char* s);
 
 /**
- *  Return a cealloc'd copy of at most n bytes of s. The
+ *  Return a ce_alloc'd copy of at most n bytes of s. The
  *  resultant string is terminated even if no null terminator
  *  appears before s[n].
 */
