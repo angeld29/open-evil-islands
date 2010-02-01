@@ -64,13 +64,13 @@ static void idle(void)
 
 	float elapsed = timer_elapsed(tmr);
 
-	ceinput_advance(elapsed);
+	ce_input_advance(elapsed);
 
-	if (ceinput_test(CEKB_ESCAPE)) {
+	if (ce_input_test(CE_KB_ESCAPE)) {
 		timer_close(tmr);
 		texture_close(tex);
 		resfile_close(res);
-		ceinput_close();
+		ce_input_close();
 		logging_close();
 		ce_alloc_close();
 		exit(0);
@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
 	logging_set_level(LOGGING_DEBUG_LEVEL);
 #endif
 
-	ceinput_open();
+	ce_input_open();
 	ce_gl_init();
 
 	res = resfile_open_file(argv[optind]);

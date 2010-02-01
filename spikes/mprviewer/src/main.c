@@ -52,7 +52,7 @@
 mprfile* mpr;
 camera* cam;
 timer* tmr;
-ce_single_front_event night_event;
+ce_input_single_front_event night_event;
 
 static void idle(void)
 {
@@ -60,13 +60,13 @@ static void idle(void)
 
 	float elapsed = timer_elapsed(tmr);
 
-	ceinput_advance(elapsed);
+	ce_input_advance(elapsed);
 
-	if (ceinput_test(CEKB_ESCAPE)) {
+	if (ce_input_test(CE_KB_ESCAPE)) {
 		timer_close(tmr);
 		camera_close(cam);
 		mprfile_close(mpr);
-		ceinput_close();
+		ce_input_close();
 		logging_close();
 		ce_alloc_close();
 		if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
@@ -75,36 +75,36 @@ static void idle(void)
 		exit(0);
 	}
 
-	if (ceinput_test(CEKB_LEFT)) {
+	if (ce_input_test(CE_KB_LEFT)) {
 		camera_move(-10.0f * elapsed, 0.0f, cam);
 	}
 
-	if (ceinput_test(CEKB_UP)) {
+	if (ce_input_test(CE_KB_UP)) {
 		camera_move(0.0f, 10.0f * elapsed, cam);
 	}
 
-	if (ceinput_test(CEKB_RIGHT)) {
+	if (ce_input_test(CE_KB_RIGHT)) {
 		camera_move(10.0f * elapsed, 0.0f, cam);
 	}
 
-	if (ceinput_test(CEKB_DOWN)) {
+	if (ce_input_test(CE_KB_DOWN)) {
 		camera_move(0.0f, -10.0f * elapsed, cam);
 	}
 
-	if (ceinput_test(CEMB_WHEELUP)) {
+	if (ce_input_test(CE_MB_WHEELUP)) {
 		camera_zoom(5.0f, cam);
 	}
 
-	if (ceinput_test(CEMB_WHEELDOWN)) {
+	if (ce_input_test(CE_MB_WHEELDOWN)) {
 		camera_zoom(-5.0f, cam);
 	}
 
-	if (ceinput_test(CEMB_RIGHT)) {
-		camera_yaw_pitch(cedeg2rad(-0.25f * ceinput_mouse_offset_x()),
-						cedeg2rad(-0.25f * ceinput_mouse_offset_y()), cam);
+	if (ce_input_test(CE_MB_RIGHT)) {
+		camera_yaw_pitch(cedeg2rad(-0.25f * ce_input_mouse_offset_x()),
+						cedeg2rad(-0.25f * ce_input_mouse_offset_y()), cam);
 	}
 
-	ce_single_front_event_advance(elapsed, &night_event);
+	ce_input_single_front_event_advance(elapsed, &night_event);
 	if (night_event.triggered) {
 		mprfile_set_night(!mprfile_get_night(mpr), mpr);
 	}
@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 
-	ceinput_open();
+	ce_input_open();
 	ce_gl_init();
 
 	resfile* tex_res = resfile_open_file(tex_path);
@@ -329,7 +329,7 @@ int main(int argc, char* argv[])
 
 	tmr = timer_open();
 
-	ce_single_front_event_init(CEKB_N, &night_event);
+	ce_input_single_front_event_init(CE_KB_N, &night_event);
 
 	glutMainLoop();
 	return 0;

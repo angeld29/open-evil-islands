@@ -21,17 +21,19 @@
 #include "celib.h"
 #include "ceinput.h"
 
-void ce_single_front_event_init(ceinput_button b, ce_single_front_event* e)
+void ce_input_single_front_event_init(ce_input_button button,
+										ce_input_single_front_event* event)
 {
-	e->button = b;
-	e->activated = false;
-	e->triggered = false;
+	event->button = button;
+	event->activated = false;
+	event->triggered = false;
 }
 
-void ce_single_front_event_advance(float elapsed, ce_single_front_event* e)
+void ce_input_single_front_event_advance(float elapsed,
+										ce_input_single_front_event* event)
 {
 	ceunused(elapsed);
-	bool triggered = ceinput_test(e->button);
-	e->triggered = !e->activated && triggered;
-	e->activated = triggered;
+	bool triggered = ce_input_test(event->button);
+	event->triggered = !event->activated && triggered;
+	event->activated = triggered;
 }

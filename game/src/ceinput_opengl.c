@@ -22,7 +22,6 @@
 
 #include <GL/glut.h>
 
-// Wheel mouse event.
 #ifndef GLUT_WHEEL_UP
 #define GLUT_WHEEL_UP 3
 #endif
@@ -34,7 +33,7 @@
 #include "ceinput.h"
 
 static bool opened;
-static bool buttons[CEIB_COUNT];
+static bool buttons[CE_IB_COUNT];
 static int mouse_prev_x;
 static int mouse_prev_y;
 static int mouse_offset_x;
@@ -43,9 +42,9 @@ static int mouse_offset_delay;
 static int wheel_up_delay;
 static int wheel_down_delay;
 
-static ceinput_button keyboard_ascii_map(unsigned char key);
-static ceinput_button keyboard_special_map(int key);
-static ceinput_button mouse_map(int key);
+static ce_input_button keyboard_ascii_map(unsigned char key);
+static ce_input_button keyboard_special_map(int key);
+static ce_input_button mouse_map(int key);
 
 static void keyboard(unsigned char key, int x, int y)
 {
@@ -106,7 +105,7 @@ static void passive_motion(int x, int y)
 	motion(x, y);
 }
 
-bool ceinput_open(void)
+bool ce_input_open(void)
 {
 	assert(!opened);
 	glutKeyboardFunc(keyboard);
@@ -119,31 +118,31 @@ bool ceinput_open(void)
 	return opened = true;
 }
 
-void ceinput_close(void)
+void ce_input_close(void)
 {
 	assert(opened);
 	opened = false;
 }
 
-bool ceinput_test(ceinput_button button)
+bool ce_input_test(ce_input_button button)
 {
 	assert(opened);
 	return buttons[button];
 }
 
-int ceinput_mouse_offset_x()
+int ce_input_mouse_offset_x()
 {
 	assert(opened);
 	return mouse_offset_x;
 }
 
-int ceinput_mouse_offset_y()
+int ce_input_mouse_offset_y()
 {
 	assert(opened);
 	return mouse_offset_y;
 }
 
-void ceinput_advance(float elapsed)
+void ce_input_advance(float elapsed)
 {
 	assert(opened);
 	ceunused(elapsed);
@@ -154,122 +153,122 @@ void ceinput_advance(float elapsed)
 	}
 
 	if (wheel_up_delay > 0 && 0 == --wheel_up_delay) {
-		buttons[CEMB_WHEELUP] = false;
+		buttons[CE_MB_WHEELUP] = false;
 	}
 
 	if (wheel_down_delay > 0 && 0 == --wheel_down_delay) {
-		buttons[CEMB_WHEELDOWN] = false;
+		buttons[CE_MB_WHEELDOWN] = false;
 	}
 }
 
-static ceinput_button keyboard_ascii_map(unsigned char key)
+static ce_input_button keyboard_ascii_map(unsigned char key)
 {
-	ceinput_button button = CEIB_UNKNOWN;
+	ce_input_button button = CE_IB_UNKNOWN;
 	switch (key) {
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
-		button = CEKB_0 + key - '0';
+		button = CE_KB_0 + key - '0';
 		break;
 	case 'n':
 	case 'N':
-		button = CEKB_N;
+		button = CE_KB_N;
 		break;
     case 27:
-		button = CEKB_ESCAPE;
+		button = CE_KB_ESCAPE;
 		break;
 	}
 	return button;
 }
 
-static ceinput_button keyboard_special_map(int key)
+static ce_input_button keyboard_special_map(int key)
 {
-	ceinput_button button = CEIB_UNKNOWN;
+	ce_input_button button = CE_IB_UNKNOWN;
 	switch (key) {
 	case GLUT_KEY_F1:
-		button = CEKB_F1;
+		button = CE_KB_F1;
 		break;
 	case GLUT_KEY_F2:
-		button = CEKB_F2;
+		button = CE_KB_F2;
 		break;
 	case GLUT_KEY_F3:
-		button = CEKB_F3;
+		button = CE_KB_F3;
 		break;
 	case GLUT_KEY_F4:
-		button = CEKB_F4;
+		button = CE_KB_F4;
 		break;
 	case GLUT_KEY_F5:
-		button = CEKB_F5;
+		button = CE_KB_F5;
 		break;
 	case GLUT_KEY_F6:
-		button = CEKB_F6;
+		button = CE_KB_F6;
 		break;
 	case GLUT_KEY_F7:
-		button = CEKB_F7;
+		button = CE_KB_F7;
 		break;
 	case GLUT_KEY_F8:
-		button = CEKB_F8;
+		button = CE_KB_F8;
 		break;
 	case GLUT_KEY_F9:
-		button = CEKB_F9;
+		button = CE_KB_F9;
 		break;
 	case GLUT_KEY_F10:
-		button = CEKB_F10;
+		button = CE_KB_F10;
 		break;
 	case GLUT_KEY_F11:
-		button = CEKB_F11;
+		button = CE_KB_F11;
 		break;
 	case GLUT_KEY_F12:
-		button = CEKB_F12;
+		button = CE_KB_F12;
 		break;
 	case GLUT_KEY_LEFT:
-		button = CEKB_LEFT;
+		button = CE_KB_LEFT;
 		break;
 	case GLUT_KEY_UP:
-		button = CEKB_UP;
+		button = CE_KB_UP;
 		break;
 	case GLUT_KEY_RIGHT:
-		button = CEKB_RIGHT;
+		button = CE_KB_RIGHT;
 		break;
 	case GLUT_KEY_DOWN:
-		button = CEKB_DOWN;
+		button = CE_KB_DOWN;
 		break;
 	case GLUT_KEY_INSERT:
-		button = CEKB_INSERT;
+		button = CE_KB_INSERT;
 		break;
 	case GLUT_KEY_HOME:
-		button = CEKB_HOME;
+		button = CE_KB_HOME;
 		break;
 	case GLUT_KEY_END:
-		button = CEKB_END;
+		button = CE_KB_END;
 		break;
 	case GLUT_KEY_PAGE_UP:
-		button = CEKB_PAGEUP;
+		button = CE_KB_PAGEUP;
 		break;
 	case GLUT_KEY_PAGE_DOWN:
-		button = CEKB_PAGEDOWN;
+		button = CE_KB_PAGEDOWN;
 		break;
 	};
 	return button;
 }
 
-static ceinput_button mouse_map(int key)
+static ce_input_button mouse_map(int key)
 {
-	ceinput_button button = CEIB_UNKNOWN;
+	ce_input_button button = CE_IB_UNKNOWN;
 	switch (key) {
 	case GLUT_LEFT_BUTTON:
-		button = CEMB_LEFT;
+		button = CE_MB_LEFT;
 		break;
 	case GLUT_MIDDLE_BUTTON:
-		button = CEMB_MIDDLE;
+		button = CE_MB_MIDDLE;
 		break;
 	case GLUT_RIGHT_BUTTON:
-		button = CEMB_RIGHT;
+		button = CE_MB_RIGHT;
 		break;
 	case GLUT_WHEEL_UP:
-		button = CEMB_WHEELUP;
+		button = CE_MB_WHEELUP;
 		break;
 	case GLUT_WHEEL_DOWN:
-		button = CEMB_WHEELDOWN;
+		button = CE_MB_WHEELDOWN;
 		break;
 	};
 	return button;
