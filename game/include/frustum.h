@@ -23,9 +23,9 @@
 
 #include <stdbool.h>
 
-#include "vec3fwd.h"
+#include "vec3.h"
 #include "ceaabb.h"
-#include "planedef.h"
+#include "plane.h"
 
 #ifdef __cplusplus
 extern "C"

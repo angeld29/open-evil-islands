@@ -21,13 +21,17 @@
 #ifndef CE_PLANE_H
 #define CE_PLANE_H
 
-#include "vec3fwd.h"
-#include "planedef.h"
+#include "vec3.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+typedef struct {
+	vec3 n;
+	float d;
+} plane;
 
 extern plane* plane_init(float a, float b, float c, float d, plane* r);
 extern plane* plane_init_tri(const vec3* a, const vec3* b,

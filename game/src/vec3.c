@@ -20,7 +20,7 @@
 
 #include <math.h>
 
-#include "quatdef.h"
+#include "quat.h"
 #include "vec3.h"
 
 const vec3 VEC3_ZERO = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
@@ -225,7 +225,6 @@ vec3* vec3_mid(const vec3* a, const vec3* b, vec3* r)
 vec3* vec3_rot(const vec3* a, const quat* b, vec3* r)
 {
 	vec3 qv, uv, uuv;
-
 	vec3_init(b->x, b->y, b->z, &qv);
 	vec3_cross(&qv, a, &uv);
 	vec3_cross(&qv, &uv, &uuv);

@@ -21,7 +21,7 @@
 #ifndef CE_AABB_H
 #define CE_AABB_H
 
-#include "vec3def.h"
+#include "vec3.h"
 
 #ifdef __cplusplus
 extern "C"

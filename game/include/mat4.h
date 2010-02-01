@@ -21,12 +21,14 @@
 #ifndef CE_MAT4_H
 #define CE_MAT4_H
 
-#include "mat4def.h"
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+typedef struct {
+	float m[16];
+} mat4;
 
 extern const mat4 MAT4_ZERO;
 extern const mat4 MAT4_IDENTITY;

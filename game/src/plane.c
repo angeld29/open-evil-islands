@@ -18,7 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "vec3.h"
 #include "plane.h"
 
 plane* plane_init(float a, float b, float c, float d, plane* r)

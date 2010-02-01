@@ -20,7 +20,7 @@
 
 #include <math.h>
 
-#include "vec3def.h"
+#include "vec3.h"
 #include "quat.h"
 
 const quat QUAT_ZERO = { .w = 0.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f };

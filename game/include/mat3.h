@@ -21,12 +21,14 @@
 #ifndef CE_MAT3_H
 #define CE_MAT3_H
 
-#include "mat3def.h"
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+typedef struct {
+	float m[9];
+} mat3;
 
 extern const mat3 MAT3_ZERO;
 extern const mat3 MAT3_IDENTITY;

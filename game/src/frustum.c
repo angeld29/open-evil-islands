@@ -26,8 +26,6 @@
 #include <math.h>
 
 #include "cemath.h"
-#include "vec3.h"
-#include "plane.h"
 #include "frustum.h"
 
 static vec3* get_box_vertex_positive(const vec3* n, const ce_aabb* b, vec3* p)

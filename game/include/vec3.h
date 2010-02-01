@@ -22,12 +22,16 @@
 #define CE_VEC3_H
 
 #include "quatfwd.h"
-#include "vec3def.h"
+#include "vec3fwd.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+struct vec3 {
+	float x, y, z;
+};
 
 extern const vec3 VEC3_ZERO;
 extern const vec3 VEC3_UNIT_X;

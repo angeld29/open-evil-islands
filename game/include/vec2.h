@@ -21,12 +21,14 @@
 #ifndef CE_VEC2_H
 #define CE_VEC2_H
 
-#include "vec2def.h"
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+typedef struct {
+	float x, y;
+} vec2;
 
 extern const vec2 VEC2_ZERO;
 extern const vec2 VEC2_UNIT_X;

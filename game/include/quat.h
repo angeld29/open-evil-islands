@@ -22,12 +22,16 @@
 #define CE_QUAT_H
 
 #include "vec3fwd.h"
-#include "quatdef.h"
+#include "quatfwd.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+struct quat {
+	float w, x, y, z;
+};
 
 extern const quat QUAT_ZERO;
 extern const quat QUAT_IDENTITY;
