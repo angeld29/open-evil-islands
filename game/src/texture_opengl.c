@@ -59,11 +59,11 @@ static void setup_mag_min_params(int mipmap_count)
 #ifdef GL_VERSION_1_2
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
 #else
-		if (cegl_query_feature(CEGL_FEATURE_TEXTURE_LOD)) {
-			glTexParameteri(GL_TEXTURE_2D, CEGL_TEXTURE_MAX_LEVEL,
+		if (ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_LOD)) {
+			glTexParameteri(GL_TEXTURE_2D, CE_GL_TEXTURE_MAX_LEVEL,
 												mipmap_count - 1);
-		} else if (cegl_query_feature(CEGL_FEATURE_GENERATE_MIPMAP)) {
-			glTexParameteri(GL_TEXTURE_2D, CEGL_GENERATE_MIPMAP, GL_TRUE);
+		} else if (ce_gl_query_feature(CE_GL_FEATURE_GENERATE_MIPMAP)) {
+			glTexParameteri(GL_TEXTURE_2D, CE_GL_GENERATE_MIPMAP, GL_TRUE);
 		} else {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			static bool reported;
@@ -86,7 +86,7 @@ static bool scale_texture(int* width, int* height,
 	int new_width = cemin(*width, max_texture_size);
 	int new_height = cemin(*height, max_texture_size);
 
-	if (!cegl_query_feature(CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO)) {
+	if (!ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO)) {
 		float int_width, int_height;
 		float fract_width = modff(log2f(new_width), &int_width);
 		float fract_height = modff(log2f(new_height), &int_height);
@@ -139,7 +139,7 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 		glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
 	}
 
-	if (cegl_report_errors()) {
+	if (ce_gl_report_errors()) {
 		logging_error("glTexImage2D failed.");
 		return false;
 	}
@@ -274,10 +274,10 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 						((height + 3) >> 2) * (MMP_DXT1 == format ? 8 : 16);
 
 		glCompressedTexImage2D(GL_TEXTURE_2D, i, MMP_DXT1 == format ?
-			CEGL_COMPRESSED_RGB_S3TC_DXT1 : CEGL_COMPRESSED_RGBA_S3TC_DXT3,
+			CE_GL_COMPRESSED_RGB_S3TC_DXT1 : CE_GL_COMPRESSED_RGBA_S3TC_DXT3,
 			width, height, 0, data_size, src);
 
-		if (cegl_report_errors()) {
+		if (ce_gl_report_errors()) {
 			logging_error("glCompressedTexImage2D failed.");
 			return false;
 		}
@@ -293,9 +293,9 @@ static bool dxt_generate_texture(int mipmap_count,
 		int width, int height, int format, void* data)
 {
 #ifdef GL_VERSION_1_3
-	if ((cegl_query_feature(CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC) ||
+	if ((ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC) ||
 			(MMP_DXT1 == format &&
-				cegl_query_feature(CEGL_FEATURE_TEXTURE_COMPRESSION_DXT1))) &&
+				ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1))) &&
 			dxt_generate_texture_directly(mipmap_count, width,
 											height, format, data)) {
 		return true;
@@ -341,11 +341,11 @@ static bool generic16_argb_generate_texture_packed(int mipmap_count, int width,
 
 	switch (format) {
 	case MMP_A1RGB5:
-		data_type = CEGL_UNSIGNED_SHORT_5_5_5_1;
+		data_type = CE_GL_UNSIGNED_SHORT_5_5_5_1;
 		rgbshift = 1; ashift = 15;
 		break;
 	case MMP_ARGB4:
-		data_type = CEGL_UNSIGNED_SHORT_4_4_4_4;
+		data_type = CE_GL_UNSIGNED_SHORT_4_4_4_4;
 		rgbshift = 4; ashift = 12;
 		break;
 	default:
@@ -396,7 +396,7 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 		assert(false);
 	}
 
-	if (4 == bpp && cegl_query_feature(CEGL_FEATURE_PACKED_PIXELS)) {
+	if (4 == bpp && ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
 		return generic16_argb_generate_texture_packed(mipmap_count, width,
 														height, format, data);
 	}
@@ -440,7 +440,7 @@ static bool argb8_generate_texture(int mipmap_count, int width,
 	for (int i = 0, w = width, h = height;
 			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
 		for (uint32_t *end = src + w * h; src != end; ++src) {
-			if (cegl_query_feature(CEGL_FEATURE_PACKED_PIXELS)) {
+			if (ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
 				*src = *src << 8 | *src >> 24;
 			} else {
 				dst[0] = (*src & 0xff0000) >> 16;
@@ -453,8 +453,8 @@ static bool argb8_generate_texture(int mipmap_count, int width,
 	}
 
 	return generate_texture(mipmap_count, GL_RGBA, width, height,
-		4, GL_RGBA, cegl_query_feature(CEGL_FEATURE_PACKED_PIXELS) ?
-		CEGL_UNSIGNED_INT_8_8_8_8 : GL_UNSIGNED_BYTE, data);
+		4, GL_RGBA, ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS) ?
+		CE_GL_UNSIGNED_INT_8_8_8_8 : GL_UNSIGNED_BYTE, data);
 }
 #endif /* !GL_VERSION_1_2 */
 
@@ -518,9 +518,9 @@ texture* texture_open(void* data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 #else
-	if (cegl_query_feature(CEGL_FEATURE_TEXTURE_EDGE_CLAMP)) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, CEGL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CEGL_CLAMP_TO_EDGE);
+	if (ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_EDGE_CLAMP)) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, CE_GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CE_GL_CLAMP_TO_EDGE);
 	} else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);

@@ -29,30 +29,30 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef enum {
-	CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO,
-	CEGL_FEATURE_TEXTURE_RECTANGLE,
-	CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC,
-	CEGL_FEATURE_TEXTURE_COMPRESSION_DXT1,
-	CEGL_FEATURE_TEXTURE_LOD,
-	CEGL_FEATURE_TEXTURE_EDGE_CLAMP,
-	CEGL_FEATURE_PACKED_PIXELS,
-	CEGL_FEATURE_GENERATE_MIPMAP,
-	CEGL_FEATURE_COUNT
-} cegl_feature;
+	CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO,
+	CE_GL_FEATURE_TEXTURE_RECTANGLE,
+	CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC,
+	CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1,
+	CE_GL_FEATURE_TEXTURE_LOD,
+	CE_GL_FEATURE_TEXTURE_EDGE_CLAMP,
+	CE_GL_FEATURE_PACKED_PIXELS,
+	CE_GL_FEATURE_GENERATE_MIPMAP,
+	CE_GL_FEATURE_COUNT
+} ce_gl_feature;
 
-extern const GLenum CEGL_COMPRESSED_RGB_S3TC_DXT1;
-extern const GLenum CEGL_COMPRESSED_RGBA_S3TC_DXT3;
-extern const GLenum CEGL_TEXTURE_MAX_LEVEL;
-extern const GLenum CEGL_CLAMP_TO_EDGE;
-extern const GLenum CEGL_UNSIGNED_SHORT_4_4_4_4;
-extern const GLenum CEGL_UNSIGNED_SHORT_5_5_5_1;
-extern const GLenum CEGL_UNSIGNED_INT_8_8_8_8;
-extern const GLenum CEGL_GENERATE_MIPMAP;
+extern const GLenum CE_GL_COMPRESSED_RGB_S3TC_DXT1;
+extern const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT3;
+extern const GLenum CE_GL_TEXTURE_MAX_LEVEL;
+extern const GLenum CE_GL_CLAMP_TO_EDGE;
+extern const GLenum CE_GL_UNSIGNED_SHORT_4_4_4_4;
+extern const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1;
+extern const GLenum CE_GL_UNSIGNED_INT_8_8_8_8;
+extern const GLenum CE_GL_GENERATE_MIPMAP;
 
-extern void cegl_init(void);
-extern bool cegl_report_errors(void);
+extern void ce_gl_init(void);
+extern bool ce_gl_report_errors(void);
 
-extern bool cegl_query_feature(cegl_feature feature);
+extern bool ce_gl_query_feature(ce_gl_feature feature);
 
 #ifdef __cplusplus
 }

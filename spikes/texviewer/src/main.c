@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
 #endif
 
 	ceinput_open();
-	cegl_init();
+	ce_gl_init();
 
 	res = resfile_open_file(argv[optind]);
 	if (NULL == res) {

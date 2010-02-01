@@ -295,7 +295,7 @@ int main(int argc, char* argv[])
 	glutReshapeFunc(reshape);
 
 	ceinput_open();
-	cegl_init();
+	ce_gl_init();
 
 	resfile* tex_res = resfile_open_file(tex_path);
 	if (NULL == tex_res) {

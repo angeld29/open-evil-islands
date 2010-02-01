@@ -58,16 +58,16 @@
 #include "logging.h"
 #include "cegl.h"
 
-const GLenum CEGL_COMPRESSED_RGB_S3TC_DXT1 = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-const GLenum CEGL_COMPRESSED_RGBA_S3TC_DXT3 = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-const GLenum CEGL_TEXTURE_MAX_LEVEL = GL_TEXTURE_MAX_LEVEL_SGIS;
-const GLenum CEGL_CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE_SGIS;
-const GLenum CEGL_UNSIGNED_SHORT_4_4_4_4 = GL_UNSIGNED_SHORT_4_4_4_4_EXT;
-const GLenum CEGL_UNSIGNED_SHORT_5_5_5_1 = GL_UNSIGNED_SHORT_5_5_5_1_EXT;
-const GLenum CEGL_UNSIGNED_INT_8_8_8_8 = GL_UNSIGNED_INT_8_8_8_8_EXT;
-const GLenum CEGL_GENERATE_MIPMAP = GL_GENERATE_MIPMAP_SGIS;
+const GLenum CE_GL_COMPRESSED_RGB_S3TC_DXT1 = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT3 = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+const GLenum CE_GL_TEXTURE_MAX_LEVEL = GL_TEXTURE_MAX_LEVEL_SGIS;
+const GLenum CE_GL_CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE_SGIS;
+const GLenum CE_GL_UNSIGNED_SHORT_4_4_4_4 = GL_UNSIGNED_SHORT_4_4_4_4_EXT;
+const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1 = GL_UNSIGNED_SHORT_5_5_5_1_EXT;
+const GLenum CE_GL_UNSIGNED_INT_8_8_8_8 = GL_UNSIGNED_INT_8_8_8_8_EXT;
+const GLenum CE_GL_GENERATE_MIPMAP = GL_GENERATE_MIPMAP_SGIS;
 
-static bool features[CEGL_FEATURE_COUNT];
+static bool features[CE_GL_FEATURE_COUNT];
 
 static bool check_extension(const char* name)
 {
@@ -103,50 +103,50 @@ static void report_extension(const char* name, bool ok)
 	logging_write("Checking for '%s' extension... %s.", name, ok ? "yes" : "no");
 }
 
-void cegl_init(void)
+void ce_gl_init(void)
 {
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-	features[CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO] =
+	features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO] =
 		check_extension("GL_ARB_texture_non_power_of_two");
-	features[CEGL_FEATURE_TEXTURE_RECTANGLE] =
+	features[CE_GL_FEATURE_TEXTURE_RECTANGLE] =
 		check_extension("GL_ARB_texture_rectangle") ||
 		check_extension("GL_EXT_texture_rectangle") ||
 		check_extension("GL_NV_texture_rectangle");
-	features[CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
+	features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
 		check_extension("GL_EXT_texture_compression_s3tc");
-	features[CEGL_FEATURE_TEXTURE_COMPRESSION_DXT1] =
+	features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] =
 		check_extension("GL_EXT_texture_compression_dxt1");
-	features[CEGL_FEATURE_TEXTURE_LOD] =
+	features[CE_GL_FEATURE_TEXTURE_LOD] =
 		check_extension("GL_SGIS_texture_lod") ||
 		check_extension("GL_EXT_texture_lod");
-	features[CEGL_FEATURE_TEXTURE_EDGE_CLAMP] =
+	features[CE_GL_FEATURE_TEXTURE_EDGE_CLAMP] =
 		check_extension("GL_SGIS_texture_edge_clamp") ||
 		check_extension("GL_EXT_texture_edge_clamp");
-	features[CEGL_FEATURE_PACKED_PIXELS] =
+	features[CE_GL_FEATURE_PACKED_PIXELS] =
 		check_extension("GL_EXT_packed_pixels");
-	features[CEGL_FEATURE_GENERATE_MIPMAP] =
+	features[CE_GL_FEATURE_GENERATE_MIPMAP] =
 		check_extension("GL_SGIS_generate_mipmap");
 
 	report_extension("texture non power of two",
-		features[CEGL_FEATURE_TEXTURE_NON_POWER_OF_TWO]);
+		features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO]);
 	report_extension("texture rectangle",
-		features[CEGL_FEATURE_TEXTURE_RECTANGLE]);
+		features[CE_GL_FEATURE_TEXTURE_RECTANGLE]);
 	report_extension("texture compression s3tc",
-		features[CEGL_FEATURE_TEXTURE_COMPRESSION_S3TC]);
+		features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC]);
 	report_extension("texture compression dxt1",
-		features[CEGL_FEATURE_TEXTURE_COMPRESSION_DXT1]);
+		features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1]);
 	report_extension("texture lod",
-		features[CEGL_FEATURE_TEXTURE_LOD]);
+		features[CE_GL_FEATURE_TEXTURE_LOD]);
 	report_extension("texture edge clamp",
-		features[CEGL_FEATURE_TEXTURE_EDGE_CLAMP]);
+		features[CE_GL_FEATURE_TEXTURE_EDGE_CLAMP]);
 	report_extension("packed pixels",
-		features[CEGL_FEATURE_PACKED_PIXELS]);
+		features[CE_GL_FEATURE_PACKED_PIXELS]);
 	report_extension("generate mipmap",
-		features[CEGL_FEATURE_GENERATE_MIPMAP]);
+		features[CE_GL_FEATURE_GENERATE_MIPMAP]);
 }
 
-bool cegl_report_errors(void)
+bool ce_gl_report_errors(void)
 {
 	bool reported = false;
 	GLenum error;
@@ -157,7 +157,7 @@ bool cegl_report_errors(void)
 	return reported;
 }
 
-bool cegl_query_feature(cegl_feature feature)
+bool ce_gl_query_feature(ce_gl_feature feature)
 {
 	return features[feature];
 }
