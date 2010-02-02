@@ -18,15 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// WARNING!
-// Not fully implemented!
-
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdint.h>
+#include <assert.h>
 
+#include "celib.h"
 #include "cebyteorder.h"
-#include "ceio.h"
 #include "cestr.h"
 #include "mobfile.h"
 
@@ -34,10 +33,10 @@ enum {
 	MOB_SIGNATURE = 0xa000
 };
 
-static const uint64_t MAIN_BLOCK_QUEST_SIGNATURE = 0x80000d000;
-static const uint64_t MAIN_BLOCK_ZONAL_SIGNATURE = 0x80000c000;
+//static const uint64_t MAIN_BLOCK_QUEST_SIGNATURE = 0x80000d000;
+//static const uint64_t MAIN_BLOCK_ZONAL_SIGNATURE = 0x80000c000;
 
-static const uint32_t TEXT_BLOCK_SIGNATURE = 0xacceeccb;
+//static const uint32_t TEXT_BLOCK_SIGNATURE = 0xacceeccb;
 //static const uint64_t OBJECT_BLOCK_SIGNATURE = 0xb000;
 
 /*static const uint64_t OBJECT_BLOCK_UNIT_SIGNATURE = 0xbbbb0000;
@@ -50,23 +49,20 @@ static const uint64_t OBJECT_BLOCK_PARTICLE2_SIGNATURE = 0xcc01;
 static const uint64_t OBJECT_BLOCK_PARTICLE3_SIGNATURE = 0xdd01;*/
 
 struct mobfile {
-	ce_io_callbacks callbacks;
-	void* client_data;
+	int stub;
 };
 
-static void decrypt_script(char* buf, uint32_t key, int32_t size)
+/*static void decrypt_script(char* buf, uint32_t key, int32_t size)
 {
 	for (int i = 0; i < size; ++i) {
 		key += (((((key * 13) << 4) + key) << 8) - key) * 4 + 2531011;
 		buf[i] ^= key >> 16;
 	}
-}
+}*/
 
-static mobfile* open_callbacks(ce_io_callbacks callbacks,
+/*static mobfile* open_callbacks(ce_io_callbacks callbacks,
 								void* client_data, const char* name)
 {
-	name = name;
-
 	mobfile* mob = calloc(1, sizeof(mobfile));
 	if (NULL == mob) {
 		return NULL;
@@ -152,11 +148,15 @@ static mobfile* open_callbacks(ce_io_callbacks callbacks,
 	mob->client_data = client_data;
 
 	return mob;
-}
+}*/
 
 mobfile* mobfile_open(const char* path)
 {
-	FILE* file = fopen(path, "rb");
+	ce_unused(path);
+	assert(false && "Not implemented");
+	return NULL;
+
+	/*FILE* file = fopen(path, "rb");
 	if (NULL == file) {
 		return NULL;
 	}
@@ -174,7 +174,7 @@ mobfile* mobfile_open(const char* path)
 		return NULL;
 	}
 
-	return mob;
+	return mob;*/
 }
 
 void mobfile_close(mobfile* mob)
@@ -183,14 +183,5 @@ void mobfile_close(mobfile* mob)
 		return;
 	}
 
-	if (NULL != mob->callbacks.close && NULL != mob->client_data) {
-		(mob->callbacks.close)(mob->client_data);
-	}
-
-	free(mob);
-}
-
-void mobfile_debug_print(mobfile* mob)
-{
-	mob = mob;
+	//free(mob);
 }

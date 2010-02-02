@@ -38,7 +38,7 @@ static int cookie_close(void* client_data)
 	return 0;
 }
 
-static size_t cookie_read(void* data, size_t size, size_t n, void* client_data)
+static size_t cookie_read(void* client_data, void* data, size_t size, size_t n)
 {
 	cookie* c = client_data;
 
@@ -55,8 +55,8 @@ static size_t cookie_read(void* data, size_t size, size_t n, void* client_data)
 	return avail_n;
 }
 
-static size_t cookie_write(const void* data, size_t size,
-							size_t n, void* client_data)
+static size_t cookie_write(void* client_data, const void* data,
+										size_t size, size_t n)
 {
 	assert(false && "Not implemented");
 	ce_unused(data);
@@ -66,7 +66,7 @@ static size_t cookie_write(const void* data, size_t size,
 	return 0;
 }
 
-static int cookie_seek(long int offset, int whence, void* client_data)
+static int cookie_seek(void* client_data, long int offset, int whence)
 {
 	assert(false && "Not implemented");
 	ce_unused(offset);

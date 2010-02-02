@@ -27,18 +27,18 @@ static int file_close(void* client_data)
 	return fclose((FILE*)client_data);
 }
 
-static size_t file_read(void* data, size_t size, size_t n, void* client_data)
+static size_t file_read(void* client_data, void* data, size_t size, size_t n)
 {
 	return fread(data, size, n, (FILE*)client_data);
 }
 
-static size_t file_write(const void* data, size_t size,
-							size_t n, void* client_data)
+static size_t file_write(void* client_data, const void* data,
+										size_t size, size_t n)
 {
 	return fwrite(data, size, n, (FILE*)client_data);
 }
 
-static int file_seek(long int offset, int whence, void* client_data)
+static int file_seek(void* client_data, long int offset, int whence)
 {
 	return fseek((FILE*)client_data, offset, whence);
 }

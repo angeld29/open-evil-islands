@@ -72,17 +72,17 @@ void memfile_close(memfile* mem)
 
 size_t memfile_read(void* data, size_t size, size_t n, memfile* mem)
 {
-	return (mem->callbacks.read)(data, size, n, mem->client_data);
+	return (mem->callbacks.read)(mem->client_data, data, size, n);
 }
 
 size_t memfile_write(const void* data, size_t size, size_t n, memfile* mem)
 {
-	return (mem->callbacks.write)(data, size, n, mem->client_data);
+	return (mem->callbacks.write)(mem->client_data, data, size, n);
 }
 
 int memfile_seek(long int offset, int whence, memfile* mem)
 {
- 	return (mem->callbacks.seek)(offset, whence, mem->client_data);
+ 	return (mem->callbacks.seek)(mem->client_data, offset, whence);
 }
 
 long int memfile_tell(memfile* mem)

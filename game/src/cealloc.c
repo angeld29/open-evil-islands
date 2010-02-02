@@ -69,13 +69,13 @@ static bool chunk_is_filled(const chunk* cnk)
 	return 0 == cnk->block_count;
 }
 
-static bool chunk_has_block(void* ptr, size_t chunk_size, chunk* cnk)
+static bool chunk_has_block(chunk* cnk, void* ptr, size_t chunk_size)
 {
 	unsigned char* p = ptr;
 	return cnk->data <= p && p < cnk->data + chunk_size;
 }
 
-static bool chunk_init(size_t block_size, unsigned char block_count, chunk* cnk)
+static bool chunk_init(chunk* cnk, size_t block_size, unsigned char block_count)
 {
     if (NULL == (cnk->data = malloc(block_size * block_count))) {
 		return false;
@@ -100,7 +100,7 @@ static void chunk_clean(chunk* cnk)
 	free(cnk->data);
 }
 
-static void* chunk_alloc(size_t block_size, chunk* cnk)
+static void* chunk_alloc(chunk* cnk, size_t block_size)
 {
 	if (0 == cnk->block_count) {
 		return NULL;
@@ -114,7 +114,7 @@ static void* chunk_alloc(size_t block_size, chunk* cnk)
 	return p;
 }
 
-static void chunk_free(void* ptr, size_t block_size, chunk* cnk)
+static void chunk_free(chunk* cnk, void* ptr, size_t block_size)
 {
 	unsigned char* p = ptr;
 
@@ -124,7 +124,7 @@ static void chunk_free(void* ptr, size_t block_size, chunk* cnk)
     ++cnk->block_count;
 }
 
-static bool portion_init(size_t block_size, size_t page_size, portion* por)
+static bool portion_init(portion* por, size_t block_size, size_t page_size)
 {
 	por->block_size = block_size;
 	por->block_count = ce_sclamp(page_size / block_size, CHAR_BIT, UCHAR_MAX);
@@ -187,7 +187,7 @@ static bool portion_ensure_alloc_chunk(portion* por)
 
 	chunk* alloc_chunk = por->chunks + por->chunk_count;
 
-	if (!chunk_init(por->block_size, por->block_count, alloc_chunk)) {
+	if (!chunk_init(alloc_chunk, por->block_size, por->block_count)) {
 		return false;
 	}
 
@@ -197,7 +197,7 @@ static bool portion_ensure_alloc_chunk(portion* por)
 	return true;
 }
 
-static void portion_ensure_dealloc_chunk(void* ptr, portion* por)
+static void portion_ensure_dealloc_chunk(portion* por, void* ptr)
 {
 	const size_t chunk_size = por->block_size * por->block_count;
 	const chunk* const lo_bound = por->chunks;
@@ -213,7 +213,7 @@ static void portion_ensure_dealloc_chunk(void* ptr, portion* por)
 
 	for (;;) {
 		if (NULL != lo) {
-			if (chunk_has_block(ptr, chunk_size, lo)) {
+			if (chunk_has_block(lo, ptr, chunk_size)) {
 				por->dealloc_chunk = lo;
 				return;
 			}
@@ -228,7 +228,7 @@ static void portion_ensure_dealloc_chunk(void* ptr, portion* por)
 		}
 
 		if (NULL != hi) {
-			if (chunk_has_block(ptr, chunk_size, hi)) {
+			if (chunk_has_block(hi, ptr, chunk_size)) {
 				por->dealloc_chunk = hi;
 				return;
 			}
@@ -247,13 +247,13 @@ static void portion_ensure_dealloc_chunk(void* ptr, portion* por)
 static void* portion_alloc(portion* por)
 {
 	return portion_ensure_alloc_chunk(por) ?
-		chunk_alloc(por->block_size, por->alloc_chunk) : NULL;
+		chunk_alloc(por->alloc_chunk, por->block_size) : NULL;
 }
 
-static void portion_free(void* ptr, portion* por)
+static void portion_free(portion* por, void* ptr)
 {
-	portion_ensure_dealloc_chunk(ptr, por);
-	chunk_free(ptr, por->block_size, por->dealloc_chunk);
+	portion_ensure_dealloc_chunk(por, ptr);
+	chunk_free(por->dealloc_chunk, ptr, por->block_size);
 }
 
 /// Calculates offset into array where an element of size is located.
@@ -272,8 +272,8 @@ bool ce_alloc_open(void)
 	}
 
 	for (size_t i = 0; i < smallobj.count; ++i) {
-		if (!portion_init((i + 1) * OBJECT_ALIGNMENT,
-				PAGE_SIZE, smallobj.pool + i)) {
+		if (!portion_init(smallobj.pool + i,
+				(i + 1) * OBJECT_ALIGNMENT, PAGE_SIZE)) {
 			ce_alloc_close();
 			return false;
 		}
