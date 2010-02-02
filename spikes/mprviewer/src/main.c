@@ -81,32 +81,32 @@ static void idle(void)
 	}
 
 	if (ce_input_test(CE_KB_LEFT)) {
-		ce_camera_move(-10.0f * elapsed, 0.0f, cam);
+		ce_camera_move(cam, -10.0f * elapsed, 0.0f);
 	}
 
 	if (ce_input_test(CE_KB_UP)) {
-		ce_camera_move(0.0f, 10.0f * elapsed, cam);
+		ce_camera_move(cam, 0.0f, 10.0f * elapsed);
 	}
 
 	if (ce_input_test(CE_KB_RIGHT)) {
-		ce_camera_move(10.0f * elapsed, 0.0f, cam);
+		ce_camera_move(cam, 10.0f * elapsed, 0.0f);
 	}
 
 	if (ce_input_test(CE_KB_DOWN)) {
-		ce_camera_move(0.0f, -10.0f * elapsed, cam);
+		ce_camera_move(cam, 0.0f, -10.0f * elapsed);
 	}
 
 	if (ce_input_test(CE_MB_WHEELUP)) {
-		ce_camera_zoom(5.0f, cam);
+		ce_camera_zoom(cam, 5.0f);
 	}
 
 	if (ce_input_test(CE_MB_WHEELDOWN)) {
-		ce_camera_zoom(-5.0f, cam);
+		ce_camera_zoom(cam, -5.0f);
 	}
 
 	if (ce_input_test(CE_MB_RIGHT)) {
-		ce_camera_yaw_pitch(ce_deg2rad(-0.25f * ce_input_mouse_offset_x()),
-						ce_deg2rad(-0.25f * ce_input_mouse_offset_y()), cam);
+		ce_camera_yaw_pitch(cam, ce_deg2rad(-0.25f * ce_input_mouse_offset_x()),
+							ce_deg2rad(-0.25f * ce_input_mouse_offset_y()));
 	}
 
 	if (ce_input_event_triggered(night_event)) {
@@ -154,8 +154,8 @@ static void display(void)
 
 	frustum_init(ce_camera_get_fov(cam), ce_camera_get_aspect(cam),
 		ce_camera_get_near(cam), ce_camera_get_far(cam),
-		ce_camera_get_eye(&eye, cam), ce_camera_get_forward(&forward, cam),
-		ce_camera_get_right(&right, cam), ce_camera_get_up(&up, cam), &f);
+		ce_camera_get_eye(cam, &eye), ce_camera_get_forward(cam, &forward),
+		ce_camera_get_right(cam, &right), ce_camera_get_up(cam, &up), &f);
 
 	mprfile_apply_frustum(&eye, &f, mpr);
 	mprfile_render(mpr);
@@ -169,7 +169,7 @@ static void display(void)
 static void reshape(int width, int height)
 {
 	glViewport(0, 0, width, height);
-	ce_camera_set_aspect(width, height, cam);
+	ce_camera_set_aspect(cam, width, height);
 }
 
 static void usage()
@@ -328,8 +328,8 @@ int main(int argc, char* argv[])
 	vec3_init(0.0f, mprfile_get_max_height(mpr), 0.0f, &eye);
 
 	cam = ce_camera_open();
-	ce_camera_set_eye(&eye, cam);
-	ce_camera_yaw_pitch(ce_deg2rad(45.0f), ce_deg2rad(30.0f), cam);
+	ce_camera_set_eye(cam, &eye);
+	ce_camera_yaw_pitch(cam, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
 
 	tmr = ce_timer_open();
 
