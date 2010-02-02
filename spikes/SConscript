@@ -43,7 +43,7 @@ if env["TARGET_PLATFORM"] == "posix":
 	)
 elif env["TARGET_PLATFORM"] == "win32":
 	env.AppendUnique(
-		LIBS=["freeglut", "glu32",
+		LIBS=["freeglut_static", "glu32",
 				"opengl32", "winmm", "gdi32"],
 	)
 
