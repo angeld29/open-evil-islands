@@ -44,7 +44,7 @@ static void report(ce_logging_level lvl, const char* format, va_list args)
 			(lvl >= level || CE_LOGGING_LEVEL_ALL == level)) {
 		fprintf(stderr, "%s: ", level_names[lvl]);
 		vfprintf(stderr, format, args);
-		fprintf(stderr, "\n");
+		putc('\n', stderr);
 	}
 }
 
