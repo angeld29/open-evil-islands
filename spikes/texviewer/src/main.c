@@ -70,6 +70,7 @@ static void idle(void)
 		ce_timer_close(tmr);
 		texture_close(tex);
 		resfile_close(res);
+		ce_gl_close();
 		ce_input_close();
 		ce_logging_close();
 		ce_alloc_close();
@@ -272,7 +273,7 @@ int main(int argc, char* argv[])
 #endif
 
 	ce_input_open();
-	ce_gl_init();
+	ce_gl_open();
 
 	res = resfile_open_file(argv[optind]);
 	if (NULL == res) {

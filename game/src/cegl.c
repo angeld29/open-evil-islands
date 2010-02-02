@@ -19,6 +19,7 @@
 */
 
 #include <string.h>
+#include <assert.h>
 
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -67,6 +68,7 @@ const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1 = GL_UNSIGNED_SHORT_5_5_5_1_EXT;
 const GLenum CE_GL_UNSIGNED_INT_8_8_8_8 = GL_UNSIGNED_INT_8_8_8_8_EXT;
 const GLenum CE_GL_GENERATE_MIPMAP = GL_GENERATE_MIPMAP_SGIS;
 
+static bool opened;
 static bool features[CE_GL_FEATURE_COUNT];
 
 static bool check_extension(const char* name)
@@ -104,8 +106,10 @@ static void report_extension(const char* name, bool ok)
 									name, ok ? "yes" : "no");
 }
 
-void ce_gl_init(void)
+bool ce_gl_open(void)
 {
+	assert(!opened);
+
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 	features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO] =
@@ -145,6 +149,14 @@ void ce_gl_init(void)
 		features[CE_GL_FEATURE_PACKED_PIXELS]);
 	report_extension("generate mipmap",
 		features[CE_GL_FEATURE_GENERATE_MIPMAP]);
+
+	return opened = true;
+}
+
+void ce_gl_close(void)
+{
+	assert(opened);
+	opened = false;
 }
 
 bool ce_gl_report_errors(void)
@@ -160,5 +172,6 @@ bool ce_gl_report_errors(void)
 
 bool ce_gl_query_feature(ce_gl_feature feature)
 {
+	assert(opened);
 	return features[feature];
 }

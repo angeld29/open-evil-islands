@@ -69,6 +69,7 @@ static void idle(void)
 		ce_timer_close(tmr);
 		ce_camera_close(cam);
 		mprfile_close(mpr);
+		ce_gl_close();
 		ce_input_event_supply_close(es);
 		ce_input_close();
 		ce_logging_close();
@@ -298,7 +299,7 @@ int main(int argc, char* argv[])
 	glutReshapeFunc(reshape);
 
 	ce_input_open();
-	ce_gl_init();
+	ce_gl_open();
 
 	resfile* tex_res = resfile_open_file(tex_path);
 	if (NULL == tex_res) {
