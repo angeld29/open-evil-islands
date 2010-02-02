@@ -55,6 +55,171 @@ ce_timer* tmr;
 
 ce_input_event_supply* es;
 ce_input_event* night_event;
+int night_index;
+
+GLint sunlight_gipat[24][3] = {
+ 	{63, 93, 157},
+ 	{63, 93, 157},
+ 	{92, 122, 165},
+	{ 171, 131, 119},
+ 	{255, 140, 104},
+ 	{255, 198, 129},
+ 	{255, 248, 207},
+ 	{255, 255, 255},
+ 	{255, 255, 255},
+	{ 255, 255, 255},
+ 	{255, 255, 255},
+	{ 255, 255, 255},
+ 	{255, 255, 255},
+ 	{255, 255, 255},
+ 	{255, 255, 255},
+ 	{255, 255, 255},
+	{ 255, 255, 255},
+	{ 255, 255, 255},
+	{ 255, 248, 207},
+	{ 255, 202, 136},
+ 	{255, 123, 82},
+ 	{166, 128, 116},
+	{ 92, 122, 165},
+	{ 63, 93, 157}
+};
+
+GLint ambient_gipat[24][3] = {
+ 	{54, 83, 147},
+	{ 54, 83, 147},
+	{ 87, 89, 110},
+ 	{122, 81, 68},
+ 	{133, 96, 85},
+ 	{135, 117, 94},
+ 	{129, 135, 125},
+	{ 129, 135, 125},
+ 	{129, 135, 125},
+ 	{129, 135, 125},
+ 	{129, 135, 125},
+	{ 129, 135, 125},
+	{ 129, 135, 125},
+ 	{129, 135, 125},
+	{ 129, 135, 125},
+	{ 129, 135, 125},
+ 	{129, 135, 125},
+ 	{129, 135, 125},
+ 	{129, 135, 125},
+ 	{135, 117, 94},
+ 	{133, 96, 85},
+ 	{122, 81, 68},
+ 	{87, 89, 110},
+ 	{54, 83, 147}
+};
+
+GLint sky_gipat[24][3] = {
+ 	{0, 0, 118},
+ 	{0, 0, 118},
+ 	{76, 78, 97},
+	{151, 80, 58},
+ 	{196, 89, 56},
+ 	{175, 150, 126},
+ 	{138, 176, 177},
+ 	{53, 182, 198},
+ 	{46, 181, 217},
+ 	{46, 181, 217},
+ 	{46, 181, 217},
+ 	{46, 181, 217},
+ 	{46, 181, 217},
+ 	{46, 181, 217},
+ 	{46, 181, 217},
+ 	{46, 181, 217},
+ 	{46, 181, 217},
+	{103, 181, 183},
+ 	{174, 168, 157},
+ 	{210, 154, 101},
+ 	{210, 95, 36},
+ 	{136, 81, 81},
+ 	{76, 78, 97},
+ 	{0, 0, 118}
+};
+
+
+
+GLint sunlight_ingos[24][3] = {
+	{ 63, 93, 157 },
+	{ 63, 93, 157 },
+	{ 92, 113, 165 },
+	{ 171, 131, 119 },
+	{ 255, 140, 104 },
+	{ 255, 198, 129 },
+	{ 255, 248, 207 },
+	{ 255, 255, 255 },
+	{ 255, 255, 255 },
+	{ 255, 255, 255 },
+	{ 255, 255, 255 },
+	{ 255, 255, 255 },
+	{ 255, 255, 255 },
+	{ 255, 255, 255 },
+	{ 255, 255, 255 },
+	{ 255, 255, 255 },
+	{ 255, 255, 255 },
+	{ 255, 255, 255 },
+	{ 255, 248, 207 },
+	{ 255, 202, 136 },
+	{ 255, 123, 82 },
+	{ 166, 128, 116 },
+	{ 92, 122, 165 },
+	{ 63, 93, 157 }
+};
+
+GLint ambient_ingos[24][3] = {
+	{ 54, 83, 147 },
+	{ 54, 83, 147 },
+	{ 77, 87, 135 },
+	{ 88, 94, 133 },
+	{ 99, 104, 133 },
+	{ 108, 115, 138 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 111, 121, 151 },
+	{ 108, 115, 138 },
+	{ 99, 104, 133 },
+	{ 88, 94, 133 },
+	{ 77, 87, 135 },
+	{ 54, 83, 147 }
+};
+
+GLint sky_ingos[24][3] = {
+	{ 0, 0, 118 },
+	{ 0, 0, 118 },
+	{ 75, 83, 95 },
+	{ 151, 80, 58 },
+	{ 196, 89, 56 },
+	{ 175, 150, 126 },
+	{ 138, 167, 177 },
+	{ 53, 157, 198 },
+	{ 46, 132, 217 },
+	{ 46, 132, 217 },
+	{ 46, 132, 217 },
+	{ 46, 132, 217 },
+	{ 46, 132, 217 },
+	{ 46, 132, 217 },
+	{ 46, 132, 217 },
+	{ 46, 132, 217 },
+	{ 53, 157, 198 },
+	{ 103, 168, 183 },
+	{ 174, 168, 157 },
+	{ 210, 154, 101 },
+	{ 210, 95, 36 },
+	{ 136, 81, 81 },
+	{ 75, 83, 95 },
+	{ 0, 0, 118 }
+};
 
 static void idle(void)
 {
@@ -110,7 +275,9 @@ static void idle(void)
 	}
 
 	if (ce_input_event_triggered(night_event)) {
-		mprfile_set_night(!mprfile_get_night(mpr), mpr);
+		if (++night_index >= 24) {
+			night_index = 0;
+		}
 	}
 
 	glutPostRedisplay();
@@ -118,20 +285,62 @@ static void idle(void)
 
 static void display(void)
 {
+	glEnable(GL_LIGHTING);
+
+	float coef = 127.0f;
+
+	float sky[4] = { sky_gipat[night_index][0] / coef,
+					sky_gipat[night_index][1] / coef,
+					sky_gipat[night_index][2] / coef,
+					1.0f };
+
+	glClearColor(sky_gipat[night_index][0] / coef,
+				sky_gipat[night_index][1] / coef,
+				sky_gipat[night_index][2] / coef, 1.0f);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glLoadIdentity();
 
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
+	// -----
 
-	glLightfv(GL_LIGHT0, GL_POSITION, (float[]){ 0.0f, 0.0f, 0.0f, 1.0f });
-	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, ce_camera_get_fov(cam) / 2.0f);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, (float[]){ 2.0f, 2.0f, 2.0f, 1.0f });
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, (float[]){ 0.5f, 0.5f, 0.5f, 1.0f });
+	float aaa[4] = { ambient_gipat[night_index][0] / coef,
+					ambient_gipat[night_index][1] / coef,
+					ambient_gipat[night_index][2] / coef,
+					1.0f };
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, aaa);
+
 	glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 
+	// -----
+
+	float sss[4] = { sunlight_gipat[night_index][0] / coef,
+					sunlight_gipat[night_index][1] / coef,
+					sunlight_gipat[night_index][2] / coef,
+					1.0f };
+
+	glEnable(GL_LIGHT0);
+	//glLightfv(GL_LIGHT0, GL_POSITION, (float[]){ 100.0f, 50.0f, 100.0f, 1.0f });
+	glLightfv(GL_LIGHT0, GL_AMBIENT, sss);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, sss);
+	//glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, sss);
+	//glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]){ 0.0f, 0.0f, 0.0f, 1.0f });
+	glLightfv(GL_LIGHT0, GL_SPECULAR, (float[]){ 0.0f, 0.0f, 0.0f, 0.0f });
+
+	// -----
+
+	glEnable(GL_LIGHT1);
+	glLightfv(GL_LIGHT1, GL_POSITION, (float[]){ 0.0f, 0.0f, 0.0f, 1.0f });
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, ce_camera_get_fov(cam) / 3.0f);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, sss);
+
 	ce_camera_setup(cam);
+
+	glPushMatrix();
+	//glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+	glTranslatef(100.0f, 50.0f, -100.0f);
+	glLightfv(GL_LIGHT0, GL_POSITION, (float[]){ 0.0f, 0.0f, 1.0f, 1.0f });
+	glPopMatrix();
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
@@ -160,6 +369,7 @@ static void display(void)
 	mprfile_apply_frustum(&eye, &f, mpr);
 	mprfile_render(mpr);
 
+	glDisable(GL_LIGHT1);
 	glDisable(GL_LIGHT0);
 	glDisable(GL_LIGHTING);
 
@@ -322,14 +532,12 @@ int main(int argc, char* argv[])
 	resfile_close(tex_res);
 	resfile_close(mpr_res);
 
-	mprfile_set_night(night, mpr);
-
 	vec3 eye;
-	vec3_init(0.0f, mprfile_get_max_height(mpr), 0.0f, &eye);
+	vec3_init(100.0f, mprfile_get_max_height(mpr), 0.0f, &eye);
 
 	cam = ce_camera_open();
 	ce_camera_set_eye(cam, &eye);
-	ce_camera_yaw_pitch(cam, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
+	ce_camera_yaw_pitch(cam, ce_deg2rad(0.0f), ce_deg2rad(30.0f));
 
 	tmr = ce_timer_open();
 
