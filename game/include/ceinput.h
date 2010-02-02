@@ -142,22 +142,10 @@ typedef enum {
 	CE_IB_COUNT
 } ce_input_button;
 
-typedef struct {
-	ce_input_button button;
-	bool triggered;
-} ce_input_button_event;
+typedef struct ce_input_event ce_input_event;
+typedef struct ce_input_event_supply ce_input_event_supply;
 
-typedef struct {
-	ce_input_button button;
-	bool activated;
-	bool triggered;
-} ce_input_single_front_event;
-
-typedef struct {
-	ce_input_button button;
-	bool activated;
-	bool triggered;
-} ce_input_single_back_event;
+// Low level input API.
 
 extern bool ce_input_open(void);
 extern void ce_input_close(void);
@@ -169,20 +157,27 @@ extern int ce_input_mouse_offset_y();
 
 extern void ce_input_advance(float elapsed);
 
-extern void ce_input_button_event_init(ce_input_button button,
-										ce_input_button_event* event);
-extern void ce_input_button_event_advance(float elapsed,
-											ce_input_button_event* event);
+// High level input API.
 
-extern void ce_input_single_front_event_init(ce_input_button button,
-									ce_input_single_front_event* event);
-extern void ce_input_single_front_event_advance(float elapsed,
-									ce_input_single_front_event* event);
+extern bool ce_input_event_triggered(ce_input_event* ev);
 
-extern void ce_input_single_back_event_init(ce_input_button button,
-									ce_input_single_back_event* event);
-extern void ce_input_single_back_event_advance(float elapsed,
-									ce_input_single_back_event* event);
+extern ce_input_event_supply* ce_input_event_supply_open(void);
+extern void ce_input_event_supply_close(ce_input_event_supply* es);
+
+extern void ce_input_event_supply_advance(ce_input_event_supply* es,
+														float elapsed);
+
+extern ce_input_event*
+ce_input_create_button_event(ce_input_event_supply* es,
+								ce_input_button button);
+
+extern ce_input_event*
+ce_input_create_single_front_event(ce_input_event_supply* es,
+									ce_input_event* event);
+
+extern ce_input_event*
+ce_input_create_single_back_event(ce_input_event_supply* es,
+									ce_input_event* event);
 
 #ifdef __cplusplus
 }

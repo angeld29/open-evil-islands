@@ -52,7 +52,9 @@
 mprfile* mpr;
 ce_camera* cam;
 ce_timer* tmr;
-ce_input_single_front_event night_event;
+
+ce_input_event_supply* es;
+ce_input_event* night_event;
 
 static void idle(void)
 {
@@ -61,11 +63,13 @@ static void idle(void)
 	float elapsed = ce_timer_elapsed(tmr);
 
 	ce_input_advance(elapsed);
+	ce_input_event_supply_advance(es, elapsed);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_timer_close(tmr);
 		ce_camera_close(cam);
 		mprfile_close(mpr);
+		ce_input_event_supply_close(es);
 		ce_input_close();
 		ce_logging_close();
 		ce_alloc_close();
@@ -104,8 +108,7 @@ static void idle(void)
 						ce_deg2rad(-0.25f * ce_input_mouse_offset_y()), cam);
 	}
 
-	ce_input_single_front_event_advance(elapsed, &night_event);
-	if (night_event.triggered) {
+	if (ce_input_event_triggered(night_event)) {
 		mprfile_set_night(!mprfile_get_night(mpr), mpr);
 	}
 
@@ -329,7 +332,9 @@ int main(int argc, char* argv[])
 
 	tmr = ce_timer_open();
 
-	ce_input_single_front_event_init(CE_KB_N, &night_event);
+	es = ce_input_event_supply_open();
+	night_event = ce_input_create_single_front_event(es,
+					ce_input_create_button_event(es, CE_KB_N));
 
 	glutMainLoop();
 	return 0;
