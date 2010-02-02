@@ -26,10 +26,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct mobfile mobfile;
+typedef struct ce_mobfile ce_mobfile;
 
-extern mobfile* mobfile_open(const char* path);
-extern void mobfile_close(mobfile* mob);
+extern ce_mobfile* ce_mobfile_open(const char* path);
+extern void ce_mobfile_close(ce_mobfile* mob);
 
 #ifdef __cplusplus
 }

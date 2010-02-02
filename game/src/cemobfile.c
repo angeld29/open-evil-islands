@@ -27,7 +27,7 @@
 #include "celib.h"
 #include "cebyteorder.h"
 #include "cestr.h"
-#include "mobfile.h"
+#include "cemobfile.h"
 
 enum {
 	MOB_SIGNATURE = 0xa000
@@ -48,7 +48,7 @@ static const uint64_t OBJECT_BLOCK_PARTICLE1_SIGNATURE = 0xaa01;
 static const uint64_t OBJECT_BLOCK_PARTICLE2_SIGNATURE = 0xcc01;
 static const uint64_t OBJECT_BLOCK_PARTICLE3_SIGNATURE = 0xdd01;*/
 
-struct mobfile {
+struct ce_mobfile {
 	int stub;
 };
 
@@ -150,7 +150,7 @@ struct mobfile {
 	return mob;
 }*/
 
-mobfile* mobfile_open(const char* path)
+ce_mobfile* ce_mobfile_open(const char* path)
 {
 	ce_unused(path);
 	assert(false && "Not implemented");
@@ -177,7 +177,7 @@ mobfile* mobfile_open(const char* path)
 	return mob;*/
 }
 
-void mobfile_close(mobfile* mob)
+void ce_mobfile_close(ce_mobfile* mob)
 {
 	if (NULL == mob) {
 		return;
