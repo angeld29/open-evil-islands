@@ -41,7 +41,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cemath.h"
-#include "mmpfile.h"
+#include "cemmpfile.h"
 #include "texture.h"
 
 struct texture {
@@ -221,7 +221,7 @@ static void dxt_decode_color_block(uint8_t* dst, uint8_t* src,
 			d[0] = colors[idx][2];
 			d[1] = colors[idx][1];
 			d[2] = colors[idx][0];
-			if (MMP_DXT1 == format) {
+			if (CE_MMP_DXT1 == format) {
 				d[3] = (c0 <= c1 && 3 == idx) ? 0 : 255;
 			}
 		}
@@ -251,7 +251,7 @@ static void dxt_decompress(uint8_t* dst, uint8_t* src,
 	for (int y = 0; y < height; y += 4) {
 		for (int x = 0; x < width; x += 4) {
 			uint8_t* d = dst + (y * width + x) * 4;
-			if (MMP_DXT3 == format) {
+			if (CE_MMP_DXT3 == format) {
 				dxt_decode_alpha_block(d + 3, s, rowbytes);
 				s += 8;
 			}
@@ -271,9 +271,9 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		int data_size = ((width + 3) >> 2) *
-						((height + 3) >> 2) * (MMP_DXT1 == format ? 8 : 16);
+						((height + 3) >> 2) * (CE_MMP_DXT1 == format ? 8 : 16);
 
-		glCompressedTexImage2D(GL_TEXTURE_2D, i, MMP_DXT1 == format ?
+		glCompressedTexImage2D(GL_TEXTURE_2D, i, CE_MMP_DXT1 == format ?
 			CE_GL_COMPRESSED_RGB_S3TC_DXT1 : CE_GL_COMPRESSED_RGBA_S3TC_DXT3,
 			width, height, 0, data_size, src);
 
@@ -294,7 +294,7 @@ static bool dxt_generate_texture(int mipmap_count,
 {
 #ifdef GL_VERSION_1_3
 	if ((ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC) ||
-			(MMP_DXT1 == format &&
+			(CE_MMP_DXT1 == format &&
 				ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1))) &&
 			dxt_generate_texture_directly(mipmap_count, width,
 											height, format, data)) {
@@ -320,7 +320,7 @@ static bool dxt_generate_texture(int mipmap_count,
 	for (int i = 0, w = width, h = height;
 			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
 		dxt_decompress(dst, src, w, h, format);
-		src += ((w + 3) >> 2) * ((h + 3) >> 2) * (MMP_DXT1 == format ? 8 : 16);
+		src += ((w + 3) >> 2) * ((h + 3) >> 2) * (CE_MMP_DXT1 == format ? 8 : 16);
 		dst += w * h * 4;
 	}
 
@@ -340,11 +340,11 @@ static bool generic16_argb_generate_texture_packed(int mipmap_count, int width,
 	int ashift, rgbshift;
 
 	switch (format) {
-	case MMP_A1RGB5:
+	case CE_MMP_A1RGB5:
 		data_type = CE_GL_UNSIGNED_SHORT_5_5_5_1;
 		rgbshift = 1; ashift = 15;
 		break;
-	case MMP_ARGB4:
+	case CE_MMP_ARGB4:
 		data_type = CE_GL_UNSIGNED_SHORT_4_4_4_4;
 		rgbshift = 4; ashift = 12;
 		break;
@@ -371,21 +371,21 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 	uint16_t rmask, gmask, bmask;
 
 	switch (format) {
-	case MMP_R5G6B5:
+	case CE_MMP_R5G6B5:
 		internal_and_data_format = GL_RGB;
 		bpp = 3;
 		rshift = 11; gshift = 5;
 		rdiv = 31; gdiv = 63; bdiv = 31;
 		rmask = 0xf800; gmask = 0x7e0; bmask = 0x1f;
 		break;
-	case MMP_A1RGB5:
+	case CE_MMP_A1RGB5:
 		internal_and_data_format = GL_RGBA;
 		bpp = 4;
 		rshift = 10; gshift = 5; ashift = 15;
 		rdiv = 31; gdiv = 31; bdiv = 31; adiv = 1;
 		rmask = 0x7c00; gmask = 0x3e0; bmask = 0x1f;
 		break;
-	case MMP_ARGB4:
+	case CE_MMP_ARGB4:
 		internal_and_data_format = GL_RGBA;
 		bpp = 4;
 		rshift = 8; gshift = 4; ashift = 12;
@@ -529,7 +529,7 @@ texture* texture_open(void* data)
 
 	uint32_t* mmp = data;
 
-	if (MMP_SIGNATURE != ce_le2cpu32(*mmp++)) {
+	if (CE_MMP_SIGNATURE != ce_le2cpu32(*mmp++)) {
 		ce_logging_error("Wrong mmp signature.");
 		texture_close(tex);
 		return NULL;
@@ -545,15 +545,15 @@ texture* texture_open(void* data)
 	bool ok;
 
 	switch (format) {
-	case MMP_DXT1:
-	case MMP_DXT3:
+	case CE_MMP_DXT1:
+	case CE_MMP_DXT3:
 		ok = dxt_generate_texture(mipmap_count_or_size,
 									width, height, format, mmp);
 		break;
-	case MMP_PNT3:
+	case CE_MMP_PNT3:
 		ok = pnt3_generate_texture(mipmap_count_or_size, width, height, mmp);
 		break;
-	case MMP_R5G6B5:
+	case CE_MMP_R5G6B5:
 #ifdef GL_VERSION_1_2
 		ok = generate_texture(mipmap_count_or_size, GL_RGB,
 			width, height, 2, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, mmp);
@@ -562,7 +562,7 @@ texture* texture_open(void* data)
 										width, height, format, mmp);
 #endif
 		break;
-	case MMP_A1RGB5:
+	case CE_MMP_A1RGB5:
 #ifdef GL_VERSION_1_2
 		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
 			width, height, 2, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, mmp);
@@ -571,7 +571,7 @@ texture* texture_open(void* data)
 										width, height, format, mmp);
 #endif
 		break;
-	case MMP_ARGB4:
+	case CE_MMP_ARGB4:
 #ifdef GL_VERSION_1_2
 		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
 			width, height, 2, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV, mmp);
@@ -580,7 +580,7 @@ texture* texture_open(void* data)
 										width, height, format, mmp);
 #endif
 		break;
-	case MMP_ARGB8:
+	case CE_MMP_ARGB8:
 #ifdef GL_VERSION_1_2
 		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
 			width, height, 4, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, mmp);
