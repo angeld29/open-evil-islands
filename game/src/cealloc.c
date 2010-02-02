@@ -344,5 +344,5 @@ void ce_free(void* ptr, size_t size)
 		size = 1;
 	}
 
-	portion_free(ptr, smallobj.pool + get_offset(size, OBJECT_ALIGNMENT) - 1);
+	portion_free(smallobj.pool + get_offset(size, OBJECT_ALIGNMENT) - 1, ptr);
 }
