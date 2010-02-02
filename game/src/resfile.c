@@ -26,7 +26,7 @@
 #include "cealloc.h"
 #include "cebyteorder.h"
 #include "cestr.h"
-#include "memfile.h"
+#include "cememfile.h"
 #include "resfile.h"
 
 enum {
@@ -51,7 +51,7 @@ struct resfile {
 	uint32_t names_length;
 	char* names;
 	resfile_node* nodes;
-	memfile* mem;
+	ce_memfile* mem;
 };
 
 static int name_hash(const char* name, int lim)
@@ -63,7 +63,7 @@ static int name_hash(const char* name, int lim)
 	return sum % lim;
 }
 
-resfile* resfile_open_memfile(const char* name, memfile* mem)
+resfile* resfile_open_memfile(const char* name, ce_memfile* mem)
 {
 	resfile* res = ce_alloc_zero(sizeof(resfile));
 	if (NULL == res) {
@@ -77,7 +77,7 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 	}
 
 	uint32_t signature;
-	if (1 != memfile_read(&signature, sizeof(uint32_t), 1, mem)) {
+	if (1 != ce_memfile_read(mem, &signature, sizeof(uint32_t), 1)) {
 		resfile_close(res);
 		return NULL;
 	}
@@ -88,9 +88,9 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 		return NULL;
 	}
 
-	if (1 != memfile_read(&res->node_count, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&res->metadata_offset, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&res->names_length, sizeof(uint32_t), 1, mem)) {
+	if (1 != ce_memfile_read(mem, &res->node_count, sizeof(uint32_t), 1) ||
+			1 != ce_memfile_read(mem, &res->metadata_offset, sizeof(uint32_t), 1) ||
+			1 != ce_memfile_read(mem, &res->names_length, sizeof(uint32_t), 1)) {
 		resfile_close(res);
 		return NULL;
 	}
@@ -100,24 +100,24 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 	ce_le2cpu32s(&res->names_length);
 
 	if (NULL == (res->nodes = ce_alloc_zero(sizeof(resfile_node) *
-											res->node_count))) {
+												res->node_count))) {
 		resfile_close(res);
 		return NULL;
 	}
 
-	if (0 != memfile_seek(res->metadata_offset, SEEK_SET, mem)) {
+	if (0 != ce_memfile_seek(mem, res->metadata_offset, SEEK_SET)) {
 		resfile_close(res);
 		return NULL;
 	}
 
 	for (size_t i = 0; i < res->node_count; ++i) {
 		resfile_node* node = res->nodes + i;
-		if (1 != memfile_read(&node->next_index, sizeof(int32_t), 1, mem) ||
-				1 != memfile_read(&node->data_length, sizeof(uint32_t), 1, mem) ||
-				1 != memfile_read(&node->data_offset, sizeof(uint32_t), 1, mem) ||
-				1 != memfile_read(&node->modified, sizeof(int32_t), 1, mem) ||
-				1 != memfile_read(&node->name_length, sizeof(uint16_t), 1, mem) ||
-				1 != memfile_read(&node->name_offset, sizeof(uint32_t), 1, mem)) {
+		if (1 != ce_memfile_read(mem, &node->next_index, sizeof(int32_t), 1) ||
+				1 != ce_memfile_read(mem, &node->data_length, sizeof(uint32_t), 1) ||
+				1 != ce_memfile_read(mem, &node->data_offset, sizeof(uint32_t), 1) ||
+				1 != ce_memfile_read(mem, &node->modified, sizeof(int32_t), 1) ||
+				1 != ce_memfile_read(mem, &node->name_length, sizeof(uint16_t), 1) ||
+				1 != ce_memfile_read(mem, &node->name_offset, sizeof(uint32_t), 1)) {
 			resfile_close(res);
 			return NULL;
 		}
@@ -131,7 +131,7 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 
 	res->names = ce_alloc(res->names_length + 1);
 	if (NULL == res->names ||
-			1 != memfile_read(res->names, res->names_length, 1, mem)) {
+			1 != ce_memfile_read(mem, res->names, res->names_length, 1)) {
 		resfile_close(res);
 		return NULL;
 	}
@@ -153,7 +153,7 @@ resfile* resfile_open_memfile(const char* name, memfile* mem)
 
 resfile* resfile_open_file(const char* path)
 {
-	memfile* mem = memfile_open_path(path, "rb");
+	ce_memfile* mem = ce_memfile_open_path(path, "rb");
 	if (NULL == mem) {
 		return NULL;
 	}
@@ -167,7 +167,7 @@ resfile* resfile_open_file(const char* path)
 
 	resfile* res = resfile_open_memfile(name, mem);
 	if (NULL == res) {
-		memfile_close(mem);
+		ce_memfile_close(mem);
 		return NULL;
 	}
 
@@ -180,7 +180,7 @@ void resfile_close(resfile* res)
 		return;
 	}
 
-	memfile_close(res->mem);
+	ce_memfile_close(res->mem);
 
 	if (NULL != res->nodes) {
 		for (size_t i = 0; i < res->node_count; ++i) {
@@ -237,6 +237,6 @@ time_t resfile_node_modified(int index, const resfile* res)
 bool resfile_node_data(int index, void* data, resfile* res)
 {
 	resfile_node* node = res->nodes + index;
-	return 0 == memfile_seek(node->data_offset, SEEK_SET, res->mem) &&
-		1 == memfile_read(data, node->data_length, 1, res->mem);
+	return 0 == ce_memfile_seek(res->mem, node->data_offset, SEEK_SET) &&
+		1 == ce_memfile_read(res->mem, data, node->data_length, 1);
 }

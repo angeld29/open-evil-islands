@@ -26,7 +26,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct memfile memfile;
+typedef struct ce_memfile ce_memfile;
 
 #ifdef __cplusplus
 }

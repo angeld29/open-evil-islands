@@ -35,7 +35,7 @@
 #include "vec3.h"
 #include "ceaabb.h"
 #include "texture.h"
-#include "memfile.h"
+#include "cememfile.h"
 #include "resfile.h"
 #include "mprfile.h"
 
@@ -138,24 +138,24 @@ static material* find_material(unsigned int type, mprfile* mpr)
 	return NULL;
 }
 
-static bool read_material(material* mat, memfile* mem)
+static bool read_material(material* mat, ce_memfile* mem)
 {
 	float unknown[4];
-	if (1 != memfile_read(&mat->type, sizeof(uint32_t), 1, mem) ||
-			4 != memfile_read(mat->color, sizeof(float), 4, mem) ||
-			1 != memfile_read(&mat->selfillum, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mat->wavemult, sizeof(float), 1, mem) ||
-			4 != memfile_read(unknown, sizeof(float), 4, mem)) {
+	if (1 != ce_memfile_read(mem, &mat->type, sizeof(uint32_t), 1) ||
+			4 != ce_memfile_read(mem, mat->color, sizeof(float), 4) ||
+			1 != ce_memfile_read(mem, &mat->selfillum, sizeof(float), 1) ||
+			1 != ce_memfile_read(mem, &mat->wavemult, sizeof(float), 1) ||
+			4 != ce_memfile_read(mem, unknown, sizeof(float), 4)) {
 		return false;
 	}
 	ce_le2cpu32s(&mat->type);
 	return true;
 }
 
-static bool read_anim_tile(anim_tile* at, memfile* mem)
+static bool read_anim_tile(anim_tile* at, ce_memfile* mem)
 {
-	if (1 != memfile_read(&at->index, sizeof(uint16_t), 1, mem) ||
-			1 != memfile_read(&at->count, sizeof(uint16_t), 1, mem)) {
+	if (1 != ce_memfile_read(mem, &at->index, sizeof(uint16_t), 1) ||
+			1 != ce_memfile_read(mem, &at->count, sizeof(uint16_t), 1)) {
 		return false;
 	}
 	ce_le2cpu16s(&at->index);
@@ -163,10 +163,10 @@ static bool read_anim_tile(anim_tile* at, memfile* mem)
 	return true;
 }
 
-static bool read_header_impl(mprfile* mpr, memfile* mem)
+static bool read_header_impl(mprfile* mpr, ce_memfile* mem)
 {
 	uint32_t signature;
-	if (1 != memfile_read(&signature, sizeof(uint32_t), 1, mem)) {
+	if (1 != ce_memfile_read(mem, &signature, sizeof(uint32_t), 1)) {
 		return false;
 	}
 
@@ -175,15 +175,15 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 		return false;
 	}
 
-	if (1 != memfile_read(&mpr->max_y, sizeof(float), 1, mem) ||
-			1 != memfile_read(&mpr->sector_x_count, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mpr->sector_z_count, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mpr->texture_count, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mpr->texture_size, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mpr->tile_count, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mpr->tile_size, sizeof(uint32_t), 1, mem) ||
-			1 != memfile_read(&mpr->material_count, sizeof(uint16_t), 1, mem) ||
-			1 != memfile_read(&mpr->anim_tile_count, sizeof(uint32_t), 1, mem)) {
+	if (1 != ce_memfile_read(mem, &mpr->max_y, sizeof(float), 1) ||
+			1 != ce_memfile_read(mem, &mpr->sector_x_count, sizeof(uint32_t), 1) ||
+			1 != ce_memfile_read(mem, &mpr->sector_z_count, sizeof(uint32_t), 1) ||
+			1 != ce_memfile_read(mem, &mpr->texture_count, sizeof(uint32_t), 1) ||
+			1 != ce_memfile_read(mem, &mpr->texture_size, sizeof(uint32_t), 1) ||
+			1 != ce_memfile_read(mem, &mpr->tile_count, sizeof(uint32_t), 1) ||
+			1 != ce_memfile_read(mem, &mpr->tile_size, sizeof(uint32_t), 1) ||
+			1 != ce_memfile_read(mem, &mpr->material_count, sizeof(uint16_t), 1) ||
+			1 != ce_memfile_read(mem, &mpr->anim_tile_count, sizeof(uint32_t), 1)) {
 		return false;
 	}
 
@@ -211,7 +211,7 @@ static bool read_header_impl(mprfile* mpr, memfile* mem)
 
 	mpr->tiles = ce_alloc(sizeof(uint32_t) * mpr->tile_count);
 	if (NULL == mpr->tiles || (size_t)mpr->tile_count !=
-			memfile_read(mpr->tiles, sizeof(uint32_t), mpr->tile_count, mem)) {
+			ce_memfile_read(mem, mpr->tiles, sizeof(uint32_t), mpr->tile_count)) {
 		return false;
 	}
 
@@ -256,7 +256,7 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 		return false;
 	}
 
-	memfile* mem = memfile_open_data(data, data_size, "rb");
+	ce_memfile* mem = ce_memfile_open_data(data, data_size, "rb");
 	if (NULL == mem) {
 		ce_free(data, data_size);
 		return false;
@@ -264,18 +264,18 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 
 	bool ok = read_header_impl(mpr, mem);
 
-	memfile_close(mem);
+	ce_memfile_close(mem);
 	ce_free(data, data_size);
 
 	return ok;
 }
 
-static bool read_vertex(vertex* ver, memfile* mem)
+static bool read_vertex(vertex* ver, ce_memfile* mem)
 {
-	if (1 != memfile_read(&ver->offset_x, sizeof(int8_t), 1, mem) ||
-			1 != memfile_read(&ver->offset_z, sizeof(int8_t), 1, mem) ||
-			1 != memfile_read(&ver->coord_y, sizeof(uint16_t), 1, mem) ||
-			1 != memfile_read(&ver->normal, sizeof(uint32_t), 1, mem)) {
+	if (1 != ce_memfile_read(mem, &ver->offset_x, sizeof(int8_t), 1) ||
+			1 != ce_memfile_read(mem, &ver->offset_z, sizeof(int8_t), 1) ||
+			1 != ce_memfile_read(mem, &ver->coord_y, sizeof(uint16_t), 1) ||
+			1 != ce_memfile_read(mem, &ver->normal, sizeof(uint32_t), 1)) {
 		return false;
 	}
 	ce_le2cpu16s(&ver->coord_y);
@@ -283,10 +283,10 @@ static bool read_vertex(vertex* ver, memfile* mem)
 	return true;
 }
 
-static bool read_sector_impl(sector* sec, memfile* mem)
+static bool read_sector_impl(sector* sec, ce_memfile* mem)
 {
 	uint32_t signature;
-	if (1 != memfile_read(&signature, sizeof(uint32_t), 1, mem)) {
+	if (1 != ce_memfile_read(mem, &signature, sizeof(uint32_t), 1)) {
 		return false;
 	}
 
@@ -295,7 +295,7 @@ static bool read_sector_impl(sector* sec, memfile* mem)
 		return false;
 	}
 
-	if (1 != memfile_read(&sec->water, sizeof(uint8_t), 1, mem)) {
+	if (1 != ce_memfile_read(mem, &sec->water, sizeof(uint8_t), 1)) {
 		return false;
 	}
 
@@ -324,8 +324,8 @@ static bool read_sector_impl(sector* sec, memfile* mem)
 	}
 
 	sec->land_textures = ce_alloc(sizeof(uint16_t) * TEXTURE_COUNT);
-	if (NULL == sec->land_textures || TEXTURE_COUNT != memfile_read(
-			sec->land_textures, sizeof(uint16_t), TEXTURE_COUNT, mem)) {
+	if (NULL == sec->land_textures || TEXTURE_COUNT != ce_memfile_read(mem,
+			sec->land_textures, sizeof(uint16_t), TEXTURE_COUNT)) {
 		return false;
 	}
 
@@ -338,10 +338,10 @@ static bool read_sector_impl(sector* sec, memfile* mem)
 		sec->water_allow = ce_alloc(sizeof(int16_t) * TEXTURE_COUNT);
 
 		if (NULL == sec->water_textures || NULL == sec->water_allow ||
-				TEXTURE_COUNT != memfile_read(sec->water_textures,
-					sizeof(uint16_t), TEXTURE_COUNT, mem) ||
-				TEXTURE_COUNT != memfile_read(sec->water_allow,
-					sizeof(int16_t), TEXTURE_COUNT, mem)) {
+				TEXTURE_COUNT != ce_memfile_read(mem, sec->water_textures,
+					sizeof(uint16_t), TEXTURE_COUNT) ||
+				TEXTURE_COUNT != ce_memfile_read(mem, sec->water_allow,
+					sizeof(int16_t), TEXTURE_COUNT)) {
 			return false;
 		}
 
@@ -368,7 +368,7 @@ static bool read_sector(sector* sec, const char* name, resfile* res)
 		return false;
 	}
 
-	memfile* mem = memfile_open_data(data, data_size, "rb");
+	ce_memfile* mem = ce_memfile_open_data(data, data_size, "rb");
 	if (NULL == mem) {
 		ce_free(data, data_size);
 		return false;
@@ -376,7 +376,7 @@ static bool read_sector(sector* sec, const char* name, resfile* res)
 
 	bool ok = read_sector_impl(sec, mem);
 
-	memfile_close(mem);
+	ce_memfile_close(mem);
 	ce_free(data, data_size);
 
 	return ok;

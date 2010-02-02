@@ -24,7 +24,7 @@
 
 #include "celib.h"
 #include "cealloc.h"
-#include "memfile.h"
+#include "cememfile.h"
 
 typedef struct {
 	char* data;
@@ -86,7 +86,7 @@ static const ce_io_callbacks cookie_callbacks = {
 	cookie_close, cookie_read, cookie_write, cookie_seek, cookie_tell
 };
 
-memfile* memfile_open_data(void* data, size_t size, const char* mode)
+ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 {
 	ce_unused(mode);
 
@@ -99,7 +99,7 @@ memfile* memfile_open_data(void* data, size_t size, const char* mode)
 	c->size = size;
 	c->pos = 0;
 
-	memfile* mem = memfile_open_callbacks(cookie_callbacks, c);
+	ce_memfile* mem = ce_memfile_open_callbacks(cookie_callbacks, c);
 	if (NULL == mem) {
 		ce_free(c, sizeof(cookie));
 		return NULL;

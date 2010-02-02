@@ -22,7 +22,7 @@
 #define CE_MEMFILE_H
 
 #include "ceio.h"
-#include "memfilefwd.h"
+#include "cememfilefwd.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -35,16 +35,20 @@ extern "C"
  *  NULL as the close callback. The client is responsible for closing
  *  a resource when a call to memfile_open_callbacks is unsuccessful.
 */
-extern memfile* memfile_open_callbacks(ce_io_callbacks callbacks, void* client_data);
-extern memfile* memfile_open_data(void* data, size_t size, const char* mode);
-extern memfile* memfile_open_path(const char* path, const char* mode);
-extern void memfile_close(memfile* mem);
+extern ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
+													void* client_data);
+extern ce_memfile* ce_memfile_open_data(void* data, size_t size,
+												const char* mode);
+extern ce_memfile* ce_memfile_open_path(const char* path, const char* mode);
+extern void ce_memfile_close(ce_memfile* mem);
 
-extern size_t memfile_read(void* data, size_t size, size_t n, memfile* mem);
-extern size_t memfile_write(const void* data, size_t size, size_t n, memfile* mem);
+extern size_t ce_memfile_read(ce_memfile* mem, void* data,
+									size_t size, size_t n);
+extern size_t ce_memfile_write(ce_memfile* mem, const void* data,
+									size_t size, size_t n);
 
-extern int memfile_seek(long int offset, int whence, memfile* mem);
-extern long int memfile_tell(memfile* mem);
+extern int ce_memfile_seek(ce_memfile* mem, long int offset, int whence);
+extern long int ce_memfile_tell(ce_memfile* mem);
 
 #ifdef __cplusplus
 }

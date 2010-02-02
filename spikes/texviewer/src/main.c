@@ -34,7 +34,6 @@
 #include "celogging.h"
 #include "ceinput.h"
 #include "cetimer.h"
-#include "memfile.h"
 #include "resfile.h"
 #include "texture.h"
 
