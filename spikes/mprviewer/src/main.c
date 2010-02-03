@@ -285,6 +285,7 @@ static void idle(void)
 
 static void display(void)
 {
+	//glEnable(GL_NORMALIZE);
 	glEnable(GL_LIGHTING);
 
 	float coef = 127.0f;
