@@ -33,26 +33,27 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef enum {
-	FRUSTUM_PLANE_TOP,
-	FRUSTUM_PLANE_BOTTOM,
-	FRUSTUM_PLANE_LEFT,
-	FRUSTUM_PLANE_RIGHT,
-	FRUSTUM_PLANE_NEAR,
-	FRUSTUM_PLANE_FAR,
-	FRUSTUM_PLANE_COUNT
-} frustum_plane;
+	CE_FRUSTUM_PLANE_TOP,
+	CE_FRUSTUM_PLANE_BOTTOM,
+	CE_FRUSTUM_PLANE_LEFT,
+	CE_FRUSTUM_PLANE_RIGHT,
+	CE_FRUSTUM_PLANE_NEAR,
+	CE_FRUSTUM_PLANE_FAR,
+	CE_FRUSTUM_PLANE_COUNT
+} ce_frustum_plane;
 
 typedef struct {
-	plane p[FRUSTUM_PLANE_COUNT];
-} frustum;
+	plane p[CE_FRUSTUM_PLANE_COUNT];
+} ce_frustum;
 
-extern frustum* frustum_init(float fov, float aspect, float near, float far,
-							const vec3* eye, const vec3* forward,
-							const vec3* right, const vec3* up, frustum* f);
+extern ce_frustum* ce_frustum_init(ce_frustum* f, float fov, float aspect,
+									float near, float far,
+									const vec3* eye, const vec3* forward,
+									const vec3* right, const vec3* up);
 
-extern bool frustum_test_point(const vec3* p, const frustum* f);
-extern bool frustum_test_sphere(const vec3* p, float r, const frustum* f);
-extern bool frustum_test_box(const ce_aabb* b, const frustum* f);
+extern bool ce_frustum_test_point(const ce_frustum* f, const vec3* p);
+extern bool ce_frustum_test_sphere(const ce_frustum* f, const vec3* p, float r);
+extern bool ce_frustum_test_box(const ce_frustum* f, const ce_aabb* b);
 
 #ifdef __cplusplus
 }

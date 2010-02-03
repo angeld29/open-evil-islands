@@ -23,8 +23,8 @@
 
 #include <stdbool.h>
 
-#include "frustum.h"
 #include "resfilefwd.h"
+#include "cefrustum.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -39,7 +39,7 @@ extern void mprfile_close(mprfile* mpr);
 extern float mprfile_get_max_height(const mprfile* mpr);
 
 extern void mprfile_apply_frustum(const vec3* eye,
-									const frustum* f, mprfile* mpr);
+									const ce_frustum* f, mprfile* mpr);
 
 extern void mprfile_render(mprfile* mpr);
 

@@ -35,7 +35,7 @@
 #include "cecamera.h"
 #include "cemath.h"
 #include "vec3.h"
-#include "frustum.h"
+#include "cefrustum.h"
 #include "resfile.h"
 #include "mprfile.h"
 
@@ -359,12 +359,12 @@ static void display(void)
 	glEnd();
 
 	vec3 eye, forward, right, up;
-	frustum f;
+	ce_frustum f;
 
-	frustum_init(ce_camera_get_fov(cam), ce_camera_get_aspect(cam),
+	ce_frustum_init(&f, ce_camera_get_fov(cam), ce_camera_get_aspect(cam),
 		ce_camera_get_near(cam), ce_camera_get_far(cam),
 		ce_camera_get_eye(cam, &eye), ce_camera_get_forward(cam, &forward),
-		ce_camera_get_right(cam, &right), ce_camera_get_up(cam, &up), &f);
+		ce_camera_get_right(cam, &right), ce_camera_get_up(cam, &up));
 
 	mprfile_apply_frustum(&eye, &f, mpr);
 	mprfile_render(mpr);

@@ -572,13 +572,13 @@ static int sector_dist_comp(const void* lhs, const void* rhs)
 		(sec1->dist2 < sec2->dist2 ? 1 : -1);
 }
 
-void mprfile_apply_frustum(const vec3* eye, const frustum* f, mprfile* mpr)
+void mprfile_apply_frustum(const vec3* eye, const ce_frustum* f, mprfile* mpr)
 {
 	mpr->visible_sector_count = 0;
 
 	for (unsigned int i = 0; i < mpr->sector_count; ++i) {
 		sector* sec = mpr->sectors + i;
-		if (frustum_test_box(&sec->box, f)) {
+		if (ce_frustum_test_box(f, &sec->box)) {
 			vec3 mid;
 			vec3_mid(&sec->box.min, &sec->box.max, &mid);
 			sec->dist2 = vec3_dist2(eye, &mid);
