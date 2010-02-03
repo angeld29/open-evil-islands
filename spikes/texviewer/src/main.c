@@ -35,7 +35,7 @@
 #include "ceinput.h"
 #include "cetimer.h"
 #include "resfile.h"
-#include "texture.h"
+#include "cetexture.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0
@@ -50,7 +50,7 @@
 #define DEFAULT_DELAY 500
 
 resfile* res;
-texture* tex;
+ce_texture* tex;
 ce_timer* tmr;
 
 bool rndmode = false;
@@ -67,7 +67,7 @@ static void idle(void)
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_timer_close(tmr);
-		texture_close(tex);
+		ce_texture_close(tex);
 		resfile_close(res);
 		ce_gl_close();
 		ce_input_close();
@@ -85,7 +85,7 @@ static void display(void)
   		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		texture_bind(tex);
+		ce_texture_bind(tex);
 	} else {
 		glColor3f(1.0f, 0.0f, 0.0f);
 	}
@@ -98,7 +98,7 @@ static void display(void)
 	glEnd();
 
 	if (NULL != tex) {
-		texture_unbind(tex);
+		ce_texture_unbind(tex);
 		glDisable(GL_BLEND);
 	}
 
@@ -116,7 +116,7 @@ static void reshape(int width, int height)
 
 static bool generate_texture(int index)
 {
-	texture_close(tex);
+	ce_texture_close(tex);
 	tex = NULL;
 
 	void* data = ce_alloc(resfile_node_size(index, res));
@@ -125,7 +125,7 @@ static bool generate_texture(int index)
 		return false;
 	}
 
-	tex = texture_open(data);
+	tex = ce_texture_open(data);
 	ce_free(data, resfile_node_size(index, res));
 
 	return NULL != tex;

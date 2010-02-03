@@ -34,9 +34,9 @@
 #include "cemath.h"
 #include "vec3.h"
 #include "ceaabb.h"
-#include "texture.h"
 #include "cememfile.h"
 #include "resfile.h"
+#include "cetexture.h"
 #include "mprfile.h"
 
 static const uint32_t MP_SIGNATURE = 0xce4af672;
@@ -101,7 +101,7 @@ struct mprfile {
 	sector* sectors;
 	unsigned int visible_sector_count;
 	sector** visible_sectors;
-	texture** textures;
+	ce_texture** textures;
 	bool night;
 };
 
@@ -435,7 +435,7 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 	return true;
 }
 
-static bool create_texture(texture** tex, const char* name, resfile* res)
+static bool create_texture(ce_texture** tex, const char* name, resfile* res)
 {
 	int index = resfile_node_index(name, res);
 	if (index < 0) {
@@ -449,7 +449,7 @@ static bool create_texture(texture** tex, const char* name, resfile* res)
 		return false;
 	}
 
-	*tex = texture_open(data);
+	*tex = ce_texture_open(data);
 
 	ce_free(data, data_size);
 
@@ -459,7 +459,7 @@ static bool create_texture(texture** tex, const char* name, resfile* res)
 static bool create_textures(mprfile* mpr, const char* mpr_name,
 							size_t mpr_name_length, resfile* res)
 {
-	mpr->textures = ce_alloc_zero(sizeof(texture*) * mpr->texture_count);
+	mpr->textures = ce_alloc_zero(sizeof(ce_texture*) * mpr->texture_count);
 	if (NULL == mpr->textures) {
 		return false;
 	}
@@ -524,7 +524,7 @@ void mprfile_close(mprfile* mpr)
 
 	if (NULL != mpr->textures) {
 		for (unsigned int i = 0; i < mpr->texture_count; ++i) {
-			texture_close(mpr->textures[i]);
+			ce_texture_close(mpr->textures[i]);
 		}
 	}
 
@@ -539,7 +539,7 @@ void mprfile_close(mprfile* mpr)
 		}
 	}
 
-	ce_free(mpr->textures, sizeof(texture*) * mpr->texture_count);
+	ce_free(mpr->textures, sizeof(ce_texture*) * mpr->texture_count);
 	ce_free(mpr->visible_sectors, sizeof(sector*) * mpr->sector_count);
 	ce_free(mpr->sectors, sizeof(sector) * mpr->sector_count);
 	ce_free(mpr->anim_tiles, sizeof(anim_tile) * mpr->anim_tile_count);
@@ -705,12 +705,12 @@ static void render_sector(unsigned int sector_x, unsigned int sector_z,
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			}
 
-			texture_bind(mpr->textures[texture_number(tex)]);
+			ce_texture_bind(mpr->textures[texture_number(tex)]);
 
 			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[0]);
 			glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, indices[1]);
 
-			texture_unbind(mpr->textures[texture_number(tex)]);
+			ce_texture_unbind(mpr->textures[texture_number(tex)]);
 
 			if (NULL != water_allow) {
 				glDisable(GL_BLEND);

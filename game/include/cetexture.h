@@ -26,13 +26,13 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct texture texture;
+typedef struct ce_texture ce_texture;
 
-extern texture* texture_open(void* data);
-extern void texture_close(texture* tex);
+extern ce_texture* ce_texture_open(void* data);
+extern void ce_texture_close(ce_texture* tex);
 
-extern void texture_bind(texture* tex);
-extern void texture_unbind(texture* tex);
+extern void ce_texture_bind(ce_texture* tex);
+extern void ce_texture_unbind(ce_texture* tex);
 
 #ifdef __cplusplus
 }

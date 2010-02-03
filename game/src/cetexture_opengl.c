@@ -42,9 +42,9 @@
 #include "celogging.h"
 #include "cemath.h"
 #include "cemmpfile.h"
-#include "texture.h"
+#include "cetexture.h"
 
-struct texture {
+struct ce_texture {
 	GLuint id;
 };
 
@@ -503,9 +503,9 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 	return ok;
 }
 
-texture* texture_open(void* data)
+ce_texture* ce_texture_open(void* data)
 {
-	texture* tex = ce_alloc(sizeof(texture));
+	ce_texture* tex = ce_alloc(sizeof(ce_texture));
 	if (NULL == tex) {
 		return NULL;
 	}
@@ -527,11 +527,12 @@ texture* texture_open(void* data)
 	}
 #endif
 
+	// See cemmpfile.h for format details.
 	uint32_t* mmp = data;
 
 	if (CE_MMP_SIGNATURE != ce_le2cpu32(*mmp++)) {
 		ce_logging_error("Wrong mmp signature.");
-		texture_close(tex);
+		ce_texture_close(tex);
 		return NULL;
 	}
 
@@ -594,14 +595,14 @@ texture* texture_open(void* data)
 	}
 
 	if (!ok) {
-		texture_close(tex);
+		ce_texture_close(tex);
 		return NULL;
 	}
 
 	return tex;
 }
 
-void texture_close(texture* tex)
+void ce_texture_close(ce_texture* tex)
 {
 	if (NULL == tex) {
 		return;
@@ -609,16 +610,16 @@ void texture_close(texture* tex)
 
 	glDeleteTextures(1, &tex->id);
 
-	ce_free(tex, sizeof(texture));
+	ce_free(tex, sizeof(ce_texture));
 }
 
-void texture_bind(texture* tex)
+void ce_texture_bind(ce_texture* tex)
 {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, tex->id);
 }
 
-void texture_unbind(texture* tex)
+void ce_texture_unbind(ce_texture* tex)
 {
 	ce_unused(tex);
 	glDisable(GL_TEXTURE_2D);
