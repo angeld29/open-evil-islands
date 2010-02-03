@@ -22,43 +22,44 @@
 #define CE_QUAT_H
 
 #include "cevec3fwd.h"
-#include "quatfwd.h"
+#include "cequatfwd.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-struct quat {
+struct ce_quat {
 	float w, x, y, z;
 };
 
-extern const quat QUAT_ZERO;
-extern const quat QUAT_IDENTITY;
+extern const ce_quat CE_QUAT_ZERO;
+extern const ce_quat CE_QUAT_IDENTITY;
 
-extern quat* quat_zero(quat* r);
-extern quat* quat_identity(quat* r);
+extern ce_quat* ce_quat_zero(ce_quat* r);
+extern ce_quat* ce_quat_identity(ce_quat* r);
 
-extern quat* quat_init(float w, float x, float y, float z, quat* r);
-extern quat* quat_init_polar(float theta, const ce_vec3* axis, quat* r);
-extern quat* quat_copy(const quat* a, quat* r);
+extern ce_quat* ce_quat_init(ce_quat* r, float w, float x, float y, float z);
+extern ce_quat* ce_quat_init_polar(ce_quat* r, float theta, const ce_vec3* axis);
+extern ce_quat* ce_quat_copy(ce_quat* r, const ce_quat* a);
 
-extern quat* quat_neg(const quat* a, quat* r);
-extern quat* quat_conj(const quat* a, quat* r);
+extern ce_quat* ce_quat_neg(ce_quat* r, const ce_quat* a);
+extern ce_quat* ce_quat_conj(ce_quat* r, const ce_quat* a);
 
-extern quat* quat_add(const quat* a, const quat* b, quat* r);
-extern quat* quat_sub(const quat* a, const quat* b, quat* r);
-extern quat* quat_mul(const quat* a, const quat* b, quat* restrict r);
+extern ce_quat* ce_quat_add(ce_quat* r, const ce_quat* a, const ce_quat* b);
+extern ce_quat* ce_quat_sub(ce_quat* r, const ce_quat* a, const ce_quat* b);
+extern ce_quat* ce_quat_mul(ce_quat* restrict r, const ce_quat* a,
+												const ce_quat* b);
 
-extern float quat_abs(const quat* a);
-extern float quat_abs2(const quat* a);
+extern float ce_quat_abs(const ce_quat* a);
+extern float ce_quat_abs2(const ce_quat* a);
 
-extern float quat_arg(const quat* a);
+extern float ce_quat_arg(const ce_quat* a);
 
-extern quat* quat_normalise(const quat* a, quat* r);
-extern quat* quat_inverse(const quat* a, quat* r);
+extern ce_quat* ce_quat_normalise(ce_quat* r, const ce_quat* a);
+extern ce_quat* ce_quat_inverse(ce_quat* r, const ce_quat* a);
 
-extern float quat_dot(const quat* a, const quat* b);
+extern float ce_quat_dot(const ce_quat* a, const ce_quat* b);
 
 #ifdef __cplusplus
 }

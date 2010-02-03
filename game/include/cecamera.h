@@ -22,7 +22,7 @@
 #define CE_CAMERA_H
 
 #include "cevec3fwd.h"
-#include "quatfwd.h"
+#include "cequatfwd.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -50,7 +50,7 @@ extern void ce_camera_set_near(ce_camera* cam, float near);
 extern void ce_camera_set_far(ce_camera* cam, float far);
 
 extern void ce_camera_set_eye(ce_camera* cam, const ce_vec3* eye);
-extern void ce_camera_set_look(ce_camera* cam, const quat* look);
+extern void ce_camera_set_look(ce_camera* cam, const ce_quat* look);
 
 extern void ce_camera_move(ce_camera* cam, float offset_x, float offset_z);
 extern void ce_camera_zoom(ce_camera* cam, float offset);

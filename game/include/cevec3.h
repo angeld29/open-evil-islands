@@ -21,7 +21,7 @@
 #ifndef CE_VEC3_H
 #define CE_VEC3_H
 
-#include "quatfwd.h"
+#include "cequatfwd.h"
 #include "cevec3fwd.h"
 
 #ifdef __cplusplus
@@ -80,7 +80,7 @@ extern ce_vec3* ce_vec3_cross(ce_vec3* restrict r, const ce_vec3* a,
 													const ce_vec3* b);
 
 extern ce_vec3* ce_vec3_mid(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
-extern ce_vec3* ce_vec3_rot(ce_vec3* r, const ce_vec3* a, const quat* b);
+extern ce_vec3* ce_vec3_rot(ce_vec3* r, const ce_vec3* a, const ce_quat* b);
 
 #ifdef __cplusplus
 }

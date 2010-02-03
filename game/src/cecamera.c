@@ -25,7 +25,7 @@
 
 #include "cealloc.h"
 #include "cevec3.h"
-#include "quat.h"
+#include "cequat.h"
 #include "cemat4.h"
 #include "cecamera.h"
 
@@ -35,14 +35,14 @@ struct ce_camera {
 	float near;
 	float far;
 	ce_vec3 eye;
-	quat look;
+	ce_quat look;
 	ce_mat4 view;
 	bool proj_changed;
 	bool eye_changed;
 	bool look_changed;
 };
 
-static void update_rotation(ce_mat4* view, const quat* look)
+static void update_rotation(ce_mat4* view, const ce_quat* look)
 {
 	float tx  = 2.0f * look->x;
 	float ty  = 2.0f * look->y;
@@ -91,7 +91,7 @@ ce_camera* ce_camera_open(void)
 	cam->near = 1.0f;
 	cam->far = 500.0f;
 	ce_vec3_zero(&cam->eye);
-	quat_identity(&cam->look);
+	ce_quat_identity(&cam->look);
 	ce_mat4_identity(&cam->view);
 	cam->proj_changed = true;
 	cam->eye_changed = true;
@@ -131,20 +131,20 @@ ce_vec3* ce_camera_get_eye(ce_camera* cam, ce_vec3* eye)
 
 ce_vec3* ce_camera_get_forward(ce_camera* cam, ce_vec3* forward)
 {
-	quat q;
-	return ce_vec3_rot(forward, &CE_VEC3_NEG_UNIT_Z, quat_conj(&cam->look, &q));
+	ce_quat q;
+	return ce_vec3_rot(forward, &CE_VEC3_NEG_UNIT_Z, ce_quat_conj(&q, &cam->look));
 }
 
 ce_vec3* ce_camera_get_up(ce_camera* cam, ce_vec3* up)
 {
-	quat q;
-	return ce_vec3_rot(up, &CE_VEC3_UNIT_Y, quat_conj(&cam->look, &q));
+	ce_quat q;
+	return ce_vec3_rot(up, &CE_VEC3_UNIT_Y, ce_quat_conj(&q, &cam->look));
 }
 
 ce_vec3* ce_camera_get_right(ce_camera* cam, ce_vec3* right)
 {
-	quat q;
-	return ce_vec3_rot(right, &CE_VEC3_UNIT_X, quat_conj(&cam->look, &q));
+	ce_quat q;
+	return ce_vec3_rot(right, &CE_VEC3_UNIT_X, ce_quat_conj(&q, &cam->look));
 }
 
 void ce_camera_set_fov(ce_camera* cam, float fov)
@@ -177,9 +177,9 @@ void ce_camera_set_eye(ce_camera* cam, const ce_vec3* eye)
 	cam->eye_changed = true;
 }
 
-void ce_camera_set_look(ce_camera* cam, const quat* look)
+void ce_camera_set_look(ce_camera* cam, const ce_quat* look)
 {
-	quat_copy(look, &cam->look);
+	ce_quat_copy(&cam->look, look);
 	cam->look_changed = true;
 }
 
@@ -218,10 +218,10 @@ void ce_camera_zoom(ce_camera* cam, float offset)
 void ce_camera_yaw_pitch(ce_camera* cam, float psi, float theta)
 {
 	ce_vec3 y;
-	quat q, t;
+	ce_quat q, t;
 	ce_vec3_rot(&y, &CE_VEC3_UNIT_Y, &cam->look);
-	quat_mul(quat_init_polar(psi, &y, &q), &cam->look, &t);
-	quat_mul(quat_init_polar(theta, &CE_VEC3_UNIT_X, &q), &t, &cam->look);
+	ce_quat_mul(&t, ce_quat_init_polar(&q, psi, &y), &cam->look);
+	ce_quat_mul(&cam->look, ce_quat_init_polar(&q, theta, &CE_VEC3_UNIT_X), &t);
 	cam->look_changed = true;
 }
 

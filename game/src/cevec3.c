@@ -20,7 +20,7 @@
 
 #include <math.h>
 
-#include "quat.h"
+#include "cequat.h"
 #include "cevec3.h"
 
 const ce_vec3 CE_VEC3_ZERO = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
@@ -222,7 +222,7 @@ ce_vec3* ce_vec3_mid(ce_vec3* r, const ce_vec3* a, const ce_vec3* b)
 	return r;
 }
 
-ce_vec3* ce_vec3_rot(ce_vec3* r, const ce_vec3* a, const quat* b)
+ce_vec3* ce_vec3_rot(ce_vec3* r, const ce_vec3* a, const ce_quat* b)
 {
 	ce_vec3 qv, uv, uuv;
 	ce_vec3_init(&qv, b->x, b->y, b->z);

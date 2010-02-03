@@ -26,7 +26,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct quat quat;
+typedef struct ce_quat ce_quat;
 
 #ifdef __cplusplus
 }
