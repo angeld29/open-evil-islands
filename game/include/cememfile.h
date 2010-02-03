@@ -22,12 +22,13 @@
 #define CE_MEMFILE_H
 
 #include "ceio.h"
-#include "cememfilefwd.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+typedef struct ce_memfile ce_memfile;
 
 /**
  *  You may to instruct memfile to either automatically close or not to close
