@@ -18,9 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "mat3.h"
+#include "cemat3.h"
 
-const mat3 MAT3_ZERO = {
+const ce_mat3 CE_MAT3_ZERO = {
 	.m = {
 		0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f,
@@ -28,7 +28,7 @@ const mat3 MAT3_ZERO = {
 	}
 };
 
-const mat3 MAT3_IDENTITY = {
+const ce_mat3 CE_MAT3_IDENTITY = {
 	.m = {
 		1.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f,
@@ -36,7 +36,7 @@ const mat3 MAT3_IDENTITY = {
 	}
 };
 
-mat3* mat3_zero(mat3* r)
+ce_mat3* ce_mat3_zero(ce_mat3* r)
 {
 	r->m[0] = 0.0f; r->m[1] = 0.0f; r->m[2] = 0.0f;
 	r->m[3] = 0.0f; r->m[4] = 0.0f; r->m[5] = 0.0f;
@@ -44,7 +44,7 @@ mat3* mat3_zero(mat3* r)
 	return r;
 }
 
-mat3* mat3_identity(mat3* r)
+ce_mat3* ce_mat3_identity(ce_mat3* r)
 {
 	r->m[0] = 1.0f; r->m[1] = 0.0f; r->m[2] = 0.0f;
 	r->m[3] = 0.0f; r->m[4] = 1.0f; r->m[5] = 0.0f;

@@ -26,7 +26,7 @@
 #include "cealloc.h"
 #include "vec3.h"
 #include "quat.h"
-#include "mat4.h"
+#include "cemat4.h"
 #include "cecamera.h"
 
 struct ce_camera {
@@ -36,13 +36,13 @@ struct ce_camera {
 	float far;
 	vec3 eye;
 	quat look;
-	mat4 view;
+	ce_mat4 view;
 	bool proj_changed;
 	bool eye_changed;
 	bool look_changed;
 };
 
-static void update_rotation(mat4* view, const quat* look)
+static void update_rotation(ce_mat4* view, const quat* look)
 {
 	float tx  = 2.0f * look->x;
 	float ty  = 2.0f * look->y;
@@ -70,7 +70,7 @@ static void update_rotation(mat4* view, const quat* look)
 	view->m[10] = 1.0f - (txx + tyy);
 }
 
-static void update_translation(mat4* view, const vec3* eye)
+static void update_translation(ce_mat4* view, const vec3* eye)
 {
 	view->m[12] =
 		-view->m[0] * eye->x - view->m[4] * eye->y - view->m[8] * eye->z;
@@ -92,7 +92,7 @@ ce_camera* ce_camera_open(void)
 	cam->far = 500.0f;
 	vec3_zero(&cam->eye);
 	quat_identity(&cam->look);
-	mat4_identity(&cam->view);
+	ce_mat4_identity(&cam->view);
 	cam->proj_changed = true;
 	cam->eye_changed = true;
 	cam->look_changed = true;

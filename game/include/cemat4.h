@@ -28,16 +28,17 @@ extern "C"
 
 typedef struct {
 	float m[16];
-} mat4;
+} ce_mat4;
 
-extern const mat4 MAT4_ZERO;
-extern const mat4 MAT4_IDENTITY;
+extern const ce_mat4 CE_MAT4_ZERO;
+extern const ce_mat4 CE_MAT4_IDENTITY;
 
-extern mat4* mat4_zero(mat4* r);
-extern mat4* mat4_identity(mat4* r);
+extern ce_mat4* ce_mat4_zero(ce_mat4* r);
+extern ce_mat4* ce_mat4_identity(ce_mat4* r);
 
-extern mat4* mat4_mul(const mat4* a, const mat4* b, mat4* restrict r);
-extern mat4* mat4_inverse(const mat4* a, mat4* r);
+extern ce_mat4* ce_mat4_mul(ce_mat4* restrict r, const ce_mat4* a,
+													const ce_mat4* b);
+extern ce_mat4* ce_mat4_inverse(ce_mat4* r, const ce_mat4* a);
 
 #ifdef __cplusplus
 }

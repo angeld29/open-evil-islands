@@ -18,9 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "mat4.h"
+#include "cemat4.h"
 
-const mat4 MAT4_ZERO = {
+const ce_mat4 CE_MAT4_ZERO = {
 	.m = {
 		0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f,
@@ -29,7 +29,7 @@ const mat4 MAT4_ZERO = {
 	}
 };
 
-const mat4 MAT4_IDENTITY = {
+const ce_mat4 CE_MAT4_IDENTITY = {
 	.m = {
 		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
@@ -38,7 +38,7 @@ const mat4 MAT4_IDENTITY = {
 	}
 };
 
-mat4* mat4_zero(mat4* r)
+ce_mat4* ce_mat4_zero(ce_mat4* r)
 {
 	r->m[0]  = 0.0f; r->m[1]  = 0.0f; r->m[2]  = 0.0f; r->m[3]  = 0.0f;
 	r->m[4]  = 0.0f; r->m[5]  = 0.0f; r->m[6]  = 0.0f; r->m[7]  = 0.0f;
@@ -48,7 +48,7 @@ mat4* mat4_zero(mat4* r)
 	return r;
 }
 
-mat4* mat4_identity(mat4* r)
+ce_mat4* ce_mat4_identity(ce_mat4* r)
 {
 	r->m[0]  = 1.0f; r->m[1]  = 0.0f; r->m[2]  = 0.0f; r->m[3]  = 0.0f;
 	r->m[4]  = 0.0f; r->m[5]  = 1.0f; r->m[6]  = 0.0f; r->m[7]  = 0.0f;
@@ -58,7 +58,7 @@ mat4* mat4_identity(mat4* r)
 	return r;
 }
 
-mat4* mat4_mul(const mat4* a, const mat4* b, mat4* restrict r)
+ce_mat4* ce_mat4_mul(ce_mat4* restrict r, const ce_mat4* a, const ce_mat4* b)
 {
 	r->m[0] = a->m[0] * b->m[0] + a->m[1] * b->m[4] +
 				a->m[2] * b->m[8] + a->m[3] * b->m[12];
@@ -96,7 +96,7 @@ mat4* mat4_mul(const mat4* a, const mat4* b, mat4* restrict r)
 	return r;
 }
 
-mat4* mat4_inverse(const mat4* a, mat4* r)
+ce_mat4* ce_mat4_inverse(ce_mat4* r, const ce_mat4* a)
 {
 	float m00 = a->m[0],  m01 = a->m[1],  m02 = a->m[2],  m03 = a->m[3];
 	float m10 = a->m[4],  m11 = a->m[5],  m12 = a->m[6],  m13 = a->m[7];

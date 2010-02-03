@@ -28,13 +28,13 @@ extern "C"
 
 typedef struct {
 	float m[9];
-} mat3;
+} ce_mat3;
 
-extern const mat3 MAT3_ZERO;
-extern const mat3 MAT3_IDENTITY;
+extern const ce_mat3 CE_MAT3_ZERO;
+extern const ce_mat3 CE_MAT3_IDENTITY;
 
-extern mat3* mat3_zero(mat3* r);
-extern mat3* mat3_identity(mat3* r);
+extern ce_mat3* ce_mat3_zero(ce_mat3* r);
+extern ce_mat3* ce_mat3_identity(ce_mat3* r);
 
 #ifdef __cplusplus
 }
