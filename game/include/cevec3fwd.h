@@ -26,7 +26,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct vec3 vec3;
+typedef struct ce_vec3 ce_vec3;
 
 #ifdef __cplusplus
 }

@@ -22,32 +22,32 @@
 
 ce_plane* ce_plane_init(ce_plane* r, float a, float b, float c, float d)
 {
-	vec3_init(a, b, c, &r->n);
+	ce_vec3_init(&r->n, a, b, c);
 	r->d = d;
 	return r;
 }
 
-ce_plane* ce_plane_init_tri(ce_plane* r, const vec3* a,
-							const vec3* b, const vec3* c)
+ce_plane* ce_plane_init_tri(ce_plane* r, const ce_vec3* a,
+							const ce_vec3* b, const ce_vec3* c)
 {
-	vec3 e1, e2;
-	vec3_sub(b, a, &e1);
-	vec3_sub(c, a, &e2);
-	vec3_cross(&e1, &e2, &r->n);
-	vec3_normalise(&r->n, &r->n);
-	r->d = -vec3_dot(&r->n, a);
+	ce_vec3 e1, e2;
+	ce_vec3_sub(&e1, b, a);
+	ce_vec3_sub(&e2, c, a);
+	ce_vec3_cross(&r->n, &e1, &e2);
+	ce_vec3_normalise(&r->n, &r->n);
+	r->d = -ce_vec3_dot(&r->n, a);
 	return r;
 }
 
 ce_plane* ce_plane_normalise(ce_plane* r, const ce_plane* a)
 {
-	const float s = 1.0f / vec3_abs(&a->n);
-	vec3_scale(&a->n, s, &r->n);
+	const float s = 1.0f / ce_vec3_abs(&a->n);
+	ce_vec3_scale(&r->n, &a->n, s);
 	r->d = a->d * s;
 	return r;
 }
 
-float ce_plane_dist(const ce_plane* a, const vec3* b)
+float ce_plane_dist(const ce_plane* a, const ce_vec3* b)
 {
-	return vec3_dot(&a->n, b) + a->d;
+	return ce_vec3_dot(&a->n, b) + a->d;
 }

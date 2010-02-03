@@ -24,7 +24,7 @@
 #include <GL/glu.h>
 
 #include "cealloc.h"
-#include "vec3.h"
+#include "cevec3.h"
 #include "quat.h"
 #include "cemat4.h"
 #include "cecamera.h"
@@ -34,7 +34,7 @@ struct ce_camera {
 	float aspect;
 	float near;
 	float far;
-	vec3 eye;
+	ce_vec3 eye;
 	quat look;
 	ce_mat4 view;
 	bool proj_changed;
@@ -70,7 +70,7 @@ static void update_rotation(ce_mat4* view, const quat* look)
 	view->m[10] = 1.0f - (txx + tyy);
 }
 
-static void update_translation(ce_mat4* view, const vec3* eye)
+static void update_translation(ce_mat4* view, const ce_vec3* eye)
 {
 	view->m[12] =
 		-view->m[0] * eye->x - view->m[4] * eye->y - view->m[8] * eye->z;
@@ -90,7 +90,7 @@ ce_camera* ce_camera_open(void)
 	cam->aspect = 1.0f;
 	cam->near = 1.0f;
 	cam->far = 500.0f;
-	vec3_zero(&cam->eye);
+	ce_vec3_zero(&cam->eye);
 	quat_identity(&cam->look);
 	ce_mat4_identity(&cam->view);
 	cam->proj_changed = true;
@@ -124,27 +124,27 @@ float ce_camera_get_far(ce_camera* cam)
 	return cam->far;
 }
 
-vec3* ce_camera_get_eye(ce_camera* cam, vec3* eye)
+ce_vec3* ce_camera_get_eye(ce_camera* cam, ce_vec3* eye)
 {
-	return vec3_copy(&cam->eye, eye);
+	return ce_vec3_copy(eye, &cam->eye);
 }
 
-vec3* ce_camera_get_forward(ce_camera* cam, vec3* forward)
+ce_vec3* ce_camera_get_forward(ce_camera* cam, ce_vec3* forward)
 {
 	quat q;
-	return vec3_rot(&VEC3_NEG_UNIT_Z, quat_conj(&cam->look, &q), forward);
+	return ce_vec3_rot(forward, &CE_VEC3_NEG_UNIT_Z, quat_conj(&cam->look, &q));
 }
 
-vec3* ce_camera_get_up(ce_camera* cam, vec3* up)
+ce_vec3* ce_camera_get_up(ce_camera* cam, ce_vec3* up)
 {
 	quat q;
-	return vec3_rot(&VEC3_UNIT_Y, quat_conj(&cam->look, &q), up);
+	return ce_vec3_rot(up, &CE_VEC3_UNIT_Y, quat_conj(&cam->look, &q));
 }
 
-vec3* ce_camera_get_right(ce_camera* cam, vec3* right)
+ce_vec3* ce_camera_get_right(ce_camera* cam, ce_vec3* right)
 {
 	quat q;
-	return vec3_rot(&VEC3_UNIT_X, quat_conj(&cam->look, &q), right);
+	return ce_vec3_rot(right, &CE_VEC3_UNIT_X, quat_conj(&cam->look, &q));
 }
 
 void ce_camera_set_fov(ce_camera* cam, float fov)
@@ -171,9 +171,9 @@ void ce_camera_set_far(ce_camera* cam, float far)
 	cam->proj_changed = true;
 }
 
-void ce_camera_set_eye(ce_camera* cam, const vec3* eye)
+void ce_camera_set_eye(ce_camera* cam, const ce_vec3* eye)
 {
-	vec3_copy(eye, &cam->eye);
+	ce_vec3_copy(&cam->eye, eye);
 	cam->eye_changed = true;
 }
 
@@ -185,7 +185,7 @@ void ce_camera_set_look(ce_camera* cam, const quat* look)
 
 void ce_camera_move(ce_camera* cam, float offset_x, float offset_z)
 {
-	vec3 forward, right;
+	ce_vec3 forward, right;
 
 	ce_camera_get_forward(cam, &forward);
 	ce_camera_get_right(cam, &right);
@@ -194,34 +194,34 @@ void ce_camera_move(ce_camera* cam, float offset_x, float offset_z)
 	forward.y = 0.0f;
 	right.y = 0.0f;
 
-	vec3_normalise(&forward, &forward);
-	vec3_normalise(&right, &right);
+	ce_vec3_normalise(&forward, &forward);
+	ce_vec3_normalise(&right, &right);
 
-	vec3_scale(&forward, offset_z, &forward);
-	vec3_scale(&right, offset_x, &right);
+	ce_vec3_scale(&forward, &forward, offset_z);
+	ce_vec3_scale(&right, &right, offset_x);
 
-	vec3_add(&cam->eye, &forward, &cam->eye);
-	vec3_add(&cam->eye, &right, &cam->eye);
+	ce_vec3_add(&cam->eye, &cam->eye, &forward);
+	ce_vec3_add(&cam->eye, &cam->eye, &right);
 
 	cam->eye_changed = true;
 }
 
 void ce_camera_zoom(ce_camera* cam, float offset)
 {
-	vec3 forward;
+	ce_vec3 forward;
 	ce_camera_get_forward(cam, &forward);
-	vec3_scale(&forward, offset, &forward);
-	vec3_add(&cam->eye, &forward, &cam->eye);
+	ce_vec3_scale(&forward, &forward, offset);
+	ce_vec3_add(&cam->eye, &cam->eye, &forward);
 	cam->eye_changed = true;
 }
 
 void ce_camera_yaw_pitch(ce_camera* cam, float psi, float theta)
 {
-	vec3 y;
+	ce_vec3 y;
 	quat q, t;
-	vec3_rot(&VEC3_UNIT_Y, &cam->look, &y);
+	ce_vec3_rot(&y, &CE_VEC3_UNIT_Y, &cam->look);
 	quat_mul(quat_init_polar(psi, &y, &q), &cam->look, &t);
-	quat_mul(quat_init_polar(theta, &VEC3_UNIT_X, &q), &t, &cam->look);
+	quat_mul(quat_init_polar(theta, &CE_VEC3_UNIT_X, &q), &t, &cam->look);
 	cam->look_changed = true;
 }
 

@@ -21,7 +21,7 @@
 #ifndef CE_QUAT_H
 #define CE_QUAT_H
 
-#include "vec3fwd.h"
+#include "cevec3fwd.h"
 #include "quatfwd.h"
 
 #ifdef __cplusplus
@@ -40,7 +40,7 @@ extern quat* quat_zero(quat* r);
 extern quat* quat_identity(quat* r);
 
 extern quat* quat_init(float w, float x, float y, float z, quat* r);
-extern quat* quat_init_polar(float theta, const vec3* axis, quat* r);
+extern quat* quat_init_polar(float theta, const ce_vec3* axis, quat* r);
 extern quat* quat_copy(const quat* a, quat* r);
 
 extern quat* quat_neg(const quat* a, quat* r);

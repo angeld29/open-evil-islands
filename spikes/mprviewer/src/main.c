@@ -34,7 +34,7 @@
 #include "cetimer.h"
 #include "cecamera.h"
 #include "cemath.h"
-#include "vec3.h"
+#include "cevec3.h"
 #include "cefrustum.h"
 #include "ceresfile.h"
 #include "cemprfile.h"
@@ -358,7 +358,7 @@ static void display(void)
 	glVertex3f(0.0f, 0.0f, 100.0f);
 	glEnd();
 
-	vec3 eye, forward, right, up;
+	ce_vec3 eye, forward, right, up;
 	ce_frustum f;
 
 	ce_frustum_init(&f, ce_camera_get_fov(cam), ce_camera_get_aspect(cam),
@@ -532,8 +532,8 @@ int main(int argc, char* argv[])
 	ce_resfile_close(tex_res);
 	ce_resfile_close(mpr_res);
 
-	vec3 eye;
-	vec3_init(100.0f, ce_mprfile_get_max_height(mpr), 0.0f, &eye);
+	ce_vec3 eye;
+	ce_vec3_init(&eye, 100.0f, ce_mprfile_get_max_height(mpr), 0.0f);
 
 	cam = ce_camera_open();
 	ce_camera_set_eye(cam, &eye);

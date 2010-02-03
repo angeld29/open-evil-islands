@@ -32,7 +32,7 @@
 #include "cebyteorder.h"
 #include "cestr.h"
 #include "cemath.h"
-#include "vec3.h"
+#include "cevec3.h"
 #include "ceaabb.h"
 #include "cememfile.h"
 #include "cetexture.h"
@@ -419,10 +419,10 @@ static bool read_sectors(ce_mprfile* mpr, const char* mpr_name,
 			sec->x = x;
 			sec->z = z;
 
-			vec3_init(x * (VERTEX_SIDE - 1), 0.0f, -1.0f *
-				(z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1)), &sec->box.min);
-			vec3_init(x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1), mpr->max_y,
-				-1.0f * (z * (VERTEX_SIDE - 1)), &sec->box.max);
+			ce_vec3_init(&sec->box.min, x * (VERTEX_SIDE - 1), 0.0f,
+				-1.0f * (z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1)));
+			ce_vec3_init(&sec->box.max, x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1),
+				mpr->max_y, -1.0f * (z * (VERTEX_SIDE - 1)));
 
 			mpr->visible_sectors[i] = sec;
 		}
@@ -558,17 +558,17 @@ static int sector_dist_comp(const void* lhs, const void* rhs)
 		(sec1->dist2 < sec2->dist2 ? 1 : -1);
 }
 
-void ce_mprfile_apply_frustum(ce_mprfile* mpr, const vec3* eye,
+void ce_mprfile_apply_frustum(ce_mprfile* mpr, const ce_vec3* eye,
 												const ce_frustum* f)
 {
+	ce_vec3 mid;
 	mpr->visible_sector_count = 0;
 
 	for (unsigned int i = 0; i < mpr->sector_count; ++i) {
 		sector* sec = mpr->sectors + i;
 		if (ce_frustum_test_box(f, &sec->box)) {
-			vec3 mid;
-			vec3_mid(&sec->box.min, &sec->box.max, &mid);
-			sec->dist2 = vec3_dist2(eye, &mid);
+			ce_vec3_mid(&mid, &sec->box.min, &sec->box.max);
+			sec->dist2 = ce_vec3_dist2(eye, &mid);
 			mpr->visible_sectors[mpr->visible_sector_count++] = sec;
 		}
 	}

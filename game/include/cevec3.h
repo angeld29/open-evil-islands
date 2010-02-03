@@ -22,64 +22,65 @@
 #define CE_VEC3_H
 
 #include "quatfwd.h"
-#include "vec3fwd.h"
+#include "cevec3fwd.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-struct vec3 {
+struct ce_vec3 {
 	float x, y, z;
 };
 
-extern const vec3 VEC3_ZERO;
-extern const vec3 VEC3_UNIT_X;
-extern const vec3 VEC3_UNIT_Y;
-extern const vec3 VEC3_UNIT_Z;
-extern const vec3 VEC3_UNIT_SCALE;
-extern const vec3 VEC3_NEG_UNIT_X;
-extern const vec3 VEC3_NEG_UNIT_Y;
-extern const vec3 VEC3_NEG_UNIT_Z;
-extern const vec3 VEC3_NEG_UNIT_SCALE;
+extern const ce_vec3 CE_VEC3_ZERO;
+extern const ce_vec3 CE_VEC3_UNIT_X;
+extern const ce_vec3 CE_VEC3_UNIT_Y;
+extern const ce_vec3 CE_VEC3_UNIT_Z;
+extern const ce_vec3 CE_VEC3_UNIT_SCALE;
+extern const ce_vec3 CE_VEC3_NEG_UNIT_X;
+extern const ce_vec3 CE_VEC3_NEG_UNIT_Y;
+extern const ce_vec3 CE_VEC3_NEG_UNIT_Z;
+extern const ce_vec3 CE_VEC3_NEG_UNIT_SCALE;
 
-extern vec3* vec3_zero(vec3* r);
-extern vec3* vec3_unit_x(vec3* r);
-extern vec3* vec3_unit_y(vec3* r);
-extern vec3* vec3_unit_z(vec3* r);
-extern vec3* vec3_unit_scale(vec3* r);
-extern vec3* vec3_neg_unit_x(vec3* r);
-extern vec3* vec3_neg_unit_y(vec3* r);
-extern vec3* vec3_neg_unit_z(vec3* r);
-extern vec3* vec3_neg_unit_scale(vec3* r);
+extern ce_vec3* ce_vec3_zero(ce_vec3* r);
+extern ce_vec3* ce_vec3_unit_x(ce_vec3* r);
+extern ce_vec3* ce_vec3_unit_y(ce_vec3* r);
+extern ce_vec3* ce_vec3_unit_z(ce_vec3* r);
+extern ce_vec3* ce_vec3_unit_scale(ce_vec3* r);
+extern ce_vec3* ce_vec3_neg_unit_x(ce_vec3* r);
+extern ce_vec3* ce_vec3_neg_unit_y(ce_vec3* r);
+extern ce_vec3* ce_vec3_neg_unit_z(ce_vec3* r);
+extern ce_vec3* ce_vec3_neg_unit_scale(ce_vec3* r);
 
-extern vec3* vec3_init(float x, float y, float z, vec3* r);
-extern vec3* vec3_copy(const vec3* a, vec3* r);
+extern ce_vec3* ce_vec3_init(ce_vec3* r, float x, float y, float z);
+extern ce_vec3* ce_vec3_copy(ce_vec3* r, const ce_vec3* a);
 
-extern vec3* vec3_neg(const vec3* a, vec3* r);
+extern ce_vec3* ce_vec3_neg(ce_vec3* r, const ce_vec3* a);
 
-extern vec3* vec3_add(const vec3* a, const vec3* b, vec3* r);
-extern vec3* vec3_sub(const vec3* a, const vec3* b, vec3* r);
-extern vec3* vec3_mul(const vec3* a, const vec3* b, vec3* r);
-extern vec3* vec3_div(const vec3* a, const vec3* b, vec3* r);
+extern ce_vec3* ce_vec3_add(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
+extern ce_vec3* ce_vec3_sub(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
+extern ce_vec3* ce_vec3_mul(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
+extern ce_vec3* ce_vec3_div(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
 
-extern vec3* vec3_scale(const vec3* a, float s, vec3* r);
+extern ce_vec3* ce_vec3_scale(ce_vec3* r, const ce_vec3* a, float s);
 
-extern float vec3_abs(const vec3* a);
-extern float vec3_abs2(const vec3* a);
+extern float ce_vec3_abs(const ce_vec3* a);
+extern float ce_vec3_abs2(const ce_vec3* a);
 
-extern float vec3_dist(const vec3* a, const vec3* b);
-extern float vec3_dist2(const vec3* a, const vec3* b);
+extern float ce_vec3_dist(const ce_vec3* a, const ce_vec3* b);
+extern float ce_vec3_dist2(const ce_vec3* a, const ce_vec3* b);
 
-extern vec3* vec3_normalise(const vec3* a, vec3* r);
+extern ce_vec3* ce_vec3_normalise(ce_vec3* r, const ce_vec3* a);
 
-extern float vec3_dot(const vec3* a, const vec3* b);
-extern float vec3_absdot(const vec3* a, const vec3* b);
+extern float ce_vec3_dot(const ce_vec3* a, const ce_vec3* b);
+extern float ce_vec3_absdot(const ce_vec3* a, const ce_vec3* b);
 
-extern vec3* vec3_cross(const vec3* a, const vec3* b, vec3* restrict r);
+extern ce_vec3* ce_vec3_cross(ce_vec3* restrict r, const ce_vec3* a,
+													const ce_vec3* b);
 
-extern vec3* vec3_mid(const vec3* a, const vec3* b, vec3* r);
-extern vec3* vec3_rot(const vec3* a, const quat* b, vec3* r);
+extern ce_vec3* ce_vec3_mid(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
+extern ce_vec3* ce_vec3_rot(ce_vec3* r, const ce_vec3* a, const quat* b);
 
 #ifdef __cplusplus
 }

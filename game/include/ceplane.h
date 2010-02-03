@@ -21,7 +21,7 @@
 #ifndef CE_PLANE_H
 #define CE_PLANE_H
 
-#include "vec3.h"
+#include "cevec3.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -29,17 +29,17 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	vec3 n;
+	ce_vec3 n;
 	float d;
 } ce_plane;
 
 extern ce_plane* ce_plane_init(ce_plane* r, float a, float b, float c, float d);
-extern ce_plane* ce_plane_init_tri(ce_plane* r, const vec3* a,
-									const vec3* b, const vec3* c);
+extern ce_plane* ce_plane_init_tri(ce_plane* r, const ce_vec3* a,
+									const ce_vec3* b, const ce_vec3* c);
 
 extern ce_plane* ce_plane_normalise(ce_plane* r, const ce_plane* a);
 
-extern float ce_plane_dist(const ce_plane* a, const vec3* b);
+extern float ce_plane_dist(const ce_plane* a, const ce_vec3* b);
 
 #ifdef __cplusplus
 }

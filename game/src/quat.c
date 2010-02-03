@@ -20,7 +20,7 @@
 
 #include <math.h>
 
-#include "vec3.h"
+#include "cevec3.h"
 #include "quat.h"
 
 const quat QUAT_ZERO = { .w = 0.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f };
@@ -53,7 +53,7 @@ quat* quat_init(float w, float x, float y, float z, quat* r)
 	return r;
 }
 
-quat* quat_init_polar(float theta, const vec3* axis, quat* r)
+quat* quat_init_polar(float theta, const ce_vec3* axis, quat* r)
 {
 	float t = 0.5f * theta;
 	float s = sinf(t);

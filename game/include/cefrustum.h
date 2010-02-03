@@ -23,7 +23,7 @@
 
 #include <stdbool.h>
 
-#include "vec3.h"
+#include "cevec3.h"
 #include "ceaabb.h"
 #include "ceplane.h"
 
@@ -48,11 +48,12 @@ typedef struct {
 
 extern ce_frustum* ce_frustum_init(ce_frustum* f, float fov, float aspect,
 									float near, float far,
-									const vec3* eye, const vec3* forward,
-									const vec3* right, const vec3* up);
+									const ce_vec3* eye, const ce_vec3* forward,
+									const ce_vec3* right, const ce_vec3* up);
 
-extern bool ce_frustum_test_point(const ce_frustum* f, const vec3* p);
-extern bool ce_frustum_test_sphere(const ce_frustum* f, const vec3* p, float r);
+extern bool ce_frustum_test_point(const ce_frustum* f, const ce_vec3* p);
+extern bool ce_frustum_test_sphere(const ce_frustum* f, const ce_vec3* p,
+																float r);
 extern bool ce_frustum_test_box(const ce_frustum* f, const ce_aabb* b);
 
 #ifdef __cplusplus

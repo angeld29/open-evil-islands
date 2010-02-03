@@ -21,7 +21,7 @@
 #ifndef CE_CAMERA_H
 #define CE_CAMERA_H
 
-#include "vec3fwd.h"
+#include "cevec3fwd.h"
 #include "quatfwd.h"
 
 #ifdef __cplusplus
@@ -39,17 +39,17 @@ extern float ce_camera_get_aspect(ce_camera* cam);
 extern float ce_camera_get_near(ce_camera* cam);
 extern float ce_camera_get_far(ce_camera* cam);
 
-extern vec3* ce_camera_get_eye(ce_camera* cam, vec3* eye);
-extern vec3* ce_camera_get_forward(ce_camera* cam, vec3* forward);
-extern vec3* ce_camera_get_up(ce_camera* cam, vec3* up);
-extern vec3* ce_camera_get_right(ce_camera* cam, vec3* right);
+extern ce_vec3* ce_camera_get_eye(ce_camera* cam, ce_vec3* eye);
+extern ce_vec3* ce_camera_get_forward(ce_camera* cam, ce_vec3* forward);
+extern ce_vec3* ce_camera_get_up(ce_camera* cam, ce_vec3* up);
+extern ce_vec3* ce_camera_get_right(ce_camera* cam, ce_vec3* right);
 
 extern void ce_camera_set_fov(ce_camera* cam, float fov);
 extern void ce_camera_set_aspect(ce_camera* cam, int width, int height);
 extern void ce_camera_set_near(ce_camera* cam, float near);
 extern void ce_camera_set_far(ce_camera* cam, float far);
 
-extern void ce_camera_set_eye(ce_camera* cam, const vec3* eye);
+extern void ce_camera_set_eye(ce_camera* cam, const ce_vec3* eye);
 extern void ce_camera_set_look(ce_camera* cam, const quat* look);
 
 extern void ce_camera_move(ce_camera* cam, float offset_x, float offset_z);

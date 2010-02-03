@@ -38,7 +38,7 @@ extern void ce_mprfile_close(ce_mprfile* mpr);
 
 extern float ce_mprfile_get_max_height(const ce_mprfile* mpr);
 
-extern void ce_mprfile_apply_frustum(ce_mprfile* mpr, const vec3* eye,
+extern void ce_mprfile_apply_frustum(ce_mprfile* mpr, const ce_vec3* eye,
 														const ce_frustum* f);
 
 extern void ce_mprfile_render(ce_mprfile* mpr);

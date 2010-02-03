@@ -28,7 +28,8 @@
 #include "cemath.h"
 #include "cefrustum.h"
 
-static vec3* get_box_vertex_positive(vec3* p, const vec3* n, const ce_aabb* b)
+static ce_vec3* get_box_vertex_positive(ce_vec3* p, const ce_vec3* n,
+													const ce_aabb* b)
 {
 	p->x = n->x > 0.0f ? b->max.x : b->min.x;
 	p->y = n->y > 0.0f ? b->max.y : b->min.y;
@@ -38,8 +39,8 @@ static vec3* get_box_vertex_positive(vec3* p, const vec3* n, const ce_aabb* b)
 
 ce_frustum* ce_frustum_init(ce_frustum* f, float fov, float aspect,
 							float near, float far,
-							const vec3* eye, const vec3* forward,
-							const vec3* right, const vec3* up)
+							const ce_vec3* eye, const ce_vec3* forward,
+							const ce_vec3* right, const ce_vec3* up)
 {
 	float tang = tanf(0.5f * ce_deg2rad(fov));
 	float nh = tang * near;
@@ -47,27 +48,27 @@ ce_frustum* ce_frustum_init(ce_frustum* f, float fov, float aspect,
 	float fh = tang * far;
 	float fw = fh * aspect;
 
-	vec3 nc, fc, xw, yh;
-	vec3 ntl, ntr, nbl, nbr, ftl, ftr, fbl, fbr;
+	ce_vec3 nc, fc, xw, yh;
+	ce_vec3 ntl, ntr, nbl, nbr, ftl, ftr, fbl, fbr;
 
-	vec3_add(eye, vec3_scale(forward, near, &nc), &nc);
-	vec3_add(eye, vec3_scale(forward, far, &fc), &fc);
+	ce_vec3_add(&nc, eye, ce_vec3_scale(&nc, forward, near));
+	ce_vec3_add(&fc, eye, ce_vec3_scale(&fc, forward, far));
 
-	vec3_scale(right, nw, &xw);
-	vec3_scale(up, nh, &yh);
+	ce_vec3_scale(&xw, right, nw);
+	ce_vec3_scale(&yh, up, nh);
 
-	vec3_sub(vec3_add(&nc, &yh, &ntl), &xw, &ntl);
-	vec3_add(vec3_add(&nc, &yh, &ntr), &xw, &ntr);
-	vec3_sub(vec3_sub(&nc, &yh, &nbl), &xw, &nbl);
-	vec3_add(vec3_sub(&nc, &yh, &nbr), &xw, &nbr);
+	ce_vec3_sub(&ntl, ce_vec3_add(&ntl, &nc, &yh), &xw);
+	ce_vec3_add(&ntr, ce_vec3_add(&ntr, &nc, &yh), &xw);
+	ce_vec3_sub(&nbl, ce_vec3_sub(&nbl, &nc, &yh), &xw);
+	ce_vec3_add(&nbr, ce_vec3_sub(&nbr, &nc, &yh), &xw);
 
-	vec3_scale(right, fw, &xw);
-	vec3_scale(up, fh, &yh);
+	ce_vec3_scale(&xw, right, fw);
+	ce_vec3_scale(&yh, up, fh);
 
-	vec3_sub(vec3_add(&fc, &yh, &ftl), &xw, &ftl);
-	vec3_add(vec3_add(&fc, &yh, &ftr), &xw, &ftr);
-	vec3_sub(vec3_sub(&fc, &yh, &fbl), &xw, &fbl);
-	vec3_add(vec3_sub(&fc, &yh, &fbr), &xw, &fbr);
+	ce_vec3_sub(&ftl, ce_vec3_add(&ftl, &fc, &yh), &xw);
+	ce_vec3_add(&ftr, ce_vec3_add(&ftr, &fc, &yh), &xw);
+	ce_vec3_sub(&fbl, ce_vec3_sub(&fbl, &fc, &yh), &xw);
+	ce_vec3_add(&fbr, ce_vec3_sub(&fbr, &fc, &yh), &xw);
 
 	ce_plane_init_tri(&f->p[CE_FRUSTUM_PLANE_TOP], &ntr, &ntl, &ftl);
 	ce_plane_init_tri(&f->p[CE_FRUSTUM_PLANE_BOTTOM], &nbl, &nbr, &fbr);
@@ -79,7 +80,7 @@ ce_frustum* ce_frustum_init(ce_frustum* f, float fov, float aspect,
 	return f;
 }
 
-bool ce_frustum_test_point(const ce_frustum* f, const vec3* p)
+bool ce_frustum_test_point(const ce_frustum* f, const ce_vec3* p)
 {
 	for (size_t i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {
 		if (ce_plane_dist(&f->p[i], p) < 0.0f) {
@@ -89,7 +90,7 @@ bool ce_frustum_test_point(const ce_frustum* f, const vec3* p)
 	return true;
 }
 
-bool ce_frustum_test_sphere(const ce_frustum* f, const vec3* p, float r)
+bool ce_frustum_test_sphere(const ce_frustum* f, const ce_vec3* p, float r)
 {
 	for (size_t i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {
 		if (ce_plane_dist(&f->p[i], p) < -r) {
@@ -101,7 +102,7 @@ bool ce_frustum_test_sphere(const ce_frustum* f, const vec3* p, float r)
 
 bool ce_frustum_test_box(const ce_frustum* f, const ce_aabb* b)
 {
-	vec3 p;
+	ce_vec3 p;
 	for (size_t i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {
 		if (ce_plane_dist(&f->p[i],
 				get_box_vertex_positive(&p, &f->p[i].n, b)) < 0.0f) {

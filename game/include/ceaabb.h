@@ -21,7 +21,7 @@
 #ifndef CE_AABB_H
 #define CE_AABB_H
 
-#include "vec3.h"
+#include "cevec3.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -29,7 +29,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	vec3 min, max;
+	ce_vec3 min, max;
 } ce_aabb;
 
 #ifdef __cplusplus
