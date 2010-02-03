@@ -24,13 +24,14 @@
 #include <stdbool.h>
 #include <time.h>
 
-#include "cememfilefwd.h"
-#include "ceresfilefwd.h"
+#include "cememfile.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+typedef struct ce_resfile ce_resfile;
 
 /// Resfile takes ownership of the memfile if successfull.
 extern ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem);

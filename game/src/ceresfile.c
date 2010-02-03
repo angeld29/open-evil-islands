@@ -26,7 +26,6 @@
 #include "cealloc.h"
 #include "cebyteorder.h"
 #include "cestr.h"
-#include "cememfile.h"
 #include "ceresfile.h"
 
 enum {

@@ -23,7 +23,7 @@
 
 #include <stdbool.h>
 
-#include "ceresfilefwd.h"
+#include "ceresfile.h"
 #include "cefrustum.h"
 
 #ifdef __cplusplus
