@@ -28,28 +28,28 @@ extern "C"
 
 typedef struct {
 	float x, y;
-} vec2;
+} ce_vec2;
 
-extern const vec2 VEC2_ZERO;
-extern const vec2 VEC2_UNIT_X;
-extern const vec2 VEC2_UNIT_Y;
-extern const vec2 VEC2_UNIT_SCALE;
-extern const vec2 VEC2_NEG_UNIT_X;
-extern const vec2 VEC2_NEG_UNIT_Y;
-extern const vec2 VEC2_NEG_UNIT_SCALE;
+extern const ce_vec2 CE_VEC2_ZERO;
+extern const ce_vec2 CE_VEC2_UNIT_X;
+extern const ce_vec2 CE_VEC2_UNIT_Y;
+extern const ce_vec2 CE_VEC2_UNIT_SCALE;
+extern const ce_vec2 CE_VEC2_NEG_UNIT_X;
+extern const ce_vec2 CE_VEC2_NEG_UNIT_Y;
+extern const ce_vec2 CE_VEC2_NEG_UNIT_SCALE;
 
-extern vec2* vec2_zero(vec2* r);
-extern vec2* vec2_unit_x(vec2* r);
-extern vec2* vec2_unit_y(vec2* r);
-extern vec2* vec2_unit_scale(vec2* r);
-extern vec2* vec2_neg_unit_x(vec2* r);
-extern vec2* vec2_neg_unit_y(vec2* r);
-extern vec2* vec2_neg_unit_scale(vec2* r);
+extern ce_vec2* ce_vec2_zero(ce_vec2* r);
+extern ce_vec2* ce_vec2_unit_x(ce_vec2* r);
+extern ce_vec2* ce_vec2_unit_y(ce_vec2* r);
+extern ce_vec2* ce_vec2_unit_scale(ce_vec2* r);
+extern ce_vec2* ce_vec2_neg_unit_x(ce_vec2* r);
+extern ce_vec2* ce_vec2_neg_unit_y(ce_vec2* r);
+extern ce_vec2* ce_vec2_neg_unit_scale(ce_vec2* r);
 
-extern vec2* vec2_init(float x, float y, vec2* r);
-extern vec2* vec2_copy(const vec2* a, vec2* r);
+extern ce_vec2* ce_vec2_init(ce_vec2* r, float x, float y);
+extern ce_vec2* ce_vec2_copy(ce_vec2* r, const ce_vec2* a);
 
-extern vec2* vec2_neg(const vec2* a, vec2* r);
+extern ce_vec2* ce_vec2_neg(ce_vec2* r, const ce_vec2* a);
 
 #ifdef __cplusplus
 }
