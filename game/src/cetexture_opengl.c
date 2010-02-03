@@ -168,17 +168,17 @@ static bool generate_texture(int mipmap_count, GLenum internal_format, int width
 	return ok;
 }
 
-static int dxt_blerp(int a, int b, int x)
+static int dxt_blerp(int u, int a, int b)
 {
-	int t = (b - a) * x + 128;
+	int t = 128 + u * (b - a);
 	return a + ((t + (t >> 8)) >> 8);
 }
 
-static void dxt_lerp_rgb(uint8_t* dst, uint8_t* a, uint8_t* b, int f)
+static void dxt_lerp_rgb(uint8_t* dst, int u, uint8_t* a, uint8_t* b)
 {
-	dst[0] = dxt_blerp(a[0], b[0], f);
-	dst[1] = dxt_blerp(a[1], b[1], f);
-	dst[2] = dxt_blerp(a[2], b[2], f);
+	dst[0] = dxt_blerp(u, a[0], b[0]);
+	dst[1] = dxt_blerp(u, a[1], b[1]);
+	dst[2] = dxt_blerp(u, a[2], b[2]);
 }
 
 static void dxt_rgb565_to_bgr(uint8_t* dst, uint16_t v)
@@ -204,8 +204,8 @@ static void dxt_decode_color_block(uint8_t* dst, uint8_t* src,
 	dxt_rgb565_to_bgr(colors[1], c1);
 
 	if (c0 > c1) {
-		dxt_lerp_rgb(colors[2], colors[0], colors[1], 0x55);
-		dxt_lerp_rgb(colors[3], colors[0], colors[1], 0xaa);
+		dxt_lerp_rgb(colors[2], 0x55, colors[0], colors[1]);
+		dxt_lerp_rgb(colors[3], 0xaa, colors[0], colors[1]);
 	} else {
 		for (int i = 0; i < 3; ++i) {
 			colors[2][i] = (colors[0][i] + colors[1][i] + 1) >> 1;
