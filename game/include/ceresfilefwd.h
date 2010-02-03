@@ -26,7 +26,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct resfile resfile;
+typedef struct ce_resfile ce_resfile;
 
 #ifdef __cplusplus
 }

@@ -36,7 +36,7 @@
 #include "cemath.h"
 #include "vec3.h"
 #include "cefrustum.h"
-#include "resfile.h"
+#include "ceresfile.h"
 #include "mprfile.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
@@ -511,13 +511,13 @@ int main(int argc, char* argv[])
 	ce_input_open();
 	ce_gl_open();
 
-	resfile* tex_res = resfile_open_file(tex_path);
+	ce_resfile* tex_res = ce_resfile_open_file(tex_path);
 	if (NULL == tex_res) {
 		fprintf(stderr, "Could not open file '%s'.\n", tex_path);
 		return 1;
 	}
 
-	resfile* mpr_res = resfile_open_file(argv[optind]);
+	ce_resfile* mpr_res = ce_resfile_open_file(argv[optind]);
 	if (NULL == mpr_res) {
 		fprintf(stderr, "Could not open file '%s'.\n", argv[optind]);
 		return 1;
@@ -529,8 +529,8 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	resfile_close(tex_res);
-	resfile_close(mpr_res);
+	ce_resfile_close(tex_res);
+	ce_resfile_close(mpr_res);
 
 	vec3 eye;
 	vec3_init(100.0f, mprfile_get_max_height(mpr), 0.0f, &eye);

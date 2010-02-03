@@ -35,7 +35,7 @@
 #include "vec3.h"
 #include "ceaabb.h"
 #include "cememfile.h"
-#include "resfile.h"
+#include "ceresfile.h"
 #include "cetexture.h"
 #include "mprfile.h"
 
@@ -236,7 +236,7 @@ static bool read_header_impl(mprfile* mpr, ce_memfile* mem)
 }
 
 static bool read_header(mprfile* mpr, const char* mpr_name,
-						size_t mpr_name_length, resfile* res)
+						size_t mpr_name_length, ce_resfile* res)
 {
 	if (0 == mpr_name_length) {
 		return false;
@@ -246,14 +246,14 @@ static bool read_header(mprfile* mpr, const char* mpr_name,
 	char mp_name[mpr_name_length];
 	ce_strlcpy(mp_name, mpr_name, sizeof(mp_name));
 
-	int index = resfile_node_index(mp_name, res);
+	int index = ce_resfile_node_index(res, mp_name);
 	if (index < 0) {
 		return false;
 	}
 
-	const size_t data_size = resfile_node_size(index, res);
+	const size_t data_size = ce_resfile_node_size(res, index);
 	void* data = ce_alloc(data_size);
-	if (NULL == data || !resfile_node_data(index, data, res)) {
+	if (NULL == data || !ce_resfile_node_data(res, index, data)) {
 		ce_free(data, data_size);
 		return false;
 	}
@@ -356,16 +356,16 @@ static bool read_sector_impl(sector* sec, ce_memfile* mem)
 	return true;
 }
 
-static bool read_sector(sector* sec, const char* name, resfile* res)
+static bool read_sector(sector* sec, const char* name, ce_resfile* res)
 {
-	int index = resfile_node_index(name, res);
+	int index = ce_resfile_node_index(res, name);
 	if (index < 0) {
 		return false;
 	}
 
-	const size_t data_size = resfile_node_size(index, res);
+	const size_t data_size = ce_resfile_node_size(res, index);
 	void* data = ce_alloc(data_size);
-	if (NULL == data || !resfile_node_data(index, data, res)) {
+	if (NULL == data || !ce_resfile_node_data(res, index, data)) {
 		ce_free(data, data_size);
 		return false;
 	}
@@ -385,7 +385,7 @@ static bool read_sector(sector* sec, const char* name, resfile* res)
 }
 
 static bool read_sectors(mprfile* mpr, const char* mpr_name,
-							size_t mpr_name_length, resfile* res)
+							size_t mpr_name_length, ce_resfile* res)
 {
 	if (NULL == (mpr->sectors =
 					ce_alloc_zero(sizeof(sector) * mpr->sector_count)) ||
@@ -435,16 +435,16 @@ static bool read_sectors(mprfile* mpr, const char* mpr_name,
 	return true;
 }
 
-static bool create_texture(ce_texture** tex, const char* name, resfile* res)
+static bool create_texture(ce_texture** tex, const char* name, ce_resfile* res)
 {
-	int index = resfile_node_index(name, res);
+	int index = ce_resfile_node_index(res, name);
 	if (index < 0) {
 		return false;
 	}
 
-	const size_t data_size = resfile_node_size(index, res);
+	const size_t data_size = ce_resfile_node_size(res, index);
 	void* data = ce_alloc(data_size);
-	if (NULL == data || !resfile_node_data(index, data, res)) {
+	if (NULL == data || !ce_resfile_node_data(res, index, data)) {
 		ce_free(data, data_size);
 		return false;
 	}
@@ -457,7 +457,7 @@ static bool create_texture(ce_texture** tex, const char* name, resfile* res)
 }
 
 static bool create_textures(mprfile* mpr, const char* mpr_name,
-							size_t mpr_name_length, resfile* res)
+							size_t mpr_name_length, ce_resfile* res)
 {
 	mpr->textures = ce_alloc_zero(sizeof(ce_texture*) * mpr->texture_count);
 	if (NULL == mpr->textures) {
@@ -486,14 +486,14 @@ static bool create_textures(mprfile* mpr, const char* mpr_name,
 	return true;
 }
 
-mprfile* mprfile_open(resfile* mpr_res, resfile* textures_res)
+mprfile* mprfile_open(ce_resfile* mpr_res, ce_resfile* textures_res)
 {
 	mprfile* mpr = ce_alloc_zero(sizeof(mprfile));
 	if (NULL == mpr) {
 		return NULL;
 	}
 
-	const char* mpr_name = resfile_name(mpr_res);
+	const char* mpr_name = ce_resfile_name(mpr_res);
 	size_t mpr_name_length = strlen(mpr_name);
 
 	if (!read_header(mpr, mpr_name, mpr_name_length, mpr_res)) {

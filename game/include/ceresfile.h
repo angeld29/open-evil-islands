@@ -25,7 +25,7 @@
 #include <time.h>
 
 #include "cememfilefwd.h"
-#include "resfilefwd.h"
+#include "ceresfilefwd.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -33,18 +33,18 @@ extern "C"
 #endif /* __cplusplus */
 
 /// Resfile takes ownership of the memfile if successfull.
-extern resfile* resfile_open_memfile(const char* name, ce_memfile* mem);
-extern resfile* resfile_open_file(const char* path);
-extern void resfile_close(resfile* res);
+extern ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem);
+extern ce_resfile* ce_resfile_open_file(const char* path);
+extern void ce_resfile_close(ce_resfile* res);
 
-extern const char* resfile_name(const resfile* res);
-extern int resfile_node_count(const resfile* res);
-extern int resfile_node_index(const char* name, const resfile* res);
+extern const char* ce_resfile_name(const ce_resfile* res);
+extern int ce_resfile_node_count(const ce_resfile* res);
+extern int ce_resfile_node_index(const ce_resfile* res, const char* name);
 
-extern const char* resfile_node_name(int index, const resfile* res);
-extern size_t resfile_node_size(int index, const resfile* res);
-extern time_t resfile_node_modified(int index, const resfile* res);
-extern bool resfile_node_data(int index, void* data, resfile* res);
+extern const char* ce_resfile_node_name(const ce_resfile* res, int index);
+extern size_t ce_resfile_node_size(const ce_resfile* res, int index);
+extern time_t ce_resfile_node_modified(const ce_resfile* res, int index);
+extern bool ce_resfile_node_data(ce_resfile* res, int index, void* data);
 
 #ifdef __cplusplus
 }

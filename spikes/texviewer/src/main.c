@@ -34,7 +34,7 @@
 #include "celogging.h"
 #include "ceinput.h"
 #include "cetimer.h"
-#include "resfile.h"
+#include "ceresfile.h"
 #include "cetexture.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
@@ -49,7 +49,7 @@
 
 #define DEFAULT_DELAY 500
 
-resfile* res;
+ce_resfile* res;
 ce_texture* tex;
 ce_timer* tmr;
 
@@ -68,7 +68,7 @@ static void idle(void)
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_timer_close(tmr);
 		ce_texture_close(tex);
-		resfile_close(res);
+		ce_resfile_close(res);
 		ce_gl_close();
 		ce_input_close();
 		ce_logging_close();
@@ -119,27 +119,27 @@ static bool generate_texture(int index)
 	ce_texture_close(tex);
 	tex = NULL;
 
-	void* data = ce_alloc(resfile_node_size(index, res));
-	if (NULL == data || !resfile_node_data(index, data, res)) {
-		ce_free(data, resfile_node_size(index, res));
+	void* data = ce_alloc(ce_resfile_node_size(res, index));
+	if (NULL == data || !ce_resfile_node_data(res, index, data)) {
+		ce_free(data, ce_resfile_node_size(res, index));
 		return false;
 	}
 
 	tex = ce_texture_open(data);
-	ce_free(data, resfile_node_size(index, res));
+	ce_free(data, ce_resfile_node_size(res, index));
 
 	return NULL != tex;
 }
 
 static void next_texture(int index)
 {
-	if (0 == resfile_node_count(res)) {
+	if (0 == ce_resfile_node_count(res)) {
 		return;
 	}
 
-	if (0 > index || index >= resfile_node_count(res)) {
+	if (0 > index || index >= ce_resfile_node_count(res)) {
 		fprintf(stderr, "All textures (%d) have been browsed. "
-			"Let's make a fresh start.\n", resfile_node_count(res));
+			"Let's make a fresh start.\n", ce_resfile_node_count(res));
 		index = 0;
 	}
 
@@ -147,7 +147,7 @@ static void next_texture(int index)
 
 	if (!generate_texture(index)) {
 		fprintf(stderr, "Could not load texture '%s'.\n",
-			resfile_node_name(index, res));
+			ce_resfile_node_name(res, index));
 		d = 0;
 	} else {
 		glutPostRedisplay();
@@ -155,7 +155,7 @@ static void next_texture(int index)
 
 	if (slideshow) {
 		glutTimerFunc(d, next_texture, rndmode ?
-			rand() % resfile_node_count(res) : index + 1);
+			rand() % ce_resfile_node_count(res) : index + 1);
 	}
 }
 
@@ -274,27 +274,27 @@ int main(int argc, char* argv[])
 	ce_input_open();
 	ce_gl_open();
 
-	res = resfile_open_file(argv[optind]);
+	res = ce_resfile_open_file(argv[optind]);
 	if (NULL == res) {
 		fprintf(stderr, "Could not open file '%s'.\n", argv[optind]);
 		return 1;
 	}
 
 	if (NULL != name) {
-		index = resfile_node_index(name, res);
+		index = ce_resfile_node_index(res, name);
 		if (-1 == index) {
 			fprintf(stderr, "Could not find texture '%s'.\n", name);
 			return 1;
 		}
 	} else if (-1 != index) {
-		if (0 > index || index >= resfile_node_count(res)) {
+		if (0 > index || index >= ce_resfile_node_count(res)) {
 			fprintf(stderr,
 				"Invalid index: %d. Allowed range for '%s' is [0...%d]\n",
-				index, argv[optind], resfile_node_count(res) - 1);
+				index, argv[optind], ce_resfile_node_count(res) - 1);
 			return 1;
 		}
 	} else {
-		index = rndmode ? rand() % resfile_node_count(res) : 0;
+		index = rndmode ? rand() % ce_resfile_node_count(res) : 0;
 	}
 
 	glutTimerFunc(0, next_texture, index);

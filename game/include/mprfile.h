@@ -23,7 +23,7 @@
 
 #include <stdbool.h>
 
-#include "resfilefwd.h"
+#include "ceresfilefwd.h"
 #include "cefrustum.h"
 
 #ifdef __cplusplus
@@ -33,7 +33,7 @@ extern "C"
 
 typedef struct mprfile mprfile;
 
-extern mprfile* mprfile_open(resfile* mpr_res, resfile* textures_res);
+extern mprfile* mprfile_open(ce_resfile* mpr_res, ce_resfile* textures_res);
 extern void mprfile_close(mprfile* mpr);
 
 extern float mprfile_get_max_height(const mprfile* mpr);
