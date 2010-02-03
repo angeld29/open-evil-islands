@@ -69,12 +69,12 @@ ce_frustum* ce_frustum_init(ce_frustum* f, float fov, float aspect,
 	vec3_sub(vec3_sub(&fc, &yh, &fbl), &xw, &fbl);
 	vec3_add(vec3_sub(&fc, &yh, &fbr), &xw, &fbr);
 
-	plane_init_tri(&ntr, &ntl, &ftl, &f->p[CE_FRUSTUM_PLANE_TOP]);
-	plane_init_tri(&nbl, &nbr, &fbr, &f->p[CE_FRUSTUM_PLANE_BOTTOM]);
-	plane_init_tri(&ntl, &nbl, &fbl, &f->p[CE_FRUSTUM_PLANE_LEFT]);
-	plane_init_tri(&nbr, &ntr, &fbr, &f->p[CE_FRUSTUM_PLANE_RIGHT]);
-	plane_init_tri(&ntl, &ntr, &nbr, &f->p[CE_FRUSTUM_PLANE_NEAR]);
-	plane_init_tri(&ftr, &ftl, &fbl, &f->p[CE_FRUSTUM_PLANE_FAR]);
+	ce_plane_init_tri(&f->p[CE_FRUSTUM_PLANE_TOP], &ntr, &ntl, &ftl);
+	ce_plane_init_tri(&f->p[CE_FRUSTUM_PLANE_BOTTOM], &nbl, &nbr, &fbr);
+	ce_plane_init_tri(&f->p[CE_FRUSTUM_PLANE_LEFT], &ntl, &nbl, &fbl);
+	ce_plane_init_tri(&f->p[CE_FRUSTUM_PLANE_RIGHT], &nbr, &ntr, &fbr);
+	ce_plane_init_tri(&f->p[CE_FRUSTUM_PLANE_NEAR], &ntl, &ntr, &nbr);
+	ce_plane_init_tri(&f->p[CE_FRUSTUM_PLANE_FAR], &ftr, &ftl, &fbl);
 
 	return f;
 }
@@ -82,7 +82,7 @@ ce_frustum* ce_frustum_init(ce_frustum* f, float fov, float aspect,
 bool ce_frustum_test_point(const ce_frustum* f, const vec3* p)
 {
 	for (size_t i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {
-		if (plane_dist(&f->p[i], p) < 0.0f) {
+		if (ce_plane_dist(&f->p[i], p) < 0.0f) {
 			return false;
 		}
 	}
@@ -92,7 +92,7 @@ bool ce_frustum_test_point(const ce_frustum* f, const vec3* p)
 bool ce_frustum_test_sphere(const ce_frustum* f, const vec3* p, float r)
 {
 	for (size_t i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {
-		if (plane_dist(&f->p[i], p) < -r) {
+		if (ce_plane_dist(&f->p[i], p) < -r) {
 			return false;
 		}
 	}
@@ -103,7 +103,7 @@ bool ce_frustum_test_box(const ce_frustum* f, const ce_aabb* b)
 {
 	vec3 p;
 	for (size_t i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {
-		if (plane_dist(&f->p[i],
+		if (ce_plane_dist(&f->p[i],
 				get_box_vertex_positive(&p, &f->p[i].n, b)) < 0.0f) {
 			return false;
 		}

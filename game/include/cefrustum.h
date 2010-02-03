@@ -25,7 +25,7 @@
 
 #include "vec3.h"
 #include "ceaabb.h"
-#include "plane.h"
+#include "ceplane.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -43,7 +43,7 @@ typedef enum {
 } ce_frustum_plane;
 
 typedef struct {
-	plane p[CE_FRUSTUM_PLANE_COUNT];
+	ce_plane p[CE_FRUSTUM_PLANE_COUNT];
 } ce_frustum;
 
 extern ce_frustum* ce_frustum_init(ce_frustum* f, float fov, float aspect,

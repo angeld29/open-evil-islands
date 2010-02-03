@@ -18,42 +18,36 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "plane.h"
+#include "ceplane.h"
 
-plane* plane_init(float a, float b, float c, float d, plane* r)
+ce_plane* ce_plane_init(ce_plane* r, float a, float b, float c, float d)
 {
 	vec3_init(a, b, c, &r->n);
 	r->d = d;
-
 	return r;
 }
 
-plane* plane_init_tri(const vec3* a, const vec3* b, const vec3* c, plane* r)
+ce_plane* ce_plane_init_tri(ce_plane* r, const vec3* a,
+							const vec3* b, const vec3* c)
 {
 	vec3 e1, e2;
-
 	vec3_sub(b, a, &e1);
 	vec3_sub(c, a, &e2);
-
 	vec3_cross(&e1, &e2, &r->n);
 	vec3_normalise(&r->n, &r->n);
-
 	r->d = -vec3_dot(&r->n, a);
-
 	return r;
 }
 
-plane* plane_normalise(const plane* a, plane* r)
+ce_plane* ce_plane_normalise(ce_plane* r, const ce_plane* a)
 {
 	const float s = 1.0f / vec3_abs(&a->n);
-
 	vec3_scale(&a->n, s, &r->n);
 	r->d = a->d * s;
-
 	return r;
 }
 
-float plane_dist(const plane* a, const vec3* b)
+float ce_plane_dist(const ce_plane* a, const vec3* b)
 {
 	return vec3_dot(&a->n, b) + a->d;
 }

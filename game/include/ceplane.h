@@ -31,15 +31,15 @@ extern "C"
 typedef struct {
 	vec3 n;
 	float d;
-} plane;
+} ce_plane;
 
-extern plane* plane_init(float a, float b, float c, float d, plane* r);
-extern plane* plane_init_tri(const vec3* a, const vec3* b,
-								const vec3* c, plane* r);
+extern ce_plane* ce_plane_init(ce_plane* r, float a, float b, float c, float d);
+extern ce_plane* ce_plane_init_tri(ce_plane* r, const vec3* a,
+									const vec3* b, const vec3* c);
 
-extern plane* plane_normalise(const plane* a, plane* r);
+extern ce_plane* ce_plane_normalise(ce_plane* r, const ce_plane* a);
 
-extern float plane_dist(const plane* a, const vec3* b);
+extern float ce_plane_dist(const ce_plane* a, const vec3* b);
 
 #ifdef __cplusplus
 }
