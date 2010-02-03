@@ -285,8 +285,8 @@ static void idle(void)
 
 static void display(void)
 {
-	//glEnable(GL_NORMALIZE);
 	glEnable(GL_LIGHTING);
+	glEnable(GL_NORMALIZE);
 
 	float coef = 127.0f;
 
@@ -311,7 +311,10 @@ static void display(void)
 					1.0f };
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, aaa);
 
-	glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+#ifdef GL_VERSION_1_2
+	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+#endif
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 
 	// -----
 
