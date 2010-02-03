@@ -123,21 +123,8 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 		return false;
 	}
 
-	GLint alignment;
-	glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
-
-	const bool not_aligned = 0 != width % alignment;
-
-	if (not_aligned) {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	}
-
 	glTexImage2D(GL_TEXTURE_2D, level, internal_format,
 		width, height, 0, data_format, data_type, data);
-
-	if (not_aligned) {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
-	}
 
 	if (ce_gl_report_errors()) {
 		ce_logging_error("glTexImage2D failed.");
@@ -150,20 +137,35 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 static bool generate_texture(int mipmap_count, GLenum internal_format, int width,
 		int height, int bpp, GLenum data_format, GLenum data_type, void* data)
 {
-	setup_mag_min_params(mipmap_count);
-
+	bool ok = true;
 	uint8_t* src = data;
+
+	// Most EI's textures of width divisible by 4 (GL's default row alignment).
+	const bool not_aligned = 0 != width % 4;
+
+	if (not_aligned) {
+		glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	}
+
+	setup_mag_min_params(mipmap_count);
 
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		if (!specify_texture(i, internal_format, width,
 				height, data_format, data_type, src)) {
 			ce_logging_error("Could not specify texture.");
-			return false;
+			ok = false;
+			break;
 		}
 		src += width * height * bpp;
 	}
 
-	return true;
+	if (not_aligned) {
+		glPopClientAttrib();
+	}
+
+	return ok;
 }
 
 static int dxt_blerp(int a, int b, int x)
