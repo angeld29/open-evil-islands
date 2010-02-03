@@ -31,17 +31,17 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct mprfile mprfile;
+typedef struct ce_mprfile ce_mprfile;
 
-extern mprfile* mprfile_open(ce_resfile* mpr_res, ce_resfile* textures_res);
-extern void mprfile_close(mprfile* mpr);
+extern ce_mprfile* ce_mprfile_open(ce_resfile* mpr_res, ce_resfile* textures_res);
+extern void ce_mprfile_close(ce_mprfile* mpr);
 
-extern float mprfile_get_max_height(const mprfile* mpr);
+extern float ce_mprfile_get_max_height(const ce_mprfile* mpr);
 
-extern void mprfile_apply_frustum(const vec3* eye,
-									const ce_frustum* f, mprfile* mpr);
+extern void ce_mprfile_apply_frustum(ce_mprfile* mpr, const vec3* eye,
+														const ce_frustum* f);
 
-extern void mprfile_render(mprfile* mpr);
+extern void ce_mprfile_render(ce_mprfile* mpr);
 
 #ifdef __cplusplus
 }

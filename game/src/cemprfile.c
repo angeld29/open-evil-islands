@@ -37,7 +37,7 @@
 #include "cememfile.h"
 #include "ceresfile.h"
 #include "cetexture.h"
-#include "mprfile.h"
+#include "cemprfile.h"
 
 static const uint32_t MP_SIGNATURE = 0xce4af672;
 static const uint32_t SEC_SIGNATURE = 0xcf4bf774;
@@ -84,7 +84,7 @@ typedef struct {
 	int16_t* water_allow;
 } sector;
 
-struct mprfile {
+struct ce_mprfile {
 	float max_y;
 	uint32_t sector_x_count;
 	uint32_t sector_z_count;
@@ -102,7 +102,6 @@ struct mprfile {
 	unsigned int visible_sector_count;
 	sector** visible_sectors;
 	ce_texture** textures;
-	bool night;
 };
 
 static void normal2vector(uint32_t normal, float* vector)
@@ -127,7 +126,7 @@ static uint8_t texture_angle(uint16_t value)
 	return (value & 0xc000) >> 14;
 }
 
-static material* find_material(unsigned int type, mprfile* mpr)
+static material* find_material(ce_mprfile* mpr, unsigned int type)
 {
 	for (unsigned int i = 0; i < mpr->material_count; ++i) {
 		material* mat = mpr->materials + i;
@@ -165,7 +164,7 @@ static bool read_anim_tile(anim_tile* at, ce_memfile* mem)
 	return true;
 }
 
-static bool read_header_impl(mprfile* mpr, ce_memfile* mem)
+static bool read_header_impl(ce_mprfile* mpr, ce_memfile* mem)
 {
 	uint32_t signature;
 	if (1 != ce_memfile_read(mem, &signature, sizeof(uint32_t), 1)) {
@@ -235,7 +234,7 @@ static bool read_header_impl(mprfile* mpr, ce_memfile* mem)
 	return true;
 }
 
-static bool read_header(mprfile* mpr, const char* mpr_name,
+static bool read_header(ce_mprfile* mpr, const char* mpr_name,
 						size_t mpr_name_length, ce_resfile* res)
 {
 	if (0 == mpr_name_length) {
@@ -384,7 +383,7 @@ static bool read_sector(sector* sec, const char* name, ce_resfile* res)
 	return ok;
 }
 
-static bool read_sectors(mprfile* mpr, const char* mpr_name,
+static bool read_sectors(ce_mprfile* mpr, const char* mpr_name,
 							size_t mpr_name_length, ce_resfile* res)
 {
 	if (NULL == (mpr->sectors =
@@ -456,7 +455,7 @@ static bool create_texture(ce_texture** tex, const char* name, ce_resfile* res)
 	return NULL != *tex;
 }
 
-static bool create_textures(mprfile* mpr, const char* mpr_name,
+static bool create_textures(ce_mprfile* mpr, const char* mpr_name,
 							size_t mpr_name_length, ce_resfile* res)
 {
 	mpr->textures = ce_alloc_zero(sizeof(ce_texture*) * mpr->texture_count);
@@ -486,9 +485,9 @@ static bool create_textures(mprfile* mpr, const char* mpr_name,
 	return true;
 }
 
-mprfile* mprfile_open(ce_resfile* mpr_res, ce_resfile* textures_res)
+ce_mprfile* ce_mprfile_open(ce_resfile* mpr_res, ce_resfile* textures_res)
 {
-	mprfile* mpr = ce_alloc_zero(sizeof(mprfile));
+	ce_mprfile* mpr = ce_alloc_zero(sizeof(ce_mprfile));
 	if (NULL == mpr) {
 		return NULL;
 	}
@@ -497,26 +496,24 @@ mprfile* mprfile_open(ce_resfile* mpr_res, ce_resfile* textures_res)
 	size_t mpr_name_length = strlen(mpr_name);
 
 	if (!read_header(mpr, mpr_name, mpr_name_length, mpr_res)) {
-		mprfile_close(mpr);
+		ce_mprfile_close(mpr);
 		return NULL;
 	}
 
 	if (!read_sectors(mpr, mpr_name, mpr_name_length, mpr_res)) {
-		mprfile_close(mpr);
+		ce_mprfile_close(mpr);
 		return NULL;
 	}
 
 	if (!create_textures(mpr, mpr_name, mpr_name_length, textures_res)) {
-		mprfile_close(mpr);
+		ce_mprfile_close(mpr);
 		return NULL;
 	}
-
-	mpr->night = false;
 
 	return mpr;
 }
 
-void mprfile_close(mprfile* mpr)
+void ce_mprfile_close(ce_mprfile* mpr)
 {
 	if (NULL == mpr) {
 		return;
@@ -546,22 +543,12 @@ void mprfile_close(mprfile* mpr)
 	ce_free(mpr->tiles, sizeof(uint32_t) * mpr->tile_count);
 	ce_free(mpr->materials, sizeof(material) * mpr->material_count);
 
-	ce_free(mpr, sizeof(mprfile));
+	ce_free(mpr, sizeof(ce_mprfile));
 }
 
-float mprfile_get_max_height(const mprfile* mpr)
+float ce_mprfile_get_max_height(const ce_mprfile* mpr)
 {
 	return mpr->max_y;
-}
-
-bool mprfile_get_night(mprfile* mpr)
-{
-	return mpr->night;
-}
-
-void mprfile_set_night(bool value, mprfile* mpr)
-{
-	mpr->night = value;
 }
 
 static int sector_dist_comp(const void* lhs, const void* rhs)
@@ -572,7 +559,8 @@ static int sector_dist_comp(const void* lhs, const void* rhs)
 		(sec1->dist2 < sec2->dist2 ? 1 : -1);
 }
 
-void mprfile_apply_frustum(const vec3* eye, const ce_frustum* f, mprfile* mpr)
+void ce_mprfile_apply_frustum(ce_mprfile* mpr, const vec3* eye,
+												const ce_frustum* f)
 {
 	mpr->visible_sector_count = 0;
 
@@ -590,9 +578,10 @@ void mprfile_apply_frustum(const vec3* eye, const ce_frustum* f, mprfile* mpr)
 		sizeof(sector*), sector_dist_comp);
 }
 
-static void render_sector(unsigned int sector_x, unsigned int sector_z,
+static void render_sector(ce_mprfile* mpr,
+							unsigned int sector_x, unsigned int sector_z,
 							vertex* vertices, uint16_t* textures,
-							int16_t* water_allow, mprfile* mpr)
+							int16_t* water_allow)
 {
 	GLfloat varray[3 * VERTEX_COUNT];
 	GLfloat narray[3 * VERTEX_COUNT];
@@ -689,8 +678,8 @@ static void render_sector(unsigned int sector_x, unsigned int sector_z,
 				{ vind[6], vind[7], vind[5], vind[8], vind[4], vind[3] }
 			};
 
-			material* mat = find_material(NULL != water_allow ?
-							MATERIAL_WATER : MATERIAL_GROUND, mpr);
+			material* mat = find_material(mpr, NULL != water_allow ?
+											MATERIAL_WATER : MATERIAL_GROUND);
 			assert(mat);
 			glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]){0.3f,0.3f,0.3f,1.0f});
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat->color);
@@ -723,27 +712,27 @@ static void render_sector(unsigned int sector_x, unsigned int sector_z,
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-static void render_sectors(bool opacity, mprfile* mpr)
+static void render_sectors(ce_mprfile* mpr, bool opacity)
 {
 	for (unsigned int i = 0; i < mpr->visible_sector_count; ++i) {
 		sector* sec = mpr->visible_sectors[i];
 		if (opacity) {
-			render_sector(sec->x, sec->z, sec->land_vertices,
-							sec->land_textures, NULL, mpr);
+			render_sector(mpr, sec->x, sec->z, sec->land_vertices,
+							sec->land_textures, NULL);
 		} else if (0 != sec->water) {
-			render_sector(sec->x, sec->z, sec->water_vertices,
-							sec->water_textures, sec->water_allow, mpr);
+			render_sector(mpr, sec->x, sec->z, sec->water_vertices,
+							sec->water_textures, sec->water_allow);
 		}
 	}
 }
 
-void mprfile_render(mprfile* mpr)
+void ce_mprfile_render(ce_mprfile* mpr)
 {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	render_sectors(true, mpr); // opacity geometry first
-	render_sectors(false, mpr); // then water/swamp/lava
+	render_sectors(mpr, true); // opacity geometry first
+	render_sectors(mpr, false); // then water/swamp/lava
 
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);

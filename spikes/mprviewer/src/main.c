@@ -37,7 +37,7 @@
 #include "vec3.h"
 #include "cefrustum.h"
 #include "ceresfile.h"
-#include "mprfile.h"
+#include "cemprfile.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0
@@ -49,7 +49,7 @@
 #define CE_SPIKE_VERSION_PATCH 0
 #endif
 
-mprfile* mpr;
+ce_mprfile* mpr;
 ce_camera* cam;
 ce_timer* tmr;
 
@@ -233,7 +233,7 @@ static void idle(void)
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_timer_close(tmr);
 		ce_camera_close(cam);
-		mprfile_close(mpr);
+		ce_mprfile_close(mpr);
 		ce_gl_close();
 		ce_input_event_supply_close(es);
 		ce_input_close();
@@ -366,8 +366,8 @@ static void display(void)
 		ce_camera_get_eye(cam, &eye), ce_camera_get_forward(cam, &forward),
 		ce_camera_get_right(cam, &right), ce_camera_get_up(cam, &up));
 
-	mprfile_apply_frustum(&eye, &f, mpr);
-	mprfile_render(mpr);
+	ce_mprfile_apply_frustum(mpr, &eye, &f);
+	ce_mprfile_render(mpr);
 
 	glDisable(GL_LIGHT1);
 	glDisable(GL_LIGHT0);
@@ -523,7 +523,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	mpr = mprfile_open(mpr_res, tex_res);
+	mpr = ce_mprfile_open(mpr_res, tex_res);
 	if (!mpr) {
 		fprintf(stderr, "Could not open mpr file.\n");
 		return 1;
@@ -533,7 +533,7 @@ int main(int argc, char* argv[])
 	ce_resfile_close(mpr_res);
 
 	vec3 eye;
-	vec3_init(100.0f, mprfile_get_max_height(mpr), 0.0f, &eye);
+	vec3_init(100.0f, ce_mprfile_get_max_height(mpr), 0.0f, &eye);
 
 	cam = ce_camera_open();
 	ce_camera_set_eye(cam, &eye);
