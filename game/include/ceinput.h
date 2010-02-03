@@ -167,17 +167,43 @@ extern void ce_input_event_supply_close(ce_input_event_supply* es);
 extern void ce_input_event_supply_advance(ce_input_event_supply* es,
 														float elapsed);
 
+// Button Event.
+
 extern ce_input_event*
 ce_input_create_button_event(ce_input_event_supply* es,
 								ce_input_button button);
+
+// Single Front Event.
 
 extern ce_input_event*
 ce_input_create_single_front_event(ce_input_event_supply* es,
 									ce_input_event* event);
 
+// Single Back Event.
+
 extern ce_input_event*
 ce_input_create_single_back_event(ce_input_event_supply* es,
 									ce_input_event* event);
+
+// AND Event.
+
+extern ce_input_event*
+ce_input_create_and_event(ce_input_event_supply* es,
+							ce_input_event* event1, ce_input_event* event2);
+
+extern ce_input_event*
+ce_input_create_and3_event(ce_input_event_supply* es, ce_input_event* event1,
+							ce_input_event* event2, ce_input_event* event3);
+
+// OR Event.
+
+extern ce_input_event*
+ce_input_create_or_event(ce_input_event_supply* es,
+							ce_input_event* event1, ce_input_event* event2);
+
+extern ce_input_event*
+ce_input_create_or3_event(ce_input_event_supply* es, ce_input_event* event1,
+							ce_input_event* event2, ce_input_event* event3);
 
 #ifdef __cplusplus
 }

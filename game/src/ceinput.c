@@ -26,14 +26,22 @@
 #include "ceinput.h"
 
 typedef struct {
-	void (*ctor)(void* self, va_list args);
-	void (*dtor)(void* self);
-	void (*advance)(void* self, float elapsed);
-	bool (*triggered)(void* self);
+	void (*ctor)(ce_input_event* self, va_list args);
+	void (*dtor)(ce_input_event* self);
+	void (*advance)(ce_input_event* self, float elapsed);
 } event_vtable;
+
+/*
+ *  The 'triggered' variable is cached. It's ok. The 'advance' function
+ *  will be called from low-to-high event (creation order). For example,
+ *  button_event_advance ('triggered' updated) -> button_event_advance
+ *  ('triggered' updated) -> and_event_advance ('triggered' updated) ->
+ *  single_back_event_advance ('triggered' updated).
+*/
 
 struct ce_input_event {
 	event_vtable vtable;
+	bool triggered;
 	size_t size;
 	char object[];
 };
@@ -48,32 +56,23 @@ struct ce_input_event_supply {
 
 typedef struct {
 	ce_input_button button;
-	bool triggered;
 } button_event;
 
-static void button_event_ctor(void* self, va_list args)
+static void button_event_ctor(ce_input_event* self, va_list args)
 {
-	button_event* ev = self;
+	button_event* ev = (button_event*)self->object;
 	ev->button = va_arg(args, ce_input_button);
-	ev->triggered = false;
 }
 
-static void button_event_advance(void* self, float elapsed)
+static void button_event_advance(ce_input_event* self, float elapsed)
 {
 	ce_unused(elapsed);
-	button_event* ev = self;
-	ev->triggered = ce_input_test(ev->button);
-}
-
-static bool button_event_triggered(void* self)
-{
-	button_event* ev = self;
-	return ev->triggered;
+	button_event* ev = (button_event*)self->object;
+	self->triggered = ce_input_test(ev->button);
 }
 
 static event_vtable button_event_vtable = {
-	button_event_ctor, NULL,
-	button_event_advance, button_event_triggered
+	button_event_ctor, NULL, button_event_advance
 };
 
 // Single Front Event.
@@ -81,35 +80,26 @@ static event_vtable button_event_vtable = {
 typedef struct {
 	ce_input_event* event;
 	bool activated;
-	bool triggered;
 } single_front_event;
 
-static void single_front_event_ctor(void* self, va_list args)
+static void single_front_event_ctor(ce_input_event* self, va_list args)
 {
-	single_front_event* ev = self;
+	single_front_event* ev = (single_front_event*)self->object;
 	ev->event = va_arg(args, ce_input_event*);
 	ev->activated = false;
-	ev->triggered = false;
 }
 
-static void single_front_event_advance(void* self, float elapsed)
+static void single_front_event_advance(ce_input_event* self, float elapsed)
 {
 	ce_unused(elapsed);
-	single_front_event* ev = self;
+	single_front_event* ev = (single_front_event*)self->object;
 	bool triggered = ce_input_event_triggered(ev->event);
-	ev->triggered = !ev->activated && triggered;
+	self->triggered = !ev->activated && triggered;
 	ev->activated = triggered;
 }
 
-static bool single_front_event_triggered(void* self)
-{
-	single_front_event* ev = self;
-	return ev->triggered;
-}
-
 static event_vtable single_front_event_vtable = {
-	single_front_event_ctor, NULL,
-	single_front_event_advance, single_front_event_triggered
+	single_front_event_ctor, NULL, single_front_event_advance
 };
 
 // Single Back Event.
@@ -117,42 +107,85 @@ static event_vtable single_front_event_vtable = {
 typedef struct {
 	ce_input_event* event;
 	bool activated;
-	bool triggered;
 } single_back_event;
 
-static void single_back_event_ctor(void* self, va_list args)
+static void single_back_event_ctor(ce_input_event* self, va_list args)
 {
-	single_back_event* ev = self;
+	single_back_event* ev = (single_back_event*)self->object;
 	ev->event = va_arg(args, ce_input_event*);
 	ev->activated = false;
-	ev->triggered = false;
 }
 
-static void single_back_event_advance(void* self, float elapsed)
+static void single_back_event_advance(ce_input_event* self, float elapsed)
 {
 	ce_unused(elapsed);
-	single_back_event* ev = self;
+	single_back_event* ev = (single_back_event*)self->object;
 	bool triggered = ce_input_event_triggered(ev->event);
-	ev->triggered = ev->activated && !triggered;
+	self->triggered = ev->activated && !triggered;
 	ev->activated = triggered;
 }
 
-static bool single_back_event_triggered(void* self)
+static event_vtable single_back_event_vtable = {
+	single_back_event_ctor, NULL, single_back_event_advance
+};
+
+// AND Event.
+
+typedef struct {
+	ce_input_event* event1;
+	ce_input_event* event2;
+} and_event;
+
+static void and_event_ctor(ce_input_event* self, va_list args)
 {
-	single_back_event* ev = self;
-	return ev->triggered;
+	and_event* ev = (and_event*)self->object;
+	ev->event1 = va_arg(args, ce_input_event*);
+	ev->event2 = va_arg(args, ce_input_event*);
 }
 
-static event_vtable single_back_event_vtable = {
-	single_back_event_ctor, NULL,
-	single_back_event_advance, single_back_event_triggered
+static void and_event_advance(ce_input_event* self, float elapsed)
+{
+	ce_unused(elapsed);
+	and_event* ev = (and_event*)self->object;
+	self->triggered = ce_input_event_triggered(ev->event1) &&
+						ce_input_event_triggered(ev->event2);
+}
+
+static event_vtable and_event_vtable = {
+	and_event_ctor, NULL, and_event_advance
+};
+
+// OR Event.
+
+typedef struct {
+	ce_input_event* event1;
+	ce_input_event* event2;
+} or_event;
+
+static void or_event_ctor(ce_input_event* self, va_list args)
+{
+	or_event* ev = (or_event*)self->object;
+	ev->event1 = va_arg(args, ce_input_event*);
+	ev->event2 = va_arg(args, ce_input_event*);
+}
+
+static void or_event_advance(ce_input_event* self, float elapsed)
+{
+	ce_unused(elapsed);
+	or_event* ev = (or_event*)self->object;
+	self->triggered = ce_input_event_triggered(ev->event1) ||
+						ce_input_event_triggered(ev->event2);
+}
+
+static event_vtable or_event_vtable = {
+	or_event_ctor, NULL, or_event_advance
 };
 
 // High level input API implementation.
 
 bool ce_input_event_triggered(ce_input_event* ev)
 {
-	return (ev->vtable.triggered)(ev->object);
+	return ev->triggered;
 }
 
 ce_input_event_supply* ce_input_event_supply_open(void)
@@ -183,7 +216,7 @@ void ce_input_event_supply_close(ce_input_event_supply* es)
 	for (size_t i = 0; i < es->count; ++i) {
 		ce_input_event* ev = es->events[i];
 		if (NULL != ev->vtable.dtor) {
-			(ev->vtable.dtor)(ev->object);
+			(ev->vtable.dtor)(ev);
 		}
 		ce_free(ev, sizeof(ce_input_event) + ev->size);
 	}
@@ -196,7 +229,7 @@ void ce_input_event_supply_advance(ce_input_event_supply* es, float elapsed)
 {
 	for (size_t i = 0; i < es->count; ++i) {
 		ce_input_event* ev = es->events[i];
-		(ev->vtable.advance)(ev->object, elapsed);
+		(ev->vtable.advance)(ev, elapsed);
 	}
 }
 
@@ -209,11 +242,12 @@ static ce_input_event* create_event(ce_input_event_supply* es,
 	}
 
 	ev->vtable = vtable;
+	ev->triggered = false;
 	ev->size = size;
 
 	va_list args;
 	va_start(args, size);
-	(ev->vtable.ctor)(ev->object, args);
+	(ev->vtable.ctor)(ev, args);
 	va_end(args);
 
 	assert(es->count < es->capacity && "to be implemented");
@@ -223,11 +257,16 @@ static ce_input_event* create_event(ce_input_event_supply* es,
 	return ev;
 }
 
+// Button Event.
+
 ce_input_event* ce_input_create_button_event(ce_input_event_supply* es,
 												ce_input_button button)
 {
-	return create_event(es, button_event_vtable, sizeof(button_event), button);
+	return create_event(es, button_event_vtable,
+						sizeof(button_event), button);
 }
+
+// Single Front Event.
 
 ce_input_event* ce_input_create_single_front_event(ce_input_event_supply* es,
 													ce_input_event* event)
@@ -236,9 +275,49 @@ ce_input_event* ce_input_create_single_front_event(ce_input_event_supply* es,
 						sizeof(single_front_event), event);
 }
 
+// Single Back Event.
+
 ce_input_event* ce_input_create_single_back_event(ce_input_event_supply* es,
 													ce_input_event* event)
 {
 	return create_event(es, single_back_event_vtable,
 						sizeof(single_back_event), event);
+}
+
+// AND Event.
+
+ce_input_event* ce_input_create_and_event(ce_input_event_supply* es,
+											ce_input_event* event1,
+											ce_input_event* event2)
+{
+	return create_event(es, and_event_vtable,
+						sizeof(and_event), event1, event2);
+}
+
+ce_input_event* ce_input_create_and3_event(ce_input_event_supply* es,
+											ce_input_event* event1,
+											ce_input_event* event2,
+											ce_input_event* event3)
+{
+	return ce_input_create_and_event(es, event1,
+			ce_input_create_and_event(es, event2, event3));
+}
+
+// OR Event.
+
+ce_input_event* ce_input_create_or_event(ce_input_event_supply* es,
+											ce_input_event* event1,
+											ce_input_event* event2)
+{
+	return create_event(es, or_event_vtable,
+						sizeof(or_event), event1, event2);
+}
+
+ce_input_event* ce_input_create_or3_event(ce_input_event_supply* es,
+											ce_input_event* event1,
+											ce_input_event* event2,
+											ce_input_event* event3)
+{
+	return ce_input_create_or_event(es, event1,
+			ce_input_create_or_event(es, event2, event3));
 }

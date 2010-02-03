@@ -46,8 +46,6 @@
      Функция проверяет, сработало ли событие.
 
    * Пример использования.
-     Пример будет составлен из тех событий, которые имеются на данный момент.
-
      На какую-то клавишу мы хотим задать переключение какого-то режима в игре.
      Низкого уровня недостаточно, т.к. функция input_test будет возвращать
      положительный ответ снова и снова, пока нажата клавиша.
@@ -84,5 +82,27 @@
      Это нужно всвязи с тем, что single_front_event требует на вход
      любое событие, а не клавишу (конечно же, для большей гибкости).
 
+     Пример посложнее. Задача: сделать "быструю клавишу" Ctrl+Enter,
+     срабатывающую один раз при отпускании.
+
+     input_open();
+     input_event_supply* es = input_event_supply_open();
+
+     input_event* ev1 = input_create_button_event(es, KB_CTRL);
+     input_event* ev2 = input_create_button_event(es, KB_ENTER);
+     input_event* ev3 = input_create_and_event(es, ev1, ev2);
+     input_event* shortcut = input_create_single_back_event(es, ev3);
+     ...
+     input_advance(elapsed);
+     input_event_supply_advance(es, elapsed);
+     ...
+     if (input_event_triggered(shortcut)) {
+         ...
+     }
+
+     input_event_supply_close(es);
+     input_close();
+
    * Что планируется.
-     Планируется создание базового набора полезных событий, таких как and, or.
+     Сделать надстройку для более удобного задания сочетания клавиш.
+     Можно посмотреть решение библиотеки Qt (быстрые клавиши по строке).
