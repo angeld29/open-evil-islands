@@ -147,8 +147,6 @@ static bool read_material(material* mat, ce_memfile* mem)
 		return false;
 	}
 	ce_le2cpu32s(&mat->type);
-	printf("mat %u: %f %f %f %f, si: %f\n", mat->type, mat->color[0],
-		mat->color[1], mat->color[2], mat->color[3], mat->selfillum);
 	return true;
 }
 
@@ -680,13 +678,14 @@ static void render_sector(ce_mprfile* mpr,
 			material* mat = find_material(mpr, NULL != water_allow ?
 											MATERIAL_WATER : MATERIAL_GROUND);
 			assert(mat);
-			glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]){0.3f,0.3f,0.3f,1.0f});
-			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat->color);
-			//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat->color);
 
-			//float em[4] = { mat->selfillum * mat->color[0], mat->selfillum * mat->color[1],
-			//				mat->selfillum * mat->color[2], mat->selfillum * mat->color[3] };
-			//glMaterialfv(GL_FRONT, GL_EMISSION, em);
+			glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]){0.5f,0.5f,0.5f,1.0f});
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat->color);
+
+			// TODO: test passed, in use! for lava...
+			float em[4] = { mat->selfillum * mat->color[0], mat->selfillum * mat->color[1],
+							mat->selfillum * mat->color[2], mat->selfillum * mat->color[3] };
+			glMaterialfv(GL_FRONT, GL_EMISSION, em);
 
 			if (NULL != water_allow) {
 				glEnable(GL_BLEND);
