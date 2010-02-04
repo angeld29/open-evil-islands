@@ -24,6 +24,59 @@
 #include "cealloc.h"
 #include "cestr.h"
 
+char* ce_strleft(char* dst, const char* src, size_t n)
+{
+	size_t len = strlen(src);
+	if (n > len) {
+		n = len;
+	}
+	strncpy(dst, src, n);
+	dst[n] = '\0';
+	return dst;
+}
+
+char* ce_strright(char* dst, const char* src, size_t n)
+{
+	size_t len = strlen(src);
+	if (n > len) {
+		n = len;
+	}
+	strcpy(dst, src + len - n);
+	return dst;
+}
+
+char* ce_strmid(char* dst, const char* src, size_t pos, size_t n)
+{
+	size_t len = strlen(src);
+	if (pos > len) {
+		return NULL;
+	}
+	if (n > (len - pos)) {
+		n = len - pos;
+	}
+	strncpy(dst, src + pos, n);
+	dst[n] = '\0';
+	return dst;
+}
+
+char* ce_strtrim(char* s)
+{
+	size_t len = strlen(s);
+	if (0 == len) {
+		return s;
+	}
+	size_t first, last;
+	for (first = 0; first < len && isspace(s[first]); ++first) {
+	}
+	for (last = len - 1; last > 0 && isspace(s[last]); --last) {
+	}
+	len = first <= last ? last - first + 1 : 0;
+	// TODO: Source and destination overlap in strncpy
+	strncpy(s, s + first, len);
+	s[len] = '\0';
+	return s;
+}
+
 char* ce_strdup(const char* s)
 {
 	char* p = ce_alloc(strlen(s) + 1);

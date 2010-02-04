@@ -28,11 +28,35 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-/// Duplicate string, returning an identical ce_alloc'd string.
+/**
+ *  Return a string that contains the n leftmost characters of the s.
+ *  The entire string is returned if n is greater than string length.
+*/
+extern char* ce_strleft(char* dst, const char* src, size_t n);
+
+/**
+ *  Return a string that contains the n rightmost characters of the s.
+ *  The entire string is returned if n is greater than string length.
+*/
+extern char* ce_strright(char* dst, const char* src, size_t n);
+
+/**
+ *  Return a string, n characters long beginning at position pos.
+ *  Return a NULL if the pos exceeds the length of the string.
+ *  If there are less than n characters available in the string
+ *  starting at the given position, the function returns all
+ *  characters that are available from the specified position.
+*/
+extern char* ce_strmid(char* dst, const char* src, size_t pos, size_t n);
+
+/// Remove all whitespace from the start and the end in place.
+extern char* ce_strtrim(char* s);
+
+/// Duplicate string, returning an identical alloc'd string.
 extern char* ce_strdup(const char* s);
 
 /**
- *  Return a ce_alloc'd copy of at most n bytes of s. The
+ *  Return a alloc'd copy of at most n bytes of s. The
  *  resultant string is terminated even if no null terminator
  *  appears before s[n].
 */
