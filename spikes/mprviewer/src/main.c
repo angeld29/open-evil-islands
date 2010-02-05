@@ -286,18 +286,17 @@ static void idle(void)
 static void display(void)
 {
 	glEnable(GL_LIGHTING);
+	// TODO: disable it...
 	glEnable(GL_NORMALIZE);
 
-	float coef = 127.0f;
+	float coef = 255.0f;
 
 	float sky[4] = { sky_gipat[night_index][0] / coef,
 					sky_gipat[night_index][1] / coef,
 					sky_gipat[night_index][2] / coef,
 					1.0f };
 
-	glClearColor(sky_gipat[night_index][0] / coef,
-				sky_gipat[night_index][1] / coef,
-				sky_gipat[night_index][2] / coef, 1.0f);
+	glClearColor(sky[0], sky[1], sky[2], sky[3]);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -324,27 +323,19 @@ static void display(void)
 					1.0f };
 
 	glEnable(GL_LIGHT0);
-	//glLightfv(GL_LIGHT0, GL_POSITION, (float[]){ 100.0f, 50.0f, 100.0f, 1.0f });
 	glLightfv(GL_LIGHT0, GL_AMBIENT, sss);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, sss);
-	//glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, sss);
-	//glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]){ 0.0f, 0.0f, 0.0f, 1.0f });
-	glLightfv(GL_LIGHT0, GL_SPECULAR, (float[]){ 0.0f, 0.0f, 0.0f, 0.0f });
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]){ 0.0f, 0.0f, 0.0f, 0.0f });
 
 	// -----
 
-	glEnable(GL_LIGHT1);
-	glLightfv(GL_LIGHT1, GL_POSITION, (float[]){ 0.0f, 0.0f, 0.0f, 1.0f });
-	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, ce_camera_get_fov(cam) / 3.0f);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, sss);
+	//glEnable(GL_LIGHT1);
+	//glLightfv(GL_LIGHT1, GL_POSITION, (float[]){ 0.0f, 0.0f, 0.0f, 1.0f });
+	//glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, ce_camera_get_fov(cam) / 3.0f);
+	//glLightfv(GL_LIGHT1, GL_DIFFUSE, sss);
 
 	ce_camera_setup(cam);
 
-	glPushMatrix();
-	//glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-	glTranslatef(100.0f, 50.0f, -100.0f);
-	glLightfv(GL_LIGHT0, GL_POSITION, (float[]){ 0.0f, 0.0f, 1.0f, 1.0f });
-	glPopMatrix();
+	glLightfv(GL_LIGHT0, GL_POSITION, (float[]){ 0.0f, 50.0f, 0.0f, 1.0f });
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
