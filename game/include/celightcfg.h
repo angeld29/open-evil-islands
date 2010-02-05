@@ -36,7 +36,7 @@ typedef struct {
 	float sky[24][4];
 } ce_lightcfg;
 
-extern bool ce_lightcfg_init(ce_lightcfg* light_cfg, ce_cfgfile* cfg_file);
+extern bool ce_lightcfg_init(ce_lightcfg* light, ce_cfgfile* cfg);
 
 #ifdef __cplusplus
 }

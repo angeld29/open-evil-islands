@@ -25,33 +25,34 @@
 #include "celogging.h"
 #include "celightcfg.h"
 
-static bool read_section(float section[24][4], const char* section_name,
-													ce_cfgfile* cfg_file)
+static bool read_section(float section[24][4],
+							const char* section_name, ce_cfgfile* cfg)
 {
-	if (!ce_cfgfile_has_section(cfg_file, section_name)) {
+	if (!ce_cfgfile_has_section(cfg, section_name)) {
 		ce_logging_error("lightcfg: could not find section: '%s'", section_name);
 		return false;
 	}
 
-	char option_name[8], option[16];
+	char option_name[8], option[16], *temp;
+
 	for (int i = 0; i < 24; ++i) {
 		snprintf(option_name, sizeof(option_name), "time%02d", i);
 
-		if (!ce_cfgfile_has_option(cfg_file, section_name, option_name)) {
+		if (!ce_cfgfile_has_option(cfg, section_name, option_name)) {
 			ce_logging_error("lightcfg: could not find option: '%s' "
 							"(in section '%s')", option_name, section_name);
 			return false;
 		}
 
-		if (sizeof(option) <= ce_strlcpy(option, ce_cfgfile_get(cfg_file,
-					section_name, option_name), sizeof(option))) {
+		if (sizeof(option) <= ce_strlcpy(option, ce_cfgfile_get(cfg,
+						section_name, option_name), sizeof(option))) {
 			ce_logging_error("lightcfg: too long option: '%s'", option);
 			return false;
 		}
 
-		char* tmp = option;
+		temp = option;
 		for (int j = 0; j < 3; ++j) {
-			section[i][j] = atoi(ce_strsep(&tmp, ",")) / 255.0f;
+			section[i][j] = atoi(ce_strsep(&temp, ",")) / 255.0f;
 		}
 		section[i][3] = 1.0f;
 	}
@@ -59,9 +60,9 @@ static bool read_section(float section[24][4], const char* section_name,
 	return true;
 }
 
-bool ce_lightcfg_init(ce_lightcfg* light_cfg, ce_cfgfile* cfg_file)
+bool ce_lightcfg_init(ce_lightcfg* light, ce_cfgfile* cfg)
 {
-	return read_section(light_cfg->sunlight, "sunlight", cfg_file) &&
-			read_section(light_cfg->ambient, "ambient", cfg_file) &&
-			read_section(light_cfg->sky, "sky", cfg_file);
+	return read_section(light->sunlight, "sunlight", cfg) &&
+			read_section(light->ambient, "ambient", cfg) &&
+			read_section(light->sky, "sky", cfg);
 }

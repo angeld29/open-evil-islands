@@ -656,7 +656,7 @@ static void render_sector(ce_mprfile* mpr,
 											MATERIAL_WATER : MATERIAL_GROUND);
 			assert(mat);
 
-			glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]){0.5f,0.5f,0.5f,1.0f});
+			//glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]){0.5f,0.5f,0.5f,1.0f});
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat->color);
 
 			// TODO: test passed, in use! for lava...

@@ -38,6 +38,8 @@
 #include "cefrustum.h"
 #include "ceresfile.h"
 #include "cemprfile.h"
+#include "cecfgfile.h"
+#include "celightcfg.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0
@@ -53,173 +55,14 @@ ce_mprfile* mpr;
 ce_camera* cam;
 ce_timer* tmr;
 
+ce_lightcfg gipat_light;
+ce_lightcfg ingos_light;
+ce_lightcfg suslanger_light;
+ce_lightcfg* light_cfg;
+
 ce_input_event_supply* es;
 ce_input_event* night_event;
 int night_index;
-
-GLint sunlight_gipat[24][3] = {
- 	{63, 93, 157},
- 	{63, 93, 157},
- 	{92, 122, 165},
-	{ 171, 131, 119},
- 	{255, 140, 104},
- 	{255, 198, 129},
- 	{255, 248, 207},
- 	{255, 255, 255},
- 	{255, 255, 255},
-	{ 255, 255, 255},
- 	{255, 255, 255},
-	{ 255, 255, 255},
- 	{255, 255, 255},
- 	{255, 255, 255},
- 	{255, 255, 255},
- 	{255, 255, 255},
-	{ 255, 255, 255},
-	{ 255, 255, 255},
-	{ 255, 248, 207},
-	{ 255, 202, 136},
- 	{255, 123, 82},
- 	{166, 128, 116},
-	{ 92, 122, 165},
-	{ 63, 93, 157}
-};
-
-GLint ambient_gipat[24][3] = {
- 	{54, 83, 147},
-	{ 54, 83, 147},
-	{ 87, 89, 110},
- 	{122, 81, 68},
- 	{133, 96, 85},
- 	{135, 117, 94},
- 	{129, 135, 125},
-	{ 129, 135, 125},
- 	{129, 135, 125},
- 	{129, 135, 125},
- 	{129, 135, 125},
-	{ 129, 135, 125},
-	{ 129, 135, 125},
- 	{129, 135, 125},
-	{ 129, 135, 125},
-	{ 129, 135, 125},
- 	{129, 135, 125},
- 	{129, 135, 125},
- 	{129, 135, 125},
- 	{135, 117, 94},
- 	{133, 96, 85},
- 	{122, 81, 68},
- 	{87, 89, 110},
- 	{54, 83, 147}
-};
-
-GLint sky_gipat[24][3] = {
- 	{0, 0, 118},
- 	{0, 0, 118},
- 	{76, 78, 97},
-	{151, 80, 58},
- 	{196, 89, 56},
- 	{175, 150, 126},
- 	{138, 176, 177},
- 	{53, 182, 198},
- 	{46, 181, 217},
- 	{46, 181, 217},
- 	{46, 181, 217},
- 	{46, 181, 217},
- 	{46, 181, 217},
- 	{46, 181, 217},
- 	{46, 181, 217},
- 	{46, 181, 217},
- 	{46, 181, 217},
-	{103, 181, 183},
- 	{174, 168, 157},
- 	{210, 154, 101},
- 	{210, 95, 36},
- 	{136, 81, 81},
- 	{76, 78, 97},
- 	{0, 0, 118}
-};
-
-
-
-GLint sunlight_ingos[24][3] = {
-	{ 63, 93, 157 },
-	{ 63, 93, 157 },
-	{ 92, 113, 165 },
-	{ 171, 131, 119 },
-	{ 255, 140, 104 },
-	{ 255, 198, 129 },
-	{ 255, 248, 207 },
-	{ 255, 255, 255 },
-	{ 255, 255, 255 },
-	{ 255, 255, 255 },
-	{ 255, 255, 255 },
-	{ 255, 255, 255 },
-	{ 255, 255, 255 },
-	{ 255, 255, 255 },
-	{ 255, 255, 255 },
-	{ 255, 255, 255 },
-	{ 255, 255, 255 },
-	{ 255, 255, 255 },
-	{ 255, 248, 207 },
-	{ 255, 202, 136 },
-	{ 255, 123, 82 },
-	{ 166, 128, 116 },
-	{ 92, 122, 165 },
-	{ 63, 93, 157 }
-};
-
-GLint ambient_ingos[24][3] = {
-	{ 54, 83, 147 },
-	{ 54, 83, 147 },
-	{ 77, 87, 135 },
-	{ 88, 94, 133 },
-	{ 99, 104, 133 },
-	{ 108, 115, 138 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 111, 121, 151 },
-	{ 108, 115, 138 },
-	{ 99, 104, 133 },
-	{ 88, 94, 133 },
-	{ 77, 87, 135 },
-	{ 54, 83, 147 }
-};
-
-GLint sky_ingos[24][3] = {
-	{ 0, 0, 118 },
-	{ 0, 0, 118 },
-	{ 75, 83, 95 },
-	{ 151, 80, 58 },
-	{ 196, 89, 56 },
-	{ 175, 150, 126 },
-	{ 138, 167, 177 },
-	{ 53, 157, 198 },
-	{ 46, 132, 217 },
-	{ 46, 132, 217 },
-	{ 46, 132, 217 },
-	{ 46, 132, 217 },
-	{ 46, 132, 217 },
-	{ 46, 132, 217 },
-	{ 46, 132, 217 },
-	{ 46, 132, 217 },
-	{ 53, 157, 198 },
-	{ 103, 168, 183 },
-	{ 174, 168, 157 },
-	{ 210, 154, 101 },
-	{ 210, 95, 36 },
-	{ 136, 81, 81 },
-	{ 75, 83, 95 },
-	{ 0, 0, 118 }
-};
 
 static void idle(void)
 {
@@ -285,48 +128,31 @@ static void idle(void)
 
 static void display(void)
 {
-	glEnable(GL_LIGHTING);
-	// TODO: disable it...
-	glEnable(GL_NORMALIZE);
-
-	float coef = 255.0f;
-
-	float sky[4] = { sky_gipat[night_index][0] / coef,
-					sky_gipat[night_index][1] / coef,
-					sky_gipat[night_index][2] / coef,
-					1.0f };
-
-	glClearColor(sky[0], sky[1], sky[2], sky[3]);
+	glClearColor(light_cfg->sky[night_index][0], light_cfg->sky[night_index][1],
+		light_cfg->sky[night_index][2], light_cfg->sky[night_index][3]);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glLoadIdentity();
 
-	// -----
-
-	float aaa[4] = { ambient_gipat[night_index][0] / coef,
-					ambient_gipat[night_index][1] / coef,
-					ambient_gipat[night_index][2] / coef,
-					1.0f };
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, aaa);
+	glEnable(GL_LIGHTING);
 
 #ifdef GL_VERSION_1_2
 	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 #endif
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-
-	// -----
-
-	float sss[4] = { sunlight_gipat[night_index][0] / coef,
-					sunlight_gipat[night_index][1] / coef,
-					sunlight_gipat[night_index][2] / coef,
-					1.0f };
+	/*float coef = 3.0f;
+	float aaa[4] = { light_cfg->ambient[night_index][0] * coef,
+					light_cfg->ambient[night_index][1] * coef,
+					light_cfg->ambient[night_index][2] * coef,
+					light_cfg->ambient[night_index][3] * coef};
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, aaa);*/
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, light_cfg->ambient[night_index]);
 
 	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, sss);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]){ 0.0f, 0.0f, 0.0f, 0.0f });
-
-	// -----
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_cfg->sunlight[night_index]);
+	//glLightfv(GL_LIGHT0, GL_AMBIENT, light_cfg->sunlight[night_index]);
+	//glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]){ 0.0f, 0.0f, 0.0f, 0.0f });
 
 	//glEnable(GL_LIGHT1);
 	//glLightfv(GL_LIGHT1, GL_POSITION, (float[]){ 0.0f, 0.0f, 0.0f, 1.0f });
@@ -335,7 +161,7 @@ static void display(void)
 
 	ce_camera_setup(cam);
 
-	glLightfv(GL_LIGHT0, GL_POSITION, (float[]){ 0.0f, 50.0f, 0.0f, 1.0f });
+	glLightfv(GL_LIGHT0, GL_POSITION, (float[]){ 0.0f, 30.0f, 0.0f, 1.0f });
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
@@ -377,6 +203,24 @@ static void reshape(int width, int height)
 	ce_camera_set_aspect(cam, width, height);
 }
 
+static bool load_light(ce_lightcfg* light, const char* ei_path,
+											const char* cfg_name)
+{
+	char cfg_path[512];
+	snprintf(cfg_path, sizeof(cfg_path), "%s/Config/%s.ini", ei_path, cfg_name);
+
+	ce_cfgfile* cfg = ce_cfgfile_open(cfg_path);
+	if (NULL == cfg) {
+		ce_logging_error("could not open config file '%s'", cfg_path);
+		return false;
+	}
+
+	bool ok = ce_lightcfg_init(light, cfg);
+
+	ce_cfgfile_close(cfg);
+	return ok;
+}
+
 static void usage()
 {
 	fprintf(stderr,
@@ -392,39 +236,41 @@ static void usage()
 		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
 		"GNU General Public License for more details.\n"
 		"===============================================================================\n\n"
-		"This program is part of Cursed Earth spikes.\n"
-		"mprviewer %d.%d.%d - View and explore Evil Islands maps.\n\n"
-		"Usage: mprviewer [options] <mpr_path>\n"
-		"Where: <mpr_path> Path to 'EI/Maps/*.mpr'.\n"
+		"This program is part of Cursed Earth spikes\n"
+		"mprviewer %d.%d.%d - View and explore Evil Islands maps\n\n"
+		"Usage: mprviewer [options] <zone_name>\n"
+		"Where: <zone_name> Any zone_name.mpr file in 'ei_path/Maps'\n"
 		"Options:\n"
-		"-t <tex_path> Path to 'EI/Res/textures.res'. Required.\n"
-		"-f Start program in Full Screen mode.\n"
-		"-n Start at night (experimental). "
-			"Toggle the night by pressing 'N' key in game.\n"
-		"-v Display program version.\n"
-		"-h Display this message.\n", CE_SPIKE_VERSION_MAJOR,
+		"-b <ei_path> Path to EI base dir (current dir by default)\n"
+		"-f Start program in Full Screen mode\n"
+		"-v Display program version\n"
+		"-h Display this message\n", CE_SPIKE_VERSION_MAJOR,
 		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
 }
 
 int main(int argc, char* argv[])
 {
+	ce_logging_init();
+#ifdef NDEBUG
+	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
+#else
+	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
+#endif
+	ce_alloc_init();
+
 	int c;
-	const char* tex_path = NULL;
+	const char* ei_path = ".";
 	bool fullscreen = false;
-	bool night = false;
 
 	opterr = 0;
 
-	while (-1 != (c = getopt(argc, argv, ":t:fnvh")))  {
+	while (-1 != (c = getopt(argc, argv, ":b:fvh")))  {
 		switch (c) {
-		case 't':
-			tex_path = optarg;
+		case 'b':
+			ei_path = optarg;
 			break;
 		case 'f':
 			fullscreen = true;
-			break;
-		case 'n':
-			night = true;
 			break;
 		case 'v':
 			fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
@@ -435,11 +281,11 @@ int main(int argc, char* argv[])
 			return 0;
 		case ':':
 			usage();
-			fprintf(stderr, "\nOption '-%c' requires an argument.\n", optopt);
+			fprintf(stderr, "\nOption '-%c' requires an argument\n", optopt);
 			return 1;
 		case '?':
 			usage();
-			fprintf(stderr, "\nUnknown option '-%c'.\n", optopt);
+			fprintf(stderr, "\nUnknown option '-%c'\n", optopt);
 			return 1;
 		default:
 			assert(false);
@@ -450,7 +296,7 @@ int main(int argc, char* argv[])
 
 	if (optind == argc) {
 		usage();
-		fprintf(stderr, "\nPlease, specify a path to any MPR file.\n");
+		fprintf(stderr, "\nPlease, specify any MPR file name\n");
 		return 1;
 	}
 
@@ -462,20 +308,6 @@ int main(int argc, char* argv[])
 		}
 		return 1;
 	}
-
-	if (NULL == tex_path) {
-		usage();
-		fprintf(stderr, "\nPlease, specify a path to 'textures.res'.\n");
-		return 1;
-	}
-
-	ce_logging_init();
-#ifdef NDEBUG
-	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
-#else
-	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
-#endif
-	ce_alloc_init();
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
@@ -506,33 +338,45 @@ int main(int argc, char* argv[])
 	ce_input_open();
 	ce_gl_open();
 
-	ce_resfile* tex_res = ce_resfile_open_file(tex_path);
+	char path[512];
+
+	snprintf(path, sizeof(path), "%s/Res/textures.res", ei_path);
+	ce_resfile* tex_res = ce_resfile_open_file(path);
 	if (NULL == tex_res) {
-		fprintf(stderr, "Could not open file '%s'.\n", tex_path);
+		fprintf(stderr, "Could not open file '%s'\n", path);
 		return 1;
 	}
 
-	ce_resfile* mpr_res = ce_resfile_open_file(argv[optind]);
+	snprintf(path, sizeof(path), "%s/Maps/%s.mpr", ei_path, argv[optind]);
+	ce_resfile* mpr_res = ce_resfile_open_file(path);
 	if (NULL == mpr_res) {
-		fprintf(stderr, "Could not open file '%s'.\n", argv[optind]);
+		fprintf(stderr, "Could not open file '%s'\n", path);
 		return 1;
 	}
 
 	mpr = ce_mprfile_open(mpr_res, tex_res);
 	if (!mpr) {
-		fprintf(stderr, "Could not open mpr file.\n");
+		fprintf(stderr, "Could not open mpr file\n");
 		return 1;
 	}
 
 	ce_resfile_close(tex_res);
 	ce_resfile_close(mpr_res);
 
+	if (!load_light(&gipat_light, ei_path, "lightsgipat") ||
+			!load_light(&ingos_light, ei_path, "lightsingos") ||
+			!load_light(&suslanger_light, ei_path, "lightssuslanger")) {
+		ce_logging_error("failed to load lighting configuration");
+		return 1;
+	}
+	light_cfg = &gipat_light;
+
 	ce_vec3 eye;
-	ce_vec3_init(&eye, 100.0f, ce_mprfile_get_max_height(mpr), 0.0f);
+	ce_vec3_init(&eye, 0.0f, ce_mprfile_get_max_height(mpr), 0.0f);
 
 	cam = ce_camera_open();
 	ce_camera_set_eye(cam, &eye);
-	ce_camera_yaw_pitch(cam, ce_deg2rad(0.0f), ce_deg2rad(30.0f));
+	ce_camera_yaw_pitch(cam, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
 
 	tmr = ce_timer_open();
 
