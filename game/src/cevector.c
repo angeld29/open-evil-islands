@@ -18,6 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <string.h>
+
 #include "cealloc.h"
 #include "cevector.h"
 
@@ -53,6 +55,7 @@ void ce_vector_close(ce_vector* vec)
 	ce_free(vec->items, sizeof(void*) * vec->capacity);
 	ce_free(vec, sizeof(ce_vector));
 }
+
 
 bool ce_vector_push_back(ce_vector* vec, void* item)
 {
