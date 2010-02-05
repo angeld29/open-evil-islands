@@ -19,10 +19,10 @@
 */
 
 #include <stdarg.h>
-#include <assert.h>
 
 #include "celib.h"
 #include "cealloc.h"
+#include "cevector.h"
 #include "ceinput.h"
 
 typedef struct {
@@ -47,9 +47,7 @@ struct ce_input_event {
 };
 
 struct ce_input_event_supply {
-	size_t capacity;
-	size_t count;
-	ce_input_event** events;
+	ce_vector* events;
 };
 
 // Button Event.
@@ -195,11 +193,7 @@ ce_input_event_supply* ce_input_event_supply_open(void)
 		return NULL;
 	}
 
-	es->capacity = 16;
-	es->count = 0;
-
-	if (NULL == (es->events = ce_alloc(sizeof(ce_input_event*) *
-												es->capacity))) {
+	if (NULL == (es->events = ce_vector_open())) {
 		ce_input_event_supply_close(es);
 		return NULL;
 	}
@@ -213,22 +207,24 @@ void ce_input_event_supply_close(ce_input_event_supply* es)
 		return;
 	}
 
-	for (size_t i = 0; i < es->count; ++i) {
-		ce_input_event* ev = es->events[i];
-		if (NULL != ev->vtable.dtor) {
-			(ev->vtable.dtor)(ev);
+	if (NULL != es->events) {
+		for (size_t i = 0, n = ce_vector_count(es->events); i < n; ++i) {
+			ce_input_event* ev = ce_vector_get(es->events, i);
+			if (NULL != ev->vtable.dtor) {
+				(ev->vtable.dtor)(ev);
+			}
+			ce_free(ev, sizeof(ce_input_event) + ev->size);
 		}
-		ce_free(ev, sizeof(ce_input_event) + ev->size);
+		ce_vector_close(es->events);
 	}
 
-	ce_free(es->events, sizeof(ce_input_event*) * es->capacity);
 	ce_free(es, sizeof(ce_input_event_supply));
 }
 
 void ce_input_event_supply_advance(ce_input_event_supply* es, float elapsed)
 {
-	for (size_t i = 0; i < es->count; ++i) {
-		ce_input_event* ev = es->events[i];
+	for (size_t i = 0, n = ce_vector_count(es->events); i < n; ++i) {
+		ce_input_event* ev = ce_vector_get(es->events, i);
 		(ev->vtable.advance)(ev, elapsed);
 	}
 }
@@ -250,9 +246,7 @@ static ce_input_event* create_event(ce_input_event_supply* es,
 	(ev->vtable.ctor)(ev, args);
 	va_end(args);
 
-	assert(es->count < es->capacity && "to be implemented");
-
-	es->events[es->count++] = ev;
+	ce_vector_push_back(es->events, ev);
 
 	return ev;
 }
@@ -286,7 +280,7 @@ ce_input_event* ce_input_create_single_back_event(ce_input_event_supply* es,
 
 // AND Event.
 
-ce_input_event* ce_input_create_and_event(ce_input_event_supply* es,
+ce_input_event* ce_input_create_and2_event(ce_input_event_supply* es,
 											ce_input_event* event1,
 											ce_input_event* event2)
 {
@@ -299,13 +293,13 @@ ce_input_event* ce_input_create_and3_event(ce_input_event_supply* es,
 											ce_input_event* event2,
 											ce_input_event* event3)
 {
-	return ce_input_create_and_event(es, event1,
-			ce_input_create_and_event(es, event2, event3));
+	return ce_input_create_and2_event(es, event1,
+			ce_input_create_and2_event(es, event2, event3));
 }
 
 // OR Event.
 
-ce_input_event* ce_input_create_or_event(ce_input_event_supply* es,
+ce_input_event* ce_input_create_or2_event(ce_input_event_supply* es,
 											ce_input_event* event1,
 											ce_input_event* event2)
 {
@@ -318,6 +312,6 @@ ce_input_event* ce_input_create_or3_event(ce_input_event_supply* es,
 											ce_input_event* event2,
 											ce_input_event* event3)
 {
-	return ce_input_create_or_event(es, event1,
-			ce_input_create_or_event(es, event2, event3));
+	return ce_input_create_or2_event(es, event1,
+			ce_input_create_or2_event(es, event2, event3));
 }

@@ -188,7 +188,7 @@ ce_input_create_single_back_event(ce_input_event_supply* es,
 // AND Event.
 
 extern ce_input_event*
-ce_input_create_and_event(ce_input_event_supply* es,
+ce_input_create_and2_event(ce_input_event_supply* es,
 							ce_input_event* event1, ce_input_event* event2);
 
 extern ce_input_event*
@@ -198,7 +198,7 @@ ce_input_create_and3_event(ce_input_event_supply* es, ce_input_event* event1,
 // OR Event.
 
 extern ce_input_event*
-ce_input_create_or_event(ce_input_event_supply* es,
+ce_input_create_or2_event(ce_input_event_supply* es,
 							ce_input_event* event1, ce_input_event* event2);
 
 extern ce_input_event*
