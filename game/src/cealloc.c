@@ -37,6 +37,7 @@
 #include <assert.h>
 
 #include "celib.h"
+#include "celogging.h"
 #include "cealloc.h"
 
 static const size_t PAGE_SIZE = 4096;
@@ -296,53 +297,42 @@ void ce_alloc_close(void)
 	smallobj.pool = NULL;
 }
 
+static void* check_allocation(void* ptr)
+{
+	if (NULL == ptr) {
+		ce_logging_fatal("alloc: could not allocate memory");
+		exit(EXIT_FAILURE);
+	}
+	return ptr;
+}
+
 void* ce_alloc(size_t size)
 {
 	assert(NULL != smallobj.pool);
-
-	if (size > MAX_SMALL_OBJECT_SIZE) {
-		return malloc(size);
-	}
-
-	if (0 == size) {
-		size = 1;
-	}
-
-	return portion_alloc(smallobj.pool + get_offset(size, OBJECT_ALIGNMENT) - 1);
+	return check_allocation(size > MAX_SMALL_OBJECT_SIZE ? malloc(size) :
+		portion_alloc(smallobj.pool +
+					get_offset(ce_smax(1, size), OBJECT_ALIGNMENT) - 1));
 }
 
 void* ce_alloc_zero(size_t size)
 {
 	assert(NULL != smallobj.pool);
-
 	if (size > MAX_SMALL_OBJECT_SIZE) {
-		return calloc(1, size);
+		return check_allocation(calloc(1, size));
 	}
-
-	if (0 == size) {
-		size = 1;
-	}
-
-	void* ptr = portion_alloc(smallobj.pool + get_offset(size, OBJECT_ALIGNMENT) - 1);
-	return NULL != ptr ? memset(ptr, 0, size) : NULL;
+	size = ce_smax(1, size);
+	void* ptr = portion_alloc(smallobj.pool +
+							get_offset(size, OBJECT_ALIGNMENT) - 1);
+	return check_allocation(NULL != ptr ? memset(ptr, 0, size) : NULL);
 }
 
 void ce_free(void* ptr, size_t size)
 {
 	assert(NULL != smallobj.pool);
-
 	if (size > MAX_SMALL_OBJECT_SIZE) {
 		free(ptr);
-		return;
+	} else if (NULL != ptr) {
+		portion_free(smallobj.pool +
+					get_offset(ce_smax(1, size), OBJECT_ALIGNMENT) - 1, ptr);
 	}
-
-	if (NULL == ptr) {
-		return;
-	}
-
-	if (0 == size) {
-		size = 1;
-	}
-
-	portion_free(smallobj.pool + get_offset(size, OBJECT_ALIGNMENT) - 1, ptr);
 }
