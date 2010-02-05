@@ -65,15 +65,9 @@ static int name_hash(const char* name, int lim)
 ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 {
 	ce_resfile* res = ce_alloc_zero(sizeof(ce_resfile));
-	if (NULL == res) {
-		return NULL;
-	}
 
 	res->name_length = strlen(name);
-	if (NULL == (res->name = ce_strdup(name))) {
-		ce_resfile_close(res);
-		return NULL;
-	}
+	res->name = ce_strdup(name);
 
 	uint32_t signature;
 	if (1 != ce_memfile_read(mem, &signature, sizeof(uint32_t), 1)) {
@@ -98,11 +92,7 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 	ce_le2cpu32s(&res->metadata_offset);
 	ce_le2cpu32s(&res->names_length);
 
-	if (NULL == (res->nodes = ce_alloc_zero(sizeof(ce_resfile_node) *
-												res->node_count))) {
-		ce_resfile_close(res);
-		return NULL;
-	}
+	res->nodes = ce_alloc_zero(sizeof(ce_resfile_node) * res->node_count);
 
 	if (0 != ce_memfile_seek(mem, res->metadata_offset, SEEK_SET)) {
 		ce_resfile_close(res);
@@ -129,8 +119,7 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 	}
 
 	res->names = ce_alloc(res->names_length + 1);
-	if (NULL == res->names ||
-			1 != ce_memfile_read(mem, res->names, res->names_length, 1)) {
+	if (1 != ce_memfile_read(mem, res->names, res->names_length, 1)) {
 		ce_resfile_close(res);
 		return NULL;
 	}
@@ -138,11 +127,7 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 
 	for (size_t i = 0; i < res->node_count; ++i) {
 		ce_resfile_node* node = res->nodes + i;
-		if (NULL == (node->name = ce_strndup(res->names + node->name_offset,
-											node->name_length))) {
-			ce_resfile_close(res);
-			return NULL;
-		}
+		node->name = ce_strndup(res->names + node->name_offset, node->name_length);
 	}
 
 	res->mem = mem;
