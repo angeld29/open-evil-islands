@@ -32,13 +32,8 @@ ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 											void* client_data)
 {
 	ce_memfile* mem = ce_alloc(sizeof(ce_memfile));
-	if (NULL == mem) {
-		return NULL;
-	}
-
 	mem->callbacks = callbacks;
 	mem->client_data = client_data;
-
 	return mem;
 }
 

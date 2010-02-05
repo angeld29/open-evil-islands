@@ -91,10 +91,6 @@ ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 	ce_unused(mode);
 
 	cookie* c = ce_alloc(sizeof(cookie));
-	if (NULL == c) {
-		return NULL;
-	}
-
 	c->data = data;
 	c->size = size;
 	c->pos = 0;
