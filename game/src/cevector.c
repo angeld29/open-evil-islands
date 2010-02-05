@@ -18,8 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
-
 #include "cealloc.h"
 #include "cevector.h"
 
@@ -36,7 +34,7 @@ ce_vector* ce_vector_open(void)
 		return NULL;
 	}
 
-	vec->capacity = 32;
+	vec->capacity = 16;
 	vec->count = 0;
 
 	if (NULL == (vec->items = ce_alloc(sizeof(void*) * vec->capacity))) {
@@ -52,15 +50,23 @@ void ce_vector_close(ce_vector* vec)
 	if (NULL == vec) {
 		return;
 	}
-
 	ce_free(vec->items, sizeof(void*) * vec->capacity);
-
 	ce_free(vec, sizeof(ce_vector));
 }
 
 bool ce_vector_push_back(ce_vector* vec, void* item)
 {
-	assert(vec->count < vec->capacity && "To be implemented");
+	if (vec->count == vec->capacity) {
+		size_t capacity = 2 * vec->capacity;
+		void** items = ce_alloc(sizeof(void*) * capacity);
+		if (NULL == items) {
+			return false;
+		}
+		memcpy(items, vec->items, sizeof(void*) * vec->count);
+		ce_free(vec->items, sizeof(void*) * vec->capacity);
+		vec->capacity = capacity;
+		vec->items = items;
+	}
 	vec->items[vec->count++] = item;
 	return true;
 }
