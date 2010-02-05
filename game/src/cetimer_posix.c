@@ -33,9 +33,6 @@ struct ce_timer {
 ce_timer* ce_timer_open(void)
 {
 	ce_timer* tmr = ce_alloc(sizeof(ce_timer));
-	if (NULL == tmr) {
-		return NULL;
-	}
 	gettimeofday(&tmr->elapsed_old, NULL);
 	return tmr;
 }

@@ -71,20 +71,14 @@ char* ce_strtrim(char* restrict dst, const char* restrict src)
 
 char* ce_strdup(const char* s)
 {
-	char* p = ce_alloc(strlen(s) + 1);
-	if (NULL != p) {
-		strcpy(p, s);
-	}
-	return p;
+	return strcpy(ce_alloc(strlen(s) + 1), s);
 }
 
 char* ce_strndup(const char* s, size_t n)
 {
 	char* p = ce_alloc(n + 1);
-	if (NULL != p) {
-		strncpy(p, s, n);
-		p[n] = '\0';
-	}
+	strncpy(p, s, n);
+	p[n] = '\0';
 	return p;
 }
 

@@ -312,12 +312,7 @@ static bool dxt_generate_texture(int mipmap_count,
 		data_size += w * h * 4;
 	}
 
-	if (NULL == (data = ce_alloc(data_size))) {
-		ce_logging_error("Could not allocate memory.");
-		return false;
-	}
-
-	uint8_t* dst = data;
+	uint8_t* dst = data = ce_alloc(data_size);
 
 	for (int i = 0, w = width, h = height;
 			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
@@ -413,11 +408,7 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 	uint16_t* end = src + pixel_count;
 	int data_size = bpp * pixel_count;
 
-	if (NULL == (data = ce_alloc(data_size))) {
-		return false;
-	}
-
-	for (uint8_t* dst = data; src != end; ++src) {
+	for (uint8_t* dst = data = ce_alloc(data_size); src != end; ++src) {
 		*dst++ = ((*src & rmask) >> rshift) * 255 / rdiv;
 		*dst++ = ((*src & gmask) >> gshift) * 255 / gdiv;
 		*dst++ = (*src & bmask) * 255 / bdiv;
@@ -468,12 +459,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		uint32_t* src = data;
 		uint32_t* end = src + size / sizeof(uint32_t);
 
-		if (NULL == (data = ce_alloc(data_size))) {
-			ce_logging_error("Could not allocate memory.");
-			return false;
-		}
-
-		uint8_t* dst = data;
+		uint8_t* dst = data = ce_alloc(data_size);
 		int n = 0;
 
 		while (src != end) {
@@ -508,9 +494,6 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 ce_texture* ce_texture_open(void* data)
 {
 	ce_texture* tex = ce_alloc(sizeof(ce_texture));
-	if (NULL == tex) {
-		return NULL;
-	}
 
 	glGenTextures(1, &tex->id);
 
