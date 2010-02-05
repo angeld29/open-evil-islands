@@ -72,7 +72,7 @@ static void idle(void)
 		ce_gl_close();
 		ce_input_close();
 		ce_logging_close();
-		ce_alloc_close();
+		ce_alloc_term();
 		exit(0);
 	}
 }
@@ -120,7 +120,7 @@ static bool generate_texture(int index)
 	tex = NULL;
 
 	void* data = ce_alloc(ce_resfile_node_size(res, index));
-	if (NULL == data || !ce_resfile_node_data(res, index, data)) {
+	if (!ce_resfile_node_data(res, index, data)) {
 		ce_free(data, ce_resfile_node_size(res, index));
 		return false;
 	}
@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 
-	ce_alloc_open();
+	ce_alloc_init();
 	ce_logging_open();
 #ifdef NDEBUG
 	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);

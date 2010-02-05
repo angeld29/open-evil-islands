@@ -263,7 +263,7 @@ static size_t get_offset(size_t size, size_t alignment)
 	return (size + alignment - 1) / alignment;
 }
 
-bool ce_alloc_open(void)
+bool ce_alloc_init(void)
 {
 	assert(NULL == smallobj.pool);
 
@@ -275,7 +275,7 @@ bool ce_alloc_open(void)
 	for (size_t i = 0; i < smallobj.count; ++i) {
 		if (!portion_init(smallobj.pool + i,
 				(i + 1) * OBJECT_ALIGNMENT, PAGE_SIZE)) {
-			ce_alloc_close();
+			ce_alloc_term();
 			return false;
 		}
 	}
@@ -283,7 +283,7 @@ bool ce_alloc_open(void)
 	return true;
 }
 
-void ce_alloc_close(void)
+void ce_alloc_term(void)
 {
 	assert(NULL != smallobj.pool);
 

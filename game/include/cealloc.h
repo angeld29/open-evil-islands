@@ -29,8 +29,8 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern bool ce_alloc_open(void);
-extern void ce_alloc_close(void);
+extern bool ce_alloc_init(void);
+extern void ce_alloc_term(void);
 
 extern void* ce_alloc(size_t size);
 extern void* ce_alloc_zero(size_t size);
