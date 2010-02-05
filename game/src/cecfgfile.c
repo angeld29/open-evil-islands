@@ -28,8 +28,7 @@
 #include "cecfgfile.h"
 
 typedef struct {
-	size_t name_size;
-	size_t value_size;
+	size_t name_value_size;
 	char* name;
 	char* value;
 } ce_cfgfile_option;
@@ -48,14 +47,21 @@ static bool parse_file(ce_cfgfile* cfg, FILE* file)
 {
 	cfg->sections = ce_vector_open();
 
-	char line[128];
+	const size_t line_size = 128;
+	char line[line_size], temp[line_size];
 	ce_cfgfile_section* section = NULL;
 
 	for (int line_number = 1;
-			NULL != fgets(line, sizeof(line), file); ++line_number) {
-		ce_strtrim(line);
+			NULL != fgets(temp, line_size, file); ++line_number) {
+		ce_strtrim(line, temp);
 
 		size_t line_length = strlen(line);
+
+		if (line_length + 1 == line_size) {
+			ce_logging_error("cfgfile: line %d: "
+							"string is too long: '%s'", line_number, line);
+			return false;
+		}
 
 		if (0 == line_length || ';' == line[0]) {
 			continue;
@@ -63,53 +69,57 @@ static bool parse_file(ce_cfgfile* cfg, FILE* file)
 
 		if ('[' == line[0]) {
 			if (']' != line[line_length - 1]) {
-				ce_logging_error("cfgfile: expected ']' after '%s', line %d",
-														line, line_number);
+				ce_logging_error("cfgfile: line %d: "
+								"expected ']': '%s'", line_number, line);
 				return false;
 			}
 
 			if (line_length <= 2) {
-				ce_logging_error("cfgfile: unnamed section, line %d",
-														line_number);
+				ce_logging_error("cfgfile: line %d: "
+								"unnamed section: '%s'", line_number, line);
 				return false;
 			}
 
 			section = ce_alloc(sizeof(ce_cfgfile_section));
-			section->name = ce_alloc(section->name_size = line_length + 1);
-			ce_strtrim(ce_strmid(section->name, line, 1, line_length - 2));
+			section->name_size = line_length + 1;
+			section->name = ce_alloc(section->name_size);
 			section->options = ce_vector_open();
+			ce_strmid(temp, line, 1, line_length - 2);
+			ce_strtrim(section->name, temp);
 			ce_vector_push_back(cfg->sections, section);
 		} else {
 			if (NULL == section) {
-				ce_logging_error("cfgfile: option '%s' outside of section, "
-									"line %d", line, line_number);
+				ce_logging_error("cfgfile: line %d: option outside of "
+								"any section: '%s'", line_number, line);
 				return false;
 			}
 
 			char* eq = strchr(line, '=');
 			if (NULL == eq) {
-				ce_logging_error("cfgfile: expected '=' after '%s', line %d",
-														line, line_number);
+				ce_logging_error("cfgfile: line %d: "
+								"expected '=': '%s'", line_number, line);
 				return false;
 			}
 
-			size_t eq_pos = eq - line;
 			ce_cfgfile_option* option = ce_alloc(sizeof(ce_cfgfile_option));
-			option->name = ce_alloc(option->name_size = line_length + 1);
-			option->value = ce_alloc(option->value_size = line_length + 1);
-			ce_strtrim(ce_strleft(option->name, line, eq_pos));
-			ce_strtrim(ce_strright(option->value, line, line_length - eq_pos - 1));
+			option->name_value_size = line_length + 1;
+			option->name = ce_alloc(option->name_value_size);
+			option->value = ce_alloc(option->name_value_size);
+			ce_strleft(temp, line, eq - line);
+			ce_strtrim(option->name, temp);
+			ce_strright(temp, line, line_length - (eq - line) - 1);
+			ce_strtrim(option->value, temp);
 			ce_vector_push_back(section->options, option);
 
 			if ('\0' == option->name[0]) {
-				ce_logging_error("cfgfile: missing option name '%s', line %d",
-														line, line_number);
+				ce_logging_error("cfgfile: line %d: missing "
+								"option name: '%s'", line_number, line);
 				return false;
 			}
 
 			if ('\0' == option->value[0]) {
-				ce_logging_error("cfgfile: missing option value '%s', line %d",
-														line, line_number);
+				ce_logging_error("cfgfile: line %d: missing "
+								"option value: '%s'", line_number, line);
 				return false;
 			}
 		}
@@ -151,14 +161,14 @@ void ce_cfgfile_close(ce_cfgfile* cfg)
 	if (NULL != cfg->sections) {
 		for (size_t i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
 			ce_cfgfile_section* section = ce_vector_get(cfg->sections, i);
-			ce_free(section->name, section->name_size);
 			for (size_t j = 0, m = ce_vector_count(section->options); j < m; ++j) {
 				ce_cfgfile_option* option = ce_vector_get(section->options, j);
-				ce_free(option->name, option->name_size);
-				ce_free(option->value, option->value_size);
+				ce_free(option->name, option->name_value_size);
+				ce_free(option->value, option->name_value_size);
 				ce_free(option, sizeof(ce_cfgfile_option));
 			}
 			ce_vector_close(section->options);
+			ce_free(section->name, section->name_size);
 			ce_free(section, sizeof(ce_cfgfile_section));
 		}
 		ce_vector_close(cfg->sections);
@@ -167,19 +177,47 @@ void ce_cfgfile_close(ce_cfgfile* cfg)
 	ce_free(cfg, sizeof(ce_cfgfile));
 }
 
-bool ce_cfgfile_has_section(ce_cfgfile* cfg, const char* section)
+bool ce_cfgfile_has_section(ce_cfgfile* cfg, const char* section_name)
 {
+	for (size_t i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
+		ce_cfgfile_section* section = ce_vector_get(cfg->sections, i);
+		if (0 == strcmp(section_name, section->name)) {
+			return true;
+		}
+	}
 	return false;
 }
 
-bool ce_cfgfile_has_option(ce_cfgfile* cfg, const char* section,
-											const char* option)
+bool ce_cfgfile_has_option(ce_cfgfile* cfg, const char* section_name,
+											const char* option_name)
 {
+	for (size_t i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
+		ce_cfgfile_section* section = ce_vector_get(cfg->sections, i);
+		if (0 == strcmp(section_name, section->name)) {
+			for (size_t j = 0, m = ce_vector_count(section->options); j < m; ++j) {
+				ce_cfgfile_option* option = ce_vector_get(section->options, j);
+				if (0 == strcmp(option_name, option->name)) {
+					return true;
+				}
+			}
+		}
+	}
 	return false;
 }
 
-const char* ce_cfgfile_get(ce_cfgfile* cfg, const char* section,
-											const char* option)
+const char* ce_cfgfile_get(ce_cfgfile* cfg, const char* section_name,
+											const char* option_name)
 {
+	for (size_t i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
+		ce_cfgfile_section* section = ce_vector_get(cfg->sections, i);
+		if (0 == strcmp(section_name, section->name)) {
+			for (size_t j = 0, m = ce_vector_count(section->options); j < m; ++j) {
+				ce_cfgfile_option* option = ce_vector_get(section->options, j);
+				if (0 == strcmp(option_name, option->name)) {
+					return option->value;
+				}
+			}
+		}
+	}
 	return NULL;
 }

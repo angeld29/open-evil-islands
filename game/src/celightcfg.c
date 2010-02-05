@@ -18,54 +18,50 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
 #include <stdio.h>
 
+#include "cestr.h"
+#include "celogging.h"
 #include "celightcfg.h"
 
-/*
-[sunlight]
-time00 = 63, 93, 157
-time01 = 63, 93, 157
-time02 = 92, 113, 165
-time03 = 171, 131, 119
-time04 = 255, 140, 104
-time05 = 255, 198, 129
-time06 = 255, 248, 207
-time07 = 255, 255, 255
-time08 = 255, 255, 255
-time09 = 255, 255, 255
-time10 = 255, 255, 255
-time11 = 255, 255, 255
-time12 = 255, 255, 255
-time13 = 255, 255, 255
-time14 = 255, 255, 255
-time15 = 255, 255, 255
-time16 = 255, 255, 255
-time17 = 255, 255, 255
-time18 = 255, 248, 207
-time19 = 255, 202, 136
-time20 = 255, 123, 82
-time21 = 166, 128, 116
-time22 = 92, 122, 165
-time23 = 63, 93, 157
-*/
-
-void ce_lightcfg_read(ce_lightcfg* cfg, const char* path)
+static bool read_section(float section[24][4], const char* section_name,
+													ce_cfgfile* cfg_file)
 {
-	FILE* file = fopen(path, "rt");
-	if (NULL == file) {
-		return;
+	if (!ce_cfgfile_has_section(cfg_file, section_name)) {
+		ce_logging_error("lightcfg: could not find section: '%s'", section_name);
+		return false;
 	}
 
-	char section[16];
-	fscanf(file, "%15s", section);
+	char option_name[8], option[16];
+	for (int i = 0; i < 24; ++i) {
+		snprintf(option_name, sizeof(option_name), "time%02d", i);
 
-	printf("%s\n", section);
+		if (!ce_cfgfile_has_option(cfg_file, section_name, option_name)) {
+			ce_logging_error("lightcfg: could not find option: '%s' "
+							"(in section '%s')", option_name, section_name);
+			return false;
+		}
 
-	char data[32];
-	fscanf(file, "%31s", data);
+		if (sizeof(option) <= ce_strlcpy(option, ce_cfgfile_get(cfg_file,
+					section_name, option_name), sizeof(option))) {
+			ce_logging_error("lightcfg: too long option: '%s'", option);
+			return false;
+		}
 
-	printf("%s\n", data);
+		char* tmp = option;
+		for (int j = 0; j < 3; ++j) {
+			section[i][j] = atoi(ce_strsep(&tmp, ",")) / 255.0f;
+		}
+		section[i][3] = 1.0f;
+	}
 
-	fclose(file);
+	return true;
+}
+
+bool ce_lightcfg_init(ce_lightcfg* light_cfg, ce_cfgfile* cfg_file)
+{
+	return read_section(light_cfg->sunlight, "sunlight", cfg_file) &&
+			read_section(light_cfg->ambient, "ambient", cfg_file) &&
+			read_section(light_cfg->sky, "sky", cfg_file);
 }

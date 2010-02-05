@@ -33,11 +33,11 @@ typedef struct ce_cfgfile ce_cfgfile;
 extern ce_cfgfile* ce_cfgfile_open(const char* path);
 extern void ce_cfgfile_close(ce_cfgfile* cfg);
 
-extern bool ce_cfgfile_has_section(ce_cfgfile* cfg, const char* section);
-extern bool ce_cfgfile_has_option(ce_cfgfile* cfg, const char* section,
-													const char* option);
-extern const char* ce_cfgfile_get(ce_cfgfile* cfg, const char* section,
-													const char* option);
+extern bool ce_cfgfile_has_section(ce_cfgfile* cfg, const char* section_name);
+extern bool ce_cfgfile_has_option(ce_cfgfile* cfg, const char* section_name,
+													const char* option_name);
+extern const char* ce_cfgfile_get(ce_cfgfile* cfg, const char* section_name,
+													const char* option_name);
 
 #ifdef __cplusplus
 }

@@ -18,7 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <string.h>
 #include <assert.h>
 
 #include "cealloc.h"
@@ -62,8 +61,7 @@ void ce_vector_close(ce_vector* vec)
 bool ce_vector_push_back(ce_vector* vec, void* item)
 {
 	assert(vec->count < vec->capacity && "To be implemented");
-	vec->items[vec->count] = item;
-	++vec->count;
+	vec->items[vec->count++] = item;
 	return true;
 }
 

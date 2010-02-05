@@ -21,60 +21,52 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "cestr.h"
 
-char* ce_strleft(char* dst, const char* src, size_t n)
+char* ce_strleft(char* restrict dst, const char* restrict src, size_t n)
 {
-	size_t len = strlen(src);
-	if (n > len) {
-		n = len;
-	}
+	n = ce_smin(n, strlen(src));
 	strncpy(dst, src, n);
 	dst[n] = '\0';
 	return dst;
 }
 
-char* ce_strright(char* dst, const char* src, size_t n)
+char* ce_strright(char* restrict dst, const char* restrict src, size_t n)
 {
 	size_t len = strlen(src);
-	if (n > len) {
-		n = len;
-	}
-	strcpy(dst, src + len - n);
-	return dst;
+	return strcpy(dst, src + len - ce_smin(n, len));
 }
 
-char* ce_strmid(char* dst, const char* src, size_t pos, size_t n)
+char* ce_strmid(char* restrict dst, const char* restrict src, size_t pos, size_t n)
 {
 	size_t len = strlen(src);
 	if (pos > len) {
 		return NULL;
 	}
-	if (n > (len - pos)) {
-		n = len - pos;
-	}
+	n = ce_smin(n, len - pos);
 	strncpy(dst, src + pos, n);
 	dst[n] = '\0';
 	return dst;
 }
 
-char* ce_strtrim(char* s)
+char* ce_strtrim(char* restrict dst, const char* restrict src)
 {
-	size_t len = strlen(s);
+	size_t len = strlen(src);
 	if (0 == len) {
-		return s;
+		dst[0] = '\0';
+		return dst;
 	}
 	size_t first, last;
-	for (first = 0; first < len && isspace(s[first]); ++first) {
+	for (first = 0; first < len && isspace(src[first]); ++first) {
 	}
-	for (last = len - 1; last > 0 && isspace(s[last]); --last) {
+	for (last = len - 1; last > 0 && isspace(src[last]); --last) {
 	}
 	len = first <= last ? last - first + 1 : 0;
-	// TODO: Source and destination overlap in strncpy
-	strncpy(s, s + first, len);
-	s[len] = '\0';
-	return s;
+	strncpy(dst, src + first, len);
+	dst[len] = '\0';
+	return dst;
 }
 
 char* ce_strdup(const char* s)
@@ -180,7 +172,7 @@ char* ce_strcasestr(const char* haystack, const char* needle)
  *  Based on OpenBSD source.
  *  Copyright (C) 1998 Todd C. Miller <Todd.Miller@courtesan.com>.
 */
-size_t ce_strlcat(char* dst, const char* src, size_t size)
+size_t ce_strlcat(char* restrict dst, const char* restrict src, size_t size)
 {
 	char* d = dst;
 	const char* s = src;
@@ -211,7 +203,7 @@ size_t ce_strlcat(char* dst, const char* src, size_t size)
 	return dlen + (s - src); // Count does not include NULL.
 }
 
-size_t ce_strlcpy(char* dst, const char* src, size_t size)
+size_t ce_strlcpy(char* restrict dst, const char* restrict src, size_t size)
 {
 	size_t srclen = strlen(src);
 	if (0 != size) {

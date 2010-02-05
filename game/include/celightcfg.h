@@ -21,6 +21,10 @@
 #ifndef CE_LIGHTCFG_H
 #define CE_LIGHTCFG_H
 
+#include <stdbool.h>
+
+#include "cecfgfile.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -32,7 +36,7 @@ typedef struct {
 	float sky[24][4];
 } ce_lightcfg;
 
-extern void ce_lightcfg_read(ce_lightcfg* cfg, const char* path);
+extern bool ce_lightcfg_init(ce_lightcfg* light_cfg, ce_cfgfile* cfg_file);
 
 #ifdef __cplusplus
 }

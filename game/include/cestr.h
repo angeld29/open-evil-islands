@@ -29,28 +29,28 @@ extern "C"
 #endif /* __cplusplus */
 
 /**
- *  Return a string that contains the n leftmost characters of the s.
- *  The entire string is returned if n is greater than string length.
+ *  Copies a string that contains the n leftmost characters of the s.
+ *  The entire string is copied if n is greater than string length.
 */
-extern char* ce_strleft(char* dst, const char* src, size_t n);
+extern char* ce_strleft(char* restrict dst, const char* restrict src, size_t n);
 
 /**
- *  Return a string that contains the n rightmost characters of the s.
- *  The entire string is returned if n is greater than string length.
+ *  Copies a string that contains the n rightmost characters of the s.
+ *  The entire string is copied if n is greater than string length.
 */
-extern char* ce_strright(char* dst, const char* src, size_t n);
+extern char* ce_strright(char* restrict dst, const char* restrict src, size_t n);
 
 /**
- *  Return a string, n characters long beginning at position pos.
- *  Return a NULL if the pos exceeds the length of the string.
- *  If there are less than n characters available in the string
- *  starting at the given position, the function returns all
- *  characters that are available from the specified position.
+ *  Copies a string, n characters long beginning at position pos.
+ *  Returns a NULL if the pos exceeds the length of the string, the contents
+ *  of the array remain unchanged. If there are less than n characters
+ *  available in the string starting at the given position, the function
+ *  copies all characters that are available from the specified position.
 */
-extern char* ce_strmid(char* dst, const char* src, size_t pos, size_t n);
+extern char* ce_strmid(char* restrict dst, const char* restrict src, size_t pos, size_t n);
 
-/// Remove all whitespace from the start and the end in place.
-extern char* ce_strtrim(char* s);
+/// Remove all whitespace from the start and the end.
+extern char* ce_strtrim(char* restrict dst, const char* restrict src);
 
 /// Duplicate string, returning an identical alloc'd string.
 extern char* ce_strdup(const char* s);
@@ -96,7 +96,7 @@ extern char* ce_strcasestr(const char* haystack, const char* needle);
  *  Returns strlen(src) + MIN(size, strlen(initial dst)).
  *  If retval >= size, truncation occurred.
 */
-extern size_t ce_strlcat(char* dst, const char* src, size_t size);
+extern size_t ce_strlcat(char* restrict dst, const char* restrict src, size_t size);
 
 /**
  *  @brief Consistent, safe string copy.
@@ -106,7 +106,7 @@ extern size_t ce_strlcat(char* dst, const char* src, size_t size);
  *  will be copied. Always NULL terminates (unless size == 0).
  *  Return strlen(src); if retval >= size, truncation occurred.
 */
-extern size_t ce_strlcpy(char* dst, const char* src, size_t size);
+extern size_t ce_strlcpy(char* restrict dst, const char* restrict src, size_t size);
 
 /**
  *  Find the length of s, but scan at most n characters.
