@@ -32,46 +32,31 @@ struct ce_vector {
 ce_vector* ce_vector_open(void)
 {
 	ce_vector* vec = ce_alloc(sizeof(ce_vector));
-	if (NULL == vec) {
-		return NULL;
-	}
-
 	vec->capacity = 16;
 	vec->count = 0;
-
-	if (NULL == (vec->items = ce_alloc(sizeof(void*) * vec->capacity))) {
-		ce_vector_close(vec);
-		return NULL;
-	}
-
+	vec->items = ce_alloc(sizeof(void*) * vec->capacity);
 	return vec;
 }
 
 void ce_vector_close(ce_vector* vec)
 {
-	if (NULL == vec) {
-		return;
+	if (NULL != vec) {
+		ce_free(vec->items, sizeof(void*) * vec->capacity);
 	}
-	ce_free(vec->items, sizeof(void*) * vec->capacity);
 	ce_free(vec, sizeof(ce_vector));
 }
 
-
-bool ce_vector_push_back(ce_vector* vec, void* item)
+void ce_vector_push_back(ce_vector* vec, void* item)
 {
 	if (vec->count == vec->capacity) {
 		size_t capacity = 2 * vec->capacity;
 		void** items = ce_alloc(sizeof(void*) * capacity);
-		if (NULL == items) {
-			return false;
-		}
 		memcpy(items, vec->items, sizeof(void*) * vec->count);
 		ce_free(vec->items, sizeof(void*) * vec->capacity);
 		vec->capacity = capacity;
 		vec->items = items;
 	}
 	vec->items[vec->count++] = item;
-	return true;
 }
 
 size_t ce_vector_count(ce_vector* vec)

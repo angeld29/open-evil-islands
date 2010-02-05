@@ -189,15 +189,7 @@ bool ce_input_event_triggered(ce_input_event* ev)
 ce_input_event_supply* ce_input_event_supply_open(void)
 {
 	ce_input_event_supply* es = ce_alloc(sizeof(ce_input_event_supply));
-	if (NULL == es) {
-		return NULL;
-	}
-
-	if (NULL == (es->events = ce_vector_open())) {
-		ce_input_event_supply_close(es);
-		return NULL;
-	}
-
+	es->events = ce_vector_open();
 	return es;
 }
 
@@ -233,10 +225,6 @@ static ce_input_event* create_event(ce_input_event_supply* es,
 									event_vtable vtable, size_t size, ...)
 {
 	ce_input_event* ev = ce_alloc(sizeof(ce_input_event) + size);
-	if (NULL == ev) {
-		return NULL;
-	}
-
 	ev->vtable = vtable;
 	ev->triggered = false;
 	ev->size = size;
@@ -247,7 +235,6 @@ static ce_input_event* create_event(ce_input_event_supply* es,
 	va_end(args);
 
 	ce_vector_push_back(es->events, ev);
-
 	return ev;
 }
 

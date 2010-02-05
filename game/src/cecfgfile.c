@@ -132,14 +132,11 @@ ce_cfgfile* ce_cfgfile_open(const char* path)
 {
 	FILE* file = fopen(path, "rt");
 	if (NULL == file) {
+		ce_logging_error("cfgfile: could not open file '%s'", path);
 		return NULL;
 	}
 
 	ce_cfgfile* cfg = ce_alloc(sizeof(ce_cfgfile));
-	if (NULL == cfg) {
-		fclose(file);
-		return NULL;
-	}
 
 	if (!parse_file(cfg, file)) {
 		ce_logging_error("cfgfile: failed to parse '%s'", path);
