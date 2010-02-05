@@ -237,7 +237,7 @@ static void idle(void)
 		ce_gl_close();
 		ce_input_event_supply_close(es);
 		ce_input_close();
-		ce_logging_close();
+		ce_logging_term();
 		ce_alloc_term();
 		if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
 			glutLeaveGameMode();
@@ -478,13 +478,13 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	ce_alloc_init();
-	ce_logging_open();
+	ce_logging_init();
 #ifdef NDEBUG
 	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
 #else
 	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
 #endif
+	ce_alloc_init();
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);

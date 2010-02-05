@@ -48,13 +48,13 @@ static void report(ce_logging_level lvl, const char* format, va_list args)
 	}
 }
 
-bool ce_logging_open(void)
+bool ce_logging_init(void)
 {
 	assert(!opened);
 	return opened = true;
 }
 
-void ce_logging_close(void)
+void ce_logging_term(void)
 {
 	assert(opened);
 	opened = false;

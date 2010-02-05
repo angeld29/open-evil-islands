@@ -71,7 +71,7 @@ static void idle(void)
 		ce_resfile_close(res);
 		ce_gl_close();
 		ce_input_close();
-		ce_logging_close();
+		ce_logging_term();
 		ce_alloc_term();
 		exit(0);
 	}
@@ -263,13 +263,13 @@ int main(int argc, char* argv[])
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 
-	ce_alloc_init();
-	ce_logging_open();
+	ce_logging_init();
 #ifdef NDEBUG
 	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
 #else
 	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
 #endif
+	ce_alloc_init();
 
 	ce_input_open();
 	ce_gl_open();

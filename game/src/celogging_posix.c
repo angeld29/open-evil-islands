@@ -28,14 +28,14 @@
 
 static bool opened;
 
-bool ce_logging_open(void)
+bool ce_logging_init(void)
 {
 	assert(!opened);
 	openlog(NULL, LOG_PERROR, LOG_USER);
 	return opened = true;
 }
 
-void ce_logging_close(void)
+void ce_logging_term(void)
 {
 	assert(opened);
 	closelog();
