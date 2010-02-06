@@ -39,8 +39,8 @@ static bool read_section(float section[24][4],
 		snprintf(option_name, sizeof(option_name), "time%02d", i);
 
 		if (!ce_cfgfile_has_option(cfg, section_name, option_name)) {
-			ce_logging_error("lightcfg: could not find option: '%s' "
-							"(in section '%s')", option_name, section_name);
+			ce_logging_error("lightcfg: section '%s': "
+				"could not find option: '%s'", section_name, option_name);
 			return false;
 		}
 

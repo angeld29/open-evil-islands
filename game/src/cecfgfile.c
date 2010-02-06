@@ -22,8 +22,8 @@
 #include <string.h>
 
 #include "cestr.h"
-#include "cealloc.h"
 #include "celogging.h"
+#include "cealloc.h"
 #include "cevector.h"
 #include "cecfgfile.h"
 

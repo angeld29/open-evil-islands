@@ -21,6 +21,7 @@
 #include <stdarg.h>
 
 #include "celib.h"
+#include "celogging.h"
 #include "cealloc.h"
 #include "cevector.h"
 #include "ceinput.h"
@@ -189,7 +190,17 @@ bool ce_input_event_triggered(ce_input_event* ev)
 ce_input_event_supply* ce_input_event_supply_open(void)
 {
 	ce_input_event_supply* es = ce_alloc(sizeof(ce_input_event_supply));
-	es->events = ce_vector_open();
+	if (NULL == es) {
+		ce_logging_error("input: could not allocate memory");
+		return NULL;
+	}
+
+	if (NULL == (es->events = ce_vector_open())) {
+		ce_logging_error("input: could not allocate memory");
+		ce_input_event_supply_close(es);
+		return NULL;
+	}
+
 	return es;
 }
 
@@ -225,6 +236,11 @@ static ce_input_event* create_event(ce_input_event_supply* es,
 									event_vtable vtable, size_t size, ...)
 {
 	ce_input_event* ev = ce_alloc(sizeof(ce_input_event) + size);
+	if (NULL == ev) {
+		ce_logging_error("input: could not allocate memory");
+		return NULL;
+	}
+
 	ev->vtable = vtable;
 	ev->triggered = false;
 	ev->size = size;
