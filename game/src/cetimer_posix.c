@@ -20,6 +20,7 @@
 
 #include <sys/time.h>
 
+#include "celogging.h"
 #include "cealloc.h"
 #include "cetimer.h"
 
@@ -33,6 +34,10 @@ struct ce_timer {
 ce_timer* ce_timer_open(void)
 {
 	ce_timer* tmr = ce_alloc(sizeof(ce_timer));
+	if (NULL == tmr) {
+		ce_logging_error("timer: could not allocate memory");
+		return NULL;
+	}
 	gettimeofday(&tmr->elapsed_old, NULL);
 	return tmr;
 }
