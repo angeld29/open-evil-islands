@@ -23,6 +23,7 @@
 #include <assert.h>
 
 #include "celib.h"
+#include "celogging.h"
 #include "cealloc.h"
 #include "cememfile.h"
 
@@ -91,6 +92,11 @@ ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 	ce_unused(mode);
 
 	cookie* c = ce_alloc(sizeof(cookie));
+	if (NULL == c) {
+		ce_logging_error("memfile: could not allocate memory");
+		return NULL;
+	}
+
 	c->data = data;
 	c->size = size;
 	c->pos = 0;

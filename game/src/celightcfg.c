@@ -46,7 +46,7 @@ static bool read_section(float section[24][4],
 
 		if (sizeof(option) <= ce_strlcpy(option, ce_cfgfile_get(cfg,
 						section_name, option_name), sizeof(option))) {
-			ce_logging_error("lightcfg: too long option: '%s'", option);
+			ce_logging_error("lightcfg: option is too long: '%s'", option);
 			return false;
 		}
 

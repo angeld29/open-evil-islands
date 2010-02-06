@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 
+#include "celogging.h"
 #include "cealloc.h"
 #include "cememfile.h"
 
@@ -32,8 +33,14 @@ ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 											void* client_data)
 {
 	ce_memfile* mem = ce_alloc(sizeof(ce_memfile));
+	if (NULL == mem) {
+		ce_logging_error("memfile: could not allocate memory");
+		return NULL;
+	}
+
 	mem->callbacks = callbacks;
 	mem->client_data = client_data;
+
 	return mem;
 }
 
@@ -41,6 +48,7 @@ ce_memfile* ce_memfile_open_path(const char* path, const char* mode)
 {
 	FILE* file = fopen(path, mode);
 	if (NULL == file) {
+		ce_logging_error("memfile: could not open file '%s'", path);
 		return NULL;
 	}
 

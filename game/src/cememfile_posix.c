@@ -20,12 +20,14 @@
 
 #include <stdio.h>
 
+#include "celogging.h"
 #include "cememfile.h"
 
 ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 {
 	FILE* file = fmemopen(data, size, mode);
 	if (NULL == file) {
+		ce_logging_error("memfile: could not open memory file");
 		return NULL;
 	}
 
