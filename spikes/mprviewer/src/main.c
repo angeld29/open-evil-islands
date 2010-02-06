@@ -22,9 +22,11 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <math.h>
 #include <assert.h>
 
 #include <getopt.h>
+
 #include <GL/glut.h>
 
 #include "cegl.h"
@@ -51,6 +53,8 @@
 #define CE_SPIKE_VERSION_PATCH 0
 #endif
 
+#define DAY_NIGHT_CHANGE_SPEED_DEFAULT 0.08f
+
 ce_mprfile* mpr;
 ce_camera* cam;
 ce_timer* tmr;
@@ -60,15 +64,20 @@ ce_lightcfg ingos_light;
 ce_lightcfg suslanger_light;
 ce_lightcfg* light_cfg;
 
+float time_of_day = 12.0f;
+float day_night_change_speed = DAY_NIGHT_CHANGE_SPEED_DEFAULT;
+
 ce_input_event_supply* es;
-ce_input_event* night_event;
-int night_index;
 
 static void idle(void)
 {
 	ce_timer_advance(tmr);
 
 	float elapsed = ce_timer_elapsed(tmr);
+
+	if ((time_of_day += day_night_change_speed * elapsed) >= 24.0f) {
+		time_of_day = 0.0f;
+	}
 
 	ce_input_advance(elapsed);
 	ce_input_event_supply_advance(es, elapsed);
@@ -117,19 +126,41 @@ static void idle(void)
 							ce_deg2rad(-0.25f * ce_input_mouse_offset_y()));
 	}
 
-	if (ce_input_event_triggered(night_event)) {
-		if (++night_index >= 24) {
-			night_index = 0;
-		}
-	}
-
 	glutPostRedisplay();
+}
+
+static void color_lerp(float u, float rcol[4], float acol[4], float bcol[4])
+{
+	rcol[0] = ce_lerp(u, acol[0], bcol[0]);
+	rcol[1] = ce_lerp(u, acol[1], bcol[1]);
+	rcol[2] = ce_lerp(u, acol[2], bcol[2]);
+	rcol[3] = ce_lerp(u, acol[3], bcol[3]);
 }
 
 static void display(void)
 {
-	glClearColor(light_cfg->sky[night_index][0], light_cfg->sky[night_index][1],
-		light_cfg->sky[night_index][2], light_cfg->sky[night_index][3]);
+	float time_index, time_next_index;
+	float time_factor = modff(time_of_day, &time_index);
+
+	if ((time_next_index = time_index + 1.0f) >= 24.0f) {
+		time_next_index = 0.0f;
+	}
+
+	float sky[4], ambient[4], sunlight[4];
+
+	color_lerp(time_factor, sky,
+		light_cfg->sky[(int)time_index],
+		light_cfg->sky[(int)time_next_index]);
+
+	color_lerp(time_factor, ambient,
+		light_cfg->ambient[(int)time_index],
+		light_cfg->ambient[(int)time_next_index]);
+
+	color_lerp(time_factor, sunlight,
+		light_cfg->sunlight[(int)time_index],
+		light_cfg->sunlight[(int)time_next_index]);
+
+	glClearColor(sky[0], sky[1], sky[2], sky[3]);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -141,27 +172,14 @@ static void display(void)
 	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 #endif
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-	/*float coef = 3.0f;
-	float aaa[4] = { light_cfg->ambient[night_index][0] * coef,
-					light_cfg->ambient[night_index][1] * coef,
-					light_cfg->ambient[night_index][2] * coef,
-					light_cfg->ambient[night_index][3] * coef};
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, aaa);*/
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, light_cfg->ambient[night_index]);
-
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_cfg->sunlight[night_index]);
-	//glLightfv(GL_LIGHT0, GL_AMBIENT, light_cfg->sunlight[night_index]);
-	//glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]){ 0.0f, 0.0f, 0.0f, 0.0f });
-
-	//glEnable(GL_LIGHT1);
-	//glLightfv(GL_LIGHT1, GL_POSITION, (float[]){ 0.0f, 0.0f, 0.0f, 1.0f });
-	//glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, ce_camera_get_fov(cam) / 3.0f);
-	//glLightfv(GL_LIGHT1, GL_DIFFUSE, sss);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
 
 	ce_camera_setup(cam);
 
-	glLightfv(GL_LIGHT0, GL_POSITION, (float[]){ 0.0f, 30.0f, 0.0f, 1.0f });
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_POSITION, (float[]) { 0.0f, 1.0f, 0.0f, 0.0f });
+	glLightfv(GL_LIGHT0, GL_AMBIENT, sunlight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]) { 0.0f, 0.0f, 0.0f, 0.0f });
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
@@ -190,7 +208,6 @@ static void display(void)
 	ce_mprfile_apply_frustum(mpr, &eye, &f);
 	ce_mprfile_render(mpr);
 
-	glDisable(GL_LIGHT1);
 	glDisable(GL_LIGHT0);
 	glDisable(GL_LIGHTING);
 
@@ -243,9 +260,11 @@ static void usage()
 		"Options:\n"
 		"-b <ei_path> Path to EI base dir (current dir by default)\n"
 		"-f Start program in Full Screen mode\n"
+		"-s <speed, [0.0 ... 1.0]> Day/Night change speed (%g by default)\n"
 		"-v Display program version\n"
 		"-h Display this message\n", CE_SPIKE_VERSION_MAJOR,
-		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
+		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+		DAY_NIGHT_CHANGE_SPEED_DEFAULT);
 }
 
 int main(int argc, char* argv[])
@@ -264,13 +283,16 @@ int main(int argc, char* argv[])
 
 	opterr = 0;
 
-	while (-1 != (c = getopt(argc, argv, ":b:fvh")))  {
+	while (-1 != (c = getopt(argc, argv, ":b:fs:vh")))  {
 		switch (c) {
 		case 'b':
 			ei_path = optarg;
 			break;
 		case 'f':
 			fullscreen = true;
+			break;
+		case 's':
+			day_night_change_speed = ce_fclamp(atof(optarg), 0.0f, 1.0f);
 			break;
 		case 'v':
 			fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
@@ -381,8 +403,6 @@ int main(int argc, char* argv[])
 	tmr = ce_timer_open();
 
 	es = ce_input_event_supply_open();
-	night_event = ce_input_create_single_front_event(es,
-					ce_input_create_button_event(es, CE_KB_N));
 
 	glutMainLoop();
 	return 0;

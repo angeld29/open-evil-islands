@@ -110,8 +110,6 @@ bool ce_gl_open(void)
 {
 	assert(!opened);
 
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
 	features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO] =
 		check_extension("GL_ARB_texture_non_power_of_two");
 	features[CE_GL_FEATURE_TEXTURE_RECTANGLE] =

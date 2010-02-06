@@ -57,6 +57,7 @@ typedef struct {
 	float color[4];
 	float selfillum;
 	float wavemult;
+	float unknown[4];
 } material;
 
 typedef struct {
@@ -138,12 +139,11 @@ static material* find_material(ce_mprfile* mpr, unsigned int type)
 
 static bool read_material(material* mat, ce_memfile* mem)
 {
-	float unknown[4];
 	if (1 != ce_memfile_read(mem, &mat->type, sizeof(uint32_t), 1) ||
 			4 != ce_memfile_read(mem, mat->color, sizeof(float), 4) ||
 			1 != ce_memfile_read(mem, &mat->selfillum, sizeof(float), 1) ||
 			1 != ce_memfile_read(mem, &mat->wavemult, sizeof(float), 1) ||
-			4 != ce_memfile_read(mem, unknown, sizeof(float), 4)) {
+			4 != ce_memfile_read(mem, mat->unknown, sizeof(float), 4)) {
 		return false;
 	}
 	ce_le2cpu32s(&mat->type);
@@ -656,13 +656,14 @@ static void render_sector(ce_mprfile* mpr,
 											MATERIAL_WATER : MATERIAL_GROUND);
 			assert(mat);
 
-			//glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]){0.5f,0.5f,0.5f,1.0f});
+			glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]) {
+				0.5f, 0.5f, 0.5f, 1.0f
+			});
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat->color);
-
-			// TODO: test passed, in use! for lava...
-			float em[4] = { mat->selfillum * mat->color[0], mat->selfillum * mat->color[1],
-							mat->selfillum * mat->color[2], mat->selfillum * mat->color[3] };
-			glMaterialfv(GL_FRONT, GL_EMISSION, em);
+			glMaterialfv(GL_FRONT, GL_EMISSION, (float[]) {
+				mat->selfillum * mat->color[0], mat->selfillum * mat->color[1],
+				mat->selfillum * mat->color[2], mat->selfillum * mat->color[3]
+			});
 
 			if (NULL != water_allow) {
 				glEnable(GL_BLEND);
