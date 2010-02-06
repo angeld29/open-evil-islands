@@ -102,7 +102,7 @@ static bool check_extension(const char* name)
 
 static void report_extension(const char* name, bool ok)
 {
-	ce_logging_write("Checking for '%s' extension... %s.",
+	ce_logging_write("opengl: checking for '%s' extension... %s",
 									name, ok ? "yes" : "no");
 }
 
@@ -162,7 +162,7 @@ bool ce_gl_report_errors(void)
 	bool reported = false;
 	GLenum error;
 	while (GL_NO_ERROR != (error = glGetError())) {
-		ce_logging_error("OpenGL error %u: %s.", error, gluErrorString(error));
+		ce_logging_error("opengl: error %u: %s", error, gluErrorString(error));
 		reported = true;
 	}
 	return reported;
