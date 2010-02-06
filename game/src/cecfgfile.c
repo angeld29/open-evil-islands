@@ -45,7 +45,10 @@ struct ce_cfgfile {
 
 static bool parse_file(ce_cfgfile* cfg, FILE* file)
 {
-	cfg->sections = ce_vector_open();
+	if (NULL == (cfg->sections = ce_vector_open())) {
+		ce_logging_error("cfgfile: could not allocate memory");
+		return false;
+	}
 
 	const size_t line_size = 128;
 	char line[line_size], temp[line_size];
@@ -59,7 +62,7 @@ static bool parse_file(ce_cfgfile* cfg, FILE* file)
 
 		if (line_length + 1 == line_size) {
 			ce_logging_error("cfgfile: line %d: "
-							"string is too long: '%s'", line_number, line);
+							"line is too long: '%s'", line_number, line);
 			return false;
 		}
 
@@ -80,13 +83,24 @@ static bool parse_file(ce_cfgfile* cfg, FILE* file)
 				return false;
 			}
 
-			section = ce_alloc(sizeof(ce_cfgfile_section));
+			if (NULL == (section = ce_alloc(sizeof(ce_cfgfile_section)))) {
+				ce_logging_error("cfgfile: could not allocate memory");
+				return false;
+			}
+
+			ce_vector_push_back(cfg->sections, section);
+
 			section->name_size = line_length + 1;
 			section->name = ce_alloc(section->name_size);
 			section->options = ce_vector_open();
+
+			if (NULL == section->name || NULL == section->options) {
+				ce_logging_error("cfgfile: could not allocate memory");
+				return false;
+			}
+
 			ce_strmid(temp, line, 1, line_length - 2);
 			ce_strtrim(section->name, temp);
-			ce_vector_push_back(cfg->sections, section);
 		} else {
 			if (NULL == section) {
 				ce_logging_error("cfgfile: line %d: option outside of "
@@ -102,14 +116,26 @@ static bool parse_file(ce_cfgfile* cfg, FILE* file)
 			}
 
 			ce_cfgfile_option* option = ce_alloc(sizeof(ce_cfgfile_option));
+			if (NULL == option) {
+				ce_logging_error("cfgfile: could not allocate memory");
+				return false;
+			}
+
+			ce_vector_push_back(section->options, option);
+
 			option->name_value_size = line_length + 1;
 			option->name = ce_alloc(option->name_value_size);
 			option->value = ce_alloc(option->name_value_size);
+
+			if (NULL == option->name || NULL == option->value) {
+				ce_logging_error("cfgfile: could not allocate memory");
+				return false;
+			}
+
 			ce_strleft(temp, line, eq - line);
 			ce_strtrim(option->name, temp);
 			ce_strright(temp, line, line_length - (eq - line) - 1);
 			ce_strtrim(option->value, temp);
-			ce_vector_push_back(section->options, option);
 
 			if ('\0' == option->name[0]) {
 				ce_logging_error("cfgfile: line %d: missing "
@@ -137,6 +163,11 @@ ce_cfgfile* ce_cfgfile_open(const char* path)
 	}
 
 	ce_cfgfile* cfg = ce_alloc(sizeof(ce_cfgfile));
+	if (NULL == cfg) {
+		ce_logging_error("cfgfile: could not allocate memory");
+		fclose(file);
+		return NULL;
+	}
 
 	if (!parse_file(cfg, file)) {
 		ce_logging_error("cfgfile: failed to parse '%s'", path);

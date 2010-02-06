@@ -23,6 +23,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#include "celogging.h"
 #include "cealloc.h"
 #include "cevec3.h"
 #include "cequat.h"
@@ -83,6 +84,10 @@ static void update_translation(ce_mat4* view, const ce_vec3* eye)
 ce_camera* ce_camera_open(void)
 {
 	ce_camera* cam = ce_alloc(sizeof(ce_camera));
+	if (NULL == cam) {
+		ce_logging_error("camera: could not allocate memory");
+		return NULL;
+	}
 	cam->fov = 60.0f;
 	cam->aspect = 1.0f;
 	cam->near = 1.0f;

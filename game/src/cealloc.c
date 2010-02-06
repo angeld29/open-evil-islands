@@ -297,38 +297,33 @@ void ce_alloc_term(void)
 	smallobj.pool = NULL;
 }
 
-static void* check_allocation(void* ptr)
-{
-	if (NULL == ptr) {
-		ce_logging_fatal("alloc: could not allocate memory");
-		exit(EXIT_FAILURE);
-	}
-	return ptr;
-}
-
 void* ce_alloc(size_t size)
 {
 	assert(NULL != smallobj.pool);
-	return check_allocation(size > MAX_SMALL_OBJECT_SIZE ? malloc(size) :
+
+	return size > MAX_SMALL_OBJECT_SIZE ? malloc(size) :
 		portion_alloc(smallobj.pool +
-					get_offset(ce_smax(1, size), OBJECT_ALIGNMENT) - 1));
+					get_offset(ce_smax(1, size), OBJECT_ALIGNMENT) - 1);
 }
 
 void* ce_alloc_zero(size_t size)
 {
 	assert(NULL != smallobj.pool);
+
 	if (size > MAX_SMALL_OBJECT_SIZE) {
-		return check_allocation(calloc(1, size));
+		return calloc(1, size);
 	}
+
 	size = ce_smax(1, size);
 	void* ptr = portion_alloc(smallobj.pool +
 							get_offset(size, OBJECT_ALIGNMENT) - 1);
-	return check_allocation(NULL != ptr ? memset(ptr, 0, size) : NULL);
+	return NULL != ptr ? memset(ptr, 0, size) : NULL;
 }
 
 void ce_free(void* ptr, size_t size)
 {
 	assert(NULL != smallobj.pool);
+
 	if (size > MAX_SMALL_OBJECT_SIZE) {
 		free(ptr);
 	} else if (NULL != ptr) {
