@@ -30,8 +30,8 @@ extern "C"
 
 typedef struct ce_vector ce_vector;
 
-extern ce_vector* ce_vector_open(void);
-extern void ce_vector_close(ce_vector* vec);
+extern ce_vector* ce_vector_new(void);
+extern void ce_vector_delete(ce_vector* vec);
 
 extern void ce_vector_push_back(ce_vector* vec, void* item);
 

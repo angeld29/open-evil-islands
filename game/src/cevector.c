@@ -30,7 +30,7 @@ struct ce_vector {
 	void** items;
 };
 
-ce_vector* ce_vector_open(void)
+ce_vector* ce_vector_new(void)
 {
 	ce_vector* vec = ce_alloc(sizeof(ce_vector));
 	if (NULL == vec) {
@@ -43,14 +43,14 @@ ce_vector* ce_vector_open(void)
 
 	if (NULL == (vec->items = ce_alloc(sizeof(void*) * vec->capacity))) {
 		ce_logging_error("vector: could not allocate memory");
-		ce_vector_close(vec);
+		ce_vector_delete(vec);
 		return NULL;
 	}
 
 	return vec;
 }
 
-void ce_vector_close(ce_vector* vec)
+void ce_vector_delete(ce_vector* vec)
 {
 	if (NULL != vec) {
 		ce_free(vec->items, sizeof(void*) * vec->capacity);

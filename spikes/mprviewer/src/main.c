@@ -84,7 +84,7 @@ static void idle(void)
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_input_event_supply_delete(es);
-		ce_timer_close(tmr);
+		ce_timer_delete(tmr);
 		ce_camera_delete(cam);
 		ce_mprfile_close(mpr);
 		ce_gl_term();
@@ -404,8 +404,7 @@ int main(int argc, char* argv[])
 	ce_camera_set_eye(cam, &eye);
 	ce_camera_yaw_pitch(cam, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
 
-	tmr = ce_timer_open();
-
+	tmr = ce_timer_new();
 	es = ce_input_event_supply_new();
 
 	glutMainLoop();

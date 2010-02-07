@@ -195,7 +195,7 @@ ce_input_event_supply* ce_input_event_supply_new(void)
 		return NULL;
 	}
 
-	if (NULL == (es->events = ce_vector_open())) {
+	if (NULL == (es->events = ce_vector_new())) {
 		ce_logging_error("input: could not allocate memory");
 		ce_input_event_supply_delete(es);
 		return NULL;
@@ -218,7 +218,7 @@ void ce_input_event_supply_delete(ce_input_event_supply* es)
 			}
 			ce_free(ev, sizeof(ce_input_event) + ev->size);
 		}
-		ce_vector_close(es->events);
+		ce_vector_delete(es->events);
 	}
 
 	ce_free(es, sizeof(ce_input_event_supply));

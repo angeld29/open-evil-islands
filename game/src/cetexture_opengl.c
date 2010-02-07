@@ -505,7 +505,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 	return ok;
 }
 
-ce_texture* ce_texture_open(void* data)
+ce_texture* ce_texture_new(void* mmp_data)
 {
 	ce_texture* tex = ce_alloc(sizeof(ce_texture));
 	if (NULL == tex) {
@@ -531,11 +531,11 @@ ce_texture* ce_texture_open(void* data)
 #endif
 
 	// See cemmpfile.h for format details.
-	uint32_t* mmp = data;
+	uint32_t* mmp = mmp_data;
 
 	if (CE_MMP_SIGNATURE != ce_le2cpu32(*mmp++)) {
 		ce_logging_error("texture: wrong mmp signature");
-		ce_texture_close(tex);
+		ce_texture_delete(tex);
 		return NULL;
 	}
 
@@ -598,14 +598,14 @@ ce_texture* ce_texture_open(void* data)
 	}
 
 	if (!ok) {
-		ce_texture_close(tex);
+		ce_texture_delete(tex);
 		return NULL;
 	}
 
 	return tex;
 }
 
-void ce_texture_close(ce_texture* tex)
+void ce_texture_delete(ce_texture* tex)
 {
 	if (NULL != tex) {
 		glDeleteTextures(1, &tex->id);

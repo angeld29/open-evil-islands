@@ -32,8 +32,8 @@ const float CE_EPS_E4 = 1e-4f;
 const float CE_EPS_E5 = 1e-5f;
 const float CE_EPS_E6 = 1e-6f;
 
-static const float DEG2RAD = 0.01745329f;
-static const float RAD2DEG = 57.2957795f;
+static const float CE_DEG2RAD = 0.01745329f;
+static const float CE_RAD2DEG = 57.2957795f;
 
 /*
  *  Based on http://www.c-faq.com/fp/fpequal.html.
@@ -73,10 +73,10 @@ float ce_lerp(float u, float a, float b)
 
 float ce_deg2rad(float angle)
 {
-	return DEG2RAD * angle;
+	return CE_DEG2RAD * angle;
 }
 
 float ce_rad2deg(float angle)
 {
-	return RAD2DEG * angle;
+	return CE_RAD2DEG * angle;
 }

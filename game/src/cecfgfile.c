@@ -45,7 +45,7 @@ struct ce_cfgfile {
 
 static bool parse_file(ce_cfgfile* cfg, FILE* file)
 {
-	if (NULL == (cfg->sections = ce_vector_open())) {
+	if (NULL == (cfg->sections = ce_vector_new())) {
 		ce_logging_error("cfgfile: could not allocate memory");
 		return false;
 	}
@@ -92,7 +92,7 @@ static bool parse_file(ce_cfgfile* cfg, FILE* file)
 
 			section->name_size = line_length + 1;
 			section->name = ce_alloc(section->name_size);
-			section->options = ce_vector_open();
+			section->options = ce_vector_new();
 
 			if (NULL == section->name || NULL == section->options) {
 				ce_logging_error("cfgfile: could not allocate memory");
@@ -195,11 +195,11 @@ void ce_cfgfile_close(ce_cfgfile* cfg)
 				ce_free(option->value, option->name_value_size);
 				ce_free(option, sizeof(ce_cfgfile_option));
 			}
-			ce_vector_close(section->options);
+			ce_vector_delete(section->options);
 			ce_free(section->name, section->name_size);
 			ce_free(section, sizeof(ce_cfgfile_section));
 		}
-		ce_vector_close(cfg->sections);
+		ce_vector_delete(cfg->sections);
 	}
 
 	ce_free(cfg, sizeof(ce_cfgfile));

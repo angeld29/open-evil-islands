@@ -30,7 +30,7 @@ struct ce_timer {
 	float elapsed_diff;
 };
 
-ce_timer* ce_timer_open(void)
+ce_timer* ce_timer_new(void)
 {
 	ce_timer* tmr = ce_alloc(sizeof(ce_timer));
 	if (NULL == tmr) {
@@ -41,7 +41,7 @@ ce_timer* ce_timer_open(void)
 	return tmr;
 }
 
-void ce_timer_close(ce_timer* tmr)
+void ce_timer_delete(ce_timer* tmr)
 {
 	ce_free(tmr, sizeof(ce_timer));
 }

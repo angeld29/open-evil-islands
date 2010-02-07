@@ -491,7 +491,7 @@ static bool create_texture(ce_texture** tex, const char* name, ce_resfile* res)
 		return false;
 	}
 
-	*tex = ce_texture_open(data);
+	*tex = ce_texture_new(data);
 
 	ce_free(data, data_size);
 
@@ -566,7 +566,7 @@ void ce_mprfile_close(ce_mprfile* mpr)
 
 	if (NULL != mpr->textures) {
 		for (unsigned int i = 0; i < mpr->texture_count; ++i) {
-			ce_texture_close(mpr->textures[i]);
+			ce_texture_delete(mpr->textures[i]);
 		}
 	}
 

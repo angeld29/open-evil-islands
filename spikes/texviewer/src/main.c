@@ -66,8 +66,8 @@ static void idle(void)
 	ce_input_advance(elapsed);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
-		ce_timer_close(tmr);
-		ce_texture_close(tex);
+		ce_timer_delete(tmr);
+		ce_texture_delete(tex);
 		ce_resfile_close(res);
 		ce_gl_term();
 		ce_input_term();
@@ -116,7 +116,7 @@ static void reshape(int width, int height)
 
 static bool generate_texture(int index)
 {
-	ce_texture_close(tex);
+	ce_texture_delete(tex);
 	tex = NULL;
 
 	void* data = ce_alloc(ce_resfile_node_size(res, index));
@@ -125,7 +125,7 @@ static bool generate_texture(int index)
 		return false;
 	}
 
-	tex = ce_texture_open(data);
+	tex = ce_texture_new(data);
 	ce_free(data, ce_resfile_node_size(res, index));
 
 	return NULL != tex;
@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
 
 	glutTimerFunc(0, next_texture, index);
 
-	tmr = ce_timer_open();
+	tmr = ce_timer_new();
 
 	glutMainLoop();
 	return EXIT_SUCCESS;
