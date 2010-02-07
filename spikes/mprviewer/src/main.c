@@ -30,8 +30,8 @@
 #include <GL/glut.h>
 
 #include "cegl.h"
-#include "cealloc.h"
 #include "celogging.h"
+#include "cealloc.h"
 #include "ceinput.h"
 #include "cetimer.h"
 #include "cecamera.h"
@@ -84,9 +84,9 @@ static void idle(void)
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_timer_close(tmr);
-		ce_camera_close(cam);
+		ce_camera_delete(cam);
 		ce_mprfile_close(mpr);
-		ce_gl_close();
+		ce_gl_term();
 		ce_input_event_supply_close(es);
 		ce_input_close();
 		ce_logging_term();
@@ -358,7 +358,7 @@ int main(int argc, char* argv[])
 	glutReshapeFunc(reshape);
 
 	ce_input_open();
-	ce_gl_open();
+	ce_gl_init();
 
 	char path[512];
 
@@ -396,7 +396,7 @@ int main(int argc, char* argv[])
 	ce_vec3 eye;
 	ce_vec3_init(&eye, 0.0f, ce_mprfile_get_max_height(mpr), 0.0f);
 
-	cam = ce_camera_open();
+	cam = ce_camera_new();
 	ce_camera_set_eye(cam, &eye);
 	ce_camera_yaw_pitch(cam, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
 

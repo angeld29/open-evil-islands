@@ -68,7 +68,7 @@ const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1 = GL_UNSIGNED_SHORT_5_5_5_1_EXT;
 const GLenum CE_GL_UNSIGNED_INT_8_8_8_8 = GL_UNSIGNED_INT_8_8_8_8_EXT;
 const GLenum CE_GL_GENERATE_MIPMAP = GL_GENERATE_MIPMAP_SGIS;
 
-static bool opened;
+static bool inited;
 static bool features[CE_GL_FEATURE_COUNT];
 
 static bool check_extension(const char* name)
@@ -106,9 +106,10 @@ static void report_extension(const char* name, bool ok)
 									name, ok ? "yes" : "no");
 }
 
-bool ce_gl_open(void)
+bool ce_gl_init(void)
 {
-	assert(!opened);
+	assert(!inited && "The gl subsystem has already been inited");
+	inited = true;
 
 	features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO] =
 		check_extension("GL_ARB_texture_non_power_of_two");
@@ -148,28 +149,33 @@ bool ce_gl_open(void)
 	report_extension("generate mipmap",
 		features[CE_GL_FEATURE_GENERATE_MIPMAP]);
 
-	return opened = true;
+	return true;
 }
 
-void ce_gl_close(void)
+void ce_gl_term(void)
 {
-	assert(opened);
-	opened = false;
+	assert(inited && "The gl subsystem has not yet been inited");
+	inited = false;
 }
 
 bool ce_gl_report_errors(void)
 {
+	assert(inited && "The gl subsystem has not yet been inited");
+
 	bool reported = false;
 	GLenum error;
+
 	while (GL_NO_ERROR != (error = glGetError())) {
 		ce_logging_error("opengl: error %u: %s", error, gluErrorString(error));
 		reported = true;
 	}
+
 	return reported;
 }
 
 bool ce_gl_query_feature(ce_gl_feature feature)
 {
-	assert(opened);
+	assert(inited && "The gl subsystem has not yet been inited");
+
 	return features[feature];
 }

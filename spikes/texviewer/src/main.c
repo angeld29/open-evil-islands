@@ -30,8 +30,8 @@
 
 #include "celib.h"
 #include "cegl.h"
-#include "cealloc.h"
 #include "celogging.h"
+#include "cealloc.h"
 #include "ceinput.h"
 #include "cetimer.h"
 #include "ceresfile.h"
@@ -69,7 +69,7 @@ static void idle(void)
 		ce_timer_close(tmr);
 		ce_texture_close(tex);
 		ce_resfile_close(res);
-		ce_gl_close();
+		ce_gl_term();
 		ce_input_close();
 		ce_logging_term();
 		ce_alloc_term();
@@ -190,6 +190,14 @@ static void usage()
 
 int main(int argc, char* argv[])
 {
+	ce_logging_init();
+#ifdef NDEBUG
+	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
+#else
+	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
+#endif
+	ce_alloc_init();
+
 	srand(time(NULL));
 
 	int c, index = -1;
@@ -263,16 +271,8 @@ int main(int argc, char* argv[])
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 
-	ce_logging_init();
-#ifdef NDEBUG
-	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
-#else
-	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
-#endif
-	ce_alloc_init();
-
 	ce_input_open();
-	ce_gl_open();
+	ce_gl_init();
 
 	res = ce_resfile_open_file(argv[optind]);
 	if (NULL == res) {

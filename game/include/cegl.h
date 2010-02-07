@@ -49,8 +49,8 @@ extern const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1;
 extern const GLenum CE_GL_UNSIGNED_INT_8_8_8_8;
 extern const GLenum CE_GL_GENERATE_MIPMAP;
 
-extern bool ce_gl_open(void);
-extern void ce_gl_close(void);
+extern bool ce_gl_init(void);
+extern void ce_gl_term(void);
 
 extern bool ce_gl_report_errors(void);
 extern bool ce_gl_query_feature(ce_gl_feature feature);

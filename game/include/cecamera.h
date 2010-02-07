@@ -31,8 +31,8 @@ extern "C"
 
 typedef struct ce_camera ce_camera;
 
-extern ce_camera* ce_camera_open(void);
-extern void ce_camera_close(ce_camera* cam);
+extern ce_camera* ce_camera_new(void);
+extern void ce_camera_delete(ce_camera* cam);
 
 extern float ce_camera_get_fov(ce_camera* cam);
 extern float ce_camera_get_aspect(ce_camera* cam);
