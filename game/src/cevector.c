@@ -54,9 +54,8 @@ void ce_vector_delete(ce_vector* vec)
 {
 	if (NULL != vec) {
 		ce_free(vec->items, sizeof(void*) * vec->capacity);
+		ce_free(vec, sizeof(ce_vector));
 	}
-
-	ce_free(vec, sizeof(ce_vector));
 }
 
 size_t ce_vector_count(const ce_vector* vec)
