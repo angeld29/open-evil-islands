@@ -320,7 +320,7 @@ int main(int argc, char* argv[])
 
 	if (optind == argc) {
 		usage();
-		fprintf(stderr, "\nPlease, specify any MPR file name\n");
+		fprintf(stderr, "\nPlease, specify a name of any zone\n");
 		return 1;
 	}
 
@@ -342,7 +342,7 @@ int main(int argc, char* argv[])
 			glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));
 		glutGameModeString(buffer);
 		if (!glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
-			ce_logging_warning("Full Screen mode is not available.");
+			ce_logging_warning("main: full screen mode is not available");
 			fullscreen = false;
 		}
 	}
@@ -390,7 +390,7 @@ int main(int argc, char* argv[])
 	if (!load_light(&gipat_light, ei_path, "lightsgipat") ||
 			!load_light(&ingos_light, ei_path, "lightsingos") ||
 			!load_light(&suslanger_light, ei_path, "lightssuslanger")) {
-		ce_logging_error("failed to load lighting configuration");
+		ce_logging_error("main: failed to load lighting configuration");
 		return 1;
 	}
 	light_cfg = &gipat_light;
