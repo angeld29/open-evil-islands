@@ -93,7 +93,7 @@ bool ce_string_empty(const ce_string* str)
 	return 0 == str->length;
 }
 
-const char* ce_string_cstr(ce_string* str)
+const char* ce_string_cstr(const ce_string* str)
 {
 	return str->cstr;
 }

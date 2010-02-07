@@ -22,7 +22,6 @@
 #include <ctype.h>
 
 #include "celib.h"
-#include "cealloc.h"
 #include "cestr.h"
 
 char* ce_strleft(char* restrict dst, const char* restrict src, size_t n)
@@ -67,19 +66,6 @@ char* ce_strtrim(char* restrict dst, const char* restrict src)
 	strncpy(dst, src + first, len);
 	dst[len] = '\0';
 	return dst;
-}
-
-char* ce_strdup(const char* s)
-{
-	return strcpy(ce_alloc(strlen(s) + 1), s);
-}
-
-char* ce_strndup(const char* s, size_t n)
-{
-	char* p = ce_alloc(n + 1);
-	strncpy(p, s, n);
-	p[n] = '\0';
-	return p;
 }
 
 char* ce_strupr(char* s)

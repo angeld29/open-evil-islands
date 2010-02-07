@@ -37,7 +37,7 @@ extern void ce_string_delete(ce_string* str);
 extern size_t ce_string_length(const ce_string* str);
 extern bool ce_string_empty(const ce_string* str);
 
-extern const char* ce_string_cstr(ce_string* str);
+extern const char* ce_string_cstr(const ce_string* str);
 
 extern bool ce_string_assign(ce_string* str, const char* cstr);
 extern bool ce_string_assign_n(ce_string* str, const char* cstr, size_t n);

@@ -27,6 +27,7 @@
 #include "cebyteorder.h"
 #include "celogging.h"
 #include "cealloc.h"
+#include "cestring.h"
 #include "ceresfile.h"
 
 enum {
@@ -34,7 +35,7 @@ enum {
 };
 
 typedef struct {
-	char* name;
+	ce_string* name;
 	int32_t next_index;
 	uint32_t data_length;
 	uint32_t data_offset;
@@ -44,8 +45,7 @@ typedef struct {
 } ce_resfile_node;
 
 struct ce_resfile {
-	size_t name_length;
-	char* name;
+	ce_string* name;
 	uint32_t node_count;
 	uint32_t metadata_offset;
 	uint32_t names_length;
@@ -71,8 +71,12 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 		return NULL;
 	}
 
-	res->name_length = strlen(name);
-	res->name = ce_strdup(name);
+	if (NULL == (res->name = ce_string_new())) {
+		ce_resfile_close(res);
+		return NULL;
+	}
+
+	ce_string_assign(res->name, name);
 
 	uint32_t signature;
 	if (1 != ce_memfile_read(mem, &signature, sizeof(uint32_t), 1)) {
@@ -133,7 +137,7 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 		ce_le2cpu32s(&node->name_offset);
 	}
 
-	if (NULL == (res->names = ce_alloc(res->names_length + 1))) {
+	if (NULL == (res->names = ce_alloc(res->names_length))) {
 		ce_logging_error("resfile: could not allocate memory");
 		ce_resfile_close(res);
 		return NULL;
@@ -144,11 +148,15 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 		ce_resfile_close(res);
 		return NULL;
 	}
-	res->names[res->names_length] = '\0';
 
 	for (size_t i = 0; i < res->node_count; ++i) {
 		ce_resfile_node* node = res->nodes + i;
-		node->name = ce_strndup(res->names + node->name_offset, node->name_length);
+		if (NULL == (node->name = ce_string_new())) {
+			ce_resfile_close(res);
+			return NULL;
+		}
+		ce_string_assign_n(node->name, res->names + node->name_offset,
+													node->name_length);
 	}
 
 	res->mem = mem;
@@ -189,21 +197,20 @@ void ce_resfile_close(ce_resfile* res)
 
 	if (NULL != res->nodes) {
 		for (size_t i = 0; i < res->node_count; ++i) {
-			ce_resfile_node* node = res->nodes + i;
-			ce_free(node->name, node->name_length + 1);
+			ce_string_delete(res->nodes[i].name);
 		}
+		ce_free(res->nodes, sizeof(ce_resfile_node) * res->node_count);
 	}
 
-	ce_free(res->nodes, sizeof(ce_resfile_node) * res->node_count);
-	ce_free(res->names, res->names_length + 1);
-	ce_free(res->name, res->name_length + 1);
+	ce_free(res->names, res->names_length);
+	ce_string_delete(res->name);
 
 	ce_free(res, sizeof(ce_resfile));
 }
 
 const char* ce_resfile_name(const ce_resfile* res)
 {
-	return res->name;
+	return ce_string_cstr(res->name);
 }
 
 int ce_resfile_node_count(const ce_resfile* res)
@@ -217,7 +224,7 @@ int ce_resfile_node_index(const ce_resfile* res, const char* name)
 	int index = name_hash(name, res->node_count);
 	for (; index >= 0; index = node->next_index) {
 		node = res->nodes + index;
-		if (0 == ce_strcasecmp(name, node->name)) {
+		if (0 == ce_strcasecmp(name, ce_string_cstr(node->name))) {
 			break;
 		}
 	}
@@ -226,7 +233,7 @@ int ce_resfile_node_index(const ce_resfile* res, const char* name)
 
 const char* ce_resfile_node_name(const ce_resfile* res, int index)
 {
-	return res->nodes[index].name;
+	return ce_string_cstr(res->nodes[index].name);
 }
 
 size_t ce_resfile_node_size(const ce_resfile* res, int index)

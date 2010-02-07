@@ -52,16 +52,6 @@ extern char* ce_strmid(char* restrict dst, const char* restrict src, size_t pos,
 /// Remove all whitespace from the start and the end.
 extern char* ce_strtrim(char* restrict dst, const char* restrict src);
 
-/// Duplicate string, returning an identical alloc'd string.
-extern char* ce_strdup(const char* s);
-
-/**
- *  Return a alloc'd copy of at most n bytes of s. The
- *  resultant string is terminated even if no null terminator
- *  appears before s[n].
-*/
-extern char* ce_strndup(const char* s, size_t n);
-
 /// Convert a string into upper case in place.
 extern char* ce_strupr(char* s);
 
