@@ -233,10 +233,11 @@ static bool load_light(ce_lightcfg* light, const char* ei_path,
 		return false;
 	}
 
-	bool ok = ce_lightcfg_init(light, cfg);
+	light = ce_lightcfg_init(light, cfg);
 
 	ce_cfgfile_close(cfg);
-	return ok;
+
+	return NULL != light;
 }
 
 static void usage()

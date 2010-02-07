@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "cestr.h"
 #include "celogging.h"
@@ -60,9 +61,9 @@ static bool read_section(float section[24][4],
 	return true;
 }
 
-bool ce_lightcfg_init(ce_lightcfg* light, ce_cfgfile* cfg)
+ce_lightcfg* ce_lightcfg_init(ce_lightcfg* light, ce_cfgfile* cfg)
 {
 	return read_section(light->sunlight, "sunlight", cfg) &&
 			read_section(light->ambient, "ambient", cfg) &&
-			read_section(light->sky, "sky", cfg);
+			read_section(light->sky, "sky", cfg) ? light : NULL;
 }
