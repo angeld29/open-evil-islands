@@ -162,25 +162,10 @@ static void display(void)
 		light_cfg->sunlight[(int)time_next_index]);
 
 	glClearColor(sky[0], sky[1], sky[2], sky[3]);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glLoadIdentity();
-
-	glEnable(GL_LIGHTING);
-
-#ifdef GL_VERSION_1_2
-	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
-#endif
-	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
-
 	ce_camera_setup(cam);
-
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, (float[]) { 0.0f, 1.0f, 0.0f, 0.0f });
-	glLightfv(GL_LIGHT0, GL_AMBIENT, sunlight);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]) { 0.0f, 0.0f, 0.0f, 0.0f });
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
@@ -197,6 +182,19 @@ static void display(void)
 	glVertex3f(0.0f, 0.0f, 0.0f);
 	glVertex3f(0.0f, 0.0f, 100.0f);
 	glEnd();
+
+	glEnable(GL_LIGHTING);
+
+#ifdef GL_VERSION_1_2
+	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+#endif
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
+
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_POSITION, (float[]) { 0.0f, 1.0f, 0.0f, 0.0f });
+	glLightfv(GL_LIGHT0, GL_AMBIENT, sunlight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]) { 0.0f, 0.0f, 0.0f, 0.0f });
 
 	ce_vec3 eye, forward, right, up;
 	ce_frustum f;
