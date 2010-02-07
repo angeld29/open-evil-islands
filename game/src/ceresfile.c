@@ -23,9 +23,10 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "cealloc.h"
-#include "cebyteorder.h"
 #include "cestr.h"
+#include "cebyteorder.h"
+#include "celogging.h"
+#include "cealloc.h"
 #include "ceresfile.h"
 
 enum {
@@ -65,18 +66,24 @@ static int name_hash(const char* name, int lim)
 ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 {
 	ce_resfile* res = ce_alloc_zero(sizeof(ce_resfile));
+	if (NULL == res) {
+		ce_logging_error("resfile: could not allocate memory");
+		return NULL;
+	}
 
 	res->name_length = strlen(name);
 	res->name = ce_strdup(name);
 
 	uint32_t signature;
 	if (1 != ce_memfile_read(mem, &signature, sizeof(uint32_t), 1)) {
+		ce_logging_error("resfile: io error occured");
 		ce_resfile_close(res);
 		return NULL;
 	}
 
 	ce_le2cpu32s(&signature);
 	if (RES_SIGNATURE != signature) {
+		ce_logging_error("resfile: wrong signature");
 		ce_resfile_close(res);
 		return NULL;
 	}
@@ -84,6 +91,7 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 	if (1 != ce_memfile_read(mem, &res->node_count, sizeof(uint32_t), 1) ||
 			1 != ce_memfile_read(mem, &res->metadata_offset, sizeof(uint32_t), 1) ||
 			1 != ce_memfile_read(mem, &res->names_length, sizeof(uint32_t), 1)) {
+		ce_logging_error("resfile: io error occured");
 		ce_resfile_close(res);
 		return NULL;
 	}
@@ -92,9 +100,15 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 	ce_le2cpu32s(&res->metadata_offset);
 	ce_le2cpu32s(&res->names_length);
 
-	res->nodes = ce_alloc_zero(sizeof(ce_resfile_node) * res->node_count);
+	if (NULL == (res->nodes = ce_alloc_zero(sizeof(ce_resfile_node) *
+												res->node_count))) {
+		ce_logging_error("resfile: could not allocate memory");
+		ce_resfile_close(res);
+		return NULL;
+	}
 
 	if (0 != ce_memfile_seek(mem, res->metadata_offset, SEEK_SET)) {
+		ce_logging_error("resfile: io error occured");
 		ce_resfile_close(res);
 		return NULL;
 	}
@@ -107,6 +121,7 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 				1 != ce_memfile_read(mem, &node->modified, sizeof(int32_t), 1) ||
 				1 != ce_memfile_read(mem, &node->name_length, sizeof(uint16_t), 1) ||
 				1 != ce_memfile_read(mem, &node->name_offset, sizeof(uint32_t), 1)) {
+			ce_logging_error("resfile: io error occured");
 			ce_resfile_close(res);
 			return NULL;
 		}
@@ -118,8 +133,14 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 		ce_le2cpu32s(&node->name_offset);
 	}
 
-	res->names = ce_alloc(res->names_length + 1);
+	if (NULL == (res->names = ce_alloc(res->names_length + 1))) {
+		ce_logging_error("resfile: could not allocate memory");
+		ce_resfile_close(res);
+		return NULL;
+	}
+
 	if (1 != ce_memfile_read(mem, res->names, res->names_length, 1)) {
+		ce_logging_error("resfile: io error occured");
 		ce_resfile_close(res);
 		return NULL;
 	}
