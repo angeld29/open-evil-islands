@@ -21,8 +21,6 @@
 #ifndef CE_CFGFILE_H
 #define CE_CFGFILE_H
 
-#include <stdbool.h>
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -33,11 +31,11 @@ typedef struct ce_cfgfile ce_cfgfile;
 extern ce_cfgfile* ce_cfgfile_open(const char* path);
 extern void ce_cfgfile_close(ce_cfgfile* cfg);
 
-extern bool ce_cfgfile_has_section(ce_cfgfile* cfg, const char* section_name);
-extern bool ce_cfgfile_has_option(ce_cfgfile* cfg, const char* section_name,
+extern int ce_cfgfile_section_index(ce_cfgfile* cfg, const char* section_name);
+extern int ce_cfgfile_option_index(ce_cfgfile* cfg, int section_index,
 													const char* option_name);
-extern const char* ce_cfgfile_get(ce_cfgfile* cfg, const char* section_name,
-													const char* option_name);
+extern const char* ce_cfgfile_get(ce_cfgfile* cfg, int section_index,
+													int option_index);
 
 #ifdef __cplusplus
 }

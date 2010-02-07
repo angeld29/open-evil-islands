@@ -29,7 +29,8 @@
 static bool read_section(float section[24][4],
 							const char* section_name, ce_cfgfile* cfg)
 {
-	if (!ce_cfgfile_has_section(cfg, section_name)) {
+	int section_index = ce_cfgfile_section_index(cfg, section_name);
+	if (-1 == section_index) {
 		ce_logging_error("lightcfg: could not find section: '%s'", section_name);
 		return false;
 	}
@@ -39,14 +40,16 @@ static bool read_section(float section[24][4],
 	for (int i = 0; i < 24; ++i) {
 		snprintf(option_name, sizeof(option_name), "time%02d", i);
 
-		if (!ce_cfgfile_has_option(cfg, section_name, option_name)) {
+		int option_index = ce_cfgfile_option_index(cfg, section_index,
+															option_name);
+		if (-1 == option_index) {
 			ce_logging_error("lightcfg: section '%s': "
 				"could not find option: '%s'", section_name, option_name);
 			return false;
 		}
 
 		if (sizeof(option) <= ce_strlcpy(option, ce_cfgfile_get(cfg,
-						section_name, option_name), sizeof(option))) {
+						section_index, option_index), sizeof(option))) {
 			ce_logging_error("lightcfg: option is too long: '%s'", option);
 			return false;
 		}
