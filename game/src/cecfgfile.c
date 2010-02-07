@@ -194,9 +194,9 @@ void ce_cfgfile_close(ce_cfgfile* cfg)
 
 	if (NULL != cfg->sections) {
 		for (size_t i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
-			ce_cfgfile_section* section = ce_vector_get(cfg->sections, i);
+			ce_cfgfile_section* section = ce_vector_at(cfg->sections, i);
 			for (size_t j = 0, m = ce_vector_count(section->options); j < m; ++j) {
-				ce_cfgfile_option* option = ce_vector_get(section->options, j);
+				ce_cfgfile_option* option = ce_vector_at(section->options, j);
 				if (NULL != option->value) {
 					ce_free(option->value, strlen(option->value) + 1);
 				}
@@ -219,8 +219,8 @@ void ce_cfgfile_close(ce_cfgfile* cfg)
 
 int ce_cfgfile_section_index(ce_cfgfile* cfg, const char* section_name)
 {
-	for (size_t i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
-		ce_cfgfile_section* section = ce_vector_get(cfg->sections, i);
+	for (int i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
+		ce_cfgfile_section* section = ce_vector_at(cfg->sections, i);
 		if (0 == strcmp(section_name, section->name)) {
 			return i;
 		}
@@ -231,9 +231,9 @@ int ce_cfgfile_section_index(ce_cfgfile* cfg, const char* section_name)
 int ce_cfgfile_option_index(ce_cfgfile* cfg, int section_index,
 											const char* option_name)
 {
-	ce_cfgfile_section* section = ce_vector_get(cfg->sections, section_index);
-	for (size_t i = 0, n = ce_vector_count(section->options); i < n; ++i) {
-		ce_cfgfile_option* option = ce_vector_get(section->options, i);
+	ce_cfgfile_section* section = ce_vector_at(cfg->sections, section_index);
+	for (int i = 0, n = ce_vector_count(section->options); i < n; ++i) {
+		ce_cfgfile_option* option = ce_vector_at(section->options, i);
 		if (0 == strcmp(option_name, option->name)) {
 			return i;
 		}
@@ -243,7 +243,7 @@ int ce_cfgfile_option_index(ce_cfgfile* cfg, int section_index,
 
 const char* ce_cfgfile_get(ce_cfgfile* cfg, int section_index, int option_index)
 {
-	ce_cfgfile_section* section = ce_vector_get(cfg->sections, section_index);
-	ce_cfgfile_option* option = ce_vector_get(section->options, option_index);
+	ce_cfgfile_section* section = ce_vector_at(cfg->sections, section_index);
+	ce_cfgfile_option* option = ce_vector_at(section->options, option_index);
 	return option->value;
 }

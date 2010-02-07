@@ -85,7 +85,7 @@ size_t ce_vector_count(ce_vector* vec)
 	return vec->count;
 }
 
-void* ce_vector_get(ce_vector* vec, size_t index)
+void* ce_vector_at(ce_vector* vec, size_t index)
 {
 	return vec->items[index];
 }

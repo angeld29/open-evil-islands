@@ -36,7 +36,7 @@ extern void ce_vector_delete(ce_vector* vec);
 extern void ce_vector_push_back(ce_vector* vec, void* item);
 
 extern size_t ce_vector_count(ce_vector* vec);
-extern void* ce_vector_get(ce_vector* vec, size_t index);
+extern void* ce_vector_at(ce_vector* vec, size_t index);
 
 #ifdef __cplusplus
 }

@@ -212,7 +212,7 @@ void ce_input_event_supply_delete(ce_input_event_supply* es)
 
 	if (NULL != es->events) {
 		for (size_t i = 0, n = ce_vector_count(es->events); i < n; ++i) {
-			ce_input_event* ev = ce_vector_get(es->events, i);
+			ce_input_event* ev = ce_vector_at(es->events, i);
 			if (NULL != ev->vtable.dtor) {
 				(ev->vtable.dtor)(ev);
 			}
@@ -227,7 +227,7 @@ void ce_input_event_supply_delete(ce_input_event_supply* es)
 void ce_input_event_supply_advance(ce_input_event_supply* es, float elapsed)
 {
 	for (size_t i = 0, n = ce_vector_count(es->events); i < n; ++i) {
-		ce_input_event* ev = ce_vector_get(es->events, i);
+		ce_input_event* ev = ce_vector_at(es->events, i);
 		(ev->vtable.advance)(ev, elapsed);
 	}
 }
