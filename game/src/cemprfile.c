@@ -28,9 +28,10 @@
 
 #include <GL/gl.h>
 
-#include "cealloc.h"
-#include "cebyteorder.h"
 #include "cestr.h"
+#include "cebyteorder.h"
+#include "celogging.h"
+#include "cealloc.h"
 #include "cemath.h"
 #include "cevec3.h"
 #include "ceaabb.h"
@@ -144,6 +145,7 @@ static bool read_material(material* mat, ce_memfile* mem)
 			1 != ce_memfile_read(mem, &mat->selfillum, sizeof(float), 1) ||
 			1 != ce_memfile_read(mem, &mat->wavemult, sizeof(float), 1) ||
 			4 != ce_memfile_read(mem, mat->unknown, sizeof(float), 4)) {
+		ce_logging_error("mprfile: io error occured");
 		return false;
 	}
 	ce_le2cpu32s(&mat->type);
@@ -154,6 +156,7 @@ static bool read_anim_tile(anim_tile* at, ce_memfile* mem)
 {
 	if (1 != ce_memfile_read(mem, &at->index, sizeof(uint16_t), 1) ||
 			1 != ce_memfile_read(mem, &at->count, sizeof(uint16_t), 1)) {
+		ce_logging_error("mprfile: io error occured");
 		return false;
 	}
 	ce_le2cpu16s(&at->index);
@@ -165,11 +168,13 @@ static bool read_header_impl(ce_mprfile* mpr, ce_memfile* mem)
 {
 	uint32_t signature;
 	if (1 != ce_memfile_read(mem, &signature, sizeof(uint32_t), 1)) {
+		ce_logging_error("mprfile: io error occured");
 		return false;
 	}
 
 	ce_le2cpu32s(&signature);
 	if (MP_SIGNATURE != signature) {
+		ce_logging_error("mprfile: wrong mp signature");
 		return false;
 	}
 
@@ -182,6 +187,7 @@ static bool read_header_impl(ce_mprfile* mpr, ce_memfile* mem)
 			1 != ce_memfile_read(mem, &mpr->tile_size, sizeof(uint32_t), 1) ||
 			1 != ce_memfile_read(mem, &mpr->material_count, sizeof(uint16_t), 1) ||
 			1 != ce_memfile_read(mem, &mpr->anim_tile_count, sizeof(uint32_t), 1)) {
+		ce_logging_error("mprfile: io error occured");
 		return false;
 	}
 
@@ -196,7 +202,11 @@ static bool read_header_impl(ce_mprfile* mpr, ce_memfile* mem)
 
 	mpr->sector_count = mpr->sector_x_count * mpr->sector_z_count;
 
-	mpr->materials = ce_alloc(sizeof(material) * mpr->material_count);
+	if (NULL == (mpr->materials = ce_alloc(sizeof(material) *
+											mpr->material_count))) {
+		ce_logging_error("mprfile: could not allocate memory");
+		return false;
+	}
 
 	for (unsigned int i = 0; i < mpr->material_count; ++i) {
 		if (!read_material(mpr->materials + i, mem)) {
@@ -204,9 +214,14 @@ static bool read_header_impl(ce_mprfile* mpr, ce_memfile* mem)
 		}
 	}
 
-	mpr->tiles = ce_alloc(sizeof(uint32_t) * mpr->tile_count);
+	if (NULL == (mpr->tiles = ce_alloc(sizeof(uint32_t) * mpr->tile_count))) {
+		ce_logging_error("mprfile: could not allocate memory");
+		return false;
+	}
+
 	if (mpr->tile_count != ce_memfile_read(mem, mpr->tiles,
 							sizeof(uint32_t), mpr->tile_count)) {
+		ce_logging_error("mprfile: io error occured");
 		return false;
 	}
 
@@ -214,7 +229,11 @@ static bool read_header_impl(ce_mprfile* mpr, ce_memfile* mem)
 		ce_le2cpu32s(mpr->tiles + i);
 	}
 
-	mpr->anim_tiles = ce_alloc(sizeof(anim_tile) * mpr->anim_tile_count);
+	if (NULL == (mpr->anim_tiles = ce_alloc(sizeof(anim_tile) *
+											mpr->anim_tile_count))) {
+		ce_logging_error("mprfile: could not allocate memory");
+		return false;
+	}
 
 	for (unsigned int i = 0; i < mpr->anim_tile_count; ++i) {
 		if (!read_anim_tile(mpr->anim_tiles + i, mem)) {
@@ -243,6 +262,11 @@ static bool read_header(ce_mprfile* mpr, const char* mpr_name,
 
 	const size_t data_size = ce_resfile_node_size(res, index);
 	void* data = ce_alloc(data_size);
+	if (NULL == data) {
+		ce_logging_error("mprfile: could not allocate memory");
+		return false;
+	}
+
 	if (!ce_resfile_node_data(res, index, data)) {
 		ce_free(data, data_size);
 		return false;
@@ -268,6 +292,7 @@ static bool read_vertex(vertex* ver, ce_memfile* mem)
 			1 != ce_memfile_read(mem, &ver->offset_z, sizeof(int8_t), 1) ||
 			1 != ce_memfile_read(mem, &ver->coord_y, sizeof(uint16_t), 1) ||
 			1 != ce_memfile_read(mem, &ver->normal, sizeof(uint32_t), 1)) {
+		ce_logging_error("mprfile: io error occured");
 		return false;
 	}
 	ce_le2cpu16s(&ver->coord_y);
@@ -279,19 +304,26 @@ static bool read_sector_impl(sector* sec, ce_memfile* mem)
 {
 	uint32_t signature;
 	if (1 != ce_memfile_read(mem, &signature, sizeof(uint32_t), 1)) {
+		ce_logging_error("mprfile: io error occured");
 		return false;
 	}
 
 	ce_le2cpu32s(&signature);
 	if (SEC_SIGNATURE != signature) {
+		ce_logging_error("mprfile: wrong sec signature");
 		return false;
 	}
 
 	if (1 != ce_memfile_read(mem, &sec->water, sizeof(uint8_t), 1)) {
+		ce_logging_error("mprfile: io error occured");
 		return false;
 	}
 
-	sec->land_vertices = ce_alloc(sizeof(vertex) * VERTEX_COUNT);
+	if (NULL == (sec->land_vertices = ce_alloc(sizeof(vertex) *
+												VERTEX_COUNT))) {
+		ce_logging_error("mprfile: could not allocate memory");
+		return false;
+	}
 
 	for (unsigned int i = 0; i < VERTEX_COUNT; ++i) {
 		if (!read_vertex(sec->land_vertices + i, mem)) {
@@ -300,7 +332,11 @@ static bool read_sector_impl(sector* sec, ce_memfile* mem)
 	}
 
 	if (0 != sec->water) {
-		sec->water_vertices = ce_alloc(sizeof(vertex) * VERTEX_COUNT);
+		if (NULL == (sec->water_vertices = ce_alloc(sizeof(vertex) *
+													VERTEX_COUNT))) {
+			ce_logging_error("mprfile: could not allocate memory");
+			return false;
+		}
 
 		for (unsigned int i = 0; i < VERTEX_COUNT; ++i) {
 			if (!read_vertex(sec->water_vertices + i, mem)) {
@@ -309,9 +345,15 @@ static bool read_sector_impl(sector* sec, ce_memfile* mem)
 		}
 	}
 
-	sec->land_textures = ce_alloc(sizeof(uint16_t) * TEXTURE_COUNT);
+	if (NULL == (sec->land_textures = ce_alloc(sizeof(uint16_t) *
+												TEXTURE_COUNT))) {
+		ce_logging_error("mprfile: could not allocate memory");
+		return false;
+	}
+
 	if (TEXTURE_COUNT != ce_memfile_read(mem, sec->land_textures,
 								sizeof(uint16_t), TEXTURE_COUNT)) {
+		ce_logging_error("mprfile: io error occured");
 		return false;
 	}
 
@@ -323,10 +365,16 @@ static bool read_sector_impl(sector* sec, ce_memfile* mem)
 		sec->water_textures = ce_alloc(sizeof(uint16_t) * TEXTURE_COUNT);
 		sec->water_allow = ce_alloc(sizeof(int16_t) * TEXTURE_COUNT);
 
+		if (NULL == sec->water_textures || NULL == sec->water_allow) {
+			ce_logging_error("mprfile: could not allocate memory");
+			return false;
+		}
+
 		if (TEXTURE_COUNT != ce_memfile_read(mem, sec->water_textures,
 									sizeof(uint16_t), TEXTURE_COUNT) ||
 				TEXTURE_COUNT != ce_memfile_read(mem, sec->water_allow,
 									sizeof(int16_t), TEXTURE_COUNT)) {
+			ce_logging_error("mprfile: io error occured");
 			return false;
 		}
 
@@ -348,6 +396,11 @@ static bool read_sector(sector* sec, const char* name, ce_resfile* res)
 
 	const size_t data_size = ce_resfile_node_size(res, index);
 	void* data = ce_alloc(data_size);
+	if (NULL == data) {
+		ce_logging_error("mprfile: could not allocate memory");
+		return false;
+	}
+
 	if (!ce_resfile_node_data(res, index, data)) {
 		ce_free(data, data_size);
 		return false;
@@ -372,6 +425,11 @@ static bool read_sectors(ce_mprfile* mpr, const char* mpr_name,
 {
 	mpr->sectors = ce_alloc_zero(sizeof(sector) * mpr->sector_count);
 	mpr->visible_sectors = ce_alloc(sizeof(sector*) * mpr->sector_count);
+
+	if (NULL == mpr->sectors || NULL == mpr->visible_sectors) {
+		ce_logging_error("mprfile: could not allocate memory");
+		return false;
+	}
 
 	if (mpr_name_length < 4) {
 		return false;
@@ -423,6 +481,11 @@ static bool create_texture(ce_texture** tex, const char* name, ce_resfile* res)
 
 	const size_t data_size = ce_resfile_node_size(res, index);
 	void* data = ce_alloc(data_size);
+	if (NULL == data) {
+		ce_logging_error("mprfile: could not allocate memory");
+		return false;
+	}
+
 	if (!ce_resfile_node_data(res, index, data)) {
 		ce_free(data, data_size);
 		return false;
@@ -438,7 +501,11 @@ static bool create_texture(ce_texture** tex, const char* name, ce_resfile* res)
 static bool create_textures(ce_mprfile* mpr, const char* mpr_name,
 							size_t mpr_name_length, ce_resfile* res)
 {
-	mpr->textures = ce_alloc_zero(sizeof(ce_texture*) * mpr->texture_count);
+	if (NULL == (mpr->textures = ce_alloc_zero(sizeof(ce_texture*) *
+												mpr->texture_count))) {
+		ce_logging_error("mprfile: could not allocate memory");
+		return false;
+	}
 
 	if (mpr_name_length < 4) {
 		return false;
@@ -465,6 +532,10 @@ static bool create_textures(ce_mprfile* mpr, const char* mpr_name,
 ce_mprfile* ce_mprfile_open(ce_resfile* mpr_res, ce_resfile* textures_res)
 {
 	ce_mprfile* mpr = ce_alloc_zero(sizeof(ce_mprfile));
+	if (NULL == mpr) {
+		ce_logging_error("mprfile: could not allocate memory");
+		return NULL;
+	}
 
 	const char* mpr_name = ce_resfile_name(mpr_res);
 	size_t mpr_name_length = strlen(mpr_name);
