@@ -70,10 +70,10 @@ static void idle(void)
 		ce_texture_close(tex);
 		ce_resfile_close(res);
 		ce_gl_term();
-		ce_input_close();
-		ce_logging_term();
+		ce_input_term();
 		ce_alloc_term();
-		exit(0);
+		ce_logging_term();
+		exit(EXIT_SUCCESS);
 	}
 }
 
@@ -191,11 +191,13 @@ static void usage()
 int main(int argc, char* argv[])
 {
 	ce_logging_init();
+
 #ifdef NDEBUG
 	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
 #else
 	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
 #endif
+
 	ce_alloc_init();
 
 	srand(time(NULL));
@@ -271,7 +273,7 @@ int main(int argc, char* argv[])
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 
-	ce_input_open();
+	ce_input_init();
 	ce_gl_init();
 
 	res = ce_resfile_open_file(argv[optind]);
@@ -302,5 +304,5 @@ int main(int argc, char* argv[])
 	tmr = ce_timer_open();
 
 	glutMainLoop();
-	return 0;
+	return EXIT_SUCCESS;
 }

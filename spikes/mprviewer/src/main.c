@@ -83,18 +83,18 @@ static void idle(void)
 	ce_input_event_supply_advance(es, elapsed);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
+		ce_input_event_supply_delete(es);
 		ce_timer_close(tmr);
 		ce_camera_delete(cam);
 		ce_mprfile_close(mpr);
 		ce_gl_term();
-		ce_input_event_supply_close(es);
-		ce_input_close();
-		ce_logging_term();
+		ce_input_term();
 		ce_alloc_term();
+		ce_logging_term();
 		if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
 			glutLeaveGameMode();
 		}
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	if (ce_input_test(CE_KB_LEFT)) {
@@ -270,11 +270,13 @@ static void usage()
 int main(int argc, char* argv[])
 {
 	ce_logging_init();
+
 #ifdef NDEBUG
 	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
 #else
 	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
 #endif
+
 	ce_alloc_init();
 
 	int c;
@@ -357,7 +359,7 @@ int main(int argc, char* argv[])
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 
-	ce_input_open();
+	ce_input_init();
 	ce_gl_init();
 
 	char path[512];
@@ -402,8 +404,8 @@ int main(int argc, char* argv[])
 
 	tmr = ce_timer_open();
 
-	es = ce_input_event_supply_open();
+	es = ce_input_event_supply_new();
 
 	glutMainLoop();
-	return 0;
+	return EXIT_SUCCESS;
 }

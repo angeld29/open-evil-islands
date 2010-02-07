@@ -187,7 +187,7 @@ bool ce_input_event_triggered(ce_input_event* ev)
 	return ev->triggered;
 }
 
-ce_input_event_supply* ce_input_event_supply_open(void)
+ce_input_event_supply* ce_input_event_supply_new(void)
 {
 	ce_input_event_supply* es = ce_alloc(sizeof(ce_input_event_supply));
 	if (NULL == es) {
@@ -197,14 +197,14 @@ ce_input_event_supply* ce_input_event_supply_open(void)
 
 	if (NULL == (es->events = ce_vector_open())) {
 		ce_logging_error("input: could not allocate memory");
-		ce_input_event_supply_close(es);
+		ce_input_event_supply_delete(es);
 		return NULL;
 	}
 
 	return es;
 }
 
-void ce_input_event_supply_close(ce_input_event_supply* es)
+void ce_input_event_supply_delete(ce_input_event_supply* es)
 {
 	if (NULL == es) {
 		return;

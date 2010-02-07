@@ -64,7 +64,7 @@ static struct {
 	bool inited;
 	size_t count;
 	portion* pool;
-} smallobj;
+} ce_alloc_inst;
 
 static bool chunk_is_filled(const chunk* cnk)
 {
@@ -266,16 +266,17 @@ static size_t get_offset(size_t size, size_t alignment)
 
 bool ce_alloc_init(void)
 {
-	assert(!smallobj.inited && "The alloc subsystem has already been inited");
-	smallobj.inited = true;
+	assert(!ce_alloc_inst.inited && "The alloc subsystem has already been inited");
+	ce_alloc_inst.inited = true;
 
-	smallobj.count = get_offset(MAX_SMALL_OBJECT_SIZE, OBJECT_ALIGNMENT);
-	if (NULL == (smallobj.pool = calloc(smallobj.count, sizeof(portion)))) {
+	ce_alloc_inst.count = get_offset(MAX_SMALL_OBJECT_SIZE, OBJECT_ALIGNMENT);
+	if (NULL == (ce_alloc_inst.pool = calloc(ce_alloc_inst.count,
+												sizeof(portion)))) {
 		return false;
 	}
 
-	for (size_t i = 0; i < smallobj.count; ++i) {
-		if (!portion_init(smallobj.pool + i,
+	for (size_t i = 0; i < ce_alloc_inst.count; ++i) {
+		if (!portion_init(ce_alloc_inst.pool + i,
 				(i + 1) * OBJECT_ALIGNMENT, PAGE_SIZE)) {
 			ce_alloc_term();
 			return false;
@@ -287,50 +288,50 @@ bool ce_alloc_init(void)
 
 void ce_alloc_term(void)
 {
-	assert(smallobj.inited && "The alloc subsystem has not yet been inited");
-	smallobj.inited = false;
+	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
+	ce_alloc_inst.inited = false;
 
-	if (NULL != smallobj.pool) {
-		for (size_t i = 0; i < smallobj.count; ++i) {
-			portion_clean(smallobj.pool + i);
+	if (NULL != ce_alloc_inst.pool) {
+		for (size_t i = 0; i < ce_alloc_inst.count; ++i) {
+			portion_clean(ce_alloc_inst.pool + i);
 		}
 
-		free(smallobj.pool);
-		smallobj.pool = NULL;
+		free(ce_alloc_inst.pool);
+		ce_alloc_inst.pool = NULL;
 	}
 }
 
 void* ce_alloc(size_t size)
 {
-	assert(smallobj.inited && "The alloc subsystem has not yet been inited");
+	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
 
 	return size > MAX_SMALL_OBJECT_SIZE ? malloc(size) :
-		portion_alloc(smallobj.pool +
+		portion_alloc(ce_alloc_inst.pool +
 					get_offset(ce_smax(1, size), OBJECT_ALIGNMENT) - 1);
 }
 
 void* ce_alloc_zero(size_t size)
 {
-	assert(smallobj.inited && "The alloc subsystem has not yet been inited");
+	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
 
 	if (size > MAX_SMALL_OBJECT_SIZE) {
 		return calloc(1, size);
 	}
 
 	size = ce_smax(1, size);
-	void* ptr = portion_alloc(smallobj.pool +
+	void* ptr = portion_alloc(ce_alloc_inst.pool +
 							get_offset(size, OBJECT_ALIGNMENT) - 1);
 	return NULL != ptr ? memset(ptr, 0, size) : NULL;
 }
 
 void ce_free(void* ptr, size_t size)
 {
-	assert(smallobj.inited && "The alloc subsystem has not yet been inited");
+	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
 
 	if (size > MAX_SMALL_OBJECT_SIZE) {
 		free(ptr);
 	} else if (NULL != ptr) {
-		portion_free(smallobj.pool +
+		portion_free(ce_alloc_inst.pool +
 					get_offset(ce_smax(1, size), OBJECT_ALIGNMENT) - 1, ptr);
 	}
 }

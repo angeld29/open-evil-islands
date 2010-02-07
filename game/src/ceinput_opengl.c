@@ -32,7 +32,7 @@
 #include "celib.h"
 #include "ceinput.h"
 
-static bool opened;
+static bool inited;
 static bool buttons[CE_IB_COUNT];
 static int mouse_prev_x;
 static int mouse_prev_y;
@@ -105,9 +105,11 @@ static void passive_motion(int x, int y)
 	motion(x, y);
 }
 
-bool ce_input_open(void)
+bool ce_input_init(void)
 {
-	assert(!opened);
+	assert(!inited && "The input subsystem has already been inited");
+	inited = true;
+
 	glutKeyboardFunc(keyboard);
 	glutKeyboardUpFunc(keyboard_up);
 	glutSpecialFunc(special);
@@ -115,36 +117,37 @@ bool ce_input_open(void)
 	glutMouseFunc(mouse);
 	glutMotionFunc(motion);
 	glutPassiveMotionFunc(passive_motion);
-	return opened = true;
+
+	return true;
 }
 
-void ce_input_close(void)
+void ce_input_term(void)
 {
-	assert(opened);
-	opened = false;
+	assert(inited && "The input subsystem has not yet been inited");
+	inited = false;
 }
 
 bool ce_input_test(ce_input_button button)
 {
-	assert(opened);
+	assert(inited && "The input subsystem has not yet been inited");
 	return buttons[button];
 }
 
 int ce_input_mouse_offset_x()
 {
-	assert(opened);
+	assert(inited && "The input subsystem has not yet been inited");
 	return mouse_offset_x;
 }
 
 int ce_input_mouse_offset_y()
 {
-	assert(opened);
+	assert(inited && "The input subsystem has not yet been inited");
 	return mouse_offset_y;
 }
 
 void ce_input_advance(float elapsed)
 {
-	assert(opened);
+	assert(inited && "The input subsystem has not yet been inited");
 	ce_unused(elapsed);
 
 	if (mouse_offset_delay > 0 && 0 == --mouse_offset_delay) {

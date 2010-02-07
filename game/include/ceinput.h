@@ -147,8 +147,8 @@ typedef struct ce_input_event_supply ce_input_event_supply;
 
 // Low level input API.
 
-extern bool ce_input_open(void);
-extern void ce_input_close(void);
+extern bool ce_input_init(void);
+extern void ce_input_term(void);
 
 extern bool ce_input_test(ce_input_button button);
 
@@ -161,8 +161,8 @@ extern void ce_input_advance(float elapsed);
 
 extern bool ce_input_event_triggered(ce_input_event* ev);
 
-extern ce_input_event_supply* ce_input_event_supply_open(void);
-extern void ce_input_event_supply_close(ce_input_event_supply* es);
+extern ce_input_event_supply* ce_input_event_supply_new(void);
+extern void ce_input_event_supply_delete(ce_input_event_supply* es);
 
 extern void ce_input_event_supply_advance(ce_input_event_supply* es,
 														float elapsed);
