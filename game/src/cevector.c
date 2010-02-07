@@ -59,7 +59,32 @@ void ce_vector_delete(ce_vector* vec)
 	ce_free(vec, sizeof(ce_vector));
 }
 
-void ce_vector_push_back(ce_vector* vec, void* item)
+size_t ce_vector_count(const ce_vector* vec)
+{
+	return vec->count;
+}
+
+bool ce_vector_empty(const ce_vector* vec)
+{
+	return 0 == vec->count;
+}
+
+void* ce_vector_front(ce_vector* vec)
+{
+	return vec->items[0];
+}
+
+void* ce_vector_back(ce_vector* vec)
+{
+	return vec->items[vec->count - 1];
+}
+
+void* ce_vector_at(ce_vector* vec, size_t index)
+{
+	return vec->items[index];
+}
+
+bool ce_vector_push_back(ce_vector* vec, void* item)
 {
 	if (vec->count == vec->capacity) {
 		size_t capacity = 2 * vec->capacity;
@@ -67,7 +92,7 @@ void ce_vector_push_back(ce_vector* vec, void* item)
 		void** items = ce_alloc(sizeof(void*) * capacity);
 		if (NULL == items) {
 			ce_logging_error("vector: could not allocate memory");
-			return;
+			return false;
 		}
 
 		memcpy(items, vec->items, sizeof(void*) * vec->count);
@@ -78,14 +103,5 @@ void ce_vector_push_back(ce_vector* vec, void* item)
 	}
 
 	vec->items[vec->count++] = item;
-}
-
-size_t ce_vector_count(ce_vector* vec)
-{
-	return vec->count;
-}
-
-void* ce_vector_at(ce_vector* vec, size_t index)
-{
-	return vec->items[index];
+	return true;
 }

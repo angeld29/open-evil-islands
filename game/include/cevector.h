@@ -22,6 +22,7 @@
 #define CE_VECTOR_H
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -33,10 +34,14 @@ typedef struct ce_vector ce_vector;
 extern ce_vector* ce_vector_new(void);
 extern void ce_vector_delete(ce_vector* vec);
 
-extern void ce_vector_push_back(ce_vector* vec, void* item);
+extern size_t ce_vector_count(const ce_vector* vec);
+extern bool ce_vector_empty(const ce_vector* vec);
 
-extern size_t ce_vector_count(ce_vector* vec);
+extern void* ce_vector_front(ce_vector* vec);
+extern void* ce_vector_back(ce_vector* vec);
 extern void* ce_vector_at(ce_vector* vec, size_t index);
+
+extern bool ce_vector_push_back(ce_vector* vec, void* item);
 
 #ifdef __cplusplus
 }
