@@ -38,8 +38,8 @@
 #include "celib.h"
 #include "cegl.h"
 #include "cebyteorder.h"
-#include "cealloc.h"
 #include "celogging.h"
+#include "cealloc.h"
 #include "cemath.h"
 #include "cemmpfile.h"
 #include "cetexture.h"
@@ -68,8 +68,8 @@ static void setup_mag_min_params(int mipmap_count)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			static bool reported;
 			if (!reported) {
-				ce_logging_warning("Some OpenGL features are not available. "
-									"Mipmapping was disabled.");
+				ce_logging_warning("texture: some opengl features are not "
+									"available, mipmapping was disabled");
 				reported = true;
 			}
 		}
@@ -103,7 +103,7 @@ static bool scale_texture(int* width, int* height,
 		int error = gluScaleImage(data_format, *width, *height,
 			data_type, data, new_width, new_height, data_type, data);
 		if (GL_NO_ERROR != error) {
-			ce_logging_error("gluScaleImage failed: %d (%s).",
+			ce_logging_error("texture: gluScaleImage failed: %d: %s",
 								error, gluErrorString(error));
 			return false;
 		}
@@ -119,7 +119,7 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 		int height, GLenum data_format, GLenum data_type, void* data)
 {
 	if (!scale_texture(&width, &height, data_format, data_type, data)) {
-		ce_logging_error("Could not scale texture.");
+		ce_logging_error("texture: could not scale texture");
 		return false;
 	}
 
@@ -127,7 +127,7 @@ static bool specify_texture(int level, GLenum internal_format, int width,
 		width, height, 0, data_format, data_type, data);
 
 	if (ce_gl_report_errors()) {
-		ce_logging_error("glTexImage2D failed.");
+		ce_logging_error("texture: glTexImage2D failed");
 		return false;
 	}
 
@@ -151,12 +151,11 @@ static bool generate_texture(int mipmap_count, GLenum internal_format, int width
 
 	setup_mag_min_params(mipmap_count);
 
-	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+	for (int i = 0; ok && i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		if (!specify_texture(i, internal_format, width,
 				height, data_format, data_type, src)) {
-			ce_logging_error("Could not specify texture.");
+			ce_logging_error("texture: could not specify texture");
 			ok = false;
-			break;
 		}
 		src += width * height * bpp;
 	}
@@ -280,7 +279,7 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 			width, height, 0, data_size, src);
 
 		if (ce_gl_report_errors()) {
-			ce_logging_error("glCompressedTexImage2D failed.");
+			ce_logging_error("texture: glCompressedTexImage2D failed");
 			return false;
 		}
 
@@ -312,7 +311,12 @@ static bool dxt_generate_texture(int mipmap_count,
 		data_size += w * h * 4;
 	}
 
-	uint8_t* dst = data = ce_alloc(data_size);
+	if (NULL == (data = ce_alloc(data_size))) {
+		ce_logging_error("texture: could not allocate memory");
+		return false;
+	}
+
+	uint8_t* dst = data;
 
 	for (int i = 0, w = width, h = height;
 			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
@@ -408,7 +412,12 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 	uint16_t* end = src + pixel_count;
 	int data_size = bpp * pixel_count;
 
-	for (uint8_t* dst = data = ce_alloc(data_size); src != end; ++src) {
+	if (NULL == (data = ce_alloc(data_size))) {
+		ce_logging_error("texture: could not allocate memory");
+		return false;
+	}
+
+	for (uint8_t* dst = data; src != end; ++src) {
 		*dst++ = ((*src & rmask) >> rshift) * 255 / rdiv;
 		*dst++ = ((*src & gmask) >> gshift) * 255 / gdiv;
 		*dst++ = (*src & bmask) * 255 / bdiv;
@@ -459,7 +468,12 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		uint32_t* src = data;
 		uint32_t* end = src + size / sizeof(uint32_t);
 
-		uint8_t* dst = data = ce_alloc(data_size);
+		if (NULL == (data = ce_alloc(data_size))) {
+			ce_logging_error("texture: could not allocate memory");
+			return false;
+		}
+
+		uint8_t* dst = data;
 		int n = 0;
 
 		while (src != end) {
@@ -494,6 +508,10 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 ce_texture* ce_texture_open(void* data)
 {
 	ce_texture* tex = ce_alloc(sizeof(ce_texture));
+	if (NULL == tex) {
+		ce_logging_error("texture: could not allocate memory");
+		return NULL;
+	}
 
 	glGenTextures(1, &tex->id);
 
@@ -516,7 +534,7 @@ ce_texture* ce_texture_open(void* data)
 	uint32_t* mmp = data;
 
 	if (CE_MMP_SIGNATURE != ce_le2cpu32(*mmp++)) {
-		ce_logging_error("Wrong mmp signature.");
+		ce_logging_error("texture: wrong mmp signature");
 		ce_texture_close(tex);
 		return NULL;
 	}
@@ -589,13 +607,10 @@ ce_texture* ce_texture_open(void* data)
 
 void ce_texture_close(ce_texture* tex)
 {
-	if (NULL == tex) {
-		return;
+	if (NULL != tex) {
+		glDeleteTextures(1, &tex->id);
+		ce_free(tex, sizeof(ce_texture));
 	}
-
-	glDeleteTextures(1, &tex->id);
-
-	ce_free(tex, sizeof(ce_texture));
 }
 
 void ce_texture_bind(ce_texture* tex)
