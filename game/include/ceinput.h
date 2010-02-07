@@ -23,6 +23,8 @@
 
 #include <stdbool.h>
 
+#include "cevec2.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -152,8 +154,7 @@ extern void ce_input_term(void);
 
 extern bool ce_input_test(ce_input_button button);
 
-extern int ce_input_mouse_offset_x();
-extern int ce_input_mouse_offset_y();
+extern ce_vec2 ce_input_mouse_offset(void);
 
 extern void ce_input_advance(float elapsed);
 

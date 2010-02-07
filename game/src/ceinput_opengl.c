@@ -32,15 +32,16 @@
 #include "celib.h"
 #include "ceinput.h"
 
-static bool inited;
-static bool buttons[CE_IB_COUNT];
-static int mouse_prev_x;
-static int mouse_prev_y;
-static int mouse_offset_x;
-static int mouse_offset_y;
-static int mouse_offset_delay;
-static int wheel_up_delay;
-static int wheel_down_delay;
+static struct {
+	bool inited;
+	bool buttons[CE_IB_COUNT];
+	int mouse_prev_x;
+	int mouse_prev_y;
+	int mouse_offset_delay;
+	int wheel_up_delay;
+	int wheel_down_delay;
+	ce_vec2 mouse_offset;
+} ce_input_inst;
 
 static ce_input_button keyboard_ascii_map(unsigned char key);
 static ce_input_button keyboard_special_map(int key);
@@ -50,54 +51,56 @@ static void keyboard(unsigned char key, int x, int y)
 {
 	ce_unused(x);
 	ce_unused(y);
-	buttons[keyboard_ascii_map(key)] = true;
+	ce_input_inst.buttons[keyboard_ascii_map(key)] = true;
 }
 
 static void keyboard_up(unsigned char key, int x, int y)
 {
 	ce_unused(x);
 	ce_unused(y);
-	buttons[keyboard_ascii_map(key)] = false;
+	ce_input_inst.buttons[keyboard_ascii_map(key)] = false;
 }
 
 static void special(int key, int x, int y)
 {
 	ce_unused(x);
 	ce_unused(y);
-	buttons[keyboard_special_map(key)] = true;
+	ce_input_inst.buttons[keyboard_special_map(key)] = true;
 }
 
 static void special_up(int key, int x, int y)
 {
 	ce_unused(x);
 	ce_unused(y);
-	buttons[keyboard_special_map(key)] = false;
+	ce_input_inst.buttons[keyboard_special_map(key)] = false;
 }
 
 static void mouse(int button, int state, int x, int y)
 {
-	mouse_prev_x = x;
-	mouse_prev_y = y;
+	ce_input_inst.mouse_prev_x = x;
+	ce_input_inst.mouse_prev_y = y;
+
 	if (GLUT_UP == state) {
 		if (GLUT_WHEEL_UP == button) {
-			wheel_up_delay = 2;
+			ce_input_inst.wheel_up_delay = 2;
 			return;
 		}
 		if (GLUT_WHEEL_DOWN == button) {
-			wheel_down_delay = 2;
+			ce_input_inst.wheel_down_delay = 2;
 			return;
 		}
 	}
-	buttons[mouse_map(button)] = GLUT_DOWN == state;
+
+	ce_input_inst.buttons[mouse_map(button)] = GLUT_DOWN == state;
 }
 
 static void motion(int x, int y)
 {
-	mouse_offset_delay = 2;
-	mouse_offset_x = x - mouse_prev_x;
-	mouse_offset_y = y - mouse_prev_y;
-	mouse_prev_x = x;
-	mouse_prev_y = y;
+	ce_input_inst.mouse_offset_delay = 2;
+	ce_vec2_init(&ce_input_inst.mouse_offset, x - ce_input_inst.mouse_prev_x,
+												y - ce_input_inst.mouse_prev_y);
+	ce_input_inst.mouse_prev_x = x;
+	ce_input_inst.mouse_prev_y = y;
 }
 
 static void passive_motion(int x, int y)
@@ -107,8 +110,8 @@ static void passive_motion(int x, int y)
 
 bool ce_input_init(void)
 {
-	assert(!inited && "The input subsystem has already been inited");
-	inited = true;
+	assert(!ce_input_inst.inited && "The input subsystem has already been inited");
+	ce_input_inst.inited = true;
 
 	glutKeyboardFunc(keyboard);
 	glutKeyboardUpFunc(keyboard_up);
@@ -123,44 +126,40 @@ bool ce_input_init(void)
 
 void ce_input_term(void)
 {
-	assert(inited && "The input subsystem has not yet been inited");
-	inited = false;
+	assert(ce_input_inst.inited && "The input subsystem has not yet been inited");
+	ce_input_inst.inited = false;
 }
 
 bool ce_input_test(ce_input_button button)
 {
-	assert(inited && "The input subsystem has not yet been inited");
-	return buttons[button];
+	assert(ce_input_inst.inited && "The input subsystem has not yet been inited");
+	return ce_input_inst.buttons[button];
 }
 
-int ce_input_mouse_offset_x()
+ce_vec2 ce_input_mouse_offset(void)
 {
-	assert(inited && "The input subsystem has not yet been inited");
-	return mouse_offset_x;
-}
-
-int ce_input_mouse_offset_y()
-{
-	assert(inited && "The input subsystem has not yet been inited");
-	return mouse_offset_y;
+	assert(ce_input_inst.inited && "The input subsystem has not yet been inited");
+	return ce_input_inst.mouse_offset;
 }
 
 void ce_input_advance(float elapsed)
 {
-	assert(inited && "The input subsystem has not yet been inited");
+	assert(ce_input_inst.inited && "The input subsystem has not yet been inited");
 	ce_unused(elapsed);
 
-	if (mouse_offset_delay > 0 && 0 == --mouse_offset_delay) {
-		mouse_offset_x = 0.0f;
-		mouse_offset_y = 0.0f;
+	if (ce_input_inst.mouse_offset_delay > 0 &&
+			0 == --ce_input_inst.mouse_offset_delay) {
+		ce_vec2_zero(&ce_input_inst.mouse_offset);
 	}
 
-	if (wheel_up_delay > 0 && 0 == --wheel_up_delay) {
-		buttons[CE_MB_WHEELUP] = false;
+	if (ce_input_inst.wheel_up_delay > 0 &&
+			0 == --ce_input_inst.wheel_up_delay) {
+		ce_input_inst.buttons[CE_MB_WHEELUP] = false;
 	}
 
-	if (wheel_down_delay > 0 && 0 == --wheel_down_delay) {
-		buttons[CE_MB_WHEELDOWN] = false;
+	if (ce_input_inst.wheel_down_delay > 0 &&
+			0 == --ce_input_inst.wheel_down_delay) {
+		ce_input_inst.buttons[CE_MB_WHEELDOWN] = false;
 	}
 }
 

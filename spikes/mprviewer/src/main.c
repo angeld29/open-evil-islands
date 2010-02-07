@@ -122,8 +122,9 @@ static void idle(void)
 	}
 
 	if (ce_input_test(CE_MB_RIGHT)) {
-		ce_camera_yaw_pitch(cam, ce_deg2rad(-0.25f * ce_input_mouse_offset_x()),
-							ce_deg2rad(-0.25f * ce_input_mouse_offset_y()));
+		ce_vec2 offset = ce_input_mouse_offset();
+		ce_camera_yaw_pitch(cam, ce_deg2rad(-0.25f * offset.x),
+									ce_deg2rad(-0.25f * offset.y));
 	}
 
 	glutPostRedisplay();

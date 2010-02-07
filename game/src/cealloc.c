@@ -37,7 +37,6 @@
 #include <assert.h>
 
 #include "celib.h"
-#include "celogging.h"
 #include "cealloc.h"
 
 static const size_t PAGE_SIZE = 4096;
