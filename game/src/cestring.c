@@ -66,7 +66,7 @@ ce_string* ce_string_new(void)
 
 	if (NULL == (str->cstr = ce_alloc(str->capacity))) {
 		ce_logging_error("string: could not allocate memory");
-		ce_string_delete(str);
+		ce_string_del(str);
 		return NULL;
 	}
 
@@ -75,7 +75,7 @@ ce_string* ce_string_new(void)
 	return str;
 }
 
-void ce_string_delete(ce_string* str)
+void ce_string_del(ce_string* str)
 {
 	if (NULL != str) {
 		ce_free(str->cstr, str->capacity);

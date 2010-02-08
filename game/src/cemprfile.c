@@ -566,7 +566,7 @@ void ce_mprfile_close(ce_mprfile* mpr)
 
 	if (NULL != mpr->textures) {
 		for (unsigned int i = 0; i < mpr->texture_count; ++i) {
-			ce_texture_delete(mpr->textures[i]);
+			ce_texture_del(mpr->textures[i]);
 		}
 	}
 

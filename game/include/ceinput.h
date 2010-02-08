@@ -163,7 +163,7 @@ extern void ce_input_advance(float elapsed);
 extern bool ce_input_event_triggered(ce_input_event* ev);
 
 extern ce_input_event_supply* ce_input_event_supply_new(void);
-extern void ce_input_event_supply_delete(ce_input_event_supply* es);
+extern void ce_input_event_supply_del(ce_input_event_supply* es);
 
 extern void ce_input_event_supply_advance(ce_input_event_supply* es,
 														float elapsed);

@@ -43,14 +43,14 @@ ce_vector* ce_vector_new(void)
 
 	if (NULL == (vec->items = ce_alloc(sizeof(void*) * vec->capacity))) {
 		ce_logging_error("vector: could not allocate memory");
-		ce_vector_delete(vec);
+		ce_vector_del(vec);
 		return NULL;
 	}
 
 	return vec;
 }
 
-void ce_vector_delete(ce_vector* vec)
+void ce_vector_del(ce_vector* vec)
 {
 	if (NULL != vec) {
 		ce_free(vec->items, sizeof(void*) * vec->capacity);

@@ -29,7 +29,7 @@ extern "C"
 typedef struct ce_texture ce_texture;
 
 extern ce_texture* ce_texture_new(void* mmp_data);
-extern void ce_texture_delete(ce_texture* tex);
+extern void ce_texture_del(ce_texture* tex);
 
 extern void ce_texture_bind(ce_texture* tex);
 extern void ce_texture_unbind(ce_texture* tex);

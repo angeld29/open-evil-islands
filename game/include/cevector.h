@@ -32,7 +32,7 @@ extern "C"
 typedef struct ce_vector ce_vector;
 
 extern ce_vector* ce_vector_new(void);
-extern void ce_vector_delete(ce_vector* vec);
+extern void ce_vector_del(ce_vector* vec);
 
 extern size_t ce_vector_count(const ce_vector* vec);
 extern bool ce_vector_empty(const ce_vector* vec);

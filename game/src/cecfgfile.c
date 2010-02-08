@@ -184,15 +184,15 @@ void ce_cfgfile_close(ce_cfgfile* cfg)
 			ce_cfgfile_section* section = ce_vector_at(cfg->sections, i);
 			for (int j = 0, m = ce_vector_count(section->options); j < m; ++j) {
 				ce_cfgfile_option* option = ce_vector_at(section->options, j);
-				ce_string_delete(option->value);
-				ce_string_delete(option->name);
+				ce_string_del(option->value);
+				ce_string_del(option->name);
 				ce_free(option, sizeof(ce_cfgfile_option));
 			}
-			ce_vector_delete(section->options);
-			ce_string_delete(section->name);
+			ce_vector_del(section->options);
+			ce_string_del(section->name);
 			ce_free(section, sizeof(ce_cfgfile_section));
 		}
-		ce_vector_delete(cfg->sections);
+		ce_vector_del(cfg->sections);
 	}
 
 	ce_free(cfg, sizeof(ce_cfgfile));

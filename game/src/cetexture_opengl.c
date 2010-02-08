@@ -535,7 +535,7 @@ ce_texture* ce_texture_new(void* mmp_data)
 
 	if (CE_MMP_SIGNATURE != ce_le2cpu32(*mmp++)) {
 		ce_logging_error("texture: wrong mmp signature");
-		ce_texture_delete(tex);
+		ce_texture_del(tex);
 		return NULL;
 	}
 
@@ -598,14 +598,14 @@ ce_texture* ce_texture_new(void* mmp_data)
 	}
 
 	if (!ok) {
-		ce_texture_delete(tex);
+		ce_texture_del(tex);
 		return NULL;
 	}
 
 	return tex;
 }
 
-void ce_texture_delete(ce_texture* tex)
+void ce_texture_del(ce_texture* tex)
 {
 	if (NULL != tex) {
 		glDeleteTextures(1, &tex->id);

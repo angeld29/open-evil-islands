@@ -83,9 +83,9 @@ static void idle(void)
 	ce_input_event_supply_advance(es, elapsed);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
-		ce_input_event_supply_delete(es);
-		ce_timer_delete(tmr);
-		ce_camera_delete(cam);
+		ce_input_event_supply_del(es);
+		ce_timer_del(tmr);
+		ce_camera_del(cam);
 		ce_mprfile_close(mpr);
 		ce_gl_term();
 		ce_input_term();

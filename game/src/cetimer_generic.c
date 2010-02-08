@@ -41,7 +41,7 @@ ce_timer* ce_timer_new(void)
 	return tmr;
 }
 
-void ce_timer_delete(ce_timer* tmr)
+void ce_timer_del(ce_timer* tmr)
 {
 	ce_free(tmr, sizeof(ce_timer));
 }

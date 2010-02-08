@@ -101,7 +101,7 @@ ce_camera* ce_camera_new(void)
 	return cam;
 }
 
-void ce_camera_delete(ce_camera* cam)
+void ce_camera_del(ce_camera* cam)
 {
 	ce_free(cam, sizeof(ce_camera));
 }

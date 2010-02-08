@@ -66,8 +66,8 @@ static void idle(void)
 	ce_input_advance(elapsed);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
-		ce_timer_delete(tmr);
-		ce_texture_delete(tex);
+		ce_timer_del(tmr);
+		ce_texture_del(tex);
 		ce_resfile_close(res);
 		ce_gl_term();
 		ce_input_term();
@@ -117,7 +117,7 @@ static void reshape(int width, int height)
 
 static bool generate_texture(int index)
 {
-	ce_texture_delete(tex);
+	ce_texture_del(tex);
 	tex = NULL;
 
 	void* data = ce_alloc(ce_resfile_node_size(res, index));

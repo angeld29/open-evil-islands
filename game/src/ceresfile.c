@@ -197,13 +197,13 @@ void ce_resfile_close(ce_resfile* res)
 
 	if (NULL != res->nodes) {
 		for (size_t i = 0; i < res->node_count; ++i) {
-			ce_string_delete(res->nodes[i].name);
+			ce_string_del(res->nodes[i].name);
 		}
 		ce_free(res->nodes, sizeof(ce_resfile_node) * res->node_count);
 	}
 
 	ce_free(res->names, res->names_length);
-	ce_string_delete(res->name);
+	ce_string_del(res->name);
 
 	ce_free(res, sizeof(ce_resfile));
 }
