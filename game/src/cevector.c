@@ -104,3 +104,8 @@ bool ce_vector_push_back(ce_vector* vec, void* item)
 	vec->items[vec->count++] = item;
 	return true;
 }
+
+void* ce_vector_pop_back(ce_vector* vec)
+{
+	return vec->items[--vec->count];
+}

@@ -42,6 +42,7 @@ extern void* ce_vector_back(ce_vector* vec);
 extern void* ce_vector_at(ce_vector* vec, size_t index);
 
 extern bool ce_vector_push_back(ce_vector* vec, void* item);
+extern void* ce_vector_pop_back(ce_vector* vec);
 
 #ifdef __cplusplus
 }
