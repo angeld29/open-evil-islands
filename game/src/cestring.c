@@ -32,9 +32,9 @@ struct ce_string {
 
 static bool ce_string_reserve(ce_string* str, size_t length)
 {
-	if (length + 1 > str->capacity) {
-		size_t capacity = 2 * str->capacity;
+	size_t capacity = length + 1;
 
+	if (capacity > str->capacity) {
 		char* cstr = ce_alloc(capacity);
 		if (NULL == cstr) {
 			ce_logging_error("string: could not allocate memory");
@@ -46,8 +46,6 @@ static bool ce_string_reserve(ce_string* str, size_t length)
 
 		str->capacity = capacity;
 		str->cstr = cstr;
-
-		return ce_string_reserve(str, length);
 	}
 
 	return true;
