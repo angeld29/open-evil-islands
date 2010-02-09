@@ -270,13 +270,11 @@ static void usage()
 int main(int argc, char* argv[])
 {
 	ce_logging_init();
-
 #ifdef NDEBUG
 	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
 #else
 	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
 #endif
-
 	ce_alloc_init();
 
 	int c;
@@ -393,6 +391,8 @@ int main(int argc, char* argv[])
 		ce_logging_error("main: failed to load lighting configuration");
 		return 1;
 	}
+
+	// TODO: gipat light hardcoded
 	light_cfg = &gipat_light;
 
 	ce_vec3 eye;
