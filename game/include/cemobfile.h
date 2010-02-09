@@ -21,12 +21,45 @@
 #ifndef CE_MOBFILE_H
 #define CE_MOBFILE_H
 
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "cevector.h"
+#include "cestring.h"
+#include "cevec3.h"
+#include "cequat.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_mobfile ce_mobfile;
+typedef struct {
+	ce_vector* parts;
+	char owner;
+	uint32_t id;
+	uint32_t type;
+    ce_string* name;
+	ce_string* model_name;
+	ce_string* parent_name;
+	ce_string* primary_texture;
+	ce_string* secondary_texture;
+	ce_string* comment;
+	ce_vec3 position;
+	ce_quat rotation;
+	bool quest;
+	bool shadow;
+	uint32_t parent_id;
+	ce_string* quest_info;
+	float strength;
+	float dexterity;
+	float tallness;
+} ce_mobobject_object;
+
+typedef struct {
+	ce_string* script;
+	ce_vector* objects;
+} ce_mobfile;
 
 extern ce_mobfile* ce_mobfile_open(const char* path);
 extern void ce_mobfile_close(ce_mobfile* mob);

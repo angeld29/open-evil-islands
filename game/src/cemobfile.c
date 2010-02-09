@@ -18,170 +18,248 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <assert.h>
 
 #include "celib.h"
 #include "cebyteorder.h"
-#include "cestr.h"
+#include "celogging.h"
+#include "cealloc.h"
+#include "cememfile.h"
 #include "cemobfile.h"
 
-enum {
-	MOB_SIGNATURE = 0xa000
-};
+static const uint32_t MOB_SIGNATURE = 0xa000;
 
-//static const uint64_t MAIN_BLOCK_QUEST_SIGNATURE = 0x80000d000;
-//static const uint64_t MAIN_BLOCK_ZONAL_SIGNATURE = 0x80000c000;
+static const uint64_t MAIN_BLOCK_QUEST = 0x80000d000;
+static const uint64_t MAIN_BLOCK_ZONAL = 0x80000c000;
 
-//static const uint32_t TEXT_BLOCK_SIGNATURE = 0xacceeccb;
-//static const uint64_t OBJECT_BLOCK_SIGNATURE = 0xb000;
+static const uint32_t BLOCK_TEXT = 0xacceeccb;
+static const uint32_t BLOCK_OBJECT = 0xb000;
 
-/*static const uint64_t OBJECT_BLOCK_UNIT_SIGNATURE = 0xbbbb0000;
-static const uint64_t OBJECT_BLOCK_OBJECT_SIGNATURE = 0xb001;
-static const uint64_t OBJECT_BLOCK_LEVER_SIGNATURE = 0xbbac0000;
-static const uint64_t OBJECT_BLOCK_TRAP_SIGNATURE = 0xbbab0000;
-static const uint64_t OBJECT_BLOCK_FLAME_SIGNATURE = 0xbbbf;
-static const uint64_t OBJECT_BLOCK_PARTICLE1_SIGNATURE = 0xaa01;
-static const uint64_t OBJECT_BLOCK_PARTICLE2_SIGNATURE = 0xcc01;
-static const uint64_t OBJECT_BLOCK_PARTICLE3_SIGNATURE = 0xdd01;*/
+static const uint32_t BLOCK_OBJECT_UNIT = 0xbbbb0000;
+static const uint32_t BLOCK_OBJECT_OBJECT = 0xb001;
+static const uint32_t BLOCK_OBJECT_LEVER = 0xbbac0000;
+static const uint32_t BLOCK_OBJECT_TRAP = 0xbbab0000;
+static const uint32_t BLOCK_OBJECT_FLAME = 0xbbbf;
+static const uint32_t BLOCK_OBJECT_PARTICLE1 = 0xaa01;
+static const uint32_t BLOCK_OBJECT_PARTICLE2 = 0xcc01;
+static const uint32_t BLOCK_OBJECT_PARTICLE3 = 0xdd01;
 
-struct ce_mobfile {
-	int stub;
-};
+static const uint32_t BLOCK_OBJECT_OBJECT_PARTS = 45069;
+static const uint32_t BLOCK_OBJECT_OBJECT_OWNER = 45073;
+static const uint32_t BLOCK_OBJECT_OBJECT_ID = 45058;
+static const uint32_t BLOCK_OBJECT_OBJECT_TYPE = 45059;
+static const uint32_t BLOCK_OBJECT_OBJECT_NAME = 45060;
+static const uint32_t BLOCK_OBJECT_OBJECT_MODEL_NAME = 45062;
+static const uint32_t BLOCK_OBJECT_OBJECT_PARENT_NAME = 45070;
+static const uint32_t BLOCK_OBJECT_OBJECT_PRIMARY_TEXTURE = 45063;
+static const uint32_t BLOCK_OBJECT_OBJECT_SECONDARY_TEXTURE = 45064;
+static const uint32_t BLOCK_OBJECT_OBJECT_COMMENT = 45071;
+static const uint32_t BLOCK_OBJECT_OBJECT_POSITION = 45065;
+static const uint32_t BLOCK_OBJECT_OBJECT_ROTATION = 45066;
+static const uint32_t BLOCK_OBJECT_OBJECT_QUEST = 45075;
+static const uint32_t BLOCK_OBJECT_OBJECT_SHADOW = 45076;
+static const uint32_t BLOCK_OBJECT_OBJECT_PARENT_ID = 45074;
+static const uint32_t BLOCK_OBJECT_OBJECT_QUEST_INFO = 45078;
+static const uint32_t BLOCK_OBJECT_OBJECT_COMPLECTION = 45068;
 
-/*static void decrypt_script(char* buf, uint32_t key, int32_t size)
+typedef bool (*ce_mobfile_read_block)(ce_mobfile*, int, ce_memfile*);
+
+static void ce_mobfile_decrypt_script(char* str, int length, uint32_t key)
 {
-	for (int i = 0; i < size; ++i) {
+	for (int i = 0; i < length; ++i) {
 		key += (((((key * 13) << 4) + key) << 8) - key) * 4 + 2531011;
-		buf[i] ^= key >> 16;
+		str[i] ^= key >> 16;
 	}
-}*/
+}
 
-/*static mobfile* open_callbacks(ce_io_callbacks callbacks,
-								void* client_data, const char* name)
+static bool ce_mobfile_read_block_unknown(ce_mobfile* mob,
+											int block_length, ce_memfile* mem)
 {
-	mobfile* mob = calloc(1, sizeof(mobfile));
-	if (NULL == mob) {
-		return NULL;
+	ce_unused(mob);
+	if (0 != ce_memfile_seek(mem, block_length, SEEK_CUR)) {
+		ce_logging_error("mobfile: io error occured");
+		return false;
+	}
+	return true;
+}
+
+static bool ce_mobfile_read_block_text(ce_mobfile* mob,
+											int block_length, ce_memfile* mem)
+{
+	uint32_t key;
+	if (1 != ce_memfile_read(mem, &key, sizeof(key), 1)) {
+		ce_logging_error("mobfile: io error occured");
+		return false;
+	}
+
+	ce_le2cpu32s(&key);
+	block_length -= sizeof(key);
+
+	char script[block_length];
+	if (block_length != (int)ce_memfile_read(mem, script, 1, block_length)) {
+		ce_logging_error("mobfile: io error occured");
+		return false;
+	}
+
+	ce_mobfile_decrypt_script(script, block_length, key);
+	ce_string_assign_n(mob->script, script, block_length);
+
+	return true;
+}
+
+static bool ce_mobfile_read_block_object_object(ce_mobfile* mob,
+											int block_length, ce_memfile* mem)
+{
+	printf("len: %d\n", block_length);
+	ce_mobfile_read_block_unknown(mob, block_length, mem);
+	return true;
+}
+
+static bool ce_mobfile_read_block_object(ce_mobfile* mob,
+											int block_length, ce_memfile* mem)
+{
+	uint32_t type, length;
+
+	while (0 != block_length) {
+		if (1 != ce_memfile_read(mem, &type, sizeof(type), 1) ||
+				1 != ce_memfile_read(mem, &length, sizeof(length), 1)) {
+			ce_logging_error("mobfile: io error occured");
+			return false;
+		}
+
+		ce_le2cpu32s(&type);
+		ce_le2cpu32s(&length);
+
+		block_length -= length;
+		length -= sizeof(type);
+		length -= sizeof(length);
+
+		ce_mobfile_read_block read_block;
+
+		if (BLOCK_OBJECT_OBJECT == type) {
+			read_block = ce_mobfile_read_block_object_object;
+		} else {
+			read_block = ce_mobfile_read_block_unknown;
+		}
+
+		if (!read_block(mob, length, mem)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static bool ce_mobfile_read_block_main(ce_mobfile* mob,
+											int block_length, ce_memfile* mem)
+{
+	uint32_t type, length;
+
+	while (block_length != ce_memfile_tell(mem)) {
+		if (1 != ce_memfile_read(mem, &type, sizeof(type), 1) ||
+				1 != ce_memfile_read(mem, &length, sizeof(length), 1)) {
+			ce_logging_error("mobfile: io error occured");
+			return false;
+		}
+
+		ce_le2cpu32s(&type);
+		ce_le2cpu32s(&length);
+
+		length -= sizeof(type);
+		length -= sizeof(length);
+
+		ce_mobfile_read_block read_block;
+
+		if (BLOCK_TEXT == type) {
+			read_block = ce_mobfile_read_block_text;
+		} else if (BLOCK_OBJECT == type) {
+			read_block = ce_mobfile_read_block_object;
+		} else {
+			read_block = ce_mobfile_read_block_unknown;
+		}
+
+		if (!read_block(mob, length, mem)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static bool ce_mobfile_open_memfile_impl(ce_mobfile* mob, ce_memfile* mem)
+{
+	if (NULL == (mob->script = ce_string_new())) {
+		return false;
 	}
 
 	uint32_t signature;
-	if (1 != (callbacks.read)(&signature, sizeof(uint32_t), 1, client_data)) {
-		mobfile_close(mob);
-		return NULL;
+	if (1 != ce_memfile_read(mem, &signature, sizeof(signature), 1)) {
+		ce_logging_error("mobfile: io error occured");
+		return false;
 	}
 
 	ce_le2cpu32s(&signature);
 	if (MOB_SIGNATURE != signature) {
-		mobfile_close(mob);
-		return NULL;
+		ce_logging_error("mobfile: wrong signature");
+		return false;
 	}
 
-	int32_t main_block_length;
-	if (1 != (callbacks.read)(&main_block_length, sizeof(int32_t), 1, client_data)) {
-		mobfile_close(mob);
-		return NULL;
-	}
-
-	ce_le2cpu32s((uint32_t*)&main_block_length);
-	printf("main_block_length: %d\n", main_block_length);
-
+	uint32_t main_block_length;
 	uint64_t main_block_type;
-	if (1 != (callbacks.read)(&main_block_type, sizeof(uint64_t), 1, client_data)) {
-		mobfile_close(mob);
-		return NULL;
+
+	if (1 != ce_memfile_read(mem, &main_block_length,
+							sizeof(main_block_length), 1) ||
+			1 != ce_memfile_read(mem, &main_block_type,
+								sizeof(main_block_type), 1)) {
+		ce_logging_error("mobfile: io error occured");
+		return false;
 	}
 
+	ce_le2cpu32s(&main_block_length);
 	ce_le2cpu64s(&main_block_type);
-	printf("main_block_type: %#llx\n", main_block_type);
-	if (MAIN_BLOCK_QUEST_SIGNATURE != main_block_type &&
-			MAIN_BLOCK_ZONAL_SIGNATURE != main_block_type) {
-		mobfile_close(mob);
+
+	if (MAIN_BLOCK_QUEST != main_block_type &&
+			MAIN_BLOCK_ZONAL != main_block_type) {
+		ce_logging_error("mobfile: wrong main block type");
+		return false;
+	}
+
+	return ce_mobfile_read_block_main(mob, main_block_length, mem);
+}
+
+static ce_mobfile* ce_mobfile_open_memfile(ce_memfile* mem)
+{
+	ce_mobfile* mob = ce_alloc_zero(sizeof(ce_mobfile));
+	if (NULL == mob) {
+		ce_logging_error("mobfile: could not allocate memory");
 		return NULL;
 	}
 
-	do {
-		uint32_t signature;
-		if (1 != (callbacks.read)(&signature, sizeof(uint32_t), 1, client_data)) {
-			mobfile_close(mob);
-			return NULL;
-		}
-
-		ce_le2cpu32s(&signature);
-		printf("signature: %u %#x\n", signature, signature);
-
-		int32_t length;
-		if (1 != (callbacks.read)(&length, sizeof(int32_t), 1, client_data)) {
-			mobfile_close(mob);
-			return NULL;
-		}
-
-		ce_le2cpu32s((uint32_t*)&length);
-		printf("length: %d\n", length);
-
-		if (TEXT_BLOCK_SIGNATURE == signature) {
-			int32_t script_key;
-			(callbacks.read)(&script_key, sizeof(int32_t), 1, client_data);
-
-			ce_le2cpu32s((uint32_t*)&script_key);
-			printf("script_key: %d\n", script_key);
-
-			char* data = malloc(length - 4 - 4 - 4);
-			(callbacks.read)(data, 1, length - 4 - 4 - 4, client_data);
-			decrypt_script(data, script_key, length - 4 - 4 - 4);
-			for (int i = 0; i < length - 4 - 4 - 4; ++i) {
-				printf("%c", data[i]);
-			}
-			printf("\n");
-			free(data);
-		} else {
-			char* data = malloc(length - 4 - 4);
-			(callbacks.read)(data, 1, length - 4 - 4, client_data);
-			free(data);
-		}
-	} while(main_block_length != (callbacks.tell)(client_data));
-
-	mob->callbacks = callbacks;
-	mob->client_data = client_data;
+	if (!ce_mobfile_open_memfile_impl(mob, mem)) {
+		ce_mobfile_close(mob);
+		return NULL;
+	}
 
 	return mob;
-}*/
+}
 
 ce_mobfile* ce_mobfile_open(const char* path)
 {
-	ce_unused(path);
-	assert(false && "Not implemented");
-	return NULL;
-
-	/*FILE* file = fopen(path, "rb");
-	if (NULL == file) {
+	ce_memfile* mem = ce_memfile_open_path(path, "rb");
+	if (NULL == mem) {
 		return NULL;
 	}
 
-	const char* name = ce_strrpbrk(path, "\\/");
-	if (NULL == name) {
-		name = path;
-	} else {
-		++name;
-	}
+	ce_mobfile* mob = ce_mobfile_open_memfile(mem);
+	ce_memfile_close(mem);
 
-	mobfile* mob = open_callbacks(CE_IO_CALLBACKS_FILE, file, name);
-	if (NULL == mob) {
-		fclose(file);
-		return NULL;
-	}
-
-	return mob;*/
+	return mob;
 }
 
 void ce_mobfile_close(ce_mobfile* mob)
 {
-	if (NULL == mob) {
-		return;
+	if (NULL != mob) {
+		ce_string_del(mob->script);
+		ce_free(mob, sizeof(ce_mobfile));
 	}
-
-	//free(mob);
 }
