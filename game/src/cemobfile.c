@@ -19,6 +19,8 @@
 */
 
 #include <stdio.h>
+#include <stdbool.h>
+#include <assert.h>
 
 #include "celib.h"
 #include "cebyteorder.h"
@@ -112,6 +114,13 @@ static bool ce_mobfile_read_block_object_object(ce_mobfile* mob,
 {
 	uint32_t type, length;
 
+	ce_mobobject_object* object = ce_alloc_zero(sizeof(ce_mobobject_object));
+	if (NULL == object) {
+		return false;
+	}
+
+	ce_vector_push_back(mob->objects, object);
+
 	while (0 != block_length) {
 		if (1 != ce_memfile_read(mem, &type, sizeof(type), 1) ||
 				1 != ce_memfile_read(mem, &length, sizeof(length), 1)) {
@@ -126,7 +135,127 @@ static bool ce_mobfile_read_block_object_object(ce_mobfile* mob,
 		length -= sizeof(type);
 		length -= sizeof(length);
 
-		if (0 != ce_memfile_seek(mem, length, SEEK_CUR)) {
+		bool ok;
+
+		if (BLOCK_OBJECT_OBJECT_PARTS == type) {
+			assert(NULL == object->parts);
+			if (NULL == (object->parts = ce_vector_new())) {
+				return false;
+			}
+
+			uint32_t count;
+			if (1 != ce_memfile_read(mem, &count, sizeof(count), 1)) {
+				ce_logging_error("mobfile: io error occured");
+				return false;
+			}
+
+			ce_le2cpu32s(&count);
+
+			for (unsigned int i = 0; i < count; ++i) {
+				if (1 != ce_memfile_read(mem, &type, sizeof(type), 1) ||
+						1 != ce_memfile_read(mem, &length, sizeof(length), 1)) {
+					ce_logging_error("mobfile: io error occured");
+					return false;
+				}
+
+				ce_le2cpu32s(&type);
+				ce_le2cpu32s(&length);
+
+				assert(BLOCK_OBJECT_OBJECT_PARTS == type);
+
+				length -= sizeof(type);
+				length -= sizeof(length);
+
+				char cpart[length];
+				if (length != ce_memfile_read(mem, cpart, 1, length)) {
+					ce_logging_error("mobfile: io error occured");
+					return false;
+				}
+
+				ce_string* part = ce_string_new();
+				if (NULL == part) {
+					return false;
+				}
+
+				ce_vector_push_back(object->parts, part);
+				ce_string_assign_n(part, cpart, length);
+			}
+
+			ok = true;
+		} else if (BLOCK_OBJECT_OBJECT_OWNER == type) {
+			assert(sizeof(object->owner) == length);
+			ok = 1 == ce_memfile_read(mem, &object->owner, length, 1);
+		} else if (BLOCK_OBJECT_OBJECT_ID == type) {
+			assert(sizeof(object->id) == length);
+			ok = 1 == ce_memfile_read(mem, &object->id, length, 1);
+		} else if (BLOCK_OBJECT_OBJECT_TYPE == type) {
+			assert(sizeof(object->type) == length);
+			ok = 1 == ce_memfile_read(mem, &object->type, length, 1);
+		} else if (BLOCK_OBJECT_OBJECT_NAME == type) {
+			printf("name: %u\n", length);
+			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
+		} else if (BLOCK_OBJECT_OBJECT_MODEL_NAME == type) {
+			printf("model name: %u\n", length);
+			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
+		} else if (BLOCK_OBJECT_OBJECT_PARENT_NAME == type) {
+			printf("parent name: %u\n", length);
+			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
+		} else if (BLOCK_OBJECT_OBJECT_PRIMARY_TEXTURE == type) {
+			printf("pr tex: %u\n", length);
+			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
+		} else if (BLOCK_OBJECT_OBJECT_SECONDARY_TEXTURE == type) {
+			printf("sec tex: %u\n", length);
+			if (0 != ce_memfile_seek(mem, length, SEEK_CUR)) {
+				ce_logging_error("mobfile: io error occured");
+				return false;
+			}
+		} else if (BLOCK_OBJECT_OBJECT_COMMENT == type) {
+			printf("comment: %u\n", length);
+			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
+		} else if (BLOCK_OBJECT_OBJECT_POSITION == type) {
+			assert(3 * sizeof(float) == length);
+			ok = 1 == ce_memfile_read(mem,
+						&object->position.x, sizeof(float), 1)
+				&& 1 == ce_memfile_read(mem,
+						&object->position.y, sizeof(float), 1)
+				&& 1 == ce_memfile_read(mem,
+						&object->position.z, sizeof(float), 1);
+		} else if (BLOCK_OBJECT_OBJECT_ROTATION == type) {
+			assert(4 * sizeof(float) == length);
+			ok = 1 == ce_memfile_read(mem,
+						&object->rotation.w, sizeof(float), 1)
+				&& 1 == ce_memfile_read(mem,
+						&object->rotation.x, sizeof(float), 1)
+				&& 1 == ce_memfile_read(mem,
+						&object->rotation.y, sizeof(float), 1)
+				&& 1 == ce_memfile_read(mem,
+						&object->rotation.z, sizeof(float), 1);
+		} else if (BLOCK_OBJECT_OBJECT_QUEST == type) {
+			assert(sizeof(object->quest) == length);
+			ok = 1 == ce_memfile_read(mem, &object->quest, length, 1);
+		} else if (BLOCK_OBJECT_OBJECT_SHADOW == type) {
+			assert(sizeof(object->shadow) == length);
+			ok = 1 == ce_memfile_read(mem, &object->shadow, length, 1);
+		} else if (BLOCK_OBJECT_OBJECT_PARENT_ID == type) {
+			assert(sizeof(object->parent_id) == length);
+			ok = 1 == ce_memfile_read(mem, &object->parent_id, length, 1);
+		} else if (BLOCK_OBJECT_OBJECT_QUEST_INFO == type) {
+			printf("quest info: %u\n", length);
+			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
+		} else if (BLOCK_OBJECT_OBJECT_COMPLECTION == type) {
+			assert(3 * sizeof(float) == length);
+			ok = 1 == ce_memfile_read(mem,
+						&object->strength, sizeof(float), 1)
+				&& 1 == ce_memfile_read(mem,
+						&object->dexterity, sizeof(float), 1)
+				&& 1 == ce_memfile_read(mem,
+						&object->tallness, sizeof(float), 1);
+		} else {
+			assert(false);
+			ok = false;
+		}
+
+		if (!ok) {
 			ce_logging_error("mobfile: io error occured");
 			return false;
 		}
@@ -208,7 +337,8 @@ static bool ce_mobfile_read_block_main(ce_mobfile* mob,
 
 static bool ce_mobfile_open_memfile_impl(ce_mobfile* mob, ce_memfile* mem)
 {
-	if (NULL == (mob->script = ce_string_new())) {
+	if (NULL == (mob->script = ce_string_new()) ||
+			NULL == (mob->objects = ce_vector_new())) {
 		return false;
 	}
 
@@ -279,6 +409,27 @@ ce_mobfile* ce_mobfile_open(const char* path)
 void ce_mobfile_close(ce_mobfile* mob)
 {
 	if (NULL != mob) {
+		if (NULL != mob->objects) {
+			for (int i = 0, n = ce_vector_count(mob->objects); i < n; ++i) {
+				ce_mobobject_object* object = ce_vector_at(mob->objects, i);
+				ce_string_del(object->quest_info);
+				ce_string_del(object->comment);
+				ce_string_del(object->secondary_texture);
+				ce_string_del(object->primary_texture);
+				ce_string_del(object->parent_name);
+				ce_string_del(object->model_name);
+				ce_string_del(object->name);
+				if (NULL != object->parts) {
+					for (int j = 0,
+							m = ce_vector_count(object->parts); j < m; ++j) {
+						ce_string_del(ce_vector_at(object->parts, j));
+					}
+					ce_vector_del(object->parts);
+				}
+				ce_free(object, sizeof(ce_mobobject_object));
+			}
+			ce_vector_del(mob->objects);
+		}
 		ce_string_del(mob->script);
 		ce_free(mob, sizeof(ce_mobfile));
 	}

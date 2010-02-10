@@ -21,7 +21,6 @@
 #ifndef CE_MOBFILE_H
 #define CE_MOBFILE_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #include "cevector.h"
@@ -47,8 +46,8 @@ typedef struct {
 	ce_string* comment;
 	ce_vec3 position;
 	ce_quat rotation;
-	bool quest;
-	bool shadow;
+	char quest;
+	char shadow;
 	uint32_t parent_id;
 	ce_string* quest_info;
 	float strength;
