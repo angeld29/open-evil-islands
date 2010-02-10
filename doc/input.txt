@@ -2,11 +2,12 @@
      Something more better will be later.
 
    * Дизайн подсистемы ввода.
-     Низкий уровень.
+     Уровень 0.
      На низком уровне доступны лишь несколько примитивных функций.
 
-     Инициализация подсистемы:
-     bool input_open(void);
+     Инициализация/деинициализация подсистемы:
+     bool input_init(void);
+     void input_term(void);
 
      На каждом игровом цикле необходимо обновлять
      внутренние структуры подсистемы:
@@ -15,11 +16,11 @@
      bool input_test(input_button button);
      Функция даёт простой ответ, нажата ли такая клавиша.
 
-     int input_mouse_offset_*();
-     Эти функции возвращают относительные смещения курсора мыши.
+     vec2 input_mouse_offset(void);
+     Эта функция возвращает относительное смещение курсора мыши.
 
-     Высокий уровень.
-     На высоком уровне доступны события ввода. Комбинируя события в
+     Уровень 1 - события.
+     На более высоком уровне доступны события ввода. Комбинируя события в
      иерархическую структуру, можно задавать условия, по которым будет
      срабатывать событие-корень иерархии. Также можно задавать
      различные сочетания клавиш.
@@ -28,22 +29,37 @@
      хранитель) событий. Он создан для удобства и предоставления
      унифицированного доступа к хранимым событиям.
 
-     input_event_supply* input_event_supply_open(void);
+     input_event_supply* input_event_supply_new(void);
      Функция создаёт новый экземпляр поставщика.
 
      С помощью поставщика можно начать создавать события:
-     input_event* input_create_*_event(input_event_supply* es, ...);
+     input_event* ce_input_event_supply_*_event(input_event_supply* es, ...);
 
      void input_event_supply_advance(input_event_supply* es, float elapsed);
      На каждом игровом цикле нужно вызывать функцию обновления поставщика.
      Поставщик сам обновит все хранимые у себя события.
 
-     void input_event_supply_close(input_event_supply* es);
-     Уничтожает поставщика и все события, сделанные с помощью него.
+     void input_event_supply_del(input_event_supply* es);
+     Уничтожает поставщика и все события, созданные с помощью него.
      Все указатели на эти события становятся недействительными.
 
      bool input_event_triggered(input_event* ev);
      Функция проверяет, сработало ли событие.
+
+     Уровень 2 - быстрые клавиши.
+     На этом уровне доступно задание сочетаний клавиш в строке символов.
+
+     input_event* input_event_supply_shortcut(input_event_supply* es,
+                                               const char* key_sequence);
+     Функция разбирает строку и возвращает событие-корень иерархии.
+     В случае неудачи возвращает NULL.
+
+     Замечание. Если функция потерпела неудачу, уже созданные события
+     останутся храниться в поставщике. Чтобы не допустить утечек памяти,
+     рекомендуется создавать сочетания клавиш в отдельном поставщике и
+     удалять его в случае неудачи. В будущем, возможно, проблема будет
+     устранена. Чаще всего сочетания задаются статически и при
+     возникновении ошибок сразу же поправляются в коде.
 
    * Пример использования.
      На какую-то клавишу мы хотим задать переключение какого-то режима в игре.
@@ -56,21 +72,21 @@
      Что происходит дальше - сколько времени кнопка нажата, когда отжата -
      нас не интересует. Всё это можно сделать с помощью событий.
 
-     input_open();
-     input_event_supply* es = input_event_supply_open();
-
-     input_event* x_key_event = input_create_button_event(es, KB_X);
-     input_event* main_event = input_create_single_front_event(es, x_key_event);
+     input_init();
+     input_event_supply* es = input_event_supply_new();
+     ...
+     input_event* evx = input_event_supply_button_event(es, KB_X);
+     input_event* ev = input_event_supply_single_front_event(es, evx);
      ...
      input_advance(elapsed);
      input_event_supply_advance(es, elapsed);
      ...
-     if (input_event_triggered(main_event)) {
+     if (input_event_triggered(ev)) {
          ...
      }
-
-     input_event_supply_close(es);
-     input_close();
+     ...
+     input_event_supply_del(es);
+     input_term();
 
      В приведённом выше коде создаётся событие нажатия кнопки x,
      которое, в свою очередь, помещается в событие-фильтр single_front_event.
@@ -85,24 +101,45 @@
      Пример посложнее. Задача: сделать "быструю клавишу" Ctrl+Enter,
      срабатывающую один раз при отпускании.
 
-     input_open();
-     input_event_supply* es = input_event_supply_open();
-
-     input_event* ev1 = input_create_button_event(es, KB_CTRL);
-     input_event* ev2 = input_create_button_event(es, KB_ENTER);
-     input_event* ev3 = input_create_and_event(es, ev1, ev2);
-     input_event* shortcut = input_create_single_back_event(es, ev3);
+     input_init();
+     input_event_supply* es = input_event_supply_new();
+     ...
+     input_event* ev1 = input_event_supply_button_event(es, KB_CTRL);
+     input_event* ev2 = input_event_supply_button_event(es, KB_ENTER);
+     input_event* ev3 = input_event_supply_and2_event(es, ev1, ev2);
+     input_event* ev = input_event_supply_single_back_event(es, ev3);
      ...
      input_advance(elapsed);
      input_event_supply_advance(es, elapsed);
      ...
-     if (input_event_triggered(shortcut)) {
+     if (input_event_triggered(ev)) {
          ...
      }
+     ...
+     input_event_supply_del(es);
+     input_term();
 
-     input_event_supply_close(es);
-     input_close();
+     Пример для сочетаний клавиш.
+     Примеры выше довольно громоздки. Можно воспользоваться 2-м уровнем
+     подсистемы для упрощения кода и уменьшения машинальной работы.
+     Зададим событие выхода из приложения с помощью двух
+     сочетаний клавиш: Ctrl+Q и Alt+X.
+
+     input_init();
+     input_event_supply* es = input_event_supply_new();
+     ...
+     input_event* ev = input_event_supply_shortcut(es, "LControl+Q, LAlt+X");
+     ...
+     input_advance(elapsed);
+     input_event_supply_advance(es, elapsed);
+     ...
+     if (input_event_triggered(ev)) {
+         ...
+     }
+     ...
+     input_event_supply_del(es);
+     input_term();
 
    * Что планируется.
-     Сделать надстройку для более удобного задания сочетания клавиш.
-     Можно посмотреть решение библиотеки Qt (быстрые клавиши по строке).
+     Улучшить разбор строки с сочетаниями клавиш. Обрабатывать сокращённые
+     названия клавиш, с префиксами L/R и без них, диагностические сообщения.
