@@ -44,23 +44,23 @@ static const uint32_t BLOCK_OBJECT_PARTICLE1 = 0xaa01;
 static const uint32_t BLOCK_OBJECT_PARTICLE2 = 0xcc01;
 static const uint32_t BLOCK_OBJECT_PARTICLE3 = 0xdd01;
 
-static const uint32_t BLOCK_OBJECT_OBJECT_PARTS = 45069;
-static const uint32_t BLOCK_OBJECT_OBJECT_OWNER = 45073;
-static const uint32_t BLOCK_OBJECT_OBJECT_ID = 45058;
-static const uint32_t BLOCK_OBJECT_OBJECT_TYPE = 45059;
-static const uint32_t BLOCK_OBJECT_OBJECT_NAME = 45060;
-static const uint32_t BLOCK_OBJECT_OBJECT_MODEL_NAME = 45062;
-static const uint32_t BLOCK_OBJECT_OBJECT_PARENT_NAME = 45070;
-static const uint32_t BLOCK_OBJECT_OBJECT_PRIMARY_TEXTURE = 45063;
-static const uint32_t BLOCK_OBJECT_OBJECT_SECONDARY_TEXTURE = 45064;
-static const uint32_t BLOCK_OBJECT_OBJECT_COMMENT = 45071;
-static const uint32_t BLOCK_OBJECT_OBJECT_POSITION = 45065;
-static const uint32_t BLOCK_OBJECT_OBJECT_ROTATION = 45066;
-static const uint32_t BLOCK_OBJECT_OBJECT_QUEST = 45075;
-static const uint32_t BLOCK_OBJECT_OBJECT_SHADOW = 45076;
-static const uint32_t BLOCK_OBJECT_OBJECT_PARENT_ID = 45074;
-static const uint32_t BLOCK_OBJECT_OBJECT_QUEST_INFO = 45078;
-static const uint32_t BLOCK_OBJECT_OBJECT_COMPLECTION = 45068;
+static const uint32_t BLOCK_OBJECT_OBJECT_PARTS = 0xb00d;
+static const uint32_t BLOCK_OBJECT_OBJECT_OWNER = 0xb011;
+static const uint32_t BLOCK_OBJECT_OBJECT_ID = 0xb002;
+static const uint32_t BLOCK_OBJECT_OBJECT_TYPE = 0xb003;
+static const uint32_t BLOCK_OBJECT_OBJECT_NAME = 0xb004;
+static const uint32_t BLOCK_OBJECT_OBJECT_MODEL_NAME = 0xb006;
+static const uint32_t BLOCK_OBJECT_OBJECT_PARENT_NAME = 0xb00e;
+static const uint32_t BLOCK_OBJECT_OBJECT_PRIMARY_TEXTURE = 0xb007;
+static const uint32_t BLOCK_OBJECT_OBJECT_SECONDARY_TEXTURE = 0xb008;
+static const uint32_t BLOCK_OBJECT_OBJECT_COMMENT = 0xb00f;
+static const uint32_t BLOCK_OBJECT_OBJECT_POSITION = 0xb009;
+static const uint32_t BLOCK_OBJECT_OBJECT_ROTATION = 0xb00a;
+static const uint32_t BLOCK_OBJECT_OBJECT_QUEST = 0xb013;
+static const uint32_t BLOCK_OBJECT_OBJECT_SHADOW = 0xb014;
+static const uint32_t BLOCK_OBJECT_OBJECT_PARENT_ID = 0xb012;
+static const uint32_t BLOCK_OBJECT_OBJECT_QUEST_INFO = 0xb016;
+static const uint32_t BLOCK_OBJECT_OBJECT_COMPLECTION = 0xb00c;
 
 typedef bool (*ce_mobfile_read_block)(ce_mobfile*, int, ce_memfile*);
 
@@ -110,8 +110,28 @@ static bool ce_mobfile_read_block_text(ce_mobfile* mob,
 static bool ce_mobfile_read_block_object_object(ce_mobfile* mob,
 											int block_length, ce_memfile* mem)
 {
-	printf("len: %d\n", block_length);
-	ce_mobfile_read_block_unknown(mob, block_length, mem);
+	uint32_t type, length;
+
+	while (0 != block_length) {
+		if (1 != ce_memfile_read(mem, &type, sizeof(type), 1) ||
+				1 != ce_memfile_read(mem, &length, sizeof(length), 1)) {
+			ce_logging_error("mobfile: io error occured");
+			return false;
+		}
+
+		ce_le2cpu32s(&type);
+		ce_le2cpu32s(&length);
+
+		block_length -= length;
+		length -= sizeof(type);
+		length -= sizeof(length);
+
+		if (0 != ce_memfile_seek(mem, length, SEEK_CUR)) {
+			ce_logging_error("mobfile: io error occured");
+			return false;
+		}
+	}
+
 	return true;
 }
 
