@@ -54,17 +54,15 @@ ce_strmid(char* restrict dst, const char* restrict src, size_t pos, size_t n)
 char* ce_strtrim(char* restrict dst, const char* restrict src)
 {
 	size_t len = strlen(src);
-	if (0 == len) {
-		dst[0] = '\0';
-		return dst;
+	if (0 != len) {
+		size_t first, last;
+		for (first = 0; first < len && isspace(src[first]); ++first) {
+		}
+		for (last = len - 1; last > 0 && isspace(src[last]); --last) {
+		}
+		len = first <= last ? last - first + 1 : 0;
+		strncpy(dst, src + first, len);
 	}
-	size_t first, last;
-	for (first = 0; first < len && isspace(src[first]); ++first) {
-	}
-	for (last = len - 1; last > 0 && isspace(src[last]); --last) {
-	}
-	len = first <= last ? last - first + 1 : 0;
-	strncpy(dst, src + first, len);
 	dst[len] = '\0';
 	return dst;
 }
