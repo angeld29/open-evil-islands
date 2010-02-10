@@ -109,3 +109,8 @@ void* ce_vector_pop_back(ce_vector* vec)
 {
 	return vec->items[--vec->count];
 }
+
+void ce_vector_clear(ce_vector* vec)
+{
+	vec->count = 0;
+}
