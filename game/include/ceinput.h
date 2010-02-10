@@ -147,7 +147,7 @@ typedef enum {
 typedef struct ce_input_event ce_input_event;
 typedef struct ce_input_event_supply ce_input_event_supply;
 
-// Low level input API.
+// Level 0 input API.
 
 extern bool ce_input_init(void);
 extern void ce_input_term(void);
@@ -158,7 +158,7 @@ extern ce_vec2 ce_input_mouse_offset(void);
 
 extern void ce_input_advance(float elapsed);
 
-// High level input API.
+// Level 1 input API - events.
 
 extern bool ce_input_event_triggered(ce_input_event* ev);
 
@@ -171,40 +171,52 @@ extern void ce_input_event_supply_advance(ce_input_event_supply* es,
 // Button Event.
 
 extern ce_input_event*
-ce_input_create_button_event(ce_input_event_supply* es,
-								ce_input_button button);
+ce_input_event_supply_button_event(ce_input_event_supply* es,
+									ce_input_button button);
 
 // Single Front Event.
 
 extern ce_input_event*
-ce_input_create_single_front_event(ce_input_event_supply* es,
-									ce_input_event* event);
+ce_input_event_supply_single_front_event(ce_input_event_supply* es,
+											ce_input_event* event);
 
 // Single Back Event.
 
 extern ce_input_event*
-ce_input_create_single_back_event(ce_input_event_supply* es,
-									ce_input_event* event);
+ce_input_event_supply_single_back_event(ce_input_event_supply* es,
+											ce_input_event* event);
 
 // AND Event.
 
 extern ce_input_event*
-ce_input_create_and2_event(ce_input_event_supply* es,
-							ce_input_event* event1, ce_input_event* event2);
+ce_input_event_supply_and2_event(ce_input_event_supply* es,
+									ce_input_event* event1,
+									ce_input_event* event2);
 
 extern ce_input_event*
-ce_input_create_and3_event(ce_input_event_supply* es, ce_input_event* event1,
-							ce_input_event* event2, ce_input_event* event3);
+ce_input_event_supply_and3_event(ce_input_event_supply* es,
+									ce_input_event* event1,
+									ce_input_event* event2,
+									ce_input_event* event3);
 
 // OR Event.
 
 extern ce_input_event*
-ce_input_create_or2_event(ce_input_event_supply* es,
-							ce_input_event* event1, ce_input_event* event2);
+ce_input_event_supply_or2_event(ce_input_event_supply* es,
+									ce_input_event* event1,
+									ce_input_event* event2);
 
 extern ce_input_event*
-ce_input_create_or3_event(ce_input_event_supply* es, ce_input_event* event1,
-							ce_input_event* event2, ce_input_event* event3);
+ce_input_event_supply_or3_event(ce_input_event_supply* es,
+									ce_input_event* event1,
+									ce_input_event* event2,
+									ce_input_event* event3);
+
+// Level 2 input API - shortcuts.
+
+extern ce_input_event*
+ce_input_event_supply_shortcut(ce_input_event_supply* es,
+								const char* key_sequence);
 
 #ifdef __cplusplus
 }
