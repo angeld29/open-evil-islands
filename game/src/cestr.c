@@ -38,7 +38,8 @@ char* ce_strright(char* restrict dst, const char* restrict src, size_t n)
 	return strcpy(dst, src + len - ce_smin(n, len));
 }
 
-char* ce_strmid(char* restrict dst, const char* restrict src, size_t pos, size_t n)
+char*
+ce_strmid(char* restrict dst, const char* restrict src, size_t pos, size_t n)
 {
 	size_t len = strlen(src);
 	if (pos > len) {
@@ -68,33 +69,35 @@ char* ce_strtrim(char* restrict dst, const char* restrict src)
 	return dst;
 }
 
-char* ce_strupr(char* s)
+char* ce_strupr(char* restrict dst, const char* restrict src)
 {
-	for (char* p = s; *p; ++p) {
-		*p = toupper(*p);
+	char* p = dst;
+	while (*src) {
+		*p++ = toupper(*src++);
 	}
-	return s;
+	*p = '\0';
+	return dst;
 }
 
-char* ce_strlwr(char* s)
+char* ce_strlwr(char* restrict dst, const char* restrict src)
 {
-	for (char* p = s; *p; ++p) {
-		*p = tolower(*p);
+	char* p = dst;
+	while (*src) {
+		*p++ = tolower(*src++);
 	}
-	return s;
+	*p = '\0';
+	return dst;
 }
 
-char* ce_strrev(char* s)
+char* ce_strrev(char* restrict dst, const char* restrict src)
 {
-	if (!*s) {
-		return s;
+	char* p = dst;
+	const char *s = src + strlen(src);
+	while (s > src) {
+		*p++ = *--s;
 	}
-	for (char *p1 = s, *p2 = s + strlen(s) - 1; p2 > p1; ++p1, --p2) {
-		*p1 ^= *p2;
-		*p2 ^= *p1;
-		*p1 ^= *p2;
-	}
-	return s;
+	*p = '\0';
+	return dst;
 }
 
 size_t ce_strrepc(char* s, char from, char to)
