@@ -53,6 +53,15 @@ ce_quat* ce_quat_init(ce_quat* r, float w, float x, float y, float z)
 	return r;
 }
 
+ce_quat* ce_quat_init_vector(ce_quat* r, float* v)
+{
+	r->w = *v++;
+	r->x = *v++;
+	r->y = *v++;
+	r->z = *v++;
+	return r;
+}
+
 ce_quat* ce_quat_init_polar(ce_quat* r, float theta, const ce_vec3* axis)
 {
 	float t = 0.5f * theta;

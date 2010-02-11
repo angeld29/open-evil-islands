@@ -32,20 +32,18 @@ struct ce_vector {
 
 ce_vector* ce_vector_new(void)
 {
-	ce_vector* vec = ce_alloc(sizeof(ce_vector));
+	return ce_vector_new_reserved(16);
+}
+
+ce_vector* ce_vector_new_reserved(size_t capacity)
+{
+	ce_vector* vec = ce_alloc_zero(sizeof(ce_vector));
 	if (NULL == vec) {
 		ce_logging_error("vector: could not allocate memory");
 		return NULL;
 	}
 
-	vec->capacity = 16;
-	vec->count = 0;
-
-	if (NULL == (vec->items = ce_alloc(sizeof(void*) * vec->capacity))) {
-		ce_logging_error("vector: could not allocate memory");
-		ce_vector_del(vec);
-		return NULL;
-	}
+	ce_vector_reserve(vec, capacity);
 
 	return vec;
 }
@@ -56,6 +54,27 @@ void ce_vector_del(ce_vector* vec)
 		ce_free(vec->items, sizeof(void*) * vec->capacity);
 		ce_free(vec, sizeof(ce_vector));
 	}
+}
+
+bool ce_vector_reserve(ce_vector* vec, size_t capacity)
+{
+	if (capacity > vec->capacity) {
+		void** items = ce_alloc(sizeof(void*) * capacity);
+		if (NULL == items) {
+			ce_logging_error("vector: could not allocate memory");
+			return false;
+		}
+
+		if (NULL != vec->items) {
+			memcpy(items, vec->items, sizeof(void*) * vec->count);
+			ce_free(vec->items, sizeof(void*) * vec->capacity);
+		}
+
+		vec->capacity = capacity;
+		vec->items = items;
+	}
+
+	return true;
 }
 
 size_t ce_vector_count(const ce_vector* vec)
@@ -86,19 +105,7 @@ void* ce_vector_at(ce_vector* vec, size_t index)
 bool ce_vector_push_back(ce_vector* vec, void* item)
 {
 	if (vec->count == vec->capacity) {
-		size_t capacity = 2 * vec->capacity;
-
-		void** items = ce_alloc(sizeof(void*) * capacity);
-		if (NULL == items) {
-			ce_logging_error("vector: could not allocate memory");
-			return false;
-		}
-
-		memcpy(items, vec->items, sizeof(void*) * vec->count);
-		ce_free(vec->items, sizeof(void*) * vec->capacity);
-
-		vec->capacity = capacity;
-		vec->items = items;
+		ce_vector_reserve(vec, 2 * vec->capacity);
 	}
 
 	vec->items[vec->count++] = item;

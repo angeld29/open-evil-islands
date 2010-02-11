@@ -30,46 +30,39 @@ struct ce_string {
 	char* cstr;
 };
 
-static bool ce_string_reserve(ce_string* str, size_t length)
-{
-	size_t capacity = length + 1;
-
-	if (capacity > str->capacity) {
-		char* cstr = ce_alloc(capacity);
-		if (NULL == cstr) {
-			ce_logging_error("string: could not allocate memory");
-			return false;
-		}
-
-		strcpy(cstr, str->cstr);
-		ce_free(str->cstr, str->capacity);
-
-		str->capacity = capacity;
-		str->cstr = cstr;
-	}
-
-	return true;
-}
-
 ce_string* ce_string_new(void)
 {
-	ce_string* str = ce_alloc(sizeof(ce_string));
+	return ce_string_new_reserved(16);
+}
+
+ce_string* ce_string_new_reserved(size_t capacity)
+{
+	ce_string* str = ce_alloc_zero(sizeof(ce_string));
 	if (NULL == str) {
 		ce_logging_error("string: could not allocate memory");
 		return NULL;
 	}
 
-	str->capacity = 16;
-	str->length = 0;
+	ce_string_reserve(str, capacity);
 
-	if (NULL == (str->cstr = ce_alloc(str->capacity))) {
-		ce_logging_error("string: could not allocate memory");
-		ce_string_del(str);
-		return NULL;
+	return str;
+}
+
+ce_string* ce_string_new_cstr(const char* cstr)
+{
+	ce_string* str = ce_string_new_reserved(strlen(cstr) + 1);
+	if (NULL != str) {
+		ce_string_assign(str, cstr);
 	}
+	return str;
+}
 
-	str->cstr[0] = '\0';
-
+ce_string* ce_string_new_cstr_n(const char* cstr, size_t n)
+{
+	ce_string* str = ce_string_new_reserved(n + 1);
+	if (NULL != str) {
+		ce_string_assign_n(str, cstr, n);
+	}
 	return str;
 }
 
@@ -79,6 +72,29 @@ void ce_string_del(ce_string* str)
 		ce_free(str->cstr, str->capacity);
 		ce_free(str, sizeof(ce_string));
 	}
+}
+
+bool ce_string_reserve(ce_string* str, size_t capacity)
+{
+	if (capacity > str->capacity) {
+		char* cstr = ce_alloc(capacity);
+		if (NULL == cstr) {
+			ce_logging_error("string: could not allocate memory");
+			return false;
+		}
+
+		if (NULL != str->cstr) {
+			strcpy(cstr, str->cstr);
+			ce_free(str->cstr, str->capacity);
+		} else {
+			cstr[0] = '\0';
+		}
+
+		str->capacity = capacity;
+		str->cstr = cstr;
+	}
+
+	return true;
 }
 
 size_t ce_string_length(const ce_string* str)
@@ -99,7 +115,7 @@ const char* ce_string_cstr(const ce_string* str)
 bool ce_string_assign(ce_string* str, const char* cstr)
 {
 	size_t length = strlen(cstr);
-	if (ce_string_reserve(str, length)) {
+	if (ce_string_reserve(str, length + 1)) {
 		strcpy(str->cstr, cstr);
 		str->length = length;
 		return true;
@@ -109,7 +125,7 @@ bool ce_string_assign(ce_string* str, const char* cstr)
 
 bool ce_string_assign_n(ce_string* str, const char* cstr, size_t n)
 {
-	if (ce_string_reserve(str, n)) {
+	if (ce_string_reserve(str, n + 1)) {
 		strncpy(str->cstr, cstr, n);
 		str->cstr[n] = '\0';
 		str->length = strlen(str->cstr);

@@ -32,7 +32,12 @@ extern "C"
 typedef struct ce_string ce_string;
 
 extern ce_string* ce_string_new(void);
+extern ce_string* ce_string_new_reserved(size_t capacity);
+extern ce_string* ce_string_new_cstr(const char* cstr);
+extern ce_string* ce_string_new_cstr_n(const char* cstr, size_t n);
 extern void ce_string_del(ce_string* str);
+
+extern bool ce_string_reserve(ce_string* str, size_t capacity);
 
 extern size_t ce_string_length(const ce_string* str);
 extern bool ce_string_empty(const ce_string* str);

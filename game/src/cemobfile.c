@@ -39,10 +39,9 @@ typedef struct {
 static bool ce_mobfile_block_skip(ce_memfile* mem, size_t size)
 {
 	if (0 != ce_memfile_seek(mem, size, SEEK_CUR)) {
-		ce_logging_error("mobfile: io error occured");
+		ce_logging_error("mobfile: block skip: io error occured");
 		return false;
 	}
-
 	return true;
 }
 
@@ -53,7 +52,6 @@ static bool ce_mobfile_block_read_generic(ce_memfile* mem, void* data,
 		ce_logging_error("mobfile: io error occured");
 		return false;
 	}
-
 	return true;
 }
 
@@ -64,14 +62,10 @@ static ce_string* ce_mobfile_block_read_string(ce_memfile* mem, size_t size)
 		ce_logging_error("mobfile: io error occured");
 		return NULL;
 	}
-
-	ce_string* str = ce_string_new();
-	if (NULL != str) {
-		ce_string_assign_n(str, data, size);
-	}
-
-	return str;
+	return ce_string_new_cstr_n(data, size);
 }
+
+static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size);
 
 static bool
 ce_mobfile_block_unknown(ce_mobfile* mob, ce_memfile* mem, size_t size)
@@ -86,7 +80,7 @@ ce_mobfile_block_main(ce_mobfile* mob, ce_memfile* mem, size_t size)
 	ce_unused(mob);
 	ce_unused(mem);
 	ce_unused(size);
-	return true;
+	return ce_mobfile_block_loop(mob, mem, size);
 }
 
 static bool
@@ -118,9 +112,11 @@ ce_mobfile_block_text(ce_mobfile* mob, ce_memfile* mem, size_t size)
 		return false;
 	}
 
+	size -= sizeof(key);
 	ce_le2cpu32s(&key);
 
-	size -= sizeof(key);
+	// Do not load string directly through read_string because
+	// string is encrypted and may contains null characters.
 
 	char data[size];
 	if (size != ce_memfile_read(mem, data, 1, size)) {
@@ -134,18 +130,14 @@ ce_mobfile_block_text(ce_mobfile* mob, ce_memfile* mem, size_t size)
 	}
 
 	assert(NULL == mob->script);
-	if (NULL == (mob->script = ce_string_new())) {
-		return false;
-	}
-
-	ce_string_assign_n(mob->script, data, size);
-
-	return true;
+	return NULL != (mob->script = ce_string_new_cstr_n(data, size));
 }
 
 static bool
 ce_mobfile_block_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
+	printf("block_object: size %u\n", size);
+
 	ce_unused(mem);
 	ce_unused(size);
 
@@ -154,12 +146,14 @@ ce_mobfile_block_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
 		return false;
 	}
 
-	return true;
+	return ce_mobfile_block_loop(mob, mem, size);
 }
 
 static bool
 ce_mobfile_block_object_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
+	printf("block_object_object: size %u\n", size);
+
 	ce_unused(mem);
 	ce_unused(size);
 
@@ -171,7 +165,7 @@ ce_mobfile_block_object_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
 	assert(NULL != mob->objects);
 	ce_vector_push_back(mob->objects, object);
 
-	return true;
+	return ce_mobfile_block_loop(mob, mem, size);
 }
 
 static bool
@@ -182,10 +176,6 @@ ce_mobfile_block_object_object_parts(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
 	if (NULL == object->parts) {
-		if (NULL == (object->parts = ce_vector_new())) {
-			return false;
-		}
-
 		uint32_t count;
 		if (1 != ce_memfile_read(mem, &count, sizeof(count), 1)) {
 			ce_logging_error("mobfile: io error occured");
@@ -193,6 +183,13 @@ ce_mobfile_block_object_object_parts(ce_mobfile* mob,
 		}
 
 		ce_le2cpu32s(&count);
+		size -= sizeof(count);
+
+		if (NULL == (object->parts = ce_vector_new_reserved(count))) {
+			return false;
+		}
+
+		return ce_mobfile_block_loop(mob, mem, size);
 	} else {
 		ce_string* part = ce_mobfile_block_read_string(mem, size);
 		if (NULL == part) {
@@ -214,8 +211,10 @@ ce_mobfile_block_object_object_owner(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
 	assert(sizeof(object->owner) == size);
-	return ce_mobfile_block_read_generic(mem, &object->owner,
+	bool ok = ce_mobfile_block_read_generic(mem, &object->owner,
 											sizeof(object->owner), 1);
+	printf("block_object_object_owner: %hhu\n", object->owner);
+	return ok;
 }
 
 static bool
@@ -226,8 +225,10 @@ ce_mobfile_block_object_object_id(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
 	assert(sizeof(object->id) == size);
-	return ce_mobfile_block_read_generic(mem, &object->id,
+	bool ok = ce_mobfile_block_read_generic(mem, &object->id,
 											sizeof(object->id), 1);
+	printf("block_object_object_id: %u\n", object->id);
+	return ok;
 }
 
 static bool
@@ -238,8 +239,10 @@ ce_mobfile_block_object_object_type(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
 	assert(sizeof(object->type) == size);
-	return ce_mobfile_block_read_generic(mem, &object->type,
+	bool ok = ce_mobfile_block_read_generic(mem, &object->type,
 											sizeof(object->type), 1);
+	printf("block_object_object_type: %u\n", object->type);
+	return ok;
 }
 
 static bool
@@ -264,7 +267,12 @@ ce_mobfile_block_object_object_model_name(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	if (NULL == (object->model_name = ce_mobfile_block_read_string(mem, size))) {
+		return false;
+	}
+
+	printf("block_object_object_model_name: %s\n", ce_string_cstr(object->model_name));
+	return true;
 }
 
 static bool
@@ -274,7 +282,12 @@ ce_mobfile_block_object_object_parent_name(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	if (NULL == (object->parent_name = ce_mobfile_block_read_string(mem, size))) {
+		return false;
+	}
+
+	printf("block_object_object_parent_name: %s\n", ce_string_cstr(object->parent_name));
+	return true;
 }
 
 static bool
@@ -284,7 +297,12 @@ ce_mobfile_block_object_object_primary_texture(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	if (NULL == (object->primary_texture = ce_mobfile_block_read_string(mem, size))) {
+		return false;
+	}
+
+	printf("block_object_object_primary_texture: %s\n", ce_string_cstr(object->primary_texture));
+	return true;
 }
 
 static bool
@@ -294,7 +312,12 @@ ce_mobfile_block_object_object_secondary_texture(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	if (NULL == (object->secondary_texture = ce_mobfile_block_read_string(mem, size))) {
+		return false;
+	}
+
+	printf("block_object_object_secondary_texture: %s\n", ce_string_cstr(object->secondary_texture));
+	return true;
 }
 
 static bool
@@ -304,7 +327,12 @@ ce_mobfile_block_object_object_comment(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	if (NULL == (object->comment = ce_mobfile_block_read_string(mem, size))) {
+		return false;
+	}
+
+	printf("block_object_object_comment: %s\n", ce_string_cstr(object->comment));
+	return true;
 }
 
 static bool
@@ -314,7 +342,16 @@ ce_mobfile_block_object_object_position(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	float position[3];
+
+	assert(sizeof(position) == size);
+	bool ok = ce_mobfile_block_read_generic(mem, position, sizeof(position), 1);
+
+	ce_vec3_init_vector(&object->position, position);
+
+	printf("block_object_object_position: %f %f %f\n",
+		object->position.x, object->position.y, object->position.z);
+	return ok;
 }
 
 static bool
@@ -324,7 +361,16 @@ ce_mobfile_block_object_object_rotation(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	float rotation[4];
+
+	assert(sizeof(rotation) == size);
+	bool ok = ce_mobfile_block_read_generic(mem, rotation, sizeof(rotation), 1);
+
+	ce_quat_init_vector(&object->rotation, rotation);
+
+	printf("block_object_object_rotation: %f %f %f %f\n", object->rotation.w,
+		object->rotation.x, object->rotation.y, object->rotation.z);
+	return ok;
 }
 
 static bool
@@ -334,7 +380,11 @@ ce_mobfile_block_object_object_quest(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	assert(sizeof(object->quest) == size);
+	bool ok = ce_mobfile_block_read_generic(mem, &object->quest,
+											sizeof(object->quest), 1);
+	printf("block_object_object_quest: %hhu\n", object->quest);
+	return ok;
 }
 
 static bool
@@ -344,7 +394,11 @@ ce_mobfile_block_object_object_shadow(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	assert(sizeof(object->shadow) == size);
+	bool ok = ce_mobfile_block_read_generic(mem, &object->shadow,
+											sizeof(object->shadow), 1);
+	printf("block_object_object_shadow: %hhu\n", object->shadow);
+	return ok;
 }
 
 static bool
@@ -354,7 +408,11 @@ ce_mobfile_block_object_object_parent_id(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	assert(sizeof(object->parent_id) == size);
+	bool ok = ce_mobfile_block_read_generic(mem, &object->parent_id,
+											sizeof(object->parent_id), 1);
+	printf("block_object_object_parent_id: %u\n", object->parent_id);
+	return ok;
 }
 
 static bool
@@ -364,7 +422,12 @@ ce_mobfile_block_object_object_quest_info(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	if (NULL == (object->quest_info = ce_mobfile_block_read_string(mem, size))) {
+		return false;
+	}
+
+	printf("block_object_object_quest_info: %s\n", ce_string_cstr(object->quest_info));
+	return true;
 }
 
 static bool
@@ -374,7 +437,18 @@ ce_mobfile_block_object_object_complection(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(false);
+	float complection[3];
+
+	assert(sizeof(complection) == size);
+	bool ok = ce_mobfile_block_read_generic(mem, complection, sizeof(complection), 1);
+
+	object->strength = complection[0];
+	object->dexterity = complection[1];
+	object->tallness = complection[2];
+
+	printf("block_object_object_complection: %f %f %f\n",
+		object->strength, object->dexterity, object->tallness);
+	return ok;
 }
 
 static const ce_mobfile_block_pair ce_mobfile_block_pairs[] = {
@@ -429,7 +503,7 @@ static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 	while (0 != size) {
 		if (1 != ce_memfile_read(mem, &child_type, sizeof(child_type), 1) ||
 				1 != ce_memfile_read(mem, &child_size, sizeof(child_size), 1)) {
-			ce_logging_error("mobfile: io error occured");
+			ce_logging_error("mobfile: block loop: io error occured");
 			return false;
 		}
 
