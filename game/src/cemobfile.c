@@ -179,38 +179,66 @@ static bool ce_mobfile_read_block_object_object(ce_mobfile* mob,
 
 				ce_vector_push_back(object->parts, part);
 				ce_string_assign_n(part, cpart, length);
+
+				//printf("name: %s\n", ce_string_cstr(part));
 			}
 
 			ok = true;
 		} else if (BLOCK_OBJECT_OBJECT_OWNER == type) {
 			assert(sizeof(object->owner) == length);
 			ok = 1 == ce_memfile_read(mem, &object->owner, length, 1);
+			//printf("owner: %hhu\n", object->owner);
 		} else if (BLOCK_OBJECT_OBJECT_ID == type) {
 			assert(sizeof(object->id) == length);
 			ok = 1 == ce_memfile_read(mem, &object->id, length, 1);
+			//printf("id: %u\n", object->id);
 		} else if (BLOCK_OBJECT_OBJECT_TYPE == type) {
 			assert(sizeof(object->type) == length);
 			ok = 1 == ce_memfile_read(mem, &object->type, length, 1);
+			//printf("type: %u\n", object->type);
 		} else if (BLOCK_OBJECT_OBJECT_NAME == type) {
-			printf("name: %u\n", length);
-			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
-		} else if (BLOCK_OBJECT_OBJECT_MODEL_NAME == type) {
-			printf("model name: %u\n", length);
-			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
-		} else if (BLOCK_OBJECT_OBJECT_PARENT_NAME == type) {
-			printf("parent name: %u\n", length);
-			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
-		} else if (BLOCK_OBJECT_OBJECT_PRIMARY_TEXTURE == type) {
-			printf("pr tex: %u\n", length);
-			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
-		} else if (BLOCK_OBJECT_OBJECT_SECONDARY_TEXTURE == type) {
-			printf("sec tex: %u\n", length);
-			if (0 != ce_memfile_seek(mem, length, SEEK_CUR)) {
+			//printf("name: %u\n", length);
+			char data[length];
+			if (length != ce_memfile_read(mem, data, 1, length)) {
 				ce_logging_error("mobfile: io error occured");
 				return false;
 			}
+
+			if (NULL == (object->name = ce_string_new())) {
+				return false;
+			}
+
+			ce_string_assign_n(object->name, data, length);
+			//printf("name: %s\n", ce_string_cstr(object->name));
+
+			ok = true;
+		} else if (BLOCK_OBJECT_OBJECT_MODEL_NAME == type) {
+			//printf("model name: %u\n", length);
+			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
+		} else if (BLOCK_OBJECT_OBJECT_PARENT_NAME == type) {
+			//printf("parent name: %u\n", length);
+			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
+		} else if (BLOCK_OBJECT_OBJECT_PRIMARY_TEXTURE == type) {
+			//printf("pr tex: %u\n", length);
+			char data[length];
+			if (length != ce_memfile_read(mem, data, 1, length)) {
+				ce_logging_error("mobfile: io error occured");
+				return false;
+			}
+
+			if (NULL == (object->primary_texture = ce_string_new())) {
+				return false;
+			}
+
+			ce_string_assign_n(object->primary_texture, data, length);
+			//printf("pri tex: %s\n", ce_string_cstr(object->primary_texture));
+
+			ok = true;
+		} else if (BLOCK_OBJECT_OBJECT_SECONDARY_TEXTURE == type) {
+			//printf("sec tex: %u\n", length);
+			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
 		} else if (BLOCK_OBJECT_OBJECT_COMMENT == type) {
-			printf("comment: %u\n", length);
+			//printf("comment: %u\n", length);
 			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
 		} else if (BLOCK_OBJECT_OBJECT_POSITION == type) {
 			assert(3 * sizeof(float) == length);
@@ -220,6 +248,8 @@ static bool ce_mobfile_read_block_object_object(ce_mobfile* mob,
 						&object->position.y, sizeof(float), 1)
 				&& 1 == ce_memfile_read(mem,
 						&object->position.z, sizeof(float), 1);
+			//printf("pos: %f, %f, %f\n", object->position.x,
+			//	object->position.y, object->position.z);
 		} else if (BLOCK_OBJECT_OBJECT_ROTATION == type) {
 			assert(4 * sizeof(float) == length);
 			ok = 1 == ce_memfile_read(mem,
@@ -230,17 +260,22 @@ static bool ce_mobfile_read_block_object_object(ce_mobfile* mob,
 						&object->rotation.y, sizeof(float), 1)
 				&& 1 == ce_memfile_read(mem,
 						&object->rotation.z, sizeof(float), 1);
+			//printf("rot: %f, %f, %f, %f\n", object->rotation.w,
+			//	object->rotation.x, object->rotation.y, object->rotation.z);
 		} else if (BLOCK_OBJECT_OBJECT_QUEST == type) {
 			assert(sizeof(object->quest) == length);
 			ok = 1 == ce_memfile_read(mem, &object->quest, length, 1);
+			//printf("quest: %hhu\n", object->quest);
 		} else if (BLOCK_OBJECT_OBJECT_SHADOW == type) {
 			assert(sizeof(object->shadow) == length);
 			ok = 1 == ce_memfile_read(mem, &object->shadow, length, 1);
+			//printf("shadow: %hhu\n", object->shadow);
 		} else if (BLOCK_OBJECT_OBJECT_PARENT_ID == type) {
 			assert(sizeof(object->parent_id) == length);
 			ok = 1 == ce_memfile_read(mem, &object->parent_id, length, 1);
+			//printf("shadow: %u\n", object->parent_id);
 		} else if (BLOCK_OBJECT_OBJECT_QUEST_INFO == type) {
-			printf("quest info: %u\n", length);
+			//printf("quest info: %u\n", length);
 			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
 		} else if (BLOCK_OBJECT_OBJECT_COMPLECTION == type) {
 			assert(3 * sizeof(float) == length);
@@ -250,6 +285,8 @@ static bool ce_mobfile_read_block_object_object(ce_mobfile* mob,
 						&object->dexterity, sizeof(float), 1)
 				&& 1 == ce_memfile_read(mem,
 						&object->tallness, sizeof(float), 1);
+			//printf("comp: %f, %f, %f\n", object->strength,
+			//	object->dexterity, object->tallness);
 		} else {
 			assert(false);
 			ok = false;
