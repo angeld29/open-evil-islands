@@ -19,7 +19,6 @@
 */
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -29,64 +28,89 @@
 #include "cememfile.h"
 #include "cemobfile.h"
 
-static const uint32_t MOB_SIGNATURE = 0xa000;
+typedef bool
+(*ce_mobfile_block_callback)(ce_mobfile* mob, ce_memfile* mem, size_t size);
 
-static const uint64_t MAIN_BLOCK_QUEST = 0x80000d000;
-static const uint64_t MAIN_BLOCK_ZONAL = 0x80000c000;
+typedef struct {
+	unsigned int type;
+	ce_mobfile_block_callback callback;
+} ce_mobfile_block_pair;
 
-static const uint32_t BLOCK_TEXT = 0xacceeccb;
-static const uint32_t BLOCK_OBJECT = 0xb000;
-
-static const uint32_t BLOCK_OBJECT_UNIT = 0xbbbb0000;
-static const uint32_t BLOCK_OBJECT_OBJECT = 0xb001;
-static const uint32_t BLOCK_OBJECT_LEVER = 0xbbac0000;
-static const uint32_t BLOCK_OBJECT_TRAP = 0xbbab0000;
-static const uint32_t BLOCK_OBJECT_FLAME = 0xbbbf;
-static const uint32_t BLOCK_OBJECT_PARTICLE1 = 0xaa01;
-static const uint32_t BLOCK_OBJECT_PARTICLE2 = 0xcc01;
-static const uint32_t BLOCK_OBJECT_PARTICLE3 = 0xdd01;
-
-static const uint32_t BLOCK_OBJECT_OBJECT_PARTS = 0xb00d;
-static const uint32_t BLOCK_OBJECT_OBJECT_OWNER = 0xb011;
-static const uint32_t BLOCK_OBJECT_OBJECT_ID = 0xb002;
-static const uint32_t BLOCK_OBJECT_OBJECT_TYPE = 0xb003;
-static const uint32_t BLOCK_OBJECT_OBJECT_NAME = 0xb004;
-static const uint32_t BLOCK_OBJECT_OBJECT_MODEL_NAME = 0xb006;
-static const uint32_t BLOCK_OBJECT_OBJECT_PARENT_NAME = 0xb00e;
-static const uint32_t BLOCK_OBJECT_OBJECT_PRIMARY_TEXTURE = 0xb007;
-static const uint32_t BLOCK_OBJECT_OBJECT_SECONDARY_TEXTURE = 0xb008;
-static const uint32_t BLOCK_OBJECT_OBJECT_COMMENT = 0xb00f;
-static const uint32_t BLOCK_OBJECT_OBJECT_POSITION = 0xb009;
-static const uint32_t BLOCK_OBJECT_OBJECT_ROTATION = 0xb00a;
-static const uint32_t BLOCK_OBJECT_OBJECT_QUEST = 0xb013;
-static const uint32_t BLOCK_OBJECT_OBJECT_SHADOW = 0xb014;
-static const uint32_t BLOCK_OBJECT_OBJECT_PARENT_ID = 0xb012;
-static const uint32_t BLOCK_OBJECT_OBJECT_QUEST_INFO = 0xb016;
-static const uint32_t BLOCK_OBJECT_OBJECT_COMPLECTION = 0xb00c;
-
-typedef bool (*ce_mobfile_read_block)(ce_mobfile*, int, ce_memfile*);
-
-static void ce_mobfile_decrypt_script(char* str, int length, uint32_t key)
+static bool ce_mobfile_block_skip(ce_memfile* mem, size_t size)
 {
-	for (int i = 0; i < length; ++i) {
-		key += (((((key * 13) << 4) + key) << 8) - key) * 4 + 2531011;
-		str[i] ^= key >> 16;
-	}
-}
-
-static bool ce_mobfile_read_block_unknown(ce_mobfile* mob,
-											int block_length, ce_memfile* mem)
-{
-	ce_unused(mob);
-	if (0 != ce_memfile_seek(mem, block_length, SEEK_CUR)) {
+	if (0 != ce_memfile_seek(mem, size, SEEK_CUR)) {
 		ce_logging_error("mobfile: io error occured");
 		return false;
 	}
+
 	return true;
 }
 
-static bool ce_mobfile_read_block_text(ce_mobfile* mob,
-											int block_length, ce_memfile* mem)
+static bool ce_mobfile_block_read_generic(ce_memfile* mem, void* data,
+											size_t size, size_t count)
+{
+	if (count != ce_memfile_read(mem, data, size, count)) {
+		ce_logging_error("mobfile: io error occured");
+		return false;
+	}
+
+	return true;
+}
+
+static ce_string* ce_mobfile_block_read_string(ce_memfile* mem, size_t size)
+{
+	char data[size];
+	if (size != ce_memfile_read(mem, data, 1, size)) {
+		ce_logging_error("mobfile: io error occured");
+		return NULL;
+	}
+
+	ce_string* str = ce_string_new();
+	if (NULL != str) {
+		ce_string_assign_n(str, data, size);
+	}
+
+	return str;
+}
+
+static bool
+ce_mobfile_block_unknown(ce_mobfile* mob, ce_memfile* mem, size_t size)
+{
+	ce_unused(mob);
+	return ce_mobfile_block_skip(mem, size);
+}
+
+static bool
+ce_mobfile_block_main(ce_mobfile* mob, ce_memfile* mem, size_t size)
+{
+	ce_unused(mob);
+	ce_unused(mem);
+	ce_unused(size);
+	return true;
+}
+
+static bool
+ce_mobfile_block_main_quest(ce_mobfile* mob, ce_memfile* mem, size_t size)
+{
+	assert(0 == size);
+	ce_unused(mob);
+	ce_unused(mem);
+	ce_unused(size);
+	return true;
+}
+
+static bool
+ce_mobfile_block_main_zonal(ce_mobfile* mob, ce_memfile* mem, size_t size)
+{
+	assert(0 == size);
+	ce_unused(mob);
+	ce_unused(mem);
+	ce_unused(size);
+	return true;
+}
+
+static bool
+ce_mobfile_block_text(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	uint32_t key;
 	if (1 != ce_memfile_read(mem, &key, sizeof(key), 1)) {
@@ -95,328 +119,337 @@ static bool ce_mobfile_read_block_text(ce_mobfile* mob,
 	}
 
 	ce_le2cpu32s(&key);
-	block_length -= sizeof(key);
 
-	char script[block_length];
-	if (block_length != (int)ce_memfile_read(mem, script, 1, block_length)) {
+	size -= sizeof(key);
+
+	char data[size];
+	if (size != ce_memfile_read(mem, data, 1, size)) {
 		ce_logging_error("mobfile: io error occured");
 		return false;
 	}
 
-	ce_mobfile_decrypt_script(script, block_length, key);
-	ce_string_assign_n(mob->script, script, block_length);
+	for (int i = 0, n = size; i < n; ++i) {
+		key += (((((key * 13) << 4) + key) << 8) - key) * 4 + 2531011;
+		data[i] ^= key >> 16;
+	}
+
+	assert(NULL == mob->script);
+	if (NULL == (mob->script = ce_string_new())) {
+		return false;
+	}
+
+	ce_string_assign_n(mob->script, data, size);
 
 	return true;
 }
 
-static bool ce_mobfile_read_block_object_object(ce_mobfile* mob,
-											int block_length, ce_memfile* mem)
+static bool
+ce_mobfile_block_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
-	uint32_t type, length;
+	ce_unused(mem);
+	ce_unused(size);
+
+	assert(NULL == mob->objects);
+	if (NULL == (mob->objects = ce_vector_new())) {
+		return false;
+	}
+
+	return true;
+}
+
+static bool
+ce_mobfile_block_object_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
+{
+	ce_unused(mem);
+	ce_unused(size);
 
 	ce_mobobject_object* object = ce_alloc_zero(sizeof(ce_mobobject_object));
 	if (NULL == object) {
 		return false;
 	}
 
+	assert(NULL != mob->objects);
 	ce_vector_push_back(mob->objects, object);
 
-	while (0 != block_length) {
-		if (1 != ce_memfile_read(mem, &type, sizeof(type), 1) ||
-				1 != ce_memfile_read(mem, &length, sizeof(length), 1)) {
+	return true;
+}
+
+static bool
+ce_mobfile_block_object_object_parts(ce_mobfile* mob,
+									ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	if (NULL == object->parts) {
+		if (NULL == (object->parts = ce_vector_new())) {
+			return false;
+		}
+
+		uint32_t count;
+		if (1 != ce_memfile_read(mem, &count, sizeof(count), 1)) {
 			ce_logging_error("mobfile: io error occured");
 			return false;
 		}
 
-		ce_le2cpu32s(&type);
-		ce_le2cpu32s(&length);
-
-		block_length -= length;
-		length -= sizeof(type);
-		length -= sizeof(length);
-
-		bool ok;
-
-		if (BLOCK_OBJECT_OBJECT_PARTS == type) {
-			assert(NULL == object->parts);
-			if (NULL == (object->parts = ce_vector_new())) {
-				return false;
-			}
-
-			uint32_t count;
-			if (1 != ce_memfile_read(mem, &count, sizeof(count), 1)) {
-				ce_logging_error("mobfile: io error occured");
-				return false;
-			}
-
-			ce_le2cpu32s(&count);
-
-			for (unsigned int i = 0; i < count; ++i) {
-				if (1 != ce_memfile_read(mem, &type, sizeof(type), 1) ||
-						1 != ce_memfile_read(mem, &length, sizeof(length), 1)) {
-					ce_logging_error("mobfile: io error occured");
-					return false;
-				}
-
-				ce_le2cpu32s(&type);
-				ce_le2cpu32s(&length);
-
-				assert(BLOCK_OBJECT_OBJECT_PARTS == type);
-
-				length -= sizeof(type);
-				length -= sizeof(length);
-
-				char cpart[length];
-				if (length != ce_memfile_read(mem, cpart, 1, length)) {
-					ce_logging_error("mobfile: io error occured");
-					return false;
-				}
-
-				ce_string* part = ce_string_new();
-				if (NULL == part) {
-					return false;
-				}
-
-				ce_vector_push_back(object->parts, part);
-				ce_string_assign_n(part, cpart, length);
-
-				//printf("name: %s\n", ce_string_cstr(part));
-			}
-
-			ok = true;
-		} else if (BLOCK_OBJECT_OBJECT_OWNER == type) {
-			assert(sizeof(object->owner) == length);
-			ok = 1 == ce_memfile_read(mem, &object->owner, length, 1);
-			//printf("owner: %hhu\n", object->owner);
-		} else if (BLOCK_OBJECT_OBJECT_ID == type) {
-			assert(sizeof(object->id) == length);
-			ok = 1 == ce_memfile_read(mem, &object->id, length, 1);
-			//printf("id: %u\n", object->id);
-		} else if (BLOCK_OBJECT_OBJECT_TYPE == type) {
-			assert(sizeof(object->type) == length);
-			ok = 1 == ce_memfile_read(mem, &object->type, length, 1);
-			//printf("type: %u\n", object->type);
-		} else if (BLOCK_OBJECT_OBJECT_NAME == type) {
-			//printf("name: %u\n", length);
-			char data[length];
-			if (length != ce_memfile_read(mem, data, 1, length)) {
-				ce_logging_error("mobfile: io error occured");
-				return false;
-			}
-
-			if (NULL == (object->name = ce_string_new())) {
-				return false;
-			}
-
-			ce_string_assign_n(object->name, data, length);
-			//printf("name: %s\n", ce_string_cstr(object->name));
-
-			ok = true;
-		} else if (BLOCK_OBJECT_OBJECT_MODEL_NAME == type) {
-			//printf("model name: %u\n", length);
-			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
-		} else if (BLOCK_OBJECT_OBJECT_PARENT_NAME == type) {
-			//printf("parent name: %u\n", length);
-			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
-		} else if (BLOCK_OBJECT_OBJECT_PRIMARY_TEXTURE == type) {
-			//printf("pr tex: %u\n", length);
-			char data[length];
-			if (length != ce_memfile_read(mem, data, 1, length)) {
-				ce_logging_error("mobfile: io error occured");
-				return false;
-			}
-
-			if (NULL == (object->primary_texture = ce_string_new())) {
-				return false;
-			}
-
-			ce_string_assign_n(object->primary_texture, data, length);
-			//printf("pri tex: %s\n", ce_string_cstr(object->primary_texture));
-
-			ok = true;
-		} else if (BLOCK_OBJECT_OBJECT_SECONDARY_TEXTURE == type) {
-			//printf("sec tex: %u\n", length);
-			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
-		} else if (BLOCK_OBJECT_OBJECT_COMMENT == type) {
-			//printf("comment: %u\n", length);
-			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
-		} else if (BLOCK_OBJECT_OBJECT_POSITION == type) {
-			assert(3 * sizeof(float) == length);
-			ok = 1 == ce_memfile_read(mem,
-						&object->position.x, sizeof(float), 1)
-				&& 1 == ce_memfile_read(mem,
-						&object->position.y, sizeof(float), 1)
-				&& 1 == ce_memfile_read(mem,
-						&object->position.z, sizeof(float), 1);
-			//printf("pos: %f, %f, %f\n", object->position.x,
-			//	object->position.y, object->position.z);
-		} else if (BLOCK_OBJECT_OBJECT_ROTATION == type) {
-			assert(4 * sizeof(float) == length);
-			ok = 1 == ce_memfile_read(mem,
-						&object->rotation.w, sizeof(float), 1)
-				&& 1 == ce_memfile_read(mem,
-						&object->rotation.x, sizeof(float), 1)
-				&& 1 == ce_memfile_read(mem,
-						&object->rotation.y, sizeof(float), 1)
-				&& 1 == ce_memfile_read(mem,
-						&object->rotation.z, sizeof(float), 1);
-			//printf("rot: %f, %f, %f, %f\n", object->rotation.w,
-			//	object->rotation.x, object->rotation.y, object->rotation.z);
-		} else if (BLOCK_OBJECT_OBJECT_QUEST == type) {
-			assert(sizeof(object->quest) == length);
-			ok = 1 == ce_memfile_read(mem, &object->quest, length, 1);
-			//printf("quest: %hhu\n", object->quest);
-		} else if (BLOCK_OBJECT_OBJECT_SHADOW == type) {
-			assert(sizeof(object->shadow) == length);
-			ok = 1 == ce_memfile_read(mem, &object->shadow, length, 1);
-			//printf("shadow: %hhu\n", object->shadow);
-		} else if (BLOCK_OBJECT_OBJECT_PARENT_ID == type) {
-			assert(sizeof(object->parent_id) == length);
-			ok = 1 == ce_memfile_read(mem, &object->parent_id, length, 1);
-			//printf("shadow: %u\n", object->parent_id);
-		} else if (BLOCK_OBJECT_OBJECT_QUEST_INFO == type) {
-			//printf("quest info: %u\n", length);
-			ok = 0 == ce_memfile_seek(mem, length, SEEK_CUR);
-		} else if (BLOCK_OBJECT_OBJECT_COMPLECTION == type) {
-			assert(3 * sizeof(float) == length);
-			ok = 1 == ce_memfile_read(mem,
-						&object->strength, sizeof(float), 1)
-				&& 1 == ce_memfile_read(mem,
-						&object->dexterity, sizeof(float), 1)
-				&& 1 == ce_memfile_read(mem,
-						&object->tallness, sizeof(float), 1);
-			//printf("comp: %f, %f, %f\n", object->strength,
-			//	object->dexterity, object->tallness);
-		} else {
-			assert(false);
-			ok = false;
-		}
-
-		if (!ok) {
-			ce_logging_error("mobfile: io error occured");
+		ce_le2cpu32s(&count);
+	} else {
+		ce_string* part = ce_mobfile_block_read_string(mem, size);
+		if (NULL == part) {
 			return false;
 		}
+
+		ce_vector_push_back(object->parts, part);
+		printf("block_object_object_parts: %s\n", ce_string_cstr(part));
 	}
 
 	return true;
 }
 
-static bool ce_mobfile_read_block_object(ce_mobfile* mob,
-											int block_length, ce_memfile* mem)
+static bool
+ce_mobfile_block_object_object_owner(ce_mobfile* mob,
+									ce_memfile* mem, size_t size)
 {
-	uint32_t type, length;
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	while (0 != block_length) {
-		if (1 != ce_memfile_read(mem, &type, sizeof(type), 1) ||
-				1 != ce_memfile_read(mem, &length, sizeof(length), 1)) {
+	assert(sizeof(object->owner) == size);
+	return ce_mobfile_block_read_generic(mem, &object->owner,
+											sizeof(object->owner), 1);
+}
+
+static bool
+ce_mobfile_block_object_object_id(ce_mobfile* mob,
+								ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(sizeof(object->id) == size);
+	return ce_mobfile_block_read_generic(mem, &object->id,
+											sizeof(object->id), 1);
+}
+
+static bool
+ce_mobfile_block_object_object_type(ce_mobfile* mob,
+									ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(sizeof(object->type) == size);
+	return ce_mobfile_block_read_generic(mem, &object->type,
+											sizeof(object->type), 1);
+}
+
+static bool
+ce_mobfile_block_object_object_name(ce_mobfile* mob,
+									ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	if (NULL == (object->name = ce_mobfile_block_read_string(mem, size))) {
+		return false;
+	}
+
+	printf("block_object_object_name: %s\n", ce_string_cstr(object->name));
+	return true;
+}
+
+static bool
+ce_mobfile_block_object_object_model_name(ce_mobfile* mob,
+											ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static bool
+ce_mobfile_block_object_object_parent_name(ce_mobfile* mob,
+											ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static bool
+ce_mobfile_block_object_object_primary_texture(ce_mobfile* mob,
+												ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static bool
+ce_mobfile_block_object_object_secondary_texture(ce_mobfile* mob,
+												ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static bool
+ce_mobfile_block_object_object_comment(ce_mobfile* mob,
+										ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static bool
+ce_mobfile_block_object_object_position(ce_mobfile* mob,
+										ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static bool
+ce_mobfile_block_object_object_rotation(ce_mobfile* mob,
+										ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static bool
+ce_mobfile_block_object_object_quest(ce_mobfile* mob,
+									ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static bool
+ce_mobfile_block_object_object_shadow(ce_mobfile* mob,
+										ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static bool
+ce_mobfile_block_object_object_parent_id(ce_mobfile* mob,
+										ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static bool
+ce_mobfile_block_object_object_quest_info(ce_mobfile* mob,
+											ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static bool
+ce_mobfile_block_object_object_complection(ce_mobfile* mob,
+											ce_memfile* mem, size_t size)
+{
+	assert(!ce_vector_empty(mob->objects));
+	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	assert(false);
+}
+
+static const ce_mobfile_block_pair ce_mobfile_block_pairs[] = {
+	{ 0xa000, ce_mobfile_block_main },
+	{ 0xd000, ce_mobfile_block_main_quest },
+	{ 0xc000, ce_mobfile_block_main_zonal },
+	{ 0xacceeccb, ce_mobfile_block_text },
+	{ 0xb000, ce_mobfile_block_object },
+	//{ 0xbbbb0000, ce_mobfile_block_object_unit },
+	{ 0xb001, ce_mobfile_block_object_object },
+	{ 0xb00d, ce_mobfile_block_object_object_parts },
+	{ 0xb011, ce_mobfile_block_object_object_owner },
+	{ 0xb002, ce_mobfile_block_object_object_id },
+	{ 0xb003, ce_mobfile_block_object_object_type },
+	{ 0xb004, ce_mobfile_block_object_object_name },
+	{ 0xb006, ce_mobfile_block_object_object_model_name },
+	{ 0xb00e, ce_mobfile_block_object_object_parent_name },
+	{ 0xb007, ce_mobfile_block_object_object_primary_texture },
+	{ 0xb008, ce_mobfile_block_object_object_secondary_texture },
+	{ 0xb00f, ce_mobfile_block_object_object_comment },
+	{ 0xb009, ce_mobfile_block_object_object_position },
+	{ 0xb00a, ce_mobfile_block_object_object_rotation },
+	{ 0xb013, ce_mobfile_block_object_object_quest },
+	{ 0xb014, ce_mobfile_block_object_object_shadow },
+	{ 0xb012, ce_mobfile_block_object_object_parent_id },
+	{ 0xb016, ce_mobfile_block_object_object_quest_info },
+	{ 0xb00c, ce_mobfile_block_object_object_complection }
+	//{ 0xbbac0000, ce_mobfile_block_object_lever },
+	//{ 0xbbab0000, ce_mobfile_block_object_trap },
+	//{ 0xbbbf, ce_mobfile_block_object_flame },
+	//{ 0xaa01, ce_mobfile_block_object_particle1 },
+	//{ 0xcc01, ce_mobfile_block_object_particle2 },
+	//{ 0xdd01, ce_mobfile_block_object_particle3 },
+};
+
+static ce_mobfile_block_callback
+ce_mobfile_block_callback_choose(unsigned int type)
+{
+	for (int i = 0, n = sizeof(ce_mobfile_block_pairs) /
+						sizeof(ce_mobfile_block_pairs[0]); i < n; ++i) {
+		if (ce_mobfile_block_pairs[i].type == type) {
+			return ce_mobfile_block_pairs[i].callback;
+		}
+	}
+	return ce_mobfile_block_unknown;
+}
+
+static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
+{
+	uint32_t child_type, child_size;
+
+	while (0 != size) {
+		if (1 != ce_memfile_read(mem, &child_type, sizeof(child_type), 1) ||
+				1 != ce_memfile_read(mem, &child_size, sizeof(child_size), 1)) {
 			ce_logging_error("mobfile: io error occured");
 			return false;
 		}
 
-		ce_le2cpu32s(&type);
-		ce_le2cpu32s(&length);
+		ce_le2cpu32s(&child_type);
+		ce_le2cpu32s(&child_size);
 
-		block_length -= length;
-		length -= sizeof(type);
-		length -= sizeof(length);
+		size -= child_size;
 
-		ce_mobfile_read_block read_block;
+		child_size -= sizeof(child_type);
+		child_size -= sizeof(child_size);
 
-		if (BLOCK_OBJECT_OBJECT == type) {
-			read_block = ce_mobfile_read_block_object_object;
-		} else {
-			read_block = ce_mobfile_read_block_unknown;
-		}
+		ce_mobfile_block_callback callback =
+			ce_mobfile_block_callback_choose(child_type);
 
-		if (!read_block(mob, length, mem)) {
+		if (!callback(mob, mem, child_size)) {
 			return false;
 		}
 	}
 
 	return true;
-}
-
-static bool ce_mobfile_read_block_main(ce_mobfile* mob,
-											int block_length, ce_memfile* mem)
-{
-	uint32_t type, length;
-
-	while (0 != block_length) {
-		if (1 != ce_memfile_read(mem, &type, sizeof(type), 1) ||
-				1 != ce_memfile_read(mem, &length, sizeof(length), 1)) {
-			ce_logging_error("mobfile: io error occured");
-			return false;
-		}
-
-		ce_le2cpu32s(&type);
-		ce_le2cpu32s(&length);
-
-		block_length -= length;
-		length -= sizeof(type);
-		length -= sizeof(length);
-
-		ce_mobfile_read_block read_block;
-
-		if (BLOCK_TEXT == type) {
-			read_block = ce_mobfile_read_block_text;
-		} else if (BLOCK_OBJECT == type) {
-			read_block = ce_mobfile_read_block_object;
-		} else {
-			read_block = ce_mobfile_read_block_unknown;
-		}
-
-		if (!read_block(mob, length, mem)) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-static bool ce_mobfile_open_memfile_impl(ce_mobfile* mob, ce_memfile* mem)
-{
-	if (NULL == (mob->script = ce_string_new()) ||
-			NULL == (mob->objects = ce_vector_new())) {
-		return false;
-	}
-
-	uint32_t signature;
-	if (1 != ce_memfile_read(mem, &signature, sizeof(signature), 1)) {
-		ce_logging_error("mobfile: io error occured");
-		return false;
-	}
-
-	ce_le2cpu32s(&signature);
-	if (MOB_SIGNATURE != signature) {
-		ce_logging_error("mobfile: wrong signature");
-		return false;
-	}
-
-	uint32_t main_block_length;
-	uint64_t main_block_type;
-
-	if (1 != ce_memfile_read(mem, &main_block_length,
-							sizeof(main_block_length), 1) ||
-			1 != ce_memfile_read(mem, &main_block_type,
-								sizeof(main_block_type), 1)) {
-		ce_logging_error("mobfile: io error occured");
-		return false;
-	}
-
-	ce_le2cpu32s(&main_block_length);
-	ce_le2cpu64s(&main_block_type);
-
-	if (MAIN_BLOCK_QUEST != main_block_type &&
-			MAIN_BLOCK_ZONAL != main_block_type) {
-		ce_logging_error("mobfile: wrong main block type");
-		return false;
-	}
-
-	main_block_length -= sizeof(signature);
-	main_block_length -= sizeof(main_block_length);
-	main_block_length -= sizeof(main_block_type);
-
-	return ce_mobfile_read_block_main(mob, main_block_length, mem);
 }
 
 static ce_mobfile* ce_mobfile_open_memfile(ce_memfile* mem)
@@ -427,7 +460,11 @@ static ce_mobfile* ce_mobfile_open_memfile(ce_memfile* mem)
 		return NULL;
 	}
 
-	if (!ce_mobfile_open_memfile_impl(mob, mem)) {
+	ce_memfile_seek(mem, 0, SEEK_END);
+	size_t size = ce_memfile_tell(mem);
+	ce_memfile_seek(mem, 0, SEEK_SET);
+
+	if (!ce_mobfile_block_loop(mob, mem, size)) {
 		ce_mobfile_close(mob);
 		return NULL;
 	}

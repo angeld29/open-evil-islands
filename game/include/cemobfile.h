@@ -21,12 +21,13 @@
 #ifndef CE_MOBFILE_H
 #define CE_MOBFILE_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
-#include "cevector.h"
-#include "cestring.h"
 #include "cevec3.h"
 #include "cequat.h"
+#include "cevector.h"
+#include "cestring.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -35,7 +36,7 @@ extern "C"
 
 typedef struct {
 	ce_vector* parts;
-	char owner;
+	uint8_t owner;
 	uint32_t id;
 	uint32_t type;
     ce_string* name;
@@ -46,8 +47,8 @@ typedef struct {
 	ce_string* comment;
 	ce_vec3 position;
 	ce_quat rotation;
-	char quest;
-	char shadow;
+	uint8_t quest;
+	uint8_t shadow;
 	uint32_t parent_id;
 	ce_string* quest_info;
 	float strength;
