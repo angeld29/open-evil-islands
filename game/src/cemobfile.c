@@ -341,7 +341,7 @@ static bool ce_mobfile_read_block_main(ce_mobfile* mob,
 {
 	uint32_t type, length;
 
-	while (block_length != ce_memfile_tell(mem)) {
+	while (0 != block_length) {
 		if (1 != ce_memfile_read(mem, &type, sizeof(type), 1) ||
 				1 != ce_memfile_read(mem, &length, sizeof(length), 1)) {
 			ce_logging_error("mobfile: io error occured");
@@ -351,6 +351,7 @@ static bool ce_mobfile_read_block_main(ce_mobfile* mob,
 		ce_le2cpu32s(&type);
 		ce_le2cpu32s(&length);
 
+		block_length -= length;
 		length -= sizeof(type);
 		length -= sizeof(length);
 
@@ -410,6 +411,10 @@ static bool ce_mobfile_open_memfile_impl(ce_mobfile* mob, ce_memfile* mem)
 		ce_logging_error("mobfile: wrong main block type");
 		return false;
 	}
+
+	main_block_length -= sizeof(signature);
+	main_block_length -= sizeof(main_block_length);
+	main_block_length -= sizeof(main_block_type);
 
 	return ce_mobfile_read_block_main(mob, main_block_length, mem);
 }
