@@ -107,14 +107,14 @@ ce_mobfile_block_main(ce_mobfile* mob, ce_memfile* mem, size_t size)
 }
 
 static bool
-ce_mobfile_block_main_quest(ce_mobfile* mob, ce_memfile* mem, size_t size)
+ce_mobfile_block_quest(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	assert(0 == size);
 	return ce_mobfile_block_loop(mob, mem, size);
 }
 
 static bool
-ce_mobfile_block_main_zonal(ce_mobfile* mob, ce_memfile* mem, size_t size)
+ce_mobfile_block_zonal(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	assert(0 == size);
 	return ce_mobfile_block_loop(mob, mem, size);
@@ -362,8 +362,8 @@ ce_mobfile_block_object_object_complection(ce_mobfile* mob,
 
 static const ce_mobfile_block_pair ce_mobfile_block_pairs[] = {
 	{ 0xa000, ce_mobfile_block_main },
-	{ 0xd000, ce_mobfile_block_main_quest },
-	{ 0xc000, ce_mobfile_block_main_zonal },
+	{ 0xd000, ce_mobfile_block_quest },
+	{ 0xc000, ce_mobfile_block_zonal },
 	{ 0xacceeccb, ce_mobfile_block_text },
 	{ 0xb000, ce_mobfile_block_object },
 	//{ 0xbbbb0000, ce_mobfile_block_object_unit },
@@ -419,6 +419,52 @@ static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 
 		child_size -= sizeof(child_type);
 		child_size -= sizeof(child_size);
+
+#if 0
+		// WARNING: hardcode for graph data reversing, to be removed...
+		if (0x31415926 == child_type) {
+			int sz = child_size;
+
+			uint32_t a1, a2;
+			ce_memfile_read(mem, &a1, 4, 1);
+			ce_memfile_read(mem, &a2, 4, 1);
+			printf("%u %u\n", a1, a2);
+			sz -= 8;
+
+			printf("%u\n\n", sz);
+
+			for (int k = 0; k < 128; ++k) {
+				char data[8][8];
+				ce_memfile_read(mem, data, 1, sizeof(data));
+				sz -= sizeof(data);
+				for (int i = 0; i < 8; i+=1) {
+					for (int j = 0; j < 8; j+=2) {
+						printf("%hd ", *(short*)&data[i][j]);
+						//printf("%hhu ", data[i][j]);
+					}
+					printf("\n");
+				}
+				printf("\n");
+			}
+			printf("\n");
+
+			/*for (int k = 0; k < 128; ++k) {
+				for (int i = 0; i < 4; i+=1) {
+					for (int j = 0; j < 4; j+=1) {
+						int16_t v;
+						ce_memfile_read(mem, &v, 2, 1);
+						sz -= 2;
+						printf("%hhu %hhu ", *(char*)&v, *((char*)&v + 1));
+					}
+					printf("\n");
+				}
+				printf("\n");
+			}
+			printf("\n");*/
+
+			child_size -= sz;
+		}
+#endif
 
 		ce_mobfile_block_callback callback =
 			ce_mobfile_block_callback_choose(child_type);
