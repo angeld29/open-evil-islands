@@ -421,26 +421,26 @@ static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 		child_size -= sizeof(child_size);
 
 #if 0
-		// WARNING: hardcode for graph data reversing, to be removed...
+		// WARNING: graph data reversing
 		if (0x31415926 == child_type) {
 			int sz = child_size;
+			uint32_t s1, s2;
+			int16_t v;
+			ce_memfile_read(mem, &s1, sizeof(s1), 1);
+			ce_memfile_read(mem, &s2, sizeof(s2), 1);
+			printf("%u %u\n", s1 / 8u, s2 / 8u);
+			printf("%u %u\n", s1, s2);
+			sz -= sizeof(s1) + sizeof(s2);
+			printf("%d\n\n", sz);
 
-			uint32_t a1, a2;
-			ce_memfile_read(mem, &a1, 4, 1);
-			ce_memfile_read(mem, &a2, 4, 1);
-			printf("%u %u\n", a1, a2);
-			sz -= 8;
-
-			printf("%u\n\n", sz);
-
-			for (int k = 0; k < 128; ++k) {
-				char data[8][8];
-				ce_memfile_read(mem, data, 1, sizeof(data));
-				sz -= sizeof(data);
-				for (int i = 0; i < 8; i+=1) {
-					for (int j = 0; j < 8; j+=2) {
-						printf("%hd ", *(short*)&data[i][j]);
-						//printf("%hhu ", data[i][j]);
+			// 1: s1/8 matrices 8 x 8
+			printf("---1---\n\n");
+			for (unsigned int i = 0; i < s1 / 8; ++i) {
+				for (unsigned int j = 0; j < 8; ++j) {
+					for (unsigned int k = 0; k < 8; ++k) {
+						ce_memfile_read(mem, &v, sizeof(v), 1);
+						sz -= sizeof(v);
+						printf("%hd ", v);
 					}
 					printf("\n");
 				}
@@ -448,21 +448,45 @@ static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 			}
 			printf("\n");
 
-			/*for (int k = 0; k < 128; ++k) {
-				for (int i = 0; i < 4; i+=1) {
-					for (int j = 0; j < 4; j+=1) {
-						int16_t v;
-						ce_memfile_read(mem, &v, 2, 1);
-						sz -= 2;
-						printf("%hhu %hhu ", *(char*)&v, *((char*)&v + 1));
+			// 2: in loop
+			for (unsigned int i = 0; i < 255; ++i) {
+				printf("---2.1 loop %u---\n\n", i + 1);
+				// 2.1: s1/8/2 x 8 numbers
+				for (unsigned int j = 0; j < s1 / 8 / 2; ++j) {
+					for (unsigned int k = 0; k < 8; ++k) {
+						ce_memfile_read(mem, &v, sizeof(v), 1);
+						sz -= sizeof(v);
+						printf("%hd ", v);
+					}
+					printf("\n");
+				}
+
+				// 2.2: 1 matrix s1/8 x 8
+				printf("\n---2.2 loop %u---\n\n", i + 1);
+				for (unsigned int j = 0; j < s1 / 8; ++j) {
+					for (unsigned int k = 0; k < 8; ++k) {
+						ce_memfile_read(mem, &v, sizeof(v), 1);
+						sz -= sizeof(v);
+						printf("%hd ", v);
+					}
+					printf("\n");
+				}
+
+				// 2.3: 1 matrix s1 x 8
+				printf("\n---2.3 loop %u---\n\n", i + 1);
+				for (unsigned int j = 0; j < s1; ++j) {
+					for (unsigned int k = 0; k < 8; ++k) {
+						ce_memfile_read(mem, &v, sizeof(v), 1);
+						sz -= sizeof(v);
+						printf("%hd ", v);
 					}
 					printf("\n");
 				}
 				printf("\n");
 			}
-			printf("\n");*/
+			printf("\n");
 
-			child_size -= sz;
+			printf("%d\n", sz);
 		}
 #endif
 
