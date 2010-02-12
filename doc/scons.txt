@@ -1,5 +1,5 @@
    * This is an internal documentation currently available only on Russian.
-     Something more better will be later.
+     Something more better in English will be later.
 
    * У SCons отличная документация, есть объёмное руководство пользователя,
      есть man-страница. Всё это доступно здесь:

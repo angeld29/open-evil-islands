@@ -1,5 +1,5 @@
    * This is an internal documentation currently available only on Russian.
-     Something more better will be later.
+     Something more better in English will be later.
 
    * Здесь будут общие замечания, связанные с игрой, которые пока сложно
      структурировать. Например, часто используемые техники, которые
