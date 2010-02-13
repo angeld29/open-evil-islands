@@ -448,21 +448,29 @@ static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 			}
 			printf("\n");
 
+			// zonemenu 2x2   38912   sz, 127 loops, 304  b per loop, 48  b tail
+			// bz8k     4x4   155648  sz, 255 loops, 608  b per loop, 96  b tail
+			// zone2    4x6   233472  sz, 383 loops, 608  b per loop, 96  b tail
+			// zone20   5x5   243200  sz, 319 loops, 760  b per loop, 120 b tail
+			// zone6lmp 7x12  817152  sz, 767 loops, 1064 b per loop, 168 b tail
+			// zone1    8x6   466944  sz, 383 loops, 1216 b per loop, 192 b tail
+			// zone8    11x11 1177088 sz, 703 loops, 1672 b per loop, 264 b tail
+			// zone7    15x10 1459200 sz, 639 loops, 2280 b per loop, 360 b tail
+			// zone11   16x12 1867776 sz, 767 loops, 2432 b per loop, 384 b tail
+
 			// 2: in loop
 			for (unsigned int i = 0; i < 255; ++i) {
-				printf("---2.1 loop %u---\n\n", i + 1);
-				// 2.1: s1/8/2 x 8 numbers
-				for (unsigned int j = 0; j < s1 / 8 / 2; ++j) {
-					for (unsigned int k = 0; k < 8; ++k) {
-						ce_memfile_read(mem, &v, sizeof(v), 1);
-						sz -= sizeof(v);
-						printf("%hd ", v);
-					}
-					printf("\n");
+				printf("---2.1 loop %u---%d\n\n", i + 1, sz);
+				// 2.1: 4*s1/8 numbers
+				for (unsigned int j = 0; j < 4 * s1 / 8; ++j) {
+					ce_memfile_read(mem, &v, sizeof(v), 1);
+					sz -= sizeof(v);
+					printf("%hd ", v);
+					if (0 == (j + 1) % 8) printf("\n");
 				}
 
 				// 2.2: 1 matrix s1/8 x 8
-				printf("\n---2.2 loop %u---\n\n", i + 1);
+				printf("\n\n---2.2 loop %u---\n\n", i + 1);
 				for (unsigned int j = 0; j < s1 / 8; ++j) {
 					for (unsigned int k = 0; k < 8; ++k) {
 						ce_memfile_read(mem, &v, sizeof(v), 1);
@@ -484,9 +492,19 @@ static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 				}
 				printf("\n");
 			}
-			printf("\n");
+			printf("---3---\n\n");
 
-			printf("%d\n", sz);
+			// 3: s1/8 x 12 numbers
+			for (unsigned int i = 0; i < s1 / 8; ++i) {
+				for (unsigned int j = 0; j < 12; ++j) {
+					ce_memfile_read(mem, &v, sizeof(v), 1);
+					sz -= sizeof(v);
+					printf("%hd ", v);
+				}
+				printf("\n");
+			}
+
+			printf("\n%d\n", sz);
 		}
 #endif
 
