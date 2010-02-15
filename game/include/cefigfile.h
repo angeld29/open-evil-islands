@@ -23,7 +23,6 @@
 
 #include "cevec2.h"
 #include "cevec3.h"
-#include "cevec4.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -35,19 +34,49 @@ typedef enum {
 } ce_figfile_type;
 
 typedef struct {
+	float x[8][4];
+	float y[8][4];
+	float z[8][4];
+} ce_figfile_vertex;
+
+typedef struct {
+	float x[4];
+	float y[4];
+	float z[4];
+	float w[4];
+} ce_figfile_normal;
+
+typedef struct {
+	unsigned short a;
+	unsigned short b;
+} ce_figfile_component2;
+
+typedef struct {
+	unsigned short a;
+	unsigned short b;
+	unsigned short c;
+} ce_figfile_component3;
+
+typedef struct {
 	ce_figfile_type type;
-	int vertex_count;
-	int normal_count;
-	int texcoord_count;
-	int index_count;
-	int component_count;
-	int light_component_count;
-	int unknown1;
-	int unknown2;
+	unsigned int vertex_count;
+	unsigned int normal_count;
+	unsigned int texcoord_count;
+	unsigned int index_count;
+	unsigned int component_count;
+	unsigned int light_component_count;
+	unsigned int unknown1;
+	unsigned int unknown2;
 	ce_vec3* center;
 	ce_vec3* min;
 	ce_vec3* max;
 	float* radius;
+	ce_figfile_vertex* vertices;
+	ce_figfile_normal* normals;
+	ce_vec2* texcoords;
+	unsigned short* indices;
+	ce_figfile_component3* components;
+	ce_figfile_component2* light_components;
 } ce_figfile;
 
 extern ce_figfile* ce_figfile_open(const char* path);

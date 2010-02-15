@@ -35,50 +35,163 @@
 
 static const unsigned int CE_FIGFILE_SIGNATURE_FIG8 = 0x38474946;
 
-static void ce_figfile_init_vector(ce_vec3* vec, float* v)
+static void ce_figfile_init_vec2(ce_vec2* vec, float* v, int n)
 {
-	for (int i = 0; i < 8; ++i, ++vec, v += 3) {
+	for (int i = 0; i < n; ++i, ++vec, v += 2) {
+		ce_vec2_init_vector(vec, v);
+	}
+}
+
+static void ce_figfile_init_vec3(ce_vec3* vec, float* v, int n)
+{
+	for (int i = 0; i < n; ++i, ++vec, v += 3) {
 		ce_vec3_init_vector(vec, v);
 	}
 }
 
-static bool ce_figfile_read_data(ce_figfile* fig, ce_memfile* mem)
+static void ce_figfile_init_vertex(ce_figfile_vertex* ver, float* v, int n)
 {
-	/*while (0 != ce_memfile_tell(mem)) {
-		if (fig->vertex_count * 3 * 4 * 8 * 4 + fig->normal_count * 4 * 4 * 4 + fig->texcoord_count * 2 * 4 + fig->index_count * 2 + fig->component_count * 3 * 2 + fig->light_component_count * 2 * 2 == file_size - ce_memfile_tell(mem)) printf("\n-0-\n\n");
-		if (fig->normal_count * 4 * 4 * 4 + fig->texcoord_count * 2 * 4 + fig->index_count * 2 + fig->component_count * 3 * 2 + fig->light_component_count * 2 * 2 == file_size - ce_memfile_tell(mem)) printf("\n-1-\n\n");
-		if (fig->texcoord_count * 2 * 4 + fig->index_count * 2 + fig->component_count * 3 * 2 + fig->light_component_count * 2 * 2 == file_size - ce_memfile_tell(mem)) printf("\n-2-\n\n");
-		if (fig->index_count * 2 + fig->component_count * 3 * 2 + fig->light_component_count * 2 * 2 == file_size - ce_memfile_tell(mem)) printf("\n-3-\n\n");
-		if (fig->component_count * 3 * 2 + fig->light_component_count * 2 * 2 == file_size - ce_memfile_tell(mem)) printf("\n-4-\n\n");
-		if (fig->light_component_count * 2 * 2 == file_size - ce_memfile_tell(mem)) printf("\n-5-\n\n");
-		if (fig->index_count * 2 + fig->component_count * 3 * 2 + fig->light_component_count * 2 * 2 >= file_size - ce_memfile_tell(mem)) {
-			char ch;
-			if (1 != ce_memfile_read(mem, &ch, sizeof(char), 1)) {
-				break;
-			}
-			printf("%hhu ", ch);
-		} else {
-			float f;
-			if (1 != ce_memfile_read(mem, &f, sizeof(float), 1)) {
-				break;
-			}
-			printf("%f ", f);
-		}
-		if (0 == ce_memfile_tell(mem) % 16) printf("\n");
+	for (int i = 0; i < n; ++i, ++ver) {
+		memcpy(ver->x, v, sizeof(float) * 4 * 8); v += 4 * 8;
+		memcpy(ver->y, v, sizeof(float) * 4 * 8); v += 4 * 8;
+		memcpy(ver->z, v, sizeof(float) * 4 * 8); v += 4 * 8;
 	}
-	printf("\n");*/
+}
+
+static void ce_figfile_init_normal(ce_figfile_normal* nor, float* v, int n)
+{
+	for (int i = 0; i < n; ++i, ++nor) {
+		memcpy(nor->x, v, sizeof(float) * 4); v += 4;
+		memcpy(nor->y, v, sizeof(float) * 4); v += 4;
+		memcpy(nor->z, v, sizeof(float) * 4); v += 4;
+		memcpy(nor->w, v, sizeof(float) * 4); v += 4;
+	}
+}
+
+static void
+ce_figfile_init_component2(ce_figfile_component2* cmp, uint16_t* v, int n)
+{
+	for (int i = 0; i < n; ++i, ++cmp) {
+		cmp->a = ce_le2cpu16(*v++);
+		cmp->b = ce_le2cpu16(*v++);
+	}
+}
+
+static void
+ce_figfile_init_component3(ce_figfile_component3* cmp, uint16_t* v, int n)
+{
+	for (int i = 0; i < n; ++i, ++cmp) {
+		cmp->a = ce_le2cpu16(*v++);
+		cmp->b = ce_le2cpu16(*v++);
+		cmp->c = ce_le2cpu16(*v++);
+	}
+}
+
+static bool ce_figfile_read_model_data(ce_figfile* fig, ce_memfile* mem)
+{
+	// TODO: more comments
+	/**
+	 *  FIG model data:
+	 *   vertex_size - 3 items, 128 bytes per item
+	 *   normal_size - 4 items, 16 bytes per item
+	 *   texcoord_size - 2 items, 4 bytes per item
+	 *   index_size - 1 item, 2 bytes per item
+	 *   component_size - 3 items, 2 byte per item
+	 *   light_component_size - 2 items, 2 bytes per item
+	*/
+
+	fig->vertices = ce_alloc(sizeof(ce_figfile_vertex) * fig->vertex_count);
+	fig->normals = ce_alloc(sizeof(ce_figfile_normal) * fig->normal_count);
+	fig->texcoords = ce_alloc(sizeof(ce_vec2) * fig->texcoord_count);
+	fig->indices = ce_alloc(sizeof(unsigned short) * fig->index_count);
+	fig->components = ce_alloc(sizeof(ce_figfile_component3) *
+										fig->component_count);
+	fig->light_components = ce_alloc(sizeof(ce_figfile_component2) *
+										fig->light_component_count);
+
+	if (NULL == fig->vertices || NULL == fig->normals ||
+			NULL == fig->texcoords || NULL == fig->indices ||
+			NULL == fig->components || NULL == fig->light_components) {
+		return false;
+	}
+
+	size_t vertex_size = 4 * 4 * 8 * 3;
+	size_t normal_size = 4 * 4 * 4;
+	size_t texcoord_size = 4 * 2;
+	size_t index_size = 2;
+	size_t component_size = 2 * 3;
+	size_t light_component_size = 2 * 2;
+
+	char model_data[ce_smax(vertex_size * fig->vertex_count,
+		ce_smax(normal_size * fig->normal_count,
+		ce_smax(texcoord_size * fig->texcoord_count,
+		ce_smax(index_size * fig->index_count,
+		ce_smax(component_size * fig->component_count,
+		light_component_size * fig->light_component_count)))))];
+
+	if (fig->vertex_count != ce_memfile_read(mem, model_data,
+								vertex_size, fig->vertex_count)) {
+		ce_logging_error("figfile: io error occured");
+		return false;
+	}
+
+	ce_figfile_init_vertex(fig->vertices, (float*)model_data, fig->vertex_count);
+
+	if (fig->normal_count != ce_memfile_read(mem, model_data,
+								normal_size, fig->normal_count)) {
+		ce_logging_error("figfile: io error occured");
+		return false;
+	}
+
+	ce_figfile_init_normal(fig->normals, (float*)model_data, fig->normal_count);
+
+	if (fig->texcoord_count != ce_memfile_read(mem, model_data,
+							texcoord_size, fig->texcoord_count)) {
+		ce_logging_error("figfile: io error occured");
+		return false;
+	}
+
+	ce_figfile_init_vec2(fig->texcoords, (float*)model_data, fig->texcoord_count);
+
+	if (fig->index_count != ce_memfile_read(mem, model_data,
+								index_size, fig->index_count)) {
+		ce_logging_error("figfile: io error occured");
+		return false;
+	}
+
+	for (int i = 0, n = fig->index_count; i < n; ++i) {
+		fig->indices[i] = ce_le2cpu16(i[(uint16_t*)model_data]);
+	}
+
+	if (fig->component_count != ce_memfile_read(mem, model_data,
+							component_size, fig->component_count)) {
+		ce_logging_error("figfile: io error occured");
+		return false;
+	}
+
+	ce_figfile_init_component3(fig->components, (uint16_t*)model_data,
+													fig->component_count);
+
+	if (fig->light_component_count != ce_memfile_read(mem, model_data,
+						light_component_size, fig->light_component_count)) {
+		ce_logging_error("figfile: io error occured");
+		return false;
+	}
+
+	ce_figfile_init_component2(fig->light_components, (uint16_t*)model_data,
+												fig->light_component_count);
 
 	return true;
 }
 
-static bool ce_figfile_read_bound_info(ce_figfile* fig, ce_memfile* mem)
+static bool ce_figfile_read_bound_data(ce_figfile* fig, ce_memfile* mem)
 {
 	/**
-	 * FIG bound info:
-	 * center 3 floats x 8
-	 * min    3 floats x 8
-	 * max    3 floats x 8
-	 * radius 1 float  x 8
+	 *  FIG bound data:
+	 *   center - 3 floats x 8
+	 *   min    - 3 floats x 8
+	 *   max    - 3 floats x 8
+	 *   radius - 1 float  x 8
 	*/
 
 	if (NULL == (fig->center = ce_alloc(sizeof(ce_vec3) * 8)) ||
@@ -89,16 +202,16 @@ static bool ce_figfile_read_bound_info(ce_figfile* fig, ce_memfile* mem)
 		return false;
 	}
 
-	float bound_info[80];
-	if (80 != ce_memfile_read(mem, bound_info, sizeof(float), 80)) {
+	float bound_data[80];
+	if (80 != ce_memfile_read(mem, bound_data, sizeof(float), 80)) {
 		ce_logging_error("figfile: io error occured");
 		return false;
 	}
 
-	ce_figfile_init_vector(fig->center, bound_info + 0);
-	ce_figfile_init_vector(fig->min, bound_info + 24);
-	ce_figfile_init_vector(fig->max, bound_info + 48);
-	memcpy(fig->radius, bound_info + 72, sizeof(float) * 8);
+	ce_figfile_init_vec3(fig->center, bound_data + 0, 8);
+	ce_figfile_init_vec3(fig->min, bound_data + 24, 8);
+	ce_figfile_init_vec3(fig->max, bound_data + 48, 8);
+	memcpy(fig->radius, bound_data + 72, sizeof(float) * 8);
 
 	return true;
 }
@@ -106,17 +219,17 @@ static bool ce_figfile_read_bound_info(ce_figfile* fig, ce_memfile* mem)
 static bool ce_figfile_read_header(ce_figfile* fig, ce_memfile* mem)
 {
 	/**
-	 * FIG header:
-	 *  signature
-	 *  vertex count
-	 *  normal count
-	 *  texcoord count
-	 *  index count
-	 *  component count
-	 *  light component count
-	 *  unknown - always 0; for alignment?..
-	 *  unknown1
-	 *  unknown2
+	 *  FIG header:
+	 *   signature
+	 *   vertex count
+	 *   normal count
+	 *   texcoord count
+	 *   index count
+	 *   component count
+	 *   light component count
+	 *   unknown - always 0; for alignment?..
+	 *   unknown1
+	 *   unknown2
 	*/
 
 	uint32_t signature;
@@ -155,8 +268,8 @@ static bool ce_figfile_read_header(ce_figfile* fig, ce_memfile* mem)
 static bool ce_figfile_open_memfile_impl(ce_figfile* fig, ce_memfile* mem)
 {
 	return ce_figfile_read_header(fig, mem) &&
-		ce_figfile_read_bound_info(fig, mem) &&
-		ce_figfile_read_data(fig, mem);
+		ce_figfile_read_bound_data(fig, mem) &&
+		ce_figfile_read_model_data(fig, mem);
 }
 
 static ce_figfile* ce_figfile_open_memfile(ce_memfile* mem)
@@ -191,6 +304,14 @@ ce_figfile* ce_figfile_open(const char* path)
 void ce_figfile_close(ce_figfile* fig)
 {
 	if (NULL != fig) {
+		ce_free(fig->light_components, sizeof(ce_figfile_component2) *
+										fig->light_component_count);
+		ce_free(fig->components, sizeof(ce_figfile_component3) *
+										fig->component_count);
+		ce_free(fig->indices, sizeof(unsigned short) * fig->index_count);
+		ce_free(fig->texcoords, sizeof(ce_vec2) * fig->texcoord_count);
+		ce_free(fig->normals, sizeof(ce_figfile_normal) * fig->normal_count);
+		ce_free(fig->vertices, sizeof(ce_figfile_vertex) * fig->vertex_count);
 		ce_free(fig->radius, sizeof(float) * 8);
 		ce_free(fig->max, sizeof(ce_vec3) * 8);
 		ce_free(fig->min, sizeof(ce_vec3) * 8);
