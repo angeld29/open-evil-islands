@@ -32,6 +32,7 @@ typedef struct {
 
 extern ce_vec4* ce_vec4_init(ce_vec4* r, float x, float y, float z, float w);
 extern ce_vec4* ce_vec4_init_vector(ce_vec4* r, float* v);
+
 extern ce_vec4* ce_vec4_copy(ce_vec4* r, const ce_vec4* a);
 
 #ifdef __cplusplus

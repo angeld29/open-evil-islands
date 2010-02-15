@@ -42,6 +42,7 @@ extern ce_quat* ce_quat_identity(ce_quat* r);
 extern ce_quat* ce_quat_init(ce_quat* r, float w, float x, float y, float z);
 extern ce_quat* ce_quat_init_vector(ce_quat* r, float* v);
 extern ce_quat* ce_quat_init_polar(ce_quat* r, float theta, const ce_vec3* axis);
+
 extern ce_quat* ce_quat_copy(ce_quat* r, const ce_quat* a);
 
 extern ce_quat* ce_quat_neg(ce_quat* r, const ce_quat* a);
