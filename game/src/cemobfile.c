@@ -272,7 +272,7 @@ static bool
 ce_mobfile_block_object_object_position(ce_mobfile* mob,
 										ce_memfile* mem, size_t size)
 {
-	static float position[3];
+	float position[3];
 
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
@@ -286,7 +286,7 @@ static bool
 ce_mobfile_block_object_object_rotation(ce_mobfile* mob,
 										ce_memfile* mem, size_t size)
 {
-	static float rotation[4];
+	float rotation[4];
 
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
@@ -344,16 +344,16 @@ static bool
 ce_mobfile_block_object_object_complection(ce_mobfile* mob,
 											ce_memfile* mem, size_t size)
 {
-	static float complection[3];
+	float complection[3];
 
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
 	assert(sizeof(complection) == size);
 	if (ce_mobfile_read_generic(mem, complection, sizeof(complection), 1)) {
-		object->strength = complection[0];
-		object->dexterity = complection[1];
-		object->tallness = complection[2];
+		object->complection.strength = complection[0];
+		object->complection.dexterity = complection[1];
+		object->complection.tallness = complection[2];
 		return true;
 	}
 

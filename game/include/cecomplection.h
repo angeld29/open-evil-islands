@@ -18,17 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_MOBFILE_H
-#define CE_MOBFILE_H
-
-#include <stdbool.h>
-#include <stdint.h>
-
-#include "cevec3.h"
-#include "cequat.h"
-#include "cecomplection.h"
-#include "cevector.h"
-#include "cestring.h"
+#ifndef CE_COMPLECTION_H
+#define CE_COMPLECTION_H
 
 #ifdef __cplusplus
 extern "C"
@@ -36,35 +27,13 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_vector* parts;
-	uint8_t owner;
-	uint32_t id;
-	uint32_t type;
-    ce_string* name;
-	ce_string* model_name;
-	ce_string* parent_name;
-	ce_string* primary_texture;
-	ce_string* secondary_texture;
-	ce_string* comment;
-	ce_vec3 position;
-	ce_quat rotation;
-	uint8_t quest;
-	uint8_t shadow;
-	uint32_t parent_id;
-	ce_string* quest_info;
-	ce_complection complection;
-} ce_mobobject_object;
-
-typedef struct {
-	ce_string* script;
-	ce_vector* objects;
-} ce_mobfile;
-
-extern ce_mobfile* ce_mobfile_open(const char* path);
-extern void ce_mobfile_close(ce_mobfile* mob);
+	float strength;
+	float dexterity;
+	float tallness;
+} ce_complection;
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_MOBFILE_H */
+#endif /* CE_COMPLECTION_H */
