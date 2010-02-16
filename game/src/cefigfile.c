@@ -38,14 +38,14 @@ static const unsigned int CE_FIGFILE_SIGNATURE_FIG8 = 0x38474946;
 static void ce_figfile_init_vec2(ce_vec2* vec, float* v, int n)
 {
 	for (int i = 0; i < n; ++i, ++vec, v += 2) {
-		ce_vec2_init_vector(vec, v);
+		ce_vec2_init_array(vec, v);
 	}
 }
 
 static void ce_figfile_init_vec3(ce_vec3* vec, float* v, int n)
 {
 	for (int i = 0; i < n; ++i, ++vec, v += 3) {
-		ce_vec3_init_vector(vec, v);
+		ce_vec3_init_array(vec, v);
 	}
 }
 

@@ -272,28 +272,28 @@ static bool
 ce_mobfile_block_object_object_position(ce_mobfile* mob,
 										ce_memfile* mem, size_t size)
 {
-	float position[3];
-
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
+	float position[3];
+
 	assert(sizeof(position) == size);
 	return ce_mobfile_read_generic(mem, position, sizeof(position), 1) &&
-		ce_vec3_init_vector(&object->position, position);
+		ce_vec3_init_array(&object->position, position);
 }
 
 static bool
 ce_mobfile_block_object_object_rotation(ce_mobfile* mob,
 										ce_memfile* mem, size_t size)
 {
-	float rotation[4];
-
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
+	float rotation[4];
+
 	assert(sizeof(rotation) == size);
 	return ce_mobfile_read_generic(mem, rotation, sizeof(rotation), 1) &&
-		ce_quat_init_vector(&object->rotation, rotation);
+		ce_quat_init_array(&object->rotation, rotation);
 }
 
 static bool
@@ -344,10 +344,10 @@ static bool
 ce_mobfile_block_object_object_complection(ce_mobfile* mob,
 											ce_memfile* mem, size_t size)
 {
-	float complection[3];
-
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
+
+	float complection[3];
 
 	assert(sizeof(complection) == size);
 	if (ce_mobfile_read_generic(mem, complection, sizeof(complection), 1)) {

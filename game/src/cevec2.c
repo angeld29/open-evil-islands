@@ -84,7 +84,7 @@ ce_vec2* ce_vec2_init(ce_vec2* r, float x, float y)
 	return r;
 }
 
-ce_vec2* ce_vec2_init_vector(ce_vec2* r, float* v)
+ce_vec2* ce_vec2_init_array(ce_vec2* r, float* v)
 {
 	r->x = *v++;
 	r->y = *v++;

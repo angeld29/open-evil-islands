@@ -29,7 +29,7 @@ ce_vec4* ce_vec4_init(ce_vec4* r, float x, float y, float z, float w)
 	return r;
 }
 
-ce_vec4* ce_vec4_init_vector(ce_vec4* r, float* v)
+ce_vec4* ce_vec4_init_array(ce_vec4* r, float* v)
 {
 	r->x = *v++;
 	r->y = *v++;

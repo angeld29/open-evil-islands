@@ -34,6 +34,7 @@ typedef struct {
 } ce_plane;
 
 extern ce_plane* ce_plane_init(ce_plane* r, float a, float b, float c, float d);
+extern ce_plane* ce_plane_init_array(ce_plane* r, float* v);
 extern ce_plane* ce_plane_init_tri(ce_plane* r, const ce_vec3* a,
 									const ce_vec3* b, const ce_vec3* c);
 

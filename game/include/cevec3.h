@@ -54,7 +54,7 @@ extern ce_vec3* ce_vec3_neg_unit_z(ce_vec3* r);
 extern ce_vec3* ce_vec3_neg_unit_scale(ce_vec3* r);
 
 extern ce_vec3* ce_vec3_init(ce_vec3* r, float x, float y, float z);
-extern ce_vec3* ce_vec3_init_vector(ce_vec3* r, float* v);
+extern ce_vec3* ce_vec3_init_array(ce_vec3* r, float* v);
 
 extern ce_vec3* ce_vec3_copy(ce_vec3* r, const ce_vec3* a);
 

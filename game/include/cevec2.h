@@ -47,7 +47,7 @@ extern ce_vec2* ce_vec2_neg_unit_y(ce_vec2* r);
 extern ce_vec2* ce_vec2_neg_unit_scale(ce_vec2* r);
 
 extern ce_vec2* ce_vec2_init(ce_vec2* r, float x, float y);
-extern ce_vec2* ce_vec2_init_vector(ce_vec2* r, float* v);
+extern ce_vec2* ce_vec2_init_array(ce_vec2* r, float* v);
 
 extern ce_vec2* ce_vec2_copy(ce_vec2* r, const ce_vec2* a);
 
