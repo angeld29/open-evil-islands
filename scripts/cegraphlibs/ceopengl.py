@@ -23,6 +23,7 @@ def get_description():
 	return "Open Graphics Library"
 
 def configure(env):
-	env.AppendUnique(
-		CPPDEFINES=["FREEGLUT_STATIC"],
-	)
+	if env["TARGET_PLATFORM"] == "win32":
+		env.AppendUnique(
+			CPPDEFINES=["FREEGLUT_STATIC"],
+		)
