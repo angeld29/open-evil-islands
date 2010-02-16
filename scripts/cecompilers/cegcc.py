@@ -22,6 +22,7 @@
 def configure_release_mode(env):
 	env.AppendUnique(
 		CCFLAGS=["-O2", "-w"],
+		LINKFLAGS=["-s"],
 	)
 
 def configure_debug_mode(env):
