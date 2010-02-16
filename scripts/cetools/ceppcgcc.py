@@ -19,23 +19,27 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import cedarwin
-import cei386linuxgnu
-import cei386linuxmingw
-import cei386win32mingw
-import ceppclinuxgnu
+import SCons.Tool
+import SCons.Util
 
-hosts = {
-	"darwin": cedarwin,
-	"i386-linux-gnu": cei386linuxgnu,
-	"i386-linux-mingw": cei386linuxmingw,
-	"i386-win32-mingw": cei386win32mingw,
-	"ppc-linux-gnu": ceppclinuxgnu,
-}
+def find(env):
+	key_name = "powerpc-linux-gnu"
+	key_program = key_name + "-gcc"
+	key_program = env.WhereIs(key_program) or SCons.Util.WhereIs(key_program)
+	return key_name if key_program is not None else None
 
-# SCons PLATFORM -> CE HOST
-defaults = {
-	"darwin": "darwin",
-	"posix": "i386-linux-gnu",
-	"win32": "i386-win32-mingw",
-}
+def generate(env):
+	for tool in ("gnulink", "gcc", "g++", "gas", "ar"):
+		SCons.Tool.Tool(tool)(env)
+
+	base_name = find(env) or ""
+
+	env["CC"] = base_name + "-gcc"
+	env["CXX"] = base_name + "-g++"
+	env["AS"] = base_name + "-as"
+	env["RC"] = base_name + "-windres"
+	env["AR"] = base_name + "-ar"
+	env["RANLIB"] = base_name + "-ranlib"
+
+def exists(env):
+	return find(env)
