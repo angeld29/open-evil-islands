@@ -53,7 +53,7 @@ ce_quat* ce_quat_init(ce_quat* r, float w, float x, float y, float z)
 	return r;
 }
 
-ce_quat* ce_quat_init_array(ce_quat* r, float* v)
+ce_quat* ce_quat_init_array(ce_quat* r, const float* v)
 {
 	r->w = *v++;
 	r->x = *v++;

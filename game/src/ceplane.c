@@ -27,7 +27,7 @@ ce_plane* ce_plane_init(ce_plane* r, float a, float b, float c, float d)
 	return r;
 }
 
-ce_plane* ce_plane_init_array(ce_plane* r, float* v)
+ce_plane* ce_plane_init_array(ce_plane* r, const float* v)
 {
 	ce_vec3_init_array(&r->n, v);
 	r->d = v[3];

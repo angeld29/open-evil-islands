@@ -113,7 +113,7 @@ ce_vec3* ce_vec3_init(ce_vec3* r, float x, float y, float z)
 	return r;
 }
 
-ce_vec3* ce_vec3_init_array(ce_vec3* r, float* v)
+ce_vec3* ce_vec3_init_array(ce_vec3* r, const float* v)
 {
 	r->x = *v++;
 	r->y = *v++;
