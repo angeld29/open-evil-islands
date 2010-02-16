@@ -30,9 +30,7 @@
 #include "cestring.h"
 #include "ceresfile.h"
 
-enum {
-	RES_SIGNATURE = 0x19ce23c
-};
+static const unsigned int RES_SIGNATURE = 0x19ce23c;
 
 typedef struct {
 	ce_string* name;

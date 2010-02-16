@@ -39,8 +39,8 @@
 #include "cetexture.h"
 #include "cemprfile.h"
 
-static const uint32_t MP_SIGNATURE = 0xce4af672;
-static const uint32_t SEC_SIGNATURE = 0xcf4bf774;
+static const unsigned int MP_SIGNATURE = 0xce4af672;
+static const unsigned int SEC_SIGNATURE = 0xcf4bf774;
 
 enum {
 	MATERIAL_GROUND = 1,
