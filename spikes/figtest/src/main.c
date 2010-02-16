@@ -25,6 +25,63 @@
 #include "cealloc.h"
 #include "cefigfile.h"
 
+static void debug_print(ce_figfile* fig)
+{
+	printf("unknown1: %d\n", fig->unknown1);
+	printf("unknown2: %d\n", fig->unknown2);
+	printf("\ncenter:\n");
+	for (unsigned int i = 0; i < 8; ++i) {
+		printf("\t%f %f %f\n", fig->center[i].x, fig->center[i].y, fig->center[i].z);
+	}
+	printf("\nmin:\n");
+	for (unsigned int i = 0; i < 8; ++i) {
+		printf("\t%f %f %f\n", fig->min[i].x, fig->min[i].y, fig->min[i].z);
+	}
+	printf("\nmax:\n");
+	for (unsigned int i = 0; i < 8; ++i) {
+		printf("\t%f %f %f\n", fig->max[i].x, fig->max[i].y, fig->max[i].z);
+	}
+	printf("\nradius:\n");
+	for (unsigned int i = 0; i < 8; ++i) {
+		printf("\t%f\n", fig->radius[i]);
+	}
+	printf("\nvertices (%u):\n\n", fig->vertex_count);
+	for (unsigned int i = 0; i < fig->vertex_count; ++i) {
+		printf("\tvertex %u:\n", i + 1);
+		for (unsigned int j = 0; j < 8; ++j) {
+			printf("\t\tx: %f %f %f %f\n", fig->vertices[i].x[j][0], fig->vertices[i].x[j][1], fig->vertices[i].x[j][2], fig->vertices[i].x[j][3]);
+			printf("\t\ty: %f %f %f %f\n", fig->vertices[i].y[j][0], fig->vertices[i].y[j][1], fig->vertices[i].y[j][2], fig->vertices[i].y[j][3]);
+			printf("\t\tz: %f %f %f %f\n\n", fig->vertices[i].z[j][0], fig->vertices[i].z[j][1], fig->vertices[i].z[j][2], fig->vertices[i].z[j][3]);
+		}
+	}
+	printf("\nnormals (%u):\n", fig->normal_count);
+	for (unsigned int i = 0; i < fig->normal_count; ++i) {
+		printf("\tx: %f %f %f %f\n", fig->normals[i].x[0], fig->normals[i].x[1], fig->normals[i].x[2], fig->normals[i].x[3]);
+		printf("\ty: %f %f %f %f\n", fig->normals[i].y[0], fig->normals[i].y[1], fig->normals[i].y[2], fig->normals[i].y[3]);
+		printf("\tz: %f %f %f %f\n", fig->normals[i].z[0], fig->normals[i].z[1], fig->normals[i].z[2], fig->normals[i].z[3]);
+		printf("\tw: %f %f %f %f\n\n", fig->normals[i].w[0], fig->normals[i].w[1], fig->normals[i].w[2], fig->normals[i].w[3]);
+	}
+	printf("texcoords (%u):\n", fig->texcoord_count);
+	for (unsigned int i = 0; i < fig->texcoord_count; ++i) {
+		printf("\t%f %f\n", fig->texcoords[i].x, fig->texcoords[i].y);
+	}
+	printf("\nindices (%u):\n\t", fig->index_count);
+	for (unsigned int i = 0; i < fig->index_count; ++i) {
+		printf("%hu ", fig->indices[i]);
+	}
+	printf("\n\ncomponents (%u):\n\t", fig->component_count);
+	for (unsigned int i = 0; i < fig->component_count; ++i) {
+		printf("(%hu, %hu, %hu) ", fig->components[i].a,
+			fig->components[i].b, fig->components[i].c);
+	}
+	printf("\n\nlight components (%u):\n\t", fig->light_component_count);
+	for (unsigned int i = 0; i < fig->light_component_count; ++i) {
+		printf("(%hu, %hu) ", fig->light_components[i].a,
+								fig->light_components[i].b);
+	}
+	printf("\n");
+}
+
 int main(int argc, char* argv[])
 {
 	ce_logging_init();
@@ -39,64 +96,14 @@ int main(int argc, char* argv[])
 		ce_figfile* fig = ce_figfile_open(argv[1]);
 		if (NULL == fig) {
 			printf("main: failed to load fig: '%s'\n", argv[1]);
+			return EXIT_FAILURE;
 		}
-		printf("unknown1: %d\n", fig->unknown1);
-		printf("unknown2: %d\n", fig->unknown2);
-		printf("\ncenter:\n");
-		for (unsigned int i = 0; i < 8; ++i) {
-			printf("\t%f %f %f\n", fig->center[i].x, fig->center[i].y, fig->center[i].z);
-		}
-		printf("\nmin:\n");
-		for (unsigned int i = 0; i < 8; ++i) {
-			printf("\t%f %f %f\n", fig->min[i].x, fig->min[i].y, fig->min[i].z);
-		}
-		printf("\nmax:\n");
-		for (unsigned int i = 0; i < 8; ++i) {
-			printf("\t%f %f %f\n", fig->max[i].x, fig->max[i].y, fig->max[i].z);
-		}
-		printf("\nradius:\n");
-		for (unsigned int i = 0; i < 8; ++i) {
-			printf("\t%f\n", fig->radius[i]);
-		}
-		printf("\nvertices (%u):\n\n", fig->vertex_count);
-		for (unsigned int i = 0; i < fig->vertex_count; ++i) {
-			printf("\tvertex %u:\n", i + 1);
-			for (unsigned int j = 0; j < 8; ++j) {
-				printf("\t\tx: %f %f %f %f\n", fig->vertices[i].x[j][0], fig->vertices[i].x[j][1], fig->vertices[i].x[j][2], fig->vertices[i].x[j][3]);
-				printf("\t\ty: %f %f %f %f\n", fig->vertices[i].y[j][0], fig->vertices[i].y[j][1], fig->vertices[i].y[j][2], fig->vertices[i].y[j][3]);
-				printf("\t\tz: %f %f %f %f\n\n", fig->vertices[i].z[j][0], fig->vertices[i].z[j][1], fig->vertices[i].z[j][2], fig->vertices[i].z[j][3]);
-			}
-		}
-		printf("\nnormals (%u):\n", fig->normal_count);
-		for (unsigned int i = 0; i < fig->normal_count; ++i) {
-			printf("\tx: %f %f %f %f\n", fig->normals[i].x[0], fig->normals[i].x[1], fig->normals[i].x[2], fig->normals[i].x[3]);
-			printf("\ty: %f %f %f %f\n", fig->normals[i].y[0], fig->normals[i].y[1], fig->normals[i].y[2], fig->normals[i].y[3]);
-			printf("\tz: %f %f %f %f\n", fig->normals[i].z[0], fig->normals[i].z[1], fig->normals[i].z[2], fig->normals[i].z[3]);
-			printf("\tw: %f %f %f %f\n\n", fig->normals[i].w[0], fig->normals[i].w[1], fig->normals[i].w[2], fig->normals[i].w[3]);
-		}
-		printf("texcoords (%u):\n", fig->texcoord_count);
-		for (unsigned int i = 0; i < fig->texcoord_count; ++i) {
-			printf("\t%f %f\n", fig->texcoords[i].x, fig->texcoords[i].y);
-		}
-		printf("\nindices (%u):\n\t", fig->index_count);
-		for (unsigned int i = 0; i < fig->index_count; ++i) {
-			printf("%hu ", fig->indices[i]);
-		}
-		printf("\n\ncomponents (%u):\n\t", fig->component_count);
-		for (unsigned int i = 0; i < fig->component_count; ++i) {
-			printf("(%hu, %hu, %hu) ", fig->components[i].a,
-				fig->components[i].b, fig->components[i].c);
-		}
-		printf("\n\nlight components (%u):\n\t", fig->light_component_count);
-		for (unsigned int i = 0; i < fig->light_component_count; ++i) {
-			printf("(%hu, %hu) ", fig->light_components[i].a,
-									fig->light_components[i].b);
-		}
-		printf("\n");
+		debug_print(fig);
 		ce_figfile_close(fig);
 	}
 
 	ce_alloc_term();
 	ce_logging_term();
+
 	return EXIT_SUCCESS;
 }

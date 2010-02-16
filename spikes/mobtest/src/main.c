@@ -25,6 +25,10 @@
 #include "cealloc.h"
 #include "cemobfile.h"
 
+static void debug_print(ce_mobfile* mob)
+{
+}
+
 int main(int argc, char* argv[])
 {
 	ce_logging_init();
@@ -39,11 +43,14 @@ int main(int argc, char* argv[])
 		ce_mobfile* mob = ce_mobfile_open(argv[1]);
 		if (NULL == mob) {
 			printf("main: failed to load mob: '%s'\n", argv[1]);
+			return EXIT_FAILURE;
 		}
+		debug_print(mob);
 		ce_mobfile_close(mob);
 	}
 
 	ce_alloc_term();
 	ce_logging_term();
+
 	return EXIT_SUCCESS;
 }
