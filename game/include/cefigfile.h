@@ -47,14 +47,14 @@ typedef struct {
 } ce_figfile_normal;
 
 typedef struct {
-	unsigned short a;
-	unsigned short b;
+	short a;
+	short b;
 } ce_figfile_component2;
 
 typedef struct {
-	unsigned short a;
-	unsigned short b;
-	unsigned short c;
+	short a;
+	short b;
+	short c;
 } ce_figfile_component3;
 
 typedef struct {
@@ -74,7 +74,7 @@ typedef struct {
 	ce_figfile_vertex* vertices;
 	ce_figfile_normal* normals;
 	ce_vec2* texcoords;
-	unsigned short* indices;
+	short* indices;
 	ce_figfile_component3* components;
 	ce_figfile_component2* light_components;
 } ce_figfile;

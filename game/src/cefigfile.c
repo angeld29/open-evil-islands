@@ -103,7 +103,7 @@ static bool ce_figfile_read_model_data(ce_figfile* fig, ce_memfile* mem)
 	fig->vertices = ce_alloc(sizeof(ce_figfile_vertex) * fig->vertex_count);
 	fig->normals = ce_alloc(sizeof(ce_figfile_normal) * fig->normal_count);
 	fig->texcoords = ce_alloc(sizeof(ce_vec2) * fig->texcoord_count);
-	fig->indices = ce_alloc(sizeof(unsigned short) * fig->index_count);
+	fig->indices = ce_alloc(sizeof(short) * fig->index_count);
 	fig->components = ce_alloc(sizeof(ce_figfile_component3) *
 										fig->component_count);
 	fig->light_components = ce_alloc(sizeof(ce_figfile_component2) *
@@ -238,8 +238,7 @@ static bool ce_figfile_read_header(ce_figfile* fig, ce_memfile* mem)
 		return false;
 	}
 
-	ce_le2cpu32s(&signature);
-	if (CE_FIGFILE_SIGNATURE_FIG8 != signature) {
+	if (CE_FIGFILE_SIGNATURE_FIG8 != ce_le2cpu32(signature)) {
 		ce_logging_error("figfile: wrong signature");
 		return false;
 	}
@@ -308,7 +307,7 @@ void ce_figfile_close(ce_figfile* fig)
 										fig->light_component_count);
 		ce_free(fig->components, sizeof(ce_figfile_component3) *
 										fig->component_count);
-		ce_free(fig->indices, sizeof(unsigned short) * fig->index_count);
+		ce_free(fig->indices, sizeof(short) * fig->index_count);
 		ce_free(fig->texcoords, sizeof(ce_vec2) * fig->texcoord_count);
 		ce_free(fig->normals, sizeof(ce_figfile_normal) * fig->normal_count);
 		ce_free(fig->vertices, sizeof(ce_figfile_vertex) * fig->vertex_count);
