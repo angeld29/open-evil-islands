@@ -129,7 +129,7 @@ static bool ce_figfile_read_model_data(ce_figfile* fig, ce_memfile* mem)
 		ce_smax(component_size * fig->component_count,
 		light_component_size * fig->light_component_count)))))];
 
-	if (fig->vertex_count != ce_memfile_read(mem, model_data,
+	if (fig->vertex_count != (int)ce_memfile_read(mem, model_data,
 								vertex_size, fig->vertex_count)) {
 		ce_logging_error("figfile: io error occured");
 		return false;
@@ -137,7 +137,7 @@ static bool ce_figfile_read_model_data(ce_figfile* fig, ce_memfile* mem)
 
 	ce_figfile_init_vertex(fig->vertices, (float*)model_data, fig->vertex_count);
 
-	if (fig->normal_count != ce_memfile_read(mem, model_data,
+	if (fig->normal_count != (int)ce_memfile_read(mem, model_data,
 								normal_size, fig->normal_count)) {
 		ce_logging_error("figfile: io error occured");
 		return false;
@@ -145,7 +145,7 @@ static bool ce_figfile_read_model_data(ce_figfile* fig, ce_memfile* mem)
 
 	ce_figfile_init_normal(fig->normals, (float*)model_data, fig->normal_count);
 
-	if (fig->texcoord_count != ce_memfile_read(mem, model_data,
+	if (fig->texcoord_count != (int)ce_memfile_read(mem, model_data,
 							texcoord_size, fig->texcoord_count)) {
 		ce_logging_error("figfile: io error occured");
 		return false;
@@ -153,7 +153,7 @@ static bool ce_figfile_read_model_data(ce_figfile* fig, ce_memfile* mem)
 
 	ce_figfile_init_vec2(fig->texcoords, (float*)model_data, fig->texcoord_count);
 
-	if (fig->index_count != ce_memfile_read(mem, model_data,
+	if (fig->index_count != (int)ce_memfile_read(mem, model_data,
 								index_size, fig->index_count)) {
 		ce_logging_error("figfile: io error occured");
 		return false;
@@ -163,7 +163,7 @@ static bool ce_figfile_read_model_data(ce_figfile* fig, ce_memfile* mem)
 		fig->indices[i] = ce_le2cpu16(i[(uint16_t*)model_data]);
 	}
 
-	if (fig->component_count != ce_memfile_read(mem, model_data,
+	if (fig->component_count != (int)ce_memfile_read(mem, model_data,
 							component_size, fig->component_count)) {
 		ce_logging_error("figfile: io error occured");
 		return false;
@@ -172,7 +172,7 @@ static bool ce_figfile_read_model_data(ce_figfile* fig, ce_memfile* mem)
 	ce_figfile_init_component3(fig->components, (uint16_t*)model_data,
 													fig->component_count);
 
-	if (fig->light_component_count != ce_memfile_read(mem, model_data,
+	if (fig->light_component_count != (int)ce_memfile_read(mem, model_data,
 						light_component_size, fig->light_component_count)) {
 		ce_logging_error("figfile: io error occured");
 		return false;

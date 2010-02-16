@@ -59,14 +59,14 @@ typedef struct {
 
 typedef struct {
 	ce_figfile_type type;
-	unsigned int vertex_count;
-	unsigned int normal_count;
-	unsigned int texcoord_count;
-	unsigned int index_count;
-	unsigned int component_count;
-	unsigned int light_component_count;
-	unsigned int unknown1;
-	unsigned int unknown2;
+	int vertex_count;
+	int normal_count;
+	int texcoord_count;
+	int index_count;
+	int component_count;
+	int light_component_count;
+	int unknown1;
+	int unknown2;
 	ce_vec3* center;
 	ce_vec3* min;
 	ce_vec3* max;
