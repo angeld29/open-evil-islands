@@ -87,14 +87,13 @@ static bool ce_cfgfile_parse(ce_cfgfile* cfg, FILE* file)
 
 			ce_vector_push_back(cfg->sections, section);
 
-			if (NULL == (section->name = ce_string_new()) ||
+			ce_strmid(temp, line, 1, line_length - 2);
+			ce_strtrim(temp2, temp);
+
+			if (NULL == (section->name = ce_string_new_cstr(temp2)) ||
 					NULL == (section->options = ce_vector_new())) {
 				return false;
 			}
-
-			ce_strmid(temp, line, 1, line_length - 2);
-			ce_strtrim(temp2, temp);
-			ce_string_assign(section->name, temp2);
 		} else {
 			if (NULL == section) {
 				ce_logging_error("cfgfile: line %d: option outside of "
@@ -175,34 +174,31 @@ ce_cfgfile* ce_cfgfile_open(const char* path)
 
 void ce_cfgfile_close(ce_cfgfile* cfg)
 {
-	if (NULL == cfg) {
-		return;
-	}
-
-	if (NULL != cfg->sections) {
-		for (int i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
-			ce_cfgfile_section* section = ce_vector_at(cfg->sections, i);
-			for (int j = 0, m = ce_vector_count(section->options); j < m; ++j) {
-				ce_cfgfile_option* option = ce_vector_at(section->options, j);
-				ce_string_del(option->value);
-				ce_string_del(option->name);
-				ce_free(option, sizeof(ce_cfgfile_option));
+	if (NULL != cfg) {
+		if (NULL != cfg->sections) {
+			for (int i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
+				ce_cfgfile_section* sec = ce_vector_at(cfg->sections, i);
+				for (int j = 0, m = ce_vector_count(sec->options); j < m; ++j) {
+					ce_cfgfile_option* opt = ce_vector_at(sec->options, j);
+					ce_string_del(opt->value);
+					ce_string_del(opt->name);
+					ce_free(opt, sizeof(ce_cfgfile_option));
+				}
+				ce_vector_del(sec->options);
+				ce_string_del(sec->name);
+				ce_free(sec, sizeof(ce_cfgfile_section));
 			}
-			ce_vector_del(section->options);
-			ce_string_del(section->name);
-			ce_free(section, sizeof(ce_cfgfile_section));
+			ce_vector_del(cfg->sections);
 		}
-		ce_vector_del(cfg->sections);
+		ce_free(cfg, sizeof(ce_cfgfile));
 	}
-
-	ce_free(cfg, sizeof(ce_cfgfile));
 }
 
 int ce_cfgfile_section_index(ce_cfgfile* cfg, const char* section_name)
 {
 	for (int i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
-		ce_cfgfile_section* section = ce_vector_at(cfg->sections, i);
-		if (0 == strcmp(section_name, ce_string_cstr(section->name))) {
+		ce_cfgfile_section* sec = ce_vector_at(cfg->sections, i);
+		if (0 == strcmp(section_name, ce_string_cstr(sec->name))) {
 			return i;
 		}
 	}
@@ -212,10 +208,10 @@ int ce_cfgfile_section_index(ce_cfgfile* cfg, const char* section_name)
 int ce_cfgfile_option_index(ce_cfgfile* cfg, int section_index,
 											const char* option_name)
 {
-	ce_cfgfile_section* section = ce_vector_at(cfg->sections, section_index);
-	for (int i = 0, n = ce_vector_count(section->options); i < n; ++i) {
-		ce_cfgfile_option* option = ce_vector_at(section->options, i);
-		if (0 == strcmp(option_name, ce_string_cstr(option->name))) {
+	ce_cfgfile_section* sec = ce_vector_at(cfg->sections, section_index);
+	for (int i = 0, n = ce_vector_count(sec->options); i < n; ++i) {
+		ce_cfgfile_option* opt = ce_vector_at(sec->options, i);
+		if (0 == strcmp(option_name, ce_string_cstr(opt->name))) {
 			return i;
 		}
 	}
@@ -224,7 +220,7 @@ int ce_cfgfile_option_index(ce_cfgfile* cfg, int section_index,
 
 const char* ce_cfgfile_get(ce_cfgfile* cfg, int section_index, int option_index)
 {
-	ce_cfgfile_section* section = ce_vector_at(cfg->sections, section_index);
-	ce_cfgfile_option* option = ce_vector_at(section->options, option_index);
-	return ce_string_cstr(option->value);
+	ce_cfgfile_section* sec = ce_vector_at(cfg->sections, section_index);
+	ce_cfgfile_option* opt = ce_vector_at(sec->options, option_index);
+	return ce_string_cstr(opt->value);
 }
