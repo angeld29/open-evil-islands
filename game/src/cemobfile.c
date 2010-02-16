@@ -19,6 +19,7 @@
 */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -68,18 +69,13 @@ static bool ce_mobfile_read_generic(ce_memfile* mem, void* data,
 
 static bool ce_mobfile_read_uint8(ce_memfile* mem, uint8_t* value)
 {
-	assert(1 == sizeof(*value));
-	return ce_mobfile_read_generic(mem, value, 1, 1);
+	return ce_mobfile_read_generic(mem, value, sizeof(uint8_t), 1);
 }
 
 static bool ce_mobfile_read_uint32(ce_memfile* mem, uint32_t* value)
 {
-	assert(4 == sizeof(*value));
-	if (!ce_mobfile_read_generic(mem, value, 4, 1)) {
-		return false;
-	}
-	ce_le2cpu32s(value);
-	return true;
+	return ce_mobfile_read_generic(mem, value, sizeof(uint32_t), 1) &&
+		(ce_le2cpu32s(value), true);
 }
 
 static ce_string* ce_mobfile_read_string(ce_memfile* mem, size_t size)
@@ -176,8 +172,10 @@ ce_mobfile_block_object_object_owner(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(sizeof(object->owner) == size);
-	return ce_mobfile_read_uint8(mem, &object->owner);
+	uint8_t owner;
+
+	assert(sizeof(owner) == size);
+	return ce_mobfile_read_uint8(mem, &owner) && (object->owner = owner, true);
 }
 
 static bool
@@ -187,8 +185,10 @@ ce_mobfile_block_object_object_id(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(sizeof(object->id) == size);
-	return ce_mobfile_read_uint32(mem, &object->id);
+	uint32_t id;
+
+	assert(sizeof(id) == size);
+	return ce_mobfile_read_uint32(mem, &id) && (object->id = id, true);
 }
 
 static bool
@@ -198,8 +198,10 @@ ce_mobfile_block_object_object_type(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(sizeof(object->type) == size);
-	return ce_mobfile_read_uint32(mem, &object->type);
+	uint32_t type;
+
+	assert(sizeof(type) == size);
+	return ce_mobfile_read_uint32(mem, &type) && (object->type = type, true);
 }
 
 static bool
@@ -303,8 +305,10 @@ ce_mobfile_block_object_object_quest(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(sizeof(object->quest) == size);
-	return ce_mobfile_read_uint8(mem, &object->quest);
+	uint8_t quest;
+
+	assert(sizeof(quest) == size);
+	return ce_mobfile_read_uint8(mem, &quest) && (object->quest = quest, true);
 }
 
 static bool
@@ -314,8 +318,11 @@ ce_mobfile_block_object_object_shadow(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(sizeof(object->shadow) == size);
-	return ce_mobfile_read_uint8(mem, &object->shadow);
+	uint8_t shadow;
+
+	assert(sizeof(shadow) == size);
+	return ce_mobfile_read_uint8(mem, &shadow) &&
+			(object->shadow = shadow, true);
 }
 
 static bool
@@ -325,8 +332,11 @@ ce_mobfile_block_object_object_parent_id(ce_mobfile* mob,
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 
-	assert(sizeof(object->parent_id) == size);
-	return ce_mobfile_read_uint32(mem, &object->parent_id);
+	uint32_t parent_id;
+
+	assert(sizeof(parent_id) == size);
+	return ce_mobfile_read_uint32(mem, &parent_id) &&
+			(object->parent_id = parent_id, true);
 }
 
 static bool
@@ -350,14 +360,10 @@ ce_mobfile_block_object_object_complection(ce_mobfile* mob,
 	float complection[3];
 
 	assert(sizeof(complection) == size);
-	if (ce_mobfile_read_generic(mem, complection, sizeof(complection), 1)) {
-		object->complection.strength = complection[0];
-		object->complection.dexterity = complection[1];
-		object->complection.tallness = complection[2];
-		return true;
-	}
-
-	return false;
+	return ce_mobfile_read_generic(mem, complection, sizeof(complection), 1) &&
+		(object->complection.strength = complection[0],
+		object->complection.dexterity = complection[1],
+		object->complection.tallness = complection[2], true);
 }
 
 static const ce_mobfile_block_pair ce_mobfile_block_pairs[] = {

@@ -22,7 +22,6 @@
 #define CE_MOBFILE_H
 
 #include <stdbool.h>
-#include <stdint.h>
 
 #include "cevec3.h"
 #include "cequat.h"
@@ -37,9 +36,9 @@ extern "C"
 
 typedef struct {
 	ce_vector* parts;
-	uint8_t owner;
-	uint32_t id;
-	uint32_t type;
+	int owner;
+	int id;
+	int type;
     ce_string* name;
 	ce_string* model_name;
 	ce_string* parent_name;
@@ -48,9 +47,9 @@ typedef struct {
 	ce_string* comment;
 	ce_vec3 position;
 	ce_quat rotation;
-	uint8_t quest;
-	uint8_t shadow;
-	uint32_t parent_id;
+	bool quest;
+	bool shadow;
+	int parent_id;
 	ce_string* quest_info;
 	ce_complection complection;
 } ce_mobobject_object;
