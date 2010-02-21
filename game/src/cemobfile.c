@@ -465,7 +465,7 @@ static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 			// zone11   16x12 1867776 sz, 767 loops, 2432 b per loop, 384 b tail
 
 			// 2: in loop
-			for (unsigned int i = 0; i < 255; ++i) {
+			for (unsigned int i = 0; i < 127; ++i) {
 				printf("---2.1 loop %u---%d\n\n", i + 1, sz);
 				// 2.1: 4*s1/8 numbers
 				for (unsigned int j = 0; j < 4 * s1 / 8; ++j) {
