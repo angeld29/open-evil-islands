@@ -44,7 +44,7 @@
 #include "cetexture.h"
 #include "cecomplection.h"
 
-ce_figfile* fig;
+ce_figfile_proto* fig_proto;
 ce_resfile* res;
 ce_texture* tex;
 ce_camera* cam;
@@ -57,57 +57,57 @@ int counter;
 
 static void debug_print()
 {
-	printf("unknown1: %d\n", fig->unknown1);
-	printf("unknown2: %d\n", fig->unknown2);
+	printf("unknown1: %d\n", fig_proto->unknown1);
+	printf("unknown2: %d\n", fig_proto->unknown2);
 	printf("\ncenter:\n");
 	for (int i = 0; i < 8; ++i) {
-		printf("\t%f %f %f\n", fig->center[i].x, fig->center[i].y, fig->center[i].z);
+		printf("\t%f %f %f\n", fig_proto->center[i].x, fig_proto->center[i].y, fig_proto->center[i].z);
 	}
 	printf("\nmin:\n");
 	for (int i = 0; i < 8; ++i) {
-		printf("\t%f %f %f\n", fig->min[i].x, fig->min[i].y, fig->min[i].z);
+		printf("\t%f %f %f\n", fig_proto->min[i].x, fig_proto->min[i].y, fig_proto->min[i].z);
 	}
 	printf("\nmax:\n");
 	for (int i = 0; i < 8; ++i) {
-		printf("\t%f %f %f\n", fig->max[i].x, fig->max[i].y, fig->max[i].z);
+		printf("\t%f %f %f\n", fig_proto->max[i].x, fig_proto->max[i].y, fig_proto->max[i].z);
 	}
 	printf("\nradius:\n");
 	for (int i = 0; i < 8; ++i) {
-		printf("\t%f\n", fig->radius[i]);
+		printf("\t%f\n", fig_proto->radius[i]);
 	}
-	printf("\nvertices (%d):\n\n", fig->vertex_count);
-	for (int i = 0; i < fig->vertex_count; ++i) {
+	printf("\nvertices (%d):\n\n", fig_proto->vertex_count);
+	for (int i = 0; i < fig_proto->vertex_count; ++i) {
 		printf("\tvertex %d:\n", i + 1);
 		for (int j = 0; j < 8; ++j) {
-			printf("\t\tx: %f %f %f %f\n", fig->vertices[i].x[j][0], fig->vertices[i].x[j][1], fig->vertices[i].x[j][2], fig->vertices[i].x[j][3]);
-			printf("\t\ty: %f %f %f %f\n", fig->vertices[i].y[j][0], fig->vertices[i].y[j][1], fig->vertices[i].y[j][2], fig->vertices[i].y[j][3]);
-			printf("\t\tz: %f %f %f %f\n\n", fig->vertices[i].z[j][0], fig->vertices[i].z[j][1], fig->vertices[i].z[j][2], fig->vertices[i].z[j][3]);
+			printf("\t\tx: %f %f %f %f\n", fig_proto->vertices[i].x[j][0], fig_proto->vertices[i].x[j][1], fig_proto->vertices[i].x[j][2], fig_proto->vertices[i].x[j][3]);
+			printf("\t\ty: %f %f %f %f\n", fig_proto->vertices[i].y[j][0], fig_proto->vertices[i].y[j][1], fig_proto->vertices[i].y[j][2], fig_proto->vertices[i].y[j][3]);
+			printf("\t\tz: %f %f %f %f\n\n", fig_proto->vertices[i].z[j][0], fig_proto->vertices[i].z[j][1], fig_proto->vertices[i].z[j][2], fig_proto->vertices[i].z[j][3]);
 		}
 	}
-	printf("\nnormals (%d):\n", fig->normal_count);
-	for (int i = 0; i < fig->normal_count; ++i) {
-		printf("\tx: %f %f %f %f\n", fig->normals[i].x[0], fig->normals[i].x[1], fig->normals[i].x[2], fig->normals[i].x[3]);
-		printf("\ty: %f %f %f %f\n", fig->normals[i].y[0], fig->normals[i].y[1], fig->normals[i].y[2], fig->normals[i].y[3]);
-		printf("\tz: %f %f %f %f\n", fig->normals[i].z[0], fig->normals[i].z[1], fig->normals[i].z[2], fig->normals[i].z[3]);
-		printf("\tw: %f %f %f %f\n\n", fig->normals[i].w[0], fig->normals[i].w[1], fig->normals[i].w[2], fig->normals[i].w[3]);
+	printf("\nnormals (%d):\n", fig_proto->normal_count);
+	for (int i = 0; i < fig_proto->normal_count; ++i) {
+		printf("\tx: %f %f %f %f\n", fig_proto->normals[i].x[0], fig_proto->normals[i].x[1], fig_proto->normals[i].x[2], fig_proto->normals[i].x[3]);
+		printf("\ty: %f %f %f %f\n", fig_proto->normals[i].y[0], fig_proto->normals[i].y[1], fig_proto->normals[i].y[2], fig_proto->normals[i].y[3]);
+		printf("\tz: %f %f %f %f\n", fig_proto->normals[i].z[0], fig_proto->normals[i].z[1], fig_proto->normals[i].z[2], fig_proto->normals[i].z[3]);
+		printf("\tw: %f %f %f %f\n\n", fig_proto->normals[i].w[0], fig_proto->normals[i].w[1], fig_proto->normals[i].w[2], fig_proto->normals[i].w[3]);
 	}
-	printf("texcoords (%d):\n", fig->texcoord_count);
-	for (int i = 0; i < fig->texcoord_count; ++i) {
-		printf("\t%f %f\n", fig->texcoords[i].x, fig->texcoords[i].y);
+	printf("texcoords (%d):\n", fig_proto->texcoord_count);
+	for (int i = 0; i < fig_proto->texcoord_count; ++i) {
+		printf("\t%f %f\n", fig_proto->texcoords[i].x, fig_proto->texcoords[i].y);
 	}
-	printf("\nindices (%d):\n\t", fig->index_count);
-	for (int i = 0; i < fig->index_count; ++i) {
-		printf("%hd ", fig->indices[i]);
+	printf("\nindices (%d):\n\t", fig_proto->index_count);
+	for (int i = 0; i < fig_proto->index_count; ++i) {
+		printf("%hd ", fig_proto->indices[i]);
 	}
-	printf("\n\ncomponents (%d):\n\t", fig->component_count);
-	for (int i = 0; i < fig->component_count; ++i) {
-		printf("(%hd, %hd, %hd) ", fig->components[i].vertex_index,
-			fig->components[i].normal_index, fig->components[i].texcoord_index);
+	printf("\n\ncomponents (%d):\n\t", fig_proto->component_count);
+	for (int i = 0; i < fig_proto->component_count; ++i) {
+		printf("(%hd, %hd, %hd) ", fig_proto->components[i].vertex_index,
+			fig_proto->components[i].normal_index, fig_proto->components[i].texcoord_index);
 	}
-	printf("\n\nlight components (%d):\n\t", fig->light_component_count);
-	for (int i = 0; i < fig->light_component_count; ++i) {
-		printf("(%hd, %hd) ", fig->light_components[i].unknown1,
-								fig->light_components[i].unknown2);
+	printf("\n\nlight components (%d):\n\t", fig_proto->light_component_count);
+	for (int i = 0; i < fig_proto->light_component_count; ++i) {
+		printf("(%hd, %hd) ", fig_proto->light_components[i].unknown1,
+								fig_proto->light_components[i].unknown2);
 	}
 	printf("\n");
 }
@@ -147,7 +147,7 @@ static void idle(void)
 		ce_camera_del(cam);
 		ce_texture_del(tex);
 		ce_resfile_close(res);
-		ce_figfile_close(fig);
+		ce_figfile_proto_close(fig_proto);
 		ce_gl_term();
 		ce_input_term();
 		ce_alloc_term();
@@ -238,14 +238,14 @@ static void display(void)
 
 	glPushMatrix();
 	for (int i = 0; i < 8; i++) {
-		xbuff[i] = fig->center[i].x;
-		ybuff[i] = fig->center[i].y;
-		zbuff[i] = fig->center[i].z;
+		xbuff[i] = fig_proto->center[i].x;
+		ybuff[i] = fig_proto->center[i].y;
+		zbuff[i] = fig_proto->center[i].z;
 	}
 	glTranslatef(fig8_value(xbuff, &cm),
 				fig8_value(ybuff, &cm),
 				-1.0f * fig8_value(zbuff, &cm));
-	glutWireCube(2.0f * fig8_value(fig->radius, &cm));
+	glutWireCube(2.0f * fig8_value(fig_proto->radius, &cm));
 	glPopMatrix();
 
 	glEnable(GL_CULL_FACE);
@@ -257,14 +257,14 @@ static void display(void)
 	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
 
 	glBegin(GL_TRIANGLES);
-	for (int i = 0; i < fig->index_count; ++i) {
-		ce_figfile_component cp = fig->components[fig->indices[i]];
+	for (int i = 0; i < fig_proto->index_count; ++i) {
+		ce_figfile_proto_component cp = fig_proto->components[fig_proto->indices[i]];
 
-		glTexCoord2f(fig->texcoords[cp.texcoord_index].x,
-			fig->texcoords[cp.texcoord_index].y);
+		glTexCoord2f(fig_proto->texcoords[cp.texcoord_index].x,
+			fig_proto->texcoords[cp.texcoord_index].y);
 
-		ce_figfile_normal* nor = fig->normals + cp.normal_index / 4;
-		ce_figfile_vertex* ver = fig->vertices + cp.vertex_index / 4;
+		ce_figfile_proto_normal* nor = fig_proto->normals + cp.normal_index / 4;
+		ce_figfile_proto_vertex* ver = fig_proto->vertices + cp.vertex_index / 4;
 
 		float nw = nor->w[cp.normal_index % 4];
 
@@ -323,13 +323,13 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	fig = ce_figfile_open(argv[2]);
-	if (NULL == fig) {
+	fig_proto = ce_figfile_proto_open_file(argv[2]);
+	if (NULL == fig_proto) {
 		printf("main: failed to load fig: '%s'\n", argv[2]);
 		return EXIT_FAILURE;
 	}
 
-	debug_print(fig);
+	debug_print(fig_proto);
 
 	res = ce_resfile_open_file(argv[1]);
 	if (NULL == res) {
