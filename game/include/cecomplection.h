@@ -29,7 +29,7 @@ extern "C"
 typedef struct {
 	float strength;
 	float dexterity;
-	float tallness;
+	float height;
 } ce_complection;
 
 #ifdef __cplusplus

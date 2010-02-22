@@ -363,7 +363,7 @@ ce_mobfile_block_object_object_complection(ce_mobfile* mob,
 	return ce_mobfile_read_generic(mem, complection, sizeof(complection), 1) &&
 		(object->complection.strength = complection[0],
 		object->complection.dexterity = complection[1],
-		object->complection.tallness = complection[2], true);
+		object->complection.height = complection[2], true);
 }
 
 static const ce_mobfile_block_pair ce_mobfile_block_pairs[] = {

@@ -35,6 +35,17 @@
 
 static const unsigned int CE_FIGFILE_SIGNATURE_FIG8 = 0x38474946;
 
+static float fig6_value(const float* params, const ce_complection* cm)
+{
+	float value, temp;
+	temp = params[0] + (params[1] - params[0]) * cm->strength;
+	value = temp + (params[2] - temp) * cm->dexterity;
+	temp = params[3] + (params[4] - params[3]) * cm->strength;
+	temp += (params[5] - temp) * cm->dexterity;
+	value += (temp - value) * cm->height;
+	return value;
+}
+
 static void ce_figfile_init_vec2(ce_vec2* vec, float* v, int n)
 {
 	for (int i = 0; i < n; ++i, ++vec, v += 2) {
@@ -69,21 +80,22 @@ static void ce_figfile_init_normal(ce_figfile_normal* nor, float* v, int n)
 }
 
 static void
-ce_figfile_init_component2(ce_figfile_component2* cmp, uint16_t* v, int n)
+ce_figfile_init_component(ce_figfile_component* cp, uint16_t* v, int n)
 {
-	for (int i = 0; i < n; ++i, ++cmp) {
-		cmp->a = ce_le2cpu16(*v++);
-		cmp->b = ce_le2cpu16(*v++);
+	for (int i = 0; i < n; ++i, ++cp) {
+		cp->vertex_index = ce_le2cpu16(*v++);
+		cp->normal_index = ce_le2cpu16(*v++);
+		cp->texcoord_index = ce_le2cpu16(*v++);
 	}
 }
 
 static void
-ce_figfile_init_component3(ce_figfile_component3* cmp, uint16_t* v, int n)
+ce_figfile_init_light_component(ce_figfile_light_component* cp,
+											uint16_t* v, int n)
 {
-	for (int i = 0; i < n; ++i, ++cmp) {
-		cmp->a = ce_le2cpu16(*v++);
-		cmp->b = ce_le2cpu16(*v++);
-		cmp->c = ce_le2cpu16(*v++);
+	for (int i = 0; i < n; ++i, ++cp) {
+		cp->unknown1 = ce_le2cpu16(*v++);
+		cp->unknown2 = ce_le2cpu16(*v++);
 	}
 }
 
@@ -104,10 +116,10 @@ static bool ce_figfile_read_model_data(ce_figfile* fig, ce_memfile* mem)
 	fig->normals = ce_alloc(sizeof(ce_figfile_normal) * fig->normal_count);
 	fig->texcoords = ce_alloc(sizeof(ce_vec2) * fig->texcoord_count);
 	fig->indices = ce_alloc(sizeof(short) * fig->index_count);
-	fig->components = ce_alloc(sizeof(ce_figfile_component3) *
+	fig->components = ce_alloc(sizeof(ce_figfile_component) *
 										fig->component_count);
-	fig->light_components = ce_alloc(sizeof(ce_figfile_component2) *
-										fig->light_component_count);
+	fig->light_components = ce_alloc(sizeof(ce_figfile_light_component) *
+											fig->light_component_count);
 
 	if (NULL == fig->vertices || NULL == fig->normals ||
 			NULL == fig->texcoords || NULL == fig->indices ||
@@ -169,8 +181,9 @@ static bool ce_figfile_read_model_data(ce_figfile* fig, ce_memfile* mem)
 		return false;
 	}
 
-	ce_figfile_init_component3(fig->components, (uint16_t*)model_data,
-													fig->component_count);
+	ce_figfile_init_component(fig->components,
+								(uint16_t*)model_data,
+								fig->component_count);
 
 	if (fig->light_component_count != (int)ce_memfile_read(mem, model_data,
 						light_component_size, fig->light_component_count)) {
@@ -178,8 +191,9 @@ static bool ce_figfile_read_model_data(ce_figfile* fig, ce_memfile* mem)
 		return false;
 	}
 
-	ce_figfile_init_component2(fig->light_components, (uint16_t*)model_data,
-												fig->light_component_count);
+	ce_figfile_init_light_component(fig->light_components,
+									(uint16_t*)model_data,
+									fig->light_component_count);
 
 	return true;
 }
@@ -303,9 +317,9 @@ ce_figfile* ce_figfile_open(const char* path)
 void ce_figfile_close(ce_figfile* fig)
 {
 	if (NULL != fig) {
-		ce_free(fig->light_components, sizeof(ce_figfile_component2) *
-										fig->light_component_count);
-		ce_free(fig->components, sizeof(ce_figfile_component3) *
+		ce_free(fig->light_components, sizeof(ce_figfile_light_component) *
+												fig->light_component_count);
+		ce_free(fig->components, sizeof(ce_figfile_component) *
 										fig->component_count);
 		ce_free(fig->indices, sizeof(short) * fig->index_count);
 		ce_free(fig->texcoords, sizeof(ce_vec2) * fig->texcoord_count);
@@ -317,4 +331,19 @@ void ce_figfile_close(ce_figfile* fig)
 		ce_free(fig->center, sizeof(ce_vec3) * 8);
 		ce_free(fig, sizeof(ce_figfile));
 	}
+}
+
+int ce_figfile_get_vertex_count(ce_figfile* fig)
+{
+	return 0;
+}
+
+int ce_figfile_get_normal_count(ce_figfile* fig)
+{
+	return 0;
+}
+
+int ce_figfile_get_texcoord_count(ce_figfile* fig)
+{
+	return fig->texcoord_count;
 }

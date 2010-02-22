@@ -41,16 +41,19 @@
 #include "cecfgfile.h"
 #include "celightcfg.h"
 #include "cefigfile.h"
+#include "cetexture.h"
 #include "cecomplection.h"
 
 ce_figfile* fig;
+ce_resfile* res;
+ce_texture* tex;
 ce_camera* cam;
 ce_timer* tmr;
 
 ce_input_event_supply* es;
 ce_input_event* ev;
 
-int n;
+int counter;
 
 static void debug_print()
 {
@@ -98,15 +101,35 @@ static void debug_print()
 	}
 	printf("\n\ncomponents (%d):\n\t", fig->component_count);
 	for (int i = 0; i < fig->component_count; ++i) {
-		printf("(%hd, %hd, %hd) ", fig->components[i].a,
-			fig->components[i].b, fig->components[i].c);
+		printf("(%hd, %hd, %hd) ", fig->components[i].vertex_index,
+			fig->components[i].normal_index, fig->components[i].texcoord_index);
 	}
 	printf("\n\nlight components (%d):\n\t", fig->light_component_count);
 	for (int i = 0; i < fig->light_component_count; ++i) {
-		printf("(%hd, %hd) ", fig->light_components[i].a,
-								fig->light_components[i].b);
+		printf("(%hd, %hd) ", fig->light_components[i].unknown1,
+								fig->light_components[i].unknown2);
 	}
 	printf("\n");
+}
+
+static bool generate_texture(const char* name)
+{
+	int index = ce_resfile_node_index(res, name);
+	if (-1 == index) {
+		return false;
+	}
+
+	void* data = ce_alloc(ce_resfile_node_size(res, index));
+	if (!ce_resfile_node_data(res, index, data)) {
+		ce_free(data, ce_resfile_node_size(res, index));
+		return false;
+	}
+
+	ce_texture_del(tex);
+	tex = ce_texture_new(data);
+	ce_free(data, ce_resfile_node_size(res, index));
+
+	return NULL != tex;
 }
 
 static void idle(void)
@@ -122,6 +145,8 @@ static void idle(void)
 		ce_input_event_supply_del(es);
 		ce_timer_del(tmr);
 		ce_camera_del(cam);
+		ce_texture_del(tex);
+		ce_resfile_close(res);
 		ce_figfile_close(fig);
 		ce_gl_term();
 		ce_input_term();
@@ -161,10 +186,23 @@ static void idle(void)
 	}
 
 	if (ce_input_event_triggered(ev)) {
-		++n;
+		++counter;
 	}
 
 	glutPostRedisplay();
+}
+
+static float fig8_value(const float* params, const ce_complection* cm)
+{
+	float value, temp[2];
+	temp[0] = params[0] + (params[1] - params[0]) * cm->strength;
+	temp[1] = params[2] + (params[3] - params[2]) * cm->strength;
+	value = temp[0] + (temp[1] - temp[0]) * cm->dexterity;
+	temp[0] = params[4] + (params[5] - params[4]) * cm->strength;
+	temp[1] = params[6] + (params[7] - params[6]) * cm->strength;
+	temp[0] += (temp[1] - temp[0]) * cm->dexterity;
+	value += (temp[0] - value) * cm->height;
+	return value;
 }
 
 static void display(void)
@@ -172,7 +210,7 @@ static void display(void)
 	glClearColor(1, 1, 1, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glEnable(GL_DEPTH);
+	glEnable(GL_DEPTH_TEST);
 
 	glLoadIdentity();
 	ce_camera_setup(cam);
@@ -193,32 +231,64 @@ static void display(void)
 	glVertex3f(0.0f, 0.0f, 100.0f);
 	glEnd();
 
+	float xbuff[8], ybuff[8], zbuff[8];
+
+	float cmval = counter % 10 / 10.0f;
+	ce_complection cm = { cmval, cmval, cmval };
+
 	glPushMatrix();
-	glTranslatef(fig->center[n%8].x, fig->center[n%8].y, -1.0f * fig->center[n%8].z);
-	glutWireCube(2.0f * fig->radius[n%8]);
+	for (int i = 0; i < 8; i++) {
+		xbuff[i] = fig->center[i].x;
+		ybuff[i] = fig->center[i].y;
+		zbuff[i] = fig->center[i].z;
+	}
+	glTranslatef(fig8_value(xbuff, &cm),
+				fig8_value(ybuff, &cm),
+				-1.0f * fig8_value(zbuff, &cm));
+	glutWireCube(2.0f * fig8_value(fig->radius, &cm));
 	glPopMatrix();
 
-	int cc = 0;
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CW);
 
-	for (int i = 0; i < fig->vertex_count; ++i) {
-		for (int j = 0; j < 8; ++j) {
-			for (int k = 0; k < 4; ++k) {
-				if ((n%(fig->vertex_count*8*4)) == cc) {
-					glColor3f(1.0f, 0.0f, 0.0f);
-					glPointSize(4.0f);
-				} else {
-					glColor3f(0.0f, 0.0f, 1.0f);
-					glPointSize(2.0f);
-				}
-				glBegin(GL_POINTS);
-				glVertex3f(fig->vertices[i].x[j][k],
-					fig->vertices[i].y[j][k],
-					fig->vertices[i].z[j][k]);
-				glEnd();
-				++cc;
-			}
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	ce_texture_bind(tex);
+
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+
+	glBegin(GL_TRIANGLES);
+	for (int i = 0; i < fig->index_count; ++i) {
+		ce_figfile_component cp = fig->components[fig->indices[i]];
+
+		glTexCoord2f(fig->texcoords[cp.texcoord_index].x,
+			fig->texcoords[cp.texcoord_index].y);
+
+		ce_figfile_normal* nor = fig->normals + cp.normal_index / 4;
+		ce_figfile_vertex* ver = fig->vertices + cp.vertex_index / 4;
+
+		float nw = nor->w[cp.normal_index % 4];
+
+		glNormal3f(nor->x[cp.normal_index % 4] / nw,
+			nor->y[cp.normal_index % 4] / nw,
+			nor->z[cp.normal_index % 4] / nw);
+
+		for (int j = 0; j < 8; j++) {
+			xbuff[j] = ver->x[j][cp.vertex_index % 4];
+			ybuff[j] = ver->y[j][cp.vertex_index % 4];
+			zbuff[j] = ver->z[j][cp.vertex_index % 4];
 		}
+
+		glVertex3f(fig8_value(xbuff, &cm),
+					fig8_value(ybuff, &cm),
+					-1.0f * fig8_value(zbuff, &cm));
 	}
+	glEnd();
+
+	ce_texture_unbind(tex);
+
+	glFrontFace(GL_CCW);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
 
 	glutSwapBuffers();
 }
@@ -253,16 +323,27 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	fig = ce_figfile_open(argv[1]);
+	fig = ce_figfile_open(argv[2]);
 	if (NULL == fig) {
-		printf("main: failed to load fig: '%s'\n", argv[1]);
+		printf("main: failed to load fig: '%s'\n", argv[2]);
 		return EXIT_FAILURE;
 	}
 
 	debug_print(fig);
 
+	res = ce_resfile_open_file(argv[1]);
+	if (NULL == res) {
+		printf("main: could not open file: '%s'\n", argv[1]);
+		return EXIT_FAILURE;
+	}
+
+	if (!generate_texture(argv[3])) {
+		printf("main: could not generate texture\n");
+		return EXIT_FAILURE;
+	}
+
 	ce_vec3 eye;
-	ce_vec3_init(&eye, -1.0f, 3.0f, 1.0f);
+	ce_vec3_init(&eye, -1.0f, 1.0f, 1.0f);
 
 	cam = ce_camera_new();
 	ce_camera_set_near(cam, 0.1f);

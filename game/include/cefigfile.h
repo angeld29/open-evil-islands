@@ -23,6 +23,7 @@
 
 #include "cevec2.h"
 #include "cevec3.h"
+#include "cecomplection.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -47,15 +48,15 @@ typedef struct {
 } ce_figfile_normal;
 
 typedef struct {
-	short a;
-	short b;
-} ce_figfile_component2;
+	short vertex_index;
+	short normal_index;
+	short texcoord_index;
+} ce_figfile_component;
 
 typedef struct {
-	short a;
-	short b;
-	short c;
-} ce_figfile_component3;
+	short unknown1;
+	short unknown2;
+} ce_figfile_light_component;
 
 typedef struct {
 	ce_figfile_type type;
@@ -75,12 +76,18 @@ typedef struct {
 	ce_figfile_normal* normals;
 	ce_vec2* texcoords;
 	short* indices;
-	ce_figfile_component3* components;
-	ce_figfile_component2* light_components;
+	ce_figfile_component* components;
+	ce_figfile_light_component* light_components;
 } ce_figfile;
 
 extern ce_figfile* ce_figfile_open(const char* path);
 extern void ce_figfile_close(ce_figfile* fig);
+
+extern int ce_figfile_get_vertex_count(ce_figfile* fig);
+extern int ce_figfile_get_normal_count(ce_figfile* fig);
+extern int ce_figfile_get_texcoord_count(ce_figfile* fig);
+
+extern void ce_figfile_get_vertices(ce_figfile* fig, ce_vec3* vertices);
 
 #ifdef __cplusplus
 }
