@@ -75,7 +75,7 @@ typedef struct {
 
 typedef struct {
 	unsigned int x, z;
-	ce_aabb box;
+	ce_aabb bounding_box;
 	float dist2; // for sorting on rendering
 	uint8_t water;
 	vertex* land_vertices;
@@ -458,10 +458,12 @@ static bool read_sectors(ce_mprfile* mpr, const char* mpr_name,
 			sec->x = x;
 			sec->z = z;
 
-			ce_vec3_init(&sec->box.min, x * (VERTEX_SIDE - 1), 0.0f,
+			ce_vec3_init(&sec->bounding_box.min, x * (VERTEX_SIDE - 1), 0.0f,
 				-1.0f * (z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1)));
-			ce_vec3_init(&sec->box.max, x * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1),
-				mpr->max_y, -1.0f * (z * (VERTEX_SIDE - 1)));
+			ce_vec3_init(&sec->bounding_box.max, x * (VERTEX_SIDE - 1) +
+				(VERTEX_SIDE - 1), mpr->max_y, -1.0f * (z * (VERTEX_SIDE - 1)));
+			ce_vec3_mid(&sec->bounding_box.center, &sec->bounding_box.min,
+													&sec->bounding_box.max);
 
 			mpr->visible_sectors[i] = sec;
 		}
@@ -607,14 +609,12 @@ static int sector_dist_comp(const void* lhs, const void* rhs)
 void ce_mprfile_apply_frustum(ce_mprfile* mpr, const ce_vec3* eye,
 												const ce_frustum* f)
 {
-	ce_vec3 mid;
 	mpr->visible_sector_count = 0;
 
 	for (unsigned int i = 0; i < mpr->sector_count; ++i) {
 		sector* sec = mpr->sectors + i;
-		if (ce_frustum_test_box(f, &sec->box)) {
-			ce_vec3_mid(&mid, &sec->box.min, &sec->box.max);
-			sec->dist2 = ce_vec3_dist2(eye, &mid);
+		if (ce_frustum_test_box(f, &sec->bounding_box)) {
+			sec->dist2 = ce_vec3_dist2(eye, &sec->bounding_box.center);
 			mpr->visible_sectors[mpr->visible_sector_count++] = sec;
 		}
 	}
