@@ -29,7 +29,9 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_vec3 min, max;
+	ce_vec3 center;
+	ce_vec3 min;
+	ce_vec3 max;
 } ce_aabb;
 
 #ifdef __cplusplus

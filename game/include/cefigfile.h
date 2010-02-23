@@ -23,6 +23,7 @@
 
 #include "cevec2.h"
 #include "cevec3.h"
+#include "ceaabb.h"
 #include "cecomplection.h"
 #include "cememfile.h"
 
@@ -31,59 +32,36 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef enum {
-	CE_FIGFILE_TYPE_FIG8
-} ce_figfile_proto_type;
-
-typedef struct {
-	float x[8][4];
-	float y[8][4];
-	float z[8][4];
-} ce_figfile_proto_vertex;
-
-typedef struct {
-	float x[4];
-	float y[4];
-	float z[4];
-	float w[4];
-} ce_figfile_proto_normal;
+typedef struct ce_figfile_proto ce_figfile_proto;
 
 typedef struct {
 	short vertex_index;
 	short normal_index;
 	short texcoord_index;
-} ce_figfile_proto_component;
+} ce_figfile_component;
 
 typedef struct {
-	short unknown1;
-	short unknown2;
-} ce_figfile_proto_light_component;
-
-typedef struct {
-	ce_figfile_proto_type type;
 	int vertex_count;
 	int normal_count;
 	int texcoord_count;
 	int index_count;
 	int component_count;
-	int light_component_count;
-	int unknown1;
-	int unknown2;
-	ce_vec3* center;
-	ce_vec3* min;
-	ce_vec3* max;
-	float* radius;
-	ce_figfile_proto_vertex* vertices;
-	ce_figfile_proto_normal* normals;
+	ce_vec3* vertices;
+	ce_vec3* normals;
 	ce_vec2* texcoords;
 	short* indices;
-	ce_figfile_proto_component* components;
-	ce_figfile_proto_light_component* light_components;
-} ce_figfile_proto;
+	ce_figfile_component* components;
+	ce_aabb bounding_box;
+	float radius;
+} ce_figfile;
 
 extern ce_figfile_proto* ce_figfile_proto_open_memfile(ce_memfile* mem);
 extern ce_figfile_proto* ce_figfile_proto_open_file(const char* path);
-extern void ce_figfile_proto_close(ce_figfile_proto* fig);
+extern void ce_figfile_proto_close(ce_figfile_proto* proto);
+
+extern ce_figfile* ce_figfile_open(const ce_figfile_proto* proto,
+									const ce_complection* cm);
+extern void ce_figfile_close(ce_figfile* fig);
 
 #ifdef __cplusplus
 }

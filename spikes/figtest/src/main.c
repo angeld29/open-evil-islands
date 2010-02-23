@@ -44,73 +44,20 @@
 #include "cetexture.h"
 #include "cecomplection.h"
 
-ce_figfile_proto* fig_proto;
+ce_figfile_proto* proto;
 ce_resfile* res;
 ce_texture* tex;
 ce_camera* cam;
 ce_timer* tmr;
 
 ce_input_event_supply* es;
-ce_input_event* ev;
+ce_input_event* ev_strength;
+ce_input_event* ev_dexterity;
+ce_input_event* ev_height;
 
-int counter;
-
-static void debug_print()
-{
-	printf("unknown1: %d\n", fig_proto->unknown1);
-	printf("unknown2: %d\n", fig_proto->unknown2);
-	printf("\ncenter:\n");
-	for (int i = 0; i < 8; ++i) {
-		printf("\t%f %f %f\n", fig_proto->center[i].x, fig_proto->center[i].y, fig_proto->center[i].z);
-	}
-	printf("\nmin:\n");
-	for (int i = 0; i < 8; ++i) {
-		printf("\t%f %f %f\n", fig_proto->min[i].x, fig_proto->min[i].y, fig_proto->min[i].z);
-	}
-	printf("\nmax:\n");
-	for (int i = 0; i < 8; ++i) {
-		printf("\t%f %f %f\n", fig_proto->max[i].x, fig_proto->max[i].y, fig_proto->max[i].z);
-	}
-	printf("\nradius:\n");
-	for (int i = 0; i < 8; ++i) {
-		printf("\t%f\n", fig_proto->radius[i]);
-	}
-	printf("\nvertices (%d):\n\n", fig_proto->vertex_count);
-	for (int i = 0; i < fig_proto->vertex_count; ++i) {
-		printf("\tvertex %d:\n", i + 1);
-		for (int j = 0; j < 8; ++j) {
-			printf("\t\tx: %f %f %f %f\n", fig_proto->vertices[i].x[j][0], fig_proto->vertices[i].x[j][1], fig_proto->vertices[i].x[j][2], fig_proto->vertices[i].x[j][3]);
-			printf("\t\ty: %f %f %f %f\n", fig_proto->vertices[i].y[j][0], fig_proto->vertices[i].y[j][1], fig_proto->vertices[i].y[j][2], fig_proto->vertices[i].y[j][3]);
-			printf("\t\tz: %f %f %f %f\n\n", fig_proto->vertices[i].z[j][0], fig_proto->vertices[i].z[j][1], fig_proto->vertices[i].z[j][2], fig_proto->vertices[i].z[j][3]);
-		}
-	}
-	printf("\nnormals (%d):\n", fig_proto->normal_count);
-	for (int i = 0; i < fig_proto->normal_count; ++i) {
-		printf("\tx: %f %f %f %f\n", fig_proto->normals[i].x[0], fig_proto->normals[i].x[1], fig_proto->normals[i].x[2], fig_proto->normals[i].x[3]);
-		printf("\ty: %f %f %f %f\n", fig_proto->normals[i].y[0], fig_proto->normals[i].y[1], fig_proto->normals[i].y[2], fig_proto->normals[i].y[3]);
-		printf("\tz: %f %f %f %f\n", fig_proto->normals[i].z[0], fig_proto->normals[i].z[1], fig_proto->normals[i].z[2], fig_proto->normals[i].z[3]);
-		printf("\tw: %f %f %f %f\n\n", fig_proto->normals[i].w[0], fig_proto->normals[i].w[1], fig_proto->normals[i].w[2], fig_proto->normals[i].w[3]);
-	}
-	printf("texcoords (%d):\n", fig_proto->texcoord_count);
-	for (int i = 0; i < fig_proto->texcoord_count; ++i) {
-		printf("\t%f %f\n", fig_proto->texcoords[i].x, fig_proto->texcoords[i].y);
-	}
-	printf("\nindices (%d):\n\t", fig_proto->index_count);
-	for (int i = 0; i < fig_proto->index_count; ++i) {
-		printf("%hd ", fig_proto->indices[i]);
-	}
-	printf("\n\ncomponents (%d):\n\t", fig_proto->component_count);
-	for (int i = 0; i < fig_proto->component_count; ++i) {
-		printf("(%hd, %hd, %hd) ", fig_proto->components[i].vertex_index,
-			fig_proto->components[i].normal_index, fig_proto->components[i].texcoord_index);
-	}
-	printf("\n\nlight components (%d):\n\t", fig_proto->light_component_count);
-	for (int i = 0; i < fig_proto->light_component_count; ++i) {
-		printf("(%hd, %hd) ", fig_proto->light_components[i].unknown1,
-								fig_proto->light_components[i].unknown2);
-	}
-	printf("\n");
-}
+int counter_strength;
+int counter_dexterity;
+int counter_height;
 
 static bool generate_texture(const char* name)
 {
@@ -147,7 +94,7 @@ static void idle(void)
 		ce_camera_del(cam);
 		ce_texture_del(tex);
 		ce_resfile_close(res);
-		ce_figfile_proto_close(fig_proto);
+		ce_figfile_proto_close(proto);
 		ce_gl_term();
 		ce_input_term();
 		ce_alloc_term();
@@ -185,35 +132,30 @@ static void idle(void)
 									ce_deg2rad(-0.13f * offset.y));
 	}
 
-	if (ce_input_event_triggered(ev)) {
-		++counter;
+	if (ce_input_event_triggered(ev_strength)) {
+		++counter_strength;
+	}
+
+	if (ce_input_event_triggered(ev_dexterity)) {
+		++counter_dexterity;
+	}
+
+	if (ce_input_event_triggered(ev_height)) {
+		++counter_height;
 	}
 
 	glutPostRedisplay();
 }
 
-static float fig8_value(const float* params, const ce_complection* cm)
-{
-	float value, temp[2];
-	temp[0] = params[0] + (params[1] - params[0]) * cm->strength;
-	temp[1] = params[2] + (params[3] - params[2]) * cm->strength;
-	value = temp[0] + (temp[1] - temp[0]) * cm->dexterity;
-	temp[0] = params[4] + (params[5] - params[4]) * cm->strength;
-	temp[1] = params[6] + (params[7] - params[6]) * cm->strength;
-	temp[0] += (temp[1] - temp[0]) * cm->dexterity;
-	value += (temp[0] - value) * cm->height;
-	return value;
-}
-
 static void display(void)
 {
-	glClearColor(1, 1, 1, 1);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glEnable(GL_DEPTH_TEST);
 
 	glLoadIdentity();
 	ce_camera_setup(cam);
+
+	glEnable(GL_DEPTH_TEST);
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
@@ -231,21 +173,19 @@ static void display(void)
 	glVertex3f(0.0f, 0.0f, 100.0f);
 	glEnd();
 
-	float xbuff[8], ybuff[8], zbuff[8];
+	ce_complection cm = {
+		.strength = counter_strength % 11 / 10.0f,
+		.dexterity = counter_dexterity % 11 / 10.0f,
+		.height = counter_height % 11 / 10.0f
+	};
 
-	float cmval = counter % 10 / 10.0f;
-	ce_complection cm = { cmval, cmval, cmval };
+	ce_figfile* fig = ce_figfile_open(proto, &cm);
 
 	glPushMatrix();
-	for (int i = 0; i < 8; i++) {
-		xbuff[i] = fig_proto->center[i].x;
-		ybuff[i] = fig_proto->center[i].y;
-		zbuff[i] = fig_proto->center[i].z;
-	}
-	glTranslatef(fig8_value(xbuff, &cm),
-				fig8_value(ybuff, &cm),
-				-1.0f * fig8_value(zbuff, &cm));
-	glutWireCube(2.0f * fig8_value(fig_proto->radius, &cm));
+	glTranslatef(fig->bounding_box.center.x,
+				fig->bounding_box.center.y,
+				-1.0f * fig->bounding_box.center.z);
+	glutWireCube(2.0f * fig->radius);
 	glPopMatrix();
 
 	glEnable(GL_CULL_FACE);
@@ -257,30 +197,19 @@ static void display(void)
 	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
 
 	glBegin(GL_TRIANGLES);
-	for (int i = 0; i < fig_proto->index_count; ++i) {
-		ce_figfile_proto_component cp = fig_proto->components[fig_proto->indices[i]];
+	for (int i = 0; i < fig->index_count; ++i) {
+		ce_figfile_component cp = fig->components[fig->indices[i]];
 
-		glTexCoord2f(fig_proto->texcoords[cp.texcoord_index].x,
-			fig_proto->texcoords[cp.texcoord_index].y);
+		glTexCoord2f(fig->texcoords[cp.texcoord_index].x,
+					fig->texcoords[cp.texcoord_index].y);
 
-		ce_figfile_proto_normal* nor = fig_proto->normals + cp.normal_index / 4;
-		ce_figfile_proto_vertex* ver = fig_proto->vertices + cp.vertex_index / 4;
+		glNormal3f(fig->normals[cp.normal_index].x,
+					fig->normals[cp.normal_index].y,
+					-1.0f * fig->normals[cp.normal_index].z);
 
-		float nw = nor->w[cp.normal_index % 4];
-
-		glNormal3f(nor->x[cp.normal_index % 4] / nw,
-			nor->y[cp.normal_index % 4] / nw,
-			nor->z[cp.normal_index % 4] / nw);
-
-		for (int j = 0; j < 8; j++) {
-			xbuff[j] = ver->x[j][cp.vertex_index % 4];
-			ybuff[j] = ver->y[j][cp.vertex_index % 4];
-			zbuff[j] = ver->z[j][cp.vertex_index % 4];
-		}
-
-		glVertex3f(fig8_value(xbuff, &cm),
-					fig8_value(ybuff, &cm),
-					-1.0f * fig8_value(zbuff, &cm));
+		glVertex3f(fig->vertices[cp.vertex_index].x,
+					fig->vertices[cp.vertex_index].y,
+					-1.0f * fig->vertices[cp.vertex_index].z);
 	}
 	glEnd();
 
@@ -289,6 +218,8 @@ static void display(void)
 	glFrontFace(GL_CCW);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
+
+	ce_figfile_close(fig);
 
 	glutSwapBuffers();
 }
@@ -323,13 +254,11 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	fig_proto = ce_figfile_proto_open_file(argv[2]);
-	if (NULL == fig_proto) {
+	proto = ce_figfile_proto_open_file(argv[2]);
+	if (NULL == proto) {
 		printf("main: failed to load fig: '%s'\n", argv[2]);
 		return EXIT_FAILURE;
 	}
-
-	debug_print(fig_proto);
 
 	res = ce_resfile_open_file(argv[1]);
 	if (NULL == res) {
@@ -352,8 +281,12 @@ int main(int argc, char* argv[])
 
 	tmr = ce_timer_new();
 	es = ce_input_event_supply_new();
-	ev = ce_input_event_supply_single_front_event(es,
-		ce_input_event_supply_button_event(es, CE_KB_N));
+	ev_strength = ce_input_event_supply_single_front_event(es,
+		ce_input_event_supply_button_event(es, CE_KB_1));
+	ev_dexterity = ce_input_event_supply_single_front_event(es,
+		ce_input_event_supply_button_event(es, CE_KB_2));
+	ev_height = ce_input_event_supply_single_front_event(es,
+		ce_input_event_supply_button_event(es, CE_KB_3));
 
 	glutMainLoop();
 	return EXIT_SUCCESS;
