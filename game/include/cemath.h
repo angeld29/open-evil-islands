@@ -34,6 +34,7 @@ extern const float CE_PI_DIV_2;
 extern const float CE_PI_DIV_4;
 extern const float CE_PI_INV;
 
+extern const float CE_EPS_E3;
 extern const float CE_EPS_E4;
 extern const float CE_EPS_E5;
 extern const float CE_EPS_E6;

@@ -20,6 +20,7 @@
 
 #include <math.h>
 
+#include "cemath.h"
 #include "cevec3.h"
 #include "cequat.h"
 
@@ -127,6 +128,15 @@ ce_quat* ce_quat_mul(ce_quat* restrict r, const ce_quat* a, const ce_quat* b)
 	return r;
 }
 
+ce_quat* ce_quat_scale(ce_quat* r, const ce_quat* a, float s)
+{
+	r->w = a->w * s;
+	r->x = a->x * s;
+	r->y = a->y * s;
+	r->z = a->z * s;
+	return r;
+}
+
 float ce_quat_abs(const ce_quat* a)
 {
 	return sqrtf(ce_quat_abs2(a));
@@ -145,12 +155,7 @@ float ce_quat_arg(const ce_quat* a)
 
 ce_quat* ce_quat_normalise(ce_quat* r, const ce_quat* a)
 {
-	float s = 1.0f / ce_quat_abs(a);
-	r->w = a->w * s;
-	r->x = a->x * s;
-	r->y = a->y * s;
-	r->z = a->z * s;
-	return r;
+	return ce_quat_scale(r, a, 1.0f / ce_quat_abs(a));
 }
 
 ce_quat* ce_quat_inverse(ce_quat* r, const ce_quat* a)
@@ -166,4 +171,35 @@ ce_quat* ce_quat_inverse(ce_quat* r, const ce_quat* a)
 float ce_quat_dot(const ce_quat* a, const ce_quat* b)
 {
 	return a->w * b->w + a->x * b->x + a->y * b->y + a->z * b->z;
+}
+
+ce_quat* ce_quat_slerp(ce_quat* r, const ce_quat* a, const ce_quat* b, float u)
+{
+	ce_quat ta, tb;
+	float cosom = ce_quat_dot(a, b);
+
+	if (cosom < 0.0f) {
+		// invert rotation
+		cosom = -cosom;
+		ce_quat_neg(&tb, b);
+	} else {
+		ce_quat_copy(&tb, b);
+	}
+
+	if (cosom < 1.0f - CE_EPS_E3) {
+		// standard case
+		float angle = acosf(cosom);
+		float inv_sinom = 1.0f / sinf(angle);
+		return ce_quat_add(r,
+			ce_quat_scale(&ta, a, sinf((1.0f - u) * angle) * inv_sinom),
+			ce_quat_scale(&tb, &tb, sinf(u * angle) * inv_sinom));
+	}
+
+	// a and b quaternions are very close
+	// linear interpolation
+	// taking the complement requires renormalisation
+	return ce_quat_normalise(r,
+		ce_quat_add(r,
+			ce_quat_scale(&ta, a, 1.0f - u),
+			ce_quat_scale(&tb, &tb, u)));
 }
