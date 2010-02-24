@@ -53,6 +53,8 @@ extern ce_quat* ce_quat_sub(ce_quat* r, const ce_quat* a, const ce_quat* b);
 extern ce_quat* ce_quat_mul(ce_quat* restrict r, const ce_quat* a,
 												const ce_quat* b);
 
+extern ce_quat* ce_quat_scale(ce_quat* r, const ce_quat* a, float s);
+
 extern float ce_quat_abs(const ce_quat* a);
 extern float ce_quat_abs2(const ce_quat* a);
 
@@ -62,6 +64,9 @@ extern ce_quat* ce_quat_normalise(ce_quat* r, const ce_quat* a);
 extern ce_quat* ce_quat_inverse(ce_quat* r, const ce_quat* a);
 
 extern float ce_quat_dot(const ce_quat* a, const ce_quat* b);
+
+extern ce_quat* ce_quat_slerp(ce_quat* r, const ce_quat* a,
+											const ce_quat* b, float u);
 
 #ifdef __cplusplus
 }

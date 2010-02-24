@@ -28,6 +28,7 @@ const float CE_PI_DIV_2 = 1.57079633f;
 const float CE_PI_DIV_4 = 0.78539816f;
 const float CE_PI_INV = 0.31830989f;
 
+const float CE_EPS_E3 = 1e-3f;
 const float CE_EPS_E4 = 1e-4f;
 const float CE_EPS_E5 = 1e-5f;
 const float CE_EPS_E6 = 1e-6f;
