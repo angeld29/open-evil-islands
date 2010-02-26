@@ -65,6 +65,8 @@ extern ce_quat* ce_quat_inverse(ce_quat* r, const ce_quat* a);
 
 extern float ce_quat_dot(const ce_quat* a, const ce_quat* b);
 
+extern float ce_quat_to_angle_axis(const ce_quat* a, ce_vec3* axis);
+
 extern ce_quat* ce_quat_slerp(ce_quat* r, const ce_quat* a,
 											const ce_quat* b, float u);
 

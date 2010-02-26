@@ -173,6 +173,25 @@ float ce_quat_dot(const ce_quat* a, const ce_quat* b)
 	return a->w * b->w + a->x * b->x + a->y * b->y + a->z * b->z;
 }
 
+float ce_quat_to_angle_axis(const ce_quat* a, ce_vec3* axis)
+{
+	float angle;
+	float sqr_length = a->x * a->x + a->y * a->y + a->z * a->z;
+	if (sqr_length > 0.0f) {
+		angle = 2.0f * acosf(a->w);
+		float inv_length = 1.0f / sqrtf(sqr_length);
+		axis->x = a->x * inv_length;
+		axis->y = a->y * inv_length;
+		axis->z = a->z * inv_length;
+	} else {
+		angle = 0.0f;
+		axis->x = 1.0f;
+		axis->y = 0.0f;
+		axis->z = 0.0f;
+	}
+	return angle;
+}
+
 ce_quat* ce_quat_slerp(ce_quat* r, const ce_quat* a, const ce_quat* b, float u)
 {
 	ce_quat ta, tb;
