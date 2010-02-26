@@ -29,6 +29,12 @@
 
 #include <GL/glut.h>
 
+#ifdef _WIN32
+// fu... win32
+#undef near
+#undef far
+#endif
+
 #include "cegl.h"
 #include "celogging.h"
 #include "cealloc.h"

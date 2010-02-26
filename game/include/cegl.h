@@ -23,6 +23,8 @@
 
 #include <stdbool.h>
 
+#include <GL/gl.h>
+
 #ifdef __cplusplus
 extern "C"
 {
