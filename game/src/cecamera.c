@@ -18,68 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdbool.h>
-
-#include <GL/gl.h>
-#include <GL/glu.h>
-
 #include "celogging.h"
 #include "cealloc.h"
-#include "cevec3.h"
-#include "cequat.h"
-#include "cemat4.h"
 #include "cecamera.h"
-
-struct ce_camera {
-	float fov;
-	float aspect;
-	float near;
-	float far;
-	ce_vec3 eye;
-	ce_quat look;
-	ce_mat4 view;
-	bool proj_changed;
-	bool eye_changed;
-	bool look_changed;
-};
-
-static void update_rotation(ce_mat4* view, const ce_quat* look)
-{
-	float tx  = 2.0f * look->x;
-	float ty  = 2.0f * look->y;
-	float tz  = 2.0f * look->z;
-	float twx = tx * look->w;
-	float twy = ty * look->w;
-	float twz = tz * look->w;
-	float txx = tx * look->x;
-	float txy = ty * look->x;
-	float txz = tz * look->x;
-	float tyy = ty * look->y;
-	float tyz = tz * look->y;
-	float tzz = tz * look->z;
-
-	view->m[0] = 1.0f - (tyy + tzz);
-	view->m[1] = txy + twz;
-	view->m[2] = txz - twy;
-
-	view->m[4] = txy - twz;
-	view->m[5] = 1.0f - (txx + tzz);
-	view->m[6] = tyz + twx;
-
-	view->m[8] = txz + twy;
-	view->m[9] = tyz - twx;
-	view->m[10] = 1.0f - (txx + tyy);
-}
-
-static void update_translation(ce_mat4* view, const ce_vec3* eye)
-{
-	view->m[12] =
-		-view->m[0] * eye->x - view->m[4] * eye->y - view->m[8] * eye->z;
-	view->m[13] =
-		-view->m[1] * eye->x - view->m[5] * eye->y - view->m[9] * eye->z;
-	view->m[14] =
-		-view->m[2] * eye->x - view->m[6] * eye->y - view->m[10] * eye->z;
-}
 
 ce_camera* ce_camera_new(void)
 {
@@ -134,7 +75,8 @@ ce_vec3* ce_camera_get_eye(ce_camera* cam, ce_vec3* eye)
 ce_vec3* ce_camera_get_forward(ce_camera* cam, ce_vec3* forward)
 {
 	ce_quat q;
-	return ce_vec3_rot(forward, &CE_VEC3_NEG_UNIT_Z, ce_quat_conj(&q, &cam->look));
+	return ce_vec3_rot(forward, &CE_VEC3_NEG_UNIT_Z,
+						ce_quat_conj(&q, &cam->look));
 }
 
 ce_vec3* ce_camera_get_up(ce_camera* cam, ce_vec3* up)
@@ -192,7 +134,7 @@ void ce_camera_move(ce_camera* cam, float offset_x, float offset_z)
 	ce_camera_get_forward(cam, &forward);
 	ce_camera_get_right(cam, &right);
 
-	// Ignore pitch difference angle.
+	// ignore pitch difference angle
 	forward.y = 0.0f;
 	right.y = 0.0f;
 
@@ -225,28 +167,4 @@ void ce_camera_yaw_pitch(ce_camera* cam, float psi, float theta)
 	ce_quat_mul(&t, ce_quat_init_polar(&q, psi, &y), &cam->look);
 	ce_quat_mul(&cam->look, ce_quat_init_polar(&q, theta, &CE_VEC3_UNIT_X), &t);
 	cam->look_changed = true;
-}
-
-void ce_camera_setup(ce_camera* cam)
-{
-	if (cam->proj_changed) {
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluPerspective(cam->fov, cam->aspect, cam->near, cam->far);
-		glMatrixMode(GL_MODELVIEW);
-	}
-
-	if (cam->look_changed) {
-		update_rotation(&cam->view, &cam->look);
-		update_translation(&cam->view, &cam->eye);
-		cam->look_changed = false;
-		cam->eye_changed = false;
-	}
-
-	if (cam->eye_changed) {
-		update_translation(&cam->view, &cam->eye);
-		cam->eye_changed = false;
-	}
-
-	glMultMatrixf(cam->view.m);
 }
