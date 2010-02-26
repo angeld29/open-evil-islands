@@ -60,7 +60,7 @@ static void debug_print(ce_mobfile* mob)
 		printf("\tshadow: %s\n", obj->shadow ? "yes" : "no");
 		printf("\tparent_id: %d\n", obj->parent_id);
 		printf("\tquest_info: %s\n", ce_string_cstr(obj->quest_info));
-		printf("\tcomplection: %f %f %f\n\n", obj->complection.strength, obj->complection.dexterity, obj->complection.tallness);
+		printf("\tcomplection: %f %f %f\n\n", obj->complection.strength, obj->complection.dexterity, obj->complection.height);
 	}
 }
 
