@@ -167,6 +167,8 @@ static void display(void)
 	glLoadIdentity();
 	ce_camera_setup(cam);
 
+	glEnable(GL_DEPTH_TEST);
+
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
 	glVertex3f(0.0f, 0.0f, 0.0f);
@@ -183,6 +185,7 @@ static void display(void)
 	glVertex3f(0.0f, 0.0f, 100.0f);
 	glEnd();
 
+	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 
 #ifdef GL_VERSION_1_2
@@ -227,15 +230,12 @@ static bool load_light(ce_lightcfg* light, const char* ei_path,
 
 	ce_cfgfile* cfg = ce_cfgfile_open(cfg_path);
 	if (NULL == cfg) {
-		ce_logging_error("could not open config file '%s'", cfg_path);
+		ce_logging_error("main: could not open config file: '%s'", cfg_path);
 		return false;
 	}
 
-	light = ce_lightcfg_init(light, cfg);
-
-	ce_cfgfile_close(cfg);
-
-	return NULL != light;
+	bool ok = ce_lightcfg_init(light, cfg);
+	return ce_cfgfile_close(cfg), ok;
 }
 
 static void usage()

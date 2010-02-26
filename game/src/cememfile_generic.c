@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include <assert.h>
@@ -31,79 +32,78 @@ typedef struct {
 	char* data;
 	size_t size;
 	size_t pos;
-} cookie;
+} ce_memfile_cookie;
 
-static int cookie_close(void* client_data)
+static int ce_memfile_cookie_close(void* client_data)
 {
-	ce_free(client_data, sizeof(cookie));
+	ce_free(client_data, sizeof(ce_memfile_cookie));
 	return 0;
 }
 
-static size_t cookie_read(void* client_data, void* data, size_t size, size_t n)
+static size_t
+ce_memfile_cookie_read(void* client_data, void* data, size_t size, size_t n)
 {
-	cookie* c = client_data;
-
-	if (c->pos == c->size) {
+	ce_memfile_cookie* cookie = client_data;
+	if (cookie->pos == cookie->size) {
 		return 0;
 	}
-
-	size_t avail_n = ce_smin((c->size - c->pos) / size, n);
+	size_t avail_n = ce_smin((cookie->size - cookie->pos) / size, n);
 	size_t avail_size = size * avail_n;
-
-	memcpy(data, c->data + c->pos, avail_size);
-	c->pos += avail_size;
-
+	memcpy(data, cookie->data + cookie->pos, avail_size);
+	cookie->pos += avail_size;
 	return avail_n;
 }
 
-static size_t cookie_write(void* client_data, const void* data,
+static size_t ce_memfile_cookie_write(void* client_data,
+										const void* data,
 										size_t size, size_t n)
 {
 	assert(false && "Not implemented");
-	ce_unused(data);
-	ce_unused(size);
-	ce_unused(n);
-	ce_unused(client_data);
+	ce_unused(client_data), ce_unused(data), ce_unused(size), ce_unused(n);
 	return 0;
 }
 
-static int cookie_seek(void* client_data, long int offset, int whence)
+static int
+ce_memfile_cookie_seek(void* client_data, long int offset, int whence)
 {
-	assert(false && "Not implemented");
-	ce_unused(offset);
-	ce_unused(whence);
-	ce_unused(client_data);
-	return 0;
+	ce_memfile_cookie* cookie = client_data;
+	long int size = cookie->size;
+	long int pos = cookie->pos;
+	pos = SEEK_SET == whence ? offset :
+		(SEEK_END == whence ? size - offset : pos + offset);
+	return pos < 0 || pos > size ? -1 : (cookie->pos = pos, 0);
 }
 
-static long int cookie_tell(void* client_data)
+static long int ce_memfile_cookie_tell(void* client_data)
 {
-	assert(false && "Not implemented");
-	ce_unused(client_data);
-	return 0;
+	ce_memfile_cookie* cookie = client_data;
+	return cookie->pos;
 }
 
-static const ce_io_callbacks cookie_callbacks = {
-	cookie_close, cookie_read, cookie_write, cookie_seek, cookie_tell
+static const ce_io_callbacks ce_memfile_cookie_callbacks = {
+	ce_memfile_cookie_close,
+	ce_memfile_cookie_read, ce_memfile_cookie_write,
+	ce_memfile_cookie_seek, ce_memfile_cookie_tell
 };
 
 ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 {
 	ce_unused(mode);
 
-	cookie* c = ce_alloc(sizeof(cookie));
-	if (NULL == c) {
+	ce_memfile_cookie* cookie = ce_alloc(sizeof(ce_memfile_cookie));
+	if (NULL == cookie) {
 		ce_logging_error("memfile: could not allocate memory");
 		return NULL;
 	}
 
-	c->data = data;
-	c->size = size;
-	c->pos = 0;
+	cookie->data = data;
+	cookie->size = size;
+	cookie->pos = 0;
 
-	ce_memfile* mem = ce_memfile_open_callbacks(cookie_callbacks, c);
+	ce_memfile* mem =
+		ce_memfile_open_callbacks(ce_memfile_cookie_callbacks, cookie);
 	if (NULL == mem) {
-		ce_free(c, sizeof(cookie));
+		ce_free(cookie, sizeof(ce_memfile_cookie));
 		return NULL;
 	}
 

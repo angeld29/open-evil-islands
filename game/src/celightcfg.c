@@ -20,14 +20,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 
 #include "cestr.h"
 #include "celogging.h"
 #include "celightcfg.h"
 
-static bool read_section(float section[24][4],
-							const char* section_name, ce_cfgfile* cfg)
+static bool ce_lightcfg_read_section(float section[24][4],
+									const char* section_name,
+									ce_cfgfile* cfg)
 {
 	int section_index = ce_cfgfile_section_index(cfg, section_name);
 	if (-1 == section_index) {
@@ -64,9 +64,9 @@ static bool read_section(float section[24][4],
 	return true;
 }
 
-ce_lightcfg* ce_lightcfg_init(ce_lightcfg* light, ce_cfgfile* cfg)
+bool ce_lightcfg_init(ce_lightcfg* light, ce_cfgfile* cfg)
 {
-	return read_section(light->sunlight, "sunlight", cfg) &&
-			read_section(light->ambient, "ambient", cfg) &&
-			read_section(light->sky, "sky", cfg) ? light : NULL;
+	return ce_lightcfg_read_section(light->sunlight, "sunlight", cfg) &&
+			ce_lightcfg_read_section(light->ambient, "ambient", cfg) &&
+			ce_lightcfg_read_section(light->sky, "sky", cfg);
 }

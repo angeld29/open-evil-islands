@@ -21,15 +21,29 @@
 #ifndef CE_CAMERA_H
 #define CE_CAMERA_H
 
-#include "cevec3fwd.h"
-#include "cequatfwd.h"
+#include <stdbool.h>
+
+#include "cevec3.h"
+#include "cequat.h"
+#include "cemat4.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_camera ce_camera;
+typedef struct {
+	float fov;
+	float aspect;
+	float near;
+	float far;
+	ce_vec3 eye;
+	ce_quat look;
+	ce_mat4 view;
+	bool proj_changed;
+	bool eye_changed;
+	bool look_changed;
+} ce_camera;
 
 extern ce_camera* ce_camera_new(void);
 extern void ce_camera_del(ce_camera* cam);
