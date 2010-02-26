@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
 #include <assert.h>
 
 #include <GL/glut.h>
@@ -174,6 +175,12 @@ static ce_input_button keyboard_ascii_map(unsigned char key)
 	case 'n':
 	case 'N':
 		button = CE_KB_N;
+		break;
+	case '-':
+		button = CE_KB_SUBTRACT;
+		break;
+	case '+':
+		button = CE_KB_ADD;
 		break;
     case 27:
 		button = CE_KB_ESCAPE;
