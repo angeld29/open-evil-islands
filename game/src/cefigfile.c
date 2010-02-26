@@ -310,7 +310,7 @@ ce_figfile_proto* ce_figfile_proto_open_memfile(ce_memfile* mem)
 
 ce_figfile_proto* ce_figfile_proto_open_file(const char* path)
 {
-	ce_memfile* mem = ce_memfile_open_path(path, "rb");
+	ce_memfile* mem = ce_memfile_open_file(path, "rb");
 	if (NULL == mem) {
 		return NULL;
 	}

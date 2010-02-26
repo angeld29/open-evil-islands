@@ -35,6 +35,9 @@ typedef struct ce_resfile ce_resfile;
 
 /// Resfile takes ownership of the memfile if successfull.
 extern ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem);
+/// Resfile takes ownership of the data if successfull.
+extern ce_resfile* ce_resfile_open_data(const char* name, void* data,
+															size_t size);
 extern ce_resfile* ce_resfile_open_file(const char* path);
 extern void ce_resfile_close(ce_resfile* res);
 
@@ -46,6 +49,9 @@ extern const char* ce_resfile_node_name(const ce_resfile* res, int index);
 extern size_t ce_resfile_node_size(const ce_resfile* res, int index);
 extern time_t ce_resfile_node_modified(const ce_resfile* res, int index);
 extern bool ce_resfile_node_data(ce_resfile* res, int index, void* data);
+extern ce_resfile* ce_resfile_node_resfile(ce_resfile* res, int index);
+extern ce_resfile* ce_resfile_node_resfile_by_name(ce_resfile* res,
+													const char* name);
 
 #ifdef __cplusplus
 }

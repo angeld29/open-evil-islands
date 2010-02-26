@@ -49,6 +49,8 @@ struct ce_resfile {
 	uint32_t names_length;
 	char* names;
 	ce_resfile_node* nodes;
+	void* data;
+	size_t data_size;
 	ce_memfile* mem;
 };
 
@@ -162,9 +164,28 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 	return res;
 }
 
+ce_resfile* ce_resfile_open_data(const char* name, void* data, size_t size)
+{
+	ce_memfile* mem = ce_memfile_open_data(data, size, "rb");
+	if (NULL == mem) {
+		return NULL;
+	}
+
+	ce_resfile* res = ce_resfile_open_memfile(name, mem);
+	if (NULL == res) {
+		ce_memfile_close(mem);
+		return NULL;
+	}
+
+	res->data = data;
+	res->data_size = size;
+
+	return res;
+}
+
 ce_resfile* ce_resfile_open_file(const char* path)
 {
-	ce_memfile* mem = ce_memfile_open_path(path, "rb");
+	ce_memfile* mem = ce_memfile_open_file(path, "rb");
 	if (NULL == mem) {
 		return NULL;
 	}
@@ -187,23 +208,19 @@ ce_resfile* ce_resfile_open_file(const char* path)
 
 void ce_resfile_close(ce_resfile* res)
 {
-	if (NULL == res) {
-		return;
-	}
-
-	ce_memfile_close(res->mem);
-
-	if (NULL != res->nodes) {
-		for (size_t i = 0; i < res->node_count; ++i) {
-			ce_string_del(res->nodes[i].name);
+	if (NULL != res) {
+		ce_memfile_close(res->mem);
+		ce_free(res->data, res->data_size);
+		if (NULL != res->nodes) {
+			for (size_t i = 0; i < res->node_count; ++i) {
+				ce_string_del(res->nodes[i].name);
+			}
+			ce_free(res->nodes, sizeof(ce_resfile_node) * res->node_count);
 		}
-		ce_free(res->nodes, sizeof(ce_resfile_node) * res->node_count);
+		ce_free(res->names, res->names_length);
+		ce_string_del(res->name);
+		ce_free(res, sizeof(ce_resfile));
 	}
-
-	ce_free(res->names, res->names_length);
-	ce_string_del(res->name);
-
-	ce_free(res, sizeof(ce_resfile));
 }
 
 const char* ce_resfile_name(const ce_resfile* res)
@@ -249,4 +266,26 @@ bool ce_resfile_node_data(ce_resfile* res, int index, void* data)
 	ce_resfile_node* node = res->nodes + index;
 	return 0 == ce_memfile_seek(res->mem, node->data_offset, SEEK_SET) &&
 		1 == ce_memfile_read(res->mem, data, node->data_length, 1);
+}
+
+ce_resfile* ce_resfile_node_resfile(ce_resfile* res, int index)
+{
+	size_t size = ce_resfile_node_size(res, index);
+	void* data = ce_alloc(size);
+
+	ce_resfile_node_data(res, index, data);
+	ce_resfile* child_res =
+		ce_resfile_open_data(ce_resfile_node_name(res, index), data, size);
+
+	if (NULL == child_res) {
+		ce_free(data, size);
+	}
+
+	return child_res;
+}
+
+ce_resfile* ce_resfile_node_resfile_by_name(ce_resfile* res, const char* name)
+{
+	int index = ce_resfile_node_index(res, name);
+	return -1 != index ? ce_resfile_node_resfile(res, index) : NULL;
 }

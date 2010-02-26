@@ -40,7 +40,7 @@ extern ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 													void* client_data);
 extern ce_memfile* ce_memfile_open_data(void* data, size_t size,
 												const char* mode);
-extern ce_memfile* ce_memfile_open_path(const char* path, const char* mode);
+extern ce_memfile* ce_memfile_open_file(const char* path, const char* mode);
 extern void ce_memfile_close(ce_memfile* mem);
 
 extern size_t ce_memfile_read(ce_memfile* mem, void* data,

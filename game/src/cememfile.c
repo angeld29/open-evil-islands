@@ -44,7 +44,7 @@ ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 	return mem;
 }
 
-ce_memfile* ce_memfile_open_path(const char* path, const char* mode)
+ce_memfile* ce_memfile_open_file(const char* path, const char* mode)
 {
 	FILE* file = fopen(path, mode);
 	if (NULL == file) {
