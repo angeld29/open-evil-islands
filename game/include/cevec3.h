@@ -84,6 +84,9 @@ extern ce_vec3* ce_vec3_cross(ce_vec3* restrict r, const ce_vec3* a,
 extern ce_vec3* ce_vec3_mid(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
 extern ce_vec3* ce_vec3_rot(ce_vec3* r, const ce_vec3* a, const ce_quat* b);
 
+extern ce_vec3* ce_vec3_lerp(ce_vec3* r, const ce_vec3* a,
+										const ce_vec3* b, float u);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

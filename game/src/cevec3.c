@@ -20,6 +20,7 @@
 
 #include <math.h>
 
+#include "cemath.h"
 #include "cequat.h"
 #include "cevec3.h"
 
@@ -239,4 +240,12 @@ ce_vec3* ce_vec3_rot(ce_vec3* r, const ce_vec3* a, const ce_quat* b)
 	ce_vec3_scale(&uv, &uv, 2.0f * b->w);
 	ce_vec3_scale(&uuv, &uuv, 2.0f);
 	return ce_vec3_add(r, ce_vec3_add(r, a, &uv), &uuv);
+}
+
+ce_vec3* ce_vec3_lerp(ce_vec3* r, const ce_vec3* a, const ce_vec3* b, float u)
+{
+	r->x = ce_lerp(u, a->x, b->x);
+	r->y = ce_lerp(u, a->y, b->y);
+	r->z = ce_lerp(u, a->z, b->z);
+	return r;
 }
