@@ -26,6 +26,7 @@
  *  3. SOIL (Simple OpenGL Image Library) (C) Jonathan Dummer.
 */
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
