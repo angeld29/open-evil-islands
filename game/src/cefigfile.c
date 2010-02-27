@@ -127,8 +127,8 @@ ce_figfile_proto_read_model_data(ce_figfile_proto* proto, ce_memfile* mem)
 {
 	/**
 	 *  FIG model data:
-	 *   vertex_size - 3 components x n variants x 4 vertices x float size
-	 *   normal_size - 4 components x 4 normals x float size
+	 *   vertex_size - 4 vertices x 3 components x n variants x float size
+	 *   normal_size - 4 normals x 4 components x float size
 	 *   texcoord_size - 2 components x float size
 	 *   index_size - short size
 	 *   component_size - 3 components x short size
