@@ -52,6 +52,7 @@ struct ce_figfile_proto {
 	uint32_t index_count;
 	uint32_t component_count;
 	uint32_t light_component_count;
+	uint32_t texture_number;
 	float* center;
 	float* min;
 	float* max;
@@ -255,8 +256,8 @@ ce_figfile_proto_read_header(ce_figfile_proto* proto, ce_memfile* mem)
 	 *   component count
 	 *   light component count
 	 *   unknown - always 0; for alignment?..
-	 *   unknown1
-	 *   unknown2
+	 *   unknown
+	 *   texture number (primary, secondary)
 	*/
 
 	uint32_t signature;
@@ -286,6 +287,7 @@ ce_figfile_proto_read_header(ce_figfile_proto* proto, ce_memfile* mem)
 	proto->index_count = ce_le2cpu32(header[3]);
 	proto->component_count = ce_le2cpu32(header[4]);
 	proto->light_component_count = ce_le2cpu32(header[5]);
+	proto->texture_number = ce_le2cpu32(header[8]);
 
 	return true;
 }
