@@ -75,8 +75,7 @@ static float
 ce_figfile_proto_value_fig1(const float* params, int stride,
 							const ce_complection* cm)
 {
-	ce_unused(stride);
-	ce_unused(cm);
+	ce_unused(stride), ce_unused(cm);
 	return *params;
 }
 
@@ -382,11 +381,11 @@ static bool ce_figfile_open_impl(ce_figfile* fig,
 
 	for (int i = 0, n = fig->normal_count; i < n; ++i) {
 		int j = 4 * 4 * (i / 4) + i % 4;
-		float w = proto->normals[j + 12];
+		float inv_w = 1.0f / proto->normals[j + 12];
 		ce_vec3_init(fig->normals + i,
-					 proto->normals[j + 0] / w,
-					 proto->normals[j + 4] / w,
-					 proto->normals[j + 8] / w);
+					 proto->normals[j + 0] * inv_w,
+					 proto->normals[j + 4] * inv_w,
+					 proto->normals[j + 8] * inv_w);
 	}
 
 	for (int i = 0, n = fig->texcoord_count; i < n; ++i) {
