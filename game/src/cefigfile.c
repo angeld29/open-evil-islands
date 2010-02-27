@@ -44,14 +44,14 @@ struct ce_figfile_proto {
 	size_t normal_size;
 	size_t texcoord_size;
 	size_t index_size;
-	size_t component_size;
-	size_t light_component_size;
+	size_t spec_component_size;
+	size_t morph_component_size;
 	uint32_t vertex_count;
 	uint32_t normal_count;
 	uint32_t texcoord_count;
 	uint32_t index_count;
-	uint32_t component_count;
-	uint32_t light_component_count;
+	uint32_t spec_component_count;
+	uint32_t morph_component_count;
 	uint32_t texture_number;
 	float* center;
 	float* min;
@@ -61,8 +61,8 @@ struct ce_figfile_proto {
 	float* normals;
 	float* texcoords;
 	uint16_t* indices;
-	uint16_t* components;
-	uint16_t* light_components;
+	uint16_t* spec_components;
+	uint16_t* morph_components;
 };
 
 static const unsigned int CE_FIGFILE_SIGNATURE_FIG8 = 0x38474946;
@@ -131,8 +131,8 @@ ce_figfile_proto_read_model_data(ce_figfile_proto* proto, ce_memfile* mem)
 	 *   normal_size - 4 normals x 4 components x float size
 	 *   texcoord_size - 2 components x float size
 	 *   index_size - short size
-	 *   component_size - 3 components x short size
-	 *   light_component_size - 2 components x short size
+	 *   spec_component_size - 3 components x short size
+	 *   morph_component_size - 2 components x short size
 	*/
 
 	assert(4 == sizeof(float));
@@ -144,21 +144,21 @@ ce_figfile_proto_read_model_data(ce_figfile_proto* proto, ce_memfile* mem)
 	proto->normal_size = 4 * 4 * 4;
 	proto->texcoord_size = 2 * 4;
 	proto->index_size = 2;
-	proto->component_size = 3 * 2;
-	proto->light_component_size = 2 * 2;
+	proto->spec_component_size = 3 * 2;
+	proto->morph_component_size = 2 * 2;
 
 	proto->vertices = ce_alloc(proto->vertex_size * proto->vertex_count);
 	proto->normals = ce_alloc(proto->normal_size * proto->normal_count);
 	proto->texcoords = ce_alloc(proto->texcoord_size * proto->texcoord_count);
 	proto->indices = ce_alloc(proto->index_size * proto->index_count);
-	proto->components = ce_alloc(proto->component_size *
-								proto->component_count);
-	proto->light_components = ce_alloc(proto->light_component_size *
-										proto->light_component_count);
+	proto->spec_components = ce_alloc(proto->spec_component_size *
+										proto->spec_component_count);
+	proto->morph_components = ce_alloc(proto->morph_component_size *
+										proto->morph_component_count);
 
 	if (NULL == proto->vertices || NULL == proto->normals ||
 			NULL == proto->texcoords || NULL == proto->indices ||
-			NULL == proto->components || NULL == proto->light_components) {
+			NULL == proto->spec_components || NULL == proto->morph_components) {
 		ce_logging_error("figfile: could not allocate memory");
 		return false;
 	}
@@ -179,14 +179,14 @@ ce_figfile_proto_read_model_data(ce_figfile_proto* proto, ce_memfile* mem)
 									proto->indices,
 									proto->index_size,
 									proto->index_count) ||
-			proto->component_count != ce_memfile_read(mem,
-										proto->components,
-										proto->component_size,
-										proto->component_count) ||
-			proto->light_component_count != ce_memfile_read(mem,
-											proto->light_components,
-											proto->light_component_size,
-											proto->light_component_count)) {
+			proto->spec_component_count != ce_memfile_read(mem,
+											proto->spec_components,
+											proto->spec_component_size,
+											proto->spec_component_count) ||
+			proto->morph_component_count != ce_memfile_read(mem,
+											proto->morph_components,
+											proto->morph_component_size,
+											proto->morph_component_count)) {
 		ce_logging_error("figfile: io error occured");
 		return false;
 	}
@@ -195,12 +195,12 @@ ce_figfile_proto_read_model_data(ce_figfile_proto* proto, ce_memfile* mem)
 		ce_le2cpu16s(proto->indices + i);
 	}
 
-	for (int i = 0, n = 3 * proto->component_count; i < n; ++i) {
-		ce_le2cpu16s(proto->components + i);
+	for (int i = 0, n = 3 * proto->spec_component_count; i < n; ++i) {
+		ce_le2cpu16s(proto->spec_components + i);
 	}
 
-	for (int i = 0, n = 2 * proto->light_component_count; i < n; ++i) {
-		ce_le2cpu16s(proto->light_components + i);
+	for (int i = 0, n = 2 * proto->morph_component_count; i < n; ++i) {
+		ce_le2cpu16s(proto->morph_components + i);
 	}
 
 	return true;
@@ -252,8 +252,8 @@ ce_figfile_proto_read_header(ce_figfile_proto* proto, ce_memfile* mem)
 	 *   normal count
 	 *   texcoord count
 	 *   index count
-	 *   component count
-	 *   light component count
+	 *   spec component count
+	 *   morph component count
 	 *   unknown - always 0; for alignment?..
 	 *   unknown
 	 *   texture number (primary, secondary)
@@ -284,8 +284,8 @@ ce_figfile_proto_read_header(ce_figfile_proto* proto, ce_memfile* mem)
 	proto->normal_count = ce_le2cpu32(header[1]);
 	proto->texcoord_count = ce_le2cpu32(header[2]);
 	proto->index_count = ce_le2cpu32(header[3]);
-	proto->component_count = ce_le2cpu32(header[4]);
-	proto->light_component_count = ce_le2cpu32(header[5]);
+	proto->spec_component_count = ce_le2cpu32(header[4]);
+	proto->morph_component_count = ce_le2cpu32(header[5]);
 	proto->texture_number = ce_le2cpu32(header[8]);
 
 	return true;
@@ -325,10 +325,10 @@ void ce_figfile_proto_close(ce_figfile_proto* proto)
 	if (NULL != proto) {
 		const size_t value_count = ce_figfile_proto_value_count[proto->type];
 
-		ce_free(proto->light_components, proto->light_component_size *
-										proto->light_component_count);
-		ce_free(proto->components, proto->component_size *
-									proto->component_count);
+		ce_free(proto->morph_components, proto->morph_component_size *
+										proto->morph_component_count);
+		ce_free(proto->spec_components, proto->spec_component_size *
+										proto->spec_component_count);
 		ce_free(proto->indices, proto->index_size * proto->index_count);
 		ce_free(proto->texcoords, proto->texcoord_size * proto->texcoord_count);
 		ce_free(proto->normals, proto->normal_size * proto->normal_count);
@@ -349,18 +349,21 @@ static bool ce_figfile_open_impl(ce_figfile* fig,
 	fig->normal_count = 4 * proto->normal_count;
 	fig->texcoord_count = proto->texcoord_count;
 	fig->index_count = proto->index_count;
-	fig->component_count = proto->component_count;
+	fig->spec_component_count = proto->spec_component_count;
+	fig->morph_component_count = proto->morph_component_count;
 
 	fig->vertices = ce_alloc(sizeof(ce_vec3) * fig->vertex_count);
 	fig->normals = ce_alloc(sizeof(ce_vec3) * fig->normal_count);
 	fig->texcoords = ce_alloc(sizeof(ce_vec2) * fig->texcoord_count);
 	fig->indices = ce_alloc(sizeof(short) * fig->index_count);
-	fig->components = ce_alloc(sizeof(ce_figfile_component) *
-								fig->component_count);
+	fig->spec_components = ce_alloc(sizeof(ce_figfile_spec_component) *
+									fig->spec_component_count);
+	fig->morph_components = ce_alloc(sizeof(ce_figfile_morph_component) *
+									fig->morph_component_count);
 
 	if (NULL == fig->vertices || NULL == fig->normals ||
 			NULL == fig->texcoords || NULL == fig->indices ||
-			NULL == fig->components) {
+			NULL == fig->spec_components || NULL == fig->morph_components) {
 		ce_logging_error("figfile: could not allocate memory");
 		return false;
 	}
@@ -396,10 +399,15 @@ static bool ce_figfile_open_impl(ce_figfile* fig,
 		fig->indices[i] = proto->indices[i];
 	}
 
-	for (int i = 0, n = fig->component_count; i < n; ++i) {
-		fig->components[i].vertex_index = proto->components[3 * i + 0];
-		fig->components[i].normal_index = proto->components[3 * i + 1];
-		fig->components[i].texcoord_index = proto->components[3 * i + 2];
+	for (int i = 0, n = fig->spec_component_count; i < n; ++i) {
+		fig->spec_components[i].vertex_index = proto->spec_components[3 * i + 0];
+		fig->spec_components[i].normal_index = proto->spec_components[3 * i + 1];
+		fig->spec_components[i].texcoord_index = proto->spec_components[3 * i + 2];
+	}
+
+	for (int i = 0, n = fig->morph_component_count; i < n; ++i) {
+		fig->morph_components[i].morph_index = proto->morph_components[2 * i + 0];
+		fig->morph_components[i].vertex_index = proto->morph_components[2 * i + 1];
 	}
 
 	ce_vec3_init(&fig->bounding_box.center,
@@ -442,8 +450,10 @@ ce_figfile* ce_figfile_open(const ce_figfile_proto* proto,
 void ce_figfile_close(ce_figfile* fig)
 {
 	if (NULL != fig) {
-		ce_free(fig->components, sizeof(ce_figfile_component) *
-									fig->component_count);
+		ce_free(fig->morph_components, sizeof(ce_figfile_morph_component) *
+										fig->morph_component_count);
+		ce_free(fig->spec_components, sizeof(ce_figfile_spec_component) *
+										fig->spec_component_count);
 		ce_free(fig->indices, sizeof(short) * fig->index_count);
 		ce_free(fig->texcoords, sizeof(ce_vec2) * fig->texcoord_count);
 		ce_free(fig->normals, sizeof(ce_vec3) * fig->normal_count);

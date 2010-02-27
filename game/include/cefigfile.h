@@ -38,19 +38,26 @@ typedef struct {
 	short vertex_index;
 	short normal_index;
 	short texcoord_index;
-} ce_figfile_component;
+} ce_figfile_spec_component;
+
+typedef struct {
+	short morph_index;
+	short vertex_index;
+} ce_figfile_morph_component;
 
 typedef struct {
 	int vertex_count;
 	int normal_count;
 	int texcoord_count;
 	int index_count;
-	int component_count;
+	int spec_component_count;
+	int morph_component_count;
 	ce_vec3* vertices;
 	ce_vec3* normals;
 	ce_vec2* texcoords;
 	short* indices;
-	ce_figfile_component* components;
+	ce_figfile_spec_component* spec_components;
+	ce_figfile_morph_component* morph_components;
 	ce_aabb bounding_box;
 	float radius;
 } ce_figfile;
