@@ -25,6 +25,7 @@
 
 #include "cevec3.h"
 #include "ceaabb.h"
+#include "cesphere.h"
 #include "ceplane.h"
 
 #ifdef __cplusplus
@@ -43,18 +44,21 @@ typedef enum {
 } ce_frustum_plane;
 
 typedef struct {
-	ce_plane p[CE_FRUSTUM_PLANE_COUNT];
+	ce_plane planes[CE_FRUSTUM_PLANE_COUNT];
 } ce_frustum;
 
-extern ce_frustum* ce_frustum_init(ce_frustum* f, float fov, float aspect,
+extern ce_frustum* ce_frustum_init(ce_frustum* frustum,
+									float fov, float aspect,
 									float near, float far,
 									const ce_vec3* eye, const ce_vec3* forward,
 									const ce_vec3* right, const ce_vec3* up);
 
-extern bool ce_frustum_test_point(const ce_frustum* f, const ce_vec3* p);
-extern bool ce_frustum_test_sphere(const ce_frustum* f, const ce_vec3* p,
-																float r);
-extern bool ce_frustum_test_box(const ce_frustum* f, const ce_aabb* b);
+extern bool ce_frustum_test_point(const ce_frustum* frustum,
+									const ce_vec3* point);
+extern bool ce_frustum_test_box(const ce_frustum* frustum,
+									const ce_aabb* bob);
+extern bool ce_frustum_test_sphere(const ce_frustum* frustum,
+									const ce_sphere* sphere);
 
 #ifdef __cplusplus
 }
