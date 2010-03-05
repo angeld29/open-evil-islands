@@ -42,10 +42,14 @@ extern bool ce_vector_empty(const ce_vector* vec);
 
 extern void* ce_vector_front(ce_vector* vec);
 extern void* ce_vector_back(ce_vector* vec);
-extern void* ce_vector_at(ce_vector* vec, size_t index);
+
+extern void* ce_vector_at(ce_vector* vec, int index);
 
 extern bool ce_vector_push_back(ce_vector* vec, void* item);
 extern void* ce_vector_pop_back(ce_vector* vec);
+
+extern void ce_vector_replace(ce_vector* vec, int index, void* item);
+
 extern void ce_vector_clear(ce_vector* vec);
 
 #ifdef __cplusplus

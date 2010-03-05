@@ -97,7 +97,7 @@ void* ce_vector_back(ce_vector* vec)
 	return vec->items[vec->count - 1];
 }
 
-void* ce_vector_at(ce_vector* vec, size_t index)
+void* ce_vector_at(ce_vector* vec, int index)
 {
 	return vec->items[index];
 }
@@ -115,6 +115,11 @@ bool ce_vector_push_back(ce_vector* vec, void* item)
 void* ce_vector_pop_back(ce_vector* vec)
 {
 	return vec->items[--vec->count];
+}
+
+void ce_vector_replace(ce_vector* vec, int index, void* item)
+{
+	vec->items[index] = item;
 }
 
 void ce_vector_clear(ce_vector* vec)
