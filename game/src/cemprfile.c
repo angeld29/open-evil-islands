@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
@@ -36,80 +35,17 @@
 #include "cevec3.h"
 #include "ceaabb.h"
 #include "cememfile.h"
-#include "cetexture.h"
 #include "cemprfile.h"
 
 static const unsigned int MP_SIGNATURE = 0xce4af672;
 static const unsigned int SEC_SIGNATURE = 0xcf4bf774;
 
-enum {
-	MATERIAL_GROUND = 1,
-	MATERIAL_WATER = 3,
-};
-
-static const unsigned int VERTEX_SIDE = 33;
-static const unsigned int VERTEX_COUNT = 33 * 33;
-
-static const unsigned int TEXTURE_SIDE = 16;
-static const unsigned int TEXTURE_COUNT = 16 * 16;
-
-typedef struct {
-	uint32_t type;
-	float color[4];
-	float selfillum;
-	float wavemult;
-	float unknown[4];
-} material;
-
-typedef struct {
-	uint16_t index;
-	uint16_t count;
-} anim_tile;
-
-typedef struct {
-	int8_t offset_x;
-	int8_t offset_z;
-	uint16_t coord_y;
-	uint32_t normal;
-} vertex;
-
-typedef struct {
-	unsigned int x, z;
-	ce_aabb bounding_box;
-	float dist2; // for sorting on rendering
-	uint8_t water;
-	vertex* land_vertices;
-	vertex* water_vertices;
-	uint16_t* land_textures;
-	uint16_t* water_textures;
-	int16_t* water_allow;
-} sector;
-
-struct ce_mprfile {
-	float max_y;
-	uint32_t sector_x_count;
-	uint32_t sector_z_count;
-	unsigned int sector_count;
-	uint32_t texture_count;
-	uint32_t texture_size;
-	uint32_t tile_count;
-	uint32_t tile_size;
-	uint16_t material_count;
-	uint32_t anim_tile_count;
-	material* materials;
-	uint32_t* tiles; // TODO: id for bind sound ?
-	anim_tile* anim_tiles;
-	sector* sectors;
-	unsigned int visible_sector_count;
-	sector** visible_sectors;
-	ce_texture** textures;
-};
-
-static void normal2vector(uint32_t normal, float* vector)
+static float* normal2vector(float* vector, uint32_t normal)
 {
 	vector[0] = (((normal >> 11) & 0x7ff) - 1000.0f) / 1000.0f;
 	vector[1] = (normal >> 22) / 1000.0f;
 	vector[2] = ((normal & 0x7ff) - 1000.0f) / 1000.0f;
+	return vector;
 }
 
 static uint8_t texture_index(uint16_t value)
@@ -127,10 +63,10 @@ static uint8_t texture_angle(uint16_t value)
 	return (value & 0xc000) >> 14;
 }
 
-static material* find_material(ce_mprfile* mpr, unsigned int type)
+static ce_mprfile_material* find_material(ce_mprfile* mpr, unsigned int type)
 {
 	for (unsigned int i = 0; i < mpr->material_count; ++i) {
-		material* mat = mpr->materials + i;
+		ce_mprfile_material* mat = mpr->materials + i;
 		if (type == mat->type) {
 			return mat;
 		}
@@ -138,7 +74,7 @@ static material* find_material(ce_mprfile* mpr, unsigned int type)
 	return NULL;
 }
 
-static bool read_material(material* mat, ce_memfile* mem)
+static bool read_material(ce_mprfile_material* mat, ce_memfile* mem)
 {
 	if (1 != ce_memfile_read(mem, &mat->type, sizeof(uint32_t), 1) ||
 			4 != ce_memfile_read(mem, mat->color, sizeof(float), 4) ||
@@ -152,7 +88,7 @@ static bool read_material(material* mat, ce_memfile* mem)
 	return true;
 }
 
-static bool read_anim_tile(anim_tile* at, ce_memfile* mem)
+static bool read_anim_tile(ce_mprfile_anim_tile* at, ce_memfile* mem)
 {
 	if (1 != ce_memfile_read(mem, &at->index, sizeof(uint16_t), 1) ||
 			1 != ce_memfile_read(mem, &at->count, sizeof(uint16_t), 1)) {
@@ -202,7 +138,7 @@ static bool read_header_impl(ce_mprfile* mpr, ce_memfile* mem)
 
 	mpr->sector_count = mpr->sector_x_count * mpr->sector_z_count;
 
-	if (NULL == (mpr->materials = ce_alloc(sizeof(material) *
+	if (NULL == (mpr->materials = ce_alloc(sizeof(ce_mprfile_material) *
 											mpr->material_count))) {
 		ce_logging_error("mprfile: could not allocate memory");
 		return false;
@@ -229,7 +165,7 @@ static bool read_header_impl(ce_mprfile* mpr, ce_memfile* mem)
 		ce_le2cpu32s(mpr->tiles + i);
 	}
 
-	if (NULL == (mpr->anim_tiles = ce_alloc(sizeof(anim_tile) *
+	if (NULL == (mpr->anim_tiles = ce_alloc(sizeof(ce_mprfile_anim_tile) *
 											mpr->anim_tile_count))) {
 		ce_logging_error("mprfile: could not allocate memory");
 		return false;
@@ -286,7 +222,7 @@ static bool read_header(ce_mprfile* mpr, const char* mpr_name,
 	return ok;
 }
 
-static bool read_vertex(vertex* ver, ce_memfile* mem)
+static bool read_vertex(ce_mprfile_vertex* ver, ce_memfile* mem)
 {
 	if (1 != ce_memfile_read(mem, &ver->offset_x, sizeof(int8_t), 1) ||
 			1 != ce_memfile_read(mem, &ver->offset_z, sizeof(int8_t), 1) ||
@@ -300,7 +236,7 @@ static bool read_vertex(vertex* ver, ce_memfile* mem)
 	return true;
 }
 
-static bool read_sector_impl(sector* sec, ce_memfile* mem)
+static bool read_sector_impl(ce_mprfile_sector* sec, ce_memfile* mem)
 {
 	uint32_t signature;
 	if (1 != ce_memfile_read(mem, &signature, sizeof(uint32_t), 1)) {
@@ -319,26 +255,26 @@ static bool read_sector_impl(sector* sec, ce_memfile* mem)
 		return false;
 	}
 
-	if (NULL == (sec->land_vertices = ce_alloc(sizeof(vertex) *
-												VERTEX_COUNT))) {
+	if (NULL == (sec->land_vertices = ce_alloc(sizeof(ce_mprfile_vertex) *
+												CE_MPRFILE_VERTEX_COUNT))) {
 		ce_logging_error("mprfile: could not allocate memory");
 		return false;
 	}
 
-	for (unsigned int i = 0; i < VERTEX_COUNT; ++i) {
+	for (unsigned int i = 0; i < CE_MPRFILE_VERTEX_COUNT; ++i) {
 		if (!read_vertex(sec->land_vertices + i, mem)) {
 			return false;
 		}
 	}
 
 	if (0 != sec->water) {
-		if (NULL == (sec->water_vertices = ce_alloc(sizeof(vertex) *
-													VERTEX_COUNT))) {
+		if (NULL == (sec->water_vertices = ce_alloc(sizeof(ce_mprfile_vertex) *
+													CE_MPRFILE_VERTEX_COUNT))) {
 			ce_logging_error("mprfile: could not allocate memory");
 			return false;
 		}
 
-		for (unsigned int i = 0; i < VERTEX_COUNT; ++i) {
+		for (unsigned int i = 0; i < CE_MPRFILE_VERTEX_COUNT; ++i) {
 			if (!read_vertex(sec->water_vertices + i, mem)) {
 				return false;
 			}
@@ -346,39 +282,39 @@ static bool read_sector_impl(sector* sec, ce_memfile* mem)
 	}
 
 	if (NULL == (sec->land_textures = ce_alloc(sizeof(uint16_t) *
-												TEXTURE_COUNT))) {
+												CE_MPRFILE_TEXTURE_COUNT))) {
 		ce_logging_error("mprfile: could not allocate memory");
 		return false;
 	}
 
-	if (TEXTURE_COUNT != ce_memfile_read(mem, sec->land_textures,
-								sizeof(uint16_t), TEXTURE_COUNT)) {
+	if (CE_MPRFILE_TEXTURE_COUNT != ce_memfile_read(mem, sec->land_textures,
+								sizeof(uint16_t), CE_MPRFILE_TEXTURE_COUNT)) {
 		ce_logging_error("mprfile: io error occured");
 		return false;
 	}
 
-	for (unsigned int i = 0; i < TEXTURE_COUNT; ++i) {
+	for (unsigned int i = 0; i < CE_MPRFILE_TEXTURE_COUNT; ++i) {
 		ce_le2cpu16s(sec->land_textures + i);
 	}
 
 	if (0 != sec->water) {
-		sec->water_textures = ce_alloc(sizeof(uint16_t) * TEXTURE_COUNT);
-		sec->water_allow = ce_alloc(sizeof(int16_t) * TEXTURE_COUNT);
+		sec->water_textures = ce_alloc(sizeof(uint16_t) * CE_MPRFILE_TEXTURE_COUNT);
+		sec->water_allow = ce_alloc(sizeof(int16_t) * CE_MPRFILE_TEXTURE_COUNT);
 
 		if (NULL == sec->water_textures || NULL == sec->water_allow) {
 			ce_logging_error("mprfile: could not allocate memory");
 			return false;
 		}
 
-		if (TEXTURE_COUNT != ce_memfile_read(mem, sec->water_textures,
-									sizeof(uint16_t), TEXTURE_COUNT) ||
-				TEXTURE_COUNT != ce_memfile_read(mem, sec->water_allow,
-									sizeof(int16_t), TEXTURE_COUNT)) {
+		if (CE_MPRFILE_TEXTURE_COUNT != ce_memfile_read(mem, sec->water_textures,
+									sizeof(uint16_t), CE_MPRFILE_TEXTURE_COUNT) ||
+				CE_MPRFILE_TEXTURE_COUNT != ce_memfile_read(mem, sec->water_allow,
+									sizeof(int16_t), CE_MPRFILE_TEXTURE_COUNT)) {
 			ce_logging_error("mprfile: io error occured");
 			return false;
 		}
 
-		for (unsigned int i = 0; i < TEXTURE_COUNT; ++i) {
+		for (unsigned int i = 0; i < CE_MPRFILE_TEXTURE_COUNT; ++i) {
 			ce_le2cpu16s(sec->water_textures + i);
 			ce_le2cpu16s((uint16_t*)(sec->water_allow + i));
 		}
@@ -387,7 +323,7 @@ static bool read_sector_impl(sector* sec, ce_memfile* mem)
 	return true;
 }
 
-static bool read_sector(sector* sec, const char* name, ce_resfile* res)
+static bool read_sector(ce_mprfile_sector* sec, const char* name, ce_resfile* res)
 {
 	int index = ce_resfile_node_index(res, name);
 	if (index < 0) {
@@ -423,8 +359,8 @@ static bool read_sector(sector* sec, const char* name, ce_resfile* res)
 static bool read_sectors(ce_mprfile* mpr, const char* mpr_name,
 							size_t mpr_name_length, ce_resfile* res)
 {
-	mpr->sectors = ce_alloc_zero(sizeof(sector) * mpr->sector_count);
-	mpr->visible_sectors = ce_alloc(sizeof(sector*) * mpr->sector_count);
+	mpr->sectors = ce_alloc_zero(sizeof(ce_mprfile_sector) * mpr->sector_count);
+	mpr->visible_sectors = ce_alloc(sizeof(ce_mprfile_sector*) * mpr->sector_count);
 
 	if (NULL == mpr->sectors || NULL == mpr->visible_sectors) {
 		ce_logging_error("mprfile: could not allocate memory");
@@ -449,7 +385,7 @@ static bool read_sectors(ce_mprfile* mpr, const char* mpr_name,
 			snprintf(sec_name, sizeof(sec_name),
 				"%s%03u%03u.sec", sec_tmpl_name, x, z);
 
-			sector* sec = mpr->sectors + i;
+			ce_mprfile_sector* sec = mpr->sectors + i;
 
 			if (!read_sector(sec, sec_name, res)) {
 				return false;
@@ -458,10 +394,10 @@ static bool read_sectors(ce_mprfile* mpr, const char* mpr_name,
 			sec->x = x;
 			sec->z = z;
 
-			ce_vec3_init(&sec->bounding_box.min, x * (VERTEX_SIDE - 1), 0.0f,
-				-1.0f * (z * (VERTEX_SIDE - 1) + (VERTEX_SIDE - 1)));
-			ce_vec3_init(&sec->bounding_box.max, x * (VERTEX_SIDE - 1) +
-				(VERTEX_SIDE - 1), mpr->max_y, -1.0f * (z * (VERTEX_SIDE - 1)));
+			ce_vec3_init(&sec->bounding_box.min, x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f,
+				-1.0f * (z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1)));
+			ce_vec3_init(&sec->bounding_box.max, x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+				(CE_MPRFILE_VERTEX_SIDE - 1), mpr->max_y, -1.0f * (z * (CE_MPRFILE_VERTEX_SIDE - 1)));
 			ce_vec3_mid(&sec->bounding_box.center, &sec->bounding_box.min,
 													&sec->bounding_box.max);
 
@@ -574,21 +510,21 @@ void ce_mprfile_close(ce_mprfile* mpr)
 
 	if (NULL != mpr->sectors) {
 		for (unsigned int i = 0; i < mpr->sector_count; ++i) {
-			sector* sec = mpr->sectors + i;
-			ce_free(sec->water_allow, sizeof(int16_t) * TEXTURE_COUNT);
-			ce_free(sec->water_textures, sizeof(uint16_t) * TEXTURE_COUNT);
-			ce_free(sec->land_textures, sizeof(uint16_t) * TEXTURE_COUNT);
-			ce_free(sec->water_vertices, sizeof(vertex) * VERTEX_COUNT);
-			ce_free(sec->land_vertices, sizeof(vertex) * VERTEX_COUNT);
+			ce_mprfile_sector* sec = mpr->sectors + i;
+			ce_free(sec->water_allow, sizeof(int16_t) * CE_MPRFILE_TEXTURE_COUNT);
+			ce_free(sec->water_textures, sizeof(uint16_t) * CE_MPRFILE_TEXTURE_COUNT);
+			ce_free(sec->land_textures, sizeof(uint16_t) * CE_MPRFILE_TEXTURE_COUNT);
+			ce_free(sec->water_vertices, sizeof(ce_mprfile_vertex) * CE_MPRFILE_VERTEX_COUNT);
+			ce_free(sec->land_vertices, sizeof(ce_mprfile_vertex) * CE_MPRFILE_VERTEX_COUNT);
 		}
 	}
 
 	ce_free(mpr->textures, sizeof(ce_texture*) * mpr->texture_count);
-	ce_free(mpr->visible_sectors, sizeof(sector*) * mpr->sector_count);
-	ce_free(mpr->sectors, sizeof(sector) * mpr->sector_count);
-	ce_free(mpr->anim_tiles, sizeof(anim_tile) * mpr->anim_tile_count);
+	ce_free(mpr->visible_sectors, sizeof(ce_mprfile_sector*) * mpr->sector_count);
+	ce_free(mpr->sectors, sizeof(ce_mprfile_sector) * mpr->sector_count);
+	ce_free(mpr->anim_tiles, sizeof(ce_mprfile_anim_tile) * mpr->anim_tile_count);
 	ce_free(mpr->tiles, sizeof(uint32_t) * mpr->tile_count);
-	ce_free(mpr->materials, sizeof(material) * mpr->material_count);
+	ce_free(mpr->materials, sizeof(ce_mprfile_material) * mpr->material_count);
 
 	ce_free(mpr, sizeof(ce_mprfile));
 }
@@ -600,8 +536,8 @@ float ce_mprfile_get_max_height(const ce_mprfile* mpr)
 
 static int sector_dist_comp(const void* lhs, const void* rhs)
 {
-	const sector* sec1 = *(const sector**)lhs;
-	const sector* sec2 = *(const sector**)rhs;
+	const ce_mprfile_sector* sec1 = *(const ce_mprfile_sector**)lhs;
+	const ce_mprfile_sector* sec2 = *(const ce_mprfile_sector**)rhs;
 	return ce_fisequal(sec1->dist2, sec2->dist2, CE_EPS_E4) ? 0 :
 		(sec1->dist2 < sec2->dist2 ? 1 : -1);
 }
@@ -612,7 +548,7 @@ void ce_mprfile_apply_frustum(ce_mprfile* mpr, const ce_vec3* eye,
 	mpr->visible_sector_count = 0;
 
 	for (unsigned int i = 0; i < mpr->sector_count; ++i) {
-		sector* sec = mpr->sectors + i;
+		ce_mprfile_sector* sec = mpr->sectors + i;
 		if (ce_frustum_test_box(f, &sec->bounding_box)) {
 			sec->dist2 = ce_vec3_dist2(eye, &sec->bounding_box.center);
 			mpr->visible_sectors[mpr->visible_sector_count++] = sec;
@@ -620,33 +556,33 @@ void ce_mprfile_apply_frustum(ce_mprfile* mpr, const ce_vec3* eye,
 	}
 
 	qsort(mpr->visible_sectors, mpr->visible_sector_count,
-		sizeof(sector*), sector_dist_comp);
+		sizeof(ce_mprfile_sector*), sector_dist_comp);
 }
 
 static void render_sector(ce_mprfile* mpr,
 							unsigned int sector_x, unsigned int sector_z,
-							vertex* vertices, uint16_t* textures,
+							ce_mprfile_vertex* vertices, uint16_t* textures,
 							int16_t* water_allow)
 {
-	GLfloat varray[3 * VERTEX_COUNT];
-	GLfloat narray[3 * VERTEX_COUNT];
-	GLfloat tcarray[2 * VERTEX_COUNT];
+	GLfloat varray[3 * CE_MPRFILE_VERTEX_COUNT];
+	GLfloat narray[3 * CE_MPRFILE_VERTEX_COUNT];
+	GLfloat tcarray[2 * CE_MPRFILE_VERTEX_COUNT];
 
 	static const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
 	const float y_coef = mpr->max_y / (UINT16_MAX - 0);
 
-	for (unsigned int z = 0; z < VERTEX_SIDE; ++z) {
-		for (unsigned int x = 0; x < VERTEX_SIDE; ++x) {
-			unsigned int i = z * VERTEX_SIDE * 3 + x * 3;
-			vertex* ver = vertices + (z * VERTEX_SIDE + x);
+	for (unsigned int z = 0; z < CE_MPRFILE_VERTEX_SIDE; ++z) {
+		for (unsigned int x = 0; x < CE_MPRFILE_VERTEX_SIDE; ++x) {
+			unsigned int i = z * CE_MPRFILE_VERTEX_SIDE * 3 + x * 3;
+			ce_mprfile_vertex* ver = vertices + (z * CE_MPRFILE_VERTEX_SIDE + x);
 
-			varray[i + 0] = x + sector_x * (VERTEX_SIDE - 1) +
+			varray[i + 0] = x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
 								offset_xz_coef * ver->offset_x;
 			varray[i + 1] = y_coef * ver->coord_y;
-			varray[i + 2] = -1.0f * (z + sector_z * (VERTEX_SIDE - 1) +
+			varray[i + 2] = -1.0f * (z + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
 								offset_xz_coef * ver->offset_z);
 
-			normal2vector(ver->normal, narray + i);
+			normal2vector(narray + i, ver->normal);
 			narray[i + 2] = -narray[i + 2];
 		}
 	}
@@ -659,14 +595,14 @@ static void render_sector(ce_mprfile* mpr,
 	glNormalPointer(GL_FLOAT, 0, narray);
 	glTexCoordPointer(2, GL_FLOAT, 0, tcarray);
 
-	for (unsigned int z = 0; z < VERTEX_SIDE - 2; z += 2) {
-		for (unsigned int x = 0; x < VERTEX_SIDE - 2; x += 2) {
+	for (unsigned int z = 0; z < CE_MPRFILE_VERTEX_SIDE - 2; z += 2) {
+		for (unsigned int x = 0; x < CE_MPRFILE_VERTEX_SIDE - 2; x += 2) {
 			if (NULL != water_allow &&
-					-1 == water_allow[z / 2 * TEXTURE_SIDE + x / 2]) {
+					-1 == water_allow[z / 2 * CE_MPRFILE_TEXTURE_SIDE + x / 2]) {
 				continue;
 			}
 
-			uint16_t tex = textures[z / 2 * TEXTURE_SIDE + x / 2];
+			uint16_t tex = textures[z / 2 * CE_MPRFILE_TEXTURE_SIDE + x / 2];
 
 			int tex_idx = texture_index(tex);
 			float u = (tex_idx - tex_idx / 8 * 8) / 8.0f;
@@ -698,7 +634,7 @@ static void render_sector(ce_mprfile* mpr,
 			static unsigned int offz[9] = { 0, 0, 0, 1, 2, 2, 2, 1, 1 };
 
 			for (unsigned int i = 0; i < 9; ++i) {
-				unsigned int tci = (z + offz[i]) * VERTEX_SIDE * 2 +
+				unsigned int tci = (z + offz[i]) * CE_MPRFILE_VERTEX_SIDE * 2 +
 													(x + offx[i]) * 2;
 				tcarray[tci + 0] = texcoords[i * 2 + 0];
 				tcarray[tci + 1] = texcoords[i * 2 + 1];
@@ -715,7 +651,7 @@ static void render_sector(ce_mprfile* mpr,
 
 			GLushort vind[9];
 			for (unsigned int i = 0; i < 9; ++i) {
-				vind[i] = (z + offz[i]) * VERTEX_SIDE + (x + offx[i]);
+				vind[i] = (z + offz[i]) * CE_MPRFILE_VERTEX_SIDE + (x + offx[i]);
 			}
 
 			GLushort indices[2][6] = {
@@ -723,8 +659,9 @@ static void render_sector(ce_mprfile* mpr,
 				{ vind[6], vind[7], vind[5], vind[8], vind[4], vind[3] }
 			};
 
-			material* mat = find_material(mpr, NULL != water_allow ?
-											MATERIAL_WATER : MATERIAL_GROUND);
+			ce_mprfile_material* mat = find_material(mpr, NULL != water_allow ?
+											CE_MPRFILE_MATERIAL_WATER :
+											CE_MPRFILE_MATERIAL_GROUND);
 			assert(mat);
 
 			glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]) {
@@ -762,7 +699,7 @@ static void render_sector(ce_mprfile* mpr,
 static void render_sectors(ce_mprfile* mpr, bool opacity)
 {
 	for (unsigned int i = 0; i < mpr->visible_sector_count; ++i) {
-		sector* sec = mpr->visible_sectors[i];
+		ce_mprfile_sector* sec = mpr->visible_sectors[i];
 		if (opacity) {
 			render_sector(mpr, sec->x, sec->z, sec->land_vertices,
 							sec->land_textures, NULL);
