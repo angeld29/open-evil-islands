@@ -25,35 +25,37 @@
 #include "cestr.h"
 #include "celogging.h"
 #include "cealloc.h"
-#include "cehudfps.h"
+#include "cefps.h"
 
-struct ce_hudfps {
+struct ce_fps {
 	int frame_count;
 	float time;
 	void* font;
+	int font_height;
 	char text[32];
 };
 
-ce_hudfps* ce_hudfps_new(void)
+ce_fps* ce_fps_new(void)
 {
-	ce_hudfps* fps = ce_alloc(sizeof(ce_hudfps));
+	ce_fps* fps = ce_alloc(sizeof(ce_fps));
 	if (NULL == fps) {
-		ce_logging_error("hudfps: could not allocate memory");
+		ce_logging_error("fps: could not allocate memory");
 		return NULL;
 	}
 	fps->frame_count = 0;
 	fps->time = 0.0f;
 	fps->font = GLUT_BITMAP_HELVETICA_18;
+	fps->font_height = 18;
 	ce_strlcpy(fps->text, "FPS: updating...", sizeof(fps->text));
 	return fps;
 }
 
-void ce_hudfps_del(ce_hudfps* fps)
+void ce_fps_del(ce_fps* fps)
 {
-	ce_free(fps, sizeof(ce_hudfps));
+	ce_free(fps, sizeof(ce_fps));
 }
 
-void ce_hudfps_advance(ce_hudfps* fps, float elapsed)
+void ce_fps_advance(ce_fps* fps, float elapsed)
 {
 	++fps->frame_count;
 	if ((fps->time += elapsed) >= 1.0f) {
@@ -63,13 +65,37 @@ void ce_hudfps_advance(ce_hudfps* fps, float elapsed)
 	}
 }
 
-void ce_hudfps_render(ce_hudfps* fps)
+void ce_fps_render(ce_fps* fps)
 {
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	int width = viewport[2];
+	int height = viewport[3];
+
+	gluOrtho2D(0.0f, width, 0.0f, height);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
 	static float color[3] = { 1.0f, 0.0f, 0.0f };
 	glColor3fv(color);
-	glRasterPos2i(0, 0);
-	const char* str = fps->text;
-	while (*str) {
-		glutBitmapCharacter(fps->font, *str++);
+
+	glRasterPos2i(width -
+		glutBitmapLength(fps->font, (const unsigned char*)fps->text) - 10,
+		height - fps->font_height - 10);
+
+	for (const char* str = fps->text; *str; ++str) {
+		glutBitmapCharacter(fps->font, *str);
 	}
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
 }

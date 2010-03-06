@@ -18,24 +18,24 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_HUDFPS_H
-#define CE_HUDFPS_H
+#ifndef CE_FPS_H
+#define CE_FPS_H
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_hudfps ce_hudfps;
+typedef struct ce_fps ce_fps;
 
-extern ce_hudfps* ce_hudfps_new(void);
-extern void ce_hudfps_del(ce_hudfps* fps);
+extern ce_fps* ce_fps_new(void);
+extern void ce_fps_del(ce_fps* fps);
 
-extern void ce_hudfps_advance(ce_hudfps* fps, float elapsed);
-extern void ce_hudfps_render(ce_hudfps* fps);
+extern void ce_fps_advance(ce_fps* fps, float elapsed);
+extern void ce_fps_render(ce_fps* fps);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_HUDFPS_H */
+#endif /* CE_FPS_H */
