@@ -87,6 +87,11 @@ bool ce_vector_empty(const ce_vector* vec)
 	return 0 == vec->count;
 }
 
+void* ce_vector_data(ce_vector* vec)
+{
+	return vec->items;
+}
+
 void* ce_vector_front(ce_vector* vec)
 {
 	return vec->items[0];

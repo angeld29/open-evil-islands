@@ -40,6 +40,7 @@ extern bool ce_vector_reserve(ce_vector* vec, size_t capacity);
 extern size_t ce_vector_count(const ce_vector* vec);
 extern bool ce_vector_empty(const ce_vector* vec);
 
+extern void* ce_vector_data(ce_vector* vec);
 extern void* ce_vector_front(ce_vector* vec);
 extern void* ce_vector_back(ce_vector* vec);
 
