@@ -21,9 +21,9 @@
 #ifndef CE_FIGFILE_H
 #define CE_FIGFILE_H
 
-#include "cevec2.h"
-#include "cevec3.h"
-#include "ceaabb.h"
+#include <stddef.h>
+#include <stdint.h>
+
 #include "cecomplection.h"
 #include "cememfile.h"
 
@@ -32,43 +32,40 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_figfile_proto ce_figfile_proto;
+typedef float (*ce_figfile_value_callback)(const float* params, int stride,
+											const ce_complection* complection);
 
 typedef struct {
-	short vertex_index;
-	short normal_index;
-	short texcoord_index;
-} ce_figfile_spec_component;
-
-typedef struct {
-	short morph_index;
-	short vertex_index;
-} ce_figfile_morph_component;
-
-typedef struct {
-	int vertex_count;
-	int normal_count;
-	int texcoord_count;
-	int index_count;
-	int spec_component_count;
-	int morph_component_count;
-	ce_vec3* vertices;
-	ce_vec3* normals;
-	ce_vec2* texcoords;
-	short* indices;
-	ce_figfile_spec_component* spec_components;
-	ce_figfile_morph_component* morph_components;
-	ce_aabb bounding_box;
-	float radius;
+	int value_count;
+	ce_figfile_value_callback value_callback;
+	size_t vertex_size;
+	size_t normal_size;
+	size_t texcoord_size;
+	size_t index_size;
+	size_t spec_component_size;
+	size_t morph_component_size;
+	uint32_t vertex_count;
+	uint32_t normal_count;
+	uint32_t texcoord_count;
+	uint32_t index_count;
+	uint32_t spec_component_count;
+	uint32_t morph_component_count;
+	uint32_t texture_number;
+	float* center;
+	float* min;
+	float* max;
+	float* radius;
+	float* vertices;
+	float* normals;
+	float* texcoords;
+	uint16_t* indices;
+	uint16_t* spec_components;
+	uint16_t* morph_components;
 } ce_figfile;
 
-extern ce_figfile_proto* ce_figfile_proto_open_memfile(ce_memfile* mem);
-extern ce_figfile_proto* ce_figfile_proto_open_file(const char* path);
-extern void ce_figfile_proto_close(ce_figfile_proto* proto);
-
-extern ce_figfile* ce_figfile_open(const ce_figfile_proto* proto,
-									const ce_complection* cm);
-extern void ce_figfile_close(ce_figfile* fig);
+extern ce_figfile* ce_figfile_open_memfile(ce_memfile* mem);
+extern ce_figfile* ce_figfile_open_file(const char* path);
+extern void ce_figfile_close(ce_figfile* figfile);
 
 #ifdef __cplusplus
 }
