@@ -47,12 +47,16 @@ ce_texmng* ce_texmng_new(void)
 void ce_texmng_del(ce_texmng* texmng)
 {
 	if (NULL != texmng) {
-		assert(0 == ce_vector_count(texmng->textures));
-		for (int i = 0, n = ce_vector_count(texmng->resources); i < n; ++i) {
-			ce_resfile_close(ce_vector_at(texmng->resources, i));
+		if (NULL != texmng->textures) {
+			assert(0 == ce_vector_count(texmng->textures));
+			ce_vector_del(texmng->textures);
 		}
-		ce_vector_del(texmng->textures);
-		ce_vector_del(texmng->resources);
+		if (NULL != texmng->resources) {
+			for (int i = 0, n = ce_vector_count(texmng->resources); i < n; ++i) {
+				ce_resfile_close(ce_vector_at(texmng->resources, i));
+			}
+			ce_vector_del(texmng->resources);
+		}
 		ce_free(texmng, sizeof(ce_texmng));
 	}
 }
