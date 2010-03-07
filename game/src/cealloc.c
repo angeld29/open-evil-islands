@@ -32,6 +32,7 @@
 */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
@@ -61,8 +62,15 @@ typedef struct {
 
 static struct {
 	bool inited;
+
 	size_t count;
 	portion* pool;
+
+	size_t smallobj_allocated;
+	size_t smallobj_max_allocated;
+	size_t smallobj_overhead;
+	size_t system_allocated;
+	size_t system_max_allocated;
 } ce_alloc_inst;
 
 static bool chunk_is_filled(const chunk* cnk)
@@ -300,18 +308,60 @@ void ce_alloc_term(void)
 	}
 }
 
+#ifndef CE_NDEBUG_MEMORY
+static void ce_alloc_update_alloc_stat(size_t size)
+{
+	ce_alloc_inst.smallobj_allocated += size > MAX_SMALL_OBJECT_SIZE ? 0 : size;
+	ce_alloc_inst.smallobj_max_allocated =
+		ce_smax(ce_alloc_inst.smallobj_allocated,
+				ce_alloc_inst.smallobj_max_allocated);
+
+	ce_alloc_inst.system_allocated += size > MAX_SMALL_OBJECT_SIZE ? size : 0;
+	ce_alloc_inst.system_max_allocated =
+		ce_smax(ce_alloc_inst.system_allocated,
+				ce_alloc_inst.system_max_allocated);
+}
+
+static void ce_alloc_update_smallobj_overhead(void)
+{
+	ce_alloc_inst.smallobj_overhead = 0;
+	for (size_t i = 0; i < ce_alloc_inst.count; ++i) {
+		portion* por = ce_alloc_inst.pool + i;
+		ce_alloc_inst.smallobj_overhead +=
+			por->block_size * por->block_count *
+			(por->chunk_capacity - por->chunk_count);
+		for (size_t j = 0; j < por->chunk_count; ++j) {
+			chunk* cnk = por->chunks + j;
+			ce_alloc_inst.smallobj_overhead +=
+				por->block_size * cnk->block_count;
+		}
+	}
+}
+#endif /* !CE_NDEBUG_MEMORY */
+
 void* ce_alloc(size_t size)
 {
 	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
 
-	return size > MAX_SMALL_OBJECT_SIZE ? malloc(size) :
+	void* ptr = size > MAX_SMALL_OBJECT_SIZE ? malloc(size) :
 		portion_alloc(ce_alloc_inst.pool +
 					get_offset(ce_smax(1, size), OBJECT_ALIGNMENT) - 1);
+
+#ifndef CE_NDEBUG_MEMORY
+	ce_alloc_update_alloc_stat(ce_smax(1, size));
+	ce_alloc_update_smallobj_overhead();
+#endif
+
+	return ptr;
 }
 
 void* ce_alloc_zero(size_t size)
 {
 	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
+
+#ifndef CE_NDEBUG_MEMORY
+	ce_alloc_update_alloc_stat(ce_smax(1, size));
+#endif
 
 	if (size > MAX_SMALL_OBJECT_SIZE) {
 		return calloc(1, size);
@@ -320,6 +370,11 @@ void* ce_alloc_zero(size_t size)
 	size = ce_smax(1, size);
 	void* ptr = portion_alloc(ce_alloc_inst.pool +
 							get_offset(size, OBJECT_ALIGNMENT) - 1);
+
+#ifndef CE_NDEBUG_MEMORY
+	ce_alloc_update_smallobj_overhead();
+#endif
+
 	return NULL != ptr ? memset(ptr, 0, size) : NULL;
 }
 
@@ -327,10 +382,49 @@ void ce_free(void* ptr, size_t size)
 {
 	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
 
+#ifndef CE_NDEBUG_MEMORY
+	if (NULL != ptr) {
+		ce_alloc_inst.smallobj_allocated -=
+			size > MAX_SMALL_OBJECT_SIZE ? 0 : size;
+		ce_alloc_inst.system_allocated -=
+			size > MAX_SMALL_OBJECT_SIZE ? size : 0;
+	}
+#endif
+
 	if (size > MAX_SMALL_OBJECT_SIZE) {
 		free(ptr);
 	} else if (NULL != ptr) {
 		portion_free(ce_alloc_inst.pool +
 					get_offset(ce_smax(1, size), OBJECT_ALIGNMENT) - 1, ptr);
 	}
+}
+
+size_t ce_alloc_get_smallobj_allocated(void)
+{
+	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
+	return ce_alloc_inst.smallobj_allocated;
+}
+
+size_t ce_alloc_get_smallobj_max_allocated(void)
+{
+	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
+	return ce_alloc_inst.smallobj_max_allocated;
+}
+
+size_t ce_alloc_get_smallobj_overhead(void)
+{
+	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
+	return ce_alloc_inst.smallobj_overhead;
+}
+
+size_t ce_alloc_get_system_allocated(void)
+{
+	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
+	return ce_alloc_inst.system_allocated;
+}
+
+size_t ce_alloc_get_system_max_allocated(void)
+{
+	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
+	return ce_alloc_inst.system_max_allocated;
 }
