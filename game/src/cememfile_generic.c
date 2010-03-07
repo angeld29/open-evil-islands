@@ -36,7 +36,9 @@ typedef struct {
 
 static int ce_memfile_cookie_close(void* client_data)
 {
-	ce_free(client_data, sizeof(ce_memfile_cookie));
+	ce_memfile_cookie* cookie = client_data;
+	ce_free(cookie->data, cookie->size);
+	ce_free(cookie, sizeof(ce_memfile_cookie));
 	return 0;
 }
 
@@ -90,15 +92,11 @@ ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 {
 	ce_unused(mode);
 
-	ce_memfile_cookie* cookie = ce_alloc(sizeof(ce_memfile_cookie));
+	ce_memfile_cookie* cookie = ce_alloc_zero(sizeof(ce_memfile_cookie));
 	if (NULL == cookie) {
 		ce_logging_error("memfile: could not allocate memory");
 		return NULL;
 	}
-
-	cookie->data = data;
-	cookie->size = size;
-	cookie->pos = 0;
 
 	ce_memfile* mem =
 		ce_memfile_open_callbacks(ce_memfile_cookie_callbacks, cookie);
@@ -106,6 +104,10 @@ ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 		ce_free(cookie, sizeof(ce_memfile_cookie));
 		return NULL;
 	}
+
+	cookie->data = data;
+	cookie->size = size;
+	cookie->pos = 0;
 
 	return mem;
 }

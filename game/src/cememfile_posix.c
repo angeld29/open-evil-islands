@@ -21,21 +21,83 @@
 #include <stdio.h>
 
 #include "celogging.h"
+#include "cealloc.h"
 #include "cememfile.h"
+
+typedef struct {
+	char* data;
+	size_t size;
+	FILE* file;
+} ce_memfile_cookie;
+
+static int ce_memfile_cookie_close(void* client_data)
+{
+	ce_memfile_cookie* cookie = client_data;
+	int ret = NULL != cookie->file ? fclose(cookie->file) : 0;
+	ce_free(cookie->data, cookie->size);
+	ce_free(cookie, sizeof(ce_memfile_cookie));
+	return ret;
+}
+
+static size_t
+ce_memfile_cookie_read(void* client_data, void* data, size_t size, size_t n)
+{
+	ce_memfile_cookie* cookie = client_data;
+	return fread(data, size, n, cookie->file);
+}
+
+static size_t ce_memfile_cookie_write(void* client_data,
+										const void* data,
+										size_t size, size_t n)
+{
+	ce_memfile_cookie* cookie = client_data;
+	return fwrite(data, size, n, cookie->file);
+}
+
+static int
+ce_memfile_cookie_seek(void* client_data, long int offset, int whence)
+{
+	ce_memfile_cookie* cookie = client_data;
+	return fseek(cookie->file, offset, whence);
+}
+
+static long int ce_memfile_cookie_tell(void* client_data)
+{
+	ce_memfile_cookie* cookie = client_data;
+	return ftell(cookie->file);
+}
+
+static const ce_io_callbacks ce_memfile_cookie_callbacks = {
+	ce_memfile_cookie_close,
+	ce_memfile_cookie_read, ce_memfile_cookie_write,
+	ce_memfile_cookie_seek, ce_memfile_cookie_tell
+};
 
 ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 {
+	ce_memfile_cookie* cookie = ce_alloc_zero(sizeof(ce_memfile_cookie));
+	if (NULL == cookie) {
+		ce_logging_error("memfile: could not allocate memory");
+		return NULL;
+	}
+
+	ce_memfile* memfile =
+		ce_memfile_open_callbacks(ce_memfile_cookie_callbacks, cookie);
+	if (NULL == memfile) {
+		ce_free(cookie, sizeof(ce_memfile_cookie));
+		return NULL;
+	}
+
 	FILE* file = fmemopen(data, size, mode);
 	if (NULL == file) {
 		ce_logging_error("memfile: could not open memory file");
+		ce_memfile_close(memfile);
 		return NULL;
 	}
 
-	ce_memfile* mem = ce_memfile_open_callbacks(CE_IO_CALLBACKS_FILE, file);
-	if (NULL == mem) {
-		fclose(file);
-		return NULL;
-	}
+	cookie->data = data;
+	cookie->size = size;
+	cookie->file = file;
 
-	return mem;
+	return memfile;
 }

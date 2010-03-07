@@ -163,35 +163,13 @@ static bool read_sector_impl(ce_mprfile_sector* sec, ce_memfile* mem)
 
 static bool read_sector(ce_mprfile_sector* sec, const char* name, ce_resfile* res)
 {
-	int index = ce_resfile_node_index(res, name);
-	if (index < 0) {
+	ce_memfile* memfile = ce_resfile_node_memfile_by_name(res, name);
+	if (NULL == memfile) {
 		return false;
 	}
 
-	const size_t data_size = ce_resfile_node_size(res, index);
-	void* data = ce_alloc(data_size);
-	if (NULL == data) {
-		ce_logging_error("mprfile: could not allocate memory");
-		return false;
-	}
-
-	if (!ce_resfile_node_data(res, index, data)) {
-		ce_free(data, data_size);
-		return false;
-	}
-
-	ce_memfile* mem = ce_memfile_open_data(data, data_size, "rb");
-	if (NULL == mem) {
-		ce_free(data, data_size);
-		return false;
-	}
-
-	bool ok = read_sector_impl(sec, mem);
-
-	ce_memfile_close(mem);
-	ce_free(data, data_size);
-
-	return ok;
+	bool ok = read_sector_impl(sec, memfile);
+	return ce_memfile_close(memfile), ok;
 }
 
 static bool read_sectors(ce_mprfile* mpr, ce_resfile* res)
@@ -314,35 +292,13 @@ static bool read_header(ce_mprfile* mpr, ce_resfile* res)
 	char mp_name[ce_string_length(mpr->name) + 3 + 1];
 	snprintf(mp_name, sizeof(mp_name), "%s.mp", ce_string_cstr(mpr->name));
 
-	int index = ce_resfile_node_index(res, mp_name);
-	if (index < 0) {
+	ce_memfile* memfile = ce_resfile_node_memfile_by_name(res, mp_name);
+	if (NULL == memfile) {
 		return false;
 	}
 
-	const size_t data_size = ce_resfile_node_size(res, index);
-	void* data = ce_alloc(data_size);
-	if (NULL == data) {
-		ce_logging_error("mprfile: could not allocate memory");
-		return false;
-	}
-
-	if (!ce_resfile_node_data(res, index, data)) {
-		ce_free(data, data_size);
-		return false;
-	}
-
-	ce_memfile* mem = ce_memfile_open_data(data, data_size, "rb");
-	if (NULL == mem) {
-		ce_free(data, data_size);
-		return false;
-	}
-
-	bool ok = read_header_impl(mpr, mem);
-
-	ce_memfile_close(mem);
-	ce_free(data, data_size);
-
-	return ok;
+	bool ok = read_header_impl(mpr, memfile);
+	return ce_memfile_close(memfile), ok;
 }
 
 ce_mprfile* ce_mprfile_open(ce_resfile* res)

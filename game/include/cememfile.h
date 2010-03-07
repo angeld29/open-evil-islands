@@ -38,6 +38,7 @@ typedef struct ce_memfile ce_memfile;
 */
 extern ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 													void* client_data);
+/// Memfile takes ownership of the data if successfull.
 extern ce_memfile* ce_memfile_open_data(void* data, size_t size,
 												const char* mode);
 extern ce_memfile* ce_memfile_open_file(const char* path, const char* mode);
