@@ -18,30 +18,39 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_TEXTURE_H
-#define CE_TEXTURE_H
+#include "cemprhlp.h"
 
-#ifdef __cplusplus
-extern "C"
+ce_mprfile_material* ce_mprhlp_find_material(ce_mprfile* mprfile,
+											ce_mprfile_material_type type)
 {
-#endif /* __cplusplus */
-
-typedef struct ce_texture ce_texture;
-
-extern ce_texture* ce_texture_new(const char* name, void* data);
-extern void ce_texture_del(ce_texture* texture);
-
-extern const char* ce_texture_get_name(ce_texture* texture);
-
-extern int ce_texture_get_ref_count(ce_texture* texture);
-extern void ce_texture_inc_ref(ce_texture* texture);
-extern void ce_texture_dec_ref(ce_texture* texture);
-
-extern void ce_texture_bind(ce_texture* texture);
-extern void ce_texture_unbind(ce_texture* texture);
-
-#ifdef __cplusplus
+	for (int i = 0, n = mprfile->material_count; i < n; ++i) {
+		ce_mprfile_material* material = mprfile->materials + i;
+		if (type == material->type) {
+			return material;
+		}
+	}
+	return NULL;
 }
-#endif /* __cplusplus */
 
-#endif /* CE_TEXTURE_H */
+float* ce_mprhlp_normal2vector(float* vector, uint32_t normal)
+{
+	vector[0] = (((normal >> 11) & 0x7ff) - 1000.0f) / 1000.0f;
+	vector[1] = (normal >> 22) / 1000.0f;
+	vector[2] = ((normal & 0x7ff) - 1000.0f) / 1000.0f;
+	return vector;
+}
+
+int ce_mprhlp_texture_index(uint16_t texture)
+{
+	return texture & 0x003f;
+}
+
+int ce_mprhlp_texture_number(uint16_t texture)
+{
+	return (texture & 0x3fc0) >> 6;
+}
+
+int ce_mprhlp_texture_angle(uint16_t texture)
+{
+	return (texture & 0xc000) >> 14;
+}

@@ -18,30 +18,42 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_TEXTURE_H
-#define CE_TEXTURE_H
+#include "celogging.h"
+#include "cealloc.h"
+#include "cerenditem.h"
 
-#ifdef __cplusplus
-extern "C"
+ce_renditem* ce_renditem_new(ce_renditem_vtable vtable, size_t size, ...)
 {
-#endif /* __cplusplus */
+	ce_renditem* renditem = ce_alloc_zero(sizeof(ce_renditem) + size);
+	if (NULL == renditem) {
+		ce_logging_error("renditem: could not allocate memory");
+		return NULL;
+	}
 
-typedef struct ce_texture ce_texture;
+	renditem->vtable = vtable;
+	renditem->size = size;
 
-extern ce_texture* ce_texture_new(const char* name, void* data);
-extern void ce_texture_del(ce_texture* texture);
+	va_list args;
+	va_start(args, size);
+	if (NULL != renditem->vtable.ctor) {
+		(renditem->vtable.ctor)(renditem, args);
+	}
+	va_end(args);
 
-extern const char* ce_texture_get_name(ce_texture* texture);
-
-extern int ce_texture_get_ref_count(ce_texture* texture);
-extern void ce_texture_inc_ref(ce_texture* texture);
-extern void ce_texture_dec_ref(ce_texture* texture);
-
-extern void ce_texture_bind(ce_texture* texture);
-extern void ce_texture_unbind(ce_texture* texture);
-
-#ifdef __cplusplus
+	return renditem;
 }
-#endif /* __cplusplus */
 
-#endif /* CE_TEXTURE_H */
+void ce_renditem_del(ce_renditem* renditem)
+{
+	if (NULL != renditem) {
+		if (NULL != renditem->vtable.dtor) {
+			(renditem->vtable.dtor)(renditem);
+		}
+		ce_free(renditem, sizeof(ce_renditem) + renditem->size);
+	}
+}
+
+void ce_renditem_render(ce_renditem* renditem)
+{
+	(renditem->vtable.render)(renditem);
+}

@@ -18,30 +18,37 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_TEXTURE_H
-#define CE_TEXTURE_H
+#ifndef CE_RENDQUEUE_H
+#define CE_RENDQUEUE_H
+
+#include "cevec3.h"
+#include "cevector.h"
+#include "cefrustum.h"
+#include "cerendlayer.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_texture ce_texture;
+typedef struct {
+	ce_vector* opacity_renditems;
+	ce_vector* transparent_renditems;
+} ce_rendqueue;
 
-extern ce_texture* ce_texture_new(const char* name, void* data);
-extern void ce_texture_del(ce_texture* texture);
+extern ce_rendqueue* ce_rendqueue_new(void);
+extern void ce_rendqueue_del(ce_rendqueue* rendqueue);
 
-extern const char* ce_texture_get_name(ce_texture* texture);
+extern void ce_rendqueue_clear(ce_rendqueue* rendqueue);
+extern void ce_rendqueue_render(ce_rendqueue* rendqueue);
 
-extern int ce_texture_get_ref_count(ce_texture* texture);
-extern void ce_texture_inc_ref(ce_texture* texture);
-extern void ce_texture_dec_ref(ce_texture* texture);
-
-extern void ce_texture_bind(ce_texture* texture);
-extern void ce_texture_unbind(ce_texture* texture);
+extern void ce_rendqueue_add_rendlayer(ce_rendqueue* rendqueue,
+										const ce_rendlayer* rendlayer,
+										const ce_vec3* eye,
+										const ce_frustum* frustum);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_TEXTURE_H */
+#endif /* CE_RENDQUEUE_H */

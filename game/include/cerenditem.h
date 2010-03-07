@@ -18,30 +18,46 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_TEXTURE_H
-#define CE_TEXTURE_H
+#ifndef CE_RENDITEM_H
+#define CE_RENDITEM_H
+
+#include <stddef.h>
+#include <stdarg.h>
+#include <stdbool.h>
+
+#include "ceaabb.h"
+#include "cesphere.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_texture ce_texture;
+typedef struct ce_renditem ce_renditem;
 
-extern ce_texture* ce_texture_new(const char* name, void* data);
-extern void ce_texture_del(ce_texture* texture);
+typedef struct {
+	void (*ctor)(ce_renditem* renditem, va_list args);
+	void (*dtor)(ce_renditem* renditem);
+	void (*render)(ce_renditem* renditem);
+} ce_renditem_vtable;
 
-extern const char* ce_texture_get_name(ce_texture* texture);
+struct ce_renditem {
+	ce_aabb bounding_box;
+	ce_sphere bounding_sphere;
+	float dist2;
+	bool transparent;
+	ce_renditem_vtable vtable;
+	size_t size;
+	char impl[];
+};
 
-extern int ce_texture_get_ref_count(ce_texture* texture);
-extern void ce_texture_inc_ref(ce_texture* texture);
-extern void ce_texture_dec_ref(ce_texture* texture);
+extern ce_renditem* ce_renditem_new(ce_renditem_vtable vtable, size_t size, ...);
+extern void ce_renditem_del(ce_renditem* renditem);
 
-extern void ce_texture_bind(ce_texture* texture);
-extern void ce_texture_unbind(ce_texture* texture);
+extern void ce_renditem_render(ce_renditem* renditem);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_TEXTURE_H */
+#endif /* CE_RENDITEM_H */

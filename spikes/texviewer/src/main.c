@@ -126,7 +126,7 @@ static bool generate_texture(int index)
 		return false;
 	}
 
-	tex = ce_texture_new(data);
+	tex = ce_texture_new("unknown", data);
 	ce_free(data, ce_resfile_node_size(res, index));
 
 	return NULL != tex;

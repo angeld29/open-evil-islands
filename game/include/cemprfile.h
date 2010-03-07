@@ -23,19 +23,18 @@
 
 #include <stdint.h>
 
+#include "cestring.h"
 #include "ceresfile.h"
-#include "cefrustum.h"
-#include "cetexture.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-enum {
-	CE_MPRFILE_MATERIAL_GROUND = 1,
-	CE_MPRFILE_MATERIAL_WATER = 3
-};
+typedef enum {
+	CE_MPRFILE_MATERIAL_TYPE_GROUND = 1,
+	CE_MPRFILE_MATERIAL_TYPE_WATER = 3
+} ce_mprfile_material_type;
 
 enum {
 	CE_MPRFILE_VERTEX_SIDE = 33,
@@ -68,9 +67,6 @@ typedef struct {
 } ce_mprfile_vertex;
 
 typedef struct {
-	unsigned int x, z;
-	ce_aabb bounding_box;
-	float dist2; // for sorting on rendering
 	uint8_t water;
 	ce_mprfile_vertex* land_vertices;
 	ce_mprfile_vertex* water_vertices;
@@ -80,10 +76,10 @@ typedef struct {
 } ce_mprfile_sector;
 
 typedef struct {
+	ce_string* name;
 	float max_y;
 	uint32_t sector_x_count;
 	uint32_t sector_z_count;
-	unsigned int sector_count;
 	uint32_t texture_count;
 	uint32_t texture_size;
 	uint32_t tile_count;
@@ -91,23 +87,13 @@ typedef struct {
 	uint16_t material_count;
 	uint32_t anim_tile_count;
 	ce_mprfile_material* materials;
-	uint32_t* tiles; // TODO: id for bind sound ?
+	uint32_t* tiles;
 	ce_mprfile_anim_tile* anim_tiles;
 	ce_mprfile_sector* sectors;
-	unsigned int visible_sector_count;
-	ce_mprfile_sector** visible_sectors;
-	ce_texture** textures;
 } ce_mprfile;
 
-extern ce_mprfile* ce_mprfile_open(ce_resfile* mpr_res, ce_resfile* textures_res);
+extern ce_mprfile* ce_mprfile_open(ce_resfile* res);
 extern void ce_mprfile_close(ce_mprfile* mpr);
-
-extern float ce_mprfile_get_max_height(const ce_mprfile* mpr);
-
-extern void ce_mprfile_apply_frustum(ce_mprfile* mpr, const ce_vec3* eye,
-														const ce_frustum* f);
-
-extern void ce_mprfile_render(ce_mprfile* mpr);
 
 #ifdef __cplusplus
 }

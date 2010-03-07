@@ -40,12 +40,10 @@
 #include "cealloc.h"
 #include "ceinput.h"
 #include "cetimer.h"
-#include "cecamera.h"
 #include "cemath.h"
 #include "cevec3.h"
-#include "cefrustum.h"
-#include "ceresfile.h"
-#include "cemprfile.h"
+#include "ceroot.h"
+#include "cescenemng.h"
 #include "cecfgfile.h"
 #include "celightcfg.h"
 
@@ -61,10 +59,6 @@
 
 #define DAY_NIGHT_CHANGE_SPEED_DEFAULT 0.08f
 
-ce_mprfile* mpr;
-ce_camera* cam;
-ce_timer* tmr;
-
 ce_lightcfg gipat_light;
 ce_lightcfg ingos_light;
 ce_lightcfg suslanger_light;
@@ -73,26 +67,26 @@ ce_lightcfg* light_cfg;
 float time_of_day = 12.0f;
 float day_night_change_speed = DAY_NIGHT_CHANGE_SPEED_DEFAULT;
 
+ce_scenemng* scenemng;
+ce_terrain* terrain;
 ce_input_event_supply* es;
 
 static void idle(void)
 {
-	ce_timer_advance(tmr);
+	ce_scenemng_advance(scenemng);
 
-	float elapsed = ce_timer_elapsed(tmr);
+	float elapsed = ce_timer_elapsed(scenemng->timer);
 
 	if ((time_of_day += day_night_change_speed * elapsed) >= 24.0f) {
 		time_of_day = 0.0f;
 	}
 
-	ce_input_advance(elapsed);
 	ce_input_event_supply_advance(es, elapsed);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_input_event_supply_del(es);
-		ce_timer_del(tmr);
-		ce_camera_del(cam);
-		ce_mprfile_close(mpr);
+		ce_scenemng_del(scenemng);
+		ce_root_term();
 		ce_gl_term();
 		ce_input_term();
 		ce_alloc_term();
@@ -104,33 +98,33 @@ static void idle(void)
 	}
 
 	if (ce_input_test(CE_KB_LEFT)) {
-		ce_camera_move(cam, -10.0f * elapsed, 0.0f);
+		ce_camera_move(scenemng->camera, -10.0f * elapsed, 0.0f);
 	}
 
 	if (ce_input_test(CE_KB_UP)) {
-		ce_camera_move(cam, 0.0f, 10.0f * elapsed);
+		ce_camera_move(scenemng->camera, 0.0f, 10.0f * elapsed);
 	}
 
 	if (ce_input_test(CE_KB_RIGHT)) {
-		ce_camera_move(cam, 10.0f * elapsed, 0.0f);
+		ce_camera_move(scenemng->camera, 10.0f * elapsed, 0.0f);
 	}
 
 	if (ce_input_test(CE_KB_DOWN)) {
-		ce_camera_move(cam, 0.0f, -10.0f * elapsed);
+		ce_camera_move(scenemng->camera, 0.0f, -10.0f * elapsed);
 	}
 
 	if (ce_input_test(CE_MB_WHEELUP)) {
-		ce_camera_zoom(cam, 5.0f);
+		ce_camera_zoom(scenemng->camera, 5.0f);
 	}
 
 	if (ce_input_test(CE_MB_WHEELDOWN)) {
-		ce_camera_zoom(cam, -5.0f);
+		ce_camera_zoom(scenemng->camera, -5.0f);
 	}
 
 	if (ce_input_test(CE_MB_RIGHT)) {
 		ce_vec2 offset = ce_input_mouse_offset();
-		ce_camera_yaw_pitch(cam, ce_deg2rad(-0.25f * offset.x),
-									ce_deg2rad(-0.25f * offset.y));
+		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(-0.25f * offset.x),
+												ce_deg2rad(-0.25f * offset.y));
 	}
 
 	glutPostRedisplay();
@@ -170,30 +164,6 @@ static void display(void)
 	glClearColor(sky[0], sky[1], sky[2], sky[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glLoadIdentity();
-	ce_camera_setup(cam);
-
-	glEnable(GL_DEPTH_TEST);
-
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glBegin(GL_LINES);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(100.0f, 0.0f, 0.0f);
-	glEnd();
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glBegin(GL_LINES);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 100.0f, 0.0f);
-	glEnd();
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glBegin(GL_LINES);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 100.0f);
-	glEnd();
-
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
-
 #ifdef GL_VERSION_1_2
 	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 #endif
@@ -205,19 +175,9 @@ static void display(void)
 	glLightfv(GL_LIGHT0, GL_AMBIENT, sunlight);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]) { 0.0f, 0.0f, 0.0f, 0.0f });
 
-	ce_vec3 eye, forward, right, up;
-	ce_frustum f;
-
-	ce_frustum_init(&f, ce_camera_get_fov(cam), ce_camera_get_aspect(cam),
-		ce_camera_get_near(cam), ce_camera_get_far(cam),
-		ce_camera_get_eye(cam, &eye), ce_camera_get_forward(cam, &forward),
-		ce_camera_get_right(cam, &right), ce_camera_get_up(cam, &up));
-
-	ce_mprfile_apply_frustum(mpr, &eye, &f);
-	ce_mprfile_render(mpr);
+	ce_scenemng_render(scenemng);
 
 	glDisable(GL_LIGHT0);
-	glDisable(GL_LIGHTING);
 
 	glutSwapBuffers();
 }
@@ -225,7 +185,7 @@ static void display(void)
 static void reshape(int width, int height)
 {
 	glViewport(0, 0, width, height);
-	ce_camera_set_aspect(cam, width, height);
+	ce_camera_set_aspect(scenemng->camera, width, height);
 }
 
 static bool load_light(ce_lightcfg* light, const char* ei_path,
@@ -366,30 +326,10 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	char path[512];
+	ce_root_init(ei_path);
 
-	snprintf(path, sizeof(path), "%s/Res/textures.res", ei_path);
-	ce_resfile* tex_res = ce_resfile_open_file(path);
-	if (NULL == tex_res) {
-		fprintf(stderr, "Could not open file '%s'\n", path);
-		return 1;
-	}
-
-	snprintf(path, sizeof(path), "%s/Maps/%s.mpr", ei_path, argv[optind]);
-	ce_resfile* mpr_res = ce_resfile_open_file(path);
-	if (NULL == mpr_res) {
-		fprintf(stderr, "Could not open file '%s'\n", path);
-		return 1;
-	}
-
-	mpr = ce_mprfile_open(mpr_res, tex_res);
-	if (!mpr) {
-		fprintf(stderr, "Could not open mpr file\n");
-		return 1;
-	}
-
-	ce_resfile_close(tex_res);
-	ce_resfile_close(mpr_res);
+	scenemng = ce_scenemng_new();
+	terrain = ce_scenemng_load_zone(scenemng, argv[optind]);
 
 	if (!load_light(&gipat_light, ei_path, "lightsgipat") ||
 			!load_light(&ingos_light, ei_path, "lightsingos") ||
@@ -402,13 +342,11 @@ int main(int argc, char* argv[])
 	light_cfg = &gipat_light;
 
 	ce_vec3 eye;
-	ce_vec3_init(&eye, 0.0f, ce_mprfile_get_max_height(mpr), 0.0f);
+	ce_vec3_init(&eye, 0.0f, 50.0f, 0.0f);
 
-	cam = ce_camera_new();
-	ce_camera_set_eye(cam, &eye);
-	ce_camera_yaw_pitch(cam, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
+	ce_camera_set_eye(scenemng->camera, &eye);
+	ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
 
-	tmr = ce_timer_new();
 	es = ce_input_event_supply_new();
 
 	glutMainLoop();

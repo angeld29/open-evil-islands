@@ -18,30 +18,43 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_TEXTURE_H
-#define CE_TEXTURE_H
+#ifndef CE_SCENEMNG_H
+#define CE_SCENEMNG_H
+
+#include "cevector.h"
+#include "cerendqueue.h"
+#include "cetimer.h"
+#include "ceinput.h"
+#include "cefps.h"
+#include "cecamera.h"
+#include "ceterrain.h"
+#include "cefont.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_texture ce_texture;
+typedef struct {
+	ce_rendqueue* rendqueue;
+	ce_timer* timer;
+	ce_fps* fps;
+	ce_camera* camera;
+	ce_vector* terrains;
+	ce_font* font;
+} ce_scenemng;
 
-extern ce_texture* ce_texture_new(const char* name, void* data);
-extern void ce_texture_del(ce_texture* texture);
+extern ce_scenemng* ce_scenemng_new(void);
+extern void ce_scenemng_del(ce_scenemng* rendlayer);
 
-extern const char* ce_texture_get_name(ce_texture* texture);
+extern void ce_scenemng_advance(ce_scenemng* scenemng);
+extern void ce_scenemng_render(ce_scenemng* scenemng);
 
-extern int ce_texture_get_ref_count(ce_texture* texture);
-extern void ce_texture_inc_ref(ce_texture* texture);
-extern void ce_texture_dec_ref(ce_texture* texture);
-
-extern void ce_texture_bind(ce_texture* texture);
-extern void ce_texture_unbind(ce_texture* texture);
+extern ce_terrain* ce_scenemng_load_zone(ce_scenemng* scenemng,
+										const char* zone_name);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_TEXTURE_H */
+#endif /* CE_SCENEMNG_H */

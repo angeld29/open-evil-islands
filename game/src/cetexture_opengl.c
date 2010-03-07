@@ -42,10 +42,13 @@
 #include "celogging.h"
 #include "cealloc.h"
 #include "cemath.h"
+#include "cestring.h"
 #include "cemmpfile.h"
 #include "cetexture.h"
 
 struct ce_texture {
+	int ref_count;
+	ce_string* name;
 	GLuint id;
 };
 
@@ -506,17 +509,23 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 	return ok;
 }
 
-ce_texture* ce_texture_new(void* mmp_data)
+ce_texture* ce_texture_new(const char* name, void* data)
 {
-	ce_texture* tex = ce_alloc(sizeof(ce_texture));
-	if (NULL == tex) {
+	ce_texture* texture = ce_alloc_zero(sizeof(ce_texture));
+	if (NULL == texture) {
 		ce_logging_error("texture: could not allocate memory");
 		return NULL;
 	}
 
-	glGenTextures(1, &tex->id);
+	texture->ref_count = 1;
 
-	glBindTexture(GL_TEXTURE_2D, tex->id);
+	if (NULL == (texture->name = ce_string_new_cstr(name))) {
+		ce_texture_del(texture);
+		return NULL;
+	}
+
+	glGenTextures(1, &texture->id);
+	glBindTexture(GL_TEXTURE_2D, texture->id);
 
 #ifdef GL_VERSION_1_2
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -532,11 +541,11 @@ ce_texture* ce_texture_new(void* mmp_data)
 #endif
 
 	// See cemmpfile.h for format details.
-	uint32_t* mmp = mmp_data;
+	uint32_t* mmp = data;
 
 	if (CE_MMP_SIGNATURE != ce_le2cpu32(*mmp++)) {
 		ce_logging_error("texture: wrong mmp signature");
-		ce_texture_del(tex);
+		ce_texture_del(texture);
 		return NULL;
 	}
 
@@ -599,29 +608,51 @@ ce_texture* ce_texture_new(void* mmp_data)
 	}
 
 	if (!ok) {
-		ce_texture_del(tex);
+		ce_texture_del(texture);
 		return NULL;
 	}
 
-	return tex;
+	return texture;
 }
 
-void ce_texture_del(ce_texture* tex)
+void ce_texture_del(ce_texture* texture)
 {
-	if (NULL != tex) {
-		glDeleteTextures(1, &tex->id);
-		ce_free(tex, sizeof(ce_texture));
+	if (NULL != texture) {
+		assert(1 == texture->ref_count);
+		glDeleteTextures(1, &texture->id);
+		ce_string_del(texture->name);
+		ce_free(texture, sizeof(ce_texture));
 	}
 }
 
-void ce_texture_bind(ce_texture* tex)
+const char* ce_texture_get_name(ce_texture* texture)
 {
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, tex->id);
+	return ce_string_cstr(texture->name);
 }
 
-void ce_texture_unbind(ce_texture* tex)
+int ce_texture_get_ref_count(ce_texture* texture)
 {
-	ce_unused(tex);
+	return texture->ref_count;
+}
+
+void ce_texture_inc_ref(ce_texture* texture)
+{
+	++texture->ref_count;
+}
+
+void ce_texture_dec_ref(ce_texture* texture)
+{
+	--texture->ref_count;
+}
+
+void ce_texture_bind(ce_texture* texture)
+{
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture->id);
+}
+
+void ce_texture_unbind(ce_texture* texture)
+{
+	ce_unused(texture);
 	glDisable(GL_TEXTURE_2D);
 }

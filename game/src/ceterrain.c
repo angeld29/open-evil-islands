@@ -18,30 +18,4 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_TEXTURE_H
-#define CE_TEXTURE_H
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
-typedef struct ce_texture ce_texture;
-
-extern ce_texture* ce_texture_new(const char* name, void* data);
-extern void ce_texture_del(ce_texture* texture);
-
-extern const char* ce_texture_get_name(ce_texture* texture);
-
-extern int ce_texture_get_ref_count(ce_texture* texture);
-extern void ce_texture_inc_ref(ce_texture* texture);
-extern void ce_texture_dec_ref(ce_texture* texture);
-
-extern void ce_texture_bind(ce_texture* texture);
-extern void ce_texture_unbind(ce_texture* texture);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-
-#endif /* CE_TEXTURE_H */
+#include "ceterrain.h"
