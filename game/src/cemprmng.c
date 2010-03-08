@@ -38,7 +38,7 @@ ce_mprmng* ce_mprmng_new(const char* maps_path)
 		return NULL;
 	}
 
-	ce_logging_write("mprmng: using maps path: '%s'", maps_path);
+	ce_logging_write("mprmng: using path: '%s'", maps_path);
 
 	return mprmng;
 }

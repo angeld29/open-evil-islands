@@ -41,7 +41,7 @@ static bool ce_bonfile_open_impl(ce_bonfile* bonfile, ce_memfile* memfile)
 	return true;
 }
 
-ce_bonfile* ce_bonfile_open(int value_count, ce_memfile* memfile)
+ce_bonfile* ce_bonfile_open_memfile(int value_count, ce_memfile* memfile)
 {
 	ce_bonfile* bonfile = ce_alloc_zero(sizeof(ce_bonfile));
 	if (NULL == bonfile) {

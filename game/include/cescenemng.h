@@ -22,12 +22,12 @@
 #define CE_SCENEMNG_H
 
 #include "cevector.h"
-#include "cerendqueue.h"
+#include "cescenenode.h"
+#include "cerenderqueue.h"
 #include "cetimer.h"
 #include "ceinput.h"
 #include "cefps.h"
 #include "cecamera.h"
-#include "ceterrain.h"
 #include "cefont.h"
 
 #ifdef __cplusplus
@@ -36,11 +36,11 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_rendqueue* rendqueue;
+	ce_scenenode* root_scenenode;
+	ce_renderqueue* renderqueue;
 	ce_timer* timer;
 	ce_fps* fps;
 	ce_camera* camera;
-	ce_vector* terrains;
 	ce_font* font;
 } ce_scenemng;
 
@@ -49,9 +49,6 @@ extern void ce_scenemng_del(ce_scenemng* rendlayer);
 
 extern void ce_scenemng_advance(ce_scenemng* scenemng);
 extern void ce_scenemng_render(ce_scenemng* scenemng);
-
-extern ce_terrain* ce_scenemng_load_zone(ce_scenemng* scenemng,
-										const char* zone_name);
 
 #ifdef __cplusplus
 }

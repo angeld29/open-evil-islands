@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_RENDQUEUE_H
-#define CE_RENDQUEUE_H
+#ifndef CE_RENDERQUEUE_H
+#define CE_RENDERQUEUE_H
 
 #include "cevec3.h"
 #include "cevector.h"
@@ -34,21 +34,25 @@ extern "C"
 typedef struct {
 	ce_vector* opacity_scenenodes;
 	ce_vector* transparent_scenenodes;
-} ce_rendqueue;
+} ce_renderqueue;
 
-extern ce_rendqueue* ce_rendqueue_new(void);
-extern void ce_rendqueue_del(ce_rendqueue* rendqueue);
+extern ce_renderqueue* ce_renderqueue_new(void);
+extern void ce_renderqueue_del(ce_renderqueue* renderqueue);
 
-extern void ce_rendqueue_clear(ce_rendqueue* rendqueue);
-extern void ce_rendqueue_render(ce_rendqueue* rendqueue);
+extern void ce_renderqueue_clear(ce_renderqueue* renderqueue);
+extern void ce_renderqueue_render(ce_renderqueue* renderqueue);
 
-extern void ce_rendqueue_cascade_scenenode(ce_rendqueue* rendqueue,
-											ce_scenenode* scenenode,
-											const ce_vec3* eye,
-											const ce_frustum* frustum);
+extern void ce_renderqueue_add(ce_renderqueue* renderqueue,
+								ce_scenenode* scenenode,
+								const ce_vec3* eye,
+								const ce_frustum* frustum);
+extern void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
+										ce_scenenode* scenenode,
+										const ce_vec3* eye,
+										const ce_frustum* frustum);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_RENDQUEUE_H */
+#endif /* CE_RENDERQUEUE_H */

@@ -127,6 +127,14 @@ void ce_vector_replace(ce_vector* vec, int index, void* item)
 	vec->items[index] = item;
 }
 
+void ce_vector_remove(ce_vector* vec, int index)
+{
+	for (int i = index + 1, n = vec->count; i < n; ++i) {
+		vec->items[index - 1] = vec->items[index];
+	}
+	--vec->count;
+}
+
 void ce_vector_clear(ce_vector* vec)
 {
 	vec->count = 0;

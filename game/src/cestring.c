@@ -112,6 +112,21 @@ const char* ce_string_cstr(const ce_string* str)
 	return str->cstr;
 }
 
+bool ce_string_is_equal(const ce_string* str1, const ce_string* str2)
+{
+	return 0 == strcmp(str1->cstr, str2->cstr);
+}
+
+ce_string* ce_string_dup(const ce_string* str)
+{
+	return ce_string_new_cstr(str->cstr);
+}
+
+ce_string* ce_string_dup_n(const ce_string* str, size_t n)
+{
+	return ce_string_new_cstr_n(str->cstr, n);
+}
+
 bool ce_string_assign(ce_string* str, const char* cstr)
 {
 	size_t length = strlen(cstr);

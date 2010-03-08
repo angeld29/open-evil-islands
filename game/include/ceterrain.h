@@ -21,8 +21,14 @@
 #ifndef CE_TERRAIN_H
 #define CE_TERRAIN_H
 
+#include <stdbool.h>
+
+#include "cevec3.h"
+#include "cequat.h"
 #include "cevector.h"
-#include "cerendlayer.h"
+#include "cemprfile.h"
+#include "cerenderitem.h"
+#include "cescenenode.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -30,12 +36,19 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	ce_mprfile* mprfile;
 	ce_vector* textures;
-	ce_rendlayer* rendlayer;
+	ce_vector* renderitems;
+	ce_scenenode* scenenode;
 } ce_terrain;
 
-extern ce_terrain* ce_terrain_new(const char* zone_name);
+extern ce_terrain* ce_terrain_new(const char* zone_name,
+									const ce_vec3* position,
+									const ce_quat* orientation,
+									ce_scenenode* parent_scenenode);
 extern void ce_terrain_del(ce_terrain* terrain);
+
+extern bool ce_terrain_create_impl(ce_terrain* terrain);
 
 #ifdef __cplusplus
 }

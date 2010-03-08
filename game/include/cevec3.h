@@ -87,6 +87,9 @@ extern ce_vec3* ce_vec3_rot(ce_vec3* r, const ce_vec3* a, const ce_quat* b);
 extern ce_vec3* ce_vec3_lerp(ce_vec3* r, const ce_vec3* a,
 										const ce_vec3* b, float u);
 
+extern ce_vec3* ce_vec3_floor(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
+extern ce_vec3* ce_vec3_ceil(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -249,3 +249,19 @@ ce_vec3* ce_vec3_lerp(ce_vec3* r, const ce_vec3* a, const ce_vec3* b, float u)
 	r->z = ce_lerp(u, a->z, b->z);
 	return r;
 }
+
+ce_vec3* ce_vec3_floor(ce_vec3* r, const ce_vec3* a, const ce_vec3* b)
+{
+	r->x = fminf(a->x, b->x);
+	r->y = fminf(a->y, b->y);
+	r->z = fminf(a->z, b->z);
+	return r;
+}
+
+ce_vec3* ce_vec3_ceil(ce_vec3* r, const ce_vec3* a, const ce_vec3* b)
+{
+	r->x = fmaxf(a->x, b->x);
+	r->y = fmaxf(a->y, b->y);
+	r->z = fmaxf(a->z, b->z);
+	return r;
+}

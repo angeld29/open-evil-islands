@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_RENDITEM_H
-#define CE_RENDITEM_H
+#ifndef CE_RENDERITEM_H
+#define CE_RENDERITEM_H
 
 #include <stddef.h>
 #include <stdarg.h>
@@ -33,30 +33,31 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_renditem ce_renditem;
+typedef struct ce_renderitem ce_renderitem;
 
 typedef struct {
-	void (*ctor)(ce_renditem* renditem, va_list args);
-	void (*dtor)(ce_renditem* renditem);
-	void (*render)(ce_renditem* renditem);
-} ce_renditem_vtable;
+	void (*ctor)(ce_renderitem* renderitem, va_list args);
+	void (*dtor)(ce_renderitem* renderitem);
+	void (*render)(ce_renderitem* renderitem);
+} ce_renderitem_vtable;
 
-struct ce_renditem {
+struct ce_renderitem {
 	ce_aabb bounding_box;
 	ce_sphere bounding_sphere;
 	bool transparent;
-	ce_renditem_vtable vtable;
+	ce_renderitem_vtable vtable;
 	size_t size;
 	char impl[];
 };
 
-extern ce_renditem* ce_renditem_new(ce_renditem_vtable vtable, size_t size, ...);
-extern void ce_renditem_del(ce_renditem* renditem);
+extern ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable,
+										size_t size, ...);
+extern void ce_renderitem_del(ce_renderitem* renderitem);
 
-extern void ce_renditem_render(ce_renditem* renditem);
+extern void ce_renderitem_render(ce_renderitem* renderitem);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_RENDITEM_H */
+#endif /* CE_RENDERITEM_H */

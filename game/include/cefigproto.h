@@ -18,13 +18,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_LNKFILE_H
-#define CE_LNKFILE_H
-
-#include <stdint.h>
+#ifndef CE_FIGPROTO_H
+#define CE_FIGPROTO_H
 
 #include "cestring.h"
-#include "cememfile.h"
+#include "cevector.h"
+#include "ceresfile.h"
+#include "cefigfile.h"
+#include "cebonfile.h"
+#include "ceanmfile.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -32,20 +34,24 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_string* child_name;
-	ce_string* parent_name;
-} ce_lnkfile_relationship;
+	ce_string* name;
+	ce_figfile* figfile;
+	ce_bonfile* bonfile;
+	ce_vector* anmfiles;
+	ce_vector* childs;
+} ce_figproto_node;
 
 typedef struct {
-	uint32_t relationship_count;
-	ce_lnkfile_relationship* relationships;
-} ce_lnkfile;
+	ce_string* name;
+	int ref_count;
+	ce_figproto_node* root;
+} ce_figproto;
 
-extern ce_lnkfile* ce_lnkfile_open_memfile(ce_memfile* memfile);
-extern void ce_lnkfile_close(ce_lnkfile* lnkfile);
+extern ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile);
+extern void ce_figproto_del(ce_figproto* figproto);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_LNKFILE_H */
+#endif /* CE_FIGPROTO_H */

@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_LNKFILE_H
-#define CE_LNKFILE_H
+#ifndef CE_FIGPROTOMNG_H
+#define CE_FIGPROTOMNG_H
 
-#include <stdint.h>
+#include <stdbool.h>
 
-#include "cestring.h"
-#include "cememfile.h"
+#include "cevector.h"
+#include "cefigproto.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -32,20 +32,20 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_string* child_name;
-	ce_string* parent_name;
-} ce_lnkfile_relationship;
+	ce_vector* resources;
+} ce_figprotomng;
 
-typedef struct {
-	uint32_t relationship_count;
-	ce_lnkfile_relationship* relationships;
-} ce_lnkfile;
+extern ce_figprotomng* ce_figprotomng_new(void);
+extern void ce_figprotomng_del(ce_figprotomng* figprotomng);
 
-extern ce_lnkfile* ce_lnkfile_open_memfile(ce_memfile* memfile);
-extern void ce_lnkfile_close(ce_lnkfile* lnkfile);
+extern bool
+ce_figprotomng_register_resource(ce_figprotomng* figprotomng, const char* path);
+
+extern ce_figproto*
+ce_figprotomng_get_figproto(ce_figprotomng* figprotomng, const char* name);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_LNKFILE_H */
+#endif /* CE_FIGPROTOMNG_H */

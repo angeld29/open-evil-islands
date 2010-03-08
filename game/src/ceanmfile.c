@@ -108,7 +108,7 @@ static bool ce_anmfile_read_rotations(ce_anmfile* anmfile, ce_memfile* memfile)
 	return true;
 }
 
-ce_anmfile* ce_anmfile_open(const char* name, ce_memfile* memfile)
+ce_anmfile* ce_anmfile_open_memfile(const char* anim_name, ce_memfile* memfile)
 {
 	ce_anmfile* anmfile = ce_alloc_zero(sizeof(ce_anmfile));
 	if (NULL == anmfile) {
@@ -116,7 +116,7 @@ ce_anmfile* ce_anmfile_open(const char* name, ce_memfile* memfile)
 		return NULL;
 	}
 
-	if (NULL == (anmfile->name = ce_string_new_cstr(name)) ||
+	if (NULL == (anmfile->anim_name = ce_string_new_cstr(anim_name)) ||
 			!ce_anmfile_read_rotations(anmfile, memfile) ||
 			!ce_anmfile_read_translations(anmfile, memfile) ||
 			!ce_anmfile_read_morphs(anmfile, memfile)) {
@@ -136,7 +136,7 @@ void ce_anmfile_close(ce_anmfile* anmfile)
 				sizeof(float) * 3 * anmfile->translation_anim_count);
 		ce_free(anmfile->rotations,
 				sizeof(float) * 4 * anmfile->rotation_anim_count);
-		ce_string_del(anmfile->name);
+		ce_string_del(anmfile->anim_name);
 		ce_free(anmfile, sizeof(ce_anmfile));
 	}
 }

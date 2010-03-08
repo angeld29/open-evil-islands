@@ -35,11 +35,11 @@ ce_scenemng* ce_scenemng_new(void)
 		return NULL;
 	}
 
-	if (NULL == (scenemng->rendqueue = ce_rendqueue_new()) ||
+	if (NULL == (scenemng->root_scenenode = ce_scenenode_new()) ||
+			NULL == (scenemng->renderqueue = ce_renderqueue_new()) ||
 			NULL == (scenemng->timer = ce_timer_new()) ||
 			NULL == (scenemng->fps = ce_fps_new()) ||
 			NULL == (scenemng->camera = ce_camera_new()) ||
-			NULL == (scenemng->terrains = ce_vector_new()) ||
 			NULL == (scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18))) {
 		ce_scenemng_del(scenemng);
 		return NULL;
@@ -51,17 +51,12 @@ ce_scenemng* ce_scenemng_new(void)
 void ce_scenemng_del(ce_scenemng* scenemng)
 {
 	if (NULL != scenemng) {
-		if (NULL != scenemng->terrains) {
-			for (int i = 0, n = ce_vector_count(scenemng->terrains); i < n; ++i) {
-				ce_terrain_del(ce_vector_at(scenemng->terrains, i));
-			}
-			ce_vector_del(scenemng->terrains);
-		}
 		ce_font_del(scenemng->font);
 		ce_camera_del(scenemng->camera);
 		ce_fps_del(scenemng->fps);
 		ce_timer_del(scenemng->timer);
-		ce_rendqueue_del(scenemng->rendqueue);
+		ce_renderqueue_del(scenemng->renderqueue);
+		ce_scenenode_del(scenemng->root_scenenode);
 		ce_free(scenemng, sizeof(ce_scenemng));
 	}
 }
@@ -74,6 +69,63 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 	ce_input_advance(elapsed);
 	ce_fps_advance(scenemng->fps, elapsed);
+}
+
+#include <GL/glut.h>
+void ce_scenemng_debug_render(ce_scenenode* scenenode)
+{
+	glEnable(GL_DEPTH_TEST);
+
+#if 0
+	glBegin(GL_LINES);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glVertex3f(scenenode->world_bounding_box.min.x,
+				scenenode->world_bounding_box.min.y,
+				scenenode->world_bounding_box.min.z);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(scenenode->world_bounding_box.max.x,
+				scenenode->world_bounding_box.max.y,
+				scenenode->world_bounding_box.max.z);
+	glEnd();
+#endif
+
+#if 0
+	glPushMatrix();
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glTranslatef(scenenode->world_bounding_box.center.x,
+				scenenode->world_bounding_box.center.y,
+				scenenode->world_bounding_box.center.z);
+	glutWireSphere(5.0f, 40, 40);
+	glPopMatrix();
+#endif
+
+#if 0
+	glPushMatrix();
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glTranslatef(scenenode->world_bounding_sphere.center.x,
+				scenenode->world_bounding_sphere.center.y,
+				scenenode->world_bounding_sphere.center.z);
+	if (scenenode->world_bounding_sphere.radius > 40) {
+	glutWireSphere(scenenode->world_bounding_sphere.radius, 40, 40);
+	}
+	glPopMatrix();
+#endif
+
+#if 0
+	glPushMatrix();
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glTranslatef(scenenode->world_bounding_sphere.center.x,
+				scenenode->world_bounding_sphere.center.y,
+				scenenode->world_bounding_sphere.center.z);
+	glutWireSphere(5.0f, 40, 40);
+	glPopMatrix();
+#endif
+
+	glDisable(GL_DEPTH_TEST);
+
+	for (int i = 0, n = ce_vector_count(scenenode->child_scenenodes); i < n; ++i) {
+		ce_scenemng_debug_render(ce_vector_at(scenenode->child_scenenodes, i));
+	}
 }
 
 void ce_scenemng_render(ce_scenemng* scenemng)
@@ -101,8 +153,6 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	glDisable(GL_DEPTH_TEST);
 
-	ce_rendqueue_clear(scenemng->rendqueue);
-
 	ce_vec3 eye, forward, right, up;
 	ce_frustum frustum;
 
@@ -116,14 +166,14 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_camera_get_right(scenemng->camera, &right),
 		ce_camera_get_up(scenemng->camera, &up));
 
-	for (int i = 0, n = ce_vector_count(scenemng->terrains); i < n; ++i) {
-		ce_terrain* terrain = ce_vector_at(scenemng->terrains, i);
-		ce_rendqueue_add_rendlayer(scenemng->rendqueue,
-									terrain->rendlayer,
-									&eye, &frustum);
-	}
+	ce_renderqueue_clear(scenemng->renderqueue);
+	ce_scenenode_update_cascade(scenemng->root_scenenode);
+	ce_renderqueue_add_cascade(scenemng->renderqueue,
+								scenemng->root_scenenode,
+								&eye, &frustum);
+	ce_renderqueue_render(scenemng->renderqueue);
 
-	ce_rendqueue_render(scenemng->rendqueue);
+	ce_scenemng_debug_render(scenemng->root_scenenode);
 
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
@@ -169,13 +219,4 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_font_render(scenemng->font, 10,
 		height - 3 * ce_font_get_height(scenemng->font) - 10,
 		&CE_COLOR_RED, alloc_text);
-}
-
-ce_terrain* ce_scenemng_load_zone(ce_scenemng* scenemng, const char* zone_name)
-{
-	ce_terrain* terrain = ce_terrain_new(zone_name);
-	if (terrain) {
-		ce_vector_push_back(scenemng->terrains, terrain);
-	}
-	return terrain;
 }

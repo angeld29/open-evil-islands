@@ -18,34 +18,32 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_LNKFILE_H
-#define CE_LNKFILE_H
+#include <GL/gl.h>
 
-#include <stdint.h>
+#include "celib.h"
+#include "cemath.h"
+#include "cescenenode.h"
 
-#include "cestring.h"
-#include "cememfile.h"
-
-#ifdef __cplusplus
-extern "C"
+void ce_scenenode_apply_transform(ce_scenenode* scenenode)
 {
-#endif /* __cplusplus */
+	ce_vec3 rotation_axis;
+	float angle =
+		ce_quat_to_angle_axis(&scenenode->world_orientation, &rotation_axis);
 
-typedef struct {
-	ce_string* child_name;
-	ce_string* parent_name;
-} ce_lnkfile_relationship;
+	glPushMatrix();
 
-typedef struct {
-	uint32_t relationship_count;
-	ce_lnkfile_relationship* relationships;
-} ce_lnkfile;
+	glTranslatef(scenenode->world_position.x,
+				scenenode->world_position.y,
+				scenenode->world_position.z);
 
-extern ce_lnkfile* ce_lnkfile_open_memfile(ce_memfile* memfile);
-extern void ce_lnkfile_close(ce_lnkfile* lnkfile);
-
-#ifdef __cplusplus
+	glRotatef(ce_rad2deg(angle),
+				rotation_axis.x,
+				rotation_axis.y,
+				rotation_axis.z);
 }
-#endif /* __cplusplus */
 
-#endif /* CE_LNKFILE_H */
+void ce_scenenode_discard_transform(ce_scenenode* scenenode)
+{
+	ce_unused(scenenode);
+	glPopMatrix();
+}

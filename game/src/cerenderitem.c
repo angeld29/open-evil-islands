@@ -20,40 +20,40 @@
 
 #include "celogging.h"
 #include "cealloc.h"
-#include "cerenditem.h"
+#include "cerenderitem.h"
 
-ce_renditem* ce_renditem_new(ce_renditem_vtable vtable, size_t size, ...)
+ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...)
 {
-	ce_renditem* renditem = ce_alloc_zero(sizeof(ce_renditem) + size);
-	if (NULL == renditem) {
-		ce_logging_error("renditem: could not allocate memory");
+	ce_renderitem* renderitem = ce_alloc_zero(sizeof(ce_renderitem) + size);
+	if (NULL == renderitem) {
+		ce_logging_error("renderitem: could not allocate memory");
 		return NULL;
 	}
 
-	renditem->vtable = vtable;
-	renditem->size = size;
+	renderitem->vtable = vtable;
+	renderitem->size = size;
 
-	if (NULL != renditem->vtable.ctor) {
+	if (NULL != renderitem->vtable.ctor) {
 		va_list args;
 		va_start(args, size);
-		(renditem->vtable.ctor)(renditem, args);
+		(renderitem->vtable.ctor)(renderitem, args);
 		va_end(args);
 	}
 
-	return renditem;
+	return renderitem;
 }
 
-void ce_renditem_del(ce_renditem* renditem)
+void ce_renderitem_del(ce_renderitem* renderitem)
 {
-	if (NULL != renditem) {
-		if (NULL != renditem->vtable.dtor) {
-			(renditem->vtable.dtor)(renditem);
+	if (NULL != renderitem) {
+		if (NULL != renderitem->vtable.dtor) {
+			(renderitem->vtable.dtor)(renderitem);
 		}
-		ce_free(renditem, sizeof(ce_renditem) + renditem->size);
+		ce_free(renderitem, sizeof(ce_renderitem) + renderitem->size);
 	}
 }
 
-void ce_renditem_render(ce_renditem* renditem)
+void ce_renderitem_render(ce_renderitem* renderitem)
 {
-	(renditem->vtable.render)(renditem);
+	(renderitem->vtable.render)(renderitem);
 }

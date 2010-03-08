@@ -62,9 +62,9 @@ static bool ce_lnkfile_open_impl(ce_lnkfile* lnkfile, ce_memfile* memfile)
 	}
 
 	for (int i = 0, n = lnkfile->relationship_count; i < n; ++i) {
-		if (NULL == (lnkfile->relationships[i].name_child =
+		if (NULL == (lnkfile->relationships[i].child_name =
 						ce_lnkfile_read_name(memfile)) ||
-				NULL == (lnkfile->relationships[i].name_parent =
+				NULL == (lnkfile->relationships[i].parent_name =
 							ce_lnkfile_read_name(memfile))) {
 			return false;
 		}
@@ -73,7 +73,7 @@ static bool ce_lnkfile_open_impl(ce_lnkfile* lnkfile, ce_memfile* memfile)
 	return true;
 }
 
-ce_lnkfile* ce_lnkfile_open(ce_memfile* memfile)
+ce_lnkfile* ce_lnkfile_open_memfile(ce_memfile* memfile)
 {
 	ce_lnkfile* lnkfile = ce_alloc_zero(sizeof(ce_lnkfile));
 	if (NULL == lnkfile) {
@@ -94,8 +94,8 @@ void ce_lnkfile_close(ce_lnkfile* lnkfile)
 	if (NULL != lnkfile) {
 		if (NULL != lnkfile->relationships) {
 			for (int i = 0, n = lnkfile->relationship_count; i < n; ++i) {
-				ce_string_del(lnkfile->relationships[i].name_parent);
-				ce_string_del(lnkfile->relationships[i].name_child);
+				ce_string_del(lnkfile->relationships[i].parent_name);
+				ce_string_del(lnkfile->relationships[i].child_name);
 			}
 			ce_free(lnkfile->relationships, sizeof(ce_lnkfile_relationship) *
 											lnkfile->relationship_count);

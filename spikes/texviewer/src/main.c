@@ -160,7 +160,7 @@ static void next_texture(int index)
 	}
 }
 
-static void usage()
+static void usage(void)
 {
 	fprintf(stderr,
 		"===============================================================================\n"

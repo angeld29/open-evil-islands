@@ -18,55 +18,42 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdbool.h>
 #include <limits.h>
 #include <assert.h>
 
 #include <GL/gl.h>
 
-#include "celogging.h"
-#include "cealloc.h"
-#include "cemprfile.h"
+#include "cetexture.h"
 #include "cemprhlp.h"
-#include "cemprmng.h"
-#include "cetexmng.h"
-#include "ceroot.h"
 #include "ceterrain.h"
 
 typedef struct {
 	GLuint id;
-} ce_renditem_terrain;
+} ce_terrain_renderitem;
 
-static void ce_renditem_terrain_ctor(ce_renditem* renditem, va_list args)
+static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 {
 	ce_terrain* terrain = va_arg(args, ce_terrain*);
-	ce_mprfile* mprfile = va_arg(args, ce_mprfile*);
 	int sector_x = va_arg(args, int);
 	int sector_z = va_arg(args, int);
 	ce_mprfile_vertex* vertices = va_arg(args, ce_mprfile_vertex*);
 	uint16_t* textures = va_arg(args, uint16_t*);
 	int16_t* water_allow = va_arg(args, int16_t*);
 
-	ce_vec3_init(&renditem->bounding_box.min,
-		sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f, -1.0f *
+	ce_vec3 box_min, box_max;
+	ce_vec3_init(&box_min, sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f, -1.0f *
 		(sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1)));
-	ce_vec3_init(&renditem->bounding_box.max,
+	ce_vec3_init(&box_max,
 		sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1),
-		mprfile->max_y, -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1)));
-	ce_vec3_mid(&renditem->bounding_box.center,
-				&renditem->bounding_box.min, &renditem->bounding_box.max);
+		terrain->mprfile->max_y, -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1)));
 
-	ce_vec3_copy(&renditem->bounding_sphere.center,
-					&renditem->bounding_box.center);
-	renditem->bounding_sphere.radius =
-		ce_vec3_dist(&renditem->bounding_box.min,
-					&renditem->bounding_box.center);
+	ce_aabb_init(&renderitem->bounding_box, &box_min, &box_max);
+	ce_sphere_init_aabb(&renderitem->bounding_sphere, &renderitem->bounding_box);
 
-	renditem->transparent = NULL != water_allow;
+	renderitem->transparent = NULL != water_allow;
 
 	ce_mprfile_material* material =
-		ce_mprhlp_find_material(mprfile, NULL != water_allow ?
+		ce_mprhlp_find_material(terrain->mprfile, NULL != water_allow ?
 											CE_MPRFILE_MATERIAL_TYPE_WATER :
 											CE_MPRFILE_MATERIAL_TYPE_GROUND);
 	assert(material);
@@ -80,13 +67,14 @@ static void ce_renditem_terrain_ctor(ce_renditem* renditem, va_list args)
 	};
 
 	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
-	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
+	const float y_coef = terrain->mprfile->max_y / (UINT16_MAX - 0);
 
 	const float tile_uv_step = 1.0f / 8.0f;
 	const float tile_uv_half_step = 1.0f / 16.0f;
 
 	const float tile_border_size = 8.0f; // in pixels
-	const float tile_uv_border_offset = tile_border_size / mprfile->texture_size;
+	const float tile_uv_border_offset = tile_border_size /
+										terrain->mprfile->texture_size;
 
 	float vertex_array[3 * 9];
 	float normal_array[3 * 9];
@@ -118,10 +106,10 @@ static void ce_renditem_terrain_ctor(ce_renditem* renditem, va_list args)
 		{ 6, 7, 5, 8, 4, 3 }
 	};
 
-	ce_renditem_terrain* renditem_terrain = (ce_renditem_terrain*)renditem->impl;
-	renditem_terrain->id = glGenLists(1);
+	ce_terrain_renderitem* terrain_renderitem = (ce_terrain_renderitem*)renderitem->impl;
+	terrain_renderitem->id = glGenLists(1);
 
-	glNewList(renditem_terrain->id, GL_COMPILE);
+	glNewList(terrain_renderitem->id, GL_COMPILE);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -216,141 +204,66 @@ static void ce_renditem_terrain_ctor(ce_renditem* renditem, va_list args)
 	glEndList();
 }
 
-static void ce_renditem_terrain_dtor(ce_renditem* renditem)
+static void ce_terrain_renderitem_dtor(ce_renderitem* renderitem)
 {
-	ce_renditem_terrain* renditem_terrain = (ce_renditem_terrain*)renditem->impl;
-	glDeleteLists(renditem_terrain->id, 1);
+	ce_terrain_renderitem* terrain_renderitem = (ce_terrain_renderitem*)renderitem->impl;
+	glDeleteLists(terrain_renderitem->id, 1);
 }
 
-static void ce_renditem_terrain_render(ce_renditem* renditem)
+static void ce_terrain_renderitem_render(ce_renderitem* renderitem)
 {
-	ce_renditem_terrain* renditem_terrain = (ce_renditem_terrain*)renditem->impl;
-	glCallList(renditem_terrain->id);
+	ce_terrain_renderitem* terrain_renderitem = (ce_terrain_renderitem*)renderitem->impl;
+	glCallList(terrain_renderitem->id);
 }
 
-static const ce_renditem_vtable ce_renditem_terrain_vtable = {
-	ce_renditem_terrain_ctor, ce_renditem_terrain_dtor,
-	ce_renditem_terrain_render
+static const ce_renderitem_vtable ce_terrain_renderitem_vtable = {
+	ce_terrain_renderitem_ctor, ce_terrain_renderitem_dtor,
+	ce_terrain_renderitem_render
 };
 
-static bool ce_terrain_create_sector(ce_terrain* terrain, ce_mprfile* mprfile,
+static bool ce_terrain_create_sector(ce_terrain* terrain,
 									int sector_x, int sector_z,
-									ce_mprfile_sector* sector, bool opacity)
+									ce_mprfile_sector* sector,
+									bool opacity)
 {
 	if (!opacity && NULL == sector->water_allow) {
 		return true;
 	}
 
-	ce_renditem* renditem =
-		ce_renditem_new(ce_renditem_terrain_vtable,
-						sizeof(ce_renditem_terrain),
-						terrain, mprfile, sector_x, sector_z,
+	ce_renderitem* renderitem =
+		ce_renderitem_new(ce_terrain_renderitem_vtable,
+						sizeof(ce_terrain_renderitem),
+						terrain, sector_x, sector_z,
 						opacity ? sector->land_vertices : sector->water_vertices,
 						opacity ? sector->land_textures : sector->water_textures,
 						opacity ? NULL : sector->water_allow);
-
-	if (NULL != renditem) {
-		ce_rendlayer_add_renditem(terrain->rendlayer, renditem);
-		return true;
-	}
-
-	return false;
-}
-
-static bool ce_terrain_create(ce_terrain* terrain, ce_mprfile* mprfile)
-{
-	if (NULL == (terrain->textures =
-					ce_vector_new_reserved(mprfile->texture_count)) ||
-			NULL == (terrain->rendlayer =
-						ce_rendlayer_new(mprfile->sector_x_count *
-										mprfile->sector_z_count))) {
+	if (NULL == renderitem) {
 		return false;
 	}
 
-	// mpr name + nnn
-	char texture_name[ce_string_length(mprfile->name) + 3 + 1];
+	ce_vector_push_back(terrain->renderitems, renderitem);
 
-	for (int i = 0, n = mprfile->texture_count; i < n; ++i) {
-		snprintf(texture_name, sizeof(texture_name), "%s%03d",
-				ce_string_cstr(mprfile->name), i);
-
-		ce_texture* texture =
-			ce_texmng_acquire_texture(ce_root_get_texmng(), texture_name);
-		if (NULL == texture) {
-			return false;
-		}
-
-		ce_vector_push_back(terrain->textures, texture);
+	ce_scenenode* scenenode = ce_scenenode_create_child(terrain->scenenode);
+	if (NULL == scenenode) {
+		return false;
 	}
 
-	ce_vec3_init(&terrain->rendlayer->bounding_box.min, 0.0f, 0.0f,
-		-1.0f * (mprfile->sector_z_count * (CE_MPRFILE_VERTEX_SIDE - 1)));
-	ce_vec3_init(&terrain->rendlayer->bounding_box.max,
-		mprfile->sector_x_count * (CE_MPRFILE_VERTEX_SIDE - 1),
-		mprfile->max_y, 0.0f);
-	ce_vec3_mid(&terrain->rendlayer->bounding_box.center,
-				&terrain->rendlayer->bounding_box.min,
-				&terrain->rendlayer->bounding_box.max);
+	scenenode->renderitem = renderitem;
 
-	ce_vec3_copy(&terrain->rendlayer->bounding_sphere.center,
-				&terrain->rendlayer->bounding_box.center);
-	terrain->rendlayer->bounding_sphere.radius =
-		ce_vec3_dist(&terrain->rendlayer->bounding_box.min,
-					&terrain->rendlayer->bounding_box.center);
+	return true;
+}
 
-	for (int z = 0, z_count = mprfile->sector_z_count; z < z_count; ++z) {
-		for (int x = 0, x_count = mprfile->sector_x_count; x < x_count; ++x) {
-			ce_mprfile_sector* sector = mprfile->sectors + z * x_count + x;
-			if (!ce_terrain_create_sector(terrain, mprfile,
-											x, z, sector, true) ||
-					!ce_terrain_create_sector(terrain, mprfile,
-												x, z, sector, false)) {
+bool ce_terrain_create_impl(ce_terrain* terrain)
+{
+	for (int z = 0, z_count = terrain->mprfile->sector_z_count; z < z_count; ++z) {
+		for (int x = 0, x_count = terrain->mprfile->sector_x_count; x < x_count; ++x) {
+			ce_mprfile_sector* sector = terrain->mprfile->sectors + z * x_count + x;
+			if (!ce_terrain_create_sector(terrain, x, z, sector, true) ||
+					!ce_terrain_create_sector(terrain, x, z, sector, false)) {
 				return false;
 			}
 		}
 	}
 
 	return true;
-}
-
-static bool ce_terrain_new_impl(ce_terrain* terrain, const char* zone_name)
-{
-	ce_mprfile* mprfile = ce_mprmng_open_mprfile(ce_root_get_mprmng(), zone_name);
-	if (NULL == mprfile) {
-		return false;
-	}
-
-	bool ok = ce_terrain_create(terrain, mprfile);
-	return ce_mprfile_close(mprfile), ok;
-}
-
-ce_terrain* ce_terrain_new(const char* zone_name)
-{
-	ce_terrain* terrain = ce_alloc_zero(sizeof(ce_terrain));
-	if (NULL == terrain) {
-		ce_logging_error("terrain: could not allocate memory");
-		return NULL;
-	}
-
-	if (!ce_terrain_new_impl(terrain, zone_name)) {
-		ce_terrain_del(terrain);
-		return NULL;
-	}
-
-	return terrain;
-}
-
-void ce_terrain_del(ce_terrain* terrain)
-{
-	if (NULL != terrain) {
-		if (NULL != terrain->textures) {
-			for (int i = 0, n = ce_vector_count(terrain->textures); i < n; ++i) {
-				ce_texmng_release_texture(ce_root_get_texmng(),
-										ce_vector_at(terrain->textures, i));
-			}
-		}
-		ce_rendlayer_del(terrain->rendlayer);
-		ce_vector_del(terrain->textures);
-		ce_free(terrain, sizeof(ce_terrain));
-	}
 }

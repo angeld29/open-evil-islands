@@ -44,6 +44,7 @@
 #include "cevec3.h"
 #include "ceroot.h"
 #include "cescenemng.h"
+#include "ceterrain.h"
 #include "cecfgfile.h"
 #include "celightcfg.h"
 
@@ -85,6 +86,7 @@ static void idle(void)
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_input_event_supply_del(es);
+		ce_terrain_del(terrain);
 		ce_scenemng_del(scenemng);
 		ce_root_term();
 		ce_gl_term();
@@ -204,7 +206,7 @@ static bool load_light(ce_lightcfg* light, const char* ei_path,
 	return ce_cfgfile_close(cfg), ok;
 }
 
-static void usage()
+static void usage(void)
 {
 	fprintf(stderr,
 		"===============================================================================\n"
@@ -326,10 +328,19 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	ce_root_init(ei_path);
+	if (!ce_root_init(ei_path)) {
+		return 1;
+	}
 
-	scenemng = ce_scenemng_new();
-	terrain = ce_scenemng_load_zone(scenemng, argv[optind]);
+	if (NULL == (scenemng = ce_scenemng_new())) {
+		return 1;
+	}
+
+	terrain = ce_terrain_new(argv[optind], &CE_VEC3_ZERO,
+							&CE_QUAT_IDENTITY, scenemng->root_scenenode);
+	if (NULL == terrain) {
+		return 1;
+	}
 
 	if (!load_light(&gipat_light, ei_path, "lightsgipat") ||
 			!load_light(&ingos_light, ei_path, "lightsingos") ||
@@ -342,7 +353,7 @@ int main(int argc, char* argv[])
 	light_cfg = &gipat_light;
 
 	ce_vec3 eye;
-	ce_vec3_init(&eye, 0.0f, 50.0f, 0.0f);
+	ce_vec3_init(&eye, 0.0f, terrain->mprfile->max_y, 0.0f);
 
 	ce_camera_set_eye(scenemng->camera, &eye);
 	ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));

@@ -32,7 +32,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_string* name;
+	ce_string* anim_name;
 	uint32_t rotation_anim_count;
 	uint32_t translation_anim_count;
 	uint32_t morph_anim_count;
@@ -42,7 +42,8 @@ typedef struct {
 	float* morphs;
 } ce_anmfile;
 
-extern ce_anmfile* ce_anmfile_open(const char* name, ce_memfile* memfile);
+extern ce_anmfile* ce_anmfile_open_memfile(const char* anim_name,
+											ce_memfile* memfile);
 extern void ce_anmfile_close(ce_anmfile* anmfile);
 
 #ifdef __cplusplus

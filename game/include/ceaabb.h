@@ -22,6 +22,7 @@
 #define CE_AABB_H
 
 #include "cevec3.h"
+#include "cequat.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -29,10 +30,25 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_vec3 center;
-	ce_vec3 min;
-	ce_vec3 max;
+	ce_vec3 min, max, center;
 } ce_aabb;
+
+extern ce_aabb* ce_aabb_init(ce_aabb* aabb,
+								const ce_vec3* min,
+								const ce_vec3* max);
+
+extern ce_aabb* ce_aabb_init_zero(ce_aabb* aabb);
+
+extern ce_aabb* ce_aabb_copy(ce_aabb* aabb, const ce_aabb* other);
+
+extern ce_aabb* ce_aabb_merge(ce_aabb* aabb,
+								const ce_aabb* lhs,
+								const ce_aabb* rhs);
+
+extern ce_aabb* ce_aabb_transform(ce_aabb* aabb,
+									const ce_aabb* other,
+									const ce_vec3* translation,
+									const ce_quat* rotation);
 
 #ifdef __cplusplus
 }
