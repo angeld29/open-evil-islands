@@ -24,7 +24,7 @@
 #include "cevec3.h"
 #include "cevector.h"
 #include "cefrustum.h"
-#include "cerendlayer.h"
+#include "cescenenode.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -32,8 +32,8 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_vector* opacity_renditems;
-	ce_vector* transparent_renditems;
+	ce_vector* opacity_scenenodes;
+	ce_vector* transparent_scenenodes;
 } ce_rendqueue;
 
 extern ce_rendqueue* ce_rendqueue_new(void);
@@ -42,10 +42,10 @@ extern void ce_rendqueue_del(ce_rendqueue* rendqueue);
 extern void ce_rendqueue_clear(ce_rendqueue* rendqueue);
 extern void ce_rendqueue_render(ce_rendqueue* rendqueue);
 
-extern void ce_rendqueue_add_rendlayer(ce_rendqueue* rendqueue,
-										const ce_rendlayer* rendlayer,
-										const ce_vec3* eye,
-										const ce_frustum* frustum);
+extern void ce_rendqueue_cascade_scenenode(ce_rendqueue* rendqueue,
+											ce_scenenode* scenenode,
+											const ce_vec3* eye,
+											const ce_frustum* frustum);
 
 #ifdef __cplusplus
 }

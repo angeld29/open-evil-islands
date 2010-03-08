@@ -44,7 +44,6 @@ typedef struct {
 struct ce_renditem {
 	ce_aabb bounding_box;
 	ce_sphere bounding_sphere;
-	float dist2;
 	bool transparent;
 	ce_renditem_vtable vtable;
 	size_t size;

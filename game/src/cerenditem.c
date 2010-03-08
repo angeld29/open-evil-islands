@@ -33,12 +33,12 @@ ce_renditem* ce_renditem_new(ce_renditem_vtable vtable, size_t size, ...)
 	renditem->vtable = vtable;
 	renditem->size = size;
 
-	va_list args;
-	va_start(args, size);
 	if (NULL != renditem->vtable.ctor) {
+		va_list args;
+		va_start(args, size);
 		(renditem->vtable.ctor)(renditem, args);
+		va_end(args);
 	}
-	va_end(args);
 
 	return renditem;
 }

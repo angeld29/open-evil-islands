@@ -29,30 +29,33 @@ typedef int (*ce_rendqueue_comp)(const void* lhs, const void* rhs);
 
 static int ce_rendqueue_comp_less(const void* lhs, const void* rhs)
 {
-	const ce_renditem* renditem1 = *(const ce_renditem**)lhs;
-	const ce_renditem* renditem2 = *(const ce_renditem**)rhs;
-	return ce_fisequal(renditem1->dist2, renditem2->dist2, CE_EPS_E3) ?
-		0 : (renditem1->dist2 < renditem2->dist2 ? -1 : 1);
+	const ce_scenenode* scenenode1 = *(const ce_scenenode**)lhs;
+	const ce_scenenode* scenenode2 = *(const ce_scenenode**)rhs;
+	return ce_fisequal(scenenode1->dist2, scenenode2->dist2, CE_EPS_E3) ?
+		0 : (scenenode1->dist2 < scenenode2->dist2 ? -1 : 1);
 }
 
 static int ce_rendqueue_comp_greater(const void* lhs, const void* rhs)
 {
-	const ce_renditem* renditem1 = *(const ce_renditem**)lhs;
-	const ce_renditem* renditem2 = *(const ce_renditem**)rhs;
-	return ce_fisequal(renditem1->dist2, renditem2->dist2, CE_EPS_E3) ?
-		0 : (renditem1->dist2 > renditem2->dist2 ? -1 : 1);
+	const ce_scenenode* scenenode1 = *(const ce_scenenode**)lhs;
+	const ce_scenenode* scenenode2 = *(const ce_scenenode**)rhs;
+	return ce_fisequal(scenenode1->dist2, scenenode2->dist2, CE_EPS_E3) ?
+		0 : (scenenode1->dist2 > scenenode2->dist2 ? -1 : 1);
 }
 
-static void ce_rendqueue_render_do(ce_vector* renditems,
+static void ce_rendqueue_render_do(ce_vector* scenenodes,
 									ce_rendqueue_comp comp)
 {
-	if (!ce_vector_empty(renditems)) {
-		qsort(ce_vector_data(renditems),
-				ce_vector_count(renditems),
-				sizeof(ce_renditem*), comp);
+	if (!ce_vector_empty(scenenodes)) {
+		qsort(ce_vector_data(scenenodes),
+				ce_vector_count(scenenodes),
+				sizeof(ce_scenenode*), comp);
 
-		for (int i = 0, n = ce_vector_count(renditems); i < n; ++i) {
-			ce_renditem_render(ce_vector_at(renditems, i));
+		for (int i = 0, n = ce_vector_count(scenenodes); i < n; ++i) {
+			ce_scenenode* scenenode = ce_vector_at(scenenodes, i);
+			// TODO: scenenode apply transform
+			ce_renditem_render(scenenode->renditem);
+			// TODO: scenenode discard transform
 		}
 	}
 }
@@ -65,8 +68,8 @@ ce_rendqueue* ce_rendqueue_new(void)
 		return NULL;
 	}
 
-	if (NULL == (rendqueue->opacity_renditems = ce_vector_new()) ||
-			NULL == (rendqueue->transparent_renditems = ce_vector_new())) {
+	if (NULL == (rendqueue->opacity_scenenodes = ce_vector_new()) ||
+			NULL == (rendqueue->transparent_scenenodes = ce_vector_new())) {
 		ce_rendqueue_del(rendqueue);
 		return NULL;
 	}
@@ -77,41 +80,39 @@ ce_rendqueue* ce_rendqueue_new(void)
 void ce_rendqueue_del(ce_rendqueue* rendqueue)
 {
 	if (NULL != rendqueue) {
-		ce_vector_del(rendqueue->transparent_renditems);
-		ce_vector_del(rendqueue->opacity_renditems);
+		ce_vector_del(rendqueue->transparent_scenenodes);
+		ce_vector_del(rendqueue->opacity_scenenodes);
 		ce_free(rendqueue, sizeof(ce_rendqueue));
 	}
 }
 
 void ce_rendqueue_clear(ce_rendqueue* rendqueue)
 {
-	ce_vector_clear(rendqueue->opacity_renditems);
-	ce_vector_clear(rendqueue->transparent_renditems);
+	ce_vector_clear(rendqueue->opacity_scenenodes);
+	ce_vector_clear(rendqueue->transparent_scenenodes);
 }
 
 void ce_rendqueue_render(ce_rendqueue* rendqueue)
 {
-	ce_rendqueue_render_do(rendqueue->opacity_renditems,
+	ce_rendqueue_render_do(rendqueue->opacity_scenenodes,
 							ce_rendqueue_comp_less);
-	ce_rendqueue_render_do(rendqueue->transparent_renditems,
+	ce_rendqueue_render_do(rendqueue->transparent_scenenodes,
 							ce_rendqueue_comp_greater);
 }
 
-void ce_rendqueue_add_rendlayer(ce_rendqueue* rendqueue,
-								const ce_rendlayer* rendlayer,
-								const ce_vec3* eye,
-								const ce_frustum* frustum)
+void ce_rendqueue_cascade_scenenode(ce_rendqueue* rendqueue,
+									ce_scenenode* scenenode,
+									const ce_vec3* eye,
+									const ce_frustum* frustum)
 {
-	if (ce_frustum_test_box(frustum, &rendlayer->bounding_box)) {
-		for (int i = 0, n = ce_vector_count(rendlayer->renditems); i < n; ++i) {
-			ce_renditem* renditem = ce_vector_at(rendlayer->renditems, i);
-			if (ce_frustum_test_box(frustum, &renditem->bounding_box)) {
-				renditem->dist2 =
-					ce_vec3_dist2(eye, &renditem->bounding_box.center);
-				ce_vector_push_back(renditem->transparent ?
-									rendqueue->transparent_renditems :
-									rendqueue->opacity_renditems, renditem);
-			}
+	if (ce_frustum_test_box(frustum, &scenenode->world_bounding_box)) {
+		for (int i = 0, n = ce_vector_count(scenenode->childs); i < n; ++i) {
+			ce_scenenode* child = ce_vector_at(scenenode->childs, i);
+			ce_rendqueue_cascade_scenenode(rendqueue, child, eye, frustum);
 		}
+		scenenode->dist2 = ce_vec3_dist2(eye, &scenenode->world_position);
+		ce_vector_push_back(scenenode->renditem->transparent ?
+							rendqueue->transparent_scenenodes :
+							rendqueue->opacity_scenenodes, scenenode);
 	}
 }
