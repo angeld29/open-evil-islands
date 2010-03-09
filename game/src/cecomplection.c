@@ -18,30 +18,32 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_COMPLECTION_H
-#define CE_COMPLECTION_H
+#include "cecomplection.h"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
-typedef struct {
-	float strength, dexterity, height;
-} ce_complection;
-
-extern ce_complection*
+ce_complection*
 ce_complection_init(ce_complection* complection,
-					float strength, float dexterity, float height);
-
-extern ce_complection*
-ce_complection_init_array(ce_complection* complection, const float* array);
-
-extern ce_complection*
-ce_complection_copy(ce_complection* complection, const ce_complection* other);
-
-#ifdef __cplusplus
+					float strength, float dexterity, float height)
+{
+	complection->strength = strength;
+	complection->dexterity = dexterity;
+	complection->height = height;
+	return complection;
 }
-#endif /* __cplusplus */
 
-#endif /* CE_COMPLECTION_H */
+ce_complection*
+ce_complection_init_array(ce_complection* complection, const float* array)
+{
+	complection->strength = *array++;
+	complection->dexterity = *array++;
+	complection->height = *array++;
+	return complection;
+}
+
+ce_complection*
+ce_complection_copy(ce_complection* complection, const ce_complection* other)
+{
+	complection->strength = other->strength;
+	complection->dexterity = other->dexterity;
+	complection->height = other->height;
+	return complection;
+}
