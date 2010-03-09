@@ -18,46 +18,32 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FIGPROTO_H
-#define CE_FIGPROTO_H
-
+#include <stdio.h>
 #include <stdbool.h>
+#include <assert.h>
 
-#include "cestring.h"
-#include "cevector.h"
-#include "ceresfile.h"
-#include "cefigfile.h"
-#include "cebonfile.h"
-#include "ceanmfile.h"
+#include "celogging.h"
+#include "cealloc.h"
+#include "cefigentity.h"
 
-#ifdef __cplusplus
-extern "C"
+ce_figentity* ce_figentity_new(ce_figmesh* figmesh)
 {
-#endif /* __cplusplus */
+	ce_figentity* figentity = ce_alloc_zero(sizeof(ce_figentity));
+	if (NULL == figentity) {
+		ce_logging_error("figentity: could not allocate memory");
+		return NULL;
+	}
 
-typedef struct {
-	ce_string* name;
-	bool has_morphing;
-	ce_figfile* figfile;
-	ce_bonfile* bonfile;
-	ce_vector* anmfiles;
-	ce_vector* child_nodes;
-} ce_figproto_node;
+	figentity->figmesh = ce_figmesh_copy(figmesh);
 
-typedef struct {
-	ce_string* name;
-	ce_figproto_node* root_node;
-	int ref_count;
-} ce_figproto;
-
-extern ce_figproto* ce_figproto_new(const char* figure_name,
-									ce_resfile* resfile);
-extern void ce_figproto_del(ce_figproto* figproto);
-
-extern ce_figproto* ce_figproto_copy(ce_figproto* figproto);
-
-#ifdef __cplusplus
+	return figentity;
 }
-#endif /* __cplusplus */
 
-#endif /* CE_FIGPROTO_H */
+void ce_figentity_del(ce_figentity* figentity)
+{
+	if (NULL != figentity) {
+		ce_scenenode_del(figentity->scenenode);
+		ce_figmesh_del(figentity->figmesh);
+		ce_free(figentity, sizeof(ce_figentity));
+	}
+}

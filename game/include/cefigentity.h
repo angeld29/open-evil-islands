@@ -18,17 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FIGPROTO_H
-#define CE_FIGPROTO_H
+#ifndef CE_FIGENTITY_H
+#define CE_FIGENTITY_H
 
-#include <stdbool.h>
-
-#include "cestring.h"
-#include "cevector.h"
-#include "ceresfile.h"
-#include "cefigfile.h"
-#include "cebonfile.h"
-#include "ceanmfile.h"
+#include "cescenenode.h"
+#include "cefigmesh.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -36,28 +30,16 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_string* name;
-	bool has_morphing;
-	ce_figfile* figfile;
-	ce_bonfile* bonfile;
-	ce_vector* anmfiles;
-	ce_vector* child_nodes;
-} ce_figproto_node;
+	ce_figmesh* figmesh;
+	ce_scenenode* scenenode;
+	float frame;
+} ce_figentity;
 
-typedef struct {
-	ce_string* name;
-	ce_figproto_node* root_node;
-	int ref_count;
-} ce_figproto;
-
-extern ce_figproto* ce_figproto_new(const char* figure_name,
-									ce_resfile* resfile);
-extern void ce_figproto_del(ce_figproto* figproto);
-
-extern ce_figproto* ce_figproto_copy(ce_figproto* figproto);
+extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh);
+extern void ce_figentity_del(ce_figentity* figentity);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGPROTO_H */
+#endif /* CE_FIGENTITY_H */

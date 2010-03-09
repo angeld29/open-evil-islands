@@ -224,7 +224,11 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	figproto = ce_figprotomng_get_figproto(ce_root_get_figprotomng(), argv[optind]);
+	if (NULL == (figproto =
+		ce_figprotomng_get_figproto(ce_root_get_figprotomng(), argv[optind]))) {
+		ce_logging_fatal("main: failed to load: '%s'\n", argv[optind]);
+		return 1;
+	}
 
 	ce_vec3 eye;
 	ce_vec3_init(&eye, 0.0f, 2.0f, -4.0f);

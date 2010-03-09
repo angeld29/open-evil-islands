@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
 #include <stdbool.h>
 
 #include "cebyteorder.h"
@@ -38,18 +39,20 @@ static bool ce_anmfile_read_morphs(ce_anmfile* anmfile, ce_memfile* memfile)
 	ce_le2cpu32s(&anmfile->morph_anim_count);
 	ce_le2cpu32s(&anmfile->morph_vertex_count);
 
-	if (NULL == (anmfile->morphs =
-			ce_alloc(sizeof(float) * anmfile->morph_anim_count *
-									anmfile->morph_vertex_count))) {
-		ce_logging_error("anmfile: could not allocate memory");
-		return false;
-	}
+	if (0 != anmfile->morph_anim_count * anmfile->morph_vertex_count) {
+		if (NULL == (anmfile->morphs =
+				ce_alloc(sizeof(float) * anmfile->morph_anim_count *
+										anmfile->morph_vertex_count))) {
+			ce_logging_error("anmfile: could not allocate memory");
+			return false;
+		}
 
-	if (anmfile->morph_anim_count != ce_memfile_read(memfile,
-			anmfile->morphs, sizeof(float) * anmfile->morph_vertex_count,
-			anmfile->morph_anim_count)) {
-		ce_logging_error("anmfile: io error occured");
-		return false;
+		if (anmfile->morph_anim_count != ce_memfile_read(memfile,
+				anmfile->morphs, sizeof(float) * anmfile->morph_vertex_count,
+				anmfile->morph_anim_count)) {
+			ce_logging_error("anmfile: io error occured");
+			return false;
+		}
 	}
 
 	return true;

@@ -42,7 +42,8 @@ extern bool
 ce_figprotomng_register_resource(ce_figprotomng* figprotomng, const char* path);
 
 extern ce_figproto*
-ce_figprotomng_get_figproto(ce_figprotomng* figprotomng, const char* name);
+ce_figprotomng_get_figproto(ce_figprotomng* figprotomng,
+							const char* figure_name);
 
 #ifdef __cplusplus
 }

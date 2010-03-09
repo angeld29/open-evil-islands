@@ -18,46 +18,44 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FIGPROTO_H
-#define CE_FIGPROTO_H
-
+#include <stdio.h>
 #include <stdbool.h>
+#include <assert.h>
 
-#include "cestring.h"
-#include "cevector.h"
-#include "ceresfile.h"
-#include "cefigfile.h"
-#include "cebonfile.h"
-#include "ceanmfile.h"
+#include "celogging.h"
+#include "cealloc.h"
+#include "cefigmesh.h"
 
-#ifdef __cplusplus
-extern "C"
+ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
+							const ce_complection* complection)
 {
-#endif /* __cplusplus */
+	ce_figmesh* figmesh = ce_alloc_zero(sizeof(ce_figmesh));
+	if (NULL == figmesh) {
+		ce_logging_error("figmesh: could not allocate memory");
+		return NULL;
+	}
 
-typedef struct {
-	ce_string* name;
-	bool has_morphing;
-	ce_figfile* figfile;
-	ce_bonfile* bonfile;
-	ce_vector* anmfiles;
-	ce_vector* child_nodes;
-} ce_figproto_node;
+	figmesh->figproto = ce_figproto_copy(figproto);
+	ce_complection_copy(&figmesh->complection, complection);
+	figmesh->ref_count = 1;
 
-typedef struct {
-	ce_string* name;
-	ce_figproto_node* root_node;
-	int ref_count;
-} ce_figproto;
-
-extern ce_figproto* ce_figproto_new(const char* figure_name,
-									ce_resfile* resfile);
-extern void ce_figproto_del(ce_figproto* figproto);
-
-extern ce_figproto* ce_figproto_copy(ce_figproto* figproto);
-
-#ifdef __cplusplus
+	return figmesh;
 }
-#endif /* __cplusplus */
 
-#endif /* CE_FIGPROTO_H */
+void ce_figmesh_del(ce_figmesh* figmesh)
+{
+	if (NULL != figmesh) {
+		assert(figmesh->ref_count > 0);
+		if (0 == --figmesh->ref_count) {
+			ce_figproto_del(figmesh->figproto);
+			ce_free(figmesh, sizeof(ce_figmesh));
+		}
+	}
+}
+
+ce_figmesh* ce_figmesh_copy(ce_figmesh* figmesh)
+{
+	++figmesh->ref_count;
+	return figmesh;
+}
+

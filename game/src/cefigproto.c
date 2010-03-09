@@ -19,7 +19,6 @@
 */
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <assert.h>
 
@@ -33,6 +32,7 @@ static ce_lnkfile* ce_figproto_open_lnkfile(const char* name,
 {
 	ce_memfile* memfile = ce_resfile_node_memfile_by_name(resfile, name);
 	if (NULL == memfile) {
+		ce_logging_error("figproto: could not open lnkfile: '%s'", name);
 		return NULL;
 	}
 
@@ -45,6 +45,7 @@ static ce_figfile* ce_figproto_open_figfile(const char* name,
 {
 	ce_memfile* memfile = ce_resfile_node_memfile_by_name(resfile, name);
 	if (NULL == memfile) {
+		ce_logging_error("figproto: could not open figfile: '%s'", name);
 		return NULL;
 	}
 
@@ -58,6 +59,7 @@ static ce_bonfile* ce_figproto_open_bonfile(int value_count,
 {
 	ce_memfile* memfile = ce_resfile_node_memfile_by_name(resfile, name);
 	if (NULL == memfile) {
+		ce_logging_error("figproto: could not open bonfile: '%s'", name);
 		return NULL;
 	}
 
@@ -71,6 +73,7 @@ static ce_anmfile* ce_figproto_open_anmfile(const char* anim_name,
 {
 	ce_memfile* memfile = ce_resfile_node_memfile_by_name(resfile, name);
 	if (NULL == memfile) {
+		ce_logging_error("figproto: could not open anmfile: '%s'", name);
 		return NULL;
 	}
 
@@ -81,11 +84,11 @@ static ce_anmfile* ce_figproto_open_anmfile(const char* anim_name,
 static void ce_figproto_node_del(ce_figproto_node* node)
 {
 	if (NULL != node) {
-		if (NULL != node->childs) {
-			for (int i = 0, n = ce_vector_count(node->childs); i < n; ++i) {
-				ce_figproto_node_del(ce_vector_at(node->childs, i));
+		if (NULL != node->child_nodes) {
+			for (int i = 0, n = ce_vector_count(node->child_nodes); i < n; ++i) {
+				ce_figproto_node_del(ce_vector_at(node->child_nodes, i));
 			}
-			ce_vector_del(node->childs);
+			ce_vector_del(node->child_nodes);
 		}
 		if (NULL != node->anmfiles) {
 			for (int i = 0, n = ce_vector_count(node->anmfiles); i < n; ++i) {
@@ -106,7 +109,7 @@ static bool ce_figproto_node_new_impl(ce_figproto_node* node,
 {
 	if (NULL == (node->name = ce_string_dup(name)) ||
 			NULL == (node->anmfiles = ce_vector_new()) ||
-			NULL == (node->childs = ce_vector_new())) {
+			NULL == (node->child_nodes = ce_vector_new())) {
 		return false;
 	}
 
@@ -118,14 +121,23 @@ static bool ce_figproto_node_new_impl(ce_figproto_node* node,
 		return false;
 	}
 
+	node->has_morphing = false;
+
 	for (int i = 0, n = ce_vector_count(anm_resfiles); i < n; ++i) {
 		ce_resfile* anm_resfile = ce_vector_at(anm_resfiles, i);
+		if (-1 == ce_resfile_node_index(anm_resfile, ce_string_cstr(name))) {
+			// there is no animation for this part
+			continue;
+		}
+
 		ce_anmfile* anmfile =
 			ce_figproto_open_anmfile(ce_resfile_name(anm_resfile),
 									ce_string_cstr(name), anm_resfile);
 		if (NULL == anmfile) {
 			return false;
 		}
+
+		node->has_morphing = node->has_morphing || NULL != anmfile->morphs;
 		ce_vector_push_back(node->anmfiles, anmfile);
 	}
 
@@ -185,27 +197,33 @@ ce_figproto_create_nodes(ce_figproto* figproto, ce_figproto_node* parent_node,
 						ce_vector* anm_resfiles, ce_lnkfile* lnkfile,
 						unsigned int* index)
 {
-	while (*index < lnkfile->relationship_count && (NULL == parent_node ||
-			ce_string_is_equal(parent_node->name,
-				lnkfile->relationships[*index].parent_name))) {
+	while (*index < lnkfile->relationship_count &&
+			(NULL == parent_node || ce_string_is_equal(parent_node->name,
+								lnkfile->relationships[*index].parent_name))) {
 		ce_figproto_node* child_node =
 			ce_figproto_node_new(lnkfile->relationships[*index].child_name,
 								mod_resfile, bon_resfile, anm_resfiles);
 		if (NULL == child_node) {
 			return false;
 		}
+
 		if (NULL == parent_node) {
 			assert(ce_string_empty(lnkfile->relationships[*index].parent_name));
-			figproto->root = child_node;
+			figproto->root_node = parent_node = child_node;
 		} else {
-			ce_vector_push_back(parent_node->childs, child_node);
+			ce_vector_push_back(parent_node->child_nodes, child_node);
 		}
-		if (!ce_figproto_create_nodes(figproto, child_node, mod_resfile,
-										bon_resfile, anm_resfiles,
-										lnkfile, (++*index, index))) {
+
+		++*index;
+
+		if (!ce_figproto_create_nodes(figproto, parent_node, mod_resfile,
+					bon_resfile, anm_resfiles, lnkfile, index) ||
+				!ce_figproto_create_nodes(figproto, child_node, mod_resfile,
+					bon_resfile, anm_resfiles, lnkfile, index)) {
 			return false;
 		}
 	}
+
 	return true;
 }
 
@@ -227,31 +245,31 @@ static bool ce_figproto_new_tri_resfile(ce_figproto* figproto,
 }
 
 static bool ce_figproto_new_impl(ce_figproto* figproto,
-								const char* name, ce_resfile* resfile)
+								const char* figure_name, ce_resfile* resfile)
 {
 	figproto->ref_count = 1;
 
-	if (NULL == (figproto->name = ce_string_new_cstr(name))) {
+	if (NULL == (figproto->name = ce_string_new_cstr(figure_name))) {
 		return false;
 	}
 
-	char full_name[strlen(name) + 4 + 1];
+	char file_name[strlen(figure_name) + 4 + 1];
 
-	snprintf(full_name, sizeof(full_name), "%s.mod", name);
+	snprintf(file_name, sizeof(file_name), "%s.mod", figure_name);
 	ce_resfile* mod_resfile =
-		ce_resfile_node_resfile_by_name(resfile, full_name);
+		ce_resfile_node_resfile_by_name(resfile, file_name);
 	if (NULL == mod_resfile) {
 		return false;
 	}
 
-	snprintf(full_name, sizeof(full_name), "%s.bon", name);
+	snprintf(file_name, sizeof(file_name), "%s.bon", figure_name);
 	ce_resfile* bon_resfile =
-		ce_resfile_node_resfile_by_name(resfile, full_name);
+		ce_resfile_node_resfile_by_name(resfile, file_name);
 	assert(NULL != bon_resfile);
 
-	snprintf(full_name, sizeof(full_name), "%s.anm", name);
+	snprintf(file_name, sizeof(file_name), "%s.anm", figure_name);
 	ce_resfile* anm_resfile =
-		ce_resfile_node_resfile_by_name(resfile, full_name);
+		ce_resfile_node_resfile_by_name(resfile, file_name);
 
 	ce_vector* anm_resfiles = NULL == anm_resfile ? ce_vector_new_reserved(0) :
 									ce_figproto_extract_resfiles(anm_resfile);
@@ -262,7 +280,7 @@ static bool ce_figproto_new_impl(ce_figproto* figproto,
 		return false;
 	}
 
-	bool ok = ce_figproto_new_tri_resfile(figproto, name, mod_resfile,
+	bool ok = ce_figproto_new_tri_resfile(figproto, figure_name, mod_resfile,
 											bon_resfile, anm_resfiles);
 
 	ce_figproto_del_resfiles(anm_resfiles);
@@ -274,7 +292,7 @@ static bool ce_figproto_new_impl(ce_figproto* figproto,
 	return ok;
 }
 
-ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile)
+ce_figproto* ce_figproto_new(const char* figure_name, ce_resfile* resfile)
 {
 	ce_figproto* figproto = ce_alloc_zero(sizeof(ce_figproto));
 	if (NULL == figproto) {
@@ -282,7 +300,7 @@ ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile)
 		return NULL;
 	}
 
-	if (!ce_figproto_new_impl(figproto, name, resfile)) {
+	if (!ce_figproto_new_impl(figproto, figure_name, resfile)) {
 		ce_figproto_del(figproto);
 		return NULL;
 	}
@@ -295,9 +313,15 @@ void ce_figproto_del(ce_figproto* figproto)
 	if (NULL != figproto) {
 		assert(figproto->ref_count > 0);
 		if (0 == --figproto->ref_count) {
-			ce_figproto_node_del(figproto->root);
+			ce_figproto_node_del(figproto->root_node);
 			ce_string_del(figproto->name);
 			ce_free(figproto, sizeof(ce_figproto));
 		}
 	}
+}
+
+ce_figproto* ce_figproto_copy(ce_figproto* figproto)
+{
+	++figproto->ref_count;
+	return figproto;
 }

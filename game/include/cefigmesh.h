@@ -18,17 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FIGPROTO_H
-#define CE_FIGPROTO_H
+#ifndef CE_FIGMESH_H
+#define CE_FIGMESH_H
 
-#include <stdbool.h>
-
-#include "cestring.h"
 #include "cevector.h"
-#include "ceresfile.h"
-#include "cefigfile.h"
-#include "cebonfile.h"
-#include "ceanmfile.h"
+#include "cefigproto.h"
+#include "cecomplection.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -36,28 +31,20 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_string* name;
-	bool has_morphing;
-	ce_figfile* figfile;
-	ce_bonfile* bonfile;
-	ce_vector* anmfiles;
-	ce_vector* child_nodes;
-} ce_figproto_node;
-
-typedef struct {
-	ce_string* name;
-	ce_figproto_node* root_node;
+	ce_figproto* figproto;
+	ce_complection complection;
+	ce_vector* renderitems;
 	int ref_count;
-} ce_figproto;
+} ce_figmesh;
 
-extern ce_figproto* ce_figproto_new(const char* figure_name,
-									ce_resfile* resfile);
-extern void ce_figproto_del(ce_figproto* figproto);
+extern ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
+									const ce_complection* complection);
+extern void ce_figmesh_del(ce_figmesh* figmesh);
 
-extern ce_figproto* ce_figproto_copy(ce_figproto* figproto);
+extern ce_figmesh* ce_figmesh_copy(ce_figmesh* figmesh);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGPROTO_H */
+#endif /* CE_FIGMESH_H */

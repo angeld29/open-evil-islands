@@ -72,15 +72,15 @@ ce_figprotomng_register_resource(ce_figprotomng* figprotomng, const char* path)
 }
 
 ce_figproto*
-ce_figprotomng_get_figproto(ce_figprotomng* figprotomng, const char* name)
+ce_figprotomng_get_figproto(ce_figprotomng* figprotomng, const char* figure_name)
 {
-	char full_name[strlen(name) + 4 + 1];
-	snprintf(full_name, sizeof(full_name), "%s.mod", name);
+	char file_name[strlen(figure_name) + 4 + 1];
+	snprintf(file_name, sizeof(file_name), "%s.mod", figure_name);
 
 	for (int i = 0, n = ce_vector_count(figprotomng->resources); i < n; ++i) {
 		ce_resfile* resfile = ce_vector_at(figprotomng->resources, i);
-		if (-1 != ce_resfile_node_index(resfile, full_name)) {
-			return ce_figproto_new(name, resfile);
+		if (-1 != ce_resfile_node_index(resfile, file_name)) {
+			return ce_figproto_new(figure_name, resfile);
 		}
 	}
 
