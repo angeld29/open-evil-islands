@@ -57,6 +57,7 @@ extern void ce_scenenode_add_child(ce_scenenode* scenenode,
 extern void ce_scenenode_remove_child(ce_scenenode* scenenode,
 										ce_scenenode* child_scenenode);
 
+extern void ce_scenenode_update(ce_scenenode* scenenode);
 extern void ce_scenenode_update_cascade(ce_scenenode* scenenode);
 
 extern void ce_scenenode_apply_transform(ce_scenenode* scenenode);

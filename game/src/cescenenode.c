@@ -136,6 +136,12 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 	}
 }
 
+void ce_scenenode_update(ce_scenenode* scenenode)
+{
+	ce_scenenode_update_transform(scenenode);
+	ce_scenenode_update_bounds(scenenode);
+}
+
 void ce_scenenode_update_cascade(ce_scenenode* scenenode)
 {
 	ce_scenenode_update_transform(scenenode);
