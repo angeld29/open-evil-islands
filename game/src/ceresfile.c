@@ -239,31 +239,37 @@ time_t ce_resfile_node_modified(const ce_resfile* res, int index)
 	return res->nodes[index].modified;
 }
 
-bool ce_resfile_node_data(ce_resfile* res, int index, void* data)
+void* ce_resfile_node_data(ce_resfile* res, int index)
 {
 	ce_resfile_node* node = res->nodes + index;
-	return 0 == ce_memfile_seek(res->mem, node->data_offset, SEEK_SET) &&
-		1 == ce_memfile_read(res->mem, data, node->data_length, 1);
-}
 
-ce_memfile* ce_resfile_node_memfile(ce_resfile* res, int index)
-{
-	size_t size = ce_resfile_node_size(res, index);
-	void* data = ce_alloc(size);
+	void* data = ce_alloc(node->data_length);
 	if (NULL == data) {
 		ce_logging_error("resfile: could not allocate memory");
 		return NULL;
 	}
 
-	if (!ce_resfile_node_data(res, index, data)) {
-		ce_logging_error("resfile: could not retrieve data");
-		ce_free(data, size);
+	if (0 != ce_memfile_seek(res->mem, node->data_offset, SEEK_SET) ||
+			1 != ce_memfile_read(res->mem, data, node->data_length, 1)) {
+		ce_logging_error("resfile: io error occured");
+		ce_free(data, node->data_length);
 		return NULL;
 	}
 
-	ce_memfile* memfile = ce_memfile_open_data(data, size, "rb");
+	return data;
+}
+
+ce_memfile* ce_resfile_node_memfile(ce_resfile* res, int index)
+{
+	void* data = ce_resfile_node_data(res, index);
+	if (NULL == data) {
+		return NULL;
+	}
+
+	ce_memfile* memfile =
+		ce_memfile_open_data(data, ce_resfile_node_size(res, index), "rb");
 	if (NULL == memfile) {
-		ce_free(data, size);
+		ce_free(data, ce_resfile_node_size(res, index));
 		return NULL;
 	}
 

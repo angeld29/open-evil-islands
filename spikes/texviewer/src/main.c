@@ -120,9 +120,8 @@ static bool generate_texture(int index)
 	ce_texture_del(tex);
 	tex = NULL;
 
-	void* data = ce_alloc(ce_resfile_node_size(res, index));
-	if (!ce_resfile_node_data(res, index, data)) {
-		ce_free(data, ce_resfile_node_size(res, index));
+	void* data = ce_resfile_node_data(res, index);
+	if (NULL == data) {
 		return false;
 	}
 

@@ -93,20 +93,13 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* texture_name)
 		ce_resfile* resfile = ce_vector_at(texmng->resources, i);
 		int index = ce_resfile_node_index(resfile, file_name);
 		if (-1 != index) {
-			const size_t data_size = ce_resfile_node_size(resfile, index);
-			void* data = ce_alloc(data_size);
+			void* data = ce_resfile_node_data(resfile, index);
 			if (NULL == data) {
-				ce_logging_error("texmng: could not allocate memory");
-				return false;
-			}
-
-			if (!ce_resfile_node_data(resfile, index, data)) {
-				ce_free(data, data_size);
-				return false;
+				return NULL;
 			}
 
 			ce_texture* texture = ce_texture_new(texture_name, data);
-			ce_free(data, data_size);
+			ce_free(data, ce_resfile_node_size(resfile, index));
 
 			if (NULL == texture) {
 				return NULL;

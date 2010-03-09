@@ -45,7 +45,7 @@ extern int ce_resfile_node_index(const ce_resfile* res, const char* name);
 extern const char* ce_resfile_node_name(const ce_resfile* res, int index);
 extern size_t ce_resfile_node_size(const ce_resfile* res, int index);
 extern time_t ce_resfile_node_modified(const ce_resfile* res, int index);
-extern bool ce_resfile_node_data(ce_resfile* res, int index, void* data);
+extern void* ce_resfile_node_data(ce_resfile* res, int index);
 
 extern ce_memfile* ce_resfile_node_memfile(ce_resfile* res, int index);
 extern ce_memfile* ce_resfile_node_memfile_by_name(ce_resfile* res,
