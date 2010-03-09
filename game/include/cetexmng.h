@@ -41,8 +41,8 @@ extern void ce_texmng_del(ce_texmng* texmng);
 
 extern bool ce_texmng_register_resource(ce_texmng* texmng, const char* path);
 
-extern ce_texture* ce_texmng_acquire_texture(ce_texmng* texmng, const char* name);
-extern void ce_texmng_release_texture(ce_texmng* texmng, ce_texture* texture);
+extern ce_texture* ce_texmng_get_texture(ce_texmng* texmng,
+										const char* texture_name);
 
 #ifdef __cplusplus
 }

@@ -48,7 +48,9 @@ void ce_texmng_del(ce_texmng* texmng)
 {
 	if (NULL != texmng) {
 		if (NULL != texmng->textures) {
-			assert(0 == ce_vector_count(texmng->textures));
+			for (int i = 0, n = ce_vector_count(texmng->textures); i < n; ++i) {
+				ce_texture_del(ce_vector_at(texmng->textures, i));
+			}
 			ce_vector_del(texmng->textures);
 		}
 		if (NULL != texmng->resources) {
@@ -75,22 +77,21 @@ bool ce_texmng_register_resource(ce_texmng* texmng, const char* path)
 	return true;
 }
 
-ce_texture* ce_texmng_acquire_texture(ce_texmng* texmng, const char* name)
+ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* texture_name)
 {
-	char full_name[strlen(name) + 4 + 1];
-	snprintf(full_name, sizeof(full_name), "%s.mmp", name);
-
 	for (int i = 0, n = ce_vector_count(texmng->textures); i < n; ++i) {
 		ce_texture* texture = ce_vector_at(texmng->textures, i);
-		if (0 == strcmp(full_name, ce_texture_get_name(texture))) {
-			ce_texture_inc_ref(texture);
-			return texture;
+		if (0 == strcmp(texture_name, ce_texture_get_name(texture))) {
+			return ce_texture_copy(texture);
 		}
 	}
 
+	char file_name[strlen(texture_name) + 4 + 1];
+	snprintf(file_name, sizeof(file_name), "%s.mmp", texture_name);
+
 	for (int i = 0, n = ce_vector_count(texmng->resources); i < n; ++i) {
 		ce_resfile* resfile = ce_vector_at(texmng->resources, i);
-		int index = ce_resfile_node_index(resfile, full_name);
+		int index = ce_resfile_node_index(resfile, file_name);
 		if (-1 != index) {
 			const size_t data_size = ce_resfile_node_size(resfile, index);
 			void* data = ce_alloc(data_size);
@@ -104,23 +105,23 @@ ce_texture* ce_texmng_acquire_texture(ce_texmng* texmng, const char* name)
 				return false;
 			}
 
-			ce_texture* texture = ce_texture_new(full_name, data);
+			ce_texture* texture = ce_texture_new(texture_name, data);
 			ce_free(data, data_size);
 
-			if (NULL != texture) {
-				ce_vector_push_back(texmng->textures, texture);
-				ce_texture_inc_ref(texture);
+			if (NULL == texture) {
+				return NULL;
 			}
 
-			return texture;
+			ce_vector_push_back(texmng->textures, texture);
+			return ce_texture_copy(texture);
 		}
 	}
 
-	ce_logging_error("texmng: could not find texture: '%s'", full_name);
+	ce_logging_error("texmng: could not find texture: '%s'", texture_name);
 	return NULL;
 }
 
-void ce_texmng_release_texture(ce_texmng* texmng, ce_texture* texture)
+/*void ce_texmng_release_texture(ce_texmng* texmng, ce_texture* texture)
 {
 	for (int i = 0, n = ce_vector_count(texmng->textures); i < n; ++i) {
 		if (ce_vector_at(texmng->textures, i) == texture) {
@@ -135,4 +136,4 @@ void ce_texmng_release_texture(ce_texmng* texmng, ce_texture* texture)
 		}
 	}
 	assert(false);
-}
+}*/

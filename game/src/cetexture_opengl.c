@@ -47,8 +47,8 @@
 #include "cetexture.h"
 
 struct ce_texture {
-	int ref_count;
 	ce_string* name;
+	int ref_count;
 	GLuint id;
 };
 
@@ -618,31 +618,18 @@ ce_texture* ce_texture_new(const char* name, void* data)
 void ce_texture_del(ce_texture* texture)
 {
 	if (NULL != texture) {
-		assert(1 == texture->ref_count);
-		glDeleteTextures(1, &texture->id);
-		ce_string_del(texture->name);
-		ce_free(texture, sizeof(ce_texture));
+		assert(texture->ref_count > 0);
+		if (0 == --texture->ref_count) {
+			glDeleteTextures(1, &texture->id);
+			ce_string_del(texture->name);
+			ce_free(texture, sizeof(ce_texture));
+		}
 	}
 }
 
 const char* ce_texture_get_name(ce_texture* texture)
 {
 	return ce_string_cstr(texture->name);
-}
-
-int ce_texture_get_ref_count(ce_texture* texture)
-{
-	return texture->ref_count;
-}
-
-void ce_texture_inc_ref(ce_texture* texture)
-{
-	++texture->ref_count;
-}
-
-void ce_texture_dec_ref(ce_texture* texture)
-{
-	--texture->ref_count;
 }
 
 void ce_texture_bind(ce_texture* texture)
@@ -655,4 +642,10 @@ void ce_texture_unbind(ce_texture* texture)
 {
 	ce_unused(texture);
 	glDisable(GL_TEXTURE_2D);
+}
+
+ce_texture* ce_texture_copy(ce_texture* texture)
+{
+	++texture->ref_count;
+	return texture;
 }

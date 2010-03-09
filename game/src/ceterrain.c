@@ -49,7 +49,7 @@ static bool ce_terrain_create(ce_terrain* terrain,
 				ce_string_cstr(terrain->mprfile->name), i);
 
 		ce_texture* texture =
-			ce_texmng_acquire_texture(ce_root_get_texmng(), texture_name);
+			ce_texmng_get_texture(ce_root_get_texmng(), texture_name);
 		if (NULL == texture) {
 			return false;
 		}
@@ -106,8 +106,7 @@ void ce_terrain_del(ce_terrain* terrain)
 		}
 		if (NULL != terrain->textures) {
 			for (int i = 0, n = ce_vector_count(terrain->textures); i < n; ++i) {
-				ce_texmng_release_texture(ce_root_get_texmng(),
-										ce_vector_at(terrain->textures, i));
+				ce_texture_del(ce_vector_at(terrain->textures, i));
 			}
 			ce_vector_del(terrain->textures);
 		}
