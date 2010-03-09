@@ -23,6 +23,7 @@
 
 #include <GL/gl.h>
 
+#include "celib.h"
 #include "cetexture.h"
 #include "cemprhlp.h"
 #include "ceterrain.h"
@@ -31,7 +32,7 @@ typedef struct {
 	GLuint id;
 } ce_terrain_renderitem;
 
-static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
+static bool ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 {
 	ce_terrain* terrain = va_arg(args, ce_terrain*);
 	int sector_x = va_arg(args, int);
@@ -106,7 +107,8 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 		{ 6, 7, 5, 8, 4, 3 }
 	};
 
-	ce_terrain_renderitem* terrain_renderitem = (ce_terrain_renderitem*)renderitem->impl;
+	ce_terrain_renderitem* terrain_renderitem =
+		(ce_terrain_renderitem*)renderitem->impl;
 	terrain_renderitem->id = glGenLists(1);
 
 	glNewList(terrain_renderitem->id, GL_COMPILE);
@@ -202,23 +204,41 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 	glDisable(GL_DEPTH_TEST);
 
 	glEndList();
+
+	return true;
 }
 
 static void ce_terrain_renderitem_dtor(ce_renderitem* renderitem)
 {
-	ce_terrain_renderitem* terrain_renderitem = (ce_terrain_renderitem*)renderitem->impl;
+	ce_terrain_renderitem* terrain_renderitem =
+		(ce_terrain_renderitem*)renderitem->impl;
 	glDeleteLists(terrain_renderitem->id, 1);
+}
+
+static void ce_terrain_renderitem_update(ce_renderitem* renderitem, va_list args)
+{
+	ce_unused(renderitem), ce_unused(args);
+	assert(false && "not implemented");
 }
 
 static void ce_terrain_renderitem_render(ce_renderitem* renderitem)
 {
-	ce_terrain_renderitem* terrain_renderitem = (ce_terrain_renderitem*)renderitem->impl;
+	ce_terrain_renderitem* terrain_renderitem =
+		(ce_terrain_renderitem*)renderitem->impl;
 	glCallList(terrain_renderitem->id);
+}
+
+static ce_renderitem* ce_terrain_renderitem_clone(ce_renderitem* renderitem)
+{
+	ce_unused(renderitem);
+	assert(false && "not implemented");
+	return NULL;
 }
 
 static const ce_renderitem_vtable ce_terrain_renderitem_vtable = {
 	ce_terrain_renderitem_ctor, ce_terrain_renderitem_dtor,
-	ce_terrain_renderitem_render
+	ce_terrain_renderitem_update, ce_terrain_renderitem_render,
+	ce_terrain_renderitem_clone
 };
 
 static bool ce_terrain_create_sector(ce_terrain* terrain,

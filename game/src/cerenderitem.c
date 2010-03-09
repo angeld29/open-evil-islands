@@ -30,15 +30,22 @@ ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...)
 		return NULL;
 	}
 
-	renderitem->vtable = vtable;
-	renderitem->size = size;
+	bool ctor_ok = true;
 
-	if (NULL != renderitem->vtable.ctor) {
+	if (NULL != vtable.ctor) {
 		va_list args;
 		va_start(args, size);
-		(renderitem->vtable.ctor)(renderitem, args);
+		ctor_ok = (vtable.ctor)(renderitem, args);
 		va_end(args);
 	}
+
+	if (!ctor_ok) {
+		ce_renderitem_del(renderitem);
+		return NULL;
+	}
+
+	renderitem->vtable = vtable;
+	renderitem->size = size;
 
 	return renderitem;
 }
@@ -53,7 +60,20 @@ void ce_renderitem_del(ce_renderitem* renderitem)
 	}
 }
 
+void ce_renderitem_update(ce_renderitem* renderitem, ...)
+{
+	va_list args;
+	va_start(args, renderitem);
+	(renderitem->vtable.update)(renderitem, args);
+	va_end(args);
+}
+
 void ce_renderitem_render(ce_renderitem* renderitem)
 {
 	(renderitem->vtable.render)(renderitem);
+}
+
+ce_renderitem* ce_renderitem_clone(ce_renderitem* renderitem)
+{
+	return (renderitem->vtable.clone)(renderitem);
 }
