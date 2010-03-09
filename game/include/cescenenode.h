@@ -27,6 +27,7 @@
 #include "cesphere.h"
 #include "cevector.h"
 #include "cerenderitem.h"
+#include "cetexture.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -44,6 +45,7 @@ struct ce_scenenode {
 	ce_sphere world_bounding_sphere;
 	float dist2;
 	ce_renderitem* renderitem;
+	ce_texture* texture;
 	ce_scenenode* parent_scenenode;
 	ce_vector* child_scenenodes;
 };
@@ -60,8 +62,8 @@ extern void ce_scenenode_remove_child(ce_scenenode* scenenode,
 extern void ce_scenenode_update(ce_scenenode* scenenode);
 extern void ce_scenenode_update_cascade(ce_scenenode* scenenode);
 
-extern void ce_scenenode_apply_transform(ce_scenenode* scenenode);
-extern void ce_scenenode_discard_transform(ce_scenenode* scenenode);
+extern void ce_scenenode_apply_transformation(ce_scenenode* scenenode);
+extern void ce_scenenode_discard_transformation(ce_scenenode* scenenode);
 
 #ifdef __cplusplus
 }

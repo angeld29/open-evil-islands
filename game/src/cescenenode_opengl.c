@@ -24,7 +24,7 @@
 #include "cemath.h"
 #include "cescenenode.h"
 
-void ce_scenenode_apply_transform(ce_scenenode* scenenode)
+void ce_scenenode_apply_transformation(ce_scenenode* scenenode)
 {
 	ce_vec3 rotation_axis;
 	float angle =
@@ -42,7 +42,7 @@ void ce_scenenode_apply_transform(ce_scenenode* scenenode)
 				rotation_axis.z);
 }
 
-void ce_scenenode_discard_transform(ce_scenenode* scenenode)
+void ce_scenenode_discard_transformation(ce_scenenode* scenenode)
 {
 	ce_unused(scenenode);
 	glPopMatrix();
