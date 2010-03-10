@@ -54,9 +54,9 @@ static void ce_renderqueue_render_do(ce_vector* scenenodes,
 		for (int i = 0, n = ce_vector_count(scenenodes); i < n; ++i) {
 			ce_scenenode* scenenode = ce_vector_at(scenenodes, i);
 			ce_scenenode_apply_transformation(scenenode);
-			//ce_texture_bind(scenenode->texture);
+			ce_texture_bind(scenenode->texture);
 			ce_renderitem_render(scenenode->renderitem);
-			//ce_texture_unbind(scenenode->texture);
+			ce_texture_unbind(scenenode->texture);
 			ce_scenenode_discard_transformation(scenenode);
 		}
 	}

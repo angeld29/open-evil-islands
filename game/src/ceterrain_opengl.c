@@ -215,12 +215,6 @@ static void ce_terrain_renderitem_dtor(ce_renderitem* renderitem)
 	glDeleteLists(terrain_renderitem->id, 1);
 }
 
-static void ce_terrain_renderitem_update(ce_renderitem* renderitem, va_list args)
-{
-	ce_unused(renderitem), ce_unused(args);
-	assert(false && "not implemented");
-}
-
 static void ce_terrain_renderitem_render(ce_renderitem* renderitem)
 {
 	ce_terrain_renderitem* terrain_renderitem =
@@ -228,17 +222,9 @@ static void ce_terrain_renderitem_render(ce_renderitem* renderitem)
 	glCallList(terrain_renderitem->id);
 }
 
-static ce_renderitem* ce_terrain_renderitem_clone(ce_renderitem* renderitem)
-{
-	ce_unused(renderitem);
-	assert(false && "not implemented");
-	return NULL;
-}
-
 static const ce_renderitem_vtable ce_terrain_renderitem_vtable = {
 	ce_terrain_renderitem_ctor, ce_terrain_renderitem_dtor,
-	ce_terrain_renderitem_update, ce_terrain_renderitem_render,
-	ce_terrain_renderitem_clone
+	NULL, ce_terrain_renderitem_render, NULL
 };
 
 static bool ce_terrain_create_sector(ce_terrain* terrain,
@@ -269,6 +255,7 @@ static bool ce_terrain_create_sector(ce_terrain* terrain,
 	}
 
 	scenenode->renderitem = renderitem;
+	scenenode->texture = terrain->stub_texture;
 
 	return true;
 }

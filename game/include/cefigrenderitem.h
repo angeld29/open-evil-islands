@@ -18,41 +18,24 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FIGMESH_H
-#define CE_FIGMESH_H
+#ifndef CE_FIGRENDERITEM_H
+#define CE_FIGRENDERITEM_H
 
-#include "cevector.h"
-#include "cefigproto.h"
-#include "cecomplection.h"
 #include "cerenderitem.h"
+#include "cefigfile.h"
+#include "cecomplection.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct {
-	const ce_figproto_node* proto_node;
-	ce_vec3 bone;
-	ce_renderitem* renderitem;
-	ce_vector* child_nodes;
-} ce_figmesh_node;
-
-typedef struct {
-	ce_figproto* figproto;
-	ce_complection complection;
-	ce_figmesh_node* root_node;
-	int ref_count;
-} ce_figmesh;
-
-extern ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
-									const ce_complection* complection);
-extern void ce_figmesh_del(ce_figmesh* figmesh);
-
-extern ce_figmesh* ce_figmesh_copy(ce_figmesh* figmesh);
+extern ce_renderitem*
+ce_figrenderitem_new(const ce_figfile* figfile,
+					const ce_complection* complection, bool has_morphing);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGMESH_H */
+#endif /* CE_FIGRENDERITEM_H */

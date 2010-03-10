@@ -29,6 +29,7 @@
 #include "cemprfile.h"
 #include "cerenderitem.h"
 #include "cescenenode.h"
+#include "cetexture.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -37,6 +38,7 @@ extern "C"
 
 typedef struct {
 	ce_mprfile* mprfile;
+	ce_texture* stub_texture;
 	ce_vector* textures;
 	ce_vector* renderitems;
 	ce_scenenode* scenenode;

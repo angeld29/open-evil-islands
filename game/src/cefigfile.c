@@ -97,6 +97,8 @@ static bool ce_figfile_read_model_data(ce_figfile* figfile, ce_memfile* mem)
 	 *   index_size - short size
 	 *   spec_component_size - 3 components x short size
 	 *   morph_component_size - 2 components x short size
+	 *   spec_component - vertex_index, normal_index, texcoord_index
+	 *   morph_component - morph_index, vertex_index
 	*/
 
 	assert(4 == sizeof(float));

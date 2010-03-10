@@ -112,9 +112,14 @@ const char* ce_string_cstr(const ce_string* str)
 	return str->cstr;
 }
 
-bool ce_string_is_equal(const ce_string* str1, const ce_string* str2)
+int ce_string_cmp(const ce_string* str1, const ce_string* str2)
 {
-	return 0 == strcmp(str1->cstr, str2->cstr);
+	return strcmp(str1->cstr, str2->cstr);
+}
+
+int ce_string_cmp_cstr(const ce_string* str1, const char* str2)
+{
+	return strcmp(str1->cstr, str2);
 }
 
 ce_string* ce_string_dup(const ce_string* str)

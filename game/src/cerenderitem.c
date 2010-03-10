@@ -62,10 +62,12 @@ void ce_renderitem_del(ce_renderitem* renderitem)
 
 void ce_renderitem_update(ce_renderitem* renderitem, ...)
 {
-	va_list args;
-	va_start(args, renderitem);
-	(renderitem->vtable.update)(renderitem, args);
-	va_end(args);
+	if (NULL != renderitem->vtable.update) {
+		va_list args;
+		va_start(args, renderitem);
+		(renderitem->vtable.update)(renderitem, args);
+		va_end(args);
+	}
 }
 
 void ce_renderitem_render(ce_renderitem* renderitem)
@@ -73,7 +75,26 @@ void ce_renderitem_render(ce_renderitem* renderitem)
 	(renderitem->vtable.render)(renderitem);
 }
 
-ce_renderitem* ce_renderitem_clone(ce_renderitem* renderitem)
+ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem)
 {
-	return (renderitem->vtable.clone)(renderitem);
+	if (NULL == renderitem->vtable.clone) {
+		return NULL;
+	}
+
+	ce_renderitem* clone_renderitem =
+		ce_alloc_zero(sizeof(ce_renderitem) + renderitem->size);
+	if (NULL == clone_renderitem) {
+		ce_logging_error("renderitem: could not allocate memory");
+		return NULL;
+	}
+
+	if (!(renderitem->vtable.clone)(renderitem, clone_renderitem)) {
+		ce_renderitem_del(clone_renderitem);
+		return NULL;
+	}
+
+	clone_renderitem->vtable = renderitem->vtable;
+	clone_renderitem->size = renderitem->size;
+
+	return clone_renderitem;
 }

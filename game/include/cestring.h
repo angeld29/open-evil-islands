@@ -44,7 +44,8 @@ extern bool ce_string_empty(const ce_string* str);
 
 extern const char* ce_string_cstr(const ce_string* str);
 
-extern bool ce_string_is_equal(const ce_string* str1, const ce_string* str2);
+extern int ce_string_cmp(const ce_string* str1, const ce_string* str2);
+extern int ce_string_cmp_cstr(const ce_string* str1, const char* str2);
 
 extern ce_string* ce_string_dup(const ce_string* str);
 extern ce_string* ce_string_dup_n(const ce_string* str, size_t n);

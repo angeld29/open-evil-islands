@@ -198,7 +198,7 @@ ce_figproto_create_nodes(ce_figproto* figproto, ce_figproto_node* parent_node,
 						unsigned int* index)
 {
 	while (*index < lnkfile->relationship_count &&
-			(NULL == parent_node || ce_string_is_equal(parent_node->name,
+			(NULL == parent_node || 0 == ce_string_cmp(parent_node->name,
 								lnkfile->relationships[*index].parent_name))) {
 		ce_figproto_node* child_node =
 			ce_figproto_node_new(lnkfile->relationships[*index].child_name,

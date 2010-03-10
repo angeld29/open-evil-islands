@@ -89,7 +89,7 @@ void ce_scenenode_remove_child(ce_scenenode* scenenode,
 	}
 }
 
-static void ce_scenenode_update_transform(ce_scenenode* scenenode)
+static void ce_scenenode_update_transformation(ce_scenenode* scenenode)
 {
 	if (NULL == scenenode->parent_scenenode) {
 		// absolute state == relative state
@@ -138,13 +138,13 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 
 void ce_scenenode_update(ce_scenenode* scenenode)
 {
-	ce_scenenode_update_transform(scenenode);
+	ce_scenenode_update_transformation(scenenode);
 	ce_scenenode_update_bounds(scenenode);
 }
 
 void ce_scenenode_update_cascade(ce_scenenode* scenenode)
 {
-	ce_scenenode_update_transform(scenenode);
+	ce_scenenode_update_transformation(scenenode);
 	for (int i = 0, n = ce_vector_count(scenenode->child_scenenodes); i < n; ++i) {
 		ce_scenenode_update_cascade(ce_vector_at(scenenode->child_scenenodes, i));
 	}

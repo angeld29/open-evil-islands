@@ -18,41 +18,43 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FIGMESH_H
-#define CE_FIGMESH_H
+#ifndef CE_FIGHLP_H
+#define CE_FIGHLP_H
 
-#include "cevector.h"
-#include "cefigproto.h"
+#include "cevec3.h"
+#include "ceaabb.h"
+#include "cesphere.h"
 #include "cecomplection.h"
-#include "cerenderitem.h"
+#include "cefigfile.h"
+#include "cebonfile.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct {
-	const ce_figproto_node* proto_node;
-	ce_vec3 bone;
-	ce_renderitem* renderitem;
-	ce_vector* child_nodes;
-} ce_figmesh_node;
+extern ce_aabb*
+ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
+					const ce_complection* complection);
 
-typedef struct {
-	ce_figproto* figproto;
-	ce_complection complection;
-	ce_figmesh_node* root_node;
-	int ref_count;
-} ce_figmesh;
+extern ce_sphere*
+ce_fighlp_get_sphere(ce_sphere* sphere, const ce_figfile* figfile,
+					const ce_complection* complection);
 
-extern ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
+extern float*
+ce_fighlp_get_vertex(float* array, const ce_figfile* figfile,
+						int index, const ce_complection* complection);
+
+extern float*
+ce_fighlp_get_normal(float* array, const ce_figfile* figfile, int index);
+
+extern ce_vec3* ce_fighlp_get_bone(ce_vec3* bone,
+									const ce_figfile* figfile,
+									const ce_bonfile* bonfile,
 									const ce_complection* complection);
-extern void ce_figmesh_del(ce_figmesh* figmesh);
-
-extern ce_figmesh* ce_figmesh_copy(ce_figmesh* figmesh);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGMESH_H */
+#endif /* CE_FIGHLP_H */

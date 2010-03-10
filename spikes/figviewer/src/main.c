@@ -41,6 +41,8 @@
 #include "cealloc.h"
 #include "ceroot.h"
 #include "cescenemng.h"
+#include "cefigmesh.h"
+#include "cefigentity.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0
@@ -53,7 +55,10 @@
 #endif
 
 ce_scenemng* scenemng;
+
 ce_figproto* figproto;
+ce_figmesh* figmesh;
+ce_figentity* figentity;
 
 static void idle(void)
 {
@@ -62,6 +67,8 @@ static void idle(void)
 	float elapsed = ce_timer_elapsed(scenemng->timer);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
+		ce_figentity_del(figentity);
+		ce_figmesh_del(figmesh);
 		ce_figproto_del(figproto);
 		ce_scenemng_del(scenemng);
 		ce_root_term();
@@ -102,6 +109,8 @@ static void idle(void)
 												ce_deg2rad(-0.13f * offset.y));
 	}
 
+	ce_figentity_advance(figentity, elapsed);
+
 	glutPostRedisplay();
 }
 
@@ -138,14 +147,26 @@ int main(int argc, char* argv[])
 
 	int c;
 	const char* ei_path = ".";
+	const char* primary_texture = "default0";
+	const char* secondary_texture = "default0";
+	const char* anm_name = NULL;
 	bool fullscreen = false;
 
 	opterr = 0;
 
-	while (-1 != (c = getopt(argc, argv, ":b:fvh")))  {
+	while (-1 != (c = getopt(argc, argv, ":b:p:s:a:fvh")))  {
 		switch (c) {
 		case 'b':
 			ei_path = optarg;
+			break;
+		case 'p':
+			primary_texture = optarg;
+			break;
+		case 's':
+			secondary_texture = optarg;
+			break;
+		case 'a':
+			anm_name = optarg;
 			break;
 		case 'f':
 			fullscreen = true;
@@ -224,11 +245,32 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	if (NULL == (figproto =
-		ce_figprotomng_get_figproto(ce_root_get_figprotomng(), argv[optind]))) {
-		ce_logging_fatal("main: failed to load: '%s'\n", argv[optind]);
+	if (NULL == (figproto = ce_figprotomng_get_figproto(
+			ce_root_get_figprotomng(), argv[optind]))) {
+		ce_logging_fatal("main: failed to get figure proto: '%s'\n", argv[optind]);
 		return 1;
 	}
+
+	ce_complection complection;
+	ce_complection_init(&complection, 1.0f, 1.0f, 1.0f);
+
+	if (NULL == (figmesh = ce_figmesh_new(figproto, &complection))) {
+		ce_logging_fatal("main: failed to create a figure mesh\n");
+		return 1;
+	}
+
+	const char* texture_names[] = { primary_texture, secondary_texture };
+
+	if (NULL == (figentity =
+				ce_figentity_new(figmesh, &CE_VEC3_ZERO, &CE_QUAT_IDENTITY,
+								texture_names, scenemng->root_scenenode))) {
+		ce_logging_fatal("main: failed to create a figure entity\n");
+		return 1;
+	}
+
+	NULL != anm_name ? ce_figentity_play_animation(figentity, anm_name) :
+		(ce_figentity_play_animation(figentity, "cidle") ||
+			ce_figentity_play_animation(figentity, "cidle01"));
 
 	ce_vec3 eye;
 	ce_vec3_init(&eye, 0.0f, 2.0f, -4.0f);

@@ -41,6 +41,11 @@ static bool ce_terrain_create(ce_terrain* terrain,
 		return false;
 	}
 
+	if (NULL == (terrain->stub_texture =
+			ce_texmng_get_texture(ce_root_get_texmng(), "default0"))) {
+		return false;
+	}
+
 	// mpr name + nnn
 	char texture_name[ce_string_length(terrain->mprfile->name) + 3 + 1];
 
@@ -110,6 +115,7 @@ void ce_terrain_del(ce_terrain* terrain)
 			}
 			ce_vector_del(terrain->textures);
 		}
+		ce_texture_del(terrain->stub_texture);
 		ce_mprfile_close(terrain->mprfile);
 		ce_free(terrain, sizeof(ce_terrain));
 	}

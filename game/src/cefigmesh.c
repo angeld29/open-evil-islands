@@ -24,7 +24,58 @@
 
 #include "celogging.h"
 #include "cealloc.h"
+#include "cefighlp.h"
+#include "cefigrenderitem.h"
 #include "cefigmesh.h"
+
+static void ce_figmesh_node_del(ce_figmesh_node* node)
+{
+	if (NULL != node) {
+		if (NULL != node->child_nodes) {
+			for (int i = 0, n = ce_vector_count(node->child_nodes); i < n; ++i) {
+				ce_figmesh_node_del(ce_vector_at(node->child_nodes, i));
+			}
+			ce_vector_del(node->child_nodes);
+		}
+		ce_renderitem_del(node->renderitem);
+		ce_free(node, sizeof(ce_figmesh_node));
+	}
+}
+
+static ce_figmesh_node* ce_figmesh_node_new(const ce_figproto_node* proto_node,
+											const ce_complection* complection)
+{
+	ce_figmesh_node* node = ce_alloc_zero(sizeof(ce_figmesh_node));
+	if (NULL == node) {
+		ce_logging_error("figmesh node: could not allocate memory");
+		return NULL;
+	}
+
+	node->proto_node = proto_node;
+
+	ce_fighlp_get_bone(&node->bone, proto_node->figfile,
+						proto_node->bonfile, complection);
+
+	if (NULL == (node->renderitem =
+					ce_figrenderitem_new(proto_node->figfile, complection,
+											proto_node->has_morphing)) ||
+			NULL == (node->child_nodes = ce_vector_new())) {
+		ce_figmesh_node_del(node);
+		return NULL;
+	}
+
+	for (int i = 0, n = ce_vector_count(proto_node->child_nodes); i < n; ++i) {
+		ce_figmesh_node* child_node = ce_figmesh_node_new(
+			ce_vector_at(proto_node->child_nodes, i), complection);
+		if (NULL == child_node) {
+			ce_figmesh_node_del(node);
+			return NULL;
+		}
+		ce_vector_push_back(node->child_nodes, child_node);
+	}
+
+	return node;
+}
 
 ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
 							const ce_complection* complection)
@@ -36,8 +87,15 @@ ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
 	}
 
 	figmesh->figproto = ce_figproto_copy(figproto);
-	ce_complection_copy(&figmesh->complection, complection);
 	figmesh->ref_count = 1;
+
+	ce_complection_copy(&figmesh->complection, complection);
+
+	if (NULL == (figmesh->root_node =
+					ce_figmesh_node_new(figproto->root_node, complection))) {
+		ce_figmesh_del(figmesh);
+		return NULL;
+	}
 
 	return figmesh;
 }
@@ -47,6 +105,7 @@ void ce_figmesh_del(ce_figmesh* figmesh)
 	if (NULL != figmesh) {
 		assert(figmesh->ref_count > 0);
 		if (0 == --figmesh->ref_count) {
+			ce_figmesh_node_del(figmesh->root_node);
 			ce_figproto_del(figmesh->figproto);
 			ce_free(figmesh, sizeof(ce_figmesh));
 		}

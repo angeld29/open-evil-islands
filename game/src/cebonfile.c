@@ -27,13 +27,13 @@
 static bool ce_bonfile_open_impl(ce_bonfile* bonfile, ce_memfile* memfile)
 {
 	if (NULL == (bonfile->bone =
-					ce_alloc(sizeof(float) * bonfile->value_count))) {
+					ce_alloc(sizeof(float) * 3 * bonfile->value_count))) {
 		ce_logging_error("bonfile: could not allocate memory");
 		return false;
 	}
 
 	if (1 != ce_memfile_read(memfile, bonfile->bone,
-								sizeof(float) * bonfile->value_count, 1)) {
+								sizeof(float) * 3 * bonfile->value_count, 1)) {
 		ce_logging_error("bonfile: io error occured");
 		return false;
 	}
@@ -62,7 +62,7 @@ ce_bonfile* ce_bonfile_open_memfile(int value_count, ce_memfile* memfile)
 void ce_bonfile_close(ce_bonfile* bonfile)
 {
 	if (NULL != bonfile) {
-		ce_free(bonfile->bone, sizeof(float) * bonfile->value_count);
+		ce_free(bonfile->bone, sizeof(float) * 3 * bonfile->value_count);
 		ce_free(bonfile, sizeof(ce_bonfile));
 	}
 }

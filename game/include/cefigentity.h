@@ -21,8 +21,11 @@
 #ifndef CE_FIGENTITY_H
 #define CE_FIGENTITY_H
 
-#include "cescenenode.h"
+#include "cevec3.h"
+#include "cequat.h"
 #include "cefigmesh.h"
+#include "cescenenode.h"
+#include "cetexture.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -30,13 +33,32 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	const ce_figmesh_node* mesh_node;
+	ce_texture* texture;
+	ce_renderitem* renderitem;
+	ce_scenenode* scenenode;
+	ce_vector* child_nodes;
+	int anm_index;
+	float anm_frame;
+} ce_figentity_node;
+
+typedef struct {
 	ce_figmesh* figmesh;
 	ce_scenenode* scenenode;
-	float frame;
+	ce_figentity_node* root_node;
 } ce_figentity;
 
-extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh);
+extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
+										const ce_vec3* position,
+										const ce_quat* orientation,
+										const char* texture_names[],
+										ce_scenenode* parent_scenenode);
 extern void ce_figentity_del(ce_figentity* figentity);
+
+extern void ce_figentity_advance(ce_figentity* figentity, float elapsed);
+
+extern bool ce_figentity_play_animation(ce_figentity* figentity,
+											const char* anm_name);
 
 #ifdef __cplusplus
 }
