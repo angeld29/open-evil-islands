@@ -24,18 +24,12 @@
 #include "cealloc.h"
 #include "cestring.h"
 
-struct ce_string {
-	size_t capacity;
-	size_t length;
-	char* cstr;
-};
-
 ce_string* ce_string_new(void)
 {
 	return ce_string_new_reserved(16);
 }
 
-ce_string* ce_string_new_reserved(size_t capacity)
+ce_string* ce_string_new_reserved(int capacity)
 {
 	ce_string* str = ce_alloc_zero(sizeof(ce_string));
 	if (NULL == str) {
@@ -57,7 +51,7 @@ ce_string* ce_string_new_cstr(const char* cstr)
 	return str;
 }
 
-ce_string* ce_string_new_cstr_n(const char* cstr, size_t n)
+ce_string* ce_string_new_cstr_n(const char* cstr, int n)
 {
 	ce_string* str = ce_string_new_reserved(n + 1);
 	if (NULL != str) {
@@ -69,35 +63,27 @@ ce_string* ce_string_new_cstr_n(const char* cstr, size_t n)
 void ce_string_del(ce_string* str)
 {
 	if (NULL != str) {
-		ce_free(str->cstr, str->capacity);
+		ce_free(str->str, str->capacity);
 		ce_free(str, sizeof(ce_string));
 	}
 }
 
-bool ce_string_reserve(ce_string* str, size_t capacity)
+void ce_string_reserve(ce_string* str, int capacity)
 {
 	if (capacity > str->capacity) {
 		char* cstr = ce_alloc(capacity);
-		if (NULL == cstr) {
-			ce_logging_error("string: could not allocate memory");
-			return false;
-		}
-
-		if (NULL != str->cstr) {
-			strcpy(cstr, str->cstr);
-			ce_free(str->cstr, str->capacity);
+		if (NULL != str->str) {
+			strcpy(cstr, str->str);
+			ce_free(str->str, str->capacity);
 		} else {
 			cstr[0] = '\0';
 		}
-
 		str->capacity = capacity;
-		str->cstr = cstr;
+		str->str = cstr;
 	}
-
-	return true;
 }
 
-size_t ce_string_length(const ce_string* str)
+int ce_string_length(const ce_string* str)
 {
 	return str->length;
 }
@@ -109,47 +95,41 @@ bool ce_string_empty(const ce_string* str)
 
 const char* ce_string_cstr(const ce_string* str)
 {
-	return str->cstr;
+	return str->str;
 }
 
 int ce_string_cmp(const ce_string* str1, const ce_string* str2)
 {
-	return strcmp(str1->cstr, str2->cstr);
+	return strcmp(str1->str, str2->str);
 }
 
 int ce_string_cmp_cstr(const ce_string* str1, const char* str2)
 {
-	return strcmp(str1->cstr, str2);
+	return strcmp(str1->str, str2);
 }
 
 ce_string* ce_string_dup(const ce_string* str)
 {
-	return ce_string_new_cstr(str->cstr);
+	return ce_string_new_cstr(str->str);
 }
 
-ce_string* ce_string_dup_n(const ce_string* str, size_t n)
+ce_string* ce_string_dup_n(const ce_string* str, int n)
 {
-	return ce_string_new_cstr_n(str->cstr, n);
+	return ce_string_new_cstr_n(str->str, n);
 }
 
-bool ce_string_assign(ce_string* str, const char* cstr)
+void ce_string_assign(ce_string* str, const char* cstr)
 {
-	size_t length = strlen(cstr);
-	if (ce_string_reserve(str, length + 1)) {
-		strcpy(str->cstr, cstr);
-		str->length = length;
-		return true;
-	}
-	return false;
+	int length = strlen(cstr);
+	ce_string_reserve(str, length + 1);
+	strcpy(str->str, cstr);
+	str->length = length;
 }
 
-bool ce_string_assign_n(ce_string* str, const char* cstr, size_t n)
+void ce_string_assign_n(ce_string* str, const char* cstr, int n)
 {
-	if (ce_string_reserve(str, n + 1)) {
-		strncpy(str->cstr, cstr, n);
-		str->cstr[n] = '\0';
-		str->length = strlen(str->cstr);
-		return true;
-	}
-	return false;
+	ce_string_reserve(str, n + 1);
+	strncpy(str->str, cstr, n);
+	str->str[n] = '\0';
+	str->length = strlen(str->str);
 }

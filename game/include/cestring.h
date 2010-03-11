@@ -21,7 +21,6 @@
 #ifndef CE_STRING_H
 #define CE_STRING_H
 
-#include <stddef.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -29,17 +28,21 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_string ce_string;
+typedef struct {
+	int capacity;
+	int length;
+	char* str;
+} ce_string;
 
 extern ce_string* ce_string_new(void);
-extern ce_string* ce_string_new_reserved(size_t capacity);
+extern ce_string* ce_string_new_reserved(int capacity);
 extern ce_string* ce_string_new_cstr(const char* cstr);
-extern ce_string* ce_string_new_cstr_n(const char* cstr, size_t n);
+extern ce_string* ce_string_new_cstr_n(const char* cstr, int n);
 extern void ce_string_del(ce_string* str);
 
-extern bool ce_string_reserve(ce_string* str, size_t capacity);
+extern void ce_string_reserve(ce_string* str, int capacity);
 
-extern size_t ce_string_length(const ce_string* str);
+extern int ce_string_length(const ce_string* str);
 extern bool ce_string_empty(const ce_string* str);
 
 extern const char* ce_string_cstr(const ce_string* str);
@@ -48,10 +51,10 @@ extern int ce_string_cmp(const ce_string* str1, const ce_string* str2);
 extern int ce_string_cmp_cstr(const ce_string* str1, const char* str2);
 
 extern ce_string* ce_string_dup(const ce_string* str);
-extern ce_string* ce_string_dup_n(const ce_string* str, size_t n);
+extern ce_string* ce_string_dup_n(const ce_string* str, int n);
 
-extern bool ce_string_assign(ce_string* str, const char* cstr);
-extern bool ce_string_assign_n(ce_string* str, const char* cstr, size_t n);
+extern void ce_string_assign(ce_string* str, const char* cstr);
+extern void ce_string_assign_n(ce_string* str, const char* cstr, int n);
 
 #ifdef __cplusplus
 }
