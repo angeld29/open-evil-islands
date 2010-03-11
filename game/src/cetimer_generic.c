@@ -20,7 +20,6 @@
 
 #include <time.h>
 
-#include "celogging.h"
 #include "cealloc.h"
 #include "cetimer.h"
 
@@ -32,29 +31,25 @@ struct ce_timer {
 
 ce_timer* ce_timer_new(void)
 {
-	ce_timer* tmr = ce_alloc(sizeof(ce_timer));
-	if (NULL == tmr) {
-		ce_logging_error("timer: could not allocate memory");
-		return NULL;
-	}
-	tmr->elapsed_old = clock();
-	return tmr;
+	ce_timer* timer = ce_alloc(sizeof(ce_timer));
+	timer->elapsed_old = clock();
+	return timer;
 }
 
-void ce_timer_del(ce_timer* tmr)
+void ce_timer_del(ce_timer* timer)
 {
-	ce_free(tmr, sizeof(ce_timer));
+	ce_free(timer, sizeof(ce_timer));
 }
 
-void ce_timer_advance(ce_timer* tmr)
+void ce_timer_advance(ce_timer* timer)
 {
-	tmr->elapsed_new = clock();
-	tmr->elapsed_diff = (tmr->elapsed_new -
-							tmr->elapsed_old) / (float)CLOCKS_PER_SEC;
-	tmr->elapsed_old = tmr->elapsed_new;
+	timer->elapsed_new = clock();
+	timer->elapsed_diff = (timer->elapsed_new -
+							timer->elapsed_old) / (float)CLOCKS_PER_SEC;
+	timer->elapsed_old = timer->elapsed_new;
 }
 
-float ce_timer_elapsed(ce_timer* tmr)
+float ce_timer_elapsed(ce_timer* timer)
 {
-	return tmr->elapsed_diff;
+	return timer->elapsed_diff;
 }
