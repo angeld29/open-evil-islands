@@ -120,7 +120,7 @@ static bool generate_texture(int index)
 	ce_texture_del(tex);
 	tex = NULL;
 
-	void* data = ce_resfile_node_data(res, index);
+	void* data = ce_resfile_extract_data(res, index);
 	if (NULL == data) {
 		return false;
 	}

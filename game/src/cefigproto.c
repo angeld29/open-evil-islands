@@ -24,13 +24,14 @@
 
 #include "celogging.h"
 #include "cealloc.h"
+#include "cereshlp.h"
 #include "celnkfile.h"
 #include "cefigproto.h"
 
 static ce_lnkfile* ce_figproto_open_lnkfile(const char* name,
 											ce_resfile* resfile)
 {
-	ce_memfile* memfile = ce_resfile_node_memfile_by_name(resfile, name);
+	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(resfile, name);
 	if (NULL == memfile) {
 		ce_logging_error("figproto: could not open lnkfile: '%s'", name);
 		return NULL;
@@ -43,7 +44,7 @@ static ce_lnkfile* ce_figproto_open_lnkfile(const char* name,
 static ce_figfile* ce_figproto_open_figfile(const char* name,
 											ce_resfile* resfile)
 {
-	ce_memfile* memfile = ce_resfile_node_memfile_by_name(resfile, name);
+	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(resfile, name);
 	if (NULL == memfile) {
 		ce_logging_error("figproto: could not open figfile: '%s'", name);
 		return NULL;
@@ -57,7 +58,7 @@ static ce_bonfile* ce_figproto_open_bonfile(int value_count,
 											const char* name,
 											ce_resfile* resfile)
 {
-	ce_memfile* memfile = ce_resfile_node_memfile_by_name(resfile, name);
+	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(resfile, name);
 	if (NULL == memfile) {
 		ce_logging_error("figproto: could not open bonfile: '%s'", name);
 		return NULL;
@@ -71,7 +72,7 @@ static ce_anmfile* ce_figproto_open_anmfile(const char* anim_name,
 											const char* name,
 											ce_resfile* resfile)
 {
-	ce_memfile* memfile = ce_resfile_node_memfile_by_name(resfile, name);
+	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(resfile, name);
 	if (NULL == memfile) {
 		ce_logging_error("figproto: could not open anmfile: '%s'", name);
 		return NULL;
@@ -163,34 +164,6 @@ ce_figproto_node_new(ce_string* name, ce_resfile* mod_resfile,
 	return node;
 }
 
-static void ce_figproto_del_resfiles(ce_vector* resfiles)
-{
-	for (int i = 0, n = ce_vector_count(resfiles); i < n; ++i) {
-		ce_resfile_close(ce_vector_at(resfiles, i));
-	}
-	ce_vector_del(resfiles);
-}
-
-static ce_vector* ce_figproto_extract_resfiles(ce_resfile* resfile)
-{
-	ce_vector* child_resfiles =
-		ce_vector_new_reserved(ce_resfile_node_count(resfile));
-	if (NULL == child_resfiles) {
-		return NULL;
-	}
-
-	for (int i = 0, n = ce_resfile_node_count(resfile); i < n; ++i) {
-		ce_resfile* child_resfile = ce_resfile_node_resfile(resfile, i);
-		if (NULL == child_resfile) {
-			ce_figproto_del_resfiles(child_resfiles);
-			return NULL;
-		}
-		ce_vector_push_back(child_resfiles, child_resfile);
-	}
-
-	return child_resfiles;
-}
-
 static bool
 ce_figproto_create_nodes(ce_figproto* figproto, ce_figproto_node* parent_node,
 						ce_resfile* mod_resfile, ce_resfile* bon_resfile,
@@ -257,22 +230,22 @@ static bool ce_figproto_new_impl(ce_figproto* figproto,
 
 	snprintf(file_name, sizeof(file_name), "%s.mod", figure_name);
 	ce_resfile* mod_resfile =
-		ce_resfile_node_resfile_by_name(resfile, file_name);
+		ce_reshlp_extract_resfile_by_name(resfile, file_name);
 	if (NULL == mod_resfile) {
 		return false;
 	}
 
 	snprintf(file_name, sizeof(file_name), "%s.bon", figure_name);
 	ce_resfile* bon_resfile =
-		ce_resfile_node_resfile_by_name(resfile, file_name);
+		ce_reshlp_extract_resfile_by_name(resfile, file_name);
 	assert(NULL != bon_resfile);
 
 	snprintf(file_name, sizeof(file_name), "%s.anm", figure_name);
 	ce_resfile* anm_resfile =
-		ce_resfile_node_resfile_by_name(resfile, file_name);
+		ce_reshlp_extract_resfile_by_name(resfile, file_name);
 
 	ce_vector* anm_resfiles = NULL == anm_resfile ? ce_vector_new_reserved(0) :
-									ce_figproto_extract_resfiles(anm_resfile);
+								ce_reshlp_extract_all_resfiles(anm_resfile);
 	if (NULL == anm_resfiles) {
 		ce_resfile_close(anm_resfile);
 		ce_resfile_close(bon_resfile);
@@ -283,7 +256,7 @@ static bool ce_figproto_new_impl(ce_figproto* figproto,
 	bool ok = ce_figproto_new_tri_resfile(figproto, figure_name, mod_resfile,
 											bon_resfile, anm_resfiles);
 
-	ce_figproto_del_resfiles(anm_resfiles);
+	ce_reshlp_del_resfiles(anm_resfiles);
 
 	ce_resfile_close(anm_resfile);
 	ce_resfile_close(bon_resfile);

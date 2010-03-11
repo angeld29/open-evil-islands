@@ -93,7 +93,7 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* texture_name)
 		ce_resfile* resfile = ce_vector_at(texmng->resources, i);
 		int index = ce_resfile_node_index(resfile, file_name);
 		if (-1 != index) {
-			void* data = ce_resfile_node_data(resfile, index);
+			void* data = ce_resfile_extract_data(resfile, index);
 			if (NULL == data) {
 				return NULL;
 			}

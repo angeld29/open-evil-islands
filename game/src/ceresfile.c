@@ -19,7 +19,6 @@
 */
 
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -27,32 +26,11 @@
 #include "cebyteorder.h"
 #include "celogging.h"
 #include "cealloc.h"
-#include "cestring.h"
 #include "ceresfile.h"
 
 static const unsigned int RES_SIGNATURE = 0x19ce23c;
 
-typedef struct {
-	ce_string* name;
-	int32_t next_index;
-	uint32_t data_length;
-	uint32_t data_offset;
-	int32_t modified;
-	uint16_t name_length;
-	uint32_t name_offset;
-} ce_resfile_node;
-
-struct ce_resfile {
-	ce_string* name;
-	uint32_t node_count;
-	uint32_t metadata_offset;
-	uint32_t names_length;
-	char* names;
-	ce_resfile_node* nodes;
-	ce_memfile* mem;
-};
-
-static int name_hash(const char* name, int lim)
+static int ce_resfile_name_hash(const char* name, int lim)
 {
 	int sum = 0;
 	while (*name) {
@@ -102,7 +80,7 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 	ce_le2cpu32s(&res->metadata_offset);
 	ce_le2cpu32s(&res->names_length);
 
-	if (NULL == (res->nodes = ce_alloc_zero(sizeof(ce_resfile_node) *
+	if (NULL == (res->nodes = ce_alloc_zero(sizeof(ce_resnode) *
 												res->node_count))) {
 		ce_logging_error("resfile: could not allocate memory");
 		ce_resfile_close(res);
@@ -116,7 +94,7 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 	}
 
 	for (size_t i = 0; i < res->node_count; ++i) {
-		ce_resfile_node* node = res->nodes + i;
+		ce_resnode* node = res->nodes + i;
 		if (1 != ce_memfile_read(mem, &node->next_index, sizeof(int32_t), 1) ||
 				1 != ce_memfile_read(mem, &node->data_length, sizeof(uint32_t), 1) ||
 				1 != ce_memfile_read(mem, &node->data_offset, sizeof(uint32_t), 1) ||
@@ -148,7 +126,7 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 	}
 
 	for (size_t i = 0; i < res->node_count; ++i) {
-		ce_resfile_node* node = res->nodes + i;
+		ce_resnode* node = res->nodes + i;
 		if (NULL == (node->name = ce_string_new())) {
 			ce_resfile_close(res);
 			return NULL;
@@ -193,7 +171,7 @@ void ce_resfile_close(ce_resfile* res)
 			for (size_t i = 0; i < res->node_count; ++i) {
 				ce_string_del(res->nodes[i].name);
 			}
-			ce_free(res->nodes, sizeof(ce_resfile_node) * res->node_count);
+			ce_free(res->nodes, sizeof(ce_resnode) * res->node_count);
 		}
 		ce_free(res->names, res->names_length);
 		ce_string_del(res->name);
@@ -213,8 +191,8 @@ int ce_resfile_node_count(const ce_resfile* res)
 
 int ce_resfile_node_index(const ce_resfile* res, const char* name)
 {
-	const ce_resfile_node* node;
-	int index = name_hash(name, res->node_count);
+	const ce_resnode* node;
+	int index = ce_resfile_name_hash(name, res->node_count);
 	for (; index >= 0; index = node->next_index) {
 		node = res->nodes + index;
 		if (0 == ce_strcasecmp(name, ce_string_cstr(node->name))) {
@@ -239,9 +217,9 @@ time_t ce_resfile_node_modified(const ce_resfile* res, int index)
 	return res->nodes[index].modified;
 }
 
-void* ce_resfile_node_data(ce_resfile* res, int index)
+void* ce_resfile_extract_data(ce_resfile* res, int index)
 {
-	ce_resfile_node* node = res->nodes + index;
+	ce_resnode* node = res->nodes + index;
 
 	void* data = ce_alloc(node->data_length);
 	if (NULL == data) {
@@ -257,50 +235,4 @@ void* ce_resfile_node_data(ce_resfile* res, int index)
 	}
 
 	return data;
-}
-
-ce_memfile* ce_resfile_node_memfile(ce_resfile* res, int index)
-{
-	void* data = ce_resfile_node_data(res, index);
-	if (NULL == data) {
-		return NULL;
-	}
-
-	ce_memfile* memfile =
-		ce_memfile_open_data(data, ce_resfile_node_size(res, index), "rb");
-	if (NULL == memfile) {
-		ce_free(data, ce_resfile_node_size(res, index));
-		return NULL;
-	}
-
-	return memfile;
-}
-
-ce_memfile* ce_resfile_node_memfile_by_name(ce_resfile* res, const char* name)
-{
-	int index = ce_resfile_node_index(res, name);
-	return -1 != index ? ce_resfile_node_memfile(res, index) : NULL;
-}
-
-ce_resfile* ce_resfile_node_resfile(ce_resfile* res, int index)
-{
-	ce_memfile* memfile = ce_resfile_node_memfile(res, index);
-	if (NULL == memfile) {
-		return NULL;
-	}
-
-	ce_resfile* child_res =
-		ce_resfile_open_memfile(ce_resfile_node_name(res, index), memfile);
-	if (NULL == child_res) {
-		ce_memfile_close(memfile);
-		return NULL;
-	}
-
-	return child_res;
-}
-
-ce_resfile* ce_resfile_node_resfile_by_name(ce_resfile* res, const char* name)
-{
-	int index = ce_resfile_node_index(res, name);
-	return -1 != index ? ce_resfile_node_resfile(res, index) : NULL;
 }

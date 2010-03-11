@@ -22,8 +22,10 @@
 #define CE_RESFILE_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <time.h>
 
+#include "cestring.h"
 #include "cememfile.h"
 
 #ifdef __cplusplus
@@ -31,7 +33,25 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_resfile ce_resfile;
+typedef struct {
+	ce_string* name;
+	int32_t next_index;
+	uint32_t data_length;
+	uint32_t data_offset;
+	int32_t modified;
+	uint16_t name_length;
+	uint32_t name_offset;
+} ce_resnode;
+
+typedef struct {
+	ce_string* name;
+	uint32_t node_count;
+	uint32_t metadata_offset;
+	uint32_t names_length;
+	char* names;
+	ce_resnode* nodes;
+	ce_memfile* mem;
+} ce_resfile;
 
 /// Resfile takes ownership of the memfile if successfull.
 extern ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem);
@@ -45,15 +65,8 @@ extern int ce_resfile_node_index(const ce_resfile* res, const char* name);
 extern const char* ce_resfile_node_name(const ce_resfile* res, int index);
 extern size_t ce_resfile_node_size(const ce_resfile* res, int index);
 extern time_t ce_resfile_node_modified(const ce_resfile* res, int index);
-extern void* ce_resfile_node_data(ce_resfile* res, int index);
 
-extern ce_memfile* ce_resfile_node_memfile(ce_resfile* res, int index);
-extern ce_memfile* ce_resfile_node_memfile_by_name(ce_resfile* res,
-													const char* name);
-
-extern ce_resfile* ce_resfile_node_resfile(ce_resfile* res, int index);
-extern ce_resfile* ce_resfile_node_resfile_by_name(ce_resfile* res,
-													const char* name);
+extern void* ce_resfile_extract_data(ce_resfile* res, int index);
 
 #ifdef __cplusplus
 }

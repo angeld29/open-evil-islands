@@ -28,7 +28,7 @@
 #include "cebyteorder.h"
 #include "celogging.h"
 #include "cealloc.h"
-#include "cememfile.h"
+#include "cereshlp.h"
 #include "cemprfile.h"
 
 static const unsigned int MP_SIGNATURE = 0xce4af672;
@@ -163,7 +163,7 @@ static bool read_sector_impl(ce_mprfile_sector* sec, ce_memfile* mem)
 
 static bool read_sector(ce_mprfile_sector* sec, const char* name, ce_resfile* res)
 {
-	ce_memfile* memfile = ce_resfile_node_memfile_by_name(res, name);
+	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(res, name);
 	if (NULL == memfile) {
 		return false;
 	}
@@ -292,7 +292,7 @@ static bool read_header(ce_mprfile* mpr, ce_resfile* res)
 	char mp_name[ce_string_length(mpr->name) + 3 + 1];
 	snprintf(mp_name, sizeof(mp_name), "%s.mp", ce_string_cstr(mpr->name));
 
-	ce_memfile* memfile = ce_resfile_node_memfile_by_name(res, mp_name);
+	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(res, mp_name);
 	if (NULL == memfile) {
 		return false;
 	}
