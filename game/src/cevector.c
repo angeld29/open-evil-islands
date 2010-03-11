@@ -28,7 +28,7 @@ ce_vector* ce_vector_new(void)
 	return ce_vector_new_reserved(16);
 }
 
-ce_vector* ce_vector_new_reserved(size_t capacity)
+ce_vector* ce_vector_new_reserved(int capacity)
 {
 	ce_vector* vector = ce_alloc_zero(sizeof(ce_vector));
 	ce_vector_reserve(vector, capacity);
@@ -43,7 +43,7 @@ void ce_vector_del(ce_vector* vector)
 	}
 }
 
-void ce_vector_reserve(ce_vector* vector, size_t capacity)
+void ce_vector_reserve(ce_vector* vector, int capacity)
 {
 	if (capacity > vector->capacity) {
 		void** items = ce_alloc(sizeof(void*) * capacity);
@@ -56,7 +56,7 @@ void ce_vector_reserve(ce_vector* vector, size_t capacity)
 	}
 }
 
-size_t ce_vector_count(const ce_vector* vector)
+int ce_vector_count(const ce_vector* vector)
 {
 	return vector->count;
 }

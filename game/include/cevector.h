@@ -21,7 +21,6 @@
 #ifndef CE_VECTOR_H
 #define CE_VECTOR_H
 
-#include <stddef.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -30,18 +29,18 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	size_t capacity;
-	size_t count;
+	int capacity;
+	int count;
 	void** items;
 } ce_vector;
 
 extern ce_vector* ce_vector_new(void);
-extern ce_vector* ce_vector_new_reserved(size_t capacity);
+extern ce_vector* ce_vector_new_reserved(int capacity);
 extern void ce_vector_del(ce_vector* vec);
 
-extern void ce_vector_reserve(ce_vector* vec, size_t capacity);
+extern void ce_vector_reserve(ce_vector* vec, int capacity);
 
-extern size_t ce_vector_count(const ce_vector* vec);
+extern int ce_vector_count(const ce_vector* vec);
 extern bool ce_vector_empty(const ce_vector* vec);
 
 extern void* ce_vector_front(ce_vector* vec);
