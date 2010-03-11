@@ -34,7 +34,9 @@ ce_anmstate* ce_anmstate_new(void)
 
 void ce_anmstate_del(ce_anmstate* anmstate)
 {
-	ce_free(anmstate, sizeof(ce_anmstate));
+	if (NULL != anmstate) {
+		ce_free(anmstate, sizeof(ce_anmstate));
+	}
 }
 
 void ce_anmstate_advance(ce_anmstate* anmstate, float fps, float elapsed)
