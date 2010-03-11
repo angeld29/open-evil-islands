@@ -222,7 +222,7 @@ static void usage(void)
 		"GNU General Public License for more details.\n"
 		"===============================================================================\n\n"
 		"This program is part of Cursed Earth spikes\n"
-		"mprviewer %d.%d.%d - View and explore Evil Islands maps\n\n"
+		"mprviewer %d.%d.%d - View and explore Evil Islands zones\n\n"
 		"Usage: mprviewer [options] <zone_name>\n"
 		"Where: <zone_name> Any zone_name.mpr file in 'ei_path/Maps'\n"
 		"Options:\n"
@@ -318,7 +318,7 @@ int main(int argc, char* argv[])
 	} else {
 		glutInitWindowPosition(100, 100);
 		glutInitWindowSize(1024, 768);
-		glutCreateWindow("Cursed Earth: MPR Viewer");
+		glutCreateWindow("Cursed Earth: Zone Viewer");
 	}
 
 	glutIdleFunc(idle);
