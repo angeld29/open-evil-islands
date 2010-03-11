@@ -41,15 +41,16 @@ static bool ce_anmfile_read_morphs(ce_anmfile* anmfile, ce_memfile* memfile)
 
 	if (0 != anmfile->morph_frame_count * anmfile->morph_vertex_count) {
 		if (NULL == (anmfile->morphs =
-				ce_alloc(sizeof(float) * anmfile->morph_frame_count *
-										anmfile->morph_vertex_count))) {
+				ce_alloc(sizeof(float) * 3 * anmfile->morph_frame_count *
+											anmfile->morph_vertex_count))) {
 			ce_logging_error("anmfile: could not allocate memory");
 			return false;
 		}
 
-		if (anmfile->morph_frame_count != ce_memfile_read(memfile,
-				anmfile->morphs, sizeof(float) * anmfile->morph_vertex_count,
-				anmfile->morph_frame_count)) {
+		if (anmfile->morph_frame_count !=
+				ce_memfile_read(memfile, anmfile->morphs,
+							sizeof(float) * 3 * anmfile->morph_vertex_count,
+							anmfile->morph_frame_count)) {
 			ce_logging_error("anmfile: io error occured");
 			return false;
 		}
@@ -133,8 +134,9 @@ ce_anmfile* ce_anmfile_open_memfile(const char* name, ce_memfile* memfile)
 void ce_anmfile_close(ce_anmfile* anmfile)
 {
 	if (NULL != anmfile) {
-		ce_free(anmfile->morphs, sizeof(float) * anmfile->morph_frame_count *
-												anmfile->morph_vertex_count);
+		ce_free(anmfile->morphs, sizeof(float) * 3 *
+									anmfile->morph_frame_count *
+									anmfile->morph_vertex_count);
 		ce_free(anmfile->translations,
 				sizeof(float) * 3 * anmfile->translation_frame_count);
 		ce_free(anmfile->rotations,

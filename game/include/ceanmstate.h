@@ -18,15 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FIGENTITY_H
-#define CE_FIGENTITY_H
+#ifndef CE_ANMSTATE_H
+#define CE_ANMSTATE_H
 
-#include "cevec3.h"
-#include "cequat.h"
-#include "cefigmesh.h"
-#include "ceanmstate.h"
-#include "cescenenode.h"
-#include "cetexture.h"
+#include <stdbool.h>
+
+#include "cevector.h"
+#include "ceanmfile.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -34,34 +32,26 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	const ce_figmesh_node* mesh_node;
-	ce_anmstate* anmstate;
-	ce_texture* texture;
-	ce_renderitem* renderitem;
-	ce_scenenode* scenenode;
-	ce_vector* child_nodes;
-} ce_figentity_node;
+	ce_anmfile* anmfile;
+	float frame_count;
+	float prev_frame;
+	float next_frame;
+	float frame;
+	float coef;
+} ce_anmstate;
 
-typedef struct {
-	ce_figmesh* figmesh;
-	ce_scenenode* scenenode;
-	ce_figentity_node* root_node;
-} ce_figentity;
+extern ce_anmstate* ce_anmstate_new(void);
+extern void ce_anmstate_del(ce_anmstate* anmstate);
 
-extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
-										const ce_vec3* position,
-										const ce_quat* orientation,
-										const char* texture_names[],
-										ce_scenenode* parent_scenenode);
-extern void ce_figentity_del(ce_figentity* figentity);
+extern void ce_anmstate_advance(ce_anmstate* anmstate,
+								float fps, float elapsed);
 
-extern void ce_figentity_advance(ce_figentity* figentity, float elapsed);
-
-extern bool ce_figentity_play_animation(ce_figentity* figentity,
-											const char* name);
+extern bool ce_anmstate_play_animation(ce_anmstate* anmstate,
+										ce_vector* anmfiles,
+										const char* name);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGENTITY_H */
+#endif /* CE_ANMSTATE_H */

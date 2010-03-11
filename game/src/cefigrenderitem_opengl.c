@@ -19,12 +19,15 @@
 */
 
 #include <string.h>
+#include <assert.h>
 
 #include <GL/gl.h>
 
+#include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
 #include "cefighlp.h"
+#include "ceanmstate.h"
 #include "cefigrenderitem.h"
 
 static void
@@ -172,7 +175,6 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 
 	for (int i = 0, n = figfile->index_count; i < n; ++i) {
 		int index = figfile->indices[i];
-
 		int vertex_index = figfile->spec_components[3 * index + 0];
 		int normal_index = figfile->spec_components[3 * index + 1];
 		int texcoord_index = figfile->spec_components[3 * index + 2];
@@ -188,6 +190,10 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 		figrenderitem->texcoords[2 * i + 1] =
 			figfile->texcoords[2 * texcoord_index + 1];
 	}
+
+	memcpy(figrenderitem->morphed_vertices,
+			figrenderitem->initial_vertices,
+			sizeof(float) * 3 * figrenderitem->vertex_count);
 
 	return true;
 }
@@ -206,9 +212,28 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 	ce_figrenderitem_dynamic* figrenderitem =
 		(ce_figrenderitem_dynamic*)renderitem->impl;
 
-	memcpy(figrenderitem->morphed_vertices,
-			figrenderitem->initial_vertices,
-			sizeof(float) * 3 * figrenderitem->vertex_count);
+	const ce_figfile* figfile = va_arg(args, const ce_figfile*);
+	const ce_anmstate* anmstate = va_arg(args, const ce_anmstate*);
+
+	const float* prev_morphs = anmstate->anmfile->morphs +
+								(int)anmstate->prev_frame * 3 *
+									anmstate->anmfile->morph_vertex_count;
+	const float* next_morphs = anmstate->anmfile->morphs +
+								(int)anmstate->next_frame * 3 *
+									anmstate->anmfile->morph_vertex_count;
+
+	for (int i = 0, n = figfile->index_count; i < n; ++i) {
+		int index = figfile->indices[i];
+		int vertex_index = figfile->spec_components[3 * index];
+		int morph_index = figfile->morph_components[2 * vertex_index];
+
+		for (int j = 0; j < 3; ++j) {
+			figrenderitem->morphed_vertices[3 * i + j] =
+				figrenderitem->initial_vertices[3 * i + j] +
+					ce_lerp(anmstate->coef, prev_morphs[3 * morph_index + j],
+											next_morphs[3 * morph_index + j]);
+		}
+	}
 }
 
 static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
