@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
 
 	if (NULL == (figproto = ce_figprotomng_get_figproto(
 			ce_root_get_figprotomng(), argv[optind]))) {
-		ce_logging_fatal("main: failed to get figure proto: '%s'\n", argv[optind]);
+		ce_logging_fatal("main: failed to get figure proto: '%s'", argv[optind]);
 		return 1;
 	}
 
@@ -264,7 +264,7 @@ int main(int argc, char* argv[])
 	ce_complection_init(&complection, 1.0f, 1.0f, 1.0f);
 
 	if (NULL == (figmesh = ce_figmesh_new(figproto, &complection))) {
-		ce_logging_fatal("main: failed to create a figure mesh\n");
+		ce_logging_fatal("main: failed to create a figure mesh");
 		return 1;
 	}
 
@@ -278,13 +278,13 @@ int main(int argc, char* argv[])
 	if (NULL == (figentity =
 				ce_figentity_new(figmesh, &CE_VEC3_ZERO, &orientation,
 								texture_names, scenemng->root_scenenode))) {
-		ce_logging_fatal("main: failed to create a figure entity\n");
+		ce_logging_fatal("main: failed to create a figure entity");
 		return 1;
 	}
 
 	if (NULL != anm_name) {
 		if (!ce_figentity_play_animation(figentity, anm_name)) {
-			ce_logging_warning("main: could not play animation: '%s'\n", anm_name);
+			ce_logging_warning("main: could not play animation: '%s'", anm_name);
 		}
 	}
 
