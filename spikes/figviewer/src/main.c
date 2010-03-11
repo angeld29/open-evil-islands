@@ -60,13 +60,19 @@ ce_figproto* figproto;
 ce_figmesh* figmesh;
 ce_figentity* figentity;
 
+ce_input_event_supply* es;
+ce_input_event* test_event;
+
 static void idle(void)
 {
 	ce_scenemng_advance(scenemng);
 
 	float elapsed = ce_timer_elapsed(scenemng->timer);
 
+	ce_input_event_supply_advance(es, elapsed);
+
 	if (ce_input_test(CE_KB_ESCAPE)) {
+		ce_input_event_supply_del(es);
 		ce_figentity_del(figentity);
 		ce_figmesh_del(figmesh);
 		ce_figproto_del(figproto);
@@ -107,6 +113,9 @@ static void idle(void)
 		ce_vec2 offset = ce_input_mouse_offset();
 		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(-0.13f * offset.x),
 												ce_deg2rad(-0.13f * offset.y));
+	}
+
+	if (ce_input_event_triggered(test_event)) {
 	}
 
 	ce_figentity_advance(figentity, elapsed);
@@ -261,16 +270,23 @@ int main(int argc, char* argv[])
 
 	const char* texture_names[] = { primary_texture, secondary_texture };
 
+	ce_quat orientation, q1 = CE_QUAT_IDENTITY, q2 = CE_QUAT_IDENTITY;
+	//ce_quat_init_polar(&q1, ce_deg2rad(180.0f), &CE_VEC3_UNIT_Z);
+	//ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
+	ce_quat_mul(&orientation, &q2, &q1);
+
 	if (NULL == (figentity =
-				ce_figentity_new(figmesh, &CE_VEC3_ZERO, &CE_QUAT_IDENTITY,
+				ce_figentity_new(figmesh, &CE_VEC3_ZERO, &orientation,
 								texture_names, scenemng->root_scenenode))) {
 		ce_logging_fatal("main: failed to create a figure entity\n");
 		return 1;
 	}
 
-	NULL != anm_name ? ce_figentity_play_animation(figentity, anm_name) :
-		(ce_figentity_play_animation(figentity, "cidle") ||
-			ce_figentity_play_animation(figentity, "cidle01"));
+	if (NULL != anm_name) {
+		if (!ce_figentity_play_animation(figentity, anm_name)) {
+			ce_logging_warning("main: could not play animation: '%s'\n", anm_name);
+		}
+	}
 
 	ce_vec3 eye;
 	ce_vec3_init(&eye, 0.0f, 2.0f, -4.0f);
@@ -278,6 +294,10 @@ int main(int argc, char* argv[])
 	ce_camera_set_near(scenemng->camera, 0.1f);
 	ce_camera_set_eye(scenemng->camera, &eye);
 	ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(180.0f), ce_deg2rad(30.0f));
+
+	es = ce_input_event_supply_new();
+	test_event = ce_input_event_supply_single_front_event(es,
+		ce_input_event_supply_button_event(es, CE_KB_N));
 
 	glutMainLoop();
 	return EXIT_SUCCESS;

@@ -56,8 +56,14 @@ static ce_figentity_node* ce_figentity_node_new(ce_figmesh_node* mesh_node,
 	node->mesh_node = mesh_node;
 	node->anm_index = -1;
 
+	// TODO: to be reversed...
+	int texture_number = mesh_node->proto_node->figfile->texture_number - 1;
+	if (texture_number > 1) {
+		texture_number = 0;
+	}
+
 	if (NULL == (node->texture = ce_texmng_get_texture(ce_root_get_texmng(),
-			texture_names[mesh_node->proto_node->figfile->texture_number - 1]))) {
+			texture_names[texture_number]))) {
 		ce_figentity_node_del(node);
 		return NULL;
 	}
