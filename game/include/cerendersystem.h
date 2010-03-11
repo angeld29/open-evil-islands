@@ -21,6 +21,9 @@
 #ifndef CE_RENDERSYSTEM_H
 #define CE_RENDERSYSTEM_H
 
+#include "cevec3.h"
+#include "cequat.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -30,6 +33,14 @@ typedef struct ce_rendersystem ce_rendersystem;
 
 extern ce_rendersystem* ce_rendersystem_new(void);
 extern void ce_rendersystem_del(ce_rendersystem* rendersystem);
+
+extern void
+ce_rendersystem_apply_transformation(ce_rendersystem* rendersystem,
+										const ce_vec3* translation,
+										const ce_quat* rotation);
+
+extern void
+ce_rendersystem_discard_transformation(ce_rendersystem* rendersystem);
 
 #ifdef __cplusplus
 }
