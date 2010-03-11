@@ -143,7 +143,8 @@ ce_mobfile_block_object_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	assert(NULL != mob->objects);
 	ce_mobobject_object* object = ce_alloc_zero(sizeof(ce_mobobject_object));
-	return NULL != object && ce_vector_push_back(mob->objects, object) &&
+	return NULL != object &&
+		(ce_vector_push_back(mob->objects, object), true) &&
 		ce_mobfile_block_loop(mob, mem, size);
 }
 
@@ -162,7 +163,7 @@ ce_mobfile_block_object_object_parts(ce_mobfile* mob,
 	}
 
 	ce_string* part = ce_mobfile_read_string(mem, size);
-	return NULL != part && ce_vector_push_back(object->parts, part);
+	return NULL != part && (ce_vector_push_back(object->parts, part), true);
 }
 
 static bool

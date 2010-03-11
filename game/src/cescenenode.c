@@ -83,7 +83,7 @@ void ce_scenenode_remove_child(ce_scenenode* scenenode,
 	for (int i = 0, n = ce_vector_count(scenenode->child_scenenodes); i < n; ++i) {
 		if (child_scenenode == ce_vector_at(scenenode->child_scenenodes, i)) {
 			child_scenenode->parent_scenenode = NULL;
-			ce_vector_remove(scenenode->child_scenenodes, i);
+			ce_vector_remove_unordered(scenenode->child_scenenodes, i);
 			break;
 		}
 	}

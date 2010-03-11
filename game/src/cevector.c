@@ -20,15 +20,8 @@
 
 #include <string.h>
 
-#include "celogging.h"
 #include "cealloc.h"
 #include "cevector.h"
-
-struct ce_vector {
-	size_t capacity;
-	size_t count;
-	void** items;
-};
 
 ce_vector* ce_vector_new(void)
 {
@@ -37,105 +30,83 @@ ce_vector* ce_vector_new(void)
 
 ce_vector* ce_vector_new_reserved(size_t capacity)
 {
-	ce_vector* vec = ce_alloc_zero(sizeof(ce_vector));
-	if (NULL == vec) {
-		ce_logging_error("vector: could not allocate memory");
-		return NULL;
-	}
-
-	ce_vector_reserve(vec, capacity);
-
-	return vec;
+	ce_vector* vector = ce_alloc_zero(sizeof(ce_vector));
+	ce_vector_reserve(vector, capacity);
+	return vector;
 }
 
-void ce_vector_del(ce_vector* vec)
+void ce_vector_del(ce_vector* vector)
 {
-	if (NULL != vec) {
-		ce_free(vec->items, sizeof(void*) * vec->capacity);
-		ce_free(vec, sizeof(ce_vector));
+	if (NULL != vector) {
+		ce_free(vector->items, sizeof(void*) * vector->capacity);
+		ce_free(vector, sizeof(ce_vector));
 	}
 }
 
-bool ce_vector_reserve(ce_vector* vec, size_t capacity)
+void ce_vector_reserve(ce_vector* vector, size_t capacity)
 {
-	if (capacity > vec->capacity) {
+	if (capacity > vector->capacity) {
 		void** items = ce_alloc(sizeof(void*) * capacity);
-		if (NULL == items) {
-			ce_logging_error("vector: could not allocate memory");
-			return false;
+		if (NULL != vector->items) {
+			memcpy(items, vector->items, sizeof(void*) * vector->count);
+			ce_free(vector->items, sizeof(void*) * vector->capacity);
 		}
-
-		if (NULL != vec->items) {
-			memcpy(items, vec->items, sizeof(void*) * vec->count);
-			ce_free(vec->items, sizeof(void*) * vec->capacity);
-		}
-
-		vec->capacity = capacity;
-		vec->items = items;
+		vector->capacity = capacity;
+		vector->items = items;
 	}
-
-	return true;
 }
 
-size_t ce_vector_count(const ce_vector* vec)
+size_t ce_vector_count(const ce_vector* vector)
 {
-	return vec->count;
+	return vector->count;
 }
 
-bool ce_vector_empty(const ce_vector* vec)
+bool ce_vector_empty(const ce_vector* vector)
 {
-	return 0 == vec->count;
+	return 0 == vector->count;
 }
 
-void* ce_vector_data(ce_vector* vec)
+void* ce_vector_front(ce_vector* vector)
 {
-	return vec->items;
+	return vector->items[0];
 }
 
-void* ce_vector_front(ce_vector* vec)
+void* ce_vector_back(ce_vector* vector)
 {
-	return vec->items[0];
+	return vector->items[vector->count - 1];
 }
 
-void* ce_vector_back(ce_vector* vec)
+void* ce_vector_at(ce_vector* vector, int index)
 {
-	return vec->items[vec->count - 1];
+	return vector->items[index];
 }
 
-void* ce_vector_at(ce_vector* vec, int index)
+void ce_vector_push_back(ce_vector* vector, void* item)
 {
-	return vec->items[index];
-}
-
-bool ce_vector_push_back(ce_vector* vec, void* item)
-{
-	if (vec->count == vec->capacity) {
-		ce_vector_reserve(vec, 2 * vec->capacity);
+	if (vector->count == vector->capacity) {
+		ce_vector_reserve(vector, 2 * vector->capacity);
 	}
-
-	vec->items[vec->count++] = item;
-	return true;
+	vector->items[vector->count++] = item;
 }
 
-void* ce_vector_pop_back(ce_vector* vec)
+void* ce_vector_pop_back(ce_vector* vector)
 {
-	return vec->items[--vec->count];
+	return vector->items[--vector->count];
 }
 
-void ce_vector_replace(ce_vector* vec, int index, void* item)
+void ce_vector_remove(ce_vector* vector, int index)
 {
-	vec->items[index] = item;
-}
-
-void ce_vector_remove(ce_vector* vec, int index)
-{
-	for (int i = index + 1, n = vec->count; i < n; ++i) {
-		vec->items[index - 1] = vec->items[index];
+	for (int i = index + 1, n = vector->count--; i < n; ++i) {
+		vector->items[i - 1] = vector->items[i];
 	}
-	--vec->count;
 }
 
-void ce_vector_clear(ce_vector* vec)
+void ce_vector_remove_unordered(ce_vector* vector, int index)
 {
-	vec->count = 0;
+	vector->items[index] = vector->items[--vector->count];
+}
+
+void ce_vector_clear(ce_vector* vector)
+{
+	vector->count = 0;
 }

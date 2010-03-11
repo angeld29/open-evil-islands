@@ -47,8 +47,7 @@ static void ce_renderqueue_render_do(ce_vector* scenenodes,
 									ce_renderqueue_comp comp)
 {
 	if (!ce_vector_empty(scenenodes)) {
-		qsort(ce_vector_data(scenenodes),
-				ce_vector_count(scenenodes),
+		qsort(scenenodes->items, scenenodes->count,
 				sizeof(ce_scenenode*), comp);
 
 		for (int i = 0, n = ce_vector_count(scenenodes); i < n; ++i) {
