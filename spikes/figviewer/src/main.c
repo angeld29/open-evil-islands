@@ -269,8 +269,8 @@ int main(int argc, char* argv[])
 									secondary_texture_name };
 
 	ce_quat orientation, q1 = CE_QUAT_IDENTITY, q2 = CE_QUAT_IDENTITY;
-	//ce_quat_init_polar(&q1, ce_deg2rad(180.0f), &CE_VEC3_UNIT_Z);
-	//ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
+	ce_quat_init_polar(&q1, ce_deg2rad(180.0f), &CE_VEC3_UNIT_Z);
+	ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
 	ce_quat_mul(&orientation, &q2, &q1);
 
 	figentity = ce_figentity_new(figmesh, &CE_VEC3_ZERO, &orientation,

@@ -41,7 +41,7 @@
 #include "cealloc.h"
 
 static const size_t PAGE_SIZE = 4096;
-static const size_t MAX_SMALL_OBJECT_SIZE = 0;
+static const size_t MAX_SMALL_OBJECT_SIZE = 256;
 static const size_t OBJECT_ALIGNMENT = 4;
 
 typedef struct {

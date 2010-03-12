@@ -76,8 +76,8 @@ static void ce_scenenode_update_transform(ce_scenenode* scenenode)
 					&scenenode->world_position,
 					&scenenode->parent->world_position);
 		ce_quat_mul(&scenenode->world_orientation,
-					&scenenode->orientation,
-					&scenenode->parent->world_orientation);
+					&scenenode->parent->world_orientation,
+					&scenenode->orientation);
 	}
 }
 
