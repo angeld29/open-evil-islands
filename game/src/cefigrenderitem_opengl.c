@@ -50,8 +50,14 @@ static ce_figrenderitem_cookie* ce_figrenderitem_cookie_new(void)
 {
 	ce_figrenderitem_cookie* cookie =
 		ce_alloc(sizeof(ce_figrenderitem_cookie));
+
 	cookie->id = glGenLists(1);
 	cookie->ref_count = 1;
+
+	if (0 == cookie->id) {
+		ce_logging_error("figrenderitem: could not generate display list");
+	}
+
 	return cookie;
 }
 
