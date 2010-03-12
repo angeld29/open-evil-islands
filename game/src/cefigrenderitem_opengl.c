@@ -43,9 +43,41 @@ ce_figrenderitem_base_init(ce_renderitem* renderitem,
 
 typedef struct {
 	GLuint id;
+	int ref_count;
+} ce_figrenderitem_cookie;
+
+static ce_figrenderitem_cookie* ce_figrenderitem_cookie_new(void)
+{
+	ce_figrenderitem_cookie* cookie =
+		ce_alloc(sizeof(ce_figrenderitem_cookie));
+	cookie->id = glGenLists(1);
+	cookie->ref_count = 1;
+	return cookie;
+}
+
+static void ce_figrenderitem_cookie_del(ce_figrenderitem_cookie* cookie)
+{
+	if (NULL != cookie) {
+		assert(cookie->ref_count > 0);
+		if (0 == --cookie->ref_count) {
+			glDeleteLists(cookie->id, 1);
+			ce_free(cookie, sizeof(ce_figrenderitem_cookie));
+		}
+	}
+}
+
+static ce_figrenderitem_cookie*
+ce_figrenderitem_cookie_copy(ce_figrenderitem_cookie* cookie)
+{
+	++cookie->ref_count;
+	return cookie;
+}
+
+typedef struct {
+	ce_figrenderitem_cookie* cookie;
 } ce_figrenderitem_static;
 
-static bool
+static void
 ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 {
 	ce_figrenderitem_static* figrenderitem =
@@ -56,12 +88,9 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 
 	ce_figrenderitem_base_init(renderitem, figfile, complection);
 
-	if (0 == (figrenderitem->id = glGenLists(1))) {
-		ce_logging_error("figrenderitem: could not generate display list");
-		return false;
-	}
+	figrenderitem->cookie = ce_figrenderitem_cookie_new();
 
-	glNewList(figrenderitem->id, GL_COMPILE);
+	glNewList(figrenderitem->cookie->id, GL_COMPILE);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -95,8 +124,6 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 	glDisable(GL_DEPTH_TEST);
 
 	glEndList();
-
-	return true;
 }
 
 static void ce_figrenderitem_static_dtor(ce_renderitem* renderitem)
@@ -104,7 +131,7 @@ static void ce_figrenderitem_static_dtor(ce_renderitem* renderitem)
 	ce_figrenderitem_static* figrenderitem =
 		(ce_figrenderitem_static*)renderitem->impl;
 
-	glDeleteLists(figrenderitem->id, 1);
+	ce_figrenderitem_cookie_del(figrenderitem->cookie);
 }
 
 static void ce_figrenderitem_static_render(ce_renderitem* renderitem)
@@ -112,7 +139,20 @@ static void ce_figrenderitem_static_render(ce_renderitem* renderitem)
 	ce_figrenderitem_static* figrenderitem =
 		(ce_figrenderitem_static*)renderitem->impl;
 
-	glCallList(figrenderitem->id);
+	glCallList(figrenderitem->cookie->id);
+}
+
+static void ce_figrenderitem_static_clone(const ce_renderitem* renderitem,
+											ce_renderitem* clone_renderitem)
+{
+	const ce_figrenderitem_static* figrenderitem =
+		(const ce_figrenderitem_static*)renderitem->impl;
+
+	ce_figrenderitem_static* clone_figrenderitem =
+		(ce_figrenderitem_static*)clone_renderitem->impl;
+
+	clone_figrenderitem->cookie =
+		ce_figrenderitem_cookie_copy(figrenderitem->cookie);
 }
 
 typedef struct {
@@ -124,41 +164,17 @@ typedef struct {
 } ce_figrenderitem_dynamic;
 
 static void
-ce_figrenderitem_dynamic_clean(ce_figrenderitem_dynamic* figrenderitem)
-{
-	ce_free(figrenderitem->texcoords,
-			sizeof(float) * 2 * figrenderitem->vertex_count);
-	ce_free(figrenderitem->normals,
-			sizeof(float) * 3 * figrenderitem->vertex_count);
-	ce_free(figrenderitem->morphed_vertices,
-			sizeof(float) * 3 * figrenderitem->vertex_count);
-	ce_free(figrenderitem->initial_vertices,
-			sizeof(float) * 3 * figrenderitem->vertex_count);
-}
-
-static bool
 ce_figrenderitem_dynamic_init(ce_figrenderitem_dynamic* figrenderitem,
-								int vertex_count)
+													int vertex_count)
 {
 	figrenderitem->vertex_count = vertex_count;
-
-	if (NULL == (figrenderitem->initial_vertices =
-				ce_alloc(sizeof(float) * 3 * vertex_count)) ||
-			NULL == (figrenderitem->morphed_vertices =
-					ce_alloc(sizeof(float) * 3 * vertex_count)) ||
-			NULL == (figrenderitem->normals =
-					ce_alloc(sizeof(float) * 3 * vertex_count)) ||
-			NULL == (figrenderitem->texcoords =
-					ce_alloc(sizeof(float) * 2 * vertex_count))) {
-		ce_logging_error("figrenderitem: could not allocate memory");
-		ce_figrenderitem_dynamic_clean(figrenderitem);
-		return false;
-	}
-
-	return true;
+	figrenderitem->initial_vertices = ce_alloc(sizeof(float) * 3 * vertex_count);
+	figrenderitem->morphed_vertices = ce_alloc(sizeof(float) * 3 * vertex_count);
+	figrenderitem->normals = ce_alloc(sizeof(float) * 3 * vertex_count);
+	figrenderitem->texcoords = ce_alloc(sizeof(float) * 2 * vertex_count);
 }
 
-static bool
+static void
 ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 {
 	ce_figrenderitem_dynamic* figrenderitem =
@@ -168,10 +184,7 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 	const ce_complection* complection = va_arg(args, const ce_complection*);
 
 	ce_figrenderitem_base_init(renderitem, figfile, complection);
-
-	if (!ce_figrenderitem_dynamic_init(figrenderitem, figfile->index_count)) {
-		return false;
-	}
+	ce_figrenderitem_dynamic_init(figrenderitem, figfile->index_count);
 
 	for (int i = 0, n = figfile->index_count; i < n; ++i) {
 		int index = figfile->indices[i];
@@ -194,8 +207,6 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 	memcpy(figrenderitem->morphed_vertices,
 			figrenderitem->initial_vertices,
 			sizeof(float) * 3 * figrenderitem->vertex_count);
-
-	return true;
 }
 
 static void ce_figrenderitem_dynamic_dtor(ce_renderitem* renderitem)
@@ -203,7 +214,14 @@ static void ce_figrenderitem_dynamic_dtor(ce_renderitem* renderitem)
 	ce_figrenderitem_dynamic* figrenderitem =
 		(ce_figrenderitem_dynamic*)renderitem->impl;
 
-	ce_figrenderitem_dynamic_clean(figrenderitem);
+	ce_free(figrenderitem->texcoords,
+			sizeof(float) * 2 * figrenderitem->vertex_count);
+	ce_free(figrenderitem->normals,
+			sizeof(float) * 3 * figrenderitem->vertex_count);
+	ce_free(figrenderitem->morphed_vertices,
+			sizeof(float) * 3 * figrenderitem->vertex_count);
+	ce_free(figrenderitem->initial_vertices,
+			sizeof(float) * 3 * figrenderitem->vertex_count);
 }
 
 static void
@@ -270,7 +288,7 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	glDisable(GL_DEPTH_TEST);
 }
 
-static bool ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,
+static void ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,
 											ce_renderitem* clone_renderitem)
 {
 	const ce_figrenderitem_dynamic* figrenderitem =
@@ -279,10 +297,8 @@ static bool ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,
 	ce_figrenderitem_dynamic* clone_figrenderitem =
 		(ce_figrenderitem_dynamic*)clone_renderitem->impl;
 
-	if (!ce_figrenderitem_dynamic_init(clone_figrenderitem,
-										figrenderitem->vertex_count)) {
-		return false;
-	}
+	ce_figrenderitem_dynamic_init(clone_figrenderitem,
+									figrenderitem->vertex_count);
 
 	memcpy(clone_figrenderitem->initial_vertices,
 			figrenderitem->initial_vertices,
@@ -294,13 +310,11 @@ static bool ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,
 			sizeof(float) * 3 * figrenderitem->vertex_count);
 	memcpy(clone_figrenderitem->texcoords, figrenderitem->texcoords,
 			sizeof(float) * 2 * figrenderitem->vertex_count);
-
-	return true;
 }
 
 static const ce_renderitem_vtable ce_figrenderitem_vtables[] = {
 	{ ce_figrenderitem_static_ctor, ce_figrenderitem_static_dtor,
-		NULL, ce_figrenderitem_static_render, NULL },
+		NULL, ce_figrenderitem_static_render, ce_figrenderitem_static_clone },
 	{ ce_figrenderitem_dynamic_ctor, ce_figrenderitem_dynamic_dtor,
 		ce_figrenderitem_dynamic_update, ce_figrenderitem_dynamic_render,
 		ce_figrenderitem_dynamic_clone }

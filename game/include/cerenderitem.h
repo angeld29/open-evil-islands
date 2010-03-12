@@ -36,12 +36,12 @@ extern "C"
 typedef struct ce_renderitem ce_renderitem;
 
 typedef struct {
-	bool (*ctor)(ce_renderitem* renderitem, va_list args);   // may be NULL
-	void (*dtor)(ce_renderitem* renderitem);                 // may be NULL
+	void (*ctor)(ce_renderitem* renderitem, va_list args);   // required
+	void (*dtor)(ce_renderitem* renderitem);                 // required
 	void (*update)(ce_renderitem* renderitem, va_list args); // may be NULL
 	void (*render)(ce_renderitem* renderitem);               // required
-	bool (*clone)(const ce_renderitem* renderitem,
-				ce_renderitem* clone_renderitem);            // may be NULL
+	void (*clone)(const ce_renderitem* renderitem,
+					ce_renderitem* clone_renderitem);        // required
 } ce_renderitem_vtable;
 
 struct ce_renderitem {

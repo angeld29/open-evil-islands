@@ -65,23 +65,12 @@ static ce_figentity_node* ce_figentity_node_new(const ce_figmesh_node* mesh_node
 		return NULL;
 	}
 
-	if (mesh_node->proto_node->has_morphing &&
-			NULL == (node->renderitem =
-						ce_renderitem_clone(mesh_node->renderitem))) {
-		ce_figentity_node_del(node);
-		return NULL;
-	}
-
-	if (NULL == (node->scenenode =
-					ce_scenenode_create_child(parent_scenenode)) ||
-			NULL == (node->child_nodes = ce_vector_new())) {
-		ce_figentity_node_del(node);
-		return NULL;
-	}
+	node->renderitem = ce_renderitem_clone(mesh_node->renderitem);
+	node->scenenode = ce_scenenode_create_child(parent_scenenode);
+	node->child_nodes = ce_vector_new();
 
 	node->scenenode->texture = node->texture;
-	node->scenenode->renderitem = mesh_node->proto_node->has_morphing ?
-								node->renderitem : mesh_node->renderitem;
+	node->scenenode->renderitem = node->renderitem;
 
 	ce_vec3_copy(&node->scenenode->position, &mesh_node->bone);
 
@@ -114,11 +103,9 @@ static void ce_figentity_node_advance(ce_figentity_node* node, float elapsed)
 			node->anmstate->coef);
 
 		// update morph
-		if (NULL != node->renderitem) {
-			ce_renderitem_update(node->renderitem,
-								node->mesh_node->proto_node->figfile,
-								node->anmstate);
-		}
+		ce_renderitem_update(node->renderitem,
+							node->mesh_node->proto_node->figfile,
+							node->anmstate);
 	}
 
 	for (int i = 0; i < node->child_nodes->count; ++i) {

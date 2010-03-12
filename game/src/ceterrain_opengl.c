@@ -32,7 +32,7 @@ typedef struct {
 	GLuint id;
 } ce_terrain_renderitem;
 
-static bool ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
+static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 {
 	ce_terrain* terrain = va_arg(args, ce_terrain*);
 	int sector_x = va_arg(args, int);
@@ -204,8 +204,6 @@ static bool ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 	glDisable(GL_DEPTH_TEST);
 
 	glEndList();
-
-	return true;
 }
 
 static void ce_terrain_renderitem_dtor(ce_renderitem* renderitem)

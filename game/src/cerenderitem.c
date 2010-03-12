@@ -25,27 +25,14 @@
 ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...)
 {
 	ce_renderitem* renderitem = ce_alloc_zero(sizeof(ce_renderitem) + size);
-	if (NULL == renderitem) {
-		ce_logging_error("renderitem: could not allocate memory");
-		return NULL;
-	}
-
-	bool ctor_ok = true;
-
-	if (NULL != vtable.ctor) {
-		va_list args;
-		va_start(args, size);
-		ctor_ok = (vtable.ctor)(renderitem, args);
-		va_end(args);
-	}
-
-	if (!ctor_ok) {
-		ce_renderitem_del(renderitem);
-		return NULL;
-	}
 
 	renderitem->vtable = vtable;
 	renderitem->size = size;
+
+	va_list args;
+	va_start(args, size);
+	(vtable.ctor)(renderitem, args);
+	va_end(args);
 
 	return renderitem;
 }
@@ -53,9 +40,7 @@ ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...)
 void ce_renderitem_del(ce_renderitem* renderitem)
 {
 	if (NULL != renderitem) {
-		if (NULL != renderitem->vtable.dtor) {
-			(renderitem->vtable.dtor)(renderitem);
-		}
+		(renderitem->vtable.dtor)(renderitem);
 		ce_free(renderitem, sizeof(ce_renderitem) + renderitem->size);
 	}
 }
@@ -77,24 +62,19 @@ void ce_renderitem_render(ce_renderitem* renderitem)
 
 ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem)
 {
-	if (NULL == renderitem->vtable.clone) {
-		return NULL;
-	}
-
 	ce_renderitem* clone_renderitem =
 		ce_alloc_zero(sizeof(ce_renderitem) + renderitem->size);
-	if (NULL == clone_renderitem) {
-		ce_logging_error("renderitem: could not allocate memory");
-		return NULL;
-	}
 
-	if (!(renderitem->vtable.clone)(renderitem, clone_renderitem)) {
-		ce_renderitem_del(clone_renderitem);
-		return NULL;
-	}
+	ce_aabb_copy(&clone_renderitem->bounding_box,
+					&renderitem->bounding_box);
+	ce_sphere_copy(&clone_renderitem->bounding_sphere,
+					&renderitem->bounding_sphere);
 
+	clone_renderitem->transparent = renderitem->transparent;
 	clone_renderitem->vtable = renderitem->vtable;
 	clone_renderitem->size = renderitem->size;
+
+	(renderitem->vtable.clone)(renderitem, clone_renderitem);
 
 	return clone_renderitem;
 }
