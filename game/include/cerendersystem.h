@@ -21,8 +21,9 @@
 #ifndef CE_RENDERSYSTEM_H
 #define CE_RENDERSYSTEM_H
 
-#include "cevec3.h"
-#include "cequat.h"
+#include "celightcfg.h"
+#include "cecamera.h"
+#include "cescenenode.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -34,13 +35,21 @@ typedef struct ce_rendersystem ce_rendersystem;
 extern ce_rendersystem* ce_rendersystem_new(void);
 extern void ce_rendersystem_del(ce_rendersystem* rendersystem);
 
-extern void
-ce_rendersystem_apply_transformation(ce_rendersystem* rendersystem,
-										const ce_vec3* translation,
-										const ce_quat* rotation);
+extern void ce_rendersystem_begin_render(ce_rendersystem* rendersystem,
+										const ce_lightcfg* lightcfg);
+extern void ce_rendersystem_end_render(ce_rendersystem* rendersystem);
+
+extern void ce_rendersystem_render_axes(ce_rendersystem* rendersystem);
+
+extern void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
+												ce_camera* camera);
 
 extern void
-ce_rendersystem_discard_transformation(ce_rendersystem* rendersystem);
+ce_rendersystem_apply_transformation(ce_rendersystem* rendersystem,
+									const ce_scenenode* scenenode);
+extern void
+ce_rendersystem_discard_transformation(ce_rendersystem* rendersystem,
+										const ce_scenenode* scenenode);
 
 #ifdef __cplusplus
 }

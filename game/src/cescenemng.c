@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 
+// TODO: to be unhardcoded...
 #include <GL/gl.h>
 
 #include "celogging.h"
@@ -71,6 +72,7 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 	ce_fps_advance(scenemng->fps, elapsed);
 }
 
+// mmm :)
 #include <GL/glut.h>
 void ce_scenemng_debug_render(ce_scenenode* scenenode)
 {
