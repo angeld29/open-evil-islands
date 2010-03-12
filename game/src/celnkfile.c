@@ -19,10 +19,12 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "cebyteorder.h"
 #include "celogging.h"
 #include "cealloc.h"
+#include "cereshlp.h"
 #include "celnkfile.h"
 
 static ce_string* ce_lnkfile_read_name(ce_memfile* memfile)
@@ -46,13 +48,14 @@ static ce_string* ce_lnkfile_read_name(ce_memfile* memfile)
 
 static bool ce_lnkfile_open_impl(ce_lnkfile* lnkfile, ce_memfile* memfile)
 {
+	uint32_t relationship_count;
 	if (1 != ce_memfile_read(memfile,
-			&lnkfile->relationship_count, sizeof(uint32_t), 1)) {
+			&relationship_count, sizeof(uint32_t), 1)) {
 		ce_logging_error("lnkfile: io error occured");
 		return false;
 	}
 
-	ce_le2cpu32s(&lnkfile->relationship_count);
+	lnkfile->relationship_count = ce_le2cpu32(relationship_count);
 
 	if (NULL == (lnkfile->relationships =
 			ce_alloc_zero(sizeof(ce_lnkfile_relationship) *
@@ -61,7 +64,7 @@ static bool ce_lnkfile_open_impl(ce_lnkfile* lnkfile, ce_memfile* memfile)
 		return false;
 	}
 
-	for (int i = 0, n = lnkfile->relationship_count; i < n; ++i) {
+	for (int i = 0; i < lnkfile->relationship_count; ++i) {
 		if (NULL == (lnkfile->relationships[i].child_name =
 						ce_lnkfile_read_name(memfile)) ||
 				NULL == (lnkfile->relationships[i].parent_name =
@@ -89,11 +92,18 @@ ce_lnkfile* ce_lnkfile_open_memfile(ce_memfile* memfile)
 	return lnkfile;
 }
 
+ce_lnkfile* ce_lnkfile_open_resfile(ce_resfile* resfile, const char* name)
+{
+	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(resfile, name);
+	ce_lnkfile* lnkfile = ce_lnkfile_open_memfile(memfile);
+	return ce_memfile_close(memfile), lnkfile;
+}
+
 void ce_lnkfile_close(ce_lnkfile* lnkfile)
 {
 	if (NULL != lnkfile) {
 		if (NULL != lnkfile->relationships) {
-			for (int i = 0, n = lnkfile->relationship_count; i < n; ++i) {
+			for (int i = 0; i < lnkfile->relationship_count; ++i) {
 				ce_string_del(lnkfile->relationships[i].parent_name);
 				ce_string_del(lnkfile->relationships[i].child_name);
 			}

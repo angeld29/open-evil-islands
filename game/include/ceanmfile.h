@@ -25,6 +25,7 @@
 
 #include "cestring.h"
 #include "cememfile.h"
+#include "ceresfile.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -42,8 +43,8 @@ typedef struct {
 	float* morphs;
 } ce_anmfile;
 
-extern ce_anmfile* ce_anmfile_open_memfile(const char* name,
-											ce_memfile* memfile);
+extern ce_anmfile* ce_anmfile_open_memfile(const char* name, ce_memfile* memfile);
+extern ce_anmfile* ce_anmfile_open_resfile(ce_resfile* resfile, int index);
 extern void ce_anmfile_close(ce_anmfile* anmfile);
 
 #ifdef __cplusplus

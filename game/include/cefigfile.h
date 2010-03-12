@@ -26,6 +26,7 @@
 
 #include "cecomplection.h"
 #include "cememfile.h"
+#include "ceresfile.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -63,7 +64,8 @@ typedef struct {
 	uint16_t* morph_components;
 } ce_figfile;
 
-extern ce_figfile* ce_figfile_open_memfile(ce_memfile* mem);
+extern ce_figfile* ce_figfile_open_memfile(ce_memfile* memfile);
+extern ce_figfile* ce_figfile_open_resfile(ce_resfile* resfile, const char* name);
 extern ce_figfile* ce_figfile_open_file(const char* path);
 extern void ce_figfile_close(ce_figfile* figfile);
 

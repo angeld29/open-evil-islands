@@ -21,14 +21,9 @@
 #ifndef CE_FIGPROTO_H
 #define CE_FIGPROTO_H
 
-#include <stdbool.h>
-
 #include "cestring.h"
-#include "cevector.h"
 #include "ceresfile.h"
-#include "cefigfile.h"
-#include "cebonfile.h"
-#include "ceanmfile.h"
+#include "cefignode.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -37,24 +32,15 @@ extern "C"
 
 typedef struct {
 	ce_string* name;
-	bool has_morphing;
-	ce_figfile* figfile;
-	ce_bonfile* bonfile;
-	ce_vector* anmfiles;
-	ce_vector* child_nodes;
-} ce_figproto_node;
-
-typedef struct {
-	ce_string* name;
-	ce_figproto_node* root_node;
+	ce_fignode* fignode;
 	int ref_count;
 } ce_figproto;
 
-extern ce_figproto* ce_figproto_new(const char* figure_name,
+extern ce_figproto* ce_figproto_new(const char* name,
 									ce_resfile* resfile);
 extern void ce_figproto_del(ce_figproto* figproto);
 
-extern ce_figproto* ce_figproto_copy(ce_figproto* figproto);
+extern ce_figproto* ce_figproto_clone(ce_figproto* figproto);
 
 #ifdef __cplusplus
 }

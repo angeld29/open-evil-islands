@@ -22,6 +22,7 @@
 
 #include "celogging.h"
 #include "cealloc.h"
+#include "cereshlp.h"
 #include "cebonfile.h"
 
 static bool ce_bonfile_open_impl(ce_bonfile* bonfile, ce_memfile* memfile)
@@ -57,6 +58,15 @@ ce_bonfile* ce_bonfile_open_memfile(int value_count, ce_memfile* memfile)
 	}
 
 	return bonfile;
+}
+
+ce_bonfile* ce_bonfile_open_resfile(int value_count,
+									ce_resfile* resfile,
+									const char* name)
+{
+	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(resfile, name);
+	ce_bonfile* bonfile = ce_bonfile_open_memfile(value_count, memfile);
+	return ce_memfile_close(memfile), bonfile;
 }
 
 void ce_bonfile_close(ce_bonfile* bonfile)

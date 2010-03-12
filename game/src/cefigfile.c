@@ -27,6 +27,7 @@
 #include "cebyteorder.h"
 #include "celogging.h"
 #include "cealloc.h"
+#include "cereshlp.h"
 #include "cefigfile.h"
 
 static float ce_figfile_value_fig1(const float* params, int stride,
@@ -257,7 +258,7 @@ static bool ce_figfile_read_header(ce_figfile* figfile, ce_memfile* mem)
 	return true;
 }
 
-ce_figfile* ce_figfile_open_memfile(ce_memfile* mem)
+ce_figfile* ce_figfile_open_memfile(ce_memfile* memfile)
 {
 	ce_figfile* figfile = ce_alloc_zero(sizeof(ce_figfile));
 	if (NULL == figfile) {
@@ -265,9 +266,9 @@ ce_figfile* ce_figfile_open_memfile(ce_memfile* mem)
 		return NULL;
 	}
 
-	if (!ce_figfile_read_header(figfile, mem) ||
-			!ce_figfile_read_bound_data(figfile, mem) ||
-			!ce_figfile_read_model_data(figfile, mem)) {
+	if (!ce_figfile_read_header(figfile, memfile) ||
+			!ce_figfile_read_bound_data(figfile, memfile) ||
+			!ce_figfile_read_model_data(figfile, memfile)) {
 		ce_figfile_close(figfile);
 		return NULL;
 	}
@@ -275,15 +276,21 @@ ce_figfile* ce_figfile_open_memfile(ce_memfile* mem)
 	return figfile;
 }
 
+ce_figfile* ce_figfile_open_resfile(ce_resfile* resfile, const char* name)
+{
+	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(resfile, name);
+	ce_figfile* figfile = ce_figfile_open_memfile(memfile);
+	return ce_memfile_close(memfile), figfile;
+}
+
 ce_figfile* ce_figfile_open_file(const char* path)
 {
-	ce_memfile* mem = ce_memfile_open_file(path, "rb");
-	if (NULL == mem) {
+	ce_memfile* memfile = ce_memfile_open_file(path, "rb");
+	if (NULL == memfile) {
 		return NULL;
 	}
-
-	ce_figfile* figfile = ce_figfile_open_memfile(mem);
-	return ce_memfile_close(mem), figfile;
+	ce_figfile* figfile = ce_figfile_open_memfile(memfile);
+	return ce_memfile_close(memfile), figfile;
 }
 
 void ce_figfile_close(ce_figfile* figfile)

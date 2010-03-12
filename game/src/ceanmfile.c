@@ -24,6 +24,7 @@
 #include "cebyteorder.h"
 #include "celogging.h"
 #include "cealloc.h"
+#include "cereshlp.h"
 #include "ceanmfile.h"
 
 static bool ce_anmfile_read_morphs(ce_anmfile* anmfile, ce_memfile* memfile)
@@ -129,6 +130,13 @@ ce_anmfile* ce_anmfile_open_memfile(const char* name, ce_memfile* memfile)
 	}
 
 	return anmfile;
+}
+
+ce_anmfile* ce_anmfile_open_resfile(ce_resfile* resfile, int index)
+{
+	ce_memfile* memfile = ce_reshlp_extract_memfile(resfile, index);
+	ce_anmfile* anmfile = ce_anmfile_open_memfile(resfile->name->str, memfile);
+	return ce_memfile_close(memfile), anmfile;
 }
 
 void ce_anmfile_close(ce_anmfile* anmfile)

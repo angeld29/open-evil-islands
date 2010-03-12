@@ -22,6 +22,7 @@
 #define CE_BONFILE_H
 
 #include "cememfile.h"
+#include "ceresfile.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -33,7 +34,15 @@ typedef struct {
 	float* bone;
 } ce_bonfile;
 
-extern ce_bonfile* ce_bonfile_open_memfile(int value_count, ce_memfile* memfile);
+extern ce_bonfile*
+ce_bonfile_open_memfile(int value_count,
+						ce_memfile* memfile);
+
+extern ce_bonfile*
+ce_bonfile_open_resfile(int value_count,
+						ce_resfile* resfile,
+						const char* name);
+
 extern void ce_bonfile_close(ce_bonfile* bonfile);
 
 #ifdef __cplusplus

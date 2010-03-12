@@ -156,8 +156,8 @@ int main(int argc, char* argv[])
 
 	int c;
 	const char* ei_path = ".";
-	const char* primary_texture = "default0";
-	const char* secondary_texture = "default0";
+	const char* primary_texture_name = "default0";
+	const char* secondary_texture_name = "default0";
 	const char* anm_name = NULL;
 	bool fullscreen = false;
 
@@ -169,10 +169,10 @@ int main(int argc, char* argv[])
 			ei_path = optarg;
 			break;
 		case 'p':
-			primary_texture = optarg;
+			primary_texture_name = optarg;
 			break;
 		case 's':
-			secondary_texture = optarg;
+			secondary_texture_name = optarg;
 			break;
 		case 'a':
 			anm_name = optarg;
@@ -263,24 +263,18 @@ int main(int argc, char* argv[])
 	ce_complection complection;
 	ce_complection_init(&complection, 1.0f, 1.0f, 1.0f);
 
-	if (NULL == (figmesh = ce_figmesh_new(figproto, &complection))) {
-		ce_logging_fatal("main: failed to create a figure mesh");
-		return 1;
-	}
+	figmesh = ce_figmesh_new(ce_figproto_clone(figproto), &complection);
 
-	const char* texture_names[] = { primary_texture, secondary_texture };
+	const char* texture_names[] = { primary_texture_name,
+									secondary_texture_name };
 
 	ce_quat orientation, q1 = CE_QUAT_IDENTITY, q2 = CE_QUAT_IDENTITY;
 	//ce_quat_init_polar(&q1, ce_deg2rad(180.0f), &CE_VEC3_UNIT_Z);
 	//ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
 	ce_quat_mul(&orientation, &q2, &q1);
 
-	if (NULL == (figentity =
-				ce_figentity_new(figmesh, &CE_VEC3_ZERO, &orientation,
-								texture_names, scenemng->root_scenenode))) {
-		ce_logging_fatal("main: failed to create a figure entity");
-		return 1;
-	}
+	figentity = ce_figentity_new(figmesh, &CE_VEC3_ZERO, &orientation,
+								texture_names, scenemng->root_scenenode);
 
 	if (NULL != anm_name) {
 		if (!ce_figentity_play_animation(figentity, anm_name)) {

@@ -18,13 +18,16 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FIGMESH_H
-#define CE_FIGMESH_H
+#ifndef CE_FIGNODE_H
+#define CE_FIGNODE_H
 
+#include "cestring.h"
 #include "cevector.h"
-#include "cefigproto.h"
-#include "cecomplection.h"
-#include "cerenderitem.h"
+#include "ceresfile.h"
+#include "celnkfile.h"
+#include "cefigfile.h"
+#include "cebonfile.h"
+#include "ceanmfile.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -32,27 +35,20 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	const ce_fignode* proto_node;
-	ce_vec3 bone;
-	ce_renderitem* renderitem;
-	ce_vector* child_nodes;
-} ce_figmesh_node;
+	ce_string* name;
+	ce_figfile* figfile;
+	ce_bonfile* bonfile;
+	ce_vector* anmfiles;
+	ce_vector* childs;
+} ce_fignode;
 
-typedef struct {
-	ce_figproto* figproto;
-	ce_complection complection;
-	ce_figmesh_node* root_node;
-	int ref_count;
-} ce_figmesh;
-
-extern ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
-									const ce_complection* complection);
-extern void ce_figmesh_del(ce_figmesh* figmesh);
-
-extern ce_figmesh* ce_figmesh_copy(ce_figmesh* figmesh);
+extern ce_fignode*
+ce_fignode_new(ce_resfile* mod_resfile, ce_resfile* bon_resfile,
+				ce_vector* anm_resfiles, ce_lnkfile* lnkfile);
+extern void ce_fignode_del(ce_fignode* fignode);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGMESH_H */
+#endif /* CE_FIGNODE_H */

@@ -42,7 +42,7 @@ static void ce_figmesh_node_del(ce_figmesh_node* node)
 	}
 }
 
-static ce_figmesh_node* ce_figmesh_node_new(const ce_figproto_node* proto_node,
+static ce_figmesh_node* ce_figmesh_node_new(const ce_fignode* proto_node,
 											const ce_complection* complection)
 {
 	ce_figmesh_node* node = ce_alloc_zero(sizeof(ce_figmesh_node));
@@ -58,15 +58,15 @@ static ce_figmesh_node* ce_figmesh_node_new(const ce_figproto_node* proto_node,
 
 	if (NULL == (node->renderitem =
 					ce_figrenderitem_new(proto_node->figfile, complection,
-											proto_node->has_morphing)) ||
+										false/*proto_node->has_morphing*/)) ||
 			NULL == (node->child_nodes = ce_vector_new())) {
 		ce_figmesh_node_del(node);
 		return NULL;
 	}
 
-	for (int i = 0, n = ce_vector_count(proto_node->child_nodes); i < n; ++i) {
+	for (int i = 0, n = ce_vector_count(proto_node->childs); i < n; ++i) {
 		ce_figmesh_node* child_node = ce_figmesh_node_new(
-			ce_vector_at(proto_node->child_nodes, i), complection);
+			ce_vector_at(proto_node->childs, i), complection);
 		if (NULL == child_node) {
 			ce_figmesh_node_del(node);
 			return NULL;
@@ -86,16 +86,12 @@ ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
 		return NULL;
 	}
 
-	figmesh->figproto = ce_figproto_copy(figproto);
+	figmesh->figproto = figproto;
 	figmesh->ref_count = 1;
 
 	ce_complection_copy(&figmesh->complection, complection);
 
-	if (NULL == (figmesh->root_node =
-					ce_figmesh_node_new(figproto->root_node, complection))) {
-		ce_figmesh_del(figmesh);
-		return NULL;
-	}
+	figmesh->root_node = ce_figmesh_node_new(figproto->fignode, complection);
 
 	return figmesh;
 }
