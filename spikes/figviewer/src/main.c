@@ -118,7 +118,7 @@ static void idle(void)
 	if (ce_input_event_triggered(test_event)) {
 	}
 
-	ce_figentity_advance(figentity, elapsed);
+	ce_figentity_advance(figentity, 15.0f, elapsed);
 
 	glutPostRedisplay();
 }
@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
 	ce_complection complection;
 	ce_complection_init(&complection, 1.0f, 1.0f, 1.0f);
 
-	figmesh = ce_figmesh_new(ce_figproto_clone(figproto), &complection);
+	figmesh = ce_figmesh_new(figproto, &complection);
 
 	const char* texture_names[] = { primary_texture_name,
 									secondary_texture_name };
@@ -274,7 +274,7 @@ int main(int argc, char* argv[])
 	ce_quat_mul(&orientation, &q2, &q1);
 
 	figentity = ce_figentity_new(figmesh, &CE_VEC3_ZERO, &orientation,
-								texture_names, scenemng->root_scenenode);
+								texture_names, scenemng->scenenode);
 
 	if (NULL != anm_name) {
 		if (!ce_figentity_play_animation(figentity, anm_name)) {

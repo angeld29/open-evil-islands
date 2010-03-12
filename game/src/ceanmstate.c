@@ -41,8 +41,6 @@ void ce_anmstate_del(ce_anmstate* anmstate)
 
 void ce_anmstate_advance(ce_anmstate* anmstate, float fps, float elapsed)
 {
-	assert(NULL != anmstate->anmfile);
-
 	anmstate->frame += fps * elapsed;
 	if (anmstate->frame >= anmstate->frame_count) {
 		anmstate->frame = 0.0f;

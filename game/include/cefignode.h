@@ -36,6 +36,7 @@ extern "C"
 
 typedef struct {
 	ce_string* name;
+	int index;
 	ce_figfile* figfile;
 	ce_bonfile* bonfile;
 	ce_vector* anmfiles;

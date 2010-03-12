@@ -18,6 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <assert.h>
 
@@ -239,6 +241,11 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 	const ce_figfile* figfile = va_arg(args, const ce_figfile*);
 	const ce_anmstate* anmstate = va_arg(args, const ce_anmstate*);
 
+	if (NULL == anmstate->anmfile->morphs) {
+		// hmm... some animations have not morphs on the same node...
+		return;
+	}
+
 	const float* prev_morphs = anmstate->anmfile->morphs +
 								(int)anmstate->prev_frame * 3 *
 									anmstate->anmfile->morph_vertex_count;
@@ -331,10 +338,16 @@ static const size_t ce_figrenderitem_sizes[] = {
 	sizeof(ce_figrenderitem_dynamic)
 };
 
-ce_renderitem* ce_figrenderitem_new(const ce_figfile* figfile,
-									const ce_complection* complection,
-									bool has_morphing)
+ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode,
+									const ce_complection* complection)
 {
+	bool has_morphing = false;
+	for (int i = 0; i < fignode->anmfiles->count; ++i) {
+		ce_anmfile* anmfile = fignode->anmfiles->items[i];
+		has_morphing = has_morphing || NULL != anmfile->morphs;
+	}
+
 	return ce_renderitem_new(ce_figrenderitem_vtables[has_morphing],
-			ce_figrenderitem_sizes[has_morphing], figfile, complection);
+							ce_figrenderitem_sizes[has_morphing],
+							fignode->figfile, complection);
 }

@@ -18,43 +18,50 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FIGENTITY_H
-#define CE_FIGENTITY_H
+#ifndef CE_FIGBONE_H
+#define CE_FIGBONE_H
 
 #include <stdbool.h>
 
 #include "cevec3.h"
 #include "cequat.h"
-#include "cefigmesh.h"
-#include "cefigbone.h"
-#include "cescenenode.h"
+#include "cevector.h"
+#include "ceanmstate.h"
+#include "cefignode.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct {
-	ce_figmesh* figmesh;
-	ce_figbone* figbone;
-	ce_scenenode* scenenode;
-} ce_figentity;
+typedef struct ce_figbone ce_figbone;
 
-extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
-										const ce_vec3* position,
-										const ce_quat* orientation,
-										const char* texture_names[],
-										ce_scenenode* scenenode);
-extern void ce_figentity_del(ce_figentity* figentity);
+struct ce_figbone {
+	ce_vec3 position;         // binding pose
+	ce_quat orientation;      // binding pose
+	ce_vec3 bone_position;    // transformed by current animation, bone space
+	ce_quat bone_orientation; // transformed by current animation, bone space
+	ce_anmstate* anmstate;
+	ce_figbone* parent;
+	ce_vector* childs;
+};
 
-extern void ce_figentity_advance(ce_figentity* figentity,
-									float fps, float elapsed);
+extern ce_figbone* ce_figbone_new(const ce_fignode* fignode,
+								const ce_complection* complection,
+								ce_figbone* parent);
+extern void ce_figbone_del(ce_figbone* figbone);
 
-extern bool ce_figentity_play_animation(ce_figentity* figentity,
-											const char* name);
+extern void ce_figbone_advance(ce_figbone* figbone,
+								const ce_fignode* fignode,
+								ce_vector* scenenodes,
+								float fps, float elapsed);
+
+extern bool ce_figbone_play_animation(ce_figbone* figbone,
+										const ce_fignode* fignode,
+										const char* name);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGENTITY_H */
+#endif /* CE_FIGBONE_H */

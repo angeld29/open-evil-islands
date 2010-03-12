@@ -62,14 +62,7 @@ static bool ce_terrain_create(ce_terrain* terrain,
 		ce_vector_push_back(terrain->textures, texture);
 	}
 
-	if (NULL == (terrain->renderitems =
-			ce_vector_new_reserved(terrain->mprfile->sector_x_count *
-									terrain->mprfile->sector_z_count))) {
-		return false;
-	}
-
-	if (NULL == (terrain->scenenode =
-			ce_scenenode_create_child(parent_scenenode))) {
+	if (NULL == (terrain->scenenode = ce_scenenode_new(parent_scenenode))) {
 		return false;
 	}
 
@@ -103,12 +96,6 @@ void ce_terrain_del(ce_terrain* terrain)
 {
 	if (NULL != terrain) {
 		ce_scenenode_del(terrain->scenenode);
-		if (NULL != terrain->renderitems) {
-			for (int i = 0, n = ce_vector_count(terrain->renderitems); i < n; ++i) {
-				ce_renderitem_del(ce_vector_at(terrain->renderitems, i));
-			}
-			ce_vector_del(terrain->renderitems);
-		}
 		if (NULL != terrain->textures) {
 			for (int i = 0, n = ce_vector_count(terrain->textures); i < n; ++i) {
 				ce_texture_del(ce_vector_at(terrain->textures, i));

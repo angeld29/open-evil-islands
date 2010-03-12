@@ -31,20 +31,14 @@
 ce_scenemng* ce_scenemng_new(void)
 {
 	ce_scenemng* scenemng = ce_alloc_zero(sizeof(ce_scenemng));
-	if (NULL == scenemng) {
-		ce_logging_error("scenemng: could not allocate memory");
-		return NULL;
-	}
 
-	if (NULL == (scenemng->root_scenenode = ce_scenenode_new()) ||
-			NULL == (scenemng->renderqueue = ce_renderqueue_new()) ||
-			NULL == (scenemng->timer = ce_timer_new()) ||
-			NULL == (scenemng->fps = ce_fps_new()) ||
-			NULL == (scenemng->camera = ce_camera_new()) ||
-			NULL == (scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18))) {
-		ce_scenemng_del(scenemng);
-		return NULL;
-	}
+	scenemng->scenenode = ce_scenenode_new(NULL);
+	scenemng->rendersystem = ce_rendersystem_new();
+	scenemng->renderqueue = ce_renderqueue_new();
+	scenemng->timer = ce_timer_new();
+	scenemng->fps = ce_fps_new();
+	scenemng->camera = ce_camera_new();
+	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
 
 	return scenemng;
 }
@@ -57,7 +51,8 @@ void ce_scenemng_del(ce_scenemng* scenemng)
 		ce_fps_del(scenemng->fps);
 		ce_timer_del(scenemng->timer);
 		ce_renderqueue_del(scenemng->renderqueue);
-		ce_scenenode_del(scenemng->root_scenenode);
+		ce_rendersystem_del(scenemng->rendersystem);
+		ce_scenenode_del(scenemng->scenenode);
 		ce_free(scenemng, sizeof(ce_scenemng));
 	}
 }
@@ -125,8 +120,8 @@ void ce_scenemng_debug_render(ce_scenenode* scenenode)
 
 	glDisable(GL_DEPTH_TEST);
 
-	for (int i = 0, n = ce_vector_count(scenenode->child_scenenodes); i < n; ++i) {
-		ce_scenemng_debug_render(ce_vector_at(scenenode->child_scenenodes, i));
+	for (int i = 0; i < scenenode->childs->count; ++i) {
+		ce_scenemng_debug_render(scenenode->childs->items[i]);
 	}
 }
 
@@ -169,13 +164,14 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_camera_get_up(scenemng->camera, &up));
 
 	ce_renderqueue_clear(scenemng->renderqueue);
-	ce_scenenode_update_cascade(scenemng->root_scenenode);
+	ce_scenenode_update_cascade(scenemng->scenenode);
 	ce_renderqueue_add_cascade(scenemng->renderqueue,
-								scenemng->root_scenenode,
+								scenemng->scenenode,
 								&eye, &frustum);
-	ce_renderqueue_render(scenemng->renderqueue);
+	ce_renderqueue_render(scenemng->renderqueue,
+							scenemng->rendersystem);
 
-	ce_scenemng_debug_render(scenemng->root_scenenode);
+	ce_scenemng_debug_render(scenemng->scenenode);
 
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);

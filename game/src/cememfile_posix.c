@@ -88,6 +88,9 @@ ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 		return NULL;
 	}
 
+	// TODO: Invalid read of size 1: NULL terminated data???
+	// strlen (mc_replace_strmem.c:275)
+	// fmemopen (fmemopen.c:246)
 	FILE* file = fmemopen(data, size, mode);
 	if (NULL == file) {
 		ce_logging_error("memfile: could not open memory file");

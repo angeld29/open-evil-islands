@@ -174,20 +174,20 @@ void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 	ce_rendersystem_update_view(rendersystem, camera);
 }
 
-void ce_rendersystem_apply_transformation(ce_rendersystem* rendersystem,
-											const ce_scenenode* scenenode)
+void ce_rendersystem_apply_transform(ce_rendersystem* rendersystem,
+									const ce_vec3* translation,
+									const ce_quat* rotation)
 {
 	ce_unused(rendersystem);
 
 	glPushMatrix();
 
-	glTranslatef(scenenode->world_position.x,
-				scenenode->world_position.y,
-				scenenode->world_position.z);
+	glTranslatef(translation->x,
+				translation->y,
+				translation->z);
 
 	ce_vec3 rotation_axis;
-	float angle = ce_quat_to_angle_axis(&scenenode->world_orientation,
-										&rotation_axis);
+	float angle = ce_quat_to_angle_axis(rotation, &rotation_axis);
 
 	glRotatef(ce_rad2deg(angle),
 				rotation_axis.x,
@@ -195,10 +195,9 @@ void ce_rendersystem_apply_transformation(ce_rendersystem* rendersystem,
 				rotation_axis.z);
 }
 
-void ce_rendersystem_discard_transformation(ce_rendersystem* rendersystem,
-											const ce_scenenode* scenenode)
+void ce_rendersystem_discard_transform(ce_rendersystem* rendersystem)
 {
-	ce_unused(rendersystem), ce_unused(scenenode);
+	ce_unused(rendersystem);
 
 	glPopMatrix();
 }

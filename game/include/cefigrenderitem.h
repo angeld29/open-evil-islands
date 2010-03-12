@@ -22,7 +22,7 @@
 #define CE_FIGRENDERITEM_H
 
 #include "cerenderitem.h"
-#include "cefigfile.h"
+#include "cefignode.h"
 #include "cecomplection.h"
 
 #ifdef __cplusplus
@@ -31,8 +31,8 @@ extern "C"
 #endif /* __cplusplus */
 
 extern ce_renderitem*
-ce_figrenderitem_new(const ce_figfile* figfile,
-					const ce_complection* complection, bool has_morphing);
+ce_figrenderitem_new(const ce_fignode* fignode,
+					const ce_complection* complection);
 
 #ifdef __cplusplus
 }

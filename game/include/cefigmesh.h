@@ -32,16 +32,9 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	const ce_fignode* proto_node;
-	ce_vec3 bone;
-	ce_renderitem* renderitem;
-	ce_vector* child_nodes;
-} ce_figmesh_node;
-
-typedef struct {
 	ce_figproto* figproto;
 	ce_complection complection;
-	ce_figmesh_node* root_node;
+	ce_vector* renderitems;
 	int ref_count;
 } ce_figmesh;
 
@@ -49,7 +42,7 @@ extern ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
 									const ce_complection* complection);
 extern void ce_figmesh_del(ce_figmesh* figmesh);
 
-extern ce_figmesh* ce_figmesh_copy(ce_figmesh* figmesh);
+extern ce_figmesh* ce_figmesh_clone(ce_figmesh* figmesh);
 
 #ifdef __cplusplus
 }

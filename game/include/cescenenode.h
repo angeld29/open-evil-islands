@@ -26,8 +26,8 @@
 #include "ceaabb.h"
 #include "cesphere.h"
 #include "cevector.h"
-#include "cerenderitem.h"
-#include "cetexture.h"
+#include "cerenderlayer.h"
+#include "cerendersystem.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -44,26 +44,22 @@ struct ce_scenenode {
 	ce_aabb world_bounding_box;
 	ce_sphere world_bounding_sphere;
 	float dist2;
-	ce_renderitem* renderitem;
-	ce_texture* texture;
-	ce_scenenode* parent_scenenode;
-	ce_vector* child_scenenodes;
+	ce_renderlayer* renderlayer;
+	ce_scenenode* parent;
+	ce_vector* childs;
 };
 
-extern ce_scenenode* ce_scenenode_new(void);
+extern ce_scenenode* ce_scenenode_new(ce_scenenode* parent);
 extern void ce_scenenode_del(ce_scenenode* scenenode);
 
-extern ce_scenenode* ce_scenenode_create_child(ce_scenenode* scenenode);
-extern void ce_scenenode_add_child(ce_scenenode* scenenode,
-									ce_scenenode* child_scenenode);
-extern void ce_scenenode_remove_child(ce_scenenode* scenenode,
-										ce_scenenode* child_scenenode);
+extern void ce_scenenode_detach_child(ce_scenenode* scenenode,
+										ce_scenenode* child);
 
 extern void ce_scenenode_update(ce_scenenode* scenenode);
 extern void ce_scenenode_update_cascade(ce_scenenode* scenenode);
 
-extern void ce_scenenode_apply_transformation(ce_scenenode* scenenode);
-extern void ce_scenenode_discard_transformation(ce_scenenode* scenenode);
+extern void ce_scenenode_render(ce_scenenode* scenenode,
+								ce_rendersystem* rendersystem);
 
 #ifdef __cplusplus
 }

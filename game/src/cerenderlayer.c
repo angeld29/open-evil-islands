@@ -30,6 +30,8 @@ ce_renderlayer* ce_renderlayer_new(void)
 void ce_renderlayer_del(ce_renderlayer* renderlayer)
 {
 	if (NULL != renderlayer) {
+		ce_renderitem_del(renderlayer->renderitem);
+		ce_texture_del(renderlayer->texture);
 		ce_free(renderlayer, sizeof(ce_renderlayer));
 	}
 }

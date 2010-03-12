@@ -71,12 +71,12 @@ float* ce_fighlp_get_normal(float* array, const ce_figfile* figfile, int index)
 	return array;
 }
 
-ce_vec3* ce_fighlp_get_bone(ce_vec3* bone,
-							const ce_figfile* figfile,
-							const ce_bonfile* bonfile,
-							const ce_complection* complection)
+ce_vec3* ce_fighlp_init_binding_position(ce_vec3* position,
+										const ce_figfile* figfile,
+										const ce_bonfile* bonfile,
+										const ce_complection* complection)
 {
-	return ce_vec3_init(bone,
+	return ce_vec3_init(position,
 		figfile->value_callback(bonfile->bone + 0, 3, complection),
 		figfile->value_callback(bonfile->bone + 1, 3, complection),
 		figfile->value_callback(bonfile->bone + 2, 3, complection));

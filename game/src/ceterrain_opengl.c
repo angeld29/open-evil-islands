@@ -225,37 +225,26 @@ static const ce_renderitem_vtable ce_terrain_renderitem_vtable = {
 	NULL, ce_terrain_renderitem_render, NULL
 };
 
-static bool ce_terrain_create_sector(ce_terrain* terrain,
+static void ce_terrain_create_sector(ce_terrain* terrain,
 									int sector_x, int sector_z,
 									ce_mprfile_sector* sector,
 									bool opacity)
 {
 	if (!opacity && NULL == sector->water_allow) {
-		return true;
+		return;
 	}
 
-	ce_renderitem* renderitem =
+	ce_scenenode* scenenode = ce_scenenode_new(terrain->scenenode);
+	scenenode->renderlayer = ce_renderlayer_new();
+
+	scenenode->renderlayer->texture = ce_texture_copy(terrain->stub_texture);
+	scenenode->renderlayer->renderitem =
 		ce_renderitem_new(ce_terrain_renderitem_vtable,
 						sizeof(ce_terrain_renderitem),
 						terrain, sector_x, sector_z,
 						opacity ? sector->land_vertices : sector->water_vertices,
 						opacity ? sector->land_textures : sector->water_textures,
 						opacity ? NULL : sector->water_allow);
-	if (NULL == renderitem) {
-		return false;
-	}
-
-	ce_vector_push_back(terrain->renderitems, renderitem);
-
-	ce_scenenode* scenenode = ce_scenenode_create_child(terrain->scenenode);
-	if (NULL == scenenode) {
-		return false;
-	}
-
-	scenenode->renderitem = renderitem;
-	scenenode->texture = terrain->stub_texture;
-
-	return true;
 }
 
 bool ce_terrain_create_impl(ce_terrain* terrain)
@@ -263,12 +252,9 @@ bool ce_terrain_create_impl(ce_terrain* terrain)
 	for (int z = 0, z_count = terrain->mprfile->sector_z_count; z < z_count; ++z) {
 		for (int x = 0, x_count = terrain->mprfile->sector_x_count; x < x_count; ++x) {
 			ce_mprfile_sector* sector = terrain->mprfile->sectors + z * x_count + x;
-			if (!ce_terrain_create_sector(terrain, x, z, sector, true) ||
-					!ce_terrain_create_sector(terrain, x, z, sector, false)) {
-				return false;
-			}
+			ce_terrain_create_sector(terrain, x, z, sector, true);
+			ce_terrain_create_sector(terrain, x, z, sector, false);
 		}
 	}
-
 	return true;
 }

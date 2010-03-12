@@ -18,135 +18,117 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "celogging.h"
 #include "cealloc.h"
 #include "cescenenode.h"
 
-ce_scenenode* ce_scenenode_new(void)
+ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 {
 	ce_scenenode* scenenode = ce_alloc_zero(sizeof(ce_scenenode));
-	if (NULL == scenenode) {
-		ce_logging_error("scenenode: could not allocate memory");
-		return NULL;
+	scenenode->position = CE_VEC3_ZERO;
+	scenenode->orientation = CE_QUAT_IDENTITY;
+	scenenode->parent = parent;
+	scenenode->childs = ce_vector_new();
+	if (NULL != parent) {
+		ce_vector_push_back(parent->childs, scenenode);
 	}
-
-	if (NULL == (scenenode->child_scenenodes = ce_vector_new())) {
-		ce_scenenode_del(scenenode);
-		return NULL;
-	}
-
-	ce_vec3_zero(&scenenode->position);
-	ce_quat_identity(&scenenode->orientation);
-
 	return scenenode;
 }
 
 void ce_scenenode_del(ce_scenenode* scenenode)
 {
 	if (NULL != scenenode) {
-		if (NULL != scenenode->parent_scenenode) {
-			ce_scenenode_remove_child(scenenode->parent_scenenode, scenenode);
+		if (NULL != scenenode->parent) {
+			ce_scenenode_detach_child(scenenode->parent, scenenode);
 		}
-		if (NULL != scenenode->child_scenenodes) {
-			for (int i = 0, n = ce_vector_count(scenenode->child_scenenodes); i < n; ++i) {
-				ce_scenenode* child_scenenode =
-					ce_vector_at(scenenode->child_scenenodes, i);
-				child_scenenode->parent_scenenode = NULL;
-				ce_scenenode_del(child_scenenode);
-			}
-			ce_vector_del(scenenode->child_scenenodes);
+		for (int i = 0; i < scenenode->childs->count; ++i) {
+			ce_scenenode* child = scenenode->childs->items[i];
+			child->parent = NULL;
+			ce_scenenode_del(child);
 		}
+		ce_vector_del(scenenode->childs);
+		ce_renderlayer_del(scenenode->renderlayer);
 		ce_free(scenenode, sizeof(ce_scenenode));
 	}
 }
 
-ce_scenenode* ce_scenenode_create_child(ce_scenenode* scenenode)
+void ce_scenenode_detach_child(ce_scenenode* scenenode, ce_scenenode* child)
 {
-	ce_scenenode* child_scenenode = ce_scenenode_new();
-	if (NULL != child_scenenode) {
-		child_scenenode->parent_scenenode = scenenode;
-		ce_vector_push_back(scenenode->child_scenenodes, child_scenenode);
-	}
-	return child_scenenode;
-}
-
-void ce_scenenode_add_child(ce_scenenode* scenenode,
-							ce_scenenode* child_scenenode)
-{
-	child_scenenode->parent_scenenode = scenenode;
-	ce_vector_push_back(scenenode->child_scenenodes, child_scenenode);
-}
-
-void ce_scenenode_remove_child(ce_scenenode* scenenode,
-								ce_scenenode* child_scenenode)
-{
-	for (int i = 0, n = ce_vector_count(scenenode->child_scenenodes); i < n; ++i) {
-		if (child_scenenode == ce_vector_at(scenenode->child_scenenodes, i)) {
-			child_scenenode->parent_scenenode = NULL;
-			ce_vector_remove_unordered(scenenode->child_scenenodes, i);
+	for (int i = 0; i < scenenode->childs->count; ++i) {
+		if (child == scenenode->childs->items[i]) {
+			child->parent = NULL;
+			ce_vector_remove(scenenode->childs, i);
 			break;
 		}
 	}
 }
 
-static void ce_scenenode_update_transformation(ce_scenenode* scenenode)
+static void ce_scenenode_update_transform(ce_scenenode* scenenode)
 {
-	if (NULL == scenenode->parent_scenenode) {
+	if (NULL == scenenode->parent) {
 		// absolute state == relative state
 		ce_vec3_copy(&scenenode->world_position, &scenenode->position);
 		ce_quat_copy(&scenenode->world_orientation, &scenenode->orientation);
 	} else {
 		ce_vec3_rot(&scenenode->world_position,
 					&scenenode->position,
-					&scenenode->parent_scenenode->world_orientation);
+					&scenenode->parent->world_orientation);
 		ce_vec3_add(&scenenode->world_position,
 					&scenenode->world_position,
-					&scenenode->parent_scenenode->world_position);
+					&scenenode->parent->world_position);
 		ce_quat_mul(&scenenode->world_orientation,
 					&scenenode->orientation,
-					&scenenode->parent_scenenode->world_orientation);
+					&scenenode->parent->world_orientation);
 	}
 }
 
 static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 {
-	if (NULL == scenenode->renderitem) {
+	if (NULL == scenenode->renderlayer) {
 		ce_aabb_init_zero(&scenenode->world_bounding_box);
 		ce_sphere_init_zero(&scenenode->world_bounding_sphere);
 	} else {
 		ce_aabb_transform(&scenenode->world_bounding_box,
-							&scenenode->renderitem->bounding_box,
+							&scenenode->renderlayer->renderitem->bounding_box,
 							&scenenode->world_position,
 							&scenenode->world_orientation);
 		ce_sphere_transform(&scenenode->world_bounding_sphere,
-							&scenenode->renderitem->bounding_sphere,
+							&scenenode->renderlayer->renderitem->bounding_sphere,
 							&scenenode->world_position,
 							&scenenode->world_orientation);
 	}
 
-	for (int i = 0, n = ce_vector_count(scenenode->child_scenenodes); i < n; ++i) {
-		ce_scenenode* child_scenenode =
-			ce_vector_at(scenenode->child_scenenodes, i);
+	for (int i = 0; i < scenenode->childs->count; ++i) {
+		ce_scenenode* child =scenenode->childs->items[i];
 		ce_aabb_merge(&scenenode->world_bounding_box,
 						&scenenode->world_bounding_box,
-						&child_scenenode->world_bounding_box);
+						&child->world_bounding_box);
 		ce_sphere_merge(&scenenode->world_bounding_sphere,
 						&scenenode->world_bounding_sphere,
-						&child_scenenode->world_bounding_sphere);
+						&child->world_bounding_sphere);
 	}
 }
 
 void ce_scenenode_update(ce_scenenode* scenenode)
 {
-	ce_scenenode_update_transformation(scenenode);
+	ce_scenenode_update_transform(scenenode);
 	ce_scenenode_update_bounds(scenenode);
 }
 
 void ce_scenenode_update_cascade(ce_scenenode* scenenode)
 {
-	ce_scenenode_update_transformation(scenenode);
-	for (int i = 0, n = ce_vector_count(scenenode->child_scenenodes); i < n; ++i) {
-		ce_scenenode_update_cascade(ce_vector_at(scenenode->child_scenenodes, i));
+	ce_scenenode_update_transform(scenenode);
+	for (int i = 0; i < scenenode->childs->count; ++i) {
+		ce_scenenode_update_cascade(scenenode->childs->items[i]);
 	}
 	ce_scenenode_update_bounds(scenenode);
+}
+
+void ce_scenenode_render(ce_scenenode* scenenode,
+						ce_rendersystem* rendersystem)
+{
+	ce_rendersystem_apply_transform(rendersystem,
+									&scenenode->world_position,
+									&scenenode->world_orientation);
+	ce_renderlayer_render(scenenode->renderlayer);
+	ce_rendersystem_discard_transform(rendersystem);
 }

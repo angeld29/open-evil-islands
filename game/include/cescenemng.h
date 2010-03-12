@@ -36,7 +36,8 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_scenenode* root_scenenode;
+	ce_scenenode* scenenode;
+	ce_rendersystem* rendersystem;
 	ce_renderqueue* renderqueue;
 	ce_timer* timer;
 	ce_fps* fps;

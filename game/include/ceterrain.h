@@ -40,7 +40,6 @@ typedef struct {
 	ce_mprfile* mprfile;
 	ce_texture* stub_texture;
 	ce_vector* textures;
-	ce_vector* renderitems;
 	ce_scenenode* scenenode;
 } ce_terrain;
 

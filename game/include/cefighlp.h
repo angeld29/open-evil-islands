@@ -48,10 +48,11 @@ ce_fighlp_get_vertex(float* array, const ce_figfile* figfile,
 extern float*
 ce_fighlp_get_normal(float* array, const ce_figfile* figfile, int index);
 
-extern ce_vec3* ce_fighlp_get_bone(ce_vec3* bone,
-									const ce_figfile* figfile,
-									const ce_bonfile* bonfile,
-									const ce_complection* complection);
+extern ce_vec3*
+ce_fighlp_init_binding_position(ce_vec3* position,
+								const ce_figfile* figfile,
+								const ce_bonfile* bonfile,
+								const ce_complection* complection);
 
 #ifdef __cplusplus
 }

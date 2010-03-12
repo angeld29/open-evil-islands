@@ -21,9 +21,54 @@
 #include <stdlib.h>
 
 #include "cemath.h"
-#include "celogging.h"
 #include "cealloc.h"
 #include "cerenderqueue.h"
+
+ce_renderqueue* ce_renderqueue_new(void)
+{
+	ce_renderqueue* renderqueue = ce_alloc(sizeof(ce_renderqueue));
+	renderqueue->scenenodes[0] = ce_vector_new();
+	renderqueue->scenenodes[1] = ce_vector_new();
+	return renderqueue;
+}
+
+void ce_renderqueue_del(ce_renderqueue* renderqueue)
+{
+	if (NULL != renderqueue) {
+		ce_vector_del(renderqueue->scenenodes[1]);
+		ce_vector_del(renderqueue->scenenodes[0]);
+		ce_free(renderqueue, sizeof(ce_renderqueue));
+	}
+}
+
+void ce_renderqueue_clear(ce_renderqueue* renderqueue)
+{
+	ce_vector_clear(renderqueue->scenenodes[0]);
+	ce_vector_clear(renderqueue->scenenodes[1]);
+}
+
+void ce_renderqueue_add(ce_renderqueue* renderqueue, ce_scenenode* scenenode,
+						const ce_vec3* eye, const ce_frustum* frustum)
+{
+	if (NULL != scenenode->renderlayer &&
+			ce_frustum_test_box(frustum, &scenenode->world_bounding_box)) {
+		scenenode->dist2 = ce_vec3_dist2(eye, &scenenode->world_position);
+		int index = scenenode->renderlayer->renderitem->transparent;
+		ce_vector_push_back(renderqueue->scenenodes[index], scenenode);
+	}
+}
+
+void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
+								ce_scenenode* scenenode,
+								const ce_vec3* eye,
+								const ce_frustum* frustum)
+{
+	ce_renderqueue_add(renderqueue, scenenode, eye, frustum);
+	for (int i = 0; i < scenenode->childs->count; ++i) {
+		ce_renderqueue_add_cascade(renderqueue,
+			scenenode->childs->items[i], eye, frustum);
+	}
+}
 
 typedef int (*ce_renderqueue_comp)(const void* lhs, const void* rhs);
 
@@ -43,84 +88,22 @@ static int ce_renderqueue_comp_greater(const void* lhs, const void* rhs)
 		0 : (scenenode1->dist2 > scenenode2->dist2 ? -1 : 1);
 }
 
-static void ce_renderqueue_render_do(ce_vector* scenenodes,
-									ce_renderqueue_comp comp)
+static const ce_renderqueue_comp ce_renderqueue_comps[2] = {
+	ce_renderqueue_comp_less,
+	ce_renderqueue_comp_greater
+};
+
+void ce_renderqueue_render(ce_renderqueue* renderqueue,
+							ce_rendersystem* rendersystem)
 {
-	if (!ce_vector_empty(scenenodes)) {
+	for (int i = 0; i < 2; ++i) {
+		ce_vector* scenenodes = renderqueue->scenenodes[i];
+
 		qsort(scenenodes->items, scenenodes->count,
-				sizeof(ce_scenenode*), comp);
+				sizeof(ce_scenenode*), ce_renderqueue_comps[i]);
 
-		for (int i = 0, n = ce_vector_count(scenenodes); i < n; ++i) {
-			ce_scenenode* scenenode = ce_vector_at(scenenodes, i);
-			ce_scenenode_apply_transformation(scenenode);
-			ce_texture_bind(scenenode->texture);
-			ce_renderitem_render(scenenode->renderitem);
-			ce_texture_unbind(scenenode->texture);
-			ce_scenenode_discard_transformation(scenenode);
+		for (int j = 0; j < scenenodes->count; ++j) {
+			ce_scenenode_render(scenenodes->items[j], rendersystem);
 		}
-	}
-}
-
-ce_renderqueue* ce_renderqueue_new(void)
-{
-	ce_renderqueue* renderqueue = ce_alloc_zero(sizeof(ce_renderqueue));
-	if (NULL == renderqueue) {
-		ce_logging_error("renderqueue: could not allocate memory");
-		return NULL;
-	}
-
-	if (NULL == (renderqueue->opacity_scenenodes = ce_vector_new()) ||
-			NULL == (renderqueue->transparent_scenenodes = ce_vector_new())) {
-		ce_renderqueue_del(renderqueue);
-		return NULL;
-	}
-
-	return renderqueue;
-}
-
-void ce_renderqueue_del(ce_renderqueue* renderqueue)
-{
-	if (NULL != renderqueue) {
-		ce_vector_del(renderqueue->transparent_scenenodes);
-		ce_vector_del(renderqueue->opacity_scenenodes);
-		ce_free(renderqueue, sizeof(ce_renderqueue));
-	}
-}
-
-void ce_renderqueue_clear(ce_renderqueue* renderqueue)
-{
-	ce_vector_clear(renderqueue->opacity_scenenodes);
-	ce_vector_clear(renderqueue->transparent_scenenodes);
-}
-
-void ce_renderqueue_render(ce_renderqueue* renderqueue)
-{
-	ce_renderqueue_render_do(renderqueue->opacity_scenenodes,
-							ce_renderqueue_comp_less);
-	ce_renderqueue_render_do(renderqueue->transparent_scenenodes,
-							ce_renderqueue_comp_greater);
-}
-
-void ce_renderqueue_add(ce_renderqueue* renderqueue, ce_scenenode* scenenode,
-						const ce_vec3* eye, const ce_frustum* frustum)
-{
-	if (NULL != scenenode->renderitem &&
-			ce_frustum_test_box(frustum, &scenenode->world_bounding_box)) {
-		scenenode->dist2 = ce_vec3_dist2(eye, &scenenode->world_position);
-		ce_vector_push_back(scenenode->renderitem->transparent ?
-							renderqueue->transparent_scenenodes :
-							renderqueue->opacity_scenenodes, scenenode);
-	}
-}
-
-void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
-								ce_scenenode* scenenode,
-								const ce_vec3* eye,
-								const ce_frustum* frustum)
-{
-	ce_renderqueue_add(renderqueue, scenenode, eye, frustum);
-	for (int i = 0, n = ce_vector_count(scenenode->child_scenenodes); i < n; ++i) {
-		ce_renderqueue_add_cascade(renderqueue,
-			ce_vector_at(scenenode->child_scenenodes, i), eye, frustum);
 	}
 }

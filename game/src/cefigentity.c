@@ -19,149 +19,77 @@
 */
 
 #include <stdio.h>
-#include <stdbool.h>
-#include <math.h>
 #include <assert.h>
 
-#include "celogging.h"
 #include "cealloc.h"
 #include "ceroot.h"
 #include "cefigentity.h"
 
-static void ce_figentity_node_del(ce_figentity_node* node)
+static void ce_figentity_create_scenenodes(ce_fignode* fignode,
+											const char* texture_names[],
+											ce_vector* renderitems,
+											ce_scenenode* scenenode)
 {
-	if (NULL != node) {
-		if (NULL != node->child_nodes) {
-			for (int i = 0, n = ce_vector_count(node->child_nodes); i < n; ++i) {
-				ce_figentity_node_del(ce_vector_at(node->child_nodes, i));
-			}
-			ce_vector_del(node->child_nodes);
-		}
-		ce_renderitem_del(node->renderitem);
-		ce_texture_del(node->texture);
-		ce_anmstate_del(node->anmstate);
-		ce_free(node, sizeof(ce_figentity_node));
-	}
-}
-
-static ce_figentity_node* ce_figentity_node_new(const ce_figmesh_node* mesh_node,
-												const char* texture_names[],
-												ce_scenenode* parent_scenenode)
-{
-	ce_figentity_node* node = ce_alloc_zero(sizeof(ce_figentity_node));
-
-	node->mesh_node = mesh_node;
-	node->anmstate = ce_anmstate_new();
-
 	// TODO: to be reversed...
-	int texture_number = mesh_node->proto_node->figfile->texture_number - 1;
+	int texture_number = fignode->figfile->texture_number - 1;
 	if (texture_number > 1) {
 		texture_number = 0;
 	}
 
-	if (NULL == (node->texture = ce_texmng_get_texture(ce_root_get_texmng(),
-			texture_names[texture_number]))) {
-		ce_figentity_node_del(node);
-		return NULL;
+	ce_scenenode* child = ce_scenenode_new(scenenode);
+	child->renderlayer = ce_renderlayer_new();
+
+	child->renderlayer->texture =
+		ce_texmng_get_texture(ce_root_get_texmng(), texture_names[texture_number]);
+	child->renderlayer->renderitem =
+		ce_renderitem_clone(renderitems->items[fignode->index]);
+
+	for (int i = 0; i < fignode->childs->count; ++i) {
+		ce_figentity_create_scenenodes(fignode->childs->items[i],
+										texture_names, renderitems,
+										scenenode);
 	}
-
-	node->renderitem = ce_renderitem_clone(mesh_node->renderitem);
-	node->scenenode = ce_scenenode_create_child(parent_scenenode);
-	node->child_nodes = ce_vector_new();
-
-	node->scenenode->texture = node->texture;
-	node->scenenode->renderitem = node->renderitem;
-
-	ce_vec3_copy(&node->scenenode->position, &mesh_node->bone);
-
-	for (int i = 0, n = ce_vector_count(mesh_node->child_nodes); i < n; ++i) {
-		ce_figentity_node* child_node = ce_figentity_node_new(
-			ce_vector_at(mesh_node->child_nodes, i), texture_names, node->scenenode);
-		if (NULL == child_node) {
-			ce_figentity_node_del(node);
-			return NULL;
-		}
-		ce_vector_push_back(node->child_nodes, child_node);
-	}
-
-	return node;
-}
-
-static void ce_figentity_node_advance(ce_figentity_node* node, float elapsed)
-{
-	if (NULL != node->anmstate->anmfile) {
-		const float fps = 15.0f;
-		ce_anmstate_advance(node->anmstate, fps, elapsed);
-
-		// update bone
-		ce_quat q1, q2;
-		ce_quat_slerp(&node->scenenode->orientation,
-			ce_quat_init_array(&q1, node->anmstate->anmfile->rotations +
-									(int)node->anmstate->prev_frame * 4),
-			ce_quat_init_array(&q2, node->anmstate->anmfile->rotations +
-									(int)node->anmstate->next_frame * 4),
-			node->anmstate->coef);
-
-		// update morph
-		ce_renderitem_update(node->renderitem,
-							node->mesh_node->proto_node->figfile,
-							node->anmstate);
-	}
-
-	for (int i = 0; i < node->child_nodes->count; ++i) {
-		ce_figentity_node_advance(node->child_nodes->items[i], elapsed);
-	}
-}
-
-static bool ce_figentity_node_play_animation(ce_figentity_node* node,
-												const char* name)
-{
-	bool ok = ce_anmstate_play_animation(node->anmstate,
-										node->mesh_node->proto_node->anmfiles,
-										name);
-	for (int i = 0; i < node->child_nodes->count; ++i) {
-		ok = ce_figentity_node_play_animation(node->child_nodes->items[i], name) && ok;
-	}
-	return ok;
 }
 
 ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								const ce_vec3* position,
 								const ce_quat* orientation,
 								const char* texture_names[],
-								ce_scenenode* parent_scenenode)
+								ce_scenenode* scenenode)
 {
-	ce_figentity* figentity = ce_alloc_zero(sizeof(ce_figentity));
-
-	figentity->figmesh = ce_figmesh_copy(figmesh);
-	figentity->scenenode = ce_scenenode_create_child(parent_scenenode);
-	figentity->root_node =
-		ce_figentity_node_new(figmesh->root_node,
-								texture_names,
-								figentity->scenenode);
-
-	ce_vec3_copy(&figentity->scenenode->position, position);
-	ce_quat_copy(&figentity->scenenode->orientation, orientation);
-
+	ce_figentity* figentity = ce_alloc(sizeof(ce_figentity));
+	figentity->figmesh = ce_figmesh_clone(figmesh);
+	figentity->figbone = ce_figbone_new(figentity->figmesh->figproto->fignode,
+										&figentity->figmesh->complection, NULL);
+	figentity->scenenode = ce_scenenode_new(scenenode);
+	figentity->scenenode->position = *position;
+	figentity->scenenode->orientation = *orientation;
+	ce_figentity_create_scenenodes(figentity->figmesh->figproto->fignode,
+									texture_names,
+									figentity->figmesh->renderitems,
+									figentity->scenenode);
 	return figentity;
 }
 
 void ce_figentity_del(ce_figentity* figentity)
 {
 	if (NULL != figentity) {
-		ce_figentity_node_del(figentity->root_node);
 		ce_scenenode_del(figentity->scenenode);
+		ce_figbone_del(figentity->figbone);
 		ce_figmesh_del(figentity->figmesh);
 		ce_free(figentity, sizeof(ce_figentity));
 	}
 }
 
-void ce_figentity_advance(ce_figentity* figentity, float elapsed)
+void ce_figentity_advance(ce_figentity* figentity, float fps, float elapsed)
 {
-	ce_figentity_node_advance(figentity->root_node, elapsed);
+	ce_figbone_advance(figentity->figbone,
+		figentity->figmesh->figproto->fignode,
+		figentity->scenenode->childs, fps, elapsed);
 }
 
 bool ce_figentity_play_animation(ce_figentity* figentity, const char* name)
 {
-	return ce_figentity_node_play_animation(figentity->root_node, name);
+	return ce_figbone_play_animation(figentity->figbone,
+		figentity->figmesh->figproto->fignode, name);
 }
