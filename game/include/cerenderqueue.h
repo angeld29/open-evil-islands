@@ -34,6 +34,7 @@ extern "C"
 
 typedef struct {
 	ce_vector* scenenodes[2]; // opacity and transparent
+	int queued_scenenode_count;
 } ce_renderqueue;
 
 extern ce_renderqueue* ce_renderqueue_new(void);

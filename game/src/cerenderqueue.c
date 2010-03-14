@@ -19,7 +19,6 @@
 */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <assert.h>
 
 #include "cemath.h"
@@ -47,6 +46,7 @@ void ce_renderqueue_clear(ce_renderqueue* renderqueue)
 {
 	ce_vector_clear(renderqueue->scenenodes[0]);
 	ce_vector_clear(renderqueue->scenenodes[1]);
+	renderqueue->queued_scenenode_count = 0;
 }
 
 void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
@@ -59,6 +59,7 @@ void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
 			scenenode->dist2 = ce_vec3_dist2(eye, &scenenode->world_position);
 			int index = scenenode->renderlayer->renderitem->transparent;
 			ce_vector_push_back(renderqueue->scenenodes[index], scenenode);
+			++renderqueue->queued_scenenode_count;
 		}
 
 		for (int i = 0; i < scenenode->childs->count; ++i) {
@@ -94,20 +95,12 @@ static const ce_renderqueue_comp ce_renderqueue_comps[2] = {
 void ce_renderqueue_render(ce_renderqueue* renderqueue,
 							ce_rendersystem* rendersystem)
 {
-	int count = 0;
-
 	for (int i = 0; i < 2; ++i) {
 		ce_vector* scenenodes = renderqueue->scenenodes[i];
-
 		qsort(scenenodes->items, scenenodes->count,
 				sizeof(ce_scenenode*), ce_renderqueue_comps[i]);
-
 		for (int j = 0; j < scenenodes->count; ++j) {
 			ce_scenenode_render(scenenodes->items[j], rendersystem);
 		}
-
-		count += scenenodes->count;
 	}
-
-	printf("visible: %d\n", count);
 }

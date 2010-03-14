@@ -220,42 +220,47 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	int width = viewport[2];
 	int height = viewport[3];
 
-	const char* engine_text = "Powered by Cursed Earth Engine";
+	static char text[64];
 
-	ce_font_render(scenemng->font,
-		width - ce_font_get_width(scenemng->font, engine_text) - 10, 10,
-		&CE_COLOR_GREEN, engine_text);
-
-	ce_font_render(scenemng->font,
-		width - ce_font_get_width(scenemng->font, scenemng->fps->text) - 10,
-		height - ce_font_get_height(scenemng->font) - 10,
-		&CE_COLOR_RED, scenemng->fps->text);
-
-	static char alloc_text[64];
-
-	snprintf(alloc_text, sizeof(alloc_text),
+	snprintf(text, sizeof(text),
 			"smallobj allocated: %u b, max: %u b",
 			ce_alloc_get_smallobj_allocated(),
 			ce_alloc_get_smallobj_max_allocated());
 
 	ce_font_render(scenemng->font, 10,
 		height - 1 * ce_font_get_height(scenemng->font) - 10,
-		&CE_COLOR_RED, alloc_text);
+		&CE_COLOR_RED, text);
 
-	snprintf(alloc_text, sizeof(alloc_text),
+	snprintf(text, sizeof(text),
 			"smallobj overhead: %u b",
 			ce_alloc_get_smallobj_overhead());
 
 	ce_font_render(scenemng->font, 10,
 		height - 2 * ce_font_get_height(scenemng->font) - 10,
-		&CE_COLOR_RED, alloc_text);
+		&CE_COLOR_RED, text);
 
-	snprintf(alloc_text, sizeof(alloc_text),
+	snprintf(text, sizeof(text),
 			"system allocated: %u b, max: %u b",
 			ce_alloc_get_system_allocated(),
 			ce_alloc_get_system_max_allocated());
 
 	ce_font_render(scenemng->font, 10,
 		height - 3 * ce_font_get_height(scenemng->font) - 10,
-		&CE_COLOR_RED, alloc_text);
+		&CE_COLOR_RED, text);
+
+	snprintf(text, sizeof(text), "%d scene nodes in frustum",
+			scenemng->renderqueue->queued_scenenode_count);
+
+	ce_font_render(scenemng->font, 10, 10, &CE_COLOR_RED, text);
+
+	ce_font_render(scenemng->font,
+		width - ce_font_get_width(scenemng->font, scenemng->fps->text) - 10,
+		height - ce_font_get_height(scenemng->font) - 10,
+		&CE_COLOR_RED, scenemng->fps->text);
+
+	const char* engine_text = "Powered by Cursed Earth Engine";
+
+	ce_font_render(scenemng->font,
+		width - ce_font_get_width(scenemng->font, engine_text) - 10, 10,
+		&CE_COLOR_RED, engine_text);
 }
