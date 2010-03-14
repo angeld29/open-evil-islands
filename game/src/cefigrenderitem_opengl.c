@@ -38,7 +38,7 @@ ce_figrenderitem_base_init(ce_renderitem* renderitem,
 							const ce_complection* complection)
 {
 	ce_fighlp_get_aabb(&renderitem->aabb, figfile, complection);
-	renderitem->transparent = false;
+	renderitem->transparent = true;
 }
 
 typedef struct {
