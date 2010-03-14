@@ -163,6 +163,7 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 			};
 
 			glMatrixMode(GL_TEXTURE);
+			glPushMatrix();
 			glLoadIdentity();
 			glTranslatef(u + tile_uv_half_step, v + tile_uv_half_step, 0.0f);
 			glRotatef(-90.0f * ce_mprhlp_texture_angle(texture), 0.0f, 0.0f, 1.0f);
@@ -184,6 +185,10 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 
 			ce_texture_unbind(ce_vector_at(terrain->textures,
 							ce_mprhlp_texture_number(texture)));
+
+			glMatrixMode(GL_TEXTURE);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
 		}
 	}
 
