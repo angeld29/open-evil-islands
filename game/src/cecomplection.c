@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "cemath.h"
 #include "cecomplection.h"
 
 ce_complection*
@@ -46,4 +47,12 @@ ce_complection_copy(ce_complection* complection, const ce_complection* other)
 	complection->dexterity = other->dexterity;
 	complection->height = other->height;
 	return complection;
+}
+
+bool ce_complection_equal(const ce_complection* complection,
+							const ce_complection* other)
+{
+	return ce_fisequal(complection->strength, other->strength, CE_EPS_E3) &&
+		ce_fisequal(complection->dexterity, other->dexterity, CE_EPS_E3) &&
+		ce_fisequal(complection->height, other->height, CE_EPS_E3);
 }

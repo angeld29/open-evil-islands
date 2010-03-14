@@ -54,16 +54,56 @@
 #define CE_SPIKE_VERSION_PATCH 0
 #endif
 
-ce_scenemng* scenemng;
+static ce_scenemng* scenemng;
 
-ce_figproto* figproto;
-ce_figmesh* figmesh;
-ce_figentity* figentity;
+static ce_figproto* figproto;
+static ce_figmesh* figmesh;
+static ce_figentity* figentity;
 
-ce_input_event_supply* es;
-ce_input_event* test_event;
+static ce_input_event_supply* es;
+static ce_input_event* strength_event;
+static ce_input_event* dexterity_event;
+static ce_input_event* height_event;
+static ce_input_event* toggle_bbox_event;
+static ce_input_event* anm_change_event;
+static ce_input_event* anm_fps_inc_event;
+static ce_input_event* anm_fps_dec_event;
 
-int ttt;
+static int anm_index = -1;
+static float anm_fps_limit = 0.1f;
+static float anm_fps_inc_counter;
+static float anm_fps_dec_counter;
+
+static ce_complection complection = { 1.0f, 1.0f, 1.0f };
+
+static const char* figure_name = NULL;
+static const char* anm_name = NULL;
+static const char* texture_names[] = { "default0", "default0" };
+
+static bool update_figentity()
+{
+	ce_figentity_del(figentity);
+
+	ce_vec3 position = CE_VEC3_ZERO;
+
+	ce_quat orientation, q1, q2;
+	ce_quat_init_polar(&q1, ce_deg2rad(180.0f), &CE_VEC3_UNIT_Z);
+	ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
+	ce_quat_mul(&orientation, &q2, &q1);
+
+	figentity = ce_figmng_create_figentity(ce_root_get_figmng(),
+										figure_name, &complection,
+										&position, &orientation,
+										texture_names, scenemng->scenenode);
+
+	if (NULL != figentity && -1 != anm_index) {
+		if (!ce_figentity_play_animation(figentity, "stub")) {
+			ce_logging_warning("main: could not play animation: '%s'", "stub");
+		}
+	}
+
+	return NULL != figentity;
+}
 
 static void idle(void)
 {
@@ -85,6 +125,57 @@ static void idle(void)
 		ce_alloc_term();
 		ce_logging_term();
 		exit(EXIT_SUCCESS);
+	}
+
+	if (ce_input_event_triggered(toggle_bbox_event)) {
+		scenemng->show_bboxes = !scenemng->show_bboxes;
+	}
+
+	anm_fps_inc_counter += elapsed;
+	anm_fps_dec_counter += elapsed;
+
+	if (ce_input_event_triggered(anm_fps_inc_event) &&
+			anm_fps_inc_counter >= anm_fps_limit) {
+		scenemng->anm_fps += 1.0f;
+		anm_fps_inc_counter = 0.0f;
+	}
+
+	if (ce_input_event_triggered(anm_fps_dec_event) &&
+			anm_fps_dec_counter >= anm_fps_limit) {
+		scenemng->anm_fps -= 1.0f;
+		anm_fps_dec_counter = 0.0f;
+	}
+
+	scenemng->anm_fps = ce_fclamp(scenemng->anm_fps, 1.0f, 50.0f);
+
+	bool need_update_figentity = false;
+
+	if (ce_input_event_triggered(strength_event)) {
+		if ((complection.strength += 0.1f) > 1.0f) {
+			complection.strength = 0.0f;
+		}
+		need_update_figentity = true;
+	}
+
+	if (ce_input_event_triggered(dexterity_event)) {
+		if ((complection.dexterity += 0.1f) > 1.0f) {
+			complection.dexterity = 0.0f;
+		}
+		need_update_figentity = true;
+	}
+
+	if (ce_input_event_triggered(height_event)) {
+		if ((complection.height += 0.1f) > 1.0f) {
+			complection.height = 0.0f;
+		}
+		need_update_figentity = true;
+	}
+
+	if (need_update_figentity) {
+		update_figentity();
+	}
+
+	if (ce_input_event_triggered(anm_change_event)) {
 	}
 
 	if (ce_input_test(CE_KB_LEFT)) {
@@ -117,13 +208,7 @@ static void idle(void)
 												ce_deg2rad(-0.13f * offset.y));
 	}
 
-	if (ce_input_event_triggered(test_event)) {
-		if (++ttt > 50) {
-			ttt = 0;
-		}
-	}
-
-	ce_figentity_advance(figentity, 1.0f, elapsed);
+	ce_figentity_advance(figentity, scenemng->anm_fps, elapsed);
 
 	glutPostRedisplay();
 }
@@ -146,7 +231,7 @@ static void reshape(int width, int height)
 
 static void usage(void)
 {
-	fprintf(stderr, "figviewer");
+	fprintf(stderr, "TODO");
 }
 
 int main(int argc, char* argv[])
@@ -161,9 +246,9 @@ int main(int argc, char* argv[])
 
 	int c;
 	const char* ei_path = ".";
-	const char* primary_texture_name = "default0";
-	const char* secondary_texture_name = "default0";
-	const char* anm_name = NULL;
+	const char* primary_texture_name = NULL;
+	const char* secondary_texture_name = NULL;
+
 	bool fullscreen = false;
 
 	opterr = 0;
@@ -209,7 +294,7 @@ int main(int argc, char* argv[])
 
 	if (optind == argc) {
 		usage();
-		fprintf(stderr, "\nPlease, specify a model name\n");
+		fprintf(stderr, "\nPlease, specify a figure name\n");
 		return 1;
 	}
 
@@ -259,35 +344,18 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	if (NULL == (figproto = ce_figprotomng_get_figproto(
-			ce_root_get_figprotomng(), argv[optind]))) {
-		ce_logging_fatal("main: failed to get figure proto: '%s'", argv[optind]);
-		return 1;
+	if (NULL != primary_texture_name) {
+		texture_names[0] = primary_texture_name;
 	}
 
-	ce_complection complection;
-	ce_complection_init(&complection, 1.0f, 1.0f, 1.0f);
+	if (NULL != secondary_texture_name) {
+		texture_names[1] = secondary_texture_name;
+	}
 
-	figmesh = ce_figmesh_new(figproto, &complection);
+	figure_name = argv[optind];
 
-	const char* texture_names[] = { primary_texture_name,
-									secondary_texture_name };
-
-	ce_vec3 position = CE_VEC3_ZERO;
-	ce_vec3_init(&position, 1.0f, 0.0f, 1.0f);
-
-	ce_quat orientation, q1 = CE_QUAT_IDENTITY, q2 = CE_QUAT_IDENTITY;
-	ce_quat_init_polar(&q1, ce_deg2rad(153.0f), &CE_VEC3_UNIT_Z);
-	ce_quat_init_polar(&q2, ce_deg2rad(208.0f), &CE_VEC3_UNIT_X);
-	ce_quat_mul(&orientation, &q2, &q1);
-
-	figentity = ce_figentity_new(figmesh, &position, &orientation,
-								texture_names, scenemng->scenenode);
-
-	if (NULL != anm_name) {
-		if (!ce_figentity_play_animation(figentity, anm_name)) {
-			ce_logging_warning("main: could not play animation: '%s'", anm_name);
-		}
+	if (!update_figentity()) {
+		return 1;
 	}
 
 	ce_vec3 eye;
@@ -298,8 +366,18 @@ int main(int argc, char* argv[])
 	ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(180.0f), ce_deg2rad(30.0f));
 
 	es = ce_input_event_supply_new();
-	test_event = ce_input_event_supply_single_front_event(es,
-		ce_input_event_supply_button_event(es, CE_KB_N));
+	strength_event = ce_input_event_supply_single_front_event(es,
+						ce_input_event_supply_button_event(es, CE_KB_1));
+	dexterity_event = ce_input_event_supply_single_front_event(es,
+						ce_input_event_supply_button_event(es, CE_KB_2));
+	height_event = ce_input_event_supply_single_front_event(es,
+						ce_input_event_supply_button_event(es, CE_KB_3));
+	toggle_bbox_event = ce_input_event_supply_single_front_event(es,
+					ce_input_event_supply_button_event(es, CE_KB_B));
+	anm_change_event = ce_input_event_supply_single_front_event(es,
+					ce_input_event_supply_button_event(es, CE_KB_A));
+	anm_fps_inc_event = ce_input_event_supply_button_event(es, CE_KB_ADD);
+	anm_fps_dec_event = ce_input_event_supply_button_event(es, CE_KB_SUBTRACT);
 
 	glutMainLoop();
 	return EXIT_SUCCESS;

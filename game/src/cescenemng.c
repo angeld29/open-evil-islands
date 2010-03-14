@@ -32,7 +32,6 @@
 ce_scenemng* ce_scenemng_new(void)
 {
 	ce_scenemng* scenemng = ce_alloc_zero(sizeof(ce_scenemng));
-
 	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->rendersystem = ce_rendersystem_new();
 	scenemng->renderqueue = ce_renderqueue_new();
@@ -40,7 +39,8 @@ ce_scenemng* ce_scenemng_new(void)
 	scenemng->fps = ce_fps_new();
 	scenemng->camera = ce_camera_new();
 	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
-
+	scenemng->show_bboxes = false;
+	scenemng->anm_fps = 15.0f;
 	return scenemng;
 }
 

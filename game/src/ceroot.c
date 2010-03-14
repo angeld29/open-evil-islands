@@ -30,7 +30,7 @@ static struct {
 	bool inited;
 	ce_texmng* texmng;
 	ce_mprmng* mprmng;
-	ce_figprotomng* figprotomng;
+	ce_figmng* figmng;
 } ce_root_inst;
 
 static bool ce_root_init_impl(const char* base_path)
@@ -58,7 +58,7 @@ static bool ce_root_init_impl(const char* base_path)
 		return false;
 	}
 
-	if (NULL == (ce_root_inst.figprotomng = ce_figprotomng_new())) {
+	if (NULL == (ce_root_inst.figmng = ce_figmng_new())) {
 		return false;
 	}
 
@@ -67,7 +67,7 @@ static bool ce_root_init_impl(const char* base_path)
 						sizeof(figure_resources[0]); i < n; ++i) {
 		snprintf(path, sizeof(path), "%s/Res/%s.res",
 				base_path, figure_resources[i]);
-		if (!ce_figprotomng_register_resource(ce_root_inst.figprotomng, path)) {
+		if (!ce_figmng_register_resource(ce_root_inst.figmng, path)) {
 			return false;
 		}
 	}
@@ -93,7 +93,7 @@ void ce_root_term(void)
 	assert(ce_root_inst.inited && "The root subsystem has not yet been inited");
 	ce_root_inst.inited = false;
 
-	ce_figprotomng_del(ce_root_inst.figprotomng);
+	ce_figmng_del(ce_root_inst.figmng);
 	ce_mprmng_del(ce_root_inst.mprmng);
 	ce_texmng_del(ce_root_inst.texmng);
 
@@ -112,8 +112,8 @@ ce_mprmng* ce_root_get_mprmng(void)
 	return ce_root_inst.mprmng;
 }
 
-ce_figprotomng* ce_root_get_figprotomng(void)
+ce_figmng* ce_root_get_figmng(void)
 {
 	assert(ce_root_inst.inited && "The root subsystem has not yet been inited");
-	return ce_root_inst.figprotomng;
+	return ce_root_inst.figmng;
 }

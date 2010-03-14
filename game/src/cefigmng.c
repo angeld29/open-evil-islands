@@ -22,67 +22,126 @@
 #include <string.h>
 #include <assert.h>
 
+#include "cestr.h"
 #include "celogging.h"
 #include "cealloc.h"
 #include "ceresfile.h"
-#include "cefigprotomng.h"
+#include "cefigmng.h"
 
-ce_figprotomng* ce_figprotomng_new(void)
+// TODO: cleanup unused protos and meshes
+
+ce_figmng* ce_figmng_new(void)
 {
-	ce_figprotomng* figprotomng = ce_alloc_zero(sizeof(ce_figprotomng));
-	if (NULL == figprotomng) {
-		ce_logging_error("figprotomng: could not allocate memory");
-		return NULL;
-	}
-
-	if (NULL == (figprotomng->resources = ce_vector_new())) {
-		ce_figprotomng_del(figprotomng);
-		return NULL;
-	}
-
-	return figprotomng;
+	ce_figmng* figmng = ce_alloc(sizeof(ce_figmng));
+	figmng->resources = ce_vector_new();
+	figmng->figprotos = ce_vector_new();
+	figmng->figmeshes = ce_vector_new();
+	return figmng;
 }
 
-void ce_figprotomng_del(ce_figprotomng* figprotomng)
+void ce_figmng_del(ce_figmng* figmng)
 {
-	if (NULL != figprotomng) {
-		if (NULL != figprotomng->resources) {
-			for (int i = 0, n = ce_vector_count(figprotomng->resources); i < n; ++i) {
-				ce_resfile_close(ce_vector_at(figprotomng->resources, i));
-			}
-			ce_vector_del(figprotomng->resources);
+	if (NULL != figmng) {
+		for (int i = 0; i < figmng->figmeshes->count; ++i) {
+			ce_figmesh_del(figmng->figmeshes->items[i]);
 		}
-		ce_free(figprotomng, sizeof(ce_figprotomng));
+		ce_vector_del(figmng->figmeshes);
+		for (int i = 0; i < figmng->figprotos->count; ++i) {
+			ce_figproto_del(figmng->figprotos->items[i]);
+		}
+		ce_vector_del(figmng->figprotos);
+		for (int i = 0; i < figmng->resources->count; ++i) {
+			ce_resfile_close(figmng->resources->items[i]);
+		}
+		ce_vector_del(figmng->resources);
+		ce_free(figmng, sizeof(ce_figmng));
 	}
 }
 
-bool
-ce_figprotomng_register_resource(ce_figprotomng* figprotomng, const char* path)
+bool ce_figmng_register_resource(ce_figmng* figmng, const char* path)
 {
 	ce_resfile* resfile = ce_resfile_open_file(path);
 	if (NULL == resfile) {
-		ce_logging_error("figprotomng: could not open resource: '%s'", path);
+		ce_logging_error("figmng: could not open resource: '%s'", path);
 		return false;
 	}
 
-	ce_vector_push_back(figprotomng->resources, resfile);
-	ce_logging_write("figprotomng: loading '%s'... ok", ce_resfile_name(resfile));
+	ce_vector_push_back(figmng->resources, resfile);
+	ce_logging_write("figmng: loading '%s'... ok", ce_resfile_name(resfile));
 
 	return true;
 }
 
-ce_figproto*
-ce_figprotomng_get_figproto(ce_figprotomng* figprotomng, const char* figure_name)
+static ce_figproto* ce_figmng_get_figproto(ce_figmng* figmng, const char* name)
 {
-	char file_name[strlen(figure_name) + 4 + 1];
-	snprintf(file_name, sizeof(file_name), "%s.mod", figure_name);
-
-	for (int i = 0, n = ce_vector_count(figprotomng->resources); i < n; ++i) {
-		ce_resfile* resfile = ce_vector_at(figprotomng->resources, i);
-		if (-1 != ce_resfile_node_index(resfile, file_name)) {
-			return ce_figproto_new(figure_name, resfile);
+	for (int i = 0; i < figmng->figprotos->count; ++i) {
+		ce_figproto* figproto = figmng->figprotos->items[i];
+		if (0 == ce_strcasecmp(name, figproto->name->str)) {
+			return figproto;
 		}
 	}
 
+	// only guess figure name
+	char file_name[strlen(name) + 4 + 1];
+	snprintf(file_name, sizeof(file_name), "%s.mod", name);
+
+	for (int i = 0; i < figmng->resources->count; ++i) {
+		ce_resfile* resfile = figmng->resources->items[i];
+		if (-1 != ce_resfile_node_index(resfile, file_name)) {
+			ce_figproto* figproto = ce_figproto_new(name, resfile);
+			if (NULL != figproto) {
+				ce_vector_push_back(figmng->figprotos, figproto);
+				return figproto;
+			}
+		}
+	}
+
+	ce_logging_error("figmng: could not create figproto: '%s'", name);
+	return NULL;
+}
+
+static ce_figmesh* ce_figmng_get_figmesh(ce_figmng* figmng,
+										const char* name,
+										const ce_complection* complection)
+{
+	for (int i = 0; i < figmng->figmeshes->count; ++i) {
+		ce_figmesh* figmesh = figmng->figmeshes->items[i];
+		if (ce_complection_equal(complection, &figmesh->complection)) {
+			return figmesh;
+		}
+	}
+
+	ce_figproto* figproto = ce_figmng_get_figproto(figmng, name);
+	if (NULL != figproto) {
+		ce_figmesh* figmesh = ce_figmesh_new(figproto, complection);
+		if (NULL != figmesh) {
+			ce_vector_push_back(figmng->figmeshes, figmesh);
+			return figmesh;
+		}
+	}
+
+	ce_logging_error("figmng: could not create figmesh: '%s'", name);
+	return NULL;
+}
+
+ce_figentity* ce_figmng_create_figentity(ce_figmng* figmng,
+										const char* name,
+										const ce_complection* complection,
+										const ce_vec3* position,
+										const ce_quat* orientation,
+										const char* texture_names[],
+										ce_scenenode* scenenode)
+{
+	ce_figmesh* figmesh = ce_figmng_get_figmesh(figmng, name, complection);
+	if (NULL != figmesh) {
+		ce_figentity* figentity =
+			ce_figentity_new(figmesh, position, orientation,
+								texture_names, scenenode);
+		if (NULL != figentity) {
+			return figentity;
+		}
+	}
+
+	ce_logging_error("figmng: could not create figentity: '%s'", name);
 	return NULL;
 }

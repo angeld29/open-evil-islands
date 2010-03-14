@@ -18,13 +18,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FIGPROTOMNG_H
-#define CE_FIGPROTOMNG_H
+#ifndef CE_FIGMNG_H
+#define CE_FIGMNG_H
 
 #include <stdbool.h>
 
 #include "cevector.h"
 #include "cefigproto.h"
+#include "cefigmesh.h"
+#include "cefigentity.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -33,20 +35,26 @@ extern "C"
 
 typedef struct {
 	ce_vector* resources;
-} ce_figprotomng;
+	ce_vector* figprotos;
+	ce_vector* figmeshes;
+} ce_figmng;
 
-extern ce_figprotomng* ce_figprotomng_new(void);
-extern void ce_figprotomng_del(ce_figprotomng* figprotomng);
+extern ce_figmng* ce_figmng_new(void);
+extern void ce_figmng_del(ce_figmng* figmng);
 
-extern bool
-ce_figprotomng_register_resource(ce_figprotomng* figprotomng, const char* path);
+extern bool ce_figmng_register_resource(ce_figmng* figmng, const char* path);
 
-extern ce_figproto*
-ce_figprotomng_get_figproto(ce_figprotomng* figprotomng,
-							const char* figure_name);
+extern ce_figentity*
+ce_figmng_create_figentity(ce_figmng* figmng,
+							const char* name,
+							const ce_complection* complection,
+							const ce_vec3* position,
+							const ce_quat* orientation,
+							const char* texture_names[],
+							ce_scenenode* scenenode);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGPROTOMNG_H */
+#endif /* CE_FIGMNG_H */

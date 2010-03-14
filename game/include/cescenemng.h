@@ -21,6 +21,8 @@
 #ifndef CE_SCENEMNG_H
 #define CE_SCENEMNG_H
 
+#include <stdbool.h>
+
 #include "cevector.h"
 #include "cescenenode.h"
 #include "cerenderqueue.h"
@@ -43,6 +45,8 @@ typedef struct {
 	ce_fps* fps;
 	ce_camera* camera;
 	ce_font* font;
+	bool show_bboxes;
+	float anm_fps;
 } ce_scenemng;
 
 extern ce_scenemng* ce_scenemng_new(void);
