@@ -50,8 +50,13 @@ extern void ce_figentity_del(ce_figentity* figentity);
 extern void ce_figentity_advance(ce_figentity* figentity,
 									float fps, float elapsed);
 
-extern bool ce_figentity_play_animation(ce_figentity* figentity,
-											const char* name);
+extern int ce_figentity_get_animation_count(ce_figentity* figentity);
+extern const char*
+ce_figentity_get_animation_name(ce_figentity* figentity, int index);
+
+extern bool
+ce_figentity_play_animation(ce_figentity* figentity, const char* name);
+extern void ce_figentity_stop_animation(ce_figentity* figentity);
 
 #ifdef __cplusplus
 }

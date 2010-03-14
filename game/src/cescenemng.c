@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 // TODO: to be unhardcoded...
-#include <GL/gl.h>
+#include <GL/glut.h>
 
 #include "cemath.h"
 #include "celogging.h"
@@ -68,22 +68,21 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 	ce_fps_advance(scenemng->fps, elapsed);
 }
 
-// mmm :)
-#include <GL/glut.h>
-void ce_scenemng_debug_render(ce_scenenode* scenenode)
+void ce_scenemng_render_bboxes(ce_scenenode* scenenode)
 {
 	glEnable(GL_DEPTH_TEST);
 
-#if 1
 	glPushMatrix();
 	glTranslatef(scenenode->world_bbox.aabb.origin.x,
 				scenenode->world_bbox.aabb.origin.y,
 				scenenode->world_bbox.aabb.origin.z);
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glutWireSphere(0.05f, 40, 40);
 
 	ce_vec3 xaxis, yaxis, zaxis, v;
 	ce_quat_to_axes(&scenenode->world_bbox.axis, &xaxis, &yaxis, &zaxis);
+
+#if 0
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glutWireSphere(0.05f, 40, 40);
 
 	glBegin(GL_LINES);
 	glColor3f(1.0f, 0.0f, 0.0f);
@@ -141,8 +140,8 @@ void ce_scenemng_debug_render(ce_scenenode* scenenode)
 	glColor3f(0.0f, 1.0f, 0.0f);
 	glutWireSphere(0.05f, 40, 40);
 	glPopMatrix();
+#endif
 
-	glPushMatrix();
 	ce_vec3_scale(&v, &xaxis, scenenode->world_bbox.aabb.extents.x);
 	float xscale = ce_vec3_abs(&v);
 	ce_vec3_scale(&v, &yaxis, scenenode->world_bbox.aabb.extents.y);
@@ -152,17 +151,15 @@ void ce_scenemng_debug_render(ce_scenenode* scenenode)
 	float angle = ce_quat_to_angle_axis(&scenenode->world_bbox.axis, &v);
 	glRotatef(ce_rad2deg(angle), v.x, v.y, v.z);
 	glScalef(xscale, yscale, zscale);
-	glColor3f(0.0f, 1.0f, 1.0f);
+	glColor3f(0.0f, 0.0f, 1.0f);
 	glutWireCube(2.0f);
-	glPopMatrix();
 
 	glPopMatrix();
-#endif
 
 	glDisable(GL_DEPTH_TEST);
 
 	for (int i = 0; i < scenenode->childs->count; ++i) {
-		ce_scenemng_debug_render(scenenode->childs->items[i]);
+		ce_scenemng_render_bboxes(scenenode->childs->items[i]);
 	}
 }
 
@@ -212,7 +209,9 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_renderqueue_render(scenemng->renderqueue,
 							scenemng->rendersystem);
 
-	ce_scenemng_debug_render(scenemng->scenenode);
+	if (scenemng->show_bboxes) {
+		ce_scenemng_render_bboxes(scenemng->scenenode);
+	}
 
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);

@@ -49,6 +49,7 @@ extern void ce_anmstate_advance(ce_anmstate* anmstate,
 extern bool ce_anmstate_play_animation(ce_anmstate* anmstate,
 										ce_vector* anmfiles,
 										const char* name);
+extern void ce_anmstate_stop_animation(ce_anmstate* anmstate);
 
 #ifdef __cplusplus
 }

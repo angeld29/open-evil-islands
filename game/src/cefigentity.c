@@ -25,7 +25,7 @@
 #include "ceroot.h"
 #include "cefigentity.h"
 
-static void ce_figentity_create_scenenodes(ce_fignode* fignode,
+static bool ce_figentity_create_scenenodes(ce_fignode* fignode,
 											const char* texture_names[],
 											ce_vector* renderitems,
 											ce_scenenode* scenenode)
@@ -44,11 +44,19 @@ static void ce_figentity_create_scenenodes(ce_fignode* fignode,
 	child->renderlayer->renderitem =
 		ce_renderitem_clone(renderitems->items[fignode->index]);
 
-	for (int i = 0; i < fignode->childs->count; ++i) {
-		ce_figentity_create_scenenodes(fignode->childs->items[i],
-										texture_names, renderitems,
-										scenenode);
+	if (NULL == child->renderlayer->texture) {
+		return false;
 	}
+
+	for (int i = 0; i < fignode->childs->count; ++i) {
+		if (!ce_figentity_create_scenenodes(fignode->childs->items[i],
+										texture_names, renderitems,
+										scenenode)) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
@@ -64,10 +72,15 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 	figentity->scenenode = ce_scenenode_new(scenenode);
 	figentity->scenenode->position = *position;
 	figentity->scenenode->orientation = *orientation;
-	ce_figentity_create_scenenodes(figentity->figmesh->figproto->fignode,
+
+	if (!ce_figentity_create_scenenodes(figentity->figmesh->figproto->fignode,
 									texture_names,
 									figentity->figmesh->renderitems,
-									figentity->scenenode);
+									figentity->scenenode)) {
+		ce_figentity_del(figentity);
+		return NULL;
+	}
+
 	return figentity;
 }
 
@@ -88,8 +101,26 @@ void ce_figentity_advance(ce_figentity* figentity, float fps, float elapsed)
 		figentity->scenenode->childs, fps, elapsed);
 }
 
+int ce_figentity_get_animation_count(ce_figentity* figentity)
+{
+	return figentity->figmesh->figproto->fignode->anmfiles->count;
+}
+
+const char* ce_figentity_get_animation_name(ce_figentity* figentity, int index)
+{
+	ce_fignode* fignode = figentity->figmesh->figproto->fignode;
+	ce_anmfile* anmfile = fignode->anmfiles->items[index];
+	return anmfile->name->str;
+}
+
 bool ce_figentity_play_animation(ce_figentity* figentity, const char* name)
 {
 	return ce_figbone_play_animation(figentity->figbone,
 		figentity->figmesh->figproto->fignode, name);
+}
+
+void ce_figentity_stop_animation(ce_figentity* figentity)
+{
+	ce_figbone_stop_animation(figentity->figbone,
+		figentity->figmesh->figproto->fignode);
 }

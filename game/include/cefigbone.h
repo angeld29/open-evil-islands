@@ -59,6 +59,8 @@ extern void ce_figbone_advance(ce_figbone* figbone,
 extern bool ce_figbone_play_animation(ce_figbone* figbone,
 										const ce_fignode* fignode,
 										const char* name);
+extern void ce_figbone_stop_animation(ce_figbone* figbone,
+										const ce_fignode* fignode);
 
 #ifdef __cplusplus
 }

@@ -73,3 +73,8 @@ bool ce_anmstate_play_animation(ce_anmstate* anmstate,
 	}
 	return false;
 }
+
+void ce_anmstate_stop_animation(ce_anmstate* anmstate)
+{
+	anmstate->anmfile = NULL;
+}

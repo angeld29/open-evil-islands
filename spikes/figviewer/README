@@ -1,0 +1,16 @@
+Figure Viewer is part of Cursed Earth spikes.
+Check http://cursedearth.sourceforge.net/ for more details.
+
+More informative README will be available later.
+
+Try figviewer -h for help.
+
+Some examples:
+figviewer -b /path/to/evil_islands -p rick unmori
+figviewer -b /path/to/evil_islands -p troll00 -a uattack unmotr
+figviewer -b /path/to/evil_islands -p dragon01 -a cidle unmodg
+figviewer -b /path/to/evil_islands -p dragon01 -a ubriefing01 unmodg
+figviewer -b /path/to/evil_islands -p succubus00 -a cidle unmosu
+figviewer -b /path/to/evil_islands -p troll00 -a uattack unmotr
+figviewer -b /path/to/evil_islands -p lizardman00 -a cidle01 unmoli
+figviewer -b /path/to/evil_islands -p mainmenu00 -s mainmenu00labels unmoco2

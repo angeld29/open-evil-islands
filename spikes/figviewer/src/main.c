@@ -35,6 +35,7 @@
 #undef far
 #endif
 
+#include "cestr.h"
 #include "cemath.h"
 #include "cegl.h"
 #include "celogging.h"
@@ -77,7 +78,6 @@ static float anm_fps_dec_counter;
 static ce_complection complection = { 1.0f, 1.0f, 1.0f };
 
 static const char* figure_name = NULL;
-static const char* anm_name = NULL;
 static const char* texture_names[] = { "default0", "default0" };
 
 static bool update_figentity()
@@ -96,10 +96,9 @@ static bool update_figentity()
 										&position, &orientation,
 										texture_names, scenemng->scenenode);
 
-	if (NULL != figentity && -1 != anm_index) {
-		if (!ce_figentity_play_animation(figentity, "stub")) {
-			ce_logging_warning("main: could not play animation: '%s'", "stub");
-		}
+	if (-1 != anm_index) {
+		ce_figentity_play_animation(figentity,
+			ce_figentity_get_animation_name(figentity, anm_index));
 	}
 
 	return NULL != figentity;
@@ -176,6 +175,19 @@ static void idle(void)
 	}
 
 	if (ce_input_event_triggered(anm_change_event)) {
+		ce_figentity_stop_animation(figentity);
+		int anm_count = ce_figentity_get_animation_count(figentity);
+		if (++anm_index == anm_count) {
+			anm_index = -1;
+		}
+		if (-1 != anm_index) {
+			ce_figentity_play_animation(figentity,
+				ce_figentity_get_animation_name(figentity, anm_index));
+			ce_logging_write("main: new animation name: '%s'",
+				ce_figentity_get_animation_name(figentity, anm_index));
+		} else {
+			ce_logging_write("main: new animation name: none");
+		}
 	}
 
 	if (ce_input_test(CE_KB_LEFT)) {
@@ -231,7 +243,40 @@ static void reshape(int width, int height)
 
 static void usage(void)
 {
-	fprintf(stderr, "TODO");
+	fprintf(stderr,
+		"===============================================================================\n"
+		"Cursed Earth is an open source, cross-platform port of Evil Islands\n"
+		"Copyright (C) 2009-2010 Yanis Kurganov\n\n"
+		"This program is free software: you can redistribute it and/or modify\n"
+		"it under the terms of the GNU General Public License as published by\n"
+		"the Free Software Foundation, either version 3 of the License, or\n"
+		"(at your option) any later version.\n\n"
+		"This program is distributed in the hope that it will be useful,\n"
+		"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
+		"GNU General Public License for more details.\n"
+		"===============================================================================\n\n"
+		"This program is part of Cursed Earth spikes\n"
+		"Figure Viewer %d.%d.%d - Control Evil Islands figures\n\n"
+		"Usage: figviewer [options] <figure_name>\n"
+		"Options:\n"
+		"-b <ei_path> Path to EI base dir (current dir by default)\n"
+		"-p <tex_name> Primary texture\n"
+		"-s <tex_name> Secondary texture\n"
+		"-a <anm_name> Play animation with specified name\n"
+		"-f Start program in Full Screen mode\n"
+		"-v Display program version\n"
+		"-h Display this message\n\n"
+		"Controls:\n"
+		"1 Change strength\n"
+		"2 Change dexterity\n"
+		"3 Change height\n"
+		"b Show/hide bounding boxes\n"
+		"a Play next animation\n"
+		"+/- Change animation FPS\n",
+			CE_SPIKE_VERSION_MAJOR,
+			CE_SPIKE_VERSION_MINOR,
+			CE_SPIKE_VERSION_PATCH);
 }
 
 int main(int argc, char* argv[])
@@ -248,6 +293,7 @@ int main(int argc, char* argv[])
 	const char* ei_path = ".";
 	const char* primary_texture_name = NULL;
 	const char* secondary_texture_name = NULL;
+	const char* anm_name = NULL;
 
 	bool fullscreen = false;
 
@@ -356,6 +402,19 @@ int main(int argc, char* argv[])
 
 	if (!update_figentity()) {
 		return 1;
+	}
+
+	if (NULL != anm_name) {
+		if (ce_figentity_play_animation(figentity, anm_name)) {
+			int anm_count = ce_figentity_get_animation_count(figentity);
+			for (anm_index = 0; anm_index < anm_count &&
+					0 == ce_strcasecmp(anm_name,
+					ce_figentity_get_animation_name(figentity, anm_index));
+					++anm_index) {
+			}
+		} else {
+			ce_logging_warning("main: could not play animation: '%s'", anm_name);
+		}
 	}
 
 	ce_vec3 eye;

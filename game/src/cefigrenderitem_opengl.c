@@ -239,6 +239,19 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 	const ce_figfile* figfile = va_arg(args, const ce_figfile*);
 	const ce_anmstate* anmstate = va_arg(args, const ce_anmstate*);
 
+	if (NULL == anmstate->anmfile) {
+		memcpy(figrenderitem->morphed_vertices,
+				figrenderitem->initial_vertices,
+				sizeof(float) * 3 * figrenderitem->vertex_count);
+		ce_aabb_clear(&renderitem->aabb);
+		for (int i = 0; i < figrenderitem->vertex_count; ++i) {
+			ce_aabb_merge_point_array(&renderitem->aabb,
+				figrenderitem->morphed_vertices + 3 * i);
+		}
+		ce_aabb_update_radius(&renderitem->aabb);
+		return;
+	}
+
 	if (NULL == anmstate->anmfile->morphs) {
 		// hmm... some animations haven't morphs on the same node...
 		return;

@@ -99,10 +99,8 @@ void ce_figbone_advance(ce_figbone* figbone,
 	ce_scenenode* scenenode = scenenodes->items[fignode->index];
 
 	// update morphing if exists
-	if (NULL != figbone->anmstate->anmfile) {
-		ce_renderitem_update(scenenode->renderlayer->renderitem,
-							fignode->figfile, figbone->anmstate);
-	}
+	ce_renderitem_update(scenenode->renderlayer->renderitem,
+						fignode->figfile, figbone->anmstate);
 
 	// update scenenode
 	scenenode->position = figbone->bone_position;
@@ -116,14 +114,24 @@ void ce_figbone_advance(ce_figbone* figbone,
 }
 
 bool ce_figbone_play_animation(ce_figbone* figbone,
-								const ce_fignode* fignode,
-								const char* name)
+									const ce_fignode* fignode,
+									const char* name)
 {
-	bool ok = ce_anmstate_play_animation(figbone->anmstate,
-											fignode->anmfiles, name);
+	bool ok = ce_anmstate_play_animation(
+		figbone->anmstate, fignode->anmfiles, name);
 	for (int i = 0; i < figbone->childs->count; ++i) {
 		ok = ce_figbone_play_animation(figbone->childs->items[i],
 				fignode->childs->items[i], name) || ok;
 	}
 	return ok;
+}
+
+void ce_figbone_stop_animation(ce_figbone* figbone,
+								const ce_fignode* fignode)
+{
+	ce_anmstate_stop_animation(figbone->anmstate);
+	for (int i = 0; i < figbone->childs->count; ++i) {
+		ce_figbone_stop_animation(figbone->childs->items[i],
+									fignode->childs->items[i]);
+	}
 }

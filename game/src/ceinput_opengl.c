@@ -172,6 +172,14 @@ static ce_input_button keyboard_ascii_map(unsigned char key)
 	case '5': case '6': case '7': case '8': case '9':
 		button = CE_KB_0 + key - '0';
 		break;
+	case 'a':
+	case 'A':
+		button = CE_KB_A;
+		break;
+	case 'b':
+	case 'B':
+		button = CE_KB_B;
+		break;
 	case 'n':
 	case 'N':
 		button = CE_KB_N;
