@@ -25,6 +25,7 @@
 
 #include "celib.h"
 #include "cetexture.h"
+#include "cerenderitem.h"
 #include "cemprhlp.h"
 #include "ceterrain.h"
 
@@ -41,19 +42,10 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 	uint16_t* textures = va_arg(args, uint16_t*);
 	int16_t* water_allow = va_arg(args, int16_t*);
 
-	ce_vec3 box_min, box_max;
-	ce_vec3_init(&box_min, sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f, -1.0f *
-		(sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1)));
-	ce_vec3_init(&box_max,
-		sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1),
-		terrain->mprfile->max_y, -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1)));
-
-	ce_aabb_init(&renderitem->bounding_box, &box_min, &box_max);
-	ce_sphere_init_aabb(&renderitem->bounding_sphere, &renderitem->bounding_box);
-
+	ce_mprhlp_get_aabb(&renderitem->aabb, terrain->mprfile, sector_x, sector_z);
 	renderitem->transparent = NULL != water_allow;
 
-	ce_mprfile_material* material =
+	const ce_mprfile_material* material =
 		ce_mprhlp_find_material(terrain->mprfile, NULL != water_allow ?
 											CE_MPRFILE_MATERIAL_TYPE_WATER :
 											CE_MPRFILE_MATERIAL_TYPE_GROUND);

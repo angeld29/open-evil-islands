@@ -18,49 +18,120 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ *  Based on:
+ *  1. GTKRadiant mathlib,
+ *     https://zerowing.idsoftware.com/svn/radiant/GtkRadiant.
+ *     GTKRadiant contains software developed by Id Software,
+ *     Loki Software and third party contributors.
+*/
+
+#include <float.h>
+#include <math.h>
+#include <assert.h>
+
+#include "cemath.h"
 #include "ceaabb.h"
 
-ce_aabb* ce_aabb_init(ce_aabb* aabb, const ce_vec3* min, const ce_vec3* max)
+ce_aabb* ce_aabb_init(ce_aabb* aabb, const ce_vec3* origin,
+						const ce_vec3* extents, float radius)
 {
-	ce_vec3_copy(&aabb->min, min);
-	ce_vec3_copy(&aabb->max, max);
-	ce_vec3_mid(&aabb->center, min, max);
-	return aabb;
-}
-
-ce_aabb* ce_aabb_init_zero(ce_aabb* aabb)
-{
-	ce_vec3_zero(&aabb->min);
-	ce_vec3_zero(&aabb->max);
-	ce_vec3_zero(&aabb->center);
+	aabb->origin = *origin;
+	aabb->extents = *extents;
+	aabb->radius = radius;
 	return aabb;
 }
 
 ce_aabb* ce_aabb_copy(ce_aabb* aabb, const ce_aabb* other)
 {
-	ce_vec3_copy(&aabb->min, &other->min);
-	ce_vec3_copy(&aabb->max, &other->max);
-	ce_vec3_copy(&aabb->center, &other->center);
+	aabb->origin = other->origin;
+	aabb->extents = other->extents;
+	aabb->radius = other->radius;
 	return aabb;
 }
 
-ce_aabb* ce_aabb_merge(ce_aabb* aabb, const ce_aabb* lhs, const ce_aabb* rhs)
+ce_aabb* ce_aabb_clear(ce_aabb* aabb)
 {
-	ce_vec3 min, max;
-	ce_aabb_init(aabb, ce_vec3_floor(&min, &lhs->min, &rhs->min),
-						ce_vec3_ceil(&max, &lhs->max, &rhs->max));
+	aabb->origin = CE_VEC3_ZERO;
+	aabb->extents.x = aabb->extents.y = aabb->extents.z = -FLT_MAX;
+	aabb->radius = 0.0f;
 	return aabb;
 }
 
-ce_aabb* ce_aabb_transform(ce_aabb* aabb,
-							const ce_aabb* other,
-							const ce_vec3* translation,
-							const ce_quat* rotation)
+ce_aabb* ce_aabb_update_radius(ce_aabb* aabb)
 {
-	ce_vec3_rot(&aabb->min, &other->min, rotation);
-	ce_vec3_add(&aabb->min, &aabb->min, translation);
-	ce_vec3_rot(&aabb->max, &other->max, rotation);
-	ce_vec3_add(&aabb->max, &aabb->max, translation);
-	ce_vec3_mid(&aabb->center, &aabb->min, &aabb->max);
+	aabb->radius = ce_vec3_abs(&aabb->extents);
+	return aabb;
+}
+
+static void ce_aabb_merge_aabb_pass(float* origin, float* extents,
+									float other_origin, float other_extents)
+{
+	float displacement = other_origin - *origin;
+	float difference = other_extents - *extents;
+	if (*extents < 0.0f || difference >= fabsf(displacement)) {
+		// 2nd contains 1st
+		*extents = other_extents;
+		*origin = other_origin;
+	} else if (other_extents < 0.0f || -difference >= fabsf(displacement)) {
+		// 1st contains 2nd, do nothing
+	} else {
+		// not contained
+		float min, max;
+		if (displacement > 0.0f) {
+			min = *origin - *extents;
+			max = other_origin + other_extents;
+		} else {
+			min = other_origin - other_extents;
+			max = *origin + *extents;
+		}
+		*origin = 0.5f * (min + max);
+		*extents = max - *origin;
+	}
+}
+
+ce_aabb* ce_aabb_merge_aabb(ce_aabb* aabb, const ce_aabb* other)
+{
+	ce_aabb_merge_aabb_pass(&aabb->origin.x, &aabb->extents.x,
+							other->origin.x, other->extents.x);
+	ce_aabb_merge_aabb_pass(&aabb->origin.y, &aabb->extents.y,
+							other->origin.y, other->extents.y);
+	ce_aabb_merge_aabb_pass(&aabb->origin.z, &aabb->extents.z,
+							other->origin.z, other->extents.z);
+	return aabb;
+}
+
+static void ce_aabb_merge_point_pass(float* origin, float* extents, float point)
+{
+	float displacement = point - *origin;
+	if (fabsf(displacement) > *extents) {
+		float min, max;
+		if (*extents < 0.0f) { // degenerate
+			min = max = point;
+		} else if (displacement > 0.0f) {
+			min = *origin - *extents;
+			max = *origin + displacement;
+		} else {
+			max = *origin + *extents;
+			min = *origin + displacement;
+		}
+		*origin = 0.5f * (min + max);
+		*extents = max - *origin;
+	}
+}
+
+ce_aabb* ce_aabb_merge_point(ce_aabb* aabb, const ce_vec3* point)
+{
+	ce_aabb_merge_point_pass(&aabb->origin.x, &aabb->extents.x, point->x);
+	ce_aabb_merge_point_pass(&aabb->origin.y, &aabb->extents.y, point->y);
+	ce_aabb_merge_point_pass(&aabb->origin.z, &aabb->extents.z, point->z);
+	return aabb;
+}
+
+ce_aabb* ce_aabb_merge_point_array(ce_aabb* aabb, const float* point)
+{
+	ce_aabb_merge_point_pass(&aabb->origin.x, &aabb->extents.x, *point++);
+	ce_aabb_merge_point_pass(&aabb->origin.y, &aabb->extents.y, *point++);
+	ce_aabb_merge_point_pass(&aabb->origin.z, &aabb->extents.z, *point++);
 	return aabb;
 }

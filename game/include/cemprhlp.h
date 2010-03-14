@@ -21,6 +21,7 @@
 #ifndef CE_MPRHLP_H
 #define CE_MPRHLP_H
 
+#include "ceaabb.h"
 #include "cemprfile.h"
 
 #ifdef __cplusplus
@@ -28,8 +29,13 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern ce_mprfile_material*
-ce_mprhlp_find_material(ce_mprfile* mprfile, ce_mprfile_material_type type);
+extern ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,
+									const ce_mprfile* mprfile,
+									int sector_x, int sector_z);
+
+extern const ce_mprfile_material*
+ce_mprhlp_find_material(const ce_mprfile* mprfile,
+						ce_mprfile_material_type type);
 
 extern float* ce_mprhlp_normal2vector(float* vector, uint32_t normal);
 

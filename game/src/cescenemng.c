@@ -23,6 +23,7 @@
 // TODO: to be unhardcoded...
 #include <GL/gl.h>
 
+#include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
 #include "cefrustum.h"
@@ -73,48 +74,88 @@ void ce_scenemng_debug_render(ce_scenenode* scenenode)
 {
 	glEnable(GL_DEPTH_TEST);
 
-#if 0
+#if 1
+	glPushMatrix();
+	glTranslatef(scenenode->world_bbox.aabb.origin.x,
+				scenenode->world_bbox.aabb.origin.y,
+				scenenode->world_bbox.aabb.origin.z);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glutWireSphere(0.05f, 40, 40);
+
+	ce_vec3 xaxis, yaxis, zaxis, v;
+	ce_quat_to_axes(&scenenode->world_bbox.axis, &xaxis, &yaxis, &zaxis);
+
 	glBegin(GL_LINES);
 	glColor3f(1.0f, 0.0f, 0.0f);
-	glVertex3f(scenenode->world_bounding_box.min.x,
-				scenenode->world_bounding_box.min.y,
-				scenenode->world_bounding_box.min.z);
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glVertex3f(scenenode->world_bounding_box.max.x,
-				scenenode->world_bounding_box.max.y,
-				scenenode->world_bounding_box.max.z);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	ce_vec3_scale(&v, &xaxis, scenenode->world_bbox.aabb.extents.x);
+	glVertex3f(v.x, v.y, v.z);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(-v.x, -v.y, -v.z);
 	glEnd();
-#endif
-
-#if 0
 	glPushMatrix();
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glTranslatef(scenenode->world_bounding_box.center.x,
-				scenenode->world_bounding_box.center.y,
-				scenenode->world_bounding_box.center.z);
-	glutWireSphere(5.0f, 40, 40);
+	glTranslatef(v.x, v.y, v.z);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glutWireSphere(0.05f, 40, 40);
 	glPopMatrix();
-#endif
-
-#if 0
 	glPushMatrix();
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glTranslatef(scenenode->world_bounding_sphere.center.x,
-				scenenode->world_bounding_sphere.center.y,
-				scenenode->world_bounding_sphere.center.z);
-	if (scenenode->world_bounding_sphere.radius > 40) {
-	glutWireSphere(scenenode->world_bounding_sphere.radius, 40, 40);
-	}
+	glTranslatef(-v.x, -v.y, -v.z);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glutWireSphere(0.05f, 40, 40);
 	glPopMatrix();
-#endif
 
-#if 0
+	glBegin(GL_LINES);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	ce_vec3_scale(&v, &yaxis, scenenode->world_bbox.aabb.extents.y);
+	glVertex3f(v.x, v.y, v.z);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(-v.x, -v.y, -v.z);
+	glEnd();
 	glPushMatrix();
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glTranslatef(scenenode->world_bounding_sphere.center.x,
-				scenenode->world_bounding_sphere.center.y,
-				scenenode->world_bounding_sphere.center.z);
-	glutWireSphere(5.0f, 40, 40);
+	glTranslatef(v.x, v.y, v.z);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glutWireSphere(0.05f, 40, 40);
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(-v.x, -v.y, -v.z);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glutWireSphere(0.05f, 40, 40);
+	glPopMatrix();
+
+	glBegin(GL_LINES);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	ce_vec3_scale(&v, &zaxis, scenenode->world_bbox.aabb.extents.z);
+	glVertex3f(v.x, v.y, v.z);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(-v.x, -v.y, -v.z);
+	glEnd();
+	glPushMatrix();
+	glTranslatef(v.x, v.y, v.z);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glutWireSphere(0.05f, 40, 40);
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(-v.x, -v.y, -v.z);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glutWireSphere(0.05f, 40, 40);
+	glPopMatrix();
+
+	glPushMatrix();
+	ce_vec3_scale(&v, &xaxis, scenenode->world_bbox.aabb.extents.x);
+	float xscale = ce_vec3_abs(&v);
+	ce_vec3_scale(&v, &yaxis, scenenode->world_bbox.aabb.extents.y);
+	float yscale = ce_vec3_abs(&v);
+	ce_vec3_scale(&v, &zaxis, scenenode->world_bbox.aabb.extents.z);
+	float zscale = ce_vec3_abs(&v);
+	float angle = ce_quat_to_angle_axis(&scenenode->world_bbox.axis, &v);
+	glRotatef(ce_rad2deg(angle), v.x, v.y, v.z);
+	glScalef(xscale, yscale, zscale);
+	glColor3f(0.0f, 1.0f, 1.0f);
+	glutWireCube(2.0f);
+	glPopMatrix();
+
 	glPopMatrix();
 #endif
 

@@ -65,11 +65,7 @@ ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem)
 	ce_renderitem* clone_renderitem =
 		ce_alloc_zero(sizeof(ce_renderitem) + renderitem->size);
 
-	ce_aabb_copy(&clone_renderitem->bounding_box,
-					&renderitem->bounding_box);
-	ce_sphere_copy(&clone_renderitem->bounding_sphere,
-					&renderitem->bounding_sphere);
-
+	clone_renderitem->aabb = renderitem->aabb;
 	clone_renderitem->transparent = renderitem->transparent;
 	clone_renderitem->vtable = renderitem->vtable;
 	clone_renderitem->size = renderitem->size;

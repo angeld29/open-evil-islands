@@ -19,23 +19,21 @@
 */
 
 /*
- *  Based on http://www.lighthouse3d.com/opengl/viewfrustum/.
+ *  Based on:
+ *  1. View Frustum Culling Tutorial @ Lighthouse3d.com,
+ *     http://www.lighthouse3d.com/opengl/viewfrustum/.
+ *  2. GTKRadiant mathlib,
+ *     https://zerowing.idsoftware.com/svn/radiant/GtkRadiant.
+ *     GTKRadiant contains software developed by Id Software,
+ *     Loki Software and third party contributors.
 */
 
 #include <stddef.h>
 #include <math.h>
+#include <assert.h>
 
 #include "cemath.h"
 #include "cefrustum.h"
-
-static ce_vec3* get_box_vertex_positive(ce_vec3* point, const ce_vec3* normal,
-														const ce_aabb* box)
-{
-	point->x = normal->x > 0.0f ? box->max.x : box->min.x;
-	point->y = normal->y > 0.0f ? box->max.y : box->min.y;
-	point->z = normal->z > 0.0f ? box->max.z : box->min.z;
-	return point;
-}
 
 ce_frustum* ce_frustum_init(ce_frustum* frustum,
 							float fov, float aspect,
@@ -91,24 +89,67 @@ bool ce_frustum_test_point(const ce_frustum* frustum, const ce_vec3* point)
 	return true;
 }
 
-bool ce_frustum_test_box(const ce_frustum* frustum, const ce_aabb* box)
+bool ce_frustum_test_sphere(const ce_frustum* frustum, const ce_sphere* sphere)
 {
-	ce_vec3 point;
 	for (int i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {
-		if (ce_plane_dist(&frustum->planes[i], get_box_vertex_positive(
-				&point, &frustum->planes[i].n, box)) < 0.0f) {
+		if (ce_plane_dist(&frustum->planes[i],
+				&sphere->origin) < -sphere->radius) {
 			return false;
 		}
 	}
 	return true;
 }
 
-bool ce_frustum_test_sphere(const ce_frustum* frustum, const ce_sphere* sphere)
+bool ce_frustum_test_aabb(const ce_frustum* frustum, const ce_aabb* aabb)
 {
 	for (int i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {
-		if (ce_plane_dist(&frustum->planes[i], &sphere->center) < -sphere->radius) {
-			return false;
+		float dist = ce_plane_dist(&frustum->planes[i], &aabb->origin);
+
+		// trivial test using bounding sphere
+		if (fabsf(dist) > aabb->radius) {
+			if (dist < 0.0f) {
+				return false;
+			} else {
+				continue;
+			}
 		}
+
+		// calculate extents distance relative to plane normal
+		if (fabsf(dist) >= ce_vec3_absdot(&aabb->extents,
+				&frustum->planes[i].n) && dist < 0.0f) {
+			 return false;
+		 }
 	}
+	return true;
+}
+
+bool ce_frustum_test_bbox(const ce_frustum* frustum,
+							const ce_bbox* bbox)
+{
+	ce_vec3 xaxis, yaxis, zaxis, nb;
+	ce_quat_to_axes(&bbox->axis, &xaxis, &yaxis, &zaxis);
+
+	for (int i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {
+		float dist = ce_plane_dist(&frustum->planes[i], &bbox->aabb.origin);
+
+		// trivial test using bounding sphere
+		if (fabsf(dist) > bbox->aabb.radius) {
+			if (dist < 0.0f) {
+				return false;
+			} else {
+				continue;
+			}
+		}
+
+		// calculate extents distance relative to plane normal
+		if (fabsf(dist) >= ce_vec3_absdot(&bbox->aabb.extents, ce_vec3_init(&nb,
+							ce_vec3_dot(&frustum->planes[i].n, &xaxis),
+							ce_vec3_dot(&frustum->planes[i].n, &yaxis),
+							ce_vec3_dot(&frustum->planes[i].n, &zaxis))) &&
+				dist < 0.0f) {
+			 return false;
+		 }
+	}
+
 	return true;
 }

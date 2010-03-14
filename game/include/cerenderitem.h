@@ -26,7 +26,6 @@
 #include <stdbool.h>
 
 #include "ceaabb.h"
-#include "cesphere.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -45,8 +44,7 @@ typedef struct {
 } ce_renderitem_vtable;
 
 struct ce_renderitem {
-	ce_aabb bounding_box;
-	ce_sphere bounding_sphere;
+	ce_aabb aabb;
 	bool transparent;
 	ce_renderitem_vtable vtable;
 	size_t size;

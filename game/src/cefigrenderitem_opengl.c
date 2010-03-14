@@ -37,9 +37,7 @@ ce_figrenderitem_base_init(ce_renderitem* renderitem,
 							const ce_figfile* figfile,
 							const ce_complection* complection)
 {
-	ce_fighlp_get_aabb(&renderitem->bounding_box, figfile, complection);
-	ce_fighlp_get_sphere(&renderitem->bounding_sphere, figfile, complection);
-
+	ce_fighlp_get_aabb(&renderitem->aabb, figfile, complection);
 	renderitem->transparent = false;
 }
 
@@ -75,7 +73,7 @@ static void ce_figrenderitem_cookie_del(ce_figrenderitem_cookie* cookie)
 }
 
 static ce_figrenderitem_cookie*
-ce_figrenderitem_cookie_copy(ce_figrenderitem_cookie* cookie)
+ce_figrenderitem_cookie_clone(ce_figrenderitem_cookie* cookie)
 {
 	++cookie->ref_count;
 	return cookie;
@@ -160,7 +158,7 @@ static void ce_figrenderitem_static_clone(const ce_renderitem* renderitem,
 		(ce_figrenderitem_static*)clone_renderitem->impl;
 
 	clone_figrenderitem->cookie =
-		ce_figrenderitem_cookie_copy(figrenderitem->cookie);
+		ce_figrenderitem_cookie_clone(figrenderitem->cookie);
 }
 
 typedef struct {
@@ -242,7 +240,7 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 	const ce_anmstate* anmstate = va_arg(args, const ce_anmstate*);
 
 	if (NULL == anmstate->anmfile->morphs) {
-		// hmm... some animations have not morphs on the same node...
+		// hmm... some animations haven't morphs on the same node...
 		return;
 	}
 
@@ -252,6 +250,8 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 	const float* next_morphs = anmstate->anmfile->morphs +
 								(int)anmstate->next_frame * 3 *
 									anmstate->anmfile->morph_vertex_count;
+
+	ce_aabb_clear(&renderitem->aabb);
 
 	for (int i = 0, n = figfile->index_count; i < n; ++i) {
 		int index = figfile->indices[i];
@@ -264,7 +264,12 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 					ce_lerp(anmstate->coef, prev_morphs[3 * morph_index + j],
 											next_morphs[3 * morph_index + j]);
 		}
+
+		ce_aabb_merge_point_array(&renderitem->aabb,
+			figrenderitem->morphed_vertices + 3 * i);
 	}
+
+	ce_aabb_update_radius(&renderitem->aabb);
 }
 
 static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)

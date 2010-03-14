@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
 #include <assert.h>
 
 #include "cealloc.h"
@@ -35,8 +36,10 @@ ce_figbone* ce_figbone_new(const ce_fignode* fignode,
 	figbone->parent = parent;
 	figbone->childs = ce_vector_new();
 
-	ce_fighlp_init_binding_position(&figbone->position, fignode->figfile,
-									fignode->bonfile, complection);
+	ce_fighlp_get_bone(&figbone->position, fignode->figfile,
+						fignode->bonfile, complection);
+
+	printf("%d %s\n", fignode->index, fignode->name->str);
 
 	for (int i = 0; i < fignode->childs->count; ++i) {
 		ce_vector_push_back(figbone->childs, ce_figbone_new(

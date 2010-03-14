@@ -115,17 +115,17 @@ ce_mat4* ce_mat4_inverse(ce_mat4* r, const ce_mat4* a)
 	float t20 = + (v4 * m10 - v2 * m11 + v0 * m13);
 	float t30 = - (v3 * m10 - v1 * m11 + v0 * m12);
 
-	float id = 1.0f / (t00 * m00 + t10 * m01 + t20 * m02 + t30 * m03);
+	float inv_det = 1.0f / (t00 * m00 + t10 * m01 + t20 * m02 + t30 * m03);
 
-	float d00 = t00 * id;
-	float d10 = t10 * id;
-	float d20 = t20 * id;
-	float d30 = t30 * id;
+	float d00 = t00 * inv_det;
+	float d10 = t10 * inv_det;
+	float d20 = t20 * inv_det;
+	float d30 = t30 * inv_det;
 
-	float d01 = - (v5 * m01 - v4 * m02 + v3 * m03) * id;
-	float d11 = + (v5 * m00 - v2 * m02 + v1 * m03) * id;
-	float d21 = - (v4 * m00 - v2 * m01 + v0 * m03) * id;
-	float d31 = + (v3 * m00 - v1 * m01 + v0 * m02) * id;
+	float d01 = - (v5 * m01 - v4 * m02 + v3 * m03) * inv_det;
+	float d11 = + (v5 * m00 - v2 * m02 + v1 * m03) * inv_det;
+	float d21 = - (v4 * m00 - v2 * m01 + v0 * m03) * inv_det;
+	float d31 = + (v3 * m00 - v1 * m01 + v0 * m02) * inv_det;
 
 	v0 = m10 * m31 - m11 * m30;
 	v1 = m10 * m32 - m12 * m30;
@@ -134,10 +134,10 @@ ce_mat4* ce_mat4_inverse(ce_mat4* r, const ce_mat4* a)
 	v4 = m11 * m33 - m13 * m31;
 	v5 = m12 * m33 - m13 * m32;
 
-	float d02 = + (v5 * m01 - v4 * m02 + v3 * m03) * id;
-	float d12 = - (v5 * m00 - v2 * m02 + v1 * m03) * id;
-	float d22 = + (v4 * m00 - v2 * m01 + v0 * m03) * id;
-	float d32 = - (v3 * m00 - v1 * m01 + v0 * m02) * id;
+	float d02 = + (v5 * m01 - v4 * m02 + v3 * m03) * inv_det;
+	float d12 = - (v5 * m00 - v2 * m02 + v1 * m03) * inv_det;
+	float d22 = + (v4 * m00 - v2 * m01 + v0 * m03) * inv_det;
+	float d32 = - (v3 * m00 - v1 * m01 + v0 * m02) * inv_det;
 
 	v0 = m21 * m10 - m20 * m11;
 	v1 = m22 * m10 - m20 * m12;
@@ -146,10 +146,10 @@ ce_mat4* ce_mat4_inverse(ce_mat4* r, const ce_mat4* a)
 	v4 = m23 * m11 - m21 * m13;
 	v5 = m23 * m12 - m22 * m13;
 
-	float d03 = - (v5 * m01 - v4 * m02 + v3 * m03) * id;
-	float d13 = + (v5 * m00 - v2 * m02 + v1 * m03) * id;
-	float d23 = - (v4 * m00 - v2 * m01 + v0 * m03) * id;
-	float d33 = + (v3 * m00 - v1 * m01 + v0 * m02) * id;
+	float d03 = - (v5 * m01 - v4 * m02 + v3 * m03) * inv_det;
+	float d13 = + (v5 * m00 - v2 * m02 + v1 * m03) * inv_det;
+	float d23 = - (v4 * m00 - v2 * m01 + v0 * m03) * inv_det;
+	float d33 = + (v3 * m00 - v1 * m01 + v0 * m02) * inv_det;
 
 	r->m[0]  = d00; r->m[1]  = d01; r->m[2]  = d02; r->m[3]  = d03;
 	r->m[4]  = d10; r->m[5]  = d11; r->m[6]  = d12; r->m[7]  = d13;

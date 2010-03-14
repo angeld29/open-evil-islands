@@ -66,8 +66,8 @@ static void ce_scenenode_update_transform(ce_scenenode* scenenode)
 {
 	if (NULL == scenenode->parent) {
 		// absolute state == relative state
-		ce_vec3_copy(&scenenode->world_position, &scenenode->position);
-		ce_quat_copy(&scenenode->world_orientation, &scenenode->orientation);
+		scenenode->world_position = scenenode->position;
+		scenenode->world_orientation = scenenode->orientation;
 	} else {
 		ce_vec3_rot(&scenenode->world_position,
 					&scenenode->position,
@@ -84,27 +84,22 @@ static void ce_scenenode_update_transform(ce_scenenode* scenenode)
 static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 {
 	if (NULL == scenenode->renderlayer) {
-		ce_aabb_init_zero(&scenenode->world_bounding_box);
-		ce_sphere_init_zero(&scenenode->world_bounding_sphere);
+		ce_bbox_clear(&scenenode->world_bbox);
 	} else {
-		ce_aabb_transform(&scenenode->world_bounding_box,
-							&scenenode->renderlayer->renderitem->bounding_box,
-							&scenenode->world_position,
-							&scenenode->world_orientation);
-		ce_sphere_transform(&scenenode->world_bounding_sphere,
-							&scenenode->renderlayer->renderitem->bounding_sphere,
-							&scenenode->world_position,
-							&scenenode->world_orientation);
+		scenenode->world_bbox.aabb = scenenode->renderlayer->renderitem->aabb;
+		scenenode->world_bbox.axis = scenenode->world_orientation;
+
+		ce_vec3_rot(&scenenode->world_bbox.aabb.origin,
+					&scenenode->world_bbox.aabb.origin,
+					&scenenode->world_orientation);
+		ce_vec3_add(&scenenode->world_bbox.aabb.origin,
+					&scenenode->world_bbox.aabb.origin,
+					&scenenode->world_position);
 	}
 
 	for (int i = 0; i < scenenode->childs->count; ++i) {
-		ce_scenenode* child =scenenode->childs->items[i];
-		ce_aabb_merge(&scenenode->world_bounding_box,
-						&scenenode->world_bounding_box,
-						&child->world_bounding_box);
-		ce_sphere_merge(&scenenode->world_bounding_sphere,
-						&scenenode->world_bounding_sphere,
-						&child->world_bounding_sphere);
+		ce_scenenode* child = scenenode->childs->items[i];
+		ce_bbox_merge(&scenenode->world_bbox, &child->world_bbox);
 	}
 }
 

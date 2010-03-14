@@ -22,8 +22,6 @@
 #define CE_SPHERE_H
 
 #include "cevec3.h"
-#include "cequat.h"
-#include "ceaabb.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -31,28 +29,17 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_vec3 center;
+	ce_vec3 origin;
 	float radius;
 } ce_sphere;
 
 extern ce_sphere* ce_sphere_init(ce_sphere* sphere,
 									const ce_vec3* center,
 									float radius);
-extern ce_sphere* ce_sphere_init_aabb(ce_sphere* sphere,
-										const ce_aabb* aabb);
 
 extern ce_sphere* ce_sphere_init_zero(ce_sphere* sphere);
 
 extern ce_sphere* ce_sphere_copy(ce_sphere* sphere, const ce_sphere* other);
-
-extern ce_sphere* ce_sphere_merge(ce_sphere* sphere,
-									const ce_sphere* lhs,
-									const ce_sphere* rhs);
-
-extern ce_sphere* ce_sphere_transform(ce_sphere* sphere,
-										const ce_sphere* other,
-										const ce_vec3* translation,
-										const ce_quat* rotation);
 
 #ifdef __cplusplus
 }

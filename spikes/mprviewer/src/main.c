@@ -336,8 +336,9 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	terrain = ce_terrain_new(argv[optind], &CE_VEC3_ZERO,
-							&CE_QUAT_IDENTITY, scenemng->scenenode);
+	terrain = ce_terrain_new(argv[optind],
+							&CE_VEC3_ZERO, &CE_QUAT_IDENTITY,
+							scenemng->scenenode);
 	if (NULL == terrain) {
 		return 1;
 	}

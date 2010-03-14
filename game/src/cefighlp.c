@@ -23,6 +23,13 @@
 ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
 							const ce_complection* complection)
 {
+	aabb->radius = figfile->value_callback(figfile->radius, 1, complection);
+
+	ce_vec3_init(&aabb->origin,
+		figfile->value_callback(figfile->center + 0, 3, complection),
+		figfile->value_callback(figfile->center + 1, 3, complection),
+		figfile->value_callback(figfile->center + 2, 3, complection));
+
 	ce_vec3 min, max;
 	ce_vec3_init(&min,
 		figfile->value_callback(figfile->min + 0, 3, complection),
@@ -32,19 +39,22 @@ ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
 		figfile->value_callback(figfile->max + 0, 3, complection),
 		figfile->value_callback(figfile->max + 1, 3, complection),
 		figfile->value_callback(figfile->max + 2, 3, complection));
-	return ce_aabb_init(aabb, &min, &max);
+
+	ce_vec3_sub(&aabb->extents, &max, &min);
+	ce_vec3_scale(&aabb->extents, &aabb->extents, 0.5f);
+
+	return aabb;
 }
 
 ce_sphere* ce_fighlp_get_sphere(ce_sphere* sphere, const ce_figfile* figfile,
 								const ce_complection* complection)
 {
 	ce_vec3 center;
-	ce_vec3_init(&center,
+	return ce_sphere_init(sphere, ce_vec3_init(&center,
 		figfile->value_callback(figfile->center + 0, 3, complection),
 		figfile->value_callback(figfile->center + 1, 3, complection),
-		figfile->value_callback(figfile->center + 2, 3, complection));
-	return ce_sphere_init(sphere, &center,
-			figfile->value_callback(figfile->radius, 1, complection));
+		figfile->value_callback(figfile->center + 2, 3, complection)),
+		figfile->value_callback(figfile->radius, 1, complection));
 }
 
 float* ce_fighlp_get_vertex(float* array, const ce_figfile* figfile,
@@ -71,10 +81,10 @@ float* ce_fighlp_get_normal(float* array, const ce_figfile* figfile, int index)
 	return array;
 }
 
-ce_vec3* ce_fighlp_init_binding_position(ce_vec3* position,
-										const ce_figfile* figfile,
-										const ce_bonfile* bonfile,
-										const ce_complection* complection)
+ce_vec3* ce_fighlp_get_bone(ce_vec3* position,
+							const ce_figfile* figfile,
+							const ce_bonfile* bonfile,
+							const ce_complection* complection)
 {
 	return ce_vec3_init(position,
 		figfile->value_callback(bonfile->bone + 0, 3, complection),

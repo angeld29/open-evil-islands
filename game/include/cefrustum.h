@@ -24,8 +24,10 @@
 #include <stdbool.h>
 
 #include "cevec3.h"
-#include "ceaabb.h"
+#include "cequat.h"
 #include "cesphere.h"
+#include "ceaabb.h"
+#include "cebbox.h"
 #include "ceplane.h"
 
 #ifdef __cplusplus
@@ -55,10 +57,12 @@ extern ce_frustum* ce_frustum_init(ce_frustum* frustum,
 
 extern bool ce_frustum_test_point(const ce_frustum* frustum,
 									const ce_vec3* point);
-extern bool ce_frustum_test_box(const ce_frustum* frustum,
-									const ce_aabb* bob);
 extern bool ce_frustum_test_sphere(const ce_frustum* frustum,
 									const ce_sphere* sphere);
+extern bool ce_frustum_test_aabb(const ce_frustum* frustum,
+									const ce_aabb* aabb);
+extern bool ce_frustum_test_bbox(const ce_frustum* frustum,
+									const ce_bbox* bbox);
 
 #ifdef __cplusplus
 }

@@ -19,6 +19,8 @@
 */
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
 
 #include "cemath.h"
 #include "cealloc.h"
@@ -47,26 +49,22 @@ void ce_renderqueue_clear(ce_renderqueue* renderqueue)
 	ce_vector_clear(renderqueue->scenenodes[1]);
 }
 
-void ce_renderqueue_add(ce_renderqueue* renderqueue, ce_scenenode* scenenode,
-						const ce_vec3* eye, const ce_frustum* frustum)
-{
-	if (NULL != scenenode->renderlayer &&
-			ce_frustum_test_box(frustum, &scenenode->world_bounding_box)) {
-		scenenode->dist2 = ce_vec3_dist2(eye, &scenenode->world_position);
-		int index = scenenode->renderlayer->renderitem->transparent;
-		ce_vector_push_back(renderqueue->scenenodes[index], scenenode);
-	}
-}
-
 void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
 								ce_scenenode* scenenode,
 								const ce_vec3* eye,
 								const ce_frustum* frustum)
 {
-	ce_renderqueue_add(renderqueue, scenenode, eye, frustum);
-	for (int i = 0; i < scenenode->childs->count; ++i) {
-		ce_renderqueue_add_cascade(renderqueue,
-			scenenode->childs->items[i], eye, frustum);
+	if (ce_frustum_test_bbox(frustum, &scenenode->world_bbox)) {
+		if (NULL != scenenode->renderlayer) {
+			scenenode->dist2 = ce_vec3_dist2(eye, &scenenode->world_position);
+			int index = scenenode->renderlayer->renderitem->transparent;
+			ce_vector_push_back(renderqueue->scenenodes[index], scenenode);
+		}
+
+		for (int i = 0; i < scenenode->childs->count; ++i) {
+			ce_renderqueue_add_cascade(renderqueue,
+				scenenode->childs->items[i], eye, frustum);
+		}
 	}
 }
 
@@ -96,6 +94,8 @@ static const ce_renderqueue_comp ce_renderqueue_comps[2] = {
 void ce_renderqueue_render(ce_renderqueue* renderqueue,
 							ce_rendersystem* rendersystem)
 {
+	int count = 0;
+
 	for (int i = 0; i < 2; ++i) {
 		ce_vector* scenenodes = renderqueue->scenenodes[i];
 
@@ -105,5 +105,9 @@ void ce_renderqueue_render(ce_renderqueue* renderqueue,
 		for (int j = 0; j < scenenodes->count; ++j) {
 			ce_scenenode_render(scenenodes->items[j], rendersystem);
 		}
+
+		count += scenenodes->count;
 	}
+
+	printf("visible: %d\n", count);
 }

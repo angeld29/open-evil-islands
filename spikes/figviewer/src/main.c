@@ -63,6 +63,8 @@ ce_figentity* figentity;
 ce_input_event_supply* es;
 ce_input_event* test_event;
 
+int ttt;
+
 static void idle(void)
 {
 	ce_scenemng_advance(scenemng);
@@ -116,9 +118,12 @@ static void idle(void)
 	}
 
 	if (ce_input_event_triggered(test_event)) {
+		if (++ttt > 50) {
+			ttt = 0;
+		}
 	}
 
-	ce_figentity_advance(figentity, 15.0f, elapsed);
+	ce_figentity_advance(figentity, 1.0f, elapsed);
 
 	glutPostRedisplay();
 }
@@ -268,12 +273,15 @@ int main(int argc, char* argv[])
 	const char* texture_names[] = { primary_texture_name,
 									secondary_texture_name };
 
+	ce_vec3 position = CE_VEC3_ZERO;
+	ce_vec3_init(&position, 1.0f, 0.0f, 1.0f);
+
 	ce_quat orientation, q1 = CE_QUAT_IDENTITY, q2 = CE_QUAT_IDENTITY;
-	ce_quat_init_polar(&q1, ce_deg2rad(180.0f), &CE_VEC3_UNIT_Z);
-	ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
+	ce_quat_init_polar(&q1, ce_deg2rad(153.0f), &CE_VEC3_UNIT_Z);
+	ce_quat_init_polar(&q2, ce_deg2rad(208.0f), &CE_VEC3_UNIT_X);
 	ce_quat_mul(&orientation, &q2, &q1);
 
-	figentity = ce_figentity_new(figmesh, &CE_VEC3_ZERO, &orientation,
+	figentity = ce_figentity_new(figmesh, &position, &orientation,
 								texture_names, scenemng->scenenode);
 
 	if (NULL != anm_name) {

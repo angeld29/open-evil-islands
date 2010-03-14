@@ -18,17 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_TERRAIN_H
-#define CE_TERRAIN_H
+#ifndef CE_BBOX_H
+#define CE_BBOX_H
 
-#include <stdbool.h>
-
-#include "cevec3.h"
 #include "cequat.h"
-#include "cevector.h"
-#include "cemprfile.h"
-#include "cescenenode.h"
-#include "cetexture.h"
+#include "ceaabb.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -36,22 +30,15 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_mprfile* mprfile;
-	ce_texture* stub_texture;
-	ce_vector* textures;
-	ce_scenenode* scenenode;
-} ce_terrain;
+	ce_aabb aabb;
+	ce_quat axis;
+} ce_bbox;
 
-extern ce_terrain* ce_terrain_new(const char* zone_name,
-									const ce_vec3* position,
-									const ce_quat* orientation,
-									ce_scenenode* parent_scenenode);
-extern void ce_terrain_del(ce_terrain* terrain);
-
-extern bool ce_terrain_create_impl(ce_terrain* terrain);
+extern ce_bbox* ce_bbox_clear(ce_bbox* bbox);
+extern ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_TERRAIN_H */
+#endif /* CE_BBOX_H */

@@ -23,8 +23,7 @@
 
 #include "cevec3.h"
 #include "cequat.h"
-#include "ceaabb.h"
-#include "cesphere.h"
+#include "cebbox.h"
 #include "cevector.h"
 #include "cerenderlayer.h"
 #include "cerendersystem.h"
@@ -41,8 +40,7 @@ struct ce_scenenode {
 	ce_quat orientation;
 	ce_vec3 world_position;
 	ce_quat world_orientation;
-	ce_aabb world_bounding_box;
-	ce_sphere world_bounding_sphere;
+	ce_bbox world_bbox;
 	float dist2;
 	ce_renderlayer* renderlayer;
 	ce_scenenode* parent;

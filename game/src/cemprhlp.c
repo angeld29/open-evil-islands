@@ -20,8 +20,28 @@
 
 #include "cemprhlp.h"
 
-ce_mprfile_material* ce_mprhlp_find_material(ce_mprfile* mprfile,
-											ce_mprfile_material_type type)
+ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,
+							const ce_mprfile* mprfile,
+							int sector_x, int sector_z)
+{
+	// TODO: negate z?..
+	ce_vec3 min, max;
+	ce_vec3_init(&min, sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f, -1.0f *
+		(sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1)));
+	ce_vec3_init(&max,
+		sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1),
+		mprfile->max_y, -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1)));
+
+	aabb->radius = 0.5f * ce_vec3_dist(&min, &max);
+	ce_vec3_mid(&aabb->origin, &min, &max);
+	ce_vec3_sub(&aabb->extents, &max, &aabb->origin);
+
+	return aabb;
+}
+
+const ce_mprfile_material*
+ce_mprhlp_find_material(const ce_mprfile* mprfile,
+						ce_mprfile_material_type type)
 {
 	for (int i = 0, n = mprfile->material_count; i < n; ++i) {
 		ce_mprfile_material* material = mprfile->materials + i;

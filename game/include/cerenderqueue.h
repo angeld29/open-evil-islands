@@ -41,10 +41,6 @@ extern void ce_renderqueue_del(ce_renderqueue* renderqueue);
 
 extern void ce_renderqueue_clear(ce_renderqueue* renderqueue);
 
-extern void ce_renderqueue_add(ce_renderqueue* renderqueue,
-								ce_scenenode* scenenode,
-								const ce_vec3* eye,
-								const ce_frustum* frustum);
 extern void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
 										ce_scenenode* scenenode,
 										const ce_vec3* eye,

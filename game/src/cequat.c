@@ -192,6 +192,36 @@ float ce_quat_to_angle_axis(const ce_quat* a, ce_vec3* axis)
 	return angle;
 }
 
+void ce_quat_to_axes(const ce_quat* quat, ce_vec3* xaxis,
+										ce_vec3* yaxis,
+										ce_vec3* zaxis)
+{
+	float tx = 2.0f * quat->x;
+	float ty = 2.0f * quat->y;
+	float tz = 2.0f * quat->z;
+	float twx = tx * quat->w;
+	float twy = ty * quat->w;
+	float twz = tz * quat->w;
+	float txx = tx * quat->x;
+	float txy = ty * quat->x;
+	float txz = tz * quat->x;
+	float tyy = ty * quat->y;
+	float tyz = tz * quat->y;
+	float tzz = tz * quat->z;
+
+	xaxis->x = 1.0f - (tyy + tzz);
+	xaxis->y = txy + twz;
+	xaxis->z = txz - twy;
+
+	yaxis->x = txy - twz;
+	yaxis->y = 1.0f - (txx + tzz);
+	yaxis->z = tyz + twx;
+
+	zaxis->x = txz + twy;
+	zaxis->y = tyz - twx;
+	zaxis->z = 1.0f - (txx + tyy);
+}
+
 ce_quat* ce_quat_slerp(ce_quat* r, const ce_quat* a, const ce_quat* b, float u)
 {
 	ce_quat ta, tb;

@@ -23,54 +23,23 @@
 #include "cesphere.h"
 
 ce_sphere*
-ce_sphere_init(ce_sphere* sphere, const ce_vec3* center, float radius)
+ce_sphere_init(ce_sphere* sphere, const ce_vec3* origin, float radius)
 {
-	ce_vec3_copy(&sphere->center, center);
+	sphere->origin = *origin;
 	sphere->radius = radius;
-	return sphere;
-}
-
-ce_sphere* ce_sphere_init_aabb(ce_sphere* sphere, const ce_aabb* aabb)
-{
-	ce_vec3_copy(&sphere->center, &aabb->center);
-	sphere->radius = ce_vec3_dist(&aabb->min, &aabb->center);
 	return sphere;
 }
 
 ce_sphere* ce_sphere_init_zero(ce_sphere* sphere)
 {
-	ce_vec3_zero(&sphere->center);
+	sphere->origin = CE_VEC3_ZERO;
 	sphere->radius = 0.0f;
 	return sphere;
 }
 
 ce_sphere* ce_sphere_copy(ce_sphere* sphere, const ce_sphere* other)
 {
-	ce_vec3_copy(&sphere->center, &other->center);
-	sphere->radius = other->radius;
-	return sphere;
-}
-
-ce_sphere* ce_sphere_merge(ce_sphere* sphere,
-							const ce_sphere* lhs,
-							const ce_sphere* rhs)
-{
-	ce_vec3 v;
-	ce_vec3_sub(&v, &rhs->center, &lhs->center);
-	float l = ce_vec3_abs(&v);
-	ce_vec3_scale(&v, &v, 0.5f * (l + rhs->radius - lhs->radius) / l);
-	ce_vec3_add(&sphere->center, &lhs->center, &v);
-	sphere->radius = 0.5f * (l + lhs->radius + rhs->radius);
-	return sphere;
-}
-
-ce_sphere* ce_sphere_transform(ce_sphere* sphere,
-								const ce_sphere* other,
-								const ce_vec3* translation,
-								const ce_quat* rotation)
-{
-	ce_vec3_rot(&sphere->center, &other->center, rotation);
-	ce_vec3_add(&sphere->center, &sphere->center, translation);
+	sphere->origin = other->origin;
 	sphere->radius = other->radius;
 	return sphere;
 }
