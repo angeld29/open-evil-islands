@@ -22,6 +22,11 @@
 
 // TODO: to be unhardcoded...
 #include <GL/glut.h>
+#ifdef _WIN32
+// fu... win32
+#undef near
+#undef far
+#endif
 
 #include "cemath.h"
 #include "celogging.h"
