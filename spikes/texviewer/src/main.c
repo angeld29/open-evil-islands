@@ -174,17 +174,17 @@ static void usage(void)
 		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
 		"GNU General Public License for more details.\n"
 		"===============================================================================\n\n"
-		"This program is part of Cursed Earth spikes.\n"
-		"texviewer %d.%d.%d - View Evil Islands textures.\n\n"
+		"This program is part of Cursed Earth spikes\n"
+		"Texture Viewer %d.%d.%d - View Evil Islands textures\n\n"
 		"Usage: texviewer [options] <res_path>\n"
-		"Where: <res_path> Path to *.res with textures.\n"
+		"Where: <res_path> Path to *.res with textures\n"
 		"Options:\n"
-		"-r Show textures in random mode.\n"
-		"-d <delay, msec> Slideshow delay (default: %d).\n"
-		"-n <name> Specify texture name (slideshow will be disabled).\n"
-		"-i <index> Specify texture index (slideshow will be disabled).\n"
-		"-v Display program version.\n"
-		"-h Display this message.\n", CE_SPIKE_VERSION_MAJOR,
+		"-r Show textures in random mode\n"
+		"-d <delay, msec> Slideshow delay (default: %d)\n"
+		"-n <name> Specify texture name (slideshow will be disabled)\n"
+		"-i <index> Specify texture index (slideshow will be disabled)\n"
+		"-v Display program version\n"
+		"-h Display this message\n", CE_SPIKE_VERSION_MAJOR,
 		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH, DEFAULT_DELAY);
 }
 
