@@ -118,6 +118,10 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+
 	for (unsigned int z = 0; z < CE_MPRFILE_VERTEX_SIDE - 2; z += 2) {
 		for (unsigned int x = 0; x < CE_MPRFILE_VERTEX_SIDE - 2; x += 2) {
 			if (NULL != water_allow &&
@@ -163,7 +167,6 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 			};
 
 			glMatrixMode(GL_TEXTURE);
-			glPushMatrix();
 			glLoadIdentity();
 			glTranslatef(u + tile_uv_half_step, v + tile_uv_half_step, 0.0f);
 			glRotatef(-90.0f * ce_mprhlp_texture_angle(texture), 0.0f, 0.0f, 1.0f);
@@ -185,12 +188,12 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 
 			ce_texture_unbind(ce_vector_at(terrain->textures,
 							ce_mprhlp_texture_number(texture)));
-
-			glMatrixMode(GL_TEXTURE);
-			glPopMatrix();
-			glMatrixMode(GL_MODELVIEW);
 		}
 	}
+
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
 
 	if (NULL != water_allow) {
 		glDisable(GL_BLEND);
