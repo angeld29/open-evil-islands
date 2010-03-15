@@ -20,7 +20,6 @@
 
 #include <stdio.h>
 
-#include "celogging.h"
 #include "cealloc.h"
 #include "cememfile.h"
 
@@ -33,10 +32,10 @@ typedef struct {
 static int ce_memfile_cookie_close(void* client_data)
 {
 	ce_memfile_cookie* cookie = client_data;
-	int ret = NULL != cookie->file ? fclose(cookie->file) : 0;
+	fclose(cookie->file);
 	ce_free(cookie->data, cookie->size);
 	ce_free(cookie, sizeof(ce_memfile_cookie));
-	return ret;
+	return 0;
 }
 
 static size_t
@@ -75,17 +74,12 @@ static const ce_io_callbacks ce_memfile_cookie_callbacks = {
 
 ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 {
-	// TODO: Invalid read of size 1: NULL terminated data???
-	// strlen (mc_replace_strmem.c:275)
-	// fmemopen (fmemopen.c:246)
-	FILE* file = fmemopen(data, size, mode);
-	if (NULL == file) {
-		ce_logging_error("memfile: could not open memory file");
-		return NULL;
-	}
+	// TODO: Invalid read of size 1: need NULL terminated data???
+	//       strlen (mc_replace_strmem.c:275)
+	//       fmemopen (fmemopen.c:246)
 	ce_memfile_cookie* cookie = ce_alloc(sizeof(ce_memfile_cookie));
 	cookie->data = data;
 	cookie->size = size;
-	cookie->file = file;
+	cookie->file = fmemopen(data, size, mode);
 	return ce_memfile_open_callbacks(ce_memfile_cookie_callbacks, cookie);
 }

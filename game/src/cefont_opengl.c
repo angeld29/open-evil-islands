@@ -22,8 +22,6 @@
 
 #include <GL/glut.h>
 
-#include "cestr.h"
-#include "celogging.h"
 #include "cealloc.h"
 #include "cefont.h"
 
@@ -43,14 +41,8 @@ static int ce_font_heights[CE_FONT_TYPE_COUNT] = {
 ce_font* ce_font_new(ce_font_type type)
 {
 	ce_font* font = ce_alloc(sizeof(ce_font));
-	if (NULL == font) {
-		ce_logging_error("font: could not allocate memory");
-		return NULL;
-	}
-
 	font->data = ce_font_datas[type];
 	font->height = ce_font_heights[type];
-
 	return font;
 }
 

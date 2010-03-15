@@ -19,7 +19,6 @@
 */
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <assert.h>
 
@@ -68,8 +67,7 @@ static int
 ce_memfile_cookie_seek(void* client_data, long int offset, int whence)
 {
 	ce_memfile_cookie* cookie = client_data;
-	long int size = cookie->size;
-	long int pos = cookie->pos;
+	long int size = cookie->size, pos = cookie->pos;
 	pos = SEEK_SET == whence ? offset :
 		(SEEK_END == whence ? size - offset : pos + offset);
 	return pos < 0 || pos > size ? -1 : (cookie->pos = pos, 0);
