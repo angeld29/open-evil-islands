@@ -75,6 +75,8 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 void ce_scenemng_render_bboxes(ce_scenenode* scenenode)
 {
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
 	glEnable(GL_DEPTH_TEST);
 
 	glPushMatrix();
@@ -84,6 +86,8 @@ void ce_scenemng_render_bboxes(ce_scenenode* scenenode)
 
 	ce_vec3 xaxis, yaxis, zaxis, v;
 	ce_quat_to_axes(&scenenode->world_bbox.axis, &xaxis, &yaxis, &zaxis);
+
+	// TODO: to be unhardcoded...
 
 #if 0
 	glColor3f(0.0f, 0.0f, 1.0f);
@@ -161,7 +165,7 @@ void ce_scenemng_render_bboxes(ce_scenenode* scenenode)
 
 	glPopMatrix();
 
-	glDisable(GL_DEPTH_TEST);
+	glPopAttrib();
 
 	for (int i = 0; i < scenenode->childs->count; ++i) {
 		ce_scenemng_render_bboxes(scenenode->childs->items[i]);
@@ -174,25 +178,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	ce_rendersystem_setup_camera(scenemng->rendersystem, scenemng->camera);
 
-	glEnable(GL_DEPTH_TEST);
-
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glBegin(GL_LINES);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(100.0f, 0.0f, 0.0f);
-	glEnd();
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glBegin(GL_LINES);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 100.0f, 0.0f);
-	glEnd();
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glBegin(GL_LINES);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 100.0f);
-	glEnd();
-
-	glDisable(GL_DEPTH_TEST);
+	ce_rendersystem_render_axes(scenemng->rendersystem);
 
 	ce_vec3 forward, right, up;
 	ce_frustum frustum;

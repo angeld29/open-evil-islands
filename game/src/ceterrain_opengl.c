@@ -105,6 +105,8 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 
 	glNewList(terrain_renderitem->id, GL_COMPILE);
 
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_LIGHTING);
@@ -112,6 +114,8 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 	glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, material->color);
 	glMaterialfv(GL_FRONT, GL_EMISSION, emission);
+
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
 	if (NULL != water_allow) {
 		glEnable(GL_BLEND);
@@ -195,13 +199,7 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 
-	if (NULL != water_allow) {
-		glDisable(GL_BLEND);
-	}
-
-	glDisable(GL_LIGHTING);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+	glPopAttrib();
 
 	glEndList();
 }

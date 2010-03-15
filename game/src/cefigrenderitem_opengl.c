@@ -98,10 +98,11 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 
 	glNewList(figrenderitem->cookie->id, GL_COMPILE);
 
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	// TODO: to be unhardcoded...
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	glEnable(GL_BLEND);
@@ -124,10 +125,7 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 	}
 	glEnd();
 
-	glDisable(GL_BLEND);
-
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+	glPopAttrib();
 
 	glEndList();
 }
@@ -290,10 +288,16 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	ce_figrenderitem_dynamic* figrenderitem =
 		(ce_figrenderitem_dynamic*)renderitem->impl;
 
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -303,20 +307,10 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	glNormalPointer(GL_FLOAT, 0, figrenderitem->normals);
 	glTexCoordPointer(2, GL_FLOAT, 0, figrenderitem->texcoords);
 
-	// TODO: to be unhardcoded...
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	glDrawArrays(GL_TRIANGLES, 0, figrenderitem->vertex_count);
 
-	glDisable(GL_BLEND);
-
 	glPopClientAttrib();
-
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+	glPopAttrib();
 }
 
 static void ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,
