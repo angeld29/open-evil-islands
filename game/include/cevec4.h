@@ -30,10 +30,10 @@ typedef struct {
 	float x, y, z, w;
 } ce_vec4;
 
-extern ce_vec4* ce_vec4_init(ce_vec4* r, float x, float y, float z, float w);
-extern ce_vec4* ce_vec4_init_array(ce_vec4* r, const float* v);
+extern ce_vec4* ce_vec4_init(ce_vec4* vec, float x, float y, float z, float w);
+extern ce_vec4* ce_vec4_init_array(ce_vec4* vec, const float* array);
 
-extern ce_vec4* ce_vec4_copy(ce_vec4* r, const ce_vec4* a);
+extern ce_vec4* ce_vec4_copy(ce_vec4* vec, const ce_vec4* other);
 
 #ifdef __cplusplus
 }

@@ -20,29 +20,29 @@
 
 #include "cevec4.h"
 
-ce_vec4* ce_vec4_init(ce_vec4* r, float x, float y, float z, float w)
+ce_vec4* ce_vec4_init(ce_vec4* vec, float x, float y, float z, float w)
 {
-	r->x = x;
-	r->y = y;
-	r->z = z;
-	r->w = w;
-	return r;
+	vec->x = x;
+	vec->y = y;
+	vec->z = z;
+	vec->w = w;
+	return vec;
 }
 
-ce_vec4* ce_vec4_init_array(ce_vec4* r, const float* v)
+ce_vec4* ce_vec4_init_array(ce_vec4* vec, const float* array)
 {
-	r->x = *v++;
-	r->y = *v++;
-	r->z = *v++;
-	r->w = *v++;
-	return r;
+	vec->x = *array++;
+	vec->y = *array++;
+	vec->z = *array++;
+	vec->w = *array++;
+	return vec;
 }
 
-ce_vec4* ce_vec4_copy(ce_vec4* r, const ce_vec4* a)
+ce_vec4* ce_vec4_copy(ce_vec4* vec, const ce_vec4* other)
 {
-	r->x = a->x;
-	r->y = a->y;
-	r->z = a->z;
-	r->w = a->w;
-	return r;
+	vec->x = other->x;
+	vec->y = other->y;
+	vec->z = other->z;
+	vec->w = other->w;
+	return vec;
 }

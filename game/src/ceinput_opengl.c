@@ -150,7 +150,7 @@ void ce_input_advance(float elapsed)
 
 	if (ce_input_inst.mouse_offset_delay > 0 &&
 			0 == --ce_input_inst.mouse_offset_delay) {
-		ce_vec2_zero(&ce_input_inst.mouse_offset);
+		ce_input_inst.mouse_offset = CE_VEC2_ZERO;
 	}
 
 	if (ce_input_inst.wheel_up_delay > 0 &&

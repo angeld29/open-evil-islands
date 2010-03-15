@@ -28,79 +28,79 @@ const ce_vec2 CE_VEC2_NEG_UNIT_X = { .x = -1.0f, .y = 0.0f };
 const ce_vec2 CE_VEC2_NEG_UNIT_Y = { .x = 0.0f, .y = -1.0f };
 const ce_vec2 CE_VEC2_NEG_UNIT_SCALE = { .x = -1.0f, .y = -1.0f };
 
-ce_vec2* ce_vec2_zero(ce_vec2* r)
+ce_vec2* ce_vec2_init(ce_vec2* vec, float x, float y)
 {
-	r->x = 0.0f;
-	r->y = 0.0f;
-	return r;
+	vec->x = x;
+	vec->y = y;
+	return vec;
 }
 
-ce_vec2* ce_vec2_unit_x(ce_vec2* r)
+ce_vec2* ce_vec2_init_array(ce_vec2* vec, const float* array)
 {
-	r->x = 1.0f;
-	r->y = 0.0f;
-	return r;
+	vec->x = *array++;
+	vec->y = *array++;
+	return vec;
 }
 
-ce_vec2* ce_vec2_unit_y(ce_vec2* r)
+ce_vec2* ce_vec2_init_zero(ce_vec2* vec)
 {
-	r->x = 0.0f;
-	r->y = 1.0f;
-	return r;
+	vec->x = 0.0f;
+	vec->y = 0.0f;
+	return vec;
 }
 
-ce_vec2* ce_vec2_unit_scale(ce_vec2* r)
+ce_vec2* ce_vec2_init_unit_x(ce_vec2* vec)
 {
-	r->x = 1.0f;
-	r->y = 1.0f;
-	return r;
+	vec->x = 1.0f;
+	vec->y = 0.0f;
+	return vec;
 }
 
-ce_vec2* ce_vec2_neg_unit_x(ce_vec2* r)
+ce_vec2* ce_vec2_init_unit_y(ce_vec2* vec)
 {
-	r->x = -1.0f;
-	r->y = 0.0f;
-	return r;
+	vec->x = 0.0f;
+	vec->y = 1.0f;
+	return vec;
 }
 
-ce_vec2* ce_vec2_neg_unit_y(ce_vec2* r)
+ce_vec2* ce_vec2_init_unit_scale(ce_vec2* vec)
 {
-	r->x = 0.0f;
-	r->y = -1.0f;
-	return r;
+	vec->x = 1.0f;
+	vec->y = 1.0f;
+	return vec;
 }
 
-ce_vec2* ce_vec2_neg_unit_scale(ce_vec2* r)
+ce_vec2* ce_vec2_init_neg_unit_x(ce_vec2* vec)
 {
-	r->x = -1.0f;
-	r->y = -1.0f;
-	return r;
+	vec->x = -1.0f;
+	vec->y = 0.0f;
+	return vec;
 }
 
-ce_vec2* ce_vec2_init(ce_vec2* r, float x, float y)
+ce_vec2* ce_vec2_init_neg_unit_y(ce_vec2* vec)
 {
-	r->x = x;
-	r->y = y;
-	return r;
+	vec->x = 0.0f;
+	vec->y = -1.0f;
+	return vec;
 }
 
-ce_vec2* ce_vec2_init_array(ce_vec2* r, const float* v)
+ce_vec2* ce_vec2_init_neg_unit_scale(ce_vec2* vec)
 {
-	r->x = *v++;
-	r->y = *v++;
-	return r;
+	vec->x = -1.0f;
+	vec->y = -1.0f;
+	return vec;
 }
 
-ce_vec2* ce_vec2_copy(ce_vec2* r, const ce_vec2* a)
+ce_vec2* ce_vec2_copy(ce_vec2* vec, const ce_vec2* other)
 {
-	r->x = a->x;
-	r->y = a->y;
-	return r;
+	vec->x = other->x;
+	vec->y = other->y;
+	return vec;
 }
 
-ce_vec2* ce_vec2_neg(ce_vec2* r, const ce_vec2* a)
+ce_vec2* ce_vec2_neg(ce_vec2* vec, const ce_vec2* other)
 {
-	r->x = -a->x;
-	r->y = -a->y;
-	return r;
+	vec->x = -other->x;
+	vec->y = -other->y;
+	return vec;
 }

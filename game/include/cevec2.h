@@ -38,20 +38,20 @@ extern const ce_vec2 CE_VEC2_NEG_UNIT_X;
 extern const ce_vec2 CE_VEC2_NEG_UNIT_Y;
 extern const ce_vec2 CE_VEC2_NEG_UNIT_SCALE;
 
-extern ce_vec2* ce_vec2_zero(ce_vec2* r);
-extern ce_vec2* ce_vec2_unit_x(ce_vec2* r);
-extern ce_vec2* ce_vec2_unit_y(ce_vec2* r);
-extern ce_vec2* ce_vec2_unit_scale(ce_vec2* r);
-extern ce_vec2* ce_vec2_neg_unit_x(ce_vec2* r);
-extern ce_vec2* ce_vec2_neg_unit_y(ce_vec2* r);
-extern ce_vec2* ce_vec2_neg_unit_scale(ce_vec2* r);
+extern ce_vec2* ce_vec2_init(ce_vec2* vec, float x, float y);
+extern ce_vec2* ce_vec2_init_array(ce_vec2* vec, const float* array);
 
-extern ce_vec2* ce_vec2_init(ce_vec2* r, float x, float y);
-extern ce_vec2* ce_vec2_init_array(ce_vec2* r, const float* v);
+extern ce_vec2* ce_vec2_init_zero(ce_vec2* vec);
+extern ce_vec2* ce_vec2_init_unit_x(ce_vec2* vec);
+extern ce_vec2* ce_vec2_init_unit_y(ce_vec2* vec);
+extern ce_vec2* ce_vec2_init_unit_scale(ce_vec2* vec);
+extern ce_vec2* ce_vec2_init_neg_unit_x(ce_vec2* vec);
+extern ce_vec2* ce_vec2_init_neg_unit_y(ce_vec2* vec);
+extern ce_vec2* ce_vec2_init_neg_unit_scale(ce_vec2* vec);
 
-extern ce_vec2* ce_vec2_copy(ce_vec2* r, const ce_vec2* a);
+extern ce_vec2* ce_vec2_copy(ce_vec2* vec, const ce_vec2* other);
 
-extern ce_vec2* ce_vec2_neg(ce_vec2* r, const ce_vec2* a);
+extern ce_vec2* ce_vec2_neg(ce_vec2* vec, const ce_vec2* other);
 
 #ifdef __cplusplus
 }
