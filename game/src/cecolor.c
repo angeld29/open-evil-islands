@@ -40,7 +40,7 @@ ce_color* ce_color_init_array(ce_color* color, const float* array)
 	color->r = *array++;
 	color->g = *array++;
 	color->b = *array++;
-	color->a = *array++;
+	color->a = *array;
 	return color;
 }
 

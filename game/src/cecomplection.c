@@ -36,7 +36,7 @@ ce_complection_init_array(ce_complection* complection, const float* array)
 {
 	complection->strength = *array++;
 	complection->dexterity = *array++;
-	complection->height = *array++;
+	complection->height = *array;
 	return complection;
 }
 

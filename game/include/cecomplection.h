@@ -33,9 +33,9 @@ typedef struct {
 } ce_complection;
 
 extern ce_complection*
-ce_complection_init(ce_complection* complection,
-					float strength, float dexterity, float height);
-
+ce_complection_init(ce_complection* complection, float strength,
+												float dexterity,
+												float height);
 extern ce_complection*
 ce_complection_init_array(ce_complection* complection, const float* array);
 
@@ -43,7 +43,7 @@ extern ce_complection*
 ce_complection_copy(ce_complection* complection, const ce_complection* other);
 
 extern bool ce_complection_equal(const ce_complection* complection,
-									const ce_complection* other);
+								const ce_complection* other);
 
 #ifdef __cplusplus
 }

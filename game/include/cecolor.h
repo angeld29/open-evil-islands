@@ -36,8 +36,8 @@ extern const ce_color CE_COLOR_RED;
 extern const ce_color CE_COLOR_GREEN;
 extern const ce_color CE_COLOR_BLUE;
 
-extern ce_color* ce_color_init(ce_color* color,
-								float r, float g, float b, float a);
+extern ce_color* ce_color_init(ce_color* color, float r, float g,
+												float b, float a);
 extern ce_color* ce_color_init_array(ce_color* color, const float* array);
 
 extern ce_color* ce_color_init_black(ce_color* color);
