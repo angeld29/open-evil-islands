@@ -123,6 +123,9 @@ static void idle(void)
 		ce_input_term();
 		ce_alloc_term();
 		ce_logging_term();
+		if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
+			glutLeaveGameMode();
+		}
 		exit(EXIT_SUCCESS);
 	}
 
