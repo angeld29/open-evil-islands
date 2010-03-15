@@ -19,7 +19,6 @@
 */
 
 #include <math.h>
-#include <assert.h>
 
 #include "cemath.h"
 #include "cevec3.h"
@@ -192,7 +191,6 @@ float ce_quat_to_angle_axis(const ce_quat* quat, ce_vec3* axis)
 		axis->y = quat->y * inv_length;
 		axis->z = quat->z * inv_length;
 	} else {
-		assert(false);
 		angle = 0.0f;
 		axis->x = 1.0f;
 		axis->y = 0.0f;
