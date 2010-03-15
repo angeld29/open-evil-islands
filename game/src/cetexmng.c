@@ -22,6 +22,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "cestr.h"
 #include "celogging.h"
 #include "cealloc.h"
 #include "ceresfile.h"
@@ -30,35 +31,22 @@
 ce_texmng* ce_texmng_new(void)
 {
 	ce_texmng* texmng = ce_alloc_zero(sizeof(ce_texmng));
-	if (NULL == texmng) {
-		ce_logging_error("texmng: could not allocate memory");
-		return NULL;
-	}
-
-	if (NULL == (texmng->resources = ce_vector_new()) ||
-			NULL == (texmng->textures = ce_vector_new())) {
-		ce_texmng_del(texmng);
-		return NULL;
-	}
-
+	texmng->resources = ce_vector_new();
+	texmng->textures = ce_vector_new();
 	return texmng;
 }
 
 void ce_texmng_del(ce_texmng* texmng)
 {
 	if (NULL != texmng) {
-		if (NULL != texmng->textures) {
-			for (int i = 0, n = ce_vector_count(texmng->textures); i < n; ++i) {
-				ce_texture_del(ce_vector_at(texmng->textures, i));
-			}
-			ce_vector_del(texmng->textures);
+		for (int i = 0; i < texmng->textures->count; ++i) {
+			ce_texture_del(texmng->textures->items[i]);
 		}
-		if (NULL != texmng->resources) {
-			for (int i = 0, n = ce_vector_count(texmng->resources); i < n; ++i) {
-				ce_resfile_close(ce_vector_at(texmng->resources, i));
-			}
-			ce_vector_del(texmng->resources);
+		for (int i = 0; i < texmng->resources->count; ++i) {
+			ce_resfile_close(texmng->resources->items[i]);
 		}
+		ce_vector_del(texmng->textures);
+		ce_vector_del(texmng->resources);
 		ce_free(texmng, sizeof(ce_texmng));
 	}
 }
@@ -77,20 +65,20 @@ bool ce_texmng_register_resource(ce_texmng* texmng, const char* path)
 	return true;
 }
 
-ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* texture_name)
+ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name)
 {
-	for (int i = 0, n = ce_vector_count(texmng->textures); i < n; ++i) {
-		ce_texture* texture = ce_vector_at(texmng->textures, i);
-		if (0 == strcmp(texture_name, ce_texture_get_name(texture))) {
+	for (int i = 0; i < texmng->textures->count; ++i) {
+		ce_texture* texture = texmng->textures->items[i];
+		if (0 == ce_strcasecmp(name, ce_texture_get_name(texture))) {
 			return ce_texture_copy(texture);
 		}
 	}
 
-	char file_name[strlen(texture_name) + 4 + 1];
-	snprintf(file_name, sizeof(file_name), "%s.mmp", texture_name);
+	char file_name[strlen(name) + 4 + 1];
+	snprintf(file_name, sizeof(file_name), "%s.mmp", name);
 
-	for (int i = 0, n = ce_vector_count(texmng->resources); i < n; ++i) {
-		ce_resfile* resfile = ce_vector_at(texmng->resources, i);
+	for (int i = 0; i < texmng->resources->count; ++i) {
+		ce_resfile* resfile = texmng->resources->items[i];
 		int index = ce_resfile_node_index(resfile, file_name);
 		if (-1 != index) {
 			void* data = ce_resfile_extract_data(resfile, index);
@@ -98,7 +86,7 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* texture_name)
 				return NULL;
 			}
 
-			ce_texture* texture = ce_texture_new(texture_name, data);
+			ce_texture* texture = ce_texture_new(name, data);
 			ce_free(data, ce_resfile_node_size(resfile, index));
 
 			if (NULL == texture) {
@@ -110,7 +98,7 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* texture_name)
 		}
 	}
 
-	ce_logging_error("texmng: could not find texture: '%s'", texture_name);
+	ce_logging_error("texmng: could not find texture: '%s'", name);
 	return NULL;
 }
 
