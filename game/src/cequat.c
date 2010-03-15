@@ -19,6 +19,7 @@
 */
 
 #include <math.h>
+#include <assert.h>
 
 #include "cemath.h"
 #include "cevec3.h"
@@ -27,163 +28,171 @@
 const ce_quat CE_QUAT_ZERO = { .w = 0.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f };
 const ce_quat CE_QUAT_IDENTITY = { .w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f };
 
-ce_quat* ce_quat_zero(ce_quat* r)
+ce_quat* ce_quat_init(ce_quat* quat, float w, float x, float y, float z)
 {
-	r->w = 0.0f;
-	r->x = 0.0f;
-	r->y = 0.0f;
-	r->z = 0.0f;
-	return r;
+	quat->w = w;
+	quat->x = x;
+	quat->y = y;
+	quat->z = z;
+	return quat;
 }
 
-ce_quat* ce_quat_identity(ce_quat* r)
+ce_quat* ce_quat_init_array(ce_quat* quat, const float* array)
 {
-	r->w = 1.0f;
-	r->x = 0.0f;
-	r->y = 0.0f;
-	r->z = 0.0f;
-	return r;
+	quat->w = *array++;
+	quat->x = *array++;
+	quat->y = *array++;
+	quat->z = *array++;
+	return quat;
 }
 
-ce_quat* ce_quat_init(ce_quat* r, float w, float x, float y, float z)
+ce_quat* ce_quat_init_polar(ce_quat* quat, float angle, const ce_vec3* axis)
 {
-	r->w = w;
-	r->x = x;
-	r->y = y;
-	r->z = z;
-	return r;
-}
-
-ce_quat* ce_quat_init_array(ce_quat* r, const float* v)
-{
-	r->w = *v++;
-	r->x = *v++;
-	r->y = *v++;
-	r->z = *v++;
-	return r;
-}
-
-ce_quat* ce_quat_init_polar(ce_quat* r, float theta, const ce_vec3* axis)
-{
-	float t = 0.5f * theta;
+	float t = 0.5f * angle;
 	float s = sinf(t);
-	r->w = cosf(t);
-	r->x = s * axis->x;
-	r->y = s * axis->y;
-	r->z = s * axis->z;
-	return r;
+	quat->w = cosf(t);
+	quat->x = s * axis->x;
+	quat->y = s * axis->y;
+	quat->z = s * axis->z;
+	return quat;
 }
 
-ce_quat* ce_quat_copy(ce_quat* r, const ce_quat* a)
+ce_quat* ce_quat_init_zero(ce_quat* quat)
 {
-	r->w = a->w;
-	r->x = a->x;
-	r->y = a->y;
-	r->z = a->z;
-	return r;
+	quat->w = 0.0f;
+	quat->x = 0.0f;
+	quat->y = 0.0f;
+	quat->z = 0.0f;
+	return quat;
 }
 
-ce_quat* ce_quat_neg(ce_quat* r, const ce_quat* a)
+ce_quat* ce_quat_init_identity(ce_quat* quat)
 {
-	r->w = -a->w;
-	r->x = -a->x;
-	r->y = -a->y;
-	r->z = -a->z;
-	return r;
+	quat->w = 1.0f;
+	quat->x = 0.0f;
+	quat->y = 0.0f;
+	quat->z = 0.0f;
+	return quat;
 }
 
-ce_quat* ce_quat_conj(ce_quat* r, const ce_quat* a)
+ce_quat* ce_quat_copy(ce_quat* quat, const ce_quat* other)
 {
-	r->w = a->w;
-	r->x = -a->x;
-	r->y = -a->y;
-	r->z = -a->z;
-	return r;
+	quat->w = other->w;
+	quat->x = other->x;
+	quat->y = other->y;
+	quat->z = other->z;
+	return quat;
 }
 
-ce_quat* ce_quat_add(ce_quat* r, const ce_quat* a, const ce_quat* b)
+ce_quat* ce_quat_neg(ce_quat* quat, const ce_quat* other)
 {
-	r->w = a->w + b->w;
-	r->x = a->x + b->x;
-	r->y = a->y + b->y;
-	r->z = a->z + b->z;
-	return r;
+	quat->w = -other->w;
+	quat->x = -other->x;
+	quat->y = -other->y;
+	quat->z = -other->z;
+	return quat;
 }
 
-ce_quat* ce_quat_sub(ce_quat* r, const ce_quat* a, const ce_quat* b)
+ce_quat* ce_quat_conj(ce_quat* quat, const ce_quat* other)
 {
-	r->w = a->w - b->w;
-	r->x = a->x - b->x;
-	r->y = a->y - b->y;
-	r->z = a->z - b->z;
-	return r;
+	quat->w = other->w;
+	quat->x = -other->x;
+	quat->y = -other->y;
+	quat->z = -other->z;
+	return quat;
 }
 
-ce_quat* ce_quat_mul(ce_quat* restrict r, const ce_quat* a, const ce_quat* b)
+ce_quat* ce_quat_add(ce_quat* quat, const ce_quat* lhs, const ce_quat* rhs)
 {
-	r->w = a->w * b->w - a->x * b->x - a->y * b->y - a->z * b->z;
-	r->x = a->w * b->x + a->x * b->w + a->y * b->z - a->z * b->y;
-	r->y = a->w * b->y - a->x * b->z + a->y * b->w + a->z * b->x;
-	r->z = a->w * b->z + a->x * b->y - a->y * b->x + a->z * b->w;
-	return r;
+	quat->w = lhs->w + rhs->w;
+	quat->x = lhs->x + rhs->x;
+	quat->y = lhs->y + rhs->y;
+	quat->z = lhs->z + rhs->z;
+	return quat;
 }
 
-ce_quat* ce_quat_scale(ce_quat* r, const ce_quat* a, float s)
+ce_quat* ce_quat_sub(ce_quat* quat, const ce_quat* lhs, const ce_quat* rhs)
 {
-	r->w = a->w * s;
-	r->x = a->x * s;
-	r->y = a->y * s;
-	r->z = a->z * s;
-	return r;
+	quat->w = lhs->w - rhs->w;
+	quat->x = lhs->x - rhs->x;
+	quat->y = lhs->y - rhs->y;
+	quat->z = lhs->z - rhs->z;
+	return quat;
 }
 
-float ce_quat_abs(const ce_quat* a)
+ce_quat* ce_quat_mul(ce_quat* restrict quat, const ce_quat* lhs,
+											const ce_quat* rhs)
 {
-	return sqrtf(ce_quat_abs2(a));
+	quat->w = lhs->w * rhs->w - lhs->x * rhs->x -
+				lhs->y * rhs->y - lhs->z * rhs->z;
+	quat->x = lhs->w * rhs->x + lhs->x * rhs->w +
+				lhs->y * rhs->z - lhs->z * rhs->y;
+	quat->y = lhs->w * rhs->y - lhs->x * rhs->z +
+				lhs->y * rhs->w + lhs->z * rhs->x;
+	quat->z = lhs->w * rhs->z + lhs->x * rhs->y -
+				lhs->y * rhs->x + lhs->z * rhs->w;
+	return quat;
 }
 
-float ce_quat_abs2(const ce_quat* a)
+ce_quat* ce_quat_scale(ce_quat* quat, float s, const ce_quat* other)
 {
-	return a->w * a->w + a->x * a->x + a->y * a->y + a->z * a->z;
+	quat->w = s * other->w;
+	quat->x = s * other->x;
+	quat->y = s * other->y;
+	quat->z = s * other->z;
+	return quat;
 }
 
-float ce_quat_arg(const ce_quat* a)
+float ce_quat_len(const ce_quat* quat)
 {
-	float s = ce_quat_abs(a);
-	return 0.0f == s ? 0.0f : acosf(a->w / s);
+	return sqrtf(ce_quat_len2(quat));
 }
 
-ce_quat* ce_quat_normalise(ce_quat* r, const ce_quat* a)
+float ce_quat_len2(const ce_quat* quat)
 {
-	return ce_quat_scale(r, a, 1.0f / ce_quat_abs(a));
+	return quat->w * quat->w + quat->x * quat->x +
+			quat->y * quat->y + quat->z * quat->z;
 }
 
-ce_quat* ce_quat_inverse(ce_quat* r, const ce_quat* a)
+float ce_quat_arg(const ce_quat* quat)
 {
-	float s = 1.0f / ce_quat_abs2(a);
-	r->w = a->w * s;
-	r->x = a->x * -s;
-	r->y = a->y * -s;
-	r->z = a->z * -s;
-	return r;
+	float s = ce_quat_len(quat);
+	return 0.0f == s ? 0.0f : acosf(quat->w / s);
 }
 
-float ce_quat_dot(const ce_quat* a, const ce_quat* b)
+ce_quat* ce_quat_normalise(ce_quat* quat, const ce_quat* other)
 {
-	return a->w * b->w + a->x * b->x + a->y * b->y + a->z * b->z;
+	return ce_quat_scale(quat, 1.0f / ce_quat_len(other), other);
 }
 
-float ce_quat_to_angle_axis(const ce_quat* a, ce_vec3* axis)
+ce_quat* ce_quat_inverse(ce_quat* quat, const ce_quat* other)
+{
+	float s = 1.0f / ce_quat_len2(other);
+	quat->w = s * other->w;
+	quat->x = -s * other->x;
+	quat->y = -s * other->y;
+	quat->z = -s * other->z;
+	return quat;
+}
+
+float ce_quat_dot(const ce_quat* lhs, const ce_quat* rhs)
+{
+	return lhs->w * rhs->w + lhs->x * rhs->x +
+			lhs->y * rhs->y + lhs->z * rhs->z;
+}
+
+float ce_quat_to_angle_axis(const ce_quat* quat, ce_vec3* axis)
 {
 	float angle;
-	float sqr_length = a->x * a->x + a->y * a->y + a->z * a->z;
+	float sqr_length = quat->x * quat->x + quat->y * quat->y + quat->z * quat->z;
 	if (sqr_length > 0.0f) {
-		angle = 2.0f * acosf(a->w);
+		angle = 2.0f * acosf(quat->w);
 		float inv_length = 1.0f / sqrtf(sqr_length);
-		axis->x = a->x * inv_length;
-		axis->y = a->y * inv_length;
-		axis->z = a->z * inv_length;
+		axis->x = quat->x * inv_length;
+		axis->y = quat->y * inv_length;
+		axis->z = quat->z * inv_length;
 	} else {
+		assert(false);
 		angle = 0.0f;
 		axis->x = 1.0f;
 		axis->y = 0.0f;
@@ -222,33 +231,34 @@ void ce_quat_to_axes(const ce_quat* quat, ce_vec3* xaxis,
 	zaxis->z = 1.0f - (txx + tyy);
 }
 
-ce_quat* ce_quat_slerp(ce_quat* r, const ce_quat* a, const ce_quat* b, float u)
+ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs,
+												const ce_quat* rhs)
 {
 	ce_quat ta, tb;
-	float cosom = ce_quat_dot(a, b);
+	float cosom = ce_quat_dot(lhs, rhs);
 
 	if (cosom < 0.0f) {
 		// invert rotation
 		cosom = -cosom;
-		ce_quat_neg(&tb, b);
+		ce_quat_neg(&tb, rhs);
 	} else {
-		ce_quat_copy(&tb, b);
+		ce_quat_copy(&tb, rhs);
 	}
 
 	if (cosom < 1.0f - CE_EPS_E3) {
 		// standard case
 		float angle = acosf(cosom);
 		float inv_sinom = 1.0f / sinf(angle);
-		return ce_quat_add(r,
-			ce_quat_scale(&ta, a, sinf((1.0f - u) * angle) * inv_sinom),
-			ce_quat_scale(&tb, &tb, sinf(u * angle) * inv_sinom));
+		return ce_quat_add(quat,
+			ce_quat_scale(&ta, sinf((1.0f - u) * angle) * inv_sinom, lhs),
+			ce_quat_scale(&tb, sinf(u * angle) * inv_sinom, &tb));
 	}
 
-	// a and b quaternions are very close
+	// quaternions are very close
 	// linear interpolation
 	// taking the complement requires renormalisation
-	return ce_quat_normalise(r,
-		ce_quat_add(r,
-			ce_quat_scale(&ta, a, 1.0f - u),
-			ce_quat_scale(&tb, &tb, u)));
+	return ce_quat_normalise(quat,
+		ce_quat_add(quat,
+			ce_quat_scale(&ta, 1.0f - u, lhs),
+			ce_quat_scale(&tb, u, &tb)));
 }

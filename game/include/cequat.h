@@ -36,42 +36,46 @@ struct ce_quat {
 extern const ce_quat CE_QUAT_ZERO;
 extern const ce_quat CE_QUAT_IDENTITY;
 
-extern ce_quat* ce_quat_zero(ce_quat* r);
-extern ce_quat* ce_quat_identity(ce_quat* r);
+extern ce_quat* ce_quat_init(ce_quat* quat, float w, float x, float y, float z);
+extern ce_quat* ce_quat_init_array(ce_quat* quat, const float* array);
+extern ce_quat* ce_quat_init_polar(ce_quat* quat, float angle,
+													const ce_vec3* axis);
 
-extern ce_quat* ce_quat_init(ce_quat* r, float w, float x, float y, float z);
-extern ce_quat* ce_quat_init_array(ce_quat* r, const float* v);
-extern ce_quat* ce_quat_init_polar(ce_quat* r, float theta, const ce_vec3* axis);
+extern ce_quat* ce_quat_init_zero(ce_quat* quat);
+extern ce_quat* ce_quat_init_identity(ce_quat* quat);
 
-extern ce_quat* ce_quat_copy(ce_quat* r, const ce_quat* a);
+extern ce_quat* ce_quat_copy(ce_quat* quat, const ce_quat* other);
 
-extern ce_quat* ce_quat_neg(ce_quat* r, const ce_quat* a);
-extern ce_quat* ce_quat_conj(ce_quat* r, const ce_quat* a);
+extern ce_quat* ce_quat_neg(ce_quat* quat, const ce_quat* other);
+extern ce_quat* ce_quat_conj(ce_quat* quat, const ce_quat* other);
 
-extern ce_quat* ce_quat_add(ce_quat* r, const ce_quat* a, const ce_quat* b);
-extern ce_quat* ce_quat_sub(ce_quat* r, const ce_quat* a, const ce_quat* b);
-extern ce_quat* ce_quat_mul(ce_quat* restrict r, const ce_quat* a,
-												const ce_quat* b);
+extern ce_quat* ce_quat_add(ce_quat* quat, const ce_quat* lhs,
+											const ce_quat* rhs);
+extern ce_quat* ce_quat_sub(ce_quat* quat, const ce_quat* lhs,
+											const ce_quat* rhs);
+extern ce_quat* ce_quat_mul(ce_quat* restrict quat, const ce_quat* lhs,
+													const ce_quat* rhs);
 
-extern ce_quat* ce_quat_scale(ce_quat* r, const ce_quat* a, float s);
+extern ce_quat* ce_quat_scale(ce_quat* quat, float s, const ce_quat* other);
 
-extern float ce_quat_abs(const ce_quat* a);
-extern float ce_quat_abs2(const ce_quat* a);
+extern float ce_quat_len(const ce_quat* quat);
+extern float ce_quat_len2(const ce_quat* quat);
 
-extern float ce_quat_arg(const ce_quat* a);
+extern float ce_quat_arg(const ce_quat* quat);
 
-extern ce_quat* ce_quat_normalise(ce_quat* r, const ce_quat* a);
-extern ce_quat* ce_quat_inverse(ce_quat* r, const ce_quat* a);
+extern ce_quat* ce_quat_normalise(ce_quat* quat, const ce_quat* other);
+extern ce_quat* ce_quat_inverse(ce_quat* quat, const ce_quat* other);
 
-extern float ce_quat_dot(const ce_quat* a, const ce_quat* b);
+extern float ce_quat_dot(const ce_quat* lhs, const ce_quat* rhs);
 
-extern float ce_quat_to_angle_axis(const ce_quat* a, ce_vec3* axis);
+extern float ce_quat_to_angle_axis(const ce_quat* quat, ce_vec3* axis);
 extern void ce_quat_to_axes(const ce_quat* quat, ce_vec3* xaxis,
 												ce_vec3* yaxis,
 												ce_vec3* zaxis);
 
-extern ce_quat* ce_quat_slerp(ce_quat* r, const ce_quat* a,
-											const ce_quat* b, float u);
+// spherical linear interpolation
+extern ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs,
+														const ce_quat* rhs);
 
 #ifdef __cplusplus
 }

@@ -71,12 +71,11 @@ void ce_figbone_advance(ce_figbone* figbone,
 		ce_anmstate_advance(figbone->anmstate, fps, elapsed);
 
 		ce_quat q1, q2;
-		ce_quat_slerp(&figbone->orientation,
+		ce_quat_slerp(&figbone->orientation, figbone->anmstate->coef,
 			ce_quat_init_array(&q1, figbone->anmstate->anmfile->rotations +
 									(int)figbone->anmstate->prev_frame * 4),
 			ce_quat_init_array(&q2, figbone->anmstate->anmfile->rotations +
-									(int)figbone->anmstate->next_frame * 4),
-			figbone->anmstate->coef);
+									(int)figbone->anmstate->next_frame * 4));
 	}
 
 	// update bone pose
