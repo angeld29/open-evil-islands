@@ -18,45 +18,17 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdbool.h>
-
-#include "celogging.h"
 #include "cealloc.h"
 #include "cereshlp.h"
 #include "cebonfile.h"
 
-static bool ce_bonfile_open_impl(ce_bonfile* bonfile, ce_memfile* memfile)
-{
-	if (NULL == (bonfile->bone =
-					ce_alloc(sizeof(float) * 3 * bonfile->value_count))) {
-		ce_logging_error("bonfile: could not allocate memory");
-		return false;
-	}
-
-	if (1 != ce_memfile_read(memfile, bonfile->bone,
-								sizeof(float) * 3 * bonfile->value_count, 1)) {
-		ce_logging_error("bonfile: io error occured");
-		return false;
-	}
-
-	return true;
-}
-
 ce_bonfile* ce_bonfile_open_memfile(int value_count, ce_memfile* memfile)
 {
 	ce_bonfile* bonfile = ce_alloc_zero(sizeof(ce_bonfile));
-	if (NULL == bonfile) {
-		ce_logging_error("bonfile: could not allocate memory");
-		return NULL;
-	}
-
 	bonfile->value_count = value_count;
-
-	if (!ce_bonfile_open_impl(bonfile, memfile)) {
-		ce_bonfile_close(bonfile);
-		return NULL;
-	}
-
+	bonfile->bone = ce_alloc(sizeof(float) * 3 * bonfile->value_count);
+	ce_memfile_read(memfile, bonfile->bone,
+					sizeof(float) * 3 * value_count, 1);
 	return bonfile;
 }
 
