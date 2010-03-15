@@ -18,8 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <math.h>
-
 #include "cesphere.h"
 
 ce_sphere*
@@ -27,6 +25,15 @@ ce_sphere_init(ce_sphere* sphere, const ce_vec3* origin, float radius)
 {
 	sphere->origin = *origin;
 	sphere->radius = radius;
+	return sphere;
+}
+
+ce_sphere* ce_sphere_init_array(ce_sphere* sphere, const float* array)
+{
+	sphere->origin.x = *array++;
+	sphere->origin.y = *array++;
+	sphere->origin.z = *array++;
+	sphere->radius = *array++;
 	return sphere;
 }
 

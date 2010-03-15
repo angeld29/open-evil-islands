@@ -34,8 +34,9 @@ typedef struct {
 } ce_sphere;
 
 extern ce_sphere* ce_sphere_init(ce_sphere* sphere,
-									const ce_vec3* center,
+									const ce_vec3* origin,
 									float radius);
+extern ce_sphere* ce_sphere_init_array(ce_sphere* sphere, const float* array);
 
 extern ce_sphere* ce_sphere_init_zero(ce_sphere* sphere);
 
