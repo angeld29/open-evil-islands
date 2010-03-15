@@ -34,7 +34,7 @@ ce_vec4* ce_vec4_init_array(ce_vec4* vec, const float* array)
 	vec->x = *array++;
 	vec->y = *array++;
 	vec->z = *array++;
-	vec->w = *array++;
+	vec->w = *array;
 	return vec;
 }
 

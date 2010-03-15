@@ -20,41 +20,46 @@
 
 #include "ceplane.h"
 
-ce_plane* ce_plane_init(ce_plane* r, float a, float b, float c, float d)
+ce_plane* ce_plane_init(ce_plane* plane, float a, float b, float c, float d)
 {
-	ce_vec3_init(&r->n, a, b, c);
-	r->d = d;
-	return r;
+	plane->n.x = a;
+	plane->n.y = b;
+	plane->n.z = c;
+	plane->d = d;
+	return plane;
 }
 
-ce_plane* ce_plane_init_array(ce_plane* r, const float* v)
+ce_plane* ce_plane_init_array(ce_plane* plane, const float* array)
 {
-	ce_vec3_init_array(&r->n, v);
-	r->d = v[3];
-	return r;
+	plane->n.x = *array++;
+	plane->n.y = *array++;
+	plane->n.z = *array++;
+	plane->d = *array;
+	return plane;
 }
 
-ce_plane* ce_plane_init_tri(ce_plane* r, const ce_vec3* a,
-							const ce_vec3* b, const ce_vec3* c)
+ce_plane* ce_plane_init_tri(ce_plane* plane, const ce_vec3* a,
+											const ce_vec3* b,
+											const ce_vec3* c)
 {
 	ce_vec3 e1, e2;
 	ce_vec3_sub(&e1, b, a);
 	ce_vec3_sub(&e2, c, a);
-	ce_vec3_cross(&r->n, &e1, &e2);
-	ce_vec3_normalise(&r->n, &r->n);
-	r->d = -ce_vec3_dot(&r->n, a);
-	return r;
+	ce_vec3_cross(&plane->n, &e1, &e2);
+	ce_vec3_normalise(&plane->n, &plane->n);
+	plane->d = -ce_vec3_dot(&plane->n, a);
+	return plane;
 }
 
-ce_plane* ce_plane_normalise(ce_plane* r, const ce_plane* a)
+ce_plane* ce_plane_normalise(ce_plane* plane, const ce_plane* other)
 {
-	const float s = 1.0f / ce_vec3_len(&a->n);
-	ce_vec3_scale(&r->n, s, &a->n);
-	r->d = s * a->d;
-	return r;
+	const float s = 1.0f / ce_vec3_len(&other->n);
+	ce_vec3_scale(&plane->n, s, &other->n);
+	plane->d = s * other->d;
+	return plane;
 }
 
-float ce_plane_dist(const ce_plane* a, const ce_vec3* b)
+float ce_plane_dist(const ce_plane* plane, const ce_vec3* vec)
 {
-	return ce_vec3_dot(&a->n, b) + a->d;
+	return ce_vec3_dot(&plane->n, vec) + plane->d;
 }

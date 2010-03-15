@@ -46,7 +46,7 @@ ce_vec3* ce_vec3_init_array(ce_vec3* vec, const float* array)
 {
 	vec->x = *array++;
 	vec->y = *array++;
-	vec->z = *array++;
+	vec->z = *array;
 	return vec;
 }
 

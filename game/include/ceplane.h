@@ -33,14 +33,16 @@ typedef struct {
 	float d;
 } ce_plane;
 
-extern ce_plane* ce_plane_init(ce_plane* r, float a, float b, float c, float d);
-extern ce_plane* ce_plane_init_array(ce_plane* r, const float* v);
-extern ce_plane* ce_plane_init_tri(ce_plane* r, const ce_vec3* a,
-									const ce_vec3* b, const ce_vec3* c);
+extern ce_plane* ce_plane_init(ce_plane* plane, float a, float b,
+												float c, float d);
+extern ce_plane* ce_plane_init_array(ce_plane* plane, const float* array);
+extern ce_plane* ce_plane_init_tri(ce_plane* plane, const ce_vec3* a,
+													const ce_vec3* b,
+													const ce_vec3* c);
 
-extern ce_plane* ce_plane_normalise(ce_plane* r, const ce_plane* a);
+extern ce_plane* ce_plane_normalise(ce_plane* plane, const ce_plane* other);
 
-extern float ce_plane_dist(const ce_plane* a, const ce_vec3* b);
+extern float ce_plane_dist(const ce_plane* plane, const ce_vec3* vec);
 
 #ifdef __cplusplus
 }

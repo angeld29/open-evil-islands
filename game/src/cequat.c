@@ -42,7 +42,7 @@ ce_quat* ce_quat_init_array(ce_quat* quat, const float* array)
 	quat->w = *array++;
 	quat->x = *array++;
 	quat->y = *array++;
-	quat->z = *array++;
+	quat->z = *array;
 	return quat;
 }
 

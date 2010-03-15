@@ -38,7 +38,7 @@ ce_vec2* ce_vec2_init(ce_vec2* vec, float x, float y)
 ce_vec2* ce_vec2_init_array(ce_vec2* vec, const float* array)
 {
 	vec->x = *array++;
-	vec->y = *array++;
+	vec->y = *array;
 	return vec;
 }
 
