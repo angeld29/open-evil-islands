@@ -48,9 +48,9 @@ ce_plane* ce_plane_init_tri(ce_plane* r, const ce_vec3* a,
 
 ce_plane* ce_plane_normalise(ce_plane* r, const ce_plane* a)
 {
-	const float s = 1.0f / ce_vec3_abs(&a->n);
-	ce_vec3_scale(&r->n, &a->n, s);
-	r->d = a->d * s;
+	const float s = 1.0f / ce_vec3_len(&a->n);
+	ce_vec3_scale(&r->n, s, &a->n);
+	r->d = s * a->d;
 	return r;
 }
 

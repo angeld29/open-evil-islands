@@ -35,9 +35,9 @@ ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other)
 	ce_vec3 xaxis, yaxis, zaxis;
 	ce_quat_to_axes(&other->axis, &xaxis, &yaxis, &zaxis);
 
-	ce_vec3_scale(&xaxis, &xaxis, other->aabb.extents.x);
-	ce_vec3_scale(&yaxis, &yaxis, other->aabb.extents.y);
-	ce_vec3_scale(&zaxis, &zaxis, other->aabb.extents.z);
+	ce_vec3_scale(&xaxis, other->aabb.extents.x, &xaxis);
+	ce_vec3_scale(&yaxis, other->aabb.extents.y, &yaxis);
+	ce_vec3_scale(&zaxis, other->aabb.extents.z, &zaxis);
 
 	ce_aabb aabb;
 	aabb.origin = other->aabb.origin;

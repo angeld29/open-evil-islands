@@ -147,12 +147,12 @@ void ce_scenemng_render_bboxes(ce_scenenode* scenenode)
 	glPopMatrix();
 #endif
 
-	ce_vec3_scale(&v, &xaxis, scenenode->world_bbox.aabb.extents.x);
-	float xscale = ce_vec3_abs(&v);
-	ce_vec3_scale(&v, &yaxis, scenenode->world_bbox.aabb.extents.y);
-	float yscale = ce_vec3_abs(&v);
-	ce_vec3_scale(&v, &zaxis, scenenode->world_bbox.aabb.extents.z);
-	float zscale = ce_vec3_abs(&v);
+	ce_vec3_scale(&v, scenenode->world_bbox.aabb.extents.x, &xaxis);
+	float xscale = ce_vec3_len(&v);
+	ce_vec3_scale(&v, scenenode->world_bbox.aabb.extents.y, &yaxis);
+	float yscale = ce_vec3_len(&v);
+	ce_vec3_scale(&v, scenenode->world_bbox.aabb.extents.z, &zaxis);
+	float zscale = ce_vec3_len(&v);
 	float angle = ce_quat_to_angle_axis(&scenenode->world_bbox.axis, &v);
 	glRotatef(ce_rad2deg(angle), v.x, v.y, v.z);
 	glScalef(xscale, yscale, zscale);

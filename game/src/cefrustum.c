@@ -50,19 +50,19 @@ ce_frustum* ce_frustum_init(ce_frustum* frustum,
 	ce_vec3 nc, fc, xw, yh;
 	ce_vec3 ntl, ntr, nbl, nbr, ftl, ftr, fbl, fbr;
 
-	ce_vec3_add(&nc, eye, ce_vec3_scale(&nc, forward, near));
-	ce_vec3_add(&fc, eye, ce_vec3_scale(&fc, forward, far));
+	ce_vec3_add(&nc, eye, ce_vec3_scale(&nc, near, forward));
+	ce_vec3_add(&fc, eye, ce_vec3_scale(&fc, far, forward));
 
-	ce_vec3_scale(&xw, right, nw);
-	ce_vec3_scale(&yh, up, nh);
+	ce_vec3_scale(&xw, nw, right);
+	ce_vec3_scale(&yh, nh, up);
 
 	ce_vec3_sub(&ntl, ce_vec3_add(&ntl, &nc, &yh), &xw);
 	ce_vec3_add(&ntr, ce_vec3_add(&ntr, &nc, &yh), &xw);
 	ce_vec3_sub(&nbl, ce_vec3_sub(&nbl, &nc, &yh), &xw);
 	ce_vec3_add(&nbr, ce_vec3_sub(&nbr, &nc, &yh), &xw);
 
-	ce_vec3_scale(&xw, right, fw);
-	ce_vec3_scale(&yh, up, fh);
+	ce_vec3_scale(&xw, fw, right);
+	ce_vec3_scale(&yh, fh, up);
 
 	ce_vec3_sub(&ftl, ce_vec3_add(&ftl, &fc, &yh), &xw);
 	ce_vec3_add(&ftr, ce_vec3_add(&ftr, &fc, &yh), &xw);

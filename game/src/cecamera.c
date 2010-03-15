@@ -33,9 +33,9 @@ ce_camera* ce_camera_new(void)
 	cam->aspect = 1.0f;
 	cam->near = 1.0f;
 	cam->far = 500.0f;
-	ce_vec3_zero(&cam->eye);
-	ce_quat_identity(&cam->look);
-	ce_mat4_identity(&cam->view);
+	cam->eye = CE_VEC3_ZERO;
+	cam->look = CE_QUAT_IDENTITY;
+	cam->view = CE_MAT4_IDENTITY;
 	cam->proj_changed = true;
 	cam->eye_changed = true;
 	cam->look_changed = true;
@@ -141,8 +141,8 @@ void ce_camera_move(ce_camera* cam, float offset_x, float offset_z)
 	ce_vec3_normalise(&forward, &forward);
 	ce_vec3_normalise(&right, &right);
 
-	ce_vec3_scale(&forward, &forward, offset_z);
-	ce_vec3_scale(&right, &right, offset_x);
+	ce_vec3_scale(&forward, offset_z, &forward);
+	ce_vec3_scale(&right, offset_x, &right);
 
 	ce_vec3_add(&cam->eye, &cam->eye, &forward);
 	ce_vec3_add(&cam->eye, &cam->eye, &right);
@@ -154,7 +154,7 @@ void ce_camera_zoom(ce_camera* cam, float offset)
 {
 	ce_vec3 forward;
 	ce_camera_get_forward(cam, &forward);
-	ce_vec3_scale(&forward, &forward, offset);
+	ce_vec3_scale(&forward, offset, &forward);
 	ce_vec3_add(&cam->eye, &cam->eye, &forward);
 	cam->eye_changed = true;
 }

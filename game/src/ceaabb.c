@@ -60,7 +60,7 @@ ce_aabb* ce_aabb_clear(ce_aabb* aabb)
 
 ce_aabb* ce_aabb_update_radius(ce_aabb* aabb)
 {
-	aabb->radius = ce_vec3_abs(&aabb->extents);
+	aabb->radius = ce_vec3_len(&aabb->extents);
 	return aabb;
 }
 

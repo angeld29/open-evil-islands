@@ -43,52 +43,60 @@ extern const ce_vec3 CE_VEC3_NEG_UNIT_Y;
 extern const ce_vec3 CE_VEC3_NEG_UNIT_Z;
 extern const ce_vec3 CE_VEC3_NEG_UNIT_SCALE;
 
-extern ce_vec3* ce_vec3_zero(ce_vec3* r);
-extern ce_vec3* ce_vec3_unit_x(ce_vec3* r);
-extern ce_vec3* ce_vec3_unit_y(ce_vec3* r);
-extern ce_vec3* ce_vec3_unit_z(ce_vec3* r);
-extern ce_vec3* ce_vec3_unit_scale(ce_vec3* r);
-extern ce_vec3* ce_vec3_neg_unit_x(ce_vec3* r);
-extern ce_vec3* ce_vec3_neg_unit_y(ce_vec3* r);
-extern ce_vec3* ce_vec3_neg_unit_z(ce_vec3* r);
-extern ce_vec3* ce_vec3_neg_unit_scale(ce_vec3* r);
+extern ce_vec3* ce_vec3_init(ce_vec3* vec, float x, float y, float z);
+extern ce_vec3* ce_vec3_init_array(ce_vec3* vec, const float* array);
 
-extern ce_vec3* ce_vec3_init(ce_vec3* r, float x, float y, float z);
-extern ce_vec3* ce_vec3_init_array(ce_vec3* r, const float* v);
+extern ce_vec3* ce_vec3_init_zero(ce_vec3* vec);
+extern ce_vec3* ce_vec3_init_unit_x(ce_vec3* vec);
+extern ce_vec3* ce_vec3_init_unit_y(ce_vec3* vec);
+extern ce_vec3* ce_vec3_init_unit_z(ce_vec3* vec);
+extern ce_vec3* ce_vec3_init_unit_scale(ce_vec3* vec);
+extern ce_vec3* ce_vec3_init_neg_unit_x(ce_vec3* vec);
+extern ce_vec3* ce_vec3_init_neg_unit_y(ce_vec3* vec);
+extern ce_vec3* ce_vec3_init_neg_unit_z(ce_vec3* vec);
+extern ce_vec3* ce_vec3_init_neg_unit_scale(ce_vec3* vec);
 
-extern ce_vec3* ce_vec3_copy(ce_vec3* r, const ce_vec3* a);
+extern ce_vec3* ce_vec3_copy(ce_vec3* vec, const ce_vec3* other);
 
-extern ce_vec3* ce_vec3_neg(ce_vec3* r, const ce_vec3* a);
+extern ce_vec3* ce_vec3_neg(ce_vec3* vec, const ce_vec3* other);
 
-extern ce_vec3* ce_vec3_add(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
-extern ce_vec3* ce_vec3_sub(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
-extern ce_vec3* ce_vec3_mul(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
-extern ce_vec3* ce_vec3_div(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
+extern ce_vec3* ce_vec3_add(ce_vec3* vec, const ce_vec3* lhs,
+											const ce_vec3* rhs);
+extern ce_vec3* ce_vec3_sub(ce_vec3* vec, const ce_vec3* lhs,
+											const ce_vec3* rhs);
+extern ce_vec3* ce_vec3_mul(ce_vec3* vec, const ce_vec3* lhs,
+											const ce_vec3* rhs);
+extern ce_vec3* ce_vec3_div(ce_vec3* vec, const ce_vec3* lhs,
+											const ce_vec3* rhs);
 
-extern ce_vec3* ce_vec3_scale(ce_vec3* r, const ce_vec3* a, float s);
+extern ce_vec3* ce_vec3_scale(ce_vec3* vec, float s, const ce_vec3* other);
 
-extern float ce_vec3_abs(const ce_vec3* a);
-extern float ce_vec3_abs2(const ce_vec3* a);
+extern float ce_vec3_len(const ce_vec3* vec);
+extern float ce_vec3_len2(const ce_vec3* vec);
 
-extern float ce_vec3_dist(const ce_vec3* a, const ce_vec3* b);
-extern float ce_vec3_dist2(const ce_vec3* a, const ce_vec3* b);
+extern float ce_vec3_dist(const ce_vec3* lhs, const ce_vec3* rhs);
+extern float ce_vec3_dist2(const ce_vec3* lhs, const ce_vec3* rhs);
 
-extern ce_vec3* ce_vec3_normalise(ce_vec3* r, const ce_vec3* a);
+extern ce_vec3* ce_vec3_normalise(ce_vec3* vec, const ce_vec3* other);
 
-extern float ce_vec3_dot(const ce_vec3* a, const ce_vec3* b);
-extern float ce_vec3_absdot(const ce_vec3* a, const ce_vec3* b);
+extern float ce_vec3_dot(const ce_vec3* lhs, const ce_vec3* rhs);
+extern float ce_vec3_absdot(const ce_vec3* lhs, const ce_vec3* rhs);
 
-extern ce_vec3* ce_vec3_cross(ce_vec3* restrict r, const ce_vec3* a,
-													const ce_vec3* b);
+extern ce_vec3* ce_vec3_cross(ce_vec3* restrict vec, const ce_vec3* lhs,
+													const ce_vec3* rhs);
 
-extern ce_vec3* ce_vec3_mid(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
-extern ce_vec3* ce_vec3_rot(ce_vec3* r, const ce_vec3* a, const ce_quat* b);
+extern ce_vec3* ce_vec3_mid(ce_vec3* vec, const ce_vec3* lhs,
+											const ce_vec3* rhs);
+extern ce_vec3* ce_vec3_rot(ce_vec3* vec, const ce_vec3* other,
+											const ce_quat* quat);
 
-extern ce_vec3* ce_vec3_lerp(ce_vec3* r, const ce_vec3* a,
-										const ce_vec3* b, float u);
+extern ce_vec3* ce_vec3_lerp(ce_vec3* vec, float u, const ce_vec3* lhs,
+													const ce_vec3* rhs);
 
-extern ce_vec3* ce_vec3_floor(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
-extern ce_vec3* ce_vec3_ceil(ce_vec3* r, const ce_vec3* a, const ce_vec3* b);
+extern ce_vec3* ce_vec3_floor(ce_vec3* vec, const ce_vec3* lhs,
+											const ce_vec3* rhs);
+extern ce_vec3* ce_vec3_ceil(ce_vec3* vec, const ce_vec3* lhs,
+											const ce_vec3* rhs);
 
 #ifdef __cplusplus
 }

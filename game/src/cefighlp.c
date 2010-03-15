@@ -41,7 +41,7 @@ ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
 		figfile->value_callback(figfile->max + 2, 3, complection));
 
 	ce_vec3_sub(&aabb->extents, &max, &min);
-	ce_vec3_scale(&aabb->extents, &aabb->extents, 0.5f);
+	ce_vec3_scale(&aabb->extents, 0.5f, &aabb->extents);
 
 	return aabb;
 }

@@ -34,234 +34,233 @@ const ce_vec3 CE_VEC3_NEG_UNIT_Y = { .x = 0.0f, .y = -1.0f, .z = 0.0f };
 const ce_vec3 CE_VEC3_NEG_UNIT_Z = { .x = 0.0f, .y = 0.0f, .z = -1.0f };
 const ce_vec3 CE_VEC3_NEG_UNIT_SCALE = { .x = -1.0f, .y = -1.0f, .z = -1.0f };
 
-ce_vec3* ce_vec3_zero(ce_vec3* r)
+ce_vec3* ce_vec3_init(ce_vec3* vec, float x, float y, float z)
 {
-	r->x = 0.0f;
-	r->y = 0.0f;
-	r->z = 0.0f;
-	return r;
+	vec->x = x;
+	vec->y = y;
+	vec->z = z;
+	return vec;
 }
 
-ce_vec3* ce_vec3_unit_x(ce_vec3* r)
+ce_vec3* ce_vec3_init_array(ce_vec3* vec, const float* array)
 {
-	r->x = 1.0f;
-	r->y = 0.0f;
-	r->z = 0.0f;
-	return r;
+	vec->x = *array++;
+	vec->y = *array++;
+	vec->z = *array++;
+	return vec;
 }
 
-ce_vec3* ce_vec3_unit_y(ce_vec3* r)
+ce_vec3* ce_vec3_init_zero(ce_vec3* vec)
 {
-	r->x = 0.0f;
-	r->y = 1.0f;
-	r->z = 0.0f;
-	return r;
+	vec->x = 0.0f;
+	vec->y = 0.0f;
+	vec->z = 0.0f;
+	return vec;
 }
 
-ce_vec3* ce_vec3_unit_z(ce_vec3* r)
+ce_vec3* ce_vec3_init_unit_x(ce_vec3* vec)
 {
-	r->x = 0.0f;
-	r->y = 0.0f;
-	r->z = 1.0f;
-	return r;
+	vec->x = 1.0f;
+	vec->y = 0.0f;
+	vec->z = 0.0f;
+	return vec;
 }
 
-ce_vec3* ce_vec3_unit_scale(ce_vec3* r)
+ce_vec3* ce_vec3_init_unit_y(ce_vec3* vec)
 {
-	r->x = 1.0f;
-	r->y = 1.0f;
-	r->z = 1.0f;
-	return r;
+	vec->x = 0.0f;
+	vec->y = 1.0f;
+	vec->z = 0.0f;
+	return vec;
 }
 
-ce_vec3* ce_vec3_neg_unit_x(ce_vec3* r)
+ce_vec3* ce_vec3_init_unit_z(ce_vec3* vec)
 {
-	r->x = -1.0f;
-	r->y = 0.0f;
-	r->z = 0.0f;
-	return r;
+	vec->x = 0.0f;
+	vec->y = 0.0f;
+	vec->z = 1.0f;
+	return vec;
 }
 
-ce_vec3* ce_vec3_neg_unit_y(ce_vec3* r)
+ce_vec3* ce_vec3_init_unit_scale(ce_vec3* vec)
 {
-	r->x = 0.0f;
-	r->y = -1.0f;
-	r->z = 0.0f;
-	return r;
+	vec->x = 1.0f;
+	vec->y = 1.0f;
+	vec->z = 1.0f;
+	return vec;
 }
 
-ce_vec3* ce_vec3_neg_unit_z(ce_vec3* r)
+ce_vec3* ce_vec3_init_neg_unit_x(ce_vec3* vec)
 {
-	r->x = 0.0f;
-	r->y = 0.0f;
-	r->z = -1.0f;
-	return r;
+	vec->x = -1.0f;
+	vec->y = 0.0f;
+	vec->z = 0.0f;
+	return vec;
 }
 
-ce_vec3* ce_vec3_neg_unit_scale(ce_vec3* r)
+ce_vec3* ce_vec3_init_neg_unit_y(ce_vec3* vec)
 {
-	r->x = -1.0f;
-	r->y = -1.0f;
-	r->z = -1.0f;
-	return r;
+	vec->x = 0.0f;
+	vec->y = -1.0f;
+	vec->z = 0.0f;
+	return vec;
 }
 
-ce_vec3* ce_vec3_init(ce_vec3* r, float x, float y, float z)
+ce_vec3* ce_vec3_init_neg_unit_z(ce_vec3* vec)
 {
-	r->x = x;
-	r->y = y;
-	r->z = z;
-	return r;
+	vec->x = 0.0f;
+	vec->y = 0.0f;
+	vec->z = -1.0f;
+	return vec;
 }
 
-ce_vec3* ce_vec3_init_array(ce_vec3* r, const float* v)
+ce_vec3* ce_vec3_init_neg_unit_scale(ce_vec3* vec)
 {
-	r->x = *v++;
-	r->y = *v++;
-	r->z = *v++;
-	return r;
+	vec->x = -1.0f;
+	vec->y = -1.0f;
+	vec->z = -1.0f;
+	return vec;
 }
 
-ce_vec3* ce_vec3_copy(ce_vec3* r, const ce_vec3* a)
+ce_vec3* ce_vec3_copy(ce_vec3* vec, const ce_vec3* other)
 {
-	r->x = a->x;
-	r->y = a->y;
-	r->z = a->z;
-	return r;
+	vec->x = other->x;
+	vec->y = other->y;
+	vec->z = other->z;
+	return vec;
 }
 
-ce_vec3* ce_vec3_neg(ce_vec3* r, const ce_vec3* a)
+ce_vec3* ce_vec3_neg(ce_vec3* vec, const ce_vec3* other)
 {
-	r->x = -a->x;
-	r->y = -a->y;
-	r->z = -a->z;
-	return r;
+	vec->x = -other->x;
+	vec->y = -other->y;
+	vec->z = -other->z;
+	return vec;
 }
 
-ce_vec3* ce_vec3_add(ce_vec3* r, const ce_vec3* a, const ce_vec3* b)
+ce_vec3* ce_vec3_add(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
 {
-	r->x = a->x + b->x;
-	r->y = a->y + b->y;
-	r->z = a->z + b->z;
-	return r;
+	vec->x = lhs->x + rhs->x;
+	vec->y = lhs->y + rhs->y;
+	vec->z = lhs->z + rhs->z;
+	return vec;
 }
 
-ce_vec3* ce_vec3_sub(ce_vec3* r, const ce_vec3* a, const ce_vec3* b)
+ce_vec3* ce_vec3_sub(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
 {
-	r->x = a->x - b->x;
-	r->y = a->y - b->y;
-	r->z = a->z - b->z;
-	return r;
+	vec->x = lhs->x - rhs->x;
+	vec->y = lhs->y - rhs->y;
+	vec->z = lhs->z - rhs->z;
+	return vec;
 }
 
-ce_vec3* ce_vec3_mul(ce_vec3* r, const ce_vec3* a, const ce_vec3* b)
+ce_vec3* ce_vec3_mul(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
 {
-	r->x = a->x * b->x;
-	r->y = a->y * b->y;
-	r->z = a->z * b->z;
-	return r;
+	vec->x = lhs->x * rhs->x;
+	vec->y = lhs->y * rhs->y;
+	vec->z = lhs->z * rhs->z;
+	return vec;
 }
 
-ce_vec3* ce_vec3_div(ce_vec3* r, const ce_vec3* a, const ce_vec3* b)
+ce_vec3* ce_vec3_div(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
 {
-	r->x = a->x / b->x;
-	r->y = a->y / b->y;
-	r->z = a->z / b->z;
-	return r;
+	vec->x = lhs->x / rhs->x;
+	vec->y = lhs->y / rhs->y;
+	vec->z = lhs->z / rhs->z;
+	return vec;
 }
 
-ce_vec3* ce_vec3_scale(ce_vec3* r, const ce_vec3* a, float s)
+ce_vec3* ce_vec3_scale(ce_vec3* vec, float s, const ce_vec3* other)
 {
-	r->x = a->x * s;
-	r->y = a->y * s;
-	r->z = a->z * s;
-	return r;
+	vec->x = s * other->x;
+	vec->y = s * other->y;
+	vec->z = s * other->z;
+	return vec;
 }
 
-float ce_vec3_abs(const ce_vec3* a)
+float ce_vec3_len(const ce_vec3* vec)
 {
-	return sqrtf(ce_vec3_abs2(a));
+	return sqrtf(ce_vec3_len2(vec));
 }
 
-float ce_vec3_abs2(const ce_vec3* a)
+float ce_vec3_len2(const ce_vec3* vec)
 {
-	return a->x * a->x + a->y * a->y + a->z * a->z;
+	return vec->x * vec->x + vec->y * vec->y + vec->z * vec->z;
 }
 
-float ce_vec3_dist(const ce_vec3* a, const ce_vec3* b)
+float ce_vec3_dist(const ce_vec3* lhs, const ce_vec3* rhs)
 {
-	ce_vec3 c;
-	return ce_vec3_abs(ce_vec3_sub(&c, a, b));
+	return sqrtf(ce_vec3_dist2(lhs, rhs));
 }
 
-float ce_vec3_dist2(const ce_vec3* a, const ce_vec3* b)
+float ce_vec3_dist2(const ce_vec3* lhs, const ce_vec3* rhs)
 {
-	ce_vec3 c;
-	return ce_vec3_abs2(ce_vec3_sub(&c, a, b));
+	ce_vec3 tmp;
+	return ce_vec3_len2(ce_vec3_sub(&tmp, rhs, lhs));
 }
 
-ce_vec3* ce_vec3_normalise(ce_vec3* r, const ce_vec3* a)
+ce_vec3* ce_vec3_normalise(ce_vec3* vec, const ce_vec3* other)
 {
-	return ce_vec3_scale(r, a, 1.0f / ce_vec3_abs(a));
+	return ce_vec3_scale(vec, 1.0f / ce_vec3_len(other), other);
 }
 
-float ce_vec3_dot(const ce_vec3* a, const ce_vec3* b)
+float ce_vec3_dot(const ce_vec3* lhs, const ce_vec3* rhs)
 {
-	return a->x * b->x + a->y * b->y + a->z * b->z;
+	return lhs->x * rhs->x + lhs->y * rhs->y + lhs->z * rhs->z;
 }
 
-float ce_vec3_absdot(const ce_vec3* a, const ce_vec3* b)
+float ce_vec3_absdot(const ce_vec3* lhs, const ce_vec3* rhs)
 {
-	return fabsf(a->x * b->x) + fabsf(a->y * b->y) + fabsf(a->z * b->z);
+	return fabsf(lhs->x * rhs->x) +
+			fabsf(lhs->y * rhs->y) +
+			fabsf(lhs->z * rhs->z);
 }
 
-ce_vec3* ce_vec3_cross(ce_vec3* restrict r, const ce_vec3* a, const ce_vec3* b)
+ce_vec3* ce_vec3_cross(ce_vec3* restrict vec, const ce_vec3* lhs,
+												const ce_vec3* rhs)
 {
-	r->x = a->y * b->z - a->z * b->y;
-	r->y = a->z * b->x - a->x * b->z;
-	r->z = a->x * b->y - a->y * b->x;
-	return r;
+	vec->x = lhs->y * rhs->z - lhs->z * rhs->y;
+	vec->y = lhs->z * rhs->x - lhs->x * rhs->z;
+	vec->z = lhs->x * rhs->y - lhs->y * rhs->x;
+	return vec;
 }
 
-ce_vec3* ce_vec3_mid(ce_vec3* r, const ce_vec3* a, const ce_vec3* b)
+ce_vec3* ce_vec3_mid(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
 {
-	r->x = 0.5f * (a->x + b->x);
-	r->y = 0.5f * (a->y + b->y);
-	r->z = 0.5f * (a->z + b->z);
-	return r;
+	return ce_vec3_scale(vec, 0.5f, ce_vec3_add(vec, lhs, rhs));
 }
 
-ce_vec3* ce_vec3_rot(ce_vec3* r, const ce_vec3* a, const ce_quat* b)
+ce_vec3* ce_vec3_rot(ce_vec3* vec, const ce_vec3* other, const ce_quat* quat)
 {
-	ce_vec3 qv, uv, uuv;
-	ce_vec3_init(&qv, b->x, b->y, b->z);
-	ce_vec3_cross(&uv, &qv, a);
+	ce_vec3 qv = { quat->x, quat->y, quat->z }, uv, uuv;
+	ce_vec3_cross(&uv, &qv, other);
 	ce_vec3_cross(&uuv, &qv, &uv);
-	ce_vec3_scale(&uv, &uv, 2.0f * b->w);
-	ce_vec3_scale(&uuv, &uuv, 2.0f);
-	return ce_vec3_add(r, ce_vec3_add(r, a, &uv), &uuv);
+	ce_vec3_scale(&uv, 2.0f * quat->w, &uv);
+	ce_vec3_scale(&uuv, 2.0f, &uuv);
+	return ce_vec3_add(vec, ce_vec3_add(vec, other, &uv), &uuv);
 }
 
-ce_vec3* ce_vec3_lerp(ce_vec3* r, const ce_vec3* a, const ce_vec3* b, float u)
+ce_vec3* ce_vec3_lerp(ce_vec3* vec, float u, const ce_vec3* lhs,
+												const ce_vec3* rhs)
 {
-	r->x = ce_lerp(u, a->x, b->x);
-	r->y = ce_lerp(u, a->y, b->y);
-	r->z = ce_lerp(u, a->z, b->z);
-	return r;
+	vec->x = ce_lerp(u, lhs->x, rhs->x);
+	vec->y = ce_lerp(u, lhs->y, rhs->y);
+	vec->z = ce_lerp(u, lhs->z, rhs->z);
+	return vec;
 }
 
-ce_vec3* ce_vec3_floor(ce_vec3* r, const ce_vec3* a, const ce_vec3* b)
+ce_vec3* ce_vec3_floor(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
 {
-	r->x = fminf(a->x, b->x);
-	r->y = fminf(a->y, b->y);
-	r->z = fminf(a->z, b->z);
-	return r;
+	vec->x = fminf(lhs->x, rhs->x);
+	vec->y = fminf(lhs->y, rhs->y);
+	vec->z = fminf(lhs->z, rhs->z);
+	return vec;
 }
 
-ce_vec3* ce_vec3_ceil(ce_vec3* r, const ce_vec3* a, const ce_vec3* b)
+ce_vec3* ce_vec3_ceil(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
 {
-	r->x = fmaxf(a->x, b->x);
-	r->y = fmaxf(a->y, b->y);
-	r->z = fmaxf(a->z, b->z);
-	return r;
+	vec->x = fmaxf(lhs->x, rhs->x);
+	vec->y = fmaxf(lhs->y, rhs->y);
+	vec->z = fmaxf(lhs->z, rhs->z);
+	return vec;
 }
