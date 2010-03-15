@@ -47,7 +47,7 @@ static bool ce_terrain_create(ce_terrain* terrain,
 	}
 
 	// mpr name + nnn
-	char texture_name[ce_string_length(terrain->mprfile->name) + 3 + 1];
+	char texture_name[terrain->mprfile->name->length + 3 + 1];
 
 	for (int i = 0, n = terrain->mprfile->texture_count; i < n; ++i) {
 		snprintf(texture_name, sizeof(texture_name), "%s%03d",

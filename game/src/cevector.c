@@ -47,10 +47,8 @@ void ce_vector_reserve(ce_vector* vector, int capacity)
 {
 	if (capacity > vector->capacity) {
 		void** items = ce_alloc(sizeof(void*) * capacity);
-		if (NULL != vector->items) {
-			memcpy(items, vector->items, sizeof(void*) * vector->count);
-			ce_free(vector->items, sizeof(void*) * vector->capacity);
-		}
+		memcpy(items, vector->items, sizeof(void*) * vector->count);
+		ce_free(vector->items, sizeof(void*) * vector->capacity);
 		vector->capacity = capacity;
 		vector->items = items;
 	}

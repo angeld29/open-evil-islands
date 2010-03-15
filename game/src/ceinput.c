@@ -43,8 +43,8 @@ typedef struct {
 */
 
 struct ce_input_event {
-	event_vtable vtable;
 	bool triggered;
+	event_vtable vtable;
 	size_t size;
 	char object[];
 };
@@ -192,44 +192,29 @@ bool ce_input_event_triggered(ce_input_event* ev)
 ce_input_event_supply* ce_input_event_supply_new(void)
 {
 	ce_input_event_supply* es = ce_alloc(sizeof(ce_input_event_supply));
-	if (NULL == es) {
-		ce_logging_error("input: could not allocate memory");
-		return NULL;
-	}
-
-	if (NULL == (es->events = ce_vector_new())) {
-		ce_logging_error("input: could not allocate memory");
-		ce_input_event_supply_del(es);
-		return NULL;
-	}
-
+	es->events = ce_vector_new();
 	return es;
 }
 
 void ce_input_event_supply_del(ce_input_event_supply* es)
 {
-	if (NULL == es) {
-		return;
-	}
-
-	if (NULL != es->events) {
-		for (size_t i = 0, n = ce_vector_count(es->events); i < n; ++i) {
-			ce_input_event* ev = ce_vector_at(es->events, i);
+	if (NULL != es) {
+		for (int i = 0; i < es->events->count; ++i) {
+			ce_input_event* ev = es->events->items[i];
 			if (NULL != ev->vtable.dtor) {
 				(ev->vtable.dtor)(ev);
 			}
 			ce_free(ev, sizeof(ce_input_event) + ev->size);
 		}
 		ce_vector_del(es->events);
+		ce_free(es, sizeof(ce_input_event_supply));
 	}
-
-	ce_free(es, sizeof(ce_input_event_supply));
 }
 
 void ce_input_event_supply_advance(ce_input_event_supply* es, float elapsed)
 {
-	for (size_t i = 0, n = ce_vector_count(es->events); i < n; ++i) {
-		ce_input_event* ev = ce_vector_at(es->events, i);
+	for (int i = 0; i < es->events->count; ++i) {
+		ce_input_event* ev = es->events->items[i];
 		(ev->vtable.advance)(ev, elapsed);
 	}
 }
@@ -238,13 +223,9 @@ static ce_input_event* ce_input_create_event(ce_input_event_supply* es,
 										event_vtable vtable, size_t size, ...)
 {
 	ce_input_event* ev = ce_alloc(sizeof(ce_input_event) + size);
-	if (NULL == ev) {
-		ce_logging_error("input: could not allocate memory");
-		return NULL;
-	}
 
-	ev->vtable = vtable;
 	ev->triggered = false;
+	ev->vtable = vtable;
 	ev->size = size;
 
 	va_list args;
@@ -252,8 +233,7 @@ static ce_input_event* ce_input_create_event(ce_input_event_supply* es,
 	(ev->vtable.ctor)(ev, args);
 	va_end(args);
 
-	ce_vector_push_back(es->events, ev);
-	return ev;
+	return ce_vector_push_back(es->events, ev), ev;
 }
 
 // Button Event.

@@ -20,7 +20,6 @@
 
 #include <string.h>
 
-#include "celogging.h"
 #include "cealloc.h"
 #include "cestring.h"
 
@@ -32,31 +31,21 @@ ce_string* ce_string_new(void)
 ce_string* ce_string_new_reserved(int capacity)
 {
 	ce_string* str = ce_alloc_zero(sizeof(ce_string));
-	if (NULL == str) {
-		ce_logging_error("string: could not allocate memory");
-		return NULL;
-	}
-
 	ce_string_reserve(str, capacity);
-
 	return str;
 }
 
 ce_string* ce_string_new_cstr(const char* cstr)
 {
 	ce_string* str = ce_string_new_reserved(strlen(cstr) + 1);
-	if (NULL != str) {
-		ce_string_assign(str, cstr);
-	}
+	ce_string_assign(str, cstr);
 	return str;
 }
 
 ce_string* ce_string_new_cstr_n(const char* cstr, int n)
 {
 	ce_string* str = ce_string_new_reserved(n + 1);
-	if (NULL != str) {
-		ce_string_assign_n(str, cstr, n);
-	}
+	ce_string_assign_n(str, cstr, n);
 	return str;
 }
 
@@ -83,11 +72,6 @@ void ce_string_reserve(ce_string* str, int capacity)
 	}
 }
 
-int ce_string_length(const ce_string* str)
-{
-	return str->length;
-}
-
 bool ce_string_empty(const ce_string* str)
 {
 	return 0 == str->length;
@@ -96,16 +80,6 @@ bool ce_string_empty(const ce_string* str)
 const char* ce_string_cstr(const ce_string* str)
 {
 	return str->str;
-}
-
-int ce_string_cmp(const ce_string* str1, const ce_string* str2)
-{
-	return strcmp(str1->str, str2->str);
-}
-
-int ce_string_cmp_cstr(const ce_string* str1, const char* str2)
-{
-	return strcmp(str1->str, str2);
 }
 
 ce_string* ce_string_dup(const ce_string* str)

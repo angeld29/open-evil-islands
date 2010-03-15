@@ -21,17 +21,12 @@
 #include <stdio.h>
 
 #include "cestr.h"
-#include "celogging.h"
 #include "cealloc.h"
 #include "cefps.h"
 
 ce_fps* ce_fps_new(void)
 {
 	ce_fps* fps = ce_alloc(sizeof(ce_fps));
-	if (NULL == fps) {
-		ce_logging_error("fps: could not allocate memory");
-		return NULL;
-	}
 	fps->frame_count = 0;
 	fps->time = 0.0f;
 	ce_strlcpy(fps->text, "FPS: updating...", sizeof(fps->text));
