@@ -106,7 +106,8 @@ static ce_figmesh* ce_figmng_get_figmesh(ce_figmng* figmng,
 {
 	for (int i = 0; i < figmng->figmeshes->count; ++i) {
 		ce_figmesh* figmesh = figmng->figmeshes->items[i];
-		if (ce_complection_equal(complection, &figmesh->complection)) {
+		if (0 == ce_strcasecmp(name, figmesh->figproto->name->str) &&
+				ce_complection_equal(complection, &figmesh->complection)) {
 			return figmesh;
 		}
 	}
