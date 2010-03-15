@@ -25,7 +25,6 @@
 
 #include "cevec3.h"
 #include "cequat.h"
-#include "cemat4.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -39,38 +38,29 @@ typedef struct {
 	float far;
 	ce_vec3 eye;
 	ce_quat look;
-	ce_mat4 view;
 	bool proj_changed;
 	bool eye_changed;
 	bool look_changed;
 } ce_camera;
 
 extern ce_camera* ce_camera_new(void);
-extern void ce_camera_del(ce_camera* cam);
+extern void ce_camera_del(ce_camera* camera);
 
-extern float ce_camera_get_fov(ce_camera* cam);
-extern float ce_camera_get_aspect(ce_camera* cam);
-extern float ce_camera_get_near(ce_camera* cam);
-extern float ce_camera_get_far(ce_camera* cam);
+extern ce_vec3* ce_camera_get_forward(ce_camera* camera, ce_vec3* forward);
+extern ce_vec3* ce_camera_get_up(ce_camera* camera, ce_vec3* up);
+extern ce_vec3* ce_camera_get_right(ce_camera* camera, ce_vec3* right);
 
-extern ce_vec3* ce_camera_get_eye(ce_camera* cam, ce_vec3* eye);
-extern ce_vec3* ce_camera_get_forward(ce_camera* cam, ce_vec3* forward);
-extern ce_vec3* ce_camera_get_up(ce_camera* cam, ce_vec3* up);
-extern ce_vec3* ce_camera_get_right(ce_camera* cam, ce_vec3* right);
+extern void ce_camera_set_fov(ce_camera* camera, float fov);
+extern void ce_camera_set_aspect(ce_camera* camera, int width, int height);
+extern void ce_camera_set_near(ce_camera* camera, float near);
+extern void ce_camera_set_far(ce_camera* camera, float far);
 
-extern void ce_camera_set_fov(ce_camera* cam, float fov);
-extern void ce_camera_set_aspect(ce_camera* cam, int width, int height);
-extern void ce_camera_set_near(ce_camera* cam, float near);
-extern void ce_camera_set_far(ce_camera* cam, float far);
+extern void ce_camera_set_eye(ce_camera* camera, const ce_vec3* eye);
+extern void ce_camera_set_look(ce_camera* camera, const ce_quat* look);
 
-extern void ce_camera_set_eye(ce_camera* cam, const ce_vec3* eye);
-extern void ce_camera_set_look(ce_camera* cam, const ce_quat* look);
-
-extern void ce_camera_move(ce_camera* cam, float offset_x, float offset_z);
-extern void ce_camera_zoom(ce_camera* cam, float offset);
-extern void ce_camera_yaw_pitch(ce_camera* cam, float psi, float theta);
-
-extern void ce_camera_setup(ce_camera* cam);
+extern void ce_camera_move(ce_camera* camera, float xoffset, float zoffset);
+extern void ce_camera_zoom(ce_camera* camera, float offset);
+extern void ce_camera_yaw_pitch(ce_camera* camera, float psi, float theta);
 
 #ifdef __cplusplus
 }

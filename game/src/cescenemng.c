@@ -171,7 +171,8 @@ void ce_scenemng_render_bboxes(ce_scenenode* scenenode)
 void ce_scenemng_render(ce_scenemng* scenemng)
 {
 	glLoadIdentity();
-	ce_camera_setup(scenemng->camera);
+
+	ce_rendersystem_setup_camera(scenemng->rendersystem, scenemng->camera);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -193,15 +194,12 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	glDisable(GL_DEPTH_TEST);
 
-	ce_vec3 eye, forward, right, up;
+	ce_vec3 forward, right, up;
 	ce_frustum frustum;
 
-	ce_frustum_init(&frustum,
-		ce_camera_get_fov(scenemng->camera),
-		ce_camera_get_aspect(scenemng->camera),
-		ce_camera_get_near(scenemng->camera),
-		ce_camera_get_far(scenemng->camera),
-		ce_camera_get_eye(scenemng->camera, &eye),
+	ce_frustum_init(&frustum, scenemng->camera->fov,
+		scenemng->camera->aspect, scenemng->camera->near,
+		scenemng->camera->far, &scenemng->camera->eye,
 		ce_camera_get_forward(scenemng->camera, &forward),
 		ce_camera_get_right(scenemng->camera, &right),
 		ce_camera_get_up(scenemng->camera, &up));
@@ -210,7 +208,8 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_scenenode_update_cascade(scenemng->scenenode);
 	ce_renderqueue_add_cascade(scenemng->renderqueue,
 								scenemng->scenenode,
-								&eye, &frustum);
+								&scenemng->camera->eye,
+								&frustum);
 	ce_renderqueue_render(scenemng->renderqueue,
 							scenemng->rendersystem);
 
