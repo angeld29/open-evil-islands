@@ -33,14 +33,8 @@ ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 											void* client_data)
 {
 	ce_memfile* mem = ce_alloc(sizeof(ce_memfile));
-	if (NULL == mem) {
-		ce_logging_error("memfile: could not allocate memory");
-		return NULL;
-	}
-
 	mem->callbacks = callbacks;
 	mem->client_data = client_data;
-
 	return mem;
 }
 
@@ -51,27 +45,18 @@ ce_memfile* ce_memfile_open_file(const char* path, const char* mode)
 		ce_logging_error("memfile: could not open file '%s'", path);
 		return NULL;
 	}
-
-	ce_memfile* mem = ce_memfile_open_callbacks(CE_IO_CALLBACKS_FILE, file);
-	if (NULL == mem) {
-		fclose(file);
-		return NULL;
-	}
-
-	return mem;
+	return ce_memfile_open_callbacks(CE_IO_CALLBACKS_FILE, file);
 }
 
 void ce_memfile_close(ce_memfile* mem)
 {
-	if (NULL == mem) {
-		return;
-	}
+	if (NULL != mem) {
+		if (NULL != mem->callbacks.close) {
+			(mem->callbacks.close)(mem->client_data);
+		}
 
-	if (NULL != mem->callbacks.close) {
-		(mem->callbacks.close)(mem->client_data);
+		ce_free(mem, sizeof(ce_memfile));
 	}
-
-	ce_free(mem, sizeof(ce_memfile));
 }
 
 size_t ce_memfile_read(ce_memfile* mem, void* data, size_t size, size_t n)

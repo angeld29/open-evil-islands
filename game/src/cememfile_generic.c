@@ -24,7 +24,6 @@
 #include <assert.h>
 
 #include "celib.h"
-#include "celogging.h"
 #include "cealloc.h"
 #include "cememfile.h"
 
@@ -91,23 +90,9 @@ static const ce_io_callbacks ce_memfile_cookie_callbacks = {
 ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 {
 	ce_unused(mode);
-
-	ce_memfile_cookie* cookie = ce_alloc_zero(sizeof(ce_memfile_cookie));
-	if (NULL == cookie) {
-		ce_logging_error("memfile: could not allocate memory");
-		return NULL;
-	}
-
-	ce_memfile* mem =
-		ce_memfile_open_callbacks(ce_memfile_cookie_callbacks, cookie);
-	if (NULL == mem) {
-		ce_free(cookie, sizeof(ce_memfile_cookie));
-		return NULL;
-	}
-
+	ce_memfile_cookie* cookie = ce_alloc(sizeof(ce_memfile_cookie));
 	cookie->data = data;
 	cookie->size = size;
 	cookie->pos = 0;
-
-	return mem;
+	return ce_memfile_open_callbacks(ce_memfile_cookie_callbacks, cookie);
 }

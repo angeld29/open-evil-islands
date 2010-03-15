@@ -75,32 +75,17 @@ static const ce_io_callbacks ce_memfile_cookie_callbacks = {
 
 ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
 {
-	ce_memfile_cookie* cookie = ce_alloc_zero(sizeof(ce_memfile_cookie));
-	if (NULL == cookie) {
-		ce_logging_error("memfile: could not allocate memory");
-		return NULL;
-	}
-
-	ce_memfile* memfile =
-		ce_memfile_open_callbacks(ce_memfile_cookie_callbacks, cookie);
-	if (NULL == memfile) {
-		ce_free(cookie, sizeof(ce_memfile_cookie));
-		return NULL;
-	}
-
 	// TODO: Invalid read of size 1: NULL terminated data???
 	// strlen (mc_replace_strmem.c:275)
 	// fmemopen (fmemopen.c:246)
 	FILE* file = fmemopen(data, size, mode);
 	if (NULL == file) {
 		ce_logging_error("memfile: could not open memory file");
-		ce_memfile_close(memfile);
 		return NULL;
 	}
-
+	ce_memfile_cookie* cookie = ce_alloc(sizeof(ce_memfile_cookie));
 	cookie->data = data;
 	cookie->size = size;
 	cookie->file = file;
-
-	return memfile;
+	return ce_memfile_open_callbacks(ce_memfile_cookie_callbacks, cookie);
 }

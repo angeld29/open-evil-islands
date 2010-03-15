@@ -20,7 +20,6 @@
 
 #include <sys/time.h>
 
-#include "celogging.h"
 #include "cealloc.h"
 #include "cetimer.h"
 

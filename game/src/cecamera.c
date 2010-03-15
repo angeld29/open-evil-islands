@@ -18,17 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "celogging.h"
 #include "cealloc.h"
 #include "cecamera.h"
 
 ce_camera* ce_camera_new(void)
 {
 	ce_camera* cam = ce_alloc(sizeof(ce_camera));
-	if (NULL == cam) {
-		ce_logging_error("camera: could not allocate memory");
-		return NULL;
-	}
 	cam->fov = 60.0f;
 	cam->aspect = 1.0f;
 	cam->near = 1.0f;
