@@ -36,18 +36,18 @@ const ce_mat3 CE_MAT3_IDENTITY = {
 	}
 };
 
-ce_mat3* ce_mat3_zero(ce_mat3* r)
+ce_mat3* ce_mat3_init_zero(ce_mat3* mat)
 {
-	r->m[0] = 0.0f; r->m[1] = 0.0f; r->m[2] = 0.0f;
-	r->m[3] = 0.0f; r->m[4] = 0.0f; r->m[5] = 0.0f;
-	r->m[6] = 0.0f; r->m[7] = 0.0f; r->m[8] = 0.0f;
-	return r;
+	mat->m[0] = 0.0f; mat->m[1] = 0.0f; mat->m[2] = 0.0f;
+	mat->m[3] = 0.0f; mat->m[4] = 0.0f; mat->m[5] = 0.0f;
+	mat->m[6] = 0.0f; mat->m[7] = 0.0f; mat->m[8] = 0.0f;
+	return mat;
 }
 
-ce_mat3* ce_mat3_identity(ce_mat3* r)
+ce_mat3* ce_mat3_init_identity(ce_mat3* mat)
 {
-	r->m[0] = 1.0f; r->m[1] = 0.0f; r->m[2] = 0.0f;
-	r->m[3] = 0.0f; r->m[4] = 1.0f; r->m[5] = 0.0f;
-	r->m[6] = 0.0f; r->m[7] = 0.0f; r->m[8] = 1.0f;
-	return r;
+	mat->m[0] = 1.0f; mat->m[1] = 0.0f; mat->m[2] = 0.0f;
+	mat->m[3] = 0.0f; mat->m[4] = 1.0f; mat->m[5] = 0.0f;
+	mat->m[6] = 0.0f; mat->m[7] = 0.0f; mat->m[8] = 1.0f;
+	return mat;
 }

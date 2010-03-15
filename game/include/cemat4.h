@@ -33,12 +33,8 @@ typedef struct {
 extern const ce_mat4 CE_MAT4_ZERO;
 extern const ce_mat4 CE_MAT4_IDENTITY;
 
-extern ce_mat4* ce_mat4_zero(ce_mat4* r);
-extern ce_mat4* ce_mat4_identity(ce_mat4* r);
-
-extern ce_mat4* ce_mat4_mul(ce_mat4* restrict r, const ce_mat4* a,
-													const ce_mat4* b);
-extern ce_mat4* ce_mat4_inverse(ce_mat4* r, const ce_mat4* a);
+extern ce_mat4* ce_mat4_init_zero(ce_mat4* mat);
+extern ce_mat4* ce_mat4_init_identity(ce_mat4* mat);
 
 #ifdef __cplusplus
 }

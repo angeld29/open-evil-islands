@@ -34,7 +34,7 @@ struct ce_rendersystem {
 ce_rendersystem* ce_rendersystem_new(void)
 {
 	ce_rendersystem* rendersystem = ce_alloc(sizeof(ce_rendersystem));
-	ce_mat4_identity(&rendersystem->view);
+	rendersystem->view = CE_MAT4_IDENTITY;
 	return rendersystem;
 }
 
