@@ -41,46 +41,44 @@ ce_figrenderitem_base_init(ce_renderitem* renderitem,
 	renderitem->transparent = true;
 }
 
+// fig renderitem static (without morphs): gl's display list
+
 typedef struct {
 	GLuint id;
 	int ref_count;
-} ce_figrenderitem_cookie;
+} ce_figcookie_static;
 
-static ce_figrenderitem_cookie* ce_figrenderitem_cookie_new(void)
+static ce_figcookie_static* ce_figcookie_static_new(void)
 {
-	ce_figrenderitem_cookie* cookie =
-		ce_alloc(sizeof(ce_figrenderitem_cookie));
-
+	ce_figcookie_static* cookie = ce_alloc(sizeof(ce_figcookie_static));
 	cookie->id = glGenLists(1);
 	cookie->ref_count = 1;
-
 	if (0 == cookie->id) {
 		ce_logging_error("figrenderitem: could not generate display list");
 	}
-
 	return cookie;
 }
 
-static void ce_figrenderitem_cookie_del(ce_figrenderitem_cookie* cookie)
+static void ce_figcookie_static_del(ce_figcookie_static* cookie)
 {
 	if (NULL != cookie) {
 		assert(cookie->ref_count > 0);
 		if (0 == --cookie->ref_count) {
 			glDeleteLists(cookie->id, 1);
-			ce_free(cookie, sizeof(ce_figrenderitem_cookie));
+			ce_free(cookie, sizeof(ce_figcookie_static));
 		}
 	}
 }
 
-static ce_figrenderitem_cookie*
-ce_figrenderitem_cookie_clone(ce_figrenderitem_cookie* cookie)
+static ce_figcookie_static*
+ce_figcookie_static_add_ref(ce_figcookie_static* cookie)
 {
 	++cookie->ref_count;
 	return cookie;
 }
 
 typedef struct {
-	ce_figrenderitem_cookie* cookie;
+	ce_figcookie_static* cookie;
 } ce_figrenderitem_static;
 
 static void
@@ -94,7 +92,7 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 
 	ce_figrenderitem_base_init(renderitem, figfile, complection);
 
-	figrenderitem->cookie = ce_figrenderitem_cookie_new();
+	figrenderitem->cookie = ce_figcookie_static_new();
 
 	glNewList(figrenderitem->cookie->id, GL_COMPILE);
 
@@ -135,7 +133,7 @@ static void ce_figrenderitem_static_dtor(ce_renderitem* renderitem)
 	ce_figrenderitem_static* figrenderitem =
 		(ce_figrenderitem_static*)renderitem->impl;
 
-	ce_figrenderitem_cookie_del(figrenderitem->cookie);
+	ce_figcookie_static_del(figrenderitem->cookie);
 }
 
 static void ce_figrenderitem_static_render(ce_renderitem* renderitem)
@@ -151,32 +149,62 @@ static void ce_figrenderitem_static_clone(const ce_renderitem* renderitem,
 {
 	const ce_figrenderitem_static* figrenderitem =
 		(const ce_figrenderitem_static*)renderitem->impl;
-
 	ce_figrenderitem_static* clone_figrenderitem =
 		(ce_figrenderitem_static*)clone_renderitem->impl;
 
 	clone_figrenderitem->cookie =
-		ce_figrenderitem_cookie_clone(figrenderitem->cookie);
+		ce_figcookie_static_add_ref(figrenderitem->cookie);
 }
+
+// fig renderitem dynamic (with morphs): gl's vertex array
+// TODO: try vertex buffer object
 
 typedef struct {
 	int vertex_count;
-	float* initial_vertices;
-	float* morphed_vertices;
+	int ref_count;
+	float* vertices;
 	float* normals;
 	float* texcoords;
-} ce_figrenderitem_dynamic;
+} ce_figcookie_dynamic;
 
-static void
-ce_figrenderitem_dynamic_init(ce_figrenderitem_dynamic* figrenderitem,
-													int vertex_count)
+static ce_figcookie_dynamic* ce_figcookie_dynamic_new(int vertex_count)
 {
-	figrenderitem->vertex_count = vertex_count;
-	figrenderitem->initial_vertices = ce_alloc(sizeof(float) * 3 * vertex_count);
-	figrenderitem->morphed_vertices = ce_alloc(sizeof(float) * 3 * vertex_count);
-	figrenderitem->normals = ce_alloc(sizeof(float) * 3 * vertex_count);
-	figrenderitem->texcoords = ce_alloc(sizeof(float) * 2 * vertex_count);
+	ce_figcookie_dynamic* cookie = ce_alloc(sizeof(ce_figcookie_dynamic));
+	cookie->vertex_count = vertex_count;
+	cookie->ref_count = 1;
+	cookie->vertices = ce_alloc(sizeof(float) * 3 * vertex_count);
+	cookie->normals = ce_alloc(sizeof(float) * 3 * vertex_count);
+	cookie->texcoords = ce_alloc(sizeof(float) * 2 * vertex_count);
+	return cookie;
 }
+
+static void ce_figcookie_dynamic_del(ce_figcookie_dynamic* cookie)
+{
+	if (NULL != cookie) {
+		assert(cookie->ref_count > 0);
+		if (0 == --cookie->ref_count) {
+			ce_free(cookie->texcoords,
+					sizeof(float) * 2 * cookie->vertex_count);
+			ce_free(cookie->normals,
+					sizeof(float) * 3 * cookie->vertex_count);
+			ce_free(cookie->vertices,
+					sizeof(float) * 3 * cookie->vertex_count);
+			ce_free(cookie, sizeof(ce_figcookie_dynamic));
+		}
+	}
+}
+
+static ce_figcookie_dynamic*
+ce_figcookie_dynamic_add_ref(ce_figcookie_dynamic* cookie)
+{
+	++cookie->ref_count;
+	return cookie;
+}
+
+typedef struct {
+	ce_figcookie_dynamic* cookie;
+	float* vertices; // copy of initial vertices to store a morphing result
+} ce_figrenderitem_dynamic;
 
 static void
 ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
@@ -188,7 +216,9 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 	const ce_complection* complection = va_arg(args, const ce_complection*);
 
 	ce_figrenderitem_base_init(renderitem, figfile, complection);
-	ce_figrenderitem_dynamic_init(figrenderitem, figfile->index_count);
+
+	figrenderitem->cookie = ce_figcookie_dynamic_new(figfile->index_count);
+	figrenderitem->vertices = ce_alloc(sizeof(float) * 3 * figfile->index_count);
 
 	for (int i = 0, n = figfile->index_count; i < n; ++i) {
 		int index = figfile->indices[i];
@@ -196,21 +226,21 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 		int normal_index = figfile->spec_components[3 * index + 1];
 		int texcoord_index = figfile->spec_components[3 * index + 2];
 
-		ce_fighlp_get_vertex(figrenderitem->initial_vertices + 3 * i,
-							figfile, vertex_index, complection);
+		ce_fighlp_get_vertex(figrenderitem->cookie->vertices + 3 * i,
+								figfile, vertex_index, complection);
 
-		ce_fighlp_get_normal(figrenderitem->normals + 3 * i,
-							figfile, normal_index);
+		ce_fighlp_get_normal(figrenderitem->cookie->normals + 3 * i,
+								figfile, normal_index);
 
-		figrenderitem->texcoords[2 * i + 0] =
+		figrenderitem->cookie->texcoords[2 * i + 0] =
 			figfile->texcoords[2 * texcoord_index + 0];
-		figrenderitem->texcoords[2 * i + 1] =
+		figrenderitem->cookie->texcoords[2 * i + 1] =
 			figfile->texcoords[2 * texcoord_index + 1];
 	}
 
-	memcpy(figrenderitem->morphed_vertices,
-			figrenderitem->initial_vertices,
-			sizeof(float) * 3 * figrenderitem->vertex_count);
+	memcpy(figrenderitem->vertices,
+			figrenderitem->cookie->vertices,
+			sizeof(float) * 3 * figfile->index_count);
 }
 
 static void ce_figrenderitem_dynamic_dtor(ce_renderitem* renderitem)
@@ -218,14 +248,9 @@ static void ce_figrenderitem_dynamic_dtor(ce_renderitem* renderitem)
 	ce_figrenderitem_dynamic* figrenderitem =
 		(ce_figrenderitem_dynamic*)renderitem->impl;
 
-	ce_free(figrenderitem->texcoords,
-			sizeof(float) * 2 * figrenderitem->vertex_count);
-	ce_free(figrenderitem->normals,
-			sizeof(float) * 3 * figrenderitem->vertex_count);
-	ce_free(figrenderitem->morphed_vertices,
-			sizeof(float) * 3 * figrenderitem->vertex_count);
-	ce_free(figrenderitem->initial_vertices,
-			sizeof(float) * 3 * figrenderitem->vertex_count);
+	ce_free(figrenderitem->vertices,
+			sizeof(float) * 3 * figrenderitem->cookie->vertex_count);
+	ce_figcookie_dynamic_del(figrenderitem->cookie);
 }
 
 static void
@@ -238,20 +263,22 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 	const ce_anmstate* anmstate = va_arg(args, const ce_anmstate*);
 
 	if (NULL == anmstate->anmfile) {
-		memcpy(figrenderitem->morphed_vertices,
-				figrenderitem->initial_vertices,
-				sizeof(float) * 3 * figrenderitem->vertex_count);
+		// initial state
+		memcpy(figrenderitem->vertices,
+				figrenderitem->cookie->vertices,
+				sizeof(float) * 3 * figrenderitem->cookie->vertex_count);
 		ce_aabb_clear(&renderitem->aabb);
-		for (int i = 0; i < figrenderitem->vertex_count; ++i) {
+		for (int i = 0; i < figrenderitem->cookie->vertex_count; ++i) {
 			ce_aabb_merge_point_array(&renderitem->aabb,
-				figrenderitem->morphed_vertices + 3 * i);
+				figrenderitem->vertices + 3 * i);
 		}
 		ce_aabb_update_radius(&renderitem->aabb);
 		return;
 	}
 
+	// FIXME: test unmori - may be set initial state???
 	if (NULL == anmstate->anmfile->morphs) {
-		// hmm... some animations haven't morphs on the same node...
+		// hmmm... some animations haven't morphs on the same item...
 		return;
 	}
 
@@ -270,14 +297,14 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 		int morph_index = figfile->morph_components[2 * vertex_index];
 
 		for (int j = 0; j < 3; ++j) {
-			figrenderitem->morphed_vertices[3 * i + j] =
-				figrenderitem->initial_vertices[3 * i + j] +
+			figrenderitem->vertices[3 * i + j] =
+				figrenderitem->cookie->vertices[3 * i + j] +
 					ce_lerp(anmstate->coef, prev_morphs[3 * morph_index + j],
 											next_morphs[3 * morph_index + j]);
 		}
 
 		ce_aabb_merge_point_array(&renderitem->aabb,
-			figrenderitem->morphed_vertices + 3 * i);
+			figrenderitem->vertices + 3 * i);
 	}
 
 	ce_aabb_update_radius(&renderitem->aabb);
@@ -304,11 +331,11 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	glVertexPointer(3, GL_FLOAT, 0, figrenderitem->morphed_vertices);
-	glNormalPointer(GL_FLOAT, 0, figrenderitem->normals);
-	glTexCoordPointer(2, GL_FLOAT, 0, figrenderitem->texcoords);
+	glVertexPointer(3, GL_FLOAT, 0, figrenderitem->vertices);
+	glNormalPointer(GL_FLOAT, 0, figrenderitem->cookie->normals);
+	glTexCoordPointer(2, GL_FLOAT, 0, figrenderitem->cookie->texcoords);
 
-	glDrawArrays(GL_TRIANGLES, 0, figrenderitem->vertex_count);
+	glDrawArrays(GL_TRIANGLES, 0, figrenderitem->cookie->vertex_count);
 
 	glPopClientAttrib();
 	glPopAttrib();
@@ -319,23 +346,17 @@ static void ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,
 {
 	const ce_figrenderitem_dynamic* figrenderitem =
 		(const ce_figrenderitem_dynamic*)renderitem->impl;
-
 	ce_figrenderitem_dynamic* clone_figrenderitem =
 		(ce_figrenderitem_dynamic*)clone_renderitem->impl;
 
-	ce_figrenderitem_dynamic_init(clone_figrenderitem,
-									figrenderitem->vertex_count);
+	clone_figrenderitem->cookie =
+		ce_figcookie_dynamic_add_ref(figrenderitem->cookie);
+	clone_figrenderitem->vertices =
+		ce_alloc(sizeof(float) * 3 * figrenderitem->cookie->vertex_count);
 
-	memcpy(clone_figrenderitem->initial_vertices,
-			figrenderitem->initial_vertices,
-			sizeof(float) * 3 * figrenderitem->vertex_count);
-	memcpy(clone_figrenderitem->morphed_vertices,
-			figrenderitem->morphed_vertices,
-			sizeof(float) * 3 * figrenderitem->vertex_count);
-	memcpy(clone_figrenderitem->normals, figrenderitem->normals,
-			sizeof(float) * 3 * figrenderitem->vertex_count);
-	memcpy(clone_figrenderitem->texcoords, figrenderitem->texcoords,
-			sizeof(float) * 2 * figrenderitem->vertex_count);
+	memcpy(clone_figrenderitem->vertices,
+			figrenderitem->vertices,
+			sizeof(float) * 3 * figrenderitem->cookie->vertex_count);
 }
 
 static const ce_renderitem_vtable ce_figrenderitem_vtables[] = {
