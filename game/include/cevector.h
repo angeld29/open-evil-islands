@@ -36,20 +36,20 @@ typedef struct {
 
 extern ce_vector* ce_vector_new(void);
 extern ce_vector* ce_vector_new_reserved(int capacity);
-extern void ce_vector_del(ce_vector* vec);
+extern void ce_vector_del(ce_vector* vector);
 
-extern void ce_vector_reserve(ce_vector* vec, int capacity);
+extern void ce_vector_reserve(ce_vector* vector, int capacity);
 
-extern bool ce_vector_empty(const ce_vector* vec);
-extern void* ce_vector_back(const ce_vector* vec);
+extern bool ce_vector_empty(const ce_vector* vector);
+extern void* ce_vector_back(const ce_vector* vector);
 
-extern void ce_vector_push_back(ce_vector* vec, void* item);
-extern void* ce_vector_pop_back(ce_vector* vec);
+extern void ce_vector_push_back(ce_vector* vector, void* item);
+extern void* ce_vector_pop_back(ce_vector* vector);
 
-extern void ce_vector_remove(ce_vector* vec, int index);
-extern void ce_vector_remove_unordered(ce_vector* vec, int index);
+extern void ce_vector_remove(ce_vector* vector, int index);
+extern void ce_vector_remove_unordered(ce_vector* vector, int index);
 
-extern void ce_vector_clear(ce_vector* vec);
+extern void ce_vector_clear(ce_vector* vector);
 
 #ifdef __cplusplus
 }
