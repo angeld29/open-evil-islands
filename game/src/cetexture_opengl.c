@@ -144,7 +144,7 @@ static bool generate_texture(int mipmap_count, GLenum internal_format, int width
 	bool ok = true;
 	uint8_t* src = data;
 
-	// Most EI's textures of width divisible by 4 (GL's default row alignment).
+	// most EI's textures of width divisible by 4 (GL's default row alignment)
 	const bool not_aligned = 0 != width % 4;
 
 	if (not_aligned) {
@@ -279,7 +279,7 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 						((height + 3) >> 2) * (CE_MMP_DXT1 == format ? 8 : 16);
 
 		glCompressedTexImage2D(GL_TEXTURE_2D, i, CE_MMP_DXT1 == format ?
-			CE_GL_COMPRESSED_RGB_S3TC_DXT1 : CE_GL_COMPRESSED_RGBA_S3TC_DXT3,
+			CE_GL_COMPRESSED_RGBA_S3TC_DXT1 : CE_GL_COMPRESSED_RGBA_S3TC_DXT3,
 			width, height, 0, data_size, src);
 
 		if (ce_gl_report_errors()) {

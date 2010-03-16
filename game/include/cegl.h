@@ -42,7 +42,7 @@ typedef enum {
 	CE_GL_FEATURE_COUNT
 } ce_gl_feature;
 
-extern const GLenum CE_GL_COMPRESSED_RGB_S3TC_DXT1;
+extern const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT1;
 extern const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT3;
 extern const GLenum CE_GL_TEXTURE_MAX_LEVEL;
 extern const GLenum CE_GL_CLAMP_TO_EDGE;
