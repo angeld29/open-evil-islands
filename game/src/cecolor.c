@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "cemath.h"
 #include "cecolor.h"
 
 const ce_color CE_COLOR_BLACK = { .r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 1.0f };
@@ -95,5 +96,15 @@ ce_color* ce_color_copy(ce_color* color, const ce_color* other)
 	color->g = other->g;
 	color->b = other->b;
 	color->a = other->a;
+	return color;
+}
+
+ce_color* ce_color_lerp(ce_color* color, float u, const ce_color* lhs,
+													const ce_color* rhs)
+{
+	color->r = ce_lerp(u, lhs->r, rhs->r);
+	color->g = ce_lerp(u, lhs->g, rhs->g);
+	color->b = ce_lerp(u, lhs->b, rhs->b);
+	color->a = ce_lerp(u, lhs->a, rhs->a);
 	return color;
 }

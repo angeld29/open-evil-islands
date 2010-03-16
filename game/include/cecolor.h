@@ -48,6 +48,9 @@ extern ce_color* ce_color_init_blue(ce_color* color);
 
 extern ce_color* ce_color_copy(ce_color* color, const ce_color* other);
 
+extern ce_color* ce_color_lerp(ce_color* color, float u, const ce_color* lhs,
+														const ce_color* rhs);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
