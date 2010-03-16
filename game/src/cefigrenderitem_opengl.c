@@ -262,7 +262,7 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 	const ce_figfile* figfile = va_arg(args, const ce_figfile*);
 	const ce_anmstate* anmstate = va_arg(args, const ce_anmstate*);
 
-	if (NULL == anmstate->anmfile) {
+	if (NULL == anmstate->anmfile || NULL == anmstate->anmfile->morphs) {
 		// initial state
 		memcpy(figrenderitem->vertices,
 				figrenderitem->cookie->vertices,
@@ -273,12 +273,6 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 				figrenderitem->vertices + 3 * i);
 		}
 		ce_aabb_update_radius(&renderitem->aabb);
-		return;
-	}
-
-	// FIXME: test unmori - may be set initial state???
-	if (NULL == anmstate->anmfile->morphs) {
-		// hmmm... some animations haven't morphs on the same item...
 		return;
 	}
 
