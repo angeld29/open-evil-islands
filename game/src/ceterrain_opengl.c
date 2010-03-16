@@ -238,7 +238,7 @@ static void ce_terrain_create_sector(ce_terrain* terrain,
 	ce_scenenode* scenenode = ce_scenenode_new(terrain->scenenode);
 	scenenode->renderlayer = ce_renderlayer_new();
 
-	scenenode->renderlayer->texture = ce_texture_copy(terrain->stub_texture);
+	scenenode->renderlayer->texture = ce_texture_add_ref(terrain->stub_texture);
 	scenenode->renderlayer->renderitem =
 		ce_renderitem_new(ce_terrain_renderitem_vtable,
 						sizeof(ce_terrain_renderitem),

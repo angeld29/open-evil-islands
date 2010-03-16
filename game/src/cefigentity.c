@@ -47,6 +47,7 @@ static bool ce_figentity_create_scenenodes(ce_fignode* fignode,
 	if (NULL == child->renderlayer->texture) {
 		return false;
 	}
+	ce_texture_add_ref(child->renderlayer->texture);
 
 	for (int i = 0; i < fignode->childs->count; ++i) {
 		if (!ce_figentity_create_scenenodes(fignode->childs->items[i],

@@ -45,6 +45,7 @@ static bool ce_terrain_create(ce_terrain* terrain,
 			ce_texmng_get_texture(ce_root_get_texmng(), "default0"))) {
 		return false;
 	}
+	ce_texture_add_ref(terrain->stub_texture);
 
 	// mpr name + nnn
 	char texture_name[terrain->mprfile->name->length + 3 + 1];
@@ -59,7 +60,7 @@ static bool ce_terrain_create(ce_terrain* terrain,
 			return false;
 		}
 
-		ce_vector_push_back(terrain->textures, texture);
+		ce_vector_push_back(terrain->textures, ce_texture_add_ref(texture));
 	}
 
 	if (NULL == (terrain->scenenode = ce_scenenode_new(parent_scenenode))) {

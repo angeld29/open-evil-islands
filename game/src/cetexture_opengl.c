@@ -644,7 +644,7 @@ void ce_texture_unbind(ce_texture* texture)
 	glDisable(GL_TEXTURE_2D);
 }
 
-ce_texture* ce_texture_copy(ce_texture* texture)
+ce_texture* ce_texture_add_ref(ce_texture* texture)
 {
 	++texture->ref_count;
 	return texture;

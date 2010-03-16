@@ -69,7 +69,7 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name)
 	for (int i = 0; i < texmng->textures->count; ++i) {
 		ce_texture* texture = texmng->textures->items[i];
 		if (0 == ce_strcasecmp(name, ce_texture_get_name(texture))) {
-			return ce_texture_copy(texture);
+			return texture;
 		}
 	}
 
@@ -93,27 +93,10 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name)
 			}
 
 			ce_vector_push_back(texmng->textures, texture);
-			return ce_texture_copy(texture);
+			return texture;
 		}
 	}
 
 	ce_logging_error("texmng: could not find texture: '%s'", name);
 	return NULL;
 }
-
-/*void ce_texmng_release_texture(ce_texmng* texmng, ce_texture* texture)
-{
-	for (int i = 0, n = ce_vector_count(texmng->textures); i < n; ++i) {
-		if (ce_vector_at(texmng->textures, i) == texture) {
-			ce_texture_dec_ref(texture);
-			if (1 == ce_texture_get_ref_count(texture)) {
-				ce_texture_del(texture);
-				ce_vector_replace(texmng->textures, i,
-								ce_vector_back(texmng->textures));
-				ce_vector_pop_back(texmng->textures);
-			}
-			return;
-		}
-	}
-	assert(false);
-}*/
