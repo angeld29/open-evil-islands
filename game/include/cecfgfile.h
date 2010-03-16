@@ -32,12 +32,12 @@ extern "C"
 typedef struct {
 	ce_string* name;
 	ce_string* value;
-} ce_cfgfile_option;
+} ce_cfgoption;
 
 typedef struct {
 	ce_string* name;
 	ce_vector* options;
-} ce_cfgfile_section;
+} ce_cfgsection;
 
 typedef struct {
 	ce_vector* sections;
