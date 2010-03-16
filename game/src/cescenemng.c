@@ -28,6 +28,8 @@
 #undef far
 #endif
 
+#include "cegl.h"
+
 #include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
@@ -253,4 +255,6 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_font_render(scenemng->font,
 		width - ce_font_get_width(scenemng->font, engine_text) - 10, 10,
 		&CE_COLOR_RED, engine_text);
+
+	ce_gl_report_errors();
 }
