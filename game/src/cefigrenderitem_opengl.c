@@ -41,7 +41,7 @@ ce_figrenderitem_base_init(ce_renderitem* renderitem,
 	renderitem->transparent = true;
 }
 
-// fig renderitem static (without morphs): gl's display list
+// fig renderitem static (without morphs): GL's display list
 
 typedef struct {
 	GLuint id;
@@ -157,7 +157,7 @@ static void ce_figrenderitem_static_clone(const ce_renderitem* renderitem,
 		ce_figcookie_static_add_ref(figrenderitem->cookie);
 }
 
-// fig renderitem dynamic (with morphs): gl's vertex array
+// fig renderitem dynamic (with morphs): GL's vertex array
 // TODO: try vertex buffer object
 
 typedef struct {
