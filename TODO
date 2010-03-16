@@ -8,3 +8,4 @@ Cursed Earth TODO
    * animation system refactoring
    * fig scenenode hierarchy/rendering refactoring
    * use lightcfg in engine
+   * terrain refactoring: mprrenderitem
