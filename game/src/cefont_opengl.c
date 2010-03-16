@@ -64,7 +64,7 @@ int ce_font_get_width(ce_font* font, const char* text)
 void ce_font_render(ce_font* font, int x, int y,
 					const ce_color* color, const char* text)
 {
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glPushAttrib(GL_CURRENT_BIT);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();

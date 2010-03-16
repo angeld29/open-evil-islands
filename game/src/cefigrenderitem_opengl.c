@@ -98,7 +98,8 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 
 	glNewList(figrenderitem->cookie->id, GL_COMPILE);
 
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT |
+				GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -113,7 +114,6 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 	glBegin(GL_TRIANGLES);
 	for (int i = 0, n = figfile->index_count; i < n; ++i) {
 		int index = figfile->indices[i];
-
 		int vertex_index = figfile->spec_components[3 * index + 0];
 		int normal_index = figfile->spec_components[3 * index + 1];
 		int texcoord_index = figfile->spec_components[3 * index + 2];
@@ -288,7 +288,8 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	ce_figrenderitem_dynamic* figrenderitem =
 		(ce_figrenderitem_dynamic*)renderitem->impl;
 
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT |
+				GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
 	glEnable(GL_DEPTH_TEST);

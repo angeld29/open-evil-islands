@@ -35,6 +35,9 @@ typedef struct {
 
 static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 {
+	ce_terrain_renderitem* terrain_renderitem =
+		(ce_terrain_renderitem*)renderitem->impl;
+
 	ce_terrain* terrain = va_arg(args, ce_terrain*);
 	int sector_x = va_arg(args, int);
 	int sector_z = va_arg(args, int);
@@ -99,13 +102,11 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 		{ 6, 7, 5, 8, 4, 3 }
 	};
 
-	ce_terrain_renderitem* terrain_renderitem =
-		(ce_terrain_renderitem*)renderitem->impl;
-	terrain_renderitem->id = glGenLists(1);
+	glNewList(terrain_renderitem->id = glGenLists(1), GL_COMPILE);
 
-	glNewList(terrain_renderitem->id, GL_COMPILE);
-
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT |
+				GL_LIGHTING_BIT | GL_TEXTURE_BIT |
+				(NULL != water_allow ? GL_COLOR_BUFFER_BIT : 0));
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -208,6 +209,7 @@ static void ce_terrain_renderitem_dtor(ce_renderitem* renderitem)
 {
 	ce_terrain_renderitem* terrain_renderitem =
 		(ce_terrain_renderitem*)renderitem->impl;
+
 	glDeleteLists(terrain_renderitem->id, 1);
 }
 
@@ -215,6 +217,7 @@ static void ce_terrain_renderitem_render(ce_renderitem* renderitem)
 {
 	ce_terrain_renderitem* terrain_renderitem =
 		(ce_terrain_renderitem*)renderitem->impl;
+
 	glCallList(terrain_renderitem->id);
 }
 

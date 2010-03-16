@@ -75,7 +75,7 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 void ce_scenemng_render_bboxes(ce_scenenode* scenenode)
 {
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
 
 	glEnable(GL_DEPTH_TEST);
 
