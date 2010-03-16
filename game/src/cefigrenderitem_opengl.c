@@ -101,6 +101,7 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_LIGHTING);
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
@@ -315,6 +316,7 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_LIGHTING);
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
