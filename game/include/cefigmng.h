@@ -34,7 +34,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_vector* resources;
+	ce_vector* resfiles;
 	ce_vector* figprotos;
 	ce_vector* figmeshes;
 } ce_figmng;

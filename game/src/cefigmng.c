@@ -33,7 +33,7 @@
 ce_figmng* ce_figmng_new(void)
 {
 	ce_figmng* figmng = ce_alloc(sizeof(ce_figmng));
-	figmng->resources = ce_vector_new();
+	figmng->resfiles = ce_vector_new();
 	figmng->figprotos = ce_vector_new();
 	figmng->figmeshes = ce_vector_new();
 	return figmng;
@@ -45,15 +45,15 @@ void ce_figmng_del(ce_figmng* figmng)
 		for (int i = 0; i < figmng->figmeshes->count; ++i) {
 			ce_figmesh_del(figmng->figmeshes->items[i]);
 		}
-		ce_vector_del(figmng->figmeshes);
 		for (int i = 0; i < figmng->figprotos->count; ++i) {
 			ce_figproto_del(figmng->figprotos->items[i]);
 		}
-		ce_vector_del(figmng->figprotos);
-		for (int i = 0; i < figmng->resources->count; ++i) {
-			ce_resfile_close(figmng->resources->items[i]);
+		for (int i = 0; i < figmng->resfiles->count; ++i) {
+			ce_resfile_close(figmng->resfiles->items[i]);
 		}
-		ce_vector_del(figmng->resources);
+		ce_vector_del(figmng->figmeshes);
+		ce_vector_del(figmng->figprotos);
+		ce_vector_del(figmng->resfiles);
 		ce_free(figmng, sizeof(ce_figmng));
 	}
 }
@@ -66,7 +66,7 @@ bool ce_figmng_register_resource(ce_figmng* figmng, const char* path)
 		return false;
 	}
 
-	ce_vector_push_back(figmng->resources, resfile);
+	ce_vector_push_back(figmng->resfiles, resfile);
 	ce_logging_write("figmng: loading '%s'... ok", path);
 	return true;
 }
@@ -84,8 +84,8 @@ static ce_figproto* ce_figmng_get_figproto(ce_figmng* figmng, const char* name)
 	char file_name[strlen(name) + 4 + 1];
 	snprintf(file_name, sizeof(file_name), "%s.mod", name);
 
-	for (int i = 0; i < figmng->resources->count; ++i) {
-		ce_resfile* resfile = figmng->resources->items[i];
+	for (int i = 0; i < figmng->resfiles->count; ++i) {
+		ce_resfile* resfile = figmng->resfiles->items[i];
 		if (-1 != ce_resfile_node_index(resfile, file_name)) {
 			ce_figproto* figproto = ce_figproto_new(name, resfile);
 			if (NULL != figproto) {

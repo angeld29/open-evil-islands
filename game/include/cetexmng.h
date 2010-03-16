@@ -32,7 +32,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_vector* resources;
+	ce_vector* resfiles;
 	ce_vector* textures;
 } ce_texmng;
 

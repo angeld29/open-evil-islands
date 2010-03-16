@@ -31,7 +31,7 @@
 ce_texmng* ce_texmng_new(void)
 {
 	ce_texmng* texmng = ce_alloc_zero(sizeof(ce_texmng));
-	texmng->resources = ce_vector_new();
+	texmng->resfiles = ce_vector_new();
 	texmng->textures = ce_vector_new();
 	return texmng;
 }
@@ -42,11 +42,11 @@ void ce_texmng_del(ce_texmng* texmng)
 		for (int i = 0; i < texmng->textures->count; ++i) {
 			ce_texture_del(texmng->textures->items[i]);
 		}
-		for (int i = 0; i < texmng->resources->count; ++i) {
-			ce_resfile_close(texmng->resources->items[i]);
+		for (int i = 0; i < texmng->resfiles->count; ++i) {
+			ce_resfile_close(texmng->resfiles->items[i]);
 		}
 		ce_vector_del(texmng->textures);
-		ce_vector_del(texmng->resources);
+		ce_vector_del(texmng->resfiles);
 		ce_free(texmng, sizeof(ce_texmng));
 	}
 }
@@ -59,7 +59,7 @@ bool ce_texmng_register_resource(ce_texmng* texmng, const char* path)
 		return false;
 	}
 
-	ce_vector_push_back(texmng->resources, resfile);
+	ce_vector_push_back(texmng->resfiles, resfile);
 	ce_logging_write("texmng: loading '%s'... ok", path);
 	return true;
 }
@@ -76,8 +76,8 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name)
 	char path[strlen(name) + 4 + 1];
 	snprintf(path, sizeof(path), "%s.mmp", name);
 
-	for (int i = 0; i < texmng->resources->count; ++i) {
-		ce_resfile* resfile = texmng->resources->items[i];
+	for (int i = 0; i < texmng->resfiles->count; ++i) {
+		ce_resfile* resfile = texmng->resfiles->items[i];
 		int index = ce_resfile_node_index(resfile, path);
 		if (-1 != index) {
 			void* data = ce_resfile_extract_data(resfile, index);
