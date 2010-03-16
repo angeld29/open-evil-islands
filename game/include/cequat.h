@@ -63,12 +63,12 @@ extern float ce_quat_len2(const ce_quat* quat);
 
 extern float ce_quat_arg(const ce_quat* quat);
 
-extern ce_quat* ce_quat_normalise(ce_quat* quat, const ce_quat* other);
-extern ce_quat* ce_quat_inverse(ce_quat* quat, const ce_quat* other);
+extern ce_quat* ce_quat_norm(ce_quat* quat, const ce_quat* other);
+extern ce_quat* ce_quat_inv(ce_quat* quat, const ce_quat* other);
 
 extern float ce_quat_dot(const ce_quat* lhs, const ce_quat* rhs);
 
-extern float ce_quat_to_angle_axis(const ce_quat* quat, ce_vec3* axis);
+extern float ce_quat_to_polar(const ce_quat* quat, ce_vec3* axis);
 extern void ce_quat_to_axes(const ce_quat* quat, ce_vec3* xaxis,
 												ce_vec3* yaxis,
 												ce_vec3* zaxis);

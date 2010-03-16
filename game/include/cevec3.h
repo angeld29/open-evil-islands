@@ -77,7 +77,7 @@ extern float ce_vec3_len2(const ce_vec3* vec);
 extern float ce_vec3_dist(const ce_vec3* lhs, const ce_vec3* rhs);
 extern float ce_vec3_dist2(const ce_vec3* lhs, const ce_vec3* rhs);
 
-extern ce_vec3* ce_vec3_normalise(ce_vec3* vec, const ce_vec3* other);
+extern ce_vec3* ce_vec3_norm(ce_vec3* vec, const ce_vec3* other);
 
 extern float ce_vec3_dot(const ce_vec3* lhs, const ce_vec3* rhs);
 extern float ce_vec3_absdot(const ce_vec3* lhs, const ce_vec3* rhs);

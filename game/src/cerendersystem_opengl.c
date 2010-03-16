@@ -181,19 +181,12 @@ void ce_rendersystem_apply_transform(ce_rendersystem* rendersystem,
 {
 	ce_unused(rendersystem);
 
+	ce_vec3 axis;
+	float angle = ce_quat_to_polar(rotation, &axis);
+
 	glPushMatrix();
-
-	glTranslatef(translation->x,
-				translation->y,
-				translation->z);
-
-	ce_vec3 rotation_axis;
-	float angle = ce_quat_to_angle_axis(rotation, &rotation_axis);
-
-	glRotatef(ce_rad2deg(angle),
-				rotation_axis.x,
-				rotation_axis.y,
-				rotation_axis.z);
+	glTranslatef(translation->x, translation->y, translation->z);
+	glRotatef(ce_rad2deg(angle), axis.x, axis.y, axis.z);
 }
 
 void ce_rendersystem_discard_transform(ce_rendersystem* rendersystem)

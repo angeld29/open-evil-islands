@@ -159,19 +159,15 @@ float ce_quat_arg(const ce_quat* quat)
 	return 0.0f == s ? 0.0f : acosf(quat->w / s);
 }
 
-ce_quat* ce_quat_normalise(ce_quat* quat, const ce_quat* other)
+ce_quat* ce_quat_norm(ce_quat* quat, const ce_quat* other)
 {
 	return ce_quat_scale(quat, 1.0f / ce_quat_len(other), other);
 }
 
-ce_quat* ce_quat_inverse(ce_quat* quat, const ce_quat* other)
+ce_quat* ce_quat_inv(ce_quat* quat, const ce_quat* other)
 {
-	float s = 1.0f / ce_quat_len2(other);
-	quat->w = s * other->w;
-	quat->x = -s * other->x;
-	quat->y = -s * other->y;
-	quat->z = -s * other->z;
-	return quat;
+	return ce_quat_conj(quat,
+			ce_quat_scale(quat, 1.0f / ce_quat_len2(other), other));
 }
 
 float ce_quat_dot(const ce_quat* lhs, const ce_quat* rhs)
@@ -180,7 +176,7 @@ float ce_quat_dot(const ce_quat* lhs, const ce_quat* rhs)
 			lhs->y * rhs->y + lhs->z * rhs->z;
 }
 
-float ce_quat_to_angle_axis(const ce_quat* quat, ce_vec3* axis)
+float ce_quat_to_polar(const ce_quat* quat, ce_vec3* axis)
 {
 	float angle;
 	float sqr_length = quat->x * quat->x + quat->y * quat->y + quat->z * quat->z;
@@ -255,7 +251,7 @@ ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs,
 	// quaternions are very close
 	// linear interpolation
 	// taking the complement requires renormalisation
-	return ce_quat_normalise(quat,
+	return ce_quat_norm(quat,
 		ce_quat_add(quat,
 			ce_quat_scale(&ta, 1.0f - u, lhs),
 			ce_quat_scale(&tb, u, &tb)));

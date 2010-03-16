@@ -46,7 +46,7 @@ ce_plane* ce_plane_init_tri(ce_plane* plane, const ce_vec3* a,
 	ce_vec3_sub(&e1, b, a);
 	ce_vec3_sub(&e2, c, a);
 	ce_vec3_cross(&plane->n, &e1, &e2);
-	ce_vec3_normalise(&plane->n, &plane->n);
+	ce_vec3_norm(&plane->n, &plane->n);
 	plane->d = -ce_vec3_dot(&plane->n, a);
 	return plane;
 }

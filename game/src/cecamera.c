@@ -109,8 +109,8 @@ void ce_camera_move(ce_camera* camera, float offset_x, float offset_z)
 	forward.y = 0.0f;
 	right.y = 0.0f;
 
-	ce_vec3_normalise(&forward, &forward);
-	ce_vec3_normalise(&right, &right);
+	ce_vec3_norm(&forward, &forward);
+	ce_vec3_norm(&right, &right);
 
 	ce_vec3_scale(&forward, offset_z, &forward);
 	ce_vec3_scale(&right, offset_x, &right);

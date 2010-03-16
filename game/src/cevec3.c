@@ -199,7 +199,7 @@ float ce_vec3_dist2(const ce_vec3* lhs, const ce_vec3* rhs)
 	return ce_vec3_len2(ce_vec3_sub(&tmp, rhs, lhs));
 }
 
-ce_vec3* ce_vec3_normalise(ce_vec3* vec, const ce_vec3* other)
+ce_vec3* ce_vec3_norm(ce_vec3* vec, const ce_vec3* other)
 {
 	return ce_vec3_scale(vec, 1.0f / ce_vec3_len(other), other);
 }

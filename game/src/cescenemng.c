@@ -157,7 +157,7 @@ void ce_scenemng_render_bboxes(ce_scenenode* scenenode)
 	float yscale = ce_vec3_len(&v);
 	ce_vec3_scale(&v, scenenode->world_bbox.aabb.extents.z, &zaxis);
 	float zscale = ce_vec3_len(&v);
-	float angle = ce_quat_to_angle_axis(&scenenode->world_bbox.axis, &v);
+	float angle = ce_quat_to_polar(&scenenode->world_bbox.axis, &v);
 	glRotatef(ce_rad2deg(angle), v.x, v.y, v.z);
 	glScalef(xscale, yscale, zscale);
 	glColor3f(0.0f, 0.0f, 1.0f);
