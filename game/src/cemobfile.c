@@ -546,7 +546,7 @@ static ce_mobfile* ce_mobfile_open_memfile(ce_memfile* mem)
 
 ce_mobfile* ce_mobfile_open(const char* path)
 {
-	ce_memfile* mem = ce_memfile_open_file(path, "rb");
+	ce_memfile* mem = ce_memfile_open_file(path);
 	if (NULL == mem) {
 		return NULL;
 	}

@@ -285,7 +285,7 @@ ce_figfile* ce_figfile_open_resfile(ce_resfile* resfile, const char* name)
 
 ce_figfile* ce_figfile_open_file(const char* path)
 {
-	ce_memfile* memfile = ce_memfile_open_file(path, "rb");
+	ce_memfile* memfile = ce_memfile_open_file(path);
 	if (NULL == memfile) {
 		return NULL;
 	}

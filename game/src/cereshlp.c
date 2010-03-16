@@ -29,7 +29,7 @@ ce_memfile* ce_reshlp_extract_memfile(ce_resfile* resfile, int index)
 	}
 
 	ce_memfile* memfile =
-		ce_memfile_open_data(data, ce_resfile_node_size(resfile, index), "rb");
+		ce_memfile_open_data(data, ce_resfile_node_size(resfile, index));
 	if (NULL == memfile) {
 		ce_free(data, ce_resfile_node_size(resfile, index));
 		return NULL;

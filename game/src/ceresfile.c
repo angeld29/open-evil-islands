@@ -142,7 +142,7 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 
 ce_resfile* ce_resfile_open_file(const char* path)
 {
-	ce_memfile* mem = ce_memfile_open_file(path, "rb");
+	ce_memfile* mem = ce_memfile_open_file(path);
 	if (NULL == mem) {
 		return NULL;
 	}

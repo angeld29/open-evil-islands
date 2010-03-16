@@ -24,23 +24,18 @@
 #include "cealloc.h"
 #include "cememfile.h"
 
-struct ce_memfile {
-	ce_io_callbacks callbacks;
-	void* client_data;
-};
-
 ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 											void* client_data)
 {
-	ce_memfile* mem = ce_alloc(sizeof(ce_memfile));
-	mem->callbacks = callbacks;
-	mem->client_data = client_data;
-	return mem;
+	ce_memfile* memfile = ce_alloc(sizeof(ce_memfile));
+	memfile->callbacks = callbacks;
+	memfile->client_data = client_data;
+	return memfile;
 }
 
-ce_memfile* ce_memfile_open_file(const char* path, const char* mode)
+ce_memfile* ce_memfile_open_file(const char* path)
 {
-	FILE* file = fopen(path, mode);
+	FILE* file = fopen(path, "rb");
 	if (NULL == file) {
 		ce_logging_error("memfile: could not open file: '%s'", path);
 		return NULL;
@@ -48,33 +43,27 @@ ce_memfile* ce_memfile_open_file(const char* path, const char* mode)
 	return ce_memfile_open_callbacks(CE_IO_CALLBACKS_FILE, file);
 }
 
-void ce_memfile_close(ce_memfile* mem)
+void ce_memfile_close(ce_memfile* memfile)
 {
-	if (NULL != mem) {
-		if (NULL != mem->callbacks.close) {
-			(mem->callbacks.close)(mem->client_data);
+	if (NULL != memfile) {
+		if (NULL != memfile->callbacks.close) {
+			(memfile->callbacks.close)(memfile->client_data);
 		}
-
-		ce_free(mem, sizeof(ce_memfile));
+		ce_free(memfile, sizeof(ce_memfile));
 	}
 }
 
-size_t ce_memfile_read(ce_memfile* mem, void* data, size_t size, size_t n)
+size_t ce_memfile_read(ce_memfile* memfile, void* data, size_t size, size_t n)
 {
-	return (mem->callbacks.read)(mem->client_data, data, size, n);
+	return (memfile->callbacks.read)(memfile->client_data, data, size, n);
 }
 
-size_t ce_memfile_write(ce_memfile* mem, const void* data, size_t size, size_t n)
+int ce_memfile_seek(ce_memfile* memfile, long int offset, int whence)
 {
-	return (mem->callbacks.write)(mem->client_data, data, size, n);
+ 	return (memfile->callbacks.seek)(memfile->client_data, offset, whence);
 }
 
-int ce_memfile_seek(ce_memfile* mem, long int offset, int whence)
+long int ce_memfile_tell(ce_memfile* memfile)
 {
- 	return (mem->callbacks.seek)(mem->client_data, offset, whence);
-}
-
-long int ce_memfile_tell(ce_memfile* mem)
-{
-	return (mem->callbacks.tell)(mem->client_data);
+	return (memfile->callbacks.tell)(memfile->client_data);
 }

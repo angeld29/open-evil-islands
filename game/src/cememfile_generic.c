@@ -22,7 +22,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "cememfile.h"
 
@@ -30,20 +29,20 @@ typedef struct {
 	char* data;
 	size_t size;
 	size_t pos;
-} ce_memfile_cookie;
+} ce_memcookie;
 
-static int ce_memfile_cookie_close(void* client_data)
+static int ce_memcookie_close(void* client_data)
 {
-	ce_memfile_cookie* cookie = client_data;
+	ce_memcookie* cookie = client_data;
 	ce_free(cookie->data, cookie->size);
-	ce_free(cookie, sizeof(ce_memfile_cookie));
+	ce_free(cookie, sizeof(ce_memcookie));
 	return 0;
 }
 
 static size_t
-ce_memfile_cookie_read(void* client_data, void* data, size_t size, size_t n)
+ce_memcookie_read(void* client_data, void* data, size_t size, size_t n)
 {
-	ce_memfile_cookie* cookie = client_data;
+	ce_memcookie* cookie = client_data;
 	if (cookie->pos == cookie->size) {
 		return 0;
 	}
@@ -54,43 +53,31 @@ ce_memfile_cookie_read(void* client_data, void* data, size_t size, size_t n)
 	return avail_n;
 }
 
-static size_t ce_memfile_cookie_write(void* client_data,
-										const void* data,
-										size_t size, size_t n)
+static int ce_memcookie_seek(void* client_data, long int offset, int whence)
 {
-	assert(false && "Not implemented");
-	ce_unused(client_data), ce_unused(data), ce_unused(size), ce_unused(n);
-	return 0;
-}
-
-static int
-ce_memfile_cookie_seek(void* client_data, long int offset, int whence)
-{
-	ce_memfile_cookie* cookie = client_data;
+	ce_memcookie* cookie = client_data;
 	long int size = cookie->size, pos = cookie->pos;
 	pos = SEEK_SET == whence ? offset :
 		(SEEK_END == whence ? size - offset : pos + offset);
 	return pos < 0 || pos > size ? -1 : (cookie->pos = pos, 0);
 }
 
-static long int ce_memfile_cookie_tell(void* client_data)
+static long int ce_memcookie_tell(void* client_data)
 {
-	ce_memfile_cookie* cookie = client_data;
+	ce_memcookie* cookie = client_data;
 	return cookie->pos;
 }
 
-static const ce_io_callbacks ce_memfile_cookie_callbacks = {
-	ce_memfile_cookie_close,
-	ce_memfile_cookie_read, ce_memfile_cookie_write,
-	ce_memfile_cookie_seek, ce_memfile_cookie_tell
+static const ce_io_callbacks ce_memcookie_callbacks = {
+	ce_memcookie_close, ce_memcookie_read,
+	ce_memcookie_seek, ce_memcookie_tell
 };
 
-ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
+ce_memfile* ce_memfile_open_data(void* data, size_t size)
 {
-	ce_unused(mode);
-	ce_memfile_cookie* cookie = ce_alloc(sizeof(ce_memfile_cookie));
+	ce_memcookie* cookie = ce_alloc(sizeof(ce_memcookie));
 	cookie->data = data;
 	cookie->size = size;
 	cookie->pos = 0;
-	return ce_memfile_open_callbacks(ce_memfile_cookie_callbacks, cookie);
+	return ce_memfile_open_callbacks(ce_memcookie_callbacks, cookie);
 }

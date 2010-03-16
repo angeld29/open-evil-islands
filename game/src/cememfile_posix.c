@@ -27,59 +27,46 @@ typedef struct {
 	char* data;
 	size_t size;
 	FILE* file;
-} ce_memfile_cookie;
+} ce_memcookie;
 
-static int ce_memfile_cookie_close(void* client_data)
+static int ce_memcookie_close(void* client_data)
 {
-	ce_memfile_cookie* cookie = client_data;
+	ce_memcookie* cookie = client_data;
 	fclose(cookie->file);
 	ce_free(cookie->data, cookie->size);
-	ce_free(cookie, sizeof(ce_memfile_cookie));
+	ce_free(cookie, sizeof(ce_memcookie));
 	return 0;
 }
 
 static size_t
-ce_memfile_cookie_read(void* client_data, void* data, size_t size, size_t n)
+ce_memcookie_read(void* client_data, void* data, size_t size, size_t n)
 {
-	ce_memfile_cookie* cookie = client_data;
+	ce_memcookie* cookie = client_data;
 	return fread(data, size, n, cookie->file);
 }
 
-static size_t ce_memfile_cookie_write(void* client_data,
-										const void* data,
-										size_t size, size_t n)
+static int ce_memcookie_seek(void* client_data, long int offset, int whence)
 {
-	ce_memfile_cookie* cookie = client_data;
-	return fwrite(data, size, n, cookie->file);
-}
-
-static int
-ce_memfile_cookie_seek(void* client_data, long int offset, int whence)
-{
-	ce_memfile_cookie* cookie = client_data;
+	ce_memcookie* cookie = client_data;
 	return fseek(cookie->file, offset, whence);
 }
 
-static long int ce_memfile_cookie_tell(void* client_data)
+static long int ce_memcookie_tell(void* client_data)
 {
-	ce_memfile_cookie* cookie = client_data;
+	ce_memcookie* cookie = client_data;
 	return ftell(cookie->file);
 }
 
-static const ce_io_callbacks ce_memfile_cookie_callbacks = {
-	ce_memfile_cookie_close,
-	ce_memfile_cookie_read, ce_memfile_cookie_write,
-	ce_memfile_cookie_seek, ce_memfile_cookie_tell
+static const ce_io_callbacks ce_memcookie_callbacks = {
+	ce_memcookie_close, ce_memcookie_read,
+	ce_memcookie_seek, ce_memcookie_tell
 };
 
-ce_memfile* ce_memfile_open_data(void* data, size_t size, const char* mode)
+ce_memfile* ce_memfile_open_data(void* data, size_t size)
 {
-	// TODO: Invalid read of size 1: need NULL terminated data???
-	//       strlen (mc_replace_strmem.c:275)
-	//       fmemopen (fmemopen.c:246)
-	ce_memfile_cookie* cookie = ce_alloc(sizeof(ce_memfile_cookie));
+	ce_memcookie* cookie = ce_alloc(sizeof(ce_memcookie));
 	cookie->data = data;
 	cookie->size = size;
-	cookie->file = fmemopen(data, size, mode);
-	return ce_memfile_open_callbacks(ce_memfile_cookie_callbacks, cookie);
+	cookie->file = fmemopen(data, size, "rb");
+	return ce_memfile_open_callbacks(ce_memcookie_callbacks, cookie);
 }

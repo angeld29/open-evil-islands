@@ -28,29 +28,31 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_memfile ce_memfile;
+/**
+ *  Abstraction layer for read-only binary files based on FILE interface.
+*/
+typedef struct {
+	ce_io_callbacks callbacks;
+	void* client_data;
+} ce_memfile;
 
 /**
  *  You may to instruct memfile to either automatically close or not to close
  *  the resource in memfile_close. Automatic closure is disabled by passing
- *  NULL as the close callback. The client is responsible for closing
- *  a resource when a call to memfile_open_callbacks is unsuccessful.
+ *  NULL as the close callback. Usually always successfull.
 */
 extern ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 													void* client_data);
-/// Memfile takes ownership of the data if successfull.
-extern ce_memfile* ce_memfile_open_data(void* data, size_t size,
-												const char* mode);
-extern ce_memfile* ce_memfile_open_file(const char* path, const char* mode);
-extern void ce_memfile_close(ce_memfile* mem);
+/// Memfile takes ownership of the data. Usually always successfull.
+extern ce_memfile* ce_memfile_open_data(void* data, size_t size);
+extern ce_memfile* ce_memfile_open_file(const char* path);
+extern void ce_memfile_close(ce_memfile* memfile);
 
-extern size_t ce_memfile_read(ce_memfile* mem, void* data,
-									size_t size, size_t n);
-extern size_t ce_memfile_write(ce_memfile* mem, const void* data,
-									size_t size, size_t n);
+extern size_t ce_memfile_read(ce_memfile* memfile, void* data,
+										size_t size, size_t n);
 
-extern int ce_memfile_seek(ce_memfile* mem, long int offset, int whence);
-extern long int ce_memfile_tell(ce_memfile* mem);
+extern int ce_memfile_seek(ce_memfile* memfile, long int offset, int whence);
+extern long int ce_memfile_tell(ce_memfile* memfile);
 
 #ifdef __cplusplus
 }

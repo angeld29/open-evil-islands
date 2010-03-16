@@ -31,7 +31,6 @@ extern "C"
 typedef struct {
 	int (*close)(void* client_data);
 	size_t (*read)(void* client_data, void* data, size_t size, size_t n);
-	size_t (*write)(void* client_data, const void* data, size_t size, size_t n);
 	int (*seek)(void* client_data, long int offset, int whence);
 	long int (*tell)(void* client_data);
 } ce_io_callbacks;
