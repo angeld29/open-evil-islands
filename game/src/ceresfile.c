@@ -165,16 +165,6 @@ void ce_resfile_close(ce_resfile* res)
 	}
 }
 
-const char* ce_resfile_name(const ce_resfile* res)
-{
-	return res->name->str;
-}
-
-int ce_resfile_node_count(const ce_resfile* res)
-{
-	return res->node_count;
-}
-
 int ce_resfile_node_index(const ce_resfile* res, const char* name)
 {
 	const ce_resnode* node;

@@ -1,7 +1,7 @@
 Cursed Earth TODO
 ===================
 
-   * remove glut
+   * remove glut from engine
    * resfile refactoring
    * fig dynamic: VBO
    * animation system refactoring

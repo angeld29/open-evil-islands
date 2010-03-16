@@ -133,13 +133,13 @@ static bool generate_texture(int index)
 
 static void next_texture(int index)
 {
-	if (0 == ce_resfile_node_count(res)) {
+	if (0 == res->node_count) {
 		return;
 	}
 
-	if (0 > index || index >= ce_resfile_node_count(res)) {
+	if (0 > index || index >= res->node_count) {
 		fprintf(stderr, "All textures (%d) have been browsed. "
-			"Let's make a fresh start.\n", ce_resfile_node_count(res));
+			"Let's make a fresh start.\n", res->node_count);
 		index = 0;
 	}
 
@@ -155,7 +155,7 @@ static void next_texture(int index)
 
 	if (slideshow) {
 		glutTimerFunc(d, next_texture, rndmode ?
-			rand() % ce_resfile_node_count(res) : index + 1);
+			rand() % res->node_count : index + 1);
 	}
 }
 
@@ -287,14 +287,14 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 	} else if (-1 != index) {
-		if (0 > index || index >= ce_resfile_node_count(res)) {
+		if (0 > index || index >= res->node_count) {
 			fprintf(stderr,
 				"Invalid index: %d. Allowed range for '%s' is [0...%d]\n",
-				index, argv[optind], ce_resfile_node_count(res) - 1);
+				index, argv[optind], res->node_count - 1);
 			return 1;
 		}
 	} else {
-		index = rndmode ? rand() % ce_resfile_node_count(res) : 0;
+		index = rndmode ? rand() % res->node_count : 0;
 	}
 
 	glutTimerFunc(0, next_texture, index);

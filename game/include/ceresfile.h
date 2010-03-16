@@ -58,8 +58,6 @@ extern ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem);
 extern ce_resfile* ce_resfile_open_file(const char* path);
 extern void ce_resfile_close(ce_resfile* res);
 
-extern const char* ce_resfile_name(const ce_resfile* res);
-extern int ce_resfile_node_count(const ce_resfile* res);
 extern int ce_resfile_node_index(const ce_resfile* res, const char* name);
 
 extern const char* ce_resfile_node_name(const ce_resfile* res, int index);
