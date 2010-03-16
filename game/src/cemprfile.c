@@ -188,7 +188,7 @@ static bool read_sectors(ce_mprfile* mpr, ce_resfile* res)
 			int i = z * x_count + x;
 
 			snprintf(sec_name, sizeof(sec_name),
-				"%s%03d%03d.sec", ce_string_cstr(mpr->name), x, z);
+				"%s%03d%03d.sec", mpr->name->str, x, z);
 
 			ce_mprfile_sector* sec = mpr->sectors + i;
 
@@ -281,16 +281,12 @@ static bool read_header_impl(ce_mprfile* mpr, ce_memfile* mem)
 
 static bool read_header(ce_mprfile* mpr, ce_resfile* res)
 {
-	// mpr name without extension .mpr
-	if (NULL == (mpr->name =
-			ce_string_new_cstr_n(ce_resfile_name(res),
-								strlen(ce_resfile_name(res)) - 4))) {
-		return false;
-	}
+	// mpr name - res name without extension (.mpr)
+	mpr->name = ce_string_dup_n(res->name, res->name->length - 4);
 
 	// mpr name + .mp
 	char mp_name[mpr->name->length + 3 + 1];
-	snprintf(mp_name, sizeof(mp_name), "%s.mp", ce_string_cstr(mpr->name));
+	snprintf(mp_name, sizeof(mp_name), "%s.mp", mpr->name->str);
 
 	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(res, mp_name);
 	if (NULL == memfile) {

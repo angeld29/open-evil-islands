@@ -511,18 +511,9 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 
 ce_texture* ce_texture_new(const char* name, void* data)
 {
-	ce_texture* texture = ce_alloc_zero(sizeof(ce_texture));
-	if (NULL == texture) {
-		ce_logging_error("texture: could not allocate memory");
-		return NULL;
-	}
-
+	ce_texture* texture = ce_alloc(sizeof(ce_texture));
+	texture->name = ce_string_new_str(name);
 	texture->ref_count = 1;
-
-	if (NULL == (texture->name = ce_string_new_cstr(name))) {
-		ce_texture_del(texture);
-		return NULL;
-	}
 
 	glGenTextures(1, &texture->id);
 	glBindTexture(GL_TEXTURE_2D, texture->id);
@@ -629,7 +620,7 @@ void ce_texture_del(ce_texture* texture)
 
 const char* ce_texture_get_name(ce_texture* texture)
 {
-	return ce_string_cstr(texture->name);
+	return texture->name->str;
 }
 
 void ce_texture_bind(ce_texture* texture)

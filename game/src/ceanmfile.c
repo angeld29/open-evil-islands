@@ -116,13 +116,9 @@ static bool ce_anmfile_read_rotations(ce_anmfile* anmfile, ce_memfile* memfile)
 ce_anmfile* ce_anmfile_open_memfile(const char* name, ce_memfile* memfile)
 {
 	ce_anmfile* anmfile = ce_alloc_zero(sizeof(ce_anmfile));
-	if (NULL == anmfile) {
-		ce_logging_error("anmfile: could not allocate memory");
-		return NULL;
-	}
+	anmfile->name = ce_string_new_str(name);
 
-	if (NULL == (anmfile->name = ce_string_new_cstr(name)) ||
-			!ce_anmfile_read_rotations(anmfile, memfile) ||
+	if (!ce_anmfile_read_rotations(anmfile, memfile) ||
 			!ce_anmfile_read_translations(anmfile, memfile) ||
 			!ce_anmfile_read_morphs(anmfile, memfile)) {
 		ce_anmfile_close(anmfile);

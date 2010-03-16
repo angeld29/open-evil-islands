@@ -82,7 +82,7 @@ static ce_string* ce_mobfile_read_string(ce_memfile* mem, size_t size)
 {
 	char data[size];
 	return ce_mobfile_read_generic(mem, data, 1, size) ?
-		ce_string_new_cstr_n(data, size) : NULL;
+		ce_string_new_str_n(data, size) : NULL;
 }
 
 // Callbacks.
@@ -127,7 +127,7 @@ ce_mobfile_block_text(ce_mobfile* mob, ce_memfile* mem, size_t size)
 	return ce_mobfile_read_uint32(mem, &key) &&
 		ce_mobfile_read_generic(mem, data, 1, size) &&
 		ce_mobfile_decrypt_script(data, size, key) &&
-		NULL != (mob->script = ce_string_new_cstr_n(data, size));
+		NULL != (mob->script = ce_string_new_str_n(data, size));
 }
 
 static bool

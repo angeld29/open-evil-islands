@@ -1,9 +1,8 @@
 Cursed Earth TODO
 ===================
 
-   * getopt: libargtable, libpopt, opt, libconfuse
+   * remove glut
    * resfile refactoring
-   * string/vector refactoring
    * fig dynamic: VBO
    * animation system refactoring
    * fig scenenode hierarchy/rendering refactoring

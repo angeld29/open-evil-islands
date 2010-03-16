@@ -36,21 +36,19 @@ typedef struct {
 
 extern ce_string* ce_string_new(void);
 extern ce_string* ce_string_new_reserved(int capacity);
-extern ce_string* ce_string_new_cstr(const char* cstr);
-extern ce_string* ce_string_new_cstr_n(const char* cstr, int n);
-extern void ce_string_del(ce_string* str);
+extern ce_string* ce_string_new_str(const char* str);
+extern ce_string* ce_string_new_str_n(const char* str, int n);
+extern void ce_string_del(ce_string* string);
 
-extern void ce_string_reserve(ce_string* str, int capacity);
+extern void ce_string_reserve(ce_string* string, int capacity);
 
-extern bool ce_string_empty(const ce_string* str);
+extern bool ce_string_empty(const ce_string* string);
 
-extern const char* ce_string_cstr(const ce_string* str);
+extern ce_string* ce_string_dup(const ce_string* string);
+extern ce_string* ce_string_dup_n(const ce_string* string, int n);
 
-extern ce_string* ce_string_dup(const ce_string* str);
-extern ce_string* ce_string_dup_n(const ce_string* str, int n);
-
-extern void ce_string_assign(ce_string* str, const char* cstr);
-extern void ce_string_assign_n(ce_string* str, const char* cstr, int n);
+extern void ce_string_assign(ce_string* string, const char* str);
+extern void ce_string_assign_n(ce_string* string, const char* str, int n);
 
 #ifdef __cplusplus
 }

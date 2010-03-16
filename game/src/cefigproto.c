@@ -29,8 +29,7 @@
 ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile)
 {
 	ce_figproto* figproto = ce_alloc_zero(sizeof(ce_figproto));
-
-	figproto->name = ce_string_new_cstr(name);
+	figproto->name = ce_string_new_str(name);
 	figproto->ref_count = 1;
 
 	char file_name[strlen(name) + 4 + 1];

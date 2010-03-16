@@ -28,7 +28,7 @@
 ce_mprmng* ce_mprmng_new(const char* path)
 {
 	ce_mprmng* mprmng = ce_alloc(sizeof(ce_mprmng));
-	mprmng->path = ce_string_new_cstr(path);
+	mprmng->path = ce_string_new_str(path);
 	ce_logging_write("mprmng: base path: '%s'", path);
 	return mprmng;
 }

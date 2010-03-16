@@ -49,7 +49,7 @@ static bool ce_terrain_create(ce_terrain* terrain,
 
 	for (int i = 0, n = terrain->mprfile->texture_count; i < n; ++i) {
 		snprintf(texture_name, sizeof(texture_name), "%s%03d",
-				ce_string_cstr(terrain->mprfile->name), i);
+				terrain->mprfile->name->str, i);
 
 		ce_texture* texture =
 			ce_texmng_get_texture(ce_root_get_texmng(), texture_name);

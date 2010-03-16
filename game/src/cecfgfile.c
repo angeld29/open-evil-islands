@@ -64,7 +64,7 @@ static bool ce_cfgfile_parse(ce_cfgfile* cfg, FILE* file)
 			ce_strtrim(temp2, temp);
 
 			section = ce_alloc(sizeof(ce_cfgfile_section));
-			section->name = ce_string_new_cstr(temp2);
+			section->name = ce_string_new_str(temp2);
 			section->options = ce_vector_new();
 			ce_vector_push_back(cfg->sections, section);
 		} else {

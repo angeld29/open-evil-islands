@@ -43,7 +43,7 @@ static ce_string* ce_lnkfile_read_name(ce_memfile* memfile)
 		return NULL;
 	}
 
-	return ce_string_new_cstr_n(name, length);
+	return ce_string_new_str_n(name, length);
 }
 
 static bool ce_lnkfile_open_impl(ce_lnkfile* lnkfile, ce_memfile* memfile)
@@ -79,10 +79,6 @@ static bool ce_lnkfile_open_impl(ce_lnkfile* lnkfile, ce_memfile* memfile)
 ce_lnkfile* ce_lnkfile_open_memfile(ce_memfile* memfile)
 {
 	ce_lnkfile* lnkfile = ce_alloc_zero(sizeof(ce_lnkfile));
-	if (NULL == lnkfile) {
-		ce_logging_error("lnkfile: could not allocate memory");
-		return NULL;
-	}
 
 	if (!ce_lnkfile_open_impl(lnkfile, memfile)) {
 		ce_lnkfile_close(lnkfile);
