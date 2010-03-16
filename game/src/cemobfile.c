@@ -371,7 +371,6 @@ static const ce_mobfile_block_pair ce_mobfile_block_pairs[] = {
 	{ 0xc000, ce_mobfile_block_zonal },
 	{ 0xacceeccb, ce_mobfile_block_text },
 	{ 0xb000, ce_mobfile_block_object },
-	//{ 0xbbbb0000, ce_mobfile_block_object_unit },
 	{ 0xb001, ce_mobfile_block_object_object },
 	{ 0xb00d, ce_mobfile_block_object_object_parts },
 	{ 0xb011, ce_mobfile_block_object_object_owner },
@@ -389,7 +388,9 @@ static const ce_mobfile_block_pair ce_mobfile_block_pairs[] = {
 	{ 0xb014, ce_mobfile_block_object_object_shadow },
 	{ 0xb012, ce_mobfile_block_object_object_parent_id },
 	{ 0xb016, ce_mobfile_block_object_object_quest_info },
-	{ 0xb00c, ce_mobfile_block_object_object_complection }
+	{ 0xb00c, ce_mobfile_block_object_object_complection },
+	{ 0xbbbb0000, ce_mobfile_block_object_object }
+	//{ 0xbbbb0000, ce_mobfile_block_object_unit },
 	//{ 0xbbac0000, ce_mobfile_block_object_lever },
 	//{ 0xbbab0000, ce_mobfile_block_object_trap },
 	//{ 0xbbbf, ce_mobfile_block_object_flame },
