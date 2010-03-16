@@ -203,6 +203,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_scenemng_render_bboxes(scenemng->scenenode);
 	}
 
+	// FIXME: hardcoded
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
 
