@@ -40,7 +40,7 @@ extern ce_figproto* ce_figproto_new(const char* name,
 									ce_resfile* resfile);
 extern void ce_figproto_del(ce_figproto* figproto);
 
-extern ce_figproto* ce_figproto_clone(ce_figproto* figproto);
+extern ce_figproto* ce_figproto_add_ref(ce_figproto* figproto);
 
 #ifdef __cplusplus
 }

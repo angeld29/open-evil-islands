@@ -67,7 +67,7 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								ce_scenenode* scenenode)
 {
 	ce_figentity* figentity = ce_alloc(sizeof(ce_figentity));
-	figentity->figmesh = ce_figmesh_clone(figmesh);
+	figentity->figmesh = ce_figmesh_add_ref(figmesh);
 	figentity->figbone = ce_figbone_new(figentity->figmesh->figproto->fignode,
 										&figentity->figmesh->complection, NULL);
 	figentity->scenenode = ce_scenenode_new(scenenode);

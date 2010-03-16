@@ -42,7 +42,7 @@ extern ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
 									const ce_complection* complection);
 extern void ce_figmesh_del(ce_figmesh* figmesh);
 
-extern ce_figmesh* ce_figmesh_clone(ce_figmesh* figmesh);
+extern ce_figmesh* ce_figmesh_add_ref(ce_figmesh* figmesh);
 
 #ifdef __cplusplus
 }

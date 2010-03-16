@@ -40,7 +40,7 @@ ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
 {
 	ce_figmesh* figmesh = ce_alloc_zero(sizeof(ce_figmesh));
 
-	figmesh->figproto = ce_figproto_clone(figproto);
+	figmesh->figproto = ce_figproto_add_ref(figproto);
 	figmesh->complection = *complection;
 	figmesh->renderitems = ce_vector_new();
 	figmesh->ref_count = 1;
@@ -65,7 +65,7 @@ void ce_figmesh_del(ce_figmesh* figmesh)
 	}
 }
 
-ce_figmesh* ce_figmesh_clone(ce_figmesh* figmesh)
+ce_figmesh* ce_figmesh_add_ref(ce_figmesh* figmesh)
 {
 	++figmesh->ref_count;
 	return figmesh;

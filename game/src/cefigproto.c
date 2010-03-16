@@ -81,7 +81,7 @@ void ce_figproto_del(ce_figproto* figproto)
 	}
 }
 
-ce_figproto* ce_figproto_clone(ce_figproto* figproto)
+ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
 {
 	++figproto->ref_count;
 	return figproto;
