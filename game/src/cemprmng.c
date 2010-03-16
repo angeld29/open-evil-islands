@@ -29,7 +29,7 @@ ce_mprmng* ce_mprmng_new(const char* path)
 {
 	ce_mprmng* mprmng = ce_alloc(sizeof(ce_mprmng));
 	mprmng->path = ce_string_new_str(path);
-	ce_logging_write("mprmng: base path: '%s'", path);
+	ce_logging_write("mprmng: root path: '%s'", path);
 	return mprmng;
 }
 
@@ -48,7 +48,7 @@ ce_mprfile* ce_mprmng_open_mprfile(ce_mprmng* mprmng, const char* name)
 
 	ce_resfile* resfile = ce_resfile_open_file(path);
 	if (NULL == resfile) {
-		ce_logging_error("mprmng: could not open mprfile: '%s'", name);
+		ce_logging_error("mprmng: failed to open mprfile: '%s'", name);
 		return NULL;
 	}
 

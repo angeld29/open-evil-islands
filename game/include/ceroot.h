@@ -32,7 +32,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern bool ce_root_init(const char* base_path);
+extern bool ce_root_init(const char* root_path);
 extern void ce_root_term(void);
 
 extern ce_texmng* ce_root_get_texmng(void);

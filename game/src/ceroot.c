@@ -33,11 +33,11 @@ static struct {
 	ce_figmng* figmng;
 } ce_root_inst;
 
-static bool ce_root_init_impl(const char* base_path)
+static bool ce_root_init_impl(const char* root_path)
 {
 	char path[512];
 
-	ce_logging_write("root: base path: '%s'", base_path);
+	ce_logging_write("root: root path: '%s'", root_path);
 
 	if (NULL == (ce_root_inst.texmng = ce_texmng_new())) {
 		return false;
@@ -47,11 +47,11 @@ static bool ce_root_init_impl(const char* base_path)
 	for (int i = 0, n = sizeof(texture_resources) /
 						sizeof(texture_resources[0]); i < n; ++i) {
 		snprintf(path, sizeof(path), "%s/Res/%s.res",
-				base_path, texture_resources[i]);
+				root_path, texture_resources[i]);
 		ce_texmng_register_resource(ce_root_inst.texmng, path);
 	}
 
-	snprintf(path, sizeof(path), "%s/Maps", base_path);
+	snprintf(path, sizeof(path), "%s/Maps", root_path);
 	if (NULL == (ce_root_inst.mprmng = ce_mprmng_new(path))) {
 		return false;
 	}
@@ -64,19 +64,19 @@ static bool ce_root_init_impl(const char* base_path)
 	for (int i = 0, n = sizeof(figure_resources) /
 						sizeof(figure_resources[0]); i < n; ++i) {
 		snprintf(path, sizeof(path), "%s/Res/%s.res",
-				base_path, figure_resources[i]);
+				root_path, figure_resources[i]);
 		ce_figmng_register_resource(ce_root_inst.figmng, path);
 	}
 
 	return true;
 }
 
-bool ce_root_init(const char* base_path)
+bool ce_root_init(const char* root_path)
 {
 	assert(!ce_root_inst.inited && "The root subsystem has already been inited");
 	ce_root_inst.inited = true;
 
-	if (!ce_root_init_impl(base_path)) {
+	if (!ce_root_init_impl(root_path)) {
 		ce_root_term();
 		return false;
 	}
