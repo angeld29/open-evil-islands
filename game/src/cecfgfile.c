@@ -25,30 +25,10 @@
 #include "cestr.h"
 #include "celogging.h"
 #include "cealloc.h"
-#include "cevector.h"
-#include "cestring.h"
 #include "cecfgfile.h"
-
-typedef struct {
-	ce_string* name;
-	ce_string* value;
-} ce_cfgfile_option;
-
-typedef struct {
-	ce_string* name;
-	ce_vector* options;
-} ce_cfgfile_section;
-
-struct ce_cfgfile {
-	ce_vector* sections;
-};
 
 static bool ce_cfgfile_parse(ce_cfgfile* cfg, FILE* file)
 {
-	if (NULL == (cfg->sections = ce_vector_new())) {
-		return false;
-	}
-
 	const size_t line_size = 128;
 	char line[line_size], temp[line_size], temp2[line_size];
 	ce_cfgfile_section* section = NULL;
@@ -80,20 +60,13 @@ static bool ce_cfgfile_parse(ce_cfgfile* cfg, FILE* file)
 				return false;
 			}
 
-			if (NULL == (section = ce_alloc_zero(sizeof(ce_cfgfile_section)))) {
-				ce_logging_error("cfgfile: could not allocate memory");
-				return false;
-			}
-
-			ce_vector_push_back(cfg->sections, section);
-
 			ce_strmid(temp, line, 1, line_length - 2);
 			ce_strtrim(temp2, temp);
 
-			if (NULL == (section->name = ce_string_new_cstr(temp2)) ||
-					NULL == (section->options = ce_vector_new())) {
-				return false;
-			}
+			section = ce_alloc(sizeof(ce_cfgfile_section));
+			section->name = ce_string_new_cstr(temp2);
+			section->options = ce_vector_new();
+			ce_vector_push_back(cfg->sections, section);
 		} else {
 			if (NULL == section) {
 				ce_logging_error("cfgfile: line %d: option outside of "
@@ -109,17 +82,9 @@ static bool ce_cfgfile_parse(ce_cfgfile* cfg, FILE* file)
 			}
 
 			ce_cfgfile_option* option = ce_alloc_zero(sizeof(ce_cfgfile_option));
-			if (NULL == option) {
-				ce_logging_error("cfgfile: could not allocate memory");
-				return false;
-			}
-
+			option->name = ce_string_new();
+			option->value = ce_string_new();
 			ce_vector_push_back(section->options, option);
-
-			if (NULL == (option->name = ce_string_new()) ||
-					NULL == (option->value = ce_string_new())) {
-				return false;
-			}
 
 			ce_strleft(temp, line, eq - line);
 			ce_strtrim(temp2, temp);
@@ -155,11 +120,7 @@ ce_cfgfile* ce_cfgfile_open(const char* path)
 	}
 
 	ce_cfgfile* cfg = ce_alloc(sizeof(ce_cfgfile));
-	if (NULL == cfg) {
-		ce_logging_error("cfgfile: could not allocate memory");
-		fclose(file);
-		return NULL;
-	}
+	cfg->sections = ce_vector_new();
 
 	if (!ce_cfgfile_parse(cfg, file)) {
 		ce_logging_error("cfgfile: failed to parse file: '%s'", path);
@@ -175,30 +136,28 @@ ce_cfgfile* ce_cfgfile_open(const char* path)
 void ce_cfgfile_close(ce_cfgfile* cfg)
 {
 	if (NULL != cfg) {
-		if (NULL != cfg->sections) {
-			for (int i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
-				ce_cfgfile_section* sec = ce_vector_at(cfg->sections, i);
-				for (int j = 0, m = ce_vector_count(sec->options); j < m; ++j) {
-					ce_cfgfile_option* opt = ce_vector_at(sec->options, j);
-					ce_string_del(opt->value);
-					ce_string_del(opt->name);
-					ce_free(opt, sizeof(ce_cfgfile_option));
-				}
-				ce_vector_del(sec->options);
-				ce_string_del(sec->name);
-				ce_free(sec, sizeof(ce_cfgfile_section));
+		for (int i = 0; i < cfg->sections->count; ++i) {
+			ce_cfgfile_section* sec = cfg->sections->items[i];
+			for (int j = 0; j < sec->options->count; ++j) {
+				ce_cfgfile_option* opt = sec->options->items[j];
+				ce_string_del(opt->value);
+				ce_string_del(opt->name);
+				ce_free(opt, sizeof(ce_cfgfile_option));
 			}
-			ce_vector_del(cfg->sections);
+			ce_vector_del(sec->options);
+			ce_string_del(sec->name);
+			ce_free(sec, sizeof(ce_cfgfile_section));
 		}
+		ce_vector_del(cfg->sections);
 		ce_free(cfg, sizeof(ce_cfgfile));
 	}
 }
 
 int ce_cfgfile_section_index(ce_cfgfile* cfg, const char* section_name)
 {
-	for (int i = 0, n = ce_vector_count(cfg->sections); i < n; ++i) {
-		ce_cfgfile_section* sec = ce_vector_at(cfg->sections, i);
-		if (0 == strcmp(section_name, ce_string_cstr(sec->name))) {
+	for (int i = 0; i < cfg->sections->count; ++i) {
+		ce_cfgfile_section* sec = cfg->sections->items[i];
+		if (0 == strcmp(section_name, sec->name->str)) {
 			return i;
 		}
 	}
@@ -208,10 +167,10 @@ int ce_cfgfile_section_index(ce_cfgfile* cfg, const char* section_name)
 int ce_cfgfile_option_index(ce_cfgfile* cfg, int section_index,
 											const char* option_name)
 {
-	ce_cfgfile_section* sec = ce_vector_at(cfg->sections, section_index);
-	for (int i = 0, n = ce_vector_count(sec->options); i < n; ++i) {
-		ce_cfgfile_option* opt = ce_vector_at(sec->options, i);
-		if (0 == strcmp(option_name, ce_string_cstr(opt->name))) {
+	ce_cfgfile_section* sec = cfg->sections->items[section_index];
+	for (int i = 0; i < sec->options->count; ++i) {
+		ce_cfgfile_option* opt = sec->options->items[i];
+		if (0 == strcmp(option_name, opt->name->str)) {
 			return i;
 		}
 	}
@@ -220,7 +179,7 @@ int ce_cfgfile_option_index(ce_cfgfile* cfg, int section_index,
 
 const char* ce_cfgfile_get(ce_cfgfile* cfg, int section_index, int option_index)
 {
-	ce_cfgfile_section* sec = ce_vector_at(cfg->sections, section_index);
-	ce_cfgfile_option* opt = ce_vector_at(sec->options, option_index);
-	return ce_string_cstr(opt->value);
+	ce_cfgfile_section* sec = cfg->sections->items[section_index];
+	ce_cfgfile_option* opt = sec->options->items[option_index];
+	return opt->value->str;
 }

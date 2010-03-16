@@ -54,29 +54,14 @@ void ce_vector_reserve(ce_vector* vector, int capacity)
 	}
 }
 
-int ce_vector_count(const ce_vector* vector)
-{
-	return vector->count;
-}
-
 bool ce_vector_empty(const ce_vector* vector)
 {
 	return 0 == vector->count;
 }
 
-void* ce_vector_front(ce_vector* vector)
-{
-	return vector->items[0];
-}
-
-void* ce_vector_back(ce_vector* vector)
+void* ce_vector_back(const ce_vector* vector)
 {
 	return vector->items[vector->count - 1];
-}
-
-void* ce_vector_at(ce_vector* vector, int index)
-{
-	return vector->items[index];
 }
 
 void ce_vector_push_back(ce_vector* vector, void* item)

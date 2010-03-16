@@ -21,12 +21,27 @@
 #ifndef CE_CFGFILE_H
 #define CE_CFGFILE_H
 
+#include "cestring.h"
+#include "cevector.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_cfgfile ce_cfgfile;
+typedef struct {
+	ce_string* name;
+	ce_string* value;
+} ce_cfgfile_option;
+
+typedef struct {
+	ce_string* name;
+	ce_vector* options;
+} ce_cfgfile_section;
+
+typedef struct {
+	ce_vector* sections;
+} ce_cfgfile;
 
 extern ce_cfgfile* ce_cfgfile_open(const char* path);
 extern void ce_cfgfile_close(ce_cfgfile* cfg);

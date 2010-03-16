@@ -178,8 +178,8 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 			glTranslatef(-u - tile_uv_half_step, -v - tile_uv_half_step, 0.0f);
 			glMatrixMode(GL_MODELVIEW);
 
-			ce_texture_bind(ce_vector_at(terrain->textures,
-							ce_mprhlp_texture_number(texture)));
+			ce_texture_bind(terrain->textures->items[
+							ce_mprhlp_texture_number(texture)]);
 
 			for (int i = 0; i < 2; ++i) {
 				glBegin(GL_TRIANGLE_STRIP);
@@ -191,8 +191,8 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 				glEnd();
 			}
 
-			ce_texture_unbind(ce_vector_at(terrain->textures,
-							ce_mprhlp_texture_number(texture)));
+			ce_texture_unbind(terrain->textures->items[
+							ce_mprhlp_texture_number(texture)]);
 		}
 	}
 

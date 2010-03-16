@@ -36,10 +36,7 @@ static bool ce_terrain_create(ce_terrain* terrain,
 		return false;
 	}
 
-	if (NULL == (terrain->textures =
-			ce_vector_new_reserved(terrain->mprfile->texture_count))) {
-		return false;
-	}
+	terrain->textures = ce_vector_new_reserved(terrain->mprfile->texture_count);
 
 	if (NULL == (terrain->stub_texture =
 			ce_texmng_get_texture(ce_root_get_texmng(), "default0"))) {
@@ -98,8 +95,8 @@ void ce_terrain_del(ce_terrain* terrain)
 	if (NULL != terrain) {
 		ce_scenenode_del(terrain->scenenode);
 		if (NULL != terrain->textures) {
-			for (int i = 0, n = ce_vector_count(terrain->textures); i < n; ++i) {
-				ce_texture_del(ce_vector_at(terrain->textures, i));
+			for (int i = 0; i < terrain->textures->count; ++i) {
+				ce_texture_del(terrain->textures->items[i]);
 			}
 			ce_vector_del(terrain->textures);
 		}

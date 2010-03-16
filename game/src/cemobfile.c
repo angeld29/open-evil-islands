@@ -561,8 +561,8 @@ void ce_mobfile_close(ce_mobfile* mob)
 {
 	if (NULL != mob) {
 		if (NULL != mob->objects) {
-			for (int i = 0, n = ce_vector_count(mob->objects); i < n; ++i) {
-				ce_mobobject_object* object = ce_vector_at(mob->objects, i);
+			for (int i = 0; i < mob->objects->count; ++i) {
+				ce_mobobject_object* object = mob->objects->items[i];
 				ce_string_del(object->quest_info);
 				ce_string_del(object->comment);
 				ce_string_del(object->secondary_texture);
@@ -571,9 +571,8 @@ void ce_mobfile_close(ce_mobfile* mob)
 				ce_string_del(object->model_name);
 				ce_string_del(object->name);
 				if (NULL != object->parts) {
-					for (int j = 0,
-							m = ce_vector_count(object->parts); j < m; ++j) {
-						ce_string_del(ce_vector_at(object->parts, j));
+					for (int j = 0; j < object->parts->count; ++j) {
+						ce_string_del(object->parts->items[j]);
 					}
 					ce_vector_del(object->parts);
 				}
