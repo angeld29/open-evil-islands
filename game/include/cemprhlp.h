@@ -43,6 +43,8 @@ extern int ce_mprhlp_texture_index(uint16_t texture);
 extern int ce_mprhlp_texture_number(uint16_t texture);
 extern int ce_mprhlp_texture_angle(uint16_t texture);
 
+extern float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

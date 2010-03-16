@@ -18,6 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
+#include <assert.h>
+
 #include "cemprhlp.h"
 
 ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,
@@ -73,4 +76,24 @@ int ce_mprhlp_texture_number(uint16_t texture)
 int ce_mprhlp_texture_angle(uint16_t texture)
 {
 	return (texture & 0xc000) >> 14;
+}
+
+float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
+{
+	int sector_x = (int)x / CE_MPRFILE_VERTEX_SIDE;
+	int sector_z = (int)z / CE_MPRFILE_VERTEX_SIDE;
+	int vertex_x = (int)x % CE_MPRFILE_VERTEX_SIDE;
+	int vertex_z = (int)z % CE_MPRFILE_VERTEX_SIDE;
+
+	assert(sector_x < mprfile->sector_x_count);
+	assert(sector_z < mprfile->sector_z_count);
+
+	ce_mprfile_sector* sector = mprfile->sectors +
+								sector_z * mprfile->sector_x_count + sector_x;
+	ce_mprfile_vertex* vertex = sector->land_vertices +
+								vertex_z * CE_MPRFILE_VERTEX_SIDE + vertex_x;
+
+	float y_coef = mprfile->max_y / (UINT16_MAX - 0);
+
+	return y_coef * vertex->coord_y + 1.0f;
 }
