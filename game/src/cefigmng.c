@@ -62,13 +62,12 @@ bool ce_figmng_register_resource(ce_figmng* figmng, const char* path)
 {
 	ce_resfile* resfile = ce_resfile_open_file(path);
 	if (NULL == resfile) {
-		ce_logging_error("figmng: could not open resource: '%s'", path);
+		ce_logging_error("figmng: loading '%s'... failed", path);
 		return false;
 	}
 
 	ce_vector_push_back(figmng->resources, resfile);
-	ce_logging_write("figmng: loading '%s'... ok", ce_resfile_name(resfile));
-
+	ce_logging_write("figmng: loading '%s'... ok", path);
 	return true;
 }
 

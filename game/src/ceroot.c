@@ -37,7 +37,7 @@ static bool ce_root_init_impl(const char* base_path)
 {
 	char path[512];
 
-	ce_logging_write("root: loading with base path: '%s'...", base_path);
+	ce_logging_write("root: base path: '%s'", base_path);
 
 	if (NULL == (ce_root_inst.texmng = ce_texmng_new())) {
 		return false;
@@ -48,9 +48,7 @@ static bool ce_root_init_impl(const char* base_path)
 						sizeof(texture_resources[0]); i < n; ++i) {
 		snprintf(path, sizeof(path), "%s/Res/%s.res",
 				base_path, texture_resources[i]);
-		if (!ce_texmng_register_resource(ce_root_inst.texmng, path)) {
-			return false;
-		}
+		ce_texmng_register_resource(ce_root_inst.texmng, path);
 	}
 
 	snprintf(path, sizeof(path), "%s/Maps", base_path);
@@ -67,9 +65,7 @@ static bool ce_root_init_impl(const char* base_path)
 						sizeof(figure_resources[0]); i < n; ++i) {
 		snprintf(path, sizeof(path), "%s/Res/%s.res",
 				base_path, figure_resources[i]);
-		if (!ce_figmng_register_resource(ce_root_inst.figmng, path)) {
-			return false;
-		}
+		ce_figmng_register_resource(ce_root_inst.figmng, path);
 	}
 
 	return true;

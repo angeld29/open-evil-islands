@@ -25,41 +25,30 @@
 #include "ceresfile.h"
 #include "cemprmng.h"
 
-ce_mprmng* ce_mprmng_new(const char* maps_path)
+ce_mprmng* ce_mprmng_new(const char* path)
 {
-	ce_mprmng* mprmng = ce_alloc_zero(sizeof(ce_mprmng));
-	if (NULL == mprmng) {
-		ce_logging_error("mprmng: could not allocate memory");
-		return NULL;
-	}
-
-	if (NULL == (mprmng->maps_path = ce_string_new_cstr(maps_path))) {
-		ce_mprmng_del(mprmng);
-		return NULL;
-	}
-
-	ce_logging_write("mprmng: using path: '%s'", maps_path);
-
+	ce_mprmng* mprmng = ce_alloc(sizeof(ce_mprmng));
+	mprmng->path = ce_string_new_cstr(path);
+	ce_logging_write("mprmng: base path: '%s'", path);
 	return mprmng;
 }
 
 void ce_mprmng_del(ce_mprmng* mprmng)
 {
 	if (NULL != mprmng) {
-		ce_string_del(mprmng->maps_path);
+		ce_string_del(mprmng->path);
 		ce_free(mprmng, sizeof(ce_mprmng));
 	}
 }
 
-ce_mprfile* ce_mprmng_open_mprfile(ce_mprmng* mprmng, const char* zone_name)
+ce_mprfile* ce_mprmng_open_mprfile(ce_mprmng* mprmng, const char* name)
 {
-	char path[512];
-	snprintf(path, sizeof(path), "%s/%s.mpr",
-			ce_string_cstr(mprmng->maps_path), zone_name);
+	char path[mprmng->path->length + 32];
+	snprintf(path, sizeof(path), "%s/%s.mpr", mprmng->path->str, name);
 
 	ce_resfile* resfile = ce_resfile_open_file(path);
 	if (NULL == resfile) {
-		ce_logging_error("mprmng: could not open map: '%s'", zone_name);
+		ce_logging_error("mprmng: could not open mprfile: '%s'", name);
 		return NULL;
 	}
 

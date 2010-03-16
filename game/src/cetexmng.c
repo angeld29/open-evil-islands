@@ -55,13 +55,12 @@ bool ce_texmng_register_resource(ce_texmng* texmng, const char* path)
 {
 	ce_resfile* resfile = ce_resfile_open_file(path);
 	if (NULL == resfile) {
-		ce_logging_error("texmng: could not open resource: '%s'", path);
+		ce_logging_error("texmng: loading '%s'... failed", path);
 		return false;
 	}
 
 	ce_vector_push_back(texmng->resources, resfile);
-	ce_logging_write("texmng: loading '%s'... ok", ce_resfile_name(resfile));
-
+	ce_logging_write("texmng: loading '%s'... ok", path);
 	return true;
 }
 
@@ -74,12 +73,12 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name)
 		}
 	}
 
-	char file_name[strlen(name) + 4 + 1];
-	snprintf(file_name, sizeof(file_name), "%s.mmp", name);
+	char path[strlen(name) + 4 + 1];
+	snprintf(path, sizeof(path), "%s.mmp", name);
 
 	for (int i = 0; i < texmng->resources->count; ++i) {
 		ce_resfile* resfile = texmng->resources->items[i];
-		int index = ce_resfile_node_index(resfile, file_name);
+		int index = ce_resfile_node_index(resfile, path);
 		if (-1 != index) {
 			void* data = ce_resfile_extract_data(resfile, index);
 			if (NULL == data) {

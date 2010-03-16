@@ -42,7 +42,7 @@ ce_memfile* ce_memfile_open_file(const char* path, const char* mode)
 {
 	FILE* file = fopen(path, mode);
 	if (NULL == file) {
-		ce_logging_error("memfile: could not open file '%s'", path);
+		ce_logging_error("memfile: could not open file: '%s'", path);
 		return NULL;
 	}
 	return ce_memfile_open_callbacks(CE_IO_CALLBACKS_FILE, file);

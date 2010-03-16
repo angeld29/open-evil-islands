@@ -30,14 +30,13 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_string* maps_path;
+	ce_string* path;
 } ce_mprmng;
 
-extern ce_mprmng* ce_mprmng_new(const char* maps_path);
+extern ce_mprmng* ce_mprmng_new(const char* path);
 extern void ce_mprmng_del(ce_mprmng* mprmng);
 
-extern ce_mprfile* ce_mprmng_open_mprfile(ce_mprmng* mprmng,
-											const char* zone_name);
+extern ce_mprfile* ce_mprmng_open_mprfile(ce_mprmng* mprmng, const char* name);
 
 #ifdef __cplusplus
 }
