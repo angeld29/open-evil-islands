@@ -21,6 +21,7 @@
 #ifndef CE_GL_H
 #define CE_GL_H
 
+#include <stddef.h>
 #include <stdbool.h>
 
 #include <GL/gl.h>
@@ -29,6 +30,12 @@
 extern "C"
 {
 #endif /* __cplusplus */
+
+#ifndef GL_VERSION_1_5
+// gl types for handling large vertex buffer objects
+typedef ptrdiff_t GLintptr;
+typedef ptrdiff_t GLsizeiptr;
+#endif
 
 typedef enum {
 	CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO,
@@ -76,6 +83,14 @@ extern void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 											GLsizei width, GLsizei height,
 											GLint border, GLsizei image_size,
 											const GLvoid* data);
+
+extern void ce_gl_bind_buffer(GLenum target, GLuint buffer);
+extern void ce_gl_delete_buffers(GLsizei n, const GLuint* buffers);
+extern void ce_gl_gen_buffers(GLsizei n, GLuint* buffers);
+extern void ce_gl_buffer_data(GLenum target, GLsizeiptr size,
+								const GLvoid* data, GLenum usage);
+extern void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
+									GLsizeiptr size, const GLvoid* data);
 
 #ifdef __cplusplus
 }

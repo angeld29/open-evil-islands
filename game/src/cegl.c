@@ -134,14 +134,35 @@ const GLenum CE_GL_DYNAMIC_DRAW = GL_DYNAMIC_DRAW_ARB;
 const GLenum CE_GL_DYNAMIC_READ = GL_DYNAMIC_READ_ARB;
 const GLenum CE_GL_DYNAMIC_COPY = GL_DYNAMIC_COPY_ARB;
 
+// texture compression
+
 #ifndef GL_VERSION_1_3
-typedef void (APIENTRY *CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC)
+typedef void (APIENTRY *CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC)
 				(GLenum target, GLint level, GLenum internal_format,
 				GLsizei width, GLsizei height, GLint border,
 				GLsizei image_size, const GLvoid* data);
 
-static CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC ce_pfnglcompressedteximage2dproc;
+static CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC ce_gl_compressed_tex_image_2d_proc;
 #endif
+
+// VBO
+
+typedef void (APIENTRY *CE_GL_BIND_BUFFER_PROC)(GLenum target, GLuint buffer);
+typedef void (APIENTRY *CE_GL_DELETE_BUFFERS_PROC)
+				(GLsizei n, const GLuint* buffers);
+typedef void (APIENTRY *CE_GL_GEN_BUFFERS_PROC)(GLsizei n, GLuint* buffers);
+typedef void (APIENTRY *CE_GL_BUFFER_DATA_PROC)
+				(GLenum target, GLsizeiptr size,
+				const GLvoid* data, GLenum usage);
+typedef void (APIENTRY *CE_GL_BUFFER_SUB_DATA_PROC)
+				(GLenum target, GLintptr offset,
+				GLsizeiptr size, const GLvoid* data);
+
+static CE_GL_BIND_BUFFER_PROC ce_gl_bind_buffer_proc;
+static CE_GL_DELETE_BUFFERS_PROC ce_gl_delete_buffers_proc;
+static CE_GL_GEN_BUFFERS_PROC ce_gl_gen_buffers_proc;
+static CE_GL_BUFFER_DATA_PROC ce_gl_buffer_data_proc;
+static CE_GL_BUFFER_SUB_DATA_PROC ce_gl_buffer_sub_data_proc;
 
 typedef void (*ce_gl_ext_func_ptr)(void);
 
@@ -159,27 +180,7 @@ static ce_gl_ext_func_ptr ce_gl_get_proc_address(const char* name)
 	return NULL;
 }
 
-static struct {
-	bool inited;
-	bool features[CE_GL_FEATURE_COUNT];
-	const char* feature_names[CE_GL_FEATURE_COUNT];
-} ce_gl_inst = {
-	.feature_names = {
-		"texture non power of two",
-		"texture rectangle",
-		"texture compression",
-		"texture compression s3tc",
-		"texture compression dxt1",
-		"texture lod",
-		"texture edge clamp",
-		"packed pixels",
-		"generate mipmap",
-		"vertex buffer object",
-		"window pos"
-	}
-};
-
-static bool check_extension(const char* name)
+static bool ce_gl_check_extension(const char* name)
 {
 #ifdef GLU_VERSION_1_3
 	return gluCheckExtension((const GLubyte*)name, glGetString(GL_EXTENSIONS));
@@ -208,36 +209,56 @@ static bool check_extension(const char* name)
 #endif
 }
 
+static struct {
+	bool inited;
+	bool features[CE_GL_FEATURE_COUNT];
+	const char* feature_names[CE_GL_FEATURE_COUNT];
+} ce_gl_inst = {
+	.feature_names = {
+		"texture non power of two",
+		"texture rectangle",
+		"texture compression",
+		"texture compression s3tc",
+		"texture compression dxt1",
+		"texture lod",
+		"texture edge clamp",
+		"packed pixels",
+		"generate mipmap",
+		"vertex buffer object",
+		"window pos"
+	}
+};
+
 bool ce_gl_init(void)
 {
 	assert(!ce_gl_inst.inited && "The gl subsystem has already been inited");
 	ce_gl_inst.inited = true;
 
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO] =
-		check_extension("GL_ARB_texture_non_power_of_two");
+		ce_gl_check_extension("GL_ARB_texture_non_power_of_two");
 
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_RECTANGLE] =
-		check_extension("GL_ARB_texture_rectangle") ||
-		check_extension("GL_EXT_texture_rectangle") ||
-		check_extension("GL_NV_texture_rectangle");
+		ce_gl_check_extension("GL_ARB_texture_rectangle") ||
+		ce_gl_check_extension("GL_EXT_texture_rectangle") ||
+		ce_gl_check_extension("GL_NV_texture_rectangle");
 
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] =
-		check_extension("GL_ARB_texture_compression");
+		ce_gl_check_extension("GL_ARB_texture_compression");
 
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
 		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
-		check_extension("GL_EXT_texture_compression_s3tc");
+		ce_gl_check_extension("GL_EXT_texture_compression_s3tc");
 
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] =
 		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
-		check_extension("GL_EXT_texture_compression_dxt1");
+		ce_gl_check_extension("GL_EXT_texture_compression_dxt1");
 
 #ifndef GL_VERSION_1_3
 	if (ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION]) {
-		ce_pfnglcompressedteximage2dproc =
-			(CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC)
+		ce_gl_compressed_tex_image_2d_proc =
+			(CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC)
 				ce_gl_get_proc_address("glCompressedTexImage2DARB");
-		if (NULL == ce_pfnglcompressedteximage2dproc) {
+		if (NULL == ce_gl_compressed_tex_image_2d_proc) {
 			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] = false;
 			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] = false;
 			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] = false;
@@ -246,28 +267,44 @@ bool ce_gl_init(void)
 #endif
 
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_LOD] =
-		check_extension("GL_SGIS_texture_lod") ||
-		check_extension("GL_EXT_texture_lod");
+		ce_gl_check_extension("GL_SGIS_texture_lod") ||
+		ce_gl_check_extension("GL_EXT_texture_lod");
 
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_EDGE_CLAMP] =
-		check_extension("GL_SGIS_texture_edge_clamp") ||
-		check_extension("GL_EXT_texture_edge_clamp");
+		ce_gl_check_extension("GL_SGIS_texture_edge_clamp") ||
+		ce_gl_check_extension("GL_EXT_texture_edge_clamp");
 
 	ce_gl_inst.features[CE_GL_FEATURE_PACKED_PIXELS] =
-		check_extension("GL_EXT_packed_pixels");
+		ce_gl_check_extension("GL_EXT_packed_pixels");
 
 	ce_gl_inst.features[CE_GL_FEATURE_GENERATE_MIPMAP] =
-		check_extension("GL_SGIS_generate_mipmap");
+		ce_gl_check_extension("GL_SGIS_generate_mipmap");
 
 	ce_gl_inst.features[CE_GL_VERTEX_BUFFER_OBJECT] =
-		check_extension("GL_ARB_vertex_buffer_object");
+		ce_gl_check_extension("GL_ARB_vertex_buffer_object");
 
 	if (ce_gl_inst.features[CE_GL_VERTEX_BUFFER_OBJECT]) {
+		ce_gl_bind_buffer_proc = (CE_GL_BIND_BUFFER_PROC)
+								ce_gl_get_proc_address("glBindBufferARB");
+		ce_gl_delete_buffers_proc = (CE_GL_DELETE_BUFFERS_PROC)
+								ce_gl_get_proc_address("glDeleteBuffersARB");
+		ce_gl_gen_buffers_proc = (CE_GL_GEN_BUFFERS_PROC)
+								ce_gl_get_proc_address("glGenBuffersARB");
+		ce_gl_buffer_data_proc = (CE_GL_BUFFER_DATA_PROC)
+								ce_gl_get_proc_address("glBufferDataARB");
+		ce_gl_buffer_sub_data_proc = (CE_GL_BUFFER_SUB_DATA_PROC)
+								ce_gl_get_proc_address("glBufferSubDataARB");
+		ce_gl_inst.features[CE_GL_VERTEX_BUFFER_OBJECT] =
+			NULL != ce_gl_bind_buffer_proc &&
+			NULL != ce_gl_delete_buffers_proc &&
+			NULL != ce_gl_gen_buffers_proc &&
+			NULL != ce_gl_buffer_data_proc &&
+			NULL != ce_gl_buffer_sub_data_proc;
 	}
 
 	ce_gl_inst.features[CE_GL_WINDOW_POS] =
-		check_extension("GL_ARB_window_pos") ||
-		check_extension("GL_MESA_window_pos");
+		ce_gl_check_extension("GL_ARB_window_pos") ||
+		ce_gl_check_extension("GL_MESA_window_pos");
 
 	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
 		ce_logging_write("opengl: checking for '%s' extension... %s",
@@ -316,8 +353,45 @@ void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 	glCompressedTexImage2D(target, level, internal_format,
 							width, height, border, image_size, data);
 #else
-	assert(NULL != ce_pfnglcompressedteximage2dproc);
-	(*ce_pfnglcompressedteximage2dproc)(target, level, internal_format,
+	assert(NULL != ce_gl_compressed_tex_image_2d_proc);
+	(*ce_gl_compressed_tex_image_2d_proc)(target, level, internal_format,
 									width, height, border, image_size, data);
 #endif
+}
+
+void ce_gl_bind_buffer(GLenum target, GLuint buffer)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_bind_buffer_proc);
+	(*ce_gl_bind_buffer_proc)(target, buffer);
+}
+
+void ce_gl_delete_buffers(GLsizei n, const GLuint* buffers)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_delete_buffers_proc);
+	(*ce_gl_delete_buffers_proc)(n, buffers);
+}
+
+void ce_gl_gen_buffers(GLsizei n, GLuint* buffers)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_gen_buffers_proc);
+	(*ce_gl_gen_buffers_proc)(n, buffers);
+}
+
+void ce_gl_buffer_data(GLenum target, GLsizeiptr size,
+						const GLvoid* data, GLenum usage)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_buffer_data_proc);
+	(*ce_gl_buffer_data_proc)(target, size, data, usage);
+}
+
+void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
+							GLsizeiptr size, const GLvoid* data)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_buffer_sub_data_proc);
+	(*ce_gl_buffer_sub_data_proc)(target, offset, size, data);
 }
