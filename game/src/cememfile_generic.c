@@ -22,9 +22,9 @@
 #include <string.h>
 #include <assert.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "cememfile.h"
-#include "celib.h"
 
 typedef struct {
 	char* data;
