@@ -25,6 +25,7 @@
 
 #include <GL/gl.h>
 
+#include "cegl.h"
 #include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
@@ -160,15 +161,20 @@ static void ce_figrenderitem_static_clone(const ce_renderitem* renderitem,
 		ce_figcookie_static_add_ref(figrenderitem->cookie);
 }
 
-// fig renderitem dynamic (with morphs): gl's vertex array
-// TODO: try vertex buffer object
+// fig renderitem dynamic (with morphs): gl's vertex buffer object or vertex array
 
 typedef struct {
 	int vertex_count;
 	int ref_count;
-	float* vertices;
-	float* normals;
-	float* texcoords;
+	float* vertices; // initial vertices
+	union {
+		float* pointer;
+		GLuint buffer;
+	} normals;
+	union {
+		float* pointer;
+		GLuint buffer;
+	} texcoords;
 } ce_figcookie_dynamic;
 
 static ce_figcookie_dynamic* ce_figcookie_dynamic_new(int vertex_count)
@@ -177,8 +183,13 @@ static ce_figcookie_dynamic* ce_figcookie_dynamic_new(int vertex_count)
 	cookie->vertex_count = vertex_count;
 	cookie->ref_count = 1;
 	cookie->vertices = ce_alloc(sizeof(float) * 3 * vertex_count);
-	cookie->normals = ce_alloc(sizeof(float) * 3 * vertex_count);
-	cookie->texcoords = ce_alloc(sizeof(float) * 2 * vertex_count);
+	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
+		ce_gl_gen_buffers(1, &cookie->normals.buffer);
+		ce_gl_gen_buffers(1, &cookie->texcoords.buffer);
+	} else {
+		cookie->normals.pointer = ce_alloc(sizeof(float) * 3 * vertex_count);
+		cookie->texcoords.pointer = ce_alloc(sizeof(float) * 2 * vertex_count);
+	}
 	return cookie;
 }
 
@@ -187,10 +198,15 @@ static void ce_figcookie_dynamic_del(ce_figcookie_dynamic* cookie)
 	if (NULL != cookie) {
 		assert(cookie->ref_count > 0);
 		if (0 == --cookie->ref_count) {
-			ce_free(cookie->texcoords,
-					sizeof(float) * 2 * cookie->vertex_count);
-			ce_free(cookie->normals,
-					sizeof(float) * 3 * cookie->vertex_count);
+			if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
+				ce_gl_delete_buffers(1, &cookie->texcoords.buffer);
+				ce_gl_delete_buffers(1, &cookie->normals.buffer);
+			} else {
+				ce_free(cookie->texcoords.pointer,
+						sizeof(float) * 2 * cookie->vertex_count);
+				ce_free(cookie->normals.pointer,
+						sizeof(float) * 3 * cookie->vertex_count);
+			}
 			ce_free(cookie->vertices,
 					sizeof(float) * 3 * cookie->vertex_count);
 			ce_free(cookie, sizeof(ce_figcookie_dynamic));
@@ -224,6 +240,17 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 	figrenderitem->cookie = ce_figcookie_dynamic_new(figfile->index_count);
 	figrenderitem->vertices = ce_alloc(sizeof(float) * 3 * figfile->index_count);
 
+	float* normals;
+	float* texcoords;
+
+	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
+		normals = ce_alloc(sizeof(float) * 3 * figfile->index_count);
+		texcoords = ce_alloc(sizeof(float) * 2 * figfile->index_count);
+	} else {
+		normals = figrenderitem->cookie->normals.pointer;
+		texcoords = figrenderitem->cookie->texcoords.pointer;
+	}
+
 	for (int i = 0, n = figfile->index_count; i < n; ++i) {
 		int index = figfile->indices[i];
 		int vertex_index = figfile->spec_components[3 * index + 0];
@@ -233,18 +260,34 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 		ce_fighlp_get_vertex(figrenderitem->cookie->vertices + 3 * i,
 								figfile, vertex_index, complection);
 
-		ce_fighlp_get_normal(figrenderitem->cookie->normals + 3 * i,
-								figfile, normal_index);
+		ce_fighlp_get_normal(normals + 3 * i, figfile, normal_index);
 
-		figrenderitem->cookie->texcoords[2 * i + 0] =
-			figfile->texcoords[2 * texcoord_index + 0];
-		figrenderitem->cookie->texcoords[2 * i + 1] =
-			figfile->texcoords[2 * texcoord_index + 1];
+		texcoords[2 * i + 0] = figfile->texcoords[2 * texcoord_index + 0];
+		texcoords[2 * i + 1] = figfile->texcoords[2 * texcoord_index + 1];
 	}
 
 	memcpy(figrenderitem->vertices,
 			figrenderitem->cookie->vertices,
 			sizeof(float) * 3 * figfile->index_count);
+
+	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
+		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER,
+							figrenderitem->cookie->normals.buffer);
+		ce_gl_buffer_data(CE_GL_ARRAY_BUFFER,
+							sizeof(float) * 3 * figfile->index_count,
+							normals, CE_GL_STATIC_DRAW);
+
+		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER,
+							figrenderitem->cookie->texcoords.buffer);
+		ce_gl_buffer_data(CE_GL_ARRAY_BUFFER,
+							sizeof(float) * 2 * figfile->index_count,
+							texcoords, CE_GL_STATIC_DRAW);
+
+		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, 0);
+
+		ce_free(texcoords, sizeof(float) * 2 * figfile->index_count);
+		ce_free(normals, sizeof(float) * 3 * figfile->index_count);
+	}
 }
 
 static void ce_figrenderitem_dynamic_dtor(ce_renderitem* renderitem)
@@ -333,11 +376,27 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	glVertexPointer(3, GL_FLOAT, 0, figrenderitem->vertices);
-	glNormalPointer(GL_FLOAT, 0, figrenderitem->cookie->normals);
-	glTexCoordPointer(2, GL_FLOAT, 0, figrenderitem->cookie->texcoords);
+	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
+		glVertexPointer(3, GL_FLOAT, 0, figrenderitem->vertices);
+
+		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER,
+							figrenderitem->cookie->normals.buffer);
+		glNormalPointer(GL_FLOAT, 0, NULL);
+
+		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER,
+							figrenderitem->cookie->texcoords.buffer);
+		glTexCoordPointer(2, GL_FLOAT, 0, NULL);
+	} else {
+		glVertexPointer(3, GL_FLOAT, 0, figrenderitem->vertices);
+		glNormalPointer(GL_FLOAT, 0, figrenderitem->cookie->normals.pointer);
+		glTexCoordPointer(2, GL_FLOAT, 0, figrenderitem->cookie->texcoords.pointer);
+	}
 
 	glDrawArrays(GL_TRIANGLES, 0, figrenderitem->cookie->vertex_count);
+
+	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
+		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, 0);
+	}
 
 	glPopClientAttrib();
 	glPopAttrib();
