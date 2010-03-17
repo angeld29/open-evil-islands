@@ -40,6 +40,8 @@ typedef enum {
 	CE_GL_FEATURE_TEXTURE_EDGE_CLAMP,
 	CE_GL_FEATURE_PACKED_PIXELS,
 	CE_GL_FEATURE_GENERATE_MIPMAP,
+	CE_GL_VERTEX_BUFFER_OBJECT,
+	CE_GL_WINDOW_POS,
 	CE_GL_FEATURE_COUNT
 } ce_gl_feature;
 
@@ -51,6 +53,17 @@ extern const GLenum CE_GL_UNSIGNED_SHORT_4_4_4_4;
 extern const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1;
 extern const GLenum CE_GL_UNSIGNED_INT_8_8_8_8;
 extern const GLenum CE_GL_GENERATE_MIPMAP;
+extern const GLenum CE_GL_ARRAY_BUFFER;
+extern const GLenum CE_GL_ELEMENT_ARRAY_BUFFER;
+extern const GLenum CE_GL_STREAM_DRAW;
+extern const GLenum CE_GL_STREAM_READ;
+extern const GLenum CE_GL_STREAM_COPY;
+extern const GLenum CE_GL_STATIC_DRAW;
+extern const GLenum CE_GL_STATIC_READ;
+extern const GLenum CE_GL_STATIC_COPY;
+extern const GLenum CE_GL_DYNAMIC_DRAW;
+extern const GLenum CE_GL_DYNAMIC_READ;
+extern const GLenum CE_GL_DYNAMIC_COPY;
 
 extern bool ce_gl_init(void);
 extern void ce_gl_term(void);

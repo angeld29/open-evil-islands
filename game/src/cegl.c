@@ -67,6 +67,50 @@
 #define GL_GENERATE_MIPMAP_SGIS 0x8191
 #endif
 
+#ifndef GL_ARRAY_BUFFER_ARB
+#define GL_ARRAY_BUFFER_ARB 0x8892
+#endif
+
+#ifndef GL_ELEMENT_ARRAY_BUFFER_ARB
+#define GL_ELEMENT_ARRAY_BUFFER_ARB 0x8893
+#endif
+
+#ifndef GL_STREAM_DRAW_ARB
+#define GL_STREAM_DRAW_ARB 0x88E0
+#endif
+
+#ifndef GL_STREAM_READ_ARB
+#define GL_STREAM_READ_ARB 0x88E1
+#endif
+
+#ifndef GL_STREAM_COPY_ARB
+#define GL_STREAM_COPY_ARB 0x88E2
+#endif
+
+#ifndef GL_STATIC_DRAW_ARB
+#define GL_STATIC_DRAW_ARB 0x88E4
+#endif
+
+#ifndef GL_STATIC_READ_ARB
+#define GL_STATIC_READ_ARB 0x88E5
+#endif
+
+#ifndef GL_STATIC_COPY_ARB
+#define GL_STATIC_COPY_ARB 0x88E6
+#endif
+
+#ifndef GL_DYNAMIC_DRAW_ARB
+#define GL_DYNAMIC_DRAW_ARB 0x88E8
+#endif
+
+#ifndef GL_DYNAMIC_READ_ARB
+#define GL_DYNAMIC_READ_ARB 0x88E9
+#endif
+
+#ifndef GL_DYNAMIC_COPY_ARB
+#define GL_DYNAMIC_COPY_ARB 0x88EA
+#endif
+
 #include "celogging.h"
 #include "cegl.h"
 
@@ -78,6 +122,17 @@ const GLenum CE_GL_UNSIGNED_SHORT_4_4_4_4 = GL_UNSIGNED_SHORT_4_4_4_4_EXT;
 const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1 = GL_UNSIGNED_SHORT_5_5_5_1_EXT;
 const GLenum CE_GL_UNSIGNED_INT_8_8_8_8 = GL_UNSIGNED_INT_8_8_8_8_EXT;
 const GLenum CE_GL_GENERATE_MIPMAP = GL_GENERATE_MIPMAP_SGIS;
+const GLenum CE_GL_ARRAY_BUFFER = GL_ARRAY_BUFFER_ARB;
+const GLenum CE_GL_ELEMENT_ARRAY_BUFFER = GL_ELEMENT_ARRAY_BUFFER_ARB;
+const GLenum CE_GL_STREAM_DRAW = GL_STREAM_DRAW_ARB;
+const GLenum CE_GL_STREAM_READ = GL_STREAM_READ_ARB;
+const GLenum CE_GL_STREAM_COPY = GL_STREAM_COPY_ARB;
+const GLenum CE_GL_STATIC_DRAW = GL_STATIC_DRAW_ARB;
+const GLenum CE_GL_STATIC_READ = GL_STATIC_READ_ARB;
+const GLenum CE_GL_STATIC_COPY = GL_STATIC_COPY_ARB;
+const GLenum CE_GL_DYNAMIC_DRAW = GL_DYNAMIC_DRAW_ARB;
+const GLenum CE_GL_DYNAMIC_READ = GL_DYNAMIC_READ_ARB;
+const GLenum CE_GL_DYNAMIC_COPY = GL_DYNAMIC_COPY_ARB;
 
 #ifndef GL_VERSION_1_3
 typedef void (APIENTRY *CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC)
@@ -118,7 +173,9 @@ static struct {
 		"texture lod",
 		"texture edge clamp",
 		"packed pixels",
-		"generate mipmap"
+		"generate mipmap",
+		"vertex buffer object",
+		"window pos"
 	}
 };
 
@@ -201,6 +258,16 @@ bool ce_gl_init(void)
 
 	ce_gl_inst.features[CE_GL_FEATURE_GENERATE_MIPMAP] =
 		check_extension("GL_SGIS_generate_mipmap");
+
+	ce_gl_inst.features[CE_GL_VERTEX_BUFFER_OBJECT] =
+		check_extension("GL_ARB_vertex_buffer_object");
+
+	if (ce_gl_inst.features[CE_GL_VERTEX_BUFFER_OBJECT]) {
+	}
+
+	ce_gl_inst.features[CE_GL_WINDOW_POS] =
+		check_extension("GL_ARB_window_pos") ||
+		check_extension("GL_MESA_window_pos");
 
 	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
 		ce_logging_write("opengl: checking for '%s' extension... %s",
