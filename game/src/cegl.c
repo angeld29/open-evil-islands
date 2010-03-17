@@ -88,10 +88,39 @@ typedef void (APIENTRY *CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC)
 static CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC ce_pfnglcompressedteximage2dproc;
 #endif
 
+typedef void (*ce_gl_ext_func_ptr)(void);
+
+static ce_gl_ext_func_ptr ce_gl_get_proc_address(const char* name)
+{
+#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+	return (ce_gl_ext_func_ptr)wglGetProcAddress(name);
+#elif defined(__APPLE__) || defined(__APPLE_CC__)
+#error Not implemented
+#else
+#ifdef GLX_VERSION_1_4
+	return (ce_gl_ext_func_ptr)glXGetProcAddress((const GLubyte*)name);
+#endif
+#endif
+	return NULL;
+}
+
 static struct {
 	bool inited;
 	bool features[CE_GL_FEATURE_COUNT];
-} ce_gl_inst;
+	const char* feature_names[CE_GL_FEATURE_COUNT];
+} ce_gl_inst = {
+	.feature_names = {
+		"texture non power of two",
+		"texture rectangle",
+		"texture compression",
+		"texture compression s3tc",
+		"texture compression dxt1",
+		"texture lod",
+		"texture edge clamp",
+		"packed pixels",
+		"generate mipmap"
+	}
+};
 
 static bool check_extension(const char* name)
 {
@@ -122,14 +151,19 @@ static bool check_extension(const char* name)
 #endif
 }
 
-static void report_extension(const char* name, bool ok)
+bool ce_gl_init(void)
 {
-	ce_logging_write("opengl: checking for '%s' extension... %s",
-									name, ok ? "yes" : "no");
-}
+	assert(!ce_gl_inst.inited && "The gl subsystem has already been inited");
+	ce_gl_inst.inited = true;
 
-static void ce_gl_init_feature_texture_compression()
-{
+	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO] =
+		check_extension("GL_ARB_texture_non_power_of_two");
+
+	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_RECTANGLE] =
+		check_extension("GL_ARB_texture_rectangle") ||
+		check_extension("GL_EXT_texture_rectangle") ||
+		check_extension("GL_NV_texture_rectangle");
+
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] =
 		check_extension("GL_ARB_texture_compression");
 
@@ -143,74 +177,36 @@ static void ce_gl_init_feature_texture_compression()
 
 #ifndef GL_VERSION_1_3
 	if (ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION]) {
-#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
 		ce_pfnglcompressedteximage2dproc =
 			(CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC)
-				wglGetProcAddress("glCompressedTexImage2DARB");
-#elif defined(__APPLE__) || defined(__APPLE_CC__)
-#error Not implemented
-#else
-#ifdef GLX_VERSION_1_4
-		ce_pfnglcompressedteximage2dproc =
-			(CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC)
-				glXGetProcAddress((const GLubyte*)"glCompressedTexImage2DARB");
-#endif /* GLX_VERSION_1_4 */
-#endif /* WIN32 */
+				ce_gl_get_proc_address("glCompressedTexImage2DARB");
 		if (NULL == ce_pfnglcompressedteximage2dproc) {
 			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] = false;
 			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] = false;
 			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] = false;
 		}
 	}
-#endif /* !GL_VERSION_1_3 */
-}
+#endif
 
-static void ce_gl_init_feature_other()
-{
-	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO] =
-		check_extension("GL_ARB_texture_non_power_of_two");
-	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_RECTANGLE] =
-		check_extension("GL_ARB_texture_rectangle") ||
-		check_extension("GL_EXT_texture_rectangle") ||
-		check_extension("GL_NV_texture_rectangle");
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_LOD] =
 		check_extension("GL_SGIS_texture_lod") ||
 		check_extension("GL_EXT_texture_lod");
+
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_EDGE_CLAMP] =
 		check_extension("GL_SGIS_texture_edge_clamp") ||
 		check_extension("GL_EXT_texture_edge_clamp");
+
 	ce_gl_inst.features[CE_GL_FEATURE_PACKED_PIXELS] =
 		check_extension("GL_EXT_packed_pixels");
+
 	ce_gl_inst.features[CE_GL_FEATURE_GENERATE_MIPMAP] =
 		check_extension("GL_SGIS_generate_mipmap");
-}
 
-bool ce_gl_init(void)
-{
-	assert(!ce_gl_inst.inited && "The gl subsystem has already been inited");
-	ce_gl_inst.inited = true;
-
-	ce_gl_init_feature_texture_compression();
-	ce_gl_init_feature_other();
-
-	report_extension("texture non power of two",
-		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO]);
-	report_extension("texture rectangle",
-		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_RECTANGLE]);
-	report_extension("texture compression",
-		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION]);
-	report_extension("texture compression s3tc",
-		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC]);
-	report_extension("texture compression dxt1",
-		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1]);
-	report_extension("texture lod",
-		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_LOD]);
-	report_extension("texture edge clamp",
-		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_EDGE_CLAMP]);
-	report_extension("packed pixels",
-		ce_gl_inst.features[CE_GL_FEATURE_PACKED_PIXELS]);
-	report_extension("generate mipmap",
-		ce_gl_inst.features[CE_GL_FEATURE_GENERATE_MIPMAP]);
+	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
+		ce_logging_write("opengl: checking for '%s' extension... %s",
+							ce_gl_inst.feature_names[i],
+							ce_gl_inst.features[i] ? "yes" : "no");
+	}
 
 	return true;
 }
