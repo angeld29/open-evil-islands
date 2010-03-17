@@ -24,6 +24,7 @@
 
 #include "cealloc.h"
 #include "cememfile.h"
+#include "celib.h"
 
 typedef struct {
 	char* data;
