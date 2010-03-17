@@ -144,7 +144,7 @@ static bool generate_texture(int mipmap_count, GLenum internal_format, int width
 	bool ok = true;
 	uint8_t* src = data;
 
-	// most EI's textures of width divisible by 4 (GL's default row alignment)
+	// most ei's textures of width divisible by 4 (gl's default row alignment)
 	const bool not_aligned = 0 != width % 4;
 
 	if (not_aligned) {
@@ -266,7 +266,6 @@ static void dxt_decompress(uint8_t* dst, uint8_t* src,
 	}
 }
 
-#ifdef GL_VERSION_1_3
 static bool dxt_generate_texture_directly(int mipmap_count,
 		int width, int height, int format, const void* data)
 {
@@ -278,7 +277,7 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 		int data_size = ((width + 3) >> 2) *
 						((height + 3) >> 2) * (CE_MMP_DXT1 == format ? 8 : 16);
 
-		glCompressedTexImage2D(GL_TEXTURE_2D, i, CE_MMP_DXT1 == format ?
+		ce_gl_compressed_tex_image_2d(GL_TEXTURE_2D, i, CE_MMP_DXT1 == format ?
 			CE_GL_COMPRESSED_RGBA_S3TC_DXT1 : CE_GL_COMPRESSED_RGBA_S3TC_DXT3,
 			width, height, 0, data_size, src);
 
@@ -292,12 +291,10 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 
 	return true;
 }
-#endif /* GL_VERSION_1_3 */
 
 static bool dxt_generate_texture(int mipmap_count,
 		int width, int height, int format, void* data)
 {
-#ifdef GL_VERSION_1_3
 	if ((ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC) ||
 			(CE_MMP_DXT1 == format &&
 				ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1))) &&
@@ -305,7 +302,6 @@ static bool dxt_generate_texture(int mipmap_count,
 											height, format, data)) {
 		return true;
 	}
-#endif /* GL_VERSION_1_3 */
 
 	uint8_t* src = data;
 

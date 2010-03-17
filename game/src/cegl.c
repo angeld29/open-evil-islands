@@ -21,8 +21,19 @@
 #include <string.h>
 #include <assert.h>
 
+#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <wingdi.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#elif defined(__APPLE__) || defined(__APPLE_CC__)
+#error Not implemented
+#else
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glx.h>
+#endif
 
 #ifndef GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
 #define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT 0x83F1
@@ -68,6 +79,15 @@ const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1 = GL_UNSIGNED_SHORT_5_5_5_1_EXT;
 const GLenum CE_GL_UNSIGNED_INT_8_8_8_8 = GL_UNSIGNED_INT_8_8_8_8_EXT;
 const GLenum CE_GL_GENERATE_MIPMAP = GL_GENERATE_MIPMAP_SGIS;
 
+#ifndef GL_VERSION_1_3
+typedef void (APIENTRY *CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC)
+				(GLenum target, GLint level, GLenum internal_format,
+				GLsizei width, GLsizei height, GLint border,
+				GLsizei image_size, const GLvoid* data);
+
+static CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC ce_pfnglcompressedteximage2dproc;
+#endif
+
 static struct {
 	bool inited;
 	bool features[CE_GL_FEATURE_COUNT];
@@ -108,21 +128,51 @@ static void report_extension(const char* name, bool ok)
 									name, ok ? "yes" : "no");
 }
 
-bool ce_gl_init(void)
+static void ce_gl_init_feature_texture_compression()
 {
-	assert(!ce_gl_inst.inited && "The gl subsystem has already been inited");
-	ce_gl_inst.inited = true;
+	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] =
+		check_extension("GL_ARB_texture_compression");
 
+	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
+		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
+		check_extension("GL_EXT_texture_compression_s3tc");
+
+	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] =
+		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
+		check_extension("GL_EXT_texture_compression_dxt1");
+
+#ifndef GL_VERSION_1_3
+	if (ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION]) {
+#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+		ce_pfnglcompressedteximage2dproc =
+			(CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC)
+				wglGetProcAddress("glCompressedTexImage2DARB");
+#elif defined(__APPLE__) || defined(__APPLE_CC__)
+#error Not implemented
+#else
+#ifdef GLX_VERSION_1_4
+		ce_pfnglcompressedteximage2dproc =
+			(CE_PFNGLCOMPRESSEDTEXIMAGE2DPROC)
+				glXGetProcAddress((const GLubyte*)"glCompressedTexImage2DARB");
+#endif /* GLX_VERSION_1_4 */
+#endif /* WIN32 */
+		if (NULL == ce_pfnglcompressedteximage2dproc) {
+			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] = false;
+			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] = false;
+			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] = false;
+		}
+	}
+#endif /* !GL_VERSION_1_3 */
+}
+
+static void ce_gl_init_feature_other()
+{
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO] =
 		check_extension("GL_ARB_texture_non_power_of_two");
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_RECTANGLE] =
 		check_extension("GL_ARB_texture_rectangle") ||
 		check_extension("GL_EXT_texture_rectangle") ||
 		check_extension("GL_NV_texture_rectangle");
-	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
-		check_extension("GL_EXT_texture_compression_s3tc");
-	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] =
-		check_extension("GL_EXT_texture_compression_dxt1");
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_LOD] =
 		check_extension("GL_SGIS_texture_lod") ||
 		check_extension("GL_EXT_texture_lod");
@@ -133,11 +183,22 @@ bool ce_gl_init(void)
 		check_extension("GL_EXT_packed_pixels");
 	ce_gl_inst.features[CE_GL_FEATURE_GENERATE_MIPMAP] =
 		check_extension("GL_SGIS_generate_mipmap");
+}
+
+bool ce_gl_init(void)
+{
+	assert(!ce_gl_inst.inited && "The gl subsystem has already been inited");
+	ce_gl_inst.inited = true;
+
+	ce_gl_init_feature_texture_compression();
+	ce_gl_init_feature_other();
 
 	report_extension("texture non power of two",
 		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO]);
 	report_extension("texture rectangle",
 		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_RECTANGLE]);
+	report_extension("texture compression",
+		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION]);
 	report_extension("texture compression s3tc",
 		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC]);
 	report_extension("texture compression dxt1",
@@ -179,4 +240,21 @@ bool ce_gl_query_feature(ce_gl_feature feature)
 {
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
 	return ce_gl_inst.features[feature];
+}
+
+void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
+									GLenum internal_format,
+									GLsizei width, GLsizei height,
+									GLint border, GLsizei image_size,
+									const GLvoid* data)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+#ifdef GL_VERSION_1_3
+	glCompressedTexImage2D(target, level, internal_format,
+							width, height, border, image_size, data);
+#else
+	assert(NULL != ce_pfnglcompressedteximage2dproc);
+	(*ce_pfnglcompressedteximage2dproc)(target, level, internal_format,
+									width, height, border, image_size, data);
+#endif
 }

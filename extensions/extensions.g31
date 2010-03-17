@@ -1,3 +1,12 @@
+VGA compatible controller: Intel Corporation 82G33/G31 Express Integrated Graphics Controller (rev 10) (prog-if 00 [VGA controller])
+Subsystem: ASUSTeK Computer Inc. Unknown device 82b0
+Flags: bus master, fast devsel, latency 0, IRQ 16
+Memory at fe980000 (32-bit, non-prefetchable) [size=512K]
+I/O ports at dc00 [size=8]
+Memory at e0000000 (32-bit, prefetchable) [size=256M]
+Memory at fe800000 (32-bit, non-prefetchable) [size=1M]
+Capabilities: <access denied>
+
 GL_ARB_depth_texture
 GL_ARB_fragment_program
 GL_ARB_imaging

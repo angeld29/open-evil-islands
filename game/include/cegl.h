@@ -33,6 +33,7 @@ extern "C"
 typedef enum {
 	CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO,
 	CE_GL_FEATURE_TEXTURE_RECTANGLE,
+	CE_GL_FEATURE_TEXTURE_COMPRESSION,
 	CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC,
 	CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1,
 	CE_GL_FEATURE_TEXTURE_LOD,
@@ -56,6 +57,12 @@ extern void ce_gl_term(void);
 
 extern bool ce_gl_report_errors(void);
 extern bool ce_gl_query_feature(ce_gl_feature feature);
+
+extern void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
+											GLenum internal_format,
+											GLsizei width, GLsizei height,
+											GLint border, GLsizei image_size,
+											const GLvoid* data);
 
 #ifdef __cplusplus
 }
