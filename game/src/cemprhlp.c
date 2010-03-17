@@ -93,5 +93,5 @@ float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 	const ce_mprfile_vertex* vertex = sector->land_vertices +
 								vertex_z * CE_MPRFILE_VERTEX_SIDE + vertex_x;
 
-	return mprfile->max_y / (UINT16_MAX - 0) * vertex->coord_y;
+	return mprfile->max_y / (UINT16_MAX - 0) * vertex->coord_y + 1.0f;
 }
