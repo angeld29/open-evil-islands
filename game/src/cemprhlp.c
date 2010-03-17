@@ -27,7 +27,7 @@ ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,
 							const ce_mprfile* mprfile,
 							int sector_x, int sector_z)
 {
-	// TODO: negate z?..
+	// FIXME: negative z?..
 	ce_vec3 min, max;
 	ce_vec3_init(&min, sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f, -1.0f *
 		(sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1)));
@@ -80,20 +80,18 @@ int ce_mprhlp_texture_angle(uint16_t texture)
 
 float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 {
-	int sector_x = (int)x / CE_MPRFILE_VERTEX_SIDE;
-	int sector_z = (int)z / CE_MPRFILE_VERTEX_SIDE;
-	int vertex_x = (int)x % CE_MPRFILE_VERTEX_SIDE;
-	int vertex_z = (int)z % CE_MPRFILE_VERTEX_SIDE;
+	int sector_x = (int)x / (CE_MPRFILE_VERTEX_SIDE - 1);
+	int sector_z = (int)z / (CE_MPRFILE_VERTEX_SIDE - 1);
+	int vertex_x = (int)x % (CE_MPRFILE_VERTEX_SIDE - 1);
+	int vertex_z = (int)z % (CE_MPRFILE_VERTEX_SIDE - 1);
 
 	assert(sector_x < mprfile->sector_x_count);
 	assert(sector_z < mprfile->sector_z_count);
 
-	ce_mprfile_sector* sector = mprfile->sectors +
+	const ce_mprfile_sector* sector = mprfile->sectors +
 								sector_z * mprfile->sector_x_count + sector_x;
-	ce_mprfile_vertex* vertex = sector->land_vertices +
+	const ce_mprfile_vertex* vertex = sector->land_vertices +
 								vertex_z * CE_MPRFILE_VERTEX_SIDE + vertex_x;
 
-	float y_coef = mprfile->max_y / (UINT16_MAX - 0);
-
-	return y_coef * vertex->coord_y + 1.0f;
+	return mprfile->max_y / (UINT16_MAX - 0) * vertex->coord_y;
 }
