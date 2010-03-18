@@ -22,6 +22,7 @@
 
 #include <GL/glut.h>
 
+#include "cegl.h"
 #include "cealloc.h"
 #include "cefont.h"
 
@@ -66,31 +67,39 @@ void ce_font_render(ce_font* font, int x, int y,
 {
 	glPushAttrib(GL_CURRENT_BIT);
 
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-
-	GLint viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
-
-	gluOrtho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
-
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-
 	glColor4f(color->r, color->g, color->b, color->a);
-	glRasterPos2i(x, y);
 
-	while (*text) {
-		glutBitmapCharacter(font->data, *text++);
+	if (ce_gl_query_feature(CE_GL_WINDOW_POS)) {
+		ce_gl_window_pos_2i(x, y);
+
+		while (*text) {
+			glutBitmapCharacter(font->data, *text++);
+		}
+	} else {
+		GLint viewport[4];
+		glGetIntegerv(GL_VIEWPORT, viewport);
+
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		gluOrtho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
+
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+
+		glRasterPos2i(x, y);
+
+		while (*text) {
+			glutBitmapCharacter(font->data, *text++);
+		}
+
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
 	}
-
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
 
 	glPopAttrib();
 }
