@@ -40,18 +40,16 @@ ce_rendersystem* ce_rendersystem_new(void)
 
 void ce_rendersystem_del(ce_rendersystem* rendersystem)
 {
-	if (NULL != rendersystem) {
-		ce_free(rendersystem, sizeof(ce_rendersystem));
-	}
+	ce_free(rendersystem, sizeof(ce_rendersystem));
 }
 
 void ce_rendersystem_begin_render(ce_rendersystem* rendersystem,
-									const ce_lightcfg* lightcfg)
+									const ce_color* clear_color)
 {
 	ce_unused(rendersystem);
 
-	glClearColor(lightcfg->sky[0][0], lightcfg->sky[0][1],
-				lightcfg->sky[0][2], lightcfg->sky[0][3]);
+	glClearColor(clear_color->r, clear_color->g,
+				clear_color->b, clear_color->a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

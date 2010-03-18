@@ -136,9 +136,6 @@ static void display(void)
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//float ambient[4] = { 1, 1, 1, 1 };
-	//glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
-
 	ce_scenemng_render(scenemng);
 
 	glutSwapBuffers();

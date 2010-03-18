@@ -60,16 +60,13 @@
 
 #define DAY_NIGHT_CHANGE_SPEED_DEFAULT 0.08f
 
-ce_lightcfg gipat_light;
-ce_lightcfg ingos_light;
-ce_lightcfg suslanger_light;
-ce_lightcfg* light_cfg;
+ce_scenemng* scenemng;
+ce_terrain* terrain;
+ce_lightcfg* lightcfg;
 
 float time_of_day = 12.0f;
 float day_night_change_speed = DAY_NIGHT_CHANGE_SPEED_DEFAULT;
 
-ce_scenemng* scenemng;
-ce_terrain* terrain;
 ce_input_event_supply* es;
 
 static void idle(void)
@@ -86,6 +83,7 @@ static void idle(void)
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_input_event_supply_del(es);
+		ce_lightcfg_del(lightcfg);
 		ce_terrain_del(terrain);
 		ce_scenemng_del(scenemng);
 		ce_root_term();
@@ -132,14 +130,6 @@ static void idle(void)
 	glutPostRedisplay();
 }
 
-static void color_lerp(float u, float rcol[4], float acol[4], float bcol[4])
-{
-	rcol[0] = ce_lerp(u, acol[0], bcol[0]);
-	rcol[1] = ce_lerp(u, acol[1], bcol[1]);
-	rcol[2] = ce_lerp(u, acol[2], bcol[2]);
-	rcol[3] = ce_lerp(u, acol[3], bcol[3]);
-}
-
 static void display(void)
 {
 	float time_index, time_next_index;
@@ -149,32 +139,36 @@ static void display(void)
 		time_next_index = 0.0f;
 	}
 
-	float sky[4], ambient[4], sunlight[4];
+	ce_color sky, ambient, sunlight;
 
-	color_lerp(time_factor, sky,
-		light_cfg->sky[(int)time_index],
-		light_cfg->sky[(int)time_next_index]);
+	ce_color_lerp(&sky, time_factor,
+		&lightcfg->sky[(int)time_index],
+		&lightcfg->sky[(int)time_next_index]);
 
-	color_lerp(time_factor, ambient,
-		light_cfg->ambient[(int)time_index],
-		light_cfg->ambient[(int)time_next_index]);
+	ce_color_lerp(&ambient, time_factor,
+		&lightcfg->ambient[(int)time_index],
+		&lightcfg->ambient[(int)time_next_index]);
 
-	color_lerp(time_factor, sunlight,
-		light_cfg->sunlight[(int)time_index],
-		light_cfg->sunlight[(int)time_next_index]);
+	ce_color_lerp(&sunlight, time_factor,
+		&lightcfg->sunlight[(int)time_index],
+		&lightcfg->sunlight[(int)time_next_index]);
 
-	glClearColor(sky[0], sky[1], sky[2], sky[3]);
+	glClearColor(sky.r, sky.g, sky.b, sky.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #ifdef GL_VERSION_1_2
 	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 #endif
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
 
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, (float[]) { ambient.r, ambient.g,
+													ambient.b, ambient.a });
+
+	// TODO: sunlight after camera! move to engine!!!
 	glEnable(GL_LIGHT0);
 	glLightfv(GL_LIGHT0, GL_POSITION, (float[]) { 0.0f, 1.0f, 0.0f, 0.0f });
-	glLightfv(GL_LIGHT0, GL_AMBIENT, sunlight);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, (float[]) { sunlight.r, sunlight.g,
+												sunlight.b, sunlight.a });
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]) { 0.0f, 0.0f, 0.0f, 0.0f });
 
 	ce_scenemng_render(scenemng);
@@ -188,22 +182,6 @@ static void reshape(int width, int height)
 {
 	glViewport(0, 0, width, height);
 	ce_camera_set_aspect(scenemng->camera, width, height);
-}
-
-static bool load_light(ce_lightcfg* light, const char* ei_path,
-											const char* cfg_name)
-{
-	char cfg_path[512];
-	snprintf(cfg_path, sizeof(cfg_path), "%s/Config/%s.ini", ei_path, cfg_name);
-
-	ce_cfgfile* cfg = ce_cfgfile_open(cfg_path);
-	if (NULL == cfg) {
-		ce_logging_error("main: could not open config file: '%s'", cfg_path);
-		return false;
-	}
-
-	bool ok = ce_lightcfg_init(light, cfg);
-	return ce_cfgfile_close(cfg), ok;
 }
 
 static void usage(void)
@@ -343,15 +321,21 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	if (!load_light(&gipat_light, ei_path, "lightsgipat") ||
-			!load_light(&ingos_light, ei_path, "lightsingos") ||
-			!load_light(&suslanger_light, ei_path, "lightssuslanger")) {
-		ce_logging_error("main: failed to load lighting configuration");
+	char cfg_path[512];
+	snprintf(cfg_path, sizeof(cfg_path), "%s/Config/lightsgipat.ini", ei_path);
+
+	ce_cfgfile* cfgfile = ce_cfgfile_open(cfg_path);
+	if (NULL == cfgfile) {
+		ce_logging_error("main: could not open config file: '%s'", cfg_path);
 		return 1;
 	}
 
-	// TODO: gipat light hardcoded
-	light_cfg = &gipat_light;
+	lightcfg = ce_lightcfg_new(cfgfile);
+	if (NULL == lightcfg) {
+		return 1;
+	}
+
+	ce_cfgfile_close(cfgfile);
 
 	ce_vec3 position;
 	ce_vec3_init(&position, 0.0f, terrain->mprfile->max_y, 0.0f);

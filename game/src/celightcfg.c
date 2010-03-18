@@ -20,16 +20,18 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "cestr.h"
+#include "cealloc.h"
 #include "celogging.h"
 #include "celightcfg.h"
 
-static bool ce_lightcfg_read_section(float section[24][4],
+static bool ce_lightcfg_read_section(ce_color section[24],
 									const char* section_name,
-									ce_cfgfile* cfg)
+									ce_cfgfile* cfgfile)
 {
-	int section_index = ce_cfgfile_section_index(cfg, section_name);
+	int section_index = ce_cfgfile_section_index(cfgfile, section_name);
 	if (-1 == section_index) {
 		ce_logging_error("lightcfg: could not find section: '%s'", section_name);
 		return false;
@@ -40,7 +42,7 @@ static bool ce_lightcfg_read_section(float section[24][4],
 	for (int i = 0; i < 24; ++i) {
 		snprintf(option_name, sizeof(option_name), "time%02d", i);
 
-		int option_index = ce_cfgfile_option_index(cfg, section_index,
+		int option_index = ce_cfgfile_option_index(cfgfile, section_index,
 															option_name);
 		if (-1 == option_index) {
 			ce_logging_error("lightcfg: section '%s': "
@@ -48,25 +50,44 @@ static bool ce_lightcfg_read_section(float section[24][4],
 			return false;
 		}
 
-		if (sizeof(option) <= ce_strlcpy(option, ce_cfgfile_get(cfg,
+		if (sizeof(option) <= ce_strlcpy(option, ce_cfgfile_get(cfgfile,
 						section_index, option_index), sizeof(option))) {
 			ce_logging_error("lightcfg: option is too long: '%s'", option);
 			return false;
 		}
 
 		temp = option;
-		for (int j = 0; j < 3; ++j) {
-			section[i][j] = atoi(ce_strsep(&temp, ",")) / 255.0f;
-		}
-		section[i][3] = 1.0f;
+
+		section[i].r = atoi(ce_strsep(&temp, ",")) / 255.0f;
+		section[i].g = atoi(ce_strsep(&temp, ",")) / 255.0f;
+		section[i].b = atoi(ce_strsep(&temp, ",")) / 255.0f;
+		section[i].a = 1.0f;
 	}
 
 	return true;
 }
 
-bool ce_lightcfg_init(ce_lightcfg* light, ce_cfgfile* cfg)
+ce_lightcfg* ce_lightcfg_new(ce_cfgfile* cfgfile)
 {
-	return ce_lightcfg_read_section(light->sunlight, "sunlight", cfg) &&
-			ce_lightcfg_read_section(light->ambient, "ambient", cfg) &&
-			ce_lightcfg_read_section(light->sky, "sky", cfg);
+	ce_lightcfg* lightcfg = ce_alloc(sizeof(ce_lightcfg));
+	bool ok = ce_lightcfg_read_section(lightcfg->sky, "sky", cfgfile) &&
+		ce_lightcfg_read_section(lightcfg->ambient, "ambient", cfgfile) &&
+		ce_lightcfg_read_section(lightcfg->sunlight, "sunlight", cfgfile);
+	return ok ? lightcfg : (ce_lightcfg_del(lightcfg), NULL);
+}
+
+ce_lightcfg* ce_lightcfg_new_default(void)
+{
+	ce_lightcfg* lightcfg = ce_alloc(sizeof(ce_lightcfg));
+	for (int i = 0; i < 24; ++i) {
+		lightcfg->sky[i] = CE_COLOR_WHITE;
+		lightcfg->ambient[i] = CE_COLOR_WHITE;
+		lightcfg->sunlight[i] = CE_COLOR_WHITE;
+	}
+	return lightcfg;
+}
+
+void ce_lightcfg_del(ce_lightcfg* lightcfg)
+{
+	ce_free(lightcfg, sizeof(ce_lightcfg));
 }

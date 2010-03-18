@@ -21,8 +21,7 @@
 #ifndef CE_LIGHTCFG_H
 #define CE_LIGHTCFG_H
 
-#include <stdbool.h>
-
+#include "cecolor.h"
 #include "cecfgfile.h"
 
 #ifdef __cplusplus
@@ -31,12 +30,14 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	float sunlight[24][4];
-	float ambient[24][4];
-	float sky[24][4];
+	ce_color sky[24];
+	ce_color ambient[24];
+	ce_color sunlight[24];
 } ce_lightcfg;
 
-extern bool ce_lightcfg_init(ce_lightcfg* light, ce_cfgfile* cfg);
+extern ce_lightcfg* ce_lightcfg_new(ce_cfgfile* cfgfile);
+extern ce_lightcfg* ce_lightcfg_new_default(void);
+extern void ce_lightcfg_del(ce_lightcfg* lightcfg);
 
 #ifdef __cplusplus
 }

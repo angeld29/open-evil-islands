@@ -24,7 +24,6 @@
 #include "cevec3.h"
 #include "cequat.h"
 #include "cecolor.h"
-#include "celightcfg.h"
 #include "cecamera.h"
 
 #ifdef __cplusplus
@@ -38,7 +37,7 @@ extern ce_rendersystem* ce_rendersystem_new(void);
 extern void ce_rendersystem_del(ce_rendersystem* rendersystem);
 
 extern void ce_rendersystem_begin_render(ce_rendersystem* rendersystem,
-										const ce_lightcfg* lightcfg);
+										const ce_color* clear_color);
 extern void ce_rendersystem_end_render(ce_rendersystem* rendersystem);
 
 extern void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem);
