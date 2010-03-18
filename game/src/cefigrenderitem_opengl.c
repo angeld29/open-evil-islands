@@ -376,9 +376,9 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
-		glVertexPointer(3, GL_FLOAT, 0, figrenderitem->vertices);
+	glVertexPointer(3, GL_FLOAT, 0, figrenderitem->vertices);
 
+	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
 		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER,
 							figrenderitem->cookie->normals.buffer);
 		glNormalPointer(GL_FLOAT, 0, NULL);
@@ -387,18 +387,13 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 							figrenderitem->cookie->texcoords.buffer);
 		glTexCoordPointer(2, GL_FLOAT, 0, NULL);
 
-		// TODO: unbind buffer here ?
+		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, 0);
 	} else {
-		glVertexPointer(3, GL_FLOAT, 0, figrenderitem->vertices);
 		glNormalPointer(GL_FLOAT, 0, figrenderitem->cookie->normals.pointer);
 		glTexCoordPointer(2, GL_FLOAT, 0, figrenderitem->cookie->texcoords.pointer);
 	}
 
 	glDrawArrays(GL_TRIANGLES, 0, figrenderitem->cookie->vertex_count);
-
-	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
-		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, 0);
-	}
 
 	glPopClientAttrib();
 	glPopAttrib();
