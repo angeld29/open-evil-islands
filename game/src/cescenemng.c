@@ -46,6 +46,7 @@ ce_scenemng* ce_scenemng_new(void)
 	scenemng->fps = ce_fps_new();
 	scenemng->camera = ce_camera_new();
 	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
+	scenemng->show_axes = true;
 	scenemng->show_bboxes = false;
 	scenemng->anm_fps = 15.0f;
 	return scenemng;
@@ -180,7 +181,9 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	ce_rendersystem_setup_camera(scenemng->rendersystem, scenemng->camera);
 
-	ce_rendersystem_render_axes(scenemng->rendersystem);
+	if (scenemng->show_axes) {
+		ce_rendersystem_draw_axes(scenemng->rendersystem);
+	}
 
 	ce_vec3 forward, right, up;
 	ce_frustum frustum;
@@ -198,6 +201,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 								scenemng->scenenode,
 								&scenemng->camera->position,
 								&frustum);
+
 	ce_renderqueue_render(scenemng->renderqueue,
 							scenemng->rendersystem);
 

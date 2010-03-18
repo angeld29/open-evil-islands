@@ -23,6 +23,9 @@
 
 #include "cevec3.h"
 #include "cequat.h"
+#include "ceaabb.h"
+#include "cebbox.h"
+#include "cecolor.h"
 #include "celightcfg.h"
 #include "cecamera.h"
 
@@ -40,7 +43,21 @@ extern void ce_rendersystem_begin_render(ce_rendersystem* rendersystem,
 										const ce_lightcfg* lightcfg);
 extern void ce_rendersystem_end_render(ce_rendersystem* rendersystem);
 
-extern void ce_rendersystem_render_axes(ce_rendersystem* rendersystem);
+extern void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem);
+
+/**
+ * Draw a cube centered at zero with side of 2 * size.
+ * Vertices specified counterclockwise.
+*/
+extern void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
+											float size, const ce_color* color);
+
+extern void ce_rendersystem_draw_wire_aabb(ce_rendersystem* rendersystem,
+												const ce_aabb* aabb,
+												const ce_color* color);
+extern void ce_rendersystem_draw_wire_bbox(ce_rendersystem* rendersystem,
+												const ce_bbox* bbox,
+												const ce_color* color);
 
 extern void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 												ce_camera* camera);
@@ -48,7 +65,8 @@ extern void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 extern void
 ce_rendersystem_apply_transform(ce_rendersystem* rendersystem,
 									const ce_vec3* translation,
-									const ce_quat* rotation);
+									const ce_quat* rotation,
+									const ce_vec3* scaling);
 extern void ce_rendersystem_discard_transform(ce_rendersystem* rendersystem);
 
 #ifdef __cplusplus

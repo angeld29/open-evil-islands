@@ -45,6 +45,7 @@ typedef struct {
 	ce_fps* fps;
 	ce_camera* camera;
 	ce_font* font;
+	bool show_axes;
 	bool show_bboxes;
 	float anm_fps;
 } ce_scenemng;

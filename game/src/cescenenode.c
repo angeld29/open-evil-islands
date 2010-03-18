@@ -123,7 +123,8 @@ void ce_scenenode_render(ce_scenenode* scenenode,
 {
 	ce_rendersystem_apply_transform(rendersystem,
 									&scenenode->world_position,
-									&scenenode->world_orientation);
+									&scenenode->world_orientation,
+									&CE_VEC3_UNIT_SCALE);
 	ce_renderlayer_render(scenenode->renderlayer);
 	ce_rendersystem_discard_transform(rendersystem);
 }

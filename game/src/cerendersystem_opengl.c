@@ -62,7 +62,7 @@ void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
 	glFlush();
 }
 
-void ce_rendersystem_render_axes(ce_rendersystem* rendersystem)
+void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem)
 {
 	ce_unused(rendersystem);
 
@@ -72,6 +72,7 @@ void ce_rendersystem_render_axes(ce_rendersystem* rendersystem)
 	glEnable(GL_DEPTH_TEST);
 
 	glBegin(GL_LINES);
+
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glVertex3f(0.0f, 0.0f, 0.0f);
 	glVertex3f(100.0f, 0.0f, 0.0f);
@@ -83,9 +84,85 @@ void ce_rendersystem_render_axes(ce_rendersystem* rendersystem)
 	glColor3f(0.0f, 0.0f, 1.0f);
 	glVertex3f(0.0f, 0.0f, 0.0f);
 	glVertex3f(0.0f, 0.0f, 100.0f);
+
 	glEnd();
 
 	glPopAttrib();
+}
+
+void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
+									float size, const ce_color* color)
+{
+	ce_unused(rendersystem);
+
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
+
+	glDisable(GL_LIGHTING);
+	glEnable(GL_DEPTH_TEST);
+
+	glColor4f(color->r, color->g, color->b, color->a);
+
+	glBegin(GL_QUADS);
+
+	// face 1 front xy plane
+	glVertex3f(-size, -size, size);
+	glVertex3f( size, -size, size);
+	glVertex3f( size,  size, size);
+	glVertex3f(-size,  size, size);
+
+	// face 2 right yz plane
+	glVertex3f( size, -size,  size);
+	glVertex3f( size, -size, -size);
+	glVertex3f( size,  size, -size);
+	glVertex3f( size,  size,  size);
+
+	// face 3 back xy plane
+	glVertex3f( size, -size, -size);
+	glVertex3f(-size, -size, -size);
+	glVertex3f(-size,  size, -size);
+	glVertex3f( size,  size, -size);
+
+	// face 4 left yz plane
+	glVertex3f(-size, -size,  size);
+	glVertex3f(-size, -size, -size);
+	glVertex3f(-size,  size, -size);
+	glVertex3f(-size,  size,  size);
+
+	// face 5 top xz plane
+	glVertex3f( size, size,  size);
+	glVertex3f( size, size, -size);
+	glVertex3f(-size, size, -size);
+	glVertex3f(-size, size,  size);
+
+	// face 6 bottom xz plane
+	glVertex3f(-size, -size, -size);
+	glVertex3f(-size, -size,  size);
+	glVertex3f( size, -size,  size);
+	glVertex3f( size, -size, -size);
+
+	glEnd();
+
+	glPopAttrib();
+}
+
+void ce_rendersystem_render_wire_aabb(ce_rendersystem* rendersystem,
+												const ce_aabb* aabb,
+												const ce_color* color)
+{
+	ce_rendersystem_apply_transform(rendersystem, &aabb->origin,
+									&CE_QUAT_IDENTITY, &aabb->extents);
+	ce_rendersystem_draw_wire_cube(rendersystem, 1.0f, color);
+	ce_rendersystem_discard_transform(rendersystem);
+}
+
+void ce_rendersystem_render_wire_bbox(ce_rendersystem* rendersystem,
+												const ce_color* color,
+												const ce_bbox* bbox)
+{
+	ce_rendersystem_apply_transform(rendersystem, &bbox->aabb.origin,
+									&bbox->axis, &bbox->aabb.extents);
+	ce_rendersystem_draw_wire_cube(rendersystem, 1.0f, color);
+	ce_rendersystem_discard_transform(rendersystem);
 }
 
 void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
@@ -141,7 +218,8 @@ void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 
 void ce_rendersystem_apply_transform(ce_rendersystem* rendersystem,
 									const ce_vec3* translation,
-									const ce_quat* rotation)
+									const ce_quat* rotation,
+									const ce_vec3* scaling)
 {
 	ce_unused(rendersystem);
 
@@ -149,8 +227,10 @@ void ce_rendersystem_apply_transform(ce_rendersystem* rendersystem,
 	float angle = ce_quat_to_polar(rotation, &axis);
 
 	glPushMatrix();
+
 	glTranslatef(translation->x, translation->y, translation->z);
 	glRotatef(ce_rad2deg(angle), axis.x, axis.y, axis.z);
+	glScalef(scaling->x, scaling->y, scaling->z);
 }
 
 void ce_rendersystem_discard_transform(ce_rendersystem* rendersystem)
