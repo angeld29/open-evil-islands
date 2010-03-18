@@ -1,3 +1,17 @@
+VGA compatible controller: nVidia Corporation NV44A [GeForce 6200] (rev a1)
+Subsystem: XFX Pine Group Inc. Device 226a
+Flags: bus master, 66MHz, medium devsel, latency 248, IRQ 19
+Memory at e6000000 (32-bit, non-prefetchable) [size=16M]
+Memory at d0000000 (32-bit, prefetchable) [size=256M]
+Memory at e7000000 (32-bit, non-prefetchable) [size=16M]
+[virtual] Expansion ROM at e8000000 [disabled] [size=128K]
+Capabilities: <access denied>
+Kernel driver in use: nvidia
+Kernel modules: nvidia, nvidiafb
+vendor: NVIDIA Corporation
+renderer: GeForce 6200/AGP/SSE/3DNOW!
+version: 2.1.2 NVIDIA 185.18.36
+extensions:
 GL_ARB_color_buffer_float
 GL_ARB_depth_texture
 GL_ARB_draw_buffers
