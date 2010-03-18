@@ -58,6 +58,8 @@ void ce_rendersystem_begin_render(ce_rendersystem* rendersystem,
 void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
 {
 	ce_unused(rendersystem);
+
+	glFlush();
 }
 
 void ce_rendersystem_render_axes(ce_rendersystem* rendersystem)
