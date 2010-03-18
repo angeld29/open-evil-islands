@@ -386,6 +386,8 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER,
 							figrenderitem->cookie->texcoords.buffer);
 		glTexCoordPointer(2, GL_FLOAT, 0, NULL);
+
+		// TODO: unbind buffer here ?
 	} else {
 		glVertexPointer(3, GL_FLOAT, 0, figrenderitem->vertices);
 		glNormalPointer(GL_FLOAT, 0, figrenderitem->cookie->normals.pointer);
