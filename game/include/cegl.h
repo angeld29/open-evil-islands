@@ -78,11 +78,15 @@ extern void ce_gl_term(void);
 extern bool ce_gl_report_errors(void);
 extern bool ce_gl_query_feature(ce_gl_feature feature);
 
+// texture compression
+
 extern void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 											GLenum internal_format,
 											GLsizei width, GLsizei height,
 											GLint border, GLsizei image_size,
 											const GLvoid* data);
+
+// VBO
 
 extern void ce_gl_bind_buffer(GLenum target, GLuint buffer);
 extern void ce_gl_delete_buffers(GLsizei n, const GLuint* buffers);
@@ -91,6 +95,13 @@ extern void ce_gl_buffer_data(GLenum target, GLsizeiptr size,
 								const GLvoid* data, GLenum usage);
 extern void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
 									GLsizeiptr size, const GLvoid* data);
+
+// window pos
+
+extern void ce_gl_window_pos_2f(GLfloat x, GLfloat y);
+extern void ce_gl_window_pos_2fv(const GLfloat* v);
+extern void ce_gl_window_pos_2i(GLint x, GLint y);
+extern void ce_gl_window_pos_2iv(const GLint* v);
 
 #ifdef __cplusplus
 }

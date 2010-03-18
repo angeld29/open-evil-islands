@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdarg.h>
 #include <string.h>
 #include <assert.h>
 
@@ -164,6 +165,18 @@ static CE_GL_GEN_BUFFERS_PROC ce_gl_gen_buffers_proc;
 static CE_GL_BUFFER_DATA_PROC ce_gl_buffer_data_proc;
 static CE_GL_BUFFER_SUB_DATA_PROC ce_gl_buffer_sub_data_proc;
 
+// window pos
+
+typedef void (APIENTRY *CE_GL_WINDOW_POS_2F_PROC)(GLfloat x, GLfloat y);
+typedef void (APIENTRY *CE_GL_WINDOW_POS_2FV_PROC)(const GLfloat* v);
+typedef void (APIENTRY *CE_GL_WINDOW_POS_2I_PROC)(GLint x, GLint y);
+typedef void (APIENTRY *CE_GL_WINDOW_POS_2IV_PROC)(const GLint* v);
+
+static CE_GL_WINDOW_POS_2F_PROC ce_gl_window_pos_2f_proc;
+static CE_GL_WINDOW_POS_2FV_PROC ce_gl_window_pos_2fv_proc;
+static CE_GL_WINDOW_POS_2I_PROC ce_gl_window_pos_2i_proc;
+static CE_GL_WINDOW_POS_2IV_PROC ce_gl_window_pos_2iv_proc;
+
 typedef void (*ce_gl_ext_func_ptr)(void);
 
 static ce_gl_ext_func_ptr ce_gl_get_proc_address(const char* name)
@@ -178,6 +191,18 @@ static ce_gl_ext_func_ptr ce_gl_get_proc_address(const char* name)
 #endif
 #endif
 	return NULL;
+}
+
+static ce_gl_ext_func_ptr ce_gl_get_first_proc_address(int count, ...)
+{
+	ce_gl_ext_func_ptr func = NULL;
+	va_list args;
+	va_start(args, count);
+	for (int i = 0; i < count && NULL == func; ++i) {
+		func = ce_gl_get_proc_address(va_arg(args, const char*));
+	}
+	va_end(args);
+	return func;
 }
 
 static bool ce_gl_check_extension(const char* name)
@@ -306,6 +331,26 @@ bool ce_gl_init(void)
 		ce_gl_check_extension("GL_ARB_window_pos") ||
 		ce_gl_check_extension("GL_MESA_window_pos");
 
+	if (ce_gl_inst.features[CE_GL_WINDOW_POS]) {
+		ce_gl_window_pos_2f_proc = (CE_GL_WINDOW_POS_2F_PROC)
+			ce_gl_get_first_proc_address(2, "glWindowPos2fARB",
+											"glWindowPos2fMESA");
+		ce_gl_window_pos_2fv_proc = (CE_GL_WINDOW_POS_2FV_PROC)
+			ce_gl_get_first_proc_address(2, "glWindowPos2fvARB",
+											"glWindowPos2fvMESA");
+		ce_gl_window_pos_2i_proc = (CE_GL_WINDOW_POS_2I_PROC)
+			ce_gl_get_first_proc_address(2, "glWindowPos2iARB",
+											"glWindowPos2iMESA");
+		ce_gl_window_pos_2iv_proc = (CE_GL_WINDOW_POS_2IV_PROC)
+			ce_gl_get_first_proc_address(2, "glWindowPos2ivARB",
+											"glWindowPos2ivMESA");
+		ce_gl_inst.features[CE_GL_WINDOW_POS] =
+			NULL != ce_gl_window_pos_2f_proc &&
+			NULL != ce_gl_window_pos_2fv_proc &&
+			NULL != ce_gl_window_pos_2i_proc &&
+			NULL != ce_gl_window_pos_2iv_proc;
+	}
+
 	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
 		ce_logging_write("opengl: checking for '%s' extension... %s",
 							ce_gl_inst.feature_names[i],
@@ -394,4 +439,32 @@ void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
 	assert(NULL != ce_gl_buffer_sub_data_proc);
 	(*ce_gl_buffer_sub_data_proc)(target, offset, size, data);
+}
+
+void ce_gl_window_pos_2f(GLfloat x, GLfloat y)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_window_pos_2f_proc);
+	(*ce_gl_window_pos_2f_proc)(x, y);
+}
+
+void ce_gl_window_pos_2fv(const GLfloat* v)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_window_pos_2fv_proc);
+	(*ce_gl_window_pos_2fv_proc)(v);
+}
+
+void ce_gl_window_pos_2i(GLint x, GLint y)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_window_pos_2i_proc);
+	(*ce_gl_window_pos_2i_proc)(x, y);
+}
+
+void ce_gl_window_pos_2iv(const GLint* v)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_window_pos_2iv_proc);
+	(*ce_gl_window_pos_2iv_proc)(v);
 }
