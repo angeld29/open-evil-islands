@@ -145,26 +145,6 @@ void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
 	glPopAttrib();
 }
 
-void ce_rendersystem_render_wire_aabb(ce_rendersystem* rendersystem,
-												const ce_aabb* aabb,
-												const ce_color* color)
-{
-	ce_rendersystem_apply_transform(rendersystem, &aabb->origin,
-									&CE_QUAT_IDENTITY, &aabb->extents);
-	ce_rendersystem_draw_wire_cube(rendersystem, 1.0f, color);
-	ce_rendersystem_discard_transform(rendersystem);
-}
-
-void ce_rendersystem_render_wire_bbox(ce_rendersystem* rendersystem,
-												const ce_color* color,
-												const ce_bbox* bbox)
-{
-	ce_rendersystem_apply_transform(rendersystem, &bbox->aabb.origin,
-									&bbox->axis, &bbox->aabb.extents);
-	ce_rendersystem_draw_wire_cube(rendersystem, 1.0f, color);
-	ce_rendersystem_discard_transform(rendersystem);
-}
-
 void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 										ce_camera* camera)
 {

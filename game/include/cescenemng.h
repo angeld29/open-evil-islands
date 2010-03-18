@@ -47,6 +47,7 @@ typedef struct {
 	ce_font* font;
 	bool show_axes;
 	bool show_bboxes;
+	bool comprehensive_bbox_only;
 	float anm_fps;
 } ce_scenemng;
 

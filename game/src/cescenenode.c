@@ -128,3 +128,41 @@ void ce_scenenode_render(ce_scenenode* scenenode,
 	ce_renderlayer_render(scenenode->renderlayer);
 	ce_rendersystem_discard_transform(rendersystem);
 }
+
+void ce_scenenode_draw_bbox(ce_scenenode* scenenode,
+							ce_rendersystem* rendersystem,
+							bool comprehensive_only)
+{
+	// TODO: implement it
+	/*ce_rendersystem_apply_transform(rendersystem, &bbox->aabb.origin,
+									&bbox->axis, &bbox->aabb.extents);
+	ce_rendersystem_draw_wire_cube(rendersystem, 1.0f, color);
+	ce_rendersystem_discard_transform(rendersystem);*/
+}
+
+/*
+void ce_scenemng_render_bboxes(ce_scenenode* scenenode)
+{
+	ce_vec3 xaxis, yaxis, zaxis, v;
+	ce_quat_to_axes(&scenenode->world_bbox.axis, &xaxis, &yaxis, &zaxis);
+
+	ce_vec3_scale(&v, scenenode->world_bbox.aabb.extents.x, &xaxis);
+	float xscale = ce_vec3_len(&v);
+	ce_vec3_scale(&v, scenenode->world_bbox.aabb.extents.y, &yaxis);
+	float yscale = ce_vec3_len(&v);
+	ce_vec3_scale(&v, scenenode->world_bbox.aabb.extents.z, &zaxis);
+	float zscale = ce_vec3_len(&v);
+}
+*/
+
+void ce_scenenode_draw_bbox_cascade(ce_scenenode* scenenode,
+									ce_rendersystem* rendersystem,
+									bool comprehensive_only)
+{
+	ce_scenenode_draw_bbox(scenenode, rendersystem, comprehensive_only);
+
+	for (int i = 0; i < scenenode->childs->count; ++i) {
+		ce_scenenode_draw_bbox_cascade(scenenode->childs->items[i],
+										rendersystem, comprehensive_only);
+	}
+}

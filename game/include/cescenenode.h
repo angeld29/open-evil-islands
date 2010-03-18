@@ -21,6 +21,8 @@
 #ifndef CE_SCENENODE_H
 #define CE_SCENENODE_H
 
+#include <stdbool.h>
+
 #include "cevec3.h"
 #include "cequat.h"
 #include "cebbox.h"
@@ -58,6 +60,13 @@ extern void ce_scenenode_update_cascade(ce_scenenode* scenenode);
 
 extern void ce_scenenode_render(ce_scenenode* scenenode,
 								ce_rendersystem* rendersystem);
+
+extern void ce_scenenode_draw_bbox(ce_scenenode* scenenode,
+									ce_rendersystem* rendersystem,
+									bool comprehensive_only);
+extern void ce_scenenode_draw_bbox_cascade(ce_scenenode* scenenode,
+											ce_rendersystem* rendersystem,
+											bool comprehensive_only);
 
 #ifdef __cplusplus
 }

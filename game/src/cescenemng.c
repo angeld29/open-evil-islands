@@ -20,14 +20,8 @@
 
 #include <stdio.h>
 
-// TODO: to be unhardcoded...
-#include <GL/glut.h>
-#ifdef _WIN32
-// fu... win32
-#undef near
-#undef far
-#endif
-
+// TODO: remove it
+#include <GL/gl.h>
 #include "cegl.h"
 
 #include "cemath.h"
@@ -38,7 +32,7 @@
 
 ce_scenemng* ce_scenemng_new(void)
 {
-	ce_scenemng* scenemng = ce_alloc_zero(sizeof(ce_scenemng));
+	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
 	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->rendersystem = ce_rendersystem_new();
 	scenemng->renderqueue = ce_renderqueue_new();
@@ -48,6 +42,7 @@ ce_scenemng* ce_scenemng_new(void)
 	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
 	scenemng->show_axes = true;
 	scenemng->show_bboxes = false;
+	scenemng->comprehensive_bbox_only = true;
 	scenemng->anm_fps = 15.0f;
 	return scenemng;
 }
@@ -74,105 +69,6 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 	ce_input_advance(elapsed);
 	ce_fps_advance(scenemng->fps, elapsed);
-}
-
-void ce_scenemng_render_bboxes(ce_scenenode* scenenode)
-{
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
-
-	glEnable(GL_DEPTH_TEST);
-
-	glPushMatrix();
-	glTranslatef(scenenode->world_bbox.aabb.origin.x,
-				scenenode->world_bbox.aabb.origin.y,
-				scenenode->world_bbox.aabb.origin.z);
-
-	ce_vec3 xaxis, yaxis, zaxis, v;
-	ce_quat_to_axes(&scenenode->world_bbox.axis, &xaxis, &yaxis, &zaxis);
-
-	// TODO: to be unhardcoded...
-
-#if 0
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glutWireSphere(0.05f, 40, 40);
-
-	glBegin(GL_LINES);
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	ce_vec3_scale(&v, &xaxis, scenenode->world_bbox.aabb.extents.x);
-	glVertex3f(v.x, v.y, v.z);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(-v.x, -v.y, -v.z);
-	glEnd();
-	glPushMatrix();
-	glTranslatef(v.x, v.y, v.z);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glutWireSphere(0.05f, 40, 40);
-	glPopMatrix();
-	glPushMatrix();
-	glTranslatef(-v.x, -v.y, -v.z);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glutWireSphere(0.05f, 40, 40);
-	glPopMatrix();
-
-	glBegin(GL_LINES);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	ce_vec3_scale(&v, &yaxis, scenenode->world_bbox.aabb.extents.y);
-	glVertex3f(v.x, v.y, v.z);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(-v.x, -v.y, -v.z);
-	glEnd();
-	glPushMatrix();
-	glTranslatef(v.x, v.y, v.z);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glutWireSphere(0.05f, 40, 40);
-	glPopMatrix();
-	glPushMatrix();
-	glTranslatef(-v.x, -v.y, -v.z);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glutWireSphere(0.05f, 40, 40);
-	glPopMatrix();
-
-	glBegin(GL_LINES);
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	ce_vec3_scale(&v, &zaxis, scenenode->world_bbox.aabb.extents.z);
-	glVertex3f(v.x, v.y, v.z);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(-v.x, -v.y, -v.z);
-	glEnd();
-	glPushMatrix();
-	glTranslatef(v.x, v.y, v.z);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glutWireSphere(0.05f, 40, 40);
-	glPopMatrix();
-	glPushMatrix();
-	glTranslatef(-v.x, -v.y, -v.z);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glutWireSphere(0.05f, 40, 40);
-	glPopMatrix();
-#endif
-
-	ce_vec3_scale(&v, scenenode->world_bbox.aabb.extents.x, &xaxis);
-	float xscale = ce_vec3_len(&v);
-	ce_vec3_scale(&v, scenenode->world_bbox.aabb.extents.y, &yaxis);
-	float yscale = ce_vec3_len(&v);
-	ce_vec3_scale(&v, scenenode->world_bbox.aabb.extents.z, &zaxis);
-	float zscale = ce_vec3_len(&v);
-	float angle = ce_quat_to_polar(&scenenode->world_bbox.axis, &v);
-	glRotatef(ce_rad2deg(angle), v.x, v.y, v.z);
-	glScalef(xscale, yscale, zscale);
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glutWireCube(2.0f);
-
-	glPopMatrix();
-
-	glPopAttrib();
-
-	for (int i = 0; i < scenenode->childs->count; ++i) {
-		ce_scenemng_render_bboxes(scenenode->childs->items[i]);
-	}
 }
 
 void ce_scenemng_render(ce_scenemng* scenemng)
@@ -206,7 +102,9 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 							scenemng->rendersystem);
 
 	if (scenemng->show_bboxes) {
-		ce_scenemng_render_bboxes(scenemng->scenenode);
+		ce_scenenode_draw_bbox_cascade(scenemng->scenenode,
+										scenemng->rendersystem,
+										scenemng->comprehensive_bbox_only);
 	}
 
 	// FIXME: hardcoded
