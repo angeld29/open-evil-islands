@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 	printf("renderer: %s\n", glGetString(GL_RENDERER));
 	printf("version: %s\n", glGetString(GL_VERSION));
 
-	const char* extensions = glGetString(GL_EXTENSIONS);
+	const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
 	int length = strlen(extensions);
 	char buffer[length + 1];
 
