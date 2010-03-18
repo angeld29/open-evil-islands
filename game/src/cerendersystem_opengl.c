@@ -53,8 +53,6 @@ void ce_rendersystem_begin_render(ce_rendersystem* rendersystem,
 	glClearColor(lightcfg->sky[0][0], lightcfg->sky[0][1],
 				lightcfg->sky[0][2], lightcfg->sky[0][3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glLoadIdentity();
 }
 
 void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
@@ -88,91 +86,55 @@ void ce_rendersystem_render_axes(ce_rendersystem* rendersystem)
 	glPopAttrib();
 }
 
-static void ce_rendersystem_update_projection(ce_rendersystem* rendersystem,
-												ce_camera* camera)
-{
-	ce_unused(rendersystem);
-
-	if (camera->proj_changed) {
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluPerspective(camera->fov, camera->aspect, camera->near, camera->far);
-		glMatrixMode(GL_MODELVIEW);
-		camera->proj_changed = false;
-	}
-}
-
-static void ce_rendersystem_update_rotation(ce_rendersystem* rendersystem,
-													ce_camera* camera)
-{
-	if (camera->look_changed) {
-		float tx  = 2.0f * camera->look.x;
-		float ty  = 2.0f * camera->look.y;
-		float tz  = 2.0f * camera->look.z;
-		float twx = tx * camera->look.w;
-		float twy = ty * camera->look.w;
-		float twz = tz * camera->look.w;
-		float txx = tx * camera->look.x;
-		float txy = ty * camera->look.x;
-		float txz = tz * camera->look.x;
-		float tyy = ty * camera->look.y;
-		float tyz = tz * camera->look.y;
-		float tzz = tz * camera->look.z;
-
-		rendersystem->view.m[0] = 1.0f - (tyy + tzz);
-		rendersystem->view.m[1] = txy + twz;
-		rendersystem->view.m[2] = txz - twy;
-
-		rendersystem->view.m[4] = txy - twz;
-		rendersystem->view.m[5] = 1.0f - (txx + tzz);
-		rendersystem->view.m[6] = tyz + twx;
-
-		rendersystem->view.m[8] = txz + twy;
-		rendersystem->view.m[9] = tyz - twx;
-		rendersystem->view.m[10] = 1.0f - (txx + tyy);
-
-		camera->look_changed = false;
-		camera->eye_changed = true;
-	}
-}
-
-static void ce_rendersystem_update_translation(ce_rendersystem* rendersystem,
-													ce_camera* camera)
-{
-	if (camera->eye_changed) {
-		rendersystem->view.m[12] = -
-			rendersystem->view.m[0] * camera->eye.x -
-			rendersystem->view.m[4] * camera->eye.y -
-			rendersystem->view.m[8] * camera->eye.z;
-
-		rendersystem->view.m[13] = -
-			rendersystem->view.m[1] * camera->eye.x -
-			rendersystem->view.m[5] * camera->eye.y -
-			rendersystem->view.m[9] * camera->eye.z;
-
-		rendersystem->view.m[14] = -
-			rendersystem->view.m[2] * camera->eye.x -
-			rendersystem->view.m[6] * camera->eye.y -
-			rendersystem->view.m[10] * camera->eye.z;
-
-		camera->eye_changed = false;
-	}
-}
-
-static void ce_rendersystem_update_view(ce_rendersystem* rendersystem,
-											ce_camera* camera)
-{
-	ce_rendersystem_update_rotation(rendersystem, camera);
-	ce_rendersystem_update_translation(rendersystem, camera);
-
-	glMultMatrixf(rendersystem->view.m);
-}
-
 void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 										ce_camera* camera)
 {
-	ce_rendersystem_update_projection(rendersystem, camera);
-	ce_rendersystem_update_view(rendersystem, camera);
+	float tx  = 2.0f * camera->orientation.x;
+	float ty  = 2.0f * camera->orientation.y;
+	float tz  = 2.0f * camera->orientation.z;
+	float twx = tx * camera->orientation.w;
+	float twy = ty * camera->orientation.w;
+	float twz = tz * camera->orientation.w;
+	float txx = tx * camera->orientation.x;
+	float txy = ty * camera->orientation.x;
+	float txz = tz * camera->orientation.x;
+	float tyy = ty * camera->orientation.y;
+	float tyz = tz * camera->orientation.y;
+	float tzz = tz * camera->orientation.z;
+
+	rendersystem->view.m[0] = 1.0f - (tyy + tzz);
+	rendersystem->view.m[1] = txy + twz;
+	rendersystem->view.m[2] = txz - twy;
+
+	rendersystem->view.m[4] = txy - twz;
+	rendersystem->view.m[5] = 1.0f - (txx + tzz);
+	rendersystem->view.m[6] = tyz + twx;
+
+	rendersystem->view.m[8] = txz + twy;
+	rendersystem->view.m[9] = tyz - twx;
+	rendersystem->view.m[10] = 1.0f - (txx + tyy);
+
+	rendersystem->view.m[12] = -
+		rendersystem->view.m[0] * camera->position.x -
+		rendersystem->view.m[4] * camera->position.y -
+		rendersystem->view.m[8] * camera->position.z;
+
+	rendersystem->view.m[13] = -
+		rendersystem->view.m[1] * camera->position.x -
+		rendersystem->view.m[5] * camera->position.y -
+		rendersystem->view.m[9] * camera->position.z;
+
+	rendersystem->view.m[14] = -
+		rendersystem->view.m[2] * camera->position.x -
+		rendersystem->view.m[6] * camera->position.y -
+		rendersystem->view.m[10] * camera->position.z;
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(camera->fov, camera->aspect, camera->near, camera->far);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(rendersystem->view.m);
 }
 
 void ce_rendersystem_apply_transform(ce_rendersystem* rendersystem,

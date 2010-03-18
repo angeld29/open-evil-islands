@@ -176,7 +176,7 @@ void ce_scenemng_render_bboxes(ce_scenenode* scenenode)
 
 void ce_scenemng_render(ce_scenemng* scenemng)
 {
-	glLoadIdentity();
+	// TODO: begin
 
 	ce_rendersystem_setup_camera(scenemng->rendersystem, scenemng->camera);
 
@@ -187,7 +187,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	ce_frustum_init(&frustum, scenemng->camera->fov,
 		scenemng->camera->aspect, scenemng->camera->near,
-		scenemng->camera->far, &scenemng->camera->eye,
+		scenemng->camera->far, &scenemng->camera->position,
 		ce_camera_get_forward(scenemng->camera, &forward),
 		ce_camera_get_right(scenemng->camera, &right),
 		ce_camera_get_up(scenemng->camera, &up));
@@ -196,7 +196,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_scenenode_update_cascade(scenemng->scenenode);
 	ce_renderqueue_add_cascade(scenemng->renderqueue,
 								scenemng->scenenode,
-								&scenemng->camera->eye,
+								&scenemng->camera->position,
 								&frustum);
 	ce_renderqueue_render(scenemng->renderqueue,
 							scenemng->rendersystem);
@@ -256,5 +256,6 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		width - ce_font_get_width(scenemng->font, engine_text) - 10, 10,
 		&CE_COLOR_RED, engine_text);
 
+	// TODO: end
 	ce_gl_report_errors();
 }

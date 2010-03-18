@@ -38,7 +38,7 @@
 ce_frustum* ce_frustum_init(ce_frustum* frustum,
 							float fov, float aspect,
 							float near, float far,
-							const ce_vec3* eye, const ce_vec3* forward,
+							const ce_vec3* position, const ce_vec3* forward,
 							const ce_vec3* right, const ce_vec3* up)
 {
 	float tang = tanf(0.5f * ce_deg2rad(fov));
@@ -50,8 +50,8 @@ ce_frustum* ce_frustum_init(ce_frustum* frustum,
 	ce_vec3 nc, fc, xw, yh;
 	ce_vec3 ntl, ntr, nbl, nbr, ftl, ftr, fbl, fbr;
 
-	ce_vec3_add(&nc, eye, ce_vec3_scale(&nc, near, forward));
-	ce_vec3_add(&fc, eye, ce_vec3_scale(&fc, far, forward));
+	ce_vec3_add(&nc, position, ce_vec3_scale(&nc, near, forward));
+	ce_vec3_add(&fc, position, ce_vec3_scale(&fc, far, forward));
 
 	ce_vec3_scale(&xw, nw, right);
 	ce_vec3_scale(&yh, nh, up);

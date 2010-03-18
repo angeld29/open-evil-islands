@@ -51,12 +51,13 @@ void ce_renderqueue_clear(ce_renderqueue* renderqueue)
 
 void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
 								ce_scenenode* scenenode,
-								const ce_vec3* eye,
+								const ce_vec3* position,
 								const ce_frustum* frustum)
 {
 	if (ce_frustum_test_bbox(frustum, &scenenode->world_bbox)) {
 		if (NULL != scenenode->renderlayer) {
-			scenenode->dist2 = ce_vec3_dist2(eye, &scenenode->world_position);
+			scenenode->dist2 = ce_vec3_dist2(position,
+								&scenenode->world_position);
 			int index = scenenode->renderlayer->renderitem->transparent;
 			ce_vector_push_back(renderqueue->scenenodes[index], scenenode);
 			++renderqueue->queued_scenenode_count;
@@ -64,7 +65,7 @@ void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
 
 		for (int i = 0; i < scenenode->childs->count; ++i) {
 			ce_renderqueue_add_cascade(renderqueue,
-				scenenode->childs->items[i], eye, frustum);
+				scenenode->childs->items[i], position, frustum);
 		}
 	}
 }

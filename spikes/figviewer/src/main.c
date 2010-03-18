@@ -420,11 +420,11 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	ce_vec3 eye;
-	ce_vec3_init(&eye, 0.0f, 2.0f, -4.0f);
+	ce_vec3 position;
+	ce_vec3_init(&position, 0.0f, 2.0f, -4.0f);
 
 	ce_camera_set_near(scenemng->camera, 0.1f);
-	ce_camera_set_eye(scenemng->camera, &eye);
+	ce_camera_set_position(scenemng->camera, &position);
 	ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(180.0f), ce_deg2rad(30.0f));
 
 	es = ce_input_event_supply_new();
