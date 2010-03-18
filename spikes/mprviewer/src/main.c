@@ -132,7 +132,7 @@ static void idle(void)
 
 static void display(void)
 {
-	float time_index, time_next_index;
+	/*float time_index, time_next_index;
 	float time_factor = modff(time_of_day, &time_index);
 
 	if ((time_next_index = time_index + 1.0f) >= 24.0f) {
@@ -151,29 +151,30 @@ static void display(void)
 
 	ce_color_lerp(&sunlight, time_factor,
 		&lightcfg->sunlight[(int)time_index],
-		&lightcfg->sunlight[(int)time_next_index]);
+		&lightcfg->sunlight[(int)time_next_index]);*/
 
-	glClearColor(sky.r, sky.g, sky.b, sky.a);
+	//glClearColor(sky.r, sky.g, sky.b, sky.a);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-#ifdef GL_VERSION_1_2
+/*#ifdef GL_VERSION_1_2
 	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 #endif
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, (float[]) { ambient.r, ambient.g,
-													ambient.b, ambient.a });
+													ambient.b, ambient.a });*/
 
-	// TODO: sunlight after camera! move to engine!!!
-	glEnable(GL_LIGHT0);
+	// TODO: sunlight after camera? move to engine!!!
+	/*glEnable(GL_LIGHT0);
 	glLightfv(GL_LIGHT0, GL_POSITION, (float[]) { 0.0f, 1.0f, 0.0f, 0.0f });
 	glLightfv(GL_LIGHT0, GL_AMBIENT, (float[]) { sunlight.r, sunlight.g,
 												sunlight.b, sunlight.a });
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]) { 0.0f, 0.0f, 0.0f, 0.0f });
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]) { 0.0f, 0.0f, 0.0f, 0.0f });*/
 
 	ce_scenemng_render(scenemng);
 
-	glDisable(GL_LIGHT0);
+	//glDisable(GL_LIGHT0);
 
 	glutSwapBuffers();
 }
