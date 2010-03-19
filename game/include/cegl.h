@@ -77,6 +77,8 @@ extern const GLenum CE_GL_POINT_SIZE_MIN;
 extern const GLenum CE_GL_POINT_SIZE_MAX;
 extern const GLenum CE_GL_POINT_FADE_THRESHOLD_SIZE;
 extern const GLenum CE_GL_POINT_DISTANCE_ATTENUATION;
+extern const GLenum CE_GL_POINT_SPRITE;
+extern const GLenum CE_GL_COORD_REPLACE;
 
 extern bool ce_gl_init(void);
 extern void ce_gl_term(void);
