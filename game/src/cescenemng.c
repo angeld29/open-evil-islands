@@ -117,7 +117,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	static char text[64];
 
 	snprintf(text, sizeof(text),
-			"smallobj allocated: %u b, max: %u b",
+			"smallobj allocated: %zu b, max: %zu b",
 			ce_alloc_get_smallobj_allocated(),
 			ce_alloc_get_smallobj_max_allocated());
 
@@ -126,7 +126,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		&CE_COLOR_RED, text);
 
 	snprintf(text, sizeof(text),
-			"smallobj overhead: %u b",
+			"smallobj overhead: %zu b",
 			ce_alloc_get_smallobj_overhead());
 
 	ce_font_render(scenemng->font, 10,
@@ -134,7 +134,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		&CE_COLOR_RED, text);
 
 	snprintf(text, sizeof(text),
-			"system allocated: %u b, max: %u b",
+			"system allocated: %zu b, max: %zu b",
 			ce_alloc_get_system_allocated(),
 			ce_alloc_get_system_max_allocated());
 
