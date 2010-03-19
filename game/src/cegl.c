@@ -64,6 +64,9 @@ const GLenum CE_GL_POINT_FADE_THRESHOLD_SIZE = 0x8128;
 const GLenum CE_GL_POINT_DISTANCE_ATTENUATION = 0x8129;
 const GLenum CE_GL_POINT_SPRITE = 0x8861;
 const GLenum CE_GL_COORD_REPLACE = 0x8862;
+const GLenum CE_GL_VBO_FREE_MEMORY = 0x87FB;
+const GLenum CE_GL_TEXTURE_FREE_MEMORY = 0x87FC;
+const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY = 0x87FD;
 
 // texture compression
 
@@ -192,7 +195,8 @@ static struct {
 		"vertex buffer object",
 		"window pos",
 		"point parameters",
-		"point sprite"
+		"point sprite",
+		"meminfo"
 	}
 };
 
@@ -315,6 +319,9 @@ bool ce_gl_init(void)
 	ce_gl_inst.features[CE_GL_FEATURE_POINT_SPRITE] =
 		ce_gl_check_extension("GL_ARB_point_sprite") ||
 		ce_gl_check_extension("GL_NV_point_sprite");
+
+	ce_gl_inst.features[CE_GL_FEATURE_MEMINFO] =
+		ce_gl_check_extension("GL_ATI_meminfo");
 
 	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
 		ce_logging_write("opengl: checking for '%s' extension... %s",

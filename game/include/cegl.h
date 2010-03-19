@@ -51,6 +51,7 @@ typedef enum {
 	CE_GL_FEATURE_WINDOW_POS,
 	CE_GL_FEATURE_POINT_PARAMETERS,
 	CE_GL_FEATURE_POINT_SPRITE,
+	CE_GL_FEATURE_MEMINFO,
 	CE_GL_FEATURE_COUNT
 } ce_gl_feature;
 
@@ -79,6 +80,9 @@ extern const GLenum CE_GL_POINT_FADE_THRESHOLD_SIZE;
 extern const GLenum CE_GL_POINT_DISTANCE_ATTENUATION;
 extern const GLenum CE_GL_POINT_SPRITE;
 extern const GLenum CE_GL_COORD_REPLACE;
+extern const GLenum CE_GL_VBO_FREE_MEMORY;
+extern const GLenum CE_GL_TEXTURE_FREE_MEMORY;
+extern const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY;
 
 extern bool ce_gl_init(void);
 extern void ce_gl_term(void);
