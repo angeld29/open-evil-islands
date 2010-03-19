@@ -19,6 +19,7 @@
 */
 
 #include <stdio.h>
+#include <limits.h>
 #include <assert.h>
 
 #include "cemprhlp.h"
@@ -27,7 +28,7 @@ ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,
 							const ce_mprfile* mprfile,
 							int sector_x, int sector_z)
 {
-	// FIXME: negative z?..
+	// FIXME: negative z in generic code?..
 	ce_vec3 min, max;
 	ce_vec3_init(&min, sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f, -1.0f *
 		(sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1)));
