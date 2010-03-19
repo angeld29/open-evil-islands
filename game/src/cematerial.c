@@ -24,6 +24,8 @@
 ce_material* ce_material_new(ce_texture* texture)
 {
 	ce_material* material = ce_alloc(sizeof(ce_material));
+	material->mode = CE_MATERIAL_MODE_MODULATE;
+	material->wrap = CE_MATERIAL_WRAP_REPEAT;
 	ce_color_init(&material->ambient, 0.2f, 0.2f, 0.2f, 1.0f);
 	ce_color_init(&material->diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
 	ce_color_init(&material->specular, 0.0f, 0.0f, 0.0f, 1.0f);

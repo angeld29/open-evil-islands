@@ -29,7 +29,21 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+typedef enum {
+	CE_MATERIAL_MODE_MODULATE,
+	CE_MATERIAL_MODE_REPLACE,
+	CE_MATERIAL_MODE_DECAL
+} ce_material_mode;
+
+typedef enum {
+	CE_MATERIAL_WRAP_REPEAT,
+	CE_MATERIAL_WRAP_CLAMP,
+	CE_MATERIAL_WRAP_CLAMP_TO_EDGE
+} ce_material_wrap;
+
 typedef struct {
+	ce_material_mode mode;
+	ce_material_wrap wrap;
 	ce_color ambient;
 	ce_color diffuse;
 	ce_color specular;
