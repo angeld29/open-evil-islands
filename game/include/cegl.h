@@ -73,6 +73,10 @@ extern const GLenum CE_GL_STATIC_COPY;
 extern const GLenum CE_GL_DYNAMIC_DRAW;
 extern const GLenum CE_GL_DYNAMIC_READ;
 extern const GLenum CE_GL_DYNAMIC_COPY;
+extern const GLenum CE_GL_POINT_SIZE_MIN;
+extern const GLenum CE_GL_POINT_SIZE_MAX;
+extern const GLenum CE_GL_POINT_FADE_THRESHOLD_SIZE;
+extern const GLenum CE_GL_POINT_DISTANCE_ATTENUATION;
 
 extern bool ce_gl_init(void);
 extern void ce_gl_term(void);
@@ -104,6 +108,11 @@ extern void ce_gl_window_pos_2f(GLfloat x, GLfloat y);
 extern void ce_gl_window_pos_2fv(const GLfloat* v);
 extern void ce_gl_window_pos_2i(GLint x, GLint y);
 extern void ce_gl_window_pos_2iv(const GLint* v);
+
+// point parameters
+
+extern void ce_gl_point_parameter_f(GLenum pname, GLfloat param);
+extern void ce_gl_point_parameter_fv(GLenum pname, GLfloat* params);
 
 #ifdef __cplusplus
 }

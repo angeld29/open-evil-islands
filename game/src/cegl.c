@@ -36,104 +36,32 @@
 #include <GL/glx.h>
 #endif
 
-#ifndef GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
-#define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT 0x83F1
-#endif
-
-#ifndef GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
-#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT 0x83F2
-#endif
-
-#ifndef GL_TEXTURE_MAX_LEVEL_SGIS
-#define GL_TEXTURE_MAX_LEVEL_SGIS 0x813D
-#endif
-
-#ifndef GL_CLAMP_TO_EDGE_SGIS
-#define GL_CLAMP_TO_EDGE_SGIS 0x812F
-#endif
-
-#ifndef GL_UNSIGNED_SHORT_4_4_4_4_EXT
-#define GL_UNSIGNED_SHORT_4_4_4_4_EXT 0x8033
-#endif
-
-#ifndef GL_UNSIGNED_SHORT_5_5_5_1_EXT
-#define GL_UNSIGNED_SHORT_5_5_5_1_EXT 0x8034
-#endif
-
-#ifndef GL_UNSIGNED_INT_8_8_8_8_EXT
-#define GL_UNSIGNED_INT_8_8_8_8_EXT 0x8035
-#endif
-
-#ifndef GL_GENERATE_MIPMAP_SGIS
-#define GL_GENERATE_MIPMAP_SGIS 0x8191
-#endif
-
-#ifndef GL_ARRAY_BUFFER_ARB
-#define GL_ARRAY_BUFFER_ARB 0x8892
-#endif
-
-#ifndef GL_ELEMENT_ARRAY_BUFFER_ARB
-#define GL_ELEMENT_ARRAY_BUFFER_ARB 0x8893
-#endif
-
-#ifndef GL_STREAM_DRAW_ARB
-#define GL_STREAM_DRAW_ARB 0x88E0
-#endif
-
-#ifndef GL_STREAM_READ_ARB
-#define GL_STREAM_READ_ARB 0x88E1
-#endif
-
-#ifndef GL_STREAM_COPY_ARB
-#define GL_STREAM_COPY_ARB 0x88E2
-#endif
-
-#ifndef GL_STATIC_DRAW_ARB
-#define GL_STATIC_DRAW_ARB 0x88E4
-#endif
-
-#ifndef GL_STATIC_READ_ARB
-#define GL_STATIC_READ_ARB 0x88E5
-#endif
-
-#ifndef GL_STATIC_COPY_ARB
-#define GL_STATIC_COPY_ARB 0x88E6
-#endif
-
-#ifndef GL_DYNAMIC_DRAW_ARB
-#define GL_DYNAMIC_DRAW_ARB 0x88E8
-#endif
-
-#ifndef GL_DYNAMIC_READ_ARB
-#define GL_DYNAMIC_READ_ARB 0x88E9
-#endif
-
-#ifndef GL_DYNAMIC_COPY_ARB
-#define GL_DYNAMIC_COPY_ARB 0x88EA
-#endif
-
 #include "celogging.h"
 #include "cegl.h"
 
-const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT1 = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT3 = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-const GLenum CE_GL_TEXTURE_MAX_LEVEL = GL_TEXTURE_MAX_LEVEL_SGIS;
-const GLenum CE_GL_CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE_SGIS;
-const GLenum CE_GL_UNSIGNED_SHORT_4_4_4_4 = GL_UNSIGNED_SHORT_4_4_4_4_EXT;
-const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1 = GL_UNSIGNED_SHORT_5_5_5_1_EXT;
-const GLenum CE_GL_UNSIGNED_INT_8_8_8_8 = GL_UNSIGNED_INT_8_8_8_8_EXT;
-const GLenum CE_GL_GENERATE_MIPMAP = GL_GENERATE_MIPMAP_SGIS;
-const GLenum CE_GL_ARRAY_BUFFER = GL_ARRAY_BUFFER_ARB;
-const GLenum CE_GL_ELEMENT_ARRAY_BUFFER = GL_ELEMENT_ARRAY_BUFFER_ARB;
-const GLenum CE_GL_STREAM_DRAW = GL_STREAM_DRAW_ARB;
-const GLenum CE_GL_STREAM_READ = GL_STREAM_READ_ARB;
-const GLenum CE_GL_STREAM_COPY = GL_STREAM_COPY_ARB;
-const GLenum CE_GL_STATIC_DRAW = GL_STATIC_DRAW_ARB;
-const GLenum CE_GL_STATIC_READ = GL_STATIC_READ_ARB;
-const GLenum CE_GL_STATIC_COPY = GL_STATIC_COPY_ARB;
-const GLenum CE_GL_DYNAMIC_DRAW = GL_DYNAMIC_DRAW_ARB;
-const GLenum CE_GL_DYNAMIC_READ = GL_DYNAMIC_READ_ARB;
-const GLenum CE_GL_DYNAMIC_COPY = GL_DYNAMIC_COPY_ARB;
+const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT1 = 0x83F1;
+const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT3 = 0x83F2;
+const GLenum CE_GL_TEXTURE_MAX_LEVEL = 0x813D;
+const GLenum CE_GL_CLAMP_TO_EDGE = 0x812F;
+const GLenum CE_GL_UNSIGNED_SHORT_4_4_4_4 = 0x8033;
+const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1 = 0x8034;
+const GLenum CE_GL_UNSIGNED_INT_8_8_8_8 = 0x8035;
+const GLenum CE_GL_GENERATE_MIPMAP = 0x8191;
+const GLenum CE_GL_ARRAY_BUFFER = 0x8892;
+const GLenum CE_GL_ELEMENT_ARRAY_BUFFER = 0x8893;
+const GLenum CE_GL_STREAM_DRAW = 0x88E0;
+const GLenum CE_GL_STREAM_READ = 0x88E1;
+const GLenum CE_GL_STREAM_COPY = 0x88E2;
+const GLenum CE_GL_STATIC_DRAW = 0x88E4;
+const GLenum CE_GL_STATIC_READ = 0x88E5;
+const GLenum CE_GL_STATIC_COPY = 0x88E6;
+const GLenum CE_GL_DYNAMIC_DRAW = 0x88E8;
+const GLenum CE_GL_DYNAMIC_READ = 0x88E9;
+const GLenum CE_GL_DYNAMIC_COPY = 0x88EA;
+const GLenum CE_GL_POINT_SIZE_MIN = 0x8126;
+const GLenum CE_GL_POINT_SIZE_MAX = 0x8127;
+const GLenum CE_GL_POINT_FADE_THRESHOLD_SIZE = 0x8128;
+const GLenum CE_GL_POINT_DISTANCE_ATTENUATION = 0x8129;
 
 // texture compression
 
@@ -176,6 +104,16 @@ static CE_GL_WINDOW_POS_2F_PROC ce_gl_window_pos_2f_proc;
 static CE_GL_WINDOW_POS_2FV_PROC ce_gl_window_pos_2fv_proc;
 static CE_GL_WINDOW_POS_2I_PROC ce_gl_window_pos_2i_proc;
 static CE_GL_WINDOW_POS_2IV_PROC ce_gl_window_pos_2iv_proc;
+
+// point parameters
+
+typedef void (APIENTRY *CE_GL_POINT_PARAMETER_F_PROC)
+				(GLenum pname, GLfloat param);
+typedef void (APIENTRY *CE_GL_POINT_PARAMETER_FV_PROC)
+				(GLenum pname, const GLfloat* params);
+
+static CE_GL_POINT_PARAMETER_F_PROC ce_gl_point_parameter_f_proc;
+static CE_GL_POINT_PARAMETER_FV_PROC ce_gl_point_parameter_fv_proc;
 
 typedef void (*ce_gl_ext_func_ptr)(void);
 
@@ -355,7 +293,22 @@ bool ce_gl_init(void)
 
 	ce_gl_inst.features[CE_GL_FEATURE_POINT_PARAMETERS] =
 		ce_gl_check_extension("GL_ARB_point_parameters") ||
-		ce_gl_check_extension("GL_EXT_point_parameters");
+		ce_gl_check_extension("GL_EXT_point_parameters") ||
+		ce_gl_check_extension("GL_SGIS_point_parameters");
+
+	if (ce_gl_inst.features[CE_GL_FEATURE_POINT_PARAMETERS]) {
+		ce_gl_point_parameter_f_proc = (CE_GL_POINT_PARAMETER_F_PROC)
+			ce_gl_get_first_proc_address(3, "glPointParameterfARB",
+											"glPointParameterfEXT",
+											"glPointParameterfSGIS");
+		ce_gl_point_parameter_fv_proc = (CE_GL_POINT_PARAMETER_FV_PROC)
+			ce_gl_get_first_proc_address(3, "glPointParameterfvARB",
+											"glPointParameterfvEXT",
+											"glPointParameterfvSGIS");
+		ce_gl_inst.features[CE_GL_FEATURE_POINT_PARAMETERS] =
+			NULL != ce_gl_point_parameter_f_proc &&
+			NULL != ce_gl_point_parameter_fv_proc;
+	}
 
 	ce_gl_inst.features[CE_GL_FEATURE_POINT_SPRITE] =
 		ce_gl_check_extension("GL_ARB_point_sprite") ||
@@ -477,4 +430,18 @@ void ce_gl_window_pos_2iv(const GLint* v)
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
 	assert(NULL != ce_gl_window_pos_2iv_proc);
 	(*ce_gl_window_pos_2iv_proc)(v);
+}
+
+void ce_gl_point_parameter_f(GLenum pname, GLfloat param)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_point_parameter_f_proc);
+	(*ce_gl_point_parameter_f_proc)(pname, param);
+}
+
+void ce_gl_point_parameter_fv(GLenum pname, GLfloat* params)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_point_parameter_fv_proc);
+	(*ce_gl_point_parameter_fv_proc)(pname, params);
 }
