@@ -69,7 +69,7 @@ void ce_font_render(ce_font* font, int x, int y,
 
 	glColor4f(color->r, color->g, color->b, color->a);
 
-	if (ce_gl_query_feature(CE_GL_WINDOW_POS)) {
+	if (ce_gl_query_feature(CE_GL_FEATURE_WINDOW_POS)) {
 		ce_gl_window_pos_2i(x, y);
 
 		while (*text) {

@@ -250,7 +250,9 @@ static struct {
 		"packed pixels",
 		"generate mipmap",
 		"vertex buffer object",
-		"window pos"
+		"window pos",
+		"point parameters",
+		"point sprite"
 	}
 };
 
@@ -305,10 +307,10 @@ bool ce_gl_init(void)
 	ce_gl_inst.features[CE_GL_FEATURE_GENERATE_MIPMAP] =
 		ce_gl_check_extension("GL_SGIS_generate_mipmap");
 
-	ce_gl_inst.features[CE_GL_VERTEX_BUFFER_OBJECT] =
+	ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT] =
 		ce_gl_check_extension("GL_ARB_vertex_buffer_object");
 
-	if (ce_gl_inst.features[CE_GL_VERTEX_BUFFER_OBJECT]) {
+	if (ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT]) {
 		ce_gl_bind_buffer_proc = (CE_GL_BIND_BUFFER_PROC)
 								ce_gl_get_proc_address("glBindBufferARB");
 		ce_gl_delete_buffers_proc = (CE_GL_DELETE_BUFFERS_PROC)
@@ -319,7 +321,7 @@ bool ce_gl_init(void)
 								ce_gl_get_proc_address("glBufferDataARB");
 		ce_gl_buffer_sub_data_proc = (CE_GL_BUFFER_SUB_DATA_PROC)
 								ce_gl_get_proc_address("glBufferSubDataARB");
-		ce_gl_inst.features[CE_GL_VERTEX_BUFFER_OBJECT] =
+		ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT] =
 			NULL != ce_gl_bind_buffer_proc &&
 			NULL != ce_gl_delete_buffers_proc &&
 			NULL != ce_gl_gen_buffers_proc &&
@@ -327,11 +329,11 @@ bool ce_gl_init(void)
 			NULL != ce_gl_buffer_sub_data_proc;
 	}
 
-	ce_gl_inst.features[CE_GL_WINDOW_POS] =
+	ce_gl_inst.features[CE_GL_FEATURE_WINDOW_POS] =
 		ce_gl_check_extension("GL_ARB_window_pos") ||
 		ce_gl_check_extension("GL_MESA_window_pos");
 
-	if (ce_gl_inst.features[CE_GL_WINDOW_POS]) {
+	if (ce_gl_inst.features[CE_GL_FEATURE_WINDOW_POS]) {
 		ce_gl_window_pos_2f_proc = (CE_GL_WINDOW_POS_2F_PROC)
 			ce_gl_get_first_proc_address(2, "glWindowPos2fARB",
 											"glWindowPos2fMESA");
@@ -344,12 +346,20 @@ bool ce_gl_init(void)
 		ce_gl_window_pos_2iv_proc = (CE_GL_WINDOW_POS_2IV_PROC)
 			ce_gl_get_first_proc_address(2, "glWindowPos2ivARB",
 											"glWindowPos2ivMESA");
-		ce_gl_inst.features[CE_GL_WINDOW_POS] =
+		ce_gl_inst.features[CE_GL_FEATURE_WINDOW_POS] =
 			NULL != ce_gl_window_pos_2f_proc &&
 			NULL != ce_gl_window_pos_2fv_proc &&
 			NULL != ce_gl_window_pos_2i_proc &&
 			NULL != ce_gl_window_pos_2iv_proc;
 	}
+
+	ce_gl_inst.features[CE_GL_FEATURE_POINT_PARAMETERS] =
+		ce_gl_check_extension("GL_ARB_point_parameters") ||
+		ce_gl_check_extension("GL_EXT_point_parameters");
+
+	ce_gl_inst.features[CE_GL_FEATURE_POINT_SPRITE] =
+		ce_gl_check_extension("GL_ARB_point_sprite") ||
+		ce_gl_check_extension("GL_NV_point_sprite");
 
 	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
 		ce_logging_write("opengl: checking for '%s' extension... %s",

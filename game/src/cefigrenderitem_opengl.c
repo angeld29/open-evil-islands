@@ -183,7 +183,7 @@ static ce_figcookie_dynamic* ce_figcookie_dynamic_new(int vertex_count)
 	cookie->vertex_count = vertex_count;
 	cookie->ref_count = 1;
 	cookie->vertices = ce_alloc(sizeof(float) * 3 * vertex_count);
-	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
+	if (ce_gl_query_feature(CE_GL_FEATURE_VERTEX_BUFFER_OBJECT)) {
 		ce_gl_gen_buffers(1, &cookie->normals.buffer);
 		ce_gl_gen_buffers(1, &cookie->texcoords.buffer);
 	} else {
@@ -198,7 +198,7 @@ static void ce_figcookie_dynamic_del(ce_figcookie_dynamic* cookie)
 	if (NULL != cookie) {
 		assert(cookie->ref_count > 0);
 		if (0 == --cookie->ref_count) {
-			if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
+			if (ce_gl_query_feature(CE_GL_FEATURE_VERTEX_BUFFER_OBJECT)) {
 				ce_gl_delete_buffers(1, &cookie->texcoords.buffer);
 				ce_gl_delete_buffers(1, &cookie->normals.buffer);
 			} else {
@@ -243,7 +243,7 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 	float* normals;
 	float* texcoords;
 
-	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
+	if (ce_gl_query_feature(CE_GL_FEATURE_VERTEX_BUFFER_OBJECT)) {
 		normals = ce_alloc(sizeof(float) * 3 * figfile->index_count);
 		texcoords = ce_alloc(sizeof(float) * 2 * figfile->index_count);
 	} else {
@@ -270,7 +270,7 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 			figrenderitem->cookie->vertices,
 			sizeof(float) * 3 * figfile->index_count);
 
-	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
+	if (ce_gl_query_feature(CE_GL_FEATURE_VERTEX_BUFFER_OBJECT)) {
 		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER,
 							figrenderitem->cookie->normals.buffer);
 		ce_gl_buffer_data(CE_GL_ARRAY_BUFFER,
@@ -378,7 +378,7 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 
 	glVertexPointer(3, GL_FLOAT, 0, figrenderitem->vertices);
 
-	if (ce_gl_query_feature(CE_GL_VERTEX_BUFFER_OBJECT)) {
+	if (ce_gl_query_feature(CE_GL_FEATURE_VERTEX_BUFFER_OBJECT)) {
 		ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER,
 							figrenderitem->cookie->normals.buffer);
 		glNormalPointer(GL_FLOAT, 0, NULL);
