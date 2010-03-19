@@ -44,41 +44,41 @@ char* ce_format_byte_size(char* buffer, size_t size, long long int bytes)
 
 char* ce_format_byte_dot(char* buffer, size_t size, long long int bytes)
 {
+	char triple[8];
+
 	long long int KiB = 1000ll;
 	long long int MiB = 1000ll * KiB;
 	long long int GiB = 1000ll * MiB;
 
-	char buffer2[8];
-
 	ce_strlcpy(buffer, "", size);
 
 	if (bytes > GiB) {
-		snprintf(buffer2, sizeof(buffer2), "%llu.", bytes / GiB);
-		ce_strlcat(buffer, buffer2, size);
+		snprintf(triple, sizeof(triple), "%llu.", bytes / GiB);
+		ce_strlcat(buffer, triple, size);
 		bytes %= GiB;
 	}
 	if (bytes > MiB) {
-		snprintf(buffer2, sizeof(buffer2), "%llu.", bytes / MiB);
-		ce_strlcat(buffer, buffer2, size);
+		snprintf(triple, sizeof(triple), "%llu.", bytes / MiB);
+		ce_strlcat(buffer, triple, size);
 		bytes %= MiB;
 	}
 	if (bytes > KiB) {
-		snprintf(buffer2, sizeof(buffer2), "%llu.", bytes / KiB);
-		ce_strlcat(buffer, buffer2, size);
+		snprintf(triple, sizeof(triple), "%llu.", bytes / KiB);
+		ce_strlcat(buffer, triple, size);
 		bytes %= KiB;
 	}
 
-	snprintf(buffer2, sizeof(buffer2), "%llu B", bytes);
-	ce_strlcat(buffer, buffer2, size);
+	snprintf(triple, sizeof(triple), "%llu B", bytes);
+	ce_strlcat(buffer, triple, size);
 
 	return buffer;
 }
 
 char* ce_format_byte_detail(char* buffer, size_t size, long long int bytes)
 {
-	char buffer1[16], buffer2[32];
+	char tmp1[16], tmp2[32];
 	snprintf(buffer, size, "%s (%s)",
-		ce_format_byte_size(buffer1, sizeof(buffer1), bytes),
-		ce_format_byte_dot(buffer2, sizeof(buffer2), bytes));
+		ce_format_byte_size(tmp1, sizeof(tmp1), bytes),
+		ce_format_byte_dot(tmp2, sizeof(tmp2), bytes));
 	return buffer;
 }
