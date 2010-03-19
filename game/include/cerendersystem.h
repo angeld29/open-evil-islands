@@ -25,6 +25,7 @@
 #include "cequat.h"
 #include "cecolor.h"
 #include "cecamera.h"
+#include "cematerial.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -58,6 +59,13 @@ ce_rendersystem_apply_transform(ce_rendersystem* rendersystem,
 									const ce_quat* rotation,
 									const ce_vec3* scaling);
 extern void ce_rendersystem_discard_transform(ce_rendersystem* rendersystem);
+
+extern void
+ce_rendersystem_apply_material(ce_rendersystem* rendersystem,
+									ce_material* material);
+extern void
+ce_rendersystem_discard_material(ce_rendersystem* rendersystem,
+									ce_material* material);
 
 #ifdef __cplusplus
 }

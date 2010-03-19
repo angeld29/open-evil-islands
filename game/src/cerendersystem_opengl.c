@@ -21,6 +21,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#include "cegl.h"
 #include "celib.h"
 #include "cemath.h"
 #include "cemat4.h"
@@ -219,4 +220,68 @@ void ce_rendersystem_discard_transform(ce_rendersystem* rendersystem)
 	ce_unused(rendersystem);
 
 	glPopMatrix();
+}
+
+void ce_rendersystem_apply_material(ce_rendersystem* rendersystem,
+										ce_material* material)
+{
+	ce_unused(rendersystem);
+
+	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_LIGHTING_BIT | GL_TEXTURE_BIT);
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]) { material->ambient.r,
+													material->ambient.g,
+													material->ambient.b,
+													material->ambient.a });
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, (float[]) { material->diffuse.r,
+													material->diffuse.g,
+													material->diffuse.b,
+													material->diffuse.a });
+	glMaterialfv(GL_FRONT, GL_SPECULAR, (float[]) { material->specular.r,
+													material->specular.g,
+													material->specular.b,
+													material->specular.a });
+	glMaterialfv(GL_FRONT, GL_EMISSION, (float[]) { material->emission.r,
+													material->emission.g,
+													material->emission.b,
+													material->emission.a });
+	glMaterialf(GL_FRONT, GL_SHININESS, material->shininess);
+
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,
+		(GLint[]){ GL_MODULATE, GL_DECAL, GL_REPLACE }[material->mode]);
+
+	if (CE_MATERIAL_WRAP_CLAMP_TO_EDGE == material->wrap) {
+#ifdef GL_VERSION_1_2
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#else
+		if (ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_EDGE_CLAMP)) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, CE_GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CE_GL_CLAMP_TO_EDGE);
+		} else {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		}
+#endif
+	} else if (CE_MATERIAL_WRAP_CLAMP == material->wrap) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	} else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void ce_rendersystem_discard_material(ce_rendersystem* rendersystem,
+										ce_material* material)
+{
+	ce_unused(rendersystem), ce_unused(material);
+
+	glPopAttrib();
 }
