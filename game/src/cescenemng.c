@@ -20,9 +20,8 @@
 
 #include <stdio.h>
 
-// TODO: remove it
+// FIXME: hardcoded
 #include <GL/gl.h>
-#include "cegl.h"
 
 #include "cemath.h"
 #include "celogging.h"
@@ -73,7 +72,7 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 void ce_scenemng_render(ce_scenemng* scenemng)
 {
-	// TODO: begin
+	ce_rendersystem_begin_render(scenemng->rendersystem, &CE_COLOR_WHITE);
 
 	ce_rendersystem_setup_camera(scenemng->rendersystem, scenemng->camera);
 
@@ -158,6 +157,5 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		width - ce_font_get_width(scenemng->font, engine_text) - 10, 10,
 		&CE_COLOR_RED, engine_text);
 
-	// TODO: end
-	ce_gl_report_errors();
+	ce_rendersystem_end_render(scenemng->rendersystem);
 }

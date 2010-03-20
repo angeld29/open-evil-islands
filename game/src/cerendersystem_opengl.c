@@ -60,6 +60,8 @@ void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
 {
 	ce_unused(rendersystem);
 
+	ce_gl_report_errors();
+
 	glFlush();
 }
 
