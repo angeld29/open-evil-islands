@@ -27,6 +27,7 @@
 #include "celogging.h"
 #include "cealloc.h"
 #include "cefrustum.h"
+#include "ceformat.h"
 #include "cescenemng.h"
 
 ce_scenemng* ce_scenemng_new(void)
@@ -113,32 +114,30 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	int width = viewport[2];
 	int height = viewport[3];
 
-	static char text[64];
+	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
 
 	snprintf(text, sizeof(text),
-			"smallobj allocated: %zu b, max: %zu b",
-			ce_alloc_get_smallobj_allocated(),
-			ce_alloc_get_smallobj_max_allocated());
+			"smallobj %s, max %s, overhead %s",
+			ce_format_byte_detail(bytefmt_text, sizeof(bytefmt_text),
+									ce_alloc_get_smallobj_allocated()),
+			ce_format_byte_detail(bytefmt_text2, sizeof(bytefmt_text2),
+									ce_alloc_get_smallobj_max_allocated()),
+			ce_format_byte_detail(bytefmt_text3, sizeof(bytefmt_text3),
+									ce_alloc_get_smallobj_overhead()));
 
 	ce_font_render(scenemng->font, 10,
 		height - 1 * ce_font_get_height(scenemng->font) - 10,
 		&CE_COLOR_RED, text);
 
 	snprintf(text, sizeof(text),
-			"smallobj overhead: %zu b",
-			ce_alloc_get_smallobj_overhead());
+			"system %s, max %s",
+			ce_format_byte_detail(bytefmt_text, sizeof(bytefmt_text),
+									ce_alloc_get_system_allocated()),
+			ce_format_byte_detail(bytefmt_text2, sizeof(bytefmt_text2),
+									ce_alloc_get_system_max_allocated()));
 
 	ce_font_render(scenemng->font, 10,
 		height - 2 * ce_font_get_height(scenemng->font) - 10,
-		&CE_COLOR_RED, text);
-
-	snprintf(text, sizeof(text),
-			"system allocated: %zu b, max: %zu b",
-			ce_alloc_get_system_allocated(),
-			ce_alloc_get_system_max_allocated());
-
-	ce_font_render(scenemng->font, 10,
-		height - 3 * ce_font_get_height(scenemng->font) - 10,
 		&CE_COLOR_RED, text);
 
 	snprintf(text, sizeof(text), "%d scene nodes in frustum",
