@@ -14,5 +14,5 @@
    * This is an internal documentation currently available only on Russian.
      Something more strong in English will be later.
 
-   * Описание формата LNK.
+   * Описание формата RES.
      На подходе...
