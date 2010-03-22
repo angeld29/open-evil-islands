@@ -1,3 +1,6 @@
+Cursed Earth ANM file format
+==============================
+
    * This file is part of Cursed Earth.
 
      Cursed Earth is an open source, cross-platform port of Evil Islands.
@@ -14,5 +17,43 @@
    * This is an internal documentation currently available only on Russian.
      Something more strong in English will be later.
 
-   * Описание формата ANM.
-     На подходе...
+   * Введение.
+     Формат anm - это хранилище для данных анимации (вращения, смещения и
+     морфинга) одной части.
+
+   * Описание.
+     uint32 rotation_frame_count - количество кадров анимации вращения
+        float 4 * rotation_frame_count - блок кватернионов, wxyz
+
+     uint32 translation_frame_count - количество кадров анимации смещения
+        float 3 * translation_frame_count - блок векторов, xyz
+
+     uint32 morph_frame_count - количество кадров анимации морфинга
+     uint32 morph_vertex_count - количество вершин в кадре,
+                                 к которым применяется морфинг
+        float 3 * morph_frame_count * morph_vertex_count - блок векторов, xyz
+
+     Данные вращения и смещения присутствуют всегда. Данные морфинга могут
+     отсутствовать, в этом случае morph_*_count равны нулю.
+
+   * Пример.
+     Модель unmosu (гарпия), часть - r_pereponka (перепонка).
+
+     24
+     1.000000 0.000000 0.000000 0.000000
+     1.000000 0.000000 0.000000 0.000000
+     1.000000 0.000000 0.000000 0.000000
+     ...
+
+     24
+     0.000000 0.000000 0.000000
+     0.000000 0.000000 0.000000
+     0.000000 0.000000 0.000000
+     ...
+
+     24
+     21
+     ...
+     -0.050414 -0.083977 0.125293
+     -0.062090 -0.110380 0.234947
+     -0.120561 -0.118982 0.325463
