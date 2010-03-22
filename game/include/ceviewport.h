@@ -18,20 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_SCENEMNG_H
-#define CE_SCENEMNG_H
-
-#include <stdbool.h>
-
-#include "cevector.h"
-#include "cescenenode.h"
-#include "cerenderqueue.h"
-#include "ceviewport.h"
-#include "cecamera.h"
-#include "cetimer.h"
-#include "cefps.h"
-#include "cefont.h"
-#include "ceinput.h"
+#ifndef CE_VIEWPORT_H
+#define CE_VIEWPORT_H
 
 #ifdef __cplusplus
 extern "C"
@@ -39,28 +27,21 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_scenenode* scenenode;
-	ce_rendersystem* rendersystem;
-	ce_renderqueue* renderqueue;
-	ce_viewport* viewport;
-	ce_camera* camera;
-	ce_timer* timer;
-	ce_fps* fps;
-	ce_font* font;
-	bool show_axes;
-	bool show_bboxes;
-	bool comprehensive_bbox_only;
-	float anm_fps;
-} ce_scenemng;
+	int x, y; // lower left corner in pixels
+	int width, height;
+} ce_viewport;
 
-extern ce_scenemng* ce_scenemng_new(void);
-extern void ce_scenemng_del(ce_scenemng* rendlayer);
+extern ce_viewport* ce_viewport_new(void);
+extern void ce_viewport_del(ce_viewport* viewport);
 
-extern void ce_scenemng_advance(ce_scenemng* scenemng);
-extern void ce_scenemng_render(ce_scenemng* scenemng);
+extern void ce_viewport_set_corner(ce_viewport* viewport, int x, int y);
+extern void ce_viewport_set_dimensions(ce_viewport* viewport,
+										int width, int height);
+extern void ce_viewport_set_rect(ce_viewport* viewport,
+									int x, int y, int width, int height);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_SCENEMNG_H */
+#endif /* CE_VIEWPORT_H */

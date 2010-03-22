@@ -151,6 +151,13 @@ void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
 	glPopAttrib();
 }
 
+void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,
+										ce_viewport* viewport)
+{
+	glViewport(viewport->x, viewport->y, viewport->width, viewport->height);
+	glScissor(viewport->x, viewport->y, viewport->width, viewport->height);
+}
+
 void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 										ce_camera* camera)
 {

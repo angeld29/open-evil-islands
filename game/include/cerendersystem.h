@@ -24,6 +24,7 @@
 #include "cevec3.h"
 #include "cequat.h"
 #include "cecolor.h"
+#include "ceviewport.h"
 #include "cecamera.h"
 #include "cematerial.h"
 
@@ -49,6 +50,9 @@ extern void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem);
 */
 extern void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
 											float size, const ce_color* color);
+
+extern void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,
+												ce_viewport* viewport);
 
 extern void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 												ce_camera* camera);
