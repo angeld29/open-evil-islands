@@ -1,3 +1,6 @@
+Cursed Earth LNK file format
+==============================
+
    * This file is part of Cursed Earth.
 
      Cursed Earth is an open source, cross-platform port of Evil Islands.
@@ -14,5 +17,88 @@
    * This is an internal documentation currently available only on Russian.
      Something more strong in English will be later.
 
-   * Описание формата LNK.
-     На подходе...
+   * Введение.
+     Формат lnk представляет из себя описание иерархии костей скелета модели.
+
+   * Описание.
+     uint32 link_count - количество связей
+     в цикле:
+        uint32 length - длина строки
+        string child_name - название части-потомка
+
+        uint32 length - длина строки
+        string parent_name - название части-предка
+
+     Строка может заканчиваться нулём, а может и нет.
+     Часть-корень иерархии всегда первая с пустым названием части-предка.
+     Формат чётко структурирован. После связи какой-либо части идут связи
+     для дочерних частей, а потом для частей-братьев. Произвольное
+     расположение связей недопустимо.
+
+   * Пример.
+     Модель unmotr (тролль).
+
+     15
+
+     3 hp
+     0
+
+     3 bd
+     3 hp
+
+     3 hd
+     3 bd
+
+     4 lh1
+     3 bd
+
+     4 lh2
+     4 lh1
+
+     4 lh3
+     4 lh2
+
+     4 rh1
+     3 bd
+
+     4 rh2
+     4 rh1
+
+     4 rh3
+     4 rh2
+
+     4 ll1
+     3 hp
+
+     4 ll2
+     4 ll1
+
+     4 ll3
+     4 ll2
+
+     4 rl1
+     3 hp
+
+     4 rl2
+     4 rl1
+
+     4 rl3
+     4 rl2
+
+     В виде дерева:
+
+                   hd
+                   |
+                   |
+     rh3-rh2-rh1---bd---lh1-lh2-lh3
+                   |
+                   |
+                   hp
+                  / \
+                 /   \
+                /     \
+             rl1       ll1
+              |         |
+             rl2       ll2
+              |         |
+             rl3       ll3
