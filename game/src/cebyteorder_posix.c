@@ -19,11 +19,10 @@
 */
 
 #if __GNUC__ == 4 && __GNUC_MINOR__ == 2
-#include <assert.h>
-// Hack for gcc 4.2
 typedef unsigned long long __le64;
 typedef unsigned long long __be64;
 #endif
+
 #include <asm/byteorder.h>
 
 #include "cebyteorder.h"
@@ -90,68 +89,60 @@ uint64_t ce_be2cpu64(uint64_t v)
 
 void ce_cpu2le16s(uint16_t* v)
 {
-	__cpu_to_le16s(v);
+	__cpu_to_le16s((__u16*)v);
 }
 
 void ce_cpu2le32s(uint32_t* v)
 {
-	__cpu_to_le32s(v);
+	__cpu_to_le32s((__u32*)v);
 }
 
 void ce_cpu2le64s(uint64_t* v)
 {
-	__cpu_to_le64s(v);
+	__cpu_to_le64s((__u64*)v);
 }
 
 void ce_le2cpu16s(uint16_t* v)
 {
-	__le16_to_cpus(v);
+	__le16_to_cpus((__u16*)v);
 }
 
 void ce_le2cpu32s(uint32_t* v)
 {
-	__le32_to_cpus(v);
+	__le32_to_cpus((__u32*)v);
 }
 
 void ce_le2cpu64s(uint64_t* v)
 {
-	__le64_to_cpus(v);
+	__le64_to_cpus((__u64*)v);
 }
 
 void ce_cpu2be16s(uint16_t* v)
 {
-	__cpu_to_be16s(v);
+	__cpu_to_be16s((__u16*)v);
 }
 
 void ce_cpu2be32s(uint32_t* v)
 {
-	__cpu_to_be32s(v);
+	__cpu_to_be32s((__u32*)v);
 }
 
 void ce_cpu2be64s(uint64_t* v)
 {
-#if __GNUC__ == 4 && __GNUC_MINOR__ == 2
-	assert(0);
-#else
-	__cpu_to_be64s(v);
-#endif
+	__cpu_to_be64s((__u64*)v);
 }
 
 void ce_be2cpu16s(uint16_t* v)
 {
-	__be16_to_cpus(v);
+	__be16_to_cpus((__u16*)v);
 }
 
 void ce_be2cpu32s(uint32_t* v)
 {
-	__be32_to_cpus(v);
+	__be32_to_cpus((__u32*)v);
 }
 
 void ce_be2cpu64s(uint64_t* v)
 {
-#if __GNUC__ == 4 && __GNUC_MINOR__ == 2
-	assert(0);
-#else
-	__be64_to_cpus(v);
-#endif
+	__be64_to_cpus((__u64*)v);
 }
