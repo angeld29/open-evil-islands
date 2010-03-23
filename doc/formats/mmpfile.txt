@@ -1,3 +1,6 @@
+Cursed Earth MMP file format
+==============================
+
    * This file is part of Cursed Earth.
 
      Cursed Earth is an open source, cross-platform port of Evil Islands.
@@ -14,5 +17,4 @@
    * This is an internal documentation currently available only on Russian.
      Something more strong in English will be later.
 
-   * Описание формата MMP.
-     На подходе...
+   * На подходе...
