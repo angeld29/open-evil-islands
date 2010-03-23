@@ -1,0 +1,37 @@
+Cursed Earth figures
+======================
+
+   * This file is part of Cursed Earth.
+
+     Cursed Earth is an open source, cross-platform port of Evil Islands.
+     Copyright (C) 2009-2010 Yanis Kurganov.
+
+     Permission is granted to copy, distribute and/or modify this document
+     under the terms of the GNU Free Documentation License, Version 1.3
+     or any later version published by the Free Software Foundation;
+     with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+
+     You should have received a copy of the GNU Free Documentation License
+     along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+   * This is an internal documentation currently available only on Russian.
+     Something more strong in English will be later.
+
+   * Модели ПЗ состоят из 4-х составляющих: меши каждой части модели
+     (см. formats/figfile), сочленения частей (см. formats/lnkfile), позы
+     привязки (см. formats/bonfile) и данные анимации (см. formats/anmfile).
+
+     Данных анимации может не быть, это значит, что у модели нет анимаций.
+
+     С каждой моделью связаны как минимум 2 файла: mod и bon.
+     Дополнительно может присутствовать anm файл.
+
+     Файл mod представляет из себя resball архив, в котором n-е количество
+     figfile (см. formats/figfile), и 1 lnkfile (см. formats/lnkfile).
+
+     Файл bon есть нично иное как resball архив, в котором n-е количество
+     bonfile (см. formats/bonfile).
+
+     Файл anm - это resball архив, в котором n-е количество resball-архивов,
+     каждый из которых представляет одну анимацию. В каждом таком
+     resball-архиве находится n-е количество anmfile (см. formats/anmfile).
