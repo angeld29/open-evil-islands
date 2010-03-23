@@ -23,15 +23,15 @@ Cursed Earth ANM file format
 
    * Описание.
      uint32 rotation_frame_count - количество кадров анимации для вращения
-        float 4 * rotation_frame_count - блок кватернионов, wxyz
+     float rotations (wxyz) - вращения, кватернионы
 
      uint32 translation_frame_count - количество кадров анимации для смещения
-        float 3 * translation_frame_count - блок векторов, xyz
+     float translations (xyz) - смещения, вектора
 
      uint32 morph_frame_count - количество кадров анимации для морфинга
      uint32 morph_vertex_count - количество вершин в кадре,
                                  к которым применяется морфинг
-        float 3 * morph_frame_count * morph_vertex_count - блок векторов, xyz
+     float morphs (xyz) - морфы, вектора
 
      Данные вращения и смещения присутствуют всегда. Данные морфинга могут
      отсутствовать, в этом случае morph_*_count равны нулю.
