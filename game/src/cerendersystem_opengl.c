@@ -154,6 +154,8 @@ void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
 void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,
 										ce_viewport* viewport)
 {
+	ce_unused(rendersystem);
+
 	glViewport(viewport->x, viewport->y, viewport->width, viewport->height);
 	glScissor(viewport->x, viewport->y, viewport->width, viewport->height);
 }
