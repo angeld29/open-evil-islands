@@ -22,13 +22,13 @@ Cursed Earth ANM file format
      морфинга) одной части.
 
    * Описание.
-     uint32 rotation_frame_count - количество кадров анимации вращения
+     uint32 rotation_frame_count - количество кадров анимации для вращения
         float 4 * rotation_frame_count - блок кватернионов, wxyz
 
-     uint32 translation_frame_count - количество кадров анимации смещения
+     uint32 translation_frame_count - количество кадров анимации для смещения
         float 3 * translation_frame_count - блок векторов, xyz
 
-     uint32 morph_frame_count - количество кадров анимации морфинга
+     uint32 morph_frame_count - количество кадров анимации для морфинга
      uint32 morph_vertex_count - количество вершин в кадре,
                                  к которым применяется морфинг
         float 3 * morph_frame_count * morph_vertex_count - блок векторов, xyz
@@ -37,7 +37,9 @@ Cursed Earth ANM file format
      отсутствовать, в этом случае morph_*_count равны нулю.
 
    * Пример.
-     Модель unmosu (гарпия), часть - r_pereponka (перепонка).
+     Модель: unmosu (гарпия).
+     Часть: r_pereponka (перепонка).
+     Местонахождение: figures.res -> unmosu.anm -> cidle -> r_pereponka.
 
      24
      1.000000 0.000000 0.000000 0.000000

@@ -37,7 +37,9 @@ Cursed Earth BON file format
      Подробности в figfile.
 
    * Пример.
-     Модель unmotr (тролль), часть - hd (голова).
+     Модель: unmotr (тролль).
+     Часть: hd (голова).
+     Местонахождение: figures.res -> unmotr.bon -> hd.
 
          x         y        z
      0.000000 -0.361341 1.110468   1
