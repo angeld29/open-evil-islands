@@ -1,3 +1,6 @@
+Cursed Earth GIT HOWTO
+========================
+
    * This file is part of Cursed Earth.
 
      Cursed Earth is an open source, cross-platform port of Evil Islands.
