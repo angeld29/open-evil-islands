@@ -46,7 +46,7 @@ extern ce_vec3* ce_camera_get_up(ce_camera* camera, ce_vec3* up);
 extern ce_vec3* ce_camera_get_right(ce_camera* camera, ce_vec3* right);
 
 extern void ce_camera_set_fov(ce_camera* camera, float fov);
-extern void ce_camera_set_aspect(ce_camera* camera, int width, int height);
+extern void ce_camera_set_aspect(ce_camera* camera, float aspect);
 extern void ce_camera_set_near(ce_camera* camera, float near);
 extern void ce_camera_set_far(ce_camera* camera, float far);
 

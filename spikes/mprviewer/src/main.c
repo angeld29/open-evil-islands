@@ -181,7 +181,7 @@ static void display(void)
 static void reshape(int width, int height)
 {
 	ce_viewport_set_rect(scenemng->viewport, 0, 0, width, height);
-	ce_camera_set_aspect(scenemng->camera, width, height);
+	ce_camera_set_aspect(scenemng->camera, (float)width / height);
 }
 
 static void usage(void)
