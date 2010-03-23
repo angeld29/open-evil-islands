@@ -32,6 +32,9 @@
 #include "cefps.h"
 #include "cefont.h"
 #include "ceinput.h"
+#include "ceterrain.h"
+#include "cemobfile.h"
+#include "cefigentity.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -47,6 +50,8 @@ typedef struct {
 	ce_timer* timer;
 	ce_fps* fps;
 	ce_font* font;
+	ce_terrain* terrain;
+	ce_vector* figentities;
 	bool show_axes;
 	bool show_bboxes;
 	bool comprehensive_bbox_only;
@@ -58,6 +63,30 @@ extern void ce_scenemng_del(ce_scenemng* rendlayer);
 
 extern void ce_scenemng_advance(ce_scenemng* scenemng);
 extern void ce_scenemng_render(ce_scenemng* scenemng);
+
+/// if scenenode is NULL, the entity will be attached to root scenenode
+extern ce_terrain*
+ce_scenemng_create_terrain(ce_scenemng* scenemng,
+							const char* name,
+							const ce_vec3* position,
+							const ce_quat* orientation,
+							ce_scenenode* scenenode);
+
+/// if scenenode is NULL, the entity will be attached to root scenenode
+extern ce_figentity*
+ce_scenemng_create_figentity(ce_scenemng* scenemng,
+							const char* name,
+							const ce_complection* complection,
+							const ce_vec3* position,
+							const ce_quat* orientation,
+							const char* texture_names[],
+							ce_scenenode* scenenode);
+
+/// if scenenode is NULL, the entity will be attached to root scenenode
+extern ce_figentity*
+ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
+									const ce_mobobject_object* mobobject,
+									ce_scenenode* scenenode);
 
 #ifdef __cplusplus
 }

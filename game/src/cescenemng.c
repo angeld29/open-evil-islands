@@ -25,6 +25,9 @@
 #include "cealloc.h"
 #include "cefrustum.h"
 #include "ceformat.h"
+#include "ceroot.h"
+#include "cemprhlp.h"
+#include "cefigmng.h"
 #include "cescenemng.h"
 
 ce_scenemng* ce_scenemng_new(void)
@@ -38,6 +41,8 @@ ce_scenemng* ce_scenemng_new(void)
 	scenemng->timer = ce_timer_new();
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
+	scenemng->terrain = NULL;
+	scenemng->figentities = ce_vector_new();
 	scenemng->show_axes = true;
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
@@ -48,6 +53,11 @@ ce_scenemng* ce_scenemng_new(void)
 void ce_scenemng_del(ce_scenemng* scenemng)
 {
 	if (NULL != scenemng) {
+		for (int i = 0; i < scenemng->figentities->count; ++i) {
+			ce_figentity_del(scenemng->figentities->items[i]);
+		}
+		ce_vector_del(scenemng->figentities);
+		ce_terrain_del(scenemng->terrain);
 		ce_font_del(scenemng->font);
 		ce_fps_del(scenemng->fps);
 		ce_timer_del(scenemng->timer);
@@ -68,6 +78,11 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 	ce_input_advance(elapsed);
 	ce_fps_advance(scenemng->fps, elapsed);
+
+	for (int i = 0; i < scenemng->figentities->count; ++i) {
+		ce_figentity_advance(scenemng->figentities->items[i],
+							scenemng->anm_fps, elapsed);
+	}
 }
 
 void ce_scenemng_render(ce_scenemng* scenemng)
@@ -148,4 +163,74 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		&CE_COLOR_RED, engine_text);
 
 	ce_rendersystem_end_render(scenemng->rendersystem);
+}
+
+ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
+										const char* name,
+										const ce_vec3* position,
+										const ce_quat* orientation,
+										ce_scenenode* scenenode)
+{
+	if (NULL == scenenode) {
+		scenenode = scenemng->scenenode;
+	}
+
+	ce_terrain_del(scenemng->terrain);
+
+	return scenemng->terrain =
+			ce_terrain_new(name, position, orientation, scenenode);
+}
+
+ce_figentity*
+ce_scenemng_create_figentity(ce_scenemng* scenemng,
+							const char* name,
+							const ce_complection* complection,
+							const ce_vec3* position,
+							const ce_quat* orientation,
+							const char* texture_names[],
+							ce_scenenode* scenenode)
+{
+	if (NULL == scenenode) {
+		scenenode = scenemng->scenenode;
+	}
+
+	ce_figentity* figentity =
+		ce_figmng_create_figentity(ce_root_get_figmng(),
+									name, complection,
+									position, orientation,
+									texture_names,
+									scenenode);
+
+	if (NULL != figentity) {
+		ce_vector_push_back(scenemng->figentities, figentity);
+	}
+
+	return figentity;
+}
+
+ce_figentity*
+ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
+									const ce_mobobject_object* mobobject,
+									ce_scenenode* scenenode)
+{
+	ce_vec3 position = mobobject->position;
+	ce_fswap(&position.y, &position.z);
+	if (NULL != scenemng->terrain) {
+		position.y = ce_mprhlp_get_height(scenemng->terrain->mprfile,
+											position.x, position.z);
+	}
+	position.z = -position.z; // FIXME: opengl's hardcode
+
+	ce_quat orientation, q;
+	ce_quat_init_polar(&q, ce_deg2rad(-90.0f), &CE_VEC3_UNIT_X);
+	ce_quat_mul(&orientation, &q, &mobobject->rotation);
+
+	const char* texture_names[] = { mobobject->primary_texture->str,
+									mobobject->secondary_texture->str };
+
+	return ce_scenemng_create_figentity(scenemng,
+										mobobject->model_name->str,
+										&mobobject->complection,
+										&position, &orientation,
+										texture_names, scenenode);
 }
