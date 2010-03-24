@@ -34,7 +34,7 @@
 #include "ceinput.h"
 #include "ceterrain.h"
 #include "cemobfile.h"
-#include "cefigentity.h"
+#include "cefigmng.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -42,6 +42,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	ce_figmng* figmng;
 	ce_scenenode* scenenode;
 	ce_rendersystem* rendersystem;
 	ce_renderqueue* renderqueue;
@@ -58,7 +59,7 @@ typedef struct {
 	float anm_fps;
 } ce_scenemng;
 
-extern ce_scenemng* ce_scenemng_new(void);
+extern ce_scenemng* ce_scenemng_new(const char* root_path);
 extern void ce_scenemng_del(ce_scenemng* rendlayer);
 
 extern void ce_scenemng_advance(ce_scenemng* scenemng);

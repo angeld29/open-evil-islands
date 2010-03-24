@@ -25,7 +25,6 @@
 
 #include "cetexmng.h"
 #include "cemprmng.h"
-#include "cefigmng.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -37,7 +36,6 @@ extern void ce_root_term(void);
 
 extern ce_texmng* ce_root_get_texmng(void);
 extern ce_mprmng* ce_root_get_mprmng(void);
-extern ce_figmng* ce_root_get_figmng(void);
 
 #ifdef __cplusplus
 }

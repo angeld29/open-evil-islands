@@ -22,7 +22,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celogging.h"
 #include "cestring.h"
 #include "ceroot.h"
 
@@ -30,14 +29,11 @@ static struct {
 	bool inited;
 	ce_texmng* texmng;
 	ce_mprmng* mprmng;
-	ce_figmng* figmng;
 } ce_root_inst;
 
 static bool ce_root_init_impl(const char* root_path)
 {
 	char path[512];
-
-	ce_logging_write("root: root path: '%s'", root_path);
 
 	if (NULL == (ce_root_inst.texmng = ce_texmng_new())) {
 		return false;
@@ -54,18 +50,6 @@ static bool ce_root_init_impl(const char* root_path)
 	snprintf(path, sizeof(path), "%s/Maps", root_path);
 	if (NULL == (ce_root_inst.mprmng = ce_mprmng_new(path))) {
 		return false;
-	}
-
-	if (NULL == (ce_root_inst.figmng = ce_figmng_new())) {
-		return false;
-	}
-
-	const char* figure_resources[] = { "figures", "menus" };
-	for (int i = 0, n = sizeof(figure_resources) /
-						sizeof(figure_resources[0]); i < n; ++i) {
-		snprintf(path, sizeof(path), "%s/Res/%s.res",
-				root_path, figure_resources[i]);
-		ce_figmng_register_resource(ce_root_inst.figmng, path);
 	}
 
 	return true;
@@ -89,7 +73,6 @@ void ce_root_term(void)
 	assert(ce_root_inst.inited && "The root subsystem has not yet been inited");
 	ce_root_inst.inited = false;
 
-	ce_figmng_del(ce_root_inst.figmng);
 	ce_mprmng_del(ce_root_inst.mprmng);
 	ce_texmng_del(ce_root_inst.texmng);
 
@@ -106,10 +89,4 @@ ce_mprmng* ce_root_get_mprmng(void)
 {
 	assert(ce_root_inst.inited && "The root subsystem has not yet been inited");
 	return ce_root_inst.mprmng;
-}
-
-ce_figmng* ce_root_get_figmng(void)
-{
-	assert(ce_root_inst.inited && "The root subsystem has not yet been inited");
-	return ce_root_inst.figmng;
 }

@@ -19,20 +19,21 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
 #include "cefrustum.h"
 #include "ceformat.h"
-#include "ceroot.h"
 #include "cemprhlp.h"
 #include "cefigmng.h"
 #include "cescenemng.h"
 
-ce_scenemng* ce_scenemng_new(void)
+ce_scenemng* ce_scenemng_new(const char* root_path)
 {
 	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
+	scenemng->figmng = ce_figmng_new();
 	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->rendersystem = ce_rendersystem_new();
 	scenemng->renderqueue = ce_renderqueue_new();
@@ -47,6 +48,19 @@ ce_scenemng* ce_scenemng_new(void)
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
 	scenemng->anm_fps = 15.0f;
+
+	ce_logging_write("scenemng: root path: '%s'", root_path);
+
+	char path[strlen(root_path) + 64];
+
+	const char* figure_resources[] = { "figures", "menus" };
+	for (int i = 0, n = sizeof(figure_resources) /
+						sizeof(figure_resources[0]); i < n; ++i) {
+		snprintf(path, sizeof(path), "%s/Res/%s.res",
+				root_path, figure_resources[i]);
+		ce_figmng_register_resource(scenemng->figmng, path);
+	}
+
 	return scenemng;
 }
 
@@ -66,6 +80,7 @@ void ce_scenemng_del(ce_scenemng* scenemng)
 		ce_renderqueue_del(scenemng->renderqueue);
 		ce_rendersystem_del(scenemng->rendersystem);
 		ce_scenenode_del(scenemng->scenenode);
+		ce_figmng_del(scenemng->figmng);
 		ce_free(scenemng, sizeof(ce_scenemng));
 	}
 }
@@ -195,7 +210,7 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 	}
 
 	ce_figentity* figentity =
-		ce_figmng_create_figentity(ce_root_get_figmng(),
+		ce_figmng_create_figentity(scenemng->figmng,
 									name, complection,
 									position, orientation,
 									texture_names,

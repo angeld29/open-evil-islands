@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	if (NULL == (scenemng = ce_scenemng_new())) {
+	if (NULL == (scenemng = ce_scenemng_new(ei_path))) {
 		return 1;
 	}
 
