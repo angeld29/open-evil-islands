@@ -89,6 +89,9 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 extern void ce_scenemng_remove_figentity(ce_scenemng* scenemng,
 										ce_figentity* figentity);
 
+extern void ce_scenemng_load_mobfile(ce_scenemng* scenemng,
+									const ce_mobfile* mobfile);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -243,3 +243,12 @@ void ce_scenemng_remove_figentity(ce_scenemng* scenemng,
 	}
 	ce_figentity_del(figentity);
 }
+
+void ce_scenemng_load_mobfile(ce_scenemng* scenemng,
+								const ce_mobfile* mobfile)
+{
+	for (int i = 0; i < mobfile->objects->count; ++i) {
+		const ce_mobobject_object* mobobject = mobfile->objects->items[i];
+		ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
+	}
+}

@@ -264,28 +264,24 @@ int main(int argc, char* argv[])
 	char path[512];
 	snprintf(path, sizeof(path), "%s/Maps/%s.mob", ei_path, argv[optind]);
 
+	ce_mobfile* mobfile = ce_mobfile_open(path);
+	if (NULL != mobfile) {
+		ce_scenemng_load_mobfile(scenemng, mobfile);
+	}
+	ce_mobfile_close(mobfile);
+
 	srand(time(NULL));
 
-	ce_mobfile* mobfile = ce_mobfile_open(path);
-
-	if (NULL != mobfile) {
-		for (int i = 0; i < mobfile->objects->count; ++i) {
-			ce_mobobject_object* mobobject = mobfile->objects->items[i];
-			ce_figentity* figentity =
-				ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
-			if (NULL != figentity) {
-				int anm_count = ce_figentity_get_animation_count(figentity);
-				if (anm_count > 0) {
-					const char* name =
-						ce_figentity_get_animation_name(figentity,
+	// play random animations
+	for (int i = 0; i < scenemng->figentities->count; ++i) {
+		ce_figentity* figentity = scenemng->figentities->items[i];
+		int anm_count = ce_figentity_get_animation_count(figentity);
+		if (anm_count > 0) {
+			const char* name = ce_figentity_get_animation_name(figentity,
 														rand() % anm_count);
-					ce_figentity_play_animation(figentity, name);
-				}
-			}
+			ce_figentity_play_animation(figentity, name);
 		}
 	}
-
-	ce_mobfile_close(mobfile);
 
 	ce_vec3 position;
 	ce_vec3_init(&position, 0.0f, scenemng->terrain->mprfile->max_y, 0.0f);
