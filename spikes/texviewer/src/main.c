@@ -49,13 +49,13 @@
 
 #define DEFAULT_DELAY 500
 
-ce_resfile* res;
-ce_texture* tex;
-ce_timer* tmr;
+static ce_resfile* res;
+static ce_texture* tex;
+static ce_timer* tmr;
 
-bool rndmode = false;
-int delay = DEFAULT_DELAY;
-bool slideshow = true;
+static bool rndmode = false;
+static int delay = DEFAULT_DELAY;
+static bool slideshow = true;
 
 static void idle(void)
 {

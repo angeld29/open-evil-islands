@@ -43,7 +43,6 @@
 #include "cealloc.h"
 #include "ceinput.h"
 #include "cemath.h"
-#include "ceroot.h"
 #include "cescenemng.h"
 #include "cemobfile.h"
 
@@ -72,7 +71,6 @@ static void idle(void)
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_input_event_supply_del(es);
 		ce_scenemng_del(scenemng);
-		ce_root_term();
 		ce_gl_term();
 		ce_input_term();
 		ce_alloc_term();
@@ -247,10 +245,6 @@ int main(int argc, char* argv[])
 
 	ce_input_init();
 	ce_gl_init();
-
-	if (!ce_root_init(ei_path)) {
-		return 1;
-	}
 
 	if (NULL == (scenemng = ce_scenemng_new(ei_path))) {
 		return 1;

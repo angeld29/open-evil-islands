@@ -42,7 +42,6 @@
 #include "cetimer.h"
 #include "cemath.h"
 #include "cevec3.h"
-#include "ceroot.h"
 #include "cescenemng.h"
 #include "cecfgfile.h"
 #include "celightcfg.h"
@@ -83,7 +82,6 @@ static void idle(void)
 		ce_input_event_supply_del(es);
 		ce_lightcfg_del(lightcfg);
 		ce_scenemng_del(scenemng);
-		ce_root_term();
 		ce_gl_term();
 		ce_input_term();
 		ce_alloc_term();
@@ -302,10 +300,6 @@ int main(int argc, char* argv[])
 
 	ce_input_init();
 	ce_gl_init();
-
-	if (!ce_root_init(ei_path)) {
-		return 1;
-	}
 
 	if (NULL == (scenemng = ce_scenemng_new(ei_path))) {
 		return 1;

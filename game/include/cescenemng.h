@@ -32,6 +32,7 @@
 #include "cefps.h"
 #include "cefont.h"
 #include "ceinput.h"
+#include "cetexmng.h"
 #include "cemprmng.h"
 #include "cefigmng.h"
 #include "ceterrain.h"
@@ -43,6 +44,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	ce_texmng* texmng;
 	ce_mprmng* mprmng;
 	ce_figmng* figmng;
 	ce_scenenode* scenenode;
@@ -82,6 +84,7 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 							const ce_complection* complection,
 							const ce_vec3* position,
 							const ce_quat* orientation,
+							int texture_count,
 							const char* texture_names[],
 							ce_scenenode* scenenode);
 
