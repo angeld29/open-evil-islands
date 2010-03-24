@@ -48,7 +48,6 @@
 #include "ceroot.h"
 #include "cescenemng.h"
 #include "cemprhlp.h"
-#include "ceterrain.h"
 #include "cemobfile.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
@@ -62,7 +61,6 @@
 #endif
 
 static ce_scenemng* scenemng;
-static ce_terrain* terrain;
 static ce_vector* figentities;
 
 static ce_input_event_supply* es;
@@ -81,7 +79,6 @@ static void idle(void)
 			ce_figentity_del(figentities->items[i]);
 		}
 		ce_vector_del(figentities);
-		ce_terrain_del(terrain);
 		ce_scenemng_del(scenemng);
 		ce_root_term();
 		ce_gl_term();
@@ -271,10 +268,8 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	terrain = ce_terrain_new(argv[optind],
-							&CE_VEC3_ZERO, &CE_QUAT_IDENTITY,
-							scenemng->scenenode);
-	if (NULL == terrain) {
+	if (NULL == ce_scenemng_create_terrain(scenemng, argv[optind],
+					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
 		return 1;
 	}
 
@@ -293,8 +288,8 @@ int main(int argc, char* argv[])
 											object->secondary_texture->str };
 			ce_vec3 position = object->position;
 			position.z = position.y;
-			position.y = ce_mprhlp_get_height(terrain->mprfile, position.x,
-																position.z);
+			position.y = ce_mprhlp_get_height(scenemng->terrain->mprfile,
+												position.x, position.z);
 			position.z = -position.z;
 			ce_quat orientation, q = CE_QUAT_IDENTITY;
 			ce_quat_init_polar(&q, ce_deg2rad(-90.0f), &CE_VEC3_UNIT_X);
@@ -307,11 +302,6 @@ int main(int argc, char* argv[])
 										&orientation,
 										texture_names,
 										scenemng->scenenode);
-			/*if (figentity->figmesh->figproto->fignode->figfile->texture_number > 2) {
-				printf("!!! %s, %s, %s\n", object->model_name->str, object->primary_texture->str, object->secondary_texture->str);
-			} else {
-				printf("%s, %s, %s\n", object->model_name->str, object->primary_texture->str, object->secondary_texture->str);
-			}*/
 			if (NULL != figentity) {
 				ce_vector_push_back(figentities, figentity);
 				int anm_count = ce_figentity_get_animation_count(figentity);
@@ -325,7 +315,7 @@ int main(int argc, char* argv[])
 	ce_mobfile_close(mobfile);
 
 	ce_vec3 position;
-	ce_vec3_init(&position, 0.0f, terrain->mprfile->max_y, 0.0f);
+	ce_vec3_init(&position, 0.0f, scenemng->terrain->mprfile->max_y, 0.0f);
 
 	ce_camera_set_position(scenemng->camera, &position);
 	ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
