@@ -51,6 +51,8 @@ extern void ce_vector_remove_unordered(ce_vector* vector, int index);
 
 extern void ce_vector_clear(ce_vector* vector);
 
+extern int ce_vector_find(const ce_vector* vector, const void* item);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

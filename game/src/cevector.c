@@ -93,3 +93,13 @@ void ce_vector_clear(ce_vector* vector)
 {
 	vector->count = 0;
 }
+
+int ce_vector_find(const ce_vector* vector, const void* item)
+{
+	for (int i = 0; i < vector->count; ++i) {
+		if (item == vector->items[i]) {
+			return i;
+		}
+	}
+	return -1;
+}
