@@ -210,8 +210,7 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 
 ce_figentity*
 ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
-									const ce_mobobject_object* mobobject,
-									ce_scenenode* scenenode)
+									const ce_mobobject_object* mobobject)
 {
 	ce_vec3 position = mobobject->position;
 	ce_fswap(&position.y, &position.z);
@@ -232,5 +231,15 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 										mobobject->model_name->str,
 										&mobobject->complection,
 										&position, &orientation,
-										texture_names, scenenode);
+										texture_names, NULL);
+}
+
+void ce_scenemng_remove_figentity(ce_scenemng* scenemng,
+									ce_figentity* figentity)
+{
+	int index = ce_vector_find(scenemng->figentities, figentity);
+	if (-1 != index) {
+		ce_vector_remove_unordered(scenemng->figentities, index);
+	}
+	ce_figentity_del(figentity);
 }

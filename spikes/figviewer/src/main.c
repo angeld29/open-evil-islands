@@ -42,8 +42,6 @@
 #include "cealloc.h"
 #include "ceroot.h"
 #include "cescenemng.h"
-#include "cefigmesh.h"
-#include "cefigentity.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0
@@ -56,9 +54,6 @@
 #endif
 
 static ce_scenemng* scenemng;
-
-static ce_figproto* figproto;
-static ce_figmesh* figmesh;
 static ce_figentity* figentity;
 
 static ce_input_event_supply* es;
@@ -82,7 +77,7 @@ static const char* texture_names[] = { "default0", "default0" };
 
 static bool update_figentity()
 {
-	ce_figentity_del(figentity);
+	ce_scenemng_remove_figentity(scenemng, figentity);
 
 	ce_vec3 position = CE_VEC3_ZERO;
 
@@ -91,17 +86,20 @@ static bool update_figentity()
 	ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
 	ce_quat_mul(&orientation, &q2, &q1);
 
-	figentity = ce_figmng_create_figentity(ce_root_get_figmng(),
-										figure_name, &complection,
-										&position, &orientation,
-										texture_names, scenemng->scenenode);
+	figentity = ce_scenemng_create_figentity(scenemng, figure_name,
+											&complection, &position,
+											&orientation, texture_names, NULL);
+
+	if (NULL == figentity) {
+		return false;
+	}
 
 	if (-1 != anm_index) {
 		ce_figentity_play_animation(figentity,
 			ce_figentity_get_animation_name(figentity, anm_index));
 	}
 
-	return NULL != figentity;
+	return true;
 }
 
 static void idle(void)
@@ -114,9 +112,6 @@ static void idle(void)
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_input_event_supply_del(es);
-		ce_figentity_del(figentity);
-		ce_figmesh_del(figmesh);
-		ce_figproto_del(figproto);
 		ce_scenemng_del(scenemng);
 		ce_root_term();
 		ce_gl_term();
@@ -222,8 +217,6 @@ static void idle(void)
 		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(-0.13f * offset.x),
 												ce_deg2rad(-0.13f * offset.y));
 	}
-
-	ce_figentity_advance(figentity, scenemng->anm_fps, elapsed);
 
 	glutPostRedisplay();
 }

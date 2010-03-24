@@ -42,12 +42,9 @@
 #include "celogging.h"
 #include "cealloc.h"
 #include "ceinput.h"
-#include "cetimer.h"
 #include "cemath.h"
-#include "cevec3.h"
 #include "ceroot.h"
 #include "cescenemng.h"
-#include "cemprhlp.h"
 #include "cemobfile.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
@@ -61,7 +58,6 @@
 #endif
 
 static ce_scenemng* scenemng;
-static ce_vector* figentities;
 
 static ce_input_event_supply* es;
 
@@ -75,10 +71,6 @@ static void idle(void)
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_input_event_supply_del(es);
-		for (int i = 0; i < figentities->count; ++i) {
-			ce_figentity_del(figentities->items[i]);
-		}
-		ce_vector_del(figentities);
 		ce_scenemng_del(scenemng);
 		ce_root_term();
 		ce_gl_term();
@@ -119,10 +111,6 @@ static void idle(void)
 		ce_vec2 offset = ce_input_mouse_offset();
 		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(-0.25f * offset.x),
 												ce_deg2rad(-0.25f * offset.y));
-	}
-
-	for (int i = 0; i < figentities->count; ++i) {
-		ce_figentity_advance(figentities->items[i], scenemng->anm_fps, elapsed);
 	}
 
 	glutPostRedisplay();
@@ -273,45 +261,30 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	figentities = ce_vector_new();
-
 	char path[512];
 	snprintf(path, sizeof(path), "%s/Maps/%s.mob", ei_path, argv[optind]);
 
 	srand(time(NULL));
 
 	ce_mobfile* mobfile = ce_mobfile_open(path);
+
 	if (NULL != mobfile) {
 		for (int i = 0; i < mobfile->objects->count; ++i) {
-			ce_mobobject_object* object = mobfile->objects->items[i];
-			const char* texture_names[] = { object->primary_texture->str,
-											object->secondary_texture->str };
-			ce_vec3 position = object->position;
-			position.z = position.y;
-			position.y = ce_mprhlp_get_height(scenemng->terrain->mprfile,
-												position.x, position.z);
-			position.z = -position.z;
-			ce_quat orientation, q = CE_QUAT_IDENTITY;
-			ce_quat_init_polar(&q, ce_deg2rad(-90.0f), &CE_VEC3_UNIT_X);
-			ce_quat_mul(&orientation, &q, &object->rotation);
+			ce_mobobject_object* mobobject = mobfile->objects->items[i];
 			ce_figentity* figentity =
-				ce_figmng_create_figentity(ce_root_get_figmng(),
-										object->model_name->str,
-										&object->complection,
-										&position,
-										&orientation,
-										texture_names,
-										scenemng->scenenode);
+				ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
 			if (NULL != figentity) {
-				ce_vector_push_back(figentities, figentity);
 				int anm_count = ce_figentity_get_animation_count(figentity);
 				if (anm_count > 0) {
-					const char* name = ce_figentity_get_animation_name(figentity, rand() % anm_count);
+					const char* name =
+						ce_figentity_get_animation_name(figentity,
+														rand() % anm_count);
 					ce_figentity_play_animation(figentity, name);
 				}
 			}
 		}
 	}
+
 	ce_mobfile_close(mobfile);
 
 	ce_vec3 position;

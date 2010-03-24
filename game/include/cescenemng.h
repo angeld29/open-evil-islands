@@ -82,11 +82,12 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 							const char* texture_names[],
 							ce_scenenode* scenenode);
 
-/// if scenenode is NULL, the entity will be attached to root scenenode
 extern ce_figentity*
 ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
-									const ce_mobobject_object* mobobject,
-									ce_scenenode* scenenode);
+									const ce_mobobject_object* mobobject);
+
+extern void ce_scenemng_remove_figentity(ce_scenemng* scenemng,
+										ce_figentity* figentity);
 
 #ifdef __cplusplus
 }
