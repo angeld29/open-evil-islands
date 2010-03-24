@@ -24,7 +24,6 @@
 #include <stdbool.h>
 
 #include "cetexmng.h"
-#include "cemprmng.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -35,7 +34,6 @@ extern bool ce_root_init(const char* root_path);
 extern void ce_root_term(void);
 
 extern ce_texmng* ce_root_get_texmng(void);
-extern ce_mprmng* ce_root_get_mprmng(void);
 
 #ifdef __cplusplus
 }

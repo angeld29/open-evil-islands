@@ -27,12 +27,17 @@
 #include "cefrustum.h"
 #include "ceformat.h"
 #include "cemprhlp.h"
-#include "cefigmng.h"
 #include "cescenemng.h"
 
 ce_scenemng* ce_scenemng_new(const char* root_path)
 {
+	ce_logging_write("scenemng: root path: '%s'", root_path);
+
+	char path[strlen(root_path) + 64];
+	snprintf(path, sizeof(path), "%s/Maps", root_path);
+
 	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
+	scenemng->mprmng = ce_mprmng_new(path);
 	scenemng->figmng = ce_figmng_new();
 	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->rendersystem = ce_rendersystem_new();
@@ -48,10 +53,6 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
 	scenemng->anm_fps = 15.0f;
-
-	ce_logging_write("scenemng: root path: '%s'", root_path);
-
-	char path[strlen(root_path) + 64];
 
 	const char* figure_resources[] = { "figures", "menus" };
 	for (int i = 0, n = sizeof(figure_resources) /
@@ -81,6 +82,7 @@ void ce_scenemng_del(ce_scenemng* scenemng)
 		ce_rendersystem_del(scenemng->rendersystem);
 		ce_scenenode_del(scenemng->scenenode);
 		ce_figmng_del(scenemng->figmng);
+		ce_mprmng_del(scenemng->mprmng);
 		ce_free(scenemng, sizeof(ce_scenemng));
 	}
 }
@@ -186,14 +188,24 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 										const ce_quat* orientation,
 										ce_scenenode* scenenode)
 {
+	ce_mprfile* mprfile = ce_mprmng_open_mprfile(scenemng->mprmng, name);
+	if (NULL == mprfile) {
+		return NULL;
+	}
+
 	if (NULL == scenenode) {
 		scenenode = scenemng->scenenode;
 	}
 
-	ce_terrain_del(scenemng->terrain);
+	ce_terrain* terrain = ce_terrain_new(mprfile, position,
+										orientation, scenenode);
+	if (NULL == terrain) {
+		ce_mprfile_close(mprfile);
+		return NULL;
+	}
 
-	return scenemng->terrain =
-			ce_terrain_new(name, position, orientation, scenenode);
+	ce_terrain_del(scenemng->terrain);
+	return scenemng->terrain = terrain;
 }
 
 ce_figentity*

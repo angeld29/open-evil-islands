@@ -28,7 +28,6 @@
 static struct {
 	bool inited;
 	ce_texmng* texmng;
-	ce_mprmng* mprmng;
 } ce_root_inst;
 
 static bool ce_root_init_impl(const char* root_path)
@@ -45,11 +44,6 @@ static bool ce_root_init_impl(const char* root_path)
 		snprintf(path, sizeof(path), "%s/Res/%s.res",
 				root_path, texture_resources[i]);
 		ce_texmng_register_resource(ce_root_inst.texmng, path);
-	}
-
-	snprintf(path, sizeof(path), "%s/Maps", root_path);
-	if (NULL == (ce_root_inst.mprmng = ce_mprmng_new(path))) {
-		return false;
 	}
 
 	return true;
@@ -73,7 +67,6 @@ void ce_root_term(void)
 	assert(ce_root_inst.inited && "The root subsystem has not yet been inited");
 	ce_root_inst.inited = false;
 
-	ce_mprmng_del(ce_root_inst.mprmng);
 	ce_texmng_del(ce_root_inst.texmng);
 
 	memset(&ce_root_inst, 0, sizeof(ce_root_inst));
@@ -83,10 +76,4 @@ ce_texmng* ce_root_get_texmng(void)
 {
 	assert(ce_root_inst.inited && "The root subsystem has not yet been inited");
 	return ce_root_inst.texmng;
-}
-
-ce_mprmng* ce_root_get_mprmng(void)
-{
-	assert(ce_root_inst.inited && "The root subsystem has not yet been inited");
-	return ce_root_inst.mprmng;
 }

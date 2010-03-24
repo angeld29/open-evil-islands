@@ -25,19 +25,8 @@
 #include "ceroot.h"
 #include "ceterrain.h"
 
-static bool ce_terrain_create(ce_terrain* terrain,
-								const char* zone_name,
-								const ce_vec3* position,
-								const ce_quat* orientation,
-								ce_scenenode* parent_scenenode)
+static bool ce_terrain_create(ce_terrain* terrain)
 {
-	if (NULL == (terrain->mprfile =
-			ce_mprmng_open_mprfile(ce_root_get_mprmng(), zone_name))) {
-		return false;
-	}
-
-	terrain->textures = ce_vector_new_reserved(terrain->mprfile->texture_count);
-
 	if (NULL == (terrain->stub_texture =
 			ce_texmng_get_texture(ce_root_get_texmng(), "default0"))) {
 		return false;
@@ -60,29 +49,24 @@ static bool ce_terrain_create(ce_terrain* terrain,
 		ce_vector_push_back(terrain->textures, ce_texture_add_ref(texture));
 	}
 
-	if (NULL == (terrain->scenenode = ce_scenenode_new(parent_scenenode))) {
-		return false;
-	}
-
-	ce_vec3_copy(&terrain->scenenode->position, position);
-	ce_quat_copy(&terrain->scenenode->orientation, orientation);
-
 	return ce_terrain_create_impl(terrain);
 }
 
-ce_terrain* ce_terrain_new(const char* zone_name,
+ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 							const ce_vec3* position,
 							const ce_quat* orientation,
-							ce_scenenode* parent_scenenode)
+							ce_scenenode* scenenode)
 {
 	ce_terrain* terrain = ce_alloc_zero(sizeof(ce_terrain));
-	if (NULL == terrain) {
-		ce_logging_error("terrain: could not allocate memory");
-		return NULL;
-	}
+	terrain->mprfile = mprfile;
+	terrain->textures = ce_vector_new_reserved(mprfile->texture_count);
+	terrain->scenenode = ce_scenenode_new(scenenode);
 
-	if (!ce_terrain_create(terrain, zone_name, position,
-							orientation, parent_scenenode)) {
+	terrain->scenenode->position = *position;
+	terrain->scenenode->orientation = *orientation;
+
+	if (!ce_terrain_create(terrain)) {
+		terrain->mprfile = NULL;
 		ce_terrain_del(terrain);
 		return NULL;
 	}

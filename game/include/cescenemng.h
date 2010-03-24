@@ -32,9 +32,10 @@
 #include "cefps.h"
 #include "cefont.h"
 #include "ceinput.h"
+#include "cemprmng.h"
+#include "cefigmng.h"
 #include "ceterrain.h"
 #include "cemobfile.h"
-#include "cefigmng.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -42,6 +43,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	ce_mprmng* mprmng;
 	ce_figmng* figmng;
 	ce_scenenode* scenenode;
 	ce_rendersystem* rendersystem;

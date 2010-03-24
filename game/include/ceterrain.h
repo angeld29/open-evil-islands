@@ -42,10 +42,11 @@ typedef struct {
 	ce_scenenode* scenenode;
 } ce_terrain;
 
-extern ce_terrain* ce_terrain_new(const char* zone_name,
+/// Terrain takes ownership of the mprfile if successfull.
+extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 									const ce_vec3* position,
 									const ce_quat* orientation,
-									ce_scenenode* parent_scenenode);
+									ce_scenenode* scenenode);
 extern void ce_terrain_del(ce_terrain* terrain);
 
 extern bool ce_terrain_create_impl(ce_terrain* terrain);
