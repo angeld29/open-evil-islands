@@ -77,9 +77,8 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 void ce_scenemng_del(ce_scenemng* scenemng)
 {
 	if (NULL != scenemng) {
-		for (int i = 0; i < scenemng->figentities->count; ++i) {
-			ce_figentity_del(scenemng->figentities->items[i]);
-		}
+		ce_vector_for_each(scenemng->figentities,
+							(ce_vector_func1)ce_figentity_del);
 		ce_vector_del(scenemng->figentities);
 		ce_terrain_del(scenemng->terrain);
 		ce_font_del(scenemng->font);
