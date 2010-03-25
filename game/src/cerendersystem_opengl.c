@@ -98,23 +98,20 @@ void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
 {
 	ce_unused(rendersystem);
 
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_POLYGON_BIT);
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
 
-	glDisable(GL_CULL_FACE);
 	glDisable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 	glColor4f(color->r, color->g, color->b, color->a);
 
-	glBegin(GL_QUADS);
+	glBegin(GL_LINE_STRIP);
 
 	// face 1 front xy plane
-	glVertex3f(-size, -size,  size);
 	glVertex3f( size, -size,  size);
 	glVertex3f( size,  size,  size);
 	glVertex3f(-size,  size,  size);
+	glVertex3f(-size, -size,  size);
 
 	// face 2 right yz plane
 	glVertex3f( size, -size,  size);
@@ -122,26 +119,22 @@ void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
 	glVertex3f( size,  size, -size);
 	glVertex3f( size,  size,  size);
 
-	// face 3 back xy plane
-	glVertex3f( size, -size, -size);
-	glVertex3f(-size, -size, -size);
-	glVertex3f(-size,  size, -size);
+	// face 3 top xz plane
 	glVertex3f( size,  size, -size);
+	glVertex3f(-size,  size, -size);
+	glVertex3f(-size,  size,  size);
 
 	// face 4 left yz plane
 	glVertex3f(-size, -size,  size);
 	glVertex3f(-size, -size, -size);
 	glVertex3f(-size,  size, -size);
-	glVertex3f(-size,  size,  size);
 
-	// face 5 top xz plane
-	glVertex3f( size,  size,  size);
+	// face 5 back xy plane
 	glVertex3f( size,  size, -size);
-	glVertex3f(-size,  size, -size);
-	glVertex3f(-size,  size,  size);
+	glVertex3f( size, -size, -size);
+	glVertex3f(-size, -size, -size);
 
 	// face 6 bottom xz plane
-	glVertex3f(-size, -size, -size);
 	glVertex3f(-size, -size,  size);
 	glVertex3f( size, -size,  size);
 	glVertex3f( size, -size, -size);

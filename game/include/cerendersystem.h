@@ -45,8 +45,7 @@ extern void ce_rendersystem_end_render(ce_rendersystem* rendersystem);
 extern void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem);
 
 /**
- *  Draw a cube centered at zero with side of 2 * size.
- *  Vertices specified counterclockwise.
+ *  Draw a wire cube centered at zero with side of 2 * size.
 */
 extern void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
 											float size, const ce_color* color);
