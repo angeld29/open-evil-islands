@@ -64,6 +64,16 @@ void* ce_vector_back(const ce_vector* vector)
 	return vector->items[vector->count - 1];
 }
 
+int ce_vector_find(const ce_vector* vector, const void* item)
+{
+	for (int i = 0; i < vector->count; ++i) {
+		if (item == vector->items[i]) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 void ce_vector_push_back(ce_vector* vector, void* item)
 {
 	if (vector->count == vector->capacity) {
@@ -92,4 +102,11 @@ void ce_vector_remove_unordered(ce_vector* vector, int index)
 void ce_vector_clear(ce_vector* vector)
 {
 	vector->count = 0;
+}
+
+void ce_vector_for_each(ce_vector* vector, ce_vector_func1 func)
+{
+	for (int i = 0; i < vector->count; ++i) {
+		(*func)(vector->items[i]);
+	}
 }

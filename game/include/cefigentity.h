@@ -27,6 +27,7 @@
 #include "cequat.h"
 #include "cefigmesh.h"
 #include "cefigbone.h"
+#include "cetexture.h"
 #include "cescenenode.h"
 
 #ifdef __cplusplus
@@ -43,7 +44,7 @@ typedef struct {
 extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 										const ce_vec3* position,
 										const ce_quat* orientation,
-										const char* texture_names[],
+										ce_texture* textures[],
 										ce_scenenode* scenenode);
 extern void ce_figentity_del(ce_figentity* figentity);
 

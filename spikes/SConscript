@@ -21,10 +21,9 @@
 
 import os
 import re
+import logging
 
 import SCons.Util
-
-import ceerrors
 
 version_re = re.compile(r"^\s*(\d+)\.(\d+)\.(\d+)\s*$")
 
@@ -51,18 +50,24 @@ def make_target(name):
 	spike_env = env.Clone()
 	spike_env.VariantDir(os.path.join(name, "build", "$GEN_PATH"),
 		os.path.join(name, "src"), duplicate=False)
+	spike_version_major = "0"
+	spike_version_minor = "0"
+	spike_version_patch = "0"
 	version_file = spike_env.File(os.path.join(name, "VERSION"))
 	if version_file.exists():
 		version = version_re.match(version_file.get_contents())
 		if version is None:
-			ceerrors.interrupt("Failed to build spike '%s': "
-							"'VERSION' file format was not recognized "
-							"(hint: <major>.<minor>.<patch>).", name)
-		spike_env.AppendUnique(
-			CPPDEFINES=["CE_SPIKE_VERSION_MAJOR=" + version.group(1),
-						"CE_SPIKE_VERSION_MINOR=" + version.group(2),
-						"CE_SPIKE_VERSION_PATCH=" + version.group(3)],
-		)
+			logging.warning("spike '%s': 'VERSION' file format was not "
+							"recognized (hint: <major>.<minor>.<patch>)", name)
+		else:
+			spike_version_major = version.group(1)
+			spike_version_minor = version.group(2)
+			spike_version_patch = version.group(3)
+	spike_env.AppendUnique(
+		CPPDEFINES=["CE_SPIKE_VERSION_MAJOR=" + spike_version_major,
+					"CE_SPIKE_VERSION_MINOR=" + spike_version_minor,
+					"CE_SPIKE_VERSION_PATCH=" + spike_version_patch],
+	)
 	return spike_env.Alias(name, spike_env.Command(os.path.join(name, "bin",
 		SCons.Util.adjustixes(name, spike_env.subst("$PROGPREFIX"),
 		spike_env.subst("$PROGSUFFIX"))), spike_env.Program(os.path.join(name,

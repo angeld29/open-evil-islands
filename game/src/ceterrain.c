@@ -18,71 +18,30 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-
-#include "celogging.h"
 #include "cealloc.h"
-#include "ceroot.h"
 #include "ceterrain.h"
 
-static bool ce_terrain_create(ce_terrain* terrain,
-								const char* zone_name,
-								const ce_vec3* position,
-								const ce_quat* orientation,
-								ce_scenenode* parent_scenenode)
-{
-	if (NULL == (terrain->mprfile =
-			ce_mprmng_open_mprfile(ce_root_get_mprmng(), zone_name))) {
-		return false;
-	}
-
-	terrain->textures = ce_vector_new_reserved(terrain->mprfile->texture_count);
-
-	if (NULL == (terrain->stub_texture =
-			ce_texmng_get_texture(ce_root_get_texmng(), "default0"))) {
-		return false;
-	}
-	ce_texture_add_ref(terrain->stub_texture);
-
-	// mpr name + nnn
-	char texture_name[terrain->mprfile->name->length + 3 + 1];
-
-	for (int i = 0, n = terrain->mprfile->texture_count; i < n; ++i) {
-		snprintf(texture_name, sizeof(texture_name), "%s%03d",
-				terrain->mprfile->name->str, i);
-
-		ce_texture* texture =
-			ce_texmng_get_texture(ce_root_get_texmng(), texture_name);
-		if (NULL == texture) {
-			return false;
-		}
-
-		ce_vector_push_back(terrain->textures, ce_texture_add_ref(texture));
-	}
-
-	if (NULL == (terrain->scenenode = ce_scenenode_new(parent_scenenode))) {
-		return false;
-	}
-
-	ce_vec3_copy(&terrain->scenenode->position, position);
-	ce_quat_copy(&terrain->scenenode->orientation, orientation);
-
-	return ce_terrain_create_impl(terrain);
-}
-
-ce_terrain* ce_terrain_new(const char* zone_name,
+ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 							const ce_vec3* position,
 							const ce_quat* orientation,
-							ce_scenenode* parent_scenenode)
+							ce_texture* stub_texture,
+							ce_texture* textures[],
+							ce_scenenode* scenenode)
 {
-	ce_terrain* terrain = ce_alloc_zero(sizeof(ce_terrain));
-	if (NULL == terrain) {
-		ce_logging_error("terrain: could not allocate memory");
-		return NULL;
+	ce_terrain* terrain = ce_alloc(sizeof(ce_terrain));
+	terrain->mprfile = mprfile;
+	terrain->stub_texture = ce_texture_add_ref(stub_texture);
+	terrain->textures = ce_vector_new_reserved(mprfile->texture_count);
+	terrain->scenenode = ce_scenenode_new(scenenode);
+	terrain->scenenode->position = *position;
+	terrain->scenenode->orientation = *orientation;
+
+	for (int i = 0, n = mprfile->texture_count; i < n; ++i) {
+		ce_vector_push_back(terrain->textures, ce_texture_add_ref(textures[i]));
 	}
 
-	if (!ce_terrain_create(terrain, zone_name, position,
-							orientation, parent_scenenode)) {
+	if (!ce_terrain_create(terrain)) {
+		terrain->mprfile = NULL;
 		ce_terrain_del(terrain);
 		return NULL;
 	}
@@ -94,12 +53,10 @@ void ce_terrain_del(ce_terrain* terrain)
 {
 	if (NULL != terrain) {
 		ce_scenenode_del(terrain->scenenode);
-		if (NULL != terrain->textures) {
-			for (int i = 0; i < terrain->textures->count; ++i) {
-				ce_texture_del(terrain->textures->items[i]);
-			}
-			ce_vector_del(terrain->textures);
+		for (int i = 0; i < terrain->textures->count; ++i) {
+			ce_texture_del(terrain->textures->items[i]);
 		}
+		ce_vector_del(terrain->textures);
 		ce_texture_del(terrain->stub_texture);
 		ce_mprfile_close(terrain->mprfile);
 		ce_free(terrain, sizeof(ce_terrain));

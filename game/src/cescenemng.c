@@ -19,20 +19,27 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
 #include "cefrustum.h"
 #include "ceformat.h"
-#include "ceroot.h"
 #include "cemprhlp.h"
-#include "cefigmng.h"
 #include "cescenemng.h"
 
-ce_scenemng* ce_scenemng_new(void)
+ce_scenemng* ce_scenemng_new(const char* root_path)
 {
+	ce_logging_write("scenemng: root path: '%s'", root_path);
+
+	char path[strlen(root_path) + 64];
+	snprintf(path, sizeof(path), "%s/Maps", root_path);
+
 	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
+	scenemng->texmng = ce_texmng_new();
+	scenemng->mprmng = ce_mprmng_new(path);
+	scenemng->figmng = ce_figmng_new();
 	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->rendersystem = ce_rendersystem_new();
 	scenemng->renderqueue = ce_renderqueue_new();
@@ -47,15 +54,31 @@ ce_scenemng* ce_scenemng_new(void)
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
 	scenemng->anm_fps = 15.0f;
+
+	const char* texture_resources[] = { "textures", "redress", "menus" };
+	for (int i = 0, n = sizeof(texture_resources) /
+						sizeof(texture_resources[0]); i < n; ++i) {
+		snprintf(path, sizeof(path), "%s/Res/%s.res",
+				root_path, texture_resources[i]);
+		ce_texmng_register_resource(scenemng->texmng, path);
+	}
+
+	const char* figure_resources[] = { "figures", "menus" };
+	for (int i = 0, n = sizeof(figure_resources) /
+						sizeof(figure_resources[0]); i < n; ++i) {
+		snprintf(path, sizeof(path), "%s/Res/%s.res",
+				root_path, figure_resources[i]);
+		ce_figmng_register_resource(scenemng->figmng, path);
+	}
+
 	return scenemng;
 }
 
 void ce_scenemng_del(ce_scenemng* scenemng)
 {
 	if (NULL != scenemng) {
-		for (int i = 0; i < scenemng->figentities->count; ++i) {
-			ce_figentity_del(scenemng->figentities->items[i]);
-		}
+		ce_vector_for_each(scenemng->figentities,
+							(ce_vector_func1)ce_figentity_del);
 		ce_vector_del(scenemng->figentities);
 		ce_terrain_del(scenemng->terrain);
 		ce_font_del(scenemng->font);
@@ -66,6 +89,9 @@ void ce_scenemng_del(ce_scenemng* scenemng)
 		ce_renderqueue_del(scenemng->renderqueue);
 		ce_rendersystem_del(scenemng->rendersystem);
 		ce_scenenode_del(scenemng->scenenode);
+		ce_figmng_del(scenemng->figmng);
+		ce_mprmng_del(scenemng->mprmng);
+		ce_texmng_del(scenemng->texmng);
 		ce_free(scenemng, sizeof(ce_scenemng));
 	}
 }
@@ -171,14 +197,46 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 										const ce_quat* orientation,
 										ce_scenenode* scenenode)
 {
+	ce_texture* stub_texture =
+		ce_texmng_get_texture(scenemng->texmng, "default0");
+	if (NULL == stub_texture) {
+		return NULL;
+	}
+
+	ce_mprfile* mprfile = ce_mprmng_open_mprfile(scenemng->mprmng, name);
+	if (NULL == mprfile) {
+		return NULL;
+	}
+
+	// mpr name + nnn
+	char texture_name[mprfile->name->length + 3 + 1];
+	ce_texture* textures[mprfile->texture_count];
+
+	for (int i = 0, n = mprfile->texture_count; i < n; ++i) {
+		snprintf(texture_name, sizeof(texture_name),
+				"%s%03d", mprfile->name->str, i);
+
+		textures[i] = ce_texmng_get_texture(scenemng->texmng, texture_name);
+		if (NULL == textures[i]) {
+			ce_mprfile_close(mprfile);
+			return NULL;
+		}
+	}
+
 	if (NULL == scenenode) {
 		scenenode = scenemng->scenenode;
 	}
 
-	ce_terrain_del(scenemng->terrain);
+	ce_terrain* terrain = ce_terrain_new(mprfile, position,
+										orientation, stub_texture,
+										textures, scenenode);
+	if (NULL == terrain) {
+		ce_mprfile_close(mprfile);
+		return NULL;
+	}
 
-	return scenemng->terrain =
-			ce_terrain_new(name, position, orientation, scenenode);
+	ce_terrain_del(scenemng->terrain);
+	return scenemng->terrain = terrain;
 }
 
 ce_figentity*
@@ -187,19 +245,28 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 							const ce_complection* complection,
 							const ce_vec3* position,
 							const ce_quat* orientation,
+							int texture_count,
 							const char* texture_names[],
 							ce_scenenode* scenenode)
 {
+	ce_texture* textures[texture_count];
+
+	for (int i = 0; i < texture_count; ++i) {
+		textures[i] = ce_texmng_get_texture(scenemng->texmng, texture_names[i]);
+		if (NULL == textures[i]) {
+			return NULL;
+		}
+	}
+
 	if (NULL == scenenode) {
 		scenenode = scenemng->scenenode;
 	}
 
 	ce_figentity* figentity =
-		ce_figmng_create_figentity(ce_root_get_figmng(),
+		ce_figmng_create_figentity(scenemng->figmng,
 									name, complection,
 									position, orientation,
-									texture_names,
-									scenenode);
+									textures, scenenode);
 
 	if (NULL != figentity) {
 		ce_vector_push_back(scenemng->figentities, figentity);
@@ -210,8 +277,7 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 
 ce_figentity*
 ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
-									const ce_mobobject_object* mobobject,
-									ce_scenenode* scenenode)
+									const ce_mobobject_object* mobobject)
 {
 	ce_vec3 position = mobobject->position;
 	ce_fswap(&position.y, &position.z);
@@ -232,5 +298,24 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 										mobobject->model_name->str,
 										&mobobject->complection,
 										&position, &orientation,
-										texture_names, scenenode);
+										2, texture_names, NULL);
+}
+
+void ce_scenemng_remove_figentity(ce_scenemng* scenemng,
+									ce_figentity* figentity)
+{
+	int index = ce_vector_find(scenemng->figentities, figentity);
+	if (-1 != index) {
+		ce_vector_remove_unordered(scenemng->figentities, index);
+	}
+	ce_figentity_del(figentity);
+}
+
+void ce_scenemng_load_mobfile(ce_scenemng* scenemng,
+								const ce_mobfile* mobfile)
+{
+	for (int i = 0; i < mobfile->objects->count; ++i) {
+		const ce_mobobject_object* mobobject = mobfile->objects->items[i];
+		ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
+	}
 }

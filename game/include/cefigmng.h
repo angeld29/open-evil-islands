@@ -50,7 +50,7 @@ ce_figmng_create_figentity(ce_figmng* figmng,
 							const ce_complection* complection,
 							const ce_vec3* position,
 							const ce_quat* orientation,
-							const char* texture_names[],
+							ce_texture* textures[],
 							ce_scenenode* scenenode);
 
 #ifdef __cplusplus

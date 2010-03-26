@@ -248,7 +248,7 @@ static void ce_terrain_create_sector(ce_terrain* terrain,
 						opacity ? NULL : sector->water_allow);
 }
 
-bool ce_terrain_create_impl(ce_terrain* terrain)
+bool ce_terrain_create(ce_terrain* terrain)
 {
 	for (int z = 0, z_count = terrain->mprfile->sector_z_count; z < z_count; ++z) {
 		for (int x = 0, x_count = terrain->mprfile->sector_x_count; x < x_count; ++x) {

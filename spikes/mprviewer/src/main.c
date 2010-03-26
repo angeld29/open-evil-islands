@@ -42,9 +42,7 @@
 #include "cetimer.h"
 #include "cemath.h"
 #include "cevec3.h"
-#include "ceroot.h"
 #include "cescenemng.h"
-#include "ceterrain.h"
 #include "cecfgfile.h"
 #include "celightcfg.h"
 
@@ -61,7 +59,6 @@
 #define DAY_NIGHT_CHANGE_SPEED_DEFAULT 0.08f
 
 ce_scenemng* scenemng;
-ce_terrain* terrain;
 ce_lightcfg* lightcfg;
 
 float time_of_day = 12.0f;
@@ -84,9 +81,7 @@ static void idle(void)
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_input_event_supply_del(es);
 		ce_lightcfg_del(lightcfg);
-		ce_terrain_del(terrain);
 		ce_scenemng_del(scenemng);
-		ce_root_term();
 		ce_gl_term();
 		ce_input_term();
 		ce_alloc_term();
@@ -306,18 +301,12 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	if (!ce_root_init(ei_path)) {
+	if (NULL == (scenemng = ce_scenemng_new(ei_path))) {
 		return 1;
 	}
 
-	if (NULL == (scenemng = ce_scenemng_new())) {
-		return 1;
-	}
-
-	terrain = ce_terrain_new(argv[optind],
-							&CE_VEC3_ZERO, &CE_QUAT_IDENTITY,
-							scenemng->scenenode);
-	if (NULL == terrain) {
+	if (NULL == ce_scenemng_create_terrain(scenemng, argv[optind],
+					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
 		return 1;
 	}
 
@@ -338,7 +327,7 @@ int main(int argc, char* argv[])
 	ce_cfgfile_close(cfgfile);
 
 	ce_vec3 position;
-	ce_vec3_init(&position, 0.0f, terrain->mprfile->max_y, 0.0f);
+	ce_vec3_init(&position, 0.0f, scenemng->terrain->mprfile->max_y, 0.0f);
 
 	ce_camera_set_position(scenemng->camera, &position);
 	ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));

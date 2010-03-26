@@ -22,15 +22,14 @@
 #include <assert.h>
 
 #include "cealloc.h"
-#include "ceroot.h"
 #include "cefigentity.h"
 
 static bool ce_figentity_create_scenenodes(ce_fignode* fignode,
-											const char* texture_names[],
+											ce_texture* textures[],
 											ce_vector* renderitems,
 											ce_scenenode* scenenode)
 {
-	// TODO: to be reversed...
+	// FIXME: to be reversed...
 	int texture_number = fignode->figfile->texture_number - 1;
 	if (texture_number > 1) {
 		texture_number = 0;
@@ -38,21 +37,13 @@ static bool ce_figentity_create_scenenodes(ce_fignode* fignode,
 
 	ce_scenenode* child = ce_scenenode_new(scenenode);
 	child->renderlayer = ce_renderlayer_new();
-
-	child->renderlayer->texture =
-		ce_texmng_get_texture(ce_root_get_texmng(), texture_names[texture_number]);
+	child->renderlayer->texture = ce_texture_add_ref(textures[texture_number]);
 	child->renderlayer->renderitem =
 		ce_renderitem_clone(renderitems->items[fignode->index]);
 
-	if (NULL == child->renderlayer->texture) {
-		return false;
-	}
-	ce_texture_add_ref(child->renderlayer->texture);
-
 	for (int i = 0; i < fignode->childs->count; ++i) {
 		if (!ce_figentity_create_scenenodes(fignode->childs->items[i],
-										texture_names, renderitems,
-										scenenode)) {
+										textures, renderitems, scenenode)) {
 			return false;
 		}
 	}
@@ -63,21 +54,20 @@ static bool ce_figentity_create_scenenodes(ce_fignode* fignode,
 ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								const ce_vec3* position,
 								const ce_quat* orientation,
-								const char* texture_names[],
+								ce_texture* textures[],
 								ce_scenenode* scenenode)
 {
 	ce_figentity* figentity = ce_alloc(sizeof(ce_figentity));
 	figentity->figmesh = ce_figmesh_add_ref(figmesh);
-	figentity->figbone = ce_figbone_new(figentity->figmesh->figproto->fignode,
-										&figentity->figmesh->complection, NULL);
+	figentity->figbone = ce_figbone_new(figmesh->figproto->fignode,
+										&figmesh->complection, NULL);
 	figentity->scenenode = ce_scenenode_new(scenenode);
 	figentity->scenenode->position = *position;
 	figentity->scenenode->orientation = *orientation;
 
-	if (!ce_figentity_create_scenenodes(figentity->figmesh->figproto->fignode,
-									texture_names,
-									figentity->figmesh->renderitems,
-									figentity->scenenode)) {
+	if (!ce_figentity_create_scenenodes(figmesh->figproto->fignode,
+										textures, figmesh->renderitems,
+										figentity->scenenode)) {
 		ce_figentity_del(figentity);
 		return NULL;
 	}

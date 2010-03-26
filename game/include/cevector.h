@@ -34,6 +34,8 @@ typedef struct {
 	void** items;
 } ce_vector;
 
+typedef void (*ce_vector_func1)(void* item);
+
 extern ce_vector* ce_vector_new(void);
 extern ce_vector* ce_vector_new_reserved(int capacity);
 extern void ce_vector_del(ce_vector* vector);
@@ -43,6 +45,8 @@ extern void ce_vector_reserve(ce_vector* vector, int capacity);
 extern bool ce_vector_empty(const ce_vector* vector);
 extern void* ce_vector_back(const ce_vector* vector);
 
+extern int ce_vector_find(const ce_vector* vector, const void* item);
+
 extern void ce_vector_push_back(ce_vector* vector, void* item);
 extern void* ce_vector_pop_back(ce_vector* vector);
 
@@ -50,6 +54,8 @@ extern void ce_vector_remove(ce_vector* vector, int index);
 extern void ce_vector_remove_unordered(ce_vector* vector, int index);
 
 extern void ce_vector_clear(ce_vector* vector);
+
+extern void ce_vector_for_each(ce_vector* vector, ce_vector_func1 func);
 
 #ifdef __cplusplus
 }

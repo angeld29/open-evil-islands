@@ -27,8 +27,8 @@
 #include "cequat.h"
 #include "cevector.h"
 #include "cemprfile.h"
-#include "cescenenode.h"
 #include "cetexture.h"
+#include "cescenenode.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -42,13 +42,16 @@ typedef struct {
 	ce_scenenode* scenenode;
 } ce_terrain;
 
-extern ce_terrain* ce_terrain_new(const char* zone_name,
+/// Terrain takes ownership of the mprfile if successfull.
+extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 									const ce_vec3* position,
 									const ce_quat* orientation,
-									ce_scenenode* parent_scenenode);
+									ce_texture* stub_texture,
+									ce_texture* textures[],
+									ce_scenenode* scenenode);
 extern void ce_terrain_del(ce_terrain* terrain);
 
-extern bool ce_terrain_create_impl(ce_terrain* terrain);
+extern bool ce_terrain_create(ce_terrain* terrain);
 
 #ifdef __cplusplus
 }
