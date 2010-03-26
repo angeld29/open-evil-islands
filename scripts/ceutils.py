@@ -36,8 +36,9 @@ def filter_sources(env, nodes):
 		cache[get_name(node)] = values
 	for name, values in cache.iteritems():
 		def select_by_key(key, priority):
-			node = next((node for node in values if get_key(node) == key), None)
-			return (node, priority) if node else None
+			for node in (node for node in values if get_key(node) == key):
+				return (node, priority)
+			return None
 		result = select_by_key(env["HOST"].replace("-", ""), 0) or \
 				select_by_key(env["TARGET_PLATFORM"], 1) or \
 				select_by_key(env["COMPILER"], 2) or \
