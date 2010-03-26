@@ -37,7 +37,6 @@ void ce_optoption_del(ce_optoption* option)
 	if (NULL != option) {
 		ce_string_del(option->value);
 		ce_string_del(option->help);
-		ce_string_del(option->arg_string);
 		ce_string_del(option->long_string);
 		ce_string_del(option->name);
 		ce_free(option, sizeof(ce_optoption));
@@ -92,36 +91,10 @@ ce_optoption* ce_optgroup_create_option(ce_optgroup* group,
 	option->name = ce_string_new_str(name);
 	option->short_string = short_string;
 	option->long_string = ce_string_new_str(NULL != long_string ? long_string : "");
-	option->arg_string = ce_string_new_str_n("    ", 32);
 	option->action = action;
 	option->help = ce_string_new_str(NULL != help ? help : "");
 	option->value = ce_string_new_str(NULL != default_value ? default_value :
 							(const char* []){ "", "false", "true" }[action]);
-
-	char name_uppercase[option->name->length + 1];
-	ce_strupr(name_uppercase, option->name->str);
-
-	if ('\0' != short_string) {
-		if (CE_OPTACTION_STORE == action) {
-			ce_string_append_f(option->arg_string, "-%c %s", short_string,
-															name_uppercase);
-		} else {
-			ce_string_append_f(option->arg_string, "-%c", short_string);
-		}
-		if (NULL != long_string) {
-			ce_string_append(option->arg_string, ", ");
-		}
-	}
-
-	if (NULL != long_string) {
-		if (CE_OPTACTION_STORE == action) {
-			ce_string_append_f(option->arg_string, "--%s=%s", long_string,
-															name_uppercase);
-		} else {
-			ce_string_append_f(option->arg_string, "--%s", long_string);
-		}
-	}
-
 	ce_vector_push_back(group->options, option);
 	return option;
 }
@@ -230,25 +203,67 @@ ce_optarg* ce_optparse_find_arg(ce_optparse* optparse, const char* name)
 	return NULL;
 }
 
-static void ce_string_append_spaces(ce_string* string,
-									int max_length, int length)
+static int ce_optparse_space_count(int max_length, int length, int delim_count)
 {
-	int space_count = ce_max(3, max_length - length + 3);
+	return ce_max(delim_count, max_length - length + delim_count);
+}
+
+static int ce_optparse_append_spaces(ce_string* string, int max_length,
+										int length, int delim_count)
+{
+	int space_count = ce_optparse_space_count(max_length, length, delim_count);
 	char spaces[space_count];
 	memset(spaces, ' ', space_count);
-	ce_string_append_n(string, spaces, space_count);
+	return ce_string_append_n(string, spaces, space_count);
+}
+
+static int ce_optparse_short_length(ce_optoption* option)
+{
+	int length = 4; // initial four spaces
+	if ('\0' != option->short_string) {
+		length += 2; // minus and short string
+		if (CE_OPTACTION_STORE == option->action) {
+			length += 1 + option->name->length; // space and name
+		}
+		if (!ce_string_empty(option->long_string)) {
+			length += 2; // comma and space
+		}
+	}
+	return length;
+}
+
+static int ce_optparse_long_length(ce_optoption* option)
+{
+	int length = 0;
+	if (!ce_string_empty(option->long_string)) {
+		length += 2 + option->long_string->length; // --long
+		if (CE_OPTACTION_STORE == option->action) {
+			length += 1 + option->name->length; // =name
+		}
+	}
+	return length;
 }
 
 bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 {
-	int option_index, long_option_index = 0, long_option_count = 0;
-	int ch, max_length = 0;
+	// first find max short option string (for pretty output)
+	int max_short_length = 0;
 
-	char short_options[256];
-	ce_strlcpy(short_options, ":h", sizeof(short_options));
+	for (int i = 0; i < optparse->groups->count; ++i) {
+		ce_optgroup* group = optparse->groups->items[i];
+		for (int j = 0; j < group->options->count; ++j) {
+			max_short_length = ce_max(max_short_length,
+				ce_optparse_short_length(group->options->items[j]));
+		}
+	}
 
 	// initialize short options, count long options and
-	// find max option string's length (for pretty output)
+	// find max long option string (for pretty output)
+	int max_long_length = 0, long_option_count = 0;
+
+	char short_options[128];
+	ce_strlcpy(short_options, ":h", sizeof(short_options));
+
 	for (int i = 0; i < optparse->groups->count; ++i) {
 		ce_optgroup* group = optparse->groups->items[i];
 		for (int j = 0; j < group->options->count; ++j) {
@@ -260,16 +275,22 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 					ce_strlcat(short_options, ":", sizeof(short_options));
 				}
 			}
+
 			if (!ce_string_empty(option->long_string)) {
 				++long_option_count;
 			}
-			max_length = ce_max(max_length, option->arg_string->length);
+
+			int length = ce_optparse_short_length(option);
+			length += ce_optparse_space_count(max_short_length, length, 0);
+			length += ce_optparse_long_length(option);
+			length += ce_optparse_space_count(max_long_length, length, 0);
+			max_long_length = ce_max(max_long_length, length);
 		}
 	}
 
 	struct option long_options[long_option_count + 2];
 
-	// special long option 'help' hard-coded
+	// help long option hard-coded
 	long_options[long_option_count].name = "help";
 	long_options[long_option_count].has_arg = no_argument;
 	long_options[long_option_count].flag = NULL;
@@ -283,10 +304,13 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 	ce_string_append(optparse->help, " [options] args\n\noptions:\n");
 
 	// add default help message
-	const char* help_arg_string = "  -h, --help";
-	ce_string_append(optparse->help, help_arg_string);
-	ce_string_append_spaces(optparse->help, max_length, strlen(help_arg_string));
+	const char* help_string = "  -h, --help";
+	ce_string_append(optparse->help, help_string);
+	ce_optparse_append_spaces(optparse->help, max_long_length,
+											strlen(help_string), 3);
 	ce_string_append(optparse->help, "show this help message and exit\n\n");
+
+	int option_index, long_option_index = 0;
 
 	// initialize long options and generate options help
 	for (int i = 0, k = 0; i < optparse->groups->count; ++i) {
@@ -296,6 +320,7 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 		ce_string_append(optparse->help, ":\n");
 		for (int j = 0; j < group->options->count; ++j, ++k) {
 			ce_optoption* option = group->options->items[j];
+
 			if (!ce_string_empty(option->long_string)) {
 				long_options[long_option_index].name = option->long_string->str;
 				long_options[long_option_index].has_arg =
@@ -306,21 +331,43 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 				long_options[long_option_index++].val =
 					option->short_string ? option->short_string : k;
 			}
-			ce_string_append(optparse->help, option->arg_string->str);
-			ce_string_append_spaces(optparse->help, max_length,
-									option->arg_string->length);
+
+			int length = ce_string_append(optparse->help, "    ");
+			if ('\0' != option->short_string) {
+				length += ce_string_append_f(optparse->help, "-%c",
+												option->short_string);
+				if (CE_OPTACTION_STORE == option->action) {
+					length += ce_string_append_f(optparse->help, " %s",
+													option->name->str);
+				}
+				if (!ce_string_empty(option->long_string)) {
+					length += ce_string_append(optparse->help, ", ");
+				}
+			}
+			length += ce_optparse_append_spaces(optparse->help,
+												max_short_length, length, 0);
+
+			if (!ce_string_empty(option->long_string)) {
+				length += ce_string_append_f(optparse->help, "--%s",
+												option->long_string->str);
+				if (CE_OPTACTION_STORE == option->action) {
+					length += ce_string_append_f(optparse->help, "=%s",
+													option->name->str);
+				}
+			}
+			ce_optparse_append_spaces(optparse->help, max_long_length, length, 3);
 			ce_string_append(optparse->help, option->help->str);
 			ce_string_append(optparse->help, "\n");
 		}
 		ce_string_append(optparse->help, "\n");
 	}
 
-	max_length = 0;
+	int max_arg_length = 0;
 
 	// find max arg name's length (for pretty output)
 	for (int i = 0; i < optparse->args->count; ++i) {
 		ce_optarg* arg = optparse->args->items[i];
-		max_length = ce_max(max_length, arg->name->length);
+		max_arg_length = ce_max(max_arg_length, arg->name->length);
 	}
 
 	ce_string_append(optparse->help, "args:\n");
@@ -333,13 +380,14 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 			ce_optarg* arg = optparse->args->items[i];
 			ce_string_append(optparse->help, "  ");
 			ce_string_append(optparse->help, arg->name->str);
-			ce_string_append_spaces(optparse->help, max_length,
-													arg->name->length);
+			ce_optparse_append_spaces(optparse->help, max_arg_length,
+										arg->name->length, 3);
 			ce_string_append(optparse->help, arg->help->str);
 			ce_string_append(optparse->help, "\n");
 		}
 	}
 
+	int ch;
 	opterr = 0;
 
 	while (-1 != (ch = getopt_long(argc, argv, short_options,

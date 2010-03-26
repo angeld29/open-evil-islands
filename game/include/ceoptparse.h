@@ -42,7 +42,6 @@ typedef struct {
 	ce_string* name;
 	char short_string;
 	ce_string* long_string;
-	ce_string* arg_string;
 	ce_optaction action;
 	ce_string* help;
 	ce_string* value;
