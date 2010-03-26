@@ -230,6 +230,15 @@ ce_optarg* ce_optparse_find_arg(ce_optparse* optparse, const char* name)
 	return NULL;
 }
 
+static void ce_string_append_spaces(ce_string* string,
+									int max_length, int length)
+{
+	int space_count = ce_max(3, max_length - length + 3);
+	char spaces[space_count];
+	memset(spaces, ' ', space_count);
+	ce_string_append_n(string, spaces, space_count);
+}
+
 bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 {
 	int option_index, long_option_index = 0, long_option_count = 0;
@@ -273,16 +282,11 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 	ce_string_append(optparse->help, argv[0]);
 	ce_string_append(optparse->help, " [options] args\n\noptions:\n");
 
-	{ // add default help message
-		const char* help_arg_string = "  -h, --help";
-		int space_count = ce_max(3, max_length - strlen(help_arg_string) + 3);
-		char spaces[space_count];
-		memset(spaces, ' ', space_count);
-		ce_string_append(optparse->help, help_arg_string);
-		ce_string_append_n(optparse->help, spaces, space_count);
-		ce_string_append(optparse->help, "show this help message and exit\n\n");
-		
-	}
+	// add default help message
+	const char* help_arg_string = "  -h, --help";
+	ce_string_append(optparse->help, help_arg_string);
+	ce_string_append_spaces(optparse->help, max_length, strlen(help_arg_string));
+	ce_string_append(optparse->help, "show this help message and exit\n\n");
 
 	// initialize long options and generate options help
 	for (int i = 0, k = 0; i < optparse->groups->count; ++i) {
@@ -302,11 +306,9 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 				long_options[long_option_index++].val =
 					option->short_string ? option->short_string : k;
 			}
-			int space_count = ce_max(3, max_length - option->arg_string->length + 3);
-			char spaces[space_count];
-			memset(spaces, ' ', space_count);
 			ce_string_append(optparse->help, option->arg_string->str);
-			ce_string_append_n(optparse->help, spaces, space_count);
+			ce_string_append_spaces(optparse->help, max_length,
+									option->arg_string->length);
 			ce_string_append(optparse->help, option->help->str);
 			ce_string_append(optparse->help, "\n");
 		}
@@ -329,12 +331,10 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 	} else {
 		for (int i = 0; i < optparse->args->count; ++i) {
 			ce_optarg* arg = optparse->args->items[i];
-			int space_count = ce_max(3, max_length - arg->name->length + 3);
-			char spaces[space_count];
-			memset(spaces, ' ', space_count);
 			ce_string_append(optparse->help, "  ");
 			ce_string_append(optparse->help, arg->name->str);
-			ce_string_append_n(optparse->help, spaces, space_count);
+			ce_string_append_spaces(optparse->help, max_length,
+													arg->name->length);
 			ce_string_append(optparse->help, arg->help->str);
 			ce_string_append(optparse->help, "\n");
 		}
