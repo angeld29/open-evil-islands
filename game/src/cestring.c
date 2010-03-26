@@ -19,7 +19,6 @@
 */
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <string.h>
 
 #include "cealloc.h"
@@ -102,14 +101,19 @@ void ce_string_assign_n(ce_string* string, const char* str, int n)
 	string->length = strlen(string->str);
 }
 
-void ce_string_assign_f(ce_string* string, const char* fmt, ...)
+void ce_string_assign_v(ce_string* string, const char* fmt, va_list args)
 {
 	char buffer[512];
+	vsnprintf(buffer, sizeof(buffer), fmt, args);
+	ce_string_assign(string, buffer);
+}
+
+void ce_string_assign_f(ce_string* string, const char* fmt, ...)
+{
 	va_list args;
 	va_start(args, fmt);
-	vsnprintf(buffer, sizeof(buffer), fmt, args);
+	ce_string_assign_v(string, fmt, args);
 	va_end(args);
-	ce_string_assign(string, buffer);
 }
 
 int ce_string_append(ce_string* string, const char* str)
@@ -130,13 +134,19 @@ int ce_string_append_n(ce_string* string, const char* str, int n)
 	return string->length - old_length;
 }
 
-int ce_string_append_f(ce_string* string, const char* fmt, ...)
+int ce_string_append_v(ce_string* string, const char* fmt, va_list args)
 {
 	char buffer[512];
+	int count = vsnprintf(buffer, sizeof(buffer), fmt, args);
+	ce_string_append(string, buffer);
+	return count;
+}
+
+int ce_string_append_f(ce_string* string, const char* fmt, ...)
+{
 	va_list args;
 	va_start(args, fmt);
-	int count = vsnprintf(buffer, sizeof(buffer), fmt, args);
+	int count = ce_string_append_v(string, fmt, args);
 	va_end(args);
-	ce_string_append(string, buffer);
 	return count;
 }
