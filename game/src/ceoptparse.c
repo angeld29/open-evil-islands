@@ -269,7 +269,7 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 
 	struct option long_options[long_option_count + 2];
 
-	// special long option - help
+	// special long option 'help' hard-coded
 	long_options[long_option_count].name = "help";
 	long_options[long_option_count].has_arg = no_argument;
 	long_options[long_option_count].flag = NULL;
@@ -380,7 +380,7 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 			}
 		}
 
-		// final step - assign value
+		// final step for option - assign value
 		for (int i = 0, k = 0; i < optparse->groups->count; ++i) {
 			ce_optgroup* group = optparse->groups->items[i];
 			for (int j = 0; j < group->options->count; ++j, ++k) {
@@ -410,6 +410,7 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 		return false;
 	}
 
+	// final step for arg - assign value
 	for (int i = 0; i < optparse->args->count; ++i) {
 		ce_optarg* arg = optparse->args->items[i];
 		ce_string_assign(arg->value, argv[i + optind]);
