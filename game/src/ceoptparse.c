@@ -111,9 +111,13 @@ void ce_optarg_del(ce_optarg* arg)
 	}
 }
 
-ce_optparse* ce_optparse_new(const char* description, ...)
+ce_optparse* ce_optparse_new(int version_major, int version_minor,
+							int version_patch, const char* description, ...)
 {
 	ce_optparse* optparse = ce_alloc(sizeof(ce_optparse));
+	optparse->version_major = version_major;
+	optparse->version_minor = version_minor;
+	optparse->version_patch = version_patch;
 	optparse->groups = ce_vector_new();
 	optparse->args = ce_vector_new();
 	optparse->help = ce_string_new_reserved(2048); // extra space for help
@@ -267,7 +271,7 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 	int max_long_length = 0, long_option_count = 0;
 
 	char short_options[128];
-	ce_strlcpy(short_options, ":h", sizeof(short_options));
+	ce_strlcpy(short_options, ":hv", sizeof(short_options));
 
 	for (int i = 0; i < optparse->groups->count; ++i) {
 		ce_optgroup* group = optparse->groups->items[i];
@@ -293,27 +297,33 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 		}
 	}
 
-	struct option long_options[long_option_count + 2];
+	struct option long_options[long_option_count + 3];
 
-	// help long option hard-coded
+	// some options hard-coded
 	long_options[long_option_count].name = "help";
 	long_options[long_option_count].has_arg = no_argument;
 	long_options[long_option_count].flag = NULL;
 	long_options[long_option_count].val = 'h';
 
+	long_options[long_option_count + 1].name = "version";
+	long_options[long_option_count + 1].has_arg = no_argument;
+	long_options[long_option_count + 1].flag = NULL;
+	long_options[long_option_count + 1].val = 'v';
+
 	// terminate the array with an element containing all zeros
-	memset(&long_options[long_option_count + 1], '\0', sizeof(struct option));
+	memset(&long_options[long_option_count + 2], '\0', sizeof(struct option));
 
 	ce_string_append(optparse->help, "usage: ");
 	ce_string_append(optparse->help, argv[0]);
 	ce_string_append(optparse->help, " [options] args\n\noptions:\n");
 
-	// add default help message
-	const char* help_string = "  -h, --help";
-	ce_string_append(optparse->help, help_string);
-	ce_optparse_append_spaces(optparse->help, max_long_length,
-											strlen(help_string), 3);
-	ce_string_append(optparse->help, "show this help message and exit\n\n");
+	// add default help option string
+	ce_string_append(optparse->help, "  -h, --help      "
+									"show this help message and exit\n");
+
+	// add default version option string
+	ce_string_append(optparse->help, "  -v, --version   "
+									"display program version\n\n");
 
 	int option_index, long_option_index = 0;
 
@@ -438,6 +448,11 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 		switch (ch) {
 		case 'h':
 			ce_logging_write(optparse->help->str);
+			return false;
+		case 'v':
+			ce_logging_write("%d.%d.%d", optparse->version_major,
+										optparse->version_minor,
+										optparse->version_patch);
 			return false;
 		case ':':
 			ce_string_append(optparse->help, "\n");

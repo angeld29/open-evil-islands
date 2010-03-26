@@ -59,6 +59,9 @@ typedef struct {
 } ce_optarg;
 
 typedef struct {
+	int version_major;
+	int version_minor;
+	int version_patch;
 	ce_vector* groups;
 	ce_vector* args;
 	ce_string* help;
@@ -95,8 +98,11 @@ extern void ce_optarg_del(ce_optarg* arg);
 
 // optparse
 
-/// description may be NULL
-extern ce_optparse* ce_optparse_new(const char* description, ...);
+extern ce_optparse* ce_optparse_new(int version_major,
+									int version_minor,
+									int version_patch,
+									const char* description, /* may be NULL */
+									...);
 extern void ce_optparse_del(ce_optparse* optparse);
 
 extern ce_optgroup*
