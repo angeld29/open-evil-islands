@@ -3,7 +3,6 @@ Cursed Earth TODO
 
    * remove glut from engine
    * resfile refactoring
-   * fig dynamic: VBO
    * animation system refactoring
    * fig scenenode hierarchy/rendering refactoring
    * use lightcfg in engine
