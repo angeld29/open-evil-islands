@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 // ok, portable
 // getopt is available on all POSIX-compliant systems and on Windows (MinGW)
@@ -355,9 +356,47 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 													option->name->str);
 				}
 			}
-			ce_optparse_append_spaces(optparse->help, max_long_length, length, 3);
-			ce_string_append(optparse->help, option->help->str);
-			ce_string_append(optparse->help, "\n");
+
+			// output help with word wrap
+			const char* help_str = option->help->str;
+			int help_length = option->help->length;
+
+			if (0 == help_length) {
+				ce_string_append(optparse->help, "\n");
+			} else {
+				while (help_length > 0) {
+					ce_optparse_append_spaces(optparse->help,
+												max_long_length, length, 3);
+					// limit output string at max 79 characters
+					int line_length = ce_max(1,
+						79 - ce_optparse_space_count(max_long_length, 0, 3));
+					if (help_length > line_length) {
+						// adjust word wrap
+						if (isspace(help_str[line_length])) {
+							// the last word is in string boundaries;
+							// don't be afraid to output extra spaces
+							// beyond possible screen boundaries
+							while (line_length < help_length &&
+									isspace(help_str[line_length])) {
+								++line_length;
+							}
+						} else {
+							// find previous space, current word will be
+							// output in next string
+							for (int l = line_length - 1;
+									l >= 0 && !isspace(help_str[l]); --l) {
+								--line_length;
+							}
+							line_length = ce_max(1, line_length);
+						}
+					}
+					ce_string_append_n(optparse->help, help_str, line_length);
+					ce_string_append(optparse->help, "\n");
+					help_str += line_length;
+					help_length -= line_length;
+					length = 0; // line feed, reset length
+				}
+			}
 		}
 		ce_string_append(optparse->help, "\n");
 	}
