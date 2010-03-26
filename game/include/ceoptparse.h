@@ -72,6 +72,8 @@ typedef struct {
 
 extern void ce_optoption_del(ce_optoption* option);
 
+extern bool ce_optoption_value_empty(const ce_optoption* option);
+
 extern bool ce_optoption_value_bool(const ce_optoption* option);
 extern int ce_optoption_value_int(const ce_optoption* option);
 extern float ce_optoption_value_float(const ce_optoption* option);

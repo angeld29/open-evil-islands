@@ -45,6 +45,11 @@ void ce_optoption_del(ce_optoption* option)
 	}
 }
 
+bool ce_optoption_value_empty(const ce_optoption* option)
+{
+	return ce_string_empty(option->value);
+}
+
 bool ce_optoption_value_bool(const ce_optoption* option)
 {
 	return 0 == ce_strcasecmp("true", option->value->str);
