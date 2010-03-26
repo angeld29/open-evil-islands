@@ -232,6 +232,8 @@ int main(int argc, char* argv[])
 
 	es = ce_input_event_supply_new();
 
+	ce_optparse_del(optparse);
+
 	glutMainLoop();
 	return EXIT_SUCCESS;
 }
