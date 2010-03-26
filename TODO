@@ -2,7 +2,6 @@ Cursed Earth TODO
 ===================
 
    * remove glut from engine
-
    * resfile refactoring
    * animation system refactoring
    * fig scenenode hierarchy/rendering refactoring
