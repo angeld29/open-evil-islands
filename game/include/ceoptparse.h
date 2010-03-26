@@ -42,6 +42,7 @@ typedef struct {
 	ce_string* name;
 	char short_string;
 	ce_string* long_string;
+	ce_string* arg_string;
 	ce_optaction action;
 	ce_string* help;
 	ce_string* value;
@@ -53,16 +54,27 @@ typedef struct {
 } ce_optgroup;
 
 typedef struct {
+	ce_string* name;
+	ce_string* help;
+	ce_string* value;
+} ce_optarg;
+
+typedef struct {
 	ce_vector* groups;
 	ce_vector* args;
 	ce_string* help;
+	ce_string* error;
 } ce_optparse;
+
+// options
 
 extern void ce_optoption_del(ce_optoption* option);
 
 extern bool ce_optoption_value_bool(const ce_optoption* option);
 extern int ce_optoption_value_int(const ce_optoption* option);
 extern float ce_optoption_value_float(const ce_optoption* option);
+
+// groups
 
 extern void ce_optgroup_del(ce_optgroup* group);
 
@@ -78,18 +90,31 @@ ce_optgroup_create_option(ce_optgroup* group,
 							const char* help,         /* NULL if none */
 							const char* default_value /* NULL if none */);
 
-extern ce_optparse* ce_optparse_new(void);
+// args
+
+extern void ce_optarg_del(ce_optarg* arg);
+
+// optparse
+
+extern ce_optparse* ce_optparse_new(const char* description /* NULL if none */);
 extern void ce_optparse_del(ce_optparse* optparse);
 
 extern ce_optgroup*
 ce_optparse_create_group(ce_optparse* optparse,
 							const char* name);
 
-extern ce_optgroup* ce_optparse_find_group(ce_optparse* optparse,
-											const char* name);
+extern ce_optarg*
+ce_optparse_create_arg(ce_optparse* optparse,
+						const char* name,
+						const char* help  /* NULL if none */);
+
 extern ce_optoption* ce_optparse_find_option(ce_optparse* optparse,
 											const char* group_name,
 											const char* option_name);
+extern ce_optgroup* ce_optparse_find_group(ce_optparse* optparse,
+											const char* name);
+extern ce_optarg* ce_optparse_find_arg(ce_optparse* optparse,
+											const char* name);
 
 extern bool ce_optparse_parse_args(ce_optparse* optparse,
 									int argc, char* argv[]);

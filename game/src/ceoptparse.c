@@ -26,6 +26,7 @@
 // getopt is available on all POSIX-compliant systems and on Windows (MinGW)
 #include <getopt.h>
 
+#include "celib.h"
 #include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
@@ -36,6 +37,7 @@ void ce_optoption_del(ce_optoption* option)
 	if (NULL != option) {
 		ce_string_del(option->value);
 		ce_string_del(option->help);
+		ce_string_del(option->arg_string);
 		ce_string_del(option->long_string);
 		ce_string_del(option->name);
 		ce_free(option, sizeof(ce_optoption));
@@ -90,28 +92,86 @@ ce_optoption* ce_optgroup_create_option(ce_optgroup* group,
 	option->name = ce_string_new_str(name);
 	option->short_string = short_string;
 	option->long_string = ce_string_new_str(NULL != long_string ? long_string : "");
+	option->arg_string = ce_string_new_str_n("    ", 32);
 	option->action = action;
 	option->help = ce_string_new_str(NULL != help ? help : "");
 	option->value = ce_string_new_str(NULL != default_value ? default_value :
 							(const char* []){ "", "false", "true" }[action]);
+
+	char name_uppercase[option->name->length + 1];
+	ce_strupr(name_uppercase, option->name->str);
+
+	if ('\0' != short_string) {
+		if (CE_OPTACTION_STORE == action) {
+			ce_string_append_f(option->arg_string, "-%c %s", short_string,
+															name_uppercase);
+		} else {
+			ce_string_append_f(option->arg_string, "-%c", short_string);
+		}
+		if (NULL != long_string) {
+			ce_string_append(option->arg_string, ", ");
+		}
+	}
+
+	if (NULL != long_string) {
+		if (CE_OPTACTION_STORE == action) {
+			ce_string_append_f(option->arg_string, "--%s=%s", long_string,
+															name_uppercase);
+		} else {
+			ce_string_append_f(option->arg_string, "--%s", long_string);
+		}
+	}
+
 	ce_vector_push_back(group->options, option);
 	return option;
 }
 
-ce_optparse* ce_optparse_new(void)
+void ce_optarg_del(ce_optarg* arg)
+{
+	if (NULL != arg) {
+		ce_string_del(arg->value);
+		ce_string_del(arg->help);
+		ce_string_del(arg->name);
+		ce_free(arg, sizeof(ce_optarg));
+	}
+}
+
+ce_optparse* ce_optparse_new(const char* description)
 {
 	ce_optparse* optparse = ce_alloc(sizeof(ce_optparse));
 	optparse->groups = ce_vector_new();
 	optparse->args = ce_vector_new();
-	optparse->help = ce_string_new();
+	optparse->help = ce_string_new_reserved(2048); // extra space for help
+	optparse->error = ce_string_new();
+
+	ce_string_append(optparse->help, "\n"
+		"===============================================================================\n"
+		"Cursed Earth is an open source, cross-platform port of Evil Islands.\n"
+		"Copyright (C) 2009-2010 Yanis Kurganov.\n\n"
+		"This program is free software: you can redistribute it and/or modify\n"
+		"it under the terms of the GNU General Public License as published by\n"
+		"the Free Software Foundation, either version 3 of the License, or\n"
+		"(at your option) any later version.\n\n"
+		"This program is distributed in the hope that it will be useful,\n"
+		"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
+		"GNU General Public License for more details.\n"
+		"===============================================================================\n\n");
+
+	if (NULL != description) {
+		ce_string_append(optparse->help, description);
+		ce_string_append(optparse->help, "\n\n");
+	}
+
 	return optparse;
 }
 
 void ce_optparse_del(ce_optparse* optparse)
 {
 	if (NULL != optparse) {
-		ce_vector_for_each(optparse->args, (ce_vector_func1)ce_string_del);
+		ce_vector_for_each(optparse->args, (ce_vector_func1)ce_optarg_del);
 		ce_vector_for_each(optparse->groups, (ce_vector_func1)ce_optgroup_del);
+		ce_string_del(optparse->error);
 		ce_string_del(optparse->help);
 		ce_vector_del(optparse->args);
 		ce_vector_del(optparse->groups);
@@ -128,6 +188,26 @@ ce_optgroup* ce_optparse_create_group(ce_optparse* optparse, const char* name)
 	return group;
 }
 
+ce_optarg* ce_optparse_create_arg(ce_optparse* optparse,
+									const char* name,
+									const char* help)
+{
+	ce_optarg* arg = ce_alloc(sizeof(ce_optarg));
+	arg->name = ce_string_new_str(name);
+	arg->help = ce_string_new_str(NULL != help ? help : "");
+	arg->value = ce_string_new();
+	ce_vector_push_back(optparse->args, arg);
+	return arg;
+}
+
+ce_optoption* ce_optparse_find_option(ce_optparse* optparse,
+										const char* group_name,
+										const char* option_name)
+{
+	ce_optgroup* group = ce_optparse_find_group(optparse, group_name);
+	return NULL != group ? ce_optgroup_find_option(group, option_name) : NULL;
+}
+
 ce_optgroup* ce_optparse_find_group(ce_optparse* optparse, const char* name)
 {
 	for (int i = 0; i < optparse->groups->count; ++i) {
@@ -139,27 +219,12 @@ ce_optgroup* ce_optparse_find_group(ce_optparse* optparse, const char* name)
 	return NULL;
 }
 
-ce_optoption* ce_optparse_find_option(ce_optparse* optparse,
-										const char* group_name,
-										const char* option_name)
+ce_optarg* ce_optparse_find_arg(ce_optparse* optparse, const char* name)
 {
-	ce_optgroup* group = ce_optparse_find_group(optparse, group_name);
-	return NULL != group ? ce_optgroup_find_option(group, option_name) : NULL;
-}
-
-const char* ce_optparse_value(ce_optparse* optparse,
-								const char* group_name,
-								const char* option_name)
-{
-	for (int i = 0; i < optparse->groups->count; ++i) {
-		ce_optgroup* group = optparse->groups->items[i];
-		if (0 == ce_strcasecmp(group_name, group->name->str)) {
-			for (int j = 0; j < group->options->count; ++j) {
-				ce_optoption* option = group->options->items[j];
-				if (0 == ce_strcasecmp(option_name, option->name->str)) {
-					return option->value->str;
-				}
-			}
+	for (int i = 0; i < optparse->args->count; ++i) {
+		ce_optarg* arg = optparse->args->items[i];
+		if (0 == ce_strcasecmp(name, arg->name->str)) {
+			return arg;
 		}
 	}
 	return NULL;
@@ -167,18 +232,20 @@ const char* ce_optparse_value(ce_optparse* optparse,
 
 bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 {
-	int ch, option_index, long_option_index = 0, long_option_count = 0;
+	int option_index, long_option_index = 0, long_option_count = 0;
+	int ch, max_length = 0;
 
-	char short_options[256], short_option[2] = { [1] = '\0' };
+	char short_options[256];
 	ce_strlcpy(short_options, ":h", sizeof(short_options));
 
-	// initialize short options and count long options
+	// initialize short options, count long options and
+	// find max option string's length (for pretty output)
 	for (int i = 0; i < optparse->groups->count; ++i) {
 		ce_optgroup* group = optparse->groups->items[i];
 		for (int j = 0; j < group->options->count; ++j) {
 			ce_optoption* option = group->options->items[j];
 			if ('\0' != option->short_string) {
-				short_option[0] = option->short_string;
+				char short_option[2] = { option->short_string, '\0' };
 				ce_strlcat(short_options, short_option, sizeof(short_options));
 				if (CE_OPTACTION_STORE == option->action) {
 					ce_strlcat(short_options, ":", sizeof(short_options));
@@ -187,15 +254,42 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 			if (!ce_string_empty(option->long_string)) {
 				++long_option_count;
 			}
+			max_length = ce_max(max_length, option->arg_string->length);
 		}
 	}
 
-	struct option long_options[long_option_count + 1];
-	memset(&long_options[long_option_count], '\0', sizeof(struct option));
+	struct option long_options[long_option_count + 2];
 
-	// initialize long options
+	// special long option - help
+	long_options[long_option_count].name = "help";
+	long_options[long_option_count].has_arg = no_argument;
+	long_options[long_option_count].flag = NULL;
+	long_options[long_option_count].val = 'h';
+
+	// terminate the array with an element containing all zeros
+	memset(&long_options[long_option_count + 1], '\0', sizeof(struct option));
+
+	ce_string_append(optparse->help, "usage: ");
+	ce_string_append(optparse->help, argv[0]);
+	ce_string_append(optparse->help, " [options] args\n\noptions:\n");
+
+	{ // add default help message
+		const char* help_arg_string = "  -h, --help";
+		int space_count = ce_max(3, max_length - strlen(help_arg_string) + 3);
+		char spaces[space_count];
+		memset(spaces, ' ', space_count);
+		ce_string_append(optparse->help, help_arg_string);
+		ce_string_append_n(optparse->help, spaces, space_count);
+		ce_string_append(optparse->help, "show this help message and exit\n\n");
+		
+	}
+
+	// initialize long options and generate options help
 	for (int i = 0, k = 0; i < optparse->groups->count; ++i) {
 		ce_optgroup* group = optparse->groups->items[i];
+		ce_string_append(optparse->help, "  ");
+		ce_string_append(optparse->help, group->name->str);
+		ce_string_append(optparse->help, ":\n");
 		for (int j = 0; j < group->options->count; ++j, ++k) {
 			ce_optoption* option = group->options->items[j];
 			if (!ce_string_empty(option->long_string)) {
@@ -208,6 +302,41 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 				long_options[long_option_index++].val =
 					option->short_string ? option->short_string : k;
 			}
+			int space_count = ce_max(3, max_length - option->arg_string->length + 3);
+			char spaces[space_count];
+			memset(spaces, ' ', space_count);
+			ce_string_append(optparse->help, option->arg_string->str);
+			ce_string_append_n(optparse->help, spaces, space_count);
+			ce_string_append(optparse->help, option->help->str);
+			ce_string_append(optparse->help, "\n");
+		}
+		ce_string_append(optparse->help, "\n");
+	}
+
+	max_length = 0;
+
+	// find max arg name's length (for pretty output)
+	for (int i = 0; i < optparse->args->count; ++i) {
+		ce_optarg* arg = optparse->args->items[i];
+		max_length = ce_max(max_length, arg->name->length);
+	}
+
+	ce_string_append(optparse->help, "args:\n");
+
+	// generate args help
+	if (ce_vector_empty(optparse->args)) {
+		ce_string_append(optparse->help, "  none\n");
+	} else {
+		for (int i = 0; i < optparse->args->count; ++i) {
+			ce_optarg* arg = optparse->args->items[i];
+			int space_count = ce_max(3, max_length - arg->name->length + 3);
+			char spaces[space_count];
+			memset(spaces, ' ', space_count);
+			ce_string_append(optparse->help, "  ");
+			ce_string_append(optparse->help, arg->name->str);
+			ce_string_append_n(optparse->help, spaces, space_count);
+			ce_string_append(optparse->help, arg->help->str);
+			ce_string_append(optparse->help, "\n");
 		}
 	}
 
@@ -220,11 +349,18 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 			ce_logging_write(optparse->help->str);
 			return false;
 		case ':':
-			ce_logging_error("optparse: option '-%c' "
-							"requires an argument", optopt);
+			ce_string_append(optparse->help, "\n");
+			ce_string_assign_f(optparse->error, "optparse: option '-%c' "
+												"requires an argument", optopt);
+			ce_logging_write(optparse->help->str);
+			ce_logging_error(optparse->error->str);
 			return false;
 		case '?':
-			ce_logging_error("optparse: unknown option '-%c'", optopt);
+			ce_string_append(optparse->help, "\n");
+			ce_string_assign_f(optparse->error, "optparse: unknown "
+												"option '-%c'", optopt);
+			ce_logging_write(optparse->help->str);
+			ce_logging_error(optparse->error->str);
 			return false;
 		}
 
@@ -244,24 +380,39 @@ bool ce_optparse_parse_args(ce_optparse* optparse, int argc, char* argv[])
 			}
 		}
 
-		const char* values[CE_OPTACTION_COUNT] = {
-			optarg, "true", "false"
-		};
-
 		// final step - assign value
 		for (int i = 0, k = 0; i < optparse->groups->count; ++i) {
 			ce_optgroup* group = optparse->groups->items[i];
 			for (int j = 0; j < group->options->count; ++j, ++k) {
 				ce_optoption* option = group->options->items[j];
 				if (k == option_index) {
-					ce_string_assign(option->value, values[option->action]);
+					ce_string_assign(option->value, (const char* [])
+						{ optarg, "true", "false" }[option->action]);
 				}
 			}
 		}
 	}
 
-	for (int i = optind; i < argc; ++i) {
-		ce_vector_push_back(optparse->args, ce_string_new_str(argv[i]));
+	if (argc - optind != optparse->args->count) {
+		ce_string_append(optparse->help, "\n");
+		ce_string_assign(optparse->error, argc - optind > optparse->args->count ?
+									"optparse: too much non-option arguments:\n" :
+									"optparse: too few non-option arguments:\n");
+		if (argc == optind) {
+			ce_string_append(optparse->error, "  none\n");
+		} else {
+			for (int i = optind; i < argc; ++i) {
+				ce_string_append_f(optparse->error, "  %s\n", argv[i]);
+			}
+		}
+		ce_logging_write(optparse->help->str);
+		ce_logging_error(optparse->error->str);
+		return false;
+	}
+
+	for (int i = 0; i < optparse->args->count; ++i) {
+		ce_optarg* arg = optparse->args->items[i];
+		ce_string_assign(arg->value, argv[i + optind]);
 	}
 
 	return true;
