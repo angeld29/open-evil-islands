@@ -26,8 +26,6 @@
 #include <math.h>
 #include <assert.h>
 
-#include <getopt.h>
-
 #include <GL/glut.h>
 
 #ifdef _WIN32
@@ -45,6 +43,7 @@
 #include "cemath.h"
 #include "cescenemng.h"
 #include "cemobfile.h"
+#include "ceoptparse.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0
@@ -127,35 +126,6 @@ static void reshape(int width, int height)
 	ce_camera_set_aspect(scenemng->camera, (float)width / height);
 }
 
-static void usage(void)
-{
-	fprintf(stderr,
-		"===============================================================================\n"
-		"Cursed Earth is an open source, cross-platform port of Evil Islands.\n"
-		"Copyright (C) 2009-2010 Yanis Kurganov.\n\n"
-		"This program is free software: you can redistribute it and/or modify\n"
-		"it under the terms of the GNU General Public License as published by\n"
-		"the Free Software Foundation, either version 3 of the License, or\n"
-		"(at your option) any later version.\n\n"
-		"This program is distributed in the hope that it will be useful,\n"
-		"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
-		"GNU General Public License for more details.\n"
-		"===============================================================================\n\n"
-		"This program is part of Cursed Earth spikes\n"
-		"Map Viewer %d.%d.%d - Explore Evil Islands zones with creatures\n\n"
-		"Usage: mapviewer [options] <zone_name>\n"
-		"Where: <zone_name> Any zone_name.mpr file in 'ei_path/Maps'\n"
-		"Options:\n"
-		"-b <ei_path> Path to EI base dir (current dir by default)\n"
-		"-f Start program in Full Screen mode\n"
-		"-v Display program version\n"
-		"-h Display this message\n",
-			CE_SPIKE_VERSION_MAJOR,
-			CE_SPIKE_VERSION_MINOR,
-			CE_SPIKE_VERSION_PATCH);
-}
-
 int main(int argc, char* argv[])
 {
 	ce_logging_init();
@@ -166,74 +136,50 @@ int main(int argc, char* argv[])
 #endif
 	ce_alloc_init();
 
-	int c;
-	const char* ei_path = ".";
-	bool fullscreen = false;
+	ce_optparse* optparse = ce_optparse_new(
+		"This program is part of Cursed Earth spikes\n"
+		"Map Viewer %d.%d.%d - Explore Evil Islands zones with creatures",
+		CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
+	ce_optgroup* general = ce_optparse_create_group(optparse, "general");
+	ce_optoption* ei_path = ce_optgroup_create_option(general,
+		"ei_path", 'b', "ei-path", CE_OPTACTION_STORE,
+		"path to EI root dir (current dir by default)", ".");
+	ce_optoption* full_screen = ce_optgroup_create_option(general,
+		"full_screen", 'f', "full-screen", CE_OPTACTION_STORE_TRUE,
+		"start program in Full Screen mode", NULL);
+	ce_optoption* version = ce_optgroup_create_option(general,
+		"version", 'v', "version", CE_OPTACTION_STORE_TRUE,
+		"display program version", NULL);
+	ce_optarg* zone_name = ce_optparse_create_arg(optparse, "zone_name",
+		"any zone_name.mpr file in 'ei_path/Maps'");
 
-	opterr = 0;
-
-	while (-1 != (c = getopt(argc, argv, ":b:fvh")))  {
-		switch (c) {
-		case 'b':
-			ei_path = optarg;
-			break;
-		case 'f':
-			fullscreen = true;
-			break;
-		case 'v':
-			fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
-					CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
-			return 0;
-		case 'h':
-			usage();
-			return 0;
-		case ':':
-			usage();
-			fprintf(stderr, "\nOption '-%c' requires an argument\n", optopt);
-			return 1;
-		case '?':
-			usage();
-			fprintf(stderr, "\nUnknown option '-%c'\n", optopt);
-			return 1;
-		default:
-			assert(false);
-			usage();
-			return 1;
-		}
+	if (!ce_optparse_parse_args(optparse, argc, argv)) {
+		return EXIT_FAILURE;
 	}
 
-	if (optind == argc) {
-		usage();
-		fprintf(stderr, "\nPlease, specify a name of any zone\n");
-		return 1;
-	}
-
-	if (argc - optind > 1) {
-		usage();
-		fprintf(stderr, "\nToo much non-option arguments:\n");
-		for (int i = optind; i < argc; ++i) {
-			fprintf(stderr, "%s\n", argv[i]);
-		}
-		return 1;
+	if (ce_optoption_value_bool(version)) {
+		ce_logging_write("%d.%d.%d", CE_SPIKE_VERSION_MAJOR,
+									CE_SPIKE_VERSION_MINOR,
+									CE_SPIKE_VERSION_PATCH);
+		return EXIT_SUCCESS;
 	}
 
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
 
-	if (fullscreen) {
+	if (ce_optoption_value_bool(full_screen)) {
 		char buffer[32];
 		snprintf(buffer, sizeof(buffer), "%dx%d:32",
 			glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));
 		glutGameModeString(buffer);
-		if (!glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
+		if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
+			glutEnterGameMode();
+		} else {
 			ce_logging_warning("main: full screen mode is not available");
-			fullscreen = false;
 		}
 	}
 
-	if (fullscreen) {
-		glutEnterGameMode();
-	} else {
+	if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
 		glutInitWindowPosition(100, 100);
 		glutInitWindowSize(1024, 768);
 		glutCreateWindow("Cursed Earth: Map Viewer");
@@ -246,17 +192,18 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	if (NULL == (scenemng = ce_scenemng_new(ei_path))) {
-		return 1;
+	if (NULL == (scenemng = ce_scenemng_new(ei_path->value->str))) {
+		return EXIT_FAILURE;
 	}
 
-	if (NULL == ce_scenemng_create_terrain(scenemng, argv[optind],
+	if (NULL == ce_scenemng_create_terrain(scenemng, zone_name->value->str,
 					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	char path[512];
-	snprintf(path, sizeof(path), "%s/Maps/%s.mob", ei_path, argv[optind]);
+	snprintf(path, sizeof(path), "%s/Maps/%s.mob",
+			ei_path->value->str, zone_name->value->str);
 
 	ce_mobfile* mobfile = ce_mobfile_open(path);
 	if (NULL != mobfile) {
