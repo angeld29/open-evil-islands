@@ -136,7 +136,8 @@ int main(int argc, char* argv[])
 #endif
 	ce_alloc_init();
 
-	ce_optparse* optparse = ce_optparse_new(
+	ce_optparse* optparse = ce_optparse_new(CE_SPIKE_VERSION_MAJOR,
+		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
 		"This program is part of Cursed Earth spikes\n"
 		"Map Viewer %d.%d.%d - Explore Evil Islands zones with creatures",
 		CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
@@ -147,21 +148,11 @@ int main(int argc, char* argv[])
 	ce_optoption* full_screen = ce_optgroup_create_option(general,
 		"full_screen", 'f', "full-screen", CE_OPTACTION_STORE_TRUE,
 		"start program in Full Screen mode", NULL);
-	ce_optoption* version = ce_optgroup_create_option(general,
-		"version", 'v', "version", CE_OPTACTION_STORE_TRUE,
-		"display program version", NULL);
 	ce_optarg* zone_name = ce_optparse_create_arg(optparse, "zone_name",
 		"any zone_name.mpr file in 'ei_path/Maps'");
 
 	if (!ce_optparse_parse_args(optparse, argc, argv)) {
 		return EXIT_FAILURE;
-	}
-
-	if (ce_optoption_value_bool(version)) {
-		ce_logging_write("%d.%d.%d", CE_SPIKE_VERSION_MAJOR,
-									CE_SPIKE_VERSION_MINOR,
-									CE_SPIKE_VERSION_PATCH);
-		return EXIT_SUCCESS;
 	}
 
 	glutInit(&argc, argv);
