@@ -95,7 +95,8 @@ extern void ce_optarg_del(ce_optarg* arg);
 
 // optparse
 
-extern ce_optparse* ce_optparse_new(const char* description /* NULL if none */);
+/// description may be NULL
+extern ce_optparse* ce_optparse_new(const char* description, ...);
 extern void ce_optparse_del(ce_optparse* optparse);
 
 extern ce_optgroup*

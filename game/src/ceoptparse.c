@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -110,7 +111,7 @@ void ce_optarg_del(ce_optarg* arg)
 	}
 }
 
-ce_optparse* ce_optparse_new(const char* description)
+ce_optparse* ce_optparse_new(const char* description, ...)
 {
 	ce_optparse* optparse = ce_alloc(sizeof(ce_optparse));
 	optparse->groups = ce_vector_new();
@@ -133,7 +134,10 @@ ce_optparse* ce_optparse_new(const char* description)
 		"===============================================================================\n\n");
 
 	if (NULL != description) {
-		ce_string_append(optparse->help, description);
+		va_list args;
+		va_start(args, description);
+		ce_string_append_v(optparse->help, description, args);
+		va_end(args);
 		ce_string_append(optparse->help, "\n\n");
 	}
 
