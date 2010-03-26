@@ -26,7 +26,6 @@
 #include <math.h>
 #include <assert.h>
 
-#include <getopt.h>
 #include <GL/glut.h>
 
 #ifdef _WIN32
@@ -41,6 +40,7 @@
 #include "celogging.h"
 #include "cealloc.h"
 #include "cescenemng.h"
+#include "ceoptparse.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0
@@ -52,6 +52,7 @@
 #define CE_SPIKE_VERSION_PATCH 0
 #endif
 
+static ce_optparse* optparse;
 static ce_scenemng* scenemng;
 static ce_figentity* figentity;
 
@@ -71,9 +72,6 @@ static float anm_fps_dec_counter;
 
 static ce_complection complection = { 1.0f, 1.0f, 1.0f };
 
-static const char* figure_name = NULL;
-static const char* texture_names[] = { "default0", "default0" };
-
 static bool update_figentity()
 {
 	ce_scenemng_remove_figentity(scenemng, figentity);
@@ -85,9 +83,15 @@ static bool update_figentity()
 	ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
 	ce_quat_mul(&orientation, &q2, &q1);
 
-	figentity = ce_scenemng_create_figentity(scenemng, figure_name,
-										&complection, &position, &orientation,
-										2, texture_names, NULL);
+	const char* texture_names[] = {
+		ce_optparse_find_option(optparse, "general", "pri_tex")->value->str,
+		ce_optparse_find_option(optparse, "general", "sec_tex")->value->str,
+	};
+
+	figentity = ce_scenemng_create_figentity(scenemng,
+		ce_optparse_find_arg(optparse, "figure_name")->value->str,
+		&complection, &position, &orientation,
+		2, texture_names, NULL);
 	if (NULL == figentity) {
 		return false;
 	}
@@ -111,6 +115,7 @@ static void idle(void)
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_input_event_supply_del(es);
 		ce_scenemng_del(scenemng);
+		ce_optparse_del(optparse);
 		ce_gl_term();
 		ce_input_term();
 		ce_alloc_term();
@@ -231,44 +236,6 @@ static void reshape(int width, int height)
 	ce_camera_set_aspect(scenemng->camera, (float)width / height);
 }
 
-static void usage(void)
-{
-	fprintf(stderr,
-		"===============================================================================\n"
-		"Cursed Earth is an open source, cross-platform port of Evil Islands\n"
-		"Copyright (C) 2009-2010 Yanis Kurganov\n\n"
-		"This program is free software: you can redistribute it and/or modify\n"
-		"it under the terms of the GNU General Public License as published by\n"
-		"the Free Software Foundation, either version 3 of the License, or\n"
-		"(at your option) any later version.\n\n"
-		"This program is distributed in the hope that it will be useful,\n"
-		"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
-		"GNU General Public License for more details.\n"
-		"===============================================================================\n\n"
-		"This program is part of Cursed Earth spikes\n"
-		"Figure Viewer %d.%d.%d - Control Evil Islands figures\n\n"
-		"Usage: figviewer [options] <figure_name>\n"
-		"Options:\n"
-		"-b <ei_path> Path to EI base dir (current dir by default)\n"
-		"-p <tex_name> Primary texture\n"
-		"-s <tex_name> Secondary texture\n"
-		"-a <anm_name> Play animation with specified name\n"
-		"-f Start program in Full Screen mode\n"
-		"-v Display program version\n"
-		"-h Display this message\n\n"
-		"Controls:\n"
-		"1 Change strength\n"
-		"2 Change dexterity\n"
-		"3 Change height\n"
-		"b Show/hide bounding boxes\n"
-		"a Play next animation\n"
-		"+/- Change animation FPS\n",
-			CE_SPIKE_VERSION_MAJOR,
-			CE_SPIKE_VERSION_MINOR,
-			CE_SPIKE_VERSION_PATCH);
-}
-
 int main(int argc, char* argv[])
 {
 	ce_logging_init();
@@ -279,87 +246,56 @@ int main(int argc, char* argv[])
 #endif
 	ce_alloc_init();
 
-	int c;
-	const char* ei_path = ".";
-	const char* primary_texture_name = NULL;
-	const char* secondary_texture_name = NULL;
-	const char* anm_name = NULL;
+	optparse = ce_optparse_new(CE_SPIKE_VERSION_MAJOR,
+		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+		"This program is part of Cursed Earth spikes\n"
+		"Figure Viewer %d.%d.%d - Control Evil Islands figures\n\n"
+		"controls:\n"
+		"1     change strength\n"
+		"2     change dexterity\n"
+		"3     change height\n"
+		"b     show/hide bounding boxes\n"
+		"a     play next animation\n"
+		"+/-   change animation FPS\n",
+		CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
+	ce_optgroup* general_grp = ce_optparse_create_group(optparse, "general");
+	ce_optoption* ei_path_opt = ce_optgroup_create_option(general_grp,
+		"ei_path", 'b', "ei-path", CE_OPTACTION_STORE,
+		"path to EI root dir (current dir by default)", ".");
+	ce_optoption* full_screen_opt = ce_optgroup_create_option(general_grp,
+		"full_screen", 'f', "full-screen", CE_OPTACTION_STORE_TRUE,
+		"start program in Full Screen mode", NULL);
+	ce_optgroup_create_option(general_grp,
+		"pri_tex", 'p', "primary-texture", CE_OPTACTION_STORE,
+		"primary texture", "default0");
+	ce_optgroup_create_option(general_grp,
+		"sec_tex", 's', "secondary-texture", CE_OPTACTION_STORE,
+		"secondary texture", "default0");
+	ce_optoption* anm_name_opt = ce_optgroup_create_option(general_grp,
+		"anm_name", 'a', "anm-name", CE_OPTACTION_STORE,
+		"play animation with specified name", NULL);
+	ce_optparse_create_arg(optparse, "figure_name", "internal figure name");
 
-	bool fullscreen = false;
-
-	opterr = 0;
-
-	while (-1 != (c = getopt(argc, argv, ":b:p:s:a:fvh")))  {
-		switch (c) {
-		case 'b':
-			ei_path = optarg;
-			break;
-		case 'p':
-			primary_texture_name = optarg;
-			break;
-		case 's':
-			secondary_texture_name = optarg;
-			break;
-		case 'a':
-			anm_name = optarg;
-			break;
-		case 'f':
-			fullscreen = true;
-			break;
-		case 'v':
-			fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
-					CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
-			return 0;
-		case 'h':
-			usage();
-			return 0;
-		case ':':
-			usage();
-			fprintf(stderr, "\nOption '-%c' requires an argument\n", optopt);
-			return 1;
-		case '?':
-			usage();
-			fprintf(stderr, "\nUnknown option '-%c'\n", optopt);
-			return 1;
-		default:
-			assert(false);
-			usage();
-			return 1;
-		}
-	}
-
-	if (optind == argc) {
-		usage();
-		fprintf(stderr, "\nPlease, specify a figure name\n");
-		return 1;
-	}
-
-	if (argc - optind > 1) {
-		usage();
-		fprintf(stderr, "\nToo much non-option arguments:\n");
-		for (int i = optind; i < argc; ++i) {
-			fprintf(stderr, "%s\n", argv[i]);
-		}
-		return 1;
+	if (!ce_optparse_parse_args(optparse, argc, argv)) {
+		return EXIT_FAILURE;
 	}
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
 
-	if (fullscreen) {
+	if (ce_optoption_value_bool(full_screen_opt)) {
 		char buffer[32];
 		snprintf(buffer, sizeof(buffer), "%dx%d:32",
 			glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));
 		glutGameModeString(buffer);
-		if (!glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
+		if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
+			glutEnterGameMode();
+		} else {
 			ce_logging_warning("main: full screen mode is not available");
-			fullscreen = false;
 		}
 	}
 
-	if (fullscreen) {
-		glutEnterGameMode();
-	} else {
+	if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
 		glutInitWindowPosition(100, 100);
 		glutInitWindowSize(1024, 768);
 		glutCreateWindow("Cursed Earth: Figure Viewer");
@@ -372,34 +308,25 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	if (NULL == (scenemng = ce_scenemng_new(ei_path))) {
-		return 1;
+	if (NULL == (scenemng = ce_scenemng_new(ei_path_opt->value->str))) {
+		return EXIT_FAILURE;
 	}
-
-	if (NULL != primary_texture_name) {
-		texture_names[0] = primary_texture_name;
-	}
-
-	if (NULL != secondary_texture_name) {
-		texture_names[1] = secondary_texture_name;
-	}
-
-	figure_name = argv[optind];
 
 	if (!update_figentity()) {
-		return 1;
+		return EXIT_FAILURE;
 	}
 
-	if (NULL != anm_name) {
-		if (ce_figentity_play_animation(figentity, anm_name)) {
+	if (!ce_optoption_value_empty(anm_name_opt)) {
+		if (ce_figentity_play_animation(figentity, anm_name_opt->value->str)) {
 			int anm_count = ce_figentity_get_animation_count(figentity);
 			for (anm_index = 0; anm_index < anm_count &&
-					0 == ce_strcasecmp(anm_name,
+					0 == ce_strcasecmp(anm_name_opt->value->str,
 					ce_figentity_get_animation_name(figentity, anm_index));
 					++anm_index) {
 			}
 		} else {
-			ce_logging_warning("main: could not play animation: '%s'", anm_name);
+			ce_logging_warning("main: could not play animation: '%s'",
+											anm_name_opt->value->str);
 		}
 	}
 
