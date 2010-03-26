@@ -51,9 +51,9 @@ extern void ce_string_assign(ce_string* string, const char* str);
 extern void ce_string_assign_n(ce_string* string, const char* str, int n);
 extern void ce_string_assign_f(ce_string* string, const char* fmt, ...);
 
-extern void ce_string_append(ce_string* string, const char* str);
-extern void ce_string_append_n(ce_string* string, const char* str, int n);
-extern void ce_string_append_f(ce_string* string, const char* fmt, ...);
+extern int ce_string_append(ce_string* string, const char* str);
+extern int ce_string_append_n(ce_string* string, const char* str, int n);
+extern int ce_string_append_f(ce_string* string, const char* fmt, ...);
 
 #ifdef __cplusplus
 }

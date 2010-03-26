@@ -112,27 +112,31 @@ void ce_string_assign_f(ce_string* string, const char* fmt, ...)
 	ce_string_assign(string, buffer);
 }
 
-void ce_string_append(ce_string* string, const char* str)
+int ce_string_append(ce_string* string, const char* str)
 {
 	int length = strlen(str);
 	ce_string_reserve(string, string->length + length + 1);
 	strcat(string->str, str);
 	string->length += length;
+	return length;
 }
 
-void ce_string_append_n(ce_string* string, const char* str, int n)
+int ce_string_append_n(ce_string* string, const char* str, int n)
 {
+	int old_length = string->length;
 	ce_string_reserve(string, string->length + n + 1);
 	strncat(string->str, str, n);
 	string->length = strlen(string->str);
+	return string->length - old_length;
 }
 
-void ce_string_append_f(ce_string* string, const char* fmt, ...)
+int ce_string_append_f(ce_string* string, const char* fmt, ...)
 {
 	char buffer[512];
 	va_list args;
 	va_start(args, fmt);
-	vsnprintf(buffer, sizeof(buffer), fmt, args);
+	int count = vsnprintf(buffer, sizeof(buffer), fmt, args);
 	va_end(args);
 	ce_string_append(string, buffer);
+	return count;
 }
