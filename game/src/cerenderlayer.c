@@ -40,15 +40,6 @@ void ce_renderlayer_del(ce_renderlayer* renderlayer)
 	}
 }
 
-void ce_renderlayer_render(ce_renderlayer* renderlayer,
-							ce_rendersystem* rendersystem)
-{
-	ce_rendersystem_apply_material(rendersystem, renderlayer->material);
-	ce_vector_for_each(renderlayer->renderitems,
-						(ce_vector_func1)ce_renderitem_render);
-	ce_rendersystem_discard_material(rendersystem, renderlayer->material);
-}
-
 void ce_renderlayer_add_renderitem(ce_renderlayer* renderlayer,
 									ce_renderitem* renderitem)
 {

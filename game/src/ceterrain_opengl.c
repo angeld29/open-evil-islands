@@ -46,6 +46,11 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 	int16_t* water_allow = va_arg(args, int16_t*);
 
 	ce_mprhlp_get_aabb(&renderitem->aabb, terrain->mprfile, sector_x, sector_z);
+
+	renderitem->position = CE_VEC3_ZERO;
+	renderitem->orientation = CE_QUAT_IDENTITY;
+	renderitem->bbox.aabb = renderitem->aabb;
+	renderitem->bbox.axis = CE_QUAT_IDENTITY;
 	renderitem->transparent = NULL != water_allow;
 
 	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);

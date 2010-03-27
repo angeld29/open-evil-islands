@@ -129,13 +129,14 @@ ce_figentity* ce_figmng_create_figentity(ce_figmng* figmng,
 										const ce_complection* complection,
 										const ce_vec3* position,
 										const ce_quat* orientation,
+										int texture_count,
 										ce_texture* textures[],
 										ce_scenenode* scenenode)
 {
 	ce_figmesh* figmesh = ce_figmng_get_figmesh(figmng, name, complection);
 	if (NULL != figmesh) {
-		ce_figentity* figentity = ce_figentity_new(figmesh,
-													position, orientation,
+		ce_figentity* figentity = ce_figentity_new(figmesh, position,
+													orientation, texture_count,
 													textures, scenenode);
 		if (NULL != figentity) {
 			return figentity;

@@ -25,38 +25,30 @@
 #include "cefighlp.h"
 #include "cefigentity.h"
 
-static bool ce_figentity_create_scenenodes(ce_fignode* fignode,
-											ce_texture* textures[],
-											ce_vector* renderitems,
-											ce_scenenode* scenenode)
+static void ce_figentity_assign_renderitems(ce_figentity* figentity,
+											ce_fignode* fignode)
 {
 	// FIXME: to be reversed...
-	int texture_number = fignode->figfile->texture_number - 1;
-	if (texture_number > 1) {
-		texture_number = 0;
+	int index = fignode->figfile->texture_number - 1;
+	if (index > 1) {
+		index = 0;
 	}
 
-	ce_renderlayer* renderlayer = ce_renderlayer_new(
-		ce_fighlp_create_material(fignode->figfile, textures[texture_number]));
-	ce_renderlayer_add_renderitem(renderlayer, ce_renderitem_clone(
-									renderitems->items[fignode->index]));
+	ce_renderlayer* renderlayer =
+		figentity->scenenode->renderlayers->items[index];
 
-	ce_scenenode* child = ce_scenenode_new(scenenode);
-	ce_scenenode_add_renderlayer(child, renderlayer);
+	ce_renderlayer_add_renderitem(renderlayer,
+		figentity->renderitems->items[fignode->index]);
 
 	for (int i = 0; i < fignode->childs->count; ++i) {
-		if (!ce_figentity_create_scenenodes(fignode->childs->items[i],
-										textures, renderitems, scenenode)) {
-			return false;
-		}
+		ce_figentity_assign_renderitems(figentity, fignode->childs->items[i]);
 	}
-
-	return true;
 }
 
 ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								const ce_vec3* position,
 								const ce_quat* orientation,
+								int texture_count,
 								ce_texture* textures[],
 								ce_scenenode* scenenode)
 {
@@ -64,16 +56,22 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 	figentity->figmesh = ce_figmesh_add_ref(figmesh);
 	figentity->figbone = ce_figbone_new(figmesh->figproto->fignode,
 										&figmesh->complection, NULL);
+	figentity->renderitems = ce_vector_new();
 	figentity->scenenode = ce_scenenode_new(scenenode);
 	figentity->scenenode->position = *position;
 	figentity->scenenode->orientation = *orientation;
 
-	if (!ce_figentity_create_scenenodes(figmesh->figproto->fignode,
-										textures, figmesh->renderitems,
-										figentity->scenenode)) {
-		ce_figentity_del(figentity);
-		return NULL;
+	for (int i = 0; i < figmesh->renderitems->count; ++i) {
+		ce_vector_push_back(figentity->renderitems,
+			ce_renderitem_clone(figmesh->renderitems->items[i]));
 	}
+
+	for (int i = 0; i < texture_count; ++i) {
+		ce_scenenode_add_renderlayer(figentity->scenenode,
+			ce_renderlayer_new(ce_fighlp_create_material(textures[i])));
+	}
+
+	ce_figentity_assign_renderitems(figentity, figmesh->figproto->fignode);
 
 	return figentity;
 }
@@ -82,6 +80,7 @@ void ce_figentity_del(ce_figentity* figentity)
 {
 	if (NULL != figentity) {
 		ce_scenenode_del(figentity->scenenode);
+		ce_vector_del(figentity->renderitems);
 		ce_figbone_del(figentity->figbone);
 		ce_figmesh_del(figentity->figmesh);
 		ce_free(figentity, sizeof(ce_figentity));
@@ -90,9 +89,13 @@ void ce_figentity_del(ce_figentity* figentity)
 
 void ce_figentity_advance(ce_figentity* figentity, float fps, float elapsed)
 {
-	ce_figbone_advance(figentity->figbone,
-		figentity->figmesh->figproto->fignode,
-		figentity->scenenode->childs, fps, elapsed);
+	ce_figbone_advance(figentity->figbone, fps, elapsed);
+}
+
+void ce_figentity_update(ce_figentity* figentity)
+{
+	ce_figbone_update(figentity->figbone,
+		figentity->figmesh->figproto->fignode, figentity->renderitems);
 }
 
 int ce_figentity_get_animation_count(ce_figentity* figentity)

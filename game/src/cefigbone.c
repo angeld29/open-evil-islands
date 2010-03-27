@@ -49,9 +49,7 @@ ce_figbone* ce_figbone_new(const ce_fignode* fignode,
 void ce_figbone_del(ce_figbone* figbone)
 {
 	if (NULL != figbone) {
-		for (int i = 0; i < figbone->childs->count; ++i) {
-			ce_figbone_del(figbone->childs->items[i]);
-		}
+		ce_vector_for_each(figbone->childs, (ce_vector_func1)ce_figbone_del);
 		ce_vector_del(figbone->childs);
 		ce_anmstate_del(figbone->anmstate);
 		ce_free(figbone, sizeof(ce_figbone));
@@ -59,17 +57,25 @@ void ce_figbone_del(ce_figbone* figbone)
 }
 
 void ce_figbone_advance(ce_figbone* figbone,
-						const ce_fignode* fignode,
-						ce_vector* scenenodes,
 						float fps, float elapsed)
+{
+	if (NULL != figbone->anmstate->anmfile) {
+		ce_anmstate_advance(figbone->anmstate, fps, elapsed);
+	}
+
+	for (int i = 0; i < figbone->childs->count; ++i) {
+		ce_figbone_advance(figbone->childs->items[i], fps, elapsed);
+	}
+}
+
+static void ce_figbone_update_transform(ce_figbone* figbone,
+										ce_renderitem* renderitem)
 {
 	// update binding pose
 	// note: translations from anmfile are not used...
 	if (NULL == figbone->anmstate->anmfile) {
 		figbone->orientation = CE_QUAT_IDENTITY;
 	} else {
-		ce_anmstate_advance(figbone->anmstate, fps, elapsed);
-
 		ce_quat q1, q2;
 		ce_quat_slerp(&figbone->orientation, figbone->anmstate->coef,
 			ce_quat_init_array(&q1, figbone->anmstate->anmfile->rotations +
@@ -95,23 +101,40 @@ void ce_figbone_advance(ce_figbone* figbone,
 					&figbone->parent->bone_orientation);
 	}
 
-	ce_scenenode* scenenode = scenenodes->items[fignode->index];
-	ce_renderlayer* renderlayer = scenenode->renderlayers->items[0];
+	renderitem->position = figbone->bone_position;
+	renderitem->orientation = figbone->bone_orientation;
+}
 
-	// update morphing if exists
-	// FIXME: scene hierarchy refactoring
-	ce_renderitem_update(renderlayer->renderitems->items[0],
-						fignode->figfile, figbone->anmstate);
+static void ce_figbone_update_bounds(ce_figbone* figbone,
+									ce_renderitem* renderitem)
+{
+	renderitem->bbox.aabb = renderitem->aabb;
+	renderitem->bbox.axis = figbone->bone_orientation;
 
-	// update scenenode
-	scenenode->position = figbone->bone_position;
-	scenenode->orientation = figbone->bone_orientation;
+	ce_vec3_rot(&renderitem->bbox.aabb.origin,
+				&renderitem->bbox.aabb.origin,
+				&figbone->bone_orientation);
+	ce_vec3_add(&renderitem->bbox.aabb.origin,
+				&renderitem->bbox.aabb.origin,
+				&figbone->bone_position);
+}
+
+void ce_figbone_update(ce_figbone* figbone,
+						const ce_fignode* fignode,
+						ce_vector* renderitems)
+{
+	ce_renderitem* renderitem = renderitems->items[fignode->index];
+
+	ce_figbone_update_transform(figbone, renderitem);
 
 	for (int i = 0; i < figbone->childs->count; ++i) {
-		ce_figbone_advance(figbone->childs->items[i],
-							fignode->childs->items[i],
-							scenenodes, fps, elapsed);
+		ce_figbone_update(figbone->childs->items[i],
+							fignode->childs->items[i], renderitems);
 	}
+
+	ce_figbone_update_bounds(figbone, renderitem);
+
+	ce_renderitem_update(renderitem, fignode->figfile, figbone->anmstate);
 }
 
 bool ce_figbone_play_animation(ce_figbone* figbone,

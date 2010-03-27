@@ -24,7 +24,6 @@
 #include "cevector.h"
 #include "cematerial.h"
 #include "cerenderitem.h"
-#include "cerendersystem.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -39,9 +38,6 @@ typedef struct {
 /// Render layer takes ownership of the material.
 extern ce_renderlayer* ce_renderlayer_new(ce_material* material);
 extern void ce_renderlayer_del(ce_renderlayer* renderlayer);
-
-extern void ce_renderlayer_render(ce_renderlayer* renderlayer,
-									ce_rendersystem* rendersystem);
 
 extern void ce_renderlayer_add_renderitem(ce_renderlayer* renderlayer,
 											ce_renderitem* renderitem);

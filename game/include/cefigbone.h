@@ -25,6 +25,7 @@
 
 #include "cevec3.h"
 #include "cequat.h"
+#include "cebbox.h"
 #include "cevector.h"
 #include "ceanmstate.h"
 #include "cefignode.h"
@@ -37,10 +38,10 @@ extern "C"
 typedef struct ce_figbone ce_figbone;
 
 struct ce_figbone {
-	ce_vec3 position;         // binding pose
-	ce_quat orientation;      // binding pose
-	ce_vec3 bone_position;    // transformed by current animation, bone space
-	ce_quat bone_orientation; // transformed by current animation, bone space
+	ce_vec3 position;
+	ce_quat orientation;
+	ce_vec3 bone_position;
+	ce_quat bone_orientation;
 	ce_anmstate* anmstate;
 	ce_figbone* parent;
 	ce_vector* childs;
@@ -52,9 +53,11 @@ extern ce_figbone* ce_figbone_new(const ce_fignode* fignode,
 extern void ce_figbone_del(ce_figbone* figbone);
 
 extern void ce_figbone_advance(ce_figbone* figbone,
-								const ce_fignode* fignode,
-								ce_vector* scenenodes,
 								float fps, float elapsed);
+
+extern void ce_figbone_update(ce_figbone* figbone,
+								const ce_fignode* fignode,
+								ce_vector* renderitems);
 
 extern bool ce_figbone_play_animation(ce_figbone* figbone,
 										const ce_fignode* fignode,

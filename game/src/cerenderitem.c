@@ -25,7 +25,6 @@
 ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...)
 {
 	ce_renderitem* renderitem = ce_alloc_zero(sizeof(ce_renderitem) + size);
-
 	renderitem->vtable = vtable;
 	renderitem->size = size;
 
@@ -65,10 +64,14 @@ ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem)
 	ce_renderitem* clone_renderitem =
 		ce_alloc_zero(sizeof(ce_renderitem) + renderitem->size);
 
+	*clone_renderitem = *renderitem;
+	/*clone_renderitem->position = renderitem->position;
+	clone_renderitem->orientation = renderitem->orientation;
+	clone_renderitem->bbox = renderitem->bbox;
 	clone_renderitem->aabb = renderitem->aabb;
 	clone_renderitem->transparent = renderitem->transparent;
 	clone_renderitem->vtable = renderitem->vtable;
-	clone_renderitem->size = renderitem->size;
+	clone_renderitem->size = renderitem->size;*/
 
 	(renderitem->vtable.clone)(renderitem, clone_renderitem);
 

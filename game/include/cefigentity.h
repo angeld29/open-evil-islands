@@ -25,6 +25,7 @@
 
 #include "cevec3.h"
 #include "cequat.h"
+#include "cevector.h"
 #include "cefigmesh.h"
 #include "cefigbone.h"
 #include "cetexture.h"
@@ -38,18 +39,22 @@ extern "C"
 typedef struct {
 	ce_figmesh* figmesh;
 	ce_figbone* figbone;
+	ce_vector* renderitems;
 	ce_scenenode* scenenode;
 } ce_figentity;
 
 extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 										const ce_vec3* position,
 										const ce_quat* orientation,
+										int texture_count,
 										ce_texture* textures[],
 										ce_scenenode* scenenode);
 extern void ce_figentity_del(ce_figentity* figentity);
 
 extern void ce_figentity_advance(ce_figentity* figentity,
 									float fps, float elapsed);
+
+extern void ce_figentity_update(ce_figentity* figentity);
 
 extern int ce_figentity_get_animation_count(ce_figentity* figentity);
 extern const char*

@@ -25,7 +25,10 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
+#include "cevec3.h"
+#include "cequat.h"
 #include "ceaabb.h"
+#include "cebbox.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -44,6 +47,9 @@ typedef struct {
 } ce_renderitem_vtable;
 
 struct ce_renderitem {
+	ce_vec3 position;
+	ce_quat orientation;
+	ce_bbox bbox;
 	ce_aabb aabb;
 	bool transparent;
 	ce_renderitem_vtable vtable;

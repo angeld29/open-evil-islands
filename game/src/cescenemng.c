@@ -122,6 +122,10 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_rendersystem_draw_axes(scenemng->rendersystem);
 	}
 
+	for (int i = 0; i < scenemng->figentities->count; ++i) {
+		ce_figentity_update(scenemng->figentities->items[i]);
+	}
+
 	ce_vec3 forward, right, up;
 	ce_frustum frustum;
 
@@ -143,7 +147,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 							scenemng->rendersystem);
 
 	if (scenemng->show_bboxes) {
-		ce_scenenode_draw_bbox_cascade(scenemng->scenenode,
+		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,
 										scenemng->rendersystem,
 										scenemng->comprehensive_bbox_only);
 	}
@@ -263,9 +267,9 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 	}
 
 	ce_figentity* figentity =
-		ce_figmng_create_figentity(scenemng->figmng,
-									name, complection,
-									position, orientation,
+		ce_figmng_create_figentity(scenemng->figmng, name,
+									complection, position,
+									orientation, texture_count,
 									textures, scenenode);
 
 	if (NULL != figentity) {
