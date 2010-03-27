@@ -64,6 +64,7 @@ float time_of_day = 12.0f;
 float day_night_change_speed = DAY_NIGHT_CHANGE_SPEED_DEFAULT;
 
 ce_input_event_supply* es;
+static ce_input_event* toggle_bbox_event;
 
 static void idle(void)
 {
@@ -89,6 +90,10 @@ static void idle(void)
 			glutLeaveGameMode();
 		}
 		exit(EXIT_SUCCESS);
+	}
+
+	if (ce_input_event_triggered(toggle_bbox_event)) {
+		scenemng->show_bboxes = !scenemng->show_bboxes;
 	}
 
 	if (ce_input_test(CE_KB_LEFT)) {
@@ -273,6 +278,8 @@ int main(int argc, char* argv[])
 	ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
 
 	es = ce_input_event_supply_new();
+	toggle_bbox_event = ce_input_event_supply_single_front_event(es,
+					ce_input_event_supply_button_event(es, CE_KB_B));
 
 	ce_optparse_del(optparse);
 
