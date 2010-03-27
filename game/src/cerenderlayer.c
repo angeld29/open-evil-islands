@@ -21,24 +21,36 @@
 #include "cealloc.h"
 #include "cerenderlayer.h"
 
-ce_renderlayer* ce_renderlayer_new(void)
+ce_renderlayer* ce_renderlayer_new(ce_material* material)
 {
-	ce_renderlayer* renderlayer = ce_alloc_zero(sizeof(ce_renderlayer));
+	ce_renderlayer* renderlayer = ce_alloc(sizeof(ce_renderlayer));
+	renderlayer->material = material;
+	renderlayer->renderitems = ce_vector_new();
 	return renderlayer;
 }
 
 void ce_renderlayer_del(ce_renderlayer* renderlayer)
 {
 	if (NULL != renderlayer) {
-		ce_renderitem_del(renderlayer->renderitem);
-		ce_texture_del(renderlayer->texture);
+		ce_vector_for_each(renderlayer->renderitems,
+							(ce_vector_func1)ce_renderitem_del);
+		ce_vector_del(renderlayer->renderitems);
+		ce_material_del(renderlayer->material);
 		ce_free(renderlayer, sizeof(ce_renderlayer));
 	}
 }
 
-void ce_renderlayer_render(ce_renderlayer* renderlayer)
+void ce_renderlayer_render(ce_renderlayer* renderlayer,
+							ce_rendersystem* rendersystem)
 {
-	ce_texture_bind(renderlayer->texture);
-	ce_renderitem_render(renderlayer->renderitem);
-	ce_texture_unbind(renderlayer->texture);
+	ce_rendersystem_apply_material(rendersystem, renderlayer->material);
+	ce_vector_for_each(renderlayer->renderitems,
+						(ce_vector_func1)ce_renderitem_render);
+	ce_rendersystem_discard_material(rendersystem, renderlayer->material);
+}
+
+void ce_renderlayer_add_renderitem(ce_renderlayer* renderlayer,
+									ce_renderitem* renderitem)
+{
+	ce_vector_push_back(renderlayer->renderitems, renderitem);
 }

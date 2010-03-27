@@ -282,12 +282,16 @@ void ce_rendersystem_apply_material(ce_rendersystem* rendersystem,
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	ce_texture_bind(material->texture);
 }
 
 void ce_rendersystem_discard_material(ce_rendersystem* rendersystem,
 										ce_material* material)
 {
-	ce_unused(rendersystem), ce_unused(material);
+	ce_unused(rendersystem);
+
+	ce_texture_unbind(material->texture);
 
 	glPopAttrib();
 }

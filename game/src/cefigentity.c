@@ -22,6 +22,7 @@
 #include <assert.h>
 
 #include "cealloc.h"
+#include "cefighlp.h"
 #include "cefigentity.h"
 
 static bool ce_figentity_create_scenenodes(ce_fignode* fignode,
@@ -35,11 +36,13 @@ static bool ce_figentity_create_scenenodes(ce_fignode* fignode,
 		texture_number = 0;
 	}
 
+	ce_renderlayer* renderlayer = ce_renderlayer_new(
+		ce_fighlp_create_material(fignode->figfile, textures[texture_number]));
+	ce_renderlayer_add_renderitem(renderlayer, ce_renderitem_clone(
+									renderitems->items[fignode->index]));
+
 	ce_scenenode* child = ce_scenenode_new(scenenode);
-	child->renderlayer = ce_renderlayer_new();
-	child->renderlayer->texture = ce_texture_add_ref(textures[texture_number]);
-	child->renderlayer->renderitem =
-		ce_renderitem_clone(renderitems->items[fignode->index]);
+	ce_scenenode_add_renderlayer(child, renderlayer);
 
 	for (int i = 0; i < fignode->childs->count; ++i) {
 		if (!ce_figentity_create_scenenodes(fignode->childs->items[i],

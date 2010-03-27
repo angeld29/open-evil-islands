@@ -26,6 +26,7 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 	ce_scenenode* scenenode = ce_alloc_zero(sizeof(ce_scenenode));
 	scenenode->position = CE_VEC3_ZERO;
 	scenenode->orientation = CE_QUAT_IDENTITY;
+	scenenode->renderlayers = ce_vector_new();
 	scenenode->parent = parent;
 	scenenode->childs = ce_vector_new();
 	if (NULL != parent) {
@@ -46,20 +47,26 @@ void ce_scenenode_del(ce_scenenode* scenenode)
 			ce_scenenode_del(child);
 		}
 		ce_vector_del(scenenode->childs);
-		ce_renderlayer_del(scenenode->renderlayer);
+		ce_vector_for_each(scenenode->renderlayers,
+							(ce_vector_func1)ce_renderlayer_del);
+		ce_vector_del(scenenode->renderlayers);
 		ce_free(scenenode, sizeof(ce_scenenode));
 	}
 }
 
 void ce_scenenode_detach_child(ce_scenenode* scenenode, ce_scenenode* child)
 {
-	for (int i = 0; i < scenenode->childs->count; ++i) {
-		if (child == scenenode->childs->items[i]) {
-			child->parent = NULL;
-			ce_vector_remove(scenenode->childs, i);
-			break;
-		}
+	int index = ce_vector_find(scenenode->childs, child);
+	if (-1 != index) {
+		child->parent = NULL;
+		ce_vector_remove(scenenode->childs, index);
 	}
+}
+
+void ce_scenenode_add_renderlayer(ce_scenenode* scenenode,
+									ce_renderlayer* renderlayer)
+{
+	ce_vector_push_back(scenenode->renderlayers, renderlayer);
 }
 
 static void ce_scenenode_update_transform(ce_scenenode* scenenode)
@@ -83,10 +90,14 @@ static void ce_scenenode_update_transform(ce_scenenode* scenenode)
 
 static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 {
-	if (NULL == scenenode->renderlayer) {
+	// FIXME: scene hierarchy refactoring
+	if (ce_vector_empty(scenenode->renderlayers)) {
 		ce_bbox_clear(&scenenode->world_bbox);
 	} else {
-		scenenode->world_bbox.aabb = scenenode->renderlayer->renderitem->aabb;
+		ce_renderlayer* renderlayer = scenenode->renderlayers->items[0];
+		ce_renderitem* renderitem = renderlayer->renderitems->items[0];
+
+		scenenode->world_bbox.aabb = renderitem->aabb;
 		scenenode->world_bbox.axis = scenenode->world_orientation;
 
 		ce_vec3_rot(&scenenode->world_bbox.aabb.origin,
@@ -125,7 +136,9 @@ void ce_scenenode_render(ce_scenenode* scenenode,
 									&scenenode->world_position,
 									&scenenode->world_orientation,
 									&CE_VEC3_UNIT_SCALE);
-	ce_renderlayer_render(scenenode->renderlayer);
+	for (int i = 0; i < scenenode->renderlayers->count; ++i) {
+		ce_renderlayer_render(scenenode->renderlayers->items[i], rendersystem);
+	}
 	ce_rendersystem_discard_transform(rendersystem);
 }
 

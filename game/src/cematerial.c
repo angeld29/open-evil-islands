@@ -31,7 +31,7 @@ ce_material* ce_material_new(ce_texture* texture)
 	ce_color_init(&material->specular, 0.0f, 0.0f, 0.0f, 1.0f);
 	ce_color_init(&material->emission, 0.0f, 0.0f, 0.0f, 1.0f);
 	material->shininess = 0.0f;
-	material->texture = texture;
+	material->texture = ce_texture_add_ref(texture);
 	return material;
 }
 

@@ -44,7 +44,7 @@ struct ce_scenenode {
 	ce_quat world_orientation;
 	ce_bbox world_bbox;
 	float dist2;
-	ce_renderlayer* renderlayer;
+	ce_vector* renderlayers;
 	ce_scenenode* parent;
 	ce_vector* childs;
 };
@@ -54,6 +54,9 @@ extern void ce_scenenode_del(ce_scenenode* scenenode);
 
 extern void ce_scenenode_detach_child(ce_scenenode* scenenode,
 										ce_scenenode* child);
+
+extern void ce_scenenode_add_renderlayer(ce_scenenode* scenenode,
+										ce_renderlayer* renderlayer);
 
 extern void ce_scenenode_update(ce_scenenode* scenenode);
 extern void ce_scenenode_update_cascade(ce_scenenode* scenenode);

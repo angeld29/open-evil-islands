@@ -48,20 +48,6 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 	ce_mprhlp_get_aabb(&renderitem->aabb, terrain->mprfile, sector_x, sector_z);
 	renderitem->transparent = NULL != water_allow;
 
-	const ce_mprfile_material* material =
-		ce_mprhlp_find_material(terrain->mprfile, NULL != water_allow ?
-											CE_MPRFILE_MATERIAL_TYPE_WATER :
-											CE_MPRFILE_MATERIAL_TYPE_GROUND);
-	assert(material);
-
-	const float ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-	const float emission[] = {
-		material->selfillum * material->color[0],
-		material->selfillum * material->color[1],
-		material->selfillum * material->color[2],
-		material->selfillum * material->color[3]
-	};
-
 	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
 	const float y_coef = terrain->mprfile->max_y / (UINT16_MAX - 0);
 
@@ -104,24 +90,10 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 
 	glNewList(terrain_renderitem->id = glGenLists(1), GL_COMPILE);
 
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT |
-				GL_LIGHTING_BIT | GL_TEXTURE_BIT |
-				(NULL != water_allow ? GL_COLOR_BUFFER_BIT : 0));
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_LIGHTING);
-
-	glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, material->color);
-	glMaterialfv(GL_FRONT, GL_EMISSION, emission);
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-
-	if (NULL != water_allow) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
 
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
@@ -231,21 +203,23 @@ static void ce_terrain_create_sector(ce_terrain* terrain,
 									ce_mprfile_sector* sector,
 									bool opacity)
 {
+	// skip empty geometry
 	if (!opacity && NULL == sector->water_allow) {
 		return;
 	}
 
-	ce_scenenode* scenenode = ce_scenenode_new(terrain->scenenode);
-	scenenode->renderlayer = ce_renderlayer_new();
+	ce_renderlayer* renderlayer = ce_renderlayer_new(
+		ce_mprhlp_create_material(terrain->mprfile, opacity,
+									terrain->stub_texture));
+	ce_renderlayer_add_renderitem(renderlayer, ce_renderitem_new(
+		ce_terrain_renderitem_vtable, sizeof(ce_terrain_renderitem),
+		terrain, sector_x, sector_z,
+		opacity ? sector->land_vertices : sector->water_vertices,
+		opacity ? sector->land_textures : sector->water_textures,
+		opacity ? NULL : sector->water_allow));
 
-	scenenode->renderlayer->texture = ce_texture_add_ref(terrain->stub_texture);
-	scenenode->renderlayer->renderitem =
-		ce_renderitem_new(ce_terrain_renderitem_vtable,
-						sizeof(ce_terrain_renderitem),
-						terrain, sector_x, sector_z,
-						opacity ? sector->land_vertices : sector->water_vertices,
-						opacity ? sector->land_textures : sector->water_textures,
-						opacity ? NULL : sector->water_allow);
+	ce_scenenode* scenenode = ce_scenenode_new(terrain->scenenode);
+	ce_scenenode_add_renderlayer(scenenode, renderlayer);
 }
 
 bool ce_terrain_create(ce_terrain* terrain)

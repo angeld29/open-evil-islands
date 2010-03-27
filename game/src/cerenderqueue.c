@@ -55,10 +55,13 @@ void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
 								const ce_frustum* frustum)
 {
 	if (ce_frustum_test_bbox(frustum, &scenenode->world_bbox)) {
-		if (NULL != scenenode->renderlayer) {
+		// FIXME: scene hierarchy refactoring
+		if (!ce_vector_empty(scenenode->renderlayers)) {
+			ce_renderlayer* renderlayer = scenenode->renderlayers->items[0];
+			ce_renderitem* renderitem = renderlayer->renderitems->items[0];
 			scenenode->dist2 = ce_vec3_dist2(position,
 								&scenenode->world_position);
-			int index = scenenode->renderlayer->renderitem->transparent;
+			int index = renderitem->transparent;
 			ce_vector_push_back(renderqueue->scenenodes[index], scenenode);
 			++renderqueue->queued_scenenode_count;
 		}

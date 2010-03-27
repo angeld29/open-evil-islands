@@ -96,9 +96,11 @@ void ce_figbone_advance(ce_figbone* figbone,
 	}
 
 	ce_scenenode* scenenode = scenenodes->items[fignode->index];
+	ce_renderlayer* renderlayer = scenenode->renderlayers->items[0];
 
 	// update morphing if exists
-	ce_renderitem_update(scenenode->renderlayer->renderitem,
+	// FIXME: scene hierarchy refactoring
+	ce_renderitem_update(renderlayer->renderitems->items[0],
 						fignode->figfile, figbone->anmstate);
 
 	// update scenenode

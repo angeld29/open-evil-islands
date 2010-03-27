@@ -54,7 +54,6 @@ typedef struct {
 	ce_texture* texture;
 } ce_material;
 
-/// Material takes ownership of the texture.
 extern ce_material* ce_material_new(ce_texture* texture);
 extern void ce_material_del(ce_material* material);
 

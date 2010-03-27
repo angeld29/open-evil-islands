@@ -96,3 +96,27 @@ float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 
 	return mprfile->max_y / (UINT16_MAX - 0) * vertex->coord_y + 1.0f;
 }
+
+ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile,
+										bool opacity, ce_texture* texture)
+{
+	ce_material* material = ce_material_new(texture);
+	material->mode = CE_MATERIAL_MODE_DECAL;
+	material->wrap = CE_MATERIAL_WRAP_CLAMP_TO_EDGE;
+
+	const ce_mprfile_material* mpr_material =
+		ce_mprhlp_find_material(mprfile, opacity ?
+										CE_MPRFILE_MATERIAL_TYPE_GROUND :
+										CE_MPRFILE_MATERIAL_TYPE_WATER);
+	assert(NULL != mpr_material);
+
+	ce_color_init(&material->ambient, 0.5f, 0.5f, 0.5f, 1.0f);
+	ce_color_init_array(&material->diffuse, mpr_material->color);
+	ce_color_init(&material->emission,
+		mpr_material->selfillum * mpr_material->color[0],
+		mpr_material->selfillum * mpr_material->color[1],
+		mpr_material->selfillum * mpr_material->color[2],
+		mpr_material->selfillum * mpr_material->color[3]);
+
+	return material;
+}

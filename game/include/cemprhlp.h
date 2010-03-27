@@ -21,8 +21,11 @@
 #ifndef CE_MPRHLP_H
 #define CE_MPRHLP_H
 
+#include <stdbool.h>
+
 #include "ceaabb.h"
 #include "cemprfile.h"
+#include "cematerial.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -44,6 +47,9 @@ extern int ce_mprhlp_texture_number(uint16_t texture);
 extern int ce_mprhlp_texture_angle(uint16_t texture);
 
 extern float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z);
+
+extern ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile,
+											bool opacity, ce_texture* texture);
 
 #ifdef __cplusplus
 }

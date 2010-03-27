@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "celib.h"
 #include "cefighlp.h"
 
 ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
@@ -90,4 +91,14 @@ ce_vec3* ce_fighlp_get_bone(ce_vec3* position,
 		figfile->value_callback(bonfile->bone + 0, 3, complection),
 		figfile->value_callback(bonfile->bone + 1, 3, complection),
 		figfile->value_callback(bonfile->bone + 2, 3, complection));
+}
+
+ce_material* ce_fighlp_create_material(const ce_figfile* figfile,
+											ce_texture* texture)
+{
+	ce_unused(figfile);
+	ce_material* material = ce_material_new(texture);
+	material->mode = CE_MATERIAL_MODE_REPLACE;
+	material->wrap = CE_MATERIAL_WRAP_REPEAT;
+	return material;
 }

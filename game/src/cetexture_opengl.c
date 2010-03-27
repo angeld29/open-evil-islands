@@ -514,19 +514,6 @@ ce_texture* ce_texture_new(const char* name, void* data)
 	glGenTextures(1, &texture->id);
 	glBindTexture(GL_TEXTURE_2D, texture->id);
 
-#ifdef GL_VERSION_1_2
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-#else
-	if (ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_EDGE_CLAMP)) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, CE_GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CE_GL_CLAMP_TO_EDGE);
-	} else {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	}
-#endif
-
 	// See cemmpfile.h for format details.
 	uint32_t* mmp = data;
 
@@ -621,14 +608,12 @@ const char* ce_texture_get_name(ce_texture* texture)
 
 void ce_texture_bind(ce_texture* texture)
 {
-	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture->id);
 }
 
 void ce_texture_unbind(ce_texture* texture)
 {
 	ce_unused(texture);
-	glDisable(GL_TEXTURE_2D);
 }
 
 ce_texture* ce_texture_add_ref(ce_texture* texture)

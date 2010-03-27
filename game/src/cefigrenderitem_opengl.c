@@ -97,20 +97,10 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 
 	glNewList(figrenderitem->cookie->id, GL_COMPILE);
 
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT |
-				GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_LIGHTING);
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	float array[3];
 
@@ -123,8 +113,8 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 
 		glTexCoord2fv(figfile->texcoords + 2 * texcoord_index);
 		glNormal3fv(ce_fighlp_get_normal(array, figfile, normal_index));
-		glVertex3fv(ce_fighlp_get_vertex(
-			array, figfile, vertex_index, complection));
+		glVertex3fv(ce_fighlp_get_vertex(array, figfile, vertex_index,
+														complection));
 	}
 	glEnd();
 
@@ -356,21 +346,11 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	ce_figrenderitem_dynamic* figrenderitem =
 		(ce_figrenderitem_dynamic*)renderitem->impl;
 
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT |
-				GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_LIGHTING);
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
