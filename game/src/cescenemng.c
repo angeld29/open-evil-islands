@@ -286,7 +286,7 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 	ce_vec3 position = mobobject->position;
 	ce_fswap(&position.y, &position.z);
 	if (NULL != scenemng->terrain) {
-		position.y = ce_mprhlp_get_height(scenemng->terrain->mprfile,
+		position.y += ce_mprhlp_get_height(scenemng->terrain->mprfile,
 											position.x, position.z);
 	}
 	position.z = -position.z; // FIXME: opengl's hardcode
