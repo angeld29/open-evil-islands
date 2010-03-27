@@ -127,7 +127,16 @@ static void idle(void)
 	}
 
 	if (ce_input_event_triggered(toggle_bbox_event)) {
-		scenemng->show_bboxes = !scenemng->show_bboxes;
+		if (scenemng->show_bboxes) {
+			if (scenemng->comprehensive_bbox_only) {
+				scenemng->comprehensive_bbox_only = false;
+			} else {
+				scenemng->show_bboxes = false;
+			}
+		} else {
+			scenemng->show_bboxes = true;
+			scenemng->comprehensive_bbox_only = true;
+		}
 	}
 
 	anm_fps_inc_counter += elapsed;
