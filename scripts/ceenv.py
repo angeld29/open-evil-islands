@@ -50,8 +50,15 @@ def create_environment():
 	config = ConfigParser.SafeConfigParser()
 	config.read(os.path.join(topdir, cfg)
 				for cfg in ("cursedearth.cfg", "cursedearth_local.cfg"))
+
 	config_get = lambda opt, default=None: config.get("CE", opt) \
 								if config.has_option("CE", opt) else default
+	split_by_sep = lambda name: name.split(';')
+	path_builder = lambda opt, default="": \
+					os.path.normpath(config_get(opt, default))
+	path_list_builder = lambda opt, default="": [os.path.normpath(path)
+							for path in split_by_sep(config_get(opt, default))
+							if len(path) > 0]
 
 	variables = SCons.Variables.Variables(args=SCons.Script.ARGUMENTS)
 
@@ -75,15 +82,15 @@ def create_environment():
 
 	variables.Add("ADDITIONAL_INCLUDE_PATHS",
 		"Additional include directories (semicolon-separated list of names)",
-		config_get("ADDITIONAL_INCLUDE_PATHS", []))
+		config_get("ADDITIONAL_INCLUDE_PATHS", ""))
 
 	variables.Add("ADDITIONAL_LIBRARY_PATHS",
 		"Additional library directories (semicolon-separated list of names)",
-		config_get("ADDITIONAL_LIBRARY_PATHS", []))
+		config_get("ADDITIONAL_LIBRARY_PATHS", ""))
 
 	variables.Add("ADDITIONAL_LIBS",
 		"Additional libraries (semicolon-separated list of names)",
-		config_get("ADDITIONAL_LIBS", []))
+		config_get("ADDITIONAL_LIBS", ""))
 
 	env = SCons.Environment.Environment(variables=variables, tools=[])
 
@@ -108,17 +115,11 @@ def create_environment():
 	if env["RELEASE"]:
 		env.AppendUnique(CPPDEFINES=["NDEBUG"])
 
-	"""
-	split_by_sep = lambda name: name.split(';')
-	path_builder = lambda sec, opt: os.path.normpath(config.get(sec, opt))
-	path_list_builder = lambda sec, opt: [os.path.normpath(path) for path
-		in split_by_sep(config.get(sec, opt))]
 	env.AppendUnique(
-		CPPPATH=[],
-		LIBPATH=[],
-		LIBS=[],
+		CPPPATH=path_list_builder("ADDITIONAL_INCLUDE_PATHS"),
+		LIBPATH=path_list_builder("ADDITIONAL_LIBRARY_PATHS"),
+		LIBS=path_list_builder("ADDITIONAL_LIBS"),
 	)
-	"""
 
 	env.Help(variables.GenerateHelpText(env))
 
