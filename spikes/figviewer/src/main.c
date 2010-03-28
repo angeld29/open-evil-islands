@@ -265,7 +265,7 @@ int main(int argc, char* argv[])
 		"3     change height\n"
 		"b     show/hide bounding boxes\n"
 		"a     play next animation\n"
-		"+/-   change animation FPS\n",
+		"+/-   change animation FPS",
 		CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
 	ce_optgroup* general_grp = ce_optparse_create_group(optparse, "general");
 	ce_optoption* ei_path_opt = ce_optgroup_create_option(general_grp,

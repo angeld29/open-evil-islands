@@ -81,6 +81,7 @@ static void display(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	if (NULL != tex) {
+		glEnable(GL_TEXTURE_2D);
   		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -99,6 +100,7 @@ static void display(void)
 	if (NULL != tex) {
 		ce_texture_unbind(tex);
 		glDisable(GL_BLEND);
+		glDisable(GL_TEXTURE_2D);
 	}
 
 	glutSwapBuffers();

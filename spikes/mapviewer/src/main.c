@@ -153,7 +153,9 @@ int main(int argc, char* argv[])
 	ce_optparse* optparse = ce_optparse_new(CE_SPIKE_VERSION_MAJOR,
 		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
 		"This program is part of Cursed Earth spikes\n"
-		"Map Viewer %d.%d.%d - Explore Evil Islands zones with creatures",
+		"Map Viewer %d.%d.%d - Explore Evil Islands zones with creatures\n\n"
+		"controls:\n"
+		"b   show/hide bounding boxes",
 		CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
 	ce_optgroup* general = ce_optparse_create_group(optparse, "general");
 	ce_optoption* ei_path = ce_optgroup_create_option(general,
