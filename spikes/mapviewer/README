@@ -5,8 +5,6 @@ More informative README will be available later.
 
 Try mapviewer -h for help.
 
-Warning! Technical demo version!
-
 Some examples:
 mapviewer -f -b /path/to/evil_islands zone2
 mapviewer -f -b /path/to/evil_islands zone17

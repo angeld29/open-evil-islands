@@ -6,5 +6,5 @@ More informative README will be available later.
 Try mprviewer -h for help.
 
 Some examples:
-mprviewer -f -b /path/to/evil_islands -s 0.5 zone2
+mprviewer -f -b /path/to/evil_islands zone1
 mprviewer -f -b /path/to/evil_islands bz8k
