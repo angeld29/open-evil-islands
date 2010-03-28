@@ -253,6 +253,7 @@ static bool ce_figfile_read_header(ce_figfile* figfile, ce_memfile* mem)
 	figfile->index_count = ce_le2cpu32(header[3]);
 	figfile->spec_component_count = ce_le2cpu32(header[4]);
 	figfile->morph_component_count = ce_le2cpu32(header[5]);
+	figfile->unknown = ce_le2cpu32(header[7]);
 	figfile->texture_number = ce_le2cpu32(header[8]);
 
 	return true;

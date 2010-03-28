@@ -51,6 +51,7 @@ typedef struct {
 	uint32_t index_count;
 	uint32_t spec_component_count;
 	uint32_t morph_component_count;
+	uint32_t unknown;
 	uint32_t texture_number;
 	float* center;
 	float* min;
