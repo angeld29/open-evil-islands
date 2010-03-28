@@ -126,6 +126,12 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_figentity_update(scenemng->figentities->items[i]);
 	}
 
+	if (scenemng->show_bboxes) {
+		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,
+										scenemng->rendersystem,
+										scenemng->comprehensive_bbox_only);
+	}
+
 	ce_vec3 forward, right, up;
 	ce_frustum frustum;
 
@@ -145,12 +151,6 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	ce_renderqueue_render(scenemng->renderqueue,
 							scenemng->rendersystem);
-
-	if (scenemng->show_bboxes) {
-		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,
-										scenemng->rendersystem,
-										scenemng->comprehensive_bbox_only);
-	}
 
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
 
