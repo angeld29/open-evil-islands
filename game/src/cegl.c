@@ -24,6 +24,7 @@
 
 #if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
 #define WIN32_LEAN_AND_MEAN
+// stupid windows needs to include windows.h before gl.h
 #include <windows.h>
 #include <wingdi.h>
 #include <GL/gl.h>
@@ -67,6 +68,19 @@ const GLenum CE_GL_COORD_REPLACE = 0x8862;
 const GLenum CE_GL_VBO_FREE_MEMORY = 0x87FB;
 const GLenum CE_GL_TEXTURE_FREE_MEMORY = 0x87FC;
 const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY = 0x87FD;
+const GLenum CE_GLX_SAMPLE_BUFFERS = 100000;
+const GLenum CE_GLX_SAMPLES = 100001;
+const GLenum CE_WGL_SAMPLE_BUFFERS = 0x2041;
+const GLenum CE_WGL_SAMPLES = 0x2042;
+const GLenum CE_GL_MULTISAMPLE = 0x809D;
+const GLenum CE_GL_SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
+const GLenum CE_GL_SAMPLE_ALPHA_TO_ONE = 0x809F;
+const GLenum CE_GL_SAMPLE_COVERAGE = 0x80A0;
+const GLenum CE_GL_MULTISAMPLE_BIT = 0x20000000;
+const GLenum CE_GL_SAMPLE_BUFFERS = 0x80A8;
+const GLenum CE_GL_SAMPLES = 0x80A9;
+const GLenum CE_GL_SAMPLE_COVERAGE_VALUE = 0x80AA;
+const GLenum CE_GL_SAMPLE_COVERAGE_INVERT = 0x80AB;
 
 // texture compression
 
@@ -196,7 +210,8 @@ static struct {
 		"window pos",
 		"point parameters",
 		"point sprite",
-		"meminfo"
+		"meminfo",
+		"multisample"
 	}
 };
 
@@ -322,6 +337,15 @@ bool ce_gl_init(void)
 
 	ce_gl_inst.features[CE_GL_FEATURE_MEMINFO] =
 		ce_gl_check_extension("GL_ATI_meminfo");
+
+	ce_gl_inst.features[CE_GL_FEATURE_MULTISAMPLE] =
+		ce_gl_check_extension("GL_ARB_multisample") ||
+		ce_gl_check_extension("GLX_ARB_multisample") ||
+		ce_gl_check_extension("WGL_ARB_multisample") ||
+		ce_gl_check_extension("GL_EXT_multisample") ||
+		ce_gl_check_extension("WGL_EXT_multisample") ||
+		ce_gl_check_extension("GL_SGIS_multisample") ||
+		ce_gl_check_extension("GLX_SGIS_multisample");
 
 	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
 		ce_logging_write("opengl: checking for '%s' extension... %s",

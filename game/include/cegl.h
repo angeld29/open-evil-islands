@@ -52,6 +52,7 @@ typedef enum {
 	CE_GL_FEATURE_POINT_PARAMETERS,
 	CE_GL_FEATURE_POINT_SPRITE,
 	CE_GL_FEATURE_MEMINFO,
+	CE_GL_FEATURE_MULTISAMPLE,
 	CE_GL_FEATURE_COUNT
 } ce_gl_feature;
 
@@ -101,6 +102,22 @@ extern const GLenum CE_GL_VBO_FREE_MEMORY;
 extern const GLenum CE_GL_TEXTURE_FREE_MEMORY;
 extern const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY;
 
+// multisample
+extern const GLenum CE_GLX_SAMPLE_BUFFERS;
+extern const GLenum CE_GLX_SAMPLES;
+extern const GLenum CE_WGL_SAMPLE_BUFFERS;
+extern const GLenum CE_WGL_SAMPLES;
+extern const GLenum CE_GL_MULTISAMPLE;
+extern const GLenum CE_GL_SAMPLE_ALPHA_TO_COVERAGE;
+extern const GLenum CE_GL_SAMPLE_ALPHA_TO_ONE;
+extern const GLenum CE_GL_SAMPLE_COVERAGE;
+extern const GLenum CE_GL_MULTISAMPLE_BIT;
+extern const GLenum CE_GL_SAMPLE_BUFFERS;
+extern const GLenum CE_GL_SAMPLES;
+extern const GLenum CE_GL_SAMPLE_COVERAGE_VALUE;
+extern const GLenum CE_GL_SAMPLE_COVERAGE_INVERT;
+
+// common API
 extern bool ce_gl_init(void);
 extern void ce_gl_term(void);
 
@@ -108,7 +125,6 @@ extern bool ce_gl_report_errors(void);
 extern bool ce_gl_query_feature(ce_gl_feature feature);
 
 // texture compression
-
 extern void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 											GLenum internal_format,
 											GLsizei width, GLsizei height,
@@ -116,7 +132,6 @@ extern void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 											const GLvoid* data);
 
 // VBO
-
 extern void ce_gl_bind_buffer(GLenum target, GLuint buffer);
 extern void ce_gl_delete_buffers(GLsizei n, const GLuint* buffers);
 extern void ce_gl_gen_buffers(GLsizei n, GLuint* buffers);
@@ -126,14 +141,12 @@ extern void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
 									GLsizeiptr size, const GLvoid* data);
 
 // window pos
-
 extern void ce_gl_window_pos_2f(GLfloat x, GLfloat y);
 extern void ce_gl_window_pos_2fv(const GLfloat* v);
 extern void ce_gl_window_pos_2i(GLint x, GLint y);
 extern void ce_gl_window_pos_2iv(const GLint* v);
 
 // point parameters
-
 extern void ce_gl_point_parameter_f(GLenum pname, GLfloat param);
 extern void ce_gl_point_parameter_fv(GLenum pname, GLfloat* params);
 
