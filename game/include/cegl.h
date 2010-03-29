@@ -52,17 +52,29 @@ typedef enum {
 	CE_GL_FEATURE_POINT_PARAMETERS,
 	CE_GL_FEATURE_POINT_SPRITE,
 	CE_GL_FEATURE_MEMINFO,
+	CE_GL_FEATURE_MULTISAMPLE,
 	CE_GL_FEATURE_COUNT
 } ce_gl_feature;
 
+// texture compression
 extern const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT1;
 extern const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT3;
+
+// texture lod
 extern const GLenum CE_GL_TEXTURE_MAX_LEVEL;
+
+// texture edge clamp
 extern const GLenum CE_GL_CLAMP_TO_EDGE;
+
+// packed pixels
 extern const GLenum CE_GL_UNSIGNED_SHORT_4_4_4_4;
 extern const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1;
 extern const GLenum CE_GL_UNSIGNED_INT_8_8_8_8;
+
+// generate mipmap
 extern const GLenum CE_GL_GENERATE_MIPMAP;
+
+// VBO
 extern const GLenum CE_GL_ARRAY_BUFFER;
 extern const GLenum CE_GL_ELEMENT_ARRAY_BUFFER;
 extern const GLenum CE_GL_STREAM_DRAW;
@@ -74,16 +86,38 @@ extern const GLenum CE_GL_STATIC_COPY;
 extern const GLenum CE_GL_DYNAMIC_DRAW;
 extern const GLenum CE_GL_DYNAMIC_READ;
 extern const GLenum CE_GL_DYNAMIC_COPY;
+
+// point parameters
 extern const GLenum CE_GL_POINT_SIZE_MIN;
 extern const GLenum CE_GL_POINT_SIZE_MAX;
 extern const GLenum CE_GL_POINT_FADE_THRESHOLD_SIZE;
 extern const GLenum CE_GL_POINT_DISTANCE_ATTENUATION;
+
+// point sprite
 extern const GLenum CE_GL_POINT_SPRITE;
 extern const GLenum CE_GL_COORD_REPLACE;
+
+// meminfo
 extern const GLenum CE_GL_VBO_FREE_MEMORY;
 extern const GLenum CE_GL_TEXTURE_FREE_MEMORY;
 extern const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY;
 
+// multisample
+extern const GLenum CE_GLX_SAMPLE_BUFFERS;
+extern const GLenum CE_GLX_SAMPLES;
+extern const GLenum CE_WGL_SAMPLE_BUFFERS;
+extern const GLenum CE_WGL_SAMPLES;
+extern const GLenum CE_GL_MULTISAMPLE;
+extern const GLenum CE_GL_SAMPLE_ALPHA_TO_COVERAGE;
+extern const GLenum CE_GL_SAMPLE_ALPHA_TO_ONE;
+extern const GLenum CE_GL_SAMPLE_COVERAGE;
+extern const GLenum CE_GL_MULTISAMPLE_BIT;
+extern const GLenum CE_GL_SAMPLE_BUFFERS;
+extern const GLenum CE_GL_SAMPLES;
+extern const GLenum CE_GL_SAMPLE_COVERAGE_VALUE;
+extern const GLenum CE_GL_SAMPLE_COVERAGE_INVERT;
+
+// common API
 extern bool ce_gl_init(void);
 extern void ce_gl_term(void);
 
@@ -91,7 +125,6 @@ extern bool ce_gl_report_errors(void);
 extern bool ce_gl_query_feature(ce_gl_feature feature);
 
 // texture compression
-
 extern void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 											GLenum internal_format,
 											GLsizei width, GLsizei height,
@@ -99,7 +132,6 @@ extern void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 											const GLvoid* data);
 
 // VBO
-
 extern void ce_gl_bind_buffer(GLenum target, GLuint buffer);
 extern void ce_gl_delete_buffers(GLsizei n, const GLuint* buffers);
 extern void ce_gl_gen_buffers(GLsizei n, GLuint* buffers);
@@ -109,14 +141,12 @@ extern void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
 									GLsizeiptr size, const GLvoid* data);
 
 // window pos
-
 extern void ce_gl_window_pos_2f(GLfloat x, GLfloat y);
 extern void ce_gl_window_pos_2fv(const GLfloat* v);
 extern void ce_gl_window_pos_2i(GLint x, GLint y);
 extern void ce_gl_window_pos_2iv(const GLint* v);
 
 // point parameters
-
 extern void ce_gl_point_parameter_f(GLenum pname, GLfloat param);
 extern void ce_gl_point_parameter_fv(GLenum pname, GLfloat* params);
 
