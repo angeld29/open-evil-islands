@@ -55,14 +55,25 @@ typedef enum {
 	CE_GL_FEATURE_COUNT
 } ce_gl_feature;
 
+// texture compression
 extern const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT1;
 extern const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT3;
+
+// texture lod
 extern const GLenum CE_GL_TEXTURE_MAX_LEVEL;
+
+// texture edge clamp
 extern const GLenum CE_GL_CLAMP_TO_EDGE;
+
+// packed pixels
 extern const GLenum CE_GL_UNSIGNED_SHORT_4_4_4_4;
 extern const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1;
 extern const GLenum CE_GL_UNSIGNED_INT_8_8_8_8;
+
+// generate mipmap
 extern const GLenum CE_GL_GENERATE_MIPMAP;
+
+// VBO
 extern const GLenum CE_GL_ARRAY_BUFFER;
 extern const GLenum CE_GL_ELEMENT_ARRAY_BUFFER;
 extern const GLenum CE_GL_STREAM_DRAW;
@@ -74,12 +85,18 @@ extern const GLenum CE_GL_STATIC_COPY;
 extern const GLenum CE_GL_DYNAMIC_DRAW;
 extern const GLenum CE_GL_DYNAMIC_READ;
 extern const GLenum CE_GL_DYNAMIC_COPY;
+
+// point parameters
 extern const GLenum CE_GL_POINT_SIZE_MIN;
 extern const GLenum CE_GL_POINT_SIZE_MAX;
 extern const GLenum CE_GL_POINT_FADE_THRESHOLD_SIZE;
 extern const GLenum CE_GL_POINT_DISTANCE_ATTENUATION;
+
+// point sprite
 extern const GLenum CE_GL_POINT_SPRITE;
 extern const GLenum CE_GL_COORD_REPLACE;
+
+// meminfo
 extern const GLenum CE_GL_VBO_FREE_MEMORY;
 extern const GLenum CE_GL_TEXTURE_FREE_MEMORY;
 extern const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY;
