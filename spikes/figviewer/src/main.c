@@ -290,7 +290,8 @@ int main(int argc, char* argv[])
 	}
 
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH |
+						GLUT_DOUBLE | GLUT_MULTISAMPLE);
 
 	if (ce_optoption_value_bool(full_screen_opt)) {
 		char buffer[32];

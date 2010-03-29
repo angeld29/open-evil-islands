@@ -97,10 +97,17 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 
 	glNewList(figrenderitem->cookie->id, GL_COMPILE);
 
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT |
+					(ce_gl_query_feature(CE_GL_FEATURE_MULTISAMPLE) ?
+										CE_GL_MULTISAMPLE_BIT : 0));
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+
+	if (ce_gl_query_feature(CE_GL_FEATURE_MULTISAMPLE)) {
+		glEnable(CE_GL_MULTISAMPLE);
+		glEnable(CE_GL_SAMPLE_ALPHA_TO_COVERAGE);
+	}
 
 	float array[3];
 
