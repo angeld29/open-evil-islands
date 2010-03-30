@@ -71,12 +71,6 @@ static struct {
 	size_t system_max_allocated;
 } ce_alloc_inst;
 
-static bool chunk_has_block(chunk* cnk, void* ptr, size_t chunk_size)
-{
-	unsigned char* p = ptr;
-	return cnk->data <= p && p < cnk->data + chunk_size;
-}
-
 static bool chunk_init(chunk* cnk, size_t block_size, unsigned char block_count)
 {
     if (NULL == (cnk->data = malloc(block_size * block_count))) {
@@ -201,6 +195,7 @@ static bool portion_ensure_alloc_chunk(portion* por)
 
 static void portion_ensure_dealloc_chunk(portion* por, void* ptr)
 {
+	unsigned char* p = ptr;
 	const size_t chunk_size = por->block_size * por->block_count;
 	const chunk* const lo_bound = por->chunks;
 	const chunk* const hi_bound = por->chunks + por->chunk_count;
@@ -215,7 +210,7 @@ static void portion_ensure_dealloc_chunk(portion* por, void* ptr)
 
 	for (;;) {
 		if (NULL != lo) {
-			if (chunk_has_block(lo, ptr, chunk_size)) {
+			if (lo->data <= p && p < lo->data + chunk_size) {
 				por->dealloc_chunk = lo;
 				return;
 			}
@@ -230,7 +225,7 @@ static void portion_ensure_dealloc_chunk(portion* por, void* ptr)
 		}
 
 		if (NULL != hi) {
-			if (chunk_has_block(hi, ptr, chunk_size)) {
+			if (hi->data <= p && p < hi->data + chunk_size) {
 				por->dealloc_chunk = hi;
 				return;
 			}
