@@ -23,7 +23,6 @@
 
 #include "celib.h"
 #include "cebyteorder.h"
-#include "celogging.h"
 #include "cealloc.h"
 #include "cereshlp.h"
 #include "cefigfile.h"

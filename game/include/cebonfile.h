@@ -21,7 +21,6 @@
 #ifndef CE_BONFILE_H
 #define CE_BONFILE_H
 
-#include "cememfile.h"
 #include "ceresfile.h"
 
 #ifdef __cplusplus
@@ -30,19 +29,12 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	int value_count;
+	size_t size;
 	float* bone;
 } ce_bonfile;
 
-extern ce_bonfile*
-ce_bonfile_open_memfile(int value_count,
-						ce_memfile* memfile);
-
-extern ce_bonfile*
-ce_bonfile_open_resfile(int value_count,
-						ce_resfile* resfile,
-						const char* name);
-
+extern ce_bonfile* ce_bonfile_open_data(void* data, size_t size);
+extern ce_bonfile* ce_bonfile_open_resfile(ce_resfile* resfile, const char* name);
 extern void ce_bonfile_close(ce_bonfile* bonfile);
 
 #ifdef __cplusplus

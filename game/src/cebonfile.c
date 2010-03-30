@@ -19,32 +19,27 @@
 */
 
 #include "cealloc.h"
-#include "cereshlp.h"
 #include "cebonfile.h"
 
-ce_bonfile* ce_bonfile_open_memfile(int value_count, ce_memfile* memfile)
+ce_bonfile* ce_bonfile_open_data(void* data, size_t size)
 {
-	ce_bonfile* bonfile = ce_alloc_zero(sizeof(ce_bonfile));
-	bonfile->value_count = value_count;
-	bonfile->bone = ce_alloc(sizeof(float) * 3 * bonfile->value_count);
-	ce_memfile_read(memfile, bonfile->bone,
-					sizeof(float) * 3 * value_count, 1);
+	ce_bonfile* bonfile = ce_alloc(sizeof(ce_bonfile));
+	bonfile->size = size;
+	bonfile->bone = data;
 	return bonfile;
 }
 
-ce_bonfile* ce_bonfile_open_resfile(int value_count,
-									ce_resfile* resfile,
-									const char* name)
+ce_bonfile* ce_bonfile_open_resfile(ce_resfile* resfile, const char* name)
 {
-	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(resfile, name);
-	ce_bonfile* bonfile = ce_bonfile_open_memfile(value_count, memfile);
-	return ce_memfile_close(memfile), bonfile;
+	int index = ce_resfile_node_index(resfile, name);
+	return ce_bonfile_open_data(ce_resfile_node_data(resfile, index),
+								ce_resfile_node_size(resfile, index));
 }
 
 void ce_bonfile_close(ce_bonfile* bonfile)
 {
 	if (NULL != bonfile) {
-		ce_free(bonfile->bone, sizeof(float) * 3 * bonfile->value_count);
+		ce_free(bonfile->bone, bonfile->size);
 		ce_free(bonfile, sizeof(ce_bonfile));
 	}
 }

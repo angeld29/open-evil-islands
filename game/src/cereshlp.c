@@ -23,7 +23,7 @@
 
 ce_memfile* ce_reshlp_extract_memfile(ce_resfile* resfile, int index)
 {
-	void* data = ce_resfile_extract_data(resfile, index);
+	void* data = ce_resfile_node_data(resfile, index);
 	if (NULL == data) {
 		return NULL;
 	}

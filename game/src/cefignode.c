@@ -34,8 +34,7 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 					lnkfile->relationship_index].child_name);
 	fignode->index = lnkfile->relationship_index++;
 	fignode->figfile = ce_figfile_open_resfile(mod_resfile, fignode->name->str);
-	fignode->bonfile = ce_bonfile_open_resfile(fignode->figfile->value_count,
-												bon_resfile, fignode->name->str);
+	fignode->bonfile = ce_bonfile_open_resfile(bon_resfile, fignode->name->str);
 	fignode->anmfiles = ce_vector_new();
 	fignode->childs = ce_vector_new();
 

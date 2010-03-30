@@ -193,16 +193,11 @@ time_t ce_resfile_node_modified(const ce_resfile* res, int index)
 	return res->nodes[index].modified;
 }
 
-void* ce_resfile_extract_data(ce_resfile* res, int index)
+void* ce_resfile_node_data(ce_resfile* res, int index)
 {
 	ce_resnode* node = res->nodes + index;
 
 	void* data = ce_alloc(node->data_length);
-	if (NULL == data) {
-		ce_logging_error("resfile: could not allocate memory");
-		return NULL;
-	}
-
 	if (0 != ce_memfile_seek(res->mem, node->data_offset, SEEK_SET) ||
 			1 != ce_memfile_read(res->mem, data, node->data_length, 1)) {
 		ce_logging_error("resfile: io error occured");
