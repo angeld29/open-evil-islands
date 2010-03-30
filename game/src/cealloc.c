@@ -328,7 +328,7 @@ void* ce_alloc_zero(size_t size)
 	ce_alloc_update_smallobj_overhead();
 #endif
 
-	return NULL != ptr ? memset(ptr, 0, size) : NULL;
+	return memset(ptr, 0, size);
 }
 
 void ce_free(void* ptr, size_t size)
