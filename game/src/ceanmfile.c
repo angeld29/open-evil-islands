@@ -23,8 +23,32 @@
 #include "cereshlp.h"
 #include "ceanmfile.h"
 
-static void ce_anmfile_read_morphs(ce_anmfile* anmfile, ce_memfile* memfile)
+ce_anmfile* ce_anmfile_open_memfile(const char* name, ce_memfile* memfile)
 {
+	ce_anmfile* anmfile = ce_alloc(sizeof(ce_anmfile));
+	anmfile->name = ce_string_new_str(name);
+
+	ce_memfile_read(memfile,
+		&anmfile->rotation_frame_count, sizeof(uint32_t), 1);
+
+	ce_le2cpu32s(&anmfile->rotation_frame_count);
+
+	anmfile->rotations = ce_alloc(sizeof(float) * 4 *
+									anmfile->rotation_frame_count);
+
+	ce_memfile_read(memfile, anmfile->rotations,
+					sizeof(float) * 4, anmfile->rotation_frame_count);
+
+	ce_memfile_read(memfile, &anmfile->translation_frame_count, sizeof(uint32_t), 1);
+
+	ce_le2cpu32s(&anmfile->translation_frame_count);
+
+	anmfile->translations =
+		ce_alloc(sizeof(float) * 3 * anmfile->translation_frame_count);
+
+	ce_memfile_read(memfile, anmfile->translations,
+		sizeof(float) * 3, anmfile->translation_frame_count);
+
 	ce_memfile_read(memfile, &anmfile->morph_frame_count, sizeof(uint32_t), 1);
 	ce_memfile_read(memfile, &anmfile->morph_vertex_count, sizeof(uint32_t), 1);
 
@@ -38,44 +62,6 @@ static void ce_anmfile_read_morphs(ce_anmfile* anmfile, ce_memfile* memfile)
 		ce_memfile_read(memfile, anmfile->morphs, sizeof(float) * 3 *
 			anmfile->morph_vertex_count, anmfile->morph_frame_count);
 	}
-}
-
-static void ce_anmfile_read_translations(ce_anmfile* anmfile,
-										ce_memfile* memfile)
-{
-	ce_memfile_read(memfile, &anmfile->translation_frame_count, sizeof(uint32_t), 1);
-
-	ce_le2cpu32s(&anmfile->translation_frame_count);
-
-	anmfile->translations =
-		ce_alloc(sizeof(float) * 3 * anmfile->translation_frame_count);
-
-	ce_memfile_read(memfile, anmfile->translations,
-		sizeof(float) * 3, anmfile->translation_frame_count);
-}
-
-static void ce_anmfile_read_rotations(ce_anmfile* anmfile, ce_memfile* memfile)
-{
-	ce_memfile_read(memfile,
-		&anmfile->rotation_frame_count, sizeof(uint32_t), 1);
-
-	ce_le2cpu32s(&anmfile->rotation_frame_count);
-
-	anmfile->rotations = ce_alloc(sizeof(float) * 4 *
-									anmfile->rotation_frame_count);
-
-	ce_memfile_read(memfile, anmfile->rotations,
-					sizeof(float) * 4, anmfile->rotation_frame_count);
-}
-
-ce_anmfile* ce_anmfile_open_memfile(const char* name, ce_memfile* memfile)
-{
-	ce_anmfile* anmfile = ce_alloc(sizeof(ce_anmfile));
-	anmfile->name = ce_string_new_str(name);
-
-	ce_anmfile_read_rotations(anmfile, memfile);
-	ce_anmfile_read_translations(anmfile, memfile);
-	ce_anmfile_read_morphs(anmfile, memfile);
 
 	return anmfile;
 }
