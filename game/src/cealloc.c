@@ -138,40 +138,32 @@ static void portion_clean(portion* por)
 	}
 }
 
-static bool portion_ensure_alloc_chunk(portion* por)
+static void portion_ensure_alloc_chunk(portion* por)
 {
 	if (NULL != por->alloc_chunk && 0 != por->alloc_chunk->block_count) {
-		return true;
+		return;
 	}
 
 	for (size_t i = 0; i < por->chunk_count; ++i) {
 		chunk* cnk = por->chunks + i;
 		if (0 != cnk->block_count) {
 			por->alloc_chunk = cnk;
-			return true;
+			return;
 		}
 	}
 
 	if (por->chunk_count == por->chunk_capacity) {
-		size_t chunk_capacity = 2 * por->chunk_capacity;
-		chunk* chunks = realloc(por->chunks, sizeof(chunk) * chunk_capacity);
-		if (NULL == chunks) {
-			return false;
-		}
-		por->chunk_capacity = chunk_capacity;
-		por->chunks = chunks;
+		por->chunk_capacity *= 2;
+		por->chunks = realloc(por->chunks, sizeof(chunk) * por->chunk_capacity);
 		por->alloc_chunk = NULL;
 		por->dealloc_chunk = NULL;
 	}
 
 	chunk* alloc_chunk = por->chunks + por->chunk_count;
-
 	chunk_init(alloc_chunk, por->block_size, por->block_count);
 
 	por->alloc_chunk = alloc_chunk;
 	++por->chunk_count;
-
-	return true;
 }
 
 static void portion_ensure_dealloc_chunk(portion* por, void* ptr)
@@ -224,8 +216,8 @@ static void portion_ensure_dealloc_chunk(portion* por, void* ptr)
 
 static void* portion_alloc(portion* por)
 {
-	return portion_ensure_alloc_chunk(por) ?
-		chunk_alloc(por->alloc_chunk, por->block_size) : NULL;
+	portion_ensure_alloc_chunk(por);
+	return chunk_alloc(por->alloc_chunk, por->block_size);
 }
 
 static void portion_free(portion* por, void* ptr)
