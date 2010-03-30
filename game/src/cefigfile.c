@@ -19,8 +19,6 @@
 */
 
 #include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -88,23 +86,8 @@ ce_figfile_value_tuple* ce_figfile_value_tuple_choose(unsigned int type)
 	return NULL;
 }
 
-static bool ce_figfile_read_model_data(ce_figfile* figfile, ce_memfile* mem)
+static void ce_figfile_read_model_data(ce_figfile* figfile, ce_memfile* mem)
 {
-	/**
-	 *  FIG model data:
-	 *   vertex_size - 4 vertices x 3 components x n variants x float size
-	 *   normal_size - 4 normals x 4 components x float size
-	 *   texcoord_size - 2 components x float size
-	 *   index_size - short size
-	 *   spec_component_size - 3 components x short size
-	 *   morph_component_size - 2 components x short size
-	 *   spec_component - vertex_index, normal_index, texcoord_index
-	 *   morph_component - morph_index, vertex_index
-	*/
-
-	assert(4 == sizeof(float));
-	assert(2 == sizeof(uint16_t));
-
 	figfile->vertex_size = 3 * figfile->value_count * 4 * 4;
 	figfile->normal_size = 4 * 4 * 4;
 	figfile->texcoord_size = 2 * 4;
@@ -121,40 +104,14 @@ static bool ce_figfile_read_model_data(ce_figfile* figfile, ce_memfile* mem)
 	figfile->morph_components = ce_alloc(figfile->morph_component_size *
 										figfile->morph_component_count);
 
-	if (NULL == figfile->vertices || NULL == figfile->normals ||
-			NULL == figfile->texcoords || NULL == figfile->indices ||
-			NULL == figfile->spec_components || NULL == figfile->morph_components) {
-		ce_logging_error("figfile: could not allocate memory");
-		return false;
-	}
-
-	if (figfile->vertex_count != ce_memfile_read(mem,
-									figfile->vertices,
-									figfile->vertex_size,
-									figfile->vertex_count) ||
-			figfile->normal_count != ce_memfile_read(mem,
-									figfile->normals,
-									figfile->normal_size,
-									figfile->normal_count) ||
-			figfile->texcoord_count != ce_memfile_read(mem,
-									figfile->texcoords,
-									figfile->texcoord_size,
-									figfile->texcoord_count) ||
-			figfile->index_count != ce_memfile_read(mem,
-									figfile->indices,
-									figfile->index_size,
-									figfile->index_count) ||
-			figfile->spec_component_count != ce_memfile_read(mem,
-											figfile->spec_components,
-											figfile->spec_component_size,
-											figfile->spec_component_count) ||
-			figfile->morph_component_count != ce_memfile_read(mem,
-											figfile->morph_components,
-											figfile->morph_component_size,
-											figfile->morph_component_count)) {
-		ce_logging_error("figfile: io error occured");
-		return false;
-	}
+	ce_memfile_read(mem, figfile->vertices, figfile->vertex_size, figfile->vertex_count);
+	ce_memfile_read(mem, figfile->normals, figfile->normal_size, figfile->normal_count);
+	ce_memfile_read(mem, figfile->texcoords, figfile->texcoord_size, figfile->texcoord_count);
+	ce_memfile_read(mem, figfile->indices, figfile->index_size, figfile->index_count);
+	ce_memfile_read(mem, figfile->spec_components,
+		figfile->spec_component_size, figfile->spec_component_count);
+	ce_memfile_read(mem, figfile->morph_components,
+		figfile->morph_component_size, figfile->morph_component_count);
 
 	for (int i = 0, n = figfile->index_count; i < n; ++i) {
 		ce_le2cpu16s(figfile->indices + i);
@@ -167,81 +124,19 @@ static bool ce_figfile_read_model_data(ce_figfile* figfile, ce_memfile* mem)
 	for (int i = 0, n = 2 * figfile->morph_component_count; i < n; ++i) {
 		ce_le2cpu16s(figfile->morph_components + i);
 	}
-
-	return true;
 }
 
-static bool ce_figfile_read_bound_data(ce_figfile* figfile, ce_memfile* mem)
+static void ce_figfile_read_header(ce_figfile* figfile, ce_memfile* mem)
 {
-	/**
-	 *  FIG bound data:
-	 *   center - 3 floats x n
-	 *   min    - 3 floats x n
-	 *   max    - 3 floats x n
-	 *   radius - 1 float  x n
-	*/
-
-	if (NULL == (figfile->center =
-				ce_alloc(sizeof(float) * figfile->value_count * 3)) ||
-			NULL == (figfile->min =
-				ce_alloc(sizeof(float) * figfile->value_count * 3)) ||
-			NULL == (figfile->max =
-				ce_alloc(sizeof(float) * figfile->value_count * 3)) ||
-			NULL == (figfile->radius =
-				ce_alloc(sizeof(float) * figfile->value_count))) {
-		ce_logging_error("figfile: could not allocate memory");
-		return false;
-	}
-
-	if (3 != ce_memfile_read(mem, figfile->center,
-				sizeof(float) * figfile->value_count, 3) ||
-			3 != ce_memfile_read(mem, figfile->min,
-				sizeof(float) * figfile->value_count, 3) ||
-			3 != ce_memfile_read(mem, figfile->max,
-				sizeof(float) * figfile->value_count, 3) ||
-			1 != ce_memfile_read(mem, figfile->radius,
-				sizeof(float) * figfile->value_count, 1)) {
-		ce_logging_error("figfile: io error occured");
-		return false;
-	}
-
-	return true;
-}
-
-static bool ce_figfile_read_header(ce_figfile* figfile, ce_memfile* mem)
-{
-	/**
-	 *  FIG header:
-	 *   signature
-	 *   vertex count
-	 *   normal count
-	 *   texcoord count
-	 *   index count
-	 *   spec component count
-	 *   morph component count
-	 *   unknown - always 0; for alignment?..
-	 *   unknown
-	 *   texture number (primary, secondary)
-	*/
-
 	uint32_t signature;
-	if (1 != ce_memfile_read(mem, &signature, sizeof(uint32_t), 1)) {
-		ce_logging_error("figfile: io error occured");
-		return false;
-	}
+	ce_memfile_read(mem, &signature, sizeof(uint32_t), 1);
 
 	const ce_figfile_value_tuple* value_tuple =
 		ce_figfile_value_tuple_choose(ce_le2cpu32(signature));
-	if (NULL == value_tuple) {
-		ce_logging_error("figfile: wrong signature");
-		return false;
-	}
+	assert(NULL != value_tuple && "wrong signature");
 
 	uint32_t header[9];
-	if (9 != ce_memfile_read(mem, header, sizeof(uint32_t), 9)) {
-		ce_logging_error("figfile: io error occured");
-		return false;
-	}
+	ce_memfile_read(mem, header, sizeof(uint32_t), 9);
 
 	assert(0 == ce_le2cpu32(header[6]));
 
@@ -255,24 +150,25 @@ static bool ce_figfile_read_header(ce_figfile* figfile, ce_memfile* mem)
 	figfile->morph_component_count = ce_le2cpu32(header[5]);
 	figfile->unknown = ce_le2cpu32(header[7]);
 	figfile->texture_number = ce_le2cpu32(header[8]);
-
-	return true;
 }
 
 ce_figfile* ce_figfile_open_memfile(ce_memfile* memfile)
 {
-	ce_figfile* figfile = ce_alloc_zero(sizeof(ce_figfile));
-	if (NULL == figfile) {
-		ce_logging_error("figfile: could not allocate memory");
-		return NULL;
-	}
+	ce_figfile* figfile = ce_alloc(sizeof(ce_figfile));
 
-	if (!ce_figfile_read_header(figfile, memfile) ||
-			!ce_figfile_read_bound_data(figfile, memfile) ||
-			!ce_figfile_read_model_data(figfile, memfile)) {
-		ce_figfile_close(figfile);
-		return NULL;
-	}
+	ce_figfile_read_header(figfile, memfile);
+
+	figfile->center = ce_alloc(sizeof(float) * figfile->value_count * 3);
+	figfile->min = ce_alloc(sizeof(float) * figfile->value_count * 3);
+	figfile->max = ce_alloc(sizeof(float) * figfile->value_count * 3);
+	figfile->radius = ce_alloc(sizeof(float) * figfile->value_count);
+
+	ce_memfile_read(memfile, figfile->center, sizeof(float) * figfile->value_count, 3);
+	ce_memfile_read(memfile, figfile->min, sizeof(float) * figfile->value_count, 3);
+	ce_memfile_read(memfile, figfile->max, sizeof(float) * figfile->value_count, 3);
+	ce_memfile_read(memfile, figfile->radius, sizeof(float) * figfile->value_count, 1);
+
+	ce_figfile_read_model_data(figfile, memfile);
 
 	return figfile;
 }
