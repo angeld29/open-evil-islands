@@ -338,9 +338,9 @@ void ce_free(void* ptr, size_t size)
 #ifndef CE_NDEBUG_MEMORY
 	if (NULL != ptr) {
 		ce_alloc_inst.smallobj_allocated -=
-			size > MAX_SMALL_OBJECT_SIZE ? 0 : size;
+			size > MAX_SMALL_OBJECT_SIZE ? 0 : ce_smax(1, size);
 		ce_alloc_inst.system_allocated -=
-			size > MAX_SMALL_OBJECT_SIZE ? size : 0;
+			size > MAX_SMALL_OBJECT_SIZE ? ce_smax(1, size) : 0;
 	}
 #endif
 
