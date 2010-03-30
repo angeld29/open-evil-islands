@@ -38,15 +38,12 @@ static void ce_figmesh_create_renderitems(ce_figmesh* figmesh,
 ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
 							const ce_complection* complection)
 {
-	ce_figmesh* figmesh = ce_alloc_zero(sizeof(ce_figmesh));
-
+	ce_figmesh* figmesh = ce_alloc(sizeof(ce_figmesh));
 	figmesh->figproto = ce_figproto_add_ref(figproto);
 	figmesh->complection = *complection;
 	figmesh->renderitems = ce_vector_new();
 	figmesh->ref_count = 1;
-
 	ce_figmesh_create_renderitems(figmesh, figmesh->figproto->fignode);
-
 	return figmesh;
 }
 

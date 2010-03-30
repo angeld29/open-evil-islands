@@ -29,7 +29,7 @@ ce_figbone* ce_figbone_new(const ce_fignode* fignode,
 							const ce_complection* complection,
 							ce_figbone* parent)
 {
-	ce_figbone* figbone = ce_alloc_zero(sizeof(ce_figbone));
+	ce_figbone* figbone = ce_alloc(sizeof(ce_figbone));
 	figbone->orientation = CE_QUAT_IDENTITY;
 	figbone->anmstate = ce_anmstate_new();
 	figbone->parent = parent;

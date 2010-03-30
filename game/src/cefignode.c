@@ -29,16 +29,15 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 							ce_vector* anm_resfiles,
 							ce_lnkfile* lnkfile)
 {
-	ce_fignode* fignode = ce_alloc_zero(sizeof(ce_fignode));
-
+	ce_fignode* fignode = ce_alloc(sizeof(ce_fignode));
 	fignode->name = ce_string_dup(lnkfile->relationships[
 					lnkfile->relationship_index].child_name);
 	fignode->index = lnkfile->relationship_index++;
-	fignode->anmfiles = ce_vector_new();
-	fignode->childs = ce_vector_new();
 	fignode->figfile = ce_figfile_open_resfile(mod_resfile, fignode->name->str);
 	fignode->bonfile = ce_bonfile_open_resfile(fignode->figfile->value_count,
 												bon_resfile, fignode->name->str);
+	fignode->anmfiles = ce_vector_new();
+	fignode->childs = ce_vector_new();
 
 	for (int i = 0; i < anm_resfiles->count; ++i) {
 		ce_resfile* anm_resfile = anm_resfiles->items[i];
@@ -62,13 +61,9 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 void ce_fignode_del(ce_fignode* fignode)
 {
 	if (NULL != fignode) {
-		for (int i = 0; i < fignode->childs->count; ++i) {
-			ce_fignode_del(fignode->childs->items[i]);
-		}
+		ce_vector_for_each(fignode->childs, (ce_vector_func1)ce_fignode_del);
+		ce_vector_for_each(fignode->anmfiles, (ce_vector_func1)ce_anmfile_close);
 		ce_vector_del(fignode->childs);
-		for (int i = 0; i < fignode->anmfiles->count; ++i) {
-			ce_anmfile_close(fignode->anmfiles->items[i]);
-		}
 		ce_vector_del(fignode->anmfiles);
 		ce_bonfile_close(fignode->bonfile);
 		ce_figfile_close(fignode->figfile);
