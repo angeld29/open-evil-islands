@@ -159,10 +159,9 @@ static void portion_ensure_alloc_chunk(portion* por)
 		por->dealloc_chunk = NULL;
 	}
 
-	chunk* alloc_chunk = por->chunks + por->chunk_count;
-	chunk_init(alloc_chunk, por->block_size, por->block_count);
+	por->alloc_chunk = por->chunks + por->chunk_count;
+	chunk_init(por->alloc_chunk, por->block_size, por->block_count);
 
-	por->alloc_chunk = alloc_chunk;
 	++por->chunk_count;
 }
 
