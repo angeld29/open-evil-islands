@@ -27,7 +27,6 @@
 
 #include "cegl.h"
 #include "cemath.h"
-#include "celogging.h"
 #include "cealloc.h"
 #include "cefighlp.h"
 #include "ceanmstate.h"
@@ -54,9 +53,6 @@ static ce_figcookie_static* ce_figcookie_static_new(void)
 	ce_figcookie_static* cookie = ce_alloc(sizeof(ce_figcookie_static));
 	cookie->id = glGenLists(1);
 	cookie->ref_count = 1;
-	if (0 == cookie->id) {
-		ce_logging_error("figrenderitem: could not generate display list");
-	}
 	return cookie;
 }
 
