@@ -18,112 +18,64 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdbool.h>
-
 #include "cebyteorder.h"
-#include "celogging.h"
 #include "cealloc.h"
 #include "cereshlp.h"
 #include "ceanmfile.h"
 
-static bool ce_anmfile_read_morphs(ce_anmfile* anmfile, ce_memfile* memfile)
+static void ce_anmfile_read_morphs(ce_anmfile* anmfile, ce_memfile* memfile)
 {
-	if (1 != ce_memfile_read(memfile,
-				&anmfile->morph_frame_count, sizeof(uint32_t), 1) ||
-			1 != ce_memfile_read(memfile,
-				&anmfile->morph_vertex_count, sizeof(uint32_t), 1)) {
-		ce_logging_error("lnkfile: io error occured");
-		return false;
-	}
+	ce_memfile_read(memfile, &anmfile->morph_frame_count, sizeof(uint32_t), 1);
+	ce_memfile_read(memfile, &anmfile->morph_vertex_count, sizeof(uint32_t), 1);
 
 	ce_le2cpu32s(&anmfile->morph_frame_count);
 	ce_le2cpu32s(&anmfile->morph_vertex_count);
 
 	if (0 != anmfile->morph_frame_count * anmfile->morph_vertex_count) {
-		if (NULL == (anmfile->morphs =
-				ce_alloc(sizeof(float) * 3 * anmfile->morph_frame_count *
-											anmfile->morph_vertex_count))) {
-			ce_logging_error("anmfile: could not allocate memory");
-			return false;
-		}
+		anmfile->morphs = ce_alloc(sizeof(float) * 3 *
+			anmfile->morph_frame_count * anmfile->morph_vertex_count);
 
-		if (anmfile->morph_frame_count !=
-				ce_memfile_read(memfile, anmfile->morphs,
-							sizeof(float) * 3 * anmfile->morph_vertex_count,
-							anmfile->morph_frame_count)) {
-			ce_logging_error("anmfile: io error occured");
-			return false;
-		}
+		ce_memfile_read(memfile, anmfile->morphs, sizeof(float) * 3 *
+			anmfile->morph_vertex_count, anmfile->morph_frame_count);
 	}
-
-	return true;
 }
 
-static bool ce_anmfile_read_translations(ce_anmfile* anmfile,
+static void ce_anmfile_read_translations(ce_anmfile* anmfile,
 										ce_memfile* memfile)
 {
-	if (1 != ce_memfile_read(memfile,
-			&anmfile->translation_frame_count, sizeof(uint32_t), 1)) {
-		ce_logging_error("lnkfile: io error occured");
-		return false;
-	}
+	ce_memfile_read(memfile, &anmfile->translation_frame_count, sizeof(uint32_t), 1);
 
 	ce_le2cpu32s(&anmfile->translation_frame_count);
 
-	if (NULL == (anmfile->translations =
-			ce_alloc(sizeof(float) * 3 * anmfile->translation_frame_count))) {
-		ce_logging_error("anmfile: could not allocate memory");
-		return false;
-	}
+	anmfile->translations =
+		ce_alloc(sizeof(float) * 3 * anmfile->translation_frame_count);
 
-	if (anmfile->translation_frame_count != ce_memfile_read(memfile,
-			anmfile->translations, sizeof(float) * 3,
-			anmfile->translation_frame_count)) {
-		ce_logging_error("anmfile: io error occured");
-		return false;
-	}
-
-	return true;
+	ce_memfile_read(memfile, anmfile->translations,
+		sizeof(float) * 3, anmfile->translation_frame_count);
 }
 
-static bool ce_anmfile_read_rotations(ce_anmfile* anmfile, ce_memfile* memfile)
+static void ce_anmfile_read_rotations(ce_anmfile* anmfile, ce_memfile* memfile)
 {
-	if (1 != ce_memfile_read(memfile,
-			&anmfile->rotation_frame_count, sizeof(uint32_t), 1)) {
-		ce_logging_error("lnkfile: io error occured");
-		return false;
-	}
+	ce_memfile_read(memfile,
+		&anmfile->rotation_frame_count, sizeof(uint32_t), 1);
 
 	ce_le2cpu32s(&anmfile->rotation_frame_count);
 
-	if (NULL == (anmfile->rotations =
-			ce_alloc(sizeof(float) * 4 * anmfile->rotation_frame_count))) {
-		ce_logging_error("anmfile: could not allocate memory");
-		return false;
-	}
+	anmfile->rotations = ce_alloc(sizeof(float) * 4 *
+									anmfile->rotation_frame_count);
 
-	if (anmfile->rotation_frame_count != ce_memfile_read(memfile,
-			anmfile->rotations, sizeof(float) * 4,
-			anmfile->rotation_frame_count)) {
-		ce_logging_error("anmfile: io error occured");
-		return false;
-	}
-
-	return true;
+	ce_memfile_read(memfile, anmfile->rotations,
+					sizeof(float) * 4, anmfile->rotation_frame_count);
 }
 
 ce_anmfile* ce_anmfile_open_memfile(const char* name, ce_memfile* memfile)
 {
-	ce_anmfile* anmfile = ce_alloc_zero(sizeof(ce_anmfile));
+	ce_anmfile* anmfile = ce_alloc(sizeof(ce_anmfile));
 	anmfile->name = ce_string_new_str(name);
 
-	if (!ce_anmfile_read_rotations(anmfile, memfile) ||
-			!ce_anmfile_read_translations(anmfile, memfile) ||
-			!ce_anmfile_read_morphs(anmfile, memfile)) {
-		ce_anmfile_close(anmfile);
-		return NULL;
-	}
+	ce_anmfile_read_rotations(anmfile, memfile);
+	ce_anmfile_read_translations(anmfile, memfile);
+	ce_anmfile_read_morphs(anmfile, memfile);
 
 	return anmfile;
 }
