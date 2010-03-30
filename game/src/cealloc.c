@@ -71,29 +71,22 @@ static struct {
 	size_t system_max_allocated;
 } ce_alloc_inst;
 
-static bool chunk_init(chunk* cnk, size_t block_size, unsigned char block_count)
+static void chunk_init(chunk* cnk, size_t block_size, unsigned char block_count)
 {
-    if (NULL == (cnk->data = malloc(block_size * block_count))) {
-		return false;
-	}
-
+	cnk->data = malloc(block_size * block_count);
     cnk->next_block = 0;
     cnk->block_count = block_count;
 
 	for (unsigned char i = 0, *p = cnk->data; i < block_count; p += block_size) {
 		*p = ++i;
 	}
-
-	return true;
 }
 
 static void chunk_clean(chunk* cnk)
 {
-	if (NULL == cnk) {
-		return;
+	if (NULL != cnk) {
+		free(cnk->data);
 	}
-
-	free(cnk->data);
 }
 
 static void* chunk_alloc(chunk* cnk, size_t block_size)
@@ -120,39 +113,29 @@ static void chunk_free(chunk* cnk, void* ptr, size_t block_size)
     ++cnk->block_count;
 }
 
-static bool portion_init(portion* por, size_t block_size, size_t page_size)
+static void portion_init(portion* por, size_t block_size, size_t page_size)
 {
 	por->block_size = block_size;
 	por->block_count = ce_sclamp(page_size / block_size, CHAR_BIT, UCHAR_MAX);
-
 	por->chunk_count = 0;
 	por->chunk_capacity = 16;
-
-	if (NULL == (por->chunks = malloc(sizeof(chunk) * por->chunk_capacity))) {
-		return false;
-	}
-
+	por->chunks = malloc(sizeof(chunk) * por->chunk_capacity);
 	por->alloc_chunk = NULL;
 	por->dealloc_chunk = NULL;
-
-	return true;
 }
 
 static void portion_clean(portion* por)
 {
-	if (NULL == por) {
-		return;
-	}
-
-	if (NULL != por->chunks) {
-		for (size_t i = 0; i < por->chunk_count; ++i) {
-			assert(por->chunks[i].block_count ==
-					por->block_count && "Memory leak detected");
-			chunk_clean(por->chunks + i);
+	if (NULL != por) {
+		if (NULL != por->chunks) {
+			for (size_t i = 0; i < por->chunk_count; ++i) {
+				assert(por->chunks[i].block_count ==
+						por->block_count && "Memory leak detected");
+				chunk_clean(por->chunks + i);
+			}
+			free(por->chunks);
 		}
 	}
-
-	free(por->chunks);
 }
 
 static bool portion_ensure_alloc_chunk(portion* por)
@@ -183,9 +166,7 @@ static bool portion_ensure_alloc_chunk(portion* por)
 
 	chunk* alloc_chunk = por->chunks + por->chunk_count;
 
-	if (!chunk_init(alloc_chunk, por->block_size, por->block_count)) {
-		return false;
-	}
+	chunk_init(alloc_chunk, por->block_size, por->block_count);
 
 	por->alloc_chunk = alloc_chunk;
 	++por->chunk_count;
@@ -271,11 +252,8 @@ bool ce_alloc_init(void)
 	}
 
 	for (size_t i = 0; i < ce_alloc_inst.count; ++i) {
-		if (!portion_init(ce_alloc_inst.pool + i,
-				(i + 1) * OBJECT_ALIGNMENT, PAGE_SIZE)) {
-			ce_alloc_term();
-			return false;
-		}
+		portion_init(ce_alloc_inst.pool + i,
+					(i + 1) * OBJECT_ALIGNMENT, PAGE_SIZE);
 	}
 
 	return true;
