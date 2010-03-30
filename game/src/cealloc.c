@@ -62,21 +62,14 @@ typedef struct {
 
 static struct {
 	bool inited;
-
 	size_t count;
 	portion* pool;
-
 	size_t smallobj_allocated;
 	size_t smallobj_max_allocated;
 	size_t smallobj_overhead;
 	size_t system_allocated;
 	size_t system_max_allocated;
 } ce_alloc_inst;
-
-static bool chunk_is_filled(const chunk* cnk)
-{
-	return 0 == cnk->block_count;
-}
 
 static bool chunk_has_block(chunk* cnk, void* ptr, size_t chunk_size)
 {
@@ -170,13 +163,13 @@ static void portion_clean(portion* por)
 
 static bool portion_ensure_alloc_chunk(portion* por)
 {
-	if (NULL != por->alloc_chunk && !chunk_is_filled(por->alloc_chunk)) {
+	if (NULL != por->alloc_chunk && 0 != por->alloc_chunk->block_count) {
 		return true;
 	}
 
 	for (size_t i = 0; i < por->chunk_count; ++i) {
 		chunk* cnk = por->chunks + i;
-		if (!chunk_is_filled(cnk)) {
+		if (0 != cnk->block_count) {
 			por->alloc_chunk = cnk;
 			return true;
 		}
