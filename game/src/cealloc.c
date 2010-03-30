@@ -237,10 +237,7 @@ bool ce_alloc_init(void)
 	ce_alloc_inst.inited = true;
 
 	ce_alloc_inst.count = get_offset(MAX_SMALL_OBJECT_SIZE, OBJECT_ALIGNMENT);
-	if (NULL == (ce_alloc_inst.pool = calloc(ce_alloc_inst.count,
-												sizeof(portion)))) {
-		return false;
-	}
+	ce_alloc_inst.pool = malloc(sizeof(portion) * ce_alloc_inst.count);
 
 	for (size_t i = 0; i < ce_alloc_inst.count; ++i) {
 		portion_init(ce_alloc_inst.pool + i,
@@ -259,7 +256,6 @@ void ce_alloc_term(void)
 		for (size_t i = 0; i < ce_alloc_inst.count; ++i) {
 			portion_clean(ce_alloc_inst.pool + i);
 		}
-
 		free(ce_alloc_inst.pool);
 		ce_alloc_inst.pool = NULL;
 	}
