@@ -20,69 +20,45 @@
 
 #include "cebyteorder.h"
 #include "cealloc.h"
-#include "cereshlp.h"
 #include "ceanmfile.h"
 
-ce_anmfile* ce_anmfile_open_memfile(const char* name, ce_memfile* memfile)
+ce_anmfile* ce_anmfile_open(ce_resfile* resfile, int index)
 {
 	ce_anmfile* anmfile = ce_alloc(sizeof(ce_anmfile));
-	anmfile->name = ce_string_new_str(name);
+	anmfile->name = ce_string_dup(resfile->name);
+	anmfile->size = ce_resfile_node_size(resfile, index);
+	anmfile->data = ce_resfile_node_data(resfile, index);
 
-	ce_memfile_read(memfile,
-		&anmfile->rotation_frame_count, sizeof(uint32_t), 1);
+	char* data = anmfile->data;
 
-	ce_le2cpu32s(&anmfile->rotation_frame_count);
+	anmfile->rotation_frame_count = ce_le2cpu32(*(uint32_t*)data);
+	data += sizeof(uint32_t);
 
-	anmfile->rotations = ce_alloc(sizeof(float) * 4 *
-									anmfile->rotation_frame_count);
+	anmfile->rotations = (float*)data;
+	data += 4 * sizeof(float) * anmfile->rotation_frame_count;
 
-	ce_memfile_read(memfile, anmfile->rotations,
-					sizeof(float) * 4, anmfile->rotation_frame_count);
+	anmfile->translation_frame_count = ce_le2cpu32(*(uint32_t*)data);
+	data += sizeof(uint32_t);
 
-	ce_memfile_read(memfile, &anmfile->translation_frame_count, sizeof(uint32_t), 1);
+	anmfile->translations = (float*)data;
+	data += 3 * sizeof(float) * anmfile->translation_frame_count;
 
-	ce_le2cpu32s(&anmfile->translation_frame_count);
+	anmfile->morph_frame_count = ce_le2cpu32(*(uint32_t*)data);
+	data += sizeof(uint32_t);
 
-	anmfile->translations =
-		ce_alloc(sizeof(float) * 3 * anmfile->translation_frame_count);
+	anmfile->morph_vertex_count = ce_le2cpu32(*(uint32_t*)data);
+	data += sizeof(uint32_t);
 
-	ce_memfile_read(memfile, anmfile->translations,
-		sizeof(float) * 3, anmfile->translation_frame_count);
-
-	ce_memfile_read(memfile, &anmfile->morph_frame_count, sizeof(uint32_t), 1);
-	ce_memfile_read(memfile, &anmfile->morph_vertex_count, sizeof(uint32_t), 1);
-
-	ce_le2cpu32s(&anmfile->morph_frame_count);
-	ce_le2cpu32s(&anmfile->morph_vertex_count);
-
-	if (0 != anmfile->morph_frame_count * anmfile->morph_vertex_count) {
-		anmfile->morphs = ce_alloc(sizeof(float) * 3 *
-			anmfile->morph_frame_count * anmfile->morph_vertex_count);
-
-		ce_memfile_read(memfile, anmfile->morphs, sizeof(float) * 3 *
-			anmfile->morph_vertex_count, anmfile->morph_frame_count);
-	}
+	anmfile->morphs = 0 != anmfile->morph_frame_count *
+							anmfile->morph_vertex_count ? (float*)data : NULL;
 
 	return anmfile;
-}
-
-ce_anmfile* ce_anmfile_open_resfile(ce_resfile* resfile, int index)
-{
-	ce_memfile* memfile = ce_reshlp_extract_memfile(resfile, index);
-	ce_anmfile* anmfile = ce_anmfile_open_memfile(resfile->name->str, memfile);
-	return ce_memfile_close(memfile), anmfile;
 }
 
 void ce_anmfile_close(ce_anmfile* anmfile)
 {
 	if (NULL != anmfile) {
-		ce_free(anmfile->morphs, sizeof(float) * 3 *
-									anmfile->morph_frame_count *
-									anmfile->morph_vertex_count);
-		ce_free(anmfile->translations,
-				sizeof(float) * 3 * anmfile->translation_frame_count);
-		ce_free(anmfile->rotations,
-				sizeof(float) * 4 * anmfile->rotation_frame_count);
+		ce_free(anmfile->data, anmfile->size);
 		ce_string_del(anmfile->name);
 		ce_free(anmfile, sizeof(ce_anmfile));
 	}

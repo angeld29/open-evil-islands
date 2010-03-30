@@ -34,7 +34,7 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 					lnkfile->relationship_index].child_name);
 	fignode->index = lnkfile->relationship_index++;
 	fignode->figfile = ce_figfile_open_resfile(mod_resfile, fignode->name->str);
-	fignode->bonfile = ce_bonfile_open_resfile(bon_resfile, fignode->name->str);
+	fignode->bonfile = ce_bonfile_open(bon_resfile, fignode->name->str);
 	fignode->anmfiles = ce_vector_new();
 	fignode->childs = ce_vector_new();
 
@@ -43,7 +43,7 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 		int anm_index = ce_resfile_node_index(anm_resfile, fignode->name->str);
 		if (-1 != anm_index) {
 			ce_vector_push_back(fignode->anmfiles,
-				ce_anmfile_open_resfile(anm_resfile, anm_index));
+				ce_anmfile_open(anm_resfile, anm_index));
 		} // else ok, there is no animation for this node
 	}
 

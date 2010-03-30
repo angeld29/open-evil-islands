@@ -21,10 +21,9 @@
 #ifndef CE_ANMFILE_H
 #define CE_ANMFILE_H
 
-#include <stdint.h>
+#include <stddef.h>
 
 #include "cestring.h"
-#include "cememfile.h"
 #include "ceresfile.h"
 
 #ifdef __cplusplus
@@ -34,17 +33,18 @@ extern "C"
 
 typedef struct {
 	ce_string* name;
-	uint32_t rotation_frame_count;
-	uint32_t translation_frame_count;
-	uint32_t morph_frame_count;
-	uint32_t morph_vertex_count;
+	int rotation_frame_count;
+	int translation_frame_count;
+	int morph_frame_count;
+	int morph_vertex_count;
 	float* rotations;
 	float* translations;
 	float* morphs;
+	size_t size;
+	void* data;
 } ce_anmfile;
 
-extern ce_anmfile* ce_anmfile_open_memfile(const char* name, ce_memfile* memfile);
-extern ce_anmfile* ce_anmfile_open_resfile(ce_resfile* resfile, int index);
+extern ce_anmfile* ce_anmfile_open(ce_resfile* resfile, int index);
 extern void ce_anmfile_close(ce_anmfile* anmfile);
 
 #ifdef __cplusplus
