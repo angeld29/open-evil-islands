@@ -29,28 +29,23 @@ ce_anmfile* ce_anmfile_open(ce_resfile* resfile, int index)
 	anmfile->size = ce_resfile_node_size(resfile, index);
 	anmfile->data = ce_resfile_node_data(resfile, index);
 
-	char* data = anmfile->data;
+	union {
+		uint32_t* u32ptr;
+		float* fptr;
+	} data = { anmfile->data };
 
-	anmfile->rotation_frame_count = ce_le2cpu32(*(uint32_t*)data);
-	data += sizeof(uint32_t);
+	anmfile->rotation_frame_count = ce_le2cpu32(*data.u32ptr++);
+	anmfile->rotations = data.fptr;
+	data.fptr += 4 * anmfile->rotation_frame_count;
 
-	anmfile->rotations = (float*)data;
-	data += 4 * sizeof(float) * anmfile->rotation_frame_count;
+	anmfile->translation_frame_count = ce_le2cpu32(*data.u32ptr++);
+	anmfile->translations = data.fptr;
+	data.fptr += 3 * anmfile->translation_frame_count;
 
-	anmfile->translation_frame_count = ce_le2cpu32(*(uint32_t*)data);
-	data += sizeof(uint32_t);
-
-	anmfile->translations = (float*)data;
-	data += 3 * sizeof(float) * anmfile->translation_frame_count;
-
-	anmfile->morph_frame_count = ce_le2cpu32(*(uint32_t*)data);
-	data += sizeof(uint32_t);
-
-	anmfile->morph_vertex_count = ce_le2cpu32(*(uint32_t*)data);
-	data += sizeof(uint32_t);
-
+	anmfile->morph_frame_count = ce_le2cpu32(*data.u32ptr++);
+	anmfile->morph_vertex_count = ce_le2cpu32(*data.u32ptr++);
 	anmfile->morphs = 0 != anmfile->morph_frame_count *
-							anmfile->morph_vertex_count ? (float*)data : NULL;
+							anmfile->morph_vertex_count ? data.fptr : NULL;
 
 	return anmfile;
 }
