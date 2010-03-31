@@ -18,6 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ *  See doc/formats/anmfile.txt for more details.
+*/
+
 #include "cebyteorder.h"
 #include "cealloc.h"
 #include "ceanmfile.h"

@@ -19,7 +19,7 @@
 */
 
 /*
- *  See doc/formats/figfile.txt for format details.
+ *  See doc/formats/figfile.txt for more details.
 */
 
 #include <assert.h>

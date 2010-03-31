@@ -18,6 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ *  See doc/formats/bonfile.txt for more details.
+*/
+
 #include "cealloc.h"
 #include "cebonfile.h"
 
