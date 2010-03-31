@@ -20,8 +20,10 @@
 
 #include <stdio.h>
 #include <limits.h>
+#include <math.h>
 #include <assert.h>
 
+#include "celib.h"
 #include "cemprhlp.h"
 
 ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,
@@ -81,7 +83,14 @@ int ce_mprhlp_texture_angle(uint16_t texture)
 
 float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 {
-#if 1
+	if (modff(x, &x) > 0.5f) {
+		x += 1.0f;
+	}
+
+	if (modff(z, &z) > 0.5f) {
+		z += 1.0f;
+	}
+
 	int sector_x = (int)x / (CE_MPRFILE_VERTEX_SIDE - 1);
 	int sector_z = (int)z / (CE_MPRFILE_VERTEX_SIDE - 1);
 	int vertex_x = (int)x % (CE_MPRFILE_VERTEX_SIDE - 1);
@@ -96,36 +105,6 @@ float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 								vertex_z * CE_MPRFILE_VERTEX_SIDE + vertex_x;
 
 	return mprfile->max_y / (UINT16_MAX - 0) * vertex->coord_y;
-#endif
-
-#if 0
-	float sum = 0.0f;
-	int num = 0;
-
-	const int xoffsets[9] = { 0, -1, 0, 1, 1, 1, 0, -1, -1 };
-	const int zoffsets[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
-
-	for (int i = 0; i < 9; ++i) {
-		int xsector = ((int)x + xoffsets[i]) / (CE_MPRFILE_VERTEX_SIDE - 1);
-		int zsector = ((int)z + zoffsets[i]) / (CE_MPRFILE_VERTEX_SIDE - 1);
-
-		if (0 <= xsector && xsector < mprfile->sector_x_count &&
-				0 <= zsector && zsector < mprfile->sector_z_count) {
-			int xvertex = (int)x % (CE_MPRFILE_VERTEX_SIDE - 1);
-			int zvertex = (int)z % (CE_MPRFILE_VERTEX_SIDE - 1);
-
-			const ce_mprfile_sector* sector = mprfile->sectors +
-								zsector * mprfile->sector_x_count + xsector;
-			const ce_mprfile_vertex* vertex = sector->land_vertices +
-								zvertex * CE_MPRFILE_VERTEX_SIDE + xvertex;
-
-			sum += mprfile->max_y / (UINT16_MAX - 0) * vertex->coord_y;
-			++num;
-		}
-	}
-
-	return sum / num;
-#endif
 }
 
 ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile,
