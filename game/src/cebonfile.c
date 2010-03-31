@@ -26,14 +26,15 @@ ce_bonfile* ce_bonfile_open(ce_resfile* resfile, const char* name)
 	ce_bonfile* bonfile = ce_alloc(sizeof(ce_bonfile));
 	int index = ce_resfile_node_index(resfile, name);
 	bonfile->size = ce_resfile_node_size(resfile, index);
-	bonfile->bone = ce_resfile_node_data(resfile, index);
+	bonfile->data = ce_resfile_node_data(resfile, index);
+	bonfile->bone = bonfile->data;
 	return bonfile;
 }
 
 void ce_bonfile_close(ce_bonfile* bonfile)
 {
 	if (NULL != bonfile) {
-		ce_free(bonfile->bone, bonfile->size);
+		ce_free(bonfile->data, bonfile->size);
 		ce_free(bonfile, sizeof(ce_bonfile));
 	}
 }
