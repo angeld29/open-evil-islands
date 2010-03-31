@@ -28,14 +28,6 @@
 #include "cememfile.h"
 #include "cemobfile.h"
 
-typedef bool
-(*ce_mobfile_block_callback)(ce_mobfile* mob, ce_memfile* mem, size_t size);
-
-typedef struct {
-	unsigned int type;
-	ce_mobfile_block_callback callback;
-} ce_mobfile_block_pair;
-
 // helpers
 
 static bool ce_mobfile_decrypt_script(char* data, size_t size, uint32_t key)
@@ -357,6 +349,16 @@ ce_mobfile_block_object_object_complection(ce_mobfile* mob,
 	return ce_mobfile_read_generic(mem, complection, sizeof(complection), 1) &&
 		ce_complection_init_array(&object->complection, complection);
 }
+
+typedef bool
+(*ce_mobfile_block_callback)(ce_mobfile* mob, ce_memfile* mem, size_t size);
+
+typedef struct {
+	unsigned int type;
+	ce_mobfile_block_callback callback;
+} ce_mobfile_block_pair;
+
+static const int CE_MOBFILE_BLOCK_PAIR_COUNT = 256;
 
 static const ce_mobfile_block_pair ce_mobfile_block_pairs[] = {
 	{ 0xa000, ce_mobfile_block_main },
