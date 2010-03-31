@@ -19,7 +19,6 @@
 */
 
 #include <stdio.h>
-#include <stdint.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -37,7 +36,7 @@ typedef struct {
 	ce_mobfile_block_callback callback;
 } ce_mobfile_block_pair;
 
-// Helpers.
+// helpers
 
 static bool ce_mobfile_decrypt_script(char* data, size_t size, uint32_t key)
 {
@@ -50,20 +49,14 @@ static bool ce_mobfile_decrypt_script(char* data, size_t size, uint32_t key)
 
 static bool ce_mobfile_skip(ce_memfile* mem, size_t size)
 {
-	if (0 != ce_memfile_seek(mem, size, SEEK_CUR)) {
-		ce_logging_error("mobfile: io error occured");
-		return false;
-	}
+	ce_memfile_seek(mem, size, SEEK_CUR);
 	return true;
 }
 
 static bool ce_mobfile_read_generic(ce_memfile* mem, void* data,
 										size_t size, size_t count)
 {
-	if (count != ce_memfile_read(mem, data, size, count)) {
-		ce_logging_error("mobfile: io error occured");
-		return false;
-	}
+	ce_memfile_read(mem, data, size, count);
 	return true;
 }
 
@@ -85,7 +78,7 @@ static ce_string* ce_mobfile_read_string(ce_memfile* mem, size_t size)
 		ce_string_new_str_n(data, size) : NULL;
 }
 
-// Callbacks.
+// callbacks
 
 static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size);
 
@@ -119,8 +112,8 @@ ce_mobfile_block_zonal(ce_mobfile* mob, ce_memfile* mem, size_t size)
 static bool
 ce_mobfile_block_text(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
-	// Do not load string directly through read_string because
-	// string is encrypted and may contain null characters.
+	// do not load string directly through read_string because
+	// string is encrypted and may contain null characters
 	uint32_t key;
 	char data[size -= sizeof(key)];
 	assert(NULL == mob->script);
@@ -525,37 +518,30 @@ static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 	return true;
 }
 
-static ce_mobfile* ce_mobfile_open_memfile(ce_memfile* mem)
+static ce_mobfile* ce_mobfile_open_memfile(ce_memfile* memfile)
 {
-	ce_mobfile* mob = ce_alloc_zero(sizeof(ce_mobfile));
-	if (NULL == mob) {
-		ce_logging_error("mobfile: could not allocate memory");
+	ce_mobfile* mobfile = ce_alloc_zero(sizeof(ce_mobfile));
+
+	ce_memfile_seek(memfile, 0, SEEK_END);
+	size_t size = ce_memfile_tell(memfile);
+	ce_memfile_seek(memfile, 0, SEEK_SET);
+
+	if (!ce_mobfile_block_loop(mobfile, memfile, size)) {
+		ce_mobfile_close(mobfile);
 		return NULL;
 	}
 
-	ce_memfile_seek(mem, 0, SEEK_END);
-	size_t size = ce_memfile_tell(mem);
-	ce_memfile_seek(mem, 0, SEEK_SET);
-
-	if (!ce_mobfile_block_loop(mob, mem, size)) {
-		ce_mobfile_close(mob);
-		return NULL;
-	}
-
-	return mob;
+	return mobfile;
 }
 
 ce_mobfile* ce_mobfile_open(const char* path)
 {
-	ce_memfile* mem = ce_memfile_open_file(path);
-	if (NULL == mem) {
+	ce_memfile* memfile = ce_memfile_open_file(path);
+	if (NULL == memfile) {
 		return NULL;
 	}
-
-	ce_mobfile* mob = ce_mobfile_open_memfile(mem);
-	ce_memfile_close(mem);
-
-	return mob;
+	ce_mobfile* mobfile = ce_mobfile_open_memfile(memfile);
+	return ce_memfile_close(memfile), mobfile;
 }
 
 void ce_mobfile_close(ce_mobfile* mob)
@@ -571,12 +557,8 @@ void ce_mobfile_close(ce_mobfile* mob)
 				ce_string_del(object->parent_name);
 				ce_string_del(object->model_name);
 				ce_string_del(object->name);
-				if (NULL != object->parts) {
-					for (int j = 0; j < object->parts->count; ++j) {
-						ce_string_del(object->parts->items[j]);
-					}
-					ce_vector_del(object->parts);
-				}
+				ce_vector_for_each(object->parts, (ce_vector_func1)ce_string_del);
+				ce_vector_del(object->parts);
 				ce_free(object, sizeof(ce_mobobject_object));
 			}
 			ce_vector_del(mob->objects);
