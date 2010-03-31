@@ -30,9 +30,8 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 							ce_lnkfile* lnkfile)
 {
 	ce_fignode* fignode = ce_alloc(sizeof(ce_fignode));
-	fignode->name = ce_string_dup(lnkfile->relationships[
-					lnkfile->relationship_index].child_name);
-	fignode->index = lnkfile->relationship_index++;
+	fignode->name = ce_string_dup(lnkfile->links[lnkfile->link_index].child_name);
+	fignode->index = lnkfile->link_index++;
 	fignode->figfile = ce_figfile_open(mod_resfile, fignode->name->str);
 	fignode->bonfile = ce_bonfile_open(bon_resfile, fignode->name->str);
 	fignode->anmfiles = ce_vector_new();
@@ -47,9 +46,9 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 		} // else ok, there is no animation for this node
 	}
 
-	while (lnkfile->relationship_index < lnkfile->relationship_count &&
-			0 == ce_strcasecmp(fignode->name->str, lnkfile->relationships[
-			lnkfile->relationship_index].parent_name->str)) {
+	while (lnkfile->link_index < lnkfile->link_count &&
+			0 == ce_strcasecmp(fignode->name->str,
+				lnkfile->links[lnkfile->link_index].parent_name->str)) {
 		ce_vector_push_back(fignode->childs,
 			ce_fignode_new(mod_resfile, bon_resfile, anm_resfiles, lnkfile));
 	}

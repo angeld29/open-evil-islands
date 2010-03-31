@@ -27,8 +27,8 @@
 
 ce_bonfile* ce_bonfile_open(ce_resfile* resfile, const char* name)
 {
-	ce_bonfile* bonfile = ce_alloc(sizeof(ce_bonfile));
 	int index = ce_resfile_node_index(resfile, name);
+	ce_bonfile* bonfile = ce_alloc(sizeof(ce_bonfile));
 	bonfile->size = ce_resfile_node_size(resfile, index);
 	bonfile->data = ce_resfile_node_data(resfile, index);
 	bonfile->bone = bonfile->data;

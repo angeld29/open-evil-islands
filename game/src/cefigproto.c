@@ -54,7 +54,7 @@ ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile)
 								ce_vector_new_reserved(0) :
 								ce_reshlp_extract_all_resfiles(anm_resfile);
 
-	ce_lnkfile* lnkfile = ce_lnkfile_open_resfile(mod_resfile, name);
+	ce_lnkfile* lnkfile = ce_lnkfile_open(mod_resfile, name);
 
 	figproto->fignode = ce_fignode_new(mod_resfile, bon_resfile,
 										anm_resfiles, lnkfile);

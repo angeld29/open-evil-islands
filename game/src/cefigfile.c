@@ -91,8 +91,9 @@ ce_figfile_value_tuple* ce_figfile_value_tuple_choose(unsigned int type)
 
 ce_figfile* ce_figfile_open(ce_resfile* resfile, const char* name)
 {
-	ce_figfile* figfile = ce_alloc(sizeof(ce_figfile));
 	int index = ce_resfile_node_index(resfile, name);
+
+	ce_figfile* figfile = ce_alloc(sizeof(ce_figfile));
 	figfile->size = ce_resfile_node_size(resfile, index);
 	figfile->data = ce_resfile_node_data(resfile, index);
 

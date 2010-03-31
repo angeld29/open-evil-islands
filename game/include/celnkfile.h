@@ -22,7 +22,6 @@
 #define CE_LNKFILE_H
 
 #include "cestring.h"
-#include "cememfile.h"
 #include "ceresfile.h"
 
 #ifdef __cplusplus
@@ -33,16 +32,17 @@ extern "C"
 typedef struct {
 	ce_string* child_name;
 	ce_string* parent_name;
-} ce_lnkfile_relationship;
+} ce_lnklink;
 
 typedef struct {
-	int relationship_count;
-	int relationship_index;
-	ce_lnkfile_relationship* relationships;
+	int link_count;
+	int link_index;
+	ce_lnklink* links;
+	size_t size;
+	void* data;
 } ce_lnkfile;
 
-extern ce_lnkfile* ce_lnkfile_open_memfile(ce_memfile* memfile);
-extern ce_lnkfile* ce_lnkfile_open_resfile(ce_resfile* resfile, const char* name);
+extern ce_lnkfile* ce_lnkfile_open(ce_resfile* resfile, const char* name);
 extern void ce_lnkfile_close(ce_lnkfile* lnkfile);
 
 #ifdef __cplusplus

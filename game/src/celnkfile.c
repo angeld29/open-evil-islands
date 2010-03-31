@@ -18,94 +18,52 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdbool.h>
-#include <stdint.h>
+/*
+ *  See doc/formats/lnkfile.txt for more details.
+*/
 
 #include "cebyteorder.h"
-#include "celogging.h"
 #include "cealloc.h"
-#include "cereshlp.h"
 #include "celnkfile.h"
 
-static ce_string* ce_lnkfile_read_name(ce_memfile* memfile)
+ce_lnkfile* ce_lnkfile_open(ce_resfile* resfile, const char* name)
 {
-	uint32_t length;
-	if (1 != ce_memfile_read(memfile, &length, sizeof(uint32_t), 1)) {
-		ce_logging_error("lnkfile: io error occured");
-		return NULL;
-	}
+	int index = ce_resfile_node_index(resfile, name);
 
-	ce_le2cpu32s(&length);
+	ce_lnkfile* lnkfile = ce_alloc(sizeof(ce_lnkfile));
+	lnkfile->size = ce_resfile_node_size(resfile, index);
+	lnkfile->data = ce_resfile_node_data(resfile, index);
+	lnkfile->link_index = 0;
 
-	char name[length];
-	if (length != ce_memfile_read(memfile, name, 1, length)) {
-		ce_logging_error("lnkfile: io error occured");
-		return NULL;
-	}
+	union {
+		uint32_t* u32ptr;
+		char* cptr;
+	} data = { lnkfile->data };
 
-	return ce_string_new_str_n(name, length);
-}
+	lnkfile->link_count = ce_le2cpu32(*data.u32ptr++);
+	lnkfile->links = ce_alloc(sizeof(ce_lnklink) * lnkfile->link_count);
 
-static bool ce_lnkfile_open_impl(ce_lnkfile* lnkfile, ce_memfile* memfile)
-{
-	uint32_t relationship_count;
-	if (1 != ce_memfile_read(memfile,
-			&relationship_count, sizeof(uint32_t), 1)) {
-		ce_logging_error("lnkfile: io error occured");
-		return false;
-	}
-
-	lnkfile->relationship_count = ce_le2cpu32(relationship_count);
-
-	if (NULL == (lnkfile->relationships =
-			ce_alloc_zero(sizeof(ce_lnkfile_relationship) *
-							lnkfile->relationship_count))) {
-		ce_logging_error("lnkfile: could not allocate memory");
-		return false;
-	}
-
-	for (int i = 0; i < lnkfile->relationship_count; ++i) {
-		if (NULL == (lnkfile->relationships[i].child_name =
-						ce_lnkfile_read_name(memfile)) ||
-				NULL == (lnkfile->relationships[i].parent_name =
-							ce_lnkfile_read_name(memfile))) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-ce_lnkfile* ce_lnkfile_open_memfile(ce_memfile* memfile)
-{
-	ce_lnkfile* lnkfile = ce_alloc_zero(sizeof(ce_lnkfile));
-
-	if (!ce_lnkfile_open_impl(lnkfile, memfile)) {
-		ce_lnkfile_close(lnkfile);
-		return NULL;
+	for (int i = 0; i < lnkfile->link_count; ++i) {
+		uint32_t length = ce_le2cpu32(*data.u32ptr++);
+		lnkfile->links[i].child_name = ce_string_new_str_n(data.cptr, length);
+		data.cptr += length;
+		length = ce_le2cpu32(*data.u32ptr++);
+		lnkfile->links[i].parent_name = ce_string_new_str_n(data.cptr, length);
+		data.cptr += length;
 	}
 
 	return lnkfile;
 }
 
-ce_lnkfile* ce_lnkfile_open_resfile(ce_resfile* resfile, const char* name)
-{
-	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(resfile, name);
-	ce_lnkfile* lnkfile = ce_lnkfile_open_memfile(memfile);
-	return ce_memfile_close(memfile), lnkfile;
-}
-
 void ce_lnkfile_close(ce_lnkfile* lnkfile)
 {
 	if (NULL != lnkfile) {
-		if (NULL != lnkfile->relationships) {
-			for (int i = 0; i < lnkfile->relationship_count; ++i) {
-				ce_string_del(lnkfile->relationships[i].parent_name);
-				ce_string_del(lnkfile->relationships[i].child_name);
-			}
-			ce_free(lnkfile->relationships, sizeof(ce_lnkfile_relationship) *
-											lnkfile->relationship_count);
+		for (int i = 0; i < lnkfile->link_count; ++i) {
+			ce_string_del(lnkfile->links[i].parent_name);
+			ce_string_del(lnkfile->links[i].child_name);
 		}
+		ce_free(lnkfile->links, sizeof(ce_lnklink) * lnkfile->link_count);
+		ce_free(lnkfile->data, lnkfile->size);
 		ce_free(lnkfile, sizeof(ce_lnkfile));
 	}
 }
