@@ -33,7 +33,7 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 	fignode->name = ce_string_dup(lnkfile->relationships[
 					lnkfile->relationship_index].child_name);
 	fignode->index = lnkfile->relationship_index++;
-	fignode->figfile = ce_figfile_open_resfile(mod_resfile, fignode->name->str);
+	fignode->figfile = ce_figfile_open(mod_resfile, fignode->name->str);
 	fignode->bonfile = ce_bonfile_open(bon_resfile, fignode->name->str);
 	fignode->anmfiles = ce_vector_new();
 	fignode->childs = ce_vector_new();

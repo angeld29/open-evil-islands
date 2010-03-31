@@ -25,7 +25,6 @@
 #include <stdint.h>
 
 #include "cecomplection.h"
-#include "cememfile.h"
 #include "ceresfile.h"
 
 #ifdef __cplusplus
@@ -39,20 +38,14 @@ typedef float (*ce_figfile_value_callback)(const float* params, int stride,
 typedef struct {
 	int value_count;
 	ce_figfile_value_callback value_callback;
-	size_t vertex_size;
-	size_t normal_size;
-	size_t texcoord_size;
-	size_t index_size;
-	size_t spec_component_size;
-	size_t morph_component_size;
-	uint32_t vertex_count;
-	uint32_t normal_count;
-	uint32_t texcoord_count;
-	uint32_t index_count;
-	uint32_t spec_component_count;
-	uint32_t morph_component_count;
-	uint32_t unknown;
-	uint32_t texture_number;
+	int vertex_count;
+	int normal_count;
+	int texcoord_count;
+	int index_count;
+	int vertex_component_count;
+	int morph_component_count;
+	int group;
+	int texture_number;
 	float* center;
 	float* min;
 	float* max;
@@ -61,13 +54,13 @@ typedef struct {
 	float* normals;
 	float* texcoords;
 	uint16_t* indices;
-	uint16_t* spec_components;
+	uint16_t* vertex_components;
 	uint16_t* morph_components;
+	size_t size;
+	void* data;
 } ce_figfile;
 
-extern ce_figfile* ce_figfile_open_memfile(ce_memfile* memfile);
-extern ce_figfile* ce_figfile_open_resfile(ce_resfile* resfile, const char* name);
-extern ce_figfile* ce_figfile_open_file(const char* path);
+extern ce_figfile* ce_figfile_open(ce_resfile* resfile, const char* name);
 extern void ce_figfile_close(ce_figfile* figfile);
 
 #ifdef __cplusplus

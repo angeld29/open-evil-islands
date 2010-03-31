@@ -18,13 +18,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
+/*
+ *  See doc/formats/figfile.txt for format details.
+*/
+
 #include <assert.h>
 
 #include "celib.h"
 #include "cebyteorder.h"
 #include "cealloc.h"
-#include "cereshlp.h"
 #include "cefigfile.h"
 
 static float ce_figfile_value_fig1(const float* params, int stride,
@@ -69,6 +71,8 @@ typedef struct {
 } ce_figfile_value_tuple;
 
 static const ce_figfile_value_tuple ce_figfile_value_tuples[] = {
+	{ 0, 1, ce_figfile_value_fig1 },
+	{ 0, 6, ce_figfile_value_fig6 },
 	{ 0x38474946, 8, ce_figfile_value_fig8 }
 };
 
@@ -85,125 +89,70 @@ ce_figfile_value_tuple* ce_figfile_value_tuple_choose(unsigned int type)
 	return NULL;
 }
 
-static void ce_figfile_read_model_data(ce_figfile* figfile, ce_memfile* mem)
+ce_figfile* ce_figfile_open(ce_resfile* resfile, const char* name)
 {
-	figfile->vertex_size = 3 * figfile->value_count * 4 * 4;
-	figfile->normal_size = 4 * 4 * 4;
-	figfile->texcoord_size = 2 * 4;
-	figfile->index_size = 2;
-	figfile->spec_component_size = 3 * 2;
-	figfile->morph_component_size = 2 * 2;
+	ce_figfile* figfile = ce_alloc(sizeof(ce_figfile));
+	int index = ce_resfile_node_index(resfile, name);
+	figfile->size = ce_resfile_node_size(resfile, index);
+	figfile->data = ce_resfile_node_data(resfile, index);
 
-	figfile->vertices = ce_alloc(figfile->vertex_size * figfile->vertex_count);
-	figfile->normals = ce_alloc(figfile->normal_size * figfile->normal_count);
-	figfile->texcoords = ce_alloc(figfile->texcoord_size * figfile->texcoord_count);
-	figfile->indices = ce_alloc(figfile->index_size * figfile->index_count);
-	figfile->spec_components = ce_alloc(figfile->spec_component_size *
-										figfile->spec_component_count);
-	figfile->morph_components = ce_alloc(figfile->morph_component_size *
-										figfile->morph_component_count);
+	union {
+		uint16_t* u16ptr;
+		uint32_t* u32ptr;
+		float* fptr;
+	} data = { figfile->data };
 
-	ce_memfile_read(mem, figfile->vertices, figfile->vertex_size, figfile->vertex_count);
-	ce_memfile_read(mem, figfile->normals, figfile->normal_size, figfile->normal_count);
-	ce_memfile_read(mem, figfile->texcoords, figfile->texcoord_size, figfile->texcoord_count);
-	ce_memfile_read(mem, figfile->indices, figfile->index_size, figfile->index_count);
-	ce_memfile_read(mem, figfile->spec_components,
-		figfile->spec_component_size, figfile->spec_component_count);
-	ce_memfile_read(mem, figfile->morph_components,
-		figfile->morph_component_size, figfile->morph_component_count);
+	const ce_figfile_value_tuple* value_tuple =
+		ce_figfile_value_tuple_choose(ce_le2cpu32(*data.u32ptr++));
+	assert(NULL != value_tuple && "wrong signature");
 
-	for (int i = 0, n = figfile->index_count; i < n; ++i) {
+	figfile->value_count = value_tuple->count;
+	figfile->value_callback = value_tuple->callback;
+	figfile->vertex_count = ce_le2cpu32(*data.u32ptr++);
+	figfile->normal_count = ce_le2cpu32(*data.u32ptr++);
+	figfile->texcoord_count = ce_le2cpu32(*data.u32ptr++);
+	figfile->index_count = ce_le2cpu32(*data.u32ptr++);
+	figfile->vertex_component_count = ce_le2cpu32(*data.u32ptr++);
+	figfile->morph_component_count = ce_le2cpu32(*data.u32ptr++);
+
+	uint32_t unknown = ce_le2cpu32(*data.u32ptr++);
+	assert(0 == unknown); ce_unused(unknown);
+
+	figfile->group = ce_le2cpu32(*data.u32ptr++);
+	figfile->texture_number = ce_le2cpu32(*data.u32ptr++);
+
+	figfile->center = data.fptr;
+	figfile->min = data.fptr += 3 * figfile->value_count;
+	figfile->max = data.fptr += 3 * figfile->value_count;
+	figfile->radius = data.fptr += 3 * figfile->value_count;
+
+	figfile->vertices = data.fptr += figfile->value_count;
+	figfile->normals = data.fptr += 3 * figfile->value_count *
+									4 * figfile->vertex_count;
+	figfile->texcoords = data.fptr += 4 * 4 * figfile->normal_count;
+	figfile->indices = (data.fptr += 2 * figfile->texcoord_count, data.u16ptr);
+	figfile->vertex_components = data.u16ptr += figfile->index_count;
+	figfile->morph_components = data.u16ptr += 3 * figfile->vertex_component_count;
+
+	for (int i = 0; i < figfile->index_count; ++i) {
 		ce_le2cpu16s(figfile->indices + i);
 	}
 
-	for (int i = 0, n = 3 * figfile->spec_component_count; i < n; ++i) {
-		ce_le2cpu16s(figfile->spec_components + i);
+	for (int i = 0, n = 3 * figfile->vertex_component_count; i < n; ++i) {
+		ce_le2cpu16s(figfile->vertex_components + i);
 	}
 
 	for (int i = 0, n = 2 * figfile->morph_component_count; i < n; ++i) {
 		ce_le2cpu16s(figfile->morph_components + i);
 	}
-}
-
-static void ce_figfile_read_header(ce_figfile* figfile, ce_memfile* mem)
-{
-	uint32_t signature;
-	ce_memfile_read(mem, &signature, sizeof(uint32_t), 1);
-
-	const ce_figfile_value_tuple* value_tuple =
-		ce_figfile_value_tuple_choose(ce_le2cpu32(signature));
-	assert(NULL != value_tuple && "wrong signature");
-
-	uint32_t header[9];
-	ce_memfile_read(mem, header, sizeof(uint32_t), 9);
-
-	assert(0 == ce_le2cpu32(header[6]));
-
-	figfile->value_count = value_tuple->count;
-	figfile->value_callback = value_tuple->callback;
-	figfile->vertex_count = ce_le2cpu32(header[0]);
-	figfile->normal_count = ce_le2cpu32(header[1]);
-	figfile->texcoord_count = ce_le2cpu32(header[2]);
-	figfile->index_count = ce_le2cpu32(header[3]);
-	figfile->spec_component_count = ce_le2cpu32(header[4]);
-	figfile->morph_component_count = ce_le2cpu32(header[5]);
-	figfile->unknown = ce_le2cpu32(header[7]);
-	figfile->texture_number = ce_le2cpu32(header[8]);
-}
-
-ce_figfile* ce_figfile_open_memfile(ce_memfile* memfile)
-{
-	ce_figfile* figfile = ce_alloc(sizeof(ce_figfile));
-
-	ce_figfile_read_header(figfile, memfile);
-
-	figfile->center = ce_alloc(sizeof(float) * figfile->value_count * 3);
-	figfile->min = ce_alloc(sizeof(float) * figfile->value_count * 3);
-	figfile->max = ce_alloc(sizeof(float) * figfile->value_count * 3);
-	figfile->radius = ce_alloc(sizeof(float) * figfile->value_count);
-
-	ce_memfile_read(memfile, figfile->center, sizeof(float) * figfile->value_count, 3);
-	ce_memfile_read(memfile, figfile->min, sizeof(float) * figfile->value_count, 3);
-	ce_memfile_read(memfile, figfile->max, sizeof(float) * figfile->value_count, 3);
-	ce_memfile_read(memfile, figfile->radius, sizeof(float) * figfile->value_count, 1);
-
-	ce_figfile_read_model_data(figfile, memfile);
 
 	return figfile;
-}
-
-ce_figfile* ce_figfile_open_resfile(ce_resfile* resfile, const char* name)
-{
-	ce_memfile* memfile = ce_reshlp_extract_memfile_by_name(resfile, name);
-	ce_figfile* figfile = ce_figfile_open_memfile(memfile);
-	return ce_memfile_close(memfile), figfile;
-}
-
-ce_figfile* ce_figfile_open_file(const char* path)
-{
-	ce_memfile* memfile = ce_memfile_open_file(path);
-	if (NULL == memfile) {
-		return NULL;
-	}
-	ce_figfile* figfile = ce_figfile_open_memfile(memfile);
-	return ce_memfile_close(memfile), figfile;
 }
 
 void ce_figfile_close(ce_figfile* figfile)
 {
 	if (NULL != figfile) {
-		ce_free(figfile->morph_components, figfile->morph_component_size *
-										figfile->morph_component_count);
-		ce_free(figfile->spec_components, figfile->spec_component_size *
-										figfile->spec_component_count);
-		ce_free(figfile->indices, figfile->index_size * figfile->index_count);
-		ce_free(figfile->texcoords, figfile->texcoord_size * figfile->texcoord_count);
-		ce_free(figfile->normals, figfile->normal_size * figfile->normal_count);
-		ce_free(figfile->vertices, figfile->vertex_size * figfile->vertex_count);
-		ce_free(figfile->radius, sizeof(float) * figfile->value_count);
-		ce_free(figfile->max, sizeof(float) * figfile->value_count * 3);
-		ce_free(figfile->min, sizeof(float) * figfile->value_count * 3);
-		ce_free(figfile->center, sizeof(float) * figfile->value_count * 3);
+		ce_free(figfile->data, figfile->size);
 		ce_free(figfile, sizeof(ce_figfile));
 	}
 }

@@ -110,9 +110,9 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 	glBegin(GL_TRIANGLES);
 	for (int i = 0, n = figfile->index_count; i < n; ++i) {
 		int index = figfile->indices[i];
-		int vertex_index = figfile->spec_components[3 * index + 0];
-		int normal_index = figfile->spec_components[3 * index + 1];
-		int texcoord_index = figfile->spec_components[3 * index + 2];
+		int vertex_index = figfile->vertex_components[3 * index + 0];
+		int normal_index = figfile->vertex_components[3 * index + 1];
+		int texcoord_index = figfile->vertex_components[3 * index + 2];
 
 		glTexCoord2fv(figfile->texcoords + 2 * texcoord_index);
 		glNormal3fv(ce_fighlp_get_normal(array, figfile, normal_index));
@@ -246,9 +246,9 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 
 	for (int i = 0, n = figfile->index_count; i < n; ++i) {
 		int index = figfile->indices[i];
-		int vertex_index = figfile->spec_components[3 * index + 0];
-		int normal_index = figfile->spec_components[3 * index + 1];
-		int texcoord_index = figfile->spec_components[3 * index + 2];
+		int vertex_index = figfile->vertex_components[3 * index + 0];
+		int normal_index = figfile->vertex_components[3 * index + 1];
+		int texcoord_index = figfile->vertex_components[3 * index + 2];
 
 		ce_fighlp_get_vertex(figrenderitem->cookie->vertices + 3 * i,
 								figfile, vertex_index, complection);
@@ -327,7 +327,7 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 
 	for (int i = 0, n = figfile->index_count; i < n; ++i) {
 		int index = figfile->indices[i];
-		int vertex_index = figfile->spec_components[3 * index];
+		int vertex_index = figfile->vertex_components[3 * index];
 		int morph_index = figfile->morph_components[2 * vertex_index];
 
 		for (int j = 0; j < 3; ++j) {
