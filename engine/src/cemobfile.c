@@ -30,39 +30,34 @@
 
 // helpers
 
-static bool ce_mobfile_decrypt_script(char* data, size_t size, uint32_t key)
+static void ce_mobfile_decrypt_script(char* data, size_t size, uint32_t key)
 {
 	for (int i = 0, n = size; i < n; ++i) {
 		key += (((((key * 13) << 4) + key) << 8) - key) * 4 + 2531011;
 		data[i] ^= key >> 16;
 	}
-	return true;
 }
 
-static bool ce_mobfile_skip(ce_memfile* mem, size_t size)
+static void ce_mobfile_skip(ce_memfile* mem, size_t size)
 {
 	ce_memfile_seek(mem, size, SEEK_CUR);
-	return true;
 }
 
-static bool ce_mobfile_read_generic(ce_memfile* mem, void* data,
+static void ce_mobfile_read_generic(ce_memfile* mem, void* data,
 										size_t size, size_t count)
 {
 	ce_memfile_read(mem, data, size, count);
-	return true;
 }
 
-static bool ce_mobfile_read_uint8(ce_memfile* mem, uint8_t* value)
+static void ce_mobfile_read_uint8(ce_memfile* mem, uint8_t* value)
 {
 	ce_mobfile_read_generic(mem, value, sizeof(uint8_t), 1);
-	return true;
 }
 
-static bool ce_mobfile_read_uint32(ce_memfile* mem, uint32_t* value)
+static void ce_mobfile_read_uint32(ce_memfile* mem, uint32_t* value)
 {
 	ce_mobfile_read_generic(mem, value, sizeof(uint32_t), 1);
 	ce_le2cpu32s(value);
-	return true;
 }
 
 static ce_string* ce_mobfile_read_string(ce_memfile* mem, size_t size)
@@ -74,40 +69,36 @@ static ce_string* ce_mobfile_read_string(ce_memfile* mem, size_t size)
 
 // callbacks
 
-static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size);
+static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size);
 
-static bool
+static void
 ce_mobfile_block_unknown(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	ce_unused(mob);
 	ce_mobfile_skip(mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_main(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	ce_mobfile_block_loop(mob, mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_quest(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	assert(0 == size);
 	ce_mobfile_block_loop(mob, mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_zonal(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	assert(0 == size);
 	ce_mobfile_block_loop(mob, mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_text(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	// WARNING: string is encrypted and may contain null characters
@@ -118,49 +109,43 @@ ce_mobfile_block_text(ce_mobfile* mob, ce_memfile* mem, size_t size)
 	ce_mobfile_read_generic(mem, data, 1, size);
 	ce_mobfile_decrypt_script(data, size, key);
 	mob->script = ce_string_new_str_n(data, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	assert(NULL == mob->objects);
 	mob->objects = ce_vector_new();
 	ce_mobfile_block_loop(mob, mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	assert(NULL != mob->objects);
 	ce_mobobject_object* object = ce_alloc_zero(sizeof(ce_mobobject_object));
 	ce_vector_push_back(mob->objects, object);
 	ce_mobfile_block_loop(mob, mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_parts(ce_mobfile* mob,
 									ce_memfile* mem, size_t size)
 {
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
-
 	if (NULL == object->parts) {
 		uint32_t count;
 		ce_mobfile_read_uint32(mem, &count);
 		object->parts = ce_vector_new_reserved(count);
 		ce_mobfile_block_loop(mob, mem, size -= sizeof(count));
-		return true;
+	} else {
+		ce_string* part = ce_mobfile_read_string(mem, size);
+		ce_vector_push_back(object->parts, part);
 	}
-
-	ce_string* part = ce_mobfile_read_string(mem, size);
-	ce_vector_push_back(object->parts, part);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_owner(ce_mobfile* mob,
 									ce_memfile* mem, size_t size)
 {
@@ -170,10 +155,9 @@ ce_mobfile_block_object_object_owner(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	ce_mobfile_read_uint8(mem, &owner);
 	object->owner = owner;
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_id(ce_mobfile* mob,
 								ce_memfile* mem, size_t size)
 {
@@ -183,10 +167,9 @@ ce_mobfile_block_object_object_id(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	ce_mobfile_read_uint32(mem, &id);
 	object->id = id;
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_type(ce_mobfile* mob,
 									ce_memfile* mem, size_t size)
 {
@@ -196,10 +179,9 @@ ce_mobfile_block_object_object_type(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	ce_mobfile_read_uint32(mem, &type);
 	object->type = type;
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_name(ce_mobfile* mob,
 									ce_memfile* mem, size_t size)
 {
@@ -207,10 +189,9 @@ ce_mobfile_block_object_object_name(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	assert(NULL == object->name);
 	object->name = ce_mobfile_read_string(mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_model_name(ce_mobfile* mob,
 											ce_memfile* mem, size_t size)
 {
@@ -218,10 +199,9 @@ ce_mobfile_block_object_object_model_name(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	assert(NULL == object->model_name);
 	object->model_name = ce_mobfile_read_string(mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_parent_name(ce_mobfile* mob,
 											ce_memfile* mem, size_t size)
 {
@@ -229,10 +209,9 @@ ce_mobfile_block_object_object_parent_name(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	assert(NULL == object->parent_name);
 	object->parent_name = ce_mobfile_read_string(mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_primary_texture(ce_mobfile* mob,
 												ce_memfile* mem, size_t size)
 {
@@ -240,10 +219,9 @@ ce_mobfile_block_object_object_primary_texture(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	assert(NULL == object->primary_texture);
 	object->primary_texture = ce_mobfile_read_string(mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_secondary_texture(ce_mobfile* mob,
 												ce_memfile* mem, size_t size)
 {
@@ -251,10 +229,9 @@ ce_mobfile_block_object_object_secondary_texture(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	assert(NULL == object->secondary_texture);
 	object->secondary_texture = ce_mobfile_read_string(mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_comment(ce_mobfile* mob,
 										ce_memfile* mem, size_t size)
 {
@@ -262,10 +239,9 @@ ce_mobfile_block_object_object_comment(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	assert(NULL == object->comment);
 	object->comment = ce_mobfile_read_string(mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_position(ce_mobfile* mob,
 										ce_memfile* mem, size_t size)
 {
@@ -275,10 +251,9 @@ ce_mobfile_block_object_object_position(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	ce_mobfile_read_generic(mem, position, sizeof(position), 1);
 	ce_vec3_init_array(&object->position, position);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_rotation(ce_mobfile* mob,
 										ce_memfile* mem, size_t size)
 {
@@ -288,10 +263,9 @@ ce_mobfile_block_object_object_rotation(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	ce_mobfile_read_generic(mem, rotation, sizeof(rotation), 1);
 	ce_quat_init_array(&object->rotation, rotation);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_quest(ce_mobfile* mob,
 									ce_memfile* mem, size_t size)
 {
@@ -301,10 +275,9 @@ ce_mobfile_block_object_object_quest(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	ce_mobfile_read_uint8(mem, &quest);
 	object->quest = quest;
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_shadow(ce_mobfile* mob,
 										ce_memfile* mem, size_t size)
 {
@@ -314,10 +287,9 @@ ce_mobfile_block_object_object_shadow(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	ce_mobfile_read_uint8(mem, &shadow);
 	object->shadow = shadow;
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_parent_id(ce_mobfile* mob,
 										ce_memfile* mem, size_t size)
 {
@@ -327,10 +299,9 @@ ce_mobfile_block_object_object_parent_id(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	ce_mobfile_read_uint32(mem, &parent_id);
 	object->parent_id = parent_id;
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_quest_info(ce_mobfile* mob,
 											ce_memfile* mem, size_t size)
 {
@@ -338,10 +309,9 @@ ce_mobfile_block_object_object_quest_info(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	assert(NULL == object->quest_info);
 	object->quest_info = ce_mobfile_read_string(mem, size);
-	return true;
 }
 
-static bool
+static void
 ce_mobfile_block_object_object_complection(ce_mobfile* mob,
 											ce_memfile* mem, size_t size)
 {
@@ -351,18 +321,15 @@ ce_mobfile_block_object_object_complection(ce_mobfile* mob,
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
 	ce_mobfile_read_generic(mem, complection, sizeof(complection), 1);
 	ce_complection_init_array(&object->complection, complection);
-	return true;
 }
 
-typedef bool
+typedef void
 (*ce_mobfile_block_callback)(ce_mobfile* mob, ce_memfile* mem, size_t size);
 
 typedef struct {
 	unsigned int type;
 	ce_mobfile_block_callback callback;
 } ce_mobfile_block_pair;
-
-static const int CE_MOBFILE_BLOCK_PAIR_COUNT = 256;
 
 static const ce_mobfile_block_pair ce_mobfile_block_pairs[] = {
 	{ 0xa000, ce_mobfile_block_main },
@@ -410,15 +377,13 @@ ce_mobfile_block_callback_choose(unsigned int type)
 	return ce_mobfile_block_unknown;
 }
 
-static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
+static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 {
 	uint32_t child_type, child_size;
 
 	while (0 != size) {
-		if (!ce_mobfile_read_uint32(mem, &child_type) ||
-				!ce_mobfile_read_uint32(mem, &child_size)) {
-			return false;
-		}
+		ce_mobfile_read_uint32(mem, &child_type);
+		ce_mobfile_read_uint32(mem, &child_size);
 
 		size -= child_size;
 
@@ -515,8 +480,6 @@ static bool ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 
 		(*ce_mobfile_block_callback_choose(child_type))(mob, mem, child_size);
 	}
-
-	return true;
 }
 
 static ce_mobfile* ce_mobfile_open_memfile(ce_memfile* memfile)
@@ -527,10 +490,7 @@ static ce_mobfile* ce_mobfile_open_memfile(ce_memfile* memfile)
 	size_t size = ce_memfile_tell(memfile);
 	ce_memfile_seek(memfile, 0, SEEK_SET);
 
-	if (!ce_mobfile_block_loop(mobfile, memfile, size)) {
-		ce_mobfile_close(mobfile);
-		return NULL;
-	}
+	ce_mobfile_block_loop(mobfile, memfile, size);
 
 	return mobfile;
 }
