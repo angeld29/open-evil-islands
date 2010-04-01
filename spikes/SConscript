@@ -31,9 +31,9 @@ Import("env")
 env = env.Clone()
 
 env.AppendUnique(
-	CPPPATH=[os.path.join("#game", "include")],
-	LIBPATH=[os.path.join("#game", "lib", "$GEN_PATH")],
-	LIBS=["game"],
+	CPPPATH=[os.path.join("#engine", "include")],
+	LIBPATH=[os.path.join("#engine", "lib", "$GEN_PATH")],
+	LIBS=["engine"],
 )
 
 if env["TARGET_PLATFORM"] == "posix":

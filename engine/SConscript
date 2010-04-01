@@ -34,9 +34,9 @@ env.AppendUnique(
 
 env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
 
-targets = [env.Command(os.path.join("lib", SCons.Util.adjustixes("game",
+targets = [env.Command(os.path.join("lib", SCons.Util.adjustixes("engine",
 	env.subst("$LIBPREFIX"), env.subst("$LIBSUFFIX"))),
-	env.StaticLibrary(os.path.join("lib", "$GEN_PATH", "game"),
+	env.StaticLibrary(os.path.join("lib", "$GEN_PATH", "engine"),
 	[os.path.join("build", "$GEN_PATH", node.name) for node in
 	ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))]),
 	Copy("$TARGET", "$SOURCE"))]
