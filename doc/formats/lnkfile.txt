@@ -23,13 +23,20 @@ Cursed Earth LNK file format
      туловищу, ступня к голени.
 
    * Описание.
-     uint32 link_count - количество связей
-     в цикле:
-        uint32 length - длина строки
-        string child_name - название части-потомка
+     Сигнатуры нет, данные плотно упакованы.
 
+     Типы:
+     struct string - строка
         uint32 length - длина строки
+        char name[length] - сама строка
+
+     struct link - связь
+        string child_name - название части-потомка
         string parent_name - название части-предка
+
+     Формат:
+     uint32 link_count - количество связей
+     link links[link_count] - связи
 
      Строка может заканчиваться нулём, а может и нет.
      Часть-корень иерархии всегда первая с пустым названием части-предка.

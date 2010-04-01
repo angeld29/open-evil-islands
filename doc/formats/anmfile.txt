@@ -19,19 +19,29 @@ Cursed Earth ANM file format
 
    * Введение.
      Формат anm - это хранилище для данных анимации (вращения, смещения и
-     морфинга) одной части.
+     морфинга) одной части модели.
 
    * Описание.
+     Сигнатуры нет, данные плотно упакованы.
+
+     Типы:
+     struct vec3 - вектор
+        float x, y, z
+
+     struct quat - кватернион
+        float w, x, y, z
+
+     Формат:
      uint32 rotation_frame_count - количество кадров анимации для вращения
-     float rotations (wxyz) - вращения, кватернионы
+     quat rotations[rotation_frame_count] - вращения
 
      uint32 translation_frame_count - количество кадров анимации для смещения
-     float translations (xyz) - смещения, вектора
+     vec3 translations[translation_frame_count] - смещения
 
      uint32 morph_frame_count - количество кадров анимации для морфинга
      uint32 morph_vertex_count - количество вершин в кадре,
                                  к которым применяется морфинг
-     float morphs (xyz) - морфы, вектора
+     vec3 morphs[morph_frame_count][morph_vertex_count] - смещения
 
      Данные вращения и смещения присутствуют всегда. Данные морфинга могут
      отсутствовать, в этом случае morph_*_count равны нулю.
