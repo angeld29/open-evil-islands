@@ -26,6 +26,10 @@
  *  3. SOIL (Simple OpenGL Image Library) (C) Jonathan Dummer.
 */
 
+/*
+ *  See doc/formats/mmpfile.txt for more details.
+*/
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -311,12 +315,7 @@ static bool dxt_generate_texture(int mipmap_count,
 		data_size += w * h * 4;
 	}
 
-	if (NULL == (data = ce_alloc(data_size))) {
-		ce_logging_error("texture: could not allocate memory");
-		return false;
-	}
-
-	uint8_t* dst = data;
+	uint8_t* dst = data = ce_alloc(data_size);
 
 	for (int i = 0, w = width, h = height;
 			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
@@ -412,12 +411,7 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 	uint16_t* end = src + pixel_count;
 	int data_size = bpp * pixel_count;
 
-	if (NULL == (data = ce_alloc(data_size))) {
-		ce_logging_error("texture: could not allocate memory");
-		return false;
-	}
-
-	for (uint8_t* dst = data; src != end; ++src) {
+	for (uint8_t* dst = data = ce_alloc(data_size); src != end; ++src) {
 		*dst++ = ((*src & rmask) >> rshift) * 255 / rdiv;
 		*dst++ = ((*src & gmask) >> gshift) * 255 / gdiv;
 		*dst++ = (*src & bmask) * 255 / bdiv;
@@ -436,7 +430,7 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 static bool argb8_generate_texture(int mipmap_count, int width,
 									int height, void* data)
 {
-	static uint8_t dst[4];
+	uint8_t dst[4];
 	uint32_t* src = data;
 
 	for (int i = 0, w = width, h = height;
@@ -468,12 +462,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 		uint32_t* src = data;
 		uint32_t* end = src + size / sizeof(uint32_t);
 
-		if (NULL == (data = ce_alloc(data_size))) {
-			ce_logging_error("texture: could not allocate memory");
-			return false;
-		}
-
-		uint8_t* dst = data;
+		uint8_t* dst = data = ce_alloc(data_size);
 		int n = 0;
 
 		while (src != end) {
@@ -514,7 +503,6 @@ ce_texture* ce_texture_new(const char* name, void* data)
 	glGenTextures(1, &texture->id);
 	glBindTexture(GL_TEXTURE_2D, texture->id);
 
-	// See cemmpfile.h for format details.
 	uint32_t* mmp = data;
 
 	if (CE_MMP_SIGNATURE != ce_le2cpu32(*mmp++)) {
