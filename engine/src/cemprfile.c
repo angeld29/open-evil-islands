@@ -46,61 +46,6 @@ static void read_vertex(ce_mprvertex* ver, ce_memfile* mem)
 	ce_le2cpu32s(&ver->normal);
 }
 
-static void read_sector(ce_mprsector* sec, const char* name, ce_resfile* res)
-{
-	ce_memfile* mem = ce_reshlp_extract_memfile_by_name(res, name);
-
-	uint32_t signature;
-	ce_memfile_read(mem, &signature, sizeof(uint32_t), 1);
-
-	ce_le2cpu32s(&signature);
-	assert(SEC_SIGNATURE == signature && "wrong signature");
-
-	ce_memfile_read(mem, &sec->water, sizeof(uint8_t), 1);
-
-	sec->land_vertices = ce_alloc(sizeof(ce_mprvertex) *
-									CE_MPRFILE_VERTEX_COUNT);
-
-	for (unsigned int i = 0; i < CE_MPRFILE_VERTEX_COUNT; ++i) {
-		read_vertex(sec->land_vertices + i, mem);
-	}
-
-	if (0 != sec->water) {
-		sec->water_vertices = ce_alloc(sizeof(ce_mprvertex) *
-										CE_MPRFILE_VERTEX_COUNT);
-
-		for (unsigned int i = 0; i < CE_MPRFILE_VERTEX_COUNT; ++i) {
-			read_vertex(sec->water_vertices + i, mem);
-		}
-	}
-
-	sec->land_textures = ce_alloc(sizeof(uint16_t) * CE_MPRFILE_TEXTURE_COUNT);
-
-	ce_memfile_read(mem, sec->land_textures,
-		sizeof(uint16_t), CE_MPRFILE_TEXTURE_COUNT);
-
-	for (unsigned int i = 0; i < CE_MPRFILE_TEXTURE_COUNT; ++i) {
-		ce_le2cpu16s(sec->land_textures + i);
-	}
-
-	if (0 != sec->water) {
-		sec->water_textures = ce_alloc(sizeof(uint16_t) * CE_MPRFILE_TEXTURE_COUNT);
-		sec->water_allow = ce_alloc(sizeof(int16_t) * CE_MPRFILE_TEXTURE_COUNT);
-
-		ce_memfile_read(mem, sec->water_textures,
-			sizeof(uint16_t), CE_MPRFILE_TEXTURE_COUNT);
-		ce_memfile_read(mem, sec->water_allow,
-			sizeof(int16_t), CE_MPRFILE_TEXTURE_COUNT);
-
-		for (unsigned int i = 0; i < CE_MPRFILE_TEXTURE_COUNT; ++i) {
-			ce_le2cpu16s(sec->water_textures + i);
-			ce_le2cpu16s((uint16_t*)(sec->water_allow + i));
-		}
-	}
-
-	ce_memfile_close(mem);
-}
-
 static void read_sectors(ce_mprfile* mpr, ce_resfile* res)
 {
 	mpr->sectors = ce_alloc_zero(sizeof(ce_mprsector) *
@@ -114,7 +59,58 @@ static void read_sectors(ce_mprfile* mpr, ce_resfile* res)
 			snprintf(sec_name, sizeof(sec_name),
 				"%s%03d%03d.sec", mpr->name->str, x, z);
 
-			read_sector(mpr->sectors + z * x_count + x, sec_name, res);
+			ce_mprsector* sec = mpr->sectors + z * x_count + x;
+			ce_memfile* mem = ce_reshlp_extract_memfile_by_name(res, sec_name);
+
+			uint32_t signature;
+			ce_memfile_read(mem, &signature, sizeof(uint32_t), 1);
+
+			ce_le2cpu32s(&signature);
+			assert(SEC_SIGNATURE == signature && "wrong signature");
+
+			ce_memfile_read(mem, &sec->water, sizeof(uint8_t), 1);
+
+			sec->land_vertices = ce_alloc(sizeof(ce_mprvertex) *
+											CE_MPRFILE_VERTEX_COUNT);
+
+			for (unsigned int i = 0; i < CE_MPRFILE_VERTEX_COUNT; ++i) {
+				read_vertex(sec->land_vertices + i, mem);
+			}
+
+			if (0 != sec->water) {
+				sec->water_vertices = ce_alloc(sizeof(ce_mprvertex) *
+												CE_MPRFILE_VERTEX_COUNT);
+
+				for (unsigned int i = 0; i < CE_MPRFILE_VERTEX_COUNT; ++i) {
+					read_vertex(sec->water_vertices + i, mem);
+				}
+			}
+
+			sec->land_textures = ce_alloc(sizeof(uint16_t) * CE_MPRFILE_TEXTURE_COUNT);
+
+			ce_memfile_read(mem, sec->land_textures,
+				sizeof(uint16_t), CE_MPRFILE_TEXTURE_COUNT);
+
+			for (unsigned int i = 0; i < CE_MPRFILE_TEXTURE_COUNT; ++i) {
+				ce_le2cpu16s(sec->land_textures + i);
+			}
+
+			if (0 != sec->water) {
+				sec->water_textures = ce_alloc(sizeof(uint16_t) * CE_MPRFILE_TEXTURE_COUNT);
+				sec->water_allow = ce_alloc(sizeof(int16_t) * CE_MPRFILE_TEXTURE_COUNT);
+
+				ce_memfile_read(mem, sec->water_textures,
+					sizeof(uint16_t), CE_MPRFILE_TEXTURE_COUNT);
+				ce_memfile_read(mem, sec->water_allow,
+					sizeof(int16_t), CE_MPRFILE_TEXTURE_COUNT);
+
+				for (unsigned int i = 0; i < CE_MPRFILE_TEXTURE_COUNT; ++i) {
+					ce_le2cpu16s(sec->water_textures + i);
+					ce_le2cpu16s((uint16_t*)(sec->water_allow + i));
+				}
+			}
+
+			ce_memfile_close(mem);
 		}
 	}
 }
