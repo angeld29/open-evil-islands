@@ -118,13 +118,11 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_rendersystem_setup_viewport(scenemng->rendersystem, scenemng->viewport);
 	ce_rendersystem_setup_camera(scenemng->rendersystem, scenemng->camera);
 
-	if (scenemng->show_axes) {
-		ce_rendersystem_draw_axes(scenemng->rendersystem);
-	}
-
 	for (int i = 0; i < scenemng->figentities->count; ++i) {
 		ce_figentity_update(scenemng->figentities->items[i]);
 	}
+
+	ce_scenenode_update_cascade(scenemng->scenenode);
 
 	ce_vec3 forward, right, up;
 	ce_frustum frustum;
@@ -137,21 +135,20 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_camera_get_up(scenemng->camera, &up));
 
 	ce_renderqueue_clear(scenemng->renderqueue);
-	ce_scenenode_update_cascade(scenemng->scenenode);
-	ce_renderqueue_add_cascade(scenemng->renderqueue,
-								scenemng->scenenode,
-								&scenemng->camera->position,
-								&frustum);
+	ce_renderqueue_add_cascade(scenemng->renderqueue, scenemng->scenenode,
+								&scenemng->camera->position, &frustum);
 
-	// FIXME: do not render culled scenenodes
-	if (scenemng->show_bboxes) {
-		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,
-										scenemng->rendersystem,
-										scenemng->comprehensive_bbox_only);
+	if (scenemng->show_axes) {
+		ce_rendersystem_draw_axes(scenemng->rendersystem);
 	}
 
-	ce_renderqueue_render(scenemng->renderqueue,
-							scenemng->rendersystem);
+	if (scenemng->show_bboxes) {
+		ce_renderqueue_draw_bboxes(scenemng->renderqueue,
+									scenemng->rendersystem,
+									scenemng->comprehensive_bbox_only);
+	}
+
+	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
 
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
 

@@ -108,3 +108,16 @@ void ce_renderqueue_render(ce_renderqueue* renderqueue,
 		}
 	}
 }
+
+void ce_renderqueue_draw_bboxes(ce_renderqueue* renderqueue,
+								ce_rendersystem* rendersystem,
+								bool comprehensive_only)
+{
+	for (int i = 0; i < 2; ++i) {
+		ce_vector* scenenodes = renderqueue->scenenodes[i];
+		for (int j = 0; j < scenenodes->count; ++j) {
+			ce_scenenode_draw_bboxes(scenenodes->items[j],
+									rendersystem, comprehensive_only);
+		}
+	}
+}

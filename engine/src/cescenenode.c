@@ -185,15 +185,3 @@ void ce_scenenode_draw_bboxes(ce_scenenode* scenenode,
 		ce_rendersystem_discard_transform(rendersystem);
 	}
 }
-
-void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
-									ce_rendersystem* rendersystem,
-									bool comprehensive_only)
-{
-	ce_scenenode_draw_bboxes(scenenode, rendersystem, comprehensive_only);
-
-	for (int i = 0; i < scenenode->childs->count; ++i) {
-		ce_scenenode_draw_bboxes_cascade(scenenode->childs->items[i],
-										rendersystem, comprehensive_only);
-	}
-}
