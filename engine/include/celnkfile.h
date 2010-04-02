@@ -38,8 +38,6 @@ typedef struct {
 	int link_count;
 	int link_index;
 	ce_lnklink* links;
-	size_t size;
-	void* data;
 } ce_lnkfile;
 
 extern ce_lnkfile* ce_lnkfile_open(ce_resfile* resfile, const char* name);

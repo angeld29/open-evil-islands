@@ -98,42 +98,42 @@ ce_figfile* ce_figfile_open(ce_resfile* resfile, const char* name)
 	figfile->data = ce_resfile_node_data(resfile, index);
 
 	union {
-		uint16_t* u16ptr;
-		uint32_t* u32ptr;
-		float* fptr;
-	} data = { figfile->data };
+		float* f;
+		uint16_t* u16;
+		uint32_t* u32;
+	} ptr = { figfile->data };
 
 	const ce_figfile_value_tuple* value_tuple =
-		ce_figfile_value_tuple_choose(ce_le2cpu32(*data.u32ptr++));
+		ce_figfile_value_tuple_choose(ce_le2cpu32(*ptr.u32++));
 	assert(NULL != value_tuple && "wrong signature");
 
 	figfile->value_count = value_tuple->count;
 	figfile->value_callback = value_tuple->callback;
-	figfile->vertex_count = ce_le2cpu32(*data.u32ptr++);
-	figfile->normal_count = ce_le2cpu32(*data.u32ptr++);
-	figfile->texcoord_count = ce_le2cpu32(*data.u32ptr++);
-	figfile->index_count = ce_le2cpu32(*data.u32ptr++);
-	figfile->vertex_component_count = ce_le2cpu32(*data.u32ptr++);
-	figfile->morph_component_count = ce_le2cpu32(*data.u32ptr++);
+	figfile->vertex_count = ce_le2cpu32(*ptr.u32++);
+	figfile->normal_count = ce_le2cpu32(*ptr.u32++);
+	figfile->texcoord_count = ce_le2cpu32(*ptr.u32++);
+	figfile->index_count = ce_le2cpu32(*ptr.u32++);
+	figfile->vertex_component_count = ce_le2cpu32(*ptr.u32++);
+	figfile->morph_component_count = ce_le2cpu32(*ptr.u32++);
 
-	uint32_t unknown = ce_le2cpu32(*data.u32ptr++);
+	uint32_t unknown = ce_le2cpu32(*ptr.u32++);
 	assert(0 == unknown); ce_unused(unknown);
 
-	figfile->group = ce_le2cpu32(*data.u32ptr++);
-	figfile->texture_number = ce_le2cpu32(*data.u32ptr++);
+	figfile->group = ce_le2cpu32(*ptr.u32++);
+	figfile->texture_number = ce_le2cpu32(*ptr.u32++);
 
-	figfile->center = data.fptr;
-	figfile->min = data.fptr += 3 * figfile->value_count;
-	figfile->max = data.fptr += 3 * figfile->value_count;
-	figfile->radius = data.fptr += 3 * figfile->value_count;
+	figfile->center = ptr.f;
+	figfile->min = ptr.f += 3 * figfile->value_count;
+	figfile->max = ptr.f += 3 * figfile->value_count;
+	figfile->radius = ptr.f += 3 * figfile->value_count;
 
-	figfile->vertices = data.fptr += figfile->value_count;
-	figfile->normals = data.fptr += 3 * figfile->value_count *
-									4 * figfile->vertex_count;
-	figfile->texcoords = data.fptr += 4 * 4 * figfile->normal_count;
-	figfile->indices = (data.fptr += 2 * figfile->texcoord_count, data.u16ptr);
-	figfile->vertex_components = data.u16ptr += figfile->index_count;
-	figfile->morph_components = data.u16ptr += 3 * figfile->vertex_component_count;
+	figfile->vertices = ptr.f += figfile->value_count;
+	figfile->normals = ptr.f += 3 * figfile->value_count *
+								4 * figfile->vertex_count;
+	figfile->texcoords = ptr.f += 4 * 4 * figfile->normal_count;
+	figfile->indices = (ptr.f += 2 * figfile->texcoord_count, ptr.u16);
+	figfile->vertex_components = ptr.u16 += figfile->index_count;
+	figfile->morph_components = ptr.u16 += 3 * figfile->vertex_component_count;
 
 	for (int i = 0; i < figfile->index_count; ++i) {
 		ce_le2cpu16s(figfile->indices + i);

@@ -162,7 +162,7 @@ ce_mprfile* ce_mprfile_open(ce_resfile* resfile)
 		ce_le2cpu32s(mprfile->tiles + i);
 	}
 
-	for (int i = 0; i < 2 * mprfile->anim_tile_count; ++i) {
+	for (int i = 0, n = 2 * mprfile->anim_tile_count; i < n; ++i) {
 		ce_le2cpu16s(mprfile->anim_tiles + i);
 	}
 
