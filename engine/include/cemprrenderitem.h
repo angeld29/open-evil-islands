@@ -18,39 +18,25 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_TERRAIN_H
-#define CE_TERRAIN_H
+#ifndef CE_MPRRENDERITEM_H
+#define CE_MPRRENDERITEM_H
 
-#include "cevec3.h"
-#include "cequat.h"
 #include "cevector.h"
 #include "cemprfile.h"
-#include "cetexture.h"
-#include "cescenenode.h"
+#include "cerenderitem.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct {
-	ce_mprfile* mprfile;
-	ce_texture* stub_texture;
-	ce_vector* textures;
-	ce_scenenode* scenenode;
-} ce_terrain;
-
-/// Terrain takes ownership of the mprfile.
-extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
-									const ce_vec3* position,
-									const ce_quat* orientation,
-									ce_texture* stub_texture,
-									ce_texture* textures[],
-									ce_scenenode* scenenode);
-extern void ce_terrain_del(ce_terrain* terrain);
+extern ce_renderitem*
+ce_mprrenderitem_new(ce_mprfile* mprfile,
+					int sector_x, int sector_z,
+					int water, ce_vector* textures);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_TERRAIN_H */
+#endif /* CE_MPRRENDERITEM_H */

@@ -18,8 +18,36 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
+
 #include "cealloc.h"
+#include "cemprhlp.h"
+#include "cemprrenderitem.h"
 #include "ceterrain.h"
+
+static void ce_terrain_create_sector(ce_terrain* terrain,
+									int sector_x, int sector_z,
+									bool water)
+{
+	ce_mprsector* sector = terrain->mprfile->sectors + sector_z *
+							terrain->mprfile->sector_x_count + sector_x;
+
+	// skip empty geometry
+	if (water && NULL == sector->water_allow) {
+		return;
+	}
+
+	ce_renderlayer* renderlayer = ce_renderlayer_new(
+		ce_mprhlp_create_material(terrain->mprfile, water,
+									terrain->stub_texture));
+	ce_renderlayer_add_renderitem(renderlayer,
+		ce_mprrenderitem_new(terrain->mprfile,
+							sector_x, sector_z,
+							water, terrain->textures));
+
+	ce_scenenode* scenenode = ce_scenenode_new(terrain->scenenode);
+	ce_scenenode_add_renderlayer(scenenode, renderlayer);
+}
 
 ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 							const ce_vec3* position,
@@ -36,14 +64,16 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 	terrain->scenenode->position = *position;
 	terrain->scenenode->orientation = *orientation;
 
-	for (int i = 0, n = mprfile->texture_count; i < n; ++i) {
-		ce_vector_push_back(terrain->textures, ce_texture_add_ref(textures[i]));
+	for (int i = 0; i < mprfile->texture_count; ++i) {
+		ce_vector_push_back(terrain->textures,
+			ce_texture_add_ref(textures[i]));
 	}
 
-	if (!ce_terrain_create(terrain)) {
-		terrain->mprfile = NULL;
-		ce_terrain_del(terrain);
-		return NULL;
+	for (int z = 0; z < terrain->mprfile->sector_z_count; ++z) {
+		for (int x = 0; x < terrain->mprfile->sector_x_count; ++x) {
+			ce_terrain_create_sector(terrain, x, z, false);
+			ce_terrain_create_sector(terrain, x, z, true);
+		}
 	}
 
 	return terrain;
@@ -53,9 +83,7 @@ void ce_terrain_del(ce_terrain* terrain)
 {
 	if (NULL != terrain) {
 		ce_scenenode_del(terrain->scenenode);
-		for (int i = 0; i < terrain->textures->count; ++i) {
-			ce_texture_del(terrain->textures->items[i]);
-		}
+		ce_vector_for_each(terrain->textures, (ce_vector_func1)ce_texture_del);
 		ce_vector_del(terrain->textures);
 		ce_texture_del(terrain->stub_texture);
 		ce_mprfile_close(terrain->mprfile);
