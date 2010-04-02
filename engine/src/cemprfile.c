@@ -36,7 +36,7 @@
 static const unsigned int MP_SIGNATURE = 0xce4af672;
 static const unsigned int SEC_SIGNATURE = 0xcf4bf774;
 
-static void read_vertex(ce_mprfile_vertex* ver, ce_memfile* mem)
+static void read_vertex(ce_mprvertex* ver, ce_memfile* mem)
 {
 	ce_memfile_read(mem, &ver->offset_x, sizeof(int8_t), 1);
 	ce_memfile_read(mem, &ver->offset_z, sizeof(int8_t), 1);
@@ -46,7 +46,7 @@ static void read_vertex(ce_mprfile_vertex* ver, ce_memfile* mem)
 	ce_le2cpu32s(&ver->normal);
 }
 
-static void read_sector(ce_mprfile_sector* sec, const char* name, ce_resfile* res)
+static void read_sector(ce_mprsector* sec, const char* name, ce_resfile* res)
 {
 	ce_memfile* mem = ce_reshlp_extract_memfile_by_name(res, name);
 
@@ -58,7 +58,7 @@ static void read_sector(ce_mprfile_sector* sec, const char* name, ce_resfile* re
 
 	ce_memfile_read(mem, &sec->water, sizeof(uint8_t), 1);
 
-	sec->land_vertices = ce_alloc(sizeof(ce_mprfile_vertex) *
+	sec->land_vertices = ce_alloc(sizeof(ce_mprvertex) *
 									CE_MPRFILE_VERTEX_COUNT);
 
 	for (unsigned int i = 0; i < CE_MPRFILE_VERTEX_COUNT; ++i) {
@@ -66,7 +66,7 @@ static void read_sector(ce_mprfile_sector* sec, const char* name, ce_resfile* re
 	}
 
 	if (0 != sec->water) {
-		sec->water_vertices = ce_alloc(sizeof(ce_mprfile_vertex) *
+		sec->water_vertices = ce_alloc(sizeof(ce_mprvertex) *
 										CE_MPRFILE_VERTEX_COUNT);
 
 		for (unsigned int i = 0; i < CE_MPRFILE_VERTEX_COUNT; ++i) {
@@ -103,7 +103,7 @@ static void read_sector(ce_mprfile_sector* sec, const char* name, ce_resfile* re
 
 static void read_sectors(ce_mprfile* mpr, ce_resfile* res)
 {
-	mpr->sectors = ce_alloc_zero(sizeof(ce_mprfile_sector) *
+	mpr->sectors = ce_alloc_zero(sizeof(ce_mprsector) *
 								mpr->sector_x_count * mpr->sector_z_count);
 
 	// mpr name + xxxzzz.sec
@@ -181,7 +181,7 @@ void ce_mprfile_close(ce_mprfile* mprfile)
 		ce_free(mprfile->data, mprfile->size);
 		for (int i = 0, n = mprfile->sector_x_count *
 							mprfile->sector_z_count; i < n; ++i) {
-			ce_mprfile_sector* sector = mprfile->sectors + i;
+			ce_mprsector* sector = mprfile->sectors + i;
 			ce_free(sector->water_allow,
 					sizeof(int16_t) * CE_MPRFILE_TEXTURE_COUNT);
 			ce_free(sector->water_textures,
@@ -189,11 +189,11 @@ void ce_mprfile_close(ce_mprfile* mprfile)
 			ce_free(sector->land_textures,
 					sizeof(uint16_t) * CE_MPRFILE_TEXTURE_COUNT);
 			ce_free(sector->water_vertices,
-					sizeof(ce_mprfile_vertex) * CE_MPRFILE_VERTEX_COUNT);
+					sizeof(ce_mprvertex) * CE_MPRFILE_VERTEX_COUNT);
 			ce_free(sector->land_vertices,
-					sizeof(ce_mprfile_vertex) * CE_MPRFILE_VERTEX_COUNT);
+					sizeof(ce_mprvertex) * CE_MPRFILE_VERTEX_COUNT);
 		}
-		ce_free(mprfile->sectors, sizeof(ce_mprfile_sector) *
+		ce_free(mprfile->sectors, sizeof(ce_mprsector) *
 				mprfile->sector_x_count * mprfile->sector_z_count);
 		ce_string_del(mprfile->name);
 		ce_free(mprfile, sizeof(ce_mprfile));

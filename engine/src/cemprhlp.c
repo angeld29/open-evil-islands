@@ -83,10 +83,10 @@ float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 	int vertex_x = (int)x % (CE_MPRFILE_VERTEX_SIDE - 1);
 	int vertex_z = (int)z % (CE_MPRFILE_VERTEX_SIDE - 1);
 
-	const ce_mprfile_sector* sector = mprfile->sectors +
-								sector_z * mprfile->sector_x_count + sector_x;
-	const ce_mprfile_vertex* vertex = sector->land_vertices +
-								vertex_z * CE_MPRFILE_VERTEX_SIDE + vertex_x;
+	const ce_mprsector* sector = mprfile->sectors +
+		sector_z * mprfile->sector_x_count + sector_x;
+	const ce_mprvertex* vertex = sector->land_vertices +
+		vertex_z * CE_MPRFILE_VERTEX_SIDE + vertex_x;
 
 	return mprfile->max_y / (UINT16_MAX - 0) * vertex->coord_y;
 }

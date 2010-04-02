@@ -41,7 +41,7 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 	ce_terrain* terrain = va_arg(args, ce_terrain*);
 	int sector_x = va_arg(args, int);
 	int sector_z = va_arg(args, int);
-	ce_mprfile_vertex* vertices = va_arg(args, ce_mprfile_vertex*);
+	ce_mprvertex* vertices = va_arg(args, ce_mprvertex*);
 	uint16_t* textures = va_arg(args, uint16_t*);
 	int16_t* water_allow = va_arg(args, int16_t*);
 
@@ -112,8 +112,8 @@ static void ce_terrain_renderitem_ctor(ce_renderitem* renderitem, va_list args)
 			}
 
 			for (int i = 0; i < 9; ++i) {
-				ce_mprfile_vertex* vertex = vertices +
-					(z + offset_z[i]) * CE_MPRFILE_VERTEX_SIDE + (x + offset_x[i]);
+				ce_mprvertex* vertex = vertices + (z + offset_z[i]) *
+					CE_MPRFILE_VERTEX_SIDE + (x + offset_x[i]);
 
 				vertex_array[3 * i + 0] = x + offset_x[i] +
 					sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
@@ -205,7 +205,7 @@ static const ce_renderitem_vtable ce_terrain_renderitem_vtable = {
 
 static void ce_terrain_create_sector(ce_terrain* terrain,
 									int sector_x, int sector_z,
-									ce_mprfile_sector* sector,
+									ce_mprsector* sector,
 									bool opacity)
 {
 	// skip empty geometry
@@ -231,7 +231,7 @@ bool ce_terrain_create(ce_terrain* terrain)
 {
 	for (int z = 0, z_count = terrain->mprfile->sector_z_count; z < z_count; ++z) {
 		for (int x = 0, x_count = terrain->mprfile->sector_x_count; x < x_count; ++x) {
-			ce_mprfile_sector* sector = terrain->mprfile->sectors + z * x_count + x;
+			ce_mprsector* sector = terrain->mprfile->sectors + z * x_count + x;
 			ce_terrain_create_sector(terrain, x, z, sector, true);
 			ce_terrain_create_sector(terrain, x, z, sector, false);
 		}

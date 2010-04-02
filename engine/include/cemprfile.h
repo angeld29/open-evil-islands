@@ -47,16 +47,16 @@ typedef struct {
 	int8_t offset_z;
 	uint16_t coord_y;
 	uint32_t normal;
-} ce_mprfile_vertex;
+} ce_mprvertex;
 
 typedef struct {
 	uint8_t water;
-	ce_mprfile_vertex* land_vertices;
-	ce_mprfile_vertex* water_vertices;
+	ce_mprvertex* land_vertices;
+	ce_mprvertex* water_vertices;
 	uint16_t* land_textures;
 	uint16_t* water_textures;
 	int16_t* water_allow;
-} ce_mprfile_sector;
+} ce_mprsector;
 
 typedef struct {
 	ce_string* name;
@@ -72,7 +72,7 @@ typedef struct {
 	float* materials[2]; // land and water
 	uint32_t* tiles;
 	uint16_t* anim_tiles;
-	ce_mprfile_sector* sectors;
+	ce_mprsector* sectors;
 	size_t size;
 	void* data;
 } ce_mprfile;
