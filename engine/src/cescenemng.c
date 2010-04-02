@@ -290,6 +290,12 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 		position.y += ce_mprhlp_get_height(scenemng->terrain->mprfile,
 											position.x, position.z);
 	}
+	// yeah! it's a real hardcode :) move creatures up
+	if (50 == mobobject->type ||
+			51 == mobobject->type ||
+			52 == mobobject->type) {
+		position.y += 1.0f;
+	}
 	position.z = -position.z; // FIXME: opengl's hardcode
 
 	ce_quat orientation, q;

@@ -96,9 +96,6 @@ float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 	int vertex_x = (int)x % (CE_MPRFILE_VERTEX_SIDE - 1);
 	int vertex_z = (int)z % (CE_MPRFILE_VERTEX_SIDE - 1);
 
-	assert(sector_x < mprfile->sector_x_count);
-	assert(sector_z < mprfile->sector_z_count);
-
 	const ce_mprfile_sector* sector = mprfile->sectors +
 								sector_z * mprfile->sector_x_count + sector_x;
 	const ce_mprfile_vertex* vertex = sector->land_vertices +
