@@ -17,4 +17,54 @@ Cursed Earth MPR file format
    * This is an internal documentation currently available only on Russian.
      Something more strong in English will be later.
 
-   * На подходе...
+   * Введение.
+
+   * Описание.
+
+     Типы.
+     struct material - материал
+        uint32 type - тип материала (1 - для земли, 3 - для воды/лавы/болота)
+        float color[4] - диффузный цвет
+        float selfillum - коэфициент самосвечения
+        float wavemult - коэфициент для анимации воды
+        float unknown[4] - неизвестно, всегда 0
+
+     struct anim_tile - анимированный тайл
+        uint16 index
+        uint16 count
+
+     struct vertex - вершина
+        int8 offset_x - смещение по x
+        int8 offset_z - смещение по z
+        uint16 coord_y - высота
+        uint32 normal - нормаль
+
+     Формат.
+
+     *.mp
+     uint32 signature - сигнатура (0xce4af672)
+     float max_y
+     uint32 sector_x_count
+     uint32 sector_z_count
+     uint32 texture_count
+     uint32 texture_size
+     uint32 tile_count
+     uint32 tile_size
+     uint16 material_count
+     uint32 anim_tile_count
+     material materials[material_count]
+     uint32 tiles[tile_count]
+     anim_tile anim_tiles[anim_tile_count]
+
+     *.sec
+     uint32 signature - сигнатура (0xcf4bf774)
+     uint8 water - флаг наличия воды
+     vertex land_vertices[33][33]
+     if water
+        vertex water_vertices[33][33]
+     uint16 land_textures[16][16]
+     if water
+        uint16 water_textures[16][16]
+        int16 water_allow[16][16]
+
+   * Пример.
