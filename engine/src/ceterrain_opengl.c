@@ -214,7 +214,7 @@ static void ce_terrain_create_sector(ce_terrain* terrain,
 	}
 
 	ce_renderlayer* renderlayer = ce_renderlayer_new(
-		ce_mprhlp_create_material(terrain->mprfile, opacity,
+		ce_mprhlp_create_material(terrain->mprfile, !opacity,
 									terrain->stub_texture));
 	ce_renderlayer_add_renderitem(renderlayer, ce_renderitem_new(
 		ce_terrain_renderitem_vtable, sizeof(ce_terrain_renderitem),

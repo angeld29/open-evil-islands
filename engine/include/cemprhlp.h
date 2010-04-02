@@ -36,10 +36,6 @@ extern ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,
 									const ce_mprfile* mprfile,
 									int sector_x, int sector_z);
 
-extern const ce_mprfile_material*
-ce_mprhlp_find_material(const ce_mprfile* mprfile,
-						ce_mprfile_material_type type);
-
 extern float* ce_mprhlp_normal2vector(float* vector, uint32_t normal);
 
 extern int ce_mprhlp_texture_index(uint16_t texture);
@@ -49,7 +45,7 @@ extern int ce_mprhlp_texture_angle(uint16_t texture);
 extern float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z);
 
 extern ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile,
-											bool opacity, ce_texture* texture);
+											bool water, ce_texture* texture);
 
 #ifdef __cplusplus
 }

@@ -18,38 +18,23 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ *  See doc/formats/mprfile.txt for more details.
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <assert.h>
 
-#include "cestr.h"
-#include "cebyteorder.h"
-#include "celogging.h"
+#include "celib.h"
 #include "cealloc.h"
-#include "cereshlp.h"
+#include "cebyteorder.h"
 #include "cemprfile.h"
+
+#include "cereshlp.h"
 
 static const unsigned int MP_SIGNATURE = 0xce4af672;
 static const unsigned int SEC_SIGNATURE = 0xcf4bf774;
-
-static void read_material(ce_mprfile_material* mat, ce_memfile* mem)
-{
-	ce_memfile_read(mem, &mat->type, sizeof(uint32_t), 1);
-	ce_memfile_read(mem, mat->color, sizeof(float), 4);
-	ce_memfile_read(mem, &mat->selfillum, sizeof(float), 1);
-	ce_memfile_read(mem, &mat->wavemult, sizeof(float), 1);
-	ce_memfile_read(mem, mat->unknown, sizeof(float), 4);
-	ce_le2cpu32s(&mat->type);
-}
-
-static void read_anim_tile(ce_mprfile_anim_tile* at, ce_memfile* mem)
-{
-	ce_memfile_read(mem, &at->index, sizeof(uint16_t), 1);
-	ce_memfile_read(mem, &at->count, sizeof(uint16_t), 1);
-	ce_le2cpu16s(&at->index);
-	ce_le2cpu16s(&at->count);
-}
 
 static void read_vertex(ce_mprfile_vertex* ver, ce_memfile* mem)
 {
@@ -134,80 +119,69 @@ static void read_sectors(ce_mprfile* mpr, ce_resfile* res)
 	}
 }
 
-static void read_header(ce_mprfile* mpr, ce_resfile* res)
+ce_mprfile* ce_mprfile_open(ce_resfile* resfile)
 {
-	// mpr name - res name without extension (.mpr)
-	mpr->name = ce_string_dup_n(res->name, res->name->length - 4);
+	ce_mprfile* mprfile = ce_alloc(sizeof(ce_mprfile));
+
+	// mpr name = res name without extension (.mpr)
+	mprfile->name = ce_string_dup_n(resfile->name, resfile->name->length - 4);
 
 	// mpr name + .mp
-	char mp_name[mpr->name->length + 3 + 1];
-	snprintf(mp_name, sizeof(mp_name), "%s.mp", mpr->name->str);
+	char mp_name[mprfile->name->length + 3 + 1];
+	snprintf(mp_name, sizeof(mp_name), "%s.mp", mprfile->name->str);
 
-	ce_memfile* mem = ce_reshlp_extract_memfile_by_name(res, mp_name);
+	int mp_index = ce_resfile_node_index(resfile, mp_name);
+	mprfile->size = ce_resfile_node_size(resfile, mp_index);
+	mprfile->data = ce_resfile_node_data(resfile, mp_index);
 
-	uint32_t signature;
-	ce_memfile_read(mem, &signature, sizeof(uint32_t), 1);
+	union {
+		float* f;
+		uint16_t* u16;
+		uint32_t* u32;
+	} ptr = { mprfile->data };
 
-	ce_le2cpu32s(&signature);
+	uint32_t signature = ce_le2cpu32(*ptr.u32++);
 	assert(MP_SIGNATURE == signature && "wrong signature");
+	ce_unused(signature);
 
-	ce_memfile_read(mem, &mpr->max_y, sizeof(float), 1);
-	ce_memfile_read(mem, &mpr->sector_x_count, sizeof(uint32_t), 1);
-	ce_memfile_read(mem, &mpr->sector_z_count, sizeof(uint32_t), 1);
-	ce_memfile_read(mem, &mpr->texture_count, sizeof(uint32_t), 1);
-	ce_memfile_read(mem, &mpr->texture_size, sizeof(uint32_t), 1);
-	ce_memfile_read(mem, &mpr->tile_count, sizeof(uint32_t), 1);
-	ce_memfile_read(mem, &mpr->tile_size, sizeof(uint32_t), 1);
-	ce_memfile_read(mem, &mpr->material_count, sizeof(uint16_t), 1);
-	ce_memfile_read(mem, &mpr->anim_tile_count, sizeof(uint32_t), 1);
+	mprfile->max_y = *ptr.f++;
+	mprfile->sector_x_count = ce_le2cpu32(*ptr.u32++);
+	mprfile->sector_z_count = ce_le2cpu32(*ptr.u32++);
+	mprfile->texture_count = ce_le2cpu32(*ptr.u32++);
+	mprfile->texture_size = ce_le2cpu32(*ptr.u32++);
+	mprfile->tile_count = ce_le2cpu32(*ptr.u32++);
+	mprfile->tile_size = ce_le2cpu32(*ptr.u32++);
+	mprfile->material_count = ce_le2cpu16(*ptr.u16++);
+	mprfile->anim_tile_count = ce_le2cpu32(*ptr.u32++);
 
-	ce_le2cpu32s(&mpr->sector_x_count);
-	ce_le2cpu32s(&mpr->sector_z_count);
-	ce_le2cpu32s(&mpr->texture_count);
-	ce_le2cpu32s(&mpr->texture_size);
-	ce_le2cpu32s(&mpr->tile_count);
-	ce_le2cpu32s(&mpr->tile_size);
-	ce_le2cpu16s(&mpr->material_count);
-	ce_le2cpu32s(&mpr->anim_tile_count);
-
-	mpr->materials = ce_alloc(sizeof(ce_mprfile_material) *
-									mpr->material_count);
-
-	for (unsigned int i = 0; i < mpr->material_count; ++i) {
-		read_material(mpr->materials + i, mem);
+	for (int i = 0; i < mprfile->material_count; ++i, ptr.f += 10) {
+		int type = ce_le2cpu32(*ptr.u32++);
+		mprfile->materials[1 != type] = ptr.f;
 	}
 
-	mpr->tiles = ce_alloc(sizeof(uint32_t) * mpr->tile_count);
-	ce_memfile_read(mem, mpr->tiles, sizeof(uint32_t), mpr->tile_count);
+	mprfile->tiles = ptr.u32; ptr.u32 += mprfile->tile_count;
+	mprfile->anim_tiles = ptr.u16;
 
-	for (unsigned int i = 0; i < mpr->tile_count; ++i) {
-		ce_le2cpu32s(mpr->tiles + i);
+	for (int i = 0; i < mprfile->tile_count; ++i) {
+		ce_le2cpu32s(mprfile->tiles + i);
 	}
 
-	mpr->anim_tiles = ce_alloc(sizeof(ce_mprfile_anim_tile) *
-									mpr->anim_tile_count);
-
-	for (unsigned int i = 0; i < mpr->anim_tile_count; ++i) {
-		read_anim_tile(mpr->anim_tiles + i, mem);
+	for (int i = 0; i < 2 * mprfile->anim_tile_count; ++i) {
+		ce_le2cpu16s(mprfile->anim_tiles + i);
 	}
 
-	ce_memfile_close(mem);
+	read_sectors(mprfile, resfile);
+
+	return mprfile;
 }
 
-ce_mprfile* ce_mprfile_open(ce_resfile* res)
+void ce_mprfile_close(ce_mprfile* mprfile)
 {
-	ce_mprfile* mpr = ce_alloc(sizeof(ce_mprfile));
-	read_header(mpr, res);
-	read_sectors(mpr, res);
-	return mpr;
-}
-
-void ce_mprfile_close(ce_mprfile* mpr)
-{
-	if (NULL != mpr) {
-		for (int i = 0, n = mpr->sector_x_count *
-							mpr->sector_z_count; i < n; ++i) {
-			ce_mprfile_sector* sector = mpr->sectors + i;
+	if (NULL != mprfile) {
+		ce_free(mprfile->data, mprfile->size);
+		for (int i = 0, n = mprfile->sector_x_count *
+							mprfile->sector_z_count; i < n; ++i) {
+			ce_mprfile_sector* sector = mprfile->sectors + i;
 			ce_free(sector->water_allow,
 					sizeof(int16_t) * CE_MPRFILE_TEXTURE_COUNT);
 			ce_free(sector->water_textures,
@@ -219,14 +193,9 @@ void ce_mprfile_close(ce_mprfile* mpr)
 			ce_free(sector->land_vertices,
 					sizeof(ce_mprfile_vertex) * CE_MPRFILE_VERTEX_COUNT);
 		}
-		ce_free(mpr->sectors, sizeof(ce_mprfile_sector) *
-				mpr->sector_x_count * mpr->sector_z_count);
-		ce_free(mpr->anim_tiles,
-				sizeof(ce_mprfile_anim_tile) * mpr->anim_tile_count);
-		ce_free(mpr->tiles, sizeof(uint32_t) * mpr->tile_count);
-		ce_free(mpr->materials,
-				sizeof(ce_mprfile_material) * mpr->material_count);
-		ce_string_del(mpr->name);
-		ce_free(mpr, sizeof(ce_mprfile));
+		ce_free(mprfile->sectors, sizeof(ce_mprfile_sector) *
+				mprfile->sector_x_count * mprfile->sector_z_count);
+		ce_string_del(mprfile->name);
+		ce_free(mprfile, sizeof(ce_mprfile));
 	}
 }

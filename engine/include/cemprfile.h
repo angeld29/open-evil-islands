@@ -21,6 +21,7 @@
 #ifndef CE_MPRFILE_H
 #define CE_MPRFILE_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "cestring.h"
@@ -31,11 +32,6 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef enum {
-	CE_MPRFILE_MATERIAL_TYPE_GROUND = 1,
-	CE_MPRFILE_MATERIAL_TYPE_WATER = 3
-} ce_mprfile_material_type;
-
 enum {
 	CE_MPRFILE_VERTEX_SIDE = 33,
 	CE_MPRFILE_VERTEX_COUNT = 33 * 33
@@ -45,19 +41,6 @@ enum {
 	CE_MPRFILE_TEXTURE_SIDE = 16,
 	CE_MPRFILE_TEXTURE_COUNT = 16 * 16
 };
-
-typedef struct {
-	uint32_t type;
-	float color[4];
-	float selfillum;
-	float wavemult;
-	float unknown[4];
-} ce_mprfile_material;
-
-typedef struct {
-	uint16_t index;
-	uint16_t count;
-} ce_mprfile_anim_tile;
 
 typedef struct {
 	int8_t offset_x;
@@ -78,22 +61,24 @@ typedef struct {
 typedef struct {
 	ce_string* name;
 	float max_y;
-	uint32_t sector_x_count;
-	uint32_t sector_z_count;
-	uint32_t texture_count;
-	uint32_t texture_size;
-	uint32_t tile_count;
-	uint32_t tile_size;
-	uint16_t material_count;
-	uint32_t anim_tile_count;
-	ce_mprfile_material* materials;
+	int sector_x_count;
+	int sector_z_count;
+	int texture_count;
+	int texture_size;
+	int tile_count;
+	int tile_size;
+	int material_count;
+	int anim_tile_count;
+	float* materials[2]; // land and water
 	uint32_t* tiles;
-	ce_mprfile_anim_tile* anim_tiles;
+	uint16_t* anim_tiles;
 	ce_mprfile_sector* sectors;
+	size_t size;
+	void* data;
 } ce_mprfile;
 
-extern ce_mprfile* ce_mprfile_open(ce_resfile* res);
-extern void ce_mprfile_close(ce_mprfile* mpr);
+extern ce_mprfile* ce_mprfile_open(ce_resfile* resfile);
+extern void ce_mprfile_close(ce_mprfile* mprfile);
 
 #ifdef __cplusplus
 }

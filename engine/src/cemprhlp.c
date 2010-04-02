@@ -45,19 +45,6 @@ ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,
 	return aabb;
 }
 
-const ce_mprfile_material*
-ce_mprhlp_find_material(const ce_mprfile* mprfile,
-						ce_mprfile_material_type type)
-{
-	for (int i = 0, n = mprfile->material_count; i < n; ++i) {
-		ce_mprfile_material* material = mprfile->materials + i;
-		if (type == material->type) {
-			return material;
-		}
-	}
-	return NULL;
-}
-
 float* ce_mprhlp_normal2vector(float* vector, uint32_t normal)
 {
 	vector[0] = (((normal >> 11) & 0x7ff) - 1000.0f) / 1000.0f;
@@ -105,25 +92,19 @@ float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 }
 
 ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile,
-										bool opacity, ce_texture* texture)
+										bool water, ce_texture* texture)
 {
 	ce_material* material = ce_material_new(texture);
 	material->mode = CE_MATERIAL_MODE_DECAL;
 	material->wrap = CE_MATERIAL_WRAP_CLAMP_TO_EDGE;
 
-	const ce_mprfile_material* mpr_material =
-		ce_mprhlp_find_material(mprfile, opacity ?
-										CE_MPRFILE_MATERIAL_TYPE_GROUND :
-										CE_MPRFILE_MATERIAL_TYPE_WATER);
-	assert(NULL != mpr_material);
-
 	ce_color_init(&material->ambient, 0.5f, 0.5f, 0.5f, 1.0f);
-	ce_color_init_array(&material->diffuse, mpr_material->color);
+	ce_color_init_array(&material->diffuse, mprfile->materials[water]);
 	ce_color_init(&material->emission,
-		mpr_material->selfillum * mpr_material->color[0],
-		mpr_material->selfillum * mpr_material->color[1],
-		mpr_material->selfillum * mpr_material->color[2],
-		mpr_material->selfillum * mpr_material->color[3]);
+		mprfile->materials[water][4] * mprfile->materials[water][0],
+		mprfile->materials[water][4] * mprfile->materials[water][1],
+		mprfile->materials[water][4] * mprfile->materials[water][2],
+		mprfile->materials[water][4] * mprfile->materials[water][3]);
 
 	return material;
 }
