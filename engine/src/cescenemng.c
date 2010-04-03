@@ -181,7 +181,8 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_font_render(scenemng->font, 10, scenemng->viewport->height - 2 *
 		ce_font_get_height(scenemng->font) - 10, &CE_COLOR_RED, text);
 
-	snprintf(text, sizeof(text), "%d scene nodes in frustum", 0);
+	snprintf(text, sizeof(text), "%d scene nodes in frustum",
+		ce_scenenode_count_visible_cascade(scenemng->scenenode));
 
 	ce_font_render(scenemng->font, 10, 10, &CE_COLOR_RED, text);
 

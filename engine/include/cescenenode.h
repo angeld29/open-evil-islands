@@ -63,6 +63,8 @@ extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
 extern void ce_scenenode_cull_cascade(ce_scenenode* scenenode,
 									const ce_frustum* frustum);
 
+extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
+
 extern void ce_scenenode_update(ce_scenenode* scenenode, bool force);
 extern void ce_scenenode_update_cascade(ce_scenenode* scenenode, bool force);
 

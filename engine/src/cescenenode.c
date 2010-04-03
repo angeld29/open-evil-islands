@@ -97,6 +97,15 @@ void ce_scenenode_cull_cascade(ce_scenenode* scenenode,
 	}
 }
 
+int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode)
+{
+	int count = !scenenode->culled;
+	for (int i = 0; i < scenenode->childs->count; ++i) {
+		count += ce_scenenode_count_visible_cascade(scenenode->childs->items[i]);
+	}
+	return count;
+}
+
 static void ce_scenenode_update_transform(ce_scenenode* scenenode)
 {
 	if (NULL == scenenode->parent) {
