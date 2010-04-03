@@ -65,10 +65,9 @@ int ce_font_get_width(ce_font* font, const char* text)
 void ce_font_render(ce_font* font, int x, int y,
 					const ce_color* color, const char* text)
 {
-	glPushAttrib(GL_CURRENT_BIT);
-
 	glColor4f(color->r, color->g, color->b, color->a);
 
+	// TODO: share loop
 	if (ce_gl_query_feature(CE_GL_FEATURE_WINDOW_POS)) {
 		ce_gl_window_pos_2i(x, y);
 
@@ -100,6 +99,4 @@ void ce_font_render(ce_font* font, int x, int y,
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 	}
-
-	glPopAttrib();
 }

@@ -222,8 +222,8 @@ int main(int argc, char* argv[])
 	srand(time(NULL));
 
 	// play random animations
-	for (int i = 0; i < scenemng->figentities->count; ++i) {
-		ce_figentity* figentity = scenemng->figentities->items[i];
+	for (int i = 0; i < scenemng->figmng->figentities->count; ++i) {
+		ce_figentity* figentity = scenemng->figmng->figentities->items[i];
 		int anm_count = ce_figentity_get_animation_count(figentity);
 		if (anm_count > 0) {
 			const char* name = ce_figentity_get_animation_name(figentity,

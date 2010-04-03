@@ -44,8 +44,8 @@ extern int ce_mprhlp_texture_angle(uint16_t texture);
 
 extern float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z);
 
-extern ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile,
-											bool water, ce_texture* texture);
+extern ce_material*
+ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water);
 
 #ifdef __cplusplus
 }

@@ -98,10 +98,10 @@ ce_vec3* ce_fighlp_get_bone(ce_vec3* position,
 		figfile->value_callback(bonfile->bone + 2, 3, complection));
 }
 
-ce_material* ce_fighlp_create_material(ce_texture* texture)
+ce_material* ce_fighlp_create_material(void)
 {
-	ce_material* material = ce_material_new(texture);
+	ce_material* material = ce_material_new();
 	material->mode = CE_MATERIAL_MODE_REPLACE;
-	material->wrap = CE_MATERIAL_WRAP_REPEAT;
+	material->alpha_test = true;
 	return material;
 }

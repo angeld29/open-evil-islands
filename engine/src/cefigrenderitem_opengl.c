@@ -78,23 +78,9 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 	const ce_figfile* figfile = va_arg(args, const ce_figfile*);
 	const ce_complection* complection = va_arg(args, const ce_complection*);
 
-	ce_fighlp_get_aabb(&renderitem->aabb, figfile, complection);
-
 	figrenderitem->cookie = ce_figcookie_static_new();
 
 	glNewList(figrenderitem->cookie->id, GL_COMPILE);
-
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT
-				| GL_COLOR_BUFFER_BIT // FIXME: move to material
-				);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-	// FIXME: move to material
-	glEnable(GL_ALPHA_TEST);
-
-	glAlphaFunc(GL_GREATER, 0.5f);
 
 	float array[3];
 
@@ -111,8 +97,6 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 														complection));
 	}
 	glEnd();
-
-	glPopAttrib();
 
 	glEndList();
 }
@@ -218,8 +202,6 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 
 	const ce_figfile* figfile = va_arg(args, const ce_figfile*);
 	const ce_complection* complection = va_arg(args, const ce_complection*);
-
-	ce_fighlp_get_aabb(&renderitem->aabb, figfile, complection);
 
 	figrenderitem->cookie = ce_figcookie_dynamic_new(figfile->index_count);
 	figrenderitem->vertices = ce_alloc(sizeof(float) * 3 * figfile->index_count);
@@ -340,11 +322,7 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	ce_figrenderitem_dynamic* figrenderitem =
 		(ce_figrenderitem_dynamic*)renderitem->impl;
 
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -370,7 +348,6 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	glDrawArrays(GL_TRIANGLES, 0, figrenderitem->cookie->vertex_count);
 
 	glPopClientAttrib();
-	glPopAttrib();
 }
 
 static void ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,

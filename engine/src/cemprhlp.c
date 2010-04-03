@@ -91,12 +91,10 @@ float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 	return mprfile->max_y / (UINT16_MAX - 0) * vertex->coord_y;
 }
 
-ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile,
-										bool water, ce_texture* texture)
+ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water)
 {
-	ce_material* material = ce_material_new(texture);
+	ce_material* material = ce_material_new();
 	material->mode = CE_MATERIAL_MODE_DECAL;
-	material->wrap = CE_MATERIAL_WRAP_CLAMP_TO_EDGE;
 
 	ce_color_init(&material->ambient, 0.5f, 0.5f, 0.5f, 1.0f);
 	ce_color_init_array(&material->diffuse, mprfile->materials[water]);
@@ -105,6 +103,10 @@ ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile,
 		mprfile->materials[water][4] * mprfile->materials[water][1],
 		mprfile->materials[water][4] * mprfile->materials[water][2],
 		mprfile->materials[water][4] * mprfile->materials[water][3]);
+
+	if (water) {
+		material->blend = true;
+	}
 
 	return material;
 }

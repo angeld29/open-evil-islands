@@ -55,7 +55,7 @@ ce_fighlp_get_bone(ce_vec3* position,
 					const ce_bonfile* bonfile,
 					const ce_complection* complection);
 
-extern ce_material* ce_fighlp_create_material(ce_texture* texture);
+extern ce_material* ce_fighlp_create_material(void);
 
 #ifdef __cplusplus
 }

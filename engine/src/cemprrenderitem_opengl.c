@@ -49,13 +49,6 @@ static void ce_mprrenderitem_ctor(ce_renderitem* renderitem, va_list args)
 	uint16_t* textures = water ? sector->water_textures : sector->land_textures;
 	int16_t* water_allow = water ? sector->water_allow : NULL;
 
-	ce_mprhlp_get_aabb(&renderitem->aabb, mprfile, sector_x, sector_z);
-
-	renderitem->position = CE_VEC3_ZERO;
-	renderitem->orientation = CE_QUAT_IDENTITY;
-	renderitem->bbox.aabb = renderitem->aabb;
-	renderitem->bbox.axis = CE_QUAT_IDENTITY;
-
 	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
 	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
 
@@ -97,11 +90,6 @@ static void ce_mprrenderitem_ctor(ce_renderitem* renderitem, va_list args)
 	};
 
 	glNewList(mprrenderitem->id = glGenLists(1), GL_COMPILE);
-
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
@@ -177,8 +165,6 @@ static void ce_mprrenderitem_ctor(ce_renderitem* renderitem, va_list args)
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
-
-	glPopAttrib();
 
 	glEndList();
 }

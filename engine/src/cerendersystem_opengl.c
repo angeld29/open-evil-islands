@@ -36,6 +36,10 @@ ce_rendersystem* ce_rendersystem_new(void)
 {
 	ce_rendersystem* rendersystem = ce_alloc(sizeof(ce_rendersystem));
 	rendersystem->view = CE_MAT4_IDENTITY;
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+
 	return rendersystem;
 }
 
@@ -69,11 +73,6 @@ void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem)
 {
 	ce_unused(rendersystem);
 
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
-
-	glDisable(GL_LIGHTING);
-	glEnable(GL_DEPTH_TEST);
-
 	glBegin(GL_LINES);
 
 	glColor3f(1.0f, 0.0f, 0.0f);
@@ -89,19 +88,12 @@ void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem)
 	glVertex3f(0.0f, 0.0f, 100.0f);
 
 	glEnd();
-
-	glPopAttrib();
 }
 
 void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
 									float size, const ce_color* color)
 {
 	ce_unused(rendersystem);
-
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT);
-
-	glDisable(GL_LIGHTING);
-	glEnable(GL_DEPTH_TEST);
 
 	glColor4f(color->r, color->g, color->b, color->a);
 
@@ -140,8 +132,6 @@ void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
 	glVertex3f( size, -size, -size);
 
 	glEnd();
-
-	glPopAttrib();
 }
 
 void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,
@@ -233,10 +223,9 @@ void ce_rendersystem_apply_material(ce_rendersystem* rendersystem,
 {
 	ce_unused(rendersystem);
 
-	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_LIGHTING_BIT | GL_TEXTURE_BIT);
+	glPushAttrib(GL_ENABLE_BIT);
 
 	glEnable(GL_LIGHTING);
-	glEnable(GL_TEXTURE_2D);
 
 	glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]) { material->ambient.r,
 													material->ambient.g,
@@ -259,39 +248,21 @@ void ce_rendersystem_apply_material(ce_rendersystem* rendersystem,
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,
 		(GLint[]){ GL_MODULATE, GL_DECAL, GL_REPLACE }[material->mode]);
 
-	if (CE_MATERIAL_WRAP_CLAMP_TO_EDGE == material->wrap) {
-#ifdef GL_VERSION_1_2
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-#else
-		if (ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_EDGE_CLAMP)) {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, CE_GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CE_GL_CLAMP_TO_EDGE);
-		} else {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		}
-#endif
-	} else if (CE_MATERIAL_WRAP_CLAMP == material->wrap) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	} else {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	if (material->alpha_test) {
+		glEnable(GL_ALPHA_TEST);
+		glAlphaFunc(GL_GREATER, 0.5f);
 	}
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	ce_texture_bind(material->texture);
+	if (material->blend) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
 }
 
 void ce_rendersystem_discard_material(ce_rendersystem* rendersystem,
 										ce_material* material)
 {
-	ce_unused(rendersystem);
-
-	ce_texture_unbind(material->texture);
+	ce_unused(rendersystem), ce_unused(material);
 
 	glPopAttrib();
 }

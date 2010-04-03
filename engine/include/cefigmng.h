@@ -27,6 +27,7 @@
 #include "cefigproto.h"
 #include "cefigmesh.h"
 #include "cefigentity.h"
+#include "cerenderqueue.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -37,6 +38,7 @@ typedef struct {
 	ce_vector* resfiles;
 	ce_vector* figprotos;
 	ce_vector* figmeshes;
+	ce_vector* figentities;
 } ce_figmng;
 
 extern ce_figmng* ce_figmng_new(void);
@@ -53,6 +55,14 @@ ce_figmng_create_figentity(ce_figmng* figmng,
 							int texture_count,
 							ce_texture* textures[],
 							ce_scenenode* scenenode);
+
+extern void ce_figmng_remove_figentity(ce_figmng* figmng,
+										ce_figentity* figentity);
+
+extern void ce_figmng_create_rendergroup(ce_figmng* figmng,
+										ce_renderqueue* renderqueue);
+extern void ce_figmng_enqueue(ce_figmng* figmng,
+							ce_renderqueue* renderqueue);
 
 #ifdef __cplusplus
 }

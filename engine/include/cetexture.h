@@ -28,10 +28,19 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+typedef enum {
+	CE_TEXTURE_WRAP_MODE_REPEAT,
+	CE_TEXTURE_WRAP_MODE_CLAMP,
+	CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE,
+	CE_TEXTURE_WRAP_MODE_COUNT
+} ce_texture_wrap_mode;
+
 typedef struct ce_texture ce_texture;
 
 extern ce_texture* ce_texture_new(const char* name, void* data);
 extern void ce_texture_del(ce_texture* texture);
+
+extern void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode);
 
 extern bool ce_texture_equal(const ce_texture* texture,
 							const ce_texture* other);

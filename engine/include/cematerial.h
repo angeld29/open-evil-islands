@@ -21,8 +21,9 @@
 #ifndef CE_MATERIAL_H
 #define CE_MATERIAL_H
 
+#include <stdbool.h>
+
 #include "cecolor.h"
-#include "cetexture.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -36,25 +37,18 @@ typedef enum {
 	CE_MATERIAL_MODE_COUNT
 } ce_material_mode;
 
-typedef enum {
-	CE_MATERIAL_WRAP_REPEAT,
-	CE_MATERIAL_WRAP_CLAMP,
-	CE_MATERIAL_WRAP_CLAMP_TO_EDGE,
-	CE_MATERIAL_WRAP_COUNT
-} ce_material_wrap;
-
 typedef struct {
 	ce_material_mode mode;
-	ce_material_wrap wrap;
 	ce_color ambient;
 	ce_color diffuse;
 	ce_color specular;
 	ce_color emission;
 	float shininess;
-	ce_texture* texture;
+	bool alpha_test;
+	bool blend;
 } ce_material;
 
-extern ce_material* ce_material_new(ce_texture* texture);
+extern ce_material* ce_material_new(void);
 extern void ce_material_del(ce_material* material);
 
 #ifdef __cplusplus

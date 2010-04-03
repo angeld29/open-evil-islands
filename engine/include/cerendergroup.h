@@ -18,16 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_TERRAIN_H
-#define CE_TERRAIN_H
+#ifndef CE_RENDERGROUP_H
+#define CE_RENDERGROUP_H
 
-#include "cevec3.h"
-#include "cequat.h"
 #include "cevector.h"
-#include "cemprfile.h"
+#include "cematerial.h"
 #include "cetexture.h"
-#include "cescenenode.h"
-#include "cerenderqueue.h"
+#include "cerenderlayer.h"
+#include "cerendersystem.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -35,31 +33,25 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_mprfile* mprfile;
-	ce_texture* stub_texture;
-	ce_vector* textures;
-	ce_scenenode* scenenode;
-} ce_terrain;
+	int priority;
+	ce_material* material;
+	ce_vector* renderlayers;
+} ce_rendergroup;
 
-/// Terrain takes ownership of the mprfile.
-extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
-									const ce_vec3* position,
-									const ce_quat* orientation,
-									ce_texture* stub_texture,
-									ce_texture* textures[],
-									ce_scenenode* scenenode);
-extern void ce_terrain_del(ce_terrain* terrain);
+extern ce_rendergroup* ce_rendergroup_new(int priority, ce_material* material);
+extern void ce_rendergroup_del(ce_rendergroup* rendergroup);
 
-extern void ce_terrain_create_rendergroup(ce_terrain* terrain,
-											ce_renderqueue* renderqueue);
-extern void ce_terrain_enqueue(ce_terrain* terrain,
-								ce_renderqueue* renderqueue);
+extern void ce_rendergroup_clear(ce_rendergroup* rendergroup);
 
-extern ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain,
-												float x, float z);
+extern void ce_rendergroup_add(ce_rendergroup* rendergroup,
+								ce_texture* texture,
+								ce_renderitem* renderitem);
+
+extern void ce_rendergroup_render(ce_rendergroup* rendergroup,
+									ce_rendersystem* rendersystem);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_TERRAIN_H */
+#endif /* CE_RENDERGROUP_H */

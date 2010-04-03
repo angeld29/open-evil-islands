@@ -30,6 +30,7 @@
 #include "cefigbone.h"
 #include "cetexture.h"
 #include "cescenenode.h"
+#include "cerendergroup.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -39,6 +40,7 @@ extern "C"
 typedef struct {
 	ce_figmesh* figmesh;
 	ce_figbone* figbone;
+	ce_vector* textures;
 	ce_scenenode* scenenode;
 } ce_figentity;
 
@@ -54,6 +56,9 @@ extern void ce_figentity_advance(ce_figentity* figentity,
 									float fps, float elapsed);
 
 extern void ce_figentity_update(ce_figentity* figentity, bool force);
+
+extern void ce_figentity_enqueue(ce_figentity* figentity,
+								ce_rendergroup* rendergroup);
 
 extern int ce_figentity_get_animation_count(ce_figentity* figentity);
 extern const char*

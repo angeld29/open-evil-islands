@@ -589,6 +589,34 @@ void ce_texture_del(ce_texture* texture)
 	}
 }
 
+void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode)
+{
+	ce_texture_bind(texture);
+
+	if (CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE == mode) {
+#ifdef GL_VERSION_1_2
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#else
+		if (ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_EDGE_CLAMP)) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, CE_GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CE_GL_CLAMP_TO_EDGE);
+		} else {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		}
+#endif
+	} else if (CE_TEXTURE_WRAP_MODE_CLAMP == mode) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	} else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
+
+	ce_texture_unbind(texture);
+}
+
 bool ce_texture_equal(const ce_texture* texture, const ce_texture* other)
 {
 	return texture->id == other->id;
@@ -601,12 +629,15 @@ const char* ce_texture_get_name(ce_texture* texture)
 
 void ce_texture_bind(ce_texture* texture)
 {
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture->id);
 }
 
 void ce_texture_unbind(ce_texture* texture)
 {
 	ce_unused(texture);
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 ce_texture* ce_texture_add_ref(ce_texture* texture)

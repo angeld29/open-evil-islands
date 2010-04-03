@@ -39,9 +39,7 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 void ce_scenenode_del(ce_scenenode* scenenode)
 {
 	if (NULL != scenenode) {
-		if (NULL != scenenode->parent) {
-			ce_scenenode_detach_child(scenenode->parent, scenenode);
-		}
+		ce_scenenode_detach_from_parent(scenenode);
 		for (int i = 0; i < scenenode->childs->count; ++i) {
 			ce_scenenode* child = scenenode->childs->items[i];
 			child->parent = NULL;
@@ -52,6 +50,14 @@ void ce_scenenode_del(ce_scenenode* scenenode)
 							(ce_vector_func1)ce_renderitem_del);
 		ce_vector_del(scenenode->renderitems);
 		ce_free(scenenode, sizeof(ce_scenenode));
+	}
+}
+
+void ce_scenenode_detach_from_parent(ce_scenenode* scenenode)
+{
+	if (NULL != scenenode->parent) {
+		ce_scenenode_detach_child(scenenode->parent, scenenode);
+		scenenode->parent = NULL;
 	}
 }
 

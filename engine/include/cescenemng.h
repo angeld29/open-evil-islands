@@ -23,7 +23,6 @@
 
 #include <stdbool.h>
 
-#include "cevector.h"
 #include "cescenenode.h"
 #include "cerenderqueue.h"
 #include "ceviewport.h"
@@ -44,10 +43,11 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	ce_scenenode* scenenode;
 	ce_texmng* texmng;
 	ce_mprmng* mprmng;
+	ce_terrain* terrain;
 	ce_figmng* figmng;
-	ce_scenenode* scenenode;
 	ce_rendersystem* rendersystem;
 	ce_renderqueue* renderqueue;
 	ce_viewport* viewport;
@@ -55,8 +55,6 @@ typedef struct {
 	ce_timer* timer;
 	ce_fps* fps;
 	ce_font* font;
-	ce_terrain* terrain;
-	ce_vector* figentities;
 	bool show_axes;
 	bool show_bboxes;
 	bool comprehensive_bbox_only;
@@ -70,7 +68,6 @@ extern void ce_scenemng_del(ce_scenemng* rendlayer);
 extern void ce_scenemng_advance(ce_scenemng* scenemng);
 extern void ce_scenemng_render(ce_scenemng* scenemng);
 
-/// if scenenode is NULL, the entity will be attached to root scenenode
 extern ce_terrain*
 ce_scenemng_create_terrain(ce_scenemng* scenemng,
 							const char* name,
@@ -78,7 +75,6 @@ ce_scenemng_create_terrain(ce_scenemng* scenemng,
 							const ce_quat* orientation,
 							ce_scenenode* scenenode);
 
-/// if scenenode is NULL, the entity will be attached to root scenenode
 extern ce_figentity*
 ce_scenemng_create_figentity(ce_scenemng* scenemng,
 							const char* name,

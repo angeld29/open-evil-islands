@@ -21,14 +21,20 @@
 #include <assert.h>
 
 #include "cealloc.h"
+#include "cefighlp.h"
 #include "cefigrenderitem.h"
 #include "cefigmesh.h"
 
 static void ce_figmesh_create_renderitems(ce_figmesh* figmesh,
 										const ce_fignode* fignode)
 {
-	ce_vector_push_back(figmesh->renderitems,
-		ce_figrenderitem_new(fignode, &figmesh->complection));
+	ce_renderitem* renderitem =
+		ce_figrenderitem_new(fignode, &figmesh->complection);
+
+	ce_fighlp_get_aabb(&renderitem->aabb, fignode->figfile,
+											&figmesh->complection);
+
+	ce_vector_push_back(figmesh->renderitems, renderitem);
 
 	for (int i = 0; i < fignode->childs->count; ++i) {
 		ce_figmesh_create_renderitems(figmesh, fignode->childs->items[i]);

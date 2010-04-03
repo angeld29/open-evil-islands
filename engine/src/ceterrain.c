@@ -30,22 +30,20 @@ static void ce_terrain_create_sector(ce_terrain* terrain,
 									int sector_x, int sector_z,
 									bool water)
 {
-	/*ce_renderlayer* renderlayer = ce_renderlayer_new(
-		ce_mprhlp_create_material(terrain->mprfile, water,
-									terrain->stub_texture));
-	ce_renderlayer_add_renderitem(renderlayer,
+	ce_renderitem* renderitem =
 		ce_mprrenderitem_new(terrain->mprfile,
 							sector_x, sector_z,
-							water, terrain->textures));
+							water, terrain->textures);
+
+	ce_mprhlp_get_aabb(&renderitem->aabb, terrain->mprfile, sector_x, sector_z);
+
+	renderitem->position = CE_VEC3_ZERO;
+	renderitem->orientation = CE_QUAT_IDENTITY;
+	renderitem->bbox.aabb = renderitem->aabb;
+	renderitem->bbox.axis = CE_QUAT_IDENTITY;
 
 	ce_scenenode* scenenode = ce_scenenode_new(terrain->scenenode);
-	ce_scenenode_add_renderlayer(scenenode, renderlayer);*/
-
-	ce_scenenode* scenenode = ce_scenenode_new(terrain->scenenode);
-	ce_scenenode_add_renderitem(scenenode,
-		ce_mprrenderitem_new(terrain->mprfile,
-							sector_x, sector_z,
-							water, terrain->textures));
+	ce_scenenode_add_renderitem(scenenode, renderitem);
 }
 
 ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
@@ -66,6 +64,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 	for (int i = 0; i < mprfile->texture_count; ++i) {
 		ce_vector_push_back(terrain->textures,
 			ce_texture_add_ref(textures[i]));
+		ce_texture_wrap(textures[i], CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
 	}
 
 	// opaque
@@ -99,6 +98,32 @@ void ce_terrain_del(ce_terrain* terrain)
 		ce_texture_del(terrain->stub_texture);
 		ce_mprfile_close(terrain->mprfile);
 		ce_free(terrain, sizeof(ce_terrain));
+	}
+}
+
+void ce_terrain_create_rendergroup(ce_terrain* terrain,
+									ce_renderqueue* renderqueue)
+{
+	ce_renderqueue_add(renderqueue, 0,
+		ce_mprhlp_create_material(terrain->mprfile, false));
+	ce_renderqueue_add(renderqueue, 100,
+		ce_mprhlp_create_material(terrain->mprfile, true));
+}
+
+void ce_terrain_enqueue(ce_terrain* terrain, ce_renderqueue* renderqueue)
+{
+	ce_rendergroup* rendergroups[2] = { ce_renderqueue_get(renderqueue, 0),
+										ce_renderqueue_get(renderqueue, 100) };
+
+	int opaque_count = terrain->mprfile->sector_x_count *
+						terrain->mprfile->sector_z_count;
+
+	for (int i = 0; i < terrain->scenenode->childs->count; ++i) {
+		ce_scenenode* scenenode = terrain->scenenode->childs->items[i];
+		if (!scenenode->culled) {
+			ce_rendergroup_add(rendergroups[i >= opaque_count],
+				terrain->stub_texture, scenenode->renderitems->items[0]);
+		}
 	}
 }
 

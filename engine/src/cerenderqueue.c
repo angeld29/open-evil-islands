@@ -28,28 +28,53 @@
 ce_renderqueue* ce_renderqueue_new(void)
 {
 	ce_renderqueue* renderqueue = ce_alloc(sizeof(ce_renderqueue));
-	renderqueue->scenenodes[0] = ce_vector_new();
-	renderqueue->scenenodes[1] = ce_vector_new();
+	renderqueue->rendergroups = ce_vector_new();
 	return renderqueue;
 }
 
 void ce_renderqueue_del(ce_renderqueue* renderqueue)
 {
 	if (NULL != renderqueue) {
-		ce_vector_del(renderqueue->scenenodes[1]);
-		ce_vector_del(renderqueue->scenenodes[0]);
+		ce_vector_for_each(renderqueue->rendergroups,
+							(ce_vector_func1)ce_rendergroup_del);
+		ce_vector_del(renderqueue->rendergroups);
 		ce_free(renderqueue, sizeof(ce_renderqueue));
 	}
 }
 
 void ce_renderqueue_clear(ce_renderqueue* renderqueue)
 {
-	ce_vector_clear(renderqueue->scenenodes[0]);
-	ce_vector_clear(renderqueue->scenenodes[1]);
-	renderqueue->queued_scenenode_count = 0;
+	ce_vector_for_each(renderqueue->rendergroups,
+						(ce_vector_func1)ce_rendergroup_clear);
 }
 
-typedef int (*ce_renderqueue_comp)(const void* lhs, const void* rhs);
+void ce_renderqueue_add(ce_renderqueue* renderqueue,
+						int priority, ce_material* material)
+{
+	for (int i = 0; i < renderqueue->rendergroups->count; ++i) {
+		ce_rendergroup* rendergroup = renderqueue->rendergroups->items[i];
+		if (priority == rendergroup->priority) {
+			ce_rendergroup_del(rendergroup);
+			ce_vector_remove_unordered(renderqueue->rendergroups, i);
+			break;
+		}
+	}
+	ce_vector_push_back(renderqueue->rendergroups,
+		ce_rendergroup_new(priority, material));
+}
+
+ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue, int priority)
+{
+	for (int i = 0; i < renderqueue->rendergroups->count; ++i) {
+		ce_rendergroup* rendergroup = renderqueue->rendergroups->items[i];
+		if (priority == rendergroup->priority) {
+			return rendergroup;
+		}
+	}
+	return NULL;
+}
+
+//typedef int (*ce_renderqueue_comp)(const void* lhs, const void* rhs);
 
 /*static int ce_renderqueue_comp_less(const void* lhs, const void* rhs)
 {
@@ -65,22 +90,16 @@ static int ce_renderqueue_comp_greater(const void* lhs, const void* rhs)
 	const ce_scenenode* scenenode2 = *(const ce_scenenode**)rhs;
 	return ce_fisequal(scenenode1->dist2, scenenode2->dist2, CE_EPS_E3) ?
 		0 : (scenenode1->dist2 > scenenode2->dist2 ? -1 : 1);
-}*/
+}
 
-static const ce_renderqueue_comp ce_renderqueue_comps[2] = {
-	NULL,
-	NULL
-};
+qsort(scenenodes->items, scenenodes->count,
+				sizeof(ce_scenenode*), ce_renderqueue_comps[i]);
+*/
 
 void ce_renderqueue_render(ce_renderqueue* renderqueue,
 							ce_rendersystem* rendersystem)
 {
-	for (int i = 0; i < 2; ++i) {
-		ce_vector* scenenodes = renderqueue->scenenodes[i];
-		qsort(scenenodes->items, scenenodes->count,
-				sizeof(ce_scenenode*), ce_renderqueue_comps[i]);
-		for (int j = 0; j < scenenodes->count; ++j) {
-			//ce_scenenode_render(scenenodes->items[j], rendersystem);
-		}
+	for (int i = 0; i < renderqueue->rendergroups->count; ++i) {
+		ce_rendergroup_render(renderqueue->rendergroups->items[i], rendersystem);
 	}
 }

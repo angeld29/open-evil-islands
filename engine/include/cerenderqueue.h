@@ -22,7 +22,7 @@
 #define CE_RENDERQUEUE_H
 
 #include "cevector.h"
-#include "cescenenode.h"
+#include "cerendergroup.h"
 #include "cerendersystem.h"
 
 #ifdef __cplusplus
@@ -31,14 +31,19 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_vector* scenenodes[2]; // opacity and transparent
-	int queued_scenenode_count;
+	ce_vector* rendergroups;
 } ce_renderqueue;
 
 extern ce_renderqueue* ce_renderqueue_new(void);
 extern void ce_renderqueue_del(ce_renderqueue* renderqueue);
 
 extern void ce_renderqueue_clear(ce_renderqueue* renderqueue);
+
+extern void ce_renderqueue_add(ce_renderqueue* renderqueue,
+								int priority, ce_material* material);
+
+extern ce_rendergroup*
+ce_renderqueue_get(ce_renderqueue* renderqueue, int priority);
 
 extern void ce_renderqueue_render(ce_renderqueue* renderqueue,
 									ce_rendersystem* rendersystem);

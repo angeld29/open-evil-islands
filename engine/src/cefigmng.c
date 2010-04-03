@@ -22,10 +22,12 @@
 #include <string.h>
 #include <assert.h>
 
+#include "celib.h"
 #include "cestr.h"
 #include "celogging.h"
 #include "cealloc.h"
 #include "ceresfile.h"
+#include "cefighlp.h"
 #include "cefigmng.h"
 
 // TODO: cleanup unused protos and meshes
@@ -36,21 +38,18 @@ ce_figmng* ce_figmng_new(void)
 	figmng->resfiles = ce_vector_new();
 	figmng->figprotos = ce_vector_new();
 	figmng->figmeshes = ce_vector_new();
+	figmng->figentities = ce_vector_new();
 	return figmng;
 }
 
 void ce_figmng_del(ce_figmng* figmng)
 {
 	if (NULL != figmng) {
-		for (int i = 0; i < figmng->figmeshes->count; ++i) {
-			ce_figmesh_del(figmng->figmeshes->items[i]);
-		}
-		for (int i = 0; i < figmng->figprotos->count; ++i) {
-			ce_figproto_del(figmng->figprotos->items[i]);
-		}
-		for (int i = 0; i < figmng->resfiles->count; ++i) {
-			ce_resfile_close(figmng->resfiles->items[i]);
-		}
+		ce_vector_for_each(figmng->figentities, (ce_vector_func1)ce_figentity_del);
+		ce_vector_for_each(figmng->figmeshes, (ce_vector_func1)ce_figmesh_del);
+		ce_vector_for_each(figmng->figprotos, (ce_vector_func1)ce_figproto_del);
+		ce_vector_for_each(figmng->resfiles, (ce_vector_func1)ce_resfile_close);
+		ce_vector_del(figmng->figentities);
 		ce_vector_del(figmng->figmeshes);
 		ce_vector_del(figmng->figprotos);
 		ce_vector_del(figmng->resfiles);
@@ -139,10 +138,35 @@ ce_figentity* ce_figmng_create_figentity(ce_figmng* figmng,
 													orientation, texture_count,
 													textures, scenenode);
 		if (NULL != figentity) {
+			ce_vector_push_back(figmng->figentities, figentity);
 			return figentity;
 		}
 	}
 
 	ce_logging_error("figmng: could not create figentity: '%s'", name);
 	return NULL;
+}
+
+void ce_figmng_remove_figentity(ce_figmng* figmng,
+								ce_figentity* figentity)
+{
+	int index = ce_vector_find(figmng->figentities, figentity);
+	if (-1 != index) {
+		ce_vector_remove_unordered(figmng->figentities, index);
+	}
+	ce_figentity_del(figentity);
+}
+
+void ce_figmng_create_rendergroup(ce_figmng* figmng, ce_renderqueue* renderqueue)
+{
+	ce_unused(figmng);
+	ce_renderqueue_add(renderqueue, 50, ce_fighlp_create_material());
+}
+
+void ce_figmng_enqueue(ce_figmng* figmng, ce_renderqueue* renderqueue)
+{
+	ce_rendergroup* rendergroup = ce_renderqueue_get(renderqueue, 50);
+	for (int i = 0; i < figmng->figentities->count; ++i) {
+		ce_figentity_enqueue(figmng->figentities->items[i], rendergroup);
+	}
 }

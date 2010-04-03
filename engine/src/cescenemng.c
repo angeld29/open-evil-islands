@@ -37,10 +37,11 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 	snprintf(path, sizeof(path), "%s/Maps", root_path);
 
 	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
+	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->texmng = ce_texmng_new();
 	scenemng->mprmng = ce_mprmng_new(path);
+	scenemng->terrain = NULL;
 	scenemng->figmng = ce_figmng_new();
-	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->rendersystem = ce_rendersystem_new();
 	scenemng->renderqueue = ce_renderqueue_new();
 	scenemng->viewport = ce_viewport_new();
@@ -48,13 +49,13 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 	scenemng->timer = ce_timer_new();
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
-	scenemng->terrain = NULL;
-	scenemng->figentities = ce_vector_new();
 	scenemng->show_axes = true;
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
 	scenemng->anm_fps = 15.0f;
 	scenemng->scenenode_needs_update = true;
+
+	ce_figmng_create_rendergroup(scenemng->figmng, scenemng->renderqueue);
 
 	const char* texture_resources[] = { "textures", "redress", "menus" };
 	for (int i = 0, n = sizeof(texture_resources) /
@@ -78,10 +79,6 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 void ce_scenemng_del(ce_scenemng* scenemng)
 {
 	if (NULL != scenemng) {
-		ce_vector_for_each(scenemng->figentities,
-							(ce_vector_func1)ce_figentity_del);
-		ce_vector_del(scenemng->figentities);
-		ce_terrain_del(scenemng->terrain);
 		ce_font_del(scenemng->font);
 		ce_fps_del(scenemng->fps);
 		ce_timer_del(scenemng->timer);
@@ -89,10 +86,11 @@ void ce_scenemng_del(ce_scenemng* scenemng)
 		ce_viewport_del(scenemng->viewport);
 		ce_renderqueue_del(scenemng->renderqueue);
 		ce_rendersystem_del(scenemng->rendersystem);
-		ce_scenenode_del(scenemng->scenenode);
 		ce_figmng_del(scenemng->figmng);
+		ce_terrain_del(scenemng->terrain);
 		ce_mprmng_del(scenemng->mprmng);
 		ce_texmng_del(scenemng->texmng);
+		ce_scenenode_del(scenemng->scenenode);
 		ce_free(scenemng, sizeof(ce_scenemng));
 	}
 }
@@ -106,8 +104,8 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 	ce_input_advance(elapsed);
 	ce_fps_advance(scenemng->fps, elapsed);
 
-	for (int i = 0; i < scenemng->figentities->count; ++i) {
-		ce_figentity_advance(scenemng->figentities->items[i],
+	for (int i = 0; i < scenemng->figmng->figentities->count; ++i) {
+		ce_figentity_advance(scenemng->figmng->figentities->items[i],
 							scenemng->anm_fps, elapsed);
 	}
 }
@@ -140,8 +138,8 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	ce_scenenode_cull_cascade(scenemng->scenenode, &frustum);
 
-	for (int i = 0; i < scenemng->figentities->count; ++i) {
-		ce_figentity_update(scenemng->figentities->items[i], false);
+	for (int i = 0; i < scenemng->figmng->figentities->count; ++i) {
+		ce_figentity_update(scenemng->figmng->figentities->items[i], false);
 	}
 
 	ce_scenenode_update_cascade(scenemng->scenenode, false);
@@ -151,6 +149,13 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 										scenemng->rendersystem,
 										scenemng->comprehensive_bbox_only);
 	}
+
+	ce_renderqueue_clear(scenemng->renderqueue);
+
+	ce_terrain_enqueue(scenemng->terrain, scenemng->renderqueue);
+	ce_figmng_enqueue(scenemng->figmng, scenemng->renderqueue);
+
+	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
 
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
 
@@ -176,8 +181,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_font_render(scenemng->font, 10, scenemng->viewport->height - 2 *
 		ce_font_get_height(scenemng->font) - 10, &CE_COLOR_RED, text);
 
-	snprintf(text, sizeof(text), "%d scene nodes in frustum",
-			scenemng->renderqueue->queued_scenenode_count);
+	snprintf(text, sizeof(text), "%d scene nodes in frustum", 0);
 
 	ce_font_render(scenemng->font, 10, 10, &CE_COLOR_RED, text);
 
@@ -227,16 +231,20 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 		}
 	}
 
-	scenemng->scenenode_needs_update = true;
-
 	if (NULL == scenenode) {
 		scenenode = scenemng->scenenode;
 	}
 
 	ce_terrain_del(scenemng->terrain);
-	return scenemng->terrain = ce_terrain_new(mprfile, position,
-											orientation, stub_texture,
-											textures, scenenode);
+	scenemng->terrain = ce_terrain_new(mprfile, position,
+										orientation, stub_texture,
+										textures, scenenode);
+
+	ce_terrain_create_rendergroup(scenemng->terrain, scenemng->renderqueue);
+
+	scenemng->scenenode_needs_update = true;
+
+	return scenemng->terrain;
 }
 
 ce_figentity*
@@ -274,10 +282,8 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 
 	if (NULL != figentity) {
 		ce_figentity_update(figentity, true);
-		ce_vector_push_back(scenemng->figentities, figentity);
+		scenemng->scenenode_needs_update = true;
 	}
-
-	scenemng->scenenode_needs_update = true;
 
 	return figentity;
 }
@@ -314,14 +320,9 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 										2, texture_names, NULL);
 }
 
-void ce_scenemng_remove_figentity(ce_scenemng* scenemng,
-									ce_figentity* figentity)
+void ce_scenemng_remove_figentity(ce_scenemng* scenemng, ce_figentity* figentity)
 {
-	int index = ce_vector_find(scenemng->figentities, figentity);
-	if (-1 != index) {
-		ce_vector_remove_unordered(scenemng->figentities, index);
-	}
-	ce_figentity_del(figentity);
+	ce_figmng_remove_figentity(scenemng->figmng, figentity);
 }
 
 void ce_scenemng_load_mobfile(ce_scenemng* scenemng,
