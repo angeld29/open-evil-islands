@@ -49,6 +49,9 @@ extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 									ce_scenenode* scenenode);
 extern void ce_terrain_del(ce_terrain* terrain);
 
+extern ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain,
+												float x, float z);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

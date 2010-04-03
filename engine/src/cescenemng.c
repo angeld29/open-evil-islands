@@ -54,6 +54,7 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
 	scenemng->anm_fps = 15.0f;
+	scenemng->scenenode_needs_update = true;
 
 	const char* texture_resources[] = { "textures", "redress", "menus" };
 	for (int i = 0, n = sizeof(texture_resources) /
@@ -118,11 +119,14 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_rendersystem_setup_viewport(scenemng->rendersystem, scenemng->viewport);
 	ce_rendersystem_setup_camera(scenemng->rendersystem, scenemng->camera);
 
-	for (int i = 0; i < scenemng->figentities->count; ++i) {
-		ce_figentity_update(scenemng->figentities->items[i]);
+	if (scenemng->show_axes) {
+		ce_rendersystem_draw_axes(scenemng->rendersystem);
 	}
 
-	ce_scenenode_update_cascade(scenemng->scenenode);
+	if (scenemng->scenenode_needs_update) {
+		ce_scenenode_update_cascade(scenemng->scenenode, true);
+		scenemng->scenenode_needs_update = false;
+	}
 
 	ce_vec3 forward, right, up;
 	ce_frustum frustum;
@@ -134,21 +138,26 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_camera_get_right(scenemng->camera, &right),
 		ce_camera_get_up(scenemng->camera, &up));
 
-	ce_renderqueue_clear(scenemng->renderqueue);
-	ce_renderqueue_add_cascade(scenemng->renderqueue, scenemng->scenenode,
-								&scenemng->camera->position, &frustum);
+	ce_scenenode_cull_cascade(scenemng->scenenode, &frustum);
 
-	if (scenemng->show_axes) {
-		ce_rendersystem_draw_axes(scenemng->rendersystem);
+	for (int i = 0; i < scenemng->figentities->count; ++i) {
+		ce_figentity_update(scenemng->figentities->items[i], false);
 	}
+
+	ce_scenenode_update_cascade(scenemng->scenenode, false);
 
 	if (scenemng->show_bboxes) {
-		ce_renderqueue_draw_bboxes(scenemng->renderqueue,
-									scenemng->rendersystem,
-									scenemng->comprehensive_bbox_only);
+		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,
+										scenemng->rendersystem,
+										scenemng->comprehensive_bbox_only);
 	}
 
-	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
+	//ce_renderqueue_clear(scenemng->renderqueue);
+	//ce_renderqueue_add_cascade(scenemng->renderqueue, scenemng->scenenode,
+	//							&scenemng->camera->position, &frustum);
+	//ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
+
+	ce_scenenode_render_cascade(scenemng->scenenode, scenemng->rendersystem);
 
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
 
@@ -237,6 +246,8 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 		return NULL;
 	}
 
+	scenemng->scenenode_needs_update = true;
+
 	ce_terrain_del(scenemng->terrain);
 	return scenemng->terrain = terrain;
 }
@@ -262,6 +273,10 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 
 	if (NULL == scenenode) {
 		scenenode = scenemng->scenenode;
+		if (NULL != scenemng->terrain) {
+			scenenode = ce_terrain_find_scenenode(scenemng->terrain,
+												position->x, position->z);
+		}
 	}
 
 	ce_figentity* figentity =
@@ -271,8 +286,11 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 									textures, scenenode);
 
 	if (NULL != figentity) {
+		ce_figentity_update(figentity, true);
 		ce_vector_push_back(scenemng->figentities, figentity);
 	}
+
+	scenemng->scenenode_needs_update = true;
 
 	return figentity;
 }
@@ -287,7 +305,7 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 		position.y += ce_mprhlp_get_height(scenemng->terrain->mprfile,
 											position.x, position.z);
 	}
-	// yeah! it's a real hardcode :) move creatures up
+	// yeah! it's a real hard-code :) move creatures up
 	if (50 == mobobject->type ||
 			51 == mobobject->type ||
 			52 == mobobject->type) {

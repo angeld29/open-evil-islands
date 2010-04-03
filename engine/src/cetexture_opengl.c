@@ -589,6 +589,11 @@ void ce_texture_del(ce_texture* texture)
 	}
 }
 
+bool ce_texture_equal(const ce_texture* texture, const ce_texture* other)
+{
+	return texture->id == other->id;
+}
+
 const char* ce_texture_get_name(ce_texture* texture)
 {
 	return texture->name->str;

@@ -54,7 +54,7 @@ extern void ce_figentity_del(ce_figentity* figentity);
 extern void ce_figentity_advance(ce_figentity* figentity,
 									float fps, float elapsed);
 
-extern void ce_figentity_update(ce_figentity* figentity);
+extern void ce_figentity_update(ce_figentity* figentity, bool force);
 
 extern int ce_figentity_get_animation_count(ce_figentity* figentity);
 extern const char*

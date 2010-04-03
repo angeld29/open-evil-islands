@@ -42,6 +42,14 @@ ce_aabb* ce_aabb_init(ce_aabb* aabb, const ce_vec3* origin,
 	return aabb;
 }
 
+ce_aabb* ce_aabb_init_zero(ce_aabb* aabb)
+{
+	aabb->origin = CE_VEC3_ZERO;
+	aabb->extents = CE_VEC3_ZERO;
+	aabb->radius = 0.0f;
+	return aabb;
+}
+
 ce_aabb* ce_aabb_copy(ce_aabb* aabb, const ce_aabb* other)
 {
 	aabb->origin = other->origin;

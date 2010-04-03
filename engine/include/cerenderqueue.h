@@ -50,10 +50,6 @@ extern void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
 extern void ce_renderqueue_render(ce_renderqueue* renderqueue,
 									ce_rendersystem* rendersystem);
 
-extern void ce_renderqueue_draw_bboxes(ce_renderqueue* renderqueue,
-										ce_rendersystem* rendersystem,
-										bool comprehensive_only);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

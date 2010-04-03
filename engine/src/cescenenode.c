@@ -26,6 +26,7 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 	ce_scenenode* scenenode = ce_alloc_zero(sizeof(ce_scenenode));
 	scenenode->position = CE_VEC3_ZERO;
 	scenenode->orientation = CE_QUAT_IDENTITY;
+	scenenode->culled = true;
 	scenenode->renderlayers = ce_vector_new();
 	scenenode->parent = parent;
 	scenenode->childs = ce_vector_new();
@@ -67,6 +68,27 @@ void ce_scenenode_add_renderlayer(ce_scenenode* scenenode,
 									ce_renderlayer* renderlayer)
 {
 	ce_vector_push_back(scenenode->renderlayers, renderlayer);
+}
+
+static void ce_scenenode_cull_unconditionally_cascade(ce_scenenode* scenenode)
+{
+	scenenode->culled = true;
+	for (int i = 0; i < scenenode->childs->count; ++i) {
+		ce_scenenode_cull_unconditionally_cascade(scenenode->childs->items[i]);
+	}
+}
+
+void ce_scenenode_cull_cascade(ce_scenenode* scenenode,
+								const ce_frustum* frustum)
+{
+	if (ce_frustum_test_bbox(frustum, &scenenode->world_bbox)) {
+		scenenode->culled = false;
+		for (int i = 0; i < scenenode->childs->count; ++i) {
+			ce_scenenode_cull_cascade(scenenode->childs->items[i], frustum);
+		}
+	} else if (!scenenode->culled) {
+		ce_scenenode_cull_unconditionally_cascade(scenenode);
+	}
 }
 
 static void ce_scenenode_update_transform(ce_scenenode* scenenode)
@@ -116,24 +138,82 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 	}
 }
 
-void ce_scenenode_update(ce_scenenode* scenenode)
+void ce_scenenode_update(ce_scenenode* scenenode, bool force)
 {
+	if (!force && scenenode->culled) {
+		return;
+	}
+
 	ce_scenenode_update_transform(scenenode);
 	ce_scenenode_update_bounds(scenenode);
 }
 
-void ce_scenenode_update_cascade(ce_scenenode* scenenode)
+void ce_scenenode_update_cascade(ce_scenenode* scenenode, bool force)
 {
+	if (!force && scenenode->culled) {
+		return;
+	}
+
 	ce_scenenode_update_transform(scenenode);
 	for (int i = 0; i < scenenode->childs->count; ++i) {
-		ce_scenenode_update_cascade(scenenode->childs->items[i]);
+		ce_scenenode_update_cascade(scenenode->childs->items[i], force);
 	}
 	ce_scenenode_update_bounds(scenenode);
+}
+
+static void ce_scenenode_draw_bbox(ce_rendersystem* rendersystem,
+									const ce_bbox* bbox)
+{
+	ce_rendersystem_apply_transform(rendersystem,
+		&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
+	ce_rendersystem_draw_wire_cube(rendersystem, 1.0f, &CE_COLOR_BLUE);
+	ce_rendersystem_discard_transform(rendersystem);
+}
+
+void ce_scenenode_draw_bboxes(ce_scenenode* scenenode,
+								ce_rendersystem* rendersystem,
+								bool comprehensive_only)
+{
+	if (scenenode->culled) {
+		return;
+	}
+
+	ce_scenenode_draw_bbox(rendersystem, &scenenode->world_bbox);
+
+	if (!comprehensive_only) {
+		ce_rendersystem_apply_transform(rendersystem,
+										&scenenode->world_position,
+										&scenenode->world_orientation,
+										&CE_VEC3_UNIT_SCALE);
+		for (int i = 0; i < scenenode->renderlayers->count; ++i) {
+			ce_renderlayer* renderlayer = scenenode->renderlayers->items[i];
+			for (int j = 0; j < renderlayer->renderitems->count; ++j) {
+				ce_renderitem* renderitem = renderlayer->renderitems->items[j];
+				ce_scenenode_draw_bbox(rendersystem, &renderitem->bbox);
+			}
+		}
+		ce_rendersystem_discard_transform(rendersystem);
+	}
+}
+
+void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
+										ce_rendersystem* rendersystem,
+										bool comprehensive_only)
+{
+	ce_scenenode_draw_bboxes(scenenode, rendersystem, comprehensive_only);
+	for (int i = 0; i < scenenode->childs->count; ++i) {
+		ce_scenenode_draw_bboxes_cascade(scenenode->childs->items[i],
+										rendersystem, comprehensive_only);
+	}
 }
 
 void ce_scenenode_render(ce_scenenode* scenenode,
 						ce_rendersystem* rendersystem)
 {
+	if (scenenode->culled) {
+		return;
+	}
+
 	ce_rendersystem_apply_transform(rendersystem,
 									&scenenode->world_position,
 									&scenenode->world_orientation,
@@ -155,33 +235,11 @@ void ce_scenenode_render(ce_scenenode* scenenode,
 	ce_rendersystem_discard_transform(rendersystem);
 }
 
-static void ce_scenenode_draw_bbox(ce_rendersystem* rendersystem,
-									const ce_bbox* bbox)
+void ce_scenenode_render_cascade(ce_scenenode* scenenode,
+								ce_rendersystem* rendersystem)
 {
-	ce_rendersystem_apply_transform(rendersystem,
-		&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
-	ce_rendersystem_draw_wire_cube(rendersystem, 1.0f, &CE_COLOR_BLUE);
-	ce_rendersystem_discard_transform(rendersystem);
-}
-
-void ce_scenenode_draw_bboxes(ce_scenenode* scenenode,
-							ce_rendersystem* rendersystem,
-							bool comprehensive_only)
-{
-	ce_scenenode_draw_bbox(rendersystem, &scenenode->world_bbox);
-
-	if (!comprehensive_only) {
-		ce_rendersystem_apply_transform(rendersystem,
-										&scenenode->world_position,
-										&scenenode->world_orientation,
-										&CE_VEC3_UNIT_SCALE);
-		for (int i = 0; i < scenenode->renderlayers->count; ++i) {
-			ce_renderlayer* renderlayer = scenenode->renderlayers->items[i];
-			for (int j = 0; j < renderlayer->renderitems->count; ++j) {
-				ce_renderitem* renderitem = renderlayer->renderitems->items[j];
-				ce_scenenode_draw_bbox(rendersystem, &renderitem->bbox);
-			}
-		}
-		ce_rendersystem_discard_transform(rendersystem);
+	ce_scenenode_render(scenenode, rendersystem);
+	for (int i = 0; i < scenenode->childs->count; ++i) {
+		ce_scenenode_render_cascade(scenenode->childs->items[i], rendersystem);
 	}
 }

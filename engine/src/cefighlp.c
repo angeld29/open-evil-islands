@@ -23,6 +23,12 @@
 ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
 							const ce_complection* complection)
 {
+	if (0 == figfile->vertex_count) {
+		// I found some strange figfiles!
+		// all bounds in these ones are NAN or INF...
+		return ce_aabb_init_zero(aabb);
+	}
+
 	aabb->radius = figfile->value_callback(figfile->radius, 1, complection);
 
 	ce_vec3_init(&aabb->origin,

@@ -39,6 +39,8 @@ extern ce_aabb* ce_aabb_init(ce_aabb* aabb,
 								const ce_vec3* extents,
 								float radius);
 
+extern ce_aabb* ce_aabb_init_zero(ce_aabb* aabb);
+
 extern ce_aabb* ce_aabb_copy(ce_aabb* aabb, const ce_aabb* other);
 
 extern ce_aabb* ce_aabb_clear(ce_aabb* aabb);

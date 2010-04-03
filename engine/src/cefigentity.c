@@ -92,8 +92,12 @@ void ce_figentity_advance(ce_figentity* figentity, float fps, float elapsed)
 	ce_figbone_advance(figentity->figbone, fps, elapsed);
 }
 
-void ce_figentity_update(ce_figentity* figentity)
+void ce_figentity_update(ce_figentity* figentity, bool force)
 {
+	if (!force && figentity->scenenode->culled) {
+		return;
+	}
+
 	ce_figbone_update(figentity->figbone,
 		figentity->figmesh->figproto->fignode, figentity->renderitems);
 }

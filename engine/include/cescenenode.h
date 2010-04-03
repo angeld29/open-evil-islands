@@ -27,6 +27,7 @@
 #include "cequat.h"
 #include "cebbox.h"
 #include "cevector.h"
+#include "cefrustum.h"
 #include "cerenderlayer.h"
 #include "cerendersystem.h"
 
@@ -44,6 +45,7 @@ struct ce_scenenode {
 	ce_quat world_orientation;
 	ce_bbox world_bbox;
 	float dist2;
+	bool culled;
 	ce_vector* renderlayers;
 	ce_scenenode* parent;
 	ce_vector* childs;
@@ -58,15 +60,23 @@ extern void ce_scenenode_detach_child(ce_scenenode* scenenode,
 extern void ce_scenenode_add_renderlayer(ce_scenenode* scenenode,
 										ce_renderlayer* renderlayer);
 
-extern void ce_scenenode_update(ce_scenenode* scenenode);
-extern void ce_scenenode_update_cascade(ce_scenenode* scenenode);
+extern void ce_scenenode_cull_cascade(ce_scenenode* scenenode,
+									const ce_frustum* frustum);
 
-extern void ce_scenenode_render(ce_scenenode* scenenode,
-								ce_rendersystem* rendersystem);
+extern void ce_scenenode_update(ce_scenenode* scenenode, bool force);
+extern void ce_scenenode_update_cascade(ce_scenenode* scenenode, bool force);
 
 extern void ce_scenenode_draw_bboxes(ce_scenenode* scenenode,
 									ce_rendersystem* rendersystem,
 									bool comprehensive_only);
+extern void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
+											ce_rendersystem* rendersystem,
+											bool comprehensive_only);
+
+extern void ce_scenenode_render(ce_scenenode* scenenode,
+								ce_rendersystem* rendersystem);
+extern void ce_scenenode_render_cascade(ce_scenenode* scenenode,
+										ce_rendersystem* rendersystem);
 
 #ifdef __cplusplus
 }

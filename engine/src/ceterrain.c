@@ -19,6 +19,7 @@
 */
 
 #include <stdbool.h>
+#include <math.h>
 
 #include "cealloc.h"
 #include "cemprhlp.h"
@@ -29,14 +30,6 @@ static void ce_terrain_create_sector(ce_terrain* terrain,
 									int sector_x, int sector_z,
 									bool water)
 {
-	ce_mprsector* sector = terrain->mprfile->sectors + sector_z *
-							terrain->mprfile->sector_x_count + sector_x;
-
-	// skip empty geometry
-	if (water && NULL == sector->water_allow) {
-		return;
-	}
-
 	ce_renderlayer* renderlayer = ce_renderlayer_new(
 		ce_mprhlp_create_material(terrain->mprfile, water,
 									terrain->stub_texture));
@@ -69,10 +62,22 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 			ce_texture_add_ref(textures[i]));
 	}
 
-	for (int z = 0; z < terrain->mprfile->sector_z_count; ++z) {
-		for (int x = 0; x < terrain->mprfile->sector_x_count; ++x) {
+	// opaque
+	for (int z = 0; z < mprfile->sector_z_count; ++z) {
+		for (int x = 0; x < mprfile->sector_x_count; ++x) {
 			ce_terrain_create_sector(terrain, x, z, false);
-			ce_terrain_create_sector(terrain, x, z, true);
+		}
+	}
+
+	// transparent
+	for (int z = 0; z < mprfile->sector_z_count; ++z) {
+		for (int x = 0; x < mprfile->sector_x_count; ++x) {
+			ce_mprsector* sector = terrain->mprfile->sectors + z *
+									terrain->mprfile->sector_x_count + x;
+			// do not add empty geometry
+			if (NULL != sector->water_allow) {
+				ce_terrain_create_sector(terrain, x, z, true);
+			}
 		}
 	}
 
@@ -89,4 +94,16 @@ void ce_terrain_del(ce_terrain* terrain)
 		ce_mprfile_close(terrain->mprfile);
 		ce_free(terrain, sizeof(ce_terrain));
 	}
+}
+
+ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain, float x, float z)
+{
+	// FIXME: opengl hard-code
+	z = fabsf(z);
+
+	int sector_x = (int)x / (CE_MPRFILE_VERTEX_SIDE - 1);
+	int sector_z = (int)z / (CE_MPRFILE_VERTEX_SIDE - 1);
+
+	return terrain->scenenode->childs->items[sector_z *
+		terrain->mprfile->sector_x_count + sector_x];
 }
