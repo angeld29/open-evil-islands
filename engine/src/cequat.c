@@ -178,21 +178,20 @@ float ce_quat_dot(const ce_quat* lhs, const ce_quat* rhs)
 
 float ce_quat_to_polar(const ce_quat* quat, ce_vec3* axis)
 {
-	float angle;
-	float sqr_length = quat->x * quat->x + quat->y * quat->y + quat->z * quat->z;
+	float sqr_length = quat->x * quat->x +
+						quat->y * quat->y +
+						quat->z * quat->z;
+
 	if (sqr_length > 0.0f) {
-		angle = 2.0f * acosf(quat->w);
 		float inv_length = 1.0f / sqrtf(sqr_length);
 		axis->x = quat->x * inv_length;
 		axis->y = quat->y * inv_length;
 		axis->z = quat->z * inv_length;
-	} else {
-		angle = 0.0f;
-		axis->x = 1.0f;
-		axis->y = 0.0f;
-		axis->z = 0.0f;
+		return 2.0f * acosf(quat->w);
 	}
-	return angle;
+
+	*axis = CE_VEC3_UNIT_X;
+	return 0.0f;
 }
 
 void ce_quat_to_axes(const ce_quat* quat, ce_vec3* xaxis,
