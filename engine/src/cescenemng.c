@@ -234,22 +234,16 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 		}
 	}
 
+	scenemng->scenenode_needs_update = true;
+
 	if (NULL == scenenode) {
 		scenenode = scenemng->scenenode;
 	}
 
-	ce_terrain* terrain = ce_terrain_new(mprfile, position,
-										orientation, stub_texture,
-										textures, scenenode);
-	if (NULL == terrain) {
-		ce_mprfile_close(mprfile);
-		return NULL;
-	}
-
-	scenemng->scenenode_needs_update = true;
-
 	ce_terrain_del(scenemng->terrain);
-	return scenemng->terrain = terrain;
+	return scenemng->terrain = ce_terrain_new(mprfile, position,
+											orientation, stub_texture,
+											textures, scenenode);
 }
 
 ce_figentity*
