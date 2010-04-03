@@ -47,11 +47,13 @@ typedef struct {
 } ce_renderitem_vtable;
 
 struct ce_renderitem {
+	ce_aabb aabb;
 	ce_vec3 position;
 	ce_quat orientation;
 	ce_bbox bbox;
-	ce_aabb aabb;
-	bool transparent;
+	ce_vec3 world_position;
+	ce_quat world_orientation;
+	ce_bbox world_bbox;
 	ce_renderitem_vtable vtable;
 	size_t size;
 	char impl[];

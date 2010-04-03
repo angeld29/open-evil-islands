@@ -30,7 +30,7 @@ static void ce_terrain_create_sector(ce_terrain* terrain,
 									int sector_x, int sector_z,
 									bool water)
 {
-	ce_renderlayer* renderlayer = ce_renderlayer_new(
+	/*ce_renderlayer* renderlayer = ce_renderlayer_new(
 		ce_mprhlp_create_material(terrain->mprfile, water,
 									terrain->stub_texture));
 	ce_renderlayer_add_renderitem(renderlayer,
@@ -39,7 +39,13 @@ static void ce_terrain_create_sector(ce_terrain* terrain,
 							water, terrain->textures));
 
 	ce_scenenode* scenenode = ce_scenenode_new(terrain->scenenode);
-	ce_scenenode_add_renderlayer(scenenode, renderlayer);
+	ce_scenenode_add_renderlayer(scenenode, renderlayer);*/
+
+	ce_scenenode* scenenode = ce_scenenode_new(terrain->scenenode);
+	ce_scenenode_add_renderitem(scenenode,
+		ce_mprrenderitem_new(terrain->mprfile,
+							sector_x, sector_z,
+							water, terrain->textures));
 }
 
 ce_terrain* ce_terrain_new(ce_mprfile* mprfile,

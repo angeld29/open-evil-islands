@@ -152,13 +152,6 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 										scenemng->comprehensive_bbox_only);
 	}
 
-	//ce_renderqueue_clear(scenemng->renderqueue);
-	//ce_renderqueue_add_cascade(scenemng->renderqueue, scenemng->scenenode,
-	//							&scenemng->camera->position, &frustum);
-	//ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
-
-	ce_scenenode_render_cascade(scenemng->scenenode, scenemng->rendersystem);
-
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
 
 	snprintf(text, sizeof(text),

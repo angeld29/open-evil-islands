@@ -39,7 +39,6 @@ extern "C"
 typedef struct {
 	ce_figmesh* figmesh;
 	ce_figbone* figbone;
-	ce_vector* renderitems;
 	ce_scenenode* scenenode;
 } ce_figentity;
 

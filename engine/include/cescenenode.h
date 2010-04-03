@@ -28,7 +28,7 @@
 #include "cebbox.h"
 #include "cevector.h"
 #include "cefrustum.h"
-#include "cerenderlayer.h"
+#include "cerenderitem.h"
 #include "cerendersystem.h"
 
 #ifdef __cplusplus
@@ -44,9 +44,8 @@ struct ce_scenenode {
 	ce_vec3 world_position;
 	ce_quat world_orientation;
 	ce_bbox world_bbox;
-	float dist2;
 	bool culled;
-	ce_vector* renderlayers;
+	ce_vector* renderitems;
 	ce_scenenode* parent;
 	ce_vector* childs;
 };
@@ -57,8 +56,8 @@ extern void ce_scenenode_del(ce_scenenode* scenenode);
 extern void ce_scenenode_detach_child(ce_scenenode* scenenode,
 										ce_scenenode* child);
 
-extern void ce_scenenode_add_renderlayer(ce_scenenode* scenenode,
-										ce_renderlayer* renderlayer);
+extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
+										ce_renderitem* renderitem);
 
 extern void ce_scenenode_cull_cascade(ce_scenenode* scenenode,
 									const ce_frustum* frustum);
@@ -72,11 +71,6 @@ extern void ce_scenenode_draw_bboxes(ce_scenenode* scenenode,
 extern void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
 											ce_rendersystem* rendersystem,
 											bool comprehensive_only);
-
-extern void ce_scenenode_render(ce_scenenode* scenenode,
-								ce_rendersystem* rendersystem);
-extern void ce_scenenode_render_cascade(ce_scenenode* scenenode,
-										ce_rendersystem* rendersystem);
 
 #ifdef __cplusplus
 }

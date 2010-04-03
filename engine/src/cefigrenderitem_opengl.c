@@ -32,15 +32,6 @@
 #include "ceanmstate.h"
 #include "cefigrenderitem.h"
 
-static void
-ce_figrenderitem_base_init(ce_renderitem* renderitem,
-							const ce_figfile* figfile,
-							const ce_complection* complection)
-{
-	ce_fighlp_get_aabb(&renderitem->aabb, figfile, complection);
-	renderitem->transparent = true;
-}
-
 // fig renderitem static (without morphs): gl's display list
 
 typedef struct {
@@ -87,7 +78,7 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 	const ce_figfile* figfile = va_arg(args, const ce_figfile*);
 	const ce_complection* complection = va_arg(args, const ce_complection*);
 
-	ce_figrenderitem_base_init(renderitem, figfile, complection);
+	ce_fighlp_get_aabb(&renderitem->aabb, figfile, complection);
 
 	figrenderitem->cookie = ce_figcookie_static_new();
 
@@ -228,7 +219,7 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 	const ce_figfile* figfile = va_arg(args, const ce_figfile*);
 	const ce_complection* complection = va_arg(args, const ce_complection*);
 
-	ce_figrenderitem_base_init(renderitem, figfile, complection);
+	ce_fighlp_get_aabb(&renderitem->aabb, figfile, complection);
 
 	figrenderitem->cookie = ce_figcookie_dynamic_new(figfile->index_count);
 	figrenderitem->vertices = ce_alloc(sizeof(float) * 3 * figfile->index_count);

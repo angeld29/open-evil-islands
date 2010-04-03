@@ -55,7 +55,6 @@ static void ce_mprrenderitem_ctor(ce_renderitem* renderitem, va_list args)
 	renderitem->orientation = CE_QUAT_IDENTITY;
 	renderitem->bbox.aabb = renderitem->aabb;
 	renderitem->bbox.axis = CE_QUAT_IDENTITY;
-	renderitem->transparent = NULL != water_allow;
 
 	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
 	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);

@@ -49,33 +49,9 @@ void ce_renderqueue_clear(ce_renderqueue* renderqueue)
 	renderqueue->queued_scenenode_count = 0;
 }
 
-void ce_renderqueue_add_cascade(ce_renderqueue* renderqueue,
-								ce_scenenode* scenenode,
-								const ce_vec3* position,
-								const ce_frustum* frustum)
-{
-	if (ce_frustum_test_bbox(frustum, &scenenode->world_bbox)) {
-		// FIXME: scene hierarchy refactoring
-		if (!ce_vector_empty(scenenode->renderlayers)) {
-			ce_renderlayer* renderlayer = scenenode->renderlayers->items[0];
-			ce_renderitem* renderitem = renderlayer->renderitems->items[0];
-			scenenode->dist2 = ce_vec3_dist2(position,
-								&scenenode->world_position);
-			int index = renderitem->transparent;
-			ce_vector_push_back(renderqueue->scenenodes[index], scenenode);
-			++renderqueue->queued_scenenode_count;
-		}
-
-		for (int i = 0; i < scenenode->childs->count; ++i) {
-			ce_renderqueue_add_cascade(renderqueue,
-				scenenode->childs->items[i], position, frustum);
-		}
-	}
-}
-
 typedef int (*ce_renderqueue_comp)(const void* lhs, const void* rhs);
 
-static int ce_renderqueue_comp_less(const void* lhs, const void* rhs)
+/*static int ce_renderqueue_comp_less(const void* lhs, const void* rhs)
 {
 	const ce_scenenode* scenenode1 = *(const ce_scenenode**)lhs;
 	const ce_scenenode* scenenode2 = *(const ce_scenenode**)rhs;
@@ -89,11 +65,11 @@ static int ce_renderqueue_comp_greater(const void* lhs, const void* rhs)
 	const ce_scenenode* scenenode2 = *(const ce_scenenode**)rhs;
 	return ce_fisequal(scenenode1->dist2, scenenode2->dist2, CE_EPS_E3) ?
 		0 : (scenenode1->dist2 > scenenode2->dist2 ? -1 : 1);
-}
+}*/
 
 static const ce_renderqueue_comp ce_renderqueue_comps[2] = {
-	ce_renderqueue_comp_less,
-	ce_renderqueue_comp_greater
+	NULL,
+	NULL
 };
 
 void ce_renderqueue_render(ce_renderqueue* renderqueue,
@@ -104,7 +80,7 @@ void ce_renderqueue_render(ce_renderqueue* renderqueue,
 		qsort(scenenodes->items, scenenodes->count,
 				sizeof(ce_scenenode*), ce_renderqueue_comps[i]);
 		for (int j = 0; j < scenenodes->count; ++j) {
-			ce_scenenode_render(scenenodes->items[j], rendersystem);
+			//ce_scenenode_render(scenenodes->items[j], rendersystem);
 		}
 	}
 }

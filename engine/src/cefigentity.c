@@ -25,7 +25,7 @@
 #include "cefighlp.h"
 #include "cefigentity.h"
 
-static void ce_figentity_assign_renderitems(ce_figentity* figentity,
+/*static void ce_figentity_assign_renderitems(ce_figentity* figentity,
 											ce_fignode* fignode)
 {
 	// FIXME: to be reversed...
@@ -43,7 +43,7 @@ static void ce_figentity_assign_renderitems(ce_figentity* figentity,
 	for (int i = 0; i < fignode->childs->count; ++i) {
 		ce_figentity_assign_renderitems(figentity, fignode->childs->items[i]);
 	}
-}
+}*/
 
 ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								const ce_vec3* position,
@@ -56,22 +56,21 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 	figentity->figmesh = ce_figmesh_add_ref(figmesh);
 	figentity->figbone = ce_figbone_new(figmesh->figproto->fignode,
 										&figmesh->complection, NULL);
-	figentity->renderitems = ce_vector_new();
 	figentity->scenenode = ce_scenenode_new(scenenode);
 	figentity->scenenode->position = *position;
 	figentity->scenenode->orientation = *orientation;
 
 	for (int i = 0; i < figmesh->renderitems->count; ++i) {
-		ce_vector_push_back(figentity->renderitems,
+		ce_scenenode_add_renderitem(figentity->scenenode,
 			ce_renderitem_clone(figmesh->renderitems->items[i]));
 	}
 
-	for (int i = 0; i < texture_count; ++i) {
+	/*for (int i = 0; i < texture_count; ++i) {
 		ce_scenenode_add_renderlayer(figentity->scenenode,
 			ce_renderlayer_new(ce_fighlp_create_material(textures[i])));
-	}
+	}*/
 
-	ce_figentity_assign_renderitems(figentity, figmesh->figproto->fignode);
+	//ce_figentity_assign_renderitems(figentity, figmesh->figproto->fignode);
 
 	return figentity;
 }
@@ -80,7 +79,6 @@ void ce_figentity_del(ce_figentity* figentity)
 {
 	if (NULL != figentity) {
 		ce_scenenode_del(figentity->scenenode);
-		ce_vector_del(figentity->renderitems);
 		ce_figbone_del(figentity->figbone);
 		ce_figmesh_del(figentity->figmesh);
 		ce_free(figentity, sizeof(ce_figentity));
@@ -99,7 +97,8 @@ void ce_figentity_update(ce_figentity* figentity, bool force)
 	}
 
 	ce_figbone_update(figentity->figbone,
-		figentity->figmesh->figproto->fignode, figentity->renderitems);
+		figentity->figmesh->figproto->fignode,
+		figentity->scenenode->renderitems);
 }
 
 int ce_figentity_get_animation_count(ce_figentity* figentity)
