@@ -60,6 +60,7 @@ typedef struct {
 	bool comprehensive_bbox_only;
 	float anm_fps;
 	bool scenenode_needs_update;
+	bool renderqueue_needs_update;
 } ce_scenemng;
 
 extern ce_scenemng* ce_scenemng_new(const char* root_path);

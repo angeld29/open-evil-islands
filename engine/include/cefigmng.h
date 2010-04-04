@@ -33,27 +33,17 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef void (*ce_figmng_figproto_created_proc)(ce_figproto* figproto);
-typedef void (*ce_figmng_figmesh_created_proc)(ce_figmesh* figmesh);
-
 typedef struct {
 	ce_vector* resfiles;
 	ce_vector* figprotos;
 	ce_vector* figmeshes;
 	ce_vector* figentities;
-	ce_vector_func* figproto_created_procs;
-	ce_vector_func* figmesh_created_procs;
 } ce_figmng;
 
 extern ce_figmng* ce_figmng_new(void);
 extern void ce_figmng_del(ce_figmng* figmng);
 
 extern bool ce_figmng_register_resource(ce_figmng* figmng, const char* path);
-
-extern void ce_figmng_listen_figproto_created(ce_figmng* figmng,
-							ce_figmng_figproto_created_proc proc);
-extern void ce_figmng_listen_figmesh_created(ce_figmng* figmng,
-							ce_figmng_figmesh_created_proc proc);
 
 extern ce_figentity*
 ce_figmng_create_figentity(ce_figmng* figmng,

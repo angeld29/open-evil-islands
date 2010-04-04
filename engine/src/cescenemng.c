@@ -29,11 +29,6 @@
 #include "cemprhlp.h"
 #include "cescenemng.h"
 
-static void ce_scenemng_figproto_created(ce_figproto* figproto)
-{
-	printf("%s\n", figproto->name->str);
-}
-
 ce_scenemng* ce_scenemng_new(const char* root_path)
 {
 	ce_logging_write("scenemng: root path: '%s'", root_path);
@@ -58,10 +53,8 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
 	scenemng->anm_fps = 15.0f;
-	scenemng->scenenode_needs_update = true;
-
-	ce_figmng_listen_figproto_created(scenemng->figmng,
-									ce_scenemng_figproto_created);
+	scenemng->scenenode_needs_update = false;
+	scenemng->renderqueue_needs_update = false;
 
 	const char* texture_resources[] = { "textures", "redress", "menus" };
 	for (int i = 0, n = sizeof(texture_resources) /
@@ -158,7 +151,21 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	ce_renderqueue_clear(scenemng->renderqueue);
 
-	ce_terrain_enqueue(scenemng->terrain, scenemng->renderqueue);
+	if (scenemng->renderqueue_needs_update) {
+		if (NULL != scenemng->terrain) {
+			ce_terrain_create_rendergroup(scenemng->terrain,
+											scenemng->renderqueue);
+		}
+		for (int i = 0; i < scenemng->figmng->figprotos->count; ++i) {
+			ce_figproto_create_rendergroup(scenemng->figmng->figprotos->items[i],
+											scenemng->renderqueue);
+		}
+		scenemng->renderqueue_needs_update = false;
+	}
+
+	if (NULL != scenemng->terrain) {
+		ce_terrain_enqueue(scenemng->terrain, scenemng->renderqueue);
+	}
 	for (int i = 0; i < scenemng->figmng->figentities->count; ++i) {
 		ce_figentity_enqueue(scenemng->figmng->figentities->items[i],
 												scenemng->renderqueue);
@@ -250,9 +257,8 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 										orientation, stub_texture,
 										textures, scenenode);
 
-	ce_terrain_create_rendergroup(scenemng->terrain, scenemng->renderqueue);
-
 	scenemng->scenenode_needs_update = true;
+	scenemng->renderqueue_needs_update = true;
 
 	return scenemng->terrain;
 }
@@ -292,9 +298,9 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 
 	if (NULL != figentity) {
 		ce_figentity_update(figentity, true);
-		ce_figproto_create_rendergroup(figentity->figmesh->figproto,
-											scenemng->renderqueue);
+
 		scenemng->scenenode_needs_update = true;
+		scenemng->renderqueue_needs_update = true;
 	}
 
 	return figentity;

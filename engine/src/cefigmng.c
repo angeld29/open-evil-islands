@@ -39,8 +39,6 @@ ce_figmng* ce_figmng_new(void)
 	figmng->figprotos = ce_vector_new();
 	figmng->figmeshes = ce_vector_new();
 	figmng->figentities = ce_vector_new();
-	figmng->figproto_created_procs = ce_vector_func_new();
-	figmng->figmesh_created_procs = ce_vector_func_new();
 	return figmng;
 }
 
@@ -51,8 +49,6 @@ void ce_figmng_del(ce_figmng* figmng)
 		ce_vector_for_each(figmng->figmeshes, (ce_vector_func1)ce_figmesh_del);
 		ce_vector_for_each(figmng->figprotos, (ce_vector_func1)ce_figproto_del);
 		ce_vector_for_each(figmng->resfiles, (ce_vector_func1)ce_resfile_close);
-		ce_vector_func_del(figmng->figmesh_created_procs);
-		ce_vector_func_del(figmng->figproto_created_procs);
 		ce_vector_del(figmng->figentities);
 		ce_vector_del(figmng->figmeshes);
 		ce_vector_del(figmng->figprotos);
@@ -74,18 +70,6 @@ bool ce_figmng_register_resource(ce_figmng* figmng, const char* path)
 	return true;
 }
 
-void ce_figmng_listen_figproto_created(ce_figmng* figmng,
-					ce_figmng_figproto_created_proc proc)
-{
-	ce_vector_func_push_back(figmng->figproto_created_procs, proc);
-}
-
-void ce_figmng_listen_figmesh_created(ce_figmng* figmng,
-					ce_figmng_figmesh_created_proc proc)
-{
-	ce_vector_func_push_back(figmng->figmesh_created_procs, proc);
-}
-
 static ce_figproto* ce_figmng_get_figproto(ce_figmng* figmng, const char* name)
 {
 	for (int i = 0; i < figmng->figprotos->count; ++i) {
@@ -104,7 +88,6 @@ static ce_figproto* ce_figmng_get_figproto(ce_figmng* figmng, const char* name)
 		if (-1 != ce_resfile_node_index(resfile, file_name)) {
 			ce_figproto* figproto = ce_figproto_new(name, resfile);
 			ce_vector_push_back(figmng->figprotos, figproto);
-			ce_vector_func_call1(figmng->figproto_created_procs, figproto);
 			return figproto;
 		}
 	}
@@ -129,7 +112,6 @@ static ce_figmesh* ce_figmng_get_figmesh(ce_figmng* figmng,
 	if (NULL != figproto) {
 		ce_figmesh* figmesh = ce_figmesh_new(figproto, complection);
 		ce_vector_push_back(figmng->figmeshes, figmesh);
-		ce_vector_func_call1(figmng->figmesh_created_procs, figmesh);
 		return figmesh;
 	}
 
