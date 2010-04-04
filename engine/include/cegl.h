@@ -54,6 +54,8 @@ typedef enum {
 	CE_GL_FEATURE_MEMINFO,
 	CE_GL_FEATURE_MULTISAMPLE,
 	CE_GL_FEATURE_FRAMEBUFFER_OBJECT,
+	CE_GL_FEATURE_PIXEL_BUFFER_OBJECT,
+	CE_GL_FEATURE_TEXTURE_BUFFER_OBJECT,
 	CE_GL_FEATURE_COUNT
 } ce_gl_feature;
 
@@ -125,6 +127,10 @@ extern const GLenum CE_GL_DRAW_FRAMEBUFFER;
 extern const GLenum CE_GL_COLOR_ATTACHMENT0;
 extern const GLenum CE_GL_COLOR_ATTACHMENT1;
 extern const GLenum CE_GL_FRAMEBUFFER_COMPLETE;
+
+// PBO
+extern const GLenum CE_GL_PIXEL_PACK_BUFFER;
+extern const GLenum CE_GL_PIXEL_UNPACK_BUFFER;
 
 // common API
 extern bool ce_gl_init(void);

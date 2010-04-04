@@ -87,6 +87,8 @@ const GLenum CE_GL_DRAW_FRAMEBUFFER = 0x8CA9;
 const GLenum CE_GL_COLOR_ATTACHMENT0 = 0x8CE0;
 const GLenum CE_GL_COLOR_ATTACHMENT1 = 0x8CE1;
 const GLenum CE_GL_FRAMEBUFFER_COMPLETE = 0x8CD5;
+const GLenum CE_GL_PIXEL_PACK_BUFFER = 0x88EB;
+const GLenum CE_GL_PIXEL_UNPACK_BUFFER = 0x88EC;
 
 // texture compression
 
@@ -241,7 +243,9 @@ static struct {
 		"point sprite",
 		"meminfo",
 		"multisample",
-		"framebuffer object"
+		"framebuffer object",
+		"pixel buffer object",
+		"texture buffer object"
 	}
 };
 
@@ -414,6 +418,14 @@ bool ce_gl_init(void)
 			NULL != ce_gl_framebuffer_texture_2d_proc &&
 			NULL != ce_gl_generate_mipmap_proc;
 	}
+
+	ce_gl_inst.features[CE_GL_FEATURE_PIXEL_BUFFER_OBJECT] =
+		ce_gl_check_extension("GL_ARB_pixel_buffer_object") ||
+		ce_gl_check_extension("GL_EXT_pixel_buffer_object");
+
+	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_BUFFER_OBJECT] =
+		ce_gl_check_extension("GL_ARB_texture_buffer_object") ||
+		ce_gl_check_extension("GL_EXT_texture_buffer_object");
 
 	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
 		ce_logging_write("opengl: checking for '%s' extension... %s",
