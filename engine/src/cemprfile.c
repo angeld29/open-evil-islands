@@ -36,6 +36,8 @@
 static const unsigned int MP_SIGNATURE = 0xce4af672;
 static const unsigned int SEC_SIGNATURE = 0xcf4bf774;
 
+// TODO: completely remove memfile
+
 static void read_vertex(ce_mprvertex* ver, ce_memfile* mem)
 {
 	ce_memfile_read(mem, &ver->offset_x, sizeof(int8_t), 1);
