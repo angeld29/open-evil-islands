@@ -81,6 +81,12 @@ const GLenum CE_GL_SAMPLE_BUFFERS = 0x80A8;
 const GLenum CE_GL_SAMPLES = 0x80A9;
 const GLenum CE_GL_SAMPLE_COVERAGE_VALUE = 0x80AA;
 const GLenum CE_GL_SAMPLE_COVERAGE_INVERT = 0x80AB;
+const GLenum CE_GL_FRAMEBUFFER = 0x8D40;
+const GLenum CE_GL_READ_FRAMEBUFFER = 0x8CA8;
+const GLenum CE_GL_DRAW_FRAMEBUFFER = 0x8CA9;
+const GLenum CE_GL_COLOR_ATTACHMENT0 = 0x8CE0;
+const GLenum CE_GL_COLOR_ATTACHMENT1 = 0x8CE1;
+const GLenum CE_GL_FRAMEBUFFER_COMPLETE = 0x8CD5;
 
 // texture compression
 
@@ -133,6 +139,29 @@ typedef void (APIENTRY *CE_GL_POINT_PARAMETER_FV_PROC)
 
 static CE_GL_POINT_PARAMETER_F_PROC ce_gl_point_parameter_f_proc;
 static CE_GL_POINT_PARAMETER_FV_PROC ce_gl_point_parameter_fv_proc;
+
+// FBO
+
+typedef void (APIENTRY *CE_GL_BIND_FRAMEBUFFER_PROC)
+				(GLenum target, GLuint framebuffer);
+typedef void (APIENTRY *CE_GL_DELETE_FRAMEBUFFERS_PROC)
+				(GLsizei n, const GLuint* framebuffers);
+typedef void (APIENTRY *CE_GL_GEN_FRAMEBUFFERS_PROC)
+				(GLsizei n, GLuint* framebuffers);
+typedef GLenum (APIENTRY *CE_GL_CHECK_FRAMEBUFFER_STATUS_PROC)(GLenum target);
+typedef void (APIENTRY *CE_GL_FRAMEBUFFER_TEXTURE_2D_PROC)
+				(GLenum target, GLenum attachment,
+				GLenum textarget, GLuint texture, GLint level);
+typedef void (APIENTRY *CE_GL_GENERATE_MIPMAP_PROC)(GLenum target);
+
+static CE_GL_BIND_FRAMEBUFFER_PROC ce_gl_bind_framebuffer_proc;
+static CE_GL_DELETE_FRAMEBUFFERS_PROC ce_gl_delete_framebuffers_proc;
+static CE_GL_GEN_FRAMEBUFFERS_PROC ce_gl_gen_framebuffers_proc;
+static CE_GL_CHECK_FRAMEBUFFER_STATUS_PROC ce_gl_check_framebuffer_status_proc;
+static CE_GL_FRAMEBUFFER_TEXTURE_2D_PROC ce_gl_framebuffer_texture_2d_proc;
+static CE_GL_GENERATE_MIPMAP_PROC ce_gl_generate_mipmap_proc;
+
+// common API
 
 typedef void (*ce_gl_ext_func_ptr)(void);
 
@@ -211,7 +240,8 @@ static struct {
 		"point parameters",
 		"point sprite",
 		"meminfo",
-		"multisample"
+		"multisample",
+		"framebuffer object"
 	}
 };
 
@@ -347,6 +377,44 @@ bool ce_gl_init(void)
 		ce_gl_check_extension("GL_SGIS_multisample") ||
 		ce_gl_check_extension("GLX_SGIS_multisample");
 
+	ce_gl_inst.features[CE_GL_FEATURE_FRAMEBUFFER_OBJECT] =
+		ce_gl_check_extension("GL_ARB_framebuffer_object") ||
+		ce_gl_check_extension("GL_EXT_framebuffer_object");
+
+	if (ce_gl_inst.features[CE_GL_FEATURE_FRAMEBUFFER_OBJECT]) {
+		ce_gl_bind_framebuffer_proc =
+			(CE_GL_BIND_FRAMEBUFFER_PROC)
+				ce_gl_get_first_proc_address(2, "glBindFramebufferARB",
+												"glBindFramebufferEXT");
+		ce_gl_delete_framebuffers_proc =
+			(CE_GL_DELETE_FRAMEBUFFERS_PROC)
+				ce_gl_get_first_proc_address(2, "glDeleteFramebuffersARB",
+												"glDeleteFramebuffersEXT");
+		ce_gl_gen_framebuffers_proc =
+			(CE_GL_GEN_FRAMEBUFFERS_PROC)
+				ce_gl_get_first_proc_address(2, "glGenFramebuffersARB",
+												"glGenFramebuffersEXT");
+		ce_gl_check_framebuffer_status_proc =
+			(CE_GL_CHECK_FRAMEBUFFER_STATUS_PROC)
+				ce_gl_get_first_proc_address(2, "glCheckFramebufferStatusARB",
+												"glCheckFramebufferStatusEXT");
+		ce_gl_framebuffer_texture_2d_proc =
+			(CE_GL_FRAMEBUFFER_TEXTURE_2D_PROC)
+				ce_gl_get_first_proc_address(2, "glFramebufferTexture2DARB",
+												"glFramebufferTexture2DEXT");
+		ce_gl_generate_mipmap_proc =
+			(CE_GL_GENERATE_MIPMAP_PROC)
+				ce_gl_get_first_proc_address(2, "glGenerateMipmapARB",
+												"glGenerateMipmapEXT");
+		ce_gl_inst.features[CE_GL_FEATURE_FRAMEBUFFER_OBJECT] =
+			NULL != ce_gl_bind_framebuffer_proc &&
+			NULL != ce_gl_delete_framebuffers_proc &&
+			NULL != ce_gl_gen_framebuffers_proc &&
+			NULL != ce_gl_check_framebuffer_status_proc &&
+			NULL != ce_gl_framebuffer_texture_2d_proc &&
+			NULL != ce_gl_generate_mipmap_proc;
+	}
+
 	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
 		ce_logging_write("opengl: checking for '%s' extension... %s",
 							ce_gl_inst.feature_names[i],
@@ -383,6 +451,8 @@ bool ce_gl_query_feature(ce_gl_feature feature)
 	return ce_gl_inst.features[feature];
 }
 
+// texture compression
+
 void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 									GLenum internal_format,
 									GLsizei width, GLsizei height,
@@ -399,6 +469,8 @@ void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 									width, height, border, image_size, data);
 #endif
 }
+
+// VBO
 
 void ce_gl_bind_buffer(GLenum target, GLuint buffer)
 {
@@ -437,6 +509,8 @@ void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
 	(*ce_gl_buffer_sub_data_proc)(target, offset, size, data);
 }
 
+// window pos
+
 void ce_gl_window_pos_2f(GLfloat x, GLfloat y)
 {
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
@@ -465,6 +539,8 @@ void ce_gl_window_pos_2iv(const GLint* v)
 	(*ce_gl_window_pos_2iv_proc)(v);
 }
 
+// point parameters
+
 void ce_gl_point_parameter_f(GLenum pname, GLfloat param)
 {
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
@@ -477,4 +553,50 @@ void ce_gl_point_parameter_fv(GLenum pname, GLfloat* params)
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
 	assert(NULL != ce_gl_point_parameter_fv_proc);
 	(*ce_gl_point_parameter_fv_proc)(pname, params);
+}
+
+// FBO
+
+void ce_gl_bind_framebuffer(GLenum target, GLuint framebuffer)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_bind_framebuffer_proc);
+	(*ce_gl_bind_framebuffer_proc)(target, framebuffer);
+}
+
+void ce_gl_delete_framebuffers(GLsizei n, const GLuint* framebuffers)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_delete_framebuffers_proc);
+	(*ce_gl_delete_framebuffers_proc)(n, framebuffers);
+}
+
+void ce_gl_gen_framebuffers(GLsizei n, GLuint* framebuffers)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_gen_framebuffers_proc);
+	(*ce_gl_gen_framebuffers_proc)(n, framebuffers);
+}
+
+GLenum ce_gl_check_framebuffer_status(GLenum target)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_check_framebuffer_status_proc);
+	return (*ce_gl_check_framebuffer_status_proc)(target);
+}
+
+void ce_gl_framebuffer_texture_2d(GLenum target, GLenum attachment,
+							GLenum textarget, GLuint texture, GLint level)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_framebuffer_texture_2d_proc);
+	(*ce_gl_framebuffer_texture_2d_proc)(target, attachment, textarget,
+														texture, level);
+}
+
+void ce_gl_generate_mipmap(GLenum target)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_generate_mipmap_proc);
+	(*ce_gl_generate_mipmap_proc)(target);
 }

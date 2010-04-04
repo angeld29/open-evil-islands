@@ -53,6 +53,7 @@ typedef enum {
 	CE_GL_FEATURE_POINT_SPRITE,
 	CE_GL_FEATURE_MEMINFO,
 	CE_GL_FEATURE_MULTISAMPLE,
+	CE_GL_FEATURE_FRAMEBUFFER_OBJECT,
 	CE_GL_FEATURE_COUNT
 } ce_gl_feature;
 
@@ -117,6 +118,14 @@ extern const GLenum CE_GL_SAMPLES;
 extern const GLenum CE_GL_SAMPLE_COVERAGE_VALUE;
 extern const GLenum CE_GL_SAMPLE_COVERAGE_INVERT;
 
+// FBO
+extern const GLenum CE_GL_FRAMEBUFFER;
+extern const GLenum CE_GL_READ_FRAMEBUFFER;
+extern const GLenum CE_GL_DRAW_FRAMEBUFFER;
+extern const GLenum CE_GL_COLOR_ATTACHMENT0;
+extern const GLenum CE_GL_COLOR_ATTACHMENT1;
+extern const GLenum CE_GL_FRAMEBUFFER_COMPLETE;
+
 // common API
 extern bool ce_gl_init(void);
 extern void ce_gl_term(void);
@@ -149,6 +158,15 @@ extern void ce_gl_window_pos_2iv(const GLint* v);
 // point parameters
 extern void ce_gl_point_parameter_f(GLenum pname, GLfloat param);
 extern void ce_gl_point_parameter_fv(GLenum pname, GLfloat* params);
+
+// FBO
+extern void ce_gl_bind_framebuffer(GLenum target, GLuint framebuffer);
+extern void ce_gl_delete_framebuffers(GLsizei n, const GLuint* framebuffers);
+extern void ce_gl_gen_framebuffers(GLsizei n, GLuint* framebuffers);
+extern GLenum ce_gl_check_framebuffer_status(GLenum target);
+extern void ce_gl_framebuffer_texture_2d(GLenum target, GLenum attachment,
+							GLenum textarget, GLuint texture, GLint level);
+extern void ce_gl_generate_mipmap(GLenum target);
 
 #ifdef __cplusplus
 }
