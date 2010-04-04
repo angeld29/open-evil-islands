@@ -36,7 +36,6 @@ void ce_rendergroup_del(ce_rendergroup* rendergroup)
 		ce_vector_for_each(rendergroup->renderlayers,
 							(ce_vector_func1)ce_renderlayer_del);
 		ce_vector_del(rendergroup->renderlayers);
-		ce_material_del(rendergroup->material);
 		ce_free(rendergroup, sizeof(ce_rendergroup));
 	}
 }
@@ -68,6 +67,7 @@ void ce_rendergroup_add(ce_rendergroup* rendergroup,
 void ce_rendergroup_render(ce_rendergroup* rendergroup,
 							ce_rendersystem* rendersystem)
 {
+	// FIXME: check ce_vector_empty, material may be wrong
 	ce_rendersystem_apply_material(rendersystem, rendergroup->material);
 	for (int i = 0; i < rendergroup->renderlayers->count; ++i) {
 		ce_renderlayer_render(rendergroup->renderlayers->items[i], rendersystem);

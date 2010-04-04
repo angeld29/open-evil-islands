@@ -60,9 +60,8 @@ void ce_renderqueue_add(ce_renderqueue* renderqueue,
 	for (int i = 0; i < renderqueue->rendergroups->count; ++i) {
 		ce_rendergroup* rendergroup = renderqueue->rendergroups->items[i];
 		if (priority == rendergroup->priority) {
-			ce_rendergroup_del(rendergroup);
-			ce_vector_remove_unordered(renderqueue->rendergroups, i);
-			break;
+			rendergroup->material = material;
+			return;
 		}
 	}
 	ce_vector_push_back(renderqueue->rendergroups,

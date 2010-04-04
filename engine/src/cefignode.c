@@ -22,6 +22,7 @@
 
 #include "cestr.h"
 #include "cealloc.h"
+#include "cefighlp.h"
 #include "cefignode.h"
 
 ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
@@ -35,6 +36,7 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 	fignode->figfile = ce_figfile_open(mod_resfile, fignode->name->str);
 	fignode->bonfile = ce_bonfile_open(bon_resfile, fignode->name->str);
 	fignode->anmfiles = ce_vector_new();
+	fignode->material = ce_fighlp_create_material(fignode->figfile);
 	fignode->childs = ce_vector_new();
 
 	for (int i = 0; i < anm_resfiles->count; ++i) {
@@ -62,10 +64,21 @@ void ce_fignode_del(ce_fignode* fignode)
 		ce_vector_for_each(fignode->childs, (ce_vector_func1)ce_fignode_del);
 		ce_vector_for_each(fignode->anmfiles, (ce_vector_func1)ce_anmfile_close);
 		ce_vector_del(fignode->childs);
+		ce_material_del(fignode->material);
 		ce_vector_del(fignode->anmfiles);
 		ce_bonfile_close(fignode->bonfile);
 		ce_figfile_close(fignode->figfile);
 		ce_string_del(fignode->name);
 		ce_free(fignode, sizeof(ce_fignode));
+	}
+}
+
+void ce_fignode_create_rendergroup_cascade(ce_fignode* fignode,
+											ce_renderqueue* renderqueue)
+{
+	ce_renderqueue_add(renderqueue, fignode->figfile->group, fignode->material);
+	for (int i = 0; i < fignode->childs->count; ++i) {
+		ce_fignode_create_rendergroup_cascade(fignode->childs->items[i],
+															renderqueue);
 	}
 }

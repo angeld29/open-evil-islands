@@ -26,6 +26,7 @@
 #include "cevector.h"
 #include "cemprfile.h"
 #include "cetexture.h"
+#include "cematerial.h"
 #include "cescenenode.h"
 #include "cerenderqueue.h"
 
@@ -38,6 +39,7 @@ typedef struct {
 	ce_mprfile* mprfile;
 	ce_texture* stub_texture;
 	ce_vector* textures;
+	ce_material* materials[2];
 	ce_scenenode* scenenode;
 } ce_terrain;
 

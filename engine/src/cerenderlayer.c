@@ -24,7 +24,7 @@
 ce_renderlayer* ce_renderlayer_new(ce_texture* texture)
 {
 	ce_renderlayer* renderlayer = ce_alloc(sizeof(ce_renderlayer));
-	renderlayer->texture = ce_texture_add_ref(texture);
+	renderlayer->texture = texture;
 	renderlayer->renderitems = ce_vector_new();
 	return renderlayer;
 }
@@ -33,7 +33,6 @@ void ce_renderlayer_del(ce_renderlayer* renderlayer)
 {
 	if (NULL != renderlayer) {
 		ce_vector_del(renderlayer->renderitems);
-		ce_texture_del(renderlayer->texture);
 		ce_free(renderlayer, sizeof(ce_renderlayer));
 	}
 }
@@ -52,15 +51,17 @@ void ce_renderlayer_add(ce_renderlayer* renderlayer,
 void ce_renderlayer_render(ce_renderlayer* renderlayer,
 							ce_rendersystem* rendersystem)
 {
-	ce_texture_bind(renderlayer->texture);
-	for (int i = 0; i < renderlayer->renderitems->count; ++i) {
-		ce_renderitem* renderitem = renderlayer->renderitems->items[i];
-		ce_rendersystem_apply_transform(rendersystem,
-										&renderitem->world_position,
-										&renderitem->world_orientation,
-										&CE_VEC3_UNIT_SCALE);
-		ce_renderitem_render(renderitem);
-		ce_rendersystem_discard_transform(rendersystem);
+	if (!ce_vector_empty(renderlayer->renderitems)) {
+		ce_texture_bind(renderlayer->texture);
+		for (int i = 0; i < renderlayer->renderitems->count; ++i) {
+			ce_renderitem* renderitem = renderlayer->renderitems->items[i];
+			ce_rendersystem_apply_transform(rendersystem,
+											&renderitem->world_position,
+											&renderitem->world_orientation,
+											&CE_VEC3_UNIT_SCALE);
+			ce_renderitem_render(renderitem);
+			ce_rendersystem_discard_transform(rendersystem);
+		}
+		ce_texture_unbind(renderlayer->texture);
 	}
-	ce_texture_unbind(renderlayer->texture);
 }

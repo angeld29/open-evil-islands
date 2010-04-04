@@ -24,6 +24,7 @@
 #include "cestring.h"
 #include "ceresfile.h"
 #include "cefignode.h"
+#include "cerenderqueue.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -41,6 +42,9 @@ extern ce_figproto* ce_figproto_new(const char* name,
 extern void ce_figproto_del(ce_figproto* figproto);
 
 extern ce_figproto* ce_figproto_add_ref(ce_figproto* figproto);
+
+extern void ce_figproto_create_rendergroup(ce_figproto* figproto,
+											ce_renderqueue* renderqueue);
 
 #ifdef __cplusplus
 }

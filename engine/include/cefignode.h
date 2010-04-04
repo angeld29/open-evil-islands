@@ -28,6 +28,8 @@
 #include "cefigfile.h"
 #include "cebonfile.h"
 #include "ceanmfile.h"
+#include "cematerial.h"
+#include "cerenderqueue.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -40,6 +42,7 @@ typedef struct {
 	ce_figfile* figfile;
 	ce_bonfile* bonfile;
 	ce_vector* anmfiles;
+	ce_material* material;
 	ce_vector* childs;
 } ce_fignode;
 
@@ -47,6 +50,9 @@ extern ce_fignode*
 ce_fignode_new(ce_resfile* mod_resfile, ce_resfile* bon_resfile,
 				ce_vector* anm_resfiles, ce_lnkfile* lnkfile);
 extern void ce_fignode_del(ce_fignode* fignode);
+
+extern void ce_fignode_create_rendergroup_cascade(ce_fignode* fignode,
+												ce_renderqueue* renderqueue);
 
 #ifdef __cplusplus
 }

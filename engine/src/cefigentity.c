@@ -85,7 +85,7 @@ void ce_figentity_update(ce_figentity* figentity, bool force)
 
 static void ce_figentity_enqueue_nodes(ce_figentity* figentity,
 										ce_fignode* fignode,
-										ce_rendergroup* rendergroup)
+										ce_renderqueue* renderqueue)
 {
 	// FIXME: to be reversed...
 	int index = fignode->figfile->texture_number - 1;
@@ -93,20 +93,23 @@ static void ce_figentity_enqueue_nodes(ce_figentity* figentity,
 		index = 0;
 	}
 
+	ce_rendergroup* rendergroup =
+		ce_renderqueue_get(renderqueue, fignode->figfile->group);
+
 	ce_rendergroup_add(rendergroup, figentity->textures->items[index],
 		figentity->scenenode->renderitems->items[fignode->index]);
 
 	for (int i = 0; i < fignode->childs->count; ++i) {
 		ce_figentity_enqueue_nodes(figentity,
-			fignode->childs->items[i], rendergroup);
+			fignode->childs->items[i], renderqueue);
 	}
 }
 
-void ce_figentity_enqueue(ce_figentity* figentity, ce_rendergroup* rendergroup)
+void ce_figentity_enqueue(ce_figentity* figentity, ce_renderqueue* renderqueue)
 {
 	if (!figentity->scenenode->culled) {
 		ce_figentity_enqueue_nodes(figentity,
-			figentity->figmesh->figproto->fignode, rendergroup);
+			figentity->figmesh->figproto->fignode, renderqueue);
 	}
 }
 

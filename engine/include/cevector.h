@@ -28,13 +28,13 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+typedef void (*ce_vector_func1)(void* item);
+
 typedef struct {
 	int capacity;
 	int count;
 	void** items;
 } ce_vector;
-
-typedef void (*ce_vector_func1)(void* item);
 
 extern ce_vector* ce_vector_new(void);
 extern ce_vector* ce_vector_new_reserved(int capacity);
@@ -56,6 +56,26 @@ extern void ce_vector_remove_unordered(ce_vector* vector, int index);
 extern void ce_vector_clear(ce_vector* vector);
 
 extern void ce_vector_for_each(ce_vector* vector, ce_vector_func1 func);
+
+typedef void (*ce_vector_func_proc)();
+
+typedef struct {
+	int capacity;
+	int count;
+	ce_vector_func_proc* items;
+} ce_vector_func;
+
+extern ce_vector_func* ce_vector_func_new(void);
+extern ce_vector_func* ce_vector_func_new_reserved(int capacity);
+extern void ce_vector_func_del(ce_vector_func* vector);
+
+extern void ce_vector_func_reserve(ce_vector_func* vector, int capacity);
+
+extern void ce_vector_func_push_back(ce_vector_func* vector,
+									ce_vector_func_proc item);
+
+extern void ce_vector_func_call1(ce_vector_func* vector, void* item);
+extern void ce_vector_func_call2(ce_vector_func* vector, void* item1, void* item2);
 
 #ifdef __cplusplus
 }

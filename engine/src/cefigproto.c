@@ -85,3 +85,9 @@ ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
 	++figproto->ref_count;
 	return figproto;
 }
+
+void ce_figproto_create_rendergroup(ce_figproto* figproto,
+									ce_renderqueue* renderqueue)
+{
+	ce_fignode_create_rendergroup_cascade(figproto->fignode, renderqueue);
+}

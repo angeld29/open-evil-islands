@@ -39,6 +39,8 @@ ce_figmng* ce_figmng_new(void)
 	figmng->figprotos = ce_vector_new();
 	figmng->figmeshes = ce_vector_new();
 	figmng->figentities = ce_vector_new();
+	figmng->figproto_created_procs = ce_vector_func_new();
+	figmng->figmesh_created_procs = ce_vector_func_new();
 	return figmng;
 }
 
@@ -49,6 +51,8 @@ void ce_figmng_del(ce_figmng* figmng)
 		ce_vector_for_each(figmng->figmeshes, (ce_vector_func1)ce_figmesh_del);
 		ce_vector_for_each(figmng->figprotos, (ce_vector_func1)ce_figproto_del);
 		ce_vector_for_each(figmng->resfiles, (ce_vector_func1)ce_resfile_close);
+		ce_vector_func_del(figmng->figmesh_created_procs);
+		ce_vector_func_del(figmng->figproto_created_procs);
 		ce_vector_del(figmng->figentities);
 		ce_vector_del(figmng->figmeshes);
 		ce_vector_del(figmng->figprotos);
@@ -70,6 +74,18 @@ bool ce_figmng_register_resource(ce_figmng* figmng, const char* path)
 	return true;
 }
 
+void ce_figmng_listen_figproto_created(ce_figmng* figmng,
+					ce_figmng_figproto_created_proc proc)
+{
+	ce_vector_func_push_back(figmng->figproto_created_procs, proc);
+}
+
+void ce_figmng_listen_figmesh_created(ce_figmng* figmng,
+					ce_figmng_figmesh_created_proc proc)
+{
+	ce_vector_func_push_back(figmng->figmesh_created_procs, proc);
+}
+
 static ce_figproto* ce_figmng_get_figproto(ce_figmng* figmng, const char* name)
 {
 	for (int i = 0; i < figmng->figprotos->count; ++i) {
@@ -87,10 +103,9 @@ static ce_figproto* ce_figmng_get_figproto(ce_figmng* figmng, const char* name)
 		ce_resfile* resfile = figmng->resfiles->items[i];
 		if (-1 != ce_resfile_node_index(resfile, file_name)) {
 			ce_figproto* figproto = ce_figproto_new(name, resfile);
-			if (NULL != figproto) {
-				ce_vector_push_back(figmng->figprotos, figproto);
-				return figproto;
-			}
+			ce_vector_push_back(figmng->figprotos, figproto);
+			ce_vector_func_call1(figmng->figproto_created_procs, figproto);
+			return figproto;
 		}
 	}
 
@@ -113,10 +128,9 @@ static ce_figmesh* ce_figmng_get_figmesh(ce_figmng* figmng,
 	ce_figproto* figproto = ce_figmng_get_figproto(figmng, name);
 	if (NULL != figproto) {
 		ce_figmesh* figmesh = ce_figmesh_new(figproto, complection);
-		if (NULL != figmesh) {
-			ce_vector_push_back(figmng->figmeshes, figmesh);
-			return figmesh;
-		}
+		ce_vector_push_back(figmng->figmeshes, figmesh);
+		ce_vector_func_call1(figmng->figmesh_created_procs, figmesh);
+		return figmesh;
 	}
 
 	ce_logging_error("figmng: could not create figmesh: '%s'", name);
@@ -137,10 +151,8 @@ ce_figentity* ce_figmng_create_figentity(ce_figmng* figmng,
 		ce_figentity* figentity = ce_figentity_new(figmesh, position,
 													orientation, texture_count,
 													textures, scenenode);
-		if (NULL != figentity) {
-			ce_vector_push_back(figmng->figentities, figentity);
-			return figentity;
-		}
+		ce_vector_push_back(figmng->figentities, figentity);
+		return figentity;
 	}
 
 	ce_logging_error("figmng: could not create figentity: '%s'", name);
@@ -155,18 +167,4 @@ void ce_figmng_remove_figentity(ce_figmng* figmng,
 		ce_vector_remove_unordered(figmng->figentities, index);
 	}
 	ce_figentity_del(figentity);
-}
-
-void ce_figmng_create_rendergroup(ce_figmng* figmng, ce_renderqueue* renderqueue)
-{
-	ce_unused(figmng);
-	ce_renderqueue_add(renderqueue, 50, ce_fighlp_create_material());
-}
-
-void ce_figmng_enqueue(ce_figmng* figmng, ce_renderqueue* renderqueue)
-{
-	ce_rendergroup* rendergroup = ce_renderqueue_get(renderqueue, 50);
-	for (int i = 0; i < figmng->figentities->count; ++i) {
-		ce_figentity_enqueue(figmng->figentities->items[i], rendergroup);
-	}
 }

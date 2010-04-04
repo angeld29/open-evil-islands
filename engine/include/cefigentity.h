@@ -30,7 +30,7 @@
 #include "cefigbone.h"
 #include "cetexture.h"
 #include "cescenenode.h"
-#include "cerendergroup.h"
+#include "cerenderqueue.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -58,7 +58,7 @@ extern void ce_figentity_advance(ce_figentity* figentity,
 extern void ce_figentity_update(ce_figentity* figentity, bool force);
 
 extern void ce_figentity_enqueue(ce_figentity* figentity,
-								ce_rendergroup* rendergroup);
+								ce_renderqueue* renderqueue);
 
 extern int ce_figentity_get_animation_count(ce_figentity* figentity);
 extern const char*

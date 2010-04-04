@@ -57,6 +57,8 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 	terrain->mprfile = mprfile;
 	terrain->stub_texture = ce_texture_add_ref(stub_texture);
 	terrain->textures = ce_vector_new_reserved(mprfile->texture_count);
+	terrain->materials[0] = ce_mprhlp_create_material(mprfile, false);
+	terrain->materials[1] = ce_mprhlp_create_material(mprfile, true);
 	terrain->scenenode = ce_scenenode_new(scenenode);
 	terrain->scenenode->position = *position;
 	terrain->scenenode->orientation = *orientation;
@@ -92,8 +94,10 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 void ce_terrain_del(ce_terrain* terrain)
 {
 	if (NULL != terrain) {
-		ce_scenenode_del(terrain->scenenode);
 		ce_vector_for_each(terrain->textures, (ce_vector_func1)ce_texture_del);
+		ce_scenenode_del(terrain->scenenode);
+		ce_material_del(terrain->materials[1]);
+		ce_material_del(terrain->materials[0]);
 		ce_vector_del(terrain->textures);
 		ce_texture_del(terrain->stub_texture);
 		ce_mprfile_close(terrain->mprfile);
@@ -104,10 +108,8 @@ void ce_terrain_del(ce_terrain* terrain)
 void ce_terrain_create_rendergroup(ce_terrain* terrain,
 									ce_renderqueue* renderqueue)
 {
-	ce_renderqueue_add(renderqueue, 0,
-		ce_mprhlp_create_material(terrain->mprfile, false));
-	ce_renderqueue_add(renderqueue, 100,
-		ce_mprhlp_create_material(terrain->mprfile, true));
+	ce_renderqueue_add(renderqueue, 0, terrain->materials[0]);
+	ce_renderqueue_add(renderqueue, 100, terrain->materials[1]);
 }
 
 void ce_terrain_enqueue(ce_terrain* terrain, ce_renderqueue* renderqueue)

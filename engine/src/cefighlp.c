@@ -18,6 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
+#include <assert.h>
+
 #include "cefighlp.h"
 
 ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
@@ -98,10 +101,34 @@ ce_vec3* ce_fighlp_get_bone(ce_vec3* position,
 		figfile->value_callback(bonfile->bone + 2, 3, complection));
 }
 
-ce_material* ce_fighlp_create_material(void)
+ce_material* ce_fighlp_create_material(const ce_figfile* figfile)
 {
 	ce_material* material = ce_material_new();
 	material->mode = CE_MATERIAL_MODE_REPLACE;
-	material->alpha_test = true;
+
+	switch (figfile->group) {
+	case 17: // unmoli, unmosp
+		material->alpha_test = true;
+		break;
+	case 18: // nafltr59, stst82, unmosk
+		material->alpha_test = true;
+		break;
+	case 19: // unhuma, unhufe, unmozo0, unmozo1
+		break;
+	case 21: // nafltr82, unmosu, unmocy, unmodg, unmogo
+		material->alpha_test = true;
+		break;
+	case 22: // nast10, stbuho62, stwa1
+		break;
+	case 23: // unmoel1, unmosh
+		material->alpha_test = true;
+		break;
+	case 25: // unmowi
+		material->blend = true;
+		break;
+	default:
+		assert(false);
+	}
+
 	return material;
 }
