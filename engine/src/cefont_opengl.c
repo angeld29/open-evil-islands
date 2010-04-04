@@ -67,13 +67,8 @@ void ce_font_render(ce_font* font, int x, int y,
 {
 	glColor4f(color->r, color->g, color->b, color->a);
 
-	// TODO: share loop
 	if (ce_gl_query_feature(CE_GL_FEATURE_WINDOW_POS)) {
 		ce_gl_window_pos_2i(x, y);
-
-		while (*text) {
-			glutBitmapCharacter(font->data, *text++);
-		}
 	} else {
 		GLint viewport[4];
 		glGetIntegerv(GL_VIEWPORT, viewport);
@@ -89,14 +84,14 @@ void ce_font_render(ce_font* font, int x, int y,
 
 		glRasterPos2i(x, y);
 
-		while (*text) {
-			glutBitmapCharacter(font->data, *text++);
-		}
-
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
+	}
+
+	while (*text) {
+		glutBitmapCharacter(font->data, *text++);
 	}
 }
