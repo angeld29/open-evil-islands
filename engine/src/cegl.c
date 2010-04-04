@@ -92,14 +92,12 @@ const GLenum CE_GL_PIXEL_UNPACK_BUFFER = 0x88EC;
 
 // texture compression
 
-#ifndef GL_VERSION_1_3
 typedef void (APIENTRY *CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC)
 				(GLenum target, GLint level, GLenum internal_format,
 				GLsizei width, GLsizei height, GLint border,
 				GLsizei image_size, const GLvoid* data);
 
 static CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC ce_gl_compressed_tex_image_2d_proc;
-#endif
 
 // VBO
 
@@ -273,7 +271,6 @@ bool ce_gl_init(void)
 		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
 		ce_gl_check_extension("GL_EXT_texture_compression_dxt1");
 
-#ifndef GL_VERSION_1_3
 	if (ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION]) {
 		ce_gl_compressed_tex_image_2d_proc =
 			(CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC)
@@ -284,7 +281,6 @@ bool ce_gl_init(void)
 			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] = false;
 		}
 	}
-#endif
 
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_LOD] =
 		ce_gl_check_extension("GL_SGIS_texture_lod") ||
@@ -472,14 +468,9 @@ void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 									const GLvoid* data)
 {
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-#ifdef GL_VERSION_1_3
-	glCompressedTexImage2D(target, level, internal_format,
-							width, height, border, image_size, data);
-#else
 	assert(NULL != ce_gl_compressed_tex_image_2d_proc);
-	(*ce_gl_compressed_tex_image_2d_proc)(target, level, internal_format,
-									width, height, border, image_size, data);
-#endif
+	(*ce_gl_compressed_tex_image_2d_proc)(target, level,
+		internal_format, width, height, border, image_size, data);
 }
 
 // VBO
