@@ -96,6 +96,10 @@ ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water)
 	ce_material* material = ce_material_new();
 	material->mode = CE_MATERIAL_MODE_DECAL;
 
+	if (NULL == mprfile->materials[water]) {
+		return material;
+	}
+
 	ce_color_init(&material->ambient, 0.5f, 0.5f, 0.5f, 1.0f);
 	ce_color_init_array(&material->diffuse, mprfile->materials[water]);
 	ce_color_init(&material->emission,
