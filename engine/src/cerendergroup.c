@@ -57,20 +57,24 @@ void ce_rendergroup_add(ce_rendergroup* rendergroup,
 			return;
 		}
 	}
-
 	ce_renderlayer* renderlayer = ce_renderlayer_new(texture);
 	ce_vector_push_back(rendergroup->renderlayers, renderlayer);
-
 	ce_renderlayer_add(renderlayer, renderitem);
 }
 
 void ce_rendergroup_render(ce_rendergroup* rendergroup,
 							ce_rendersystem* rendersystem)
 {
-	// FIXME: check ce_vector_empty, material may be wrong
-	ce_rendersystem_apply_material(rendersystem, rendergroup->material);
+	bool empty = true;
 	for (int i = 0; i < rendergroup->renderlayers->count; ++i) {
-		ce_renderlayer_render(rendergroup->renderlayers->items[i], rendersystem);
+		ce_renderlayer* renderlayer = rendergroup->renderlayers->items[i];
+		empty = empty && ce_vector_empty(renderlayer->renderitems);
 	}
-	ce_rendersystem_discard_material(rendersystem, rendergroup->material);
+	if (!empty) {
+		ce_rendersystem_apply_material(rendersystem, rendergroup->material);
+		for (int i = 0; i < rendergroup->renderlayers->count; ++i) {
+			ce_renderlayer_render(rendergroup->renderlayers->items[i], rendersystem);
+		}
+		ce_rendersystem_discard_material(rendersystem, rendergroup->material);
+	}
 }
