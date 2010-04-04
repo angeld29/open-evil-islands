@@ -1,9 +1,20 @@
+Cursed Earth Figure Viewer
+============================
+
+Figure Viewer - control Evil Islands figures.
+
 Figure Viewer is part of Cursed Earth spikes.
 Check http://cursedearth.sourceforge.net/ for more details.
 
-More informative README will be available later.
-
 Try figviewer -h for help.
+
+Controls:
+1     change strength
+2     change dexterity
+3     change height
+b     show/hide bounding boxes
+a     play next animation
++/-   change animation FPS
 
 Some examples:
 figviewer -b /path/to/evil_islands -p rick unmori
