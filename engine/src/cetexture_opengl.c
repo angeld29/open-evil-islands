@@ -352,25 +352,8 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 	int data_size = width * height * 4;
 
 	if (size < data_size) { // PNT3 compressed
-		uint32_t* src = data;
-		uint32_t* end = src + size / sizeof(uint32_t);
-
-		uint8_t* dst = data = ce_alloc(data_size);
-		int n = 0;
-
-		while (src != end) {
-			uint32_t value = ce_le2cpu32(*src++);
-			if (0 < value && value < 1000000) {
-				memcpy(dst, src - 1 - n, n * sizeof(uint32_t));
-				dst += n * sizeof(uint32_t);
-				n = 0;
-				memset(dst, '\0', value);
-				dst += value;
-			} else {
-				++n;
-			}
-		}
-		memcpy(dst, src - n, n * sizeof(uint32_t));
+		void* src = data;
+		ce_mmpfile_decompress_pnt3(data = ce_alloc(data_size), src, size);
 	}
 
 #ifdef GL_VERSION_1_2

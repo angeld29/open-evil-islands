@@ -40,6 +40,8 @@ enum {
 	CE_MMP_ARGB8 = 0x8888
 };
 
+extern void ce_mmpfile_decompress_pnt3(void* dst, const void* src, int size);
+
 extern int dxt_get_storage_requirements(int width, int height, int format);
 extern void dxt_compress_image(void* dst, const void* src,
 								int width, int height, int format);

@@ -19,7 +19,7 @@
 */
 
 /*
- *  Based on:
+ *  DXT code based on:
  *  1. DDS WIC Codec
  *     Copyright (C) 2006 Simon Brown <si@sjbrown.co.uk>
  *     http://code.google.com/p/dds-wic-codec/
@@ -31,12 +31,42 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include <math.h>
 #include <assert.h>
 
 #include "celib.h"
 #include "cevec3.h"
+#include "cebyteorder.h"
 #include "cemmpfile.h"
+
+void ce_mmpfile_decompress_pnt3(void* dst, const void* src, int size)
+{
+	assert(0 == size % sizeof(uint32_t));
+
+	uint8_t* d = dst;
+
+	const uint32_t* s = src;
+	const uint32_t* e = s + size / sizeof(uint32_t);
+
+	int n = 0;
+	uint32_t v;
+
+	while (s != e) {
+		v = ce_le2cpu32(*s++);
+		if (v > 1000000 || 0 == v) {
+			++n;
+		} else {
+			memcpy(d, s - 1 - n, n * sizeof(uint32_t));
+			d += n * sizeof(uint32_t);
+			n = 0;
+			memset(d, '\0', v);
+			d += v;
+		}
+	}
+
+	memcpy(d, s - n, n * sizeof(uint32_t));
+}
 
 int dxt_get_storage_requirements(int width, int height, int format)
 {
