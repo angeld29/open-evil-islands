@@ -26,10 +26,6 @@
  *  3. SOIL (Simple OpenGL Image Library) (C) Jonathan Dummer.
 */
 
-/*
- *  See doc/formats/mmpfile.txt for more details.
-*/
-
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>

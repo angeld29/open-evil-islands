@@ -19,7 +19,7 @@ Cursed Earth MMP file format
 
    * На подходе...
 
-/*
+/* TODO
  *  signature: uint32 little-endian
  *  width: uint32 little-endian
  *  height: uint32 little-endian
