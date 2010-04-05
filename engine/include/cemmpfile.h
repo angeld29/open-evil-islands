@@ -40,8 +40,11 @@ enum {
 	CE_MMP_ARGB8 = 0x8888
 };
 
-extern void dxt_compress(unsigned char *dst, unsigned char *src, int format,
-						unsigned int width, unsigned int height, int dither);
+extern int dxt_get_storage_requirements(int width, int height, int format);
+extern void dxt_compress_image(void* dst, const void* src,
+								int width, int height, int format);
+extern void dxt_decompress_image(void* dst, const void* src,
+								int width, int height, int format);
 
 #ifdef __cplusplus
 }

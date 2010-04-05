@@ -18,14 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
- *  Based on:
- *  1. MSDN website (Programming Guide for DDS, Reference for DDS).
- *  2. DDS GIMP plugin (C) 2004-2008 Shawn Kirst <skirst@insightbb.com>,
- *     with parts (C) 2003 Arne Reuter <homepage@arnereuter.de>.
- *  3. SOIL (Simple OpenGL Image Library) (C) Jonathan Dummer.
-*/
-
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -171,179 +163,6 @@ static bool generate_texture(int mipmap_count, GLenum internal_format, int width
 	return ok;
 }
 
-/*
-dds wic codec
-Copyright (c) 2006 Simon Brown                          si@sjbrown.co.uk
-static int Unpack565( uint8_t const* packed, uint8_t* colour )
-{
-	// build the packed value
-	int value = ( int )packed[0] | ( ( int )packed[1] << 8 );
-	
-	// get the components in the stored range
-	uint8_t red = ( uint8_t )( ( value >> 11 ) & 0x1f );
-	uint8_t green = ( uint8_t )( ( value >> 5 ) & 0x3f );
-	uint8_t blue = ( uint8_t )( value & 0x1f );
-
-	// scale up to 8 bits
-	colour[0] = ( red << 3 ) | ( red >> 2 );
-	colour[1] = ( green << 2 ) | ( green >> 4 );
-	colour[2] = ( blue << 3 ) | ( blue >> 2 );
-	colour[3] = 255;
-	
-	// return the value
-	return value;
-}
-
-static void DecompressColour(uint8_t* rgba, void const* block, bool isDxt1 )
-{
-	// get the block bytes
-	uint8_t const* bytes = block;
-	
-	// unpack the endpoints
-	uint8_t codes[16];
-	int a = Unpack565( bytes, codes );
-	int b = Unpack565( bytes + 2, codes + 4 );
-	
-	// generate the midpoints
-	for( int i = 0; i < 3; ++i )
-	{
-		int c = codes[i];
-		int d = codes[4 + i];
-
-		if( isDxt1 && a <= b )
-		{
-			codes[8 + i] = ( uint8_t )( ( c + d )/2 );
-			codes[12 + i] = 0;
-		}
-		else
-		{
-			codes[8 + i] = ( uint8_t )( ( 2*c + d )/3 );
-			codes[12 + i] = ( uint8_t )( ( c + 2*d )/3 );
-		}
-	}
-	
-	// fill in alpha for the intermediate values
-	codes[8 + 3] = 255;
-	codes[12 + 3] = ( isDxt1 && a <= b ) ? 0 : 255;
-	
-	// unpack the indices
-	uint8_t indices[16];
-	for( int i = 0; i < 4; ++i )
-	{
-		uint8_t* ind = indices + 4*i;
-		uint8_t packed = bytes[4 + i];
-		
-		ind[0] = packed & 0x3;
-		ind[1] = ( packed >> 2 ) & 0x3;
-		ind[2] = ( packed >> 4 ) & 0x3;
-		ind[3] = ( packed >> 6 ) & 0x3;
-	}
-
-	// store out the colours
-	for( int i = 0; i < 16; ++i )
-	{
-		uint8_t offset = 4*indices[i];
-		for( int j = 0; j < 4; ++j )
-			rgba[4*i + j] = codes[offset + j];
-	}
-}
-*/
-
-static int dxt_blerp(int u, int a, int b)
-{
-	int t = 128 + u * (b - a);
-	return a + ((t + (t >> 8)) >> 8);
-}
-
-static void dxt_lerp_rgb(uint8_t* dst, int u, uint8_t* a, uint8_t* b)
-{
-	dst[0] = dxt_blerp(u, a[0], b[0]);
-	dst[1] = dxt_blerp(u, a[1], b[1]);
-	dst[2] = dxt_blerp(u, a[2], b[2]);
-}
-
-static void dxt_rgb565_to_bgr(uint8_t* dst, uint16_t v)
-{
-	uint8_t r = (v >> 11) & 0x1f;
-	uint8_t g = (v >> 5) & 0x3f;
-	uint8_t b = v & 0x1f;
-
-	dst[0] = (b << 3) | (b >> 2);
-	dst[1] = (g << 2) | (g >> 4);
-	dst[2] = (r << 3) | (r >> 2);
-}
-
-static void dxt_decode_color_block(uint8_t* dst, uint8_t* src,
-										int rowbytes, int format)
-{
-	uint8_t colors[4][3];
-
-	uint16_t c0 = (uint16_t)src[0] | ((uint16_t)src[1] << 8);
-	uint16_t c1 = (uint16_t)src[2] | ((uint16_t)src[3] << 8);
-
-	dxt_rgb565_to_bgr(colors[0], c0);
-	dxt_rgb565_to_bgr(colors[1], c1);
-
-	if (c0 > c1) {
-		dxt_lerp_rgb(colors[2], 0x55, colors[0], colors[1]);
-		dxt_lerp_rgb(colors[3], 0xaa, colors[0], colors[1]);
-	} else {
-		for (int i = 0; i < 3; ++i) {
-			colors[2][i] = (colors[0][i] + colors[1][i] + 1) >> 1;
-			colors[3][i] = 255;
-		}
-	}
-
-	src += 4;
-
-	for (int y = 0; y < 4; ++y) {
-		uint8_t* d = dst + (y * rowbytes);
-		uint32_t indexes = src[y];
-		for (int x = 0; x < 4; ++x, d += 4, indexes >>= 2) {
-			uint32_t idx = indexes & 0x03;
-			d[0] = colors[idx][2];
-			d[1] = colors[idx][1];
-			d[2] = colors[idx][0];
-			if (CE_MMP_DXT1 == format) {
-				d[3] = (c0 <= c1 && 3 == idx) ? 0 : 255;
-			}
-		}
-	}
-}
-
-static void dxt_decode_alpha_block(uint8_t* dst, uint8_t* src, int rowbytes)
-{
-	for (int y = 0; y < 4; ++y) {
-		uint8_t* d = dst + (y * rowbytes);
-		uint16_t bits = (uint16_t)src[2 * y] | ((uint16_t)src[2 * y + 1] << 8);
-		for (int x = 0; x < 4; ++x, d += 4, bits >>= 4) {
-			d[0] = (bits & 0x0f) * 17;
-		}
-	}
-}
-
-static void dxt_decompress(uint8_t* dst, uint8_t* src,
-							int width, int height, int format)
-{
-	assert(0 == (width & 3) && 0 == (height & 3));
-	assert(width >= 4 && height >= 4);
-
-	uint8_t* s = src;
-	int rowbytes = width * 4;
-
-	for (int y = 0; y < height; y += 4) {
-		for (int x = 0; x < width; x += 4) {
-			uint8_t* d = dst + (y * width + x) * 4;
-			if (CE_MMP_DXT3 == format) {
-				dxt_decode_alpha_block(d + 3, s, rowbytes);
-				s += 8;
-			}
-			dxt_decode_color_block(d, s, rowbytes, format);
-			s += 8;
-		}
-	}
-}
-
 static bool dxt_generate_texture_directly(int mipmap_count,
 		int width, int height, int format, const void* data)
 {
@@ -393,7 +212,7 @@ static bool dxt_generate_texture(int mipmap_count,
 
 	for (int i = 0, w = width, h = height;
 			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
-		dxt_decompress(dst, src, w, h, format);
+		dxt_decompress_image(dst, src, w, h, format);
 		src += ((w + 3) >> 2) * ((h + 3) >> 2) * (CE_MMP_DXT1 == format ? 8 : 16);
 		dst += w * h * 4;
 	}
