@@ -26,29 +26,6 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-/*
- *  MPP file format:
- *  signature: uint32 little-endian
- *  width: uint32 little-endian
- *  height: uint32 little-endian
- *  size (PNT3) or mipmap count (other): uint32 little-endian
- *  format: uint32 little-endian
- *  rgb_bit_count: uint32 little-endian
- *  a_bit_mask: uint32 little-endian
- *  a_bit_shift: uint32 little-endian
- *  a_bit_count: uint32 little-endian
- *  r_bit_mask: uint32 little-endian
- *  r_bit_shift: uint32 little-endian
- *  r_bit_count: uint32 little-endian
- *  g_bit_mask: uint32 little-endian
- *  g_bit_shift: uint32 little-endian
- *  g_bit_count: uint32 little-endian
- *  b_bit_mask: uint32 little-endian
- *  b_bit_shift: uint32 little-endian
- *  b_bit_count: uint32 little-endian
- *  user_data_shift: uint32 little-endian
-*/
-
 enum {
 	CE_MMP_SIGNATURE = 0x504d4d
 };
