@@ -171,6 +171,84 @@ static bool generate_texture(int mipmap_count, GLenum internal_format, int width
 	return ok;
 }
 
+/*
+dds wic codec
+Copyright (c) 2006 Simon Brown                          si@sjbrown.co.uk
+static int Unpack565( uint8_t const* packed, uint8_t* colour )
+{
+	// build the packed value
+	int value = ( int )packed[0] | ( ( int )packed[1] << 8 );
+	
+	// get the components in the stored range
+	uint8_t red = ( uint8_t )( ( value >> 11 ) & 0x1f );
+	uint8_t green = ( uint8_t )( ( value >> 5 ) & 0x3f );
+	uint8_t blue = ( uint8_t )( value & 0x1f );
+
+	// scale up to 8 bits
+	colour[0] = ( red << 3 ) | ( red >> 2 );
+	colour[1] = ( green << 2 ) | ( green >> 4 );
+	colour[2] = ( blue << 3 ) | ( blue >> 2 );
+	colour[3] = 255;
+	
+	// return the value
+	return value;
+}
+
+static void DecompressColour(uint8_t* rgba, void const* block, bool isDxt1 )
+{
+	// get the block bytes
+	uint8_t const* bytes = block;
+	
+	// unpack the endpoints
+	uint8_t codes[16];
+	int a = Unpack565( bytes, codes );
+	int b = Unpack565( bytes + 2, codes + 4 );
+	
+	// generate the midpoints
+	for( int i = 0; i < 3; ++i )
+	{
+		int c = codes[i];
+		int d = codes[4 + i];
+
+		if( isDxt1 && a <= b )
+		{
+			codes[8 + i] = ( uint8_t )( ( c + d )/2 );
+			codes[12 + i] = 0;
+		}
+		else
+		{
+			codes[8 + i] = ( uint8_t )( ( 2*c + d )/3 );
+			codes[12 + i] = ( uint8_t )( ( c + 2*d )/3 );
+		}
+	}
+	
+	// fill in alpha for the intermediate values
+	codes[8 + 3] = 255;
+	codes[12 + 3] = ( isDxt1 && a <= b ) ? 0 : 255;
+	
+	// unpack the indices
+	uint8_t indices[16];
+	for( int i = 0; i < 4; ++i )
+	{
+		uint8_t* ind = indices + 4*i;
+		uint8_t packed = bytes[4 + i];
+		
+		ind[0] = packed & 0x3;
+		ind[1] = ( packed >> 2 ) & 0x3;
+		ind[2] = ( packed >> 4 ) & 0x3;
+		ind[3] = ( packed >> 6 ) & 0x3;
+	}
+
+	// store out the colours
+	for( int i = 0; i < 16; ++i )
+	{
+		uint8_t offset = 4*indices[i];
+		for( int j = 0; j < 4; ++j )
+			rgba[4*i + j] = codes[offset + j];
+	}
+}
+*/
+
 static int dxt_blerp(int u, int a, int b)
 {
 	int t = 128 + u * (b - a);
