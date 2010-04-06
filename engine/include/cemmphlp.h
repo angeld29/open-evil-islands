@@ -18,48 +18,26 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_MMPFILE_H
-#define CE_MMPFILE_H
-
-#include <stddef.h>
-
-#include "ceresfile.h"
+#ifndef CE_MMPHLP_H
+#define CE_MMPHLP_H
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-enum {
-	CE_MMPFILE_FORMAT_DXT1 = 0x31545844,
-	CE_MMPFILE_FORMAT_DXT3 = 0x33545844,
-	CE_MMPFILE_FORMAT_PNT3 = 0x33544e50,
-	CE_MMPFILE_FORMAT_R5G6B5 = 0x5650,
-	CE_MMPFILE_FORMAT_A1RGB5 = 0x5551,
-	CE_MMPFILE_FORMAT_ARGB4 = 0x4444,
-	CE_MMPFILE_FORMAT_ARGB8 = 0x8888
-};
+extern void ce_mmphlp_decompress_pnt3(void* restrict dst,
+										const void* restrict src, int size);
 
-typedef struct {
-	int width;
-	int height;
-	union {
-		int size;         // pnt3
-		int mipmap_count; // others
-	} info;
-	int format;
-	void* texels;
-	size_t size;
-	void* data;
-} ce_mmpfile;
+extern int ce_mmphlp_storage_requirements_dxt(int width, int height, int format);
 
-extern ce_mmpfile* ce_mmpfile_open_data(void* data, size_t size);
-extern ce_mmpfile* ce_mmpfile_open_file(const char* path);
-extern ce_mmpfile* ce_mmpfile_open_resfile(ce_resfile* resfile, int index);
-extern void ce_mmpfile_close(ce_mmpfile* mmpfile);
+extern void ce_mmphlp_compress_dxt(void* restrict dst, const void* restrict src,
+									int width, int height, int format);
+extern void ce_mmphlp_decompress_dxt(void* restrict dst, const void* restrict src,
+									int width, int height, int format);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_MMPFILE_H */
+#endif /* CE_MMPHLP_H */

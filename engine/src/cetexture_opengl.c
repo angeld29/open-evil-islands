@@ -36,6 +36,7 @@
 #include "cemath.h"
 #include "cestring.h"
 #include "cemmpfile.h"
+#include "cemmphlp.h"
 #include "cetexture.h"
 
 struct ce_texture {
@@ -212,7 +213,7 @@ static bool dxt_generate_texture(int mipmap_count,
 
 	for (int i = 0, w = width, h = height;
 			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
-		dxt_decompress_image(dst, src, w, h, format);
+		ce_mmphlp_decompress_dxt(dst, src, w, h, format);
 		src += ((w + 3) >> 2) * ((h + 3) >> 2) *
 				(CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16);
 		dst += w * h * 4;
@@ -354,7 +355,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 
 	if (size < data_size) { // PNT3 compressed
 		void* src = data;
-		ce_mmpfile_decompress_pnt3(data = ce_alloc(data_size), src, size);
+		ce_mmphlp_decompress_pnt3(data = ce_alloc(data_size), src, size);
 	}
 
 #ifdef GL_VERSION_1_2
