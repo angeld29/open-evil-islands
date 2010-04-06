@@ -26,14 +26,31 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern void ce_mmphlp_decompress_pnt3(void* restrict dst,
+extern void* ce_mmphlp_decompress_pnt3(void* restrict dst,
 										const void* restrict src, int size);
+
+extern void* ce_mmphlp_a1rgb5_to_rgb5a1(void* dst, const void* src,
+									int width, int height, int mipmap_count);
+extern void* ce_mmphlp_argb4_to_rgba4(void* dst, const void* src,
+									int width, int height, int mipmap_count);
+extern void* ce_mmphlp_argb8_to_rgba8(void* dst, const void* src,
+									int width, int height, int mipmap_count);
+
+extern void* ce_mmphlp_r5g6b5_to_rgba8(void* restrict dst,
+									const void* restrict src,
+									int width, int height, int mipmap_count);
+extern void* ce_mmphlp_a1rgb5_to_rgba8(void* restrict dst,
+									const void* restrict src,
+									int width, int height, int mipmap_count);
+extern void* ce_mmphlp_argb4_to_rgba8(void* restrict dst,
+									const void* restrict src,
+									int width, int height, int mipmap_count);
 
 extern int ce_mmphlp_storage_requirements_dxt(int width, int height, int format);
 
-extern void ce_mmphlp_compress_dxt(void* restrict dst, const void* restrict src,
+extern void* ce_mmphlp_compress_dxt(void* restrict dst, const void* restrict src,
 									int width, int height, int format);
-extern void ce_mmphlp_decompress_dxt(void* restrict dst, const void* restrict src,
+extern void* ce_mmphlp_decompress_dxt(void* restrict dst, const void* restrict src,
 									int width, int height, int format);
 
 #ifdef __cplusplus

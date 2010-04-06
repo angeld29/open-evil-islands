@@ -36,7 +36,7 @@
 #include "cemmpfile.h"
 #include "cemmphlp.h"
 
-void ce_mmphlp_decompress_pnt3(void* dst, const void* src, int size)
+void* ce_mmphlp_decompress_pnt3(void* dst, const void* src, int size)
 {
 	assert(0 == size % sizeof(uint32_t));
 
@@ -62,6 +62,96 @@ void ce_mmphlp_decompress_pnt3(void* dst, const void* src, int size)
 	}
 
 	memcpy(d, s - n, n * sizeof(uint32_t));
+	return dst;
+}
+
+static void* ce_mmphlp_argb_swap_rgba(void* dst, const void* src,
+									int width, int height, int mipmap_count,
+									int rgbshift, int ashift)
+{
+	uint16_t* d = dst;
+	const uint16_t* s = src;
+	for (int i = 0, w = width, h = height;
+			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
+		for (const uint16_t* e = s + w * h; s != e; ++d, ++s) {
+			*d = *s << rgbshift | *s >> ashift;
+		}
+	}
+	return dst;
+}
+
+void* ce_mmphlp_a1rgb5_to_rgb5a1(void* dst, const void* src,
+								int width, int height, int mipmap_count)
+{
+	return ce_mmphlp_argb_swap_rgba(dst, src, width, height, mipmap_count, 1, 15);
+}
+
+void* ce_mmphlp_argb4_to_rgba4(void* dst, const void* src,
+								int width, int height, int mipmap_count)
+{
+	return ce_mmphlp_argb_swap_rgba(dst, src, width, height, mipmap_count, 4, 12);
+}
+
+void* ce_mmphlp_argb8_to_rgba8(void* dst, const void* src,
+								int width, int height, int mipmap_count)
+{
+	uint32_t* d = dst;
+	const uint32_t* s = src;
+	for (int i = 0, w = width, h = height;
+			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
+		for (const uint32_t* e = s + w * h; s != e; ++d, ++s) {
+			*d = *s << 8 | *s >> 24;
+		}
+	}
+	return dst;
+}
+
+static void* ce_mmphlp_argb_unpack_rgba(void* restrict dst,
+								const void* restrict src,
+								int width, int height, int mipmap_count,
+								uint16_t rmask, uint16_t gmask, uint16_t bmask,
+								int rshift, int gshift, int ashift,
+								int rdiv, int gdiv, int bdiv, int adiv)
+{
+	uint8_t* d = dst;
+	const uint16_t* s = src;
+	for (int i = 0, w = width, h = height;
+			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
+		for (const uint16_t* e = s + w * h; s != e; ++d, ++s) {
+			*d++ = ((*s & rmask) >> rshift) * 255 / rdiv;
+			*d++ = ((*s & gmask) >> gshift) * 255 / gdiv;
+			*d++ = (*s & bmask) * 255 / bdiv;
+			*d = 255;
+			if (0 != adiv) {
+				*d = (*s >> ashift) * 255 / adiv;
+			}
+		}
+	}
+	return dst;
+}
+
+ void* ce_mmphlp_r5g6b5_to_rgba8(void* restrict dst,
+								const void* restrict src,
+								int width, int height, int mipmap_count)
+{
+	return ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
+								0xf800, 0x7e0, 0x1f, 11, 5, 0, 31, 63, 31, 0);
+}
+
+void* ce_mmphlp_a1rgb5_to_rgba8(void* restrict dst,
+								const void* restrict src,
+								int width, int height, int mipmap_count)
+{
+	return ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
+								0x7c00, 0x3e0, 0x1f, 10, 5, 15, 31, 31, 31, 1);
+}
+
+void* ce_mmphlp_argb4_to_rgba8(void* restrict dst,
+								const void* restrict src,
+								int width, int height, int mipmap_count)
+{
+	return ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
+								0xf00, 0xf0, 0xf, 8, 4, 12, 15, 15, 15, 15);
 }
 
 int ce_mmphlp_storage_requirements_dxt(int width, int height, int format)
@@ -227,7 +317,7 @@ static void CompressMasked( uint8_t const* rgba, int mask, void* block, int form
 		CompressAlphaDxt3( rgba, mask, alphaBock );
 }
 
-void ce_mmphlp_compress_dxt(void* restrict dst, const void* restrict src,
+void* ce_mmphlp_compress_dxt(void* restrict dst, const void* restrict src,
 							int width, int height, int format)
 {
 	assert(CE_MMPFILE_FORMAT_DXT1 == format || CE_MMPFILE_FORMAT_DXT3 == format);
@@ -281,6 +371,8 @@ void ce_mmphlp_compress_dxt(void* restrict dst, const void* restrict src,
 			targetBlock += bytesPerBlock;
 		}
 	}
+
+	return dst;
 }
 
 static int Unpack565( uint8_t const* packed, uint8_t* colour )
@@ -394,7 +486,7 @@ static void Decompress( uint8_t* rgba, void const* block, int format )
 		DecompressAlphaDxt3( rgba, alphaBock );
 }
 
-void ce_mmphlp_decompress_dxt(void* restrict dst, const void* restrict src,
+void* ce_mmphlp_decompress_dxt(void* restrict dst, const void* restrict src,
 								int width, int height, int format)
 {
 	assert(CE_MMPFILE_FORMAT_DXT1 == format || CE_MMPFILE_FORMAT_DXT3 == format);
@@ -443,4 +535,6 @@ void ce_mmphlp_decompress_dxt(void* restrict dst, const void* restrict src,
 			sourceBlock += bytesPerBlock;
 		}
 	}
+
+	return dst;
 }
