@@ -54,6 +54,17 @@ static ce_timer* tmr;
 static bool rndmode = false;
 static int delay;
 static bool slideshow = true;
+static int index;
+
+static ce_input_event_supply* es;
+static ce_input_event* next_texture_event;
+
+static void next_texture(int unused);
+
+static void advance_index()
+{
+	index = rndmode ? rand() % res->node_count : index + 1;
+}
 
 static void idle(void)
 {
@@ -63,7 +74,10 @@ static void idle(void)
 
 	ce_input_advance(elapsed);
 
+	ce_input_event_supply_advance(es, elapsed);
+
 	if (ce_input_test(CE_KB_ESCAPE)) {
+		ce_input_event_supply_del(es);
 		ce_timer_del(tmr);
 		ce_texture_del(tex);
 		ce_resfile_close(res);
@@ -72,6 +86,13 @@ static void idle(void)
 		ce_alloc_term();
 		ce_logging_term();
 		exit(EXIT_SUCCESS);
+	}
+
+	if (ce_input_event_triggered(next_texture_event)) {
+		if (!slideshow) {
+			advance_index();
+			glutTimerFunc(0, next_texture, 0);
+		}
 	}
 }
 
@@ -128,7 +149,7 @@ static bool generate_texture(int index)
 	return NULL != tex;
 }
 
-static void next_texture(int index)
+static void next_texture(int unused)
 {
 	if (0 == res->node_count) {
 		return;
@@ -151,8 +172,8 @@ static void next_texture(int index)
 	}
 
 	if (slideshow) {
-		glutTimerFunc(d, next_texture, rndmode ?
-			rand() % res->node_count : index + 1);
+		advance_index();
+		glutTimerFunc(d, next_texture, 0);
 	}
 }
 
@@ -178,6 +199,9 @@ int main(int argc, char* argv[])
 	ce_optoption* delay_opt = ce_optgroup_create_option(general_grp,
 		"delay", 'd', "delay", CE_OPTACTION_STORE,
 		"specify slideshow delay in msec", "500");
+	ce_optoption* manual_opt = ce_optgroup_create_option(general_grp,
+		"manual", 'm', "manual", CE_OPTACTION_STORE_TRUE,
+		"manual mode (slideshow will be disabled)", NULL);
 	ce_optoption* name_opt = ce_optgroup_create_option(general_grp,
 		"name", 'n', "name", CE_OPTACTION_STORE,
 		"specify texture name (slideshow will be disabled)", NULL);
@@ -216,11 +240,12 @@ int main(int argc, char* argv[])
 	delay = ce_max(0, ce_optoption_value_int(delay_opt));
 
 	if (!ce_optoption_value_empty(name_opt) ||
-			!ce_optoption_value_empty(index_opt)) {
+			!ce_optoption_value_empty(index_opt) ||
+			ce_optoption_value_bool(manual_opt)) {
 		slideshow = false;
 	}
 
-	int index = -1;
+	index = -1;
 	srand(time(NULL));
 
 	if (!ce_optoption_value_empty(name_opt)) {
@@ -245,9 +270,13 @@ int main(int argc, char* argv[])
 		index = rndmode ? rand() % res->node_count : 0;
 	}
 
-	glutTimerFunc(0, next_texture, index);
+	glutTimerFunc(0, next_texture, 0);
 
 	tmr = ce_timer_new();
+
+	es = ce_input_event_supply_new();
+	next_texture_event = ce_input_event_supply_single_front_event(es,
+					ce_input_event_supply_button_event(es, CE_KB_N));
 
 	ce_optparse_del(optparse);
 
