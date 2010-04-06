@@ -38,7 +38,48 @@
 #include "celib.h"
 #include "cevec3.h"
 #include "cebyteorder.h"
+#include "cealloc.h"
 #include "cemmpfile.h"
+
+static const unsigned int CE_MMPFILE_SIGNATURE = 0x504d4d;
+
+ce_mmpfile* ce_mmpfile_open_data(void* data, size_t size)
+{
+	uint32_t* ptr = data;
+
+	uint32_t signature = ce_le2cpu32(*ptr++);
+	assert(CE_MMPFILE_SIGNATURE == signature && "wrong signature");
+	ce_unused(signature);
+
+	ce_mmpfile* mmpfile = ce_alloc(sizeof(ce_mmpfile));
+	mmpfile->width = ce_le2cpu32(*ptr++);
+	mmpfile->height = ce_le2cpu32(*ptr++);
+	mmpfile->info.size = ce_le2cpu32(*ptr++);
+	mmpfile->format = ce_le2cpu32(*ptr++);
+	mmpfile->texels = ptr += 14;
+	mmpfile->size = size;
+	mmpfile->data = data;
+	return mmpfile;
+}
+
+ce_mmpfile* ce_mmpfile_open_file(const char* path)
+{
+	return NULL;
+}
+
+ce_mmpfile* ce_mmpfile_open_resfile(ce_resfile* resfile, int index)
+{
+	return ce_mmpfile_open_data(ce_resfile_node_data(resfile, index),
+								ce_resfile_node_size(resfile, index));
+}
+
+void ce_mmpfile_close(ce_mmpfile* mmpfile)
+{
+	if (NULL != mmpfile) {
+		ce_free(mmpfile->data, mmpfile->size);
+		ce_free(mmpfile, sizeof(ce_mmpfile));
+	}
+}
 
 void ce_mmpfile_decompress_pnt3(void* dst, const void* src, int size)
 {
@@ -70,8 +111,8 @@ void ce_mmpfile_decompress_pnt3(void* dst, const void* src, int size)
 
 int dxt_get_storage_requirements(int width, int height, int format)
 {
-	assert(CE_MMP_DXT1 == format || CE_MMP_DXT3 == format);
-	int block_size = CE_MMP_DXT1 == format ? 8 : 16;
+	assert(CE_MMPFILE_FORMAT_DXT1 == format || CE_MMPFILE_FORMAT_DXT3 == format);
+	int block_size = CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16;
 	int block_count = ((width + 3) >> 2) * ((height + 3) >> 2);
 	return block_size * block_count;
 }
@@ -92,7 +133,7 @@ ce_mmpfile_colorset_init(ce_mmpfile_colorset* cs,
 	cs->transparent = false;
 
 	// check the compression mode for dxt1
-	bool isDxt1 = CE_MMP_DXT1 == format;
+	bool isDxt1 = CE_MMPFILE_FORMAT_DXT1 == format;
 	bool weightByAlpha = false; // TODO: test it
 
 	// create the minimal set
@@ -199,7 +240,7 @@ static void CompressMasked( uint8_t const* rgba, int mask, void* block, int form
 	void* colourBlock = block;
 	void* alphaBock = block;
 
-	if( CE_MMP_DXT3 == format )
+	if( CE_MMPFILE_FORMAT_DXT3 == format )
 		colourBlock = (uint8_t*)block + 8;
 
 	// create the minimal point set
@@ -227,20 +268,20 @@ static void CompressMasked( uint8_t const* rgba, int mask, void* block, int form
 	}
 
 	// compress alpha separately if necessary
-	if( CE_MMP_DXT3 == format )
+	if( CE_MMPFILE_FORMAT_DXT3 == format )
 		CompressAlphaDxt3( rgba, mask, alphaBock );
 }
 
 void dxt_compress_image(void* dst, const void* src,
 						int width, int height, int format)
 {
-	assert(CE_MMP_DXT1 == format || CE_MMP_DXT3 == format);
+	assert(CE_MMPFILE_FORMAT_DXT1 == format || CE_MMPFILE_FORMAT_DXT3 == format);
 
 	const uint8_t* s = src;
 
 	// initialise the block output
 	uint8_t* targetBlock = dst;
-	int bytesPerBlock = CE_MMP_DXT1 == format ? 8 : 16;
+	int bytesPerBlock = CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16;
 
 	// loop over blocks
 	for( int y = 0; y < height; y += 4 )
@@ -387,27 +428,27 @@ static void Decompress( uint8_t* rgba, void const* block, int format )
 	void const* colourBlock = block;
 	void const* alphaBock = block;
 
-	if( CE_MMP_DXT3 == format )
+	if( CE_MMPFILE_FORMAT_DXT3 == format )
 		colourBlock = (uint8_t const*)block + 8;
 
 	// decompress colour
-	DecompressColour( rgba, colourBlock, CE_MMP_DXT1 == format );
+	DecompressColour( rgba, colourBlock, CE_MMPFILE_FORMAT_DXT1 == format );
 
 	// decompress alpha separately if necessary
-	if( CE_MMP_DXT3 == format )
+	if( CE_MMPFILE_FORMAT_DXT3 == format )
 		DecompressAlphaDxt3( rgba, alphaBock );
 }
 
 void dxt_decompress_image(void* dst, const void* src,
 							int width, int height, int format )
 {
-	assert(CE_MMP_DXT1 == format || CE_MMP_DXT3 == format);
+	assert(CE_MMPFILE_FORMAT_DXT1 == format || CE_MMPFILE_FORMAT_DXT3 == format);
 
 	uint8_t* rgba = dst;
 
 	// initialise the block input
 	const uint8_t* sourceBlock = src;
-	int bytesPerBlock = CE_MMP_DXT1 == format ? 8 : 16;
+	int bytesPerBlock = CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16;
 
 	// loop over blocks
 	for( int y = 0; y < height; y += 4 )

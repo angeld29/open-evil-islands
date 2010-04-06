@@ -80,9 +80,9 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name)
 		ce_resfile* resfile = texmng->resfiles->items[i];
 		int index = ce_resfile_node_index(resfile, path);
 		if (-1 != index) {
-			void* data = ce_resfile_node_data(resfile, index);
-			ce_texture* texture = ce_texture_new(name, data);
-			ce_free(data, ce_resfile_node_size(resfile, index));
+			ce_mmpfile* mmpfile = ce_mmpfile_open_resfile(resfile, index);
+			ce_texture* texture = ce_texture_new(name, mmpfile);
+			ce_mmpfile_close(mmpfile);
 
 			if (NULL == texture) {
 				return NULL;

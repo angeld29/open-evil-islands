@@ -23,6 +23,8 @@
 
 #include <stdbool.h>
 
+#include "cemmpfile.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -37,7 +39,7 @@ typedef enum {
 
 typedef struct ce_texture ce_texture;
 
-extern ce_texture* ce_texture_new(const char* name, void* data);
+extern ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile);
 extern void ce_texture_del(ce_texture* texture);
 
 extern void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode);

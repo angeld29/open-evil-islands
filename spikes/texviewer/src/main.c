@@ -120,13 +120,10 @@ static bool generate_texture(int index)
 	ce_texture_del(tex);
 	tex = NULL;
 
-	void* data = ce_resfile_node_data(res, index);
-	if (NULL == data) {
-		return false;
-	}
-
-	tex = ce_texture_new("unknown", data);
-	ce_free(data, ce_resfile_node_size(res, index));
+	// TODO: use texmng
+	ce_mmpfile* mmpfile = ce_mmpfile_open_resfile(res, index);
+	tex = ce_texture_new("stub", mmpfile);
+	ce_mmpfile_close(mmpfile);
 
 	return NULL != tex;
 }

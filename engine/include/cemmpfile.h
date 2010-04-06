@@ -21,24 +21,42 @@
 #ifndef CE_MMPFILE_H
 #define CE_MMPFILE_H
 
+#include <stddef.h>
+
+#include "ceresfile.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
 enum {
-	CE_MMP_SIGNATURE = 0x504d4d
+	CE_MMPFILE_FORMAT_DXT1 = 0x31545844,
+	CE_MMPFILE_FORMAT_DXT3 = 0x33545844,
+	CE_MMPFILE_FORMAT_PNT3 = 0x33544e50,
+	CE_MMPFILE_FORMAT_R5G6B5 = 0x5650,
+	CE_MMPFILE_FORMAT_A1RGB5 = 0x5551,
+	CE_MMPFILE_FORMAT_ARGB4 = 0x4444,
+	CE_MMPFILE_FORMAT_ARGB8 = 0x8888
 };
 
-enum {
-	CE_MMP_DXT1 = 0x31545844,
-	CE_MMP_DXT3 = 0x33545844,
-	CE_MMP_PNT3 = 0x33544e50,
-	CE_MMP_R5G6B5 = 0x5650,
-	CE_MMP_A1RGB5 = 0x5551,
-	CE_MMP_ARGB4 = 0x4444,
-	CE_MMP_ARGB8 = 0x8888
-};
+typedef struct {
+	int width;
+	int height;
+	union {
+		int size;         // pnt3
+		int mipmap_count; // others
+	} info;
+	int format;
+	void* texels;
+	size_t size;
+	void* data;
+} ce_mmpfile;
+
+extern ce_mmpfile* ce_mmpfile_open_data(void* data, size_t size);
+extern ce_mmpfile* ce_mmpfile_open_file(const char* path);
+extern ce_mmpfile* ce_mmpfile_open_resfile(ce_resfile* resfile, int index);
+extern void ce_mmpfile_close(ce_mmpfile* mmpfile);
 
 extern void ce_mmpfile_decompress_pnt3(void* dst, const void* src, int size);
 

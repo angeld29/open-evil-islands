@@ -172,11 +172,11 @@ static bool dxt_generate_texture_directly(int mipmap_count,
 
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		int data_size = ((width + 3) >> 2) *
-						((height + 3) >> 2) * (CE_MMP_DXT1 == format ? 8 : 16);
+			((height + 3) >> 2) * (CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16);
 
-		ce_gl_compressed_tex_image_2d(GL_TEXTURE_2D, i, CE_MMP_DXT1 == format ?
-			CE_GL_COMPRESSED_RGBA_S3TC_DXT1 : CE_GL_COMPRESSED_RGBA_S3TC_DXT3,
-			width, height, 0, data_size, src);
+		ce_gl_compressed_tex_image_2d(GL_TEXTURE_2D, i,
+			CE_MMPFILE_FORMAT_DXT1 == format ? CE_GL_COMPRESSED_RGBA_S3TC_DXT1 :
+			CE_GL_COMPRESSED_RGBA_S3TC_DXT3, width, height, 0, data_size, src);
 
 		if (ce_gl_report_errors()) {
 			ce_logging_error("texture: glCompressedTexImage2D failed");
@@ -193,7 +193,7 @@ static bool dxt_generate_texture(int mipmap_count,
 		int width, int height, int format, void* data)
 {
 	if ((ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC) ||
-			(CE_MMP_DXT1 == format &&
+			(CE_MMPFILE_FORMAT_DXT1 == format &&
 				ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1))) &&
 			dxt_generate_texture_directly(mipmap_count, width,
 											height, format, data)) {
@@ -213,7 +213,8 @@ static bool dxt_generate_texture(int mipmap_count,
 	for (int i = 0, w = width, h = height;
 			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
 		dxt_decompress_image(dst, src, w, h, format);
-		src += ((w + 3) >> 2) * ((h + 3) >> 2) * (CE_MMP_DXT1 == format ? 8 : 16);
+		src += ((w + 3) >> 2) * ((h + 3) >> 2) *
+				(CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16);
 		dst += w * h * 4;
 	}
 
@@ -233,11 +234,11 @@ static bool generic16_argb_generate_texture_packed(int mipmap_count, int width,
 	int ashift, rgbshift;
 
 	switch (format) {
-	case CE_MMP_A1RGB5:
+	case CE_MMPFILE_FORMAT_A1RGB5:
 		data_type = CE_GL_UNSIGNED_SHORT_5_5_5_1;
 		rgbshift = 1; ashift = 15;
 		break;
-	case CE_MMP_ARGB4:
+	case CE_MMPFILE_FORMAT_ARGB4:
 		data_type = CE_GL_UNSIGNED_SHORT_4_4_4_4;
 		rgbshift = 4; ashift = 12;
 		break;
@@ -264,21 +265,21 @@ static bool generic16_generate_texture(int mipmap_count, int width,
 	uint16_t rmask, gmask, bmask;
 
 	switch (format) {
-	case CE_MMP_R5G6B5:
+	case CE_MMPFILE_FORMAT_R5G6B5:
 		internal_and_data_format = GL_RGB;
 		bpp = 3;
 		rshift = 11; gshift = 5;
 		rdiv = 31; gdiv = 63; bdiv = 31;
 		rmask = 0xf800; gmask = 0x7e0; bmask = 0x1f;
 		break;
-	case CE_MMP_A1RGB5:
+	case CE_MMPFILE_FORMAT_A1RGB5:
 		internal_and_data_format = GL_RGBA;
 		bpp = 4;
 		rshift = 10; gshift = 5; ashift = 15;
 		rdiv = 31; gdiv = 31; bdiv = 31; adiv = 1;
 		rmask = 0x7c00; gmask = 0x3e0; bmask = 0x1f;
 		break;
-	case CE_MMP_ARGB4:
+	case CE_MMPFILE_FORMAT_ARGB4:
 		internal_and_data_format = GL_RGBA;
 		bpp = 4;
 		rshift = 8; gshift = 4; ashift = 12;
@@ -370,7 +371,7 @@ static bool pnt3_generate_texture(int size, int width, int height, void* data)
 	return ok;
 }
 
-ce_texture* ce_texture_new(const char* name, void* data)
+ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile)
 {
 	ce_texture* texture = ce_alloc(sizeof(ce_texture));
 	texture->name = ce_string_new_str(name);
@@ -379,65 +380,56 @@ ce_texture* ce_texture_new(const char* name, void* data)
 	glGenTextures(1, &texture->id);
 	glBindTexture(GL_TEXTURE_2D, texture->id);
 
-	uint32_t* mmp = data;
-
-	if (CE_MMP_SIGNATURE != ce_le2cpu32(*mmp++)) {
-		ce_logging_error("texture: wrong mmp signature");
-		ce_texture_del(texture);
-		return NULL;
-	}
-
-	uint32_t width = ce_le2cpu32(*mmp++);
-	uint32_t height = ce_le2cpu32(*mmp++);
-	uint32_t mipmap_count_or_size = ce_le2cpu32(*mmp++);
-	uint32_t format = ce_le2cpu32(*mmp++);
-
-	mmp += 14;
-
 	bool ok;
 
-	switch (format) {
-	case CE_MMP_DXT1:
-	case CE_MMP_DXT3:
-		ok = dxt_generate_texture(mipmap_count_or_size,
-									width, height, format, mmp);
+	switch (mmpfile->format) {
+	case CE_MMPFILE_FORMAT_DXT1:
+	case CE_MMPFILE_FORMAT_DXT3:
+		ok = dxt_generate_texture(mmpfile->info.mipmap_count,
+			mmpfile->width, mmpfile->height, mmpfile->format, mmpfile->texels);
 		break;
-	case CE_MMP_PNT3:
-		ok = pnt3_generate_texture(mipmap_count_or_size, width, height, mmp);
+	case CE_MMPFILE_FORMAT_PNT3:
+		ok = pnt3_generate_texture(mmpfile->info.size,
+			mmpfile->width, mmpfile->height, mmpfile->texels);
 		break;
-	case CE_MMP_R5G6B5:
+	case CE_MMPFILE_FORMAT_R5G6B5:
 #ifdef GL_VERSION_1_2
-		ok = generate_texture(mipmap_count_or_size, GL_RGB,
-			width, height, 2, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, mmp);
+		ok = generate_texture(mmpfile->info.mipmap_count, GL_RGB,
+			mmpfile->width, mmpfile->height, 2, GL_RGB,
+			GL_UNSIGNED_SHORT_5_6_5, mmpfile->texels);
 #else
-		ok = generic16_generate_texture(mipmap_count_or_size,
-										width, height, format, mmp);
+		ok = generic16_generate_texture(mmpfile->info.mipmap_count,
+			mmpfile->width, mmpfile->height, mmpfile->format, mmpfile->texels);
 #endif
 		break;
-	case CE_MMP_A1RGB5:
+	case CE_MMPFILE_FORMAT_A1RGB5:
 #ifdef GL_VERSION_1_2
-		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
-			width, height, 2, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV, mmp);
+		ok = generate_texture(mmpfile->info.mipmap_count, GL_RGBA,
+			mmpfile->width, mmpfile->height, 2, GL_BGRA,
+			GL_UNSIGNED_SHORT_1_5_5_5_REV, mmpfile->texels);
 #else
-		ok = generic16_generate_texture(mipmap_count_or_size,
-										width, height, format, mmp);
+		ok = generic16_generate_texture(mmpfile->info.mipmap_count,
+			mmpfile->width, mmpfile->height, mmpfile->format, mmpfile->texels);
 #endif
 		break;
-	case CE_MMP_ARGB4:
+	case CE_MMPFILE_FORMAT_ARGB4:
 #ifdef GL_VERSION_1_2
-		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
-			width, height, 2, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV, mmp);
+		ok = generate_texture(mmpfile->info.mipmap_count, GL_RGBA,
+			mmpfile->width, mmpfile->height, 2, GL_BGRA,
+			GL_UNSIGNED_SHORT_4_4_4_4_REV, mmpfile->texels);
 #else
-		ok = generic16_generate_texture(mipmap_count_or_size,
-										width, height, format, mmp);
+		ok = generic16_generate_texture(mmpfile->info.mipmap_count,
+			mmpfile->width, mmpfile->height, mmpfile->format, mmpfile->texels);
 #endif
 		break;
-	case CE_MMP_ARGB8:
+	case CE_MMPFILE_FORMAT_ARGB8:
 #ifdef GL_VERSION_1_2
-		ok = generate_texture(mipmap_count_or_size, GL_RGBA,
-			width, height, 4, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, mmp);
+		ok = generate_texture(mmpfile->info.mipmap_count, GL_RGBA,
+			mmpfile->width, mmpfile->height, 4, GL_BGRA,
+			GL_UNSIGNED_INT_8_8_8_8_REV, mmpfile->texels);
 #else
-		ok = argb8_generate_texture(mipmap_count_or_size, width, height, mmp);
+		ok = argb8_generate_texture(mmpfile->info.mipmap_count,
+			mmpfile->width, mmpfile->height, mmpfile->texels);
 #endif
 		break;
 	default:
@@ -512,7 +504,6 @@ void ce_texture_bind(ce_texture* texture)
 void ce_texture_unbind(ce_texture* texture)
 {
 	ce_unused(texture);
-
 	glDisable(GL_TEXTURE_2D);
 }
 
