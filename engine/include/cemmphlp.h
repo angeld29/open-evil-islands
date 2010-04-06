@@ -29,27 +29,47 @@ extern "C"
 extern void* ce_mmphlp_decompress_pnt3(void* restrict dst,
 										const void* restrict src, int size);
 
-extern void* ce_mmphlp_a1rgb5_to_rgb5a1(void* dst, const void* src,
-									int width, int height, int mipmap_count);
-extern void* ce_mmphlp_argb4_to_rgba4(void* dst, const void* src,
-									int width, int height, int mipmap_count);
-extern void* ce_mmphlp_argb8_to_rgba8(void* dst, const void* src,
-									int width, int height, int mipmap_count);
+// swap
 
-extern void* ce_mmphlp_r5g6b5_to_rgba8(void* restrict dst,
-									const void* restrict src,
-									int width, int height, int mipmap_count);
-extern void* ce_mmphlp_a1rgb5_to_rgba8(void* restrict dst,
-									const void* restrict src,
-									int width, int height, int mipmap_count);
-extern void* ce_mmphlp_argb4_to_rgba8(void* restrict dst,
-									const void* restrict src,
-									int width, int height, int mipmap_count);
+extern void*
+ce_mmphlp_a1rgb5_swap_rgb5a1(void* dst, const void* src,
+							int width, int height, int mipmap_count);
+
+extern void*
+ce_mmphlp_argb4_swap_rgba4(void* dst, const void* src,
+							int width, int height, int mipmap_count);
+
+extern void*
+ce_mmphlp_argb8_swap_rgba8(void* dst, const void* src,
+							int width, int height, int mipmap_count);
+
+// unpack
+
+extern void*
+ce_mmphlp_r5g6b5_unpack_rgba8(void* restrict dst, const void* restrict src,
+								int width, int height, int mipmap_count);
+
+extern void*
+ce_mmphlp_a1rgb5_unpack_rgba8(void* restrict dst, const void* restrict src,
+								int width, int height, int mipmap_count);
+
+extern void*
+ce_mmphlp_argb4_unpack_rgba8(void* restrict dst, const void* restrict src,
+								int width, int height, int mipmap_count);
+
+extern void*
+ce_mmphlp_argb8_unpack_rgba8(void* dst, const void* src,
+								int width, int height, int mipmap_count);
+
+// requirements
 
 extern int ce_mmphlp_storage_requirements_rgba8(int width, int height,
-											int mipmap_count);
+													int mipmap_count);
+
 extern int ce_mmphlp_storage_requirements_dxt(int width, int height,
 											int mipmap_count, int format);
+
+// dxt
 
 extern void* ce_mmphlp_compress_dxt(void* restrict dst, const void* restrict src,
 									int width, int height, int format);

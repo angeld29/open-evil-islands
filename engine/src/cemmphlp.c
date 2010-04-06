@@ -71,38 +71,40 @@ static void* ce_mmphlp_argb_swap_rgba(void* dst, const void* src,
 {
 	uint16_t* d = dst;
 	const uint16_t* s = src;
-	for (int i = 0, w = width, h = height;
-			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
-		for (const uint16_t* e = s + w * h; s != e; ++d, ++s) {
+
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+		for (const uint16_t* e = s + width * height; s != e; ++d, ++s) {
 			*d = *s << rgbshift | *s >> ashift;
 		}
 	}
+
 	return dst;
 }
 
-void* ce_mmphlp_a1rgb5_to_rgb5a1(void* dst, const void* src,
-								int width, int height, int mipmap_count)
+void* ce_mmphlp_a1rgb5_swap_rgb5a1(void* dst, const void* src,
+									int width, int height, int mipmap_count)
 {
 	return ce_mmphlp_argb_swap_rgba(dst, src, width, height, mipmap_count, 1, 15);
 }
 
-void* ce_mmphlp_argb4_to_rgba4(void* dst, const void* src,
-								int width, int height, int mipmap_count)
+void* ce_mmphlp_argb4_swap_rgba4(void* dst, const void* src,
+									int width, int height, int mipmap_count)
 {
 	return ce_mmphlp_argb_swap_rgba(dst, src, width, height, mipmap_count, 4, 12);
 }
 
-void* ce_mmphlp_argb8_to_rgba8(void* dst, const void* src,
-								int width, int height, int mipmap_count)
+void* ce_mmphlp_argb8_swap_rgba8(void* dst, const void* src,
+									int width, int height, int mipmap_count)
 {
 	uint32_t* d = dst;
 	const uint32_t* s = src;
-	for (int i = 0, w = width, h = height;
-			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
-		for (const uint32_t* e = s + w * h; s != e; ++d, ++s) {
+
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+		for (const uint32_t* e = s + width * height; s != e; ++d, ++s) {
 			*d = *s << 8 | *s >> 24;
 		}
 	}
+
 	return dst;
 }
 
@@ -115,9 +117,9 @@ static void* ce_mmphlp_argb_unpack_rgba(void* restrict dst,
 {
 	uint8_t* d = dst;
 	const uint16_t* s = src;
-	for (int i = 0, w = width, h = height;
-			i < mipmap_count; ++i, w >>= 1, h >>= 1) {
-		for (const uint16_t* e = s + w * h; s != e; ++d, ++s) {
+
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+		for (const uint16_t* e = s + width * height; s != e; ++d, ++s) {
 			*d++ = ((*s & rmask) >> rshift) * 255 / rdiv;
 			*d++ = ((*s & gmask) >> gshift) * 255 / gdiv;
 			*d++ = (*s & bmask) * 255 / bdiv;
@@ -127,31 +129,56 @@ static void* ce_mmphlp_argb_unpack_rgba(void* restrict dst,
 			}
 		}
 	}
+
 	return dst;
 }
 
- void* ce_mmphlp_r5g6b5_to_rgba8(void* restrict dst,
-								const void* restrict src,
-								int width, int height, int mipmap_count)
+void* ce_mmphlp_r5g6b5_unpack_rgba8(void* restrict dst,
+									const void* restrict src,
+									int width, int height, int mipmap_count)
 {
 	return ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
 								0xf800, 0x7e0, 0x1f, 11, 5, 0, 31, 63, 31, 0);
 }
 
-void* ce_mmphlp_a1rgb5_to_rgba8(void* restrict dst,
-								const void* restrict src,
-								int width, int height, int mipmap_count)
+void* ce_mmphlp_a1rgb5_unpack_rgba8(void* restrict dst,
+									const void* restrict src,
+									int width, int height, int mipmap_count)
 {
 	return ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
 								0x7c00, 0x3e0, 0x1f, 10, 5, 15, 31, 31, 31, 1);
 }
 
-void* ce_mmphlp_argb4_to_rgba8(void* restrict dst,
-								const void* restrict src,
-								int width, int height, int mipmap_count)
+void* ce_mmphlp_argb4_unpack_rgba8(void* restrict dst,
+									const void* restrict src,
+									int width, int height, int mipmap_count)
 {
 	return ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
 								0xf00, 0xf0, 0xf, 8, 4, 12, 15, 15, 15, 15);
+}
+
+void* ce_mmphlp_argb8_unpack_rgba8(void* dst, const void* src,
+									int width, int height, int mipmap_count)
+{
+	uint32_t* d = dst;
+	const uint32_t* s = src;
+
+	union {
+		uint8_t u8[4];
+		uint32_t u32;
+	} t;
+
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+		for (const uint32_t* e = s + width * height; s != e; ++d, ++s) {
+			t.u8[0] = (*s & 0xff0000) >> 16;
+			t.u8[1] = (*s & 0xff00) >> 8;
+			t.u8[2] = *s & 0xff;
+			t.u8[3] = *s >> 24;
+			*d = t.u32;
+		}
+	}
+
+	return dst;
 }
 
 int ce_mmphlp_storage_requirements_rgba8(int width, int height, int mipmap_count)
