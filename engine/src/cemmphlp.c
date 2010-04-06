@@ -154,12 +154,27 @@ void* ce_mmphlp_argb4_to_rgba8(void* restrict dst,
 								0xf00, 0xf0, 0xf, 8, 4, 12, 15, 15, 15, 15);
 }
 
-int ce_mmphlp_storage_requirements_dxt(int width, int height, int format)
+int ce_mmphlp_storage_requirements_rgba8(int width, int height, int mipmap_count)
 {
-	assert(CE_MMPFILE_FORMAT_DXT1 == format || CE_MMPFILE_FORMAT_DXT3 == format);
-	int block_size = CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16;
-	int block_count = ((width + 3) >> 2) * ((height + 3) >> 2);
-	return block_size * block_count;
+	int size = 0;
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+		size += 4 * width * height;
+	}
+	return size;
+}
+
+int ce_mmphlp_storage_requirements_dxt(int width, int height,
+									int mipmap_count, int format)
+{
+	assert(CE_MMPFILE_FORMAT_DXT1 == format ||
+			CE_MMPFILE_FORMAT_DXT3 == format);
+	int size = 0;
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+		int block_size = CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16;
+		int block_count = ((width + 3) >> 2) * ((height + 3) >> 2);
+		size += block_size * block_count;
+	}
+	return size;
 }
 
 typedef struct {

@@ -46,7 +46,10 @@ extern void* ce_mmphlp_argb4_to_rgba8(void* restrict dst,
 									const void* restrict src,
 									int width, int height, int mipmap_count);
 
-extern int ce_mmphlp_storage_requirements_dxt(int width, int height, int format);
+extern int ce_mmphlp_storage_requirements_rgba8(int width, int height,
+											int mipmap_count);
+extern int ce_mmphlp_storage_requirements_dxt(int width, int height,
+											int mipmap_count, int format);
 
 extern void* ce_mmphlp_compress_dxt(void* restrict dst, const void* restrict src,
 									int width, int height, int format);
