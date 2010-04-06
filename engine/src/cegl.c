@@ -40,14 +40,32 @@
 #include "celogging.h"
 #include "cegl.h"
 
+// texture compression
 const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT1 = 0x83F1;
 const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT3 = 0x83F2;
+
+typedef void (APIENTRY *CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC)
+				(GLenum target, GLint level, GLenum internal_format,
+				GLsizei width, GLsizei height, GLint border,
+				GLsizei image_size, const GLvoid* data);
+
+static CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC ce_gl_compressed_tex_image_2d_proc;
+
+// texture lod
 const GLenum CE_GL_TEXTURE_MAX_LEVEL = 0x813D;
+
+// texture edge clamp
 const GLenum CE_GL_CLAMP_TO_EDGE = 0x812F;
+
+// packed pixels
 const GLenum CE_GL_UNSIGNED_SHORT_4_4_4_4 = 0x8033;
 const GLenum CE_GL_UNSIGNED_SHORT_5_5_5_1 = 0x8034;
 const GLenum CE_GL_UNSIGNED_INT_8_8_8_8 = 0x8035;
+
+// generate mipmap
 const GLenum CE_GL_GENERATE_MIPMAP = 0x8191;
+
+// VBO
 const GLenum CE_GL_ARRAY_BUFFER = 0x8892;
 const GLenum CE_GL_ELEMENT_ARRAY_BUFFER = 0x8893;
 const GLenum CE_GL_STREAM_DRAW = 0x88E0;
@@ -59,47 +77,6 @@ const GLenum CE_GL_STATIC_COPY = 0x88E6;
 const GLenum CE_GL_DYNAMIC_DRAW = 0x88E8;
 const GLenum CE_GL_DYNAMIC_READ = 0x88E9;
 const GLenum CE_GL_DYNAMIC_COPY = 0x88EA;
-const GLenum CE_GL_POINT_SIZE_MIN = 0x8126;
-const GLenum CE_GL_POINT_SIZE_MAX = 0x8127;
-const GLenum CE_GL_POINT_FADE_THRESHOLD_SIZE = 0x8128;
-const GLenum CE_GL_POINT_DISTANCE_ATTENUATION = 0x8129;
-const GLenum CE_GL_POINT_SPRITE = 0x8861;
-const GLenum CE_GL_COORD_REPLACE = 0x8862;
-const GLenum CE_GL_VBO_FREE_MEMORY = 0x87FB;
-const GLenum CE_GL_TEXTURE_FREE_MEMORY = 0x87FC;
-const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY = 0x87FD;
-const GLenum CE_GLX_SAMPLE_BUFFERS = 100000;
-const GLenum CE_GLX_SAMPLES = 100001;
-const GLenum CE_WGL_SAMPLE_BUFFERS = 0x2041;
-const GLenum CE_WGL_SAMPLES = 0x2042;
-const GLenum CE_GL_MULTISAMPLE = 0x809D;
-const GLenum CE_GL_SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
-const GLenum CE_GL_SAMPLE_ALPHA_TO_ONE = 0x809F;
-const GLenum CE_GL_SAMPLE_COVERAGE = 0x80A0;
-const GLenum CE_GL_MULTISAMPLE_BIT = 0x20000000;
-const GLenum CE_GL_SAMPLE_BUFFERS = 0x80A8;
-const GLenum CE_GL_SAMPLES = 0x80A9;
-const GLenum CE_GL_SAMPLE_COVERAGE_VALUE = 0x80AA;
-const GLenum CE_GL_SAMPLE_COVERAGE_INVERT = 0x80AB;
-const GLenum CE_GL_FRAMEBUFFER = 0x8D40;
-const GLenum CE_GL_READ_FRAMEBUFFER = 0x8CA8;
-const GLenum CE_GL_DRAW_FRAMEBUFFER = 0x8CA9;
-const GLenum CE_GL_COLOR_ATTACHMENT0 = 0x8CE0;
-const GLenum CE_GL_COLOR_ATTACHMENT1 = 0x8CE1;
-const GLenum CE_GL_FRAMEBUFFER_COMPLETE = 0x8CD5;
-const GLenum CE_GL_PIXEL_PACK_BUFFER = 0x88EB;
-const GLenum CE_GL_PIXEL_UNPACK_BUFFER = 0x88EC;
-
-// texture compression
-
-typedef void (APIENTRY *CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC)
-				(GLenum target, GLint level, GLenum internal_format,
-				GLsizei width, GLsizei height, GLint border,
-				GLsizei image_size, const GLvoid* data);
-
-static CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC ce_gl_compressed_tex_image_2d_proc;
-
-// VBO
 
 typedef void (APIENTRY *CE_GL_BIND_BUFFER_PROC)(GLenum target, GLuint buffer);
 typedef void (APIENTRY *CE_GL_DELETE_BUFFERS_PROC)
@@ -119,7 +96,6 @@ static CE_GL_BUFFER_DATA_PROC ce_gl_buffer_data_proc;
 static CE_GL_BUFFER_SUB_DATA_PROC ce_gl_buffer_sub_data_proc;
 
 // window pos
-
 typedef void (APIENTRY *CE_GL_WINDOW_POS_2F_PROC)(GLfloat x, GLfloat y);
 typedef void (APIENTRY *CE_GL_WINDOW_POS_2FV_PROC)(const GLfloat* v);
 typedef void (APIENTRY *CE_GL_WINDOW_POS_2I_PROC)(GLint x, GLint y);
@@ -131,6 +107,10 @@ static CE_GL_WINDOW_POS_2I_PROC ce_gl_window_pos_2i_proc;
 static CE_GL_WINDOW_POS_2IV_PROC ce_gl_window_pos_2iv_proc;
 
 // point parameters
+const GLenum CE_GL_POINT_SIZE_MIN = 0x8126;
+const GLenum CE_GL_POINT_SIZE_MAX = 0x8127;
+const GLenum CE_GL_POINT_FADE_THRESHOLD_SIZE = 0x8128;
+const GLenum CE_GL_POINT_DISTANCE_ATTENUATION = 0x8129;
 
 typedef void (APIENTRY *CE_GL_POINT_PARAMETER_F_PROC)
 				(GLenum pname, GLfloat param);
@@ -140,7 +120,37 @@ typedef void (APIENTRY *CE_GL_POINT_PARAMETER_FV_PROC)
 static CE_GL_POINT_PARAMETER_F_PROC ce_gl_point_parameter_f_proc;
 static CE_GL_POINT_PARAMETER_FV_PROC ce_gl_point_parameter_fv_proc;
 
+// point sprite
+const GLenum CE_GL_POINT_SPRITE = 0x8861;
+const GLenum CE_GL_COORD_REPLACE = 0x8862;
+
+// meminfo
+const GLenum CE_GL_VBO_FREE_MEMORY = 0x87FB;
+const GLenum CE_GL_TEXTURE_FREE_MEMORY = 0x87FC;
+const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY = 0x87FD;
+
+// multisample
+const GLenum CE_GLX_SAMPLE_BUFFERS = 100000;
+const GLenum CE_GLX_SAMPLES = 100001;
+const GLenum CE_WGL_SAMPLE_BUFFERS = 0x2041;
+const GLenum CE_WGL_SAMPLES = 0x2042;
+const GLenum CE_GL_MULTISAMPLE = 0x809D;
+const GLenum CE_GL_SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
+const GLenum CE_GL_SAMPLE_ALPHA_TO_ONE = 0x809F;
+const GLenum CE_GL_SAMPLE_COVERAGE = 0x80A0;
+const GLenum CE_GL_MULTISAMPLE_BIT = 0x20000000;
+const GLenum CE_GL_SAMPLE_BUFFERS = 0x80A8;
+const GLenum CE_GL_SAMPLES = 0x80A9;
+const GLenum CE_GL_SAMPLE_COVERAGE_VALUE = 0x80AA;
+const GLenum CE_GL_SAMPLE_COVERAGE_INVERT = 0x80AB;
+
 // FBO
+const GLenum CE_GL_FRAMEBUFFER = 0x8D40;
+const GLenum CE_GL_READ_FRAMEBUFFER = 0x8CA8;
+const GLenum CE_GL_DRAW_FRAMEBUFFER = 0x8CA9;
+const GLenum CE_GL_COLOR_ATTACHMENT0 = 0x8CE0;
+const GLenum CE_GL_COLOR_ATTACHMENT1 = 0x8CE1;
+const GLenum CE_GL_FRAMEBUFFER_COMPLETE = 0x8CD5;
 
 typedef void (APIENTRY *CE_GL_BIND_FRAMEBUFFER_PROC)
 				(GLenum target, GLuint framebuffer);
@@ -160,6 +170,15 @@ static CE_GL_GEN_FRAMEBUFFERS_PROC ce_gl_gen_framebuffers_proc;
 static CE_GL_CHECK_FRAMEBUFFER_STATUS_PROC ce_gl_check_framebuffer_status_proc;
 static CE_GL_FRAMEBUFFER_TEXTURE_2D_PROC ce_gl_framebuffer_texture_2d_proc;
 static CE_GL_GENERATE_MIPMAP_PROC ce_gl_generate_mipmap_proc;
+
+// PBO
+const GLenum CE_GL_PIXEL_PACK_BUFFER = 0x88EB;
+const GLenum CE_GL_PIXEL_UNPACK_BUFFER = 0x88EC;
+
+// color formats
+const GLenum CE_GL_ABGR = 0x8000;
+const GLenum CE_GL_BGR = 0x80E0;
+const GLenum CE_GL_BGRA = 0x80E1;
 
 // common API
 
@@ -243,7 +262,9 @@ static struct {
 		"multisample",
 		"framebuffer object",
 		"pixel buffer object",
-		"texture buffer object"
+		"texture buffer object",
+		"abgr",
+		"bgra"
 	}
 };
 
@@ -422,6 +443,12 @@ bool ce_gl_init(void)
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_BUFFER_OBJECT] =
 		ce_gl_check_extension("GL_ARB_texture_buffer_object") ||
 		ce_gl_check_extension("GL_EXT_texture_buffer_object");
+
+	ce_gl_inst.features[CE_GL_FEATURE_ABGR] =
+		ce_gl_check_extension("GL_EXT_abgr");
+
+	ce_gl_inst.features[CE_GL_FEATURE_BGRA] =
+		ce_gl_check_extension("GL_EXT_bgra");
 
 	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
 		ce_logging_write("opengl: checking for '%s' extension... %s",
