@@ -18,23 +18,72 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
 #include <limits.h>
 #include <assert.h>
 
 #include <GL/gl.h>
 
-#include "celib.h"
 #include "cemprhlp.h"
 #include "cetexture.h"
 #include "cemprrenderitem.h"
 
-typedef struct {
-	GLuint id;
-} ce_mprrenderitem;
+// TODO: implement it
 
-static void ce_mprrenderitem_ctor(ce_renderitem* renderitem, va_list args)
+typedef struct {
+	GLuint list;
+} ce_mprrenderitem_fast;
+
+static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 {
-	ce_mprrenderitem* mprrenderitem = (ce_mprrenderitem*)renderitem->impl;
+	ce_mprrenderitem_fast* mprrenderitem =
+		(ce_mprrenderitem_fast*)renderitem->impl;
+
+	ce_mprfile* mprfile = va_arg(args, ce_mprfile*);
+	int sector_x = va_arg(args, int);
+	int sector_z = va_arg(args, int);
+	int water = va_arg(args, int);
+
+	ce_mprsector* sector = mprfile->sectors + sector_z *
+							mprfile->sector_x_count + sector_x;
+
+	ce_mprvertex* vertices = water ? sector->water_vertices : sector->land_vertices;
+	int16_t* water_allow = water ? sector->water_allow : NULL;
+
+	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
+	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
+
+	glNewList(mprrenderitem->list = glGenLists(1), GL_COMPILE);
+
+	glEndList();
+}
+
+static void ce_mprrenderitem_fast_dtor(ce_renderitem* renderitem)
+{
+	ce_mprrenderitem_fast* mprrenderitem =
+		(ce_mprrenderitem_fast*)renderitem->impl;
+
+	glDeleteLists(mprrenderitem->list, 1);
+}
+
+static void ce_mprrenderitem_fast_render(ce_renderitem* renderitem)
+{
+	ce_mprrenderitem_fast* mprrenderitem =
+		(ce_mprrenderitem_fast*)renderitem->impl;
+
+	glCallList(mprrenderitem->list);
+}
+
+// classic tiling
+
+typedef struct {
+	GLuint list;
+} ce_mprrenderitem_tile;
+
+static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
+{
+	ce_mprrenderitem_tile* mprrenderitem =
+		(ce_mprrenderitem_tile*)renderitem->impl;
 
 	ce_mprfile* mprfile = va_arg(args, ce_mprfile*);
 	int sector_x = va_arg(args, int);
@@ -89,14 +138,14 @@ static void ce_mprrenderitem_ctor(ce_renderitem* renderitem, va_list args)
 		{ 6, 7, 5, 8, 4, 3 }
 	};
 
-	glNewList(mprrenderitem->id = glGenLists(1), GL_COMPILE);
+	glNewList(mprrenderitem->list = glGenLists(1), GL_COMPILE);
 
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
 	glMatrixMode(GL_MODELVIEW);
 
-	for (unsigned int z = 0; z < CE_MPRFILE_VERTEX_SIDE - 2; z += 2) {
-		for (unsigned int x = 0; x < CE_MPRFILE_VERTEX_SIDE - 2; x += 2) {
+	for (int z = 0; z < CE_MPRFILE_VERTEX_SIDE - 2; z += 2) {
+		for (int x = 0; x < CE_MPRFILE_VERTEX_SIDE - 2; x += 2) {
 			if (NULL != water_allow &&
 					-1 == water_allow[z / 2 * CE_MPRFILE_TEXTURE_SIDE + x / 2]) {
 				continue;
@@ -169,27 +218,39 @@ static void ce_mprrenderitem_ctor(ce_renderitem* renderitem, va_list args)
 	glEndList();
 }
 
-static void ce_mprrenderitem_dtor(ce_renderitem* renderitem)
+static void ce_mprrenderitem_tile_dtor(ce_renderitem* renderitem)
 {
-	ce_mprrenderitem* mprrenderitem = (ce_mprrenderitem*)renderitem->impl;
-	glDeleteLists(mprrenderitem->id, 1);
+	ce_mprrenderitem_tile* mprrenderitem =
+		(ce_mprrenderitem_tile*)renderitem->impl;
+
+	glDeleteLists(mprrenderitem->list, 1);
 }
 
-static void ce_mprrenderitem_render(ce_renderitem* renderitem)
+static void ce_mprrenderitem_tile_render(ce_renderitem* renderitem)
 {
-	ce_mprrenderitem* mprrenderitem = (ce_mprrenderitem*)renderitem->impl;
-	glCallList(mprrenderitem->id);
+	ce_mprrenderitem_tile* mprrenderitem =
+		(ce_mprrenderitem_tile*)renderitem->impl;
+
+	glCallList(mprrenderitem->list);
 }
 
-static const ce_renderitem_vtable ce_mprrenderitem_vtable = {
-	ce_mprrenderitem_ctor, ce_mprrenderitem_dtor,
-	NULL, ce_mprrenderitem_render, NULL
+static const ce_renderitem_vtable ce_mprrenderitem_vtables[] = {
+	{ ce_mprrenderitem_fast_ctor, ce_mprrenderitem_fast_dtor,
+		NULL, ce_mprrenderitem_fast_render, NULL },
+	{ ce_mprrenderitem_tile_ctor, ce_mprrenderitem_tile_dtor,
+		NULL, ce_mprrenderitem_tile_render, NULL }
+};
+
+static size_t ce_mprrenderitem_sizes[] = {
+	sizeof(ce_mprrenderitem_fast),
+	sizeof(ce_mprrenderitem_tile)
 };
 
 ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 									int sector_x, int sector_z,
 									int water, ce_vector* textures)
 {
-	return ce_renderitem_new(ce_mprrenderitem_vtable, sizeof(ce_mprrenderitem),
-								mprfile, sector_x, sector_z, water, textures);
+	return ce_renderitem_new(ce_mprrenderitem_vtables[1],
+							ce_mprrenderitem_sizes[1],
+							mprfile, sector_x, sector_z, water, textures);
 }
