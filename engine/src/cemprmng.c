@@ -19,6 +19,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "celogging.h"
 #include "cealloc.h"
@@ -43,7 +44,7 @@ void ce_mprmng_del(ce_mprmng* mprmng)
 
 ce_mprfile* ce_mprmng_open_mprfile(ce_mprmng* mprmng, const char* name)
 {
-	char path[mprmng->path->length + 32];
+	char path[mprmng->path->length + strlen(name) + 5 + 1];
 	snprintf(path, sizeof(path), "%s/%s.mpr", mprmng->path->str, name);
 
 	ce_resfile* resfile = ce_resfile_open_file(path);

@@ -22,6 +22,7 @@
  *  See doc/formats/mmpfile.txt for more details.
 */
 
+#include <stdio.h>
 #include <stdint.h>
 #include <assert.h>
 
@@ -53,6 +54,15 @@ ce_mmpfile* ce_mmpfile_open_data(void* data, size_t size)
 
 ce_mmpfile* ce_mmpfile_open_file(const char* path)
 {
+	FILE* file = fopen(path, "rb");
+	if (NULL != file) {
+		fseek(file, 0, SEEK_END);
+		size_t size = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		void* data = ce_alloc(size);
+		fread(data, size, 1, file);
+		return ce_mmpfile_open_data(data, size);
+	}
 	return NULL;
 }
 

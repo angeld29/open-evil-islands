@@ -31,15 +31,8 @@
 
 ce_scenemng* ce_scenemng_new(const char* root_path)
 {
-	ce_logging_write("scenemng: root path: '%s'", root_path);
-
-	char path[strlen(root_path) + 64];
-	snprintf(path, sizeof(path), "%s/Maps", root_path);
-
 	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
 	scenemng->scenenode = ce_scenenode_new(NULL);
-	scenemng->texmng = ce_texmng_new();
-	scenemng->mprmng = ce_mprmng_new(path);
 	scenemng->terrain = NULL;
 	scenemng->figmng = ce_figmng_new();
 	scenemng->rendersystem = ce_rendersystem_new();
@@ -56,6 +49,13 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 	scenemng->scenenode_needs_update = false;
 	scenemng->renderqueue_needs_update = false;
 
+	ce_logging_write("scenemng: root path: '%s'", root_path);
+
+	char path[strlen(root_path) + 32];
+
+	snprintf(path, sizeof(path), "%s/Textures", root_path);
+	scenemng->texmng = ce_texmng_new(path);
+
 	const char* texture_resources[] = { "textures", "redress", "menus" };
 	for (int i = 0, n = sizeof(texture_resources) /
 						sizeof(texture_resources[0]); i < n; ++i) {
@@ -63,6 +63,9 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 				root_path, texture_resources[i]);
 		ce_texmng_register_resource(scenemng->texmng, path);
 	}
+
+	snprintf(path, sizeof(path), "%s/Maps", root_path);
+	scenemng->mprmng = ce_mprmng_new(path);
 
 	const char* figure_resources[] = { "figures", "menus" };
 	for (int i = 0, n = sizeof(figure_resources) /

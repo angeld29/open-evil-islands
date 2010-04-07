@@ -23,6 +23,7 @@
 
 #include <stdbool.h>
 
+#include "cestring.h"
 #include "cevector.h"
 #include "cetexture.h"
 
@@ -32,11 +33,12 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	ce_string* path;
 	ce_vector* resfiles;
 	ce_vector* textures;
 } ce_texmng;
 
-extern ce_texmng* ce_texmng_new(void);
+extern ce_texmng* ce_texmng_new(const char* path);
 extern void ce_texmng_del(ce_texmng* texmng);
 
 extern bool ce_texmng_register_resource(ce_texmng* texmng, const char* path);
