@@ -47,9 +47,7 @@ extern void ce_mmphlp_argb8_unpack_rgba8(ce_mmpfile* mmpfile);
 
 // requirements
 
-extern int ce_mmphlp_storage_requirements_rgba8(int width, int height,
-													int mipmap_count);
-
+extern int ce_mmphlp_storage_requirements_rgba8(ce_mmpfile* mmpfile);
 extern int ce_mmphlp_storage_requirements_dxt(int width, int height,
 											int mipmap_count, int format);
 

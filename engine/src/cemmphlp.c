@@ -141,8 +141,7 @@ static void ce_mmphlp_argb_unpack_rgba(ce_mmpfile* mmpfile,
 								int rshift, int gshift, int ashift,
 								int rdiv, int gdiv, int bdiv, int adiv)
 {
-	int size = ce_mmphlp_storage_requirements_rgba8(mmpfile->width,
-		mmpfile->height, mmpfile->mipmap_count);
+	int size = ce_mmphlp_storage_requirements_rgba8(mmpfile);
 
 	void* data = ce_alloc(size);
 
@@ -217,10 +216,11 @@ void ce_mmphlp_argb8_unpack_rgba8(ce_mmpfile* mmpfile)
 	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
 }
 
-int ce_mmphlp_storage_requirements_rgba8(int width, int height, int mipmap_count)
+int ce_mmphlp_storage_requirements_rgba8(ce_mmpfile* mmpfile)
 {
 	int size = 0;
-	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		size += 4 * width * height;
 	}
 	return size;
@@ -232,7 +232,7 @@ int ce_mmphlp_storage_requirements_dxt(int width, int height,
 	assert(CE_MMPFILE_FORMAT_DXT1 == format ||
 			CE_MMPFILE_FORMAT_DXT3 == format);
 	int size = 0;
-	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+ for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		int block_size = CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16;
 		int block_count = ((width + 3) >> 2) * ((height + 3) >> 2);
 		size += block_size * block_count;

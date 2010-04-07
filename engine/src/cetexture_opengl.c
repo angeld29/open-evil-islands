@@ -153,8 +153,7 @@ static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
 			src += size;
 		}
 	} else {
-		int size = ce_mmphlp_storage_requirements_rgba8(mmpfile->width,
-			mmpfile->height, mmpfile->mipmap_count);
+		int size = ce_mmphlp_storage_requirements_rgba8(mmpfile);
 
 		void* texels = ce_alloc(size);
 
