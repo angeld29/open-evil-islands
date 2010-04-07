@@ -61,6 +61,7 @@ ce_mmpfile* ce_mmpfile_open_file(const char* path)
 		fseek(file, 0, SEEK_SET);
 		void* data = ce_alloc(size);
 		fread(data, size, 1, file);
+		fclose(file);
 		return ce_mmpfile_open_data(data, size);
 	}
 	return NULL;
@@ -77,5 +78,14 @@ void ce_mmpfile_close(ce_mmpfile* mmpfile)
 	if (NULL != mmpfile) {
 		ce_free(mmpfile->data, mmpfile->size);
 		ce_free(mmpfile, sizeof(ce_mmpfile));
+	}
+}
+
+void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path)
+{
+	FILE* file = fopen(path, "wb");
+	if (NULL != file) {
+		fwrite(mmpfile->data, mmpfile->size, 1, file);
+		fclose(file);
 	}
 }

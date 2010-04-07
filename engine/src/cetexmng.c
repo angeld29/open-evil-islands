@@ -64,6 +64,47 @@ bool ce_texmng_register_resource(ce_texmng* texmng, const char* path)
 	return true;
 }
 
+ce_mmpfile* ce_texmng_open_mmpfile(ce_texmng* texmng, const char* name)
+{
+	char file_name[strlen(name) + 4 + 1];
+	snprintf(file_name, sizeof(file_name), "%s.mmp", name);
+
+	char path[texmng->path->length + strlen(file_name) + 1 + 1];
+	snprintf(path, sizeof(path), "%s/%s", texmng->path->str, file_name);
+
+	// first, try to load from cache dir
+	ce_mmpfile* mmpfile = ce_mmpfile_open_file(path);
+	if (NULL != mmpfile) {
+		// all mmp's in cache dir are ready to use
+		return mmpfile;
+	}
+
+	// find in resources
+	for (int i = 0; i < texmng->resfiles->count; ++i) {
+		ce_resfile* resfile = texmng->resfiles->items[i];
+		int index = ce_resfile_node_index(resfile, file_name);
+		if (-1 != index) {
+			ce_mmpfile* mmpfile = ce_mmpfile_open_resfile(resfile, index);
+			if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
+				ce_mmphlp_pnt3_convert_argb8(mmpfile);
+				ce_texmng_save_mmpfile(texmng, mmpfile, name);
+			}
+			return mmpfile;
+		}
+	}
+
+	return NULL;
+}
+
+void ce_texmng_save_mmpfile(ce_texmng* texmng,
+							ce_mmpfile* mmpfile,
+							const char* name)
+{
+	char path[texmng->path->length + strlen(name) + 5 + 1];
+	snprintf(path, sizeof(path), "%s/%s.mmp", texmng->path->str, name);
+	ce_mmpfile_save_file(mmpfile, path);
+}
+
 ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name)
 {
 	// first, find texture in cache
@@ -74,40 +115,13 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name)
 		}
 	}
 
-	char file_name[strlen(name) + 4 + 1];
-	snprintf(file_name, sizeof(file_name), "%s.mmp", name);
-
-	char path[texmng->path->length + strlen(file_name) + 1 + 1];
-	snprintf(path, sizeof(path), "%s/%s", texmng->path->str, file_name);
-
-	// next, try to load from cache dir
-	ce_mmpfile* mmpfile = ce_mmpfile_open_file(path);
+	// load texture from resources
+	ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(texmng, name);
 	if (NULL != mmpfile) {
-		// all mmp's in cache dir are ready to use
 		ce_texture* texture = ce_texture_new(name, mmpfile);
 		ce_mmpfile_close(mmpfile);
-
 		ce_vector_push_back(texmng->textures, texture);
 		return texture;
-	}
-
-	// finally, find in resources
-	for (int i = 0; i < texmng->resfiles->count; ++i) {
-		ce_resfile* resfile = texmng->resfiles->items[i];
-		int index = ce_resfile_node_index(resfile, file_name);
-		if (-1 != index) {
-			ce_mmpfile* mmpfile = ce_mmpfile_open_resfile(resfile, index);
-
-			if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
-				ce_mmphlp_pnt3_morph_argb8(mmpfile);
-			}
-
-			ce_texture* texture = ce_texture_new(name, mmpfile);
-			ce_mmpfile_close(mmpfile);
-
-			ce_vector_push_back(texmng->textures, texture);
-			return texture;
-		}
 	}
 
 	ce_logging_error("texmng: could not find texture: '%s'", name);

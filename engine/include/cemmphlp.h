@@ -28,7 +28,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern void ce_mmphlp_pnt3_morph_argb8(ce_mmpfile* mmpfile);
+extern void ce_mmphlp_pnt3_convert_argb8(ce_mmpfile* mmpfile);
 
 extern void ce_mmphlp_a1rgb5_swap_rgb5a1(ce_mmpfile* mmpfile);
 extern void ce_mmphlp_argb4_swap_rgba4(ce_mmpfile* mmpfile);

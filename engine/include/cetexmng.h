@@ -25,6 +25,7 @@
 
 #include "cestring.h"
 #include "cevector.h"
+#include "cemmpfile.h"
 #include "cetexture.h"
 
 #ifdef __cplusplus
@@ -42,6 +43,11 @@ extern ce_texmng* ce_texmng_new(const char* path);
 extern void ce_texmng_del(ce_texmng* texmng);
 
 extern bool ce_texmng_register_resource(ce_texmng* texmng, const char* path);
+
+extern ce_mmpfile* ce_texmng_open_mmpfile(ce_texmng* texmng, const char* name);
+extern void ce_texmng_save_mmpfile(ce_texmng* texmng,
+									ce_mmpfile* mmpfile,
+									const char* name);
 
 extern ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name);
 

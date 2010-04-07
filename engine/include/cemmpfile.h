@@ -56,6 +56,8 @@ extern ce_mmpfile* ce_mmpfile_open_file(const char* path);
 extern ce_mmpfile* ce_mmpfile_open_resfile(ce_resfile* resfile, int index);
 extern void ce_mmpfile_close(ce_mmpfile* mmpfile);
 
+extern void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

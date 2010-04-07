@@ -74,7 +74,7 @@ static void ce_mmphlp_decompress_pnt3(void* restrict dst,
 	memcpy(d, s - n, n * sizeof(uint32_t));
 }
 
-void ce_mmphlp_pnt3_morph_argb8(ce_mmpfile* mmpfile)
+void ce_mmphlp_pnt3_convert_argb8(ce_mmpfile* mmpfile)
 {
 	assert(CE_MMPFILE_FORMAT_PNT3 == mmpfile->format);
 

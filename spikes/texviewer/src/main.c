@@ -146,7 +146,7 @@ static bool generate_texture(int index)
 	ce_mmpfile* mmpfile = ce_mmpfile_open_resfile(res, index);
 
 	if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
-		ce_mmphlp_pnt3_morph_argb8(mmpfile);
+		ce_mmphlp_pnt3_convert_argb8(mmpfile);
 	}
 
 	tex = ce_texture_new("stub", mmpfile);
