@@ -21,6 +21,8 @@
 #ifndef CE_TERRAIN_H
 #define CE_TERRAIN_H
 
+#include <stdbool.h>
+
 #include "cevec3.h"
 #include "cequat.h"
 #include "cevector.h"
@@ -37,6 +39,7 @@ extern "C"
 
 typedef struct {
 	ce_mprfile* mprfile;
+	bool tiling;
 	ce_texture* stub_texture;
 	ce_vector* textures;
 	ce_material* materials[2];
@@ -44,7 +47,7 @@ typedef struct {
 } ce_terrain;
 
 /// Terrain takes ownership of the mprfile.
-extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
+extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 									const ce_vec3* position,
 									const ce_quat* orientation,
 									ce_texture* stub_texture,

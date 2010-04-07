@@ -46,10 +46,16 @@ extern bool ce_texmng_register_resource(ce_texmng* texmng, const char* path);
 
 extern ce_mmpfile* ce_texmng_open_mmpfile(ce_texmng* texmng, const char* name);
 extern void ce_texmng_save_mmpfile(ce_texmng* texmng,
-									ce_mmpfile* mmpfile,
-									const char* name);
+									const char* name,
+									ce_mmpfile* mmpfile);
 
-extern ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name);
+extern ce_texture* ce_texmng_acquire_texture(ce_texmng* texmng,
+											const char* name);
+
+extern ce_texture*
+ce_texmng_acquire_texture_mmpfile(ce_texmng* texmng,
+									const char* name,
+									ce_mmpfile* mmpfile);
 
 #ifdef __cplusplus
 }

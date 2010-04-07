@@ -114,3 +114,10 @@ ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water)
 
 	return material;
 }
+
+ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
+										int sector_x, int sector_z,
+										ce_mmpfile* mmpfiles[])
+{
+	return NULL;
+}

@@ -246,11 +246,11 @@ static size_t ce_mprrenderitem_sizes[] = {
 	sizeof(ce_mprrenderitem_tile)
 };
 
-ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
+ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, bool tiling,
 									int sector_x, int sector_z,
 									int water, ce_vector* textures)
 {
-	return ce_renderitem_new(ce_mprrenderitem_vtables[1],
-							ce_mprrenderitem_sizes[1],
+	return ce_renderitem_new(ce_mprrenderitem_vtables[tiling],
+							ce_mprrenderitem_sizes[tiling],
 							mprfile, sector_x, sector_z, water, textures);
 }

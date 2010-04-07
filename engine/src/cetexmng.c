@@ -87,7 +87,7 @@ ce_mmpfile* ce_texmng_open_mmpfile(ce_texmng* texmng, const char* name)
 			ce_mmpfile* mmpfile = ce_mmpfile_open_resfile(resfile, index);
 			if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
 				ce_mmphlp_pnt3_convert_argb8(mmpfile);
-				ce_texmng_save_mmpfile(texmng, mmpfile, name);
+				ce_texmng_save_mmpfile(texmng, name, mmpfile);
 			}
 			return mmpfile;
 		}
@@ -97,15 +97,15 @@ ce_mmpfile* ce_texmng_open_mmpfile(ce_texmng* texmng, const char* name)
 }
 
 void ce_texmng_save_mmpfile(ce_texmng* texmng,
-							ce_mmpfile* mmpfile,
-							const char* name)
+							const char* name,
+							ce_mmpfile* mmpfile)
 {
 	char path[texmng->path->length + strlen(name) + 5 + 1];
 	snprintf(path, sizeof(path), "%s/%s.mmp", texmng->path->str, name);
 	ce_mmpfile_save_file(mmpfile, path);
 }
 
-ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name)
+ce_texture* ce_texmng_acquire_texture(ce_texmng* texmng, const char* name)
 {
 	// first, find texture in cache
 	for (int i = 0; i < texmng->textures->count; ++i) {
@@ -126,4 +126,13 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name)
 
 	ce_logging_error("texmng: could not find texture: '%s'", name);
 	return NULL;
+}
+
+ce_texture* ce_texmng_acquire_texture_mmpfile(ce_texmng* texmng,
+											const char* name,
+											ce_mmpfile* mmpfile)
+{
+	ce_texture* texture = ce_texture_new(name, mmpfile);
+	ce_vector_push_back(texmng->textures, texture);
+	return texture;
 }

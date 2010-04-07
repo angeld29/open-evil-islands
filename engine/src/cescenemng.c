@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "celib.h"
 #include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
@@ -28,6 +29,9 @@
 #include "ceformat.h"
 #include "cemprhlp.h"
 #include "cescenemng.h"
+
+// TODO: test
+#include "cemmphlp.h"
 
 ce_scenemng* ce_scenemng_new(const char* root_path)
 {
@@ -74,6 +78,24 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 				root_path, figure_resources[i]);
 		ce_figmng_register_resource(scenemng->figmng, path);
 	}
+
+	/*ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(scenemng->texmng, "bz8k000");
+
+	ce_mmphlp_dxt_decompress_rgba8(mmpfile);
+
+	void* data = ce_alloc(mmpfile->size);
+
+	ce_mmphlp_rotate90_rgba8(mmpfile->width, mmpfile->height,
+								data, mmpfile->texels);
+
+	ce_free(mmpfile->data, mmpfile->size);
+	mmpfile->texels = data;
+	mmpfile->data = data;
+
+	ce_mmphlp_rgba8_compress_dxt(mmpfile);
+
+	ce_texmng_save_mmpfile(scenemng->texmng, "bz8k000000", mmpfile);
+	ce_mmpfile_close(mmpfile);*/
 
 	return scenemng;
 }
@@ -226,7 +248,7 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 										ce_scenenode* scenenode)
 {
 	ce_texture* stub_texture =
-		ce_texmng_get_texture(scenemng->texmng, "default0");
+		ce_texmng_acquire_texture(scenemng->texmng, "default0");
 	if (NULL == stub_texture) {
 		return NULL;
 	}
@@ -236,18 +258,54 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 		return NULL;
 	}
 
-	// mpr name + nnn
-	char texture_name[mprfile->name->length + 3 + 1];
-	ce_texture* textures[mprfile->texture_count];
+	// mpr name + nnn for tiling
+	// mpr name + xxxzzz for generated textures
+	char texture_name[mprfile->name->length + 3 + 3 + 1];
+	ce_texture* textures[ce_max(mprfile->texture_count,
+		mprfile->sector_x_count * mprfile->sector_z_count)];
 
-	for (int i = 0, n = mprfile->texture_count; i < n; ++i) {
-		snprintf(texture_name, sizeof(texture_name),
-				"%s%03d", mprfile->name->str, i);
+	bool tiling = true;
 
-		textures[i] = ce_texmng_get_texture(scenemng->texmng, texture_name);
-		if (NULL == textures[i]) {
-			ce_mprfile_close(mprfile);
-			return NULL;
+	if (tiling) {
+		for (int i = 0; i < mprfile->texture_count; ++i) {
+			snprintf(texture_name, sizeof(texture_name),
+					"%s%03d", mprfile->name->str, i);
+			textures[i] = ce_texmng_acquire_texture(scenemng->texmng, texture_name);
+			if (NULL == textures[i]) {
+				ce_mprfile_close(mprfile);
+				return NULL;
+			}
+		}
+	} else {
+		ce_mmpfile* mmpfiles[mprfile->texture_count];
+
+		for (int i = 0; i < mprfile->texture_count; ++i) {
+			snprintf(texture_name, sizeof(texture_name),
+					"%s%03d", mprfile->name->str, i);
+			mmpfiles[i] = ce_texmng_open_mmpfile(scenemng->texmng, texture_name);
+		}
+
+		for (int z = 0; z < mprfile->sector_z_count; ++z) {
+			for (int x = 0; x < mprfile->sector_x_count; ++x) {
+				snprintf(texture_name, sizeof(texture_name),
+						"%s%03d%03d", mprfile->name->str, x, z);
+				ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(scenemng->texmng,
+															texture_name);
+				if (NULL == mmpfile) {
+					mmpfile = ce_mprhlp_generate_mmpfile(mprfile, x, z, mmpfiles);
+					ce_texmng_save_mmpfile(scenemng->texmng, texture_name, mmpfile);
+				}
+
+				textures[z * mprfile->sector_x_count + x] =
+					ce_texmng_acquire_texture_mmpfile(scenemng->texmng,
+													texture_name, mmpfile);
+
+				ce_mmpfile_close(mmpfile);
+			}
+		}
+
+		for (int i = 0; i < mprfile->texture_count; ++i) {
+			ce_mmpfile_close(mmpfiles[i]);
 		}
 	}
 
@@ -256,7 +314,7 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 	}
 
 	ce_terrain_del(scenemng->terrain);
-	scenemng->terrain = ce_terrain_new(mprfile, position,
+	scenemng->terrain = ce_terrain_new(mprfile, tiling, position,
 										orientation, stub_texture,
 										textures, scenenode);
 
@@ -279,7 +337,7 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 	ce_texture* textures[texture_count];
 
 	for (int i = 0; i < texture_count; ++i) {
-		textures[i] = ce_texmng_get_texture(scenemng->texmng, texture_names[i]);
+		textures[i] = ce_texmng_acquire_texture(scenemng->texmng, texture_names[i]);
 		if (NULL == textures[i]) {
 			return NULL;
 		}

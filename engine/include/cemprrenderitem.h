@@ -31,7 +31,7 @@ extern "C"
 #endif /* __cplusplus */
 
 extern ce_renderitem*
-ce_mprrenderitem_new(ce_mprfile* mprfile,
+ce_mprrenderitem_new(ce_mprfile* mprfile, bool tiling,
 					int sector_x, int sector_z,
 					int water, ce_vector* textures);
 

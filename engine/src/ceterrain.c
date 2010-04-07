@@ -31,9 +31,8 @@ static void ce_terrain_create_sector(ce_terrain* terrain,
 									bool water)
 {
 	ce_renderitem* renderitem =
-		ce_mprrenderitem_new(terrain->mprfile,
-							sector_x, sector_z,
-							water, terrain->textures);
+		ce_mprrenderitem_new(terrain->mprfile, terrain->tiling,
+							sector_x, sector_z, water, terrain->textures);
 
 	ce_mprhlp_get_aabb(&renderitem->aabb, terrain->mprfile, sector_x, sector_z);
 
@@ -46,7 +45,7 @@ static void ce_terrain_create_sector(ce_terrain* terrain,
 	ce_scenenode_add_renderitem(scenenode, renderitem);
 }
 
-ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
+ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 							const ce_vec3* position,
 							const ce_quat* orientation,
 							ce_texture* stub_texture,
@@ -55,6 +54,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 {
 	ce_terrain* terrain = ce_alloc(sizeof(ce_terrain));
 	terrain->mprfile = mprfile;
+	terrain->tiling = tiling;
 	terrain->stub_texture = ce_texture_add_ref(stub_texture);
 	terrain->textures = ce_vector_new_reserved(mprfile->texture_count);
 	terrain->materials[0] = ce_mprhlp_create_material(mprfile, false);
