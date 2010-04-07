@@ -34,35 +34,16 @@ extern void ce_mmphlp_pnt3_morph_argb8(ce_mmpfile* mmpfile);
 
 // swap
 
-extern void*
-ce_mmphlp_a1rgb5_swap_rgb5a1(void* dst, const void* src,
-							int width, int height, int mipmap_count);
-
-extern void*
-ce_mmphlp_argb4_swap_rgba4(void* dst, const void* src,
-							int width, int height, int mipmap_count);
-
-extern void*
-ce_mmphlp_argb8_swap_rgba8(void* dst, const void* src,
-							int width, int height, int mipmap_count);
+extern void ce_mmphlp_a1rgb5_swap_rgb5a1(ce_mmpfile* mmpfile);
+extern void ce_mmphlp_argb4_swap_rgba4(ce_mmpfile* mmpfile);
+extern void ce_mmphlp_argb8_swap_rgba8(ce_mmpfile* mmpfile);
 
 // unpack
 
-extern void*
-ce_mmphlp_r5g6b5_unpack_rgba8(void* restrict dst, const void* restrict src,
-								int width, int height, int mipmap_count);
-
-extern void*
-ce_mmphlp_a1rgb5_unpack_rgba8(void* restrict dst, const void* restrict src,
-								int width, int height, int mipmap_count);
-
-extern void*
-ce_mmphlp_argb4_unpack_rgba8(void* restrict dst, const void* restrict src,
-								int width, int height, int mipmap_count);
-
-extern void*
-ce_mmphlp_argb8_unpack_rgba8(void* dst, const void* src,
-								int width, int height, int mipmap_count);
+extern void ce_mmphlp_r5g6b5_unpack_rgba8(ce_mmpfile* mmpfile);
+extern void ce_mmphlp_a1rgb5_unpack_rgba8(ce_mmpfile* mmpfile);
+extern void ce_mmphlp_argb4_unpack_rgba8(ce_mmpfile* mmpfile);
+extern void ce_mmphlp_argb8_unpack_rgba8(ce_mmpfile* mmpfile);
 
 // requirements
 

@@ -91,60 +91,66 @@ void ce_mmphlp_pnt3_morph_argb8(ce_mmpfile* mmpfile)
 	// TODO: write full argb8 header
 }
 
-static void* ce_mmphlp_argb_swap_rgba(void* dst, const void* src,
-									int width, int height, int mipmap_count,
-									int rgbshift, int ashift)
+static void ce_mmphlp_argb_swap_rgba(ce_mmpfile* mmpfile,
+										int rgbshift, int ashift)
 {
-	uint16_t* d = dst;
-	const uint16_t* s = src;
+	uint16_t* d = mmpfile->texels;
+	const uint16_t* s = mmpfile->texels;
 
-	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint16_t* e = s + width * height; s != e; ++d, ++s) {
 			*d = *s << rgbshift | *s >> ashift;
 		}
 	}
 
-	return dst;
+	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
 }
 
-void* ce_mmphlp_a1rgb5_swap_rgb5a1(void* dst, const void* src,
-									int width, int height, int mipmap_count)
+void ce_mmphlp_a1rgb5_swap_rgb5a1(ce_mmpfile* mmpfile)
 {
-	return ce_mmphlp_argb_swap_rgba(dst, src, width, height, mipmap_count, 1, 15);
+	assert(mmpfile->format == CE_MMPFILE_FORMAT_A1RGB5);
+	ce_mmphlp_argb_swap_rgba(mmpfile, 1, 15);
 }
 
-void* ce_mmphlp_argb4_swap_rgba4(void* dst, const void* src,
-									int width, int height, int mipmap_count)
+void ce_mmphlp_argb4_swap_rgba4(ce_mmpfile* mmpfile)
 {
-	return ce_mmphlp_argb_swap_rgba(dst, src, width, height, mipmap_count, 4, 12);
+	assert(mmpfile->format == CE_MMPFILE_FORMAT_ARGB4);
+	ce_mmphlp_argb_swap_rgba(mmpfile, 4, 12);
 }
 
-void* ce_mmphlp_argb8_swap_rgba8(void* dst, const void* src,
-									int width, int height, int mipmap_count)
+void ce_mmphlp_argb8_swap_rgba8(ce_mmpfile* mmpfile)
 {
-	uint32_t* d = dst;
-	const uint32_t* s = src;
+	assert(mmpfile->format == CE_MMPFILE_FORMAT_ARGB8);
 
-	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+	uint32_t* d = mmpfile->texels;
+	const uint32_t* s = mmpfile->texels;
+
+	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint32_t* e = s + width * height; s != e; ++d, ++s) {
 			*d = *s << 8 | *s >> 24;
 		}
 	}
 
-	return dst;
+	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
 }
 
-static void* ce_mmphlp_argb_unpack_rgba(void* restrict dst,
-								const void* restrict src,
-								int width, int height, int mipmap_count,
+static void ce_mmphlp_argb_unpack_rgba(ce_mmpfile* mmpfile,
 								uint16_t rmask, uint16_t gmask, uint16_t bmask,
 								int rshift, int gshift, int ashift,
 								int rdiv, int gdiv, int bdiv, int adiv)
 {
-	uint8_t* d = dst;
-	const uint16_t* s = src;
+	int size = ce_mmphlp_storage_requirements_rgba8(mmpfile->width,
+		mmpfile->height, mmpfile->mipmap_count);
 
-	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+	void* data = ce_alloc(size);
+
+	uint8_t* d = data;
+	const uint16_t* s = mmpfile->texels;
+
+	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint16_t* e = s + width * height; s != e; ++d, ++s) {
 			*d++ = ((*s & rmask) >> rshift) * 255 / rdiv;
 			*d++ = ((*s & gmask) >> gshift) * 255 / gdiv;
@@ -156,45 +162,49 @@ static void* ce_mmphlp_argb_unpack_rgba(void* restrict dst,
 		}
 	}
 
-	return dst;
+	ce_free(mmpfile->data, mmpfile->size);
+
+	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
+	mmpfile->texels = data;
+	mmpfile->size = size;
+	mmpfile->data = data;
 }
 
-void* ce_mmphlp_r5g6b5_unpack_rgba8(void* restrict dst,
-									const void* restrict src,
-									int width, int height, int mipmap_count)
+void ce_mmphlp_r5g6b5_unpack_rgba8(ce_mmpfile* mmpfile)
 {
-	return ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
-								0xf800, 0x7e0, 0x1f, 11, 5, 0, 31, 63, 31, 0);
+	assert(mmpfile->format == CE_MMPFILE_FORMAT_R5G6B5);
+	ce_mmphlp_argb_unpack_rgba(mmpfile, 0xf800, 0x7e0, 0x1f,
+										11, 5, 0, 31, 63, 31, 0);
 }
 
-void* ce_mmphlp_a1rgb5_unpack_rgba8(void* restrict dst,
-									const void* restrict src,
-									int width, int height, int mipmap_count)
+void ce_mmphlp_a1rgb5_unpack_rgba8(ce_mmpfile* mmpfile)
 {
-	return ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
-								0x7c00, 0x3e0, 0x1f, 10, 5, 15, 31, 31, 31, 1);
+	assert(mmpfile->format == CE_MMPFILE_FORMAT_A1RGB5);
+	ce_mmphlp_argb_unpack_rgba(mmpfile, 0x7c00, 0x3e0, 0x1f,
+										10, 5, 15, 31, 31, 31, 1);
 }
 
-void* ce_mmphlp_argb4_unpack_rgba8(void* restrict dst,
-									const void* restrict src,
-									int width, int height, int mipmap_count)
+void ce_mmphlp_argb4_unpack_rgba8(ce_mmpfile* mmpfile)
 {
-	return ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
-								0xf00, 0xf0, 0xf, 8, 4, 12, 15, 15, 15, 15);
+	assert(mmpfile->format == CE_MMPFILE_FORMAT_ARGB4);
+	ce_mmphlp_argb_unpack_rgba(mmpfile, 0xf00, 0xf0, 0xf,
+										8, 4, 12, 15, 15, 15, 15);
 }
 
-void* ce_mmphlp_argb8_unpack_rgba8(void* dst, const void* src,
-									int width, int height, int mipmap_count)
+void ce_mmphlp_argb8_unpack_rgba8(ce_mmpfile* mmpfile)
 {
-	uint32_t* d = dst;
-	const uint32_t* s = src;
+	assert(mmpfile->format == CE_MMPFILE_FORMAT_ARGB8);
+
+	uint32_t* d = mmpfile->texels;
+	const uint32_t* s = mmpfile->texels;
 
 	union {
 		uint8_t u8[4];
 		uint32_t u32;
 	} t;
 
-	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint32_t* e = s + width * height; s != e; ++d, ++s) {
 			t.u8[0] = (*s & 0xff0000) >> 16;
 			t.u8[1] = (*s & 0xff00) >> 8;
@@ -204,7 +214,7 @@ void* ce_mmphlp_argb8_unpack_rgba8(void* dst, const void* src,
 		}
 	}
 
-	return dst;
+	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
 }
 
 int ce_mmphlp_storage_requirements_rgba8(int width, int height, int mipmap_count)
