@@ -21,12 +21,15 @@
 #ifndef CE_BYTEORDER_H
 #define CE_BYTEORDER_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+extern bool ce_is_big_endian(void);
 
 extern uint16_t ce_cpu2le16(uint16_t v);
 extern uint32_t ce_cpu2le32(uint32_t v);
