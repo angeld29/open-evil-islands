@@ -45,9 +45,7 @@ extern int ce_mmphlp_storage_requirements_rgba8(int width, int height,
 extern int ce_mmphlp_storage_requirements_dxt(int width, int height,
 											int mipmap_count, int format);
 
-extern void ce_mmphlp_rgba8_compress_dxt(void* restrict dst,
-									const void* restrict src,
-									int width, int height, int format);
+extern void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile);
 extern void ce_mmphlp_dxt_decompress_rgba8(ce_mmpfile* mmpfile);
 
 #ifdef __cplusplus

@@ -240,488 +240,857 @@ int ce_mmphlp_storage_requirements_dxt(int width, int height,
 	return size;
 }
 
-static int FloatTo565( const ce_vec3* color )
+#define GETL32(buf) \
+   (((unsigned int)(buf)[0]      ) | \
+    ((unsigned int)(buf)[1] <<  8) | \
+    ((unsigned int)(buf)[2] << 16) | \
+    ((unsigned int)(buf)[3] << 24))
+
+#define PUTL16(buf, s) \
+   (buf)[0] = ((s)     ) & 0xff; \
+   (buf)[1] = ((s) >> 8) & 0xff;
+
+#define PUTL32(buf, l) \
+   (buf)[0] = ((l)      ) & 0xff; \
+	(buf)[1] = ((l) >>  8) & 0xff; \
+	(buf)[2] = ((l) >> 16) & 0xff; \
+	(buf)[3] = ((l) >> 24) & 0xff;
+
+#define MIN(a, b)  ((a) < (b) ? (a) : (b))
+#define MAX(a, b)  ((a) > (b) ? (a) : (b))
+
+static const unsigned char quantRB[256 + 16] =
 {
-	// get the components in the correct range
-	int r = ce_clamp( 31.0f*color->x + 0.5f, 0, 31 );
-	int g = ce_clamp( 63.0f*color->y + 0.5f, 0, 63 );
-	int b = ce_clamp( 31.0f*color->z + 0.5f, 0, 31 );
-	
-	// pack into a single value
-	return ( r << 11 ) | ( g << 5 ) | b;
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x08, 0x08, 
+   0x08, 0x08, 0x08, 0x08, 0x08, 0x10, 0x10, 0x10, 
+   0x10, 0x10, 0x10, 0x10, 0x10, 0x18, 0x18, 0x18, 
+   0x18, 0x18, 0x18, 0x18, 0x18, 0x21, 0x21, 0x21, 
+   0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x29, 0x29, 
+   0x29, 0x29, 0x29, 0x29, 0x29, 0x29, 0x31, 0x31, 
+   0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x39, 0x39, 
+   0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x42, 0x42, 
+   0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x4a, 0x4a, 
+   0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x52, 
+   0x52, 0x52, 0x52, 0x52, 0x52, 0x52, 0x52, 0x5a, 
+   0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x63, 
+   0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x6b, 
+   0x6b, 0x6b, 0x6b, 0x6b, 0x6b, 0x6b, 0x6b, 0x6b, 
+   0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 
+   0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 
+   0x84, 0x84, 0x84, 0x84, 0x84, 0x84, 0x84, 0x84, 
+   0x8c, 0x8c, 0x8c, 0x8c, 0x8c, 0x8c, 0x8c, 0x8c, 
+   0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 
+   0x94, 0x9c, 0x9c, 0x9c, 0x9c, 0x9c, 0x9c, 0x9c, 
+   0x9c, 0xa5, 0xa5, 0xa5, 0xa5, 0xa5, 0xa5, 0xa5, 
+   0xa5, 0xad, 0xad, 0xad, 0xad, 0xad, 0xad, 0xad, 
+   0xad, 0xb5, 0xb5, 0xb5, 0xb5, 0xb5, 0xb5, 0xb5, 
+   0xb5, 0xb5, 0xbd, 0xbd, 0xbd, 0xbd, 0xbd, 0xbd, 
+   0xbd, 0xbd, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 
+   0xc6, 0xc6, 0xce, 0xce, 0xce, 0xce, 0xce, 0xce, 
+   0xce, 0xce, 0xd6, 0xd6, 0xd6, 0xd6, 0xd6, 0xd6, 
+   0xd6, 0xd6, 0xde, 0xde, 0xde, 0xde, 0xde, 0xde, 
+   0xde, 0xde, 0xde, 0xe7, 0xe7, 0xe7, 0xe7, 0xe7, 
+   0xe7, 0xe7, 0xe7, 0xef, 0xef, 0xef, 0xef, 0xef, 
+   0xef, 0xef, 0xef, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 
+   0xf7, 0xf7, 0xf7, 0xff, 0xff, 0xff, 0xff, 0xff, 
+   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
+};
+
+static const unsigned char quantG[256 + 16] =
+{
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+   0x00, 0x00, 0x00, 0x04, 0x04, 0x04, 0x04, 0x08, 
+   0x08, 0x08, 0x08, 0x0c, 0x0c, 0x0c, 0x0c, 0x10, 
+   0x10, 0x10, 0x10, 0x14, 0x14, 0x14, 0x14, 0x18, 
+   0x18, 0x18, 0x18, 0x1c, 0x1c, 0x1c, 0x1c, 0x20, 
+   0x20, 0x20, 0x20, 0x24, 0x24, 0x24, 0x24, 0x28, 
+   0x28, 0x28, 0x28, 0x2c, 0x2c, 0x2c, 0x2c, 0x30, 
+   0x30, 0x30, 0x30, 0x34, 0x34, 0x34, 0x34, 0x38, 
+   0x38, 0x38, 0x38, 0x3c, 0x3c, 0x3c, 0x3c, 0x41, 
+   0x41, 0x41, 0x41, 0x45, 0x45, 0x45, 0x45, 0x49, 
+   0x49, 0x49, 0x49, 0x4d, 0x4d, 0x4d, 0x4d, 0x51, 
+   0x51, 0x51, 0x51, 0x55, 0x55, 0x55, 0x55, 0x55, 
+   0x59, 0x59, 0x59, 0x59, 0x5d, 0x5d, 0x5d, 0x5d, 
+   0x61, 0x61, 0x61, 0x61, 0x65, 0x65, 0x65, 0x65, 
+   0x69, 0x69, 0x69, 0x69, 0x6d, 0x6d, 0x6d, 0x6d, 
+   0x71, 0x71, 0x71, 0x71, 0x75, 0x75, 0x75, 0x75, 
+   0x79, 0x79, 0x79, 0x79, 0x7d, 0x7d, 0x7d, 0x7d, 
+   0x82, 0x82, 0x82, 0x82, 0x86, 0x86, 0x86, 0x86, 
+   0x8a, 0x8a, 0x8a, 0x8a, 0x8e, 0x8e, 0x8e, 0x8e, 
+   0x92, 0x92, 0x92, 0x92, 0x96, 0x96, 0x96, 0x96, 
+   0x9a, 0x9a, 0x9a, 0x9a, 0x9e, 0x9e, 0x9e, 0x9e, 
+   0xa2, 0xa2, 0xa2, 0xa2, 0xa6, 0xa6, 0xa6, 0xa6, 
+   0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xae, 0xae, 0xae, 
+   0xae, 0xb2, 0xb2, 0xb2, 0xb2, 0xb6, 0xb6, 0xb6, 
+   0xb6, 0xba, 0xba, 0xba, 0xba, 0xbe, 0xbe, 0xbe, 
+   0xbe, 0xc3, 0xc3, 0xc3, 0xc3, 0xc7, 0xc7, 0xc7, 
+   0xc7, 0xcb, 0xcb, 0xcb, 0xcb, 0xcf, 0xcf, 0xcf, 
+   0xcf, 0xd3, 0xd3, 0xd3, 0xd3, 0xd7, 0xd7, 0xd7, 
+   0xd7, 0xdb, 0xdb, 0xdb, 0xdb, 0xdf, 0xdf, 0xdf, 
+   0xdf, 0xe3, 0xe3, 0xe3, 0xe3, 0xe7, 0xe7, 0xe7, 
+   0xe7, 0xeb, 0xeb, 0xeb, 0xeb, 0xef, 0xef, 0xef, 
+   0xef, 0xf3, 0xf3, 0xf3, 0xf3, 0xf7, 0xf7, 0xf7, 
+   0xf7, 0xfb, 0xfb, 0xfb, 0xfb, 0xff, 0xff, 0xff, 
+   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
+};
+
+static const unsigned char omatch5[256][2] =
+{
+   {0x00, 0x00}, {0x00, 0x00}, {0x00, 0x01}, {0x00, 0x01}, 
+   {0x01, 0x00}, {0x01, 0x00}, {0x01, 0x00}, {0x01, 0x01}, 
+   {0x01, 0x01}, {0x01, 0x01}, {0x02, 0x00}, {0x02, 0x00}, 
+   {0x02, 0x00}, {0x02, 0x01}, {0x00, 0x05}, {0x03, 0x00}, 
+   {0x03, 0x00}, {0x03, 0x00}, {0x03, 0x01}, {0x03, 0x01}, 
+   {0x03, 0x01}, {0x03, 0x02}, {0x04, 0x00}, {0x04, 0x00}, 
+   {0x03, 0x03}, {0x04, 0x01}, {0x05, 0x00}, {0x05, 0x00}, 
+   {0x05, 0x00}, {0x05, 0x01}, {0x05, 0x01}, {0x05, 0x01}, 
+   {0x03, 0x06}, {0x06, 0x00}, {0x06, 0x00}, {0x06, 0x01}, 
+   {0x04, 0x05}, {0x07, 0x00}, {0x07, 0x00}, {0x07, 0x00}, 
+   {0x07, 0x01}, {0x07, 0x01}, {0x07, 0x01}, {0x07, 0x02}, 
+   {0x08, 0x00}, {0x08, 0x00}, {0x07, 0x03}, {0x08, 0x01}, 
+   {0x09, 0x00}, {0x09, 0x00}, {0x09, 0x00}, {0x09, 0x01}, 
+   {0x09, 0x01}, {0x09, 0x01}, {0x07, 0x06}, {0x0a, 0x00}, 
+   {0x0a, 0x00}, {0x0a, 0x01}, {0x08, 0x05}, {0x0b, 0x00}, 
+   {0x0b, 0x00}, {0x0b, 0x00}, {0x0b, 0x01}, {0x0b, 0x01}, 
+   {0x0b, 0x01}, {0x0b, 0x02}, {0x0c, 0x00}, {0x0c, 0x00}, 
+   {0x0b, 0x03}, {0x0c, 0x01}, {0x0d, 0x00}, {0x0d, 0x00}, 
+   {0x0d, 0x00}, {0x0d, 0x01}, {0x0d, 0x01}, {0x0d, 0x01}, 
+   {0x0b, 0x06}, {0x0e, 0x00}, {0x0e, 0x00}, {0x0e, 0x01}, 
+   {0x0c, 0x05}, {0x0f, 0x00}, {0x0f, 0x00}, {0x0f, 0x00}, 
+   {0x0f, 0x01}, {0x0f, 0x01}, {0x0f, 0x01}, {0x0f, 0x02}, 
+   {0x10, 0x00}, {0x10, 0x00}, {0x0f, 0x03}, {0x10, 0x01}, 
+   {0x11, 0x00}, {0x11, 0x00}, {0x11, 0x00}, {0x11, 0x01}, 
+   {0x11, 0x01}, {0x11, 0x01}, {0x0f, 0x06}, {0x12, 0x00}, 
+   {0x12, 0x00}, {0x12, 0x01}, {0x10, 0x05}, {0x13, 0x00}, 
+   {0x13, 0x00}, {0x13, 0x00}, {0x13, 0x01}, {0x13, 0x01}, 
+   {0x13, 0x01}, {0x13, 0x02}, {0x14, 0x00}, {0x14, 0x00}, 
+   {0x13, 0x03}, {0x14, 0x01}, {0x15, 0x00}, {0x15, 0x00}, 
+   {0x15, 0x00}, {0x15, 0x01}, {0x15, 0x01}, {0x15, 0x01}, 
+   {0x13, 0x06}, {0x16, 0x00}, {0x16, 0x00}, {0x16, 0x01}, 
+   {0x14, 0x05}, {0x17, 0x00}, {0x17, 0x00}, {0x17, 0x00}, 
+   {0x17, 0x01}, {0x17, 0x01}, {0x17, 0x01}, {0x17, 0x02}, 
+   {0x18, 0x00}, {0x18, 0x00}, {0x17, 0x03}, {0x18, 0x01}, 
+   {0x19, 0x00}, {0x19, 0x00}, {0x19, 0x00}, {0x19, 0x01}, 
+   {0x19, 0x01}, {0x19, 0x01}, {0x17, 0x06}, {0x1a, 0x00}, 
+   {0x1a, 0x00}, {0x1a, 0x01}, {0x18, 0x05}, {0x1b, 0x00}, 
+   {0x1b, 0x00}, {0x1b, 0x00}, {0x1b, 0x01}, {0x1b, 0x01}, 
+   {0x1b, 0x01}, {0x1b, 0x02}, {0x1c, 0x00}, {0x1c, 0x00}, 
+   {0x1b, 0x03}, {0x1c, 0x01}, {0x1d, 0x00}, {0x1d, 0x00}, 
+   {0x1d, 0x00}, {0x1d, 0x01}, {0x1d, 0x01}, {0x1d, 0x01}, 
+   {0x1b, 0x06}, {0x1e, 0x00}, {0x1e, 0x00}, {0x1e, 0x01}, 
+   {0x1c, 0x05}, {0x1f, 0x00}, {0x1f, 0x00}, {0x1f, 0x00}, 
+   {0x1f, 0x01}, {0x1f, 0x01}, {0x1f, 0x01}, {0x1f, 0x02}, 
+   {0x1e, 0x04}, {0x1f, 0x03}, {0x1f, 0x03}, {0x1c, 0x09}, 
+   {0x1f, 0x04}, {0x1f, 0x04}, {0x1f, 0x04}, {0x1f, 0x05}, 
+   {0x1f, 0x05}, {0x1f, 0x05}, {0x1f, 0x06}, {0x1e, 0x08}, 
+   {0x1f, 0x07}, {0x1f, 0x07}, {0x1c, 0x0d}, {0x1f, 0x08}, 
+   {0x1f, 0x08}, {0x1f, 0x08}, {0x1f, 0x09}, {0x1f, 0x09}, 
+   {0x1f, 0x09}, {0x1f, 0x0a}, {0x1e, 0x0c}, {0x1f, 0x0b}, 
+   {0x1f, 0x0b}, {0x1c, 0x11}, {0x1f, 0x0c}, {0x1f, 0x0c}, 
+   {0x1f, 0x0c}, {0x1f, 0x0d}, {0x1f, 0x0d}, {0x1f, 0x0d}, 
+   {0x1f, 0x0e}, {0x1e, 0x10}, {0x1f, 0x0f}, {0x1f, 0x0f}, 
+   {0x1c, 0x15}, {0x1f, 0x10}, {0x1f, 0x10}, {0x1f, 0x10}, 
+   {0x1f, 0x11}, {0x1f, 0x11}, {0x1f, 0x11}, {0x1f, 0x12}, 
+   {0x1e, 0x14}, {0x1f, 0x13}, {0x1f, 0x13}, {0x1c, 0x19}, 
+   {0x1f, 0x14}, {0x1f, 0x14}, {0x1f, 0x14}, {0x1f, 0x15}, 
+   {0x1f, 0x15}, {0x1f, 0x15}, {0x1f, 0x16}, {0x1e, 0x18}, 
+   {0x1f, 0x17}, {0x1f, 0x17}, {0x1c, 0x1d}, {0x1f, 0x18}, 
+   {0x1f, 0x18}, {0x1f, 0x18}, {0x1f, 0x19}, {0x1f, 0x19}, 
+   {0x1f, 0x19}, {0x1f, 0x1a}, {0x1e, 0x1c}, {0x1f, 0x1b}, 
+   {0x1f, 0x1b}, {0x1f, 0x1b}, {0x1f, 0x1c}, {0x1f, 0x1c}, 
+   {0x1f, 0x1c}, {0x1f, 0x1d}, {0x1f, 0x1d}, {0x1f, 0x1d}, 
+   {0x1f, 0x1e}, {0x1f, 0x1e}, {0x1f, 0x1f}, {0x1f, 0x1f}, 
+};
+
+static const unsigned char omatch6[256][2] =
+{
+   {0x00, 0x00}, {0x00, 0x01}, {0x01, 0x00}, {0x01, 0x00}, 
+   {0x01, 0x01}, {0x02, 0x00}, {0x02, 0x00}, {0x02, 0x01}, 
+   {0x03, 0x00}, {0x03, 0x01}, {0x04, 0x00}, {0x04, 0x00}, 
+   {0x04, 0x01}, {0x05, 0x00}, {0x05, 0x00}, {0x05, 0x01}, 
+   {0x06, 0x00}, {0x06, 0x01}, {0x07, 0x00}, {0x07, 0x00}, 
+   {0x07, 0x01}, {0x08, 0x00}, {0x00, 0x10}, {0x08, 0x01}, 
+   {0x09, 0x00}, {0x09, 0x01}, {0x01, 0x11}, {0x0a, 0x00}, 
+   {0x0a, 0x01}, {0x0b, 0x00}, {0x03, 0x10}, {0x0b, 0x01}, 
+   {0x0c, 0x00}, {0x0c, 0x01}, {0x04, 0x11}, {0x0d, 0x00}, 
+   {0x0d, 0x01}, {0x0e, 0x00}, {0x06, 0x10}, {0x0e, 0x01}, 
+   {0x0f, 0x00}, {0x0f, 0x01}, {0x07, 0x11}, {0x10, 0x00}, 
+   {0x0f, 0x03}, {0x10, 0x01}, {0x11, 0x00}, {0x11, 0x01}, 
+   {0x0f, 0x06}, {0x12, 0x00}, {0x12, 0x01}, {0x13, 0x00}, 
+   {0x0f, 0x09}, {0x13, 0x01}, {0x14, 0x00}, {0x14, 0x01}, 
+   {0x0f, 0x0c}, {0x15, 0x00}, {0x15, 0x01}, {0x16, 0x00}, 
+   {0x0f, 0x0f}, {0x16, 0x01}, {0x17, 0x00}, {0x17, 0x01}, 
+   {0x0f, 0x12}, {0x18, 0x00}, {0x18, 0x01}, {0x19, 0x00}, 
+   {0x11, 0x10}, {0x19, 0x01}, {0x1a, 0x00}, {0x1a, 0x01}, 
+   {0x12, 0x11}, {0x1b, 0x00}, {0x1b, 0x01}, {0x1c, 0x00}, 
+   {0x14, 0x10}, {0x1c, 0x01}, {0x1d, 0x00}, {0x1d, 0x01}, 
+   {0x15, 0x11}, {0x1e, 0x00}, {0x1e, 0x01}, {0x1f, 0x00}, 
+   {0x17, 0x10}, {0x1f, 0x01}, {0x1f, 0x02}, {0x20, 0x00}, 
+   {0x20, 0x01}, {0x21, 0x00}, {0x1f, 0x05}, {0x21, 0x01}, 
+   {0x22, 0x00}, {0x22, 0x01}, {0x1f, 0x08}, {0x23, 0x00}, 
+   {0x23, 0x01}, {0x24, 0x00}, {0x1f, 0x0b}, {0x24, 0x01}, 
+   {0x25, 0x00}, {0x25, 0x01}, {0x1f, 0x0e}, {0x26, 0x00}, 
+   {0x26, 0x01}, {0x27, 0x00}, {0x1f, 0x11}, {0x27, 0x01}, 
+   {0x28, 0x00}, {0x28, 0x01}, {0x20, 0x11}, {0x29, 0x00}, 
+   {0x29, 0x01}, {0x2a, 0x00}, {0x22, 0x10}, {0x2a, 0x01}, 
+   {0x2b, 0x00}, {0x2b, 0x01}, {0x23, 0x11}, {0x2c, 0x00}, 
+   {0x2c, 0x01}, {0x2d, 0x00}, {0x25, 0x10}, {0x2d, 0x01}, 
+   {0x2e, 0x00}, {0x2e, 0x01}, {0x26, 0x11}, {0x2f, 0x00}, 
+   {0x2f, 0x01}, {0x2f, 0x02}, {0x30, 0x00}, {0x30, 0x01}, 
+   {0x2f, 0x04}, {0x31, 0x00}, {0x31, 0x01}, {0x32, 0x00}, 
+   {0x2f, 0x07}, {0x32, 0x01}, {0x33, 0x00}, {0x33, 0x01}, 
+   {0x2f, 0x0a}, {0x34, 0x00}, {0x34, 0x01}, {0x35, 0x00}, 
+   {0x2f, 0x0d}, {0x35, 0x01}, {0x36, 0x00}, {0x36, 0x01}, 
+   {0x2f, 0x10}, {0x37, 0x00}, {0x37, 0x01}, {0x38, 0x00}, 
+   {0x30, 0x10}, {0x38, 0x01}, {0x39, 0x00}, {0x39, 0x01}, 
+   {0x31, 0x11}, {0x3a, 0x00}, {0x3a, 0x01}, {0x3b, 0x00}, 
+   {0x33, 0x10}, {0x3b, 0x01}, {0x3c, 0x00}, {0x3c, 0x01}, 
+   {0x34, 0x11}, {0x3d, 0x00}, {0x3d, 0x01}, {0x3e, 0x00}, 
+   {0x36, 0x10}, {0x3e, 0x01}, {0x3f, 0x00}, {0x3f, 0x01}, 
+   {0x37, 0x11}, {0x3f, 0x02}, {0x3f, 0x03}, {0x3f, 0x04}, 
+   {0x39, 0x10}, {0x3f, 0x05}, {0x3f, 0x06}, {0x3f, 0x07}, 
+   {0x3a, 0x11}, {0x3f, 0x08}, {0x3f, 0x09}, {0x3f, 0x0a}, 
+   {0x3c, 0x10}, {0x3f, 0x0b}, {0x3f, 0x0c}, {0x3f, 0x0d}, 
+   {0x3d, 0x11}, {0x3f, 0x0e}, {0x3f, 0x0f}, {0x36, 0x21}, 
+   {0x3f, 0x10}, {0x3f, 0x11}, {0x3f, 0x12}, {0x38, 0x20}, 
+   {0x3f, 0x13}, {0x3f, 0x14}, {0x3f, 0x15}, {0x39, 0x21}, 
+   {0x3f, 0x16}, {0x3f, 0x17}, {0x3f, 0x18}, {0x3b, 0x20}, 
+   {0x3f, 0x19}, {0x3f, 0x1a}, {0x3f, 0x1b}, {0x3c, 0x21}, 
+   {0x3f, 0x1c}, {0x3f, 0x1d}, {0x3f, 0x1e}, {0x3e, 0x20}, 
+   {0x3f, 0x1f}, {0x3f, 0x20}, {0x37, 0x30}, {0x3f, 0x21}, 
+   {0x3f, 0x22}, {0x3f, 0x23}, {0x38, 0x31}, {0x3f, 0x24}, 
+   {0x3f, 0x25}, {0x3f, 0x26}, {0x3a, 0x30}, {0x3f, 0x27}, 
+   {0x3f, 0x28}, {0x3f, 0x29}, {0x3b, 0x31}, {0x3f, 0x2a}, 
+   {0x3f, 0x2b}, {0x3f, 0x2c}, {0x3d, 0x30}, {0x3f, 0x2d}, 
+   {0x3f, 0x2e}, {0x3f, 0x2f}, {0x3e, 0x31}, {0x3f, 0x30}, 
+   {0x3f, 0x31}, {0x3f, 0x31}, {0x3f, 0x32}, {0x3f, 0x33}, 
+   {0x3f, 0x34}, {0x3f, 0x34}, {0x3f, 0x35}, {0x3f, 0x36}, 
+   {0x3f, 0x37}, {0x3f, 0x37}, {0x3f, 0x38}, {0x3f, 0x39}, 
+   {0x3f, 0x3a}, {0x3f, 0x3a}, {0x3f, 0x3b}, {0x3f, 0x3c}, 
+   {0x3f, 0x3d}, {0x3f, 0x3d}, {0x3f, 0x3e}, {0x3f, 0x3f}, 
+};
+
+static int color_distance(const unsigned char *c0,
+                          const unsigned char *c1)
+{
+   return(((c0[0] - c1[0]) * (c0[0] - c1[0])) +
+          ((c0[1] - c1[1]) * (c0[1] - c1[1])) +
+          ((c0[2] - c1[2]) * (c0[2] - c1[2])));
 }
 
-static void WriteColourBlock( int a, int b, uint8_t* indices, void* block )
+/* pack BGR8 to RGB565 */
+static unsigned short pack_rgb565(const unsigned char *c)
 {
-	// get the block as bytes
-	uint8_t* bytes = block;
-
-	// write the endpoints
-	bytes[0] = a & 0xff;
-	bytes[1] = a >> 8;
-	bytes[2] = b & 0xff;
-	bytes[3] = b >> 8;
-	
-	// write the indices
-	for( int i = 0; i < 4; ++i )
-	{
-		uint8_t const* ind = indices + 4*i;
-		bytes[4 + i] = ind[0] | ( ind[1] << 2 ) | ( ind[2] << 4 ) | ( ind[3] << 6 );
-	}
+   return(((c[2] >> 3) << 11) | ((c[1] >> 2) << 5) | (c[0] >> 3));
 }
 
-static void WriteColourBlock3( const ce_vec3* start, const ce_vec3* end,
-								uint8_t const* indices, void* block )
+/* unpack RGB565 to BGR */
+static void unpack_rgb565(unsigned char *dst, unsigned short v)
 {
-	// get the packed values
-	int a = FloatTo565( start );
-	int b = FloatTo565( end );
-
-	// remap the indices
-	uint8_t remapped[16];
-	if( a <= b )
-	{
-		// use the indices directly
-		for( int i = 0; i < 16; ++i )
-			remapped[i] = indices[i];
-	}
-	else
-	{
-		// swap a and b
-		ce_swap(&a, &b);
-		for( int i = 0; i < 16; ++i )
-		{
-			if( indices[i] == 0 )
-				remapped[i] = 1;
-			else if( indices[i] == 1 )
-				remapped[i] = 0;
-			else
-				remapped[i] = indices[i];
-		}
-	}
-	
-	// write the block
-	WriteColourBlock( a, b, remapped, block );
+   int r = (v >> 11) & 0x1f;
+   int g = (v >>  5) & 0x3f;
+   int b = (v      ) & 0x1f;
+   
+   dst[0] = (b << 3) | (b >> 2);
+   dst[1] = (g << 2) | (g >> 4);
+   dst[2] = (r << 3) | (r >> 2);
 }
 
-static void WriteColourBlock4( const ce_vec3* start, const ce_vec3* end,
-						uint8_t const* indices, void* block )
+static int mul8bit(int a, int b)
 {
-	// get the packed values
-	int a = FloatTo565( start );
-	int b = FloatTo565( end );
-
-	// remap the indices
-	uint8_t remapped[16];
-	if( a < b )
-	{
-		// swap a and b
-		ce_swap( &a, &b );
-		for( int i = 0; i < 16; ++i )
-			remapped[i] = ( indices[i] ^ 0x1 ) & 0x3;
-	}
-	else if( a == b )
-	{
-		// use index 0
-		for( int i = 0; i < 16; ++i )
-			remapped[i] = 0;
-	}
-	else
-	{
-		// use the indices directly
-		for( int i = 0; i < 16; ++i )
-			remapped[i] = indices[i];
-	}
-	
-	// write the block
-	WriteColourBlock( a, b, remapped, block );
+   int t = a * b + 128;
+   return((t + (t >> 8)) >> 8);
 }
 
-typedef struct {
-	int count;
-	ce_vec3 points[16];
-	float weights[16];
-	int remap[16];
-	bool transparent;
-} ce_mmpfile_colorset;
-
-static void
-ce_mmpfile_colorset_init(ce_mmpfile_colorset* cs,
-						const uint8_t* rgba, int mask, int format)
+static int blerp(int a, int b, int x)
 {
-	cs->count = 0;
-	cs->transparent = false;
+   return(a + mul8bit(b - a, x));
+}
 
-	// check the compression mode for dxt1
-	bool isDxt1 = CE_MMPFILE_FORMAT_DXT1 == format;
-	bool weightByAlpha = false; // TODO: test it
+static void lerp_rgb(unsigned char *dst, unsigned char *a, unsigned char *b, int f)
+{
+   dst[0] = blerp(a[0], b[0], f);
+   dst[1] = blerp(a[1], b[1], f);
+   dst[2] = blerp(a[2], b[2], f);
+}
 
-	// create the minimal set
-	for( int i = 0; i < 16; ++i )
-	{
-		// check this pixel is enabled
-		int bit = 1 << i;
-		if( ( mask & bit ) == 0 )
+static void eval_colors(unsigned char color[4][3],
+                        unsigned short c0, unsigned short c1)
+{
+   unpack_rgb565(color[0], c0);
+   unpack_rgb565(color[1], c1);
+   if(c0 > c1)
+   {
+      lerp_rgb(color[2], color[0], color[1], 0x55);
+      lerp_rgb(color[3], color[0], color[1], 0xaa);
+   }
+   else
+   {
+      color[2][0] = (color[0][0] + color[1][0]) >> 1;
+      color[2][1] = (color[0][1] + color[1][1]) >> 1;
+      color[2][2] = (color[0][2] + color[1][2]) >> 1;
+      
+      color[3][0] = color[3][1] = color[3][2] = 0;
+   }
+}
+
+/* extract 4x4 BGRA block */
+static void extract_block(const unsigned char *src, int x, int y,
+                          int w, int h, unsigned char *block)
+{
+   int i, j;
+   int bw = MIN(w - x, 4);
+   int bh = MIN(h - y, 4);
+   int bx, by;
+   const int rem[] =
+   {
+      0, 0, 0, 0,
+      0, 1, 0, 1,
+      0, 1, 2, 0,
+      0, 1, 2, 3
+   };
+   
+   for(i = 0; i < 4; ++i)
+   {
+      by = rem[(bh - 1) * 4 + i] + y;
+      for(j = 0; j < 4; ++j)
+      {
+         bx = rem[(bw - 1) * 4 + j] + x;
+         block[(i * 4 * 4) + (j * 4) + 0] =
+            src[(by * (w * 4)) + (bx * 4) + 0];
+         block[(i * 4 * 4) + (j * 4) + 1] =
+            src[(by * (w * 4)) + (bx * 4) + 1];
+         block[(i * 4 * 4) + (j * 4) + 2] =
+            src[(by * (w * 4)) + (bx * 4) + 2];
+         block[(i * 4 * 4) + (j * 4) + 3] =
+            src[(by * (w * 4)) + (bx * 4) + 3];
+      }
+   }
+}
+
+/* Block dithering function.  Simply dithers a block to 565 RGB.
+ * (Floyd-Steinberg)
+ */
+static void dither_block(unsigned char *dst, const unsigned char *block)
+{
+   int err[8], *ep1 = err, *ep2 = err + 4, *tmp;
+   int c, y;
+   unsigned char *bp, *dp;
+   const unsigned char *quant;
+  
+   /* process channels seperately */
+   for(c = 0; c < 3; ++c)
+   {
+      bp = (unsigned char *)block;
+      dp = dst;
+      quant = (c == 1) ? quantG + 8 : quantRB + 8;
+      
+      bp += c;
+      dp += c;
+      
+      memset(err, 0, sizeof(err));
+      
+      for(y = 0; y < 4; ++y)
+      {
+         /* pixel 0 */
+         dp[ 0] = quant[bp[ 0] + ((3 * ep2[1] + 5 * ep2[0]) >> 4)];
+         ep1[0] = bp[ 0] - dp[ 0];
+         
+         /* pixel 1 */
+         dp[ 4] = quant[bp[ 4] + ((7 * ep1[0] + 3 * ep2[2] + 5 * ep2[1] + ep2[0]) >> 4)];
+         ep1[1] = bp[ 4] - dp[ 4];
+         
+         /* pixel 2 */
+         dp[ 8] = quant[bp[ 8] + ((7 * ep1[1] + 3 * ep2[3] + 5 * ep2[2] + ep2[1]) >> 4)];
+         ep1[2] = bp[ 8] - dp[ 8];
+         
+         /* pixel 3 */
+         dp[12] = quant[bp[12] + ((7 * ep1[2] + 5 * ep2[3] + ep2[2]) >> 4)];
+         ep1[3] = bp[12] - dp[12];
+         
+         /* advance to next line */
+         tmp = ep1;
+         ep1 = ep2;
+         ep2 = tmp;
+         
+         bp += 16;
+         dp += 16;
+      }
+   }
+}
+
+/* Color matching function */
+static unsigned int match_colors_block(const unsigned char *block,
+                                       unsigned char color[4][3],
+                                       int dither)
+{
+   unsigned int mask = 0;
+   int dirb = color[0][0] - color[1][0];
+   int dirg = color[0][1] - color[1][1];
+   int dirr = color[0][2] - color[1][2];
+   int dots[16], stops[4];
+   int c0pt, halfpt, c3pt, dot;
+   int i;
+   
+   for(i = 0; i < 16; ++i)
+      dots[i] = block[4 * i] * dirb + block[4 * i + 1] * dirg + block[4 * i + 2] * dirr;
+   
+   for(i = 0; i < 4; ++i)
+      stops[i] = color[i][0] * dirb + color[i][1] * dirg + color[i][2] * dirr;
+   
+   c0pt = (stops[1] + stops[3]) >> 1;
+   halfpt = (stops[3] + stops[2]) >> 1;
+   c3pt = (stops[2] + stops[0]) >> 1;
+   
+   if(!dither)
+   {
+      /* the version without dithering is straight-forward */
+      for(i = 15; i >= 0; --i)
+      {
+         mask <<= 2;
+         dot = dots[i];
+  
+         if(dot < halfpt)
+            mask |= (dot < c0pt) ? 1 : 3;
+         else
+            mask |= (dot < c3pt) ? 2 : 0;
+      }
+   }
+   else
+   {
+      /* with floyd-steinberg dithering (see above) */
+      int err[8], *ep1 = err, *ep2 = err + 4, *tmp;
+      int *dp = dots, y, lmask, step;
+      
+      c0pt <<= 4;
+      halfpt <<= 4;
+      c3pt <<= 4;
+      
+      memset(err, 0, sizeof(err));
+      
+      for(y = 0; y < 4; ++y)
+      {
+         /* pixel 0 */
+         dot = (dp[0] << 4) + (3 * ep2[1] + 5 * ep2[0]);
+         if(dot < halfpt)
+            step = (dot < c0pt) ? 1 : 3;
+         else
+            step = (dot < c3pt) ? 2 : 0;
+
+         ep1[0] = dp[0] - stops[step];
+         lmask = step;
+         
+         /* pixel 1 */
+         dot = (dp[1] << 4) + (7 * ep1[0] + 3 * ep2[2] + 5 * ep2[1] + ep2[0]);
+         if(dot < halfpt)
+            step = (dot < c0pt) ? 1 : 3;
+         else
+            step = (dot < c3pt) ? 2 : 0;
+
+         ep1[1] = dp[1] - stops[step];
+         lmask |= step << 2;
+
+         /* pixel 2 */
+         dot = (dp[2] << 4) + (7 * ep1[1] + 3 * ep2[3] + 5 * ep2[2] + ep2[1]);
+         if(dot < halfpt)
+            step = (dot < c0pt) ? 1 : 3;
+         else
+            step = (dot < c3pt) ? 2 : 0;
+
+         ep1[2] = dp[2] - stops[step];
+         lmask |= step << 4;
+         
+         /* pixel 3 */
+         dot = (dp[3] << 4) + (7 * ep1[2] + 5 * ep2[3] + ep2[2]);
+         if(dot < halfpt)
+            step = (dot < c0pt) ? 1 : 3;
+         else
+            step = (dot < c3pt) ? 2 : 0;
+
+         ep1[3] = dp[3] - stops[step];
+         lmask |= step << 6;
+
+         /* advance to next line */
+         tmp = ep1;
+         ep1 = ep2;
+         ep2 = tmp;
+         
+         dp += 4;
+         mask |= lmask << (y * 8);
+      }
+   }
+   
+   return(mask);
+}
+
+/* Special case color matching for DXT1 color blocks with non-opaque
+ * alpha values.  Simple distance based color matching.  This is my 
+ * little hack, Fabian had no need for DXT1-alpha :)
+ */
+static unsigned int match_colors_block_DXT1alpha(const unsigned char *block,
+                                                 unsigned char color[4][3])
+{
+   int i, d0, d1, d2, idx;
+   unsigned int mask = 0;
+
+   for(i = 15; i >= 0; --i)
+   {
+      mask <<= 2;
+      d0 = color_distance(&block[4 * i], color[0]);
+      d1 = color_distance(&block[4 * i], color[1]);
+      d2 = color_distance(&block[4 * i], color[2]);
+      if(block[4 * i + 3] < 128)
+         idx = 3;
+      else if(d0 < d1 && d0 < d2)
+         idx = 0;
+      else if(d1 < d2)
+         idx = 1;
+      else
+         idx = 2;
+      mask |= idx;
+   }
+   
+   return(mask);
+}
+
+/* The color optimization function. (Clever code, part 1) */
+static void optimize_colors_block(const unsigned char *block,
+                                  unsigned short *max16, unsigned short *min16)
+{
+   static const int niterpow = 4;
+   
+   int mu[3], mn[3], mx[3];
+   int i, c, r, g, b, dot, iter;
+   int muv, mnv, mxv, mnd, mxd;
+   int cov[6];
+   unsigned char *bp, mnc[3], mxc[3];
+   float covf[6], vfr, vfg, vfb, magn;
+   float fr, fg, fb;
+   
+   /* determine color distribution */
+   for(c = 0; c < 3; ++c)
+   {
+      bp = (unsigned char *)block + c;
+      
+      muv = mnv = mxv = bp[0];
+      for(i = 4; i < 64; i += 4)
+      {
+         muv += bp[i];
+         if(mnv > bp[i]) mnv = bp[i];
+         if(mxv < bp[i]) mxv = bp[i];
+      }
+      
+      mu[c] = (muv + 8) >> 4;
+      mn[c] = mnv;
+      mx[c] = mxv;
+   }
+   
+   memset(cov, 0, sizeof(cov));
+   
+   /* determine covariance matrix */
+   for(i = 0; i < 16; ++i)
+   {
+      b = block[4 * i + 0] - mu[0];
+      g = block[4 * i + 1] - mu[1];
+      r = block[4 * i + 2] - mu[2];
+      
+      cov[0] += r * r;
+      cov[1] += r * g;
+      cov[2] += r * b;
+      cov[3] += g * g;
+      cov[4] += g * b;
+      cov[5] += b * b;
+   }
+   
+   /* convert covariance matrix to float, find principal axis via power iter */
+   for(i = 0; i < 6; ++i)
+      covf[i] = cov[i] / 255.0f;
+   
+   vfb = mx[0] - mn[0];
+   vfg = mx[1] - mn[1];
+   vfr = mx[2] - mn[2];
+   
+   for(iter = 0; iter < niterpow; ++iter)
+   {
+      fr = vfr * covf[0] + vfg * covf[1] + vfb * covf[2];
+      fg = vfr * covf[1] + vfg * covf[3] + vfb * covf[4];
+      fb = vfr * covf[2] + vfg * covf[4] + vfb * covf[5];
+      
+      vfr = fr;
+      vfg = fg;
+      vfb = fb;
+   }
+   
+   vfr = fabsf(vfr);
+   vfg = fabsf(vfg);
+   vfb = fabsf(vfb);
+   
+   magn = MAX(MAX(vfr, vfg), vfb);
+   
+   if(magn < 4.0) /* too small, default to luminance */
+   {
+      r = 148;
+      g = 300;
+      b = 58;
+   }
+   else
+   {
+      magn = 512.0f / magn;
+      r = (int)(vfr * magn);
+      g = (int)(vfg * magn);
+      b = (int)(vfb * magn);
+   }
+   
+   /* pick colors at extreme points */
+   mnd =  0x7fffffff;
+   mxd = -0x7fffffff;
+   
+   for(i = 0; i < 16; ++i)
+   {
+      dot = block[4 * i] * b + block[4 * i + 1] * g + block[4 * i + 2] * r;
+      
+      if(dot < mnd)
+      {
+         mnd = dot;
+         memcpy(mnc, &block[4 * i], 3);
+      }
+      if(dot > mxd)
+      {
+         mxd = dot;
+         memcpy(mxc, &block[4 * i], 3);
+      }
+   }
+
+   /* reduce to 16-bit colors */
+   *max16 = pack_rgb565(mxc);
+   *min16 = pack_rgb565(mnc);
+}
+
+/* The refinement function (Clever code, part 2)
+ * Tries to optimize colors to suit block contents better.
+ * (By solving a least squares system via normal equations + Cramer's rule)
+ */
+static int refine_block(const unsigned char *block,
+                        unsigned short *max16, unsigned short *min16,
+                        unsigned int mask)
+{
+   static const int w1tab[4] = {3, 0, 2, 1};
+   static const int prods[4] = {0x090000, 0x000900, 0x040102, 0x010402};
+   /* ^ Some magic to save a lot of multiplies in the accumulating loop... */
+   
+   int akku = 0;
+   int At1_r, At1_g, At1_b;
+   int At2_r, At2_g, At2_b;
+   unsigned int cm = mask;
+   int i, step, w1, r, g, b;
+   int xx, yy, xy;
+   float frb, fg;
+   unsigned short v, oldmin, oldmax;
+   int s;
+
+   oldmin = *min16;
+   oldmax = *max16;
+   if((mask ^ (mask << 2)) < 4) /* all pixels have the same index */
+   {
+      /* degenerate system, use optimal single-color match for average color */
+      r = g = b = 8;
+      for(i = 0; i < 16; ++i)
+      {
+         r += block[4 * i + 2];
+         g += block[4 * i + 1];
+         b += block[4 * i + 0];
+      }
+      
+      r >>= 4;
+      g >>= 4;
+      b >>= 4;
+      
+      *max16 = (omatch5[r][0] << 11) | (omatch6[g][0] << 5) | omatch5[b][0];
+      *min16 = (omatch5[r][1] << 11) | (omatch6[g][1] << 5) | omatch5[b][1];
+      return(*min16 != oldmin || *max16 != oldmax);
+   }
+
+   At1_r = At1_g = At1_b = 0;
+   At2_r = At2_g = At2_b = 0;
+   
+   for(i = 0; i < 16; ++i, cm >>= 2)
+   {
+      step = cm & 3;
+      w1 = w1tab[step];
+      r = block[4 * i + 2];
+      g = block[4 * i + 1];
+      b = block[4 * i + 0];
+      
+      akku  += prods[step];
+      At1_r += w1 * r;
+      At1_g += w1 * g;
+      At1_b += w1 * b;
+      At2_r += r;
+      At2_g += g;
+      At2_b += b;
+   }
+
+   At2_r = 3 * At2_r - At1_r;
+   At2_g = 3 * At2_g - At1_g;
+   At2_b = 3 * At2_b - At1_b;
+
+   /* extract solutions and decide solvability */
+   xx = akku >> 16;
+   yy = (akku >> 8) & 0xff;
+   xy = (akku >> 0) & 0xff;
+   
+   frb = 3.0f * 31.0f / 255.0f / (xx * yy - xy * xy);
+   fg = frb * 63.0f / 31.0f;
+   
+   /* solve */
+   s = (int)((At1_r * yy - At2_r * xy) * frb + 0.5f);
+   if(s < 0) s = 0;
+   if(s > 31) s = 31;
+   v = s << 11;
+   s = (int)((At1_g * yy - At2_g * xy) * fg + 0.5f);
+   if(s < 0) s = 0;
+   if(s > 63) s = 63;
+   v |= s << 5;
+   s = (int)((At1_b * yy - At2_b * xy) * frb + 0.5f);
+   if(s < 0) s = 0;
+   if(s > 31) s = 31;
+   v |= s;
+   *max16 = v;
+   
+   s = (int)((At2_r * xx - At1_r * xy) * frb + 0.5f);
+   if(s < 0) s = 0;
+   if(s > 31) s = 31;
+   v = s << 11;
+   s = (int)((At2_g * xx - At1_g * xy) * fg + 0.5f);
+   if(s < 0) s = 0;
+   if(s > 63) s = 63;
+   v |= s << 5;
+   s = (int)((At2_b * xx - At1_b * xy) * frb + 0.5f);
+   if(s < 0) s = 0;
+   if(s > 31) s = 31;
+   v |= s;
+   *min16 = v;
+
+   return(oldmin != *min16 || oldmax != *max16);
+}
+
+static void encode_color_block(unsigned char *dst,
+                               const unsigned char *block,
+                               int dither, int dxt1_alpha)
+{
+   unsigned char dblock[64], color[4][3];
+   unsigned short min16, max16;
+   unsigned int v, mn, mx, mask;
+   int i, block_has_alpha = 0;
+
+   /* find min/max colors, determine if alpha values present in block
+    * (for DXT1-alpha)
+    */
+   mn = mx = GETL32(block);
+   for(i = 0; i < 16; ++i)
+   {
+      block_has_alpha = block_has_alpha || (block[4 * i + 3] < 255);
+      v = GETL32(&block[4 * i]);
+      mx = MAX(mx, v);
+      mn = MIN(mn, v);
+   }
+   
+   if(mn != mx) /* block is not a solid color, continue with compression */
+   {
+      /* compute dithered block for PCA if desired */
+      if(dither)
+         dither_block(dblock, block);
+      
+      /* pca + map along principal axis */
+      optimize_colors_block(dither ? dblock : block, &max16, &min16);
+      if(max16 != min16)
+      {
+         eval_colors(color, max16, min16);
+         mask = match_colors_block(block, color, dither != 0);
+      }
+      else
+         mask = 0;
+      
+      /* refine */
+      refine_block(dither ? dblock : block, &max16, &min16, mask);
+      
+      if(max16 != min16)
+      {
+         eval_colors(color, max16, min16);
+         mask = match_colors_block(block, color, dither != 0);
+      }
+      else
+         mask = 0;
+   }
+   else /* constant color */
+   {
+      mask = 0xaaaaaaaa;
+      max16 = (omatch5[block[2]][0] << 11) |
+              (omatch6[block[1]][0] <<  5) |
+              (omatch5[block[0]][0]      );
+      min16 = (omatch5[block[2]][1] << 11) |
+              (omatch6[block[1]][1] <<  5) |
+              (omatch5[block[0]][1]      );
+   }
+   
+   /* HACK! for DXT1 blocks which have non-opaque pixels */
+   if(dxt1_alpha && block_has_alpha)
+   {
+      if(max16 > min16)
+      {
+         max16 ^= min16; min16 ^= max16; max16 ^= min16;
+      }
+      eval_colors(color, max16, min16);
+      mask = match_colors_block_DXT1alpha(block, color);
+   }
+   
+   if(max16 < min16 && !(dxt1_alpha && block_has_alpha))
+   {
+      max16 ^= min16; min16 ^= max16; max16 ^= min16;
+      mask ^= 0x55555555;
+   }
+      
+   PUTL16(&dst[0], max16);
+   PUTL16(&dst[2], min16);
+   PUTL32(&dst[4], mask);
+}
+
+void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile)
+{
+	assert(0 == (mmpfile->width & 3) && 0 == (mmpfile->height & 3)); // is mul4
+
+	int size = ce_mmphlp_storage_requirements_dxt(mmpfile->width,
+													mmpfile->height,
+													mmpfile->mipmap_count,
+													CE_MMPFILE_FORMAT_DXT1);
+	void* data = ce_alloc(size);
+
+	uint8_t* dst = data;
+	const uint8_t* src = mmpfile->texels;
+
+	unsigned char block[64];
+
+	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+		for(int y = 0; y < height; y += 4)
 		{
-			cs->remap[i] = -1;
-			continue;
-		}
-
-		// check for transparent pixels when using dxt1
-		if( isDxt1 && rgba[4*i + 3] < 128 )
-		{
-			cs->remap[i] = -1;
-			cs->transparent = true;
-			continue;
-		}
-
-		// loop over previous points for a match
-		for( int j = 0;; ++j )
-		{
-			// allocate a new point
-			if( j == i )
+			for(int x = 0; x < width; x += 4)
 			{
-				// add the point
-
-				// normalise coordinates to [0,1]
-				cs->points[cs->count].x = rgba[4 * i + 0] / 255.0f;
-				cs->points[cs->count].y = rgba[4 * i + 1] / 255.0f;
-				cs->points[cs->count].z = rgba[4 * i + 2] / 255.0f;
-
-				// ensure there is always non-zero weight even for zero alpha
-				cs->weights[cs->count] = weightByAlpha ?
-										((rgba[4*i + 3] + 1) / 256.0f) : 1.0f;
-
-				cs->remap[i] = cs->count;
-
-				// advance
-				++cs->count;
-				break;
-			}
-
-			// check for a match
-			int oldbit = 1 << j;
-			bool match = ( ( mask & oldbit ) != 0 )
-				&& ( rgba[4*i] == rgba[4*j] )
-				&& ( rgba[4*i + 1] == rgba[4*j + 1] )
-				&& ( rgba[4*i + 2] == rgba[4*j + 2] )
-				&& ( rgba[4*j + 3] >= 128 || !isDxt1 );
-			if( match )
-			{
-				// get the index of the match
-				int index = cs->remap[j];
-
-				// ensure there is always non-zero weight even for zero alpha
-				float w = ( float )( rgba[4*i + 3] + 1 ) / 256.0f;
-
-				// map to this point and increase the weight
-				cs->weights[index] += ( weightByAlpha ? w : 1.0f );
-				cs->remap[i] = index;
-				break;
+				extract_block(src, x, y, width, height, block);
+				encode_color_block(dst, block, 0, 1);
+				dst += 8;
 			}
 		}
+		src += 4 * width * height;
 	}
 
-	// square root the weights
-	for( int i = 0; i < cs->count; ++i )
-		cs->weights[i] = sqrtf(cs->weights[i]);
-}
+	ce_free(mmpfile->data, mmpfile->size);
 
-static void ce_mmpfile_colorset_remap_indices( const ce_mmpfile_colorset* cs,
-									uint8_t const* source, uint8_t* target )
-{
-	for( int i = 0; i < 16; ++i )
-	{
-		int j = cs->remap[i];
-		if( j == -1 )
-			target[i] = 3;
-		else
-			target[i] = source[j];
-	}
-}
-
-typedef struct {
-	uint8_t start;
-	uint8_t end;
-	uint8_t error;
-} SourceBlock;
-
-typedef struct {
-	SourceBlock sources[2];
-} SingleColourLookup;
-
-extern SingleColourLookup const lookup_5_3[];
-extern SingleColourLookup const lookup_6_3[];
-extern SingleColourLookup const lookup_5_4[];
-extern SingleColourLookup const lookup_6_4[];
-
-typedef struct {
-	const ce_mmpfile_colorset* cs;
-	int format;
-	uint8_t color[3];
-	ce_vec3 start;
-	ce_vec3 end;
-	uint8_t index;
-	int error;
-	int besterror;
-} ce_mmpfile_singlecolorfit;
-
-static void ce_mmpfile_singlecolorfit_init(ce_mmpfile_singlecolorfit* cf,
-									const ce_mmpfile_colorset* cs, int format)
-{
-	cf->cs = cs;
-	cf->format = format;
-	cf->besterror = INT_MAX;
-
-	// grab the single colour
-	// use ANSI round-to-zero behaviour to get round-to-nearest
-	cf->color[0] = ce_clamp(255.0f * cs->points[0].x + 0.5f, 0, 255);
-	cf->color[1] = ce_clamp(255.0f * cs->points[0].y + 0.5f, 0, 255);
-	cf->color[2] = ce_clamp(255.0f * cs->points[0].z + 0.5f, 0, 255);
-}
-
-static void ce_mmpfile_singlecolorfit_compute_end_points(ce_mmpfile_singlecolorfit* cf,
-										SingleColourLookup const* const* lookups)
-{
-	// check each index combination (endpoint or intermediate)
-	cf->error = INT_MAX;
-	for( int index = 0; index < 2; ++index )
-	{
-		// check the error for this codebook index
-		SourceBlock const* sources[3];
-		int error = 0;
-		for( int channel = 0; channel < 3; ++channel )
-		{
-			// grab the lookup table and index for this channel
-			SingleColourLookup const* lookup = lookups[channel];
-			int target = cf->color[channel];
-			
-			// store a pointer to the source for this channel
-			sources[channel] = lookup[target].sources + index;
-			
-			// accumulate the error
-			int diff = sources[channel]->error;
-			error += diff*diff;			
-		}
-		
-		// keep it if the error is lower
-		if( error < cf->error )
-		{
-			cf->start.x = sources[0]->start / 31.0f;
-			cf->start.y = sources[1]->start / 63.0f;
-			cf->start.z = sources[2]->start / 31.0f;
-
-			cf->end.x = sources[0]->end / 31.0f;
-			cf->end.y = sources[1]->end / 63.0f;
-			cf->end.z = sources[2]->end / 31.0f;
-
-			cf->index = ( 2*index );
-			cf->error = error;
-		}
-	}
-}
-
-static void ce_mmpfile_singlecolorfit_compress3(ce_mmpfile_singlecolorfit* cf, void* block )
-{
-	// build the table of lookups
-	SingleColourLookup const* const lookups[] = 
-	{
-		lookup_5_3, 
-		lookup_6_3, 
-		lookup_5_3
-	};
-	
-	// find the best end-points and index
-	ce_mmpfile_singlecolorfit_compute_end_points(cf, lookups);
-	
-	// build the block if we win
-	if( cf->error < cf->besterror )
-	{
-		// remap the indices
-		uint8_t indices[16];
-		ce_mmpfile_colorset_remap_indices(cf->cs, &cf->index, indices);
-
-		// save the block
-		WriteColourBlock3( &cf->start, &cf->end, indices, block );
-
-		// save the error
-		cf->besterror = cf->error;
-	}
-}
-
-static void ce_mmpfile_singlecolorfit_compress4( ce_mmpfile_singlecolorfit* cf, void* block )
-{
-	// build the table of lookups
-	SingleColourLookup const* const lookups[] = 
-	{
-		lookup_5_4, 
-		lookup_6_4, 
-		lookup_5_4
-	};
-	
-	// find the best end-points and index
-	ce_mmpfile_singlecolorfit_compute_end_points(cf, lookups);
-	
-	// build the block if we win
-	if( cf->error < cf->besterror )
-	{
-		// remap the indices
-		uint8_t indices[16];
-		ce_mmpfile_colorset_remap_indices(cf->cs, &cf->index, indices);
-
-		// save the block
-		WriteColourBlock4( &cf->start, &cf->end, indices, block );
-
-		// save the error
-		cf->besterror = cf->error;
-	}
-}
-
-static void ce_mmpfile_singlecolorfit_compress(ce_mmpfile_singlecolorfit* cf, void* block)
-{
-	bool isDxt1 = CE_MMPFILE_FORMAT_DXT1 == cf->format;
-	if( isDxt1 )
-	{
-		ce_mmpfile_singlecolorfit_compress3(cf, block);
-		if (!cf->cs->transparent) {
-			ce_mmpfile_singlecolorfit_compress4(cf, block);
-		}
-	}
-	else {
-		ce_mmpfile_singlecolorfit_compress4(cf, block);
-	}
-}
-
-typedef struct {
-	const ce_mmpfile_colorset* cs;
-	int format;
-	ce_vec3 metric;
-	ce_vec3 start;
-	ce_vec3 end;
-	float besterror;
-} ce_mmpfile_rangefit;
-
-static void CompressAlphaDxt3( uint8_t const* rgba, int mask, void* block )
-{
-	uint8_t* bytes = block;
-
-	// quantise and pack the alpha values pairwise
-	for( int i = 0; i < 8; ++i )
-	{
-		// quantise down to 4 bits
-		float alpha1 = rgba[8*i + 3] * ( 15.0f / 255.0f );
-		float alpha2 = rgba[8*i + 7] * ( 15.0f / 255.0f );
-		// use ANSI round-to-zero behaviour to get round-to-nearest
-		int quant1 = ce_clamp(alpha1 + 0.5f, 0, 15);
-		int quant2 = ce_clamp(alpha2 + 0.5f, 0, 15);
-
-		// set alpha to zero where masked
-		int bit1 = 1 << ( 2*i );
-		int bit2 = 1 << ( 2*i + 1 );
-		if( ( mask & bit1 ) == 0 )
-			quant1 = 0;
-		if( ( mask & bit2 ) == 0 )
-			quant2 = 0;
-
-		// pack into the byte
-		bytes[i] = quant1 | ( quant2 << 4 );
-	}
-}
-
-static void CompressMasked( uint8_t const* rgba, int mask, void* block, int format )
-{
-	// get the block locations
-	void* colourBlock = block;
-	void* alphaBock = block;
-
-	if( CE_MMPFILE_FORMAT_DXT3 == format )
-		colourBlock = (uint8_t*)block + 8;
-
-	// create the minimal point set
-	ce_mmpfile_colorset cs;
-	ce_mmpfile_colorset_init(&cs, rgba, mask, format);
-
-	// check the compression type and compress colour
-	if (1 == cs.count)
-	{
-		// always do a single colour fit
-		ce_mmpfile_singlecolorfit cf;
-		ce_mmpfile_singlecolorfit_init(&cf, &cs, format);
-		ce_mmpfile_singlecolorfit_compress(&cf, colourBlock);
-	}
-	else if( true/*0 == cs.count*/ )
-	{
-		// do a range fit
-		//ce_mmpfile_rangefit rf;
-		//ce_mmpfile_rangefit_init(&rf, &cs, format);
-		//ce_mmpfile_rangefit_compress(&rf, colourBlock);
-	}
-	else
-	{
-		// default to a cluster fit (could be iterative or not)
-		//ClusterFit fit( &colours, flags );
-		//fit.Compress( colourBlock );
-	}
-
-	// compress alpha separately if necessary
-	if( CE_MMPFILE_FORMAT_DXT3 == format )
-		CompressAlphaDxt3( rgba, mask, alphaBock );
-}
-
-void ce_mmphlp_rgba8_compress_dxt(void* restrict dst, const void* restrict src,
-							int width, int height, int format)
-{
-	assert(CE_MMPFILE_FORMAT_DXT1 == format || CE_MMPFILE_FORMAT_DXT3 == format);
-
-	const uint8_t* s = src;
-
-	// initialise the block output
-	uint8_t* targetBlock = dst;
-	int bytesPerBlock = CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16;
-
-	// loop over blocks
-	for( int y = 0; y < height; y += 4 )
-	{
-		for( int x = 0; x < width; x += 4 )
-		{
-			// build the 4x4 block of pixels
-			uint8_t sourceRgba[16*4];
-			uint8_t* targetPixel = sourceRgba;
-			int mask = 0;
-			for( int py = 0; py < 4; ++py )
-			{
-				for( int px = 0; px < 4; ++px )
-				{
-					// get the source pixel in the image
-					int sx = x + px;
-					int sy = y + py;
-
-					// enable if we're in the image
-					if( sx < width && sy < height )
-					{
-						// copy the rgba value
-						uint8_t const* sourcePixel = s + 4*( width*sy + sx );
-						for( int i = 0; i < 4; ++i )
-							*targetPixel++ = *sourcePixel++;
-
-						// enable this pixel
-						mask |= ( 1 << ( 4*py + px ) );
-					}
-					else
-					{
-						// skip this pixel as its outside the image
-						targetPixel += 4;
-					}
-				}
-			}
-
-			// compress it into the output
-			CompressMasked( sourceRgba, mask, targetBlock, format );
-
-			// advance
-			targetBlock += bytesPerBlock;
-		}
-	}
+	mmpfile->format = CE_MMPFILE_FORMAT_DXT1;
+	mmpfile->texels = data;
+	mmpfile->size = size;
+	mmpfile->data = data;
 }
 
 static int Unpack565( uint8_t const* packed, uint8_t* colour )
@@ -851,7 +1220,7 @@ void ce_mmphlp_dxt_decompress_rgba8(ce_mmpfile* mmpfile)
 	int bytesPerBlock = CE_MMPFILE_FORMAT_DXT1 == mmpfile->format ? 8 : 16;
 
 	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
-				i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		// loop over blocks
 		for( int y = 0; y < height; y += 4 )
 		{
@@ -901,1043 +1270,3 @@ void ce_mmphlp_dxt_decompress_rgba8(ce_mmpfile* mmpfile)
 	mmpfile->size = size;
 	mmpfile->data = data;
 }
-
-SingleColourLookup const lookup_5_3[] =
-{
-	{ { { 0, 0, 0 }, { 0, 0, 0 } } },
-	{ { { 0, 0, 1 }, { 0, 0, 1 } } },
-	{ { { 0, 0, 2 }, { 0, 0, 2 } } },
-	{ { { 0, 0, 3 }, { 0, 1, 1 } } },
-	{ { { 0, 0, 4 }, { 0, 1, 0 } } },
-	{ { { 1, 0, 3 }, { 0, 1, 1 } } },
-	{ { { 1, 0, 2 }, { 0, 1, 2 } } },
-	{ { { 1, 0, 1 }, { 0, 2, 1 } } },
-	{ { { 1, 0, 0 }, { 0, 2, 0 } } },
-	{ { { 1, 0, 1 }, { 0, 2, 1 } } },
-	{ { { 1, 0, 2 }, { 0, 2, 2 } } },
-	{ { { 1, 0, 3 }, { 0, 3, 1 } } },
-	{ { { 1, 0, 4 }, { 0, 3, 0 } } },
-	{ { { 2, 0, 3 }, { 0, 3, 1 } } },
-	{ { { 2, 0, 2 }, { 0, 3, 2 } } },
-	{ { { 2, 0, 1 }, { 0, 4, 1 } } },
-	{ { { 2, 0, 0 }, { 0, 4, 0 } } },
-	{ { { 2, 0, 1 }, { 0, 4, 1 } } },
-	{ { { 2, 0, 2 }, { 0, 4, 2 } } },
-	{ { { 2, 0, 3 }, { 0, 5, 1 } } },
-	{ { { 2, 0, 4 }, { 0, 5, 0 } } },
-	{ { { 3, 0, 3 }, { 0, 5, 1 } } },
-	{ { { 3, 0, 2 }, { 0, 5, 2 } } },
-	{ { { 3, 0, 1 }, { 0, 6, 1 } } },
-	{ { { 3, 0, 0 }, { 0, 6, 0 } } },
-	{ { { 3, 0, 1 }, { 0, 6, 1 } } },
-	{ { { 3, 0, 2 }, { 0, 6, 2 } } },
-	{ { { 3, 0, 3 }, { 0, 7, 1 } } },
-	{ { { 3, 0, 4 }, { 0, 7, 0 } } },
-	{ { { 4, 0, 4 }, { 0, 7, 1 } } },
-	{ { { 4, 0, 3 }, { 0, 7, 2 } } },
-	{ { { 4, 0, 2 }, { 1, 7, 1 } } },
-	{ { { 4, 0, 1 }, { 1, 7, 0 } } },
-	{ { { 4, 0, 0 }, { 0, 8, 0 } } },
-	{ { { 4, 0, 1 }, { 0, 8, 1 } } },
-	{ { { 4, 0, 2 }, { 2, 7, 1 } } },
-	{ { { 4, 0, 3 }, { 2, 7, 0 } } },
-	{ { { 4, 0, 4 }, { 0, 9, 0 } } },
-	{ { { 5, 0, 3 }, { 0, 9, 1 } } },
-	{ { { 5, 0, 2 }, { 3, 7, 1 } } },
-	{ { { 5, 0, 1 }, { 3, 7, 0 } } },
-	{ { { 5, 0, 0 }, { 0, 10, 0 } } },
-	{ { { 5, 0, 1 }, { 0, 10, 1 } } },
-	{ { { 5, 0, 2 }, { 0, 10, 2 } } },
-	{ { { 5, 0, 3 }, { 0, 11, 1 } } },
-	{ { { 5, 0, 4 }, { 0, 11, 0 } } },
-	{ { { 6, 0, 3 }, { 0, 11, 1 } } },
-	{ { { 6, 0, 2 }, { 0, 11, 2 } } },
-	{ { { 6, 0, 1 }, { 0, 12, 1 } } },
-	{ { { 6, 0, 0 }, { 0, 12, 0 } } },
-	{ { { 6, 0, 1 }, { 0, 12, 1 } } },
-	{ { { 6, 0, 2 }, { 0, 12, 2 } } },
-	{ { { 6, 0, 3 }, { 0, 13, 1 } } },
-	{ { { 6, 0, 4 }, { 0, 13, 0 } } },
-	{ { { 7, 0, 3 }, { 0, 13, 1 } } },
-	{ { { 7, 0, 2 }, { 0, 13, 2 } } },
-	{ { { 7, 0, 1 }, { 0, 14, 1 } } },
-	{ { { 7, 0, 0 }, { 0, 14, 0 } } },
-	{ { { 7, 0, 1 }, { 0, 14, 1 } } },
-	{ { { 7, 0, 2 }, { 0, 14, 2 } } },
-	{ { { 7, 0, 3 }, { 0, 15, 1 } } },
-	{ { { 7, 0, 4 }, { 0, 15, 0 } } },
-	{ { { 8, 0, 4 }, { 0, 15, 1 } } },
-	{ { { 8, 0, 3 }, { 0, 15, 2 } } },
-	{ { { 8, 0, 2 }, { 1, 15, 1 } } },
-	{ { { 8, 0, 1 }, { 1, 15, 0 } } },
-	{ { { 8, 0, 0 }, { 0, 16, 0 } } },
-	{ { { 8, 0, 1 }, { 0, 16, 1 } } },
-	{ { { 8, 0, 2 }, { 2, 15, 1 } } },
-	{ { { 8, 0, 3 }, { 2, 15, 0 } } },
-	{ { { 8, 0, 4 }, { 0, 17, 0 } } },
-	{ { { 9, 0, 3 }, { 0, 17, 1 } } },
-	{ { { 9, 0, 2 }, { 3, 15, 1 } } },
-	{ { { 9, 0, 1 }, { 3, 15, 0 } } },
-	{ { { 9, 0, 0 }, { 0, 18, 0 } } },
-	{ { { 9, 0, 1 }, { 0, 18, 1 } } },
-	{ { { 9, 0, 2 }, { 0, 18, 2 } } },
-	{ { { 9, 0, 3 }, { 0, 19, 1 } } },
-	{ { { 9, 0, 4 }, { 0, 19, 0 } } },
-	{ { { 10, 0, 3 }, { 0, 19, 1 } } },
-	{ { { 10, 0, 2 }, { 0, 19, 2 } } },
-	{ { { 10, 0, 1 }, { 0, 20, 1 } } },
-	{ { { 10, 0, 0 }, { 0, 20, 0 } } },
-	{ { { 10, 0, 1 }, { 0, 20, 1 } } },
-	{ { { 10, 0, 2 }, { 0, 20, 2 } } },
-	{ { { 10, 0, 3 }, { 0, 21, 1 } } },
-	{ { { 10, 0, 4 }, { 0, 21, 0 } } },
-	{ { { 11, 0, 3 }, { 0, 21, 1 } } },
-	{ { { 11, 0, 2 }, { 0, 21, 2 } } },
-	{ { { 11, 0, 1 }, { 0, 22, 1 } } },
-	{ { { 11, 0, 0 }, { 0, 22, 0 } } },
-	{ { { 11, 0, 1 }, { 0, 22, 1 } } },
-	{ { { 11, 0, 2 }, { 0, 22, 2 } } },
-	{ { { 11, 0, 3 }, { 0, 23, 1 } } },
-	{ { { 11, 0, 4 }, { 0, 23, 0 } } },
-	{ { { 12, 0, 4 }, { 0, 23, 1 } } },
-	{ { { 12, 0, 3 }, { 0, 23, 2 } } },
-	{ { { 12, 0, 2 }, { 1, 23, 1 } } },
-	{ { { 12, 0, 1 }, { 1, 23, 0 } } },
-	{ { { 12, 0, 0 }, { 0, 24, 0 } } },
-	{ { { 12, 0, 1 }, { 0, 24, 1 } } },
-	{ { { 12, 0, 2 }, { 2, 23, 1 } } },
-	{ { { 12, 0, 3 }, { 2, 23, 0 } } },
-	{ { { 12, 0, 4 }, { 0, 25, 0 } } },
-	{ { { 13, 0, 3 }, { 0, 25, 1 } } },
-	{ { { 13, 0, 2 }, { 3, 23, 1 } } },
-	{ { { 13, 0, 1 }, { 3, 23, 0 } } },
-	{ { { 13, 0, 0 }, { 0, 26, 0 } } },
-	{ { { 13, 0, 1 }, { 0, 26, 1 } } },
-	{ { { 13, 0, 2 }, { 0, 26, 2 } } },
-	{ { { 13, 0, 3 }, { 0, 27, 1 } } },
-	{ { { 13, 0, 4 }, { 0, 27, 0 } } },
-	{ { { 14, 0, 3 }, { 0, 27, 1 } } },
-	{ { { 14, 0, 2 }, { 0, 27, 2 } } },
-	{ { { 14, 0, 1 }, { 0, 28, 1 } } },
-	{ { { 14, 0, 0 }, { 0, 28, 0 } } },
-	{ { { 14, 0, 1 }, { 0, 28, 1 } } },
-	{ { { 14, 0, 2 }, { 0, 28, 2 } } },
-	{ { { 14, 0, 3 }, { 0, 29, 1 } } },
-	{ { { 14, 0, 4 }, { 0, 29, 0 } } },
-	{ { { 15, 0, 3 }, { 0, 29, 1 } } },
-	{ { { 15, 0, 2 }, { 0, 29, 2 } } },
-	{ { { 15, 0, 1 }, { 0, 30, 1 } } },
-	{ { { 15, 0, 0 }, { 0, 30, 0 } } },
-	{ { { 15, 0, 1 }, { 0, 30, 1 } } },
-	{ { { 15, 0, 2 }, { 0, 30, 2 } } },
-	{ { { 15, 0, 3 }, { 0, 31, 1 } } },
-	{ { { 15, 0, 4 }, { 0, 31, 0 } } },
-	{ { { 16, 0, 4 }, { 0, 31, 1 } } },
-	{ { { 16, 0, 3 }, { 0, 31, 2 } } },
-	{ { { 16, 0, 2 }, { 1, 31, 1 } } },
-	{ { { 16, 0, 1 }, { 1, 31, 0 } } },
-	{ { { 16, 0, 0 }, { 4, 28, 0 } } },
-	{ { { 16, 0, 1 }, { 4, 28, 1 } } },
-	{ { { 16, 0, 2 }, { 2, 31, 1 } } },
-	{ { { 16, 0, 3 }, { 2, 31, 0 } } },
-	{ { { 16, 0, 4 }, { 4, 29, 0 } } },
-	{ { { 17, 0, 3 }, { 4, 29, 1 } } },
-	{ { { 17, 0, 2 }, { 3, 31, 1 } } },
-	{ { { 17, 0, 1 }, { 3, 31, 0 } } },
-	{ { { 17, 0, 0 }, { 4, 30, 0 } } },
-	{ { { 17, 0, 1 }, { 4, 30, 1 } } },
-	{ { { 17, 0, 2 }, { 4, 30, 2 } } },
-	{ { { 17, 0, 3 }, { 4, 31, 1 } } },
-	{ { { 17, 0, 4 }, { 4, 31, 0 } } },
-	{ { { 18, 0, 3 }, { 4, 31, 1 } } },
-	{ { { 18, 0, 2 }, { 4, 31, 2 } } },
-	{ { { 18, 0, 1 }, { 5, 31, 1 } } },
-	{ { { 18, 0, 0 }, { 5, 31, 0 } } },
-	{ { { 18, 0, 1 }, { 5, 31, 1 } } },
-	{ { { 18, 0, 2 }, { 5, 31, 2 } } },
-	{ { { 18, 0, 3 }, { 6, 31, 1 } } },
-	{ { { 18, 0, 4 }, { 6, 31, 0 } } },
-	{ { { 19, 0, 3 }, { 6, 31, 1 } } },
-	{ { { 19, 0, 2 }, { 6, 31, 2 } } },
-	{ { { 19, 0, 1 }, { 7, 31, 1 } } },
-	{ { { 19, 0, 0 }, { 7, 31, 0 } } },
-	{ { { 19, 0, 1 }, { 7, 31, 1 } } },
-	{ { { 19, 0, 2 }, { 7, 31, 2 } } },
-	{ { { 19, 0, 3 }, { 8, 31, 1 } } },
-	{ { { 19, 0, 4 }, { 8, 31, 0 } } },
-	{ { { 20, 0, 4 }, { 8, 31, 1 } } },
-	{ { { 20, 0, 3 }, { 8, 31, 2 } } },
-	{ { { 20, 0, 2 }, { 9, 31, 1 } } },
-	{ { { 20, 0, 1 }, { 9, 31, 0 } } },
-	{ { { 20, 0, 0 }, { 12, 28, 0 } } },
-	{ { { 20, 0, 1 }, { 12, 28, 1 } } },
-	{ { { 20, 0, 2 }, { 10, 31, 1 } } },
-	{ { { 20, 0, 3 }, { 10, 31, 0 } } },
-	{ { { 20, 0, 4 }, { 12, 29, 0 } } },
-	{ { { 21, 0, 3 }, { 12, 29, 1 } } },
-	{ { { 21, 0, 2 }, { 11, 31, 1 } } },
-	{ { { 21, 0, 1 }, { 11, 31, 0 } } },
-	{ { { 21, 0, 0 }, { 12, 30, 0 } } },
-	{ { { 21, 0, 1 }, { 12, 30, 1 } } },
-	{ { { 21, 0, 2 }, { 12, 30, 2 } } },
-	{ { { 21, 0, 3 }, { 12, 31, 1 } } },
-	{ { { 21, 0, 4 }, { 12, 31, 0 } } },
-	{ { { 22, 0, 3 }, { 12, 31, 1 } } },
-	{ { { 22, 0, 2 }, { 12, 31, 2 } } },
-	{ { { 22, 0, 1 }, { 13, 31, 1 } } },
-	{ { { 22, 0, 0 }, { 13, 31, 0 } } },
-	{ { { 22, 0, 1 }, { 13, 31, 1 } } },
-	{ { { 22, 0, 2 }, { 13, 31, 2 } } },
-	{ { { 22, 0, 3 }, { 14, 31, 1 } } },
-	{ { { 22, 0, 4 }, { 14, 31, 0 } } },
-	{ { { 23, 0, 3 }, { 14, 31, 1 } } },
-	{ { { 23, 0, 2 }, { 14, 31, 2 } } },
-	{ { { 23, 0, 1 }, { 15, 31, 1 } } },
-	{ { { 23, 0, 0 }, { 15, 31, 0 } } },
-	{ { { 23, 0, 1 }, { 15, 31, 1 } } },
-	{ { { 23, 0, 2 }, { 15, 31, 2 } } },
-	{ { { 23, 0, 3 }, { 16, 31, 1 } } },
-	{ { { 23, 0, 4 }, { 16, 31, 0 } } },
-	{ { { 24, 0, 4 }, { 16, 31, 1 } } },
-	{ { { 24, 0, 3 }, { 16, 31, 2 } } },
-	{ { { 24, 0, 2 }, { 17, 31, 1 } } },
-	{ { { 24, 0, 1 }, { 17, 31, 0 } } },
-	{ { { 24, 0, 0 }, { 20, 28, 0 } } },
-	{ { { 24, 0, 1 }, { 20, 28, 1 } } },
-	{ { { 24, 0, 2 }, { 18, 31, 1 } } },
-	{ { { 24, 0, 3 }, { 18, 31, 0 } } },
-	{ { { 24, 0, 4 }, { 20, 29, 0 } } },
-	{ { { 25, 0, 3 }, { 20, 29, 1 } } },
-	{ { { 25, 0, 2 }, { 19, 31, 1 } } },
-	{ { { 25, 0, 1 }, { 19, 31, 0 } } },
-	{ { { 25, 0, 0 }, { 20, 30, 0 } } },
-	{ { { 25, 0, 1 }, { 20, 30, 1 } } },
-	{ { { 25, 0, 2 }, { 20, 30, 2 } } },
-	{ { { 25, 0, 3 }, { 20, 31, 1 } } },
-	{ { { 25, 0, 4 }, { 20, 31, 0 } } },
-	{ { { 26, 0, 3 }, { 20, 31, 1 } } },
-	{ { { 26, 0, 2 }, { 20, 31, 2 } } },
-	{ { { 26, 0, 1 }, { 21, 31, 1 } } },
-	{ { { 26, 0, 0 }, { 21, 31, 0 } } },
-	{ { { 26, 0, 1 }, { 21, 31, 1 } } },
-	{ { { 26, 0, 2 }, { 21, 31, 2 } } },
-	{ { { 26, 0, 3 }, { 22, 31, 1 } } },
-	{ { { 26, 0, 4 }, { 22, 31, 0 } } },
-	{ { { 27, 0, 3 }, { 22, 31, 1 } } },
-	{ { { 27, 0, 2 }, { 22, 31, 2 } } },
-	{ { { 27, 0, 1 }, { 23, 31, 1 } } },
-	{ { { 27, 0, 0 }, { 23, 31, 0 } } },
-	{ { { 27, 0, 1 }, { 23, 31, 1 } } },
-	{ { { 27, 0, 2 }, { 23, 31, 2 } } },
-	{ { { 27, 0, 3 }, { 24, 31, 1 } } },
-	{ { { 27, 0, 4 }, { 24, 31, 0 } } },
-	{ { { 28, 0, 4 }, { 24, 31, 1 } } },
-	{ { { 28, 0, 3 }, { 24, 31, 2 } } },
-	{ { { 28, 0, 2 }, { 25, 31, 1 } } },
-	{ { { 28, 0, 1 }, { 25, 31, 0 } } },
-	{ { { 28, 0, 0 }, { 28, 28, 0 } } },
-	{ { { 28, 0, 1 }, { 28, 28, 1 } } },
-	{ { { 28, 0, 2 }, { 26, 31, 1 } } },
-	{ { { 28, 0, 3 }, { 26, 31, 0 } } },
-	{ { { 28, 0, 4 }, { 28, 29, 0 } } },
-	{ { { 29, 0, 3 }, { 28, 29, 1 } } },
-	{ { { 29, 0, 2 }, { 27, 31, 1 } } },
-	{ { { 29, 0, 1 }, { 27, 31, 0 } } },
-	{ { { 29, 0, 0 }, { 28, 30, 0 } } },
-	{ { { 29, 0, 1 }, { 28, 30, 1 } } },
-	{ { { 29, 0, 2 }, { 28, 30, 2 } } },
-	{ { { 29, 0, 3 }, { 28, 31, 1 } } },
-	{ { { 29, 0, 4 }, { 28, 31, 0 } } },
-	{ { { 30, 0, 3 }, { 28, 31, 1 } } },
-	{ { { 30, 0, 2 }, { 28, 31, 2 } } },
-	{ { { 30, 0, 1 }, { 29, 31, 1 } } },
-	{ { { 30, 0, 0 }, { 29, 31, 0 } } },
-	{ { { 30, 0, 1 }, { 29, 31, 1 } } },
-	{ { { 30, 0, 2 }, { 29, 31, 2 } } },
-	{ { { 30, 0, 3 }, { 30, 31, 1 } } },
-	{ { { 30, 0, 4 }, { 30, 31, 0 } } },
-	{ { { 31, 0, 3 }, { 30, 31, 1 } } },
-	{ { { 31, 0, 2 }, { 30, 31, 2 } } },
-	{ { { 31, 0, 1 }, { 31, 31, 1 } } },
-	{ { { 31, 0, 0 }, { 31, 31, 0 } } }
-};
-
-SingleColourLookup const lookup_6_3[] =
-{
-	{ { { 0, 0, 0 }, { 0, 0, 0 } } },
-	{ { { 0, 0, 1 }, { 0, 1, 1 } } },
-	{ { { 0, 0, 2 }, { 0, 1, 0 } } },
-	{ { { 1, 0, 1 }, { 0, 2, 1 } } },
-	{ { { 1, 0, 0 }, { 0, 2, 0 } } },
-	{ { { 1, 0, 1 }, { 0, 3, 1 } } },
-	{ { { 1, 0, 2 }, { 0, 3, 0 } } },
-	{ { { 2, 0, 1 }, { 0, 4, 1 } } },
-	{ { { 2, 0, 0 }, { 0, 4, 0 } } },
-	{ { { 2, 0, 1 }, { 0, 5, 1 } } },
-	{ { { 2, 0, 2 }, { 0, 5, 0 } } },
-	{ { { 3, 0, 1 }, { 0, 6, 1 } } },
-	{ { { 3, 0, 0 }, { 0, 6, 0 } } },
-	{ { { 3, 0, 1 }, { 0, 7, 1 } } },
-	{ { { 3, 0, 2 }, { 0, 7, 0 } } },
-	{ { { 4, 0, 1 }, { 0, 8, 1 } } },
-	{ { { 4, 0, 0 }, { 0, 8, 0 } } },
-	{ { { 4, 0, 1 }, { 0, 9, 1 } } },
-	{ { { 4, 0, 2 }, { 0, 9, 0 } } },
-	{ { { 5, 0, 1 }, { 0, 10, 1 } } },
-	{ { { 5, 0, 0 }, { 0, 10, 0 } } },
-	{ { { 5, 0, 1 }, { 0, 11, 1 } } },
-	{ { { 5, 0, 2 }, { 0, 11, 0 } } },
-	{ { { 6, 0, 1 }, { 0, 12, 1 } } },
-	{ { { 6, 0, 0 }, { 0, 12, 0 } } },
-	{ { { 6, 0, 1 }, { 0, 13, 1 } } },
-	{ { { 6, 0, 2 }, { 0, 13, 0 } } },
-	{ { { 7, 0, 1 }, { 0, 14, 1 } } },
-	{ { { 7, 0, 0 }, { 0, 14, 0 } } },
-	{ { { 7, 0, 1 }, { 0, 15, 1 } } },
-	{ { { 7, 0, 2 }, { 0, 15, 0 } } },
-	{ { { 8, 0, 1 }, { 0, 16, 1 } } },
-	{ { { 8, 0, 0 }, { 0, 16, 0 } } },
-	{ { { 8, 0, 1 }, { 0, 17, 1 } } },
-	{ { { 8, 0, 2 }, { 0, 17, 0 } } },
-	{ { { 9, 0, 1 }, { 0, 18, 1 } } },
-	{ { { 9, 0, 0 }, { 0, 18, 0 } } },
-	{ { { 9, 0, 1 }, { 0, 19, 1 } } },
-	{ { { 9, 0, 2 }, { 0, 19, 0 } } },
-	{ { { 10, 0, 1 }, { 0, 20, 1 } } },
-	{ { { 10, 0, 0 }, { 0, 20, 0 } } },
-	{ { { 10, 0, 1 }, { 0, 21, 1 } } },
-	{ { { 10, 0, 2 }, { 0, 21, 0 } } },
-	{ { { 11, 0, 1 }, { 0, 22, 1 } } },
-	{ { { 11, 0, 0 }, { 0, 22, 0 } } },
-	{ { { 11, 0, 1 }, { 0, 23, 1 } } },
-	{ { { 11, 0, 2 }, { 0, 23, 0 } } },
-	{ { { 12, 0, 1 }, { 0, 24, 1 } } },
-	{ { { 12, 0, 0 }, { 0, 24, 0 } } },
-	{ { { 12, 0, 1 }, { 0, 25, 1 } } },
-	{ { { 12, 0, 2 }, { 0, 25, 0 } } },
-	{ { { 13, 0, 1 }, { 0, 26, 1 } } },
-	{ { { 13, 0, 0 }, { 0, 26, 0 } } },
-	{ { { 13, 0, 1 }, { 0, 27, 1 } } },
-	{ { { 13, 0, 2 }, { 0, 27, 0 } } },
-	{ { { 14, 0, 1 }, { 0, 28, 1 } } },
-	{ { { 14, 0, 0 }, { 0, 28, 0 } } },
-	{ { { 14, 0, 1 }, { 0, 29, 1 } } },
-	{ { { 14, 0, 2 }, { 0, 29, 0 } } },
-	{ { { 15, 0, 1 }, { 0, 30, 1 } } },
-	{ { { 15, 0, 0 }, { 0, 30, 0 } } },
-	{ { { 15, 0, 1 }, { 0, 31, 1 } } },
-	{ { { 15, 0, 2 }, { 0, 31, 0 } } },
-	{ { { 16, 0, 2 }, { 1, 31, 1 } } },
-	{ { { 16, 0, 1 }, { 1, 31, 0 } } },
-	{ { { 16, 0, 0 }, { 0, 32, 0 } } },
-	{ { { 16, 0, 1 }, { 2, 31, 0 } } },
-	{ { { 16, 0, 2 }, { 0, 33, 0 } } },
-	{ { { 17, 0, 1 }, { 3, 31, 0 } } },
-	{ { { 17, 0, 0 }, { 0, 34, 0 } } },
-	{ { { 17, 0, 1 }, { 4, 31, 0 } } },
-	{ { { 17, 0, 2 }, { 0, 35, 0 } } },
-	{ { { 18, 0, 1 }, { 5, 31, 0 } } },
-	{ { { 18, 0, 0 }, { 0, 36, 0 } } },
-	{ { { 18, 0, 1 }, { 6, 31, 0 } } },
-	{ { { 18, 0, 2 }, { 0, 37, 0 } } },
-	{ { { 19, 0, 1 }, { 7, 31, 0 } } },
-	{ { { 19, 0, 0 }, { 0, 38, 0 } } },
-	{ { { 19, 0, 1 }, { 8, 31, 0 } } },
-	{ { { 19, 0, 2 }, { 0, 39, 0 } } },
-	{ { { 20, 0, 1 }, { 9, 31, 0 } } },
-	{ { { 20, 0, 0 }, { 0, 40, 0 } } },
-	{ { { 20, 0, 1 }, { 10, 31, 0 } } },
-	{ { { 20, 0, 2 }, { 0, 41, 0 } } },
-	{ { { 21, 0, 1 }, { 11, 31, 0 } } },
-	{ { { 21, 0, 0 }, { 0, 42, 0 } } },
-	{ { { 21, 0, 1 }, { 12, 31, 0 } } },
-	{ { { 21, 0, 2 }, { 0, 43, 0 } } },
-	{ { { 22, 0, 1 }, { 13, 31, 0 } } },
-	{ { { 22, 0, 0 }, { 0, 44, 0 } } },
-	{ { { 22, 0, 1 }, { 14, 31, 0 } } },
-	{ { { 22, 0, 2 }, { 0, 45, 0 } } },
-	{ { { 23, 0, 1 }, { 15, 31, 0 } } },
-	{ { { 23, 0, 0 }, { 0, 46, 0 } } },
-	{ { { 23, 0, 1 }, { 0, 47, 1 } } },
-	{ { { 23, 0, 2 }, { 0, 47, 0 } } },
-	{ { { 24, 0, 1 }, { 0, 48, 1 } } },
-	{ { { 24, 0, 0 }, { 0, 48, 0 } } },
-	{ { { 24, 0, 1 }, { 0, 49, 1 } } },
-	{ { { 24, 0, 2 }, { 0, 49, 0 } } },
-	{ { { 25, 0, 1 }, { 0, 50, 1 } } },
-	{ { { 25, 0, 0 }, { 0, 50, 0 } } },
-	{ { { 25, 0, 1 }, { 0, 51, 1 } } },
-	{ { { 25, 0, 2 }, { 0, 51, 0 } } },
-	{ { { 26, 0, 1 }, { 0, 52, 1 } } },
-	{ { { 26, 0, 0 }, { 0, 52, 0 } } },
-	{ { { 26, 0, 1 }, { 0, 53, 1 } } },
-	{ { { 26, 0, 2 }, { 0, 53, 0 } } },
-	{ { { 27, 0, 1 }, { 0, 54, 1 } } },
-	{ { { 27, 0, 0 }, { 0, 54, 0 } } },
-	{ { { 27, 0, 1 }, { 0, 55, 1 } } },
-	{ { { 27, 0, 2 }, { 0, 55, 0 } } },
-	{ { { 28, 0, 1 }, { 0, 56, 1 } } },
-	{ { { 28, 0, 0 }, { 0, 56, 0 } } },
-	{ { { 28, 0, 1 }, { 0, 57, 1 } } },
-	{ { { 28, 0, 2 }, { 0, 57, 0 } } },
-	{ { { 29, 0, 1 }, { 0, 58, 1 } } },
-	{ { { 29, 0, 0 }, { 0, 58, 0 } } },
-	{ { { 29, 0, 1 }, { 0, 59, 1 } } },
-	{ { { 29, 0, 2 }, { 0, 59, 0 } } },
-	{ { { 30, 0, 1 }, { 0, 60, 1 } } },
-	{ { { 30, 0, 0 }, { 0, 60, 0 } } },
-	{ { { 30, 0, 1 }, { 0, 61, 1 } } },
-	{ { { 30, 0, 2 }, { 0, 61, 0 } } },
-	{ { { 31, 0, 1 }, { 0, 62, 1 } } },
-	{ { { 31, 0, 0 }, { 0, 62, 0 } } },
-	{ { { 31, 0, 1 }, { 0, 63, 1 } } },
-	{ { { 31, 0, 2 }, { 0, 63, 0 } } },
-	{ { { 32, 0, 2 }, { 1, 63, 1 } } },
-	{ { { 32, 0, 1 }, { 1, 63, 0 } } },
-	{ { { 32, 0, 0 }, { 16, 48, 0 } } },
-	{ { { 32, 0, 1 }, { 2, 63, 0 } } },
-	{ { { 32, 0, 2 }, { 16, 49, 0 } } },
-	{ { { 33, 0, 1 }, { 3, 63, 0 } } },
-	{ { { 33, 0, 0 }, { 16, 50, 0 } } },
-	{ { { 33, 0, 1 }, { 4, 63, 0 } } },
-	{ { { 33, 0, 2 }, { 16, 51, 0 } } },
-	{ { { 34, 0, 1 }, { 5, 63, 0 } } },
-	{ { { 34, 0, 0 }, { 16, 52, 0 } } },
-	{ { { 34, 0, 1 }, { 6, 63, 0 } } },
-	{ { { 34, 0, 2 }, { 16, 53, 0 } } },
-	{ { { 35, 0, 1 }, { 7, 63, 0 } } },
-	{ { { 35, 0, 0 }, { 16, 54, 0 } } },
-	{ { { 35, 0, 1 }, { 8, 63, 0 } } },
-	{ { { 35, 0, 2 }, { 16, 55, 0 } } },
-	{ { { 36, 0, 1 }, { 9, 63, 0 } } },
-	{ { { 36, 0, 0 }, { 16, 56, 0 } } },
-	{ { { 36, 0, 1 }, { 10, 63, 0 } } },
-	{ { { 36, 0, 2 }, { 16, 57, 0 } } },
-	{ { { 37, 0, 1 }, { 11, 63, 0 } } },
-	{ { { 37, 0, 0 }, { 16, 58, 0 } } },
-	{ { { 37, 0, 1 }, { 12, 63, 0 } } },
-	{ { { 37, 0, 2 }, { 16, 59, 0 } } },
-	{ { { 38, 0, 1 }, { 13, 63, 0 } } },
-	{ { { 38, 0, 0 }, { 16, 60, 0 } } },
-	{ { { 38, 0, 1 }, { 14, 63, 0 } } },
-	{ { { 38, 0, 2 }, { 16, 61, 0 } } },
-	{ { { 39, 0, 1 }, { 15, 63, 0 } } },
-	{ { { 39, 0, 0 }, { 16, 62, 0 } } },
-	{ { { 39, 0, 1 }, { 16, 63, 1 } } },
-	{ { { 39, 0, 2 }, { 16, 63, 0 } } },
-	{ { { 40, 0, 1 }, { 17, 63, 1 } } },
-	{ { { 40, 0, 0 }, { 17, 63, 0 } } },
-	{ { { 40, 0, 1 }, { 18, 63, 1 } } },
-	{ { { 40, 0, 2 }, { 18, 63, 0 } } },
-	{ { { 41, 0, 1 }, { 19, 63, 1 } } },
-	{ { { 41, 0, 0 }, { 19, 63, 0 } } },
-	{ { { 41, 0, 1 }, { 20, 63, 1 } } },
-	{ { { 41, 0, 2 }, { 20, 63, 0 } } },
-	{ { { 42, 0, 1 }, { 21, 63, 1 } } },
-	{ { { 42, 0, 0 }, { 21, 63, 0 } } },
-	{ { { 42, 0, 1 }, { 22, 63, 1 } } },
-	{ { { 42, 0, 2 }, { 22, 63, 0 } } },
-	{ { { 43, 0, 1 }, { 23, 63, 1 } } },
-	{ { { 43, 0, 0 }, { 23, 63, 0 } } },
-	{ { { 43, 0, 1 }, { 24, 63, 1 } } },
-	{ { { 43, 0, 2 }, { 24, 63, 0 } } },
-	{ { { 44, 0, 1 }, { 25, 63, 1 } } },
-	{ { { 44, 0, 0 }, { 25, 63, 0 } } },
-	{ { { 44, 0, 1 }, { 26, 63, 1 } } },
-	{ { { 44, 0, 2 }, { 26, 63, 0 } } },
-	{ { { 45, 0, 1 }, { 27, 63, 1 } } },
-	{ { { 45, 0, 0 }, { 27, 63, 0 } } },
-	{ { { 45, 0, 1 }, { 28, 63, 1 } } },
-	{ { { 45, 0, 2 }, { 28, 63, 0 } } },
-	{ { { 46, 0, 1 }, { 29, 63, 1 } } },
-	{ { { 46, 0, 0 }, { 29, 63, 0 } } },
-	{ { { 46, 0, 1 }, { 30, 63, 1 } } },
-	{ { { 46, 0, 2 }, { 30, 63, 0 } } },
-	{ { { 47, 0, 1 }, { 31, 63, 1 } } },
-	{ { { 47, 0, 0 }, { 31, 63, 0 } } },
-	{ { { 47, 0, 1 }, { 32, 63, 1 } } },
-	{ { { 47, 0, 2 }, { 32, 63, 0 } } },
-	{ { { 48, 0, 2 }, { 33, 63, 1 } } },
-	{ { { 48, 0, 1 }, { 33, 63, 0 } } },
-	{ { { 48, 0, 0 }, { 48, 48, 0 } } },
-	{ { { 48, 0, 1 }, { 34, 63, 0 } } },
-	{ { { 48, 0, 2 }, { 48, 49, 0 } } },
-	{ { { 49, 0, 1 }, { 35, 63, 0 } } },
-	{ { { 49, 0, 0 }, { 48, 50, 0 } } },
-	{ { { 49, 0, 1 }, { 36, 63, 0 } } },
-	{ { { 49, 0, 2 }, { 48, 51, 0 } } },
-	{ { { 50, 0, 1 }, { 37, 63, 0 } } },
-	{ { { 50, 0, 0 }, { 48, 52, 0 } } },
-	{ { { 50, 0, 1 }, { 38, 63, 0 } } },
-	{ { { 50, 0, 2 }, { 48, 53, 0 } } },
-	{ { { 51, 0, 1 }, { 39, 63, 0 } } },
-	{ { { 51, 0, 0 }, { 48, 54, 0 } } },
-	{ { { 51, 0, 1 }, { 40, 63, 0 } } },
-	{ { { 51, 0, 2 }, { 48, 55, 0 } } },
-	{ { { 52, 0, 1 }, { 41, 63, 0 } } },
-	{ { { 52, 0, 0 }, { 48, 56, 0 } } },
-	{ { { 52, 0, 1 }, { 42, 63, 0 } } },
-	{ { { 52, 0, 2 }, { 48, 57, 0 } } },
-	{ { { 53, 0, 1 }, { 43, 63, 0 } } },
-	{ { { 53, 0, 0 }, { 48, 58, 0 } } },
-	{ { { 53, 0, 1 }, { 44, 63, 0 } } },
-	{ { { 53, 0, 2 }, { 48, 59, 0 } } },
-	{ { { 54, 0, 1 }, { 45, 63, 0 } } },
-	{ { { 54, 0, 0 }, { 48, 60, 0 } } },
-	{ { { 54, 0, 1 }, { 46, 63, 0 } } },
-	{ { { 54, 0, 2 }, { 48, 61, 0 } } },
-	{ { { 55, 0, 1 }, { 47, 63, 0 } } },
-	{ { { 55, 0, 0 }, { 48, 62, 0 } } },
-	{ { { 55, 0, 1 }, { 48, 63, 1 } } },
-	{ { { 55, 0, 2 }, { 48, 63, 0 } } },
-	{ { { 56, 0, 1 }, { 49, 63, 1 } } },
-	{ { { 56, 0, 0 }, { 49, 63, 0 } } },
-	{ { { 56, 0, 1 }, { 50, 63, 1 } } },
-	{ { { 56, 0, 2 }, { 50, 63, 0 } } },
-	{ { { 57, 0, 1 }, { 51, 63, 1 } } },
-	{ { { 57, 0, 0 }, { 51, 63, 0 } } },
-	{ { { 57, 0, 1 }, { 52, 63, 1 } } },
-	{ { { 57, 0, 2 }, { 52, 63, 0 } } },
-	{ { { 58, 0, 1 }, { 53, 63, 1 } } },
-	{ { { 58, 0, 0 }, { 53, 63, 0 } } },
-	{ { { 58, 0, 1 }, { 54, 63, 1 } } },
-	{ { { 58, 0, 2 }, { 54, 63, 0 } } },
-	{ { { 59, 0, 1 }, { 55, 63, 1 } } },
-	{ { { 59, 0, 0 }, { 55, 63, 0 } } },
-	{ { { 59, 0, 1 }, { 56, 63, 1 } } },
-	{ { { 59, 0, 2 }, { 56, 63, 0 } } },
-	{ { { 60, 0, 1 }, { 57, 63, 1 } } },
-	{ { { 60, 0, 0 }, { 57, 63, 0 } } },
-	{ { { 60, 0, 1 }, { 58, 63, 1 } } },
-	{ { { 60, 0, 2 }, { 58, 63, 0 } } },
-	{ { { 61, 0, 1 }, { 59, 63, 1 } } },
-	{ { { 61, 0, 0 }, { 59, 63, 0 } } },
-	{ { { 61, 0, 1 }, { 60, 63, 1 } } },
-	{ { { 61, 0, 2 }, { 60, 63, 0 } } },
-	{ { { 62, 0, 1 }, { 61, 63, 1 } } },
-	{ { { 62, 0, 0 }, { 61, 63, 0 } } },
-	{ { { 62, 0, 1 }, { 62, 63, 1 } } },
-	{ { { 62, 0, 2 }, { 62, 63, 0 } } },
-	{ { { 63, 0, 1 }, { 63, 63, 1 } } },
-	{ { { 63, 0, 0 }, { 63, 63, 0 } } }
-};
-
-SingleColourLookup const lookup_5_4[] =
-{
-	{ { { 0, 0, 0 }, { 0, 0, 0 } } },
-	{ { { 0, 0, 1 }, { 0, 1, 1 } } },
-	{ { { 0, 0, 2 }, { 0, 1, 0 } } },
-	{ { { 0, 0, 3 }, { 0, 1, 1 } } },
-	{ { { 0, 0, 4 }, { 0, 2, 1 } } },
-	{ { { 1, 0, 3 }, { 0, 2, 0 } } },
-	{ { { 1, 0, 2 }, { 0, 2, 1 } } },
-	{ { { 1, 0, 1 }, { 0, 3, 1 } } },
-	{ { { 1, 0, 0 }, { 0, 3, 0 } } },
-	{ { { 1, 0, 1 }, { 1, 2, 1 } } },
-	{ { { 1, 0, 2 }, { 1, 2, 0 } } },
-	{ { { 1, 0, 3 }, { 0, 4, 0 } } },
-	{ { { 1, 0, 4 }, { 0, 5, 1 } } },
-	{ { { 2, 0, 3 }, { 0, 5, 0 } } },
-	{ { { 2, 0, 2 }, { 0, 5, 1 } } },
-	{ { { 2, 0, 1 }, { 0, 6, 1 } } },
-	{ { { 2, 0, 0 }, { 0, 6, 0 } } },
-	{ { { 2, 0, 1 }, { 2, 3, 1 } } },
-	{ { { 2, 0, 2 }, { 2, 3, 0 } } },
-	{ { { 2, 0, 3 }, { 0, 7, 0 } } },
-	{ { { 2, 0, 4 }, { 1, 6, 1 } } },
-	{ { { 3, 0, 3 }, { 1, 6, 0 } } },
-	{ { { 3, 0, 2 }, { 0, 8, 0 } } },
-	{ { { 3, 0, 1 }, { 0, 9, 1 } } },
-	{ { { 3, 0, 0 }, { 0, 9, 0 } } },
-	{ { { 3, 0, 1 }, { 0, 9, 1 } } },
-	{ { { 3, 0, 2 }, { 0, 10, 1 } } },
-	{ { { 3, 0, 3 }, { 0, 10, 0 } } },
-	{ { { 3, 0, 4 }, { 2, 7, 1 } } },
-	{ { { 4, 0, 4 }, { 2, 7, 0 } } },
-	{ { { 4, 0, 3 }, { 0, 11, 0 } } },
-	{ { { 4, 0, 2 }, { 1, 10, 1 } } },
-	{ { { 4, 0, 1 }, { 1, 10, 0 } } },
-	{ { { 4, 0, 0 }, { 0, 12, 0 } } },
-	{ { { 4, 0, 1 }, { 0, 13, 1 } } },
-	{ { { 4, 0, 2 }, { 0, 13, 0 } } },
-	{ { { 4, 0, 3 }, { 0, 13, 1 } } },
-	{ { { 4, 0, 4 }, { 0, 14, 1 } } },
-	{ { { 5, 0, 3 }, { 0, 14, 0 } } },
-	{ { { 5, 0, 2 }, { 2, 11, 1 } } },
-	{ { { 5, 0, 1 }, { 2, 11, 0 } } },
-	{ { { 5, 0, 0 }, { 0, 15, 0 } } },
-	{ { { 5, 0, 1 }, { 1, 14, 1 } } },
-	{ { { 5, 0, 2 }, { 1, 14, 0 } } },
-	{ { { 5, 0, 3 }, { 0, 16, 0 } } },
-	{ { { 5, 0, 4 }, { 0, 17, 1 } } },
-	{ { { 6, 0, 3 }, { 0, 17, 0 } } },
-	{ { { 6, 0, 2 }, { 0, 17, 1 } } },
-	{ { { 6, 0, 1 }, { 0, 18, 1 } } },
-	{ { { 6, 0, 0 }, { 0, 18, 0 } } },
-	{ { { 6, 0, 1 }, { 2, 15, 1 } } },
-	{ { { 6, 0, 2 }, { 2, 15, 0 } } },
-	{ { { 6, 0, 3 }, { 0, 19, 0 } } },
-	{ { { 6, 0, 4 }, { 1, 18, 1 } } },
-	{ { { 7, 0, 3 }, { 1, 18, 0 } } },
-	{ { { 7, 0, 2 }, { 0, 20, 0 } } },
-	{ { { 7, 0, 1 }, { 0, 21, 1 } } },
-	{ { { 7, 0, 0 }, { 0, 21, 0 } } },
-	{ { { 7, 0, 1 }, { 0, 21, 1 } } },
-	{ { { 7, 0, 2 }, { 0, 22, 1 } } },
-	{ { { 7, 0, 3 }, { 0, 22, 0 } } },
-	{ { { 7, 0, 4 }, { 2, 19, 1 } } },
-	{ { { 8, 0, 4 }, { 2, 19, 0 } } },
-	{ { { 8, 0, 3 }, { 0, 23, 0 } } },
-	{ { { 8, 0, 2 }, { 1, 22, 1 } } },
-	{ { { 8, 0, 1 }, { 1, 22, 0 } } },
-	{ { { 8, 0, 0 }, { 0, 24, 0 } } },
-	{ { { 8, 0, 1 }, { 0, 25, 1 } } },
-	{ { { 8, 0, 2 }, { 0, 25, 0 } } },
-	{ { { 8, 0, 3 }, { 0, 25, 1 } } },
-	{ { { 8, 0, 4 }, { 0, 26, 1 } } },
-	{ { { 9, 0, 3 }, { 0, 26, 0 } } },
-	{ { { 9, 0, 2 }, { 2, 23, 1 } } },
-	{ { { 9, 0, 1 }, { 2, 23, 0 } } },
-	{ { { 9, 0, 0 }, { 0, 27, 0 } } },
-	{ { { 9, 0, 1 }, { 1, 26, 1 } } },
-	{ { { 9, 0, 2 }, { 1, 26, 0 } } },
-	{ { { 9, 0, 3 }, { 0, 28, 0 } } },
-	{ { { 9, 0, 4 }, { 0, 29, 1 } } },
-	{ { { 10, 0, 3 }, { 0, 29, 0 } } },
-	{ { { 10, 0, 2 }, { 0, 29, 1 } } },
-	{ { { 10, 0, 1 }, { 0, 30, 1 } } },
-	{ { { 10, 0, 0 }, { 0, 30, 0 } } },
-	{ { { 10, 0, 1 }, { 2, 27, 1 } } },
-	{ { { 10, 0, 2 }, { 2, 27, 0 } } },
-	{ { { 10, 0, 3 }, { 0, 31, 0 } } },
-	{ { { 10, 0, 4 }, { 1, 30, 1 } } },
-	{ { { 11, 0, 3 }, { 1, 30, 0 } } },
-	{ { { 11, 0, 2 }, { 4, 24, 0 } } },
-	{ { { 11, 0, 1 }, { 1, 31, 1 } } },
-	{ { { 11, 0, 0 }, { 1, 31, 0 } } },
-	{ { { 11, 0, 1 }, { 1, 31, 1 } } },
-	{ { { 11, 0, 2 }, { 2, 30, 1 } } },
-	{ { { 11, 0, 3 }, { 2, 30, 0 } } },
-	{ { { 11, 0, 4 }, { 2, 31, 1 } } },
-	{ { { 12, 0, 4 }, { 2, 31, 0 } } },
-	{ { { 12, 0, 3 }, { 4, 27, 0 } } },
-	{ { { 12, 0, 2 }, { 3, 30, 1 } } },
-	{ { { 12, 0, 1 }, { 3, 30, 0 } } },
-	{ { { 12, 0, 0 }, { 4, 28, 0 } } },
-	{ { { 12, 0, 1 }, { 3, 31, 1 } } },
-	{ { { 12, 0, 2 }, { 3, 31, 0 } } },
-	{ { { 12, 0, 3 }, { 3, 31, 1 } } },
-	{ { { 12, 0, 4 }, { 4, 30, 1 } } },
-	{ { { 13, 0, 3 }, { 4, 30, 0 } } },
-	{ { { 13, 0, 2 }, { 6, 27, 1 } } },
-	{ { { 13, 0, 1 }, { 6, 27, 0 } } },
-	{ { { 13, 0, 0 }, { 4, 31, 0 } } },
-	{ { { 13, 0, 1 }, { 5, 30, 1 } } },
-	{ { { 13, 0, 2 }, { 5, 30, 0 } } },
-	{ { { 13, 0, 3 }, { 8, 24, 0 } } },
-	{ { { 13, 0, 4 }, { 5, 31, 1 } } },
-	{ { { 14, 0, 3 }, { 5, 31, 0 } } },
-	{ { { 14, 0, 2 }, { 5, 31, 1 } } },
-	{ { { 14, 0, 1 }, { 6, 30, 1 } } },
-	{ { { 14, 0, 0 }, { 6, 30, 0 } } },
-	{ { { 14, 0, 1 }, { 6, 31, 1 } } },
-	{ { { 14, 0, 2 }, { 6, 31, 0 } } },
-	{ { { 14, 0, 3 }, { 8, 27, 0 } } },
-	{ { { 14, 0, 4 }, { 7, 30, 1 } } },
-	{ { { 15, 0, 3 }, { 7, 30, 0 } } },
-	{ { { 15, 0, 2 }, { 8, 28, 0 } } },
-	{ { { 15, 0, 1 }, { 7, 31, 1 } } },
-	{ { { 15, 0, 0 }, { 7, 31, 0 } } },
-	{ { { 15, 0, 1 }, { 7, 31, 1 } } },
-	{ { { 15, 0, 2 }, { 8, 30, 1 } } },
-	{ { { 15, 0, 3 }, { 8, 30, 0 } } },
-	{ { { 15, 0, 4 }, { 10, 27, 1 } } },
-	{ { { 16, 0, 4 }, { 10, 27, 0 } } },
-	{ { { 16, 0, 3 }, { 8, 31, 0 } } },
-	{ { { 16, 0, 2 }, { 9, 30, 1 } } },
-	{ { { 16, 0, 1 }, { 9, 30, 0 } } },
-	{ { { 16, 0, 0 }, { 12, 24, 0 } } },
-	{ { { 16, 0, 1 }, { 9, 31, 1 } } },
-	{ { { 16, 0, 2 }, { 9, 31, 0 } } },
-	{ { { 16, 0, 3 }, { 9, 31, 1 } } },
-	{ { { 16, 0, 4 }, { 10, 30, 1 } } },
-	{ { { 17, 0, 3 }, { 10, 30, 0 } } },
-	{ { { 17, 0, 2 }, { 10, 31, 1 } } },
-	{ { { 17, 0, 1 }, { 10, 31, 0 } } },
-	{ { { 17, 0, 0 }, { 12, 27, 0 } } },
-	{ { { 17, 0, 1 }, { 11, 30, 1 } } },
-	{ { { 17, 0, 2 }, { 11, 30, 0 } } },
-	{ { { 17, 0, 3 }, { 12, 28, 0 } } },
-	{ { { 17, 0, 4 }, { 11, 31, 1 } } },
-	{ { { 18, 0, 3 }, { 11, 31, 0 } } },
-	{ { { 18, 0, 2 }, { 11, 31, 1 } } },
-	{ { { 18, 0, 1 }, { 12, 30, 1 } } },
-	{ { { 18, 0, 0 }, { 12, 30, 0 } } },
-	{ { { 18, 0, 1 }, { 14, 27, 1 } } },
-	{ { { 18, 0, 2 }, { 14, 27, 0 } } },
-	{ { { 18, 0, 3 }, { 12, 31, 0 } } },
-	{ { { 18, 0, 4 }, { 13, 30, 1 } } },
-	{ { { 19, 0, 3 }, { 13, 30, 0 } } },
-	{ { { 19, 0, 2 }, { 16, 24, 0 } } },
-	{ { { 19, 0, 1 }, { 13, 31, 1 } } },
-	{ { { 19, 0, 0 }, { 13, 31, 0 } } },
-	{ { { 19, 0, 1 }, { 13, 31, 1 } } },
-	{ { { 19, 0, 2 }, { 14, 30, 1 } } },
-	{ { { 19, 0, 3 }, { 14, 30, 0 } } },
-	{ { { 19, 0, 4 }, { 14, 31, 1 } } },
-	{ { { 20, 0, 4 }, { 14, 31, 0 } } },
-	{ { { 20, 0, 3 }, { 16, 27, 0 } } },
-	{ { { 20, 0, 2 }, { 15, 30, 1 } } },
-	{ { { 20, 0, 1 }, { 15, 30, 0 } } },
-	{ { { 20, 0, 0 }, { 16, 28, 0 } } },
-	{ { { 20, 0, 1 }, { 15, 31, 1 } } },
-	{ { { 20, 0, 2 }, { 15, 31, 0 } } },
-	{ { { 20, 0, 3 }, { 15, 31, 1 } } },
-	{ { { 20, 0, 4 }, { 16, 30, 1 } } },
-	{ { { 21, 0, 3 }, { 16, 30, 0 } } },
-	{ { { 21, 0, 2 }, { 18, 27, 1 } } },
-	{ { { 21, 0, 1 }, { 18, 27, 0 } } },
-	{ { { 21, 0, 0 }, { 16, 31, 0 } } },
-	{ { { 21, 0, 1 }, { 17, 30, 1 } } },
-	{ { { 21, 0, 2 }, { 17, 30, 0 } } },
-	{ { { 21, 0, 3 }, { 20, 24, 0 } } },
-	{ { { 21, 0, 4 }, { 17, 31, 1 } } },
-	{ { { 22, 0, 3 }, { 17, 31, 0 } } },
-	{ { { 22, 0, 2 }, { 17, 31, 1 } } },
-	{ { { 22, 0, 1 }, { 18, 30, 1 } } },
-	{ { { 22, 0, 0 }, { 18, 30, 0 } } },
-	{ { { 22, 0, 1 }, { 18, 31, 1 } } },
-	{ { { 22, 0, 2 }, { 18, 31, 0 } } },
-	{ { { 22, 0, 3 }, { 20, 27, 0 } } },
-	{ { { 22, 0, 4 }, { 19, 30, 1 } } },
-	{ { { 23, 0, 3 }, { 19, 30, 0 } } },
-	{ { { 23, 0, 2 }, { 20, 28, 0 } } },
-	{ { { 23, 0, 1 }, { 19, 31, 1 } } },
-	{ { { 23, 0, 0 }, { 19, 31, 0 } } },
-	{ { { 23, 0, 1 }, { 19, 31, 1 } } },
-	{ { { 23, 0, 2 }, { 20, 30, 1 } } },
-	{ { { 23, 0, 3 }, { 20, 30, 0 } } },
-	{ { { 23, 0, 4 }, { 22, 27, 1 } } },
-	{ { { 24, 0, 4 }, { 22, 27, 0 } } },
-	{ { { 24, 0, 3 }, { 20, 31, 0 } } },
-	{ { { 24, 0, 2 }, { 21, 30, 1 } } },
-	{ { { 24, 0, 1 }, { 21, 30, 0 } } },
-	{ { { 24, 0, 0 }, { 24, 24, 0 } } },
-	{ { { 24, 0, 1 }, { 21, 31, 1 } } },
-	{ { { 24, 0, 2 }, { 21, 31, 0 } } },
-	{ { { 24, 0, 3 }, { 21, 31, 1 } } },
-	{ { { 24, 0, 4 }, { 22, 30, 1 } } },
-	{ { { 25, 0, 3 }, { 22, 30, 0 } } },
-	{ { { 25, 0, 2 }, { 22, 31, 1 } } },
-	{ { { 25, 0, 1 }, { 22, 31, 0 } } },
-	{ { { 25, 0, 0 }, { 24, 27, 0 } } },
-	{ { { 25, 0, 1 }, { 23, 30, 1 } } },
-	{ { { 25, 0, 2 }, { 23, 30, 0 } } },
-	{ { { 25, 0, 3 }, { 24, 28, 0 } } },
-	{ { { 25, 0, 4 }, { 23, 31, 1 } } },
-	{ { { 26, 0, 3 }, { 23, 31, 0 } } },
-	{ { { 26, 0, 2 }, { 23, 31, 1 } } },
-	{ { { 26, 0, 1 }, { 24, 30, 1 } } },
-	{ { { 26, 0, 0 }, { 24, 30, 0 } } },
-	{ { { 26, 0, 1 }, { 26, 27, 1 } } },
-	{ { { 26, 0, 2 }, { 26, 27, 0 } } },
-	{ { { 26, 0, 3 }, { 24, 31, 0 } } },
-	{ { { 26, 0, 4 }, { 25, 30, 1 } } },
-	{ { { 27, 0, 3 }, { 25, 30, 0 } } },
-	{ { { 27, 0, 2 }, { 28, 24, 0 } } },
-	{ { { 27, 0, 1 }, { 25, 31, 1 } } },
-	{ { { 27, 0, 0 }, { 25, 31, 0 } } },
-	{ { { 27, 0, 1 }, { 25, 31, 1 } } },
-	{ { { 27, 0, 2 }, { 26, 30, 1 } } },
-	{ { { 27, 0, 3 }, { 26, 30, 0 } } },
-	{ { { 27, 0, 4 }, { 26, 31, 1 } } },
-	{ { { 28, 0, 4 }, { 26, 31, 0 } } },
-	{ { { 28, 0, 3 }, { 28, 27, 0 } } },
-	{ { { 28, 0, 2 }, { 27, 30, 1 } } },
-	{ { { 28, 0, 1 }, { 27, 30, 0 } } },
-	{ { { 28, 0, 0 }, { 28, 28, 0 } } },
-	{ { { 28, 0, 1 }, { 27, 31, 1 } } },
-	{ { { 28, 0, 2 }, { 27, 31, 0 } } },
-	{ { { 28, 0, 3 }, { 27, 31, 1 } } },
-	{ { { 28, 0, 4 }, { 28, 30, 1 } } },
-	{ { { 29, 0, 3 }, { 28, 30, 0 } } },
-	{ { { 29, 0, 2 }, { 30, 27, 1 } } },
-	{ { { 29, 0, 1 }, { 30, 27, 0 } } },
-	{ { { 29, 0, 0 }, { 28, 31, 0 } } },
-	{ { { 29, 0, 1 }, { 29, 30, 1 } } },
-	{ { { 29, 0, 2 }, { 29, 30, 0 } } },
-	{ { { 29, 0, 3 }, { 29, 30, 1 } } },
-	{ { { 29, 0, 4 }, { 29, 31, 1 } } },
-	{ { { 30, 0, 3 }, { 29, 31, 0 } } },
-	{ { { 30, 0, 2 }, { 29, 31, 1 } } },
-	{ { { 30, 0, 1 }, { 30, 30, 1 } } },
-	{ { { 30, 0, 0 }, { 30, 30, 0 } } },
-	{ { { 30, 0, 1 }, { 30, 31, 1 } } },
-	{ { { 30, 0, 2 }, { 30, 31, 0 } } },
-	{ { { 30, 0, 3 }, { 30, 31, 1 } } },
-	{ { { 30, 0, 4 }, { 31, 30, 1 } } },
-	{ { { 31, 0, 3 }, { 31, 30, 0 } } },
-	{ { { 31, 0, 2 }, { 31, 30, 1 } } },
-	{ { { 31, 0, 1 }, { 31, 31, 1 } } },
-	{ { { 31, 0, 0 }, { 31, 31, 0 } } }
-};
-
-SingleColourLookup const lookup_6_4[] =
-{
-	{ { { 0, 0, 0 }, { 0, 0, 0 } } },
-	{ { { 0, 0, 1 }, { 0, 1, 0 } } },
-	{ { { 0, 0, 2 }, { 0, 2, 0 } } },
-	{ { { 1, 0, 1 }, { 0, 3, 1 } } },
-	{ { { 1, 0, 0 }, { 0, 3, 0 } } },
-	{ { { 1, 0, 1 }, { 0, 4, 0 } } },
-	{ { { 1, 0, 2 }, { 0, 5, 0 } } },
-	{ { { 2, 0, 1 }, { 0, 6, 1 } } },
-	{ { { 2, 0, 0 }, { 0, 6, 0 } } },
-	{ { { 2, 0, 1 }, { 0, 7, 0 } } },
-	{ { { 2, 0, 2 }, { 0, 8, 0 } } },
-	{ { { 3, 0, 1 }, { 0, 9, 1 } } },
-	{ { { 3, 0, 0 }, { 0, 9, 0 } } },
-	{ { { 3, 0, 1 }, { 0, 10, 0 } } },
-	{ { { 3, 0, 2 }, { 0, 11, 0 } } },
-	{ { { 4, 0, 1 }, { 0, 12, 1 } } },
-	{ { { 4, 0, 0 }, { 0, 12, 0 } } },
-	{ { { 4, 0, 1 }, { 0, 13, 0 } } },
-	{ { { 4, 0, 2 }, { 0, 14, 0 } } },
-	{ { { 5, 0, 1 }, { 0, 15, 1 } } },
-	{ { { 5, 0, 0 }, { 0, 15, 0 } } },
-	{ { { 5, 0, 1 }, { 0, 16, 0 } } },
-	{ { { 5, 0, 2 }, { 1, 15, 0 } } },
-	{ { { 6, 0, 1 }, { 0, 17, 0 } } },
-	{ { { 6, 0, 0 }, { 0, 18, 0 } } },
-	{ { { 6, 0, 1 }, { 0, 19, 0 } } },
-	{ { { 6, 0, 2 }, { 3, 14, 0 } } },
-	{ { { 7, 0, 1 }, { 0, 20, 0 } } },
-	{ { { 7, 0, 0 }, { 0, 21, 0 } } },
-	{ { { 7, 0, 1 }, { 0, 22, 0 } } },
-	{ { { 7, 0, 2 }, { 4, 15, 0 } } },
-	{ { { 8, 0, 1 }, { 0, 23, 0 } } },
-	{ { { 8, 0, 0 }, { 0, 24, 0 } } },
-	{ { { 8, 0, 1 }, { 0, 25, 0 } } },
-	{ { { 8, 0, 2 }, { 6, 14, 0 } } },
-	{ { { 9, 0, 1 }, { 0, 26, 0 } } },
-	{ { { 9, 0, 0 }, { 0, 27, 0 } } },
-	{ { { 9, 0, 1 }, { 0, 28, 0 } } },
-	{ { { 9, 0, 2 }, { 7, 15, 0 } } },
-	{ { { 10, 0, 1 }, { 0, 29, 0 } } },
-	{ { { 10, 0, 0 }, { 0, 30, 0 } } },
-	{ { { 10, 0, 1 }, { 0, 31, 0 } } },
-	{ { { 10, 0, 2 }, { 9, 14, 0 } } },
-	{ { { 11, 0, 1 }, { 0, 32, 0 } } },
-	{ { { 11, 0, 0 }, { 0, 33, 0 } } },
-	{ { { 11, 0, 1 }, { 2, 30, 0 } } },
-	{ { { 11, 0, 2 }, { 0, 34, 0 } } },
-	{ { { 12, 0, 1 }, { 0, 35, 0 } } },
-	{ { { 12, 0, 0 }, { 0, 36, 0 } } },
-	{ { { 12, 0, 1 }, { 3, 31, 0 } } },
-	{ { { 12, 0, 2 }, { 0, 37, 0 } } },
-	{ { { 13, 0, 1 }, { 0, 38, 0 } } },
-	{ { { 13, 0, 0 }, { 0, 39, 0 } } },
-	{ { { 13, 0, 1 }, { 5, 30, 0 } } },
-	{ { { 13, 0, 2 }, { 0, 40, 0 } } },
-	{ { { 14, 0, 1 }, { 0, 41, 0 } } },
-	{ { { 14, 0, 0 }, { 0, 42, 0 } } },
-	{ { { 14, 0, 1 }, { 6, 31, 0 } } },
-	{ { { 14, 0, 2 }, { 0, 43, 0 } } },
-	{ { { 15, 0, 1 }, { 0, 44, 0 } } },
-	{ { { 15, 0, 0 }, { 0, 45, 0 } } },
-	{ { { 15, 0, 1 }, { 8, 30, 0 } } },
-	{ { { 15, 0, 2 }, { 0, 46, 0 } } },
-	{ { { 16, 0, 2 }, { 0, 47, 0 } } },
-	{ { { 16, 0, 1 }, { 1, 46, 0 } } },
-	{ { { 16, 0, 0 }, { 0, 48, 0 } } },
-	{ { { 16, 0, 1 }, { 0, 49, 0 } } },
-	{ { { 16, 0, 2 }, { 0, 50, 0 } } },
-	{ { { 17, 0, 1 }, { 2, 47, 0 } } },
-	{ { { 17, 0, 0 }, { 0, 51, 0 } } },
-	{ { { 17, 0, 1 }, { 0, 52, 0 } } },
-	{ { { 17, 0, 2 }, { 0, 53, 0 } } },
-	{ { { 18, 0, 1 }, { 4, 46, 0 } } },
-	{ { { 18, 0, 0 }, { 0, 54, 0 } } },
-	{ { { 18, 0, 1 }, { 0, 55, 0 } } },
-	{ { { 18, 0, 2 }, { 0, 56, 0 } } },
-	{ { { 19, 0, 1 }, { 5, 47, 0 } } },
-	{ { { 19, 0, 0 }, { 0, 57, 0 } } },
-	{ { { 19, 0, 1 }, { 0, 58, 0 } } },
-	{ { { 19, 0, 2 }, { 0, 59, 0 } } },
-	{ { { 20, 0, 1 }, { 7, 46, 0 } } },
-	{ { { 20, 0, 0 }, { 0, 60, 0 } } },
-	{ { { 20, 0, 1 }, { 0, 61, 0 } } },
-	{ { { 20, 0, 2 }, { 0, 62, 0 } } },
-	{ { { 21, 0, 1 }, { 8, 47, 0 } } },
-	{ { { 21, 0, 0 }, { 0, 63, 0 } } },
-	{ { { 21, 0, 1 }, { 1, 62, 0 } } },
-	{ { { 21, 0, 2 }, { 1, 63, 0 } } },
-	{ { { 22, 0, 1 }, { 10, 46, 0 } } },
-	{ { { 22, 0, 0 }, { 2, 62, 0 } } },
-	{ { { 22, 0, 1 }, { 2, 63, 0 } } },
-	{ { { 22, 0, 2 }, { 3, 62, 0 } } },
-	{ { { 23, 0, 1 }, { 11, 47, 0 } } },
-	{ { { 23, 0, 0 }, { 3, 63, 0 } } },
-	{ { { 23, 0, 1 }, { 4, 62, 0 } } },
-	{ { { 23, 0, 2 }, { 4, 63, 0 } } },
-	{ { { 24, 0, 1 }, { 13, 46, 0 } } },
-	{ { { 24, 0, 0 }, { 5, 62, 0 } } },
-	{ { { 24, 0, 1 }, { 5, 63, 0 } } },
-	{ { { 24, 0, 2 }, { 6, 62, 0 } } },
-	{ { { 25, 0, 1 }, { 14, 47, 0 } } },
-	{ { { 25, 0, 0 }, { 6, 63, 0 } } },
-	{ { { 25, 0, 1 }, { 7, 62, 0 } } },
-	{ { { 25, 0, 2 }, { 7, 63, 0 } } },
-	{ { { 26, 0, 1 }, { 16, 45, 0 } } },
-	{ { { 26, 0, 0 }, { 8, 62, 0 } } },
-	{ { { 26, 0, 1 }, { 8, 63, 0 } } },
-	{ { { 26, 0, 2 }, { 9, 62, 0 } } },
-	{ { { 27, 0, 1 }, { 16, 48, 0 } } },
-	{ { { 27, 0, 0 }, { 9, 63, 0 } } },
-	{ { { 27, 0, 1 }, { 10, 62, 0 } } },
-	{ { { 27, 0, 2 }, { 10, 63, 0 } } },
-	{ { { 28, 0, 1 }, { 16, 51, 0 } } },
-	{ { { 28, 0, 0 }, { 11, 62, 0 } } },
-	{ { { 28, 0, 1 }, { 11, 63, 0 } } },
-	{ { { 28, 0, 2 }, { 12, 62, 0 } } },
-	{ { { 29, 0, 1 }, { 16, 54, 0 } } },
-	{ { { 29, 0, 0 }, { 12, 63, 0 } } },
-	{ { { 29, 0, 1 }, { 13, 62, 0 } } },
-	{ { { 29, 0, 2 }, { 13, 63, 0 } } },
-	{ { { 30, 0, 1 }, { 16, 57, 0 } } },
-	{ { { 30, 0, 0 }, { 14, 62, 0 } } },
-	{ { { 30, 0, 1 }, { 14, 63, 0 } } },
-	{ { { 30, 0, 2 }, { 15, 62, 0 } } },
-	{ { { 31, 0, 1 }, { 16, 60, 0 } } },
-	{ { { 31, 0, 0 }, { 15, 63, 0 } } },
-	{ { { 31, 0, 1 }, { 24, 46, 0 } } },
-	{ { { 31, 0, 2 }, { 16, 62, 0 } } },
-	{ { { 32, 0, 2 }, { 16, 63, 0 } } },
-	{ { { 32, 0, 1 }, { 17, 62, 0 } } },
-	{ { { 32, 0, 0 }, { 25, 47, 0 } } },
-	{ { { 32, 0, 1 }, { 17, 63, 0 } } },
-	{ { { 32, 0, 2 }, { 18, 62, 0 } } },
-	{ { { 33, 0, 1 }, { 18, 63, 0 } } },
-	{ { { 33, 0, 0 }, { 27, 46, 0 } } },
-	{ { { 33, 0, 1 }, { 19, 62, 0 } } },
-	{ { { 33, 0, 2 }, { 19, 63, 0 } } },
-	{ { { 34, 0, 1 }, { 20, 62, 0 } } },
-	{ { { 34, 0, 0 }, { 28, 47, 0 } } },
-	{ { { 34, 0, 1 }, { 20, 63, 0 } } },
-	{ { { 34, 0, 2 }, { 21, 62, 0 } } },
-	{ { { 35, 0, 1 }, { 21, 63, 0 } } },
-	{ { { 35, 0, 0 }, { 30, 46, 0 } } },
-	{ { { 35, 0, 1 }, { 22, 62, 0 } } },
-	{ { { 35, 0, 2 }, { 22, 63, 0 } } },
-	{ { { 36, 0, 1 }, { 23, 62, 0 } } },
-	{ { { 36, 0, 0 }, { 31, 47, 0 } } },
-	{ { { 36, 0, 1 }, { 23, 63, 0 } } },
-	{ { { 36, 0, 2 }, { 24, 62, 0 } } },
-	{ { { 37, 0, 1 }, { 24, 63, 0 } } },
-	{ { { 37, 0, 0 }, { 32, 47, 0 } } },
-	{ { { 37, 0, 1 }, { 25, 62, 0 } } },
-	{ { { 37, 0, 2 }, { 25, 63, 0 } } },
-	{ { { 38, 0, 1 }, { 26, 62, 0 } } },
-	{ { { 38, 0, 0 }, { 32, 50, 0 } } },
-	{ { { 38, 0, 1 }, { 26, 63, 0 } } },
-	{ { { 38, 0, 2 }, { 27, 62, 0 } } },
-	{ { { 39, 0, 1 }, { 27, 63, 0 } } },
-	{ { { 39, 0, 0 }, { 32, 53, 0 } } },
-	{ { { 39, 0, 1 }, { 28, 62, 0 } } },
-	{ { { 39, 0, 2 }, { 28, 63, 0 } } },
-	{ { { 40, 0, 1 }, { 29, 62, 0 } } },
-	{ { { 40, 0, 0 }, { 32, 56, 0 } } },
-	{ { { 40, 0, 1 }, { 29, 63, 0 } } },
-	{ { { 40, 0, 2 }, { 30, 62, 0 } } },
-	{ { { 41, 0, 1 }, { 30, 63, 0 } } },
-	{ { { 41, 0, 0 }, { 32, 59, 0 } } },
-	{ { { 41, 0, 1 }, { 31, 62, 0 } } },
-	{ { { 41, 0, 2 }, { 31, 63, 0 } } },
-	{ { { 42, 0, 1 }, { 32, 61, 0 } } },
-	{ { { 42, 0, 0 }, { 32, 62, 0 } } },
-	{ { { 42, 0, 1 }, { 32, 63, 0 } } },
-	{ { { 42, 0, 2 }, { 41, 46, 0 } } },
-	{ { { 43, 0, 1 }, { 33, 62, 0 } } },
-	{ { { 43, 0, 0 }, { 33, 63, 0 } } },
-	{ { { 43, 0, 1 }, { 34, 62, 0 } } },
-	{ { { 43, 0, 2 }, { 42, 47, 0 } } },
-	{ { { 44, 0, 1 }, { 34, 63, 0 } } },
-	{ { { 44, 0, 0 }, { 35, 62, 0 } } },
-	{ { { 44, 0, 1 }, { 35, 63, 0 } } },
-	{ { { 44, 0, 2 }, { 44, 46, 0 } } },
-	{ { { 45, 0, 1 }, { 36, 62, 0 } } },
-	{ { { 45, 0, 0 }, { 36, 63, 0 } } },
-	{ { { 45, 0, 1 }, { 37, 62, 0 } } },
-	{ { { 45, 0, 2 }, { 45, 47, 0 } } },
-	{ { { 46, 0, 1 }, { 37, 63, 0 } } },
-	{ { { 46, 0, 0 }, { 38, 62, 0 } } },
-	{ { { 46, 0, 1 }, { 38, 63, 0 } } },
-	{ { { 46, 0, 2 }, { 47, 46, 0 } } },
-	{ { { 47, 0, 1 }, { 39, 62, 0 } } },
-	{ { { 47, 0, 0 }, { 39, 63, 0 } } },
-	{ { { 47, 0, 1 }, { 40, 62, 0 } } },
-	{ { { 47, 0, 2 }, { 48, 46, 0 } } },
-	{ { { 48, 0, 2 }, { 40, 63, 0 } } },
-	{ { { 48, 0, 1 }, { 41, 62, 0 } } },
-	{ { { 48, 0, 0 }, { 41, 63, 0 } } },
-	{ { { 48, 0, 1 }, { 48, 49, 0 } } },
-	{ { { 48, 0, 2 }, { 42, 62, 0 } } },
-	{ { { 49, 0, 1 }, { 42, 63, 0 } } },
-	{ { { 49, 0, 0 }, { 43, 62, 0 } } },
-	{ { { 49, 0, 1 }, { 48, 52, 0 } } },
-	{ { { 49, 0, 2 }, { 43, 63, 0 } } },
-	{ { { 50, 0, 1 }, { 44, 62, 0 } } },
-	{ { { 50, 0, 0 }, { 44, 63, 0 } } },
-	{ { { 50, 0, 1 }, { 48, 55, 0 } } },
-	{ { { 50, 0, 2 }, { 45, 62, 0 } } },
-	{ { { 51, 0, 1 }, { 45, 63, 0 } } },
-	{ { { 51, 0, 0 }, { 46, 62, 0 } } },
-	{ { { 51, 0, 1 }, { 48, 58, 0 } } },
-	{ { { 51, 0, 2 }, { 46, 63, 0 } } },
-	{ { { 52, 0, 1 }, { 47, 62, 0 } } },
-	{ { { 52, 0, 0 }, { 47, 63, 0 } } },
-	{ { { 52, 0, 1 }, { 48, 61, 0 } } },
-	{ { { 52, 0, 2 }, { 48, 62, 0 } } },
-	{ { { 53, 0, 1 }, { 56, 47, 0 } } },
-	{ { { 53, 0, 0 }, { 48, 63, 0 } } },
-	{ { { 53, 0, 1 }, { 49, 62, 0 } } },
-	{ { { 53, 0, 2 }, { 49, 63, 0 } } },
-	{ { { 54, 0, 1 }, { 58, 46, 0 } } },
-	{ { { 54, 0, 0 }, { 50, 62, 0 } } },
-	{ { { 54, 0, 1 }, { 50, 63, 0 } } },
-	{ { { 54, 0, 2 }, { 51, 62, 0 } } },
-	{ { { 55, 0, 1 }, { 59, 47, 0 } } },
-	{ { { 55, 0, 0 }, { 51, 63, 0 } } },
-	{ { { 55, 0, 1 }, { 52, 62, 0 } } },
-	{ { { 55, 0, 2 }, { 52, 63, 0 } } },
-	{ { { 56, 0, 1 }, { 61, 46, 0 } } },
-	{ { { 56, 0, 0 }, { 53, 62, 0 } } },
-	{ { { 56, 0, 1 }, { 53, 63, 0 } } },
-	{ { { 56, 0, 2 }, { 54, 62, 0 } } },
-	{ { { 57, 0, 1 }, { 62, 47, 0 } } },
-	{ { { 57, 0, 0 }, { 54, 63, 0 } } },
-	{ { { 57, 0, 1 }, { 55, 62, 0 } } },
-	{ { { 57, 0, 2 }, { 55, 63, 0 } } },
-	{ { { 58, 0, 1 }, { 56, 62, 1 } } },
-	{ { { 58, 0, 0 }, { 56, 62, 0 } } },
-	{ { { 58, 0, 1 }, { 56, 63, 0 } } },
-	{ { { 58, 0, 2 }, { 57, 62, 0 } } },
-	{ { { 59, 0, 1 }, { 57, 63, 1 } } },
-	{ { { 59, 0, 0 }, { 57, 63, 0 } } },
-	{ { { 59, 0, 1 }, { 58, 62, 0 } } },
-	{ { { 59, 0, 2 }, { 58, 63, 0 } } },
-	{ { { 60, 0, 1 }, { 59, 62, 1 } } },
-	{ { { 60, 0, 0 }, { 59, 62, 0 } } },
-	{ { { 60, 0, 1 }, { 59, 63, 0 } } },
-	{ { { 60, 0, 2 }, { 60, 62, 0 } } },
-	{ { { 61, 0, 1 }, { 60, 63, 1 } } },
-	{ { { 61, 0, 0 }, { 60, 63, 0 } } },
-	{ { { 61, 0, 1 }, { 61, 62, 0 } } },
-	{ { { 61, 0, 2 }, { 61, 63, 0 } } },
-	{ { { 62, 0, 1 }, { 62, 62, 1 } } },
-	{ { { 62, 0, 0 }, { 62, 62, 0 } } },
-	{ { { 62, 0, 1 }, { 62, 63, 0 } } },
-	{ { { 62, 0, 2 }, { 63, 62, 0 } } },
-	{ { { 63, 0, 1 }, { 63, 63, 1 } } },
-	{ { { 63, 0, 0 }, { 63, 63, 0 } } }
-};
