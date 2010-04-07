@@ -22,6 +22,7 @@
  *  See doc/formats/mmpfile.txt for more details.
 */
 
+#include <stdint.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -42,7 +43,7 @@ ce_mmpfile* ce_mmpfile_open_data(void* data, size_t size)
 	ce_mmpfile* mmpfile = ce_alloc(sizeof(ce_mmpfile));
 	mmpfile->width = ce_le2cpu32(*ptr++);
 	mmpfile->height = ce_le2cpu32(*ptr++);
-	mmpfile->info.size = ce_le2cpu32(*ptr++);
+	mmpfile->mipmap_count = ce_le2cpu32(*ptr++);
 	mmpfile->format = ce_le2cpu32(*ptr++);
 	mmpfile->texels = ptr += 14;
 	mmpfile->size = size;

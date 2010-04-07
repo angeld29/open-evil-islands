@@ -134,128 +134,75 @@ static void ce_texture_generate(int width, int height, int mipmap_count, int bpp
 	}
 }
 
-#ifndef GL_VERSION_1_2
-static void ce_texture_generate_argb4_packed_shared(ce_mmpfile* mmpfile,
-		void* (*argb4_swap_rgba4)(void*, const void*, int, int, int),
-													GLenum data_type)
-{
-	argb4_swap_rgba4(mmpfile->texels, mmpfile->texels,
-		mmpfile->width, mmpfile->height, mmpfile->info.mipmap_count);
-
-	ce_texture_generate(mmpfile->width, mmpfile->height,
-		mmpfile->info.mipmap_count, 2,
-		GL_RGBA, GL_RGBA, data_type, mmpfile->texels);
-}
-
-static void ce_texture_generate_argb4_shared(ce_mmpfile* mmpfile,
-		void* (*argb4_unpack_argb8_func)(void* restrict,
-										const void* restrict,
-										int, int, int))
-{
-	int size = ce_mmphlp_storage_requirements_rgba8(mmpfile->width,
-		mmpfile->height, mmpfile->info.mipmap_count);
-
-	void* texels = ce_alloc(size);
-
-	(*argb4_unpack_argb8_func)(texels, mmpfile->texels,
-		mmpfile->width, mmpfile->height, mmpfile->info.mipmap_count);
-
-	ce_texture_generate(mmpfile->width, mmpfile->height,
-		mmpfile->info.mipmap_count, 4, GL_RGBA,
-		GL_RGBA, GL_UNSIGNED_BYTE, texels);
-
-	ce_free(texels, size);
-}
-#endif
-
-static void ce_texture_generate_argb8_shared(int width, int height,
-											int mipmap_count, void* data)
-{
-#ifdef GL_VERSION_1_2
-	ce_texture_generate(width, height, mipmap_count, 4,
-		GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
-#else
-	if (ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
-		ce_mmphlp_argb8_swap_rgba8(data, data, width, height, mipmap_count);
-
-		ce_texture_generate(width, height, mipmap_count, 4,
-			GL_RGBA, GL_RGBA, CE_GL_UNSIGNED_INT_8_8_8_8, data);
-
-		return;
-	}
-
-	ce_mmphlp_argb8_unpack_rgba8(data, data, width, height, mipmap_count);
-
-	ce_texture_generate(width, height, mipmap_count, 4,
-		GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, data);
-#endif
-}
-
 static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
 {
 	if (ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC) ||
 			(CE_MMPFILE_FORMAT_DXT1 == mmpfile->format &&
 			ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1))) {
-		ce_texture_setup_filters(mmpfile->info.mipmap_count);
+		ce_texture_setup_filters(mmpfile->mipmap_count);
 
 		const uint8_t* src = mmpfile->texels;
 		GLenum internal_format = (GLenum[]){ CE_GL_COMPRESSED_RGBA_S3TC_DXT1,
 			CE_GL_COMPRESSED_RGBA_S3TC_DXT3 }[CE_MMPFILE_FORMAT_DXT3 == mmpfile->format];
 
 		for (int i = 0, w = mmpfile->width, h = mmpfile->height;
-				i < mmpfile->info.mipmap_count; ++i, w >>= 1, h >>= 1) {
+				i < mmpfile->mipmap_count; ++i, w >>= 1, h >>= 1) {
 			int size = ce_mmphlp_storage_requirements_dxt(w, h, 1, mmpfile->format);
 			ce_gl_compressed_tex_image_2d(GL_TEXTURE_2D,
 				i, internal_format, w, h, 0, size, src);
 			src += size;
 		}
+	} else {
+		int size = ce_mmphlp_storage_requirements_rgba8(mmpfile->width,
+			mmpfile->height, mmpfile->mipmap_count);
 
-		return;
+		void* texels = ce_alloc(size);
+
+		uint8_t* dst = texels;
+		uint8_t* src = mmpfile->texels;
+
+		for (int i = 0, w = mmpfile->width, h = mmpfile->height;
+				i < mmpfile->mipmap_count; ++i, w >>= 1, h >>= 1) {
+			ce_mmphlp_decompress_dxt(dst, src, w, h, mmpfile->format);
+			src += ce_mmphlp_storage_requirements_dxt(w, h, 1, mmpfile->format);
+			dst += 4 * w * h;
+		}
+
+		ce_texture_generate(mmpfile->width, mmpfile->height,
+			mmpfile->mipmap_count, 4,
+			GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, texels);
+
+		ce_free(texels, size);
 	}
+}
 
+#ifndef GL_VERSION_1_2
+static void ce_texture_generate_argb4_shared(ce_mmpfile* mmpfile,
+		void* (*argb4_unpack_argb8_func)(void* restrict,
+										const void* restrict,
+										int, int, int))
+{
 	int size = ce_mmphlp_storage_requirements_rgba8(mmpfile->width,
-		mmpfile->height, mmpfile->info.mipmap_count);
+		mmpfile->height, mmpfile->mipmap_count);
+
 	void* texels = ce_alloc(size);
 
-	uint8_t* dst = texels;
-	uint8_t* src = mmpfile->texels;
-
-	for (int i = 0, w = mmpfile->width, h = mmpfile->height;
-			i < mmpfile->info.mipmap_count; ++i, w >>= 1, h >>= 1) {
-		ce_mmphlp_decompress_dxt(dst, src, w, h, mmpfile->format);
-		src += ce_mmphlp_storage_requirements_dxt(w, h, 1, mmpfile->format);
-		dst += 4 * w * h;
-	}
+	(*argb4_unpack_argb8_func)(texels, mmpfile->texels,
+		mmpfile->width, mmpfile->height, mmpfile->mipmap_count);
 
 	ce_texture_generate(mmpfile->width, mmpfile->height,
-		mmpfile->info.mipmap_count, 4, GL_RGBA,
+		mmpfile->mipmap_count, 4, GL_RGBA,
 		GL_RGBA, GL_UNSIGNED_BYTE, texels);
 
 	ce_free(texels, size);
 }
-
-static void ce_texture_generate_pnt3(ce_mmpfile* mmpfile)
-{
-	int size = 4 * mmpfile->width * mmpfile->height;
-	void* texels = mmpfile->texels;
-
-	if (mmpfile->info.size < size) { // pnt3 compressed
-		texels = ce_alloc(size);
-		ce_mmphlp_decompress_pnt3(texels, mmpfile->texels, mmpfile->info.size);
-	}
-
-	ce_texture_generate_argb8_shared(mmpfile->width, mmpfile->height, 1, texels);
-
-	if (mmpfile->info.size < size) {
-		ce_free(texels, size);
-	}
-}
+#endif
 
 static void ce_texture_generate_r5g6b5(ce_mmpfile* mmpfile)
 {
 #ifdef GL_VERSION_1_2
 	ce_texture_generate(mmpfile->width, mmpfile->height,
-		mmpfile->info.mipmap_count, 2, GL_RGB, GL_RGB,
+		mmpfile->mipmap_count, 2, GL_RGB, GL_RGB,
 		GL_UNSIGNED_SHORT_5_6_5, mmpfile->texels);
 #else
 	ce_texture_generate_argb4_shared(mmpfile, ce_mmphlp_r5g6b5_unpack_rgba8);
@@ -266,13 +213,18 @@ static void ce_texture_generate_a1rgb5(ce_mmpfile* mmpfile)
 {
 #ifdef GL_VERSION_1_2
 	ce_texture_generate(mmpfile->width, mmpfile->height,
-		mmpfile->info.mipmap_count, 2, GL_RGBA, GL_BGRA,
+		mmpfile->mipmap_count, 2, GL_RGBA, GL_BGRA,
 		GL_UNSIGNED_SHORT_1_5_5_5_REV, mmpfile->texels);
 #else
-	ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS) ?
-		ce_texture_generate_argb4_packed_shared(mmpfile,
-			ce_mmphlp_a1rgb5_swap_rgb5a1, CE_GL_UNSIGNED_SHORT_5_5_5_1) :
+	if (ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
+		ce_mmphlp_a1rgb5_swap_rgb5a1(mmpfile->texels, mmpfile->texels,
+			mmpfile->width, mmpfile->height, mmpfile->mipmap_count);
+		ce_texture_generate(mmpfile->width, mmpfile->height,
+			mmpfile->mipmap_count, 2, GL_RGBA, GL_RGBA,
+			CE_GL_UNSIGNED_SHORT_5_5_5_1, mmpfile->texels);
+	} else {
 		ce_texture_generate_argb4_shared(mmpfile, ce_mmphlp_a1rgb5_unpack_rgba8);
+	}
 #endif
 }
 
@@ -280,20 +232,41 @@ static void ce_texture_generate_argb4(ce_mmpfile* mmpfile)
 {
 #ifdef GL_VERSION_1_2
 	ce_texture_generate(mmpfile->width, mmpfile->height,
-		mmpfile->info.mipmap_count, 2, GL_RGBA, GL_BGRA,
+		mmpfile->mipmap_count, 2, GL_RGBA, GL_BGRA,
 		GL_UNSIGNED_SHORT_4_4_4_4_REV, mmpfile->texels);
 #else
-	ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS) ?
-		ce_texture_generate_argb4_packed_shared(mmpfile,
-			ce_mmphlp_argb4_swap_rgba4, CE_GL_UNSIGNED_SHORT_4_4_4_4) :
+	if (ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
+		ce_mmphlp_argb4_swap_rgba4(mmpfile->texels, mmpfile->texels,
+			mmpfile->width, mmpfile->height, mmpfile->mipmap_count);
+		ce_texture_generate(mmpfile->width, mmpfile->height,
+			mmpfile->mipmap_count, 2, GL_RGBA, GL_RGBA,
+			CE_GL_UNSIGNED_SHORT_4_4_4_4, mmpfile->texels);
+	} else {
 		ce_texture_generate_argb4_shared(mmpfile, ce_mmphlp_argb4_unpack_rgba8);
+	}
 #endif
 }
 
 static void ce_texture_generate_argb8(ce_mmpfile* mmpfile)
 {
-	ce_texture_generate_argb8_shared(mmpfile->width, mmpfile->height,
-		mmpfile->info.mipmap_count, mmpfile->texels);
+#ifdef GL_VERSION_1_2
+	ce_texture_generate(mmpfile->width, mmpfile->height, mmpfile->mipmap_count,
+		4, GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, mmpfile->texels);
+#else
+	if (ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
+		ce_mmphlp_argb8_swap_rgba8(mmpfile->texels, mmpfile->texels,
+			mmpfile->width, mmpfile->height, mmpfile->mipmap_count);
+		ce_texture_generate(mmpfile->width, mmpfile->height,
+			mmpfile->mipmap_count, 4,
+			GL_RGBA, GL_RGBA, CE_GL_UNSIGNED_INT_8_8_8_8, mmpfile->texels);
+	} else {
+		ce_mmphlp_argb8_unpack_rgba8(mmpfile->texels, mmpfile->texels,
+			mmpfile->width, mmpfile->height, mmpfile->mipmap_count);
+		ce_texture_generate(mmpfile->width, mmpfile->height,
+			mmpfile->mipmap_count, 4,
+			GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, mmpfile->texels);
+	}
+#endif
 }
 
 ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile)
@@ -310,9 +283,6 @@ ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile)
 	case CE_MMPFILE_FORMAT_DXT3:
 		ce_texture_generate_dxt(mmpfile);
 		break;
-	case CE_MMPFILE_FORMAT_PNT3:
-		ce_texture_generate_pnt3(mmpfile);
-		break;
 	case CE_MMPFILE_FORMAT_R5G6B5:
 		ce_texture_generate_r5g6b5(mmpfile);
 		break;
@@ -322,6 +292,7 @@ ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile)
 	case CE_MMPFILE_FORMAT_ARGB4:
 		ce_texture_generate_argb4(mmpfile);
 		break;
+	case CE_MMPFILE_FORMAT_PNT3:
 	case CE_MMPFILE_FORMAT_ARGB8:
 		ce_texture_generate_argb8(mmpfile);
 		break;
@@ -331,8 +302,6 @@ ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile)
 
 	if (ce_gl_report_errors()) {
 		ce_logging_error("texture: opengl failed");
-		ce_texture_del(texture);
-		return NULL;
 	}
 
 	return texture;

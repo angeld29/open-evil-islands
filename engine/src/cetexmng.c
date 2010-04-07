@@ -26,6 +26,7 @@
 #include "celogging.h"
 #include "cealloc.h"
 #include "ceresfile.h"
+#include "cemmphlp.h"
 #include "cetexmng.h"
 
 ce_texmng* ce_texmng_new(void)
@@ -39,12 +40,8 @@ ce_texmng* ce_texmng_new(void)
 void ce_texmng_del(ce_texmng* texmng)
 {
 	if (NULL != texmng) {
-		for (int i = 0; i < texmng->textures->count; ++i) {
-			ce_texture_del(texmng->textures->items[i]);
-		}
-		for (int i = 0; i < texmng->resfiles->count; ++i) {
-			ce_resfile_close(texmng->resfiles->items[i]);
-		}
+		ce_vector_for_each(texmng->textures, (ce_vector_func1)ce_texture_del);
+		ce_vector_for_each(texmng->resfiles, (ce_vector_func1)ce_resfile_close);
 		ce_vector_del(texmng->textures);
 		ce_vector_del(texmng->resfiles);
 		ce_free(texmng, sizeof(ce_texmng));
@@ -81,12 +78,13 @@ ce_texture* ce_texmng_get_texture(ce_texmng* texmng, const char* name)
 		int index = ce_resfile_node_index(resfile, path);
 		if (-1 != index) {
 			ce_mmpfile* mmpfile = ce_mmpfile_open_resfile(resfile, index);
+
+			if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
+				ce_mmphlp_pnt3_morph_argb8(mmpfile);
+			}
+
 			ce_texture* texture = ce_texture_new(name, mmpfile);
 			ce_mmpfile_close(mmpfile);
-
-			if (NULL == texture) {
-				return NULL;
-			}
 
 			ce_vector_push_back(texmng->textures, texture);
 			return texture;

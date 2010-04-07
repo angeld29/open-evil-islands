@@ -43,10 +43,7 @@ enum {
 typedef struct {
 	int width;
 	int height;
-	union {
-		int size;         // pnt3
-		int mipmap_count; // others
-	} info;
+	int mipmap_count;
 	int format;
 	void* texels;
 	size_t size;

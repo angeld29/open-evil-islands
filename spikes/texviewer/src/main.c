@@ -34,6 +34,7 @@
 #include "ceinput.h"
 #include "cetimer.h"
 #include "ceresfile.h"
+#include "cemmphlp.h"
 #include "cetexture.h"
 #include "ceoptparse.h"
 
@@ -143,6 +144,11 @@ static bool generate_texture(int index)
 
 	// TODO: use texmng
 	ce_mmpfile* mmpfile = ce_mmpfile_open_resfile(res, index);
+
+	if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
+		ce_mmphlp_pnt3_morph_argb8(mmpfile);
+	}
+
 	tex = ce_texture_new("stub", mmpfile);
 	ce_mmpfile_close(mmpfile);
 

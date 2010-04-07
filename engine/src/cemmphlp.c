@@ -26,6 +26,7 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <math.h>
 #include <assert.h>
@@ -33,10 +34,11 @@
 #include "celib.h"
 #include "cevec3.h"
 #include "cebyteorder.h"
-#include "cemmpfile.h"
+#include "cealloc.h"
 #include "cemmphlp.h"
 
-void* ce_mmphlp_decompress_pnt3(void* dst, const void* src, int size)
+static void ce_mmphlp_decompress_pnt3(void* restrict dst,
+										const void* restrict src, int size)
 {
 	assert(0 == size % sizeof(uint32_t));
 
@@ -62,7 +64,31 @@ void* ce_mmphlp_decompress_pnt3(void* dst, const void* src, int size)
 	}
 
 	memcpy(d, s - n, n * sizeof(uint32_t));
-	return dst;
+}
+
+void ce_mmphlp_pnt3_morph_argb8(ce_mmpfile* mmpfile)
+{
+	assert(CE_MMPFILE_FORMAT_PNT3 == mmpfile->format);
+
+	int size = 4 * mmpfile->width * mmpfile->height;
+
+	// mipmap_count == compressed size for pnt3, see doc/formats/mmpfile.txt
+	if (mmpfile->mipmap_count < size) { // pnt3 compressed
+		void* data = ce_alloc(size);
+
+		ce_mmphlp_decompress_pnt3(data, mmpfile->texels, mmpfile->mipmap_count);
+
+		ce_free(mmpfile->data, mmpfile->size);
+
+		mmpfile->texels = data;
+		mmpfile->size = size;
+		mmpfile->data = data;
+	}
+
+	mmpfile->mipmap_count = 1;
+	mmpfile->format = CE_MMPFILE_FORMAT_ARGB8;
+
+	// TODO: write full argb8 header
 }
 
 static void* ce_mmphlp_argb_swap_rgba(void* dst, const void* src,

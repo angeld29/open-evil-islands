@@ -21,13 +21,16 @@
 #ifndef CE_MMPHLP_H
 #define CE_MMPHLP_H
 
+#include "cemmpfile.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-extern void* ce_mmphlp_decompress_pnt3(void* restrict dst,
-										const void* restrict src, int size);
+// pnt3
+
+extern void ce_mmphlp_pnt3_morph_argb8(ce_mmpfile* mmpfile);
 
 // swap
 
