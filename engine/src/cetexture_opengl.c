@@ -156,6 +156,10 @@ static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
 	} else {
 		ce_mmphlp_dxt_decompress_rgba8(mmpfile);
 		ce_texture_generate(mmpfile, 4, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+		//ce_mmphlp_rgba8_compress_dxt(mmpfile);
+		/*FILE* f = fopen("test.dds", "wb");
+		fwrite(mmpfile->data, mmpfile->size, 1, f);
+		fclose(f);*/
 	}
 }
 

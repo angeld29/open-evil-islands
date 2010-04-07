@@ -535,7 +535,7 @@ static void eval_colors(unsigned char color[4][3],
    }
 }
 
-/* extract 4x4 BGRA block */
+/* extract 4x4 BGRA block from 4x4 RGBA src */
 static void extract_block(const unsigned char *src, int x, int y,
                           int w, int h, unsigned char *block)
 {
@@ -558,11 +558,11 @@ static void extract_block(const unsigned char *src, int x, int y,
       {
          bx = rem[(bw - 1) * 4 + j] + x;
          block[(i * 4 * 4) + (j * 4) + 0] =
-            src[(by * (w * 4)) + (bx * 4) + 0];
+            src[(by * (w * 4)) + (bx * 4) + 2];
          block[(i * 4 * 4) + (j * 4) + 1] =
             src[(by * (w * 4)) + (bx * 4) + 1];
          block[(i * 4 * 4) + (j * 4) + 2] =
-            src[(by * (w * 4)) + (bx * 4) + 2];
+            src[(by * (w * 4)) + (bx * 4) + 0];
          block[(i * 4 * 4) + (j * 4) + 3] =
             src[(by * (w * 4)) + (bx * 4) + 3];
       }
