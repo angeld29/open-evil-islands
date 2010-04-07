@@ -395,7 +395,7 @@ static void CompressMasked( uint8_t const* rgba, int mask, void* block, int form
 		CompressAlphaDxt3( rgba, mask, alphaBock );
 }
 
-void* ce_mmphlp_compress_dxt(void* restrict dst, const void* restrict src,
+void ce_mmphlp_rgba8_compress_dxt(void* restrict dst, const void* restrict src,
 							int width, int height, int format)
 {
 	assert(CE_MMPFILE_FORMAT_DXT1 == format || CE_MMPFILE_FORMAT_DXT3 == format);
@@ -449,8 +449,6 @@ void* ce_mmphlp_compress_dxt(void* restrict dst, const void* restrict src,
 			targetBlock += bytesPerBlock;
 		}
 	}
-
-	return dst;
 }
 
 static int Unpack565( uint8_t const* packed, uint8_t* colour )
@@ -564,55 +562,67 @@ static void Decompress( uint8_t* rgba, void const* block, int format )
 		DecompressAlphaDxt3( rgba, alphaBock );
 }
 
-void* ce_mmphlp_decompress_dxt(void* restrict dst, const void* restrict src,
-								int width, int height, int format)
+void ce_mmphlp_dxt_decompress_rgba8(ce_mmpfile* mmpfile)
 {
-	assert(CE_MMPFILE_FORMAT_DXT1 == format || CE_MMPFILE_FORMAT_DXT3 == format);
+	assert(CE_MMPFILE_FORMAT_DXT1 == mmpfile->format ||
+			CE_MMPFILE_FORMAT_DXT3 == mmpfile->format);
 
-	uint8_t* rgba = dst;
+	int size = ce_mmphlp_storage_requirements_rgba8(mmpfile);
+	void* data = ce_alloc(size);
 
-	// initialise the block input
-	const uint8_t* sourceBlock = src;
-	int bytesPerBlock = CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16;
+	uint8_t* dst = data;
+	const uint8_t* src = mmpfile->texels;
 
-	// loop over blocks
-	for( int y = 0; y < height; y += 4 )
-	{
-		for( int x = 0; x < width; x += 4 )
+	int bytesPerBlock = CE_MMPFILE_FORMAT_DXT1 == mmpfile->format ? 8 : 16;
+
+	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+				i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+		// loop over blocks
+		for( int y = 0; y < height; y += 4 )
 		{
-			// decompress the block
-			uint8_t targetRgba[4*16];
-			Decompress( targetRgba, sourceBlock, format );
-
-			// write the decompressed pixels to the correct image locations
-			uint8_t const* sourcePixel = targetRgba;
-			for( int py = 0; py < 4; ++py )
+			for( int x = 0; x < width; x += 4 )
 			{
-				for( int px = 0; px < 4; ++px )
-				{
-					// get the target location
-					int sx = x + px;
-					int sy = y + py;
-					if( sx < width && sy < height )
-					{
-						uint8_t* targetPixel = rgba + 4*( width*sy + sx );
+				// decompress the block
+				uint8_t targetRgba[4*16];
+				Decompress( targetRgba, src, mmpfile->format );
 
-						// copy the rgba value
-						for( int i = 0; i < 4; ++i )
-							*targetPixel++ = *sourcePixel++;
-					}
-					else
+				// write the decompressed pixels to the correct image locations
+				uint8_t const* sourcePixel = targetRgba;
+				for( int py = 0; py < 4; ++py )
+				{
+					for( int px = 0; px < 4; ++px )
 					{
-						// skip this pixel as its outside the image
-						sourcePixel += 4;
+						// get the target location
+						int sx = x + px;
+						int sy = y + py;
+						if( sx < width && sy < height )
+						{
+							uint8_t* targetPixel = dst + 4*( width*sy + sx );
+
+							// copy the rgba value
+							for( int j = 0; j < 4; ++j )
+								*targetPixel++ = *sourcePixel++;
+						}
+						else
+						{
+							// skip this pixel as its outside the image
+							sourcePixel += 4;
+						}
 					}
 				}
-			}
 
-			// advance
-			sourceBlock += bytesPerBlock;
+				// advance
+				src += bytesPerBlock;
+			}
 		}
+
+		dst += 4 * width * height;
 	}
 
-	return dst;
+	ce_free(mmpfile->data, mmpfile->size);
+
+	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
+	mmpfile->texels = data;
+	mmpfile->size = size;
+	mmpfile->data = data;
 }

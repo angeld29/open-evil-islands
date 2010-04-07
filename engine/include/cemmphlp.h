@@ -28,35 +28,25 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-// pnt3
-
 extern void ce_mmphlp_pnt3_morph_argb8(ce_mmpfile* mmpfile);
-
-// swap
 
 extern void ce_mmphlp_a1rgb5_swap_rgb5a1(ce_mmpfile* mmpfile);
 extern void ce_mmphlp_argb4_swap_rgba4(ce_mmpfile* mmpfile);
 extern void ce_mmphlp_argb8_swap_rgba8(ce_mmpfile* mmpfile);
-
-// unpack
 
 extern void ce_mmphlp_r5g6b5_unpack_rgba8(ce_mmpfile* mmpfile);
 extern void ce_mmphlp_a1rgb5_unpack_rgba8(ce_mmpfile* mmpfile);
 extern void ce_mmphlp_argb4_unpack_rgba8(ce_mmpfile* mmpfile);
 extern void ce_mmphlp_argb8_unpack_rgba8(ce_mmpfile* mmpfile);
 
-// requirements
-
 extern int ce_mmphlp_storage_requirements_rgba8(ce_mmpfile* mmpfile);
 extern int ce_mmphlp_storage_requirements_dxt(int width, int height,
 											int mipmap_count, int format);
 
-// dxt
-
-extern void* ce_mmphlp_compress_dxt(void* restrict dst, const void* restrict src,
+extern void ce_mmphlp_rgba8_compress_dxt(void* restrict dst,
+									const void* restrict src,
 									int width, int height, int format);
-extern void* ce_mmphlp_decompress_dxt(void* restrict dst, const void* restrict src,
-									int width, int height, int format);
+extern void ce_mmphlp_dxt_decompress_rgba8(ce_mmpfile* mmpfile);
 
 #ifdef __cplusplus
 }

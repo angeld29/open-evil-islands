@@ -153,25 +153,10 @@ static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
 			src += size;
 		}
 	} else {
-		int size = ce_mmphlp_storage_requirements_rgba8(mmpfile);
-
-		void* texels = ce_alloc(size);
-
-		uint8_t* dst = texels;
-		uint8_t* src = mmpfile->texels;
-
-		for (int i = 0, w = mmpfile->width, h = mmpfile->height;
-				i < mmpfile->mipmap_count; ++i, w >>= 1, h >>= 1) {
-			ce_mmphlp_decompress_dxt(dst, src, w, h, mmpfile->format);
-			src += ce_mmphlp_storage_requirements_dxt(w, h, 1, mmpfile->format);
-			dst += 4 * w * h;
-		}
-
+		ce_mmphlp_dxt_decompress_rgba8(mmpfile);
 		ce_texture_generate(mmpfile->width, mmpfile->height,
 			mmpfile->mipmap_count, 4,
-			GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, texels);
-
-		ce_free(texels, size);
+			GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, mmpfile->texels);
 	}
 }
 
