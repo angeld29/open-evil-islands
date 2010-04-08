@@ -64,7 +64,10 @@ extern void ce_mmpfile_close(ce_mmpfile* mmpfile);
 
 extern void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path);
 
-extern int ce_mmpfile_storage_requirements(ce_mmpfile* mmpfile);
+extern int ce_mmpfile_storage_requirements(int width, int height, int bit_count);
+extern int ce_mmpfile_storage_requirements_mipmap(int width, int height,
+												int mipmap_count, int bit_count);
+extern int ce_mmpfile_storage_requirements_mmpfile(ce_mmpfile* mmpfile);
 
 #ifdef __cplusplus
 }

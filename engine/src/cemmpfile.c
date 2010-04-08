@@ -98,6 +98,8 @@ void ce_mmpfile_close(ce_mmpfile* mmpfile)
 void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path)
 {
 	assert(CE_MMPFILE_FORMAT_INVALID != mmpfile->format);
+	assert(CE_MMPFILE_FORMAT_PNT3 != mmpfile->format);
+
 	FILE* file = fopen(path, "wb");
 	if (NULL != file) {
 		uint32_t header[19];
@@ -120,18 +122,31 @@ void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path)
 		header[16] = ce_cpu2le32(mmpfile->bshift);
 		header[17] = ce_cpu2le32(mmpfile->bcount);
 		header[18] = ce_cpu2le32(mmpfile->user_data_offset);
+
 		fwrite(header, sizeof(uint32_t), 19, file);
-		fwrite(mmpfile->texels, 1, ce_mmpfile_storage_requirements(mmpfile), file);
+		fwrite(mmpfile->texels,
+			ce_mmpfile_storage_requirements_mmpfile(mmpfile), 1, file);
 		fclose(file);
 	}
 }
 
-int ce_mmpfile_storage_requirements(ce_mmpfile* mmpfile)
+int ce_mmpfile_storage_requirements(int width, int height, int bit_count)
+{
+	return bit_count * width * height / 8;
+}
+
+int ce_mmpfile_storage_requirements_mipmap(int width, int height,
+											int mipmap_count, int bit_count)
 {
 	int size = 0;
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
-			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
-		size += mmpfile->bit_count * width * height / 8;
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+		size += ce_mmpfile_storage_requirements(width, height, bit_count);
 	}
 	return size;
+}
+
+int ce_mmpfile_storage_requirements_mmpfile(ce_mmpfile* mmpfile)
+{
+	return ce_mmpfile_storage_requirements_mipmap(mmpfile->width, mmpfile->height,
+										mmpfile->mipmap_count, mmpfile->bit_count);
 }
