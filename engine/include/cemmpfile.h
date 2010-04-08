@@ -46,6 +46,12 @@ typedef struct {
 	int height;
 	int mipmap_count;
 	int format;
+	int bit_count;
+	int amask, ashift, acount;
+	int rmask, rshift, rcount;
+	int gmask, gshift, gcount;
+	int bmask, bshift, bcount;
+	int user_data_offset;
 	void* texels;
 	size_t size;
 	void* data;
@@ -57,6 +63,8 @@ extern ce_mmpfile* ce_mmpfile_open_resfile(ce_resfile* resfile, int index);
 extern void ce_mmpfile_close(ce_mmpfile* mmpfile);
 
 extern void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path);
+
+extern int ce_mmpfile_storage_requirements(ce_mmpfile* mmpfile);
 
 #ifdef __cplusplus
 }
