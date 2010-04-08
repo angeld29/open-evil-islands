@@ -27,8 +27,8 @@
  *     Copyright (C) 2006 Simon Brown <si@sjbrown.co.uk>
  *     http://code.google.com/p/dds-wic-codec/.
  *
- *  DDS GIMP plugin - fast DXT1 compression
- *  squish - correct DXT1 with alpha / DXT3 decompression
+ *  DDS GIMP plugin - fast DXT1 / DXT3 compression
+ *  DDS WIC Codec - correct DXT1 with alpha / DXT3 decompression
 */
 
 #include <stdbool.h>
@@ -277,101 +277,6 @@ int ce_mmphlp_storage_requirements_dxt(int width, int height,
 	return size;
 }
 
-#define GETL32(buf) \
-   (((unsigned int)(buf)[0]      ) | \
-    ((unsigned int)(buf)[1] <<  8) | \
-    ((unsigned int)(buf)[2] << 16) | \
-    ((unsigned int)(buf)[3] << 24))
-
-#define PUTL16(buf, s) \
-   (buf)[0] = ((s)     ) & 0xff; \
-   (buf)[1] = ((s) >> 8) & 0xff;
-
-#define PUTL32(buf, l) \
-   (buf)[0] = ((l)      ) & 0xff; \
-	(buf)[1] = ((l) >>  8) & 0xff; \
-	(buf)[2] = ((l) >> 16) & 0xff; \
-	(buf)[3] = ((l) >> 24) & 0xff;
-
-#define MIN(a, b)  ((a) < (b) ? (a) : (b))
-#define MAX(a, b)  ((a) > (b) ? (a) : (b))
-
-static const unsigned char quantRB[256 + 16] =
-{
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x08, 0x08,
-   0x08, 0x08, 0x08, 0x08, 0x08, 0x10, 0x10, 0x10,
-   0x10, 0x10, 0x10, 0x10, 0x10, 0x18, 0x18, 0x18,
-   0x18, 0x18, 0x18, 0x18, 0x18, 0x21, 0x21, 0x21,
-   0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x29, 0x29,
-   0x29, 0x29, 0x29, 0x29, 0x29, 0x29, 0x31, 0x31,
-   0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x39, 0x39,
-   0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x42, 0x42,
-   0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x4a, 0x4a,
-   0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x4a, 0x52,
-   0x52, 0x52, 0x52, 0x52, 0x52, 0x52, 0x52, 0x5a,
-   0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x63,
-   0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x6b,
-   0x6b, 0x6b, 0x6b, 0x6b, 0x6b, 0x6b, 0x6b, 0x6b,
-   0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73, 0x73,
-   0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b, 0x7b,
-   0x84, 0x84, 0x84, 0x84, 0x84, 0x84, 0x84, 0x84,
-   0x8c, 0x8c, 0x8c, 0x8c, 0x8c, 0x8c, 0x8c, 0x8c,
-   0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94,
-   0x94, 0x9c, 0x9c, 0x9c, 0x9c, 0x9c, 0x9c, 0x9c,
-   0x9c, 0xa5, 0xa5, 0xa5, 0xa5, 0xa5, 0xa5, 0xa5,
-   0xa5, 0xad, 0xad, 0xad, 0xad, 0xad, 0xad, 0xad,
-   0xad, 0xb5, 0xb5, 0xb5, 0xb5, 0xb5, 0xb5, 0xb5,
-   0xb5, 0xb5, 0xbd, 0xbd, 0xbd, 0xbd, 0xbd, 0xbd,
-   0xbd, 0xbd, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6,
-   0xc6, 0xc6, 0xce, 0xce, 0xce, 0xce, 0xce, 0xce,
-   0xce, 0xce, 0xd6, 0xd6, 0xd6, 0xd6, 0xd6, 0xd6,
-   0xd6, 0xd6, 0xde, 0xde, 0xde, 0xde, 0xde, 0xde,
-   0xde, 0xde, 0xde, 0xe7, 0xe7, 0xe7, 0xe7, 0xe7,
-   0xe7, 0xe7, 0xe7, 0xef, 0xef, 0xef, 0xef, 0xef,
-   0xef, 0xef, 0xef, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
-   0xf7, 0xf7, 0xf7, 0xff, 0xff, 0xff, 0xff, 0xff,
-   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-};
-
-static const unsigned char quantG[256 + 16] =
-{
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x04, 0x04, 0x04, 0x04, 0x08,
-   0x08, 0x08, 0x08, 0x0c, 0x0c, 0x0c, 0x0c, 0x10,
-   0x10, 0x10, 0x10, 0x14, 0x14, 0x14, 0x14, 0x18,
-   0x18, 0x18, 0x18, 0x1c, 0x1c, 0x1c, 0x1c, 0x20,
-   0x20, 0x20, 0x20, 0x24, 0x24, 0x24, 0x24, 0x28,
-   0x28, 0x28, 0x28, 0x2c, 0x2c, 0x2c, 0x2c, 0x30,
-   0x30, 0x30, 0x30, 0x34, 0x34, 0x34, 0x34, 0x38,
-   0x38, 0x38, 0x38, 0x3c, 0x3c, 0x3c, 0x3c, 0x41,
-   0x41, 0x41, 0x41, 0x45, 0x45, 0x45, 0x45, 0x49,
-   0x49, 0x49, 0x49, 0x4d, 0x4d, 0x4d, 0x4d, 0x51,
-   0x51, 0x51, 0x51, 0x55, 0x55, 0x55, 0x55, 0x55,
-   0x59, 0x59, 0x59, 0x59, 0x5d, 0x5d, 0x5d, 0x5d,
-   0x61, 0x61, 0x61, 0x61, 0x65, 0x65, 0x65, 0x65,
-   0x69, 0x69, 0x69, 0x69, 0x6d, 0x6d, 0x6d, 0x6d,
-   0x71, 0x71, 0x71, 0x71, 0x75, 0x75, 0x75, 0x75,
-   0x79, 0x79, 0x79, 0x79, 0x7d, 0x7d, 0x7d, 0x7d,
-   0x82, 0x82, 0x82, 0x82, 0x86, 0x86, 0x86, 0x86,
-   0x8a, 0x8a, 0x8a, 0x8a, 0x8e, 0x8e, 0x8e, 0x8e,
-   0x92, 0x92, 0x92, 0x92, 0x96, 0x96, 0x96, 0x96,
-   0x9a, 0x9a, 0x9a, 0x9a, 0x9e, 0x9e, 0x9e, 0x9e,
-   0xa2, 0xa2, 0xa2, 0xa2, 0xa6, 0xa6, 0xa6, 0xa6,
-   0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xae, 0xae, 0xae,
-   0xae, 0xb2, 0xb2, 0xb2, 0xb2, 0xb6, 0xb6, 0xb6,
-   0xb6, 0xba, 0xba, 0xba, 0xba, 0xbe, 0xbe, 0xbe,
-   0xbe, 0xc3, 0xc3, 0xc3, 0xc3, 0xc7, 0xc7, 0xc7,
-   0xc7, 0xcb, 0xcb, 0xcb, 0xcb, 0xcf, 0xcf, 0xcf,
-   0xcf, 0xd3, 0xd3, 0xd3, 0xd3, 0xd7, 0xd7, 0xd7,
-   0xd7, 0xdb, 0xdb, 0xdb, 0xdb, 0xdf, 0xdf, 0xdf,
-   0xdf, 0xe3, 0xe3, 0xe3, 0xe3, 0xe7, 0xe7, 0xe7,
-   0xe7, 0xeb, 0xeb, 0xeb, 0xeb, 0xef, 0xef, 0xef,
-   0xef, 0xf3, 0xf3, 0xf3, 0xf3, 0xf7, 0xf7, 0xf7,
-   0xf7, 0xfb, 0xfb, 0xfb, 0xfb, 0xff, 0xff, 0xff,
-   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-};
-
 static const unsigned char omatch5[256][2] =
 {
    {0x00, 0x00}, {0x00, 0x00}, {0x00, 0x01}, {0x00, 0x01},
@@ -572,13 +477,13 @@ static void eval_colors(unsigned char color[4][3],
    }
 }
 
-/* extract 4x4 BGRA block from 4x4 RGBA src */
+/* extract 4x4 BGRA block from 4x4 RGBA source */
 static void extract_block(const unsigned char *src, int x, int y,
                           int w, int h, unsigned char *block)
 {
    int i, j;
-   int bw = MIN(w - x, 4);
-   int bh = MIN(h - y, 4);
+   int bw = ce_min(w - x, 4);
+   int bh = ce_min(h - y, 4);
    int bx, by;
    const int rem[] =
    {
@@ -606,61 +511,9 @@ static void extract_block(const unsigned char *src, int x, int y,
    }
 }
 
-/* Block dithering function.  Simply dithers a block to 565 RGB.
- * (Floyd-Steinberg)
- */
-static void dither_block(unsigned char *dst, const unsigned char *block)
-{
-   int err[8], *ep1 = err, *ep2 = err + 4, *tmp;
-   int c, y;
-   unsigned char *bp, *dp;
-   const unsigned char *quant;
-
-   /* process channels seperately */
-   for(c = 0; c < 3; ++c)
-   {
-      bp = (unsigned char *)block;
-      dp = dst;
-      quant = (c == 1) ? quantG + 8 : quantRB + 8;
-
-      bp += c;
-      dp += c;
-
-      memset(err, 0, sizeof(err));
-
-      for(y = 0; y < 4; ++y)
-      {
-         /* pixel 0 */
-         dp[ 0] = quant[bp[ 0] + ((3 * ep2[1] + 5 * ep2[0]) >> 4)];
-         ep1[0] = bp[ 0] - dp[ 0];
-
-         /* pixel 1 */
-         dp[ 4] = quant[bp[ 4] + ((7 * ep1[0] + 3 * ep2[2] + 5 * ep2[1] + ep2[0]) >> 4)];
-         ep1[1] = bp[ 4] - dp[ 4];
-
-         /* pixel 2 */
-         dp[ 8] = quant[bp[ 8] + ((7 * ep1[1] + 3 * ep2[3] + 5 * ep2[2] + ep2[1]) >> 4)];
-         ep1[2] = bp[ 8] - dp[ 8];
-
-         /* pixel 3 */
-         dp[12] = quant[bp[12] + ((7 * ep1[2] + 5 * ep2[3] + ep2[2]) >> 4)];
-         ep1[3] = bp[12] - dp[12];
-
-         /* advance to next line */
-         tmp = ep1;
-         ep1 = ep2;
-         ep2 = tmp;
-
-         bp += 16;
-         dp += 16;
-      }
-   }
-}
-
 /* Color matching function */
 static unsigned int match_colors_block(const unsigned char *block,
-                                       unsigned char color[4][3],
-                                       int dither)
+                                       unsigned char color[4][3])
 {
    unsigned int mask = 0;
    int dirb = color[0][0] - color[1][0];
@@ -680,10 +533,8 @@ static unsigned int match_colors_block(const unsigned char *block,
    halfpt = (stops[3] + stops[2]) >> 1;
    c3pt = (stops[2] + stops[0]) >> 1;
 
-   if(!dither)
-   {
-      /* the version without dithering is straight-forward */
-      for(i = 15; i >= 0; --i)
+	/* the version without dithering is straight-forward */
+	for(i = 15; i >= 0; --i)
       {
          mask <<= 2;
          dot = dots[i];
@@ -693,70 +544,6 @@ static unsigned int match_colors_block(const unsigned char *block,
          else
             mask |= (dot < c3pt) ? 2 : 0;
       }
-   }
-   else
-   {
-      /* with floyd-steinberg dithering (see above) */
-      int err[8], *ep1 = err, *ep2 = err + 4, *tmp;
-      int *dp = dots, y, lmask, step;
-
-      c0pt <<= 4;
-      halfpt <<= 4;
-      c3pt <<= 4;
-
-      memset(err, 0, sizeof(err));
-
-      for(y = 0; y < 4; ++y)
-      {
-         /* pixel 0 */
-         dot = (dp[0] << 4) + (3 * ep2[1] + 5 * ep2[0]);
-         if(dot < halfpt)
-            step = (dot < c0pt) ? 1 : 3;
-         else
-            step = (dot < c3pt) ? 2 : 0;
-
-         ep1[0] = dp[0] - stops[step];
-         lmask = step;
-
-         /* pixel 1 */
-         dot = (dp[1] << 4) + (7 * ep1[0] + 3 * ep2[2] + 5 * ep2[1] + ep2[0]);
-         if(dot < halfpt)
-            step = (dot < c0pt) ? 1 : 3;
-         else
-            step = (dot < c3pt) ? 2 : 0;
-
-         ep1[1] = dp[1] - stops[step];
-         lmask |= step << 2;
-
-         /* pixel 2 */
-         dot = (dp[2] << 4) + (7 * ep1[1] + 3 * ep2[3] + 5 * ep2[2] + ep2[1]);
-         if(dot < halfpt)
-            step = (dot < c0pt) ? 1 : 3;
-         else
-            step = (dot < c3pt) ? 2 : 0;
-
-         ep1[2] = dp[2] - stops[step];
-         lmask |= step << 4;
-
-         /* pixel 3 */
-         dot = (dp[3] << 4) + (7 * ep1[2] + 5 * ep2[3] + ep2[2]);
-         if(dot < halfpt)
-            step = (dot < c0pt) ? 1 : 3;
-         else
-            step = (dot < c3pt) ? 2 : 0;
-
-         ep1[3] = dp[3] - stops[step];
-         lmask |= step << 6;
-
-         /* advance to next line */
-         tmp = ep1;
-         ep1 = ep2;
-         ep2 = tmp;
-
-         dp += 4;
-         mask |= lmask << (y * 8);
-      }
-   }
 
    return(mask);
 }
@@ -863,7 +650,7 @@ static void optimize_colors_block(const unsigned char *block,
    vfg = fabsf(vfg);
    vfb = fabsf(vfb);
 
-   magn = MAX(MAX(vfr, vfg), vfb);
+   magn = fmaxf(fmaxf(vfr, vfg), vfb);
 
    if(magn < 4.0) /* too small, default to luminance */
    {
@@ -1012,11 +799,26 @@ static int refine_block(const unsigned char *block,
    return(oldmin != *min16 || oldmax != *max16);
 }
 
+#define GETL32(buf) \
+   (((unsigned int)(buf)[0]      ) | \
+    ((unsigned int)(buf)[1] <<  8) | \
+    ((unsigned int)(buf)[2] << 16) | \
+    ((unsigned int)(buf)[3] << 24))
+
+#define PUTL16(buf, s) \
+   (buf)[0] = ((s)     ) & 0xff; \
+   (buf)[1] = ((s) >> 8) & 0xff;
+
+#define PUTL32(buf, l) \
+   (buf)[0] = ((l)      ) & 0xff; \
+	(buf)[1] = ((l) >>  8) & 0xff; \
+	(buf)[2] = ((l) >> 16) & 0xff; \
+	(buf)[3] = ((l) >> 24) & 0xff;
+
 static void encode_color_block(unsigned char *dst,
-                               const unsigned char *block,
-                               int dither, int dxt1_alpha)
+                               const unsigned char *block, int format)
 {
-   unsigned char dblock[64], color[4][3];
+   unsigned char color[4][3];
    unsigned short min16, max16;
    unsigned int v, mn, mx, mask;
    int i, block_has_alpha = 0;
@@ -1029,33 +831,29 @@ static void encode_color_block(unsigned char *dst,
    {
       block_has_alpha = block_has_alpha || (block[4 * i + 3] < 255);
       v = GETL32(&block[4 * i]);
-      mx = MAX(mx, v);
-      mn = MIN(mn, v);
+      mx = mx > v ? mx : v;
+      mn = mn < v ? mn : v;
    }
 
    if(mn != mx) /* block is not a solid color, continue with compression */
    {
-      /* compute dithered block for PCA if desired */
-      if(dither)
-         dither_block(dblock, block);
-
       /* pca + map along principal axis */
-      optimize_colors_block(dither ? dblock : block, &max16, &min16);
+      optimize_colors_block(block, &max16, &min16);
       if(max16 != min16)
       {
          eval_colors(color, max16, min16);
-         mask = match_colors_block(block, color, dither != 0);
+         mask = match_colors_block(block, color);
       }
       else
          mask = 0;
 
       /* refine */
-      refine_block(dither ? dblock : block, &max16, &min16, mask);
+      refine_block(block, &max16, &min16, mask);
 
       if(max16 != min16)
       {
          eval_colors(color, max16, min16);
-         mask = match_colors_block(block, color, dither != 0);
+         mask = match_colors_block(block, color);
       }
       else
          mask = 0;
@@ -1072,7 +870,7 @@ static void encode_color_block(unsigned char *dst,
    }
 
    /* HACK! for DXT1 blocks which have non-opaque pixels */
-   if(dxt1_alpha && block_has_alpha)
+   if(CE_MMPFILE_FORMAT_DXT1 == format && block_has_alpha)
    {
       if(max16 > min16)
       {
@@ -1082,7 +880,7 @@ static void encode_color_block(unsigned char *dst,
       mask = match_colors_block_DXT1alpha(block, color);
    }
 
-   if(max16 < min16 && !(dxt1_alpha && block_has_alpha))
+   if(max16 < min16 && !(CE_MMPFILE_FORMAT_DXT1 == format && block_has_alpha))
    {
       max16 ^= min16; min16 ^= max16; max16 ^= min16;
       mask ^= 0x55555555;
@@ -1093,14 +891,30 @@ static void encode_color_block(unsigned char *dst,
    PUTL32(&dst[4], mask);
 }
 
-void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile)
+/* write DXT3 alpha block */
+static void encode_alpha_block_DXT3(unsigned char *dst,
+                                    const unsigned char *block)
+{
+   int i, a1, a2;
+   
+   block += 3;
+   
+   for(i = 0; i < 8; ++i)
+   {
+      a1 = block[8 * i + 0];
+      a2 = block[8 * i + 4];
+      *dst++ = ((a2 >> 4) << 4) | (a1 >> 4);
+   }
+}
+
+void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile, int format)
 {
 	assert(0 == (mmpfile->width & 3) && 0 == (mmpfile->height & 3)); // is mul4
 
 	int size = ce_mmphlp_storage_requirements_dxt(mmpfile->width,
 													mmpfile->height,
 													mmpfile->mipmap_count,
-													CE_MMPFILE_FORMAT_DXT1);
+													format);
 	void* data = ce_alloc(size);
 
 	uint8_t* dst = data;
@@ -1115,7 +929,11 @@ void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile)
 			for(int x = 0; x < width; x += 4)
 			{
 				extract_block(src, x, y, width, height, block);
-				encode_color_block(dst, block, 0, 1);
+				if (CE_MMPFILE_FORMAT_DXT3 == format) {
+					encode_alpha_block_DXT3(dst, block);
+					dst += 8;
+				}
+				encode_color_block(dst, block, format);
 				dst += 8;
 			}
 		}
@@ -1124,7 +942,7 @@ void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile)
 
 	ce_free(mmpfile->data, mmpfile->size);
 
-	mmpfile->format = CE_MMPFILE_FORMAT_DXT1;
+	mmpfile->format = format;
 	mmpfile->texels = data;
 	mmpfile->size = size;
 	mmpfile->data = data;
