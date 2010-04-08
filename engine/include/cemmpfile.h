@@ -56,20 +56,22 @@ typedef struct {
 	void* data;
 } ce_mmpfile;
 
+extern ce_mmpfile* ce_mmpfile_new(int width, int height,
+									int mipmap_count, int format);
 extern ce_mmpfile* ce_mmpfile_open_data(void* data, size_t size);
 extern ce_mmpfile* ce_mmpfile_open_file(const char* path);
 extern ce_mmpfile* ce_mmpfile_open_resfile(ce_resfile* resfile, int index);
 extern void ce_mmpfile_close(ce_mmpfile* mmpfile);
+
+extern void ce_mmpfile_write_header(ce_mmpfile* mmpfile, int format);
 
 extern void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path);
 
 extern void ce_mmpfile_replace_texels(ce_mmpfile* mmpfile,
 										void* texels, size_t size);
 
-extern int ce_mmpfile_storage_requirements(int width, int height, int bit_count);
-extern int ce_mmpfile_storage_requirements_mipmap(int width, int height,
-												int mipmap_count, int bit_count);
-extern int ce_mmpfile_storage_requirements_mmpfile(ce_mmpfile* mmpfile);
+extern int ce_mmpfile_storage_requirements(int width, int height,
+											int mipmap_count, int bit_count);
 
 #ifdef __cplusplus
 }

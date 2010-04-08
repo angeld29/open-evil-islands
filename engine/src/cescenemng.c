@@ -262,6 +262,7 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 			snprintf(texture_name, sizeof(texture_name),
 					"%s%03d", mprfile->name->str, i);
 			mmpfiles[i] = ce_texmng_open_mmpfile(scenemng->texmng, texture_name);
+			ce_mmphlp_dxt_decompress_rgba8(mmpfiles[i]);
 		}
 
 		for (int z = 0; z < mprfile->sector_z_count; ++z) {

@@ -45,52 +45,6 @@
 #include "cealloc.h"
 #include "cemmphlp.h"
 
-static void ce_mmphlp_write_header(ce_mmpfile* mmpfile, int format)
-{
-	switch (mmpfile->format = format) {
-	case CE_MMPFILE_FORMAT_DXT1:
-		mmpfile->bit_count = 4;
-		mmpfile->amask = 32768u;
-		mmpfile->ashift = 15;
-		mmpfile->acount = 1;
-		mmpfile->rmask = 31744u;
-		mmpfile->rshift = 10;
-		mmpfile->rcount = 5;
-		mmpfile->gmask = 992u;
-		mmpfile->gshift = 5;
-		mmpfile->gcount = 5;
-		mmpfile->bmask = 31u;
-		mmpfile->bshift = 0;
-		mmpfile->bcount = 5;
-		break;
-	/*case CE_MMPFILE_FORMAT_DXT3:
-		break;
-	case CE_MMPFILE_FORMAT_R5G6B5:
-		break;
-	case CE_MMPFILE_FORMAT_A1RGB5:
-		break;
-	case CE_MMPFILE_FORMAT_ARGB4:
-		break;*/
-	case CE_MMPFILE_FORMAT_ARGB8:
-		mmpfile->bit_count = 32;
-		mmpfile->amask = 4278190080u;
-		mmpfile->ashift = 24;
-		mmpfile->acount = 8;
-		mmpfile->rmask = 16711680u;
-		mmpfile->rshift = 16;
-		mmpfile->rcount = 8;
-		mmpfile->gmask = 65280u;
-		mmpfile->gshift = 8;
-		mmpfile->gcount = 8;
-		mmpfile->bmask = 255u;
-		mmpfile->bshift = 0;
-		mmpfile->bcount = 8;
-		break;
-	default:
-		assert(false);
-	};
-}
-
 static void ce_mmphlp_decompress_pnt3(void* restrict dst,
 										const void* restrict src, int size)
 {
@@ -124,7 +78,8 @@ void ce_mmphlp_pnt3_convert_argb8(ce_mmpfile* mmpfile)
 {
 	assert(CE_MMPFILE_FORMAT_PNT3 == mmpfile->format);
 
-	int size = ce_mmpfile_storage_requirements_mmpfile(mmpfile);
+	int size = ce_mmpfile_storage_requirements(mmpfile->width, mmpfile->height,
+														1, mmpfile->bit_count);
 
 	// mipmap_count == compressed size for pnt3, see doc/formats/mmpfile.txt
 	if (mmpfile->mipmap_count < size) { // pnt3 compressed
@@ -134,7 +89,7 @@ void ce_mmphlp_pnt3_convert_argb8(ce_mmpfile* mmpfile)
 	}
 
 	mmpfile->mipmap_count = 1;
-	ce_mmphlp_write_header(mmpfile, CE_MMPFILE_FORMAT_ARGB8);
+	ce_mmpfile_write_header(mmpfile, CE_MMPFILE_FORMAT_ARGB8);
 }
 
 static void ce_mmphlp_argb_swap_rgba(ce_mmpfile* mmpfile,
@@ -945,7 +900,7 @@ void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile, int format)
 	}
 
 	ce_mmpfile_replace_texels(mmpfile, texels, size);
-	ce_mmphlp_write_header(mmpfile, format);
+	ce_mmpfile_write_header(mmpfile, format);
 }
 
 static int Unpack565( uint8_t const* packed, uint8_t* colour )

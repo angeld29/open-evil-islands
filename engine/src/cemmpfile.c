@@ -33,6 +33,21 @@
 
 static const unsigned int CE_MMPFILE_SIGNATURE = 0x504d4d;
 
+ce_mmpfile* ce_mmpfile_new(int width, int height,
+							int mipmap_count, int format)
+{
+	ce_mmpfile* mmpfile = ce_alloc(sizeof(ce_mmpfile));
+	mmpfile->width = width;
+	mmpfile->height = height;
+	mmpfile->mipmap_count = mipmap_count;
+	ce_mmpfile_write_header(mmpfile, format);
+	mmpfile->size = ce_mmpfile_storage_requirements(width, height,
+									mipmap_count, mmpfile->bit_count);
+	mmpfile->data = ce_alloc(mmpfile->size);
+	mmpfile->texels = mmpfile->data;
+	return mmpfile;
+}
+
 ce_mmpfile* ce_mmpfile_open_data(void* data, size_t size)
 {
 	uint32_t* ptr = data;
@@ -95,6 +110,52 @@ void ce_mmpfile_close(ce_mmpfile* mmpfile)
 	}
 }
 
+void ce_mmpfile_write_header(ce_mmpfile* mmpfile, int format)
+{
+	switch (mmpfile->format = format) {
+	case CE_MMPFILE_FORMAT_DXT1:
+		mmpfile->bit_count = 4;
+		mmpfile->amask = 32768u;
+		mmpfile->ashift = 15;
+		mmpfile->acount = 1;
+		mmpfile->rmask = 31744u;
+		mmpfile->rshift = 10;
+		mmpfile->rcount = 5;
+		mmpfile->gmask = 992u;
+		mmpfile->gshift = 5;
+		mmpfile->gcount = 5;
+		mmpfile->bmask = 31u;
+		mmpfile->bshift = 0;
+		mmpfile->bcount = 5;
+		break;
+	/*case CE_MMPFILE_FORMAT_DXT3:
+		break;
+	case CE_MMPFILE_FORMAT_R5G6B5:
+		break;
+	case CE_MMPFILE_FORMAT_A1RGB5:
+		break;
+	case CE_MMPFILE_FORMAT_ARGB4:
+		break;*/
+	case CE_MMPFILE_FORMAT_ARGB8:
+		mmpfile->bit_count = 32;
+		mmpfile->amask = 4278190080u;
+		mmpfile->ashift = 24;
+		mmpfile->acount = 8;
+		mmpfile->rmask = 16711680u;
+		mmpfile->rshift = 16;
+		mmpfile->rcount = 8;
+		mmpfile->gmask = 65280u;
+		mmpfile->gshift = 8;
+		mmpfile->gcount = 8;
+		mmpfile->bmask = 255u;
+		mmpfile->bshift = 0;
+		mmpfile->bcount = 8;
+		break;
+	default:
+		assert(false);
+	};
+}
+
 void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path)
 {
 	assert(CE_MMPFILE_FORMAT_GENERIC != mmpfile->format);
@@ -124,8 +185,8 @@ void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path)
 		header[18] = ce_cpu2le32(mmpfile->user_data_offset);
 
 		fwrite(header, sizeof(uint32_t), 19, file);
-		fwrite(mmpfile->texels,
-			ce_mmpfile_storage_requirements_mmpfile(mmpfile), 1, file);
+		fwrite(mmpfile->texels, ce_mmpfile_storage_requirements(mmpfile->width,
+			mmpfile->height, mmpfile->mipmap_count, mmpfile->bit_count), 1, file);
 		fclose(file);
 	}
 }
@@ -138,28 +199,12 @@ void ce_mmpfile_replace_texels(ce_mmpfile* mmpfile, void* texels, size_t size)
 	mmpfile->data = texels;
 }
 
-int ce_mmpfile_storage_requirements(int width, int height, int bit_count)
-{
-	return bit_count * width * height / 8;
-}
-
-int ce_mmpfile_storage_requirements_mipmap(int width, int height,
-											int mipmap_count, int bit_count)
+int ce_mmpfile_storage_requirements(int width, int height,
+									int mipmap_count, int bit_count)
 {
 	int size = 0;
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
-		size += ce_mmpfile_storage_requirements(width, height, bit_count);
+		size += bit_count * width * height / 8;
 	}
 	return size;
-}
-
-int ce_mmpfile_storage_requirements_mmpfile(ce_mmpfile* mmpfile)
-{
-	if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
-		return ce_mmpfile_storage_requirements(mmpfile->width,
-												mmpfile->height,
-												mmpfile->bit_count);
-	}
-	return ce_mmpfile_storage_requirements_mipmap(mmpfile->width, mmpfile->height,
-										mmpfile->mipmap_count, mmpfile->bit_count);
 }
