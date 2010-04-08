@@ -30,9 +30,6 @@
 #include "cemprhlp.h"
 #include "cescenemng.h"
 
-// TODO: test
-#include "cemmphlp.h"
-
 ce_scenemng* ce_scenemng_new(const char* root_path)
 {
 	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
@@ -78,24 +75,6 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 				root_path, figure_resources[i]);
 		ce_figmng_register_resource(scenemng->figmng, path);
 	}
-
-	/*ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(scenemng->texmng, "bz8k000");
-
-	ce_mmphlp_dxt_decompress_rgba8(mmpfile);
-
-	void* data = ce_alloc(mmpfile->size);
-
-	ce_mmphlp_rotate90_rgba8(mmpfile->width, mmpfile->height,
-								data, mmpfile->texels);
-
-	ce_free(mmpfile->data, mmpfile->size);
-	mmpfile->texels = data;
-	mmpfile->data = data;
-
-	ce_mmphlp_rgba8_compress_dxt(mmpfile);
-
-	ce_texmng_save_mmpfile(scenemng->texmng, "bz8k000000", mmpfile);
-	ce_mmpfile_close(mmpfile);*/
 
 	return scenemng;
 }
