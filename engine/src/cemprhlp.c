@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include "celib.h"
+#include "cealloc.h"
 #include "cemprhlp.h"
 
 ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,

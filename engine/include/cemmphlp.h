@@ -39,16 +39,6 @@ extern void ce_mmphlp_a1rgb5_unpack_rgba8(ce_mmpfile* mmpfile);
 extern void ce_mmphlp_argb4_unpack_rgba8(ce_mmpfile* mmpfile);
 extern void ce_mmphlp_argb8_unpack_rgba8(ce_mmpfile* mmpfile);
 
-extern void ce_mmphlp_rotate90_rgba8(int width, int height,
-										void* restrict dst,
-										const void* restrict src);
-
-extern void ce_mmphlp_rotate180_rgba8(int width, int height, void* texels);
-
-extern void ce_mmphlp_rotate270_rgba8(int width, int height,
-										void* restrict dst,
-										const void* restrict src);
-
 extern int ce_mmphlp_storage_requirements_rgba8(int width, int height,
 												int mipmap_count);
 

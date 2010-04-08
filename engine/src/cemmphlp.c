@@ -222,37 +222,6 @@ void ce_mmphlp_argb8_unpack_rgba8(ce_mmpfile* mmpfile)
 	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
 }
 
-void ce_mmphlp_rotate90_rgba8(int width, int height,
-								void* restrict dst,
-								const void* restrict src)
-{
-	uint32_t* d = dst;
-	const uint32_t* s = src;
-	for (int i = 0; i < height; ++i) {
-		for (int j = 0; j < width; ++j) {
-			*d++ = s[j * width + i];
-		}
-	}
-}
-
-void ce_mmphlp_rotate180_rgba8(int width, int height, void* texels)
-{
-	uint32_t tmp;
-	uint32_t* head = texels;
-	uint32_t* tail = head + width * height - 1;
-	while (head < tail) {
-		tmp = *head;
-		*head++ = *tail;
-		*tail-- = tmp;
-	}
-}
-
-void ce_mmphlp_rotate270_rgba8(int width, int height,
-								void* restrict dst,
-								const void* restrict src)
-{
-}
-
 int ce_mmphlp_storage_requirements_rgba8(int width, int height,
 										int mipmap_count)
 {
