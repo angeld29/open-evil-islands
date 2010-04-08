@@ -97,7 +97,7 @@ void ce_mmpfile_close(ce_mmpfile* mmpfile)
 
 void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path)
 {
-	assert(CE_MMPFILE_FORMAT_INVALID != mmpfile->format);
+	assert(CE_MMPFILE_FORMAT_GENERIC != mmpfile->format);
 	assert(CE_MMPFILE_FORMAT_PNT3 != mmpfile->format);
 
 	FILE* file = fopen(path, "wb");
@@ -130,6 +130,14 @@ void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path)
 	}
 }
 
+void ce_mmpfile_replace_texels(ce_mmpfile* mmpfile, void* texels, size_t size)
+{
+	ce_free(mmpfile->data, mmpfile->size);
+	mmpfile->texels = texels;
+	mmpfile->size = size;
+	mmpfile->data = texels;
+}
+
 int ce_mmpfile_storage_requirements(int width, int height, int bit_count)
 {
 	return bit_count * width * height / 8;
@@ -147,6 +155,11 @@ int ce_mmpfile_storage_requirements_mipmap(int width, int height,
 
 int ce_mmpfile_storage_requirements_mmpfile(ce_mmpfile* mmpfile)
 {
+	if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
+		return ce_mmpfile_storage_requirements(mmpfile->width,
+												mmpfile->height,
+												mmpfile->bit_count);
+	}
 	return ce_mmpfile_storage_requirements_mipmap(mmpfile->width, mmpfile->height,
 										mmpfile->mipmap_count, mmpfile->bit_count);
 }

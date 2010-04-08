@@ -31,7 +31,7 @@ extern "C"
 #endif /* __cplusplus */
 
 enum {
-	CE_MMPFILE_FORMAT_INVALID,
+	CE_MMPFILE_FORMAT_GENERIC,
 	CE_MMPFILE_FORMAT_DXT1 = 0x31545844,
 	CE_MMPFILE_FORMAT_DXT3 = 0x33545844,
 	CE_MMPFILE_FORMAT_PNT3 = 0x33544e50,
@@ -47,10 +47,9 @@ typedef struct {
 	int mipmap_count;
 	int format;
 	int bit_count;
-	int amask, ashift, acount;
-	int rmask, rshift, rcount;
-	int gmask, gshift, gcount;
-	int bmask, bshift, bcount;
+	unsigned int amask, rmask, gmask, bmask;
+	int ashift, rshift, gshift, bshift;
+	int acount, rcount, gcount, bcount;
 	int user_data_offset;
 	void* texels;
 	size_t size;
@@ -63,6 +62,9 @@ extern ce_mmpfile* ce_mmpfile_open_resfile(ce_resfile* resfile, int index);
 extern void ce_mmpfile_close(ce_mmpfile* mmpfile);
 
 extern void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path);
+
+extern void ce_mmpfile_replace_texels(ce_mmpfile* mmpfile,
+										void* texels, size_t size);
 
 extern int ce_mmpfile_storage_requirements(int width, int height, int bit_count);
 extern int ce_mmpfile_storage_requirements_mipmap(int width, int height,

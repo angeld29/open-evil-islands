@@ -45,6 +45,52 @@
 #include "cealloc.h"
 #include "cemmphlp.h"
 
+static void ce_mmphlp_write_header(ce_mmpfile* mmpfile, int format)
+{
+	switch (mmpfile->format = format) {
+	case CE_MMPFILE_FORMAT_DXT1:
+		mmpfile->bit_count = 4;
+		mmpfile->amask = 32768u;
+		mmpfile->ashift = 15;
+		mmpfile->acount = 1;
+		mmpfile->rmask = 31744u;
+		mmpfile->rshift = 10;
+		mmpfile->rcount = 5;
+		mmpfile->gmask = 992u;
+		mmpfile->gshift = 5;
+		mmpfile->gcount = 5;
+		mmpfile->bmask = 31u;
+		mmpfile->bshift = 0;
+		mmpfile->bcount = 5;
+		break;
+	/*case CE_MMPFILE_FORMAT_DXT3:
+		break;
+	case CE_MMPFILE_FORMAT_R5G6B5:
+		break;
+	case CE_MMPFILE_FORMAT_A1RGB5:
+		break;
+	case CE_MMPFILE_FORMAT_ARGB4:
+		break;*/
+	case CE_MMPFILE_FORMAT_ARGB8:
+		mmpfile->bit_count = 32;
+		mmpfile->amask = 4278190080u;
+		mmpfile->ashift = 24;
+		mmpfile->acount = 8;
+		mmpfile->rmask = 16711680u;
+		mmpfile->rshift = 16;
+		mmpfile->rcount = 8;
+		mmpfile->gmask = 65280u;
+		mmpfile->gshift = 8;
+		mmpfile->gcount = 8;
+		mmpfile->bmask = 255u;
+		mmpfile->bshift = 0;
+		mmpfile->bcount = 8;
+		break;
+	default:
+		assert(false);
+	};
+}
+
 static void ce_mmphlp_decompress_pnt3(void* restrict dst,
 										const void* restrict src, int size)
 {
@@ -65,9 +111,9 @@ static void ce_mmphlp_decompress_pnt3(void* restrict dst,
 		} else {
 			memcpy(d, s - 1 - n, n * sizeof(uint32_t));
 			d += n * sizeof(uint32_t);
-			n = 0;
 			memset(d, '\0', v);
 			d += v;
+			n = 0;
 		}
 	}
 
@@ -78,25 +124,17 @@ void ce_mmphlp_pnt3_convert_argb8(ce_mmpfile* mmpfile)
 {
 	assert(CE_MMPFILE_FORMAT_PNT3 == mmpfile->format);
 
-	int size = 4 * mmpfile->width * mmpfile->height;
+	int size = ce_mmpfile_storage_requirements_mmpfile(mmpfile);
 
 	// mipmap_count == compressed size for pnt3, see doc/formats/mmpfile.txt
 	if (mmpfile->mipmap_count < size) { // pnt3 compressed
-		void* data = ce_alloc(size);
-
-		ce_mmphlp_decompress_pnt3(data, mmpfile->texels, mmpfile->mipmap_count);
-
-		ce_free(mmpfile->data, mmpfile->size);
-
-		mmpfile->texels = data;
-		mmpfile->size = size;
-		mmpfile->data = data;
+		void* texels = ce_alloc(size);
+		ce_mmphlp_decompress_pnt3(texels, mmpfile->texels, mmpfile->mipmap_count);
+		ce_mmpfile_replace_texels(mmpfile, texels, size);
 	}
 
 	mmpfile->mipmap_count = 1;
-	mmpfile->format = CE_MMPFILE_FORMAT_ARGB8;
-
-	// TODO: write full argb8 header
+	ce_mmphlp_write_header(mmpfile, CE_MMPFILE_FORMAT_ARGB8);
 }
 
 static void ce_mmphlp_argb_swap_rgba(ce_mmpfile* mmpfile,
@@ -112,7 +150,7 @@ static void ce_mmphlp_argb_swap_rgba(ce_mmpfile* mmpfile,
 		}
 	}
 
-	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
+	mmpfile->format = CE_MMPFILE_FORMAT_GENERIC;
 }
 
 void ce_mmphlp_a1rgb5_swap_rgb5a1(ce_mmpfile* mmpfile)
@@ -141,7 +179,7 @@ void ce_mmphlp_argb8_swap_rgba8(ce_mmpfile* mmpfile)
 		}
 	}
 
-	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
+	mmpfile->format = CE_MMPFILE_FORMAT_GENERIC;
 }
 
 static void ce_mmphlp_argb_unpack_rgba(ce_mmpfile* mmpfile,
@@ -152,9 +190,9 @@ static void ce_mmphlp_argb_unpack_rgba(ce_mmpfile* mmpfile,
 	int size = ce_mmphlp_storage_requirements_rgba8(mmpfile->width,
 													mmpfile->height,
 													mmpfile->mipmap_count);
-	void* data = ce_alloc(size);
+	void* texels = ce_alloc(size);
 
-	uint8_t* dst = data;
+	uint8_t* dst = texels;
 	const uint16_t* src = mmpfile->texels;
 
 	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
@@ -167,12 +205,9 @@ static void ce_mmphlp_argb_unpack_rgba(ce_mmpfile* mmpfile,
 		}
 	}
 
-	ce_free(mmpfile->data, mmpfile->size);
+	ce_mmpfile_replace_texels(mmpfile, texels, size);
 
-	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
-	mmpfile->texels = data;
-	mmpfile->size = size;
-	mmpfile->data = data;
+	mmpfile->format = CE_MMPFILE_FORMAT_GENERIC;
 }
 
 void ce_mmphlp_r5g6b5_unpack_rgba8(ce_mmpfile* mmpfile)
@@ -219,7 +254,7 @@ void ce_mmphlp_argb8_unpack_rgba8(ce_mmpfile* mmpfile)
 		}
 	}
 
-	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
+	mmpfile->format = CE_MMPFILE_FORMAT_GENERIC;
 }
 
 int ce_mmphlp_storage_requirements_rgba8(int width, int height,
@@ -865,9 +900,9 @@ static void encode_alpha_block_DXT3(unsigned char *dst,
                                     const unsigned char *block)
 {
    int i, a1, a2;
-   
+
    block += 3;
-   
+
    for(i = 0; i < 8; ++i)
    {
       a1 = block[8 * i + 0];
@@ -884,9 +919,9 @@ void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile, int format)
 													mmpfile->height,
 													mmpfile->mipmap_count,
 													format);
-	void* data = ce_alloc(size);
+	void* texels = ce_alloc(size);
 
-	uint8_t* dst = data;
+	uint8_t* dst = texels;
 	const uint8_t* src = mmpfile->texels;
 
 	unsigned char block[64];
@@ -909,12 +944,8 @@ void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile, int format)
 		src += 4 * width * height;
 	}
 
-	ce_free(mmpfile->data, mmpfile->size);
-
-	mmpfile->format = format;
-	mmpfile->texels = data;
-	mmpfile->size = size;
-	mmpfile->data = data;
+	ce_mmpfile_replace_texels(mmpfile, texels, size);
+	ce_mmphlp_write_header(mmpfile, format);
 }
 
 static int Unpack565( uint8_t const* packed, uint8_t* colour )
@@ -1036,9 +1067,9 @@ void ce_mmphlp_dxt_decompress_rgba8(ce_mmpfile* mmpfile)
 	int size = ce_mmphlp_storage_requirements_rgba8(mmpfile->width,
 													mmpfile->height,
 													mmpfile->mipmap_count);
-	void* data = ce_alloc(size);
+	void* texels = ce_alloc(size);
 
-	uint8_t* dst = data;
+	uint8_t* dst = texels;
 	const uint8_t* src = mmpfile->texels;
 
 	int bytesPerBlock = CE_MMPFILE_FORMAT_DXT1 == mmpfile->format ? 8 : 16;
@@ -1087,10 +1118,6 @@ void ce_mmphlp_dxt_decompress_rgba8(ce_mmpfile* mmpfile)
 		dst += 4 * width * height;
 	}
 
-	ce_free(mmpfile->data, mmpfile->size);
-
-	mmpfile->format = CE_MMPFILE_FORMAT_INVALID;
-	mmpfile->texels = data;
-	mmpfile->size = size;
-	mmpfile->data = data;
+	mmpfile->format = CE_MMPFILE_FORMAT_GENERIC;
+	ce_mmpfile_replace_texels(mmpfile, texels, size);
 }
