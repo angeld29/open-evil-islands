@@ -28,6 +28,31 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+// TODO: refactoring...
+
+extern void ce_mmphlp_decompress_pnt3(uint8_t* restrict dst,
+									const uint32_t* restrict src, int size);
+
+extern void ce_mmphlp_a1rgb5_convert_rgb5a1(void* restrict dst,
+											const void* restrict src);
+
+extern void ce_mmphlp_argb4_convert_rgba4(void* restrict dst,
+											const void* restrict src);
+
+extern void ce_mmphlp_r5g6b5_convert_rgba8(void* restrict dst,
+											const void* restrict src);
+
+extern void ce_mmphlp_a1rgb5_convert_rgba8(void* restrict dst,
+											const void* restrict src);
+
+extern void ce_mmphlp_argb4_convert_rgba8(void* restrict dst,
+											const void* restrict src);
+
+extern void ce_mmphlp_argb8_convert_rgba8(void* restrict dst,
+											const void* restrict src);
+
+// TODO: refactoring...
+
 extern void ce_mmphlp_pnt3_convert_argb8(ce_mmpfile* mmpfile);
 
 extern void ce_mmphlp_a1rgb5_swap_rgb5a1(ce_mmpfile* mmpfile);
