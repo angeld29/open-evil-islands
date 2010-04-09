@@ -28,157 +28,58 @@
  *     http://code.google.com/p/dds-wic-codec/.
  *
  *  DDS GIMP plugin - fast DXT1 / DXT3 compression
- *  DDS WIC Codec - correct DXT1 with alpha / DXT3 decompression
+ *  DDS WIC Codec - correct DXT1-alpha / DXT3 decompression
 */
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <string.h>
-#include <limits.h>
-#include <float.h>
 #include <math.h>
 #include <assert.h>
 
 #include "celib.h"
-#include "cevec3.h"
-#include "cebyteorder.h"
-#include "cealloc.h"
 #include "cemmphlp.h"
 
-void ce_mmphlp_decompress_pnt3(uint8_t* restrict dst,
-								const uint32_t* restrict src, int size)
+static void ce_mmphlp_argb_swap_rgba(uint16_t* dst, const uint16_t* src,
+								int width, int height, int mipmap_count,
+								int rgbshift, int ashift)
 {
-	assert(0 == size % sizeof(uint32_t));
-
-	const uint32_t* end = src + size / sizeof(uint32_t);
-
-	int n = 0;
-	uint32_t v;
-
-	while (src != end) {
-		v = ce_le2cpu32(*src++);
-		if (v > 1000000 || 0 == v) {
-			++n;
-		} else {
-			memcpy(dst, src - 1 - n, n * sizeof(uint32_t));
-			dst += n * sizeof(uint32_t);
-			memset(dst, '\0', v);
-			dst += v;
-			n = 0;
-		}
-	}
-
-	memcpy(dst, src - n, n * sizeof(uint32_t));
-}
-
-void ce_mmphlp_a1rgb5_convert_rgb5a1(void* restrict dst,
-									const void* restrict src)
-{
-}
-
-void ce_mmphlp_argb4_convert_rgba4(void* restrict dst,
-									const void* restrict src)
-{
-}
-
-void ce_mmphlp_r5g6b5_convert_rgba8(void* restrict dst,
-									const void* restrict src)
-{
-}
-
-void ce_mmphlp_a1rgb5_convert_rgba8(void* restrict dst,
-									const void* restrict src)
-{
-}
-
-void ce_mmphlp_argb4_convert_rgba8(void* restrict dst,
-									const void* restrict src)
-{
-}
-
-void ce_mmphlp_argb8_convert_rgba8(void* restrict dst,
-									const void* restrict src)
-{
-}
-
-void ce_mmphlp_pnt3_convert_argb8(ce_mmpfile* mmpfile)
-{
-	assert(CE_MMPFILE_FORMAT_PNT3 == mmpfile->format);
-
-	int size = ce_mmpfile_storage_requirements(mmpfile->width, mmpfile->height,
-														1, mmpfile->bit_count);
-
-	// mipmap_count == compressed size for pnt3, see doc/formats/mmpfile.txt
-	if (mmpfile->mipmap_count < size) { // pnt3 compressed
-		void* texels = ce_alloc(size);
-		ce_mmphlp_decompress_pnt3(texels, mmpfile->texels, mmpfile->mipmap_count);
-		ce_mmpfile_replace_texels(mmpfile, texels, size);
-	}
-
-	mmpfile->mipmap_count = 1;
-	ce_mmpfile_write_header(mmpfile, CE_MMPFILE_FORMAT_ARGB8);
-}
-
-static void ce_mmphlp_argb_swap_rgba(ce_mmpfile* mmpfile,
-										int rgbshift, int ashift)
-{
-	uint16_t* dst = mmpfile->texels;
-	const uint16_t* src = mmpfile->texels;
-
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
-			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint16_t* end = src + width * height; src != end; ++src) {
 			*dst++ = *src << rgbshift | *src >> ashift;
 		}
 	}
-
-	mmpfile->format = CE_MMPFILE_FORMAT_GENERIC;
 }
 
-void ce_mmphlp_a1rgb5_swap_rgb5a1(ce_mmpfile* mmpfile)
+void ce_mmphlp_a1rgb5_convert_rgb5a1(uint16_t* dst, const uint16_t* src,
+								int width, int height, int mipmap_count)
 {
-	assert(mmpfile->format == CE_MMPFILE_FORMAT_A1RGB5);
-	ce_mmphlp_argb_swap_rgba(mmpfile, 1, 15);
+	ce_mmphlp_argb_swap_rgba(dst, src, width, height, mipmap_count, 1, 15);
 }
 
-void ce_mmphlp_argb4_swap_rgba4(ce_mmpfile* mmpfile)
+void ce_mmphlp_argb4_convert_rgba4(uint16_t* dst, const uint16_t* src,
+								int width, int height, int mipmap_count)
 {
-	assert(mmpfile->format == CE_MMPFILE_FORMAT_ARGB4);
-	ce_mmphlp_argb_swap_rgba(mmpfile, 4, 12);
+	ce_mmphlp_argb_swap_rgba(dst, src, width, height, mipmap_count, 4, 12);
 }
 
-void ce_mmphlp_argb8_swap_rgba8(ce_mmpfile* mmpfile)
+void ce_mmphlp_argb8_convert_rgba8(uint32_t* dst, const uint32_t* src,
+								int width, int height, int mipmap_count)
 {
-	assert(mmpfile->format == CE_MMPFILE_FORMAT_ARGB8);
-
-	uint32_t* dst = mmpfile->texels;
-	const uint32_t* src = mmpfile->texels;
-
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
-			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint32_t* end = src + width * height; src != end; ++src) {
 			*dst++ = *src << 8 | *src >> 24;
 		}
 	}
-
-	mmpfile->format = CE_MMPFILE_FORMAT_GENERIC;
 }
 
-static void ce_mmphlp_argb_unpack_rgba(ce_mmpfile* mmpfile,
+static void ce_mmphlp_argb_unpack_rgba(uint8_t* restrict dst,
+								const uint16_t* restrict src,
+								int width, int height, int mipmap_count,
 								uint16_t rmask, uint16_t gmask, uint16_t bmask,
 								int rshift, int gshift, int ashift,
 								int rdiv, int gdiv, int bdiv, int adiv)
 {
-	int size = ce_mmphlp_storage_requirements_rgba8(mmpfile->width,
-													mmpfile->height,
-													mmpfile->mipmap_count);
-	void* texels = ce_alloc(size);
-
-	uint8_t* dst = texels;
-	const uint16_t* src = mmpfile->texels;
-
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
-			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint16_t* end = src + width * height; src != end; ++src) {
 			*dst++ = ((*src & rmask) >> rshift) * 255 / rdiv;
 			*dst++ = ((*src & gmask) >> gshift) * 255 / gdiv;
@@ -186,81 +87,230 @@ static void ce_mmphlp_argb_unpack_rgba(ce_mmpfile* mmpfile,
 			*dst++ = 0 != adiv ? (*src >> ashift) * 255 / adiv : 255;
 		}
 	}
-
-	ce_mmpfile_replace_texels(mmpfile, texels, size);
-
-	mmpfile->format = CE_MMPFILE_FORMAT_GENERIC;
 }
 
-void ce_mmphlp_r5g6b5_unpack_rgba8(ce_mmpfile* mmpfile)
+void ce_mmphlp_r5g6b5_convert_r8g8b8a8(uint8_t* restrict dst,
+									const uint16_t* restrict src,
+									int width, int height, int mipmap_count)
 {
-	assert(mmpfile->format == CE_MMPFILE_FORMAT_R5G6B5);
-	ce_mmphlp_argb_unpack_rgba(mmpfile, 0xf800, 0x7e0, 0x1f,
-										11, 5, 0, 31, 63, 31, 0);
+	ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
+		0xf800, 0x7e0, 0x1f, 11, 5, 0, 31, 63, 31, 0);
 }
 
-void ce_mmphlp_a1rgb5_unpack_rgba8(ce_mmpfile* mmpfile)
+void ce_mmphlp_a1rgb5_convert_r8g8b8a8(uint8_t* restrict dst,
+									const uint16_t* restrict src,
+									int width, int height, int mipmap_count)
 {
-	assert(mmpfile->format == CE_MMPFILE_FORMAT_A1RGB5);
-	ce_mmphlp_argb_unpack_rgba(mmpfile, 0x7c00, 0x3e0, 0x1f,
-										10, 5, 15, 31, 31, 31, 1);
+	ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
+		0x7c00, 0x3e0, 0x1f, 10, 5, 15, 31, 31, 31, 1);
 }
 
-void ce_mmphlp_argb4_unpack_rgba8(ce_mmpfile* mmpfile)
+void ce_mmphlp_argb4_convert_r8g8b8a8(uint8_t* restrict dst,
+									const uint16_t* restrict src,
+									int width, int height, int mipmap_count)
 {
-	assert(mmpfile->format == CE_MMPFILE_FORMAT_ARGB4);
-	ce_mmphlp_argb_unpack_rgba(mmpfile, 0xf00, 0xf0, 0xf,
-										8, 4, 12, 15, 15, 15, 15);
+	ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
+		0xf00, 0xf0, 0xf, 8, 4, 12, 15, 15, 15, 15);
 }
 
-void ce_mmphlp_argb8_unpack_rgba8(ce_mmpfile* mmpfile)
+void ce_mmphlp_argb8_convert_r8g8b8a8(uint8_t* dst, const uint32_t* src,
+									int width, int height, int mipmap_count)
 {
-	assert(mmpfile->format == CE_MMPFILE_FORMAT_ARGB8);
-
-	uint32_t* dst = mmpfile->texels;
-	const uint32_t* src = mmpfile->texels;
-
-	union {
-		uint8_t u8[4];
-		uint32_t u32;
-	} tmp;
-
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
-			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+	uint8_t tmp[4];
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint32_t* end = src + width * height; src != end; ++src) {
-			tmp.u8[0] = (*src & 0xff0000) >> 16;
-			tmp.u8[1] = (*src & 0xff00) >> 8;
-			tmp.u8[2] = *src & 0xff;
-			tmp.u8[3] = *src >> 24;
-			*dst++ = tmp.u32;
+			tmp[0] = (*src & 0xff0000) >> 16;
+			tmp[1] = (*src & 0xff00) >> 8;
+			tmp[2] = *src & 0xff;
+			tmp[3] = *src >> 24;
+			*dst++ = tmp[0];
+			*dst++ = tmp[1];
+			*dst++ = tmp[2];
+			*dst++ = tmp[3];
+		}
+	}
+}
+
+// TODO: needs refactoring
+
+typedef enum {
+	CE_MMPHLP_DXT_FORMAT_DXT1,
+	CE_MMPHLP_DXT_FORMAT_DXT3,
+	CE_MMPHLP_DXT_FORMAT_COUNT
+} ce_mmphlp_dxt_format;
+
+// bytes per block
+static const int ce_mmphlp_dxt_bpb_count[CE_MMPHLP_DXT_FORMAT_COUNT] = {
+	8,
+	16
+};
+
+static int Unpack565( uint8_t const* packed, uint8_t* colour )
+{
+	// build the packed value
+	int value = ( int )packed[0] | ( ( int )packed[1] << 8 );
+
+	// get the components in the stored range
+	uint8_t red = ( uint8_t )( ( value >> 11 ) & 0x1f );
+	uint8_t green = ( uint8_t )( ( value >> 5 ) & 0x3f );
+	uint8_t blue = ( uint8_t )( value & 0x1f );
+
+	// scale up to 8 bits
+	colour[0] = ( red << 3 ) | ( red >> 2 );
+	colour[1] = ( green << 2 ) | ( green >> 4 );
+	colour[2] = ( blue << 3 ) | ( blue >> 2 );
+	colour[3] = 255;
+
+	return value;
+}
+
+static void DecompressColour( uint8_t* rgba, void const* block,
+									ce_mmphlp_dxt_format format )
+{
+	// get the block bytes
+	uint8_t const* bytes = block;
+
+	// unpack the endpoints
+	uint8_t codes[16];
+	int a = Unpack565( bytes, codes );
+	int b = Unpack565( bytes + 2, codes + 4 );
+
+	// generate the midpoints
+	for( int i = 0; i < 3; ++i )
+	{
+		int c = codes[i];
+		int d = codes[4 + i];
+
+		if( CE_MMPHLP_DXT_FORMAT_DXT1 == format && a <= b )
+		{
+			codes[8 + i] = ( uint8_t )( ( c + d )/2 );
+			codes[12 + i] = 0;
+		}
+		else
+		{
+			codes[8 + i] = ( uint8_t )( ( 2*c + d )/3 );
+			codes[12 + i] = ( uint8_t )( ( c + 2*d )/3 );
 		}
 	}
 
-	mmpfile->format = CE_MMPFILE_FORMAT_GENERIC;
+	// fill in alpha for the intermediate values
+	codes[8 + 3] = 255;
+	codes[12 + 3] = ( CE_MMPHLP_DXT_FORMAT_DXT1 == format && a <= b ) ? 0 : 255;
+
+	// unpack the indices
+	uint8_t indices[16];
+	for( int i = 0; i < 4; ++i )
+	{
+		uint8_t* ind = indices + 4*i;
+		uint8_t packed = bytes[4 + i];
+
+		ind[0] = packed & 0x3;
+		ind[1] = ( packed >> 2 ) & 0x3;
+		ind[2] = ( packed >> 4 ) & 0x3;
+		ind[3] = ( packed >> 6 ) & 0x3;
+	}
+
+	// store out the colours
+	for( int i = 0; i < 16; ++i )
+	{
+		uint8_t offset = 4*indices[i];
+		for( int j = 0; j < 4; ++j )
+			rgba[4*i + j] = codes[offset + j];
+	}
 }
 
-int ce_mmphlp_storage_requirements_rgba8(int width, int height,
-										int mipmap_count)
+static void DecompressAlphaDxt3( uint8_t* rgba, void const* block )
 {
-	int size = 0;
-	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
-		size += 4 * width * height;
+	uint8_t const* bytes = block;
+
+	// unpack the alpha values pairwise
+	for( int i = 0; i < 8; ++i )
+	{
+		// quantise down to 4 bits
+		uint8_t quant = bytes[i];
+
+		// unpack the values
+		uint8_t lo = quant & 0x0f;
+		uint8_t hi = quant & 0xf0;
+
+		// convert back up to bytes
+		rgba[8*i + 3] = lo | ( lo << 4 );
+		rgba[8*i + 7] = hi | ( hi >> 4 );
 	}
-	return size;
 }
 
-int ce_mmphlp_storage_requirements_dxt(int width, int height,
-									int mipmap_count, int format)
+static void Decompress( uint8_t* rgba, void const* block,
+								ce_mmphlp_dxt_format format)
 {
-	assert(CE_MMPFILE_FORMAT_DXT1 == format ||
-			CE_MMPFILE_FORMAT_DXT3 == format);
-	int size = 0;
+	void const* colourBlock = block;
+	void const* alphaBock = block;
+
+	if( CE_MMPHLP_DXT_FORMAT_DXT3 == format )
+		colourBlock = (uint8_t const*)block + 8;
+
+	DecompressColour( rgba, colourBlock, format );
+
+	if( CE_MMPHLP_DXT_FORMAT_DXT3 == format )
+		DecompressAlphaDxt3( rgba, alphaBock );
+}
+
+static void ce_mmphlp_dxt_convert_r8g8b8a8(uint8_t* restrict dst,
+									const uint8_t* restrict src,
+									int width, int height, int mipmap_count,
+									ce_mmphlp_dxt_format format)
+{
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
-		int block_size = CE_MMPFILE_FORMAT_DXT1 == format ? 8 : 16;
-		int block_count = ((width + 3) >> 2) * ((height + 3) >> 2);
-		size += block_size * block_count;
+		for( int y = 0; y < height; y += 4 )
+		{
+			for( int x = 0; x < width; x += 4 )
+			{
+				// decompress the block
+				uint8_t targetRgba[4*16];
+				Decompress( targetRgba, src, format );
+
+				// write the decompressed pixels to the correct image locations
+				uint8_t const* sourcePixel = targetRgba;
+				for( int py = 0; py < 4; ++py )
+				{
+					for( int px = 0; px < 4; ++px )
+					{
+						// get the target location
+						int sx = x + px;
+						int sy = y + py;
+						if( sx < width && sy < height )
+						{
+							uint8_t* targetPixel = dst + 4*( width*sy + sx );
+
+							// copy the rgba value
+							for( int j = 0; j < 4; ++j )
+								*targetPixel++ = *sourcePixel++;
+						}
+						else
+						{
+							// skip this pixel as its outside the image
+							sourcePixel += 4;
+						}
+					}
+				}
+				src += ce_mmphlp_dxt_bpb_count[format];
+			}
+		}
+		dst += 4 * width * height;
 	}
-	return size;
+}
+
+void ce_mmphlp_dxt1_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint8_t* restrict src, int width, int height, int mipmap_count)
+{
+	ce_mmphlp_dxt_convert_r8g8b8a8(dst, src,
+		width, height, mipmap_count, CE_MMPHLP_DXT_FORMAT_DXT1);
+}
+
+void ce_mmphlp_dxt3_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint8_t* restrict src, int width, int height, int mipmap_count)
+{
+	ce_mmphlp_dxt_convert_r8g8b8a8(dst, src,
+		width, height, mipmap_count, CE_MMPHLP_DXT_FORMAT_DXT3);
 }
 
 static const unsigned char omatch5[256][2] =
@@ -802,7 +852,8 @@ static int refine_block(const unsigned char *block,
 	(buf)[3] = ((l) >> 24) & 0xff;
 
 static void encode_color_block(unsigned char *dst,
-                               const unsigned char *block, int format)
+                               const unsigned char *block,
+								ce_mmphlp_dxt_format format)
 {
    unsigned char color[4][3];
    unsigned short min16, max16;
@@ -856,7 +907,7 @@ static void encode_color_block(unsigned char *dst,
    }
 
    /* HACK! for DXT1 blocks which have non-opaque pixels */
-   if(CE_MMPFILE_FORMAT_DXT1 == format && block_has_alpha)
+   if(CE_MMPHLP_DXT_FORMAT_DXT1 == format && block_has_alpha)
    {
       if(max16 > min16)
       {
@@ -866,7 +917,7 @@ static void encode_color_block(unsigned char *dst,
       mask = match_colors_block_DXT1alpha(block, color);
    }
 
-   if(max16 < min16 && !(CE_MMPFILE_FORMAT_DXT1 == format && block_has_alpha))
+   if(max16 < min16 && !(CE_MMPHLP_DXT_FORMAT_DXT1 == format && block_has_alpha))
    {
       max16 ^= min16; min16 ^= max16; max16 ^= min16;
       mask ^= 0x55555555;
@@ -877,7 +928,6 @@ static void encode_color_block(unsigned char *dst,
    PUTL32(&dst[4], mask);
 }
 
-/* write DXT3 alpha block */
 static void encode_alpha_block_DXT3(unsigned char *dst,
                                     const unsigned char *block)
 {
@@ -893,29 +943,22 @@ static void encode_alpha_block_DXT3(unsigned char *dst,
    }
 }
 
-void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile, int format)
+static void ce_mmphlp_r8g8b8a8_convert_dxt(uint8_t* restrict dst,
+										const uint8_t* restrict src,
+										int width, int height, int mipmap_count,
+										ce_mmphlp_dxt_format format)
 {
-	assert(0 == (mmpfile->width & 3) && 0 == (mmpfile->height & 3)); // is mul4
-
-	int size = ce_mmphlp_storage_requirements_dxt(mmpfile->width,
-													mmpfile->height,
-													mmpfile->mipmap_count,
-													format);
-	void* texels = ce_alloc(size);
-
-	uint8_t* dst = texels;
-	const uint8_t* src = mmpfile->texels;
+	assert(0 == (width & 3) && 0 == (height & 3)); // is mul4
 
 	unsigned char block[64];
 
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
-			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for(int y = 0; y < height; y += 4)
 		{
 			for(int x = 0; x < width; x += 4)
 			{
 				extract_block(src, x, y, width, height, block);
-				if (CE_MMPFILE_FORMAT_DXT3 == format) {
+				if (CE_MMPHLP_DXT_FORMAT_DXT3 == format) {
 					encode_alpha_block_DXT3(dst, block);
 					dst += 8;
 				}
@@ -925,181 +968,18 @@ void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile, int format)
 		}
 		src += 4 * width * height;
 	}
-
-	ce_mmpfile_replace_texels(mmpfile, texels, size);
-	ce_mmpfile_write_header(mmpfile, format);
 }
 
-static int Unpack565( uint8_t const* packed, uint8_t* colour )
+void ce_mmphlp_r8g8b8a8_convert_dxt1(uint8_t* restrict dst,
+	const uint8_t* restrict src, int width, int height, int mipmap_count)
 {
-	// build the packed value
-	int value = ( int )packed[0] | ( ( int )packed[1] << 8 );
-
-	// get the components in the stored range
-	uint8_t red = ( uint8_t )( ( value >> 11 ) & 0x1f );
-	uint8_t green = ( uint8_t )( ( value >> 5 ) & 0x3f );
-	uint8_t blue = ( uint8_t )( value & 0x1f );
-
-	// scale up to 8 bits
-	colour[0] = ( red << 3 ) | ( red >> 2 );
-	colour[1] = ( green << 2 ) | ( green >> 4 );
-	colour[2] = ( blue << 3 ) | ( blue >> 2 );
-	colour[3] = 255;
-
-	// return the value
-	return value;
+	ce_mmphlp_r8g8b8a8_convert_dxt(dst, src,
+		width, height, mipmap_count, CE_MMPHLP_DXT_FORMAT_DXT1);
 }
 
-static void DecompressColour( uint8_t* rgba, void const* block, bool isDxt1 )
+void ce_mmphlp_r8g8b8a8_convert_dxt3(uint8_t* restrict dst,
+	const uint8_t* restrict src, int width, int height, int mipmap_count)
 {
-	// get the block bytes
-	uint8_t const* bytes = block;
-
-	// unpack the endpoints
-	uint8_t codes[16];
-	int a = Unpack565( bytes, codes );
-	int b = Unpack565( bytes + 2, codes + 4 );
-
-	// generate the midpoints
-	for( int i = 0; i < 3; ++i )
-	{
-		int c = codes[i];
-		int d = codes[4 + i];
-
-		if( isDxt1 && a <= b )
-		{
-			codes[8 + i] = ( uint8_t )( ( c + d )/2 );
-			codes[12 + i] = 0;
-		}
-		else
-		{
-			codes[8 + i] = ( uint8_t )( ( 2*c + d )/3 );
-			codes[12 + i] = ( uint8_t )( ( c + 2*d )/3 );
-		}
-	}
-
-	// fill in alpha for the intermediate values
-	codes[8 + 3] = 255;
-	codes[12 + 3] = ( isDxt1 && a <= b ) ? 0 : 255;
-
-	// unpack the indices
-	uint8_t indices[16];
-	for( int i = 0; i < 4; ++i )
-	{
-		uint8_t* ind = indices + 4*i;
-		uint8_t packed = bytes[4 + i];
-
-		ind[0] = packed & 0x3;
-		ind[1] = ( packed >> 2 ) & 0x3;
-		ind[2] = ( packed >> 4 ) & 0x3;
-		ind[3] = ( packed >> 6 ) & 0x3;
-	}
-
-	// store out the colours
-	for( int i = 0; i < 16; ++i )
-	{
-		uint8_t offset = 4*indices[i];
-		for( int j = 0; j < 4; ++j )
-			rgba[4*i + j] = codes[offset + j];
-	}
-}
-
-static void DecompressAlphaDxt3( uint8_t* rgba, void const* block )
-{
-	uint8_t const* bytes = block;
-
-	// unpack the alpha values pairwise
-	for( int i = 0; i < 8; ++i )
-	{
-		// quantise down to 4 bits
-		uint8_t quant = bytes[i];
-
-		// unpack the values
-		uint8_t lo = quant & 0x0f;
-		uint8_t hi = quant & 0xf0;
-
-		// convert back up to bytes
-		rgba[8*i + 3] = lo | ( lo << 4 );
-		rgba[8*i + 7] = hi | ( hi >> 4 );
-	}
-}
-
-static void Decompress( uint8_t* rgba, void const* block, int format )
-{
-	// get the block locations
-	void const* colourBlock = block;
-	void const* alphaBock = block;
-
-	if( CE_MMPFILE_FORMAT_DXT3 == format )
-		colourBlock = (uint8_t const*)block + 8;
-
-	// decompress colour
-	DecompressColour( rgba, colourBlock, CE_MMPFILE_FORMAT_DXT1 == format );
-
-	// decompress alpha separately if necessary
-	if( CE_MMPFILE_FORMAT_DXT3 == format )
-		DecompressAlphaDxt3( rgba, alphaBock );
-}
-
-void ce_mmphlp_dxt_decompress_rgba8(ce_mmpfile* mmpfile)
-{
-	assert(CE_MMPFILE_FORMAT_DXT1 == mmpfile->format ||
-			CE_MMPFILE_FORMAT_DXT3 == mmpfile->format);
-
-	int size = ce_mmphlp_storage_requirements_rgba8(mmpfile->width,
-													mmpfile->height,
-													mmpfile->mipmap_count);
-	void* texels = ce_alloc(size);
-
-	uint8_t* dst = texels;
-	const uint8_t* src = mmpfile->texels;
-
-	int bytesPerBlock = CE_MMPFILE_FORMAT_DXT1 == mmpfile->format ? 8 : 16;
-
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
-			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
-		// loop over blocks
-		for( int y = 0; y < height; y += 4 )
-		{
-			for( int x = 0; x < width; x += 4 )
-			{
-				// decompress the block
-				uint8_t targetRgba[4*16];
-				Decompress( targetRgba, src, mmpfile->format );
-
-				// write the decompressed pixels to the correct image locations
-				uint8_t const* sourcePixel = targetRgba;
-				for( int py = 0; py < 4; ++py )
-				{
-					for( int px = 0; px < 4; ++px )
-					{
-						// get the target location
-						int sx = x + px;
-						int sy = y + py;
-						if( sx < width && sy < height )
-						{
-							uint8_t* targetPixel = dst + 4*( width*sy + sx );
-
-							// copy the rgba value
-							for( int j = 0; j < 4; ++j )
-								*targetPixel++ = *sourcePixel++;
-						}
-						else
-						{
-							// skip this pixel as its outside the image
-							sourcePixel += 4;
-						}
-					}
-				}
-
-				// advance
-				src += bytesPerBlock;
-			}
-		}
-
-		dst += 4 * width * height;
-	}
-
-	mmpfile->format = CE_MMPFILE_FORMAT_GENERIC;
-	ce_mmpfile_replace_texels(mmpfile, texels, size);
+	ce_mmphlp_r8g8b8a8_convert_dxt(dst, src,
+		width, height, mipmap_count, CE_MMPHLP_DXT_FORMAT_DXT3);
 }

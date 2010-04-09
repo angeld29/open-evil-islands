@@ -30,27 +30,29 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-enum {
-	CE_MMPFILE_FORMAT_GENERIC, // TODO: remove it
+typedef enum {
+	CE_MMPFILE_FORMAT_UNKNOWN,
 	// standard EI formats
-	CE_MMPFILE_FORMAT_DXT1 = 0x31545844,
-	CE_MMPFILE_FORMAT_DXT3 = 0x33545844,
-	CE_MMPFILE_FORMAT_PNT3 = 0x33544e50,
-	CE_MMPFILE_FORMAT_R5G6B5 = 0x5650,
-	CE_MMPFILE_FORMAT_A1RGB5 = 0x5551,
-	CE_MMPFILE_FORMAT_ARGB4 = 0x4444,
-	CE_MMPFILE_FORMAT_ARGB8 = 0x8888,
+	CE_MMPFILE_FORMAT_DXT1,
+	CE_MMPFILE_FORMAT_DXT3,
+	CE_MMPFILE_FORMAT_PNT3,
+	CE_MMPFILE_FORMAT_R5G6B5,
+	CE_MMPFILE_FORMAT_A1RGB5,
+	CE_MMPFILE_FORMAT_ARGB4,
+	CE_MMPFILE_FORMAT_ARGB8,
 	// CE extensions
-	CE_MMPFILE_FORMAT_RGB5A1 = 0x45431555,
-	CE_MMPFILE_FORMAT_RGBA4 = 0x45434444,
-	CE_MMPFILE_FORMAT_RGBA8 = 0x45438888
-};
+	CE_MMPFILE_FORMAT_RGB5A1,
+	CE_MMPFILE_FORMAT_RGBA4,
+	CE_MMPFILE_FORMAT_RGBA8,
+	CE_MMPFILE_FORMAT_R8G8B8A8,
+	CE_MMPFILE_FORMAT_COUNT
+} ce_mmpfile_format;
 
 typedef struct {
 	int width;
 	int height;
 	int mipmap_count;
-	int format;
+	ce_mmpfile_format format;
 	int bit_count;
 	unsigned int amask, rmask, gmask, bmask;
 	int ashift, rshift, gshift, bshift;
@@ -62,21 +64,18 @@ typedef struct {
 } ce_mmpfile;
 
 extern ce_mmpfile* ce_mmpfile_new(int width, int height,
-									int mipmap_count, int format);
-extern ce_mmpfile* ce_mmpfile_open_data(void* data, size_t size);
-extern ce_mmpfile* ce_mmpfile_open_file(const char* path);
-extern ce_mmpfile* ce_mmpfile_open_resfile(ce_resfile* resfile, int index);
-extern void ce_mmpfile_close(ce_mmpfile* mmpfile);
+								int mipmap_count, ce_mmpfile_format format);
+extern ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size);
+extern ce_mmpfile* ce_mmpfile_new_file(const char* path);
+extern ce_mmpfile* ce_mmpfile_new_resfile(ce_resfile* resfile, int index);
+extern void ce_mmpfile_del(ce_mmpfile* mmpfile);
 
-extern void ce_mmpfile_write_header(ce_mmpfile* mmpfile, int format);
+extern void ce_mmpfile_save(ce_mmpfile* mmpfile, const char* path);
 
-extern void ce_mmpfile_save_file(ce_mmpfile* mmpfile, const char* path);
+extern int ce_mmpfile_storage_size(int width, int height,
+									int mipmap_count, int bit_count);
 
-extern void ce_mmpfile_replace_texels(ce_mmpfile* mmpfile,
-										void* texels, size_t size);
-
-extern int ce_mmpfile_storage_requirements(int width, int height,
-											int mipmap_count, int bit_count);
+extern void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format);
 
 #ifdef __cplusplus
 }

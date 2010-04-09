@@ -262,7 +262,7 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 			snprintf(texture_name, sizeof(texture_name),
 					"%s%03d", mprfile->name->str, i);
 			mmpfiles[i] = ce_texmng_open_mmpfile(scenemng->texmng, texture_name);
-			ce_mmphlp_dxt_decompress_rgba8(mmpfiles[i]);
+			ce_mmpfile_convert(mmpfiles[i], CE_MMPFILE_FORMAT_R8G8B8A8);
 		}
 
 		for (int z = 0; z < mprfile->sector_z_count; ++z) {
@@ -280,12 +280,12 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 					ce_texmng_acquire_texture_mmpfile(scenemng->texmng,
 													texture_name, mmpfile);
 
-				ce_mmpfile_close(mmpfile);
+				ce_mmpfile_del(mmpfile);
 			}
 		}
 
 		for (int i = 0; i < mprfile->texture_count; ++i) {
-			ce_mmpfile_close(mmpfiles[i]);
+			ce_mmpfile_del(mmpfiles[i]);
 		}
 	}
 

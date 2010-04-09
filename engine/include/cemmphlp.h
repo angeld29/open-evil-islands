@@ -21,57 +21,45 @@
 #ifndef CE_MMPHLP_H
 #define CE_MMPHLP_H
 
-#include "cemmpfile.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-// TODO: refactoring...
+extern void ce_mmphlp_a1rgb5_convert_rgb5a1(uint16_t* dst, const uint16_t* src,
+									int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_decompress_pnt3(uint8_t* restrict dst,
-									const uint32_t* restrict src, int size);
+extern void ce_mmphlp_argb4_convert_rgba4(uint16_t* dst, const uint16_t* src,
+								int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_a1rgb5_convert_rgb5a1(void* restrict dst,
-											const void* restrict src);
+extern void ce_mmphlp_argb8_convert_rgba8(uint32_t* dst, const uint32_t* src,
+								int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_argb4_convert_rgba4(void* restrict dst,
-											const void* restrict src);
+extern void ce_mmphlp_r5g6b5_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint16_t* restrict src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_r5g6b5_convert_rgba8(void* restrict dst,
-											const void* restrict src);
+extern void ce_mmphlp_a1rgb5_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint16_t* restrict src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_a1rgb5_convert_rgba8(void* restrict dst,
-											const void* restrict src);
+extern void ce_mmphlp_argb4_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint16_t* restrict src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_argb4_convert_rgba8(void* restrict dst,
-											const void* restrict src);
+extern void ce_mmphlp_argb8_convert_r8g8b8a8(uint8_t* dst,
+	const uint32_t* src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_argb8_convert_rgba8(void* restrict dst,
-											const void* restrict src);
+extern void ce_mmphlp_dxt1_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint8_t* restrict src, int width, int height, int mipmap_count);
 
-// TODO: refactoring...
+extern void ce_mmphlp_dxt3_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint8_t* restrict src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_pnt3_convert_argb8(ce_mmpfile* mmpfile);
+extern void ce_mmphlp_r8g8b8a8_convert_dxt1(uint8_t* restrict dst,
+	const uint8_t* restrict src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_a1rgb5_swap_rgb5a1(ce_mmpfile* mmpfile);
-extern void ce_mmphlp_argb4_swap_rgba4(ce_mmpfile* mmpfile);
-extern void ce_mmphlp_argb8_swap_rgba8(ce_mmpfile* mmpfile);
-
-extern void ce_mmphlp_r5g6b5_unpack_rgba8(ce_mmpfile* mmpfile);
-extern void ce_mmphlp_a1rgb5_unpack_rgba8(ce_mmpfile* mmpfile);
-extern void ce_mmphlp_argb4_unpack_rgba8(ce_mmpfile* mmpfile);
-extern void ce_mmphlp_argb8_unpack_rgba8(ce_mmpfile* mmpfile);
-
-extern int ce_mmphlp_storage_requirements_rgba8(int width, int height,
-												int mipmap_count);
-
-extern int ce_mmphlp_storage_requirements_dxt(int width, int height,
-											int mipmap_count, int format);
-
-extern void ce_mmphlp_rgba8_compress_dxt(ce_mmpfile* mmpfile, int format);
-extern void ce_mmphlp_dxt_decompress_rgba8(ce_mmpfile* mmpfile);
+extern void ce_mmphlp_r8g8b8a8_convert_dxt3(uint8_t* restrict dst,
+	const uint8_t* restrict src, int width, int height, int mipmap_count);
 
 #ifdef __cplusplus
 }

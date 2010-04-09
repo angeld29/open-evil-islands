@@ -73,7 +73,7 @@ ce_mmpfile* ce_texmng_open_mmpfile(ce_texmng* texmng, const char* name)
 	snprintf(path, sizeof(path), "%s/%s", texmng->path->str, file_name);
 
 	// first, try to load from cache dir
-	ce_mmpfile* mmpfile = ce_mmpfile_open_file(path);
+	ce_mmpfile* mmpfile = ce_mmpfile_new_file(path);
 	if (NULL != mmpfile) {
 		// all mmp's in cache dir are ready to use
 		return mmpfile;
@@ -84,9 +84,9 @@ ce_mmpfile* ce_texmng_open_mmpfile(ce_texmng* texmng, const char* name)
 		ce_resfile* resfile = texmng->resfiles->items[i];
 		int index = ce_resfile_node_index(resfile, file_name);
 		if (-1 != index) {
-			ce_mmpfile* mmpfile = ce_mmpfile_open_resfile(resfile, index);
+			ce_mmpfile* mmpfile = ce_mmpfile_new_resfile(resfile, index);
 			if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
-				ce_mmphlp_pnt3_convert_argb8(mmpfile);
+				ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_ARGB8);
 				ce_texmng_save_mmpfile(texmng, name, mmpfile);
 			}
 			return mmpfile;
@@ -102,7 +102,7 @@ void ce_texmng_save_mmpfile(ce_texmng* texmng,
 {
 	char path[texmng->path->length + strlen(name) + 5 + 1];
 	snprintf(path, sizeof(path), "%s/%s.mmp", texmng->path->str, name);
-	ce_mmpfile_save_file(mmpfile, path);
+	ce_mmpfile_save(mmpfile, path);
 }
 
 ce_texture* ce_texmng_acquire_texture(ce_texmng* texmng, const char* name)
@@ -119,7 +119,7 @@ ce_texture* ce_texmng_acquire_texture(ce_texmng* texmng, const char* name)
 	ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(texmng, name);
 	if (NULL != mmpfile) {
 		ce_texture* texture = ce_texture_new(name, mmpfile);
-		ce_mmpfile_close(mmpfile);
+		ce_mmpfile_del(mmpfile);
 		ce_vector_push_back(texmng->textures, texture);
 		return texture;
 	}

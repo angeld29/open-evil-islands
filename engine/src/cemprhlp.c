@@ -26,7 +26,6 @@
 
 #include "celib.h"
 #include "cealloc.h"
-#include "cemmphlp.h"
 #include "cemprhlp.h"
 
 ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,
@@ -224,6 +223,6 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 	ce_free(tile2, sizeof(uint32_t) * tile_size_sqr);
 	ce_free(tile, sizeof(uint32_t) * tile_size_sqr);
 
-	ce_mmphlp_rgba8_compress_dxt(mmpfile, CE_MMPFILE_FORMAT_DXT1);
+	ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_DXT1);
 	return mmpfile;
 }
