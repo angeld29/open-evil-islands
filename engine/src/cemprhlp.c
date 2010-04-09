@@ -19,8 +19,9 @@
 */
 
 #include <stdio.h>
-#include <limits.h>
+#include <string.h>
 #include <math.h>
+#include <limits.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -117,47 +118,49 @@ ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water)
 	return material;
 }
 
-static void ce_mprhlp_rotate90(int width, int height,
-								void* restrict dst,
-								const void* restrict src)
+static void ce_mprhlp_rotate0(uint32_t* restrict dst,
+								const uint32_t* restrict src,
+								int width, int height)
 {
-	uint32_t* d = dst;
-	const uint32_t* s = src;
+	memcpy(dst, src, sizeof(uint32_t) * width * height);
+}
+
+static void ce_mprhlp_rotate90(uint32_t* restrict dst,
+								const uint32_t* restrict src,
+								int width, int height)
+{
 	for (int i = 0; i < width; ++i) {
 		for (int j = height - 1; j >= 0; --j) {
-			*d++ = s[j * width + i];
+			*dst++ = src[j * width + i];
 		}
 	}
 }
 
-static void ce_mprhlp_rotate180(int width, int height,
-								void* restrict dst,
-								const void* restrict src)
+static void ce_mprhlp_rotate180(uint32_t* restrict dst,
+								const uint32_t* restrict src,
+								int width, int height)
 {
-	uint32_t* d = dst;
-	const uint32_t* s = src;
 	for (int i = width * height - 1; i >= 0; --i) {
-		*d++ = s[i];
+		*dst++ = src[i];
 	}
 }
 
-static void ce_mprhlp_rotate270(int width, int height,
-								void* restrict dst,
-								const void* restrict src)
+static void ce_mprhlp_rotate270(uint32_t* restrict dst,
+								const uint32_t* restrict src,
+								int width, int height)
 {
-	uint32_t* d = dst;
-	const uint32_t* s = src;
 	for (int i = width - 1; i >= 0; --i) {
 		for (int j = 0; j < height; ++j) {
-			*d++ = s[j * width + i];
+			*dst++ = src[j * width + i];
 		}
 	}
 }
 
-typedef void (*ce_mprhlp_rotation)(int, int, void*, const void*);
-
-static const ce_mprhlp_rotation ce_mprhlp_rotations[] = {
-	ce_mprhlp_rotate90, ce_mprhlp_rotate180, ce_mprhlp_rotate270
+static void (*ce_mprhlp_rotations[])(uint32_t* restrict,
+									const uint32_t* restrict,
+									int, int) = {
+	ce_mprhlp_rotate0, ce_mprhlp_rotate90,
+	ce_mprhlp_rotate180, ce_mprhlp_rotate270
 };
 
 ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
@@ -172,13 +175,13 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 	int tile_size = mprfile->tile_size - 16; // minus borders
 	int tile_size_sqr = tile_size * tile_size;
 
-	uint32_t* tile = ce_alloc(tile_size_sqr);
-	uint32_t* tile2 = ce_alloc(tile_size_sqr);
+	uint32_t* tile = ce_alloc(sizeof(uint32_t) * tile_size_sqr);
+	uint32_t* tile2 = ce_alloc(sizeof(uint32_t) * tile_size_sqr);
 
 	ce_mmpfile* mmpfile = ce_mmpfile_new(tile_size * CE_MPRFILE_TEXTURE_SIDE,
 										tile_size * CE_MPRFILE_TEXTURE_SIDE,
 										mmpfiles[0]->mipmap_count,
-										CE_MMPFILE_FORMAT_DXT1);
+										CE_MMPFILE_FORMAT_ARGB8);
 
 	uint32_t* texels = mmpfile->texels;
 
@@ -186,23 +189,41 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 		for (int j = 0; j < CE_MPRFILE_TEXTURE_SIDE; ++j) {
 			uint16_t texture = textures[i * CE_MPRFILE_TEXTURE_SIDE + j];
 
-			ce_mmpfile* tile_mmpfile = mmpfiles[ce_mprhlp_texture_number(texture)];
+			ce_mmpfile* mmpfile2 = mmpfiles[ce_mprhlp_texture_number(texture)];
+			uint32_t* texels2 = mmpfile2->texels;
 
 			int texture_index = ce_mprhlp_texture_index(texture);
-			float u = texture_index - texture_index / 8 * 8;
-			float v = 7 - texture_index / 8;
+			int u = texture_index - texture_index / 8 * 8;
+			int v = 7 - texture_index / 8;
 
-			// copy from tile_mmpfile to tile2...
+			int p = v * mprfile->tile_size + 8; // skip border
+			int q = u * mprfile->tile_size + 8; // skip border
+
+			for (int k = 0; k < tile_size; ++k) {
+				for (int l = 0; l < tile_size; ++l) {
+					tile2[k * tile_size + l] =
+						texels2[(p + k) * mmpfile2->width + (q + l)];
+				}
+			}
 
 			(*ce_mprhlp_rotations[ce_mprhlp_texture_angle(texture)])
-									(tile_size, tile_size, tile, tile2);
+									(tile, tile2, tile_size, tile_size);
 
-			// copy from tile to mmpfile...
+			int s = (CE_MPRFILE_TEXTURE_SIDE - 1 - i) * tile_size;
+			int t = j * tile_size;
+
+			for (int k = 0; k < tile_size; ++k) {
+				for (int l = 0; l < tile_size; ++l) {
+					texels[(s + k) * mmpfile->width + (t + l)] =
+						tile[k * tile_size + l];
+				}
+			}
 		}
 	}
 
-	ce_free(tile2, tile_size_sqr);
-	ce_free(tile, tile_size_sqr);
+	ce_free(tile2, sizeof(uint32_t) * tile_size_sqr);
+	ce_free(tile, sizeof(uint32_t) * tile_size_sqr);
 
+	ce_mmphlp_rgba8_compress_dxt(mmpfile, CE_MMPFILE_FORMAT_DXT1);
 	return mmpfile;
 }
