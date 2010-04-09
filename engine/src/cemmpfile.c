@@ -155,6 +155,20 @@ void ce_mmpfile_write_header(ce_mmpfile* mmpfile, int format)
 		mmpfile->gmask = 65280u;      mmpfile->gshift = 8;  mmpfile->gcount = 8;
 		mmpfile->bmask = 255u;        mmpfile->bshift = 0;  mmpfile->bcount = 8;
 		break;
+	case CE_MMPFILE_FORMAT_RGB5A1:
+		mmpfile->bit_count = 16;
+		mmpfile->amask = 31u;    mmpfile->ashift = 0;  mmpfile->acount = 5;
+		mmpfile->rmask = 32768u; mmpfile->rshift = 15; mmpfile->rcount = 1;
+		mmpfile->gmask = 31744u; mmpfile->gshift = 10; mmpfile->gcount = 5;
+		mmpfile->bmask = 992u;   mmpfile->bshift = 5;  mmpfile->bcount = 5;
+		break;
+	case CE_MMPFILE_FORMAT_RGBA4:
+		mmpfile->bit_count = 16;
+		mmpfile->amask = 15u;    mmpfile->ashift = 0;  mmpfile->acount = 4;
+		mmpfile->rmask = 61440u; mmpfile->rshift = 12; mmpfile->rcount = 4;
+		mmpfile->gmask = 3840u;  mmpfile->gshift = 8;  mmpfile->gcount = 4;
+		mmpfile->bmask = 240u;   mmpfile->bshift = 4;  mmpfile->bcount = 4;
+		break;
 	case CE_MMPFILE_FORMAT_RGBA8:
 		mmpfile->bit_count = 32;
 		mmpfile->amask = 255u;        mmpfile->ashift = 0;  mmpfile->acount = 8;
