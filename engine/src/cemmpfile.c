@@ -115,41 +115,52 @@ void ce_mmpfile_write_header(ce_mmpfile* mmpfile, int format)
 	switch (mmpfile->format = format) {
 	case CE_MMPFILE_FORMAT_DXT1:
 		mmpfile->bit_count = 4;
-		mmpfile->amask = 32768u;
-		mmpfile->ashift = 15;
-		mmpfile->acount = 1;
-		mmpfile->rmask = 31744u;
-		mmpfile->rshift = 10;
-		mmpfile->rcount = 5;
-		mmpfile->gmask = 992u;
-		mmpfile->gshift = 5;
-		mmpfile->gcount = 5;
-		mmpfile->bmask = 31u;
-		mmpfile->bshift = 0;
-		mmpfile->bcount = 5;
+		mmpfile->amask = 32768u; mmpfile->ashift = 15; mmpfile->acount = 1;
+		mmpfile->rmask = 31744u; mmpfile->rshift = 10; mmpfile->rcount = 5;
+		mmpfile->gmask = 992u;   mmpfile->gshift = 5;  mmpfile->gcount = 5;
+		mmpfile->bmask = 31u;    mmpfile->bshift = 0;  mmpfile->bcount = 5;
 		break;
-	/*case CE_MMPFILE_FORMAT_DXT3:
+	case CE_MMPFILE_FORMAT_DXT3:
+		mmpfile->bit_count = 8;
+		mmpfile->amask = 61440u; mmpfile->ashift = 12; mmpfile->acount = 4;
+		mmpfile->rmask = 3840u;  mmpfile->rshift = 8;  mmpfile->rcount = 4;
+		mmpfile->gmask = 240u;   mmpfile->gshift = 4;  mmpfile->gcount = 4;
+		mmpfile->bmask = 15u;    mmpfile->bshift = 0;  mmpfile->bcount = 4;
 		break;
 	case CE_MMPFILE_FORMAT_R5G6B5:
+		mmpfile->bit_count = 16;
+		mmpfile->amask = 0u;     mmpfile->ashift = 0;  mmpfile->acount = 0;
+		mmpfile->rmask = 63488u; mmpfile->rshift = 11; mmpfile->rcount = 5;
+		mmpfile->gmask = 2016u;  mmpfile->gshift = 5;  mmpfile->gcount = 6;
+		mmpfile->bmask = 31u;    mmpfile->bshift = 0;  mmpfile->bcount = 5;
 		break;
 	case CE_MMPFILE_FORMAT_A1RGB5:
+		mmpfile->bit_count = 16;
+		mmpfile->amask = 32768u; mmpfile->ashift = 15; mmpfile->acount = 1;
+		mmpfile->rmask = 31744u; mmpfile->rshift = 10; mmpfile->rcount = 5;
+		mmpfile->gmask = 992u;   mmpfile->gshift = 5;  mmpfile->gcount = 5;
+		mmpfile->bmask = 31u;    mmpfile->bshift = 0;  mmpfile->bcount = 5;
 		break;
 	case CE_MMPFILE_FORMAT_ARGB4:
-		break;*/
+		mmpfile->bit_count = 16;
+		mmpfile->amask = 61440u; mmpfile->ashift = 12; mmpfile->acount = 4;
+		mmpfile->rmask = 3840u;  mmpfile->rshift = 8;  mmpfile->rcount = 4;
+		mmpfile->gmask = 240u;   mmpfile->gshift = 4;  mmpfile->gcount = 4;
+		mmpfile->bmask = 15u;    mmpfile->bshift = 0;  mmpfile->bcount = 4;
+		break;
 	case CE_MMPFILE_FORMAT_ARGB8:
 		mmpfile->bit_count = 32;
-		mmpfile->amask = 4278190080u;
-		mmpfile->ashift = 24;
-		mmpfile->acount = 8;
-		mmpfile->rmask = 16711680u;
-		mmpfile->rshift = 16;
-		mmpfile->rcount = 8;
-		mmpfile->gmask = 65280u;
-		mmpfile->gshift = 8;
-		mmpfile->gcount = 8;
-		mmpfile->bmask = 255u;
-		mmpfile->bshift = 0;
-		mmpfile->bcount = 8;
+		mmpfile->amask = 4278190080u; mmpfile->ashift = 24; mmpfile->acount = 8;
+		mmpfile->rmask = 16711680u;   mmpfile->rshift = 16; mmpfile->rcount = 8;
+		mmpfile->gmask = 65280u;      mmpfile->gshift = 8;  mmpfile->gcount = 8;
+		mmpfile->bmask = 255u;        mmpfile->bshift = 0;  mmpfile->bcount = 8;
+		break;
+	case CE_MMPFILE_FORMAT_RGBA8:
+		mmpfile->bit_count = 32;
+		mmpfile->amask = 255u;        mmpfile->ashift = 0;  mmpfile->acount = 8;
+		mmpfile->rmask = 4278190080u; mmpfile->rshift = 24; mmpfile->rcount = 8;
+		mmpfile->gmask = 16711680u;   mmpfile->gshift = 16; mmpfile->gcount = 8;
+		mmpfile->bmask = 65280u;      mmpfile->bshift = 8;  mmpfile->bcount = 8;
 		break;
 	default:
 		assert(false);
