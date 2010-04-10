@@ -27,6 +27,7 @@
 #include "cequat.h"
 #include "cevector.h"
 #include "cemprfile.h"
+#include "cetexmng.h"
 #include "cetexture.h"
 #include "cematerial.h"
 #include "cescenenode.h"
@@ -40,8 +41,8 @@ extern "C"
 typedef struct {
 	ce_mprfile* mprfile;
 	bool tiling;
-	ce_texture* stub_texture;
-	ce_vector* textures;
+	ce_vector* tile_resources;
+	ce_vector* sector_textures;
 	ce_material* materials[2];
 	ce_scenenode* scenenode;
 } ce_terrain;
@@ -50,8 +51,7 @@ typedef struct {
 extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 									const ce_vec3* position,
 									const ce_quat* orientation,
-									ce_texture* stub_texture,
-									ce_texture* textures[],
+									ce_texmng* texmng,
 									ce_scenenode* scenenode);
 extern void ce_terrain_del(ce_terrain* terrain);
 

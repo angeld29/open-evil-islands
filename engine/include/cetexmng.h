@@ -49,13 +49,8 @@ extern void ce_texmng_save_mmpfile(ce_texmng* texmng,
 									const char* name,
 									ce_mmpfile* mmpfile);
 
-extern ce_texture* ce_texmng_acquire_texture(ce_texmng* texmng,
-											const char* name);
-
-extern ce_texture*
-ce_texmng_acquire_texture_mmpfile(ce_texmng* texmng,
-									const char* name,
-									ce_mmpfile* mmpfile);
+extern ce_texture* ce_texmng_get(ce_texmng* texmng, const char* name);
+extern void ce_texmng_put(ce_texmng* texmng, ce_texture* texture);
 
 #ifdef __cplusplus
 }

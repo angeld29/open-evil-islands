@@ -507,6 +507,13 @@ ce_mmpfile* ce_mmpfile_convert(const ce_mmpfile* mmpfile, ce_mmpfile_format form
 	return other;
 }
 
+ce_mmpfile* ce_mmpfile_convert_del(ce_mmpfile* mmpfile, ce_mmpfile_format format)
+{
+	ce_mmpfile* mmpfile2 = ce_mmpfile_convert(mmpfile, format);
+	ce_mmpfile_del(mmpfile);
+	return mmpfile2;
+}
+
 static int Unpack565( uint8_t const* packed, uint8_t* colour )
 {
 	// build the packed value

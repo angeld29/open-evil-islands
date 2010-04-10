@@ -25,9 +25,9 @@
 #include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
+#include "cemprhlp.h"
 #include "cefrustum.h"
 #include "cebytefmt.h"
-#include "cemprhlp.h"
 #include "cescenemng.h"
 
 ce_scenemng* ce_scenemng_new(const char* root_path)
@@ -46,6 +46,7 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 	scenemng->show_axes = true;
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
+	scenemng->terrain_tiling = true;
 	scenemng->anm_fps = 15.0f;
 	scenemng->scenenode_needs_update = false;
 	scenemng->renderqueue_needs_update = false;
@@ -226,67 +227,9 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 										const ce_quat* orientation,
 										ce_scenenode* scenenode)
 {
-	ce_texture* stub_texture =
-		ce_texmng_acquire_texture(scenemng->texmng, "default0");
-	if (NULL == stub_texture) {
-		return NULL;
-	}
-
 	ce_mprfile* mprfile = ce_mprmng_open_mprfile(scenemng->mprmng, name);
 	if (NULL == mprfile) {
 		return NULL;
-	}
-
-	// mpr name + nnn for tiling
-	// mpr name + xxxzzz for generated textures
-	char texture_name[mprfile->name->length + 3 + 3 + 1];
-	ce_texture* textures[ce_max(mprfile->texture_count,
-		mprfile->sector_x_count * mprfile->sector_z_count)];
-
-	bool tiling = true;
-
-	if (tiling) {
-		for (int i = 0; i < mprfile->texture_count; ++i) {
-			snprintf(texture_name, sizeof(texture_name),
-					"%s%03d", mprfile->name->str, i);
-			textures[i] = ce_texmng_acquire_texture(scenemng->texmng, texture_name);
-			if (NULL == textures[i]) {
-				ce_mprfile_close(mprfile);
-				return NULL;
-			}
-		}
-	} else {
-		ce_mmpfile* mmpfiles[mprfile->texture_count];
-
-		for (int i = 0; i < mprfile->texture_count; ++i) {
-			snprintf(texture_name, sizeof(texture_name),
-					"%s%03d", mprfile->name->str, i);
-			mmpfiles[i] = ce_texmng_open_mmpfile(scenemng->texmng, texture_name);
-			ce_mmpfile_convert(mmpfiles[i], CE_MMPFILE_FORMAT_R8G8B8A8);
-		}
-
-		for (int z = 0; z < mprfile->sector_z_count; ++z) {
-			for (int x = 0; x < mprfile->sector_x_count; ++x) {
-				snprintf(texture_name, sizeof(texture_name),
-						"%s%03d%03d", mprfile->name->str, x, z);
-				ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(scenemng->texmng,
-															texture_name);
-				if (NULL == mmpfile) {
-					mmpfile = ce_mprhlp_generate_mmpfile(mprfile, x, z, mmpfiles);
-					ce_texmng_save_mmpfile(scenemng->texmng, texture_name, mmpfile);
-				}
-
-				textures[z * mprfile->sector_x_count + x] =
-					ce_texmng_acquire_texture_mmpfile(scenemng->texmng,
-													texture_name, mmpfile);
-
-				ce_mmpfile_del(mmpfile);
-			}
-		}
-
-		for (int i = 0; i < mprfile->texture_count; ++i) {
-			ce_mmpfile_del(mmpfiles[i]);
-		}
 	}
 
 	if (NULL == scenenode) {
@@ -294,9 +237,9 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 	}
 
 	ce_terrain_del(scenemng->terrain);
-	scenemng->terrain = ce_terrain_new(mprfile, tiling, position,
-										orientation, stub_texture,
-										textures, scenenode);
+	scenemng->terrain = ce_terrain_new(mprfile, scenemng->terrain_tiling,
+										position, orientation,
+										scenemng->texmng, scenenode);
 
 	scenemng->scenenode_needs_update = true;
 	scenemng->renderqueue_needs_update = true;
@@ -317,8 +260,10 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 	ce_texture* textures[texture_count];
 
 	for (int i = 0; i < texture_count; ++i) {
-		textures[i] = ce_texmng_acquire_texture(scenemng->texmng, texture_names[i]);
+		textures[i] = ce_texmng_get(scenemng->texmng, texture_names[i]);
 		if (NULL == textures[i]) {
+			ce_logging_error("scenemng: could not load texture "
+				"'%s' for figentity '%s'", texture_names[i], name);
 			return NULL;
 		}
 	}

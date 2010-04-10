@@ -28,8 +28,6 @@
 #include "cetexture.h"
 #include "cemprrenderitem.h"
 
-// TODO: implement it
-
 typedef struct {
 	GLuint list;
 } ce_mprrenderitem_fast;
@@ -54,6 +52,24 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
 
 	glNewList(mprrenderitem->list = glGenLists(1), GL_COMPILE);
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 1);
+	glVertex3f(sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f,
+		-1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1)));
+	glTexCoord2f(1, 1);
+	glVertex3f(sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+		(CE_MPRFILE_VERTEX_SIDE - 1), 0.0f,
+		-1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1)));
+	glTexCoord2f(1, 0);
+	glVertex3f(sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+		(CE_MPRFILE_VERTEX_SIDE - 1), 0.0f,
+		-1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+		(CE_MPRFILE_VERTEX_SIDE - 1)));
+	glTexCoord2f(0, 0);
+	glVertex3f(sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f, -1.0f *
+		(sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1)));
+	glEnd();
 
 	glEndList();
 }
@@ -89,7 +105,7 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 	int sector_x = va_arg(args, int);
 	int sector_z = va_arg(args, int);
 	int water = va_arg(args, int);
-	ce_vector* textures2 = va_arg(args, ce_vector*);
+	ce_vector* tile_textures = va_arg(args, ce_vector*);
 
 	ce_mprsector* sector = mprfile->sectors + sector_z *
 							mprfile->sector_x_count + sector_x;
@@ -195,7 +211,7 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 			glTranslatef(-u - tile_uv_half_step, -v - tile_uv_half_step, 0.0f);
 			glMatrixMode(GL_MODELVIEW);
 
-			ce_texture_bind(textures2->items[ce_mprhlp_texture_number(texture)]);
+			ce_texture_bind(tile_textures->items[ce_mprhlp_texture_number(texture)]);
 
 			for (int i = 0; i < 2; ++i) {
 				glBegin(GL_TRIANGLE_STRIP);
@@ -207,7 +223,7 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 				glEnd();
 			}
 
-			ce_texture_unbind(textures2->items[ce_mprhlp_texture_number(texture)]);
+			ce_texture_unbind(tile_textures->items[ce_mprhlp_texture_number(texture)]);
 		}
 	}
 
@@ -248,9 +264,9 @@ static size_t ce_mprrenderitem_sizes[] = {
 
 ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, bool tiling,
 									int sector_x, int sector_z,
-									int water, ce_vector* textures)
+									int water, ce_vector* tile_textures)
 {
 	return ce_renderitem_new(ce_mprrenderitem_vtables[tiling],
 							ce_mprrenderitem_sizes[tiling],
-							mprfile, sector_x, sector_z, water, textures);
+							mprfile, sector_x, sector_z, water, tile_textures);
 }

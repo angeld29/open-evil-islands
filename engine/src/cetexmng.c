@@ -106,7 +106,7 @@ void ce_texmng_save_mmpfile(ce_texmng* texmng,
 	ce_mmpfile_save(mmpfile, path);
 }
 
-ce_texture* ce_texmng_acquire_texture(ce_texmng* texmng, const char* name)
+ce_texture* ce_texmng_get(ce_texmng* texmng, const char* name)
 {
 	// first, find texture in cache
 	for (int i = 0; i < texmng->textures->count; ++i) {
@@ -125,15 +125,10 @@ ce_texture* ce_texmng_acquire_texture(ce_texmng* texmng, const char* name)
 		return texture;
 	}
 
-	ce_logging_error("texmng: could not find texture: '%s'", name);
 	return NULL;
 }
 
-ce_texture* ce_texmng_acquire_texture_mmpfile(ce_texmng* texmng,
-											const char* name,
-											ce_mmpfile* mmpfile)
+void ce_texmng_put(ce_texmng* texmng, ce_texture* texture)
 {
-	ce_texture* texture = ce_texture_new(name, mmpfile);
 	ce_vector_push_back(texmng->textures, texture);
-	return texture;
 }

@@ -58,6 +58,7 @@ typedef struct {
 	bool show_axes;
 	bool show_bboxes;
 	bool comprehensive_bbox_only;
+	bool terrain_tiling;
 	float anm_fps;
 	bool scenenode_needs_update;
 	bool renderqueue_needs_update;

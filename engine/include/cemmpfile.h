@@ -78,6 +78,9 @@ extern int ce_mmpfile_storage_size(int width, int height,
 extern ce_mmpfile* ce_mmpfile_convert(const ce_mmpfile* mmpfile,
 										ce_mmpfile_format format);
 
+extern ce_mmpfile* ce_mmpfile_convert_del(ce_mmpfile* mmpfile,
+										ce_mmpfile_format format);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -24,6 +24,7 @@
 #include <stdbool.h>
 
 #include "ceaabb.h"
+#include "cevector.h"
 #include "cemmpfile.h"
 #include "cemprfile.h"
 #include "cematerial.h"
@@ -50,8 +51,8 @@ ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water);
 
 extern ce_mmpfile*
 ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
-							int sector_x, int sector_z,
-							ce_mmpfile* mmpfiles[]);
+							ce_vector* tile_mmpfiles,
+							int sector_x, int sector_z, bool water);
 
 #ifdef __cplusplus
 }

@@ -118,60 +118,60 @@ ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water)
 }
 
 static void ce_mprhlp_rotate0(uint32_t* restrict dst,
-								const uint32_t* restrict src,
-								int width, int height)
+								const uint32_t* restrict src, int size)
 {
-	memcpy(dst, src, sizeof(uint32_t) * width * height);
+	memcpy(dst, src, sizeof(uint32_t) * size * size);
 }
 
 static void ce_mprhlp_rotate90(uint32_t* restrict dst,
-								const uint32_t* restrict src,
-								int width, int height)
+								const uint32_t* restrict src, int size)
 {
-	for (int i = 0; i < width; ++i) {
-		for (int j = height - 1; j >= 0; --j) {
-			*dst++ = src[j * width + i];
+	for (int i = 0; i < size; ++i) {
+		for (int j = size - 1; j >= 0; --j) {
+			*dst++ = src[j * size + i];
 		}
 	}
 }
 
 static void ce_mprhlp_rotate180(uint32_t* restrict dst,
-								const uint32_t* restrict src,
-								int width, int height)
+								const uint32_t* restrict src, int size)
 {
-	for (int i = width * height - 1; i >= 0; --i) {
+	for (int i = size * size - 1; i >= 0; --i) {
 		*dst++ = src[i];
 	}
 }
 
 static void ce_mprhlp_rotate270(uint32_t* restrict dst,
-								const uint32_t* restrict src,
-								int width, int height)
+								const uint32_t* restrict src, int size)
 {
-	for (int i = width - 1; i >= 0; --i) {
-		for (int j = 0; j < height; ++j) {
-			*dst++ = src[j * width + i];
+	for (int i = size - 1; i >= 0; --i) {
+		for (int j = 0; j < size; ++j) {
+			*dst++ = src[j * size + i];
 		}
 	}
 }
 
 static void (*ce_mprhlp_rotations[])(uint32_t* restrict,
-									const uint32_t* restrict,
-									int, int) = {
+									const uint32_t* restrict, int) = {
 	ce_mprhlp_rotate0, ce_mprhlp_rotate90,
 	ce_mprhlp_rotate180, ce_mprhlp_rotate270
 };
 
 ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
-										int sector_x, int sector_z,
-										ce_mmpfile* mmpfiles[])
+									ce_vector* tile_mmpfiles,
+									int sector_x, int sector_z, bool water)
 {
+	// WARNING: draft code, needs refactoring...
+
+	ce_mmpfile* first_mmpfile = tile_mmpfiles->items[0];
+
 	ce_mprsector* sector = mprfile->sectors + sector_z *
 							mprfile->sector_x_count + sector_x;
 
-	uint16_t* textures = sector->land_textures;
+	uint16_t* textures = water ? sector->water_textures : sector->land_textures;
+	int16_t* water_allow = water ? sector->water_allow : NULL;
 
-	int tile_size = mprfile->tile_size - 16; // minus borders
+	int tile_size = mprfile->tile_size - 2 * 8; // minus borders
 	int tile_size_sqr = tile_size * tile_size;
 
 	uint32_t* tile = ce_alloc(sizeof(uint32_t) * tile_size_sqr);
@@ -179,50 +179,76 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 
 	ce_mmpfile* mmpfile = ce_mmpfile_new(tile_size * CE_MPRFILE_TEXTURE_SIDE,
 										tile_size * CE_MPRFILE_TEXTURE_SIDE,
-										mmpfiles[0]->mipmap_count,
-										CE_MMPFILE_FORMAT_ARGB8);
-
+										first_mmpfile->mipmap_count,
+										CE_MMPFILE_FORMAT_R8G8B8A8);
 	uint32_t* texels = mmpfile->texels;
+
+	uint32_t* texels2[mprfile->texture_count];
+	for (int i = 0; i < mprfile->texture_count; ++i) {
+		ce_mmpfile* tile_mmpfile = tile_mmpfiles->items[i];
+		texels2[i] = tile_mmpfile->texels;
+	}
+
+	for (int m = 0, tex_size = mmpfile->width,
+					tex_size2 = first_mmpfile->width,
+					tile_size2 = mprfile->tile_size;
+					m < first_mmpfile->mipmap_count; ++m,
+					tex_size >>= 1, tex_size2 >>= 1,
+					tile_size >>= 1, tile_size2 >>= 1) {
 
 	for (int i = 0; i < CE_MPRFILE_TEXTURE_SIDE; ++i) {
 		for (int j = 0; j < CE_MPRFILE_TEXTURE_SIDE; ++j) {
-			uint16_t texture = textures[i * CE_MPRFILE_TEXTURE_SIDE + j];
+			if (NULL != water_allow &&
+					-1 == water_allow[i * CE_MPRFILE_TEXTURE_SIDE + j]) {
+				memset(tile, 0xff, sizeof(uint32_t) * tile_size_sqr);
+			} else {
+				uint16_t texture = textures[i * CE_MPRFILE_TEXTURE_SIDE + j];
 
-			ce_mmpfile* mmpfile2 = mmpfiles[ce_mprhlp_texture_number(texture)];
-			uint32_t* texels2 = mmpfile2->texels;
+				int texture_index = ce_mprhlp_texture_index(texture);
+				int u = texture_index - texture_index / 8 * 8;
+				int v = 7 - texture_index / 8;
 
-			int texture_index = ce_mprhlp_texture_index(texture);
-			int u = texture_index - texture_index / 8 * 8;
-			int v = 7 - texture_index / 8;
+				int p = v * tile_size2 + (8 >> m); // skip border
+				int q = u * tile_size2 + (8 >> m); // skip border
 
-			int p = v * mprfile->tile_size + 8; // skip border
-			int q = u * mprfile->tile_size + 8; // skip border
+				int idx = ce_mprhlp_texture_number(texture);
 
-			for (int k = 0; k < tile_size; ++k) {
-				for (int l = 0; l < tile_size; ++l) {
-					tile2[k * tile_size + l] =
-						texels2[(p + k) * mmpfile2->width + (q + l)];
+				for (int k = 0; k < tile_size; ++k) {
+					for (int l = 0; l < tile_size; ++l) {
+						tile2[k * tile_size + l] =
+							texels2[idx][(p + k) * tex_size2 + (q + l)];
+					}
 				}
-			}
 
-			(*ce_mprhlp_rotations[ce_mprhlp_texture_angle(texture)])
-									(tile, tile2, tile_size, tile_size);
+				(*ce_mprhlp_rotations[ce_mprhlp_texture_angle(texture)])
+												(tile, tile2, tile_size);
+			}
 
 			int s = (CE_MPRFILE_TEXTURE_SIDE - 1 - i) * tile_size;
 			int t = j * tile_size;
 
 			for (int k = 0; k < tile_size; ++k) {
 				for (int l = 0; l < tile_size; ++l) {
-					texels[(s + k) * mmpfile->width + (t + l)] =
+					texels[(s + k) * tex_size + (t + l)] =
 						tile[k * tile_size + l];
 				}
 			}
 		}
 	}
 
+	texels += ce_mmpfile_storage_size(tex_size,
+		tex_size, 1, mmpfile->bit_count) / sizeof(uint32_t);
+
+	for (int i = 0; i < mprfile->texture_count; ++i) {
+		ce_mmpfile* tile_mmpfile = tile_mmpfiles->items[i];
+		texels2[i] += ce_mmpfile_storage_size(tex_size2,
+			tex_size2, 1, tile_mmpfile->bit_count) / sizeof(uint32_t);
+	}
+
+	}
+
 	ce_free(tile2, sizeof(uint32_t) * tile_size_sqr);
 	ce_free(tile, sizeof(uint32_t) * tile_size_sqr);
 
-	ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_DXT1);
 	return mmpfile;
 }
