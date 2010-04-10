@@ -27,14 +27,13 @@
 
 #include <GL/glut.h>
 
-#include "celib.h"
 #include "cegl.h"
+#include "celib.h"
 #include "celogging.h"
 #include "cealloc.h"
 #include "ceinput.h"
 #include "cetimer.h"
 #include "ceresfile.h"
-#include "cemmphlp.h"
 #include "cetexture.h"
 #include "ceoptparse.h"
 
@@ -143,14 +142,14 @@ static bool generate_texture(int index)
 	tex = NULL;
 
 	// TODO: use texmng
-	ce_mmpfile* mmpfile = ce_mmpfile_open_resfile(res, index);
+	ce_mmpfile* mmpfile = ce_mmpfile_new_resfile(res, index);
 
 	if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
-		ce_mmphlp_pnt3_convert_argb8(mmpfile);
+		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_ARGB8);
 	}
 
 	tex = ce_texture_new("stub", mmpfile);
-	ce_mmpfile_close(mmpfile);
+	ce_mmpfile_del(mmpfile);
 
 	return NULL != tex;
 }
