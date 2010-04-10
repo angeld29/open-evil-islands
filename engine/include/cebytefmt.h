@@ -18,20 +18,20 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FORMAT_H
-#define CE_FORMAT_H
+#ifndef CE_BYTEFMT_H
+#define CE_BYTEFMT_H
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-extern char* ce_format_byte_size(char* buffer, size_t size, long long int bytes);
-extern char* ce_format_byte_dot(char* buffer, size_t size, long long int bytes);
-extern char* ce_format_byte_detail(char* buffer, size_t size, long long int bytes);
+extern char* ce_bytefmt_size(char* buffer, size_t size, long long int bytes);
+extern char* ce_bytefmt_dot(char* buffer, size_t size, long long int bytes);
+extern char* ce_bytefmt_detail(char* buffer, size_t size, long long int bytes);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FORMAT_H */
+#endif /* CE_BYTEFMT_H */

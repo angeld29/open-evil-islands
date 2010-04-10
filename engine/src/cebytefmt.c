@@ -21,9 +21,9 @@
 #include <stdio.h>
 
 #include "cestr.h"
-#include "ceformat.h"
+#include "cebytefmt.h"
 
-char* ce_format_byte_size(char* buffer, size_t size, long long int bytes)
+char* ce_bytefmt_size(char* buffer, size_t size, long long int bytes)
 {
 	long double KiB = 1024.0l;
 	long double MiB = 1024.0l * KiB;
@@ -42,7 +42,7 @@ char* ce_format_byte_size(char* buffer, size_t size, long long int bytes)
 	return buffer;
 }
 
-char* ce_format_byte_dot(char* buffer, size_t size, long long int bytes)
+char* ce_bytefmt_dot(char* buffer, size_t size, long long int bytes)
 {
 	char triple[8];
 	const char* triple_format = "%llu";
@@ -82,11 +82,11 @@ char* ce_format_byte_dot(char* buffer, size_t size, long long int bytes)
 	return buffer;
 }
 
-char* ce_format_byte_detail(char* buffer, size_t size, long long int bytes)
+char* ce_bytefmt_detail(char* buffer, size_t size, long long int bytes)
 {
 	char tmp1[16], tmp2[32];
 	snprintf(buffer, size, "%s (%s)",
-		ce_format_byte_size(tmp1, sizeof(tmp1), bytes),
-		ce_format_byte_dot(tmp2, sizeof(tmp2), bytes));
+		ce_bytefmt_size(tmp1, sizeof(tmp1), bytes),
+		ce_bytefmt_dot(tmp2, sizeof(tmp2), bytes));
 	return buffer;
 }
