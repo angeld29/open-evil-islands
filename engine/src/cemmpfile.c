@@ -47,6 +47,7 @@
 #include "cemmpfile.h"
 
 static const unsigned int CE_MMPFILE_SIGNATURE = 0x504d4d;
+static const int CE_MMPFILE_HEADER_SIZE = 76;
 
 static void ce_mmpfile_decompress_pnt3(uint8_t* restrict dst,
 								const uint32_t* restrict src, int size)
@@ -219,14 +220,15 @@ ce_mmpfile* ce_mmpfile_new(int width, int height,
 	int mipmap_count, ce_mmpfile_format format)
 {
 	ce_mmpfile* mmpfile = ce_alloc(sizeof(ce_mmpfile));
+	mmpfile->version = CE_MMPFILE_VERSION;
 	mmpfile->width = width;
 	mmpfile->height = height;
 	mmpfile->mipmap_count = mipmap_count;
 	mmpfile->format = format;
-	mmpfile->user_data_offset = 0;
 	mmpfile->bit_count = ce_mmpfile_bit_counts[format];
 	mmpfile->size = ce_mmpfile_storage_size(width, height,
 		mipmap_count, mmpfile->bit_count);
+	mmpfile->user_data_offset = CE_MMPFILE_HEADER_SIZE + mmpfile->size;
 	mmpfile->data = ce_alloc(mmpfile->size);
 	mmpfile->texels = mmpfile->data;
 	(*ce_mmpfile_write_header_procs[format])(mmpfile);
@@ -235,34 +237,42 @@ ce_mmpfile* ce_mmpfile_new(int width, int height,
 
 ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size)
 {
-	uint32_t* ptr = data;
+	union {
+		uint8_t* u8;
+		uint32_t* u32;
+	} ptr = { data };
 
-	uint32_t signature = ce_le2cpu32(*ptr++);
+	uint32_t signature = ce_le2cpu32(*ptr.u32++);
 	assert(CE_MMPFILE_SIGNATURE == signature && "wrong signature");
 	ce_unused(signature);
 
 	ce_mmpfile* mmpfile = ce_alloc(sizeof(ce_mmpfile));
-	mmpfile->width = ce_le2cpu32(*ptr++);
-	mmpfile->height = ce_le2cpu32(*ptr++);
-	mmpfile->mipmap_count = ce_le2cpu32(*ptr++);
-	mmpfile->format = ce_mmpfile_format_find(ce_le2cpu32(*ptr++));
-	mmpfile->bit_count = ce_le2cpu32(*ptr++);
-	mmpfile->amask = ce_le2cpu32(*ptr++);
-	mmpfile->ashift = ce_le2cpu32(*ptr++);
-	mmpfile->acount = ce_le2cpu32(*ptr++);
-	mmpfile->rmask = ce_le2cpu32(*ptr++);
-	mmpfile->rshift = ce_le2cpu32(*ptr++);
-	mmpfile->rcount = ce_le2cpu32(*ptr++);
-	mmpfile->gmask = ce_le2cpu32(*ptr++);
-	mmpfile->gshift = ce_le2cpu32(*ptr++);
-	mmpfile->gcount = ce_le2cpu32(*ptr++);
-	mmpfile->bmask = ce_le2cpu32(*ptr++);
-	mmpfile->bshift = ce_le2cpu32(*ptr++);
-	mmpfile->bcount = ce_le2cpu32(*ptr++);
-	mmpfile->user_data_offset = ce_le2cpu32(*ptr++);
-	mmpfile->texels = ptr;
+	mmpfile->version = 0;
+	mmpfile->width = ce_le2cpu32(*ptr.u32++);
+	mmpfile->height = ce_le2cpu32(*ptr.u32++);
+	mmpfile->mipmap_count = ce_le2cpu32(*ptr.u32++);
+	mmpfile->format = ce_mmpfile_format_find(ce_le2cpu32(*ptr.u32++));
+	mmpfile->bit_count = ce_le2cpu32(*ptr.u32++);
+	mmpfile->amask = ce_le2cpu32(*ptr.u32++);
+	mmpfile->ashift = ce_le2cpu32(*ptr.u32++);
+	mmpfile->acount = ce_le2cpu32(*ptr.u32++);
+	mmpfile->rmask = ce_le2cpu32(*ptr.u32++);
+	mmpfile->rshift = ce_le2cpu32(*ptr.u32++);
+	mmpfile->rcount = ce_le2cpu32(*ptr.u32++);
+	mmpfile->gmask = ce_le2cpu32(*ptr.u32++);
+	mmpfile->gshift = ce_le2cpu32(*ptr.u32++);
+	mmpfile->gcount = ce_le2cpu32(*ptr.u32++);
+	mmpfile->bmask = ce_le2cpu32(*ptr.u32++);
+	mmpfile->bshift = ce_le2cpu32(*ptr.u32++);
+	mmpfile->bcount = ce_le2cpu32(*ptr.u32++);
+	mmpfile->user_data_offset = ce_le2cpu32(*ptr.u32++);
+	mmpfile->texels = ptr.u8;
 	mmpfile->size = size;
 	mmpfile->data = data;
+	if (mmpfile->user_data_offset > 0) {
+		ptr.u8 += mmpfile->user_data_offset - CE_MMPFILE_HEADER_SIZE;
+		mmpfile->version = ce_le2cpu32(*ptr.u32);
+	}
 	return mmpfile;
 }
 
@@ -324,6 +334,8 @@ void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path)
 		fwrite(header, sizeof(uint32_t), 19, file);
 		fwrite(mmpfile->texels, 1, ce_mmpfile_storage_size(mmpfile->width,
 			mmpfile->height, mmpfile->mipmap_count, mmpfile->bit_count), file);
+		uint32_t version = ce_cpu2le32(mmpfile->version);
+		fwrite(&version, sizeof(uint32_t), 1, file);
 		fclose(file);
 	}
 }

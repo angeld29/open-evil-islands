@@ -48,7 +48,12 @@ typedef enum {
 	CE_MMPFILE_FORMAT_COUNT
 } ce_mmpfile_format;
 
+enum {
+	CE_MMPFILE_VERSION = 1
+};
+
 typedef struct {
+	int version;
 	int width;
 	int height;
 	int mipmap_count;
