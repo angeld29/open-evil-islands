@@ -46,7 +46,7 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 	scenemng->show_axes = true;
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
-	scenemng->terrain_tiling = true;
+	scenemng->terrain_tiling = false;
 	scenemng->anm_fps = 15.0f;
 	scenemng->scenenode_needs_update = false;
 	scenemng->renderqueue_needs_update = false;

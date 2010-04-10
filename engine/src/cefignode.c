@@ -61,8 +61,8 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 void ce_fignode_del(ce_fignode* fignode)
 {
 	if (NULL != fignode) {
-		ce_vector_for_each(fignode->childs, (ce_vector_func1)ce_fignode_del);
-		ce_vector_for_each(fignode->anmfiles, (ce_vector_func1)ce_anmfile_close);
+		ce_vector_for_each(fignode->childs, ce_fignode_del);
+		ce_vector_for_each(fignode->anmfiles, ce_anmfile_close);
 		ce_vector_del(fignode->childs);
 		ce_material_del(fignode->material);
 		ce_vector_del(fignode->anmfiles);

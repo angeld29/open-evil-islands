@@ -511,6 +511,7 @@ void ce_mobfile_close(ce_mobfile* mob)
 		if (NULL != mob->objects) {
 			for (int i = 0; i < mob->objects->count; ++i) {
 				ce_mobobject_object* object = mob->objects->items[i];
+				ce_vector_for_each(object->parts, ce_string_del);
 				ce_string_del(object->quest_info);
 				ce_string_del(object->comment);
 				ce_string_del(object->secondary_texture);
@@ -518,7 +519,6 @@ void ce_mobfile_close(ce_mobfile* mob)
 				ce_string_del(object->parent_name);
 				ce_string_del(object->model_name);
 				ce_string_del(object->name);
-				ce_vector_for_each(object->parts, (ce_vector_func1)ce_string_del);
 				ce_vector_del(object->parts);
 				ce_free(object, sizeof(ce_mobobject_object));
 			}

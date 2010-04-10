@@ -58,7 +58,7 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 void ce_figentity_del(ce_figentity* figentity)
 {
 	if (NULL != figentity) {
-		ce_vector_for_each(figentity->textures, (ce_vector_func1)ce_texture_del);
+		ce_vector_for_each(figentity->textures, ce_texture_del);
 		ce_scenenode_del(figentity->scenenode);
 		ce_vector_del(figentity->textures);
 		ce_figbone_del(figentity->figbone);

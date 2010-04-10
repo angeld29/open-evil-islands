@@ -146,7 +146,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 	}
 
 	if (!tiling) {
-		ce_vector_for_each(terrain->tile_resources, (ce_vector_func1)ce_mmpfile_del);
+		ce_vector_for_each(terrain->tile_resources, ce_mmpfile_del);
 		ce_vector_clear(terrain->tile_resources);
 	}
 
@@ -156,8 +156,8 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 void ce_terrain_del(ce_terrain* terrain)
 {
 	if (NULL != terrain) {
-		ce_vector_for_each(terrain->sector_textures, (ce_vector_func1)ce_texture_del);
-		ce_vector_for_each(terrain->tile_resources, (ce_vector_func1)ce_texture_del);
+		ce_vector_for_each(terrain->sector_textures, ce_texture_del);
+		ce_vector_for_each(terrain->tile_resources, ce_texture_del);
 		ce_scenenode_del(terrain->scenenode);
 		ce_material_del(terrain->materials[1]);
 		ce_material_del(terrain->materials[0]);

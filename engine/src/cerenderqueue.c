@@ -35,8 +35,7 @@ ce_renderqueue* ce_renderqueue_new(void)
 void ce_renderqueue_del(ce_renderqueue* renderqueue)
 {
 	if (NULL != renderqueue) {
-		ce_vector_for_each(renderqueue->rendergroups,
-							(ce_vector_func1)ce_rendergroup_del);
+		ce_vector_for_each(renderqueue->rendergroups, ce_rendergroup_del);
 		ce_vector_del(renderqueue->rendergroups);
 		ce_free(renderqueue, sizeof(ce_renderqueue));
 	}
@@ -44,8 +43,7 @@ void ce_renderqueue_del(ce_renderqueue* renderqueue)
 
 void ce_renderqueue_clear(ce_renderqueue* renderqueue)
 {
-	ce_vector_for_each(renderqueue->rendergroups,
-						(ce_vector_func1)ce_rendergroup_clear);
+	ce_vector_for_each(renderqueue->rendergroups, ce_rendergroup_clear);
 }
 
 static int ce_renderqueue_comp(const void* lhs, const void* rhs)

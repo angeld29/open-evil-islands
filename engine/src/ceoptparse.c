@@ -68,7 +68,7 @@ float ce_optoption_value_float(const ce_optoption* option)
 void ce_optgroup_del(ce_optgroup* group)
 {
 	if (NULL != group) {
-		ce_vector_for_each(group->options, (ce_vector_func1)ce_optoption_del);
+		ce_vector_for_each(group->options, ce_optoption_del);
 		ce_vector_del(group->options);
 		ce_string_del(group->name);
 		ce_free(group, sizeof(ce_optgroup));
@@ -156,8 +156,8 @@ ce_optparse* ce_optparse_new(int version_major, int version_minor,
 void ce_optparse_del(ce_optparse* optparse)
 {
 	if (NULL != optparse) {
-		ce_vector_for_each(optparse->args, (ce_vector_func1)ce_optarg_del);
-		ce_vector_for_each(optparse->groups, (ce_vector_func1)ce_optgroup_del);
+		ce_vector_for_each(optparse->args, ce_optarg_del);
+		ce_vector_for_each(optparse->groups, ce_optgroup_del);
 		ce_string_del(optparse->error);
 		ce_string_del(optparse->help);
 		ce_vector_del(optparse->args);

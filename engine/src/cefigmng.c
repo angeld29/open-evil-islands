@@ -45,10 +45,10 @@ ce_figmng* ce_figmng_new(void)
 void ce_figmng_del(ce_figmng* figmng)
 {
 	if (NULL != figmng) {
-		ce_vector_for_each(figmng->figentities, (ce_vector_func1)ce_figentity_del);
-		ce_vector_for_each(figmng->figmeshes, (ce_vector_func1)ce_figmesh_del);
-		ce_vector_for_each(figmng->figprotos, (ce_vector_func1)ce_figproto_del);
-		ce_vector_for_each(figmng->resfiles, (ce_vector_func1)ce_resfile_close);
+		ce_vector_for_each(figmng->figentities, ce_figentity_del);
+		ce_vector_for_each(figmng->figmeshes, ce_figmesh_del);
+		ce_vector_for_each(figmng->figprotos, ce_figproto_del);
+		ce_vector_for_each(figmng->resfiles, ce_resfile_close);
 		ce_vector_del(figmng->figentities);
 		ce_vector_del(figmng->figmeshes);
 		ce_vector_del(figmng->figprotos);

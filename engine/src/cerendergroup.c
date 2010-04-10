@@ -33,8 +33,7 @@ ce_rendergroup* ce_rendergroup_new(int priority, ce_material* material)
 void ce_rendergroup_del(ce_rendergroup* rendergroup)
 {
 	if (NULL != rendergroup) {
-		ce_vector_for_each(rendergroup->renderlayers,
-							(ce_vector_func1)ce_renderlayer_del);
+		ce_vector_for_each(rendergroup->renderlayers, ce_renderlayer_del);
 		ce_vector_del(rendergroup->renderlayers);
 		ce_free(rendergroup, sizeof(ce_rendergroup));
 	}
@@ -42,8 +41,7 @@ void ce_rendergroup_del(ce_rendergroup* rendergroup)
 
 void ce_rendergroup_clear(ce_rendergroup* rendergroup)
 {
-	ce_vector_for_each(rendergroup->renderlayers,
-						(ce_vector_func1)ce_renderlayer_clear);
+	ce_vector_for_each(rendergroup->renderlayers, ce_renderlayer_clear);
 }
 
 void ce_rendergroup_add(ce_rendergroup* rendergroup,

@@ -49,7 +49,7 @@ ce_figbone* ce_figbone_new(const ce_fignode* fignode,
 void ce_figbone_del(ce_figbone* figbone)
 {
 	if (NULL != figbone) {
-		ce_vector_for_each(figbone->childs, (ce_vector_func1)ce_figbone_del);
+		ce_vector_for_each(figbone->childs, ce_figbone_del);
 		ce_vector_del(figbone->childs);
 		ce_anmstate_del(figbone->anmstate);
 		ce_free(figbone, sizeof(ce_figbone));

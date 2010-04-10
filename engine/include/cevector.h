@@ -28,8 +28,6 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef void (*ce_vector_func1)(void* item);
-
 typedef struct {
 	int capacity;
 	int count;
@@ -55,7 +53,7 @@ extern void ce_vector_remove_unordered(ce_vector* vector, int index);
 
 extern void ce_vector_clear(ce_vector* vector);
 
-extern void ce_vector_for_each(ce_vector* vector, ce_vector_func1 func);
+extern void ce_vector_for_each(ce_vector* vector, void (*func)());
 
 typedef void (*ce_vector_func_proc)();
 

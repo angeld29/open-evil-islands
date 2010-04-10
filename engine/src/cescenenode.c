@@ -46,8 +46,7 @@ void ce_scenenode_del(ce_scenenode* scenenode)
 			ce_scenenode_del(child);
 		}
 		ce_vector_del(scenenode->childs);
-		ce_vector_for_each(scenenode->renderitems,
-							(ce_vector_func1)ce_renderitem_del);
+		ce_vector_for_each(scenenode->renderitems, ce_renderitem_del);
 		ce_vector_del(scenenode->renderitems);
 		ce_free(scenenode, sizeof(ce_scenenode));
 	}

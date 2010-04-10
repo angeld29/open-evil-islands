@@ -104,7 +104,7 @@ void ce_vector_clear(ce_vector* vector)
 	vector->count = 0;
 }
 
-void ce_vector_for_each(ce_vector* vector, ce_vector_func1 func)
+void ce_vector_for_each(ce_vector* vector, void (*func)(void*))
 {
 	for (int i = 0; i < vector->count; ++i) {
 		(*func)(vector->items[i]);

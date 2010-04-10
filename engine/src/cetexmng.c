@@ -41,8 +41,8 @@ ce_texmng* ce_texmng_new(const char* path)
 void ce_texmng_del(ce_texmng* texmng)
 {
 	if (NULL != texmng) {
-		ce_vector_for_each(texmng->textures, (ce_vector_func1)ce_texture_del);
-		ce_vector_for_each(texmng->resfiles, (ce_vector_func1)ce_resfile_close);
+		ce_vector_for_each(texmng->textures, ce_texture_del);
+		ce_vector_for_each(texmng->resfiles, ce_resfile_close);
 		ce_vector_del(texmng->textures);
 		ce_vector_del(texmng->resfiles);
 		ce_string_del(texmng->path);
