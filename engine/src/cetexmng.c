@@ -85,8 +85,10 @@ ce_mmpfile* ce_texmng_open_mmpfile(ce_texmng* texmng, const char* name)
 		if (-1 != index) {
 			ce_mmpfile* mmpfile = ce_mmpfile_new_resfile(resfile, index);
 			if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
-				ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_ARGB8);
-				ce_texmng_save_mmpfile(texmng, name, mmpfile);
+				ce_mmpfile* mmpfile2 =
+					ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_ARGB8);
+				ce_mmpfile_del(mmpfile);
+				ce_texmng_save_mmpfile(texmng, name, mmpfile = mmpfile2);
 			}
 			return mmpfile;
 		}

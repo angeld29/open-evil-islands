@@ -70,12 +70,13 @@ extern ce_mmpfile* ce_mmpfile_new_file(const char* path);
 extern ce_mmpfile* ce_mmpfile_new_resfile(ce_resfile* resfile, int index);
 extern void ce_mmpfile_del(ce_mmpfile* mmpfile);
 
-extern void ce_mmpfile_save(ce_mmpfile* mmpfile, const char* path);
+extern void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path);
 
 extern int ce_mmpfile_storage_size(int width, int height,
 									int mipmap_count, int bit_count);
 
-extern void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format);
+extern ce_mmpfile* ce_mmpfile_convert(const ce_mmpfile* mmpfile,
+										ce_mmpfile_format format);
 
 #ifdef __cplusplus
 }
