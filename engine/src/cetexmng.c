@@ -26,7 +26,6 @@
 #include "celogging.h"
 #include "cealloc.h"
 #include "ceresfile.h"
-#include "cemmphlp.h"
 #include "cetexmng.h"
 
 ce_texmng* ce_texmng_new(const char* path)

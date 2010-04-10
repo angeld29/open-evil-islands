@@ -30,7 +30,7 @@
 #include "celib.h"
 #include "cebyteorder.h"
 #include "cealloc.h"
-#include "cemmphlp.h"
+#include "cepixelfmt.h"
 #include "cemmpfile.h"
 
 static const unsigned int CE_MMPFILE_SIGNATURE = 0x504d4d;

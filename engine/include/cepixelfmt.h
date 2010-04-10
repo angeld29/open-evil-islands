@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_MMPHLP_H
-#define CE_MMPHLP_H
+#ifndef CE_PIXELFMT_H
+#define CE_PIXELFMT_H
 
 #include <stdint.h>
 
@@ -28,41 +28,41 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern void ce_mmphlp_a1rgb5_convert_rgb5a1(uint16_t* dst, const uint16_t* src,
-									int width, int height, int mipmap_count);
+extern void ce_pixelfmt_a1rgb5_convert_rgb5a1(uint16_t* dst,
+	const uint16_t* src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_argb4_convert_rgba4(uint16_t* dst, const uint16_t* src,
-								int width, int height, int mipmap_count);
+extern void ce_pixelfmt_argb4_convert_rgba4(uint16_t* dst,
+	const uint16_t* src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_argb8_convert_rgba8(uint32_t* dst, const uint32_t* src,
-								int width, int height, int mipmap_count);
-
-extern void ce_mmphlp_r5g6b5_convert_r8g8b8a8(uint8_t* restrict dst,
-	const uint16_t* restrict src, int width, int height, int mipmap_count);
-
-extern void ce_mmphlp_a1rgb5_convert_r8g8b8a8(uint8_t* restrict dst,
-	const uint16_t* restrict src, int width, int height, int mipmap_count);
-
-extern void ce_mmphlp_argb4_convert_r8g8b8a8(uint8_t* restrict dst,
-	const uint16_t* restrict src, int width, int height, int mipmap_count);
-
-extern void ce_mmphlp_argb8_convert_r8g8b8a8(uint8_t* dst,
+extern void ce_pixelfmt_argb8_convert_rgba8(uint32_t* dst,
 	const uint32_t* src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_dxt1_convert_r8g8b8a8(uint8_t* restrict dst,
+extern void ce_pixelfmt_r5g6b5_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint16_t* restrict src, int width, int height, int mipmap_count);
+
+extern void ce_pixelfmt_a1rgb5_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint16_t* restrict src, int width, int height, int mipmap_count);
+
+extern void ce_pixelfmt_argb4_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint16_t* restrict src, int width, int height, int mipmap_count);
+
+extern void ce_pixelfmt_argb8_convert_r8g8b8a8(uint8_t* dst,
+	const uint32_t* src, int width, int height, int mipmap_count);
+
+extern void ce_pixelfmt_dxt1_convert_r8g8b8a8(uint8_t* restrict dst,
 	const uint8_t* restrict src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_dxt3_convert_r8g8b8a8(uint8_t* restrict dst,
+extern void ce_pixelfmt_dxt3_convert_r8g8b8a8(uint8_t* restrict dst,
 	const uint8_t* restrict src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_r8g8b8a8_convert_dxt1(uint8_t* restrict dst,
+extern void ce_pixelfmt_r8g8b8a8_convert_dxt1(uint8_t* restrict dst,
 	const uint8_t* restrict src, int width, int height, int mipmap_count);
 
-extern void ce_mmphlp_r8g8b8a8_convert_dxt3(uint8_t* restrict dst,
+extern void ce_pixelfmt_r8g8b8a8_convert_dxt3(uint8_t* restrict dst,
 	const uint8_t* restrict src, int width, int height, int mipmap_count);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_MMPHLP_H */
+#endif /* CE_PIXELFMT_H */

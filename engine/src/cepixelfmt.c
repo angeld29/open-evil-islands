@@ -37,11 +37,10 @@
 #include <assert.h>
 
 #include "celib.h"
-#include "cemmphlp.h"
+#include "cepixelfmt.h"
 
-static void ce_mmphlp_argb_swap_rgba(uint16_t* dst, const uint16_t* src,
-								int width, int height, int mipmap_count,
-								int rgbshift, int ashift)
+static void ce_pixelfmt_argb_swap_rgba(uint16_t* dst, const uint16_t* src,
+	int width, int height, int mipmap_count, int rgbshift, int ashift)
 {
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint16_t* end = src + width * height; src != end; ++src) {
@@ -50,19 +49,19 @@ static void ce_mmphlp_argb_swap_rgba(uint16_t* dst, const uint16_t* src,
 	}
 }
 
-void ce_mmphlp_a1rgb5_convert_rgb5a1(uint16_t* dst, const uint16_t* src,
+void ce_pixelfmt_a1rgb5_convert_rgb5a1(uint16_t* dst, const uint16_t* src,
 								int width, int height, int mipmap_count)
 {
-	ce_mmphlp_argb_swap_rgba(dst, src, width, height, mipmap_count, 1, 15);
+	ce_pixelfmt_argb_swap_rgba(dst, src, width, height, mipmap_count, 1, 15);
 }
 
-void ce_mmphlp_argb4_convert_rgba4(uint16_t* dst, const uint16_t* src,
+void ce_pixelfmt_argb4_convert_rgba4(uint16_t* dst, const uint16_t* src,
 								int width, int height, int mipmap_count)
 {
-	ce_mmphlp_argb_swap_rgba(dst, src, width, height, mipmap_count, 4, 12);
+	ce_pixelfmt_argb_swap_rgba(dst, src, width, height, mipmap_count, 4, 12);
 }
 
-void ce_mmphlp_argb8_convert_rgba8(uint32_t* dst, const uint32_t* src,
+void ce_pixelfmt_argb8_convert_rgba8(uint32_t* dst, const uint32_t* src,
 								int width, int height, int mipmap_count)
 {
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
@@ -72,7 +71,7 @@ void ce_mmphlp_argb8_convert_rgba8(uint32_t* dst, const uint32_t* src,
 	}
 }
 
-static void ce_mmphlp_argb_unpack_rgba(uint8_t* restrict dst,
+static void ce_pixelfmt_argb_unpack_rgba(uint8_t* restrict dst,
 								const uint16_t* restrict src,
 								int width, int height, int mipmap_count,
 								uint16_t rmask, uint16_t gmask, uint16_t bmask,
@@ -89,31 +88,28 @@ static void ce_mmphlp_argb_unpack_rgba(uint8_t* restrict dst,
 	}
 }
 
-void ce_mmphlp_r5g6b5_convert_r8g8b8a8(uint8_t* restrict dst,
-									const uint16_t* restrict src,
-									int width, int height, int mipmap_count)
+void ce_pixelfmt_r5g6b5_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint16_t* restrict src, int width, int height, int mipmap_count)
 {
-	ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
+	ce_pixelfmt_argb_unpack_rgba(dst, src, width, height, mipmap_count,
 		0xf800, 0x7e0, 0x1f, 11, 5, 0, 31, 63, 31, 0);
 }
 
-void ce_mmphlp_a1rgb5_convert_r8g8b8a8(uint8_t* restrict dst,
-									const uint16_t* restrict src,
-									int width, int height, int mipmap_count)
+void ce_pixelfmt_a1rgb5_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint16_t* restrict src, int width, int height, int mipmap_count)
 {
-	ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
+	ce_pixelfmt_argb_unpack_rgba(dst, src, width, height, mipmap_count,
 		0x7c00, 0x3e0, 0x1f, 10, 5, 15, 31, 31, 31, 1);
 }
 
-void ce_mmphlp_argb4_convert_r8g8b8a8(uint8_t* restrict dst,
-									const uint16_t* restrict src,
-									int width, int height, int mipmap_count)
+void ce_pixelfmt_argb4_convert_r8g8b8a8(uint8_t* restrict dst,
+	const uint16_t* restrict src, int width, int height, int mipmap_count)
 {
-	ce_mmphlp_argb_unpack_rgba(dst, src, width, height, mipmap_count,
+	ce_pixelfmt_argb_unpack_rgba(dst, src, width, height, mipmap_count,
 		0xf00, 0xf0, 0xf, 8, 4, 12, 15, 15, 15, 15);
 }
 
-void ce_mmphlp_argb8_convert_r8g8b8a8(uint8_t* dst, const uint32_t* src,
+void ce_pixelfmt_argb8_convert_r8g8b8a8(uint8_t* dst, const uint32_t* src,
 									int width, int height, int mipmap_count)
 {
 	uint8_t tmp[4];
@@ -134,13 +130,13 @@ void ce_mmphlp_argb8_convert_r8g8b8a8(uint8_t* dst, const uint32_t* src,
 // TODO: needs refactoring
 
 typedef enum {
-	CE_MMPHLP_DXT_FORMAT_DXT1,
-	CE_MMPHLP_DXT_FORMAT_DXT3,
-	CE_MMPHLP_DXT_FORMAT_COUNT
-} ce_mmphlp_dxt_format;
+	CE_PIXELFMT_DXT_FORMAT_DXT1,
+	CE_PIXELFMT_DXT_FORMAT_DXT3,
+	CE_PIXELFMT_DXT_FORMAT_COUNT
+} ce_pixelfmt_dxt_format;
 
 // bytes per block
-static const int ce_mmphlp_dxt_bpb_count[CE_MMPHLP_DXT_FORMAT_COUNT] = {
+static const int ce_pixelfmt_dxt_bpb_count[CE_PIXELFMT_DXT_FORMAT_COUNT] = {
 	8,
 	16
 };
@@ -165,7 +161,7 @@ static int Unpack565( uint8_t const* packed, uint8_t* colour )
 }
 
 static void DecompressColour( uint8_t* rgba, void const* block,
-									ce_mmphlp_dxt_format format )
+									ce_pixelfmt_dxt_format format )
 {
 	// get the block bytes
 	uint8_t const* bytes = block;
@@ -181,7 +177,7 @@ static void DecompressColour( uint8_t* rgba, void const* block,
 		int c = codes[i];
 		int d = codes[4 + i];
 
-		if( CE_MMPHLP_DXT_FORMAT_DXT1 == format && a <= b )
+		if( CE_PIXELFMT_DXT_FORMAT_DXT1 == format && a <= b )
 		{
 			codes[8 + i] = ( uint8_t )( ( c + d )/2 );
 			codes[12 + i] = 0;
@@ -195,7 +191,7 @@ static void DecompressColour( uint8_t* rgba, void const* block,
 
 	// fill in alpha for the intermediate values
 	codes[8 + 3] = 255;
-	codes[12 + 3] = ( CE_MMPHLP_DXT_FORMAT_DXT1 == format && a <= b ) ? 0 : 255;
+	codes[12 + 3] = ( CE_PIXELFMT_DXT_FORMAT_DXT1 == format && a <= b ) ? 0 : 255;
 
 	// unpack the indices
 	uint8_t indices[16];
@@ -240,24 +236,24 @@ static void DecompressAlphaDxt3( uint8_t* rgba, void const* block )
 }
 
 static void Decompress( uint8_t* rgba, void const* block,
-								ce_mmphlp_dxt_format format)
+								ce_pixelfmt_dxt_format format)
 {
 	void const* colourBlock = block;
 	void const* alphaBock = block;
 
-	if( CE_MMPHLP_DXT_FORMAT_DXT3 == format )
+	if( CE_PIXELFMT_DXT_FORMAT_DXT3 == format )
 		colourBlock = (uint8_t const*)block + 8;
 
 	DecompressColour( rgba, colourBlock, format );
 
-	if( CE_MMPHLP_DXT_FORMAT_DXT3 == format )
+	if( CE_PIXELFMT_DXT_FORMAT_DXT3 == format )
 		DecompressAlphaDxt3( rgba, alphaBock );
 }
 
-static void ce_mmphlp_dxt_convert_r8g8b8a8(uint8_t* restrict dst,
+static void ce_pixelfmt_dxt_convert_r8g8b8a8(uint8_t* restrict dst,
 									const uint8_t* restrict src,
 									int width, int height, int mipmap_count,
-									ce_mmphlp_dxt_format format)
+									ce_pixelfmt_dxt_format format)
 {
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for( int y = 0; y < height; y += 4 )
@@ -292,25 +288,25 @@ static void ce_mmphlp_dxt_convert_r8g8b8a8(uint8_t* restrict dst,
 						}
 					}
 				}
-				src += ce_mmphlp_dxt_bpb_count[format];
+				src += ce_pixelfmt_dxt_bpb_count[format];
 			}
 		}
 		dst += 4 * width * height;
 	}
 }
 
-void ce_mmphlp_dxt1_convert_r8g8b8a8(uint8_t* restrict dst,
+void ce_pixelfmt_dxt1_convert_r8g8b8a8(uint8_t* restrict dst,
 	const uint8_t* restrict src, int width, int height, int mipmap_count)
 {
-	ce_mmphlp_dxt_convert_r8g8b8a8(dst, src,
-		width, height, mipmap_count, CE_MMPHLP_DXT_FORMAT_DXT1);
+	ce_pixelfmt_dxt_convert_r8g8b8a8(dst, src,
+		width, height, mipmap_count, CE_PIXELFMT_DXT_FORMAT_DXT1);
 }
 
-void ce_mmphlp_dxt3_convert_r8g8b8a8(uint8_t* restrict dst,
+void ce_pixelfmt_dxt3_convert_r8g8b8a8(uint8_t* restrict dst,
 	const uint8_t* restrict src, int width, int height, int mipmap_count)
 {
-	ce_mmphlp_dxt_convert_r8g8b8a8(dst, src,
-		width, height, mipmap_count, CE_MMPHLP_DXT_FORMAT_DXT3);
+	ce_pixelfmt_dxt_convert_r8g8b8a8(dst, src,
+		width, height, mipmap_count, CE_PIXELFMT_DXT_FORMAT_DXT3);
 }
 
 static const unsigned char omatch5[256][2] =
@@ -853,7 +849,7 @@ static int refine_block(const unsigned char *block,
 
 static void encode_color_block(unsigned char *dst,
                                const unsigned char *block,
-								ce_mmphlp_dxt_format format)
+								ce_pixelfmt_dxt_format format)
 {
    unsigned char color[4][3];
    unsigned short min16, max16;
@@ -907,7 +903,7 @@ static void encode_color_block(unsigned char *dst,
    }
 
    /* HACK! for DXT1 blocks which have non-opaque pixels */
-   if(CE_MMPHLP_DXT_FORMAT_DXT1 == format && block_has_alpha)
+   if(CE_PIXELFMT_DXT_FORMAT_DXT1 == format && block_has_alpha)
    {
       if(max16 > min16)
       {
@@ -917,7 +913,7 @@ static void encode_color_block(unsigned char *dst,
       mask = match_colors_block_DXT1alpha(block, color);
    }
 
-   if(max16 < min16 && !(CE_MMPHLP_DXT_FORMAT_DXT1 == format && block_has_alpha))
+   if(max16 < min16 && !(CE_PIXELFMT_DXT_FORMAT_DXT1 == format && block_has_alpha))
    {
       max16 ^= min16; min16 ^= max16; max16 ^= min16;
       mask ^= 0x55555555;
@@ -943,10 +939,10 @@ static void encode_alpha_block_DXT3(unsigned char *dst,
    }
 }
 
-static void ce_mmphlp_r8g8b8a8_convert_dxt(uint8_t* restrict dst,
+static void ce_pixelfmt_r8g8b8a8_convert_dxt(uint8_t* restrict dst,
 										const uint8_t* restrict src,
 										int width, int height, int mipmap_count,
-										ce_mmphlp_dxt_format format)
+										ce_pixelfmt_dxt_format format)
 {
 	assert(0 == (width & 3) && 0 == (height & 3)); // is mul4
 
@@ -958,7 +954,7 @@ static void ce_mmphlp_r8g8b8a8_convert_dxt(uint8_t* restrict dst,
 			for(int x = 0; x < width; x += 4)
 			{
 				extract_block(src, x, y, width, height, block);
-				if (CE_MMPHLP_DXT_FORMAT_DXT3 == format) {
+				if (CE_PIXELFMT_DXT_FORMAT_DXT3 == format) {
 					encode_alpha_block_DXT3(dst, block);
 					dst += 8;
 				}
@@ -970,16 +966,16 @@ static void ce_mmphlp_r8g8b8a8_convert_dxt(uint8_t* restrict dst,
 	}
 }
 
-void ce_mmphlp_r8g8b8a8_convert_dxt1(uint8_t* restrict dst,
+void ce_pixelfmt_r8g8b8a8_convert_dxt1(uint8_t* restrict dst,
 	const uint8_t* restrict src, int width, int height, int mipmap_count)
 {
-	ce_mmphlp_r8g8b8a8_convert_dxt(dst, src,
-		width, height, mipmap_count, CE_MMPHLP_DXT_FORMAT_DXT1);
+	ce_pixelfmt_r8g8b8a8_convert_dxt(dst, src,
+		width, height, mipmap_count, CE_PIXELFMT_DXT_FORMAT_DXT1);
 }
 
-void ce_mmphlp_r8g8b8a8_convert_dxt3(uint8_t* restrict dst,
+void ce_pixelfmt_r8g8b8a8_convert_dxt3(uint8_t* restrict dst,
 	const uint8_t* restrict src, int width, int height, int mipmap_count)
 {
-	ce_mmphlp_r8g8b8a8_convert_dxt(dst, src,
-		width, height, mipmap_count, CE_MMPHLP_DXT_FORMAT_DXT3);
+	ce_pixelfmt_r8g8b8a8_convert_dxt(dst, src,
+		width, height, mipmap_count, CE_PIXELFMT_DXT_FORMAT_DXT3);
 }
