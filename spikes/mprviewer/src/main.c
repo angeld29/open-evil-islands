@@ -55,15 +55,15 @@
 #define CE_SPIKE_VERSION_PATCH 0
 #endif
 
-#define DAY_NIGHT_CHANGE_SPEED_DEFAULT 0.08f
+//#define DAY_NIGHT_CHANGE_SPEED_DEFAULT 0.08f
 
-ce_scenemng* scenemng;
-ce_lightcfg* lightcfg;
+static ce_scenemng* scenemng;
+//static ce_lightcfg* lightcfg;
 
-float time_of_day = 12.0f;
-float day_night_change_speed = DAY_NIGHT_CHANGE_SPEED_DEFAULT;
+//static float time_of_day = 12.0f;
+//static float day_night_change_speed = DAY_NIGHT_CHANGE_SPEED_DEFAULT;
 
-ce_input_event_supply* es;
+static ce_input_event_supply* es;
 static ce_input_event* toggle_bbox_event;
 
 static void idle(void)
@@ -72,15 +72,15 @@ static void idle(void)
 
 	float elapsed = ce_timer_elapsed(scenemng->timer);
 
-	if ((time_of_day += day_night_change_speed * elapsed) >= 24.0f) {
+	/*if ((time_of_day += day_night_change_speed * elapsed) >= 24.0f) {
 		time_of_day = 0.0f;
-	}
+	}*/
 
 	ce_input_event_supply_advance(es, elapsed);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_input_event_supply_del(es);
-		ce_lightcfg_del(lightcfg);
+		//ce_lightcfg_del(lightcfg);
 		ce_scenemng_del(scenemng);
 		ce_gl_term();
 		ce_input_term();
@@ -210,6 +210,10 @@ int main(int argc, char* argv[])
 	/*ce_optoption* speed = ce_optgroup_create_option(general,
 		"speed", 's', "speed", CE_OPTACTION_STORE,
 		"day/night change speed ([0.0 ... 1.0])", NULL);*/
+	ce_optoption* terrain_tiling = ce_optgroup_create_option(general,
+		"terrain_tiling", 't', "terrain-tiling", CE_OPTACTION_STORE_TRUE,
+		"enable terrain tiling; very slow, but reduce usage of video "
+		"memory and disk space; use it on old video cards", NULL);
 	ce_optarg* zone_name = ce_optparse_create_arg(optparse, "zone_name",
 		"any zone_name.mpr file in 'ei_path/Maps'");
 
@@ -251,12 +255,14 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
+	scenemng->terrain_tiling = ce_optoption_value_bool(terrain_tiling);
+
 	if (NULL == ce_scenemng_create_terrain(scenemng, zone_name->value->str,
 					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
 		return EXIT_FAILURE;
 	}
 
-	char cfg_path[512];
+	/*char cfg_path[512];
 	snprintf(cfg_path, sizeof(cfg_path),
 			"%s/Config/lightsgipat.ini", ei_path->value->str);
 
@@ -271,7 +277,7 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	ce_cfgfile_close(cfgfile);
+	ce_cfgfile_close(cfgfile);*/
 
 	ce_vec3 position;
 	ce_vec3_init(&position, 0.0f, scenemng->terrain->mprfile->max_y, 0.0f);

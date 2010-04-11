@@ -187,6 +187,10 @@ int main(int argc, char* argv[])
 	ce_optoption* full_screen = ce_optgroup_create_option(general,
 		"full_screen", 'f', "full-screen", CE_OPTACTION_STORE_TRUE,
 		"start program in Full Screen mode", NULL);
+	ce_optoption* terrain_tiling = ce_optgroup_create_option(general,
+		"terrain_tiling", 't', "terrain-tiling", CE_OPTACTION_STORE_TRUE,
+		"enable terrain tiling; very slow, but reduce usage of video "
+		"memory and disk space; use it on old video cards", NULL);
 	ce_optarg* zone_name = ce_optparse_create_arg(optparse, "zone_name",
 		"any zone_name.mpr file in 'ei_path/Maps'");
 
@@ -225,6 +229,8 @@ int main(int argc, char* argv[])
 	if (NULL == (scenemng = ce_scenemng_new(ei_path->value->str))) {
 		return EXIT_FAILURE;
 	}
+
+	scenemng->terrain_tiling = ce_optoption_value_bool(terrain_tiling);
 
 	if (NULL == ce_scenemng_create_terrain(scenemng, zone_name->value->str,
 					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
