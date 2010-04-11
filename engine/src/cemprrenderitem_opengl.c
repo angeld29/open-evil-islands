@@ -86,10 +86,10 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 				 *
 				 *  For performance reasons, we render 1/2 each tile
 				 *  in continuous strip. If this half of tile is not
-				 *  allowed, break the strip to remove last one entirely.
+				 *  allowed, break the strip and remove last one entirely.
 				*/
 
-				// map 33x33 vertices to 16x16 textures
+				// map 33x33 vertices to 16x16 tiles
 				int tz = (i - 1) / 2;
 
 				int tx_cur = x / 2;
