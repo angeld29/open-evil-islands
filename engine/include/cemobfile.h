@@ -55,6 +55,7 @@ typedef struct {
 } ce_mobobject_object;
 
 typedef struct {
+	ce_string* name;
 	ce_string* script;
 	ce_vector* objects;
 } ce_mobfile;

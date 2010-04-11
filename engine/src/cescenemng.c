@@ -241,6 +241,8 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 		scenenode = scenemng->scenenode;
 	}
 
+	ce_logging_write("scenemng: loading terrain '%s'...", name);
+
 	ce_terrain_del(scenemng->terrain);
 	scenemng->terrain = ce_terrain_new(mprfile, scenemng->terrain_tiling,
 										position, orientation,
@@ -337,6 +339,7 @@ void ce_scenemng_remove_figentity(ce_scenemng* scenemng, ce_figentity* figentity
 void ce_scenemng_load_mobfile(ce_scenemng* scenemng,
 								const ce_mobfile* mobfile)
 {
+	ce_logging_write("scenemng: loading mob '%s'...", mobfile->name->str);
 	for (int i = 0; i < mobfile->objects->count; ++i) {
 		const ce_mobobject_object* mobobject = mobfile->objects->items[i];
 		ce_scenemng_create_figentity_mobobject(scenemng, mobobject);

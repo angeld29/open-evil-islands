@@ -115,8 +115,6 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 	terrain->scenenode->position = *position;
 	terrain->scenenode->orientation = *orientation;
 
-	ce_logging_write("terrain: loading '%s'...", mprfile->name->str);
-
 	if (tiling) { // load tile textures immediately
 		ce_logging_info("terrain: loading tile textures...");
 

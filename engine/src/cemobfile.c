@@ -19,9 +19,11 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
 #include "celib.h"
+#include "cestr.h"
 #include "cebyteorder.h"
 #include "celogging.h"
 #include "cealloc.h"
@@ -482,9 +484,11 @@ static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 	}
 }
 
-static ce_mobfile* ce_mobfile_open_memfile(ce_memfile* memfile)
+static ce_mobfile* ce_mobfile_open_memfile(const char* name, ce_memfile* memfile)
 {
 	ce_mobfile* mobfile = ce_alloc_zero(sizeof(ce_mobfile));
+	mobfile->name = ce_string_new_str_n(name,
+		ce_min(strlen(name), strlen(name) - 4));
 
 	ce_memfile_seek(memfile, 0, SEEK_END);
 	size_t size = ce_memfile_tell(memfile);
@@ -501,8 +505,18 @@ ce_mobfile* ce_mobfile_open(const char* path)
 	if (NULL == memfile) {
 		return NULL;
 	}
-	ce_mobfile* mobfile = ce_mobfile_open_memfile(memfile);
-	return ce_memfile_close(memfile), mobfile;
+
+	const char* name = ce_strrpbrk(path, "\\/");
+	if (NULL == name) {
+		name = path;
+	} else {
+		++name;
+	}
+
+	ce_mobfile* mobfile = ce_mobfile_open_memfile(name, memfile);
+	ce_memfile_close(memfile);
+
+	return mobfile;
 }
 
 void ce_mobfile_close(ce_mobfile* mob)
@@ -525,6 +539,7 @@ void ce_mobfile_close(ce_mobfile* mob)
 			ce_vector_del(mob->objects);
 		}
 		ce_string_del(mob->script);
+		ce_string_del(mob->name);
 		ce_free(mob, sizeof(ce_mobfile));
 	}
 }
