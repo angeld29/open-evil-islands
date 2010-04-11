@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
 {
 	ce_logging_init();
 #ifdef NDEBUG
-	ce_logging_set_level(CE_LOGGING_LEVEL_WARNING);
+	ce_logging_set_level(CE_LOGGING_LEVEL_INFO);
 #else
 	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
 #endif
