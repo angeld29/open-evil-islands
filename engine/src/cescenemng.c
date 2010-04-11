@@ -125,6 +125,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_rendersystem_draw_axes(scenemng->rendersystem);
 	}
 
+	// big changes of the scene node tree - force update
 	if (scenemng->scenenode_needs_update) {
 		ce_scenenode_update_cascade(scenemng->scenenode, true);
 		scenemng->scenenode_needs_update = false;
@@ -140,6 +141,8 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_camera_get_right(scenemng->camera, &right),
 		ce_camera_get_up(scenemng->camera, &up));
 
+	// first, cull scene nodes BEFORE update for performance reasons
+	// rendering defects are possible, such as culling partially visible objects
 	ce_scenenode_cull_cascade(scenemng->scenenode, &frustum);
 
 	for (int i = 0; i < scenemng->figmng->figentities->count; ++i) {
@@ -154,6 +157,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 										scenemng->comprehensive_bbox_only);
 	}
 
+	// enqueue...
 	ce_renderqueue_clear(scenemng->renderqueue);
 
 	if (scenemng->renderqueue_needs_update) {
@@ -176,6 +180,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 												scenemng->renderqueue);
 	}
 
+	// and render
 	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
 
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
