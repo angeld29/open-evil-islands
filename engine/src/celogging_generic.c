@@ -49,9 +49,10 @@ static void report(ce_logging_level level, const char* format, va_list args)
 				CE_LOGGING_LEVEL_ALL == ce_logging_inst.level)) {
 		fprintf(stderr, "%s: ", ce_logging_inst.level_names[level]);
 		vfprintf(stderr, format, args);
-		if ('\n' != format[strlen(format) - 1]) {
+		if (0 == strlen(format) || '\n' != format[strlen(format) - 1]) {
 			putc('\n', stderr);
 		}
+		fflush(stderr);
 	}
 }
 
