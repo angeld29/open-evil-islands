@@ -47,6 +47,8 @@
 #include "cemmpfile.h"
 
 static const unsigned int CE_MMPFILE_SIGNATURE = 0x504d4d;
+static const unsigned int CE_MMPFILE_SIGNATURE_EXT = 0x45434d4d;
+
 static const int CE_MMPFILE_HEADER_SIZE = 76;
 
 static void ce_mmpfile_decompress_pnt3(uint8_t* restrict dst,
@@ -269,9 +271,11 @@ ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size)
 	mmpfile->texels = ptr.u8;
 	mmpfile->size = size;
 	mmpfile->data = data;
-	if (mmpfile->user_data_offset > 0) {
+	if (mmpfile->user_data_offset > CE_MMPFILE_HEADER_SIZE) {
 		ptr.u8 += mmpfile->user_data_offset - CE_MMPFILE_HEADER_SIZE;
-		mmpfile->version = ce_le2cpu32(*ptr.u32);
+		if (CE_MMPFILE_SIGNATURE_EXT == ce_le2cpu32(*ptr.u32++)) {
+			mmpfile->version = ce_le2cpu32(*ptr.u32);
+		}
 	}
 	return mmpfile;
 }
@@ -311,7 +315,7 @@ void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path)
 
 	FILE* file = fopen(path, "wb");
 	if (NULL != file) {
-		uint32_t header[19];
+		uint32_t header[21];
 		header[0] = ce_cpu2le32(CE_MMPFILE_SIGNATURE);
 		header[1] = ce_cpu2le32(mmpfile->width);
 		header[2] = ce_cpu2le32(mmpfile->height);
@@ -331,11 +335,12 @@ void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path)
 		header[16] = ce_cpu2le32(mmpfile->bshift);
 		header[17] = ce_cpu2le32(mmpfile->bcount);
 		header[18] = ce_cpu2le32(mmpfile->user_data_offset);
+		header[19] = ce_cpu2le32(CE_MMPFILE_SIGNATURE_EXT);
+		header[20] = ce_cpu2le32(mmpfile->version);
 		fwrite(header, sizeof(uint32_t), 19, file);
 		fwrite(mmpfile->texels, 1, ce_mmpfile_storage_size(mmpfile->width,
 			mmpfile->height, mmpfile->mipmap_count, mmpfile->bit_count), file);
-		uint32_t version = ce_cpu2le32(mmpfile->version);
-		fwrite(&version, sizeof(uint32_t), 1, file);
+		fwrite(header + 19, sizeof(uint32_t), 2, file);
 		fclose(file);
 	}
 }
