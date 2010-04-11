@@ -47,7 +47,7 @@ static void ce_terrain_create_sector(ce_terrain* terrain, bool tiling,
 			if (ce_vector_empty(terrain->tile_resources)) {
 				ce_logging_write("terrain: needs to generate "
 					"textures for some sectors, please wait... ");
-				ce_logging_write("terrain: loading tile mmp files...");
+				ce_logging_info("terrain: loading tile mmp files...");
 				// mpr name + nnn
 				char name[terrain->mprfile->name->length + 3 + 1];
 				for (int i = 0; i < terrain->mprfile->texture_count; ++i) {
@@ -112,7 +112,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 	ce_logging_write("terrain: loading '%s'...", mprfile->name->str);
 
 	if (tiling) { // load tile textures immediately
-		ce_logging_write("terrain: loading tile textures...");
+		ce_logging_info("terrain: loading tile textures...");
 		// mpr name + nnn
 		char name[terrain->mprfile->name->length + 3 + 1];
 		for (int i = 0; i < mprfile->texture_count; ++i) {
@@ -123,7 +123,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 				CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
 		}
 	} else {
-		ce_logging_write("terrain: loading sector textures...");
+		ce_logging_info("terrain: loading sector textures...");
 	}
 
 	// opaque
