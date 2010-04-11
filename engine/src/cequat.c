@@ -227,15 +227,13 @@ void ce_quat_to_axes(const ce_quat* quat, ce_vec3* xaxis,
 ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs,
 												const ce_quat* rhs)
 {
-	ce_quat ta, tb;
+	ce_quat ta, tb = *rhs;
 	float cosom = ce_quat_dot(lhs, rhs);
 
 	if (cosom < 0.0f) {
 		// invert rotation
 		cosom = -cosom;
 		ce_quat_neg(&tb, rhs);
-	} else {
-		ce_quat_copy(&tb, rhs);
 	}
 
 	if (cosom < 1.0f - CE_EPS_E3) {
