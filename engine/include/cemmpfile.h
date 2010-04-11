@@ -53,7 +53,7 @@ enum {
 };
 
 typedef struct {
-	int version;
+	// standard EI header
 	int width;
 	int height;
 	int mipmap_count;
@@ -64,12 +64,15 @@ typedef struct {
 	int acount, rcount, gcount, bcount;
 	int user_data_offset;
 	void* texels;
+	// CE extensions
+	int version;
+	int user_info;
 	size_t size;
 	void* data;
 } ce_mmpfile;
 
 extern ce_mmpfile* ce_mmpfile_new(int width, int height,
-								int mipmap_count, ce_mmpfile_format format);
+	int mipmap_count, ce_mmpfile_format format, int user_info);
 extern ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size);
 extern ce_mmpfile* ce_mmpfile_new_file(const char* path);
 extern ce_mmpfile* ce_mmpfile_new_resfile(ce_resfile* resfile, int index);

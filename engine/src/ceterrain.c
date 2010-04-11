@@ -43,7 +43,8 @@ static void ce_terrain_create_sector(ce_terrain* terrain, bool tiling,
 			"%s%03d%03d", terrain->mprfile->name->str, sector_x, sector_z);
 
 		ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(texmng, name);
-		if (NULL == mmpfile || mmpfile->version < CE_MMPFILE_VERSION) {
+		if (NULL == mmpfile || mmpfile->version < CE_MMPFILE_VERSION ||
+								mmpfile->user_info < CE_MPRHLP_MMPFILE_VERSION) {
 			// lazy loading tile mmpfiles
 			if (ce_vector_empty(terrain->tile_resources)) {
 				ce_logging_write("terrain: needs to generate "
@@ -63,7 +64,7 @@ static void ce_terrain_create_sector(ce_terrain* terrain, bool tiling,
 
 			ce_logging_write("terrain: generating texture '%s' "
 				"(reason: %s)...", name, NULL == mmpfile ?
-				"missing texture" : "old version");
+				"missing texture" : "new mmp or terrain version");
 
 			ce_mmpfile_del(mmpfile);
 			mmpfile = ce_mprhlp_generate_mmpfile(terrain->mprfile,

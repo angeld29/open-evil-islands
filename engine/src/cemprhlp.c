@@ -179,9 +179,8 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 	uint32_t* tile2 = ce_alloc(sizeof(uint32_t) * tile_size_sqr);
 
 	ce_mmpfile* mmpfile = ce_mmpfile_new(tile_size * CE_MPRFILE_TEXTURE_SIDE,
-										tile_size * CE_MPRFILE_TEXTURE_SIDE,
-										first_mmpfile->mipmap_count,
-										CE_MMPFILE_FORMAT_R8G8B8A8);
+		tile_size * CE_MPRFILE_TEXTURE_SIDE, first_mmpfile->mipmap_count,
+		CE_MMPFILE_FORMAT_R8G8B8A8, CE_MPRHLP_MMPFILE_VERSION);
 	uint32_t* texels = mmpfile->texels;
 
 	uint32_t* texels2[mprfile->texture_count];
