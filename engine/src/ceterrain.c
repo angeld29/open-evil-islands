@@ -34,20 +34,22 @@ static void ce_terrain_create_sector(ce_terrain* terrain, bool tiling,
 	// mpr name + xxxzzz[w]
 	char name[terrain->mprfile->name->length + 3 + 3 + 1 + 1];
 
+	ce_texture* texture;
+
 	if (tiling) {
-		ce_vector_push_back(terrain->sector_textures,
-			ce_texture_add_ref(ce_texmng_get(texmng, "default0")));
+		texture = ce_texmng_get(texmng, "default0");
 	} else {
 		snprintf(name, sizeof(name), water ? "%s%03d%03dw" :
 			"%s%03d%03d", terrain->mprfile->name->str, sector_x, sector_z);
 
-		ce_texture* texture = ce_texmng_get(texmng, name);
-		if (NULL == texture) {
+		ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(texmng, name);
+		if (NULL == mmpfile || mmpfile->version < CE_MMPFILE_VERSION) {
 			// lazy loading tile mmpfiles
 			if (ce_vector_empty(terrain->tile_resources)) {
 				ce_logging_write("terrain: needs to generate "
 					"textures for some sectors, please wait... ");
 				ce_logging_info("terrain: loading tile mmp files...");
+
 				// mpr name + nnn
 				char name[terrain->mprfile->name->length + 3 + 1];
 				for (int i = 0; i < terrain->mprfile->texture_count; ++i) {
@@ -59,21 +61,24 @@ static void ce_terrain_create_sector(ce_terrain* terrain, bool tiling,
 				}
 			}
 
-			ce_logging_write("terrain: generating texture '%s'...", name);
-			ce_mmpfile* mmpfile = ce_mprhlp_generate_mmpfile(terrain->mprfile,
+			ce_logging_write("terrain: generating texture '%s' "
+				"(reason: %s)...", name, NULL == mmpfile ?
+				"missing texture" : "old version");
+
+			ce_mmpfile_del(mmpfile);
+			mmpfile = ce_mprhlp_generate_mmpfile(terrain->mprfile,
 				terrain->tile_resources, sector_x, sector_z, water);
 
 			mmpfile = ce_mmpfile_convert_del(mmpfile, CE_MMPFILE_FORMAT_DXT1);
 			ce_texmng_save_mmpfile(texmng, name, mmpfile);
-
-			ce_texmng_put(texmng, texture = ce_texture_new(name, mmpfile));
-			ce_mmpfile_del(mmpfile);
 		}
 
-		ce_texture_wrap(texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
-		ce_vector_push_back(terrain->sector_textures,
-			ce_texture_add_ref(texture));
+		ce_texmng_put(texmng, texture = ce_texture_new(name, mmpfile));
+		ce_mmpfile_del(mmpfile);
 	}
+
+	ce_texture_wrap(texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
+	ce_vector_push_back(terrain->sector_textures, ce_texture_add_ref(texture));
 
 	ce_renderitem* renderitem =
 		ce_mprrenderitem_new(terrain->mprfile, tiling,
@@ -113,6 +118,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 
 	if (tiling) { // load tile textures immediately
 		ce_logging_info("terrain: loading tile textures...");
+
 		// mpr name + nnn
 		char name[terrain->mprfile->name->length + 3 + 1];
 		for (int i = 0; i < mprfile->texture_count; ++i) {
