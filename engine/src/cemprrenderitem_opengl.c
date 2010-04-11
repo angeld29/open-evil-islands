@@ -84,7 +84,7 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 				 *  1 tile = 9 vertices = 4 triangles
 				 *  1/2 tile = 6 vertices = 2 triangles
 				 *
-				 *  For performance reasons, we render 1/2 each tile
+				 *  For performance reasons, I render 1/2 each tile
 				 *  in continuous strip. If this half of tile is not
 				 *  allowed, break the strip and remove last one entirely.
 				*/
