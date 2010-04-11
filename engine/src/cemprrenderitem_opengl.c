@@ -24,6 +24,7 @@
 
 #include <GL/gl.h>
 
+#include "celib.h"
 #include "cemprhlp.h"
 #include "cetexture.h"
 #include "cemprrenderitem.h"
@@ -51,25 +52,77 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
 	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
 
+	float normal[3];
+
+	/**
+	 *  Just simple triangle strip:
+	 *
+	 *   0__1__2__3 ... x 32
+	 *   | /| /| /| --->
+	 *  1|/_|/_|/_|
+	 *   | /| /| /| --->
+	 *  2|/_|/_|/_| ...
+	 *  .
+	 *  .
+	 *  .
+	 *  z 32
+	*/
+
 	glNewList(mprrenderitem->list = glGenLists(1), GL_COMPILE);
 
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 1);
-	glVertex3f(sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f,
-		-1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1)));
-	glTexCoord2f(1, 1);
-	glVertex3f(sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
-		(CE_MPRFILE_VERTEX_SIDE - 1), 0.0f,
-		-1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1)));
-	glTexCoord2f(1, 0);
-	glVertex3f(sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
-		(CE_MPRFILE_VERTEX_SIDE - 1), 0.0f,
-		-1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
-		(CE_MPRFILE_VERTEX_SIDE - 1)));
-	glTexCoord2f(0, 0);
-	glVertex3f(sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f, -1.0f *
-		(sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1)));
-	glEnd();
+	for (int i = 1; i < CE_MPRFILE_VERTEX_SIDE; ++i) {
+		glBegin(GL_TRIANGLE_STRIP);
+		for (int j = 0; j < 2 * CE_MPRFILE_VERTEX_SIDE; ++j) {
+			int z = i - j % 2;
+			int x = j / 2;
+
+			if (NULL != water_allow) {
+				/**
+				 *  This fu... clever code needs to remove some
+				 *  not allowed water triangles.
+				 *
+				 *  1 tile = 9 vertices = 4 triangles
+				 *  1/2 tile = 6 vertices = 2 triangles
+				 *
+				 *  For performance reasons, we render 1/2 each tile
+				 *  in continuous strip. If this half of tile is not
+				 *  allowed, break the strip to remove last one entirely.
+				*/
+
+				// map 33x33 vertices to 16x16 textures
+				int tz = (i - 1) / 2;
+
+				int tx_cur = x / 2;
+				int tx_prev = 1 == x % 2 ? -1 : tx_cur - 1;
+
+				tx_cur = ce_min(tx_cur, CE_MPRFILE_TEXTURE_SIDE - 1);
+				tx_prev = -1 == tx_prev ? tx_cur : tx_prev;
+
+				if (-1 == water_allow[tz * CE_MPRFILE_TEXTURE_SIDE + tx_prev] &&
+						-1 == water_allow[tz * CE_MPRFILE_TEXTURE_SIDE + tx_cur]) {
+					glEnd();
+					glBegin(GL_TRIANGLE_STRIP);
+					continue;
+				}
+			}
+
+			ce_mprvertex* vertex = vertices + z * CE_MPRFILE_VERTEX_SIDE + x;
+
+			// note that opengl's textures are bottom to top
+			glTexCoord2f(x / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+				(CE_MPRFILE_VERTEX_SIDE - 1 - z) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+
+			ce_mprhlp_normal2vector(normal, vertex->normal);
+			normal[2] = -normal[2];
+			glNormal3fv(normal);
+
+			glVertex3f(x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+				offset_xz_coef * vertex->offset_x, y_coef * vertex->coord_y,
+				-1.0f * (z + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+				offset_xz_coef * vertex->offset_z));
+		}
+		glEnd();
+	}
 
 	glEndList();
 }

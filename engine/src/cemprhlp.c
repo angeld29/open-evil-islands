@@ -162,6 +162,7 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 									int sector_x, int sector_z, bool water)
 {
 	// WARNING: draft code, needs refactoring...
+	// TODO: needs comments...
 
 	ce_mmpfile* first_mmpfile = tile_mmpfiles->items[0];
 
@@ -200,7 +201,7 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 		for (int j = 0; j < CE_MPRFILE_TEXTURE_SIDE; ++j) {
 			if (NULL != water_allow &&
 					-1 == water_allow[i * CE_MPRFILE_TEXTURE_SIDE + j]) {
-				memset(tile, 0xff, sizeof(uint32_t) * tile_size_sqr);
+				memset(tile, 0x0, sizeof(uint32_t) * tile_size_sqr);
 			} else {
 				uint16_t texture = textures[i * CE_MPRFILE_TEXTURE_SIDE + j];
 
