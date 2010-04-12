@@ -35,7 +35,7 @@ static void* ce_font_datas[CE_FONT_TYPE_COUNT] = {
 	GLUT_BITMAP_HELVETICA_18
 };
 
-static int ce_font_heights[CE_FONT_TYPE_COUNT] = {
+static const int ce_font_heights[CE_FONT_TYPE_COUNT] = {
 	18
 };
 

@@ -988,7 +988,7 @@ static void optimize_colors_block(const unsigned char *block,
 									unsigned short *max16,
 									unsigned short *min16)
 {
-   static const int niterpow = 4;
+   const int niterpow = 4;
 
    int mu[3], mn[3], mx[3];
    int i, c, r, g, b, dot, iter;
@@ -1105,8 +1105,8 @@ static int refine_block(const unsigned char *block,
                         unsigned short *max16, unsigned short *min16,
                         unsigned int mask)
 {
-   static const int w1tab[4] = {3, 0, 2, 1};
-   static const int prods[4] = {0x090000, 0x000900, 0x040102, 0x010402};
+   const int w1tab[4] = {3, 0, 2, 1};
+   const int prods[4] = {0x090000, 0x000900, 0x040102, 0x010402};
    /* ^ Some magic to save a lot of multiplies in the accumulating loop... */
 
    int akku = 0;
