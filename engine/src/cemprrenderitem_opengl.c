@@ -52,21 +52,23 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
 	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
 
-	float normal[3];
-
 	/**
-	 *  Just simple triangle strip:
+	 *  Sector rendering: just simple triangle strips!
 	 *
-	 *   0__1__2__3 ... x 32
-	 *   | /| /| /| --->
-	 *  1|/_|/_|/_|
-	 *   | /| /| /| --->
-	 *  2|/_|/_|/_| ...
-	 *  .
-	 *  .
-	 *  .
-	 *  z 32
+	 *   0___1___2__...__32
+	 *   |\  |\  |\  |\  |
+	 *   | \ | \ | \ | \ | --->
+	 *  1|__\|__\|__\|__\|
+	 *   |\  |\  |\  |\  |
+	 *  .| \ | \ | \ | \ | --->
+	 *  .|__\|__\|__\|__\|
+	 *  .|\  |\  |\  |\  |
+	 *   | \ | \ | \ | \ | --->
+	 *   |__\|__\|__\|__\|
+	 *  32
 	*/
+
+	float normal[3];
 
 	glNewList(mprrenderitem->list = glGenLists(1), GL_COMPILE);
 
@@ -81,8 +83,8 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 				 *  This fu... clever code needs to remove some
 				 *  not allowed water triangles.
 				 *
-				 *  1 tile = 9 vertices = 4 triangles
-				 *  1/2 tile = 6 vertices = 2 triangles
+				 *  1 tile = 9 vertices = 8 triangles
+				 *  1/2 tile = 6 vertices = 4 triangles
 				 *
 				 *  For performance reasons, I render 1/2 each tile
 				 *  in continuous strip. If this half of tile is not
@@ -177,35 +179,52 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 	const float tile_uv_border_offset = tile_border_size /
 										mprfile->texture_size;
 
-	float vertex_array[3 * 9];
-	float normal_array[3 * 9];
-
 	/**
-	 *  Tile traverse order:
+	 *  Tile texturing:
 	 *
-	 *   6 ____5____ 4
-	 *    |    |    |
-	 *  7 |____|____| 3
-	 *    |   8|    |
-	 *    |____|____|
-	 *   0     1     2
+	 *  [                 ] tile_uv_step
+	 *  [        ] tile_uv_half_step
+	 *    _______ _______
+	 *   |  _____|_____  |
+	 *   | |     |     | |
+	 *   |_|_____|_____|_|
+	 *   | |     |     | |
+	 *   | |_____|_____| |
+	 *   |_______|_______|
 	 *
-	 *
-	 *  Triangle render order:
-	 *
-	 *  1) 7 __8__ 3   2) 6 __5__ 4
-	 *      | /| /|        | /| /|
-	 *      |/_|/_|        |/_|/_|
-	 *     0   1   2      7   8   3
+	 *  [  ] tile_uv_border_offset
 	*/
 
-	const int offset_x[9] = { 0, 1, 2, 2, 2, 1, 0, 0, 1 };
-	const int offset_z[9] = { 0, 0, 0, 1, 2, 2, 2, 1, 1 };
-
-	const int indices[2][6] = {
-		{ 7, 0, 8, 1, 3, 2 },
-		{ 6, 7, 5, 8, 4, 3 }
+	const float texcoord[10][2] = {
+		{ tile_uv_half_step, tile_uv_half_step },
+		{ tile_uv_border_offset, tile_uv_step - tile_uv_border_offset },
+		{ tile_uv_half_step, tile_uv_step - tile_uv_border_offset },
+		{ tile_uv_step - tile_uv_border_offset, tile_uv_step - tile_uv_border_offset },
+		{ tile_uv_step - tile_uv_border_offset, tile_uv_half_step },
+		{ tile_uv_step - tile_uv_border_offset, tile_uv_border_offset },
+		{ tile_uv_half_step, tile_uv_border_offset },
+		{ tile_uv_border_offset, tile_uv_border_offset },
+		{ tile_uv_border_offset, tile_uv_half_step },
+		{ tile_uv_border_offset, tile_uv_step - tile_uv_border_offset }
 	};
+
+	/**
+	 *  Tile rendering: just simple triangle fan!
+	 *
+	 *    7___6___5
+	 *    |\  |  /|
+	 *    | \ | / |
+	 *   8|__\|/__|4
+	 *    |  /0\  |
+	 *    | / | \ |
+	 *    |/__|__\|
+	 *   1/9  2   3
+	*/
+
+	const int offset_x[10] = { 1, 0, 1, 2, 2, 2, 1, 0, 0, 0 };
+	const int offset_z[10] = { 1, 0, 0, 0, 1, 2, 2, 2, 1, 0 };
+
+	float normal[3];
 
 	glNewList(mprrenderitem->list = glGenLists(1), GL_COMPILE);
 
@@ -220,42 +239,11 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 				continue;
 			}
 
-			for (int i = 0; i < 9; ++i) {
-				ce_mprvertex* vertex = vertices + (z + offset_z[i]) *
-					CE_MPRFILE_VERTEX_SIDE + (x + offset_x[i]);
-
-				vertex_array[3 * i + 0] = x + offset_x[i] +
-					sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
-					offset_xz_coef * vertex->offset_x;
-				vertex_array[3 * i + 1] = y_coef * vertex->coord_y;
-				vertex_array[3 * i + 2] = -1.0f * (z + offset_z[i] +
-					sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
-					offset_xz_coef * vertex->offset_z);
-
-				ce_mprhlp_normal2vector(normal_array + 3 * i, vertex->normal);
-				normal_array[3 * i + 2] = -normal_array[3 * i + 2];
-			}
-
 			uint16_t texture = textures[z / 2 * CE_MPRFILE_TEXTURE_SIDE + x / 2];
 
 			int texture_index = ce_mprhlp_texture_index(texture);
 			float u = (texture_index - texture_index / 8 * 8) / 8.0f;
-			float v = (7 - texture_index / 8) / 8.0f;
-
-			float texcoord_array[2 * 9] = {
-				u + tile_uv_border_offset,
-					v + tile_uv_step - tile_uv_border_offset,
-				u + tile_uv_half_step, v + tile_uv_step - tile_uv_border_offset,
-				u + tile_uv_step - tile_uv_border_offset,
-					v + tile_uv_step - tile_uv_border_offset,
-				u + tile_uv_step - tile_uv_border_offset, v + tile_uv_half_step,
-				u + tile_uv_step - tile_uv_border_offset,
-					v + tile_uv_border_offset,
-				u + tile_uv_half_step, v + tile_uv_border_offset,
-				u + tile_uv_border_offset, v + tile_uv_border_offset,
-				u + tile_uv_border_offset, v + tile_uv_half_step,
-				u + tile_uv_half_step, v + tile_uv_half_step
-			};
+			float v = (7 - texture_index / 8) / 8.0f; // bottom to top
 
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
@@ -266,15 +254,25 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 
 			ce_texture_bind(tile_textures->items[ce_mprhlp_texture_number(texture)]);
 
-			for (int i = 0; i < 2; ++i) {
-				glBegin(GL_TRIANGLE_STRIP);
-				for (int j = 0; j < 6; ++j) {
-					glTexCoord2fv(texcoord_array + 2 * indices[i][j]);
-					glNormal3fv(normal_array + 3 * indices[i][j]);
-					glVertex3fv(vertex_array + 3 * indices[i][j]);
-				}
-				glEnd();
+			glBegin(GL_TRIANGLE_FAN);
+			for (int i = 0; i < 10; ++i) {
+				ce_mprvertex* vertex = vertices + (z + offset_z[i]) *
+					CE_MPRFILE_VERTEX_SIDE + (x + offset_x[i]);
+
+				glTexCoord2f(u + texcoord[i][0], v + texcoord[i][1]);
+
+				ce_mprhlp_normal2vector(normal, vertex->normal);
+				normal[2] = -normal[2];
+				glNormal3fv(normal);
+
+				glVertex3f(x + offset_x[i] +
+					sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+					offset_xz_coef * vertex->offset_x,
+					y_coef * vertex->coord_y, -1.0f * (z + offset_z[i] +
+					sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+					offset_xz_coef * vertex->offset_z));
 			}
+			glEnd();
 
 			ce_texture_unbind(tile_textures->items[ce_mprhlp_texture_number(texture)]);
 		}
