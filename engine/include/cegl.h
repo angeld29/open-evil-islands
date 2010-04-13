@@ -44,7 +44,10 @@ typedef enum {
 	CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC,
 	CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1,
 	CE_GL_FEATURE_TEXTURE_LOD,
+	CE_GL_FEATURE_TEXTURE_BORDER_CLAMP,
 	CE_GL_FEATURE_TEXTURE_EDGE_CLAMP,
+	CE_GL_FEATURE_ABGR,
+	CE_GL_FEATURE_BGRA,
 	CE_GL_FEATURE_PACKED_PIXELS,
 	CE_GL_FEATURE_GENERATE_MIPMAP,
 	CE_GL_FEATURE_VERTEX_BUFFER_OBJECT,
@@ -56,8 +59,7 @@ typedef enum {
 	CE_GL_FEATURE_FRAMEBUFFER_OBJECT,
 	CE_GL_FEATURE_PIXEL_BUFFER_OBJECT,
 	CE_GL_FEATURE_TEXTURE_BUFFER_OBJECT,
-	CE_GL_FEATURE_ABGR,
-	CE_GL_FEATURE_BGRA,
+	CE_GL_FEATURE_SHADING_LANGUAGE_100,
 	CE_GL_FEATURE_COUNT
 } ce_gl_feature;
 
@@ -68,8 +70,14 @@ extern const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT3;
 // texture lod
 extern const GLenum CE_GL_TEXTURE_MAX_LEVEL;
 
-// texture edge clamp
+// texture clamp
+extern const GLenum CE_GL_CLAMP_TO_BORDER;
 extern const GLenum CE_GL_CLAMP_TO_EDGE;
+
+// color formats
+extern const GLenum CE_GL_ABGR;
+extern const GLenum CE_GL_BGR;
+extern const GLenum CE_GL_BGRA;
 
 // packed pixels
 extern const GLenum CE_GL_UNSIGNED_SHORT_4_4_4_4;
@@ -134,10 +142,8 @@ extern const GLenum CE_GL_FRAMEBUFFER_COMPLETE;
 extern const GLenum CE_GL_PIXEL_PACK_BUFFER;
 extern const GLenum CE_GL_PIXEL_UNPACK_BUFFER;
 
-// color formats
-extern const GLenum CE_GL_ABGR;
-extern const GLenum CE_GL_BGR;
-extern const GLenum CE_GL_BGRA;
+// shading language
+extern const GLenum CE_GL_SHADING_LANGUAGE_VERSION;
 
 // common API
 extern bool ce_gl_init(void);

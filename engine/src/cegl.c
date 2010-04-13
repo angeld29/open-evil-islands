@@ -54,8 +54,14 @@ static CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC ce_gl_compressed_tex_image_2d_proc;
 // texture lod
 const GLenum CE_GL_TEXTURE_MAX_LEVEL = 0x813D;
 
-// texture edge clamp
+// texture clamp
+const GLenum CE_GL_CLAMP_TO_BORDER = 0x812D;
 const GLenum CE_GL_CLAMP_TO_EDGE = 0x812F;
+
+// color formats
+const GLenum CE_GL_ABGR = 0x8000;
+const GLenum CE_GL_BGR = 0x80E0;
+const GLenum CE_GL_BGRA = 0x80E1;
 
 // packed pixels
 const GLenum CE_GL_UNSIGNED_SHORT_4_4_4_4 = 0x8033;
@@ -175,13 +181,10 @@ static CE_GL_GENERATE_MIPMAP_PROC ce_gl_generate_mipmap_proc;
 const GLenum CE_GL_PIXEL_PACK_BUFFER = 0x88EB;
 const GLenum CE_GL_PIXEL_UNPACK_BUFFER = 0x88EC;
 
-// color formats
-const GLenum CE_GL_ABGR = 0x8000;
-const GLenum CE_GL_BGR = 0x80E0;
-const GLenum CE_GL_BGRA = 0x80E1;
+// shading language
+const GLenum CE_GL_SHADING_LANGUAGE_VERSION = 0x8B8C;
 
 // common API
-
 typedef void (*ce_gl_ext_func_ptr)(void);
 
 static ce_gl_ext_func_ptr ce_gl_get_proc_address(const char* name)
@@ -251,7 +254,10 @@ static struct {
 		"texture compression s3tc",
 		"texture compression dxt1",
 		"texture lod",
+		"texture border clamp",
 		"texture edge clamp",
+		"abgr",
+		"bgra",
 		"packed pixels",
 		"generate mipmap",
 		"vertex buffer object",
@@ -263,8 +269,7 @@ static struct {
 		"framebuffer object",
 		"pixel buffer object",
 		"texture buffer object",
-		"abgr",
-		"bgra"
+		"shading language 100"
 	}
 };
 
@@ -307,9 +312,19 @@ bool ce_gl_init(void)
 		ce_gl_check_extension("GL_SGIS_texture_lod") ||
 		ce_gl_check_extension("GL_EXT_texture_lod");
 
+	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_BORDER_CLAMP] =
+		ce_gl_check_extension("GL_ARB_texture_border_clamp") ||
+		ce_gl_check_extension("GL_SGIS_texture_border_clamp");
+
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_EDGE_CLAMP] =
 		ce_gl_check_extension("GL_SGIS_texture_edge_clamp") ||
 		ce_gl_check_extension("GL_EXT_texture_edge_clamp");
+
+	ce_gl_inst.features[CE_GL_FEATURE_ABGR] =
+		ce_gl_check_extension("GL_EXT_abgr");
+
+	ce_gl_inst.features[CE_GL_FEATURE_BGRA] =
+		ce_gl_check_extension("GL_EXT_bgra");
 
 	ce_gl_inst.features[CE_GL_FEATURE_PACKED_PIXELS] =
 		ce_gl_check_extension("GL_EXT_packed_pixels");
@@ -444,11 +459,8 @@ bool ce_gl_init(void)
 		ce_gl_check_extension("GL_ARB_texture_buffer_object") ||
 		ce_gl_check_extension("GL_EXT_texture_buffer_object");
 
-	ce_gl_inst.features[CE_GL_FEATURE_ABGR] =
-		ce_gl_check_extension("GL_EXT_abgr");
-
-	ce_gl_inst.features[CE_GL_FEATURE_BGRA] =
-		ce_gl_check_extension("GL_EXT_bgra");
+	ce_gl_inst.features[CE_GL_FEATURE_SHADING_LANGUAGE_100] =
+		ce_gl_check_extension("GL_ARB_shading_language_100");
 
 	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
 		ce_logging_write("opengl: checking for '%s' extension... %s",
