@@ -71,36 +71,6 @@ const GLenum CE_GL_UNSIGNED_INT_8_8_8_8 = 0x8035;
 // generate mipmap
 const GLenum CE_GL_GENERATE_MIPMAP = 0x8191;
 
-// VBO
-const GLenum CE_GL_ARRAY_BUFFER = 0x8892;
-const GLenum CE_GL_ELEMENT_ARRAY_BUFFER = 0x8893;
-const GLenum CE_GL_STREAM_DRAW = 0x88E0;
-const GLenum CE_GL_STREAM_READ = 0x88E1;
-const GLenum CE_GL_STREAM_COPY = 0x88E2;
-const GLenum CE_GL_STATIC_DRAW = 0x88E4;
-const GLenum CE_GL_STATIC_READ = 0x88E5;
-const GLenum CE_GL_STATIC_COPY = 0x88E6;
-const GLenum CE_GL_DYNAMIC_DRAW = 0x88E8;
-const GLenum CE_GL_DYNAMIC_READ = 0x88E9;
-const GLenum CE_GL_DYNAMIC_COPY = 0x88EA;
-
-typedef void (APIENTRY *CE_GL_BIND_BUFFER_PROC)(GLenum target, GLuint buffer);
-typedef void (APIENTRY *CE_GL_DELETE_BUFFERS_PROC)
-				(GLsizei n, const GLuint* buffers);
-typedef void (APIENTRY *CE_GL_GEN_BUFFERS_PROC)(GLsizei n, GLuint* buffers);
-typedef void (APIENTRY *CE_GL_BUFFER_DATA_PROC)
-				(GLenum target, GLsizeiptr size,
-				const GLvoid* data, GLenum usage);
-typedef void (APIENTRY *CE_GL_BUFFER_SUB_DATA_PROC)
-				(GLenum target, GLintptr offset,
-				GLsizeiptr size, const GLvoid* data);
-
-static CE_GL_BIND_BUFFER_PROC ce_gl_bind_buffer_proc;
-static CE_GL_DELETE_BUFFERS_PROC ce_gl_delete_buffers_proc;
-static CE_GL_GEN_BUFFERS_PROC ce_gl_gen_buffers_proc;
-static CE_GL_BUFFER_DATA_PROC ce_gl_buffer_data_proc;
-static CE_GL_BUFFER_SUB_DATA_PROC ce_gl_buffer_sub_data_proc;
-
 // window pos
 typedef void (APIENTRY *CE_GL_WINDOW_POS_2F_PROC)(GLfloat x, GLfloat y);
 typedef void (APIENTRY *CE_GL_WINDOW_POS_2FV_PROC)(const GLfloat* v);
@@ -130,11 +100,6 @@ static CE_GL_POINT_PARAMETER_FV_PROC ce_gl_point_parameter_fv_proc;
 const GLenum CE_GL_POINT_SPRITE = 0x8861;
 const GLenum CE_GL_COORD_REPLACE = 0x8862;
 
-// meminfo
-const GLenum CE_GL_VBO_FREE_MEMORY = 0x87FB;
-const GLenum CE_GL_TEXTURE_FREE_MEMORY = 0x87FC;
-const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY = 0x87FD;
-
 // multisample
 const GLenum CE_GLX_SAMPLE_BUFFERS = 100000;
 const GLenum CE_GLX_SAMPLES = 100001;
@@ -149,6 +114,36 @@ const GLenum CE_GL_SAMPLE_BUFFERS = 0x80A8;
 const GLenum CE_GL_SAMPLES = 0x80A9;
 const GLenum CE_GL_SAMPLE_COVERAGE_VALUE = 0x80AA;
 const GLenum CE_GL_SAMPLE_COVERAGE_INVERT = 0x80AB;
+
+// VBO
+const GLenum CE_GL_ARRAY_BUFFER = 0x8892;
+const GLenum CE_GL_ELEMENT_ARRAY_BUFFER = 0x8893;
+const GLenum CE_GL_STREAM_DRAW = 0x88E0;
+const GLenum CE_GL_STREAM_READ = 0x88E1;
+const GLenum CE_GL_STREAM_COPY = 0x88E2;
+const GLenum CE_GL_STATIC_DRAW = 0x88E4;
+const GLenum CE_GL_STATIC_READ = 0x88E5;
+const GLenum CE_GL_STATIC_COPY = 0x88E6;
+const GLenum CE_GL_DYNAMIC_DRAW = 0x88E8;
+const GLenum CE_GL_DYNAMIC_READ = 0x88E9;
+const GLenum CE_GL_DYNAMIC_COPY = 0x88EA;
+
+typedef void (APIENTRY *CE_GL_BIND_BUFFER_PROC)(GLenum target, GLuint buffer);
+typedef void (APIENTRY *CE_GL_DELETE_BUFFERS_PROC)
+				(GLsizei n, const GLuint* buffers);
+typedef void (APIENTRY *CE_GL_GEN_BUFFERS_PROC)(GLsizei n, GLuint* buffers);
+typedef void (APIENTRY *CE_GL_BUFFER_DATA_PROC)
+				(GLenum target, GLsizeiptr size,
+				const GLvoid* data, GLenum usage);
+typedef void (APIENTRY *CE_GL_BUFFER_SUB_DATA_PROC)
+				(GLenum target, GLintptr offset,
+				GLsizeiptr size, const GLvoid* data);
+
+static CE_GL_BIND_BUFFER_PROC ce_gl_bind_buffer_proc;
+static CE_GL_DELETE_BUFFERS_PROC ce_gl_delete_buffers_proc;
+static CE_GL_GEN_BUFFERS_PROC ce_gl_gen_buffers_proc;
+static CE_GL_BUFFER_DATA_PROC ce_gl_buffer_data_proc;
+static CE_GL_BUFFER_SUB_DATA_PROC ce_gl_buffer_sub_data_proc;
 
 // FBO
 const GLenum CE_GL_FRAMEBUFFER = 0x8D40;
@@ -183,6 +178,11 @@ const GLenum CE_GL_PIXEL_UNPACK_BUFFER = 0x88EC;
 
 // shading language
 const GLenum CE_GL_SHADING_LANGUAGE_VERSION = 0x8B8C;
+
+// meminfo
+const GLenum CE_GL_VBO_FREE_MEMORY = 0x87FB;
+const GLenum CE_GL_TEXTURE_FREE_MEMORY = 0x87FC;
+const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY = 0x87FD;
 
 // common API
 typedef void (*ce_gl_ext_func_ptr)(void);
@@ -260,16 +260,16 @@ static struct {
 		"bgra",
 		"packed pixels",
 		"generate mipmap",
-		"vertex buffer object",
 		"window pos",
 		"point parameters",
 		"point sprite",
-		"meminfo",
 		"multisample",
+		"vertex buffer object",
 		"framebuffer object",
 		"pixel buffer object",
 		"texture buffer object",
-		"shading language 100"
+		"shading language 100",
+		"meminfo"
 	}
 };
 
@@ -332,28 +332,6 @@ bool ce_gl_init(void)
 	ce_gl_inst.features[CE_GL_FEATURE_GENERATE_MIPMAP] =
 		ce_gl_check_extension("GL_SGIS_generate_mipmap");
 
-	ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT] =
-		ce_gl_check_extension("GL_ARB_vertex_buffer_object");
-
-	if (ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT]) {
-		ce_gl_bind_buffer_proc = (CE_GL_BIND_BUFFER_PROC)
-								ce_gl_get_proc_address("glBindBufferARB");
-		ce_gl_delete_buffers_proc = (CE_GL_DELETE_BUFFERS_PROC)
-								ce_gl_get_proc_address("glDeleteBuffersARB");
-		ce_gl_gen_buffers_proc = (CE_GL_GEN_BUFFERS_PROC)
-								ce_gl_get_proc_address("glGenBuffersARB");
-		ce_gl_buffer_data_proc = (CE_GL_BUFFER_DATA_PROC)
-								ce_gl_get_proc_address("glBufferDataARB");
-		ce_gl_buffer_sub_data_proc = (CE_GL_BUFFER_SUB_DATA_PROC)
-								ce_gl_get_proc_address("glBufferSubDataARB");
-		ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT] =
-			NULL != ce_gl_bind_buffer_proc &&
-			NULL != ce_gl_delete_buffers_proc &&
-			NULL != ce_gl_gen_buffers_proc &&
-			NULL != ce_gl_buffer_data_proc &&
-			NULL != ce_gl_buffer_sub_data_proc;
-	}
-
 	ce_gl_inst.features[CE_GL_FEATURE_WINDOW_POS] =
 		ce_gl_check_extension("GL_ARB_window_pos") ||
 		ce_gl_check_extension("GL_MESA_window_pos");
@@ -401,9 +379,6 @@ bool ce_gl_init(void)
 		ce_gl_check_extension("GL_ARB_point_sprite") ||
 		ce_gl_check_extension("GL_NV_point_sprite");
 
-	ce_gl_inst.features[CE_GL_FEATURE_MEMINFO] =
-		ce_gl_check_extension("GL_ATI_meminfo");
-
 	ce_gl_inst.features[CE_GL_FEATURE_MULTISAMPLE] =
 		ce_gl_check_extension("GL_ARB_multisample") ||
 		ce_gl_check_extension("GLX_ARB_multisample") ||
@@ -412,6 +387,28 @@ bool ce_gl_init(void)
 		ce_gl_check_extension("WGL_EXT_multisample") ||
 		ce_gl_check_extension("GL_SGIS_multisample") ||
 		ce_gl_check_extension("GLX_SGIS_multisample");
+
+	ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT] =
+		ce_gl_check_extension("GL_ARB_vertex_buffer_object");
+
+	if (ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT]) {
+		ce_gl_bind_buffer_proc = (CE_GL_BIND_BUFFER_PROC)
+								ce_gl_get_proc_address("glBindBufferARB");
+		ce_gl_delete_buffers_proc = (CE_GL_DELETE_BUFFERS_PROC)
+								ce_gl_get_proc_address("glDeleteBuffersARB");
+		ce_gl_gen_buffers_proc = (CE_GL_GEN_BUFFERS_PROC)
+								ce_gl_get_proc_address("glGenBuffersARB");
+		ce_gl_buffer_data_proc = (CE_GL_BUFFER_DATA_PROC)
+								ce_gl_get_proc_address("glBufferDataARB");
+		ce_gl_buffer_sub_data_proc = (CE_GL_BUFFER_SUB_DATA_PROC)
+								ce_gl_get_proc_address("glBufferSubDataARB");
+		ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT] =
+			NULL != ce_gl_bind_buffer_proc &&
+			NULL != ce_gl_delete_buffers_proc &&
+			NULL != ce_gl_gen_buffers_proc &&
+			NULL != ce_gl_buffer_data_proc &&
+			NULL != ce_gl_buffer_sub_data_proc;
+	}
 
 	ce_gl_inst.features[CE_GL_FEATURE_FRAMEBUFFER_OBJECT] =
 		ce_gl_check_extension("GL_ARB_framebuffer_object") ||
@@ -461,6 +458,9 @@ bool ce_gl_init(void)
 
 	ce_gl_inst.features[CE_GL_FEATURE_SHADING_LANGUAGE_100] =
 		ce_gl_check_extension("GL_ARB_shading_language_100");
+
+	ce_gl_inst.features[CE_GL_FEATURE_MEMINFO] =
+		ce_gl_check_extension("GL_ATI_meminfo");
 
 	for (int i = 0; i < CE_GL_FEATURE_COUNT; ++i) {
 		ce_logging_write("opengl: checking for '%s' extension... %s",
@@ -512,45 +512,6 @@ void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 		internal_format, width, height, border, image_size, data);
 }
 
-// VBO
-
-void ce_gl_bind_buffer(GLenum target, GLuint buffer)
-{
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_bind_buffer_proc);
-	(*ce_gl_bind_buffer_proc)(target, buffer);
-}
-
-void ce_gl_delete_buffers(GLsizei n, const GLuint* buffers)
-{
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_delete_buffers_proc);
-	(*ce_gl_delete_buffers_proc)(n, buffers);
-}
-
-void ce_gl_gen_buffers(GLsizei n, GLuint* buffers)
-{
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_gen_buffers_proc);
-	(*ce_gl_gen_buffers_proc)(n, buffers);
-}
-
-void ce_gl_buffer_data(GLenum target, GLsizeiptr size,
-						const GLvoid* data, GLenum usage)
-{
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_buffer_data_proc);
-	(*ce_gl_buffer_data_proc)(target, size, data, usage);
-}
-
-void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
-							GLsizeiptr size, const GLvoid* data)
-{
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_buffer_sub_data_proc);
-	(*ce_gl_buffer_sub_data_proc)(target, offset, size, data);
-}
-
 // window pos
 
 void ce_gl_window_pos_2f(GLfloat x, GLfloat y)
@@ -595,6 +556,45 @@ void ce_gl_point_parameter_fv(GLenum pname, GLfloat* params)
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
 	assert(NULL != ce_gl_point_parameter_fv_proc);
 	(*ce_gl_point_parameter_fv_proc)(pname, params);
+}
+
+// VBO
+
+void ce_gl_bind_buffer(GLenum target, GLuint buffer)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_bind_buffer_proc);
+	(*ce_gl_bind_buffer_proc)(target, buffer);
+}
+
+void ce_gl_delete_buffers(GLsizei n, const GLuint* buffers)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_delete_buffers_proc);
+	(*ce_gl_delete_buffers_proc)(n, buffers);
+}
+
+void ce_gl_gen_buffers(GLsizei n, GLuint* buffers)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_gen_buffers_proc);
+	(*ce_gl_gen_buffers_proc)(n, buffers);
+}
+
+void ce_gl_buffer_data(GLenum target, GLsizeiptr size,
+						const GLvoid* data, GLenum usage)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_buffer_data_proc);
+	(*ce_gl_buffer_data_proc)(target, size, data, usage);
+}
+
+void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
+							GLsizeiptr size, const GLvoid* data)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_buffer_sub_data_proc);
+	(*ce_gl_buffer_sub_data_proc)(target, offset, size, data);
 }
 
 // FBO
