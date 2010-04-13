@@ -41,8 +41,6 @@
 #include "cemath.h"
 #include "cevec3.h"
 #include "cescenemng.h"
-#include "cecfgfile.h"
-#include "celightcfg.h"
 #include "ceoptparse.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
@@ -55,13 +53,7 @@
 #define CE_SPIKE_VERSION_PATCH 0
 #endif
 
-//#define DAY_NIGHT_CHANGE_SPEED_DEFAULT 0.08f
-
 static ce_scenemng* scenemng;
-//static ce_lightcfg* lightcfg;
-
-//static float time_of_day = 12.0f;
-//static float day_night_change_speed = DAY_NIGHT_CHANGE_SPEED_DEFAULT;
 
 static ce_input_event_supply* es;
 static ce_input_event* toggle_bbox_event;
@@ -72,15 +64,10 @@ static void idle(void)
 
 	float elapsed = ce_timer_elapsed(scenemng->timer);
 
-	/*if ((time_of_day += day_night_change_speed * elapsed) >= 24.0f) {
-		time_of_day = 0.0f;
-	}*/
-
 	ce_input_event_supply_advance(es, elapsed);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
 		ce_input_event_supply_del(es);
-		//ce_lightcfg_del(lightcfg);
 		ce_scenemng_del(scenemng);
 		ce_gl_term();
 		ce_input_term();
@@ -131,47 +118,6 @@ static void idle(void)
 
 static void display(void)
 {
-	// FIXME: move to the engine!!!
-	/*float time_index, time_next_index;
-	float time_factor = modff(time_of_day, &time_index);
-
-	if ((time_next_index = time_index + 1.0f) >= 24.0f) {
-		time_next_index = 0.0f;
-	}
-
-	ce_color sky, ambient, sunlight;
-
-	ce_color_lerp(&sky, time_factor,
-		&lightcfg->sky[(int)time_index],
-		&lightcfg->sky[(int)time_next_index]);
-
-	ce_color_lerp(&ambient, time_factor,
-		&lightcfg->ambient[(int)time_index],
-		&lightcfg->ambient[(int)time_next_index]);
-
-	ce_color_lerp(&sunlight, time_factor,
-		&lightcfg->sunlight[(int)time_index],
-		&lightcfg->sunlight[(int)time_next_index]);*/
-
-	//glClearColor(sky.r, sky.g, sky.b, sky.a);
-
-/*#ifdef GL_VERSION_1_2
-	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
-#endif
-	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, (float[]) { ambient.r, ambient.g,
-													ambient.b, ambient.a });*/
-
-	// FIXME: sunlight after camera?
-	/*glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, (float[]) { 0.0f, 1.0f, 0.0f, 0.0f });
-	glLightfv(GL_LIGHT0, GL_AMBIENT, (float[]) { sunlight.r, sunlight.g,
-												sunlight.b, sunlight.a });
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, (float[]) { 0.0f, 0.0f, 0.0f, 0.0f });*/
-
-	//glDisable(GL_LIGHT0);
-
 	ce_scenemng_render(scenemng);
 
 	glutSwapBuffers();
@@ -207,9 +153,6 @@ int main(int argc, char* argv[])
 	ce_optoption* full_screen = ce_optgroup_create_option(general,
 		"full_screen", 'f', "full-screen", CE_OPTACTION_STORE_TRUE,
 		"start program in Full Screen mode", NULL);
-	/*ce_optoption* speed = ce_optgroup_create_option(general,
-		"speed", 's', "speed", CE_OPTACTION_STORE,
-		"day/night change speed ([0.0 ... 1.0])", NULL);*/
 	ce_optoption* terrain_tiling = ce_optgroup_create_option(general,
 		"terrain_tiling", 't', "terrain-tiling", CE_OPTACTION_STORE_TRUE,
 		"enable terrain tiling; very slow, but reduce usage of video "
@@ -220,8 +163,6 @@ int main(int argc, char* argv[])
 	if (!ce_optparse_parse_args(optparse, argc, argv)) {
 		return EXIT_FAILURE;
 	}
-
-	//day_night_change_speed = ce_fclamp(atof(optarg), 0.0f, 1.0f);
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
@@ -261,23 +202,6 @@ int main(int argc, char* argv[])
 					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
 		return EXIT_FAILURE;
 	}
-
-	/*char cfg_path[512];
-	snprintf(cfg_path, sizeof(cfg_path),
-			"%s/Config/lightsgipat.ini", ei_path->value->str);
-
-	ce_cfgfile* cfgfile = ce_cfgfile_open(cfg_path);
-	if (NULL == cfgfile) {
-		ce_logging_error("main: could not open config file: '%s'", cfg_path);
-		return EXIT_FAILURE;
-	}
-
-	lightcfg = ce_lightcfg_new(cfgfile);
-	if (NULL == lightcfg) {
-		return EXIT_FAILURE;
-	}
-
-	ce_cfgfile_close(cfgfile);*/
 
 	ce_vec3 position;
 	ce_vec3_init(&position, 0.0f, scenemng->terrain->mprfile->max_y, 0.0f);
