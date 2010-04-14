@@ -55,7 +55,7 @@ typedef enum {
 	CE_GL_FEATURE_POINT_SPRITE,
 	CE_GL_FEATURE_MULTISAMPLE,
 	CE_GL_FEATURE_VERTEX_BUFFER_OBJECT,
-	CE_GL_FEATURE_FRAMEBUFFER_OBJECT,
+	CE_GL_FEATURE_FRAME_BUFFER_OBJECT,
 	CE_GL_FEATURE_PIXEL_BUFFER_OBJECT,
 	CE_GL_FEATURE_TEXTURE_BUFFER_OBJECT,
 	CE_GL_FEATURE_SHADING_LANGUAGE_100,
@@ -149,19 +149,19 @@ extern void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
 									GLsizeiptr size, const GLvoid* data);
 
 // FBO
-extern const GLenum CE_GL_FRAMEBUFFER;
-extern const GLenum CE_GL_READ_FRAMEBUFFER;
-extern const GLenum CE_GL_DRAW_FRAMEBUFFER;
+extern const GLenum CE_GL_FRAME_BUFFER;
+extern const GLenum CE_GL_READ_FRAME_BUFFER;
+extern const GLenum CE_GL_DRAW_FRAME_BUFFER;
 extern const GLenum CE_GL_COLOR_ATTACHMENT0;
 extern const GLenum CE_GL_COLOR_ATTACHMENT1;
-extern const GLenum CE_GL_FRAMEBUFFER_COMPLETE;
+extern const GLenum CE_GL_FRAME_BUFFER_COMPLETE;
 
-extern void ce_gl_bind_framebuffer(GLenum target, GLuint framebuffer);
-extern void ce_gl_delete_framebuffers(GLsizei n, const GLuint* framebuffers);
-extern void ce_gl_gen_framebuffers(GLsizei n, GLuint* framebuffers);
-extern GLenum ce_gl_check_framebuffer_status(GLenum target);
-extern void ce_gl_framebuffer_texture_2d(GLenum target, GLenum attachment,
-							GLenum textarget, GLuint texture, GLint level);
+extern void ce_gl_bind_frame_buffer(GLenum target, GLuint buffer);
+extern void ce_gl_delete_frame_buffers(GLsizei n, const GLuint* buffers);
+extern void ce_gl_gen_frame_buffers(GLsizei n, GLuint* buffers);
+extern GLenum ce_gl_check_frame_buffer_status(GLenum target);
+extern void ce_gl_frame_buffer_texture_2d(GLenum target, GLenum attachment,
+							GLenum tex_target, GLuint texture, GLint level);
 extern void ce_gl_generate_mipmap(GLenum target);
 
 // PBO

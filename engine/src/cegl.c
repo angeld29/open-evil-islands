@@ -146,30 +146,30 @@ static CE_GL_BUFFER_DATA_PROC ce_gl_buffer_data_proc;
 static CE_GL_BUFFER_SUB_DATA_PROC ce_gl_buffer_sub_data_proc;
 
 // FBO
-const GLenum CE_GL_FRAMEBUFFER = 0x8D40;
-const GLenum CE_GL_READ_FRAMEBUFFER = 0x8CA8;
-const GLenum CE_GL_DRAW_FRAMEBUFFER = 0x8CA9;
+const GLenum CE_GL_FRAME_BUFFER = 0x8D40;
+const GLenum CE_GL_READ_FRAME_BUFFER = 0x8CA8;
+const GLenum CE_GL_DRAW_FRAME_BUFFER = 0x8CA9;
 const GLenum CE_GL_COLOR_ATTACHMENT0 = 0x8CE0;
 const GLenum CE_GL_COLOR_ATTACHMENT1 = 0x8CE1;
-const GLenum CE_GL_FRAMEBUFFER_COMPLETE = 0x8CD5;
+const GLenum CE_GL_FRAME_BUFFER_COMPLETE = 0x8CD5;
 
-typedef void (APIENTRY *CE_GL_BIND_FRAMEBUFFER_PROC)
-				(GLenum target, GLuint framebuffer);
-typedef void (APIENTRY *CE_GL_DELETE_FRAMEBUFFERS_PROC)
-				(GLsizei n, const GLuint* framebuffers);
-typedef void (APIENTRY *CE_GL_GEN_FRAMEBUFFERS_PROC)
-				(GLsizei n, GLuint* framebuffers);
-typedef GLenum (APIENTRY *CE_GL_CHECK_FRAMEBUFFER_STATUS_PROC)(GLenum target);
-typedef void (APIENTRY *CE_GL_FRAMEBUFFER_TEXTURE_2D_PROC)
+typedef void (APIENTRY *CE_GL_BIND_FRAME_BUFFER_PROC)
+				(GLenum target, GLuint buffer);
+typedef void (APIENTRY *CE_GL_DELETE_FRAME_BUFFERS_PROC)
+				(GLsizei n, const GLuint* buffers);
+typedef void (APIENTRY *CE_GL_GEN_FRAME_BUFFERS_PROC)
+				(GLsizei n, GLuint* buffers);
+typedef GLenum (APIENTRY *CE_GL_CHECK_FRAME_BUFFER_STATUS_PROC)(GLenum target);
+typedef void (APIENTRY *CE_GL_FRAME_BUFFER_TEXTURE_2D_PROC)
 				(GLenum target, GLenum attachment,
-				GLenum textarget, GLuint texture, GLint level);
+				GLenum tex_target, GLuint texture, GLint level);
 typedef void (APIENTRY *CE_GL_GENERATE_MIPMAP_PROC)(GLenum target);
 
-static CE_GL_BIND_FRAMEBUFFER_PROC ce_gl_bind_framebuffer_proc;
-static CE_GL_DELETE_FRAMEBUFFERS_PROC ce_gl_delete_framebuffers_proc;
-static CE_GL_GEN_FRAMEBUFFERS_PROC ce_gl_gen_framebuffers_proc;
-static CE_GL_CHECK_FRAMEBUFFER_STATUS_PROC ce_gl_check_framebuffer_status_proc;
-static CE_GL_FRAMEBUFFER_TEXTURE_2D_PROC ce_gl_framebuffer_texture_2d_proc;
+static CE_GL_BIND_FRAME_BUFFER_PROC ce_gl_bind_frame_buffer_proc;
+static CE_GL_DELETE_FRAME_BUFFERS_PROC ce_gl_delete_frame_buffers_proc;
+static CE_GL_GEN_FRAME_BUFFERS_PROC ce_gl_gen_frame_buffers_proc;
+static CE_GL_CHECK_FRAME_BUFFER_STATUS_PROC ce_gl_check_frame_buffer_status_proc;
+static CE_GL_FRAME_BUFFER_TEXTURE_2D_PROC ce_gl_frame_buffer_texture_2d_proc;
 static CE_GL_GENERATE_MIPMAP_PROC ce_gl_generate_mipmap_proc;
 
 // PBO
@@ -185,25 +185,25 @@ const GLenum CE_GL_TEXTURE_FREE_MEMORY = 0x87FC;
 const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY = 0x87FD;
 
 // common API
-typedef void (*ce_gl_ext_func_ptr)(void);
+typedef void (*ce_gl_ext_proc_ptr)(void);
 
-static ce_gl_ext_func_ptr ce_gl_get_proc_address(const char* name)
+static ce_gl_ext_proc_ptr ce_gl_get_proc_address(const char* name)
 {
 #if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
-	return (ce_gl_ext_func_ptr)wglGetProcAddress(name);
+	return (ce_gl_ext_proc_ptr)wglGetProcAddress(name);
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
 #error Not implemented
 #else
 #ifdef GLX_VERSION_1_4
-	return (ce_gl_ext_func_ptr)glXGetProcAddress((const GLubyte*)name);
+	return (ce_gl_ext_proc_ptr)glXGetProcAddress((const GLubyte*)name);
 #endif
 #endif
 	return NULL;
 }
 
-static ce_gl_ext_func_ptr ce_gl_get_first_proc_address(int count, ...)
+static ce_gl_ext_proc_ptr ce_gl_get_first_proc_address(int count, ...)
 {
-	ce_gl_ext_func_ptr func = NULL;
+	ce_gl_ext_proc_ptr func = NULL;
 	va_list args;
 	va_start(args, count);
 	for (int i = 0; i < count && NULL == func; ++i) {
@@ -265,7 +265,7 @@ static struct {
 		"point sprite",
 		"multisample",
 		"vertex buffer object",
-		"framebuffer object",
+		"frame buffer object",
 		"pixel buffer object",
 		"texture buffer object",
 		"shading language 100",
@@ -410,41 +410,41 @@ bool ce_gl_init(void)
 			NULL != ce_gl_buffer_sub_data_proc;
 	}
 
-	ce_gl_inst.features[CE_GL_FEATURE_FRAMEBUFFER_OBJECT] =
+	ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT] =
 		ce_gl_check_extension("GL_ARB_framebuffer_object") ||
 		ce_gl_check_extension("GL_EXT_framebuffer_object");
 
-	if (ce_gl_inst.features[CE_GL_FEATURE_FRAMEBUFFER_OBJECT]) {
-		ce_gl_bind_framebuffer_proc =
-			(CE_GL_BIND_FRAMEBUFFER_PROC)
+	if (ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT]) {
+		ce_gl_bind_frame_buffer_proc =
+			(CE_GL_BIND_FRAME_BUFFER_PROC)
 				ce_gl_get_first_proc_address(2, "glBindFramebufferARB",
 												"glBindFramebufferEXT");
-		ce_gl_delete_framebuffers_proc =
-			(CE_GL_DELETE_FRAMEBUFFERS_PROC)
+		ce_gl_delete_frame_buffers_proc =
+			(CE_GL_DELETE_FRAME_BUFFERS_PROC)
 				ce_gl_get_first_proc_address(2, "glDeleteFramebuffersARB",
 												"glDeleteFramebuffersEXT");
-		ce_gl_gen_framebuffers_proc =
-			(CE_GL_GEN_FRAMEBUFFERS_PROC)
+		ce_gl_gen_frame_buffers_proc =
+			(CE_GL_GEN_FRAME_BUFFERS_PROC)
 				ce_gl_get_first_proc_address(2, "glGenFramebuffersARB",
 												"glGenFramebuffersEXT");
-		ce_gl_check_framebuffer_status_proc =
-			(CE_GL_CHECK_FRAMEBUFFER_STATUS_PROC)
+		ce_gl_check_frame_buffer_status_proc =
+			(CE_GL_CHECK_FRAME_BUFFER_STATUS_PROC)
 				ce_gl_get_first_proc_address(2, "glCheckFramebufferStatusARB",
 												"glCheckFramebufferStatusEXT");
-		ce_gl_framebuffer_texture_2d_proc =
-			(CE_GL_FRAMEBUFFER_TEXTURE_2D_PROC)
+		ce_gl_frame_buffer_texture_2d_proc =
+			(CE_GL_FRAME_BUFFER_TEXTURE_2D_PROC)
 				ce_gl_get_first_proc_address(2, "glFramebufferTexture2DARB",
 												"glFramebufferTexture2DEXT");
 		ce_gl_generate_mipmap_proc =
 			(CE_GL_GENERATE_MIPMAP_PROC)
 				ce_gl_get_first_proc_address(2, "glGenerateMipmapARB",
 												"glGenerateMipmapEXT");
-		ce_gl_inst.features[CE_GL_FEATURE_FRAMEBUFFER_OBJECT] =
-			NULL != ce_gl_bind_framebuffer_proc &&
-			NULL != ce_gl_delete_framebuffers_proc &&
-			NULL != ce_gl_gen_framebuffers_proc &&
-			NULL != ce_gl_check_framebuffer_status_proc &&
-			NULL != ce_gl_framebuffer_texture_2d_proc &&
+		ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT] =
+			NULL != ce_gl_bind_frame_buffer_proc &&
+			NULL != ce_gl_delete_frame_buffers_proc &&
+			NULL != ce_gl_gen_frame_buffers_proc &&
+			NULL != ce_gl_check_frame_buffer_status_proc &&
+			NULL != ce_gl_frame_buffer_texture_2d_proc &&
 			NULL != ce_gl_generate_mipmap_proc;
 	}
 
@@ -599,40 +599,40 @@ void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
 
 // FBO
 
-void ce_gl_bind_framebuffer(GLenum target, GLuint framebuffer)
+void ce_gl_bind_frame_buffer(GLenum target, GLuint buffer)
 {
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_bind_framebuffer_proc);
-	(*ce_gl_bind_framebuffer_proc)(target, framebuffer);
+	assert(NULL != ce_gl_bind_frame_buffer_proc);
+	(*ce_gl_bind_frame_buffer_proc)(target, buffer);
 }
 
-void ce_gl_delete_framebuffers(GLsizei n, const GLuint* framebuffers)
+void ce_gl_delete_frame_buffers(GLsizei n, const GLuint* buffers)
 {
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_delete_framebuffers_proc);
-	(*ce_gl_delete_framebuffers_proc)(n, framebuffers);
+	assert(NULL != ce_gl_delete_frame_buffers_proc);
+	(*ce_gl_delete_frame_buffers_proc)(n, buffers);
 }
 
-void ce_gl_gen_framebuffers(GLsizei n, GLuint* framebuffers)
+void ce_gl_gen_frame_buffers(GLsizei n, GLuint* buffers)
 {
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_gen_framebuffers_proc);
-	(*ce_gl_gen_framebuffers_proc)(n, framebuffers);
+	assert(NULL != ce_gl_gen_frame_buffers_proc);
+	(*ce_gl_gen_frame_buffers_proc)(n, buffers);
 }
 
-GLenum ce_gl_check_framebuffer_status(GLenum target)
+GLenum ce_gl_check_frame_buffer_status(GLenum target)
 {
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_check_framebuffer_status_proc);
-	return (*ce_gl_check_framebuffer_status_proc)(target);
+	assert(NULL != ce_gl_check_frame_buffer_status_proc);
+	return (*ce_gl_check_frame_buffer_status_proc)(target);
 }
 
-void ce_gl_framebuffer_texture_2d(GLenum target, GLenum attachment,
-							GLenum textarget, GLuint texture, GLint level)
+void ce_gl_frame_buffer_texture_2d(GLenum target, GLenum attachment,
+							GLenum tex_target, GLuint texture, GLint level)
 {
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_framebuffer_texture_2d_proc);
-	(*ce_gl_framebuffer_texture_2d_proc)(target, attachment, textarget,
+	assert(NULL != ce_gl_frame_buffer_texture_2d_proc);
+	(*ce_gl_frame_buffer_texture_2d_proc)(target, attachment, tex_target,
 														texture, level);
 }
 
