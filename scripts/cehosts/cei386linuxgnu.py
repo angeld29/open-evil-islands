@@ -41,5 +41,7 @@ def configure(env):
 	gcc.configure(env)
 
 	env.AppendUnique(
-		CPPDEFINES=["_GNU_SOURCE"],
+		CPPDEFINES=["_GNU_SOURCE", "_REENTRANT"],
+		LIBS=["pthread"],
+		LINKFLAGS=["-mt"],
 	)
