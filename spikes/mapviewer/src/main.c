@@ -260,11 +260,60 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	ce_vec3 position;
-	ce_vec3_init(&position, 0.0f, scenemng->terrain->mprfile->max_y, 0.0f);
+	snprintf(path, sizeof(path), "%s/Camera/%s.cam",
+		ei_path->value->str, zone_name->value->str/*"mainmenu"*/);
 
-	ce_camera_set_position(scenemng->camera, &position);
-	ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
+	FILE* file = NULL;//fopen(path, "rb");
+	if (NULL != file) {
+		for (;;) {
+			uint32_t v1, v2;
+
+			if (0 == fread(&v1, 4, 1, file)) {
+				break;
+			}
+
+			fread(&v2, 4, 1, file);
+
+			printf("%u %u\n", v1, v2);
+
+			float f[4];
+			fread(f, sizeof(float), 3, file);
+			printf("%f %f %f\n", f[0], f[1], f[2]);
+
+			ce_vec3 position;
+			ce_vec3_init_array(&position, f);
+			ce_fswap(&position.z, &position.y);
+			position.y = scenemng->terrain->mprfile->max_y;
+			position.z = -position.z;
+
+			ce_camera_set_position(scenemng->camera, &position);
+
+			fread(f, sizeof(float), 4, file);
+			printf("%f %f %f %f\n", f[0], f[1], f[2], f[3]);
+
+			ce_quat orientation, temp, temp2, temp3;
+			ce_quat_init_array(&temp, f);
+
+			ce_quat_init_polar(&temp2, ce_deg2rad(90), &CE_VEC3_UNIT_X);
+			//ce_quat_mul(&temp3, &temp2, &temp);
+
+			ce_quat_mul(&orientation, &temp2, &temp);
+
+			/*ce_quat_init_polar(&temp2, ce_deg2rad(180), &CE_VEC3_UNIT_Y);
+			ce_quat_mul(&orientation, &temp2, &temp3);*/
+
+			ce_quat_conj(&orientation, &orientation);
+
+			ce_camera_set_orientation(scenemng->camera, &orientation);
+		}
+		fclose(file);
+	} else {
+		ce_vec3 position;
+		ce_vec3_init(&position, 0.0f, scenemng->terrain->mprfile->max_y, 0.0f);
+
+		ce_camera_set_position(scenemng->camera, &position);
+		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
+	}
 
 	es = ce_input_event_supply_new();
 	toggle_bbox_event = ce_input_event_supply_single_front_event(es,
