@@ -20,8 +20,9 @@
 
 #include "cebyteorder.h"
 
+static const uint16_t pattern = 0xceca;
+
 bool ce_is_big_endian(void)
 {
-	static uint16_t pattern = 0xbabe;
-	return 0xba == 0[(volatile unsigned char*)&pattern];
+	return 0xce == 0[(uint8_t*)&pattern];
 }
