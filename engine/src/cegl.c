@@ -269,6 +269,9 @@ static struct {
 		"pixel buffer object",
 		"texture buffer object",
 		"shading language 100",
+		"shader object",
+		"vertex shader",
+		"fragment shader",
 		"meminfo"
 	}
 };
@@ -458,6 +461,15 @@ bool ce_gl_init(void)
 
 	ce_gl_inst.features[CE_GL_FEATURE_SHADING_LANGUAGE_100] =
 		ce_gl_check_extension("GL_ARB_shading_language_100");
+
+	ce_gl_inst.features[CE_GL_FEATURE_SHADER_OBJECT] =
+		ce_gl_check_extension("GL_ARB_shader_objects");
+
+	ce_gl_inst.features[CE_GL_FEATURE_VERTEX_SHADER] =
+		ce_gl_check_extension("GL_ARB_vertex_shader");
+
+	ce_gl_inst.features[CE_GL_FEATURE_FRAGMENT_SHADER] =
+		ce_gl_check_extension("GL_ARB_fragment_shader");
 
 	ce_gl_inst.features[CE_GL_FEATURE_MEMINFO] =
 		ce_gl_check_extension("GL_ATI_meminfo");
