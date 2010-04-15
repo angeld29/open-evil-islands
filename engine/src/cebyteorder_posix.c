@@ -19,8 +19,9 @@
 */
 
 #if __GNUC__ == 4 && __GNUC_MINOR__ == 2
-typedef unsigned long long __le64;
-typedef unsigned long long __be64;
+#include <linux/types.h>
+typedef __u64 __bitwise __le64;
+typedef __u64 __bitwise __be64;
 #endif
 
 #include <asm/byteorder.h>
