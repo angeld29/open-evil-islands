@@ -45,7 +45,7 @@ ce_thread* ce_thread_new(void* (*func)(void*), void* arg)
 void ce_thread_del(ce_thread* thread)
 {
 	if (NULL != thread) {
-		pthread_join(thread->thread, NULL);
+		ce_thread_wait(thread);
 		ce_free(thread, sizeof(ce_thread));
 	}
 }
