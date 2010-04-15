@@ -19,17 +19,29 @@
 */
 
 /*
+ *  Based on PThreads Primer: A Guide to Multithreaded Programming
+ *  and other tutorials.
+ *
  *  Some ideas are from open source of the greatest Qt Toolkit.
  *  Copyright (C) 2009 Nokia Corporation.
 */
 
+#include <string.h>
 #include <assert.h>
 
 #include <pthread.h>
 
 #include "celib.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "cethread.h"
+
+static void ce_thread_report_last_error(int code, const char* func_name)
+{
+	char buffer[128];
+	strerror_r(code, buffer, sizeof(buffer));
+	ce_logging_error("thread: %s failed: %s", func_name, buffer);
+}
 
 struct ce_thread {
 	pthread_t thread;
@@ -38,7 +50,10 @@ struct ce_thread {
 ce_thread* ce_thread_new(void* (*func)(void*), void* arg)
 {
 	ce_thread* thread = ce_alloc(sizeof(ce_thread));
-	pthread_create(&thread->thread, NULL, func, arg);
+	int code = pthread_create(&thread->thread, NULL, func, arg);
+	if (0 != code) {
+		ce_thread_report_last_error(code, "ce_thread_new::pthread_create");
+	}
 	return thread;
 }
 
@@ -52,7 +67,10 @@ void ce_thread_del(ce_thread* thread)
 
 void ce_thread_wait(ce_thread* thread)
 {
-	pthread_join(thread->thread, NULL);
+	int code = pthread_join(thread->thread, NULL);
+	if (0 != code) {
+		ce_thread_report_last_error(code, "ce_thread_wait::pthread_join");
+	}
 }
 
 struct ce_thread_mutex {
@@ -146,6 +164,8 @@ void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex)
 	if (0 == code) {
 		assert(cond->wakeup_count > 0 && "internal error");
 		--cond->wakeup_count;
+	} else {
+		ce_thread_report_last_error(code, "ce_thread_cond_wait::pthread_cond_wait");
 	}
 
 	pthread_mutex_unlock(&cond->mutex);
