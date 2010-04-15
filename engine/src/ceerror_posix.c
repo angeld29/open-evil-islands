@@ -24,7 +24,7 @@
 #include "celogging.h"
 #include "ceerror.h"
 
-void ce_error_report_last_error(const char* module,
+void ce_error_report_last_c_error(const char* module,
 								const char* func,
 								const char* error)
 {

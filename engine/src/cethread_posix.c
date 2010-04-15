@@ -33,15 +33,8 @@
 
 #include "celib.h"
 #include "cealloc.h"
-#include "celogging.h"
+#include "ceerror.h"
 #include "cethread.h"
-
-static void ce_thread_report_last_error(int code, const char* func_name)
-{
-	char buffer[128];
-	strerror_r(code, buffer, sizeof(buffer));
-	ce_logging_error("thread: %s failed: %s", func_name, buffer);
-}
 
 struct ce_thread {
 	pthread_t thread;
@@ -52,7 +45,8 @@ ce_thread* ce_thread_new(void* (*func)(void*), void* arg)
 	ce_thread* thread = ce_alloc(sizeof(ce_thread));
 	int code = pthread_create(&thread->thread, NULL, func, arg);
 	if (0 != code) {
-		ce_thread_report_last_error(code, "ce_thread_new::pthread_create");
+		ce_error_report_last_c_error("thread", __func__,
+									"pthread_create failed");
 	}
 	return thread;
 }
@@ -69,7 +63,8 @@ void ce_thread_wait(ce_thread* thread)
 {
 	int code = pthread_join(thread->thread, NULL);
 	if (0 != code) {
-		ce_thread_report_last_error(code, "ce_thread_wait::pthread_join");
+		ce_error_report_last_c_error("thread", __func__,
+									"pthread_join failed");
 	}
 }
 
@@ -165,7 +160,8 @@ void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex)
 		assert(cond->wakeup_count > 0 && "internal error");
 		--cond->wakeup_count;
 	} else {
-		ce_thread_report_last_error(code, "ce_thread_cond_wait::pthread_cond_wait");
+		ce_error_report_last_c_error("thread", __func__,
+									"pthread_cond_wait failed");
 	}
 
 	pthread_mutex_unlock(&cond->mutex);

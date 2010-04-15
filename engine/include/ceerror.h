@@ -26,9 +26,13 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern void ce_error_report_last_error(const char* module,
+extern void ce_error_report_last_c_error(const char* module,
 										const char* func,
 										const char* error);
+
+extern void ce_error_report_last_windows_error(const char* module,
+												const char* func,
+												const char* error);
 
 #ifdef __cplusplus
 }

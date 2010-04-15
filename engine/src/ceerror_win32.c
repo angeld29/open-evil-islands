@@ -24,9 +24,9 @@
 #include "celogging.h"
 #include "ceerror.h"
 
-void ce_error_report_last_error(const char* module,
-								const char* func,
-								const char* error)
+void ce_error_report_last_windows_error(const char* module,
+										const char* func,
+										const char* error)
 {
 	LPVOID buffer = NULL;
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |

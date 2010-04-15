@@ -43,8 +43,8 @@ static LONGLONG ce_timer_query_frequency(void)
 	if (QueryPerformanceFrequency(&frequency)) {
 		return frequency.QuadPart;
 	}
-	ce_error_report_last_error("timer", __func__,
-								"QueryPerformanceFrequency failed");
+	ce_error_report_last_windows_error("timer", __func__,
+										"QueryPerformanceFrequency failed");
 	ce_logging_warning("timer: %s: using default frequency", __func__);
 	return 1000000;
 }

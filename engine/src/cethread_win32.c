@@ -32,21 +32,9 @@
 
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceerror.h"
 #include "cevector.h"
 #include "cethread.h"
-
-static void ce_thread_report_last_error(const char* func_name)
-{
-	LPVOID buffer = NULL;
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-					FORMAT_MESSAGE_FROM_SYSTEM |
-					FORMAT_MESSAGE_IGNORE_INSERTS,
-					NULL, GetLastError(),
-					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-					(LPTSTR)&buffer, 0, NULL);
-	ce_logging_error("thread: %s failed: %s", func_name, buffer);
-	LocalFree(buffer);
-}
 
 typedef struct {
 	void* (*func)(void*);
@@ -77,7 +65,8 @@ ce_thread* ce_thread_new(void* (*func)(void*), void* arg)
 								0,      // default creation flags
 								NULL);  // no thread identifier
 	if (NULL == thread->thread) {
-		ce_thread_report_last_error("ce_thread_new::CreateThread");
+		ce_error_report_last_windows_error("thread", __func__,
+											"CreateThread failed");
 	}
 	return thread;
 }
@@ -94,7 +83,8 @@ void ce_thread_del(ce_thread* thread)
 void ce_thread_wait(ce_thread* thread)
 {
 	if (WAIT_OBJECT_0 != WaitForSingleObject(thread->thread, INFINITE)) {
-		ce_thread_report_last_error("ce_thread_wait::WaitForSingleObject");
+		ce_error_report_last_windows_error("thread", __func__,
+											"WaitForSingleObject failed");
 	}
 }
 
@@ -143,7 +133,8 @@ static ce_thread_cond_event* ce_thread_cond_event_new(void)
 								FALSE, // initial state is nonsignaled
 								NULL); // unnamed
 	if (NULL == event->event) {
-		ce_thread_report_last_error("ce_thread_cond_event_new::CreateEvent");
+		ce_error_report_last_windows_error("thread", __func__,
+											"CreateEvent failed");
 	}
 	return event;
 }
@@ -235,7 +226,8 @@ void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex)
 
 	ce_thread_mutex_unlock(mutex);
 	if (WAIT_OBJECT_0 != WaitForSingleObject(event->event, INFINITE)) {
-		ce_thread_report_last_error("ce_thread_cond_wait::WaitForSingleObject");
+		ce_error_report_last_windows_error("thread", __func__,
+											"WaitForSingleObject failed");
 	}
 	ce_thread_mutex_lock(mutex);
 
