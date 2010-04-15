@@ -18,23 +18,49 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <time.h>
+/*
+ *  Based on MSDN website.
+*/
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 #include "cealloc.h"
+#include "celogging.h"
+#include "ceerror.h"
 #include "cetimer.h"
 
-static const float CE_TIMER_CLOCKS_PER_SEC_INV = 1.0f / CLOCKS_PER_SEC;
-
 struct ce_timer {
-	clock_t start;
-	clock_t stop;
+	float frequency_inv;
+	LARGE_INTEGER start;
+	LARGE_INTEGER stop;
 	float diff;
 };
+
+static LONGLONG ce_timer_query_frequency(void)
+{
+	LARGE_INTEGER frequency;
+	if (QueryPerformanceFrequency(&frequency)) {
+		return frequency.QuadPart;
+	}
+	ce_error_report_last_error("timer", __func__,
+								"QueryPerformanceFrequency failed");
+	ce_logging_warning("timer: %s: using default frequency", __func__);
+	return 1000000;
+}
+
+static void ce_timer_query_counter(LARGE_INTEGER* value)
+{
+	DWORD_PTR old_mask = SetThreadAffinityMask(GetCurrentThread(), 0);
+	QueryPerformanceCounter(value);
+	SetThreadAffinityMask(GetCurrentThread(), old_mask);
+}
 
 ce_timer* ce_timer_new(void)
 {
 	ce_timer* timer = ce_alloc(sizeof(ce_timer));
-	timer->start = clock();
+	timer->frequency_inv = 1.0f / ce_timer_query_frequency();
+	ce_timer_query_counter(&timer->start);
 	return timer;
 }
 
@@ -45,8 +71,9 @@ void ce_timer_del(ce_timer* timer)
 
 void ce_timer_advance(ce_timer* timer)
 {
-	timer->stop = clock();
-	timer->diff = (timer->stop - timer->start) * CE_TIMER_CLOCKS_PER_SEC_INV;
+	ce_timer_query_counter(&timer->stop);
+	timer->diff = (timer->stop.QuadPart -
+					timer->start.QuadPart) * timer->frequency_inv;
 	timer->start = timer->stop;
 }
 

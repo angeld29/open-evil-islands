@@ -23,16 +23,18 @@
 #include "cealloc.h"
 #include "cetimer.h"
 
+static const float CE_TIMER_THOUSAND_INV = 1.0f / 1000.0f;
+
 struct ce_timer {
-	int elapsed_old;
-	int elapsed_new;
-	float elapsed_diff;
+	int start;
+	int stop;
+	float diff;
 };
 
 ce_timer* ce_timer_new(void)
 {
 	ce_timer* timer = ce_alloc(sizeof(ce_timer));
-	timer->elapsed_old = glutGet(GLUT_ELAPSED_TIME);
+	timer->start = glutGet(GLUT_ELAPSED_TIME);
 	return timer;
 }
 
@@ -43,12 +45,12 @@ void ce_timer_del(ce_timer* timer)
 
 void ce_timer_advance(ce_timer* timer)
 {
-	timer->elapsed_new = glutGet(GLUT_ELAPSED_TIME);
-	timer->elapsed_diff = (timer->elapsed_new - timer->elapsed_old) / 1000.0f;
-	timer->elapsed_old = timer->elapsed_new;
+	timer->stop = glutGet(GLUT_ELAPSED_TIME);
+	timer->diff = (timer->stop - timer->start) * CE_TIMER_THOUSAND_INV;
+	timer->start = timer->stop;
 }
 
 float ce_timer_elapsed(ce_timer* timer)
 {
-	return timer->elapsed_diff;
+	return timer->diff;
 }

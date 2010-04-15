@@ -24,16 +24,16 @@
 #include "cetimer.h"
 
 struct ce_timer {
-	struct timeval elapsed_old;
-	struct timeval elapsed_new;
-	struct timeval elapsed_sub;
-	float elapsed_diff;
+	struct timeval start;
+	struct timeval stop;
+	struct timeval sub;
+	float diff;
 };
 
 ce_timer* ce_timer_new(void)
 {
 	ce_timer* timer = ce_alloc(sizeof(ce_timer));
-	gettimeofday(&timer->elapsed_old, NULL);
+	gettimeofday(&timer->start, NULL);
 	return timer;
 }
 
@@ -44,14 +44,13 @@ void ce_timer_del(ce_timer* timer)
 
 void ce_timer_advance(ce_timer* timer)
 {
-	gettimeofday(&timer->elapsed_new, NULL);
-	timersub(&timer->elapsed_new, &timer->elapsed_old, &timer->elapsed_sub);
-	timer->elapsed_diff = timer->elapsed_sub.tv_sec +
-						timer->elapsed_sub.tv_usec * 1e-6f;
-	timer->elapsed_old = timer->elapsed_new;
+	gettimeofday(&timer->stop, NULL);
+	timersub(&timer->stop, &timer->start, &timer->sub);
+	timer->diff = timer->sub.tv_sec + timer->sub.tv_usec * 1e-6f;
+	timer->start = timer->stop;
 }
 
 float ce_timer_elapsed(ce_timer* timer)
 {
-	return timer->elapsed_diff;
+	return timer->diff;
 }
