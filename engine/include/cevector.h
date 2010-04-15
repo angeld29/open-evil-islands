@@ -45,11 +45,16 @@ extern void* ce_vector_back(const ce_vector* vector);
 
 extern int ce_vector_find(const ce_vector* vector, const void* item);
 
+extern void* ce_vector_pop_front(ce_vector* vector);
+
 extern void ce_vector_push_back(ce_vector* vector, void* item);
 extern void* ce_vector_pop_back(ce_vector* vector);
 
+extern void ce_vector_insert(ce_vector* vector, int index, void* item);
+
 extern void ce_vector_remove(ce_vector* vector, int index);
 extern void ce_vector_remove_unordered(ce_vector* vector, int index);
+extern void ce_vector_remove_all(ce_vector* vector, const void* item);
 
 extern void ce_vector_clear(ce_vector* vector);
 

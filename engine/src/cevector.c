@@ -74,6 +74,13 @@ int ce_vector_find(const ce_vector* vector, const void* item)
 	return -1;
 }
 
+void* ce_vector_pop_front(ce_vector* vector)
+{
+	void* item = vector->items[0];
+	ce_vector_remove(vector, 0);
+	return item;
+}
+
 void ce_vector_push_back(ce_vector* vector, void* item)
 {
 	if (vector->count == vector->capacity) {
@@ -87,6 +94,17 @@ void* ce_vector_pop_back(ce_vector* vector)
 	return vector->items[--vector->count];
 }
 
+void ce_vector_insert(ce_vector* vector, int index, void* item)
+{
+	if (vector->count == vector->capacity) {
+		ce_vector_reserve(vector, 2 * vector->capacity);
+	}
+	for (int i = vector->count++; i > index; --i) {
+		vector->items[i] = vector->items[i - 1];
+	}
+	vector->items[index] = item;
+}
+
 void ce_vector_remove(ce_vector* vector, int index)
 {
 	for (int i = index + 1, n = vector->count--; i < n; ++i) {
@@ -97,6 +115,14 @@ void ce_vector_remove(ce_vector* vector, int index)
 void ce_vector_remove_unordered(ce_vector* vector, int index)
 {
 	vector->items[index] = vector->items[--vector->count];
+}
+
+void ce_vector_remove_all(ce_vector* vector, const void* item)
+{
+	int index = ce_vector_find(vector, item);
+	if (-1 != index) {
+		ce_vector_remove(vector, index);
+	}
 }
 
 void ce_vector_clear(ce_vector* vector)
