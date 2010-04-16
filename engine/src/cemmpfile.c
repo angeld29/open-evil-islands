@@ -517,6 +517,7 @@ static void (*ce_mmpfile_convert_procs[CE_MMPFILE_FORMAT_COUNT])
 
 ce_mmpfile* ce_mmpfile_convert(const ce_mmpfile* mmpfile, ce_mmpfile_format format)
 {
+	assert(false && "wrong implementation");
 	int mipmap_count = mmpfile->mipmap_count;
 	// special case for pnt3
 	if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
@@ -530,9 +531,39 @@ ce_mmpfile* ce_mmpfile_convert(const ce_mmpfile* mmpfile, ce_mmpfile_format form
 
 ce_mmpfile* ce_mmpfile_convert_del(ce_mmpfile* mmpfile, ce_mmpfile_format format)
 {
+	assert(false && "wrong implementation");
 	ce_mmpfile* mmpfile2 = ce_mmpfile_convert(mmpfile, format);
 	ce_mmpfile_del(mmpfile);
 	return mmpfile2;
+}
+
+typedef struct {
+	ce_mmpfile* mmpfile;
+	ce_mmpfile_format format;
+} ce_mmpfile_job_convert;
+
+static void ce_mmpfile_job_convert_ctor(ce_thread_job* job, va_list args)
+{
+	ce_mmpfile_job_convert* job_convert = (ce_mmpfile_job_convert*)job->impl;
+	job_convert->mmpfile = va_arg(args, ce_mmpfile*);
+	job_convert->format = va_arg(args, ce_mmpfile_format);
+}
+
+static void ce_mmpfile_job_convert_exec(ce_thread_job* job)
+{
+	ce_mmpfile_job_convert* job_convert = (ce_mmpfile_job_convert*)job->impl;
+	ce_mmpfile_convert(job_convert->mmpfile, job_convert->format);
+}
+
+static const ce_thread_job_vtable ce_mmpfile_job_convert_vtable = {
+	ce_mmpfile_job_convert_ctor, NULL, ce_mmpfile_job_convert_exec
+};
+
+ce_thread_job* ce_mmpfile_create_job_convert(ce_mmpfile* mmpfile,
+											ce_mmpfile_format format)
+{
+	return ce_thread_job_new(ce_mmpfile_job_convert_vtable,
+		sizeof(ce_mmpfile_job_convert), mmpfile, format);
 }
 
 static int Unpack565( uint8_t const* packed, uint8_t* colour )

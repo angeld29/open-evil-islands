@@ -24,6 +24,7 @@
 #include <stddef.h>
 
 #include "ceresfile.h"
+#include "cethread.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -88,6 +89,9 @@ extern ce_mmpfile* ce_mmpfile_convert(const ce_mmpfile* mmpfile,
 
 extern ce_mmpfile* ce_mmpfile_convert_del(ce_mmpfile* mmpfile,
 										ce_mmpfile_format format);
+
+extern ce_thread_job* ce_mmpfile_create_job_convert(ce_mmpfile* mmpfile,
+													ce_mmpfile_format format);
 
 #ifdef __cplusplus
 }
