@@ -61,6 +61,7 @@ static void ce_texture_setup_filters(int mipmap_count)
 			glTexParameteri(GL_TEXTURE_2D, CE_GL_GENERATE_MIPMAP, GL_TRUE);
 		} else {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			// ok, all opengl's code is NOT thread safe
 			static bool reported;
 			if (!reported) {
 				ce_logging_warning("texture: some opengl features are not "

@@ -42,11 +42,12 @@ static struct {
 	}
 };
 
-static void report(ce_logging_level level, const char* format, va_list args)
+static void ce_logging_report(ce_logging_level level, const char* format, va_list args)
 {
 	if (CE_LOGGING_LEVEL_NONE != ce_logging_inst.level &&
 			(level >= ce_logging_inst.level ||
 				CE_LOGGING_LEVEL_ALL == ce_logging_inst.level)) {
+		// FIXME: threads: not atomic!
 		fprintf(stderr, "%s: ", ce_logging_inst.level_names[level]);
 		vfprintf(stderr, format, args);
 		if (0 == strlen(format) || '\n' != format[strlen(format) - 1]) {
@@ -84,7 +85,7 @@ void ce_logging_debug(const char* format, ...)
 			"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
-	report(CE_LOGGING_LEVEL_DEBUG, format, args);
+	ce_logging_report(CE_LOGGING_LEVEL_DEBUG, format, args);
 	va_end(args);
 }
 
@@ -94,7 +95,7 @@ void ce_logging_info(const char* format, ...)
 			"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
-	report(CE_LOGGING_LEVEL_INFO, format, args);
+	ce_logging_report(CE_LOGGING_LEVEL_INFO, format, args);
 	va_end(args);
 }
 
@@ -104,7 +105,7 @@ void ce_logging_warning(const char* format, ...)
 			"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
-	report(CE_LOGGING_LEVEL_WARNING, format, args);
+	ce_logging_report(CE_LOGGING_LEVEL_WARNING, format, args);
 	va_end(args);
 }
 
@@ -114,7 +115,7 @@ void ce_logging_error(const char* format, ...)
 			"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
-	report(CE_LOGGING_LEVEL_ERROR, format, args);
+	ce_logging_report(CE_LOGGING_LEVEL_ERROR, format, args);
 	va_end(args);
 }
 
@@ -124,7 +125,7 @@ void ce_logging_critical(const char* format, ...)
 			"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
-	report(CE_LOGGING_LEVEL_CRITICAL, format, args);
+	ce_logging_report(CE_LOGGING_LEVEL_CRITICAL, format, args);
 	va_end(args);
 }
 
@@ -134,7 +135,7 @@ void ce_logging_fatal(const char* format, ...)
 			"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
-	report(CE_LOGGING_LEVEL_FATAL, format, args);
+	ce_logging_report(CE_LOGGING_LEVEL_FATAL, format, args);
 	va_end(args);
 }
 
@@ -144,6 +145,6 @@ void ce_logging_write(const char* format, ...)
 			"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
-	report(CE_LOGGING_LEVEL_WRITE, format, args);
+	ce_logging_report(CE_LOGGING_LEVEL_WRITE, format, args);
 	va_end(args);
 }
