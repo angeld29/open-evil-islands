@@ -19,17 +19,17 @@
 */
 
 #include <string.h>
-#include <errno.h>
 
 #include "celogging.h"
 #include "ceerror.h"
 
-void ce_error_report_last_c_error(const char* module,
+void ce_error_report_last_c_error(int code,
+								const char* module,
 								const char* func,
 								const char* error)
 {
 	char buffer[128] = "unknown";
 	// FIXME: currently GNU strerror_r is used
-	char* message = strerror_r(errno, buffer, sizeof(buffer));
+	char* message = strerror_r(code, buffer, sizeof(buffer));
 	ce_logging_error("%s: %s: %s: %s", module, func, error, message);
 }

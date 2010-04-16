@@ -27,6 +27,7 @@
 */
 
 #include <string.h>
+#include <errno.h>
 #include <assert.h>
 
 #include <pthread.h>
@@ -45,7 +46,7 @@ ce_thread* ce_thread_new(void* (*func)(void*), void* arg)
 	ce_thread* thread = ce_alloc(sizeof(ce_thread));
 	int code = pthread_create(&thread->thread, NULL, func, arg);
 	if (0 != code) {
-		ce_error_report_last_c_error("thread", __func__,
+		ce_error_report_last_c_error(code, "thread", __func__,
 									"pthread_create failed");
 	}
 	return thread;
@@ -54,7 +55,6 @@ ce_thread* ce_thread_new(void* (*func)(void*), void* arg)
 void ce_thread_del(ce_thread* thread)
 {
 	if (NULL != thread) {
-		ce_thread_wait(thread);
 		ce_free(thread, sizeof(ce_thread));
 	}
 }
@@ -63,7 +63,7 @@ void ce_thread_wait(ce_thread* thread)
 {
 	int code = pthread_join(thread->thread, NULL);
 	if (0 != code) {
-		ce_error_report_last_c_error("thread", __func__,
+		ce_error_report_last_c_error(code, "thread", __func__,
 									"pthread_join failed");
 	}
 }
@@ -160,7 +160,7 @@ void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex)
 		assert(cond->wakeup_count > 0 && "internal error");
 		--cond->wakeup_count;
 	} else {
-		ce_error_report_last_c_error("thread", __func__,
+		ce_error_report_last_c_error(code, "thread", __func__,
 									"pthread_cond_wait failed");
 	}
 
