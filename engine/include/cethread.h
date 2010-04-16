@@ -59,9 +59,9 @@ extern void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex);
 typedef struct ce_thread_job ce_thread_job;
 
 typedef struct {
-	void (*ctor)(ce_thread_job* job, va_list args); // required
-	void (*dtor)(ce_thread_job* job);               // required
-	void (*exec)(ce_thread_job* job);               // required
+	void (*ctor)(ce_thread_job* job, va_list args);
+	void (*dtor)(ce_thread_job* job);
+	void (*exec)(ce_thread_job* job);
 } ce_thread_job_vtable;
 
 struct ce_thread_job {

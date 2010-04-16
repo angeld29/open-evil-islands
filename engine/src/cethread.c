@@ -27,24 +27,30 @@ ce_thread_job* ce_thread_job_new(ce_thread_job_vtable vtable, size_t size, ...)
 	ce_thread_job* job = ce_alloc(sizeof(ce_thread_job) + size);
 	job->vtable = vtable;
 	job->size = size;
-	va_list args;
-	va_start(args, size);
-	(*vtable.ctor)(job, args);
-	va_end(args);
+	if (NULL != vtable.ctor) {
+		va_list args;
+		va_start(args, size);
+		(*vtable.ctor)(job, args);
+		va_end(args);
+	}
 	return job;
 }
 
 void ce_thread_job_del(ce_thread_job* job)
 {
 	if (NULL != job) {
-		(*job->vtable.dtor)(job);
+		if (NULL != job->vtable.dtor) {
+			(*job->vtable.dtor)(job);
+		}
 		ce_free(job, sizeof(ce_thread_job) + job->size);
 	}
 }
 
 void ce_thread_job_exec(ce_thread_job* job)
 {
-	(*job->vtable.exec)(job);
+	if (NULL != job->vtable.exec) {
+		(*job->vtable.exec)(job);
+	}
 }
 
 static void* ce_thread_pool_work(void* arg)
