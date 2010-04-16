@@ -28,7 +28,8 @@ void ce_error_report_last_c_error(const char* module,
 								const char* func,
 								const char* error)
 {
-	char buffer[128];
-	strerror_r(errno, buffer, sizeof(buffer));
-	ce_logging_error("%s: %s: %s: %s", module, func, error, buffer);
+	char buffer[128] = "unknown";
+	// FIXME: currently GNU strerror_r is used
+	char* message = strerror_r(errno, buffer, sizeof(buffer));
+	ce_logging_error("%s: %s: %s: %s", module, func, error, message);
 }
