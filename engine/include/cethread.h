@@ -59,6 +59,7 @@ typedef struct {
 	int idle_thread_count;
 	ce_vector* threads;
 	ce_vector* jobs;
+	ce_vector* free_jobs;
 	ce_thread_mutex* mutex;
 	ce_thread_cond* thread_cond;
 	ce_thread_cond* wait_cond;
