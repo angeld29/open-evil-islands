@@ -27,7 +27,6 @@
 */
 
 #include <string.h>
-#include <errno.h>
 #include <assert.h>
 
 #include <pthread.h>
