@@ -22,20 +22,29 @@
 #include "celogging.h"
 #include "cethread.h"
 
-typedef struct {
-	void (*func)(void*);
-	void* arg;
-} ce_thread_job;
-
-static ce_thread_job* ce_thread_job_new(void)
+ce_thread_job* ce_thread_job_new(ce_thread_job_vtable vtable, size_t size, ...)
 {
-	ce_thread_job* job = ce_alloc(sizeof(ce_thread_job));
+	ce_thread_job* job = ce_alloc(sizeof(ce_thread_job) + size);
+	job->vtable = vtable;
+	job->size = size;
+	va_list args;
+	va_start(args, size);
+	(*vtable.ctor)(job, args);
+	va_end(args);
 	return job;
 }
 
-static void ce_thread_job_del(ce_thread_job* job)
+void ce_thread_job_del(ce_thread_job* job)
 {
-	ce_free(job, sizeof(ce_thread_job));
+	if (NULL != job) {
+		(*job->vtable.dtor)(job);
+		ce_free(job, sizeof(ce_thread_job) + job->size);
+	}
+}
+
+void ce_thread_job_exec(ce_thread_job* job)
+{
+	(*job->vtable.exec)(job);
 }
 
 static void* ce_thread_pool_work(void* arg)
@@ -51,15 +60,11 @@ static void* ce_thread_pool_work(void* arg)
 			ce_thread_cond_wait(pool->thread_cond, pool->mutex);
 		} else {
 			ce_thread_job* job = ce_vector_pop_back(pool->jobs);
-			ce_vector_push_back(pool->free_jobs, job);
-
-			void (*func)(void*) = job->func;
-			void* arg = job->arg;
-
 			--pool->idle_thread_count;
 			ce_thread_mutex_unlock(pool->mutex);
 
-			(*func)(arg);
+			ce_thread_job_exec(job);
+			ce_thread_job_del(job);
 
 			ce_thread_mutex_lock(pool->mutex);
 			++pool->idle_thread_count;
@@ -77,7 +82,6 @@ ce_thread_pool* ce_thread_pool_new(int thread_count)
 	pool->idle_thread_count = thread_count;
 	pool->threads = ce_vector_new_reserved(thread_count);
 	pool->jobs = ce_vector_new();
-	pool->free_jobs = ce_vector_new();
 	pool->mutex = ce_thread_mutex_new();
 	pool->thread_cond = ce_thread_cond_new();
 	pool->wait_cond = ce_thread_cond_new();
@@ -105,27 +109,21 @@ void ce_thread_pool_del(ce_thread_pool* pool)
 				"destroyed while jobs are still existing");
 		}
 
-		ce_vector_for_each(pool->free_jobs, ce_thread_job_del);
 		ce_vector_for_each(pool->jobs, ce_thread_job_del);
 		ce_vector_for_each(pool->threads, ce_thread_del);
 
 		ce_thread_cond_del(pool->wait_cond);
 		ce_thread_cond_del(pool->thread_cond);
 		ce_thread_mutex_del(pool->mutex);
-		ce_vector_del(pool->free_jobs);
 		ce_vector_del(pool->jobs);
 		ce_vector_del(pool->threads);
 		ce_free(pool, sizeof(ce_thread_pool));
 	}
 }
 
-void ce_thread_pool_enqueue(ce_thread_pool* pool, void (*func)(void*), void* arg)
+void ce_thread_pool_enqueue(ce_thread_pool* pool, ce_thread_job* job)
 {
 	ce_thread_mutex_lock(pool->mutex);
-	ce_thread_job* job = ce_vector_empty(pool->free_jobs) ?
-		ce_thread_job_new() : ce_vector_pop_back(pool->free_jobs);
-	job->func = func;
-	job->arg = arg;
 	ce_vector_push_back(pool->jobs, job);
 	ce_thread_cond_wake_one(pool->thread_cond);
 	ce_thread_mutex_unlock(pool->mutex);

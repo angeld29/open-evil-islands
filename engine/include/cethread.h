@@ -21,6 +21,8 @@
 #ifndef CE_THREAD_H
 #define CE_THREAD_H
 
+#include <stddef.h>
+#include <stdarg.h>
 #include <stdbool.h>
 
 #include "cevector.h"
@@ -54,12 +56,31 @@ extern void ce_thread_cond_wake_one(ce_thread_cond* cond);
 extern void ce_thread_cond_wake_all(ce_thread_cond* cond);
 extern void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex);
 
+typedef struct ce_thread_job ce_thread_job;
+
+typedef struct {
+	void (*ctor)(ce_thread_job* job, va_list args); // required
+	void (*dtor)(ce_thread_job* job);               // required
+	void (*exec)(ce_thread_job* job);               // required
+} ce_thread_job_vtable;
+
+struct ce_thread_job {
+	ce_thread_job_vtable vtable;
+	size_t size;
+	char impl[];
+};
+
+extern ce_thread_job* ce_thread_job_new(ce_thread_job_vtable vtable,
+										size_t size, ...);
+extern void ce_thread_job_del(ce_thread_job* job);
+
+extern void ce_thread_job_exec(ce_thread_job* job);
+
 typedef struct {
 	bool done;
 	int idle_thread_count;
 	ce_vector* threads;
 	ce_vector* jobs;
-	ce_vector* free_jobs;
 	ce_thread_mutex* mutex;
 	ce_thread_cond* thread_cond;
 	ce_thread_cond* wait_cond;
@@ -68,8 +89,7 @@ typedef struct {
 extern ce_thread_pool* ce_thread_pool_new(int thread_count);
 extern void ce_thread_pool_del(ce_thread_pool* pool);
 
-extern void ce_thread_pool_enqueue(ce_thread_pool* pool,
-									void (*func)(void*), void* arg);
+extern void ce_thread_pool_enqueue(ce_thread_pool* pool, ce_thread_job* job);
 extern void ce_thread_pool_wait(ce_thread_pool* pool);
 
 #ifdef __cplusplus
