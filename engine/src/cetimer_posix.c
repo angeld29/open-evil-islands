@@ -45,6 +45,7 @@ void ce_timer_del(ce_timer* timer)
 void ce_timer_advance(ce_timer* timer)
 {
 	gettimeofday(&timer->stop, NULL);
+	// WARNING: BSD extension, not POSIX!
 	timersub(&timer->stop, &timer->start, &timer->sub);
 	timer->diff = timer->sub.tv_sec + timer->sub.tv_usec * 1e-6f;
 	timer->start = timer->stop;

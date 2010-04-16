@@ -67,6 +67,7 @@ ce_memfile* ce_memfile_open_data(void* data, size_t size)
 	ce_memcookie* cookie = ce_alloc(sizeof(ce_memcookie));
 	cookie->data = data;
 	cookie->size = size;
+	// WARNING: GNU extension, not POSIX!
 	cookie->file = fmemopen(data, size, "rb");
 	return ce_memfile_open_callbacks(ce_memcookie_callbacks, cookie);
 }
