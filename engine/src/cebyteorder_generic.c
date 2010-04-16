@@ -20,36 +20,28 @@
 
 #include "cebyteorder.h"
 
-static void* ce_swap_endian(char* restrict s, void* restrict p, int n)
+static uint16_t ce_swap_uint16(uint16_t v)
 {
-	char* t = p;
-	for (int i = 0, j = n - 1; i < n; ++i, --j) {
-		s[i] = t[j];
-	}
-	return s;
+	return v << 8 | v >> 8;
 }
 
-#define CE_MAKE_SWAP(type) \
-static type ## _t ce_swap_ ## type(type ## _t v) \
-{ \
-	char s[sizeof(type ## _t)]; \
-	return *(type ## _t*)ce_swap_endian(s, &v, sizeof(type ## _t)); \
+static uint32_t ce_swap_uint32(uint32_t v)
+{
+	return v << 24 | v >> 24 |
+		(v & (uint32_t)0x0000ff00UL) << 8 |
+		(v & (uint32_t)0x00ff0000UL) >> 8;
 }
 
-CE_MAKE_SWAP(uint16)
-CE_MAKE_SWAP(uint32)
-CE_MAKE_SWAP(uint64)
-
-#define CE_MAKE_SWAP_S(type) \
-static void ce_swap_ ## type ## s(type ## _t* v) \
-{ \
-	char s[sizeof(type ## _t)]; \
-	*v = *(type ## _t*)ce_swap_endian(s, v, sizeof(type ## _t)); \
+static uint64_t ce_swap_uint64(uint64_t v)
+{
+	return v << 56 | v >> 56 |
+		(v & (uint64_t)0x000000000000ff00ULL) << 40 |
+		(v & (uint64_t)0x0000000000ff0000ULL) << 24 |
+		(v & (uint64_t)0x00000000ff000000ULL) << 8  |
+		(v & (uint64_t)0x000000ff00000000ULL) >> 8  |
+		(v & (uint64_t)0x0000ff0000000000ULL) >> 24 |
+		(v & (uint64_t)0x00ff000000000000ULL) >> 40;
 }
-
-CE_MAKE_SWAP_S(uint16)
-CE_MAKE_SWAP_S(uint32)
-CE_MAKE_SWAP_S(uint64)
 
 uint16_t ce_cpu2le16(uint16_t v)
 {
@@ -114,83 +106,83 @@ uint64_t ce_be2cpu64(uint64_t v)
 void ce_cpu2le16s(uint16_t* v)
 {
 	if (ce_is_big_endian()) {
-		ce_swap_uint16s(v);
+		*v = ce_swap_uint16(*v);
 	}
 }
 
 void ce_cpu2le32s(uint32_t* v)
 {
 	if (ce_is_big_endian()) {
-		ce_swap_uint32s(v);
+		*v = ce_swap_uint32(*v);
 	}
 }
 
 void ce_cpu2le64s(uint64_t* v)
 {
 	if (ce_is_big_endian()) {
-		ce_swap_uint64s(v);
+		*v = ce_swap_uint64(*v);
 	}
 }
 
 void ce_le2cpu16s(uint16_t* v)
 {
 	if (ce_is_big_endian()) {
-		ce_swap_uint16s(v);
+		*v = ce_swap_uint16(*v);
 	}
 }
 
 void ce_le2cpu32s(uint32_t* v)
 {
 	if (ce_is_big_endian()) {
-		ce_swap_uint32s(v);
+		*v = ce_swap_uint32(*v);
 	}
 }
 
 void ce_le2cpu64s(uint64_t* v)
 {
 	if (ce_is_big_endian()) {
-		ce_swap_uint64s(v);
+		*v = ce_swap_uint64(*v);
 	}
 }
 
 void ce_cpu2be16s(uint16_t* v)
 {
 	if (!ce_is_big_endian()) {
-		ce_swap_uint16s(v);
+		*v = ce_swap_uint16(*v);
 	}
 }
 
 void ce_cpu2be32s(uint32_t* v)
 {
 	if (!ce_is_big_endian()) {
-		ce_swap_uint32s(v);
+		*v = ce_swap_uint32(*v);
 	}
 }
 
 void ce_cpu2be64s(uint64_t* v)
 {
 	if (!ce_is_big_endian()) {
-		ce_swap_uint64s(v);
+		*v = ce_swap_uint64(*v);
 	}
 }
 
 void ce_be2cpu16s(uint16_t* v)
 {
 	if (!ce_is_big_endian()) {
-		ce_swap_uint16s(v);
+		*v = ce_swap_uint16(*v);
 	}
 }
 
 void ce_be2cpu32s(uint32_t* v)
 {
 	if (!ce_is_big_endian()) {
-		ce_swap_uint32s(v);
+		*v = ce_swap_uint32(*v);
 	}
 }
 
 void ce_be2cpu64s(uint64_t* v)
 {
 	if (!ce_is_big_endian()) {
-		ce_swap_uint64s(v);
+		*v = ce_swap_uint64(*v);
 	}
 }
