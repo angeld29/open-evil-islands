@@ -234,6 +234,8 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 							const ce_quat* orientation,
 							ce_scenenode* scenenode)
 {
+	ce_logging_write("terrain: loading '%s'...", mprfile->name->str);
+
 	ce_terrain* terrain = ce_alloc(sizeof(ce_terrain));
 	terrain->mprfile = mprfile;
 	terrain->tile_textures = ce_vector_new_reserved(mprfile->texture_count);
@@ -248,8 +250,6 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 	ce_vector_resize(terrain->sector_textures, 2 *
 		mprfile->sector_x_count * mprfile->sector_z_count);
 
-	ce_logging_write("terrain: loading '%s'...", mprfile->name->str);
-
 	ce_terrain_cookie* cookie =
 		ce_terrain_cookie_new(terrain, tiling, texmng, thread_count);
 
@@ -262,6 +262,8 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 	ce_terrain_create_sectors(cookie);
 
 	ce_logging_write("terrain: waiting for all tasks to complete...");
+	ce_logging_write("terrain: this may take some time, please wait...");
+
 	for (;;) {
 		ce_thread_pool_wait_completed(cookie->pool);
 		if (!ce_thread_pool_has_completed(cookie->pool)) {
@@ -273,6 +275,8 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 	}
 
 	ce_terrain_cookie_del(cookie);
+
+	ce_logging_write("terrain: done loading '%s'", mprfile->name->str);
 
 	return terrain;
 }

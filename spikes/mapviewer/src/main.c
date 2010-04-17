@@ -35,15 +35,10 @@
 #endif
 
 #include "cegl.h"
-#include "cestr.h"
 #include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
-#include "ceinput.h"
-#include "cemath.h"
 #include "cescenemng.h"
-#include "cemobfile.h"
-#include "ceoptparse.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0
@@ -178,19 +173,12 @@ int main(int argc, char* argv[])
 		"This program is part of Cursed Earth spikes\n"
 		"Map Viewer %d.%d.%d - Explore Evil Islands zones with creatures\n\n"
 		"controls:\n"
-		"b   show/hide bounding boxes",
+		"b     show/hide bounding boxes\n"
+		"+/-   change animation FPS",
 		CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
-	ce_optgroup* general = ce_optparse_create_group(optparse, "general");
-	ce_optoption* ei_path = ce_optgroup_create_option(general,
-		"ei_path", 'b', "ei-path", CE_OPTACTION_STORE,
-		"path to EI root dir (current dir by default)", ".");
-	ce_optoption* full_screen = ce_optgroup_create_option(general,
-		"full_screen", 'f', "full-screen", CE_OPTACTION_STORE_TRUE,
-		"start program in Full Screen mode", NULL);
-	ce_optoption* terrain_tiling = ce_optgroup_create_option(general,
-		"terrain_tiling", 't', "terrain-tiling", CE_OPTACTION_STORE_TRUE,
-		"enable terrain tiling; very slow, but reduce usage of video "
-		"memory and disk space; use it on old video cards", NULL);
+
+	ce_optgroup* general = ce_scenemng_create_group_general(optparse);
+
 	ce_optarg* zone_name = ce_optparse_create_arg(optparse, "zone_name",
 		"any zone_name.mpr file in 'ei_path/Maps'");
 
@@ -198,25 +186,59 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
+	ce_optoption* ei_path = ce_optgroup_find_option(general, "ei_path");
+	ce_optoption* full_screen = ce_optgroup_find_option(general, "full_screen");
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
 
 	if (ce_optoption_value_bool(full_screen)) {
+		ce_logging_write("main: trying to enter full screen mode...");
+
 		char buffer[32];
-		snprintf(buffer, sizeof(buffer), "%dx%d:32",
-			glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));
-		glutGameModeString(buffer);
-		if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
-			glutEnterGameMode();
-		} else {
+		int width = glutGet(GLUT_SCREEN_WIDTH);
+		int height = glutGet(GLUT_SCREEN_HEIGHT);
+
+		for (int bpp = 32; bpp >= 16; bpp -= 16) {
+			if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
+				break;
+			}
+
+			for (int hertz = 100; hertz >= 10; hertz -= 10) {
+				if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
+					break;
+				}
+
+				snprintf(buffer, sizeof(buffer),
+					"%dx%d:%d@%d", width, height, bpp, hertz);
+
+				glutGameModeString(buffer);
+
+				if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
+					ce_logging_write("main: entering full "
+						"screen mode %s...", buffer);
+					glutEnterGameMode();
+				} else {
+					ce_logging_warning("main: failed to enter "
+						"full screen mode %s", buffer);
+				}
+			}
+		}
+
+		if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
 			ce_logging_warning("main: full screen mode is not available");
 		}
 	}
 
 	if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
+		const int width = 1024;
+		const int height = 768;
+
 		glutInitWindowPosition(100, 100);
-		glutInitWindowSize(1024, 768);
+		glutInitWindowSize(width, height);
 		glutCreateWindow("Cursed Earth: Map Viewer");
+
+		ce_logging_write("main: entering window mode %dx%d...", width, height);
 	}
 
 	glutIdleFunc(idle);
@@ -226,20 +248,16 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	if (NULL == (scenemng = ce_scenemng_new(ei_path->value->str))) {
-		return EXIT_FAILURE;
-	}
-
-	scenemng->terrain_tiling = ce_optoption_value_bool(terrain_tiling);
+	scenemng = ce_scenemng_new(optparse);
 
 	if (NULL == ce_scenemng_create_terrain(scenemng, zone_name->value->str,
 					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
 		return EXIT_FAILURE;
 	}
 
-	char path[512];
+	char path[ei_path->value->length + zone_name->value->length + 32];
 	snprintf(path, sizeof(path), "%s/Maps/%s.mob",
-			ei_path->value->str, zone_name->value->str);
+		ei_path->value->str, zone_name->value->str);
 
 	ce_mobfile* mobfile = ce_mobfile_open(path);
 	if (NULL != mobfile) {
@@ -291,7 +309,7 @@ int main(int argc, char* argv[])
 			fread(f, sizeof(float), 4, file);
 			printf("%f %f %f %f\n", f[0], f[1], f[2], f[3]);
 
-			ce_quat orientation, temp, temp2, temp3;
+			ce_quat orientation, temp, temp2/*, temp3*/;
 			ce_quat_init_array(&temp, f);
 
 			ce_quat_init_polar(&temp2, ce_deg2rad(90), &CE_VEC3_UNIT_X);

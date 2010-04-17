@@ -20,7 +20,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
@@ -34,13 +33,12 @@
 #undef far
 #endif
 
+#include "cegl.h"
 #include "cestr.h"
 #include "cemath.h"
-#include "cegl.h"
 #include "celogging.h"
 #include "cealloc.h"
 #include "cescenemng.h"
-#include "ceoptparse.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0
@@ -267,47 +265,79 @@ int main(int argc, char* argv[])
 		"a     play next animation\n"
 		"+/-   change animation FPS",
 		CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
-	ce_optgroup* general_grp = ce_optparse_create_group(optparse, "general");
-	ce_optoption* ei_path_opt = ce_optgroup_create_option(general_grp,
-		"ei_path", 'b', "ei-path", CE_OPTACTION_STORE,
-		"path to EI root dir (current dir by default)", ".");
-	ce_optoption* full_screen_opt = ce_optgroup_create_option(general_grp,
-		"full_screen", 'f', "full-screen", CE_OPTACTION_STORE_TRUE,
-		"start program in Full Screen mode", NULL);
-	ce_optgroup_create_option(general_grp,
+
+	ce_optgroup* general = ce_scenemng_create_group_general(optparse);
+
+	ce_optgroup_create_option(general,
 		"pri_tex", 'p', "primary-texture", CE_OPTACTION_STORE,
 		"primary texture", "default0");
-	ce_optgroup_create_option(general_grp,
+
+	ce_optgroup_create_option(general,
 		"sec_tex", 's', "secondary-texture", CE_OPTACTION_STORE,
 		"secondary texture", "default0");
-	ce_optoption* anm_name_opt = ce_optgroup_create_option(general_grp,
+
+	ce_optoption* anm_name = ce_optgroup_create_option(general,
 		"anm_name", 'a', "anm-name", CE_OPTACTION_STORE,
 		"play animation with specified name", NULL);
+
 	ce_optparse_create_arg(optparse, "figure_name", "internal figure name");
 
 	if (!ce_optparse_parse_args(optparse, argc, argv)) {
 		return EXIT_FAILURE;
 	}
 
+	ce_optoption* full_screen = ce_optgroup_find_option(general, "full_screen");
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
 
-	if (ce_optoption_value_bool(full_screen_opt)) {
+	if (ce_optoption_value_bool(full_screen)) {
+		ce_logging_write("main: trying to enter full screen mode...");
+
 		char buffer[32];
-		snprintf(buffer, sizeof(buffer), "%dx%d:32",
-			glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));
-		glutGameModeString(buffer);
-		if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
-			glutEnterGameMode();
-		} else {
+		int width = glutGet(GLUT_SCREEN_WIDTH);
+		int height = glutGet(GLUT_SCREEN_HEIGHT);
+
+		for (int bpp = 32; bpp >= 16; bpp -= 16) {
+			if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
+				break;
+			}
+
+			for (int hertz = 100; hertz >= 10; hertz -= 10) {
+				if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
+					break;
+				}
+
+				snprintf(buffer, sizeof(buffer),
+					"%dx%d:%d@%d", width, height, bpp, hertz);
+
+				glutGameModeString(buffer);
+
+				if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
+					ce_logging_write("main: entering full "
+						"screen mode %s...", buffer);
+					glutEnterGameMode();
+				} else {
+					ce_logging_warning("main: failed to enter "
+						"full screen mode %s", buffer);
+				}
+			}
+		}
+
+		if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
 			ce_logging_warning("main: full screen mode is not available");
 		}
 	}
 
 	if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
+		const int width = 1024;
+		const int height = 768;
+
 		glutInitWindowPosition(100, 100);
-		glutInitWindowSize(1024, 768);
+		glutInitWindowSize(width, height);
 		glutCreateWindow("Cursed Earth: Figure Viewer");
+
+		ce_logging_write("main: entering window mode %dx%d...", width, height);
 	}
 
 	glutIdleFunc(idle);
@@ -317,25 +347,23 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	if (NULL == (scenemng = ce_scenemng_new(ei_path_opt->value->str))) {
-		return EXIT_FAILURE;
-	}
+	scenemng = ce_scenemng_new(optparse);
 
 	if (!update_figentity()) {
 		return EXIT_FAILURE;
 	}
 
-	if (!ce_optoption_value_empty(anm_name_opt)) {
-		if (ce_figentity_play_animation(figentity, anm_name_opt->value->str)) {
+	if (!ce_optoption_value_empty(anm_name)) {
+		if (ce_figentity_play_animation(figentity, anm_name->value->str)) {
 			int anm_count = ce_figentity_get_animation_count(figentity);
 			for (anm_index = 0; anm_index < anm_count &&
-					0 == ce_strcasecmp(anm_name_opt->value->str,
+					0 == ce_strcasecmp(anm_name->value->str,
 					ce_figentity_get_animation_name(figentity, anm_index));
 					++anm_index) {
 			}
 		} else {
-			ce_logging_warning("main: could not play animation: '%s'",
-											anm_name_opt->value->str);
+			ce_logging_warning("main: "
+				"could not play animation: '%s'", anm_name->value->str);
 		}
 	}
 

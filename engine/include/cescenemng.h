@@ -36,6 +36,7 @@
 #include "cefigmng.h"
 #include "ceterrain.h"
 #include "cemobfile.h"
+#include "ceoptparse.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -55,17 +56,17 @@ typedef struct {
 	ce_timer* timer;
 	ce_fps* fps;
 	ce_font* font;
-	int thread_count;
 	bool show_axes;
 	bool show_bboxes;
 	bool comprehensive_bbox_only;
 	bool terrain_tiling;
+	int thread_count;
 	float anm_fps;
 	bool scenenode_needs_update;
 	bool renderqueue_needs_update;
 } ce_scenemng;
 
-extern ce_scenemng* ce_scenemng_new(const char* root_path);
+extern ce_scenemng* ce_scenemng_new(ce_optparse* optparse);
 extern void ce_scenemng_del(ce_scenemng* rendlayer);
 
 extern void ce_scenemng_advance(ce_scenemng* scenemng);
@@ -97,6 +98,8 @@ extern void ce_scenemng_remove_figentity(ce_scenemng* scenemng,
 
 extern void ce_scenemng_load_mobfile(ce_scenemng* scenemng,
 									const ce_mobfile* mobfile);
+
+extern ce_optgroup* ce_scenemng_create_group_general(ce_optparse* optparse);
 
 #ifdef __cplusplus
 }

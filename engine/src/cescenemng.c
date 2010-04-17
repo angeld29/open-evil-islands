@@ -30,8 +30,16 @@
 #include "cebytefmt.h"
 #include "cescenemng.h"
 
-ce_scenemng* ce_scenemng_new(const char* root_path)
+ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
 {
+	ce_optgroup* general = ce_optparse_find_group(optparse, "general");
+
+	ce_optoption* ei_path = ce_optgroup_find_option(general, "ei_path");
+	ce_optoption* terrain_tiling = ce_optgroup_find_option(general, "terrain_tiling");
+	ce_optoption* jobs = ce_optgroup_find_option(general, "jobs");
+
+	ce_logging_write("scenemng: root path: '%s'", ei_path->value->str);
+
 	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
 	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->terrain = NULL;
@@ -43,40 +51,43 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 	scenemng->timer = ce_timer_new();
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
-	scenemng->thread_count = 1;
 	scenemng->show_axes = true;
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
-	scenemng->terrain_tiling = false;
+	scenemng->terrain_tiling = ce_optoption_value_bool(terrain_tiling);
+	scenemng->thread_count = ce_clamp(ce_optoption_value_int(jobs), 1, 100);
 	scenemng->anm_fps = 15.0f;
 	scenemng->scenenode_needs_update = false;
 	scenemng->renderqueue_needs_update = false;
 
-	ce_logging_write("scenemng: root path: '%s'", root_path);
+	char path[ei_path->value->length + 32];
 
-	char path[strlen(root_path) + 32];
-
-	snprintf(path, sizeof(path), "%s/Textures", root_path);
+	snprintf(path, sizeof(path), "%s/Textures", ei_path->value->str);
 	scenemng->texmng = ce_texmng_new(path);
 
 	const char* texture_resources[] = { "textures", "redress", "menus" };
 	for (int i = 0, n = sizeof(texture_resources) /
 						sizeof(texture_resources[0]); i < n; ++i) {
 		snprintf(path, sizeof(path), "%s/Res/%s.res",
-				root_path, texture_resources[i]);
+				ei_path->value->str, texture_resources[i]);
 		ce_texmng_register_resource(scenemng->texmng, path);
 	}
 
-	snprintf(path, sizeof(path), "%s/Maps", root_path);
+	snprintf(path, sizeof(path), "%s/Maps", ei_path->value->str);
 	scenemng->mprmng = ce_mprmng_new(path);
 
 	const char* figure_resources[] = { "figures", "menus" };
 	for (int i = 0, n = sizeof(figure_resources) /
 						sizeof(figure_resources[0]); i < n; ++i) {
 		snprintf(path, sizeof(path), "%s/Res/%s.res",
-				root_path, figure_resources[i]);
+				ei_path->value->str, figure_resources[i]);
 		ce_figmng_register_resource(scenemng->figmng, path);
 	}
+
+	ce_logging_write("scenemng: terrain tiling %s",
+		scenemng->terrain_tiling ? "enabled" : "disabled");
+
+	ce_logging_write("scenemng: using %d thread(s)", scenemng->thread_count);
 
 	return scenemng;
 }
@@ -342,4 +353,30 @@ void ce_scenemng_load_mobfile(ce_scenemng* scenemng,
 		const ce_mobobject_object* mobobject = mobfile->objects->items[i];
 		ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
 	}
+}
+
+ce_optgroup* ce_scenemng_create_group_general(ce_optparse* optparse)
+{
+	ce_optgroup* general = ce_optparse_create_group(optparse, "general");
+
+	ce_optgroup_create_option(general,
+		"ei_path", 'b', "ei-path", CE_OPTACTION_STORE,
+		"path to EI root dir (current dir by default)", ".");
+
+	ce_optgroup_create_option(general,
+		"full_screen", 'f', "full-screen", CE_OPTACTION_STORE_TRUE,
+		"start program in Full Screen mode", NULL);
+
+	ce_optgroup_create_option(general,
+		"terrain_tiling", 't', "terrain-tiling", CE_OPTACTION_STORE_TRUE,
+		"enable terrain tiling; very slow, but reduce usage of video "
+		"memory and disk space; use it on old video cards", NULL);
+
+	ce_optgroup_create_option(general,
+		"jobs", 'j', "jobs", CE_OPTACTION_STORE,
+		"allow n jobs at once; set the number of cores your "
+		"CPU have; for example, 4 for Phenom 2 x4, 3 for Phenom 2 x3 "
+		"or 2-4 for Intel Core i5", "1");
+
+	return general;
 }
