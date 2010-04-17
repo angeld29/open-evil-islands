@@ -25,6 +25,7 @@
 
 #include "ceaabb.h"
 #include "cevector.h"
+#include "cethread.h"
 #include "cemmpfile.h"
 #include "cemprfile.h"
 #include "cematerial.h"
@@ -53,10 +54,20 @@ extern float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z);
 extern ce_material*
 ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water);
 
-extern ce_mmpfile*
-ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
-							ce_vector* tile_mmpfiles,
-							int sector_x, int sector_z, bool water);
+extern ce_mmpfile* ce_mprhlp_create_mmpfile(const ce_mprfile* mprfile,
+											const ce_vector* tile_mmpfiles);
+
+typedef struct {
+	ce_mmpfile* mmpfile;
+	const ce_mprfile* mprfile;
+	const ce_vector* tile_mmpfiles;
+	int x, z;
+	bool water;
+} ce_mprhlp_mmpfile_data;
+
+extern void ce_mprhlp_generate_mmpfile(const ce_mprhlp_mmpfile_data* data);
+extern ce_thread_job*
+ce_mprhlp_create_job_generate(const ce_mprhlp_mmpfile_data* data);
 
 #ifdef __cplusplus
 }

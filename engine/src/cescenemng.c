@@ -241,12 +241,9 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 		scenenode = scenemng->scenenode;
 	}
 
-	ce_logging_write("scenemng: loading terrain '%s'...", name);
-
 	ce_terrain_del(scenemng->terrain);
 	scenemng->terrain = ce_terrain_new(mprfile, scenemng->terrain_tiling,
-										position, orientation,
-										scenemng->texmng, scenenode);
+		scenemng->texmng, position, orientation, scenenode);
 
 	scenemng->scenenode_needs_update = true;
 	scenemng->renderqueue_needs_update = true;

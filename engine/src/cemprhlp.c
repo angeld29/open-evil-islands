@@ -117,6 +117,16 @@ ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water)
 	return material;
 }
 
+ce_mmpfile* ce_mprhlp_create_mmpfile(const ce_mprfile* mprfile,
+									const ce_vector* tile_mmpfiles)
+{
+	int tile_size = mprfile->tile_size - 2 * 8; // minus borders
+	ce_mmpfile* tile_mmpfile = tile_mmpfiles->items[0];
+	return ce_mmpfile_new(tile_size * CE_MPRFILE_TEXTURE_SIDE,
+		tile_size * CE_MPRFILE_TEXTURE_SIDE, tile_mmpfile->mipmap_count,
+		CE_MMPFILE_FORMAT_R8G8B8A8, CE_MPRHLP_MMPFILE_VERSION);
+}
+
 static void ce_mprhlp_rotate0(uint32_t* restrict dst,
 								const uint32_t* restrict src, int size)
 {
@@ -157,41 +167,37 @@ static void (*ce_mprhlp_rotations[])(uint32_t* restrict,
 	ce_mprhlp_rotate180, ce_mprhlp_rotate270
 };
 
-ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
-									ce_vector* tile_mmpfiles,
-									int sector_x, int sector_z, bool water)
+void ce_mprhlp_generate_mmpfile(const ce_mprhlp_mmpfile_data* data)
 {
 	// WARNING: draft code, needs refactoring...
 	// TODO: needs comments...
 
-	ce_mmpfile* first_mmpfile = tile_mmpfiles->items[0];
+	ce_mmpfile* first_mmpfile = data->tile_mmpfiles->items[0];
 
-	ce_mprsector* sector = mprfile->sectors + sector_z *
-							mprfile->sector_x_count + sector_x;
+	ce_mprsector* sector = data->mprfile->sectors + data->z *
+							data->mprfile->sector_x_count + data->x;
 
-	uint16_t* textures = water ? sector->water_textures : sector->land_textures;
-	int16_t* water_allow = water ? sector->water_allow : NULL;
+	uint16_t* textures = data->water ? sector->water_textures :
+										sector->land_textures;
+	int16_t* water_allow = data->water ? sector->water_allow : NULL;
 
-	int tile_size = mprfile->tile_size - 2 * 8; // minus borders
+	int tile_size = data->mprfile->tile_size - 2 * 8; // minus borders
 	int tile_size_sqr = tile_size * tile_size;
 
 	uint32_t* tile = ce_alloc(sizeof(uint32_t) * tile_size_sqr);
 	uint32_t* tile2 = ce_alloc(sizeof(uint32_t) * tile_size_sqr);
 
-	ce_mmpfile* mmpfile = ce_mmpfile_new(tile_size * CE_MPRFILE_TEXTURE_SIDE,
-		tile_size * CE_MPRFILE_TEXTURE_SIDE, first_mmpfile->mipmap_count,
-		CE_MMPFILE_FORMAT_R8G8B8A8, CE_MPRHLP_MMPFILE_VERSION);
-	uint32_t* texels = mmpfile->texels;
+	uint32_t* texels = data->mmpfile->texels;
 
-	uint32_t* texels2[mprfile->texture_count];
-	for (int i = 0; i < mprfile->texture_count; ++i) {
-		ce_mmpfile* tile_mmpfile = tile_mmpfiles->items[i];
+	uint32_t* texels2[data->mprfile->texture_count];
+	for (int i = 0; i < data->mprfile->texture_count; ++i) {
+		ce_mmpfile* tile_mmpfile = data->tile_mmpfiles->items[i];
 		texels2[i] = tile_mmpfile->texels;
 	}
 
-	for (int m = 0, tex_size = mmpfile->width,
+	for (int m = 0, tex_size = data->mmpfile->width,
 					tex_size2 = first_mmpfile->width,
-					tile_size2 = mprfile->tile_size;
+					tile_size2 = data->mprfile->tile_size;
 					m < first_mmpfile->mipmap_count; ++m,
 					tex_size >>= 1, tex_size2 >>= 1,
 					tile_size >>= 1, tile_size2 >>= 1) {
@@ -237,10 +243,10 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 	}
 
 	texels += ce_mmpfile_storage_size(tex_size,
-		tex_size, 1, mmpfile->bit_count) / sizeof(uint32_t);
+		tex_size, 1, data->mmpfile->bit_count) / sizeof(uint32_t);
 
-	for (int i = 0; i < mprfile->texture_count; ++i) {
-		ce_mmpfile* tile_mmpfile = tile_mmpfiles->items[i];
+	for (int i = 0; i < data->mprfile->texture_count; ++i) {
+		ce_mmpfile* tile_mmpfile = data->tile_mmpfiles->items[i];
 		texels2[i] += ce_mmpfile_storage_size(tex_size2,
 			tex_size2, 1, tile_mmpfile->bit_count) / sizeof(uint32_t);
 	}
@@ -250,5 +256,26 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 	ce_free(tile2, sizeof(uint32_t) * tile_size_sqr);
 	ce_free(tile, sizeof(uint32_t) * tile_size_sqr);
 
-	return mmpfile;
+	ce_mmpfile_convert(data->mmpfile, CE_MMPFILE_FORMAT_DXT1);
+}
+
+static void ce_mprhlp_job_generate_ctor(ce_thread_job* job, va_list args)
+{
+	*(ce_mprhlp_mmpfile_data*)job->impl =
+		*va_arg(args, const ce_mprhlp_mmpfile_data*);
+}
+
+static void ce_mprhlp_job_generate_exec(ce_thread_job* job)
+{
+	ce_mprhlp_generate_mmpfile((ce_mprhlp_mmpfile_data*)job->impl);
+}
+
+static const ce_thread_job_vtable ce_mprhlp_job_generate_vtable = {
+	ce_mprhlp_job_generate_ctor, NULL, ce_mprhlp_job_generate_exec
+};
+
+ce_thread_job* ce_mprhlp_create_job_generate(const ce_mprhlp_mmpfile_data* data)
+{
+	return ce_thread_job_new(ce_mprhlp_job_generate_vtable,
+							sizeof(ce_mprhlp_mmpfile_data), data);
 }

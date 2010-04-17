@@ -515,26 +515,25 @@ static void (*ce_mmpfile_convert_procs[CE_MMPFILE_FORMAT_COUNT])
 	ce_mmpfile_convert_r8g8b8a8
 };
 
-ce_mmpfile* ce_mmpfile_convert(const ce_mmpfile* mmpfile, ce_mmpfile_format format)
+void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format)
 {
-	assert(false && "wrong implementation");
 	int mipmap_count = mmpfile->mipmap_count;
+
 	// special case for pnt3
 	if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
 		mipmap_count = 1;
 	}
+
 	ce_mmpfile* other = ce_mmpfile_new(mmpfile->width,
 		mmpfile->height, mipmap_count, format, mmpfile->user_info);
-	(*ce_mmpfile_convert_procs[mmpfile->format])(mmpfile, other);
-	return other;
-}
 
-ce_mmpfile* ce_mmpfile_convert_del(ce_mmpfile* mmpfile, ce_mmpfile_format format)
-{
-	assert(false && "wrong implementation");
-	ce_mmpfile* mmpfile2 = ce_mmpfile_convert(mmpfile, format);
-	ce_mmpfile_del(mmpfile);
-	return mmpfile2;
+	(*ce_mmpfile_convert_procs[mmpfile->format])(mmpfile, other);
+
+	ce_mmpfile temp = *mmpfile;
+	*mmpfile = *other;
+	*other = temp;
+
+	ce_mmpfile_del(other);
 }
 
 typedef struct {

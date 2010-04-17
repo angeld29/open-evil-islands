@@ -84,11 +84,7 @@ extern void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path);
 extern int ce_mmpfile_storage_size(int width, int height,
 									int mipmap_count, int bit_count);
 
-extern ce_mmpfile* ce_mmpfile_convert(const ce_mmpfile* mmpfile,
-										ce_mmpfile_format format);
-
-extern ce_mmpfile* ce_mmpfile_convert_del(ce_mmpfile* mmpfile,
-										ce_mmpfile_format format);
+extern void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format);
 
 extern ce_thread_job* ce_mmpfile_create_job_convert(ce_mmpfile* mmpfile,
 													ce_mmpfile_format format);

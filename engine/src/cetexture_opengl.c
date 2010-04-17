@@ -159,9 +159,8 @@ static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
 			{ CE_GL_COMPRESSED_RGBA_S3TC_DXT1, CE_GL_COMPRESSED_RGBA_S3TC_DXT3 }
 			[CE_MMPFILE_FORMAT_DXT3 == mmpfile->format]);
 	} else {
-		mmpfile = ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
+		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
-		ce_mmpfile_del(mmpfile);
 	}
 }
 
@@ -170,9 +169,8 @@ static void ce_texture_generate_r5g6b5(ce_mmpfile* mmpfile)
 #ifdef GL_VERSION_1_2
 	ce_texture_generate(mmpfile, GL_RGB, GL_RGB, GL_UNSIGNED_SHORT_5_6_5);
 #else
-	mmpfile = ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
+	ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 	ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
-	ce_mmpfile_del(mmpfile);
 #endif
 }
 
@@ -182,13 +180,12 @@ static void ce_texture_generate_a1rgb5(ce_mmpfile* mmpfile)
 	ce_texture_generate(mmpfile, GL_RGBA, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV);
 #else
 	if (ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
-		mmpfile = ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_RGB5A1);
+		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_RGB5A1);
 		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, CE_GL_UNSIGNED_SHORT_5_5_5_1);
 	} else {
-		mmpfile = ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
+		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
 	}
-	ce_mmpfile_del(mmpfile);
 #endif
 }
 
@@ -198,13 +195,12 @@ static void ce_texture_generate_argb4(ce_mmpfile* mmpfile)
 	ce_texture_generate(mmpfile, GL_RGBA, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV);
 #else
 	if (ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
-		mmpfile = ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_RGBA4);
+		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_RGBA4);
 		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, CE_GL_UNSIGNED_SHORT_4_4_4_4);
 	} else {
-		mmpfile = ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
+		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
 	}
-	ce_mmpfile_del(mmpfile);
 #endif
 }
 
@@ -214,13 +210,12 @@ static void ce_texture_generate_argb8(ce_mmpfile* mmpfile)
 	ce_texture_generate(mmpfile, GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV);
 #else
 	if (ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
-		mmpfile = ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_RGBA8);
+		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_RGBA8);
 		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, CE_GL_UNSIGNED_INT_8_8_8_8);
 	} else {
-		mmpfile = ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
+		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
 	}
-	ce_mmpfile_del(mmpfile);
 #endif
 }
 
