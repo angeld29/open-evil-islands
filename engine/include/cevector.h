@@ -39,6 +39,7 @@ extern ce_vector* ce_vector_new_reserved(int capacity);
 extern void ce_vector_del(ce_vector* vector);
 
 extern void ce_vector_reserve(ce_vector* vector, int capacity);
+extern void ce_vector_resize(ce_vector* vector, int count);
 
 extern bool ce_vector_empty(const ce_vector* vector);
 extern void* ce_vector_back(const ce_vector* vector);

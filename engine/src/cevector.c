@@ -46,12 +46,18 @@ void ce_vector_del(ce_vector* vector)
 void ce_vector_reserve(ce_vector* vector, int capacity)
 {
 	if (capacity > vector->capacity) {
-		void** items = ce_alloc(sizeof(void*) * capacity);
+		void** items = ce_alloc_zero(sizeof(void*) * capacity);
 		memcpy(items, vector->items, sizeof(void*) * vector->count);
 		ce_free(vector->items, sizeof(void*) * vector->capacity);
 		vector->capacity = capacity;
 		vector->items = items;
 	}
+}
+
+void ce_vector_resize(ce_vector* vector, int count)
+{
+	ce_vector_reserve(vector, count);
+	vector->count = count;
 }
 
 bool ce_vector_empty(const ce_vector* vector)
