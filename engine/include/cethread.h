@@ -61,7 +61,8 @@ typedef struct ce_thread_job ce_thread_job;
 typedef struct {
 	void (*ctor)(ce_thread_job* job, va_list args);
 	void (*dtor)(ce_thread_job* job);
-	void (*exec)(ce_thread_job* job);
+	void (*exec)(ce_thread_job* job); // start point, called by a thread
+	void (*post)(ce_thread_job* job, va_list args); // not called by a thread
 } ce_thread_job_vtable;
 
 struct ce_thread_job {
@@ -75,22 +76,31 @@ extern ce_thread_job* ce_thread_job_new(ce_thread_job_vtable vtable,
 extern void ce_thread_job_del(ce_thread_job* job);
 
 extern void ce_thread_job_exec(ce_thread_job* job);
+extern void ce_thread_job_post(ce_thread_job* job, ...);
 
 typedef struct {
 	bool done;
 	int idle_thread_count;
 	ce_vector* threads;
-	ce_vector* jobs;
+	ce_vector* queued_jobs;
+	ce_vector* completed_jobs;
 	ce_thread_mutex* mutex;
 	ce_thread_cond* thread_cond;
-	ce_thread_cond* wait_cond;
+	ce_thread_cond* wait_one_cond;
+	ce_thread_cond* wait_all_cond;
 } ce_thread_pool;
 
 extern ce_thread_pool* ce_thread_pool_new(int thread_count);
 extern void ce_thread_pool_del(ce_thread_pool* pool);
 
 extern void ce_thread_pool_enqueue(ce_thread_pool* pool, ce_thread_job* job);
-extern void ce_thread_pool_wait(ce_thread_pool* pool);
+
+extern void ce_thread_pool_wait_one(ce_thread_pool* pool);
+extern void ce_thread_pool_wait_all(ce_thread_pool* pool);
+
+extern bool ce_thread_pool_has_completed(ce_thread_pool* pool);
+extern void ce_thread_pool_wait_completed(ce_thread_pool* pool);
+extern ce_thread_job* ce_thread_pool_take_completed(ce_thread_pool* pool);
 
 #ifdef __cplusplus
 }

@@ -54,20 +54,8 @@ extern float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z);
 extern ce_material*
 ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water);
 
-extern ce_mmpfile* ce_mprhlp_create_mmpfile(const ce_mprfile* mprfile,
-											const ce_vector* tile_mmpfiles);
-
-typedef struct {
-	ce_mmpfile* mmpfile;
-	const ce_mprfile* mprfile;
-	const ce_vector* tile_mmpfiles;
-	int x, z;
-	bool water;
-} ce_mprhlp_mmpfile_data;
-
-extern void ce_mprhlp_generate_mmpfile(const ce_mprhlp_mmpfile_data* data);
-extern ce_thread_job*
-ce_mprhlp_create_job_generate(const ce_mprhlp_mmpfile_data* data);
+extern ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
+	const ce_vector* tile_mmpfiles, int x, int z, bool water);
 
 #ifdef __cplusplus
 }

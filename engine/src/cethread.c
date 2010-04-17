@@ -53,27 +53,39 @@ void ce_thread_job_exec(ce_thread_job* job)
 	}
 }
 
+void ce_thread_job_post(ce_thread_job* job, ...)
+{
+	if (NULL != job->vtable.post) {
+		va_list args;
+		va_start(args, job);
+		(*job->vtable.post)(job, args);
+		va_end(args);
+	}
+}
+
 static void* ce_thread_pool_work(void* arg)
 {
 	ce_thread_pool* pool = arg;
 	ce_thread_mutex_lock(pool->mutex);
 
 	while (!pool->done) {
-		if (ce_vector_empty(pool->jobs)) {
+		if (ce_vector_empty(pool->queued_jobs)) {
 			if (pool->idle_thread_count == pool->threads->count) {
-				ce_thread_cond_wake_one(pool->wait_cond);
+				ce_thread_cond_wake_one(pool->wait_all_cond);
 			}
 			ce_thread_cond_wait(pool->thread_cond, pool->mutex);
 		} else {
-			ce_thread_job* job = ce_vector_pop_back(pool->jobs);
+			ce_thread_job* job = ce_vector_pop_back(pool->queued_jobs);
 			--pool->idle_thread_count;
 			ce_thread_mutex_unlock(pool->mutex);
 
 			ce_thread_job_exec(job);
-			ce_thread_job_del(job);
 
 			ce_thread_mutex_lock(pool->mutex);
 			++pool->idle_thread_count;
+			ce_vector_push_back(pool->completed_jobs, job);
+
+			ce_thread_cond_wake_one(pool->wait_one_cond);
 		}
 	}
 
@@ -87,10 +99,12 @@ ce_thread_pool* ce_thread_pool_new(int thread_count)
 	pool->done = false;
 	pool->idle_thread_count = thread_count;
 	pool->threads = ce_vector_new_reserved(thread_count);
-	pool->jobs = ce_vector_new();
+	pool->queued_jobs = ce_vector_new();
+	pool->completed_jobs = ce_vector_new();
 	pool->mutex = ce_thread_mutex_new();
 	pool->thread_cond = ce_thread_cond_new();
-	pool->wait_cond = ce_thread_cond_new();
+	pool->wait_one_cond = ce_thread_cond_new();
+	pool->wait_all_cond = ce_thread_cond_new();
 
 	for (int i = 0; i < thread_count; ++i) {
 		ce_vector_push_back(pool->threads,
@@ -110,19 +124,24 @@ void ce_thread_pool_del(ce_thread_pool* pool)
 		ce_thread_cond_wake_all(pool->thread_cond);
 		ce_vector_for_each(pool->threads, ce_thread_wait);
 
-		if (!ce_vector_empty(pool->jobs)) {
+		if (!ce_vector_empty(pool->queued_jobs)) {
 			ce_logging_warning("thread_pool: "
 				"destroyed while jobs are still existing");
 		}
 
-		ce_vector_for_each(pool->jobs, ce_thread_job_del);
+		ce_vector_for_each(pool->completed_jobs, ce_thread_job_del);
+		ce_vector_for_each(pool->queued_jobs, ce_thread_job_del);
 		ce_vector_for_each(pool->threads, ce_thread_del);
 
-		ce_thread_cond_del(pool->wait_cond);
+		ce_thread_cond_del(pool->wait_all_cond);
+		ce_thread_cond_del(pool->wait_one_cond);
 		ce_thread_cond_del(pool->thread_cond);
 		ce_thread_mutex_del(pool->mutex);
-		ce_vector_del(pool->jobs);
+
+		ce_vector_del(pool->completed_jobs);
+		ce_vector_del(pool->queued_jobs);
 		ce_vector_del(pool->threads);
+
 		ce_free(pool, sizeof(ce_thread_pool));
 	}
 }
@@ -130,17 +149,51 @@ void ce_thread_pool_del(ce_thread_pool* pool)
 void ce_thread_pool_enqueue(ce_thread_pool* pool, ce_thread_job* job)
 {
 	ce_thread_mutex_lock(pool->mutex);
-	ce_vector_push_back(pool->jobs, job);
+	ce_vector_push_back(pool->queued_jobs, job);
 	ce_thread_cond_wake_one(pool->thread_cond);
 	ce_thread_mutex_unlock(pool->mutex);
 }
 
-void ce_thread_pool_wait(ce_thread_pool* pool)
+static void ce_thread_pool_wait(ce_thread_pool* pool, ce_thread_cond* cond)
+{
+	if (!ce_vector_empty(pool->queued_jobs) ||
+			pool->idle_thread_count != pool->threads->count) {
+		ce_thread_cond_wait(cond, pool->mutex);
+	}
+}
+
+void ce_thread_pool_wait_one(ce_thread_pool* pool)
 {
 	ce_thread_mutex_lock(pool->mutex);
-	if (!ce_vector_empty(pool->jobs) ||
-			pool->idle_thread_count != pool->threads->count) {
-		ce_thread_cond_wait(pool->wait_cond, pool->mutex);
+	ce_thread_pool_wait(pool, pool->wait_one_cond);
+	ce_thread_mutex_unlock(pool->mutex);
+}
+
+void ce_thread_pool_wait_all(ce_thread_pool* pool)
+{
+	ce_thread_mutex_lock(pool->mutex);
+	ce_thread_pool_wait(pool, pool->wait_all_cond);
+	ce_thread_mutex_unlock(pool->mutex);
+}
+
+bool ce_thread_pool_has_completed(ce_thread_pool* pool)
+{
+	return !ce_vector_empty(pool->completed_jobs);
+}
+
+void ce_thread_pool_wait_completed(ce_thread_pool* pool)
+{
+	ce_thread_mutex_lock(pool->mutex);
+	if (ce_vector_empty(pool->completed_jobs)) {
+		ce_thread_pool_wait(pool, pool->wait_one_cond);
 	}
 	ce_thread_mutex_unlock(pool->mutex);
+}
+
+ce_thread_job* ce_thread_pool_take_completed(ce_thread_pool* pool)
+{
+	ce_thread_mutex_lock(pool->mutex);
+	ce_thread_job* job = ce_vector_pop_back(pool->completed_jobs);
+	ce_thread_mutex_unlock(pool->mutex);
+	return job;
 }

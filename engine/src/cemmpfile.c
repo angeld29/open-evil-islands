@@ -541,21 +541,23 @@ typedef struct {
 	ce_mmpfile_format format;
 } ce_mmpfile_job_convert;
 
-static void ce_mmpfile_job_convert_ctor(ce_thread_job* job, va_list args)
+static void ce_mmpfile_job_convert_ctor(ce_thread_job* base_job, va_list args)
 {
-	ce_mmpfile_job_convert* job_convert = (ce_mmpfile_job_convert*)job->impl;
-	job_convert->mmpfile = va_arg(args, ce_mmpfile*);
-	job_convert->format = va_arg(args, ce_mmpfile_format);
+	ce_mmpfile_job_convert* job = (ce_mmpfile_job_convert*)base_job->impl;
+
+	job->mmpfile = va_arg(args, ce_mmpfile*);
+	job->format = va_arg(args, ce_mmpfile_format);
 }
 
-static void ce_mmpfile_job_convert_exec(ce_thread_job* job)
+static void ce_mmpfile_job_convert_exec(ce_thread_job* base_job)
 {
-	ce_mmpfile_job_convert* job_convert = (ce_mmpfile_job_convert*)job->impl;
-	ce_mmpfile_convert(job_convert->mmpfile, job_convert->format);
+	ce_mmpfile_job_convert* job = (ce_mmpfile_job_convert*)base_job->impl;
+
+	ce_mmpfile_convert(job->mmpfile, job->format);
 }
 
 static const ce_thread_job_vtable ce_mmpfile_job_convert_vtable = {
-	ce_mmpfile_job_convert_ctor, NULL, ce_mmpfile_job_convert_exec
+	ce_mmpfile_job_convert_ctor, NULL, ce_mmpfile_job_convert_exec, NULL
 };
 
 ce_thread_job* ce_mmpfile_create_job_convert(ce_mmpfile* mmpfile,
