@@ -49,7 +49,7 @@ typedef struct {
 
 // terrain takes ownership of the mprfile
 extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
-									ce_texmng* texmng,
+									ce_texmng* texmng, int thread_count,
 									const ce_vec3* position,
 									const ce_quat* orientation,
 									ce_scenenode* scenenode);

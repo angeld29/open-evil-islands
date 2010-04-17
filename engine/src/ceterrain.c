@@ -41,13 +41,13 @@ typedef struct {
 } ce_terrain_cookie;
 
 static ce_terrain_cookie* ce_terrain_cookie_new(ce_terrain* terrain,
-												bool tiling, ce_texmng* texmng)
+	bool tiling, ce_texmng* texmng, int thread_count)
 {
 	ce_terrain_cookie* cookie = ce_alloc(sizeof(ce_terrain_cookie));
 	cookie->terrain = terrain;
 	cookie->tiling = tiling;
 	cookie->texmng = texmng;
-	cookie->pool = ce_thread_pool_new(4);
+	cookie->pool = ce_thread_pool_new(thread_count);
 	cookie->mutex = ce_thread_mutex_new();
 	cookie->tile_mmpfiles = ce_vector_new_reserved(terrain->mprfile->texture_count);
 	return cookie;
@@ -228,8 +228,8 @@ static void ce_terrain_create_sectors(ce_terrain_cookie* cookie)
 	}
 }
 
-ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
-							bool tiling, ce_texmng* texmng,
+ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
+							ce_texmng* texmng, int thread_count,
 							const ce_vec3* position,
 							const ce_quat* orientation,
 							ce_scenenode* scenenode)
@@ -250,7 +250,8 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 
 	ce_logging_write("terrain: loading '%s'...", mprfile->name->str);
 
-	ce_terrain_cookie* cookie = ce_terrain_cookie_new(terrain, tiling, texmng);
+	ce_terrain_cookie* cookie =
+		ce_terrain_cookie_new(terrain, tiling, texmng, thread_count);
 
 	if (tiling) {
 		// load tile textures immediately, because

@@ -55,6 +55,7 @@ typedef struct {
 	ce_timer* timer;
 	ce_fps* fps;
 	ce_font* font;
+	int thread_count;
 	bool show_axes;
 	bool show_bboxes;
 	bool comprehensive_bbox_only;

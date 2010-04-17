@@ -43,6 +43,7 @@ ce_scenemng* ce_scenemng_new(const char* root_path)
 	scenemng->timer = ce_timer_new();
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
+	scenemng->thread_count = 1;
 	scenemng->show_axes = true;
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
@@ -243,7 +244,7 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 
 	ce_terrain_del(scenemng->terrain);
 	scenemng->terrain = ce_terrain_new(mprfile, scenemng->terrain_tiling,
-		scenemng->texmng, position, orientation, scenenode);
+		scenemng->texmng, scenemng->thread_count, position, orientation, scenenode);
 
 	scenemng->scenenode_needs_update = true;
 	scenemng->renderqueue_needs_update = true;
