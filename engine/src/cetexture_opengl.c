@@ -132,7 +132,7 @@ static void ce_texture_generate(ce_mmpfile* mmpfile,
 	int mipmap_count = ce_texture_correct_mipmap_count(mmpfile->mipmap_count);
 	uint8_t* src = mmpfile->texels;
 
-	// most ei's textures of width divisible by 4 (gl's default row alignment)
+	// most ei's textures of width divisible by 4 (ogl's default row alignment)
 	const bool not_aligned = 0 != mmpfile->width % 4;
 
 	if (not_aligned) {
