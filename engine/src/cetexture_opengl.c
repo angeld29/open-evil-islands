@@ -130,8 +130,7 @@ static void ce_texture_generate(ce_mmpfile* mmpfile,
 	GLenum internal_format, GLenum data_format, GLenum data_type)
 {
 	int mipmap_count = ce_texture_correct_mipmap_count(mmpfile->mipmap_count);
-
-	ce_texture_setup_filters(mipmap_count);
+	uint8_t* src = mmpfile->texels;
 
 	// most ei's textures of width divisible by 4 (gl's default row alignment)
 	const bool not_aligned = 0 != mmpfile->width % 4;
@@ -141,8 +140,6 @@ static void ce_texture_generate(ce_mmpfile* mmpfile,
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	}
-
-	uint8_t* src = mmpfile->texels;
 
 	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mipmap_count; ++i, width >>= 1, height >>= 1) {
@@ -154,15 +151,14 @@ static void ce_texture_generate(ce_mmpfile* mmpfile,
 	if (not_aligned) {
 		glPopClientAttrib();
 	}
+
+	ce_texture_setup_filters(mipmap_count);
 }
 
 static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 											GLenum internal_format)
 {
 	int mipmap_count = ce_texture_correct_mipmap_count(mmpfile->mipmap_count);
-
-	ce_texture_setup_filters(mipmap_count);
-
 	const uint8_t* src = mmpfile->texels;
 
 	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
@@ -172,6 +168,8 @@ static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 			i, internal_format, width, height, 0, size, src);
 		src += size;
 	}
+
+	ce_texture_setup_filters(mipmap_count);
 }
 
 static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
