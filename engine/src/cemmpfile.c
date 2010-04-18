@@ -354,7 +354,13 @@ int ce_mmpfile_storage_size(int width, int height,
 {
 	int size = 0;
 	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
-		size += bit_count * width * height / 8;
+		int sz = bit_count * width * height / 8;
+		if (bit_count < 16) {
+			// special case for compressed mmp files
+			// that have a block of fixed size, for example, 8 for dxt1
+			sz = ce_max(sz, 2 * bit_count);
+		}
+		size += sz;
 	}
 	return size;
 }
