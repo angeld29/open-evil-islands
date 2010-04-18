@@ -43,6 +43,27 @@ struct ce_texture {
 	GLuint id;
 };
 
+static int ce_texture_correct_mipmap_count(int mipmap_count)
+{
+	// OpenGL Specification:
+	// GL_INVALID_VALUE may be generated if level is less
+	// than 0 or greater than log2(GL_MAX_TEXTURE_SIZE)
+
+	GLint max_texture_size;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
+
+	int max_level = log2f(max_texture_size);
+
+	static bool reported; // all ogl's code are not thread safe
+	if (!reported && mipmap_count - 1 > max_level) {
+		ce_logging_warning("texture: your hardware supports a maximum "
+			"of %d mipmaps, extra mipmaps were discarded", max_level);
+		reported = true;
+	}
+
+	return ce_clamp(mipmap_count, 1, max_level + 1);
+}
+
 static void ce_texture_setup_filters(int mipmap_count)
 {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -61,8 +82,7 @@ static void ce_texture_setup_filters(int mipmap_count)
 			glTexParameteri(GL_TEXTURE_2D, CE_GL_GENERATE_MIPMAP, GL_TRUE);
 		} else {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			// ok, all opengl's code is NOT thread safe
-			static bool reported;
+			static bool reported; // all ogl's code are not thread safe
 			if (!reported) {
 				ce_logging_warning("texture: some opengl features are not "
 									"available, mipmapping was disabled");
@@ -109,7 +129,9 @@ static void ce_texture_specify(int width, int height, int level,
 static void ce_texture_generate(ce_mmpfile* mmpfile,
 	GLenum internal_format, GLenum data_format, GLenum data_type)
 {
-	ce_texture_setup_filters(mmpfile->mipmap_count);
+	int mipmap_count = ce_texture_correct_mipmap_count(mmpfile->mipmap_count);
+
+	ce_texture_setup_filters(mipmap_count);
 
 	// most ei's textures of width divisible by 4 (gl's default row alignment)
 	const bool not_aligned = 0 != mmpfile->width % 4;
@@ -123,7 +145,7 @@ static void ce_texture_generate(ce_mmpfile* mmpfile,
 	uint8_t* src = mmpfile->texels;
 
 	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
-			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+			i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		ce_texture_specify(width, height, i,
 			internal_format, data_format, data_type, src);
 		src += ce_mmpfile_storage_size(width, height, 1, mmpfile->bit_count);
@@ -137,12 +159,14 @@ static void ce_texture_generate(ce_mmpfile* mmpfile,
 static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 											GLenum internal_format)
 {
-	ce_texture_setup_filters(mmpfile->mipmap_count);
+	int mipmap_count = ce_texture_correct_mipmap_count(mmpfile->mipmap_count);
+
+	ce_texture_setup_filters(mipmap_count);
 
 	const uint8_t* src = mmpfile->texels;
 
 	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
-			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+			i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		int size = ce_mmpfile_storage_size(width, height, 1, mmpfile->bit_count);
 		ce_gl_compressed_tex_image_2d(GL_TEXTURE_2D,
 			i, internal_format, width, height, 0, size, src);
