@@ -37,6 +37,7 @@ typedef struct {
 	ce_texmng* texmng;
 	ce_thread_pool* pool;
 	ce_thread_mutex* mutex;
+	ce_thread_once* once;
 	ce_vector* tile_mmpfiles;
 } ce_terrain_cookie;
 
@@ -49,6 +50,7 @@ static ce_terrain_cookie* ce_terrain_cookie_new(ce_terrain* terrain,
 	cookie->texmng = texmng;
 	cookie->pool = ce_thread_pool_new(thread_count);
 	cookie->mutex = ce_thread_mutex_new();
+	cookie->once = ce_thread_once_new();
 	cookie->tile_mmpfiles = ce_vector_new_reserved(terrain->mprfile->texture_count);
 	return cookie;
 }
@@ -58,16 +60,19 @@ static void ce_terrain_cookie_del(ce_terrain_cookie* cookie)
 	if (NULL != cookie) {
 		ce_vector_for_each(cookie->tile_mmpfiles, ce_mmpfile_del);
 		ce_vector_del(cookie->tile_mmpfiles);
+		ce_thread_once_del(cookie->once);
 		ce_thread_mutex_del(cookie->mutex);
 		ce_thread_pool_del(cookie->pool);
 		ce_free(cookie, sizeof(ce_terrain_cookie));
 	}
 }
 
-static void ce_terrain_load_tile_resources(ce_terrain_cookie* cookie, bool textures)
+typedef void (*ce_terrain_load_tile_func)(ce_terrain_cookie*, const char*);
+
+static void ce_terrain_load_tile_resources(ce_terrain_cookie* cookie,
+	const char* info, ce_terrain_load_tile_func func)
 {
-	ce_logging_info("terrain: loading tile %s...",
-		textures ? "textures" : "mmp files");
+	ce_logging_info("terrain: loading tile %s...", info);
 
 	// mpr name + nnn
 	char name[cookie->terrain->mprfile->name->length + 3 + 1];
@@ -75,17 +80,34 @@ static void ce_terrain_load_tile_resources(ce_terrain_cookie* cookie, bool textu
 	for (int i = 0; i < cookie->terrain->mprfile->texture_count; ++i) {
 		snprintf(name, sizeof(name), "%s%03d",
 				cookie->terrain->mprfile->name->str, i);
-		if (textures) {
-			ce_texture* texture = ce_texmng_get(cookie->texmng, name);
-			ce_texture_wrap(texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
-			ce_vector_push_back(cookie->terrain->tile_textures,
-				ce_texture_add_ref(texture));
-		} else {
-			ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(cookie->texmng, name);
-			ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
-			ce_vector_push_back(cookie->tile_mmpfiles, mmpfile);
-		}
+		(*func)(cookie, name);
 	}
+}
+
+static void ce_terrain_load_tile_mmpfile(ce_terrain_cookie* cookie, const char* name)
+{
+	ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(cookie->texmng, name);
+	ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
+	ce_vector_push_back(cookie->tile_mmpfiles, mmpfile);
+}
+
+static void ce_terrain_load_tile_texture(ce_terrain_cookie* cookie, const char* name)
+{
+	ce_texture* texture = ce_texture_add_ref(ce_texmng_get(cookie->texmng, name));
+	ce_texture_wrap(texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
+	ce_vector_push_back(cookie->terrain->tile_textures, texture);
+}
+
+static void ce_terrain_load_tile_mmpfiles(ce_terrain_cookie* cookie)
+{
+	ce_logging_write("terrain: needs to generate textures "
+						"for some sectors, please wait...");
+	ce_terrain_load_tile_resources(cookie, "mmp files", ce_terrain_load_tile_mmpfile);
+}
+
+static void ce_terrain_load_tile_textures(ce_terrain_cookie* cookie)
+{
+	ce_terrain_load_tile_resources(cookie, "textures", ce_terrain_load_tile_texture);
 }
 
 typedef struct {
@@ -122,23 +144,16 @@ static void ce_terrain_job_exec(ce_thread_job* base_job)
 {
 	ce_terrain_job* job = (ce_terrain_job*)base_job->impl;
 
+	// TODO: describe thread-safe texmng operations
 	ce_thread_mutex_lock(job->cookie->mutex);
 	job->mmpfile = ce_texmng_open_mmpfile(job->cookie->texmng, job->name->str);
 	ce_thread_mutex_unlock(job->cookie->mutex);
 
 	if (NULL == job->mmpfile || job->mmpfile->version < CE_MMPFILE_VERSION ||
 						job->mmpfile->user_info < CE_MPRHLP_MMPFILE_VERSION) {
-		// lazy loading tile mmpfiles
-		if (ce_vector_empty(job->cookie->tile_mmpfiles)) {
-			// FIXME: wake double-checked locking, pthread_once ?
-			ce_thread_mutex_lock(job->cookie->mutex);
-			if (ce_vector_empty(job->cookie->tile_mmpfiles)) {
-				ce_logging_write("terrain: needs to generate "
-								"textures for some sectors, please wait...");
-				ce_terrain_load_tile_resources(job->cookie, false);
-			}
-			ce_thread_mutex_unlock(job->cookie->mutex);
-		}
+		// lazy loading tile mmp files
+		ce_thread_once_exec(job->cookie->once,
+			ce_terrain_load_tile_mmpfiles, job->cookie);
 
 		ce_mmpfile_del(job->mmpfile);
 		job->mmpfile = ce_mprhlp_generate_mmpfile(job->cookie->terrain->mprfile,
@@ -256,7 +271,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 	if (tiling) {
 		// load tile textures immediately, because
 		// they are necessary for geometry creation
-		ce_terrain_load_tile_resources(cookie, true);
+		ce_terrain_load_tile_textures(cookie);
 	}
 
 	ce_terrain_create_sectors(cookie);
