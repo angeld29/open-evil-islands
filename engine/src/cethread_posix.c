@@ -36,14 +36,30 @@
 #include "ceerror.h"
 #include "cethread.h"
 
+typedef struct {
+	void (*func)(void*);
+	void* arg;
+} ce_thread_cookie;
+
 struct ce_thread {
+	ce_thread_cookie cookie;
 	pthread_t thread;
 };
 
-ce_thread* ce_thread_new(void* (*func)(void*), void* arg)
+static void* ce_thread_func_wrap(void* arg)
+{
+	ce_thread_cookie* cookie = arg;
+	(*cookie->func)(cookie->arg);
+	return arg;
+}
+
+ce_thread* ce_thread_new(void (*func)(void*), void* arg)
 {
 	ce_thread* thread = ce_alloc(sizeof(ce_thread));
-	int code = pthread_create(&thread->thread, NULL, func, arg);
+	thread->cookie.func = func;
+	thread->cookie.arg = arg;
+	int code = pthread_create(&thread->thread,
+		NULL, ce_thread_func_wrap, &thread->cookie);
 	if (0 != code) {
 		ce_error_report_last_c_error(code, "thread", __func__,
 									"pthread_create failed");
@@ -181,32 +197,29 @@ ce_thread_once* ce_thread_once_new(void)
 
 void ce_thread_once_del(ce_thread_once* once)
 {
-	ce_free(once, sizeof(ce_thread_once));
+	if (NULL != once) {
+		ce_free(once, sizeof(ce_thread_once));
+	}
 }
 
 static pthread_once_t ce_thread_once_once = PTHREAD_ONCE_INIT;
 static pthread_key_t ce_thread_once_key;
 
-static void ce_thread_once_once_init()
+static void ce_thread_once_key_init()
 {
 	pthread_key_create(&ce_thread_once_key, NULL);
 }
 
-typedef struct {
-	void (*func)(void*);
-	void* arg;
-} ce_thread_once_param;
-
 static void ce_thread_once_exec_wrap(void)
 {
-	ce_thread_once_param* param = pthread_getspecific(ce_thread_once_key);
-	(*param->func)(param->arg);
+	ce_thread_cookie* cookie = pthread_getspecific(ce_thread_once_key);
+	(*cookie->func)(cookie->arg);
 }
 
 void ce_thread_once_exec(ce_thread_once* once, void (*func)(void*), void* arg)
 {
-	pthread_once(&ce_thread_once_once, ce_thread_once_once_init);
-	ce_thread_once_param param = { func, arg };
-	pthread_setspecific(ce_thread_once_key, &param);
+	pthread_once(&ce_thread_once_once, ce_thread_once_key_init);
+	ce_thread_cookie cookie = { func, arg };
+	pthread_setspecific(ce_thread_once_key, &cookie);
 	pthread_once(&once->once, ce_thread_once_exec_wrap);
 }

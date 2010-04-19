@@ -37,7 +37,7 @@
 #include "cethread.h"
 
 typedef struct {
-	void* (*func)(void*);
+	void (*func)(void*);
 	void* arg;
 } ce_thread_cookie;
 
@@ -53,7 +53,7 @@ static DWORD WINAPI ce_thread_func_wrap(LPVOID arg)
 	return 0;
 }
 
-ce_thread* ce_thread_new(void* (*func)(void*), void* arg)
+ce_thread* ce_thread_new(void (*func)(void*), void* arg)
 {
 	ce_thread* thread = ce_alloc(sizeof(ce_thread));
 	thread->cookie.func = func;

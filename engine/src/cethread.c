@@ -63,7 +63,7 @@ void ce_thread_job_post(ce_thread_job* job, ...)
 	}
 }
 
-static void* ce_thread_pool_work(void* arg)
+static void ce_thread_pool_work(void* arg)
 {
 	ce_thread_pool* pool = arg;
 	ce_thread_mutex_lock(pool->mutex);
@@ -90,7 +90,6 @@ static void* ce_thread_pool_work(void* arg)
 	}
 
 	ce_thread_mutex_unlock(pool->mutex);
-	return arg;
 }
 
 ce_thread_pool* ce_thread_pool_new(int thread_count)
