@@ -542,37 +542,6 @@ void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format)
 	ce_mmpfile_del(other);
 }
 
-typedef struct {
-	ce_mmpfile* mmpfile;
-	ce_mmpfile_format format;
-} ce_mmpfile_job_convert;
-
-static void ce_mmpfile_job_convert_ctor(ce_thread_job* base_job, va_list args)
-{
-	ce_mmpfile_job_convert* job = (ce_mmpfile_job_convert*)base_job->impl;
-
-	job->mmpfile = va_arg(args, ce_mmpfile*);
-	job->format = va_arg(args, ce_mmpfile_format);
-}
-
-static void ce_mmpfile_job_convert_exec(ce_thread_job* base_job)
-{
-	ce_mmpfile_job_convert* job = (ce_mmpfile_job_convert*)base_job->impl;
-
-	ce_mmpfile_convert(job->mmpfile, job->format);
-}
-
-static const ce_thread_job_vtable ce_mmpfile_job_convert_vtable = {
-	ce_mmpfile_job_convert_ctor, NULL, ce_mmpfile_job_convert_exec, NULL
-};
-
-ce_thread_job* ce_mmpfile_create_job_convert(ce_mmpfile* mmpfile,
-											ce_mmpfile_format format)
-{
-	return ce_thread_job_new(ce_mmpfile_job_convert_vtable,
-		sizeof(ce_mmpfile_job_convert), mmpfile, format);
-}
-
 static int Unpack565( uint8_t const* packed, uint8_t* colour )
 {
 	// build the packed value

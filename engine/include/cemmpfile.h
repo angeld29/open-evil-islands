@@ -24,7 +24,6 @@
 #include <stddef.h>
 
 #include "ceresfile.h"
-#include "cethread.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -85,9 +84,6 @@ extern int ce_mmpfile_storage_size(int width, int height,
 									int mipmap_count, int bit_count);
 
 extern void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format);
-
-extern ce_thread_job* ce_mmpfile_create_job_convert(ce_mmpfile* mmpfile,
-													ce_mmpfile_format format);
 
 #ifdef __cplusplus
 }
