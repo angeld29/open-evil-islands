@@ -241,3 +241,38 @@ void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex)
 
 	LeaveCriticalSection(&cond->cs);
 }
+
+struct ce_thread_once {
+	bool inited;
+	CRITICAL_SECTION cs;
+};
+
+ce_thread_once* ce_thread_once_new(void)
+{
+	ce_thread_once* once = ce_alloc(sizeof(ce_thread_once));
+	once->inited = false;
+	InitializeCriticalSection(&once->cs);
+	return once;
+}
+
+void ce_thread_once_del(ce_thread_once* once)
+{
+	if (NULL != once) {
+		DeleteCriticalSection(&once->cs);
+		ce_free(once, sizeof(ce_thread_once));
+	}
+}
+
+void ce_thread_once_exec(ce_thread_once* once, void (*func)(void*), void* arg)
+{
+	// double-checked locking
+	// another solution ?
+	if (!once->inited) {
+		EnterCriticalSection(&once->cs);
+		if (!once->inited) {
+			func(arg);
+			once->inited = true;
+		}
+		LeaveCriticalSection(&once->cs);
+	}
+}

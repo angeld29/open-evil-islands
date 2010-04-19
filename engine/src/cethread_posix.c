@@ -167,3 +167,46 @@ void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex)
 
 	ce_thread_mutex_lock(mutex);
 }
+
+struct ce_thread_once {
+	pthread_once_t once;
+};
+
+ce_thread_once* ce_thread_once_new(void)
+{
+	ce_thread_once* once = ce_alloc(sizeof(ce_thread_once));
+	once->once = PTHREAD_ONCE_INIT;
+	return once;
+}
+
+void ce_thread_once_del(ce_thread_once* once)
+{
+	ce_free(once, sizeof(ce_thread_once));
+}
+
+static pthread_once_t ce_thread_once_once = PTHREAD_ONCE_INIT;
+static pthread_key_t ce_thread_once_key;
+
+static void ce_thread_once_once_init()
+{
+	pthread_key_create(&ce_thread_once_key, NULL);
+}
+
+typedef struct {
+	void (*func)(void*);
+	void* arg;
+} ce_thread_once_param;
+
+static void ce_thread_once_exec_wrap(void)
+{
+	ce_thread_once_param* param = pthread_getspecific(ce_thread_once_key);
+	(*param->func)(param->arg);
+}
+
+void ce_thread_once_exec(ce_thread_once* once, void (*func)(void*), void* arg)
+{
+	pthread_once(&ce_thread_once_once, ce_thread_once_once_init);
+	ce_thread_once_param param = { func, arg };
+	pthread_setspecific(ce_thread_once_key, &param);
+	pthread_once(&once->once, ce_thread_once_exec_wrap);
+}

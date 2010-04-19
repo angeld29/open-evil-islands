@@ -32,12 +32,16 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+// thread
+
 typedef struct ce_thread ce_thread;
 
 extern ce_thread* ce_thread_new(void* (*func)(void*), void* arg);
 extern void ce_thread_del(ce_thread* thread);
 
 extern void ce_thread_wait(ce_thread* thread);
+
+// mutex
 
 typedef struct ce_thread_mutex ce_thread_mutex;
 
@@ -47,6 +51,8 @@ extern void ce_thread_mutex_del(ce_thread_mutex* mutex);
 extern void ce_thread_mutex_lock(ce_thread_mutex* mutex);
 extern void ce_thread_mutex_unlock(ce_thread_mutex* mutex);
 
+// cond
+
 typedef struct ce_thread_cond ce_thread_cond;
 
 extern ce_thread_cond* ce_thread_cond_new(void);
@@ -55,6 +61,18 @@ extern void ce_thread_cond_del(ce_thread_cond* cond);
 extern void ce_thread_cond_wake_one(ce_thread_cond* cond);
 extern void ce_thread_cond_wake_all(ce_thread_cond* cond);
 extern void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex);
+
+// once
+
+typedef struct ce_thread_once ce_thread_once;
+
+extern ce_thread_once* ce_thread_once_new(void);
+extern void ce_thread_once_del(ce_thread_once* once);
+
+extern void ce_thread_once_exec(ce_thread_once* once,
+								void (*func)(void*), void* arg);
+
+// job
 
 typedef struct ce_thread_job ce_thread_job;
 
@@ -77,6 +95,8 @@ extern void ce_thread_job_del(ce_thread_job* job);
 
 extern void ce_thread_job_exec(ce_thread_job* job);
 extern void ce_thread_job_post(ce_thread_job* job, ...);
+
+// pool
 
 typedef struct {
 	bool done;
