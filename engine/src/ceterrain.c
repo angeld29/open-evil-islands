@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <assert.h>
 
 #include "celib.h"
 #include "celogging.h"
@@ -39,7 +40,42 @@ typedef struct {
 	ce_thread_mutex* mutex;
 	ce_thread_once* once;
 	ce_vector* tile_mmpfiles;
+	ce_vector* portions;
+	int queued_portion_count;
+	int completed_portion_count;
 } ce_terrain_cookie;
+
+typedef struct {
+	ce_terrain_cookie* cookie;
+	ce_string* name;
+	int index;
+	int x, z;
+	bool water;
+	ce_mmpfile* mmpfile;
+} ce_terrain_portion;
+
+static ce_terrain_portion* ce_terrain_portion_new(ce_terrain_cookie* cookie,
+	const char* name, int index, int x, int z, bool water)
+{
+	ce_terrain_portion* portion = ce_alloc(sizeof(ce_terrain_portion));
+	portion->cookie = cookie;
+	portion->name = ce_string_new_str(name);
+	portion->index = index;
+	portion->x = x;
+	portion->z = z;
+	portion->water = water;
+	portion->mmpfile = NULL;
+	return portion;
+}
+
+static void ce_terrain_portion_del(ce_terrain_portion* portion)
+{
+	if (NULL != portion) {
+		ce_mmpfile_del(portion->mmpfile);
+		ce_string_del(portion->name);
+		ce_free(portion, sizeof(ce_terrain_portion));
+	}
+}
 
 static ce_terrain_cookie* ce_terrain_cookie_new(ce_terrain* terrain,
 	bool tiling, ce_texmng* texmng, int thread_count)
@@ -52,12 +88,17 @@ static ce_terrain_cookie* ce_terrain_cookie_new(ce_terrain* terrain,
 	cookie->mutex = ce_thread_mutex_new();
 	cookie->once = ce_thread_once_new();
 	cookie->tile_mmpfiles = ce_vector_new_reserved(terrain->mprfile->texture_count);
+	cookie->portions = ce_vector_new();
+	cookie->queued_portion_count = 0;
+	cookie->completed_portion_count = 0;
 	return cookie;
 }
 
 static void ce_terrain_cookie_del(ce_terrain_cookie* cookie)
 {
 	if (NULL != cookie) {
+		assert(ce_vector_empty(cookie->portions) && "internal error");
+		ce_vector_del(cookie->portions);
 		ce_vector_for_each(cookie->tile_mmpfiles, ce_mmpfile_del);
 		ce_vector_del(cookie->tile_mmpfiles);
 		ce_thread_once_del(cookie->once);
@@ -110,80 +151,64 @@ static void ce_terrain_load_tile_textures(ce_terrain_cookie* cookie)
 	ce_terrain_load_tile_resources(cookie, "textures", ce_terrain_load_tile_texture);
 }
 
-typedef struct {
-	ce_terrain_cookie* cookie;
-	ce_string* name;
-	int index;
-	int x, z;
-	bool water;
-	ce_mmpfile* mmpfile;
-} ce_terrain_job;
-
-static void ce_terrain_job_ctor(ce_thread_job* base_job, va_list args)
+static void ce_terrain_process_portion(ce_terrain_portion* portion)
 {
-	ce_terrain_job* job = (ce_terrain_job*)base_job->impl;
-
-	job->cookie = va_arg(args, ce_terrain_cookie*);
-	job->name = ce_string_new_str(va_arg(args, const char*));
-	job->index = va_arg(args, int);
-	job->x = va_arg(args, int);
-	job->z = va_arg(args, int);
-	job->water = va_arg(args, int);
-	job->mmpfile = NULL;
-}
-
-static void ce_terrain_job_dtor(ce_thread_job* base_job)
-{
-	ce_terrain_job* job = (ce_terrain_job*)base_job->impl;
-
-	ce_mmpfile_del(job->mmpfile);
-	ce_string_del(job->name);
-}
-
-static void ce_terrain_job_exec(ce_thread_job* base_job)
-{
-	ce_terrain_job* job = (ce_terrain_job*)base_job->impl;
+	ce_thread_mutex_lock(portion->cookie->mutex);
 
 	// TODO: describe thread-safe texmng operations
-	ce_thread_mutex_lock(job->cookie->mutex);
-	job->mmpfile = ce_texmng_open_mmpfile(job->cookie->texmng, job->name->str);
-	ce_thread_mutex_unlock(job->cookie->mutex);
+	portion->mmpfile = ce_texmng_open_mmpfile(portion->cookie->texmng,
+												portion->name->str);
 
-	if (NULL == job->mmpfile || job->mmpfile->version < CE_MMPFILE_VERSION ||
-						job->mmpfile->user_info < CE_MPRHLP_MMPFILE_VERSION) {
+	ce_thread_mutex_unlock(portion->cookie->mutex);
+
+	if (NULL == portion->mmpfile ||
+			portion->mmpfile->version < CE_MMPFILE_VERSION ||
+			portion->mmpfile->user_info < CE_MPRHLP_MMPFILE_VERSION) {
 		// lazy loading tile mmp files
-		ce_thread_once_exec(job->cookie->once,
-			ce_terrain_load_tile_mmpfiles, job->cookie);
+		ce_thread_once_exec(portion->cookie->once,
+			ce_terrain_load_tile_mmpfiles, portion->cookie);
 
-		ce_mmpfile_del(job->mmpfile);
-		job->mmpfile = ce_mprhlp_generate_mmpfile(job->cookie->terrain->mprfile,
-			job->cookie->tile_mmpfiles, job->x, job->z, job->water);
+		ce_mmpfile_del(portion->mmpfile);
+		portion->mmpfile =
+			ce_mprhlp_generate_mmpfile(portion->cookie->terrain->mprfile,
+										portion->cookie->tile_mmpfiles,
+										portion->x, portion->z, portion->water);
 
 		// force to dxt1?
-		ce_mmpfile_convert(job->mmpfile, CE_MMPFILE_FORMAT_DXT1);
+		ce_mmpfile_convert(portion->mmpfile, CE_MMPFILE_FORMAT_DXT1);
 
-		ce_texmng_save_mmpfile(job->cookie->texmng,
-								job->name->str, job->mmpfile);
+		ce_texmng_save_mmpfile(portion->cookie->texmng,
+								portion->name->str, portion->mmpfile);
 	}
+
+	ce_thread_mutex_lock(portion->cookie->mutex);
+
+	ce_vector_push_back(portion->cookie->portions, portion);
+	++portion->cookie->completed_portion_count;
+
+	ce_thread_mutex_unlock(portion->cookie->mutex);
 }
 
-static void ce_terrain_job_post(ce_thread_job* base_job, va_list args)
+static void ce_terrain_load_portions(ce_terrain_cookie* cookie)
 {
-	ce_terrain_job* job = (ce_terrain_job*)base_job->impl;
-	ce_unused(args);
+	ce_thread_mutex_lock(cookie->mutex);
 
-	// all operations with textures must be performed in initial thread
-	ce_texture* texture = ce_texture_new(job->name->str, job->mmpfile);
-	ce_texture_wrap(texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
+	for (int i = 0; i < cookie->portions->count; ++i) {
+		ce_terrain_portion* portion = cookie->portions->items[i];
 
-	ce_texmng_put(job->cookie->texmng, ce_texture_add_ref(texture));
-	job->cookie->terrain->sector_textures->items[job->index] = texture;
+		ce_texture* texture = ce_texture_new(portion->name->str, portion->mmpfile);
+		ce_texture_wrap(texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
+
+		ce_texmng_put(cookie->texmng, ce_texture_add_ref(texture));
+		cookie->terrain->sector_textures->items[portion->index] = texture;
+
+		ce_terrain_portion_del(portion);
+	}
+
+	ce_vector_clear(cookie->portions);
+
+	ce_thread_mutex_unlock(cookie->mutex);
 }
-
-static const ce_thread_job_vtable ce_terrain_job_vtable = {
-	ce_terrain_job_ctor, ce_terrain_job_dtor,
-	ce_terrain_job_exec, ce_terrain_job_post
-};
 
 static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 	const char* name, int index, int x, int z, bool water)
@@ -194,9 +219,12 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 		cookie->terrain->sector_textures->items[index] = ce_texture_add_ref(texture);
 	} else {
 		// enqueue mmp file loading or generation
-		ce_thread_pool_enqueue(cookie->pool,
-			ce_thread_job_new(ce_terrain_job_vtable, sizeof(ce_terrain_job),
-				cookie, name, index, x, z, (int)water));
+		ce_thread_pool_enqueue(cookie->pool, ce_terrain_process_portion,
+			ce_terrain_portion_new(cookie, name, index, x, z, water));
+		++cookie->queued_portion_count;
+
+		// load the portions as soon as processed to avoid extra memory usage
+		ce_terrain_load_portions(cookie);
 	}
 
 	// create geometry
@@ -279,15 +307,19 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 	ce_logging_write("terrain: waiting for all tasks to complete...");
 	ce_logging_write("terrain: this may take some time, please wait...");
 
-	for (;;) {
-		ce_thread_pool_wait_completed(cookie->pool);
-		if (!ce_thread_pool_has_completed(cookie->pool)) {
-			break;
-		}
-		ce_thread_job* job = ce_thread_pool_take_completed(cookie->pool);
-		ce_thread_job_post(job);
-		ce_thread_job_del(job);
+	ce_thread_mutex_lock(cookie->mutex);
+
+	while (!ce_vector_empty(cookie->portions) ||
+			cookie->completed_portion_count != cookie->queued_portion_count) {
+		ce_thread_mutex_unlock(cookie->mutex);
+
+		ce_terrain_load_portions(cookie);
+		ce_thread_pool_wait_one(cookie->pool);
+
+		ce_thread_mutex_lock(cookie->mutex);
 	}
+
+	ce_thread_mutex_unlock(cookie->mutex);
 
 	ce_terrain_cookie_del(cookie);
 

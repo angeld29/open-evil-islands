@@ -22,44 +22,21 @@
 #include "celogging.h"
 #include "cethread.h"
 
-ce_thread_job* ce_thread_job_new(ce_thread_job_vtable vtable, size_t size, ...)
+typedef struct {
+	void (*func)(void*);
+	void* arg;
+} ce_thread_cookie;
+
+static ce_thread_cookie* ce_thread_cookie_new(void)
 {
-	ce_thread_job* job = ce_alloc(sizeof(ce_thread_job) + size);
-	job->vtable = vtable;
-	job->size = size;
-	if (NULL != vtable.ctor) {
-		va_list args;
-		va_start(args, size);
-		(*vtable.ctor)(job, args);
-		va_end(args);
-	}
-	return job;
+	ce_thread_cookie* cookie = ce_alloc(sizeof(ce_thread_cookie));
+	return cookie;
 }
 
-void ce_thread_job_del(ce_thread_job* job)
+static void ce_thread_cookie_del(ce_thread_cookie* cookie)
 {
-	if (NULL != job) {
-		if (NULL != job->vtable.dtor) {
-			(*job->vtable.dtor)(job);
-		}
-		ce_free(job, sizeof(ce_thread_job) + job->size);
-	}
-}
-
-void ce_thread_job_exec(ce_thread_job* job)
-{
-	if (NULL != job->vtable.exec) {
-		(*job->vtable.exec)(job);
-	}
-}
-
-void ce_thread_job_post(ce_thread_job* job, ...)
-{
-	if (NULL != job->vtable.post) {
-		va_list args;
-		va_start(args, job);
-		(*job->vtable.post)(job, args);
-		va_end(args);
+	if (NULL != cookie) {
+		ce_free(cookie, sizeof(ce_thread_cookie));
 	}
 }
 
@@ -69,21 +46,25 @@ static void ce_thread_pool_work(void* arg)
 	ce_thread_mutex_lock(pool->mutex);
 
 	while (!pool->done) {
-		if (ce_vector_empty(pool->queued_jobs)) {
+		if (ce_vector_empty(pool->queue)) {
 			if (pool->idle_thread_count == pool->threads->count) {
 				ce_thread_cond_wake_one(pool->wait_all_cond);
 			}
 			ce_thread_cond_wait(pool->thread_cond, pool->mutex);
 		} else {
-			ce_thread_job* job = ce_vector_pop_back(pool->queued_jobs);
+			ce_thread_cookie* cookie = ce_vector_pop_back(pool->queue);
+			ce_vector_push_back(pool->cache, cookie);
+
+			void (*func)(void*) = cookie->func;
+			void* arg = cookie->arg;
+
 			--pool->idle_thread_count;
 			ce_thread_mutex_unlock(pool->mutex);
 
-			ce_thread_job_exec(job);
+			(*func)(arg);
 
 			ce_thread_mutex_lock(pool->mutex);
 			++pool->idle_thread_count;
-			ce_vector_push_back(pool->completed_jobs, job);
 
 			ce_thread_cond_wake_one(pool->wait_one_cond);
 		}
@@ -98,8 +79,8 @@ ce_thread_pool* ce_thread_pool_new(int thread_count)
 	pool->done = false;
 	pool->idle_thread_count = thread_count;
 	pool->threads = ce_vector_new_reserved(thread_count);
-	pool->queued_jobs = ce_vector_new();
-	pool->completed_jobs = ce_vector_new();
+	pool->queue = ce_vector_new();
+	pool->cache = ce_vector_new();
 	pool->mutex = ce_thread_mutex_new();
 	pool->thread_cond = ce_thread_cond_new();
 	pool->wait_one_cond = ce_thread_cond_new();
@@ -123,76 +104,55 @@ void ce_thread_pool_del(ce_thread_pool* pool)
 		ce_thread_cond_wake_all(pool->thread_cond);
 		ce_vector_for_each(pool->threads, ce_thread_wait);
 
-		if (!ce_vector_empty(pool->queued_jobs)) {
-			ce_logging_warning("thread_pool: "
-				"destroyed while jobs are still existing");
+		if (!ce_vector_empty(pool->queue)) {
+			ce_logging_warning("thread: "
+				"pool is being destroyed while queue is not empty");
 		}
-
-		ce_vector_for_each(pool->completed_jobs, ce_thread_job_del);
-		ce_vector_for_each(pool->queued_jobs, ce_thread_job_del);
-		ce_vector_for_each(pool->threads, ce_thread_del);
 
 		ce_thread_cond_del(pool->wait_all_cond);
 		ce_thread_cond_del(pool->wait_one_cond);
 		ce_thread_cond_del(pool->thread_cond);
 		ce_thread_mutex_del(pool->mutex);
 
-		ce_vector_del(pool->completed_jobs);
-		ce_vector_del(pool->queued_jobs);
+		ce_vector_for_each(pool->cache, ce_thread_cookie_del);
+		ce_vector_for_each(pool->queue, ce_thread_cookie_del);
+		ce_vector_for_each(pool->threads, ce_thread_del);
+
+		ce_vector_del(pool->cache);
+		ce_vector_del(pool->queue);
 		ce_vector_del(pool->threads);
 
 		ce_free(pool, sizeof(ce_thread_pool));
 	}
 }
 
-void ce_thread_pool_enqueue(ce_thread_pool* pool, ce_thread_job* job)
+void ce_thread_pool_enqueue(ce_thread_pool* pool, void (*func)(), void* arg)
 {
 	ce_thread_mutex_lock(pool->mutex);
-	ce_vector_push_back(pool->queued_jobs, job);
+	ce_thread_cookie* cookie = ce_vector_empty(pool->cache) ?
+		ce_thread_cookie_new() : ce_vector_pop_back(pool->cache);
+	cookie->func = func; cookie->arg = arg;
+	ce_vector_push_back(pool->queue, cookie);
 	ce_thread_cond_wake_one(pool->thread_cond);
 	ce_thread_mutex_unlock(pool->mutex);
 }
 
 static void ce_thread_pool_wait(ce_thread_pool* pool, ce_thread_cond* cond)
 {
-	if (!ce_vector_empty(pool->queued_jobs) ||
+	ce_thread_mutex_lock(pool->mutex);
+	if (!ce_vector_empty(pool->queue) ||
 			pool->idle_thread_count != pool->threads->count) {
 		ce_thread_cond_wait(cond, pool->mutex);
 	}
+	ce_thread_mutex_unlock(pool->mutex);
 }
 
 void ce_thread_pool_wait_one(ce_thread_pool* pool)
 {
-	ce_thread_mutex_lock(pool->mutex);
 	ce_thread_pool_wait(pool, pool->wait_one_cond);
-	ce_thread_mutex_unlock(pool->mutex);
 }
 
 void ce_thread_pool_wait_all(ce_thread_pool* pool)
 {
-	ce_thread_mutex_lock(pool->mutex);
 	ce_thread_pool_wait(pool, pool->wait_all_cond);
-	ce_thread_mutex_unlock(pool->mutex);
-}
-
-bool ce_thread_pool_has_completed(ce_thread_pool* pool)
-{
-	return !ce_vector_empty(pool->completed_jobs);
-}
-
-void ce_thread_pool_wait_completed(ce_thread_pool* pool)
-{
-	ce_thread_mutex_lock(pool->mutex);
-	if (ce_vector_empty(pool->completed_jobs)) {
-		ce_thread_pool_wait(pool, pool->wait_one_cond);
-	}
-	ce_thread_mutex_unlock(pool->mutex);
-}
-
-ce_thread_job* ce_thread_pool_take_completed(ce_thread_pool* pool)
-{
-	ce_thread_mutex_lock(pool->mutex);
-	ce_thread_job* job = ce_vector_pop_back(pool->completed_jobs);
-	ce_thread_mutex_unlock(pool->mutex);
-	return job;
 }
