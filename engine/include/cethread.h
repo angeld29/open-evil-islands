@@ -36,7 +36,7 @@ extern "C"
 
 typedef struct ce_thread ce_thread;
 
-extern ce_thread* ce_thread_new(void (*func)(void*), void* arg);
+extern ce_thread* ce_thread_new(void (*func)(), void* arg);
 extern void ce_thread_del(ce_thread* thread);
 
 extern void ce_thread_wait(ce_thread* thread);
@@ -69,8 +69,7 @@ typedef struct ce_thread_once ce_thread_once;
 extern ce_thread_once* ce_thread_once_new(void);
 extern void ce_thread_once_del(ce_thread_once* once);
 
-extern void ce_thread_once_exec(ce_thread_once* once,
-								void (*func)(void*), void* arg);
+extern void ce_thread_once_exec(ce_thread_once* once, void (*func)(), void* arg);
 
 // job
 
