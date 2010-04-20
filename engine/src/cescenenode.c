@@ -18,6 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
+
 #include "cealloc.h"
 #include "cescenenode.h"
 
@@ -104,6 +106,7 @@ void ce_scenenode_del(ce_scenenode* scenenode)
 void ce_scenenode_create_listener(ce_scenenode* scenenode,
 	ce_scenenode_listener_vtable vtable, size_t size, ...)
 {
+	assert(NULL == scenenode->listener);
 	scenenode->listener = ce_alloc(sizeof(ce_scenenode_listener) + size);
 	scenenode->listener->vtable = vtable;
 	scenenode->listener->size = size;

@@ -119,11 +119,6 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 	ce_input_advance(elapsed);
 	ce_fps_advance(scenemng->fps, elapsed);
-
-	for (int i = 0; i < scenemng->figmng->figentities->count; ++i) {
-		ce_figentity_advance(scenemng->figmng->figentities->items[i],
-										scenemng->anmfps, elapsed);
-	}
 }
 
 void ce_scenemng_render(ce_scenemng* scenemng)
@@ -157,10 +152,6 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	// first, cull scene nodes BEFORE update for performance reasons
 	// rendering defects are possible, such as culling partially visible objects
 	ce_scenenode_cull_cascade(scenemng->scenenode, &frustum);
-
-	for (int i = 0; i < scenemng->figmng->figentities->count; ++i) {
-		ce_figentity_update(scenemng->figmng->figentities->items[i], false);
-	}
 
 	ce_scenenode_update_cascade(scenemng->scenenode,
 		scenemng->anmfps, ce_timer_elapsed(scenemng->timer), false);
@@ -300,12 +291,8 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 									orientation, texture_count,
 									textures, scenenode);
 
-	if (NULL != figentity) {
-		ce_figentity_update(figentity, true);
-
-		scenemng->scenenode_needs_update = true;
-		scenemng->renderqueue_needs_update = true;
-	}
+	scenemng->scenenode_needs_update = true;
+	scenemng->renderqueue_needs_update = true;
 
 	return figentity;
 }
