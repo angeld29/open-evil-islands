@@ -21,6 +21,52 @@
 #include "cealloc.h"
 #include "cescenenode.h"
 
+static void ce_scenenode_listener_del(ce_scenenode_listener* listener)
+{
+	if (NULL != listener) {
+		if (NULL != listener->vtable.dtor) {
+			(*listener->vtable.dtor)(listener);
+		}
+		ce_free(listener, sizeof(ce_scenenode_listener) + listener->size);
+	}
+}
+
+static void ce_scenenode_listener_attached(ce_scenenode_listener* listener)
+{
+	if (NULL != listener && NULL != listener->vtable.attached) {
+		(*listener->vtable.attached)(listener);
+	}
+}
+
+static void ce_scenenode_listener_detached(ce_scenenode_listener* listener)
+{
+	if (NULL != listener && NULL != listener->vtable.detached) {
+		(*listener->vtable.detached)(listener);
+	}
+}
+
+static void ce_scenenode_listener_about_to_update(
+	ce_scenenode_listener* listener, float anm_fps, float elapsed)
+{
+	if (NULL != listener && NULL != listener->vtable.about_to_update) {
+		(*listener->vtable.about_to_update)(listener, anm_fps, elapsed);
+	}
+}
+
+static void ce_scenenode_listener_updated(ce_scenenode_listener* listener)
+{
+	if (NULL != listener && NULL != listener->vtable.updated) {
+		(*listener->vtable.updated)(listener);
+	}
+}
+
+static void ce_scenenode_listener_destroyed(ce_scenenode_listener* listener)
+{
+	if (NULL != listener && NULL != listener->vtable.destroyed) {
+		(*listener->vtable.destroyed)(listener);
+	}
+}
+
 ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 {
 	ce_scenenode* scenenode = ce_alloc_zero(sizeof(ce_scenenode));
@@ -28,6 +74,7 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 	scenenode->orientation = CE_QUAT_IDENTITY;
 	scenenode->culled = true;
 	scenenode->renderitems = ce_vector_new();
+	scenenode->listener = NULL;
 	scenenode->parent = parent;
 	scenenode->childs = ce_vector_new();
 	if (NULL != parent) {
@@ -46,9 +93,28 @@ void ce_scenenode_del(ce_scenenode* scenenode)
 			ce_scenenode_del(child);
 		}
 		ce_vector_del(scenenode->childs);
+		ce_scenenode_listener_destroyed(scenenode->listener);
+		ce_scenenode_listener_del(scenenode->listener);
 		ce_vector_for_each(scenenode->renderitems, ce_renderitem_del);
 		ce_vector_del(scenenode->renderitems);
 		ce_free(scenenode, sizeof(ce_scenenode));
+	}
+}
+
+void ce_scenenode_create_listener(ce_scenenode* scenenode,
+	ce_scenenode_listener_vtable vtable, size_t size, ...)
+{
+	scenenode->listener = ce_alloc(sizeof(ce_scenenode_listener) + size);
+	scenenode->listener->vtable = vtable;
+	scenenode->listener->size = size;
+	if (NULL != vtable.ctor) {
+		va_list args;
+		va_start(args, size);
+		(*vtable.ctor)(scenenode->listener, args);
+		va_end(args);
+	}
+	if (NULL != scenenode->parent) {
+		ce_scenenode_listener_attached(scenenode->listener);
 	}
 }
 
@@ -57,6 +123,7 @@ void ce_scenenode_detach_from_parent(ce_scenenode* scenenode)
 	if (NULL != scenenode->parent) {
 		ce_scenenode_detach_child(scenenode->parent, scenenode);
 		scenenode->parent = NULL;
+		ce_scenenode_listener_detached(scenenode->listener);
 	}
 }
 
@@ -164,27 +231,38 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 	}
 }
 
-void ce_scenenode_update(ce_scenenode* scenenode, bool force)
+void ce_scenenode_update(ce_scenenode* scenenode,
+						float anm_fps, float elapsed, bool force)
 {
 	if (!force && scenenode->culled) {
 		return;
 	}
+
+	ce_scenenode_listener_about_to_update(scenenode->listener, anm_fps, elapsed);
 
 	ce_scenenode_update_transform(scenenode);
 	ce_scenenode_update_bounds(scenenode);
+
+	ce_scenenode_listener_updated(scenenode->listener);
 }
 
-void ce_scenenode_update_cascade(ce_scenenode* scenenode, bool force)
+void ce_scenenode_update_cascade(ce_scenenode* scenenode,
+								float anm_fps, float elapsed, bool force)
 {
 	if (!force && scenenode->culled) {
 		return;
 	}
+
+	ce_scenenode_listener_about_to_update(scenenode->listener, anm_fps, elapsed);
 
 	ce_scenenode_update_transform(scenenode);
 	for (int i = 0; i < scenenode->childs->count; ++i) {
-		ce_scenenode_update_cascade(scenenode->childs->items[i], force);
+		ce_scenenode_update_cascade(scenenode->childs->items[i],
+										anm_fps, elapsed, force);
 	}
 	ce_scenenode_update_bounds(scenenode);
+
+	ce_scenenode_listener_updated(scenenode->listener);
 }
 
 static void ce_scenenode_draw_bbox(ce_rendersystem* rendersystem,

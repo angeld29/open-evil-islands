@@ -139,7 +139,8 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	// big changes of the scene node tree - force update
 	if (scenemng->scenenode_needs_update) {
-		ce_scenenode_update_cascade(scenemng->scenenode, true);
+		ce_scenenode_update_cascade(scenemng->scenenode,
+			scenemng->anm_fps, ce_timer_elapsed(scenemng->timer), true);
 		scenemng->scenenode_needs_update = false;
 	}
 
@@ -161,7 +162,8 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_figentity_update(scenemng->figmng->figentities->items[i], false);
 	}
 
-	ce_scenenode_update_cascade(scenemng->scenenode, false);
+	ce_scenenode_update_cascade(scenemng->scenenode,
+		scenemng->anm_fps, ce_timer_elapsed(scenemng->timer), false);
 
 	if (scenemng->show_bboxes) {
 		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,

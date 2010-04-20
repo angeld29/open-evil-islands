@@ -21,6 +21,8 @@
 #ifndef CE_SCENENODE_H
 #define CE_SCENENODE_H
 
+#include <stddef.h>
+#include <stdarg.h>
 #include <stdbool.h>
 
 #include "cevec3.h"
@@ -36,6 +38,25 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+typedef struct ce_scenenode_listener ce_scenenode_listener;
+
+typedef struct {
+	void (*ctor)(ce_scenenode_listener* listener, va_list args);
+	void (*dtor)(ce_scenenode_listener* listener);
+	void (*attached)(ce_scenenode_listener* listener);
+	void (*detached)(ce_scenenode_listener* listener);
+	void (*about_to_update)(ce_scenenode_listener* listener,
+								float anm_fps, float elapsed);
+	void (*updated)(ce_scenenode_listener* listener);
+	void (*destroyed)(ce_scenenode_listener* listener);
+} ce_scenenode_listener_vtable;
+
+struct ce_scenenode_listener {
+	ce_scenenode_listener_vtable vtable;
+	size_t size;
+	char impl[];
+};
+
 typedef struct ce_scenenode ce_scenenode;
 
 struct ce_scenenode {
@@ -46,12 +67,16 @@ struct ce_scenenode {
 	ce_bbox world_bbox;
 	bool culled;
 	ce_vector* renderitems;
+	ce_scenenode_listener* listener;
 	ce_scenenode* parent;
 	ce_vector* childs;
 };
 
 extern ce_scenenode* ce_scenenode_new(ce_scenenode* parent);
 extern void ce_scenenode_del(ce_scenenode* scenenode);
+
+extern void ce_scenenode_create_listener(ce_scenenode* scenenode,
+	ce_scenenode_listener_vtable vtable, size_t size, ...);
 
 extern void ce_scenenode_detach_from_parent(ce_scenenode* scenenode);
 extern void ce_scenenode_detach_child(ce_scenenode* scenenode,
@@ -61,12 +86,14 @@ extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
 										ce_renderitem* renderitem);
 
 extern void ce_scenenode_cull_cascade(ce_scenenode* scenenode,
-									const ce_frustum* frustum);
+										const ce_frustum* frustum);
 
 extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
 
-extern void ce_scenenode_update(ce_scenenode* scenenode, bool force);
-extern void ce_scenenode_update_cascade(ce_scenenode* scenenode, bool force);
+extern void ce_scenenode_update(ce_scenenode* scenenode,
+								float anm_fps, float elapsed, bool force);
+extern void ce_scenenode_update_cascade(ce_scenenode* scenenode,
+										float anm_fps, float elapsed, bool force);
 
 extern void ce_scenenode_draw_bboxes(ce_scenenode* scenenode,
 									ce_rendersystem* rendersystem,
