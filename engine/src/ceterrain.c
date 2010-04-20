@@ -245,7 +245,8 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 
 static void ce_terrain_create_sectors(ce_terrain_cookie* cookie)
 {
-	ce_logging_info("terrain: creating sectors...");
+	ce_logging_write("terrain: creating sectors...");
+	ce_logging_write("terrain: this may take some time, please wait...");
 
 	// mpr name + xxxzzz[w]
 	char name[cookie->terrain->mprfile->name->length + 3 + 3 + 1 + 1];
@@ -305,7 +306,6 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 	ce_terrain_create_sectors(cookie);
 
 	ce_logging_write("terrain: waiting for all tasks to complete...");
-	ce_logging_write("terrain: this may take some time, please wait...");
 
 	ce_thread_mutex_lock(cookie->mutex);
 
