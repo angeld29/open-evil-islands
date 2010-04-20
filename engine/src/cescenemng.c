@@ -92,10 +92,9 @@ ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
 		ce_figmng_register_resource(scenemng->figmng, path);
 	}
 
+	ce_logging_write("scenemng: using up to %d threads", scenemng->thread_count);
 	ce_logging_write("scenemng: terrain tiling %s",
 		scenemng->terrain_tiling ? "enabled" : "disabled");
-
-	ce_logging_write("scenemng: using %d thread(s)", scenemng->thread_count);
 
 	return scenemng;
 }

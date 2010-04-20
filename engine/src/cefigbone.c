@@ -140,10 +140,12 @@ bool ce_figbone_play_animation(ce_figbone* figbone,
 {
 	bool ok = ce_anmstate_play_animation(
 		figbone->anmstate, fignode->anmfiles, name);
+
 	for (int i = 0; i < figbone->childs->count; ++i) {
 		ok = ce_figbone_play_animation(figbone->childs->items[i],
 				fignode->childs->items[i], name) || ok;
 	}
+
 	return ok;
 }
 
@@ -151,6 +153,7 @@ void ce_figbone_stop_animation(ce_figbone* figbone,
 								const ce_fignode* fignode)
 {
 	ce_anmstate_stop_animation(figbone->anmstate);
+
 	for (int i = 0; i < figbone->childs->count; ++i) {
 		ce_figbone_stop_animation(figbone->childs->items[i],
 									fignode->childs->items[i]);
