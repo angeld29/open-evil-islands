@@ -52,32 +52,25 @@ static int ce_renderqueue_comp(const void* lhs, const void* rhs)
 			(*(const ce_rendergroup**)rhs)->priority;
 }
 
-void ce_renderqueue_add(ce_renderqueue* renderqueue,
-						int priority, ce_material* material)
+ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue,
+									int priority, ce_material* material)
 {
 	for (int i = 0; i < renderqueue->rendergroups->count; ++i) {
 		ce_rendergroup* rendergroup = renderqueue->rendergroups->items[i];
 		if (priority == rendergroup->priority) {
 			rendergroup->material = material;
-			return;
-		}
-	}
-	ce_vector_push_back(renderqueue->rendergroups,
-		ce_rendergroup_new(priority, material));
-	qsort(renderqueue->rendergroups->items,
-		renderqueue->rendergroups->count,
-		sizeof(ce_rendergroup*), ce_renderqueue_comp);
-}
-
-ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue, int priority)
-{
-	for (int i = 0; i < renderqueue->rendergroups->count; ++i) {
-		ce_rendergroup* rendergroup = renderqueue->rendergroups->items[i];
-		if (priority == rendergroup->priority) {
 			return rendergroup;
 		}
 	}
-	return NULL;
+
+	ce_rendergroup* rendergroup = ce_rendergroup_new(priority, material);
+	ce_vector_push_back(renderqueue->rendergroups, rendergroup);
+
+	qsort(renderqueue->rendergroups->items,
+		renderqueue->rendergroups->count,
+		sizeof(ce_rendergroup*), ce_renderqueue_comp);
+
+	return rendergroup;
 }
 
 void ce_renderqueue_render(ce_renderqueue* renderqueue,

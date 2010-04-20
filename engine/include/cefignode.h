@@ -43,6 +43,7 @@ typedef struct {
 	ce_bonfile* bonfile;
 	ce_vector* anmfiles;
 	ce_material* material;
+	ce_rendergroup* rendergroup;
 	ce_vector* childs;
 } ce_fignode;
 
@@ -51,7 +52,7 @@ ce_fignode_new(ce_resfile* mod_resfile, ce_resfile* bon_resfile,
 				ce_vector* anm_resfiles, ce_lnkfile* lnkfile);
 extern void ce_fignode_del(ce_fignode* fignode);
 
-extern void ce_fignode_create_rendergroup_cascade(ce_fignode* fignode,
+extern void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode,
 												ce_renderqueue* renderqueue);
 
 #ifdef __cplusplus

@@ -41,6 +41,7 @@ typedef struct {
 	ce_figmesh* figmesh;
 	ce_figbone* figbone;
 	ce_vector* textures;
+	ce_vector* renderlayers;
 	ce_scenenode* scenenode;
 } ce_figentity;
 
@@ -51,9 +52,6 @@ extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 										ce_texture* textures[],
 										ce_scenenode* scenenode);
 extern void ce_figentity_del(ce_figentity* figentity);
-
-extern void ce_figentity_enqueue(ce_figentity* figentity,
-								ce_renderqueue* renderqueue);
 
 extern int ce_figentity_get_animation_count(ce_figentity* figentity);
 extern const char*

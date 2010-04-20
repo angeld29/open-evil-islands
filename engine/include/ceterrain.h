@@ -40,25 +40,20 @@ extern "C"
 
 typedef struct {
 	ce_mprfile* mprfile;
-	bool tiling;
 	ce_vector* tile_textures;
-	ce_vector* sector_textures;
 	ce_material* materials[CE_MPRFILE_MATERIAL_COUNT];
+	ce_vector* sectors;
 	ce_scenenode* scenenode;
 } ce_terrain;
 
 // terrain takes ownership of the mprfile
 extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 									ce_texmng* texmng, int thread_count,
+									ce_renderqueue* renderqueue,
 									const ce_vec3* position,
 									const ce_quat* orientation,
 									ce_scenenode* scenenode);
 extern void ce_terrain_del(ce_terrain* terrain);
-
-extern void ce_terrain_create_rendergroup(ce_terrain* terrain,
-											ce_renderqueue* renderqueue);
-extern void ce_terrain_enqueue(ce_terrain* terrain,
-								ce_renderqueue* renderqueue);
 
 extern ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain,
 												float x, float z);

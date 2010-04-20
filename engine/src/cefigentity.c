@@ -25,13 +25,48 @@
 #include "cefighlp.h"
 #include "cefigentity.h"
 
-static void ce_figentity_about_to_update(void* listener, float anmfps, float elapsed)
+static void ce_figentity_scenenode_about_to_update(void* listener,
+													float anmfps, float elapsed)
 {
 	ce_figentity* figentity = listener;
 	ce_figbone_advance(figentity->figbone, anmfps * elapsed);
 	ce_figbone_update(figentity->figbone,
 		figentity->figmesh->figproto->fignode,
 		figentity->scenenode->renderitems);
+}
+
+static void ce_figentity_enqueue(ce_figentity* figentity, ce_fignode* fignode)
+{
+	ce_renderlayer_add(figentity->renderlayers->items[fignode->index],
+		figentity->scenenode->renderitems->items[fignode->index]);
+
+	for (int i = 0; i < fignode->childs->count; ++i) {
+		ce_figentity_enqueue(figentity, fignode->childs->items[i]);
+	}
+}
+
+static void ce_figentity_scenenode_updated(void* listener)
+{
+	ce_figentity* figentity = listener;
+	ce_figentity_enqueue(figentity, figentity->figmesh->figproto->fignode);
+}
+
+static void ce_figentity_create_renderlayers(ce_figentity* figentity,
+												ce_fignode* fignode)
+{
+	// FIXME: to be reversed...
+	int index = fignode->figfile->texture_number - 1;
+	if (index > 1) {
+		index = 0;
+	}
+
+	ce_vector_push_back(figentity->renderlayers,
+		ce_rendergroup_get(fignode->rendergroup,
+							figentity->textures->items[index]));
+
+	for (int i = 0; i < fignode->childs->count; ++i) {
+		ce_figentity_create_renderlayers(figentity, fignode->childs->items[i]);
+	}
 }
 
 ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
@@ -42,7 +77,8 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								ce_scenenode* scenenode)
 {
 	ce_scenenode_listener_vtable listener_vtable = {
-		NULL, NULL, ce_figentity_about_to_update, NULL, NULL
+		NULL, NULL, ce_figentity_scenenode_about_to_update,
+		ce_figentity_scenenode_updated, NULL
 	};
 
 	ce_figentity* figentity = ce_alloc(sizeof(ce_figentity));
@@ -50,6 +86,7 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 	figentity->figbone = ce_figbone_new(figmesh->figproto->fignode,
 										&figmesh->complection, NULL);
 	figentity->textures = ce_vector_new_reserved(texture_count);
+	figentity->renderlayers = ce_vector_new();
 	figentity->scenenode = ce_scenenode_new(scenenode);
 	figentity->scenenode->position = *position;
 	figentity->scenenode->orientation = *orientation;
@@ -62,6 +99,8 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 		ce_texture_wrap(textures[i], CE_TEXTURE_WRAP_MODE_REPEAT);
 	}
 
+	ce_figentity_create_renderlayers(figentity, figentity->figmesh->figproto->fignode);
+
 	for (int i = 0; i < figmesh->renderitems->count; ++i) {
 		ce_scenenode_add_renderitem(figentity->scenenode,
 			ce_renderitem_clone(figmesh->renderitems->items[i]));
@@ -73,42 +112,13 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 void ce_figentity_del(ce_figentity* figentity)
 {
 	if (NULL != figentity) {
-		ce_vector_for_each(figentity->textures, ce_texture_del);
 		ce_scenenode_del(figentity->scenenode);
+		ce_vector_del(figentity->renderlayers);
+		ce_vector_for_each(figentity->textures, ce_texture_del);
 		ce_vector_del(figentity->textures);
 		ce_figbone_del(figentity->figbone);
 		ce_figmesh_del(figentity->figmesh);
 		ce_free(figentity, sizeof(ce_figentity));
-	}
-}
-
-static void ce_figentity_enqueue_nodes(ce_figentity* figentity,
-										ce_fignode* fignode,
-										ce_renderqueue* renderqueue)
-{
-	// FIXME: to be reversed...
-	int index = fignode->figfile->texture_number - 1;
-	if (index > 1) {
-		index = 0;
-	}
-
-	ce_rendergroup* rendergroup =
-		ce_renderqueue_get(renderqueue, fignode->figfile->group);
-
-	ce_rendergroup_add(rendergroup, figentity->textures->items[index],
-		figentity->scenenode->renderitems->items[fignode->index]);
-
-	for (int i = 0; i < fignode->childs->count; ++i) {
-		ce_figentity_enqueue_nodes(figentity,
-			fignode->childs->items[i], renderqueue);
-	}
-}
-
-void ce_figentity_enqueue(ce_figentity* figentity, ce_renderqueue* renderqueue)
-{
-	if (!figentity->scenenode->culled) {
-		ce_figentity_enqueue_nodes(figentity,
-			figentity->figmesh->figproto->fignode, renderqueue);
 	}
 }
 

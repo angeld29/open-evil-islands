@@ -33,7 +33,7 @@
 static void ce_scenemng_figproto_created(void* listener, ce_figproto* figproto)
 {
 	ce_scenemng* scenemng = listener;
-	ce_figproto_create_rendergroup(figproto, scenemng->renderqueue);
+	ce_figproto_accept_renderqueue(figproto, scenemng->renderqueue);
 }
 
 ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
@@ -63,7 +63,7 @@ ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
 	scenemng->terrain_tiling = ce_optoption_value_bool(terrain_tiling);
 	scenemng->thread_count = ce_clamp(ce_optoption_value_int(jobs), 1, 100);
 	scenemng->anmfps = 15.0f;
-	scenemng->scenenode_needs_update = false;
+	scenemng->scenenode_force_update = false;
 
 	ce_figmng_listener_vtable flvtable = { ce_scenemng_figproto_created, NULL, NULL };
 	ce_figmng_add_listener(scenemng->figmng, flvtable, scenemng);
@@ -152,11 +152,11 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_camera_get_right(scenemng->camera, &right),
 		ce_camera_get_up(scenemng->camera, &up));
 
-	if (scenemng->scenenode_needs_update) {
+	if (scenemng->scenenode_force_update) {
 		// big changes of the scene node tree - force update
 		ce_scenenode_update_cascade(scenemng->scenenode, &frustum,
 			scenemng->anmfps, ce_timer_elapsed(scenemng->timer), true);
-		scenemng->scenenode_needs_update = false;
+		scenemng->scenenode_force_update = false;
 	} else {
 		ce_scenenode_update_cascade(scenemng->scenenode, &frustum,
 			scenemng->anmfps, ce_timer_elapsed(scenemng->timer), false);
@@ -166,15 +166,6 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,
 										scenemng->rendersystem,
 										scenemng->comprehensive_bbox_only);
-	}
-
-	if (NULL != scenemng->terrain) {
-		ce_terrain_enqueue(scenemng->terrain, scenemng->renderqueue);
-	}
-
-	for (int i = 0; i < scenemng->figmng->figentities->count; ++i) {
-		ce_figentity_enqueue(scenemng->figmng->figentities->items[i],
-												scenemng->renderqueue);
 	}
 
 	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
@@ -239,13 +230,10 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 
 	ce_terrain_del(scenemng->terrain);
 	scenemng->terrain = ce_terrain_new(mprfile, scenemng->terrain_tiling,
-		scenemng->texmng, scenemng->thread_count, position, orientation, scenenode);
+		scenemng->texmng, scenemng->thread_count,
+		scenemng->renderqueue, position, orientation, scenenode);
 
-	if (NULL != scenemng->terrain) {
-		ce_terrain_create_rendergroup(scenemng->terrain, scenemng->renderqueue);
-	}
-
-	scenemng->scenenode_needs_update = true;
+	scenemng->scenenode_force_update = true;
 
 	return scenemng->terrain;
 }
@@ -285,7 +273,7 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 									orientation, texture_count,
 									textures, scenenode);
 
-	scenemng->scenenode_needs_update = true;
+	scenemng->scenenode_force_update = true;
 
 	return figentity;
 }

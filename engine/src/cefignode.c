@@ -37,6 +37,7 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 	fignode->bonfile = ce_bonfile_open(bon_resfile, fignode->name->str);
 	fignode->anmfiles = ce_vector_new();
 	fignode->material = ce_fighlp_create_material(fignode->figfile);
+	fignode->rendergroup = NULL;
 	fignode->childs = ce_vector_new();
 
 	for (int i = 0; i < anm_resfiles->count; ++i) {
@@ -73,12 +74,14 @@ void ce_fignode_del(ce_fignode* fignode)
 	}
 }
 
-void ce_fignode_create_rendergroup_cascade(ce_fignode* fignode,
+void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode,
 											ce_renderqueue* renderqueue)
 {
-	ce_renderqueue_add(renderqueue, fignode->figfile->group, fignode->material);
+	fignode->rendergroup = ce_renderqueue_get(renderqueue,
+		fignode->figfile->group, fignode->material);
+
 	for (int i = 0; i < fignode->childs->count; ++i) {
-		ce_fignode_create_rendergroup_cascade(fignode->childs->items[i],
+		ce_fignode_accept_renderqueue_cascade(fignode->childs->items[i],
 															renderqueue);
 	}
 }
