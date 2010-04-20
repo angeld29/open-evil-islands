@@ -30,28 +30,24 @@
 #include "cefighlp.h"
 #include "cefigmng.h"
 
-ce_figmng_listener*
-ce_figmng_listener_new(ce_figmng_listener_vtable vtable, size_t size, ...)
+typedef struct {
+	ce_figmng_listener_vtable vtable;
+	void* listener;
+} ce_figmng_listener_cookie;
+
+static ce_figmng_listener_cookie*
+ce_figmng_listener_cookie_new(ce_figmng_listener_vtable vtable, void* listener)
 {
-	ce_figmng_listener* listener = ce_alloc(sizeof(ce_figmng_listener) + size);
-	listener->vtable = vtable;
-	listener->size = size;
-	if (NULL != vtable.ctor) {
-		va_list args;
-		va_start(args, size);
-		(*vtable.ctor)(listener, args);
-		va_end(args);
-	}
-	return listener;
+	ce_figmng_listener_cookie* cookie = ce_alloc(sizeof(ce_figmng_listener_cookie));
+	cookie->vtable = vtable;
+	cookie->listener = listener;
+	return cookie;
 }
 
-static void ce_figmng_listener_del(ce_figmng_listener* listener)
+static void ce_figmng_listener_cookie_del(ce_figmng_listener_cookie* cookie)
 {
-	if (NULL != listener) {
-		if (NULL != listener->vtable.dtor) {
-			(*listener->vtable.dtor)(listener);
-		}
-		ce_free(listener, sizeof(ce_figmng_listener) + listener->size);
+	if (NULL != cookie) {
+		ce_free(cookie, sizeof(ce_figmng_listener_cookie));
 	}
 }
 
@@ -59,9 +55,9 @@ static void ce_figmng_notify_figproto_created(ce_vector* listeners,
 											ce_figproto* figproto)
 {
 	for (int i = 0; i < listeners->count; ++i) {
-		ce_figmng_listener* listener = listeners->items[i];
-		if (NULL != listener->vtable.figproto_created) {
-			(*listener->vtable.figproto_created)(listener, figproto);
+		ce_figmng_listener_cookie* cookie = listeners->items[i];
+		if (NULL != cookie->vtable.figproto_created) {
+			(*cookie->vtable.figproto_created)(cookie->listener, figproto);
 		}
 	}
 }
@@ -70,9 +66,9 @@ static void ce_figmng_notify_figmesh_created(ce_vector* listeners,
 											ce_figmesh* figmesh)
 {
 	for (int i = 0; i < listeners->count; ++i) {
-		ce_figmng_listener* listener = listeners->items[i];
-		if (NULL != listener->vtable.figmesh_created) {
-			(*listener->vtable.figmesh_created)(listener, figmesh);
+		ce_figmng_listener_cookie* cookie = listeners->items[i];
+		if (NULL != cookie->vtable.figmesh_created) {
+			(*cookie->vtable.figmesh_created)(cookie->listener, figmesh);
 		}
 	}
 }
@@ -81,9 +77,9 @@ static void ce_figmng_notify_figentity_created(ce_vector* listeners,
 											ce_figentity* figentity)
 {
 	for (int i = 0; i < listeners->count; ++i) {
-		ce_figmng_listener* listener = listeners->items[i];
-		if (NULL != listener->vtable.figentity_created) {
-			(*listener->vtable.figentity_created)(listener, figentity);
+		ce_figmng_listener_cookie* cookie = listeners->items[i];
+		if (NULL != cookie->vtable.figentity_created) {
+			(*cookie->vtable.figentity_created)(cookie->listener, figentity);
 		}
 	}
 }
@@ -104,7 +100,7 @@ ce_figmng* ce_figmng_new(void)
 void ce_figmng_del(ce_figmng* figmng)
 {
 	if (NULL != figmng) {
-		ce_vector_for_each(figmng->listeners, ce_figmng_listener_del);
+		ce_vector_for_each(figmng->listeners, ce_figmng_listener_cookie_del);
 		ce_vector_for_each(figmng->figentities, ce_figentity_del);
 		ce_vector_for_each(figmng->figmeshes, ce_figmesh_del);
 		ce_vector_for_each(figmng->figprotos, ce_figproto_del);
@@ -131,9 +127,11 @@ bool ce_figmng_register_resource(ce_figmng* figmng, const char* path)
 	return true;
 }
 
-void ce_figmng_add_listener(ce_figmng* figmng, ce_figmng_listener* listener)
+void ce_figmng_add_listener(ce_figmng* figmng,
+	ce_figmng_listener_vtable vtable, void* listener)
 {
-	ce_vector_push_back(figmng->listeners, listener);
+	ce_vector_push_back(figmng->listeners,
+		ce_figmng_listener_cookie_new(vtable, listener));
 }
 
 static ce_figproto* ce_figmng_get_figproto(ce_figmng* figmng, const char* name)

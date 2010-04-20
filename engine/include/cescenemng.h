@@ -63,7 +63,6 @@ typedef struct {
 	int thread_count;
 	float anmfps;
 	bool scenenode_needs_update;
-	bool renderqueue_needs_update;
 } ce_scenemng;
 
 extern ce_scenemng* ce_scenemng_new(ce_optparse* optparse);

@@ -30,6 +30,12 @@
 #include "cebytefmt.h"
 #include "cescenemng.h"
 
+static void ce_scenemng_figproto_created(void* listener, ce_figproto* figproto)
+{
+	ce_scenemng* scenemng = listener;
+	ce_figproto_create_rendergroup(figproto, scenemng->renderqueue);
+}
+
 ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
 {
 	ce_optgroup* general = ce_optparse_find_group(optparse, "general");
@@ -58,7 +64,9 @@ ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
 	scenemng->thread_count = ce_clamp(ce_optoption_value_int(jobs), 1, 100);
 	scenemng->anmfps = 15.0f;
 	scenemng->scenenode_needs_update = false;
-	scenemng->renderqueue_needs_update = false;
+
+	ce_figmng_listener_vtable flvtable = { ce_scenemng_figproto_created, NULL, NULL };
+	ce_figmng_add_listener(scenemng->figmng, flvtable, scenemng);
 
 	char path[ei_path->value->length + 32];
 
@@ -123,6 +131,8 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 void ce_scenemng_render(ce_scenemng* scenemng)
 {
+	ce_renderqueue_clear(scenemng->renderqueue);
+
 	ce_rendersystem_begin_render(scenemng->rendersystem, &CE_COLOR_WHITE);
 
 	ce_rendersystem_setup_viewport(scenemng->rendersystem, scenemng->viewport);
@@ -158,30 +168,15 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 										scenemng->comprehensive_bbox_only);
 	}
 
-	// enqueue...
-	ce_renderqueue_clear(scenemng->renderqueue);
-
-	if (scenemng->renderqueue_needs_update) {
-		if (NULL != scenemng->terrain) {
-			ce_terrain_create_rendergroup(scenemng->terrain,
-											scenemng->renderqueue);
-		}
-		for (int i = 0; i < scenemng->figmng->figprotos->count; ++i) {
-			ce_figproto_create_rendergroup(scenemng->figmng->figprotos->items[i],
-											scenemng->renderqueue);
-		}
-		scenemng->renderqueue_needs_update = false;
-	}
-
 	if (NULL != scenemng->terrain) {
 		ce_terrain_enqueue(scenemng->terrain, scenemng->renderqueue);
 	}
+
 	for (int i = 0; i < scenemng->figmng->figentities->count; ++i) {
 		ce_figentity_enqueue(scenemng->figmng->figentities->items[i],
 												scenemng->renderqueue);
 	}
 
-	// and render
 	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
 
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
@@ -246,8 +241,11 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 	scenemng->terrain = ce_terrain_new(mprfile, scenemng->terrain_tiling,
 		scenemng->texmng, scenemng->thread_count, position, orientation, scenenode);
 
+	if (NULL != scenemng->terrain) {
+		ce_terrain_create_rendergroup(scenemng->terrain, scenemng->renderqueue);
+	}
+
 	scenemng->scenenode_needs_update = true;
-	scenemng->renderqueue_needs_update = true;
 
 	return scenemng->terrain;
 }
@@ -288,7 +286,6 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 									textures, scenenode);
 
 	scenemng->scenenode_needs_update = true;
-	scenemng->renderqueue_needs_update = true;
 
 	return figentity;
 }
