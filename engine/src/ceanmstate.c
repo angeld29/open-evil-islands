@@ -39,17 +39,19 @@ void ce_anmstate_del(ce_anmstate* anmstate)
 	}
 }
 
-void ce_anmstate_advance(ce_anmstate* anmstate, float fps, float elapsed)
+void ce_anmstate_advance(ce_anmstate* anmstate, float anmfps, float elapsed)
 {
-	anmstate->frame += fps * elapsed;
-	if (anmstate->frame >= anmstate->frame_count) {
-		anmstate->frame = 0.0f;
-	}
+	if (NULL != anmstate->anmfile) {
+		anmstate->frame += anmfps * elapsed;
+		if (anmstate->frame >= anmstate->frame_count) {
+			anmstate->frame = 0.0f;
+		}
 
-	anmstate->coef = modff(anmstate->frame, &anmstate->prev_frame);
-	anmstate->next_frame = anmstate->prev_frame + 1.0f;
-	if (anmstate->next_frame >= anmstate->frame_count) {
-		anmstate->next_frame = 0.0f;
+		anmstate->coef = modff(anmstate->frame, &anmstate->prev_frame);
+		anmstate->next_frame = anmstate->prev_frame + 1.0f;
+		if (anmstate->next_frame >= anmstate->frame_count) {
+			anmstate->next_frame = 0.0f;
+		}
 	}
 }
 

@@ -53,7 +53,7 @@ extern ce_figbone* ce_figbone_new(const ce_fignode* fignode,
 extern void ce_figbone_del(ce_figbone* figbone);
 
 extern void ce_figbone_advance(ce_figbone* figbone,
-								float fps, float elapsed);
+								float anmfps, float elapsed);
 
 extern void ce_figbone_update(ce_figbone* figbone,
 								const ce_fignode* fignode,

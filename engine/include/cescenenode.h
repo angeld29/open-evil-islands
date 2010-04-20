@@ -46,7 +46,7 @@ typedef struct {
 	void (*attached)(ce_scenenode_listener* listener);
 	void (*detached)(ce_scenenode_listener* listener);
 	void (*about_to_update)(ce_scenenode_listener* listener,
-								float anm_fps, float elapsed);
+								float anmfps, float elapsed);
 	void (*updated)(ce_scenenode_listener* listener);
 	void (*destroyed)(ce_scenenode_listener* listener);
 } ce_scenenode_listener_vtable;
@@ -91,9 +91,9 @@ extern void ce_scenenode_cull_cascade(ce_scenenode* scenenode,
 extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
 
 extern void ce_scenenode_update(ce_scenenode* scenenode,
-								float anm_fps, float elapsed, bool force);
+								float anmfps, float elapsed, bool force);
 extern void ce_scenenode_update_cascade(ce_scenenode* scenenode,
-										float anm_fps, float elapsed, bool force);
+										float anmfps, float elapsed, bool force);
 
 extern void ce_scenenode_draw_bboxes(ce_scenenode* scenenode,
 									ce_rendersystem* rendersystem,

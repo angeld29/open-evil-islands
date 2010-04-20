@@ -61,7 +61,7 @@ typedef struct {
 	bool comprehensive_bbox_only;
 	bool terrain_tiling;
 	int thread_count;
-	float anm_fps;
+	float anmfps;
 	bool scenenode_needs_update;
 	bool renderqueue_needs_update;
 } ce_scenemng;

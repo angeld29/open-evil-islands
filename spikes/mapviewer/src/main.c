@@ -54,12 +54,12 @@ static ce_scenemng* scenemng;
 
 static ce_input_event_supply* es;
 static ce_input_event* toggle_bbox_event;
-static ce_input_event* anm_fps_inc_event;
-static ce_input_event* anm_fps_dec_event;
+static ce_input_event* anmfps_inc_event;
+static ce_input_event* anmfps_dec_event;
 
-static float anm_fps_limit = 0.1f;
-static float anm_fps_inc_counter;
-static float anm_fps_dec_counter;
+static float anmfps_limit = 0.1f;
+static float anmfps_inc_counter;
+static float anmfps_dec_counter;
 
 static void idle(void)
 {
@@ -95,22 +95,22 @@ static void idle(void)
 		}
 	}
 
-	anm_fps_inc_counter += elapsed;
-	anm_fps_dec_counter += elapsed;
+	anmfps_inc_counter += elapsed;
+	anmfps_dec_counter += elapsed;
 
-	if (ce_input_event_triggered(anm_fps_inc_event) &&
-			anm_fps_inc_counter >= anm_fps_limit) {
-		scenemng->anm_fps += 1.0f;
-		anm_fps_inc_counter = 0.0f;
+	if (ce_input_event_triggered(anmfps_inc_event) &&
+			anmfps_inc_counter >= anmfps_limit) {
+		scenemng->anmfps += 1.0f;
+		anmfps_inc_counter = 0.0f;
 	}
 
-	if (ce_input_event_triggered(anm_fps_dec_event) &&
-			anm_fps_dec_counter >= anm_fps_limit) {
-		scenemng->anm_fps -= 1.0f;
-		anm_fps_dec_counter = 0.0f;
+	if (ce_input_event_triggered(anmfps_dec_event) &&
+			anmfps_dec_counter >= anmfps_limit) {
+		scenemng->anmfps -= 1.0f;
+		anmfps_dec_counter = 0.0f;
 	}
 
-	scenemng->anm_fps = ce_fclamp(scenemng->anm_fps, 1.0f, 50.0f);
+	scenemng->anmfps = ce_fclamp(scenemng->anmfps, 1.0f, 50.0f);
 
 	if (ce_input_test(CE_KB_LEFT)) {
 		ce_camera_move(scenemng->camera, -10.0f * elapsed, 0.0f);
@@ -336,8 +336,8 @@ int main(int argc, char* argv[])
 	es = ce_input_event_supply_new();
 	toggle_bbox_event = ce_input_event_supply_single_front_event(es,
 					ce_input_event_supply_button_event(es, CE_KB_B));
-	anm_fps_inc_event = ce_input_event_supply_button_event(es, CE_KB_ADD);
-	anm_fps_dec_event = ce_input_event_supply_button_event(es, CE_KB_SUBTRACT);
+	anmfps_inc_event = ce_input_event_supply_button_event(es, CE_KB_ADD);
+	anmfps_dec_event = ce_input_event_supply_button_event(es, CE_KB_SUBTRACT);
 
 	ce_optparse_del(optparse);
 

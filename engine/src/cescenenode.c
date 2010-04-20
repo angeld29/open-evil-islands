@@ -46,10 +46,10 @@ static void ce_scenenode_listener_detached(ce_scenenode_listener* listener)
 }
 
 static void ce_scenenode_listener_about_to_update(
-	ce_scenenode_listener* listener, float anm_fps, float elapsed)
+	ce_scenenode_listener* listener, float anmfps, float elapsed)
 {
 	if (NULL != listener && NULL != listener->vtable.about_to_update) {
-		(*listener->vtable.about_to_update)(listener, anm_fps, elapsed);
+		(*listener->vtable.about_to_update)(listener, anmfps, elapsed);
 	}
 }
 
@@ -232,13 +232,13 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 }
 
 void ce_scenenode_update(ce_scenenode* scenenode,
-						float anm_fps, float elapsed, bool force)
+						float anmfps, float elapsed, bool force)
 {
 	if (!force && scenenode->culled) {
 		return;
 	}
 
-	ce_scenenode_listener_about_to_update(scenenode->listener, anm_fps, elapsed);
+	ce_scenenode_listener_about_to_update(scenenode->listener, anmfps, elapsed);
 
 	ce_scenenode_update_transform(scenenode);
 	ce_scenenode_update_bounds(scenenode);
@@ -247,18 +247,18 @@ void ce_scenenode_update(ce_scenenode* scenenode,
 }
 
 void ce_scenenode_update_cascade(ce_scenenode* scenenode,
-								float anm_fps, float elapsed, bool force)
+								float anmfps, float elapsed, bool force)
 {
 	if (!force && scenenode->culled) {
 		return;
 	}
 
-	ce_scenenode_listener_about_to_update(scenenode->listener, anm_fps, elapsed);
+	ce_scenenode_listener_about_to_update(scenenode->listener, anmfps, elapsed);
 
 	ce_scenenode_update_transform(scenenode);
 	for (int i = 0; i < scenenode->childs->count; ++i) {
 		ce_scenenode_update_cascade(scenenode->childs->items[i],
-										anm_fps, elapsed, force);
+										anmfps, elapsed, force);
 	}
 	ce_scenenode_update_bounds(scenenode);
 

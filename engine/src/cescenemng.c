@@ -56,7 +56,7 @@ ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
 	scenemng->comprehensive_bbox_only = true;
 	scenemng->terrain_tiling = ce_optoption_value_bool(terrain_tiling);
 	scenemng->thread_count = ce_clamp(ce_optoption_value_int(jobs), 1, 100);
-	scenemng->anm_fps = 15.0f;
+	scenemng->anmfps = 15.0f;
 	scenemng->scenenode_needs_update = false;
 	scenemng->renderqueue_needs_update = false;
 
@@ -122,7 +122,7 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 	for (int i = 0; i < scenemng->figmng->figentities->count; ++i) {
 		ce_figentity_advance(scenemng->figmng->figentities->items[i],
-							scenemng->anm_fps, elapsed);
+										scenemng->anmfps, elapsed);
 	}
 }
 
@@ -140,7 +140,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	// big changes of the scene node tree - force update
 	if (scenemng->scenenode_needs_update) {
 		ce_scenenode_update_cascade(scenemng->scenenode,
-			scenemng->anm_fps, ce_timer_elapsed(scenemng->timer), true);
+			scenemng->anmfps, ce_timer_elapsed(scenemng->timer), true);
 		scenemng->scenenode_needs_update = false;
 	}
 
@@ -163,7 +163,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	}
 
 	ce_scenenode_update_cascade(scenemng->scenenode,
-		scenemng->anm_fps, ce_timer_elapsed(scenemng->timer), false);
+		scenemng->anmfps, ce_timer_elapsed(scenemng->timer), false);
 
 	if (scenemng->show_bboxes) {
 		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,

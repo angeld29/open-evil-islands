@@ -53,7 +53,7 @@ extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 extern void ce_figentity_del(ce_figentity* figentity);
 
 extern void ce_figentity_advance(ce_figentity* figentity,
-									float fps, float elapsed);
+									float anmfps, float elapsed);
 
 extern void ce_figentity_update(ce_figentity* figentity, bool force);
 
