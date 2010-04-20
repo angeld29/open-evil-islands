@@ -90,7 +90,7 @@ void* ce_vector_pop_front(ce_vector* vector)
 void ce_vector_push_back(ce_vector* vector, void* item)
 {
 	if (vector->count == vector->capacity) {
-		ce_vector_reserve(vector, 2 * vector->capacity);
+		ce_vector_reserve(vector, vector->capacity << 1);
 	}
 	vector->items[vector->count++] = item;
 }
@@ -103,7 +103,7 @@ void* ce_vector_pop_back(ce_vector* vector)
 void ce_vector_insert(ce_vector* vector, int index, void* item)
 {
 	if (vector->count == vector->capacity) {
-		ce_vector_reserve(vector, 2 * vector->capacity);
+		ce_vector_reserve(vector, vector->capacity << 1);
 	}
 	for (int i = vector->count++; i > index; --i) {
 		vector->items[i] = vector->items[i - 1];
