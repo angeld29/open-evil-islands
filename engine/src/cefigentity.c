@@ -25,33 +25,14 @@
 #include "cefighlp.h"
 #include "cefigentity.h"
 
-typedef struct {
-	ce_figentity* figentity;
-} ce_figentity_listener;
-
-static void ce_figentity_listener_ctor(
-	ce_scenenode_listener* base_listener, va_list args)
+static void ce_figentity_about_to_update(void* listener, float anmfps, float elapsed)
 {
-	ce_figentity_listener* listener = (ce_figentity_listener*)base_listener->impl;
-
-	listener->figentity = va_arg(args, ce_figentity*);
+	ce_figentity* figentity = listener;
+	ce_figbone_advance(figentity->figbone, anmfps * elapsed);
+	ce_figbone_update(figentity->figbone,
+		figentity->figmesh->figproto->fignode,
+		figentity->scenenode->renderitems);
 }
-
-static void ce_figentity_listener_about_to_update(
-	ce_scenenode_listener* base_listener, float anmfps, float elapsed)
-{
-	ce_figentity_listener* listener = (ce_figentity_listener*)base_listener->impl;
-
-	ce_figbone_advance(listener->figentity->figbone, anmfps * elapsed);
-	ce_figbone_update(listener->figentity->figbone,
-		listener->figentity->figmesh->figproto->fignode,
-		listener->figentity->scenenode->renderitems);
-}
-
-static const ce_scenenode_listener_vtable ce_figentity_listener_vtable = {
-	ce_figentity_listener_ctor, NULL, NULL, NULL,
-	ce_figentity_listener_about_to_update, NULL, NULL
-};
 
 ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								const ce_vec3* position,
@@ -60,6 +41,10 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								ce_texture* textures[],
 								ce_scenenode* scenenode)
 {
+	ce_scenenode_listener_vtable listener_vtable = {
+		NULL, NULL, ce_figentity_about_to_update, NULL, NULL
+	};
+
 	ce_figentity* figentity = ce_alloc(sizeof(ce_figentity));
 	figentity->figmesh = ce_figmesh_add_ref(figmesh);
 	figentity->figbone = ce_figbone_new(figmesh->figproto->fignode,
@@ -68,9 +53,8 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 	figentity->scenenode = ce_scenenode_new(scenenode);
 	figentity->scenenode->position = *position;
 	figentity->scenenode->orientation = *orientation;
-
-	ce_scenenode_create_listener(figentity->scenenode,
-		ce_figentity_listener_vtable, sizeof(ce_figentity_listener), figentity);
+	figentity->scenenode->listener_vtable = listener_vtable;
+	figentity->scenenode->listener = figentity;
 
 	for (int i = 0; i < texture_count; ++i) {
 		ce_vector_push_back(figentity->textures,

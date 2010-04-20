@@ -18,56 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <string.h>
 #include <assert.h>
 
 #include "cealloc.h"
 #include "cescenenode.h"
-
-static void ce_scenenode_listener_del(ce_scenenode_listener* listener)
-{
-	if (NULL != listener) {
-		if (NULL != listener->vtable.dtor) {
-			(*listener->vtable.dtor)(listener);
-		}
-		ce_free(listener, sizeof(ce_scenenode_listener) + listener->size);
-	}
-}
-
-static void ce_scenenode_listener_attached(ce_scenenode_listener* listener)
-{
-	if (NULL != listener && NULL != listener->vtable.attached) {
-		(*listener->vtable.attached)(listener);
-	}
-}
-
-static void ce_scenenode_listener_detached(ce_scenenode_listener* listener)
-{
-	if (NULL != listener && NULL != listener->vtable.detached) {
-		(*listener->vtable.detached)(listener);
-	}
-}
-
-static void ce_scenenode_listener_about_to_update(
-	ce_scenenode_listener* listener, float anmfps, float elapsed)
-{
-	if (NULL != listener && NULL != listener->vtable.about_to_update) {
-		(*listener->vtable.about_to_update)(listener, anmfps, elapsed);
-	}
-}
-
-static void ce_scenenode_listener_updated(ce_scenenode_listener* listener)
-{
-	if (NULL != listener && NULL != listener->vtable.updated) {
-		(*listener->vtable.updated)(listener);
-	}
-}
-
-static void ce_scenenode_listener_destroyed(ce_scenenode_listener* listener)
-{
-	if (NULL != listener && NULL != listener->vtable.destroyed) {
-		(*listener->vtable.destroyed)(listener);
-	}
-}
 
 ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 {
@@ -79,6 +34,8 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 	scenenode->listener = NULL;
 	scenenode->parent = parent;
 	scenenode->childs = ce_vector_new();
+	memset(&scenenode->listener_vtable, '\0',
+			sizeof(ce_scenenode_listener_vtable));
 	if (NULL != parent) {
 		ce_vector_push_back(parent->childs, scenenode);
 	}
@@ -95,29 +52,12 @@ void ce_scenenode_del(ce_scenenode* scenenode)
 			ce_scenenode_del(child);
 		}
 		ce_vector_del(scenenode->childs);
-		ce_scenenode_listener_destroyed(scenenode->listener);
-		ce_scenenode_listener_del(scenenode->listener);
 		ce_vector_for_each(scenenode->renderitems, ce_renderitem_del);
 		ce_vector_del(scenenode->renderitems);
+		if (NULL != scenenode->listener_vtable.destroyed) {
+			(*scenenode->listener_vtable.destroyed)(scenenode->listener);
+		}
 		ce_free(scenenode, sizeof(ce_scenenode));
-	}
-}
-
-void ce_scenenode_create_listener(ce_scenenode* scenenode,
-	ce_scenenode_listener_vtable vtable, size_t size, ...)
-{
-	assert(NULL == scenenode->listener);
-	scenenode->listener = ce_alloc(sizeof(ce_scenenode_listener) + size);
-	scenenode->listener->vtable = vtable;
-	scenenode->listener->size = size;
-	if (NULL != vtable.ctor) {
-		va_list args;
-		va_start(args, size);
-		(*vtable.ctor)(scenenode->listener, args);
-		va_end(args);
-	}
-	if (NULL != scenenode->parent) {
-		ce_scenenode_listener_attached(scenenode->listener);
 	}
 }
 
@@ -126,7 +66,9 @@ void ce_scenenode_detach_from_parent(ce_scenenode* scenenode)
 	if (NULL != scenenode->parent) {
 		ce_scenenode_detach_child(scenenode->parent, scenenode);
 		scenenode->parent = NULL;
-		ce_scenenode_listener_detached(scenenode->listener);
+		if (NULL != scenenode->listener_vtable.detached) {
+			(*scenenode->listener_vtable.detached)(scenenode->listener);
+		}
 	}
 }
 
@@ -226,7 +168,10 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode,
 	scenenode->culled = !(force || ce_frustum_test_bbox(frustum, &scenenode->world_bbox));
 
 	if (!scenenode->culled) {
-		ce_scenenode_listener_about_to_update(scenenode->listener, anmfps, elapsed);
+		if (NULL != scenenode->listener_vtable.about_to_update) {
+			(*scenenode->listener_vtable.about_to_update)
+					(scenenode->listener, anmfps, elapsed);
+		}
 
 		ce_scenenode_update_transform(scenenode);
 		for (int i = 0; i < scenenode->childs->count; ++i) {
@@ -235,7 +180,9 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode,
 		}
 		ce_scenenode_update_bounds(scenenode);
 
-		ce_scenenode_listener_updated(scenenode->listener);
+		if (NULL != scenenode->listener_vtable.updated) {
+			(*scenenode->listener_vtable.updated)(scenenode->listener);
+		}
 	}
 }
 
