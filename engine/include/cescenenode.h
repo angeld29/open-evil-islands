@@ -85,15 +85,10 @@ extern void ce_scenenode_detach_child(ce_scenenode* scenenode,
 extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
 										ce_renderitem* renderitem);
 
-extern void ce_scenenode_cull_cascade(ce_scenenode* scenenode,
-										const ce_frustum* frustum);
-
 extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
 
-extern void ce_scenenode_update(ce_scenenode* scenenode,
-								float anmfps, float elapsed, bool force);
 extern void ce_scenenode_update_cascade(ce_scenenode* scenenode,
-										float anmfps, float elapsed, bool force);
+	const ce_frustum* frustum, float anmfps, float elapsed, bool force);
 
 extern void ce_scenenode_draw_bboxes(ce_scenenode* scenenode,
 									ce_rendersystem* rendersystem,

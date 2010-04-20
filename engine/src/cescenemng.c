@@ -132,13 +132,6 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_rendersystem_draw_axes(scenemng->rendersystem);
 	}
 
-	// big changes of the scene node tree - force update
-	if (scenemng->scenenode_needs_update) {
-		ce_scenenode_update_cascade(scenemng->scenenode,
-			scenemng->anmfps, ce_timer_elapsed(scenemng->timer), true);
-		scenemng->scenenode_needs_update = false;
-	}
-
 	ce_vec3 forward, right, up;
 	ce_frustum frustum;
 
@@ -149,12 +142,15 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_camera_get_right(scenemng->camera, &right),
 		ce_camera_get_up(scenemng->camera, &up));
 
-	// first, cull scene nodes BEFORE update for performance reasons
-	// rendering defects are possible, such as culling partially visible objects
-	ce_scenenode_cull_cascade(scenemng->scenenode, &frustum);
-
-	ce_scenenode_update_cascade(scenemng->scenenode,
-		scenemng->anmfps, ce_timer_elapsed(scenemng->timer), false);
+	if (scenemng->scenenode_needs_update) {
+		// big changes of the scene node tree - force update
+		ce_scenenode_update_cascade(scenemng->scenenode, &frustum,
+			scenemng->anmfps, ce_timer_elapsed(scenemng->timer), true);
+		scenemng->scenenode_needs_update = false;
+	} else {
+		ce_scenenode_update_cascade(scenemng->scenenode, &frustum,
+			scenemng->anmfps, ce_timer_elapsed(scenemng->timer), false);
+	}
 
 	if (scenemng->show_bboxes) {
 		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,

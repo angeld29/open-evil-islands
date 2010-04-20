@@ -145,33 +145,17 @@ void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
 	ce_vector_push_back(scenenode->renderitems, renderitem);
 }
 
-static void ce_scenenode_cull_unconditionally_cascade(ce_scenenode* scenenode)
-{
-	scenenode->culled = true;
-	for (int i = 0; i < scenenode->childs->count; ++i) {
-		ce_scenenode_cull_unconditionally_cascade(scenenode->childs->items[i]);
-	}
-}
-
-void ce_scenenode_cull_cascade(ce_scenenode* scenenode,
-								const ce_frustum* frustum)
-{
-	if (ce_frustum_test_bbox(frustum, &scenenode->world_bbox)) {
-		scenenode->culled = false;
-		for (int i = 0; i < scenenode->childs->count; ++i) {
-			ce_scenenode_cull_cascade(scenenode->childs->items[i], frustum);
-		}
-	} else if (!scenenode->culled) {
-		ce_scenenode_cull_unconditionally_cascade(scenenode);
-	}
-}
-
 int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode)
 {
-	int count = !scenenode->culled;
+	if (scenenode->culled) {
+		return 0;
+	}
+
+	int count = 1;
 	for (int i = 0; i < scenenode->childs->count; ++i) {
 		count += ce_scenenode_count_visible_cascade(scenenode->childs->items[i]);
 	}
+
 	return count;
 }
 
@@ -234,38 +218,25 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 	}
 }
 
-void ce_scenenode_update(ce_scenenode* scenenode,
-						float anmfps, float elapsed, bool force)
-{
-	if (!force && scenenode->culled) {
-		return;
-	}
-
-	ce_scenenode_listener_about_to_update(scenenode->listener, anmfps, elapsed);
-
-	ce_scenenode_update_transform(scenenode);
-	ce_scenenode_update_bounds(scenenode);
-
-	ce_scenenode_listener_updated(scenenode->listener);
-}
-
 void ce_scenenode_update_cascade(ce_scenenode* scenenode,
-								float anmfps, float elapsed, bool force)
+	const ce_frustum* frustum, float anmfps, float elapsed, bool force)
 {
-	if (!force && scenenode->culled) {
-		return;
+	// try to cull scene node BEFORE update for performance reasons
+	// rendering defects are possible, such as culling partially visible objects
+	scenenode->culled = !(force || ce_frustum_test_bbox(frustum, &scenenode->world_bbox));
+
+	if (!scenenode->culled) {
+		ce_scenenode_listener_about_to_update(scenenode->listener, anmfps, elapsed);
+
+		ce_scenenode_update_transform(scenenode);
+		for (int i = 0; i < scenenode->childs->count; ++i) {
+			ce_scenenode_update_cascade(scenenode->childs->items[i],
+										frustum, anmfps, elapsed, force);
+		}
+		ce_scenenode_update_bounds(scenenode);
+
+		ce_scenenode_listener_updated(scenenode->listener);
 	}
-
-	ce_scenenode_listener_about_to_update(scenenode->listener, anmfps, elapsed);
-
-	ce_scenenode_update_transform(scenenode);
-	for (int i = 0; i < scenenode->childs->count; ++i) {
-		ce_scenenode_update_cascade(scenenode->childs->items[i],
-										anmfps, elapsed, force);
-	}
-	ce_scenenode_update_bounds(scenenode);
-
-	ce_scenenode_listener_updated(scenenode->listener);
 }
 
 static void ce_scenenode_draw_bbox(ce_rendersystem* rendersystem,
@@ -286,6 +257,7 @@ void ce_scenenode_draw_bboxes(ce_scenenode* scenenode,
 	}
 
 	ce_scenenode_draw_bbox(rendersystem, &scenenode->world_bbox);
+
 	if (!comprehensive_only) {
 		for (int i = 0; i < scenenode->renderitems->count; ++i) {
 			ce_renderitem* renderitem = scenenode->renderitems->items[i];
@@ -299,6 +271,7 @@ void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
 										bool comprehensive_only)
 {
 	ce_scenenode_draw_bboxes(scenenode, rendersystem, comprehensive_only);
+
 	for (int i = 0; i < scenenode->childs->count; ++i) {
 		ce_scenenode_draw_bboxes_cascade(scenenode->childs->items[i],
 										rendersystem, comprehensive_only);
