@@ -21,6 +21,8 @@
 #ifndef CE_FIGMNG_H
 #define CE_FIGMNG_H
 
+#include <stddef.h>
+#include <stdarg.h>
 #include <stdbool.h>
 
 #include "cevector.h"
@@ -33,17 +35,39 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+typedef struct ce_figmng_listener ce_figmng_listener;
+
+typedef struct {
+	void (*ctor)(ce_figmng_listener* listener, va_list args);
+	void (*dtor)(ce_figmng_listener* listener);
+	void (*figproto_created)(ce_figmng_listener* listener, ce_figproto* figproto);
+	void (*figmesh_created)(ce_figmng_listener* listener, ce_figmesh* figmesh);
+	void (*figentity_created)(ce_figmng_listener* listener, ce_figentity* figentity);
+} ce_figmng_listener_vtable;
+
+struct ce_figmng_listener {
+	ce_figmng_listener_vtable vtable;
+	size_t size;
+	char impl[];
+};
+
+extern ce_figmng_listener*
+ce_figmng_listener_new(ce_figmng_listener_vtable vtable, size_t size, ...);
+
 typedef struct {
 	ce_vector* resfiles;
 	ce_vector* figprotos;
 	ce_vector* figmeshes;
 	ce_vector* figentities;
+	ce_vector* listeners;
 } ce_figmng;
 
 extern ce_figmng* ce_figmng_new(void);
 extern void ce_figmng_del(ce_figmng* figmng);
 
 extern bool ce_figmng_register_resource(ce_figmng* figmng, const char* path);
+
+extern void ce_figmng_add_listener(ce_figmng* figmng, ce_figmng_listener* listener);
 
 extern ce_figentity*
 ce_figmng_create_figentity(ce_figmng* figmng,
