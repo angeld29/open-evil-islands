@@ -21,8 +21,6 @@
 #ifndef CE_FIGMNG_H
 #define CE_FIGMNG_H
 
-#include <stddef.h>
-#include <stdarg.h>
 #include <stdbool.h>
 
 #include "cevector.h"
