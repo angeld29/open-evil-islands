@@ -43,8 +43,7 @@ typedef struct {
 extern ce_anmstate* ce_anmstate_new(void);
 extern void ce_anmstate_del(ce_anmstate* anmstate);
 
-extern void ce_anmstate_advance(ce_anmstate* anmstate,
-								float anmfps, float elapsed);
+extern void ce_anmstate_advance(ce_anmstate* anmstate, float distance);
 
 extern bool ce_anmstate_play_animation(ce_anmstate* anmstate,
 										ce_vector* anmfiles,

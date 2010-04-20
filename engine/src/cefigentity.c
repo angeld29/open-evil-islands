@@ -69,7 +69,7 @@ void ce_figentity_del(ce_figentity* figentity)
 
 void ce_figentity_advance(ce_figentity* figentity, float anmfps, float elapsed)
 {
-	ce_figbone_advance(figentity->figbone, anmfps, elapsed);
+	ce_figbone_advance(figentity->figbone, anmfps * elapsed);
 }
 
 void ce_figentity_update(ce_figentity* figentity, bool force)

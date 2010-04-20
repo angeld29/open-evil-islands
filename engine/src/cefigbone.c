@@ -56,15 +56,12 @@ void ce_figbone_del(ce_figbone* figbone)
 	}
 }
 
-void ce_figbone_advance(ce_figbone* figbone,
-						float anmfps, float elapsed)
+void ce_figbone_advance(ce_figbone* figbone, float distance)
 {
-	if (NULL != figbone->anmstate->anmfile) {
-		ce_anmstate_advance(figbone->anmstate, anmfps, elapsed);
-	}
+	ce_anmstate_advance(figbone->anmstate, distance);
 
 	for (int i = 0; i < figbone->childs->count; ++i) {
-		ce_figbone_advance(figbone->childs->items[i], anmfps, elapsed);
+		ce_figbone_advance(figbone->childs->items[i], distance);
 	}
 }
 

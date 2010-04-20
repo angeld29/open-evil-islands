@@ -39,10 +39,10 @@ void ce_anmstate_del(ce_anmstate* anmstate)
 	}
 }
 
-void ce_anmstate_advance(ce_anmstate* anmstate, float anmfps, float elapsed)
+void ce_anmstate_advance(ce_anmstate* anmstate, float distance)
 {
 	if (NULL != anmstate->anmfile) {
-		anmstate->frame += anmfps * elapsed;
+		anmstate->frame += distance;
 		if (anmstate->frame >= anmstate->frame_count) {
 			anmstate->frame = 0.0f;
 		}
