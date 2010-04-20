@@ -33,6 +33,12 @@ extern "C"
 #endif /* __cplusplus */
 
 enum {
+	CE_MPRFILE_MATERIAL_LAND,
+	CE_MPRFILE_MATERIAL_WATER,
+	CE_MPRFILE_MATERIAL_COUNT
+};
+
+enum {
 	CE_MPRFILE_VERTEX_SIDE = 33,
 	CE_MPRFILE_VERTEX_COUNT = 33 * 33
 };
@@ -69,7 +75,7 @@ typedef struct {
 	int tile_size;
 	int material_count;
 	int anim_tile_count;
-	float* materials[2]; // land and water
+	float* materials[CE_MPRFILE_MATERIAL_COUNT];
 	uint32_t* tiles;
 	uint16_t* anim_tiles;
 	ce_mprsector* sectors;

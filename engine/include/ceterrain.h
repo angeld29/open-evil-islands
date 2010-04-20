@@ -43,7 +43,7 @@ typedef struct {
 	bool tiling;
 	ce_vector* tile_textures;
 	ce_vector* sector_textures;
-	ce_material* materials[2];
+	ce_material* materials[CE_MPRFILE_MATERIAL_COUNT];
 	ce_scenenode* scenenode;
 } ce_terrain;
 

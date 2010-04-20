@@ -283,16 +283,18 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 	ce_terrain* terrain = ce_alloc(sizeof(ce_terrain));
 	terrain->mprfile = mprfile;
 	terrain->tile_textures = ce_vector_new_reserved(mprfile->texture_count);
-	terrain->sector_textures = ce_vector_new_reserved(2 *
-		mprfile->sector_x_count * mprfile->sector_z_count);
-	terrain->materials[0] = ce_mprhlp_create_material(mprfile, false);
-	terrain->materials[1] = ce_mprhlp_create_material(mprfile, true);
+	terrain->sector_textures = ce_vector_new_reserved(2 * mprfile->sector_x_count *
+														mprfile->sector_z_count);
+	terrain->materials[CE_MPRFILE_MATERIAL_LAND] =
+						ce_mprhlp_create_material(mprfile, false);
+	terrain->materials[CE_MPRFILE_MATERIAL_WATER] =
+						ce_mprhlp_create_material(mprfile, true);
 	terrain->scenenode = ce_scenenode_new(scenenode);
 	terrain->scenenode->position = *position;
 	terrain->scenenode->orientation = *orientation;
 
-	ce_vector_resize(terrain->sector_textures, 2 *
-		mprfile->sector_x_count * mprfile->sector_z_count);
+	ce_vector_resize(terrain->sector_textures, 2 * mprfile->sector_x_count *
+													mprfile->sector_z_count);
 
 	ce_terrain_cookie* cookie =
 		ce_terrain_cookie_new(terrain, tiling, texmng, thread_count);
@@ -334,8 +336,8 @@ void ce_terrain_del(ce_terrain* terrain)
 		ce_vector_for_each(terrain->sector_textures, ce_texture_del);
 		ce_vector_for_each(terrain->tile_textures, ce_texture_del);
 		ce_scenenode_del(terrain->scenenode);
-		ce_material_del(terrain->materials[1]);
-		ce_material_del(terrain->materials[0]);
+		ce_material_del(terrain->materials[CE_MPRFILE_MATERIAL_WATER]);
+		ce_material_del(terrain->materials[CE_MPRFILE_MATERIAL_LAND]);
 		ce_vector_del(terrain->sector_textures);
 		ce_vector_del(terrain->tile_textures);
 		ce_mprfile_close(terrain->mprfile);
@@ -346,13 +348,13 @@ void ce_terrain_del(ce_terrain* terrain)
 void ce_terrain_create_rendergroup(ce_terrain* terrain,
 									ce_renderqueue* renderqueue)
 {
-	ce_renderqueue_add(renderqueue, 0, terrain->materials[0]);
-	ce_renderqueue_add(renderqueue, 100, terrain->materials[1]);
+	ce_renderqueue_add(renderqueue, 0, terrain->materials[CE_MPRFILE_MATERIAL_LAND]);
+	ce_renderqueue_add(renderqueue, 100, terrain->materials[CE_MPRFILE_MATERIAL_WATER]);
 }
 
 void ce_terrain_enqueue(ce_terrain* terrain, ce_renderqueue* renderqueue)
 {
-	ce_rendergroup* rendergroups[2] = { ce_renderqueue_get(renderqueue, 0),
+	ce_rendergroup* rendergroups[] = { ce_renderqueue_get(renderqueue, 0),
 										ce_renderqueue_get(renderqueue, 100) };
 
 	int opaque_count = terrain->mprfile->sector_x_count *
