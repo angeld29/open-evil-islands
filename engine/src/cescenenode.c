@@ -195,32 +195,23 @@ static void ce_scenenode_draw_bbox(ce_rendersystem* rendersystem,
 	ce_rendersystem_discard_transform(rendersystem);
 }
 
-void ce_scenenode_draw_bboxes(ce_scenenode* scenenode,
+void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
 								ce_rendersystem* rendersystem,
 								bool comprehensive_only)
 {
-	if (scenenode->culled) {
-		return;
-	}
+	if (!scenenode->culled) {
+		ce_scenenode_draw_bbox(rendersystem, &scenenode->world_bbox);
 
-	ce_scenenode_draw_bbox(rendersystem, &scenenode->world_bbox);
-
-	if (!comprehensive_only) {
-		for (int i = 0; i < scenenode->renderitems->count; ++i) {
-			ce_renderitem* renderitem = scenenode->renderitems->items[i];
-			ce_scenenode_draw_bbox(rendersystem, &renderitem->world_bbox);
+		if (!comprehensive_only) {
+			for (int i = 0; i < scenenode->renderitems->count; ++i) {
+				ce_renderitem* renderitem = scenenode->renderitems->items[i];
+				ce_scenenode_draw_bbox(rendersystem, &renderitem->world_bbox);
+			}
 		}
-	}
-}
 
-void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
-										ce_rendersystem* rendersystem,
-										bool comprehensive_only)
-{
-	ce_scenenode_draw_bboxes(scenenode, rendersystem, comprehensive_only);
-
-	for (int i = 0; i < scenenode->childs->count; ++i) {
-		ce_scenenode_draw_bboxes_cascade(scenenode->childs->items[i],
-										rendersystem, comprehensive_only);
+		for (int i = 0; i < scenenode->childs->count; ++i) {
+			ce_scenenode_draw_bboxes_cascade(scenenode->childs->items[i],
+											rendersystem, comprehensive_only);
+		}
 	}
 }

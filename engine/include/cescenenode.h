@@ -75,9 +75,6 @@ extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
 extern void ce_scenenode_update_cascade(ce_scenenode* scenenode,
 	const ce_frustum* frustum, float anmfps, float elapsed, bool force);
 
-extern void ce_scenenode_draw_bboxes(ce_scenenode* scenenode,
-									ce_rendersystem* rendersystem,
-									bool comprehensive_only);
 extern void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
 											ce_rendersystem* rendersystem,
 											bool comprehensive_only);
