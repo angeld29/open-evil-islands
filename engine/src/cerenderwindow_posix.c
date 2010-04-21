@@ -164,6 +164,8 @@ ce_renderwindow* ce_renderwindow_new(void)
 	glXMakeCurrent(renderwindow->display,
 		renderwindow->window, renderwindow->context);
 
+	XFree(visual_info);
+
 	return renderwindow;
 }
 
