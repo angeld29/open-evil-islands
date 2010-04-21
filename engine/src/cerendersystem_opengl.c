@@ -45,7 +45,9 @@ ce_rendersystem* ce_rendersystem_new(void)
 
 void ce_rendersystem_del(ce_rendersystem* rendersystem)
 {
-	ce_free(rendersystem, sizeof(ce_rendersystem));
+	if (NULL != rendersystem) {
+		ce_free(rendersystem, sizeof(ce_rendersystem));
+	}
 }
 
 void ce_rendersystem_begin_render(ce_rendersystem* rendersystem,
