@@ -58,9 +58,7 @@ void ce_figmesh_del(ce_figmesh* figmesh)
 	if (NULL != figmesh) {
 		assert(figmesh->ref_count > 0);
 		if (0 == --figmesh->ref_count) {
-			for (int i = 0; i < figmesh->renderitems->count; ++i) {
-				ce_renderitem_del(figmesh->renderitems->items[i]);
-			}
+			ce_vector_for_each(figmesh->renderitems, ce_renderitem_del);
 			ce_vector_del(figmesh->renderitems);
 			ce_figproto_del(figmesh->figproto);
 			ce_free(figmesh, sizeof(ce_figmesh));
