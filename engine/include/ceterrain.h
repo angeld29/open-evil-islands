@@ -39,6 +39,12 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	ce_texture* texture;
+	ce_renderlayer* renderlayer;
+	ce_renderitem* renderitem;
+} ce_terrain_sector;
+
+typedef struct {
 	ce_mprfile* mprfile;
 	ce_vector* tile_textures;
 	ce_material* materials[CE_MPRFILE_MATERIAL_COUNT];

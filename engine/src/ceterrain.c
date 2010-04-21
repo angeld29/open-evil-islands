@@ -32,12 +32,6 @@
 #include "cemprrenderitem.h"
 #include "ceterrain.h"
 
-typedef struct {
-	ce_texture* texture;
-	ce_renderlayer* renderlayer;
-	ce_renderitem* renderitem;
-} ce_terrain_sector;
-
 static void ce_terrain_sector_scenenode_updated(void* listener)
 {
 	ce_terrain_sector* sector = listener;
@@ -62,7 +56,7 @@ typedef struct {
 	ce_terrain* terrain;
 	bool tiling;
 	ce_texmng* texmng;
-	ce_renderqueue* renderqueue;
+	ce_rendergroup* rendergroups[CE_MPRFILE_MATERIAL_COUNT];
 	ce_thread_pool* pool;
 	ce_thread_mutex* mutex;
 	ce_thread_once* once;
@@ -72,40 +66,6 @@ typedef struct {
 	int completed_portion_count;
 } ce_terrain_cookie;
 
-typedef struct {
-	ce_terrain_cookie* cookie;
-	ce_rendergroup* rendergroup;
-	ce_string* name;
-	int index;
-	int x, z;
-	bool water;
-	ce_mmpfile* mmpfile;
-} ce_terrain_portion;
-
-static ce_terrain_portion* ce_terrain_portion_new(ce_terrain_cookie* cookie,
-	ce_rendergroup* rendergroup, const char* name, int index, int x, int z, bool water)
-{
-	ce_terrain_portion* portion = ce_alloc(sizeof(ce_terrain_portion));
-	portion->cookie = cookie;
-	portion->rendergroup = rendergroup;
-	portion->name = ce_string_new_str(name);
-	portion->index = index;
-	portion->x = x;
-	portion->z = z;
-	portion->water = water;
-	portion->mmpfile = NULL;
-	return portion;
-}
-
-static void ce_terrain_portion_del(ce_terrain_portion* portion)
-{
-	if (NULL != portion) {
-		ce_mmpfile_del(portion->mmpfile);
-		ce_string_del(portion->name);
-		ce_free(portion, sizeof(ce_terrain_portion));
-	}
-}
-
 static ce_terrain_cookie* ce_terrain_cookie_new(ce_terrain* terrain,
 	bool tiling, ce_texmng* texmng, int thread_count, ce_renderqueue* renderqueue)
 {
@@ -113,7 +73,12 @@ static ce_terrain_cookie* ce_terrain_cookie_new(ce_terrain* terrain,
 	cookie->terrain = terrain;
 	cookie->tiling = tiling;
 	cookie->texmng = texmng;
-	cookie->renderqueue = renderqueue;
+	cookie->rendergroups[CE_MPRFILE_MATERIAL_LAND] =
+		ce_renderqueue_get(renderqueue, 0,
+							terrain->materials[CE_MPRFILE_MATERIAL_LAND]);
+	cookie->rendergroups[CE_MPRFILE_MATERIAL_WATER] =
+		ce_renderqueue_get(renderqueue, 100,
+							terrain->materials[CE_MPRFILE_MATERIAL_WATER]);
 	cookie->pool = ce_thread_pool_new(thread_count);
 	cookie->mutex = ce_thread_mutex_new();
 	cookie->once = ce_thread_once_new();
@@ -135,6 +100,38 @@ static void ce_terrain_cookie_del(ce_terrain_cookie* cookie)
 		ce_thread_mutex_del(cookie->mutex);
 		ce_thread_pool_del(cookie->pool);
 		ce_free(cookie, sizeof(ce_terrain_cookie));
+	}
+}
+
+typedef struct {
+	ce_terrain_cookie* cookie;
+	ce_string* name;
+	int index;
+	int x, z;
+	bool water;
+	ce_mmpfile* mmpfile;
+} ce_terrain_portion;
+
+static ce_terrain_portion* ce_terrain_portion_new(ce_terrain_cookie* cookie,
+	const char* name, int index, int x, int z, bool water)
+{
+	ce_terrain_portion* portion = ce_alloc(sizeof(ce_terrain_portion));
+	portion->cookie = cookie;
+	portion->name = ce_string_new_str(name);
+	portion->index = index;
+	portion->x = x;
+	portion->z = z;
+	portion->water = water;
+	portion->mmpfile = NULL;
+	return portion;
+}
+
+static void ce_terrain_portion_del(ce_terrain_portion* portion)
+{
+	if (NULL != portion) {
+		ce_mmpfile_del(portion->mmpfile);
+		ce_string_del(portion->name);
+		ce_free(portion, sizeof(ce_terrain_portion));
 	}
 }
 
@@ -230,7 +227,8 @@ static void ce_terrain_load_portions(ce_terrain_cookie* cookie)
 		sector->texture = ce_texture_new(portion->name->str, portion->mmpfile);
 		ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
 
-		sector->renderlayer = ce_rendergroup_get(portion->rendergroup, sector->texture);
+		ce_rendergroup* rendergroup = cookie->rendergroups[portion->water];
+		sector->renderlayer = ce_rendergroup_get(rendergroup, sector->texture);
 
 		ce_texmng_put(cookie->texmng, ce_texture_add_ref(sector->texture));
 
@@ -243,7 +241,7 @@ static void ce_terrain_load_portions(ce_terrain_cookie* cookie)
 }
 
 static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
-	ce_rendergroup* rendergroup, const char* name, int index, int x, int z, bool water)
+	const char* name, int index, int x, int z, bool water)
 {
 	ce_terrain_sector* sector = ce_terrain_sector_new();
 	ce_vector_push_back(cookie->terrain->sectors, sector);
@@ -251,11 +249,13 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 	if (cookie->tiling) {
 		sector->texture = ce_texture_add_ref(ce_texmng_get(cookie->texmng, "default0"));
 		ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
+
+		ce_rendergroup* rendergroup = cookie->rendergroups[water];
 		sector->renderlayer = ce_rendergroup_get(rendergroup, sector->texture);
 	} else {
 		// enqueue mmp file loading or generation
 		ce_thread_pool_enqueue(cookie->pool, ce_terrain_process_portion,
-			ce_terrain_portion_new(cookie, rendergroup, name, index, x, z, water));
+			ce_terrain_portion_new(cookie, name, index, x, z, water));
 		++cookie->queued_portion_count;
 
 		// load the portions as soon as processed to avoid extra memory usage
@@ -290,13 +290,6 @@ static void ce_terrain_create_sectors(ce_terrain_cookie* cookie)
 	ce_logging_write("terrain: creating sectors...");
 	ce_logging_write("terrain: this may take some time, please wait...");
 
-	ce_rendergroup* rendergroups[] = {
-		ce_renderqueue_get(cookie->renderqueue,
-			0, cookie->terrain->materials[CE_MPRFILE_MATERIAL_LAND]),
-		ce_renderqueue_get(cookie->renderqueue,
-			100, cookie->terrain->materials[CE_MPRFILE_MATERIAL_WATER])
-	};
-
 	// mpr name + xxxzzz[w]
 	char name[cookie->terrain->mprfile->name->length + 3 + 3 + 1 + 1];
 
@@ -315,8 +308,7 @@ static void ce_terrain_create_sectors(ce_terrain_cookie* cookie)
 				snprintf(name, sizeof(name), water ? "%s%03d%03dw" :
 					"%s%03d%03d", cookie->terrain->mprfile->name->str, x, z);
 
-				ce_terrain_create_sector(cookie,
-					rendergroups[i], name, j++, x, z, water);
+				ce_terrain_create_sector(cookie, name, j++, x, z, water);
 			}
 		}
 	}
