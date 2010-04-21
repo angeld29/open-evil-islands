@@ -30,6 +30,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+// utils
+
+extern int ce_thread_online_cpu_count(void);
+
 // thread
 
 typedef struct ce_thread ce_thread;

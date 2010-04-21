@@ -29,12 +29,30 @@
 #include <string.h>
 #include <assert.h>
 
+#include <unistd.h>
 #include <pthread.h>
+
+#ifndef _SC_NPROCESSORS_ONLN
+#  ifdef _SC_NPROC_ONLN
+#    define _SC_NPROCESSORS_ONLN _SC_NPROC_ONLN
+#  elif defined _SC_CRAY_NCPU
+#    define _SC_NPROCESSORS_ONLN _SC_CRAY_NCPU
+#  endif
+#endif
 
 #include "celib.h"
 #include "cealloc.h"
 #include "ceerror.h"
 #include "cethread.h"
+
+int ce_thread_online_cpu_count(void)
+{
+#ifdef _SC_NPROCESSORS_ONLN
+	return ce_max(1, sysconf(_SC_NPROCESSORS_ONLN));
+#else
+	return 1;
+#endif
+}
 
 typedef struct {
 	void (*func)(void*);

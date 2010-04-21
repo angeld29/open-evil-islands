@@ -30,11 +30,19 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceerror.h"
 #include "cevector.h"
 #include "cethread.h"
+
+int ce_thread_online_cpu_count(void)
+{
+	SYSTEM_INFO info;
+	GetSystemInfo(&info);
+	return ce_max(1, info.dwNumberOfProcessors);
+}
 
 typedef struct {
 	void (*func)(void*);

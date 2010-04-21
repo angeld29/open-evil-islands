@@ -25,6 +25,7 @@
 #include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
+#include "cethread.h"
 #include "cemprhlp.h"
 #include "cefrustum.h"
 #include "cebytefmt.h"
@@ -65,8 +66,11 @@ ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
 	scenemng->anmfps = 15.0f;
 	scenemng->scenenode_force_update = false;
 
-	ce_figmng_listener_vtable flvtable = { ce_scenemng_figproto_created, NULL, NULL };
-	ce_figmng_add_listener(scenemng->figmng, flvtable, scenemng);
+	ce_figmng_listener_vtable listener_vtable = {
+		ce_scenemng_figproto_created, NULL, NULL
+	};
+
+	ce_figmng_add_listener(scenemng->figmng, listener_vtable, scenemng);
 
 	char path[ei_path->value->length + 32];
 
@@ -341,11 +345,14 @@ ce_optgroup* ce_scenemng_create_group_general(ce_optparse* optparse)
 		"enable terrain tiling; very slow, but reduce usage of video "
 		"memory and disk space; use it on old video cards", NULL);
 
+	char cpus[4];
+	snprintf(cpus, sizeof(cpus), "%d", ce_thread_online_cpu_count());
+
 	ce_optgroup_create_option(general,
 		"jobs", 'j', "jobs", CE_OPTACTION_STORE,
-		"allow n jobs at once; set the number of cores your "
-		"CPU have; for example, 4 for Phenom 2 x4, 3 for Phenom 2 x3 "
-		"or 2-4 for Intel Core i5", "1");
+		"allow n jobs at once; if the option is not specified, this "
+		"value will be detected automatically depending on the number "
+		"of CPUs you have (or the number of cores your CPU have)", cpus);
 
 	return general;
 }
