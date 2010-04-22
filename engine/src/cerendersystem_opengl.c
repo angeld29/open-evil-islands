@@ -73,7 +73,7 @@ void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
 {
 	ce_unused(rendersystem);
 
-#ifndef NDEBUG
+#if 0
 	if (ce_gl_query_feature(CE_GL_FEATURE_MEMINFO)) {
 		const int n = 3;
 		GLint params[4], viewport[4];
@@ -87,10 +87,9 @@ void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
 
 		for (int i = 0; i < n; ++i) {
 			glGetIntegerv(pnames[i], params);
-			snprintf(buffer, sizeof(buffer), "%s: %f MB free",
+			snprintf(buffer, sizeof(buffer), "%s: %.3f MB free",
 				names[i], params[0] / 1000.0f);
-			ce_font_render(rendersystem->font, viewport[2] -
-				ce_font_get_width(rendersystem->font, buffer) - 10, viewport[3] -
+			ce_font_render(rendersystem->font, 10, viewport[3] -
 				(i + 3) * ce_font_get_height(rendersystem->font) - 10,
 				&CE_COLOR_RED, buffer);
 		}
