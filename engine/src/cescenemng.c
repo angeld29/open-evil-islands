@@ -350,7 +350,7 @@ ce_optgroup* ce_scenemng_create_group_general(ce_optparse* optparse)
 
 	ce_optgroup_create_option(general,
 		"jobs", 'j', "jobs", CE_OPTACTION_STORE,
-		"allow n jobs at once; if the option is not specified, this "
+		"allow n jobs at once; if this option is not specified, the "
 		"value will be detected automatically depending on the number "
 		"of CPUs you have (or the number of cores your CPU have)", cpus);
 
