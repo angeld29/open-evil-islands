@@ -96,6 +96,50 @@ void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
 	}
 #endif
 
+#if 0
+	static bool flag = true;
+	if (flag && ce_gl_query_feature(CE_GL_FEATURE_PERFORMANCE_MONITOR)) {
+		flag = false;
+		GLint group_count;
+		ce_gl_get_perfmon_groups(&group_count, 0, NULL);
+
+		GLuint groups[group_count];
+		ce_gl_get_perfmon_groups(NULL, group_count, groups);
+
+		for (int i = 0; i < group_count; ++i) {
+			GLsizei length;
+			ce_gl_get_perfmon_group_str(groups[i], 0, &length, NULL);
+
+			char group_name[length + 1];
+			ce_gl_get_perfmon_group_str(groups[i],
+				sizeof(group_name), NULL, group_name);
+
+			GLint counter_count, max_active;
+			ce_gl_get_perfmon_counters(groups[i], &counter_count,
+										&max_active, 0, NULL);
+
+			GLuint counters[counter_count];
+			ce_gl_get_perfmon_counters(groups[i], NULL, NULL,
+										counter_count, counters);
+
+			printf("group: %s, max active: %d\n", group_name, max_active);
+
+			for (int j = 0; j < counter_count; ++j) {
+				GLsizei length;
+				ce_gl_get_perfmon_counter_str(groups[i],
+					counters[j], 0, &length, NULL);
+
+				char counter_name[length + 1];
+				ce_gl_get_perfmon_counter_str(groups[i], counters[j],
+					sizeof(counter_name), NULL, counter_name);
+
+				printf("\tcounter: %s\n", counter_name);
+			}
+			printf("\n");
+		}
+	}
+#endif
+
 	ce_gl_report_errors();
 
 	glFlush();
