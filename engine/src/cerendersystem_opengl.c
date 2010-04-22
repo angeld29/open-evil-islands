@@ -18,6 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
+#include <assert.h>
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 
@@ -26,16 +29,19 @@
 #include "cemath.h"
 #include "cemat4.h"
 #include "cealloc.h"
+#include "cefont.h"
 #include "cerendersystem.h"
 
 struct ce_rendersystem {
 	ce_mat4 view;
+	ce_font* font;
 };
 
 ce_rendersystem* ce_rendersystem_new(void)
 {
 	ce_rendersystem* rendersystem = ce_alloc(sizeof(ce_rendersystem));
 	rendersystem->view = CE_MAT4_IDENTITY;
+	rendersystem->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -46,6 +52,7 @@ ce_rendersystem* ce_rendersystem_new(void)
 void ce_rendersystem_del(ce_rendersystem* rendersystem)
 {
 	if (NULL != rendersystem) {
+		ce_font_del(rendersystem->font);
 		ce_free(rendersystem, sizeof(ce_rendersystem));
 	}
 }
@@ -65,6 +72,30 @@ void ce_rendersystem_begin_render(ce_rendersystem* rendersystem,
 void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
 {
 	ce_unused(rendersystem);
+
+#ifndef NDEBUG
+	if (ce_gl_query_feature(CE_GL_FEATURE_MEMINFO)) {
+		const int n = 3;
+		GLint params[4], viewport[4];
+		GLenum pnames[] = { CE_GL_VBO_FREE_MEMORY,
+							CE_GL_TEXTURE_FREE_MEMORY,
+							CE_GL_RENDERBUFFER_FREE_MEMORY };
+		const char* names[] = { "VBO", "TEX", "RB" };
+		char buffer[32];
+
+		glGetIntegerv(GL_VIEWPORT, viewport);
+
+		for (int i = 0; i < n; ++i) {
+			glGetIntegerv(pnames[i], params);
+			snprintf(buffer, sizeof(buffer), "%s: %f MB free",
+				names[i], params[0] / 1000.0f);
+			ce_font_render(rendersystem->font, viewport[2] -
+				ce_font_get_width(rendersystem->font, buffer) - 10, viewport[3] -
+				(i + 3) * ce_font_get_height(rendersystem->font) - 10,
+				&CE_COLOR_RED, buffer);
+		}
+	}
+#endif
 
 	ce_gl_report_errors();
 
