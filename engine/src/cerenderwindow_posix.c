@@ -55,6 +55,8 @@ ce_renderwindow* ce_renderwindow_new(void)
 	int height = 768;
 	bool full_screen = false;
 
+	XInitThreads();
+
 	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow));
 	renderwindow->display = XOpenDisplay(NULL);
 	renderwindow->screen = DefaultScreen(renderwindow->display);
