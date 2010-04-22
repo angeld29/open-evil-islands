@@ -179,6 +179,45 @@ const GLenum CE_GL_PIXEL_UNPACK_BUFFER = 0x88EC;
 // shading language
 const GLenum CE_GL_SHADING_LANGUAGE_VERSION = 0x8B8C;
 
+// performance monitor
+const GLenum CE_GL_PERFMON_COUNTER_TYPE = 0x8BC0;
+const GLenum CE_GL_PERFMON_COUNTER_RANGE = 0x8BC1;
+const GLenum CE_GL_PERFMON_UNSIGNED_INT64 = 0x8BC2;
+const GLenum CE_GL_PERFMON_PERCENTAGE = 0x8BC3;
+const GLenum CE_GL_PERFMON_RESULT_AVAILABLE = 0x8BC4;
+const GLenum CE_GL_PERFMON_RESULT_SIZE = 0x8BC5;
+const GLenum CE_GL_PERFMON_RESULT = 0x8BC6;
+
+typedef void (APIENTRY *CE_GL_GET_PERFMON_GROUPS_PROC)(GLint*, GLsizei, GLuint*);
+typedef void (APIENTRY *CE_GL_GET_PERFMON_COUNTERS_PROC)
+						(GLuint, GLint*, GLint*, GLsizei, GLuint*);
+typedef void (APIENTRY *CE_GL_GET_PERFMON_GROUP_STR_PROC)
+						(GLuint, GLsizei, GLsizei*, char*);
+typedef void (APIENTRY *CE_GL_GET_PERFMON_COUNTER_STR_PROC)
+						(GLuint, GLuint, GLsizei, GLsizei*, char*);
+typedef void (APIENTRY *CE_GL_GET_PERFMON_COUNTER_INFO_PROC)
+						(GLuint, GLuint, GLenum, GLvoid*);
+typedef void (APIENTRY *CE_GL_GEN_PERFMONS_PROC)(GLsizei, GLuint*);
+typedef void (APIENTRY *CE_GL_DELETE_PERFMONS_PROC)(GLsizei, GLuint*);
+typedef void (APIENTRY *CE_GL_SELECT_PERFMON_COUNTERS_PROC)
+						(GLuint, GLboolean, GLuint, GLint, GLuint*);
+typedef void (APIENTRY *CE_GL_BEGIN_PERFMON_PROC)(GLuint);
+typedef void (APIENTRY *CE_GL_END_PERFMON_PROC)(GLuint);
+typedef void (APIENTRY *CE_GL_GET_PERFMON_COUNTER_DATA_PROC)
+						(GLuint, GLenum, GLsizei, GLuint*, GLint*);
+
+static CE_GL_GET_PERFMON_GROUPS_PROC ce_gl_get_perfmon_groups_proc;
+static CE_GL_GET_PERFMON_COUNTERS_PROC ce_gl_get_perfmon_counters_proc;
+static CE_GL_GET_PERFMON_GROUP_STR_PROC ce_gl_get_perfmon_group_str_proc;
+static CE_GL_GET_PERFMON_COUNTER_STR_PROC ce_gl_get_perfmon_counter_str_proc;
+static CE_GL_GET_PERFMON_COUNTER_INFO_PROC ce_gl_get_perfmon_counter_info_proc;
+static CE_GL_GEN_PERFMONS_PROC ce_gl_gen_perfmons_proc;
+static CE_GL_DELETE_PERFMONS_PROC ce_gl_delete_perfmons_proc;
+static CE_GL_SELECT_PERFMON_COUNTERS_PROC ce_gl_select_perfmon_counters_proc;
+static CE_GL_BEGIN_PERFMON_PROC ce_gl_begin_perfmon_proc;
+static CE_GL_END_PERFMON_PROC ce_gl_end_perfmon_proc;
+static CE_GL_GET_PERFMON_COUNTER_DATA_PROC ce_gl_get_perfmon_counter_data_proc;
+
 // meminfo
 const GLenum CE_GL_VBO_FREE_MEMORY = 0x87FB;
 const GLenum CE_GL_TEXTURE_FREE_MEMORY = 0x87FC;
@@ -272,6 +311,7 @@ static struct {
 		"shader object",
 		"vertex shader",
 		"fragment shader",
+		"performance monitor",
 		"meminfo"
 	}
 };
@@ -471,6 +511,46 @@ bool ce_gl_init(void)
 	ce_gl_inst.features[CE_GL_FEATURE_FRAGMENT_SHADER] =
 		ce_gl_check_extension("GL_ARB_fragment_shader");
 
+	ce_gl_inst.features[CE_GL_FEATURE_PERFORMANCE_MONITOR] =
+		ce_gl_check_extension("GL_AMD_performance_monitor");
+
+	if (ce_gl_inst.features[CE_GL_FEATURE_PERFORMANCE_MONITOR]) {
+		ce_gl_get_perfmon_groups_proc = (CE_GL_GET_PERFMON_GROUPS_PROC)
+			ce_gl_get_proc_address("glGetPerfMonitorGroupsAMD");
+		ce_gl_get_perfmon_counters_proc = (CE_GL_GET_PERFMON_COUNTERS_PROC)
+			ce_gl_get_proc_address("glGetPerfMonitorCountersAMD");
+		ce_gl_get_perfmon_group_str_proc = (CE_GL_GET_PERFMON_GROUP_STR_PROC)
+			ce_gl_get_proc_address("glGetPerfMonitorGroupStringAMD");
+		ce_gl_get_perfmon_counter_str_proc = (CE_GL_GET_PERFMON_COUNTER_STR_PROC)
+			ce_gl_get_proc_address("glGetPerfMonitorCounterStringAMD");
+		ce_gl_get_perfmon_counter_info_proc = (CE_GL_GET_PERFMON_COUNTER_INFO_PROC)
+			ce_gl_get_proc_address("glGetPerfMonitorCounterInfoAMD");
+		ce_gl_gen_perfmons_proc = (CE_GL_GEN_PERFMONS_PROC)
+			ce_gl_get_proc_address("glGenPerfMonitorsAMD");
+		ce_gl_delete_perfmons_proc = (CE_GL_DELETE_PERFMONS_PROC)
+			ce_gl_get_proc_address("glDeletePerfMonitorsAMD");
+		ce_gl_select_perfmon_counters_proc = (CE_GL_SELECT_PERFMON_COUNTERS_PROC)
+			ce_gl_get_proc_address("glSelectPerfMonitorCountersAMD");
+		ce_gl_begin_perfmon_proc = (CE_GL_BEGIN_PERFMON_PROC)
+			ce_gl_get_proc_address("glBeginPerfMonitorAMD");
+		ce_gl_end_perfmon_proc = (CE_GL_END_PERFMON_PROC)
+			ce_gl_get_proc_address("glEndPerfMonitorAMD");
+		ce_gl_get_perfmon_counter_data_proc = (CE_GL_GET_PERFMON_COUNTER_DATA_PROC)
+			ce_gl_get_proc_address("glGetPerfMonitorCounterDataAMD");
+		ce_gl_inst.features[CE_GL_FEATURE_PERFORMANCE_MONITOR] =
+			NULL != ce_gl_get_perfmon_groups_proc &&
+			NULL != ce_gl_get_perfmon_counters_proc &&
+			NULL != ce_gl_get_perfmon_group_str_proc &&
+			NULL != ce_gl_get_perfmon_counter_str_proc &&
+			NULL != ce_gl_get_perfmon_counter_info_proc &&
+			NULL != ce_gl_gen_perfmons_proc &&
+			NULL != ce_gl_delete_perfmons_proc &&
+			NULL != ce_gl_select_perfmon_counters_proc &&
+			NULL != ce_gl_begin_perfmon_proc &&
+			NULL != ce_gl_end_perfmon_proc &&
+			NULL != ce_gl_get_perfmon_counter_data_proc;
+	}
+
 	ce_gl_inst.features[CE_GL_FEATURE_MEMINFO] =
 		ce_gl_check_extension("GL_ATI_meminfo");
 
@@ -653,4 +733,89 @@ void ce_gl_generate_mipmap(GLenum target)
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
 	assert(NULL != ce_gl_generate_mipmap_proc);
 	(*ce_gl_generate_mipmap_proc)(target);
+}
+
+// performance monitor
+
+void ce_gl_get_perfmon_groups(GLint* count, GLsizei size, GLuint* groups)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_perfmon_groups_proc);
+	(*ce_gl_get_perfmon_groups_proc)(count, size, groups);
+}
+
+void ce_gl_get_perfmon_counters(GLuint group, GLint* count, GLint* max_active,
+								GLsizei size, GLuint* counters)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_perfmon_counters_proc);
+	(*ce_gl_get_perfmon_counters_proc)(group, count, max_active, size, counters);
+}
+
+void ce_gl_get_perfmon_group_str(GLuint group, GLsizei size,
+								GLsizei* length, char* str)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_perfmon_group_str_proc);
+	(*ce_gl_get_perfmon_group_str_proc)(group, size, length, str);
+}
+
+void ce_gl_get_perfmon_counter_str(GLuint group, GLuint counter,
+									GLsizei size, GLsizei* length, char* str)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_perfmon_counter_str_proc);
+	(*ce_gl_get_perfmon_counter_str_proc)(group, counter, size, length, str);
+}
+
+void ce_gl_get_perfmon_counter_info(GLuint group, GLuint counter,
+									GLenum pname, GLvoid* data)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_perfmon_counter_info_proc);
+	(*ce_gl_get_perfmon_counter_info_proc)(group, counter, pname, data);
+}
+
+void ce_gl_gen_perfmons(GLsizei n, GLuint* monitors)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_gen_perfmons_proc);
+	(*ce_gl_gen_perfmons_proc)(n, monitors);
+}
+
+void ce_gl_delete_perfmons(GLsizei n, GLuint* monitors)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_delete_perfmons_proc);
+	(*ce_gl_delete_perfmons_proc)(n, monitors);
+}
+
+void ce_gl_select_perfmon_counters(GLuint monitor, GLboolean enable,
+									GLuint group, GLint count, GLuint* list)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_select_perfmon_counters_proc);
+	(*ce_gl_select_perfmon_counters_proc)(monitor, enable, group, count, list);
+}
+
+void ce_gl_begin_perfmon(GLuint monitor)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_begin_perfmon_proc);
+	(*ce_gl_begin_perfmon_proc)(monitor);
+}
+
+void ce_gl_end_perfmon(GLuint monitor)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_end_perfmon_proc);
+	(*ce_gl_end_perfmon_proc)(monitor);
+}
+
+void ce_gl_get_perfmon_counter_data(GLuint monitor, GLenum pname, GLsizei size,
+									GLuint* data, GLint* bytes_written)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_perfmon_counter_data_proc);
+	(*ce_gl_get_perfmon_counter_data_proc)(monitor, pname, size, data, bytes_written);
 }

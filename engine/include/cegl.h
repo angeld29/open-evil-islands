@@ -62,6 +62,7 @@ typedef enum {
 	CE_GL_FEATURE_SHADER_OBJECT,
 	CE_GL_FEATURE_VERTEX_SHADER,
 	CE_GL_FEATURE_FRAGMENT_SHADER,
+	CE_GL_FEATURE_PERFORMANCE_MONITOR,
 	CE_GL_FEATURE_MEMINFO,
 	CE_GL_FEATURE_COUNT
 } ce_gl_feature;
@@ -173,6 +174,35 @@ extern const GLenum CE_GL_PIXEL_UNPACK_BUFFER;
 
 // shading language
 extern const GLenum CE_GL_SHADING_LANGUAGE_VERSION;
+
+// performance monitor
+extern const GLenum CE_GL_PERFMON_COUNTER_TYPE;
+extern const GLenum CE_GL_PERFMON_COUNTER_RANGE;
+extern const GLenum CE_GL_PERFMON_UNSIGNED_INT64;
+extern const GLenum CE_GL_PERFMON_PERCENTAGE;
+extern const GLenum CE_GL_PERFMON_RESULT_AVAILABLE;
+extern const GLenum CE_GL_PERFMON_RESULT_SIZE;
+extern const GLenum CE_GL_PERFMON_RESULT;
+
+extern void ce_gl_get_perfmon_groups(GLint* count, GLsizei size, GLuint* groups);
+extern void ce_gl_get_perfmon_counters(GLuint group, GLint* count,
+										GLint* max_active, GLsizei size,
+										GLuint* counters);
+extern void ce_gl_get_perfmon_group_str(GLuint group, GLsizei size,
+										GLsizei* length, char* str);
+extern void ce_gl_get_perfmon_counter_str(GLuint group, GLuint counter,
+										GLsizei size, GLsizei* length, char* str);
+extern void ce_gl_get_perfmon_counter_info(GLuint group, GLuint counter,
+											GLenum pname, GLvoid* data);
+extern void ce_gl_gen_perfmons(GLsizei n, GLuint* monitors);
+extern void ce_gl_delete_perfmons(GLsizei n, GLuint* monitors);
+extern void ce_gl_select_perfmon_counters(GLuint monitor, GLboolean enable,
+										GLuint group, GLint count, GLuint* list);
+extern void ce_gl_begin_perfmon(GLuint monitor);
+extern void ce_gl_end_perfmon(GLuint monitor);
+extern void ce_gl_get_perfmon_counter_data(GLuint monitor, GLenum pname,
+											GLsizei size, GLuint* data,
+											GLint* bytes_written);
 
 // meminfo
 extern const GLenum CE_GL_VBO_FREE_MEMORY;
