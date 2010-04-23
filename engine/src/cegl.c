@@ -100,6 +100,35 @@ static CE_GL_POINT_PARAMETER_FV_PROC ce_gl_point_parameter_fv_proc;
 const GLenum CE_GL_POINT_SPRITE = 0x8861;
 const GLenum CE_GL_COORD_REPLACE = 0x8862;
 
+// occlusion query
+const GLenum CE_GL_SAMPLES_PASSED = 0x8914;
+const GLenum CE_GL_ANY_SAMPLES_PASSED = 0x8C2F;
+const GLenum CE_GL_QUERY_COUNTER_BITS = 0x8864;
+const GLenum CE_GL_CURRENT_QUERY = 0x8865;
+const GLenum CE_GL_QUERY_RESULT = 0x8866;
+const GLenum CE_GL_QUERY_RESULT_AVAILABLE = 0x8867;
+
+typedef void (APIENTRY *CE_GL_GEN_QUERIES_PROC)(GLsizei n, GLuint* ids);
+typedef void (APIENTRY *CE_GL_DELETE_QUERIES_PROC)(GLsizei n, const GLuint* ids);
+typedef GLboolean (APIENTRY *CE_GL_IS_QUERY_PROC)(GLuint id);
+typedef void (APIENTRY *CE_GL_BEGIN_QUERY_PROC)(GLenum target, GLuint id);
+typedef void (APIENTRY *CE_GL_END_QUERY_PROC)(GLenum target);
+typedef void (APIENTRY *CE_GL_GET_QUERY_IV_PROC)
+			(GLenum target, GLenum pname, GLint* params);
+typedef void (APIENTRY *CE_GL_GET_QUERY_OBJECT_IV_PROC)
+			(GLuint id, GLenum pname, GLint* params);
+typedef void (APIENTRY *CE_GL_GET_QUERY_OBJECT_UIV_PROC)
+			(GLuint id, GLenum pname, GLuint* params);
+
+static CE_GL_GEN_QUERIES_PROC ce_gl_gen_queries_proc;
+static CE_GL_DELETE_QUERIES_PROC ce_gl_delete_queries_proc;
+static CE_GL_IS_QUERY_PROC ce_gl_is_query_proc;
+static CE_GL_BEGIN_QUERY_PROC ce_gl_begin_query_proc;
+static CE_GL_END_QUERY_PROC ce_gl_end_query_proc;
+static CE_GL_GET_QUERY_IV_PROC ce_gl_get_query_iv_proc;
+static CE_GL_GET_QUERY_OBJECT_IV_PROC ce_gl_get_query_object_iv_proc;
+static CE_GL_GET_QUERY_OBJECT_UIV_PROC ce_gl_get_query_object_uiv_proc;
+
 // multisample
 const GLenum CE_GLX_SAMPLE_BUFFERS = 100000;
 const GLenum CE_GLX_SAMPLES = 100001;
@@ -302,6 +331,8 @@ static struct {
 		"window pos",
 		"point parameters",
 		"point sprite",
+		"occlusion query",
+		"occlusion query2",
 		"multisample",
 		"vertex buffer object",
 		"frame buffer object",
@@ -332,23 +363,21 @@ bool ce_gl_init(void)
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] =
 		ce_gl_check_extension("GL_ARB_texture_compression");
 
-	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
-		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
-		ce_gl_check_extension("GL_EXT_texture_compression_s3tc");
-
-	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] =
-		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
-		ce_gl_check_extension("GL_EXT_texture_compression_dxt1");
-
 	if (ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION]) {
 		ce_gl_compressed_tex_image_2d_proc =
 			(CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC)
 				ce_gl_get_proc_address("glCompressedTexImage2DARB");
-		if (NULL == ce_gl_compressed_tex_image_2d_proc) {
-			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] = false;
-			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] = false;
-			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] = false;
-		}
+
+		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] =
+			NULL != ce_gl_compressed_tex_image_2d_proc;
+
+		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
+			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
+			ce_gl_check_extension("GL_EXT_texture_compression_s3tc");
+
+		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] =
+			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
+			ce_gl_check_extension("GL_EXT_texture_compression_dxt1");
 	}
 
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_LOD] =
@@ -422,6 +451,42 @@ bool ce_gl_init(void)
 		ce_gl_check_extension("GL_ARB_point_sprite") ||
 		ce_gl_check_extension("GL_NV_point_sprite");
 
+	ce_gl_inst.features[CE_GL_FEATURE_OCCLUSION_QUERY] =
+		ce_gl_check_extension("GL_ARB_occlusion_query");
+
+	if (ce_gl_inst.features[CE_GL_FEATURE_OCCLUSION_QUERY]) {
+		ce_gl_gen_queries_proc = (CE_GL_GEN_QUERIES_PROC)
+			ce_gl_get_proc_address("glGenQueriesARB");
+		ce_gl_delete_queries_proc = (CE_GL_DELETE_QUERIES_PROC)
+			ce_gl_get_proc_address("glDeleteQueriesARB");
+		ce_gl_is_query_proc = (CE_GL_IS_QUERY_PROC)
+			ce_gl_get_proc_address("glIsQueryARB");
+		ce_gl_begin_query_proc = (CE_GL_BEGIN_QUERY_PROC)
+			ce_gl_get_proc_address("glBeginQueryARB");
+		ce_gl_end_query_proc = (CE_GL_END_QUERY_PROC)
+			ce_gl_get_proc_address("glEndQueryARB");
+		ce_gl_get_query_iv_proc = (CE_GL_GET_QUERY_IV_PROC)
+			ce_gl_get_proc_address("glGetQueryivARB");
+		ce_gl_get_query_object_iv_proc = (CE_GL_GET_QUERY_OBJECT_IV_PROC)
+			ce_gl_get_proc_address("glGetQueryObjectivARB");
+		ce_gl_get_query_object_uiv_proc = (CE_GL_GET_QUERY_OBJECT_UIV_PROC)
+			ce_gl_get_proc_address("glGetQueryObjectuivARB");
+
+		ce_gl_inst.features[CE_GL_FEATURE_OCCLUSION_QUERY] =
+			NULL != ce_gl_gen_queries_proc &&
+			NULL != ce_gl_delete_queries_proc &&
+			NULL != ce_gl_is_query_proc &&
+			NULL != ce_gl_begin_query_proc &&
+			NULL != ce_gl_end_query_proc &&
+			NULL != ce_gl_get_query_iv_proc &&
+			NULL != ce_gl_get_query_object_iv_proc &&
+			NULL != ce_gl_get_query_object_uiv_proc;
+
+		ce_gl_inst.features[CE_GL_FEATURE_OCCLUSION_QUERY2] =
+			ce_gl_inst.features[CE_GL_FEATURE_OCCLUSION_QUERY] &&
+			ce_gl_check_extension("GL_ARB_occlusion_query2");
+	}
+
 	ce_gl_inst.features[CE_GL_FEATURE_MULTISAMPLE] =
 		ce_gl_check_extension("GL_ARB_multisample") ||
 		ce_gl_check_extension("GLX_ARB_multisample") ||
@@ -436,15 +501,16 @@ bool ce_gl_init(void)
 
 	if (ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT]) {
 		ce_gl_bind_buffer_proc = (CE_GL_BIND_BUFFER_PROC)
-								ce_gl_get_proc_address("glBindBufferARB");
+			ce_gl_get_proc_address("glBindBufferARB");
 		ce_gl_delete_buffers_proc = (CE_GL_DELETE_BUFFERS_PROC)
-								ce_gl_get_proc_address("glDeleteBuffersARB");
+			ce_gl_get_proc_address("glDeleteBuffersARB");
 		ce_gl_gen_buffers_proc = (CE_GL_GEN_BUFFERS_PROC)
-								ce_gl_get_proc_address("glGenBuffersARB");
+			ce_gl_get_proc_address("glGenBuffersARB");
 		ce_gl_buffer_data_proc = (CE_GL_BUFFER_DATA_PROC)
-								ce_gl_get_proc_address("glBufferDataARB");
+			ce_gl_get_proc_address("glBufferDataARB");
 		ce_gl_buffer_sub_data_proc = (CE_GL_BUFFER_SUB_DATA_PROC)
-								ce_gl_get_proc_address("glBufferSubDataARB");
+			ce_gl_get_proc_address("glBufferSubDataARB");
+
 		ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT] =
 			NULL != ce_gl_bind_buffer_proc &&
 			NULL != ce_gl_delete_buffers_proc &&
@@ -482,6 +548,7 @@ bool ce_gl_init(void)
 			(CE_GL_GENERATE_MIPMAP_PROC)
 				ce_gl_get_first_proc_address(2, "glGenerateMipmapARB",
 												"glGenerateMipmapEXT");
+
 		ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT] =
 			NULL != ce_gl_bind_frame_buffer_proc &&
 			NULL != ce_gl_delete_frame_buffers_proc &&
@@ -648,6 +715,64 @@ void ce_gl_point_parameter_fv(GLenum pname, GLfloat* params)
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
 	assert(NULL != ce_gl_point_parameter_fv_proc);
 	(*ce_gl_point_parameter_fv_proc)(pname, params);
+}
+
+// occlusion query
+
+void ce_gl_gen_queries(GLsizei n, GLuint* ids)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_gen_queries_proc);
+	(*ce_gl_gen_queries_proc)(n, ids);
+}
+
+void ce_gl_delete_queries(GLsizei n, const GLuint* ids)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_delete_queries_proc);
+	(*ce_gl_delete_queries_proc)(n, ids);
+}
+
+GLboolean ce_gl_is_query(GLuint id)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_is_query_proc);
+	return (*ce_gl_is_query_proc)(id);
+}
+
+void ce_gl_begin_query(GLenum target, GLuint id)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_begin_query_proc);
+	(*ce_gl_begin_query_proc)(target, id);
+}
+
+void ce_gl_end_query(GLenum target)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_end_query_proc);
+	(*ce_gl_end_query_proc)(target);
+}
+
+void ce_gl_get_query_iv(GLenum target, GLenum pname, GLint* params)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_query_iv_proc);
+	(*ce_gl_get_query_iv_proc)(target, pname, params);
+}
+
+void ce_gl_get_query_object_iv(GLuint id, GLenum pname, GLint* params)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_query_object_iv_proc);
+	(ce_gl_get_query_object_iv_proc)(id, pname, params);
+}
+
+void ce_gl_get_query_object_uiv(GLuint id, GLenum pname, GLuint* params)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_query_object_uiv_proc);
+	(*ce_gl_get_query_object_uiv_proc)(id, pname, params);
 }
 
 // VBO
