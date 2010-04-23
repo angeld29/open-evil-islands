@@ -53,6 +53,8 @@ typedef enum {
 	CE_GL_FEATURE_WINDOW_POS,
 	CE_GL_FEATURE_POINT_PARAMETERS,
 	CE_GL_FEATURE_POINT_SPRITE,
+	CE_GL_FEATURE_OCCLUSION_QUERY,
+	CE_GL_FEATURE_OCCLUSION_QUERY2,
 	CE_GL_FEATURE_MULTISAMPLE,
 	CE_GL_FEATURE_VERTEX_BUFFER_OBJECT,
 	CE_GL_FEATURE_FRAME_BUFFER_OBJECT,
@@ -115,6 +117,23 @@ extern void ce_gl_point_parameter_fv(GLenum pname, GLfloat* params);
 // point sprite
 extern const GLenum CE_GL_POINT_SPRITE;
 extern const GLenum CE_GL_COORD_REPLACE;
+
+// occlusion query
+extern const GLenum CE_GL_SAMPLES_PASSED;
+extern const GLenum CE_GL_ANY_SAMPLES_PASSED;
+extern const GLenum CE_GL_QUERY_COUNTER_BITS;
+extern const GLenum CE_GL_CURRENT_QUERY;
+extern const GLenum CE_GL_QUERY_RESULT;
+extern const GLenum CE_GL_QUERY_RESULT_AVAILABLE;
+
+extern void ce_gl_gen_queries(GLsizei n, GLuint* ids);
+extern void ce_gl_delete_queries(GLsizei n, const GLuint* ids);
+extern GLboolean ce_gl_is_query(GLuint id);
+extern void ce_gl_begin_query(GLenum target, GLuint id);
+extern void ce_gl_end_query(GLenum target);
+extern void ce_gl_get_query_iv(GLenum target, GLenum pname, GLint* params);
+extern void ce_gl_get_query_object_iv(GLuint id, GLenum pname, GLint* params);
+extern void ce_gl_get_query_object_uiv(GLuint id, GLenum pname, GLuint* params);
 
 // multisample
 extern const GLenum CE_GLX_SAMPLE_BUFFERS;
