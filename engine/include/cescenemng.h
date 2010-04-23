@@ -23,20 +23,21 @@
 
 #include <stdbool.h>
 
-#include "cescenenode.h"
-#include "cerenderqueue.h"
-#include "ceviewport.h"
-#include "cecamera.h"
+#include "cethread.h"
 #include "cetimer.h"
-#include "cefps.h"
-#include "cefont.h"
 #include "ceinput.h"
 #include "cetexmng.h"
 #include "cemprmng.h"
 #include "cefigmng.h"
-#include "ceterrain.h"
 #include "cemobfile.h"
+#include "ceterrain.h"
 #include "ceoptparse.h"
+#include "cefps.h"
+#include "cefont.h"
+#include "ceviewport.h"
+#include "cecamera.h"
+#include "cescenenode.h"
+#include "cerenderqueue.h"
 
 #ifdef __cplusplus
 extern "C"

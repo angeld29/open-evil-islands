@@ -48,6 +48,13 @@ ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
 	ce_logging_write("scenemng: root path: '%s'", ei_path->value->str);
 
 	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
+	scenemng->show_axes = true;
+	scenemng->show_bboxes = false;
+	scenemng->comprehensive_bbox_only = true;
+	scenemng->terrain_tiling = ce_optoption_value_bool(terrain_tiling);
+	scenemng->thread_count = ce_clamp(ce_optoption_value_int(jobs), 1, 100);
+	scenemng->anmfps = 15.0f;
+	scenemng->scenenode_force_update = false;
 	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->terrain = NULL;
 	scenemng->figmng = ce_figmng_new();
@@ -58,13 +65,6 @@ ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
 	scenemng->timer = ce_timer_new();
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
-	scenemng->show_axes = true;
-	scenemng->show_bboxes = false;
-	scenemng->comprehensive_bbox_only = true;
-	scenemng->terrain_tiling = ce_optoption_value_bool(terrain_tiling);
-	scenemng->thread_count = ce_clamp(ce_optoption_value_int(jobs), 1, 100);
-	scenemng->anmfps = 15.0f;
-	scenemng->scenenode_force_update = false;
 
 	ce_figmng_listener_vtable listener_vtable = {
 		ce_scenemng_figproto_created, NULL, NULL
