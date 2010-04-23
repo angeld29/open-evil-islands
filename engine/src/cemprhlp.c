@@ -28,17 +28,35 @@
 #include "cealloc.h"
 #include "cemprhlp.h"
 
-ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,
-							const ce_mprfile* mprfile,
-							int sector_x, int sector_z)
+ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
+							int sector_x, int sector_z, bool water)
 {
+	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
+	float y = 0.0f;
+
+	ce_mprsector* sector = mprfile->sectors + sector_z *
+							mprfile->sector_x_count + sector_x;
+
+	ce_mprvertex* vertices = water ? sector->water_vertices : sector->land_vertices;
+	int16_t* water_allow = water ? sector->water_allow : NULL;
+
+	for (int z = 0; z < CE_MPRFILE_VERTEX_SIDE; ++z) {
+		for (int x = 0; x < CE_MPRFILE_VERTEX_SIDE; ++x) {
+			if (NULL != water_allow &&
+					-1 == water_allow[z / 2 * CE_MPRFILE_TEXTURE_SIDE + x / 2]) {
+				continue;
+			}
+			y = fmaxf(y, y_coef * vertices[z * CE_MPRFILE_VERTEX_SIDE + x].coord_y);
+		}
+	}
+
 	// FIXME: negative z in generic code?..
 	ce_vec3 min, max;
 	ce_vec3_init(&min, sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f, -1.0f *
 		(sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1)));
 	ce_vec3_init(&max,
 		sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1),
-		mprfile->max_y, -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1)));
+		y, -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1)));
 
 	aabb->radius = 0.5f * ce_vec3_dist(&min, &max);
 	ce_vec3_mid(&aabb->origin, &min, &max);

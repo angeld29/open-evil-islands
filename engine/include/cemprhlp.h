@@ -39,9 +39,8 @@ enum {
 	CE_MPRHLP_MMPFILE_VERSION = 1
 };
 
-extern ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb,
-									const ce_mprfile* mprfile,
-									int sector_x, int sector_z);
+extern ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
+									int sector_x, int sector_z, bool water);
 
 extern float* ce_mprhlp_normal2vector(float* vector, uint32_t normal);
 

@@ -267,7 +267,8 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 		ce_mprrenderitem_new(cookie->terrain->mprfile,
 			cookie->tiling, x, z, water, cookie->terrain->tile_textures);
 
-	ce_mprhlp_get_aabb(&sector->renderitem->aabb, cookie->terrain->mprfile, x, z);
+	ce_mprhlp_get_aabb(&sector->renderitem->aabb,
+						cookie->terrain->mprfile, x, z, water);
 
 	sector->renderitem->position = CE_VEC3_ZERO;
 	sector->renderitem->orientation = CE_QUAT_IDENTITY;
