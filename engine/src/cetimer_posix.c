@@ -18,7 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
+
 #include <sys/time.h>
+#include <pthread.h>
 
 #include "cealloc.h"
 #include "cetimer.h"
@@ -30,10 +33,26 @@ struct ce_timer {
 	float diff;
 };
 
+static void ce_timer_get_time_of_day(struct timeval* tv)
+{
+	cpu_set_t old_cpuset, cpuset;
+	pthread_t thread = pthread_self();
+
+	CPU_ZERO(&cpuset);
+	CPU_SET(0, &cpuset);
+
+	pthread_getaffinity_np(thread, sizeof(cpu_set_t), &old_cpuset);
+	pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+
+	gettimeofday(tv, NULL);
+
+	pthread_setaffinity_np(thread, sizeof(cpu_set_t), &old_cpuset);
+}
+
 ce_timer* ce_timer_new(void)
 {
 	ce_timer* timer = ce_alloc(sizeof(ce_timer));
-	gettimeofday(&timer->start, NULL);
+	ce_timer_get_time_of_day(&timer->start);
 	return timer;
 }
 
@@ -44,7 +63,7 @@ void ce_timer_del(ce_timer* timer)
 
 void ce_timer_advance(ce_timer* timer)
 {
-	gettimeofday(&timer->stop, NULL);
+	ce_timer_get_time_of_day(&timer->stop);
 	// WARNING: BSD extension, not POSIX!
 	timersub(&timer->stop, &timer->start, &timer->sub);
 	timer->diff = timer->sub.tv_sec + timer->sub.tv_usec * 1e-6f;
