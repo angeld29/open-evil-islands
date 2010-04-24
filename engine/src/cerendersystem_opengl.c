@@ -34,7 +34,8 @@
 struct ce_rendersystem {
 	ce_mat4 view;
 	GLuint axes_list;
-	GLuint cube_list;
+	GLuint wire_cube_list;
+	GLuint solid_cube_list;
 };
 
 ce_rendersystem* ce_rendersystem_new(void)
@@ -42,7 +43,8 @@ ce_rendersystem* ce_rendersystem_new(void)
 	ce_rendersystem* rendersystem = ce_alloc(sizeof(ce_rendersystem));
 	rendersystem->view = CE_MAT4_IDENTITY;
 	rendersystem->axes_list = glGenLists(1);
-	rendersystem->cube_list = glGenLists(1);
+	rendersystem->wire_cube_list = glGenLists(1);
+	rendersystem->solid_cube_list = glGenLists(1);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -61,7 +63,7 @@ ce_rendersystem* ce_rendersystem_new(void)
 	glEnd();
 	glEndList();
 
-	glNewList(rendersystem->cube_list, GL_COMPILE);
+	glNewList(rendersystem->wire_cube_list, GL_COMPILE);
 	glBegin(GL_LINE_STRIP);
 	// face 1 front xy plane
 	glVertex3f( 1.0f, -1.0f,  1.0f);
@@ -92,13 +94,49 @@ ce_rendersystem* ce_rendersystem_new(void)
 	glEnd();
 	glEndList();
 
+	glNewList(rendersystem->solid_cube_list, GL_COMPILE);
+	glBegin(GL_QUADS);
+	// face 1 front xy plane
+	glVertex3f( 1.0f, -1.0f,  1.0f);
+	glVertex3f( 1.0f,  1.0f,  1.0f);
+	glVertex3f(-1.0f,  1.0f,  1.0f);
+	glVertex3f(-1.0f, -1.0f,  1.0f);
+	// face 2 right yz plane
+	glVertex3f( 1.0f, -1.0f,  1.0f);
+	glVertex3f( 1.0f, -1.0f, -1.0f);
+	glVertex3f( 1.0f,  1.0f, -1.0f);
+	glVertex3f( 1.0f,  1.0f,  1.0f);
+	// face 3 top xz plane
+	glVertex3f( 1.0f,  1.0f,  1.0f);
+	glVertex3f( 1.0f,  1.0f, -1.0f);
+	glVertex3f(-1.0f,  1.0f, -1.0f);
+	glVertex3f(-1.0f,  1.0f,  1.0f);
+	// face 4 left yz plane
+	glVertex3f(-1.0f,  1.0f, -1.0f);
+	glVertex3f(-1.0f, -1.0f, -1.0f);
+	glVertex3f(-1.0f, -1.0f,  1.0f);
+	glVertex3f(-1.0f,  1.0f,  1.0f);
+	// face 5 back xy plane
+	glVertex3f(-1.0f,  1.0f, -1.0f);
+	glVertex3f( 1.0f,  1.0f, -1.0f);
+	glVertex3f( 1.0f, -1.0f, -1.0f);
+	glVertex3f(-1.0f, -1.0f, -1.0f);
+	// face 6 bottom xz plane
+	glVertex3f( 1.0f, -1.0f, -1.0f);
+	glVertex3f( 1.0f, -1.0f,  1.0f);
+	glVertex3f(-1.0f, -1.0f,  1.0f);
+	glVertex3f(-1.0f, -1.0f, -1.0f);
+	glEnd();
+	glEndList();
+
 	return rendersystem;
 }
 
 void ce_rendersystem_del(ce_rendersystem* rendersystem)
 {
 	if (NULL != rendersystem) {
-		glDeleteLists(rendersystem->cube_list, 1);
+		glDeleteLists(rendersystem->solid_cube_list, 1);
+		glDeleteLists(rendersystem->wire_cube_list, 1);
 		glDeleteLists(rendersystem->axes_list, 1);
 		ce_free(rendersystem, sizeof(ce_rendersystem));
 	}
@@ -194,7 +232,12 @@ void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem)
 
 void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem)
 {
-	glCallList(rendersystem->cube_list);
+	glCallList(rendersystem->wire_cube_list);
+}
+
+void ce_rendersystem_draw_solid_cube(ce_rendersystem* rendersystem)
+{
+	glCallList(rendersystem->solid_cube_list);
 }
 
 void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,

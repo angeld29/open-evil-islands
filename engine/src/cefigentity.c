@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "cefighlp.h"
 #include "cefigentity.h"
@@ -90,6 +91,7 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 	figentity->scenenode = ce_scenenode_new(scenenode);
 	figentity->scenenode->position = *position;
 	figentity->scenenode->orientation = *orientation;
+	figentity->scenenode->occluder = false;
 	figentity->scenenode->listener_vtable = listener_vtable;
 	figentity->scenenode->listener = figentity;
 

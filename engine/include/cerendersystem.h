@@ -44,8 +44,9 @@ extern void ce_rendersystem_end_render(ce_rendersystem* rendersystem);
 
 extern void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem);
 
-// draw a wire cube centered at zero with side of 2
+// draw a cube centered at zero with side of 2
 extern void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem);
+extern void ce_rendersystem_draw_solid_cube(ce_rendersystem* rendersystem);
 
 extern void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,
 												ce_viewport* viewport);

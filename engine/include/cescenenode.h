@@ -23,6 +23,7 @@
 
 #include <stdbool.h>
 
+#include "cegl.h"
 #include "cevec3.h"
 #include "cequat.h"
 #include "cebbox.h"
@@ -52,8 +53,11 @@ struct ce_scenenode {
 	ce_vec3 world_position;
 	ce_quat world_orientation;
 	ce_bbox world_bbox;
+	bool occluder;
 	bool culled;
 	ce_vector* renderitems;
+	GLuint oqid;
+	GLint oqresult;
 	ce_scenenode_listener_vtable listener_vtable;
 	void* listener;
 	ce_scenenode* parent;
@@ -74,6 +78,9 @@ extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
 
 extern void ce_scenenode_update_cascade(ce_scenenode* scenenode,
 	const ce_frustum* frustum, float anmfps, float elapsed, bool force);
+
+extern void ce_scenenode_occlude_cascade(ce_scenenode* scenenode,
+											ce_rendersystem* rendersystem);
 
 extern void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
 											ce_rendersystem* rendersystem,

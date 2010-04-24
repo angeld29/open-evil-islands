@@ -165,13 +165,23 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 			scenemng->anmfps, ce_timer_elapsed(scenemng->timer), false);
 	}
 
+	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
+
+	glDisable(GL_CULL_FACE);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+
+	ce_scenenode_occlude_cascade(scenemng->scenenode, scenemng->rendersystem);
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	glEnable(GL_CULL_FACE);
+
 	if (scenemng->show_bboxes) {
 		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,
 										scenemng->rendersystem,
 										scenemng->comprehensive_bbox_only);
 	}
-
-	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
 
 #if 0
 #ifndef NDEBUG

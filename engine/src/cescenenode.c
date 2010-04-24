@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
@@ -29,11 +30,14 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 	ce_scenenode* scenenode = ce_alloc_zero(sizeof(ce_scenenode));
 	scenenode->position = CE_VEC3_ZERO;
 	scenenode->orientation = CE_QUAT_IDENTITY;
+	scenenode->occluder = true;
 	scenenode->culled = true;
 	scenenode->renderitems = ce_vector_new();
+	scenenode->oqresult = 1;
 	scenenode->listener = NULL;
 	scenenode->parent = parent;
 	scenenode->childs = ce_vector_new();
+	ce_gl_gen_queries(1, &scenenode->oqid);
 	memset(&scenenode->listener_vtable, '\0',
 			sizeof(ce_scenenode_listener_vtable));
 	if (NULL != parent) {
@@ -52,6 +56,7 @@ void ce_scenenode_del(ce_scenenode* scenenode)
 			ce_scenenode_del(child);
 		}
 		ce_vector_del(scenenode->childs);
+		ce_gl_delete_queries(1, &scenenode->oqid);
 		ce_vector_for_each(scenenode->renderitems, ce_renderitem_del);
 		ce_vector_del(scenenode->renderitems);
 		if (NULL != scenenode->listener_vtable.destroyed) {
@@ -90,6 +95,10 @@ void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
 int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode)
 {
 	if (scenenode->culled) {
+		return 0;
+	}
+
+	if (0 == scenenode->oqresult) {
 		return 0;
 	}
 
@@ -168,20 +177,32 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode,
 	scenenode->culled = !(force || ce_frustum_test_bbox(frustum, &scenenode->world_bbox));
 
 	if (!scenenode->culled) {
-		if (NULL != scenenode->listener_vtable.about_to_update) {
-			(*scenenode->listener_vtable.about_to_update)
-					(scenenode->listener, anmfps, elapsed);
+		if (!scenenode->occluder && ce_gl_is_query(scenenode->oqid)) {
+			GLint oqavailable;
+			ce_gl_get_query_object_iv(scenenode->oqid,
+				CE_GL_QUERY_RESULT_AVAILABLE, &oqavailable);
+			if (0 != oqavailable) {
+				ce_gl_get_query_object_iv(scenenode->oqid,
+					CE_GL_QUERY_RESULT, &scenenode->oqresult);
+			}
 		}
 
-		ce_scenenode_update_transform(scenenode);
-		for (int i = 0; i < scenenode->childs->count; ++i) {
-			ce_scenenode_update_cascade(scenenode->childs->items[i],
-										frustum, anmfps, elapsed, force);
-		}
-		ce_scenenode_update_bounds(scenenode);
+		if (force || scenenode->occluder || 0 != scenenode->oqresult) {
+			if (NULL != scenenode->listener_vtable.about_to_update) {
+				(*scenenode->listener_vtable.about_to_update)
+						(scenenode->listener, anmfps, elapsed);
+			}
 
-		if (NULL != scenenode->listener_vtable.updated) {
-			(*scenenode->listener_vtable.updated)(scenenode->listener);
+			ce_scenenode_update_transform(scenenode);
+			for (int i = 0; i < scenenode->childs->count; ++i) {
+				ce_scenenode_update_cascade(scenenode->childs->items[i],
+											frustum, anmfps, elapsed, force);
+			}
+			ce_scenenode_update_bounds(scenenode);
+
+			if (NULL != scenenode->listener_vtable.updated) {
+				(*scenenode->listener_vtable.updated)(scenenode->listener);
+			}
 		}
 	}
 }
@@ -193,6 +214,35 @@ static void ce_scenenode_draw_bbox(ce_rendersystem* rendersystem,
 		&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
 	ce_rendersystem_draw_wire_cube(rendersystem);
 	ce_rendersystem_discard_transform(rendersystem);
+}
+
+static void ce_scenenode_draw_bbox2(ce_rendersystem* rendersystem,
+									const ce_bbox* bbox)
+{
+	ce_rendersystem_apply_transform(rendersystem,
+		&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
+	ce_rendersystem_draw_solid_cube(rendersystem);
+	ce_rendersystem_discard_transform(rendersystem);
+}
+
+void ce_scenenode_occlude_cascade(ce_scenenode* scenenode,
+										ce_rendersystem* rendersystem)
+{
+	if (!scenenode->culled) {
+		// TODO: check it
+		//ce_gl_get_query_iv(CE_GL_SAMPLES_PASSED,
+		//	CE_GL_QUERY_COUNTER_BITS, &oqresult);
+
+		if (!scenenode->occluder && !ce_vector_empty(scenenode->renderitems)) {
+			ce_gl_begin_query(CE_GL_SAMPLES_PASSED, scenenode->oqid);
+			ce_scenenode_draw_bbox2(rendersystem, &scenenode->world_bbox);
+			ce_gl_end_query(CE_GL_SAMPLES_PASSED);
+		}
+
+		for (int i = 0; i < scenenode->childs->count; ++i) {
+			ce_scenenode_occlude_cascade(scenenode->childs->items[i], rendersystem);
+		}
+	}
 }
 
 void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
