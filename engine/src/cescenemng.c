@@ -173,8 +173,8 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
 
+#if 0
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
-
 	snprintf(text, sizeof(text),
 			"smallobj %s, max %s, overhead %s",
 			ce_bytefmt_detail(bytefmt_text, sizeof(bytefmt_text),
@@ -196,22 +196,20 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	ce_font_render(scenemng->font, 10, scenemng->viewport->height - 2 *
 		ce_font_get_height(scenemng->font) - 10, &CE_COLOR_RED, text);
+#endif
 
-	snprintf(text, sizeof(text), "%d scene nodes in frustum",
+#ifndef NDEBUG
+	char scenenode_text[8];
+	snprintf(scenenode_text, sizeof(scenenode_text), "%d",
 		ce_scenenode_count_visible_cascade(scenemng->scenenode));
 
-	ce_font_render(scenemng->font, 10, 10, &CE_COLOR_RED, text);
+	ce_font_render(scenemng->font, 10, 10, &CE_COLOR_RED, scenenode_text);
+#endif
 
 	ce_font_render(scenemng->font, scenemng->viewport->width -
 		ce_font_get_width(scenemng->font, scenemng->fps->text) - 10,
 		scenemng->viewport->height - ce_font_get_height(scenemng->font) - 10,
 		&CE_COLOR_RED, scenemng->fps->text);
-
-	const char* engine_text = "Powered by Cursed Earth Engine";
-
-	ce_font_render(scenemng->font, scenemng->viewport->width -
-		ce_font_get_width(scenemng->font, engine_text) - 10, 10,
-		&CE_COLOR_RED, engine_text);
 
 	ce_rendersystem_end_render(scenemng->rendersystem);
 }
