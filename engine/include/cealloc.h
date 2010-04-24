@@ -36,11 +36,13 @@ extern void* ce_alloc(size_t size);
 extern void* ce_alloc_zero(size_t size);
 extern void ce_free(void* ptr, size_t size);
 
+#ifndef NDEBUG
 extern size_t ce_alloc_get_smallobj_allocated(void);
 extern size_t ce_alloc_get_smallobj_max_allocated(void);
 extern size_t ce_alloc_get_smallobj_overhead(void);
 extern size_t ce_alloc_get_system_allocated(void);
 extern size_t ce_alloc_get_system_max_allocated(void);
+#endif
 
 #ifdef __cplusplus
 }

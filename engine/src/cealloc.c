@@ -118,12 +118,14 @@ static struct {
 	bool inited;
 	size_t count;
 	portion* pool;
+#ifndef NDEBUG
 	size_t smallobj_allocated;
 	size_t smallobj_max_allocated;
 	size_t smallobj_overhead;
 	size_t system_allocated;
 	size_t system_max_allocated;
 	ce_alloc_mutex mutex;
+#endif
 } ce_alloc_inst;
 
 static void chunk_init(chunk* cnk, size_t block_size, unsigned char block_count)
@@ -304,7 +306,9 @@ bool ce_alloc_init(void)
 					(i + 1) * OBJECT_ALIGNMENT, PAGE_SIZE);
 	}
 
+#ifndef NDEBUG
 	ce_alloc_mutex_init(&ce_alloc_inst.mutex);
+#endif
 
 	return true;
 }
@@ -314,7 +318,9 @@ void ce_alloc_term(void)
 	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
 	ce_alloc_inst.inited = false;
 
+#ifndef NDEBUG
 	ce_alloc_mutex_clear(&ce_alloc_inst.mutex);
+#endif
 
 	if (NULL != ce_alloc_inst.pool) {
 		for (size_t i = 0; i < ce_alloc_inst.count; ++i) {
@@ -331,7 +337,7 @@ void* ce_alloc(size_t size)
 
 	size = ce_smax(1, size);
 
-#ifndef CE_NDEBUG_MEMORY
+#ifndef NDEBUG
 	// needs to lock mutex here to avoid race conditions
 	// in portion_alloc and statistics
 	ce_alloc_mutex_lock(&ce_alloc_inst.mutex);
@@ -341,7 +347,7 @@ void* ce_alloc(size_t size)
 		portion_alloc(ce_alloc_inst.pool +
 					get_offset(size, OBJECT_ALIGNMENT) - 1);
 
-#ifndef CE_NDEBUG_MEMORY
+#ifndef NDEBUG
 	ce_alloc_inst.smallobj_allocated += size > MAX_SMALL_OBJECT_SIZE ? 0 : size;
 	ce_alloc_inst.smallobj_max_allocated =
 		ce_smax(ce_alloc_inst.smallobj_allocated,
@@ -380,7 +386,7 @@ void ce_free(void* ptr, size_t size)
 
 	size = ce_smax(1, size);
 
-#ifndef CE_NDEBUG_MEMORY
+#ifndef NDEBUG
 	if (NULL != ptr) {
 		ce_alloc_mutex_lock(&ce_alloc_inst.mutex);
 		ce_alloc_inst.smallobj_allocated -=
@@ -399,6 +405,7 @@ void ce_free(void* ptr, size_t size)
 	}
 }
 
+#ifndef NDEBUG
 size_t ce_alloc_get_smallobj_allocated(void)
 {
 	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
@@ -428,3 +435,4 @@ size_t ce_alloc_get_system_max_allocated(void)
 	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
 	return ce_alloc_inst.system_max_allocated;
 }
+#endif
