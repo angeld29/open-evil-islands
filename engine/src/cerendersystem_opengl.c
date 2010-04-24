@@ -29,22 +29,68 @@
 #include "cemath.h"
 #include "cemat4.h"
 #include "cealloc.h"
-#include "cefont.h"
 #include "cerendersystem.h"
 
 struct ce_rendersystem {
 	ce_mat4 view;
-	ce_font* font;
+	GLuint axes_list;
+	GLuint cube_list;
 };
 
 ce_rendersystem* ce_rendersystem_new(void)
 {
 	ce_rendersystem* rendersystem = ce_alloc(sizeof(ce_rendersystem));
 	rendersystem->view = CE_MAT4_IDENTITY;
-	rendersystem->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
+	rendersystem->axes_list = glGenLists(1);
+	rendersystem->cube_list = glGenLists(1);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+
+	glNewList(rendersystem->axes_list, GL_COMPILE);
+	glBegin(GL_LINES);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(100.0f, 0.0f, 0.0f);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 100.0f, 0.0f);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 0.0f, 100.0f);
+	glEnd();
+	glEndList();
+
+	glNewList(rendersystem->cube_list, GL_COMPILE);
+	glBegin(GL_LINE_STRIP);
+	// face 1 front xy plane
+	glVertex3f( 1.0f, -1.0f,  1.0f);
+	glVertex3f( 1.0f,  1.0f,  1.0f);
+	glVertex3f(-1.0f,  1.0f,  1.0f);
+	glVertex3f(-1.0f, -1.0f,  1.0f);
+	// face 2 right yz plane
+	glVertex3f( 1.0f, -1.0f,  1.0f);
+	glVertex3f( 1.0f, -1.0f, -1.0f);
+	glVertex3f( 1.0f,  1.0f, -1.0f);
+	glVertex3f( 1.0f,  1.0f,  1.0f);
+	// face 3 top xz plane
+	glVertex3f( 1.0f,  1.0f, -1.0f);
+	glVertex3f(-1.0f,  1.0f, -1.0f);
+	glVertex3f(-1.0f,  1.0f,  1.0f);
+	// face 4 left yz plane
+	glVertex3f(-1.0f, -1.0f,  1.0f);
+	glVertex3f(-1.0f, -1.0f, -1.0f);
+	glVertex3f(-1.0f,  1.0f, -1.0f);
+	// face 5 back xy plane
+	glVertex3f( 1.0f,  1.0f, -1.0f);
+	glVertex3f( 1.0f, -1.0f, -1.0f);
+	glVertex3f(-1.0f, -1.0f, -1.0f);
+	// face 6 bottom xz plane
+	glVertex3f(-1.0f, -1.0f,  1.0f);
+	glVertex3f( 1.0f, -1.0f,  1.0f);
+	glVertex3f( 1.0f, -1.0f, -1.0f);
+	glEnd();
+	glEndList();
 
 	return rendersystem;
 }
@@ -52,7 +98,8 @@ ce_rendersystem* ce_rendersystem_new(void)
 void ce_rendersystem_del(ce_rendersystem* rendersystem)
 {
 	if (NULL != rendersystem) {
-		ce_font_del(rendersystem->font);
+		glDeleteLists(rendersystem->cube_list, 1);
+		glDeleteLists(rendersystem->axes_list, 1);
 		ce_free(rendersystem, sizeof(ce_rendersystem));
 	}
 }
@@ -81,17 +128,12 @@ void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
 							CE_GL_TEXTURE_FREE_MEMORY,
 							CE_GL_RENDERBUFFER_FREE_MEMORY };
 		const char* names[] = { "VBO", "TEX", "RB" };
-		char buffer[32];
 
 		glGetIntegerv(GL_VIEWPORT, viewport);
 
 		for (int i = 0; i < n; ++i) {
 			glGetIntegerv(pnames[i], params);
-			snprintf(buffer, sizeof(buffer), "%s: %.3f MB free",
-				names[i], params[0] / 1000.0f);
-			ce_font_render(rendersystem->font, 10, viewport[3] -
-				(i + 3) * ce_font_get_height(rendersystem->font) - 10,
-				&CE_COLOR_RED, buffer);
+			printf("%s: %.3f MB free\n", names[i], params[0] / 1000.0f);
 		}
 	}
 #endif
@@ -147,67 +189,12 @@ void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
 
 void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem)
 {
-	ce_unused(rendersystem);
-
-	glBegin(GL_LINES);
-
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(100.0f, 0.0f, 0.0f);
-
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 100.0f, 0.0f);
-
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 100.0f);
-
-	glEnd();
+	glCallList(rendersystem->axes_list);
 }
 
-void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem,
-									float size, const ce_color* color)
+void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem)
 {
-	ce_unused(rendersystem);
-
-	glColor4f(color->r, color->g, color->b, color->a);
-
-	glBegin(GL_LINE_STRIP);
-
-	// face 1 front xy plane
-	glVertex3f( size, -size,  size);
-	glVertex3f( size,  size,  size);
-	glVertex3f(-size,  size,  size);
-	glVertex3f(-size, -size,  size);
-
-	// face 2 right yz plane
-	glVertex3f( size, -size,  size);
-	glVertex3f( size, -size, -size);
-	glVertex3f( size,  size, -size);
-	glVertex3f( size,  size,  size);
-
-	// face 3 top xz plane
-	glVertex3f( size,  size, -size);
-	glVertex3f(-size,  size, -size);
-	glVertex3f(-size,  size,  size);
-
-	// face 4 left yz plane
-	glVertex3f(-size, -size,  size);
-	glVertex3f(-size, -size, -size);
-	glVertex3f(-size,  size, -size);
-
-	// face 5 back xy plane
-	glVertex3f( size,  size, -size);
-	glVertex3f( size, -size, -size);
-	glVertex3f(-size, -size, -size);
-
-	// face 6 bottom xz plane
-	glVertex3f(-size, -size,  size);
-	glVertex3f( size, -size,  size);
-	glVertex3f( size, -size, -size);
-
-	glEnd();
+	glCallList(rendersystem->cube_list);
 }
 
 void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,
@@ -268,6 +255,14 @@ void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 
 	glMatrixMode(GL_MODELVIEW);
 	glMultMatrixf(rendersystem->view.m);
+}
+
+void ce_rendersystem_apply_color(ce_rendersystem* rendersystem,
+									const ce_color* color)
+{
+	ce_unused(rendersystem);
+
+	glColor4f(color->r, color->g, color->b, color->a);
 }
 
 void ce_rendersystem_apply_transform(ce_rendersystem* rendersystem,

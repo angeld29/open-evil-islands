@@ -191,7 +191,7 @@ static void ce_scenenode_draw_bbox(ce_rendersystem* rendersystem,
 {
 	ce_rendersystem_apply_transform(rendersystem,
 		&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
-	ce_rendersystem_draw_wire_cube(rendersystem, 1.0f, &CE_COLOR_BLUE);
+	ce_rendersystem_draw_wire_cube(rendersystem);
 	ce_rendersystem_discard_transform(rendersystem);
 }
 
@@ -199,6 +199,8 @@ void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
 								ce_rendersystem* rendersystem,
 								bool comprehensive_only)
 {
+	ce_rendersystem_apply_color(rendersystem, &CE_COLOR_BLUE);
+
 	if (!scenenode->culled) {
 		ce_scenenode_draw_bbox(rendersystem, &scenenode->world_bbox);
 
