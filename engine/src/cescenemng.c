@@ -174,6 +174,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
 
 #if 0
+#ifndef NDEBUG
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
 	snprintf(text, sizeof(text),
 			"smallobj %s, max %s, overhead %s",
@@ -196,6 +197,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	ce_font_render(scenemng->font, 10, scenemng->viewport->height - 2 *
 		ce_font_get_height(scenemng->font) - 10, &CE_COLOR_RED, text);
+#endif
 #endif
 
 #ifndef NDEBUG
