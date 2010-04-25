@@ -23,7 +23,6 @@
 
 #include <stdbool.h>
 
-#include "cegl.h"
 #include "cevec3.h"
 #include "cequat.h"
 #include "cebbox.h"
