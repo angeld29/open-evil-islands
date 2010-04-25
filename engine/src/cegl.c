@@ -164,23 +164,41 @@ const GLenum CE_GL_STATIC_COPY = 0x88E6;
 const GLenum CE_GL_DYNAMIC_DRAW = 0x88E8;
 const GLenum CE_GL_DYNAMIC_READ = 0x88E9;
 const GLenum CE_GL_DYNAMIC_COPY = 0x88EA;
+const GLenum CE_GL_READ_ONLY = 0x88B8;
+const GLenum CE_GL_WRITE_ONLY = 0x88B9;
+const GLenum CE_GL_READ_WRITE = 0x88BA;
 
 typedef void (APIENTRY *CE_GL_BIND_BUFFER_PROC)(GLenum target, GLuint buffer);
 typedef void (APIENTRY *CE_GL_DELETE_BUFFERS_PROC)
 				(GLsizei n, const GLuint* buffers);
 typedef void (APIENTRY *CE_GL_GEN_BUFFERS_PROC)(GLsizei n, GLuint* buffers);
+typedef GLboolean (APIENTRY *CE_GL_IS_BUFFER_PROC)(GLuint buffer);
 typedef void (APIENTRY *CE_GL_BUFFER_DATA_PROC)
 				(GLenum target, GLsizeiptr size,
 				const GLvoid* data, GLenum usage);
 typedef void (APIENTRY *CE_GL_BUFFER_SUB_DATA_PROC)
 				(GLenum target, GLintptr offset,
 				GLsizeiptr size, const GLvoid* data);
+typedef void (APIENTRY *CE_GL_GET_BUFFER_SUB_DATA_PROC)
+				(GLenum target, GLintptr offset, GLsizeiptr size, void* data);
+typedef void* (APIENTRY *CE_GL_MAP_BUFFER_PROC)(GLenum target, GLenum access);
+typedef GLboolean (APIENTRY *CE_GL_UNMAP_BUFFER_PROC)(GLenum target);
+typedef void (APIENTRY *CE_GL_GET_BUFFER_PARAMETER_IV_PROC)
+				(GLenum target, GLenum pname, int* params);
+typedef void (APIENTRY *CE_GL_GET_BUFFER_POINTER_V_PROC)
+				(GLenum target, GLenum pname, void** params);
 
 static CE_GL_BIND_BUFFER_PROC ce_gl_bind_buffer_proc;
 static CE_GL_DELETE_BUFFERS_PROC ce_gl_delete_buffers_proc;
 static CE_GL_GEN_BUFFERS_PROC ce_gl_gen_buffers_proc;
+static CE_GL_IS_BUFFER_PROC ce_gl_is_buffer_proc;
 static CE_GL_BUFFER_DATA_PROC ce_gl_buffer_data_proc;
 static CE_GL_BUFFER_SUB_DATA_PROC ce_gl_buffer_sub_data_proc;
+static CE_GL_GET_BUFFER_SUB_DATA_PROC ce_gl_get_buffer_sub_data_proc;
+static CE_GL_MAP_BUFFER_PROC ce_gl_map_buffer_proc;
+static CE_GL_UNMAP_BUFFER_PROC ce_gl_unmap_buffer_proc;
+static CE_GL_GET_BUFFER_PARAMETER_IV_PROC ce_gl_get_buffer_parameter_iv_proc;
+static CE_GL_GET_BUFFER_POINTER_V_PROC ce_gl_get_buffer_pointer_v_proc;
 
 // FBO
 const GLenum CE_GL_FRAME_BUFFER = 0x8D40;
@@ -596,17 +614,36 @@ bool ce_gl_init(void)
 			ce_gl_get_proc_address("glDeleteBuffersARB");
 		ce_gl_gen_buffers_proc = (CE_GL_GEN_BUFFERS_PROC)
 			ce_gl_get_proc_address("glGenBuffersARB");
+		ce_gl_is_buffer_proc = (CE_GL_IS_BUFFER_PROC)
+			ce_gl_get_proc_address("glIsBufferARB");
 		ce_gl_buffer_data_proc = (CE_GL_BUFFER_DATA_PROC)
 			ce_gl_get_proc_address("glBufferDataARB");
 		ce_gl_buffer_sub_data_proc = (CE_GL_BUFFER_SUB_DATA_PROC)
 			ce_gl_get_proc_address("glBufferSubDataARB");
 
+		ce_gl_get_buffer_sub_data_proc = (CE_GL_GET_BUFFER_SUB_DATA_PROC)
+			ce_gl_get_proc_address("glGetBufferSubDataARB");
+		ce_gl_map_buffer_proc = (CE_GL_MAP_BUFFER_PROC)
+			ce_gl_get_proc_address("glMapBufferARB");
+		ce_gl_unmap_buffer_proc = (CE_GL_UNMAP_BUFFER_PROC)
+			ce_gl_get_proc_address("glUnmapBufferARB");
+		ce_gl_get_buffer_parameter_iv_proc = (CE_GL_GET_BUFFER_PARAMETER_IV_PROC)
+			ce_gl_get_proc_address("glGetBufferParameterivARB");
+		ce_gl_get_buffer_pointer_v_proc = (CE_GL_GET_BUFFER_POINTER_V_PROC)
+			ce_gl_get_proc_address("glGetBufferPointervARB");
+
 		ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT] =
 			NULL != ce_gl_bind_buffer_proc &&
 			NULL != ce_gl_delete_buffers_proc &&
 			NULL != ce_gl_gen_buffers_proc &&
+			NULL != ce_gl_is_buffer_proc &&
 			NULL != ce_gl_buffer_data_proc &&
-			NULL != ce_gl_buffer_sub_data_proc;
+			NULL != ce_gl_buffer_sub_data_proc &&
+			NULL != ce_gl_get_buffer_sub_data_proc &&
+			NULL != ce_gl_map_buffer_proc &&
+			NULL != ce_gl_unmap_buffer_proc &&
+			NULL != ce_gl_get_buffer_parameter_iv_proc &&
+			NULL != ce_gl_get_buffer_pointer_v_proc;
 	}
 
 	ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT] =
@@ -956,6 +993,13 @@ void ce_gl_gen_buffers(GLsizei n, GLuint* buffers)
 	(*ce_gl_gen_buffers_proc)(n, buffers);
 }
 
+GLboolean ce_gl_is_buffer(GLuint buffer)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_is_buffer_proc);
+	return (*ce_gl_is_buffer_proc)(buffer);
+}
+
 void ce_gl_buffer_data(GLenum target, GLsizeiptr size,
 						const GLvoid* data, GLenum usage)
 {
@@ -970,6 +1014,42 @@ void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
 	assert(NULL != ce_gl_buffer_sub_data_proc);
 	(*ce_gl_buffer_sub_data_proc)(target, offset, size, data);
+}
+
+void ce_gl_get_buffer_sub_data(GLenum target, GLintptr offset,
+								GLsizeiptr size, void* data)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_buffer_sub_data_proc);
+	(*ce_gl_get_buffer_sub_data_proc)(target, offset, size, data);
+}
+
+void* ce_gl_map_buffer(GLenum target, GLenum access)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_map_buffer_proc);
+	return (*ce_gl_map_buffer_proc)(target, access);
+}
+
+GLboolean ce_gl_unmap_buffer(GLenum target)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_unmap_buffer_proc);
+	return (*ce_gl_unmap_buffer_proc)(target);
+}
+
+void ce_gl_get_buffer_parameter_iv(GLenum target, GLenum pname, int* params)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_buffer_parameter_iv_proc);
+	(*ce_gl_get_buffer_parameter_iv_proc)(target, pname, params);
+}
+
+void ce_gl_get_buffer_pointer_v(GLenum target, GLenum pname, void** params)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_get_buffer_pointer_v_proc);
+	(*ce_gl_get_buffer_pointer_v_proc)(target, pname, params);
 }
 
 // FBO

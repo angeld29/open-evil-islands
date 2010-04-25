@@ -140,14 +140,24 @@ extern const GLenum CE_GL_STATIC_COPY;
 extern const GLenum CE_GL_DYNAMIC_DRAW;
 extern const GLenum CE_GL_DYNAMIC_READ;
 extern const GLenum CE_GL_DYNAMIC_COPY;
+extern const GLenum CE_GL_READ_ONLY;
+extern const GLenum CE_GL_WRITE_ONLY;
+extern const GLenum CE_GL_READ_WRITE;
 
 extern void ce_gl_bind_buffer(GLenum target, GLuint buffer);
 extern void ce_gl_delete_buffers(GLsizei n, const GLuint* buffers);
 extern void ce_gl_gen_buffers(GLsizei n, GLuint* buffers);
+extern GLboolean ce_gl_is_buffer(GLuint buffer);
 extern void ce_gl_buffer_data(GLenum target, GLsizeiptr size,
 								const GLvoid* data, GLenum usage);
 extern void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
 									GLsizeiptr size, const GLvoid* data);
+extern void ce_gl_get_buffer_sub_data(GLenum target, GLintptr offset,
+									GLsizeiptr size, void* data);
+extern void* ce_gl_map_buffer(GLenum target, GLenum access);
+extern GLboolean ce_gl_unmap_buffer(GLenum target);
+extern void ce_gl_get_buffer_parameter_iv(GLenum target, GLenum pname, int* params);
+extern void ce_gl_get_buffer_pointer_v(GLenum target, GLenum pname, void** params);
 
 // FBO
 extern const GLenum CE_GL_FRAME_BUFFER;
