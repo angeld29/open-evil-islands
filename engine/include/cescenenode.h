@@ -58,6 +58,9 @@ struct ce_scenenode {
 	ce_vector* renderitems;
 	GLuint oqid;
 	GLint oqresult;
+	int dcount;
+	int dmin;
+	int dmax;
 	ce_scenenode_listener_vtable listener_vtable;
 	void* listener;
 	ce_scenenode* parent;
@@ -77,7 +80,8 @@ extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
 extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
 
 extern void ce_scenenode_update_cascade(ce_scenenode* scenenode,
-	const ce_frustum* frustum, float anmfps, float elapsed, bool force);
+	const ce_frustum* frustum, float anmfps, float elapsed,
+	ce_rendersystem* rendersystem, bool force);
 
 extern void ce_scenenode_occlude_cascade(ce_scenenode* scenenode,
 											ce_rendersystem* rendersystem);

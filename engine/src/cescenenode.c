@@ -22,6 +22,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "cescenenode.h"
 
@@ -34,6 +35,9 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 	scenenode->culled = true;
 	scenenode->renderitems = ce_vector_new();
 	scenenode->oqresult = 1;
+	scenenode->dcount = 0;
+	scenenode->dmin = 1000000;
+	scenenode->dmax = 0;
 	scenenode->listener = NULL;
 	scenenode->parent = parent;
 	scenenode->childs = ce_vector_new();
@@ -49,6 +53,7 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 void ce_scenenode_del(ce_scenenode* scenenode)
 {
 	if (NULL != scenenode) {
+		printf("min %d, max %d\n", scenenode->dmin, scenenode->dmax);
 		ce_scenenode_detach_from_parent(scenenode);
 		for (int i = 0; i < scenenode->childs->count; ++i) {
 			ce_scenenode* child = scenenode->childs->items[i];
@@ -169,22 +174,49 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 	}
 }
 
+static void ce_scenenode_occlude(ce_scenenode* scenenode,
+									ce_rendersystem* rendersystem)
+{
+	// check to make sure functionality is supported
+	GLint result;
+	ce_gl_get_query_iv(CE_GL_SAMPLES_PASSED, CE_GL_QUERY_COUNTER_BITS, &result);
+
+	if (ce_gl_is_query(scenenode->oqid)) {
+		ce_gl_get_query_object_iv(scenenode->oqid,
+			CE_GL_QUERY_RESULT_AVAILABLE, &result);
+		if (0 != result) {
+			ce_gl_get_query_object_iv(scenenode->oqid,
+				CE_GL_QUERY_RESULT, &scenenode->oqresult);
+			scenenode->dmin = ce_min(scenenode->dmin, scenenode->dcount);
+			scenenode->dmax = ce_max(scenenode->dmax, scenenode->dcount);
+		}
+		++scenenode->dcount;
+	}
+
+	if (0 != result) {
+		scenenode->dcount = 1;
+		ce_gl_begin_query(CE_GL_SAMPLES_PASSED, scenenode->oqid);
+		ce_rendersystem_apply_transform(rendersystem,
+			&scenenode->world_bbox.aabb.origin,
+			&scenenode->world_bbox.axis,
+			&scenenode->world_bbox.aabb.extents);
+		ce_rendersystem_draw_solid_cube(rendersystem);
+		ce_rendersystem_discard_transform(rendersystem);
+		ce_gl_end_query(CE_GL_SAMPLES_PASSED);
+	}
+}
+
 void ce_scenenode_update_cascade(ce_scenenode* scenenode,
-	const ce_frustum* frustum, float anmfps, float elapsed, bool force)
+	const ce_frustum* frustum, float anmfps, float elapsed,
+	ce_rendersystem* rendersystem, bool force)
 {
 	// try to cull scene node BEFORE update for performance reasons
 	// rendering defects are possible, such as culling partially visible objects
 	scenenode->culled = !(force || ce_frustum_test_bbox(frustum, &scenenode->world_bbox));
 
 	if (!scenenode->culled) {
-		if (!scenenode->occluder && ce_gl_is_query(scenenode->oqid)) {
-			GLint oqavailable;
-			ce_gl_get_query_object_iv(scenenode->oqid,
-				CE_GL_QUERY_RESULT_AVAILABLE, &oqavailable);
-			if (0 != oqavailable) {
-				ce_gl_get_query_object_iv(scenenode->oqid,
-					CE_GL_QUERY_RESULT, &scenenode->oqresult);
-			}
+		if (!scenenode->occluder) {
+			ce_scenenode_occlude(scenenode, rendersystem);
 		}
 
 		if (force || scenenode->occluder || 0 != scenenode->oqresult) {
@@ -196,7 +228,7 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode,
 			ce_scenenode_update_transform(scenenode);
 			for (int i = 0; i < scenenode->childs->count; ++i) {
 				ce_scenenode_update_cascade(scenenode->childs->items[i],
-											frustum, anmfps, elapsed, force);
+					frustum, anmfps, elapsed, rendersystem, force);
 			}
 			ce_scenenode_update_bounds(scenenode);
 
@@ -214,35 +246,6 @@ static void ce_scenenode_draw_bbox(ce_rendersystem* rendersystem,
 		&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
 	ce_rendersystem_draw_wire_cube(rendersystem);
 	ce_rendersystem_discard_transform(rendersystem);
-}
-
-static void ce_scenenode_draw_bbox2(ce_rendersystem* rendersystem,
-									const ce_bbox* bbox)
-{
-	ce_rendersystem_apply_transform(rendersystem,
-		&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
-	ce_rendersystem_draw_solid_cube(rendersystem);
-	ce_rendersystem_discard_transform(rendersystem);
-}
-
-void ce_scenenode_occlude_cascade(ce_scenenode* scenenode,
-										ce_rendersystem* rendersystem)
-{
-	if (!scenenode->culled) {
-		// TODO: check it
-		//ce_gl_get_query_iv(CE_GL_SAMPLES_PASSED,
-		//	CE_GL_QUERY_COUNTER_BITS, &oqresult);
-
-		if (!scenenode->occluder && !ce_vector_empty(scenenode->renderitems)) {
-			ce_gl_begin_query(CE_GL_SAMPLES_PASSED, scenenode->oqid);
-			ce_scenenode_draw_bbox2(rendersystem, &scenenode->world_bbox);
-			ce_gl_end_query(CE_GL_SAMPLES_PASSED);
-		}
-
-		for (int i = 0; i < scenenode->childs->count; ++i) {
-			ce_scenenode_occlude_cascade(scenenode->childs->items[i], rendersystem);
-		}
-	}
 }
 
 void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
