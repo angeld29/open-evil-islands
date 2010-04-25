@@ -64,6 +64,7 @@ typedef enum {
 	CE_GL_FEATURE_SHADER_OBJECT,
 	CE_GL_FEATURE_VERTEX_SHADER,
 	CE_GL_FEATURE_FRAGMENT_SHADER,
+	CE_GL_FEATURE_VERTEX_SHADER_TESSELLATOR,
 	CE_GL_FEATURE_PERFORMANCE_MONITOR,
 	CE_GL_FEATURE_MEMINFO,
 	CE_GL_FEATURE_COUNT
@@ -193,6 +194,18 @@ extern const GLenum CE_GL_PIXEL_UNPACK_BUFFER;
 
 // shading language
 extern const GLenum CE_GL_SHADING_LANGUAGE_VERSION;
+
+// vertex shader tessellator
+extern const GLenum CE_GL_VST_SAMPLER_BUFFER;
+extern const GLenum CE_GL_VST_INT_SAMPLER_BUFFER;
+extern const GLenum CE_GL_VST_UNSIGNED_INT_SAMPLER_BUFFER;
+extern const GLenum CE_GL_VST_DISCRETE;
+extern const GLenum CE_GL_VST_CONTINUOUS;
+extern const GLenum CE_GL_VST_TESSELLATION_MODE;
+extern const GLenum CE_GL_VST_TESSELLATION_FACTOR;
+
+extern void ce_gl_vst_set_tessellation_factor(GLfloat factor);
+extern void ce_gl_vst_set_tessellation_mode(GLenum mode);
 
 // performance monitor
 extern const GLenum CE_GL_PERFMON_COUNTER_TYPE;

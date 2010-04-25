@@ -208,6 +208,21 @@ const GLenum CE_GL_PIXEL_UNPACK_BUFFER = 0x88EC;
 // shading language
 const GLenum CE_GL_SHADING_LANGUAGE_VERSION = 0x8B8C;
 
+// vertex shader tessellator
+const GLenum CE_GL_VST_SAMPLER_BUFFER = 0x9001;
+const GLenum CE_GL_VST_INT_SAMPLER_BUFFER = 0x9002;
+const GLenum CE_GL_VST_UNSIGNED_INT_SAMPLER_BUFFER = 0x9003;
+const GLenum CE_GL_VST_DISCRETE = 0x9006;
+const GLenum CE_GL_VST_CONTINUOUS = 0x9007;
+const GLenum CE_GL_VST_TESSELLATION_MODE = 0x9004;
+const GLenum CE_GL_VST_TESSELLATION_FACTOR = 0x9005;
+
+typedef void (APIENTRY *CE_GL_VST_SET_TESSELLATION_FACTOR_PROC)(GLfloat factor);
+typedef void (APIENTRY *CE_GL_VST_SET_TESSELLATION_MODE_PROC)(GLenum mode);
+
+static CE_GL_VST_SET_TESSELLATION_FACTOR_PROC ce_gl_vst_set_tessellation_factor_proc;
+static CE_GL_VST_SET_TESSELLATION_MODE_PROC ce_gl_vst_set_tessellation_mode_proc;
+
 // performance monitor
 const GLenum CE_GL_PERFMON_COUNTER_TYPE = 0x8BC0;
 const GLenum CE_GL_PERFMON_COUNTER_RANGE = 0x8BC1;
@@ -342,6 +357,7 @@ static struct {
 		"shader object",
 		"vertex shader",
 		"fragment shader",
+		"vertex shader tessellator",
 		"performance monitor",
 		"meminfo"
 	}
@@ -577,6 +593,25 @@ bool ce_gl_init(void)
 
 	ce_gl_inst.features[CE_GL_FEATURE_FRAGMENT_SHADER] =
 		ce_gl_check_extension("GL_ARB_fragment_shader");
+
+	ce_gl_inst.features[CE_GL_FEATURE_VERTEX_SHADER_TESSELLATOR] =
+		ce_gl_check_extension("GL_AMD_vertex_shader_tessellator") ||
+		ce_gl_check_extension("GL_AMDX_vertex_shader_tessellator");
+
+	if (ce_gl_inst.features[CE_GL_FEATURE_VERTEX_SHADER_TESSELLATOR]) {
+		ce_gl_vst_set_tessellation_factor_proc =
+			(CE_GL_VST_SET_TESSELLATION_FACTOR_PROC)
+				ce_gl_get_first_proc_address(2, "glTessellationFactorAMD",
+												"glTessellationFactorAMDX");
+		ce_gl_vst_set_tessellation_mode_proc =
+			(CE_GL_VST_SET_TESSELLATION_MODE_PROC)
+				ce_gl_get_first_proc_address(2, "glTessellationModeAMD",
+												"glTessellationModeAMDX");
+
+		ce_gl_inst.features[CE_GL_FEATURE_VERTEX_SHADER_TESSELLATOR] =
+			NULL != ce_gl_vst_set_tessellation_factor_proc &&
+			NULL != ce_gl_vst_set_tessellation_mode_proc;
+	}
 
 	ce_gl_inst.features[CE_GL_FEATURE_PERFORMANCE_MONITOR] =
 		ce_gl_check_extension("GL_AMD_performance_monitor");
@@ -858,6 +893,22 @@ void ce_gl_generate_mipmap(GLenum target)
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
 	assert(NULL != ce_gl_generate_mipmap_proc);
 	(*ce_gl_generate_mipmap_proc)(target);
+}
+
+// vertex shader tessellator
+
+void ce_gl_vst_set_tessellation_factor(GLfloat factor)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_vst_set_tessellation_factor_proc);
+	(*ce_gl_vst_set_tessellation_factor_proc)(factor);
+}
+
+void ce_gl_vst_set_tessellation_mode(GLenum mode)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_vst_set_tessellation_mode_proc);
+	(*ce_gl_vst_set_tessellation_mode_proc)(mode);
 }
 
 // performance monitor
