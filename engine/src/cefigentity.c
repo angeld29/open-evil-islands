@@ -91,7 +91,7 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 	figentity->scenenode = ce_scenenode_new(scenenode);
 	figentity->scenenode->position = *position;
 	figentity->scenenode->orientation = *orientation;
-	figentity->scenenode->occluder = false;
+	figentity->scenenode->occlusion = ce_occlusion_new();
 	figentity->scenenode->listener_vtable = listener_vtable;
 	figentity->scenenode->listener = figentity;
 

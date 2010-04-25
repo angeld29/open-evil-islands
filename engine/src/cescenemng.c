@@ -146,37 +146,30 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
 	ce_renderqueue_clear(scenemng->renderqueue);
 
-	ce_vec3 forward, right, up;
-	ce_frustum frustum;
-
-	ce_frustum_init(&frustum, scenemng->camera->fov,
-		scenemng->camera->aspect, scenemng->camera->near,
-		scenemng->camera->far, &scenemng->camera->position,
-		ce_camera_get_forward(scenemng->camera, &forward),
-		ce_camera_get_right(scenemng->camera, &right),
-		ce_camera_get_up(scenemng->camera, &up));
-
-	glDisable(GL_CULL_FACE);
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	glDepthMask(GL_FALSE);
-
 	if (scenemng->scenenode_force_update) {
 		// big changes of the scene node tree - force update
-		ce_scenenode_update_cascade(scenemng->scenenode, &frustum,
-			scenemng->anmfps, ce_timer_elapsed(scenemng->timer),
-			scenemng->rendersystem, true);
+		ce_scenenode_update_force_cascade(scenemng->scenenode,
+			scenemng->anmfps, ce_timer_elapsed(scenemng->timer));
 		scenemng->scenenode_force_update = false;
 	} else {
-		ce_scenenode_update_cascade(scenemng->scenenode, &frustum,
-			scenemng->anmfps, ce_timer_elapsed(scenemng->timer),
-			scenemng->rendersystem, false);
+		ce_vec3 forward, right, up;
+		ce_frustum frustum;
+
+		ce_frustum_init(&frustum, scenemng->camera->fov,
+			scenemng->camera->aspect, scenemng->camera->near,
+			scenemng->camera->far, &scenemng->camera->position,
+			ce_camera_get_forward(scenemng->camera, &forward),
+			ce_camera_get_right(scenemng->camera, &right),
+			ce_camera_get_up(scenemng->camera, &up));
+
+		ce_rendersystem_begin_occlusion_test(scenemng->rendersystem);
+		ce_scenenode_update_cascade(scenemng->scenenode, scenemng->rendersystem,
+			&frustum, scenemng->anmfps, ce_timer_elapsed(scenemng->timer));
+		ce_rendersystem_end_occlusion_test(scenemng->rendersystem);
 	}
 
-	glDepthMask(GL_TRUE);
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glEnable(GL_CULL_FACE);
-
 	if (scenemng->show_bboxes) {
+		ce_rendersystem_apply_color(scenemng->rendersystem, &CE_COLOR_BLUE);
 		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,
 										scenemng->rendersystem,
 										scenemng->comprehensive_bbox_only);

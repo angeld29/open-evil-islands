@@ -29,6 +29,7 @@
 #include "cebbox.h"
 #include "cevector.h"
 #include "cefrustum.h"
+#include "ceocclusion.h"
 #include "cerenderitem.h"
 #include "cerendersystem.h"
 
@@ -53,14 +54,9 @@ struct ce_scenenode {
 	ce_vec3 world_position;
 	ce_quat world_orientation;
 	ce_bbox world_bbox;
-	bool occluder;
 	bool culled;
 	ce_vector* renderitems;
-	GLuint oqid;
-	GLint oqresult;
-	int dcount;
-	int dmin;
-	int dmax;
+	ce_occlusion* occlusion;
 	ce_scenenode_listener_vtable listener_vtable;
 	void* listener;
 	ce_scenenode* parent;
@@ -79,12 +75,13 @@ extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
 
 extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
 
-extern void ce_scenenode_update_cascade(ce_scenenode* scenenode,
-	const ce_frustum* frustum, float anmfps, float elapsed,
-	ce_rendersystem* rendersystem, bool force);
+extern void ce_scenenode_update_force_cascade(ce_scenenode* scenenode,
+												float anmfps, float elapsed);
 
-extern void ce_scenenode_occlude_cascade(ce_scenenode* scenenode,
-											ce_rendersystem* rendersystem);
+extern void ce_scenenode_update_cascade(ce_scenenode* scenenode,
+										ce_rendersystem* rendersystem,
+										const ce_frustum* frustum,
+										float anmfps, float elapsed);
 
 extern void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
 											ce_rendersystem* rendersystem,

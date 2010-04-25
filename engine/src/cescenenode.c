@@ -31,17 +31,12 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 	ce_scenenode* scenenode = ce_alloc_zero(sizeof(ce_scenenode));
 	scenenode->position = CE_VEC3_ZERO;
 	scenenode->orientation = CE_QUAT_IDENTITY;
-	scenenode->occluder = true;
 	scenenode->culled = true;
 	scenenode->renderitems = ce_vector_new();
-	scenenode->oqresult = 1;
-	scenenode->dcount = 0;
-	scenenode->dmin = 1000000;
-	scenenode->dmax = 0;
+	scenenode->occlusion = NULL;
 	scenenode->listener = NULL;
 	scenenode->parent = parent;
 	scenenode->childs = ce_vector_new();
-	ce_gl_gen_queries(1, &scenenode->oqid);
 	memset(&scenenode->listener_vtable, '\0',
 			sizeof(ce_scenenode_listener_vtable));
 	if (NULL != parent) {
@@ -53,7 +48,6 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 void ce_scenenode_del(ce_scenenode* scenenode)
 {
 	if (NULL != scenenode) {
-		printf("min %d, max %d\n", scenenode->dmin, scenenode->dmax);
 		ce_scenenode_detach_from_parent(scenenode);
 		for (int i = 0; i < scenenode->childs->count; ++i) {
 			ce_scenenode* child = scenenode->childs->items[i];
@@ -61,7 +55,7 @@ void ce_scenenode_del(ce_scenenode* scenenode)
 			ce_scenenode_del(child);
 		}
 		ce_vector_del(scenenode->childs);
-		ce_gl_delete_queries(1, &scenenode->oqid);
+		ce_occlusion_del(scenenode->occlusion);
 		ce_vector_for_each(scenenode->renderitems, ce_renderitem_del);
 		ce_vector_del(scenenode->renderitems);
 		if (NULL != scenenode->listener_vtable.destroyed) {
@@ -100,10 +94,6 @@ void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
 int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode)
 {
 	if (scenenode->culled) {
-		return 0;
-	}
-
-	if (0 == scenenode->oqresult) {
 		return 0;
 	}
 
@@ -174,67 +164,61 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 	}
 }
 
-static void ce_scenenode_occlude(ce_scenenode* scenenode,
-									ce_rendersystem* rendersystem)
+void ce_scenenode_update_force_cascade(ce_scenenode* scenenode,
+										float anmfps, float elapsed)
 {
-	// check to make sure functionality is supported
-	GLint result;
-	ce_gl_get_query_iv(CE_GL_SAMPLES_PASSED, CE_GL_QUERY_COUNTER_BITS, &result);
+	scenenode->culled = false;
 
-	if (ce_gl_is_query(scenenode->oqid)) {
-		ce_gl_get_query_object_iv(scenenode->oqid,
-			CE_GL_QUERY_RESULT_AVAILABLE, &result);
-		if (0 != result) {
-			ce_gl_get_query_object_iv(scenenode->oqid,
-				CE_GL_QUERY_RESULT, &scenenode->oqresult);
-			scenenode->dmin = ce_min(scenenode->dmin, scenenode->dcount);
-			scenenode->dmax = ce_max(scenenode->dmax, scenenode->dcount);
-		}
-		++scenenode->dcount;
+	if (NULL != scenenode->listener_vtable.about_to_update) {
+		(*scenenode->listener_vtable.about_to_update)
+				(scenenode->listener, anmfps, elapsed);
 	}
 
-	if (0 != result) {
-		scenenode->dcount = 1;
-		ce_gl_begin_query(CE_GL_SAMPLES_PASSED, scenenode->oqid);
-		ce_rendersystem_apply_transform(rendersystem,
-			&scenenode->world_bbox.aabb.origin,
-			&scenenode->world_bbox.axis,
-			&scenenode->world_bbox.aabb.extents);
-		ce_rendersystem_draw_solid_cube(rendersystem);
-		ce_rendersystem_discard_transform(rendersystem);
-		ce_gl_end_query(CE_GL_SAMPLES_PASSED);
+	ce_scenenode_update_transform(scenenode);
+	for (int i = 0; i < scenenode->childs->count; ++i) {
+		ce_scenenode_update_force_cascade(
+			scenenode->childs->items[i], anmfps, elapsed);
+	}
+	ce_scenenode_update_bounds(scenenode);
+
+	if (NULL != scenenode->listener_vtable.updated) {
+		(*scenenode->listener_vtable.updated)(scenenode->listener);
 	}
 }
 
 void ce_scenenode_update_cascade(ce_scenenode* scenenode,
-	const ce_frustum* frustum, float anmfps, float elapsed,
-	ce_rendersystem* rendersystem, bool force)
+								ce_rendersystem* rendersystem,
+								const ce_frustum* frustum,
+								float anmfps, float elapsed)
 {
 	// try to cull scene node BEFORE update for performance reasons
 	// rendering defects are possible, such as culling partially visible objects
-	scenenode->culled = !(force || ce_frustum_test_bbox(frustum, &scenenode->world_bbox));
+
+	// step 1 - frustum culling
+	scenenode->culled = !ce_frustum_test_bbox(frustum, &scenenode->world_bbox);
+
+	// step 2 - HW occlusion test
+	if (!scenenode->culled && NULL != scenenode->occlusion) {
+		scenenode->culled = !ce_occlusion_query(scenenode->occlusion,
+												&scenenode->world_bbox,
+												rendersystem);
+	}
 
 	if (!scenenode->culled) {
-		if (!scenenode->occluder) {
-			ce_scenenode_occlude(scenenode, rendersystem);
+		if (NULL != scenenode->listener_vtable.about_to_update) {
+			(*scenenode->listener_vtable.about_to_update)
+					(scenenode->listener, anmfps, elapsed);
 		}
 
-		if (force || scenenode->occluder || 0 != scenenode->oqresult) {
-			if (NULL != scenenode->listener_vtable.about_to_update) {
-				(*scenenode->listener_vtable.about_to_update)
-						(scenenode->listener, anmfps, elapsed);
-			}
+		ce_scenenode_update_transform(scenenode);
+		for (int i = 0; i < scenenode->childs->count; ++i) {
+			ce_scenenode_update_cascade(scenenode->childs->items[i],
+				rendersystem, frustum, anmfps, elapsed);
+		}
+		ce_scenenode_update_bounds(scenenode);
 
-			ce_scenenode_update_transform(scenenode);
-			for (int i = 0; i < scenenode->childs->count; ++i) {
-				ce_scenenode_update_cascade(scenenode->childs->items[i],
-					frustum, anmfps, elapsed, rendersystem, force);
-			}
-			ce_scenenode_update_bounds(scenenode);
-
-			if (NULL != scenenode->listener_vtable.updated) {
-				(*scenenode->listener_vtable.updated)(scenenode->listener);
-			}
+		if (NULL != scenenode->listener_vtable.updated) {
+			(*scenenode->listener_vtable.updated)(scenenode->listener);
 		}
 	}
 }
@@ -252,8 +236,6 @@ void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
 								ce_rendersystem* rendersystem,
 								bool comprehensive_only)
 {
-	ce_rendersystem_apply_color(rendersystem, &CE_COLOR_BLUE);
-
 	if (!scenenode->culled) {
 		ce_scenenode_draw_bbox(rendersystem, &scenenode->world_bbox);
 

@@ -54,6 +54,9 @@ extern void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,
 extern void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 												ce_camera* camera);
 
+extern void ce_rendersystem_begin_occlusion_test(ce_rendersystem* rendersystem);
+extern void ce_rendersystem_end_occlusion_test(ce_rendersystem* rendersystem);
+
 extern void ce_rendersystem_apply_color(ce_rendersystem* rendersystem,
 										const ce_color* color);
 

@@ -300,6 +300,24 @@ void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 	glMultMatrixf(rendersystem->view.m);
 }
 
+void ce_rendersystem_begin_occlusion_test(ce_rendersystem* rendersystem)
+{
+	ce_unused(rendersystem);
+
+	glDisable(GL_CULL_FACE);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+}
+
+void ce_rendersystem_end_occlusion_test(ce_rendersystem* rendersystem)
+{
+	ce_unused(rendersystem);
+
+	glDepthMask(GL_TRUE);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glEnable(GL_CULL_FACE);
+}
+
 void ce_rendersystem_apply_color(ce_rendersystem* rendersystem,
 									const ce_color* color)
 {
