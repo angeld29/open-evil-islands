@@ -235,9 +235,9 @@ typedef void (APIENTRY *CE_GL_COMPILE_SHADER_PROC)(GLhandle object);
 typedef GLhandle (APIENTRY *CE_GL_CREATE_PROGRAM_OBJECT_PROC)(void);
 typedef void (APIENTRY *CE_GL_ATTACH_OBJECT_PROC)
 			(GLhandle container, GLhandle object);
-typedef void (APIENTRY *CE_GL_LINK_PROGRAM_PROC)(GLhandle object);
+typedef void (APIENTRY *CE_GL_LINK_PROGRAM_OBJECT_PROC)(GLhandle object);
 typedef void (APIENTRY *CE_GL_USE_PROGRAM_OBJECT_PROC)(GLhandle object);
-typedef void (APIENTRY *CE_GL_VALIDATE_PROGRAM_PROC)(GLhandle object);
+typedef void (APIENTRY *CE_GL_VALIDATE_PROGRAM_OBJECT_PROC)(GLhandle object);
 
 static CE_GL_DELETE_OBJECT_PROC ce_gl_delete_object_proc;
 static CE_GL_GET_HANDLE_PROC ce_gl_get_handle_proc;
@@ -247,9 +247,9 @@ static CE_GL_SHADER_SOURCE_PROC ce_gl_shader_source_proc;
 static CE_GL_COMPILE_SHADER_PROC ce_gl_compile_shader_proc;
 static CE_GL_CREATE_PROGRAM_OBJECT_PROC ce_gl_create_program_object_proc;
 static CE_GL_ATTACH_OBJECT_PROC ce_gl_attach_object_proc;
-static CE_GL_LINK_PROGRAM_PROC ce_gl_link_program_proc;
+static CE_GL_LINK_PROGRAM_OBJECT_PROC ce_gl_link_program_object_proc;
 static CE_GL_USE_PROGRAM_OBJECT_PROC ce_gl_use_program_object_proc;
-static CE_GL_VALIDATE_PROGRAM_PROC ce_gl_validate_program_proc;
+static CE_GL_VALIDATE_PROGRAM_OBJECT_PROC ce_gl_validate_program_object_proc;
 
 // vertex shader
 const GLenum CE_GL_VERTEX_SHADER = 0x8B31;
@@ -655,11 +655,11 @@ bool ce_gl_init(void)
 				ce_gl_get_proc_address("glCreateProgramObjectARB");
 			ce_gl_attach_object_proc = (CE_GL_ATTACH_OBJECT_PROC)
 				ce_gl_get_proc_address("glAttachObjectARB");
-			ce_gl_link_program_proc = (CE_GL_LINK_PROGRAM_PROC)
+			ce_gl_link_program_object_proc = (CE_GL_LINK_PROGRAM_OBJECT_PROC)
 				ce_gl_get_proc_address("glLinkProgramARB");
 			ce_gl_use_program_object_proc = (CE_GL_USE_PROGRAM_OBJECT_PROC)
 				ce_gl_get_proc_address("glUseProgramObjectARB");
-			ce_gl_validate_program_proc = (CE_GL_VALIDATE_PROGRAM_PROC)
+			ce_gl_validate_program_object_proc = (CE_GL_VALIDATE_PROGRAM_OBJECT_PROC)
 				ce_gl_get_proc_address("glValidateProgramARB");
 
 			ce_gl_inst.features[CE_GL_FEATURE_SHADER_OBJECT] =
@@ -671,9 +671,9 @@ bool ce_gl_init(void)
 				NULL != ce_gl_compile_shader_proc &&
 				NULL != ce_gl_create_program_object_proc &&
 				NULL != ce_gl_attach_object_proc &&
-				NULL != ce_gl_link_program_proc &&
+				NULL != ce_gl_link_program_object_proc &&
 				NULL != ce_gl_use_program_object_proc &&
-				NULL != ce_gl_validate_program_proc;
+				NULL != ce_gl_validate_program_object_proc;
 		}
 	}
 
@@ -687,18 +687,15 @@ bool ce_gl_init(void)
 
 	if (ce_gl_inst.features[CE_GL_FEATURE_VERTEX_SHADER]) {
 		ce_gl_inst.features[CE_GL_FEATURE_VERTEX_SHADER_TESSELLATOR] =
-			ce_gl_check_extension("GL_AMD_vertex_shader_tessellator") ||
-			ce_gl_check_extension("GL_AMDX_vertex_shader_tessellator");
+			ce_gl_check_extension("GL_AMD_vertex_shader_tessellator");
 
 		if (ce_gl_inst.features[CE_GL_FEATURE_VERTEX_SHADER_TESSELLATOR]) {
 			ce_gl_vst_set_tessellation_factor_proc =
 				(CE_GL_VST_SET_TESSELLATION_FACTOR_PROC)
-					ce_gl_get_first_proc_address(2, "glTessellationFactorAMD",
-													"glTessellationFactorAMDX");
+					ce_gl_get_proc_address("glTessellationFactorAMD");
 			ce_gl_vst_set_tessellation_mode_proc =
 				(CE_GL_VST_SET_TESSELLATION_MODE_PROC)
-					ce_gl_get_first_proc_address(2, "glTessellationModeAMD",
-													"glTessellationModeAMDX");
+					ce_gl_get_proc_address("glTessellationModeAMD");
 
 			ce_gl_inst.features[CE_GL_FEATURE_VERTEX_SHADER_TESSELLATOR] =
 				NULL != ce_gl_vst_set_tessellation_factor_proc &&
@@ -1047,11 +1044,11 @@ void ce_gl_attach_object(GLhandle container, GLhandle object)
 	(*ce_gl_attach_object_proc)(container, object);
 }
 
-void ce_gl_link_program(GLhandle object)
+void ce_gl_link_program_object(GLhandle object)
 {
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_link_program_proc);
-	(*ce_gl_link_program_proc)(object);
+	assert(NULL != ce_gl_link_program_object_proc);
+	(*ce_gl_link_program_object_proc)(object);
 }
 
 void ce_gl_use_program_object(GLhandle object)
@@ -1061,11 +1058,11 @@ void ce_gl_use_program_object(GLhandle object)
 	(*ce_gl_use_program_object_proc)(object);
 }
 
-void ce_gl_validate_program(GLhandle object)
+void ce_gl_validate_program_object(GLhandle object)
 {
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_validate_program_proc);
-	(*ce_gl_validate_program_proc)(object);
+	assert(NULL != ce_gl_validate_program_object_proc);
+	(*ce_gl_validate_program_object_proc)(object);
 }
 
 // vertex shader tessellator

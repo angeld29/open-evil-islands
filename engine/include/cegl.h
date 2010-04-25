@@ -188,9 +188,9 @@ extern void ce_gl_shader_source(GLhandle object, GLsizei count,
 extern void ce_gl_compile_shader(GLhandle object);
 extern GLhandle ce_gl_create_program_object(void);
 extern void ce_gl_attach_object(GLhandle container, GLhandle object);
-extern void ce_gl_link_program(GLhandle object);
+extern void ce_gl_link_program_object(GLhandle object);
 extern void ce_gl_use_program_object(GLhandle object);
-extern void ce_gl_validate_program(GLhandle object);
+extern void ce_gl_validate_program_object(GLhandle object);
 
 // vertex shader
 extern const GLenum CE_GL_VERTEX_SHADER;

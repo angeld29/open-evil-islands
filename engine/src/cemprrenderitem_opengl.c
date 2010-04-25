@@ -18,16 +18,20 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <limits.h>
 #include <assert.h>
 
 #include <GL/gl.h>
 
+#include "cegl.h"
 #include "celib.h"
 #include "cemprhlp.h"
 #include "cetexture.h"
 #include "cemprrenderitem.h"
+
+// simple & fast triangulated geometry
 
 typedef struct {
 	GLuint list;
@@ -301,23 +305,220 @@ static void ce_mprrenderitem_tile_render(ce_renderitem* renderitem)
 	glCallList(mprrenderitem->list);
 }
 
-static const ce_renderitem_vtable ce_mprrenderitem_vtables[] = {
-	{ ce_mprrenderitem_fast_ctor, ce_mprrenderitem_fast_dtor,
-		NULL, ce_mprrenderitem_fast_render, NULL },
-	{ ce_mprrenderitem_tile_ctor, ce_mprrenderitem_tile_dtor,
-		NULL, ce_mprrenderitem_tile_render, NULL }
-};
+// HW tessellated geometry
 
-static size_t ce_mprrenderitem_sizes[] = {
-	sizeof(ce_mprrenderitem_fast),
-	sizeof(ce_mprrenderitem_tile)
-};
+typedef struct {
+	GLuint list;
+	GLhandle program_object;
+} ce_mprrenderitem_hwtess;
+
+static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args)
+{
+	ce_mprrenderitem_hwtess* mprrenderitem =
+		(ce_mprrenderitem_hwtess*)renderitem->impl;
+
+	ce_mprfile* mprfile = va_arg(args, ce_mprfile*);
+	int sector_x = va_arg(args, int);
+	int sector_z = va_arg(args, int);
+	int water = va_arg(args, int);
+
+	ce_mprsector* sector = mprfile->sectors + sector_z *
+							mprfile->sector_x_count + sector_x;
+
+	ce_mprvertex* vertices = water ? sector->water_vertices : sector->land_vertices;
+	int16_t* water_allow = water ? sector->water_allow : NULL;
+
+	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
+	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
+
+	const GLchar* vertex_prog =
+		"#extension GL_AMD_vertex_shader_tessellator : require\n"
+		"\n"
+		"__samplerVertexAMD Vertex;\n"
+		"__samplerVertexAMD Normal;\n"
+		"__samplerVertexAMD Texcoord0;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"	//gl_Vertex = vec4(0.0);\n"
+		"	//gl_Normal = vec4(0.0);\n"
+		"	//gl_MultiTexCoord0 = vec4(0.0);\n"
+		"	for (int i = 0; i < 3; ++i) {\n"
+		"		//float weight = gl_BarycentricCoord[i];\n"
+		"		//float tmp = vertexFetchAMD(Vertex, gl_VertexTriangleIndex[i]);\n"
+		"		//gl_Vertex += weight * vertexFetchAMD(Vertex, gl_VertexTriangleIndex[i]);\n"
+		"		//gl_Normal += weight * vertexFetchAMD(Normal, gl_VertexTriangleIndex[i]);\n"
+		"		//gl_MultiTexCoord0 += weight * vertexFetchAMD(Texcoord0, gl_VertexTriangleIndex[i]);\n"
+		"	}\n"
+		"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
+		"	gl_TexCoord[0] = gl_MultiTexCoord0;\n"
+		"}\n";
+
+	const GLchar* fragment_prog[] = {
+		"uniform sampler2D Texture0;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"	gl_FragColor = texture2D(Texture0, gl_TexCoord[0].st);\n"
+		"}\n",
+
+		"uniform sampler2D Texture0;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"	vec4 color = texture2D(Texture0, gl_TexCoord[0].st);\n"
+		"	gl_FragColor = vec4(mix(gl_FrontMaterial.diffuse.rgb,\n"
+		"		color.rgb, color.a), gl_FrontMaterial.diffuse.a);\n"
+		"}\n",
+	};
+
+	GLhandle vertex_object = ce_gl_create_shader_object(CE_GL_VERTEX_SHADER);
+	ce_gl_shader_source(vertex_object, 1, &vertex_prog, NULL);
+	ce_gl_compile_shader(vertex_object);
+
+	GLhandle fragment_object = ce_gl_create_shader_object(CE_GL_FRAGMENT_SHADER);
+	ce_gl_shader_source(fragment_object, 1, &fragment_prog[water], NULL);
+	ce_gl_compile_shader(fragment_object);
+
+	mprrenderitem->program_object = ce_gl_create_program_object();
+	ce_gl_attach_object(mprrenderitem->program_object, vertex_object);
+	ce_gl_attach_object(mprrenderitem->program_object, fragment_object);
+	ce_gl_link_program_object(mprrenderitem->program_object);
+
+	ce_gl_delete_object(fragment_object);
+	ce_gl_delete_object(vertex_object);
+
+	ce_gl_vst_set_tessellation_factor(2.0f);
+	ce_gl_vst_set_tessellation_mode(CE_GL_VST_CONTINUOUS);
+
+	/**
+	 *  Sector rendering: just simple triangle strips!
+	 *
+	 *   0___1___2__...__32
+	 *   |\  |\  |\  |\  |
+	 *   | \ | \ | \ | \ | --->
+	 *  1|__\|__\|__\|__\|
+	 *   |\  |\  |\  |\  |
+	 *  .| \ | \ | \ | \ | --->
+	 *  .|__\|__\|__\|__\|
+	 *  .|\  |\  |\  |\  |
+	 *   | \ | \ | \ | \ | --->
+	 *   |__\|__\|__\|__\|
+	 *  32
+	*/
+
+	float normal[3];
+
+	glNewList(mprrenderitem->list = glGenLists(1), GL_COMPILE);
+
+	ce_gl_use_program_object(mprrenderitem->program_object);
+
+	for (int i = 1; i < CE_MPRFILE_VERTEX_SIDE; ++i) {
+		glBegin(GL_TRIANGLE_STRIP);
+		for (int j = 0; j < 2 * CE_MPRFILE_VERTEX_SIDE; ++j) {
+			int z = i - j % 2;
+			int x = j / 2;
+
+			if (NULL != water_allow) {
+				/**
+				 *  This fu... clever code needs to remove some
+				 *  not allowed water triangles.
+				 *
+				 *  1 tile = 9 vertices = 8 triangles
+				 *  1/2 tile = 6 vertices = 4 triangles
+				 *
+				 *  For performance reasons, I render 1/2 each tile
+				 *  in continuous strip. If this half of tile is not
+				 *  allowed, break the strip and remove last one entirely.
+				*/
+
+				// map 33x33 vertices to 16x16 tiles
+				int tz = (i - 1) / 2;
+
+				int tx_cur = x / 2;
+				int tx_prev = 1 == x % 2 ? -1 : tx_cur - 1;
+
+				tx_cur = ce_min(tx_cur, CE_MPRFILE_TEXTURE_SIDE - 1);
+				tx_prev = -1 == tx_prev ? tx_cur : tx_prev;
+
+				if (-1 == water_allow[tz * CE_MPRFILE_TEXTURE_SIDE + tx_prev] &&
+						-1 == water_allow[tz * CE_MPRFILE_TEXTURE_SIDE + tx_cur]) {
+					glEnd();
+					glBegin(GL_TRIANGLE_STRIP);
+					continue;
+				}
+			}
+
+			ce_mprvertex* vertex = vertices + z * CE_MPRFILE_VERTEX_SIDE + x;
+
+			// note that opengl's textures are bottom to top
+			glTexCoord2f(x / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+				(CE_MPRFILE_VERTEX_SIDE - 1 - z) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+
+			ce_mprhlp_normal2vector(normal, vertex->normal);
+			normal[2] = -normal[2];
+			glNormal3fv(normal);
+
+			glVertex3f(x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+				offset_xz_coef * vertex->offset_x, y_coef * vertex->coord_y,
+				-1.0f * (z + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+				offset_xz_coef * vertex->offset_z));
+		}
+		glEnd();
+	}
+
+	ce_gl_use_program_object(0);
+
+	glEndList();
+}
+
+static void ce_mprrenderitem_hwtess_dtor(ce_renderitem* renderitem)
+{
+	ce_mprrenderitem_hwtess* mprrenderitem =
+		(ce_mprrenderitem_hwtess*)renderitem->impl;
+
+	ce_gl_delete_object(mprrenderitem->program_object);
+	glDeleteLists(mprrenderitem->list, 1);
+}
+
+static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
+{
+	ce_mprrenderitem_hwtess* mprrenderitem =
+		(ce_mprrenderitem_hwtess*)renderitem->impl;
+
+	glCallList(mprrenderitem->list);
+}
 
 ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, bool tiling,
 									int sector_x, int sector_z,
 									int water, ce_vector* tile_textures)
 {
-	return ce_renderitem_new(ce_mprrenderitem_vtables[tiling],
-							ce_mprrenderitem_sizes[tiling],
-							mprfile, sector_x, sector_z, water, tile_textures);
+	if (tiling) {
+		// tiling? no speed, no tesselation...
+		ce_renderitem_vtable ce_mprrenderitem_tile_vtable = {
+			ce_mprrenderitem_tile_ctor, ce_mprrenderitem_tile_dtor,
+			NULL, ce_mprrenderitem_tile_render, NULL
+		};
+		return ce_renderitem_new(ce_mprrenderitem_tile_vtable,
+							sizeof(ce_mprrenderitem_tile), mprfile,
+							sector_x, sector_z, water, tile_textures);
+	}
+
+	if (ce_gl_query_feature(CE_GL_FEATURE_VERTEX_SHADER_TESSELLATOR)) {
+		ce_renderitem_vtable ce_renderitem_hwtess_vtable = {
+			ce_mprrenderitem_hwtess_ctor, ce_mprrenderitem_hwtess_dtor,
+			NULL, ce_mprrenderitem_hwtess_render, NULL
+		};
+		return ce_renderitem_new(ce_renderitem_hwtess_vtable,
+								sizeof(ce_mprrenderitem_hwtess), mprfile,
+								sector_x, sector_z, water, tile_textures);
+	}
+
+	ce_renderitem_vtable ce_renderitem_fast_vtable = {
+		ce_mprrenderitem_fast_ctor, ce_mprrenderitem_fast_dtor,
+		NULL, ce_mprrenderitem_fast_render, NULL
+	};
+	return ce_renderitem_new(ce_renderitem_fast_vtable,
+							sizeof(ce_mprrenderitem_fast), mprfile,
+							sector_x, sector_z, water, tile_textures);
 }
