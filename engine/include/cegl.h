@@ -161,6 +161,15 @@ extern void ce_gl_generate_mipmap(GLenum target);
 extern const GLenum CE_GL_PIXEL_PACK_BUFFER;
 extern const GLenum CE_GL_PIXEL_UNPACK_BUFFER;
 
+// TBO
+extern const GLenum CE_GL_TEXTURE_BUFFER;
+extern const GLenum CE_GL_MAX_TEXTURE_BUFFER_SIZE;
+extern const GLenum CE_GL_TEXTURE_BINDING_BUFFER;
+extern const GLenum CE_GL_TEXTURE_BUFFER_DATA_STORE_BINDING;
+extern const GLenum CE_GL_TEXTURE_BUFFER_FORMAT;
+
+extern void ce_gl_tex_buffer(GLenum target, GLenum internal_format, GLuint buffer);
+
 // shading language
 extern const GLenum CE_GL_SHADING_LANGUAGE_VERSION;
 

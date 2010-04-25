@@ -205,6 +205,18 @@ static CE_GL_GENERATE_MIPMAP_PROC ce_gl_generate_mipmap_proc;
 const GLenum CE_GL_PIXEL_PACK_BUFFER = 0x88EB;
 const GLenum CE_GL_PIXEL_UNPACK_BUFFER = 0x88EC;
 
+// TBO
+const GLenum CE_GL_TEXTURE_BUFFER = 0x8C2A;
+const GLenum CE_GL_MAX_TEXTURE_BUFFER_SIZE = 0x8C2B;
+const GLenum CE_GL_TEXTURE_BINDING_BUFFER = 0x8C2C;
+const GLenum CE_GL_TEXTURE_BUFFER_DATA_STORE_BINDING = 0x8C2D;
+const GLenum CE_GL_TEXTURE_BUFFER_FORMAT = 0x8C2E;
+
+typedef void (APIENTRY *CE_GL_TEX_BUFFER_PROC)
+			(GLenum target, GLenum internal_format, GLuint buffer);
+
+static CE_GL_TEX_BUFFER_PROC ce_gl_tex_buffer_proc;
+
 // shading language
 const GLenum CE_GL_SHADING_LANGUAGE_VERSION = 0x8B8C;
 
@@ -631,6 +643,14 @@ bool ce_gl_init(void)
 		ce_gl_check_extension("GL_ARB_texture_buffer_object") ||
 		ce_gl_check_extension("GL_EXT_texture_buffer_object");
 
+	if (ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_BUFFER_OBJECT]) {
+		ce_gl_tex_buffer_proc = (CE_GL_TEX_BUFFER_PROC)
+			ce_gl_get_proc_address("glTexBufferARB");
+
+		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_BUFFER_OBJECT] =
+			NULL != ce_gl_tex_buffer_proc;
+	}
+
 	ce_gl_inst.features[CE_GL_FEATURE_SHADING_LANGUAGE_100] =
 		ce_gl_check_extension("GL_ARB_shading_language_100");
 
@@ -983,6 +1003,15 @@ void ce_gl_generate_mipmap(GLenum target)
 	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
 	assert(NULL != ce_gl_generate_mipmap_proc);
 	(*ce_gl_generate_mipmap_proc)(target);
+}
+
+// TBO
+
+void ce_gl_tex_buffer(GLenum target, GLenum internal_format, GLuint buffer)
+{
+	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
+	assert(NULL != ce_gl_tex_buffer_proc);
+	(*ce_gl_tex_buffer_proc)(target, internal_format, buffer);
 }
 
 // shader object
