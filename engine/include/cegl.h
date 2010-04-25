@@ -31,44 +31,13 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-#ifndef GL_VERSION_1_5
-// gl types for handling large vertex buffer objects
+// GL types for handling large vertex buffer objects
 typedef ptrdiff_t GLintptr;
 typedef ptrdiff_t GLsizeiptr;
-#endif
 
-typedef enum {
-	CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO,
-	CE_GL_FEATURE_TEXTURE_RECTANGLE,
-	CE_GL_FEATURE_TEXTURE_COMPRESSION,
-	CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC,
-	CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1,
-	CE_GL_FEATURE_TEXTURE_LOD,
-	CE_GL_FEATURE_TEXTURE_BORDER_CLAMP,
-	CE_GL_FEATURE_TEXTURE_EDGE_CLAMP,
-	CE_GL_FEATURE_ABGR,
-	CE_GL_FEATURE_BGRA,
-	CE_GL_FEATURE_PACKED_PIXELS,
-	CE_GL_FEATURE_GENERATE_MIPMAP,
-	CE_GL_FEATURE_WINDOW_POS,
-	CE_GL_FEATURE_POINT_PARAMETERS,
-	CE_GL_FEATURE_POINT_SPRITE,
-	CE_GL_FEATURE_OCCLUSION_QUERY,
-	CE_GL_FEATURE_OCCLUSION_QUERY2,
-	CE_GL_FEATURE_MULTISAMPLE,
-	CE_GL_FEATURE_VERTEX_BUFFER_OBJECT,
-	CE_GL_FEATURE_FRAME_BUFFER_OBJECT,
-	CE_GL_FEATURE_PIXEL_BUFFER_OBJECT,
-	CE_GL_FEATURE_TEXTURE_BUFFER_OBJECT,
-	CE_GL_FEATURE_SHADING_LANGUAGE_100,
-	CE_GL_FEATURE_SHADER_OBJECT,
-	CE_GL_FEATURE_VERTEX_SHADER,
-	CE_GL_FEATURE_FRAGMENT_SHADER,
-	CE_GL_FEATURE_VERTEX_SHADER_TESSELLATOR,
-	CE_GL_FEATURE_PERFORMANCE_MONITOR,
-	CE_GL_FEATURE_MEMINFO,
-	CE_GL_FEATURE_COUNT
-} ce_gl_feature;
+// GL types for program/shader text and shader object handles
+typedef char GLchar;
+typedef unsigned int GLhandle;
 
 // texture compression
 extern const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT1;
@@ -195,6 +164,40 @@ extern const GLenum CE_GL_PIXEL_UNPACK_BUFFER;
 // shading language
 extern const GLenum CE_GL_SHADING_LANGUAGE_VERSION;
 
+// shader object
+extern const GLenum CE_GL_PROGRAM_OBJECT;
+extern const GLenum CE_GL_OBJECT_TYPE;
+extern const GLenum CE_GL_OBJECT_SUBTYPE;
+extern const GLenum CE_GL_OBJECT_DELETE_STATUS;
+extern const GLenum CE_GL_OBJECT_COMPILE_STATUS;
+extern const GLenum CE_GL_OBJECT_LINK_STATUS;
+extern const GLenum CE_GL_OBJECT_VALIDATE_STATUS;
+extern const GLenum CE_GL_OBJECT_INFO_LOG_LENGTH;
+extern const GLenum CE_GL_OBJECT_ATTACHED_OBJECTS;
+extern const GLenum CE_GL_OBJECT_ACTIVE_UNIFORMS;
+extern const GLenum CE_GL_OBJECT_ACTIVE_UNIFORM_MAX_LENGTH;
+extern const GLenum CE_GL_OBJECT_SHADER_SOURCE_LENGTH;
+extern const GLenum CE_GL_SHADER_OBJECT;
+
+extern void ce_gl_delete_object(GLhandle object);
+extern GLhandle ce_gl_get_handle(GLenum pname);
+extern void ce_gl_detach_object(GLhandle container, GLhandle object);
+extern GLhandle ce_gl_create_shader_object(GLenum type);
+extern void ce_gl_shader_source(GLhandle object, GLsizei count,
+								const GLchar** string, const int* length);
+extern void ce_gl_compile_shader(GLhandle object);
+extern GLhandle ce_gl_create_program_object(void);
+extern void ce_gl_attach_object(GLhandle container, GLhandle object);
+extern void ce_gl_link_program(GLhandle object);
+extern void ce_gl_use_program_object(GLhandle object);
+extern void ce_gl_validate_program(GLhandle object);
+
+// vertex shader
+extern const GLenum CE_GL_VERTEX_SHADER;
+
+// fragment shader
+extern const GLenum CE_GL_FRAGMENT_SHADER;
+
 // vertex shader tessellator
 extern const GLenum CE_GL_VST_SAMPLER_BUFFER;
 extern const GLenum CE_GL_VST_INT_SAMPLER_BUFFER;
@@ -242,6 +245,39 @@ extern const GLenum CE_GL_TEXTURE_FREE_MEMORY;
 extern const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY;
 
 // common API
+typedef enum {
+	CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO,
+	CE_GL_FEATURE_TEXTURE_RECTANGLE,
+	CE_GL_FEATURE_TEXTURE_COMPRESSION,
+	CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC,
+	CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1,
+	CE_GL_FEATURE_TEXTURE_LOD,
+	CE_GL_FEATURE_TEXTURE_BORDER_CLAMP,
+	CE_GL_FEATURE_TEXTURE_EDGE_CLAMP,
+	CE_GL_FEATURE_ABGR,
+	CE_GL_FEATURE_BGRA,
+	CE_GL_FEATURE_PACKED_PIXELS,
+	CE_GL_FEATURE_GENERATE_MIPMAP,
+	CE_GL_FEATURE_WINDOW_POS,
+	CE_GL_FEATURE_POINT_PARAMETERS,
+	CE_GL_FEATURE_POINT_SPRITE,
+	CE_GL_FEATURE_OCCLUSION_QUERY,
+	CE_GL_FEATURE_OCCLUSION_QUERY2,
+	CE_GL_FEATURE_MULTISAMPLE,
+	CE_GL_FEATURE_VERTEX_BUFFER_OBJECT,
+	CE_GL_FEATURE_FRAME_BUFFER_OBJECT,
+	CE_GL_FEATURE_PIXEL_BUFFER_OBJECT,
+	CE_GL_FEATURE_TEXTURE_BUFFER_OBJECT,
+	CE_GL_FEATURE_SHADING_LANGUAGE_100,
+	CE_GL_FEATURE_SHADER_OBJECT,
+	CE_GL_FEATURE_VERTEX_SHADER,
+	CE_GL_FEATURE_FRAGMENT_SHADER,
+	CE_GL_FEATURE_VERTEX_SHADER_TESSELLATOR,
+	CE_GL_FEATURE_PERFORMANCE_MONITOR,
+	CE_GL_FEATURE_MEMINFO,
+	CE_GL_FEATURE_COUNT
+} ce_gl_feature;
+
 extern bool ce_gl_init(void);
 extern void ce_gl_term(void);
 
