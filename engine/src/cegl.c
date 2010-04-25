@@ -58,6 +58,14 @@ const GLenum CE_GL_TEXTURE_MAX_LEVEL = 0x813D;
 const GLenum CE_GL_CLAMP_TO_BORDER = 0x812D;
 const GLenum CE_GL_CLAMP_TO_EDGE = 0x812F;
 
+// texture float
+const GLenum CE_GL_RGBA32F = 0x8814;
+const GLenum CE_GL_RGB32F = 0x8815;
+const GLenum CE_GL_ALPHA32F = 0x8816;
+const GLenum CE_GL_RGBA16F = 0x881A;
+const GLenum CE_GL_RGB16F = 0x881B;
+const GLenum CE_GL_ALPHA16F = 0x881C;
+
 // color formats
 const GLenum CE_GL_ABGR = 0x8000;
 const GLenum CE_GL_BGR = 0x80E0;
@@ -400,6 +408,7 @@ static struct {
 		"texture lod",
 		"texture border clamp",
 		"texture edge clamp",
+		"texture float",
 		"abgr",
 		"bgra",
 		"packed pixels",
@@ -468,6 +477,10 @@ bool ce_gl_init(void)
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_EDGE_CLAMP] =
 		ce_gl_check_extension("GL_SGIS_texture_edge_clamp") ||
 		ce_gl_check_extension("GL_EXT_texture_edge_clamp");
+
+	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_FLOAT] =
+		ce_gl_check_extension("GL_ARB_texture_float") ||
+		ce_gl_check_extension("GL_ATI_texture_float");
 
 	ce_gl_inst.features[CE_GL_FEATURE_ABGR] =
 		ce_gl_check_extension("GL_EXT_abgr");

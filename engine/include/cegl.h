@@ -56,6 +56,14 @@ extern const GLenum CE_GL_TEXTURE_MAX_LEVEL;
 extern const GLenum CE_GL_CLAMP_TO_BORDER;
 extern const GLenum CE_GL_CLAMP_TO_EDGE;
 
+// texture float
+extern const GLenum CE_GL_RGBA32F;
+extern const GLenum CE_GL_RGB32F;
+extern const GLenum CE_GL_ALPHA32F;
+extern const GLenum CE_GL_RGBA16F;
+extern const GLenum CE_GL_RGB16F;
+extern const GLenum CE_GL_ALPHA16F;
+
 // color formats
 extern const GLenum CE_GL_ABGR;
 extern const GLenum CE_GL_BGR;
@@ -263,6 +271,7 @@ typedef enum {
 	CE_GL_FEATURE_TEXTURE_LOD,
 	CE_GL_FEATURE_TEXTURE_BORDER_CLAMP,
 	CE_GL_FEATURE_TEXTURE_EDGE_CLAMP,
+	CE_GL_FEATURE_TEXTURE_FLOAT,
 	CE_GL_FEATURE_ABGR,
 	CE_GL_FEATURE_BGRA,
 	CE_GL_FEATURE_PACKED_PIXELS,
