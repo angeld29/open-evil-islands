@@ -188,6 +188,8 @@ const GLenum CE_GL_BUFFER_USAGE = 0x8765;
 const GLenum CE_GL_BUFFER_ACCESS = 0x88BB;
 const GLenum CE_GL_BUFFER_MAPPED = 0x88BC;
 const GLenum CE_GL_BUFFER_MAP_POINTER = 0x88BD;
+const GLenum CE_GL_COPY_READ_BUFFER = 0x8F36;
+const GLenum CE_GL_COPY_WRITE_BUFFER = 0x8F37;
 
 typedef void (APIENTRY *CE_GL_BIND_BUFFER_PROC)(GLenum target, GLuint buffer);
 typedef void (APIENTRY *CE_GL_DELETE_BUFFERS_PROC)
@@ -208,6 +210,8 @@ typedef void (APIENTRY *CE_GL_GET_BUFFER_PARAMETER_IV_PROC)
 				(GLenum target, GLenum pname, GLint* params);
 typedef void (APIENTRY *CE_GL_GET_BUFFER_POINTER_V_PROC)
 				(GLenum target, GLenum pname, GLvoid** params);
+typedef void (APIENTRY *CE_GL_COPY_BUFFER_SUB_DATA_PROC)
+				(GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr);
 
 static CE_GL_BIND_BUFFER_PROC ce_gl_bind_buffer_proc;
 static CE_GL_DELETE_BUFFERS_PROC ce_gl_delete_buffers_proc;
@@ -220,6 +224,7 @@ static CE_GL_MAP_BUFFER_PROC ce_gl_map_buffer_proc;
 static CE_GL_UNMAP_BUFFER_PROC ce_gl_unmap_buffer_proc;
 static CE_GL_GET_BUFFER_PARAMETER_IV_PROC ce_gl_get_buffer_parameter_iv_proc;
 static CE_GL_GET_BUFFER_POINTER_V_PROC ce_gl_get_buffer_pointer_v_proc;
+static CE_GL_COPY_BUFFER_SUB_DATA_PROC ce_gl_copy_buffer_sub_data_proc;
 
 // FBO
 const GLenum CE_GL_FRAME_BUFFER = 0x8D40;
@@ -536,6 +541,7 @@ static struct {
 		"occlusion query2",
 		"multisample",
 		"vertex buffer object",
+		"copy buffer",
 		"frame buffer object",
 		"pixel buffer object",
 		"texture buffer object",
@@ -742,6 +748,20 @@ bool ce_gl_init(void)
 			NULL != ce_gl_unmap_buffer_proc &&
 			NULL != ce_gl_get_buffer_parameter_iv_proc &&
 			NULL != ce_gl_get_buffer_pointer_v_proc;
+	}
+
+	ce_gl_inst.features[CE_GL_FEATURE_COPY_BUFFER] =
+		ce_gl_inst.features[CE_GL_FEATURE_VERTEX_BUFFER_OBJECT] &&
+		(ce_gl_check_extension("GL_ARB_copy_buffer") ||
+		ce_gl_check_extension("GL_EXT_copy_buffer"));
+
+	if (ce_gl_inst.features[CE_GL_FEATURE_COPY_BUFFER]) {
+		ce_gl_copy_buffer_sub_data_proc = (CE_GL_COPY_BUFFER_SUB_DATA_PROC)
+			ce_gl_get_first_proc_address(2, "glCopyBufferSubDataARB",
+											"glCopyBufferSubDataEXT");
+
+		ce_gl_inst.features[CE_GL_FEATURE_COPY_BUFFER] =
+			NULL != ce_gl_copy_buffer_sub_data_proc;
 	}
 
 	ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT] =
@@ -1213,6 +1233,14 @@ void ce_gl_get_buffer_pointer_v(GLenum target, GLenum pname, GLvoid** params)
 {
 	CE_GL_CHECK_PROC_POINTER(ce_gl_get_buffer_pointer_v_proc);
 	(*ce_gl_get_buffer_pointer_v_proc)(target, pname, params);
+}
+
+void ce_gl_copy_buffer_sub_data(GLenum read_target, GLenum write_target,
+	GLintptr read_offset, GLintptr write_offset, GLsizeiptr size)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_copy_buffer_sub_data_proc);
+	(*ce_gl_copy_buffer_sub_data_proc)(read_target, write_target,
+		read_offset, write_offset, size);
 }
 
 // FBO

@@ -164,6 +164,8 @@ extern const GLenum CE_GL_BUFFER_USAGE;
 extern const GLenum CE_GL_BUFFER_ACCESS;
 extern const GLenum CE_GL_BUFFER_MAPPED;
 extern const GLenum CE_GL_BUFFER_MAP_POINTER;
+extern const GLenum CE_GL_COPY_READ_BUFFER;
+extern const GLenum CE_GL_COPY_WRITE_BUFFER;
 
 extern void ce_gl_bind_buffer(GLenum target, GLuint buffer);
 extern void ce_gl_delete_buffers(GLsizei n, const GLuint* buffers);
@@ -179,6 +181,8 @@ extern void* ce_gl_map_buffer(GLenum target, GLenum access);
 extern GLboolean ce_gl_unmap_buffer(GLenum target);
 extern void ce_gl_get_buffer_parameter_iv(GLenum target, GLenum pname, GLint* params);
 extern void ce_gl_get_buffer_pointer_v(GLenum target, GLenum pname, GLvoid** params);
+extern void ce_gl_copy_buffer_sub_data(GLenum read_target, GLenum write_target,
+	GLintptr read_offset, GLintptr write_offset, GLsizeiptr size);
 
 // FBO
 extern const GLenum CE_GL_FRAME_BUFFER;
@@ -372,6 +376,7 @@ typedef enum {
 	CE_GL_FEATURE_OCCLUSION_QUERY2,
 	CE_GL_FEATURE_MULTISAMPLE,
 	CE_GL_FEATURE_VERTEX_BUFFER_OBJECT,
+	CE_GL_FEATURE_COPY_BUFFER,
 	CE_GL_FEATURE_FRAME_BUFFER_OBJECT,
 	CE_GL_FEATURE_PIXEL_BUFFER_OBJECT,
 	CE_GL_FEATURE_TEXTURE_BUFFER_OBJECT,
