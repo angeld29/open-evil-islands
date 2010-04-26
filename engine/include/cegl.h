@@ -174,11 +174,11 @@ extern void ce_gl_buffer_data(GLenum target, GLsizeiptr size,
 extern void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
 									GLsizeiptr size, const GLvoid* data);
 extern void ce_gl_get_buffer_sub_data(GLenum target, GLintptr offset,
-									GLsizeiptr size, void* data);
+									GLsizeiptr size, GLvoid* data);
 extern void* ce_gl_map_buffer(GLenum target, GLenum access);
 extern GLboolean ce_gl_unmap_buffer(GLenum target);
-extern void ce_gl_get_buffer_parameter_iv(GLenum target, GLenum pname, int* params);
-extern void ce_gl_get_buffer_pointer_v(GLenum target, GLenum pname, void** params);
+extern void ce_gl_get_buffer_parameter_iv(GLenum target, GLenum pname, GLint* params);
+extern void ce_gl_get_buffer_pointer_v(GLenum target, GLenum pname, GLvoid** params);
 
 // FBO
 extern const GLenum CE_GL_FRAME_BUFFER;
@@ -199,6 +199,8 @@ extern void ce_gl_generate_mipmap(GLenum target);
 // PBO
 extern const GLenum CE_GL_PIXEL_PACK_BUFFER;
 extern const GLenum CE_GL_PIXEL_UNPACK_BUFFER;
+extern const GLenum CE_GL_PIXEL_PACK_BUFFER_BINDING;
+extern const GLenum CE_GL_PIXEL_UNPACK_BUFFER_BINDING;
 
 // TBO
 extern const GLenum CE_GL_TEXTURE_BUFFER;
@@ -232,19 +234,75 @@ extern GLhandle ce_gl_get_handle(GLenum pname);
 extern void ce_gl_detach_object(GLhandle container, GLhandle object);
 extern GLhandle ce_gl_create_shader_object(GLenum type);
 extern void ce_gl_shader_source(GLhandle object, GLsizei count,
-								const GLchar** string, const int* length);
+								const GLchar** string, const GLint* length);
 extern void ce_gl_compile_shader(GLhandle object);
 extern GLhandle ce_gl_create_program_object(void);
 extern void ce_gl_attach_object(GLhandle container, GLhandle object);
 extern void ce_gl_link_program_object(GLhandle object);
 extern void ce_gl_use_program_object(GLhandle object);
 extern void ce_gl_validate_program_object(GLhandle object);
+extern void ce_gl_uniform_1f(GLint location, GLfloat v0);
+extern void ce_gl_uniform_2f(GLint location, GLfloat v0, GLfloat v1);
+extern void ce_gl_uniform_3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
+extern void ce_gl_uniform_4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+extern void ce_gl_uniform_1i(GLint location, GLint v0);
+extern void ce_gl_uniform_2i(GLint location, GLint v0, GLint v1);
+extern void ce_gl_uniform_3i(GLint location, GLint v0, GLint v1, GLint v2);
+extern void ce_gl_uniform_4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
+extern void ce_gl_uniform_1fv(GLint location, GLsizei count, const GLfloat* value);
+extern void ce_gl_uniform_2fv(GLint location, GLsizei count, const GLfloat* value);
+extern void ce_gl_uniform_3fv(GLint location, GLsizei count, const GLfloat* value);
+extern void ce_gl_uniform_4fv(GLint location, GLsizei count, const GLfloat* value);
+extern void ce_gl_uniform_1iv(GLint location, GLsizei count, const GLint* value);
+extern void ce_gl_uniform_2iv(GLint location, GLsizei count, const GLint* value);
+extern void ce_gl_uniform_3iv(GLint location, GLsizei count, const GLint* value);
+extern void ce_gl_uniform_4iv(GLint location, GLsizei count, const GLint* value);
+extern void ce_gl_uniform_matrix_2fv(GLint location, GLsizei count,
+									GLboolean transpose, const GLfloat* value);
+extern void ce_gl_uniform_matrix_3fv(GLint location, GLsizei count,
+									GLboolean transpose, const GLfloat* value);
+extern void ce_gl_uniform_matrix_4fv(GLint location, GLsizei count,
+									GLboolean transpose, const GLfloat* value);
+extern void ce_gl_get_object_parameter_fv(GLhandle object, GLenum pname, GLfloat* params);
+extern void ce_gl_get_object_parameter_iv(GLhandle object, GLenum pname, GLint* params);
+extern void ce_gl_get_info_log(GLhandle object, GLsizei max_length,
+								GLsizei* length, GLchar* info_log);
+extern void ce_gl_get_attached_objects(GLhandle container, GLsizei max_count,
+										GLsizei* count, GLhandle* object);
+extern GLint ce_gl_get_uniform_location(GLhandle object, const GLchar* name);
+extern void ce_gl_get_active_uniform(GLhandle object, GLuint index,
+									GLsizei max_length, GLsizei* length,
+									GLint* size, GLenum* type, GLchar* name);
+extern void ce_gl_get_uniform_fv(GLhandle object, GLint location, GLfloat* params);
+extern void ce_gl_get_uniform_iv(GLhandle object, GLint location, GLint* params);
+extern void ce_gl_get_shader_source(GLhandle object, GLsizei max_length,
+									GLsizei* length, GLchar* source);
 
 // vertex shader
 extern const GLenum CE_GL_VERTEX_SHADER;
+extern const GLenum CE_GL_MAX_VERTEX_UNIFORM_COMPONENTS;
+extern const GLenum CE_GL_MAX_VARYING_FLOATS;
+extern const GLenum CE_GL_MAX_VERTEX_ATTRIBS;
+extern const GLenum CE_GL_MAX_TEXTURE_IMAGE_UNITS;
+extern const GLenum CE_GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS;
+extern const GLenum CE_GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS;
+extern const GLenum CE_GL_MAX_TEXTURE_COORDS;
+extern const GLenum CE_GL_VERTEX_PROGRAM_POINT_SIZE;
+extern const GLenum CE_GL_VERTEX_PROGRAM_TWO_SIDE;
+extern const GLenum CE_GL_OBJECT_ACTIVE_ATTRIBUTES;
+extern const GLenum CE_GL_OBJECT_ACTIVE_ATTRIBUTE_MAX_LENGTH;
+extern const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_ENABLED;
+extern const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_SIZE;
+extern const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_STRIDE;
+extern const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_TYPE;
+extern const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_NORMALIZED;
+extern const GLenum CE_GL_CURRENT_VERTEX_ATTRIB;
+extern const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_POINTER;
 
 // fragment shader
 extern const GLenum CE_GL_FRAGMENT_SHADER;
+extern const GLenum CE_GL_MAX_FRAGMENT_UNIFORM_COMPONENTS;
+extern const GLenum CE_GL_FRAGMENT_SHADER_DERIVATIVE_HINT;
 
 // vertex shader tessellator
 extern const GLenum CE_GL_VST_SAMPLER_BUFFER;
@@ -272,9 +330,9 @@ extern void ce_gl_get_perfmon_counters(GLuint group, GLint* count,
 										GLint* max_active, GLsizei size,
 										GLuint* counters);
 extern void ce_gl_get_perfmon_group_str(GLuint group, GLsizei size,
-										GLsizei* length, char* str);
+										GLsizei* length, GLchar* str);
 extern void ce_gl_get_perfmon_counter_str(GLuint group, GLuint counter,
-										GLsizei size, GLsizei* length, char* str);
+										GLsizei size, GLsizei* length, GLchar* str);
 extern void ce_gl_get_perfmon_counter_info(GLuint group, GLuint counter,
 											GLenum pname, GLvoid* data);
 extern void ce_gl_gen_perfmons(GLsizei n, GLuint* monitors);

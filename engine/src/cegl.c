@@ -201,13 +201,13 @@ typedef void (APIENTRY *CE_GL_BUFFER_SUB_DATA_PROC)
 				(GLenum target, GLintptr offset,
 				GLsizeiptr size, const GLvoid* data);
 typedef void (APIENTRY *CE_GL_GET_BUFFER_SUB_DATA_PROC)
-				(GLenum target, GLintptr offset, GLsizeiptr size, void* data);
+				(GLenum target, GLintptr offset, GLsizeiptr size, GLvoid* data);
 typedef void* (APIENTRY *CE_GL_MAP_BUFFER_PROC)(GLenum target, GLenum access);
 typedef GLboolean (APIENTRY *CE_GL_UNMAP_BUFFER_PROC)(GLenum target);
 typedef void (APIENTRY *CE_GL_GET_BUFFER_PARAMETER_IV_PROC)
-				(GLenum target, GLenum pname, int* params);
+				(GLenum target, GLenum pname, GLint* params);
 typedef void (APIENTRY *CE_GL_GET_BUFFER_POINTER_V_PROC)
-				(GLenum target, GLenum pname, void** params);
+				(GLenum target, GLenum pname, GLvoid** params);
 
 static CE_GL_BIND_BUFFER_PROC ce_gl_bind_buffer_proc;
 static CE_GL_DELETE_BUFFERS_PROC ce_gl_delete_buffers_proc;
@@ -251,6 +251,8 @@ static CE_GL_GENERATE_MIPMAP_PROC ce_gl_generate_mipmap_proc;
 // PBO
 const GLenum CE_GL_PIXEL_PACK_BUFFER = 0x88EB;
 const GLenum CE_GL_PIXEL_UNPACK_BUFFER = 0x88EC;
+const GLenum CE_GL_PIXEL_PACK_BUFFER_BINDING = 0x88ED;
+const GLenum CE_GL_PIXEL_UNPACK_BUFFER_BINDING = 0x88EF;
 
 // TBO
 const GLenum CE_GL_TEXTURE_BUFFER = 0x8C2A;
@@ -282,21 +284,47 @@ const GLenum CE_GL_OBJECT_ACTIVE_UNIFORM_MAX_LENGTH = 0x8B87;
 const GLenum CE_GL_OBJECT_SHADER_SOURCE_LENGTH = 0x8B88;
 const GLenum CE_GL_SHADER_OBJECT = 0x8B48;
 
-typedef void (APIENTRY *CE_GL_DELETE_OBJECT_PROC)(GLhandle object);
-typedef GLhandle (APIENTRY *CE_GL_GET_HANDLE_PROC)(GLenum pname);
-typedef void (APIENTRY *CE_GL_DETACH_OBJECT_PROC)
-			(GLhandle container, GLhandle object);
-typedef GLhandle (APIENTRY *CE_GL_CREATE_SHADER_OBJECT_PROC)(GLenum type);
+typedef void (APIENTRY *CE_GL_DELETE_OBJECT_PROC)(GLhandle);
+typedef GLhandle (APIENTRY *CE_GL_GET_HANDLE_PROC)(GLenum);
+typedef void (APIENTRY *CE_GL_DETACH_OBJECT_PROC)(GLhandle, GLhandle);
+typedef GLhandle (APIENTRY *CE_GL_CREATE_SHADER_OBJECT_PROC)(GLenum);
 typedef void (APIENTRY *CE_GL_SHADER_SOURCE_PROC)
-			(GLhandle object, GLsizei count,
-			const GLchar** string, const int* length);
-typedef void (APIENTRY *CE_GL_COMPILE_SHADER_PROC)(GLhandle object);
+			(GLhandle, GLsizei, const GLchar**, const GLint*);
+typedef void (APIENTRY *CE_GL_COMPILE_SHADER_PROC)(GLhandle);
 typedef GLhandle (APIENTRY *CE_GL_CREATE_PROGRAM_OBJECT_PROC)(void);
-typedef void (APIENTRY *CE_GL_ATTACH_OBJECT_PROC)
-			(GLhandle container, GLhandle object);
-typedef void (APIENTRY *CE_GL_LINK_PROGRAM_OBJECT_PROC)(GLhandle object);
-typedef void (APIENTRY *CE_GL_USE_PROGRAM_OBJECT_PROC)(GLhandle object);
-typedef void (APIENTRY *CE_GL_VALIDATE_PROGRAM_OBJECT_PROC)(GLhandle object);
+typedef void (APIENTRY *CE_GL_ATTACH_OBJECT_PROC)(GLhandle, GLhandle);
+typedef void (APIENTRY *CE_GL_LINK_PROGRAM_OBJECT_PROC)(GLhandle);
+typedef void (APIENTRY *CE_GL_USE_PROGRAM_OBJECT_PROC)(GLhandle);
+typedef void (APIENTRY *CE_GL_VALIDATE_PROGRAM_OBJECT_PROC)(GLhandle);
+typedef void (APIENTRY *CE_GL_UNIFORM_1F_PROC)(GLint, GLfloat);
+typedef void (APIENTRY *CE_GL_UNIFORM_2F_PROC)(GLint, GLfloat, GLfloat);
+typedef void (APIENTRY *CE_GL_UNIFORM_3F_PROC)(GLint, GLfloat, GLfloat, GLfloat);
+typedef void (APIENTRY *CE_GL_UNIFORM_4F_PROC)(GLint, GLfloat, GLfloat, GLfloat, GLfloat);
+typedef void (APIENTRY *CE_GL_UNIFORM_1I_PROC)(GLint, GLint);
+typedef void (APIENTRY *CE_GL_UNIFORM_2I_PROC)(GLint, GLint, GLint);
+typedef void (APIENTRY *CE_GL_UNIFORM_3I_PROC)(GLint, GLint, GLint, GLint);
+typedef void (APIENTRY *CE_GL_UNIFORM_4I_PROC)(GLint, GLint, GLint, GLint, GLint);
+typedef void (APIENTRY *CE_GL_UNIFORM_1FV_PROC)(GLint, GLsizei, const GLfloat*);
+typedef void (APIENTRY *CE_GL_UNIFORM_2FV_PROC)(GLint, GLsizei, const GLfloat*);
+typedef void (APIENTRY *CE_GL_UNIFORM_3FV_PROC)(GLint, GLsizei, const GLfloat*);
+typedef void (APIENTRY *CE_GL_UNIFORM_4FV_PROC)(GLint, GLsizei, const GLfloat*);
+typedef void (APIENTRY *CE_GL_UNIFORM_1IV_PROC)(GLint, GLsizei, const GLint*);
+typedef void (APIENTRY *CE_GL_UNIFORM_2IV_PROC)(GLint, GLsizei, const GLint*);
+typedef void (APIENTRY *CE_GL_UNIFORM_3IV_PROC)(GLint, GLsizei, const GLint*);
+typedef void (APIENTRY *CE_GL_UNIFORM_4IV_PROC)(GLint, GLsizei, const GLint*);
+typedef void (APIENTRY *CE_GL_UNIFORM_MATRIX_2FV_PROC)(GLint, GLsizei, GLboolean, const GLfloat*);
+typedef void (APIENTRY *CE_GL_UNIFORM_MATRIX_3FV_PROC)(GLint, GLsizei, GLboolean, const GLfloat*);
+typedef void (APIENTRY *CE_GL_UNIFORM_MATRIX_4FV_PROC)(GLint, GLsizei, GLboolean, const GLfloat*);
+typedef void (APIENTRY *CE_GL_GET_OBJECT_PARAMETER_FV_PROC)(GLhandle, GLenum, GLfloat*);
+typedef void (APIENTRY *CE_GL_GET_OBJECT_PARAMETER_IV_PROC)(GLhandle, GLenum, GLint*);
+typedef void (APIENTRY *CE_GL_GET_INFO_LOG_PROC)(GLhandle, GLsizei, GLsizei*, GLchar*);
+typedef void (APIENTRY *CE_GL_GET_ATTACHED_OBJECTS_PROC)(GLhandle, GLsizei, GLsizei*, GLhandle*);
+typedef GLint (APIENTRY *CE_GL_GET_UNIFORM_LOCATION_PROC)(GLhandle, const GLchar*);
+typedef void (APIENTRY *CE_GL_GET_ACTIVE_UNIFORM_PROC)(GLhandle, GLuint, GLsizei,
+									GLsizei*, GLint*, GLenum*, GLchar*);
+typedef void (APIENTRY *CE_GL_GET_UNIFORM_FV_PROC)(GLhandle, GLint, GLfloat*);
+typedef void (APIENTRY *CE_GL_GET_UNIFORM_IV_PROC)(GLhandle, GLint, GLint*);
+typedef void (APIENTRY *CE_GL_GET_SHADER_SOURCE_PROC)(GLhandle, GLsizei, GLsizei*, GLchar*);
 
 static CE_GL_DELETE_OBJECT_PROC ce_gl_delete_object_proc;
 static CE_GL_GET_HANDLE_PROC ce_gl_get_handle_proc;
@@ -310,11 +338,60 @@ static CE_GL_LINK_PROGRAM_OBJECT_PROC ce_gl_link_program_object_proc;
 static CE_GL_USE_PROGRAM_OBJECT_PROC ce_gl_use_program_object_proc;
 static CE_GL_VALIDATE_PROGRAM_OBJECT_PROC ce_gl_validate_program_object_proc;
 
+static CE_GL_UNIFORM_1F_PROC ce_gl_uniform_1f_proc;
+static CE_GL_UNIFORM_2F_PROC ce_gl_uniform_2f_proc;
+static CE_GL_UNIFORM_3F_PROC ce_gl_uniform_3f_proc;
+static CE_GL_UNIFORM_4F_PROC ce_gl_uniform_4f_proc;
+static CE_GL_UNIFORM_1I_PROC ce_gl_uniform_1i_proc;
+static CE_GL_UNIFORM_2I_PROC ce_gl_uniform_2i_proc;
+static CE_GL_UNIFORM_3I_PROC ce_gl_uniform_3i_proc;
+static CE_GL_UNIFORM_4I_PROC ce_gl_uniform_4i_proc;
+static CE_GL_UNIFORM_1FV_PROC ce_gl_uniform_1fv_proc;
+static CE_GL_UNIFORM_2FV_PROC ce_gl_uniform_2fv_proc;
+static CE_GL_UNIFORM_3FV_PROC ce_gl_uniform_3fv_proc;
+static CE_GL_UNIFORM_4FV_PROC ce_gl_uniform_4fv_proc;
+static CE_GL_UNIFORM_1IV_PROC ce_gl_uniform_1iv_proc;
+static CE_GL_UNIFORM_2IV_PROC ce_gl_uniform_2iv_proc;
+static CE_GL_UNIFORM_3IV_PROC ce_gl_uniform_3iv_proc;
+static CE_GL_UNIFORM_4IV_PROC ce_gl_uniform_4iv_proc;
+static CE_GL_UNIFORM_MATRIX_2FV_PROC ce_gl_uniform_matrix_2fv_proc;
+static CE_GL_UNIFORM_MATRIX_3FV_PROC ce_gl_uniform_matrix_3fv_proc;
+static CE_GL_UNIFORM_MATRIX_4FV_PROC ce_gl_uniform_matrix_4fv_proc;
+static CE_GL_GET_OBJECT_PARAMETER_FV_PROC ce_gl_get_object_parameter_fv_proc;
+static CE_GL_GET_OBJECT_PARAMETER_IV_PROC ce_gl_get_object_parameter_iv_proc;
+static CE_GL_GET_INFO_LOG_PROC ce_gl_get_info_log_proc;
+static CE_GL_GET_ATTACHED_OBJECTS_PROC ce_gl_get_attached_objects_proc;
+static CE_GL_GET_UNIFORM_LOCATION_PROC ce_gl_get_uniform_location_proc;
+static CE_GL_GET_ACTIVE_UNIFORM_PROC ce_gl_get_active_uniform_proc;
+static CE_GL_GET_UNIFORM_FV_PROC ce_gl_get_uniform_fv_proc;
+static CE_GL_GET_UNIFORM_IV_PROC ce_gl_get_uniform_iv_proc;
+static CE_GL_GET_SHADER_SOURCE_PROC ce_gl_get_shader_source_proc;
+
 // vertex shader
 const GLenum CE_GL_VERTEX_SHADER = 0x8B31;
+const GLenum CE_GL_MAX_VERTEX_UNIFORM_COMPONENTS = 0x8B4A;
+const GLenum CE_GL_MAX_VARYING_FLOATS = 0x8B4B;
+const GLenum CE_GL_MAX_VERTEX_ATTRIBS = 0x8869;
+const GLenum CE_GL_MAX_TEXTURE_IMAGE_UNITS = 0x8872;
+const GLenum CE_GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
+const GLenum CE_GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
+const GLenum CE_GL_MAX_TEXTURE_COORDS = 0x8871;
+const GLenum CE_GL_VERTEX_PROGRAM_POINT_SIZE = 0x8642;
+const GLenum CE_GL_VERTEX_PROGRAM_TWO_SIDE = 0x8643;
+const GLenum CE_GL_OBJECT_ACTIVE_ATTRIBUTES = 0x8B89;
+const GLenum CE_GL_OBJECT_ACTIVE_ATTRIBUTE_MAX_LENGTH = 0x8B8A;
+const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
+const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
+const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
+const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
+const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
+const GLenum CE_GL_CURRENT_VERTEX_ATTRIB = 0x8626;
+const GLenum CE_GL_VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
 
 // fragment shader
 const GLenum CE_GL_FRAGMENT_SHADER = 0x8B30;
+const GLenum CE_GL_MAX_FRAGMENT_UNIFORM_COMPONENTS = 0x8B49;
+const GLenum CE_GL_FRAGMENT_SHADER_DERIVATIVE_HINT = 0x8B8B;
 
 // vertex shader tessellator
 const GLenum CE_GL_VST_SAMPLER_BUFFER = 0x9001;
@@ -344,9 +421,9 @@ typedef void (APIENTRY *CE_GL_GET_PERFMON_GROUPS_PROC)(GLint*, GLsizei, GLuint*)
 typedef void (APIENTRY *CE_GL_GET_PERFMON_COUNTERS_PROC)
 						(GLuint, GLint*, GLint*, GLsizei, GLuint*);
 typedef void (APIENTRY *CE_GL_GET_PERFMON_GROUP_STR_PROC)
-						(GLuint, GLsizei, GLsizei*, char*);
+						(GLuint, GLsizei, GLsizei*, GLchar*);
 typedef void (APIENTRY *CE_GL_GET_PERFMON_COUNTER_STR_PROC)
-						(GLuint, GLuint, GLsizei, GLsizei*, char*);
+						(GLuint, GLuint, GLsizei, GLsizei*, GLchar*);
 typedef void (APIENTRY *CE_GL_GET_PERFMON_COUNTER_INFO_PROC)
 						(GLuint, GLuint, GLenum, GLvoid*);
 typedef void (APIENTRY *CE_GL_GEN_PERFMONS_PROC)(GLsizei, GLuint*);
@@ -376,7 +453,7 @@ const GLenum CE_GL_TEXTURE_FREE_MEMORY = 0x87FC;
 const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY = 0x87FD;
 
 // common API
-typedef void (*ce_gl_ext_proc_ptr)(void);
+typedef void (*ce_gl_ext_proc_ptr)();
 
 static ce_gl_ext_proc_ptr ce_gl_get_proc_address(const char* name)
 {
@@ -750,8 +827,67 @@ bool ce_gl_init(void)
 				ce_gl_get_proc_address("glLinkProgramARB");
 			ce_gl_use_program_object_proc = (CE_GL_USE_PROGRAM_OBJECT_PROC)
 				ce_gl_get_proc_address("glUseProgramObjectARB");
-			ce_gl_validate_program_object_proc = (CE_GL_VALIDATE_PROGRAM_OBJECT_PROC)
-				ce_gl_get_proc_address("glValidateProgramARB");
+			ce_gl_validate_program_object_proc =
+				(CE_GL_VALIDATE_PROGRAM_OBJECT_PROC)
+					ce_gl_get_proc_address("glValidateProgramARB");
+			ce_gl_uniform_1f_proc = (CE_GL_UNIFORM_1F_PROC)
+				ce_gl_get_proc_address("glUniform1fARB");
+			ce_gl_uniform_2f_proc = (CE_GL_UNIFORM_2F_PROC)
+				ce_gl_get_proc_address("glUniform2fARB");
+			ce_gl_uniform_3f_proc = (CE_GL_UNIFORM_3F_PROC)
+				ce_gl_get_proc_address("glUniform3fARB");
+			ce_gl_uniform_4f_proc = (CE_GL_UNIFORM_4F_PROC)
+				ce_gl_get_proc_address("glUniform4fARB");
+			ce_gl_uniform_1i_proc = (CE_GL_UNIFORM_1I_PROC)
+				ce_gl_get_proc_address("glUniform1iARB");
+			ce_gl_uniform_2i_proc = (CE_GL_UNIFORM_2I_PROC)
+				ce_gl_get_proc_address("glUniform2iARB");
+			ce_gl_uniform_3i_proc = (CE_GL_UNIFORM_3I_PROC)
+				ce_gl_get_proc_address("glUniform3iARB");
+			ce_gl_uniform_4i_proc = (CE_GL_UNIFORM_4I_PROC)
+				ce_gl_get_proc_address("glUniform4iARB");
+			ce_gl_uniform_1fv_proc = (CE_GL_UNIFORM_1FV_PROC)
+				ce_gl_get_proc_address("glUniform1fvARB");
+			ce_gl_uniform_2fv_proc = (CE_GL_UNIFORM_2FV_PROC)
+				ce_gl_get_proc_address("glUniform2fvARB");
+			ce_gl_uniform_3fv_proc = (CE_GL_UNIFORM_3FV_PROC)
+				ce_gl_get_proc_address("glUniform3fvARB");
+			ce_gl_uniform_4fv_proc = (CE_GL_UNIFORM_4FV_PROC)
+				ce_gl_get_proc_address("glUniform4fvARB");
+			ce_gl_uniform_1iv_proc = (CE_GL_UNIFORM_1IV_PROC)
+				ce_gl_get_proc_address("glUniform1ivARB");
+			ce_gl_uniform_2iv_proc = (CE_GL_UNIFORM_2IV_PROC)
+				ce_gl_get_proc_address("glUniform2ivARB");
+			ce_gl_uniform_3iv_proc = (CE_GL_UNIFORM_3IV_PROC)
+				ce_gl_get_proc_address("glUniform3ivARB");
+			ce_gl_uniform_4iv_proc = (CE_GL_UNIFORM_4IV_PROC)
+				ce_gl_get_proc_address("glUniform4ivARB");
+			ce_gl_uniform_matrix_2fv_proc = (CE_GL_UNIFORM_MATRIX_2FV_PROC)
+				ce_gl_get_proc_address("glUniformMatrix2fvARB");
+			ce_gl_uniform_matrix_3fv_proc = (CE_GL_UNIFORM_MATRIX_3FV_PROC)
+				ce_gl_get_proc_address("glUniformMatrix3fvARB");
+			ce_gl_uniform_matrix_4fv_proc = (CE_GL_UNIFORM_MATRIX_4FV_PROC)
+				ce_gl_get_proc_address("glUniformMatrix4fvARB");
+			ce_gl_get_object_parameter_fv_proc =
+				(CE_GL_GET_OBJECT_PARAMETER_FV_PROC)
+					ce_gl_get_proc_address("glGetObjectParameterfvARB");
+			ce_gl_get_object_parameter_iv_proc =
+				(CE_GL_GET_OBJECT_PARAMETER_IV_PROC)
+					ce_gl_get_proc_address("glGetObjectParameterivARB");
+			ce_gl_get_info_log_proc = (CE_GL_GET_INFO_LOG_PROC)
+				ce_gl_get_proc_address("glGetInfoLogARB");
+			ce_gl_get_attached_objects_proc = (CE_GL_GET_ATTACHED_OBJECTS_PROC)
+				ce_gl_get_proc_address("glGetAttachedObjectsARB");
+			ce_gl_get_uniform_location_proc = (CE_GL_GET_UNIFORM_LOCATION_PROC)
+				ce_gl_get_proc_address("glGetUniformLocationARB");
+			ce_gl_get_active_uniform_proc = (CE_GL_GET_ACTIVE_UNIFORM_PROC)
+				ce_gl_get_proc_address("glGetActiveUniformARB");
+			ce_gl_get_uniform_fv_proc = (CE_GL_GET_UNIFORM_FV_PROC)
+				ce_gl_get_proc_address("glGetUniformfvARB");
+			ce_gl_get_uniform_iv_proc = (CE_GL_GET_UNIFORM_IV_PROC)
+				ce_gl_get_proc_address("glGetUniformivARB");
+			ce_gl_get_shader_source_proc = (CE_GL_GET_SHADER_SOURCE_PROC)
+				ce_gl_get_proc_address("glGetShaderSourceARB");
 
 			ce_gl_inst.features[CE_GL_FEATURE_SHADER_OBJECT] =
 				NULL != ce_gl_delete_object_proc &&
@@ -764,7 +900,35 @@ bool ce_gl_init(void)
 				NULL != ce_gl_attach_object_proc &&
 				NULL != ce_gl_link_program_object_proc &&
 				NULL != ce_gl_use_program_object_proc &&
-				NULL != ce_gl_validate_program_object_proc;
+				NULL != ce_gl_validate_program_object_proc &&
+				NULL != ce_gl_uniform_1f_proc &&
+				NULL != ce_gl_uniform_2f_proc &&
+				NULL != ce_gl_uniform_3f_proc &&
+				NULL != ce_gl_uniform_4f_proc &&
+				NULL != ce_gl_uniform_1i_proc &&
+				NULL != ce_gl_uniform_2i_proc &&
+				NULL != ce_gl_uniform_3i_proc &&
+				NULL != ce_gl_uniform_4i_proc &&
+				NULL != ce_gl_uniform_1fv_proc &&
+				NULL != ce_gl_uniform_2fv_proc &&
+				NULL != ce_gl_uniform_3fv_proc &&
+				NULL != ce_gl_uniform_4fv_proc &&
+				NULL != ce_gl_uniform_1iv_proc &&
+				NULL != ce_gl_uniform_2iv_proc &&
+				NULL != ce_gl_uniform_3iv_proc &&
+				NULL != ce_gl_uniform_4iv_proc &&
+				NULL != ce_gl_uniform_matrix_2fv_proc &&
+				NULL != ce_gl_uniform_matrix_3fv_proc &&
+				NULL != ce_gl_uniform_matrix_4fv_proc &&
+				NULL != ce_gl_get_object_parameter_fv_proc &&
+				NULL != ce_gl_get_object_parameter_iv_proc &&
+				NULL != ce_gl_get_info_log_proc &&
+				NULL != ce_gl_get_attached_objects_proc &&
+				NULL != ce_gl_get_uniform_location_proc &&
+				NULL != ce_gl_get_active_uniform_proc &&
+				NULL != ce_gl_get_uniform_fv_proc &&
+				NULL != ce_gl_get_uniform_iv_proc &&
+				NULL != ce_gl_get_shader_source_proc;
 		}
 	}
 
@@ -873,6 +1037,10 @@ bool ce_gl_query_feature(ce_gl_feature feature)
 	return ce_gl_inst.features[feature];
 }
 
+#define CE_GL_CHECK_PROC_POINTER(P) \
+assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited"); \
+assert(NULL != P);
+
 // texture compression
 
 void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
@@ -881,8 +1049,7 @@ void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 									GLint border, GLsizei image_size,
 									const GLvoid* data)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_compressed_tex_image_2d_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_compressed_tex_image_2d_proc);
 	(*ce_gl_compressed_tex_image_2d_proc)(target, level,
 		internal_format, width, height, border, image_size, data);
 }
@@ -891,29 +1058,25 @@ void ce_gl_compressed_tex_image_2d(GLenum target, GLint level,
 
 void ce_gl_window_pos_2f(GLfloat x, GLfloat y)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_window_pos_2f_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_window_pos_2f_proc);
 	(*ce_gl_window_pos_2f_proc)(x, y);
 }
 
 void ce_gl_window_pos_2fv(const GLfloat* v)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_window_pos_2fv_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_window_pos_2fv_proc);
 	(*ce_gl_window_pos_2fv_proc)(v);
 }
 
 void ce_gl_window_pos_2i(GLint x, GLint y)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_window_pos_2i_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_window_pos_2i_proc);
 	(*ce_gl_window_pos_2i_proc)(x, y);
 }
 
 void ce_gl_window_pos_2iv(const GLint* v)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_window_pos_2iv_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_window_pos_2iv_proc);
 	(*ce_gl_window_pos_2iv_proc)(v);
 }
 
@@ -921,15 +1084,13 @@ void ce_gl_window_pos_2iv(const GLint* v)
 
 void ce_gl_point_parameter_f(GLenum pname, GLfloat param)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_point_parameter_f_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_point_parameter_f_proc);
 	(*ce_gl_point_parameter_f_proc)(pname, param);
 }
 
 void ce_gl_point_parameter_fv(GLenum pname, GLfloat* params)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_point_parameter_fv_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_point_parameter_fv_proc);
 	(*ce_gl_point_parameter_fv_proc)(pname, params);
 }
 
@@ -937,57 +1098,49 @@ void ce_gl_point_parameter_fv(GLenum pname, GLfloat* params)
 
 void ce_gl_gen_queries(GLsizei n, GLuint* ids)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_gen_queries_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_gen_queries_proc);
 	(*ce_gl_gen_queries_proc)(n, ids);
 }
 
 void ce_gl_delete_queries(GLsizei n, const GLuint* ids)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_delete_queries_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_delete_queries_proc);
 	(*ce_gl_delete_queries_proc)(n, ids);
 }
 
 GLboolean ce_gl_is_query(GLuint id)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_is_query_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_is_query_proc);
 	return (*ce_gl_is_query_proc)(id);
 }
 
 void ce_gl_begin_query(GLenum target, GLuint id)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_begin_query_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_begin_query_proc);
 	(*ce_gl_begin_query_proc)(target, id);
 }
 
 void ce_gl_end_query(GLenum target)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_end_query_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_end_query_proc);
 	(*ce_gl_end_query_proc)(target);
 }
 
 void ce_gl_get_query_iv(GLenum target, GLenum pname, GLint* params)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_query_iv_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_query_iv_proc);
 	(*ce_gl_get_query_iv_proc)(target, pname, params);
 }
 
 void ce_gl_get_query_object_iv(GLuint id, GLenum pname, GLint* params)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_query_object_iv_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_query_object_iv_proc);
 	(ce_gl_get_query_object_iv_proc)(id, pname, params);
 }
 
 void ce_gl_get_query_object_uiv(GLuint id, GLenum pname, GLuint* params)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_query_object_uiv_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_query_object_uiv_proc);
 	(*ce_gl_get_query_object_uiv_proc)(id, pname, params);
 }
 
@@ -995,81 +1148,70 @@ void ce_gl_get_query_object_uiv(GLuint id, GLenum pname, GLuint* params)
 
 void ce_gl_bind_buffer(GLenum target, GLuint buffer)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_bind_buffer_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_bind_buffer_proc);
 	(*ce_gl_bind_buffer_proc)(target, buffer);
 }
 
 void ce_gl_delete_buffers(GLsizei n, const GLuint* buffers)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_delete_buffers_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_delete_buffers_proc);
 	(*ce_gl_delete_buffers_proc)(n, buffers);
 }
 
 void ce_gl_gen_buffers(GLsizei n, GLuint* buffers)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_gen_buffers_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_gen_buffers_proc);
 	(*ce_gl_gen_buffers_proc)(n, buffers);
 }
 
 GLboolean ce_gl_is_buffer(GLuint buffer)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_is_buffer_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_is_buffer_proc);
 	return (*ce_gl_is_buffer_proc)(buffer);
 }
 
 void ce_gl_buffer_data(GLenum target, GLsizeiptr size,
 						const GLvoid* data, GLenum usage)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_buffer_data_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_buffer_data_proc);
 	(*ce_gl_buffer_data_proc)(target, size, data, usage);
 }
 
 void ce_gl_buffer_sub_data(GLenum target, GLintptr offset,
 							GLsizeiptr size, const GLvoid* data)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_buffer_sub_data_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_buffer_sub_data_proc);
 	(*ce_gl_buffer_sub_data_proc)(target, offset, size, data);
 }
 
 void ce_gl_get_buffer_sub_data(GLenum target, GLintptr offset,
-								GLsizeiptr size, void* data)
+								GLsizeiptr size, GLvoid* data)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_buffer_sub_data_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_buffer_sub_data_proc);
 	(*ce_gl_get_buffer_sub_data_proc)(target, offset, size, data);
 }
 
 void* ce_gl_map_buffer(GLenum target, GLenum access)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_map_buffer_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_map_buffer_proc);
 	return (*ce_gl_map_buffer_proc)(target, access);
 }
 
 GLboolean ce_gl_unmap_buffer(GLenum target)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_unmap_buffer_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_unmap_buffer_proc);
 	return (*ce_gl_unmap_buffer_proc)(target);
 }
 
-void ce_gl_get_buffer_parameter_iv(GLenum target, GLenum pname, int* params)
+void ce_gl_get_buffer_parameter_iv(GLenum target, GLenum pname, GLint* params)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_buffer_parameter_iv_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_buffer_parameter_iv_proc);
 	(*ce_gl_get_buffer_parameter_iv_proc)(target, pname, params);
 }
 
-void ce_gl_get_buffer_pointer_v(GLenum target, GLenum pname, void** params)
+void ce_gl_get_buffer_pointer_v(GLenum target, GLenum pname, GLvoid** params)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_buffer_pointer_v_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_buffer_pointer_v_proc);
 	(*ce_gl_get_buffer_pointer_v_proc)(target, pname, params);
 }
 
@@ -1077,45 +1219,39 @@ void ce_gl_get_buffer_pointer_v(GLenum target, GLenum pname, void** params)
 
 void ce_gl_bind_frame_buffer(GLenum target, GLuint buffer)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_bind_frame_buffer_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_bind_frame_buffer_proc);
 	(*ce_gl_bind_frame_buffer_proc)(target, buffer);
 }
 
 void ce_gl_delete_frame_buffers(GLsizei n, const GLuint* buffers)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_delete_frame_buffers_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_delete_frame_buffers_proc);
 	(*ce_gl_delete_frame_buffers_proc)(n, buffers);
 }
 
 void ce_gl_gen_frame_buffers(GLsizei n, GLuint* buffers)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_gen_frame_buffers_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_gen_frame_buffers_proc);
 	(*ce_gl_gen_frame_buffers_proc)(n, buffers);
 }
 
 GLenum ce_gl_check_frame_buffer_status(GLenum target)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_check_frame_buffer_status_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_check_frame_buffer_status_proc);
 	return (*ce_gl_check_frame_buffer_status_proc)(target);
 }
 
 void ce_gl_frame_buffer_texture_2d(GLenum target, GLenum attachment,
 							GLenum tex_target, GLuint texture, GLint level)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_frame_buffer_texture_2d_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_frame_buffer_texture_2d_proc);
 	(*ce_gl_frame_buffer_texture_2d_proc)(target, attachment, tex_target,
 														texture, level);
 }
 
 void ce_gl_generate_mipmap(GLenum target)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_generate_mipmap_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_generate_mipmap_proc);
 	(*ce_gl_generate_mipmap_proc)(target);
 }
 
@@ -1123,8 +1259,7 @@ void ce_gl_generate_mipmap(GLenum target)
 
 void ce_gl_tex_buffer(GLenum target, GLenum internal_format, GLuint buffer)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_tex_buffer_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_tex_buffer_proc);
 	(*ce_gl_tex_buffer_proc)(target, internal_format, buffer);
 }
 
@@ -1132,95 +1267,259 @@ void ce_gl_tex_buffer(GLenum target, GLenum internal_format, GLuint buffer)
 
 void ce_gl_delete_object(GLhandle object)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_delete_object_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_delete_object_proc);
 	(*ce_gl_delete_object_proc)(object);
 }
 
 GLhandle ce_gl_get_handle(GLenum pname)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_handle_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_handle_proc);
 	return (*ce_gl_get_handle_proc)(pname);
 }
 
 void ce_gl_detach_object(GLhandle container, GLhandle object)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_detach_object_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_detach_object_proc);
 	(*ce_gl_detach_object_proc)(container, object);
 }
 
 GLhandle ce_gl_create_shader_object(GLenum type)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_create_shader_object_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_create_shader_object_proc);
 	return (*ce_gl_create_shader_object_proc)(type);
 }
 
 void ce_gl_shader_source(GLhandle object, GLsizei count,
-						const GLchar** string, const int* length)
+						const GLchar** string, const GLint* length)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_shader_source_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_shader_source_proc);
 	(*ce_gl_shader_source_proc)(object, count, string, length);
 }
 
 void ce_gl_compile_shader(GLhandle object)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_compile_shader_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_compile_shader_proc);
 	(*ce_gl_compile_shader_proc)(object);
 }
 
 GLhandle ce_gl_create_program_object(void)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_create_program_object_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_create_program_object_proc);
 	return (*ce_gl_create_program_object_proc)();
 }
 
 void ce_gl_attach_object(GLhandle container, GLhandle object)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_attach_object_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_attach_object_proc);
 	(*ce_gl_attach_object_proc)(container, object);
 }
 
 void ce_gl_link_program_object(GLhandle object)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_link_program_object_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_link_program_object_proc);
 	(*ce_gl_link_program_object_proc)(object);
 }
 
 void ce_gl_use_program_object(GLhandle object)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_use_program_object_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_use_program_object_proc);
 	(*ce_gl_use_program_object_proc)(object);
 }
 
 void ce_gl_validate_program_object(GLhandle object)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_validate_program_object_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_validate_program_object_proc);
 	(*ce_gl_validate_program_object_proc)(object);
+}
+
+void ce_gl_uniform_1f(GLint location, GLfloat v0)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_1f_proc);
+	(*ce_gl_uniform_1f_proc)(location, v0);
+}
+
+void ce_gl_uniform_2f(GLint location, GLfloat v0, GLfloat v1)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_2f_proc);
+	(*ce_gl_uniform_2f_proc)(location, v0, v1);
+}
+
+void ce_gl_uniform_3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_3f_proc);
+	(*ce_gl_uniform_3f_proc)(location, v0, v1, v2);
+}
+
+void ce_gl_uniform_4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_4f_proc);
+	(*ce_gl_uniform_4f_proc)(location, v0, v1, v2, v3);
+}
+
+void ce_gl_uniform_1i(GLint location, GLint v0)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_1i_proc);
+	(*ce_gl_uniform_1i_proc)(location, v0);
+}
+
+void ce_gl_uniform_2i(GLint location, GLint v0, GLint v1)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_2i_proc);
+	(*ce_gl_uniform_2i_proc)(location, v0, v1);
+}
+
+void ce_gl_uniform_3i(GLint location, GLint v0, GLint v1, GLint v2)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_3i_proc);
+	(*ce_gl_uniform_3i_proc)(location, v0, v1, v2);
+}
+
+void ce_gl_uniform_4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_4i_proc);
+	(*ce_gl_uniform_4i_proc)(location, v0, v1, v2, v3);
+}
+
+void ce_gl_uniform_1fv(GLint location, GLsizei count, const GLfloat* value)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_1fv_proc);
+	(*ce_gl_uniform_1fv_proc)(location, count, value);
+}
+
+void ce_gl_uniform_2fv(GLint location, GLsizei count, const GLfloat* value)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_2fv_proc);
+	(*ce_gl_uniform_2fv_proc)(location, count, value);
+}
+
+void ce_gl_uniform_3fv(GLint location, GLsizei count, const GLfloat* value)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_3fv_proc);
+	(*ce_gl_uniform_3fv_proc)(location, count, value);
+}
+
+void ce_gl_uniform_4fv(GLint location, GLsizei count, const GLfloat* value)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_4fv_proc);
+	(*ce_gl_uniform_4fv_proc)(location, count, value);
+}
+
+void ce_gl_uniform_1iv(GLint location, GLsizei count, const GLint* value)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_1iv_proc);
+	(*ce_gl_uniform_1iv_proc)(location, count, value);
+}
+
+void ce_gl_uniform_2iv(GLint location, GLsizei count, const GLint* value)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_2iv_proc);
+	(*ce_gl_uniform_2iv_proc)(location, count, value);
+}
+
+void ce_gl_uniform_3iv(GLint location, GLsizei count, const GLint* value)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_3iv_proc);
+	(*ce_gl_uniform_3iv_proc)(location, count, value);
+}
+
+void ce_gl_uniform_4iv(GLint location, GLsizei count, const GLint* value)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_4iv_proc);
+	(*ce_gl_uniform_4iv_proc)(location, count, value);
+}
+
+void ce_gl_uniform_matrix_2fv(GLint location, GLsizei count,
+								GLboolean transpose, const GLfloat* value)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_matrix_2fv_proc);
+	(*ce_gl_uniform_matrix_2fv_proc)(location, count, transpose, value);
+}
+
+void ce_gl_uniform_matrix_3fv(GLint location, GLsizei count,
+								GLboolean transpose, const GLfloat* value)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_matrix_3fv_proc);
+	(*ce_gl_uniform_matrix_3fv_proc)(location, count, transpose, value);
+}
+
+void ce_gl_uniform_matrix_4fv(GLint location, GLsizei count,
+								GLboolean transpose, const GLfloat* value)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_uniform_matrix_4fv_proc);
+	(*ce_gl_uniform_matrix_4fv_proc)(location, count, transpose, value);
+}
+
+void ce_gl_get_object_parameter_fv(GLhandle object, GLenum pname, GLfloat* params)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_object_parameter_fv_proc);
+	(*ce_gl_get_object_parameter_fv_proc)(object, pname, params);
+}
+
+void ce_gl_get_object_parameter_iv(GLhandle object, GLenum pname, GLint* params)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_object_parameter_iv_proc);
+	(*ce_gl_get_object_parameter_iv_proc)(object, pname, params);
+}
+
+void ce_gl_get_info_log(GLhandle object, GLsizei max_length,
+						GLsizei* length, GLchar* info_log)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_info_log_proc);
+	(*ce_gl_get_info_log_proc)(object, max_length, length, info_log);
+}
+
+void ce_gl_get_attached_objects(GLhandle container, GLsizei max_count,
+								GLsizei* count, GLhandle* object)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_attached_objects_proc);
+	(*ce_gl_get_attached_objects_proc)(container, max_count, count, object);
+}
+
+GLint ce_gl_get_uniform_location(GLhandle object, const GLchar* name)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_uniform_location_proc);
+	return (*ce_gl_get_uniform_location_proc)(object, name);
+}
+
+void ce_gl_get_active_uniform(GLhandle object, GLuint index,
+								GLsizei max_length, GLsizei* length,
+								GLint* size, GLenum* type, GLchar* name)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_active_uniform_proc);
+	(*ce_gl_get_active_uniform_proc)(object, index, max_length,
+									length, size, type, name);
+}
+
+void ce_gl_get_uniform_fv(GLhandle object, GLint location, GLfloat* params)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_uniform_fv_proc);
+	(*ce_gl_get_uniform_fv_proc)(object, location, params);
+}
+
+void ce_gl_get_uniform_iv(GLhandle object, GLint location, GLint* params)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_uniform_iv_proc);
+	(*ce_gl_get_uniform_iv_proc)(object, location, params);
+}
+
+void ce_gl_get_shader_source(GLhandle object, GLsizei max_length,
+								GLsizei* length, GLchar* source)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_shader_source_proc);
+	(*ce_gl_get_shader_source_proc)(object, max_length, length, source);
 }
 
 // vertex shader tessellator
 
 void ce_gl_vst_set_tessellation_factor(GLfloat factor)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_vst_set_tessellation_factor_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_vst_set_tessellation_factor_proc);
 	(*ce_gl_vst_set_tessellation_factor_proc)(factor);
 }
 
 void ce_gl_vst_set_tessellation_mode(GLenum mode)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_vst_set_tessellation_mode_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_vst_set_tessellation_mode_proc);
 	(*ce_gl_vst_set_tessellation_mode_proc)(mode);
 }
 
@@ -1228,83 +1527,72 @@ void ce_gl_vst_set_tessellation_mode(GLenum mode)
 
 void ce_gl_get_perfmon_groups(GLint* count, GLsizei size, GLuint* groups)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_perfmon_groups_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_perfmon_groups_proc);
 	(*ce_gl_get_perfmon_groups_proc)(count, size, groups);
 }
 
 void ce_gl_get_perfmon_counters(GLuint group, GLint* count, GLint* max_active,
 								GLsizei size, GLuint* counters)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_perfmon_counters_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_perfmon_counters_proc);
 	(*ce_gl_get_perfmon_counters_proc)(group, count, max_active, size, counters);
 }
 
 void ce_gl_get_perfmon_group_str(GLuint group, GLsizei size,
-								GLsizei* length, char* str)
+								GLsizei* length, GLchar* str)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_perfmon_group_str_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_perfmon_group_str_proc);
 	(*ce_gl_get_perfmon_group_str_proc)(group, size, length, str);
 }
 
 void ce_gl_get_perfmon_counter_str(GLuint group, GLuint counter,
-									GLsizei size, GLsizei* length, char* str)
+									GLsizei size, GLsizei* length, GLchar* str)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_perfmon_counter_str_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_perfmon_counter_str_proc);
 	(*ce_gl_get_perfmon_counter_str_proc)(group, counter, size, length, str);
 }
 
 void ce_gl_get_perfmon_counter_info(GLuint group, GLuint counter,
 									GLenum pname, GLvoid* data)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_perfmon_counter_info_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_perfmon_counter_info_proc);
 	(*ce_gl_get_perfmon_counter_info_proc)(group, counter, pname, data);
 }
 
 void ce_gl_gen_perfmons(GLsizei n, GLuint* monitors)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_gen_perfmons_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_gen_perfmons_proc);
 	(*ce_gl_gen_perfmons_proc)(n, monitors);
 }
 
 void ce_gl_delete_perfmons(GLsizei n, GLuint* monitors)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_delete_perfmons_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_delete_perfmons_proc);
 	(*ce_gl_delete_perfmons_proc)(n, monitors);
 }
 
 void ce_gl_select_perfmon_counters(GLuint monitor, GLboolean enable,
 									GLuint group, GLint count, GLuint* list)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_select_perfmon_counters_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_select_perfmon_counters_proc);
 	(*ce_gl_select_perfmon_counters_proc)(monitor, enable, group, count, list);
 }
 
 void ce_gl_begin_perfmon(GLuint monitor)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_begin_perfmon_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_begin_perfmon_proc);
 	(*ce_gl_begin_perfmon_proc)(monitor);
 }
 
 void ce_gl_end_perfmon(GLuint monitor)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_end_perfmon_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_end_perfmon_proc);
 	(*ce_gl_end_perfmon_proc)(monitor);
 }
 
 void ce_gl_get_perfmon_counter_data(GLuint monitor, GLenum pname, GLsizei size,
 									GLuint* data, GLint* bytes_written)
 {
-	assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited");
-	assert(NULL != ce_gl_get_perfmon_counter_data_proc);
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_perfmon_counter_data_proc);
 	(*ce_gl_get_perfmon_counter_data_proc)(monitor, pname, size, data, bytes_written);
 }
