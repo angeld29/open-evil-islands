@@ -59,6 +59,10 @@ const GLenum CE_GL_CLAMP_TO_BORDER = 0x812D;
 const GLenum CE_GL_CLAMP_TO_EDGE = 0x812F;
 
 // texture float
+const GLenum CE_GL_TEXTURE_RED_TYPE = 0x8C10;
+const GLenum CE_GL_TEXTURE_GREEN_TYPE = 0x8C11;
+const GLenum CE_GL_TEXTURE_BLUE_TYPE = 0x8C12;
+const GLenum CE_GL_TEXTURE_ALPHA_TYPE = 0x8C13;
 const GLenum CE_GL_RGBA32F = 0x8814;
 const GLenum CE_GL_RGB32F = 0x8815;
 const GLenum CE_GL_ALPHA32F = 0x8816;

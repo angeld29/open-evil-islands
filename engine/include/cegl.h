@@ -57,6 +57,10 @@ extern const GLenum CE_GL_CLAMP_TO_BORDER;
 extern const GLenum CE_GL_CLAMP_TO_EDGE;
 
 // texture float
+extern const GLenum CE_GL_TEXTURE_RED_TYPE;
+extern const GLenum CE_GL_TEXTURE_GREEN_TYPE;
+extern const GLenum CE_GL_TEXTURE_BLUE_TYPE;
+extern const GLenum CE_GL_TEXTURE_ALPHA_TYPE;
 extern const GLenum CE_GL_RGBA32F;
 extern const GLenum CE_GL_RGB32F;
 extern const GLenum CE_GL_ALPHA32F;
