@@ -257,9 +257,62 @@ static CE_GL_COPY_BUFFER_SUB_DATA_PROC ce_gl_copy_buffer_sub_data_proc;
 const GLenum CE_GL_FRAME_BUFFER = 0x8D40;
 const GLenum CE_GL_READ_FRAME_BUFFER = 0x8CA8;
 const GLenum CE_GL_DRAW_FRAME_BUFFER = 0x8CA9;
+const GLenum CE_GL_RENDER_BUFFER = 0x8D41;
+const GLenum CE_GL_STENCIL_INDEX1 = 0x8D46;
+const GLenum CE_GL_STENCIL_INDEX4 = 0x8D47;
+const GLenum CE_GL_STENCIL_INDEX8 = 0x8D48;
+const GLenum CE_GL_STENCIL_INDEX16 = 0x8D49;
+const GLenum CE_GL_RENDER_BUFFER_WIDTH = 0x8D42;
+const GLenum CE_GL_RENDER_BUFFER_HEIGHT = 0x8D43;
+const GLenum CE_GL_RENDER_BUFFER_INTERNAL_FORMAT = 0x8D44;
+const GLenum CE_GL_RENDER_BUFFER_RED_SIZE = 0x8D50;
+const GLenum CE_GL_RENDER_BUFFER_GREEN_SIZE = 0x8D51;
+const GLenum CE_GL_RENDER_BUFFER_BLUE_SIZE = 0x8D52;
+const GLenum CE_GL_RENDER_BUFFER_ALPHA_SIZE = 0x8D53;
+const GLenum CE_GL_RENDER_BUFFER_DEPTH_SIZE = 0x8D54;
+const GLenum CE_GL_RENDER_BUFFER_STENCIL_SIZE = 0x8D55;
+const GLenum CE_GL_RENDER_BUFFER_SAMPLES = 0x8CAB;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_TEXTURE_LAYER = 0x8CD4;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_COLOR_ENCODING = 0x8210;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_COMPONENT_TYPE = 0x8211;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_RED_SIZE = 0x8212;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_GREEN_SIZE = 0x8213;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_BLUE_SIZE = 0x8214;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_ALPHA_SIZE = 0x8215;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_DEPTH_SIZE = 0x8216;
+const GLenum CE_GL_FRAME_BUFFER_ATTACHMENT_STENCIL_SIZE = 0x8217;
 const GLenum CE_GL_COLOR_ATTACHMENT0 = 0x8CE0;
 const GLenum CE_GL_COLOR_ATTACHMENT1 = 0x8CE1;
+const GLenum CE_GL_COLOR_ATTACHMENT2 = 0x8CE2;
+const GLenum CE_GL_COLOR_ATTACHMENT3 = 0x8CE3;
+const GLenum CE_GL_COLOR_ATTACHMENT4 = 0x8CE4;
+const GLenum CE_GL_COLOR_ATTACHMENT5 = 0x8CE5;
+const GLenum CE_GL_COLOR_ATTACHMENT6 = 0x8CE6;
+const GLenum CE_GL_COLOR_ATTACHMENT7 = 0x8CE7;
+const GLenum CE_GL_COLOR_ATTACHMENT8 = 0x8CE8;
+const GLenum CE_GL_COLOR_ATTACHMENT9 = 0x8CE9;
+const GLenum CE_GL_DEPTH_ATTACHMENT = 0x8D00;
+const GLenum CE_GL_STENCIL_ATTACHMENT = 0x8D20;
+const GLenum CE_GL_DEPTH_STENCIL_ATTACHMENT = 0x821A;
 const GLenum CE_GL_FRAME_BUFFER_COMPLETE = 0x8CD5;
+const GLenum CE_GL_FRAME_BUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
+const GLenum CE_GL_FRAME_BUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
+const GLenum CE_GL_FRAME_BUFFER_INCOMPLETE_DRAW_BUFFER = 0x8CDB;
+const GLenum CE_GL_FRAME_BUFFER_INCOMPLETE_READ_BUFFER = 0x8CDC;
+const GLenum CE_GL_FRAME_BUFFER_UNSUPPORTED = 0x8CDD;
+const GLenum CE_GL_FRAME_BUFFER_INCOMPLETE_MULTISAMPLE = 0x8D56;
+const GLenum CE_GL_FRAME_BUFFER_UNDEFINED = 0x8219;
+const GLenum CE_GL_FRAME_BUFFER_BINDING = 0x8CA6;
+const GLenum CE_GL_DRAW_FRAME_BUFFER_BINDING = 0x8CA6;
+const GLenum CE_GL_READ_FRAME_BUFFER_BINDING = 0x8CAA;
+const GLenum CE_GL_RENDER_BUFFER_BINDING = 0x8CA7;
+const GLenum CE_GL_MAX_COLOR_ATTACHMENTS = 0x8CDF;
+const GLenum CE_GL_MAX_RENDER_BUFFER_SIZE = 0x84E8;
+const GLenum CE_GL_INVALID_FRAME_BUFFER_OPERATION = 0x0506;
 
 typedef void (APIENTRY *CE_GL_BIND_FRAME_BUFFER_PROC)
 				(GLenum target, GLuint buffer);
@@ -1113,6 +1166,44 @@ bool ce_gl_query_feature(ce_gl_feature feature)
 #define CE_GL_CHECK_PROC_POINTER(P) \
 assert(ce_gl_inst.inited && "The gl subsystem has not yet been inited"); \
 assert(NULL != P);
+
+// multitexture
+
+void ce_gl_active_texture(GLenum target)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_active_texture_proc);
+	(*ce_gl_active_texture_proc)(target);
+}
+
+void ce_gl_client_active_texture(GLenum target)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_client_active_texture_proc);
+	(*ce_gl_client_active_texture_proc)(target);
+}
+
+void ce_gl_multi_tex_coord_2f(GLenum target, GLfloat s, GLfloat t)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_multi_tex_coord_2f_proc);
+	(*ce_gl_multi_tex_coord_2f_proc)(target, s, t);
+}
+
+void ce_gl_multi_tex_coord_2fv(GLenum target, const GLfloat* v)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_multi_tex_coord_2fv_proc);
+	(*ce_gl_multi_tex_coord_2fv_proc)(target, v);
+}
+
+void ce_gl_multi_tex_coord_3f(GLenum target, GLfloat s, GLfloat t, GLfloat r)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_multi_tex_coord_3f_proc);
+	(*ce_gl_multi_tex_coord_3f_proc)(target, s, t, r);
+}
+
+void ce_gl_multi_tex_coord_3fv(GLenum target, const GLfloat* v)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_multi_tex_coord_3fv_proc);
+	(*ce_gl_multi_tex_coord_3fv_proc)(target, v);
+}
 
 // texture compression
 
