@@ -298,6 +298,7 @@ const GLenum CE_GL_COLOR_ATTACHMENT9 = 0x8CE9;
 const GLenum CE_GL_DEPTH_ATTACHMENT = 0x8D00;
 const GLenum CE_GL_STENCIL_ATTACHMENT = 0x8D20;
 const GLenum CE_GL_DEPTH_STENCIL_ATTACHMENT = 0x821A;
+const GLenum CE_GL_MAX_SAMPLES = 0x8D57;
 const GLenum CE_GL_FRAME_BUFFER_COMPLETE = 0x8CD5;
 const GLenum CE_GL_FRAME_BUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
 const GLenum CE_GL_FRAME_BUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
@@ -313,6 +314,10 @@ const GLenum CE_GL_RENDER_BUFFER_BINDING = 0x8CA7;
 const GLenum CE_GL_MAX_COLOR_ATTACHMENTS = 0x8CDF;
 const GLenum CE_GL_MAX_RENDER_BUFFER_SIZE = 0x84E8;
 const GLenum CE_GL_INVALID_FRAME_BUFFER_OPERATION = 0x0506;
+const GLenum CE_GL_DEPTH_STENCIL = 0x84F9;
+const GLenum CE_GL_UNSIGNED_INT_24_8 = 0x84FA;
+const GLenum CE_GL_DEPTH24_STENCIL8 = 0x88F0;
+const GLenum CE_GL_TEXTURE_STENCIL_SIZE = 0x88F1;
 
 typedef GLboolean (APIENTRY *CE_GL_IS_RENDER_BUFFER_PROC)(GLuint);
 typedef void (APIENTRY *CE_GL_BIND_RENDER_BUFFER_PROC)(GLenum, GLuint);
@@ -904,8 +909,15 @@ bool ce_gl_init(void)
 	}
 
 	ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT] =
-		ce_gl_check_extension("GL_ARB_framebuffer_object") ||
-		ce_gl_check_extension("GL_EXT_framebuffer_object");
+		ce_gl_check_extension("GL_ARB_framebuffer_object");
+
+	if (!ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT]) {
+		ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT] =
+			ce_gl_check_extension("GL_EXT_framebuffer_object") &&
+			ce_gl_check_extension("GL_EXT_framebuffer_blit") &&
+			ce_gl_check_extension("GL_EXT_framebuffer_multisample") &&
+			ce_gl_check_extension("GL_EXT_packed_depth_stencil");
+	}
 
 	if (ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT]) {
 		ce_gl_is_render_buffer_proc = (CE_GL_IS_RENDER_BUFFER_PROC)

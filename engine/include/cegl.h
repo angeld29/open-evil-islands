@@ -251,6 +251,7 @@ extern const GLenum CE_GL_COLOR_ATTACHMENT9;
 extern const GLenum CE_GL_DEPTH_ATTACHMENT;
 extern const GLenum CE_GL_STENCIL_ATTACHMENT;
 extern const GLenum CE_GL_DEPTH_STENCIL_ATTACHMENT;
+extern const GLenum CE_GL_MAX_SAMPLES;
 extern const GLenum CE_GL_FRAME_BUFFER_COMPLETE;
 extern const GLenum CE_GL_FRAME_BUFFER_INCOMPLETE_ATTACHMENT;
 extern const GLenum CE_GL_FRAME_BUFFER_INCOMPLETE_MISSING_ATTACHMENT;
@@ -266,6 +267,10 @@ extern const GLenum CE_GL_RENDER_BUFFER_BINDING;
 extern const GLenum CE_GL_MAX_COLOR_ATTACHMENTS;
 extern const GLenum CE_GL_MAX_RENDER_BUFFER_SIZE;
 extern const GLenum CE_GL_INVALID_FRAME_BUFFER_OPERATION;
+extern const GLenum CE_GL_DEPTH_STENCIL;
+extern const GLenum CE_GL_UNSIGNED_INT_24_8;
+extern const GLenum CE_GL_DEPTH24_STENCIL8;
+extern const GLenum CE_GL_TEXTURE_STENCIL_SIZE;
 
 extern GLboolean ce_gl_is_render_buffer(GLuint buffer);
 extern void ce_gl_bind_render_buffer(GLenum target, GLuint buffer);
