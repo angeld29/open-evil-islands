@@ -18,8 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include <limits.h>
 #include <assert.h>
 
@@ -27,6 +29,8 @@
 
 #include "cegl.h"
 #include "celib.h"
+#include "cealloc.h"
+#include "celogging.h"
 #include "cemprhlp.h"
 #include "cetexture.h"
 #include "cemprrenderitem.h"
@@ -307,17 +311,10 @@ static void ce_mprrenderitem_tile_render(ce_renderitem* renderitem)
 
 // HW tessellated geometry
 
-enum {
-	CE_HWTESS_VB, // vertex buffer
-	CE_HWTESS_NB, // normal buffer
-	CE_HWTESS_TB, // texcoord buffer
-	CE_HWTESS_IB, // index buffer
-	CE_HWTESS_BCOUNT
-};
-
 typedef struct {
 	int index_count;
-	GLuint buffers[CE_HWTESS_BCOUNT];
+	GLuint vertex_buffer;
+	GLuint index_buffer;
 	GLhandle program;
 } ce_mprrenderitem_hwtess;
 
@@ -341,138 +338,114 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
 	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
 
-	const int index_offset_x[6] = { 0, 0, 1, 1, 0, 1 };
-	const int index_offset_z[6] = { 1, 0, 1, 1, 0, 0 };
+	mprrenderitem->index_count = 4;
 
-	// 2 trianle per quad, 32x32 quads
-	mprrenderitem->index_count = 6 * (CE_MPRFILE_VERTEX_SIDE - 1) *
-										(CE_MPRFILE_VERTEX_SIDE - 1);
-
-	const int vb_size = 3 * sizeof(float) * CE_MPRFILE_VERTEX_SIDE *
-												CE_MPRFILE_VERTEX_SIDE;
-	const int tb_size = 2 * sizeof(float) * CE_MPRFILE_VERTEX_SIDE *
-												CE_MPRFILE_VERTEX_SIDE;
+	const int vb_size = 3 * sizeof(float) * 4;
 	const int ib_size = sizeof(GLushort) * mprrenderitem->index_count;
 
-	ce_gl_gen_buffers(CE_HWTESS_BCOUNT, mprrenderitem->buffers);
+	ce_gl_gen_buffers(1, &mprrenderitem->vertex_buffer);
+	ce_gl_gen_buffers(1, &mprrenderitem->index_buffer);
 
-	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->buffers[CE_HWTESS_VB]);
+	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
 	ce_gl_buffer_data(CE_GL_ARRAY_BUFFER, vb_size, NULL, CE_GL_STATIC_DRAW);
 	float* vertices = ce_gl_map_buffer(CE_GL_ARRAY_BUFFER, CE_GL_WRITE_ONLY);
 
-	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->buffers[CE_HWTESS_NB]);
-	ce_gl_buffer_data(CE_GL_ARRAY_BUFFER, vb_size, NULL, CE_GL_STATIC_DRAW);
-	float* normals = ce_gl_map_buffer(CE_GL_ARRAY_BUFFER, CE_GL_WRITE_ONLY);
-
-	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->buffers[CE_HWTESS_TB]);
-	ce_gl_buffer_data(CE_GL_ARRAY_BUFFER, tb_size, NULL, CE_GL_STATIC_DRAW);
-	float* texcoords = ce_gl_map_buffer(CE_GL_ARRAY_BUFFER, CE_GL_WRITE_ONLY);
-
-	ce_gl_bind_buffer(CE_GL_ELEMENT_ARRAY_BUFFER, mprrenderitem->buffers[CE_HWTESS_IB]);
+	ce_gl_bind_buffer(CE_GL_ELEMENT_ARRAY_BUFFER, mprrenderitem->index_buffer);
 	ce_gl_buffer_data(CE_GL_ELEMENT_ARRAY_BUFFER, ib_size, NULL, CE_GL_STATIC_DRAW);
 	GLushort* indices = ce_gl_map_buffer(CE_GL_ELEMENT_ARRAY_BUFFER, CE_GL_WRITE_ONLY);
 
-	for (int z = 0; z < CE_MPRFILE_VERTEX_SIDE; ++z) {
-		for (int x = 0; x < CE_MPRFILE_VERTEX_SIDE; ++x) {
-			ce_mprvertex* mprvertex = mprvertices + z * CE_MPRFILE_VERTEX_SIDE + x;
+	*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1);
+	*vertices++ = 0.0f;
+	*vertices++ = -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1));
 
-			*vertices++ = x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
-									offset_xz_coef * mprvertex->offset_x;
-			*vertices++ = y_coef * mprvertex->coord_y;
-			*vertices++ = -1.0f *
-				(z + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
-				offset_xz_coef * mprvertex->offset_z);
+	*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1);
+	*vertices++ = 0.0f;
+	*vertices++ = -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1));
 
-			ce_mprhlp_normal2vector(normals, mprvertex->normal);
-			normals[2] = -normals[2];
-			normals += 3;
+	*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1);
+	*vertices++ = 0.0f;
+	*vertices++ = -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1));
 
-			*texcoords++ = x / (float)(CE_MPRFILE_VERTEX_SIDE - 1);
-			*texcoords++ = (CE_MPRFILE_VERTEX_SIDE - 1 - z) /
-									(float)(CE_MPRFILE_VERTEX_SIDE - 1);
+	*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1);
+	*vertices++ = 0.0f;
+	*vertices++ = -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1));
 
-			if (x != (CE_MPRFILE_VERTEX_SIDE - 1) &&
-					z != (CE_MPRFILE_VERTEX_SIDE - 1)) {
-				for (int i = 0; i < 6; ++i) {
-					*indices++ = (z + index_offset_z[i]) *
-						CE_MPRFILE_VERTEX_SIDE + (x + index_offset_x[i]);
-				}
-			}
-		}
-	}
+	indices[0] = 0;
+	indices[1] = 1;
+	indices[2] = 2;
+	indices[3] = 3;
 
 	ce_gl_unmap_buffer(CE_GL_ELEMENT_ARRAY_BUFFER);
 	ce_gl_unmap_buffer(CE_GL_ARRAY_BUFFER);
 
-	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->buffers[CE_HWTESS_NB]);
-	ce_gl_unmap_buffer(CE_GL_ARRAY_BUFFER);
+	// FIXME: hard coded !!!
+	FILE* vert_file = fopen("engine/src/cemprrenderitem_hwtess_vertex.glsl", "rb");
+	FILE* frag_file = fopen("engine/src/cemprrenderitem_hwtess_fragment_land.glsl", "rb");
 
-	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->buffers[CE_HWTESS_VB]);
-	ce_gl_unmap_buffer(CE_GL_ARRAY_BUFFER);
+	char buffer[8192];
+	const char* buf = buffer;
+	GLint result;
 
-	ce_gl_bind_buffer(CE_GL_ELEMENT_ARRAY_BUFFER, 0);
-	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, 0);
-
-	const GLchar* vertex_prog =
-		//"#extension GL_AMD_vertex_shader_tessellator : require\n"
-		"\n"
-		"__samplerVertexAMDX Vertex;\n"
-		//"__samplerVertexAMD Normal;\n"
-		//"__samplerVertexAMD Texcoord0;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"	float weight = vertexFetchAMDX(Vertex, gl_VertexTriangleIndex[0]);\n"
-		"	//gl_Vertex = vec4(0.0);\n"
-		"	//gl_Normal = vec4(0.0);\n"
-		"	//gl_MultiTexCoord0 = vec4(0.0);\n"
-		"	for (int i = 0; i < 3; ++i) {\n"
-		"		float weight = gl_BarycentricCoord[i];\n"
-		"		//float tmp = vertexFetchAMD(Vertex, gl_VertexTriangleIndex[i]);\n"
-		"		//gl_Vertex += weight * vertexFetchAMD(Vertex, gl_VertexTriangleIndex[i]);\n"
-		"		//gl_Normal += weight * vertexFetchAMD(Normal, gl_VertexTriangleIndex[i]);\n"
-		"		//gl_MultiTexCoord0 += weight * vertexFetchAMD(Texcoord0, gl_VertexTriangleIndex[i]);\n"
-		"	}\n"
-		"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
-		"	gl_TexCoord[0] = gl_MultiTexCoord0;\n"
-		"}\n";
-
-	const GLchar* fragment_prog[] = {
-		"uniform sampler2D Texture0;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"	gl_FragColor = texture2D(Texture0, gl_TexCoord[0].st);\n"
-		"}\n",
-
-		"uniform sampler2D Texture0;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"	vec4 color = texture2D(Texture0, gl_TexCoord[0].st);\n"
-		"	gl_FragColor = vec4(mix(gl_FrontMaterial.diffuse.rgb,\n"
-		"		color.rgb, color.a), gl_FrontMaterial.diffuse.a);\n"
-		"}\n",
-	};
+	memset(buffer, '\0', sizeof(buffer));
+	fread(buffer, 1, sizeof(buffer), vert_file);
 
 	GLhandle vertex_object = ce_gl_create_shader_object(CE_GL_VERTEX_SHADER);
-	ce_gl_shader_source(vertex_object, 1, &vertex_prog, NULL);
+	ce_gl_shader_source(vertex_object, 1, &buf, NULL);
 	ce_gl_compile_shader(vertex_object);
 
+	ce_gl_get_object_parameter_iv(vertex_object, CE_GL_OBJECT_COMPILE_STATUS, &result);
+	if (0 == result) {
+		GLsizei length;
+		ce_gl_get_info_log(vertex_object, sizeof(buffer), &length, buffer);
+		ce_logging_error("mprrenderitem: %s", buffer);
+		abort();
+	}
+
+	memset(buffer, '\0', sizeof(buffer));
+	fread(buffer, 1, sizeof(buffer), frag_file);
+
+	fclose(frag_file);
+	fclose(vert_file);
+
 	GLhandle fragment_object = ce_gl_create_shader_object(CE_GL_FRAGMENT_SHADER);
-	ce_gl_shader_source(fragment_object, 1, &fragment_prog[water], NULL);
+	ce_gl_shader_source(fragment_object, 1, &buf, NULL);
 	ce_gl_compile_shader(fragment_object);
 
+	ce_gl_get_object_parameter_iv(fragment_object, CE_GL_OBJECT_COMPILE_STATUS, &result);
+	if (0 == result) {
+		GLsizei length;
+		ce_gl_get_info_log(fragment_object, sizeof(buffer), &length, buffer);
+		ce_logging_error("mprrenderitem: %s", buffer);
+		abort();
+	}
+
 	mprrenderitem->program = ce_gl_create_program_object();
+
 	ce_gl_attach_object(mprrenderitem->program, vertex_object);
 	ce_gl_attach_object(mprrenderitem->program, fragment_object);
-	ce_gl_link_program_object(mprrenderitem->program);
 
 	ce_gl_delete_object(fragment_object);
 	ce_gl_delete_object(vertex_object);
 
-	ce_gl_vst_set_tessellation_factor(2.0f);
+	ce_gl_link_program_object(mprrenderitem->program);
+
+	ce_gl_get_object_parameter_iv(mprrenderitem->program, CE_GL_OBJECT_LINK_STATUS, &result);
+	if (0 == result) {
+		GLsizei length;
+		ce_gl_get_info_log(mprrenderitem->program, sizeof(buffer), &length, buffer);
+		ce_logging_error("mprrenderitem: %s", buffer);
+		abort();
+	}
+
+	ce_gl_use_program_object(mprrenderitem->program);
+
+	ce_gl_uniform_2fv(ce_gl_get_uniform_location(mprrenderitem->program,
+		"uv_lookup_table"), 4, (GLfloat[]){ 0.0f, 0.0f, 1.0f, 0.0f,
+											1.0f, 1.0f, 0.0f, 1.0f });
+
+	ce_gl_vst_set_tessellation_factor(10.0f);
 	ce_gl_vst_set_tessellation_mode(CE_GL_VST_CONTINUOUS);
+	//CE_GL_VST_DISCRETE
 }
 
 static void ce_mprrenderitem_hwtess_dtor(ce_renderitem* renderitem)
@@ -481,7 +454,8 @@ static void ce_mprrenderitem_hwtess_dtor(ce_renderitem* renderitem)
 		(ce_mprrenderitem_hwtess*)renderitem->impl;
 
 	ce_gl_delete_object(mprrenderitem->program);
-	ce_gl_delete_buffers(CE_HWTESS_BCOUNT, mprrenderitem->buffers);
+	ce_gl_delete_buffers(1, &mprrenderitem->index_buffer);
+	ce_gl_delete_buffers(1, &mprrenderitem->vertex_buffer);
 }
 
 static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
@@ -493,22 +467,17 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glPolygonMode(GL_FRONT, GL_LINE);
 
-	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->buffers[CE_HWTESS_VB]);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	//glEnableClientState(GL_NORMAL_ARRAY);
+	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
 	glVertexPointer(3, GL_FLOAT, 0, NULL);
 
-	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->buffers[CE_HWTESS_NB]);
-	glNormalPointer(GL_FLOAT, 0, NULL);
-
-	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->buffers[CE_HWTESS_TB]);
-	glTexCoordPointer(2, GL_FLOAT, 0, NULL);
-
-	ce_gl_bind_buffer(CE_GL_ELEMENT_ARRAY_BUFFER, mprrenderitem->buffers[CE_HWTESS_IB]);
-	//glDrawElements(GL_TRIANGLES, mprrenderitem->index_count, GL_UNSIGNED_SHORT, NULL);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
+	ce_gl_bind_buffer(CE_GL_ELEMENT_ARRAY_BUFFER, mprrenderitem->index_buffer);
+	glDrawElements(GL_QUADS, mprrenderitem->index_count, GL_UNSIGNED_SHORT, NULL);
 
 	ce_gl_bind_buffer(CE_GL_ELEMENT_ARRAY_BUFFER, 0);
 	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, 0);
