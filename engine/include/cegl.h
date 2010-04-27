@@ -267,12 +267,39 @@ extern const GLenum CE_GL_MAX_COLOR_ATTACHMENTS;
 extern const GLenum CE_GL_MAX_RENDER_BUFFER_SIZE;
 extern const GLenum CE_GL_INVALID_FRAME_BUFFER_OPERATION;
 
+extern GLboolean ce_gl_is_render_buffer(GLuint buffer);
+extern void ce_gl_bind_render_buffer(GLenum target, GLuint buffer);
+extern void ce_gl_delete_render_buffers(GLsizei n, const GLuint* buffers);
+extern void ce_gl_gen_render_buffers(GLsizei n, GLuint* buffers);
+extern void ce_gl_render_buffer_storage(GLenum target, GLenum internal_format,
+										GLsizei width, GLsizei height);
+extern void ce_gl_render_buffer_storage_multisample(GLenum target,
+	GLsizei samples, GLenum internal_format, GLsizei width, GLsizei height);
+extern void ce_gl_get_render_buffer_parameter_iv(GLenum target,
+												GLenum pname, GLint* params);
+extern GLboolean ce_gl_is_frame_buffer(GLuint buffer);
 extern void ce_gl_bind_frame_buffer(GLenum target, GLuint buffer);
 extern void ce_gl_delete_frame_buffers(GLsizei n, const GLuint* buffers);
 extern void ce_gl_gen_frame_buffers(GLsizei n, GLuint* buffers);
 extern GLenum ce_gl_check_frame_buffer_status(GLenum target);
+extern void ce_gl_frame_buffer_texture_1d(GLenum target, GLenum attachment,
+							GLenum tex_target, GLuint texture, GLint level);
 extern void ce_gl_frame_buffer_texture_2d(GLenum target, GLenum attachment,
 							GLenum tex_target, GLuint texture, GLint level);
+extern void ce_gl_frame_buffer_texture_3d(GLenum target, GLenum attachment,
+										GLenum tex_target, GLuint texture,
+										GLint level, GLint layer);
+extern void ce_gl_frame_buffer_texture_layer(GLenum target, GLenum attachment,
+									GLuint texture, GLint level, GLint layer);
+extern void ce_gl_frame_buffer_render_buffer(GLenum fb_target, GLenum attachment,
+                                 			GLenum rb_target, GLuint buffer);
+extern void ce_gl_get_frame_buffer_attachment_parameter_iv(GLenum target,
+								GLenum attachment, GLenum pname, GLint* params);
+extern void ce_gl_blit_frame_buffer(GLint src_x0, GLint src_y0,
+									GLint src_x1, GLint src_y1,
+									GLint dst_x0, GLint dst_y0,
+									GLint dst_x1, GLint dst_y1,
+									GLbitfield mask, GLenum filter);
 extern void ce_gl_generate_mipmap(GLenum target);
 
 // PBO

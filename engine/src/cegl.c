@@ -314,23 +314,56 @@ const GLenum CE_GL_MAX_COLOR_ATTACHMENTS = 0x8CDF;
 const GLenum CE_GL_MAX_RENDER_BUFFER_SIZE = 0x84E8;
 const GLenum CE_GL_INVALID_FRAME_BUFFER_OPERATION = 0x0506;
 
-typedef void (APIENTRY *CE_GL_BIND_FRAME_BUFFER_PROC)
-				(GLenum target, GLuint buffer);
-typedef void (APIENTRY *CE_GL_DELETE_FRAME_BUFFERS_PROC)
-				(GLsizei n, const GLuint* buffers);
-typedef void (APIENTRY *CE_GL_GEN_FRAME_BUFFERS_PROC)
-				(GLsizei n, GLuint* buffers);
-typedef GLenum (APIENTRY *CE_GL_CHECK_FRAME_BUFFER_STATUS_PROC)(GLenum target);
+typedef GLboolean (APIENTRY *CE_GL_IS_RENDER_BUFFER_PROC)(GLuint);
+typedef void (APIENTRY *CE_GL_BIND_RENDER_BUFFER_PROC)(GLenum, GLuint);
+typedef void (APIENTRY *CE_GL_DELETE_RENDER_BUFFERS_PROC)(GLsizei, const GLuint*);
+typedef void (APIENTRY *CE_GL_GEN_RENDER_BUFFERS_PROC)(GLsizei, GLuint*);
+typedef void (APIENTRY *CE_GL_RENDER_BUFFER_STORAGE_PROC)
+			(GLenum, GLenum, GLsizei, GLsizei);
+typedef void (APIENTRY *CE_GL_RENDER_BUFFER_STORAGE_MULTISAMPLE_PROC)
+			(GLenum, GLsizei, GLenum, GLsizei, GLsizei);
+typedef void (APIENTRY *CE_GL_GET_RENDER_BUFFER_PARAMETER_IV_PROC)(GLenum, GLenum, GLint*);
+typedef GLboolean (APIENTRY *CE_GL_IS_FRAME_BUFFER_PROC)(GLuint);
+typedef void (APIENTRY *CE_GL_BIND_FRAME_BUFFER_PROC)(GLenum, GLuint);
+typedef void (APIENTRY *CE_GL_DELETE_FRAME_BUFFERS_PROC)(GLsizei, const GLuint*);
+typedef void (APIENTRY *CE_GL_GEN_FRAME_BUFFERS_PROC)(GLsizei, GLuint*);
+typedef GLenum (APIENTRY *CE_GL_CHECK_FRAME_BUFFER_STATUS_PROC)(GLenum);
+typedef void (APIENTRY *CE_GL_FRAME_BUFFER_TEXTURE_1D_PROC)
+			(GLenum, GLenum, GLenum, GLuint, GLint);
 typedef void (APIENTRY *CE_GL_FRAME_BUFFER_TEXTURE_2D_PROC)
-				(GLenum target, GLenum attachment,
-				GLenum tex_target, GLuint texture, GLint level);
-typedef void (APIENTRY *CE_GL_GENERATE_MIPMAP_PROC)(GLenum target);
+			(GLenum, GLenum, GLenum, GLuint, GLint);
+typedef void (APIENTRY *CE_GL_FRAME_BUFFER_TEXTURE_3D_PROC)
+			(GLenum, GLenum, GLenum, GLuint, GLint, GLint);
+typedef void (APIENTRY *CE_GL_FRAME_BUFFER_TEXTURE_LAYER_PROC)
+			(GLenum, GLenum, GLuint, GLint, GLint);
+typedef void (APIENTRY *CE_GL_FRAME_BUFFER_RENDER_BUFFER_PROC)
+			(GLenum, GLenum, GLenum, GLuint);
+typedef void (APIENTRY *CE_GL_GET_FRAME_BUFFER_ATTACHMENT_PARAMETER_IV_PROC)
+			(GLenum, GLenum, GLenum, GLint*);
+typedef void (APIENTRY *CE_GL_BLIT_FRAME_BUFFER_PROC)(GLint, GLint,
+			GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum);
 
+typedef void (APIENTRY *CE_GL_GENERATE_MIPMAP_PROC)(GLenum);
+
+static CE_GL_IS_RENDER_BUFFER_PROC ce_gl_is_render_buffer_proc;
+static CE_GL_BIND_RENDER_BUFFER_PROC ce_gl_bind_render_buffer_proc;
+static CE_GL_DELETE_RENDER_BUFFERS_PROC ce_gl_delete_render_buffers_proc;
+static CE_GL_GEN_RENDER_BUFFERS_PROC ce_gl_gen_render_buffers_proc;
+static CE_GL_RENDER_BUFFER_STORAGE_PROC ce_gl_render_buffer_storage_proc;
+static CE_GL_RENDER_BUFFER_STORAGE_MULTISAMPLE_PROC ce_gl_render_buffer_storage_multisample_proc;
+static CE_GL_GET_RENDER_BUFFER_PARAMETER_IV_PROC ce_gl_get_render_buffer_parameter_iv_proc;
+static CE_GL_IS_FRAME_BUFFER_PROC ce_gl_is_frame_buffer_proc;
 static CE_GL_BIND_FRAME_BUFFER_PROC ce_gl_bind_frame_buffer_proc;
 static CE_GL_DELETE_FRAME_BUFFERS_PROC ce_gl_delete_frame_buffers_proc;
 static CE_GL_GEN_FRAME_BUFFERS_PROC ce_gl_gen_frame_buffers_proc;
 static CE_GL_CHECK_FRAME_BUFFER_STATUS_PROC ce_gl_check_frame_buffer_status_proc;
+static CE_GL_FRAME_BUFFER_TEXTURE_1D_PROC ce_gl_frame_buffer_texture_1d_proc;
 static CE_GL_FRAME_BUFFER_TEXTURE_2D_PROC ce_gl_frame_buffer_texture_2d_proc;
+static CE_GL_FRAME_BUFFER_TEXTURE_3D_PROC ce_gl_frame_buffer_texture_3d_proc;
+static CE_GL_FRAME_BUFFER_TEXTURE_LAYER_PROC ce_gl_frame_buffer_texture_layer_proc;
+static CE_GL_FRAME_BUFFER_RENDER_BUFFER_PROC ce_gl_frame_buffer_render_buffer_proc;
+static CE_GL_GET_FRAME_BUFFER_ATTACHMENT_PARAMETER_IV_PROC ce_gl_get_frame_buffer_attachment_parameter_iv_proc;
+static CE_GL_BLIT_FRAME_BUFFER_PROC ce_gl_blit_frame_buffer_proc;
 static CE_GL_GENERATE_MIPMAP_PROC ce_gl_generate_mipmap_proc;
 
 // PBO
@@ -875,37 +908,95 @@ bool ce_gl_init(void)
 		ce_gl_check_extension("GL_EXT_framebuffer_object");
 
 	if (ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT]) {
-		ce_gl_bind_frame_buffer_proc =
-			(CE_GL_BIND_FRAME_BUFFER_PROC)
-				ce_gl_get_first_proc_address(2, "glBindFramebufferARB",
-												"glBindFramebufferEXT");
-		ce_gl_delete_frame_buffers_proc =
-			(CE_GL_DELETE_FRAME_BUFFERS_PROC)
-				ce_gl_get_first_proc_address(2, "glDeleteFramebuffersARB",
-												"glDeleteFramebuffersEXT");
-		ce_gl_gen_frame_buffers_proc =
-			(CE_GL_GEN_FRAME_BUFFERS_PROC)
-				ce_gl_get_first_proc_address(2, "glGenFramebuffersARB",
-												"glGenFramebuffersEXT");
+		ce_gl_is_render_buffer_proc = (CE_GL_IS_RENDER_BUFFER_PROC)
+			ce_gl_get_first_proc_address(2, "glIsRenderbufferARB",
+											"glIsRenderbufferEXT");
+		ce_gl_bind_render_buffer_proc = (CE_GL_BIND_RENDER_BUFFER_PROC)
+			ce_gl_get_first_proc_address(2, "glBindRenderbufferARB",
+											"glBindRenderbufferEXT");
+		ce_gl_delete_render_buffers_proc = (CE_GL_DELETE_RENDER_BUFFERS_PROC)
+			ce_gl_get_first_proc_address(2, "glDeleteRenderbuffersARB",
+											"glDeleteRenderbuffersEXT");
+		ce_gl_gen_render_buffers_proc = (CE_GL_GEN_RENDER_BUFFERS_PROC)
+			ce_gl_get_first_proc_address(2, "glGenRenderbuffersARB",
+											"glGenRenderbuffersEXT");
+		ce_gl_render_buffer_storage_proc = (CE_GL_RENDER_BUFFER_STORAGE_PROC)
+			ce_gl_get_first_proc_address(2, "glRenderbufferStorageARB",
+											"glRenderbufferStorageEXT");
+		ce_gl_render_buffer_storage_multisample_proc =
+			(CE_GL_RENDER_BUFFER_STORAGE_MULTISAMPLE_PROC)
+				ce_gl_get_first_proc_address(2, "glRenderbufferStorageMultisampleARB",
+												"glRenderbufferStorageMultisampleEXT");
+		ce_gl_get_render_buffer_parameter_iv_proc =
+			(CE_GL_GET_RENDER_BUFFER_PARAMETER_IV_PROC)
+				ce_gl_get_first_proc_address(2, "glGetRenderbufferParameterivARB",
+												"glGetRenderbufferParameterivEXT");
+		ce_gl_is_frame_buffer_proc = (CE_GL_IS_FRAME_BUFFER_PROC)
+			ce_gl_get_first_proc_address(2, "glIsFramebufferARB",
+											"glIsFramebufferEXT");
+
+		ce_gl_bind_frame_buffer_proc = (CE_GL_BIND_FRAME_BUFFER_PROC)
+			ce_gl_get_first_proc_address(2, "glBindFramebufferARB",
+											"glBindFramebufferEXT");
+		ce_gl_delete_frame_buffers_proc = (CE_GL_DELETE_FRAME_BUFFERS_PROC)
+			ce_gl_get_first_proc_address(2, "glDeleteFramebuffersARB",
+											"glDeleteFramebuffersEXT");
+		ce_gl_gen_frame_buffers_proc = (CE_GL_GEN_FRAME_BUFFERS_PROC)
+			ce_gl_get_first_proc_address(2, "glGenFramebuffersARB",
+											"glGenFramebuffersEXT");
 		ce_gl_check_frame_buffer_status_proc =
 			(CE_GL_CHECK_FRAME_BUFFER_STATUS_PROC)
 				ce_gl_get_first_proc_address(2, "glCheckFramebufferStatusARB",
 												"glCheckFramebufferStatusEXT");
-		ce_gl_frame_buffer_texture_2d_proc =
-			(CE_GL_FRAME_BUFFER_TEXTURE_2D_PROC)
-				ce_gl_get_first_proc_address(2, "glFramebufferTexture2DARB",
-												"glFramebufferTexture2DEXT");
-		ce_gl_generate_mipmap_proc =
-			(CE_GL_GENERATE_MIPMAP_PROC)
-				ce_gl_get_first_proc_address(2, "glGenerateMipmapARB",
-												"glGenerateMipmapEXT");
+		ce_gl_frame_buffer_texture_1d_proc = (CE_GL_FRAME_BUFFER_TEXTURE_1D_PROC)
+			ce_gl_get_first_proc_address(2, "glFramebufferTexture1DARB",
+											"glFramebufferTexture1DEXT");
+		ce_gl_frame_buffer_texture_2d_proc = (CE_GL_FRAME_BUFFER_TEXTURE_2D_PROC)
+			ce_gl_get_first_proc_address(2, "glFramebufferTexture2DARB",
+											"glFramebufferTexture2DEXT");
+		ce_gl_frame_buffer_texture_3d_proc =
+			(CE_GL_FRAME_BUFFER_TEXTURE_3D_PROC)
+				ce_gl_get_first_proc_address(2, "glFramebufferTexture3DARB",
+												"glFramebufferTexture3DEXT");
+		ce_gl_frame_buffer_texture_layer_proc =
+			(CE_GL_FRAME_BUFFER_TEXTURE_LAYER_PROC)
+				ce_gl_get_first_proc_address(2, "glFramebufferTextureLayerARB",
+												"glFramebufferTextureLayerEXT");
+		ce_gl_frame_buffer_render_buffer_proc =
+			(CE_GL_FRAME_BUFFER_RENDER_BUFFER_PROC)
+				ce_gl_get_first_proc_address(2, "glFramebufferRenderbufferARB",
+												"glFramebufferRenderbufferEXT");
+		ce_gl_get_frame_buffer_attachment_parameter_iv_proc =
+			(CE_GL_GET_FRAME_BUFFER_ATTACHMENT_PARAMETER_IV_PROC)
+				ce_gl_get_first_proc_address(2, "glGetFramebufferAttachmentParameterivARB",
+												"glGetFramebufferAttachmentParameterivEXT");
+		ce_gl_blit_frame_buffer_proc = (CE_GL_BLIT_FRAME_BUFFER_PROC)
+			ce_gl_get_first_proc_address(2, "glBlitFramebufferARB",
+											"glBlitFramebufferEXT");
+		ce_gl_generate_mipmap_proc = (CE_GL_GENERATE_MIPMAP_PROC)
+			ce_gl_get_first_proc_address(2, "glGenerateMipmapARB",
+											"glGenerateMipmapEXT");
 
 		ce_gl_inst.features[CE_GL_FEATURE_FRAME_BUFFER_OBJECT] =
+			NULL != ce_gl_is_render_buffer_proc &&
+			NULL != ce_gl_bind_render_buffer_proc &&
+			NULL != ce_gl_delete_render_buffers_proc &&
+			NULL != ce_gl_gen_render_buffers_proc &&
+			NULL != ce_gl_render_buffer_storage_proc &&
+			NULL != ce_gl_render_buffer_storage_multisample_proc &&
+			NULL != ce_gl_get_render_buffer_parameter_iv_proc &&
+			NULL != ce_gl_is_frame_buffer_proc &&
 			NULL != ce_gl_bind_frame_buffer_proc &&
 			NULL != ce_gl_delete_frame_buffers_proc &&
 			NULL != ce_gl_gen_frame_buffers_proc &&
 			NULL != ce_gl_check_frame_buffer_status_proc &&
+			NULL != ce_gl_frame_buffer_texture_1d_proc &&
 			NULL != ce_gl_frame_buffer_texture_2d_proc &&
+			NULL != ce_gl_frame_buffer_texture_3d_proc &&
+			NULL != ce_gl_frame_buffer_texture_layer_proc &&
+			NULL != ce_gl_frame_buffer_render_buffer_proc &&
+			NULL != ce_gl_get_frame_buffer_attachment_parameter_iv_proc &&
+			NULL != ce_gl_blit_frame_buffer_proc &&
 			NULL != ce_gl_generate_mipmap_proc;
 	}
 
@@ -1389,6 +1480,59 @@ void ce_gl_copy_buffer_sub_data(GLenum read_target, GLenum write_target,
 
 // FBO
 
+GLboolean ce_gl_is_render_buffer(GLuint buffer)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_is_render_buffer_proc);
+	return (*ce_gl_is_render_buffer_proc)(buffer);
+}
+
+void ce_gl_bind_render_buffer(GLenum target, GLuint buffer)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_bind_render_buffer_proc);
+	(*ce_gl_bind_render_buffer_proc)(target, buffer);
+}
+
+void ce_gl_delete_render_buffers(GLsizei n, const GLuint* buffers)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_delete_render_buffers_proc);
+	(*ce_gl_delete_render_buffers_proc)(n, buffers);
+}
+
+void ce_gl_gen_render_buffers(GLsizei n, GLuint* buffers)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_gen_render_buffers_proc);
+	(*ce_gl_gen_render_buffers_proc)(n, buffers);
+}
+
+void ce_gl_render_buffer_storage(GLenum target, GLenum internal_format,
+										GLsizei width, GLsizei height)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_render_buffer_storage_proc);
+	(*ce_gl_render_buffer_storage_proc)(target, internal_format, width, height);
+}
+
+void ce_gl_render_buffer_storage_multisample(GLenum target, GLsizei samples,
+											GLenum internal_format,
+											GLsizei width, GLsizei height)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_render_buffer_storage_multisample_proc);
+	(*ce_gl_render_buffer_storage_multisample_proc)
+		(target, samples, internal_format, width, height);
+}
+
+void ce_gl_get_render_buffer_parameter_iv(GLenum target,
+											GLenum pname, GLint* params)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_render_buffer_parameter_iv_proc);
+	(*ce_gl_get_render_buffer_parameter_iv_proc)(target, pname, params);
+}
+
+GLboolean ce_gl_is_frame_buffer(GLuint buffer)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_is_frame_buffer_proc);
+	return (*ce_gl_is_frame_buffer_proc)(buffer);
+}
+
 void ce_gl_bind_frame_buffer(GLenum target, GLuint buffer)
 {
 	CE_GL_CHECK_PROC_POINTER(ce_gl_bind_frame_buffer_proc);
@@ -1413,12 +1557,64 @@ GLenum ce_gl_check_frame_buffer_status(GLenum target)
 	return (*ce_gl_check_frame_buffer_status_proc)(target);
 }
 
+void ce_gl_frame_buffer_texture_1d(GLenum target, GLenum attachment,
+							GLenum tex_target, GLuint texture, GLint level)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_frame_buffer_texture_1d_proc);
+	(*ce_gl_frame_buffer_texture_1d_proc)(target, attachment, tex_target,
+														texture, level);
+}
+
 void ce_gl_frame_buffer_texture_2d(GLenum target, GLenum attachment,
 							GLenum tex_target, GLuint texture, GLint level)
 {
 	CE_GL_CHECK_PROC_POINTER(ce_gl_frame_buffer_texture_2d_proc);
 	(*ce_gl_frame_buffer_texture_2d_proc)(target, attachment, tex_target,
 														texture, level);
+}
+
+void ce_gl_frame_buffer_texture_3d(GLenum target, GLenum attachment,
+									GLenum tex_target, GLuint texture,
+									GLint level, GLint layer)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_frame_buffer_texture_3d_proc);
+	(*ce_gl_frame_buffer_texture_3d_proc)(target, attachment, tex_target,
+													texture, level, layer);
+}
+
+void ce_gl_frame_buffer_texture_layer(GLenum target, GLenum attachment,
+									GLuint texture, GLint level, GLint layer)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_frame_buffer_texture_layer_proc);
+	(*ce_gl_frame_buffer_texture_layer_proc)
+		(target, attachment, texture, level, layer);
+}
+
+void ce_gl_frame_buffer_render_buffer(GLenum fb_target, GLenum attachment,
+                                 		GLenum rb_target, GLuint buffer)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_frame_buffer_render_buffer_proc);
+	(*ce_gl_frame_buffer_render_buffer_proc)
+		(fb_target, attachment, rb_target, buffer);
+}
+
+void ce_gl_get_frame_buffer_attachment_parameter_iv
+	(GLenum target, GLenum attachment, GLenum pname, GLint* params)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_get_frame_buffer_attachment_parameter_iv_proc);
+	(*ce_gl_get_frame_buffer_attachment_parameter_iv_proc)
+		(target, attachment, pname, params);
+}
+
+void ce_gl_blit_frame_buffer(GLint src_x0, GLint src_y0,
+							GLint src_x1, GLint src_y1,
+							GLint dst_x0, GLint dst_y0,
+							GLint dst_x1, GLint dst_y1,
+							GLbitfield mask, GLenum filter)
+{
+	CE_GL_CHECK_PROC_POINTER(ce_gl_blit_frame_buffer_proc);
+	(*ce_gl_blit_frame_buffer_proc)(src_x0, src_y0,
+		src_x1, src_y1, dst_x0, dst_y0, dst_x1, dst_y1, mask, filter);
 }
 
 void ce_gl_generate_mipmap(GLenum target)
