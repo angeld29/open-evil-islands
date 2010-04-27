@@ -7,11 +7,15 @@ uniform vec2 uv_lookup_table[4];
 //uniform sampler2D xz_offset_texture;
 //uniform sampler2D height_map_texture;
 
+varying vec4 tmp;
+
 void main(void)
 {
 	gl_Vertex = vec4(0.0);
 	gl_Normal = vec3(0.0);
 	gl_MultiTexCoord0 = vec4(0.0);
+
+	tmp = vec4(0.0, 0.0, 0.0, 1.0);
 
 	float u = gl_UVCoord[0];
 	float v = gl_UVCoord[1];
@@ -75,30 +79,17 @@ void main(void)
 		v3 = vertexFetchAMD(vertex, gl_VertexQuadIndex[3]);
 	}
 
-	/*// define the basis using parameter u
-	float bu0 = (1-u) * (1-u) * (1-u);
-	float bu1 = 3 * u * (1-u) * (1-u);
-	float bu2 = 3 * u * u * (1-u);
-	float bu3 = u * u * u;
+	gl_Vertex += (1.0 - u) * (1.0 - v) * v0;
+	gl_Vertex += u * (1.0 - v) * v1;
+	gl_Vertex += u * v * v2;
+	gl_Vertex += (1.0 - u) * v * v3;
 
-	// define the basis using parameter v
-	float bv0 = (1-v) * (1-v) * (1-v);
-	float bv1 = 3 * v * (1-v) * (1-v);
-	float bv2 = 3 * v * v * (1-v);
-	float bv3 = v * v * v;
+	gl_MultiTexCoord0.s = u;
+	gl_MultiTexCoord0.t = 1.0 - v;
 
-	gl_Vertex += bu0 * bv0 * v0;
-	gl_Vertex += bu3 * bv0 * v1;
-	gl_Vertex += bu0 * bv3 * v3;
-	gl_Vertex += bu3 * bv3 * v2;*/
-
-	//gl_Vertex.z = v0.x + u * (v1.x - v0.x);
-	//gl_Vertex.x = v2.z + v * (v3.z - v2.z);
-
-	gl_Vertex += u * v0;
-	gl_Vertex += u * v1;
-	gl_Vertex += u * v3;
-	gl_Vertex += u * v2;
+	tmp.x = u;
+	tmp.y = v;
 
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+	gl_TexCoord[0] = gl_MultiTexCoord0;
 }

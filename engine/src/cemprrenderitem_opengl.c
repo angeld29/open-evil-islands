@@ -443,9 +443,10 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 		"uv_lookup_table"), 4, (GLfloat[]){ 0.0f, 0.0f, 1.0f, 0.0f,
 											1.0f, 1.0f, 0.0f, 1.0f });
 
-	ce_gl_vst_set_tessellation_factor(10.0f);
+	ce_gl_vst_set_tessellation_factor(13.0f);
 	ce_gl_vst_set_tessellation_mode(CE_GL_VST_CONTINUOUS);
-	//CE_GL_VST_DISCRETE
+	// CE_GL_VST_DISCRETE
+	// CE_GL_VST_CONTINUOUS
 }
 
 static void ce_mprrenderitem_hwtess_dtor(ce_renderitem* renderitem)
@@ -467,7 +468,7 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
-	glPolygonMode(GL_FRONT, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	//glEnableClientState(GL_NORMAL_ARRAY);
