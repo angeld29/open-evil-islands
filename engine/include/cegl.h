@@ -39,6 +39,28 @@ typedef ptrdiff_t GLsizeiptr;
 typedef char GLchar;
 typedef unsigned int GLhandle;
 
+// multitexture
+extern const GLenum CE_GL_TEXTURE0;
+extern const GLenum CE_GL_TEXTURE1;
+extern const GLenum CE_GL_TEXTURE2;
+extern const GLenum CE_GL_TEXTURE3;
+extern const GLenum CE_GL_TEXTURE4;
+extern const GLenum CE_GL_TEXTURE5;
+extern const GLenum CE_GL_TEXTURE6;
+extern const GLenum CE_GL_TEXTURE7;
+extern const GLenum CE_GL_TEXTURE8;
+extern const GLenum CE_GL_TEXTURE9;
+extern const GLenum CE_GL_ACTIVE_TEXTURE;
+extern const GLenum CE_GL_CLIENT_ACTIVE_TEXTURE;
+extern const GLenum CE_GL_MAX_TEXTURE_UNITS;
+
+extern void ce_gl_active_texture(GLenum target);
+extern void ce_gl_client_active_texture(GLenum target);
+extern void ce_gl_multi_tex_coord_2f(GLenum target, GLfloat s, GLfloat t);
+extern void ce_gl_multi_tex_coord_2fv(GLenum target, const GLfloat* v);
+extern void ce_gl_multi_tex_coord_3f(GLenum target, GLfloat s, GLfloat t, GLfloat r);
+extern void ce_gl_multi_tex_coord_3fv(GLenum target, const GLfloat* v);
+
 // texture compression
 extern const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT1;
 extern const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT3;
@@ -356,6 +378,7 @@ extern const GLenum CE_GL_RENDERBUFFER_FREE_MEMORY;
 
 // common API
 typedef enum {
+	CE_GL_FEATURE_MULTITEXTURE,
 	CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO,
 	CE_GL_FEATURE_TEXTURE_RECTANGLE,
 	CE_GL_FEATURE_TEXTURE_COMPRESSION,

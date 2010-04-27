@@ -40,14 +40,41 @@
 #include "celogging.h"
 #include "cegl.h"
 
+// multitexture
+const GLenum CE_GL_TEXTURE0 = 0x84C0;
+const GLenum CE_GL_TEXTURE1 = 0x84C1;
+const GLenum CE_GL_TEXTURE2 = 0x84C2;
+const GLenum CE_GL_TEXTURE3 = 0x84C3;
+const GLenum CE_GL_TEXTURE4 = 0x84C4;
+const GLenum CE_GL_TEXTURE5 = 0x84C5;
+const GLenum CE_GL_TEXTURE6 = 0x84C6;
+const GLenum CE_GL_TEXTURE7 = 0x84C7;
+const GLenum CE_GL_TEXTURE8 = 0x84C8;
+const GLenum CE_GL_TEXTURE9 = 0x84C9;
+const GLenum CE_GL_ACTIVE_TEXTURE = 0x84E0;
+const GLenum CE_GL_CLIENT_ACTIVE_TEXTURE = 0x84E1;
+const GLenum CE_GL_MAX_TEXTURE_UNITS = 0x84E2;
+
+typedef void (APIENTRY *CE_GL_ACTIVE_TEXTURE_PROC)(GLenum);
+typedef void (APIENTRY *CE_GL_CLIENT_ACTIVE_TEXTURE_PROC)(GLenum);
+typedef void (APIENTRY *CE_GL_MULTI_TEX_COORD_2F_PROC)(GLenum, GLfloat, GLfloat);
+typedef void (APIENTRY *CE_GL_MULTI_TEX_COORD_2FV_PROC)(GLenum, const GLfloat*);
+typedef void (APIENTRY *CE_GL_MULTI_TEX_COORD_3F_PROC)(GLenum, GLfloat, GLfloat, GLfloat);
+typedef void (APIENTRY *CE_GL_MULTI_TEX_COORD_3FV_PROC)(GLenum, const GLfloat*);
+
+static CE_GL_ACTIVE_TEXTURE_PROC ce_gl_active_texture_proc;
+static CE_GL_CLIENT_ACTIVE_TEXTURE_PROC ce_gl_client_active_texture_proc;
+static CE_GL_MULTI_TEX_COORD_2F_PROC ce_gl_multi_tex_coord_2f_proc;
+static CE_GL_MULTI_TEX_COORD_2FV_PROC ce_gl_multi_tex_coord_2fv_proc;
+static CE_GL_MULTI_TEX_COORD_3F_PROC ce_gl_multi_tex_coord_3f_proc;
+static CE_GL_MULTI_TEX_COORD_3FV_PROC ce_gl_multi_tex_coord_3fv_proc;
+
 // texture compression
 const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT1 = 0x83F1;
 const GLenum CE_GL_COMPRESSED_RGBA_S3TC_DXT3 = 0x83F2;
 
 typedef void (APIENTRY *CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC)
-				(GLenum target, GLint level, GLenum internal_format,
-				GLsizei width, GLsizei height, GLint border,
-				GLsizei image_size, const GLvoid* data);
+	(GLenum, GLint, GLenum, GLsizei, GLsizei, GLint, GLsizei, const GLvoid*);
 
 static CE_GL_COMPRESSED_TEX_IMAGE_2D_PROC ce_gl_compressed_tex_image_2d_proc;
 
@@ -342,7 +369,6 @@ static CE_GL_ATTACH_OBJECT_PROC ce_gl_attach_object_proc;
 static CE_GL_LINK_PROGRAM_OBJECT_PROC ce_gl_link_program_object_proc;
 static CE_GL_USE_PROGRAM_OBJECT_PROC ce_gl_use_program_object_proc;
 static CE_GL_VALIDATE_PROGRAM_OBJECT_PROC ce_gl_validate_program_object_proc;
-
 static CE_GL_UNIFORM_1F_PROC ce_gl_uniform_1f_proc;
 static CE_GL_UNIFORM_2F_PROC ce_gl_uniform_2f_proc;
 static CE_GL_UNIFORM_3F_PROC ce_gl_uniform_3f_proc;
@@ -521,6 +547,7 @@ static struct {
 	const char* feature_names[CE_GL_FEATURE_COUNT];
 } ce_gl_inst = {
 	.feature_names = {
+		"multitexture",
 		"texture non power of two",
 		"texture rectangle",
 		"texture compression",
@@ -560,6 +587,32 @@ bool ce_gl_init(void)
 	assert(!ce_gl_inst.inited && "The gl subsystem has already been inited");
 	ce_gl_inst.inited = true;
 
+	ce_gl_inst.features[CE_GL_FEATURE_MULTITEXTURE] =
+		ce_gl_check_extension("GL_ARB_multitexture");
+
+	if (ce_gl_inst.features[CE_GL_FEATURE_MULTITEXTURE]) {
+		ce_gl_active_texture_proc = (CE_GL_ACTIVE_TEXTURE_PROC)
+			ce_gl_get_proc_address("glActiveTextureARB");
+		ce_gl_client_active_texture_proc = (CE_GL_CLIENT_ACTIVE_TEXTURE_PROC)
+			ce_gl_get_proc_address("glClientActiveTextureARB");
+		ce_gl_multi_tex_coord_2f_proc = (CE_GL_MULTI_TEX_COORD_2F_PROC)
+			ce_gl_get_proc_address("glMultiTexCoord2fARB");
+		ce_gl_multi_tex_coord_2fv_proc = (CE_GL_MULTI_TEX_COORD_2FV_PROC)
+			ce_gl_get_proc_address("glMultiTexCoord2fvARB");
+		ce_gl_multi_tex_coord_3f_proc = (CE_GL_MULTI_TEX_COORD_3F_PROC)
+			ce_gl_get_proc_address("glMultiTexCoord3fARB");
+		ce_gl_multi_tex_coord_3fv_proc = (CE_GL_MULTI_TEX_COORD_3FV_PROC)
+			ce_gl_get_proc_address("glMultiTexCoord3fvARB");
+
+		ce_gl_inst.features[CE_GL_FEATURE_MULTITEXTURE] =
+			NULL != ce_gl_active_texture_proc &&
+			NULL != ce_gl_client_active_texture_proc &&
+			NULL != ce_gl_multi_tex_coord_2f_proc &&
+			NULL != ce_gl_multi_tex_coord_2fv_proc &&
+			NULL != ce_gl_multi_tex_coord_3f_proc &&
+			NULL != ce_gl_multi_tex_coord_3fv_proc;
+	}
+
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO] =
 		ce_gl_check_extension("GL_ARB_texture_non_power_of_two");
 
@@ -578,15 +631,15 @@ bool ce_gl_init(void)
 
 		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] =
 			NULL != ce_gl_compressed_tex_image_2d_proc;
-
-		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
-			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
-			ce_gl_check_extension("GL_EXT_texture_compression_s3tc");
-
-		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] =
-			ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
-			ce_gl_check_extension("GL_EXT_texture_compression_dxt1");
 	}
+
+	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC] =
+		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
+		ce_gl_check_extension("GL_EXT_texture_compression_s3tc");
+
+	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1] =
+		ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_COMPRESSION] &&
+		ce_gl_check_extension("GL_EXT_texture_compression_dxt1");
 
 	ce_gl_inst.features[CE_GL_FEATURE_TEXTURE_LOD] =
 		ce_gl_check_extension("GL_SGIS_texture_lod") ||
