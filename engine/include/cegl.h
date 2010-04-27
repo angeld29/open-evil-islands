@@ -188,6 +188,12 @@ extern const GLenum CE_GL_BUFFER_MAPPED;
 extern const GLenum CE_GL_BUFFER_MAP_POINTER;
 extern const GLenum CE_GL_COPY_READ_BUFFER;
 extern const GLenum CE_GL_COPY_WRITE_BUFFER;
+extern const GLenum CE_GL_MAP_READ_BIT;
+extern const GLenum CE_GL_MAP_WRITE_BIT;
+extern const GLenum CE_GL_MAP_INVALIDATE_RANGE_BIT;
+extern const GLenum CE_GL_MAP_INVALIDATE_BUFFER_BIT;
+extern const GLenum CE_GL_MAP_FLUSH_EXPLICIT_BIT;
+extern const GLenum CE_GL_MAP_UNSYNCHRONIZED_BIT;
 
 extern void ce_gl_bind_buffer(GLenum target, GLuint buffer);
 extern void ce_gl_delete_buffers(GLsizei n, const GLuint* buffers);
@@ -204,7 +210,12 @@ extern GLboolean ce_gl_unmap_buffer(GLenum target);
 extern void ce_gl_get_buffer_parameter_iv(GLenum target, GLenum pname, GLint* params);
 extern void ce_gl_get_buffer_pointer_v(GLenum target, GLenum pname, GLvoid** params);
 extern void ce_gl_copy_buffer_sub_data(GLenum read_target, GLenum write_target,
-	GLintptr read_offset, GLintptr write_offset, GLsizeiptr size);
+									GLintptr read_offset, GLintptr write_offset,
+															GLsizeiptr size);
+extern void* ce_gl_map_buffer_range(GLenum target, GLintptr offset,
+									GLsizeiptr length, GLbitfield access);
+extern void ce_gl_flush_mapped_buffer_range(GLenum target, GLintptr offset,
+														GLsizeiptr length);
 
 // FBO
 extern const GLenum CE_GL_FRAME_BUFFER;
@@ -485,6 +496,7 @@ typedef enum {
 	CE_GL_FEATURE_MULTISAMPLE,
 	CE_GL_FEATURE_VERTEX_BUFFER_OBJECT,
 	CE_GL_FEATURE_COPY_BUFFER,
+	CE_GL_FEATURE_MAP_BUFFER_RANGE,
 	CE_GL_FEATURE_FRAME_BUFFER_OBJECT,
 	CE_GL_FEATURE_PIXEL_BUFFER_OBJECT,
 	CE_GL_FEATURE_TEXTURE_BUFFER_OBJECT,
