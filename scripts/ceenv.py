@@ -92,7 +92,11 @@ def create_environment():
 		"Additional libraries (semicolon-separated list of names)",
 		config_get("ADDITIONAL_LIBS", ""))
 
-	env = SCons.Environment.Environment(variables=variables, tools=[])
+	env = SCons.Environment.Environment(
+		variables=variables,
+		tools=[],
+		toolpath=[os.path.join("#scripts", "cetools")]
+	)
 
 	logging.basicConfig(
 		level=logging_levels[env["LOGGING_LEVEL"]],
