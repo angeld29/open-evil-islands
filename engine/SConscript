@@ -26,19 +26,29 @@ import SCons.Util
 import ceutils
 
 Import("env")
-env = env.Clone()
+env = env.Clone(
+	tools=["ceglsl"],
+	GLSL_BUILDPATH=os.path.join("build"),
+)
 
 env.AppendUnique(
-	CPPPATH=["include"],
+	CPPPATH=["include", os.path.join("build", "include")],
 )
 
 env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
 
+c = ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))
+vert = env.Glob(os.path.join("src", "*.vert"))
+frag = env.Glob(os.path.join("src", "*.frag"))
+glsl = env.Glob(os.path.join("src", "ceshaderdata.glsl"))
+
+sources = [os.path.join("build", "$GEN_PATH", node.name)
+			for node in c + vert + frag + glsl]
+
+lib = env.Library(os.path.join("lib", "$GEN_PATH", "engine"), sources)
+
 targets = [env.Command(os.path.join("lib", SCons.Util.adjustixes("engine",
-	env.subst("$LIBPREFIX"), env.subst("$LIBSUFFIX"))),
-	env.StaticLibrary(os.path.join("lib", "$GEN_PATH", "engine"),
-	[os.path.join("build", "$GEN_PATH", node.name) for node in
-	ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))]),
+	env.subst("$LIBPREFIX"), env.subst("$LIBSUFFIX"))), lib,
 	Copy("$TARGET", "$SOURCE"))]
 
 Return("targets")
