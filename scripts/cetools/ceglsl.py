@@ -36,16 +36,17 @@ def emit_shader_source(target, source, env):
 	return [os.path.join(os.path.dirname(target[0].get_abspath()),
 			SCons.Util.adjustixes(name, env.subst("$OBJPREFIX"),
 										env.subst("$OBJSUFFIX")))], \
-		[env.Shader(os.path.join("$GLSL_BUILDPATH", "src", name), source[0])]
+		[env.ShaderSource(os.path.join("$GLSL_BUILDPATH", "src", name), source[0])]
 
 def emit_shader_include(target, source, env):
 	name = os.path.splitext(source[0].name)[0]
-	env.Glsl(os.path.join("$GLSL_BUILDPATH", "include", name), source[0])
+	# only add a node (include file) to SCons tree
+	env.ShaderInclude(os.path.join("$GLSL_BUILDPATH", "include", name), source[0])
 	return [], []
 
 header = \
 """/*
- *  Shader binary source code
+ *  Shader source code in binary form
  *
  *  Created: %s
  *       by: Cursed Earth build system
@@ -64,19 +65,19 @@ def build_shader_include(target, source, env):
 		sources = scan_shader(source[0], env)
 		for node in sources:
 			name = node.name.replace(".", "_")[2:] # also remove ce prefix
-			file.write("extern const char ce_shader_data_%s[];\n" % name)
-		file.write("\nstatic const int CE_SHADER_DATA_COUNT = %d;\n" % len(sources))
-		file.write("static const char* ce_shader_data[][2] = {\n")
+			file.write("extern const char ce_shaderdata_%s[];\n" % name)
+		file.write("\nstatic const int CE_SHADERDATA_COUNT = %d;\n" % len(sources))
+		file.write("static const char* ce_shaderdata[][2] = {\n")
 		for node in sources:
 			name = node.name.replace(".", "_")[2:] # also remove ce prefix
-			file.write("{ \"%s\", ce_shader_data_%s },\n" % (name, name))
+			file.write("{ \"%s\", ce_shaderdata_%s },\n" % (name, name))
 		file.write("};\n")
 
 def build_shader_source(target, source, env):
 	name = os.path.splitext(target[0].name)[0][2:] # also remove ce prefix
 	with open(target[0].get_abspath(), "wt") as file:
 		write_header(file)
-		file.write("const char ce_shader_data_%s[] = {\n" % name)
+		file.write("const char ce_shaderdata_%s[] = {\n" % name)
 		contents = source[0].get_contents()
 		while len(contents) > 0:
 			line, contents = contents[:15], contents[15:]
@@ -87,47 +88,47 @@ def generate(env):
 	env.SetDefault(
 		GLSL_BUILDPATH="",
 
-		GLSL_PREFIX="",
-		GLSL_SUFFIX=".h",
-		GLSL_SRCSUFFIX=".glsl",
+		SHADER_INCLUDE_PREFIX="",
+		SHADER_INCLUDE_SUFFIX=".h",
+		SHADER_INCLUDE_SRCSUFFIX=".glsl",
 
-		SHADER_PREFIX="",
-		SHADER_SUFFIX=".c",
-		SHADER_SRCSUFFIX=[".vert", ".frag"],
+		SHADER_SOURCE_PREFIX="",
+		SHADER_SOURCE_SUFFIX=".c",
+		SHADER_SOURCE_SRCSUFFIX=[".vert", ".frag"],
 	)
 
 	env.Append(
 		BUILDERS={
-			"Glsl": SCons.Builder.Builder(
+			"ShaderInclude": SCons.Builder.Builder(
 				action=build_shader_include,
-				prefix="$GLSL_PREFIX",
-				suffix="$GLSL_SUFFIX",
-				src_suffix="$GLSL_SRCSUFFIX",
+				prefix="$SHADER_INCLUDE_PREFIX",
+				suffix="$SHADER_INCLUDE_SUFFIX",
+				src_suffix="$SHADER_INCLUDE_SRCSUFFIX",
 				single_source=True,
 			),
-			"Shader": SCons.Builder.Builder(
+			"ShaderSource": SCons.Builder.Builder(
 				action=build_shader_source,
-				prefix="$SHADER_PREFIX",
-				suffix="$SHADER_SUFFIX",
-				src_suffix="$SHADER_SRCSUFFIX",
+				prefix="$SHADER_SOURCE_PREFIX",
+				suffix="$SHADER_SOURCE_SUFFIX",
+				src_suffix="$SHADER_SOURCE_SRCSUFFIX",
 				single_source=True,
 			),
 		},
 		SCANNERS=SCons.Scanner.Scanner(
 			function=scan_shader,
-			skeys=[env.subst("$GLSL_SRCSUFFIX")],
+			skeys=[env.subst("$SHADER_INCLUDE_SRCSUFFIX")],
 			recursive=False,
 		),
 	)
 
 	obj_builder, _ = SCons.Tool.createObjBuilders(env)
 
-	for src_suffix in env["SHADER_SRCSUFFIX"]:
+	obj_builder.add_action("$SHADER_INCLUDE_SRCSUFFIX", SCons.Defaults.CAction)
+	obj_builder.add_emitter("$SHADER_INCLUDE_SRCSUFFIX", emit_shader_include)
+
+	for src_suffix in env["SHADER_SOURCE_SRCSUFFIX"]:
 		obj_builder.add_action(src_suffix, SCons.Defaults.CAction)
 		obj_builder.add_emitter(src_suffix, emit_shader_source)
-
-	obj_builder.add_action("$GLSL_SRCSUFFIX", SCons.Defaults.CAction)
-	obj_builder.add_emitter("$GLSL_SRCSUFFIX", emit_shader_include)
 
 def exists(env):
 	return True

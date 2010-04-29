@@ -1,1 +1,2 @@
-This file is needed for scons support. Do not delete!
+Dummy helper file for SCons.
+Do not delete!

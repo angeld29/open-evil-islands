@@ -18,18 +18,18 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <string.h>
-#include <assert.h>
+#ifndef CE_SHADERMNG_H
+#define CE_SHADERMNG_H
 
-#include "ceshaderdata.h"
-#include "ceshadermng.h"
-
-const char* ce_shadermng_find_source(const char* key)
+#ifdef __cplusplus
+extern "C"
 {
-	for (int i = 0; i < CE_SHADERDATA_COUNT; ++i) {
-		if (0 == strcmp(key, ce_shaderdata[i][0])) {
-			return ce_shaderdata[i][1];
-		}
-	}
-	return NULL;
+#endif /* __cplusplus */
+
+extern const char* ce_shadermng_find_source(const char* key);
+
+#ifdef __cplusplus
 }
+#endif /* __cplusplus */
+
+#endif /* CE_SHADERMNG_H */
