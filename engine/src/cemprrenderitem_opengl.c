@@ -311,10 +311,16 @@ static void ce_mprrenderitem_tile_render(ce_renderitem* renderitem)
 
 // HW tessellated geometry
 
+enum {
+	CE_HWTESS_SAMPLER_COUNT = 3
+};
+
 typedef struct {
-	int index_count;
+	GLsizei vertex_count;
 	GLuint vertex_buffer;
-	GLuint index_buffer;
+	GLvoid* texcoord_offset;
+	GLuint buffers[CE_HWTESS_SAMPLER_COUNT];
+	GLuint textures[CE_HWTESS_SAMPLER_COUNT];
 	GLhandle program;
 } ce_mprrenderitem_hwtess;
 
@@ -338,49 +344,114 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
 	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
 
-	mprrenderitem->index_count = 4;
+	mprrenderitem->vertex_count = 6;
+	mprrenderitem->texcoord_offset = (GLfloat*)NULL +
+									3 * mprrenderitem->vertex_count;
 
-	const int vb_size = 3 * sizeof(float) * 4;
-	const int ib_size = sizeof(GLushort) * mprrenderitem->index_count;
+	// needed for first tessellation pass
+	const int vertex_offsets[][2] = { { 0, 0 }, { 1, 0 }, { 1, 1 },
+										{ 0, 0 }, { 1, 1 }, { 0, 1 } };
 
 	ce_gl_gen_buffers(1, &mprrenderitem->vertex_buffer);
-	ce_gl_gen_buffers(1, &mprrenderitem->index_buffer);
-
 	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
-	ce_gl_buffer_data(CE_GL_ARRAY_BUFFER, vb_size, NULL, CE_GL_STATIC_DRAW);
+	ce_gl_buffer_data(CE_GL_ARRAY_BUFFER, 3 * sizeof(float) * 1000 *
+		mprrenderitem->vertex_count, NULL, CE_GL_STATIC_DRAW);
+
 	float* vertices = ce_gl_map_buffer(CE_GL_ARRAY_BUFFER, CE_GL_WRITE_ONLY);
+	memset(vertices, 0, 3 * sizeof(float) * 1000 *
+		mprrenderitem->vertex_count);
+	float* texcoords = vertices + 3 * mprrenderitem->vertex_count;
 
-	ce_gl_bind_buffer(CE_GL_ELEMENT_ARRAY_BUFFER, mprrenderitem->index_buffer);
-	ce_gl_buffer_data(CE_GL_ELEMENT_ARRAY_BUFFER, ib_size, NULL, CE_GL_STATIC_DRAW);
-	GLushort* indices = ce_gl_map_buffer(CE_GL_ELEMENT_ARRAY_BUFFER, CE_GL_WRITE_ONLY);
+	for (GLsizei i = 0; i < mprrenderitem->vertex_count; ++i) {
+		*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+						vertex_offsets[i][0] * (CE_MPRFILE_VERTEX_SIDE - 1);
+		*vertices++ = 0.0f;
+		*vertices++ = -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+						vertex_offsets[i][1] * (CE_MPRFILE_VERTEX_SIDE - 1));
+	}
 
-	*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1);
-	*vertices++ = 0.0f;
-	*vertices++ = -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1));
-
-	*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1);
-	*vertices++ = 0.0f;
-	*vertices++ = -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1));
-
-	*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1);
-	*vertices++ = 0.0f;
-	*vertices++ = -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1));
-
-	*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1);
-	*vertices++ = 0.0f;
-	*vertices++ = -1.0f * (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1));
-
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 2;
-	indices[3] = 3;
-
-	ce_gl_unmap_buffer(CE_GL_ELEMENT_ARRAY_BUFFER);
 	ce_gl_unmap_buffer(CE_GL_ARRAY_BUFFER);
+	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, 0);
+
+	/*ce_gl_gen_buffers(1, &mprrenderitem->texcoord_buffer);
+	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->texcoord_buffer);
+	ce_gl_buffer_data(CE_GL_ARRAY_BUFFER, 2 * sizeof(float) *
+		mprrenderitem->vertex_count, NULL, CE_GL_STATIC_DRAW);
+
+	float* texcoords = ce_gl_map_buffer(CE_GL_ARRAY_BUFFER, CE_GL_WRITE_ONLY);
+
+	*texcoords++ = 0.0f;
+	*texcoords++ = 1.0f;
+	*texcoords++ = 1.0f;
+	*texcoords++ = 1.0f;
+	*texcoords++ = 1.0f;
+	*texcoords++ = 0.0f;
+	*texcoords++ = 0.0f;
+	*texcoords++ = 1.0f;
+	*texcoords++ = 1.0f;
+	*texcoords++ = 0.0f;
+	*texcoords++ = 0.0f;
+	*texcoords++ = 0.0f;
+
+	ce_gl_unmap_buffer(CE_GL_ARRAY_BUFFER);
+	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, 0);*/
+
+	ce_gl_gen_buffers(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
+	glGenTextures(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->textures);
+
+	GLsizeiptr buffer_sizes[CE_HWTESS_SAMPLER_COUNT] = { 3, 2, 1 };
+	float* elements[CE_HWTESS_SAMPLER_COUNT];
+
+	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
+		ce_gl_bind_buffer(CE_GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
+		ce_gl_buffer_data(CE_GL_TEXTURE_BUFFER, buffer_sizes[i] *
+			sizeof(float) * CE_MPRFILE_VERTEX_COUNT, NULL, CE_GL_STATIC_DRAW);
+
+		// 0 & 1 samplers are used by hwtess
+		ce_gl_active_texture(CE_GL_TEXTURE3 + i);
+		glBindTexture(GL_TEXTURE_2D, mprrenderitem->textures[i]);
+
+		// linear filter might cause a fallback to software rendering
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+		ce_gl_tex_buffer(CE_GL_TEXTURE_BUFFER, CE_GL_RGBA32F, mprrenderitem->buffers[i]);
+		elements[i] = ce_gl_map_buffer(CE_GL_TEXTURE_BUFFER, CE_GL_WRITE_ONLY);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		ce_gl_active_texture(CE_GL_TEXTURE0);
+	}
+
+	float* normals = elements[0];
+	float* xz_offsets = elements[1];
+	float* height_map = elements[2];
+
+	for (int z = 0; z < CE_MPRFILE_VERTEX_SIDE; ++z) {
+		for (int x = 0; x < CE_MPRFILE_VERTEX_SIDE; ++x) {
+			ce_mprvertex* mprvertex = mprvertices + z * CE_MPRFILE_VERTEX_SIDE + x;
+
+			/*ce_mprhlp_normal2vector(normal, vertex->normal);
+			normal[2] = -normal[2];
+			glNormal3fv(normal);
+
+			glVertex3f(x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+				offset_xz_coef * vertex->offset_x, y_coef * vertex->coord_y,
+				-1.0f * (z + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+				offset_xz_coef * vertex->offset_z));*/
+		}
+	}
+
+	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
+		ce_gl_bind_buffer(CE_GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
+		ce_gl_unmap_buffer(CE_GL_TEXTURE_BUFFER);
+		ce_gl_bind_buffer(CE_GL_TEXTURE_BUFFER, 0);
+	}
 
 	// FIXME: hard coded !!!
-	FILE* vert_file = fopen("engine/src/cemprrenderitem_hwtess_vertex.glsl", "rb");
-	FILE* frag_file = fopen("engine/src/cemprrenderitem_hwtess_fragment_land.glsl", "rb");
+	FILE* vert_file = fopen("engine/shaders/hwtess.vert", "rb");
+	FILE* frag_file = fopen("engine/shaders/hwtess_land.frag", "rb");
 
 	char buffer[8192];
 	const char* buf = buffer;
@@ -439,14 +510,27 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 
 	ce_gl_use_program_object(mprrenderitem->program);
 
-	ce_gl_uniform_2fv(ce_gl_get_uniform_location(mprrenderitem->program,
-		"uv_lookup_table"), 4, (GLfloat[]){ 0.0f, 0.0f, 1.0f, 0.0f,
-											1.0f, 1.0f, 0.0f, 1.0f });
+	ce_gl_uniform_1i(ce_gl_get_uniform_location(
+		mprrenderitem->program, "vertices"), 0);
 
-	ce_gl_vst_set_tessellation_factor(13.0f);
-	ce_gl_vst_set_tessellation_mode(CE_GL_VST_CONTINUOUS);
-	// CE_GL_VST_DISCRETE
-	// CE_GL_VST_CONTINUOUS
+	ce_gl_uniform_1i(ce_gl_get_uniform_location(
+		mprrenderitem->program, "texcoords"), 1);
+
+		ce_gl_uniform_2fv(ce_gl_get_uniform_location(mprrenderitem->program,
+             "uv_lookup_table"), 4, (GLfloat[]){ 0.0f, 0.0f, 1.0f, 0.0f,
+                                                1.0f, 1.0f, 0.0f, 1.0f });
+
+	/*ce_gl_uniform_1i(ce_gl_get_uniform_location(
+		mprrenderitem->program, "normals"), 2);
+
+	ce_gl_uniform_1i(ce_gl_get_uniform_location(
+		mprrenderitem->program, "xz_offsets"), 2);
+
+	ce_gl_uniform_1i(ce_gl_get_uniform_location(
+		mprrenderitem->program, "height_map"), 2);*/
+
+	ce_gl_vst_set_tessellation_factor(5.0f);
+	ce_gl_vst_set_tessellation_mode(CE_GL_VST_DISCRETE);
 }
 
 static void ce_mprrenderitem_hwtess_dtor(ce_renderitem* renderitem)
@@ -455,7 +539,8 @@ static void ce_mprrenderitem_hwtess_dtor(ce_renderitem* renderitem)
 		(ce_mprrenderitem_hwtess*)renderitem->impl;
 
 	ce_gl_delete_object(mprrenderitem->program);
-	ce_gl_delete_buffers(1, &mprrenderitem->index_buffer);
+	glDeleteTextures(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->textures);
+	ce_gl_delete_buffers(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
 	ce_gl_delete_buffers(1, &mprrenderitem->vertex_buffer);
 }
 
@@ -464,28 +549,29 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 	ce_mprrenderitem_hwtess* mprrenderitem =
 		(ce_mprrenderitem_hwtess*)renderitem->impl;
 
-	ce_gl_use_program_object(mprrenderitem->program);
-
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	//glEnableClientState(GL_NORMAL_ARRAY);
-	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
 	glVertexPointer(3, GL_FLOAT, 0, NULL);
-
-	ce_gl_bind_buffer(CE_GL_ELEMENT_ARRAY_BUFFER, mprrenderitem->index_buffer);
-	glDrawElements(GL_QUADS, mprrenderitem->index_count, GL_UNSIGNED_SHORT, NULL);
-
-	ce_gl_bind_buffer(CE_GL_ELEMENT_ARRAY_BUFFER, 0);
+	glTexCoordPointer(2, GL_FLOAT, 0, mprrenderitem->texcoord_offset);
 	ce_gl_bind_buffer(CE_GL_ARRAY_BUFFER, 0);
 
-	glPopClientAttrib();
+	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
+		// 0 & 1 samplers are used by hwtess
+		//ce_gl_active_texture(CE_GL_TEXTURE2 + i);
+		//glBindTexture(GL_TEXTURE_2D, mprrenderitem->textures[i]);
+	}
 
+	ce_gl_use_program_object(mprrenderitem->program);
+	glDrawArrays(GL_TRIANGLES, 0, mprrenderitem->vertex_count);
 	ce_gl_use_program_object(0);
+
+	glPopClientAttrib();
 }
 
 ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, bool tiling,
