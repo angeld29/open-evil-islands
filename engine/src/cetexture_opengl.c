@@ -98,7 +98,7 @@ static void ce_texture_specify(int width, int height, int level,
 	int new_width = ce_min(width, max_texture_size);
 	int new_height = ce_min(height, max_texture_size);
 
-	if (!GLEW_ARB_texture_non_power_of_two) {
+	if (!GLEW_VERSION_2_0) { // NPOT textures available in GL 2.0
 		float int_width, int_height;
 		float fract_width = modff(log2f(new_width), &int_width);
 		float fract_height = modff(log2f(new_height), &int_height);
@@ -160,7 +160,7 @@ static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		int size = ce_mmpfile_storage_size(width, height, 1, mmpfile->bit_count);
-		glCompressedTexImage2DARB(GL_TEXTURE_2D, i,
+		glCompressedTexImage2D(GL_TEXTURE_2D, i,
 			internal_format, width, height, 0, size, src);
 		src += size;
 	}
@@ -170,7 +170,7 @@ static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 
 static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
 {
-	if (GLEW_ARB_texture_compression && (GLEW_EXT_texture_compression_s3tc ||
+	if (GLEW_VERSION_1_3 && (GLEW_EXT_texture_compression_s3tc ||
 			(CE_MMPFILE_FORMAT_DXT1 == mmpfile->format &&
 			GLEW_EXT_texture_compression_dxt1))) {
 		ce_texture_generate_compressed(mmpfile, (GLenum[])
