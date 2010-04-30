@@ -346,12 +346,12 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	const int vertex_offsets[][2] = { { 0, 0 }, { 1, 0 }, { 1, 1 },
 										{ 0, 0 }, { 1, 1 }, { 0, 1 } };
 
-	glGenBuffers(1, &mprrenderitem->vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(float) *
-		mprrenderitem->vertex_count, NULL, GL_STATIC_DRAW);
+	glGenBuffersARB(1, &mprrenderitem->vertex_buffer);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, mprrenderitem->vertex_buffer);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, 3 * sizeof(float) *
+		mprrenderitem->vertex_count, NULL, GL_STATIC_DRAW_ARB);
 
-	float* vertices = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	float* vertices = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 
 	for (GLsizei i = 0; i < mprrenderitem->vertex_count; ++i) {
 		*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
@@ -361,22 +361,22 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 						vertex_offsets[i][1] * (CE_MPRFILE_VERTEX_SIDE - 1));
 	}
 
-	glUnmapBuffer(GL_ARRAY_BUFFER);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
-	glGenBuffers(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
+	glGenBuffersARB(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
 	glGenTextures(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->textures);
 
-	GLsizeiptr buffer_sizes[CE_HWTESS_SAMPLER_COUNT] = { 3, 2, 1 };
+	GLsizeiptrARB buffer_sizes[CE_HWTESS_SAMPLER_COUNT] = { 3, 2, 1 };
 	float* elements[CE_HWTESS_SAMPLER_COUNT];
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glBindBuffer(GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
-		glBufferData(GL_TEXTURE_BUFFER, buffer_sizes[i] * sizeof(float) *
-			CE_MPRFILE_VERTEX_COUNT, NULL, GL_STATIC_DRAW);
+		glBindBufferARB(GL_TEXTURE_BUFFER_ARB, mprrenderitem->buffers[i]);
+		glBufferDataARB(GL_TEXTURE_BUFFER_ARB, buffer_sizes[i] * sizeof(float) *
+			CE_MPRFILE_VERTEX_COUNT, NULL, GL_STATIC_DRAW_ARB);
 
 		// sampler 0 reserved by AMD vertex
-		glActiveTexture(GL_TEXTURE1 + i);
+		glActiveTextureARB(GL_TEXTURE1_ARB + i);
 		glBindTexture(GL_TEXTURE_2D, mprrenderitem->textures[i]);
 
 		// linear filter might cause a fallback to software rendering
@@ -385,11 +385,17 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, mprrenderitem->buffers[i]);
-		elements[i] = glMapBuffer(GL_TEXTURE_BUFFER, GL_WRITE_ONLY);
+		if (GLEW_ARB_texture_buffer_object) {
+			glTexBufferARB(GL_TEXTURE_BUFFER_ARB,
+							GL_RGBA32F_ARB, mprrenderitem->buffers[i]);
+		} else {
+			glTexBufferEXT(GL_TEXTURE_BUFFER_ARB,
+							GL_RGBA32F_ARB, mprrenderitem->buffers[i]);
+		}
+		elements[i] = glMapBufferARB(GL_TEXTURE_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTexture(GL_TEXTURE0);
+		glActiveTextureARB(GL_TEXTURE0_ARB);
 	}
 
 	float* normals = elements[0];
@@ -415,9 +421,9 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	}
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glBindBuffer(GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
-		glUnmapBuffer(GL_TEXTURE_BUFFER);
-		glBindBuffer(GL_TEXTURE_BUFFER, 0);
+		glBindBufferARB(GL_TEXTURE_BUFFER_ARB, mprrenderitem->buffers[i]);
+		glUnmapBufferARB(GL_TEXTURE_BUFFER_ARB);
+		glBindBufferARB(GL_TEXTURE_BUFFER_ARB, 0);
 	}
 
 	// FIXME: hard coded !!!
@@ -432,8 +438,8 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	fread(buffer, 1, sizeof(buffer), vert_file);
 
 	GLhandleARB vertex_object = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-	glShaderSource(vertex_object, 1, &buf, NULL);
-	glCompileShader(vertex_object);
+	glShaderSourceARB(vertex_object, 1, &buf, NULL);
+	glCompileShaderARB(vertex_object);
 
 	glGetObjectParameterivARB(vertex_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 	if (0 == result) {
@@ -517,8 +523,8 @@ static void ce_mprrenderitem_hwtess_dtor(ce_renderitem* renderitem)
 
 	glDeleteObjectARB(mprrenderitem->program);
 	glDeleteTextures(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->textures);
-	glDeleteBuffers(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
-	glDeleteBuffers(1, &mprrenderitem->vertex_buffer);
+	glDeleteBuffersARB(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
+	glDeleteBuffersARB(1, &mprrenderitem->vertex_buffer);
 }
 
 static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
@@ -532,12 +538,12 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	glBindBuffer(GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, mprrenderitem->vertex_buffer);
 	glVertexPointer(3, GL_FLOAT, 0, NULL);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glActiveTexture(GL_TEXTURE1 + i);
+		glActiveTextureARB(GL_TEXTURE1_ARB + i);
 		glBindTexture(GL_TEXTURE_2D, mprrenderitem->textures[i]);
 	}
 
@@ -546,11 +552,11 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 	glUseProgramObjectARB(0);
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glActiveTexture(GL_TEXTURE1 + i);
+		glActiveTextureARB(GL_TEXTURE1_ARB + i);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTextureARB(GL_TEXTURE0_ARB);
 
 	glPopClientAttrib();
 }
@@ -570,9 +576,11 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, bool tiling,
 							sector_x, sector_z, water, tile_textures);
 	}
 
-	if (ce_gl_query_feature(CE_GL_FEATURE_VERTEX_BUFFER_OBJECT) &&
-			// also includes shader objects
-			ce_gl_query_feature(CE_GL_FEATURE_VERTEX_SHADER_TESSELLATOR)) {
+	if (GLEW_ARB_multitexture && GLEW_ARB_vertex_buffer_object &&
+			(GLEW_ARB_texture_buffer_object || GLEW_EXT_texture_buffer_object) &&
+			GLEW_ARB_texture_float && GLEW_ARB_shading_language_100 &&
+			GLEW_ARB_shader_objects && GLEW_ARB_vertex_shader &&
+			GLEW_ARB_fragment_shader && GLEW_AMD_vertex_shader_tessellator) {
 		// use AMD tessellation shader!
 		ce_renderitem_vtable ce_renderitem_hwtess_vtable = {
 			ce_mprrenderitem_hwtess_ctor, ce_mprrenderitem_hwtess_dtor,

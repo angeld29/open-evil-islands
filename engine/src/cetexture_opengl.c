@@ -98,7 +98,7 @@ static void ce_texture_specify(int width, int height, int level,
 	int new_width = ce_min(width, max_texture_size);
 	int new_height = ce_min(height, max_texture_size);
 
-	if (!ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_NON_POWER_OF_TWO)) {
+	if (!GLEW_ARB_texture_non_power_of_two) {
 		float int_width, int_height;
 		float fract_width = modff(log2f(new_width), &int_width);
 		float fract_height = modff(log2f(new_height), &int_height);
@@ -160,7 +160,7 @@ static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		int size = ce_mmpfile_storage_size(width, height, 1, mmpfile->bit_count);
-		glCompressedTexImage2D(GL_TEXTURE_2D, i,
+		glCompressedTexImage2DARB(GL_TEXTURE_2D, i,
 			internal_format, width, height, 0, size, src);
 		src += size;
 	}
@@ -170,11 +170,12 @@ static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 
 static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
 {
-	if (ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_S3TC) ||
+	if (GLEW_ARB_texture_compression && (GLEW_EXT_texture_compression_s3tc ||
 			(CE_MMPFILE_FORMAT_DXT1 == mmpfile->format &&
-			ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1))) {
+			GLEW_EXT_texture_compression_dxt1))) {
 		ce_texture_generate_compressed(mmpfile, (GLenum[])
-			{ GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT }
+			{ GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
+				GL_COMPRESSED_RGBA_S3TC_DXT3_EXT }
 			[CE_MMPFILE_FORMAT_DXT3 == mmpfile->format]);
 	} else {
 		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);

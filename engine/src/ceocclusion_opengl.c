@@ -34,26 +34,26 @@ struct ce_occlusion {
 ce_occlusion* ce_occlusion_new(void)
 {
 	ce_occlusion* occlusion = ce_alloc(sizeof(ce_occlusion));
-	occlusion->supported = ce_gl_query_feature(CE_GL_FEATURE_OCCLUSION_QUERY);
-	occlusion->target = GL_SAMPLES_PASSED;
+	occlusion->supported = GLEW_ARB_occlusion_query;
+	occlusion->target = GL_SAMPLES_PASSED_ARB;
 
 	// the first real result may be only in next 1-2 frames, so force to true
 	occlusion->result = 1;
 
 	if (occlusion->supported) {
-		if (ce_gl_query_feature(CE_GL_FEATURE_OCCLUSION_QUERY2)) {
+		if (GLEW_ARB_occlusion_query2) {
 			occlusion->target = GL_ANY_SAMPLES_PASSED;
 		}
 
 		// check to make sure functionality is supported
 		GLint result;
-		glGetQueryiv(occlusion->target, GL_QUERY_COUNTER_BITS, &result);
+		glGetQueryivARB(occlusion->target, GL_QUERY_COUNTER_BITS_ARB, &result);
 
 		occlusion->supported = 0 != result;
 	}
 
 	if (occlusion->supported) {
-		glGenQueries(1, &occlusion->query);
+		glGenQueriesARB(1, &occlusion->query);
 	}
 
 	return occlusion;
@@ -63,7 +63,7 @@ void ce_occlusion_del(ce_occlusion* occlusion)
 {
 	if (NULL != occlusion) {
 		if (occlusion->supported) {
-			glDeleteQueries(1, &occlusion->query);
+			glDeleteQueriesARB(1, &occlusion->query);
 		}
 		ce_free(occlusion, sizeof(ce_occlusion));
 	}
@@ -80,23 +80,23 @@ bool ce_occlusion_query(ce_occlusion* occlusion,
 	// otherwise use result from last successful query
 	GLint result = 1;
 
-	if (glIsQuery(occlusion->query)) {
-		glGetQueryObjectiv(occlusion->query,
-			GL_QUERY_RESULT_AVAILABLE, &result);
+	if (glIsQueryARB(occlusion->query)) {
+		glGetQueryObjectivARB(occlusion->query,
+			GL_QUERY_RESULT_AVAILABLE_ARB, &result);
 
 		if (0 != result) {
-			glGetQueryObjectiv(occlusion->query,
-				GL_QUERY_RESULT, &occlusion->result);
+			glGetQueryObjectivARB(occlusion->query,
+				GL_QUERY_RESULT_ARB, &occlusion->result);
 		}
 	}
 
 	if (0 != result) {
-		glBeginQuery(occlusion->target, occlusion->query);
+		glBeginQueryARB(occlusion->target, occlusion->query);
 		ce_rendersystem_apply_transform(rendersystem,
 			&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
 		ce_rendersystem_draw_solid_cube(rendersystem);
 		ce_rendersystem_discard_transform(rendersystem);
-		glEndQuery(occlusion->target);
+		glEndQueryARB(occlusion->target);
 	}
 
 	return 0 != occlusion->result;

@@ -68,7 +68,7 @@ void ce_font_render(ce_font* font, int x, int y,
 {
 	glColor4f(color->r, color->g, color->b, color->a);
 
-	if (ce_gl_query_feature(CE_GL_FEATURE_WINDOW_POS)) {
+	if (GLEW_ARB_window_pos) {
 		glWindowPos2iARB(x, y);
 	} else {
 		GLint viewport[4];
