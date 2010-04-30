@@ -17,8 +17,6 @@ uniform float vertex_side_offset_inv;
 uniform float sector_x_offset;
 uniform float sector_z_offset;
 
-varying vec4 test;
-
 void main(void)
 {
 	// as is from AMD specification
@@ -29,17 +27,20 @@ void main(void)
 		gl_Vertex += weight * vertexFetchAMD(vertices, gl_VertexTriangleIndex[i]);
 	}
 
-	float x = (gl_Vertex.x - sector_x_offset) * 1;
-	float z = (abs(gl_Vertex.z) - sector_z_offset) * 1;
+	// find height value for this vertex in height map
+	// map vertex coords to sector
+	float x = gl_Vertex.x - sector_x_offset;
+	float z = abs(gl_Vertex.z) - sector_z_offset;
 
-	int i = int(z * vertex_side + x);
+	int index = int(round(z) * vertex_side + round(x));
 
-	gl_Vertex.y = texelFetchBuffer(height_map, i).y;
+	// note that buffer data is stored as RGBA32F in sampler
+	gl_Vertex.y = texelFetchBuffer(height_map, index / 4)[index % 4];
 
 	// restore texture coordinates from vertex position
 	// it's simple because we have a regular terrain
-	gl_MultiTexCoord0 = vec4((gl_Vertex.x - sector_x_offset) * vertex_side_offset_inv,
-		1.0 - (abs(gl_Vertex.z) - sector_z_offset) * vertex_side_offset_inv, 0.0, 0.0);
+	gl_MultiTexCoord0 = vec4(x * vertex_side_offset_inv,
+		1.0 - z * vertex_side_offset_inv, 0.0, 0.0);
 
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 	gl_TexCoord[0] = gl_MultiTexCoord0;

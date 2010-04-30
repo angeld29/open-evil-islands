@@ -364,6 +364,9 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	glUnmapBufferARB(GL_ARRAY_BUFFER);
 	glBindBufferARB(GL_ARRAY_BUFFER, 0);
 
+	GLint max_texture_buffer_size;
+	glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &max_texture_buffer_size);
+
 	glGenBuffersARB(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
 	glGenTextures(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->textures);
 
@@ -377,23 +380,18 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 
 		// sampler 0 reserved by AMD vertex
 		glActiveTextureARB(GL_TEXTURE1 + i);
-		glBindTexture(GL_TEXTURE_2D, mprrenderitem->textures[i]);
-
-		// linear filter might cause a fallback to software rendering
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glBindTexture(GL_TEXTURE_BUFFER, mprrenderitem->textures[i]);
 
 		if (GLEW_ARB_texture_buffer_object) {
 			glTexBufferARB(GL_TEXTURE_BUFFER, GL_RGBA32F, mprrenderitem->buffers[i]);
 		} else {
 			glTexBufferEXT(GL_TEXTURE_BUFFER, GL_RGBA32F, mprrenderitem->buffers[i]);
 		}
-		elements[i] = glMapBufferARB(GL_TEXTURE_BUFFER, GL_WRITE_ONLY);
 
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
 		glActiveTextureARB(GL_TEXTURE0);
+
+		elements[i] = glMapBufferARB(GL_TEXTURE_BUFFER, GL_WRITE_ONLY);
 	}
 
 	float* normals = elements[0];
@@ -404,17 +402,14 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 		for (int x = 0; x < CE_MPRFILE_VERTEX_SIDE; ++x) {
 			ce_mprvertex* mprvertex = mprvertices + z * CE_MPRFILE_VERTEX_SIDE + x;
 
-			/*ce_mprhlp_normal2vector(normal, vertex->normal);
-			normal[2] = -normal[2];
-			glNormal3fv(normal);*/
+			ce_mprhlp_normal2vector(normals, mprvertex->normal);
+			normals[2] = -normals[2];
+			normals += 3;
 
-			/*glVertex3f(x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
-				offset_xz_coef * vertex->offset_x, ,
-				-1.0f * (z + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
-				offset_xz_coef * vertex->offset_z));*/
+			*xz_offsets++ = offset_xz_coef * mprvertex->offset_x;
+			*xz_offsets++ = offset_xz_coef * mprvertex->offset_z;
 
-			//*height_map++ = y_coef * mprvertex->coord_y;
-			*height_map++ = x;
+			*height_map++ = y_coef * mprvertex->coord_y;
 		}
 	}
 
@@ -426,7 +421,8 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 
 	// FIXME: hard coded !!!
 	FILE* vert_file = fopen("engine/src/cehwtess.vert", "rb");
-	FILE* frag_file = fopen("engine/src/cehwtessl.frag", "rb");
+	FILE* frag_file = fopen(water ? "engine/src/cehwtessw.frag" :
+									"engine/src/cehwtessl.frag", "rb");
 
 	char buffer[8192];
 	const char* buf = buffer;
@@ -532,8 +528,6 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	glBindBufferARB(GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
@@ -542,7 +536,7 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
 		glActiveTextureARB(GL_TEXTURE1 + i);
-		glBindTexture(GL_TEXTURE_2D, mprrenderitem->textures[i]);
+		glBindTexture(GL_TEXTURE_BUFFER, mprrenderitem->textures[i]);
 	}
 
 	glUseProgramObjectARB(mprrenderitem->program);
@@ -551,7 +545,7 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
 		glActiveTextureARB(GL_TEXTURE1 + i);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
 	}
 
 	glActiveTextureARB(GL_TEXTURE0);
@@ -564,7 +558,7 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, bool tiling,
 									int water, ce_vector* tile_textures)
 {
 	if (tiling) {
-		// tiling? no speed, no tessellation...
+		// tiling? no speed...
 		ce_renderitem_vtable ce_mprrenderitem_tile_vtable = {
 			ce_mprrenderitem_tile_ctor, ce_mprrenderitem_tile_dtor,
 			NULL, ce_mprrenderitem_tile_render, NULL
