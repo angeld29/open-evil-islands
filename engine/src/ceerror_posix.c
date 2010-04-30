@@ -29,7 +29,7 @@ void ce_error_report_last_c_error(int code,
 								const char* error)
 {
 	char buffer[128] = "unknown";
-	// FIXME: currently GNU strerror_r is used
+	// FIXME: currently GNU strerror_r in use
 	char* message = strerror_r(code, buffer, sizeof(buffer));
 	ce_logging_error("%s: %s: %s: %s", module, func, error, message);
 }
