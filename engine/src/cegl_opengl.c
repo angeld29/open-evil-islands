@@ -48,42 +48,9 @@ bool ce_gl_init(void)
 		const char* name;
 		bool available;
 	} extensions[] = {
-		{ "multitexture", GLEW_ARB_multitexture },
-		{ "texture non power of two", GLEW_ARB_texture_non_power_of_two },
-		{ "texture compression", GLEW_ARB_texture_compression },
-		{ "texture compression s3tc", GLEW_EXT_texture_compression_s3tc },
-		{ "texture compression dxt1", GLEW_EXT_texture_compression_dxt1 },
-		{ "texture lod", GLEW_SGIS_texture_lod },
-		{ "texture border clamp", GLEW_ARB_texture_border_clamp ||
-									GLEW_SGIS_texture_border_clamp },
-		{ "texture edge clamp", GLEW_EXT_texture_edge_clamp ||
-								GLEW_SGIS_texture_edge_clamp },
-		{ "texture float", GLEW_ARB_texture_float },
-		{ "abgr", GLEW_EXT_abgr },
-		{ "bgra", GLEW_EXT_bgra },
-		{ "packed pixels", GLEW_EXT_packed_pixels },
-		{ "generate mipmap", GLEW_SGIS_generate_mipmap },
-		{ "window pos", GLEW_ARB_window_pos },
-		{ "point parameters", GLEW_ARB_point_parameters },
-		{ "point sprite", GLEW_ARB_point_sprite || GLEW_NV_point_sprite },
-		{ "occlusion query", GLEW_ARB_occlusion_query },
-		{ "occlusion query2", GLEW_ARB_occlusion_query2 },
-		{ "multisample", GLEW_ARB_multisample },
-		{ "vertex buffer object", GLEW_ARB_vertex_buffer_object },
-		{ "copy buffer", GLEW_ARB_copy_buffer },
-		{ "map buffer range", GLEW_ARB_map_buffer_range },
-		{ "frame buffer object", GLEW_ARB_framebuffer_object },
-		{ "pixel buffer object", GLEW_ARB_pixel_buffer_object ||
-								GLEW_EXT_pixel_buffer_object },
-		{ "texture buffer object", GLEW_ARB_texture_buffer_object ||
-									GLEW_EXT_texture_buffer_object },
-		{ "shading language 100", GLEW_ARB_shading_language_100 },
-		{ "shader object", GLEW_ARB_shader_objects },
-		{ "vertex shader", GLEW_ARB_vertex_shader },
-		{ "fragment shader", GLEW_ARB_fragment_shader },
-		{ "vertex shader tessellator", GLEW_AMD_vertex_shader_tessellator },
-		{ "performance monitor", GLEW_AMD_performance_monitor },
-		{ "meminfo", GLEW_ATI_meminfo },
+		{ "AMD vertex shader tessellator", GLEW_AMD_vertex_shader_tessellator },
+		{ "AMD performance monitor", GLEW_AMD_performance_monitor },
+		{ "AMD meminfo", GLEW_ATI_meminfo },
 	};
 
 	for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
