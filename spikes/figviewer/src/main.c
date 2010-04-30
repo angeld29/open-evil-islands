@@ -25,20 +25,20 @@
 #include <math.h>
 #include <assert.h>
 
-#include <GL/glut.h>
-
-#ifdef _WIN32
-// fu... win32
-#undef near
-#undef far
-#endif
-
 #include "cegl.h"
 #include "cestr.h"
 #include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
 #include "cescenemng.h"
+
+// TODO: remove GLUT
+#include <GL/glut.h>
+#ifdef _WIN32
+// fu... win32
+#undef near
+#undef far
+#endif
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0

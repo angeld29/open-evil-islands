@@ -20,11 +20,12 @@
 
 #include <stdio.h>
 
-#include <GL/glut.h>
-
 #include "cegl.h"
 #include "cealloc.h"
 #include "cefont.h"
+
+// TODO: remove GLUT from engine
+#include <GL/glut.h>
 
 struct ce_font {
 	void* data;
@@ -68,7 +69,7 @@ void ce_font_render(ce_font* font, int x, int y,
 	glColor4f(color->r, color->g, color->b, color->a);
 
 	if (ce_gl_query_feature(CE_GL_FEATURE_WINDOW_POS)) {
-		ce_gl_window_pos_2i(x, y);
+		glWindowPos2i(x, y);
 	} else {
 		GLint viewport[4];
 		glGetIntegerv(GL_VIEWPORT, viewport);

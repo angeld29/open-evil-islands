@@ -37,13 +37,11 @@ env.PrependUnique(
 
 env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
 
-c = ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))
-vert = env.Glob(os.path.join("src", "*.vert"))
-frag = env.Glob(os.path.join("src", "*.frag"))
-glsl = env.Glob(os.path.join("src", "*.glsl"))
-
-sources = [os.path.join("build", "$GEN_PATH", node.name)
-			for node in c + vert + frag + glsl]
+sources = [os.path.join("build", "$GEN_PATH", node.name) for node in
+	ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c"))) +
+	env.Glob(os.path.join("src", "*.vert")) +
+	env.Glob(os.path.join("src", "*.frag")) +
+	env.Glob(os.path.join("src", "*.glsl"))]
 
 lib = env.Library(os.path.join("lib", "$GEN_PATH", "engine"), sources)
 

@@ -21,9 +21,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include <GL/gl.h>
-#include <GL/glu.h>
-
 #include "cegl.h"
 #include "celib.h"
 #include "cemath.h"

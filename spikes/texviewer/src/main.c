@@ -25,8 +25,6 @@
 #include <time.h>
 #include <assert.h>
 
-#include <GL/glut.h>
-
 #include "cegl.h"
 #include "celib.h"
 #include "celogging.h"
@@ -36,6 +34,14 @@
 #include "ceresfile.h"
 #include "cetexture.h"
 #include "ceoptparse.h"
+
+// TODO: remove GLUT
+#include <GL/glut.h>
+#ifdef _WIN32
+// fu... win32
+#undef near
+#undef far
+#endif
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0

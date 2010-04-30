@@ -25,9 +25,6 @@
 #include <math.h>
 #include <assert.h>
 
-#include <GL/gl.h>
-#include <GL/glu.h>
-
 #include "cegl.h"
 #include "celib.h"
 #include "cemath.h"
@@ -54,7 +51,7 @@ static int ce_texture_correct_mipmap_count(int mipmap_count)
 
 	int max_level = log2f(max_texture_size);
 
-	static bool reported; // all ogl's code are not thread safe
+	static bool reported; // all GL's code are not thread safe
 	if (!reported && mipmap_count - 1 > max_level) {
 		ce_logging_warning("texture: your hardware supports a maximum "
 			"of %d mipmaps, extra mipmaps were discarded", max_level);
@@ -76,13 +73,12 @@ static void ce_texture_setup_filters(int mipmap_count)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
 #else
 		if (ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_LOD)) {
-			glTexParameteri(GL_TEXTURE_2D, CE_GL_TEXTURE_MAX_LEVEL,
-												mipmap_count - 1);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
 		} else if (ce_gl_query_feature(CE_GL_FEATURE_GENERATE_MIPMAP)) {
-			glTexParameteri(GL_TEXTURE_2D, CE_GL_GENERATE_MIPMAP, GL_TRUE);
+			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 		} else {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			static bool reported; // all ogl's code are not thread safe
+			static bool reported; // all GL's code are not thread safe
 			if (!reported) {
 				ce_logging_warning("texture: some opengl features are not "
 									"available, mipmapping was disabled");
@@ -164,8 +160,8 @@ static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		int size = ce_mmpfile_storage_size(width, height, 1, mmpfile->bit_count);
-		ce_gl_compressed_tex_image_2d(GL_TEXTURE_2D,
-			i, internal_format, width, height, 0, size, src);
+		glCompressedTexImage2D(GL_TEXTURE_2D, i,
+			internal_format, width, height, 0, size, src);
 		src += size;
 	}
 
@@ -178,7 +174,7 @@ static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
 			(CE_MMPFILE_FORMAT_DXT1 == mmpfile->format &&
 			ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_COMPRESSION_DXT1))) {
 		ce_texture_generate_compressed(mmpfile, (GLenum[])
-			{ CE_GL_COMPRESSED_RGBA_S3TC_DXT1, CE_GL_COMPRESSED_RGBA_S3TC_DXT3 }
+			{ GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT }
 			[CE_MMPFILE_FORMAT_DXT3 == mmpfile->format]);
 	} else {
 		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);

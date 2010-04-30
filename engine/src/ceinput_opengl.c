@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <assert.h>
 
+// TODO: remove GLUT from engine
 #include <GL/glut.h>
 
 #ifndef GLUT_WHEEL_UP
