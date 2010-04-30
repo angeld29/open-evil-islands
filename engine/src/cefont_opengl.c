@@ -69,7 +69,7 @@ void ce_font_render(ce_font* font, int x, int y,
 	glColor4f(color->r, color->g, color->b, color->a);
 
 	if (ce_gl_query_feature(CE_GL_FEATURE_WINDOW_POS)) {
-		glWindowPos2i(x, y);
+		glWindowPos2iARB(x, y);
 	} else {
 		GLint viewport[4];
 		glGetIntegerv(GL_VIEWPORT, viewport);
