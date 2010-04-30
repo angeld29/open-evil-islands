@@ -31,6 +31,7 @@
 #include "celogging.h"
 #include "cemprhlp.h"
 #include "cetexture.h"
+#include "ceshadermng.h"
 #include "cemprrenderitem.h"
 
 // simple & fast triangulated geometry
@@ -317,8 +318,28 @@ typedef struct {
 	GLuint vertex_buffer;
 	GLuint buffers[CE_HWTESS_SAMPLER_COUNT];
 	GLuint textures[CE_HWTESS_SAMPLER_COUNT];
-	GLhandleARB program;
+	GLuint program;
 } ce_mprrenderitem_hwtess;
+
+// TODO: share it
+static void ce_mprrenderitem_hwtess_print_log(GLuint object)
+{
+	GLint length;
+	if (glIsShader(object)) {
+		glGetShaderiv(object, GL_INFO_LOG_LENGTH, &length);
+	} else {
+		glGetProgramiv(object, GL_INFO_LOG_LENGTH, &length);
+	}
+
+	char buffer[length];
+	if (glIsShader(object)) {
+		glGetShaderInfoLog(object, length, NULL, buffer);
+	} else {
+		glGetProgramInfoLog(object, length, NULL, buffer);
+	}
+
+	ce_logging_error("mprrenderitem: %s", buffer);
+}
 
 static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args)
 {
@@ -346,12 +367,12 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	const int vertex_offsets[][2] = { { 0, 0 }, { 1, 0 }, { 1, 1 },
 										{ 0, 0 }, { 1, 1 }, { 0, 1 } };
 
-	glGenBuffersARB(1, &mprrenderitem->vertex_buffer);
-	glBindBufferARB(GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
-	glBufferDataARB(GL_ARRAY_BUFFER, 3 * sizeof(float) *
+	glGenBuffers(1, &mprrenderitem->vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(float) *
 		mprrenderitem->vertex_count, NULL, GL_STATIC_DRAW);
 
-	float* vertices = glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	float* vertices = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 	for (GLsizei i = 0; i < mprrenderitem->vertex_count; ++i) {
 		*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
@@ -361,37 +382,33 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 						vertex_offsets[i][1] * (CE_MPRFILE_VERTEX_SIDE - 1));
 	}
 
-	glUnmapBufferARB(GL_ARRAY_BUFFER);
-	glBindBufferARB(GL_ARRAY_BUFFER, 0);
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	GLint max_texture_buffer_size;
 	glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &max_texture_buffer_size);
 
-	glGenBuffersARB(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
+	glGenBuffers(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
 	glGenTextures(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->textures);
 
 	GLsizeiptr buffer_sizes[CE_HWTESS_SAMPLER_COUNT] = { 3, 2, 1 };
 	float* elements[CE_HWTESS_SAMPLER_COUNT];
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glBindBufferARB(GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
-		glBufferDataARB(GL_TEXTURE_BUFFER, buffer_sizes[i] * sizeof(float) *
+		glBindBuffer(GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
+		glBufferData(GL_TEXTURE_BUFFER, buffer_sizes[i] * sizeof(float) *
 			CE_MPRFILE_VERTEX_COUNT, NULL, GL_STATIC_DRAW);
 
 		// sampler 0 reserved by AMD vertex
-		glActiveTextureARB(GL_TEXTURE1 + i);
+		glActiveTexture(GL_TEXTURE1 + i);
 		glBindTexture(GL_TEXTURE_BUFFER, mprrenderitem->textures[i]);
 
-		if (GLEW_ARB_texture_buffer_object) {
-			glTexBufferARB(GL_TEXTURE_BUFFER, GL_RGBA32F, mprrenderitem->buffers[i]);
-		} else {
-			glTexBufferEXT(GL_TEXTURE_BUFFER, GL_RGBA32F, mprrenderitem->buffers[i]);
-		}
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, mprrenderitem->buffers[i]);
 
 		glBindTexture(GL_TEXTURE_BUFFER, 0);
-		glActiveTextureARB(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE0);
 
-		elements[i] = glMapBufferARB(GL_TEXTURE_BUFFER, GL_WRITE_ONLY);
+		elements[i] = glMapBuffer(GL_TEXTURE_BUFFER, GL_WRITE_ONLY);
 	}
 
 	float* normals = elements[0];
@@ -414,100 +431,84 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	}
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glBindBufferARB(GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
-		glUnmapBufferARB(GL_TEXTURE_BUFFER);
-		glBindBufferARB(GL_TEXTURE_BUFFER, 0);
+		glBindBuffer(GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
+		glUnmapBuffer(GL_TEXTURE_BUFFER);
+		glBindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 
-	// FIXME: hard coded !!!
-	FILE* vert_file = fopen("engine/src/cehwtess.vert", "rb");
-	FILE* frag_file = fopen(water ? "engine/src/cehwtessw.frag" :
-									"engine/src/cehwtessl.frag", "rb");
+	const char* vert_source = ce_shadermng_find_source("mpramdvst_vert");
+	const char* frag_source = ce_shadermng_find_source(water ? "mprwater_frag" :
+																"mprland_frag");
 
-	char buffer[8192];
-	const char* buf = buffer;
+	assert(NULL != vert_source);
+	assert(NULL != frag_source);
+
+	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertex_shader, 1, &vert_source, NULL);
+	glCompileShader(vertex_shader);
+
 	GLint result;
-
-	memset(buffer, '\0', sizeof(buffer));
-	fread(buffer, 1, sizeof(buffer), vert_file);
-
-	GLhandleARB vertex_object = glCreateShaderObjectARB(GL_VERTEX_SHADER);
-	glShaderSourceARB(vertex_object, 1, &buf, NULL);
-	glCompileShaderARB(vertex_object);
-
-	glGetObjectParameterivARB(vertex_object, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &result);
 	if (0 == result) {
-		GLsizei length;
-		glGetInfoLogARB(vertex_object, sizeof(buffer), &length, buffer);
-		ce_logging_error("mprrenderitem: %s", buffer);
-		abort();
+		ce_mprrenderitem_hwtess_print_log(vertex_shader);
+		abort(); // hmmm...
 	}
 
-	memset(buffer, '\0', sizeof(buffer));
-	fread(buffer, 1, sizeof(buffer), frag_file);
+	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragment_shader, 1, &frag_source, NULL);
+	glCompileShader(fragment_shader);
 
-	fclose(frag_file);
-	fclose(vert_file);
-
-	GLhandleARB fragment_object = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
-	glShaderSourceARB(fragment_object, 1, &buf, NULL);
-	glCompileShaderARB(fragment_object);
-
-	glGetObjectParameterivARB(fragment_object, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);
 	if (0 == result) {
-		GLsizei length;
-		glGetInfoLogARB(fragment_object, sizeof(buffer), &length, buffer);
-		ce_logging_error("mprrenderitem: %s", buffer);
-		abort();
+		ce_mprrenderitem_hwtess_print_log(fragment_shader);
+		abort(); // hmmm...
 	}
 
-	mprrenderitem->program = glCreateProgramObjectARB();
+	mprrenderitem->program = glCreateProgram();
 
-	glAttachObjectARB(mprrenderitem->program, vertex_object);
-	glAttachObjectARB(mprrenderitem->program, fragment_object);
+	glAttachShader(mprrenderitem->program, vertex_shader);
+	glAttachShader(mprrenderitem->program, fragment_shader);
 
-	glDeleteObjectARB(fragment_object);
-	glDeleteObjectARB(vertex_object);
+	glDeleteShader(vertex_shader);
+	glDeleteShader(fragment_shader);
 
-	glLinkProgramARB(mprrenderitem->program);
+	glLinkProgram(mprrenderitem->program);
 
-	glGetObjectParameterivARB(mprrenderitem->program, GL_LINK_STATUS, &result);
+	glGetProgramiv(mprrenderitem->program, GL_LINK_STATUS, &result);
 	if (0 == result) {
-		GLsizei length;
-		glGetInfoLogARB(mprrenderitem->program, sizeof(buffer), &length, buffer);
-		ce_logging_error("mprrenderitem: %s", buffer);
-		abort();
+		ce_mprrenderitem_hwtess_print_log(mprrenderitem->program);
+		abort(); // hmmm...
 	}
 
-	glUseProgramObjectARB(mprrenderitem->program);
+	glUseProgram(mprrenderitem->program);
 
-	glUniform1iARB(glGetUniformLocationARB(mprrenderitem->program, "vertices"), 0);
-	glUniform1iARB(glGetUniformLocationARB(mprrenderitem->program, "normals"), 1);
-	glUniform1iARB(glGetUniformLocationARB(mprrenderitem->program, "xz_offsets"), 2);
-	glUniform1iARB(glGetUniformLocationARB(mprrenderitem->program, "height_map"), 3);
+	glUniform1i(glGetUniformLocation(mprrenderitem->program, "vertices"), 0);
+	glUniform1i(glGetUniformLocation(mprrenderitem->program, "normals"), 1);
+	glUniform1i(glGetUniformLocation(mprrenderitem->program, "xz_offsets"), 2);
+	glUniform1i(glGetUniformLocation(mprrenderitem->program, "height_map"), 3);
 
-	glUniform1fARB(glGetUniformLocationARB(mprrenderitem->program,
+	glUniform1f(glGetUniformLocation(mprrenderitem->program,
 		"vertex_side"), CE_MPRFILE_VERTEX_SIDE);
-	glUniform1fARB(glGetUniformLocationARB(mprrenderitem->program,
+	glUniform1f(glGetUniformLocation(mprrenderitem->program,
 		"vertex_count"), CE_MPRFILE_VERTEX_COUNT);
 
-	glUniform1fARB(glGetUniformLocationARB(mprrenderitem->program,
+	glUniform1f(glGetUniformLocation(mprrenderitem->program,
 		"sector_x"), sector_x);
-	glUniform1fARB(glGetUniformLocationARB(mprrenderitem->program,
+	glUniform1f(glGetUniformLocation(mprrenderitem->program,
 		"sector_z"), sector_z);
 
-	glUniform1fARB(glGetUniformLocationARB(mprrenderitem->program,
+	glUniform1f(glGetUniformLocation(mprrenderitem->program,
 		"vertex_side_offset_inv"), 1.0f / (CE_MPRFILE_VERTEX_SIDE - 1));
 
-	glUniform1fARB(glGetUniformLocationARB(mprrenderitem->program,
+	glUniform1f(glGetUniformLocation(mprrenderitem->program,
 		"sector_x_offset"), sector_x * (CE_MPRFILE_VERTEX_SIDE - 1));
-	glUniform1fARB(glGetUniformLocationARB(mprrenderitem->program,
+	glUniform1f(glGetUniformLocation(mprrenderitem->program,
 		"sector_z_offset"), sector_z * (CE_MPRFILE_VERTEX_SIDE - 1));
 
 	glTessellationFactorAMD(15.0f);
 	glTessellationModeAMD(GL_DISCRETE_AMD);
 
-	glUseProgramObjectARB(0);
+	glUseProgram(0);
 }
 
 static void ce_mprrenderitem_hwtess_dtor(ce_renderitem* renderitem)
@@ -515,10 +516,10 @@ static void ce_mprrenderitem_hwtess_dtor(ce_renderitem* renderitem)
 	ce_mprrenderitem_hwtess* mprrenderitem =
 		(ce_mprrenderitem_hwtess*)renderitem->impl;
 
-	glDeleteObjectARB(mprrenderitem->program);
+	glDeleteProgram(mprrenderitem->program);
 	glDeleteTextures(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->textures);
-	glDeleteBuffersARB(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
-	glDeleteBuffersARB(1, &mprrenderitem->vertex_buffer);
+	glDeleteBuffers(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
+	glDeleteBuffers(1, &mprrenderitem->vertex_buffer);
 }
 
 static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
@@ -530,25 +531,25 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	glBindBufferARB(GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
 	glVertexPointer(3, GL_FLOAT, 0, NULL);
-	glBindBufferARB(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glActiveTextureARB(GL_TEXTURE1 + i);
+		glActiveTexture(GL_TEXTURE1 + i);
 		glBindTexture(GL_TEXTURE_BUFFER, mprrenderitem->textures[i]);
 	}
 
-	glUseProgramObjectARB(mprrenderitem->program);
+	glUseProgram(mprrenderitem->program);
 	glDrawArrays(GL_TRIANGLES, 0, mprrenderitem->vertex_count);
-	glUseProgramObjectARB(0);
+	glUseProgram(0);
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glActiveTextureARB(GL_TEXTURE1 + i);
+		glActiveTexture(GL_TEXTURE1 + i);
 		glBindTexture(GL_TEXTURE_BUFFER, 0);
 	}
 
-	glActiveTextureARB(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);
 
 	glPopClientAttrib();
 }
@@ -568,11 +569,7 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, bool tiling,
 							sector_x, sector_z, water, tile_textures);
 	}
 
-	if (GLEW_ARB_multitexture && GLEW_ARB_vertex_buffer_object &&
-			(GLEW_ARB_texture_buffer_object || GLEW_EXT_texture_buffer_object) &&
-			GLEW_ARB_texture_float && GLEW_ARB_shading_language_100 &&
-			GLEW_ARB_shader_objects && GLEW_ARB_vertex_shader &&
-			GLEW_ARB_fragment_shader && GLEW_AMD_vertex_shader_tessellator) {
+	if (GLEW_VERSION_3_1 && GLEW_AMD_vertex_shader_tessellator) {
 		// use AMD tessellation shader!
 		ce_renderitem_vtable ce_renderitem_hwtess_vtable = {
 			ce_mprrenderitem_hwtess_ctor, ce_mprrenderitem_hwtess_dtor,

@@ -32,16 +32,16 @@ bool ce_gl_init(void)
 	assert(!ce_gl_context.inited && "The gl subsystem has already been inited");
 	ce_gl_context.inited = true;
 
-	ce_logging_write("gl: vendor %s", glGetString(GL_VENDOR));
-	ce_logging_write("gl: renderer %s", glGetString(GL_RENDERER));
-	ce_logging_write("gl: using GL %s", glGetString(GL_VERSION));
-	ce_logging_write("gl: using GLU %s", gluGetString(GLU_VERSION));
+	ce_logging_write("opengl: vendor %s", glGetString(GL_VENDOR));
+	ce_logging_write("opengl: renderer %s", glGetString(GL_RENDERER));
+	ce_logging_write("opengl: using GL %s", glGetString(GL_VERSION));
+	ce_logging_write("opengl: using GLU %s", gluGetString(GLU_VERSION));
 
 	GLenum result = glewInit();
 	if (GLEW_OK == result) {
-		ce_logging_write("gl: using GLEW %s", glewGetString(GLEW_VERSION));
+		ce_logging_write("opengl: using GLEW %s", glewGetString(GLEW_VERSION));
 	} else {
-		ce_logging_critical("gl: glewInit failed: %s", glewGetErrorString(result));
+		ce_logging_critical("opengl: glewInit failed: %s", glewGetErrorString(result));
 	}
 
 	struct {
@@ -87,7 +87,7 @@ bool ce_gl_init(void)
 	};
 
 	for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
-		ce_logging_write("gl: checking for '%s' extension... %s",
+		ce_logging_write("opengl: checking for '%s' extension... %s",
 			extensions[i].name, extensions[i].available ? "yes" : "no");
 	}
 
@@ -108,7 +108,7 @@ bool ce_gl_report_errors(void)
 	GLenum error;
 
 	while (GL_NO_ERROR != (error = glGetError())) {
-		ce_logging_error("gl: error %u: %s", error, gluErrorString(error));
+		ce_logging_error("opengl: error %u: %s", error, gluErrorString(error));
 		reported = true;
 	}
 
