@@ -31,7 +31,7 @@ env = env.Clone(
 	GLSL_BUILDPATH=os.path.join("build"),
 )
 
-env.AppendUnique(
+env.PrependUnique(
 	CPPPATH=["include", os.path.join("build", "include")],
 )
 
@@ -40,7 +40,7 @@ env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
 c = ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))
 vert = env.Glob(os.path.join("src", "*.vert"))
 frag = env.Glob(os.path.join("src", "*.frag"))
-glsl = env.Glob(os.path.join("src", "ceshaderdata.glsl"))
+glsl = env.Glob(os.path.join("src", "*.glsl"))
 
 sources = [os.path.join("build", "$GEN_PATH", node.name)
 			for node in c + vert + frag + glsl]

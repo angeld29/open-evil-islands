@@ -30,21 +30,11 @@ version_re = re.compile(r"^\s*(\d+)\.(\d+)\.(\d+)\s*$")
 Import("env")
 env = env.Clone()
 
-env.AppendUnique(
+env.PrependUnique(
 	CPPPATH=[os.path.join("#engine", "include")],
 	LIBPATH=[os.path.join("#engine", "lib", "$GEN_PATH")],
 	LIBS=["engine"],
 )
-
-if env["TARGET_PLATFORM"] == "posix":
-	env.AppendUnique(
-		LIBS=["glut", "GLU", "GL"],
-	)
-elif env["TARGET_PLATFORM"] == "win32":
-	env.AppendUnique(
-		LIBS=["freeglut_static", "glu32",
-				"opengl32", "winmm", "gdi32"],
-	)
 
 def make_target(name):
 	spike_env = env.Clone()
