@@ -88,6 +88,10 @@ def create_environment():
 		"Additional library directories (semicolon-separated list of names)",
 		config_get("ADDITIONAL_LIBRARY_PATHS", ""))
 
+	variables.Add("ADDITIONAL_DEFINES",
+		"Additional defines (semicolon-separated list of names)",
+		config_get("ADDITIONAL_DEFINES", ""))
+
 	variables.Add("ADDITIONAL_LIBS",
 		"Additional libraries (semicolon-separated list of names)",
 		config_get("ADDITIONAL_LIBS", ""))
@@ -122,6 +126,7 @@ def create_environment():
 	env.AppendUnique(
 		CPPPATH=path_list_builder("ADDITIONAL_INCLUDE_PATHS"),
 		LIBPATH=path_list_builder("ADDITIONAL_LIBRARY_PATHS"),
+		CPPDEFINES=path_list_builder("ADDITIONAL_DEFINES"),
 		LIBS=path_list_builder("ADDITIONAL_LIBS"),
 	)
 
