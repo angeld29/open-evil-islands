@@ -235,15 +235,15 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 			sizeof(float) * 3 * figfile->index_count);
 
 	if (GLEW_ARB_vertex_buffer_object) {
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, figrenderitem->cookie->normals.buffer);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, 3 * sizeof(float) *
-			figfile->index_count, normals, GL_STATIC_DRAW_ARB);
+		glBindBufferARB(GL_ARRAY_BUFFER, figrenderitem->cookie->normals.buffer);
+		glBufferDataARB(GL_ARRAY_BUFFER, 3 * sizeof(float) *
+			figfile->index_count, normals, GL_STATIC_DRAW);
 
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, figrenderitem->cookie->texcoords.buffer);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, 2 * sizeof(float) *
-			figfile->index_count, texcoords, GL_STATIC_DRAW_ARB);
+		glBindBufferARB(GL_ARRAY_BUFFER, figrenderitem->cookie->texcoords.buffer);
+		glBufferDataARB(GL_ARRAY_BUFFER, 2 * sizeof(float) *
+			figfile->index_count, texcoords, GL_STATIC_DRAW);
 
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glBindBufferARB(GL_ARRAY_BUFFER, 0);
 
 		ce_free(texcoords, sizeof(float) * 2 * figfile->index_count);
 		ce_free(normals, sizeof(float) * 3 * figfile->index_count);
@@ -325,13 +325,13 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	glVertexPointer(3, GL_FLOAT, 0, figrenderitem->vertices);
 
 	if (GLEW_ARB_vertex_buffer_object) {
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, figrenderitem->cookie->normals.buffer);
+		glBindBufferARB(GL_ARRAY_BUFFER, figrenderitem->cookie->normals.buffer);
 		glNormalPointer(GL_FLOAT, 0, NULL);
 
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, figrenderitem->cookie->texcoords.buffer);
+		glBindBufferARB(GL_ARRAY_BUFFER, figrenderitem->cookie->texcoords.buffer);
 		glTexCoordPointer(2, GL_FLOAT, 0, NULL);
 
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glBindBufferARB(GL_ARRAY_BUFFER, 0);
 	} else {
 		glNormalPointer(GL_FLOAT, 0, figrenderitem->cookie->normals.pointer);
 		glTexCoordPointer(2, GL_FLOAT, 0, figrenderitem->cookie->texcoords.pointer);

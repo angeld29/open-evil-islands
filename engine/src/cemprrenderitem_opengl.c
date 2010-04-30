@@ -347,11 +347,11 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 										{ 0, 0 }, { 1, 1 }, { 0, 1 } };
 
 	glGenBuffersARB(1, &mprrenderitem->vertex_buffer);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, mprrenderitem->vertex_buffer);
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB, 3 * sizeof(float) *
-		mprrenderitem->vertex_count, NULL, GL_STATIC_DRAW_ARB);
+	glBindBufferARB(GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
+	glBufferDataARB(GL_ARRAY_BUFFER, 3 * sizeof(float) *
+		mprrenderitem->vertex_count, NULL, GL_STATIC_DRAW);
 
-	float* vertices = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+	float* vertices = glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 	for (GLsizei i = 0; i < mprrenderitem->vertex_count; ++i) {
 		*vertices++ = sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
@@ -361,22 +361,22 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 						vertex_offsets[i][1] * (CE_MPRFILE_VERTEX_SIDE - 1));
 	}
 
-	glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	glUnmapBufferARB(GL_ARRAY_BUFFER);
+	glBindBufferARB(GL_ARRAY_BUFFER, 0);
 
 	glGenBuffersARB(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
 	glGenTextures(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->textures);
 
-	GLsizeiptrARB buffer_sizes[CE_HWTESS_SAMPLER_COUNT] = { 3, 2, 1 };
+	GLsizeiptr buffer_sizes[CE_HWTESS_SAMPLER_COUNT] = { 3, 2, 1 };
 	float* elements[CE_HWTESS_SAMPLER_COUNT];
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glBindBufferARB(GL_TEXTURE_BUFFER_ARB, mprrenderitem->buffers[i]);
-		glBufferDataARB(GL_TEXTURE_BUFFER_ARB, buffer_sizes[i] * sizeof(float) *
-			CE_MPRFILE_VERTEX_COUNT, NULL, GL_STATIC_DRAW_ARB);
+		glBindBufferARB(GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
+		glBufferDataARB(GL_TEXTURE_BUFFER, buffer_sizes[i] * sizeof(float) *
+			CE_MPRFILE_VERTEX_COUNT, NULL, GL_STATIC_DRAW);
 
 		// sampler 0 reserved by AMD vertex
-		glActiveTextureARB(GL_TEXTURE1_ARB + i);
+		glActiveTextureARB(GL_TEXTURE1 + i);
 		glBindTexture(GL_TEXTURE_2D, mprrenderitem->textures[i]);
 
 		// linear filter might cause a fallback to software rendering
@@ -386,16 +386,14 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 		if (GLEW_ARB_texture_buffer_object) {
-			glTexBufferARB(GL_TEXTURE_BUFFER_ARB,
-							GL_RGBA32F_ARB, mprrenderitem->buffers[i]);
+			glTexBufferARB(GL_TEXTURE_BUFFER, GL_RGBA32F, mprrenderitem->buffers[i]);
 		} else {
-			glTexBufferEXT(GL_TEXTURE_BUFFER_ARB,
-							GL_RGBA32F_ARB, mprrenderitem->buffers[i]);
+			glTexBufferEXT(GL_TEXTURE_BUFFER, GL_RGBA32F, mprrenderitem->buffers[i]);
 		}
-		elements[i] = glMapBufferARB(GL_TEXTURE_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+		elements[i] = glMapBufferARB(GL_TEXTURE_BUFFER, GL_WRITE_ONLY);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTextureARB(GL_TEXTURE0_ARB);
+		glActiveTextureARB(GL_TEXTURE0);
 	}
 
 	float* normals = elements[0];
@@ -421,9 +419,9 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	}
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glBindBufferARB(GL_TEXTURE_BUFFER_ARB, mprrenderitem->buffers[i]);
-		glUnmapBufferARB(GL_TEXTURE_BUFFER_ARB);
-		glBindBufferARB(GL_TEXTURE_BUFFER_ARB, 0);
+		glBindBufferARB(GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
+		glUnmapBufferARB(GL_TEXTURE_BUFFER);
+		glBindBufferARB(GL_TEXTURE_BUFFER, 0);
 	}
 
 	// FIXME: hard coded !!!
@@ -437,11 +435,11 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	memset(buffer, '\0', sizeof(buffer));
 	fread(buffer, 1, sizeof(buffer), vert_file);
 
-	GLhandleARB vertex_object = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
+	GLhandleARB vertex_object = glCreateShaderObjectARB(GL_VERTEX_SHADER);
 	glShaderSourceARB(vertex_object, 1, &buf, NULL);
 	glCompileShaderARB(vertex_object);
 
-	glGetObjectParameterivARB(vertex_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+	glGetObjectParameterivARB(vertex_object, GL_COMPILE_STATUS, &result);
 	if (0 == result) {
 		GLsizei length;
 		glGetInfoLogARB(vertex_object, sizeof(buffer), &length, buffer);
@@ -455,11 +453,11 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	fclose(frag_file);
 	fclose(vert_file);
 
-	GLhandleARB fragment_object = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
+	GLhandleARB fragment_object = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
 	glShaderSourceARB(fragment_object, 1, &buf, NULL);
 	glCompileShaderARB(fragment_object);
 
-	glGetObjectParameterivARB(fragment_object, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+	glGetObjectParameterivARB(fragment_object, GL_COMPILE_STATUS, &result);
 	if (0 == result) {
 		GLsizei length;
 		glGetInfoLogARB(fragment_object, sizeof(buffer), &length, buffer);
@@ -477,7 +475,7 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 
 	glLinkProgramARB(mprrenderitem->program);
 
-	glGetObjectParameterivARB(mprrenderitem->program, GL_OBJECT_LINK_STATUS_ARB, &result);
+	glGetObjectParameterivARB(mprrenderitem->program, GL_LINK_STATUS, &result);
 	if (0 == result) {
 		GLsizei length;
 		glGetInfoLogARB(mprrenderitem->program, sizeof(buffer), &length, buffer);
@@ -538,12 +536,12 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, mprrenderitem->vertex_buffer);
+	glBindBufferARB(GL_ARRAY_BUFFER, mprrenderitem->vertex_buffer);
 	glVertexPointer(3, GL_FLOAT, 0, NULL);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	glBindBufferARB(GL_ARRAY_BUFFER, 0);
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glActiveTextureARB(GL_TEXTURE1_ARB + i);
+		glActiveTextureARB(GL_TEXTURE1 + i);
 		glBindTexture(GL_TEXTURE_2D, mprrenderitem->textures[i]);
 	}
 
@@ -552,11 +550,11 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 	glUseProgramObjectARB(0);
 
 	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
-		glActiveTextureARB(GL_TEXTURE1_ARB + i);
+		glActiveTextureARB(GL_TEXTURE1 + i);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	glActiveTextureARB(GL_TEXTURE0_ARB);
+	glActiveTextureARB(GL_TEXTURE0);
 
 	glPopClientAttrib();
 }

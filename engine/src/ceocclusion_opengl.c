@@ -35,7 +35,7 @@ ce_occlusion* ce_occlusion_new(void)
 {
 	ce_occlusion* occlusion = ce_alloc(sizeof(ce_occlusion));
 	occlusion->supported = GLEW_ARB_occlusion_query;
-	occlusion->target = GL_SAMPLES_PASSED_ARB;
+	occlusion->target = GL_SAMPLES_PASSED;
 
 	// the first real result may be only in next 1-2 frames, so force to true
 	occlusion->result = 1;
@@ -47,7 +47,7 @@ ce_occlusion* ce_occlusion_new(void)
 
 		// check to make sure functionality is supported
 		GLint result;
-		glGetQueryivARB(occlusion->target, GL_QUERY_COUNTER_BITS_ARB, &result);
+		glGetQueryivARB(occlusion->target, GL_QUERY_COUNTER_BITS, &result);
 
 		occlusion->supported = 0 != result;
 	}
@@ -82,11 +82,11 @@ bool ce_occlusion_query(ce_occlusion* occlusion,
 
 	if (glIsQueryARB(occlusion->query)) {
 		glGetQueryObjectivARB(occlusion->query,
-			GL_QUERY_RESULT_AVAILABLE_ARB, &result);
+			GL_QUERY_RESULT_AVAILABLE, &result);
 
 		if (0 != result) {
 			glGetQueryObjectivARB(occlusion->query,
-				GL_QUERY_RESULT_ARB, &occlusion->result);
+				GL_QUERY_RESULT, &occlusion->result);
 		}
 	}
 
