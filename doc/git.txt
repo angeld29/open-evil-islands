@@ -38,6 +38,7 @@ Cursed Earth GIT HOWTO
      ssh -t USERNAME,cursedearth@shell.sourceforge.net create
 
    * Клонирование репозитория себе на машину:
+     git clone git://cursedearth.git.sourceforge.net/gitroot/cursedearth/cursedearth
      git clone ssh://USERNAME@cursedearth.git.sourceforge.net/gitroot/cursedearth/cursedearth
 
    * Настройка своего имени:
