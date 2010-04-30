@@ -78,7 +78,7 @@ def build_shader_source(target, source, env):
 	with open(target[0].get_abspath(), "wt") as file:
 		write_header(file)
 		file.write("const char ce_shaderdata_%s[] = {\n" % name)
-		contents = source[0].get_contents()
+		contents = source[0].get_contents() + "\0"
 		while len(contents) > 0:
 			line, contents = contents[:15], contents[15:]
 			file.write(",".join(hex(ord(ch)) for ch in line) + ",\n")
