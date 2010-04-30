@@ -150,8 +150,8 @@ static ce_figcookie_dynamic* ce_figcookie_dynamic_new(int vertex_count)
 	cookie->ref_count = 1;
 	cookie->vertices = ce_alloc(sizeof(float) * 3 * vertex_count);
 	if (ce_gl_query_feature(CE_GL_FEATURE_VERTEX_BUFFER_OBJECT)) {
-		glGenBuffers(1, &cookie->normals.buffer);
-		glGenBuffers(1, &cookie->texcoords.buffer);
+		glGenBuffersARB(1, &cookie->normals.buffer);
+		glGenBuffersARB(1, &cookie->texcoords.buffer);
 	} else {
 		cookie->normals.pointer = ce_alloc(sizeof(float) * 3 * vertex_count);
 		cookie->texcoords.pointer = ce_alloc(sizeof(float) * 2 * vertex_count);
@@ -165,8 +165,8 @@ static void ce_figcookie_dynamic_del(ce_figcookie_dynamic* cookie)
 		assert(cookie->ref_count > 0);
 		if (0 == --cookie->ref_count) {
 			if (ce_gl_query_feature(CE_GL_FEATURE_VERTEX_BUFFER_OBJECT)) {
-				glDeleteBuffers(1, &cookie->texcoords.buffer);
-				glDeleteBuffers(1, &cookie->normals.buffer);
+				glDeleteBuffersARB(1, &cookie->texcoords.buffer);
+				glDeleteBuffersARB(1, &cookie->normals.buffer);
 			} else {
 				ce_free(cookie->texcoords.pointer,
 						sizeof(float) * 2 * cookie->vertex_count);
@@ -235,15 +235,15 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 			sizeof(float) * 3 * figfile->index_count);
 
 	if (ce_gl_query_feature(CE_GL_FEATURE_VERTEX_BUFFER_OBJECT)) {
-		glBindBuffer(GL_ARRAY_BUFFER, figrenderitem->cookie->normals.buffer);
-		glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(float) *
+		glBindBufferARB(GL_ARRAY_BUFFER, figrenderitem->cookie->normals.buffer);
+		glBufferDataARB(GL_ARRAY_BUFFER, 3 * sizeof(float) *
 			figfile->index_count, normals, GL_STATIC_DRAW);
 
-		glBindBuffer(GL_ARRAY_BUFFER, figrenderitem->cookie->texcoords.buffer);
-		glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(float) *
+		glBindBufferARB(GL_ARRAY_BUFFER, figrenderitem->cookie->texcoords.buffer);
+		glBufferDataARB(GL_ARRAY_BUFFER, 2 * sizeof(float) *
 			figfile->index_count, texcoords, GL_STATIC_DRAW);
 
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBufferARB(GL_ARRAY_BUFFER, 0);
 
 		ce_free(texcoords, sizeof(float) * 2 * figfile->index_count);
 		ce_free(normals, sizeof(float) * 3 * figfile->index_count);
@@ -325,13 +325,13 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 	glVertexPointer(3, GL_FLOAT, 0, figrenderitem->vertices);
 
 	if (ce_gl_query_feature(CE_GL_FEATURE_VERTEX_BUFFER_OBJECT)) {
-		glBindBuffer(GL_ARRAY_BUFFER, figrenderitem->cookie->normals.buffer);
+		glBindBufferARB(GL_ARRAY_BUFFER, figrenderitem->cookie->normals.buffer);
 		glNormalPointer(GL_FLOAT, 0, NULL);
 
-		glBindBuffer(GL_ARRAY_BUFFER, figrenderitem->cookie->texcoords.buffer);
+		glBindBufferARB(GL_ARRAY_BUFFER, figrenderitem->cookie->texcoords.buffer);
 		glTexCoordPointer(2, GL_FLOAT, 0, NULL);
 
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBufferARB(GL_ARRAY_BUFFER, 0);
 	} else {
 		glNormalPointer(GL_FLOAT, 0, figrenderitem->cookie->normals.pointer);
 		glTexCoordPointer(2, GL_FLOAT, 0, figrenderitem->cookie->texcoords.pointer);
