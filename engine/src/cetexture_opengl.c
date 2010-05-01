@@ -51,7 +51,7 @@ static int ce_texture_correct_mipmap_count(int mipmap_count)
 
 	int max_level = log2f(max_texture_size);
 
-	static bool reported; // all GL's code are not thread safe
+	static bool reported; // FIXME: threads
 	if (!reported && mipmap_count - 1 > max_level) {
 		ce_logging_warning("texture: your hardware supports a maximum "
 			"of %d mipmaps, extra mipmaps were discarded", max_level);
@@ -78,7 +78,7 @@ static void ce_texture_setup_filters(int mipmap_count)
 			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 		} else {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			static bool reported; // all GL's code are not thread safe
+			static bool reported; // FIXME: threads
 			if (!reported) {
 				ce_logging_warning("texture: some opengl features are not "
 									"available, mipmapping was disabled");
@@ -98,7 +98,7 @@ static void ce_texture_specify(int width, int height, int level,
 	int new_width = ce_min(width, max_texture_size);
 	int new_height = ce_min(height, max_texture_size);
 
-	if (!GLEW_VERSION_2_0) { // NPOT textures available in GL 2.0
+	if (!GLEW_VERSION_2_0 && !GLEW_ARB_texture_non_power_of_two) {
 		float int_width, int_height;
 		float fract_width = modff(log2f(new_width), &int_width);
 		float fract_height = modff(log2f(new_height), &int_height);

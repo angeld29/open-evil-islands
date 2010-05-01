@@ -32,8 +32,8 @@ bool ce_gl_init(void)
 	assert(!ce_gl_context.inited && "The gl subsystem has already been inited");
 	ce_gl_context.inited = true;
 
-	ce_logging_write("opengl: vendor %s", glGetString(GL_VENDOR));
-	ce_logging_write("opengl: renderer %s", glGetString(GL_RENDERER));
+	ce_logging_write("opengl: %s", glGetString(GL_VENDOR));
+	ce_logging_write("opengl: %s", glGetString(GL_RENDERER));
 	ce_logging_write("opengl: using GL %s", glGetString(GL_VERSION));
 	ce_logging_write("opengl: using GLU %s", gluGetString(GLU_VERSION));
 
@@ -48,6 +48,10 @@ bool ce_gl_init(void)
 		const char* name;
 		bool available;
 	} extensions[] = {
+		{ "ARB texture non power of two", GLEW_ARB_texture_non_power_of_two },
+		{ "EXT texture compression s3tc", GLEW_EXT_texture_compression_s3tc },
+		{ "EXT texture compression dxt1", GLEW_EXT_texture_compression_dxt1 },
+		{ "ARB occlusion query 2", GLEW_ARB_occlusion_query2 },
 		{ "AMD vertex shader tessellator", GLEW_AMD_vertex_shader_tessellator },
 		{ "AMD performance monitor", GLEW_AMD_performance_monitor },
 		{ "AMD meminfo", GLEW_ATI_meminfo },
