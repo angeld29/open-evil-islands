@@ -69,12 +69,9 @@ static void ce_texture_setup_filters(int mipmap_count)
 	if (mipmap_count > 1) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 										GL_LINEAR_MIPMAP_LINEAR);
-#ifdef GL_VERSION_1_2
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
-#else
-		if (ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_LOD)) {
+		if (GLEW_VERSION_1_2 || GLEW_SGIS_texture_lod) {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap_count - 1);
-		} else if (ce_gl_query_feature(CE_GL_FEATURE_GENERATE_MIPMAP)) {
+		} else if (GLEW_SGIS_generate_mipmap) {
 			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 		} else {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -85,7 +82,6 @@ static void ce_texture_setup_filters(int mipmap_count)
 				reported = true;
 			}
 		}
-#endif
 	}
 }
 
@@ -168,6 +164,12 @@ static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 	ce_texture_setup_filters(mipmap_count);
 }
 
+static void ce_texture_generate_unknown(ce_mmpfile* mmpfile)
+{
+	assert(false && "not implemented");
+	ce_unused(mmpfile);
+}
+
 static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
 {
 	if (GLEW_VERSION_1_3 && (GLEW_EXT_texture_compression_s3tc ||
@@ -185,58 +187,67 @@ static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
 
 static void ce_texture_generate_r5g6b5(ce_mmpfile* mmpfile)
 {
-#ifdef GL_VERSION_1_2
-	ce_texture_generate(mmpfile, GL_RGB, GL_RGB, GL_UNSIGNED_SHORT_5_6_5);
-#else
-	ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
-	ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
-#endif
+	if (GLEW_VERSION_1_2) {
+		ce_texture_generate(mmpfile, GL_RGB, GL_RGB, GL_UNSIGNED_SHORT_5_6_5);
+	} else {
+		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
+		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+	}
 }
 
 static void ce_texture_generate_a1rgb5(ce_mmpfile* mmpfile)
 {
-#ifdef GL_VERSION_1_2
-	ce_texture_generate(mmpfile, GL_RGBA, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV);
-#else
-	if (ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
+	if (GLEW_VERSION_1_2) {
+		ce_texture_generate(mmpfile, GL_RGBA, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV);
+	} else if (GLEW_EXT_packed_pixels) {
 		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_RGB5A1);
-		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, CE_GL_UNSIGNED_SHORT_5_5_5_1);
+		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1);
 	} else {
 		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
 	}
-#endif
 }
 
 static void ce_texture_generate_argb4(ce_mmpfile* mmpfile)
 {
-#ifdef GL_VERSION_1_2
-	ce_texture_generate(mmpfile, GL_RGBA, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV);
-#else
-	if (ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
+	if (GLEW_VERSION_1_2) {
+		ce_texture_generate(mmpfile, GL_RGBA, GL_BGRA, GL_UNSIGNED_SHORT_4_4_4_4_REV);
+	} else if (GLEW_EXT_packed_pixels) {
 		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_RGBA4);
-		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, CE_GL_UNSIGNED_SHORT_4_4_4_4);
+		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4);
 	} else {
 		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
 	}
-#endif
 }
 
 static void ce_texture_generate_argb8(ce_mmpfile* mmpfile)
 {
-#ifdef GL_VERSION_1_2
-	ce_texture_generate(mmpfile, GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV);
-#else
-	if (ce_gl_query_feature(CE_GL_FEATURE_PACKED_PIXELS)) {
+	if (GLEW_VERSION_1_2) {
+		ce_texture_generate(mmpfile, GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV);
+	} else if (GLEW_EXT_packed_pixels) {
 		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_RGBA8);
-		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, CE_GL_UNSIGNED_INT_8_8_8_8);
+		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8);
 	} else {
 		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
 	}
-#endif
 }
+
+static void (*ce_texture_generate_procs[CE_MMPFILE_FORMAT_COUNT])(ce_mmpfile*) = {
+	ce_texture_generate_unknown,
+	ce_texture_generate_dxt,
+	ce_texture_generate_dxt,
+	ce_texture_generate_unknown,
+	ce_texture_generate_r5g6b5,
+	ce_texture_generate_a1rgb5,
+	ce_texture_generate_argb4,
+	ce_texture_generate_argb8,
+	ce_texture_generate_unknown,
+	ce_texture_generate_unknown,
+	ce_texture_generate_unknown,
+	ce_texture_generate_unknown
+};
 
 ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile)
 {
@@ -247,27 +258,7 @@ ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile)
 	glGenTextures(1, &texture->id);
 	glBindTexture(GL_TEXTURE_2D, texture->id);
 
-	switch (mmpfile->format) {
-	case CE_MMPFILE_FORMAT_DXT1:
-	case CE_MMPFILE_FORMAT_DXT3:
-		ce_texture_generate_dxt(mmpfile);
-		break;
-	case CE_MMPFILE_FORMAT_R5G6B5:
-		ce_texture_generate_r5g6b5(mmpfile);
-		break;
-	case CE_MMPFILE_FORMAT_A1RGB5:
-		ce_texture_generate_a1rgb5(mmpfile);
-		break;
-	case CE_MMPFILE_FORMAT_ARGB4:
-		ce_texture_generate_argb4(mmpfile);
-		break;
-	case CE_MMPFILE_FORMAT_PNT3:
-	case CE_MMPFILE_FORMAT_ARGB8:
-		ce_texture_generate_argb8(mmpfile);
-		break;
-	default:
-		assert(false);
-	}
+	(*ce_texture_generate_procs[mmpfile->format])(mmpfile);
 
 	if (ce_gl_report_errors()) {
 		ce_logging_error("texture: opengl failed");
@@ -293,18 +284,14 @@ void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode)
 	glBindTexture(GL_TEXTURE_2D, texture->id);
 
 	if (CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE == mode) {
-#ifdef GL_VERSION_1_2
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-#else
-		if (ce_gl_query_feature(CE_GL_FEATURE_TEXTURE_EDGE_CLAMP)) {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, CE_GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CE_GL_CLAMP_TO_EDGE);
+		if (GLEW_VERSION_1_2 || GLEW_EXT_texture_edge_clamp ||
+								GLEW_SGIS_texture_edge_clamp) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		} else {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		}
-#endif
 	} else if (CE_TEXTURE_WRAP_MODE_CLAMP == mode) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
