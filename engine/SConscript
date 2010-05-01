@@ -28,7 +28,7 @@ import ceutils
 Import("env")
 env = env.Clone(
 	tools=["ceglsl"],
-	GLSL_BUILDPATH=os.path.join("build"),
+	GLSL_BUILDPATH="build",
 )
 
 env.PrependUnique(
@@ -40,8 +40,7 @@ env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
 sources = [os.path.join("build", "$GEN_PATH", node.name) for node in
 	ceutils.filter_sources(env, env.Glob(os.path.join("src", "*.c"))) +
 	env.Glob(os.path.join("src", "*.vert")) +
-	env.Glob(os.path.join("src", "*.frag")) +
-	env.Glob(os.path.join("src", "*.glsl"))]
+	env.Glob(os.path.join("src", "*.frag"))]
 
 lib = env.Library(os.path.join("lib", "$GEN_PATH", "engine"), sources)
 
