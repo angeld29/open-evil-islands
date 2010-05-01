@@ -1,5 +1,6 @@
 [CE]
 RELEASE = no
-ADDITIONAL_DEFINES = FREEGLUT_STATIC;GLEW_STATIC
-ADDITIONAL_LIBS = freeglut_static;glew32;glu32;opengl32;winmm;gdi32
-ADDITIONAL_LIBS = glut;GLEW;GLU;GL
+
+[i386-win32-mingw]
+ADDITIONAL_INCLUDE_PATHS = c:\glew\include
+ADDITIONAL_LIBRARY_PATHS = c:\glew\lib

@@ -51,50 +51,30 @@ def create_environment():
 	config.read(os.path.join(topdir, cfg)
 				for cfg in ("cursedearth.cfg", "cursedearth_local.cfg"))
 
-	config_get = lambda opt, default=None: config.get("CE", opt) \
-								if config.has_option("CE", opt) else default
-	split_by_sep = lambda name: name.split(';')
-	path_builder = lambda opt, default="": \
-					os.path.normpath(config_get(opt, default))
-	path_list_builder = lambda opt, default="": [os.path.normpath(path)
-							for path in split_by_sep(config_get(opt, default))
-							if len(path) > 0]
+	config_get = lambda sec, opt, default=None: config.get(sec, opt) \
+							if config.has_option(sec, opt) else default
+	path_list_builder = lambda sec, opt, default="": [os.path.normpath(path)
+		for path in config_get(sec, opt, default).split(';') if len(path) > 0]
 
 	variables = SCons.Variables.Variables(args=SCons.Script.ARGUMENTS)
 
 	variables.Add(SCons.Variables.EnumVariable("HOST",
 		"Build for HOST",
-		config_get("HOST", cehosts.defaults[defenv["PLATFORM"]]),
+		config_get("CE", "HOST", cehosts.defaults[defenv["PLATFORM"]]),
 		cehosts.hosts.keys()))
 
 	variables.Add(SCons.Variables.EnumVariable("GRAPHICS_LIBRARY",
 		"Select graphics library",
-		config_get("GRAPHICS_LIBRARY", cegraphlibs.defaults[defenv["PLATFORM"]]),
+		config_get("CE", "GRAPHICS_LIBRARY", cegraphlibs.defaults[defenv["PLATFORM"]]),
 		cegraphlibs.graphlibs.keys()))
 
 	variables.Add(SCons.Variables.BoolVariable("RELEASE",
-		"Build the project in release mode", config_get("RELEASE", "yes")))
+		"Build the project in release mode", config_get("CE", "RELEASE", "yes")))
 
 	variables.Add(SCons.Variables.EnumVariable("LOGGING_LEVEL",
 		"Select logging level",
-		config_get("LOGGING_LEVEL", "info"),
+		config_get("CE", "LOGGING_LEVEL", "info"),
 		logging_levels.keys()))
-
-	variables.Add("ADDITIONAL_INCLUDE_PATHS",
-		"Additional include directories (semicolon-separated list of names)",
-		config_get("ADDITIONAL_INCLUDE_PATHS", ""))
-
-	variables.Add("ADDITIONAL_LIBRARY_PATHS",
-		"Additional library directories (semicolon-separated list of names)",
-		config_get("ADDITIONAL_LIBRARY_PATHS", ""))
-
-	variables.Add("ADDITIONAL_DEFINES",
-		"Additional defines (semicolon-separated list of names)",
-		config_get("ADDITIONAL_DEFINES", ""))
-
-	variables.Add("ADDITIONAL_LIBS",
-		"Additional libraries (semicolon-separated list of names)",
-		config_get("ADDITIONAL_LIBS", ""))
 
 	env = SCons.Environment.Environment(
 		variables=variables,
@@ -124,10 +104,10 @@ def create_environment():
 		env.AppendUnique(CPPDEFINES=["NDEBUG"])
 
 	env.AppendUnique(
-		CPPPATH=path_list_builder("ADDITIONAL_INCLUDE_PATHS"),
-		LIBPATH=path_list_builder("ADDITIONAL_LIBRARY_PATHS"),
-		CPPDEFINES=path_list_builder("ADDITIONAL_DEFINES"),
-		LIBS=path_list_builder("ADDITIONAL_LIBS"),
+		CPPPATH=path_list_builder(env["HOST"], "ADDITIONAL_INCLUDE_PATHS"),
+		LIBPATH=path_list_builder(env["HOST"], "ADDITIONAL_LIBRARY_PATHS"),
+		CPPDEFINES=path_list_builder(env["HOST"], "ADDITIONAL_DEFINES"),
+		LIBS=path_list_builder(env["HOST"], "ADDITIONAL_LIBS"),
 	)
 
 	env.Help(variables.GenerateHelpText(env))
