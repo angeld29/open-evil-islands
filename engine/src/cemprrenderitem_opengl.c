@@ -310,19 +310,19 @@ static void ce_mprrenderitem_tile_render(ce_renderitem* renderitem)
 // tessellated geometry by AMD vertex shader tessellator
 
 enum {
-	CE_HWTESS_SAMPLER_COUNT = 3
+	CE_AMDVST_SAMPLER_COUNT = 3
 };
 
 typedef struct {
 	GLsizei vertex_count;
 	GLuint vertex_buffer;
-	GLuint buffers[CE_HWTESS_SAMPLER_COUNT];
-	GLuint textures[CE_HWTESS_SAMPLER_COUNT];
+	GLuint buffers[CE_AMDVST_SAMPLER_COUNT];
+	GLuint textures[CE_AMDVST_SAMPLER_COUNT];
 	GLuint program;
-} ce_mprrenderitem_hwtess;
+} ce_mprrenderitem_amdvst;
 
 // TODO: share it
-static void ce_mprrenderitem_hwtess_print_log(GLuint object)
+static void ce_mprrenderitem_amdvst_print_log(GLuint object)
 {
 	GLint length;
 	if (glIsShader(object)) {
@@ -341,10 +341,10 @@ static void ce_mprrenderitem_hwtess_print_log(GLuint object)
 	ce_logging_error("mprrenderitem: %s", buffer);
 }
 
-static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args)
+static void ce_mprrenderitem_amdvst_ctor(ce_renderitem* renderitem, va_list args)
 {
-	ce_mprrenderitem_hwtess* mprrenderitem =
-		(ce_mprrenderitem_hwtess*)renderitem->impl;
+	ce_mprrenderitem_amdvst* mprrenderitem =
+		(ce_mprrenderitem_amdvst*)renderitem->impl;
 
 	ce_mprfile* mprfile = va_arg(args, ce_mprfile*);
 	int sector_x = va_arg(args, int);
@@ -356,7 +356,7 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 
 	ce_mprvertex* mprvertices = water ? sector->water_vertices :
 										sector->land_vertices;
-	int16_t* water_allow = water ? sector->water_allow : NULL;
+	//int16_t* water_allow = water ? sector->water_allow : NULL;
 
 	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
 	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
@@ -388,13 +388,13 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	GLint max_texture_buffer_size;
 	glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &max_texture_buffer_size);
 
-	glGenBuffers(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
-	glGenTextures(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->textures);
+	glGenBuffers(CE_AMDVST_SAMPLER_COUNT, mprrenderitem->buffers);
+	glGenTextures(CE_AMDVST_SAMPLER_COUNT, mprrenderitem->textures);
 
-	GLsizeiptr buffer_sizes[CE_HWTESS_SAMPLER_COUNT] = { 3, 2, 1 };
-	float* elements[CE_HWTESS_SAMPLER_COUNT];
+	GLsizeiptr buffer_sizes[CE_AMDVST_SAMPLER_COUNT] = { 3, 2, 1 };
+	float* elements[CE_AMDVST_SAMPLER_COUNT];
 
-	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
+	for (int i = 0; i < CE_AMDVST_SAMPLER_COUNT; ++i) {
 		glBindBuffer(GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
 		glBufferData(GL_TEXTURE_BUFFER, buffer_sizes[i] * sizeof(float) *
 			CE_MPRFILE_VERTEX_COUNT, NULL, GL_STATIC_DRAW);
@@ -430,7 +430,7 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 		}
 	}
 
-	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
+	for (int i = 0; i < CE_AMDVST_SAMPLER_COUNT; ++i) {
 		glBindBuffer(GL_TEXTURE_BUFFER, mprrenderitem->buffers[i]);
 		glUnmapBuffer(GL_TEXTURE_BUFFER);
 		glBindBuffer(GL_TEXTURE_BUFFER, 0);
@@ -450,7 +450,7 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	GLint result;
 	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &result);
 	if (0 == result) {
-		ce_mprrenderitem_hwtess_print_log(vertex_shader);
+		ce_mprrenderitem_amdvst_print_log(vertex_shader);
 		abort(); // hmmm...
 	}
 
@@ -460,7 +460,7 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 
 	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);
 	if (0 == result) {
-		ce_mprrenderitem_hwtess_print_log(fragment_shader);
+		ce_mprrenderitem_amdvst_print_log(fragment_shader);
 		abort(); // hmmm...
 	}
 
@@ -476,7 +476,7 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 
 	glGetProgramiv(mprrenderitem->program, GL_LINK_STATUS, &result);
 	if (0 == result) {
-		ce_mprrenderitem_hwtess_print_log(mprrenderitem->program);
+		ce_mprrenderitem_amdvst_print_log(mprrenderitem->program);
 		abort(); // hmmm...
 	}
 
@@ -511,21 +511,21 @@ static void ce_mprrenderitem_hwtess_ctor(ce_renderitem* renderitem, va_list args
 	glUseProgram(0);
 }
 
-static void ce_mprrenderitem_hwtess_dtor(ce_renderitem* renderitem)
+static void ce_mprrenderitem_amdvst_dtor(ce_renderitem* renderitem)
 {
-	ce_mprrenderitem_hwtess* mprrenderitem =
-		(ce_mprrenderitem_hwtess*)renderitem->impl;
+	ce_mprrenderitem_amdvst* mprrenderitem =
+		(ce_mprrenderitem_amdvst*)renderitem->impl;
 
 	glDeleteProgram(mprrenderitem->program);
-	glDeleteTextures(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->textures);
-	glDeleteBuffers(CE_HWTESS_SAMPLER_COUNT, mprrenderitem->buffers);
+	glDeleteTextures(CE_AMDVST_SAMPLER_COUNT, mprrenderitem->textures);
+	glDeleteBuffers(CE_AMDVST_SAMPLER_COUNT, mprrenderitem->buffers);
 	glDeleteBuffers(1, &mprrenderitem->vertex_buffer);
 }
 
-static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
+static void ce_mprrenderitem_amdvst_render(ce_renderitem* renderitem)
 {
-	ce_mprrenderitem_hwtess* mprrenderitem =
-		(ce_mprrenderitem_hwtess*)renderitem->impl;
+	ce_mprrenderitem_amdvst* mprrenderitem =
+		(ce_mprrenderitem_amdvst*)renderitem->impl;
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
@@ -535,7 +535,7 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 	glVertexPointer(3, GL_FLOAT, 0, NULL);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
+	for (int i = 0; i < CE_AMDVST_SAMPLER_COUNT; ++i) {
 		glActiveTexture(GL_TEXTURE1 + i);
 		glBindTexture(GL_TEXTURE_BUFFER, mprrenderitem->textures[i]);
 	}
@@ -544,7 +544,7 @@ static void ce_mprrenderitem_hwtess_render(ce_renderitem* renderitem)
 	glDrawArrays(GL_TRIANGLES, 0, mprrenderitem->vertex_count);
 	glUseProgram(0);
 
-	for (int i = 0; i < CE_HWTESS_SAMPLER_COUNT; ++i) {
+	for (int i = 0; i < CE_AMDVST_SAMPLER_COUNT; ++i) {
 		glActiveTexture(GL_TEXTURE1 + i);
 		glBindTexture(GL_TEXTURE_BUFFER, 0);
 	}
@@ -569,14 +569,15 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, bool tiling,
 							sector_x, sector_z, water, tile_textures);
 	}
 
-	if (GLEW_VERSION_3_1 && GLEW_AMD_vertex_shader_tessellator) {
+	// not implemented properly
+	if (false && GLEW_VERSION_3_1 && GLEW_AMD_vertex_shader_tessellator) {
 		// use AMD tessellation shader!
-		ce_renderitem_vtable ce_renderitem_hwtess_vtable = {
-			ce_mprrenderitem_hwtess_ctor, ce_mprrenderitem_hwtess_dtor,
-			NULL, ce_mprrenderitem_hwtess_render, NULL
+		ce_renderitem_vtable ce_renderitem_amdvst_vtable = {
+			ce_mprrenderitem_amdvst_ctor, ce_mprrenderitem_amdvst_dtor,
+			NULL, ce_mprrenderitem_amdvst_render, NULL
 		};
-		return ce_renderitem_new(ce_renderitem_hwtess_vtable,
-								sizeof(ce_mprrenderitem_hwtess), mprfile,
+		return ce_renderitem_new(ce_renderitem_amdvst_vtable,
+								sizeof(ce_mprrenderitem_amdvst), mprfile,
 								sector_x, sector_z, water, tile_textures);
 	}
 
