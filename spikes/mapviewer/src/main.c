@@ -26,10 +26,12 @@
 #include <math.h>
 #include <assert.h>
 
+#include <argtable2.h>
+
 #include "cegl.h"
 #include "cemath.h"
-#include "celogging.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "cescenemng.h"
 
 // TODO: remove GLUT
@@ -158,43 +160,86 @@ static void reshape(int width, int height)
 	ce_camera_set_aspect(scenemng->camera, (float)width / height);
 }
 
+static void usage(const char* progname, void* argtable[])
+{
+	fprintf(stderr, "Cursed Earth is an open source, "
+		"cross-platform port of Evil Islands\n"
+		"Copyright (C) 2009-2010 Yanis Kurganov\n\n");
+
+	fprintf(stderr, "This program is part of Cursed Earth spikes\n"
+		"Map Viewer - explore Evil Islands zones with creatures\n\n");
+
+	fprintf(stderr, "usage: %s", progname);
+	arg_print_syntax(stderr, argtable, "\n");
+	arg_print_glossary_gnu(stderr, argtable);
+
+	void* ctrtable[] = {
+		arg_rem("keyboard arrows", "move camera"),
+		arg_rem("mouse motion", "rotate camera"),
+		arg_rem("mouse wheel", "zoom camera"),
+		arg_rem("b", "show/hide bounding boxes"),
+		arg_rem("+/-", "change animation FPS"),
+		arg_end(0)
+	};
+
+	fprintf(stderr, "controls:\n");
+	arg_print_glossary_gnu(stderr, ctrtable);
+	arg_freetable(ctrtable, sizeof(ctrtable) / sizeof(ctrtable[0]));
+}
+
 int main(int argc, char* argv[])
 {
-	ce_logging_init();
-#ifdef NDEBUG
-	ce_logging_set_level(CE_LOGGING_LEVEL_INFO);
-#else
-	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
-#endif
-	ce_alloc_init();
+	struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
+	struct arg_lit* version = arg_lit0("v", "version",
+		"display version information and exit");
+	struct arg_str* ei_path = arg_str0("b", "ei-path", "DIRECTORY",
+		"path to EI directory (current directory by default)");
+	struct arg_lit* full_screen = arg_lit0("f", "full-screen",
+		"start program in full screen mode");
+	struct arg_lit* terrain_tiling = arg_lit0("t", "terrain-tiling",
+		"enable terrain tiling; very slow, but reduce usage of "
+		"video memory and disk space; use it on old video cards");
+	struct arg_int* jobs = arg_int0("j", "jobs", "N",
+		"allow N jobs at once; if this option is not specified, the "
+		"value N will be detected automatically depending on the number "
+		"of CPUs you have (or the number of cores your CPU have)");
+	struct arg_str* zone = arg_str1(NULL, NULL,
+		"ZONE", "any ZONE.mpr file in 'ei-path/Maps'");
+	struct arg_end* end = arg_end(3);
 
-	ce_optparse* optparse = ce_optparse_new(CE_SPIKE_VERSION_MAJOR,
-		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
-		"This program is part of Cursed Earth spikes\n"
-		"Map Viewer %d.%d.%d - Explore Evil Islands zones with creatures\n\n"
-		"controls:\n"
-		"b     show/hide bounding boxes\n"
-		"+/-   change animation FPS",
-		CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
+	void* argtable[] = {
+		help, version, ei_path, full_screen, terrain_tiling, jobs, zone, end
+	};
 
-	ce_optgroup* general = ce_scenemng_create_group_general(optparse);
+	ei_path->sval[0] = ".";
 
-	ce_optarg* zone_name = ce_optparse_create_arg(optparse, "zone_name",
-		"any zone_name.mpr file in 'ei_path/Maps'");
+	int argerror_count = arg_parse(argc, argv, argtable);
 
-	if (!ce_optparse_parse_args(optparse, argc, argv)) {
+	if (0 != help->count) {
+		usage(argv[0], argtable);
+		return EXIT_SUCCESS;
+	}
+
+	if (0 != version->count) {
+		fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
+										CE_SPIKE_VERSION_MINOR,
+										CE_SPIKE_VERSION_PATCH);
+		return EXIT_SUCCESS;
+	}
+
+	if (0 != argerror_count) {
+		usage(argv[0], argtable);
+		arg_print_errors(stderr, end, argv[0]);
 		return EXIT_FAILURE;
 	}
 
-	ce_optoption* ei_path = ce_optgroup_find_option(general, "ei_path");
-	ce_optoption* full_screen = ce_optgroup_find_option(general, "full_screen");
+	ce_alloc_init();
+	ce_logging_init();
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
 
-	if (ce_optoption_value_bool(full_screen)) {
-		ce_logging_write("main: trying to enter full screen mode...");
-
+	if (0 != full_screen->count) {
 		char buffer[32];
 		int width = glutGet(GLUT_SCREEN_WIDTH);
 		int height = glutGet(GLUT_SCREEN_HEIGHT);
@@ -248,16 +293,27 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	scenemng = ce_scenemng_new(optparse);
+	scenemng = ce_scenemng_new(ei_path->sval[0]);
 
-	if (NULL == ce_scenemng_create_terrain(scenemng, zone_name->value->str,
+	if (0 != terrain_tiling->count) {
+		scenemng->terrain_tiling = true;
+	}
+
+	if (0 != jobs->count) {
+		scenemng->thread_count = jobs->ival[0];
+	}
+
+	ce_logging_write("scenemng: using up to %d threads", scenemng->thread_count);
+	ce_logging_write("scenemng: terrain tiling %s",
+		scenemng->terrain_tiling ? "enabled" : "disabled");
+
+	if (NULL == ce_scenemng_create_terrain(scenemng, zone->sval[0],
 					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
 		return EXIT_FAILURE;
 	}
 
-	char path[ei_path->value->length + zone_name->value->length + 32];
-	snprintf(path, sizeof(path), "%s/Maps/%s.mob",
-		ei_path->value->str, zone_name->value->str);
+	char path[strlen(ei_path->sval[0]) + strlen(zone->sval[0]) + 32];
+	snprintf(path, sizeof(path), "%s/Maps/%s.mob", ei_path->sval[0], zone->sval[0]);
 
 	ce_mobfile* mobfile = ce_mobfile_open(path);
 	if (NULL != mobfile) {
@@ -279,7 +335,7 @@ int main(int argc, char* argv[])
 	}
 
 	snprintf(path, sizeof(path), "%s/Camera/%s.cam",
-		ei_path->value->str, zone_name->value->str/*"mainmenu"*/);
+		ei_path->sval[0], zone->sval[0]/*"mainmenu"*/);
 
 	FILE* file = NULL;//fopen(path, "rb");
 	if (NULL != file) {
@@ -339,7 +395,7 @@ int main(int argc, char* argv[])
 	anmfps_inc_event = ce_input_event_supply_button_event(es, CE_KB_ADD);
 	anmfps_dec_event = ce_input_event_supply_button_event(es, CE_KB_SUBTRACT);
 
-	ce_optparse_del(optparse);
+	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	glutMainLoop();
 	return EXIT_SUCCESS;

@@ -39,7 +39,12 @@ static struct {
 		"CRITICAL",
 		"FATAL",
 		"WRITE"
-	}
+	},
+#ifdef NDEBUG
+	.level = CE_LOGGING_LEVEL_INFO
+#else
+	.level = CE_LOGGING_LEVEL_DEBUG
+#endif
 };
 
 static void ce_logging_report(ce_logging_level level, const char* format, va_list args)

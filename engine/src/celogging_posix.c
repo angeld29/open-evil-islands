@@ -33,17 +33,24 @@ static struct {
 bool ce_logging_init(void)
 {
 	assert(!ce_logging_inst.inited &&
-			"The logging subsystem has already been inited");
+		"The logging subsystem has already been inited");
 	ce_logging_inst.inited = true;
 
 	openlog(NULL, LOG_PERROR, LOG_USER);
+
+#ifdef NDEBUG
+	ce_logging_set_level(CE_LOGGING_LEVEL_INFO);
+#else
+	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
+#endif
+
 	return true;
 }
 
 void ce_logging_term(void)
 {
 	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
+		"The logging subsystem has not yet been inited");
 	ce_logging_inst.inited = false;
 
 	closelog();
@@ -52,7 +59,7 @@ void ce_logging_term(void)
 void ce_logging_set_level(ce_logging_level level)
 {
 	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
+		"The logging subsystem has not yet been inited");
 
 	switch (level) {
 	case CE_LOGGING_LEVEL_NONE:
@@ -88,7 +95,7 @@ void ce_logging_set_level(ce_logging_level level)
 void ce_logging_debug(const char* format, ...)
 {
 	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
+		"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_DEBUG, format, args);
@@ -98,7 +105,7 @@ void ce_logging_debug(const char* format, ...)
 void ce_logging_info(const char* format, ...)
 {
 	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
+		"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_INFO, format, args);
@@ -108,7 +115,7 @@ void ce_logging_info(const char* format, ...)
 void ce_logging_warning(const char* format, ...)
 {
 	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
+		"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_WARNING, format, args);
@@ -118,7 +125,7 @@ void ce_logging_warning(const char* format, ...)
 void ce_logging_error(const char* format, ...)
 {
 	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
+		"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_ERR, format, args);
@@ -128,7 +135,7 @@ void ce_logging_error(const char* format, ...)
 void ce_logging_critical(const char* format, ...)
 {
 	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
+		"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_CRIT, format, args);
@@ -138,7 +145,7 @@ void ce_logging_critical(const char* format, ...)
 void ce_logging_fatal(const char* format, ...)
 {
 	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
+		"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_ALERT, format, args);
@@ -148,7 +155,7 @@ void ce_logging_fatal(const char* format, ...)
 void ce_logging_write(const char* format, ...)
 {
 	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
+		"The logging subsystem has not yet been inited");
 	va_list args;
 	va_start(args, format);
 	vsyslog(LOG_EMERG, format, args);

@@ -25,15 +25,16 @@
 #include <time.h>
 #include <assert.h>
 
+#include <argtable2.h>
+
 #include "cegl.h"
 #include "celib.h"
-#include "celogging.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "ceinput.h"
 #include "cetimer.h"
 #include "ceresfile.h"
 #include "cetexture.h"
-#include "ceoptparse.h"
 
 // TODO: remove GLUT
 #include <GL/glut.h>
@@ -69,7 +70,7 @@ static void next_texture(int unused);
 
 static void advance_index()
 {
-	index = rndmode ? rand() % res->node_count : index + 1;
+	index = rndmode ? rand() % (int)res->node_count : index + 1;
 }
 
 static void idle(void)
@@ -162,11 +163,13 @@ static bool generate_texture(int index)
 
 static void next_texture(int unused)
 {
+	ce_unused(unused); // :)
+
 	if (0 == res->node_count) {
 		return;
 	}
 
-	if (0 > index || index >= res->node_count) {
+	if (0 > index || index >= (int)res->node_count) {
 		ce_logging_write("main: all textures (%d) have been browsed, "
 			"let's make a fresh start", res->node_count);
 		index = 0;
@@ -188,43 +191,76 @@ static void next_texture(int unused)
 	}
 }
 
+static void usage(const char* progname, void* argtable[])
+{
+	fprintf(stderr, "Cursed Earth is an open source, "
+		"cross-platform port of Evil Islands\n"
+		"Copyright (C) 2009-2010 Yanis Kurganov\n\n");
+
+	fprintf(stderr, "This program is part of Cursed Earth spikes\n"
+		"Texture Viewer - view Evil Islands textures\n\n");
+
+	fprintf(stderr, "usage: %s", progname);
+	arg_print_syntax(stderr, argtable, "\n");
+	arg_print_glossary_gnu(stderr, argtable);
+
+	void* ctrtable[] = {
+		arg_rem("n", "next texture (manual mode)"),
+		arg_end(0)
+	};
+
+	fprintf(stderr, "controls:\n");
+	arg_print_glossary_gnu(stderr, ctrtable);
+	arg_freetable(ctrtable, sizeof(ctrtable) / sizeof(ctrtable[0]));
+}
+
 int main(int argc, char* argv[])
 {
-	ce_logging_init();
-#ifdef NDEBUG
-	ce_logging_set_level(CE_LOGGING_LEVEL_INFO);
-#else
-	ce_logging_set_level(CE_LOGGING_LEVEL_DEBUG);
-#endif
-	ce_alloc_init();
+	struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
+	struct arg_lit* version = arg_lit0("v", "version",
+		"display version information and exit");
+	struct arg_lit* random = arg_lit0("r", "random",
+		"show textures in random mode");
+	struct arg_int* dly = arg_int0("d", "delay", "MSEC",
+		"specify slideshow delay (500 by default)");
+	struct arg_lit* manual = arg_lit0("m", "manual",
+		"manual mode (slideshow will be disabled)");
+	struct arg_str* name = arg_str0("n", "name", "NAME",
+		"specify texture name (slideshow will be disabled)");
+	struct arg_int* idx = arg_int0("i", "index", "INDEX",
+		"specify texture index (slideshow will be disabled)");
+	struct arg_str* file = arg_str1(NULL, NULL,
+		"FILE", "path to res file with textures");
+	struct arg_end* end = arg_end(3);
 
-	ce_optparse* optparse = ce_optparse_new(CE_SPIKE_VERSION_MAJOR,
-		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
-		"This program is part of Cursed Earth spikes\n"
-		"Texture Viewer %d.%d.%d - View Evil Islands textures",
-		CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH);
-	ce_optgroup* general_grp = ce_optparse_create_group(optparse, "general");
-	ce_optoption* random_opt = ce_optgroup_create_option(general_grp,
-		"random", 'r', "random", CE_OPTACTION_STORE_TRUE,
-		"show textures in random mode", NULL);
-	ce_optoption* delay_opt = ce_optgroup_create_option(general_grp,
-		"delay", 'd', "delay", CE_OPTACTION_STORE,
-		"specify slideshow delay in msec", "500");
-	ce_optoption* manual_opt = ce_optgroup_create_option(general_grp,
-		"manual", 'm', "manual", CE_OPTACTION_STORE_TRUE,
-		"manual mode (slideshow will be disabled)", NULL);
-	ce_optoption* name_opt = ce_optgroup_create_option(general_grp,
-		"name", 'n', "name", CE_OPTACTION_STORE,
-		"specify texture name (slideshow will be disabled)", NULL);
-	ce_optoption* index_opt = ce_optgroup_create_option(general_grp,
-		"index", 'i', "index", CE_OPTACTION_STORE,
-		"specify texture index (slideshow will be disabled)", NULL);
-	ce_optarg* res_path_arg = ce_optparse_create_arg(optparse, "res_path",
-		"path to *.res with textures");
+	void* argtable[] = {
+		help, version, random, dly, manual, name, idx, file, end
+	};
 
-	if (!ce_optparse_parse_args(optparse, argc, argv)) {
+	dly->ival[0] = 500;
+
+	int argerror_count = arg_parse(argc, argv, argtable);
+
+	if (0 != help->count) {
+		usage(argv[0], argtable);
+		return EXIT_SUCCESS;
+	}
+
+	if (0 != version->count) {
+		fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
+										CE_SPIKE_VERSION_MINOR,
+										CE_SPIKE_VERSION_PATCH);
+		return EXIT_SUCCESS;
+	}
+
+	if (0 != argerror_count) {
+		usage(argv[0], argtable);
+		arg_print_errors(stderr, end, argv[0]);
 		return EXIT_FAILURE;
 	}
+
+	ce_logging_init();
+	ce_alloc_init();
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DOUBLE);
@@ -240,38 +276,34 @@ int main(int argc, char* argv[])
 	ce_input_init();
 	ce_gl_init();
 
-	res = ce_resfile_open_file(res_path_arg->value->str);
+	res = ce_resfile_open_file(file->sval[0]);
 	if (NULL == res) {
-		ce_logging_fatal("main: could not open file: '%s'",
-							res_path_arg->value->str);
+		ce_logging_fatal("main: could not open file: '%s'", file->sval[0]);
 		return EXIT_FAILURE;
 	}
 
-	rndmode = ce_optoption_value_bool(random_opt);
-	delay = ce_max(0, ce_optoption_value_int(delay_opt));
+	rndmode = 0 != random->count;
+	delay = ce_max(0, dly->ival[0]);
 
-	if (!ce_optoption_value_empty(name_opt) ||
-			!ce_optoption_value_empty(index_opt) ||
-			ce_optoption_value_bool(manual_opt)) {
+	if (0 != name->count || 0 != idx->count || 0 != manual->count) {
 		slideshow = false;
 	}
 
 	index = -1;
 	srand(time(NULL));
 
-	if (!ce_optoption_value_empty(name_opt)) {
-		index = ce_resfile_node_index(res, name_opt->value->str);
+	if (0 != name->count) {
+		index = ce_resfile_node_index(res, name->sval[0]);
 		if (-1 == index) {
-			ce_logging_error("main: could not find texture: '%s'\n",
-											name_opt->value->str);
+			ce_logging_error("main: could not find texture: '%s'\n", name->sval[0]);
 			return EXIT_FAILURE;
 		}
-	} else if (!ce_optoption_value_empty(index_opt)) {
-		index = ce_optoption_value_int(index_opt);
+	} else if (0 != idx->count) {
+		index = idx->ival[0];
 		if (index < 0) {
 			index = INT_MAX;
 		}
-		if (0 > index || index >= res->node_count) {
+		if (0 > index || index >= (int)res->node_count) {
 			ce_logging_error("main: invalid index: %d, "
 							"allowed range [0...%d]\n",
 							index, res->node_count - 1);
@@ -289,7 +321,7 @@ int main(int argc, char* argv[])
 	next_texture_event = ce_input_event_supply_single_front_event(es,
 					ce_input_event_supply_button_event(es, CE_KB_N));
 
-	ce_optparse_del(optparse);
+	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	glutMainLoop();
 	return EXIT_SUCCESS;

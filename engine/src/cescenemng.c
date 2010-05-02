@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "celib.h"
 #include "cemath.h"
@@ -37,22 +38,16 @@ static void ce_scenemng_figproto_created(void* listener, ce_figproto* figproto)
 	ce_figproto_accept_renderqueue(figproto, scenemng->renderqueue);
 }
 
-ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
+ce_scenemng* ce_scenemng_new(const char* ei_path)
 {
-	ce_optgroup* general = ce_optparse_find_group(optparse, "general");
-
-	ce_optoption* ei_path = ce_optgroup_find_option(general, "ei_path");
-	ce_optoption* terrain_tiling = ce_optgroup_find_option(general, "terrain_tiling");
-	ce_optoption* jobs = ce_optgroup_find_option(general, "jobs");
-
-	ce_logging_write("scenemng: root path: '%s'", ei_path->value->str);
+	ce_logging_write("scenemng: root path: '%s'", ei_path);
 
 	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
 	scenemng->show_axes = true;
 	scenemng->show_bboxes = false;
 	scenemng->comprehensive_bbox_only = true;
-	scenemng->terrain_tiling = ce_optoption_value_bool(terrain_tiling);
-	scenemng->thread_count = ce_clamp(ce_optoption_value_int(jobs), 1, 100);
+	scenemng->terrain_tiling = false;
+	scenemng->thread_count = ce_thread_online_cpu_count();
 	scenemng->anmfps = 15.0f;
 	scenemng->scenenode_force_update = false;
 	scenemng->scenenode = ce_scenenode_new(NULL);
@@ -72,33 +67,27 @@ ce_scenemng* ce_scenemng_new(ce_optparse* optparse)
 
 	ce_figmng_add_listener(scenemng->figmng, listener_vtable, scenemng);
 
-	char path[ei_path->value->length + 32];
+	char path[strlen(ei_path) + 32];
 
-	snprintf(path, sizeof(path), "%s/Textures", ei_path->value->str);
+	snprintf(path, sizeof(path), "%s/Textures", ei_path);
 	scenemng->texmng = ce_texmng_new(path);
 
 	const char* texture_resources[] = { "textures", "redress", "menus" };
 	for (int i = 0, n = sizeof(texture_resources) /
 						sizeof(texture_resources[0]); i < n; ++i) {
-		snprintf(path, sizeof(path), "%s/Res/%s.res",
-				ei_path->value->str, texture_resources[i]);
+		snprintf(path, sizeof(path), "%s/Res/%s.res", ei_path, texture_resources[i]);
 		ce_texmng_register_resource(scenemng->texmng, path);
 	}
 
-	snprintf(path, sizeof(path), "%s/Maps", ei_path->value->str);
+	snprintf(path, sizeof(path), "%s/Maps", ei_path);
 	scenemng->mprmng = ce_mprmng_new(path);
 
 	const char* figure_resources[] = { "figures", "menus" };
 	for (int i = 0, n = sizeof(figure_resources) /
 						sizeof(figure_resources[0]); i < n; ++i) {
-		snprintf(path, sizeof(path), "%s/Res/%s.res",
-				ei_path->value->str, figure_resources[i]);
+		snprintf(path, sizeof(path), "%s/Res/%s.res", ei_path, figure_resources[i]);
 		ce_figmng_register_resource(scenemng->figmng, path);
 	}
-
-	ce_logging_write("scenemng: using up to %d threads", scenemng->thread_count);
-	ce_logging_write("scenemng: terrain tiling %s",
-		scenemng->terrain_tiling ? "enabled" : "disabled");
 
 	return scenemng;
 }
@@ -328,33 +317,4 @@ void ce_scenemng_load_mobfile(ce_scenemng* scenemng,
 		const ce_mobobject_object* mobobject = mobfile->objects->items[i];
 		ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
 	}
-}
-
-ce_optgroup* ce_scenemng_create_group_general(ce_optparse* optparse)
-{
-	ce_optgroup* general = ce_optparse_create_group(optparse, "general");
-
-	ce_optgroup_create_option(general,
-		"ei_path", 'b', "ei-path", CE_OPTACTION_STORE,
-		"path to EI root dir (current dir by default)", ".");
-
-	ce_optgroup_create_option(general,
-		"full_screen", 'f', "full-screen", CE_OPTACTION_STORE_TRUE,
-		"start program in Full Screen mode", NULL);
-
-	ce_optgroup_create_option(general,
-		"terrain_tiling", 't', "terrain-tiling", CE_OPTACTION_STORE_TRUE,
-		"enable terrain tiling; very slow, but reduce usage of video "
-		"memory and disk space; use it on old video cards", NULL);
-
-	char cpus[4];
-	snprintf(cpus, sizeof(cpus), "%d", ce_thread_online_cpu_count());
-
-	ce_optgroup_create_option(general,
-		"jobs", 'j', "jobs", CE_OPTACTION_STORE,
-		"allow n jobs at once; if this option is not specified, the "
-		"value will be detected automatically depending on the number "
-		"of CPUs you have (or the number of cores your CPU have)", cpus);
-
-	return general;
 }
