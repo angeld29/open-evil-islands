@@ -261,8 +261,7 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 		//	0, 0, 0, 0, width / 2, height / 2);
 	}
 
-	XMoveWindow(renderwindow->display, renderwindow->window, 0, 0);
-	XResizeWindow(renderwindow->display, renderwindow->window, width, height);
+	XMoveResizeWindow(renderwindow->display, renderwindow->window, 0, 0, width, height);
 
 	XClientMessageEvent xMessage;
 	xMessage.type = ClientMessage;
@@ -278,6 +277,8 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 		False, SubstructureRedirectMask | SubstructureNotifyMask, (XEvent*)&xMessage);
 
 	renderwindow->fullscreen = fullscreen;
+	renderwindow->width = width;
+	renderwindow->height = height;
 }
 
 ce_renderwindow* ce_renderwindow_new(void)
