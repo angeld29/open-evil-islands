@@ -21,16 +21,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-// TODO: remove GLUT from engine
-#include <GL/glut.h>
-
-#ifndef GLUT_WHEEL_UP
-#define GLUT_WHEEL_UP 3
-#endif
-#ifndef GLUT_WHEEL_DOWN
-#define GLUT_WHEEL_DOWN 4
-#endif
-
 #include "celib.h"
 #include "ceinput.h"
 
@@ -45,39 +35,39 @@ static struct {
 	ce_vec2 mouse_offset;
 } ce_input_inst;
 
-static ce_input_button keyboard_ascii_map(unsigned char key);
-static ce_input_button keyboard_special_map(int key);
-static ce_input_button mouse_map(int key);
+//static ce_input_button keyboard_ascii_map(unsigned char key);
+//static ce_input_button keyboard_special_map(int key);
+//static ce_input_button mouse_map(int key);
 
 static void keyboard(unsigned char key, int x, int y)
 {
 	ce_unused(x);
 	ce_unused(y);
-	ce_input_inst.buttons[keyboard_ascii_map(key)] = true;
+	//ce_input_inst.buttons[keyboard_ascii_map(key)] = true;
 }
 
 static void keyboard_up(unsigned char key, int x, int y)
 {
 	ce_unused(x);
 	ce_unused(y);
-	ce_input_inst.buttons[keyboard_ascii_map(key)] = false;
+	//ce_input_inst.buttons[keyboard_ascii_map(key)] = false;
 }
 
 static void special(int key, int x, int y)
 {
 	ce_unused(x);
 	ce_unused(y);
-	ce_input_inst.buttons[keyboard_special_map(key)] = true;
+	//ce_input_inst.buttons[keyboard_special_map(key)] = true;
 }
 
 static void special_up(int key, int x, int y)
 {
 	ce_unused(x);
 	ce_unused(y);
-	ce_input_inst.buttons[keyboard_special_map(key)] = false;
+	//ce_input_inst.buttons[keyboard_special_map(key)] = false;
 }
 
-static void mouse(int button, int state, int x, int y)
+/*static void mouse(int button, int state, int x, int y)
 {
 	ce_input_inst.mouse_prev_x = x;
 	ce_input_inst.mouse_prev_y = y;
@@ -94,7 +84,7 @@ static void mouse(int button, int state, int x, int y)
 	}
 
 	ce_input_inst.buttons[mouse_map(button)] = GLUT_DOWN == state;
-}
+}*/
 
 static void motion(int x, int y)
 {
@@ -114,14 +104,6 @@ bool ce_input_init(void)
 {
 	assert(!ce_input_inst.inited && "The input subsystem has already been inited");
 	ce_input_inst.inited = true;
-
-	glutKeyboardFunc(keyboard);
-	glutKeyboardUpFunc(keyboard_up);
-	glutSpecialFunc(special);
-	glutSpecialUpFunc(special_up);
-	glutMouseFunc(mouse);
-	glutMotionFunc(motion);
-	glutPassiveMotionFunc(passive_motion);
 
 	return true;
 }
@@ -165,7 +147,7 @@ void ce_input_advance(float elapsed)
 	}
 }
 
-static ce_input_button keyboard_ascii_map(unsigned char key)
+/*static ce_input_button keyboard_ascii_map(unsigned char key)
 {
 	ce_input_button button = CE_IB_UNKNOWN;
 	switch (key) {
@@ -290,4 +272,4 @@ static ce_input_button mouse_map(int key)
 		break;
 	};
 	return button;
-}
+}*/

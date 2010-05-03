@@ -22,24 +22,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include <math.h>
 #include <assert.h>
 
 #include <argtable2.h>
 
-#include "cegl.h"
 #include "cemath.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cescenemng.h"
-
-// TODO: remove GLUT
-#include <GL/glut.h>
-#ifdef _WIN32
-// fu... win32
-#undef near
-#undef far
-#endif
+#include "ceroot.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0
@@ -50,82 +40,6 @@
 #ifndef CE_SPIKE_VERSION_PATCH
 #define CE_SPIKE_VERSION_PATCH 0
 #endif
-
-static ce_scenemng* scenemng;
-
-static ce_input_event_supply* es;
-static ce_input_event* toggle_bbox_event;
-
-static void idle(void)
-{
-	ce_scenemng_advance(scenemng);
-
-	float elapsed = ce_timer_elapsed(scenemng->timer);
-
-	ce_input_event_supply_advance(es, elapsed);
-
-	if (ce_input_test(CE_KB_ESCAPE)) {
-		ce_input_event_supply_del(es);
-		ce_scenemng_del(scenemng);
-		ce_gl_term();
-		ce_input_term();
-		ce_alloc_term();
-		ce_logging_term();
-		if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-			glutLeaveGameMode();
-		}
-		exit(EXIT_SUCCESS);
-	}
-
-	if (ce_input_event_triggered(toggle_bbox_event)) {
-		scenemng->show_bboxes = !scenemng->show_bboxes;
-	}
-
-	if (ce_input_test(CE_KB_LEFT)) {
-		ce_camera_move(scenemng->camera, -10.0f * elapsed, 0.0f);
-	}
-
-	if (ce_input_test(CE_KB_UP)) {
-		ce_camera_move(scenemng->camera, 0.0f, 10.0f * elapsed);
-	}
-
-	if (ce_input_test(CE_KB_RIGHT)) {
-		ce_camera_move(scenemng->camera, 10.0f * elapsed, 0.0f);
-	}
-
-	if (ce_input_test(CE_KB_DOWN)) {
-		ce_camera_move(scenemng->camera, 0.0f, -10.0f * elapsed);
-	}
-
-	if (ce_input_test(CE_MB_WHEELUP)) {
-		ce_camera_zoom(scenemng->camera, 5.0f);
-	}
-
-	if (ce_input_test(CE_MB_WHEELDOWN)) {
-		ce_camera_zoom(scenemng->camera, -5.0f);
-	}
-
-	if (ce_input_test(CE_MB_RIGHT)) {
-		ce_vec2 offset = ce_input_mouse_offset();
-		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(-0.25f * offset.x),
-												ce_deg2rad(-0.25f * offset.y));
-	}
-
-	glutPostRedisplay();
-}
-
-static void display(void)
-{
-	ce_scenemng_render(scenemng);
-
-	glutSwapBuffers();
-}
-
-static void reshape(int width, int height)
-{
-	ce_viewport_set_rect(scenemng->viewport, 0, 0, width, height);
-	ce_camera_set_aspect(scenemng->camera, (float)width / height);
-}
 
 static void usage(const char* progname, void* argtable[])
 {
@@ -199,97 +113,35 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	ce_alloc_init();
-	ce_logging_init();
-
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
-
-	if (0 != full_screen->count) {
-		char buffer[32];
-		int width = glutGet(GLUT_SCREEN_WIDTH);
-		int height = glutGet(GLUT_SCREEN_HEIGHT);
-
-		for (int bpp = 32; bpp >= 16; bpp -= 16) {
-			if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-				break;
-			}
-
-			for (int hertz = 100; hertz >= 10; hertz -= 10) {
-				if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-					break;
-				}
-
-				snprintf(buffer, sizeof(buffer),
-					"%dx%d:%d@%d", width, height, bpp, hertz);
-
-				glutGameModeString(buffer);
-
-				if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
-					ce_logging_write("main: entering full "
-						"screen mode %s...", buffer);
-					glutEnterGameMode();
-				} else {
-					ce_logging_warning("main: failed to enter "
-						"full screen mode %s", buffer);
-				}
-			}
-		}
-
-		if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-			ce_logging_warning("main: full screen mode is not available");
-		}
-	}
-
-	if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-		const int width = 1024;
-		const int height = 768;
-
-		glutInitWindowPosition(100, 100);
-		glutInitWindowSize(width, height);
-		glutCreateWindow("Cursed Earth: MPR Viewer");
-
-		ce_logging_write("main: entering window mode %dx%d...", width, height);
-	}
-
-	glutIdleFunc(idle);
-	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
-
-	ce_input_init();
-	ce_gl_init();
-
-	scenemng = ce_scenemng_new(ei_path->sval[0]);
+	ce_root_init(ei_path->sval[0]);
 
 	if (0 != terrain_tiling->count) {
-		scenemng->terrain_tiling = true;
+		ce_root.scenemng->terrain_tiling = true;
 	}
 
 	if (0 != jobs->count) {
-		scenemng->thread_count = jobs->ival[0];
+		ce_root.scenemng->thread_count = jobs->ival[0];
 	}
 
-	ce_logging_write("scenemng: using up to %d threads", scenemng->thread_count);
+	ce_logging_write("scenemng: using up to %d threads", ce_root.scenemng->thread_count);
 	ce_logging_write("scenemng: terrain tiling %s",
-		scenemng->terrain_tiling ? "enabled" : "disabled");
+		ce_root.scenemng->terrain_tiling ? "enabled" : "disabled");
 
-	if (NULL == ce_scenemng_create_terrain(scenemng, zone->sval[0],
+	if (NULL == ce_scenemng_create_terrain(ce_root.scenemng, zone->sval[0],
 							&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
 		return EXIT_FAILURE;
 	}
 
 	ce_vec3 position;
-	ce_vec3_init(&position, 0.0f, scenemng->terrain->mprfile->max_y, 0.0f);
+	ce_vec3_init(&position, 0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f);
 
-	ce_camera_set_position(scenemng->camera, &position);
-	ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
-
-	es = ce_input_event_supply_new();
-	toggle_bbox_event = ce_input_event_supply_single_front_event(es,
-					ce_input_event_supply_button_event(es, CE_KB_B));
+	ce_camera_set_position(ce_root.scenemng->camera, &position);
+	ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
 
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-	glutMainLoop();
+	ce_root_exec();
+	ce_root_term();
+
 	return EXIT_SUCCESS;
 }

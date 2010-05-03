@@ -25,7 +25,8 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "cegl.h"
+#include <GL/glew.h>
+
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"

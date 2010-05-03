@@ -18,23 +18,34 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_GL_H
-#define CE_GL_H
+#ifndef CE_ROOT_H
+#define CE_ROOT_H
 
 #include <stdbool.h>
+
+#include "cerenderwindow.h"
+#include "cerendersystem.h"
+#include "cescenemng.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-extern bool ce_gl_init(void);
-extern void ce_gl_term(void);
+extern struct ce_root {
+	bool inited;
+	ce_renderwindow* renderwindow;
+	ce_rendersystem* rendersystem;
+	ce_scenemng* scenemng;
+} ce_root;
 
-extern bool ce_gl_report_errors(void);
+extern bool ce_root_init(const char* ei_path);
+extern void ce_root_term(void);
+
+extern void ce_root_exec(void);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_GL_H */
+#endif /* CE_VEC2_H */

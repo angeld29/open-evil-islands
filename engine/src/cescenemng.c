@@ -89,6 +89,18 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 		ce_figmng_register_resource(scenemng->figmng, path);
 	}
 
+	// FIXME: refactoring
+	//ce_input_event_supply* es;
+	//ce_input_event* toggle_bbox_event;
+	//es = ce_input_event_supply_new();
+	//toggle_bbox_event = ce_input_event_supply_single_front_event(es,
+	//				ce_input_event_supply_button_event(es, CE_KB_B));
+	//ce_input_event_supply_del(es);
+
+	// FIXME: refactoring
+	ce_viewport_set_rect(scenemng->viewport, 0, 0, 1024, 768);
+	ce_camera_set_aspect(scenemng->camera, (float)1024 / 768);
+
 	return scenemng;
 }
 
@@ -119,6 +131,42 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 	ce_input_advance(elapsed);
 	ce_fps_advance(scenemng->fps, elapsed);
+
+	/*ce_input_event_supply_advance(es, elapsed);
+
+	if (ce_input_event_triggered(toggle_bbox_event)) {
+		scenemng->show_bboxes = !scenemng->show_bboxes;
+	}
+
+	if (ce_input_test(CE_KB_LEFT)) {
+		ce_camera_move(scenemng->camera, -10.0f * elapsed, 0.0f);
+	}
+
+	if (ce_input_test(CE_KB_UP)) {
+		ce_camera_move(scenemng->camera, 0.0f, 10.0f * elapsed);
+	}
+
+	if (ce_input_test(CE_KB_RIGHT)) {
+		ce_camera_move(scenemng->camera, 10.0f * elapsed, 0.0f);
+	}
+
+	if (ce_input_test(CE_KB_DOWN)) {
+		ce_camera_move(scenemng->camera, 0.0f, -10.0f * elapsed);
+	}
+
+	if (ce_input_test(CE_MB_WHEELUP)) {
+		ce_camera_zoom(scenemng->camera, 5.0f);
+	}
+
+	if (ce_input_test(CE_MB_WHEELDOWN)) {
+		ce_camera_zoom(scenemng->camera, -5.0f);
+	}
+
+	if (ce_input_test(CE_MB_RIGHT)) {
+		ce_vec2 offset = ce_input_mouse_offset();
+		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(-0.25f * offset.x),
+												ce_deg2rad(-0.25f * offset.y));
+	}*/
 }
 
 void ce_scenemng_render(ce_scenemng* scenemng)
