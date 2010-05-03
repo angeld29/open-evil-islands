@@ -44,7 +44,7 @@ typedef struct {
 	XF86VidModeModeInfo** modes;
 } ce_renderwindow_xf86vm;
 
-static int ce_renderwindow_xf86vm_refresh(XF86VidModeModeInfo* info)
+static int ce_renderwindow_xf86vm_calc_rate(XF86VidModeModeInfo* info)
 {
 	// dotclock comes in kHz
 	return (info->dotclock * 1000) / (info->htotal * info->vtotal);
@@ -71,7 +71,7 @@ static void ce_renderwindow_xf86vm_ctor(ce_renderwindow_modemng* modemng, va_lis
 		XF86VidModeModeInfo* info = xf86vm->modes[i];
 		ce_vector_push_back(modemng->modes,
 			ce_renderwindow_mode_new(info->hdisplay, info->vdisplay,
-				0, ce_renderwindow_xf86vm_refresh(info)));
+				0, ce_renderwindow_xf86vm_calc_rate(info)));
 	}
 }
 
@@ -195,17 +195,94 @@ static ce_renderwindow_modemng* ce_renderwindow_modemng_create(Display* display)
 
 struct ce_renderwindow {
 	int width, height;
-	bool full_screen;
+	bool fullscreen;
 	ce_renderwindow_modemng* modemng;
 	Display* display;
+	unsigned long mask[2];
+	XSetWindowAttributes attrs[2];
 	Window window;
-	Atom wm_delete_window;
+	Atom atom_deletewindow;
+	Atom atom_fullscreen;
+	Atom atom_state;
 	GLXContext context;
 };
 
+static unsigned long ce_renderwindow_fill_attrs(Display* display,
+	XVisualInfo* visualinfo, bool fullscreen, XSetWindowAttributes* attrs)
+{
+	unsigned long mask = CWBackPixel | CWColormap | CWEventMask;
+	attrs->background_pixmap = None;
+	attrs->background_pixel = 0;
+	attrs->border_pixel = 0;
+	attrs->colormap = XCreateColormap(display, RootWindow(display,
+		DefaultScreen(display)), visualinfo->visual, AllocNone);
+	attrs->event_mask = ExposureMask | StructureNotifyMask | PointerMotionMask |
+		KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
+		VisibilityChangeMask | EnterWindowMask | LeaveWindowMask;
+	if (fullscreen) {
+		mask |= CWOverrideRedirect | CWSaveUnder | CWBackingStore;
+		attrs->override_redirect = True;
+		attrs->backing_store = NotUseful;
+		attrs->save_under = False;
+	} else {
+		mask |= CWBorderPixel;
+	}
+	return mask;
+}
+
+static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
+									int width, int height, bool fullscreen)
+{
+	if (renderwindow->fullscreen != fullscreen) {
+		XChangeWindowAttributes(renderwindow->display, renderwindow->window,
+			renderwindow->mask[fullscreen], &renderwindow->attrs[fullscreen]);
+	}
+
+	if (!renderwindow->fullscreen && fullscreen) {
+		XGrabPointer(renderwindow->display, renderwindow->window, True, 0,
+			GrabModeAsync, GrabModeAsync, renderwindow->window, None, CurrentTime);
+		XGrabKeyboard(renderwindow->display, renderwindow->window,
+			True, GrabModeAsync, GrabModeAsync, CurrentTime);
+	}
+
+	if (renderwindow->fullscreen && !fullscreen) {
+		XUngrabPointer(renderwindow->display, CurrentTime);
+		XUngrabKeyboard(renderwindow->display, CurrentTime);
+	}
+
+	ce_renderwindow_modemng_change(renderwindow->modemng, 0);
+
+	if (fullscreen) {
+		ce_renderwindow_mode* mode = renderwindow->modemng->modes->items[0];
+		width = mode->width;
+		height = mode->height;
+
+		//XWarpPointer(renderwindow->display, None, renderwindow->window,
+		//	0, 0, 0, 0, width / 2, height / 2);
+	}
+
+	XMoveWindow(renderwindow->display, renderwindow->window, 0, 0);
+	XResizeWindow(renderwindow->display, renderwindow->window, width, height);
+
+	XClientMessageEvent xMessage;
+	xMessage.type = ClientMessage;
+	xMessage.serial = 0;
+	xMessage.send_event = True;
+	xMessage.window = renderwindow->window;
+	xMessage.message_type = renderwindow->atom_state;
+	xMessage.format = 32;
+	xMessage.data.l[0] = fullscreen;
+	xMessage.data.l[1] = renderwindow->atom_fullscreen;
+	xMessage.data.l[2] = 0;
+	XSendEvent(renderwindow->display, DefaultRootWindow(renderwindow->display),
+		False, SubstructureRedirectMask | SubstructureNotifyMask, (XEvent*)&xMessage);
+
+	renderwindow->fullscreen = fullscreen;
+}
+
 ce_renderwindow* ce_renderwindow_new(void)
 {
-	bool full_screen = false;
+	bool fullscreen = false;
 
 	XInitThreads();
 
@@ -214,14 +291,14 @@ ce_renderwindow* ce_renderwindow_new(void)
 	renderwindow->modemng = ce_renderwindow_modemng_create(renderwindow->display);
 
 	if (NULL == renderwindow->modemng) {
-		full_screen = false;
+		fullscreen = false;
 	}
 
 	renderwindow->width = 1024;
 	renderwindow->height = 768;
-	renderwindow->full_screen = full_screen;
+	renderwindow->fullscreen = fullscreen;
 
-	if (renderwindow->full_screen) {
+	if (fullscreen) {
 		ce_renderwindow_mode* mode = renderwindow->modemng->modes->items[0];
 		renderwindow->width = mode->width;
 		renderwindow->height = mode->height;
@@ -238,49 +315,48 @@ ce_renderwindow* ce_renderwindow_new(void)
 	ce_logging_write("renderwindow: using GLX %d.%d",
 		glx_version_major, glx_version_minor);
 
-	XVisualInfo* visual_info =
+	XVisualInfo* visualinfo =
 		glXChooseVisual(renderwindow->display,
 						DefaultScreen(renderwindow->display),
 			(int[]) { GLX_RGBA, GLX_DOUBLEBUFFER,
 						GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8,
 						GLX_BLUE_SIZE, 8, GLX_ALPHA_SIZE, 8,
 						GLX_STENCIL_SIZE, 8, GLX_DEPTH_SIZE, 24, None });
-	if (NULL == visual_info) {
+	if (NULL == visualinfo) {
 		ce_logging_error("renderwindow: could not get an RGBA, double-buffered visual");
 	}
 
 	// create X window
-	XSetWindowAttributes attrs;
-	unsigned long mask;
-
-	attrs.background_pixmap = None;
-	attrs.background_pixel = 0;
-	attrs.border_pixel = 0;
-	attrs.colormap = XCreateColormap(renderwindow->display,
-		RootWindow(renderwindow->display, DefaultScreen(renderwindow->display)),
-		visual_info->visual, AllocNone);
-	attrs.event_mask = ExposureMask | StructureNotifyMask | PointerMotionMask |
-		KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
-		VisibilityChangeMask | EnterWindowMask | LeaveWindowMask;
-	mask = CWBackPixel | CWColormap | CWEventMask;
-
-	if (renderwindow->full_screen) {
-		attrs.override_redirect = True;
-		attrs.backing_store = NotUseful;
-		attrs.save_under = False;
-		mask |= CWOverrideRedirect | CWSaveUnder | CWBackingStore;
-	} else {
-		mask |= CWBorderPixel;
+	for (int i = 0; i < 2; ++i) {
+		renderwindow->mask[i] = ce_renderwindow_fill_attrs(renderwindow->display,
+			visualinfo, 1 == i, &renderwindow->attrs[i]);
 	}
 
 	renderwindow->window = XCreateWindow(renderwindow->display,
 		RootWindow(renderwindow->display, DefaultScreen(renderwindow->display)),
 		0, 0, renderwindow->width, renderwindow->height, 0,
-		visual_info->depth, InputOutput, visual_info->visual, mask, &attrs);
+		visualinfo->depth, InputOutput, visualinfo->visual,
+		renderwindow->mask[fullscreen], &renderwindow->attrs[fullscreen]);
+
+	// set window title
+	const char* title = "stub";
+	XSetStandardProperties(renderwindow->display, renderwindow->window,
+		title, title, None, NULL, 0, NULL);
+
+	renderwindow->atom_deletewindow = XInternAtom(renderwindow->display,
+										"WM_DELETE_WINDOW", True);
+	renderwindow->atom_fullscreen = XInternAtom(renderwindow->display,
+									"_NET_WM_STATE_FULLSCREEN", True);
+	renderwindow->atom_state = XInternAtom(renderwindow->display,
+											"_NET_WM_STATE", True);
+
+	// handle wm_delete_events
+	XSetWMProtocols(renderwindow->display,
+		renderwindow->window, &renderwindow->atom_deletewindow, 1);
 
 	XMapRaised(renderwindow->display, renderwindow->window);
 
-	if (renderwindow->full_screen) {
+	if (fullscreen) {
 		ce_renderwindow_modemng_change(renderwindow->modemng, 0);
 
 		XMoveWindow(renderwindow->display, renderwindow->window, 0, 0);
@@ -291,24 +367,13 @@ ce_renderwindow* ce_renderwindow_new(void)
 			GrabModeAsync, GrabModeAsync, renderwindow->window, None, CurrentTime);
 		XGrabKeyboard(renderwindow->display, renderwindow->window,
 			True, GrabModeAsync, GrabModeAsync, CurrentTime);
-	} else {
-		// handle wm_delete_events
-		renderwindow->wm_delete_window = XInternAtom(renderwindow->display,
-											"WM_DELETE_WINDOW", False);
-		XSetWMProtocols(renderwindow->display,
-			renderwindow->window, &renderwindow->wm_delete_window, 1);
-
-		// set window title
-		const char* title = "stub";
-		XSetStandardProperties(renderwindow->display, renderwindow->window,
-			title, title, None, NULL, 0, NULL);
 	}
 
 	XFlush(renderwindow->display);
 
 	// create GL context
 	renderwindow->context = glXCreateContext(renderwindow->display,
-												visual_info, NULL, True);
+											visualinfo, NULL, True);
 	if (NULL == renderwindow->context) {
 		ce_logging_error("renderwindow: could not create context");
 	}
@@ -324,7 +389,7 @@ ce_renderwindow* ce_renderwindow_new(void)
 
 	ce_gl_init();
 
-	XFree(visual_info);
+	XFree(visualinfo);
 
 	return renderwindow;
 }
@@ -360,7 +425,7 @@ bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 		case ClientMessage:
 			if (32 == event.xclient.format &&
 					(ulong)event.xclient.data.l[0] ==
-					renderwindow->wm_delete_window) {
+					renderwindow->atom_deletewindow) {
 				ce_logging_write("renderwindow: exiting sanely...");
 				return false;
 			}
@@ -382,6 +447,13 @@ bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 			// TODO: key press
 			if (XK_Escape == key) {
 				return false;
+			}
+			if (XK_F2 == key) {
+				if (renderwindow->fullscreen) {
+					ce_renderwindow_switch(renderwindow, 1024, 768, false);
+				} else {
+					ce_renderwindow_switch(renderwindow, 1024, 768, true);
+				}
 			}
 			break;
 		case KeyRelease:
