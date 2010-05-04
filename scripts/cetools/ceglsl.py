@@ -84,7 +84,7 @@ c_header = \
 def build_shader_include(target, source, env):
 	with open(target[0].get_abspath(), "wt") as file:
 		write_header(file, c_header)
-		names = [name.replace(".", "_")[2:] # also remove ce prefix
+		names = [name.rstrip("\r").replace(".", "_")[2:] # also remove ce prefix
 				for name in get_shader_names(source[0])]
 		for name in names:
 			file.write("extern const char ce_shaderdata_%s[];\n" % name)
