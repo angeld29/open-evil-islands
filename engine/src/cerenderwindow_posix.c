@@ -20,9 +20,14 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 #include <assert.h>
 
+#include <sys/utsname.h>
+
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <X11/extensions/xf86vmstr.h>
@@ -125,8 +130,7 @@ static void ce_renderwindow_xrr_ctor(ce_renderwindow_modemng* modemng, va_list a
 	//Rotation rotation = XRRRotations(xrr->display,
 	//	DefaultScreen(xrr->display), &xrr->original_rotation);
 
-	xrr->conf = XRRGetScreenInfo(xrr->display, RootWindow(xrr->display,
-											DefaultScreen(xrr->display)));
+	xrr->conf = XRRGetScreenInfo(xrr->display, XDefaultRootWindow(xrr->display));
 	xrr->original_size_id =
 		XRRConfigCurrentConfiguration(xrr->conf, &xrr->original_rotation);
 	xrr->original_rate = XRRConfigCurrentRate(xrr->conf);
@@ -151,8 +155,8 @@ static void ce_renderwindow_xrr_dtor(ce_renderwindow_modemng* modemng)
 {
 	ce_renderwindow_xrr* xrr = (ce_renderwindow_xrr*)modemng->impl;
 
-	XRRSetScreenConfigAndRate(xrr->display, xrr->conf, RootWindow(xrr->display,
-		DefaultScreen(xrr->display)), xrr->original_size_id,
+	XRRSetScreenConfigAndRate(xrr->display, xrr->conf,
+		XDefaultRootWindow(xrr->display), xrr->original_size_id,
 		xrr->original_rotation, xrr->original_rate, CurrentTime);
 
 	XRRFreeScreenConfigInfo(xrr->conf);
@@ -163,8 +167,9 @@ static void ce_renderwindow_xrr_change(ce_renderwindow_modemng* modemng, int ind
 	ce_renderwindow_xrr* xrr = (ce_renderwindow_xrr*)modemng->impl;
 	ce_renderwindow_mode* mode = modemng->modes->items[index];
 
-	XRRSetScreenConfigAndRate(xrr->display, xrr->conf, RootWindow(xrr->display,
-		DefaultScreen(xrr->display)), index, RR_Rotate_0, mode->rate, CurrentTime);
+	XRRSetScreenConfigAndRate(xrr->display, xrr->conf,
+		XDefaultRootWindow(xrr->display), index,
+		RR_Rotate_0, mode->rate, CurrentTime);
 }
 
 static ce_renderwindow_modemng* ce_renderwindow_modemng_create(Display* display)
@@ -198,34 +203,35 @@ struct ce_renderwindow {
 	bool fullscreen;
 	ce_renderwindow_modemng* modemng;
 	Display* display;
+	struct {
+		Atom WM_DELETE_WINDOW;
+		Atom _NET_WM_STATE_FULLSCREEN;
+		Atom _NET_WM_STATE;
+		Atom CLIPBOARD;
+		Atom TARGETS;
+		Atom UTF8_STRING;
+		Atom TEXT;
+		Atom _HILDON_NON_COMPOSITED_WINDOW;
+	} atom;
 	unsigned long mask[2];
 	XSetWindowAttributes attrs[2];
 	Window window;
-	Atom atom_deletewindow;
-	Atom atom_fullscreen;
-	Atom atom_state;
 	GLXContext context;
 };
 
 static unsigned long ce_renderwindow_fill_attrs(Display* display,
 	XVisualInfo* visualinfo, bool fullscreen, XSetWindowAttributes* attrs)
 {
-	unsigned long mask = CWBackPixel | CWColormap | CWEventMask;
-	attrs->background_pixmap = None;
-	attrs->background_pixel = 0;
-	attrs->border_pixel = 0;
-	attrs->colormap = XCreateColormap(display, RootWindow(display,
-		DefaultScreen(display)), visualinfo->visual, AllocNone);
-	attrs->event_mask = ExposureMask | StructureNotifyMask | PointerMotionMask |
+	unsigned long mask = CWColormap | CWEventMask;
+	attrs->colormap = XCreateColormap(display,
+		XDefaultRootWindow(display), visualinfo->visual, AllocNone);
+	attrs->event_mask = ExposureMask | EnterWindowMask | LeaveWindowMask | 
 		KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
-		VisibilityChangeMask | EnterWindowMask | LeaveWindowMask;
+		PointerMotionMask | ButtonMotionMask | FocusChangeMask |
+		VisibilityChangeMask | StructureNotifyMask;
 	if (fullscreen) {
-		mask |= CWOverrideRedirect | CWSaveUnder | CWBackingStore;
+		mask |= CWOverrideRedirect;
 		attrs->override_redirect = True;
-		attrs->backing_store = NotUseful;
-		attrs->save_under = False;
-	} else {
-		mask |= CWBorderPixel;
 	}
 	return mask;
 }
@@ -243,11 +249,17 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 			GrabModeAsync, GrabModeAsync, renderwindow->window, None, CurrentTime);
 		XGrabKeyboard(renderwindow->display, renderwindow->window,
 			True, GrabModeAsync, GrabModeAsync, CurrentTime);
+		uint32_t on = 1;
+		XChangeProperty(renderwindow->display, renderwindow->window,
+			renderwindow->atom._HILDON_NON_COMPOSITED_WINDOW,
+				XA_INTEGER, 32, PropModeReplace, (unsigned char*)&on, 1);
 	}
 
 	if (renderwindow->fullscreen && !fullscreen) {
 		XUngrabPointer(renderwindow->display, CurrentTime);
 		XUngrabKeyboard(renderwindow->display, CurrentTime);
+		XDeleteProperty(renderwindow->display, renderwindow->window,
+			renderwindow->atom._HILDON_NON_COMPOSITED_WINDOW);
 	}
 
 	ce_renderwindow_modemng_change(renderwindow->modemng, 0);
@@ -263,18 +275,19 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 
 	XMoveResizeWindow(renderwindow->display, renderwindow->window, 0, 0, width, height);
 
-	XClientMessageEvent xMessage;
-	xMessage.type = ClientMessage;
-	xMessage.serial = 0;
-	xMessage.send_event = True;
-	xMessage.window = renderwindow->window;
-	xMessage.message_type = renderwindow->atom_state;
-	xMessage.format = 32;
-	xMessage.data.l[0] = fullscreen;
-	xMessage.data.l[1] = renderwindow->atom_fullscreen;
-	xMessage.data.l[2] = 0;
-	XSendEvent(renderwindow->display, DefaultRootWindow(renderwindow->display),
-		False, SubstructureRedirectMask | SubstructureNotifyMask, (XEvent*)&xMessage);
+	XEvent message;
+	memset(&message, '\0', sizeof(message));
+
+	message.type = ClientMessage;
+	message.xclient.send_event = True;
+	message.xclient.window = renderwindow->window;
+	message.xclient.message_type = renderwindow->atom._NET_WM_STATE;
+	message.xclient.format = 32;
+	message.xclient.data.l[0] = fullscreen;
+	message.xclient.data.l[1] = renderwindow->atom._NET_WM_STATE_FULLSCREEN;
+
+	XSendEvent(renderwindow->display, XDefaultRootWindow(renderwindow->display),
+		False, SubstructureRedirectMask | SubstructureNotifyMask, &message);
 
 	renderwindow->fullscreen = fullscreen;
 	renderwindow->width = width;
@@ -283,48 +296,58 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 
 ce_renderwindow* ce_renderwindow_new(void)
 {
-	bool fullscreen = false;
-
 	XInitThreads();
 
+	struct utsname osinfo;
+	uname(&osinfo);
+
+	ce_logging_write("renderwindow: %s %s %s %s %s", osinfo.sysname,
+		osinfo.release, osinfo.version, osinfo.machine, osinfo.nodename);
+
 	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow));
+	renderwindow->width = 1024;
+	renderwindow->height = 768;
+	renderwindow->fullscreen = false;
+
 	renderwindow->display = XOpenDisplay(NULL);
 	renderwindow->modemng = ce_renderwindow_modemng_create(renderwindow->display);
 
-	if (NULL == renderwindow->modemng) {
-		fullscreen = false;
-	}
-
-	renderwindow->width = 1024;
-	renderwindow->height = 768;
-	renderwindow->fullscreen = fullscreen;
-
-	if (fullscreen) {
-		ce_renderwindow_mode* mode = renderwindow->modemng->modes->items[0];
-		renderwindow->width = mode->width;
-		renderwindow->height = mode->height;
-	}
+	renderwindow->atom.WM_DELETE_WINDOW = XInternAtom(renderwindow->display, "WM_DELETE_WINDOW", False);
+	renderwindow->atom._NET_WM_STATE_FULLSCREEN = XInternAtom(renderwindow->display, "_NET_WM_STATE_FULLSCREEN", False);
+	renderwindow->atom._NET_WM_STATE = XInternAtom(renderwindow->display, "_NET_WM_STATE", False);
+	renderwindow->atom.CLIPBOARD = XInternAtom(renderwindow->display, "CLIPBOARD", False);
+	renderwindow->atom.TARGETS = XInternAtom(renderwindow->display, "TARGETS", False);
+	renderwindow->atom.UTF8_STRING = XInternAtom(renderwindow->display, "UTF8_STRING", False);
+	renderwindow->atom.TEXT = XInternAtom (renderwindow->display, "TEXT", False);
+	renderwindow->atom._HILDON_NON_COMPOSITED_WINDOW = XInternAtom (renderwindow->display, "_HILDON_NON_COMPOSITED_WINDOW", False);
 
 	ce_logging_write("renderwindow: resolution %dx%d",
 		renderwindow->width, renderwindow->height);
 
-	// setup GLX
+	// check GLX
+	int glx_error, glx_event;
 	int glx_version_major, glx_version_minor;
-	glXQueryVersion(renderwindow->display, &glx_version_major,
-											&glx_version_minor);
-
-	ce_logging_write("renderwindow: using GLX %d.%d",
-		glx_version_major, glx_version_minor);
+	if (glXQueryExtension(renderwindow->display, &glx_error, &glx_event) &&
+			glXQueryVersion(renderwindow->display, &glx_version_major,
+													&glx_version_minor)) {
+		ce_logging_write("renderwindow: using GLX %d.%d",
+			glx_version_major, glx_version_minor);
+	} else {
+		// TODO: minimum version 1.2 ?
+		ce_logging_error("renderwindow: no GLX support available");
+	}
 
 	XVisualInfo* visualinfo =
 		glXChooseVisual(renderwindow->display,
 						DefaultScreen(renderwindow->display),
-			(int[]) { GLX_RGBA, GLX_DOUBLEBUFFER,
+			(int[]) { GLX_RGBA, GLX_DOUBLEBUFFER, GLX_BUFFER_SIZE, 32,
 						GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8,
 						GLX_BLUE_SIZE, 8, GLX_ALPHA_SIZE, 8,
 						GLX_STENCIL_SIZE, 8, GLX_DEPTH_SIZE, 24, None });
-	if (NULL == visualinfo) {
-		ce_logging_error("renderwindow: could not get an RGBA, double-buffered visual");
+	if (NULL != visualinfo) {
+		ce_logging_write("renderwindow: visual %u chosen", visualinfo->visualid);
+	} else {
+		ce_logging_error("renderwindow: no appropriate visual found");
 	}
 
 	// create X window
@@ -334,42 +357,21 @@ ce_renderwindow* ce_renderwindow_new(void)
 	}
 
 	renderwindow->window = XCreateWindow(renderwindow->display,
-		RootWindow(renderwindow->display, DefaultScreen(renderwindow->display)),
-		0, 0, renderwindow->width, renderwindow->height, 0,
-		visualinfo->depth, InputOutput, visualinfo->visual,
-		renderwindow->mask[fullscreen], &renderwindow->attrs[fullscreen]);
+		XDefaultRootWindow(renderwindow->display),
+		100, 100, renderwindow->width, renderwindow->height,
+		0, visualinfo->depth, InputOutput, visualinfo->visual,
+		renderwindow->mask[0], &renderwindow->attrs[0]);
 
 	// set window title
 	const char* title = "stub";
 	XSetStandardProperties(renderwindow->display, renderwindow->window,
 		title, title, None, NULL, 0, NULL);
 
-	renderwindow->atom_deletewindow = XInternAtom(renderwindow->display,
-										"WM_DELETE_WINDOW", True);
-	renderwindow->atom_fullscreen = XInternAtom(renderwindow->display,
-									"_NET_WM_STATE_FULLSCREEN", True);
-	renderwindow->atom_state = XInternAtom(renderwindow->display,
-											"_NET_WM_STATE", True);
-
 	// handle wm_delete_events
 	XSetWMProtocols(renderwindow->display,
-		renderwindow->window, &renderwindow->atom_deletewindow, 1);
+		renderwindow->window, &renderwindow->atom.WM_DELETE_WINDOW, 1);
 
 	XMapRaised(renderwindow->display, renderwindow->window);
-
-	if (fullscreen) {
-		ce_renderwindow_modemng_change(renderwindow->modemng, 0);
-
-		XMoveWindow(renderwindow->display, renderwindow->window, 0, 0);
-		XWarpPointer(renderwindow->display, None, renderwindow->window,
-			0, 0, 0, 0, renderwindow->width / 2, renderwindow->height / 2);
-
-		XGrabPointer(renderwindow->display, renderwindow->window, True, 0,
-			GrabModeAsync, GrabModeAsync, renderwindow->window, None, CurrentTime);
-		XGrabKeyboard(renderwindow->display, renderwindow->window,
-			True, GrabModeAsync, GrabModeAsync, CurrentTime);
-	}
-
 	XFlush(renderwindow->display);
 
 	// create GL context
@@ -414,6 +416,12 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 	}
 }
 
+void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
+{
+	XIconifyWindow(renderwindow->display,
+		renderwindow->window, DefaultScreen(renderwindow->display));
+}
+
 bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 {
 	KeySym key;
@@ -425,8 +433,8 @@ bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 		switch (event.type) {
 		case ClientMessage:
 			if (32 == event.xclient.format &&
-					(ulong)event.xclient.data.l[0] ==
-					renderwindow->atom_deletewindow) {
+					(Atom)event.xclient.data.l[0] ==
+					renderwindow->atom.WM_DELETE_WINDOW) {
 				ce_logging_write("renderwindow: exiting sanely...");
 				return false;
 			}
