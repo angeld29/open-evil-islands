@@ -43,9 +43,9 @@
 
 // XFree86, see xf86vidmode(3) for more details
 typedef struct {
-	Display* display;
 	int event_base, error_base;
 	int version_major, version_minor;
+	Display* display;
 	XF86VidModeModeInfo** modes;
 } ce_renderwindow_xf86vm;
 
@@ -104,11 +104,19 @@ static void ce_renderwindow_xf86vm_change(ce_renderwindow_modemng* modemng, int 
 	}
 }
 
+static bool ce_renderwindow_xf86vm_query(Display* display)
+{
+	int dummy, version_major, version_minor;
+	return XF86VidModeQueryExtension(display, &dummy, &dummy) &&
+		XF86VidModeQueryVersion(display, &version_major, &version_minor) &&
+		2 == version_major;
+}
+
 // XRandR, see xrandr(3) for more details
 typedef struct {
-	Display* display;
 	int event_base, error_base;
 	int version_major, version_minor;
+	Display* display;
 	XRRScreenConfiguration* conf;
 	SizeID original_size_id;
 	short original_rate;
@@ -172,6 +180,14 @@ static void ce_renderwindow_xrr_change(ce_renderwindow_modemng* modemng, int ind
 		RR_Rotate_0, mode->rate, CurrentTime);
 }
 
+static bool ce_renderwindow_xrr_query(Display* display)
+{
+	int dummy, version_major, version_minor;
+	return XRRQueryExtension(display, &dummy, &dummy) &&
+		XRRQueryVersion(display, &version_major, &version_minor) &&
+		1 == version_major && version_minor >= 1;
+}
+
 static ce_renderwindow_modemng* ce_renderwindow_modemng_create(Display* display)
 {
 	struct {
@@ -199,7 +215,7 @@ static ce_renderwindow_modemng* ce_renderwindow_modemng_create(Display* display)
 }
 
 typedef struct {
-	int error, event;
+	int error_base, event_base;
 	int version_major, version_minor;
 	Display* display;
 	XVisualInfo* visualinfo;
@@ -208,10 +224,10 @@ typedef struct {
 
 static ce_context* ce_context_new(Display* display)
 {
-	int error, event;
+	int error_base, event_base;
 	int version_major, version_minor;
 
-	if (!glXQueryExtension(display, &error, &event) ||
+	if (!glXQueryExtension(display, &error_base, &event_base) ||
 			!glXQueryVersion(display, &version_major, &version_minor)) {
 		ce_logging_error("context: no GLX support available");
 		return NULL;
@@ -232,8 +248,8 @@ static ce_context* ce_context_new(Display* display)
 	ce_logging_write("context: visual %u chosen", visualinfo->visualid);
 
 	ce_context* context = ce_alloc(sizeof(ce_context));
-	context->error = error;
-	context->event = event;
+	context->error_base = error_base;
+	context->event_base = event_base;
 	context->version_major = version_major;
 	context->version_minor = version_minor;
 	context->display = display;
