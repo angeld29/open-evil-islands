@@ -198,42 +198,172 @@ static ce_renderwindow_modemng* ce_renderwindow_modemng_create(Display* display)
 	return NULL;
 }
 
+typedef struct {
+	int error, event;
+	int version_major, version_minor;
+	Display* display;
+	XVisualInfo* visualinfo;
+	GLXContext context;
+} ce_context;
+
+static ce_context* ce_context_new(Display* display)
+{
+	int error, event;
+	int version_major, version_minor;
+
+	if (!glXQueryExtension(display, &error, &event) ||
+			!glXQueryVersion(display, &version_major, &version_minor)) {
+		ce_logging_error("context: no GLX support available");
+		return NULL;
+	}
+
+	ce_logging_write("context: using GLX %d.%d", version_major, version_minor);
+
+	XVisualInfo* visualinfo =
+		glXChooseVisual(display, DefaultScreen(display),
+			(int[]) { GLX_RGBA, GLX_DOUBLEBUFFER,
+						GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1,
+						GLX_BLUE_SIZE, 1, GLX_ALPHA_SIZE, 1,
+						GLX_STENCIL_SIZE, 1, GLX_DEPTH_SIZE, 1, None });
+	if (NULL == visualinfo) {
+		ce_logging_error("context: no appropriate visual found");
+	}
+
+	ce_logging_write("context: visual %u chosen", visualinfo->visualid);
+
+	ce_context* context = ce_alloc(sizeof(ce_context));
+	context->error = error;
+	context->event = event;
+	context->version_major = version_major;
+	context->version_minor = version_minor;
+	context->display = display;
+	context->visualinfo = visualinfo;
+	context->context = glXCreateContext(display, visualinfo, NULL, True);
+
+	if (glXIsDirect(display, context->context)) {
+		ce_logging_write("context: you have direct rendering");
+	} else {
+		ce_logging_warning("context: no direct rendering possible");
+	}
+
+	return context;
+}
+
+static void ce_context_del(ce_context* context)
+{
+	if (NULL != context) {
+		assert(context->context == glXGetCurrentContext());
+		if (NULL != context->context) {
+			glXDestroyContext(context->display, context->context);
+			glXMakeCurrent(context->display, None, NULL);
+		}
+		if (NULL != context->visualinfo) {
+			XFree(context->visualinfo);
+		}
+		ce_free(context, sizeof(ce_context));
+	}
+}
+
+static void ce_context_make_current(ce_context* context, GLXDrawable drawable)
+{
+	glXMakeCurrent(context->display, drawable, context->context);
+}
+
 struct ce_renderwindow {
 	int width, height;
 	bool fullscreen;
-	ce_renderwindow_modemng* modemng;
-	Display* display;
 	struct {
 		Atom WM_DELETE_WINDOW;
 		Atom _NET_WM_STATE_FULLSCREEN;
 		Atom _NET_WM_STATE;
-		Atom CLIPBOARD;
-		Atom TARGETS;
-		Atom UTF8_STRING;
-		Atom TEXT;
-		Atom _HILDON_NON_COMPOSITED_WINDOW;
 	} atom;
 	unsigned long mask[2];
 	XSetWindowAttributes attrs[2];
+	Display* display;
 	Window window;
-	GLXContext context;
+	ce_renderwindow_modemng* modemng;
+	ce_context* context;
 };
 
-static unsigned long ce_renderwindow_fill_attrs(Display* display,
-	XVisualInfo* visualinfo, bool fullscreen, XSetWindowAttributes* attrs)
+ce_renderwindow* ce_renderwindow_new(void)
 {
-	unsigned long mask = CWColormap | CWEventMask;
-	attrs->colormap = XCreateColormap(display,
-		XDefaultRootWindow(display), visualinfo->visual, AllocNone);
-	attrs->event_mask = ExposureMask | EnterWindowMask | LeaveWindowMask | 
-		KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
-		PointerMotionMask | ButtonMotionMask | FocusChangeMask |
-		VisibilityChangeMask | StructureNotifyMask;
-	if (fullscreen) {
-		mask |= CWOverrideRedirect;
-		attrs->override_redirect = True;
+	XInitThreads();
+
+	struct utsname osinfo;
+	uname(&osinfo);
+
+	ce_logging_write("renderwindow: %s %s %s %s %s", osinfo.sysname,
+		osinfo.release, osinfo.version, osinfo.machine, osinfo.nodename);
+
+	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow));
+	renderwindow->width = 1024;
+	renderwindow->height = 768;
+	renderwindow->fullscreen = false;
+
+	renderwindow->display = XOpenDisplay(NULL);
+	renderwindow->modemng = ce_renderwindow_modemng_create(renderwindow->display);
+	renderwindow->context = ce_context_new(renderwindow->display);
+
+	renderwindow->atom.WM_DELETE_WINDOW = XInternAtom(renderwindow->display, "WM_DELETE_WINDOW", False);
+	renderwindow->atom._NET_WM_STATE_FULLSCREEN = XInternAtom(renderwindow->display, "_NET_WM_STATE_FULLSCREEN", False);
+	renderwindow->atom._NET_WM_STATE = XInternAtom(renderwindow->display, "_NET_WM_STATE", False);
+
+	ce_logging_write("renderwindow: resolution %dx%d",
+		renderwindow->width, renderwindow->height);
+
+	for (int i = 0; i < 2; ++i) {
+		renderwindow->mask[i] = CWColormap | CWEventMask;
+		renderwindow->attrs[i].colormap = XCreateColormap(renderwindow->display,
+			XDefaultRootWindow(renderwindow->display),
+			renderwindow->context->visualinfo->visual, AllocNone);
+		renderwindow->attrs[i].event_mask = ExposureMask | EnterWindowMask |
+			KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
+			PointerMotionMask | ButtonMotionMask | FocusChangeMask |
+			VisibilityChangeMask | StructureNotifyMask | LeaveWindowMask;
+		if (1 == i) {
+			renderwindow->mask[i] |= CWOverrideRedirect;
+			renderwindow->attrs[i].override_redirect = True;
+		}
 	}
-	return mask;
+
+	renderwindow->window = XCreateWindow(renderwindow->display,
+		XDefaultRootWindow(renderwindow->display),
+		100, 100, renderwindow->width, renderwindow->height,
+		0, renderwindow->context->visualinfo->depth, InputOutput,
+		renderwindow->context->visualinfo->visual,
+		renderwindow->mask[0], &renderwindow->attrs[0]);
+
+	// set window title
+	const char* title = "stub";
+	XSetStandardProperties(renderwindow->display, renderwindow->window,
+		title, title, None, NULL, 0, NULL);
+
+	// handle wm_delete_events
+	XSetWMProtocols(renderwindow->display,
+		renderwindow->window, &renderwindow->atom.WM_DELETE_WINDOW, 1);
+
+	XMapRaised(renderwindow->display, renderwindow->window);
+
+	ce_context_make_current(renderwindow->context, renderwindow->window);
+	ce_gl_init();
+
+	return renderwindow;
+}
+
+void ce_renderwindow_del(ce_renderwindow* renderwindow)
+{
+	if (NULL != renderwindow) {
+		ce_gl_term();
+		ce_context_del(renderwindow->context);
+		ce_renderwindow_modemng_del(renderwindow->modemng);
+		if (0 != renderwindow->window) {
+			XDestroyWindow(renderwindow->display, renderwindow->window);
+		}
+		if (NULL != renderwindow->display) {
+			XCloseDisplay(renderwindow->display);
+		}
+		ce_free(renderwindow, sizeof(ce_renderwindow));
+	}
 }
 
 static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
@@ -249,17 +379,11 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 			GrabModeAsync, GrabModeAsync, renderwindow->window, None, CurrentTime);
 		XGrabKeyboard(renderwindow->display, renderwindow->window,
 			True, GrabModeAsync, GrabModeAsync, CurrentTime);
-		uint32_t on = 1;
-		XChangeProperty(renderwindow->display, renderwindow->window,
-			renderwindow->atom._HILDON_NON_COMPOSITED_WINDOW,
-				XA_INTEGER, 32, PropModeReplace, (unsigned char*)&on, 1);
 	}
 
 	if (renderwindow->fullscreen && !fullscreen) {
 		XUngrabPointer(renderwindow->display, CurrentTime);
 		XUngrabKeyboard(renderwindow->display, CurrentTime);
-		XDeleteProperty(renderwindow->display, renderwindow->window,
-			renderwindow->atom._HILDON_NON_COMPOSITED_WINDOW);
 	}
 
 	ce_renderwindow_modemng_change(renderwindow->modemng, 0);
@@ -292,128 +416,6 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 	renderwindow->fullscreen = fullscreen;
 	renderwindow->width = width;
 	renderwindow->height = height;
-}
-
-ce_renderwindow* ce_renderwindow_new(void)
-{
-	XInitThreads();
-
-	struct utsname osinfo;
-	uname(&osinfo);
-
-	ce_logging_write("renderwindow: %s %s %s %s %s", osinfo.sysname,
-		osinfo.release, osinfo.version, osinfo.machine, osinfo.nodename);
-
-	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow));
-	renderwindow->width = 1024;
-	renderwindow->height = 768;
-	renderwindow->fullscreen = false;
-
-	renderwindow->display = XOpenDisplay(NULL);
-	renderwindow->modemng = ce_renderwindow_modemng_create(renderwindow->display);
-
-	renderwindow->atom.WM_DELETE_WINDOW = XInternAtom(renderwindow->display, "WM_DELETE_WINDOW", False);
-	renderwindow->atom._NET_WM_STATE_FULLSCREEN = XInternAtom(renderwindow->display, "_NET_WM_STATE_FULLSCREEN", False);
-	renderwindow->atom._NET_WM_STATE = XInternAtom(renderwindow->display, "_NET_WM_STATE", False);
-	renderwindow->atom.CLIPBOARD = XInternAtom(renderwindow->display, "CLIPBOARD", False);
-	renderwindow->atom.TARGETS = XInternAtom(renderwindow->display, "TARGETS", False);
-	renderwindow->atom.UTF8_STRING = XInternAtom(renderwindow->display, "UTF8_STRING", False);
-	renderwindow->atom.TEXT = XInternAtom (renderwindow->display, "TEXT", False);
-	renderwindow->atom._HILDON_NON_COMPOSITED_WINDOW = XInternAtom (renderwindow->display, "_HILDON_NON_COMPOSITED_WINDOW", False);
-
-	ce_logging_write("renderwindow: resolution %dx%d",
-		renderwindow->width, renderwindow->height);
-
-	// check GLX
-	int glx_error, glx_event;
-	int glx_version_major, glx_version_minor;
-	if (glXQueryExtension(renderwindow->display, &glx_error, &glx_event) &&
-			glXQueryVersion(renderwindow->display, &glx_version_major,
-													&glx_version_minor)) {
-		ce_logging_write("renderwindow: using GLX %d.%d",
-			glx_version_major, glx_version_minor);
-	} else {
-		// TODO: minimum version 1.2 ?
-		ce_logging_error("renderwindow: no GLX support available");
-	}
-
-	XVisualInfo* visualinfo =
-		glXChooseVisual(renderwindow->display,
-						DefaultScreen(renderwindow->display),
-			(int[]) { GLX_RGBA, GLX_DOUBLEBUFFER, GLX_BUFFER_SIZE, 32,
-						GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8,
-						GLX_BLUE_SIZE, 8, GLX_ALPHA_SIZE, 8,
-						GLX_STENCIL_SIZE, 8, GLX_DEPTH_SIZE, 24, None });
-	if (NULL != visualinfo) {
-		ce_logging_write("renderwindow: visual %u chosen", visualinfo->visualid);
-	} else {
-		ce_logging_error("renderwindow: no appropriate visual found");
-	}
-
-	// create X window
-	for (int i = 0; i < 2; ++i) {
-		renderwindow->mask[i] = ce_renderwindow_fill_attrs(renderwindow->display,
-			visualinfo, 1 == i, &renderwindow->attrs[i]);
-	}
-
-	renderwindow->window = XCreateWindow(renderwindow->display,
-		XDefaultRootWindow(renderwindow->display),
-		100, 100, renderwindow->width, renderwindow->height,
-		0, visualinfo->depth, InputOutput, visualinfo->visual,
-		renderwindow->mask[0], &renderwindow->attrs[0]);
-
-	// set window title
-	const char* title = "stub";
-	XSetStandardProperties(renderwindow->display, renderwindow->window,
-		title, title, None, NULL, 0, NULL);
-
-	// handle wm_delete_events
-	XSetWMProtocols(renderwindow->display,
-		renderwindow->window, &renderwindow->atom.WM_DELETE_WINDOW, 1);
-
-	XMapRaised(renderwindow->display, renderwindow->window);
-	XFlush(renderwindow->display);
-
-	// create GL context
-	renderwindow->context = glXCreateContext(renderwindow->display,
-											visualinfo, NULL, True);
-	if (NULL == renderwindow->context) {
-		ce_logging_error("renderwindow: could not create context");
-	}
-
-	glXMakeCurrent(renderwindow->display,
-		renderwindow->window, renderwindow->context);
-
-	if (glXIsDirect(renderwindow->display, renderwindow->context)) {
-		ce_logging_write("renderwindow: you have direct rendering");
-	} else {
-		ce_logging_warning("renderwindow: no direct rendering possible");
-	}
-
-	ce_gl_init();
-
-	XFree(visualinfo);
-
-	return renderwindow;
-}
-
-void ce_renderwindow_del(ce_renderwindow* renderwindow)
-{
-	if (NULL != renderwindow) {
-		ce_gl_term();
-		if (NULL != renderwindow->context) {
-			glXDestroyContext(glXGetCurrentDisplay(), glXGetCurrentContext());
-			glXMakeCurrent(glXGetCurrentDisplay(), None, NULL);
-		}
-		if (0 != renderwindow->window) {
-			XDestroyWindow(renderwindow->display, renderwindow->window);
-		}
-		ce_renderwindow_modemng_del(renderwindow->modemng);
-		if (NULL != renderwindow->display) {
-			XCloseDisplay(renderwindow->display);
-		}
-		ce_free(renderwindow, sizeof(ce_renderwindow));
-	}
 }
 
 void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
