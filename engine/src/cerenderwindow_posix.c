@@ -401,7 +401,7 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 	}
 
 	if (!renderwindow->fullscreen && fullscreen) {
-		XGrabPointer(renderwindow->display, renderwindow->window, True, 0,
+		XGrabPointer(renderwindow->display, renderwindow->window, True, NoEventMask,
 			GrabModeAsync, GrabModeAsync, renderwindow->window, None, CurrentTime);
 		XGrabKeyboard(renderwindow->display, renderwindow->window,
 			True, GrabModeAsync, GrabModeAsync, CurrentTime);
