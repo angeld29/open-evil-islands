@@ -285,16 +285,26 @@ static void ce_context_make_current(ce_context* context, GLXDrawable drawable)
 	glXMakeCurrent(context->display, drawable, context->context);
 }
 
+typedef enum {
+	CE_RENDERWINDOW_ATOM_PROTOCOLS,
+	CE_RENDERWINDOW_ATOM_DELETE_WINDOW,
+	CE_RENDERWINDOW_ATOM_STATE_FULLSCREEN,
+	CE_RENDERWINDOW_ATOM_STATE,
+	CE_RENDERWINDOW_ATOM_COUNT
+} ce_renderwindow_atom;
+
+typedef enum {
+	CE_RENDERWINDOW_STATE_WINDOW,
+	CE_RENDERWINDOW_STATE_FULLSCREEN,
+	CE_RENDERWINDOW_STATE_COUNT
+} ce_renderwindow_state;
+
 struct ce_renderwindow {
 	int width, height;
 	bool fullscreen;
-	struct {
-		Atom WM_DELETE_WINDOW;
-		Atom _NET_WM_STATE_FULLSCREEN;
-		Atom _NET_WM_STATE;
-	} atom;
-	unsigned long mask[2];
-	XSetWindowAttributes attrs[2];
+	Atom atoms[CE_RENDERWINDOW_ATOM_COUNT];
+	unsigned long mask[CE_RENDERWINDOW_STATE_COUNT];
+	XSetWindowAttributes attrs[CE_RENDERWINDOW_STATE_COUNT];
 	Display* display;
 	Window window;
 	ce_renderwindow_modemng* modemng;
@@ -315,19 +325,18 @@ ce_renderwindow* ce_renderwindow_new(void)
 	renderwindow->width = 1024;
 	renderwindow->height = 768;
 	renderwindow->fullscreen = false;
-
 	renderwindow->display = XOpenDisplay(NULL);
+	renderwindow->atoms[CE_RENDERWINDOW_ATOM_PROTOCOLS] = XInternAtom(renderwindow->display, "WM_PROTOCOLS", False);
+	renderwindow->atoms[CE_RENDERWINDOW_ATOM_DELETE_WINDOW] = XInternAtom(renderwindow->display, "WM_DELETE_WINDOW", False);
+	renderwindow->atoms[CE_RENDERWINDOW_ATOM_STATE_FULLSCREEN] = XInternAtom(renderwindow->display, "_NET_WM_STATE_FULLSCREEN", False);
+	renderwindow->atoms[CE_RENDERWINDOW_ATOM_STATE] = XInternAtom(renderwindow->display, "_NET_WM_STATE", False);
 	renderwindow->modemng = ce_renderwindow_modemng_create(renderwindow->display);
 	renderwindow->context = ce_context_new(renderwindow->display);
-
-	renderwindow->atom.WM_DELETE_WINDOW = XInternAtom(renderwindow->display, "WM_DELETE_WINDOW", False);
-	renderwindow->atom._NET_WM_STATE_FULLSCREEN = XInternAtom(renderwindow->display, "_NET_WM_STATE_FULLSCREEN", False);
-	renderwindow->atom._NET_WM_STATE = XInternAtom(renderwindow->display, "_NET_WM_STATE", False);
 
 	ce_logging_write("renderwindow: resolution %dx%d",
 		renderwindow->width, renderwindow->height);
 
-	for (int i = 0; i < 2; ++i) {
+	for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
 		renderwindow->mask[i] = CWColormap | CWEventMask;
 		renderwindow->attrs[i].colormap = XCreateColormap(renderwindow->display,
 			XDefaultRootWindow(renderwindow->display),
@@ -336,7 +345,7 @@ ce_renderwindow* ce_renderwindow_new(void)
 			KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
 			PointerMotionMask | ButtonMotionMask | FocusChangeMask |
 			VisibilityChangeMask | StructureNotifyMask | LeaveWindowMask;
-		if (1 == i) {
+		if (CE_RENDERWINDOW_STATE_FULLSCREEN == i) {
 			renderwindow->mask[i] |= CWOverrideRedirect;
 			renderwindow->attrs[i].override_redirect = True;
 		}
@@ -347,7 +356,8 @@ ce_renderwindow* ce_renderwindow_new(void)
 		100, 100, renderwindow->width, renderwindow->height,
 		0, renderwindow->context->visualinfo->depth, InputOutput,
 		renderwindow->context->visualinfo->visual,
-		renderwindow->mask[0], &renderwindow->attrs[0]);
+		renderwindow->mask[CE_RENDERWINDOW_STATE_WINDOW],
+		&renderwindow->attrs[CE_RENDERWINDOW_STATE_WINDOW]);
 
 	// set window title
 	const char* title = "stub";
@@ -355,8 +365,8 @@ ce_renderwindow* ce_renderwindow_new(void)
 		title, title, None, NULL, 0, NULL);
 
 	// handle wm_delete_events
-	XSetWMProtocols(renderwindow->display,
-		renderwindow->window, &renderwindow->atom.WM_DELETE_WINDOW, 1);
+	XSetWMProtocols(renderwindow->display, renderwindow->window,
+		&renderwindow->atoms[CE_RENDERWINDOW_ATOM_DELETE_WINDOW], 1);
 
 	XMapRaised(renderwindow->display, renderwindow->window);
 
@@ -421,10 +431,10 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 	message.type = ClientMessage;
 	message.xclient.send_event = True;
 	message.xclient.window = renderwindow->window;
-	message.xclient.message_type = renderwindow->atom._NET_WM_STATE;
+	message.xclient.message_type = renderwindow->atoms[CE_RENDERWINDOW_ATOM_STATE];
 	message.xclient.format = 32;
 	message.xclient.data.l[0] = fullscreen;
-	message.xclient.data.l[1] = renderwindow->atom._NET_WM_STATE_FULLSCREEN;
+	message.xclient.data.l[1] = renderwindow->atoms[CE_RENDERWINDOW_ATOM_STATE_FULLSCREEN];
 
 	XSendEvent(renderwindow->display, XDefaultRootWindow(renderwindow->display),
 		False, SubstructureRedirectMask | SubstructureNotifyMask, &message);
@@ -450,9 +460,10 @@ bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 
 		switch (event.type) {
 		case ClientMessage:
-			if (32 == event.xclient.format &&
-					(Atom)event.xclient.data.l[0] ==
-					renderwindow->atom.WM_DELETE_WINDOW) {
+			if (renderwindow->atoms[CE_RENDERWINDOW_ATOM_PROTOCOLS] ==
+					event.xclient.message_type &&
+					renderwindow->atoms[CE_RENDERWINDOW_ATOM_DELETE_WINDOW] ==
+					(Atom)event.xclient.data.l[0]) {
 				ce_logging_write("renderwindow: exiting sanely...");
 				return false;
 			}
