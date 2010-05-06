@@ -32,15 +32,7 @@
 #include "cemath.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cescenemng.h"
-
-// TODO: remove GLUT
-#include <GL/glut.h>
-#ifdef _WIN32
-// fu... win32
-#undef near
-#undef far
-#endif
+#include "ceroot.h"
 
 #ifndef CE_SPIKE_VERSION_MAJOR
 #define CE_SPIKE_VERSION_MAJOR 0
@@ -52,37 +44,22 @@
 #define CE_SPIKE_VERSION_PATCH 0
 #endif
 
-static ce_scenemng* scenemng;
-
 static ce_input_event_supply* es;
 static ce_input_event* toggle_bbox_event;
 static ce_input_event* anmfps_inc_event;
 static ce_input_event* anmfps_dec_event;
 
-static float anmfps_limit = 0.1f;
-static float anmfps_inc_counter;
-static float anmfps_dec_counter;
+//static float anmfps_limit = 0.1f;
+//static float anmfps_inc_counter;
+//static float anmfps_dec_counter;
 
-static void idle(void)
+/*static void idle(void)
 {
 	ce_scenemng_advance(scenemng);
 
 	float elapsed = ce_timer_elapsed(scenemng->timer);
 
 	ce_input_event_supply_advance(es, elapsed);
-
-	if (ce_input_test(CE_KB_ESCAPE)) {
-		ce_input_event_supply_del(es);
-		ce_scenemng_del(scenemng);
-		ce_gl_term();
-		ce_input_term();
-		ce_alloc_term();
-		ce_logging_term();
-		if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-			glutLeaveGameMode();
-		}
-		exit(EXIT_SUCCESS);
-	}
 
 	if (ce_input_event_triggered(toggle_bbox_event)) {
 		if (scenemng->show_bboxes) {
@@ -143,22 +120,13 @@ static void idle(void)
 		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(-0.25f * offset.x),
 												ce_deg2rad(-0.25f * offset.y));
 	}
+}*/
 
-	glutPostRedisplay();
-}
-
-static void display(void)
-{
-	ce_scenemng_render(scenemng);
-
-	glutSwapBuffers();
-}
-
-static void reshape(int width, int height)
+/*static void reshape(int width, int height)
 {
 	ce_viewport_set_rect(scenemng->viewport, 0, 0, width, height);
 	ce_camera_set_aspect(scenemng->camera, (float)width / height);
-}
+}*/
 
 static void usage(const char* progname, void* argtable[])
 {
@@ -233,81 +201,21 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	ce_alloc_init();
-	ce_logging_init();
-
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
-
-	if (0 != full_screen->count) {
-		char buffer[32];
-		int width = glutGet(GLUT_SCREEN_WIDTH);
-		int height = glutGet(GLUT_SCREEN_HEIGHT);
-
-		for (int bpp = 32; bpp >= 16; bpp -= 16) {
-			if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-				break;
-			}
-
-			for (int hertz = 100; hertz >= 10; hertz -= 10) {
-				if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-					break;
-				}
-
-				snprintf(buffer, sizeof(buffer),
-					"%dx%d:%d@%d", width, height, bpp, hertz);
-
-				glutGameModeString(buffer);
-
-				if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
-					ce_logging_write("main: entering full "
-						"screen mode %s...", buffer);
-					glutEnterGameMode();
-				} else {
-					ce_logging_warning("main: failed to enter "
-						"full screen mode %s", buffer);
-				}
-			}
-		}
-
-		if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-			ce_logging_warning("main: full screen mode is not available");
-		}
-	}
-
-	if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-		const int width = 1024;
-		const int height = 768;
-
-		glutInitWindowPosition(100, 100);
-		glutInitWindowSize(width, height);
-		glutCreateWindow("Cursed Earth: Map Viewer");
-
-		ce_logging_write("main: entering window mode %dx%d...", width, height);
-	}
-
-	glutIdleFunc(idle);
-	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
-
-	ce_input_init();
-	ce_gl_init();
-
-	scenemng = ce_scenemng_new(ei_path->sval[0]);
+	ce_root_init(ei_path->sval[0]);
 
 	if (0 != terrain_tiling->count) {
-		scenemng->terrain_tiling = true;
+		ce_root.scenemng->terrain_tiling = true;
 	}
 
 	if (0 != jobs->count) {
-		scenemng->thread_count = jobs->ival[0];
+		ce_root.scenemng->thread_count = jobs->ival[0];
 	}
 
-	ce_logging_write("scenemng: using up to %d threads", scenemng->thread_count);
+	ce_logging_write("scenemng: using up to %d threads", ce_root.scenemng->thread_count);
 	ce_logging_write("scenemng: terrain tiling %s",
-		scenemng->terrain_tiling ? "enabled" : "disabled");
+		ce_root.scenemng->terrain_tiling ? "enabled" : "disabled");
 
-	if (NULL == ce_scenemng_create_terrain(scenemng, zone->sval[0],
+	if (NULL == ce_scenemng_create_terrain(ce_root.scenemng, zone->sval[0],
 					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
 		return EXIT_FAILURE;
 	}
@@ -317,15 +225,15 @@ int main(int argc, char* argv[])
 
 	ce_mobfile* mobfile = ce_mobfile_open(path);
 	if (NULL != mobfile) {
-		ce_scenemng_load_mobfile(scenemng, mobfile);
+		ce_scenemng_load_mobfile(ce_root.scenemng, mobfile);
 	}
 	ce_mobfile_close(mobfile);
 
 	srand(time(NULL));
 
 	// play random animations
-	for (int i = 0; i < scenemng->figmng->figentities->count; ++i) {
-		ce_figentity* figentity = scenemng->figmng->figentities->items[i];
+	for (int i = 0; i < ce_root.scenemng->figmng->figentities->count; ++i) {
+		ce_figentity* figentity = ce_root.scenemng->figmng->figentities->items[i];
 		int anm_count = ce_figentity_get_animation_count(figentity);
 		if (anm_count > 0) {
 			const char* name = ce_figentity_get_animation_name(figentity,
@@ -337,7 +245,13 @@ int main(int argc, char* argv[])
 	snprintf(path, sizeof(path), "%s/Camera/%s.cam",
 		ei_path->sval[0], zone->sval[0]/*"mainmenu"*/);
 
-	FILE* file = NULL;//fopen(path, "rb");
+	ce_vec3 position;
+	ce_vec3_init(&position, 0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f);
+
+	ce_camera_set_position(ce_root.scenemng->camera, &position);
+	ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
+
+	/*FILE* file = NULL;//fopen(path, "rb");
 	if (NULL != file) {
 		for (;;) {
 			uint32_t v1, v2;
@@ -365,7 +279,7 @@ int main(int argc, char* argv[])
 			fread(f, sizeof(float), 4, file);
 			printf("%f %f %f %f\n", f[0], f[1], f[2], f[3]);
 
-			ce_quat orientation, temp, temp2/*, temp3*/;
+			ce_quat orientation, temp, temp2;//, temp3;
 			ce_quat_init_array(&temp, f);
 
 			ce_quat_init_polar(&temp2, ce_deg2rad(90), &CE_VEC3_UNIT_X);
@@ -373,21 +287,15 @@ int main(int argc, char* argv[])
 
 			ce_quat_mul(&orientation, &temp2, &temp);
 
-			/*ce_quat_init_polar(&temp2, ce_deg2rad(180), &CE_VEC3_UNIT_Y);
-			ce_quat_mul(&orientation, &temp2, &temp3);*/
+			//ce_quat_init_polar(&temp2, ce_deg2rad(180), &CE_VEC3_UNIT_Y);
+			//ce_quat_mul(&orientation, &temp2, &temp3);
 
 			ce_quat_conj(&orientation, &orientation);
 
 			ce_camera_set_orientation(scenemng->camera, &orientation);
 		}
 		fclose(file);
-	} else {
-		ce_vec3 position;
-		ce_vec3_init(&position, 0.0f, scenemng->terrain->mprfile->max_y, 0.0f);
-
-		ce_camera_set_position(scenemng->camera, &position);
-		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
-	}
+	}*/
 
 	es = ce_input_event_supply_new();
 	toggle_bbox_event = ce_input_event_supply_single_front_event(es,
@@ -397,6 +305,11 @@ int main(int argc, char* argv[])
 
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-	glutMainLoop();
+	ce_root_exec();
+
+	ce_input_event_supply_del(es);
+
+	ce_root_term();
+
 	return EXIT_SUCCESS;
 }
