@@ -124,7 +124,7 @@ ce_renderwindow* ce_renderwindow_new(void)
 	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow));
 	renderwindow->width = 1024;
 	renderwindow->height = 768;
-	renderwindow->full_screen = true;
+	renderwindow->full_screen = false;
 	renderwindow->modemng = ce_renderwindow_modemng_create();
 
 	WNDCLASSEX wc;

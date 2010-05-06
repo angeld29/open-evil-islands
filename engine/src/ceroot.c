@@ -18,6 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <signal.h>
 #include <assert.h>
 
 #include "cealloc.h"
@@ -57,11 +60,73 @@ void ce_root_term(void)
 	ce_alloc_term();
 }
 
+static bool ce_root_done;
+
+static void ce_root_exit(void)
+{
+	ce_logging_write("root: exiting sanely...");
+	ce_root_done = true;
+}
+
+static void ce_root_signal_handler(int type)
+{
+	switch (type) {
+	case SIGINT:
+		ce_logging_warning("root: interactive attention signal received");
+		break;
+	case SIGTERM:
+		ce_logging_warning("root: termination signal received");
+		break;
+	default:
+		ce_logging_critical("root: unknown signal received (%d)", type);
+		assert(false);
+	}
+	ce_root_exit();
+}
+
+// FIXME: refactoring needed
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+static BOOL CALLBACK ce_root_console_handler(DWORD type)
+{
+	switch (type) {
+	case CTRL_C_EVENT:
+		ce_logging_warning("root: Ctrl-C event received");
+		break;
+	case CTRL_BREAK_EVENT:
+		ce_logging_warning("root: Ctrl-Break event received");
+		break;
+	case CTRL_CLOSE_EVENT:
+		ce_logging_warning("root: Ctrl-Close event received");
+		break;
+	case CTRL_LOGOFF_EVENT:
+		ce_logging_warning("root: Ctrl-Logoff event received");
+		break;
+	case CTRL_SHUTDOWN_EVENT:
+		ce_logging_warning("root: Ctrl-Shutdown event received");
+		break;
+	default:
+		ce_logging_critical("root: unknown event received (%u)", type);
+		assert(false);
+	}
+	ce_root_exit();
+	return TRUE;
+}
+#endif
+
 void ce_root_exec(void)
 {
 	assert(ce_root.inited && "the root subsystem has not yet been inited");
 
-	while (ce_renderwindow_pump(ce_root.renderwindow)) {
+	signal(SIGINT, ce_root_signal_handler);
+	signal(SIGTERM, ce_root_signal_handler);
+
+#ifdef _WIN32
+	SetConsoleCtrlHandler(ce_root_console_handler, TRUE);
+#endif
+
+	while (!ce_root_done && ce_renderwindow_pump(ce_root.renderwindow)) {
 		ce_scenemng_advance(ce_root.scenemng);
 		ce_scenemng_render(ce_root.scenemng);
 		ce_renderwindow_swap(ce_root.renderwindow);
