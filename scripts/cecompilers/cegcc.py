@@ -22,7 +22,7 @@
 def configure_release_mode(env):
 	env.AppendUnique(
 		CCFLAGS=["-O2", "-w"],
-		LINKFLAGS=["-s"],
+		LINKFLAGS=["-s"], # remove all symbol table and relocation information
 	)
 
 def configure_debug_mode(env):
@@ -41,7 +41,7 @@ def configure(env):
 	env.AppendUnique(
 		CFLAGS=["-std=c99"],
 		CCFLAGS=["-pipe", "-pedantic-errors"],
-		#LINKFLAGS=["-static"],
+		#LINKFLAGS=["-static"], # prevents linking with the shared libraries
 	)
 
 	configure_build_mode[env["BUILD_MODE"]](env)
