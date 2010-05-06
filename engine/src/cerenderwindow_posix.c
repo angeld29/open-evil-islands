@@ -69,7 +69,7 @@ static void ce_renderwindow_xf86vm_ctor(ce_renderwindow_modemng* modemng, va_lis
 		xf86vm->version_major, xf86vm->version_minor);
 
 	int mode_count;
-	XF86VidModeGetAllModeLines(xf86vm->display, DefaultScreen(xf86vm->display),
+	XF86VidModeGetAllModeLines(xf86vm->display, XDefaultScreen(xf86vm->display),
 		&mode_count, &xf86vm->modes);
 
 	for (int i = 0; i < mode_count; ++i) {
@@ -98,9 +98,9 @@ static void ce_renderwindow_xf86vm_change(ce_renderwindow_modemng* modemng, int 
 
 	if (NULL != xf86vm->modes) {
 		XF86VidModeSwitchToMode(xf86vm->display,
-			DefaultScreen(xf86vm->display), xf86vm->modes[index]);
+			XDefaultScreen(xf86vm->display), xf86vm->modes[index]);
 		XF86VidModeSetViewPort(xf86vm->display,
-			DefaultScreen(xf86vm->display), 0, 0);
+			XDefaultScreen(xf86vm->display), 0, 0);
 	}
 }
 
@@ -136,7 +136,7 @@ static void ce_renderwindow_xrr_ctor(ce_renderwindow_modemng* modemng, va_list a
 
 	// get the possible set of rotations/reflections supported
 	//Rotation rotation = XRRRotations(xrr->display,
-	//	DefaultScreen(xrr->display), &xrr->original_rotation);
+	//	XDefaultScreen(xrr->display), &xrr->original_rotation);
 
 	xrr->conf = XRRGetScreenInfo(xrr->display, XDefaultRootWindow(xrr->display));
 	xrr->original_size_id =
@@ -146,12 +146,12 @@ static void ce_renderwindow_xrr_ctor(ce_renderwindow_modemng* modemng, va_list a
 	// get possible screen resolutions
 	int size_count;
 	XRRScreenSize* sizes = XRRSizes(xrr->display,
-		DefaultScreen(xrr->display), &size_count);
+		XDefaultScreen(xrr->display), &size_count);
 
 	for (int i = 0; i < size_count; ++i) {
 		int rate_count;
         short* rates = XRRRates(xrr->display,
-			DefaultScreen(xrr->display), i, &rate_count);
+			XDefaultScreen(xrr->display), i, &rate_count);
 
 		ce_vector_push_back(modemng->modes,
 			ce_renderwindow_mode_new(sizes[i].width, sizes[i].height,
@@ -236,7 +236,7 @@ static ce_context* ce_context_new(Display* display)
 	ce_logging_write("context: using GLX %d.%d", version_major, version_minor);
 
 	XVisualInfo* visualinfo =
-		glXChooseVisual(display, DefaultScreen(display),
+		glXChooseVisual(display, XDefaultScreen(display),
 			(int[]) { GLX_RGBA, GLX_DOUBLEBUFFER,
 						GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1,
 						GLX_BLUE_SIZE, 1, GLX_ALPHA_SIZE, 1,
@@ -446,8 +446,9 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 
 void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 {
+	// TODO: send fullscreen toggle event
 	XIconifyWindow(renderwindow->display,
-		renderwindow->window, DefaultScreen(renderwindow->display));
+		renderwindow->window, XDefaultScreen(renderwindow->display));
 }
 
 bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
@@ -467,6 +468,8 @@ bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 				ce_logging_write("renderwindow: exiting sanely...");
 				return false;
 			}
+			break;
+		case MapNotify:
 			break;
 		case Expose:
 			if (0 == event.xexpose.count) {
