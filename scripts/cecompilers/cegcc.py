@@ -41,6 +41,7 @@ def configure(env):
 	env.AppendUnique(
 		CFLAGS=["-std=c99"],
 		CCFLAGS=["-pipe", "-pedantic-errors"],
+		#LINKFLAGS=["-static"],
 	)
 
 	configure_build_mode[env["BUILD_MODE"]](env)
