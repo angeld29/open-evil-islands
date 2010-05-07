@@ -20,7 +20,6 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 
@@ -30,8 +29,6 @@
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
-#include <X11/extensions/xf86vmstr.h>
-#include <X11/extensions/Xrandr.h>
 
 #include <GL/glx.h>
 
@@ -39,180 +36,8 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "cedisplay.h"
 #include "cerenderwindow.h"
-
-// XFree86, see xf86vidmode(3) for more details
-typedef struct {
-	int event_base, error_base;
-	int version_major, version_minor;
-	Display* display;
-	XF86VidModeModeInfo** modes;
-} ce_renderwindow_xf86vm;
-
-static int ce_renderwindow_xf86vm_calc_rate(XF86VidModeModeInfo* info)
-{
-	// dotclock comes in kHz
-	return (info->dotclock * 1000) / (info->htotal * info->vtotal);
-}
-
-static void ce_renderwindow_xf86vm_ctor(ce_renderwindow_modemng* modemng, va_list args)
-{
-	ce_renderwindow_xf86vm* xf86vm = (ce_renderwindow_xf86vm*)modemng->impl;
-	xf86vm->display = va_arg(args, Display*);
-
-	XF86VidModeQueryExtension(xf86vm->display, &xf86vm->event_base,
-												&xf86vm->error_base);
-	XF86VidModeQueryVersion(xf86vm->display, &xf86vm->version_major,
-											&xf86vm->version_minor);
-
-	ce_logging_write("renderwindow: using XFree86 Video Mode Extension %d.%d",
-		xf86vm->version_major, xf86vm->version_minor);
-
-	int mode_count;
-	XF86VidModeGetAllModeLines(xf86vm->display, XDefaultScreen(xf86vm->display),
-		&mode_count, &xf86vm->modes);
-
-	for (int i = 0; i < mode_count; ++i) {
-		XF86VidModeModeInfo* info = xf86vm->modes[i];
-		ce_vector_push_back(modemng->modes,
-			ce_renderwindow_mode_new(info->hdisplay, info->vdisplay,
-				0, ce_renderwindow_xf86vm_calc_rate(info)));
-	}
-}
-
-static void ce_renderwindow_xf86vm_change(ce_renderwindow_modemng*, int);
-
-static void ce_renderwindow_xf86vm_dtor(ce_renderwindow_modemng* modemng)
-{
-	ce_renderwindow_xf86vm* xf86vm = (ce_renderwindow_xf86vm*)modemng->impl;
-
-	if (NULL != xf86vm->modes) {
-		ce_renderwindow_xf86vm_change(modemng, 0);
-		XFree(xf86vm->modes);
-	}
-}
-
-static void ce_renderwindow_xf86vm_change(ce_renderwindow_modemng* modemng, int index)
-{
-	ce_renderwindow_xf86vm* xf86vm = (ce_renderwindow_xf86vm*)modemng->impl;
-
-	if (NULL != xf86vm->modes) {
-		XF86VidModeSwitchToMode(xf86vm->display,
-			XDefaultScreen(xf86vm->display), xf86vm->modes[index]);
-		XF86VidModeSetViewPort(xf86vm->display,
-			XDefaultScreen(xf86vm->display), 0, 0);
-	}
-}
-
-static bool ce_renderwindow_xf86vm_query(Display* display)
-{
-	int dummy, version_major, version_minor;
-	return XF86VidModeQueryExtension(display, &dummy, &dummy) &&
-		XF86VidModeQueryVersion(display, &version_major, &version_minor) &&
-		2 == version_major;
-}
-
-// XRandR, see xrandr(3) for more details
-typedef struct {
-	int event_base, error_base;
-	int version_major, version_minor;
-	Display* display;
-	XRRScreenConfiguration* conf;
-	SizeID original_size_id;
-	short original_rate;
-	Rotation original_rotation;
-} ce_renderwindow_xrr;
-
-static void ce_renderwindow_xrr_ctor(ce_renderwindow_modemng* modemng, va_list args)
-{
-	ce_renderwindow_xrr* xrr = (ce_renderwindow_xrr*)modemng->impl;
-	xrr->display = va_arg(args, Display*);
-
-	XRRQueryExtension(xrr->display, &xrr->event_base, &xrr->error_base);
-	XRRQueryVersion(xrr->display, &xrr->version_major, &xrr->version_minor);
-
-	ce_logging_write("renderwindow: using XRandR Extension %d.%d",
-		xrr->version_major, xrr->version_minor);
-
-	// get the possible set of rotations/reflections supported
-	//Rotation rotation = XRRRotations(xrr->display,
-	//	XDefaultScreen(xrr->display), &xrr->original_rotation);
-
-	xrr->conf = XRRGetScreenInfo(xrr->display, XDefaultRootWindow(xrr->display));
-	xrr->original_size_id =
-		XRRConfigCurrentConfiguration(xrr->conf, &xrr->original_rotation);
-	xrr->original_rate = XRRConfigCurrentRate(xrr->conf);
-
-	// get possible screen resolutions
-	int size_count;
-	XRRScreenSize* sizes = XRRSizes(xrr->display,
-		XDefaultScreen(xrr->display), &size_count);
-
-	for (int i = 0; i < size_count; ++i) {
-		int rate_count;
-        short* rates = XRRRates(xrr->display,
-			XDefaultScreen(xrr->display), i, &rate_count);
-
-		ce_vector_push_back(modemng->modes,
-			ce_renderwindow_mode_new(sizes[i].width, sizes[i].height,
-									0, rates[0]));
-	}
-}
-
-static void ce_renderwindow_xrr_dtor(ce_renderwindow_modemng* modemng)
-{
-	ce_renderwindow_xrr* xrr = (ce_renderwindow_xrr*)modemng->impl;
-
-	XRRSetScreenConfigAndRate(xrr->display, xrr->conf,
-		XDefaultRootWindow(xrr->display), xrr->original_size_id,
-		xrr->original_rotation, xrr->original_rate, CurrentTime);
-
-	XRRFreeScreenConfigInfo(xrr->conf);
-}
-
-static void ce_renderwindow_xrr_change(ce_renderwindow_modemng* modemng, int index)
-{
-	ce_renderwindow_xrr* xrr = (ce_renderwindow_xrr*)modemng->impl;
-	ce_renderwindow_mode* mode = modemng->modes->items[index];
-
-	XRRSetScreenConfigAndRate(xrr->display, xrr->conf,
-		XDefaultRootWindow(xrr->display), index,
-		RR_Rotate_0, mode->rate, CurrentTime);
-}
-
-static bool ce_renderwindow_xrr_query(Display* display)
-{
-	int dummy, version_major, version_minor;
-	return XRRQueryExtension(display, &dummy, &dummy) &&
-		XRRQueryVersion(display, &version_major, &version_minor) &&
-		1 == version_major && version_minor >= 1;
-}
-
-static ce_renderwindow_modemng* ce_renderwindow_modemng_create(Display* display)
-{
-	struct {
-		const char* name;
-		ce_renderwindow_modemng_vtable vtable;
-		size_t size;
-	} extensions[] = { // prefer XRandR
-		{ RANDR_NAME, { ce_renderwindow_xrr_ctor,
-			ce_renderwindow_xrr_dtor, ce_renderwindow_xrr_change },
-			sizeof(ce_renderwindow_xrr) },
-		{ XF86VIDMODENAME, { ce_renderwindow_xf86vm_ctor,
-			ce_renderwindow_xf86vm_dtor, ce_renderwindow_xf86vm_change },
-			sizeof(ce_renderwindow_xf86vm) },
-	};
-
-	for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
-		int dummy;
-		if (XQueryExtension(display, extensions[i].name, &dummy, &dummy, &dummy)) {
-			return ce_renderwindow_modemng_new(extensions[i].vtable,
-												extensions[i].size, display);
-		}
-	}
-
-	return NULL;
-}
 
 typedef struct {
 	int error_base, event_base;
@@ -307,7 +132,7 @@ struct ce_renderwindow {
 	XSetWindowAttributes attrs[CE_RENDERWINDOW_STATE_COUNT];
 	Display* display;
 	Window window;
-	ce_renderwindow_modemng* modemng;
+	ce_displaymng* displaymng;
 	ce_context* context;
 };
 
@@ -330,7 +155,8 @@ ce_renderwindow* ce_renderwindow_new(void)
 	renderwindow->atoms[CE_RENDERWINDOW_ATOM_DELETE_WINDOW] = XInternAtom(renderwindow->display, "WM_DELETE_WINDOW", False);
 	renderwindow->atoms[CE_RENDERWINDOW_ATOM_STATE_FULLSCREEN] = XInternAtom(renderwindow->display, "_NET_WM_STATE_FULLSCREEN", False);
 	renderwindow->atoms[CE_RENDERWINDOW_ATOM_STATE] = XInternAtom(renderwindow->display, "_NET_WM_STATE", False);
-	renderwindow->modemng = ce_renderwindow_modemng_create(renderwindow->display);
+	int bpp_stub = 32;
+	renderwindow->displaymng = ce_displaymng_create(renderwindow->display, bpp_stub);
 	renderwindow->context = ce_context_new(renderwindow->display);
 
 	ce_logging_write("renderwindow: resolution %dx%d",
@@ -381,7 +207,7 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 	if (NULL != renderwindow) {
 		ce_gl_term();
 		ce_context_del(renderwindow->context);
-		ce_renderwindow_modemng_del(renderwindow->modemng);
+		ce_displaymng_del(renderwindow->displaymng);
 		if (0 != renderwindow->window) {
 			XDestroyWindow(renderwindow->display, renderwindow->window);
 		}
@@ -412,15 +238,11 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 		XUngrabKeyboard(renderwindow->display, CurrentTime);
 	}
 
-	ce_renderwindow_modemng_change(renderwindow->modemng, 0);
-
 	if (fullscreen) {
-		ce_renderwindow_mode* mode = renderwindow->modemng->modes->items[0];
-		width = mode->width;
-		height = mode->height;
-
-		//XWarpPointer(renderwindow->display, None, renderwindow->window,
-		//	0, 0, 0, 0, width / 2, height / 2);
+		ce_displaymng_change(renderwindow->displaymng, width, height,
+			0, 0, CE_DISPLAY_ROTATION_NONE, CE_DISPLAY_REFLECTION_NONE);
+	} else {
+		ce_displaymng_restore(renderwindow->displaymng);
 	}
 
 	XMoveResizeWindow(renderwindow->display, renderwindow->window, 0, 0, width, height);

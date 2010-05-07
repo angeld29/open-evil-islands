@@ -22,58 +22,13 @@
 #define CE_RENDERWINDOW_H
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdarg.h>
-
-#include "cevector.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
-
-typedef enum {
-	CE_RENDERWINDOW_ROTATION_0,
-	CE_RENDERWINDOW_ROTATION_90,
-	CE_RENDERWINDOW_ROTATION_180,
-	CE_RENDERWINDOW_ROTATION_270,
-	CE_RENDERWINDOW_ROTATION_COUNT
-} ce_renderwindow_rotation;
-
-typedef enum {
-	CE_RENDERWINDOW_REFLECTION_NONE,
-	CE_RENDERWINDOW_REFLECTION_X,
-	CE_RENDERWINDOW_REFLECTION_Y,
-	CE_RENDERWINDOW_REFLECTION_COUNT
-} ce_renderwindow_reflection;
-
-typedef struct {
-	int width, height, bpp, rate;
-} ce_renderwindow_mode;
-
-extern ce_renderwindow_mode*
-ce_renderwindow_mode_new(int width, int height, int bpp, int rate);
-extern void ce_renderwindow_mode_del(ce_renderwindow_mode* mode);
-
-typedef struct ce_renderwindow_modemng ce_renderwindow_modemng;
-
-typedef struct {
-	void (*ctor)(ce_renderwindow_modemng* modemng, va_list args);
-	void (*dtor)(ce_renderwindow_modemng* modemng);
-	void (*change)(ce_renderwindow_modemng* modemng, int index);
-} ce_renderwindow_modemng_vtable;
-
-struct ce_renderwindow_modemng {
-	ce_vector* modes;
-	ce_renderwindow_modemng_vtable vtable;
-	size_t size;
-	char impl[];
-};
-
-extern ce_renderwindow_modemng*
-ce_renderwindow_modemng_new(ce_renderwindow_modemng_vtable vtable, size_t size, ...);
-extern void ce_renderwindow_modemng_del(ce_renderwindow_modemng* modemng);
-
-extern void ce_renderwindow_modemng_change(ce_renderwindow_modemng* modemng, int index);
 
 typedef struct ce_renderwindow ce_renderwindow;
 
