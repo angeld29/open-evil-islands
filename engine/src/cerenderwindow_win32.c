@@ -52,6 +52,10 @@ static void ce_renderwindow_dm_ctor(ce_renderwindow_modemng* modemng, va_list ar
 
 	EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dm->original_mode);
 
+	// make sure we will be restoring all settings needed
+	//dmFields |=
+	//DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY
+
 	// assume that EnumDisplaySettings returns sorted data
 	// if not, fix it!
 
