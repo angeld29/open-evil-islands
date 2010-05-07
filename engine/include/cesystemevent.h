@@ -18,33 +18,29 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_ROOT_H
-#define CE_ROOT_H
-
-#include <stdbool.h>
-
-#include "cerenderwindow.h"
-#include "cerendersystem.h"
-#include "cescenemng.h"
+#ifndef CE_SYSTEMEVENT_H
+#define CE_SYSTEMEVENT_H
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-extern struct ce_root {
-	ce_renderwindow* renderwindow;
-	ce_rendersystem* rendersystem;
-	ce_scenemng* scenemng;
-} ce_root;
+typedef enum {
+	CE_SYSTEMEVENT_TYPE_INT,
+	CE_SYSTEMEVENT_TYPE_TERM,
+	CE_SYSTEMEVENT_TYPE_CTRLC,
+	CE_SYSTEMEVENT_TYPE_CTRLBREAK,
+	CE_SYSTEMEVENT_TYPE_CLOSE,
+	CE_SYSTEMEVENT_TYPE_LOGOFF,
+	CE_SYSTEMEVENT_TYPE_SHUTDOWN,
+	CE_SYSTEMEVENT_TYPE_COUNT
+} ce_systemevent_type;
 
-extern bool ce_root_init(const char* ei_path);
-extern void ce_root_term(void);
-
-extern void ce_root_exec(void);
+extern void ce_systemevent_register(void (*handler)(ce_systemevent_type type));
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_VEC2_H */
+#endif /* CE_SYSTEMEVENT_H */
