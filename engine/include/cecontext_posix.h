@@ -39,7 +39,8 @@ struct ce_context {
 	GLXContext context;
 };
 
-extern ce_context* ce_context_new(Display* display);
+extern ce_context* ce_context_create(Display* display);
+
 extern void ce_context_make_current(ce_context* context,
 									Display* display, GLXDrawable drawable);
 

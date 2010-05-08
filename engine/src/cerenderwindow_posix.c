@@ -75,7 +75,7 @@ ce_renderwindow* ce_renderwindow_new(void)
 	x11window->atoms[CE_X11WINDOW_ATOM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
 	x11window->atoms[CE_X11WINDOW_ATOM_STATE] = XInternAtom(x11window->display, "_NET_WM_STATE", False);
 
-	renderwindow->context = ce_context_new(x11window->display);
+	renderwindow->context = ce_context_create(x11window->display);
 	renderwindow->displaymng = ce_displaymng_create(x11window->display,
 												renderwindow->context->bpp);
 

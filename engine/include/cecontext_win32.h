@@ -35,7 +35,7 @@ struct ce_context {
 	HGLRC context;
 };
 
-extern ce_context* ce_context_new(HDC dc);
+extern ce_context* ce_context_create(HDC dc);
 
 #ifdef __cplusplus
 }

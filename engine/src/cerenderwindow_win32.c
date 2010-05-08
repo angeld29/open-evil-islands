@@ -54,7 +54,7 @@ ce_renderwindow* ce_renderwindow_new(void)
 
 	renderwindow->width = 1024;
 	renderwindow->height = 768;
-	renderwindow->fullscreen = true;
+	renderwindow->fullscreen = false;
 	renderwindow->displaymng = ce_displaymng_create();
 
 	WNDCLASSEX wc;
@@ -113,7 +113,7 @@ ce_renderwindow* ce_renderwindow_new(void)
 	SetForegroundWindow(winwindow->window);
 	SetFocus(winwindow->window);
 
-	renderwindow->context = ce_context_new(GetDC(winwindow->window));
+	renderwindow->context = ce_context_create(GetDC(winwindow->window));
 
 	return renderwindow;
 }

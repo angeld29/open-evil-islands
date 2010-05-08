@@ -31,7 +31,28 @@
 
 #include "cecontext_win32.h"
 
-ce_context* ce_context_new(HDC dc)
+void ce_context_del(ce_context* context)
+{
+	if (NULL != context) {
+		assert(wglGetCurrentContext() == context->context);
+		if (NULL != context->context) {
+			ce_gl_term();
+			wglDeleteContext(wglGetCurrentContext());
+			wglMakeCurrent(wglGetCurrentDC(), NULL);
+		}
+		ce_free(context, sizeof(ce_context));
+	}
+}
+
+void ce_context_swap(ce_context* context)
+{
+	ce_unused(context);
+	assert(NULL != wglGetCurrentContext());
+	assert(wglGetCurrentContext() == context->context);
+	SwapBuffers(wglGetCurrentDC());
+}
+
+ce_context* ce_context_create(HDC dc)
 {
 	PIXELFORMATDESCRIPTOR pfd = {
 		sizeof(PIXELFORMATDESCRIPTOR),
@@ -72,25 +93,4 @@ ce_context* ce_context_new(HDC dc)
 	ce_gl_init();
 
 	return context;
-}
-
-void ce_context_del(ce_context* context)
-{
-	if (NULL != context) {
-		assert(wglGetCurrentContext() == context->context);
-		if (NULL != context->context) {
-			ce_gl_term();
-			wglDeleteContext(wglGetCurrentContext());
-			wglMakeCurrent(wglGetCurrentDC(), NULL);
-		}
-		ce_free(context, sizeof(ce_context));
-	}
-}
-
-void ce_context_swap(ce_context* context)
-{
-	ce_unused(context);
-	assert(NULL != wglGetCurrentContext());
-	assert(wglGetCurrentContext() == context->context);
-	SwapBuffers(wglGetCurrentDC());
 }

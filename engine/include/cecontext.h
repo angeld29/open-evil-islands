@@ -29,6 +29,7 @@ extern "C"
 typedef struct ce_context ce_context;
 
 extern void ce_context_del(ce_context* context);
+
 extern void ce_context_swap(ce_context* context);
 
 #ifdef __cplusplus

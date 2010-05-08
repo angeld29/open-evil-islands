@@ -28,7 +28,32 @@
 
 #include "cecontext_posix.h"
 
-ce_context* ce_context_new(Display* display)
+void ce_context_del(ce_context* context)
+{
+	if (NULL != context) {
+		assert(glXGetCurrentContext() == context->context);
+		if (NULL != context->context) {
+			ce_gl_term();
+			Display* display = glXGetCurrentDisplay();
+			glXMakeCurrent(display, None, NULL);
+			glXDestroyContext(display, context->context);
+		}
+		if (NULL != context->visualinfo) {
+			XFree(context->visualinfo);
+		}
+		ce_free(context, sizeof(ce_context));
+	}
+}
+
+void ce_context_swap(ce_context* context)
+{
+	ce_unused(context);
+	assert(NULL != glXGetCurrentContext());
+	assert(glXGetCurrentContext() == context->context);
+	glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
+}
+
+ce_context* ce_context_create(Display* display)
 {
 	int error_base, event_base;
 	const int major_version_req = 1, minor_version_req = 2;
@@ -79,35 +104,10 @@ ce_context* ce_context_new(Display* display)
 	return context;
 }
 
-void ce_context_del(ce_context* context)
-{
-	if (NULL != context) {
-		assert(glXGetCurrentContext() == context->context);
-		if (NULL != context->context) {
-			ce_gl_term();
-			Display* display = glXGetCurrentDisplay();
-			glXMakeCurrent(display, None, NULL);
-			glXDestroyContext(display, context->context);
-		}
-		if (NULL != context->visualinfo) {
-			XFree(context->visualinfo);
-		}
-		ce_free(context, sizeof(ce_context));
-	}
-}
-
 void ce_context_make_current(ce_context* context, Display* display,
 													GLXDrawable drawable)
 {
 	assert(NULL == glXGetCurrentContext());
 	glXMakeCurrent(display, drawable, context->context);
 	ce_gl_init();
-}
-
-void ce_context_swap(ce_context* context)
-{
-	ce_unused(context);
-	assert(NULL != glXGetCurrentContext());
-	assert(glXGetCurrentContext() == context->context);
-	glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
 }
