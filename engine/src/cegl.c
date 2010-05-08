@@ -20,8 +20,9 @@
 
 #include <assert.h>
 
-#include "celogging.h"
 #include "cegl.h"
+
+#include "celogging.h"
 
 bool ce_gl_report_errors(void)
 {

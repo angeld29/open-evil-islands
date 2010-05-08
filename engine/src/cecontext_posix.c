@@ -61,39 +61,47 @@ ce_context* ce_context_create(Display* display)
 
 	if (!glXQueryExtension(display, &error_base, &event_base) ||
 			!glXQueryVersion(display, &major_version, &minor_version)) {
-		ce_logging_error("context: no GLX support available");
+		ce_logging_fatal("context: no GLX support available");
 		return NULL;
 	}
 
 	ce_logging_write("context: using GLX %d.%d", major_version, minor_version);
 
 	if (major_version_req != major_version || minor_version < minor_version_req) {
-		ce_logging_error("context: GLX %d.>=%d required",
+		ce_logging_fatal("context: GLX %d.>=%d required",
 			major_version_req, minor_version_req);
 		return NULL;
 	}
 
 	XVisualInfo* visualinfo = glXChooseVisual(display, XDefaultScreen(display),
-			(int[]) { GLX_RGBA, GLX_DOUBLEBUFFER,
-						GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1,
-						GLX_BLUE_SIZE, 1, GLX_ALPHA_SIZE, 1,
-						GLX_STENCIL_SIZE, 1, GLX_DEPTH_SIZE, 1, None });
+		(int[]) { GLX_RGBA, GLX_DOUBLEBUFFER,
+					GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1,
+					GLX_BLUE_SIZE, 1, GLX_ALPHA_SIZE, 1,
+					GLX_STENCIL_SIZE, 1, GLX_DEPTH_SIZE, 1, None });
 	if (NULL == visualinfo) {
-		ce_logging_error("context: no appropriate visual found");
+		ce_logging_fatal("context: no appropriate visual found");
+		return NULL;
 	}
 
-	ce_logging_write("context: visual %u chosen", visualinfo->visualid);
+	int bpp, alpha, depth, stencil;
+
+	glXGetConfig(display, visualinfo, GLX_BUFFER_SIZE, &bpp);
+	glXGetConfig(display, visualinfo, GLX_ALPHA_SIZE, &alpha);
+	glXGetConfig(display, visualinfo, GLX_DEPTH_SIZE, &depth);
+	glXGetConfig(display, visualinfo, GLX_STENCIL_SIZE, &stencil);
+
+	ce_logging_write("context: visual %u chosen "
+		"(%hhu bpp, %hhu alpha, %hhu depth, %hhu stencil)",
+		visualinfo->visualid, bpp, alpha, depth, stencil);
 
 	ce_context* context = ce_alloc(sizeof(ce_context));
 	context->error_base = error_base;
 	context->event_base = event_base;
 	context->major_version = major_version;
 	context->minor_version = minor_version;
-	context->bpp = 32;
+	context->bpp = bpp;
 	context->visualinfo = visualinfo;
 	context->context = glXCreateContext(display, visualinfo, NULL, True);
-
-	glXGetConfig(display, visualinfo, GLX_BUFFER_SIZE, &context->bpp);
 
 	if (glXIsDirect(display, context->context)) {
 		ce_logging_write("context: you have direct rendering");
