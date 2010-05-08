@@ -37,6 +37,7 @@
 #include "celogging.h"
 #include "cerenderwindow.h"
 
+#include "cedisplay_win32.h"
 #include "cecontext_win32.h"
 
 typedef struct {
@@ -53,9 +54,8 @@ ce_renderwindow* ce_renderwindow_new(void)
 
 	renderwindow->width = 1024;
 	renderwindow->height = 768;
-	renderwindow->fullscreen = false;
-
-	renderwindow->displaymng = ce_displaymng_create(NULL);
+	renderwindow->fullscreen = true;
+	renderwindow->displaymng = ce_displaymng_create();
 
 	WNDCLASSEX wc;
 	ZeroMemory(&wc, sizeof(WNDCLASSEX));

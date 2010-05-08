@@ -29,6 +29,8 @@
 #include "celogging.h"
 #include "cedisplay.h"
 
+#include "cedisplay_win32.h"
+
 typedef struct {
 	ce_vector* modes;
 	DEVMODE orig_mode;
@@ -38,7 +40,7 @@ static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list args)
 {
 	ce_unused(args);
 
-	ce_logging_write("display: using native Device Context Win32 API");
+	ce_logging_write("display: using native Windows API");
 
 	ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
 	dmmng->modes = ce_vector_new();
@@ -104,13 +106,10 @@ static void ce_dmmng_change(ce_displaymng* displaymng, int index,
 	}
 }
 
-ce_displaymng* ce_displaymng_create(void* arg, ...)
+ce_displaymng* ce_displaymng_create(void)
 {
-	ce_unused(arg);
-
 	ce_displaymng_vtable vtable = {
 		ce_dmmng_ctor, ce_dmmng_dtor, ce_dmmng_restore, ce_dmmng_change
 	};
-
 	return ce_displaymng_new(vtable, sizeof(ce_dmmng));
 }

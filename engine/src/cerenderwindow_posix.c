@@ -32,6 +32,7 @@
 #include "celogging.h"
 #include "cerenderwindow.h"
 
+#include "cedisplay_posix.h"
 #include "cecontext_posix.h"
 
 typedef enum {

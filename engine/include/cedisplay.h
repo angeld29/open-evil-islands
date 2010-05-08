@@ -81,8 +81,6 @@ extern void ce_displaymng_change(ce_displaymng* displaymng,
 								ce_display_rotation rotation,
 								ce_display_reflection reflection);
 
-extern ce_displaymng* ce_displaymng_create(void* arg, ...);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

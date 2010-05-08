@@ -31,6 +31,8 @@
 #include "celogging.h"
 #include "cedisplay.h"
 
+#include "cedisplay_posix.h"
+
 // XFree86 VidMode, see xf86vidmode(3) for more details
 typedef struct {
 	int event_base, error_base;
@@ -282,14 +284,8 @@ static bool ce_xrrmng_query(Display* display)
 	return false;
 }
 
-ce_displaymng* ce_displaymng_create(void* arg, ...)
+ce_displaymng* ce_displaymng_create(Display* display, int bpp)
 {
-	va_list args;
-	va_start(args, arg);
-	Display* display = arg;
-	int bpp = va_arg(args, int);
-	va_end(args);
-
 	struct {
 		const char* name;
 		ce_displaymng_vtable vtable;
