@@ -39,8 +39,7 @@
 
 typedef struct {
 	int error_base, event_base;
-	int version_major, version_minor;
-	Display* display;
+	int major_version, minor_version;
 	XVisualInfo* visualinfo;
 	GLXContext context;
 } ce_context;
@@ -48,15 +47,22 @@ typedef struct {
 static ce_context* ce_context_new(Display* display)
 {
 	int error_base, event_base;
-	int version_major, version_minor;
+	const int major_version_req = 1, minor_version_req = 2;
+	int major_version, minor_version;
 
 	if (!glXQueryExtension(display, &error_base, &event_base) ||
-			!glXQueryVersion(display, &version_major, &version_minor)) {
+			!glXQueryVersion(display, &major_version, &minor_version)) {
 		ce_logging_error("context: no GLX support available");
 		return NULL;
 	}
 
-	ce_logging_write("context: using GLX %d.%d", version_major, version_minor);
+	ce_logging_write("context: using GLX %d.%d", major_version, minor_version);
+
+	if (major_version_req != major_version || minor_version < minor_version_req) {
+		ce_logging_error("context: GLX %d.>=%d required",
+			major_version_req, minor_version_req);
+		return NULL;
+	}
 
 	XVisualInfo* visualinfo =
 		glXChooseVisual(display, XDefaultScreen(display),
@@ -73,9 +79,8 @@ static ce_context* ce_context_new(Display* display)
 	ce_context* context = ce_alloc(sizeof(ce_context));
 	context->error_base = error_base;
 	context->event_base = event_base;
-	context->version_major = version_major;
-	context->version_minor = version_minor;
-	context->display = display;
+	context->major_version = major_version;
+	context->minor_version = minor_version;
 	context->visualinfo = visualinfo;
 	context->context = glXCreateContext(display, visualinfo, NULL, True);
 
@@ -93,8 +98,9 @@ static void ce_context_del(ce_context* context)
 	if (NULL != context) {
 		assert(glXGetCurrentContext() == context->context);
 		if (NULL != context->context) {
-			glXDestroyContext(context->display, context->context);
-			glXMakeCurrent(context->display, None, NULL);
+			Display* display = glXGetCurrentDisplay();
+			glXMakeCurrent(display, None, NULL);
+			glXDestroyContext(display, context->context);
 		}
 		if (NULL != context->visualinfo) {
 			XFree(context->visualinfo);
@@ -103,9 +109,10 @@ static void ce_context_del(ce_context* context)
 	}
 }
 
-static void ce_context_make_current(ce_context* context, GLXDrawable drawable)
+static void ce_context_make_current(ce_context* context,
+									Display* display, GLXDrawable drawable)
 {
-	glXMakeCurrent(context->display, drawable, context->context);
+	glXMakeCurrent(display, drawable, context->context);
 }
 
 typedef enum {
@@ -188,7 +195,8 @@ ce_renderwindow* ce_renderwindow_new(void)
 
 	XMapRaised(renderwindow->display, renderwindow->window);
 
-	ce_context_make_current(renderwindow->context, renderwindow->window);
+	ce_context_make_current(renderwindow->context, renderwindow->display,
+													renderwindow->window);
 	ce_gl_init();
 
 	return renderwindow;
