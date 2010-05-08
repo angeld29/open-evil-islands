@@ -23,8 +23,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include <sys/utsname.h>
-
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
@@ -139,12 +137,6 @@ struct ce_renderwindow {
 ce_renderwindow* ce_renderwindow_new(void)
 {
 	XInitThreads();
-
-	struct utsname osinfo;
-	uname(&osinfo);
-
-	ce_logging_write("renderwindow: %s %s %s %s %s", osinfo.sysname,
-		osinfo.release, osinfo.version, osinfo.machine, osinfo.nodename);
 
 	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow));
 	renderwindow->width = 1024;

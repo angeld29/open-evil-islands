@@ -24,6 +24,7 @@
 
 #include "cealloc.h"
 #include "celogging.h"
+#include "cesysteminfo.h"
 #include "cesystemevent.h"
 #include "ceroot.h"
 
@@ -38,6 +39,8 @@ bool ce_root_init(const char* ei_path)
 
 	ce_alloc_init();
 	ce_logging_init();
+
+	ce_systeminfo_display();
 
 	ce_root.renderwindow = ce_renderwindow_new();
 	ce_root.rendersystem = ce_rendersystem_new();
