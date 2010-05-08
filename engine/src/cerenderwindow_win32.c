@@ -30,7 +30,6 @@
 #define WM_MOUSEWHEEL (WM_MOUSELAST + 1)
 #endif
 
-#include "cegl.h"
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"

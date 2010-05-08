@@ -20,7 +20,7 @@
 
 #include <assert.h>
 
-#include "ceglew.h"
+#include "ceglew_win32.h"
 
 #include "celib.h"
 #include "cealloc.h"
@@ -89,8 +89,8 @@ ce_context* ce_context_create(HDC dc)
 	assert(NULL == wglGetCurrentContext());
 	wglMakeCurrent(dc, context->context);
 
-	GLenum result = glewInit();
-	if (GLEW_OK != result) {
+	GLenum result;
+	if (GLEW_OK != (result = glewInit()) || GLEW_OK != (result = wglewInit())) {
 		ce_logging_fatal("context: GLEW reported: %s", glewGetErrorString(result));
 		ce_context_del(context);
 		return NULL;

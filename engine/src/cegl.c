@@ -20,8 +20,6 @@
 
 #include <assert.h>
 
-#include "ceglew.h"
-
 #include "celogging.h"
 #include "cegl.h"
 

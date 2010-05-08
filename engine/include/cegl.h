@@ -23,6 +23,8 @@
 
 #include <stdbool.h>
 
+#include "ceglew.h"
+
 #ifdef __cplusplus
 extern "C"
 {

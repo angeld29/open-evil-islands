@@ -25,7 +25,8 @@
 #error not implemented
 #endif
 
-#include <GL/glew.h>
+#include "ceglew.h"
+
 #include <GL/glxew.h>
 
 #ifdef __cplusplus

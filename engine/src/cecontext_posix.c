@@ -20,7 +20,7 @@
 
 #include <assert.h>
 
-#include "ceglew.h"
+#include "ceglew_posix.h"
 
 #include "celib.h"
 #include "cealloc.h"
@@ -110,8 +110,8 @@ bool ce_context_make_current(ce_context* context, Display* display,
 	assert(NULL == glXGetCurrentContext());
 	glXMakeCurrent(display, drawable, context->context);
 
-	GLenum result = glewInit();
-	if (GLEW_OK != result) {
+	GLenum result;
+	if (GLEW_OK != (result = glewInit()) || GLEW_OK != (result = glxewInit())) {
 		ce_logging_fatal("context: GLEW reported: %s", glewGetErrorString(result));
 		return false;
 	}
