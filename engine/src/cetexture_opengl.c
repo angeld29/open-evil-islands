@@ -25,9 +25,9 @@
 #include <math.h>
 #include <assert.h>
 
-#include <GL/glew.h>
-
 #include "cegl.h"
+#include "ceglew.h"
+
 #include "celib.h"
 #include "cemath.h"
 #include "cebyteorder.h"

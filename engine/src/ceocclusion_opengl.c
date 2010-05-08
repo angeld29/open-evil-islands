@@ -20,7 +20,7 @@
 
 #include <assert.h>
 
-#include <GL/glew.h>
+#include "ceglew.h"
 
 #include "cealloc.h"
 #include "ceocclusion.h"

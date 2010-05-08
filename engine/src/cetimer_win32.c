@@ -22,7 +22,6 @@
  *  Based on MSDN website.
 */
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include "cealloc.h"

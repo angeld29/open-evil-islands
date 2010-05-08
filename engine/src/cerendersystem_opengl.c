@@ -21,13 +21,14 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include <GL/glew.h>
-
 #include "cegl.h"
+#include "ceglew.h"
+
 #include "celib.h"
 #include "cemath.h"
 #include "cemat4.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "cerendersystem.h"
 
 struct ce_rendersystem {
@@ -39,6 +40,35 @@ struct ce_rendersystem {
 
 ce_rendersystem* ce_rendersystem_new(void)
 {
+	ce_logging_write("rendersystem: %s", glGetString(GL_VENDOR));
+	ce_logging_write("rendersystem: %s", glGetString(GL_RENDERER));
+	ce_logging_write("rendersystem: using GL %s", glGetString(GL_VERSION));
+	ce_logging_write("rendersystem: using GLU %s", gluGetString(GLU_VERSION));
+	ce_logging_write("rendersystem: using GLEW %s", glewGetString(GLEW_VERSION));
+
+	struct {
+		const char* name;
+		bool available;
+	} extensions[] = {
+		{ "ARB texture non power of two", GLEW_ARB_texture_non_power_of_two },
+		{ "EXT texture compression s3tc", GLEW_EXT_texture_compression_s3tc },
+		{ "EXT texture compression dxt1", GLEW_EXT_texture_compression_dxt1 },
+		{ "EXT texture edge clamp", GLEW_EXT_texture_edge_clamp },
+		{ "SGIS texture edge clamp", GLEW_SGIS_texture_edge_clamp },
+		{ "SGIS texture lod", GLEW_SGIS_texture_lod },
+		{ "SGIS generate mipmap", GLEW_SGIS_generate_mipmap },
+		{ "EXT packed pixels", GLEW_EXT_packed_pixels },
+		{ "ARB occlusion query 2", GLEW_ARB_occlusion_query2 },
+		{ "AMD vertex shader tessellator", GLEW_AMD_vertex_shader_tessellator },
+		{ "AMD performance monitor", GLEW_AMD_performance_monitor },
+		{ "AMD meminfo", GLEW_ATI_meminfo },
+	};
+
+	for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
+		ce_logging_write("rendersystem: checking for '%s' extension... %s",
+			extensions[i].name, extensions[i].available ? "yes" : "no");
+	}
+
 	ce_rendersystem* rendersystem = ce_alloc(sizeof(ce_rendersystem));
 	rendersystem->view = CE_MAT4_IDENTITY;
 	rendersystem->axes_list = glGenLists(1);

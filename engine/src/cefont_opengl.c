@@ -20,7 +20,7 @@
 
 #include <stdio.h>
 
-#include <GL/glew.h>
+#include "ceglew.h"
 
 #include "cealloc.h"
 #include "cefont.h"

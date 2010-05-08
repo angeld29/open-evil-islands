@@ -56,7 +56,6 @@ typedef struct {
 	ce_mprmng* mprmng;
 	ce_terrain* terrain;
 	ce_figmng* figmng;
-	ce_rendersystem* rendersystem;
 	ce_renderqueue* renderqueue;
 	ce_viewport* viewport;
 	ce_camera* camera;

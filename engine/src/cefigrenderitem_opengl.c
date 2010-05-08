@@ -23,7 +23,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include <GL/glew.h>
+#include "ceglew.h"
 
 #include "cemath.h"
 #include "cealloc.h"

@@ -20,68 +20,13 @@
 
 #include <assert.h>
 
-#include <GL/glew.h>
+#include "ceglew.h"
 
 #include "celogging.h"
 #include "cegl.h"
 
-static struct {
-	bool inited;
-} ce_gl_context;
-
-bool ce_gl_init(void)
-{
-	assert(!ce_gl_context.inited && "The gl subsystem has already been inited");
-	ce_gl_context.inited = true;
-
-	ce_logging_write("opengl: %s", glGetString(GL_VENDOR));
-	ce_logging_write("opengl: %s", glGetString(GL_RENDERER));
-	ce_logging_write("opengl: using GL %s", glGetString(GL_VERSION));
-	ce_logging_write("opengl: using GLU %s", gluGetString(GLU_VERSION));
-
-	GLenum result = glewInit();
-	if (GLEW_OK == result) {
-		ce_logging_write("opengl: using GLEW %s", glewGetString(GLEW_VERSION));
-	} else {
-		ce_logging_critical("opengl: glewInit failed: %s", glewGetErrorString(result));
-	}
-
-	struct {
-		const char* name;
-		bool available;
-	} extensions[] = {
-		{ "ARB texture non power of two", GLEW_ARB_texture_non_power_of_two },
-		{ "EXT texture compression s3tc", GLEW_EXT_texture_compression_s3tc },
-		{ "EXT texture compression dxt1", GLEW_EXT_texture_compression_dxt1 },
-		{ "EXT texture edge clamp", GLEW_EXT_texture_edge_clamp },
-		{ "SGIS texture edge clamp", GLEW_SGIS_texture_edge_clamp },
-		{ "SGIS texture lod", GLEW_SGIS_texture_lod },
-		{ "SGIS generate mipmap", GLEW_SGIS_generate_mipmap },
-		{ "EXT packed pixels", GLEW_EXT_packed_pixels },
-		{ "ARB occlusion query 2", GLEW_ARB_occlusion_query2 },
-		{ "AMD vertex shader tessellator", GLEW_AMD_vertex_shader_tessellator },
-		{ "AMD performance monitor", GLEW_AMD_performance_monitor },
-		{ "AMD meminfo", GLEW_ATI_meminfo },
-	};
-
-	for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
-		ce_logging_write("opengl: checking for '%s' extension... %s",
-			extensions[i].name, extensions[i].available ? "yes" : "no");
-	}
-
-	return GLEW_OK == result;
-}
-
-void ce_gl_term(void)
-{
-	assert(ce_gl_context.inited && "The gl subsystem has not yet been inited");
-	ce_gl_context.inited = false;
-}
-
 bool ce_gl_report_errors(void)
 {
-	assert(ce_gl_context.inited && "The gl subsystem has not yet been inited");
-
 	bool reported = false;
 	GLenum error;
 

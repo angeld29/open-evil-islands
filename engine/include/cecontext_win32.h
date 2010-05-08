@@ -21,8 +21,7 @@
 #ifndef CE_CONTEXT_PLATFORM_H
 #define CE_CONTEXT_PLATFORM_H
 
-#include <GL/glew.h>
-#include <GL/wglew.h>
+#include <windows.h>
 
 #include "cecontext.h"
 

@@ -30,6 +30,7 @@
 #include "cemprhlp.h"
 #include "cefrustum.h"
 #include "cebytefmt.h"
+#include "ceroot.h"
 #include "cescenemng.h"
 
 static void ce_scenemng_figproto_created(void* listener, ce_figproto* figproto)
@@ -53,7 +54,6 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->terrain = NULL;
 	scenemng->figmng = ce_figmng_new();
-	scenemng->rendersystem = ce_rendersystem_new();
 	scenemng->renderqueue = ce_renderqueue_new();
 	scenemng->viewport = ce_viewport_new();
 	scenemng->camera = ce_camera_new();
@@ -113,7 +113,6 @@ void ce_scenemng_del(ce_scenemng* scenemng)
 		ce_camera_del(scenemng->camera);
 		ce_viewport_del(scenemng->viewport);
 		ce_renderqueue_del(scenemng->renderqueue);
-		ce_rendersystem_del(scenemng->rendersystem);
 		ce_figmng_del(scenemng->figmng);
 		ce_terrain_del(scenemng->terrain);
 		ce_mprmng_del(scenemng->mprmng);
@@ -171,16 +170,16 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 void ce_scenemng_render(ce_scenemng* scenemng)
 {
-	ce_rendersystem_begin_render(scenemng->rendersystem, &CE_COLOR_WHITE);
+	ce_rendersystem_begin_render(ce_root.rendersystem, &CE_COLOR_WHITE);
 
-	ce_rendersystem_setup_viewport(scenemng->rendersystem, scenemng->viewport);
-	ce_rendersystem_setup_camera(scenemng->rendersystem, scenemng->camera);
+	ce_rendersystem_setup_viewport(ce_root.rendersystem, scenemng->viewport);
+	ce_rendersystem_setup_camera(ce_root.rendersystem, scenemng->camera);
 
 	if (scenemng->show_axes) {
-		ce_rendersystem_draw_axes(scenemng->rendersystem);
+		ce_rendersystem_draw_axes(ce_root.rendersystem);
 	}
 
-	ce_renderqueue_render(scenemng->renderqueue, scenemng->rendersystem);
+	ce_renderqueue_render(scenemng->renderqueue, ce_root.rendersystem);
 	ce_renderqueue_clear(scenemng->renderqueue);
 
 	if (scenemng->scenenode_force_update) {
@@ -199,16 +198,16 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 			ce_camera_get_right(scenemng->camera, &right),
 			ce_camera_get_up(scenemng->camera, &up));
 
-		ce_rendersystem_begin_occlusion_test(scenemng->rendersystem);
-		ce_scenenode_update_cascade(scenemng->scenenode, scenemng->rendersystem,
+		ce_rendersystem_begin_occlusion_test(ce_root.rendersystem);
+		ce_scenenode_update_cascade(scenemng->scenenode, ce_root.rendersystem,
 			&frustum, scenemng->anmfps, ce_timer_elapsed(scenemng->timer));
-		ce_rendersystem_end_occlusion_test(scenemng->rendersystem);
+		ce_rendersystem_end_occlusion_test(ce_root.rendersystem);
 	}
 
 	if (scenemng->show_bboxes) {
-		ce_rendersystem_apply_color(scenemng->rendersystem, &CE_COLOR_BLUE);
+		ce_rendersystem_apply_color(ce_root.rendersystem, &CE_COLOR_BLUE);
 		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,
-										scenemng->rendersystem,
+										ce_root.rendersystem,
 										scenemng->comprehensive_bbox_only);
 	}
 
@@ -252,7 +251,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		scenemng->viewport->height - ce_font_get_height(scenemng->font) - 10,
 		&CE_COLOR_RED, scenemng->fps->text);
 
-	ce_rendersystem_end_render(scenemng->rendersystem);
+	ce_rendersystem_end_render(ce_root.rendersystem);
 }
 
 ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,

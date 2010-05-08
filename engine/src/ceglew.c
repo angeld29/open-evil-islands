@@ -18,20 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_GL_H
-#define CE_GL_H
+#include "ceglew.h"
 
-#include <stdbool.h>
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
-extern bool ce_gl_report_errors(void);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-
-#endif /* CE_GL_H */
+__thread GLEWContext ce_glewcontext;

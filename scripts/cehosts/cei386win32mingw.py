@@ -38,3 +38,7 @@ def configure(env):
 	env["TARGET_PLATFORM"] = "win32"
 
 	gcc.configure(env)
+
+	env.AppendUnique(
+		CPPDEFINES=["WIN32_LEAN_AND_MEAN"],
+	)

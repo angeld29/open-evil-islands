@@ -20,7 +20,8 @@
 
 #include <assert.h>
 
-#include "cegl.h"
+#include "ceglew.h"
+
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
@@ -33,7 +34,6 @@ void ce_context_del(ce_context* context)
 	if (NULL != context) {
 		assert(glXGetCurrentContext() == context->context);
 		if (NULL != context->context) {
-			ce_gl_term();
 			Display* display = glXGetCurrentDisplay();
 			glXMakeCurrent(display, None, NULL);
 			glXDestroyContext(display, context->context);
@@ -104,10 +104,17 @@ ce_context* ce_context_create(Display* display)
 	return context;
 }
 
-void ce_context_make_current(ce_context* context, Display* display,
+bool ce_context_make_current(ce_context* context, Display* display,
 													GLXDrawable drawable)
 {
 	assert(NULL == glXGetCurrentContext());
 	glXMakeCurrent(display, drawable, context->context);
-	ce_gl_init();
+
+	GLenum result = glewInit();
+	if (GLEW_OK != result) {
+		ce_logging_fatal("context: GLEW reported: %s", glewGetErrorString(result));
+		return false;
+	}
+
+	return true;
 }

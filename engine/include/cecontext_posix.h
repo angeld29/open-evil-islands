@@ -21,8 +21,9 @@
 #ifndef CE_CONTEXT_PLATFORM_H
 #define CE_CONTEXT_PLATFORM_H
 
-#include <GL/glew.h>
-#include <GL/glxew.h>
+#include <stdbool.h>
+
+#include <GL/glx.h>
 
 #include "cecontext.h"
 
@@ -41,7 +42,7 @@ struct ce_context {
 
 extern ce_context* ce_context_create(Display* display);
 
-extern void ce_context_make_current(ce_context* context,
+extern bool ce_context_make_current(ce_context* context,
 									Display* display, GLXDrawable drawable);
 
 #ifdef __cplusplus

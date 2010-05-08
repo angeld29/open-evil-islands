@@ -20,10 +20,8 @@
 
 #include <assert.h>
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include "ceglew.h"
 
-#include "cegl.h"
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
@@ -36,7 +34,6 @@ void ce_context_del(ce_context* context)
 	if (NULL != context) {
 		assert(wglGetCurrentContext() == context->context);
 		if (NULL != context->context) {
-			ce_gl_term();
 			wglDeleteContext(wglGetCurrentContext());
 			wglMakeCurrent(wglGetCurrentDC(), NULL);
 		}
@@ -77,20 +74,27 @@ ce_context* ce_context_create(HDC dc)
 
 	int pixel_format = ChoosePixelFormat(dc, &pfd);
 	if (0 == pixel_format) {
-		ce_logging_error("context: could not choose pixel format");
+		ce_logging_fatal("context: could not choose pixel format");
 		return NULL;
 	}
 
 	if (!SetPixelFormat(dc, pixel_format, &pfd)) {
-		ce_logging_error("context: could not set pixel format");
+		ce_logging_fatal("context: could not set pixel format");
 		return NULL;
 	}
 
 	ce_context* context = ce_alloc(sizeof(ce_context));
 	context->context = wglCreateContext(dc);
 
+	assert(NULL == wglGetCurrentContext());
 	wglMakeCurrent(dc, context->context);
-	ce_gl_init();
+
+	GLenum result = glewInit();
+	if (GLEW_OK != result) {
+		ce_logging_fatal("context: GLEW reported: %s", glewGetErrorString(result));
+		ce_context_del(context);
+		return NULL;
+	}
 
 	return context;
 }
