@@ -107,6 +107,6 @@ void ce_root_exec(void)
 	while (!ce_root_done && ce_renderwindow_pump(ce_root.renderwindow)) {
 		ce_scenemng_advance(ce_root.scenemng);
 		ce_scenemng_render(ce_root.scenemng);
-		ce_renderwindow_swap(ce_root.renderwindow);
+		ce_context_swap(ce_root.renderwindow->context);
 	}
 }
