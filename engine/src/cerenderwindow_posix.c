@@ -93,7 +93,7 @@ static ce_context* ce_context_new(Display* display)
 static void ce_context_del(ce_context* context)
 {
 	if (NULL != context) {
-		assert(context->context == glXGetCurrentContext());
+		assert(glXGetCurrentContext() == context->context);
 		if (NULL != context->context) {
 			glXDestroyContext(context->display, context->context);
 			glXMakeCurrent(context->display, None, NULL);

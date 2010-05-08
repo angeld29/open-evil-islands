@@ -75,6 +75,7 @@ static void ce_xf86vmmng_change(ce_displaymng* displaymng, int index,
 	ce_display_rotation rotation, ce_display_reflection reflection)
 {
 	ce_unused(rotation), ce_unused(reflection);
+
 	ce_xf86vmmng* xf86vmmng = (ce_xf86vmmng*)displaymng->impl;
 
 	if (NULL != xf86vmmng->modes) {

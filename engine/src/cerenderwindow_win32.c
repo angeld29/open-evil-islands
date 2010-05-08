@@ -36,89 +36,15 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "cedisplay.h"
 #include "cerenderwindow.h"
-
-typedef struct {
-	ce_vector* modes;
-	DEVMODE original_mode;
-} ce_renderwindow_dm;
-
-static void ce_renderwindow_dm_ctor(ce_renderwindow_modemng* modemng, va_list args)
-{
-	ce_unused(args);
-
-	ce_renderwindow_dm* dm = (ce_renderwindow_dm*)modemng->impl;
-	dm->modes = ce_vector_new();
-
-	EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dm->original_mode);
-
-	// make sure we will be restoring all settings needed
-	//dmFields |=
-	//DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY
-
-	// assume that EnumDisplaySettings returns sorted data
-	// if not, fix it!
-
-	DEVMODE mode;
-	DWORD mode_index = 0;
-	DWORD prev_width = 0, prev_height = 0;
-	DWORD bpp = GetDeviceCaps(GetDC(NULL), BITSPIXEL);
-
-	while (EnumDisplaySettings(NULL, mode_index++, &mode)) {
-		if (mode.dmBitsPerPel != bpp || (mode.dmPelsWidth == prev_width &&
-				mode.dmPelsHeight == prev_height)) {
-			continue;
-		}
-
-		ce_vector_push_back(dm->modes, ce_alloc(sizeof(DEVMODE)));
-		*(DEVMODE*)ce_vector_back(dm->modes) = mode;
-
-		ce_vector_push_back(modemng->modes,
-			ce_renderwindow_mode_new(mode.dmPelsWidth, mode.dmPelsHeight,
-				mode.dmBitsPerPel, mode.dmDisplayFrequency));
-
-		prev_width = mode.dmPelsWidth;
-		prev_height = mode.dmPelsHeight;
-	}
-}
-
-static void ce_renderwindow_dm_dtor(ce_renderwindow_modemng* modemng)
-{
-	ce_renderwindow_dm* dm = (ce_renderwindow_dm*)modemng->impl;
-
-	for (int i = 0; i < dm->modes->count; ++i) {
-		ce_free(dm->modes->items[i], sizeof(DEVMODE));
-	}
-	ce_vector_del(dm->modes);
-
-	ChangeDisplaySettingsEx(NULL, &dm->original_mode, NULL, 0, NULL);
-}
-
-static void ce_renderwindow_dm_change(ce_renderwindow_modemng* modemng, int index)
-{
-	ce_renderwindow_dm* dm = (ce_renderwindow_dm*)modemng->impl;
-	DEVMODE* mode = dm->modes->items[index];
-
-	LONG code = ChangeDisplaySettingsEx(NULL, mode, NULL, CDS_FULLSCREEN, NULL);
-	if (DISP_CHANGE_SUCCESSFUL != code) {
-		ce_logging_error("renderwindow: could not change display settings");
-	}
-}
-
-static ce_renderwindow_modemng* ce_renderwindow_modemng_create(void)
-{
-	ce_renderwindow_modemng_vtable vtable = {
-		ce_renderwindow_dm_ctor, ce_renderwindow_dm_dtor, ce_renderwindow_dm_change
-	};
-	return ce_renderwindow_modemng_new(vtable, sizeof(ce_renderwindow_dm));
-}
 
 struct ce_renderwindow {
 	int width, height;
 	bool full_screen;
-	ce_renderwindow_modemng* modemng;
 	HWND window;
 	HGLRC context;
+	ce_displaymng* displaymng;
 };
 
 static LRESULT CALLBACK ce_renderwindow_proc(HWND, UINT, WPARAM, LPARAM);
@@ -129,7 +55,7 @@ ce_renderwindow* ce_renderwindow_new(void)
 	renderwindow->width = 1024;
 	renderwindow->height = 768;
 	renderwindow->full_screen = false;
-	renderwindow->modemng = ce_renderwindow_modemng_create();
+	renderwindow->displaymng = ce_displaymng_create(NULL);
 
 	WNDCLASSEX wc;
 	ZeroMemory(&wc, sizeof(WNDCLASSEX));
@@ -144,18 +70,16 @@ ce_renderwindow* ce_renderwindow_new(void)
 	wc.lpszClassName = "cursedearth";
 
 	if (!RegisterClassEx(&wc)) {
-		ce_logging_error("renderwindow: RegisterClassEx failed");
+		ce_logging_error("renderwindow: could not register class");
 	}
 
 	DWORD style = WS_VISIBLE;
 	DWORD extended_style = 0;
 
 	if (renderwindow->full_screen) {
-		ce_renderwindow_mode* mode = renderwindow->modemng->modes->items[0];
-		renderwindow->width = mode->width;
-		renderwindow->height = mode->height;
-
-		ce_renderwindow_modemng_change(renderwindow->modemng, 0);
+		ce_displaymng_change(renderwindow->displaymng,
+			renderwindow->width, renderwindow->height, 0, 0,
+			CE_DISPLAY_ROTATION_NONE, CE_DISPLAY_REFLECTION_NONE);
 
 		style |= WS_POPUP;
 		extended_style |= WS_EX_TOOLWINDOW;
@@ -178,7 +102,7 @@ ce_renderwindow* ce_renderwindow_new(void)
 		renderwindow->width, renderwindow->height,
 		HWND_DESKTOP, NULL, wc.hInstance, NULL);
 	if (NULL == renderwindow->window) {
-		ce_logging_error("renderwindow: CreateWindowEx failed");
+		ce_logging_error("renderwindow: could not create window");
 	}
 
 	SetWindowLongPtr(renderwindow->window, GWLP_USERDATA, (LONG_PTR)renderwindow);
@@ -190,9 +114,6 @@ ce_renderwindow* ce_renderwindow_new(void)
 	SetFocus(renderwindow->window);
 
 	HDC dc = GetDC(renderwindow->window);
-	if (NULL == dc) {
-		ce_logging_error("renderwindow: GetDC failed");
-	}
 
 	PIXELFORMATDESCRIPTOR pfd = {
 		sizeof(PIXELFORMATDESCRIPTOR),
@@ -246,7 +167,9 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 {
 	if (NULL != renderwindow) {
 		ce_gl_term();
+		ce_displaymng_del(renderwindow->displaymng);
 		if (NULL != renderwindow->window) {
+			assert(wglGetCurrentContext() == renderwindow->context);
 			if (NULL != renderwindow->context) {
 				wglDeleteContext(wglGetCurrentContext());
 				wglMakeCurrent(wglGetCurrentDC(), NULL);
@@ -254,8 +177,7 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 			ReleaseDC(renderwindow->window, GetDC(renderwindow->window));
 			DestroyWindow(renderwindow->window);
 		}
-		//UnregisterClass(class, instance); // ???
-		ce_renderwindow_modemng_del(renderwindow->modemng);
+		UnregisterClass("cursedearth", GetModuleHandle(NULL));
 		ce_free(renderwindow, sizeof(ce_renderwindow));
 	}
 }
@@ -311,7 +233,6 @@ static LRESULT CALLBACK ce_renderwindow_proc(HWND window, UINT message,
 {
 	switch (message) {
 	case WM_DESTROY:
-		ce_logging_write("renderwindow: exiting sanely...");
 		if (NULL == GetParent(window)) {
 			PostQuitMessage(0);
 		}
