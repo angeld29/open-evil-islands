@@ -28,91 +28,11 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-#include <GL/glx.h>
-
-#include "cegl.h"
-#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cerenderwindow.h"
 
-typedef struct {
-	int error_base, event_base;
-	int major_version, minor_version;
-	XVisualInfo* visualinfo;
-	GLXContext context;
-} ce_context;
-
-static ce_context* ce_context_new(Display* display)
-{
-	int error_base, event_base;
-	const int major_version_req = 1, minor_version_req = 2;
-	int major_version, minor_version;
-
-	if (!glXQueryExtension(display, &error_base, &event_base) ||
-			!glXQueryVersion(display, &major_version, &minor_version)) {
-		ce_logging_error("context: no GLX support available");
-		return NULL;
-	}
-
-	ce_logging_write("context: using GLX %d.%d", major_version, minor_version);
-
-	if (major_version_req != major_version || minor_version < minor_version_req) {
-		ce_logging_error("context: GLX %d.>=%d required",
-			major_version_req, minor_version_req);
-		return NULL;
-	}
-
-	XVisualInfo* visualinfo =
-		glXChooseVisual(display, XDefaultScreen(display),
-			(int[]) { GLX_RGBA, GLX_DOUBLEBUFFER,
-						GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1,
-						GLX_BLUE_SIZE, 1, GLX_ALPHA_SIZE, 1,
-						GLX_STENCIL_SIZE, 1, GLX_DEPTH_SIZE, 1, None });
-	if (NULL == visualinfo) {
-		ce_logging_error("context: no appropriate visual found");
-	}
-
-	ce_logging_write("context: visual %u chosen", visualinfo->visualid);
-
-	ce_context* context = ce_alloc(sizeof(ce_context));
-	context->error_base = error_base;
-	context->event_base = event_base;
-	context->major_version = major_version;
-	context->minor_version = minor_version;
-	context->visualinfo = visualinfo;
-	context->context = glXCreateContext(display, visualinfo, NULL, True);
-
-	if (glXIsDirect(display, context->context)) {
-		ce_logging_write("context: you have direct rendering");
-	} else {
-		ce_logging_warning("context: no direct rendering possible");
-	}
-
-	return context;
-}
-
-static void ce_context_del(ce_context* context)
-{
-	if (NULL != context) {
-		assert(glXGetCurrentContext() == context->context);
-		if (NULL != context->context) {
-			Display* display = glXGetCurrentDisplay();
-			glXMakeCurrent(display, None, NULL);
-			glXDestroyContext(display, context->context);
-		}
-		if (NULL != context->visualinfo) {
-			XFree(context->visualinfo);
-		}
-		ce_free(context, sizeof(ce_context));
-	}
-}
-
-static void ce_context_make_current(ce_context* context,
-									Display* display, GLXDrawable drawable)
-{
-	glXMakeCurrent(display, drawable, context->context);
-}
+#include "cecontext_posix.h"
 
 typedef enum {
 	CE_X11WINDOW_ATOM_PROTOCOLS,
@@ -134,7 +54,6 @@ typedef struct {
 	XSetWindowAttributes attrs[CE_X11WINDOW_STATE_COUNT];
 	Display* display;
 	Window window;
-	ce_context* context;
 } ce_x11window;
 
 ce_renderwindow* ce_renderwindow_new(void)
@@ -155,9 +74,9 @@ ce_renderwindow* ce_renderwindow_new(void)
 	x11window->atoms[CE_X11WINDOW_ATOM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
 	x11window->atoms[CE_X11WINDOW_ATOM_STATE] = XInternAtom(x11window->display, "_NET_WM_STATE", False);
 
-	int bpp_stub = 32;
-	renderwindow->displaymng = ce_displaymng_create(x11window->display, bpp_stub);
-	x11window->context = ce_context_new(x11window->display);
+	renderwindow->context = ce_context_new(x11window->display);
+	renderwindow->displaymng = ce_displaymng_create(x11window->display,
+												renderwindow->context->bpp);
 
 	ce_logging_write("renderwindow: resolution %dx%d",
 		renderwindow->width, renderwindow->height);
@@ -166,7 +85,7 @@ ce_renderwindow* ce_renderwindow_new(void)
 		x11window->mask[i] = CWColormap | CWEventMask;
 		x11window->attrs[i].colormap = XCreateColormap(x11window->display,
 			XDefaultRootWindow(x11window->display),
-			x11window->context->visualinfo->visual, AllocNone);
+			renderwindow->context->visualinfo->visual, AllocNone);
 		x11window->attrs[i].event_mask = ExposureMask | EnterWindowMask |
 			KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
 			PointerMotionMask | ButtonMotionMask | FocusChangeMask |
@@ -180,8 +99,8 @@ ce_renderwindow* ce_renderwindow_new(void)
 	x11window->window = XCreateWindow(x11window->display,
 		XDefaultRootWindow(x11window->display),
 		100, 100, renderwindow->width, renderwindow->height,
-		0, x11window->context->visualinfo->depth, InputOutput,
-		x11window->context->visualinfo->visual,
+		0, renderwindow->context->visualinfo->depth, InputOutput,
+		renderwindow->context->visualinfo->visual,
 		x11window->mask[CE_X11WINDOW_STATE_WINDOW],
 		&x11window->attrs[CE_X11WINDOW_STATE_WINDOW]);
 
@@ -196,9 +115,8 @@ ce_renderwindow* ce_renderwindow_new(void)
 
 	XMapRaised(x11window->display, x11window->window);
 
-	ce_context_make_current(x11window->context, x11window->display,
-												x11window->window);
-	ce_gl_init();
+	ce_context_make_current(renderwindow->context, x11window->display,
+													x11window->window);
 
 	return renderwindow;
 }
@@ -206,10 +124,9 @@ ce_renderwindow* ce_renderwindow_new(void)
 void ce_renderwindow_del(ce_renderwindow* renderwindow)
 {
 	if (NULL != renderwindow) {
-		ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
-		ce_gl_term();
-		ce_context_del(x11window->context);
+		ce_context_del(renderwindow->context);
 		ce_displaymng_del(renderwindow->displaymng);
+		ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
 		if (0 != x11window->window) {
 			XDestroyWindow(x11window->display, x11window->window);
 		}
@@ -343,10 +260,4 @@ bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 	}
 
 	return true;
-}
-
-void ce_renderwindow_swap(ce_renderwindow* renderwindow)
-{
-	ce_unused(renderwindow);
-	glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
 }

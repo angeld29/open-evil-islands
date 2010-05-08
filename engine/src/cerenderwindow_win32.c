@@ -19,7 +19,6 @@
 */
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <assert.h>
 
 #define WIN32_LEAN_AND_MEAN
@@ -36,25 +35,26 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cedisplay.h"
 #include "cerenderwindow.h"
 
-struct ce_renderwindow {
-	int width, height;
-	bool full_screen;
+#include "cecontext_win32.h"
+
+typedef struct {
 	HWND window;
-	HGLRC context;
-	ce_displaymng* displaymng;
-};
+} ce_winwindow;
 
 static LRESULT CALLBACK ce_renderwindow_proc(HWND, UINT, WPARAM, LPARAM);
 
 ce_renderwindow* ce_renderwindow_new(void)
 {
-	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow));
+	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow) +
+													sizeof(ce_winwindow));
+	ce_winwindow* winwindow = (ce_winwindow*)renderwindow->impl;
+
 	renderwindow->width = 1024;
 	renderwindow->height = 768;
-	renderwindow->full_screen = false;
+	renderwindow->fullscreen = false;
+
 	renderwindow->displaymng = ce_displaymng_create(NULL);
 
 	WNDCLASSEX wc;
@@ -76,7 +76,7 @@ ce_renderwindow* ce_renderwindow_new(void)
 	DWORD style = WS_VISIBLE;
 	DWORD extended_style = 0;
 
-	if (renderwindow->full_screen) {
+	if (renderwindow->fullscreen) {
 		ce_displaymng_change(renderwindow->displaymng,
 			renderwindow->width, renderwindow->height, 0, 0,
 			CE_DISPLAY_ROTATION_NONE, CE_DISPLAY_REFLECTION_NONE);
@@ -97,68 +97,23 @@ ce_renderwindow* ce_renderwindow_new(void)
 	ce_logging_write("renderwindow: resolution %dx%d",
 		renderwindow->width, renderwindow->height);
 
-	renderwindow->window = CreateWindowEx(extended_style,
+	winwindow->window = CreateWindowEx(extended_style,
 		wc.lpszClassName, "stub", style, CW_USEDEFAULT, CW_USEDEFAULT,
 		renderwindow->width, renderwindow->height,
 		HWND_DESKTOP, NULL, wc.hInstance, NULL);
-	if (NULL == renderwindow->window) {
+	if (NULL == winwindow->window) {
 		ce_logging_error("renderwindow: could not create window");
 	}
 
-	SetWindowLongPtr(renderwindow->window, GWLP_USERDATA, (LONG_PTR)renderwindow);
+	SetWindowLongPtr(winwindow->window, GWLP_USERDATA, (LONG_PTR)renderwindow);
 
-	ShowWindow(renderwindow->window, SW_SHOW);
-	UpdateWindow(renderwindow->window);
+	ShowWindow(winwindow->window, SW_SHOW);
+	UpdateWindow(winwindow->window);
 
-	SetForegroundWindow(renderwindow->window);
-	SetFocus(renderwindow->window);
+	SetForegroundWindow(winwindow->window);
+	SetFocus(winwindow->window);
 
-	HDC dc = GetDC(renderwindow->window);
-
-	PIXELFORMATDESCRIPTOR pfd = {
-		sizeof(PIXELFORMATDESCRIPTOR),
-		1,                             // version number
-		PFD_DRAW_TO_WINDOW |           // format must support window
-		PFD_SUPPORT_OPENGL |           // format must support opengl
-		PFD_DOUBLEBUFFER,              // must support double buffering
-		PFD_TYPE_RGBA,                 // request an RGBA format
-		GetDeviceCaps(dc, BITSPIXEL),  // select our color depth
-		8, 0, 8, 0, 8, 0,              // color shifts ignored
-		8,                             // alpha buffer
-		0,                             // shift bit ignored
-		0,                             // no accumulation buffer
-		0, 0, 0, 0,                    // accumulation bits ignored
-		24,                            // depth buffer
-		8,                             // stencil buffer
-		0,                             // no auxiliary buffer
-		PFD_MAIN_PLANE,                // main drawing layer
-		0,                             // reserved
-		0, 0, 0                        // layer masks ignored
-	};
-
-	// find a compatible pixel format
-	int pixel_format = ChoosePixelFormat(dc, &pfd);
-	if (0 == pixel_format) {
-		ce_logging_error("renderwindow: could not choose pixel format");
-	}
-
-	// try to set the pixel format
-	if (!(SetPixelFormat(dc, pixel_format, &pfd))) {
-		ce_logging_error("renderwindow: could not set pixel format");
-	}
-
-	// try to get a rendering context
-	renderwindow->context = wglCreateContext(dc);
-	if (NULL == renderwindow->context) {
-		ce_logging_error("renderwindow: could not create context");
-	}
-
-	// make the rendering context our current rendering context
-	if (!wglMakeCurrent(dc, renderwindow->context)) {
-		ce_logging_error("renderwindow: could not set context");
-	}
-
-	ce_gl_init();
+	renderwindow->context = ce_context_new(GetDC(winwindow->window));
 
 	return renderwindow;
 }
@@ -166,19 +121,15 @@ ce_renderwindow* ce_renderwindow_new(void)
 void ce_renderwindow_del(ce_renderwindow* renderwindow)
 {
 	if (NULL != renderwindow) {
-		ce_gl_term();
+		ce_context_del(renderwindow->context);
 		ce_displaymng_del(renderwindow->displaymng);
-		if (NULL != renderwindow->window) {
-			assert(wglGetCurrentContext() == renderwindow->context);
-			if (NULL != renderwindow->context) {
-				wglDeleteContext(wglGetCurrentContext());
-				wglMakeCurrent(wglGetCurrentDC(), NULL);
-			}
-			ReleaseDC(renderwindow->window, GetDC(renderwindow->window));
-			DestroyWindow(renderwindow->window);
+		ce_winwindow* winwindow = (ce_winwindow*)renderwindow->impl;
+		if (NULL != winwindow->window) {
+			ReleaseDC(winwindow->window, GetDC(winwindow->window));
+			DestroyWindow(winwindow->window);
 		}
 		UnregisterClass("cursedearth", GetModuleHandle(NULL));
-		ce_free(renderwindow, sizeof(ce_renderwindow));
+		ce_free(renderwindow, sizeof(ce_renderwindow) + sizeof(ce_winwindow));
 	}
 }
 
@@ -194,12 +145,6 @@ bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 		DispatchMessage(&msg);
 	}
 	return true;
-}
-
-void ce_renderwindow_swap(ce_renderwindow* renderwindow)
-{
-	ce_unused(renderwindow);
-	SwapBuffers(wglGetCurrentDC());
 }
 
 static void ce_renderwindow_process(ce_renderwindow* renderwindow,

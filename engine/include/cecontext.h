@@ -18,11 +18,21 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
+#ifndef CE_CONTEXT_H
+#define CE_CONTEXT_H
 
-#include "cerenderwindow.h"
-
-void ce_renderwindow_swap(ce_renderwindow* renderwindow)
+#ifdef __cplusplus
+extern "C"
 {
-	ce_context_swap(renderwindow->context);
+#endif /* __cplusplus */
+
+typedef struct ce_context ce_context;
+
+extern void ce_context_del(ce_context* context);
+extern void ce_context_swap(ce_context* context);
+
+#ifdef __cplusplus
 }
+#endif /* __cplusplus */
+
+#endif /* CE_CONTEXT_H */

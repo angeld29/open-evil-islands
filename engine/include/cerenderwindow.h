@@ -21,11 +21,10 @@
 #ifndef CE_RENDERWINDOW_H
 #define CE_RENDERWINDOW_H
 
-#include <stddef.h>
 #include <stdbool.h>
-#include <stdarg.h>
 
 #include "cedisplay.h"
+#include "cecontext.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -36,7 +35,7 @@ typedef struct {
 	int width, height;
 	bool fullscreen;
 	ce_displaymng* displaymng;
-	//ce_context* context;
+	ce_context* context;
 	char impl[];
 } ce_renderwindow;
 

@@ -18,11 +18,33 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
+#ifndef CE_CONTEXT_PLATFORM_H
+#define CE_CONTEXT_PLATFORM_H
 
-#include "cerenderwindow.h"
+#include <GL/glew.h>
+#include <GL/glxew.h>
 
-void ce_renderwindow_swap(ce_renderwindow* renderwindow)
+#include "cecontext.h"
+
+#ifdef __cplusplus
+extern "C"
 {
-	ce_context_swap(renderwindow->context);
+#endif /* __cplusplus */
+
+struct ce_context {
+	int error_base, event_base;
+	int major_version, minor_version;
+	int bpp;
+	XVisualInfo* visualinfo;
+	GLXContext context;
+};
+
+extern ce_context* ce_context_new(Display* display);
+extern void ce_context_make_current(ce_context* context,
+									Display* display, GLXDrawable drawable);
+
+#ifdef __cplusplus
 }
+#endif /* __cplusplus */
+
+#endif /* CE_CONTEXT_PLATFORM_H */
