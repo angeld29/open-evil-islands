@@ -25,12 +25,20 @@
 #include <stdbool.h>
 #include <stdarg.h>
 
+#include "cedisplay.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_renderwindow ce_renderwindow;
+typedef struct {
+	int width, height;
+	bool fullscreen;
+	ce_displaymng* displaymng;
+	//ce_context* context;
+	char impl[];
+} ce_renderwindow;
 
 extern ce_renderwindow* ce_renderwindow_new(void);
 extern void ce_renderwindow_del(ce_renderwindow* renderwindow);
