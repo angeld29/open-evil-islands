@@ -34,8 +34,8 @@ void ce_context_del(ce_context* context)
 	if (NULL != context) {
 		assert(wglGetCurrentContext() == context->context);
 		if (NULL != context->context) {
-			wglDeleteContext(wglGetCurrentContext());
 			wglMakeCurrent(wglGetCurrentDC(), NULL);
+			wglDeleteContext(context->context);
 		}
 		ce_free(context, sizeof(ce_context));
 	}
@@ -91,7 +91,7 @@ ce_context* ce_context_create(HDC dc)
 
 	GLenum result;
 	if (GLEW_OK != (result = glewInit()) || GLEW_OK != (result = wglewInit())) {
-		ce_logging_fatal("context: GLEW reported: %s", glewGetErrorString(result));
+		ce_logging_fatal("context: %s", glewGetErrorString(result));
 		ce_context_del(context);
 		return NULL;
 	}

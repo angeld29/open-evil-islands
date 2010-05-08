@@ -112,7 +112,7 @@ bool ce_context_make_current(ce_context* context, Display* display,
 
 	GLenum result;
 	if (GLEW_OK != (result = glewInit()) || GLEW_OK != (result = glxewInit())) {
-		ce_logging_fatal("context: GLEW reported: %s", glewGetErrorString(result));
+		ce_logging_fatal("context: %s", glewGetErrorString(result));
 		return false;
 	}
 
