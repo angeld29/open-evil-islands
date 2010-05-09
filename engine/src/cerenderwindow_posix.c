@@ -28,6 +28,7 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cerenderwindow.h"
@@ -36,10 +37,10 @@
 #include "cecontext_posix.h"
 
 typedef enum {
-	CE_X11WINDOW_ATOM_PROTOCOLS,
-	CE_X11WINDOW_ATOM_DELETE_WINDOW,
-	CE_X11WINDOW_ATOM_STATE_FULLSCREEN,
-	CE_X11WINDOW_ATOM_STATE,
+	CE_X11WINDOW_ATOM_WM_PROTOCOLS,
+	CE_X11WINDOW_ATOM_WM_DELETE_WINDOW,
+	CE_X11WINDOW_ATOM_NET_WM_STATE_FULLSCREEN,
+	CE_X11WINDOW_ATOM_NET_WM_STATE,
 	CE_X11WINDOW_ATOM_COUNT
 } ce_x11window_atom;
 
@@ -49,38 +50,81 @@ typedef enum {
 	CE_X11WINDOW_STATE_COUNT
 } ce_x11window_state;
 
-typedef struct {
+typedef struct ce_x11window {
+	ce_renderwindow* renderwindow;
 	Atom atoms[CE_X11WINDOW_ATOM_COUNT];
 	unsigned long mask[CE_X11WINDOW_STATE_COUNT];
 	XSetWindowAttributes attrs[CE_X11WINDOW_STATE_COUNT];
 	Display* display;
 	Window window;
+	void (*handlers[LASTEvent])(struct ce_x11window*, XEvent*);
+	bool fullscreen; // local state, see renderwindow_minimize
 } ce_x11window;
 
-ce_renderwindow* ce_renderwindow_new(void)
+static void ce_renderwindow_handler_skip(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_client_message(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_expose(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_map_notify(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_configure_notify(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_key_press(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_key_release(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_button_press(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_button_release(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_motion_notify(ce_x11window*, XEvent*);
+
+ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 {
 	XInitThreads();
 
 	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow) +
 													sizeof(ce_x11window));
-	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
 
-	renderwindow->width = 1024;
-	renderwindow->height = 768;
-	renderwindow->fullscreen = false;
+	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+	x11window->renderwindow = renderwindow;
 
 	x11window->display = XOpenDisplay(NULL);
-	x11window->atoms[CE_X11WINDOW_ATOM_PROTOCOLS] = XInternAtom(x11window->display, "WM_PROTOCOLS", False);
-	x11window->atoms[CE_X11WINDOW_ATOM_DELETE_WINDOW] = XInternAtom(x11window->display, "WM_DELETE_WINDOW", False);
-	x11window->atoms[CE_X11WINDOW_ATOM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
-	x11window->atoms[CE_X11WINDOW_ATOM_STATE] = XInternAtom(x11window->display, "_NET_WM_STATE", False);
+	if (NULL == x11window->display) {
+		ce_logging_fatal("renderwindow: could not connect to X server");
+		ce_renderwindow_del(renderwindow);
+		return NULL;
+	}
+
+	x11window->atoms[CE_X11WINDOW_ATOM_WM_PROTOCOLS] = XInternAtom(x11window->display, "WM_PROTOCOLS", False);
+	x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW] = XInternAtom(x11window->display, "WM_DELETE_WINDOW", False);
+	x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
+	x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE] = XInternAtom(x11window->display, "_NET_WM_STATE", False);
+
+	for (size_t i = 0; i < sizeof(x11window->handlers) /
+							sizeof(x11window->handlers[0]); ++i) {
+		x11window->handlers[i] = ce_renderwindow_handler_skip;
+	}
+
+	x11window->handlers[ClientMessage] = ce_renderwindow_handler_client_message;
+	x11window->handlers[Expose] = ce_renderwindow_handler_expose;
+	x11window->handlers[MapNotify] = ce_renderwindow_handler_map_notify;
+	x11window->handlers[ConfigureNotify] = ce_renderwindow_handler_configure_notify;
+	x11window->handlers[KeyPress] = ce_renderwindow_handler_key_press;
+	x11window->handlers[KeyRelease] = ce_renderwindow_handler_key_release;
+	x11window->handlers[ButtonPress] = ce_renderwindow_handler_button_press;
+	x11window->handlers[ButtonRelease] = ce_renderwindow_handler_button_release;
+	x11window->handlers[MotionNotify] = ce_renderwindow_handler_motion_notify;
+
+	renderwindow->x = (XDisplayWidth(x11window->display,
+		XDefaultScreen(x11window->display)) - width) / 2;
+	renderwindow->y = (XDisplayHeight(x11window->display,
+		XDefaultScreen(x11window->display)) - height) / 2;
+
+	renderwindow->width = width;
+	renderwindow->height = height;
 
 	renderwindow->context = ce_context_create(x11window->display);
 	renderwindow->displaymng = ce_displaymng_create(x11window->display,
 												renderwindow->context->bpp);
 
-	ce_logging_write("renderwindow: resolution %dx%d",
-		renderwindow->width, renderwindow->height);
+	renderwindow->bpp = renderwindow->context->bpp;
+	renderwindow->rate = 0;
+	renderwindow->rotation = CE_DISPLAY_ROTATION_NONE;
+	renderwindow->reflection = CE_DISPLAY_REFLECTION_NONE;
 
 	for (int i = 0; i < CE_X11WINDOW_STATE_COUNT; ++i) {
 		x11window->mask[i] = CWColormap | CWEventMask;
@@ -99,22 +143,24 @@ ce_renderwindow* ce_renderwindow_new(void)
 
 	x11window->window = XCreateWindow(x11window->display,
 		XDefaultRootWindow(x11window->display),
-		100, 100, renderwindow->width, renderwindow->height,
+		renderwindow->x, renderwindow->y, width, height,
 		0, renderwindow->context->visualinfo->depth, InputOutput,
 		renderwindow->context->visualinfo->visual,
 		x11window->mask[CE_X11WINDOW_STATE_WINDOW],
 		&x11window->attrs[CE_X11WINDOW_STATE_WINDOW]);
 
-	// set window title
-	const char* title = "stub";
 	XSetStandardProperties(x11window->display, x11window->window,
 		title, title, None, NULL, 0, NULL);
 
 	// handle wm_delete_events
 	XSetWMProtocols(x11window->display, x11window->window,
-		&x11window->atoms[CE_X11WINDOW_ATOM_DELETE_WINDOW], 1);
+		&x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW], 1);
 
 	XMapRaised(x11window->display, x11window->window);
+
+	// XCreateWindow places window always in (0,0), so move manually
+	XMoveWindow(x11window->display, x11window->window,
+		renderwindow->x, renderwindow->y);
 
 	ce_context_make_current(renderwindow->context, x11window->display,
 													x11window->window);
@@ -138,15 +184,14 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 	}
 }
 
-static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
-									int width, int height, bool fullscreen)
+void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 {
 	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
 
-	if (renderwindow->fullscreen != fullscreen) {
-		XChangeWindowAttributes(x11window->display, x11window->window,
-			x11window->mask[fullscreen], &x11window->attrs[fullscreen]);
-	}
+	bool fullscreen = !renderwindow->fullscreen;
+
+	XChangeWindowAttributes(x11window->display, x11window->window,
+		x11window->mask[fullscreen], &x11window->attrs[fullscreen]);
 
 	if (!renderwindow->fullscreen && fullscreen) {
 		XGrabPointer(x11window->display, x11window->window, True, NoEventMask,
@@ -160,39 +205,46 @@ static void ce_renderwindow_switch(ce_renderwindow* renderwindow,
 		XUngrabKeyboard(x11window->display, CurrentTime);
 	}
 
+	renderwindow->fullscreen = fullscreen;
+
 	if (fullscreen) {
-		ce_displaymng_change(renderwindow->displaymng, width, height,
-			0, 0, CE_DISPLAY_ROTATION_NONE, CE_DISPLAY_REFLECTION_NONE);
+		ce_displaymng_change(renderwindow->displaymng,
+			renderwindow->width, renderwindow->height,
+			renderwindow->bpp, renderwindow->rate,
+			renderwindow->rotation, renderwindow->reflection);
 	} else {
 		ce_displaymng_restore(renderwindow->displaymng);
 	}
 
-	XMoveResizeWindow(x11window->display, x11window->window, 0, 0, width, height);
+	XEvent event;
+	memset(&event, 0, sizeof(event));
 
-	XEvent message;
-	memset(&message, '\0', sizeof(message));
+	event.type = ClientMessage;
+	event.xclient.send_event = True;
+	event.xclient.window = x11window->window;
+	event.xclient.message_type = x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE];
+	event.xclient.format = 32;
+	event.xclient.data.l[0] = fullscreen;
+	event.xclient.data.l[1] = x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE_FULLSCREEN];
 
-	message.type = ClientMessage;
-	message.xclient.send_event = True;
-	message.xclient.window = x11window->window;
-	message.xclient.message_type = x11window->atoms[CE_X11WINDOW_ATOM_STATE];
-	message.xclient.format = 32;
-	message.xclient.data.l[0] = fullscreen;
-	message.xclient.data.l[1] = x11window->atoms[CE_X11WINDOW_ATOM_STATE_FULLSCREEN];
-
+	// absolutely don't understand how event masks work...
 	XSendEvent(x11window->display, XDefaultRootWindow(x11window->display),
-		False, SubstructureRedirectMask | SubstructureNotifyMask, &message);
-
-	renderwindow->fullscreen = fullscreen;
-	renderwindow->width = width;
-	renderwindow->height = height;
+		False, SubstructureNotifyMask, &event);
 }
 
 void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 {
 	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
 
-	// TODO: send fullscreen toggle event
+	if (renderwindow->fullscreen) {
+		// always exit from fullscreen before minimizing!
+		ce_renderwindow_toggle_fullscreen(renderwindow);
+
+		// save fullscreen state to restore later (see Map Event)
+		assert(!x11window->fullscreen);
+		x11window->fullscreen = true;
+	}
+
 	XIconifyWindow(x11window->display,
 		x11window->window, XDefaultScreen(x11window->display));
 }
@@ -200,65 +252,93 @@ void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 {
 	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
-	KeySym key;
 
 	while (XPending(x11window->display) > 0) {
 		XEvent event;
 		XNextEvent(x11window->display, &event);
 
-		switch (event.type) {
-		case ClientMessage:
-			if (x11window->atoms[CE_X11WINDOW_ATOM_PROTOCOLS] ==
-					event.xclient.message_type &&
-					x11window->atoms[CE_X11WINDOW_ATOM_DELETE_WINDOW] ==
-					(Atom)event.xclient.data.l[0]) {
-				return false;
-			}
-			break;
-		case MapNotify:
-			break;
-		case Expose:
-			if (0 == event.xexpose.count) {
-				// the window was exposed, redraw it
-				// TODO: render
-				//ce_renderwindow_swap(renderwindow);
-			}
-			break;
-		case ConfigureNotify:
-			// TODO: reshape
-			//event.xconfigure.width;
-			//event.xconfigure.height;
-			break;
-		case KeyPress:
-			XLookupString(&event.xkey, NULL, 0, &key, NULL);
-			// TODO: key press
-			if (XK_Escape == key) {
-				return false;
-			}
-			if (XK_F2 == key) {
-				if (renderwindow->fullscreen) {
-					ce_renderwindow_switch(renderwindow, 1024, 768, false);
-				} else {
-					ce_renderwindow_switch(renderwindow, 1024, 768, true);
-				}
-			}
-			break;
-		case KeyRelease:
-			XLookupString(&event.xkey, NULL, 0, &key, NULL);
-			// TODO: key release
-			break;
-		case MotionNotify:
-			//event.xmotion.x;
-			//event.xmotion.y;
-			break;
-		case ButtonPress:
-			//event.xbutton.button;
-			break;
-		case ButtonRelease:
-			//event.xbutton.button;
-			break;
-		}
+		assert(0 <= event.type && (size_t)event.type < sizeof(x11window->handlers) /
+												sizeof(x11window->handlers[0]));
+		(*x11window->handlers[event.type])(x11window, &event);
 	}
 
 	return true;
+}
+
+static void ce_renderwindow_handler_skip(ce_x11window* x11window, XEvent* event)
+{
+	ce_unused(x11window);
+	ce_unused(event);
+}
+
+static void ce_renderwindow_handler_client_message(ce_x11window* x11window, XEvent* event)
+{
+	if (x11window->atoms[CE_X11WINDOW_ATOM_WM_PROTOCOLS] ==
+			event->xclient.message_type &&
+			x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW] ==
+			(Atom)event->xclient.data.l[0]) {
+		;
+	}
+}
+
+static void ce_renderwindow_handler_expose(ce_x11window* x11window, XEvent* event)
+{
+	if (0 == event->xexpose.count) {
+		// the window was exposed, redraw it
+		// TODO: render
+	}
+}
+
+static void ce_renderwindow_handler_map_notify(ce_x11window* x11window, XEvent* event)
+{
+	if (x11window->fullscreen) {
+		assert(!x11window->renderwindow->fullscreen);
+		ce_renderwindow_toggle_fullscreen(x11window->renderwindow);
+
+		x11window->fullscreen = false;
+	}
+}
+
+static void ce_renderwindow_handler_configure_notify(ce_x11window* x11window, XEvent* event)
+{
+	// TODO: reshape
+	//event->xconfigure.width;
+	//event->xconfigure.height;
+}
+
+static void ce_renderwindow_handler_key_press(ce_x11window* x11window, XEvent* event)
+{
+	KeySym key;
+	XLookupString(&event->xkey, NULL, 0, &key, NULL);
+
+	if (XK_Escape == key) {
+	}
+
+	if (XK_F2 == key) {
+		ce_renderwindow_toggle_fullscreen(x11window->renderwindow);
+	}
+
+	if (XK_Tab == key && event->xkey.state & Mod1Mask) {
+		ce_renderwindow_minimize(x11window->renderwindow);
+	}
+}
+
+static void ce_renderwindow_handler_key_release(ce_x11window* x11window, XEvent* event)
+{
+	KeySym key;
+	XLookupString(&event->xkey, NULL, 0, &key, NULL);
+}
+
+static void ce_renderwindow_handler_button_press(ce_x11window* x11window, XEvent* event)
+{
+}
+
+static void ce_renderwindow_handler_button_release(ce_x11window* x11window, XEvent* event)
+{
+}
+
+static void ce_renderwindow_handler_motion_notify(ce_x11window* x11window, XEvent* event)
+{
+	//event->xmotion.x;
+	//event->xmotion.y;
 }

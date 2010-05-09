@@ -32,18 +32,22 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	int width, height;
+	int x, y, width, height, bpp, rate;
+	ce_display_rotation rotation;
+	ce_display_reflection reflection;
 	bool fullscreen;
 	ce_displaymng* displaymng;
 	ce_context* context;
 	char impl[];
 } ce_renderwindow;
 
-extern ce_renderwindow* ce_renderwindow_new(void);
+extern ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height);
 extern void ce_renderwindow_del(ce_renderwindow* renderwindow);
 
+extern void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow);
+extern void ce_renderwindow_minimize(ce_renderwindow* renderwindow);
+
 extern bool ce_renderwindow_pump(ce_renderwindow* renderwindow);
-extern void ce_renderwindow_swap(ce_renderwindow* renderwindow);
 
 #ifdef __cplusplus
 }

@@ -42,7 +42,7 @@ bool ce_root_init(const char* ei_path)
 
 	ce_systeminfo_display();
 
-	ce_root.renderwindow = ce_renderwindow_new();
+	ce_root.renderwindow = ce_renderwindow_new("Cursed Earth", 1024, 768);
 	ce_root.rendersystem = ce_rendersystem_new();
 	ce_root.scenemng = ce_scenemng_new(ei_path);
 
