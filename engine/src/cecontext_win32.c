@@ -80,9 +80,19 @@ ce_context* ce_context_create(HDC dc)
 
 	DescribePixelFormat(dc, pixel_format, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
-	ce_logging_write("context: visual %d chosen "
-		"(%hhu bpp, %hhu alpha, %hhu depth, %hhu stencil)", pixel_format,
-		pfd.cColorBits, pfd.cAlphaBits, pfd.cDepthBits, pfd.cStencilBits);
+	int db = 0 != (pfd.dwFlags & PFD_DOUBLEBUFFER);
+	int sz = pfd.cColorBits, r = pfd.cRedBits, g = pfd.cGreenBits;
+	int b = pfd.cBlueBits, a = pfd.cAlphaBits;
+	int dp = pfd.cDepthBits, st = pfd.cStencilBits;
+
+	ce_logging_write("context: visual %d chosen", pixel_format);
+	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("context: |   id | db | sz |  r |  g |  b |  a | dp | st |");
+	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("context: | %4d | %2c | %2d | %2d | %2d | %2d | %2d | %2d | %2d |",
+		pixel_format, "ny"[db], sz, r, g, b, a, dp, st);
+	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("context: see GLEW visualinfo for more details");
 
 	if (!SetPixelFormat(dc, pixel_format, &pfd)) {
 		ce_logging_fatal("context: could not set pixel format");

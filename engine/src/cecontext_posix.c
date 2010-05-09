@@ -74,32 +74,41 @@ ce_context* ce_context_create(Display* display)
 	}
 
 	XVisualInfo* visualinfo = glXChooseVisual(display, XDefaultScreen(display),
-		(int[]) { GLX_RGBA, GLX_DOUBLEBUFFER,
+		(int[]) { GLX_DOUBLEBUFFER, GLX_RGBA,
 					GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1,
 					GLX_BLUE_SIZE, 1, GLX_ALPHA_SIZE, 1,
-					GLX_STENCIL_SIZE, 1, GLX_DEPTH_SIZE, 1, None });
+					GLX_DEPTH_SIZE, 1, GLX_STENCIL_SIZE, 1, None });
 	if (NULL == visualinfo) {
 		ce_logging_fatal("context: no appropriate visual found");
 		return NULL;
 	}
 
-	int bpp, alpha, depth, stencil;
+	int db, sz, r, g, b, a, dp, st;
 
-	glXGetConfig(display, visualinfo, GLX_BUFFER_SIZE, &bpp);
-	glXGetConfig(display, visualinfo, GLX_ALPHA_SIZE, &alpha);
-	glXGetConfig(display, visualinfo, GLX_DEPTH_SIZE, &depth);
-	glXGetConfig(display, visualinfo, GLX_STENCIL_SIZE, &stencil);
+	glXGetConfig(display, visualinfo, GLX_DOUBLEBUFFER, &db);
+	glXGetConfig(display, visualinfo, GLX_BUFFER_SIZE, &sz);
+	glXGetConfig(display, visualinfo, GLX_RED_SIZE, &r);
+	glXGetConfig(display, visualinfo, GLX_GREEN_SIZE, &g);
+	glXGetConfig(display, visualinfo, GLX_BLUE_SIZE, &b);
+	glXGetConfig(display, visualinfo, GLX_ALPHA_SIZE, &a);
+	glXGetConfig(display, visualinfo, GLX_DEPTH_SIZE, &dp);
+	glXGetConfig(display, visualinfo, GLX_STENCIL_SIZE, &st);
 
-	ce_logging_write("context: visual %u chosen "
-		"(%hhu bpp, %hhu alpha, %hhu depth, %hhu stencil)",
-		visualinfo->visualid, bpp, alpha, depth, stencil);
+	ce_logging_write("context: visual %lu chosen", visualinfo->visualid);
+	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("context: |   id | db | sz |  r |  g |  b |  a | dp | st |");
+	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("context: | %4lu | %2c | %2d | %2d | %2d | %2d | %2d | %2d | %2d |",
+		visualinfo->visualid, "ny"[db], sz, r, g, b, a, dp, st);
+	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("context: see GLEW visualinfo for more details");
 
 	ce_context* context = ce_alloc(sizeof(ce_context));
 	context->error_base = error_base;
 	context->event_base = event_base;
 	context->major_version = major_version;
 	context->minor_version = minor_version;
-	context->bpp = bpp;
+	context->bpp = sz;
 	context->visualinfo = visualinfo;
 	context->context = glXCreateContext(display, visualinfo, NULL, True);
 
