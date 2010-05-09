@@ -359,8 +359,10 @@ bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 		XEvent event;
 		XNextEvent(x11window->display, &event);
 
-		assert(0 <= event.type && (size_t)event.type < sizeof(x11window->handlers) /
-												sizeof(x11window->handlers[0]));
+		assert(0 <= event.type &&
+			(size_t)event.type < sizeof(x11window->handlers) /
+									sizeof(x11window->handlers[0]));
+
 		(*x11window->handlers[event.type])(x11window, &event);
 	}
 
@@ -387,7 +389,6 @@ static void ce_renderwindow_handler_expose(ce_x11window* x11window, XEvent* even
 {
 	if (0 == event->xexpose.count) {
 		// the window was exposed, redraw it
-		// TODO: render
 	}
 }
 
@@ -403,7 +404,6 @@ static void ce_renderwindow_handler_map_notify(ce_x11window* x11window, XEvent* 
 
 static void ce_renderwindow_handler_configure_notify(ce_x11window* x11window, XEvent* event)
 {
-	// TODO: reshape
 	//event->xconfigure.width;
 	//event->xconfigure.height;
 }
@@ -428,14 +428,19 @@ static void ce_renderwindow_handler_key_release(ce_x11window* x11window, XEvent*
 
 static void ce_renderwindow_handler_button_press(ce_x11window* x11window, XEvent* event)
 {
+	ce_input_context* input_context = x11window->renderwindow->input_context;
+	input_context->buttons[event->xbutton.button - 1 + CE_MB_LEFT] = true;
 }
 
 static void ce_renderwindow_handler_button_release(ce_x11window* x11window, XEvent* event)
 {
+	ce_input_context* input_context = x11window->renderwindow->input_context;
+	input_context->buttons[event->xbutton.button - 1 + CE_MB_LEFT] = false;
 }
 
 static void ce_renderwindow_handler_motion_notify(ce_x11window* x11window, XEvent* event)
 {
-	//event->xmotion.x;
-	//event->xmotion.y;
+	ce_input_context* input_context = x11window->renderwindow->input_context;
+	input_context->mouse_offset.x = event->xmotion.x;
+	input_context->mouse_offset.y = event->xmotion.y;
 }
