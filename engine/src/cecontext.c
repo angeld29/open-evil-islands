@@ -18,25 +18,20 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_CONTEXT_H
-#define CE_CONTEXT_H
+#include <assert.h>
 
-#ifdef __cplusplus
-extern "C"
+#include "celogging.h"
+#include "cecontext.h"
+
+void ce_context_visualinfo(int id, int db, int sz, int r,
+							int g, int b, int a, int dp, int st)
 {
-#endif /* __cplusplus */
-
-typedef struct ce_context ce_context;
-
-extern void ce_context_del(ce_context* context);
-
-extern void ce_context_swap(ce_context* context);
-
-extern void ce_context_visualinfo(int id, int db, int sz, int r,
-									int g, int b, int a, int dp, int st);
-
-#ifdef __cplusplus
+	ce_logging_write("context: visual %d chosen", id);
+	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("context: |   id | db | sz |  r |  g |  b |  a | dp | st |");
+	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("context: | %4d | %2c | %2d | %2d | %2d | %2d | %2d | %2d | %2d |",
+		id, "ny"[db], sz, r, g, b, a, dp, st);
+	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("context: see GLEW visualinfo for more details");
 }
-#endif /* __cplusplus */
-
-#endif /* CE_CONTEXT_H */

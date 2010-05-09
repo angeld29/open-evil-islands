@@ -94,14 +94,7 @@ ce_context* ce_context_create(Display* display)
 	glXGetConfig(display, visualinfo, GLX_DEPTH_SIZE, &dp);
 	glXGetConfig(display, visualinfo, GLX_STENCIL_SIZE, &st);
 
-	ce_logging_write("context: visual %lu chosen", visualinfo->visualid);
-	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("context: |   id | db | sz |  r |  g |  b |  a | dp | st |");
-	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("context: | %4lu | %2c | %2d | %2d | %2d | %2d | %2d | %2d | %2d |",
-		visualinfo->visualid, "ny"[db], sz, r, g, b, a, dp, st);
-	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("context: see GLEW visualinfo for more details");
+	ce_context_visualinfo(visualinfo->visualid, db, sz, r, g, b, a, dp, st);
 
 	ce_context* context = ce_alloc(sizeof(ce_context));
 	context->error_base = error_base;
