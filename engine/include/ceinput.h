@@ -147,10 +147,15 @@ typedef enum {
 	CE_IB_COUNT
 } ce_input_button;
 
-// level 0 input API
+// level 0 input API - available through window
 
-extern bool ce_input_buttons[CE_IB_COUNT];
-extern ce_vec2 ce_input_mouse_offset;
+typedef struct {
+	bool buttons[CE_IB_COUNT];
+	ce_vec2 mouse_offset;
+} ce_input_context;
+
+extern ce_input_context* ce_input_context_new(void);
+extern void ce_input_context_del(ce_input_context* context);
 
 // level 1 input API - events
 
@@ -170,10 +175,11 @@ struct ce_input_event {
 };
 
 typedef struct {
+	const ce_input_context* context;
 	ce_vector* events;
 } ce_input_event_supply;
 
-extern ce_input_event_supply* ce_input_event_supply_new(void);
+extern ce_input_event_supply* ce_input_event_supply_new(const ce_input_context* context);
 extern void ce_input_event_supply_del(ce_input_event_supply* supply);
 
 extern void ce_input_event_supply_advance(ce_input_event_supply* supply, float elapsed);

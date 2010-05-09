@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
@@ -31,7 +32,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceinput.h"
+#include "cevector.h"
 #include "cerenderwindow.h"
 
 #include "cedisplay_posix.h"
@@ -54,7 +55,50 @@ typedef enum {
 typedef struct {
 	KeySym keysym;
 	ce_input_button button;
-} ce_x11keymap;
+} ce_x11keypair;
+
+static ce_x11keypair* ce_x11keypair_new(KeySym keysym, ce_input_button button)
+{
+	ce_x11keypair* keypair = ce_alloc(sizeof(ce_x11keypair));
+	keypair->keysym = keysym;
+	keypair->button = button;
+	return keypair;
+}
+
+static void ce_x11keypair_del(ce_x11keypair* keypair)
+{
+	ce_free(keypair, sizeof(ce_x11keypair));
+}
+
+static int ce_x11keypair_sort_comp(const void* lhs, const void* rhs)
+{
+	const ce_x11keypair* keypair1 = *(const ce_x11keypair**)lhs;
+	const ce_x11keypair* keypair2 = *(const ce_x11keypair**)rhs;
+	// be careful: KeySym is something like unsigned...
+	return keypair1->keysym < keypair2->keysym ? -1 :
+			(int)(keypair1->keysym - keypair2->keysym);
+}
+
+static int ce_x11keypair_search_comp(const void* lhs, const void* rhs)
+{
+	const KeySym* keysym = lhs;
+	const ce_x11keypair* keypair = *(const ce_x11keypair**)rhs;
+	// be careful: KeySym is something like unsigned...
+	return *keysym < keypair->keysym ? -1 : (int)(*keysym - keypair->keysym);
+}
+
+static void ce_x11keymap_sort(ce_vector* keymap)
+{
+	qsort(keymap->items, keymap->count,
+		sizeof(ce_x11keypair*), ce_x11keypair_sort_comp);
+}
+
+static ce_input_button ce_x11keymap_search(ce_vector* keymap, const KeySym* keysym)
+{
+	ce_x11keypair** keypair = bsearch(keysym, keymap->items, keymap->count,
+		sizeof(ce_x11keypair*), ce_x11keypair_search_comp);
+	return NULL != keypair ? (*keypair)->button : CE_IB_UNKNOWN;
+}
 
 typedef struct ce_x11window {
 	ce_renderwindow* renderwindow;
@@ -63,6 +107,7 @@ typedef struct ce_x11window {
 	XSetWindowAttributes attrs[CE_X11WINDOW_STATE_COUNT];
 	Display* display;
 	Window window;
+	ce_vector* keymap;
 	void (*handlers[LASTEvent])(struct ce_x11window*, XEvent*);
 	bool fullscreen; // local state, see renderwindow_minimize
 } ce_x11window;
@@ -100,6 +145,53 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
 	x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE] = XInternAtom(x11window->display, "_NET_WM_STATE", False);
 
+	KeySym x11keys[2][CE_IB_COUNT] = {
+		// lower
+		{ XK_VoidSymbol, XK_Escape, XK_F1, XK_F2, XK_F3, XK_F4, XK_F5, XK_F6,
+		XK_F7, XK_F8, XK_F9, XK_F10, XK_F11, XK_F12, XK_grave, XK_0, XK_1,
+		XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9, XK_minus, XK_equal,
+		XK_backslash, XK_BackSpace, XK_Tab, XK_q, XK_w, XK_e, XK_r, XK_t, XK_y,
+		XK_u, XK_i, XK_o, XK_p, XK_bracketleft, XK_bracketright, XK_Caps_Lock,
+		XK_a, XK_s, XK_d, XK_f, XK_g, XK_h, XK_j, XK_k, XK_l, XK_semicolon,
+		XK_apostrophe, XK_Return, XK_Shift_L, XK_z, XK_x, XK_c, XK_v, XK_b,
+		XK_n, XK_m, XK_comma, XK_period, XK_slash, XK_Shift_R, XK_Control_L,
+		XK_Super_L, XK_Alt_L, XK_space, XK_Alt_R, XK_Super_R, XK_Menu, XK_Control_R,
+		XK_Sys_Req, XK_Scroll_Lock, XK_Pause, XK_Insert, XK_Delete, XK_Home, XK_End,
+		XK_Page_Up, XK_Page_Down, XK_Left, XK_Up, XK_Right, XK_Down, XK_Num_Lock,
+		XK_KP_Divide, XK_KP_Multiply, XK_KP_Subtract, XK_KP_Add, XK_KP_Enter,
+		XK_KP_Delete, XK_KP_Home, XK_KP_Up, XK_KP_Page_Up, XK_KP_Left, XK_KP_Begin,
+		XK_KP_Right, XK_KP_End, XK_KP_Down, XK_KP_Page_Down, XK_KP_Insert,
+		XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol },
+		// upper
+		{ XK_VoidSymbol, XK_Escape, XK_F1, XK_F2, XK_F3, XK_F4, XK_F5, XK_F6,
+		XK_F7, XK_F8, XK_F9, XK_F10, XK_F11, XK_F12, XK_asciitilde, XK_parenright,
+		XK_exclam, XK_at, XK_numbersign, XK_dollar, XK_percent, XK_asciicircum,
+		XK_ampersand, XK_asterisk, XK_parenleft, XK_underscore, XK_plus, XK_bar,
+		XK_BackSpace, XK_Tab, XK_Q, XK_W, XK_E, XK_R, XK_T, XK_Y, XK_U,
+		XK_I, XK_O, XK_P, XK_braceleft, XK_braceright, XK_Caps_Lock, XK_A, XK_S,
+		XK_D, XK_F, XK_G, XK_H, XK_J, XK_K, XK_L, XK_colon, XK_quotedbl, XK_Return,
+		XK_Shift_L, XK_Z, XK_X, XK_C, XK_V, XK_B, XK_N, XK_M, XK_less, XK_greater,
+		XK_question, XK_Shift_R, XK_Control_L, XK_Super_L, XK_Alt_L, XK_space,
+		XK_Alt_R, XK_Super_R, XK_Menu, XK_Control_R, XK_Print, XK_Scroll_Lock,
+		XK_Pause, XK_Insert, XK_Delete, XK_Home, XK_End, XK_Page_Up, XK_Page_Down,
+		XK_Left, XK_Up, XK_Right, XK_Down, XK_Num_Lock, XK_KP_Divide, XK_KP_Multiply,
+		XK_KP_Subtract, XK_KP_Add, XK_KP_Enter, XK_KP_Decimal, XK_KP_7, XK_KP_8,
+		XK_KP_9, XK_KP_4, XK_KP_5, XK_KP_6, XK_KP_1, XK_KP_2, XK_KP_3, XK_KP_0,
+		XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol },
+	};
+
+	// absolutely don't understand how XChangeKeyboardMapping work...
+	x11window->keymap = ce_vector_new_reserved(2 * CE_IB_COUNT);
+
+	for (int i = 0; i < 2; ++i) {
+		for (int j = 0; j < CE_IB_COUNT; ++j) {
+			ce_vector_push_back(x11window->keymap,
+				ce_x11keypair_new(x11keys[i][j], j));
+		}
+	}
+
+	ce_x11keymap_sort(x11window->keymap);
+
 	for (size_t i = 0; i < sizeof(x11window->handlers) /
 							sizeof(x11window->handlers[0]); ++i) {
 		x11window->handlers[i] = ce_renderwindow_handler_skip;
@@ -115,14 +207,10 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	x11window->handlers[ButtonRelease] = ce_renderwindow_handler_button_release;
 	x11window->handlers[MotionNotify] = ce_renderwindow_handler_motion_notify;
 
-	renderwindow->x = (XDisplayWidth(x11window->display,
-		XDefaultScreen(x11window->display)) - width) / 2;
-	renderwindow->y = (XDisplayHeight(x11window->display,
-		XDefaultScreen(x11window->display)) - height) / 2;
-
 	renderwindow->width = width;
 	renderwindow->height = height;
 
+	renderwindow->input_context = ce_input_context_new();
 	renderwindow->context = ce_context_create(x11window->display);
 	renderwindow->displaymng = ce_displaymng_create(x11window->display,
 												renderwindow->context->bpp);
@@ -149,9 +237,8 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	x11window->window = XCreateWindow(x11window->display,
 		XDefaultRootWindow(x11window->display),
-		renderwindow->x, renderwindow->y, width, height,
-		0, renderwindow->context->visualinfo->depth, InputOutput,
-		renderwindow->context->visualinfo->visual,
+		0, 0, width, height, 0, renderwindow->context->visualinfo->depth,
+		InputOutput, renderwindow->context->visualinfo->visual,
 		x11window->mask[CE_X11WINDOW_STATE_WINDOW],
 		&x11window->attrs[CE_X11WINDOW_STATE_WINDOW]);
 
@@ -174,7 +261,8 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	// x and y values in XCreateWindow are ignored by most windows managers,
 	// which means that top-level windows maybe placed somewhere else on the desktop
 	XMoveWindow(x11window->display, x11window->window,
-		renderwindow->x, renderwindow->y);
+		(XDisplayWidth(x11window->display, XDefaultScreen(x11window->display)) - width) / 2,
+		(XDisplayHeight(x11window->display, XDefaultScreen(x11window->display)) - height) / 2);
 
 	return renderwindow;
 }
@@ -182,9 +270,12 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 void ce_renderwindow_del(ce_renderwindow* renderwindow)
 {
 	if (NULL != renderwindow) {
+		ce_input_context_del(renderwindow->input_context);
 		ce_context_del(renderwindow->context);
 		ce_displaymng_del(renderwindow->displaymng);
 		ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+		ce_vector_for_each(x11window->keymap, ce_x11keypair_del);
+		ce_vector_del(x11window->keymap);
 		if (0 != x11window->window) {
 			XDestroyWindow(x11window->display, x11window->window);
 		}
@@ -322,22 +413,17 @@ static void ce_renderwindow_handler_key_press(ce_x11window* x11window, XEvent* e
 	KeySym key;
 	XLookupString(&event->xkey, NULL, 0, &key, NULL);
 
-	if (XK_Escape == key) {
-	}
-
-	if (XK_F2 == key) {
-		ce_renderwindow_toggle_fullscreen(x11window->renderwindow);
-	}
-
-	if (XK_Tab == key && event->xkey.state & Mod1Mask) {
-		ce_renderwindow_minimize(x11window->renderwindow);
-	}
+	ce_input_context* input_context = x11window->renderwindow->input_context;
+	input_context->buttons[ce_x11keymap_search(x11window->keymap, &key)] = true;
 }
 
 static void ce_renderwindow_handler_key_release(ce_x11window* x11window, XEvent* event)
 {
 	KeySym key;
 	XLookupString(&event->xkey, NULL, 0, &key, NULL);
+
+	ce_input_context* input_context = x11window->renderwindow->input_context;
+	input_context->buttons[ce_x11keymap_search(x11window->keymap, &key)] = false;
 }
 
 static void ce_renderwindow_handler_button_press(ce_x11window* x11window, XEvent* event)

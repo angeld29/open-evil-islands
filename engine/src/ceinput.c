@@ -28,14 +28,22 @@
 
 // level 0 input API implementation
 
-bool ce_input_buttons[CE_IB_COUNT];
-ce_vec2 ce_input_mouse_offset;
+ce_input_context* ce_input_context_new(void)
+{
+	return ce_alloc_zero(sizeof(ce_input_context));
+}
+
+void ce_input_context_del(ce_input_context* context)
+{
+	ce_free(context, sizeof(ce_input_context));
+}
 
 // level 1 input API implementation
 
-ce_input_event_supply* ce_input_event_supply_new(void)
+ce_input_event_supply* ce_input_event_supply_new(const ce_input_context* context)
 {
 	ce_input_event_supply* supply = ce_alloc(sizeof(ce_input_event_supply));
+	supply->context = context;
 	supply->events = ce_vector_new();
 	return supply;
 }
@@ -84,12 +92,14 @@ static ce_input_event* ce_input_create_event(ce_input_event_supply* supply,
 // Button event
 
 typedef struct {
+	const ce_input_context* context;
 	ce_input_button button;
 } ce_input_event_button;
 
 static void ce_input_event_button_ctor(ce_input_event* event, va_list args)
 {
 	ce_input_event_button* button_event = (ce_input_event_button*)event->impl;
+	button_event->context = va_arg(args, const ce_input_context*);
 	button_event->button = va_arg(args, ce_input_button);
 }
 
@@ -97,7 +107,7 @@ static void ce_input_event_button_advance(ce_input_event* event, float elapsed)
 {
 	ce_unused(elapsed);
 	ce_input_event_button* button_event = (ce_input_event_button*)event->impl;
-	event->triggered = ce_input_buttons[button_event->button];
+	event->triggered = button_event->context->buttons[button_event->button];
 }
 
 static const ce_input_event_vtable ce_input_event_button_vtable = {
@@ -108,7 +118,7 @@ ce_input_event* ce_input_event_supply_button_event(ce_input_event_supply* supply
 													ce_input_button button)
 {
 	return ce_input_create_event(supply, ce_input_event_button_vtable,
-									sizeof(ce_input_event_button), button);
+		sizeof(ce_input_event_button), supply->context, button);
 }
 
 // Single Front event

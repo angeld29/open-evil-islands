@@ -23,6 +23,7 @@
 
 #include <stdbool.h>
 
+#include "ceinput.h"
 #include "cedisplay.h"
 #include "cecontext.h"
 
@@ -32,12 +33,13 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	int x, y, width, height, bpp, rate;
+	int width, height, bpp, rate;
 	ce_display_rotation rotation;
 	ce_display_reflection reflection;
 	bool fullscreen;
 	ce_displaymng* displaymng;
 	ce_context* context;
+	ce_input_context* input_context;
 	char impl[];
 } ce_renderwindow;
 

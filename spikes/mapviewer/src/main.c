@@ -297,7 +297,7 @@ int main(int argc, char* argv[])
 		fclose(file);
 	}*/
 
-	es = ce_input_event_supply_new();
+	es = ce_input_event_supply_new(ce_root.renderwindow->input_context);
 	toggle_bbox_event = ce_input_event_supply_single_front_event(es,
 					ce_input_event_supply_button_event(es, CE_KB_B));
 	anmfps_inc_event = ce_input_event_supply_button_event(es, CE_KB_ADD);
