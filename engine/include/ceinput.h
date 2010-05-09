@@ -21,9 +21,12 @@
 #ifndef CE_INPUT_H
 #define CE_INPUT_H
 
+#include <stddef.h>
+#include <stdarg.h>
 #include <stdbool.h>
 
 #include "cevec2.h"
+#include "cevector.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -144,78 +147,85 @@ typedef enum {
 	CE_IB_COUNT
 } ce_input_button;
 
+// level 0 input API
+
+extern bool ce_input_buttons[CE_IB_COUNT];
+extern ce_vec2 ce_input_mouse_offset;
+
+// level 1 input API - events
+
 typedef struct ce_input_event ce_input_event;
-typedef struct ce_input_event_supply ce_input_event_supply;
 
-// Level 0 input API.
+typedef struct {
+	void (*ctor)(ce_input_event* event, va_list args);
+	void (*dtor)(ce_input_event* event);
+	void (*advance)(ce_input_event* event, float elapsed);
+} ce_input_event_vtable;
 
-extern bool ce_input_init(void);
-extern void ce_input_term(void);
+struct ce_input_event {
+	bool triggered;
+	ce_input_event_vtable vtable;
+	size_t size;
+	char impl[];
+};
 
-extern bool ce_input_test(ce_input_button button);
-
-extern ce_vec2 ce_input_mouse_offset(void);
-
-extern void ce_input_advance(float elapsed);
-
-// Level 1 input API - events.
-
-extern bool ce_input_event_triggered(ce_input_event* ev);
+typedef struct {
+	ce_vector* events;
+} ce_input_event_supply;
 
 extern ce_input_event_supply* ce_input_event_supply_new(void);
-extern void ce_input_event_supply_del(ce_input_event_supply* es);
+extern void ce_input_event_supply_del(ce_input_event_supply* supply);
 
-extern void ce_input_event_supply_advance(ce_input_event_supply* es,
-														float elapsed);
+extern void ce_input_event_supply_advance(ce_input_event_supply* supply, float elapsed);
 
-// Button Event.
+// Button event
 
 extern ce_input_event*
-ce_input_event_supply_button_event(ce_input_event_supply* es,
+ce_input_event_supply_button_event(ce_input_event_supply* supply,
 									ce_input_button button);
 
-// Single Front Event.
+// Single Front event
 
 extern ce_input_event*
-ce_input_event_supply_single_front_event(ce_input_event_supply* es,
+ce_input_event_supply_single_front_event(ce_input_event_supply* supply,
 											ce_input_event* event);
 
-// Single Back Event.
+// Single Back event
 
 extern ce_input_event*
-ce_input_event_supply_single_back_event(ce_input_event_supply* es,
+ce_input_event_supply_single_back_event(ce_input_event_supply* supply,
 											ce_input_event* event);
 
-// AND Event.
+// AND event
 
 extern ce_input_event*
-ce_input_event_supply_and2_event(ce_input_event_supply* es,
+ce_input_event_supply_and2_event(ce_input_event_supply* supply,
 									ce_input_event* event1,
 									ce_input_event* event2);
 
 extern ce_input_event*
-ce_input_event_supply_and3_event(ce_input_event_supply* es,
+ce_input_event_supply_and3_event(ce_input_event_supply* supply,
 									ce_input_event* event1,
 									ce_input_event* event2,
 									ce_input_event* event3);
 
-// OR Event.
+// OR event
 
 extern ce_input_event*
-ce_input_event_supply_or2_event(ce_input_event_supply* es,
+ce_input_event_supply_or2_event(ce_input_event_supply* supply,
 									ce_input_event* event1,
 									ce_input_event* event2);
 
 extern ce_input_event*
-ce_input_event_supply_or3_event(ce_input_event_supply* es,
+ce_input_event_supply_or3_event(ce_input_event_supply* supply,
 									ce_input_event* event1,
 									ce_input_event* event2,
 									ce_input_event* event3);
 
-// Level 2 input API - shortcuts.
+// level 2 input API - shortcuts
 
 extern ce_input_event*
-ce_input_event_supply_shortcut(ce_input_event_supply* es,
+ce_input_event_supply_shortcut(ce_input_event_supply* supply,
 								const char* key_sequence);
 
 #ifdef __cplusplus

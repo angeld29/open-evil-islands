@@ -128,7 +128,6 @@ void ce_scenemng_advance(ce_scenemng* scenemng)
 
 	float elapsed = ce_timer_elapsed(scenemng->timer);
 
-	ce_input_advance(elapsed);
 	ce_fps_advance(scenemng->fps, elapsed);
 
 	/*ce_input_event_supply_advance(es, elapsed);

@@ -31,6 +31,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceinput.h"
 #include "cerenderwindow.h"
 
 #include "cedisplay_posix.h"
@@ -49,6 +50,11 @@ typedef enum {
 	CE_X11WINDOW_STATE_FULLSCREEN,
 	CE_X11WINDOW_STATE_COUNT
 } ce_x11window_state;
+
+typedef struct {
+	KeySym keysym;
+	ce_input_button button;
+} ce_x11keymap;
 
 typedef struct ce_x11window {
 	ce_renderwindow* renderwindow;
@@ -149,6 +155,13 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		x11window->mask[CE_X11WINDOW_STATE_WINDOW],
 		&x11window->attrs[CE_X11WINDOW_STATE_WINDOW]);
 
+	if (!ce_context_make_current(renderwindow->context, x11window->display,
+														x11window->window)) {
+		ce_logging_fatal("renderwindow: could not set context");
+		ce_renderwindow_del(renderwindow);
+		return NULL;
+	}
+
 	XSetStandardProperties(x11window->display, x11window->window,
 		title, title, None, NULL, 0, NULL);
 
@@ -158,12 +171,10 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	XMapRaised(x11window->display, x11window->window);
 
-	// XCreateWindow places window always in (0,0), so move manually
+	// x and y values in XCreateWindow are ignored by most windows managers,
+	// which means that top-level windows maybe placed somewhere else on the desktop
 	XMoveWindow(x11window->display, x11window->window,
 		renderwindow->x, renderwindow->y);
-
-	ce_context_make_current(renderwindow->context, x11window->display,
-													x11window->window);
 
 	return renderwindow;
 }

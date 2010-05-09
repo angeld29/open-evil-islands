@@ -23,6 +23,7 @@
 
 #include <stdbool.h>
 
+#include "ceinput.h"
 #include "cerenderwindow.h"
 #include "cerendersystem.h"
 #include "cescenemng.h"

@@ -46,8 +46,6 @@ bool ce_root_init(const char* ei_path)
 	ce_root.rendersystem = ce_rendersystem_new();
 	ce_root.scenemng = ce_scenemng_new(ei_path);
 
-	ce_input_init();
-
 	return ce_root_inited = true;
 }
 
@@ -55,8 +53,6 @@ void ce_root_term(void)
 {
 	assert(ce_root_inited && "the root subsystem has not yet been inited");
 	ce_root_inited = false;
-
-	ce_input_term();
 
 	ce_scenemng_del(ce_root.scenemng), ce_root.scenemng = NULL;
 	ce_rendersystem_del(ce_root.rendersystem), ce_root.rendersystem = NULL;
