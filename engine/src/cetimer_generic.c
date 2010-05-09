@@ -33,9 +33,7 @@ struct ce_timer {
 
 ce_timer* ce_timer_new(void)
 {
-	ce_timer* timer = ce_alloc(sizeof(ce_timer));
-	timer->start = clock();
-	return timer;
+	return ce_alloc(sizeof(ce_timer));
 }
 
 void ce_timer_del(ce_timer* timer)
@@ -43,11 +41,17 @@ void ce_timer_del(ce_timer* timer)
 	ce_free(timer, sizeof(ce_timer));
 }
 
-void ce_timer_advance(ce_timer* timer)
+void ce_timer_start(ce_timer* timer)
+{
+	timer->start = clock();
+}
+
+float ce_timer_advance(ce_timer* timer)
 {
 	timer->stop = clock();
 	timer->diff = (timer->stop - timer->start) * CE_TIMER_CLOCKS_PER_SEC_INV;
 	timer->start = timer->stop;
+	return timer->diff;
 }
 
 float ce_timer_elapsed(ce_timer* timer)

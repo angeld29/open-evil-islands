@@ -51,9 +51,7 @@ static void ce_timer_get_time_of_day(struct timeval* tv)
 
 ce_timer* ce_timer_new(void)
 {
-	ce_timer* timer = ce_alloc(sizeof(ce_timer));
-	ce_timer_get_time_of_day(&timer->start);
-	return timer;
+	return ce_alloc(sizeof(ce_timer));
 }
 
 void ce_timer_del(ce_timer* timer)
@@ -61,13 +59,19 @@ void ce_timer_del(ce_timer* timer)
 	ce_free(timer, sizeof(ce_timer));
 }
 
-void ce_timer_advance(ce_timer* timer)
+void ce_timer_start(ce_timer* timer)
+{
+	ce_timer_get_time_of_day(&timer->start);
+}
+
+float ce_timer_advance(ce_timer* timer)
 {
 	ce_timer_get_time_of_day(&timer->stop);
 	// WARNING: BSD extension, not POSIX!
 	timersub(&timer->stop, &timer->start, &timer->sub);
 	timer->diff = timer->sub.tv_sec + timer->sub.tv_usec * 1e-6f;
 	timer->start = timer->stop;
+	return timer->diff;
 }
 
 float ce_timer_elapsed(ce_timer* timer)

@@ -59,7 +59,6 @@ ce_timer* ce_timer_new(void)
 {
 	ce_timer* timer = ce_alloc(sizeof(ce_timer));
 	timer->frequency_inv = 1.0f / ce_timer_query_frequency();
-	ce_timer_query_counter(&timer->start);
 	return timer;
 }
 
@@ -68,12 +67,18 @@ void ce_timer_del(ce_timer* timer)
 	ce_free(timer, sizeof(ce_timer));
 }
 
-void ce_timer_advance(ce_timer* timer)
+void ce_timer_start(ce_timer* timer)
+{
+	ce_timer_query_counter(&timer->start);
+}
+
+float ce_timer_advance(ce_timer* timer)
 {
 	ce_timer_query_counter(&timer->stop);
 	timer->diff = (timer->stop.QuadPart -
 					timer->start.QuadPart) * timer->frequency_inv;
 	timer->start = timer->stop;
+	return timer->diff;
 }
 
 float ce_timer_elapsed(ce_timer* timer)
