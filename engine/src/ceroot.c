@@ -42,8 +42,17 @@ bool ce_root_init(const char* ei_path)
 
 	ce_systeminfo_display();
 
+	ce_root.timer = ce_timer_new();
 	ce_root.renderwindow = ce_renderwindow_new("Cursed Earth", 1024, 768);
 	ce_root.rendersystem = ce_rendersystem_new();
+
+	ce_root.event_supply = ce_input_event_supply_new(ce_root.renderwindow->input_context);
+	ce_root.exit_event = ce_input_event_supply_button(ce_root.event_supply, CE_KB_ESCAPE);
+	ce_root.toggle_window_event = ce_input_event_supply_single_front(ce_root.event_supply,
+		ce_input_event_supply_shortcut(ce_root.event_supply, "LAlt+Tab, RAlt+Tab"));
+	ce_root.toggle_fullscreen_event = ce_input_event_supply_single_front(ce_root.event_supply,
+		ce_input_event_supply_shortcut(ce_root.event_supply, "LAlt+Enter, RAlt+Enter"));
+
 	ce_root.scenemng = ce_scenemng_new(ei_path);
 
 	return ce_root_inited = true;
@@ -55,8 +64,10 @@ void ce_root_term(void)
 	ce_root_inited = false;
 
 	ce_scenemng_del(ce_root.scenemng), ce_root.scenemng = NULL;
+	ce_input_event_supply_del(ce_root.event_supply), ce_root.event_supply = NULL;
 	ce_rendersystem_del(ce_root.rendersystem), ce_root.rendersystem = NULL;
 	ce_renderwindow_del(ce_root.renderwindow), ce_root.renderwindow = NULL;
+	ce_timer_del(ce_root.timer), ce_root.timer = NULL;
 
 	ce_logging_term();
 	ce_alloc_term();
@@ -100,7 +111,21 @@ void ce_root_exec(void)
 	assert(ce_root_inited && "the root subsystem has not yet been inited");
 	ce_systemevent_register(ce_root_systemevent_handler);
 
+	ce_timer_start(ce_root.timer);
+
 	while (!ce_root_done && ce_renderwindow_pump(ce_root.renderwindow)) {
+		float elapsed = ce_timer_advance(ce_root.timer);
+
+		ce_input_event_supply_advance(ce_root.event_supply, elapsed);
+
+		if (ce_root.exit_event->triggered) {
+			break;
+		}
+
+		if (ce_root.toggle_fullscreen_event->triggered) {
+			ce_renderwindow_toggle_fullscreen(ce_root.renderwindow);
+		}
+
 		ce_scenemng_advance(ce_root.scenemng);
 		ce_scenemng_render(ce_root.scenemng);
 		ce_context_swap(ce_root.renderwindow->context);
