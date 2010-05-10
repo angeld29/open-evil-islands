@@ -26,7 +26,7 @@
 
 void ce_error_report_c_last(const char* module)
 {
-	ce_logging_error("%s: stub", module);
+	ce_logging_error("%s: %d stub", module, errno);
 }
 
 void ce_error_report_c_errno(int code, const char* module)
