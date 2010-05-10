@@ -297,12 +297,12 @@ static const char* ce_input_button_names[CE_IB_COUNT] = {
 	"lcontrol", "lmeta", "lalt", "space", "ralt", "rmeta", "menu", "rcontrol",
 	"print", "scrolllock", "pause",
 	"insert", "delete", "home", "end", "pageup", "pagedown",
-	"left", "up", "right", "down",
+	"arrowleft", "arrowup", "arrowright", "arrowdown",
 	"numlock", "divide", "multiply", "subtract", "add", "numpadenter",
 	"decimal",
 	"numpad7", "numpad8", "numpad9", "numpad4", "numpad5",
 	"numpad6", "numpad1", "numpad2", "numpad3", "numpad0",
-	"left", "middle", "right",
+	"mouseleft", "mousemiddle", "mouseright",
 	"wheelup", "wheeldown"
 };
 

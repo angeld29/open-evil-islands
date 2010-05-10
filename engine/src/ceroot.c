@@ -126,8 +126,9 @@ void ce_root_exec(void)
 			ce_renderwindow_toggle_fullscreen(ce_root.renderwindow);
 		}
 
-		ce_scenemng_advance(ce_root.scenemng);
+		ce_scenemng_advance(ce_root.scenemng, elapsed);
 		ce_scenemng_render(ce_root.scenemng);
+
 		ce_context_swap(ce_root.renderwindow->context);
 	}
 }

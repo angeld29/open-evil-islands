@@ -59,15 +59,22 @@ typedef struct {
 	ce_renderqueue* renderqueue;
 	ce_viewport* viewport;
 	ce_camera* camera;
-	ce_timer* timer;
 	ce_fps* fps;
 	ce_font* font;
+	ce_input_event_supply* event_supply;
+	ce_input_event* move_left_event;
+	ce_input_event* move_up_event;
+	ce_input_event* move_right_event;
+	ce_input_event* move_down_event;
+	ce_input_event* zoom_in_event;
+	ce_input_event* zoom_out_event;
+	ce_input_event* rotate_on_event;
 } ce_scenemng;
 
 extern ce_scenemng* ce_scenemng_new(const char* ei_path);
 extern void ce_scenemng_del(ce_scenemng* rendlayer);
 
-extern void ce_scenemng_advance(ce_scenemng* scenemng);
+extern void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed);
 extern void ce_scenemng_render(ce_scenemng* scenemng);
 
 extern ce_terrain*

@@ -57,9 +57,16 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	scenemng->renderqueue = ce_renderqueue_new();
 	scenemng->viewport = ce_viewport_new();
 	scenemng->camera = ce_camera_new();
-	scenemng->timer = ce_timer_new();
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
+	scenemng->event_supply = ce_input_event_supply_new(ce_root.renderwindow->input_context);
+	scenemng->move_left_event = ce_input_event_supply_shortcut(scenemng->event_supply, "ArrowLeft");
+	scenemng->move_up_event = ce_input_event_supply_shortcut(scenemng->event_supply, "ArrowUp");
+	scenemng->move_right_event = ce_input_event_supply_shortcut(scenemng->event_supply, "ArrowRight");
+	scenemng->move_down_event = ce_input_event_supply_shortcut(scenemng->event_supply, "ArrowDown");
+	scenemng->zoom_in_event = ce_input_event_supply_shortcut(scenemng->event_supply, "WheelUp");
+	scenemng->zoom_out_event = ce_input_event_supply_shortcut(scenemng->event_supply, "WheelDown");
+	scenemng->rotate_on_event = ce_input_event_supply_shortcut(scenemng->event_supply, "MouseRight");
 
 	ce_figmng_listener_vtable listener_vtable = {
 		ce_scenemng_figproto_created, NULL, NULL
@@ -90,12 +97,26 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	}
 
 	// FIXME: refactoring
-	//ce_input_event_supply* es;
+	//
 	//ce_input_event* toggle_bbox_event;
 	//es = ce_input_event_supply_new();
 	//toggle_bbox_event = ce_input_event_supply_single_front_event(es,
 	//				ce_input_event_supply_button_event(es, CE_KB_B));
-	//ce_input_event_supply_del(es);
+	//if (ce_input_event_triggered(toggle_bbox_event)) {
+	//	scenemng->show_bboxes = !scenemng->show_bboxes;
+	//}
+	/*if (ce_input_event_triggered(toggle_bbox_event)) {
+		if (scenemng->show_bboxes) {
+			if (scenemng->comprehensive_bbox_only) {
+				scenemng->comprehensive_bbox_only = false;
+			} else {
+				scenemng->show_bboxes = false;
+			}
+		} else {
+			scenemng->show_bboxes = true;
+			scenemng->comprehensive_bbox_only = true;
+		}
+	}*/
 
 	// FIXME: refactoring
 	ce_viewport_set_rect(scenemng->viewport, 0, 0, 1024, 768);
@@ -107,9 +128,9 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 void ce_scenemng_del(ce_scenemng* scenemng)
 {
 	if (NULL != scenemng) {
+		ce_input_event_supply_del(scenemng->event_supply);
 		ce_font_del(scenemng->font);
 		ce_fps_del(scenemng->fps);
-		ce_timer_del(scenemng->timer);
 		ce_camera_del(scenemng->camera);
 		ce_viewport_del(scenemng->viewport);
 		ce_renderqueue_del(scenemng->renderqueue);
@@ -122,49 +143,40 @@ void ce_scenemng_del(ce_scenemng* scenemng)
 	}
 }
 
-void ce_scenemng_advance(ce_scenemng* scenemng)
+void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 {
-	ce_timer_advance(scenemng->timer);
-
-	float elapsed = ce_timer_elapsed(scenemng->timer);
-
 	ce_fps_advance(scenemng->fps, elapsed);
+	ce_input_event_supply_advance(scenemng->event_supply, elapsed);
 
-	/*ce_input_event_supply_advance(es, elapsed);
-
-	if (ce_input_event_triggered(toggle_bbox_event)) {
-		scenemng->show_bboxes = !scenemng->show_bboxes;
-	}
-
-	if (ce_input_test(CE_KB_LEFT)) {
+	if (scenemng->move_left_event->triggered) {
 		ce_camera_move(scenemng->camera, -10.0f * elapsed, 0.0f);
 	}
 
-	if (ce_input_test(CE_KB_UP)) {
+	if (scenemng->move_up_event->triggered) {
 		ce_camera_move(scenemng->camera, 0.0f, 10.0f * elapsed);
 	}
 
-	if (ce_input_test(CE_KB_RIGHT)) {
+	if (scenemng->move_right_event->triggered) {
 		ce_camera_move(scenemng->camera, 10.0f * elapsed, 0.0f);
 	}
 
-	if (ce_input_test(CE_KB_DOWN)) {
+	if (scenemng->move_down_event->triggered) {
 		ce_camera_move(scenemng->camera, 0.0f, -10.0f * elapsed);
 	}
 
-	if (ce_input_test(CE_MB_WHEELUP)) {
+	if (scenemng->zoom_in_event->triggered) {
 		ce_camera_zoom(scenemng->camera, 5.0f);
 	}
 
-	if (ce_input_test(CE_MB_WHEELDOWN)) {
+	if (scenemng->zoom_out_event->triggered) {
 		ce_camera_zoom(scenemng->camera, -5.0f);
 	}
 
-	if (ce_input_test(CE_MB_RIGHT)) {
-		ce_vec2 offset = ce_input_mouse_offset();
-		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(-0.25f * offset.x),
-												ce_deg2rad(-0.25f * offset.y));
-	}*/
+	if (scenemng->rotate_on_event->triggered) {
+		ce_camera_yaw_pitch(scenemng->camera,
+			ce_deg2rad(-0.25f * scenemng->event_supply->context->pointer_offset.x),
+			ce_deg2rad(-0.25f * scenemng->event_supply->context->pointer_offset.y));
+	}
 }
 
 void ce_scenemng_render(ce_scenemng* scenemng)
@@ -184,7 +196,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	if (scenemng->scenenode_force_update) {
 		// big changes of the scene node tree - force update
 		ce_scenenode_update_force_cascade(scenemng->scenenode,
-			scenemng->anmfps, ce_timer_elapsed(scenemng->timer));
+			scenemng->anmfps, ce_timer_elapsed(ce_root.timer));
 		scenemng->scenenode_force_update = false;
 	} else {
 		ce_vec3 forward, right, up;
@@ -199,7 +211,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 		ce_rendersystem_begin_occlusion_test(ce_root.rendersystem);
 		ce_scenenode_update_cascade(scenemng->scenenode, ce_root.rendersystem,
-			&frustum, scenemng->anmfps, ce_timer_elapsed(scenemng->timer));
+			&frustum, scenemng->anmfps, ce_timer_elapsed(ce_root.timer));
 		ce_rendersystem_end_occlusion_test(ce_root.rendersystem);
 	}
 

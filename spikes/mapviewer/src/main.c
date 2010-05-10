@@ -44,10 +44,9 @@
 #define CE_SPIKE_VERSION_PATCH 0
 #endif
 
-static ce_input_event_supply* es;
-static ce_input_event* toggle_bbox_event;
-static ce_input_event* anmfps_inc_event;
-static ce_input_event* anmfps_dec_event;
+//static ce_input_event_supply* es;
+//static ce_input_event* anmfps_inc_event;
+//static ce_input_event* anmfps_dec_event;
 
 //static float anmfps_limit = 0.1f;
 //static float anmfps_inc_counter;
@@ -55,24 +54,9 @@ static ce_input_event* anmfps_dec_event;
 
 /*static void idle(void)
 {
-	ce_scenemng_advance(scenemng);
-
-	float elapsed = ce_timer_elapsed(scenemng->timer);
-
-	ce_input_event_supply_advance(es, elapsed);
-
-	if (ce_input_event_triggered(toggle_bbox_event)) {
-		if (scenemng->show_bboxes) {
-			if (scenemng->comprehensive_bbox_only) {
-				scenemng->comprehensive_bbox_only = false;
-			} else {
-				scenemng->show_bboxes = false;
-			}
-		} else {
-			scenemng->show_bboxes = true;
-			scenemng->comprehensive_bbox_only = true;
-		}
-	}
+	//es = ce_input_event_supply_new(ce_root.renderwindow->input_context);
+	//anmfps_inc_event = ce_input_event_supply_button(es, CE_KB_ADD);
+	//anmfps_dec_event = ce_input_event_supply_button(es, CE_KB_SUBTRACT);
 
 	anmfps_inc_counter += elapsed;
 	anmfps_dec_counter += elapsed;
@@ -90,42 +74,6 @@ static ce_input_event* anmfps_dec_event;
 	}
 
 	scenemng->anmfps = ce_fclamp(scenemng->anmfps, 1.0f, 50.0f);
-
-	if (ce_input_test(CE_KB_LEFT)) {
-		ce_camera_move(scenemng->camera, -10.0f * elapsed, 0.0f);
-	}
-
-	if (ce_input_test(CE_KB_UP)) {
-		ce_camera_move(scenemng->camera, 0.0f, 10.0f * elapsed);
-	}
-
-	if (ce_input_test(CE_KB_RIGHT)) {
-		ce_camera_move(scenemng->camera, 10.0f * elapsed, 0.0f);
-	}
-
-	if (ce_input_test(CE_KB_DOWN)) {
-		ce_camera_move(scenemng->camera, 0.0f, -10.0f * elapsed);
-	}
-
-	if (ce_input_test(CE_MB_WHEELUP)) {
-		ce_camera_zoom(scenemng->camera, 5.0f);
-	}
-
-	if (ce_input_test(CE_MB_WHEELDOWN)) {
-		ce_camera_zoom(scenemng->camera, -5.0f);
-	}
-
-	if (ce_input_test(CE_MB_RIGHT)) {
-		ce_vec2 offset = ce_input_mouse_offset();
-		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(-0.25f * offset.x),
-												ce_deg2rad(-0.25f * offset.y));
-	}
-}*/
-
-/*static void reshape(int width, int height)
-{
-	ce_viewport_set_rect(scenemng->viewport, 0, 0, width, height);
-	ce_camera_set_aspect(scenemng->camera, (float)width / height);
 }*/
 
 static void usage(const char* progname, void* argtable[])
@@ -297,18 +245,9 @@ int main(int argc, char* argv[])
 		fclose(file);
 	}*/
 
-	es = ce_input_event_supply_new(ce_root.renderwindow->input_context);
-	toggle_bbox_event = ce_input_event_supply_single_front(es,
-					ce_input_event_supply_button(es, CE_KB_B));
-	anmfps_inc_event = ce_input_event_supply_button(es, CE_KB_ADD);
-	anmfps_dec_event = ce_input_event_supply_button(es, CE_KB_SUBTRACT);
-
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	ce_root_exec();
-
-	ce_input_event_supply_del(es);
-
 	ce_root_term();
 
 	return EXIT_SUCCESS;

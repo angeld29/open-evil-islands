@@ -358,6 +358,14 @@ void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 {
 	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+	ce_input_context* input_context = x11window->renderwindow->input_context;
+
+	// reset pointer offset every frame
+	input_context->pointer_offset = CE_VEC2_ZERO;
+
+	// special case: reset wheel buttons, see ButtonRelease event
+	input_context->buttons[CE_MB_WHEELUP] = false;
+	input_context->buttons[CE_MB_WHEELDOWN] = false;
 
 	while (XPending(x11window->display) > 0) {
 		XEvent event;
@@ -466,6 +474,12 @@ static void ce_renderwindow_handler_button_press(ce_x11window* x11window, XEvent
 
 static void ce_renderwindow_handler_button_release(ce_x11window* x11window, XEvent* event)
 {
+	// special case: ignore wheel buttons, see renderwindow_pump
+	// ButtonRelease event has been arrived immediately after ButtonPress event
+	if (Button4 == event->xbutton.button || Button5 == event->xbutton.button) {
+		return;
+	}
+
 	ce_input_context* input_context = x11window->renderwindow->input_context;
 	input_context->buttons[event->xbutton.button - 1 + CE_MB_LEFT] = false;
 }
