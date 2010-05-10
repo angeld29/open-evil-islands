@@ -40,5 +40,6 @@ def configure(env):
 	gcc.configure(env)
 
 	env.AppendUnique(
-		CPPDEFINES=["WIN32_LEAN_AND_MEAN"],
+		CPPDEFINES=["WINVER=0x0501", # Windows XP
+					"WIN32_LEAN_AND_MEAN"],
 	)

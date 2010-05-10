@@ -32,7 +32,7 @@ def configure(env):
 	if env["PLATFORM"] != "posix":
 		ceerrors.interrupt("This host is available only on Linux.")
 
-	# Prefer MinGW on Linux for Windows.
+	# prefer MinGW on Linux for Windows
 	if not mingw.exists(env):
 		ceerrors.interrupt("Could not locate the mingw32 cross compiler. "
 			"Please, install 'mingw' package. On ubuntu, for example, install "
@@ -48,5 +48,6 @@ def configure(env):
 	gcc.configure(env)
 
 	env.AppendUnique(
-		CPPDEFINES=["WIN32_LEAN_AND_MEAN"],
+		CPPDEFINES=["WINVER=0x0501", # Windows XP
+					"WIN32_LEAN_AND_MEAN"],
 	)

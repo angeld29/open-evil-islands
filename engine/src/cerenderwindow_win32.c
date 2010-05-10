@@ -22,13 +22,8 @@
 #include <assert.h>
 
 #include <windows.h>
-
-// mouse wheel rotation stuff, only define if we are
-// on a version of the OS that does not support
-// WM_MOUSEWHEEL messages.
-#ifndef WM_MOUSEWHEEL
-#define WM_MOUSEWHEEL (WM_MOUSELAST + 1)
-#endif
+#include <windowsx.h>
+#include <ddk/hidusage.h>
 
 #include "celib.h"
 #include "cealloc.h"
@@ -38,16 +33,24 @@
 #include "cedisplay_win32.h"
 #include "cecontext_win32.h"
 
+enum {
+	CE_RENDERWINDOW_RID_KEYBOARD,
+	CE_RENDERWINDOW_RID_MOUSE,
+	CE_RENDERWINDOW_RID_COUNT
+};
+
 typedef struct ce_renderwindow_win {
 	ce_renderwindow* renderwindow;
 	HWND window;
 	void (*handlers[WM_USER])(struct ce_renderwindow_win*, WPARAM, LPARAM);
+	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
 } ce_renderwindow_win;
 
 static void ce_renderwindow_handler_skip(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_close(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_destroy(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_size(ce_renderwindow_win*, WPARAM, LPARAM);
+static void ce_renderwindow_handler_input(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_keydown(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_keyup(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_lbuttondown(ce_renderwindow_win*, WPARAM, LPARAM);
@@ -66,26 +69,42 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow) +
 													sizeof(ce_renderwindow_win));
 
-	ce_renderwindow_win* win_renderwindow = (ce_renderwindow_win*)renderwindow->impl;
-	win_renderwindow->renderwindow = renderwindow;
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+	winwindow->renderwindow = renderwindow;
 
 	for (int i = 0; i < WM_USER; ++i) {
-		win_renderwindow->handlers[i] = ce_renderwindow_handler_skip;
+		winwindow->handlers[i] = ce_renderwindow_handler_skip;
 	}
 
-	win_renderwindow->handlers[WM_CLOSE] = ce_renderwindow_handler_close;
-	win_renderwindow->handlers[WM_DESTROY] = ce_renderwindow_handler_destroy;
-	win_renderwindow->handlers[WM_SIZE] = ce_renderwindow_handler_size;
-	win_renderwindow->handlers[WM_KEYDOWN] = ce_renderwindow_handler_keydown;
-	win_renderwindow->handlers[WM_KEYUP] = ce_renderwindow_handler_keyup;
-	win_renderwindow->handlers[WM_LBUTTONDOWN] = ce_renderwindow_handler_lbuttondown;
-	win_renderwindow->handlers[WM_LBUTTONUP] = ce_renderwindow_handler_lbuttonup;
-	win_renderwindow->handlers[WM_MBUTTONDOWN] = ce_renderwindow_handler_mbuttondown;
-	win_renderwindow->handlers[WM_MBUTTONUP] = ce_renderwindow_handler_mbuttonup;
-	win_renderwindow->handlers[WM_RBUTTONDOWN] = ce_renderwindow_handler_rbuttondown;
-	win_renderwindow->handlers[WM_RBUTTONUP] = ce_renderwindow_handler_rbuttonup;
-	win_renderwindow->handlers[WM_MOUSEWHEEL] = ce_renderwindow_handler_mousewheel;
-	win_renderwindow->handlers[WM_MOUSEMOVE] = ce_renderwindow_handler_mousemove;
+	winwindow->handlers[WM_CLOSE] = ce_renderwindow_handler_close;
+	winwindow->handlers[WM_DESTROY] = ce_renderwindow_handler_destroy;
+	winwindow->handlers[WM_SIZE] = ce_renderwindow_handler_size;
+	winwindow->handlers[WM_INPUT] = ce_renderwindow_handler_input;
+	winwindow->handlers[WM_KEYDOWN] = ce_renderwindow_handler_keydown;
+	winwindow->handlers[WM_KEYUP] = ce_renderwindow_handler_keyup;
+	winwindow->handlers[WM_LBUTTONDOWN] = ce_renderwindow_handler_lbuttondown;
+	winwindow->handlers[WM_LBUTTONUP] = ce_renderwindow_handler_lbuttonup;
+	winwindow->handlers[WM_MBUTTONDOWN] = ce_renderwindow_handler_mbuttondown;
+	winwindow->handlers[WM_MBUTTONUP] = ce_renderwindow_handler_mbuttonup;
+	winwindow->handlers[WM_RBUTTONDOWN] = ce_renderwindow_handler_rbuttondown;
+	winwindow->handlers[WM_RBUTTONUP] = ce_renderwindow_handler_rbuttonup;
+	winwindow->handlers[WM_MOUSEWHEEL] = ce_renderwindow_handler_mousewheel;
+	winwindow->handlers[WM_MOUSEMOVE] = ce_renderwindow_handler_mousemove;
+
+	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].usUsagePage = HID_USAGE_PAGE_GENERIC;
+	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].usUsage = HID_USAGE_GENERIC_KEYBOARD;
+	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].dwFlags = RIDEV_NOLEGACY;
+	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].hwndTarget = NULL;
+
+	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].usUsagePage = HID_USAGE_PAGE_GENERIC;
+	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].usUsage = HID_USAGE_GENERIC_MOUSE;
+	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].dwFlags = RIDEV_NOLEGACY;
+	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].hwndTarget = NULL;
+
+	if (FALSE == RegisterRawInputDevices(winwindow->rid, 2, sizeof(RAWINPUTDEVICE))) {
+		ce_logging_error("renderwindow: could not register raw input devices");
+		ce_logging_warning("renderwindow: using event-driven input");
+	}
 
 	renderwindow->width = width;
 	renderwindow->height = height;
@@ -133,20 +152,20 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		renderwindow->height = rect.bottom - rect.top;
 	}
 
-	win_renderwindow->window = CreateWindowEx(extended_style,
+	winwindow->window = CreateWindowEx(extended_style,
 		wc.lpszClassName, title, style, CW_USEDEFAULT, CW_USEDEFAULT,
 		renderwindow->width, renderwindow->height,
 		HWND_DESKTOP, NULL, wc.hInstance, NULL);
 
-	if (NULL == win_renderwindow->window) {
+	if (NULL == winwindow->window) {
 		ce_logging_fatal("renderwindow: could not create window");
 		ce_renderwindow_del(renderwindow);
 		return NULL;
 	}
 
-	SetWindowLongPtr(win_renderwindow->window, GWLP_USERDATA, (LONG_PTR)win_renderwindow);
+	SetWindowLongPtr(winwindow->window, GWLP_USERDATA, (LONG_PTR)winwindow);
 
-	renderwindow->context = ce_context_create(GetDC(win_renderwindow->window));
+	renderwindow->context = ce_context_create(GetDC(winwindow->window));
 	if (NULL == renderwindow->context) {
 		ce_logging_fatal("renderwindow: could not create context");
 		ce_renderwindow_del(renderwindow);
@@ -165,10 +184,10 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 		ce_context_del(renderwindow->context);
 		ce_displaymng_del(renderwindow->displaymng);
 
-		ce_renderwindow_win* win_renderwindow = (ce_renderwindow_win*)renderwindow->impl;
-		if (NULL != win_renderwindow->window) {
-			ReleaseDC(win_renderwindow->window, GetDC(win_renderwindow->window));
-			DestroyWindow(win_renderwindow->window);
+		ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+		if (NULL != winwindow->window) {
+			ReleaseDC(winwindow->window, GetDC(winwindow->window));
+			DestroyWindow(winwindow->window);
 		}
 
 		UnregisterClass("cursedearth", GetModuleHandle(NULL));
@@ -178,13 +197,13 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 
 void ce_renderwindow_show(ce_renderwindow* renderwindow)
 {
-	ce_renderwindow_win* win_renderwindow = (ce_renderwindow_win*)renderwindow->impl;
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
-	ShowWindow(win_renderwindow->window, SW_SHOW);
-	UpdateWindow(win_renderwindow->window);
+	ShowWindow(winwindow->window, SW_SHOW);
+	UpdateWindow(winwindow->window);
 
-	SetForegroundWindow(win_renderwindow->window);
-	SetFocus(win_renderwindow->window);
+	SetForegroundWindow(winwindow->window);
+	SetFocus(winwindow->window);
 }
 
 void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
@@ -199,97 +218,146 @@ void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 
 void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 {
-	ce_unused(renderwindow);
-	MSG msg;
+	// reset pointer offset every frame
+	renderwindow->input_context->pointer_offset = CE_VEC2_ZERO;
 
+	// special case: reset wheel buttons
+	renderwindow->input_context->buttons[CE_MB_WHEELUP] = false;
+	renderwindow->input_context->buttons[CE_MB_WHEELDOWN] = false;
+
+	MSG msg;
 	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 }
 
-static void ce_renderwindow_handler_skip(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_skip(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_unused(winwindow), ce_unused(wparam), ce_unused(lparam);
 }
 
-static void ce_renderwindow_handler_close(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_close(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
 	ce_unused(wparam), ce_unused(lparam);
-	ce_renderwindow_emit_closed(renderwindow->renderwindow);
+	ce_renderwindow_emit_closed(winwindow->renderwindow);
 }
 
-static void ce_renderwindow_handler_destroy(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_destroy(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_unused(winwindow), ce_unused(wparam), ce_unused(lparam);
 	PostQuitMessage(0);
 }
 
-static void ce_renderwindow_handler_size(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_size(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
 	ce_unused(wparam);
-	renderwindow->renderwindow->width = LOWORD(lparam);
-	renderwindow->renderwindow->height = HIWORD(lparam);
+	winwindow->renderwindow->width = LOWORD(lparam);
+	winwindow->renderwindow->height = HIWORD(lparam);
 }
 
-static void ce_renderwindow_handler_keydown(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_input(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_unused(winwindow), ce_unused(wparam), ce_unused(lparam);
+	printf("ce_renderwindow_handler_input\n");
+
+	UINT size;
+	GetRawInputData((HRAWINPUT)lparam, RID_INPUT, NULL, &size, sizeof(RAWINPUTHEADER));
+
+	LPBYTE lpb = ce_alloc(size);
+	GetRawInputData((HRAWINPUT)lparam, RID_INPUT, lpb, &size, sizeof(RAWINPUTHEADER));
+
+	RAWINPUT* raw = (RAWINPUT*)lpb;
+
+	if (raw->header.dwType == RIM_TYPEKEYBOARD) {
+		//raw->data.keyboard.MakeCode;
+		//raw->data.keyboard.Message;
+		//raw->data.keyboard.VKey;
+	} else if (raw->header.dwType == RIM_TYPEMOUSE) {
+		//raw->data.mouse.usFlags;
+		//raw->data.mouse.usButtonFlags;
+		//raw->data.mouse.usButtonData;
+		//raw->data.mouse.ulRawButtons;
+		//raw->data.mouse.lLastX;
+		//raw->data.mouse.lLastY;
+	}
+
+	ce_free(lpb, size);
 }
 
-static void ce_renderwindow_handler_keyup(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_keydown(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_unused(winwindow), ce_unused(wparam), ce_unused(lparam);
 }
 
-static void ce_renderwindow_handler_lbuttondown(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_keyup(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_unused(winwindow), ce_unused(wparam), ce_unused(lparam);
 }
 
-static void ce_renderwindow_handler_lbuttonup(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_button(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam, ce_input_button button, bool pressed)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_unused(wparam);
+	ce_input_context* input_context = winwindow->renderwindow->input_context;
+	input_context->pointer_position.x = GET_X_LPARAM(lparam);
+	input_context->pointer_position.y = GET_Y_LPARAM(lparam);
+	input_context->buttons[button] = pressed;
 }
 
-static void ce_renderwindow_handler_mbuttondown(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_lbuttondown(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_renderwindow_handler_button(winwindow, wparam, lparam, CE_MB_LEFT, true);
 }
 
-static void ce_renderwindow_handler_mbuttonup(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_lbuttonup(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_renderwindow_handler_button(winwindow, wparam, lparam, CE_MB_LEFT, false);
 }
 
-static void ce_renderwindow_handler_rbuttondown(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_mbuttondown(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_renderwindow_handler_button(winwindow, wparam, lparam, CE_MB_MIDDLE, true);
 }
 
-static void ce_renderwindow_handler_rbuttonup(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_mbuttonup(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_renderwindow_handler_button(winwindow, wparam, lparam, CE_MB_MIDDLE, false);
 }
 
-static void ce_renderwindow_handler_mousewheel(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_rbuttondown(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_renderwindow_handler_button(winwindow, wparam, lparam, CE_MB_RIGHT, true);
 }
 
-static void ce_renderwindow_handler_mousemove(ce_renderwindow_win* renderwindow, WPARAM wparam, LPARAM lparam)
+static void ce_renderwindow_handler_rbuttonup(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_renderwindow_handler_button(winwindow, wparam, lparam, CE_MB_RIGHT, false);
+}
+
+static void ce_renderwindow_handler_mousewheel(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
+{
+	ce_renderwindow_handler_button(winwindow, wparam, lparam, (ce_input_button[])
+		{ CE_MB_WHEELUP, CE_MB_WHEELDOWN }[GET_WHEEL_DELTA_WPARAM(wparam) < 0], true);
+}
+
+static void ce_renderwindow_handler_mousemove(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
+{
+	ce_unused(wparam);
+	ce_input_context* input_context = winwindow->renderwindow->input_context;
+	input_context->pointer_offset.x = GET_X_LPARAM(lparam) - input_context->pointer_position.x;
+	input_context->pointer_offset.y = GET_Y_LPARAM(lparam) - input_context->pointer_position.y;
+	input_context->pointer_position.x = GET_X_LPARAM(lparam);
+	input_context->pointer_position.y = GET_Y_LPARAM(lparam);
 }
 
 static LRESULT CALLBACK ce_renderwindow_proc(HWND window, UINT message,
 											WPARAM wparam, LPARAM lparam)
 {
-	ce_renderwindow_win* renderwindow =
+	ce_renderwindow_win* winwindow =
 		(ce_renderwindow_win*)GetWindowLongPtr(window, GWLP_USERDATA);
 
-	if (NULL != renderwindow && message < WM_USER) {
-		(*renderwindow->handlers[message])(renderwindow, wparam, lparam);
+	if (NULL != winwindow && message < WM_USER) {
+		(*winwindow->handlers[message])(winwindow, wparam, lparam);
 	}
 
 	return DefWindowProc(window, message, wparam, lparam);
