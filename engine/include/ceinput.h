@@ -151,7 +151,8 @@ typedef enum {
 
 typedef struct {
 	bool buttons[CE_IB_COUNT];
-	ce_vec2 mouse_offset;
+	ce_vec2 pointer_position;
+	ce_vec2 pointer_offset;
 } ce_input_context;
 
 extern ce_input_context* ce_input_context_new(void);
@@ -194,39 +195,39 @@ ce_input_event_supply_button(ce_input_event_supply* supply,
 
 extern ce_input_event*
 ce_input_event_supply_single_front(ce_input_event_supply* supply,
-										ce_input_event* event);
+									const ce_input_event* event);
 
 // Single Back event
 
 extern ce_input_event*
 ce_input_event_supply_single_back(ce_input_event_supply* supply,
-										ce_input_event* event);
+									const ce_input_event* event);
 
 // AND event
 
 extern ce_input_event*
 ce_input_event_supply_and2(ce_input_event_supply* supply,
-								ce_input_event* event1,
-								ce_input_event* event2);
+							const ce_input_event* event1,
+							const ce_input_event* event2);
 
 extern ce_input_event*
 ce_input_event_supply_and3(ce_input_event_supply* supply,
-								ce_input_event* event1,
-								ce_input_event* event2,
-								ce_input_event* event3);
+							const ce_input_event* event1,
+							const ce_input_event* event2,
+							const ce_input_event* event3);
 
 // OR event
 
 extern ce_input_event*
 ce_input_event_supply_or2(ce_input_event_supply* supply,
-								ce_input_event* event1,
-								ce_input_event* event2);
+							const ce_input_event* event1,
+							const ce_input_event* event2);
 
 extern ce_input_event*
 ce_input_event_supply_or3(ce_input_event_supply* supply,
-								ce_input_event* event1,
-								ce_input_event* event2,
-								ce_input_event* event3);
+							const ce_input_event* event1,
+							const ce_input_event* event2,
+							const ce_input_event* event3);
 
 // level 2 input API - shortcuts
 

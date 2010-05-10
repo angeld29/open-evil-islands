@@ -441,6 +441,8 @@ static void ce_renderwindow_handler_button_release(ce_x11window* x11window, XEve
 static void ce_renderwindow_handler_motion_notify(ce_x11window* x11window, XEvent* event)
 {
 	ce_input_context* input_context = x11window->renderwindow->input_context;
-	input_context->mouse_offset.x = event->xmotion.x;
-	input_context->mouse_offset.y = event->xmotion.y;
+	input_context->pointer_offset.x = event->xmotion.x - input_context->pointer_position.x;
+	input_context->pointer_offset.y = event->xmotion.y - input_context->pointer_position.y;
+	input_context->pointer_position.x = event->xmotion.x;
+	input_context->pointer_position.y = event->xmotion.y;
 }
