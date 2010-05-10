@@ -194,8 +194,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	ce_x11keymap_sort(x11window->keymap);
 
-	for (size_t i = 0; i < sizeof(x11window->handlers) /
-							sizeof(x11window->handlers[0]); ++i) {
+	for (int i = 0; i < LASTEvent; ++i) {
 		x11window->handlers[i] = ce_renderwindow_handler_skip;
 	}
 
@@ -378,11 +377,13 @@ void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 		XEvent event;
 		XNextEvent(x11window->display, &event);
 
-		assert(0 <= event.type &&
-			(size_t)event.type < sizeof(x11window->handlers) /
-									sizeof(x11window->handlers[0]));
+		// is it possible? may be new version of the X server...
+		assert(0 <= event.type && event.type < LASTEvent);
 
-		(*x11window->handlers[event.type])(x11window, &event);
+		// just in case
+		if (event.type < LASTEvent) {
+			(*x11window->handlers[event.type])(x11window, &event);
+		}
 	}
 }
 
@@ -496,7 +497,7 @@ static void ce_renderwindow_handler_button_release(ce_x11window* x11window, XEve
 	input_context->pointer_position.y = event->xbutton.y;
 
 	// special case: ignore wheel buttons, see renderwindow_pump
-	// ButtonRelease event has been arrived immediately after ButtonPress event
+	// ButtonRelease event arrives immediately after ButtonPress event
 	if (Button4 == event->xbutton.button || Button5 == event->xbutton.button) {
 		return;
 	}
