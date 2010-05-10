@@ -44,12 +44,6 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	bool show_axes;
-	bool show_bboxes;
-	bool comprehensive_bbox_only;
-	bool terrain_tiling;
-	int thread_count;
-	float anmfps;
 	bool scenenode_force_update;
 	ce_scenenode* scenenode;
 	ce_texmng* texmng;

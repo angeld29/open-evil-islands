@@ -35,6 +35,12 @@ extern "C"
 #endif /* __cplusplus */
 
 extern struct ce_root {
+	bool show_axes;
+	bool show_bboxes;
+	bool comprehensive_bbox_only;
+	bool terrain_tiling;
+	int thread_count;
+	float anmfps;
 	ce_timer* timer;
 	ce_renderwindow* renderwindow;
 	ce_rendersystem* rendersystem;
@@ -42,6 +48,7 @@ extern struct ce_root {
 	ce_input_event* exit_event;
 	ce_input_event* switch_window_event;
 	ce_input_event* toggle_fullscreen_event;
+	ce_input_event* toggle_bbox_event;
 	ce_scenemng* scenemng;
 } ce_root;
 

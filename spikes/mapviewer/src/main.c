@@ -151,17 +151,18 @@ int main(int argc, char* argv[])
 
 	ce_root_init(ei_path->sval[0]);
 
+	// FIXME: move to root
 	if (0 != terrain_tiling->count) {
-		ce_root.scenemng->terrain_tiling = true;
+		ce_root.terrain_tiling = true;
 	}
 
 	if (0 != jobs->count) {
-		ce_root.scenemng->thread_count = jobs->ival[0];
+		ce_root.thread_count = jobs->ival[0];
 	}
 
-	ce_logging_write("scenemng: using up to %d threads", ce_root.scenemng->thread_count);
-	ce_logging_write("scenemng: terrain tiling %s",
-		ce_root.scenemng->terrain_tiling ? "enabled" : "disabled");
+	ce_logging_write("root: using up to %d threads", ce_root.thread_count);
+	ce_logging_write("root: terrain tiling %s",
+		ce_root.terrain_tiling ? "enabled" : "disabled");
 
 	if (NULL == ce_scenemng_create_terrain(ce_root.scenemng, zone->sval[0],
 					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {

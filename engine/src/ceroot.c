@@ -24,6 +24,7 @@
 
 #include "cealloc.h"
 #include "celogging.h"
+#include "cethread.h"
 #include "cesysteminfo.h"
 #include "cesystemevent.h"
 #include "ceroot.h"
@@ -42,6 +43,12 @@ bool ce_root_init(const char* ei_path)
 
 	ce_systeminfo_display();
 
+	ce_root.show_axes = true;
+	ce_root.show_bboxes = false;
+	ce_root.comprehensive_bbox_only = true;
+	ce_root.terrain_tiling = false;
+	ce_root.thread_count = ce_thread_online_cpu_count();
+	ce_root.anmfps = 15.0f;
 	ce_root.timer = ce_timer_new();
 	ce_root.renderwindow = ce_renderwindow_new("Cursed Earth", 1024, 768);
 	ce_root.rendersystem = ce_rendersystem_new();
@@ -52,6 +59,8 @@ bool ce_root_init(const char* ei_path)
 		ce_input_event_supply_shortcut(ce_root.event_supply, "LAlt+Tab, RAlt+Tab"));
 	ce_root.toggle_fullscreen_event = ce_input_event_supply_single_front(ce_root.event_supply,
 		ce_input_event_supply_shortcut(ce_root.event_supply, "LAlt+Enter, RAlt+Enter"));
+	ce_root.toggle_bbox_event = ce_input_event_supply_single_front(ce_root.event_supply,
+		ce_input_event_supply_shortcut(ce_root.event_supply, "B"));
 
 	ce_root.scenemng = ce_scenemng_new(ei_path);
 
@@ -132,6 +141,19 @@ void ce_root_exec(void)
 
 		if (ce_root.toggle_fullscreen_event->triggered) {
 			ce_renderwindow_toggle_fullscreen(ce_root.renderwindow);
+		}
+
+		if (ce_root.toggle_bbox_event->triggered) {
+			if (ce_root.show_bboxes) {
+				if (ce_root.comprehensive_bbox_only) {
+					ce_root.comprehensive_bbox_only = false;
+				} else {
+					ce_root.show_bboxes = false;
+				}
+			} else {
+				ce_root.show_bboxes = true;
+				ce_root.comprehensive_bbox_only = true;
+			}
 		}
 
 		ce_scenemng_advance(ce_root.scenemng, elapsed);

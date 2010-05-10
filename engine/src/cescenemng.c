@@ -26,7 +26,6 @@
 #include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
-#include "cethread.h"
 #include "cemprhlp.h"
 #include "cefrustum.h"
 #include "cebytefmt.h"
@@ -44,12 +43,6 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	ce_logging_write("scenemng: root path: '%s'", ei_path);
 
 	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
-	scenemng->show_axes = true;
-	scenemng->show_bboxes = false;
-	scenemng->comprehensive_bbox_only = true;
-	scenemng->terrain_tiling = false;
-	scenemng->thread_count = ce_thread_online_cpu_count();
-	scenemng->anmfps = 15.0f;
 	scenemng->scenenode_force_update = false;
 	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->terrain = NULL;
@@ -95,28 +88,6 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 		snprintf(path, sizeof(path), "%s/Res/%s.res", ei_path, figure_resources[i]);
 		ce_figmng_register_resource(scenemng->figmng, path);
 	}
-
-	// FIXME: refactoring
-	//
-	//ce_input_event* toggle_bbox_event;
-	//es = ce_input_event_supply_new();
-	//toggle_bbox_event = ce_input_event_supply_single_front_event(es,
-	//				ce_input_event_supply_button_event(es, CE_KB_B));
-	//if (ce_input_event_triggered(toggle_bbox_event)) {
-	//	scenemng->show_bboxes = !scenemng->show_bboxes;
-	//}
-	/*if (ce_input_event_triggered(toggle_bbox_event)) {
-		if (scenemng->show_bboxes) {
-			if (scenemng->comprehensive_bbox_only) {
-				scenemng->comprehensive_bbox_only = false;
-			} else {
-				scenemng->show_bboxes = false;
-			}
-		} else {
-			scenemng->show_bboxes = true;
-			scenemng->comprehensive_bbox_only = true;
-		}
-	}*/
 
 	return scenemng;
 }
@@ -187,7 +158,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_rendersystem_setup_viewport(ce_root.rendersystem, scenemng->viewport);
 	ce_rendersystem_setup_camera(ce_root.rendersystem, scenemng->camera);
 
-	if (scenemng->show_axes) {
+	if (ce_root.show_axes) {
 		ce_rendersystem_draw_axes(ce_root.rendersystem);
 	}
 
@@ -197,7 +168,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	if (scenemng->scenenode_force_update) {
 		// big changes of the scene node tree - force update
 		ce_scenenode_update_force_cascade(scenemng->scenenode,
-			scenemng->anmfps, ce_timer_elapsed(ce_root.timer));
+			ce_root.anmfps, ce_timer_elapsed(ce_root.timer));
 		scenemng->scenenode_force_update = false;
 	} else {
 		ce_vec3 forward, right, up;
@@ -212,15 +183,15 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 		ce_rendersystem_begin_occlusion_test(ce_root.rendersystem);
 		ce_scenenode_update_cascade(scenemng->scenenode, ce_root.rendersystem,
-			&frustum, scenemng->anmfps, ce_timer_elapsed(ce_root.timer));
+			&frustum, ce_root.anmfps, ce_timer_elapsed(ce_root.timer));
 		ce_rendersystem_end_occlusion_test(ce_root.rendersystem);
 	}
 
-	if (scenemng->show_bboxes) {
+	if (ce_root.show_bboxes) {
 		ce_rendersystem_apply_color(ce_root.rendersystem, &CE_COLOR_BLUE);
 		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,
 										ce_root.rendersystem,
-										scenemng->comprehensive_bbox_only);
+										ce_root.comprehensive_bbox_only);
 	}
 
 #if 0
@@ -282,8 +253,8 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 	}
 
 	ce_terrain_del(scenemng->terrain);
-	scenemng->terrain = ce_terrain_new(mprfile, scenemng->terrain_tiling,
-		scenemng->texmng, scenemng->thread_count,
+	scenemng->terrain = ce_terrain_new(mprfile, ce_root.terrain_tiling,
+		scenemng->texmng, ce_root.thread_count,
 		scenemng->renderqueue, position, orientation, scenenode);
 
 	scenemng->scenenode_force_update = true;
