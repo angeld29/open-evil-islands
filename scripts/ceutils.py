@@ -52,10 +52,9 @@ def filter_sources(env, nodes):
 						"graphics library", "generic")[priority],
 						", ".join(node.name for node in values))
 			values.remove(node)
-			for node in values:
-				nodes.remove(node)
 		else:
-			ceerrors.interrupt("Can't deduct platform-depended "
-								"file for '%s', searched in '%s'", name,
-								", ".join(node.name for node in values))
+			logging.warning("could not deduct platform-depended file "
+				"'%s' [%s]", name, ", ".join(node.name for node in values))
+		for node in values:
+			nodes.remove(node)
 	return nodes

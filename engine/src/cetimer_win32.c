@@ -26,8 +26,9 @@
 
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceerror.h"
 #include "cetimer.h"
+
+#include "ceerror_win32.h"
 
 typedef struct {
 	float frequency_inv;
@@ -41,9 +42,8 @@ static LONGLONG ce_timer_query_frequency(void)
 	if (QueryPerformanceFrequency(&frequency)) {
 		return frequency.QuadPart;
 	}
-	ce_error_report_last_windows_error("timer", __func__,
-										"QueryPerformanceFrequency failed");
-	ce_logging_warning("timer: %s: using default frequency", __func__);
+	ce_error_report_windows_last("timer");
+	ce_logging_warning("timer: using default frequency");
 	return 1000000;
 }
 

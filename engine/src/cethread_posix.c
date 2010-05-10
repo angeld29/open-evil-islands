@@ -33,11 +33,11 @@
 #include <pthread.h>
 
 #ifndef _SC_NPROCESSORS_ONLN
-#  ifdef _SC_NPROC_ONLN
-#    define _SC_NPROCESSORS_ONLN _SC_NPROC_ONLN
-#  elif defined _SC_CRAY_NCPU
-#    define _SC_NPROCESSORS_ONLN _SC_CRAY_NCPU
-#  endif
+#ifdef _SC_NPROC_ONLN
+#define _SC_NPROCESSORS_ONLN _SC_NPROC_ONLN
+#elif defined _SC_CRAY_NCPU
+#define _SC_NPROCESSORS_ONLN _SC_CRAY_NCPU
+#endif
 #endif
 
 #include "celib.h"
@@ -79,8 +79,7 @@ ce_thread* ce_thread_new(void (*func)(void*), void* arg)
 	int code = pthread_create(&thread->thread,
 		NULL, ce_thread_func_wrap, &thread->cookie);
 	if (0 != code) {
-		ce_error_report_last_c_error(code, "thread", __func__,
-									"pthread_create failed");
+		ce_error_report_c_errno(code, "thread");
 	}
 	return thread;
 }
@@ -96,8 +95,7 @@ void ce_thread_wait(ce_thread* thread)
 {
 	int code = pthread_join(thread->thread, NULL);
 	if (0 != code) {
-		ce_error_report_last_c_error(code, "thread", __func__,
-									"pthread_join failed");
+		ce_error_report_c_errno(code, "thread");
 	}
 }
 
@@ -193,8 +191,7 @@ void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex)
 		assert(cond->wakeup_count > 0 && "internal error");
 		--cond->wakeup_count;
 	} else {
-		ce_error_report_last_c_error(code, "thread", __func__,
-									"pthread_cond_wait failed");
+		ce_error_report_c_errno(code, "thread");
 	}
 
 	pthread_mutex_unlock(&cond->mutex);

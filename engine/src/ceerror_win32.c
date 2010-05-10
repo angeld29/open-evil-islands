@@ -23,9 +23,9 @@
 #include "celogging.h"
 #include "ceerror.h"
 
-void ce_error_report_last_windows_error(const char* module,
-										const char* func,
-										const char* error)
+#include "ceerror_win32.h"
+
+void ce_error_report_windows_last(const char* module)
 {
 	LPVOID buffer = NULL;
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -34,6 +34,6 @@ void ce_error_report_last_windows_error(const char* module,
 					NULL, GetLastError(),
 					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 					(LPTSTR)&buffer, 0, NULL);
-	ce_logging_error("%s: %s: %s: %s", module, func, error, buffer);
+	ce_logging_error("%s: %s", module, buffer);
 	LocalFree(buffer);
 }

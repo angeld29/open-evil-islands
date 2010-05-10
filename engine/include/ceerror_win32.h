@@ -18,19 +18,18 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_ERROR_H
-#define CE_ERROR_H
+#ifndef CE_ERROR_PLATFORM_H
+#define CE_ERROR_PLATFORM_H
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-extern void ce_error_report_c_last(const char* module);
-extern void ce_error_report_c_errno(int code, const char* module);
+extern void ce_error_report_windows_last(const char* module);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_ERROR_H */
+#endif /* CE_ERROR_PLATFORM_H */

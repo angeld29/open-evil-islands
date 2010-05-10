@@ -32,9 +32,10 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceerror.h"
 #include "cevector.h"
 #include "cethread.h"
+
+#include "ceerror_win32.h"
 
 int ce_thread_online_cpu_count(void)
 {
@@ -72,8 +73,7 @@ ce_thread* ce_thread_new(void (*func)(void*), void* arg)
 								0,      // default creation flags
 								NULL);  // no thread identifier
 	if (NULL == thread->thread) {
-		ce_error_report_last_windows_error("thread", __func__,
-											"CreateThread failed");
+		ce_error_report_windows_last("thread");
 	}
 	return thread;
 }
@@ -89,8 +89,7 @@ void ce_thread_del(ce_thread* thread)
 void ce_thread_wait(ce_thread* thread)
 {
 	if (WAIT_OBJECT_0 != WaitForSingleObject(thread->thread, INFINITE)) {
-		ce_error_report_last_windows_error("thread", __func__,
-											"WaitForSingleObject failed");
+		ce_error_report_windows_last("thread");
 	}
 }
 
@@ -139,8 +138,7 @@ static ce_thread_cond_event* ce_thread_cond_event_new(void)
 								FALSE, // initial state is nonsignaled
 								NULL); // unnamed
 	if (NULL == event->event) {
-		ce_error_report_last_windows_error("thread", __func__,
-											"CreateEvent failed");
+		ce_error_report_windows_last("thread");
 	}
 	return event;
 }
@@ -232,8 +230,7 @@ void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex)
 
 	ce_thread_mutex_unlock(mutex);
 	if (WAIT_OBJECT_0 != WaitForSingleObject(event->event, INFINITE)) {
-		ce_error_report_last_windows_error("thread", __func__,
-											"WaitForSingleObject failed");
+		ce_error_report_windows_last("thread");
 	}
 	ce_thread_mutex_lock(mutex);
 
