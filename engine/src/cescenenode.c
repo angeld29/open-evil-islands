@@ -24,14 +24,15 @@
 
 #include "celib.h"
 #include "cealloc.h"
+#include "ceroot.h"
 #include "cescenenode.h"
 
 ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 {
 	ce_scenenode* scenenode = ce_alloc_zero(sizeof(ce_scenenode));
+	scenenode->culled = true;
 	scenenode->position = CE_VEC3_ZERO;
 	scenenode->orientation = CE_QUAT_IDENTITY;
-	scenenode->culled = true;
 	scenenode->renderitems = ce_vector_new();
 	scenenode->occlusion = NULL;
 	scenenode->listener = NULL;
@@ -164,20 +165,17 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 	}
 }
 
-void ce_scenenode_update_force_cascade(ce_scenenode* scenenode,
-										float anmfps, float elapsed)
+void ce_scenenode_update_force_cascade(ce_scenenode* scenenode)
 {
 	scenenode->culled = false;
 
 	if (NULL != scenenode->listener_vtable.about_to_update) {
-		(*scenenode->listener_vtable.about_to_update)
-				(scenenode->listener, anmfps, elapsed);
+		(*scenenode->listener_vtable.about_to_update)(scenenode->listener);
 	}
 
 	ce_scenenode_update_transform(scenenode);
 	for (int i = 0; i < scenenode->childs->count; ++i) {
-		ce_scenenode_update_force_cascade(
-			scenenode->childs->items[i], anmfps, elapsed);
+		ce_scenenode_update_force_cascade(scenenode->childs->items[i]);
 	}
 	ce_scenenode_update_bounds(scenenode);
 
@@ -186,10 +184,7 @@ void ce_scenenode_update_force_cascade(ce_scenenode* scenenode,
 	}
 }
 
-void ce_scenenode_update_cascade(ce_scenenode* scenenode,
-								ce_rendersystem* rendersystem,
-								const ce_frustum* frustum,
-								float anmfps, float elapsed)
+void ce_scenenode_update_cascade(ce_scenenode* scenenode, const ce_frustum* frustum)
 {
 	// try to cull scene node BEFORE update for performance reasons
 	// rendering defects are possible, such as culling partially visible objects
@@ -201,19 +196,17 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode,
 	if (!scenenode->culled && NULL != scenenode->occlusion) {
 		scenenode->culled = !ce_occlusion_query(scenenode->occlusion,
 												&scenenode->world_bbox,
-												rendersystem);
+												ce_root.rendersystem);
 	}
 
 	if (!scenenode->culled) {
 		if (NULL != scenenode->listener_vtable.about_to_update) {
-			(*scenenode->listener_vtable.about_to_update)
-					(scenenode->listener, anmfps, elapsed);
+			(*scenenode->listener_vtable.about_to_update)(scenenode->listener);
 		}
 
 		ce_scenenode_update_transform(scenenode);
 		for (int i = 0; i < scenenode->childs->count; ++i) {
-			ce_scenenode_update_cascade(scenenode->childs->items[i],
-				rendersystem, frustum, anmfps, elapsed);
+			ce_scenenode_update_cascade(scenenode->childs->items[i], frustum);
 		}
 		ce_scenenode_update_bounds(scenenode);
 
@@ -223,32 +216,28 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode,
 	}
 }
 
-static void ce_scenenode_draw_bbox(ce_rendersystem* rendersystem,
-									const ce_bbox* bbox)
+static void ce_scenenode_draw_bbox(const ce_bbox* bbox)
 {
-	ce_rendersystem_apply_transform(rendersystem,
+	ce_rendersystem_apply_transform(ce_root.rendersystem,
 		&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
-	ce_rendersystem_draw_wire_cube(rendersystem);
-	ce_rendersystem_discard_transform(rendersystem);
+	ce_rendersystem_draw_wire_cube(ce_root.rendersystem);
+	ce_rendersystem_discard_transform(ce_root.rendersystem);
 }
 
-void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
-								ce_rendersystem* rendersystem,
-								bool comprehensive_only)
+void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode)
 {
 	if (!scenenode->culled) {
-		ce_scenenode_draw_bbox(rendersystem, &scenenode->world_bbox);
+		ce_scenenode_draw_bbox(&scenenode->world_bbox);
 
-		if (!comprehensive_only) {
+		if (!ce_root.comprehensive_bbox_only) {
 			for (int i = 0; i < scenenode->renderitems->count; ++i) {
 				ce_renderitem* renderitem = scenenode->renderitems->items[i];
-				ce_scenenode_draw_bbox(rendersystem, &renderitem->world_bbox);
+				ce_scenenode_draw_bbox(&renderitem->world_bbox);
 			}
 		}
 
 		for (int i = 0; i < scenenode->childs->count; ++i) {
-			ce_scenenode_draw_bboxes_cascade(scenenode->childs->items[i],
-											rendersystem, comprehensive_only);
+			ce_scenenode_draw_bboxes_cascade(scenenode->childs->items[i]);
 		}
 	}
 }

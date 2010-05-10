@@ -23,17 +23,16 @@
 
 #include "celib.h"
 #include "cealloc.h"
+#include "ceroot.h"
 #include "cefighlp.h"
 #include "cefigentity.h"
 
-static void ce_figentity_scenenode_about_to_update(void* listener,
-													float anmfps, float elapsed)
+static void ce_figentity_scenenode_about_to_update(void* listener)
 {
 	ce_figentity* figentity = listener;
-	ce_figbone_advance(figentity->figbone, anmfps * elapsed);
-	ce_figbone_update(figentity->figbone,
-		figentity->figmesh->figproto->fignode,
-		figentity->scenenode->renderitems);
+	ce_figbone_advance(figentity->figbone, ce_root.anmfps * ce_root.timer->elapsed);
+	ce_figbone_update(figentity->figbone, figentity->figmesh->figproto->fignode,
+											figentity->scenenode->renderitems);
 }
 
 static void ce_figentity_enqueue(ce_figentity* figentity, ce_fignode* fignode)

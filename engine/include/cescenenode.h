@@ -40,7 +40,7 @@ extern "C"
 typedef struct {
 	void (*attached)(void* listener);
 	void (*detached)(void* listener);
-	void (*about_to_update)(void* listener, float anmfps, float elapsed);
+	void (*about_to_update)(void* listener);
 	void (*updated)(void* listener);
 	void (*destroyed)(void* listener);
 } ce_scenenode_listener_vtable;
@@ -48,14 +48,15 @@ typedef struct {
 typedef struct ce_scenenode ce_scenenode;
 
 struct ce_scenenode {
+	bool culled;
 	ce_vec3 position;
 	ce_quat orientation;
 	ce_vec3 world_position;
 	ce_quat world_orientation;
 	ce_bbox world_bbox;
-	bool culled;
 	ce_vector* renderitems;
 	ce_occlusion* occlusion;
+	// only one generic listener supported for performance reasons
 	ce_scenenode_listener_vtable listener_vtable;
 	void* listener;
 	ce_scenenode* parent;
@@ -74,17 +75,12 @@ extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
 
 extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
 
-extern void ce_scenenode_update_force_cascade(ce_scenenode* scenenode,
-												float anmfps, float elapsed);
+extern void ce_scenenode_update_force_cascade(ce_scenenode* scenenode);
 
 extern void ce_scenenode_update_cascade(ce_scenenode* scenenode,
-										ce_rendersystem* rendersystem,
-										const ce_frustum* frustum,
-										float anmfps, float elapsed);
+										const ce_frustum* frustum);
 
-extern void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode,
-											ce_rendersystem* rendersystem,
-											bool comprehensive_only);
+extern void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode);
 
 #ifdef __cplusplus
 }

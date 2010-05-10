@@ -167,8 +167,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	if (scenemng->scenenode_force_update) {
 		// big changes of the scene node tree - force update
-		ce_scenenode_update_force_cascade(scenemng->scenenode,
-			ce_root.anmfps, ce_root.timer->elapsed);
+		ce_scenenode_update_force_cascade(scenemng->scenenode);
 		scenemng->scenenode_force_update = false;
 	} else {
 		ce_vec3 forward, right, up;
@@ -182,16 +181,13 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 			ce_camera_get_up(scenemng->camera, &up));
 
 		ce_rendersystem_begin_occlusion_test(ce_root.rendersystem);
-		ce_scenenode_update_cascade(scenemng->scenenode, ce_root.rendersystem,
-			&frustum, ce_root.anmfps, ce_root.timer->elapsed);
+		ce_scenenode_update_cascade(scenemng->scenenode, &frustum);
 		ce_rendersystem_end_occlusion_test(ce_root.rendersystem);
 	}
 
 	if (ce_root.show_bboxes) {
 		ce_rendersystem_apply_color(ce_root.rendersystem, &CE_COLOR_BLUE);
-		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode,
-										ce_root.rendersystem,
-										ce_root.comprehensive_bbox_only);
+		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode);
 	}
 
 #if 0
