@@ -39,21 +39,25 @@
 #include "cecontext_win32.h"
 
 typedef struct {
+	ce_renderwindow* renderwindow;
 	HWND window;
-} ce_winwindow;
+} ce_renderwindow_win;
 
 static LRESULT CALLBACK ce_renderwindow_proc(HWND, UINT, WPARAM, LPARAM);
 
-ce_renderwindow* ce_renderwindow_new(void)
+ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 {
 	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow) +
-													sizeof(ce_winwindow));
-	ce_winwindow* winwindow = (ce_winwindow*)renderwindow->impl;
+													sizeof(ce_renderwindow_win));
 
-	renderwindow->width = 1024;
-	renderwindow->height = 768;
-	renderwindow->fullscreen = false;
+	ce_renderwindow_win* win_renderwindow = (ce_renderwindow_win*)renderwindow->impl;
+	win_renderwindow->renderwindow = renderwindow;
+
+	renderwindow->width = width;
+	renderwindow->height = height;
+
 	renderwindow->displaymng = ce_displaymng_create();
+	renderwindow->input_context = ce_input_context_new();
 
 	WNDCLASSEX wc;
 	ZeroMemory(&wc, sizeof(WNDCLASSEX));
@@ -68,7 +72,9 @@ ce_renderwindow* ce_renderwindow_new(void)
 	wc.lpszClassName = "cursedearth";
 
 	if (!RegisterClassEx(&wc)) {
-		ce_logging_error("renderwindow: could not register class");
+		ce_logging_fatal("renderwindow: could not register class");
+		ce_renderwindow_del(renderwindow);
+		return NULL;
 	}
 
 	DWORD style = WS_VISIBLE;
@@ -76,8 +82,8 @@ ce_renderwindow* ce_renderwindow_new(void)
 
 	if (renderwindow->fullscreen) {
 		ce_displaymng_change(renderwindow->displaymng,
-			renderwindow->width, renderwindow->height, 0, 0,
-			CE_DISPLAY_ROTATION_NONE, CE_DISPLAY_REFLECTION_NONE);
+			renderwindow->width, renderwindow->height, renderwindow->bpp,
+			renderwindow->rate, renderwindow->rotation, renderwindow->reflection);
 
 		style |= WS_POPUP;
 		extended_style |= WS_EX_TOOLWINDOW;
@@ -92,26 +98,25 @@ ce_renderwindow* ce_renderwindow_new(void)
 		renderwindow->height = rect.bottom - rect.top;
 	}
 
-	ce_logging_write("renderwindow: resolution %dx%d",
-		renderwindow->width, renderwindow->height);
-
-	winwindow->window = CreateWindowEx(extended_style,
-		wc.lpszClassName, "stub", style, CW_USEDEFAULT, CW_USEDEFAULT,
+	win_renderwindow->window = CreateWindowEx(extended_style,
+		wc.lpszClassName, title, style, CW_USEDEFAULT, CW_USEDEFAULT,
 		renderwindow->width, renderwindow->height,
 		HWND_DESKTOP, NULL, wc.hInstance, NULL);
-	if (NULL == winwindow->window) {
-		ce_logging_error("renderwindow: could not create window");
+
+	if (NULL == win_renderwindow->window) {
+		ce_logging_fatal("renderwindow: could not create window");
+		ce_renderwindow_del(renderwindow);
+		return NULL;
 	}
 
-	SetWindowLongPtr(winwindow->window, GWLP_USERDATA, (LONG_PTR)renderwindow);
+	SetWindowLongPtr(win_renderwindow->window, GWLP_USERDATA, (LONG_PTR)renderwindow);
 
-	ShowWindow(winwindow->window, SW_SHOW);
-	UpdateWindow(winwindow->window);
-
-	SetForegroundWindow(winwindow->window);
-	SetFocus(winwindow->window);
-
-	renderwindow->context = ce_context_create(GetDC(winwindow->window));
+	renderwindow->context = ce_context_create(GetDC(win_renderwindow->window));
+	if (NULL == renderwindow->context) {
+		ce_logging_fatal("renderwindow: could not create context");
+		ce_renderwindow_del(renderwindow);
+		return NULL;
+	}
 
 	return renderwindow;
 }
@@ -119,30 +124,54 @@ ce_renderwindow* ce_renderwindow_new(void)
 void ce_renderwindow_del(ce_renderwindow* renderwindow)
 {
 	if (NULL != renderwindow) {
+		ce_input_context_del(renderwindow->input_context);
 		ce_context_del(renderwindow->context);
 		ce_displaymng_del(renderwindow->displaymng);
-		ce_winwindow* winwindow = (ce_winwindow*)renderwindow->impl;
-		if (NULL != winwindow->window) {
-			ReleaseDC(winwindow->window, GetDC(winwindow->window));
-			DestroyWindow(winwindow->window);
+
+		ce_renderwindow_win* win_renderwindow = (ce_renderwindow_win*)renderwindow->impl;
+		if (NULL != win_renderwindow->window) {
+			ReleaseDC(win_renderwindow->window, GetDC(win_renderwindow->window));
+			DestroyWindow(win_renderwindow->window);
 		}
+
 		UnregisterClass("cursedearth", GetModuleHandle(NULL));
-		ce_free(renderwindow, sizeof(ce_renderwindow) + sizeof(ce_winwindow));
+		ce_free(renderwindow, sizeof(ce_renderwindow) + sizeof(ce_renderwindow_win));
 	}
 }
 
-bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
+void ce_renderwindow_show(ce_renderwindow* renderwindow)
+{
+	ce_renderwindow_win* win_renderwindow = (ce_renderwindow_win*)renderwindow->impl;
+
+	ShowWindow(win_renderwindow->window, SW_SHOW);
+	UpdateWindow(win_renderwindow->window);
+
+	SetForegroundWindow(win_renderwindow->window);
+	SetFocus(win_renderwindow->window);
+}
+
+void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
+{
+	ce_unused(renderwindow);
+}
+
+void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
+{
+	ce_unused(renderwindow);
+}
+
+void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 {
 	ce_unused(renderwindow);
 	MSG msg;
+
 	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-		if (WM_QUIT == msg.message) {
-			return false;
-		}
+		//if (WM_QUIT == msg.message) {
+		//	return;
+		//}
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-	return true;
 }
 
 static void ce_renderwindow_process(ce_renderwindow* renderwindow,
