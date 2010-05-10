@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cethread.h"
@@ -115,12 +116,32 @@ static void ce_root_systemevent_handler(ce_systemevent_type type)
 	ce_root_done = true;
 }
 
+static void ce_root_renderwindow_closed(void* listener)
+{
+	ce_unused(listener);
+	ce_root_done = true;
+}
+
+static void ce_root_renderwindow_exposed(void* listener)
+{
+	ce_unused(listener);
+	ce_scenemng_render(ce_root.scenemng);
+	ce_context_swap(ce_root.renderwindow->context);
+}
+
 void ce_root_exec(void)
 {
 	assert(ce_root_inited && "the root subsystem has not yet been inited");
+
 	ce_systemevent_register(ce_root_systemevent_handler);
 
+	ce_renderwindow_listener_vtable vtable = {
+		ce_root_renderwindow_closed, ce_root_renderwindow_exposed
+	};
+
+	ce_renderwindow_add_listener(ce_root.renderwindow, vtable, NULL);
 	ce_renderwindow_show(ce_root.renderwindow);
+
 	ce_timer_start(ce_root.timer);
 
 	while (!ce_root_done) {

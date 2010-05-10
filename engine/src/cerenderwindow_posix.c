@@ -213,10 +213,11 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	renderwindow->width = width;
 	renderwindow->height = height;
 
-	renderwindow->input_context = ce_input_context_new();
 	renderwindow->context = ce_context_create(x11window->display);
 	renderwindow->displaymng = ce_displaymng_create(x11window->display,
 												renderwindow->context->bpp);
+	renderwindow->input_context = ce_input_context_new();
+	renderwindow->listeners = ce_vector_new();
 
 	renderwindow->bpp = renderwindow->context->bpp;
 	renderwindow->rate = 0;
@@ -265,12 +266,16 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 void ce_renderwindow_del(ce_renderwindow* renderwindow)
 {
 	if (NULL != renderwindow) {
+		ce_vector_for_each(renderwindow->listeners, ce_renderwindow_listener_tuple_del);
+		ce_vector_del(renderwindow->listeners);
 		ce_input_context_del(renderwindow->input_context);
 		ce_context_del(renderwindow->context);
 		ce_displaymng_del(renderwindow->displaymng);
+
 		ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
 		ce_vector_for_each(x11window->keymap, ce_x11keypair_del);
 		ce_vector_del(x11window->keymap);
+
 		if (0 != x11window->window) {
 			XDestroyWindow(x11window->display, x11window->window);
 		}
@@ -399,7 +404,7 @@ static void ce_renderwindow_handler_client_message(ce_x11window* x11window, XEve
 			event->xclient.message_type &&
 			x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW] ==
 			(Atom)event->xclient.data.l[0]) {
-		;
+		ce_renderwindow_emit_closed(x11window->renderwindow);
 	}
 }
 
@@ -407,7 +412,7 @@ static void ce_renderwindow_handler_expose(ce_x11window* x11window, XEvent* even
 {
 	if (0 == event->xexpose.count) {
 		// the window was exposed, redraw it
-		ce_unused(x11window);
+		ce_renderwindow_emit_exposed(x11window->renderwindow);
 	}
 }
 
@@ -418,7 +423,6 @@ static void ce_renderwindow_handler_map_notify(ce_x11window* x11window, XEvent* 
 	if (x11window->fullscreen) {
 		assert(!x11window->renderwindow->fullscreen);
 		ce_renderwindow_toggle_fullscreen(x11window->renderwindow);
-
 		x11window->fullscreen = false;
 	}
 }
