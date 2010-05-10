@@ -168,7 +168,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	if (scenemng->scenenode_force_update) {
 		// big changes of the scene node tree - force update
 		ce_scenenode_update_force_cascade(scenemng->scenenode,
-			ce_root.anmfps, ce_timer_elapsed(ce_root.timer));
+			ce_root.anmfps, ce_root.timer->elapsed);
 		scenemng->scenenode_force_update = false;
 	} else {
 		ce_vec3 forward, right, up;
@@ -183,7 +183,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 		ce_rendersystem_begin_occlusion_test(ce_root.rendersystem);
 		ce_scenenode_update_cascade(scenemng->scenenode, ce_root.rendersystem,
-			&frustum, ce_root.anmfps, ce_timer_elapsed(ce_root.timer));
+			&frustum, ce_root.anmfps, ce_root.timer->elapsed);
 		ce_rendersystem_end_occlusion_test(ce_root.rendersystem);
 	}
 

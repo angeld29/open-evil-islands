@@ -26,12 +26,10 @@
 #include "cealloc.h"
 #include "cetimer.h"
 
-struct ce_timer {
+typedef struct {
 	struct timeval start;
 	struct timeval stop;
-	struct timeval sub;
-	float diff;
-};
+} ce_timer_posix;
 
 static void ce_timer_get_time_of_day(struct timeval* tv)
 {
@@ -51,30 +49,28 @@ static void ce_timer_get_time_of_day(struct timeval* tv)
 
 ce_timer* ce_timer_new(void)
 {
-	return ce_alloc(sizeof(ce_timer));
+	return ce_alloc(sizeof(ce_timer) + sizeof(ce_timer_posix));
 }
 
 void ce_timer_del(ce_timer* timer)
 {
-	ce_free(timer, sizeof(ce_timer));
+	ce_free(timer, sizeof(ce_timer) + sizeof(ce_timer_posix));
 }
 
 void ce_timer_start(ce_timer* timer)
 {
-	ce_timer_get_time_of_day(&timer->start);
+	ce_timer_posix* posix_timer = (ce_timer_posix*)timer->impl;
+	ce_timer_get_time_of_day(&posix_timer->start);
 }
 
 float ce_timer_advance(ce_timer* timer)
 {
-	ce_timer_get_time_of_day(&timer->stop);
+	ce_timer_posix* posix_timer = (ce_timer_posix*)timer->impl;
+	ce_timer_get_time_of_day(&posix_timer->stop);
+	struct timeval diff;
 	// WARNING: BSD extension, not POSIX!
-	timersub(&timer->stop, &timer->start, &timer->sub);
-	timer->diff = timer->sub.tv_sec + timer->sub.tv_usec * 1e-6f;
-	timer->start = timer->stop;
-	return timer->diff;
-}
-
-float ce_timer_elapsed(ce_timer* timer)
-{
-	return timer->diff;
+	timersub(&posix_timer->stop, &posix_timer->start, &diff);
+	timer->elapsed = diff.tv_sec + diff.tv_usec * 1e-6f;
+	posix_timer->start = posix_timer->stop;
+	return timer->elapsed;
 }
