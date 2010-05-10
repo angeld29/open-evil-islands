@@ -48,7 +48,7 @@ bool ce_root_init(const char* ei_path)
 
 	ce_root.event_supply = ce_input_event_supply_new(ce_root.renderwindow->input_context);
 	ce_root.exit_event = ce_input_event_supply_button(ce_root.event_supply, CE_KB_ESCAPE);
-	ce_root.toggle_window_event = ce_input_event_supply_single_front(ce_root.event_supply,
+	ce_root.switch_window_event = ce_input_event_supply_single_front(ce_root.event_supply,
 		ce_input_event_supply_shortcut(ce_root.event_supply, "LAlt+Tab, RAlt+Tab"));
 	ce_root.toggle_fullscreen_event = ce_input_event_supply_single_front(ce_root.event_supply,
 		ce_input_event_supply_shortcut(ce_root.event_supply, "LAlt+Enter, RAlt+Enter"));
@@ -120,6 +120,11 @@ void ce_root_exec(void)
 
 		if (ce_root.exit_event->triggered) {
 			break;
+		}
+
+		if (ce_root.switch_window_event->triggered &&
+				ce_root.renderwindow->fullscreen) {
+			ce_renderwindow_minimize(ce_root.renderwindow);
 		}
 
 		if (ce_root.toggle_fullscreen_event->triggered) {

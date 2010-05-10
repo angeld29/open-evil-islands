@@ -418,6 +418,8 @@ static void ce_renderwindow_handler_map_notify(ce_x11window* x11window, XEvent* 
 
 static void ce_renderwindow_handler_visibility_notify(ce_x11window* x11window, XEvent* event)
 {
+	ce_input_context* input_context = x11window->renderwindow->input_context;
+
 	if (VisibilityUnobscured == event->xvisibility.state) {
 		Window window;
 		unsigned int mask;
@@ -426,19 +428,19 @@ static void ce_renderwindow_handler_visibility_notify(ce_x11window* x11window, X
 		XQueryPointer(event->xvisibility.display, event->xvisibility.window,
 			&window, &window, &dummy, &dummy, &x, &y, &mask);
 
-		ce_input_context* input_context = x11window->renderwindow->input_context;
 		input_context->pointer_position.x = x;
 		input_context->pointer_position.y = y;
+	}
+
+	if (VisibilityFullyObscured != event->xvisibility.state) {
+		memset(input_context->buttons, 0, sizeof(input_context->buttons));
 	}
 }
 
 static void ce_renderwindow_handler_configure_notify(ce_x11window* x11window, XEvent* event)
 {
-	ce_unused(x11window);
-	ce_unused(event);
-
-	//event->xconfigure.width;
-	//event->xconfigure.height;
+	x11window->renderwindow->width = event->xconfigure.width;
+	x11window->renderwindow->height = event->xconfigure.height;
 }
 
 static void ce_renderwindow_handler_enter_notify(ce_x11window* x11window, XEvent* event)
@@ -450,37 +452,49 @@ static void ce_renderwindow_handler_enter_notify(ce_x11window* x11window, XEvent
 
 static void ce_renderwindow_handler_key_press(ce_x11window* x11window, XEvent* event)
 {
+	ce_input_context* input_context = x11window->renderwindow->input_context;
+	input_context->pointer_position.x = event->xkey.x;
+	input_context->pointer_position.y = event->xkey.y;
+
 	KeySym key;
 	XLookupString(&event->xkey, NULL, 0, &key, NULL);
 
-	ce_input_context* input_context = x11window->renderwindow->input_context;
 	input_context->buttons[ce_x11keymap_search(x11window->keymap, &key)] = true;
 }
 
 static void ce_renderwindow_handler_key_release(ce_x11window* x11window, XEvent* event)
 {
+	ce_input_context* input_context = x11window->renderwindow->input_context;
+	input_context->pointer_position.x = event->xkey.x;
+	input_context->pointer_position.y = event->xkey.y;
+
 	KeySym key;
 	XLookupString(&event->xkey, NULL, 0, &key, NULL);
 
-	ce_input_context* input_context = x11window->renderwindow->input_context;
 	input_context->buttons[ce_x11keymap_search(x11window->keymap, &key)] = false;
 }
 
 static void ce_renderwindow_handler_button_press(ce_x11window* x11window, XEvent* event)
 {
 	ce_input_context* input_context = x11window->renderwindow->input_context;
+	input_context->pointer_position.x = event->xbutton.x;
+	input_context->pointer_position.y = event->xbutton.y;
+
 	input_context->buttons[event->xbutton.button - 1 + CE_MB_LEFT] = true;
 }
 
 static void ce_renderwindow_handler_button_release(ce_x11window* x11window, XEvent* event)
 {
+	ce_input_context* input_context = x11window->renderwindow->input_context;
+	input_context->pointer_position.x = event->xbutton.x;
+	input_context->pointer_position.y = event->xbutton.y;
+
 	// special case: ignore wheel buttons, see renderwindow_pump
 	// ButtonRelease event has been arrived immediately after ButtonPress event
 	if (Button4 == event->xbutton.button || Button5 == event->xbutton.button) {
 		return;
 	}
 
-	ce_input_context* input_context = x11window->renderwindow->input_context;
 	input_context->buttons[event->xbutton.button - 1 + CE_MB_LEFT] = false;
 }
 

@@ -118,10 +118,6 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 		}
 	}*/
 
-	// FIXME: refactoring
-	ce_viewport_set_rect(scenemng->viewport, 0, 0, 1024, 768);
-	ce_camera_set_aspect(scenemng->camera, (float)1024 / 768);
-
 	return scenemng;
 }
 
@@ -182,6 +178,11 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 void ce_scenemng_render(ce_scenemng* scenemng)
 {
 	ce_rendersystem_begin_render(ce_root.rendersystem, &CE_COLOR_WHITE);
+
+	ce_viewport_set_rect(scenemng->viewport, 0, 0,
+		ce_root.renderwindow->width, ce_root.renderwindow->height);
+	ce_camera_set_aspect(scenemng->camera, (float)ce_root.renderwindow->width /
+												ce_root.renderwindow->height);
 
 	ce_rendersystem_setup_viewport(ce_root.rendersystem, scenemng->viewport);
 	ce_rendersystem_setup_camera(ce_root.rendersystem, scenemng->camera);
