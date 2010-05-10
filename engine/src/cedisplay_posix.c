@@ -58,7 +58,7 @@ static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
 	XF86VidModeQueryVersion(xf86vmmng->display, &xf86vmmng->major_version,
 											&xf86vmmng->minor_version);
 
-	ce_logging_write("display: using XFree86 Video Mode Extension %d.%d",
+	ce_logging_write("displaymng: using XFree86 Video Mode Extension %d.%d",
 		xf86vmmng->major_version, xf86vmmng->minor_version);
 
 	int mode_count;
@@ -108,13 +108,15 @@ static bool ce_xf86vmmng_query(Display* display)
 {
 	const int major_version_req = 2, minor_version_req = 0;
 	int dummy, major_version = 0, minor_version = 0;
+
 	if (XF86VidModeQueryExtension(display, &dummy, &dummy) &&
 			XF86VidModeQueryVersion(display, &major_version, &minor_version) &&
 			major_version == major_version_req &&
 			minor_version >= minor_version_req) {
 		return true;
 	}
-	ce_logging_warning("display: XFree86 Video Mode Extension %d.%d found, "
+
+	ce_logging_warning("displaymng: XFree86 Video Mode Extension %d.%d found, "
 		"%d.>=%d required, discarded", major_version, minor_version,
 										major_version_req, minor_version_req);
 	return false;
@@ -204,7 +206,7 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
 	XRRQueryExtension(xrrmng->display, &xrrmng->event_base, &xrrmng->error_base);
 	XRRQueryVersion(xrrmng->display, &xrrmng->major_version, &xrrmng->minor_version);
 
-	ce_logging_write("display: using XRandR Extension %d.%d",
+	ce_logging_write("displaymng: using XRandR Extension %d.%d",
 		xrrmng->major_version, xrrmng->minor_version);
 
 	xrrmng->conf = XRRGetScreenInfo(xrrmng->display, XDefaultRootWindow(xrrmng->display));
@@ -272,13 +274,15 @@ static bool ce_xrrmng_query(Display* display)
 {
 	const int major_version_req = 1, minor_version_req = 1;
 	int dummy, major_version = 0, minor_version = 0;
+
 	if (XRRQueryExtension(display, &dummy, &dummy) &&
 			XRRQueryVersion(display, &major_version, &minor_version) &&
 			major_version == major_version_req &&
 			minor_version >= minor_version_req) {
 		return true;
 	}
-	ce_logging_warning("display: XRandR Extension %d.%d found, "
+
+	ce_logging_warning("displaymng: XRandR Extension %d.%d found, "
 		"%d.>=%d required, discarded", major_version, minor_version,
 										major_version_req, minor_version_req);
 	return false;
@@ -303,7 +307,7 @@ ce_displaymng* ce_displaymng_create(Display* display, int bpp)
 	for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
 		int dummy;
 		if (!XQueryExtension(display, extensions[i].name, &dummy, &dummy, &dummy)) {
-			ce_logging_warning("display: X11 extension "
+			ce_logging_warning("displaymng: X11 extension "
 								"'%s' not supported", extensions[i].name);
 			continue;
 		}
@@ -313,7 +317,7 @@ ce_displaymng* ce_displaymng_create(Display* display, int bpp)
 		}
 	}
 
-	ce_logging_warning("display: no appropriate X11 extensions found, "
+	ce_logging_warning("displaymng: no appropriate X11 extensions found, "
 						"fullscreen mode is not available");
 	return NULL;
 }

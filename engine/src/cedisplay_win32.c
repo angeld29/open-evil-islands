@@ -39,7 +39,7 @@ static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list args)
 {
 	ce_unused(args);
 
-	ce_logging_write("display: using native Windows API");
+	ce_logging_write("displaymng: using native Windows API");
 
 	ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
 	dmmng->modes = ce_vector_new();
@@ -101,7 +101,7 @@ static void ce_dmmng_change(ce_displaymng* displaymng, int index,
 
 	LONG code = ChangeDisplaySettingsEx(NULL, mode, NULL, CDS_FULLSCREEN, NULL);
 	if (DISP_CHANGE_SUCCESSFUL != code) {
-		ce_logging_error("display: could not change display settings");
+		ce_logging_error("displaymng: could not change display settings");
 	}
 }
 
