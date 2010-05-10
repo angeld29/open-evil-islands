@@ -260,14 +260,6 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	XSetWMProtocols(x11window->display, x11window->window,
 		&x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW], 1);
 
-	XMapRaised(x11window->display, x11window->window);
-
-	// x and y values in XCreateWindow are ignored by most windows managers,
-	// which means that top-level windows maybe placed somewhere else on the desktop
-	XMoveWindow(x11window->display, x11window->window,
-		(XDisplayWidth(x11window->display, XDefaultScreen(x11window->display)) - width) / 2,
-		(XDisplayHeight(x11window->display, XDefaultScreen(x11window->display)) - height) / 2);
-
 	return renderwindow;
 }
 
@@ -288,6 +280,21 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 		}
 		ce_free(renderwindow, sizeof(ce_renderwindow) + sizeof(ce_x11window));
 	}
+}
+
+void ce_renderwindow_show(ce_renderwindow* renderwindow)
+{
+	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+
+	XMapRaised(x11window->display, x11window->window);
+
+	// x and y values in XCreateWindow are ignored by most windows managers,
+	// which means that top-level windows maybe placed somewhere else on the desktop
+	XMoveWindow(x11window->display, x11window->window,
+		(XDisplayWidth(x11window->display,
+		XDefaultScreen(x11window->display)) - renderwindow->width) / 2,
+		(XDisplayHeight(x11window->display,
+		XDefaultScreen(x11window->display)) - renderwindow->height) / 2);
 }
 
 void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
@@ -355,7 +362,7 @@ void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 		x11window->window, XDefaultScreen(x11window->display));
 }
 
-bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
+void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 {
 	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
 	ce_input_context* input_context = x11window->renderwindow->input_context;
@@ -377,8 +384,6 @@ bool ce_renderwindow_pump(ce_renderwindow* renderwindow)
 
 		(*x11window->handlers[event.type])(x11window, &event);
 	}
-
-	return true;
 }
 
 static void ce_renderwindow_handler_skip(ce_x11window* x11window, XEvent* event)
@@ -412,6 +417,7 @@ static void ce_renderwindow_handler_map_notify(ce_x11window* x11window, XEvent* 
 	if (x11window->fullscreen) {
 		assert(!x11window->renderwindow->fullscreen);
 		ce_renderwindow_toggle_fullscreen(x11window->renderwindow);
+
 		x11window->fullscreen = false;
 	}
 }

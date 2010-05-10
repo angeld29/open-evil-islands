@@ -111,10 +111,13 @@ void ce_root_exec(void)
 	assert(ce_root_inited && "the root subsystem has not yet been inited");
 	ce_systemevent_register(ce_root_systemevent_handler);
 
+	ce_renderwindow_show(ce_root.renderwindow);
 	ce_timer_start(ce_root.timer);
 
-	while (!ce_root_done && ce_renderwindow_pump(ce_root.renderwindow)) {
+	while (!ce_root_done) {
 		float elapsed = ce_timer_advance(ce_root.timer);
+
+		ce_renderwindow_pump(ce_root.renderwindow);
 
 		ce_input_event_supply_advance(ce_root.event_supply, elapsed);
 
