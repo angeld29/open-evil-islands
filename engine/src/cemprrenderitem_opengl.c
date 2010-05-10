@@ -30,9 +30,10 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cemprhlp.h"
 #include "cetexture.h"
 #include "ceshadermng.h"
+#include "ceroot.h"
+#include "cemprhlp.h"
 #include "cemprrenderitem.h"
 
 // simple & fast triangulated geometry
@@ -555,11 +556,11 @@ static void ce_mprrenderitem_amdvst_render(ce_renderitem* renderitem)
 	glPopClientAttrib();
 }
 
-ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, bool tiling,
+ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 									int sector_x, int sector_z,
 									int water, ce_vector* tile_textures)
 {
-	if (tiling) {
+	if (ce_root.terrain_tiling) {
 		// tiling? no speed...
 		ce_renderitem_vtable ce_mprrenderitem_tile_vtable = {
 			ce_mprrenderitem_tile_ctor, ce_mprrenderitem_tile_dtor,
@@ -572,7 +573,6 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, bool tiling,
 
 	// not implemented properly
 	if (false && GLEW_VERSION_3_1 && GLEW_AMD_vertex_shader_tessellator) {
-		// use AMD tessellation shader!
 		ce_renderitem_vtable ce_renderitem_amdvst_vtable = {
 			ce_mprrenderitem_amdvst_ctor, ce_mprrenderitem_amdvst_dtor,
 			NULL, ce_mprrenderitem_amdvst_render, NULL

@@ -249,8 +249,7 @@ ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
 	}
 
 	ce_terrain_del(scenemng->terrain);
-	scenemng->terrain = ce_terrain_new(mprfile, ce_root.terrain_tiling,
-		scenemng->texmng, ce_root.thread_count,
+	scenemng->terrain = ce_terrain_new(mprfile, scenemng->texmng,
 		scenemng->renderqueue, position, orientation, scenenode);
 
 	scenemng->scenenode_force_update = true;

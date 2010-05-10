@@ -24,10 +24,11 @@
 #include <assert.h>
 
 #include "celib.h"
-#include "celogging.h"
 #include "cealloc.h"
-#include "cethread.h"
+#include "celogging.h"
 #include "cestring.h"
+#include "cethread.h"
+#include "ceroot.h"
 #include "cemprhlp.h"
 #include "cemprrenderitem.h"
 #include "ceterrain.h"
@@ -54,7 +55,6 @@ static void ce_terrain_sector_del(ce_terrain_sector* sector)
 
 typedef struct {
 	ce_terrain* terrain;
-	bool tiling;
 	ce_texmng* texmng;
 	ce_rendergroup* rendergroups[CE_MPRFILE_MATERIAL_COUNT];
 	ce_thread_pool* pool;
@@ -67,11 +67,11 @@ typedef struct {
 } ce_terrain_cookie;
 
 static ce_terrain_cookie* ce_terrain_cookie_new(ce_terrain* terrain,
-	bool tiling, ce_texmng* texmng, int thread_count, ce_renderqueue* renderqueue)
+												ce_texmng* texmng,
+												ce_renderqueue* renderqueue)
 {
 	ce_terrain_cookie* cookie = ce_alloc(sizeof(ce_terrain_cookie));
 	cookie->terrain = terrain;
-	cookie->tiling = tiling;
 	cookie->texmng = texmng;
 	cookie->rendergroups[CE_MPRFILE_MATERIAL_LAND] =
 		ce_renderqueue_get(renderqueue, 0,
@@ -79,7 +79,7 @@ static ce_terrain_cookie* ce_terrain_cookie_new(ce_terrain* terrain,
 	cookie->rendergroups[CE_MPRFILE_MATERIAL_WATER] =
 		ce_renderqueue_get(renderqueue, 100,
 							terrain->materials[CE_MPRFILE_MATERIAL_WATER]);
-	cookie->pool = ce_thread_pool_new(thread_count);
+	cookie->pool = ce_thread_pool_new(ce_root.thread_count);
 	cookie->mutex = ce_thread_mutex_new();
 	cookie->once = ce_thread_once_new();
 	cookie->tile_mmpfiles = ce_vector_new_reserved(terrain->mprfile->texture_count);
@@ -246,7 +246,7 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 	ce_terrain_sector* sector = ce_terrain_sector_new();
 	ce_vector_push_back(cookie->terrain->sectors, sector);
 
-	if (cookie->tiling) {
+	if (ce_root.terrain_tiling) {
 		sector->texture = ce_texture_add_ref(ce_texmng_get(cookie->texmng, "default0"));
 		ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
 
@@ -263,9 +263,8 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 	}
 
 	// create geometry
-	sector->renderitem =
-		ce_mprrenderitem_new(cookie->terrain->mprfile,
-			cookie->tiling, x, z, water, cookie->terrain->tile_textures);
+	sector->renderitem = ce_mprrenderitem_new(cookie->terrain->mprfile,
+		x, z, water, cookie->terrain->tile_textures);
 
 	ce_mprhlp_get_aabb(&sector->renderitem->aabb,
 						cookie->terrain->mprfile, x, z, water);
@@ -315,8 +314,7 @@ static void ce_terrain_create_sectors(ce_terrain_cookie* cookie)
 	}
 }
 
-ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
-							ce_texmng* texmng, int thread_count,
+ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_texmng* texmng,
 							ce_renderqueue* renderqueue,
 							const ce_vec3* position,
 							const ce_quat* orientation,
@@ -337,10 +335,9 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, bool tiling,
 	terrain->scenenode->position = *position;
 	terrain->scenenode->orientation = *orientation;
 
-	ce_terrain_cookie* cookie = ce_terrain_cookie_new(terrain,
-		tiling, texmng, thread_count, renderqueue);
+	ce_terrain_cookie* cookie = ce_terrain_cookie_new(terrain, texmng, renderqueue);
 
-	if (tiling) {
+	if (ce_root.terrain_tiling) {
 		// load tile textures immediately, because
 		// they are necessary for geometry creation
 		ce_terrain_load_tile_textures(cookie);
