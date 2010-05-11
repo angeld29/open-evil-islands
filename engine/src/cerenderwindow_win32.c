@@ -101,10 +101,13 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].dwFlags = RIDEV_NOLEGACY;
 	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].hwndTarget = NULL;
 
-	if (FALSE == RegisterRawInputDevices(winwindow->rid, 2, sizeof(RAWINPUTDEVICE))) {
-		ce_logging_error("renderwindow: could not register raw input devices");
-		ce_logging_warning("renderwindow: using event-driven input");
-	}
+	// TODO: implement it
+	//if (RegisterRawInputDevices(winwindow->rid, 2, sizeof(RAWINPUTDEVICE))) {
+	//	ce_logging_warning("renderwindow: using raw input");
+	//} else {
+	//	ce_logging_error("renderwindow: could not register raw input devices");
+	//	ce_logging_warning("renderwindow: using event-driven input");
+	//}
 
 	renderwindow->width = width;
 	renderwindow->height = height;
