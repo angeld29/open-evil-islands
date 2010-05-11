@@ -50,6 +50,7 @@ static void ce_renderwindow_handler_skip(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_close(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_destroy(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_size(ce_renderwindow_win*, WPARAM, LPARAM);
+static void ce_renderwindow_handler_syscommand(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_input(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_keydown(ce_renderwindow_win*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_keyup(ce_renderwindow_win*, WPARAM, LPARAM);
@@ -79,9 +80,12 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	winwindow->handlers[WM_CLOSE] = ce_renderwindow_handler_close;
 	winwindow->handlers[WM_DESTROY] = ce_renderwindow_handler_destroy;
 	winwindow->handlers[WM_SIZE] = ce_renderwindow_handler_size;
+	winwindow->handlers[WM_SYSCOMMAND] = ce_renderwindow_handler_syscommand;
 	winwindow->handlers[WM_INPUT] = ce_renderwindow_handler_input;
 	winwindow->handlers[WM_KEYDOWN] = ce_renderwindow_handler_keydown;
+	winwindow->handlers[WM_SYSKEYDOWN] = ce_renderwindow_handler_keydown;
 	winwindow->handlers[WM_KEYUP] = ce_renderwindow_handler_keyup;
+	winwindow->handlers[WM_SYSKEYUP] = ce_renderwindow_handler_keyup;
 	winwindow->handlers[WM_LBUTTONDOWN] = ce_renderwindow_handler_lbuttondown;
 	winwindow->handlers[WM_LBUTTONUP] = ce_renderwindow_handler_lbuttonup;
 	winwindow->handlers[WM_MBUTTONDOWN] = ce_renderwindow_handler_mbuttondown;
@@ -217,6 +221,12 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 {
 	ce_unused(renderwindow);
+	// TODO: implement it
+	//WINDOWPLACEMENT wndpl;
+	//wndpl.length = sizeof(WINDOWPLACEMENT);
+	//GetWindowPlacement(HWnd, &wndpl);
+	//wndpl.showCmd = SW_SHOWMINNOACTIVE;
+	//SetWindowPlacement(HWnd, &wndpl);
 }
 
 void ce_renderwindow_pump(ce_renderwindow* renderwindow)
@@ -257,6 +267,16 @@ static void ce_renderwindow_handler_size(ce_renderwindow_win* winwindow, WPARAM 
 	ce_unused(wparam);
 	winwindow->renderwindow->width = LOWORD(lparam);
 	winwindow->renderwindow->height = HIWORD(lparam);
+}
+
+static void ce_renderwindow_handler_syscommand(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
+{
+	ce_unused(winwindow), ce_unused(wparam), ce_unused(lparam);
+	// TODO: implement it
+	// prevent screensaver or monitor powersave mode from starting
+	// fullscreen only!
+	//if (SC_SCREENSAVE == (wparam & 0xFFF0) || SC_MONITORPOWER == (wparam & 0xFFF0))
+	//	return 0;
 }
 
 static void ce_renderwindow_handler_input(ce_renderwindow_win* winwindow, WPARAM wparam, LPARAM lparam)
