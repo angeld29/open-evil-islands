@@ -38,19 +38,49 @@
 #include "cedisplay_posix.h"
 #include "cecontext_posix.h"
 
-typedef enum {
+enum {
 	CE_X11WINDOW_ATOM_WM_PROTOCOLS,
 	CE_X11WINDOW_ATOM_WM_DELETE_WINDOW,
 	CE_X11WINDOW_ATOM_NET_WM_STATE_FULLSCREEN,
 	CE_X11WINDOW_ATOM_NET_WM_STATE,
+	CE_X11WINDOW_ATOM_MOTIF_WM_HINTS,
 	CE_X11WINDOW_ATOM_COUNT
-} ce_x11window_atom;
+};
 
-typedef enum {
+enum {
 	CE_X11WINDOW_STATE_WINDOW,
 	CE_X11WINDOW_STATE_FULLSCREEN,
 	CE_X11WINDOW_STATE_COUNT
-} ce_x11window_state;
+};
+
+enum {
+	CE_X11WINDOW_MWM_HINTS_FUNCTIONS   = 1 << 0,
+	CE_X11WINDOW_MWM_HINTS_DECORATIONS = 1 << 1,
+	CE_X11WINDOW_MWM_HINTS_INPUT_MODE  = 1 << 2,
+	CE_X11WINDOW_MWM_HINTS_STATUS      = 1 << 3,
+
+	CE_X11WINDOW_MWM_FUNC_ALL      = 1 << 0,
+	CE_X11WINDOW_MWM_FUNC_RESIZE   = 1 << 1,
+	CE_X11WINDOW_MWM_FUNC_MOVE     = 1 << 2,
+	CE_X11WINDOW_MWM_FUNC_MINIMIZE = 1 << 3,
+	CE_X11WINDOW_MWM_FUNC_MAXIMIZE = 1 << 4,
+	CE_X11WINDOW_MWM_FUNC_CLOSE    = 1 << 5,
+
+	CE_X11WINDOW_MWM_DECOR_ALL      = 1 << 0,
+	CE_X11WINDOW_MWM_DECOR_BORDER   = 1 << 1,
+	CE_X11WINDOW_MWM_DECOR_RESIZEH  = 1 << 2,
+	CE_X11WINDOW_MWM_DECOR_TITLE    = 1 << 3,
+	CE_X11WINDOW_MWM_DECOR_MENU     = 1 << 4,
+	CE_X11WINDOW_MWM_DECOR_MINIMIZE = 1 << 5,
+	CE_X11WINDOW_MWM_DECOR_MAXIMIZE = 1 << 6,
+
+	CE_X11WINDOW_MWM_ELEMENT_FLAGS = 0,
+	CE_X11WINDOW_MWM_ELEMENT_FUNCTIONS,
+	CE_X11WINDOW_MWM_ELEMENT_DECORATIONS,
+	CE_X11WINDOW_MWM_ELEMENT_INPUT_MODE,
+	CE_X11WINDOW_MWM_ELEMENT_STATUS,
+	CE_X11WINDOW_MWM_ELEMENT_COUNT
+};
 
 typedef struct {
 	KeySym keysym;
@@ -105,6 +135,7 @@ typedef struct ce_x11window {
 	Atom atoms[CE_X11WINDOW_ATOM_COUNT];
 	unsigned long mask[CE_X11WINDOW_STATE_COUNT];
 	XSetWindowAttributes attrs[CE_X11WINDOW_STATE_COUNT];
+	unsigned long motif_wm_hints[CE_X11WINDOW_STATE_COUNT][CE_X11WINDOW_MWM_ELEMENT_COUNT];
 	Display* display;
 	Window window;
 	ce_vector* keymap;
@@ -156,6 +187,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW] = XInternAtom(x11window->display, "WM_DELETE_WINDOW", False);
 	x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
 	x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE] = XInternAtom(x11window->display, "_NET_WM_STATE", False);
+	x11window->atoms[CE_X11WINDOW_ATOM_MOTIF_WM_HINTS] = XInternAtom(x11window->display, "_MOTIF_WM_HINTS", False);
 
 	KeySym x11keys[2][CE_IB_COUNT] = {
 		// lower
@@ -250,6 +282,12 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 			PointerMotionMask | ButtonMotionMask |
 			FocusChangeMask | VisibilityChangeMask | StructureNotifyMask;
 		x11window->attrs[i].override_redirect = CE_X11WINDOW_STATE_FULLSCREEN == i;
+		x11window->motif_wm_hints[i][CE_X11WINDOW_MWM_ELEMENT_FLAGS] =
+			CE_X11WINDOW_MWM_HINTS_FUNCTIONS | CE_X11WINDOW_MWM_HINTS_DECORATIONS;
+		if (CE_X11WINDOW_STATE_WINDOW == i) {
+			x11window->motif_wm_hints[i][CE_X11WINDOW_MWM_ELEMENT_FUNCTIONS] = CE_X11WINDOW_MWM_FUNC_ALL;
+			x11window->motif_wm_hints[i][CE_X11WINDOW_MWM_ELEMENT_DECORATIONS] = CE_X11WINDOW_MWM_DECOR_ALL;
+		}
 	}
 
 	x11window->window = XCreateWindow(x11window->display,
@@ -272,6 +310,14 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	// handle wm_delete_events
 	XSetWMProtocols(x11window->display, x11window->window,
 		&x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW], 1);
+
+	// TODO: implement it
+	//XChangeProperty(x11window->display, x11window->window,
+	//	x11window->atoms[CE_X11WINDOW_ATOM_MOTIF_WM_HINTS],
+	//	x11window->atoms[CE_X11WINDOW_ATOM_MOTIF_WM_HINTS],
+	//	32, PropModeReplace,
+	//	(unsigned char*)x11window->motif_wm_hints[CE_X11WINDOW_STATE_WINDOW],
+	//	CE_X11WINDOW_MWM_ELEMENT_COUNT);
 
 	return renderwindow;
 }
