@@ -142,6 +142,11 @@ typedef struct ce_x11window {
 	void (*handlers[LASTEvent])(struct ce_x11window*, XEvent*);
 	bool fullscreen; // local state, see renderwindow_minimize
 	bool autorepeat; // restore auto repeat mode at exit
+	struct {
+		int timeout, interval;
+		int prefer_blanking;
+		int allow_exposures;
+	} screensaver; // remember old screen saver settings
 } ce_x11window;
 
 static void ce_renderwindow_handler_skip(ce_x11window*, XEvent*);
@@ -258,6 +263,12 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	x11window->autorepeat = AutoRepeatModeOn == kbdstate.global_auto_repeat;
 
+	XGetScreenSaver(x11window->display,
+		&x11window->screensaver.timeout,
+		&x11window->screensaver.interval,
+		&x11window->screensaver.prefer_blanking,
+		&x11window->screensaver.allow_exposures);
+
 	renderwindow->width = width;
 	renderwindow->height = height;
 
@@ -335,6 +346,12 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 		ce_vector_for_each(x11window->keymap, ce_x11keypair_del);
 		ce_vector_del(x11window->keymap);
 
+		XSetScreenSaver(x11window->display,
+			x11window->screensaver.timeout,
+			x11window->screensaver.interval,
+			x11window->screensaver.prefer_blanking,
+			x11window->screensaver.allow_exposures);
+
 		if (x11window->autorepeat) {
 			XAutoRepeatOn(x11window->display);
 		}
@@ -379,11 +396,21 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 			GrabModeAsync, GrabModeAsync, x11window->window, None, CurrentTime);
 		XGrabKeyboard(x11window->display, x11window->window,
 			True, GrabModeAsync, GrabModeAsync, CurrentTime);
+
+		XSetScreenSaver(x11window->display,
+			DisableScreenSaver, DisableScreenInterval,
+			DontPreferBlanking, DefaultExposures);
 	}
 
 	if (renderwindow->fullscreen && !fullscreen) {
 		XUngrabPointer(x11window->display, CurrentTime);
 		XUngrabKeyboard(x11window->display, CurrentTime);
+
+		XSetScreenSaver(x11window->display,
+			x11window->screensaver.timeout,
+			x11window->screensaver.interval,
+			x11window->screensaver.prefer_blanking,
+			x11window->screensaver.allow_exposures);
 	}
 
 	renderwindow->fullscreen = fullscreen;
