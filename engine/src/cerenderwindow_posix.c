@@ -141,6 +141,14 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		return NULL;
 	}
 
+	ce_logging_write("renderwindow: using X server %d.%d",
+		XProtocolVersion(x11window->display),
+		XProtocolRevision(x11window->display));
+
+	ce_logging_write("renderwindow: %s %d",
+		XServerVendor(x11window->display),
+		XVendorRelease(x11window->display));
+
 	x11window->atoms[CE_X11WINDOW_ATOM_WM_PROTOCOLS] = XInternAtom(x11window->display, "WM_PROTOCOLS", False);
 	x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW] = XInternAtom(x11window->display, "WM_DELETE_WINDOW", False);
 	x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
