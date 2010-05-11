@@ -35,11 +35,48 @@ typedef struct {
 	DEVMODE orig_mode;
 } ce_dmmng;
 
+static void ce_dmmng_change_display_settings(DEVMODE* dm, DWORD flags)
+{
+	LONG code = ChangeDisplaySettingsEx(NULL, dm, NULL, flags, NULL);
+
+	switch (code) {
+	case DISP_CHANGE_BADDUALVIEW:
+		ce_logging_error("displaymng: the settings change was unsuccessful "
+									"because the system is DualView capable");
+		break;
+	case DISP_CHANGE_BADFLAGS:
+		ce_logging_error("displaymng: an invalid set of flags was passed in");
+		break;
+	case DISP_CHANGE_BADMODE:
+		ce_logging_error("displaymng: the graphics mode is not supported");
+		break;
+	case DISP_CHANGE_BADPARAM:
+		ce_logging_error("displaymng: an invalid parameter was passed in; this "
+						"can include an invalid flag or combination of flags");
+		break;
+	case DISP_CHANGE_FAILED:
+		ce_logging_error("displaymng: the display driver failed "
+									"the specified graphics mode");
+		break;
+	case DISP_CHANGE_NOTUPDATED:
+		ce_logging_error("displaymng: unable to write settings to the registry");
+		break;
+	case DISP_CHANGE_RESTART:
+		ce_logging_error("displaymng: the computer must be restarted "
+										"for the graphics mode to work");
+		break;
+	}
+
+	if (DISP_CHANGE_SUCCESSFUL != code) {
+		ce_logging_error("displaymng: could not change display settings");
+	}
+}
+
 static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list args)
 {
 	ce_unused(args);
 
-	ce_logging_write("displaymng: using native Windows API");
+	ce_logging_write("displaymng: using native Device Context Windows API");
 
 	ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
 	dmmng->modes = ce_vector_new();
@@ -50,12 +87,10 @@ static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list args)
 	EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dmmng->orig_mode);
 
 	DEVMODE mode;
-	DWORD mode_index = 0;
-
 	ZeroMemory(&mode, sizeof(DEVMODE));
 	mode.dmSize = sizeof(DEVMODE);
 
-	while (EnumDisplaySettings(NULL, mode_index++, &mode)) {
+	for (DWORD i = 0; EnumDisplaySettings(NULL, i, &mode); ++i) {
 		if (!(mode.dmFields & DM_PELSWIDTH &&
 				mode.dmFields & DM_PELSHEIGHT &&
 				mode.dmFields & DM_BITSPERPEL &&
@@ -76,7 +111,7 @@ static void ce_dmmng_restore(ce_displaymng* displaymng)
 {
 	ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
 
-	ChangeDisplaySettingsEx(NULL, &dmmng->orig_mode, NULL, 0, NULL);
+	ce_dmmng_change_display_settings(&dmmng->orig_mode, 0);
 }
 
 static void ce_dmmng_dtor(ce_displaymng* displaymng)
@@ -99,10 +134,7 @@ static void ce_dmmng_change(ce_displaymng* displaymng, int index,
 	ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
 	DEVMODE* mode = dmmng->modes->items[index];
 
-	LONG code = ChangeDisplaySettingsEx(NULL, mode, NULL, CDS_FULLSCREEN, NULL);
-	if (DISP_CHANGE_SUCCESSFUL != code) {
-		ce_logging_error("displaymng: could not change display settings");
-	}
+	ce_dmmng_change_display_settings(mode, CDS_FULLSCREEN);
 }
 
 ce_displaymng* ce_displaymng_create(void)
