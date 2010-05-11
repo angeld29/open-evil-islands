@@ -122,13 +122,6 @@ static void ce_root_renderwindow_closed(void* listener)
 	ce_root_done = true;
 }
 
-static void ce_root_renderwindow_exposed(void* listener)
-{
-	ce_unused(listener);
-	ce_scenemng_render(ce_root.scenemng);
-	ce_context_swap(ce_root.renderwindow->context);
-}
-
 void ce_root_exec(void)
 {
 	assert(ce_root_inited && "the root subsystem has not yet been inited");
@@ -136,7 +129,7 @@ void ce_root_exec(void)
 	ce_systemevent_register(ce_root_systemevent_handler);
 
 	ce_renderwindow_listener_vtable vtable = {
-		ce_root_renderwindow_closed, ce_root_renderwindow_exposed
+		ce_root_renderwindow_closed
 	};
 
 	ce_renderwindow_add_listener(ce_root.renderwindow, vtable, NULL);

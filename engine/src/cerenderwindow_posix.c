@@ -114,7 +114,6 @@ typedef struct ce_x11window {
 
 static void ce_renderwindow_handler_skip(ce_x11window*, XEvent*);
 static void ce_renderwindow_handler_client_message(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_expose(ce_x11window*, XEvent*);
 static void ce_renderwindow_handler_map_notify(ce_x11window*, XEvent*);
 static void ce_renderwindow_handler_visibility_notify(ce_x11window*, XEvent*);
 static void ce_renderwindow_handler_configure_notify(ce_x11window*, XEvent*);
@@ -199,7 +198,6 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	}
 
 	x11window->handlers[ClientMessage] = ce_renderwindow_handler_client_message;
-	x11window->handlers[Expose] = ce_renderwindow_handler_expose;
 	x11window->handlers[MapNotify] = ce_renderwindow_handler_map_notify;
 	x11window->handlers[VisibilityNotify] = ce_renderwindow_handler_visibility_notify;
 	x11window->handlers[ConfigureNotify] = ce_renderwindow_handler_configure_notify;
@@ -229,10 +227,10 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		x11window->attrs[i].colormap = XCreateColormap(x11window->display,
 			XDefaultRootWindow(x11window->display),
 			renderwindow->context->visualinfo->visual, AllocNone);
-		x11window->attrs[i].event_mask = ExposureMask | EnterWindowMask |
+		x11window->attrs[i].event_mask = EnterWindowMask | LeaveWindowMask |
 			KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
-			PointerMotionMask | ButtonMotionMask | FocusChangeMask |
-			VisibilityChangeMask | StructureNotifyMask | LeaveWindowMask;
+			PointerMotionMask | ButtonMotionMask |
+			FocusChangeMask | VisibilityChangeMask | StructureNotifyMask;
 		if (CE_X11WINDOW_STATE_FULLSCREEN == i) {
 			x11window->mask[i] |= CWOverrideRedirect;
 			x11window->attrs[i].override_redirect = True;
@@ -405,14 +403,6 @@ static void ce_renderwindow_handler_client_message(ce_x11window* x11window, XEve
 			x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW] ==
 			(Atom)event->xclient.data.l[0]) {
 		ce_renderwindow_emit_closed(x11window->renderwindow);
-	}
-}
-
-static void ce_renderwindow_handler_expose(ce_x11window* x11window, XEvent* event)
-{
-	if (0 == event->xexpose.count) {
-		// the window was exposed, redraw it
-		ce_renderwindow_emit_exposed(x11window->renderwindow);
 	}
 }
 

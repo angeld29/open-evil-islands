@@ -35,7 +35,6 @@ extern "C"
 
 typedef struct {
 	void (*closed)(void* listener);
-	void (*exposed)(void* listener);
 } ce_renderwindow_listener_vtable;
 
 typedef struct {

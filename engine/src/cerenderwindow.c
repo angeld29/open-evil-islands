@@ -51,11 +51,3 @@ void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow)
 		(*tuple->vtable.closed)(tuple->listener);
 	}
 }
-
-void ce_renderwindow_emit_exposed(ce_renderwindow* renderwindow)
-{
-	for (int i = 0; i < renderwindow->listeners->count; ++i) {
-		ce_renderwindow_listener_tuple* tuple = renderwindow->listeners->items[i];
-		(*tuple->vtable.exposed)(tuple->listener);
-	}
-}
