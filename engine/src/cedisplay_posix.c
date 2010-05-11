@@ -44,7 +44,7 @@ typedef struct {
 static int ce_xf86vmmng_calc_rate(XF86VidModeModeInfo* info)
 {
 	// dotclock comes in kHz
-	return (info->dotclock * 1000) / (info->htotal * info->vtotal);
+	return (info->dotclock * 1000.0f) / (info->htotal * info->vtotal) + 0.5f;
 }
 
 static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
@@ -208,6 +208,10 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
 
 	ce_logging_write("displaymng: using XRandR Extension %d.%d",
 		xrrmng->major_version, xrrmng->minor_version);
+
+	// TODO: implement it
+	// request screen change notifications
+	//XRRSelectInput(dpy, win, RRScreenChangeNotifyMask);
 
 	xrrmng->conf = XRRGetScreenInfo(xrrmng->display, XDefaultRootWindow(xrrmng->display));
 	xrrmng->orig_size = XRRConfigCurrentConfiguration(xrrmng->conf, &xrrmng->orig_rotation);
