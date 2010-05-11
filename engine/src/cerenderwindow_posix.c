@@ -231,7 +231,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	renderwindow->reflection = CE_DISPLAY_REFLECTION_NONE;
 
 	for (int i = 0; i < CE_X11WINDOW_STATE_COUNT; ++i) {
-		x11window->mask[i] = CWColormap | CWEventMask;
+		x11window->mask[i] = CWColormap | CWEventMask | CWOverrideRedirect;
 		x11window->attrs[i].colormap = XCreateColormap(x11window->display,
 			XDefaultRootWindow(x11window->display),
 			renderwindow->context->visualinfo->visual, AllocNone);
@@ -239,10 +239,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 			KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
 			PointerMotionMask | ButtonMotionMask |
 			FocusChangeMask | VisibilityChangeMask | StructureNotifyMask;
-		if (CE_X11WINDOW_STATE_FULLSCREEN == i) {
-			x11window->mask[i] |= CWOverrideRedirect;
-			x11window->attrs[i].override_redirect = True;
-		}
+		x11window->attrs[i].override_redirect = CE_X11WINDOW_STATE_FULLSCREEN == i;
 	}
 
 	x11window->window = XCreateWindow(x11window->display,
