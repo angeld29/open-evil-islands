@@ -110,6 +110,7 @@ typedef struct ce_x11window {
 	ce_vector* keymap;
 	void (*handlers[LASTEvent])(struct ce_x11window*, XEvent*);
 	bool fullscreen; // local state, see renderwindow_minimize
+	bool autorepeat; // restore auto repeat mode at exit
 } ce_x11window;
 
 static void ce_renderwindow_handler_skip(ce_x11window*, XEvent*);
@@ -117,6 +118,8 @@ static void ce_renderwindow_handler_client_message(ce_x11window*, XEvent*);
 static void ce_renderwindow_handler_map_notify(ce_x11window*, XEvent*);
 static void ce_renderwindow_handler_visibility_notify(ce_x11window*, XEvent*);
 static void ce_renderwindow_handler_configure_notify(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_focus_in(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_focus_out(ce_x11window*, XEvent*);
 static void ce_renderwindow_handler_enter_notify(ce_x11window*, XEvent*);
 static void ce_renderwindow_handler_key_press(ce_x11window*, XEvent*);
 static void ce_renderwindow_handler_key_release(ce_x11window*, XEvent*);
@@ -209,12 +212,19 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	x11window->handlers[MapNotify] = ce_renderwindow_handler_map_notify;
 	x11window->handlers[VisibilityNotify] = ce_renderwindow_handler_visibility_notify;
 	x11window->handlers[ConfigureNotify] = ce_renderwindow_handler_configure_notify;
+	x11window->handlers[FocusIn] = ce_renderwindow_handler_focus_in;
+	x11window->handlers[FocusOut] = ce_renderwindow_handler_focus_out;
 	x11window->handlers[EnterNotify] = ce_renderwindow_handler_enter_notify;
 	x11window->handlers[KeyPress] = ce_renderwindow_handler_key_press;
 	x11window->handlers[KeyRelease] = ce_renderwindow_handler_key_release;
 	x11window->handlers[ButtonPress] = ce_renderwindow_handler_button_press;
 	x11window->handlers[ButtonRelease] = ce_renderwindow_handler_button_release;
 	x11window->handlers[MotionNotify] = ce_renderwindow_handler_motion_notify;
+
+	XKeyboardState kbdstate;
+	XGetKeyboardControl(x11window->display, &kbdstate);
+
+	x11window->autorepeat = AutoRepeatModeOn == kbdstate.global_auto_repeat;
 
 	renderwindow->width = width;
 	renderwindow->height = height;
@@ -279,12 +289,17 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 		ce_vector_for_each(x11window->keymap, ce_x11keypair_del);
 		ce_vector_del(x11window->keymap);
 
+		if (x11window->autorepeat) {
+			XAutoRepeatOn(x11window->display);
+		}
+
 		if (0 != x11window->window) {
 			XDestroyWindow(x11window->display, x11window->window);
 		}
 		if (NULL != x11window->display) {
 			XCloseDisplay(x11window->display);
 		}
+
 		ce_free(renderwindow, sizeof(ce_renderwindow) + sizeof(ce_x11window));
 	}
 }
@@ -397,8 +412,7 @@ void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 
 static void ce_renderwindow_handler_skip(ce_x11window* x11window, XEvent* event)
 {
-	ce_unused(x11window);
-	ce_unused(event);
+	ce_unused(x11window), ce_unused(event);
 }
 
 static void ce_renderwindow_handler_client_message(ce_x11window* x11window, XEvent* event)
@@ -447,6 +461,20 @@ static void ce_renderwindow_handler_configure_notify(ce_x11window* x11window, XE
 {
 	x11window->renderwindow->width = event->xconfigure.width;
 	x11window->renderwindow->height = event->xconfigure.height;
+}
+
+static void ce_renderwindow_handler_focus_in(ce_x11window* x11window, XEvent* event)
+{
+	ce_unused(x11window);
+
+	XAutoRepeatOff(event->xfocus.display);
+}
+
+static void ce_renderwindow_handler_focus_out(ce_x11window* x11window, XEvent* event)
+{
+	if (x11window->autorepeat) {
+		XAutoRepeatOn(event->xfocus.display);
+	}
 }
 
 static void ce_renderwindow_handler_enter_notify(ce_x11window* x11window, XEvent* event)
