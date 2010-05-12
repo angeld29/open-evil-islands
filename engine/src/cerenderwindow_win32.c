@@ -34,6 +34,12 @@
 #include "cecontext_win32.h"
 
 enum {
+	CE_WINWINDOW_STATE_WINDOW,
+	CE_WINWINDOW_STATE_FULLSCREEN,
+	CE_WINWINDOW_STATE_COUNT
+};
+
+enum {
 	CE_RENDERWINDOW_RID_KEYBOARD,
 	CE_RENDERWINDOW_RID_MOUSE,
 	CE_RENDERWINDOW_RID_COUNT
@@ -41,6 +47,8 @@ enum {
 
 typedef struct ce_renderwindow_win {
 	ce_renderwindow* renderwindow;
+	DWORD style[CE_WINWINDOW_STATE_COUNT];
+	DWORD extended_style[CE_WINWINDOW_STATE_COUNT];
 	HWND window;
 	void (*handlers[WM_USER])(struct ce_renderwindow_win*, WPARAM, LPARAM);
 	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
@@ -72,6 +80,22 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 	winwindow->renderwindow = renderwindow;
+
+	for (int i = 0; i < CE_WINWINDOW_STATE_COUNT; ++i) {
+		winwindow->style[i] = WS_VISIBLE | (DWORD[])
+			{ WS_OVERLAPPEDWINDOW, WS_POPUP }[CE_WINWINDOW_STATE_FULLSCREEN == i];
+		winwindow->extended_style[i] = WS_EX_APPWINDOW;
+	}
+
+	width = ce_max(400, width);
+	height = ce_max(300, height);
+
+	RECT rect = { 0, 0, width, height };
+	if (AdjustWindowRectEx(&rect, winwindow->style[CE_WINWINDOW_STATE_WINDOW],
+			0, winwindow->extended_style[CE_WINWINDOW_STATE_WINDOW])) {
+		width = rect.right - rect.left;
+		height = rect.bottom - rect.top;
+	}
 
 	for (int i = 0; i < WM_USER; ++i) {
 		winwindow->handlers[i] = ce_renderwindow_handler_skip;
@@ -138,30 +162,9 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		return NULL;
 	}
 
-	DWORD style = WS_VISIBLE;
-	DWORD extended_style = 0;
-
-	if (renderwindow->fullscreen) {
-		ce_displaymng_change(renderwindow->displaymng,
-			renderwindow->width, renderwindow->height, renderwindow->bpp,
-			renderwindow->rate, renderwindow->rotation, renderwindow->reflection);
-
-		style |= WS_POPUP;
-		extended_style |= WS_EX_TOOLWINDOW;
-	} else {
-		style |= WS_OVERLAPPEDWINDOW;
-		extended_style |= WS_EX_APPWINDOW;
-
-		RECT rect = { 0, 0, renderwindow->width, renderwindow->height };
-		AdjustWindowRectEx(&rect, style, 0, extended_style);
-
-		renderwindow->width = rect.right - rect.left;
-		renderwindow->height = rect.bottom - rect.top;
-	}
-
-	winwindow->window = CreateWindowEx(extended_style,
-		wc.lpszClassName, title, style, CW_USEDEFAULT, CW_USEDEFAULT,
-		renderwindow->width, renderwindow->height,
+	winwindow->window = CreateWindowEx(winwindow->extended_style[CE_WINWINDOW_STATE_WINDOW],
+		wc.lpszClassName, title, winwindow->style[CE_WINWINDOW_STATE_WINDOW],
+		CW_USEDEFAULT, CW_USEDEFAULT, renderwindow->width, renderwindow->height,
 		HWND_DESKTOP, NULL, wc.hInstance, NULL);
 
 	if (NULL == winwindow->window) {
@@ -170,14 +173,14 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		return NULL;
 	}
 
-	SetWindowLongPtr(winwindow->window, GWLP_USERDATA, (LONG_PTR)winwindow);
-
 	renderwindow->context = ce_context_create(GetDC(winwindow->window));
 	if (NULL == renderwindow->context) {
 		ce_logging_fatal("renderwindow: could not create context");
 		ce_renderwindow_del(renderwindow);
 		return NULL;
 	}
+
+	SetWindowLongPtr(winwindow->window, GWLP_USERDATA, (LONG_PTR)winwindow);
 
 	return renderwindow;
 }
@@ -216,6 +219,9 @@ void ce_renderwindow_show(ce_renderwindow* renderwindow)
 void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 {
 	ce_unused(renderwindow);
+	//ce_displaymng_change(renderwindow->displaymng,
+	//	renderwindow->width, renderwindow->height, renderwindow->bpp,
+	//	renderwindow->rate, renderwindow->rotation, renderwindow->reflection);
 }
 
 void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
