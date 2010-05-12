@@ -272,16 +272,19 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	renderwindow->width = width;
 	renderwindow->height = height;
 
+	renderwindow->displaymng = ce_displaymng_create(x11window->display);
 	renderwindow->context = ce_context_create(x11window->display);
-	renderwindow->displaymng = ce_displaymng_create(x11window->display,
-												renderwindow->context->bpp);
 	renderwindow->input_context = ce_input_context_new();
 	renderwindow->listeners = ce_vector_new();
 
-	renderwindow->bpp = renderwindow->context->bpp;
+	renderwindow->bpp = XDefaultDepth(x11window->display, XDefaultScreen(x11window->display));
 	renderwindow->rate = 0;
 	renderwindow->rotation = CE_DISPLAY_ROTATION_NONE;
 	renderwindow->reflection = CE_DISPLAY_REFLECTION_NONE;
+
+	if (1 == renderwindow->bpp) {
+		ce_logging_warning("renderwindow: you live in prehistoric times");
+	}
 
 	for (int i = 0; i < CE_X11WINDOW_STATE_COUNT; ++i) {
 		x11window->mask[i] = CWColormap | CWEventMask | CWOverrideRedirect;

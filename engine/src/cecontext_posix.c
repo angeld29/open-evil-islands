@@ -101,7 +101,6 @@ ce_context* ce_context_create(Display* display)
 	context->event_base = event_base;
 	context->major_version = major_version;
 	context->minor_version = minor_version;
-	context->bpp = sz;
 	context->visualinfo = visualinfo;
 	context->context = glXCreateContext(display, visualinfo, NULL, True);
 

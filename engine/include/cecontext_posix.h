@@ -35,7 +35,6 @@ extern "C"
 struct ce_context {
 	int error_base, event_base;
 	int major_version, minor_version;
-	int bpp;
 	XVisualInfo* visualinfo;
 	GLXContext context;
 };

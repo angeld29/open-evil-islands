@@ -51,7 +51,6 @@ static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
 {
 	ce_xf86vmmng* xf86vmmng = (ce_xf86vmmng*)displaymng->impl;
 	xf86vmmng->display = va_arg(args, Display*);
-	int bpp = va_arg(args, int);
 
 	XF86VidModeQueryExtension(xf86vmmng->display, &xf86vmmng->event_base,
 												&xf86vmmng->error_base);
@@ -60,6 +59,8 @@ static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
 
 	ce_logging_write("displaymng: using XFree86 Video Mode Extension %d.%d",
 		xf86vmmng->major_version, xf86vmmng->minor_version);
+
+	int bpp = XDefaultDepth(xf86vmmng->display, XDefaultScreen(xf86vmmng->display));
 
 	int mode_count;
 	XF86VidModeGetAllModeLines(xf86vmmng->display,
@@ -201,13 +202,14 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
 {
 	ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
 	xrrmng->display = va_arg(args, Display*);
-	int bpp = va_arg(args, int);
 
 	XRRQueryExtension(xrrmng->display, &xrrmng->event_base, &xrrmng->error_base);
 	XRRQueryVersion(xrrmng->display, &xrrmng->major_version, &xrrmng->minor_version);
 
 	ce_logging_write("displaymng: using XRandR Extension %d.%d",
 		xrrmng->major_version, xrrmng->minor_version);
+
+	int bpp = XDefaultDepth(xrrmng->display, XDefaultScreen(xrrmng->display));
 
 	// TODO: implement it
 	// request screen change notifications
@@ -238,7 +240,7 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
 		for (int j = 0; j < rate_count; ++j) {
 			ce_vector_push_back(displaymng->modes,
 				ce_displaymode_new(xrrmng->sizes[i].width,
-									xrrmng->sizes[i].height, bpp, rates[j]));
+					xrrmng->sizes[i].height, bpp, rates[j]));
 		}
 	}
 }
@@ -298,7 +300,7 @@ static bool ce_xrrmng_query(Display* display)
 	return false;
 }
 
-ce_displaymng* ce_displaymng_create(Display* display, int bpp)
+ce_displaymng* ce_displaymng_create(Display* display)
 {
 	struct {
 		const char* name;
@@ -322,8 +324,7 @@ ce_displaymng* ce_displaymng_create(Display* display, int bpp)
 			continue;
 		}
 		if ((*extensions[i].query)(display)) {
-			return ce_displaymng_new(extensions[i].vtable,
-									extensions[i].size, display, bpp);
+			return ce_displaymng_new(extensions[i].vtable, extensions[i].size, display);
 		}
 	}
 

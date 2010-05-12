@@ -30,7 +30,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern ce_displaymng* ce_displaymng_create(Display* display, int bpp);
+extern ce_displaymng* ce_displaymng_create(Display* display);
 
 #ifdef __cplusplus
 }
