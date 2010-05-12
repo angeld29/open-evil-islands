@@ -250,8 +250,8 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		&x11window->screensaver.prefer_blanking,
 		&x11window->screensaver.allow_exposures);
 
-	renderwindow->width = width;
-	renderwindow->height = height;
+	renderwindow->width = ce_max(400, width);
+	renderwindow->height = ce_max(300, height);
 
 	renderwindow->displaymng = ce_displaymng_create(x11window->display);
 	renderwindow->context = ce_context_create(x11window->display);
@@ -287,7 +287,8 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	x11window->window = XCreateWindow(x11window->display,
 		XDefaultRootWindow(x11window->display),
-		0, 0, width, height, 0, renderwindow->context->visualinfo->depth,
+		0, 0, renderwindow->width, renderwindow->height,
+		0, renderwindow->context->visualinfo->depth,
 		InputOutput, renderwindow->context->visualinfo->visual,
 		x11window->mask[CE_X11WINDOW_STATE_WINDOW],
 		&x11window->attrs[CE_X11WINDOW_STATE_WINDOW]);
@@ -298,6 +299,15 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		ce_renderwindow_del(renderwindow);
 		return NULL;
 	}
+
+	XSizeHints* size_hints = XAllocSizeHints();
+	size_hints->flags = PSize | PMinSize;
+	size_hints->min_width = 400;
+	size_hints->min_height = 300;
+	size_hints->base_width = renderwindow->width;
+	size_hints->base_height = renderwindow->height;
+	XSetWMNormalHints(x11window->display, x11window->window, size_hints);
+	XFree(size_hints);
 
 	XSetStandardProperties(x11window->display, x11window->window,
 		title, title, None, NULL, 0, NULL);
