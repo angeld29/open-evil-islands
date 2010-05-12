@@ -213,6 +213,12 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
 	// request screen change notifications
 	//XRRSelectInput(dpy, win, RRScreenChangeNotifyMask);
 
+	// TODO: what about events?
+	// event.type - XRandR.EventBase
+	// RRScreenChangeNotify
+	// Show XRandR that we really care
+	// XRRUpdateConfiguration( &event );
+
 	xrrmng->conf = XRRGetScreenInfo(xrrmng->display, XDefaultRootWindow(xrrmng->display));
 	xrrmng->orig_size = XRRConfigCurrentConfiguration(xrrmng->conf, &xrrmng->orig_rotation);
 	xrrmng->orig_rate = XRRConfigCurrentRate(xrrmng->conf);

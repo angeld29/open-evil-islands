@@ -427,7 +427,7 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 	XEvent event;
 	memset(&event, 0, sizeof(event));
 
-	event.type = ClientMessage;
+	event.xclient.type = ClientMessage;
 	event.xclient.send_event = True;
 	event.xclient.window = x11window->window;
 	event.xclient.message_type = x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE];
@@ -437,7 +437,7 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 
 	// absolutely don't understand how event masks work...
 	XSendEvent(x11window->display, XDefaultRootWindow(x11window->display),
-		False, SubstructureNotifyMask, &event);
+		False, SubstructureRedirectMask | SubstructureNotifyMask, &event);
 }
 
 void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
