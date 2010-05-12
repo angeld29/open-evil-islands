@@ -209,6 +209,9 @@ void ce_renderwindow_show(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
+	//SetWindowPos(winwindow->window, HWND_TOPMOST,
+	//	0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
 	ShowWindow(winwindow->window, SW_SHOW);
 	UpdateWindow(winwindow->window);
 
