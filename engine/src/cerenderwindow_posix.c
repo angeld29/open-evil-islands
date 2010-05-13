@@ -50,14 +50,14 @@ enum {
 	CE_X11WINDOW_STATE_COUNT
 };
 
-typedef struct ce_x11window {
+typedef struct ce_renderwindow_x11 {
 	ce_renderwindow* renderwindow;
 	Atom atoms[CE_X11WINDOW_ATOM_COUNT];
 	unsigned long mask[CE_X11WINDOW_STATE_COUNT];
 	XSetWindowAttributes attrs[CE_X11WINDOW_STATE_COUNT];
 	Display* display;
 	Window window;
-	void (*handlers[LASTEvent])(struct ce_x11window*, XEvent*);
+	void (*handlers[LASTEvent])(struct ce_renderwindow_x11*, XEvent*);
 	bool fullscreen; // local state, see renderwindow_minimize
 	bool autorepeat; // restore auto repeat mode at exit
 	struct {
@@ -65,30 +65,30 @@ typedef struct ce_x11window {
 		int prefer_blanking;
 		int allow_exposures;
 	} screensaver; // remember old screen saver settings
-} ce_x11window;
+} ce_renderwindow_x11;
 
-static void ce_renderwindow_handler_skip(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_client_message(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_map_notify(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_visibility_notify(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_configure_notify(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_focus_in(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_focus_out(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_enter_notify(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_key_press(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_key_release(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_button_press(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_button_release(ce_x11window*, XEvent*);
-static void ce_renderwindow_handler_motion_notify(ce_x11window*, XEvent*);
+static void ce_renderwindow_handler_skip(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_client_message(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_map_notify(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_visibility_notify(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_configure_notify(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_focus_in(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_focus_out(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_enter_notify(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_key_press(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_key_release(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_button_press(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_button_release(ce_renderwindow_x11*, XEvent*);
+static void ce_renderwindow_handler_motion_notify(ce_renderwindow_x11*, XEvent*);
 
 ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 {
 	XInitThreads();
 
 	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow) +
-													sizeof(ce_x11window));
+													sizeof(ce_renderwindow_x11));
 
-	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 	x11window->renderwindow = renderwindow;
 
 	x11window->display = XOpenDisplay(NULL);
@@ -234,7 +234,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 void ce_renderwindow_del(ce_renderwindow* renderwindow)
 {
 	if (NULL != renderwindow) {
-		ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+		ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
 		ce_vector_del(renderwindow->listeners);
 		ce_renderwindow_keymap_del(renderwindow->keymap);
@@ -260,13 +260,13 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 			XCloseDisplay(x11window->display);
 		}
 
-		ce_free(renderwindow, sizeof(ce_renderwindow) + sizeof(ce_x11window));
+		ce_free(renderwindow, sizeof(ce_renderwindow) + sizeof(ce_renderwindow_x11));
 	}
 }
 
 void ce_renderwindow_show(ce_renderwindow* renderwindow)
 {
-	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
 	XMapRaised(x11window->display, x11window->window);
 
@@ -281,7 +281,7 @@ void ce_renderwindow_show(ce_renderwindow* renderwindow)
 
 void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 {
-	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
 	bool fullscreen = !renderwindow->fullscreen;
 
@@ -339,7 +339,7 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 
 void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 {
-	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
 	if (renderwindow->fullscreen) {
 		// always exit from fullscreen before minimizing!
@@ -356,7 +356,7 @@ void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 
 void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 {
-	ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 	ce_input_context* input_context = x11window->renderwindow->input_context;
 
 	// reset pointer offset every frame
@@ -380,12 +380,12 @@ void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 	}
 }
 
-static void ce_renderwindow_handler_skip(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_skip(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	ce_unused(x11window), ce_unused(event);
 }
 
-static void ce_renderwindow_handler_client_message(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_client_message(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	if (x11window->atoms[CE_X11WINDOW_ATOM_WM_PROTOCOLS] ==
 			event->xclient.message_type &&
@@ -395,7 +395,7 @@ static void ce_renderwindow_handler_client_message(ce_x11window* x11window, XEve
 	}
 }
 
-static void ce_renderwindow_handler_map_notify(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_map_notify(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	ce_unused(event);
 
@@ -407,25 +407,25 @@ static void ce_renderwindow_handler_map_notify(ce_x11window* x11window, XEvent* 
 	}
 }
 
-static void ce_renderwindow_handler_visibility_notify(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_visibility_notify(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	ce_unused(x11window), ce_unused(event);
 }
 
-static void ce_renderwindow_handler_configure_notify(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_configure_notify(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	x11window->renderwindow->width = event->xconfigure.width;
 	x11window->renderwindow->height = event->xconfigure.height;
 }
 
-static void ce_renderwindow_handler_focus_in(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_focus_in(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	ce_unused(x11window);
 
 	XAutoRepeatOff(event->xfocus.display);
 }
 
-static void ce_renderwindow_handler_focus_out(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_focus_out(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	ce_input_context_clear(x11window->renderwindow->input_context);
 
@@ -434,13 +434,13 @@ static void ce_renderwindow_handler_focus_out(ce_x11window* x11window, XEvent* e
 	}
 }
 
-static void ce_renderwindow_handler_enter_notify(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_enter_notify(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	x11window->renderwindow->input_context->pointer_position.x = event->xcrossing.x;
 	x11window->renderwindow->input_context->pointer_position.y = event->xcrossing.y;
 }
 
-static void ce_renderwindow_handler_key(ce_x11window* x11window, XEvent* event, bool pressed)
+static void ce_renderwindow_handler_key(ce_renderwindow_x11* x11window, XEvent* event, bool pressed)
 {
 	ce_input_context* input_context = x11window->renderwindow->input_context;
 	input_context->pointer_position.x = event->xkey.x;
@@ -456,17 +456,17 @@ static void ce_renderwindow_handler_key(ce_x11window* x11window, XEvent* event, 
 		ce_renderwindow_keymap_search(x11window->renderwindow->keymap, key)] = pressed;
 }
 
-static void ce_renderwindow_handler_key_press(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_key_press(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	ce_renderwindow_handler_key(x11window, event, true);
 }
 
-static void ce_renderwindow_handler_key_release(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_key_release(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	ce_renderwindow_handler_key(x11window, event, false);
 }
 
-static void ce_renderwindow_handler_button(ce_x11window* x11window, XEvent* event, bool pressed)
+static void ce_renderwindow_handler_button(ce_renderwindow_x11* x11window, XEvent* event, bool pressed)
 {
 	ce_input_context* input_context = x11window->renderwindow->input_context;
 	input_context->pointer_position.x = event->xbutton.x;
@@ -475,12 +475,12 @@ static void ce_renderwindow_handler_button(ce_x11window* x11window, XEvent* even
 	input_context->buttons[event->xbutton.button - 1 + CE_MB_LEFT] = pressed;
 }
 
-static void ce_renderwindow_handler_button_press(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_button_press(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	ce_renderwindow_handler_button(x11window, event, true);
 }
 
-static void ce_renderwindow_handler_button_release(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_button_release(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	// special case: ignore wheel buttons, see renderwindow_pump
 	// ButtonPress event is immediately followed by ButtonRelease event
@@ -489,7 +489,7 @@ static void ce_renderwindow_handler_button_release(ce_x11window* x11window, XEve
 	}
 }
 
-static void ce_renderwindow_handler_motion_notify(ce_x11window* x11window, XEvent* event)
+static void ce_renderwindow_handler_motion_notify(ce_renderwindow_x11* x11window, XEvent* event)
 {
 	ce_input_context* input_context = x11window->renderwindow->input_context;
 	input_context->pointer_offset.x = event->xmotion.x - input_context->pointer_position.x;
