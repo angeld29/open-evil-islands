@@ -137,10 +137,14 @@ void ce_root_exec(void)
 
 	ce_timer_start(ce_root.timer);
 
-	while (!ce_root_done) {
+	for (;;) {
 		float elapsed = ce_timer_advance(ce_root.timer);
 
 		ce_renderwindow_pump(ce_root.renderwindow);
+
+		if (ce_root_done) {
+			break;
+		}
 
 		ce_input_event_supply_advance(ce_root.event_supply, elapsed);
 
