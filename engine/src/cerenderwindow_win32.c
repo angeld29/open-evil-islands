@@ -53,6 +53,8 @@ typedef struct ce_renderwindow_win {
 	HWND window;
 	void (*handlers[WM_USER])(struct ce_renderwindow_win*, WPARAM, LPARAM);
 	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
+	DWORD foreground_lock_timeout;
+	int min_animate;
 } ce_renderwindow_win;
 
 static void ce_renderwindow_handler_skip(ce_renderwindow_win*, WPARAM, LPARAM);
@@ -138,6 +140,19 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	//	ce_logging_warning("renderwindow: using event-driven input");
 	//}
 
+	SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT, 0,
+						&winwindow->foreground_lock_timeout, 0);
+	SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,
+						0, (PVOID)0, SPIF_SENDCHANGE);
+
+	ANIMATIONINFO animinfo = { .cbSize = sizeof(ANIMATIONINFO) };
+	SystemParametersInfo(SPI_GETANIMATION, animinfo.cbSize, &animinfo, 0);
+
+	winwindow->min_animate = animinfo.iMinAnimate;
+	animinfo.iMinAnimate = 0;
+
+	SystemParametersInfo(SPI_SETANIMATION, animinfo.cbSize, &animinfo, 0);
+
 	renderwindow->width = width;
 	renderwindow->height = height;
 
@@ -194,6 +209,15 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 		ce_displaymng_del(renderwindow->displaymng);
 
 		ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+
+		ANIMATIONINFO animinfo = { .cbSize = sizeof(ANIMATIONINFO),
+			.iMinAnimate = winwindow->min_animate };
+
+		SystemParametersInfo(SPI_SETANIMATION, animinfo.cbSize, &animinfo, 0);
+
+		SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0,
+			(PVOID)winwindow->foreground_lock_timeout, SPIF_SENDCHANGE);
+
 		if (NULL != winwindow->window) {
 			ReleaseDC(winwindow->window, GetDC(winwindow->window));
 			DestroyWindow(winwindow->window);
