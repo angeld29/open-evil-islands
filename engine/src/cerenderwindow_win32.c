@@ -23,6 +23,7 @@
 
 #include <windows.h>
 #include <windowsx.h>
+
 #include <ddk/hidusage.h>
 
 #include "celib.h"
@@ -148,11 +149,9 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	ZeroMemory(&wc, sizeof(WNDCLASSEX));
 
 	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // redraws the window for
-	                                               // any movement/resizing
+	wc.style = CS_OWNDC;
 	wc.lpfnWndProc = ce_renderwindow_proc;
 	wc.hInstance = GetModuleHandle(NULL);
-	wc.hbrBackground = (HBRUSH)COLOR_APPWORKSPACE; // class background brush color
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.lpszClassName = "cursedearth";
 
