@@ -34,6 +34,26 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	unsigned long key;
+	ce_input_button button;
+} ce_renderwindow_keypair;
+
+typedef struct {
+	ce_vector* keypairs;
+} ce_renderwindow_keymap;
+
+extern ce_renderwindow_keymap* ce_renderwindow_keymap_new(int capacity);
+extern void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
+
+extern void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap,
+										unsigned long key, ce_input_button button);
+
+extern void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
+
+extern ce_input_button
+ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key);
+
+typedef struct {
 	void (*closed)(void* listener);
 	void* listener;
 } ce_renderwindow_listener;
@@ -46,6 +66,7 @@ typedef struct {
 	ce_displaymng* displaymng;
 	ce_context* context;
 	ce_input_context* input_context;
+	ce_renderwindow_keymap* keymap;
 	ce_vector* listeners;
 	char impl[];
 } ce_renderwindow;
@@ -64,7 +85,6 @@ extern void ce_renderwindow_minimize(ce_renderwindow* renderwindow);
 extern void ce_renderwindow_pump(ce_renderwindow* renderwindow);
 
 extern void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow);
-extern void ce_renderwindow_emit_exposed(ce_renderwindow* renderwindow);
 
 #ifdef __cplusplus
 }

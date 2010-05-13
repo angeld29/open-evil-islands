@@ -18,7 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
@@ -32,7 +31,6 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cevector.h"
 #include "cerenderwindow.h"
 
 #include "cedisplay_posix.h"
@@ -52,54 +50,6 @@ enum {
 	CE_X11WINDOW_STATE_COUNT
 };
 
-typedef struct {
-	KeySym keysym;
-	ce_input_button button;
-} ce_x11keypair;
-
-static ce_x11keypair* ce_x11keypair_new(KeySym keysym, ce_input_button button)
-{
-	ce_x11keypair* keypair = ce_alloc(sizeof(ce_x11keypair));
-	keypair->keysym = keysym;
-	keypair->button = button;
-	return keypair;
-}
-
-static void ce_x11keypair_del(ce_x11keypair* keypair)
-{
-	ce_free(keypair, sizeof(ce_x11keypair));
-}
-
-static int ce_x11keypair_sort_comp(const void* lhs, const void* rhs)
-{
-	const ce_x11keypair* keypair1 = *(const ce_x11keypair**)lhs;
-	const ce_x11keypair* keypair2 = *(const ce_x11keypair**)rhs;
-	// be careful: KeySym is something like unsigned...
-	return keypair1->keysym < keypair2->keysym ? -1 :
-			(int)(keypair1->keysym - keypair2->keysym);
-}
-
-static int ce_x11keypair_search_comp(const void* lhs, const void* rhs)
-{
-	const KeySym* keysym = lhs;
-	const ce_x11keypair* keypair = *(const ce_x11keypair**)rhs;
-	// be careful: KeySym is something like unsigned...
-	return *keysym < keypair->keysym ? -1 : (int)(*keysym - keypair->keysym);
-}
-
-static void ce_x11keymap_sort(ce_vector* keymap)
-{
-	qsort(keymap->items, keymap->count,
-		sizeof(ce_x11keypair*), ce_x11keypair_sort_comp);
-}
-
-static ce_input_button ce_x11keymap_search(ce_vector* keymap, const KeySym* keysym)
-{
-	ce_x11keypair** keypair = bsearch(keysym, keymap->items, keymap->count,
-		sizeof(ce_x11keypair*), ce_x11keypair_search_comp);
-	return NULL != keypair ? (*keypair)->button : CE_IB_UNKNOWN;
-}
-
 typedef struct ce_x11window {
 	ce_renderwindow* renderwindow;
 	Atom atoms[CE_X11WINDOW_ATOM_COUNT];
@@ -107,7 +57,6 @@ typedef struct ce_x11window {
 	XSetWindowAttributes attrs[CE_X11WINDOW_STATE_COUNT];
 	Display* display;
 	Window window;
-	ce_vector* keymap;
 	void (*handlers[LASTEvent])(struct ce_x11window*, XEvent*);
 	bool fullscreen; // local state, see renderwindow_minimize
 	bool autorepeat; // restore auto repeat mode at exit
@@ -162,34 +111,6 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
 	x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE] = XInternAtom(x11window->display, "_NET_WM_STATE", False);
 
-	KeySym x11keys[CE_IB_COUNT] = {
-		XK_VoidSymbol, XK_Escape, XK_F1, XK_F2, XK_F3, XK_F4, XK_F5, XK_F6,
-		XK_F7, XK_F8, XK_F9, XK_F10, XK_F11, XK_F12, XK_grave, XK_0, XK_1,
-		XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9, XK_minus, XK_equal,
-		XK_backslash, XK_BackSpace, XK_Tab, XK_q, XK_w, XK_e, XK_r, XK_t, XK_y,
-		XK_u, XK_i, XK_o, XK_p, XK_bracketleft, XK_bracketright, XK_Caps_Lock,
-		XK_a, XK_s, XK_d, XK_f, XK_g, XK_h, XK_j, XK_k, XK_l, XK_semicolon,
-		XK_apostrophe, XK_Return, XK_Shift_L, XK_z, XK_x, XK_c, XK_v, XK_b,
-		XK_n, XK_m, XK_comma, XK_period, XK_slash, XK_Shift_R, XK_Control_L,
-		XK_Super_L, XK_Alt_L, XK_space, XK_Alt_R, XK_Super_R, XK_Menu, XK_Control_R,
-		XK_Print, XK_Scroll_Lock, XK_Pause, XK_Insert, XK_Delete, XK_Home, XK_End,
-		XK_Page_Up, XK_Page_Down, XK_Left, XK_Up, XK_Right, XK_Down, XK_Num_Lock,
-		XK_KP_Divide, XK_KP_Multiply, XK_KP_Subtract, XK_KP_Add, XK_KP_Enter,
-		XK_KP_Delete, XK_KP_Home, XK_KP_Up, XK_KP_Page_Up, XK_KP_Left, XK_KP_Begin,
-		XK_KP_Right, XK_KP_End, XK_KP_Down, XK_KP_Page_Down, XK_KP_Insert,
-		XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol
-	};
-
-	// absolutely don't understand how XChangeKeyboardMapping work...
-	x11window->keymap = ce_vector_new_reserved(CE_IB_COUNT);
-
-	for (int i = 0; i < CE_IB_COUNT; ++i) {
-		ce_vector_push_back(x11window->keymap,
-			ce_x11keypair_new(x11keys[i], i));
-	}
-
-	ce_x11keymap_sort(x11window->keymap);
-
 	for (int i = 0; i < LASTEvent; ++i) {
 		x11window->handlers[i] = ce_renderwindow_handler_skip;
 	}
@@ -227,7 +148,33 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	renderwindow->displaymng = ce_displaymng_create(x11window->display);
 	renderwindow->context = ce_context_create(x11window->display);
 	renderwindow->input_context = ce_input_context_new();
+	renderwindow->keymap = ce_renderwindow_keymap_new(CE_IB_COUNT);
 	renderwindow->listeners = ce_vector_new();
+
+	KeySym x11keys[CE_IB_COUNT] = {
+		XK_VoidSymbol, XK_Escape, XK_F1, XK_F2, XK_F3, XK_F4, XK_F5, XK_F6,
+		XK_F7, XK_F8, XK_F9, XK_F10, XK_F11, XK_F12, XK_grave, XK_0, XK_1,
+		XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9, XK_minus, XK_equal,
+		XK_backslash, XK_BackSpace, XK_Tab, XK_q, XK_w, XK_e, XK_r, XK_t, XK_y,
+		XK_u, XK_i, XK_o, XK_p, XK_bracketleft, XK_bracketright, XK_Caps_Lock,
+		XK_a, XK_s, XK_d, XK_f, XK_g, XK_h, XK_j, XK_k, XK_l, XK_semicolon,
+		XK_apostrophe, XK_Return, XK_Shift_L, XK_z, XK_x, XK_c, XK_v, XK_b,
+		XK_n, XK_m, XK_comma, XK_period, XK_slash, XK_Shift_R, XK_Control_L,
+		XK_Super_L, XK_Alt_L, XK_space, XK_Alt_R, XK_Super_R, XK_Menu, XK_Control_R,
+		XK_Print, XK_Scroll_Lock, XK_Pause, XK_Insert, XK_Delete, XK_Home, XK_End,
+		XK_Page_Up, XK_Page_Down, XK_Left, XK_Up, XK_Right, XK_Down, XK_Num_Lock,
+		XK_KP_Divide, XK_KP_Multiply, XK_KP_Subtract, XK_KP_Add, XK_KP_Enter,
+		XK_KP_Delete, XK_KP_Home, XK_KP_Up, XK_KP_Page_Up, XK_KP_Left, XK_KP_Begin,
+		XK_KP_Right, XK_KP_End, XK_KP_Down, XK_KP_Page_Down, XK_KP_Insert,
+		XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol
+	};
+
+	// absolutely don't understand how XChangeKeyboardMapping work...
+	for (int i = 0; i < CE_IB_COUNT; ++i) {
+		ce_renderwindow_keymap_add(renderwindow->keymap, x11keys[i], i);
+	}
+
+	ce_renderwindow_keymap_sort(renderwindow->keymap);
 
 	renderwindow->bpp = XDefaultDepth(x11window->display, XDefaultScreen(x11window->display));
 	renderwindow->rate = 0;
@@ -287,15 +234,13 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 void ce_renderwindow_del(ce_renderwindow* renderwindow)
 {
 	if (NULL != renderwindow) {
+		ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+
 		ce_vector_del(renderwindow->listeners);
+		ce_renderwindow_keymap_del(renderwindow->keymap);
 		ce_input_context_del(renderwindow->input_context);
 		ce_context_del(renderwindow->context);
 		ce_displaymng_del(renderwindow->displaymng);
-
-		ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
-
-		ce_vector_for_each(x11window->keymap, ce_x11keypair_del);
-		ce_vector_del(x11window->keymap);
 
 		if (0 != x11window->window) {
 			XDestroyWindow(x11window->display, x11window->window);
@@ -507,7 +452,8 @@ static void ce_renderwindow_handler_key(ce_x11window* x11window, XEvent* event, 
 	KeySym key;
 	XLookupString(&event->xkey, NULL, 0, &key, NULL);
 
-	input_context->buttons[ce_x11keymap_search(x11window->keymap, &key)] = pressed;
+	input_context->buttons[
+		ce_renderwindow_keymap_search(x11window->renderwindow->keymap, key)] = pressed;
 }
 
 static void ce_renderwindow_handler_key_press(ce_x11window* x11window, XEvent* event)
