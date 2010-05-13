@@ -44,12 +44,13 @@ extern struct ce_root {
 	ce_timer* timer;
 	ce_renderwindow* renderwindow;
 	ce_rendersystem* rendersystem;
+	ce_scenemng* scenemng;
 	ce_input_event_supply* event_supply;
 	ce_input_event* exit_event;
 	ce_input_event* switch_window_event;
 	ce_input_event* toggle_fullscreen_event;
 	ce_input_event* toggle_bbox_event;
-	ce_scenemng* scenemng;
+	ce_renderwindow_listener renderwindow_listener;
 } ce_root;
 
 extern bool ce_root_init(const char* ei_path);

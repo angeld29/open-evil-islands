@@ -23,31 +23,16 @@
 #include "cealloc.h"
 #include "cerenderwindow.h"
 
-ce_renderwindow_listener_tuple* ce_renderwindow_listener_tuple_new(
-	ce_renderwindow_listener_vtable vtable, void* listener)
-{
-	ce_renderwindow_listener_tuple* tuple = ce_alloc(sizeof(ce_renderwindow_listener_tuple));
-	tuple->vtable = vtable;
-	tuple->listener = listener;
-	return tuple;
-}
-
-void ce_renderwindow_listener_tuple_del(ce_renderwindow_listener_tuple* tuple)
-{
-	ce_free(tuple, sizeof(ce_renderwindow_listener_tuple));
-}
-
 void ce_renderwindow_add_listener(ce_renderwindow* renderwindow,
-	ce_renderwindow_listener_vtable vtable, void* listener)
+									ce_renderwindow_listener* listener)
 {
-	ce_vector_push_back(renderwindow->listeners,
-		ce_renderwindow_listener_tuple_new(vtable, listener));
+	ce_vector_push_back(renderwindow->listeners, listener);
 }
 
 void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow)
 {
 	for (int i = 0; i < renderwindow->listeners->count; ++i) {
-		ce_renderwindow_listener_tuple* tuple = renderwindow->listeners->items[i];
-		(*tuple->vtable.closed)(tuple->listener);
+		ce_renderwindow_listener* listener = renderwindow->listeners->items[i];
+		(*listener->closed)(listener->listener);
 	}
 }

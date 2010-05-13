@@ -35,16 +35,8 @@ extern "C"
 
 typedef struct {
 	void (*closed)(void* listener);
-} ce_renderwindow_listener_vtable;
-
-typedef struct {
-	ce_renderwindow_listener_vtable vtable;
 	void* listener;
-} ce_renderwindow_listener_tuple;
-
-extern ce_renderwindow_listener_tuple* ce_renderwindow_listener_tuple_new(
-	ce_renderwindow_listener_vtable vtable, void* listener);
-extern void ce_renderwindow_listener_tuple_del(ce_renderwindow_listener_tuple* tuple);
+} ce_renderwindow_listener;
 
 typedef struct {
 	int width, height, bpp, rate;
@@ -62,7 +54,7 @@ extern ce_renderwindow* ce_renderwindow_new(const char* title, int width, int he
 extern void ce_renderwindow_del(ce_renderwindow* renderwindow);
 
 extern void ce_renderwindow_add_listener(ce_renderwindow* renderwindow,
-	ce_renderwindow_listener_vtable vtable, void* listener);
+										ce_renderwindow_listener* listener);
 
 extern void ce_renderwindow_show(ce_renderwindow* renderwindow);
 

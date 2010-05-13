@@ -287,7 +287,6 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 void ce_renderwindow_del(ce_renderwindow* renderwindow)
 {
 	if (NULL != renderwindow) {
-		ce_vector_for_each(renderwindow->listeners, ce_renderwindow_listener_tuple_del);
 		ce_vector_del(renderwindow->listeners);
 		ce_input_context_del(renderwindow->input_context);
 		ce_context_del(renderwindow->context);
