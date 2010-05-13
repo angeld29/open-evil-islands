@@ -158,6 +158,8 @@ typedef struct {
 extern ce_input_context* ce_input_context_new(void);
 extern void ce_input_context_del(ce_input_context* context);
 
+extern void ce_input_context_clear(ce_input_context* context);
+
 // level 1 input API - events
 
 typedef struct ce_input_event ce_input_event;

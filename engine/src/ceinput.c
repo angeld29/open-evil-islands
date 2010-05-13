@@ -19,6 +19,7 @@
 */
 
 #include <string.h>
+#include <assert.h>
 
 #include "celib.h"
 #include "cestr.h"
@@ -36,6 +37,11 @@ ce_input_context* ce_input_context_new(void)
 void ce_input_context_del(ce_input_context* context)
 {
 	ce_free(context, sizeof(ce_input_context));
+}
+
+void ce_input_context_clear(ce_input_context* context)
+{
+	memset(context, 0, sizeof(ce_input_context));
 }
 
 // level 1 input API implementation

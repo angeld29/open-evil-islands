@@ -294,23 +294,25 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 		ce_displaymng_del(renderwindow->displaymng);
 
 		ce_x11window* x11window = (ce_x11window*)renderwindow->impl;
+
 		ce_vector_for_each(x11window->keymap, ce_x11keypair_del);
 		ce_vector_del(x11window->keymap);
-
-		XSetScreenSaver(x11window->display,
-			x11window->screensaver.timeout,
-			x11window->screensaver.interval,
-			x11window->screensaver.prefer_blanking,
-			x11window->screensaver.allow_exposures);
-
-		if (x11window->autorepeat) {
-			XAutoRepeatOn(x11window->display);
-		}
 
 		if (0 != x11window->window) {
 			XDestroyWindow(x11window->display, x11window->window);
 		}
+
 		if (NULL != x11window->display) {
+			XSetScreenSaver(x11window->display,
+				x11window->screensaver.timeout,
+				x11window->screensaver.interval,
+				x11window->screensaver.prefer_blanking,
+				x11window->screensaver.allow_exposures);
+
+			if (x11window->autorepeat) {
+				XAutoRepeatOn(x11window->display);
+			}
+
 			XCloseDisplay(x11window->display);
 		}
 
@@ -454,31 +456,16 @@ static void ce_renderwindow_handler_map_notify(ce_x11window* x11window, XEvent* 
 	ce_unused(event);
 
 	if (x11window->fullscreen) {
+		x11window->fullscreen = false;
+
 		assert(!x11window->renderwindow->fullscreen);
 		ce_renderwindow_toggle_fullscreen(x11window->renderwindow);
-		x11window->fullscreen = false;
 	}
 }
 
 static void ce_renderwindow_handler_visibility_notify(ce_x11window* x11window, XEvent* event)
 {
-	ce_input_context* input_context = x11window->renderwindow->input_context;
-
-	if (VisibilityUnobscured == event->xvisibility.state) {
-		Window window;
-		unsigned int mask;
-		int dummy, x, y;
-
-		XQueryPointer(event->xvisibility.display, event->xvisibility.window,
-			&window, &window, &dummy, &dummy, &x, &y, &mask);
-
-		input_context->pointer_position.x = x;
-		input_context->pointer_position.y = y;
-	}
-
-	if (VisibilityFullyObscured != event->xvisibility.state) {
-		memset(input_context->buttons, 0, sizeof(input_context->buttons));
-	}
+	ce_unused(x11window), ce_unused(event);
 }
 
 static void ce_renderwindow_handler_configure_notify(ce_x11window* x11window, XEvent* event)
@@ -496,6 +483,8 @@ static void ce_renderwindow_handler_focus_in(ce_x11window* x11window, XEvent* ev
 
 static void ce_renderwindow_handler_focus_out(ce_x11window* x11window, XEvent* event)
 {
+	ce_input_context_clear(x11window->renderwindow->input_context);
+
 	if (x11window->autorepeat) {
 		XAutoRepeatOn(event->xfocus.display);
 	}
@@ -503,9 +492,8 @@ static void ce_renderwindow_handler_focus_out(ce_x11window* x11window, XEvent* e
 
 static void ce_renderwindow_handler_enter_notify(ce_x11window* x11window, XEvent* event)
 {
-	ce_input_context* input_context = x11window->renderwindow->input_context;
-	input_context->pointer_position.x = event->xcrossing.x;
-	input_context->pointer_position.y = event->xcrossing.y;
+	x11window->renderwindow->input_context->pointer_position.x = event->xcrossing.x;
+	x11window->renderwindow->input_context->pointer_position.y = event->xcrossing.y;
 }
 
 static void ce_renderwindow_handler_key(ce_x11window* x11window, XEvent* event, bool pressed)
