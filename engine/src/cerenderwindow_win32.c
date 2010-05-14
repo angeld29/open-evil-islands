@@ -34,6 +34,10 @@
 #include "cedisplay_win32.h"
 #include "cecontext_win32.h"
 
+#ifndef MAPVK_VSC_TO_VK_EX
+#define MAPVK_VSC_TO_VK_EX 3
+#endif
+
 enum {
 	CE_WINWINDOW_STATE_WINDOW,
 	CE_WINWINDOW_STATE_FULLSCREEN,
@@ -56,6 +60,8 @@ typedef struct {
 	int min_animate;
 } ce_renderwindow_win;
 
+static LRESULT CALLBACK ce_renderwindow_proc(HWND, UINT, WPARAM, LPARAM);
+
 static void ce_renderwindow_handler_skip(ce_renderwindow*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_close(ce_renderwindow*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_destroy(ce_renderwindow*, WPARAM, LPARAM);
@@ -72,8 +78,6 @@ static void ce_renderwindow_handler_rbuttondown(ce_renderwindow*, WPARAM, LPARAM
 static void ce_renderwindow_handler_rbuttonup(ce_renderwindow*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_mousewheel(ce_renderwindow*, WPARAM, LPARAM);
 static void ce_renderwindow_handler_mousemove(ce_renderwindow*, WPARAM, LPARAM);
-
-static LRESULT CALLBACK ce_renderwindow_proc(HWND, UINT, WPARAM, LPARAM);
 
 ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 {
@@ -155,7 +159,30 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	renderwindow->displaymng = ce_displaymng_create();
 	renderwindow->input_context = ce_input_context_new();
+	renderwindow->keymap = ce_renderwindow_keymap_new(CE_IB_COUNT);
 	renderwindow->listeners = ce_vector_new();
+
+	unsigned long winkeys[CE_IB_COUNT] = {
+		0, VK_ESCAPE, VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8,
+		VK_F9, VK_F10, VK_F11, VK_F12, VK_OEM_3, '0', '1', '2', '3', '4', '5',
+		'6', '7', '8', '9', VK_OEM_MINUS, VK_OEM_PLUS, VK_OEM_5, VK_BACK, VK_TAB,
+		'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', VK_OEM_4, VK_OEM_6,
+		VK_CAPITAL, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', VK_OEM_1,
+		VK_OEM_7, VK_RETURN, VK_LSHIFT, 'Z', 'X', 'C', 'V', 'B', 'N', 'M',
+		VK_OEM_COMMA, VK_OEM_PERIOD, VK_OEM_2, VK_RSHIFT, VK_LCONTROL, VK_LWIN,
+		VK_LMENU, VK_SPACE, VK_RMENU, VK_RWIN, VK_APPS, VK_RCONTROL, VK_SNAPSHOT,
+		VK_SCROLL, VK_PAUSE, VK_INSERT, VK_DELETE, VK_HOME, VK_END, VK_PRIOR,
+		VK_NEXT, VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN, VK_NUMLOCK, VK_DIVIDE,
+		VK_MULTIPLY, VK_SUBTRACT, VK_ADD, VK_EXECUTE, VK_DECIMAL, VK_NUMPAD7,
+		VK_NUMPAD8, VK_NUMPAD9, VK_NUMPAD4, VK_NUMPAD5, VK_NUMPAD6, VK_NUMPAD1,
+		VK_NUMPAD2, VK_NUMPAD3, VK_NUMPAD0, 0, 0, 0, 0, 0
+	};
+
+	for (int i = 0; i < CE_IB_COUNT; ++i) {
+		ce_renderwindow_keymap_add(renderwindow->keymap, winkeys[i], i);
+	}
+
+	ce_renderwindow_keymap_sort(renderwindow->keymap);
 
 	WNDCLASSEX wc;
 	ZeroMemory(&wc, sizeof(WNDCLASSEX));
@@ -273,6 +300,20 @@ void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 	}
 }
 
+static LRESULT CALLBACK ce_renderwindow_proc(HWND window, UINT message,
+											WPARAM wparam, LPARAM lparam)
+{
+	ce_renderwindow* renderwindow =
+		(ce_renderwindow*)GetWindowLongPtr(window, GWLP_USERDATA);
+
+	if (NULL != renderwindow && message < WM_USER) {
+		ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+		(*winwindow->handlers[message])(renderwindow, wparam, lparam);
+	}
+
+	return DefWindowProc(window, message, wparam, lparam);
+}
+
 static void ce_renderwindow_handler_skip(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
 	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
@@ -336,14 +377,42 @@ static void ce_renderwindow_handler_input(ce_renderwindow* renderwindow, WPARAM 
 	ce_free(lpb, size);*/
 }
 
+static void ce_renderwindow_handler_key(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam, bool pressed)
+{
+	switch (wparam) {
+	case VK_RETURN:
+		// from MSDN: "Original equipment manufacturers should not use
+		// the unassigned portions of the VK mapping tables.
+		// Microsoft will assign these values in the future. If manufacturers
+		// require additional VK mappings, they should reuse some of the
+		// current manufacturer-specific and vendor-specific assignments."
+		// no problem: use VK_EXECUTE to simulate missing VK_NUMPADRETURN
+		wparam = HIWORD(lparam) & KF_EXTENDED ? VK_EXECUTE : VK_RETURN;
+		break;
+	// see MSDN WM_KEYDOWN/WM_KEYUP Message for next VKs
+	case VK_SHIFT:
+		wparam = MapVirtualKey(HIWORD(lparam) & 0xff, MAPVK_VSC_TO_VK_EX);
+		break;
+	case VK_CONTROL:
+		wparam = HIWORD(lparam) & KF_EXTENDED ? VK_RCONTROL : VK_LCONTROL;
+		break;
+	case VK_MENU:
+		wparam = HIWORD(lparam) & KF_EXTENDED ? VK_RMENU : VK_LMENU;
+		break;
+	}
+
+	renderwindow->input_context->buttons[
+		ce_renderwindow_keymap_search(renderwindow->keymap, wparam)] = pressed;
+}
+
 static void ce_renderwindow_handler_keydown(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_renderwindow_handler_key(renderwindow, wparam, lparam, true);
 }
 
 static void ce_renderwindow_handler_keyup(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_renderwindow_handler_key(renderwindow, wparam, lparam, false);
 }
 
 static void ce_renderwindow_handler_button(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam, ce_input_button button, bool pressed)
@@ -401,18 +470,4 @@ static void ce_renderwindow_handler_mousemove(ce_renderwindow* renderwindow, WPA
 
 	renderwindow->input_context->pointer_position.x = GET_X_LPARAM(lparam);
 	renderwindow->input_context->pointer_position.y = GET_Y_LPARAM(lparam);
-}
-
-static LRESULT CALLBACK ce_renderwindow_proc(HWND window, UINT message,
-											WPARAM wparam, LPARAM lparam)
-{
-	ce_renderwindow* renderwindow =
-		(ce_renderwindow*)GetWindowLongPtr(window, GWLP_USERDATA);
-
-	if (NULL != renderwindow && message < WM_USER) {
-		ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
-		(*winwindow->handlers[message])(renderwindow, wparam, lparam);
-	}
-
-	return DefWindowProc(window, message, wparam, lparam);
 }
