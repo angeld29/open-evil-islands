@@ -56,8 +56,7 @@ typedef struct {
 	HWND window;
 	bool (*handlers[WM_USER])(ce_renderwindow*, WPARAM, LPARAM);
 	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
-	DWORD foreground_lock_timeout;
-	int min_animate;
+	FILTERKEYS old_filterkeys, filterkeys;
 } ce_renderwindow_win;
 
 static LRESULT CALLBACK ce_renderwindow_proc(HWND, UINT, WPARAM, LPARAM);
@@ -66,6 +65,8 @@ static bool ce_renderwindow_handler_skip(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_close(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_size(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_syscommand(ce_renderwindow*, WPARAM, LPARAM);
+static bool ce_renderwindow_handler_setfocus(ce_renderwindow*, WPARAM, LPARAM);
+static bool ce_renderwindow_handler_killfocus(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_input(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_keydown(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_keyup(ce_renderwindow*, WPARAM, LPARAM);
@@ -97,6 +98,8 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	winwindow->handlers[WM_CLOSE] = ce_renderwindow_handler_close;
 	winwindow->handlers[WM_SIZE] = ce_renderwindow_handler_size;
 	winwindow->handlers[WM_SYSCOMMAND] = ce_renderwindow_handler_syscommand;
+	winwindow->handlers[WM_SETFOCUS] = ce_renderwindow_handler_setfocus;
+	winwindow->handlers[WM_KILLFOCUS] = ce_renderwindow_handler_killfocus;
 	winwindow->handlers[WM_INPUT] = ce_renderwindow_handler_input;
 	winwindow->handlers[WM_KEYDOWN] = ce_renderwindow_handler_keydown;
 	winwindow->handlers[WM_SYSKEYDOWN] = ce_renderwindow_handler_keydown;
@@ -129,18 +132,13 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	//	ce_logging_warning("renderwindow: using event-driven input");
 	//}
 
-	SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT, 0,
-						&winwindow->foreground_lock_timeout, 0);
-	SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,
-						0, (PVOID)0, SPIF_SENDCHANGE);
+	winwindow->old_filterkeys.cbSize = sizeof(FILTERKEYS);
 
-	ANIMATIONINFO animinfo = { .cbSize = sizeof(ANIMATIONINFO) };
-	SystemParametersInfo(SPI_GETANIMATION, animinfo.cbSize, &animinfo, 0);
+	SystemParametersInfo(SPI_GETFILTERKEYS,
+		sizeof(FILTERKEYS), &winwindow->old_filterkeys, 0);
 
-	winwindow->min_animate = animinfo.iMinAnimate;
-	animinfo.iMinAnimate = 0;
-
-	SystemParametersInfo(SPI_SETANIMATION, animinfo.cbSize, &animinfo, 0);
+	winwindow->filterkeys = winwindow->old_filterkeys;
+	winwindow->filterkeys.dwFlags = 0;
 
 	width = ce_max(400, width);
 	height = ce_max(300, height);
@@ -231,13 +229,8 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 		ce_context_del(renderwindow->context);
 		ce_displaymng_del(renderwindow->displaymng);
 
-		ANIMATIONINFO animinfo = { .cbSize = sizeof(ANIMATIONINFO),
-			.iMinAnimate = winwindow->min_animate };
-
-		SystemParametersInfo(SPI_SETANIMATION, animinfo.cbSize, &animinfo, 0);
-
-		SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0,
-			(PVOID)winwindow->foreground_lock_timeout, SPIF_SENDCHANGE);
+		SystemParametersInfo(SPI_SETFILTERKEYS,
+			sizeof(FILTERKEYS), &winwindow->old_filterkeys, 0);
 
 		if (NULL != winwindow->window) {
 			ReleaseDC(winwindow->window, GetDC(winwindow->window));
@@ -348,6 +341,32 @@ static bool ce_renderwindow_handler_syscommand(ce_renderwindow* renderwindow, WP
 	// prevent screensaver or monitor powersave mode from starting
 	// fullscreen only!
 	// (SC_SCREENSAVE == (wparam & 0xFFF0) || SC_MONITORPOWER == (wparam & 0xFFF0))
+
+	return false;
+}
+
+static bool ce_renderwindow_handler_setfocus(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
+{
+	ce_unused(wparam), ce_unused(lparam);
+
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+
+	SystemParametersInfo(SPI_SETFILTERKEYS,
+		sizeof(FILTERKEYS), &winwindow->filterkeys, 0);
+
+	return false;
+}
+
+static bool ce_renderwindow_handler_killfocus(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
+{
+	ce_unused(wparam), ce_unused(lparam);
+
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+
+	SystemParametersInfo(SPI_SETFILTERKEYS,
+		sizeof(FILTERKEYS), &winwindow->old_filterkeys, 0);
+
+	ce_input_context_clear(renderwindow->input_context);
 
 	return false;
 }
