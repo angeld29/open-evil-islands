@@ -50,25 +50,37 @@ enum {
 	CE_RENDERWINDOW_RID_COUNT
 };
 
+enum {
+	CE_RENDERWINDOW_SHORTCUT_ALTTAB,
+	CE_RENDERWINDOW_SHORTCUT_LWIN,
+	CE_RENDERWINDOW_SHORTCUT_RWIN,
+	CE_RENDERWINDOW_SHORTCUT_COUNT
+};
+
 typedef struct {
 	DWORD style[CE_WINWINDOW_STATE_COUNT];
 	DWORD extended_style[CE_WINWINDOW_STATE_COUNT];
 	HWND window;
 	bool (*handlers[WM_USER])(ce_renderwindow*, WPARAM, LPARAM);
 	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
+	int shortcuts[CE_RENDERWINDOW_SHORTCUT_COUNT];
+	int x, y;
+	int width, height;
+	bool fullscreen;
 	bool cursor_inside;
-	FILTERKEYS old_filterkeys, filterkeys;
 } ce_renderwindow_win;
 
 static LRESULT CALLBACK ce_renderwindow_proc(HWND, UINT, WPARAM, LPARAM);
 
 static bool ce_renderwindow_handler_skip(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_close(ce_renderwindow*, WPARAM, LPARAM);
+static bool ce_renderwindow_handler_move(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_size(ce_renderwindow*, WPARAM, LPARAM);
+static bool ce_renderwindow_handler_activate(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_syscommand(ce_renderwindow*, WPARAM, LPARAM);
-static bool ce_renderwindow_handler_setfocus(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_killfocus(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_input(ce_renderwindow*, WPARAM, LPARAM);
+static bool ce_renderwindow_handler_hotkey(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_keydown(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_keyup(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_lbuttondown(ce_renderwindow*, WPARAM, LPARAM);
@@ -99,11 +111,13 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	}
 
 	winwindow->handlers[WM_CLOSE] = ce_renderwindow_handler_close;
+	winwindow->handlers[WM_MOVE] = ce_renderwindow_handler_move;
 	winwindow->handlers[WM_SIZE] = ce_renderwindow_handler_size;
+	winwindow->handlers[WM_ACTIVATE] = ce_renderwindow_handler_activate;
 	winwindow->handlers[WM_SYSCOMMAND] = ce_renderwindow_handler_syscommand;
-	winwindow->handlers[WM_SETFOCUS] = ce_renderwindow_handler_setfocus;
 	winwindow->handlers[WM_KILLFOCUS] = ce_renderwindow_handler_killfocus;
 	winwindow->handlers[WM_INPUT] = ce_renderwindow_handler_input;
+	winwindow->handlers[WM_HOTKEY] = ce_renderwindow_handler_hotkey;
 	winwindow->handlers[WM_KEYDOWN] = ce_renderwindow_handler_keydown;
 	winwindow->handlers[WM_SYSKEYDOWN] = ce_renderwindow_handler_keydown;
 	winwindow->handlers[WM_KEYUP] = ce_renderwindow_handler_keyup;
@@ -137,13 +151,9 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	//	ce_logging_warning("renderwindow: using event-driven input");
 	//}
 
-	winwindow->old_filterkeys.cbSize = sizeof(FILTERKEYS);
-
-	SystemParametersInfo(SPI_GETFILTERKEYS,
-		sizeof(FILTERKEYS), &winwindow->old_filterkeys, 0);
-
-	winwindow->filterkeys = winwindow->old_filterkeys;
-	winwindow->filterkeys.dwFlags = 0;
+	for (int i = 0; i < CE_RENDERWINDOW_SHORTCUT_COUNT; ++i) {
+		winwindow->shortcuts[i] = i;
+	}
 
 	width = ce_max(400, width);
 	height = ce_max(300, height);
@@ -203,7 +213,9 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	winwindow->window = CreateWindowEx(winwindow->extended_style[CE_WINWINDOW_STATE_WINDOW],
 		wc.lpszClassName, title, winwindow->style[CE_WINWINDOW_STATE_WINDOW],
-		CW_USEDEFAULT, CW_USEDEFAULT, renderwindow->width, renderwindow->height,
+		(GetSystemMetrics(SM_CXSCREEN) - renderwindow->width) / 2,
+		(GetSystemMetrics(SM_CYSCREEN) - renderwindow->height) / 2,
+		renderwindow->width, renderwindow->height,
 		HWND_DESKTOP, NULL, wc.hInstance, NULL);
 
 	if (NULL == winwindow->window) {
@@ -212,14 +224,14 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		return NULL;
 	}
 
+	SetWindowLongPtr(winwindow->window, GWLP_USERDATA, (LONG_PTR)renderwindow);
+
 	renderwindow->context = ce_context_create(GetDC(winwindow->window));
 	if (NULL == renderwindow->context) {
 		ce_logging_fatal("renderwindow: could not create context");
 		ce_renderwindow_del(renderwindow);
 		return NULL;
 	}
-
-	SetWindowLongPtr(winwindow->window, GWLP_USERDATA, (LONG_PTR)renderwindow);
 
 	return renderwindow;
 }
@@ -230,14 +242,16 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 		ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
 		ce_vector_del(renderwindow->listeners);
+		ce_renderwindow_keymap_del(renderwindow->keymap);
 		ce_input_context_del(renderwindow->input_context);
 		ce_context_del(renderwindow->context);
 		ce_displaymng_del(renderwindow->displaymng);
 
-		SystemParametersInfo(SPI_SETFILTERKEYS,
-			sizeof(FILTERKEYS), &winwindow->old_filterkeys, 0);
-
 		if (NULL != winwindow->window) {
+			for (int i = 0; i < CE_RENDERWINDOW_SHORTCUT_COUNT; ++i) {
+				UnregisterHotKey(winwindow->window, winwindow->shortcuts[i]);
+			}
+
 			ReleaseDC(winwindow->window, GetDC(winwindow->window));
 			DestroyWindow(winwindow->window);
 		}
@@ -252,9 +266,6 @@ void ce_renderwindow_show(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
-	//SetWindowPos(winwindow->window, HWND_TOPMOST,
-	//	0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-
 	ShowWindow(winwindow->window, SW_SHOW);
 	UpdateWindow(winwindow->window);
 
@@ -264,28 +275,76 @@ void ce_renderwindow_show(ce_renderwindow* renderwindow)
 
 void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 {
-	ce_unused(renderwindow);
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
-	//ce_displaymng_change(renderwindow->displaymng,
-	//	renderwindow->width, renderwindow->height, renderwindow->bpp,
-	//	renderwindow->rate, renderwindow->rotation, renderwindow->reflection);
+	bool fullscreen = !renderwindow->fullscreen;
 
-    //SetWindowLong(myHandle, GWL_STYLE, WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
-    //SetWindowLong(myHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
+	if (!renderwindow->fullscreen && fullscreen) {
+		RegisterHotKey(winwindow->window,
+			winwindow->shortcuts[CE_RENDERWINDOW_SHORTCUT_ALTTAB],
+			MOD_ALT, VK_TAB);
+		RegisterHotKey(winwindow->window,
+			winwindow->shortcuts[CE_RENDERWINDOW_SHORTCUT_LWIN],
+			MOD_WIN, VK_LWIN);
+	}
 
-	//SetWindowPos(myHandle, HWND_TOP, 0, 0, Mode.Width, Mode.Height, SWP_FRAMECHANGED);
-    //ShowWindow(myHandle, SW_SHOW);
+	if (renderwindow->fullscreen && !fullscreen) {
+		for (int i = 0; i < CE_RENDERWINDOW_SHORTCUT_COUNT; ++i) {
+			UnregisterHotKey(winwindow->window, winwindow->shortcuts[i]);
+		}
+	}
+
+	renderwindow->fullscreen = fullscreen;
+
+	int x = winwindow->x, y = winwindow->y;
+	int width = winwindow->width, height = winwindow->height;
+
+	if (fullscreen) {
+		int index = ce_displaymng_change(renderwindow->displaymng,
+			renderwindow->width, renderwindow->height,
+			renderwindow->bpp, renderwindow->rate,
+			renderwindow->rotation, renderwindow->reflection);
+
+		const ce_displaymode* mode = renderwindow->displaymng->modes->items[index];
+
+		x = 0;
+		y = 0;
+
+		width = mode->width;
+		height = mode->height;
+
+		RECT rect;
+		GetWindowRect(winwindow->window, &rect);
+
+		winwindow->x = rect.left;
+		winwindow->y = rect.top;
+
+		winwindow->width = renderwindow->width;
+		winwindow->height = renderwindow->height;
+	} else {
+		ce_displaymng_restore(renderwindow->displaymng);
+	}
+
+	SetWindowLong(winwindow->window, GWL_STYLE, winwindow->style[fullscreen]);
+	SetWindowLong(winwindow->window, GWL_EXSTYLE, winwindow->extended_style[fullscreen]);
+
+	SetWindowPos(winwindow->window, HWND_TOP, x, y, width, height, SWP_FRAMECHANGED);
 }
 
 void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 {
-	ce_unused(renderwindow);
-	// TODO: implement it
-	//WINDOWPLACEMENT wndpl;
-	//wndpl.length = sizeof(WINDOWPLACEMENT);
-	//GetWindowPlacement(HWnd, &wndpl);
-	//wndpl.showCmd = SW_SHOWMINNOACTIVE;
-	//SetWindowPlacement(HWnd, &wndpl);
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+
+	if (renderwindow->fullscreen) {
+		// save fullscreen state to restore later
+		assert(!winwindow->fullscreen);
+		winwindow->fullscreen = true;
+
+		// exit from fullscreen before minimizing
+		ce_renderwindow_toggle_fullscreen(renderwindow);
+	}
+
+	ShowWindow(winwindow->window, SW_MINIMIZE);
 }
 
 void ce_renderwindow_pump(ce_renderwindow* renderwindow)
@@ -337,6 +396,16 @@ static bool ce_renderwindow_handler_close(ce_renderwindow* renderwindow, WPARAM 
 	return true;
 }
 
+static bool ce_renderwindow_handler_move(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
+{
+	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+
+	//renderwindow->width = LOWORD(lparam);
+	//renderwindow->height = HIWORD(lparam);
+
+	return false;
+}
+
 static bool ce_renderwindow_handler_size(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
 	ce_unused(wparam);
@@ -347,9 +416,29 @@ static bool ce_renderwindow_handler_size(ce_renderwindow* renderwindow, WPARAM w
 	return false;
 }
 
+static bool ce_renderwindow_handler_activate(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
+{
+	ce_unused(wparam), ce_unused(lparam);
+
+	// was minimized and deactivated, see MSDN for more details
+	if (0 != HIWORD(wparam) && WA_INACTIVE != LOWORD(wparam)) {
+		ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+
+		if (winwindow->fullscreen) {
+			winwindow->fullscreen = false;
+
+			assert(!renderwindow->fullscreen);
+			ce_renderwindow_toggle_fullscreen(renderwindow);
+		}
+	}
+
+	return false;
+}
+
 static bool ce_renderwindow_handler_syscommand(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
 	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+
 	// TODO: implement it
 	// prevent screensaver or monitor powersave mode from starting
 	// fullscreen only!
@@ -358,26 +447,9 @@ static bool ce_renderwindow_handler_syscommand(ce_renderwindow* renderwindow, WP
 	return false;
 }
 
-static bool ce_renderwindow_handler_setfocus(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
-{
-	ce_unused(wparam), ce_unused(lparam);
-
-	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
-
-	SystemParametersInfo(SPI_SETFILTERKEYS,
-		sizeof(FILTERKEYS), &winwindow->filterkeys, 0);
-
-	return false;
-}
-
 static bool ce_renderwindow_handler_killfocus(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
 	ce_unused(wparam), ce_unused(lparam);
-
-	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
-
-	SystemParametersInfo(SPI_SETFILTERKEYS,
-		sizeof(FILTERKEYS), &winwindow->old_filterkeys, 0);
 
 	ce_input_context_clear(renderwindow->input_context);
 
@@ -387,6 +459,7 @@ static bool ce_renderwindow_handler_killfocus(ce_renderwindow* renderwindow, WPA
 static bool ce_renderwindow_handler_input(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
 	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+
 	//printf("ce_renderwindow_handler_input\n");
 
 	/*UINT size;
@@ -411,6 +484,21 @@ static bool ce_renderwindow_handler_input(ce_renderwindow* renderwindow, WPARAM 
 	}
 
 	ce_free(lpb, size);*/
+
+	return false;
+}
+
+static bool ce_renderwindow_handler_hotkey(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
+{
+	ce_unused(lparam);
+
+	if (CE_RENDERWINDOW_SHORTCUT_ALTTAB == wparam ||
+			CE_RENDERWINDOW_SHORTCUT_LWIN == wparam ||
+			CE_RENDERWINDOW_SHORTCUT_RWIN == wparam) {
+		if (renderwindow->fullscreen) {
+			ce_renderwindow_minimize(renderwindow);
+		}
+	}
 
 	return false;
 }
