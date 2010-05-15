@@ -44,16 +44,10 @@ enum {
 	CE_X11WINDOW_ATOM_COUNT
 };
 
-enum {
-	CE_X11WINDOW_STATE_WINDOW,
-	CE_X11WINDOW_STATE_FULLSCREEN,
-	CE_X11WINDOW_STATE_COUNT
-};
-
 typedef struct {
 	Atom atoms[CE_X11WINDOW_ATOM_COUNT];
-	unsigned long mask[CE_X11WINDOW_STATE_COUNT];
-	XSetWindowAttributes attrs[CE_X11WINDOW_STATE_COUNT];
+	unsigned long mask[CE_RENDERWINDOW_STATE_COUNT];
+	XSetWindowAttributes attrs[CE_RENDERWINDOW_STATE_COUNT];
 	Display* display;
 	Window window;
 	void (*handlers[LASTEvent])(ce_renderwindow*, XEvent*);
@@ -182,7 +176,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		ce_logging_warning("renderwindow: you live in prehistoric times");
 	}
 
-	for (int i = 0; i < CE_X11WINDOW_STATE_COUNT; ++i) {
+	for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
 		x11window->mask[i] = CWColormap | CWEventMask | CWOverrideRedirect;
 		x11window->attrs[i].colormap = XCreateColormap(x11window->display,
 			XDefaultRootWindow(x11window->display),
@@ -191,7 +185,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 			KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
 			PointerMotionMask | ButtonMotionMask |
 			FocusChangeMask | VisibilityChangeMask | StructureNotifyMask;
-		x11window->attrs[i].override_redirect = CE_X11WINDOW_STATE_FULLSCREEN == i;
+		x11window->attrs[i].override_redirect = CE_RENDERWINDOW_STATE_FULLSCREEN == i;
 	}
 
 	x11window->window = XCreateWindow(x11window->display,
@@ -199,8 +193,8 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		0, 0, renderwindow->width, renderwindow->height,
 		0, renderwindow->context->visualinfo->depth,
 		InputOutput, renderwindow->context->visualinfo->visual,
-		x11window->mask[CE_X11WINDOW_STATE_WINDOW],
-		&x11window->attrs[CE_X11WINDOW_STATE_WINDOW]);
+		x11window->mask[CE_RENDERWINDOW_STATE_WINDOW],
+		&x11window->attrs[CE_RENDERWINDOW_STATE_WINDOW]);
 
 	if (!ce_context_make_current(renderwindow->context, x11window->display,
 														x11window->window)) {

@@ -39,12 +39,6 @@
 #endif
 
 enum {
-	CE_WINWINDOW_STATE_WINDOW,
-	CE_WINWINDOW_STATE_FULLSCREEN,
-	CE_WINWINDOW_STATE_COUNT
-};
-
-enum {
 	CE_RENDERWINDOW_RID_KEYBOARD,
 	CE_RENDERWINDOW_RID_MOUSE,
 	CE_RENDERWINDOW_RID_COUNT
@@ -58,8 +52,8 @@ enum {
 };
 
 typedef struct {
-	DWORD style[CE_WINWINDOW_STATE_COUNT];
-	DWORD extended_style[CE_WINWINDOW_STATE_COUNT];
+	DWORD style[CE_RENDERWINDOW_STATE_COUNT];
+	DWORD extended_style[CE_RENDERWINDOW_STATE_COUNT];
 	HWND window;
 	bool (*handlers[WM_USER])(ce_renderwindow*, WPARAM, LPARAM);
 	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
@@ -100,9 +94,9 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 													sizeof(ce_renderwindow_win));
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
-	for (int i = 0; i < CE_WINWINDOW_STATE_COUNT; ++i) {
+	for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
 		winwindow->style[i] = WS_VISIBLE | (DWORD[])
-			{ WS_OVERLAPPEDWINDOW, WS_POPUP }[CE_WINWINDOW_STATE_FULLSCREEN == i];
+			{ WS_OVERLAPPEDWINDOW, WS_POPUP }[CE_RENDERWINDOW_STATE_FULLSCREEN == i];
 		winwindow->extended_style[i] = WS_EX_APPWINDOW;
 	}
 
@@ -159,8 +153,8 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	height = ce_max(300, height);
 
 	RECT rect = { 0, 0, width, height };
-	if (AdjustWindowRectEx(&rect, winwindow->style[CE_WINWINDOW_STATE_WINDOW],
-			0, winwindow->extended_style[CE_WINWINDOW_STATE_WINDOW])) {
+	if (AdjustWindowRectEx(&rect, winwindow->style[CE_RENDERWINDOW_STATE_WINDOW],
+			0, winwindow->extended_style[CE_RENDERWINDOW_STATE_WINDOW])) {
 		width = rect.right - rect.left;
 		height = rect.bottom - rect.top;
 	}
@@ -211,8 +205,8 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		return NULL;
 	}
 
-	winwindow->window = CreateWindowEx(winwindow->extended_style[CE_WINWINDOW_STATE_WINDOW],
-		wc.lpszClassName, title, winwindow->style[CE_WINWINDOW_STATE_WINDOW],
+	winwindow->window = CreateWindowEx(winwindow->extended_style[CE_RENDERWINDOW_STATE_WINDOW],
+		wc.lpszClassName, title, winwindow->style[CE_RENDERWINDOW_STATE_WINDOW],
 		(GetSystemMetrics(SM_CXSCREEN) - renderwindow->width) / 2,
 		(GetSystemMetrics(SM_CYSCREEN) - renderwindow->height) / 2,
 		renderwindow->width, renderwindow->height,
