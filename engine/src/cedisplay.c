@@ -76,14 +76,14 @@ void ce_displaymng_restore(ce_displaymng* displaymng)
 	(*displaymng->vtable.restore)(displaymng);
 }
 
-void ce_displaymng_change(ce_displaymng* displaymng,
+int ce_displaymng_change(ce_displaymng* displaymng,
 							int width, int height, int bpp, int rate,
 							ce_display_rotation rotation,
 							ce_display_reflection reflection)
 {
 	if (ce_vector_empty(displaymng->modes)) {
 		ce_logging_warning("displaymng: no modes found");
-		return;
+		return -1;
 	}
 
 	int best_width = width, best_height = height;
@@ -185,4 +185,6 @@ void ce_displaymng_change(ce_displaymng* displaymng,
 	}
 
 	(*displaymng->vtable.change)(displaymng, index, best_rotation, best_reflection);
+
+	return index;
 }
