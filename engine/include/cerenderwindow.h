@@ -21,6 +21,8 @@
 #ifndef CE_RENDERWINDOW_H
 #define CE_RENDERWINDOW_H
 
+#include <stddef.h>
+#include <stdarg.h>
 #include <stdbool.h>
 
 #include "cevector.h"
@@ -42,11 +44,13 @@ typedef struct {
 	ce_vector* keypairs;
 } ce_renderwindow_keymap;
 
-extern ce_renderwindow_keymap* ce_renderwindow_keymap_new(int capacity);
+extern ce_renderwindow_keymap* ce_renderwindow_keymap_new(void);
 extern void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
 
 extern void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap,
 										unsigned long key, ce_input_button button);
+extern void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap,
+										unsigned long keys[CE_IB_COUNT]);
 
 extern void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
 
@@ -69,7 +73,18 @@ typedef struct {
 	void* listener;
 } ce_renderwindow_listener;
 
+typedef struct ce_renderwindow ce_renderwindow;
+
 typedef struct {
+	bool (*ctor)(ce_renderwindow* renderwindow, va_list args);
+	void (*dtor)(ce_renderwindow* renderwindow);
+	void (*show)(ce_renderwindow* renderwindow);
+	void (*minimize)(ce_renderwindow* renderwindow);
+	void (*toggle_fullscreen)(ce_renderwindow* renderwindow);
+	void (*pump)(ce_renderwindow* renderwindow);
+} ce_renderwindow_vtable;
+
+struct ce_renderwindow {
 	ce_renderwindow_state state;
 	ce_renderwindow_action action;
 	int width, height, bpp, rate;
@@ -81,23 +96,27 @@ typedef struct {
 	ce_input_context* input_context;
 	ce_renderwindow_keymap* keymap;
 	ce_vector* listeners;
+	ce_renderwindow_vtable vtable;
+	size_t size;
 	char impl[];
-} ce_renderwindow;
+};
 
-extern ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height);
+extern ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...);
 extern void ce_renderwindow_del(ce_renderwindow* renderwindow);
 
 extern void ce_renderwindow_add_listener(ce_renderwindow* renderwindow,
 										ce_renderwindow_listener* listener);
 
 extern void ce_renderwindow_show(ce_renderwindow* renderwindow);
+extern void ce_renderwindow_minimize(ce_renderwindow* renderwindow);
 
 extern void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow);
-extern void ce_renderwindow_minimize(ce_renderwindow* renderwindow);
 
 extern void ce_renderwindow_pump(ce_renderwindow* renderwindow);
 
 extern void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow);
+
+extern ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title);
 
 #ifdef __cplusplus
 }

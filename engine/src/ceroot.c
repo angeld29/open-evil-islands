@@ -90,7 +90,7 @@ bool ce_root_init(const char* ei_path)
 	ce_root.thread_count = ce_thread_online_cpu_count();
 	ce_root.anmfps = 15.0f;
 	ce_root.timer = ce_timer_new();
-	ce_root.renderwindow = ce_renderwindow_new("Cursed Earth", 1024, 768);
+	ce_root.renderwindow = ce_renderwindow_create(1024, 768, "Cursed Earth");
 	ce_root.rendersystem = ce_rendersystem_new();
 	ce_root.scenemng = ce_scenemng_new(ei_path);
 

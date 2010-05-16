@@ -37,27 +37,27 @@
 #include "cecontext_posix.h"
 
 enum {
-	CE_X11WINDOW_ATOM_WM_PROTOCOLS,
-	CE_X11WINDOW_ATOM_WM_DELETE_WINDOW,
-	CE_X11WINDOW_ATOM_NET_WM_STATE_FULLSCREEN,
-	CE_X11WINDOW_ATOM_NET_WM_STATE,
-	CE_X11WINDOW_ATOM_COUNT
+	CE_RENDERWINDOW_ATOM_WM_PROTOCOLS,
+	CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW,
+	CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN,
+	CE_RENDERWINDOW_ATOM_NET_WM_STATE,
+	CE_RENDERWINDOW_ATOM_COUNT
 };
 
 typedef struct {
-	Atom atoms[CE_X11WINDOW_ATOM_COUNT];
+	Atom atoms[CE_RENDERWINDOW_ATOM_COUNT];
 	unsigned long mask[CE_RENDERWINDOW_STATE_COUNT];
 	XSetWindowAttributes attrs[CE_RENDERWINDOW_STATE_COUNT];
-	Display* display;
-	Window window;
 	void (*handlers[LASTEvent])(ce_renderwindow*, XEvent*);
 	bool fullscreen; // local state, see renderwindow_minimize
-	bool autorepeat; // restore auto repeat mode at exit
+	bool autorepeat; // remember old auto repeat settings
 	struct {
 		int timeout, interval;
 		int prefer_blanking;
 		int allow_exposures;
 	} screensaver; // remember old screen saver settings
+	Display* display;
+	Window window;
 } ce_renderwindow_x11;
 
 static void ce_renderwindow_handler_skip(ce_renderwindow*, XEvent*);
@@ -74,19 +74,17 @@ static void ce_renderwindow_handler_button_press(ce_renderwindow*, XEvent*);
 static void ce_renderwindow_handler_button_release(ce_renderwindow*, XEvent*);
 static void ce_renderwindow_handler_motion_notify(ce_renderwindow*, XEvent*);
 
-ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
+static bool ce_renderwindow_x11_ctor(ce_renderwindow* renderwindow, va_list args)
 {
-	XInitThreads();
-
-	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow) +
-													sizeof(ce_renderwindow_x11));
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
+	const char* title = va_arg(args, const char*);
+
+	XInitThreads();
 
 	x11window->display = XOpenDisplay(NULL);
 	if (NULL == x11window->display) {
 		ce_logging_fatal("renderwindow: could not connect to X server");
-		ce_renderwindow_del(renderwindow);
-		return NULL;
+		return false;
 	}
 
 	ce_logging_write("renderwindow: using X server %d.%d",
@@ -97,10 +95,25 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		XServerVendor(x11window->display),
 		XVendorRelease(x11window->display));
 
-	x11window->atoms[CE_X11WINDOW_ATOM_WM_PROTOCOLS] = XInternAtom(x11window->display, "WM_PROTOCOLS", False);
-	x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW] = XInternAtom(x11window->display, "WM_DELETE_WINDOW", False);
-	x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
-	x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE] = XInternAtom(x11window->display, "_NET_WM_STATE", False);
+	renderwindow->displaymng = ce_displaymng_create(x11window->display);
+	renderwindow->context = ce_context_create(x11window->display);
+
+	x11window->atoms[CE_RENDERWINDOW_ATOM_WM_PROTOCOLS] = XInternAtom(x11window->display, "WM_PROTOCOLS", False);
+	x11window->atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW] = XInternAtom(x11window->display, "WM_DELETE_WINDOW", False);
+	x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
+	x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE] = XInternAtom(x11window->display, "_NET_WM_STATE", False);
+
+	for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
+		x11window->mask[i] = CWColormap | CWEventMask | CWOverrideRedirect;
+		x11window->attrs[i].colormap = XCreateColormap(x11window->display,
+			XDefaultRootWindow(x11window->display),
+			renderwindow->context->visualinfo->visual, AllocNone);
+		x11window->attrs[i].event_mask = EnterWindowMask | LeaveWindowMask |
+			KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
+			PointerMotionMask | ButtonMotionMask |
+			FocusChangeMask | VisibilityChangeMask | StructureNotifyMask;
+		x11window->attrs[i].override_redirect = CE_RENDERWINDOW_STATE_FULLSCREEN == i;
+	}
 
 	for (int i = 0; i < LASTEvent; ++i) {
 		x11window->handlers[i] = ce_renderwindow_handler_skip;
@@ -130,19 +143,8 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		&x11window->screensaver.prefer_blanking,
 		&x11window->screensaver.allow_exposures);
 
-	width = ce_max(400, width);
-	height = ce_max(300, height);
-
-	renderwindow->width = width;
-	renderwindow->height = height;
-
-	renderwindow->displaymng = ce_displaymng_create(x11window->display);
-	renderwindow->context = ce_context_create(x11window->display);
-	renderwindow->input_context = ce_input_context_new();
-	renderwindow->keymap = ce_renderwindow_keymap_new(CE_IB_COUNT);
-	renderwindow->listeners = ce_vector_new();
-
-	KeySym x11keys[CE_IB_COUNT] = {
+	// absolutely don't understand how XChangeKeyboardMapping work...
+	ce_renderwindow_keymap_add_array(renderwindow->keymap, (unsigned long[]){
 		XK_VoidSymbol, XK_Escape, XK_F1, XK_F2, XK_F3, XK_F4, XK_F5, XK_F6,
 		XK_F7, XK_F8, XK_F9, XK_F10, XK_F11, XK_F12, XK_grave, XK_0, XK_1,
 		XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9, XK_minus, XK_equal,
@@ -158,12 +160,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		XK_KP_Delete, XK_KP_Home, XK_KP_Up, XK_KP_Page_Up, XK_KP_Left, XK_KP_Begin,
 		XK_KP_Right, XK_KP_End, XK_KP_Down, XK_KP_Page_Down, XK_KP_Insert,
 		XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol
-	};
-
-	// absolutely don't understand how XChangeKeyboardMapping work...
-	for (int i = 0; i < CE_IB_COUNT; ++i) {
-		ce_renderwindow_keymap_add(renderwindow->keymap, x11keys[i], i);
-	}
+	});
 
 	ce_renderwindow_keymap_sort(renderwindow->keymap);
 
@@ -174,18 +171,6 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	if (1 == renderwindow->bpp) {
 		ce_logging_warning("renderwindow: you live in prehistoric times");
-	}
-
-	for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
-		x11window->mask[i] = CWColormap | CWEventMask | CWOverrideRedirect;
-		x11window->attrs[i].colormap = XCreateColormap(x11window->display,
-			XDefaultRootWindow(x11window->display),
-			renderwindow->context->visualinfo->visual, AllocNone);
-		x11window->attrs[i].event_mask = EnterWindowMask | LeaveWindowMask |
-			KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
-			PointerMotionMask | ButtonMotionMask |
-			FocusChangeMask | VisibilityChangeMask | StructureNotifyMask;
-		x11window->attrs[i].override_redirect = CE_RENDERWINDOW_STATE_FULLSCREEN == i;
 	}
 
 	x11window->window = XCreateWindow(x11window->display,
@@ -199,8 +184,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	if (!ce_context_make_current(renderwindow->context, x11window->display,
 														x11window->window)) {
 		ce_logging_fatal("renderwindow: could not set context");
-		ce_renderwindow_del(renderwindow);
-		return NULL;
+		return false;
 	}
 
 	XSizeHints* size_hints = XAllocSizeHints();
@@ -217,45 +201,38 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	// handle wm_delete_events
 	XSetWMProtocols(x11window->display, x11window->window,
-		&x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW], 1);
+		&x11window->atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW], 1);
 
-	return renderwindow;
+	return true;
 }
 
-void ce_renderwindow_del(ce_renderwindow* renderwindow)
+static void ce_renderwindow_x11_dtor(ce_renderwindow* renderwindow)
 {
-	if (NULL != renderwindow) {
-		ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
+	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
-		ce_vector_del(renderwindow->listeners);
-		ce_renderwindow_keymap_del(renderwindow->keymap);
-		ce_input_context_del(renderwindow->input_context);
-		ce_context_del(renderwindow->context);
-		ce_displaymng_del(renderwindow->displaymng);
+	ce_context_del(renderwindow->context);
+	ce_displaymng_del(renderwindow->displaymng);
 
-		if (0 != x11window->window) {
-			XDestroyWindow(x11window->display, x11window->window);
+	if (0 != x11window->window) {
+		XDestroyWindow(x11window->display, x11window->window);
+	}
+
+	if (NULL != x11window->display) {
+		XSetScreenSaver(x11window->display,
+			x11window->screensaver.timeout,
+			x11window->screensaver.interval,
+			x11window->screensaver.prefer_blanking,
+			x11window->screensaver.allow_exposures);
+
+		if (x11window->autorepeat) {
+			XAutoRepeatOn(x11window->display);
 		}
 
-		if (NULL != x11window->display) {
-			XSetScreenSaver(x11window->display,
-				x11window->screensaver.timeout,
-				x11window->screensaver.interval,
-				x11window->screensaver.prefer_blanking,
-				x11window->screensaver.allow_exposures);
-
-			if (x11window->autorepeat) {
-				XAutoRepeatOn(x11window->display);
-			}
-
-			XCloseDisplay(x11window->display);
-		}
-
-		ce_free(renderwindow, sizeof(ce_renderwindow) + sizeof(ce_renderwindow_x11));
+		XCloseDisplay(x11window->display);
 	}
 }
 
-void ce_renderwindow_show(ce_renderwindow* renderwindow)
+static void ce_renderwindow_x11_show(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -270,7 +247,24 @@ void ce_renderwindow_show(ce_renderwindow* renderwindow)
 		XDefaultScreen(x11window->display)) - renderwindow->height) / 2);
 }
 
-void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
+static void ce_renderwindow_x11_minimize(ce_renderwindow* renderwindow)
+{
+	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
+
+	if (renderwindow->fullscreen) {
+		// always exit from fullscreen before minimizing!
+		ce_renderwindow_toggle_fullscreen(renderwindow);
+
+		// save fullscreen state to restore later (see Map event)
+		assert(!x11window->fullscreen);
+		x11window->fullscreen = true;
+	}
+
+	XIconifyWindow(x11window->display,
+		x11window->window, XDefaultScreen(x11window->display));
+}
+
+static void ce_renderwindow_x11_toggle_fullscreen(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -318,34 +312,17 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 	event.xclient.type = ClientMessage;
 	event.xclient.send_event = True;
 	event.xclient.window = x11window->window;
-	event.xclient.message_type = x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE];
+	event.xclient.message_type = x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE];
 	event.xclient.format = 32;
 	event.xclient.data.l[0] = fullscreen;
-	event.xclient.data.l[1] = x11window->atoms[CE_X11WINDOW_ATOM_NET_WM_STATE_FULLSCREEN];
+	event.xclient.data.l[1] = x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN];
 
 	// absolutely don't understand how event masks work...
 	XSendEvent(x11window->display, XDefaultRootWindow(x11window->display),
 		False, SubstructureRedirectMask | SubstructureNotifyMask, &event);
 }
 
-void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
-{
-	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
-
-	if (renderwindow->fullscreen) {
-		// always exit from fullscreen before minimizing!
-		ce_renderwindow_toggle_fullscreen(renderwindow);
-
-		// save fullscreen state to restore later (see Map event)
-		assert(!x11window->fullscreen);
-		x11window->fullscreen = true;
-	}
-
-	XIconifyWindow(x11window->display,
-		x11window->window, XDefaultScreen(x11window->display));
-}
-
-void ce_renderwindow_pump(ce_renderwindow* renderwindow)
+static void ce_renderwindow_x11_pump(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -370,6 +347,17 @@ void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 	}
 }
 
+ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title)
+{
+	ce_renderwindow_vtable vtable = {
+		ce_renderwindow_x11_ctor, ce_renderwindow_x11_dtor,
+		ce_renderwindow_x11_show, ce_renderwindow_x11_minimize,
+		ce_renderwindow_x11_toggle_fullscreen, ce_renderwindow_x11_pump
+	};
+
+	return ce_renderwindow_new(vtable, sizeof(ce_renderwindow_x11), width, height, title);
+}
+
 static void ce_renderwindow_handler_skip(ce_renderwindow* renderwindow, XEvent* event)
 {
 	ce_unused(renderwindow), ce_unused(event);
@@ -379,9 +367,9 @@ static void ce_renderwindow_handler_client_message(ce_renderwindow* renderwindow
 {
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
-	if (x11window->atoms[CE_X11WINDOW_ATOM_WM_PROTOCOLS] ==
+	if (x11window->atoms[CE_RENDERWINDOW_ATOM_WM_PROTOCOLS] ==
 			event->xclient.message_type &&
-			x11window->atoms[CE_X11WINDOW_ATOM_WM_DELETE_WINDOW] ==
+			x11window->atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW] ==
 			(Atom)event->xclient.data.l[0]) {
 		ce_renderwindow_emit_closed(renderwindow);
 	}
@@ -409,6 +397,8 @@ static void ce_renderwindow_handler_configure_notify(ce_renderwindow* renderwind
 {
 	renderwindow->width = event->xconfigure.width;
 	renderwindow->height = event->xconfigure.height;
+	//event->xconfigure.x
+	//event->xconfigure.y
 }
 
 static void ce_renderwindow_handler_focus_in(ce_renderwindow* renderwindow, XEvent* event)

@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "cerenderwindow.h"
 
@@ -52,10 +53,10 @@ static int ce_renderwindow_keypair_search_comp(const void* arg1, const void* arg
 	return *key < keypair->key ? -1 : (int)(*key - keypair->key);
 }
 
-ce_renderwindow_keymap* ce_renderwindow_keymap_new(int capacity)
+ce_renderwindow_keymap* ce_renderwindow_keymap_new(void)
 {
 	ce_renderwindow_keymap* keymap = ce_alloc(sizeof(ce_renderwindow_keymap));
-	keymap->keypairs = ce_vector_new_reserved(capacity);
+	keymap->keypairs = ce_vector_new_reserved(CE_IB_COUNT);
 	return keymap;
 }
 
@@ -74,6 +75,14 @@ void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap,
 	ce_vector_push_back(keymap->keypairs, ce_renderwindow_keypair_new(key, button));
 }
 
+void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap,
+										unsigned long keys[CE_IB_COUNT])
+{
+	for (int i = 0; i < CE_IB_COUNT; ++i) {
+		ce_renderwindow_keymap_add(keymap, keys[i], i);
+	}
+}
+
 void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap)
 {
 	qsort(keymap->keypairs->items, keymap->keypairs->count,
@@ -89,10 +98,72 @@ ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key)
 	return NULL != keypair ? (*keypair)->button : CE_IB_UNKNOWN;
 }
 
+ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...)
+{
+	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow) + size);
+
+	renderwindow->vtable = vtable;
+	renderwindow->size = size;
+
+	va_list args;
+	va_start(args, size);
+
+	renderwindow->width = ce_max(400, va_arg(args, int));
+	renderwindow->height = ce_max(300, va_arg(args, int));
+
+	renderwindow->input_context = ce_input_context_new();
+	renderwindow->keymap = ce_renderwindow_keymap_new();
+	renderwindow->listeners = ce_vector_new();
+
+	bool ok = (*vtable.ctor)(renderwindow, args);
+
+	va_end(args);
+
+	if (!ok) {
+		ce_renderwindow_del(renderwindow);
+		return NULL;
+	}
+
+	return renderwindow;
+}
+
+void ce_renderwindow_del(ce_renderwindow* renderwindow)
+{
+	if (NULL != renderwindow) {
+		(*renderwindow->vtable.dtor)(renderwindow);
+
+		ce_vector_del(renderwindow->listeners);
+		ce_renderwindow_keymap_del(renderwindow->keymap);
+		ce_input_context_del(renderwindow->input_context);
+
+		ce_free(renderwindow, sizeof(ce_renderwindow) + renderwindow->size);
+	}
+}
+
 void ce_renderwindow_add_listener(ce_renderwindow* renderwindow,
 									ce_renderwindow_listener* listener)
 {
 	ce_vector_push_back(renderwindow->listeners, listener);
+}
+
+void ce_renderwindow_show(ce_renderwindow* renderwindow)
+{
+	(*renderwindow->vtable.show)(renderwindow);
+}
+
+void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
+{
+	(*renderwindow->vtable.minimize)(renderwindow);
+}
+
+void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
+{
+	(*renderwindow->vtable.toggle_fullscreen)(renderwindow);
+}
+
+void ce_renderwindow_pump(ce_renderwindow* renderwindow)
+{
+	(*renderwindow->vtable.pump)(renderwindow);
 }
 
 void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow)
