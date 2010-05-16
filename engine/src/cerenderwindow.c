@@ -163,6 +163,13 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 
 void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 {
+	// reset pointer offset every frame
+	renderwindow->input_context->pointer_offset = CE_VEC2_ZERO;
+
+	// reset wheel buttons: there are no 'WheelRelease' events in most cases
+	renderwindow->input_context->buttons[CE_MB_WHEELUP] = false;
+	renderwindow->input_context->buttons[CE_MB_WHEELDOWN] = false;
+
 	(*renderwindow->vtable.pump)(renderwindow);
 }
 

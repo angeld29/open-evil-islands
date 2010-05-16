@@ -326,15 +326,8 @@ static void ce_renderwindow_x11_pump(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
-	// reset pointer offset every frame
-	renderwindow->input_context->pointer_offset = CE_VEC2_ZERO;
-
-	// special case: reset wheel buttons, see ButtonRelease event
-	renderwindow->input_context->buttons[CE_MB_WHEELUP] = false;
-	renderwindow->input_context->buttons[CE_MB_WHEELDOWN] = false;
-
+	XEvent event;
 	while (XPending(x11window->display) > 0) {
-		XEvent event;
 		XNextEvent(x11window->display, &event);
 
 		// is it possible? may be new version of the X server...
