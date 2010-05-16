@@ -153,7 +153,7 @@ void ce_root_exec(void)
 		}
 
 		if (ce_root.switch_window_event->triggered &&
-				ce_root.renderwindow->fullscreen) {
+				CE_RENDERWINDOW_STATE_FULLSCREEN == ce_root.renderwindow->state) {
 			ce_renderwindow_minimize(ce_root.renderwindow);
 		}
 

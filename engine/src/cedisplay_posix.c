@@ -74,7 +74,7 @@ static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
 	}
 }
 
-static void ce_xf86vmmng_change(ce_displaymng* displaymng, int index,
+static void ce_xf86vmmng_enter(ce_displaymng* displaymng, int index,
 	ce_display_rotation rotation, ce_display_reflection reflection)
 {
 	ce_unused(rotation), ce_unused(reflection);
@@ -89,9 +89,9 @@ static void ce_xf86vmmng_change(ce_displaymng* displaymng, int index,
 	}
 }
 
-static void ce_xf86vmmng_restore(ce_displaymng* displaymng)
+static void ce_xf86vmmng_exit(ce_displaymng* displaymng)
 {
-	ce_xf86vmmng_change(displaymng, 0, CE_DISPLAY_ROTATION_NONE,
+	ce_xf86vmmng_enter(displaymng, 0, CE_DISPLAY_ROTATION_NONE,
 										CE_DISPLAY_REFLECTION_NONE);
 }
 
@@ -100,7 +100,7 @@ static void ce_xf86vmmng_dtor(ce_displaymng* displaymng)
 	ce_xf86vmmng* xf86vmmng = (ce_xf86vmmng*)displaymng->impl;
 
 	if (NULL != xf86vmmng->modes) {
-		ce_xf86vmmng_restore(displaymng);
+		ce_xf86vmmng_exit(displaymng);
 		XFree(xf86vmmng->modes);
 	}
 }
@@ -211,11 +211,10 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
 
 	int bpp = XDefaultDepth(xrrmng->display, XDefaultScreen(xrrmng->display));
 
-	// TODO: implement it
+	// TODO: what about events?
 	// request screen change notifications
 	//XRRSelectInput(dpy, win, RRScreenChangeNotifyMask);
 
-	// TODO: what about events?
 	// event.type - XRandR.EventBase
 	// RRScreenChangeNotify
 	// Show XRandR that we really care
@@ -245,24 +244,7 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
 	}
 }
 
-static void ce_xrrmng_restore(ce_displaymng* displaymng)
-{
-	ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
-
-	XRRSetScreenConfigAndRate(xrrmng->display, xrrmng->conf,
-		XDefaultRootWindow(xrrmng->display), xrrmng->orig_size,
-		xrrmng->orig_rotation, xrrmng->orig_rate, CurrentTime);
-}
-
-static void ce_xrrmng_dtor(ce_displaymng* displaymng)
-{
-	ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
-
-	ce_xrrmng_restore(displaymng);
-	XRRFreeScreenConfigInfo(xrrmng->conf);
-}
-
-static void ce_xrrmng_change(ce_displaymng* displaymng, int index,
+static void ce_xrrmng_enter(ce_displaymng* displaymng, int index,
 	ce_display_rotation rotation, ce_display_reflection reflection)
 {
 	ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
@@ -280,6 +262,23 @@ static void ce_xrrmng_change(ce_displaymng* displaymng, int index,
 		XDefaultRootWindow(xrrmng->display), size_index,
 		ce_xrrmng_ce2xrr_rotation(rotation, reflection),
 		mode->rate, CurrentTime);
+}
+
+static void ce_xrrmng_exit(ce_displaymng* displaymng)
+{
+	ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
+
+	XRRSetScreenConfigAndRate(xrrmng->display, xrrmng->conf,
+		XDefaultRootWindow(xrrmng->display), xrrmng->orig_size,
+		xrrmng->orig_rotation, xrrmng->orig_rate, CurrentTime);
+}
+
+static void ce_xrrmng_dtor(ce_displaymng* displaymng)
+{
+	ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
+
+	ce_xrrmng_exit(displaymng);
+	XRRFreeScreenConfigInfo(xrrmng->conf);
 }
 
 static bool ce_xrrmng_query(Display* display)
@@ -309,10 +308,10 @@ ce_displaymng* ce_displaymng_create(Display* display)
 		bool (*query)(Display* display);
 	} extensions[] = { // prefer XRandR
 		{ RANDR_NAME, { ce_xrrmng_ctor, ce_xrrmng_dtor,
-						ce_xrrmng_restore, ce_xrrmng_change },
+						ce_xrrmng_enter, ce_xrrmng_exit },
 			sizeof(ce_xrrmng), ce_xrrmng_query },
 		{ XF86VIDMODENAME, { ce_xf86vmmng_ctor, ce_xf86vmmng_dtor,
-							ce_xf86vmmng_restore, ce_xf86vmmng_change },
+							ce_xf86vmmng_enter, ce_xf86vmmng_exit },
 			sizeof(ce_xf86vmmng), ce_xf86vmmng_query },
 	};
 

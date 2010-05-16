@@ -64,9 +64,22 @@ typedef enum {
 } ce_renderwindow_state;
 
 typedef enum {
+	CE_RENDERWINDOW_ACTION_NONE,
 	CE_RENDERWINDOW_ACTION_MINIMIZE,
+	CE_RENDERWINDOW_ACTION_RESTORED,
 	CE_RENDERWINDOW_ACTION_COUNT
 } ce_renderwindow_action;
+
+typedef struct {
+	int x, y;
+	int width, height;
+} ce_renderwindow_geometry;
+
+typedef struct {
+	int bpp, rate;
+	ce_display_rotation rotation;
+	ce_display_reflection reflection;
+} ce_renderwindow_visual;
 
 typedef struct {
 	void (*closed)(void* listener);
@@ -80,17 +93,22 @@ typedef struct {
 	void (*dtor)(ce_renderwindow* renderwindow);
 	void (*show)(ce_renderwindow* renderwindow);
 	void (*minimize)(ce_renderwindow* renderwindow);
-	void (*toggle_fullscreen)(ce_renderwindow* renderwindow);
+	struct {
+		void (*onbegin)(ce_renderwindow* renderwindow);
+		void (*onenter)(ce_renderwindow* renderwindow);
+		void (*onexit)(ce_renderwindow* renderwindow);
+		void (*onend)(ce_renderwindow* renderwindow);
+	} fullscreen;
 	void (*pump)(ce_renderwindow* renderwindow);
 } ce_renderwindow_vtable;
 
 struct ce_renderwindow {
 	ce_renderwindow_state state;
 	ce_renderwindow_action action;
-	int width, height, bpp, rate;
-	ce_display_rotation rotation;
-	ce_display_reflection reflection;
-	bool fullscreen;
+	ce_renderwindow_geometry geometry[CE_RENDERWINDOW_STATE_COUNT];
+	ce_renderwindow_visual visual;
+	// request to switch in fullscreen mode when the window was restored
+	bool restore_fullscreen;
 	ce_displaymng* displaymng;
 	ce_context* context;
 	ce_input_context* input_context;

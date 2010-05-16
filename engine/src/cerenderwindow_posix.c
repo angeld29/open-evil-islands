@@ -49,7 +49,6 @@ typedef struct {
 	unsigned long mask[CE_RENDERWINDOW_STATE_COUNT];
 	XSetWindowAttributes attrs[CE_RENDERWINDOW_STATE_COUNT];
 	void (*handlers[LASTEvent])(ce_renderwindow*, XEvent*);
-	bool fullscreen; // local state, see renderwindow_minimize
 	bool autorepeat; // remember old auto repeat settings
 	struct {
 		int timeout, interval;
@@ -95,8 +94,46 @@ static bool ce_renderwindow_x11_ctor(ce_renderwindow* renderwindow, va_list args
 		XServerVendor(x11window->display),
 		XVendorRelease(x11window->display));
 
+	renderwindow->geometry[renderwindow->state].x =
+		(XDisplayWidth(x11window->display, XDefaultScreen(x11window->display)) -
+		renderwindow->geometry[renderwindow->state].width) / 2;
+
+	renderwindow->geometry[renderwindow->state].y =
+		(XDisplayHeight(x11window->display, XDefaultScreen(x11window->display)) -
+		renderwindow->geometry[renderwindow->state].height) / 2;
+
+	if (0 == renderwindow->visual.bpp) {
+		renderwindow->visual.bpp = XDefaultDepth(x11window->display,
+									XDefaultScreen(x11window->display));
+
+		if (1 == renderwindow->visual.bpp) {
+			ce_logging_warning("renderwindow: you live in prehistoric times");
+		}
+	}
+
 	renderwindow->displaymng = ce_displaymng_create(x11window->display);
 	renderwindow->context = ce_context_create(x11window->display);
+
+	// absolutely don't understand how XChangeKeyboardMapping work...
+	ce_renderwindow_keymap_add_array(renderwindow->keymap, (unsigned long[]){
+		XK_VoidSymbol, XK_Escape, XK_F1, XK_F2, XK_F3, XK_F4, XK_F5, XK_F6,
+		XK_F7, XK_F8, XK_F9, XK_F10, XK_F11, XK_F12, XK_grave, XK_0, XK_1,
+		XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9, XK_minus, XK_equal,
+		XK_backslash, XK_BackSpace, XK_Tab, XK_q, XK_w, XK_e, XK_r, XK_t, XK_y,
+		XK_u, XK_i, XK_o, XK_p, XK_bracketleft, XK_bracketright, XK_Caps_Lock,
+		XK_a, XK_s, XK_d, XK_f, XK_g, XK_h, XK_j, XK_k, XK_l, XK_semicolon,
+		XK_apostrophe, XK_Return, XK_Shift_L, XK_z, XK_x, XK_c, XK_v, XK_b,
+		XK_n, XK_m, XK_comma, XK_period, XK_slash, XK_Shift_R, XK_Control_L,
+		XK_Super_L, XK_Alt_L, XK_space, XK_Alt_R, XK_Super_R, XK_Menu, XK_Control_R,
+		XK_Print, XK_Scroll_Lock, XK_Pause, XK_Insert, XK_Delete, XK_Home, XK_End,
+		XK_Page_Up, XK_Page_Down, XK_Left, XK_Up, XK_Right, XK_Down, XK_Num_Lock,
+		XK_KP_Divide, XK_KP_Multiply, XK_KP_Subtract, XK_KP_Add, XK_KP_Enter,
+		XK_KP_Delete, XK_KP_Home, XK_KP_Up, XK_KP_Page_Up, XK_KP_Left, XK_KP_Begin,
+		XK_KP_Right, XK_KP_End, XK_KP_Down, XK_KP_Page_Down, XK_KP_Insert,
+		XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol
+	});
+
+	ce_renderwindow_keymap_sort(renderwindow->keymap);
 
 	x11window->atoms[CE_RENDERWINDOW_ATOM_WM_PROTOCOLS] = XInternAtom(x11window->display, "WM_PROTOCOLS", False);
 	x11window->atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW] = XInternAtom(x11window->display, "WM_DELETE_WINDOW", False);
@@ -143,43 +180,14 @@ static bool ce_renderwindow_x11_ctor(ce_renderwindow* renderwindow, va_list args
 		&x11window->screensaver.prefer_blanking,
 		&x11window->screensaver.allow_exposures);
 
-	// absolutely don't understand how XChangeKeyboardMapping work...
-	ce_renderwindow_keymap_add_array(renderwindow->keymap, (unsigned long[]){
-		XK_VoidSymbol, XK_Escape, XK_F1, XK_F2, XK_F3, XK_F4, XK_F5, XK_F6,
-		XK_F7, XK_F8, XK_F9, XK_F10, XK_F11, XK_F12, XK_grave, XK_0, XK_1,
-		XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9, XK_minus, XK_equal,
-		XK_backslash, XK_BackSpace, XK_Tab, XK_q, XK_w, XK_e, XK_r, XK_t, XK_y,
-		XK_u, XK_i, XK_o, XK_p, XK_bracketleft, XK_bracketright, XK_Caps_Lock,
-		XK_a, XK_s, XK_d, XK_f, XK_g, XK_h, XK_j, XK_k, XK_l, XK_semicolon,
-		XK_apostrophe, XK_Return, XK_Shift_L, XK_z, XK_x, XK_c, XK_v, XK_b,
-		XK_n, XK_m, XK_comma, XK_period, XK_slash, XK_Shift_R, XK_Control_L,
-		XK_Super_L, XK_Alt_L, XK_space, XK_Alt_R, XK_Super_R, XK_Menu, XK_Control_R,
-		XK_Print, XK_Scroll_Lock, XK_Pause, XK_Insert, XK_Delete, XK_Home, XK_End,
-		XK_Page_Up, XK_Page_Down, XK_Left, XK_Up, XK_Right, XK_Down, XK_Num_Lock,
-		XK_KP_Divide, XK_KP_Multiply, XK_KP_Subtract, XK_KP_Add, XK_KP_Enter,
-		XK_KP_Delete, XK_KP_Home, XK_KP_Up, XK_KP_Page_Up, XK_KP_Left, XK_KP_Begin,
-		XK_KP_Right, XK_KP_End, XK_KP_Down, XK_KP_Page_Down, XK_KP_Insert,
-		XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol
-	});
-
-	ce_renderwindow_keymap_sort(renderwindow->keymap);
-
-	renderwindow->bpp = XDefaultDepth(x11window->display, XDefaultScreen(x11window->display));
-	renderwindow->rate = 0;
-	renderwindow->rotation = CE_DISPLAY_ROTATION_NONE;
-	renderwindow->reflection = CE_DISPLAY_REFLECTION_NONE;
-
-	if (1 == renderwindow->bpp) {
-		ce_logging_warning("renderwindow: you live in prehistoric times");
-	}
-
 	x11window->window = XCreateWindow(x11window->display,
-		XDefaultRootWindow(x11window->display),
-		0, 0, renderwindow->width, renderwindow->height,
+		XDefaultRootWindow(x11window->display), 0, 0,
+		renderwindow->geometry[renderwindow->state].width,
+		renderwindow->geometry[renderwindow->state].height,
 		0, renderwindow->context->visualinfo->depth,
 		InputOutput, renderwindow->context->visualinfo->visual,
-		x11window->mask[CE_RENDERWINDOW_STATE_WINDOW],
-		&x11window->attrs[CE_RENDERWINDOW_STATE_WINDOW]);
+		x11window->mask[renderwindow->state],
+		&x11window->attrs[renderwindow->state]);
 
 	if (!ce_context_make_current(renderwindow->context, x11window->display,
 														x11window->window)) {
@@ -191,8 +199,8 @@ static bool ce_renderwindow_x11_ctor(ce_renderwindow* renderwindow, va_list args
 	size_hints->flags = PSize | PMinSize;
 	size_hints->min_width = 400;
 	size_hints->min_height = 300;
-	size_hints->base_width = renderwindow->width;
-	size_hints->base_height = renderwindow->height;
+	size_hints->base_width = renderwindow->geometry[renderwindow->state].width;
+	size_hints->base_height = renderwindow->geometry[renderwindow->state].height;
 	XSetWMNormalHints(x11window->display, x11window->window, size_hints);
 	XFree(size_hints);
 
@@ -241,70 +249,53 @@ static void ce_renderwindow_x11_show(ce_renderwindow* renderwindow)
 	// x and y values in XCreateWindow are ignored by most windows managers,
 	// which means that top-level windows maybe placed somewhere else on the desktop
 	XMoveWindow(x11window->display, x11window->window,
-		(XDisplayWidth(x11window->display,
-		XDefaultScreen(x11window->display)) - renderwindow->width) / 2,
-		(XDisplayHeight(x11window->display,
-		XDefaultScreen(x11window->display)) - renderwindow->height) / 2);
+		renderwindow->geometry[renderwindow->state].x,
+		renderwindow->geometry[renderwindow->state].y);
 }
 
 static void ce_renderwindow_x11_minimize(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
-	if (renderwindow->fullscreen) {
-		// always exit from fullscreen before minimizing!
-		ce_renderwindow_toggle_fullscreen(renderwindow);
-
-		// save fullscreen state to restore later (see Map event)
-		assert(!x11window->fullscreen);
-		x11window->fullscreen = true;
-	}
-
 	XIconifyWindow(x11window->display,
 		x11window->window, XDefaultScreen(x11window->display));
 }
 
-static void ce_renderwindow_x11_toggle_fullscreen(ce_renderwindow* renderwindow)
+static void ce_renderwindow_x11_fullscreen_onenter(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
-	bool fullscreen = !renderwindow->fullscreen;
+	XGrabPointer(x11window->display, x11window->window, True, NoEventMask,
+		GrabModeAsync, GrabModeAsync, x11window->window, None, CurrentTime);
+	XGrabKeyboard(x11window->display, x11window->window,
+		True, GrabModeAsync, GrabModeAsync, CurrentTime);
+
+	XSetScreenSaver(x11window->display,
+		DisableScreenSaver, DisableScreenInterval,
+		DontPreferBlanking, DefaultExposures);
+}
+
+static void ce_renderwindow_x11_fullscreen_onexit(ce_renderwindow* renderwindow)
+{
+	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
+
+	XUngrabPointer(x11window->display, CurrentTime);
+	XUngrabKeyboard(x11window->display, CurrentTime);
+
+	XSetScreenSaver(x11window->display,
+		x11window->screensaver.timeout,
+		x11window->screensaver.interval,
+		x11window->screensaver.prefer_blanking,
+		x11window->screensaver.allow_exposures);
+}
+
+static void ce_renderwindow_x11_fullscreen_onend(ce_renderwindow* renderwindow)
+{
+	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
 	XChangeWindowAttributes(x11window->display, x11window->window,
-		x11window->mask[fullscreen], &x11window->attrs[fullscreen]);
-
-	if (!renderwindow->fullscreen && fullscreen) {
-		XGrabPointer(x11window->display, x11window->window, True, NoEventMask,
-			GrabModeAsync, GrabModeAsync, x11window->window, None, CurrentTime);
-		XGrabKeyboard(x11window->display, x11window->window,
-			True, GrabModeAsync, GrabModeAsync, CurrentTime);
-
-		XSetScreenSaver(x11window->display,
-			DisableScreenSaver, DisableScreenInterval,
-			DontPreferBlanking, DefaultExposures);
-	}
-
-	if (renderwindow->fullscreen && !fullscreen) {
-		XUngrabPointer(x11window->display, CurrentTime);
-		XUngrabKeyboard(x11window->display, CurrentTime);
-
-		XSetScreenSaver(x11window->display,
-			x11window->screensaver.timeout,
-			x11window->screensaver.interval,
-			x11window->screensaver.prefer_blanking,
-			x11window->screensaver.allow_exposures);
-	}
-
-	renderwindow->fullscreen = fullscreen;
-
-	if (fullscreen) {
-		ce_displaymng_change(renderwindow->displaymng,
-			renderwindow->width, renderwindow->height,
-			renderwindow->bpp, renderwindow->rate,
-			renderwindow->rotation, renderwindow->reflection);
-	} else {
-		ce_displaymng_restore(renderwindow->displaymng);
-	}
+		x11window->mask[renderwindow->state],
+		&x11window->attrs[renderwindow->state]);
 
 	XEvent event;
 	memset(&event, 0, sizeof(event));
@@ -314,7 +305,7 @@ static void ce_renderwindow_x11_toggle_fullscreen(ce_renderwindow* renderwindow)
 	event.xclient.window = x11window->window;
 	event.xclient.message_type = x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE];
 	event.xclient.format = 32;
-	event.xclient.data.l[0] = fullscreen;
+	event.xclient.data.l[0] = renderwindow->state;
 	event.xclient.data.l[1] = x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN];
 
 	// absolutely don't understand how event masks work...
@@ -345,7 +336,10 @@ ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title
 	ce_renderwindow_vtable vtable = {
 		ce_renderwindow_x11_ctor, ce_renderwindow_x11_dtor,
 		ce_renderwindow_x11_show, ce_renderwindow_x11_minimize,
-		ce_renderwindow_x11_toggle_fullscreen, ce_renderwindow_x11_pump
+		{ NULL, ce_renderwindow_x11_fullscreen_onenter,
+			ce_renderwindow_x11_fullscreen_onexit,
+			ce_renderwindow_x11_fullscreen_onend },
+		ce_renderwindow_x11_pump
 	};
 
 	return ce_renderwindow_new(vtable, sizeof(ce_renderwindow_x11), width, height, title);
@@ -371,14 +365,9 @@ static void ce_renderwindow_handler_client_message(ce_renderwindow* renderwindow
 static void ce_renderwindow_handler_map_notify(ce_renderwindow* renderwindow, XEvent* event)
 {
 	ce_unused(event);
-	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
-	if (x11window->fullscreen) {
-		x11window->fullscreen = false;
-
-		assert(!renderwindow->fullscreen);
-		ce_renderwindow_toggle_fullscreen(renderwindow);
-	}
+	assert(CE_RENDERWINDOW_ACTION_NONE == renderwindow->action);
+	renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
 }
 
 static void ce_renderwindow_handler_visibility_notify(ce_renderwindow* renderwindow, XEvent* event)
@@ -388,10 +377,10 @@ static void ce_renderwindow_handler_visibility_notify(ce_renderwindow* renderwin
 
 static void ce_renderwindow_handler_configure_notify(ce_renderwindow* renderwindow, XEvent* event)
 {
-	renderwindow->width = event->xconfigure.width;
-	renderwindow->height = event->xconfigure.height;
-	//event->xconfigure.x
-	//event->xconfigure.y
+	renderwindow->geometry[renderwindow->state].x = event->xconfigure.x;
+	renderwindow->geometry[renderwindow->state].y = event->xconfigure.y;
+	renderwindow->geometry[renderwindow->state].width = event->xconfigure.width;
+	renderwindow->geometry[renderwindow->state].height = event->xconfigure.height;
 }
 
 static void ce_renderwindow_handler_focus_in(ce_renderwindow* renderwindow, XEvent* event)

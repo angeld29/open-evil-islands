@@ -71,12 +71,7 @@ void ce_displaymng_del(ce_displaymng* displaymng)
 	}
 }
 
-void ce_displaymng_restore(ce_displaymng* displaymng)
-{
-	(*displaymng->vtable.restore)(displaymng);
-}
-
-int ce_displaymng_change(ce_displaymng* displaymng,
+int ce_displaymng_enter(ce_displaymng* displaymng,
 							int width, int height, int bpp, int rate,
 							ce_display_rotation rotation,
 							ce_display_reflection reflection)
@@ -136,7 +131,7 @@ int ce_displaymng_change(ce_displaymng* displaymng,
 			bpp != best_bpp || rate != best_rate) {
 		ce_logging_warning("displaymng: mode %dx%d:%d@%d not found",
 			width, height, bpp, rate);
-		ce_logging_warning("displaymng: using best match %dx%d:%d@%d",
+		ce_logging_write("displaymng: using best match %dx%d:%d@%d",
 			best_width, best_height, best_bpp, best_rate);
 	}
 
@@ -184,7 +179,12 @@ int ce_displaymng_change(ce_displaymng* displaymng,
 		best_reflection |= CE_DISPLAY_REFLECTION_Y;
 	}
 
-	(*displaymng->vtable.change)(displaymng, index, best_rotation, best_reflection);
+	(*displaymng->vtable.enter)(displaymng, index, best_rotation, best_reflection);
 
 	return index;
+}
+
+void ce_displaymng_exit(ce_displaymng* displaymng)
+{
+	(*displaymng->vtable.exit)(displaymng);
 }

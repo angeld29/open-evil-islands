@@ -19,6 +19,7 @@
 */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -108,8 +109,8 @@ ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size,
 	va_list args;
 	va_start(args, size);
 
-	renderwindow->width = ce_max(400, va_arg(args, int));
-	renderwindow->height = ce_max(300, va_arg(args, int));
+	renderwindow->geometry[renderwindow->state].width = ce_max(400, va_arg(args, int));
+	renderwindow->geometry[renderwindow->state].height = ce_max(300, va_arg(args, int));
 
 	renderwindow->input_context = ce_input_context_new();
 	renderwindow->keymap = ce_renderwindow_keymap_new();
@@ -153,13 +154,76 @@ void ce_renderwindow_show(ce_renderwindow* renderwindow)
 
 void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 {
+	if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
+		assert(!renderwindow->restore_fullscreen);
+		renderwindow->restore_fullscreen = true;
+
+		// exit from fullscreen before minimizing
+		ce_renderwindow_toggle_fullscreen(renderwindow);
+	}
+
 	(*renderwindow->vtable.minimize)(renderwindow);
 }
 
 void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 {
-	(*renderwindow->vtable.toggle_fullscreen)(renderwindow);
+	if (NULL != renderwindow->vtable.fullscreen.onbegin) {
+		(*renderwindow->vtable.fullscreen.onbegin)(renderwindow);
+	}
+
+	ce_renderwindow_state state = (ce_renderwindow_state[])
+		{ CE_RENDERWINDOW_STATE_FULLSCREEN,
+		CE_RENDERWINDOW_STATE_WINDOW }[renderwindow->state];
+
+	if (CE_RENDERWINDOW_STATE_WINDOW == renderwindow->state &&
+			CE_RENDERWINDOW_STATE_FULLSCREEN == state) {
+		ce_displaymng_enter(renderwindow->displaymng,
+			renderwindow->geometry[state].width,
+			renderwindow->geometry[state].height,
+			renderwindow->visual.bpp, renderwindow->visual.rate,
+			renderwindow->visual.rotation, renderwindow->visual.reflection);
+
+		if (NULL != renderwindow->vtable.fullscreen.onenter) {
+			(*renderwindow->vtable.fullscreen.onenter)(renderwindow);
+		}
+	}
+
+	if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state &&
+			CE_RENDERWINDOW_STATE_WINDOW == state) {
+		ce_displaymng_exit(renderwindow->displaymng);
+
+		if (NULL != renderwindow->vtable.fullscreen.onexit) {
+			(*renderwindow->vtable.fullscreen.onexit)(renderwindow);
+		}
+	}
+
+	renderwindow->state = state;
+
+	if (NULL != renderwindow->vtable.fullscreen.onend) {
+		(*renderwindow->vtable.fullscreen.onend)(renderwindow);
+	}
 }
+
+static void ce_renderwindow_action_proc_none(ce_renderwindow* renderwindow)
+{
+	ce_unused(renderwindow);
+}
+
+static void ce_renderwindow_action_proc_restored(ce_renderwindow* renderwindow)
+{
+	if (renderwindow->restore_fullscreen) {
+		renderwindow->restore_fullscreen = false;
+
+		assert(CE_RENDERWINDOW_STATE_WINDOW == renderwindow->state);
+		ce_renderwindow_toggle_fullscreen(renderwindow);
+	}
+}
+
+static void (*ce_renderwindow_action_proc[CE_RENDERWINDOW_ACTION_COUNT])(ce_renderwindow*) = {
+	[CE_RENDERWINDOW_ACTION_NONE] = ce_renderwindow_action_proc_none,
+	[CE_RENDERWINDOW_ACTION_MINIMIZE] = ce_renderwindow_minimize,
+	[CE_RENDERWINDOW_ACTION_RESTORED] = ce_renderwindow_action_proc_restored,
+};
 
 void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 {
@@ -169,6 +233,9 @@ void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 	// reset wheel buttons: there are no 'WheelRelease' events in most cases
 	renderwindow->input_context->buttons[CE_MB_WHEELUP] = false;
 	renderwindow->input_context->buttons[CE_MB_WHEELDOWN] = false;
+
+	(*ce_renderwindow_action_proc[renderwindow->action])(renderwindow);
+	renderwindow->action = CE_RENDERWINDOW_ACTION_NONE;
 
 	(*renderwindow->vtable.pump)(renderwindow);
 }

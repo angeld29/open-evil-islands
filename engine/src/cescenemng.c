@@ -151,9 +151,12 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_rendersystem_begin_render(ce_root.rendersystem, &CE_COLOR_WHITE);
 
 	ce_viewport_set_rect(scenemng->viewport, 0, 0,
-		ce_root.renderwindow->width, ce_root.renderwindow->height);
-	ce_camera_set_aspect(scenemng->camera, (float)ce_root.renderwindow->width /
-												ce_root.renderwindow->height);
+		ce_root.renderwindow->geometry[ce_root.renderwindow->state].width,
+		ce_root.renderwindow->geometry[ce_root.renderwindow->state].height);
+
+	ce_camera_set_aspect(scenemng->camera, (float)
+		ce_root.renderwindow->geometry[ce_root.renderwindow->state].width /
+		ce_root.renderwindow->geometry[ce_root.renderwindow->state].height);
 
 	ce_rendersystem_setup_viewport(ce_root.rendersystem, scenemng->viewport);
 	ce_rendersystem_setup_camera(ce_root.rendersystem, scenemng->camera);

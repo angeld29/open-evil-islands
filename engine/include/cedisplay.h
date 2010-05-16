@@ -57,9 +57,9 @@ typedef struct ce_displaymng ce_displaymng;
 typedef struct {
 	void (*ctor)(ce_displaymng* displaymng, va_list args);
 	void (*dtor)(ce_displaymng* displaymng);
-	void (*restore)(ce_displaymng* displaymng);
-	void (*change)(ce_displaymng* displaymng, int index,
+	void (*enter)(ce_displaymng* displaymng, int index,
 		ce_display_rotation rotation, ce_display_reflection reflection);
+	void (*exit)(ce_displaymng* displaymng);
 } ce_displaymng_vtable;
 
 struct ce_displaymng {
@@ -75,11 +75,11 @@ struct ce_displaymng {
 extern ce_displaymng* ce_displaymng_new(ce_displaymng_vtable vtable, size_t size, ...);
 extern void ce_displaymng_del(ce_displaymng* displaymng);
 
-extern void ce_displaymng_restore(ce_displaymng* displaymng);
-extern int ce_displaymng_change(ce_displaymng* displaymng,
+extern int ce_displaymng_enter(ce_displaymng* displaymng,
 								int width, int height, int bpp, int rate,
 								ce_display_rotation rotation,
 								ce_display_reflection reflection);
+extern void ce_displaymng_exit(ce_displaymng* displaymng);
 
 #ifdef __cplusplus
 }
