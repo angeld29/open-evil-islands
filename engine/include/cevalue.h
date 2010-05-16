@@ -21,8 +21,6 @@
 #ifndef CE_VALUE_H
 #define CE_VALUE_H
 
-#include <stdarg.h>
-
 #include "cestring.h"
 
 #ifdef __cplusplus
@@ -52,11 +50,8 @@ typedef struct {
 extern ce_value* ce_value_new(ce_type type);
 extern void ce_value_del(ce_value* value);
 
-extern void ce_value_get(ce_value* value, ...);
-extern void ce_value_get_va(ce_value* value, va_list args);
-
-extern void ce_value_set(ce_value* value, ...);
-extern void ce_value_set_va(ce_value* value, va_list args);
+extern void ce_value_get(ce_value* value, void* arg);
+extern void ce_value_set(ce_value* value, void* arg);
 
 #ifdef __cplusplus
 }
