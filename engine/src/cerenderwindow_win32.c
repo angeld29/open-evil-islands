@@ -417,7 +417,6 @@ static bool ce_renderwindow_handler_activate(ce_renderwindow* renderwindow, WPAR
 {
 	ce_unused(wparam), ce_unused(lparam);
 
-	// was minimized and deactivated, see MSDN for more details
 	if (0 != HIWORD(wparam) && WA_INACTIVE != LOWORD(wparam)) {
 		ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
@@ -434,12 +433,15 @@ static bool ce_renderwindow_handler_activate(ce_renderwindow* renderwindow, WPAR
 
 static bool ce_renderwindow_handler_syscommand(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_unused(lparam);
 
-	// TODO: implement it
-	// prevent screensaver or monitor powersave mode from starting
-	// fullscreen only!
-	// (SC_SCREENSAVE == (wparam & 0xFFF0) || SC_MONITORPOWER == (wparam & 0xFFF0))
+	wparam &= 0xfff0;
+
+	if (renderwindow->fullscreen &&
+			(SC_MONITORPOWER == wparam || SC_SCREENSAVE == wparam)) {
+		// prevent screensaver or monitor powersave mode from starting
+		return true;
+	}
 
 	return false;
 }
