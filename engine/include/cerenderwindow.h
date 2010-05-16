@@ -53,15 +53,16 @@ extern void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
 extern ce_input_button
 ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key);
 
-enum {
+typedef enum {
 	CE_RENDERWINDOW_STATE_WINDOW,
 	CE_RENDERWINDOW_STATE_FULLSCREEN,
 	CE_RENDERWINDOW_STATE_COUNT
-};
+} ce_renderwindow_state;
 
-enum {
+typedef enum {
+	CE_RENDERWINDOW_ACTION_MINIMIZE,
 	CE_RENDERWINDOW_ACTION_COUNT
-};
+} ce_renderwindow_action;
 
 typedef struct {
 	void (*closed)(void* listener);
@@ -69,6 +70,8 @@ typedef struct {
 } ce_renderwindow_listener;
 
 typedef struct {
+	ce_renderwindow_state state;
+	ce_renderwindow_action action;
 	int width, height, bpp, rate;
 	ce_display_rotation rotation;
 	ce_display_reflection reflection;

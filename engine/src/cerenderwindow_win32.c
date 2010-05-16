@@ -45,10 +45,19 @@ enum {
 };
 
 enum {
-	CE_RENDERWINDOW_SHORTCUT_ALTTAB,
-	CE_RENDERWINDOW_SHORTCUT_LWIN,
-	CE_RENDERWINDOW_SHORTCUT_RWIN,
-	CE_RENDERWINDOW_SHORTCUT_COUNT
+	CE_RENDERWINDOW_HOTKEY_ALTTAB,
+	CE_RENDERWINDOW_HOTKEY_LWIN,
+	CE_RENDERWINDOW_HOTKEY_RWIN,
+	CE_RENDERWINDOW_HOTKEY_COUNT
+};
+
+static struct {
+	UINT mod;
+	UINT vk;
+} ce_renderwindow_hotkeys[CE_RENDERWINDOW_HOTKEY_COUNT] = {
+	[CE_RENDERWINDOW_HOTKEY_ALTTAB] = { MOD_ALT, VK_TAB },
+	[CE_RENDERWINDOW_HOTKEY_LWIN] = { MOD_WIN, VK_LWIN },
+	[CE_RENDERWINDOW_HOTKEY_RWIN] = { MOD_WIN, VK_RWIN },
 };
 
 typedef struct {
@@ -57,7 +66,6 @@ typedef struct {
 	HWND window;
 	bool (*handlers[WM_USER])(ce_renderwindow*, WPARAM, LPARAM);
 	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
-	int shortcuts[CE_RENDERWINDOW_SHORTCUT_COUNT];
 	int x, y;
 	int width, height;
 	bool fullscreen;
@@ -144,10 +152,6 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	//	ce_logging_error("renderwindow: could not register raw input devices");
 	//	ce_logging_warning("renderwindow: using event-driven input");
 	//}
-
-	for (int i = 0; i < CE_RENDERWINDOW_SHORTCUT_COUNT; ++i) {
-		winwindow->shortcuts[i] = i;
-	}
 
 	width = ce_max(400, width);
 	height = ce_max(300, height);
@@ -242,8 +246,8 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 		ce_displaymng_del(renderwindow->displaymng);
 
 		if (NULL != winwindow->window) {
-			for (int i = 0; i < CE_RENDERWINDOW_SHORTCUT_COUNT; ++i) {
-				UnregisterHotKey(winwindow->window, winwindow->shortcuts[i]);
+			for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
+				UnregisterHotKey(winwindow->window, i);
 			}
 
 			ReleaseDC(winwindow->window, GetDC(winwindow->window));
@@ -274,17 +278,16 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 	bool fullscreen = !renderwindow->fullscreen;
 
 	if (!renderwindow->fullscreen && fullscreen) {
-		RegisterHotKey(winwindow->window,
-			winwindow->shortcuts[CE_RENDERWINDOW_SHORTCUT_ALTTAB],
-			MOD_ALT, VK_TAB);
-		RegisterHotKey(winwindow->window,
-			winwindow->shortcuts[CE_RENDERWINDOW_SHORTCUT_LWIN],
-			MOD_WIN, VK_LWIN);
+		for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
+			RegisterHotKey(winwindow->window, i,
+				ce_renderwindow_hotkeys[i].mod,
+				ce_renderwindow_hotkeys[i].vk);
+		}
 	}
 
 	if (renderwindow->fullscreen && !fullscreen) {
-		for (int i = 0; i < CE_RENDERWINDOW_SHORTCUT_COUNT; ++i) {
-			UnregisterHotKey(winwindow->window, winwindow->shortcuts[i]);
+		for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
+			UnregisterHotKey(winwindow->window, i);
 		}
 	}
 
@@ -486,9 +489,9 @@ static bool ce_renderwindow_handler_hotkey(ce_renderwindow* renderwindow, WPARAM
 {
 	ce_unused(lparam);
 
-	if (CE_RENDERWINDOW_SHORTCUT_ALTTAB == wparam ||
-			CE_RENDERWINDOW_SHORTCUT_LWIN == wparam ||
-			CE_RENDERWINDOW_SHORTCUT_RWIN == wparam) {
+	if (CE_RENDERWINDOW_HOTKEY_ALTTAB == wparam ||
+			CE_RENDERWINDOW_HOTKEY_LWIN == wparam ||
+			CE_RENDERWINDOW_HOTKEY_RWIN == wparam) {
 		if (renderwindow->fullscreen) {
 			ce_renderwindow_minimize(renderwindow);
 		}
