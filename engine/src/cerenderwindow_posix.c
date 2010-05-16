@@ -94,13 +94,13 @@ static bool ce_renderwindow_x11_ctor(ce_renderwindow* renderwindow, va_list args
 		XServerVendor(x11window->display),
 		XVendorRelease(x11window->display));
 
-	renderwindow->geometry[renderwindow->state].x =
+	renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].x =
 		(XDisplayWidth(x11window->display, XDefaultScreen(x11window->display)) -
-		renderwindow->geometry[renderwindow->state].width) / 2;
+		renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].width) / 2;
 
-	renderwindow->geometry[renderwindow->state].y =
+	renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].y =
 		(XDisplayHeight(x11window->display, XDefaultScreen(x11window->display)) -
-		renderwindow->geometry[renderwindow->state].height) / 2;
+		renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].height) / 2;
 
 	if (0 == renderwindow->visual.bpp) {
 		renderwindow->visual.bpp = XDefaultDepth(x11window->display,

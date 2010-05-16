@@ -61,13 +61,10 @@ static struct {
 };
 
 typedef struct {
+	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
 	DWORD style[CE_RENDERWINDOW_STATE_COUNT];
 	DWORD extended_style[CE_RENDERWINDOW_STATE_COUNT];
 	bool (*handlers[WM_USER])(ce_renderwindow*, WPARAM, LPARAM);
-	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
-	int x, y;
-	int width, height;
-	bool fullscreen;
 	bool cursor_inside;
 	HWND window;
 } ce_renderwindow_win;
@@ -101,13 +98,66 @@ static bool ce_renderwindow_win_ctor(ce_renderwindow* renderwindow, va_list args
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 	const char* title = va_arg(args, const char*);
 
-	renderwindow->displaymng = ce_displaymng_create();
-
 	for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
 		winwindow->style[i] = WS_VISIBLE | (DWORD[])
 			{ WS_OVERLAPPEDWINDOW, WS_POPUP }[CE_RENDERWINDOW_STATE_FULLSCREEN == i];
 		winwindow->extended_style[i] = WS_EX_APPWINDOW;
+
+		RECT rect = { 0, 0, renderwindow->geometry[i].width,
+							renderwindow->geometry[i].height };
+
+		if (AdjustWindowRectEx(&rect, winwindow->style[i],
+									0, winwindow->extended_style[i])) {
+			renderwindow->geometry[i].width = rect.right - rect.left;
+			renderwindow->geometry[i].height = rect.bottom - rect.top;
+		}
 	}
+
+	renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].x =
+		(GetSystemMetrics(SM_CXSCREEN) -
+		renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].width) / 2;
+
+	renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].y =
+		(GetSystemMetrics(SM_CYSCREEN) -
+		renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].height) / 2;
+
+	renderwindow->displaymng = ce_displaymng_create();
+
+	ce_renderwindow_keymap_add_array(renderwindow->keymap, (unsigned long[]){
+		0, VK_ESCAPE, VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8,
+		VK_F9, VK_F10, VK_F11, VK_F12, VK_OEM_3, '0', '1', '2', '3', '4', '5',
+		'6', '7', '8', '9', VK_OEM_MINUS, VK_OEM_PLUS, VK_OEM_5, VK_BACK, VK_TAB,
+		'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', VK_OEM_4, VK_OEM_6,
+		VK_CAPITAL, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', VK_OEM_1,
+		VK_OEM_7, VK_RETURN, VK_LSHIFT, 'Z', 'X', 'C', 'V', 'B', 'N', 'M',
+		VK_OEM_COMMA, VK_OEM_PERIOD, VK_OEM_2, VK_RSHIFT, VK_LCONTROL, VK_LWIN,
+		VK_LMENU, VK_SPACE, VK_RMENU, VK_RWIN, VK_APPS, VK_RCONTROL, VK_SNAPSHOT,
+		VK_SCROLL, VK_PAUSE, VK_INSERT, VK_DELETE, VK_HOME, VK_END, VK_PRIOR,
+		VK_NEXT, VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN, VK_NUMLOCK, VK_DIVIDE,
+		VK_MULTIPLY, VK_SUBTRACT, VK_ADD, VK_EXECUTE, VK_DECIMAL, VK_NUMPAD7,
+		VK_NUMPAD8, VK_NUMPAD9, VK_NUMPAD4, VK_NUMPAD5, VK_NUMPAD6, VK_NUMPAD1,
+		VK_NUMPAD2, VK_NUMPAD3, VK_NUMPAD0, 0, 0, 0, 0, 0
+	});
+
+	ce_renderwindow_keymap_sort(renderwindow->keymap);
+
+	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].usUsagePage = HID_USAGE_PAGE_GENERIC;
+	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].usUsage = HID_USAGE_GENERIC_KEYBOARD;
+	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].dwFlags = RIDEV_NOLEGACY;
+	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].hwndTarget = NULL;
+
+	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].usUsagePage = HID_USAGE_PAGE_GENERIC;
+	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].usUsage = HID_USAGE_GENERIC_MOUSE;
+	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].dwFlags = RIDEV_NOLEGACY;
+	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].hwndTarget = NULL;
+
+	// TODO: implement it
+	//if (RegisterRawInputDevices(winwindow->rid, 2, sizeof(RAWINPUTDEVICE))) {
+	//	ce_logging_warning("renderwindow: using raw input");
+	//} else {
+	//	ce_logging_error("renderwindow: could not register raw input devices");
+	//	ce_logging_warning("renderwindow: using event-driven input");
+	//}
 
 	for (int i = 0; i < WM_USER; ++i) {
 		winwindow->handlers[i] = ce_renderwindow_handler_skip;
@@ -136,49 +186,6 @@ static bool ce_renderwindow_win_ctor(ce_renderwindow* renderwindow, va_list args
 	winwindow->handlers[WM_MOUSELEAVE] = ce_renderwindow_handler_mouseleave;
 	winwindow->handlers[WM_MOUSEMOVE] = ce_renderwindow_handler_mousemove;
 
-	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].usUsagePage = HID_USAGE_PAGE_GENERIC;
-	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].usUsage = HID_USAGE_GENERIC_KEYBOARD;
-	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].dwFlags = RIDEV_NOLEGACY;
-	winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].hwndTarget = NULL;
-
-	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].usUsagePage = HID_USAGE_PAGE_GENERIC;
-	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].usUsage = HID_USAGE_GENERIC_MOUSE;
-	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].dwFlags = RIDEV_NOLEGACY;
-	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].hwndTarget = NULL;
-
-	// TODO: implement it
-	//if (RegisterRawInputDevices(winwindow->rid, 2, sizeof(RAWINPUTDEVICE))) {
-	//	ce_logging_warning("renderwindow: using raw input");
-	//} else {
-	//	ce_logging_error("renderwindow: could not register raw input devices");
-	//	ce_logging_warning("renderwindow: using event-driven input");
-	//}
-
-	ce_renderwindow_keymap_add_array(renderwindow->keymap, (unsigned long[]){
-		0, VK_ESCAPE, VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8,
-		VK_F9, VK_F10, VK_F11, VK_F12, VK_OEM_3, '0', '1', '2', '3', '4', '5',
-		'6', '7', '8', '9', VK_OEM_MINUS, VK_OEM_PLUS, VK_OEM_5, VK_BACK, VK_TAB,
-		'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', VK_OEM_4, VK_OEM_6,
-		VK_CAPITAL, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', VK_OEM_1,
-		VK_OEM_7, VK_RETURN, VK_LSHIFT, 'Z', 'X', 'C', 'V', 'B', 'N', 'M',
-		VK_OEM_COMMA, VK_OEM_PERIOD, VK_OEM_2, VK_RSHIFT, VK_LCONTROL, VK_LWIN,
-		VK_LMENU, VK_SPACE, VK_RMENU, VK_RWIN, VK_APPS, VK_RCONTROL, VK_SNAPSHOT,
-		VK_SCROLL, VK_PAUSE, VK_INSERT, VK_DELETE, VK_HOME, VK_END, VK_PRIOR,
-		VK_NEXT, VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN, VK_NUMLOCK, VK_DIVIDE,
-		VK_MULTIPLY, VK_SUBTRACT, VK_ADD, VK_EXECUTE, VK_DECIMAL, VK_NUMPAD7,
-		VK_NUMPAD8, VK_NUMPAD9, VK_NUMPAD4, VK_NUMPAD5, VK_NUMPAD6, VK_NUMPAD1,
-		VK_NUMPAD2, VK_NUMPAD3, VK_NUMPAD0, 0, 0, 0, 0, 0
-	});
-
-	ce_renderwindow_keymap_sort(renderwindow->keymap);
-
-	RECT rect = { 0, 0, renderwindow->width, renderwindow->height };
-	if (AdjustWindowRectEx(&rect, winwindow->style[CE_RENDERWINDOW_STATE_WINDOW],
-			0, winwindow->extended_style[CE_RENDERWINDOW_STATE_WINDOW])) {
-		renderwindow->width = rect.right - rect.left;
-		renderwindow->height = rect.bottom - rect.top;
-	}
-
 	WNDCLASSEX wc;
 	ZeroMemory(&wc, sizeof(WNDCLASSEX));
 
@@ -194,11 +201,12 @@ static bool ce_renderwindow_win_ctor(ce_renderwindow* renderwindow, va_list args
 		return false;
 	}
 
-	winwindow->window = CreateWindowEx(winwindow->extended_style[CE_RENDERWINDOW_STATE_WINDOW],
-		wc.lpszClassName, title, winwindow->style[CE_RENDERWINDOW_STATE_WINDOW],
-		(GetSystemMetrics(SM_CXSCREEN) - renderwindow->width) / 2,
-		(GetSystemMetrics(SM_CYSCREEN) - renderwindow->height) / 2,
-		renderwindow->width, renderwindow->height,
+	winwindow->window = CreateWindowEx(winwindow->extended_style[renderwindow->state],
+		wc.lpszClassName, title, winwindow->style[renderwindow->state],
+		renderwindow->geometry[renderwindow->state].x,
+		renderwindow->geometry[renderwindow->state].y,
+		renderwindow->geometry[renderwindow->state].width,
+		renderwindow->geometry[renderwindow->state].height,
 		HWND_DESKTOP, NULL, wc.hInstance, NULL);
 
 	if (NULL == winwindow->window) {
@@ -251,73 +259,42 @@ static void ce_renderwindow_win_minimize(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
-	if (renderwindow->fullscreen) {
-		// save fullscreen state to restore later
-		assert(!winwindow->fullscreen);
-		winwindow->fullscreen = true;
-
-		// exit from fullscreen before minimizing
-		ce_renderwindow_toggle_fullscreen(renderwindow);
-	}
-
 	ShowWindow(winwindow->window, SW_MINIMIZE);
 }
 
-static void ce_renderwindow_win_toggle_fullscreen(ce_renderwindow* renderwindow)
+static void ce_renderwindow_win_fullscreen_onenter(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
-	bool fullscreen = !renderwindow->fullscreen;
-
-	if (!renderwindow->fullscreen && fullscreen) {
-		for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
-			RegisterHotKey(winwindow->window, i,
-				ce_renderwindow_hotkeys[i].mod,
-				ce_renderwindow_hotkeys[i].vk);
-		}
+	for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
+		RegisterHotKey(winwindow->window, i,
+			ce_renderwindow_hotkeys[i].mod,
+			ce_renderwindow_hotkeys[i].vk);
 	}
+}
 
-	if (renderwindow->fullscreen && !fullscreen) {
-		for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
-			UnregisterHotKey(winwindow->window, i);
-		}
+static void ce_renderwindow_win_fullscreen_onexit(ce_renderwindow* renderwindow)
+{
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+
+	for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
+		UnregisterHotKey(winwindow->window, i);
 	}
+}
 
-	renderwindow->fullscreen = fullscreen;
+static void ce_renderwindow_win_fullscreen_onend(ce_renderwindow* renderwindow)
+{
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
-	int x = winwindow->x, y = winwindow->y;
-	int width = winwindow->width, height = winwindow->height;
+	SetWindowLong(winwindow->window, GWL_STYLE, winwindow->style[renderwindow->state]);
+	SetWindowLong(winwindow->window, GWL_EXSTYLE, winwindow->extended_style[renderwindow->state]);
 
-	if (fullscreen) {
-		int index = ce_displaymng_change(renderwindow->displaymng,
-			renderwindow->width, renderwindow->height,
-			renderwindow->bpp, renderwindow->rate,
-			renderwindow->rotation, renderwindow->reflection);
-
-		const ce_displaymode* mode = renderwindow->displaymng->modes->items[index];
-
-		x = 0;
-		y = 0;
-
-		width = mode->width;
-		height = mode->height;
-
-		RECT rect;
-		GetWindowRect(winwindow->window, &rect);
-
-		winwindow->x = rect.left;
-		winwindow->y = rect.top;
-
-		winwindow->width = renderwindow->width;
-		winwindow->height = renderwindow->height;
-	} else {
-		ce_displaymng_restore(renderwindow->displaymng);
-	}
-
-	SetWindowLong(winwindow->window, GWL_STYLE, winwindow->style[fullscreen]);
-	SetWindowLong(winwindow->window, GWL_EXSTYLE, winwindow->extended_style[fullscreen]);
-
-	SetWindowPos(winwindow->window, HWND_TOP, x, y, width, height, SWP_FRAMECHANGED);
+	SetWindowPos(winwindow->window, HWND_TOP,
+		renderwindow->geometry[renderwindow->state].x,
+		renderwindow->geometry[renderwindow->state].y,
+		renderwindow->geometry[renderwindow->state].width,
+		renderwindow->geometry[renderwindow->state].height,
+		SWP_FRAMECHANGED);
 }
 
 static void ce_renderwindow_win_pump(ce_renderwindow* renderwindow)
@@ -336,7 +313,10 @@ ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title
 	ce_renderwindow_vtable vtable = {
 		ce_renderwindow_win_ctor, ce_renderwindow_win_dtor,
 		ce_renderwindow_win_show, ce_renderwindow_win_minimize,
-		ce_renderwindow_win_toggle_fullscreen, ce_renderwindow_win_pump
+		{ NULL, ce_renderwindow_win_fullscreen_onenter,
+			ce_renderwindow_win_fullscreen_onexit,
+			ce_renderwindow_win_fullscreen_onend },
+		ce_renderwindow_win_pump
 	};
 
 	return ce_renderwindow_new(vtable, sizeof(ce_renderwindow_win), width, height, title);
@@ -377,10 +357,10 @@ static bool ce_renderwindow_handler_close(ce_renderwindow* renderwindow, WPARAM 
 
 static bool ce_renderwindow_handler_move(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
+	ce_unused(wparam);
 
-	//renderwindow->width = LOWORD(lparam);
-	//renderwindow->height = HIWORD(lparam);
+	renderwindow->geometry[renderwindow->state].x = LOWORD(lparam);
+	renderwindow->geometry[renderwindow->state].y = HIWORD(lparam);
 
 	return false;
 }
@@ -389,8 +369,8 @@ static bool ce_renderwindow_handler_size(ce_renderwindow* renderwindow, WPARAM w
 {
 	ce_unused(wparam);
 
-	renderwindow->width = LOWORD(lparam);
-	renderwindow->height = HIWORD(lparam);
+	renderwindow->geometry[renderwindow->state].width = LOWORD(lparam);
+	renderwindow->geometry[renderwindow->state].height = HIWORD(lparam);
 
 	return false;
 }
@@ -407,21 +387,15 @@ static bool ce_renderwindow_handler_syscommand(ce_renderwindow* renderwindow, WP
 
 	wparam &= 0xfff0;
 
-	if (renderwindow->fullscreen &&
+	if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state &&
 			(SC_MONITORPOWER == wparam || SC_SCREENSAVE == wparam)) {
-		// prevent screensaver or monitor powersave mode from starting
+		// prevent monitor powersave mode or screensaver from starting
 		return true;
 	}
 
 	if (SC_RESTORE == wparam) {
-		ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
-
-		if (winwindow->fullscreen) {
-			winwindow->fullscreen = false;
-
-			assert(!renderwindow->fullscreen);
-			ce_renderwindow_toggle_fullscreen(renderwindow);
-		}
+		assert(CE_RENDERWINDOW_ACTION_NONE == renderwindow->action);
+		renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
 	}
 
 	return false;
@@ -475,9 +449,8 @@ static bool ce_renderwindow_handler_hotkey(ce_renderwindow* renderwindow, WPARAM
 	if (CE_RENDERWINDOW_HOTKEY_ALTTAB == wparam ||
 			CE_RENDERWINDOW_HOTKEY_LWIN == wparam ||
 			CE_RENDERWINDOW_HOTKEY_RWIN == wparam) {
-		if (renderwindow->fullscreen) {
-			ce_renderwindow_minimize(renderwindow);
-		}
+		assert(CE_RENDERWINDOW_ACTION_NONE == renderwindow->action);
+		renderwindow->action = CE_RENDERWINDOW_ACTION_MINIMIZE;
 	}
 
 	return false;

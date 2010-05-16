@@ -107,26 +107,7 @@ static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list args)
 	}
 }
 
-static void ce_dmmng_restore(ce_displaymng* displaymng)
-{
-	ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
-
-	ce_dmmng_change_display_settings(&dmmng->orig_mode, 0);
-}
-
-static void ce_dmmng_dtor(ce_displaymng* displaymng)
-{
-	ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
-
-	ce_dmmng_restore(displaymng);
-
-	for (int i = 0; i < dmmng->modes->count; ++i) {
-		ce_free(dmmng->modes->items[i], sizeof(DEVMODE));
-	}
-	ce_vector_del(dmmng->modes);
-}
-
-static void ce_dmmng_change(ce_displaymng* displaymng, int index,
+static void ce_dmmng_enter(ce_displaymng* displaymng, int index,
 	ce_display_rotation rotation, ce_display_reflection reflection)
 {
 	ce_unused(rotation), ce_unused(reflection);
@@ -137,10 +118,29 @@ static void ce_dmmng_change(ce_displaymng* displaymng, int index,
 	ce_dmmng_change_display_settings(mode, CDS_FULLSCREEN);
 }
 
+static void ce_dmmng_exit(ce_displaymng* displaymng)
+{
+	ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
+
+	ce_dmmng_change_display_settings(&dmmng->orig_mode, 0);
+}
+
+static void ce_dmmng_dtor(ce_displaymng* displaymng)
+{
+	ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
+
+	ce_dmmng_exit(displaymng);
+
+	for (int i = 0; i < dmmng->modes->count; ++i) {
+		ce_free(dmmng->modes->items[i], sizeof(DEVMODE));
+	}
+	ce_vector_del(dmmng->modes);
+}
+
 ce_displaymng* ce_displaymng_create(void)
 {
 	ce_displaymng_vtable vtable = {
-		ce_dmmng_ctor, ce_dmmng_dtor, ce_dmmng_restore, ce_dmmng_change
+		ce_dmmng_ctor, ce_dmmng_dtor, ce_dmmng_enter, ce_dmmng_exit
 	};
 	return ce_displaymng_new(vtable, sizeof(ce_dmmng));
 }

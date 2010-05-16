@@ -177,11 +177,18 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 
 	if (CE_RENDERWINDOW_STATE_WINDOW == renderwindow->state &&
 			CE_RENDERWINDOW_STATE_FULLSCREEN == state) {
-		ce_displaymng_enter(renderwindow->displaymng,
+		int index = ce_displaymng_enter(renderwindow->displaymng,
 			renderwindow->geometry[state].width,
 			renderwindow->geometry[state].height,
 			renderwindow->visual.bpp, renderwindow->visual.rate,
 			renderwindow->visual.rotation, renderwindow->visual.reflection);
+
+		const ce_displaymode* mode = renderwindow->displaymng->modes->items[index];
+
+		renderwindow->geometry[state].width = mode->width;
+		renderwindow->geometry[state].height = mode->height;
+
+		// TODO: visual
 
 		if (NULL != renderwindow->vtable.fullscreen.onenter) {
 			(*renderwindow->vtable.fullscreen.onenter)(renderwindow);
@@ -234,10 +241,10 @@ void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 	renderwindow->input_context->buttons[CE_MB_WHEELUP] = false;
 	renderwindow->input_context->buttons[CE_MB_WHEELDOWN] = false;
 
+	(*renderwindow->vtable.pump)(renderwindow);
+
 	(*ce_renderwindow_action_proc[renderwindow->action])(renderwindow);
 	renderwindow->action = CE_RENDERWINDOW_ACTION_NONE;
-
-	(*renderwindow->vtable.pump)(renderwindow);
 }
 
 void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow)
