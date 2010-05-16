@@ -63,13 +63,13 @@ static struct {
 typedef struct {
 	DWORD style[CE_RENDERWINDOW_STATE_COUNT];
 	DWORD extended_style[CE_RENDERWINDOW_STATE_COUNT];
-	HWND window;
 	bool (*handlers[WM_USER])(ce_renderwindow*, WPARAM, LPARAM);
 	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
 	int x, y;
 	int width, height;
 	bool fullscreen;
 	bool cursor_inside;
+	HWND window;
 } ce_renderwindow_win;
 
 static LRESULT CALLBACK ce_renderwindow_proc(HWND, UINT, WPARAM, LPARAM);
@@ -96,11 +96,12 @@ static bool ce_renderwindow_handler_mousehover(ce_renderwindow*, WPARAM, LPARAM)
 static bool ce_renderwindow_handler_mouseleave(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_mousemove(ce_renderwindow*, WPARAM, LPARAM);
 
-ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
+static bool ce_renderwindow_win_ctor(ce_renderwindow* renderwindow, va_list args)
 {
-	ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow) +
-													sizeof(ce_renderwindow_win));
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+	const char* title = va_arg(args, const char*);
+
+	renderwindow->displaymng = ce_displaymng_create();
 
 	for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
 		winwindow->style[i] = WS_VISIBLE | (DWORD[])
@@ -153,25 +154,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	//	ce_logging_warning("renderwindow: using event-driven input");
 	//}
 
-	width = ce_max(400, width);
-	height = ce_max(300, height);
-
-	RECT rect = { 0, 0, width, height };
-	if (AdjustWindowRectEx(&rect, winwindow->style[CE_RENDERWINDOW_STATE_WINDOW],
-			0, winwindow->extended_style[CE_RENDERWINDOW_STATE_WINDOW])) {
-		width = rect.right - rect.left;
-		height = rect.bottom - rect.top;
-	}
-
-	renderwindow->width = width;
-	renderwindow->height = height;
-
-	renderwindow->displaymng = ce_displaymng_create();
-	renderwindow->input_context = ce_input_context_new();
-	renderwindow->keymap = ce_renderwindow_keymap_new(CE_IB_COUNT);
-	renderwindow->listeners = ce_vector_new();
-
-	unsigned long winkeys[CE_IB_COUNT] = {
+	ce_renderwindow_keymap_add_array(renderwindow->keymap, (unsigned long[]){
 		0, VK_ESCAPE, VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8,
 		VK_F9, VK_F10, VK_F11, VK_F12, VK_OEM_3, '0', '1', '2', '3', '4', '5',
 		'6', '7', '8', '9', VK_OEM_MINUS, VK_OEM_PLUS, VK_OEM_5, VK_BACK, VK_TAB,
@@ -185,13 +168,16 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 		VK_MULTIPLY, VK_SUBTRACT, VK_ADD, VK_EXECUTE, VK_DECIMAL, VK_NUMPAD7,
 		VK_NUMPAD8, VK_NUMPAD9, VK_NUMPAD4, VK_NUMPAD5, VK_NUMPAD6, VK_NUMPAD1,
 		VK_NUMPAD2, VK_NUMPAD3, VK_NUMPAD0, 0, 0, 0, 0, 0
-	};
-
-	for (int i = 0; i < CE_IB_COUNT; ++i) {
-		ce_renderwindow_keymap_add(renderwindow->keymap, winkeys[i], i);
-	}
+	});
 
 	ce_renderwindow_keymap_sort(renderwindow->keymap);
+
+	RECT rect = { 0, 0, renderwindow->width, renderwindow->height };
+	if (AdjustWindowRectEx(&rect, winwindow->style[CE_RENDERWINDOW_STATE_WINDOW],
+			0, winwindow->extended_style[CE_RENDERWINDOW_STATE_WINDOW])) {
+		renderwindow->width = rect.right - rect.left;
+		renderwindow->height = rect.bottom - rect.top;
+	}
 
 	WNDCLASSEX wc;
 	ZeroMemory(&wc, sizeof(WNDCLASSEX));
@@ -205,8 +191,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	if (!RegisterClassEx(&wc)) {
 		ce_logging_fatal("renderwindow: could not register class");
-		ce_renderwindow_del(renderwindow);
-		return NULL;
+		return false;
 	}
 
 	winwindow->window = CreateWindowEx(winwindow->extended_style[CE_RENDERWINDOW_STATE_WINDOW],
@@ -218,8 +203,7 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 
 	if (NULL == winwindow->window) {
 		ce_logging_fatal("renderwindow: could not create window");
-		ce_renderwindow_del(renderwindow);
-		return NULL;
+		return false;
 	}
 
 	SetWindowLongPtr(winwindow->window, GWLP_USERDATA, (LONG_PTR)renderwindow);
@@ -227,40 +211,32 @@ ce_renderwindow* ce_renderwindow_new(const char* title, int width, int height)
 	renderwindow->context = ce_context_create(GetDC(winwindow->window));
 	if (NULL == renderwindow->context) {
 		ce_logging_fatal("renderwindow: could not create context");
-		ce_renderwindow_del(renderwindow);
-		return NULL;
+		return false;
 	}
 
-	return renderwindow;
+	return true;
 }
 
-void ce_renderwindow_del(ce_renderwindow* renderwindow)
+static void ce_renderwindow_win_dtor(ce_renderwindow* renderwindow)
 {
-	if (NULL != renderwindow) {
-		ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
-		ce_vector_del(renderwindow->listeners);
-		ce_renderwindow_keymap_del(renderwindow->keymap);
-		ce_input_context_del(renderwindow->input_context);
-		ce_context_del(renderwindow->context);
-		ce_displaymng_del(renderwindow->displaymng);
+	ce_context_del(renderwindow->context);
+	ce_displaymng_del(renderwindow->displaymng);
 
-		if (NULL != winwindow->window) {
-			for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
-				UnregisterHotKey(winwindow->window, i);
-			}
-
-			ReleaseDC(winwindow->window, GetDC(winwindow->window));
-			DestroyWindow(winwindow->window);
+	if (NULL != winwindow->window) {
+		for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
+			UnregisterHotKey(winwindow->window, i);
 		}
 
-		UnregisterClass("cursedearth", GetModuleHandle(NULL));
-
-		ce_free(renderwindow, sizeof(ce_renderwindow) + sizeof(ce_renderwindow_win));
+		ReleaseDC(winwindow->window, GetDC(winwindow->window));
+		DestroyWindow(winwindow->window);
 	}
+
+	UnregisterClass("cursedearth", GetModuleHandle(NULL));
 }
 
-void ce_renderwindow_show(ce_renderwindow* renderwindow)
+static void ce_renderwindow_win_show(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
@@ -271,7 +247,23 @@ void ce_renderwindow_show(ce_renderwindow* renderwindow)
 	SetFocus(winwindow->window);
 }
 
-void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
+static void ce_renderwindow_win_minimize(ce_renderwindow* renderwindow)
+{
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+
+	if (renderwindow->fullscreen) {
+		// save fullscreen state to restore later
+		assert(!winwindow->fullscreen);
+		winwindow->fullscreen = true;
+
+		// exit from fullscreen before minimizing
+		ce_renderwindow_toggle_fullscreen(renderwindow);
+	}
+
+	ShowWindow(winwindow->window, SW_MINIMIZE);
+}
+
+static void ce_renderwindow_win_toggle_fullscreen(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
@@ -328,23 +320,7 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 	SetWindowPos(winwindow->window, HWND_TOP, x, y, width, height, SWP_FRAMECHANGED);
 }
 
-void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
-{
-	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
-
-	if (renderwindow->fullscreen) {
-		// save fullscreen state to restore later
-		assert(!winwindow->fullscreen);
-		winwindow->fullscreen = true;
-
-		// exit from fullscreen before minimizing
-		ce_renderwindow_toggle_fullscreen(renderwindow);
-	}
-
-	ShowWindow(winwindow->window, SW_MINIMIZE);
-}
-
-void ce_renderwindow_pump(ce_renderwindow* renderwindow)
+static void ce_renderwindow_win_pump(ce_renderwindow* renderwindow)
 {
 	// reset pointer offset every frame
 	renderwindow->input_context->pointer_offset = CE_VEC2_ZERO;
@@ -358,6 +334,17 @@ void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+}
+
+ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title)
+{
+	ce_renderwindow_vtable vtable = {
+		ce_renderwindow_win_ctor, ce_renderwindow_win_dtor,
+		ce_renderwindow_win_show, ce_renderwindow_win_minimize,
+		ce_renderwindow_win_toggle_fullscreen, ce_renderwindow_win_pump
+	};
+
+	return ce_renderwindow_new(vtable, sizeof(ce_renderwindow_win), width, height, title);
 }
 
 static LRESULT CALLBACK ce_renderwindow_proc(HWND window, UINT message,
