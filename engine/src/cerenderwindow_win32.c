@@ -262,6 +262,23 @@ static void ce_renderwindow_win_minimize(ce_renderwindow* renderwindow)
 	ShowWindow(winwindow->window, SW_MINIMIZE);
 }
 
+static void ce_renderwindow_win_fullscreen_onbegin(ce_renderwindow* renderwindow)
+{
+	// TODO: very strange behaviour on windows...
+
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+
+	SetWindowLong(winwindow->window, GWL_STYLE, winwindow->style[renderwindow->state]);
+	SetWindowLong(winwindow->window, GWL_EXSTYLE, winwindow->extended_style[renderwindow->state]);
+
+	SetWindowPos(winwindow->window, HWND_TOP,
+		renderwindow->geometry[renderwindow->state].x,
+		renderwindow->geometry[renderwindow->state].y,
+		renderwindow->geometry[renderwindow->state].width,
+		renderwindow->geometry[renderwindow->state].height,
+		SWP_FRAMECHANGED);
+}
+
 static void ce_renderwindow_win_fullscreen_onenter(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
@@ -282,21 +299,6 @@ static void ce_renderwindow_win_fullscreen_onexit(ce_renderwindow* renderwindow)
 	}
 }
 
-static void ce_renderwindow_win_fullscreen_onend(ce_renderwindow* renderwindow)
-{
-	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
-
-	SetWindowLong(winwindow->window, GWL_STYLE, winwindow->style[renderwindow->state]);
-	SetWindowLong(winwindow->window, GWL_EXSTYLE, winwindow->extended_style[renderwindow->state]);
-
-	SetWindowPos(winwindow->window, HWND_TOP,
-		renderwindow->geometry[renderwindow->state].x,
-		renderwindow->geometry[renderwindow->state].y,
-		renderwindow->geometry[renderwindow->state].width,
-		renderwindow->geometry[renderwindow->state].height,
-		SWP_FRAMECHANGED);
-}
-
 static void ce_renderwindow_win_pump(ce_renderwindow* renderwindow)
 {
 	ce_unused(renderwindow);
@@ -313,9 +315,9 @@ ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title
 	ce_renderwindow_vtable vtable = {
 		ce_renderwindow_win_ctor, ce_renderwindow_win_dtor,
 		ce_renderwindow_win_show, ce_renderwindow_win_minimize,
-		{ NULL, ce_renderwindow_win_fullscreen_onenter,
-			ce_renderwindow_win_fullscreen_onexit,
-			ce_renderwindow_win_fullscreen_onend },
+		{ ce_renderwindow_win_fullscreen_onbegin,
+			ce_renderwindow_win_fullscreen_onenter,
+			ce_renderwindow_win_fullscreen_onexit, NULL },
 		ce_renderwindow_win_pump
 	};
 
@@ -369,8 +371,19 @@ static bool ce_renderwindow_handler_size(ce_renderwindow* renderwindow, WPARAM w
 {
 	ce_unused(wparam);
 
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+
 	renderwindow->geometry[renderwindow->state].width = LOWORD(lparam);
 	renderwindow->geometry[renderwindow->state].height = HIWORD(lparam);
+
+	RECT rect = { 0, 0, renderwindow->geometry[renderwindow->state].width,
+						renderwindow->geometry[renderwindow->state].height };
+
+	if (AdjustWindowRectEx(&rect, winwindow->style[renderwindow->state],
+								0, winwindow->extended_style[renderwindow->state])) {
+		renderwindow->geometry[renderwindow->state].width = rect.right - rect.left;
+		renderwindow->geometry[renderwindow->state].height = rect.bottom - rect.top;
+	}
 
 	return false;
 }

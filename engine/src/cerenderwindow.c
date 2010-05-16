@@ -167,44 +167,38 @@ void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
 
 void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 {
+	renderwindow->state = (ce_renderwindow_state[])
+		{ CE_RENDERWINDOW_STATE_FULLSCREEN,
+		CE_RENDERWINDOW_STATE_WINDOW }[renderwindow->state];
+
 	if (NULL != renderwindow->vtable.fullscreen.onbegin) {
 		(*renderwindow->vtable.fullscreen.onbegin)(renderwindow);
 	}
 
-	ce_renderwindow_state state = (ce_renderwindow_state[])
-		{ CE_RENDERWINDOW_STATE_FULLSCREEN,
-		CE_RENDERWINDOW_STATE_WINDOW }[renderwindow->state];
-
-	if (CE_RENDERWINDOW_STATE_WINDOW == renderwindow->state &&
-			CE_RENDERWINDOW_STATE_FULLSCREEN == state) {
+	if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
 		int index = ce_displaymng_enter(renderwindow->displaymng,
-			renderwindow->geometry[state].width,
-			renderwindow->geometry[state].height,
+			renderwindow->geometry[renderwindow->state].width,
+			renderwindow->geometry[renderwindow->state].height,
 			renderwindow->visual.bpp, renderwindow->visual.rate,
 			renderwindow->visual.rotation, renderwindow->visual.reflection);
 
 		const ce_displaymode* mode = renderwindow->displaymng->modes->items[index];
 
-		renderwindow->geometry[state].width = mode->width;
-		renderwindow->geometry[state].height = mode->height;
+		renderwindow->geometry[renderwindow->state].width = mode->width;
+		renderwindow->geometry[renderwindow->state].height = mode->height;
 
 		// TODO: visual
 
 		if (NULL != renderwindow->vtable.fullscreen.onenter) {
 			(*renderwindow->vtable.fullscreen.onenter)(renderwindow);
 		}
-	}
-
-	if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state &&
-			CE_RENDERWINDOW_STATE_WINDOW == state) {
+	} else {
 		ce_displaymng_exit(renderwindow->displaymng);
 
 		if (NULL != renderwindow->vtable.fullscreen.onexit) {
 			(*renderwindow->vtable.fullscreen.onexit)(renderwindow);
 		}
 	}
-
-	renderwindow->state = state;
 
 	if (NULL != renderwindow->vtable.fullscreen.onend) {
 		(*renderwindow->vtable.fullscreen.onend)(renderwindow);
