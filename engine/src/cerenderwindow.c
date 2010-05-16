@@ -220,7 +220,7 @@ static void ce_renderwindow_action_proc_restored(ce_renderwindow* renderwindow)
 	}
 }
 
-static void (*ce_renderwindow_action_proc[CE_RENDERWINDOW_ACTION_COUNT])(ce_renderwindow*) = {
+static void (*ce_renderwindow_action_procs[CE_RENDERWINDOW_ACTION_COUNT])(ce_renderwindow*) = {
 	[CE_RENDERWINDOW_ACTION_NONE] = ce_renderwindow_action_proc_none,
 	[CE_RENDERWINDOW_ACTION_MINIMIZE] = ce_renderwindow_minimize,
 	[CE_RENDERWINDOW_ACTION_RESTORED] = ce_renderwindow_action_proc_restored,
@@ -237,7 +237,7 @@ void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 
 	(*renderwindow->vtable.pump)(renderwindow);
 
-	(*ce_renderwindow_action_proc[renderwindow->action])(renderwindow);
+	(*ce_renderwindow_action_procs[renderwindow->action])(renderwindow);
 	renderwindow->action = CE_RENDERWINDOW_ACTION_NONE;
 }
 
