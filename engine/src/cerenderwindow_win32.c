@@ -415,19 +415,7 @@ static bool ce_renderwindow_handler_size(ce_renderwindow* renderwindow, WPARAM w
 
 static bool ce_renderwindow_handler_activate(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(wparam), ce_unused(lparam);
-
-	if (0 != HIWORD(wparam) && WA_INACTIVE != LOWORD(wparam)) {
-		ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
-
-		if (winwindow->fullscreen) {
-			winwindow->fullscreen = false;
-
-			assert(!renderwindow->fullscreen);
-			ce_renderwindow_toggle_fullscreen(renderwindow);
-		}
-	}
-
+	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
 	return false;
 }
 
@@ -441,6 +429,17 @@ static bool ce_renderwindow_handler_syscommand(ce_renderwindow* renderwindow, WP
 			(SC_MONITORPOWER == wparam || SC_SCREENSAVE == wparam)) {
 		// prevent screensaver or monitor powersave mode from starting
 		return true;
+	}
+
+	if (SC_RESTORE == wparam) {
+		ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+
+		if (winwindow->fullscreen) {
+			winwindow->fullscreen = false;
+
+			assert(!renderwindow->fullscreen);
+			ce_renderwindow_toggle_fullscreen(renderwindow);
+		}
 	}
 
 	return false;
