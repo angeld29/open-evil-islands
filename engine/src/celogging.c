@@ -26,10 +26,14 @@
 #include "celogging.h"
 
 static struct {
-	bool inited;
 	ce_logging_level level;
 	const char* level_names[CE_LOGGING_LEVEL_ALL];
-} ce_logging_inst = {
+} ce_logging_context = {
+#ifdef NDEBUG
+	.level = CE_LOGGING_LEVEL_INFO,
+#else
+	.level = CE_LOGGING_LEVEL_DEBUG,
+#endif
 	.level_names = {
 		"UNUSED",
 		"DEBUG",
@@ -38,22 +42,17 @@ static struct {
 		"ERROR",
 		"CRITICAL",
 		"FATAL",
-		"WRITE"
+		"WRITE",
 	},
-#ifdef NDEBUG
-	.level = CE_LOGGING_LEVEL_INFO
-#else
-	.level = CE_LOGGING_LEVEL_DEBUG
-#endif
 };
 
 static void ce_logging_report(ce_logging_level level, const char* format, va_list args)
 {
-	if (CE_LOGGING_LEVEL_NONE != ce_logging_inst.level &&
-			(level >= ce_logging_inst.level ||
-				CE_LOGGING_LEVEL_ALL == ce_logging_inst.level)) {
-		// FIXME: threads: not atomic!
-		fprintf(stderr, "%s: ", ce_logging_inst.level_names[level]);
+	if (CE_LOGGING_LEVEL_NONE != ce_logging_context.level &&
+			(level >= ce_logging_context.level ||
+			CE_LOGGING_LEVEL_ALL == ce_logging_context.level)) {
+		// FIXME: threads!
+		fprintf(stderr, "%s: ", ce_logging_context.level_names[level]);
 		vfprintf(stderr, format, args);
 		if (0 == strlen(format) || '\n' != format[strlen(format) - 1]) {
 			putc('\n', stderr);
@@ -62,94 +61,24 @@ static void ce_logging_report(ce_logging_level level, const char* format, va_lis
 	}
 }
 
-bool ce_logging_init(void)
-{
-	assert(!ce_logging_inst.inited &&
-			"The logging subsystem has already been inited");
-	ce_logging_inst.inited = true;
-	return true;
-}
-
-void ce_logging_term(void)
-{
-	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
-	ce_logging_inst.inited = false;
-}
-
 void ce_logging_set_level(ce_logging_level level)
 {
-	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
-	ce_logging_inst.level = level;
+	ce_logging_context.level = level;
 }
 
-void ce_logging_debug(const char* format, ...)
-{
-	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
-	va_list args;
-	va_start(args, format);
-	ce_logging_report(CE_LOGGING_LEVEL_DEBUG, format, args);
-	va_end(args);
+#define CE_LOGGING_PROC(name, level) \
+void ce_logging_ ## name(const char* format, ...) \
+{ \
+	va_list args; \
+	va_start(args, format); \
+	ce_logging_report(level, format, args); \
+	va_end(args); \
 }
 
-void ce_logging_info(const char* format, ...)
-{
-	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
-	va_list args;
-	va_start(args, format);
-	ce_logging_report(CE_LOGGING_LEVEL_INFO, format, args);
-	va_end(args);
-}
-
-void ce_logging_warning(const char* format, ...)
-{
-	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
-	va_list args;
-	va_start(args, format);
-	ce_logging_report(CE_LOGGING_LEVEL_WARNING, format, args);
-	va_end(args);
-}
-
-void ce_logging_error(const char* format, ...)
-{
-	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
-	va_list args;
-	va_start(args, format);
-	ce_logging_report(CE_LOGGING_LEVEL_ERROR, format, args);
-	va_end(args);
-}
-
-void ce_logging_critical(const char* format, ...)
-{
-	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
-	va_list args;
-	va_start(args, format);
-	ce_logging_report(CE_LOGGING_LEVEL_CRITICAL, format, args);
-	va_end(args);
-}
-
-void ce_logging_fatal(const char* format, ...)
-{
-	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
-	va_list args;
-	va_start(args, format);
-	ce_logging_report(CE_LOGGING_LEVEL_FATAL, format, args);
-	va_end(args);
-}
-
-void ce_logging_write(const char* format, ...)
-{
-	assert(ce_logging_inst.inited &&
-			"The logging subsystem has not yet been inited");
-	va_list args;
-	va_start(args, format);
-	ce_logging_report(CE_LOGGING_LEVEL_WRITE, format, args);
-	va_end(args);
-}
+CE_LOGGING_PROC(debug, CE_LOGGING_LEVEL_DEBUG)
+CE_LOGGING_PROC(info, CE_LOGGING_LEVEL_INFO)
+CE_LOGGING_PROC(warning, CE_LOGGING_LEVEL_WARNING)
+CE_LOGGING_PROC(error, CE_LOGGING_LEVEL_ERROR)
+CE_LOGGING_PROC(critical, CE_LOGGING_LEVEL_CRITICAL)
+CE_LOGGING_PROC(fatal, CE_LOGGING_LEVEL_FATAL)
+CE_LOGGING_PROC(write, CE_LOGGING_LEVEL_WRITE)

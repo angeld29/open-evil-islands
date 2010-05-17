@@ -21,8 +21,6 @@
 #ifndef CE_LOGGING_H
 #define CE_LOGGING_H
 
-#include <stdbool.h>
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -39,9 +37,6 @@ typedef enum {
 	CE_LOGGING_LEVEL_WRITE,
 	CE_LOGGING_LEVEL_ALL
 } ce_logging_level;
-
-extern bool ce_logging_init(void);
-extern void ce_logging_term(void);
 
 extern void ce_logging_set_level(ce_logging_level level);
 
