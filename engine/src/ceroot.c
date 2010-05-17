@@ -78,14 +78,19 @@ bool ce_root_init(const char* ei_path)
 {
 	assert(!ce_root_inited && "the root subsystem has already been inited");
 
-	ce_alloc_init();
 	ce_logging_init();
+
+	if (!ce_alloc_init()) {
+		ce_logging_fatal("root: failed to initialize the memory subsystem, terminating");
+		return false;
+	}
+
+	atexit(ce_alloc_term);
 
 	ce_systeminfo_display();
 
 	if (!ce_systeminfo_ensure()) {
 		ce_logging_term();
-		ce_alloc_term();
 		return false;
 	}
 
@@ -132,7 +137,6 @@ void ce_root_term(void)
 	ce_timer_del(ce_root.timer), ce_root.timer = NULL;
 
 	ce_logging_term();
-	ce_alloc_term();
 }
 
 void ce_root_exec(void)
