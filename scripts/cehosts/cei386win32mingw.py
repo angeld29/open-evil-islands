@@ -31,7 +31,7 @@ def configure(env):
 	if env["PLATFORM"] != "win32":
 		ceerrors.interrupt("This host is available only on Windows.")
 
-	# Prefer MinGW on Windows.
+	# prefer MinGW on Windows
 	SCons.Tool.Tool("mingw")(env)
 
 	env["CPU_TYPE"] = "i386"
@@ -40,6 +40,12 @@ def configure(env):
 	gcc.configure(env)
 
 	env.AppendUnique(
-		CPPDEFINES=["WINVER=0x0501", # Windows XP
-					"WIN32_LEAN_AND_MEAN"],
+		CPPDEFINES=[
+			"WINVER=0x0501",       # Windows XP required
+			"WIN32_LEAN_AND_MEAN", # excludes some stuff like Cryptography,
+								   # DDE, RPC, Shell, and Windows Sockets
+			"NOCOMM",              # excludes the serial communication API
+		],
+		CPPFLAGS=["-mthreads"],  # specifies that MinGW-specific
+		LINKFLAGS=["-mthreads"], # thread support is to be used
 	)

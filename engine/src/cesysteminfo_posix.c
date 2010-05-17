@@ -41,6 +41,7 @@ bool ce_systeminfo_ensure(void)
 		ce_logging_fatal("systeminfo: SUSv3 (POSIX.1-2001 + XPG6) system required, terminating");
 		return false;
 	}
+
 	ce_logging_write("systeminfo: SUSv3 (POSIX.1-2001 + XPG6) system detected, continuing");
 	return true;
 }
