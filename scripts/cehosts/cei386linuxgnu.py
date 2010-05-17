@@ -45,7 +45,6 @@ def configure(env):
 			# IEEE Std 1003.1-2004, Open Group Single UNIX Specification, version 3
 			# includes POSIX.1-2001 and XPG6 things
 			"_XOPEN_SOURCE=600",
-			"_GNU_SOURCE", # TODO: do not use not portable code
 		],
 		CPPFLAGS=["-pthread"],  # add support for multithreading
 		LINKFLAGS=["-pthread"], # using the POSIX threads library

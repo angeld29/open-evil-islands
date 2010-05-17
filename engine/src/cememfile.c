@@ -19,10 +19,61 @@
 */
 
 #include <stdio.h>
+#include <string.h>
+#include <assert.h>
 
-#include "celogging.h"
+#include "celib.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "cememfile.h"
+
+typedef struct {
+	char* data;
+	size_t size;
+	size_t pos;
+} ce_memcookie;
+
+static int ce_memcookie_close(void* client_data)
+{
+	ce_memcookie* cookie = client_data;
+	ce_free(cookie->data, cookie->size);
+	ce_free(cookie, sizeof(ce_memcookie));
+	return 0;
+}
+
+static size_t
+ce_memcookie_read(void* client_data, void* data, size_t size, size_t n)
+{
+	ce_memcookie* cookie = client_data;
+	if (cookie->pos == cookie->size) {
+		return 0;
+	}
+	size_t avail_n = ce_smin((cookie->size - cookie->pos) / size, n);
+	size_t avail_size = size * avail_n;
+	memcpy(data, cookie->data + cookie->pos, avail_size);
+	cookie->pos += avail_size;
+	return avail_n;
+}
+
+static int ce_memcookie_seek(void* client_data, long int offset, int whence)
+{
+	ce_memcookie* cookie = client_data;
+	long int size = cookie->size, pos = cookie->pos;
+	pos = SEEK_SET == whence ? offset :
+		(SEEK_END == whence ? size - offset : pos + offset);
+	return pos < 0 || pos > size ? -1 : (cookie->pos = pos, 0);
+}
+
+static long int ce_memcookie_tell(void* client_data)
+{
+	ce_memcookie* cookie = client_data;
+	return cookie->pos;
+}
+
+static const ce_io_callbacks ce_memcookie_callbacks = {
+	ce_memcookie_close, ce_memcookie_read,
+	ce_memcookie_seek, ce_memcookie_tell
+};
 
 ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 											void* client_data)
@@ -31,6 +82,15 @@ ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 	memfile->callbacks = callbacks;
 	memfile->client_data = client_data;
 	return memfile;
+}
+
+ce_memfile* ce_memfile_open_data(void* data, size_t size)
+{
+	ce_memcookie* cookie = ce_alloc(sizeof(ce_memcookie));
+	cookie->data = data;
+	cookie->size = size;
+	cookie->pos = 0;
+	return ce_memfile_open_callbacks(ce_memcookie_callbacks, cookie);
 }
 
 ce_memfile* ce_memfile_open_file(const char* path)

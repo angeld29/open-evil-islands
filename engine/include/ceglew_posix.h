@@ -27,7 +27,14 @@
 
 #include "ceglew.h"
 
+// HACK: for glew 1.5.4
+#ifdef uint
+#error already defined
+#endif
+
+#define uint GLuint
 #include <GL/glxew.h>
+#undef uint
 
 #ifdef __cplusplus
 extern "C"
