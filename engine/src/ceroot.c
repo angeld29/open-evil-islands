@@ -83,6 +83,12 @@ bool ce_root_init(const char* ei_path)
 
 	ce_systeminfo_display();
 
+	if (!ce_systeminfo_ensure()) {
+		ce_logging_term();
+		ce_alloc_term();
+		return false;
+	}
+
 	ce_root.show_axes = true;
 	ce_root.show_bboxes = false;
 	ce_root.comprehensive_bbox_only = true;

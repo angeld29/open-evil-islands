@@ -21,6 +21,7 @@
 #include <assert.h>
 
 #include <sys/utsname.h>
+#include <unistd.h>
 
 #include "celogging.h"
 #include "cesysteminfo.h"
@@ -32,4 +33,14 @@ void ce_systeminfo_display(void)
 
 	ce_logging_write("systeminfo: %s %s %s %s", osinfo.sysname,
 		osinfo.release, osinfo.version, osinfo.machine);
+}
+
+bool ce_systeminfo_ensure(void)
+{
+	if (sysconf(_SC_VERSION) < 200112L || sysconf(_SC_XOPEN_VERSION) < 600L) {
+		ce_logging_fatal("systeminfo: SUSv3 (POSIX.1-2001 + XPG6) system required, terminating");
+		return false;
+	}
+	ce_logging_write("systeminfo: SUSv3 (POSIX.1-2001 + XPG6) system detected, continuing");
+	return true;
 }

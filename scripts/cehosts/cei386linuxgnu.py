@@ -31,7 +31,7 @@ def configure(env):
 	if env["PLATFORM"] != "posix":
 		ceerrors.interrupt("This host is available only on Linux.")
 
-	# Prefer GNU tools on Linux.
+	# prefer GNU tools on Linux
 	for tool in ("gnulink", "gcc", "g++", "gas", "ar"):
 		SCons.Tool.Tool(tool)(env)
 
@@ -41,7 +41,12 @@ def configure(env):
 	gcc.configure(env)
 
 	env.AppendUnique(
-		CPPDEFINES=["_XOPEN_SOURCE=600", "_GNU_SOURCE", "_REENTRANT"],
-		LIBS=["pthread"],
-		LINKFLAGS=["-mt"],
+		CPPDEFINES=[
+			# IEEE Std 1003.1-2004, Open Group Single UNIX Specification, version 3
+			# includes POSIX.1-2001 and XPG6 things
+			"_XOPEN_SOURCE=600",
+			"_GNU_SOURCE", # TODO: do not use not portable code
+		],
+		CPPFLAGS=["-pthread"],  # add support for multithreading
+		LINKFLAGS=["-pthread"], # using the POSIX threads library
 	)

@@ -21,12 +21,15 @@
 #ifndef CE_SYSTEMINFO_H
 #define CE_SYSTEMINFO_H
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
 extern void ce_systeminfo_display(void);
+extern bool ce_systeminfo_ensure(void);
 
 #ifdef __cplusplus
 }
