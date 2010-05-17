@@ -20,15 +20,21 @@
 
 /*
  *  Based on:
+ *
  *  1. Alexandrescu, Andrei. "Modern C++ Design: Generic Programming and Design
- *     Patterns Applied". Copyright (C) 2001. Addison-Wesley.
+ *     Patterns Applied". Copyright (C) 2001 Addison-Wesley.
+ *
  *  2. The Loki Library (C) 2001 by Andrei Alexandrescu.
 */
 
 /*
  *  Notes:
+ *
  *  1. Minimum error checking. Disable smallobj and use malloc/free
  *     with valgrind on Linux to perform full error checking.
+ *
+ *  2. Alloc have no external dependencies, so we must
+ *     re-implement synchronization stuff here.
 */
 
 #include <stdlib.h>
@@ -37,7 +43,7 @@
 #include <limits.h>
 #include <assert.h>
 
-#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <pthread.h>
@@ -50,10 +56,8 @@ static const size_t PAGE_SIZE = 4096;
 static const size_t MAX_SMALL_OBJECT_SIZE = 256;
 static const size_t OBJECT_ALIGNMENT = 4;
 
-// alloc have no external dependencies, so we must re-implement mutex here
-
 typedef struct {
-#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+#ifdef _WIN32
 	CRITICAL_SECTION cs;
 #else
 	pthread_mutex_t mutex;
@@ -62,7 +66,7 @@ typedef struct {
 
 static void ce_alloc_mutex_init(ce_alloc_mutex* mutex)
 {
-#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+#ifdef _WIN32
 	InitializeCriticalSection(&mutex->cs);
 #else
 	pthread_mutex_init(&mutex->mutex, NULL);
@@ -71,7 +75,7 @@ static void ce_alloc_mutex_init(ce_alloc_mutex* mutex)
 
 static void ce_alloc_mutex_clear(ce_alloc_mutex* mutex)
 {
-#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+#ifdef _WIN32
 	DeleteCriticalSection(&mutex->cs);
 #else
 	pthread_mutex_destroy(&mutex->mutex);
@@ -80,7 +84,7 @@ static void ce_alloc_mutex_clear(ce_alloc_mutex* mutex)
 
 static void ce_alloc_mutex_lock(ce_alloc_mutex* mutex)
 {
-#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+#ifdef _WIN32
 	EnterCriticalSection(&mutex->cs);
 #else
 	pthread_mutex_lock(&mutex->mutex);
@@ -89,7 +93,7 @@ static void ce_alloc_mutex_lock(ce_alloc_mutex* mutex)
 
 static void ce_alloc_mutex_unlock(ce_alloc_mutex* mutex)
 {
-#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+#ifdef _WIN32
 	LeaveCriticalSection(&mutex->cs);
 #else
 	pthread_mutex_unlock(&mutex->mutex);
@@ -125,7 +129,7 @@ static struct {
 	size_t system_max_allocated;
 	ce_alloc_mutex mutex;
 #endif
-} ce_alloc_inst;
+} ce_alloc_context;
 
 static void chunk_init(chunk* cnk, size_t block_size, unsigned char block_count)
 {
@@ -294,81 +298,81 @@ static size_t get_offset(size_t size, size_t alignment)
 
 bool ce_alloc_init(void)
 {
-	assert(!ce_alloc_inst.inited && "The alloc subsystem has already been inited");
-	ce_alloc_inst.inited = true;
+	assert(!ce_alloc_context.inited && "the alloc subsystem has already been inited");
 
-	ce_alloc_inst.count = get_offset(MAX_SMALL_OBJECT_SIZE, OBJECT_ALIGNMENT);
-	ce_alloc_inst.pool = malloc(sizeof(portion) * ce_alloc_inst.count);
+	ce_alloc_context.count = get_offset(MAX_SMALL_OBJECT_SIZE, OBJECT_ALIGNMENT);
+	ce_alloc_context.pool = malloc(sizeof(portion) * ce_alloc_context.count);
 
-	for (size_t i = 0; i < ce_alloc_inst.count; ++i) {
-		portion_init(ce_alloc_inst.pool + i,
+	for (size_t i = 0; i < ce_alloc_context.count; ++i) {
+		portion_init(ce_alloc_context.pool + i,
 					(i + 1) * OBJECT_ALIGNMENT, PAGE_SIZE);
 	}
 
 #ifndef NDEBUG
-	ce_alloc_mutex_init(&ce_alloc_inst.mutex);
+	ce_alloc_mutex_init(&ce_alloc_context.mutex);
 #endif
 
-	return true;
+	return ce_alloc_context.inited = true;
 }
 
 void ce_alloc_term(void)
 {
-	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
-	ce_alloc_inst.inited = false;
+	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	ce_alloc_context.inited = false;
 
 #ifndef NDEBUG
-	ce_alloc_mutex_clear(&ce_alloc_inst.mutex);
+	ce_alloc_mutex_clear(&ce_alloc_context.mutex);
 #endif
 
-	if (NULL != ce_alloc_inst.pool) {
-		for (size_t i = 0; i < ce_alloc_inst.count; ++i) {
-			portion_clean(ce_alloc_inst.pool + i);
+	if (NULL != ce_alloc_context.pool) {
+		for (size_t i = 0; i < ce_alloc_context.count; ++i) {
+			portion_clean(ce_alloc_context.pool + i);
 		}
-		free(ce_alloc_inst.pool);
-		ce_alloc_inst.pool = NULL;
+
+		free(ce_alloc_context.pool);
+		ce_alloc_context.pool = NULL;
 	}
 }
 
 void* ce_alloc(size_t size)
 {
-	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
+	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
 
 	size = ce_smax(1, size);
 
 #ifndef NDEBUG
 	// needs to lock mutex here to avoid race conditions
 	// in portion_alloc and statistics
-	ce_alloc_mutex_lock(&ce_alloc_inst.mutex);
+	ce_alloc_mutex_lock(&ce_alloc_context.mutex);
 #endif
 
 	void* ptr = size > MAX_SMALL_OBJECT_SIZE ? malloc(size) :
-		portion_alloc(ce_alloc_inst.pool +
+		portion_alloc(ce_alloc_context.pool +
 					get_offset(size, OBJECT_ALIGNMENT) - 1);
 
 #ifndef NDEBUG
-	ce_alloc_inst.smallobj_allocated += size > MAX_SMALL_OBJECT_SIZE ? 0 : size;
-	ce_alloc_inst.smallobj_max_allocated =
-		ce_smax(ce_alloc_inst.smallobj_allocated,
-				ce_alloc_inst.smallobj_max_allocated);
-	ce_alloc_inst.system_allocated += size > MAX_SMALL_OBJECT_SIZE ? size : 0;
-	ce_alloc_inst.system_max_allocated =
-		ce_smax(ce_alloc_inst.system_allocated,
-				ce_alloc_inst.system_max_allocated);
+	ce_alloc_context.smallobj_allocated += size > MAX_SMALL_OBJECT_SIZE ? 0 : size;
+	ce_alloc_context.smallobj_max_allocated =
+		ce_smax(ce_alloc_context.smallobj_allocated,
+				ce_alloc_context.smallobj_max_allocated);
+	ce_alloc_context.system_allocated += size > MAX_SMALL_OBJECT_SIZE ? size : 0;
+	ce_alloc_context.system_max_allocated =
+		ce_smax(ce_alloc_context.system_allocated,
+				ce_alloc_context.system_max_allocated);
 
-	ce_alloc_inst.smallobj_overhead = 0;
-	for (size_t i = 0; i < ce_alloc_inst.count; ++i) {
-		portion* por = ce_alloc_inst.pool + i;
-		ce_alloc_inst.smallobj_overhead +=
+	ce_alloc_context.smallobj_overhead = 0;
+	for (size_t i = 0; i < ce_alloc_context.count; ++i) {
+		portion* por = ce_alloc_context.pool + i;
+		ce_alloc_context.smallobj_overhead +=
 			por->block_size * por->block_count *
 			(por->chunk_capacity - por->chunk_count);
 		for (size_t j = 0; j < por->chunk_count; ++j) {
 			chunk* cnk = por->chunks + j;
-			ce_alloc_inst.smallobj_overhead +=
+			ce_alloc_context.smallobj_overhead +=
 				por->block_size * cnk->block_count;
 		}
 	}
-	ce_alloc_mutex_unlock(&ce_alloc_inst.mutex);
+	ce_alloc_mutex_unlock(&ce_alloc_context.mutex);
 #endif
 
 	return ptr;
@@ -381,25 +385,25 @@ void* ce_alloc_zero(size_t size)
 
 void ce_free(void* ptr, size_t size)
 {
-	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
+	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
 
 	size = ce_smax(1, size);
 
 #ifndef NDEBUG
 	if (NULL != ptr) {
-		ce_alloc_mutex_lock(&ce_alloc_inst.mutex);
-		ce_alloc_inst.smallobj_allocated -=
+		ce_alloc_mutex_lock(&ce_alloc_context.mutex);
+		ce_alloc_context.smallobj_allocated -=
 			size > MAX_SMALL_OBJECT_SIZE ? 0 : size;
-		ce_alloc_inst.system_allocated -=
+		ce_alloc_context.system_allocated -=
 			size > MAX_SMALL_OBJECT_SIZE ? size : 0;
-		ce_alloc_mutex_unlock(&ce_alloc_inst.mutex);
+		ce_alloc_mutex_unlock(&ce_alloc_context.mutex);
 	}
 #endif
 
 	if (size > MAX_SMALL_OBJECT_SIZE) {
 		free(ptr);
 	} else if (NULL != ptr) {
-		portion_free(ce_alloc_inst.pool +
+		portion_free(ce_alloc_context.pool +
 					get_offset(size, OBJECT_ALIGNMENT) - 1, ptr);
 	}
 }
@@ -407,31 +411,31 @@ void ce_free(void* ptr, size_t size)
 #ifndef NDEBUG
 size_t ce_alloc_get_smallobj_allocated(void)
 {
-	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
-	return ce_alloc_inst.smallobj_allocated;
+	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	return ce_alloc_context.smallobj_allocated;
 }
 
 size_t ce_alloc_get_smallobj_max_allocated(void)
 {
-	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
-	return ce_alloc_inst.smallobj_max_allocated;
+	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	return ce_alloc_context.smallobj_max_allocated;
 }
 
 size_t ce_alloc_get_smallobj_overhead(void)
 {
-	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
-	return ce_alloc_inst.smallobj_overhead;
+	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	return ce_alloc_context.smallobj_overhead;
 }
 
 size_t ce_alloc_get_system_allocated(void)
 {
-	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
-	return ce_alloc_inst.system_allocated;
+	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	return ce_alloc_context.system_allocated;
 }
 
 size_t ce_alloc_get_system_max_allocated(void)
 {
-	assert(ce_alloc_inst.inited && "The alloc subsystem has not yet been inited");
-	return ce_alloc_inst.system_max_allocated;
+	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	return ce_alloc_context.system_max_allocated;
 }
 #endif

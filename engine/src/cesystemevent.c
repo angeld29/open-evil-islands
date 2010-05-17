@@ -23,7 +23,7 @@
 #include <signal.h>
 #include <assert.h>
 
-#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+#ifdef _WIN32
 #include <windows.h>
 #endif
 
@@ -45,7 +45,7 @@ static void ce_systemevent_signal_handler(int type)
 	}
 }
 
-#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+#ifdef _WIN32
 static BOOL CALLBACK ce_systemevent_console_handler(DWORD type)
 {
 	switch (type) {
@@ -79,7 +79,7 @@ void ce_systemevent_register(void (*handler)(ce_systemevent_type type))
 	signal(SIGINT, ce_systemevent_signal_handler);
 	signal(SIGTERM, ce_systemevent_signal_handler);
 
-#if defined(__WIN32__) || defined(__WIN32) || defined(_WIN32) || defined(WIN32)
+#ifdef _WIN32
 	SetConsoleCtrlHandler(ce_systemevent_console_handler, TRUE);
 #endif
 }
