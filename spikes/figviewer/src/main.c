@@ -27,47 +27,27 @@
 
 #include <argtable2.h>
 
-#include "cegl.h"
 #include "cestr.h"
 #include "cemath.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cescenemng.h"
+#include "ceroot.h"
 
-// TODO: remove GLUT
-#include <GL/glut.h>
-#ifdef _WIN32
-// fu... win32
-#undef near
-#undef far
-#endif
-
-#ifndef CE_SPIKE_VERSION_MAJOR
-#define CE_SPIKE_VERSION_MAJOR 0
-#endif
-#ifndef CE_SPIKE_VERSION_MINOR
-#define CE_SPIKE_VERSION_MINOR 0
-#endif
-#ifndef CE_SPIKE_VERSION_PATCH
-#define CE_SPIKE_VERSION_PATCH 0
-#endif
-
-static ce_scenemng* scenemng;
 static ce_figentity* figentity;
 
-static ce_input_event_supply* es;
+/*static ce_input_event_supply* es;
 static ce_input_event* strength_event;
 static ce_input_event* dexterity_event;
 static ce_input_event* height_event;
 static ce_input_event* toggle_bbox_event;
 static ce_input_event* anm_change_event;
 static ce_input_event* anmfps_inc_event;
-static ce_input_event* anmfps_dec_event;
+static ce_input_event* anmfps_dec_event;*/
 
 static int anm_index = -1;
-static float anmfps_limit = 0.1f;
-static float anmfps_inc_counter;
-static float anmfps_dec_counter;
+//static float anmfps_limit = 0.1f;
+//static float anmfps_inc_counter;
+//static float anmfps_dec_counter;
 
 static char pri_tex_name[32] = "default0";
 static char sec_tex_name[32] = "default0";
@@ -77,7 +57,7 @@ static ce_complection complection = { 1.0f, 1.0f, 1.0f };
 
 static bool update_figentity()
 {
-	ce_scenemng_remove_figentity(scenemng, figentity);
+	ce_scenemng_remove_figentity(ce_root.scenemng, figentity);
 
 	ce_vec3 position = CE_VEC3_ZERO;
 
@@ -86,7 +66,7 @@ static bool update_figentity()
 	ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
 	ce_quat_mul(&orientation, &q2, &q1);
 
-	figentity = ce_scenemng_create_figentity(scenemng,
+	figentity = ce_scenemng_create_figentity(ce_root.scenemng,
 		figure_name, &complection, &position, &orientation,
 		2, (const char*[]){ pri_tex_name, sec_tex_name }, NULL);
 
@@ -102,12 +82,8 @@ static bool update_figentity()
 	return true;
 }
 
-static void idle(void)
+/*static void idle(void)
 {
-	ce_scenemng_advance(scenemng);
-
-	float elapsed = ce_timer_elapsed(scenemng->timer);
-
 	ce_input_event_supply_advance(es, elapsed);
 
 	if (ce_input_test(CE_KB_ESCAPE)) {
@@ -227,20 +203,7 @@ static void idle(void)
 	}
 
 	glutPostRedisplay();
-}
-
-static void display(void)
-{
-	ce_scenemng_render(scenemng);
-
-	glutSwapBuffers();
-}
-
-static void reshape(int width, int height)
-{
-	ce_viewport_set_rect(scenemng->viewport, 0, 0, width, height);
-	ce_camera_set_aspect(scenemng->camera, (float)width / height);
-}
+}*/
 
 static void usage(const char* progname, void* argtable[])
 {
@@ -323,73 +286,16 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	ce_logging_init();
-	ce_alloc_init();
-
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE);
-
-	if (0 != full_screen->count) {
-		char buffer[32];
-		int width = glutGet(GLUT_SCREEN_WIDTH);
-		int height = glutGet(GLUT_SCREEN_HEIGHT);
-
-		for (int bpp = 32; bpp >= 16; bpp -= 16) {
-			if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-				break;
-			}
-
-			for (int hertz = 100; hertz >= 10; hertz -= 10) {
-				if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-					break;
-				}
-
-				snprintf(buffer, sizeof(buffer),
-					"%dx%d:%d@%d", width, height, bpp, hertz);
-
-				glutGameModeString(buffer);
-
-				if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)) {
-					ce_logging_write("main: entering full "
-						"screen mode %s...", buffer);
-					glutEnterGameMode();
-				} else {
-					ce_logging_warning("main: failed to enter "
-						"full screen mode %s", buffer);
-				}
-			}
-		}
-
-		if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-			ce_logging_warning("main: full screen mode is not available");
-		}
+	if (!ce_root_init(ei_path->sval[0])) {
+		return EXIT_FAILURE;
 	}
 
-	if (!glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-		const int width = 1024;
-		const int height = 768;
-
-		glutInitWindowPosition(100, 100);
-		glutInitWindowSize(width, height);
-		glutCreateWindow("Cursed Earth: Figure Viewer");
-
-		ce_logging_write("main: entering window mode %dx%d...", width, height);
-	}
-
-	glutIdleFunc(idle);
-	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
-
-	ce_input_init();
-	ce_gl_init();
-
-	scenemng = ce_scenemng_new(ei_path->sval[0]);
-
+	// TODO: move to root
 	if (0 != jobs->count) {
-		scenemng->thread_count = jobs->ival[0];
+		ce_root.thread_count = jobs->ival[0];
 	}
 
-	ce_logging_write("scenemng: using up to %d threads", scenemng->thread_count);
+	ce_logging_write("root: using up to %d threads", ce_root.thread_count);
 
 	if (0 != pri_tex->count) {
 		ce_strlcpy(pri_tex_name, pri_tex->sval[0], sizeof(pri_tex_name));
@@ -422,11 +328,11 @@ int main(int argc, char* argv[])
 	ce_vec3 position;
 	ce_vec3_init(&position, 0.0f, 2.0f, -4.0f);
 
-	ce_camera_set_near(scenemng->camera, 0.1f);
-	ce_camera_set_position(scenemng->camera, &position);
-	ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(180.0f), ce_deg2rad(30.0f));
+	ce_camera_set_near(ce_root.scenemng->camera, 0.1f);
+	ce_camera_set_position(ce_root.scenemng->camera, &position);
+	ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(180.0f), ce_deg2rad(30.0f));
 
-	es = ce_input_event_supply_new();
+	/*es = ce_input_event_supply_new();
 	strength_event = ce_input_event_supply_single_front_event(es,
 						ce_input_event_supply_button_event(es, CE_KB_1));
 	dexterity_event = ce_input_event_supply_single_front_event(es,
@@ -438,10 +344,11 @@ int main(int argc, char* argv[])
 	anm_change_event = ce_input_event_supply_single_front_event(es,
 					ce_input_event_supply_button_event(es, CE_KB_A));
 	anmfps_inc_event = ce_input_event_supply_button_event(es, CE_KB_ADD);
-	anmfps_dec_event = ce_input_event_supply_button_event(es, CE_KB_SUBTRACT);
+	anmfps_dec_event = ce_input_event_supply_button_event(es, CE_KB_SUBTRACT);*/
 
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-	glutMainLoop();
+	ce_root_exec();
+
 	return EXIT_SUCCESS;
 }

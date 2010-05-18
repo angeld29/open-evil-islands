@@ -25,8 +25,6 @@
 #include <time.h>
 #include <assert.h>
 
-#include <argtable2.h>
-
 #include "cegl.h"
 #include "celib.h"
 #include "cealloc.h"
@@ -36,25 +34,7 @@
 #include "ceresfile.h"
 #include "cetexture.h"
 
-// TODO: remove GLUT
-#include <GL/glut.h>
-#ifdef _WIN32
-// fu... win32
-#undef near
-#undef far
-#endif
-
-#ifndef CE_SPIKE_VERSION_MAJOR
-#define CE_SPIKE_VERSION_MAJOR 0
-#endif
-#ifndef CE_SPIKE_VERSION_MINOR
-#define CE_SPIKE_VERSION_MINOR 0
-#endif
-#ifndef CE_SPIKE_VERSION_PATCH
-#define CE_SPIKE_VERSION_PATCH 0
-#endif
-
-static ce_resfile* res;
+/*static ce_resfile* res;
 static ce_texture* tex;
 static ce_timer* tmr;
 
@@ -212,11 +192,11 @@ static void usage(const char* progname, void* argtable[])
 	fprintf(stderr, "controls:\n");
 	arg_print_glossary_gnu(stderr, ctrtable);
 	arg_freetable(ctrtable, sizeof(ctrtable) / sizeof(ctrtable[0]));
-}
+}*/
 
 int main(int argc, char* argv[])
 {
-	struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
+	/*struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
 	struct arg_lit* version = arg_lit0("v", "version",
 		"display version information and exit");
 	struct arg_lit* random = arg_lit0("r", "random",
@@ -323,6 +303,6 @@ int main(int argc, char* argv[])
 
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-	glutMainLoop();
+	glutMainLoop();*/
 	return EXIT_SUCCESS;
 }

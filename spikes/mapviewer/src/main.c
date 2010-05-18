@@ -34,16 +34,6 @@
 #include "celogging.h"
 #include "ceroot.h"
 
-#ifndef CE_SPIKE_VERSION_MAJOR
-#define CE_SPIKE_VERSION_MAJOR 0
-#endif
-#ifndef CE_SPIKE_VERSION_MINOR
-#define CE_SPIKE_VERSION_MINOR 0
-#endif
-#ifndef CE_SPIKE_VERSION_PATCH
-#define CE_SPIKE_VERSION_PATCH 0
-#endif
-
 //static ce_input_event_supply* es;
 //static ce_input_event* anmfps_inc_event;
 //static ce_input_event* anmfps_dec_event;
@@ -149,7 +139,9 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	ce_root_init(ei_path->sval[0]);
+	if (!ce_root_init(ei_path->sval[0])) {
+		return EXIT_FAILURE;
+	}
 
 	// FIXME: move to root
 	if (0 != terrain_tiling->count) {
@@ -249,7 +241,6 @@ int main(int argc, char* argv[])
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	ce_root_exec();
-	ce_root_term();
 
 	return EXIT_SUCCESS;
 }

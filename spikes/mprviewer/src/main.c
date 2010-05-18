@@ -31,22 +31,12 @@
 #include "celogging.h"
 #include "ceroot.h"
 
-#ifndef CE_SPIKE_VERSION_MAJOR
-#define CE_SPIKE_VERSION_MAJOR 0
-#endif
-#ifndef CE_SPIKE_VERSION_MINOR
-#define CE_SPIKE_VERSION_MINOR 0
-#endif
-#ifndef CE_SPIKE_VERSION_PATCH
-#define CE_SPIKE_VERSION_PATCH 0
-#endif
-
 static void usage(const char* progname, void* argtable[])
 {
 	fprintf(stderr, "Cursed Earth is an open source, "
 		"cross-platform port of Evil Islands\n"
 		"Copyright (C) 2009-2010 Yanis Kurganov\n\n");
- 
+
 	fprintf(stderr, "This program is part of Cursed Earth spikes\n"
 		"MPR Viewer - explore clean Evil Islands zones\n\n");
 
@@ -113,19 +103,22 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	ce_root_init(ei_path->sval[0]);
+	if (!ce_root_init(ei_path->sval[0])) {
+		return EXIT_FAILURE;
+	}
 
+	// FIXME: move to root
 	if (0 != terrain_tiling->count) {
-		ce_root.scenemng->terrain_tiling = true;
+		ce_root.terrain_tiling = true;
 	}
 
 	if (0 != jobs->count) {
-		ce_root.scenemng->thread_count = jobs->ival[0];
+		ce_root.thread_count = jobs->ival[0];
 	}
 
-	ce_logging_write("scenemng: using up to %d threads", ce_root.scenemng->thread_count);
-	ce_logging_write("scenemng: terrain tiling %s",
-		ce_root.scenemng->terrain_tiling ? "enabled" : "disabled");
+	ce_logging_write("root: using up to %d threads", ce_root.thread_count);
+	ce_logging_write("root: terrain tiling %s",
+		ce_root.terrain_tiling ? "enabled" : "disabled");
 
 	if (NULL == ce_scenemng_create_terrain(ce_root.scenemng, zone->sval[0],
 							&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
@@ -141,7 +134,6 @@ int main(int argc, char* argv[])
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	ce_root_exec();
-	ce_root_term();
 
 	return EXIT_SUCCESS;
 }
