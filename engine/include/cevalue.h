@@ -51,7 +51,7 @@ extern ce_value* ce_value_new(ce_type type);
 extern void ce_value_del(ce_value* value);
 
 extern void ce_value_get(ce_value* value, void* arg);
-extern void ce_value_set(ce_value* value, void* arg);
+extern void ce_value_set(ce_value* value, const void* arg);
 
 #ifdef __cplusplus
 }

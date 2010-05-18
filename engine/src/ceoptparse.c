@@ -40,3 +40,30 @@ void ce_optparse_del(ce_optparse* optparse)
 		ce_free(optparse, sizeof(ce_optparse));
 	}
 }
+
+void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type,
+						const void* value, const char* shortopt,
+						const char* longopt, const char* glossary)
+{
+	ce_object* object = ce_object_new();
+
+	ce_property* propname = ce_property_new("name", CE_TYPE_STRING);
+	ce_property* propval = ce_property_new("value", type);
+	ce_property* propsopt = ce_property_new("shortopt", CE_TYPE_STRING);
+	ce_property* proplopt = ce_property_new("longopt", CE_TYPE_STRING);
+	ce_property* prophelp = ce_property_new("glossary", CE_TYPE_STRING);
+
+	ce_value_set(propname->value, name);
+	ce_value_set(propval->value, value);
+	ce_value_set(propsopt->value, shortopt);
+	ce_value_set(proplopt->value, longopt);
+	ce_value_set(prophelp->value, glossary);
+
+	ce_object_add(object, propname);
+	ce_object_add(object, propval);
+	ce_object_add(object, propsopt);
+	ce_object_add(object, proplopt);
+	ce_object_add(object, prophelp);
+
+	ce_vector_push_back(optparse->objects, object);
+}

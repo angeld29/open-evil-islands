@@ -35,6 +35,12 @@ static void ce_value_proc_void_arg(ce_value* value, void* arg)
 	ce_unused(arg);
 }
 
+static void ce_value_proc_void_arg_const(ce_value* value, const void* arg)
+{
+	ce_unused(value);
+	ce_unused(arg);
+}
+
 static void ce_value_new_proc_string(ce_value* value)
 {
 	value->value.s = ce_string_new();
@@ -89,28 +95,28 @@ static void (*ce_value_get_procs[CE_TYPE_COUNT])(ce_value*, void*) = {
 	[CE_TYPE_STRING] = ce_value_get_proc_string,
 };
 
-static void ce_value_set_proc_bool(ce_value* value, void* arg)
+static void ce_value_set_proc_bool(ce_value* value, const void* arg)
 {
-	value->value.b = *(bool*)arg;
+	value->value.b = *(const bool*)arg;
 }
 
-static void ce_value_set_proc_int(ce_value* value, void* arg)
+static void ce_value_set_proc_int(ce_value* value, const void* arg)
 {
-	value->value.i = *(int*)arg;
+	value->value.i = *(const int*)arg;
 }
 
-static void ce_value_set_proc_float(ce_value* value, void* arg)
+static void ce_value_set_proc_float(ce_value* value, const void* arg)
 {
-	value->value.f = *(float*)arg;
+	value->value.f = *(const float*)arg;
 }
 
-static void ce_value_set_proc_string(ce_value* value, void* arg)
+static void ce_value_set_proc_string(ce_value* value, const void* arg)
 {
 	ce_string_assign(value->value.s, arg);
 }
 
-static void (*ce_value_set_procs[CE_TYPE_COUNT])(ce_value*, void*) = {
-	[CE_TYPE_VOID] = ce_value_proc_void_arg,
+static void (*ce_value_set_procs[CE_TYPE_COUNT])(ce_value*, const void*) = {
+	[CE_TYPE_VOID] = ce_value_proc_void_arg_const,
 	[CE_TYPE_BOOL] = ce_value_set_proc_bool,
 	[CE_TYPE_INT] = ce_value_set_proc_int,
 	[CE_TYPE_FLOAT] = ce_value_set_proc_float,
@@ -138,7 +144,7 @@ void ce_value_get(ce_value* value, void* arg)
 	(*ce_value_get_procs[value->type])(value, arg);
 }
 
-void ce_value_set(ce_value* value, void* arg)
+void ce_value_set(ce_value* value, const void* arg)
 {
 	(*ce_value_set_procs[value->type])(value, arg);
 }

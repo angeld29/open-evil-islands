@@ -33,6 +33,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceroot.h"
+#include "ceoptparse.h"
 
 //static ce_input_event_supply* es;
 //static ce_input_event* anmfps_inc_event;
@@ -142,6 +143,11 @@ int main(int argc, char* argv[])
 	if (!ce_root_init(ei_path->sval[0])) {
 		return EXIT_FAILURE;
 	}
+
+	ce_optparse* optparse = ce_optparse_new();
+	ce_optparse_add(optparse, "help", CE_TYPE_BOOL, NULL, "h", "help",
+					"display this help and exit");
+	ce_optparse_del(optparse);
 
 	// FIXME: move to root
 	if (0 != terrain_tiling->count) {

@@ -36,11 +36,9 @@ typedef struct {
 extern ce_optparse* ce_optparse_new(void);
 extern void ce_optparse_del(ce_optparse* optparse);
 
-extern void ce_optparse_add(ce_optparse* optparse, const char* name,
-													const char* shortopt,
-													const char* longopt,
-													const char* glossary,
-													void* defaultval);
+extern void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type,
+							const void* value, const char* shortopt,
+							const char* longopt, const char* glossary);
 
 #ifdef __cplusplus
 }
