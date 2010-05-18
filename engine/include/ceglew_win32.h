@@ -21,10 +21,6 @@
 #ifndef CE_GLEW_PLATFORM_H
 #define CE_GLEW_PLATFORM_H
 
-#ifndef __GNUC__
-#error not implemented
-#endif
-
 #include "ceglew.h"
 
 #include <GL/wglew.h>
@@ -34,7 +30,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern __thread WGLEWContext ce_wglewcontext;
+extern CE_THREAD WGLEWContext ce_wglewcontext;
 #define wglewGetContext() (&ce_wglewcontext)
 
 #ifdef __cplusplus

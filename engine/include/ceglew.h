@@ -21,18 +21,16 @@
 #ifndef CE_GLEW_H
 #define CE_GLEW_H
 
-#ifndef __GNUC__
-#error not implemented
-#endif
-
 #include <GL/glew.h>
+
+#include "cethread.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-extern __thread GLEWContext ce_glewcontext;
+extern CE_THREAD GLEWContext ce_glewcontext;
 #define glewGetContext() (&ce_glewcontext)
 
 #ifdef __cplusplus

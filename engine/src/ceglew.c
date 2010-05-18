@@ -20,4 +20,4 @@
 
 #include "ceglew.h"
 
-__thread GLEWContext ce_glewcontext;
+CE_THREAD GLEWContext ce_glewcontext;

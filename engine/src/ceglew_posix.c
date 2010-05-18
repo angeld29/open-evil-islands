@@ -20,4 +20,4 @@
 
 #include "ceglew_posix.h"
 
-__thread GLXEWContext ce_glxewcontext;
+CE_THREAD GLXEWContext ce_glxewcontext;

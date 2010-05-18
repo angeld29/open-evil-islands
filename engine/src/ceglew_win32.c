@@ -20,4 +20,4 @@
 
 #include "ceglew_win32.h"
 
-__thread WGLEWContext ce_wglewcontext;
+CE_THREAD WGLEWContext ce_wglewcontext;

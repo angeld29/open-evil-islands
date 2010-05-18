@@ -21,10 +21,6 @@
 #ifndef CE_GLEW_PLATFORM_H
 #define CE_GLEW_PLATFORM_H
 
-#ifndef __GNUC__
-#error not implemented
-#endif
-
 #include "ceglew.h"
 
 // HACK: for glew 1.5.4
@@ -41,7 +37,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern __thread GLXEWContext ce_glxewcontext;
+extern CE_THREAD GLXEWContext ce_glxewcontext;
 #define glxewGetContext() (&ce_glxewcontext)
 
 #ifdef __cplusplus
