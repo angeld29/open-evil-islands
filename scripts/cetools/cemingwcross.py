@@ -19,7 +19,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os.path
+import os
 
 import SCons.Tool
 import SCons.Util
@@ -50,8 +50,8 @@ def generate(env):
 	env["PROGSUFFIX"] = ".exe"
 
 	env.AppendUnique(
-		CPPPATH=[os.path.join("/", "usr", "local", base_name, "include")],
-		LIBPATH=[os.path.join("/", "usr", "local", base_name, "lib")],
+		CPPPATH=[os.path.join(os.sep, "usr", "local", base_name, "include")],
+		LIBPATH=[os.path.join(os.sep, "usr", "local", base_name, "lib")],
 	)
 
 def exists(env):
