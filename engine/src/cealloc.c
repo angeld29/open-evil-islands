@@ -30,11 +30,14 @@
 /*
  *  Notes:
  *
- *  1. Minimum error checking. Disable smallobj and use malloc/free
- *     with valgrind on Linux to perform full error checking.
+ *  1. Minimum error checking. Disable smallobj (MAX_SMALL_OBJECT_SIZE = 0)
+ *     and use, for example, valgrind on Linux to perform full error checking.
  *
  *  2. Alloc have no external dependencies, so we must
  *     re-implement synchronization stuff here.
+ *
+ *  3. There are no comments! If this subject is interesting
+ *     for you just read the book or see the library.
 */
 
 #include <stdlib.h>
@@ -52,9 +55,10 @@
 #include "celib.h"
 #include "cealloc.h"
 
-static const size_t PAGE_SIZE = 4096;
-static const size_t MAX_SMALL_OBJECT_SIZE = 256;
-static const size_t OBJECT_ALIGNMENT = 4;
+static const size_t CE_ALLOC_PAGE_SIZE = 4096;
+static const size_t CE_ALLOC_MAX_SMALL_OBJECT_SIZE = 256;
+static const size_t CE_ALLOC_OBJECT_ALIGNMENT = 4;
+static const size_t CE_ALLOC_ONE = 1;
 
 typedef struct {
 #ifdef _WIN32
@@ -73,7 +77,7 @@ static void ce_alloc_mutex_init(ce_alloc_mutex* mutex)
 #endif
 }
 
-static void ce_alloc_mutex_clear(ce_alloc_mutex* mutex)
+static void ce_alloc_mutex_clean(ce_alloc_mutex* mutex)
 {
 #ifdef _WIN32
 	DeleteCriticalSection(&mutex->cs);
@@ -104,23 +108,23 @@ typedef struct {
 	unsigned char* data;
 	unsigned char next_block;
 	unsigned char block_count;
-} chunk;
+} ce_alloc_chunk;
 
 typedef struct {
 	size_t block_size;
 	size_t block_count;
 	size_t chunk_count;
 	size_t chunk_capacity;
-	chunk* chunks;
-	chunk* alloc_chunk;
-	chunk* dealloc_chunk;
+	ce_alloc_chunk* chunks;
+	ce_alloc_chunk* alloc_chunk;
+	ce_alloc_chunk* dealloc_chunk;
 	ce_alloc_mutex mutex;
-} portion;
+} ce_alloc_portion;
 
 static struct {
 	bool inited;
-	size_t count;
-	portion* pool;
+	size_t portion_count;
+	ce_alloc_portion* portions;
 #ifndef NDEBUG
 	size_t smallobj_allocated;
 	size_t smallobj_max_allocated;
@@ -131,108 +135,110 @@ static struct {
 #endif
 } ce_alloc_context;
 
-static void chunk_init(chunk* cnk, size_t block_size, unsigned char block_count)
+static void ce_alloc_chunk_init(ce_alloc_chunk* chunk, size_t block_size, unsigned char block_count)
 {
-	cnk->data = malloc(block_size * block_count);
-    cnk->next_block = 0;
-    cnk->block_count = block_count;
+	chunk->data = malloc(block_size * block_count);
+    chunk->next_block = 0;
+    chunk->block_count = block_count;
 
-	for (unsigned char i = 0, *p = cnk->data; i < block_count; p += block_size) {
+	for (unsigned char i = 0, *p = chunk->data; i < block_count; p += block_size) {
 		*p = ++i;
 	}
 }
 
-static void chunk_clean(chunk* cnk)
+static void ce_alloc_chunk_clean(ce_alloc_chunk* chunk)
 {
-	if (NULL != cnk) {
-		free(cnk->data);
+	if (NULL != chunk) {
+		free(chunk->data);
 	}
 }
 
-static void* chunk_alloc(chunk* cnk, size_t block_size)
+static void* ce_alloc_chunk_alloc(ce_alloc_chunk* chunk, size_t block_size)
 {
-	if (0 == cnk->block_count) {
+	if (0 == chunk->block_count) {
 		return NULL;
 	}
 
-	unsigned char* p = cnk->data + block_size * cnk->next_block;
-	cnk->next_block = *p;
+	unsigned char* p = chunk->data + block_size * chunk->next_block;
+	chunk->next_block = *p;
 
-	--cnk->block_count;
+	--chunk->block_count;
 
 	return p;
 }
 
-static void chunk_free(chunk* cnk, void* ptr, size_t block_size)
+static void ce_alloc_chunk_free(ce_alloc_chunk* chunk, void* ptr, size_t block_size)
 {
 	unsigned char* p = ptr;
 
-	*p = cnk->next_block;
-	cnk->next_block = (p - cnk->data) / block_size;
+	*p = chunk->next_block;
+	chunk->next_block = (p - chunk->data) / block_size;
 
-    ++cnk->block_count;
+    ++chunk->block_count;
 }
 
-static void portion_init(portion* por, size_t block_size, size_t page_size)
+static void ce_alloc_portion_init(ce_alloc_portion* portion, size_t block_size)
 {
-	por->block_size = block_size;
-	por->block_count = ce_sclamp(page_size / block_size, CHAR_BIT, UCHAR_MAX);
-	por->chunk_count = 0;
-	por->chunk_capacity = 16;
-	por->chunks = malloc(sizeof(chunk) * por->chunk_capacity);
-	por->alloc_chunk = NULL;
-	por->dealloc_chunk = NULL;
-	ce_alloc_mutex_init(&por->mutex);
+	portion->block_size = block_size;
+	portion->block_count = ce_sclamp(CE_ALLOC_PAGE_SIZE / block_size, CHAR_BIT, UCHAR_MAX);
+	portion->chunk_count = 0;
+	portion->chunk_capacity = 16;
+	portion->chunks = malloc(sizeof(ce_alloc_chunk) * portion->chunk_capacity);
+	portion->alloc_chunk = NULL;
+	portion->dealloc_chunk = NULL;
+	ce_alloc_mutex_init(&portion->mutex);
 }
 
-static void portion_clean(portion* por)
+static void ce_alloc_portion_clean(ce_alloc_portion* portion)
 {
-	if (NULL != por) {
-		ce_alloc_mutex_clear(&por->mutex);
-		for (size_t i = 0; i < por->chunk_count; ++i) {
-			assert(por->chunks[i].block_count ==
-					por->block_count && "Memory leak detected");
-			chunk_clean(por->chunks + i);
+	if (NULL != portion) {
+		ce_alloc_mutex_clean(&portion->mutex);
+		for (size_t i = 0; i < portion->chunk_count; ++i) {
+			assert(portion->chunks[i].block_count ==
+					portion->block_count && "memory leak detected");
+			ce_alloc_chunk_clean(portion->chunks + i);
 		}
-		free(por->chunks);
+		free(portion->chunks);
 	}
 }
 
-static void portion_ensure_alloc_chunk(portion* por)
+static void ce_alloc_portion_ensure_alloc_chunk(ce_alloc_portion* portion)
 {
-	if (NULL != por->alloc_chunk && 0 != por->alloc_chunk->block_count) {
+	if (NULL != portion->alloc_chunk && 0 != portion->alloc_chunk->block_count) {
 		return;
 	}
 
-	for (size_t i = 0; i < por->chunk_count; ++i) {
-		chunk* cnk = por->chunks + i;
-		if (0 != cnk->block_count) {
-			por->alloc_chunk = cnk;
+	for (size_t i = 0; i < portion->chunk_count; ++i) {
+		ce_alloc_chunk* chunk = portion->chunks + i;
+		if (0 != chunk->block_count) {
+			portion->alloc_chunk = chunk;
 			return;
 		}
 	}
 
-	if (por->chunk_count == por->chunk_capacity) {
-		por->chunk_capacity *= 2;
-		por->chunks = realloc(por->chunks, sizeof(chunk) * por->chunk_capacity);
-		por->alloc_chunk = NULL;
-		por->dealloc_chunk = NULL;
+	if (portion->chunk_count == portion->chunk_capacity) {
+		portion->chunk_capacity <<= 1;
+		portion->chunks = realloc(portion->chunks, sizeof(ce_alloc_chunk) *
+													portion->chunk_capacity);
+		portion->alloc_chunk = NULL;
+		portion->dealloc_chunk = NULL;
 	}
 
-	por->alloc_chunk = por->chunks + por->chunk_count;
-	chunk_init(por->alloc_chunk, por->block_size, por->block_count);
+	portion->alloc_chunk = portion->chunks + portion->chunk_count;
+	ce_alloc_chunk_init(portion->alloc_chunk, portion->block_size, portion->block_count);
 
-	++por->chunk_count;
+	++portion->chunk_count;
 }
 
-static void portion_ensure_dealloc_chunk(portion* por, void* ptr)
+static void ce_alloc_portion_ensure_dealloc_chunk(ce_alloc_portion* portion, void* ptr)
 {
 	unsigned char* p = ptr;
-	const size_t chunk_size = por->block_size * por->block_count;
-	const chunk* const lo_bound = por->chunks;
-	const chunk* const hi_bound = por->chunks + por->chunk_count;
-	chunk* lo = NULL != por->dealloc_chunk ? por->dealloc_chunk : por->chunks;
-	chunk* hi = lo + 1;
+	const size_t chunk_size = portion->block_size * portion->block_count;
+	const ce_alloc_chunk* const lo_bound = portion->chunks;
+	const ce_alloc_chunk* const hi_bound = portion->chunks + portion->chunk_count;
+	ce_alloc_chunk* lo = NULL != portion->dealloc_chunk ?
+								portion->dealloc_chunk : portion->chunks;
+	ce_alloc_chunk* hi = lo + CE_ALLOC_ONE;
 
 	assert(lo_bound <= lo && hi <= hi_bound);
 
@@ -243,7 +249,7 @@ static void portion_ensure_dealloc_chunk(portion* por, void* ptr)
 	for (;;) {
 		if (NULL != lo) {
 			if (lo->data <= p && p < lo->data + chunk_size) {
-				por->dealloc_chunk = lo;
+				portion->dealloc_chunk = lo;
 				return;
 			}
 			if (lo_bound == lo) {
@@ -258,7 +264,7 @@ static void portion_ensure_dealloc_chunk(portion* por, void* ptr)
 
 		if (NULL != hi) {
 			if (hi->data <= p && p < hi->data + chunk_size) {
-				por->dealloc_chunk = hi;
+				portion->dealloc_chunk = hi;
 				return;
 			}
 			if (hi_bound == ++hi) {
@@ -273,39 +279,40 @@ static void portion_ensure_dealloc_chunk(portion* por, void* ptr)
 	assert(false);
 }
 
-static void* portion_alloc(portion* por)
+static void* ce_alloc_portion_alloc(ce_alloc_portion* portion)
 {
-	ce_alloc_mutex_lock(&por->mutex);
-	portion_ensure_alloc_chunk(por);
-	void* ptr = chunk_alloc(por->alloc_chunk, por->block_size);
-	ce_alloc_mutex_unlock(&por->mutex);
+	ce_alloc_mutex_lock(&portion->mutex);
+	ce_alloc_portion_ensure_alloc_chunk(portion);
+	void* ptr = ce_alloc_chunk_alloc(portion->alloc_chunk, portion->block_size);
+	ce_alloc_mutex_unlock(&portion->mutex);
 	return ptr;
 }
 
-static void portion_free(portion* por, void* ptr)
+static void ce_alloc_portion_free(ce_alloc_portion* portion, void* ptr)
 {
-	ce_alloc_mutex_lock(&por->mutex);
-	portion_ensure_dealloc_chunk(por, ptr);
-	chunk_free(por->dealloc_chunk, ptr, por->block_size);
-	ce_alloc_mutex_unlock(&por->mutex);
+	ce_alloc_mutex_lock(&portion->mutex);
+	ce_alloc_portion_ensure_dealloc_chunk(portion, ptr);
+	ce_alloc_chunk_free(portion->dealloc_chunk, ptr, portion->block_size);
+	ce_alloc_mutex_unlock(&portion->mutex);
 }
 
 // calculates offset into array where an element of size is located
-static size_t get_offset(size_t size, size_t alignment)
+static inline size_t get_offset(size_t size)
 {
-	return (size + alignment - 1) / alignment;
+	return (size + CE_ALLOC_OBJECT_ALIGNMENT - CE_ALLOC_ONE) / CE_ALLOC_OBJECT_ALIGNMENT;
 }
 
 bool ce_alloc_init(void)
 {
 	assert(!ce_alloc_context.inited && "the alloc subsystem has already been inited");
 
-	ce_alloc_context.count = get_offset(MAX_SMALL_OBJECT_SIZE, OBJECT_ALIGNMENT);
-	ce_alloc_context.pool = malloc(sizeof(portion) * ce_alloc_context.count);
+	ce_alloc_context.portion_count = get_offset(CE_ALLOC_MAX_SMALL_OBJECT_SIZE);
+	ce_alloc_context.portions = malloc(sizeof(ce_alloc_portion) *
+										ce_alloc_context.portion_count);
 
-	for (size_t i = 0; i < ce_alloc_context.count; ++i) {
-		portion_init(ce_alloc_context.pool + i,
-					(i + 1) * OBJECT_ALIGNMENT, PAGE_SIZE);
+	for (size_t i = 0; i < ce_alloc_context.portion_count; ++i) {
+		ce_alloc_portion_init(ce_alloc_context.portions + i,
+			(i + CE_ALLOC_ONE) * CE_ALLOC_OBJECT_ALIGNMENT);
 	}
 
 #ifndef NDEBUG
@@ -321,16 +328,16 @@ void ce_alloc_term(void)
 	ce_alloc_context.inited = false;
 
 #ifndef NDEBUG
-	ce_alloc_mutex_clear(&ce_alloc_context.mutex);
+	ce_alloc_mutex_clean(&ce_alloc_context.mutex);
 #endif
 
-	if (NULL != ce_alloc_context.pool) {
-		for (size_t i = 0; i < ce_alloc_context.count; ++i) {
-			portion_clean(ce_alloc_context.pool + i);
+	if (NULL != ce_alloc_context.portions) {
+		for (size_t i = 0; i < ce_alloc_context.portion_count; ++i) {
+			ce_alloc_portion_clean(ce_alloc_context.portions + i);
 		}
 
-		free(ce_alloc_context.pool);
-		ce_alloc_context.pool = NULL;
+		free(ce_alloc_context.portions);
+		ce_alloc_context.portions = NULL;
 	}
 }
 
@@ -338,7 +345,7 @@ void* ce_alloc(size_t size)
 {
 	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
 
-	size = ce_smax(1, size);
+	size = ce_smax(CE_ALLOC_ONE, size);
 
 #ifndef NDEBUG
 	// needs to lock mutex here to avoid race conditions
@@ -346,30 +353,30 @@ void* ce_alloc(size_t size)
 	ce_alloc_mutex_lock(&ce_alloc_context.mutex);
 #endif
 
-	void* ptr = size > MAX_SMALL_OBJECT_SIZE ? malloc(size) :
-		portion_alloc(ce_alloc_context.pool +
-					get_offset(size, OBJECT_ALIGNMENT) - 1);
+	void* ptr = size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? malloc(size) :
+		ce_alloc_portion_alloc(ce_alloc_context.portions +
+								get_offset(size) - CE_ALLOC_ONE);
 
 #ifndef NDEBUG
-	ce_alloc_context.smallobj_allocated += size > MAX_SMALL_OBJECT_SIZE ? 0 : size;
+	ce_alloc_context.smallobj_allocated += size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? 0 : size;
 	ce_alloc_context.smallobj_max_allocated =
 		ce_smax(ce_alloc_context.smallobj_allocated,
 				ce_alloc_context.smallobj_max_allocated);
-	ce_alloc_context.system_allocated += size > MAX_SMALL_OBJECT_SIZE ? size : 0;
+	ce_alloc_context.system_allocated += size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? size : 0;
 	ce_alloc_context.system_max_allocated =
 		ce_smax(ce_alloc_context.system_allocated,
 				ce_alloc_context.system_max_allocated);
 
 	ce_alloc_context.smallobj_overhead = 0;
-	for (size_t i = 0; i < ce_alloc_context.count; ++i) {
-		portion* por = ce_alloc_context.pool + i;
+	for (size_t i = 0; i < ce_alloc_context.portion_count; ++i) {
+		ce_alloc_portion* portion = ce_alloc_context.portions + i;
 		ce_alloc_context.smallobj_overhead +=
-			por->block_size * por->block_count *
-			(por->chunk_capacity - por->chunk_count);
-		for (size_t j = 0; j < por->chunk_count; ++j) {
-			chunk* cnk = por->chunks + j;
+			portion->block_size * portion->block_count *
+			(portion->chunk_capacity - portion->chunk_count);
+		for (size_t j = 0; j < portion->chunk_count; ++j) {
+			ce_alloc_chunk* chunk = portion->chunks + j;
 			ce_alloc_context.smallobj_overhead +=
-				por->block_size * cnk->block_count;
+				portion->block_size * chunk->block_count;
 		}
 	}
 	ce_alloc_mutex_unlock(&ce_alloc_context.mutex);
@@ -387,24 +394,24 @@ void ce_free(void* ptr, size_t size)
 {
 	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
 
-	size = ce_smax(1, size);
+	size = ce_smax(CE_ALLOC_ONE, size);
 
 #ifndef NDEBUG
 	if (NULL != ptr) {
 		ce_alloc_mutex_lock(&ce_alloc_context.mutex);
 		ce_alloc_context.smallobj_allocated -=
-			size > MAX_SMALL_OBJECT_SIZE ? 0 : size;
+			size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? 0 : size;
 		ce_alloc_context.system_allocated -=
-			size > MAX_SMALL_OBJECT_SIZE ? size : 0;
+			size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? size : 0;
 		ce_alloc_mutex_unlock(&ce_alloc_context.mutex);
 	}
 #endif
 
-	if (size > MAX_SMALL_OBJECT_SIZE) {
+	if (size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE) {
 		free(ptr);
 	} else if (NULL != ptr) {
-		portion_free(ce_alloc_context.pool +
-					get_offset(size, OBJECT_ALIGNMENT) - 1, ptr);
+		ce_alloc_portion_free(ce_alloc_context.portions +
+								get_offset(size) - CE_ALLOC_ONE, ptr);
 	}
 }
 
