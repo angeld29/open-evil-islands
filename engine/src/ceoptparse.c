@@ -18,10 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
 #include <argtable2.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "ceoptparse.h"
 
@@ -41,8 +44,22 @@ void ce_optparse_del(ce_optparse* optparse)
 	}
 }
 
+bool ce_optparse_get(ce_optparse* optparse, const char* name, void* value)
+{
+	const char* tmp;
+	for (int i = 0; i < optparse->objects->count; ++i) {
+		ce_object* object = optparse->objects->items[i];
+		ce_value_get(ce_object_find(object, "name")->value, &tmp);
+		if (0 == strcmp(name, tmp)) {
+			ce_value_get(ce_object_find(object, "value")->value, value);
+			return true;
+		}
+	}
+	return false;
+}
+
 void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type,
-						const void* value, const char* shortopt,
+						const void* value, bool required, const char* shortopt,
 						const char* longopt, const char* glossary)
 {
 	ce_object* object = ce_object_new();
@@ -51,19 +68,167 @@ void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type,
 	ce_property* propval = ce_property_new("value", type);
 	ce_property* propsopt = ce_property_new("shortopt", CE_TYPE_STRING);
 	ce_property* proplopt = ce_property_new("longopt", CE_TYPE_STRING);
+	ce_property* propmin = ce_property_new("mincount", CE_TYPE_INT);
 	ce_property* prophelp = ce_property_new("glossary", CE_TYPE_STRING);
+
+	int mincount = required;
 
 	ce_value_set(propname->value, name);
 	ce_value_set(propval->value, value);
 	ce_value_set(propsopt->value, shortopt);
 	ce_value_set(proplopt->value, longopt);
+	ce_value_set(propmin->value, &mincount);
 	ce_value_set(prophelp->value, glossary);
 
 	ce_object_add(object, propname);
 	ce_object_add(object, propval);
 	ce_object_add(object, propsopt);
 	ce_object_add(object, proplopt);
+	ce_object_add(object, propmin);
 	ce_object_add(object, prophelp);
 
 	ce_vector_push_back(optparse->objects, object);
+}
+
+static int ce_optparse_get_props(ce_object* object, const char** shortopt,
+								const char** longopt, const char** glossary)
+{
+	int mincount;
+	ce_value_get(ce_object_find(object, "shortopt")->value, shortopt);
+	ce_value_get(ce_object_find(object, "longopt")->value, longopt);
+	ce_value_get(ce_object_find(object, "glossary")->value, glossary);
+	ce_value_get(ce_object_find(object, "mincount")->value, &mincount);
+	return mincount;
+}
+
+static void* ce_optparse_create_void(ce_object* object)
+{
+	ce_unused(object);
+	assert(false);
+	return NULL;
+}
+
+static void* ce_optparse_create_bool(ce_object* object)
+{
+	const char *shortopt, *longopt, *glossary;
+	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &glossary);
+	return arg_litn(shortopt, longopt, mincount, 1, glossary);
+}
+
+static void* ce_optparse_create_int(ce_object* object)
+{
+	const char *shortopt, *longopt, *glossary;
+	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &glossary);
+	return arg_intn(shortopt, longopt, NULL, mincount, 1, glossary);
+}
+
+static void* ce_optparse_create_float(ce_object* object)
+{
+	const char *shortopt, *longopt, *glossary;
+	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &glossary);
+	return arg_dbln(shortopt, longopt, NULL, mincount, 1, glossary);
+}
+
+static void* ce_optparse_create_string(ce_object* object)
+{
+	const char *shortopt, *longopt, *glossary;
+	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &glossary);
+	return arg_strn(shortopt, longopt, NULL, mincount, 1, glossary);
+}
+
+static void* (*ce_optparse_create_procs[CE_TYPE_COUNT])(ce_object*) = {
+	[CE_TYPE_VOID] = ce_optparse_create_void,
+	[CE_TYPE_BOOL] = ce_optparse_create_bool,
+	[CE_TYPE_INT] = ce_optparse_create_int,
+	[CE_TYPE_FLOAT] = ce_optparse_create_float,
+	[CE_TYPE_STRING] = ce_optparse_create_string,
+};
+
+static void ce_optparse_assign_void(ce_object* object, void* arg)
+{
+	ce_unused(object), ce_unused(arg);
+	assert(false);
+}
+
+static void ce_optparse_assign_bool(ce_object* object, void* arg)
+{
+	struct arg_lit* arglit = arg;
+	if (0 != arglit->count) {
+		ce_value_set(ce_object_find(object, "value")->value, (bool[]){true});
+	}
+}
+
+static void ce_optparse_assign_int(ce_object* object, void* arg)
+{
+	struct arg_int* argint = arg;
+	if (0 != argint->count) {
+		ce_value_set(ce_object_find(object, "value")->value, argint->ival);
+	}
+}
+
+static void ce_optparse_assign_float(ce_object* object, void* arg)
+{
+	struct arg_dbl* argdbl = arg;
+	float val = argdbl->dval[0];
+	if (0 != argdbl->count) {
+		ce_value_set(ce_object_find(object, "value")->value, &val);
+	}
+}
+
+static void ce_optparse_assign_string(ce_object* object, void* arg)
+{
+	struct arg_str* argstr = arg;
+	if (0 != argstr->count) {
+		ce_value_set(ce_object_find(object, "value")->value, argstr->sval[0]);
+	}
+}
+
+static void (*ce_optparse_assign_procs[CE_TYPE_COUNT])(ce_object*, void*) = {
+	[CE_TYPE_VOID] = ce_optparse_assign_void,
+	[CE_TYPE_BOOL] = ce_optparse_assign_bool,
+	[CE_TYPE_INT] = ce_optparse_assign_int,
+	[CE_TYPE_FLOAT] = ce_optparse_assign_float,
+	[CE_TYPE_STRING] = ce_optparse_assign_string,
+};
+
+bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[])
+{
+	void* argtable[optparse->objects->count + 1];
+
+	for (int i = 0; i < optparse->objects->count; ++i) {
+		ce_object* object = optparse->objects->items[i];
+		ce_type type = ce_object_find(object, "value")->value->type;
+		argtable[i] = (*ce_optparse_create_procs[type])(object);
+	}
+
+	argtable[optparse->objects->count] = arg_end(3);
+
+	int error_count = arg_parse(argc, argv, argtable);
+
+	if (false/*0 != help->count*/) {
+		//usage(argv[0], argtable);
+	}
+
+	if (false/*0 != version->count*/) {
+		//fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
+		//								CE_SPIKE_VERSION_MINOR,
+		//								CE_SPIKE_VERSION_PATCH);
+	}
+
+	if (0 == error_count) {
+		for (int i = 0; i < optparse->objects->count; ++i) {
+			ce_object* object = optparse->objects->items[i];
+			ce_type type = ce_object_find(object, "value")->value->type;
+			(*ce_optparse_assign_procs[type])(object, argtable[i]);
+		}
+	} else {
+		fprintf(stderr, "usage: %s", argv[0]);
+		arg_print_syntax(stderr, argtable, "\n");
+		arg_print_glossary_gnu(stderr, argtable);
+		arg_print_errors(stderr, argtable[optparse->objects->count], argv[0]);
+	}
+
+	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+
+	return 0 == error_count;
 }

@@ -22,15 +22,11 @@
 #define CE_ALLOC_H
 
 #include <stddef.h>
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
-
-extern bool ce_alloc_init(void);
-extern void ce_alloc_term(void);
 
 extern void* ce_alloc(size_t size);
 extern void* ce_alloc_zero(size_t size);

@@ -28,6 +28,7 @@
 #include "cerenderwindow.h"
 #include "cerendersystem.h"
 #include "cescenemng.h"
+#include "ceoptparse.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -55,10 +56,12 @@ extern struct ce_root {
 	ce_renderwindow_listener renderwindow_listener;
 } ce_root;
 
-extern bool ce_root_init(const char* ei_path);
+extern bool ce_root_init(ce_optparse* optparse);
 extern void ce_root_term(void);
 
 extern void ce_root_exec(void);
+
+extern ce_optparse* ce_root_create_general_optparse(void);
 
 #ifdef __cplusplus
 }

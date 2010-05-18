@@ -71,17 +71,12 @@ static void ce_root_renderwindow_closed(void* listener)
 	ce_root.done = true;
 }
 
-bool ce_root_init(const char* ei_path)
+bool ce_root_init(ce_optparse* optparse)
 {
 	assert(!ce_root.inited && "the root subsystem has already been inited");
 	ce_root.inited = true;
 
-	if (!ce_alloc_init()) {
-		ce_logging_fatal("root: could not initialize the memory subsystem");
-		return false;
-	}
-
-	atexit(ce_alloc_term);
+	atexit(ce_root_term);
 
 	ce_systeminfo_display();
 
@@ -89,13 +84,15 @@ bool ce_root_init(const char* ei_path)
 		return false;
 	}
 
-	atexit(ce_root_term);
+	const char* ei_path;
+
+	ce_optparse_get(optparse, "ei_path", &ei_path);
+	ce_optparse_get(optparse, "terrain_tiling", &ce_root.terrain_tiling);
+	ce_optparse_get(optparse, "thread_count", &ce_root.thread_count);
 
 	ce_root.show_axes = true;
 	ce_root.show_bboxes = false;
 	ce_root.comprehensive_bbox_only = true;
-	ce_root.terrain_tiling = false;
-	ce_root.thread_count = ce_thread_online_cpu_count();
 	ce_root.anmfps = 15.0f;
 
 	ce_root.renderwindow = ce_renderwindow_create(1024, 768, "Cursed Earth");
@@ -124,6 +121,10 @@ bool ce_root_init(const char* ei_path)
 								&ce_root.renderwindow_listener);
 
 	ce_systemevent_register(ce_root_systemevent_handler);
+
+	ce_logging_write("root: using up to %d threads", ce_root.thread_count);
+	ce_logging_write("root: terrain tiling %s",
+		ce_root.terrain_tiling ? "enabled" : "disabled");
 
 	return true;
 }
@@ -191,4 +192,28 @@ void ce_root_exec(void)
 
 		ce_context_swap(ce_root.renderwindow->context);
 	}
+}
+
+ce_optparse* ce_root_create_general_optparse(void)
+{
+	ce_optparse* optparse = ce_optparse_new();
+
+	ce_optparse_add(optparse, "help", CE_TYPE_BOOL, NULL, false,
+		"h", "help", "display this help and exit");
+	ce_optparse_add(optparse, "version", CE_TYPE_BOOL, NULL, false,
+		"v", "version", "display version information and exit");
+	ce_optparse_add(optparse, "ei_path", CE_TYPE_STRING, ".", false,
+		NULL, "ei-path", "path to EI directory (current directory by default)");
+	ce_optparse_add(optparse, "fullscreen", CE_TYPE_BOOL, NULL, false,
+		"f", "fullscreen", "start program in full screen mode");
+	ce_optparse_add(optparse, "terrain_tiling", CE_TYPE_BOOL, NULL, false,
+		NULL, "terrain-tiling", "enable terrain tiling; very slow, but reduce "
+		"usage of video memory and disk space; use it on old video cards");
+	ce_optparse_add(optparse, "thread_count", CE_TYPE_INT,
+		(const int[]){ce_thread_online_cpu_count()}, false,
+		"j", "jobs", "allow N jobs at once; if this option is not specified, "
+		"the value N will be detected automatically depending on the number "
+		"of CPUs you have (or the number of cores your CPU have)");
+
+	return optparse;
 }

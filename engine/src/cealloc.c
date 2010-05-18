@@ -42,6 +42,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
@@ -302,48 +303,50 @@ static inline size_t get_offset(size_t size)
 	return (size + CE_ALLOC_OBJECT_ALIGNMENT - CE_ALLOC_ONE) / CE_ALLOC_OBJECT_ALIGNMENT;
 }
 
-bool ce_alloc_init(void)
+static void ce_alloc_context_term(void)
 {
-	assert(!ce_alloc_context.inited && "the alloc subsystem has already been inited");
-
-	ce_alloc_context.portion_count = get_offset(CE_ALLOC_MAX_SMALL_OBJECT_SIZE);
-	ce_alloc_context.portions = malloc(sizeof(ce_alloc_portion) *
-										ce_alloc_context.portion_count);
-
-	for (size_t i = 0; i < ce_alloc_context.portion_count; ++i) {
-		ce_alloc_portion_init(ce_alloc_context.portions + i,
-			(i + CE_ALLOC_ONE) * CE_ALLOC_OBJECT_ALIGNMENT);
-	}
-
+	if (ce_alloc_context.inited) {
 #ifndef NDEBUG
-	ce_alloc_mutex_init(&ce_alloc_context.mutex);
+		ce_alloc_mutex_clean(&ce_alloc_context.mutex);
 #endif
 
-	return ce_alloc_context.inited = true;
-}
+		if (NULL != ce_alloc_context.portions) {
+			for (size_t i = 0; i < ce_alloc_context.portion_count; ++i) {
+				ce_alloc_portion_clean(ce_alloc_context.portions + i);
+			}
 
-void ce_alloc_term(void)
-{
-	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
-	ce_alloc_context.inited = false;
-
-#ifndef NDEBUG
-	ce_alloc_mutex_clean(&ce_alloc_context.mutex);
-#endif
-
-	if (NULL != ce_alloc_context.portions) {
-		for (size_t i = 0; i < ce_alloc_context.portion_count; ++i) {
-			ce_alloc_portion_clean(ce_alloc_context.portions + i);
+			free(ce_alloc_context.portions);
+			ce_alloc_context.portions = NULL;
 		}
 
-		free(ce_alloc_context.portions);
-		ce_alloc_context.portions = NULL;
+		ce_alloc_context.inited = false;
+	}
+}
+
+static void ce_alloc_context_init(void)
+{
+	if (!ce_alloc_context.inited) {
+		ce_alloc_context.portion_count = get_offset(CE_ALLOC_MAX_SMALL_OBJECT_SIZE);
+		ce_alloc_context.portions = malloc(sizeof(ce_alloc_portion) *
+											ce_alloc_context.portion_count);
+
+		for (size_t i = 0; i < ce_alloc_context.portion_count; ++i) {
+			ce_alloc_portion_init(ce_alloc_context.portions + i,
+				(i + CE_ALLOC_ONE) * CE_ALLOC_OBJECT_ALIGNMENT);
+		}
+
+#ifndef NDEBUG
+		ce_alloc_mutex_init(&ce_alloc_context.mutex);
+#endif
+
+		ce_alloc_context.inited = true;
+		atexit(ce_alloc_context_term);
 	}
 }
 
 void* ce_alloc(size_t size)
 {
-	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	ce_alloc_context_init();
 
 	size = ce_smax(CE_ALLOC_ONE, size);
 
@@ -392,7 +395,7 @@ void* ce_alloc_zero(size_t size)
 
 void ce_free(void* ptr, size_t size)
 {
-	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	ce_alloc_context_init();
 
 	size = ce_smax(CE_ALLOC_ONE, size);
 
@@ -418,31 +421,31 @@ void ce_free(void* ptr, size_t size)
 #ifndef NDEBUG
 size_t ce_alloc_get_smallobj_allocated(void)
 {
-	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	ce_alloc_context_init();
 	return ce_alloc_context.smallobj_allocated;
 }
 
 size_t ce_alloc_get_smallobj_max_allocated(void)
 {
-	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	ce_alloc_context_init();
 	return ce_alloc_context.smallobj_max_allocated;
 }
 
 size_t ce_alloc_get_smallobj_overhead(void)
 {
-	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	ce_alloc_context_init();
 	return ce_alloc_context.smallobj_overhead;
 }
 
 size_t ce_alloc_get_system_allocated(void)
 {
-	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	ce_alloc_context_init();
 	return ce_alloc_context.system_allocated;
 }
 
 size_t ce_alloc_get_system_max_allocated(void)
 {
-	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+	ce_alloc_context_init();
 	return ce_alloc_context.system_max_allocated;
 }
 #endif

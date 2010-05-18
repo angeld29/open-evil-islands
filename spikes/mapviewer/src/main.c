@@ -26,14 +26,11 @@
 #include <math.h>
 #include <assert.h>
 
-#include <argtable2.h>
-
 #include "cegl.h"
 #include "cemath.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceroot.h"
-#include "ceoptparse.h"
 
 //static ce_input_event_supply* es;
 //static ce_input_event* anmfps_inc_event;
@@ -67,7 +64,7 @@
 	scenemng->anmfps = ce_fclamp(scenemng->anmfps, 1.0f, 50.0f);
 }*/
 
-static void usage(const char* progname, void* argtable[])
+/*static void usage(const char* progname, void* argtable[])
 {
 	fprintf(stderr, "Cursed Earth is an open source, "
 		"cross-platform port of Evil Islands\n"
@@ -92,83 +89,35 @@ static void usage(const char* progname, void* argtable[])
 	fprintf(stderr, "controls:\n");
 	arg_print_glossary_gnu(stderr, ctrtable);
 	arg_freetable(ctrtable, sizeof(ctrtable) / sizeof(ctrtable[0]));
-}
+}*/
 
 int main(int argc, char* argv[])
 {
-	struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
-	struct arg_lit* version = arg_lit0("v", "version",
-		"display version information and exit");
-	struct arg_str* ei_path = arg_str0("b", "ei-path", "DIRECTORY",
-		"path to EI directory (current directory by default)");
-	struct arg_lit* full_screen = arg_lit0("f", "full-screen",
-		"start program in full screen mode");
-	struct arg_lit* terrain_tiling = arg_lit0("t", "terrain-tiling",
-		"enable terrain tiling; very slow, but reduce usage of "
-		"video memory and disk space; use it on old video cards");
-	struct arg_int* jobs = arg_int0("j", "jobs", "N",
-		"allow N jobs at once; if this option is not specified, the "
-		"value N will be detected automatically depending on the number "
-		"of CPUs you have (or the number of cores your CPU have)");
-	struct arg_str* zone = arg_str1(NULL, NULL,
-		"ZONE", "any ZONE.mpr file in 'ei-path/Maps'");
-	struct arg_end* end = arg_end(3);
+	ce_optparse* optparse = ce_root_create_general_optparse();
 
-	void* argtable[] = {
-		help, version, ei_path, full_screen, terrain_tiling, jobs, zone, end
-	};
+	ce_optparse_add(optparse, "zone", CE_TYPE_STRING, NULL, true,
+		NULL, NULL, "any ZONE.mpr file in 'EI/Maps'");
 
-	ei_path->sval[0] = ".";
-
-	int argerror_count = arg_parse(argc, argv, argtable);
-
-	if (0 != help->count) {
-		usage(argv[0], argtable);
-		return EXIT_SUCCESS;
-	}
-
-	if (0 != version->count) {
-		fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
-										CE_SPIKE_VERSION_MINOR,
-										CE_SPIKE_VERSION_PATCH);
-		return EXIT_SUCCESS;
-	}
-
-	if (0 != argerror_count) {
-		usage(argv[0], argtable);
-		arg_print_errors(stderr, end, argv[0]);
+	if (!ce_optparse_parse(optparse, argc, argv)) {
 		return EXIT_FAILURE;
 	}
 
-	if (!ce_root_init(ei_path->sval[0])) {
+	const char *ei_path, *zone;
+
+	ce_optparse_get(optparse, "ei_path", &ei_path);
+	ce_optparse_get(optparse, "zone", &zone);
+
+	if (!ce_root_init(optparse)) {
 		return EXIT_FAILURE;
 	}
 
-	ce_optparse* optparse = ce_optparse_new();
-	ce_optparse_add(optparse, "help", CE_TYPE_BOOL, NULL, "h", "help",
-					"display this help and exit");
-	ce_optparse_del(optparse);
-
-	// FIXME: move to root
-	if (0 != terrain_tiling->count) {
-		ce_root.terrain_tiling = true;
-	}
-
-	if (0 != jobs->count) {
-		ce_root.thread_count = jobs->ival[0];
-	}
-
-	ce_logging_write("root: using up to %d threads", ce_root.thread_count);
-	ce_logging_write("root: terrain tiling %s",
-		ce_root.terrain_tiling ? "enabled" : "disabled");
-
-	if (NULL == ce_scenemng_create_terrain(ce_root.scenemng, zone->sval[0],
+	if (NULL == ce_scenemng_create_terrain(ce_root.scenemng, zone,
 					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
 		return EXIT_FAILURE;
 	}
 
-	char path[strlen(ei_path->sval[0]) + strlen(zone->sval[0]) + 32];
-	snprintf(path, sizeof(path), "%s/Maps/%s.mob", ei_path->sval[0], zone->sval[0]);
+	char path[strlen(ei_path) + strlen(zone) + 32];
+	snprintf(path, sizeof(path), "%s/Maps/%s.mob", ei_path, zone);
 
 	ce_mobfile* mobfile = ce_mobfile_open(path);
 	if (NULL != mobfile) {
@@ -189,8 +138,8 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	snprintf(path, sizeof(path), "%s/Camera/%s.cam",
-		ei_path->sval[0], zone->sval[0]/*"mainmenu"*/);
+	//snprintf(path, sizeof(path), "%s/Camera/%s.cam",
+	//	ei_path->sval[0], zone->sval[0]/*"mainmenu"*/);
 
 	ce_vec3 position;
 	ce_vec3_init(&position, 0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f);
@@ -244,7 +193,7 @@ int main(int argc, char* argv[])
 		fclose(file);
 	}*/
 
-	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+	ce_optparse_del(optparse);
 
 	ce_root_exec();
 

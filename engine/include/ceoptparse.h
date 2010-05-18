@@ -21,6 +21,8 @@
 #ifndef CE_OPTPARSE_H
 #define CE_OPTPARSE_H
 
+#include <stdbool.h>
+
 #include "cevector.h"
 #include "ceobject.h"
 
@@ -36,9 +38,13 @@ typedef struct {
 extern ce_optparse* ce_optparse_new(void);
 extern void ce_optparse_del(ce_optparse* optparse);
 
+extern bool ce_optparse_get(ce_optparse* optparse, const char* name, void* value);
+
 extern void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type,
-							const void* value, const char* shortopt,
+							const void* value, bool required, const char* shortopt,
 							const char* longopt, const char* glossary);
+
+extern bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[]);
 
 #ifdef __cplusplus
 }
