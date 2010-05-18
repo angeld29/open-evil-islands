@@ -74,6 +74,7 @@ static void ce_root_renderwindow_closed(void* listener)
 bool ce_root_init(const char* ei_path)
 {
 	assert(!ce_root.inited && "the root subsystem has already been inited");
+	ce_root.inited = true;
 
 	if (!ce_alloc_init()) {
 		ce_logging_fatal("root: could not initialize the memory subsystem");
@@ -88,15 +89,23 @@ bool ce_root_init(const char* ei_path)
 		return false;
 	}
 
+	atexit(ce_root_term);
+
 	ce_root.show_axes = true;
 	ce_root.show_bboxes = false;
 	ce_root.comprehensive_bbox_only = true;
 	ce_root.terrain_tiling = false;
 	ce_root.thread_count = ce_thread_online_cpu_count();
 	ce_root.anmfps = 15.0f;
-	ce_root.timer = ce_timer_new();
+
 	ce_root.renderwindow = ce_renderwindow_create(1024, 768, "Cursed Earth");
+	if (NULL == ce_root.renderwindow) {
+		ce_logging_fatal("root: could not create a window");
+		return false;
+	}
+
 	ce_root.rendersystem = ce_rendersystem_new();
+	ce_root.timer = ce_timer_new();
 	ce_root.scenemng = ce_scenemng_new(ei_path);
 
 	ce_root.event_supply = ce_input_event_supply_new(ce_root.renderwindow->input_context);
@@ -116,19 +125,20 @@ bool ce_root_init(const char* ei_path)
 
 	ce_systemevent_register(ce_root_systemevent_handler);
 
-	return ce_root.inited = true;
+	return true;
 }
 
 void ce_root_term(void)
 {
-	assert(ce_root.inited && "the root subsystem has not yet been inited");
-	ce_root.inited = false;
+	if (ce_root.inited) {
+		ce_input_event_supply_del(ce_root.event_supply);
+		ce_scenemng_del(ce_root.scenemng);
+		ce_timer_del(ce_root.timer);
+		ce_rendersystem_del(ce_root.rendersystem);
+		ce_renderwindow_del(ce_root.renderwindow);
 
-	ce_scenemng_del(ce_root.scenemng), ce_root.scenemng = NULL;
-	ce_input_event_supply_del(ce_root.event_supply), ce_root.event_supply = NULL;
-	ce_rendersystem_del(ce_root.rendersystem), ce_root.rendersystem = NULL;
-	ce_renderwindow_del(ce_root.renderwindow), ce_root.renderwindow = NULL;
-	ce_timer_del(ce_root.timer), ce_root.timer = NULL;
+		ce_root.inited = false;
+	}
 }
 
 void ce_root_exec(void)

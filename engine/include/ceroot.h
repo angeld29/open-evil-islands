@@ -43,9 +43,9 @@ extern struct ce_root {
 	bool terrain_tiling;
 	int thread_count;
 	float anmfps;
-	ce_timer* timer;
 	ce_renderwindow* renderwindow;
 	ce_rendersystem* rendersystem;
+	ce_timer* timer;
 	ce_scenemng* scenemng;
 	ce_input_event_supply* event_supply;
 	ce_input_event* exit_event;
