@@ -32,9 +32,9 @@ env = ceenv.create_environment()
 
 Export("env")
 
-game = env.Alias("engine", env.SConscript(dirs="engine"))
+engine = env.Alias("engine", env.SConscript(dirs="engine"))
 spikes = env.Alias("spikes", env.SConscript(dirs="spikes"))
 
-env.Depends(spikes, game)
+env.Depends(spikes, engine)
 
-env.Default(env.Alias("all", [game, spikes]))
+env.Default(env.Alias("all", [engine, spikes]))
