@@ -48,6 +48,9 @@ cache_header = \
 def emit_shader_source(target, source, env):
 	glsl = env.File(os.path.join("$GLSL_BUILDPATH", "ceshaderdata.glsl"))
 
+	# it's not a normal target, so mark this node as cleanable
+	env.Clean(glsl, glsl)
+
 	src_path = os.path.dirname(source[0].srcnode().get_abspath())
 	names = sorted(shader.name.lower() for shader in
 					env.Glob(os.path.join(src_path, "*.vert")) +
