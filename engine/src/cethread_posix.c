@@ -22,7 +22,7 @@
  *  Based on PThreads Primer: A Guide to Multithreaded Programming
  *  and other tutorials.
  *
- *  Some ideas are from open source of the greatest Qt Toolkit.
+ *  Some ideas are from open source of the greatest Qt toolkit.
  *  Copyright (C) 2009 Nokia Corporation.
 */
 
