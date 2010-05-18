@@ -28,22 +28,20 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-/**
- *  Abstraction layer for read-only binary files based on FILE interface.
-*/
+// abstraction layer for read-only binary files based on FILE interface
 typedef struct {
 	ce_io_callbacks callbacks;
 	void* client_data;
 } ce_memfile;
 
-/**
+/*
  *  You may to instruct memfile to either automatically close or not to close
  *  the resource in memfile_close. Automatic closure is disabled by passing
- *  NULL as the close callback. Usually always successfull.
+ *  NULL as the close callback.
 */
 extern ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 													void* client_data);
-/// Memfile takes ownership of the data. Usually always successfull.
+// memfile takes ownership of the data
 extern ce_memfile* ce_memfile_open_data(void* data, size_t size);
 extern ce_memfile* ce_memfile_open_file(const char* path);
 extern void ce_memfile_close(ce_memfile* memfile);

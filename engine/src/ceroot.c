@@ -30,8 +30,7 @@
 #include "cesystemevent.h"
 #include "ceroot.h"
 
-static bool ce_root_inited;
-static bool ce_root_done;
+struct ce_root ce_root;
 
 static void ce_root_systemevent_handler(ce_systemevent_type type)
 {
@@ -63,23 +62,21 @@ static void ce_root_systemevent_handler(ce_systemevent_type type)
 	}
 
 	ce_logging_write("root: exiting sanely...");
-	ce_root_done = true;
+	ce_root.done = true;
 }
 
 static void ce_root_renderwindow_closed(void* listener)
 {
 	ce_unused(listener);
-	ce_root_done = true;
+	ce_root.done = true;
 }
-
-struct ce_root ce_root;
 
 bool ce_root_init(const char* ei_path)
 {
-	assert(!ce_root_inited && "the root subsystem has already been inited");
+	assert(!ce_root.inited && "the root subsystem has already been inited");
 
 	if (!ce_alloc_init()) {
-		ce_logging_fatal("root: could not initialize the memory subsystem, terminating");
+		ce_logging_fatal("root: could not initialize the memory subsystem");
 		return false;
 	}
 
@@ -119,13 +116,13 @@ bool ce_root_init(const char* ei_path)
 
 	ce_systemevent_register(ce_root_systemevent_handler);
 
-	return ce_root_inited = true;
+	return ce_root.inited = true;
 }
 
 void ce_root_term(void)
 {
-	assert(ce_root_inited && "the root subsystem has not yet been inited");
-	ce_root_inited = false;
+	assert(ce_root.inited && "the root subsystem has not yet been inited");
+	ce_root.inited = false;
 
 	ce_scenemng_del(ce_root.scenemng), ce_root.scenemng = NULL;
 	ce_input_event_supply_del(ce_root.event_supply), ce_root.event_supply = NULL;
@@ -136,7 +133,7 @@ void ce_root_term(void)
 
 void ce_root_exec(void)
 {
-	assert(ce_root_inited && "the root subsystem has not yet been inited");
+	assert(ce_root.inited && "the root subsystem has not yet been inited");
 
 	ce_renderwindow_show(ce_root.renderwindow);
 
@@ -147,7 +144,7 @@ void ce_root_exec(void)
 
 		ce_renderwindow_pump(ce_root.renderwindow);
 
-		if (ce_root_done) {
+		if (ce_root.done) {
 			break;
 		}
 

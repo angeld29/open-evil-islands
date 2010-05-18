@@ -121,10 +121,10 @@ bool ce_systeminfo_ensure(void)
 
 	if (VER_PLATFORM_WIN32_NT != osverinfo.dwPlatformId ||
 			osverinfo.dwMajorVersion < 5 || osverinfo.dwMinorVersion < 1) {
-		ce_logging_fatal("systeminfo: Windows XP or above required, terminating");
+		ce_logging_fatal("systeminfo: Windows XP or above required");
 		return false;
 	}
 
-	ce_logging_write("systeminfo: Windows XP or above detected, continuing");
+	ce_logging_write("systeminfo: Windows XP or above detected");
 	return true;
 }

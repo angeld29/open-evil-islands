@@ -35,6 +35,8 @@ extern "C"
 #endif /* __cplusplus */
 
 extern struct ce_root {
+	bool inited;
+	bool done;
 	bool show_axes;
 	bool show_bboxes;
 	bool comprehensive_bbox_only;
