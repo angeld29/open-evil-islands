@@ -25,27 +25,13 @@
 #include "cealloc.h"
 #include "cefont.h"
 
-// TODO: remove GLUT from engine
-//#include <GL/glut.h>
-
 struct ce_font {
-	void* data;
-	int height;
-};
-
-static void* ce_font_datas[CE_FONT_TYPE_COUNT] = {
-	NULL//GLUT_BITMAP_HELVETICA_18
-};
-
-static const int ce_font_heights[CE_FONT_TYPE_COUNT] = {
-	18
+	int stub;
 };
 
 ce_font* ce_font_new(ce_font_type type)
 {
 	ce_font* font = ce_alloc(sizeof(ce_font));
-	font->data = ce_font_datas[type];
-	font->height = ce_font_heights[type];
 	return font;
 }
 
@@ -56,12 +42,12 @@ void ce_font_del(ce_font* font)
 
 int ce_font_get_height(ce_font* font)
 {
-	return font->height;
+	return 0;
 }
 
 int ce_font_get_width(ce_font* font, const char* text)
 {
-	return 0;// glutBitmapLength(font->data, (const unsigned char*)text);
+	return 0;
 }
 
 void ce_font_render(ce_font* font, int x, int y,

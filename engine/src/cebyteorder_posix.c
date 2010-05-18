@@ -24,6 +24,7 @@ typedef __u64 __bitwise __le64;
 typedef __u64 __bitwise __be64;
 #endif
 
+// FIXME: linux stuff, not POSIX!
 #include <asm/byteorder.h>
 
 #include "cebyteorder.h"
