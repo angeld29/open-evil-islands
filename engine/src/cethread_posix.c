@@ -32,6 +32,10 @@
 #include <unistd.h>
 #include <pthread.h>
 
+// _SC_NPROCESSORS_ONLN - Linux
+// _SC_NPROC_ONLN - Irix
+// _SC_CRAY_NCPU - Cray ???
+
 #ifndef _SC_NPROCESSORS_ONLN
 #ifdef _SC_NPROC_ONLN
 #define _SC_NPROCESSORS_ONLN _SC_NPROC_ONLN
