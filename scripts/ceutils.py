@@ -53,7 +53,7 @@ def filter_sources(env, nodes):
 						", ".join(node.name for node in values))
 			values.remove(node)
 		else:
-			logging.warning("could not deduct platform-depended file "
+			logging.debug("could not deduct platform-depended file "
 				"'%s' [%s]", name, ", ".join(node.name for node in values))
 		for node in values:
 			nodes.remove(node)
