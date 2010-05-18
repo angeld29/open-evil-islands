@@ -71,7 +71,7 @@ static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
 
 	for (int i = 0; i < mode_count; ++i) {
 		XF86VidModeModeInfo* info = xf86vmmng->modes[i];
-		ce_vector_push_back(displaymng->modes,
+		ce_vector_push_back(displaymng->supported_modes,
 			ce_displaymode_new(info->hdisplay, info->vdisplay,
 				bpp, ce_xf86vmmng_calc_rate(info)));
 	}
@@ -230,8 +230,8 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
 	// get the possible set of rotations/reflections supported
 	Rotation rotation = XRRConfigRotations(xrrmng->conf, &xrrmng->orig_rotation);
 
-	displaymng->rotation = ce_xrrmng_xrr2ce_rotation(rotation);
-	displaymng->reflection = ce_xrrmng_xrr2ce_reflection(rotation);
+	displaymng->supported_rotation = ce_xrrmng_xrr2ce_rotation(rotation);
+	displaymng->supported_reflection = ce_xrrmng_xrr2ce_reflection(rotation);
 
 	// get possible screen resolutions
 	xrrmng->sizes = XRRConfigSizes(xrrmng->conf, &xrrmng->size_count);
@@ -240,7 +240,7 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
 		int rate_count;
         short* rates = XRRConfigRates(xrrmng->conf, i, &rate_count);
 		for (int j = 0; j < rate_count; ++j) {
-			ce_vector_push_back(displaymng->modes,
+			ce_vector_push_back(displaymng->supported_modes,
 				ce_displaymode_new(xrrmng->sizes[i].width,
 					xrrmng->sizes[i].height, bpp, rates[j]));
 		}
@@ -251,7 +251,7 @@ static void ce_xrrmng_enter(ce_displaymng* displaymng, int index,
 	ce_display_rotation rotation, ce_display_reflection reflection)
 {
 	ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
-	ce_displaymode* mode = displaymng->modes->items[index];
+	ce_displaymode* mode = displaymng->supported_modes->items[index];
 	SizeID size_index;
 
 	for (size_index = xrrmng->size_count - 1; size_index > 0; --size_index) {

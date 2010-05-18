@@ -182,7 +182,7 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 			renderwindow->visual.bpp, renderwindow->visual.rate,
 			renderwindow->visual.rotation, renderwindow->visual.reflection);
 
-		const ce_displaymode* mode = renderwindow->displaymng->modes->items[index];
+		const ce_displaymode* mode = renderwindow->displaymng->supported_modes->items[index];
 
 		renderwindow->geometry[renderwindow->state].width = mode->width;
 		renderwindow->geometry[renderwindow->state].height = mode->height;

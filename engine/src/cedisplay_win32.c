@@ -101,7 +101,7 @@ static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list args)
 		ce_vector_push_back(dmmng->modes, ce_alloc(sizeof(DEVMODE)));
 		*(DEVMODE*)ce_vector_back(dmmng->modes) = mode;
 
-		ce_vector_push_back(displaymng->modes,
+		ce_vector_push_back(displaymng->supported_modes,
 			ce_displaymode_new(mode.dmPelsWidth, mode.dmPelsHeight,
 				mode.dmBitsPerPel, mode.dmDisplayFrequency));
 	}

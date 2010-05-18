@@ -63,10 +63,9 @@ typedef struct {
 } ce_displaymng_vtable;
 
 struct ce_displaymng {
-	// supported modes
-	ce_vector* modes;
-	ce_display_rotation rotation;
-	ce_display_reflection reflection;
+	ce_vector* supported_modes;
+	ce_display_rotation supported_rotation;
+	ce_display_reflection supported_reflection;
 	ce_displaymng_vtable vtable;
 	size_t size;
 	char impl[];
