@@ -97,8 +97,13 @@ bool ce_root_init(ce_optparse* optparse)
 	}
 
 	const char* ei_path;
+	int width, height, fs_width, fs_height;
 
 	ce_optparse_get(optparse, "ei_path", &ei_path);
+	ce_optparse_get(optparse, "width", &width);
+	ce_optparse_get(optparse, "height", &height);
+	ce_optparse_get(optparse, "fs_width", &fs_width);
+	ce_optparse_get(optparse, "fs_height", &fs_height);
 	ce_optparse_get(optparse, "terrain_tiling", &ce_root.terrain_tiling);
 	ce_optparse_get(optparse, "thread_count", &ce_root.thread_count);
 
@@ -107,7 +112,7 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.comprehensive_bbox_only = true;
 	ce_root.anmfps = 15.0f;
 
-	ce_root.renderwindow = ce_renderwindow_create(1024, 768, optparse->title->str);
+	ce_root.renderwindow = ce_renderwindow_create(width, height, optparse->title->str);
 	if (NULL == ce_root.renderwindow) {
 		ce_logging_fatal("root: could not create a window");
 		return false;
@@ -200,22 +205,34 @@ ce_optparse* ce_root_create_optparse(void)
 	ce_optparse* optparse = ce_optparse_new();
 
 	ce_optparse_add(optparse, "ei_path", CE_TYPE_STRING, ".", false,
-		NULL, "ei-path", "path to EI directory (current directory by default)");
+		NULL, "ei-path", "path to EI directory (current by default)");
+	ce_optparse_add(optparse, "width", CE_TYPE_INT, (int[]){1024}, false,
+		NULL, "width", "desired window width");
+	ce_optparse_add(optparse, "height", CE_TYPE_INT, (int[]){768}, false,
+		NULL, "height", "desired window height");
 	ce_optparse_add(optparse, "fullscreen", CE_TYPE_BOOL, NULL, false,
-		"f", "fullscreen", "start program in full screen mode");
+		"f", "fullscreen", "start program in fullscreen mode");
+	ce_optparse_add(optparse, "fs_width", CE_TYPE_INT, NULL, false,
+		NULL, "fullscreen-width",
+		"desired window width in fullscreen mode (max available by default)");
+	ce_optparse_add(optparse, "fs_height", CE_TYPE_INT, NULL, false,
+		NULL, "fullscreen-height",
+		"desired window height in fullscreen mode (max available by default)");
 	ce_optparse_add(optparse, "terrain_tiling", CE_TYPE_BOOL, NULL, false,
 		NULL, "terrain-tiling", "enable terrain tiling; very slow, but reduce "
 		"usage of video memory and disk space; use it on old video cards");
 	ce_optparse_add(optparse, "thread_count", CE_TYPE_INT,
 		(const int[]){ce_thread_online_cpu_count()}, false,
-		"j", "jobs", "allow N jobs at once; if this option is not specified, "
-		"the value N will be detected automatically depending on the number "
-		"of CPUs you have (or the number of cores your CPU have)");
+		"j", "jobs", "allow THREAD_COUNT jobs at once; if this option is not "
+		"specified, the value will be detected automatically depending on the "
+		"number of CPUs you have (or the number of cores your CPU have)");
 
+	ce_optparse_add_control(optparse, "alt + tab", "minimize fullscreen window");
+	ce_optparse_add_control(optparse, "alt + enter", "toggle fullscreen mode");
+	ce_optparse_add_control(optparse, "b", "toggle bounding boxes");
 	ce_optparse_add_control(optparse, "keyboard arrows", "move camera");
 	ce_optparse_add_control(optparse, "mouse right button + motion", "rotate camera");
 	ce_optparse_add_control(optparse, "mouse wheel", "zoom camera");
-	ce_optparse_add_control(optparse, "b", "toggle bounding boxes");
 
 	return optparse;
 }
