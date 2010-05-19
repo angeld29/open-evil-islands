@@ -23,20 +23,38 @@ from __future__ import with_statement
 
 import os.path
 from datetime import datetime
+from itertools import chain
 
 import SCons.Defaults
 import SCons.Util
 import SCons.Tool
+import SCons.Node.FS
+
+traverse_files = lambda node, patterns, env: (file for pattern
+						in patterns for file in node.glob(pattern)
+						if isinstance(file, SCons.Node.FS.File))
+
+traverse_dirs = lambda node, patterns, env: (file for dir
+					in node.glob("*") if isinstance(dir, SCons.Node.FS.Dir)
+					for file in traverse_all(dir, patterns, env))
+
+traverse_all = lambda node, patterns, env: chain(traverse_files(node,
+					patterns, env), traverse_dirs(node, patterns, env))
+
+get_nodes = lambda paths, patterns, env: (file for path in paths
+				for file in traverse_all(env.Dir(path), patterns, env))
+
+get_paths = lambda cache: (path for path in cache.get_contents().split('\n')
+							if len(path) > 0 and not path.startswith(';'))
+
+def make_path(node, start):
+	return os.path.normpath(os.path.relpath(node.get_abspath(), start))
 
 def write_header(file, header):
 	file.write(header % datetime.now().strftime("%d %b %Y %H:%M:%S"))
 
-def get_shader_names(glsl):
-	return [name for name in glsl.get_contents().split('\n')
-					if len(name) > 0 and not name.startswith(';')]
-
 cache_header = \
-""";  Shader cache
+""";  Resource cache
 ;
 ;  Created: %s
 ;       by: Cursed Earth build system
@@ -45,11 +63,22 @@ cache_header = \
 
 """
 
-def emit_shader_source(target, source, env):
-	glsl = env.File(os.path.join("$GLSL_BUILDPATH", "ceshaderdata.glsl"))
+def emit_rc(target, source, env):
+	cache = env.File(os.path.join("$RCBUILDPATH",
+		SCons.Util.adjustixes("resource", "", env.subst("$RCSUFFIX"))))
+	print 'cache:', cache.get_abspath()
 
 	# it's not a normal target, so mark this node as cleanable
-	env.Clean(glsl, glsl)
+	env.Clean(cache, cache)
+
+	resdir = os.path.dirname(source[0].get_abspath())
+
+	paths = sorted(make_path(node, resdir)
+					for node in get_nodes([resdir], ["*"], env)
+					if not node.name.endswith(env.subst("$RCSRCSUFFIX")))
+	print paths
+
+	dfdf = asdasd
 
 	src_path = os.path.dirname(source[0].srcnode().get_abspath())
 	names = sorted(shader.name.lower() for shader in
@@ -74,7 +103,7 @@ def emit_shader_source(target, source, env):
 
 c_header = \
 """/*
- *  Shader source code in binary form
+ *  Resource data
  *
  *  Created: %s
  *       by: Cursed Earth build system
@@ -84,7 +113,7 @@ c_header = \
 
 """
 
-def build_shader_include(target, source, env):
+def build_rc_include(target, source, env):
 	with open(target[0].get_abspath(), "wt") as file:
 		write_header(file, c_header)
 		names = [name.rstrip("\r").replace(".", "_")[2:] # also remove ce prefix
@@ -97,7 +126,7 @@ def build_shader_include(target, source, env):
 			file.write("{ \"%s\", ce_shaderdata_%s },\n" % (name, name))
 		file.write("};\n")
 
-def build_shader_source(target, source, env):
+def build_rc_source(target, source, env):
 	name = os.path.splitext(target[0].name)[0][2:] # also remove ce prefix
 	with open(target[0].get_abspath(), "wt") as file:
 		write_header(file, c_header)
@@ -110,41 +139,45 @@ def build_shader_source(target, source, env):
 
 def generate(env):
 	env.SetDefault(
-		GLSL_BUILDPATH="",
+		RCBUILDPATH="",
+		RCBUILDOBJPATH="",
 
-		SHADER_INCLUDE_PREFIX="",
-		SHADER_INCLUDE_SUFFIX=".h",
-		SHADER_INCLUDE_SRCSUFFIX=".glsl",
+		RCPREFIX="",
+		RCSUFFIX=".cerccache",
+		RCSRCSUFFIX=".cerc",
 
-		SHADER_SOURCE_PREFIX="",
-		SHADER_SOURCE_SUFFIX=".c",
-		SHADER_SOURCE_SRCSUFFIX=[".vert", ".frag"],
+		RCINCLUDEPREFIX="",
+		RCINCLUDESUFFIX=".h",
+		RCINCLUDESRCSUFFIX="$RCSUFFIX",
+
+		RCSOURCEPREFIX="",
+		RCSOURCESUFFIX=".c",
+		RCSOURCESRCSUFFIX="",
 	)
 
 	env.Append(
 		BUILDERS={
-			"ShaderInclude": SCons.Builder.Builder(
-				action=build_shader_include,
-				prefix="$SHADER_INCLUDE_PREFIX",
-				suffix="$SHADER_INCLUDE_SUFFIX",
-				src_suffix="$SHADER_INCLUDE_SRCSUFFIX",
+			"RcInclude": SCons.Builder.Builder(
+				action=build_rc_include,
+				prefix="$RCINCLUDEPREFIX",
+				suffix="$RCINCLUDESUFFIX",
+				src_suffix="$RCINCLUDESRCSUFFIX",
 				single_source=True,
 			),
-			"ShaderSource": SCons.Builder.Builder(
-				action=build_shader_source,
-				prefix="$SHADER_SOURCE_PREFIX",
-				suffix="$SHADER_SOURCE_SUFFIX",
-				src_suffix="$SHADER_SOURCE_SRCSUFFIX",
-				single_source=False,
+			"RcSource": SCons.Builder.Builder(
+				action=build_rc_source,
+				prefix="$RCSOURCEPREFIX",
+				suffix="$RCSOURCESUFFIX",
+				src_suffix="$RCSOURCESRCSUFFIX",
+				single_source=True,
 			),
 		},
 	)
 
 	obj_builder, _ = SCons.Tool.createObjBuilders(env)
 
-	for src_suffix in env["SHADER_SOURCE_SRCSUFFIX"]:
-		obj_builder.add_action(src_suffix, SCons.Defaults.CAction)
-		obj_builder.add_emitter(src_suffix, emit_shader_source)
+	obj_builder.add_action("$RCSRCSUFFIX", SCons.Defaults.CAction)
+	obj_builder.add_emitter("$RCSRCSUFFIX", emit_rc)
 
 def exists(env):
 	return True

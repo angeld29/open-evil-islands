@@ -31,7 +31,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cetexture.h"
-#include "ceshadermng.h"
+#include "ceresource.h"
 #include "ceroot.h"
 #include "cemprhlp.h"
 #include "cemprrenderitem.h"
@@ -438,9 +438,9 @@ static void ce_mprrenderitem_amdvst_ctor(ce_renderitem* renderitem, va_list args
 		glBindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 
-	const char* vert_source = ce_shadermng_find_source("mpramdvst_vert");
-	const char* frag_source = ce_shadermng_find_source(water ? "mprwater_frag" :
-																"mprland_frag");
+	const char* vert_source = ce_resource_find("shaders/mpramdvst.vert");
+	const char* frag_source = ce_resource_find(water ? "shaders/mprwater.frag" :
+														"shaders/mprland.frag");
 
 	assert(NULL != vert_source);
 	assert(NULL != frag_source);

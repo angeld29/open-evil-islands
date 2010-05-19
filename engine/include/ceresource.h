@@ -18,18 +18,18 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_SHADERMNG_H
-#define CE_SHADERMNG_H
+#ifndef CE_RESOURCE_H
+#define CE_RESOURCE_H
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-extern const char* ce_shadermng_find_source(const char* key);
+extern const char* ce_resource_find(const char* path);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_SHADERMNG_H */
+#endif /* CE_RESOURCE_H */
