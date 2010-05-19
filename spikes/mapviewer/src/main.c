@@ -64,43 +64,25 @@
 	scenemng->anmfps = ce_fclamp(scenemng->anmfps, 1.0f, 50.0f);
 }*/
 
-/*static void usage(const char* progname, void* argtable[])
-{
-	fprintf(stderr, "Cursed Earth is an open source, "
-		"cross-platform port of Evil Islands\n"
-		"Copyright (C) 2009-2010 Yanis Kurganov\n\n");
-
-	fprintf(stderr, "This program is part of Cursed Earth spikes\n"
-		"Map Viewer - explore Evil Islands zones with creatures\n\n");
-
-	fprintf(stderr, "usage: %s", progname);
-	arg_print_syntax(stderr, argtable, "\n");
-	arg_print_glossary_gnu(stderr, argtable);
-
-	void* ctrtable[] = {
-		arg_rem("keyboard arrows", "move camera"),
-		arg_rem("mouse motion", "rotate camera"),
-		arg_rem("mouse wheel", "zoom camera"),
-		arg_rem("b", "show/hide bounding boxes"),
-		arg_rem("+/-", "change animation FPS"),
-		arg_end(0)
-	};
-
-	fprintf(stderr, "controls:\n");
-	arg_print_glossary_gnu(stderr, ctrtable);
-	arg_freetable(ctrtable, sizeof(ctrtable) / sizeof(ctrtable[0]));
-}*/
-
 int main(int argc, char* argv[])
 {
 	ce_alloc_init();
 
-	ce_optparse* optparse = ce_root_create_general_optparse();
+	ce_optparse* optparse = ce_root_create_optparse();
+
+	ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR,
+		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+		"Cursed Earth: Map Viewer",
+		"This program is part of Cursed Earth spikes\n"
+		"Map Viewer - explore Evil Islands zones with creatures");
 
 	ce_optparse_add(optparse, "zone", CE_TYPE_STRING, NULL, true,
 		NULL, NULL, "any ZONE.mpr file in 'EI/Maps'");
 
-	if (!ce_optparse_parse(optparse, argc, argv)) {
+	ce_optparse_add_control(optparse, "+/-", "change animation FPS");
+
+	if (!ce_optparse_parse(optparse, argc, argv) || !ce_root_init(optparse)) {
+		ce_optparse_del(optparse);
 		return EXIT_FAILURE;
 	}
 
@@ -109,12 +91,9 @@ int main(int argc, char* argv[])
 	ce_optparse_get(optparse, "ei_path", &ei_path);
 	ce_optparse_get(optparse, "zone", &zone);
 
-	if (!ce_root_init(optparse)) {
-		return EXIT_FAILURE;
-	}
-
 	if (NULL == ce_scenemng_create_terrain(ce_root.scenemng, zone,
 					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
+		ce_optparse_del(optparse);
 		return EXIT_FAILURE;
 	}
 

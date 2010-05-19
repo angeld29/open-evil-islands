@@ -60,7 +60,7 @@ extern bool ce_root_init(ce_optparse* optparse);
 
 extern int ce_root_exec(void);
 
-extern ce_optparse* ce_root_create_general_optparse(void);
+extern ce_optparse* ce_root_create_optparse(void);
 
 #ifdef __cplusplus
 }

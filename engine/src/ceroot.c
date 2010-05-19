@@ -107,7 +107,7 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.comprehensive_bbox_only = true;
 	ce_root.anmfps = 15.0f;
 
-	ce_root.renderwindow = ce_renderwindow_create(1024, 768, "Cursed Earth");
+	ce_root.renderwindow = ce_renderwindow_create(1024, 768, optparse->title->str);
 	if (NULL == ce_root.renderwindow) {
 		ce_logging_fatal("root: could not create a window");
 		return false;
@@ -195,14 +195,10 @@ int ce_root_exec(void)
 	return EXIT_SUCCESS;
 }
 
-ce_optparse* ce_root_create_general_optparse(void)
+ce_optparse* ce_root_create_optparse(void)
 {
 	ce_optparse* optparse = ce_optparse_new();
 
-	ce_optparse_add(optparse, "help", CE_TYPE_BOOL, NULL, false,
-		"h", "help", "display this help and exit");
-	ce_optparse_add(optparse, "version", CE_TYPE_BOOL, NULL, false,
-		"v", "version", "display version information and exit");
 	ce_optparse_add(optparse, "ei_path", CE_TYPE_STRING, ".", false,
 		NULL, "ei-path", "path to EI directory (current directory by default)");
 	ce_optparse_add(optparse, "fullscreen", CE_TYPE_BOOL, NULL, false,
@@ -215,6 +211,11 @@ ce_optparse* ce_root_create_general_optparse(void)
 		"j", "jobs", "allow N jobs at once; if this option is not specified, "
 		"the value N will be detected automatically depending on the number "
 		"of CPUs you have (or the number of cores your CPU have)");
+
+	ce_optparse_add_control(optparse, "keyboard arrows", "move camera");
+	ce_optparse_add_control(optparse, "mouse right button + motion", "rotate camera");
+	ce_optparse_add_control(optparse, "mouse wheel", "zoom camera");
+	ce_optparse_add_control(optparse, "b", "toggle bounding boxes");
 
 	return optparse;
 }
