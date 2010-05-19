@@ -139,7 +139,11 @@ bool ce_root_init(ce_optparse* optparse)
 		return false;
 	}
 
-	//ce_optparse_get(optparse, "fullscreen", &ce_root.renderwindow->restore_fullscreen);
+	// FIXME: find better solution
+	ce_optparse_get(optparse, "fullscreen", &ce_root.renderwindow->restore_fullscreen);
+	if (ce_root.renderwindow->restore_fullscreen) {
+		ce_root.renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
+	}
 
 	ce_optparse_get(optparse, "fs_width",
 		&ce_root.renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width);
