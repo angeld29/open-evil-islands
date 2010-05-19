@@ -71,11 +71,23 @@ static void ce_root_renderwindow_closed(void* listener)
 	ce_root.done = true;
 }
 
+static void ce_root_term(void)
+{
+	if (ce_root.inited) {
+		ce_input_event_supply_del(ce_root.event_supply);
+		ce_scenemng_del(ce_root.scenemng);
+		ce_timer_del(ce_root.timer);
+		ce_rendersystem_del(ce_root.rendersystem);
+		ce_renderwindow_del(ce_root.renderwindow);
+		ce_root.inited = false;
+	}
+}
+
 bool ce_root_init(ce_optparse* optparse)
 {
 	assert(!ce_root.inited && "the root subsystem has already been inited");
-	ce_root.inited = true;
 
+	ce_root.inited = true;
 	atexit(ce_root_term);
 
 	ce_systeminfo_display();
@@ -129,20 +141,7 @@ bool ce_root_init(ce_optparse* optparse)
 	return true;
 }
 
-void ce_root_term(void)
-{
-	if (ce_root.inited) {
-		ce_input_event_supply_del(ce_root.event_supply);
-		ce_scenemng_del(ce_root.scenemng);
-		ce_timer_del(ce_root.timer);
-		ce_rendersystem_del(ce_root.rendersystem);
-		ce_renderwindow_del(ce_root.renderwindow);
-
-		ce_root.inited = false;
-	}
-}
-
-void ce_root_exec(void)
+int ce_root_exec(void)
 {
 	assert(ce_root.inited && "the root subsystem has not yet been inited");
 
@@ -192,6 +191,8 @@ void ce_root_exec(void)
 
 		ce_context_swap(ce_root.renderwindow->context);
 	}
+
+	return EXIT_SUCCESS;
 }
 
 ce_optparse* ce_root_create_general_optparse(void)

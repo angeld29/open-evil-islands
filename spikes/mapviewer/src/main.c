@@ -93,6 +93,8 @@
 
 int main(int argc, char* argv[])
 {
+	ce_alloc_init();
+
 	ce_optparse* optparse = ce_root_create_general_optparse();
 
 	ce_optparse_add(optparse, "zone", CE_TYPE_STRING, NULL, true,
@@ -195,7 +197,5 @@ int main(int argc, char* argv[])
 
 	ce_optparse_del(optparse);
 
-	ce_root_exec();
-
-	return EXIT_SUCCESS;
+	return ce_root_exec();
 }

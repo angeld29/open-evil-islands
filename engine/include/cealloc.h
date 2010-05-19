@@ -28,6 +28,8 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+extern void ce_alloc_init(void);
+
 extern void* ce_alloc(size_t size);
 extern void* ce_alloc_zero(size_t size);
 extern void ce_free(void* ptr, size_t size);
