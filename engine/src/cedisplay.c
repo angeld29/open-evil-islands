@@ -20,7 +20,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <limits.h>
 #include <assert.h>
 
@@ -28,6 +27,29 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cedisplay.h"
+
+ce_display_rotation ce_display_rotation_from_degrees(int value)
+{
+	ce_display_rotation rotation = CE_DISPLAY_ROTATION_NONE;
+	if (value < 90) {
+		rotation |= CE_DISPLAY_ROTATION_0;
+	} else if (value < 180) {
+		rotation |= CE_DISPLAY_ROTATION_90;
+	} else if (value < 270) {
+		rotation |= CE_DISPLAY_ROTATION_180;
+	} else if (value < 360) {
+		rotation |= CE_DISPLAY_ROTATION_270;
+	}
+	return rotation;
+}
+
+ce_display_reflection ce_display_reflection_from_bool(bool x, bool y)
+{
+	ce_display_reflection reflection = CE_DISPLAY_REFLECTION_NONE;
+	if (x) reflection |= CE_DISPLAY_REFLECTION_X;
+	if (y) reflection |= CE_DISPLAY_REFLECTION_Y;
+	return reflection;
+}
 
 ce_displaymode* ce_displaymode_new(int width, int height, int bpp, int rate)
 {
@@ -67,6 +89,31 @@ void ce_displaymng_del(ce_displaymng* displaymng)
 		ce_vector_del(displaymng->supported_modes);
 		ce_free(displaymng, sizeof(ce_displaymng) + displaymng->size);
 	}
+}
+
+void ce_displaymng_dump_supported_modes_to_stdout(ce_displaymng* displaymng)
+{
+	for (int i = 0; i < displaymng->supported_modes->count; ++i) {
+		ce_displaymode* mode = displaymng->supported_modes->items[i];
+		fprintf(stdout, "%dx%d:%d@%d\n", mode->width, mode->height,
+											mode->bpp, mode->rate);
+	}
+}
+
+void ce_displaymng_dump_supported_rotations_to_stdout(ce_displaymng* displaymng)
+{
+	for (unsigned int i = 0, j = CE_DISPLAY_ROTATION_0;
+							j <= CE_DISPLAY_ROTATION_270; ++i, j <<= 1) {
+		fprintf(stdout, "%d: %s\n", (int[]){0,90,180,270}[i],
+			j & displaymng->supported_rotation ? "yes" : "no");
+	}
+}
+
+void ce_displaymng_dump_supported_reflections_to_stdout(ce_displaymng* displaymng)
+{
+	fprintf(stdout, "x: %s\ny: %s\n",
+		CE_DISPLAY_REFLECTION_X & displaymng->supported_reflection ? "yes" : "no",
+		CE_DISPLAY_REFLECTION_Y & displaymng->supported_reflection ? "yes" : "no");
 }
 
 int ce_displaymng_enter(ce_displaymng* displaymng,
