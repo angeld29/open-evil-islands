@@ -23,9 +23,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
-#include <assert.h>
-
-#include <argtable2.h>
 
 #include "cestr.h"
 #include "cemath.h"
@@ -33,6 +30,7 @@
 #include "celogging.h"
 #include "ceroot.h"
 
+static ce_optparse* optparse;
 static ce_figentity* figentity;
 
 /*static ce_input_event_supply* es;
@@ -85,32 +83,6 @@ static bool update_figentity()
 /*static void idle(void)
 {
 	ce_input_event_supply_advance(es, elapsed);
-
-	if (ce_input_test(CE_KB_ESCAPE)) {
-		ce_input_event_supply_del(es);
-		ce_scenemng_del(scenemng);
-		ce_gl_term();
-		ce_input_term();
-		ce_alloc_term();
-		ce_logging_term();
-		if (glutGameModeGet(GLUT_GAME_MODE_ACTIVE)) {
-			glutLeaveGameMode();
-		}
-		exit(EXIT_SUCCESS);
-	}
-
-	if (ce_input_event_triggered(toggle_bbox_event)) {
-		if (scenemng->show_bboxes) {
-			if (scenemng->comprehensive_bbox_only) {
-				scenemng->comprehensive_bbox_only = false;
-			} else {
-				scenemng->show_bboxes = false;
-			}
-		} else {
-			scenemng->show_bboxes = true;
-			scenemng->comprehensive_bbox_only = true;
-		}
-	}
 
 	anmfps_inc_counter += elapsed;
 	anmfps_dec_counter += elapsed;
@@ -171,147 +143,44 @@ static bool update_figentity()
 			ce_logging_write("main: new animation name: none");
 		}
 	}
-
-	if (ce_input_test(CE_KB_LEFT)) {
-		ce_camera_move(scenemng->camera, -0.5f * elapsed, 0.0f);
-	}
-
-	if (ce_input_test(CE_KB_UP)) {
-		ce_camera_move(scenemng->camera, 0.0f, 0.5f * elapsed);
-	}
-
-	if (ce_input_test(CE_KB_RIGHT)) {
-		ce_camera_move(scenemng->camera, 0.5f * elapsed, 0.0f);
-	}
-
-	if (ce_input_test(CE_KB_DOWN)) {
-		ce_camera_move(scenemng->camera, 0.0f, -0.5f * elapsed);
-	}
-
-	if (ce_input_test(CE_MB_WHEELUP)) {
-		ce_camera_zoom(scenemng->camera, 0.1f);
-	}
-
-	if (ce_input_test(CE_MB_WHEELDOWN)) {
-		ce_camera_zoom(scenemng->camera, -0.1f);
-	}
-
-	if (ce_input_test(CE_MB_RIGHT)) {
-		ce_vec2 offset = ce_input_mouse_offset();
-		ce_camera_yaw_pitch(scenemng->camera, ce_deg2rad(-0.13f * offset.x),
-												ce_deg2rad(-0.13f * offset.y));
-	}
-
-	glutPostRedisplay();
 }*/
-
-static void usage(const char* progname, void* argtable[])
-{
-	fprintf(stderr, "Cursed Earth is an open source, "
-		"cross-platform port of Evil Islands\n"
-		"Copyright (C) 2009-2010 Yanis Kurganov\n\n");
-
-	fprintf(stderr, "This program is part of Cursed Earth spikes\n"
-		"Figure Viewer - control Evil Islands figures\n\n");
-
-	fprintf(stderr, "usage: %s", progname);
-	arg_print_syntax(stderr, argtable, "\n");
-	arg_print_glossary_gnu(stderr, argtable);
-
-	void* ctrtable[] = {
-		arg_rem("keyboard arrows", "move camera"),
-		arg_rem("mouse motion", "rotate camera"),
-		arg_rem("mouse wheel", "zoom camera"),
-		arg_rem("b", "show/hide bounding boxes"),
-		arg_rem("+/-", "change animation FPS"),
-		arg_rem("a", "play next animation"),
-		arg_rem("1", "change strength"),
-		arg_rem("2", "change dexterity"),
-		arg_rem("3", "change height"),
-		arg_end(0)
-	};
-
-	fprintf(stderr, "controls:\n");
-	arg_print_glossary_gnu(stderr, ctrtable);
-	arg_freetable(ctrtable, sizeof(ctrtable) / sizeof(ctrtable[0]));
-}
 
 int main(int argc, char* argv[])
 {
-	struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
-	struct arg_lit* version = arg_lit0("v", "version",
-		"display version information and exit");
-	struct arg_str* ei_path = arg_str0("b", "ei-path", "DIRECTORY",
-		"path to EI directory (current directory by default)");
-	struct arg_lit* full_screen = arg_lit0("f", "full-screen",
-		"start program in full screen mode");
-	struct arg_int* jobs = arg_int0("j", "jobs", "N",
-		"allow N jobs at once; if this option is not specified, the "
-		"value N will be detected automatically depending on the number "
-		"of CPUs you have (or the number of cores your CPU have)");
-	struct arg_str* pri_tex = arg_str0("p", "primary-texture", "NAME",
-		"primary texture");
-	struct arg_str* sec_tex = arg_str0("s", "secondary-texture", "NAME",
-		"secondary texture");
-	struct arg_str* anm_name = arg_str0("a", "anm-name", "NAME",
-		"play animation with specified name");
-	struct arg_str* figure = arg_str1(NULL, NULL,
-		"FIGURE", "internal figure name");
-	struct arg_end* end = arg_end(3);
+	ce_alloc_init();
 
-	void* argtable[] = {
-		help, version, ei_path, full_screen, jobs,
-		pri_tex, sec_tex, anm_name, figure, end
-	};
+	optparse = ce_root_create_optparse();
 
-	ei_path->sval[0] = ".";
+	ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR,
+		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+		"Cursed Earth: Figure Viewer", "This program is part of Cursed "
+		"Earth spikes\nFigure Viewer - control Evil Islands figures");
 
-	int argerror_count = arg_parse(argc, argv, argtable);
+	ce_optparse_add(optparse, "pritex", CE_TYPE_STRING, "default0", false,
+		NULL, "primary-texture", "primary texture");
+	ce_optparse_add(optparse, "sectex", CE_TYPE_STRING, "default0", false,
+		NULL, "secondary-texture", "secondary texture");
+	ce_optparse_add(optparse, "anmname", CE_TYPE_STRING, NULL, false,
+		NULL, "anim-name", "play animation with specified name");
+	ce_optparse_add(optparse, "figure", CE_TYPE_STRING, NULL, true,
+		NULL, NULL, "internal figure name");
 
-	if (0 != help->count) {
-		usage(argv[0], argtable);
-		return EXIT_SUCCESS;
-	}
+	ce_optparse_add_control(optparse, "+/-", "change animation FPS");
+	ce_optparse_add_control(optparse, "a", "play next animation");
+	ce_optparse_add_control(optparse, "1", "change strength");
+	ce_optparse_add_control(optparse, "2", "change dexterity");
+	ce_optparse_add_control(optparse, "3", "change height");
 
-	if (0 != version->count) {
-		fprintf(stderr, "%d.%d.%d\n", CE_SPIKE_VERSION_MAJOR,
-										CE_SPIKE_VERSION_MINOR,
-										CE_SPIKE_VERSION_PATCH);
-		return EXIT_SUCCESS;
-	}
-
-	if (0 != argerror_count) {
-		usage(argv[0], argtable);
-		arg_print_errors(stderr, end, argv[0]);
+	if (!ce_optparse_parse(optparse, argc, argv) || !ce_root_init(optparse)) {
+		ce_optparse_del(optparse);
 		return EXIT_FAILURE;
 	}
-
-	if (!ce_root_init(ei_path->sval[0])) {
-		return EXIT_FAILURE;
-	}
-
-	// TODO: move to root
-	if (0 != jobs->count) {
-		ce_root.thread_count = jobs->ival[0];
-	}
-
-	ce_logging_write("root: using up to %d threads", ce_root.thread_count);
-
-	if (0 != pri_tex->count) {
-		ce_strlcpy(pri_tex_name, pri_tex->sval[0], sizeof(pri_tex_name));
-	}
-
-	if (0 != sec_tex->count) {
-		ce_strlcpy(sec_tex_name, sec_tex->sval[0], sizeof(sec_tex_name));
-	}
-
-	ce_strlcpy(figure_name, figure->sval[0], sizeof(figure_name));
 
 	if (!update_figentity()) {
 		return EXIT_FAILURE;
 	}
 
-	if (0 != anm_name->count) {
+	/*if (0 != anm_name->count) {
 		if (ce_figentity_play_animation(figentity, anm_name->sval[0])) {
 			int anm_count = ce_figentity_get_animation_count(figentity);
 			for (anm_index = 0; anm_index < anm_count &&
@@ -323,14 +192,15 @@ int main(int argc, char* argv[])
 			ce_logging_warning("main: "
 				"could not play animation: '%s'", anm_name->sval[0]);
 		}
-	}
+	}*/
 
 	ce_vec3 position;
-	ce_vec3_init(&position, 0.0f, 2.0f, -4.0f);
+	ce_camera_set_position(ce_root.scenemng->camera,
+		ce_vec3_init(&position, 0.0f, 2.0f, -4.0f));
 
 	ce_camera_set_near(ce_root.scenemng->camera, 0.1f);
-	ce_camera_set_position(ce_root.scenemng->camera, &position);
-	ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(180.0f), ce_deg2rad(30.0f));
+	ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(180.0f),
+													ce_deg2rad(30.0f));
 
 	/*es = ce_input_event_supply_new();
 	strength_event = ce_input_event_supply_single_front_event(es,
@@ -339,16 +209,10 @@ int main(int argc, char* argv[])
 						ce_input_event_supply_button_event(es, CE_KB_2));
 	height_event = ce_input_event_supply_single_front_event(es,
 						ce_input_event_supply_button_event(es, CE_KB_3));
-	toggle_bbox_event = ce_input_event_supply_single_front_event(es,
-					ce_input_event_supply_button_event(es, CE_KB_B));
 	anm_change_event = ce_input_event_supply_single_front_event(es,
 					ce_input_event_supply_button_event(es, CE_KB_A));
 	anmfps_inc_event = ce_input_event_supply_button_event(es, CE_KB_ADD);
 	anmfps_dec_event = ce_input_event_supply_button_event(es, CE_KB_SUBTRACT);*/
 
-	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
-
-	ce_root_exec();
-
-	return EXIT_SUCCESS;
+	return ce_root_exec();
 }
