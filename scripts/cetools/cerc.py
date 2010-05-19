@@ -74,8 +74,7 @@ def emit_rc(target, source, env):
 	resdir = os.path.dirname(source[0].get_abspath())
 
 	paths = sorted(make_path(node, resdir)
-					for node in get_nodes([resdir], ["*"], env)
-					if not node.name.endswith(env.subst("$RCSRCSUFFIX")))
+					for node in get_nodes([resdir], ["*"], env))
 	print paths
 
 	dfdf = asdasd

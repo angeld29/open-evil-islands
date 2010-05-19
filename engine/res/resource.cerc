@@ -23,3 +23,6 @@
 ;
 ;  For example:
 ;  fonts/description.txt
+
+resource.cerc
+resource.rc
