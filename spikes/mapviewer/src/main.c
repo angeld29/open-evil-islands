@@ -20,16 +20,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 #include <math.h>
-#include <assert.h>
 
-#include "cegl.h"
 #include "cemath.h"
 #include "cealloc.h"
-#include "celogging.h"
 #include "ceroot.h"
 
 //static ce_input_event_supply* es;
@@ -72,9 +68,8 @@ int main(int argc, char* argv[])
 
 	ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR,
 		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
-		"Cursed Earth: Map Viewer",
-		"This program is part of Cursed Earth spikes\n"
-		"Map Viewer - explore Evil Islands zones with creatures");
+		"Cursed Earth: Map Viewer", "This program is part of Cursed Earth "
+		"spikes\nMap Viewer - explore Evil Islands zones with creatures");
 
 	ce_optparse_add(optparse, "zone", CE_TYPE_STRING, NULL, true,
 		NULL, NULL, "any ZONE.mpr file in 'EI/Maps'");
@@ -92,7 +87,7 @@ int main(int argc, char* argv[])
 	ce_optparse_get(optparse, "zone", &zone);
 
 	if (NULL == ce_scenemng_create_terrain(ce_root.scenemng, zone,
-					&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
+							&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
 		ce_optparse_del(optparse);
 		return EXIT_FAILURE;
 	}
@@ -119,14 +114,15 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	ce_vec3 position;
+	ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position,
+		0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f));
+
+	ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f),
+													ce_deg2rad(30.0f));
+
 	//snprintf(path, sizeof(path), "%s/Camera/%s.cam",
 	//	ei_path->sval[0], zone->sval[0]/*"mainmenu"*/);
-
-	ce_vec3 position;
-	ce_vec3_init(&position, 0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f);
-
-	ce_camera_set_position(ce_root.scenemng->camera, &position);
-	ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
 
 	/*FILE* file = NULL;//fopen(path, "rb");
 	if (NULL != file) {
