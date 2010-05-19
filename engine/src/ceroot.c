@@ -96,14 +96,19 @@ bool ce_root_init(ce_optparse* optparse)
 		return false;
 	}
 
-	const char* ei_path;
-	int width, height, fs_width, fs_height;
+	bool list_vm;
+	int width, height, fs_width, fs_height, fs_bpp, fs_rate;
+	const char *ei_path, *ce_path;
 
 	ce_optparse_get(optparse, "ei_path", &ei_path);
+	ce_optparse_get(optparse, "ce_path", &ce_path);
 	ce_optparse_get(optparse, "width", &width);
 	ce_optparse_get(optparse, "height", &height);
 	ce_optparse_get(optparse, "fs_width", &fs_width);
 	ce_optparse_get(optparse, "fs_height", &fs_height);
+	ce_optparse_get(optparse, "fs_bpp", &fs_bpp);
+	ce_optparse_get(optparse, "fs_rate", &fs_rate);
+	ce_optparse_get(optparse, "list_vm", &list_vm);
 	ce_optparse_get(optparse, "terrain_tiling", &ce_root.terrain_tiling);
 	ce_optparse_get(optparse, "thread_count", &ce_root.thread_count);
 
@@ -115,6 +120,18 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.renderwindow = ce_renderwindow_create(width, height, optparse->title->str);
 	if (NULL == ce_root.renderwindow) {
 		ce_logging_fatal("root: could not create a window");
+		return false;
+	}
+
+	if (list_vm) {
+		// TODO: try without window creation
+		for (int i = 0; i < ce_root.renderwindow->displaymng->
+									supported_modes->count; ++i) {
+			ce_displaymode* mode = ce_root.renderwindow->displaymng->
+											supported_modes->items[i];
+			fprintf(stdout, "%dx%d:%d@%d\n", mode->width, mode->height,
+												mode->bpp, mode->rate);
+		}
 		return false;
 	}
 
@@ -206,6 +223,9 @@ ce_optparse* ce_root_create_optparse(void)
 
 	ce_optparse_add(optparse, "ei_path", CE_TYPE_STRING, ".", false,
 		NULL, "ei-path", "path to EI directory (current by default)");
+	ce_optparse_add(optparse, "ce_path", CE_TYPE_STRING, ".", false,
+		NULL, "ce-path",
+		"reserved for future use: path to CE directory (current by default)");
 	ce_optparse_add(optparse, "width", CE_TYPE_INT, (int[]){1024}, false,
 		NULL, "width", "desired window width");
 	ce_optparse_add(optparse, "height", CE_TYPE_INT, (int[]){768}, false,
@@ -218,6 +238,13 @@ ce_optparse* ce_root_create_optparse(void)
 	ce_optparse_add(optparse, "fs_height", CE_TYPE_INT, NULL, false,
 		NULL, "fullscreen-height",
 		"desired window height in fullscreen mode (max available by default)");
+	ce_optparse_add(optparse, "fs_bpp", CE_TYPE_INT, NULL, false,
+		NULL, "fullscreen-bpp", "desired bits per pixel (max available by default)");
+	ce_optparse_add(optparse, "fs_rate", CE_TYPE_INT, NULL, false,
+		NULL, "fullscreen-rate", "desired refresh rate (max available by default)");
+	ce_optparse_add(optparse, "list_vm", CE_TYPE_BOOL, NULL, false,
+		NULL, "list-video-modes",
+		"display supported video modes in format WIDTHxHEIGHT:BPP@RATE");
 	ce_optparse_add(optparse, "terrain_tiling", CE_TYPE_BOOL, NULL, false,
 		NULL, "terrain-tiling", "enable terrain tiling; very slow, but reduce "
 		"usage of video memory and disk space; use it on old video cards");
