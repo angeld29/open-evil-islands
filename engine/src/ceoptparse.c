@@ -25,6 +25,7 @@
 #include <argtable2.h>
 
 #include "celib.h"
+#include "cestr.h"
 #include "cealloc.h"
 #include "ceoptparse.h"
 
@@ -93,15 +94,20 @@ void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type,
 	ce_property* propval = ce_property_new("value", type);
 	ce_property* propsopt = ce_property_new("shortopt", CE_TYPE_STRING);
 	ce_property* proplopt = ce_property_new("longopt", CE_TYPE_STRING);
+	ce_property* propdtype = ce_property_new("datatype", CE_TYPE_STRING);
 	ce_property* propmin = ce_property_new("mincount", CE_TYPE_INT);
 	ce_property* prophelp = ce_property_new("glossary", CE_TYPE_STRING);
 
+	char datatype[strlen(name) + 1];
 	int mincount = required;
+
+	ce_strupr(datatype, name);
 
 	ce_value_set(propname->value, name);
 	ce_value_set(propval->value, value);
 	ce_value_set(propsopt->value, shortopt);
 	ce_value_set(proplopt->value, longopt);
+	ce_value_set(propdtype->value, datatype);
 	ce_value_set(propmin->value, &mincount);
 	ce_value_set(prophelp->value, glossary);
 
@@ -109,6 +115,7 @@ void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type,
 	ce_object_add(object, propval);
 	ce_object_add(object, propsopt);
 	ce_object_add(object, proplopt);
+	ce_object_add(object, propdtype);
 	ce_object_add(object, propmin);
 	ce_object_add(object, prophelp);
 
@@ -120,26 +127,27 @@ void ce_optparse_add_control(ce_optparse* optparse,
 {
 	ce_object* object = ce_object_new();
 
-	ce_property* prop_name = ce_property_new("name", CE_TYPE_STRING);
-	ce_property* prop_glossary = ce_property_new("glossary", CE_TYPE_STRING);
+	ce_property* propname = ce_property_new("name", CE_TYPE_STRING);
+	ce_property* prophelp = ce_property_new("glossary", CE_TYPE_STRING);
 
-	ce_value_set(prop_name->value, name);
-	ce_value_set(prop_glossary->value, glossary);
+	ce_value_set(propname->value, name);
+	ce_value_set(prophelp->value, glossary);
 
-	ce_object_add(object, prop_name);
-	ce_object_add(object, prop_glossary);
+	ce_object_add(object, propname);
+	ce_object_add(object, prophelp);
 
 	ce_vector_push_back(optparse->ctrlobjects, object);
 }
 
 static int ce_optparse_get_props(ce_object* object, const char** shortopt,
-								const char** longopt, const char** glossary)
+	const char** longopt, const char** datatype, const char** glossary)
 {
 	int mincount;
 	ce_value_get(ce_object_find(object, "shortopt")->value, shortopt);
 	ce_value_get(ce_object_find(object, "longopt")->value, longopt);
-	ce_value_get(ce_object_find(object, "glossary")->value, glossary);
+	ce_value_get(ce_object_find(object, "datatype")->value, datatype);
 	ce_value_get(ce_object_find(object, "mincount")->value, &mincount);
+	ce_value_get(ce_object_find(object, "glossary")->value, glossary);
 	return mincount;
 }
 
@@ -152,30 +160,30 @@ static void* ce_optparse_create_void(ce_object* object)
 
 static void* ce_optparse_create_bool(ce_object* object)
 {
-	const char *shortopt, *longopt, *glossary;
-	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &glossary);
+	const char *shortopt, *longopt, *datatype, *glossary;
+	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &datatype, &glossary);
 	return arg_litn(shortopt, longopt, mincount, 1, glossary);
 }
 
 static void* ce_optparse_create_int(ce_object* object)
 {
-	const char *shortopt, *longopt, *glossary;
-	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &glossary);
-	return arg_intn(shortopt, longopt, NULL, mincount, 1, glossary);
+	const char *shortopt, *longopt, *datatype, *glossary;
+	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &datatype, &glossary);
+	return arg_intn(shortopt, longopt, datatype, mincount, 1, glossary);
 }
 
 static void* ce_optparse_create_float(ce_object* object)
 {
-	const char *shortopt, *longopt, *glossary;
-	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &glossary);
-	return arg_dbln(shortopt, longopt, NULL, mincount, 1, glossary);
+	const char *shortopt, *longopt, *datatype, *glossary;
+	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &datatype, &glossary);
+	return arg_dbln(shortopt, longopt, datatype, mincount, 1, glossary);
 }
 
 static void* ce_optparse_create_string(ce_object* object)
 {
-	const char *shortopt, *longopt, *glossary;
-	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &glossary);
-	return arg_strn(shortopt, longopt, NULL, mincount, 1, glossary);
+	const char *shortopt, *longopt, *datatype, *glossary;
+	int mincount = ce_optparse_get_props(object, &shortopt, &longopt, &datatype, &glossary);
+	return arg_strn(shortopt, longopt, datatype, mincount, 1, glossary);
 }
 
 static void* (*ce_optparse_create_procs[CE_TYPE_COUNT])(ce_object*) = {
