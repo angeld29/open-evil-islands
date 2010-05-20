@@ -58,18 +58,49 @@ def get_paths(node):
 	return [os.path.normpath(line) for line in node.get_contents().splitlines()
 									if len(line) > 0 and not line.startswith(';')]
 
+def write_header(file, header):
+	file.write(header % datetime.now().strftime("%d %b %Y %H:%M:%S"))
+
+cache_header = \
+""";  Resource cache
+;
+;  Created: %s
+;       by: Cursed Earth build system
+;
+;  WARNING! All changes made in this file will be lost!
+
+"""
+
 def emit_rc(target, source, env):
 	srcname = os.path.splitext(source[0].name)[0]
 	tgtname = SCons.Util.adjustixes(srcname, "ce", "data")
 	excludes = get_paths(source[0])
-	env["RCSTARTPATH"] = env.Dir("$RCROOTPATH").get_abspath()
-	return [os.path.join("$RCOBJPATH", SCons.Util.adjustixes(tgtname,
-		env.subst("$OBJPREFIX"), env.subst("$OBJSUFFIX")))], [
-		env.RcSource(os.path.join("$RCGENPATH", "src", tgtname),
-		[node for node in get_nodes(["$RCROOTPATH"], ["*"], env)
-				if not make_relpath(node, env) in excludes])]
 
-rc_header = \
+	env["RCSTARTPATH"] = env.Dir("$RCROOTPATH").get_abspath()
+
+	cache = env.File(os.path.join("$RCGENPATH",
+		SCons.Util.adjustixes(srcname, "", env.subst("$RCSOURCESRCSUFFIX"))))
+
+	nodes = [node for node in get_nodes(["$RCROOTPATH"], ["*"], env)
+				if not make_relpath(node, env) in excludes]
+
+	paths = sorted(make_relpath(node, env) for node in nodes)
+
+	if not os.path.exists(cache.get_abspath()) or paths != get_paths(cache):
+		with open(cache.get_abspath(), "wt") as file:
+			write_header(file, cache_header)
+			file.write('\n'.join(paths) + '\n')
+
+	target[0] = os.path.join("$RCOBJPATH", SCons.Util.adjustixes(tgtname,
+				env.subst("$OBJPREFIX"), env.subst("$OBJSUFFIX")))
+	source[0] = env.RcSource(os.path.join("$RCGENPATH", "src", tgtname), cache)
+
+	# cache node is not a normal target, so mark it as cleanable
+	env.Clean(target[0], cache)
+
+	return target, source
+
+c_header = \
 """/*
  *  Resource data
  *
@@ -82,10 +113,12 @@ rc_header = \
 
 def build_rc_source(target, source, env):
 	sizes, names = [], []
+	paths = get_paths(source[0])
+	nodes = [env.File(os.path.join("$RCSTARTPATH", path)) for path in paths]
 	with open(target[0].get_abspath(), "wt") as file:
-		file.write(rc_header % datetime.now().strftime("%d %b %Y %H:%M:%S"))
+		write_header(file, c_header)
 		file.write("\n#include <stddef.h>\n")
-		for node in source:
+		for node in nodes:
 			name = hashlib.md5(make_relpath(node, env)).hexdigest()
 			names.append(name)
 			file.write("\nstatic const unsigned char ce_resource_data_%s[] = {\n" % name)
@@ -95,13 +128,13 @@ def build_rc_source(target, source, env):
 				line, contents = contents[:15], contents[15:]
 				file.write(",".join(hex(ord(ch)) for ch in line) + ",\n")
 			file.write("};\n")
-		file.write("\nconst size_t CE_RESOURCE_DATA_COUNT = %d;\n" % len(source))
+		file.write("\nconst size_t CE_RESOURCE_DATA_COUNT = %d;\n" % len(nodes))
 		file.write("\nconst size_t ce_resource_data_sizes[] = {\n")
 		for size in sizes:
 			file.write("\t%d,\n" % size)
 		file.write("};\n")
 		file.write("\nconst char* ce_resource_data_paths[] = {\n")
-		for node in source:
+		for node in nodes:
 			file.write("\t\"%s\",\n" % make_relpath(node, env))
 		file.write("};\n")
 		file.write("\nconst unsigned char* ce_resource_data[] = {\n")
@@ -120,7 +153,7 @@ def generate(env):
 
 		RCSOURCEPREFIX="",
 		RCSOURCESUFFIX=".c",
-		RCSOURCESRCSUFFIX="",
+		RCSOURCESRCSUFFIX=".cerccache",
 	)
 
 	env.Append(
@@ -130,6 +163,7 @@ def generate(env):
 				prefix="$RCSOURCEPREFIX",
 				suffix="$RCSOURCESUFFIX",
 				src_suffix="$RCSOURCESRCSUFFIX",
+				single_source=True,
 			),
 		},
 	)
