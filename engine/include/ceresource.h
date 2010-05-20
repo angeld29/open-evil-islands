@@ -21,12 +21,21 @@
 #ifndef CE_RESOURCE_H
 #define CE_RESOURCE_H
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-extern const char* ce_resource_find(const char* path);
+extern const size_t CE_RESOURCE_DATA_COUNT;
+
+extern const size_t ce_resource_data_sizes[];
+extern const char* ce_resource_data_paths[];
+
+extern const unsigned char* ce_resource_data[];
+
+extern size_t ce_resource_find(const char* path);
 
 #ifdef __cplusplus
 }

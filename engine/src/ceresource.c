@@ -21,15 +21,14 @@
 #include <string.h>
 #include <assert.h>
 
-//#include "ceresourcedata.h"
 #include "ceresource.h"
 
-const char* ce_resource_find(const char* path)
+size_t ce_resource_find(const char* path)
 {
 	/*for (int i = 0; i < CE_SHADERDATA_COUNT; ++i) {
 		if (0 == strcmp(key, ce_shaderdata[i][0])) {
 			return ce_shaderdata[i][1];
 		}
 	}*/
-	return NULL;
+	return 0;
 }
