@@ -23,6 +23,7 @@
 
 #include <stddef.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "cevector.h"
 
@@ -44,6 +45,9 @@ typedef enum {
 	CE_DISPLAY_REFLECTION_X = 1,
 	CE_DISPLAY_REFLECTION_Y = 2
 } ce_display_reflection;
+
+extern ce_display_rotation ce_display_rotation_from_degrees(int value);
+extern ce_display_reflection ce_display_reflection_from_bool(bool x, bool y);
 
 typedef struct {
 	int width, height, bpp, rate;
@@ -73,6 +77,10 @@ struct ce_displaymng {
 
 extern ce_displaymng* ce_displaymng_new(ce_displaymng_vtable vtable, size_t size, ...);
 extern void ce_displaymng_del(ce_displaymng* displaymng);
+
+extern void ce_displaymng_dump_supported_modes_to_stdout(ce_displaymng* displaymng);
+extern void ce_displaymng_dump_supported_rotations_to_stdout(ce_displaymng* displaymng);
+extern void ce_displaymng_dump_supported_reflections_to_stdout(ce_displaymng* displaymng);
 
 extern int ce_displaymng_enter(ce_displaymng* displaymng,
 								int width, int height, int bpp, int rate,

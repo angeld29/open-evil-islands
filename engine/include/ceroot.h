@@ -57,11 +57,10 @@ extern struct ce_root {
 } ce_root;
 
 extern bool ce_root_init(ce_optparse* optparse);
-extern void ce_root_term(void);
 
-extern void ce_root_exec(void);
+extern int ce_root_exec(void);
 
-extern ce_optparse* ce_root_create_general_optparse(void);
+extern ce_optparse* ce_root_create_optparse(void);
 
 #ifdef __cplusplus
 }
