@@ -9,5 +9,3 @@ Check http://cursedearth.sourceforge.net/ for more details.
 Try texviewer -h for help.
 
 Some examples:
-texviewer /path/to/evil_islands/Res/redress.res -d 250
-texviewer /path/to/evil_islands/Res/textures.res -r

@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
 	ce_optparse_add(optparse, "sectex", CE_TYPE_STRING, "default0", false,
 		NULL, "secondary-texture", "secondary texture");
 	ce_optparse_add(optparse, "anmname", CE_TYPE_STRING, NULL, false,
-		NULL, "anim-name", "play animation with specified name");
+		NULL, "animation-name", "play animation with specified name");
 	ce_optparse_add(optparse, "figure", CE_TYPE_STRING, NULL, true,
 		NULL, NULL, "internal figure name");
 

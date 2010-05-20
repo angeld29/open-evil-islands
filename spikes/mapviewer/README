@@ -8,10 +8,6 @@ Check http://cursedearth.sourceforge.net/ for more details.
 
 Try mapviewer -h for help.
 
-Controls:
-b     show/hide bounding boxes
-+/-   change animation FPS
-
 Some examples:
-mapviewer -f -b /path/to/evil_islands zone2
-mapviewer -f -b /path/to/evil_islands zone17
+mapviewer -f --ei-path=c:\evil_islands zone2
+mapviewer -f --ei-path=/home/user/evil_islands zone17

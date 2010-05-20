@@ -8,9 +8,6 @@ Check http://cursedearth.sourceforge.net/ for more details.
 
 Try mprviewer -h for help.
 
-Controls:
-b   show/hide bounding boxes
-
 Some examples:
-mprviewer -f -b /path/to/evil_islands zone1
-mprviewer -f -b /path/to/evil_islands bz8k
+mprviewer -f --ei-path=c:\evil_islands zone1
+mprviewer -f --ei-path=/home/user/evil_islands bz8k

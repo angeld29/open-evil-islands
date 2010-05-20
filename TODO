@@ -1,8 +1,2 @@
 Cursed Earth TODO
 ===================
-
-   * remove glut from engine
-   * remove glut from completely
-   * resfile refactoring
-   * animation system refactoring
-   * use lightcfg in engine
