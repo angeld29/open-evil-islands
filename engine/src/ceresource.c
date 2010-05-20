@@ -25,10 +25,11 @@
 
 size_t ce_resource_find(const char* path)
 {
-	/*for (int i = 0; i < CE_SHADERDATA_COUNT; ++i) {
-		if (0 == strcmp(key, ce_shaderdata[i][0])) {
-			return ce_shaderdata[i][1];
+	size_t index;
+	for (index = 0; index < CE_RESOURCE_DATA_COUNT; ++index) {
+		if (0 == strcmp(path, ce_resource_data_paths[index])) {
+			break;
 		}
-	}*/
-	return 0;
+	}
+	return index;
 }

@@ -438,15 +438,16 @@ static void ce_mprrenderitem_amdvst_ctor(ce_renderitem* renderitem, va_list args
 		glBindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 
-	const char* vert_source = NULL;//ce_resource_find("shaders/mpramdvst.vert");
-	const char* frag_source = NULL;//ce_resource_find(water ? "shaders/mprwater.frag" :
-									//					"shaders/mprland.frag");
+	size_t vert_srcidx = ce_resource_find("shaders/mpramdvst.vert");
+	size_t frag_srcidx = ce_resource_find(water ? "shaders/mprwater.frag" :
+													"shaders/mprland.frag");
 
-	assert(NULL != vert_source);
-	assert(NULL != frag_source);
+	assert(vert_srcidx < CE_RESOURCE_DATA_COUNT);
+	assert(frag_srcidx < CE_RESOURCE_DATA_COUNT);
 
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex_shader, 1, &vert_source, NULL);
+	glShaderSource(vertex_shader, 1, (const GLchar**)&ce_resource_data[vert_srcidx],
+								(GLint[]){ce_resource_data_sizes[vert_srcidx]});
 	glCompileShader(vertex_shader);
 
 	GLint result;
@@ -457,7 +458,8 @@ static void ce_mprrenderitem_amdvst_ctor(ce_renderitem* renderitem, va_list args
 	}
 
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment_shader, 1, &frag_source, NULL);
+	glShaderSource(fragment_shader, 1, (const GLchar**)&ce_resource_data[frag_srcidx],
+								(GLint[]){ce_resource_data_sizes[frag_srcidx]});
 	glCompileShader(fragment_shader);
 
 	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);

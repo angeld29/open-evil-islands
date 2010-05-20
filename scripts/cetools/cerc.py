@@ -27,10 +27,7 @@ import os.path
 from datetime import datetime
 from itertools import chain
 
-import SCons.Defaults
-import SCons.Util
-import SCons.Tool
-import SCons.Node.FS
+import SCons
 
 def traverse_files(node, patterns, env):
 	return (file for pattern in patterns
@@ -51,12 +48,15 @@ def get_nodes(paths, patterns, env):
 				for file in traverse_all(env.Dir(path), patterns, env))
 
 def make_relpath(node, env):
-	relpath = os.path.relpath(node.get_abspath(), env.subst("$RCSTARTPATH"))
+	relpath = os.path.relpath(node.get_abspath(), env.subst("$RCROOTABSPATH"))
 	return os.path.normpath(relpath)
 
 def get_paths(node):
 	return [os.path.normpath(line) for line in node.get_contents().splitlines()
 									if len(line) > 0 and not line.startswith(';')]
+
+def make_nodes(cache, env):
+	return [env.File(os.path.join("$RCROOTABSPATH", path)) for path in get_paths(cache)]
 
 def write_header(file, header):
 	file.write(header % datetime.now().strftime("%d %b %Y %H:%M:%S"))
@@ -68,7 +68,6 @@ cache_header = \
 ;       by: Cursed Earth build system
 ;
 ;  WARNING! All changes made in this file will be lost!
-
 """
 
 def emit_rc(target, source, env):
@@ -76,9 +75,13 @@ def emit_rc(target, source, env):
 	tgtname = SCons.Util.adjustixes(srcname, "ce", "data")
 	excludes = get_paths(source[0])
 
-	env["RCSTARTPATH"] = env.Dir("$RCROOTPATH").get_abspath()
+	# save absolute resource root path especially for builder because
+	# last one will be invoked from the project root directory
+	env["RCROOTABSPATH"] = env.Dir("$RCROOTPATH").get_abspath()
 
-	cache = env.File(os.path.join("$RCGENPATH",
+	# cache is needed... for example, SCons will not be able to process
+	# dependencies correctly if we only rename some files
+	cache = env.File(os.path.join("$RCBUILDPATH",
 		SCons.Util.adjustixes(srcname, "", env.subst("$RCSOURCESRCSUFFIX"))))
 
 	nodes = [node for node in get_nodes(["$RCROOTPATH"], ["*"], env)
@@ -89,11 +92,11 @@ def emit_rc(target, source, env):
 	if not os.path.exists(cache.get_abspath()) or paths != get_paths(cache):
 		with open(cache.get_abspath(), "wt") as file:
 			write_header(file, cache_header)
-			file.write('\n'.join(paths) + '\n')
+			file.write('\n' + '\n'.join(paths) + '\n')
 
-	target[0] = os.path.join("$RCOBJPATH", SCons.Util.adjustixes(tgtname,
+	target[0] = os.path.join("$RCBUILDOBJPATH", SCons.Util.adjustixes(tgtname,
 				env.subst("$OBJPREFIX"), env.subst("$OBJSUFFIX")))
-	source[0] = env.RcSource(os.path.join("$RCGENPATH", "src", tgtname), cache)
+	source[0] = env.RcSource(os.path.join("$RCBUILDPATH", "src", tgtname), cache)
 
 	# cache node is not a normal target, so mark it as cleanable
 	env.Clean(target[0], cache)
@@ -113,8 +116,7 @@ c_header = \
 
 def build_rc_source(target, source, env):
 	sizes, names = [], []
-	paths = get_paths(source[0])
-	nodes = [env.File(os.path.join("$RCSTARTPATH", path)) for path in paths]
+	nodes = make_nodes(source[0], env)
 	with open(target[0].get_abspath(), "wt") as file:
 		write_header(file, c_header)
 		file.write("\n#include <stddef.h>\n")
@@ -126,7 +128,7 @@ def build_rc_source(target, source, env):
 			sizes.append(len(contents))
 			while len(contents) > 0:
 				line, contents = contents[:15], contents[15:]
-				file.write(",".join(hex(ord(ch)) for ch in line) + ",\n")
+				file.write('\t' + ','.join(hex(ord(ch)) for ch in line) + ",\n")
 			file.write("};\n")
 		file.write("\nconst size_t CE_RESOURCE_DATA_COUNT = %d;\n" % len(nodes))
 		file.write("\nconst size_t ce_resource_data_sizes[] = {\n")
@@ -145,9 +147,9 @@ def build_rc_source(target, source, env):
 def generate(env):
 	env.SetDefault(
 		RCROOTPATH="",
-		RCGENPATH="",
-		RCOBJPATH="",
-		RCSTARTPATH="",
+		RCROOTABSPATH="",
+		RCBUILDPATH="",
+		RCBUILDOBJPATH="",
 
 		RCSUFFIX=".cerc",
 
@@ -157,6 +159,11 @@ def generate(env):
 	)
 
 	env.Append(
+		SCANNERS=SCons.Scanner.Scanner(
+			function=lambda node, env, *args: make_nodes(node, env),
+			skeys="$RCSOURCESRCSUFFIX",
+			recursive=False,
+		),
 		BUILDERS={
 			"RcSource": SCons.Builder.Builder(
 				action=build_rc_source,

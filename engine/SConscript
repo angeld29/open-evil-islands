@@ -29,8 +29,8 @@ Import("env")
 env = env.Clone(
 	tools=["cerc"],
 	RCROOTPATH="res",
-	RCGENPATH="build",
-	RCOBJPATH=os.path.join("build", "$GEN_PATH"),
+	RCBUILDPATH="build",
+	RCBUILDOBJPATH=os.path.join("build", "$GEN_PATH"),
 )
 
 env.PrependUnique(
