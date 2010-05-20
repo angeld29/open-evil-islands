@@ -44,6 +44,11 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	void (*onadvance)(void* listener, float elapsed);
+	void* listener;
+} ce_scenemng_listener;
+
+typedef struct {
 	bool scenenode_force_update;
 	ce_scenenode* scenenode;
 	ce_texmng* texmng;
@@ -55,6 +60,7 @@ typedef struct {
 	ce_camera* camera;
 	ce_fps* fps;
 	ce_font* font;
+	ce_vector* listeners;
 	ce_input_event_supply* event_supply;
 	ce_input_event* move_left_event;
 	ce_input_event* move_up_event;
@@ -66,7 +72,10 @@ typedef struct {
 } ce_scenemng;
 
 extern ce_scenemng* ce_scenemng_new(const char* ei_path);
-extern void ce_scenemng_del(ce_scenemng* rendlayer);
+extern void ce_scenemng_del(ce_scenemng* scenemng);
+
+extern void ce_scenemng_add_listener(ce_scenemng* scenemng,
+									ce_scenemng_listener* listener);
 
 extern void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed);
 extern void ce_scenemng_render(ce_scenemng* scenemng);

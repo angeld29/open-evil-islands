@@ -52,6 +52,7 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	scenemng->camera = ce_camera_new();
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
+	scenemng->listeners = ce_vector_new();
 	scenemng->event_supply = ce_input_event_supply_new(ce_root.renderwindow->input_context);
 	scenemng->move_left_event = ce_input_event_supply_shortcut(scenemng->event_supply, "ArrowLeft");
 	scenemng->move_up_event = ce_input_event_supply_shortcut(scenemng->event_supply, "ArrowUp");
@@ -96,6 +97,7 @@ void ce_scenemng_del(ce_scenemng* scenemng)
 {
 	if (NULL != scenemng) {
 		ce_input_event_supply_del(scenemng->event_supply);
+		ce_vector_del(scenemng->listeners);
 		ce_font_del(scenemng->font);
 		ce_fps_del(scenemng->fps);
 		ce_camera_del(scenemng->camera);
@@ -108,6 +110,12 @@ void ce_scenemng_del(ce_scenemng* scenemng)
 		ce_scenenode_del(scenemng->scenenode);
 		ce_free(scenemng, sizeof(ce_scenemng));
 	}
+}
+
+void ce_scenemng_add_listener(ce_scenemng* scenemng,
+								ce_scenemng_listener* listener)
+{
+	ce_vector_push_back(scenemng->listeners, listener);
 }
 
 void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
@@ -143,6 +151,11 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 		ce_camera_yaw_pitch(scenemng->camera,
 			ce_deg2rad(-0.25f * scenemng->event_supply->context->pointer_offset.x),
 			ce_deg2rad(-0.25f * scenemng->event_supply->context->pointer_offset.y));
+	}
+
+	for (int i = 0; i < scenemng->listeners->count; ++i) {
+		ce_scenemng_listener* listener = scenemng->listeners->items[i];
+		(*listener->onadvance)(listener->listener, elapsed);
 	}
 }
 

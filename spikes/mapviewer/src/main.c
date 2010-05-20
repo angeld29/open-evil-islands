@@ -24,41 +24,53 @@
 #include <time.h>
 #include <math.h>
 
+#include "celib.h"
 #include "cemath.h"
 #include "cealloc.h"
 #include "ceroot.h"
 
-//static ce_input_event_supply* es;
-//static ce_input_event* anmfps_inc_event;
-//static ce_input_event* anmfps_dec_event;
+static ce_input_event_supply* input_supply;
+static ce_input_event* anmfps_inc_event;
+static ce_input_event* anmfps_dec_event;
 
-//static float anmfps_limit = 0.1f;
-//static float anmfps_inc_counter;
-//static float anmfps_dec_counter;
+static float anmfps_limit = 0.1f;
+static float anmfps_inc_counter;
+static float anmfps_dec_counter;
 
-/*static void idle(void)
+static void destroy_input()
 {
-	//es = ce_input_event_supply_new(ce_root.renderwindow->input_context);
-	//anmfps_inc_event = ce_input_event_supply_button(es, CE_KB_ADD);
-	//anmfps_dec_event = ce_input_event_supply_button(es, CE_KB_SUBTRACT);
+	ce_input_event_supply_del(input_supply);
+}
+
+static void create_input()
+{
+	input_supply = ce_input_event_supply_new(ce_root.renderwindow->input_context);
+	anmfps_inc_event = ce_input_event_supply_button(input_supply, CE_KB_ADD);
+	anmfps_dec_event = ce_input_event_supply_button(input_supply, CE_KB_SUBTRACT);
+}
+
+static void advance(void* listener, float elapsed)
+{
+	ce_unused(listener);
+	ce_input_event_supply_advance(input_supply, elapsed);
 
 	anmfps_inc_counter += elapsed;
 	anmfps_dec_counter += elapsed;
 
-	if (ce_input_event_triggered(anmfps_inc_event) &&
-			anmfps_inc_counter >= anmfps_limit) {
-		scenemng->anmfps += 1.0f;
+	if (anmfps_inc_event->triggered && anmfps_inc_counter >= anmfps_limit) {
+		ce_root.anmfps += 1.0f;
 		anmfps_inc_counter = 0.0f;
 	}
 
-	if (ce_input_event_triggered(anmfps_dec_event) &&
-			anmfps_dec_counter >= anmfps_limit) {
-		scenemng->anmfps -= 1.0f;
+	if (anmfps_dec_event->triggered && anmfps_dec_counter >= anmfps_limit) {
+		ce_root.anmfps -= 1.0f;
 		anmfps_dec_counter = 0.0f;
 	}
 
-	scenemng->anmfps = ce_fclamp(scenemng->anmfps, 1.0f, 50.0f);
-}*/
+	ce_root.anmfps = ce_fclamp(ce_root.anmfps, 1.0f, 50.0f);
+}
+
+static ce_scenemng_listener scenemng_listener = { .onadvance = advance };
 
 int main(int argc, char* argv[])
 {
@@ -169,6 +181,11 @@ int main(int argc, char* argv[])
 		}
 		fclose(file);
 	}*/
+
+	create_input();
+	atexit(destroy_input);
+
+	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
 
 	ce_optparse_del(optparse);
 
