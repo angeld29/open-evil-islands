@@ -61,12 +61,10 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	scenemng->zoom_in_event = ce_input_supply_shortcut(scenemng->input_supply, "WheelUp");
 	scenemng->zoom_out_event = ce_input_supply_shortcut(scenemng->input_supply, "WheelDown");
 	scenemng->rotate_on_event = ce_input_supply_shortcut(scenemng->input_supply, "MouseRight");
+	scenemng->figmng_listener = (ce_figmng_listener)
+								{ce_scenemng_figproto_created, NULL, scenemng};
 
-	ce_figmng_listener_vtable listener_vtable = {
-		ce_scenemng_figproto_created, NULL, NULL
-	};
-
-	ce_figmng_add_listener(scenemng->figmng, listener_vtable, scenemng);
+	ce_figmng_add_listener(scenemng->figmng, &scenemng->figmng_listener);
 
 	char path[strlen(ei_path) + 32];
 

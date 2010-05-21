@@ -69,6 +69,7 @@ typedef struct {
 	ce_input_event* zoom_in_event;
 	ce_input_event* zoom_out_event;
 	ce_input_event* rotate_on_event;
+	ce_figmng_listener figmng_listener;
 } ce_scenemng;
 
 extern ce_scenemng* ce_scenemng_new(const char* ei_path);
