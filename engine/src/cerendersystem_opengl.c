@@ -22,7 +22,6 @@
 #include <assert.h>
 
 #include "cegl.h"
-
 #include "celib.h"
 #include "cemath.h"
 #include "cemat4.h"

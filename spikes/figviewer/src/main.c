@@ -208,11 +208,11 @@ int main(int argc, char* argv[])
 	anm_change_event = ce_input_supply_single_front(input_supply,
 					ce_input_supply_button(input_supply, CE_KB_A));
 	anmfps_inc_event = ce_input_supply_repeat(input_supply,
-						ce_input_supply_button(input_supply, CE_KB_ADD),
-							CE_INPUT_NO_DELAY, CE_INPUT_DEFAULT_RATE);
+						ce_input_supply_button(input_supply,
+							CE_KB_ADD), CE_INPUT_NO_DELAY, 5);
 	anmfps_dec_event = ce_input_supply_repeat(input_supply,
-						ce_input_supply_button(input_supply, CE_KB_SUBTRACT),
-							CE_INPUT_NO_DELAY, CE_INPUT_DEFAULT_RATE);
+						ce_input_supply_button(input_supply,
+							CE_KB_SUBTRACT), CE_INPUT_NO_DELAY, 5);
 
 	return ce_root_exec();
 }

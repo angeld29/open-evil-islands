@@ -36,8 +36,8 @@ extern "C"
 typedef struct {
 	void (*figproto_created)(void* listener, ce_figproto* figproto);
 	void (*figmesh_created)(void* listener, ce_figmesh* figmesh);
-	void (*figentity_created)(void* listener, ce_figentity* figentity);
-} ce_figmng_listener_vtable;
+	void* listener;
+} ce_figmng_listener;
 
 typedef struct {
 	ce_vector* resfiles;
@@ -53,7 +53,7 @@ extern void ce_figmng_del(ce_figmng* figmng);
 extern bool ce_figmng_register_resource(ce_figmng* figmng, const char* path);
 
 extern void ce_figmng_add_listener(ce_figmng* figmng,
-	ce_figmng_listener_vtable vtable, void* listener);
+									ce_figmng_listener* listener);
 
 extern ce_figentity*
 ce_figmng_create_figentity(ce_figmng* figmng,

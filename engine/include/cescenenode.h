@@ -43,7 +43,8 @@ typedef struct {
 	void (*about_to_update)(void* listener);
 	void (*updated)(void* listener);
 	void (*destroyed)(void* listener);
-} ce_scenenode_listener_vtable;
+	void* listener;
+} ce_scenenode_listener;
 
 typedef struct ce_scenenode ce_scenenode;
 
@@ -56,9 +57,8 @@ struct ce_scenenode {
 	ce_bbox world_bbox;
 	ce_vector* renderitems;
 	ce_occlusion* occlusion;
-	// only one generic listener supported for performance reasons
-	ce_scenenode_listener_vtable listener_vtable;
-	void* listener;
+	// only one listener supported for performance reasons
+	ce_scenenode_listener listener;
 	ce_scenenode* parent;
 	ce_vector* childs;
 };

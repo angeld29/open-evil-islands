@@ -26,7 +26,6 @@
 #include <assert.h>
 
 #include "cegl.h"
-
 #include "celib.h"
 #include "cemath.h"
 #include "cebyteorder.h"

@@ -76,11 +76,6 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								ce_texture* textures[],
 								ce_scenenode* scenenode)
 {
-	ce_scenenode_listener_vtable listener_vtable = {
-		NULL, NULL, ce_figentity_scenenode_about_to_update,
-		ce_figentity_scenenode_updated, NULL
-	};
-
 	ce_figentity* figentity = ce_alloc(sizeof(ce_figentity));
 	figentity->figmesh = ce_figmesh_add_ref(figmesh);
 	figentity->figbone = ce_figbone_new(figmesh->figproto->fignode,
@@ -91,8 +86,9 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 	figentity->scenenode->position = *position;
 	figentity->scenenode->orientation = *orientation;
 	figentity->scenenode->occlusion = ce_occlusion_new();
-	figentity->scenenode->listener_vtable = listener_vtable;
-	figentity->scenenode->listener = figentity;
+	figentity->scenenode->listener = (ce_scenenode_listener)
+		{NULL, NULL, ce_figentity_scenenode_about_to_update,
+		ce_figentity_scenenode_updated, NULL, figentity};
 
 	for (int i = 0; i < texture_count; ++i) {
 		ce_vector_push_back(figentity->textures,

@@ -21,7 +21,6 @@
 #include <assert.h>
 
 #include "cegl.h"
-
 #include "cealloc.h"
 #include "ceocclusion.h"
 
