@@ -22,6 +22,7 @@
 #define CE_LIB_H
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #define ce_unused(var) (void)(var)
 
@@ -39,6 +40,24 @@ extern void ce_swap(int* a, int* b);
 
 extern int ce_clamp(int v, int a, int b);
 extern size_t ce_sclamp(size_t v, size_t a, size_t b);
+
+// is power of two (using 2's complement arithmetic)
+static inline bool ce_ispot(size_t x)
+{
+	return 0 == (x & (x - 1));
+}
+
+// next largest power of two (using SWAR algorithm)
+static inline size_t ce_nlpot(size_t x)
+{
+	// FIXME: only for 32 bit value
+	x |= (x >> 1);
+	x |= (x >> 2);
+	x |= (x >> 4);
+	x |= (x >> 8);
+	x |= (x >> 16);
+	return x + 1;
+}
 
 #ifdef __cplusplus
 }

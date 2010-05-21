@@ -51,7 +51,7 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	scenemng->viewport = ce_viewport_new();
 	scenemng->camera = ce_camera_new();
 	scenemng->fps = ce_fps_new();
-	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
+	scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
 	scenemng->listeners = ce_vector_new();
 	scenemng->input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
 	scenemng->move_left_event = ce_input_supply_shortcut(scenemng->input_supply, "ArrowLeft");
@@ -243,6 +243,12 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_font_get_width(scenemng->font, scenemng->fps->text) - 10,
 		scenemng->viewport->height - ce_font_get_height(scenemng->font) - 10,
 		&CE_COLOR_RED, scenemng->fps->text);
+
+	const char* engine_text = "Powered by Cursed Earth Engine";
+
+	ce_font_render(scenemng->font, scenemng->viewport->width -
+		ce_font_get_width(scenemng->font, engine_text) - 10, 10,
+		&CE_COLOR_RED, engine_text);
 
 	ce_rendersystem_end_render(ce_root.rendersystem);
 }

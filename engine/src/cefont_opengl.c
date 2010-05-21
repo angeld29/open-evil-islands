@@ -31,27 +31,20 @@
 #include "ceresource.h"
 #include "cefont.h"
 
-#define CE_FONT_NUM_CHARS 96
-
-static const unsigned int CE_FONT_SPACE = 32;
-//static const unsigned int CE_FONT_NUM_CHARS = 96;
-
-static const size_t CE_FONT_MARGIN = 3;
+enum {
+	CE_FONT_NUM_CHARS = 96,
+	CE_FONT_SPACE = 32,
+	CE_FONT_MARGIN = 3,
+};
 
 struct ce_font {
-	FT_Library library;
 	unsigned char widths[CE_FONT_NUM_CHARS];
 	unsigned int height;
+	FT_Library library;
 	GLuint list, tex;
 };
 
-ce_font* ce_font_new(ce_font_type type)
-{
-	ce_font* font = ce_alloc_zero(sizeof(ce_font));
-	return font;
-}
-
-ce_font* ce_font_new_path(const char* resource_path)
+ce_font* ce_font_new(const char* resource_path, int pixel_size)
 {
 	ce_font* font = ce_alloc_zero(sizeof(ce_font));
 
@@ -80,7 +73,7 @@ ce_font* ce_font_new_path(const char* resource_path)
 	assert(face->face_flags & FT_FACE_FLAG_SCALABLE &&
 			face->face_flags & FT_FACE_FLAG_HORIZONTAL && "invalid font");
 
-	FT_Set_Pixel_Sizes(face, 24, 0); // TODO: size
+	FT_Set_Pixel_Sizes(face, pixel_size, 0);
 
 	// find max ascent/descent to calculate imageHeight
 	size_t image_width = 256;
@@ -112,13 +105,15 @@ ce_font* ce_font_new_path(const char* resource_path)
 
 	font->height = max_ascent + max_descent;
 
-	// TODO: POT?
 	size_t image_height = (font->height + CE_FONT_MARGIN) * lines + CE_FONT_MARGIN;
+	if (!ce_ispot(image_height)) {
+		image_height = ce_nlpot(image_height);
+	}
 
 	// generation of the actual texture
 	font->list = glGenLists(CE_FONT_NUM_CHARS);
 
-	unsigned char* image = ce_alloc(image_width * image_height);
+	unsigned char* image = ce_alloc_zero(image_width * image_height);
 
 	size_t x = CE_FONT_MARGIN;
 	size_t y = CE_FONT_MARGIN + max_ascent;
@@ -142,10 +137,10 @@ ce_font* ce_font_new_path(const char* resource_path)
 
 		glNewList(font->list + ch, GL_COMPILE);
 		glBegin(GL_QUADS);
-		glTexCoord2f(texx1, texy1); glVertex2i(0, 0);
-		glTexCoord2f(texx2, texy1); glVertex2i(font->widths[ch], 0);
-		glTexCoord2f(texx2, texy2); glVertex2i(font->widths[ch], font->height);
-		glTexCoord2f(texx1, texy2); glVertex2i(0, font->height);
+		glTexCoord2f(texx1, texy2); glVertex2i(0, 0);
+		glTexCoord2f(texx2, texy2); glVertex2i(font->widths[ch], 0);
+		glTexCoord2f(texx2, texy1); glVertex2i(font->widths[ch], font->height);
+		glTexCoord2f(texx1, texy1); glVertex2i(0, font->height);
 		glEnd();
 		glTranslatef(font->widths[ch], 0.0f, 0.0f);
 		glEndList();
@@ -205,13 +200,15 @@ int ce_font_get_width(ce_font* font, const char* text)
 void ce_font_render(ce_font* font, int x, int y,
 					const ce_color* color, const char* text)
 {
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glPushAttrib(GL_ENABLE_BIT | GL_LIST_BIT);
 
-	glEnable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
 
-	glBindTexture(GL_TEXTURE_2D, font->tex);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glBindTexture(GL_TEXTURE_2D, font->tex);
 
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
@@ -225,23 +222,18 @@ void ce_font_render(ce_font* font, int x, int y,
 	glPushMatrix();
 	glLoadIdentity();
 
-	glTranslated(x, y, 0.0f);
+	glTranslatef(x, y, 0.0f);
 
+#ifndef NDEBUG
 	for (size_t i = 0, length = strlen(text); i < length; ++i) {
-		unsigned char ch = text[i] - CE_FONT_SPACE;
-
-		//assert(ch < CE_FONT_NUM_CHARS);
-
-		// replace characters outside the valid range with undrawable
-		if(ch > CE_FONT_NUM_CHARS) {
-			ch = CE_FONT_NUM_CHARS - 1; // last character is 'undrawable'
-		}
-
-		glCallList(font->list + ch);
+		assert(text[i] - CE_FONT_SPACE < CE_FONT_NUM_CHARS);
 	}
+#endif
 
-	//glListBase(font->list - 32);
-	//glCallLists(strlen(text), GL_UNSIGNED_BYTE, text);
+	glColor4f(color->r, color->g, color->b, color->a);
+
+	glListBase(font->list - CE_FONT_SPACE);
+	glCallLists(strlen(text), GL_UNSIGNED_BYTE, text);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

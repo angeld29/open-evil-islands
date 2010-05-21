@@ -28,15 +28,9 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef enum {
-	CE_FONT_TYPE_HELVETICA_18,
-	CE_FONT_TYPE_COUNT
-} ce_font_type;
-
 typedef struct ce_font ce_font;
 
-extern ce_font* ce_font_new(ce_font_type type);
-extern ce_font* ce_font_new_path(const char* resource_path);
+extern ce_font* ce_font_new(const char* resource_path, int pixel_size);
 extern void ce_font_del(ce_font* font);
 
 extern int ce_font_get_height(ce_font* font);
