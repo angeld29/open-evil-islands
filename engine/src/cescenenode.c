@@ -19,7 +19,6 @@
 */
 
 #include <stdio.h>
-#include <string.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -34,12 +33,8 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 	scenenode->position = CE_VEC3_ZERO;
 	scenenode->orientation = CE_QUAT_IDENTITY;
 	scenenode->renderitems = ce_vector_new();
-	scenenode->occlusion = NULL;
-	scenenode->listener = NULL;
 	scenenode->parent = parent;
 	scenenode->childs = ce_vector_new();
-	memset(&scenenode->listener_vtable, '\0',
-			sizeof(ce_scenenode_listener_vtable));
 	if (NULL != parent) {
 		ce_vector_push_back(parent->childs, scenenode);
 	}
@@ -59,8 +54,8 @@ void ce_scenenode_del(ce_scenenode* scenenode)
 		ce_occlusion_del(scenenode->occlusion);
 		ce_vector_for_each(scenenode->renderitems, ce_renderitem_del);
 		ce_vector_del(scenenode->renderitems);
-		if (NULL != scenenode->listener_vtable.destroyed) {
-			(*scenenode->listener_vtable.destroyed)(scenenode->listener);
+		if (NULL != scenenode->listener.destroyed) {
+			(*scenenode->listener.destroyed)(scenenode->listener.listener);
 		}
 		ce_free(scenenode, sizeof(ce_scenenode));
 	}
@@ -71,8 +66,8 @@ void ce_scenenode_detach_from_parent(ce_scenenode* scenenode)
 	if (NULL != scenenode->parent) {
 		ce_scenenode_detach_child(scenenode->parent, scenenode);
 		scenenode->parent = NULL;
-		if (NULL != scenenode->listener_vtable.detached) {
-			(*scenenode->listener_vtable.detached)(scenenode->listener);
+		if (NULL != scenenode->listener.detached) {
+			(*scenenode->listener.detached)(scenenode->listener.listener);
 		}
 	}
 }
@@ -169,8 +164,8 @@ void ce_scenenode_update_force_cascade(ce_scenenode* scenenode)
 {
 	scenenode->culled = false;
 
-	if (NULL != scenenode->listener_vtable.about_to_update) {
-		(*scenenode->listener_vtable.about_to_update)(scenenode->listener);
+	if (NULL != scenenode->listener.about_to_update) {
+		(*scenenode->listener.about_to_update)(scenenode->listener.listener);
 	}
 
 	ce_scenenode_update_transform(scenenode);
@@ -179,8 +174,8 @@ void ce_scenenode_update_force_cascade(ce_scenenode* scenenode)
 	}
 	ce_scenenode_update_bounds(scenenode);
 
-	if (NULL != scenenode->listener_vtable.updated) {
-		(*scenenode->listener_vtable.updated)(scenenode->listener);
+	if (NULL != scenenode->listener.updated) {
+		(*scenenode->listener.updated)(scenenode->listener.listener);
 	}
 }
 
@@ -200,8 +195,8 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode, const ce_frustum* frus
 	}
 
 	if (!scenenode->culled) {
-		if (NULL != scenenode->listener_vtable.about_to_update) {
-			(*scenenode->listener_vtable.about_to_update)(scenenode->listener);
+		if (NULL != scenenode->listener.about_to_update) {
+			(*scenenode->listener.about_to_update)(scenenode->listener.listener);
 		}
 
 		ce_scenenode_update_transform(scenenode);
@@ -210,8 +205,8 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode, const ce_frustum* frus
 		}
 		ce_scenenode_update_bounds(scenenode);
 
-		if (NULL != scenenode->listener_vtable.updated) {
-			(*scenenode->listener_vtable.updated)(scenenode->listener);
+		if (NULL != scenenode->listener.updated) {
+			(*scenenode->listener.updated)(scenenode->listener.listener);
 		}
 	}
 }

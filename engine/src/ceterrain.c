@@ -274,13 +274,9 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 	sector->renderitem->bbox.aabb = sector->renderitem->aabb;
 	sector->renderitem->bbox.axis = CE_QUAT_IDENTITY;
 
-	ce_scenenode_listener_vtable listener_vtable = {
-		NULL, NULL, NULL, ce_terrain_sector_scenenode_updated, NULL
-	};
-
 	ce_scenenode* scenenode = ce_scenenode_new(cookie->terrain->scenenode);
-	scenenode->listener_vtable = listener_vtable;
-	scenenode->listener = sector;
+	scenenode->listener = (ce_scenenode_listener) {NULL, NULL, NULL,
+		ce_terrain_sector_scenenode_updated, NULL, sector};
 
 	ce_scenenode_add_renderitem(scenenode, sector->renderitem);
 }
