@@ -29,24 +29,16 @@
 #include "cealloc.h"
 #include "ceroot.h"
 
+static ce_optparse* optparse;
+
 static ce_input_event_supply* input_supply;
 static ce_input_event* anmfps_inc_event;
 static ce_input_event* anmfps_dec_event;
 
-static float anmfps_limit = 0.1f;
-static float anmfps_inc_counter;
-static float anmfps_dec_counter;
-
-static void destroy_input()
+static void clean()
 {
 	ce_input_event_supply_del(input_supply);
-}
-
-static void create_input()
-{
-	input_supply = ce_input_event_supply_new(ce_root.renderwindow->input_context);
-	anmfps_inc_event = ce_input_event_supply_button(input_supply, CE_KB_ADD);
-	anmfps_dec_event = ce_input_event_supply_button(input_supply, CE_KB_SUBTRACT);
+	ce_optparse_del(optparse);
 }
 
 static void advance(void* listener, float elapsed)
@@ -54,18 +46,8 @@ static void advance(void* listener, float elapsed)
 	ce_unused(listener);
 	ce_input_event_supply_advance(input_supply, elapsed);
 
-	anmfps_inc_counter += elapsed;
-	anmfps_dec_counter += elapsed;
-
-	if (anmfps_inc_event->triggered && anmfps_inc_counter >= anmfps_limit) {
-		ce_root.anmfps += 1.0f;
-		anmfps_inc_counter = 0.0f;
-	}
-
-	if (anmfps_dec_event->triggered && anmfps_dec_counter >= anmfps_limit) {
-		ce_root.anmfps -= 1.0f;
-		anmfps_dec_counter = 0.0f;
-	}
+	if (anmfps_inc_event->triggered) ce_root.anmfps += 1.0f;
+	if (anmfps_dec_event->triggered) ce_root.anmfps -= 1.0f;
 
 	ce_root.anmfps = ce_fclamp(ce_root.anmfps, 1.0f, 50.0f);
 }
@@ -76,7 +58,7 @@ int main(int argc, char* argv[])
 {
 	ce_alloc_init();
 
-	ce_optparse* optparse = ce_root_create_optparse();
+	optparse = ce_root_create_optparse();
 
 	ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR,
 		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
@@ -88,8 +70,9 @@ int main(int argc, char* argv[])
 
 	ce_optparse_add_control(optparse, "+/-", "change animation FPS");
 
+	atexit(clean);
+
 	if (!ce_optparse_parse(optparse, argc, argv) || !ce_root_init(optparse)) {
-		ce_optparse_del(optparse);
 		return EXIT_FAILURE;
 	}
 
@@ -100,7 +83,6 @@ int main(int argc, char* argv[])
 
 	if (NULL == ce_scenemng_create_terrain(ce_root.scenemng, zone,
 							&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
-		ce_optparse_del(optparse);
 		return EXIT_FAILURE;
 	}
 
@@ -182,12 +164,15 @@ int main(int argc, char* argv[])
 		fclose(file);
 	}*/
 
-	create_input();
-	atexit(destroy_input);
-
 	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
 
-	ce_optparse_del(optparse);
+	input_supply = ce_input_event_supply_new(ce_root.renderwindow->input_context);
+	anmfps_inc_event = ce_input_event_supply_repeat(input_supply,
+		ce_input_event_supply_button(input_supply, CE_KB_ADD),
+		CE_INPUT_NO_DELAY, CE_INPUT_DEFAULT_RATE);
+	anmfps_dec_event = ce_input_event_supply_repeat(input_supply,
+		ce_input_event_supply_button(input_supply, CE_KB_SUBTRACT),
+		CE_INPUT_NO_DELAY, CE_INPUT_DEFAULT_RATE);
 
 	return ce_root_exec();
 }

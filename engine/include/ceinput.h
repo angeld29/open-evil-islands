@@ -147,6 +147,16 @@ typedef enum {
 	CE_IB_COUNT
 } ce_input_button;
 
+enum {
+	CE_INPUT_NO_DELAY,
+	CE_INPUT_DEFAULT_DELAY = 450,
+};
+
+enum {
+	CE_INPUT_NO_RATE,
+	CE_INPUT_DEFAULT_RATE = 25,
+};
+
 // level 0 input API - available through window
 
 typedef struct {
@@ -230,6 +240,14 @@ ce_input_event_supply_or3(ce_input_event_supply* supply,
 							const ce_input_event* event1,
 							const ce_input_event* event2,
 							const ce_input_event* event3);
+
+// Repeat event
+
+extern ce_input_event*
+ce_input_event_supply_repeat(ce_input_event_supply* supply,
+							const ce_input_event* event,
+							int delay, // in ms
+							int rate); // in tps - triggers per second
 
 // level 2 input API - shortcuts
 

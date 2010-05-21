@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <float.h>
 #include <string.h>
 #include <assert.h>
 
@@ -80,9 +81,8 @@ void ce_input_event_supply_advance(ce_input_event_supply* supply, float elapsed)
 static ce_input_event* ce_input_event_supply_event(ce_input_event_supply* supply,
 	ce_input_event_vtable vtable, size_t size, ...)
 {
-	ce_input_event* event = ce_alloc(sizeof(ce_input_event) + size);
+	ce_input_event* event = ce_alloc_zero(sizeof(ce_input_event) + size);
 
-	event->triggered = false;
 	event->vtable = vtable;
 	event->size = size;
 
@@ -116,14 +116,11 @@ static void ce_input_event_button_advance(ce_input_event* event, float elapsed)
 	event->triggered = button_event->context->buttons[button_event->button];
 }
 
-static const ce_input_event_vtable ce_input_event_button_vtable = {
-	ce_input_event_button_ctor, NULL, ce_input_event_button_advance
-};
-
 ce_input_event* ce_input_event_supply_button(ce_input_event_supply* supply,
 													ce_input_button button)
 {
-	return ce_input_event_supply_event(supply, ce_input_event_button_vtable,
+	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+		{ce_input_event_button_ctor, NULL, ce_input_event_button_advance},
 		sizeof(ce_input_event_button), supply->context, button);
 }
 
@@ -136,32 +133,24 @@ typedef struct {
 
 static void ce_input_event_single_front_ctor(ce_input_event* event, va_list args)
 {
-	ce_input_event_single_front* single_front_event =
-		(ce_input_event_single_front*)event->impl;
-	single_front_event->event = va_arg(args, const ce_input_event*);
-	single_front_event->activated = false;
+	ce_input_event_single_front* sf_event = (ce_input_event_single_front*)event->impl;
+	sf_event->event = va_arg(args, const ce_input_event*);
 }
 
 static void ce_input_event_single_front_advance(ce_input_event* event, float elapsed)
 {
 	ce_unused(elapsed);
-	ce_input_event_single_front* single_front_event =
-		(ce_input_event_single_front*)event->impl;
-	event->triggered = !single_front_event->activated &&
-						single_front_event->event->triggered;
-	single_front_event->activated = single_front_event->event->triggered;
+	ce_input_event_single_front* sf_event = (ce_input_event_single_front*)event->impl;
+	event->triggered = !sf_event->activated && sf_event->event->triggered;
+	sf_event->activated = sf_event->event->triggered;
 }
 
-static const ce_input_event_vtable ce_input_event_single_front_vtable = {
-	ce_input_event_single_front_ctor, NULL, ce_input_event_single_front_advance
-};
-
-ce_input_event*
-ce_input_event_supply_single_front(ce_input_event_supply* supply,
-									const ce_input_event* event)
+ce_input_event* ce_input_event_supply_single_front(ce_input_event_supply* supply,
+												const ce_input_event* event)
 {
-	return ce_input_event_supply_event(supply, ce_input_event_single_front_vtable,
-									sizeof(ce_input_event_single_front), event);
+	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+		{ce_input_event_single_front_ctor, NULL, ce_input_event_single_front_advance},
+		sizeof(ce_input_event_single_front), event);
 }
 
 // Single Back event
@@ -173,32 +162,24 @@ typedef struct {
 
 static void ce_input_event_single_back_ctor(ce_input_event* event, va_list args)
 {
-	ce_input_event_single_back* single_back_event =
-		(ce_input_event_single_back*)event->impl;
-	single_back_event->event = va_arg(args, const ce_input_event*);
-	single_back_event->activated = false;
+	ce_input_event_single_back* sb_event = (ce_input_event_single_back*)event->impl;
+	sb_event->event = va_arg(args, const ce_input_event*);
 }
 
 static void ce_input_event_single_back_advance(ce_input_event* event, float elapsed)
 {
 	ce_unused(elapsed);
-	ce_input_event_single_back* single_back_event =
-		(ce_input_event_single_back*)event->impl;
-	event->triggered = single_back_event->activated &&
-						!single_back_event->event->triggered;
-	single_back_event->activated = single_back_event->event->triggered;
+	ce_input_event_single_back* sb_event = (ce_input_event_single_back*)event->impl;
+	event->triggered = sb_event->activated && !sb_event->event->triggered;
+	sb_event->activated = sb_event->event->triggered;
 }
 
-static const ce_input_event_vtable ce_input_event_single_back_vtable = {
-	ce_input_event_single_back_ctor, NULL, ce_input_event_single_back_advance
-};
-
-ce_input_event*
-ce_input_event_supply_single_back(ce_input_event_supply* supply,
-									const ce_input_event* event)
+ce_input_event* ce_input_event_supply_single_back(ce_input_event_supply* supply,
+												const ce_input_event* event)
 {
-	return ce_input_event_supply_event(supply, ce_input_event_single_back_vtable,
-									sizeof(ce_input_event_single_back), event);
+	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+		{ce_input_event_single_back_ctor, NULL, ce_input_event_single_back_advance},
+		sizeof(ce_input_event_single_back), event);
 }
 
 // AND event
@@ -223,16 +204,13 @@ static void ce_input_event_and_advance(ce_input_event* event, float elapsed)
 						and_event->event2->triggered;
 }
 
-static const ce_input_event_vtable ce_input_event_and_vtable = {
-	ce_input_event_and_ctor, NULL, ce_input_event_and_advance
-};
-
 ce_input_event* ce_input_event_supply_and2(ce_input_event_supply* supply,
 											const ce_input_event* event1,
 											const ce_input_event* event2)
 {
-	return ce_input_event_supply_event(supply, ce_input_event_and_vtable,
-									sizeof(ce_input_event_and), event1, event2);
+	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+		{ce_input_event_and_ctor, NULL, ce_input_event_and_advance},
+		sizeof(ce_input_event_and), event1, event2);
 }
 
 ce_input_event* ce_input_event_supply_and3(ce_input_event_supply* supply,
@@ -266,16 +244,13 @@ static void ce_input_event_or_advance(ce_input_event* event, float elapsed)
 						or_event->event2->triggered;
 }
 
-static const ce_input_event_vtable ce_input_event_or_vtable = {
-	ce_input_event_or_ctor, NULL, ce_input_event_or_advance
-};
-
 ce_input_event* ce_input_event_supply_or2(ce_input_event_supply* supply,
 											const ce_input_event* event1,
 											const ce_input_event* event2)
 {
-	return ce_input_event_supply_event(supply, ce_input_event_or_vtable,
-									sizeof(ce_input_event_or), event1, event2);
+	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+		{ce_input_event_or_ctor, NULL, ce_input_event_or_advance},
+		sizeof(ce_input_event_or), event1, event2);
 }
 
 ce_input_event* ce_input_event_supply_or3(ce_input_event_supply* supply,
@@ -285,6 +260,57 @@ ce_input_event* ce_input_event_supply_or3(ce_input_event_supply* supply,
 {
 	return ce_input_event_supply_or2(supply, event1,
 			ce_input_event_supply_or2(supply, event2, event3));
+}
+
+// Repeat event
+
+typedef struct {
+	const ce_input_event* event;
+	float delay, delay_elapsed;
+	float rate, rate_elapsed;
+} ce_input_event_repeat;
+
+static void ce_input_event_repeat_ctor(ce_input_event* event, va_list args)
+{
+	ce_input_event_repeat* repeat_event = (ce_input_event_repeat*)event->impl;
+	repeat_event->event = va_arg(args, const ce_input_event*);
+	repeat_event->delay = va_arg(args, int) * 1e-3f;
+	int rate = va_arg(args, int);
+	repeat_event->rate = (rate > 0) ? (1.0f / rate) : FLT_MAX;
+}
+
+static void ce_input_event_repeat_advance(ce_input_event* event, float elapsed)
+{
+	ce_input_event_repeat* repeat_event = (ce_input_event_repeat*)event->impl;
+	event->triggered = false;
+
+	if (repeat_event->event->triggered) {
+		if (repeat_event->delay_elapsed < repeat_event->delay) {
+			repeat_event->delay_elapsed += elapsed;
+			if (repeat_event->delay_elapsed >= repeat_event->delay) {
+				elapsed = repeat_event->delay_elapsed - repeat_event->delay;
+			}
+		}
+		if (repeat_event->delay_elapsed >= repeat_event->delay) {
+			repeat_event->rate_elapsed += elapsed;
+			if (repeat_event->rate_elapsed >= repeat_event->rate) {
+				event->triggered = true;
+				repeat_event->rate_elapsed = 0.0f;
+			}
+		}
+	} else {
+		repeat_event->delay_elapsed = 0.0f;
+		repeat_event->rate_elapsed = 0.0f;
+	}
+}
+
+ce_input_event* ce_input_event_supply_repeat(ce_input_event_supply* supply,
+											const ce_input_event* event,
+											int delay, int rate)
+{
+	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+		{ce_input_event_repeat_ctor, NULL, ce_input_event_repeat_advance},
+		sizeof(ce_input_event_repeat), event, delay, rate);
 }
 
 // level 2 input API implementation
