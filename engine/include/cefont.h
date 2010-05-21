@@ -36,6 +36,7 @@ typedef enum {
 typedef struct ce_font ce_font;
 
 extern ce_font* ce_font_new(ce_font_type type);
+extern ce_font* ce_font_new_path(const char* resource_path);
 extern void ce_font_del(ce_font* font);
 
 extern int ce_font_get_height(ce_font* font);
