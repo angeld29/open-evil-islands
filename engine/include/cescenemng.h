@@ -61,7 +61,7 @@ typedef struct {
 	ce_fps* fps;
 	ce_font* font;
 	ce_vector* listeners;
-	ce_input_event_supply* event_supply;
+	ce_input_supply* input_supply;
 	ce_input_event* move_left_event;
 	ce_input_event* move_up_event;
 	ce_input_event* move_right_event;

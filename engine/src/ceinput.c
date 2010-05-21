@@ -47,15 +47,15 @@ void ce_input_context_clear(ce_input_context* context)
 
 // level 1 input API implementation
 
-ce_input_event_supply* ce_input_event_supply_new(const ce_input_context* context)
+ce_input_supply* ce_input_supply_new(const ce_input_context* context)
 {
-	ce_input_event_supply* supply = ce_alloc(sizeof(ce_input_event_supply));
+	ce_input_supply* supply = ce_alloc(sizeof(ce_input_supply));
 	supply->context = context;
 	supply->events = ce_vector_new();
 	return supply;
 }
 
-void ce_input_event_supply_del(ce_input_event_supply* supply)
+void ce_input_supply_del(ce_input_supply* supply)
 {
 	if (NULL != supply) {
 		for (int i = 0; i < supply->events->count; ++i) {
@@ -66,11 +66,11 @@ void ce_input_event_supply_del(ce_input_event_supply* supply)
 			ce_free(event, sizeof(ce_input_event) + event->size);
 		}
 		ce_vector_del(supply->events);
-		ce_free(supply, sizeof(ce_input_event_supply));
+		ce_free(supply, sizeof(ce_input_supply));
 	}
 }
 
-void ce_input_event_supply_advance(ce_input_event_supply* supply, float elapsed)
+void ce_input_supply_advance(ce_input_supply* supply, float elapsed)
 {
 	for (int i = 0; i < supply->events->count; ++i) {
 		ce_input_event* event = supply->events->items[i];
@@ -78,7 +78,7 @@ void ce_input_event_supply_advance(ce_input_event_supply* supply, float elapsed)
 	}
 }
 
-static ce_input_event* ce_input_event_supply_event(ce_input_event_supply* supply,
+static ce_input_event* ce_input_supply_event(ce_input_supply* supply,
 	ce_input_event_vtable vtable, size_t size, ...)
 {
 	ce_input_event* event = ce_alloc_zero(sizeof(ce_input_event) + size);
@@ -116,10 +116,10 @@ static void ce_input_event_button_advance(ce_input_event* event, float elapsed)
 	event->triggered = button_event->context->buttons[button_event->button];
 }
 
-ce_input_event* ce_input_event_supply_button(ce_input_event_supply* supply,
-													ce_input_button button)
+ce_input_event* ce_input_supply_button(ce_input_supply* supply,
+										ce_input_button button)
 {
-	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+	return ce_input_supply_event(supply, (ce_input_event_vtable)
 		{ce_input_event_button_ctor, NULL, ce_input_event_button_advance},
 		sizeof(ce_input_event_button), supply->context, button);
 }
@@ -145,10 +145,10 @@ static void ce_input_event_single_front_advance(ce_input_event* event, float ela
 	sf_event->activated = sf_event->event->triggered;
 }
 
-ce_input_event* ce_input_event_supply_single_front(ce_input_event_supply* supply,
-												const ce_input_event* event)
+ce_input_event* ce_input_supply_single_front(ce_input_supply* supply,
+											const ce_input_event* event)
 {
-	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+	return ce_input_supply_event(supply, (ce_input_event_vtable)
 		{ce_input_event_single_front_ctor, NULL, ce_input_event_single_front_advance},
 		sizeof(ce_input_event_single_front), event);
 }
@@ -174,10 +174,10 @@ static void ce_input_event_single_back_advance(ce_input_event* event, float elap
 	sb_event->activated = sb_event->event->triggered;
 }
 
-ce_input_event* ce_input_event_supply_single_back(ce_input_event_supply* supply,
-												const ce_input_event* event)
+ce_input_event* ce_input_supply_single_back(ce_input_supply* supply,
+											const ce_input_event* event)
 {
-	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+	return ce_input_supply_event(supply, (ce_input_event_vtable)
 		{ce_input_event_single_back_ctor, NULL, ce_input_event_single_back_advance},
 		sizeof(ce_input_event_single_back), event);
 }
@@ -204,22 +204,22 @@ static void ce_input_event_and_advance(ce_input_event* event, float elapsed)
 						and_event->event2->triggered;
 }
 
-ce_input_event* ce_input_event_supply_and2(ce_input_event_supply* supply,
-											const ce_input_event* event1,
-											const ce_input_event* event2)
+ce_input_event* ce_input_supply_and2(ce_input_supply* supply,
+									const ce_input_event* event1,
+									const ce_input_event* event2)
 {
-	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+	return ce_input_supply_event(supply, (ce_input_event_vtable)
 		{ce_input_event_and_ctor, NULL, ce_input_event_and_advance},
 		sizeof(ce_input_event_and), event1, event2);
 }
 
-ce_input_event* ce_input_event_supply_and3(ce_input_event_supply* supply,
-											const ce_input_event* event1,
-											const ce_input_event* event2,
-											const ce_input_event* event3)
+ce_input_event* ce_input_supply_and3(ce_input_supply* supply,
+									const ce_input_event* event1,
+									const ce_input_event* event2,
+									const ce_input_event* event3)
 {
-	return ce_input_event_supply_and2(supply, event1,
-			ce_input_event_supply_and2(supply, event2, event3));
+	return ce_input_supply_and2(supply, event1,
+			ce_input_supply_and2(supply, event2, event3));
 }
 
 // OR event
@@ -244,22 +244,22 @@ static void ce_input_event_or_advance(ce_input_event* event, float elapsed)
 						or_event->event2->triggered;
 }
 
-ce_input_event* ce_input_event_supply_or2(ce_input_event_supply* supply,
-											const ce_input_event* event1,
-											const ce_input_event* event2)
+ce_input_event* ce_input_supply_or2(ce_input_supply* supply,
+									const ce_input_event* event1,
+									const ce_input_event* event2)
 {
-	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+	return ce_input_supply_event(supply, (ce_input_event_vtable)
 		{ce_input_event_or_ctor, NULL, ce_input_event_or_advance},
 		sizeof(ce_input_event_or), event1, event2);
 }
 
-ce_input_event* ce_input_event_supply_or3(ce_input_event_supply* supply,
-											const ce_input_event* event1,
-											const ce_input_event* event2,
-											const ce_input_event* event3)
+ce_input_event* ce_input_supply_or3(ce_input_supply* supply,
+									const ce_input_event* event1,
+									const ce_input_event* event2,
+									const ce_input_event* event3)
 {
-	return ce_input_event_supply_or2(supply, event1,
-			ce_input_event_supply_or2(supply, event2, event3));
+	return ce_input_supply_or2(supply, event1,
+			ce_input_supply_or2(supply, event2, event3));
 }
 
 // Repeat event
@@ -304,11 +304,11 @@ static void ce_input_event_repeat_advance(ce_input_event* event, float elapsed)
 	}
 }
 
-ce_input_event* ce_input_event_supply_repeat(ce_input_event_supply* supply,
-											const ce_input_event* event,
-											int delay, int rate)
+ce_input_event* ce_input_supply_repeat(ce_input_supply* supply,
+									const ce_input_event* event,
+									int delay, int rate)
 {
-	return ce_input_event_supply_event(supply, (ce_input_event_vtable)
+	return ce_input_supply_event(supply, (ce_input_event_vtable)
 		{ce_input_event_repeat_ctor, NULL, ce_input_event_repeat_advance},
 		sizeof(ce_input_event_repeat), event, delay, rate);
 }
@@ -339,19 +339,19 @@ static const char* ce_input_button_names[CE_IB_COUNT] = {
 };
 
 static ce_input_event*
-ce_input_button_event_from_button_name(ce_input_event_supply* supply,
+ce_input_button_event_from_button_name(ce_input_supply* supply,
 										const char* button_name)
 {
 	for (int i = CE_IB_UNKNOWN; i < CE_IB_COUNT; ++i) {
 		if (0 == strcmp(button_name, ce_input_button_names[i])) {
-			return ce_input_event_supply_button(supply, i);
+			return ce_input_supply_button(supply, i);
 		}
 	}
 	return NULL;
 }
 
-ce_input_event* ce_input_event_supply_shortcut(ce_input_event_supply* supply,
-												const char* key_sequence)
+ce_input_event* ce_input_supply_shortcut(ce_input_supply* supply,
+										const char* key_sequence)
 {
 	size_t length = strlen(key_sequence);
 	char buffer[length + 1], buffer2[length + 1], buffer3[length + 1];
@@ -385,13 +385,13 @@ ce_input_event* ce_input_event_supply_shortcut(ce_input_event_supply* supply,
 			}
 
 			if (NULL == (and_event = NULL == and_event ? ev :
-					ce_input_event_supply_and2(supply, and_event, ev))) {
+					ce_input_supply_and2(supply, and_event, ev))) {
 				return NULL;
 			}
 		} while (0 != strlen(and_seq));
 
 		if (NULL == (or_event = NULL == or_event ? and_event :
-				ce_input_event_supply_or2(supply, or_event, and_event))) {
+				ce_input_supply_or2(supply, or_event, and_event))) {
 			return NULL;
 		}
 	} while (0 != strlen(or_seq));

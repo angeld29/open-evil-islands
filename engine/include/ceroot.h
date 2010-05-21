@@ -48,7 +48,7 @@ extern struct ce_root {
 	ce_rendersystem* rendersystem;
 	ce_timer* timer;
 	ce_scenemng* scenemng;
-	ce_input_event_supply* event_supply;
+	ce_input_supply* input_supply;
 	ce_input_event* exit_event;
 	ce_input_event* switch_window_event;
 	ce_input_event* toggle_fullscreen_event;

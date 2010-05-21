@@ -74,7 +74,7 @@ static void ce_root_renderwindow_closed(void* listener)
 static void ce_root_term(void)
 {
 	if (ce_root.inited) {
-		ce_input_event_supply_del(ce_root.event_supply);
+		ce_input_supply_del(ce_root.input_supply);
 		ce_scenemng_del(ce_root.scenemng);
 		ce_timer_del(ce_root.timer);
 		ce_rendersystem_del(ce_root.rendersystem);
@@ -163,14 +163,14 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.timer = ce_timer_new();
 	ce_root.scenemng = ce_scenemng_new(ei_path);
 
-	ce_root.event_supply = ce_input_event_supply_new(ce_root.renderwindow->input_context);
-	ce_root.exit_event = ce_input_event_supply_button(ce_root.event_supply, CE_KB_ESCAPE);
-	ce_root.switch_window_event = ce_input_event_supply_single_front(ce_root.event_supply,
-		ce_input_event_supply_shortcut(ce_root.event_supply, "LAlt+Tab, RAlt+Tab"));
-	ce_root.toggle_fullscreen_event = ce_input_event_supply_single_front(ce_root.event_supply,
-		ce_input_event_supply_shortcut(ce_root.event_supply, "LAlt+Enter, RAlt+Enter"));
-	ce_root.toggle_bbox_event = ce_input_event_supply_single_front(ce_root.event_supply,
-		ce_input_event_supply_shortcut(ce_root.event_supply, "B"));
+	ce_root.input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
+	ce_root.exit_event = ce_input_supply_button(ce_root.input_supply, CE_KB_ESCAPE);
+	ce_root.switch_window_event = ce_input_supply_single_front(ce_root.input_supply,
+		ce_input_supply_shortcut(ce_root.input_supply, "LAlt+Tab, RAlt+Tab"));
+	ce_root.toggle_fullscreen_event = ce_input_supply_single_front(ce_root.input_supply,
+		ce_input_supply_shortcut(ce_root.input_supply, "LAlt+Enter, RAlt+Enter"));
+	ce_root.toggle_bbox_event = ce_input_supply_single_front(ce_root.input_supply,
+		ce_input_supply_shortcut(ce_root.input_supply, "B"));
 
 	ce_root.renderwindow_listener.closed = ce_root_renderwindow_closed;
 	ce_root.renderwindow_listener.listener = NULL;
@@ -204,7 +204,7 @@ int ce_root_exec(void)
 			break;
 		}
 
-		ce_input_event_supply_advance(ce_root.event_supply, elapsed);
+		ce_input_supply_advance(ce_root.input_supply, elapsed);
 
 		if (ce_root.exit_event->triggered) {
 			break;

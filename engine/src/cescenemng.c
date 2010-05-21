@@ -53,14 +53,14 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new(CE_FONT_TYPE_HELVETICA_18);
 	scenemng->listeners = ce_vector_new();
-	scenemng->event_supply = ce_input_event_supply_new(ce_root.renderwindow->input_context);
-	scenemng->move_left_event = ce_input_event_supply_shortcut(scenemng->event_supply, "ArrowLeft");
-	scenemng->move_up_event = ce_input_event_supply_shortcut(scenemng->event_supply, "ArrowUp");
-	scenemng->move_right_event = ce_input_event_supply_shortcut(scenemng->event_supply, "ArrowRight");
-	scenemng->move_down_event = ce_input_event_supply_shortcut(scenemng->event_supply, "ArrowDown");
-	scenemng->zoom_in_event = ce_input_event_supply_shortcut(scenemng->event_supply, "WheelUp");
-	scenemng->zoom_out_event = ce_input_event_supply_shortcut(scenemng->event_supply, "WheelDown");
-	scenemng->rotate_on_event = ce_input_event_supply_shortcut(scenemng->event_supply, "MouseRight");
+	scenemng->input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
+	scenemng->move_left_event = ce_input_supply_shortcut(scenemng->input_supply, "ArrowLeft");
+	scenemng->move_up_event = ce_input_supply_shortcut(scenemng->input_supply, "ArrowUp");
+	scenemng->move_right_event = ce_input_supply_shortcut(scenemng->input_supply, "ArrowRight");
+	scenemng->move_down_event = ce_input_supply_shortcut(scenemng->input_supply, "ArrowDown");
+	scenemng->zoom_in_event = ce_input_supply_shortcut(scenemng->input_supply, "WheelUp");
+	scenemng->zoom_out_event = ce_input_supply_shortcut(scenemng->input_supply, "WheelDown");
+	scenemng->rotate_on_event = ce_input_supply_shortcut(scenemng->input_supply, "MouseRight");
 
 	ce_figmng_listener_vtable listener_vtable = {
 		ce_scenemng_figproto_created, NULL, NULL
@@ -96,7 +96,7 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 void ce_scenemng_del(ce_scenemng* scenemng)
 {
 	if (NULL != scenemng) {
-		ce_input_event_supply_del(scenemng->event_supply);
+		ce_input_supply_del(scenemng->input_supply);
 		ce_vector_del(scenemng->listeners);
 		ce_font_del(scenemng->font);
 		ce_fps_del(scenemng->fps);
@@ -121,7 +121,7 @@ void ce_scenemng_add_listener(ce_scenemng* scenemng,
 void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 {
 	ce_fps_advance(scenemng->fps, elapsed);
-	ce_input_event_supply_advance(scenemng->event_supply, elapsed);
+	ce_input_supply_advance(scenemng->input_supply, elapsed);
 
 	if (scenemng->move_left_event->triggered) {
 		ce_camera_move(scenemng->camera, -10.0f * elapsed, 0.0f);
@@ -149,8 +149,8 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 
 	if (scenemng->rotate_on_event->triggered) {
 		ce_camera_yaw_pitch(scenemng->camera,
-			ce_deg2rad(-0.25f * scenemng->event_supply->context->pointer_offset.x),
-			ce_deg2rad(-0.25f * scenemng->event_supply->context->pointer_offset.y));
+			ce_deg2rad(-0.25f * scenemng->input_supply->context->pointer_offset.x),
+			ce_deg2rad(-0.25f * scenemng->input_supply->context->pointer_offset.y));
 	}
 
 	for (int i = 0; i < scenemng->listeners->count; ++i) {

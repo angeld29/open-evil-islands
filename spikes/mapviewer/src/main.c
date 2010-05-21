@@ -31,20 +31,20 @@
 
 static ce_optparse* optparse;
 
-static ce_input_event_supply* input_supply;
+static ce_input_supply* input_supply;
 static ce_input_event* anmfps_inc_event;
 static ce_input_event* anmfps_dec_event;
 
 static void clean()
 {
-	ce_input_event_supply_del(input_supply);
+	ce_input_supply_del(input_supply);
 	ce_optparse_del(optparse);
 }
 
 static void advance(void* listener, float elapsed)
 {
 	ce_unused(listener);
-	ce_input_event_supply_advance(input_supply, elapsed);
+	ce_input_supply_advance(input_supply, elapsed);
 
 	if (anmfps_inc_event->triggered) ce_root.anmfps += 1.0f;
 	if (anmfps_dec_event->triggered) ce_root.anmfps -= 1.0f;
@@ -166,13 +166,13 @@ int main(int argc, char* argv[])
 
 	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
 
-	input_supply = ce_input_event_supply_new(ce_root.renderwindow->input_context);
-	anmfps_inc_event = ce_input_event_supply_repeat(input_supply,
-		ce_input_event_supply_button(input_supply, CE_KB_ADD),
-		CE_INPUT_NO_DELAY, CE_INPUT_DEFAULT_RATE);
-	anmfps_dec_event = ce_input_event_supply_repeat(input_supply,
-		ce_input_event_supply_button(input_supply, CE_KB_SUBTRACT),
-		CE_INPUT_NO_DELAY, CE_INPUT_DEFAULT_RATE);
+	input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
+	anmfps_inc_event = ce_input_supply_repeat(input_supply,
+						ce_input_supply_button(input_supply, CE_KB_ADD),
+							CE_INPUT_NO_DELAY, CE_INPUT_DEFAULT_RATE);
+	anmfps_dec_event = ce_input_supply_repeat(input_supply,
+						ce_input_supply_button(input_supply, CE_KB_SUBTRACT),
+							CE_INPUT_NO_DELAY, CE_INPUT_DEFAULT_RATE);
 
 	return ce_root_exec();
 }
