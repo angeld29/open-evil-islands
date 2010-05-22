@@ -24,5 +24,8 @@
 ;  For example:
 ;  fonts/description.txt
 
+;exclude yourself
 resource.cerc
+
+;exclude rc for MS Windows (own compiler used)
 resource.rc
