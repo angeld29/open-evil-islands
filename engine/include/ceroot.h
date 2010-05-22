@@ -41,6 +41,7 @@ extern struct ce_root {
 	bool show_axes;
 	bool show_bboxes;
 	bool comprehensive_bbox_only;
+	bool show_fps;
 	bool terrain_tiling;
 	int thread_count;
 	float anmfps;

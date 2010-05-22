@@ -113,6 +113,7 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_optparse_get(optparse, "thread_count", &ce_root.thread_count);
 	ce_optparse_get(optparse, "terrain_tiling", &ce_root.terrain_tiling);
 	ce_optparse_get(optparse, "show_axes", &ce_root.show_axes);
+	ce_optparse_get(optparse, "show_fps", &ce_root.show_fps);
 
 	ce_root.show_bboxes = false;
 	ce_root.comprehensive_bbox_only = true;
@@ -299,6 +300,8 @@ ce_optparse* ce_root_create_optparse(void)
 
 	ce_optparse_add(optparse, "show_axes", CE_TYPE_BOOL, NULL, false,
 		NULL, "show-axes", "show x (red), y (green), z (blue) axes");
+	ce_optparse_add(optparse, "show_fps", CE_TYPE_BOOL, NULL, false,
+		NULL, "show-fps", "show fps counter");
 
 	ce_optparse_add_control(optparse, "alt + tab", "minimize fullscreen window");
 	ce_optparse_add_control(optparse, "alt + enter", "toggle fullscreen mode");

@@ -239,10 +239,12 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_font_render(scenemng->font, 10, 10, &CE_COLOR_RED, scenenode_text);
 #endif
 
-	ce_font_render(scenemng->font, scenemng->viewport->width -
-		ce_font_get_width(scenemng->font, scenemng->fps->text) - 10,
-		scenemng->viewport->height - ce_font_get_height(scenemng->font) - 10,
-		&CE_COLOR_RED, scenemng->fps->text);
+	if (ce_root.show_fps) {
+		ce_font_render(scenemng->font, scenemng->viewport->width -
+			ce_font_get_width(scenemng->font, scenemng->fps->text) - 10,
+			scenemng->viewport->height - ce_font_get_height(scenemng->font) - 10,
+			&CE_COLOR_RED, scenemng->fps->text);
+	}
 
 	const char* engine_text = "Powered by Cursed Earth Engine";
 
