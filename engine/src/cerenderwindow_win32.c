@@ -151,7 +151,7 @@ static bool ce_renderwindow_win_ctor(ce_renderwindow* renderwindow, va_list args
 	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].dwFlags = RIDEV_NOLEGACY;
 	winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].hwndTarget = NULL;
 
-	// TODO: implement it
+	// TODO: implement RID
 	//if (RegisterRawInputDevices(winwindow->rid, 2, sizeof(RAWINPUTDEVICE))) {
 	//	ce_logging_warning("renderwindow: using raw input");
 	//} else {
@@ -427,6 +427,7 @@ static bool ce_renderwindow_handler_input(ce_renderwindow* renderwindow, WPARAM 
 {
 	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
 
+	// TODO: implement RID
 	//printf("ce_renderwindow_handler_input\n");
 
 	/*UINT size;
