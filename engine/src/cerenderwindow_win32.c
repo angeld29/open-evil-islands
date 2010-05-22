@@ -397,13 +397,12 @@ static bool ce_renderwindow_handler_windowposchanged(ce_renderwindow* renderwind
 
 static bool ce_renderwindow_handler_activate(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
-	ce_unused(wparam), ce_unused(lparam);
+	ce_unused(lparam);
 
 	if (WA_INACTIVE == LOWORD(wparam)) {
 		if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
-			// TODO: exit fullscreen
-			//assert(CE_RENDERWINDOW_ACTION_NONE == renderwindow->action);
-			//renderwindow->action = CE_RENDERWINDOW_ACTION_MINIMIZE;
+			assert(CE_RENDERWINDOW_ACTION_NONE == renderwindow->action);
+			renderwindow->action = CE_RENDERWINDOW_ACTION_MINIMIZE;
 		}
 	}
 
