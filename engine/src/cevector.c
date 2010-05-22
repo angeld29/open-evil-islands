@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <string.h>
+#include <assert.h>
 
 #include "cealloc.h"
 #include "cevector.h"
@@ -46,11 +46,9 @@ void ce_vector_del(ce_vector* vector)
 void ce_vector_reserve(ce_vector* vector, int capacity)
 {
 	if (capacity > vector->capacity) {
-		void** items = ce_alloc_zero(sizeof(void*) * capacity);
-		memcpy(items, vector->items, sizeof(void*) * vector->count);
-		ce_free(vector->items, sizeof(void*) * vector->capacity);
+		vector->items = ce_realloc(vector->items,
+			sizeof(void*) * vector->capacity, sizeof(void*) * capacity);
 		vector->capacity = capacity;
-		vector->items = items;
 	}
 }
 

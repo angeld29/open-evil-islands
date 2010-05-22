@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "cealloc.h"
 #include "cestring.h"
@@ -61,12 +62,8 @@ void ce_string_del(ce_string* string)
 void ce_string_reserve(ce_string* string, int capacity)
 {
 	if (capacity > string->capacity) {
-		char* str = ce_alloc(capacity);
-		strncpy(str, string->str, string->length);
-		str[string->length] = '\0';
-		ce_free(string->str, string->capacity);
+		string->str = ce_realloc(string->str, string->capacity, capacity);
 		string->capacity = capacity;
-		string->str = str;
 	}
 }
 
@@ -101,18 +98,19 @@ void ce_string_assign_n(ce_string* string, const char* str, int n)
 	string->length = strlen(string->str);
 }
 
-void ce_string_assign_v(ce_string* string, const char* fmt, va_list args)
+void ce_string_assign_va(ce_string* string, const char* fmt, va_list args)
 {
+	// TODO: find better solution
 	char buffer[512];
 	vsnprintf(buffer, sizeof(buffer), fmt, args);
 	ce_string_assign(string, buffer);
 }
 
-void ce_string_assign_f(ce_string* string, const char* fmt, ...)
+void ce_string_assign_fmt(ce_string* string, const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	ce_string_assign_v(string, fmt, args);
+	ce_string_assign_va(string, fmt, args);
 	va_end(args);
 }
 
@@ -134,19 +132,20 @@ int ce_string_append_n(ce_string* string, const char* str, int n)
 	return string->length - old_length;
 }
 
-int ce_string_append_v(ce_string* string, const char* fmt, va_list args)
+int ce_string_append_va(ce_string* string, const char* fmt, va_list args)
 {
+	// TODO: find better solution
 	char buffer[512];
 	int count = vsnprintf(buffer, sizeof(buffer), fmt, args);
 	ce_string_append(string, buffer);
 	return count;
 }
 
-int ce_string_append_f(ce_string* string, const char* fmt, ...)
+int ce_string_append_fmt(ce_string* string, const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	int count = ce_string_append_v(string, fmt, args);
+	int count = ce_string_append_va(string, fmt, args);
 	va_end(args);
 	return count;
 }

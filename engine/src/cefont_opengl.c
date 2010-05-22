@@ -23,6 +23,7 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_MODULE_H
 
 #include "cegl.h"
 #include "celib.h"
@@ -40,22 +41,44 @@ enum {
 struct ce_font {
 	unsigned char widths[CE_FONT_NUM_CHARS];
 	unsigned int height;
+	struct FT_MemoryRec_ memory;
 	FT_Library library;
 	GLuint list, tex;
 };
 
+static void* ce_font_alloc(FT_Memory memory, long size)
+{
+	ce_unused(memory);
+	return ce_alloc_zero(size);
+}
+
+static void ce_font_free(FT_Memory memory, void* block)
+{
+	ce_unused(memory);
+	ce_free_slow(block);
+}
+
+static void* ce_font_realloc(FT_Memory memory, long cur_size,
+								long new_size, void* block)
+{
+	ce_unused(memory);
+	return ce_realloc(block, cur_size, new_size);
+}
+
 ce_font* ce_font_new(const char* resource_path, int pixel_size)
 {
 	ce_font* font = ce_alloc_zero(sizeof(ce_font));
+	font->memory = (struct FT_MemoryRec_){font,
+		ce_font_alloc, ce_font_free, ce_font_realloc};
 
-	// TODO: FT_New_Library and own memory allocators
-
-	FT_Error code = FT_Init_FreeType(&font->library);
+	FT_Error code = FT_New_Library(&font->memory, &font->library);
 	if (0 != code) {
 		ce_logging_error("font: could not initialize FreeType2 library");
 		ce_font_del(font);
 		return NULL;
 	}
+
+	FT_Add_Default_Modules(font->library);
 
 	size_t resource_index = ce_resource_find(resource_path);
 	assert(resource_index < CE_RESOURCE_DATA_COUNT);
@@ -177,7 +200,7 @@ void ce_font_del(ce_font* font)
 		glDeleteTextures(1, &font->tex);
 		glDeleteLists(font->list, CE_FONT_NUM_CHARS);
 		if (NULL != font->library) {
-			FT_Done_FreeType(font->library);
+			FT_Done_Library(font->library);
 		}
 		ce_free(font, sizeof(ce_font));
 	}

@@ -32,7 +32,9 @@ extern void ce_alloc_init(void);
 
 extern void* ce_alloc(size_t size);
 extern void* ce_alloc_zero(size_t size);
+extern void* ce_realloc(void* ptr, size_t size, size_t new_size);
 extern void ce_free(void* ptr, size_t size);
+extern void ce_free_slow(void* ptr);
 
 #ifndef NDEBUG
 extern size_t ce_alloc_get_smallobj_allocated(void);

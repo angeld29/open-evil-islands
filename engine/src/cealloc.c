@@ -154,6 +154,13 @@ static void ce_alloc_chunk_clean(ce_alloc_chunk* chunk)
 	}
 }
 
+static inline bool ce_alloc_chunk_has_block(const ce_alloc_chunk* chunk,
+											void* ptr, size_t chunk_size)
+{
+	unsigned char* p = ptr;
+	return chunk->data <= p && p < chunk->data + chunk_size;
+}
+
 static void* ce_alloc_chunk_alloc(ce_alloc_chunk* chunk, size_t block_size)
 {
 	if (0 == chunk->block_count) {
@@ -203,6 +210,17 @@ static void ce_alloc_portion_clean(ce_alloc_portion* portion)
 	}
 }
 
+static bool ce_alloc_portion_has_block(const ce_alloc_portion* portion, void* ptr)
+{
+	const size_t chunk_size = portion->block_size * portion->block_count;
+	for (size_t i = 0; i < portion->chunk_count; ++i) {
+		if (ce_alloc_chunk_has_block(portion->chunks + i, ptr, chunk_size)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 static void ce_alloc_portion_ensure_alloc_chunk(ce_alloc_portion* portion)
 {
 	if (NULL != portion->alloc_chunk && 0 != portion->alloc_chunk->block_count) {
@@ -233,7 +251,6 @@ static void ce_alloc_portion_ensure_alloc_chunk(ce_alloc_portion* portion)
 
 static void ce_alloc_portion_ensure_dealloc_chunk(ce_alloc_portion* portion, void* ptr)
 {
-	unsigned char* p = ptr;
 	const size_t chunk_size = portion->block_size * portion->block_count;
 	const ce_alloc_chunk* const lo_bound = portion->chunks;
 	const ce_alloc_chunk* const hi_bound = portion->chunks + portion->chunk_count;
@@ -249,7 +266,7 @@ static void ce_alloc_portion_ensure_dealloc_chunk(ce_alloc_portion* portion, voi
 
 	for (;;) {
 		if (NULL != lo) {
-			if (lo->data <= p && p < lo->data + chunk_size) {
+			if (ce_alloc_chunk_has_block(lo, ptr, chunk_size)) {
 				portion->dealloc_chunk = lo;
 				return;
 			}
@@ -264,7 +281,7 @@ static void ce_alloc_portion_ensure_dealloc_chunk(ce_alloc_portion* portion, voi
 		}
 
 		if (NULL != hi) {
-			if (hi->data <= p && p < hi->data + chunk_size) {
+			if (ce_alloc_chunk_has_block(hi, ptr, chunk_size)) {
 				portion->dealloc_chunk = hi;
 				return;
 			}
@@ -298,7 +315,7 @@ static void ce_alloc_portion_free(ce_alloc_portion* portion, void* ptr)
 }
 
 // calculates offset into array where an element of size is located
-static inline size_t get_offset(size_t size)
+static inline size_t ce_alloc_get_offset(size_t size)
 {
 	return (size + CE_ALLOC_OBJECT_ALIGNMENT - CE_ALLOC_ONE) / CE_ALLOC_OBJECT_ALIGNMENT;
 }
@@ -327,7 +344,7 @@ void ce_alloc_init(void)
 #ifndef NDEBUG
 		ce_alloc_mutex_init(&ce_alloc_context.mutex);
 #endif
-		ce_alloc_context.portion_count = get_offset(CE_ALLOC_MAX_SMALL_OBJECT_SIZE);
+		ce_alloc_context.portion_count = ce_alloc_get_offset(CE_ALLOC_MAX_SMALL_OBJECT_SIZE);
 		ce_alloc_context.portions = malloc(sizeof(ce_alloc_portion) *
 											ce_alloc_context.portion_count);
 		for (size_t i = 0; i < ce_alloc_context.portion_count; ++i) {
@@ -351,7 +368,7 @@ void* ce_alloc(size_t size)
 
 	void* ptr = size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? malloc(size) :
 		ce_alloc_portion_alloc(ce_alloc_context.portions +
-								get_offset(size) - CE_ALLOC_ONE);
+								ce_alloc_get_offset(size) - CE_ALLOC_ONE);
 
 #ifndef NDEBUG
 	ce_alloc_context.smallobj_allocated += size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? 0 : size;
@@ -386,6 +403,14 @@ void* ce_alloc_zero(size_t size)
 	return memset(ce_alloc(size), 0, size);
 }
 
+void* ce_realloc(void* ptr, size_t size, size_t new_size)
+{
+	void* new_ptr = ce_alloc(new_size);
+	memcpy(new_ptr, ptr, ce_smin(size, new_size));
+	ce_free(ptr, size);
+	return new_ptr;
+}
+
 void ce_free(void* ptr, size_t size)
 {
 	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
@@ -407,7 +432,28 @@ void ce_free(void* ptr, size_t size)
 		free(ptr);
 	} else if (NULL != ptr) {
 		ce_alloc_portion_free(ce_alloc_context.portions +
-								get_offset(size) - CE_ALLOC_ONE, ptr);
+								ce_alloc_get_offset(size) - CE_ALLOC_ONE, ptr);
+	}
+}
+
+void ce_free_slow(void* ptr)
+{
+	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
+
+	// NOTE: impossible to correct debug variables,
+	//       i.e. smallobj_allocated, system_allocated, etc.
+
+	size_t i;
+	for (i = 0; i < ce_alloc_context.portion_count; ++i) {
+		if (ce_alloc_portion_has_block(ce_alloc_context.portions + i, ptr)) {
+			break;
+		}
+	}
+
+	if (i == ce_alloc_context.portion_count) {
+		free(ptr);
+	} else if (NULL != ptr) {
+		ce_alloc_portion_free(ce_alloc_context.portions + i, ptr);
 	}
 }
 
