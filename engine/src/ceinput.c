@@ -18,8 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <float.h>
+#include <stdio.h>
 #include <string.h>
+#include <float.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -268,6 +269,7 @@ typedef struct {
 	const ce_input_event* event;
 	float delay, delay_elapsed;
 	float rate, rate_elapsed;
+	bool activated;
 } ce_input_event_repeat;
 
 static void ce_input_event_repeat_ctor(ce_input_event* event, va_list args)
@@ -285,22 +287,28 @@ static void ce_input_event_repeat_advance(ce_input_event* event, float elapsed)
 	event->triggered = false;
 
 	if (repeat_event->event->triggered) {
-		if (repeat_event->delay_elapsed < repeat_event->delay) {
-			repeat_event->delay_elapsed += elapsed;
+		if (repeat_event->activated) {
+			if (repeat_event->delay_elapsed < repeat_event->delay) {
+				repeat_event->delay_elapsed += elapsed;
+				if (repeat_event->delay_elapsed >= repeat_event->delay) {
+					elapsed = repeat_event->delay_elapsed - repeat_event->delay;
+				}
+			}
 			if (repeat_event->delay_elapsed >= repeat_event->delay) {
-				elapsed = repeat_event->delay_elapsed - repeat_event->delay;
+				repeat_event->rate_elapsed += elapsed;
+				if (repeat_event->rate_elapsed >= repeat_event->rate) {
+					event->triggered = true;
+					repeat_event->rate_elapsed -= repeat_event->rate;
+				}
 			}
-		}
-		if (repeat_event->delay_elapsed >= repeat_event->delay) {
-			repeat_event->rate_elapsed += elapsed;
-			if (repeat_event->rate_elapsed >= repeat_event->rate) {
-				event->triggered = true;
-				repeat_event->rate_elapsed = 0.0f;
-			}
+		} else {
+			event->triggered = true;
+			repeat_event->activated = true;
 		}
 	} else {
 		repeat_event->delay_elapsed = 0.0f;
 		repeat_event->rate_elapsed = 0.0f;
+		repeat_event->activated = false;
 	}
 }
 

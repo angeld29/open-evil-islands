@@ -209,10 +209,10 @@ int main(int argc, char* argv[])
 					ce_input_supply_button(input_supply, CE_KB_A));
 	anmfps_inc_event = ce_input_supply_repeat(input_supply,
 						ce_input_supply_button(input_supply,
-							CE_KB_ADD), CE_INPUT_NO_DELAY, 5);
+							CE_KB_ADD), CE_INPUT_NO_DELAY, 10);
 	anmfps_dec_event = ce_input_supply_repeat(input_supply,
 						ce_input_supply_button(input_supply,
-							CE_KB_SUBTRACT), CE_INPUT_NO_DELAY, 5);
+							CE_KB_SUBTRACT), CE_INPUT_NO_DELAY, 10);
 
 	return ce_root_exec();
 }
