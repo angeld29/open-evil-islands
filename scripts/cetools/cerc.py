@@ -49,16 +49,19 @@ def get_nodes(paths, patterns, env):
 	return (file for path in paths
 				for file in traverse_all(env.Dir(path), patterns, env))
 
+def fix_path(path):
+	return path.lower().replace('\\', '/')
+
 def make_relpath(node, env):
-	relpath = ceutils.relpath(node.get_abspath(), env.subst("$RCROOTABSPATH"))
-	return os.path.normpath(relpath)
+	return fix_path(ceutils.relpath(node.get_abspath(), env.subst("$RCROOTABSPATH")))
 
 def get_paths(node):
-	return [os.path.normpath(line) for line in node.get_contents().splitlines()
-									if len(line) > 0 and not line.startswith(';')]
+	return [fix_path(line) for line in node.get_contents().splitlines()
+							if len(line) > 0 and not line.startswith(';')]
 
 def make_nodes(cache, env):
-	return [env.File(os.path.join("$RCROOTABSPATH", path)) for path in get_paths(cache)]
+	return [env.File(os.path.join("$RCROOTABSPATH",
+			os.path.normpath(path))) for path in get_paths(cache)]
 
 def write_header(file, header):
 	file.write(header % datetime.now().strftime("%d %b %Y %H:%M:%S"))
