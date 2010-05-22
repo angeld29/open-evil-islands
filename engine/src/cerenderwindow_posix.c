@@ -261,7 +261,7 @@ static void ce_renderwindow_x11_minimize(ce_renderwindow* renderwindow)
 		x11window->window, XDefaultScreen(x11window->display));
 }
 
-static void ce_renderwindow_x11_fullscreen_onenter(ce_renderwindow* renderwindow)
+static void ce_renderwindow_x11_fullscreen_before_enter(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -275,7 +275,7 @@ static void ce_renderwindow_x11_fullscreen_onenter(ce_renderwindow* renderwindow
 		DontPreferBlanking, DefaultExposures);
 }
 
-static void ce_renderwindow_x11_fullscreen_onexit(ce_renderwindow* renderwindow)
+static void ce_renderwindow_x11_fullscreen_after_exit(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -289,7 +289,7 @@ static void ce_renderwindow_x11_fullscreen_onexit(ce_renderwindow* renderwindow)
 		x11window->screensaver.allow_exposures);
 }
 
-static void ce_renderwindow_x11_fullscreen_onend(ce_renderwindow* renderwindow)
+static void ce_renderwindow_x11_fullscreen_done(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -333,16 +333,13 @@ static void ce_renderwindow_x11_pump(ce_renderwindow* renderwindow)
 
 ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title)
 {
-	ce_renderwindow_vtable vtable = {
-		ce_renderwindow_x11_ctor, ce_renderwindow_x11_dtor,
+	return ce_renderwindow_new((ce_renderwindow_vtable)
+		{ce_renderwindow_x11_ctor, ce_renderwindow_x11_dtor,
 		ce_renderwindow_x11_show, ce_renderwindow_x11_minimize,
-		{ NULL, ce_renderwindow_x11_fullscreen_onenter,
-			ce_renderwindow_x11_fullscreen_onexit,
-			ce_renderwindow_x11_fullscreen_onend },
-		ce_renderwindow_x11_pump
-	};
-
-	return ce_renderwindow_new(vtable, sizeof(ce_renderwindow_x11), width, height, title);
+		{.before_enter = ce_renderwindow_x11_fullscreen_before_enter,
+		.after_exit = ce_renderwindow_x11_fullscreen_after_exit,
+		.done = ce_renderwindow_x11_fullscreen_done},
+		ce_renderwindow_x11_pump}, sizeof(ce_renderwindow_x11), width, height, title);
 }
 
 static void ce_renderwindow_handler_skip(ce_renderwindow* renderwindow, XEvent* event)

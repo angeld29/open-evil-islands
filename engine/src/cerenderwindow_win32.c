@@ -61,9 +61,9 @@ static struct {
 };
 
 typedef struct {
-	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
 	DWORD style[CE_RENDERWINDOW_STATE_COUNT];
 	DWORD extended_style[CE_RENDERWINDOW_STATE_COUNT];
+	RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
 	bool (*handlers[WM_USER])(ce_renderwindow*, WPARAM, LPARAM);
 	bool cursor_inside;
 	HWND window;
@@ -73,9 +73,7 @@ static LRESULT CALLBACK ce_renderwindow_proc(HWND, UINT, WPARAM, LPARAM);
 
 static bool ce_renderwindow_handler_skip(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_close(ce_renderwindow*, WPARAM, LPARAM);
-static bool ce_renderwindow_handler_move(ce_renderwindow*, WPARAM, LPARAM);
-static bool ce_renderwindow_handler_size(ce_renderwindow*, WPARAM, LPARAM);
-static bool ce_renderwindow_handler_activate(ce_renderwindow*, WPARAM, LPARAM);
+static bool ce_renderwindow_handler_windowposchanged(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_syscommand(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_killfocus(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_input(ce_renderwindow*, WPARAM, LPARAM);
@@ -98,16 +96,17 @@ static bool ce_renderwindow_win_ctor(ce_renderwindow* renderwindow, va_list args
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 	const char* title = va_arg(args, const char*);
 
-	for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
-		winwindow->style[i] = WS_VISIBLE | (DWORD[])
-			{ WS_OVERLAPPEDWINDOW, WS_POPUP }[CE_RENDERWINDOW_STATE_FULLSCREEN == i];
-		winwindow->extended_style[i] = WS_EX_APPWINDOW;
+	winwindow->style[CE_RENDERWINDOW_STATE_WINDOW] = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
+	winwindow->style[CE_RENDERWINDOW_STATE_FULLSCREEN] = WS_VISIBLE | WS_POPUP;
 
+	winwindow->extended_style[CE_RENDERWINDOW_STATE_WINDOW] = WS_EX_APPWINDOW;
+	winwindow->extended_style[CE_RENDERWINDOW_STATE_FULLSCREEN] = WS_EX_TOOLWINDOW;
+
+	for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
 		RECT rect = { 0, 0, renderwindow->geometry[i].width,
 							renderwindow->geometry[i].height };
-
 		if (AdjustWindowRectEx(&rect, winwindow->style[i],
-									0, winwindow->extended_style[i])) {
+								0, winwindow->extended_style[i])) {
 			renderwindow->geometry[i].width = rect.right - rect.left;
 			renderwindow->geometry[i].height = rect.bottom - rect.top;
 		}
@@ -164,9 +163,7 @@ static bool ce_renderwindow_win_ctor(ce_renderwindow* renderwindow, va_list args
 	}
 
 	winwindow->handlers[WM_CLOSE] = ce_renderwindow_handler_close;
-	winwindow->handlers[WM_MOVE] = ce_renderwindow_handler_move;
-	winwindow->handlers[WM_SIZE] = ce_renderwindow_handler_size;
-	winwindow->handlers[WM_ACTIVATE] = ce_renderwindow_handler_activate;
+	winwindow->handlers[WM_WINDOWPOSCHANGED] = ce_renderwindow_handler_windowposchanged;
 	winwindow->handlers[WM_SYSCOMMAND] = ce_renderwindow_handler_syscommand;
 	winwindow->handlers[WM_KILLFOCUS] = ce_renderwindow_handler_killfocus;
 	winwindow->handlers[WM_INPUT] = ce_renderwindow_handler_input;
@@ -262,10 +259,28 @@ static void ce_renderwindow_win_minimize(ce_renderwindow* renderwindow)
 	ShowWindow(winwindow->window, SW_MINIMIZE);
 }
 
-static void ce_renderwindow_win_fullscreen_onbegin(ce_renderwindow* renderwindow)
+static void ce_renderwindow_win_fullscreen_before_enter(ce_renderwindow* renderwindow)
 {
-	// TODO: very strange behaviour on windows...
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
+	for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
+		RegisterHotKey(winwindow->window, i,
+			ce_renderwindow_hotkeys[i].mod,
+			ce_renderwindow_hotkeys[i].vk);
+	}
+}
+
+static void ce_renderwindow_win_fullscreen_after_exit(ce_renderwindow* renderwindow)
+{
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+
+	for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
+		UnregisterHotKey(winwindow->window, i);
+	}
+}
+
+static void ce_renderwindow_win_fullscreen_done(ce_renderwindow* renderwindow)
+{
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
 	SetWindowLong(winwindow->window, GWL_STYLE, winwindow->style[renderwindow->state]);
@@ -277,26 +292,6 @@ static void ce_renderwindow_win_fullscreen_onbegin(ce_renderwindow* renderwindow
 		renderwindow->geometry[renderwindow->state].width,
 		renderwindow->geometry[renderwindow->state].height,
 		SWP_FRAMECHANGED);
-}
-
-static void ce_renderwindow_win_fullscreen_onenter(ce_renderwindow* renderwindow)
-{
-	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
-
-	for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
-		RegisterHotKey(winwindow->window, i,
-			ce_renderwindow_hotkeys[i].mod,
-			ce_renderwindow_hotkeys[i].vk);
-	}
-}
-
-static void ce_renderwindow_win_fullscreen_onexit(ce_renderwindow* renderwindow)
-{
-	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
-
-	for (int i = 0; i < CE_RENDERWINDOW_HOTKEY_COUNT; ++i) {
-		UnregisterHotKey(winwindow->window, i);
-	}
 }
 
 static void ce_renderwindow_win_pump(ce_renderwindow* renderwindow)
@@ -312,16 +307,13 @@ static void ce_renderwindow_win_pump(ce_renderwindow* renderwindow)
 
 ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title)
 {
-	ce_renderwindow_vtable vtable = {
-		ce_renderwindow_win_ctor, ce_renderwindow_win_dtor,
+	return ce_renderwindow_new((ce_renderwindow_vtable)
+		{ce_renderwindow_win_ctor, ce_renderwindow_win_dtor,
 		ce_renderwindow_win_show, ce_renderwindow_win_minimize,
-		{ ce_renderwindow_win_fullscreen_onbegin,
-			ce_renderwindow_win_fullscreen_onenter,
-			ce_renderwindow_win_fullscreen_onexit, NULL },
-		ce_renderwindow_win_pump
-	};
-
-	return ce_renderwindow_new(vtable, sizeof(ce_renderwindow_win), width, height, title);
+		{.before_enter = ce_renderwindow_win_fullscreen_before_enter,
+		.after_exit = ce_renderwindow_win_fullscreen_after_exit,
+		.done =	ce_renderwindow_win_fullscreen_done},
+		ce_renderwindow_win_pump}, sizeof(ce_renderwindow_win), width, height, title);
 }
 
 static LRESULT CALLBACK ce_renderwindow_proc(HWND window, UINT message,
@@ -357,41 +349,19 @@ static bool ce_renderwindow_handler_close(ce_renderwindow* renderwindow, WPARAM 
 	return true;
 }
 
-static bool ce_renderwindow_handler_move(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
+static bool ce_renderwindow_handler_windowposchanged(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
 	ce_unused(wparam);
+	WINDOWPOS* wp = (WINDOWPOS*)lparam;
 
-	renderwindow->geometry[renderwindow->state].x = LOWORD(lparam);
-	renderwindow->geometry[renderwindow->state].y = HIWORD(lparam);
+	renderwindow->geometry[renderwindow->state].x = wp->x;
+	renderwindow->geometry[renderwindow->state].y = wp->y;
 
-	return false;
-}
+	renderwindow->geometry[renderwindow->state].width = wp->cx;
+	renderwindow->geometry[renderwindow->state].height = wp->cy;
 
-static bool ce_renderwindow_handler_size(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
-{
-	ce_unused(wparam);
-
-	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
-
-	renderwindow->geometry[renderwindow->state].width = LOWORD(lparam);
-	renderwindow->geometry[renderwindow->state].height = HIWORD(lparam);
-
-	RECT rect = { 0, 0, renderwindow->geometry[renderwindow->state].width,
-						renderwindow->geometry[renderwindow->state].height };
-
-	if (AdjustWindowRectEx(&rect, winwindow->style[renderwindow->state],
-								0, winwindow->extended_style[renderwindow->state])) {
-		renderwindow->geometry[renderwindow->state].width = rect.right - rect.left;
-		renderwindow->geometry[renderwindow->state].height = rect.bottom - rect.top;
-	}
-
-	return false;
-}
-
-static bool ce_renderwindow_handler_activate(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
-{
-	ce_unused(renderwindow), ce_unused(wparam), ce_unused(lparam);
-	return false;
+	// suppress the WM_SIZE and WM_MOVE messages
+	return true;
 }
 
 static bool ce_renderwindow_handler_syscommand(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)

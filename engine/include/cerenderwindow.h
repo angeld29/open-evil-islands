@@ -94,10 +94,12 @@ typedef struct {
 	void (*show)(ce_renderwindow* renderwindow);
 	void (*minimize)(ce_renderwindow* renderwindow);
 	struct {
-		void (*onbegin)(ce_renderwindow* renderwindow);
-		void (*onenter)(ce_renderwindow* renderwindow);
-		void (*onexit)(ce_renderwindow* renderwindow);
-		void (*onend)(ce_renderwindow* renderwindow);
+		void (*prepare)(ce_renderwindow* renderwindow);
+		void (*before_enter)(ce_renderwindow* renderwindow);
+		void (*after_enter)(ce_renderwindow* renderwindow);
+		void (*before_exit)(ce_renderwindow* renderwindow);
+		void (*after_exit)(ce_renderwindow* renderwindow);
+		void (*done)(ce_renderwindow* renderwindow);
 	} fullscreen;
 	void (*pump)(ce_renderwindow* renderwindow);
 } ce_renderwindow_vtable;

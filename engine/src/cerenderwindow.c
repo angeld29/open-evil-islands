@@ -171,11 +171,15 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 		{ CE_RENDERWINDOW_STATE_FULLSCREEN,
 		CE_RENDERWINDOW_STATE_WINDOW }[renderwindow->state];
 
-	if (NULL != renderwindow->vtable.fullscreen.onbegin) {
-		(*renderwindow->vtable.fullscreen.onbegin)(renderwindow);
+	if (NULL != renderwindow->vtable.fullscreen.prepare) {
+		(*renderwindow->vtable.fullscreen.prepare)(renderwindow);
 	}
 
 	if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
+		if (NULL != renderwindow->vtable.fullscreen.before_enter) {
+			(*renderwindow->vtable.fullscreen.before_enter)(renderwindow);
+		}
+
 		int index = ce_displaymng_enter(renderwindow->displaymng,
 			renderwindow->geometry[renderwindow->state].width,
 			renderwindow->geometry[renderwindow->state].height,
@@ -187,21 +191,27 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 		renderwindow->geometry[renderwindow->state].width = mode->width;
 		renderwindow->geometry[renderwindow->state].height = mode->height;
 
-		// TODO: visual
+		renderwindow->visual.bpp = mode->bpp;
+		renderwindow->visual.rate = mode->rate;
+		// TODO: rotation, reflection
 
-		if (NULL != renderwindow->vtable.fullscreen.onenter) {
-			(*renderwindow->vtable.fullscreen.onenter)(renderwindow);
+		if (NULL != renderwindow->vtable.fullscreen.after_enter) {
+			(*renderwindow->vtable.fullscreen.after_enter)(renderwindow);
 		}
 	} else {
+		if (NULL != renderwindow->vtable.fullscreen.before_exit) {
+			(*renderwindow->vtable.fullscreen.before_exit)(renderwindow);
+		}
+
 		ce_displaymng_exit(renderwindow->displaymng);
 
-		if (NULL != renderwindow->vtable.fullscreen.onexit) {
-			(*renderwindow->vtable.fullscreen.onexit)(renderwindow);
+		if (NULL != renderwindow->vtable.fullscreen.after_exit) {
+			(*renderwindow->vtable.fullscreen.after_exit)(renderwindow);
 		}
 	}
 
-	if (NULL != renderwindow->vtable.fullscreen.onend) {
-		(*renderwindow->vtable.fullscreen.onend)(renderwindow);
+	if (NULL != renderwindow->vtable.fullscreen.done) {
+		(*renderwindow->vtable.fullscreen.done)(renderwindow);
 	}
 }
 
