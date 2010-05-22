@@ -94,7 +94,11 @@ def emit_rc(target, source, env):
 
 	paths = sorted(make_relpath(node, env) for node in nodes)
 
-	if not os.path.exists(cache.get_abspath()) or paths != get_paths(cache):
+	if not env.GetOption("clean") and ( # do not create a cache file if scons -c
+			not os.path.exists(cache.get_abspath()) or paths != get_paths(cache)):
+		# note that SCons will create directories only before the builders
+		if not os.path.exists(env.Dir("$RCBUILDPATH").get_abspath()):
+			env.Execute(SCons.Defaults.Mkdir("$RCBUILDPATH"))
 		with open(cache.get_abspath(), "wt") as file:
 			write_header(file, cache_header)
 			file.write('\n' + '\n'.join(paths) + '\n')
