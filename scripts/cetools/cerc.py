@@ -22,12 +22,14 @@
 from __future__ import with_statement
 
 import hashlib
-import os.path
+import os
 
 from datetime import datetime
 from itertools import chain
 
 import SCons
+
+import ceutils
 
 def traverse_files(node, patterns, env):
 	return (file for pattern in patterns
@@ -48,7 +50,7 @@ def get_nodes(paths, patterns, env):
 				for file in traverse_all(env.Dir(path), patterns, env))
 
 def make_relpath(node, env):
-	relpath = os.path.relpath(node.get_abspath(), env.subst("$RCROOTABSPATH"))
+	relpath = ceutils.relpath(node.get_abspath(), env.subst("$RCROOTABSPATH"))
 	return os.path.normpath(relpath)
 
 def get_paths(node):
