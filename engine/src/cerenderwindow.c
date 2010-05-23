@@ -251,10 +251,22 @@ void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 	renderwindow->action = CE_RENDERWINDOW_ACTION_NONE;
 }
 
+void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int width, int height)
+{
+	for (int i = 0; i < renderwindow->listeners->count; ++i) {
+		ce_renderwindow_listener* listener = renderwindow->listeners->items[i];
+		if (NULL != listener->resized) {
+			(*listener->resized)(listener->listener, width, height);
+		}
+	}
+}
+
 void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow)
 {
 	for (int i = 0; i < renderwindow->listeners->count; ++i) {
 		ce_renderwindow_listener* listener = renderwindow->listeners->items[i];
-		(*listener->closed)(listener->listener);
+		if (NULL != listener->closed) {
+			(*listener->closed)(listener->listener);
+		}
 	}
 }

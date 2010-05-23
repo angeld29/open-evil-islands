@@ -173,8 +173,8 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.toggle_bbox_event = ce_input_supply_single_front(ce_root.input_supply,
 		ce_input_supply_shortcut(ce_root.input_supply, "B"));
 
-	ce_root.renderwindow_listener.closed = ce_root_renderwindow_closed;
-	ce_root.renderwindow_listener.listener = NULL;
+	ce_root.renderwindow_listener = (ce_renderwindow_listener)
+		{.closed = ce_root_renderwindow_closed};
 
 	ce_renderwindow_add_listener(ce_root.renderwindow,
 								&ce_root.renderwindow_listener);

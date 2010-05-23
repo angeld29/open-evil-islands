@@ -77,6 +77,7 @@ static bool ce_renderwindow_handler_close(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_entersizemove(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_exitsizemove(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_windowposchanged(ce_renderwindow*, WPARAM, LPARAM);
+static bool ce_renderwindow_handler_size(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_activate(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_syscommand(ce_renderwindow*, WPARAM, LPARAM);
 static bool ce_renderwindow_handler_killfocus(ce_renderwindow*, WPARAM, LPARAM);
@@ -110,7 +111,7 @@ static bool ce_renderwindow_win_ctor(ce_renderwindow* renderwindow, va_list args
 		RECT rect = { 0, 0, renderwindow->geometry[i].width,
 							renderwindow->geometry[i].height };
 		if (AdjustWindowRectEx(&rect, winwindow->style[i],
-								0, winwindow->extended_style[i])) {
+								FALSE, winwindow->extended_style[i])) {
 			renderwindow->geometry[i].width = rect.right - rect.left;
 			renderwindow->geometry[i].height = rect.bottom - rect.top;
 		}
@@ -170,6 +171,7 @@ static bool ce_renderwindow_win_ctor(ce_renderwindow* renderwindow, va_list args
 	winwindow->handlers[WM_ENTERSIZEMOVE] = ce_renderwindow_handler_entersizemove;
 	winwindow->handlers[WM_EXITSIZEMOVE] = ce_renderwindow_handler_exitsizemove;
 	winwindow->handlers[WM_WINDOWPOSCHANGED] = ce_renderwindow_handler_windowposchanged;
+	winwindow->handlers[WM_SIZE] = ce_renderwindow_handler_size;
 	winwindow->handlers[WM_ACTIVATE] = ce_renderwindow_handler_activate;
 	winwindow->handlers[WM_SYSCOMMAND] = ce_renderwindow_handler_syscommand;
 	winwindow->handlers[WM_KILLFOCUS] = ce_renderwindow_handler_killfocus;
@@ -257,6 +259,11 @@ static void ce_renderwindow_win_show(ce_renderwindow* renderwindow)
 
 	SetForegroundWindow(winwindow->window);
 	SetFocus(winwindow->window);
+
+	RECT rect; // WM_SIZE event is not coming, so force it
+	if (GetClientRect(winwindow->window, &rect)) {
+		ce_renderwindow_emit_resized(renderwindow, rect.right, rect.bottom);
+	}
 }
 
 static void ce_renderwindow_win_minimize(ce_renderwindow* renderwindow)
@@ -384,15 +391,29 @@ static bool ce_renderwindow_handler_windowposchanged(ce_renderwindow* renderwind
 	if (winwindow->in_sizemove) {
 		WINDOWPOS* wp = (WINDOWPOS*)lparam;
 
-		renderwindow->geometry[renderwindow->state].x = wp->x;
-		renderwindow->geometry[renderwindow->state].y = wp->y;
+		if (!(SWP_NOMOVE & wp->flags)) {
+			renderwindow->geometry[renderwindow->state].x = wp->x;
+			renderwindow->geometry[renderwindow->state].y = wp->y;
+		}
 
-		renderwindow->geometry[renderwindow->state].width = wp->cx;
-		renderwindow->geometry[renderwindow->state].height = wp->cy;
+		if (!(SWP_NOSIZE & wp->flags)) {
+			// new window width and height
+			renderwindow->geometry[renderwindow->state].width = wp->cx;
+			renderwindow->geometry[renderwindow->state].height = wp->cy;
+		}
 	}
 
-	// suppress the WM_SIZE and WM_MOVE messages
-	return true;
+	return false;
+}
+
+static bool ce_renderwindow_handler_size(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
+{
+	if (SIZE_MINIMIZED != wparam) {
+		// new width and height of the client area
+		ce_renderwindow_emit_resized(renderwindow, LOWORD(lparam), HIWORD(lparam));
+	}
+
+	return false;
 }
 
 static bool ce_renderwindow_handler_activate(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
@@ -570,8 +591,12 @@ static bool ce_renderwindow_handler_rbuttonup(ce_renderwindow* renderwindow, WPA
 
 static bool ce_renderwindow_handler_mousewheel(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
 {
-	return ce_renderwindow_handler_button(renderwindow, wparam, lparam, (ce_input_button[])
-		{ CE_MB_WHEELUP, CE_MB_WHEELDOWN }[GET_WHEEL_DELTA_WPARAM(wparam) < 0], true);
+	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
+	if (winwindow->cursor_inside) {
+		return ce_renderwindow_handler_button(renderwindow, wparam, lparam, (ce_input_button[])
+				{ CE_MB_WHEELUP, CE_MB_WHEELDOWN }[GET_WHEEL_DELTA_WPARAM(wparam) < 0], true);
+	}
+	return false;
 }
 
 static bool ce_renderwindow_handler_mousehover(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)

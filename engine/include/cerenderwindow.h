@@ -82,6 +82,7 @@ typedef struct {
 } ce_renderwindow_visual;
 
 typedef struct {
+	void (*resized)(void* listener, int width, int height);
 	void (*closed)(void* listener);
 	void* listener;
 } ce_renderwindow_listener;
@@ -134,6 +135,7 @@ extern void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow);
 
 extern void ce_renderwindow_pump(ce_renderwindow* renderwindow);
 
+extern void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int width, int height);
 extern void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow);
 
 extern ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title);

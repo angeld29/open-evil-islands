@@ -32,6 +32,13 @@
 #include "ceroot.h"
 #include "cescenemng.h"
 
+void ce_scenemng_renderwindow_resized(void* listener, int width, int height)
+{
+	ce_scenemng* scenemng = listener;
+	ce_viewport_set_rect(scenemng->viewport, 0, 0, width, height);
+	ce_camera_set_aspect(scenemng->camera, (float)width / height);
+}
+
 static void ce_scenemng_figproto_created(void* listener, ce_figproto* figproto)
 {
 	ce_scenemng* scenemng = listener;
@@ -42,10 +49,8 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 {
 	ce_logging_write("scenemng: root path: '%s'", ei_path);
 
-	ce_scenemng* scenemng = ce_alloc(sizeof(ce_scenemng));
-	scenemng->scenenode_force_update = false;
+	ce_scenemng* scenemng = ce_alloc_zero(sizeof(ce_scenemng));
 	scenemng->scenenode = ce_scenenode_new(NULL);
-	scenemng->terrain = NULL;
 	scenemng->figmng = ce_figmng_new();
 	scenemng->renderqueue = ce_renderqueue_new();
 	scenemng->viewport = ce_viewport_new();
@@ -53,6 +58,7 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
 	scenemng->listeners = ce_vector_new();
+
 	scenemng->input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
 	scenemng->move_left_event = ce_input_supply_shortcut(scenemng->input_supply, "ArrowLeft");
 	scenemng->move_up_event = ce_input_supply_shortcut(scenemng->input_supply, "ArrowUp");
@@ -61,9 +67,13 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	scenemng->zoom_in_event = ce_input_supply_shortcut(scenemng->input_supply, "WheelUp");
 	scenemng->zoom_out_event = ce_input_supply_shortcut(scenemng->input_supply, "WheelDown");
 	scenemng->rotate_on_event = ce_input_supply_shortcut(scenemng->input_supply, "MouseRight");
-	scenemng->figmng_listener = (ce_figmng_listener)
-								{ce_scenemng_figproto_created, NULL, scenemng};
 
+	scenemng->renderwindow_listener = (ce_renderwindow_listener)
+		{.resized = ce_scenemng_renderwindow_resized, .listener = scenemng};
+	scenemng->figmng_listener = (ce_figmng_listener)
+		{.figproto_created = ce_scenemng_figproto_created, .listener = scenemng};
+
+	ce_renderwindow_add_listener(ce_root.renderwindow, &scenemng->renderwindow_listener);
 	ce_figmng_add_listener(scenemng->figmng, &scenemng->figmng_listener);
 
 	char path[strlen(ei_path) + 32];
@@ -160,14 +170,6 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 void ce_scenemng_render(ce_scenemng* scenemng)
 {
 	ce_rendersystem_begin_render(ce_root.rendersystem, &CE_COLOR_WHITE);
-
-	ce_viewport_set_rect(scenemng->viewport, 0, 0,
-		ce_root.renderwindow->geometry[ce_root.renderwindow->state].width,
-		ce_root.renderwindow->geometry[ce_root.renderwindow->state].height);
-
-	ce_camera_set_aspect(scenemng->camera, (float)
-		ce_root.renderwindow->geometry[ce_root.renderwindow->state].width /
-		ce_root.renderwindow->geometry[ce_root.renderwindow->state].height);
 
 	ce_rendersystem_setup_viewport(ce_root.rendersystem, scenemng->viewport);
 	ce_rendersystem_setup_camera(ce_root.rendersystem, scenemng->camera);

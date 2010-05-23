@@ -37,6 +37,7 @@
 #include "cecamera.h"
 #include "cescenenode.h"
 #include "cerenderqueue.h"
+#include "cerenderwindow.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -69,6 +70,7 @@ typedef struct {
 	ce_input_event* zoom_in_event;
 	ce_input_event* zoom_out_event;
 	ce_input_event* rotate_on_event;
+	ce_renderwindow_listener renderwindow_listener;
 	ce_figmng_listener figmng_listener;
 } ce_scenemng;
 

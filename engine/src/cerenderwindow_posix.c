@@ -378,6 +378,9 @@ static void ce_renderwindow_handler_configure_notify(ce_renderwindow* renderwind
 	renderwindow->geometry[renderwindow->state].y = event->xconfigure.y;
 	renderwindow->geometry[renderwindow->state].width = event->xconfigure.width;
 	renderwindow->geometry[renderwindow->state].height = event->xconfigure.height;
+
+	ce_renderwindow_emit_resized(renderwindow, event->xconfigure.width,
+												event->xconfigure.height);
 }
 
 static void ce_renderwindow_handler_focus_in(ce_renderwindow* renderwindow, XEvent* event)
