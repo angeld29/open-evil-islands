@@ -119,7 +119,7 @@ static void read_sectors(ce_mprfile* mpr, ce_resfile* res)
 
 ce_mprfile* ce_mprfile_open(ce_resfile* resfile)
 {
-	ce_mprfile* mprfile = ce_alloc(sizeof(ce_mprfile));
+	ce_mprfile* mprfile = ce_alloc_zero(sizeof(ce_mprfile));
 
 	// mpr name = res name without extension (.mpr)
 	mprfile->name = ce_string_dup_n(resfile->name, resfile->name->length - 4);
