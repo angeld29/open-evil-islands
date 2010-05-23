@@ -34,6 +34,8 @@
 #include "ceresfile.h"
 #include "cetexture.h"
 
+// TODO: reanimation after engine 2.x
+
 /*static ce_resfile* res;
 static ce_texture* tex;
 static ce_timer* tmr;
