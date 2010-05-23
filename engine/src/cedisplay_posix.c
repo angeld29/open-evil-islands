@@ -23,9 +23,7 @@
 #include <assert.h>
 
 #include <X11/Xlib.h>
-// TODO: xf86vmstr.h is obsolete and may be removed in the future
-// TODO: include <X11/extensions/xf86vmproto.h> for the protocol defines
-#include <X11/extensions/xf86vmstr.h>
+#include <X11/extensions/xf86vmproto.h>
 #include <X11/extensions/xf86vmode.h>
 #include <X11/extensions/Xrandr.h>
 

@@ -1,6 +1,6 @@
 			The X Rendering Extension
-			      Version 0.11
-			       2009-07-15
+			      Version 0.10
+			       2005-07-01
 			      Keith Packard
 			    keithp@keithp.com
 
