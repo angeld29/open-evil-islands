@@ -50,6 +50,9 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	ce_logging_write("scenemng: root path: '%s'", ei_path);
 
 	ce_scenemng* scenemng = ce_alloc_zero(sizeof(ce_scenemng));
+	scenemng->camera_move_sensitivity = 10.0f;
+	scenemng->camera_zoom_sensitivity = 5.0f;
+
 	scenemng->scenenode = ce_scenenode_new(NULL);
 	scenemng->figmng = ce_figmng_new();
 	scenemng->renderqueue = ce_renderqueue_new();
@@ -132,27 +135,27 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 	ce_input_supply_advance(scenemng->input_supply, elapsed);
 
 	if (scenemng->move_left_event->triggered) {
-		ce_camera_move(scenemng->camera, -10.0f * elapsed, 0.0f);
+		ce_camera_move(scenemng->camera, -scenemng->camera_move_sensitivity * elapsed, 0.0f);
 	}
 
 	if (scenemng->move_up_event->triggered) {
-		ce_camera_move(scenemng->camera, 0.0f, 10.0f * elapsed);
+		ce_camera_move(scenemng->camera, 0.0f, scenemng->camera_move_sensitivity * elapsed);
 	}
 
 	if (scenemng->move_right_event->triggered) {
-		ce_camera_move(scenemng->camera, 10.0f * elapsed, 0.0f);
+		ce_camera_move(scenemng->camera, scenemng->camera_move_sensitivity * elapsed, 0.0f);
 	}
 
 	if (scenemng->move_down_event->triggered) {
-		ce_camera_move(scenemng->camera, 0.0f, -10.0f * elapsed);
+		ce_camera_move(scenemng->camera, 0.0f, -scenemng->camera_move_sensitivity * elapsed);
 	}
 
 	if (scenemng->zoom_in_event->triggered) {
-		ce_camera_zoom(scenemng->camera, 5.0f);
+		ce_camera_zoom(scenemng->camera, scenemng->camera_zoom_sensitivity);
 	}
 
 	if (scenemng->zoom_out_event->triggered) {
-		ce_camera_zoom(scenemng->camera, -5.0f);
+		ce_camera_zoom(scenemng->camera, -scenemng->camera_zoom_sensitivity);
 	}
 
 	if (scenemng->rotate_on_event->triggered) {

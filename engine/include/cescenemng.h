@@ -51,6 +51,8 @@ typedef struct {
 } ce_scenemng_listener;
 
 typedef struct {
+	float camera_move_sensitivity; // FIXME: hard-coded
+	float camera_zoom_sensitivity; // TODO: make strategy
 	bool scenenode_force_update;
 	ce_scenenode* scenenode;
 	ce_texmng* texmng;

@@ -136,8 +136,6 @@ static void advance(void* listener, float elapsed)
 	}
 }
 
-static ce_scenemng_listener scenemng_listener = { .advance = advance };
-
 int main(int argc, char* argv[])
 {
 	ce_alloc_init();
@@ -196,6 +194,10 @@ int main(int argc, char* argv[])
 	ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(180.0f),
 													ce_deg2rad(30.0f));
 
+	ce_root.scenemng->camera_move_sensitivity = 5.0f;
+	ce_root.scenemng->camera_zoom_sensitivity = 0.5f;
+
+	ce_scenemng_listener scenemng_listener = { .advance = advance };
 	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
 
 	input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
