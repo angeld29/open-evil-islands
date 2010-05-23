@@ -38,11 +38,13 @@ extern "C"
 extern struct ce_root {
 	bool inited;
 	bool done;
+	bool terrain_tiling;
+	bool inverse_trackball_x;
+	bool inverse_trackball_y;
 	bool show_axes;
+	bool show_fps;
 	bool show_bboxes;
 	bool comprehensive_bbox_only;
-	bool show_fps;
-	bool terrain_tiling;
 	int thread_count;
 	float anmfps;
 	ce_renderwindow* renderwindow;

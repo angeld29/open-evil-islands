@@ -159,9 +159,11 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 	}
 
 	if (scenemng->rotate_on_event->triggered) {
+		float xcoef = 0.25f * (float[]){-1.0f,1.0f}[ce_root.inverse_trackball_x];
+		float ycoef = 0.25f * (float[]){-1.0f,1.0f}[ce_root.inverse_trackball_y];
 		ce_camera_yaw_pitch(scenemng->camera,
-			ce_deg2rad(-0.25f * scenemng->input_supply->context->pointer_offset.x),
-			ce_deg2rad(-0.25f * scenemng->input_supply->context->pointer_offset.y));
+			ce_deg2rad(xcoef * scenemng->input_supply->context->pointer_offset.x),
+			ce_deg2rad(ycoef * scenemng->input_supply->context->pointer_offset.y));
 	}
 
 	for (int i = 0; i < scenemng->listeners->count; ++i) {

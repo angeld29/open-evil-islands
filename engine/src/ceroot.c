@@ -96,7 +96,8 @@ bool ce_root_init(ce_optparse* optparse)
 		return false;
 	}
 
-	bool fs_reflection_x, fs_reflection_y, list_vm, list_vrot, list_vref;
+	bool fs_reflection_x, fs_reflection_y, list_vm,
+			list_vrot, list_vref, inverse_trackball;
 	int width, height, fs_rotation;
 	const char *ei_path, *ce_path;
 
@@ -110,10 +111,18 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_optparse_get(optparse, "list_vm", &list_vm);
 	ce_optparse_get(optparse, "list_vrot", &list_vrot);
 	ce_optparse_get(optparse, "list_vref", &list_vref);
-	ce_optparse_get(optparse, "thread_count", &ce_root.thread_count);
 	ce_optparse_get(optparse, "terrain_tiling", &ce_root.terrain_tiling);
+	ce_optparse_get(optparse, "inverse_trackball", &inverse_trackball);
+	ce_optparse_get(optparse, "inverse_trackball_x", &ce_root.inverse_trackball_x);
+	ce_optparse_get(optparse, "inverse_trackball_y", &ce_root.inverse_trackball_y);
 	ce_optparse_get(optparse, "show_axes", &ce_root.show_axes);
 	ce_optparse_get(optparse, "show_fps", &ce_root.show_fps);
+	ce_optparse_get(optparse, "thread_count", &ce_root.thread_count);
+
+	if (inverse_trackball) {
+		ce_root.inverse_trackball_x = true;
+		ce_root.inverse_trackball_y = true;
+	}
 
 	ce_root.show_bboxes = false;
 	ce_root.comprehensive_bbox_only = true;
@@ -297,6 +306,13 @@ ce_optparse* ce_root_create_optparse(void)
 	ce_optparse_add(optparse, "terrain_tiling", CE_TYPE_BOOL, NULL, false,
 		NULL, "terrain-tiling", "enable terrain tiling; very slow, but reduce "
 		"usage of video memory and disk space; use it if you have an old video card");
+
+	ce_optparse_add(optparse, "inverse_trackball", CE_TYPE_BOOL, NULL, false,
+		NULL, "inverse-trackball", "invert the x and y axes of the mouse movement");
+	ce_optparse_add(optparse, "inverse_trackball_x", CE_TYPE_BOOL, NULL, false,
+		NULL, "inverse-trackball-x", "invert the x axis of the mouse movement");
+	ce_optparse_add(optparse, "inverse_trackball_y", CE_TYPE_BOOL, NULL, false,
+		NULL, "inverse-trackball-y", "invert the y axis of the mouse movement");
 
 	ce_optparse_add(optparse, "show_axes", CE_TYPE_BOOL, NULL, false,
 		NULL, "show-axes", "show x (red), y (green), z (blue) axes");
