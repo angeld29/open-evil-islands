@@ -253,9 +253,9 @@ ce_optparse* ce_root_create_optparse(void)
 		"reserved for future use: path to CE directory (current by default)");
 
 	ce_optparse_add(optparse, "width", CE_TYPE_INT, (int[]){1024}, false,
-		NULL, "width", "desired window width");
+		NULL, "width", "desired window width in window mode");
 	ce_optparse_add(optparse, "height", CE_TYPE_INT, (int[]){768}, false,
-		NULL, "height", "desired window height");
+		NULL, "height", "desired window height in window mode");
 
 	ce_optparse_add(optparse, "fullscreen", CE_TYPE_BOOL, NULL, false,
 		"f", "fullscreen", "start program in fullscreen mode");
@@ -296,16 +296,17 @@ ce_optparse* ce_root_create_optparse(void)
 		"number of CPUs you have (or the number of cores your CPU have)");
 	ce_optparse_add(optparse, "terrain_tiling", CE_TYPE_BOOL, NULL, false,
 		NULL, "terrain-tiling", "enable terrain tiling; very slow, but reduce "
-		"usage of video memory and disk space; use it on old video cards");
+		"usage of video memory and disk space; use it if you have an old video card");
 
 	ce_optparse_add(optparse, "show_axes", CE_TYPE_BOOL, NULL, false,
 		NULL, "show-axes", "show x (red), y (green), z (blue) axes");
 	ce_optparse_add(optparse, "show_fps", CE_TYPE_BOOL, NULL, false,
 		NULL, "show-fps", "show fps counter");
 
-	ce_optparse_add_control(optparse, "alt + tab", "minimize fullscreen window");
-	ce_optparse_add_control(optparse, "alt + enter", "toggle fullscreen mode");
-	ce_optparse_add_control(optparse, "b", "toggle bounding boxes");
+	ce_optparse_add_control(optparse, "alt+tab", "minimize fullscreen window");
+	ce_optparse_add_control(optparse, "alt+enter", "toggle fullscreen mode");
+	ce_optparse_add_control(optparse, "b", "toggle bounding boxes "
+											"(bones/bones+comprehensive/none)");
 	ce_optparse_add_control(optparse, "keyboard arrows", "move camera");
 	ce_optparse_add_control(optparse, "mouse right button + motion", "rotate camera");
 	ce_optparse_add_control(optparse, "mouse wheel", "zoom camera");
