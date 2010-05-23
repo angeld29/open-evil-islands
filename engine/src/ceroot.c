@@ -306,7 +306,7 @@ ce_optparse* ce_root_create_optparse(void)
 	ce_optparse_add_control(optparse, "alt+tab", "minimize fullscreen window");
 	ce_optparse_add_control(optparse, "alt+enter", "toggle fullscreen mode");
 	ce_optparse_add_control(optparse, "b", "toggle bounding boxes "
-											"(bones/bones+comprehensive/none)");
+										"(comprehensive/comprehensive+bones/none)");
 	ce_optparse_add_control(optparse, "keyboard arrows", "move camera");
 	ce_optparse_add_control(optparse, "mouse right button + motion", "rotate camera");
 	ce_optparse_add_control(optparse, "mouse wheel", "zoom camera");
