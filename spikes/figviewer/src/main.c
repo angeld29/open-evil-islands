@@ -33,6 +33,7 @@
 
 static ce_optparse* optparse;
 static ce_figentity* figentity;
+static ce_string* message;
 
 static ce_input_supply* input_supply;
 static ce_input_event* strength_event;
@@ -43,11 +44,15 @@ static ce_input_event* anmfps_inc_event;
 static ce_input_event* anmfps_dec_event;
 
 static int anmidx = -1;
-static ce_complection complection = { 1.0f, 1.0f, 1.0f };
+static ce_complection complection = {1.0f, 1.0f, 1.0f};
+
+static float message_timeout;
+static ce_color message_color;
 
 static void clean()
 {
 	ce_input_supply_del(input_supply);
+	ce_string_del(message);
 	ce_optparse_del(optparse);
 }
 
@@ -82,37 +87,61 @@ static bool update_figentity()
 	return true;
 }
 
+static void display_message(const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	ce_string_assign_va(message, fmt, args);
+	va_end(args);
+
+	message_timeout = 3.0f;
+	message_color.a = 1.0f;
+}
+
 static void advance(void* listener, float elapsed)
 {
 	ce_unused(listener);
 	ce_input_supply_advance(input_supply, elapsed);
 
-	if (anmfps_inc_event->triggered) ce_root.anmfps += 1.0f;
-	if (anmfps_dec_event->triggered) ce_root.anmfps -= 1.0f;
+	if (message_timeout > 0.0f) {
+		message_timeout -= elapsed;
+		message_color.a = ce_fclamp(message_timeout, 0.0f, 1.0f);
+	}
 
-	ce_root.anmfps = ce_fclamp(ce_root.anmfps, 1.0f, 50.0f);
+	float anmfps = ce_root.anmfps;
+
+	if (anmfps_inc_event->triggered) anmfps += 1.0f;
+	if (anmfps_dec_event->triggered) anmfps -= 1.0f;
+
+	if (anmfps != ce_root.anmfps) {
+		ce_root.anmfps = ce_fclamp(anmfps, 1.0f, 50.0f);
+		display_message("Animation FPS: %d", (int)ce_root.anmfps);
+	}
 
 	bool need_update_figentity = false;
 
 	if (strength_event->triggered) {
-		if ((complection.strength += 0.1f) > 1.0f) {
+		if ((complection.strength += 0.1f) >= 1.1f) {
 			complection.strength = 0.0f;
 		}
 		need_update_figentity = true;
+		display_message("Strength: %.2f", complection.strength);
 	}
 
 	if (dexterity_event->triggered) {
-		if ((complection.dexterity += 0.1f) > 1.0f) {
+		if ((complection.dexterity += 0.1f) >= 1.1f) {
 			complection.dexterity = 0.0f;
 		}
 		need_update_figentity = true;
+		display_message("Dexterity: %.2f", complection.dexterity);
 	}
 
 	if (height_event->triggered) {
-		if ((complection.height += 0.1f) > 1.0f) {
+		if ((complection.height += 0.1f) >= 1.1f) {
 			complection.height = 0.0f;
 		}
 		need_update_figentity = true;
+		display_message("Height: %.2f", complection.height);
 	}
 
 	if (need_update_figentity) {
@@ -126,13 +155,24 @@ static void advance(void* listener, float elapsed)
 			anmidx = -1;
 		}
 		if (-1 != anmidx) {
-			ce_figentity_play_animation(figentity,
-				ce_figentity_get_animation_name(figentity, anmidx));
-			ce_logging_write("main: new animation name: '%s'",
-				ce_figentity_get_animation_name(figentity, anmidx));
+			const char* anmname = ce_figentity_get_animation_name(figentity, anmidx);
+			ce_figentity_play_animation(figentity, anmname);
+			display_message("Animation name: %s", anmname);
 		} else {
-			ce_logging_write("main: new animation name: none");
+			display_message("No animation");
 		}
+	}
+}
+
+static void render(void* listener)
+{
+	ce_unused(listener);
+	if (message_timeout > 0.0f) {
+		ce_font_render(ce_root.scenemng->font, (ce_root.scenemng->viewport->width -
+			ce_font_get_width(ce_root.scenemng->font, message->str)) / 2,
+			1 * (ce_root.scenemng->viewport->height -
+			ce_font_get_height(ce_root.scenemng->font)) / 5,
+			&message_color, message->str);
 	}
 }
 
@@ -197,8 +237,11 @@ int main(int argc, char* argv[])
 	ce_root.scenemng->camera_move_sensitivity = 5.0f;
 	ce_root.scenemng->camera_zoom_sensitivity = 0.5f;
 
-	ce_scenemng_listener scenemng_listener = { .advance = advance };
+	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = render};
 	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
+
+	message = ce_string_new();
+	message_color = CE_COLOR_CORNFLOWER;
 
 	input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
 	strength_event = ce_input_supply_single_front(input_supply,
@@ -211,10 +254,10 @@ int main(int argc, char* argv[])
 					ce_input_supply_button(input_supply, CE_KB_A));
 	anmfps_inc_event = ce_input_supply_repeat(input_supply,
 						ce_input_supply_button(input_supply,
-							CE_KB_ADD), CE_INPUT_NO_DELAY, 10);
+							CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
 	anmfps_dec_event = ce_input_supply_repeat(input_supply,
 						ce_input_supply_button(input_supply,
-							CE_KB_SUBTRACT), CE_INPUT_NO_DELAY, 10);
+							CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
 
 	return ce_root_exec();
 }
