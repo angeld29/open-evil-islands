@@ -45,7 +45,8 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	void (*onadvance)(void* listener, float elapsed);
+	void (*advance)(void* listener, float elapsed);
+	void (*render)(void* listener);
 	void* listener;
 } ce_scenemng_listener;
 

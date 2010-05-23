@@ -136,7 +136,7 @@ static void advance(void* listener, float elapsed)
 	}
 }
 
-static ce_scenemng_listener scenemng_listener = { .onadvance = advance };
+static ce_scenemng_listener scenemng_listener = { .advance = advance };
 
 int main(int argc, char* argv[])
 {

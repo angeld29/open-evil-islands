@@ -35,6 +35,8 @@ static ce_input_supply* input_supply;
 static ce_input_event* anmfps_inc_event;
 static ce_input_event* anmfps_dec_event;
 
+static float message_timeout;
+
 static void clean()
 {
 	ce_input_supply_del(input_supply);
@@ -46,13 +48,36 @@ static void advance(void* listener, float elapsed)
 	ce_unused(listener);
 	ce_input_supply_advance(input_supply, elapsed);
 
-	if (anmfps_inc_event->triggered) ce_root.anmfps += 1.0f;
-	if (anmfps_dec_event->triggered) ce_root.anmfps -= 1.0f;
+	float anmfps = ce_root.anmfps;
 
-	ce_root.anmfps = ce_fclamp(ce_root.anmfps, 1.0f, 50.0f);
+	if (anmfps_inc_event->triggered) anmfps += 1.0f;
+	if (anmfps_dec_event->triggered) anmfps -= 1.0f;
+
+	if (message_timeout > 0.0f) {
+		message_timeout -= elapsed;
+	}
+
+	if (anmfps != ce_root.anmfps) {
+		message_timeout = 3.0f;
+	}
+
+	ce_root.anmfps = ce_fclamp(anmfps, 1.0f, 50.0f);
 }
 
-static ce_scenemng_listener scenemng_listener = { .onadvance = advance };
+static void render(void* listener)
+{
+	ce_unused(listener);
+
+	if (message_timeout > 0.0f) {
+		char buffer[32];
+		snprintf(buffer, sizeof(buffer), "Animation FPS: %d", (int)ce_root.anmfps);
+		ce_font_render(ce_root.scenemng->font, (ce_root.scenemng->viewport->width -
+			ce_font_get_width(ce_root.scenemng->font, buffer)) / 2,
+			1 * (ce_root.scenemng->viewport->height -
+			ce_font_get_height(ce_root.scenemng->font)) / 5,
+			&CE_COLOR_CORNFLOWER, buffer);
+	}
+}
 
 int main(int argc, char* argv[])
 {
@@ -164,6 +189,7 @@ int main(int argc, char* argv[])
 		fclose(file);
 	}*/
 
+	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = render};
 	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
 
 	input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);

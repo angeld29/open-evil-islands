@@ -163,7 +163,9 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 
 	for (int i = 0; i < scenemng->listeners->count; ++i) {
 		ce_scenemng_listener* listener = scenemng->listeners->items[i];
-		(*listener->onadvance)(listener->listener, elapsed);
+		if (NULL != listener->advance) {
+			(*listener->advance)(listener->listener, elapsed);
+		}
 	}
 }
 
@@ -238,14 +240,14 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	snprintf(scenenode_text, sizeof(scenenode_text), "%d",
 		ce_scenenode_count_visible_cascade(scenemng->scenenode));
 
-	ce_font_render(scenemng->font, 10, 10, &CE_COLOR_RED, scenenode_text);
+	ce_font_render(scenemng->font, 10, 10, &CE_COLOR_GRAY, scenenode_text);
 #endif
 
 	if (ce_root.show_fps) {
 		ce_font_render(scenemng->font, scenemng->viewport->width -
 			ce_font_get_width(scenemng->font, scenemng->fps->text) - 10,
 			scenemng->viewport->height - ce_font_get_height(scenemng->font) - 10,
-			&CE_COLOR_RED, scenemng->fps->text);
+			&CE_COLOR_INDIGO, scenemng->fps->text);
 	}
 
 	const char* engine_text = "Powered by Cursed Earth Engine";
@@ -253,6 +255,13 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_font_render(scenemng->font, scenemng->viewport->width -
 		ce_font_get_width(scenemng->font, engine_text) - 10, 10,
 		&CE_COLOR_RED, engine_text);
+
+	for (int i = 0; i < scenemng->listeners->count; ++i) {
+		ce_scenemng_listener* listener = scenemng->listeners->items[i];
+		if (NULL != listener->render) {
+			(*listener->render)(listener->listener);
+		}
+	}
 
 	ce_rendersystem_end_render(ce_root.rendersystem);
 }

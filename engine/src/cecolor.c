@@ -26,6 +26,29 @@ const ce_color CE_COLOR_WHITE = { .r = 1.0f, .g = 1.0f, .b = 1.0f, .a = 1.0f };
 const ce_color CE_COLOR_RED = { .r = 1.0f, .g = 0.0f, .b = 0.0f, .a = 1.0f };
 const ce_color CE_COLOR_GREEN = { .r = 0.0f, .g = 1.0f, .b = 0.0f, .a = 1.0f };
 const ce_color CE_COLOR_BLUE = { .r = 0.0f, .g = 0.0f, .b = 1.0f, .a = 1.0f };
+const ce_color CE_COLOR_YELLOW = { .r = 1.0f, .g = 1.0f, .b = 0.0f, .a = 1.0f };
+const ce_color CE_COLOR_CYAN = { .r = 0.0f, .g = 1.0f, .b = 1.0f, .a = 1.0f };
+const ce_color CE_COLOR_MAGENTA = { .r = 1.0f, .g = 0.0f, .b = 1.0f, .a = 1.0f };
+const ce_color CE_COLOR_GRAY = { .r = 160.0f / 255.0f, .g = 160.0f / 255.0f,
+									.b = 164.0f / 255.0f, .a = 1.0f };
+const ce_color CE_COLOR_CORNFLOWER = { .r = 100.0f / 255.0f, .g = 149.0f / 255.0f,
+										.b = 237.0f / 255.0f, .a = 1.0f };
+const ce_color CE_COLOR_CRIMSON = { .r = 220.0f / 255.0f, .g = 20.0f / 255.0f,
+									.b = 60.0f / 255.0f, .a = 1.0f };
+const ce_color CE_COLOR_GOLD = { .r = 1.0f, .g = 215.0f / 255.0f, .b = 0.0f, .a = 1.0f };
+const ce_color CE_COLOR_GOLDENROD = { .r = 218.0f / 255.0f, .g = 165.0f / 255.0f,
+										.b = 32.0f / 255.0f, .a = 1.0f };
+const ce_color CE_COLOR_INDIGO = { .r = 75.0f / 255.0f, .g = 0.0f,
+									.b = 130.0f / 255.0f, .a = 1.0f };
+const ce_color CE_COLOR_ROYAL_BLUE = { .r = 65.0f / 255.0f, .g = 105.0f / 255.0f,
+										.b = 1.0f, .a = 1.0f };
+const ce_color CE_COLOR_SILVER = { .r = 192.0f / 255.0f, .g = 192.0f / 255.0f,
+									.b = 192.0f / 255.0f, .a = 1.0f };
+const ce_color CE_COLOR_TOMATO = { .r = 1.0f, .g = 99.0f / 255.0f,
+									.b = 71.0f / 255.0f, .a = 1.0f };
+const ce_color CE_COLOR_WHEAT = { .r = 245.0f / 255.0f, .g = 222.0f / 255.0f,
+									.b = 179.0f / 255.0f, .a = 1.0f };
+const ce_color CE_COLOR_TRANSPARENT;
 
 ce_color* ce_color_init(ce_color* color, float r, float g, float b, float a)
 {
