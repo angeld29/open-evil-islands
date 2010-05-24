@@ -90,18 +90,13 @@ int ce_mprhlp_texture_angle(uint16_t texture)
 
 float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 {
-	if (modff(x, &x) > 0.5f) {
-		x += 1.0f;
-	}
+	int round_x = x + 0.5f;
+	int round_z = z + 0.5f;
 
-	if (modff(z, &z) > 0.5f) {
-		z += 1.0f;
-	}
-
-	int sector_x = (int)x / (CE_MPRFILE_VERTEX_SIDE - 1);
-	int sector_z = (int)z / (CE_MPRFILE_VERTEX_SIDE - 1);
-	int vertex_x = (int)x % (CE_MPRFILE_VERTEX_SIDE - 1);
-	int vertex_z = (int)z % (CE_MPRFILE_VERTEX_SIDE - 1);
+	int sector_x = round_x / (CE_MPRFILE_VERTEX_SIDE - 1);
+	int sector_z = round_z / (CE_MPRFILE_VERTEX_SIDE - 1);
+	int vertex_x = round_x % (CE_MPRFILE_VERTEX_SIDE - 1);
+	int vertex_z = round_z % (CE_MPRFILE_VERTEX_SIDE - 1);
 
 	const ce_mprsector* sector = mprfile->sectors +
 		sector_z * mprfile->sector_x_count + sector_x;
