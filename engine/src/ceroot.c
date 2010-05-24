@@ -98,13 +98,13 @@ bool ce_root_init(ce_optparse* optparse)
 
 	bool fs_reflection_x, fs_reflection_y, list_vm,
 			list_vrot, list_vref, inverse_trackball;
-	int width, height, fs_rotation;
+	int window_width, window_height, fs_rotation;
 	const char *ei_path, *ce_path;
 
 	ce_optparse_get(optparse, "ei_path", &ei_path);
 	ce_optparse_get(optparse, "ce_path", &ce_path);
-	ce_optparse_get(optparse, "width", &width);
-	ce_optparse_get(optparse, "height", &height);
+	ce_optparse_get(optparse, "window_width", &window_width);
+	ce_optparse_get(optparse, "window_height", &window_height);
 	ce_optparse_get(optparse, "fs_rotation", &fs_rotation);
 	ce_optparse_get(optparse, "fs_reflection_x", &fs_reflection_x);
 	ce_optparse_get(optparse, "fs_reflection_y", &fs_reflection_y);
@@ -128,7 +128,7 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.comprehensive_bbox_only = true;
 	ce_root.anmfps = 15.0f;
 
-	ce_root.renderwindow = ce_renderwindow_create(width, height, optparse->title->str);
+	ce_root.renderwindow = ce_renderwindow_create(window_width, window_height, optparse->title->str);
 	if (NULL == ce_root.renderwindow) {
 		ce_logging_fatal("root: could not create a window");
 		return false;
@@ -261,10 +261,10 @@ ce_optparse* ce_root_create_optparse(void)
 		NULL, "ce-path",
 		"reserved for future use: path to CE directory (current by default)");
 
-	ce_optparse_add(optparse, "width", CE_TYPE_INT, (int[]){1024}, false,
-		NULL, "width", "desired window width in window mode");
-	ce_optparse_add(optparse, "height", CE_TYPE_INT, (int[]){768}, false,
-		NULL, "height", "desired window height in window mode");
+	ce_optparse_add(optparse, "window_width", CE_TYPE_INT, (int[]){1024}, false,
+		NULL, "window-width", "desired window width in window mode");
+	ce_optparse_add(optparse, "window_height", CE_TYPE_INT, (int[]){768}, false,
+		NULL, "window-height", "desired window height in window mode");
 
 	ce_optparse_add(optparse, "fullscreen", CE_TYPE_BOOL, NULL, false,
 		"f", "fullscreen", "start program in fullscreen mode");
