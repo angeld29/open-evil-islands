@@ -23,44 +23,83 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define ce_unused(var) (void)(var)
+
+#define CE_DEF_MIN(name, type) \
+static inline type ce_##name(type a, type b) \
+{ \
+	return a < b ? a : b; \
+}
+
+#define CE_DEF_MAX(name, type) \
+static inline type ce_##name(type a, type b) \
+{ \
+	return a > b ? a : b; \
+}
+
+#define CE_DEF_CLAMP(name, type) \
+static inline type ce_##name(type v, type a, type b) \
+{ \
+	return v < a ? a : (v > b ? b : v); \
+}
+
+#define CE_DEF_SWAP(name, type) \
+static inline void ce_##name(type* a, type* b) \
+{ \
+	*a ^= *b; /* a' = (a ^ b)           */ \
+	*b ^= *a; /* b' = (b ^ (a ^ b)) = a */ \
+	*a ^= *b; /* a' = (a ^ b) ^ a = b   */ \
+}
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-extern int ce_min(int a, int b);
-extern int ce_max(int a, int b);
-extern size_t ce_smin(size_t a, size_t b);
-extern size_t ce_smax(size_t a, size_t b);
+CE_DEF_MIN(min, int)
+CE_DEF_MIN(smin, size_t)
 
-extern void ce_swap(int* a, int* b);
+CE_DEF_MAX(max, int)
+CE_DEF_MAX(smax, size_t)
 
-extern int ce_clamp(int v, int a, int b);
-extern size_t ce_sclamp(size_t v, size_t a, size_t b);
+CE_DEF_CLAMP(clamp, int)
+CE_DEF_CLAMP(sclamp, size_t)
+
+CE_DEF_SWAP(swap, int)
+CE_DEF_SWAP(sswap, size_t)
 
 // is power of two (using 2's complement arithmetic)
-static inline bool ce_ispot(size_t x)
+static inline bool ce_sispot(size_t v)
 {
-	return 0 == (x & (x - 1));
+	return 0 == (v & (v - 1));
 }
 
 // next largest power of two (using SWAR algorithm)
-static inline size_t ce_nlpot(size_t x)
+static inline size_t ce_snlpot(size_t v)
 {
-	// FIXME: only for 32 bit value
-	x |= (x >> 1);
-	x |= (x >> 2);
-	x |= (x >> 4);
-	x |= (x >> 8);
-	x |= (x >> 16);
-	return x + 1;
+	v |= (v >> 1);
+	v |= (v >> 2);
+	v |= (v >> 4);
+	v |= (v >> 8);
+	v |= (v >> 16);
+#if CE_SIZEOF_SIZE_T > 4
+	v |= (v >> 32);
+#endif
+#if CE_SIZEOF_SIZE_T > 8
+	v |= (v >> 64);
+#endif
+	return v + 1;
 }
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#undef CE_DEF_MIN
+#undef CE_DEF_MAX
+#undef CE_DEF_CLAMP
+#undef CE_DEF_SWAP
 
 #endif /* CE_LIB_H */

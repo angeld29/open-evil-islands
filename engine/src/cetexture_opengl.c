@@ -95,16 +95,8 @@ static void ce_texture_specify(int width, int height, int level,
 	int new_height = ce_min(height, max_texture_size);
 
 	if (!GLEW_VERSION_2_0 && !GLEW_ARB_texture_non_power_of_two) {
-		float int_width, int_height;
-		float fract_width = modff(log2f(new_width), &int_width);
-		float fract_height = modff(log2f(new_height), &int_height);
-
-		if (!ce_fiszero(fract_width, CE_EPS_E3)) {
-			new_width = powf(2.0f, int_width);
-		}
-		if (!ce_fiszero(fract_height, CE_EPS_E3)) {
-			new_height = powf(2.0f, int_height);
-		}
+		if (!ce_sispot(new_width)) new_width = ce_snlpot(new_width);
+		if (!ce_sispot(new_height)) new_height = ce_snlpot(new_height);
 	}
 
 	if (width != new_width || height != new_height) {

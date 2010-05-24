@@ -136,8 +136,8 @@ ce_font* ce_font_new(const char* resource_path, int pixel_size)
 	font->height = max_ascent + max_descent;
 
 	size_t image_height = (font->height + CE_FONT_MARGIN) * lines + CE_FONT_MARGIN;
-	if (!ce_ispot(image_height)) {
-		image_height = ce_nlpot(image_height);
+	if (!ce_sispot(image_height)) {
+		image_height = ce_snlpot(image_height);
 	}
 
 	// generation of the actual texture
