@@ -46,6 +46,8 @@
 #include "cealloc.h"
 #include "cemmpfile.h"
 
+// FIXME: right shifts on signed integer
+
 static const unsigned int CE_MMPFILE_SIGNATURE = 0x504d4d;
 static const unsigned int CE_MMPFILE_SIGNATURE_EXT = 0x45434d4d;
 

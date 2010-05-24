@@ -125,6 +125,7 @@ static void ce_texture_generate(ce_mmpfile* mmpfile,
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	}
 
+	// FIXME: right shift on signed integer
 	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		ce_texture_specify(width, height, i,
@@ -145,6 +146,7 @@ static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 	int mipmap_count = ce_texture_correct_mipmap_count(mmpfile->mipmap_count);
 	const uint8_t* src = mmpfile->texels;
 
+	// FIXME: right shift on signed integer
 	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		int size = ce_mmpfile_storage_size(width, height, 1, mmpfile->bit_count);
