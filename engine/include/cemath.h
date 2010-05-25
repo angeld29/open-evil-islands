@@ -39,16 +39,42 @@ extern const float CE_EPS_E4;
 extern const float CE_EPS_E5;
 extern const float CE_EPS_E6;
 
+extern const float CE_DEG2RAD;
+extern const float CE_RAD2DEG;
+
 extern bool ce_fisequal(float a, float b, float tolerance);
-extern bool ce_fiszero(float a, float tolerance);
 
-extern void ce_fswap(float* a, float* b);
-extern float ce_fclamp(float v, float a, float b);
+static inline bool ce_fiszero(float a, float tolerance)
+{
+	return ce_fisequal(a, 0.0f, tolerance);
+}
 
-extern float ce_lerp(float u, float a, float b);
+static inline void ce_fswap(float* a, float* b)
+{
+	float t = *a;
+	*a = *b;
+	*b = t;
+}
 
-extern float ce_deg2rad(float angle);
-extern float ce_rad2deg(float angle);
+static inline float ce_fclamp(float v, float a, float b)
+{
+	return v < a ? a : (v > b ? b : v);
+}
+
+static inline float ce_lerp(float u, float a, float b)
+{
+	return a + u * (b - a);
+}
+
+static inline float ce_deg2rad(float angle)
+{
+	return CE_DEG2RAD * angle;
+}
+
+static inline float ce_rad2deg(float angle)
+{
+	return CE_RAD2DEG * angle;
+}
 
 #ifdef __cplusplus
 }
