@@ -29,13 +29,12 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	float strength, dexterity, height;
+	float dexterity, strength, height;
 } ce_complection;
 
 extern ce_complection*
-ce_complection_init(ce_complection* complection, float strength,
-												float dexterity,
-												float height);
+ce_complection_init(ce_complection* complection, float dexterity,
+												float strength, float height);
 extern ce_complection*
 ce_complection_init_array(ce_complection* complection, const float* array);
 

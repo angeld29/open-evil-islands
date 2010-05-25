@@ -69,6 +69,7 @@ ce_sphere* ce_fighlp_get_sphere(ce_sphere* sphere, const ce_figfile* figfile,
 float* ce_fighlp_get_vertex(float* array, const ce_figfile* figfile,
 							int index, const ce_complection* complection)
 {
+	// see doc/formats/figfile.txt for details!
 	int i = 3 * figfile->value_count * 4 * (index / 4) + index % 4;
 	int j = 3 * figfile->value_count * 4 / 3;
 	array[0] = figfile->value_callback(

@@ -23,10 +23,10 @@
 
 ce_complection*
 ce_complection_init(ce_complection* complection,
-					float strength, float dexterity, float height)
+					float dexterity, float strength, float height)
 {
-	complection->strength = strength;
 	complection->dexterity = dexterity;
+	complection->strength = strength;
 	complection->height = height;
 	return complection;
 }
@@ -34,8 +34,8 @@ ce_complection_init(ce_complection* complection,
 ce_complection*
 ce_complection_init_array(ce_complection* complection, const float* array)
 {
-	complection->strength = array[0];
-	complection->dexterity = array[1];
+	complection->dexterity = array[0];
+	complection->strength = array[1];
 	complection->height = array[2];
 	return complection;
 }
@@ -43,8 +43,8 @@ ce_complection_init_array(ce_complection* complection, const float* array)
 ce_complection*
 ce_complection_copy(ce_complection* complection, const ce_complection* other)
 {
-	complection->strength = other->strength;
 	complection->dexterity = other->dexterity;
+	complection->strength = other->strength;
 	complection->height = other->height;
 	return complection;
 }
@@ -52,7 +52,7 @@ ce_complection_copy(ce_complection* complection, const ce_complection* other)
 bool ce_complection_equal(const ce_complection* complection,
 							const ce_complection* other)
 {
-	return ce_fisequal(complection->strength, other->strength, CE_EPS_E3) &&
-		ce_fisequal(complection->dexterity, other->dexterity, CE_EPS_E3) &&
+	return ce_fisequal(complection->dexterity, other->dexterity, CE_EPS_E3) &&
+		ce_fisequal(complection->strength, other->strength, CE_EPS_E3) &&
 		ce_fisequal(complection->height, other->height, CE_EPS_E3);
 }
