@@ -67,7 +67,7 @@ void ce_logging_set_level(ce_logging_level level)
 }
 
 #define CE_LOGGING_PROC(name, level) \
-void ce_logging_ ## name(const char* format, ...) \
+void ce_logging_##name(const char* format, ...) \
 { \
 	va_list args; \
 	va_start(args, format); \

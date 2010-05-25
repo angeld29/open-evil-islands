@@ -20,13 +20,13 @@
 
 #include "cevec2.h"
 
-const ce_vec2 CE_VEC2_ZERO = { .x = 0.0f, .y = 0.0f };
-const ce_vec2 CE_VEC2_UNIT_X = { .x = 1.0f, .y = 0.0f };
-const ce_vec2 CE_VEC2_UNIT_Y = { .x = 0.0f, .y = 1.0f };
-const ce_vec2 CE_VEC2_UNIT_SCALE = { .x = 1.0f, .y = 1.0f };
-const ce_vec2 CE_VEC2_NEG_UNIT_X = { .x = -1.0f, .y = 0.0f };
-const ce_vec2 CE_VEC2_NEG_UNIT_Y = { .x = 0.0f, .y = -1.0f };
-const ce_vec2 CE_VEC2_NEG_UNIT_SCALE = { .x = -1.0f, .y = -1.0f };
+const ce_vec2 CE_VEC2_ZERO = {.x = 0.0f, .y = 0.0f};
+const ce_vec2 CE_VEC2_UNIT_X = {.x = 1.0f, .y = 0.0f};
+const ce_vec2 CE_VEC2_UNIT_Y = {.x = 0.0f, .y = 1.0f};
+const ce_vec2 CE_VEC2_UNIT_SCALE = {.x = 1.0f, .y = 1.0f};
+const ce_vec2 CE_VEC2_NEG_UNIT_X = {.x = -1.0f, .y = 0.0f};
+const ce_vec2 CE_VEC2_NEG_UNIT_Y = {.x = 0.0f, .y = -1.0f};
+const ce_vec2 CE_VEC2_NEG_UNIT_SCALE = {.x = -1.0f, .y = -1.0f};
 
 ce_vec2* ce_vec2_init(ce_vec2* vec, float x, float y)
 {
@@ -37,8 +37,8 @@ ce_vec2* ce_vec2_init(ce_vec2* vec, float x, float y)
 
 ce_vec2* ce_vec2_init_array(ce_vec2* vec, const float* array)
 {
-	vec->x = *array++;
-	vec->y = *array;
+	vec->x = array[0];
+	vec->y = array[1];
 	return vec;
 }
 

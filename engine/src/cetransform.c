@@ -21,9 +21,9 @@
 #include "cetransform.h"
 
 const ce_transform CE_TRANSFORM_IDENTITY = {
-	.translation = { .x = 0.0f, .y = 0.0f, .z = 0.0f },
-	.rotation = { .w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f },
-	.scaling = { .x = 1.0f, .y = 1.0f, .z = 1.0f }
+	.translation = {.x = 0.0f, .y = 0.0f, .z = 0.0f},
+	.rotation = {.w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f},
+	.scaling = {.x = 1.0f, .y = 1.0f, .z = 1.0f},
 };
 
 ce_transform*

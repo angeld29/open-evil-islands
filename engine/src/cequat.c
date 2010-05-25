@@ -24,8 +24,8 @@
 #include "cevec3.h"
 #include "cequat.h"
 
-const ce_quat CE_QUAT_ZERO = { .w = 0.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f };
-const ce_quat CE_QUAT_IDENTITY = { .w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f };
+const ce_quat CE_QUAT_ZERO = {.w = 0.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f};
+const ce_quat CE_QUAT_IDENTITY = {.w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f};
 
 ce_quat* ce_quat_init(ce_quat* quat, float w, float x, float y, float z)
 {
@@ -38,10 +38,10 @@ ce_quat* ce_quat_init(ce_quat* quat, float w, float x, float y, float z)
 
 ce_quat* ce_quat_init_array(ce_quat* quat, const float* array)
 {
-	quat->w = *array++;
-	quat->x = *array++;
-	quat->y = *array++;
-	quat->z = *array;
+	quat->w = array[0];
+	quat->x = array[1];
+	quat->y = array[2];
+	quat->z = array[3];
 	return quat;
 }
 

@@ -30,10 +30,10 @@ ce_sphere_init(ce_sphere* sphere, const ce_vec3* origin, float radius)
 
 ce_sphere* ce_sphere_init_array(ce_sphere* sphere, const float* array)
 {
-	sphere->origin.x = *array++;
-	sphere->origin.y = *array++;
-	sphere->origin.z = *array++;
-	sphere->radius = *array++;
+	sphere->origin.x = array[0];
+	sphere->origin.y = array[1];
+	sphere->origin.z = array[2];
+	sphere->radius = array[3];
 	return sphere;
 }
 

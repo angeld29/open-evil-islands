@@ -24,15 +24,15 @@
 #include "cequat.h"
 #include "cevec3.h"
 
-const ce_vec3 CE_VEC3_ZERO = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
-const ce_vec3 CE_VEC3_UNIT_X = { .x = 1.0f, .y = 0.0f, .z = 0.0f };
-const ce_vec3 CE_VEC3_UNIT_Y = { .x = 0.0f, .y = 1.0f, .z = 0.0f };
-const ce_vec3 CE_VEC3_UNIT_Z = { .x = 0.0f, .y = 0.0f, .z = 1.0f };
-const ce_vec3 CE_VEC3_UNIT_SCALE = { .x = 1.0f, .y = 1.0f, .z = 1.0f };
-const ce_vec3 CE_VEC3_NEG_UNIT_X = { .x = -1.0f, .y = 0.0f, .z = 0.0f };
-const ce_vec3 CE_VEC3_NEG_UNIT_Y = { .x = 0.0f, .y = -1.0f, .z = 0.0f };
-const ce_vec3 CE_VEC3_NEG_UNIT_Z = { .x = 0.0f, .y = 0.0f, .z = -1.0f };
-const ce_vec3 CE_VEC3_NEG_UNIT_SCALE = { .x = -1.0f, .y = -1.0f, .z = -1.0f };
+const ce_vec3 CE_VEC3_ZERO = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
+const ce_vec3 CE_VEC3_UNIT_X = {.x = 1.0f, .y = 0.0f, .z = 0.0f};
+const ce_vec3 CE_VEC3_UNIT_Y = {.x = 0.0f, .y = 1.0f, .z = 0.0f};
+const ce_vec3 CE_VEC3_UNIT_Z = {.x = 0.0f, .y = 0.0f, .z = 1.0f};
+const ce_vec3 CE_VEC3_UNIT_SCALE = {.x = 1.0f, .y = 1.0f, .z = 1.0f};
+const ce_vec3 CE_VEC3_NEG_UNIT_X = {.x = -1.0f, .y = 0.0f, .z = 0.0f};
+const ce_vec3 CE_VEC3_NEG_UNIT_Y = {.x = 0.0f, .y = -1.0f, .z = 0.0f};
+const ce_vec3 CE_VEC3_NEG_UNIT_Z = {.x = 0.0f, .y = 0.0f, .z = -1.0f};
+const ce_vec3 CE_VEC3_NEG_UNIT_SCALE = {.x = -1.0f, .y = -1.0f, .z = -1.0f};
 
 ce_vec3* ce_vec3_init(ce_vec3* vec, float x, float y, float z)
 {
@@ -44,9 +44,9 @@ ce_vec3* ce_vec3_init(ce_vec3* vec, float x, float y, float z)
 
 ce_vec3* ce_vec3_init_array(ce_vec3* vec, const float* array)
 {
-	vec->x = *array++;
-	vec->y = *array++;
-	vec->z = *array;
+	vec->x = array[0];
+	vec->y = array[1];
+	vec->z = array[2];
 	return vec;
 }
 

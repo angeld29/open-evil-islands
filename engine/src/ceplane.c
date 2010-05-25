@@ -31,10 +31,10 @@ ce_plane* ce_plane_init(ce_plane* plane, float a, float b, float c, float d)
 
 ce_plane* ce_plane_init_array(ce_plane* plane, const float* array)
 {
-	plane->n.x = *array++;
-	plane->n.y = *array++;
-	plane->n.z = *array++;
-	plane->d = *array;
+	plane->n.x = array[0];
+	plane->n.y = array[1];
+	plane->n.z = array[2];
+	plane->d = array[3];
 	return plane;
 }
 

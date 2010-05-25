@@ -20,8 +20,10 @@
 
 /*
  *  Based on:
+ *
  *  1. View Frustum Culling Tutorial @ Lighthouse3d.com,
  *     http://www.lighthouse3d.com/opengl/viewfrustum/.
+ *
  *  2. GTKRadiant mathlib,
  *     https://zerowing.idsoftware.com/svn/radiant/GtkRadiant.
  *     GTKRadiant contains software developed by Id Software,

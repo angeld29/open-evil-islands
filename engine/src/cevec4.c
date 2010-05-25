@@ -31,10 +31,10 @@ ce_vec4* ce_vec4_init(ce_vec4* vec, float x, float y, float z, float w)
 
 ce_vec4* ce_vec4_init_array(ce_vec4* vec, const float* array)
 {
-	vec->x = *array++;
-	vec->y = *array++;
-	vec->z = *array++;
-	vec->w = *array;
+	vec->x = array[0];
+	vec->y = array[1];
+	vec->z = array[2];
+	vec->w = array[3];
 	return vec;
 }
 
