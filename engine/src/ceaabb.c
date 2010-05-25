@@ -20,6 +20,7 @@
 
 /*
  *  Based on:
+ *
  *  1. GTKRadiant mathlib,
  *     https://zerowing.idsoftware.com/svn/radiant/GtkRadiant.
  *     GTKRadiant contains software developed by Id Software,

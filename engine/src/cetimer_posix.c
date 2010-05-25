@@ -33,7 +33,8 @@ typedef struct {
 
 static void ce_timer_get_time_of_day(struct timeval* tv)
 {
-	// TODO: not posix stuff...
+	// FIXME: not POSIX stuff...
+
 	//cpu_set_t old_cpuset, cpuset;
 	//pthread_t thread = pthread_self();
 

@@ -60,7 +60,7 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
 	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
 
-	/**
+	/*
 	 *  Sector rendering: just simple triangle strips!
 	 *
 	 *   0___1___2__...__32
@@ -87,7 +87,7 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 			int x = j / 2;
 
 			if (NULL != water_allow) {
-				/**
+				/*
 				 *  This fu... clever code needs to remove some
 				 *  not allowed water triangles.
 				 *
@@ -186,7 +186,7 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 	const float tile_uv_border_offset = tile_border_size /
 										mprfile->texture_size;
 
-	/**
+	/*
 	 *  Tile texturing:
 	 *
 	 *  [                 ] tile_uv_step
@@ -215,7 +215,7 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 		{ tile_uv_border_offset, tile_uv_step - tile_uv_border_offset }
 	};
 
-	/**
+	/*
 	 *  Tile rendering: just simple triangle fan!
 	 *
 	 *    7___6___5

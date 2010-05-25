@@ -19,7 +19,7 @@
 */
 
 /*
- *  Based on MSDN website
+ *  Based on MSDN website.
 */
 
 #include <windows.h>

@@ -25,11 +25,10 @@
 
 size_t ce_resource_find(const char* path)
 {
-	size_t index;
-	for (index = 0; index < CE_RESOURCE_DATA_COUNT; ++index) {
+	for (size_t index = 0; index < CE_RESOURCE_DATA_COUNT; ++index) {
 		if (0 == strcmp(path, ce_resource_data_paths[index])) {
-			break;
+			return index;
 		}
 	}
-	return index;
+	return CE_RESOURCE_DATA_COUNT;
 }
