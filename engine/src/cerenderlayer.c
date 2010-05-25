@@ -55,12 +55,14 @@ void ce_renderlayer_render(ce_renderlayer* renderlayer,
 		ce_texture_bind(renderlayer->texture);
 		for (int i = 0; i < renderlayer->renderitems->count; ++i) {
 			ce_renderitem* renderitem = renderlayer->renderitems->items[i];
-			ce_rendersystem_apply_transform(rendersystem,
-											&renderitem->world_position,
-											&renderitem->world_orientation,
-											&CE_VEC3_UNIT_SCALE);
-			ce_renderitem_render(renderitem);
-			ce_rendersystem_discard_transform(rendersystem);
+			if (renderitem->visible) {
+				ce_rendersystem_apply_transform(rendersystem,
+												&renderitem->world_position,
+												&renderitem->world_orientation,
+												&CE_VEC3_UNIT_SCALE);
+				ce_renderitem_render(renderitem);
+				ce_rendersystem_discard_transform(rendersystem);
+			}
 		}
 		ce_texture_unbind(renderlayer->texture);
 	}

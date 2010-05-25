@@ -24,7 +24,8 @@
 
 ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...)
 {
-	ce_renderitem* renderitem = ce_alloc(sizeof(ce_renderitem) + size);
+	ce_renderitem* renderitem = ce_alloc_zero(sizeof(ce_renderitem) + size);
+	renderitem->visible = true;
 	renderitem->vtable = vtable;
 	renderitem->size = size;
 

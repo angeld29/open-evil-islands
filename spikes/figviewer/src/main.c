@@ -73,7 +73,7 @@ static bool update_figentity()
 	ce_optparse_get(optparse, "figure", &figure);
 
 	figentity = ce_scenemng_create_figentity(ce_root.scenemng, figure,
-		&complection, &position, &orientation, 2, textures, NULL);
+		&complection, &position, &orientation, NULL, 2, textures, NULL);
 
 	if (NULL == figentity) {
 		return false;

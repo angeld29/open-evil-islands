@@ -48,6 +48,7 @@ typedef struct {
 extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 										const ce_vec3* position,
 										const ce_quat* orientation,
+										ce_vector* parts,
 										int texture_count,
 										ce_texture* textures[],
 										ce_scenenode* scenenode);

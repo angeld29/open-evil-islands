@@ -47,6 +47,7 @@ typedef struct {
 } ce_renderitem_vtable;
 
 struct ce_renderitem {
+	bool visible;
 	ce_aabb aabb;
 	ce_vec3 position;
 	ce_quat orientation;

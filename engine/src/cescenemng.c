@@ -301,6 +301,7 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 							const ce_complection* complection,
 							const ce_vec3* position,
 							const ce_quat* orientation,
+							ce_vector* parts,
 							int texture_count,
 							const char* texture_names[],
 							ce_scenenode* scenenode)
@@ -327,8 +328,8 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 	ce_figentity* figentity =
 		ce_figmng_create_figentity(scenemng->figmng, name,
 									complection, position,
-									orientation, texture_count,
-									textures, scenenode);
+									orientation, parts,
+									texture_count, textures, scenenode);
 
 	scenemng->scenenode_force_update = true;
 
@@ -364,6 +365,7 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 										mobobject->model_name->str,
 										&mobobject->complection,
 										&position, &orientation,
+										mobobject->parts,
 										2, texture_names, NULL);
 }
 
@@ -372,12 +374,12 @@ void ce_scenemng_remove_figentity(ce_scenemng* scenemng, ce_figentity* figentity
 	ce_figmng_remove_figentity(scenemng->figmng, figentity);
 }
 
-void ce_scenemng_load_mobfile(ce_scenemng* scenemng,
-								const ce_mobfile* mobfile)
+void ce_scenemng_load_mobfile(ce_scenemng* scenemng, const ce_mobfile* mobfile)
 {
 	ce_logging_write("scenemng: loading mob '%s'...", mobfile->name->str);
 	for (int i = 0; i < mobfile->objects->count; ++i) {
 		const ce_mobobject_object* mobobject = mobfile->objects->items[i];
 		ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
 	}
+	ce_logging_write("scenemng: done loading mob '%s'", mobfile->name->str);
 }

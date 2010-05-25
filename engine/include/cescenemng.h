@@ -99,6 +99,7 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 							const ce_complection* complection,
 							const ce_vec3* position,
 							const ce_quat* orientation,
+							ce_vector* parts,
 							int texture_count,
 							const char* texture_names[],
 							ce_scenenode* scenenode);

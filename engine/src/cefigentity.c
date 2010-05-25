@@ -19,6 +19,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -52,7 +53,7 @@ static void ce_figentity_scenenode_updated(void* listener)
 }
 
 static void ce_figentity_create_renderlayers(ce_figentity* figentity,
-												ce_fignode* fignode)
+										ce_vector* parts, ce_fignode* fignode)
 {
 	// FIXME: to be reversed...
 	int index = fignode->figfile->texture_number - 1;
@@ -64,15 +65,26 @@ static void ce_figentity_create_renderlayers(ce_figentity* figentity,
 		ce_rendergroup_get(fignode->rendergroup,
 							figentity->textures->items[index]));
 
+	if (NULL != parts && !ce_vector_empty(parts)) {
+		ce_renderitem* renderitem = figentity->scenenode->renderitems->items[fignode->index];
+		renderitem->visible = false;
+		for (int i = 0; i < parts->count; ++i) {
+			ce_string* part = parts->items[i];
+			if (0 == strcmp(fignode->name->str, part->str)) {
+				renderitem->visible = true;
+			}
+		}
+	}
+
 	for (int i = 0; i < fignode->childs->count; ++i) {
-		ce_figentity_create_renderlayers(figentity, fignode->childs->items[i]);
+		ce_figentity_create_renderlayers(figentity, parts, fignode->childs->items[i]);
 	}
 }
 
 ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								const ce_vec3* position,
 								const ce_quat* orientation,
-								int texture_count,
+								ce_vector* parts, int texture_count,
 								ce_texture* textures[],
 								ce_scenenode* scenenode)
 {
@@ -96,12 +108,13 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 		ce_texture_wrap(textures[i], CE_TEXTURE_WRAP_MODE_REPEAT);
 	}
 
-	ce_figentity_create_renderlayers(figentity, figentity->figmesh->figproto->fignode);
-
 	for (int i = 0; i < figmesh->renderitems->count; ++i) {
 		ce_scenenode_add_renderitem(figentity->scenenode,
 			ce_renderitem_clone(figmesh->renderitems->items[i]));
 	}
+
+	ce_figentity_create_renderlayers(figentity, parts,
+									figentity->figmesh->figproto->fignode);
 
 	return figentity;
 }
