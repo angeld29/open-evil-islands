@@ -36,30 +36,18 @@ static float ce_figfile_value_fig1(const float* params, int stride,
 	return *params;
 }
 
-static float ce_figfile_value_fig6(const float* params, int stride,
-									const ce_complection* complection)
-{
-	float temp = params[0 * stride] + (params[1 * stride] -
-								params[0 * stride]) * complection->strength;
-	float value = temp + (params[2 * stride] - temp) * complection->dexterity;
-	temp = params[3 * stride] + (params[4 * stride] -
-								params[3 * stride]) * complection->strength;
-	temp += (params[5 * stride] - temp) * complection->dexterity;
-	return value += (temp - value) * complection->height;
-}
-
 static float ce_figfile_value_fig8(const float* params, int stride,
 								const ce_complection* complection)
 {
-	float temp1 = params[0 * stride] + (params[1 * stride] -
-									params[0 * stride]) * complection->strength;
-	float temp2 = params[2 * stride] + (params[3 * stride] -
-									params[2 * stride]) * complection->strength;
+	float temp1 = params[0 * stride] +
+		(params[1 * stride] - params[0 * stride]) * complection->strength;
+	float temp2 = params[2 * stride] +
+		(params[3 * stride] - params[2 * stride]) * complection->strength;
 	float value = temp1 + (temp2 - temp1) * complection->dexterity;
-	temp1 = params[4 * stride] + (params[5 * stride] -
-								params[4 * stride]) * complection->strength;
-	temp2 = params[6 * stride] + (params[7 * stride] -
-								params[6 * stride]) * complection->strength;
+	temp1 = params[4 * stride] +
+		(params[5 * stride] - params[4 * stride]) * complection->strength;
+	temp2 = params[6 * stride] +
+		(params[7 * stride] - params[6 * stride]) * complection->strength;
 	temp1 += (temp2 - temp1) * complection->dexterity;
 	return value += (temp1 - value) * complection->height;
 }
@@ -71,8 +59,7 @@ typedef struct {
 } ce_figfile_value_tuple;
 
 static const ce_figfile_value_tuple ce_figfile_value_tuples[] = {
-	{ 0, 1, ce_figfile_value_fig1 },
-	{ 0, 6, ce_figfile_value_fig6 },
+	{ 0x31474946, 1, ce_figfile_value_fig1 },
 	{ 0x38474946, 8, ce_figfile_value_fig8 }
 };
 
