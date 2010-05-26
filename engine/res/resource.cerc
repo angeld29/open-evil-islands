@@ -20,12 +20,11 @@
 ;
 ;  The build system will compile all files in this folder automatically.
 ;  If you want to exclude some files, just specify their paths here.
-;
-;  For example:
-;  fonts/description.txt
 
 ;exclude yourself
 resource.cerc
 
 ;exclude rc for MS Windows (own compiler used)
 resource.rc
+
+readme.txt
