@@ -1,6 +1,16 @@
 [CE]
+# enable debug
 RELEASE = no
 
+# for bik2ogv
+OGV_INPUT_PATH = /path/to/evilislands/Movies
+OGV_OUTPUT_PATH = /path/to/cursedearth/Movies
+
 [i386-win32-mingw]
-ADDITIONAL_INCLUDE_PATHS = c:\glew\include
-ADDITIONAL_LIBRARY_PATHS = c:\glew\lib
+# argtable and GLEW
+ADDITIONAL_INCLUDE_PATHS = c:\argtable\include;c:\glew\include
+ADDITIONAL_LIBRARY_PATHS = c:\argtable\lib;c:\glew\lib
+
+# or all in one
+ADDITIONAL_INCLUDE_PATHS = c:\include
+ADDITIONAL_LIBRARY_PATHS = c:\lib

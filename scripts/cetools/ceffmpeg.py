@@ -29,7 +29,7 @@ def generate(env):
 		FFMPEG=detect_ffmpeg(env),
 		FFMPEGFLAGS="",
 
-		FFMPEGCOM=SCons.Util.CLVar("$FFMPEG $FFMPEGFLAGS -i $SOURCE $TARGET"),
+		FFMPEGCOM="$FFMPEG -i $SOURCE $FFMPEGFLAGS $TARGET",
 		FFMPEGCOMSTR="",
 
 		FFMPEGPREFIX="",

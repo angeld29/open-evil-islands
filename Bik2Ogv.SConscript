@@ -30,7 +30,8 @@ env = env.Clone(
 	OGVAUDIOBPS="$OGV_AUDIO_BITRATE",
 )
 
-targets = [env.FFmpeg(os.path.join("$OGV_OUTPUT_PATH", node.name), node)
+targets = [env.FFmpeg(os.path.join("$OGV_OUTPUT_PATH",
+			os.path.splitext(node.name)[0]), node)
 			for node in env.Glob(os.path.join("$OGV_INPUT_PATH", "*.bik"))]
 
 Return("targets")

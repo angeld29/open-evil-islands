@@ -21,9 +21,13 @@
 
 import SCons
 
+import ceerrors
 import ceffmpeg
 
 def generate(env):
+	if not ceffmpeg.exists(env):
+		ceerrors.interrupt("ffmpeg not found")
+
 	ceffmpeg.generate(env)
 
 	env.SetDefault(
@@ -32,8 +36,8 @@ def generate(env):
 	)
 
 	env.Replace(
-		FFMPEGFLAGS=SCons.Util.CLVar("-vcodec libtheora -acodec libvorbis -f ogg "
-									"-b ${OGVVIDEOBPS}K -ab ${OGVAUDIOBPS}K"),
+		FFMPEGFLAGS="-vcodec libtheora -acodec libvorbis -f ogg "
+						"-b ${OGVVIDEOBPS}K -ab ${OGVAUDIOBPS}K",
 
 		FFMPEGSUFFIX=".ogv",
 		FFMPEGSRCSUFFIX=".bik",
