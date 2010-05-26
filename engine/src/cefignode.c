@@ -78,7 +78,7 @@ void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode,
 											ce_renderqueue* renderqueue)
 {
 	fignode->rendergroup = ce_renderqueue_get(renderqueue,
-		fignode->figfile->group, fignode->material);
+		fignode->figfile->material_group, fignode->material);
 
 	for (int i = 0; i < fignode->childs->count; ++i) {
 		ce_fignode_accept_renderqueue_cascade(fignode->childs->items[i],

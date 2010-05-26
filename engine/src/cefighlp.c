@@ -70,8 +70,8 @@ float* ce_fighlp_get_vertex(float* array, const ce_figfile* figfile,
 							int index, const ce_complection* complection)
 {
 	// see doc/formats/figfile.txt for details!
-	int i = 3 * figfile->value_count * 4 * (index / 4) + index % 4;
-	int j = 3 * figfile->value_count * 4 / 3;
+	size_t i = 3 * figfile->value_count * 4 * (index / 4) + index % 4;
+	size_t j = 3 * figfile->value_count * 4 / 3;
 	array[0] = figfile->value_callback(
 				figfile->vertices + i + 0 * j, 4, complection);
 	array[1] = figfile->value_callback(
@@ -83,7 +83,7 @@ float* ce_fighlp_get_vertex(float* array, const ce_figfile* figfile,
 
 float* ce_fighlp_get_normal(float* array, const ce_figfile* figfile, int index)
 {
-	int i = 4 * 4 * (index / 4) + index % 4;
+	size_t i = 4 * 4 * (index / 4) + index % 4;
 	float inv_w = 1.0f / figfile->normals[i + 12];
 	array[0] = figfile->normals[i + 0] * inv_w;
 	array[1] = figfile->normals[i + 4] * inv_w;
@@ -107,7 +107,7 @@ ce_material* ce_fighlp_create_material(const ce_figfile* figfile)
 	ce_material* material = ce_material_new();
 	material->mode = CE_MATERIAL_MODE_REPLACE;
 
-	switch (figfile->group) {
+	switch (figfile->material_group) {
 	case 17: // unmoli, unmosp
 		material->alpha_test = true;
 		break;

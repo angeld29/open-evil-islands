@@ -29,15 +29,15 @@
 #include "cealloc.h"
 #include "cefigfile.h"
 
-static float ce_figfile_value_fig1(const float* params, int stride,
-								const ce_complection* complection)
+static float ce_figfile_value_fig1(const float* params, size_t stride,
+									const ce_complection* complection)
 {
 	ce_unused(stride), ce_unused(complection);
 	return *params;
 }
 
-static float ce_figfile_value_fig8(const float* params, int stride,
-								const ce_complection* complection)
+static float ce_figfile_value_fig8(const float* params, size_t stride,
+									const ce_complection* complection)
 {
 	float temp1 = params[0 * stride] +
 		(params[1 * stride] - params[0 * stride]) * complection->strength;
@@ -53,8 +53,8 @@ static float ce_figfile_value_fig8(const float* params, int stride,
 }
 
 typedef struct {
-	unsigned int type;
-	int count;
+	uint32_t type;
+	size_t count;
 	ce_figfile_value_callback callback;
 } ce_figfile_value_tuple;
 
@@ -64,13 +64,12 @@ static const ce_figfile_value_tuple ce_figfile_value_tuples[] = {
 };
 
 static const
-ce_figfile_value_tuple* ce_figfile_value_tuple_choose(unsigned int type)
+ce_figfile_value_tuple* ce_figfile_value_tuple_choose(uint32_t type)
 {
-	for (int i = 0, n = sizeof(ce_figfile_value_tuples) /
-						sizeof(ce_figfile_value_tuples[0]); i < n; ++i) {
-		const ce_figfile_value_tuple* value_tuple = ce_figfile_value_tuples + i;
-		if (value_tuple->type == type) {
-			return value_tuple;
+	for (size_t i = 0; i < sizeof(ce_figfile_value_tuples) /
+							sizeof(ce_figfile_value_tuples[0]); ++i) {
+		if (ce_figfile_value_tuples[i].type == type) {
+			return &ce_figfile_value_tuples[i];
 		}
 	}
 	return NULL;
@@ -88,7 +87,7 @@ ce_figfile* ce_figfile_open(ce_resfile* resfile, const char* name)
 		float* f;
 		uint16_t* u16;
 		uint32_t* u32;
-	} ptr = { figfile->data };
+	} ptr = {figfile->data};
 
 	const ce_figfile_value_tuple* value_tuple =
 		ce_figfile_value_tuple_choose(ce_le2cpu32(*ptr.u32++));
@@ -102,11 +101,8 @@ ce_figfile* ce_figfile_open(ce_resfile* resfile, const char* name)
 	figfile->index_count = ce_le2cpu32(*ptr.u32++);
 	figfile->vertex_component_count = ce_le2cpu32(*ptr.u32++);
 	figfile->morph_component_count = ce_le2cpu32(*ptr.u32++);
-
-	uint32_t unknown = ce_le2cpu32(*ptr.u32++);
-	assert(0 == unknown); ce_unused(unknown);
-
-	figfile->group = ce_le2cpu32(*ptr.u32++);
+	figfile->user_data_offset = ce_le2cpu32(*ptr.u32++);
+	figfile->material_group = ce_le2cpu32(*ptr.u32++);
 	figfile->texture_number = ce_le2cpu32(*ptr.u32++);
 
 	figfile->center = ptr.f;
@@ -123,15 +119,15 @@ ce_figfile* ce_figfile_open(ce_resfile* resfile, const char* name)
 	figfile->morph_components = ptr.u16 += 3 * figfile->vertex_component_count;
 
 	for (int i = 0; i < figfile->index_count; ++i) {
-		ce_le2cpu16s(figfile->indices + i);
+		ce_le2cpu16s(&figfile->indices[i]);
 	}
 
-	for (int i = 0, n = 3 * figfile->vertex_component_count; i < n; ++i) {
-		ce_le2cpu16s(figfile->vertex_components + i);
+	for (int i = 0; i < 3 * figfile->vertex_component_count; ++i) {
+		ce_le2cpu16s(&figfile->vertex_components[i]);
 	}
 
-	for (int i = 0, n = 2 * figfile->morph_component_count; i < n; ++i) {
-		ce_le2cpu16s(figfile->morph_components + i);
+	for (int i = 0; i < 2 * figfile->morph_component_count; ++i) {
+		ce_le2cpu16s(&figfile->morph_components[i]);
 	}
 
 	return figfile;
