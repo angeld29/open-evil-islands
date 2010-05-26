@@ -76,6 +76,22 @@ def create_environment():
 		config_get("CE", "LOGGING_LEVEL", "info"),
 		logging_levels.keys()))
 
+	variables.Add(SCons.Variables.PathVariable("OGV_INPUT_PATH",
+		"Set the path where BIK files are located",
+		config_get("CE", "OGV_INPUT_PATH", "."),
+		SCons.Variables.PathVariable.PathIsDir))
+
+	variables.Add(SCons.Variables.PathVariable("OGV_OUTPUT_PATH",
+		"Set the path where OGV files will be encoded",
+		config_get("CE", "OGV_OUTPUT_PATH", "."),
+		SCons.Variables.PathVariable.PathIsDirCreate))
+
+	variables.Add("OGV_VIDEO_BITRATE",
+		"Set the video bitrate for ogg theora encoder in kbit/s", "5000")
+
+	variables.Add("OGV_AUDIO_BITRATE",
+		"Set the audio bitrate for ogg theora encoder in kbit/s", "128")
+
 	env = SCons.Environment.Environment(
 		variables=variables,
 		tools=[],

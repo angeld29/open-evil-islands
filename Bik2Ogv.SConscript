@@ -19,23 +19,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-EnsurePythonVersion(2, 5)
-EnsureSConsVersion(1, 2)
+import os
 
-import site
+import SCons
 
-site.addsitedir("scripts")
+Import("env")
+env = env.Clone(
+	tools=["cebik2ogv"],
+	OGVVIDEOBPS="$OGV_VIDEO_BITRATE",
+	OGVAUDIOBPS="$OGV_AUDIO_BITRATE",
+)
 
-import ceenv
+targets = [env.FFmpeg(os.path.join("$OGV_OUTPUT_PATH", node.name), node)
+			for node in env.Glob(os.path.join("$OGV_INPUT_PATH", "*.bik"))]
 
-env = ceenv.create_environment()
-
-Export("env")
-
-engine = env.Alias("engine", env.SConscript(dirs="engine"))
-spikes = env.Alias("spikes", env.SConscript(dirs="spikes"))
-bik2ogv = env.Alias("bik2ogv", env.SConscript("Bik2Ogv.SConscript"))
-
-env.Depends(spikes, engine)
-
-env.Default(env.Alias("all", [engine, spikes]))
+Return("targets")

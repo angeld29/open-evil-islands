@@ -19,23 +19,25 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-EnsurePythonVersion(2, 5)
-EnsureSConsVersion(1, 2)
+import SCons
 
-import site
+import ceffmpeg
 
-site.addsitedir("scripts")
+def generate(env):
+	ceffmpeg.generate(env)
 
-import ceenv
+	env.SetDefault(
+		OGVVIDEOBPS="200",
+		OGVAUDIOBPS="64",
+	)
 
-env = ceenv.create_environment()
+	env.Replace(
+		FFMPEGFLAGS=SCons.Util.CLVar("-vcodec libtheora -acodec libvorbis -f ogg "
+									"-b ${OGVVIDEOBPS}K -ab ${OGVAUDIOBPS}K"),
 
-Export("env")
+		FFMPEGSUFFIX=".ogv",
+		FFMPEGSRCSUFFIX=".bik",
+	)
 
-engine = env.Alias("engine", env.SConscript(dirs="engine"))
-spikes = env.Alias("spikes", env.SConscript(dirs="spikes"))
-bik2ogv = env.Alias("bik2ogv", env.SConscript("Bik2Ogv.SConscript"))
-
-env.Depends(spikes, engine)
-
-env.Default(env.Alias("all", [engine, spikes]))
+def exists(env):
+	return ceffmpeg.exists(env)

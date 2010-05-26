@@ -25,29 +25,10 @@ import hashlib
 import os
 
 from datetime import datetime
-from itertools import chain
 
 import SCons
 
 import ceutils
-
-def traverse_files(node, patterns, env):
-	return (file for pattern in patterns
-				for file in node.glob(pattern)
-				if isinstance(file, SCons.Node.FS.File))
-
-def traverse_dirs(node, patterns, env):
-	return (file for dir in node.glob("*")
-				if isinstance(dir, SCons.Node.FS.Dir)
-				for file in traverse_all(dir, patterns, env))
-
-def traverse_all(node, patterns, env):
-	return chain(traverse_files(node, patterns, env),
-				traverse_dirs(node, patterns, env))
-
-def get_nodes(paths, patterns, env):
-	return (file for path in paths
-				for file in traverse_all(env.Dir(path), patterns, env))
 
 def fix_path(path):
 	return path.lower().replace('\\', '/')
@@ -89,7 +70,7 @@ def emit_rc(target, source, env):
 	cache = env.File(os.path.join("$RCBUILDPATH",
 		SCons.Util.adjustixes(srcname, "", env.subst("$RCSOURCESRCSUFFIX"))))
 
-	nodes = [node for node in get_nodes(["$RCROOTPATH"], ["*"], env)
+	nodes = [node for node in ceutils.get_nodes(["$RCROOTPATH"], ["*"], env)
 				if not make_relpath(node, env) in excludes]
 
 	paths = sorted(make_relpath(node, env) for node in nodes)

@@ -19,23 +19,35 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-EnsurePythonVersion(2, 5)
-EnsureSConsVersion(1, 2)
+import SCons
 
-import site
+def detect_ffmpeg(env):
+	return env.WhereIs("ffmpeg")
 
-site.addsitedir("scripts")
+def generate(env):
+	env.SetDefault(
+		FFMPEG=detect_ffmpeg(env),
+		FFMPEGFLAGS="",
 
-import ceenv
+		FFMPEGCOM=SCons.Util.CLVar("$FFMPEG $FFMPEGFLAGS -i $SOURCE $TARGET"),
+		FFMPEGCOMSTR="",
 
-env = ceenv.create_environment()
+		FFMPEGPREFIX="",
+		FFMPEGSUFFIX="",
+		FFMPEGSRCSUFFIX="",
+	)
 
-Export("env")
+	env.Append(
+		BUILDERS={
+			"FFmpeg": SCons.Builder.Builder(
+				action=SCons.Action.Action("$FFMPEGCOM", "$FFMPEGCOMSTR"),
+				prefix="$FFMPEGPREFIX",
+				suffix="$FFMPEGSUFFIX",
+				src_suffix="$FFMPEGSRCSUFFIX",
+				single_source=True,
+			),
+		},
+	)
 
-engine = env.Alias("engine", env.SConscript(dirs="engine"))
-spikes = env.Alias("spikes", env.SConscript(dirs="spikes"))
-bik2ogv = env.Alias("bik2ogv", env.SConscript("Bik2Ogv.SConscript"))
-
-env.Depends(spikes, engine)
-
-env.Default(env.Alias("all", [engine, spikes]))
+def exists(env):
+	return detect_ffmpeg(env)
