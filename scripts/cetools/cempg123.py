@@ -21,36 +21,33 @@
 
 import SCons
 
-UTILITY = "madplay"
+UTILITY = "mpg123"
 
 def detect(env):
 	return env.WhereIs(UTILITY)
 
 def generate(env):
 	env.SetDefault(
-		MADPLAY=detect(env),
+		MPG123=detect(env),
 
-		MADPLAYFLAGS="",
-		MADPLAYTYPE="null",
+		MPG123FLAGS="",
+		MPG123SOURCE="$SOURCE",
 
-		MADPLAYTARGET="$TARGET",
-		MADPLAYSOURCE="$SOURCE",
+		MPG123COM="$MPG123 $MPG123FLAGS $MPG123SOURCE",
+		MPG123COMSTR="",
 
-		MADPLAYCOM="$MADPLAY $MADPLAYFLAGS -o $MADPLAYTYPE:$MADPLAYTARGET $MADPLAYSOURCE",
-		MADPLAYCOMSTR="",
-
-		MADPLAYPREFIX="",
-		MADPLAYSUFFIX="",
-		MADPLAYSRCSUFFIX="",
+		MPG123PREFIX="",
+		MPG123SUFFIX="",
+		MPG123SRCSUFFIX="",
 	)
 
 	env.Append(
 		BUILDERS={
-			"MadPlay": SCons.Builder.Builder(
-				action=SCons.Action.Action("$MADPLAYCOM", "$MADPLAYCOMSTR"),
-				prefix="$MADPLAYPREFIX",
-				suffix="$MADPLAYSUFFIX",
-				src_suffix="$MADPLAYSRCSUFFIX",
+			"Mpg123": SCons.Builder.Builder(
+				action=SCons.Action.Action("$MPG123COM", "$MPG123COMSTR"),
+				prefix="$MPG123PREFIX",
+				suffix="$MPG123SUFFIX",
+				src_suffix="$MPG123SRCSUFFIX",
 				single_source=True,
 			),
 		},

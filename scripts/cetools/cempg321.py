@@ -19,42 +19,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import SCons
+import cempg123
 
-UTILITY = "madplay"
+UTILITY = "mpg321"
 
 def detect(env):
 	return env.WhereIs(UTILITY)
 
 def generate(env):
 	env.SetDefault(
-		MADPLAY=detect(env),
-
-		MADPLAYFLAGS="",
-		MADPLAYTYPE="null",
-
-		MADPLAYTARGET="$TARGET",
-		MADPLAYSOURCE="$SOURCE",
-
-		MADPLAYCOM="$MADPLAY $MADPLAYFLAGS -o $MADPLAYTYPE:$MADPLAYTARGET $MADPLAYSOURCE",
-		MADPLAYCOMSTR="",
-
-		MADPLAYPREFIX="",
-		MADPLAYSUFFIX="",
-		MADPLAYSRCSUFFIX="",
+		MPG123=detect(env),
 	)
 
-	env.Append(
-		BUILDERS={
-			"MadPlay": SCons.Builder.Builder(
-				action=SCons.Action.Action("$MADPLAYCOM", "$MADPLAYCOMSTR"),
-				prefix="$MADPLAYPREFIX",
-				suffix="$MADPLAYSUFFIX",
-				src_suffix="$MADPLAYSRCSUFFIX",
-				single_source=True,
-			),
-		},
-	)
+	cempg123.generate(env)
 
 def exists(env):
 	return detect(env)

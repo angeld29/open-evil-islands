@@ -5,13 +5,16 @@ RELEASE = no
 # for mp32oga target
 MP3_PATH = /path/to/evilislands/Stream
 OGA_PATH = /path/to/cursedearth/Stream
-# optional
+
+# mp32oga optional
+MP3_CODEC = madplay
 OGA_QUALITY = 4
 
 # for bik2ogv target
 BIK_PATH = /path/to/evilislands/Movies
 OGV_PATH = /path/to/cursedearth/Movies
-# optional
+
+# bik2ogv optional
 OGV_VIDEO_BITRATE = 5000
 OGV_AUDIO_BITRATE = 128
 

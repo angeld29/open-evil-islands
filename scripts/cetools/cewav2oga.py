@@ -19,8 +19,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import SCons
-
 import ceerrors
 import ceoggenc
 
@@ -44,6 +42,8 @@ def generate(env):
 		WAV2OGACOM="$OGGENCCOM",
 		WAV2OGACOMSTR="$OGGENCCOMSTR",
 	)
+
+	env["BUILDERS"]["Wav2Oga"] = env["BUILDERS"]["OggEnc"]
 
 def exists(env):
 	return ceffmpeg.exists(env)

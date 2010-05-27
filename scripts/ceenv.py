@@ -34,6 +34,7 @@ import SCons.Variables.EnumVariable
 
 import cehosts
 import cegraphlibs
+import cetools.cemp32wav
 
 logging_levels = {
 	"debug": logging.DEBUG,
@@ -83,6 +84,11 @@ def create_environment():
 		config_get("CE", "MP3_PATH", "."),
 		SCons.Variables.PathVariable.PathIsDir))
 
+	variables.Add(SCons.Variables.EnumVariable("MP3_CODEC",
+		"Select MP3 codec to use",
+		config_get("CE", "MP3_CODEC", "auto"),
+		["auto"] + cetools.cemp32wav.codecs.keys()))
+
 	variables.Add(SCons.Variables.PathVariable("OGA_PATH",
 		"Set the output path for OGA files (for mp32oga target)",
 		config_get("CE", "OGA_PATH", "."),
@@ -90,7 +96,7 @@ def create_environment():
 
 	variables.Add(SCons.Variables.EnumVariable("OGA_QUALITY",
 		"Set the encoding quality for ogg vorbis in kbit/s (for mp32oga target)",
-		config_get("CE", "OGA_QUALITY", "4"), [str(n) for n in xrange(-1, 11)]))
+		config_get("CE", "OGA_QUALITY", "4"), [str(n) for n in xrange(11)]))
 
 	variables.Add(SCons.Variables.PathVariable("BIK_PATH",
 		"Set the input path for BIK files (for bik2ogv target)",
@@ -125,10 +131,9 @@ def create_environment():
 	env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
 	env["GEN_PATH"] = os.path.join("$HOST", "$BUILD_MODE")
 
-	logging.info("The build was started for:")
-	logging.info("\thost: '%s' (%s)", env["HOST"],
+	logging.info("env: host '%s' (%s)", env["HOST"],
 		cehosts.hosts[env["HOST"]].get_description())
-	logging.info("\tgraphics library: '%s' (%s)", env["GRAPHICS_LIBRARY"],
+	logging.info("env: graphics library '%s' (%s)", env["GRAPHICS_LIBRARY"],
 		cegraphlibs.graphlibs[env["GRAPHICS_LIBRARY"]].get_description())
 
 	cehosts.hosts[env["HOST"]].configure(env)
