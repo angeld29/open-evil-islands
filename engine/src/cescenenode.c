@@ -139,19 +139,21 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 
 	for (int i = 0; i < scenenode->renderitems->count; ++i) {
 		ce_renderitem* renderitem = scenenode->renderitems->items[i];
-		renderitem->world_bbox.aabb = renderitem->bbox.aabb;
+		if (renderitem->visible) {
+			renderitem->world_bbox.aabb = renderitem->bbox.aabb;
 
-		ce_vec3_rot(&renderitem->world_bbox.aabb.origin,
-					&renderitem->world_bbox.aabb.origin,
-					&scenenode->world_orientation);
-		ce_vec3_add(&renderitem->world_bbox.aabb.origin,
-					&renderitem->world_bbox.aabb.origin,
-					&scenenode->world_position);
-		ce_quat_mul(&renderitem->world_bbox.axis,
-					&scenenode->world_orientation,
-					&renderitem->bbox.axis);
+			ce_vec3_rot(&renderitem->world_bbox.aabb.origin,
+						&renderitem->world_bbox.aabb.origin,
+						&scenenode->world_orientation);
+			ce_vec3_add(&renderitem->world_bbox.aabb.origin,
+						&renderitem->world_bbox.aabb.origin,
+						&scenenode->world_position);
+			ce_quat_mul(&renderitem->world_bbox.axis,
+						&scenenode->world_orientation,
+						&renderitem->bbox.axis);
 
-		ce_bbox_merge(&scenenode->world_bbox, &renderitem->world_bbox);
+			ce_bbox_merge(&scenenode->world_bbox, &renderitem->world_bbox);
+		}
 	}
 
 	for (int i = 0; i < scenenode->childs->count; ++i) {
@@ -227,7 +229,9 @@ void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode)
 		if (!ce_root.comprehensive_bbox_only) {
 			for (int i = 0; i < scenenode->renderitems->count; ++i) {
 				ce_renderitem* renderitem = scenenode->renderitems->items[i];
-				ce_scenenode_draw_bbox(&renderitem->world_bbox);
+				if (renderitem->visible) {
+					ce_scenenode_draw_bbox(&renderitem->world_bbox);
+				}
 			}
 		}
 
