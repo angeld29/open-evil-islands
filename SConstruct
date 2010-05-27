@@ -38,7 +38,12 @@ spikes = env.Alias("spikes", env.SConscript(dirs="spikes"))
 env.Depends(spikes, engine)
 env.Default(spikes)
 
-mp32oga = env.Alias("mp32oga", env.SConscript("Mp32Oga.SConscript"))
-bik2ogv = env.Alias("bik2ogv", env.SConscript("Bik2Ogv.SConscript"))
+targets = [engine, spikes]
 
-env.Alias("all", [engine, spikes, mp32oga, bik2ogv])
+if "mp32oga" in COMMAND_LINE_TARGETS:
+	targets += [env.Alias("mp32oga", env.SConscript("Mp32Oga.SConscript"))]
+
+if "bik2ogv" in COMMAND_LINE_TARGETS:
+	targets += [env.Alias("bik2ogv", env.SConscript("Bik2Ogv.SConscript"))]
+
+env.Alias("all", targets)

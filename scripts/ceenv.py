@@ -95,7 +95,7 @@ def create_environment():
 		SCons.Variables.PathVariable.PathIsDirCreate))
 
 	variables.Add(SCons.Variables.EnumVariable("OGA_QUALITY",
-		"Set the encoding quality for ogg vorbis in kbit/s (for mp32oga target)",
+		"Set the quality for ogg vorbis encoder in kbit/s (for mp32oga target)",
 		config_get("CE", "OGA_QUALITY", "4"), [str(n) for n in xrange(11)]))
 
 	variables.Add(SCons.Variables.PathVariable("BIK_PATH",
