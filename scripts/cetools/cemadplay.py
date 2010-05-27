@@ -21,28 +21,38 @@
 
 import SCons
 
-import ceerrors
-import ceffmpeg
+def detect(env):
+	return env.WhereIs("madplay")
 
 def generate(env):
 	env.SetDefault(
-		BIK2OGVVIDEOBPS="200",
-		BIK2OGVAUDIOBPS="64",
+		MADPLAY=detect(env),
+
+		MADPLAYFLAGS="",
+		MADPLAYTYPE="null",
+
+		MADPLAYTARGET="$TARGET",
+		MADPLAYSOURCE="$SOURCE",
+
+		MADPLAYCOM="$MADPLAY $MADPLAYFLAGS -o $MADPLAYTYPE:$MADPLAYTARGET $MADPLAYSOURCE",
+		MADPLAYCOMSTR="",
+
+		MADPLAYPREFIX="",
+		MADPLAYSUFFIX="",
+		MADPLAYSRCSUFFIX="",
 	)
 
-	if not ceffmpeg.exists(env):
-		ceerrors.interrupt("ffmpeg not found")
-
-	ceffmpeg.generate(env)
-
-	env.Replace(
-		FFMPEGSUFFIX=".ogv",
-		FFMPEGSRCSUFFIX=".bik",
-		FFMPEGFLAGS="-vcodec libtheora -acodec libvorbis -f ogg "
-						"-b ${BIK2OGVVIDEOBPS}K -ab ${BIK2OGVAUDIOBPS}K",
+	env.Append(
+		BUILDERS={
+			"MadPlay": SCons.Builder.Builder(
+				action=SCons.Action.Action("$MADPLAYCOM", "$MADPLAYCOMSTR"),
+				prefix="$MADPLAYPREFIX",
+				suffix="$MADPLAYSUFFIX",
+				src_suffix="$MADPLAYSRCSUFFIX",
+				single_source=True,
+			),
+		},
 	)
-
-	env["BUILDERS"]["Bik2Ogv"] = env["BUILDERS"]["FFmpeg"]
 
 def exists(env):
-	return ceffmpeg.exists(env)
+	return detect(env)

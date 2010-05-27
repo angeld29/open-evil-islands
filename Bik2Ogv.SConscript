@@ -21,17 +21,18 @@
 
 import os
 
-import SCons
-
 Import("env")
+
 env = env.Clone(
 	tools=["cebik2ogv"],
-	OGVVIDEOBPS="$OGV_VIDEO_BITRATE",
-	OGVAUDIOBPS="$OGV_AUDIO_BITRATE",
+	BIK2OGVVIDEOBPS="$OGV_VIDEO_BITRATE",
+	BIK2OGVAUDIOBPS="$OGV_AUDIO_BITRATE",
 )
 
-targets = [env.FFmpeg(os.path.join("$OGV_OUTPUT_PATH",
-			os.path.splitext(node.name)[0]), node)
-			for node in env.Glob(os.path.join("$OGV_INPUT_PATH", "*.bik"))]
+targets = [
+	env.Bik2Ogv(
+		os.path.join("$OGV_PATH", os.path.splitext(node.name)[0]), node
+	) for node in env.Glob(os.path.join("$BIK_PATH", "*.bik"))
+]
 
 Return("targets")

@@ -23,7 +23,7 @@ import os
 import re
 import logging
 
-import SCons.Util
+import SCons
 
 version_re = re.compile(r"^\s*(\d+)\.(\d+)\.(\d+)\s*$")
 

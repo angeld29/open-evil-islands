@@ -24,7 +24,7 @@ import os
 import SCons.Tool
 import SCons.Util
 
-def find(env):
+def detect(env):
 	for variants in ((cpu, kernel) for cpu in xrange(3, 7)
 										for kernel in ("", "msvc")):
 		key_name = "i%d86-mingw32%s" % variants
@@ -37,7 +37,7 @@ def find(env):
 def generate(env):
 	SCons.Tool.Tool("mingw")(env)
 
-	base_name = find(env) or "mingw32"
+	base_name = detect(env) or "mingw32"
 
 	env["CC"] = base_name + "-gcc"
 	env["CXX"] = base_name + "-g++"
@@ -55,4 +55,4 @@ def generate(env):
 	)
 
 def exists(env):
-	return find(env)
+	return detect(env)

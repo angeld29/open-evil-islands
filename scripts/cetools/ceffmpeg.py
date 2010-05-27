@@ -21,12 +21,13 @@
 
 import SCons
 
-def detect_ffmpeg(env):
+def detect(env):
 	return env.WhereIs("ffmpeg")
 
 def generate(env):
 	env.SetDefault(
-		FFMPEG=detect_ffmpeg(env),
+		FFMPEG=detect(env),
+
 		FFMPEGFLAGS="",
 
 		FFMPEGCOM="$FFMPEG -i $SOURCE $FFMPEGFLAGS $TARGET",
@@ -50,4 +51,4 @@ def generate(env):
 	)
 
 def exists(env):
-	return detect_ffmpeg(env)
+	return detect(env)

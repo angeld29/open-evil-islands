@@ -22,27 +22,28 @@
 import SCons
 
 import ceerrors
-import ceffmpeg
+import cemadplay
 
 def generate(env):
 	env.SetDefault(
-		BIK2OGVVIDEOBPS="200",
-		BIK2OGVAUDIOBPS="64",
+		MP32WAVTARGET="$TARGET",
 	)
 
-	if not ceffmpeg.exists(env):
-		ceerrors.interrupt("ffmpeg not found")
+	if not cemadplay.exists(env):
+		ceerrors.interrupt("madplay not found")
 
-	ceffmpeg.generate(env)
+	cemadplay.generate(env)
 
 	env.Replace(
-		FFMPEGSUFFIX=".ogv",
-		FFMPEGSRCSUFFIX=".bik",
-		FFMPEGFLAGS="-vcodec libtheora -acodec libvorbis -f ogg "
-						"-b ${BIK2OGVVIDEOBPS}K -ab ${BIK2OGVAUDIOBPS}K",
+		MADPLAYFLAGS="--verbose --display-time=remaining",
+		MADPLAYTYPE="wave",
+		MADPLAYTARGET="$MP32WAVTARGET",
 	)
 
-	env["BUILDERS"]["Bik2Ogv"] = env["BUILDERS"]["FFmpeg"]
+	env.Append(
+		MP32WAVCOM="$MADPLAYCOM",
+		MP32WAVCOMSTR="$MADPLAYCOMSTR",
+	)
 
 def exists(env):
 	return ceffmpeg.exists(env)

@@ -34,8 +34,11 @@ Export("env")
 
 engine = env.Alias("engine", env.SConscript(dirs="engine"))
 spikes = env.Alias("spikes", env.SConscript(dirs="spikes"))
-bik2ogv = env.Alias("bik2ogv", env.SConscript("Bik2Ogv.SConscript"))
 
 env.Depends(spikes, engine)
+env.Default(spikes)
 
-env.Default(env.Alias("all", [engine, spikes]))
+mp32oga = env.Alias("mp32oga", env.SConscript("Mp32Oga.SConscript"))
+bik2ogv = env.Alias("bik2ogv", env.SConscript("Bik2Ogv.SConscript"))
+
+env.Alias("all", [engine, spikes, mp32oga, bik2ogv])

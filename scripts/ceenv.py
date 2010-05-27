@@ -65,32 +65,50 @@ def create_environment():
 
 	variables.Add(SCons.Variables.EnumVariable("GRAPHICS_LIBRARY",
 		"Select graphics library",
-		config_get("CE", "GRAPHICS_LIBRARY", cegraphlibs.defaults[defenv["PLATFORM"]]),
+		config_get("CE", "GRAPHICS_LIBRARY",
+					cegraphlibs.defaults[defenv["PLATFORM"]]),
 		cegraphlibs.graphlibs.keys()))
 
 	variables.Add(SCons.Variables.BoolVariable("RELEASE",
-		"Build the project in release mode", config_get("CE", "RELEASE", "yes")))
+		"Build the project in release mode",
+		config_get("CE", "RELEASE", "yes")))
 
 	variables.Add(SCons.Variables.EnumVariable("LOGGING_LEVEL",
 		"Select logging level",
 		config_get("CE", "LOGGING_LEVEL", "info"),
 		logging_levels.keys()))
 
-	variables.Add(SCons.Variables.PathVariable("OGV_INPUT_PATH",
-		"Set the path where BIK files are located",
-		config_get("CE", "OGV_INPUT_PATH", "."),
+	variables.Add(SCons.Variables.PathVariable("MP3_PATH",
+		"Set the input path for MP3 files (for mp32oga target)",
+		config_get("CE", "MP3_PATH", "."),
 		SCons.Variables.PathVariable.PathIsDir))
 
-	variables.Add(SCons.Variables.PathVariable("OGV_OUTPUT_PATH",
-		"Set the path where OGV files will be encoded",
-		config_get("CE", "OGV_OUTPUT_PATH", "."),
+	variables.Add(SCons.Variables.PathVariable("OGA_PATH",
+		"Set the output path for OGA files (for mp32oga target)",
+		config_get("CE", "OGA_PATH", "."),
 		SCons.Variables.PathVariable.PathIsDirCreate))
 
-	variables.Add("OGV_VIDEO_BITRATE",
-		"Set the video bitrate for ogg theora encoder in kbit/s", "5000")
+	variables.Add(SCons.Variables.EnumVariable("OGA_QUALITY",
+		"Set the encoding quality for ogg vorbis in kbit/s (for mp32oga target)",
+		config_get("CE", "OGA_QUALITY", "4"), [str(n) for n in xrange(-1, 11)]))
 
-	variables.Add("OGV_AUDIO_BITRATE",
-		"Set the audio bitrate for ogg theora encoder in kbit/s", "128")
+	variables.Add(SCons.Variables.PathVariable("BIK_PATH",
+		"Set the input path for BIK files (for bik2ogv target)",
+		config_get("CE", "BIK_PATH", "."),
+		SCons.Variables.PathVariable.PathIsDir))
+
+	variables.Add(SCons.Variables.PathVariable("OGV_PATH",
+		"Set the output path for OGV files (for bik2ogv target)",
+		config_get("CE", "OGV_PATH", "."),
+		SCons.Variables.PathVariable.PathIsDirCreate))
+
+	variables.Add("OGV_VIDEO_BITRATE", "Set the video bitrate for "
+		"ogg theora encoder in kbit/s (for bik2ogv target)",
+		config_get("CE", "OGV_VIDEO_BITRATE", "5000"))
+
+	variables.Add("OGV_AUDIO_BITRATE", "Set the audio bitrate for "
+		"ogg theora encoder in kbit/s (for bik2ogv target)",
+		config_get("CE", "OGV_AUDIO_BITRATE", "128"))
 
 	env = SCons.Environment.Environment(
 		variables=variables,

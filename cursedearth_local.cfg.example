@@ -2,9 +2,18 @@
 # enable debug
 RELEASE = no
 
-# for bik2ogv
-OGV_INPUT_PATH = /path/to/evilislands/Movies
-OGV_OUTPUT_PATH = /path/to/cursedearth/Movies
+# for mp32oga target
+MP3_PATH = /path/to/evilislands/Stream
+OGA_PATH = /path/to/cursedearth/Stream
+# optional
+OGA_QUALITY = 4
+
+# for bik2ogv target
+BIK_PATH = /path/to/evilislands/Movies
+OGV_PATH = /path/to/cursedearth/Movies
+# optional
+OGV_VIDEO_BITRATE = 5000
+OGV_AUDIO_BITRATE = 128
 
 [i386-win32-mingw]
 # argtable and GLEW

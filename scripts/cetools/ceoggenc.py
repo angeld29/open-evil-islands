@@ -21,28 +21,37 @@
 
 import SCons
 
-import ceerrors
-import ceffmpeg
+def detect(env):
+	return env.WhereIs("oggenc")
 
 def generate(env):
 	env.SetDefault(
-		BIK2OGVVIDEOBPS="200",
-		BIK2OGVAUDIOBPS="64",
+		OGGENC=detect(env),
+
+		OGGENCFLAGS="",
+
+		OGGENCTARGET="$TARGET",
+		OGGENCSOURCE="$SOURCE",
+
+		OGGENCCOM="$OGGENC $OGGENCFLAGS -o $OGGENCTARGET $OGGENCSOURCE",
+		OGGENCCOMSTR="",
+
+		OGGENCPREFIX="",
+		OGGENCSUFFIX="",
+		OGGENCSRCSUFFIX="",
 	)
 
-	if not ceffmpeg.exists(env):
-		ceerrors.interrupt("ffmpeg not found")
-
-	ceffmpeg.generate(env)
-
-	env.Replace(
-		FFMPEGSUFFIX=".ogv",
-		FFMPEGSRCSUFFIX=".bik",
-		FFMPEGFLAGS="-vcodec libtheora -acodec libvorbis -f ogg "
-						"-b ${BIK2OGVVIDEOBPS}K -ab ${BIK2OGVAUDIOBPS}K",
+	env.Append(
+		BUILDERS={
+			"OggEnc": SCons.Builder.Builder(
+				action=SCons.Action.Action("$OGGENCCOM", "$OGGENCCOMSTR"),
+				prefix="$OGGENCPREFIX",
+				suffix="$OGGENCSUFFIX",
+				src_suffix="$OGGENCSRCSUFFIX",
+				single_source=True,
+			),
+		},
 	)
-
-	env["BUILDERS"]["Bik2Ogv"] = env["BUILDERS"]["FFmpeg"]
 
 def exists(env):
-	return ceffmpeg.exists(env)
+	return detect(env)

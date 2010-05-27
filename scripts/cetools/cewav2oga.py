@@ -22,27 +22,28 @@
 import SCons
 
 import ceerrors
-import ceffmpeg
+import ceoggenc
 
 def generate(env):
 	env.SetDefault(
-		BIK2OGVVIDEOBPS="200",
-		BIK2OGVAUDIOBPS="64",
+		WAV2OGAQUALITY="3",
+		WAV2OGASOURCE="$SOURCE",
 	)
 
-	if not ceffmpeg.exists(env):
-		ceerrors.interrupt("ffmpeg not found")
+	if not ceoggenc.exists(env):
+		ceerrors.interrupt("oggenc not found")
 
-	ceffmpeg.generate(env)
+	ceoggenc.generate(env)
 
 	env.Replace(
-		FFMPEGSUFFIX=".ogv",
-		FFMPEGSRCSUFFIX=".bik",
-		FFMPEGFLAGS="-vcodec libtheora -acodec libvorbis -f ogg "
-						"-b ${BIK2OGVVIDEOBPS}K -ab ${BIK2OGVAUDIOBPS}K",
+		OGGENCFLAGS="--quality=$WAV2OGAQUALITY",
+		OGGENCSOURCE="$WAV2OGASOURCE",
 	)
 
-	env["BUILDERS"]["Bik2Ogv"] = env["BUILDERS"]["FFmpeg"]
+	env.Append(
+		WAV2OGACOM="$OGGENCCOM",
+		WAV2OGACOMSTR="$OGGENCCOMSTR",
+	)
 
 def exists(env):
 	return ceffmpeg.exists(env)

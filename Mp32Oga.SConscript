@@ -19,30 +19,27 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import SCons
+import os
 
-import ceerrors
-import ceffmpeg
+Import("env")
 
-def generate(env):
-	env.SetDefault(
-		BIK2OGVVIDEOBPS="200",
-		BIK2OGVAUDIOBPS="64",
-	)
+env = env.Clone(
+	tools=["cemp32wav", "cewav2oga"],
+	MP32WAVTARGET="${TARGET.base}.wav",
+	WAV2OGASOURCE="$MP32WAVTARGET",
+	WAV2OGAQUALITY="$OGA_QUALITY",
+)
 
-	if not ceffmpeg.exists(env):
-		ceerrors.interrupt("ffmpeg not found")
+targets = [
+	env.Command(
+		os.path.join("$OGA_PATH", os.path.splitext(node.name)[0] + ".oga"),
+		node,
+		[
+			Action("$MP32WAVCOM", "$MP32WAVCOMSTR"),
+			Action("$WAV2OGACOM", "$WAV2OGACOMSTR"),
+			Delete("$MP32WAVTARGET"),
+		]
+	) for node in env.Glob(os.path.join("$MP3_PATH", "*.mp3"))
+]
 
-	ceffmpeg.generate(env)
-
-	env.Replace(
-		FFMPEGSUFFIX=".ogv",
-		FFMPEGSRCSUFFIX=".bik",
-		FFMPEGFLAGS="-vcodec libtheora -acodec libvorbis -f ogg "
-						"-b ${BIK2OGVVIDEOBPS}K -ab ${BIK2OGVAUDIOBPS}K",
-	)
-
-	env["BUILDERS"]["Bik2Ogv"] = env["BUILDERS"]["FFmpeg"]
-
-def exists(env):
-	return ceffmpeg.exists(env)
+Return("targets")
