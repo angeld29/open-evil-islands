@@ -21,10 +21,19 @@
 #ifndef CE_SOUND_H
 #define CE_SOUND_H
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+typedef struct ce_sound ce_sound;
+
+extern ce_sound* ce_sound_new_file(FILE* file);
+extern void ce_sound_del(ce_sound* sound);
+
+extern void ce_sound_read(ce_sound* sound);
 
 typedef struct ce_soundmng ce_soundmng;
 

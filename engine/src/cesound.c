@@ -18,13 +18,68 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
 #include <assert.h>
 
+#include <vorbis/vorbisfile.h>
 #include <ao/ao.h>
 
+#include "cebyteorder.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cesound.h"
+
+struct ce_sound {
+	OggVorbis_File vf;
+	int bigendianp;
+	int bitstream;
+};
+
+ce_sound* ce_sound_new_file(FILE* file)
+{
+	ce_sound* sound = ce_alloc_zero(sizeof(ce_sound));
+	sound->bigendianp = ce_is_big_endian();
+
+	if (0 != ov_open_callbacks(file, &sound->vf, NULL, 0, OV_CALLBACKS_DEFAULT)) {
+		ce_logging_error("sound: input does not appear to be an ogg bitstream");
+		ce_sound_del(sound);
+		return NULL;
+	}
+
+	vorbis_info* info = ov_info(&sound->vf, -1);
+	if (NULL != info) {
+		ce_logging_write("sound: bitstream is %d channel, %ld Hz, %ld bps, %ld bps",
+			info->channels, info->rate, info->bitrate_nominal, ov_bitrate(&sound->vf, -1));
+	}
+
+	return sound;
+}
+
+void ce_sound_del(ce_sound* sound)
+{
+	if (NULL != sound) {
+		ov_clear(&sound->vf);
+		ce_free(sound, sizeof(ce_sound));
+	}
+}
+
+void ce_sound_read(ce_sound* sound)
+{
+	bool eof = false;
+	char pcm[512];
+
+	while (!eof) {
+		long code = ov_read(&sound->vf, pcm, sizeof(pcm),
+			sound->bigendianp, 2, 1, &sound->bitstream);
+		if (0 == code) {
+			eof = true;
+		} else if (code < 0) {
+			ce_logging_warning("sound: error in the stream");
+		} else {
+			// TODO: use pcm and code = actual number of bytes read
+		}
+	}
+}
 
 struct ce_soundmng {
 	ao_device* device;
@@ -35,7 +90,7 @@ ce_soundmng* ce_soundmng_new(void)
 {
 	ao_initialize();
 
-	ce_soundmng* soundmng = ce_alloc(sizeof(ce_soundmng));
+	ce_soundmng* soundmng = ce_alloc_zero(sizeof(ce_soundmng));
 	soundmng->format.bits = 16;
 	soundmng->format.channels = 2;
 	soundmng->format.rate = 44100;
