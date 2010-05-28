@@ -21,8 +21,10 @@
 
 import SCons
 
+UTILITY = "oggenc"
+
 def detect(env):
-	return env.WhereIs("oggenc")
+	return env.WhereIs(UTILITY)
 
 def generate(env):
 	env.SetDefault(

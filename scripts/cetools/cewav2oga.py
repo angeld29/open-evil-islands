@@ -19,31 +19,32 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import ceerrors
+import cetools
 import ceoggenc
 
-def generate(env):
-	env.SetDefault(
-		WAV2OGAQUALITY="3",
-		WAV2OGASOURCE="$SOURCE",
-	)
-
-	if not ceoggenc.exists(env):
-		ceerrors.interrupt("oggenc not found")
-
-	ceoggenc.generate(env)
-
+def tune_oggenc(env):
 	env.Replace(
 		OGGENCFLAGS="--quality=$WAV2OGAQUALITY",
 		OGGENCSOURCE="$WAV2OGASOURCE",
-	)
 
-	env.Append(
 		WAV2OGACOM="$OGGENCCOM",
 		WAV2OGACOMSTR="$OGGENCCOMSTR",
 	)
 
 	env["BUILDERS"]["Wav2Oga"] = env["BUILDERS"]["OggEnc"]
 
+codecs = {
+	ceoggenc.UTILITY: (ceoggenc, tune_oggenc),
+}
+
+def generate(env):
+	env.SetDefault(
+		WAV2OGACODEC="auto",
+		WAV2OGAQUALITY="3",
+		WAV2OGASOURCE="$SOURCE",
+	)
+
+	cetools.generate_codec("wav2oga", codecs, "$WAV2OGACODEC", env)
+
 def exists(env):
-	return ceffmpeg.exists(env)
+	return cetools.codec_exists(codecs, env)

@@ -19,22 +19,17 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os.path
+import os
 import logging
 import ConfigParser
 
-import SCons.Environment
-import SCons.Script
-import SCons.Defaults
-import SCons.Variables
-import SCons.Variables.BoolVariable
-import SCons.Variables.PathVariable
-import SCons.Variables.ListVariable
-import SCons.Variables.EnumVariable
+import SCons
 
 import cehosts
 import cegraphlibs
 import cetools.cemp32wav
+import cetools.cewav2oga
+import cetools.cebik2ogv
 
 logging_levels = {
 	"debug": logging.DEBUG,
@@ -84,15 +79,20 @@ def create_environment():
 		config_get("CE", "MP3_PATH", "."),
 		SCons.Variables.PathVariable.PathIsDir))
 
-	variables.Add(SCons.Variables.EnumVariable("MP3_CODEC",
-		"Select MP3 codec to use",
-		config_get("CE", "MP3_CODEC", "auto"),
-		["auto"] + cetools.cemp32wav.codecs.keys()))
-
 	variables.Add(SCons.Variables.PathVariable("OGA_PATH",
 		"Set the output path for OGA files (for mp32oga target)",
 		config_get("CE", "OGA_PATH", "."),
 		SCons.Variables.PathVariable.PathIsDirCreate))
+
+	variables.Add(SCons.Variables.EnumVariable("MP3_CODEC",
+		"Select MP3 codec to use (for mp32oga target)",
+		config_get("CE", "MP3_CODEC", "auto"),
+		["auto"] + cetools.cemp32wav.codecs.keys()))
+
+	variables.Add(SCons.Variables.EnumVariable("OGA_CODEC",
+		"Select OGA codec to use (for mp32oga target)",
+		config_get("CE", "OGA_CODEC", "auto"),
+		["auto"] + cetools.cewav2oga.codecs.keys()))
 
 	variables.Add(SCons.Variables.EnumVariable("OGA_QUALITY",
 		"Set the quality for ogg vorbis encoder in kbit/s (for mp32oga target)",
@@ -107,6 +107,11 @@ def create_environment():
 		"Set the output path for OGV files (for bik2ogv target)",
 		config_get("CE", "OGV_PATH", "."),
 		SCons.Variables.PathVariable.PathIsDirCreate))
+
+	variables.Add(SCons.Variables.EnumVariable("OGV_CODEC",
+		"Select OGV codec to use (for bik2ogv target)",
+		config_get("CE", "OGV_CODEC", "auto"),
+		["auto"] + cetools.cebik2ogv.codecs.keys()))
 
 	variables.Add("OGV_VIDEO_BITRATE", "Set the video bitrate for "
 		"ogg theora encoder in kbit/s (for bik2ogv target)",
@@ -141,6 +146,13 @@ def create_environment():
 
 	if env["RELEASE"]:
 		env.AppendUnique(CPPDEFINES=["NDEBUG"])
+
+	env.AppendUnique(
+		CPPPATH=path_list_builder("CE", "ADDITIONAL_INCLUDE_PATHS"),
+		LIBPATH=path_list_builder("CE", "ADDITIONAL_LIBRARY_PATHS"),
+		CPPDEFINES=path_list_builder("CE", "ADDITIONAL_DEFINES"),
+		LIBS=path_list_builder("CE", "ADDITIONAL_LIBS"),
+	)
 
 	env.AppendUnique(
 		CPPPATH=path_list_builder(env["HOST"], "ADDITIONAL_INCLUDE_PATHS"),

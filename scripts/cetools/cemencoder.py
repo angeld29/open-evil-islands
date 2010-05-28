@@ -21,32 +21,32 @@
 
 import SCons
 
-UTILITY = "ffmpeg"
+UTILITY = "mencoder"
 
 def detect(env):
 	return env.WhereIs(UTILITY)
 
 def generate(env):
 	env.SetDefault(
-		FFMPEG=detect(env),
+		MENCODER=detect(env),
 
-		FFMPEGFLAGS="",
+		MENCODERFLAGS="",
 
-		FFMPEGCOM="$FFMPEG -i $SOURCE $FFMPEGFLAGS $TARGET",
-		FFMPEGCOMSTR="",
+		MENCODERCOM="$MENCODER $SOURCE -o $TARGET $MENCODERFLAGS",
+		MENCODERCOMSTR="",
 
-		FFMPEGPREFIX="",
-		FFMPEGSUFFIX="",
-		FFMPEGSRCSUFFIX="",
+		MENCODERPREFIX="",
+		MENCODERSUFFIX="",
+		MENCODERSRCSUFFIX="",
 	)
 
 	env.Append(
 		BUILDERS={
-			"FFmpeg": SCons.Builder.Builder(
-				action=SCons.Action.Action("$FFMPEGCOM", "$FFMPEGCOMSTR"),
-				prefix="$FFMPEGPREFIX",
-				suffix="$FFMPEGSUFFIX",
-				src_suffix="$FFMPEGSRCSUFFIX",
+			"MEncoder": SCons.Builder.Builder(
+				action=SCons.Action.Action("$MENCODERCOM", "$MENCODERCOMSTR"),
+				prefix="$MENCODERPREFIX",
+				suffix="$MENCODERSUFFIX",
+				src_suffix="$MENCODERSRCSUFFIX",
 				single_source=True,
 			),
 		},

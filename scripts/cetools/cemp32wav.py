@@ -21,7 +21,7 @@
 
 import logging
 
-import ceerrors
+import cetools
 import cemadplay
 import cempg123
 import cempg321
@@ -31,63 +31,36 @@ def tune_madplay(env):
 		MADPLAYFLAGS="--verbose --display-time=remaining",
 		MADPLAYTYPE="wave",
 		MADPLAYTARGET="$MP32WAVTARGET",
-	)
 
-	env.Append(
 		MP32WAVCOM="$MADPLAYCOM",
 		MP32WAVCOMSTR="$MADPLAYCOMSTR",
 	)
 
 	env["BUILDERS"]["Mp32Wav"] = env["BUILDERS"]["MadPlay"]
 
-def tune_mpg123(env):
+def tune_mpg12321(env):
 	env.Replace(
 		MPG123FLAGS="--verbose -w $MP32WAVTARGET",
-	)
 
-	env.Append(
 		MP32WAVCOM="$MPG123COM",
 		MP32WAVCOMSTR="$MPG123COMSTR",
 	)
 
 	env["BUILDERS"]["Mp32Wav"] = env["BUILDERS"]["Mpg123"]
 
-MODULE, TUNE = range(2)
-
 codecs = {
 	cemadplay.UTILITY: (cemadplay, tune_madplay),
-	cempg123.UTILITY: (cempg123, tune_mpg123),
-	cempg321.UTILITY: (cempg321, tune_mpg123),
+	cempg123.UTILITY: (cempg123, tune_mpg12321),
+	cempg321.UTILITY: (cempg321, tune_mpg12321),
 }
 
 def generate(env):
 	env.SetDefault(
-		MP32WAVCODEC="",
+		MP32WAVCODEC="auto",
 		MP32WAVTARGET="$TARGET",
 	)
 
-	codec = env.subst("$MP32WAVCODEC")
-
-	if "auto" != codec:
-		if not codecs[codec][MODULE].exists(env):
-			ceerrors.interrupt("mp32wav: codec '%s' not found", codec)
-	else:
-		for key, value in codecs.iteritems():
-			codec = key
-			if value[MODULE].exists(env):
-				break
-			logging.warning("mp32wav: codec '%s' not found" % codec)
-
-	if not codecs[codec][MODULE].exists(env):
-		ceerrors.interrupt("mp32wav: no appropriate codec found")
-
-	logging.info("mp32wav: using '%s' codec" % codec)
-
-	codecs[codec][MODULE].generate(env)
-	codecs[codec][TUNE](env)
+	cetools.generate_codec("mp32wav", codecs, "$MP32WAVCODEC", env)
 
 def exists(env):
-	for value in codecs.itervalues():
-		if value[MODULE].exists(env):
-			return True
-	return False
+	return cetools.codec_exists(codecs, env)
