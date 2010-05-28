@@ -27,8 +27,8 @@
 #include "ceinput.h"
 #include "cerenderwindow.h"
 #include "cerendersystem.h"
+#include "cesound.h"
 #include "cescenemng.h"
-#include "cesoundmng.h"
 #include "ceoptparse.h"
 
 #ifdef __cplusplus

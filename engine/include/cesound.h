@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_SOUNDMNG_H
-#define CE_SOUNDMNG_H
+#ifndef CE_SOUND_H
+#define CE_SOUND_H
 
 #ifdef __cplusplus
 extern "C"
@@ -31,8 +31,10 @@ typedef struct ce_soundmng ce_soundmng;
 extern ce_soundmng* ce_soundmng_new(void);
 extern void ce_soundmng_del(ce_soundmng* soundmng);
 
+extern void ce_soundmng_play(ce_soundmng* soundmng);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_SOUNDMNG_H */
+#endif /* CE_SOUND_H */

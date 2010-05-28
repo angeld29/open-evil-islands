@@ -24,7 +24,7 @@
 
 #include "cealloc.h"
 #include "celogging.h"
-#include "cesoundmng.h"
+#include "cesound.h"
 
 struct ce_soundmng {
 	ao_device* device;
@@ -71,4 +71,9 @@ void ce_soundmng_del(ce_soundmng* soundmng)
 	}
 
 	ao_shutdown();
+}
+
+void ce_soundmng_play(ce_soundmng* soundmng)
+{
+	//ao_play(device, buffer, size);
 }
