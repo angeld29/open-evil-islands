@@ -26,6 +26,7 @@ import SCons
 import ceutils
 
 Import("env")
+
 env = env.Clone(
 	tools=["cerc"],
 	RCROOTPATH="res",

@@ -32,18 +32,18 @@ env = ceenv.create_environment()
 
 Export("env")
 
-engine = env.Alias("engine", env.SConscript(dirs="engine"))
-spikes = env.Alias("spikes", env.SConscript(dirs="spikes"))
+engine = Alias("engine", SConscript(dirs="engine"))
+spikes = Alias("spikes", SConscript(dirs="spikes"))
 
-env.Depends(spikes, engine)
-env.Default(spikes)
+Depends(spikes, engine)
+Default(spikes)
 
 targets = [engine, spikes]
 
 if "mp32oga" in COMMAND_LINE_TARGETS:
-	targets += [env.Alias("mp32oga", env.SConscript("Mp32Oga.SConscript"))]
+	targets += [Alias("mp32oga", SConscript("Mp32Oga.SConscript"))]
 
 if "bik2ogv" in COMMAND_LINE_TARGETS:
-	targets += [env.Alias("bik2ogv", env.SConscript("Bik2Ogv.SConscript"))]
+	targets += [Alias("bik2ogv", SConscript("Bik2Ogv.SConscript"))]
 
-env.Alias("all", targets)
+Alias("all", targets)

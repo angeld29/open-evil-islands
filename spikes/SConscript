@@ -25,9 +25,8 @@ import logging
 
 import SCons
 
-version_re = re.compile(r"^\s*(\d+)\.(\d+)\.(\d+)\s*$")
-
 Import("env")
+
 env = env.Clone()
 
 env.PrependUnique(
@@ -35,6 +34,8 @@ env.PrependUnique(
 	LIBPATH=[os.path.join("#engine", "lib", "$GEN_PATH")],
 	LIBS=["engine"],
 )
+
+version_re = re.compile(r"^\s*(\d+)\.(\d+)\.(\d+)\s*$")
 
 def make_target(name):
 	spike_env = env.Clone()
