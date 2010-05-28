@@ -25,6 +25,7 @@ Import("env")
 
 env = env.Clone(
 	tools=["cebik2ogv"],
+	BIK2OGVCODEC="$OGV_CODEC",
 	BIK2OGVVIDEOBPS="$OGV_VIDEO_BITRATE",
 	BIK2OGVAUDIOBPS="$OGV_AUDIO_BITRATE",
 )
