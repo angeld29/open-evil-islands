@@ -76,6 +76,7 @@ static void ce_root_term(void)
 	if (ce_root.inited) {
 		ce_input_supply_del(ce_root.input_supply);
 		ce_scenemng_del(ce_root.scenemng);
+		ce_soundmng_del(ce_root.soundmng);
 		ce_timer_del(ce_root.timer);
 		ce_rendersystem_del(ce_root.rendersystem);
 		ce_renderwindow_del(ce_root.renderwindow);
@@ -171,6 +172,7 @@ bool ce_root_init(ce_optparse* optparse)
 
 	ce_root.rendersystem = ce_rendersystem_new();
 	ce_root.timer = ce_timer_new();
+	ce_root.soundmng = ce_soundmng_new();
 	ce_root.scenemng = ce_scenemng_new(ei_path);
 
 	ce_root.input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);

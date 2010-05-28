@@ -28,6 +28,7 @@
 #include "cerenderwindow.h"
 #include "cerendersystem.h"
 #include "cescenemng.h"
+#include "cesoundmng.h"
 #include "ceoptparse.h"
 
 #ifdef __cplusplus
@@ -50,6 +51,7 @@ extern struct ce_root {
 	ce_renderwindow* renderwindow;
 	ce_rendersystem* rendersystem;
 	ce_timer* timer;
+	ce_soundmng* soundmng;
 	ce_scenemng* scenemng;
 	ce_input_supply* input_supply;
 	ce_input_event* exit_event;
