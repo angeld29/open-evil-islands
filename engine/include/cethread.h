@@ -25,12 +25,6 @@
 
 #include "cevector.h"
 
-#ifdef __GNUC__
-#define CE_THREAD __thread
-#else
-#error not implemented
-#endif
-
 #ifdef __cplusplus
 extern "C"
 {

@@ -23,8 +23,6 @@
 
 #include <GL/glew.h>
 
-#include "cethread.h"
-
 #ifdef __cplusplus
 extern "C"
 {

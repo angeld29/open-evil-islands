@@ -38,12 +38,10 @@ configure_build_mode = {
 def configure(env):
 	env["CE_GCC_BIT"] = True
 
-	# obsolete
-	env["COMPILER"] = "gcc"
-
 	env.AppendUnique(
 		CFLAGS=["-std=c99"],
 		CCFLAGS=["-pipe", "-pedantic-errors"],
+		CPPDEFINES=["CE_THREAD=__thread"],
 	)
 
 	configure_build_mode[env["BUILD_MODE"]](env)
