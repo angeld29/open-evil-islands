@@ -36,7 +36,3 @@ def configure(env):
 	ceplatforms.cewindows.configure(env)
 	cecompilers.cemingwcross.configure(env)
 	cegraphlibs.ceopengl.configure(env)
-
-	# obsolete
-	env["CPU_TYPE"] = "i386"
-	env["TARGET_PLATFORM"] = "win32"

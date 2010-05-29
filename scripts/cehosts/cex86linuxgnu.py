@@ -28,6 +28,8 @@ import cecompilers.cegnuc
 import cegraphlibs.ceopengl
 
 def configure(env):
+	env["CE_LINUX_BIT"] = True
+
 	if env["PLATFORM"] != "posix": # TODO: SCons PLATFORM variable is weak
 		ceerrors.interrupt("%s: this host is available only on Linux", env["HOST"])
 
@@ -36,9 +38,3 @@ def configure(env):
 	ceplatforms.ceposix.configure(env)
 	cecompilers.cegnuc.configure(env)
 	cegraphlibs.ceopengl.configure(env)
-
-	env["CE_LINUX_BIT"] = True
-
-	# obsolete
-	env["CPU_TYPE"] = "i386"
-	env["TARGET_PLATFORM"] = "posix"

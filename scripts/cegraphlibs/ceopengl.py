@@ -24,7 +24,4 @@ import logging
 def configure(env):
 	env["CE_OPENGL_BIT"] = True
 
-	logging.info("opengl: using Open Graphics Library")
-
-	# obsolete
-	env["GRAPHICS_LIBRARY"] = "opengl"
+	logging.info("graphlib: using Open Graphics Library")
