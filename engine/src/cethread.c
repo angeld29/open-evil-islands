@@ -18,9 +18,68 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
+
 #include "cealloc.h"
 #include "celogging.h"
 #include "cethread.h"
+
+ce_thread_sem* ce_thread_sem_new(size_t n)
+{
+	ce_thread_sem* sem = ce_alloc(sizeof(ce_thread_sem));
+	sem->available = n;
+	sem->mutex = ce_thread_mutex_new();
+	sem->cond = ce_thread_cond_new();
+	return sem;
+}
+
+void ce_thread_sem_del(ce_thread_sem* sem)
+{
+	if (NULL != sem) {
+		ce_thread_cond_del(sem->cond);
+		ce_thread_mutex_del(sem->mutex);
+		ce_free(sem, sizeof(ce_thread_sem));
+	}
+}
+
+size_t ce_thread_sem_available(const ce_thread_sem* sem)
+{
+	ce_thread_mutex_lock(sem->mutex);
+	size_t n = sem->available;
+	ce_thread_mutex_unlock(sem->mutex);
+	return n;
+}
+
+void ce_thread_sem_acquire(ce_thread_sem* sem, size_t n)
+{
+	ce_thread_mutex_lock(sem->mutex);
+	while (n > sem->available) {
+		ce_thread_cond_wait(sem->cond, sem->mutex);
+	}
+	sem->available -= n;
+	ce_thread_mutex_unlock(sem->mutex);
+}
+
+void ce_thread_sem_release(ce_thread_sem* sem, size_t n)
+{
+	ce_thread_mutex_lock(sem->mutex);
+	sem->available += n;
+	ce_thread_cond_wake_all(sem->cond);
+	ce_thread_mutex_unlock(sem->mutex);
+}
+
+bool ce_thread_sem_try_acquire(ce_thread_sem* sem, size_t n)
+{
+	ce_thread_mutex_lock(sem->mutex);
+	bool result = true;
+	if (n > sem->available) {
+		result = false;
+	} else {
+		sem->available -= n;
+	}
+	ce_thread_mutex_unlock(sem->mutex);
+	return result;
+}
 
 typedef struct {
 	void (*func)(void*);
@@ -29,15 +88,12 @@ typedef struct {
 
 static ce_thread_cookie* ce_thread_cookie_new(void)
 {
-	ce_thread_cookie* cookie = ce_alloc(sizeof(ce_thread_cookie));
-	return cookie;
+	return ce_alloc(sizeof(ce_thread_cookie));
 }
 
 static void ce_thread_cookie_del(ce_thread_cookie* cookie)
 {
-	if (NULL != cookie) {
-		ce_free(cookie, sizeof(ce_thread_cookie));
-	}
+	ce_free(cookie, sizeof(ce_thread_cookie));
 }
 
 static void ce_thread_pool_work(void* arg)

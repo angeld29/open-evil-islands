@@ -21,6 +21,7 @@
 #ifndef CE_THREAD_H
 #define CE_THREAD_H
 
+#include <stddef.h>
 #include <stdbool.h>
 
 #include "cevector.h"
@@ -53,7 +54,7 @@ extern void ce_thread_mutex_del(ce_thread_mutex* mutex);
 extern void ce_thread_mutex_lock(ce_thread_mutex* mutex);
 extern void ce_thread_mutex_unlock(ce_thread_mutex* mutex);
 
-// cond
+// wait condition
 
 typedef struct ce_thread_cond ce_thread_cond;
 
@@ -72,6 +73,24 @@ extern ce_thread_once* ce_thread_once_new(void);
 extern void ce_thread_once_del(ce_thread_once* once);
 
 extern void ce_thread_once_exec(ce_thread_once* once, void (*func)(), void* arg);
+
+// semaphore
+
+typedef struct {
+	size_t available;
+	ce_thread_mutex* mutex;
+	ce_thread_cond* cond;
+} ce_thread_sem;
+
+extern ce_thread_sem* ce_thread_sem_new(size_t n);
+extern void ce_thread_sem_del(ce_thread_sem* sem);
+
+extern size_t ce_thread_sem_available(const ce_thread_sem* sem);
+
+extern void ce_thread_sem_acquire(ce_thread_sem* sem, size_t n);
+extern void ce_thread_sem_release(ce_thread_sem* sem, size_t n);
+
+extern bool ce_thread_sem_try_acquire(ce_thread_sem* sem, size_t n);
 
 // pool
 
