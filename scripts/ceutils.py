@@ -26,8 +26,6 @@ from itertools import chain
 
 import SCons
 
-import ceerrors
-
 def traverse_files(node, patterns, env):
 	return (file for pattern in patterns
 				for file in node.glob(pattern)
@@ -46,6 +44,17 @@ def get_nodes(paths, patterns, env):
 	return (file for path in paths
 				for file in traverse_all(env.Dir(path), patterns, env))
 
+bit_suffix_map = [
+	("CE_LINUX_BIT", "linux"),
+	("CE_POSIX_BIT", "posix"),
+	("CE_WINDOWS_BIT", "win32"), # TODO: rename
+	("CE_GNUC_BIT", "gnuc"),
+	("CE_MINGW_BIT", "mingw"),
+	("CE_GCC_BIT", "gcc"),
+	("CE_OPENGL_BIT", "opengl"),
+	("CE_GENERIC_BIT", "generic"),
+]
+
 def filter_sources(env, nodes):
 	nodes = nodes[:]
 	get_name = lambda node: os.path.splitext(node.name)[0].split('_')[0]
@@ -57,26 +66,20 @@ def filter_sources(env, nodes):
 		values.append(node)
 		cache[get_name(node)] = values
 	for name, values in cache.iteritems():
-		def select_by_key(key, priority):
-			for node in (node for node in values if get_key(node) == key):
-				return (node, priority)
+		def select():
+			for suffix in (suffix for bit, suffix in bit_suffix_map
+									if env.has_key(bit) and env[bit] is True):
+				for node in (node for node in values if get_key(node) == suffix):
+					return node
 			return None
-		result = select_by_key(env["HOST"].replace("-", ""), 0) or \
-				select_by_key(env["TARGET_PLATFORM"], 1) or \
-				select_by_key(env["COMPILER"], 2) or \
-				select_by_key(env["GRAPHICS_LIBRARY"], 3) or \
-				select_by_key("generic", 4)
-		if result:
-			node, priority = result
-			logging.debug("'%s': best match '%s', priority %d (%s), "
-						"selected from '%s'", name, node.name,
-						priority, ("host", "target platform", "compiler",
-						"graphics library", "generic")[priority],
-						", ".join(node.name for node in values))
+		node = select()
+		if node:
+			logging.debug("utils: using '%s' for '%s' in [%s]",
+				node.name, name, ", ".join(node.name for node in values))
 			values.remove(node)
 		else:
-			logging.debug("could not deduct platform-depended file "
-				"'%s' [%s]", name, ", ".join(node.name for node in values))
+			logging.debug("utils: could not deduct platform-depended file for "
+				"'%s' in [%s]", name, ", ".join(node.name for node in values))
 		for node in values:
 			nodes.remove(node)
 	return nodes

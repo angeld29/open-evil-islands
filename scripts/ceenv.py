@@ -130,6 +130,8 @@ def create_environment():
 	env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
 	env["GEN_PATH"] = os.path.join("$HOST", "$BUILD_MODE")
 
+	env["CE_GENERIC_BIT"] = True
+
 	cehosts.hosts[env["HOST"]].configure(env)
 
 	if env["RELEASE"]:
