@@ -20,22 +20,22 @@
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import cedarwin
-import cei386linuxgnu
-import cei386linuxmingw
-import cei386win32mingw
 import ceppclinuxgnu
+import cex86linuxgnu
+import cex86linuxmingw
+import cex86windowsmingw
 
 hosts = {
 	"darwin": cedarwin,
-	"i386-linux-gnu": cei386linuxgnu,
-	"i386-linux-mingw": cei386linuxmingw,
-	"i386-win32-mingw": cei386win32mingw,
 	"ppc-linux-gnu": ceppclinuxgnu,
+	"x86-linux-gnu": cex86linuxgnu,
+	"x86-linux-mingw": cex86linuxmingw,
+	"x86-windows-mingw": cex86windowsmingw,
 }
 
 # SCons PLATFORM -> CE HOST
 defaults = {
 	"darwin": "darwin",
-	"posix": "i386-linux-gnu",
-	"win32": "i386-win32-mingw",
+	"posix": "x86-linux-gnu",
+	"win32": "x86-windows-mingw",
 }

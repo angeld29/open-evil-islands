@@ -127,10 +127,10 @@ def create_environment():
 		datefmt="%a, %d %b %Y %H:%M:%S",
 	)
 
+	env["CE_GENERIC_BIT"] = True
+
 	env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
 	env["GEN_PATH"] = os.path.join("$HOST", "$BUILD_MODE")
-
-	env["CE_GENERIC_BIT"] = True
 
 	cehosts.hosts[env["HOST"]].configure(env)
 
