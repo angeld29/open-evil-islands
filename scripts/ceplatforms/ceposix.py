@@ -19,31 +19,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-def configure_release_mode(env):
-	env.AppendUnique(
-		CCFLAGS=["-O2", "-w"],
-		LINKFLAGS=["-s"], # remove all symbol table and relocation information
-	)
-
-def configure_debug_mode(env):
-	env.AppendUnique(
-		CCFLAGS=["-g", "-Wall", "-Wextra"],
-	)
-
-configure_build_mode = {
-	"release": configure_release_mode,
-	"debug": configure_debug_mode,
-}
-
 def configure(env):
-	env["CE_GCC_BIT"] = True
-
-	# obsolete
-	env["COMPILER"] = "gcc"
+	env["CE_POSIX_BIT"] = True
 
 	env.AppendUnique(
-		CFLAGS=["-std=c99"],
-		CCFLAGS=["-pipe", "-pedantic-errors"],
+		CPPDEFINES=[
+			# IEEE Std 1003.1-2004, Open Group Single UNIX Specification, version 3
+			# includes POSIX.1-2001 and XPG6 things
+			"_XOPEN_SOURCE=600",
+		],
 	)
-
-	configure_build_mode[env["BUILD_MODE"]](env)

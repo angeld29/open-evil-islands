@@ -19,27 +19,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-
 import ceerrors
-import cetools.ceppcgcc as ppcgcc
-import cecompilers.cegcc as gcc
-
-def get_description():
-	return "The GNU C/C++ compiler for powerpc architecture"
 
 def configure(env):
-	if env["PLATFORM"] != "posix":
-		ceerrors.interrupt("this host is available only on Linux")
-
-	if not ppcgcc.exists(env):
-		ceerrors.interrupt("could not locate the powerpc gcc cross compiler")
-
-	logging.info("the powerpc gcc cross compiler "
-				"was detected as '%s'.", ppcgcc.find(env))
-	ppcgcc.generate(env)
-
-	env["CPU_TYPE"] = "ppc"
-	env["TARGET_PLATFORM"] = "darwin"
-
-	gcc.configure(env)
+	ceerrors.interrupt("%s: not implemented", env["HOST"])

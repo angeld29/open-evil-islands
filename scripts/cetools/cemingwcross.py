@@ -21,7 +21,6 @@
 
 import os
 
-import SCons.Tool
 import SCons.Util
 
 def detect(env):
@@ -35,8 +34,6 @@ def detect(env):
 	return None
 
 def generate(env):
-	SCons.Tool.Tool("mingw")(env)
-
 	base_name = detect(env) or "mingw32"
 
 	env["CC"] = base_name + "-gcc"

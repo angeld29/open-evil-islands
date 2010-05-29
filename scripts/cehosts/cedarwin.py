@@ -19,8 +19,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-def get_description():
-	return "Not available"
+import ceerrors
 
 def configure(env):
-	raise NotImplementedError
+	ceerrors.interrupt("%s: not implemented", env["HOST"])

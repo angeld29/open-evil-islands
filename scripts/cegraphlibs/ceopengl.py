@@ -19,8 +19,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-def get_description():
-	return "Open Graphics Library"
+import logging
 
 def configure(env):
-	pass
+	env["CE_OPENGL_BIT"] = True
+
+	logging.info("opengl: using Open Graphics Library")
+
+	# obsolete
+	env["GRAPHICS_LIBRARY"] = "opengl"

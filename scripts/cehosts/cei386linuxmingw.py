@@ -22,37 +22,21 @@
 import logging
 
 import ceerrors
-import cetools.cemingwcross as mingw
-import cecompilers.cegcc as gcc
 
-def get_description():
-	return "Minimalist GNU win32 (cross) compiler"
+import ceplatforms.cewindows
+import cecompilers.cemingwcross
+import cegraphlibs.ceopengl
 
 def configure(env):
-	if env["PLATFORM"] != "posix":
-		ceerrors.interrupt("This host is available only on Linux.")
+	if env["PLATFORM"] != "posix": # TODO: SCons PLATFORM variable is weak
+		ceerrors.interrupt("%s: this host is available only on Linux", env["HOST"])
 
-	# prefer MinGW on Linux for Windows
-	if not mingw.exists(env):
-		ceerrors.interrupt("Could not locate the mingw32 cross compiler. "
-			"Please, install 'mingw' package. On ubuntu, for example, install "
-			"'mingw32', 'mingw32-runtime' and 'mingw32-binutils' packages.")
+	logging.info("%s: using Linux with MinGW x86 cross compiler", env["HOST"])
 
-	logging.info("mingw: using '%s' the mingw32 cross compiler", mingw.detect(env))
-	mingw.generate(env)
+	ceplatforms.cewindows.configure(env)
+	cecompilers.cemingwcross.configure(env)
+	cegraphlibs.ceopengl.configure(env)
 
+	# obsolete
 	env["CPU_TYPE"] = "i386"
 	env["TARGET_PLATFORM"] = "win32"
-
-	gcc.configure(env)
-
-	env.AppendUnique(
-		CPPDEFINES=[
-			"WINVER=0x0501",       # Windows XP required
-			"WIN32_LEAN_AND_MEAN", # excludes some stuff like Cryptography,
-								   # DDE, RPC, Shell, and Windows Sockets
-			"NOCOMM",              # excludes the serial communication API
-		],
-		CPPFLAGS=["-mthreads"],  # specifies that MinGW-specific
-		LINKFLAGS=["-mthreads"], # thread support is to be used
-	)

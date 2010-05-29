@@ -26,7 +26,7 @@ import ConfigParser
 import SCons
 
 import cehosts
-import cegraphlibs
+
 import cetools.cemp32wav
 import cetools.cewav2oga
 import cetools.cebik2ogv
@@ -58,12 +58,6 @@ def create_environment():
 		"Build for HOST",
 		config_get("CE", "HOST", cehosts.defaults[defenv["PLATFORM"]]),
 		cehosts.hosts.keys()))
-
-	variables.Add(SCons.Variables.EnumVariable("GRAPHICS_LIBRARY",
-		"Select graphics library",
-		config_get("CE", "GRAPHICS_LIBRARY",
-					cegraphlibs.defaults[defenv["PLATFORM"]]),
-		cegraphlibs.graphlibs.keys()))
 
 	variables.Add(SCons.Variables.BoolVariable("RELEASE",
 		"Build the project in release mode",
@@ -136,13 +130,7 @@ def create_environment():
 	env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
 	env["GEN_PATH"] = os.path.join("$HOST", "$BUILD_MODE")
 
-	logging.info("env: host '%s' (%s)", env["HOST"],
-		cehosts.hosts[env["HOST"]].get_description())
-	logging.info("env: graphics library '%s' (%s)", env["GRAPHICS_LIBRARY"],
-		cegraphlibs.graphlibs[env["GRAPHICS_LIBRARY"]].get_description())
-
 	cehosts.hosts[env["HOST"]].configure(env)
-	cegraphlibs.graphlibs[env["GRAPHICS_LIBRARY"]].configure(env)
 
 	if env["RELEASE"]:
 		env.AppendUnique(CPPDEFINES=["NDEBUG"])

@@ -19,31 +19,17 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-def configure_release_mode(env):
-	env.AppendUnique(
-		CCFLAGS=["-O2", "-w"],
-		LINKFLAGS=["-s"], # remove all symbol table and relocation information
-	)
+import logging
 
-def configure_debug_mode(env):
-	env.AppendUnique(
-		CCFLAGS=["-g", "-Wall", "-Wextra"],
-	)
+import cemingw
 
-configure_build_mode = {
-	"release": configure_release_mode,
-	"debug": configure_debug_mode,
-}
+import cetools.cemingwcross
 
 def configure(env):
-	env["CE_GCC_BIT"] = True
+	if not cetools.cemingwcross.exists(env):
+		ceerrors.interrupt("mingw: could not locate the MinGW cross compiler")
 
-	# obsolete
-	env["COMPILER"] = "gcc"
+	logging.info("mingw: using '%s' the MinGW cross compiler", cetools.cemingwcross.detect(env))
 
-	env.AppendUnique(
-		CFLAGS=["-std=c99"],
-		CCFLAGS=["-pipe", "-pedantic-errors"],
-	)
-
-	configure_build_mode[env["BUILD_MODE"]](env)
+	cemingw.configure(env)
+	cetools.cemingwcross.generate(env)

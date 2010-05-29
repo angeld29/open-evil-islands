@@ -19,33 +19,24 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import SCons.Tool
+import logging
 
 import ceerrors
-import cecompilers.cegcc as gcc
 
-def get_description():
-	return "Minimalist GNU for Windows"
+import ceplatforms.cewindows
+import cecompilers.cemingw
+import cegraphlibs.ceopengl
 
 def configure(env):
 	if env["PLATFORM"] != "win32":
-		ceerrors.interrupt("This host is available only on Windows.")
+		ceerrors.interrupt("%s: this host is available only on Windows", env["HOST"])
 
-	# prefer MinGW on Windows
-	SCons.Tool.Tool("mingw")(env)
+	logging.info("%s: using Windows x86 with MinGW compiler", env["HOST"])
 
+	ceplatforms.cewindows.configure(env)
+	cecompilers.cemingw.configure(env)
+	cegraphlibs.ceopengl.configure(env)
+
+	# obsolete
 	env["CPU_TYPE"] = "i386"
 	env["TARGET_PLATFORM"] = "win32"
-
-	gcc.configure(env)
-
-	env.AppendUnique(
-		CPPDEFINES=[
-			"WINVER=0x0501",       # Windows XP required
-			"WIN32_LEAN_AND_MEAN", # excludes some stuff like Cryptography,
-								   # DDE, RPC, Shell, and Windows Sockets
-			"NOCOMM",              # excludes the serial communication API
-		],
-		CPPFLAGS=["-mthreads"],  # specifies that MinGW-specific
-		LINKFLAGS=["-mthreads"], # thread support is to be used
-	)

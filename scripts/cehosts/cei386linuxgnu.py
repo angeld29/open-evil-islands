@@ -19,33 +19,26 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import SCons.Tool
+import logging
 
 import ceerrors
-import cecompilers.cegcc as gcc
 
-def get_description():
-	return "The GNU C/C++ compiler for Linux"
+import ceplatforms.ceposix
+import cecompilers.cegnuc
+import cegraphlibs.ceopengl
 
 def configure(env):
-	if env["PLATFORM"] != "posix":
-		ceerrors.interrupt("This host is available only on Linux.")
+	if env["PLATFORM"] != "posix": # TODO: SCons PLATFORM variable is weak
+		ceerrors.interrupt("%s: this host is available only on Linux", env["HOST"])
 
-	# prefer GNU tools on Linux
-	for tool in ("gnulink", "gcc", "g++", "gas", "ar"):
-		SCons.Tool.Tool(tool)(env)
+	logging.info("%s: using Linux with GNU C/C++ x86 compiler", env["HOST"])
 
+	ceplatforms.ceposix.configure(env)
+	cecompilers.cegnuc.configure(env)
+	cegraphlibs.ceopengl.configure(env)
+
+	env["CE_LINUX_BIT"] = True
+
+	# obsolete
 	env["CPU_TYPE"] = "i386"
 	env["TARGET_PLATFORM"] = "posix"
-
-	gcc.configure(env)
-
-	env.AppendUnique(
-		CPPDEFINES=[
-			# IEEE Std 1003.1-2004, Open Group Single UNIX Specification, version 3
-			# includes POSIX.1-2001 and XPG6 things
-			"_XOPEN_SOURCE=600",
-		],
-		CPPFLAGS=["-pthread"],  # add support for multithreading
-		LINKFLAGS=["-pthread"], # using the POSIX threads library
-	)
