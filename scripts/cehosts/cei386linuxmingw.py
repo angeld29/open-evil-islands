@@ -38,8 +38,7 @@ def configure(env):
 			"Please, install 'mingw' package. On ubuntu, for example, install "
 			"'mingw32', 'mingw32-runtime' and 'mingw32-binutils' packages.")
 
-	logging.info("The mingw32 cross compiler "
-				"was detected as '%s'.", mingw.find(env))
+	logging.info("mingw: using '%s' the mingw32 cross compiler", mingw.detect(env))
 	mingw.generate(env)
 
 	env["CPU_TYPE"] = "i386"

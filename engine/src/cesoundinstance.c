@@ -18,117 +18,77 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <assert.h>
 
-#include <vorbis/vorbisfile.h>
-#include <ao/ao.h>
+#if defined(__MINGW32__) && defined(__STRICT_ANSI__)
+// HACK: add fseeko64 function prototype
+#include <sys/types.h>
+int __cdecl __MINGW_NOTHROW fseeko64(FILE*, off64_t, int);
+#endif
 
-#include "cebyteorder.h"
+#include <vorbis/vorbisfile.h>
+
+#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cesound.h"
+#include "cebyteorder.h"
+#include "cesoundinstance.h"
 
-struct ce_sound {
+struct ce_soundinstance {
 	OggVorbis_File vf;
 	int bigendianp;
 	int bitstream;
 };
 
-ce_sound* ce_sound_new_file(FILE* file)
+ce_soundinstance* ce_soundinstance_new_path(const char* path)
 {
-	ce_sound* sound = ce_alloc_zero(sizeof(ce_sound));
-	sound->bigendianp = ce_is_big_endian();
-
-	if (0 != ov_open_callbacks(file, &sound->vf, NULL, 0, OV_CALLBACKS_DEFAULT)) {
-		ce_logging_error("sound: input does not appear to be an ogg bitstream");
-		ce_sound_del(sound);
+	FILE* file = fopen(path, "rb");
+	if (NULL == file) {
+		ce_logging_error("soundinstance: could not open file '%s'", path);
 		return NULL;
 	}
 
-	vorbis_info* info = ov_info(&sound->vf, -1);
-	if (NULL != info) {
-		ce_logging_write("sound: bitstream is %d channel, %ld Hz, %ld bps, %ld bps",
-			info->channels, info->rate, info->bitrate_nominal, ov_bitrate(&sound->vf, -1));
-	}
+	ce_soundinstance* soundinstance = ce_alloc_zero(sizeof(ce_soundinstance));
+	soundinstance->bigendianp = ce_is_big_endian();
 
-	return sound;
-}
+	ce_unused(OV_CALLBACKS_NOCLOSE);
+	ce_unused(OV_CALLBACKS_STREAMONLY);
+	ce_unused(OV_CALLBACKS_STREAMONLY_NOCLOSE);
 
-void ce_sound_del(ce_sound* sound)
-{
-	if (NULL != sound) {
-		ov_clear(&sound->vf);
-		ce_free(sound, sizeof(ce_sound));
-	}
-}
-
-void ce_sound_read(ce_sound* sound)
-{
-	bool eof = false;
-	char pcm[512];
-
-	while (!eof) {
-		long code = ov_read(&sound->vf, pcm, sizeof(pcm),
-			sound->bigendianp, 2, 1, &sound->bitstream);
-		if (0 == code) {
-			eof = true;
-		} else if (code < 0) {
-			ce_logging_warning("sound: error in the stream");
-		} else {
-			// TODO: use pcm and code = actual number of bytes read
-		}
-	}
-}
-
-struct ce_soundmng {
-	ao_device* device;
-	ao_sample_format format;
-};
-
-ce_soundmng* ce_soundmng_new(void)
-{
-	ao_initialize();
-
-	ce_soundmng* soundmng = ce_alloc_zero(sizeof(ce_soundmng));
-	soundmng->format.bits = 16;
-	soundmng->format.channels = 2;
-	soundmng->format.rate = 44100;
-	soundmng->format.byte_format = AO_FMT_NATIVE;
-	soundmng->device = ao_open_live(ao_default_driver_id(),
-									&soundmng->format, NULL);
-
-	if (NULL == soundmng->device) {
-		ce_logging_error("soundmng: error opening device");
-		ce_soundmng_del(soundmng);
+	if (0 != ov_open_callbacks(file, &soundinstance->vf, NULL, 0, OV_CALLBACKS_DEFAULT)) {
+		ce_logging_error("soundinstance: '%s' does not appear to be an ogg bitstream", path);
+		ce_soundinstance_del(soundinstance);
+		fclose(file);
 		return NULL;
 	}
 
-	ao_info* info = ao_driver_info(soundmng->device->driver_id);
+	vorbis_info* info = ov_info(&soundinstance->vf, -1);
 	if (NULL != info) {
-		ce_logging_write("soundmng: using %s", info->short_name);
-		ce_logging_write("soundmng: %s", info->name);
-		ce_logging_write("soundmng: %s", info->comment);
-	} else {
-		ce_logging_warning("soundmng: could not get driver info");
+		ce_logging_write("soundinstance: '%s' is %d channel, %ld Hz, %ld bps",
+			path, info->channels, info->rate, ov_bitrate(&soundinstance->vf, -1));
 	}
 
-	return soundmng;
+	return soundinstance;
 }
 
-void ce_soundmng_del(ce_soundmng* soundmng)
+void ce_soundinstance_del(ce_soundinstance* soundinstance)
 {
-	if (NULL != soundmng) {
-		if (NULL != soundmng->device) {
-			ao_close(soundmng->device);
+	if (NULL != soundinstance) {
+		ov_clear(&soundinstance->vf);
+		ce_free(soundinstance, sizeof(ce_soundinstance));
+	}
+}
+
+size_t ce_soundinstance_read(ce_soundinstance* soundinstance, void* buffer, size_t size)
+{
+	for (;;) {
+		long code = ov_read(&soundinstance->vf, buffer, size,
+			soundinstance->bigendianp, 2, 1, &soundinstance->bitstream);
+		if (code >= 0) {
+			return code;
 		}
-		ce_free(soundmng, sizeof(ce_soundmng));
+		ce_logging_warning("soundinstance: error in the stream");
 	}
-
-	ao_shutdown();
-}
-
-void ce_soundmng_play(ce_soundmng* soundmng)
-{
-	//ao_play(device, buffer, size);
 }

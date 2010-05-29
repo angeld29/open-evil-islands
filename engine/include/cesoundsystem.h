@@ -18,24 +18,23 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_SOUNDINSTANCE_H
-#define CE_SOUNDINSTANCE_H
+#ifndef CE_SOUNDSYSTEM_H
+#define CE_SOUNDSYSTEM_H
+
+#include <stddef.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_soundinstance ce_soundinstance;
+extern bool ce_soundsystem_init(void);
 
-extern ce_soundinstance* ce_soundinstance_new_path(const char* path);
-extern void ce_soundinstance_del(ce_soundinstance* soundinstance);
-
-extern size_t ce_soundinstance_read(ce_soundinstance* soundinstance,
-									void* buffer, size_t size);
+extern bool ce_soundsystem_play(const void* buffer, size_t size);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_SOUNDINSTANCE_H */
+#endif /* CE_SOUNDSYSTEM_H */

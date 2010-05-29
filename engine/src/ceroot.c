@@ -28,6 +28,7 @@
 #include "cethread.h"
 #include "cesysteminfo.h"
 #include "cesystemevent.h"
+#include "cesoundsystem.h"
 #include "ceroot.h"
 
 struct ce_root ce_root;
@@ -73,22 +74,22 @@ static void ce_root_renderwindow_closed(void* listener)
 
 static void ce_root_term(void)
 {
-	if (ce_root.inited) {
-		ce_input_supply_del(ce_root.input_supply);
-		ce_scenemng_del(ce_root.scenemng);
-		ce_soundmng_del(ce_root.soundmng);
-		ce_timer_del(ce_root.timer);
-		ce_rendersystem_del(ce_root.rendersystem);
-		ce_renderwindow_del(ce_root.renderwindow);
-		ce_root.inited = false;
-	}
+	assert(ce_root.inited && "the root subsystem has not yet been inited");
+	ce_root.inited = false;
+
+	ce_input_supply_del(ce_root.input_supply);
+	ce_scenemng_del(ce_root.scenemng);
+	ce_timer_del(ce_root.timer);
+	ce_soundmanager_del(ce_root.soundmanager);
+	ce_rendersystem_del(ce_root.rendersystem);
+	ce_renderwindow_del(ce_root.renderwindow);
 }
 
 bool ce_root_init(ce_optparse* optparse)
 {
 	assert(!ce_root.inited && "the root subsystem has already been inited");
-
 	ce_root.inited = true;
+
 	atexit(ce_root_term);
 
 	ce_systeminfo_display();
@@ -128,6 +129,8 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.show_bboxes = false;
 	ce_root.comprehensive_bbox_only = true;
 	ce_root.anmfps = 15.0f;
+
+	ce_soundsystem_init();
 
 	ce_root.renderwindow = ce_renderwindow_create(window_width, window_height, optparse->title->str);
 	if (NULL == ce_root.renderwindow) {
@@ -171,8 +174,8 @@ bool ce_root_init(ce_optparse* optparse)
 		ce_display_reflection_from_bool(fs_reflection_x, fs_reflection_y);
 
 	ce_root.rendersystem = ce_rendersystem_new();
+	ce_root.soundmanager = ce_soundmanager_new();
 	ce_root.timer = ce_timer_new();
-	ce_root.soundmng = ce_soundmng_new();
 	ce_root.scenemng = ce_scenemng_new(ei_path);
 
 	ce_root.input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
@@ -243,6 +246,8 @@ int ce_root_exec(void)
 				ce_root.comprehensive_bbox_only = true;
 			}
 		}
+
+		ce_soundmanager_advance(ce_root.soundmanager, elapsed);
 
 		ce_scenemng_advance(ce_root.scenemng, elapsed);
 		ce_scenemng_render(ce_root.scenemng);

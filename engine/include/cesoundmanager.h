@@ -18,24 +18,30 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_SOUNDINSTANCE_H
-#define CE_SOUNDINSTANCE_H
+#ifndef CE_SOUNDMANAGER_H
+#define CE_SOUNDMANAGER_H
+
+#include "cevector.h"
+#include "cesoundinstance.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_soundinstance ce_soundinstance;
+typedef struct {
+	ce_vector* instances;
+} ce_soundmanager;
 
-extern ce_soundinstance* ce_soundinstance_new_path(const char* path);
-extern void ce_soundinstance_del(ce_soundinstance* soundinstance);
+extern ce_soundmanager* ce_soundmanager_new(void);
+extern void ce_soundmanager_del(ce_soundmanager* soundmanager);
 
-extern size_t ce_soundinstance_read(ce_soundinstance* soundinstance,
-									void* buffer, size_t size);
+extern void ce_soundmanager_advance(ce_soundmanager* soundmanager, float elapsed);
+
+extern void ce_soundmanager_play(ce_soundmanager* soundmanager, const char* path);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_SOUNDINSTANCE_H */
+#endif /* CE_SOUNDMANAGER_H */
