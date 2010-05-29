@@ -47,7 +47,7 @@ def get_nodes(paths, patterns, env):
 bit_suffix_map = [
 	("CE_LINUX_BIT", "linux"),
 	("CE_POSIX_BIT", "posix"),
-	("CE_WINDOWS_BIT", "win32"), # TODO: rename
+	("CE_WINDOWS_BIT", "windows"),
 	("CE_GNUC_BIT", "gnuc"),
 	("CE_MINGW_BIT", "mingw"),
 	("CE_GCC_BIT", "gcc"),
@@ -74,12 +74,12 @@ def filter_sources(env, nodes):
 			return None
 		node = select()
 		if node:
-			logging.debug("utils: using '%s' for '%s' in [%s]",
+			logging.debug("utils: using '%s' for '%s' from [%s]",
 				node.name, name, ", ".join(node.name for node in values))
 			values.remove(node)
 		else:
 			logging.debug("utils: could not deduct platform-depended file for "
-				"'%s' in [%s]", name, ", ".join(node.name for node in values))
+				"'%s' from [%s]", name, ", ".join(node.name for node in values))
 		for node in values:
 			nodes.remove(node)
 	return nodes
