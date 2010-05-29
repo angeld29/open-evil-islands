@@ -22,16 +22,11 @@
 #define CE_SOUNDSYSTEM_H
 
 #include <stddef.h>
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
-
-extern bool ce_soundsystem_init(void);
-
-extern bool ce_soundsystem_play(const void* buffer, size_t size);
 
 #ifdef __cplusplus
 }

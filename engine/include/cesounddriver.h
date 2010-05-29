@@ -18,8 +18,21 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
-#include <assert.h>
+#ifndef CE_SOUNDDRIVER_H
+#define CE_SOUNDDRIVER_H
 
-#include "celogging.h"
-#include "cesoundsystem.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
+typedef struct ce_sounddriver ce_sounddriver;
+
+extern ce_sounddriver* ce_sounddriver_new(int bps, int rate, int channels);
+extern void ce_sounddriver_del(ce_sounddriver* sounddriver);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* CE_SOUNDDRIVER_H */

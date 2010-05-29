@@ -22,7 +22,6 @@
 
 #include "celib.h"
 #include "cealloc.h"
-#include "cesoundsystem.h"
 #include "cesoundmanager.h"
 
 ce_soundmanager* ce_soundmanager_new(void)
@@ -50,7 +49,7 @@ void ce_soundmanager_advance(ce_soundmanager* soundmanager, float elapsed)
 		ce_soundinstance* instance = soundmanager->instances->items[i];
 		size_t size = ce_soundinstance_read(instance, buffer, sizeof(buffer));
 		if (0 != size) {
-			ce_soundsystem_play(buffer, size);
+			;
 		} else {
 			ce_vector_remove_unordered(soundmanager->instances, i--);
 		}

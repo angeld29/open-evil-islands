@@ -28,7 +28,6 @@
 #include "cethread.h"
 #include "cesysteminfo.h"
 #include "cesystemevent.h"
-#include "cesoundsystem.h"
 #include "ceroot.h"
 
 struct ce_root ce_root;
@@ -129,8 +128,6 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.show_bboxes = false;
 	ce_root.comprehensive_bbox_only = true;
 	ce_root.anmfps = 15.0f;
-
-	ce_soundsystem_init();
 
 	ce_root.renderwindow = ce_renderwindow_create(window_width, window_height, optparse->title->str);
 	if (NULL == ce_root.renderwindow) {
