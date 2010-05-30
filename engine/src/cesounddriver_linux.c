@@ -31,6 +31,10 @@
 #include "celogging.h"
 #include "cesounddriver.h"
 
+typedef struct {
+	snd_pcm_t* handle;
+} ce_sounddriver_alsa;
+
 static void ce_sounddriver_alsa_error_handler(const char* file, int line, const char* function, int code, const char* format, ...)
 {
 	// TODO: use logging
@@ -41,10 +45,6 @@ static void ce_sounddriver_alsa_error_handler(const char* file, int line, const 
 	fprintf(stderr, "\n");
 	va_end(args);
 }
-
-typedef struct {
-	snd_pcm_t* handle;
-} ce_sounddriver_alsa;
 
 static snd_pcm_format_t ce_sounddriver_alsa_choose_format(int bps)
 {
@@ -92,6 +92,7 @@ static int ce_sounddriver_alsa_set_params(ce_sounddriver* sounddriver)
 	snd_pcm_sw_params_alloca(&swparams);
 
 	int code, dir;
+	snd_pcm_uframes_t size;
 
 	// choose all parameters
 	code = snd_pcm_hw_params_any(alsadriver->handle, hwparams);
@@ -100,11 +101,8 @@ static int ce_sounddriver_alsa_set_params(ce_sounddriver* sounddriver)
 		return code;
 	}
 
-	// enable alsa-lib resampling
-	int resample = 1;
-
 	// set hardware resampling
-	code = snd_pcm_hw_params_set_rate_resample(alsadriver->handle, hwparams, resample);
+	code = snd_pcm_hw_params_set_rate_resample(alsadriver->handle, hwparams, 1);
 	if (code < 0) {
 		ce_logging_error("sounddriver: resampling setup failed for playback");
 		return code;
@@ -142,7 +140,7 @@ static int ce_sounddriver_alsa_set_params(ce_sounddriver* sounddriver)
 	}
 
 	if ((int)rate != sounddriver->rate) {
-		ce_logging_warning("sounddriver: rate doesn't match (requested %d Hz, get %u Hz)", sounddriver->rate, rate);
+		ce_logging_warning("sounddriver: sample rate %d Hz not supported by the hardware, using %u Hz", sounddriver->rate, rate);
 	}
 
 	// ring buffer length in us
@@ -155,16 +153,6 @@ static int ce_sounddriver_alsa_set_params(ce_sounddriver* sounddriver)
 		return code;
 	}
 
-	snd_pcm_uframes_t size;
-
-	code = snd_pcm_hw_params_get_buffer_size(hwparams, &size);
-	if (code < 0) {
-		ce_logging_error("sounddriver: unable to get buffer size for playback");
-		return code;
-	}
-
-	snd_pcm_sframes_t buffer_size = size;
-
 	// period time in us
 	unsigned int period_time = 100000;
 
@@ -174,6 +162,14 @@ static int ce_sounddriver_alsa_set_params(ce_sounddriver* sounddriver)
 		ce_logging_error("sounddriver: unable to set period time %u for playback", period_time);
 		return code;
 	}
+
+	code = snd_pcm_hw_params_get_buffer_size(hwparams, &size);
+	if (code < 0) {
+		ce_logging_error("sounddriver: unable to get buffer size for playback");
+		return code;
+	}
+
+	snd_pcm_sframes_t buffer_size = size;
 
 	code = snd_pcm_hw_params_get_period_size(hwparams, &size, &dir);
 	if (code < 0) {
@@ -206,30 +202,17 @@ static int ce_sounddriver_alsa_set_params(ce_sounddriver* sounddriver)
 		return code;
 	}
 
-	int period_event = 0; // produce poll event after each period
-
 	// allow the transfer when at least period_size samples can be processed
-	// or disable this mechanism when period event is enabled (aka interrupt like style processing)
-	code = snd_pcm_sw_params_set_avail_min(alsadriver->handle, swparams,
-										period_event ? buffer_size : period_size);
+	code = snd_pcm_sw_params_set_avail_min(alsadriver->handle, swparams, period_size);
 	if (code < 0) {
 		ce_logging_error("sounddriver: unable to set avail min for playback");
 		return code;
 	}
 
-	// enable period events when requested
-	if (period_event) {
-		code = snd_pcm_sw_params_set_period_event(alsadriver->handle, swparams, 1);
-		if (code < 0) {
-			ce_logging_error("sounddriver: unable to set period event");
-			return code;
-		}
-	}
-
 	// write the parameters to the playback device
 	code = snd_pcm_sw_params(alsadriver->handle, swparams);
 	if (code < 0) {
-		printf("sounddriver: unable to set sw params for playback");
+		ce_logging_error("sounddriver: unable to set sw params for playback");
 		return code;
 	}
 
@@ -338,8 +321,6 @@ static void ce_sounddriver_alsa_write(ce_sounddriver* sounddriver, const void* b
 				break;
 			}
 		} else {
-			assert(code <= (int)size);
-
 			data += code * sounddriver->sample_size;
 			size -= code;
 		}

@@ -55,7 +55,7 @@ ce_sounddriver* ce_sounddriver_new(ce_sounddriver_vtable vtable, ...)
 	sounddriver->sample_size = sounddriver->bps * sounddriver->channels / 8;
 	sounddriver->block_size = 1024 * sounddriver->sample_size;
 
-	// reserve 4 blocks (usually ~16 kb)
+	// reserve 4 blocks (usually ~16 kb total)
 	sounddriver->blocks = ce_vector_new_reserved(4);
 	ce_vector_resize(sounddriver->blocks, sounddriver->blocks->capacity);
 
