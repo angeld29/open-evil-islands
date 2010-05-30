@@ -305,14 +305,12 @@ static void ce_sounddriver_alsa_write(ce_sounddriver* sounddriver, const void* b
 {
 	ce_sounddriver_alsa* alsadriver = (ce_sounddriver_alsa*)sounddriver->impl;
 
-	// convert bytes to frames
-	size_t size = sounddriver->block_size / sounddriver->sample_size;
-
+	size_t sample_count = sounddriver->sample_count;
 	const char* data = block;
 	int code;
 
-	while (size > 0) {
-		code = snd_pcm_writei(alsadriver->handle, data, size);
+	while (sample_count > 0) {
+		code = snd_pcm_writei(alsadriver->handle, data, sample_count);
 		if (code < 0) {
 			code = ce_sounddriver_alsa_recovery(alsadriver, code);
 			if (code < 0) {
@@ -321,7 +319,7 @@ static void ce_sounddriver_alsa_write(ce_sounddriver* sounddriver, const void* b
 			}
 		} else {
 			data += code * sounddriver->sample_size;
-			size -= code;
+			sample_count -= code;
 		}
 	}
 }

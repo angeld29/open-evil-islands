@@ -44,9 +44,8 @@ typedef struct {
 struct ce_sounddriver {
 	bool done;
 	int bps, rate, channels;
-	size_t sample_size;
-	size_t block_size;
-	size_t block_index;
+	size_t sample_size, sample_count;
+	size_t block_size, block_index;
 	ce_vector* blocks;
 	ce_thread_sem* free_blocks;
 	ce_thread_sem* used_blocks;
