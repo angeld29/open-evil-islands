@@ -301,16 +301,15 @@ static int ce_sounddriver_alsa_recovery(ce_sounddriver_alsa* alsadriver, int cod
 	return code;
 }
 
-static void ce_sounddriver_alsa_write(ce_sounddriver* sounddriver, const void* buffer, size_t size)
+static void ce_sounddriver_alsa_write(ce_sounddriver* sounddriver, const void* block)
 {
 	ce_sounddriver_alsa* alsadriver = (ce_sounddriver_alsa*)sounddriver->impl;
 
-	const char* data = buffer;
-	int code;
-
 	// convert bytes to frames
-	assert(0 == size % sounddriver->sample_size);
-	size /= sounddriver->sample_size;
+	size_t size = sounddriver->block_size / sounddriver->sample_size;
+
+	const char* data = block;
+	int code;
 
 	while (size > 0) {
 		code = snd_pcm_writei(alsadriver->handle, data, size);

@@ -38,7 +38,7 @@ typedef struct {
 	size_t size;
 	bool (*ctor)(ce_sounddriver* sounddriver, va_list args);
 	void (*dtor)(ce_sounddriver* sounddriver);
-	void (*write)(ce_sounddriver* sounddriver, const void* buffer, size_t size);
+	void (*write)(ce_sounddriver* sounddriver, const void* block);
 } ce_sounddriver_vtable;
 
 struct ce_sounddriver {

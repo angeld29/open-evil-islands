@@ -26,15 +26,15 @@
 
 static void ce_sounddriver_exec(ce_sounddriver* sounddriver)
 {
-	for (size_t block_index = 0; !sounddriver->done; ++block_index) {
+	for (size_t i = 0; !sounddriver->done; ++i) {
 		ce_thread_sem_acquire(sounddriver->used_blocks, 1);
 
 		if (sounddriver->done) {
 			break;
 		}
 
-		(*sounddriver->vtable.write)(sounddriver, sounddriver->blocks->items[
-			block_index % sounddriver->blocks->count], sounddriver->block_size);
+		(*sounddriver->vtable.write)(sounddriver,
+			sounddriver->blocks->items[i % sounddriver->blocks->count]);
 
 		ce_thread_sem_release(sounddriver->free_blocks, 1);
 	}
