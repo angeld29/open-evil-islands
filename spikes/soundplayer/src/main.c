@@ -26,32 +26,12 @@
 #include "cealloc.h"
 #include "ceroot.h"
 
-#include "cethread.h"
-#include "cesounddriver.h"
-#include "cesoundsystem.h"
+#include "cesoundinstance.h"
 
 static ce_optparse* optparse;
 
-static ce_thread* thread1;
-static ce_thread* thread2;
-
-static ce_soundinstance* instance1;
-static ce_soundinstance* instance2;
-
-static ce_sounddriver* sounddriver;
-
-/*static void ce_play(void* arg)
-{
-	char buffer[4096];
-	for (;;) {
-		size_t size = ce_soundinstance_read(arg, buffer, sizeof(buffer));
-		if (0 != size) {
-			ao_play(device, buffer, size);
-		} else {
-			break;
-		}
-	}
-}*/
+static ce_soundinstance* soundinstance1;
+static ce_soundinstance* soundinstance2;
 
 int main(int argc, char* argv[])
 {
@@ -75,32 +55,23 @@ int main(int argc, char* argv[])
 	const char* track2;
 	ce_optparse_get(optparse, "track2", &track2);
 
-	sounddriver = ce_sounddriver_create_platform(16, 44100, 2);
-	if (NULL == sounddriver) {
+	soundinstance1 = ce_soundinstance_create_path(track1);
+	if (NULL == soundinstance1) {
 		return 1;
 	}
 
-	//instance1 = ce_soundinstance_new_path(track1);
-	//instance2 = ce_soundinstance_new_path(track2);
+	soundinstance2 = ce_soundinstance_create_path(track2);
+	if (NULL == soundinstance2) {
+		return 1;
+	}
 
-	//thread1 = ce_thread_new(ce_play, instance1);
-	//thread2 = ce_thread_new(ce_play, instance2);
+	//ce_soundinstance_play(soundinstance1);
+	ce_soundinstance_play(soundinstance2);
 
 	ce_root_exec();
 
-	//ce_thread_wait(thread1);
-	//ce_thread_wait(thread2);
-
-	ce_thread_del(thread1);
-	ce_thread_del(thread2);
-
-	ce_sounddriver_del(sounddriver);
-
-	//ce_soundmanager_play(ce_root.soundmanager, track);
-	//ce_soundmanager_play(ce_root.soundmanager, track2);
-
-	//ce_soundinstance_del(instance1);
-	//ce_soundinstance_del(instance2);
+	ce_soundinstance_del(soundinstance1);
+	ce_soundinstance_del(soundinstance2);
 
 	ce_optparse_del(optparse);
 

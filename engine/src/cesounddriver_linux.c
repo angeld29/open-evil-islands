@@ -21,7 +21,9 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include <unistd.h>
 #include <alloca.h>
+
 #include <alsa/asoundlib.h>
 
 #include "celib.h"
@@ -34,13 +36,14 @@ static void ce_sounddriver_alsa_error_handler(const char* file, int line, const 
 	// TODO: use logging
 	va_list args;
 	va_start(args, format);
+	fprintf(stderr, "alsa_error_handler\n");
 	vfprintf(stderr, format, args);
+	fprintf(stderr, "\n");
 	va_end(args);
 }
 
 typedef struct {
 	snd_pcm_t* handle;
-	snd_pcm_channel_area_t* areas;
 } ce_sounddriver_alsa;
 
 static snd_pcm_format_t ce_sounddriver_alsa_choose_format(int bps)
@@ -259,13 +262,11 @@ static bool ce_sounddriver_alsa_ctor(ce_sounddriver* sounddriver, va_list args)
 		return false;
 	}
 
-	alsadriver->areas = ce_alloc(sounddriver->channels * sizeof(snd_pcm_channel_area_t));
-
 #ifndef NDEBUG
 	snd_output_t* output;
 	code = snd_output_stdio_attach(&output, stderr, 0);
 	if (code >= 0) {
-		snd_pcm_dump(alsadriver->handle, output);
+		//snd_pcm_dump(alsadriver->handle, output);
 		snd_output_close(output);
 	}
 #endif
@@ -276,7 +277,6 @@ static bool ce_sounddriver_alsa_ctor(ce_sounddriver* sounddriver, va_list args)
 static void ce_sounddriver_alsa_dtor(ce_sounddriver* sounddriver)
 {
 	ce_sounddriver_alsa* alsadriver = (ce_sounddriver_alsa*)sounddriver->impl;
-	ce_free(alsadriver->areas, sounddriver->channels * sizeof(snd_pcm_channel_area_t));
 	if (NULL != alsadriver->handle) {
 		snd_pcm_drain(alsadriver->handle);
 		snd_pcm_close(alsadriver->handle);
@@ -294,7 +294,7 @@ static int ce_sounddriver_alsa_recovery(ce_sounddriver_alsa* alsadriver, int cod
 	if (-EPIPE == code) {
 		code = snd_pcm_prepare(alsadriver->handle);
 		if (code < 0) {
-			ce_logging_error("sounddriver: can't recovery from underrun, prepare failed: %s", snd_strerror(code));
+			ce_logging_error("sounddriver: can't recovery from underrun, prepare failed");
 			return code;
 		}
 	}
@@ -307,7 +307,7 @@ static int ce_sounddriver_alsa_recovery(ce_sounddriver_alsa* alsadriver, int cod
 		if (code < 0) {
 			code = snd_pcm_prepare(alsadriver->handle);
 			if (code < 0) {
-				ce_logging_error("sounddriver: can't recovery from suspend, prepare failed: %s", snd_strerror(code));
+				ce_logging_error("sounddriver: can't recovery from suspend, prepare failed");
 				return code;
 			}
 		}
@@ -348,7 +348,7 @@ static void ce_sounddriver_alsa_write(ce_sounddriver* sounddriver, const void* b
 
 ce_sounddriver* ce_sounddriver_create_platform(int bps, int rate, int channels)
 {
-	return ce_sounddriver_new((ce_sounddriver_vtable){ce_sounddriver_alsa_ctor,
-		ce_sounddriver_alsa_dtor, ce_sounddriver_alsa_write},
-		sizeof(ce_sounddriver_alsa), bps, rate, channels);
+	return ce_sounddriver_new((ce_sounddriver_vtable){sizeof(ce_sounddriver_alsa),
+		ce_sounddriver_alsa_ctor, ce_sounddriver_alsa_dtor, ce_sounddriver_alsa_write},
+		bps, rate, channels);
 }

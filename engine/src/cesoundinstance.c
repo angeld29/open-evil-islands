@@ -20,15 +20,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <limits.h>
 #include <assert.h>
-
-#if defined(__MINGW32__) && defined(__STRICT_ANSI__)
-// HACK: add fseeko64 function prototype
-#include <sys/types.h>
-int __cdecl __MINGW_NOTHROW fseeko64(FILE*, off64_t, int);
-#endif
-
-#include <vorbis/vorbisfile.h>
 
 #include "celib.h"
 #include "cealloc.h"
@@ -36,38 +30,63 @@ int __cdecl __MINGW_NOTHROW fseeko64(FILE*, off64_t, int);
 #include "cebyteorder.h"
 #include "cesoundinstance.h"
 
-struct ce_soundinstance {
-	OggVorbis_File vf;
-	int bigendianp;
-	int bitstream;
-};
-
-ce_soundinstance* ce_soundinstance_new_path(const char* path)
+static void ce_soundinstance_exec(ce_soundinstance* soundinstance)
 {
-	FILE* file = fopen(path, "rb");
-	if (NULL == file) {
-		ce_logging_error("soundinstance: could not open file '%s'", path);
-		return NULL;
+	while (!soundinstance->done) {
+		switch (soundinstance->state) {
+			case CE_SOUNDINSTANCE_STATE_PLAYING:
+			ce_pass(); // make C happy :)
+
+			char* block = ce_sounddriver_map_block(soundinstance->sounddriver);
+			size_t size = 0;
+
+			// some decoders do not return requested size in one pass
+			for (size_t bytes = SIZE_MAX; 0 != bytes &&
+					size < soundinstance->sounddriver->block_size; size += bytes) {
+				bytes = (*soundinstance->vtable.read)(soundinstance,
+					block + size, soundinstance->sounddriver->block_size - size);
+			}
+
+			// fill tail by silence
+			memset(block + size, 0, soundinstance->sounddriver->block_size - size);
+
+			if (0 == size) {
+				soundinstance->state = CE_SOUNDINSTANCE_STATE_STOPPED;
+			}
+
+			ce_sounddriver_unmap_block(soundinstance->sounddriver);
+			break;
+
+		case CE_SOUNDINSTANCE_STATE_PAUSED:
+		case CE_SOUNDINSTANCE_STATE_STOPPED:
+			ce_thread_cond_wait(soundinstance->cond, soundinstance->mutex);
+			break;
+		}
 	}
+}
 
-	ce_soundinstance* soundinstance = ce_alloc_zero(sizeof(ce_soundinstance));
-	soundinstance->bigendianp = ce_is_big_endian();
+ce_soundinstance* ce_soundinstance_new(ce_soundinstance_vtable vtable, ...)
+{
+	ce_soundinstance* soundinstance = ce_alloc_zero(sizeof(ce_soundinstance) + vtable.size);
+	soundinstance->vtable = vtable;
 
-	ce_unused(OV_CALLBACKS_NOCLOSE);
-	ce_unused(OV_CALLBACKS_STREAMONLY);
-	ce_unused(OV_CALLBACKS_STREAMONLY_NOCLOSE);
+	va_list args;
+	va_start(args, vtable);
 
-	if (0 != ov_open_callbacks(file, &soundinstance->vf, NULL, 0, OV_CALLBACKS_DEFAULT)) {
-		ce_logging_error("soundinstance: '%s' does not appear to be an ogg bitstream", path);
+	if (!(*vtable.ctor)(soundinstance, args)) {
 		ce_soundinstance_del(soundinstance);
-		fclose(file);
-		return NULL;
+		soundinstance = NULL;
 	}
 
-	vorbis_info* info = ov_info(&soundinstance->vf, -1);
-	if (NULL != info) {
-		ce_logging_write("soundinstance: '%s' is %d channel, %ld Hz, %ld bps",
-			path, info->channels, info->rate, ov_bitrate(&soundinstance->vf, -1));
+	va_end(args);
+
+	if (NULL != soundinstance) {
+		soundinstance->sounddriver = ce_sounddriver_create_platform(
+			soundinstance->bps, soundinstance->rate, soundinstance->channels);
+
+		soundinstance->mutex = ce_thread_mutex_new();
+		soundinstance->cond = ce_thread_cond_new();
+		soundinstance->thread = ce_thread_new(ce_soundinstance_exec, soundinstance);
 	}
 
 	return soundinstance;
@@ -76,19 +95,46 @@ ce_soundinstance* ce_soundinstance_new_path(const char* path)
 void ce_soundinstance_del(ce_soundinstance* soundinstance)
 {
 	if (NULL != soundinstance) {
-		ov_clear(&soundinstance->vf);
-		ce_free(soundinstance, sizeof(ce_soundinstance));
+		soundinstance->done = true;
+
+		ce_thread_cond_wake_all(soundinstance->cond);
+		ce_thread_wait(soundinstance->thread);
+
+		if (NULL != soundinstance->vtable.dtor) {
+			(*soundinstance->vtable.dtor)(soundinstance);
+		}
+
+		ce_thread_del(soundinstance->thread);
+		ce_thread_cond_del(soundinstance->cond);
+		ce_thread_mutex_del(soundinstance->mutex);
+		ce_sounddriver_del(soundinstance->sounddriver);
+
+		ce_free(soundinstance, sizeof(ce_soundinstance) + soundinstance->vtable.size);
 	}
 }
 
-size_t ce_soundinstance_read(ce_soundinstance* soundinstance, void* buffer, size_t size)
+void ce_soundinstance_play(ce_soundinstance* soundinstance)
 {
-	for (;;) {
-		long code = ov_read(&soundinstance->vf, buffer, size,
-			soundinstance->bigendianp, 2, 1, &soundinstance->bitstream);
-		if (code >= 0) {
-			return code;
-		}
-		ce_logging_warning("soundinstance: error in the stream");
+	soundinstance->state = CE_SOUNDINSTANCE_STATE_PLAYING;
+	ce_thread_cond_wake_all(soundinstance->cond);
+}
+
+extern const size_t CE_SOUNDINSTANCE_DECODER_VTABLE_COUNT;
+extern ce_soundinstance_vtable ce_soundinstance_decoder_vtables[];
+
+ce_soundinstance* ce_soundinstance_create_path(const char* path)
+{
+	FILE* file = fopen(path, "rb");
+	if (NULL == file) {
+		ce_logging_error("soundinstance: could not open file '%s'", path);
+		return NULL;
 	}
+
+	// TODO: loop and test
+	ce_soundinstance* soundinstance = ce_soundinstance_new(ce_soundinstance_decoder_vtables[0], file);
+	if (NULL == soundinstance) {
+		fclose(file);
+	}
+
+	return soundinstance;
 }

@@ -21,50 +21,56 @@
 #include <assert.h>
 
 #include "cealloc.h"
+#include "celogging.h"
 #include "cesounddriver.h"
 
 static void ce_sounddriver_exec(ce_sounddriver* sounddriver)
 {
-	size_t size = ce_ringbuffer_get_read_avail(sounddriver->ringbuffer);
-	size -= size % sounddriver->sample_size;
+	for (size_t block_index = 0; !sounddriver->done; ++block_index) {
+		ce_thread_sem_acquire(sounddriver->used_blocks, 1);
 
-	if (0 == size) {
-		size = sounddriver->sample_size;
+		if (sounddriver->done) {
+			break;
+		}
+
+		(*sounddriver->vtable.write)(sounddriver, sounddriver->blocks->items[
+			block_index % sounddriver->blocks->count], sounddriver->block_size);
+
+		ce_thread_sem_release(sounddriver->free_blocks, 1);
 	}
-
-	//ce_thread_sem_acquire(sounddriver->used_bytes, size);
-	// TODO: write to device
-	//ce_thread_sem_release(sounddriver->free_bytes, size);
 }
 
-ce_sounddriver* ce_sounddriver_new(ce_sounddriver_vtable vtable, size_t size, ...)
+ce_sounddriver* ce_sounddriver_new(ce_sounddriver_vtable vtable, ...)
 {
-	ce_sounddriver* sounddriver = ce_alloc_zero(sizeof(ce_sounddriver) + size);
-
+	ce_sounddriver* sounddriver = ce_alloc_zero(sizeof(ce_sounddriver) + vtable.size);
 	sounddriver->vtable = vtable;
-	sounddriver->size = size;
 
 	va_list args;
-	va_start(args, size);
+	va_start(args, vtable);
 
 	sounddriver->bps = va_arg(args, int);
 	sounddriver->rate = va_arg(args, int);
 	sounddriver->channels = va_arg(args, int);
 
 	sounddriver->sample_size = sounddriver->bps * sounddriver->channels / 8;
+	sounddriver->block_size = 1024 * sounddriver->sample_size;
 
-	sounddriver->ringbuffer = ce_ringbuffer_new(4096);
+	// reserve 4 blocks (usually ~16 kb)
+	sounddriver->blocks = ce_vector_new_reserved(4);
+	ce_vector_resize(sounddriver->blocks, sounddriver->blocks->capacity);
 
-	sounddriver->free_bytes = ce_thread_sem_new(sounddriver->ringbuffer->size);
-	sounddriver->used_bytes = ce_thread_sem_new(0);
+	for (int i = 0; i < sounddriver->blocks->count; ++i) {
+		sounddriver->blocks->items[i] = ce_alloc(sounddriver->block_size);
+	}
+
+	sounddriver->free_blocks = ce_thread_sem_new(sounddriver->blocks->count);
+	sounddriver->used_blocks = ce_thread_sem_new(0);
 
 	sounddriver->thread = ce_thread_new(ce_sounddriver_exec, sounddriver);
 
-	if (NULL != vtable.ctor) {
-		if (!(*vtable.ctor)(sounddriver, args)) {
-			ce_sounddriver_del(sounddriver);
-			sounddriver = NULL;
-		}
+	if (!(*vtable.ctor)(sounddriver, args)) {
+		ce_sounddriver_del(sounddriver);
+		sounddriver = NULL;
 	}
 
 	va_end(args);
@@ -75,6 +81,9 @@ ce_sounddriver* ce_sounddriver_new(ce_sounddriver_vtable vtable, size_t size, ..
 void ce_sounddriver_del(ce_sounddriver* sounddriver)
 {
 	if (NULL != sounddriver) {
+		sounddriver->done = true;
+
+		ce_thread_sem_release(sounddriver->used_blocks, 1);
 		ce_thread_wait(sounddriver->thread);
 
 		if (NULL != sounddriver->vtable.dtor) {
@@ -82,16 +91,35 @@ void ce_sounddriver_del(ce_sounddriver* sounddriver)
 		}
 
 		ce_thread_del(sounddriver->thread);
-		ce_thread_sem_del(sounddriver->used_bytes);
-		ce_thread_sem_del(sounddriver->free_bytes);
-		ce_ringbuffer_del(sounddriver->ringbuffer);
+		ce_thread_sem_del(sounddriver->used_blocks);
+		ce_thread_sem_del(sounddriver->free_blocks);
 
-		ce_free(sounddriver, sizeof(ce_sounddriver) + sounddriver->size);
+		for (int i = 0; i < sounddriver->blocks->count; ++i) {
+			ce_free(sounddriver->blocks->items[i], sounddriver->block_size);
+		}
+
+		ce_vector_del(sounddriver->blocks);
+		ce_free(sounddriver, sizeof(ce_sounddriver) + sounddriver->vtable.size);
 	}
+}
+
+void* ce_sounddriver_map_block(ce_sounddriver* sounddriver)
+{
+	ce_thread_sem_acquire(sounddriver->free_blocks, 1);
+	return sounddriver->blocks->items[sounddriver->block_index++ %
+										sounddriver->blocks->count];
+}
+
+void ce_sounddriver_unmap_block(ce_sounddriver* sounddriver)
+{
+	ce_thread_sem_release(sounddriver->used_blocks, 1);
 }
 
 ce_sounddriver* ce_sounddriver_create_null(int bps, int rate, int channels)
 {
 	// TODO: stub
+	(void)(bps);
+	(void)(rate);
+	(void)(channels);
 	return NULL;
 }

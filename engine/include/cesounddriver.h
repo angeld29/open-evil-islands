@@ -26,7 +26,6 @@
 #include <stdbool.h>
 
 #include "cethread.h"
-#include "ceringbuffer.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -36,25 +35,31 @@ extern "C"
 typedef struct ce_sounddriver ce_sounddriver;
 
 typedef struct {
+	size_t size;
 	bool (*ctor)(ce_sounddriver* sounddriver, va_list args);
 	void (*dtor)(ce_sounddriver* sounddriver);
 	void (*write)(ce_sounddriver* sounddriver, const void* buffer, size_t size);
 } ce_sounddriver_vtable;
 
 struct ce_sounddriver {
+	bool done;
 	int bps, rate, channels;
 	size_t sample_size;
-	ce_ringbuffer* ringbuffer;
-	ce_thread_sem* free_bytes;
-	ce_thread_sem* used_bytes;
+	size_t block_size;
+	size_t block_index;
+	ce_vector* blocks;
+	ce_thread_sem* free_blocks;
+	ce_thread_sem* used_blocks;
 	ce_thread* thread;
 	ce_sounddriver_vtable vtable;
-	size_t size;
 	char impl[];
 };
 
-extern ce_sounddriver* ce_sounddriver_new(ce_sounddriver_vtable vtable, size_t size, ...);
+extern ce_sounddriver* ce_sounddriver_new(ce_sounddriver_vtable vtable, ...);
 extern void ce_sounddriver_del(ce_sounddriver* sounddriver);
+
+extern void* ce_sounddriver_map_block(ce_sounddriver* sounddriver);
+extern void ce_sounddriver_unmap_block(ce_sounddriver* sounddriver);
 
 extern ce_sounddriver* ce_sounddriver_create_platform(int bps, int rate, int channels);
 extern ce_sounddriver* ce_sounddriver_create_null(int bps, int rate, int channels);

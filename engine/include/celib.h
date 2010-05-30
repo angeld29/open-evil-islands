@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define ce_pass() (void)(0)
 #define ce_unused(var) (void)(var)
 
 #define CE_DEF_MIN(name, type) \

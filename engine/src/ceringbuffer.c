@@ -50,9 +50,19 @@ void ce_ringbuffer_clear(ce_ringbuffer* ringbuffer)
 	ringbuffer->write_avail = ringbuffer->size;
 }
 
+size_t ce_ringbuffer_get_read_avail(ce_ringbuffer* ringbuffer)
+{
+	return ringbuffer->size - ce_ringbuffer_get_write_avail(ringbuffer);
+}
+
+size_t ce_ringbuffer_get_write_avail(ce_ringbuffer* ringbuffer)
+{
+	return ce_atomic_fetch_size_t(&ringbuffer->write_avail);
+}
+
 size_t ce_ringbuffer_read(ce_ringbuffer* ringbuffer, void* buffer, size_t size)
 {
-	size_t write_avail = ce_atomic_fetch_size_t(&ringbuffer->write_avail);
+	size_t write_avail = ce_ringbuffer_get_write_avail(ringbuffer);
 
 	if (write_avail == ringbuffer->size) {
 		return 0;
@@ -77,7 +87,7 @@ size_t ce_ringbuffer_read(ce_ringbuffer* ringbuffer, void* buffer, size_t size)
 
 size_t ce_ringbuffer_write(ce_ringbuffer* ringbuffer, const void* buffer, size_t size)
 {
-	size_t write_avail = ce_atomic_fetch_size_t(&ringbuffer->write_avail);
+	size_t write_avail = ce_ringbuffer_get_write_avail(ringbuffer);
 
 	if (0 == write_avail) {
 		return 0;

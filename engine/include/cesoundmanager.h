@@ -30,7 +30,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_vector* instances;
+	ce_vector* soundinstances;
 } ce_soundmanager;
 
 extern ce_soundmanager* ce_soundmanager_new(void);

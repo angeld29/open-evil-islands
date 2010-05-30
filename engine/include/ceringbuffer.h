@@ -40,10 +40,8 @@ extern void ce_ringbuffer_del(ce_ringbuffer* ringbuffer);
 
 extern void ce_ringbuffer_clear(ce_ringbuffer* ringbuffer);
 
-static inline size_t ce_ringbuffer_get_read_avail(const ce_ringbuffer* ringbuffer)
-{
-	return ringbuffer->size - ringbuffer->write_avail;
-}
+extern size_t ce_ringbuffer_get_read_avail(ce_ringbuffer* ringbuffer);
+extern size_t ce_ringbuffer_get_write_avail(ce_ringbuffer* ringbuffer);
 
 extern size_t ce_ringbuffer_read(ce_ringbuffer* ringbuffer,
 									void* buffer, size_t size);
