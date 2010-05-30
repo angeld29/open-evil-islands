@@ -55,18 +55,18 @@ int main(int argc, char* argv[])
 	const char* track2;
 	ce_optparse_get(optparse, "track2", &track2);
 
-	soundinstance1 = ce_soundinstance_create_path(track1);
-	if (NULL == soundinstance1) {
-		return 1;
-	}
+	//soundinstance1 = ce_soundinstance_create_path(track1);
+	//if (NULL == soundinstance1) {
+	//	return 1;
+	//}
 
-	soundinstance2 = ce_soundinstance_create_path(track2);
-	if (NULL == soundinstance2) {
-		return 1;
-	}
+	//soundinstance2 = ce_soundinstance_create_path(track2);
+	//if (NULL == soundinstance2) {
+	//	return 1;
+	//}
 
 	//ce_soundinstance_play(soundinstance1);
-	ce_soundinstance_play(soundinstance2);
+	//ce_soundinstance_play(soundinstance2);
 
 	ce_root_exec();
 
