@@ -59,7 +59,9 @@ static void ce_soundinstance_exec(ce_soundinstance* soundinstance)
 
 		case CE_SOUNDINSTANCE_STATE_PAUSED:
 		case CE_SOUNDINSTANCE_STATE_STOPPED:
+			ce_thread_mutex_lock(soundinstance->mutex);
 			ce_thread_cond_wait(soundinstance->cond, soundinstance->mutex);
+			ce_thread_mutex_unlock(soundinstance->mutex);
 			break;
 		}
 	}
@@ -95,7 +97,9 @@ ce_soundinstance* ce_soundinstance_new(ce_soundinstance_vtable vtable, ...)
 void ce_soundinstance_del(ce_soundinstance* soundinstance)
 {
 	if (NULL != soundinstance) {
+		ce_thread_mutex_lock(soundinstance->mutex);
 		soundinstance->done = true;
+		ce_thread_mutex_unlock(soundinstance->mutex);
 
 		ce_thread_cond_wake_all(soundinstance->cond);
 		ce_thread_wait(soundinstance->thread);
