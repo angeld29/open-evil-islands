@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 	const char* track2;
 	ce_optparse_get(optparse, "track2", &track2);
 
-	sounddriver = ce_sounddriver_new(16, 44100, 2);
+	sounddriver = ce_sounddriver_create_platform(16, 44100, 2);
 	if (NULL == sounddriver) {
 		return 1;
 	}

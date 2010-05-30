@@ -19,19 +19,17 @@
 */
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <assert.h>
 
 #include <alloca.h>
-#include <poll.h>
-
 #include <alsa/asoundlib.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cesounddriver.h"
 
-static void ce_sounddriver_error_handler(const char* file, int line, const char* function, int code, const char* format, ...)
+static void ce_sounddriver_alsa_error_handler(const char* file, int line, const char* function, int code, const char* format, ...)
 {
 	// TODO: use logging
 	va_list args;
@@ -40,13 +38,12 @@ static void ce_sounddriver_error_handler(const char* file, int line, const char*
 	va_end(args);
 }
 
-struct ce_sounddriver {
-	int bps, rate, channels;
+typedef struct {
 	snd_pcm_t* handle;
 	snd_pcm_channel_area_t* areas;
-};
+} ce_sounddriver_alsa;
 
-static snd_pcm_format_t ce_sounddriver_choose_format(int bps)
+static snd_pcm_format_t ce_sounddriver_alsa_choose_format(int bps)
 {
 	snd_pcm_format_t format = SND_PCM_FORMAT_UNKNOWN;
 	switch (bps) {
@@ -68,7 +65,7 @@ static snd_pcm_format_t ce_sounddriver_choose_format(int bps)
 	return format;
 }
 
-static const char* ce_sounddriver_choose_device(int channels)
+static const char* ce_sounddriver_alsa_choose_device(int channels)
 {
 	const char* device = "default";
 	switch (channels) {
@@ -81,10 +78,10 @@ static const char* ce_sounddriver_choose_device(int channels)
 	return device;
 }
 
-static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
-										snd_pcm_format_t format,
-										snd_pcm_access_t access)
+static int ce_sounddriver_alsa_set_params(ce_sounddriver* sounddriver)
 {
+	ce_sounddriver_alsa* alsadriver = (ce_sounddriver_alsa*)sounddriver->impl;
+
 	snd_pcm_hw_params_t* hwparams;
 	snd_pcm_sw_params_t* swparams;
 
@@ -94,7 +91,7 @@ static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
 	int code, dir;
 
 	// choose all parameters
-	code = snd_pcm_hw_params_any(sounddriver->handle, hwparams);
+	code = snd_pcm_hw_params_any(alsadriver->handle, hwparams);
 	if (code < 0) {
 		ce_logging_error("sounddriver: broken configuration for playback: no configurations available");
 		return code;
@@ -104,28 +101,29 @@ static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
 	int resample = 1;
 
 	// set hardware resampling
-	code = snd_pcm_hw_params_set_rate_resample(sounddriver->handle, hwparams, resample);
+	code = snd_pcm_hw_params_set_rate_resample(alsadriver->handle, hwparams, resample);
 	if (code < 0) {
 		ce_logging_error("sounddriver: resampling setup failed for playback");
 		return code;
 	}
 
 	// set the interleaved read/write format
-	code = snd_pcm_hw_params_set_access(sounddriver->handle, hwparams, access);
+	code = snd_pcm_hw_params_set_access(alsadriver->handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED);
 	if (code < 0) {
 		ce_logging_error("sounddriver: access type not available for playback");
 		return code;
 	}
 
 	// set the sample format
-	code = snd_pcm_hw_params_set_format(sounddriver->handle, hwparams, format);
+	code = snd_pcm_hw_params_set_format(alsadriver->handle, hwparams,
+		ce_sounddriver_alsa_choose_format(sounddriver->bps));
 	if (code < 0) {
 		ce_logging_error("sounddriver: sample format not available for playback");
 		return code;
 	}
 
 	// set the count of channels
-	code = snd_pcm_hw_params_set_channels(sounddriver->handle, hwparams, sounddriver->channels);
+	code = snd_pcm_hw_params_set_channels(alsadriver->handle, hwparams, sounddriver->channels);
 	if (code < 0) {
 		ce_logging_error("sounddriver: channels count (%d) not available for playbacks", sounddriver->channels);
 		return code;
@@ -134,7 +132,7 @@ static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
 	unsigned int rate = sounddriver->rate;
 
 	// set the stream rate
-	code = snd_pcm_hw_params_set_rate_near(sounddriver->handle, hwparams, &rate, &dir);
+	code = snd_pcm_hw_params_set_rate_near(alsadriver->handle, hwparams, &rate, &dir);
 	if (code < 0) {
 		ce_logging_error("sounddriver: rate %d Hz not available for playback", sounddriver->rate);
 		return code;
@@ -148,7 +146,7 @@ static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
 	unsigned int buffer_time = 500000;
 
 	// set the buffer time
-	code = snd_pcm_hw_params_set_buffer_time_near(sounddriver->handle, hwparams, &buffer_time, &dir);
+	code = snd_pcm_hw_params_set_buffer_time_near(alsadriver->handle, hwparams, &buffer_time, &dir);
 	if (code < 0) {
 		ce_logging_error("sounddriver: unable to set buffer time %u for playback", buffer_time);
 		return code;
@@ -168,7 +166,7 @@ static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
 	unsigned int period_time = 100000;
 
 	// set the period time
-	code = snd_pcm_hw_params_set_period_time_near(sounddriver->handle, hwparams, &period_time, &dir);
+	code = snd_pcm_hw_params_set_period_time_near(alsadriver->handle, hwparams, &period_time, &dir);
 	if (code < 0) {
 		ce_logging_error("sounddriver: unable to set period time %u for playback", period_time);
 		return code;
@@ -183,14 +181,14 @@ static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
 	snd_pcm_sframes_t period_size = size;
 
 	// write the parameters to device
-	code = snd_pcm_hw_params(sounddriver->handle, hwparams);
+	code = snd_pcm_hw_params(alsadriver->handle, hwparams);
 	if (code < 0) {
 		ce_logging_error("sounddriver: unable to set hw params for playback");
 		return code;
 	}
 
 	// get the current swparams
-	code = snd_pcm_sw_params_current(sounddriver->handle, swparams);
+	code = snd_pcm_sw_params_current(alsadriver->handle, swparams);
 	if (code < 0) {
 		ce_logging_error("sounddriver: unable to determine current swparams for playback");
 		return code;
@@ -198,7 +196,7 @@ static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
 
 	// start the transfer when the buffer is almost full:
 	// (buffer_size / avail_min) * avail_min
-	code = snd_pcm_sw_params_set_start_threshold(sounddriver->handle, swparams,
+	code = snd_pcm_sw_params_set_start_threshold(alsadriver->handle, swparams,
 												(buffer_size / period_size) * period_size);
 	if (code < 0) {
 		ce_logging_error("sounddriver: unable to set start threshold mode for playback");
@@ -209,7 +207,7 @@ static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
 
 	// allow the transfer when at least period_size samples can be processed
 	// or disable this mechanism when period event is enabled (aka interrupt like style processing)
-	code = snd_pcm_sw_params_set_avail_min(sounddriver->handle, swparams,
+	code = snd_pcm_sw_params_set_avail_min(alsadriver->handle, swparams,
 										period_event ? buffer_size : period_size);
 	if (code < 0) {
 		ce_logging_error("sounddriver: unable to set avail min for playback");
@@ -218,7 +216,7 @@ static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
 
 	// enable period events when requested
 	if (period_event) {
-		code = snd_pcm_sw_params_set_period_event(sounddriver->handle, swparams, 1);
+		code = snd_pcm_sw_params_set_period_event(alsadriver->handle, swparams, 1);
 		if (code < 0) {
 			ce_logging_error("sounddriver: unable to set period event");
 			return code;
@@ -226,7 +224,7 @@ static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
 	}
 
 	// write the parameters to the playback device
-	code = snd_pcm_sw_params(sounddriver->handle, swparams);
+	code = snd_pcm_sw_params(alsadriver->handle, swparams);
 	if (code < 0) {
 		printf("sounddriver: unable to set sw params for playback");
 		return code;
@@ -235,71 +233,66 @@ static int ce_sounddriver_set_params(ce_sounddriver* sounddriver,
 	return 0;
 }
 
-ce_sounddriver* ce_sounddriver_new(int bps, int rate, int channels)
+static bool ce_sounddriver_alsa_ctor(ce_sounddriver* sounddriver, va_list args)
 {
+	ce_unused(args);
+	ce_sounddriver_alsa* alsadriver = (ce_sounddriver_alsa*)sounddriver->impl;
+
 	// TODO: move in soundsystem
-	snd_lib_error_set_handler(ce_sounddriver_error_handler);
+	snd_lib_error_set_handler(ce_sounddriver_alsa_error_handler);
 
-	ce_sounddriver* sounddriver = ce_alloc_zero(sizeof(ce_sounddriver));
-
-	sounddriver->bps = bps;
-	sounddriver->rate = rate;
-	sounddriver->channels = channels;
-
-	snd_pcm_format_t format = ce_sounddriver_choose_format(bps);
-	const char* device = ce_sounddriver_choose_device(channels);
-
+	// TODO: move in soundsystem
 	ce_logging_write("sounddriver: using alsa (Advanced Linux Sound Architecture)");
-	ce_logging_write("sounddriver: playback device is '%s'", device);
-	ce_logging_write("sounddriver: stream parameters are %s, %d Hz, %d channels",
-		snd_pcm_format_name(format), rate, channels);
 
+	const char* device = ce_sounddriver_alsa_choose_device(sounddriver->channels);
 	int code;
 
-	code = snd_pcm_open(&sounddriver->handle, device, SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
+	code = snd_pcm_open(&alsadriver->handle, device, SND_PCM_STREAM_PLAYBACK, 0);
 	if (code < 0) {
 		ce_logging_error("sounddriver: playback open error: %s", snd_strerror(code));
-		ce_sounddriver_del(sounddriver);
-		return NULL;
+		return false;
 	}
 
-	code = ce_sounddriver_set_params(sounddriver, format, SND_PCM_ACCESS_RW_INTERLEAVED);
+	code = ce_sounddriver_alsa_set_params(sounddriver);
 	if (code < 0) {
 		ce_logging_error("sounddriver: setting of hw/sw params failed: %s", snd_strerror(code));
-		ce_sounddriver_del(sounddriver);
-		return NULL;
+		return false;
 	}
 
-	sounddriver->areas = ce_alloc(channels * sizeof(snd_pcm_channel_area_t));
+	alsadriver->areas = ce_alloc(sounddriver->channels * sizeof(snd_pcm_channel_area_t));
 
 #ifndef NDEBUG
 	snd_output_t* output;
 	code = snd_output_stdio_attach(&output, stderr, 0);
 	if (code >= 0) {
-		snd_pcm_dump(sounddriver->handle, output);
+		snd_pcm_dump(alsadriver->handle, output);
 		snd_output_close(output);
 	}
 #endif
 
-	return sounddriver;
+	return true;
 }
 
-void ce_sounddriver_del(ce_sounddriver* sounddriver)
+static void ce_sounddriver_alsa_dtor(ce_sounddriver* sounddriver)
 {
-	if (NULL != sounddriver) {
-		ce_free(sounddriver->areas, sounddriver->channels * sizeof(snd_pcm_channel_area_t));
-		if (NULL != sounddriver->handle) {
-			snd_pcm_drain(sounddriver->handle);
-			snd_pcm_close(sounddriver->handle);
-		}
-		ce_free(sounddriver, sizeof(ce_sounddriver));
+	ce_sounddriver_alsa* alsadriver = (ce_sounddriver_alsa*)sounddriver->impl;
+	ce_free(alsadriver->areas, sounddriver->channels * sizeof(snd_pcm_channel_area_t));
+	if (NULL != alsadriver->handle) {
+		snd_pcm_drain(alsadriver->handle);
+		snd_pcm_close(alsadriver->handle);
 	}
 }
 
-static int ce_sounddriver_recovery(ce_sounddriver* sounddriver, int code)
+static int ce_sounddriver_alsa_recovery(ce_sounddriver_alsa* alsadriver, int code)
 {
-	if (-EPIPE == code) { // under-run
-		code = snd_pcm_prepare(sounddriver->handle);
+	// no data transferred or interrupt signal
+	if (-EAGAIN == code || -EINTR == code) {
+		return 0;
+	}
+
+	// under-run
+	if (-EPIPE == code) {
+		code = snd_pcm_prepare(alsadriver->handle);
 		if (code < 0) {
 			ce_logging_error("sounddriver: can't recovery from underrun, prepare failed: %s", snd_strerror(code));
 			return code;
@@ -307,12 +300,12 @@ static int ce_sounddriver_recovery(ce_sounddriver* sounddriver, int code)
 	}
 
 	if (-ESTRPIPE == code) {
-		while (-EAGAIN == (code = snd_pcm_resume(sounddriver->handle))) {
+		while (-EAGAIN == (code = snd_pcm_resume(alsadriver->handle))) {
 			sleep(1); // wait until the suspend flag is released
 		}
 
 		if (code < 0) {
-			code = snd_pcm_prepare(sounddriver->handle);
+			code = snd_pcm_prepare(alsadriver->handle);
 			if (code < 0) {
 				ce_logging_error("sounddriver: can't recovery from suspend, prepare failed: %s", snd_strerror(code));
 				return code;
@@ -325,20 +318,37 @@ static int ce_sounddriver_recovery(ce_sounddriver* sounddriver, int code)
 	return code;
 }
 
-static int ce_sounddriver_wait_for_poll(ce_sounddriver* sounddriver,
-										struct pollfd* ufds, unsigned int count)
+static void ce_sounddriver_alsa_write(ce_sounddriver* sounddriver, const void* buffer, size_t size)
 {
-	unsigned short revents;
+	ce_sounddriver_alsa* alsadriver = (ce_sounddriver_alsa*)sounddriver->impl;
 
-	for (;;) {
-		poll(ufds, count, -1);
-		snd_pcm_poll_descriptors_revents(sounddriver->handle, ufds, count, &revents);
+	const char* data = buffer;
+	int code;
 
-		if (revents & POLLERR) {
-			return -EIO;
+	// convert bytes to frames
+	assert(0 == size % sounddriver->sample_size);
+	size /= sounddriver->sample_size;
+
+	while (size > 0) {
+		code = snd_pcm_writei(alsadriver->handle, data, size);
+		if (code < 0) {
+			code = ce_sounddriver_alsa_recovery(alsadriver, code);
+			if (code < 0) {
+				ce_logging_error("sounddriver: write error: %s", snd_strerror(code));
+				break;
+			}
+		} else {
+			assert(code <= (int)size);
+
+			data += code * sounddriver->sample_size;
+			size -= code;
 		}
-
-		if (revents & POLLOUT)
-			return 0;
 	}
+}
+
+ce_sounddriver* ce_sounddriver_create_platform(int bps, int rate, int channels)
+{
+	return ce_sounddriver_new((ce_sounddriver_vtable){ce_sounddriver_alsa_ctor,
+		ce_sounddriver_alsa_dtor, ce_sounddriver_alsa_write},
+		sizeof(ce_sounddriver_alsa), bps, rate, channels);
 }

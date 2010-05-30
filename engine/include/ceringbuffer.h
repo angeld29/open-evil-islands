@@ -18,16 +18,41 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_SOUNDSYSTEM_H
-#define CE_SOUNDSYSTEM_H
+#ifndef CE_RINGBUFFER_H
+#define CE_RINGBUFFER_H
+
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
+typedef struct {
+	size_t size;
+	size_t read_pos, write_pos;
+	size_t write_avail;
+	char* data;
+} ce_ringbuffer;
+
+extern ce_ringbuffer* ce_ringbuffer_new(size_t size);
+extern void ce_ringbuffer_del(ce_ringbuffer* ringbuffer);
+
+extern void ce_ringbuffer_clear(ce_ringbuffer* ringbuffer);
+
+static inline size_t ce_ringbuffer_get_read_avail(const ce_ringbuffer* ringbuffer)
+{
+	return ringbuffer->size - ringbuffer->write_avail;
+}
+
+extern size_t ce_ringbuffer_read(ce_ringbuffer* ringbuffer,
+									void* buffer, size_t size);
+
+extern size_t ce_ringbuffer_write(ce_ringbuffer* ringbuffer,
+									const void* buffer, size_t size);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_SOUNDSYSTEM_H */
+#endif /* CE_RINGBUFFER_H */

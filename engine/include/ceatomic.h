@@ -18,16 +18,34 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_SOUNDSYSTEM_H
-#define CE_SOUNDSYSTEM_H
+#ifndef CE_ATOMIC_H
+#define CE_ATOMIC_H
+
+#include <stddef.h>
+
+#define CE_ATOMIC_FETCH(type) \
+static inline type ce_atomic_fetch_##type(type* ptr) \
+{ \
+	return ce_atomic_add_and_fetch_##type(ptr, 0); \
+}
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
+extern size_t ce_atomic_fetch_and_add_size_t(size_t* ptr, size_t value);
+extern size_t ce_atomic_fetch_and_sub_size_t(size_t* ptr, size_t value);
+
+extern size_t ce_atomic_add_and_fetch_size_t(size_t* ptr, size_t value);
+extern size_t ce_atomic_sub_and_fetch_size_t(size_t* ptr, size_t value);
+
+CE_ATOMIC_FETCH(size_t)
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_SOUNDSYSTEM_H */
+#undef CE_ATOMIC_FETCH
+
+#endif /* CE_ATOMIC_H */
