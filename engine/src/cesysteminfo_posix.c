@@ -31,8 +31,8 @@ void ce_systeminfo_display(void)
 	struct utsname osinfo;
 	uname(&osinfo);
 
-	ce_logging_write("systeminfo: %s %s %s %s", osinfo.sysname,
-		osinfo.release, osinfo.version, osinfo.machine);
+	ce_logging_write("systeminfo: %s %s %s %s %s", osinfo.sysname,
+		osinfo.nodename, osinfo.release, osinfo.version, osinfo.machine);
 }
 
 bool ce_systeminfo_ensure(void)
