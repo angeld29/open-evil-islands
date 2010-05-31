@@ -23,14 +23,13 @@
 
 #include "celib.h"
 #include "cealloc.h"
-#include "ceatomic.h"
 #include "ceringbuffer.h"
 
-ce_ringbuffer* ce_ringbuffer_new(size_t size)
+ce_ringbuffer* ce_ringbuffer_new(size_t capacity)
 {
 	ce_ringbuffer* ringbuffer = ce_alloc(sizeof(ce_ringbuffer));
-	ringbuffer->size = size;
-	ringbuffer->data = ce_alloc(size);
+	ringbuffer->capacity = capacity;
+	ringbuffer->data = ce_alloc(capacity);
 	ce_ringbuffer_clear(ringbuffer);
 	return ringbuffer;
 }
@@ -38,74 +37,52 @@ ce_ringbuffer* ce_ringbuffer_new(size_t size)
 void ce_ringbuffer_del(ce_ringbuffer* ringbuffer)
 {
 	if (NULL != ringbuffer) {
-		ce_free(ringbuffer->data, ringbuffer->size);
+		ce_free(ringbuffer->data, ringbuffer->capacity);
 		ce_free(ringbuffer, sizeof(ce_ringbuffer));
 	}
 }
 
 void ce_ringbuffer_clear(ce_ringbuffer* ringbuffer)
 {
-	ringbuffer->read_pos = 0;
-	ringbuffer->write_pos = 0;
-	ringbuffer->write_avail = ringbuffer->size;
-}
-
-size_t ce_ringbuffer_get_read_avail(ce_ringbuffer* ringbuffer)
-{
-	return ringbuffer->size - ce_ringbuffer_get_write_avail(ringbuffer);
-}
-
-size_t ce_ringbuffer_get_write_avail(ce_ringbuffer* ringbuffer)
-{
-	return ce_atomic_fetch_size_t(&ringbuffer->write_avail);
+	ringbuffer->size = 0;
+	ringbuffer->start = 0;
+	ringbuffer->end = 0;
 }
 
 size_t ce_ringbuffer_read(ce_ringbuffer* ringbuffer, void* buffer, size_t size)
 {
-	size_t write_avail = ce_ringbuffer_get_write_avail(ringbuffer);
-
-	if (write_avail == ringbuffer->size) {
-		return 0;
-	}
-
 	char* data = buffer;
-	size = ce_smin(size, ce_ringbuffer_get_read_avail(ringbuffer));
+	size = ce_smin(size, ce_ringbuffer_size(ringbuffer));
 
-	if (size > ringbuffer->size - ringbuffer->read_pos) {
-		size_t length = ringbuffer->size - ringbuffer->read_pos;
-		memcpy(data, ringbuffer->data + ringbuffer->read_pos, length);
+	if (size > ringbuffer->capacity - ringbuffer->start) {
+		size_t length = ringbuffer->capacity - ringbuffer->start;
+		memcpy(data, ringbuffer->data + ringbuffer->start, length);
 		memcpy(data + length, ringbuffer->data, size - length);
 	} else {
-		memcpy(data, ringbuffer->data + ringbuffer->read_pos, size);
+		memcpy(data, ringbuffer->data + ringbuffer->start, size);
 	}
 
-	ringbuffer->read_pos = (ringbuffer->read_pos + size) % ringbuffer->size;
-	ce_atomic_add_and_fetch_size_t(&ringbuffer->write_avail, size);
+	ringbuffer->start = (ringbuffer->start + size) % ringbuffer->capacity;
+	ce_atomic_sub_and_fetch_size_t(&ringbuffer->size, size);
 
 	return size;
 }
 
 size_t ce_ringbuffer_write(ce_ringbuffer* ringbuffer, const void* buffer, size_t size)
 {
-	size_t write_avail = ce_ringbuffer_get_write_avail(ringbuffer);
-
-	if (0 == write_avail) {
-		return 0;
-	}
-
 	const char* data = buffer;
-	size = ce_smin(size, write_avail);
+	size = ce_smin(size, ce_ringbuffer_free_space(ringbuffer));
 
-	if (size > ringbuffer->size - ringbuffer->write_pos) {
-		size_t length = ringbuffer->size - ringbuffer->write_pos;
-		memcpy(ringbuffer->data + ringbuffer->write_pos, data, length);
+	if (size > ringbuffer->capacity - ringbuffer->end) {
+		size_t length = ringbuffer->capacity - ringbuffer->end;
+		memcpy(ringbuffer->data + ringbuffer->end, data, length);
 		memcpy(ringbuffer->data, data + length, size - length);
 	} else {
-		memcpy(ringbuffer->data + ringbuffer->write_pos, data, size);
+		memcpy(ringbuffer->data + ringbuffer->end, data, size);
 	}
 
-	ringbuffer->write_pos = (ringbuffer->write_pos + size) % ringbuffer->size;
-	ce_atomic_sub_and_fetch_size_t(&ringbuffer->write_avail, size);
+	ringbuffer->end = (ringbuffer->end + size) % ringbuffer->capacity;
+	ce_atomic_add_and_fetch_size_t(&ringbuffer->size, size);
 
 	return size;
 }

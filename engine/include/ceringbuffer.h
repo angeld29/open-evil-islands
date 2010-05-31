@@ -23,31 +23,39 @@
 
 #include <stddef.h>
 
+#include "ceatomic.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
 typedef struct {
-	size_t size;
-	size_t read_pos, write_pos;
-	size_t write_avail;
+	size_t capacity, size;
+	size_t start, end;
 	char* data;
 } ce_ringbuffer;
 
-extern ce_ringbuffer* ce_ringbuffer_new(size_t size);
+extern ce_ringbuffer* ce_ringbuffer_new(size_t capacity);
 extern void ce_ringbuffer_del(ce_ringbuffer* ringbuffer);
 
 extern void ce_ringbuffer_clear(ce_ringbuffer* ringbuffer);
-
-extern size_t ce_ringbuffer_get_read_avail(ce_ringbuffer* ringbuffer);
-extern size_t ce_ringbuffer_get_write_avail(ce_ringbuffer* ringbuffer);
 
 extern size_t ce_ringbuffer_read(ce_ringbuffer* ringbuffer,
 									void* buffer, size_t size);
 
 extern size_t ce_ringbuffer_write(ce_ringbuffer* ringbuffer,
 									const void* buffer, size_t size);
+
+static inline size_t ce_ringbuffer_size(ce_ringbuffer* ringbuffer)
+{
+	return ce_atomic_fetch_size_t(&ringbuffer->size);
+}
+
+static inline size_t ce_ringbuffer_free_space(ce_ringbuffer* ringbuffer)
+{
+	return ringbuffer->capacity - ce_ringbuffer_size(ringbuffer);
+}
 
 #ifdef __cplusplus
 }
