@@ -80,6 +80,7 @@ static void ce_root_term(void)
 	ce_scenemng_del(ce_root.scenemng);
 	ce_timer_del(ce_root.timer);
 	ce_soundmanager_del(ce_root.soundmanager);
+	ce_soundsystem_del(ce_root.soundsystem);
 	ce_rendersystem_del(ce_root.rendersystem);
 	ce_renderwindow_del(ce_root.renderwindow);
 }
@@ -171,6 +172,7 @@ bool ce_root_init(ce_optparse* optparse)
 		ce_display_reflection_from_bool(fs_reflection_x, fs_reflection_y);
 
 	ce_root.rendersystem = ce_rendersystem_new();
+	ce_root.soundsystem = ce_soundsystem_create_platform();
 	ce_root.soundmanager = ce_soundmanager_new();
 	ce_root.timer = ce_timer_new();
 	ce_root.scenemng = ce_scenemng_new(ei_path);
@@ -185,8 +187,7 @@ bool ce_root_init(ce_optparse* optparse)
 		ce_input_supply_shortcut(ce_root.input_supply, "B"));
 
 	ce_root.renderwindow_listener = (ce_renderwindow_listener)
-		{.closed = ce_root_renderwindow_closed};
-
+									{.closed = ce_root_renderwindow_closed};
 	ce_renderwindow_add_listener(ce_root.renderwindow,
 								&ce_root.renderwindow_listener);
 

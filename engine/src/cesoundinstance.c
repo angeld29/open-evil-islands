@@ -28,6 +28,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cebyteorder.h"
+#include "ceroot.h"
 #include "cesoundinstance.h"
 
 static void ce_soundinstance_exec(ce_soundinstance* soundinstance)
@@ -37,24 +38,24 @@ static void ce_soundinstance_exec(ce_soundinstance* soundinstance)
 			case CE_SOUNDINSTANCE_STATE_PLAYING:
 			ce_pass(); // make C happy :)
 
-			char* block = ce_sounddriver_map_block(soundinstance->sounddriver);
+			char* block = ce_soundsystem_map_block(ce_root.soundsystem);
 			size_t size = 0;
 
 			// some decoders do not return requested size in one pass
 			for (size_t bytes = SIZE_MAX; 0 != bytes &&
-					size < soundinstance->sounddriver->block_size; size += bytes) {
+					size < ce_root.soundsystem->block_size; size += bytes) {
 				bytes = (*soundinstance->vtable.read)(soundinstance,
-					block + size, soundinstance->sounddriver->block_size - size);
+					block + size, ce_root.soundsystem->block_size - size);
 			}
 
 			// fill tail by silence
-			memset(block + size, 0, soundinstance->sounddriver->block_size - size);
+			memset(block + size, 0, ce_root.soundsystem->block_size - size);
 
 			if (0 == size) {
 				soundinstance->state = CE_SOUNDINSTANCE_STATE_STOPPED;
 			}
 
-			ce_sounddriver_unmap_block(soundinstance->sounddriver);
+			ce_soundsystem_unmap_block(ce_root.soundsystem);
 			break;
 
 		case CE_SOUNDINSTANCE_STATE_PAUSED:
@@ -72,6 +73,10 @@ ce_soundinstance* ce_soundinstance_new(ce_soundinstance_vtable vtable, ...)
 	ce_soundinstance* soundinstance = ce_alloc_zero(sizeof(ce_soundinstance) + vtable.size);
 	soundinstance->vtable = vtable;
 
+	soundinstance->mutex = ce_thread_mutex_new();
+	soundinstance->cond = ce_thread_cond_new();
+	soundinstance->thread = ce_thread_new(ce_soundinstance_exec, soundinstance);
+
 	va_list args;
 	va_start(args, vtable);
 
@@ -81,15 +86,6 @@ ce_soundinstance* ce_soundinstance_new(ce_soundinstance_vtable vtable, ...)
 	}
 
 	va_end(args);
-
-	if (NULL != soundinstance) {
-		soundinstance->sounddriver = ce_sounddriver_create_platform(
-			soundinstance->bps, soundinstance->rate, soundinstance->channels);
-
-		soundinstance->mutex = ce_thread_mutex_new();
-		soundinstance->cond = ce_thread_cond_new();
-		soundinstance->thread = ce_thread_new(ce_soundinstance_exec, soundinstance);
-	}
 
 	return soundinstance;
 }
@@ -111,7 +107,6 @@ void ce_soundinstance_del(ce_soundinstance* soundinstance)
 		ce_thread_del(soundinstance->thread);
 		ce_thread_cond_del(soundinstance->cond);
 		ce_thread_mutex_del(soundinstance->mutex);
-		ce_sounddriver_del(soundinstance->sounddriver);
 
 		ce_free(soundinstance, sizeof(ce_soundinstance) + soundinstance->vtable.size);
 	}

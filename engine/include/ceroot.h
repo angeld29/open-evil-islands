@@ -27,6 +27,7 @@
 #include "ceinput.h"
 #include "cerenderwindow.h"
 #include "cerendersystem.h"
+#include "cesoundsystem.h"
 #include "cesoundmanager.h"
 #include "cescenemng.h"
 #include "ceoptparse.h"
@@ -50,6 +51,7 @@ extern struct ce_root {
 	float anmfps;
 	ce_renderwindow* renderwindow;
 	ce_rendersystem* rendersystem;
+	ce_soundsystem* soundsystem;
 	ce_soundmanager* soundmanager;
 	ce_timer* timer;
 	ce_scenemng* scenemng;

@@ -26,7 +26,6 @@
 #include <stdbool.h>
 
 #include "cethread.h"
-#include "cesounddriver.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -52,7 +51,6 @@ struct ce_soundinstance {
 	bool done;
 	ce_soundinstance_state state;
 	int bps, rate, channels;
-	ce_sounddriver* sounddriver;
 	ce_thread_mutex* mutex;
 	ce_thread_cond* cond;
 	ce_thread* thread;

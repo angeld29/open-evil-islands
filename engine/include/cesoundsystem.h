@@ -21,10 +21,51 @@
 #ifndef CE_SOUNDSYSTEM_H
 #define CE_SOUNDSYSTEM_H
 
+#include <stddef.h>
+#include <stdarg.h>
+#include <stdbool.h>
+
+#include "cethread.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+typedef struct ce_soundsystem ce_soundsystem;
+
+typedef struct {
+	size_t size;
+	bool (*ctor)(ce_soundsystem* soundsystem, va_list args);
+	void (*dtor)(ce_soundsystem* soundsystem);
+	void (*write)(ce_soundsystem* soundsystem, const void* block);
+} ce_soundsystem_vtable;
+
+/*
+ *  TODO: remarks
+*/
+
+struct ce_soundsystem {
+	bool done;
+	int bps, rate, channels;
+	size_t sample_size, sample_count;
+	size_t block_size, block_index;
+	ce_vector* blocks;
+	ce_thread_sem* free_blocks;
+	ce_thread_sem* used_blocks;
+	ce_thread* thread;
+	ce_soundsystem_vtable vtable;
+	char impl[];
+};
+
+extern ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable, ...);
+extern void ce_soundsystem_del(ce_soundsystem* soundsystem);
+
+extern void* ce_soundsystem_map_block(ce_soundsystem* soundsystem);
+extern void ce_soundsystem_unmap_block(ce_soundsystem* soundsystem);
+
+extern ce_soundsystem* ce_soundsystem_create_platform(void);
+extern ce_soundsystem* ce_soundsystem_create_null(void);
 
 #ifdef __cplusplus
 }
