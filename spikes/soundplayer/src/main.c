@@ -37,12 +37,6 @@ static ce_soundinstance* soundinstance2;
 
 static void clean()
 {
-	ce_soundinstance_del(soundinstance2);
-	ce_soundinstance_del(soundinstance1);
-
-	ce_soundresource_del(soundresource2);
-	ce_soundresource_del(soundresource1);
-
 	ce_optparse_del(optparse);
 }
 
@@ -82,5 +76,13 @@ int main(int argc, char* argv[])
 	ce_soundinstance_play(soundinstance1);
 	//ce_soundinstance_play(soundinstance2);
 
-	return ce_root_exec();
+	int code = ce_root_exec();
+
+	ce_soundinstance_del(soundinstance2);
+	ce_soundinstance_del(soundinstance1);
+
+	ce_soundresource_del(soundresource2);
+	ce_soundresource_del(soundresource1);
+
+	return code;
 }

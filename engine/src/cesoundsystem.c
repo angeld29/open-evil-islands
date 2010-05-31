@@ -30,10 +30,6 @@ static void ce_soundsystem_exec(ce_soundsystem* soundsystem)
 	for (size_t i = 0; !soundsystem->done; ++i) {
 		ce_thread_sem_acquire(soundsystem->used_blocks, 1);
 
-		if (soundsystem->done) {
-			break;
-		}
-
 		(*soundsystem->vtable.write)(soundsystem,
 			soundsystem->blocks->items[i % soundsystem->blocks->count]);
 

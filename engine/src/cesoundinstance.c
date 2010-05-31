@@ -33,7 +33,7 @@ static void ce_soundinstance_exec(ce_soundinstance* soundinstance)
 {
 	while (!soundinstance->done) {
 		switch (soundinstance->state) {
-			case CE_SOUNDINSTANCE_STATE_PLAYING:
+		case CE_SOUNDINSTANCE_STATE_PLAYING:
 			ce_pass(); // make C happy :)
 
 			char* block = ce_soundsystem_map_block(ce_root.soundsystem);
