@@ -63,10 +63,9 @@ static bool ce_soundsystem_wmm_ctor(ce_soundsystem* soundsystem, va_list args)
 	wmmsystem->format.Format.nChannels = soundsystem->channels;
 	wmmsystem->format.Format.nSamplesPerSec = soundsystem->rate;
 	wmmsystem->format.Format.wBitsPerSample  = soundsystem->bps;
-	wmmsystem->format.Format.nBlockAlign = (wmmsystem->format.Format.wBitsPerSample >> 3) *
-												wmmsystem->format.Format.nChannels;
-	wmmsystem->format.Format.nAvgBytesPerSec = wmmsystem->format.Format.nSamplesPerSec *
-											wmmsystem->format.Format.nBlockAlign;
+	wmmsystem->format.Format.nBlockAlign = soundsystem->sample_size;
+	wmmsystem->format.Format.nAvgBytesPerSec = soundsystem->rate *
+												soundsystem->sample_size;
 
 	MMRESULT code = waveOutOpen(&wmmsystem->handle, WAVE_MAPPER,
 		&wmmsystem->format.Format, 0, 0, CALLBACK_NULL | WAVE_ALLOWSYNC);

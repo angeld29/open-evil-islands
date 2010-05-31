@@ -49,7 +49,7 @@ ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable, ...)
 	soundsystem->rate = 44100;
 	soundsystem->channels = 2;
 
-	soundsystem->sample_size = soundsystem->bps * soundsystem->channels / 8;
+	soundsystem->sample_size = soundsystem->channels * (soundsystem->bps / 8);
 	soundsystem->block_size = 1024 * soundsystem->sample_size;
 	soundsystem->sample_count = soundsystem->block_size / soundsystem->sample_size;
 

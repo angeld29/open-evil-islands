@@ -48,7 +48,7 @@ typedef struct {
 } ce_soundinstance_vtable;
 
 struct ce_soundinstance {
-	bool done;
+	volatile bool done;
 	ce_soundinstance_state state;
 	int bps, rate, channels;
 	ce_thread_mutex* mutex;

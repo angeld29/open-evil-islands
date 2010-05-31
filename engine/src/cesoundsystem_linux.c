@@ -127,7 +127,7 @@ static int ce_soundsystem_alsa_set_params(ce_soundsystem* soundsystem)
 	// set the count of channels
 	code = snd_pcm_hw_params_set_channels(alsasystem->handle, hwparams, soundsystem->channels);
 	if (code < 0) {
-		ce_logging_error("soundsystem: channels count (%d) not available for playbacks", soundsystem->channels);
+		ce_logging_error("soundsystem: channels count (%u) not available for playbacks", soundsystem->channels);
 		return code;
 	}
 
@@ -136,12 +136,12 @@ static int ce_soundsystem_alsa_set_params(ce_soundsystem* soundsystem)
 	// set the stream rate
 	code = snd_pcm_hw_params_set_rate_near(alsasystem->handle, hwparams, &rate, &dir);
 	if (code < 0) {
-		ce_logging_error("soundsystem: rate %d Hz not available for playback", soundsystem->rate);
+		ce_logging_error("soundsystem: rate %u Hz not available for playback", soundsystem->rate);
 		return code;
 	}
 
-	if ((int)rate != soundsystem->rate) {
-		ce_logging_warning("soundsystem: sample rate %d Hz not supported by the hardware, using %u Hz", soundsystem->rate, rate);
+	if (rate != soundsystem->rate) {
+		ce_logging_warning("soundsystem: sample rate %u Hz not supported by the hardware, using %u Hz", soundsystem->rate, rate);
 	}
 
 	// ring buffer length in us

@@ -46,8 +46,8 @@ typedef struct {
 */
 
 struct ce_soundsystem {
-	bool done;
-	int bps, rate, channels;
+	volatile bool done;
+	unsigned int bps, rate, channels;
 	size_t sample_size, sample_count;
 	size_t block_size, block_index;
 	ce_vector* blocks;
