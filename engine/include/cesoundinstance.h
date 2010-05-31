@@ -21,11 +21,8 @@
 #ifndef CE_SOUNDINSTANCE_H
 #define CE_SOUNDINSTANCE_H
 
-#include <stddef.h>
-#include <stdarg.h>
-#include <stdbool.h>
-
 #include "cethread.h"
+#include "cesoundresource.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -38,32 +35,19 @@ typedef enum {
 	CE_SOUNDINSTANCE_STATE_PLAYING,
 } ce_soundinstance_state;
 
-typedef struct ce_soundinstance ce_soundinstance;
-
 typedef struct {
-	size_t size;
-	bool (*ctor)(ce_soundinstance* soundinstance, va_list args);
-	void (*dtor)(ce_soundinstance* soundinstance);
-	size_t (*read)(ce_soundinstance* soundinstance, void* buffer, size_t size);
-} ce_soundinstance_vtable;
-
-struct ce_soundinstance {
 	volatile bool done;
 	ce_soundinstance_state state;
-	int bps, rate, channels;
+	ce_soundresource* soundresource;
 	ce_thread_mutex* mutex;
 	ce_thread_cond* cond;
 	ce_thread* thread;
-	ce_soundinstance_vtable vtable;
-	char impl[];
-};
+} ce_soundinstance;
 
-extern ce_soundinstance* ce_soundinstance_new(ce_soundinstance_vtable vtable, ...);
+extern ce_soundinstance* ce_soundinstance_new(ce_soundresource* soundresource);
 extern void ce_soundinstance_del(ce_soundinstance* soundinstance);
 
 extern void ce_soundinstance_play(ce_soundinstance* soundinstance);
-
-extern ce_soundinstance* ce_soundinstance_create_path(const char* path);
 
 #ifdef __cplusplus
 }

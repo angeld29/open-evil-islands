@@ -18,7 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
@@ -27,7 +26,6 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cebyteorder.h"
 #include "ceroot.h"
 #include "cesoundinstance.h"
 
@@ -41,10 +39,10 @@ static void ce_soundinstance_exec(ce_soundinstance* soundinstance)
 			char* block = ce_soundsystem_map_block(ce_root.soundsystem);
 			size_t size = 0;
 
-			// some decoders do not return requested size in one pass
+			// some resources do not return requested size in one pass
 			for (size_t bytes = SIZE_MAX; 0 != bytes &&
 					size < ce_root.soundsystem->block_size; size += bytes) {
-				bytes = (*soundinstance->vtable.read)(soundinstance,
+				bytes = ce_soundresource_read(soundinstance->soundresource,
 					block + size, ce_root.soundsystem->block_size - size);
 			}
 
@@ -68,25 +66,13 @@ static void ce_soundinstance_exec(ce_soundinstance* soundinstance)
 	}
 }
 
-ce_soundinstance* ce_soundinstance_new(ce_soundinstance_vtable vtable, ...)
+ce_soundinstance* ce_soundinstance_new(ce_soundresource* soundresource)
 {
-	ce_soundinstance* soundinstance = ce_alloc_zero(sizeof(ce_soundinstance) + vtable.size);
-	soundinstance->vtable = vtable;
-
+	ce_soundinstance* soundinstance = ce_alloc_zero(sizeof(ce_soundinstance));
+	soundinstance->soundresource = soundresource;
 	soundinstance->mutex = ce_thread_mutex_new();
 	soundinstance->cond = ce_thread_cond_new();
 	soundinstance->thread = ce_thread_new(ce_soundinstance_exec, soundinstance);
-
-	va_list args;
-	va_start(args, vtable);
-
-	if (!(*vtable.ctor)(soundinstance, args)) {
-		ce_soundinstance_del(soundinstance);
-		soundinstance = NULL;
-	}
-
-	va_end(args);
-
 	return soundinstance;
 }
 
@@ -100,15 +86,11 @@ void ce_soundinstance_del(ce_soundinstance* soundinstance)
 		ce_thread_cond_wake_all(soundinstance->cond);
 		ce_thread_wait(soundinstance->thread);
 
-		if (NULL != soundinstance->vtable.dtor) {
-			(*soundinstance->vtable.dtor)(soundinstance);
-		}
-
 		ce_thread_del(soundinstance->thread);
 		ce_thread_cond_del(soundinstance->cond);
 		ce_thread_mutex_del(soundinstance->mutex);
 
-		ce_free(soundinstance, sizeof(ce_soundinstance) + soundinstance->vtable.size);
+		ce_free(soundinstance, sizeof(ce_soundinstance));
 	}
 }
 
@@ -116,24 +98,4 @@ void ce_soundinstance_play(ce_soundinstance* soundinstance)
 {
 	soundinstance->state = CE_SOUNDINSTANCE_STATE_PLAYING;
 	ce_thread_cond_wake_all(soundinstance->cond);
-}
-
-extern const size_t CE_SOUNDINSTANCE_DECODER_VTABLE_COUNT;
-extern ce_soundinstance_vtable ce_soundinstance_decoder_vtables[];
-
-ce_soundinstance* ce_soundinstance_create_path(const char* path)
-{
-	FILE* file = fopen(path, "rb");
-	if (NULL == file) {
-		ce_logging_error("soundinstance: could not open file '%s'", path);
-		return NULL;
-	}
-
-	// TODO: loop and test
-	ce_soundinstance* soundinstance = ce_soundinstance_new(ce_soundinstance_decoder_vtables[0], file);
-	if (NULL == soundinstance) {
-		fclose(file);
-	}
-
-	return soundinstance;
 }

@@ -34,58 +34,58 @@ int __cdecl __MINGW_NOTHROW fseeko64(FILE*, off64_t, int);
 #include "cealloc.h"
 #include "celogging.h"
 #include "cebyteorder.h"
-#include "cesoundinstance.h"
+#include "cesoundresource.h"
 
 typedef struct {
 	OggVorbis_File vf;
 	int bitstream;
-} ce_soundinstance_vorbis;
+} ce_soundresource_vorbis;
 
-static bool ce_soundinstance_vorbis_ctor(ce_soundinstance* soundinstance, va_list args)
+static bool ce_soundresource_vorbis_ctor(ce_soundresource* soundresource, va_list args)
 {
-	ce_soundinstance_vorbis* vorbisinstance = (ce_soundinstance_vorbis*)soundinstance->impl;
+	ce_soundresource_vorbis* vorbisresource = (ce_soundresource_vorbis*)soundresource->impl;
 
 	ce_unused(OV_CALLBACKS_NOCLOSE);
 	ce_unused(OV_CALLBACKS_STREAMONLY);
 	ce_unused(OV_CALLBACKS_STREAMONLY_NOCLOSE);
 
-	if (0 != ov_open_callbacks(va_arg(args, FILE*), &vorbisinstance->vf, NULL, 0, OV_CALLBACKS_DEFAULT)) {
-		ce_logging_error("soundinstance: input does not appear to be an ogg bitstream");
+	if (0 != ov_open_callbacks(va_arg(args, FILE*), &vorbisresource->vf, NULL, 0, OV_CALLBACKS_DEFAULT)) {
+		ce_logging_error("soundresource: input does not appear to be an ogg bitstream");
 		return false;
 	}
 
-	vorbis_info* info = ov_info(&vorbisinstance->vf, -1);
+	vorbis_info* info = ov_info(&vorbisresource->vf, -1);
 	if (NULL == info) {
-		ce_logging_error("soundinstance: could not get stream info");
+		ce_logging_error("soundresource: could not get stream info");
 		return false;
 	}
 
 	// a vorbis file has no particular number of bits per sample,
 	// so use words, see also ov_read
-	soundinstance->bps = 16;
-	soundinstance->rate = info->rate;
-	soundinstance->channels = info->channels;
+	soundresource->bps = 16;
+	soundresource->rate = info->rate;
+	soundresource->channels = info->channels;
 
 	return true;
 }
 
-static void ce_soundinstance_vorbis_dtor(ce_soundinstance* soundinstance)
+static void ce_soundresource_vorbis_dtor(ce_soundresource* soundresource)
 {
-	ce_soundinstance_vorbis* vorbisinstance = (ce_soundinstance_vorbis*)soundinstance->impl;
-	ov_clear(&vorbisinstance->vf);
+	ce_soundresource_vorbis* vorbisresource = (ce_soundresource_vorbis*)soundresource->impl;
+	ov_clear(&vorbisresource->vf);
 }
 
-static size_t ce_soundinstance_vorbis_read(ce_soundinstance* soundinstance, void* buffer, size_t size)
+static size_t ce_soundresource_vorbis_read(ce_soundresource* soundresource, void* buffer, size_t size)
 {
-	ce_soundinstance_vorbis* vorbisinstance = (ce_soundinstance_vorbis*)soundinstance->impl;
+	ce_soundresource_vorbis* vorbisresource = (ce_soundresource_vorbis*)soundresource->impl;
 
 	for (;;) {
-		long code = ov_read(&vorbisinstance->vf, buffer, size,
-			ce_is_big_endian(), 2, 1, &vorbisinstance->bitstream);
+		long code = ov_read(&vorbisresource->vf, buffer, size,
+					ce_is_big_endian(), 2, 1, &vorbisresource->bitstream);
 		if (code >= 0) {
 			return code;
 		}
-		ce_logging_warning("soundinstance: error in the stream");
+		ce_logging_warning("soundresource: error in the stream");
 	}
 }
 
@@ -93,13 +93,13 @@ static size_t ce_soundinstance_vorbis_read(ce_soundinstance* soundinstance, void
 // TODO: implement mad
 #endif
 
-ce_soundinstance_vtable ce_soundinstance_decoder_vtables[] = {
-	{sizeof(ce_soundinstance_vorbis), ce_soundinstance_vorbis_ctor,
-	ce_soundinstance_vorbis_dtor, ce_soundinstance_vorbis_read},
+const ce_soundresource_vtable ce_soundresource_builtins[] = {
+	{sizeof(ce_soundresource_vorbis), ce_soundresource_vorbis_ctor,
+	ce_soundresource_vorbis_dtor, ce_soundresource_vorbis_read, NULL},
 #ifdef CE_NONFREE
-// TODO: implement mad
+	// TODO: implement mad
 #endif
 };
 
-const size_t CE_SOUNDINSTANCE_DECODER_VTABLE_COUNT = sizeof(ce_soundinstance_decoder_vtables) /
-													sizeof(ce_soundinstance_decoder_vtables[0]);
+const size_t CE_SOUNDRESOURCE_BUILTIN_COUNT = sizeof(ce_soundresource_builtins) /
+											sizeof(ce_soundresource_builtins[0]);
