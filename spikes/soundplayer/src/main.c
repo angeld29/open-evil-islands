@@ -25,17 +25,31 @@
 
 #include "cealloc.h"
 #include "ceroot.h"
-
 #include "cesoundinstance.h"
 
 static ce_optparse* optparse;
 
+static ce_soundresource* soundresource1;
+static ce_soundresource* soundresource2;
+
 static ce_soundinstance* soundinstance1;
 static ce_soundinstance* soundinstance2;
+
+static void clean()
+{
+	ce_soundinstance_del(soundinstance2);
+	ce_soundinstance_del(soundinstance1);
+
+	ce_soundresource_del(soundresource2);
+	ce_soundresource_del(soundresource1);
+
+	ce_optparse_del(optparse);
+}
 
 int main(int argc, char* argv[])
 {
 	ce_alloc_init();
+	atexit(clean);
 
 	optparse = ce_root_create_optparse();
 
@@ -45,36 +59,28 @@ int main(int argc, char* argv[])
 		NULL, NULL, "any *.oga file in 'CE/Stream'");
 
 	if (!ce_optparse_parse(optparse, argc, argv) || !ce_root_init(optparse)) {
-		ce_optparse_del(optparse);
 		return EXIT_FAILURE;
 	}
 
-	const char* track1;
+	const char *track1, *track2;
 	ce_optparse_get(optparse, "track1", &track1);
-
-	const char* track2;
 	ce_optparse_get(optparse, "track2", &track2);
 
-	//soundinstance1 = ce_soundinstance_create_path(track1);
-	//if (NULL == soundinstance1) {
-	//	return 1;
-	//}
+	soundresource1 = ce_soundresource_new_path(track1);
+	if (NULL == soundresource1) {
+		return EXIT_FAILURE;
+	}
 
-	//soundinstance2 = ce_soundinstance_create_path(track2);
-	//if (NULL == soundinstance2) {
-	//	return 1;
-	//}
+	soundresource2 = ce_soundresource_new_path(track2);
+	if (NULL == soundresource2) {
+		return EXIT_FAILURE;
+	}
 
-	//ce_soundinstance_play(soundinstance1);
+	soundinstance1 = ce_soundinstance_new(soundresource1);
+	//soundinstance2 = ce_soundinstance_new(soundresource2);
+
+	ce_soundinstance_play(soundinstance1);
 	//ce_soundinstance_play(soundinstance2);
 
-	ce_root_exec();
-
-	ce_soundinstance_del(soundinstance1);
-	ce_soundinstance_del(soundinstance2);
-
-	ce_optparse_del(optparse);
-
-	return 0;
-	//return ce_root_exec();
+	return ce_root_exec();
 }
