@@ -55,13 +55,9 @@ static bool ce_soundsystem_wmm_ctor(ce_soundsystem* soundsystem, va_list args)
 	ce_unused(args);
 	ce_soundsystem_wmm* wmmsystem = (ce_soundsystem_wmm*)soundsystem->impl;
 
-	// TODO: move in soundsystem
 	ce_logging_write("soundsystem: using Windows Waveform-Audio Interface");
 
-	if (soundsystem->channels > 2) {
-		ce_logging_write("soundsystem: only mono and stereo input supported");
-		return false;
-	}
+	assert(2 == soundsystem->channels && "only mono and stereo input supported");
 
 	wmmsystem->format.Format.wFormatTag = WAVE_FORMAT_PCM;
 	wmmsystem->format.Format.nChannels = soundsystem->channels;

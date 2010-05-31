@@ -225,11 +225,9 @@ static bool ce_soundsystem_alsa_ctor(ce_soundsystem* soundsystem, va_list args)
 	ce_unused(args);
 	ce_soundsystem_alsa* alsasystem = (ce_soundsystem_alsa*)soundsystem->impl;
 
-	// TODO: move in soundsystem
-	snd_lib_error_set_handler(ce_soundsystem_alsa_error_handler);
-
-	// TODO: move in soundsystem
 	ce_logging_write("soundsystem: using alsa (Advanced Linux Sound Architecture)");
+
+	snd_lib_error_set_handler(ce_soundsystem_alsa_error_handler);
 
 	const char* device = ce_soundsystem_alsa_choose_device(soundsystem->channels);
 	int code;
@@ -261,6 +259,7 @@ static bool ce_soundsystem_alsa_ctor(ce_soundsystem* soundsystem, va_list args)
 static void ce_soundsystem_alsa_dtor(ce_soundsystem* soundsystem)
 {
 	ce_soundsystem_alsa* alsasystem = (ce_soundsystem_alsa*)soundsystem->impl;
+
 	if (NULL != alsasystem->handle) {
 		snd_pcm_drain(alsasystem->handle);
 		snd_pcm_close(alsasystem->handle);
