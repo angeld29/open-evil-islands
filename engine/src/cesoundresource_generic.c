@@ -30,6 +30,10 @@ int __cdecl __MINGW_NOTHROW fseeko64(FILE*, off64_t, int);
 
 #include <vorbis/vorbisfile.h>
 
+#ifdef CE_NONFREE
+#include <mad.h>
+#endif
+
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
@@ -90,14 +94,70 @@ static size_t ce_soundresource_vorbis_read(ce_soundresource* soundresource, void
 }
 
 #ifdef CE_NONFREE
-// TODO: implement mad
+typedef struct {
+	struct mad_decoder decoder;
+	unsigned char const* start;
+	unsigned long length;
+} ce_soundresource_mad;
+
+static enum mad_flow ce_soundresource_mad_input(void* data, struct mad_stream* stream)
+{
+	return MAD_FLOW_CONTINUE;
+}
+
+static int ce_soundresource_mad_scale(mad_fixed_t sample)
+{
+	return 0;
+}
+
+static enum mad_flow ce_soundresource_mad_output(void* data,
+	struct mad_header const* header, struct mad_pcm* pcm)
+{
+	return MAD_FLOW_CONTINUE;
+}
+
+static enum mad_flow ce_soundresource_mad_error(void* data,
+	struct mad_stream* stream, struct mad_frame* frame)
+{
+	return MAD_FLOW_CONTINUE;
+}
+
+static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource, va_list args)
+{
+	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
+
+	mad_decoder_init(&madresource->decoder, soundresource,
+		ce_soundresource_mad_input,
+		NULL /* header */,
+		NULL /* filter */,
+		ce_soundresource_mad_output,
+		ce_soundresource_mad_error,
+		NULL /* message */);
+
+	int result = mad_decoder_run(&madresource->decoder, MAD_DECODER_MODE_ASYNC);
+
+	return true;
+}
+
+static void ce_soundresource_mad_dtor(ce_soundresource* soundresource)
+{
+	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
+
+	mad_decoder_finish(&madresource->decoder);
+}
+
+static size_t ce_soundresource_mad_read(ce_soundresource* soundresource, void* buffer, size_t size)
+{
+	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
+}
 #endif
 
 const ce_soundresource_vtable ce_soundresource_builtins[] = {
 	{sizeof(ce_soundresource_vorbis), ce_soundresource_vorbis_ctor,
 	ce_soundresource_vorbis_dtor, ce_soundresource_vorbis_read, NULL},
 #ifdef CE_NONFREE
-	// TODO: implement mad
+	{sizeof(ce_soundresource_mad), ce_soundresource_mad_ctor,
+	ce_soundresource_mad_dtor, ce_soundresource_mad_read, NULL},
 #endif
 };
 
