@@ -59,13 +59,12 @@ struct ce_soundsystem {
 };
 
 extern ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable, ...);
+extern ce_soundsystem* ce_soundsystem_new_platform(void);
+extern ce_soundsystem* ce_soundsystem_new_null(void);
 extern void ce_soundsystem_del(ce_soundsystem* soundsystem);
 
 extern void* ce_soundsystem_map_block(ce_soundsystem* soundsystem);
 extern void ce_soundsystem_unmap_block(ce_soundsystem* soundsystem);
-
-extern ce_soundsystem* ce_soundsystem_create_platform(void);
-extern ce_soundsystem* ce_soundsystem_create_null(void);
 
 #ifdef __cplusplus
 }

@@ -172,7 +172,7 @@ bool ce_root_init(ce_optparse* optparse)
 		ce_display_reflection_from_bool(fs_reflection_x, fs_reflection_y);
 
 	ce_root.rendersystem = ce_rendersystem_new();
-	ce_root.soundsystem = ce_soundsystem_create_platform();
+	ce_root.soundsystem = ce_soundsystem_new_platform();
 	ce_root.soundmanager = ce_soundmanager_new();
 	ce_root.timer = ce_timer_new();
 	ce_root.scenemng = ce_scenemng_new(ei_path);

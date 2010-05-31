@@ -323,7 +323,7 @@ static void ce_soundsystem_alsa_write(ce_soundsystem* soundsystem, const void* b
 	}
 }
 
-ce_soundsystem* ce_soundsystem_create_platform(void)
+ce_soundsystem* ce_soundsystem_new_platform(void)
 {
 	return ce_soundsystem_new((ce_soundsystem_vtable){sizeof(ce_soundsystem_alsa),
 		ce_soundsystem_alsa_ctor, ce_soundsystem_alsa_dtor, ce_soundsystem_alsa_write});

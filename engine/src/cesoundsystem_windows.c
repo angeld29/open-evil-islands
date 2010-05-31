@@ -98,7 +98,7 @@ static void ce_soundsystem_wmm_write(ce_soundsystem* soundsystem, const void* bl
 	ce_soundsystem_wmm* wmmsystem = (ce_soundsystem_wmm*)soundsystem->impl;
 }
 
-ce_soundsystem* ce_soundsystem_create_platform(void)
+ce_soundsystem* ce_soundsystem_new_platform(void)
 {
 	return ce_soundsystem_new((ce_soundsystem_vtable){sizeof(ce_soundsystem_wmm),
 		ce_soundsystem_wmm_ctor, ce_soundsystem_wmm_dtor, ce_soundsystem_wmm_write});

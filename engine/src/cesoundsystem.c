@@ -20,6 +20,7 @@
 
 #include <assert.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cesoundsystem.h"
@@ -79,6 +80,28 @@ ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable, ...)
 	return soundsystem;
 }
 
+static bool ce_soundsystem_null_ctor(ce_soundsystem* soundsystem, va_list args)
+{
+	ce_unused(soundsystem);
+	ce_unused(args);
+
+	ce_logging_write("soundsystem: using null output");
+
+	return true;
+}
+
+static void ce_soundsystem_null_write(ce_soundsystem* soundsystem, const void* block)
+{
+	ce_unused(soundsystem);
+	ce_unused(block);
+}
+
+ce_soundsystem* ce_soundsystem_new_null(void)
+{
+	return ce_soundsystem_new((ce_soundsystem_vtable){0,
+		ce_soundsystem_null_ctor, NULL, ce_soundsystem_null_write});
+}
+
 void ce_soundsystem_del(ce_soundsystem* soundsystem)
 {
 	if (NULL != soundsystem) {
@@ -114,10 +137,4 @@ void* ce_soundsystem_map_block(ce_soundsystem* soundsystem)
 void ce_soundsystem_unmap_block(ce_soundsystem* soundsystem)
 {
 	ce_thread_sem_release(soundsystem->used_blocks, 1);
-}
-
-ce_soundsystem* ce_soundsystem_create_null(void)
-{
-	// TODO: stub
-	return NULL;
 }
