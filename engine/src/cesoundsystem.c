@@ -30,8 +30,10 @@ static void ce_soundsystem_exec(ce_soundsystem* soundsystem)
 	for (size_t i = 0; !soundsystem->done; ++i) {
 		ce_thread_sem_acquire(soundsystem->used_blocks, 1);
 
-		(*soundsystem->vtable.write)(soundsystem,
-			soundsystem->blocks->items[i % soundsystem->blocks->count]);
+		if (!(*soundsystem->vtable.write)(soundsystem,
+				soundsystem->blocks->items[i % soundsystem->blocks->count])) {
+			ce_logging_critical("soundsystem: could not write block");
+		}
 
 		ce_thread_sem_release(soundsystem->free_blocks, 1);
 	}
@@ -78,18 +80,15 @@ ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable, ...)
 
 static bool ce_soundsystem_null_ctor(ce_soundsystem* soundsystem, va_list args)
 {
-	ce_unused(soundsystem);
-	ce_unused(args);
-
+	ce_unused(soundsystem), ce_unused(args);
 	ce_logging_write("soundsystem: using null output");
-
 	return true;
 }
 
-static void ce_soundsystem_null_write(ce_soundsystem* soundsystem, const void* block)
+static bool ce_soundsystem_null_write(ce_soundsystem* soundsystem, const void* block)
 {
-	ce_unused(soundsystem);
-	ce_unused(block);
+	ce_unused(soundsystem), ce_unused(block);
+	return true;
 }
 
 ce_soundsystem* ce_soundsystem_new_null(void)

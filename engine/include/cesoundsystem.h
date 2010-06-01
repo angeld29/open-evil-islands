@@ -38,7 +38,7 @@ typedef struct {
 	size_t size;
 	bool (*ctor)(ce_soundsystem* soundsystem, va_list args);
 	void (*dtor)(ce_soundsystem* soundsystem);
-	void (*write)(ce_soundsystem* soundsystem, const void* block);
+	bool (*write)(ce_soundsystem* soundsystem, const void* block);
 } ce_soundsystem_vtable;
 
 /*

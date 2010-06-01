@@ -301,10 +301,9 @@ static int ce_soundsystem_alsa_recovery(ce_soundsystem_alsa* alsasystem, int cod
 	return code;
 }
 
-static void ce_soundsystem_alsa_write(ce_soundsystem* soundsystem, const void* block)
+static bool ce_soundsystem_alsa_write(ce_soundsystem* soundsystem, const void* block)
 {
 	ce_soundsystem_alsa* alsasystem = (ce_soundsystem_alsa*)soundsystem->impl;
-
 	const char* data = block;
 	int code;
 
@@ -313,14 +312,16 @@ static void ce_soundsystem_alsa_write(ce_soundsystem* soundsystem, const void* b
 		if (code < 0) {
 			code = ce_soundsystem_alsa_recovery(alsasystem, code);
 			if (code < 0) {
-				ce_logging_error("soundsystem: write error: %s", snd_strerror(code));
-				break;
+				ce_logging_error("soundsystem: %s", snd_strerror(code));
+				return false;
 			}
 		} else {
 			data += code * soundsystem->sample_size;
 			sample_count -= code;
 		}
 	}
+
+	return true;
 }
 
 ce_soundsystem* ce_soundsystem_new_platform(void)

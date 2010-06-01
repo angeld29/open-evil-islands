@@ -32,6 +32,10 @@
 
 #include "ceerror_win32.h"
 
+enum {
+	CE_SOUNDSYSTEM_HEADER_COUNT = 8,
+};
+
 typedef struct {
 	WAVEHDR waveheader;
 	char data[];
@@ -50,7 +54,9 @@ static void ce_soundsystem_wmm_error(MMRESULT code, const char* message)
 	if (MMSYSERR_NOERROR == waveOutGetErrorText(code, buffer, sizeof(buffer))) {
 		ce_logging_error("soundsystem: %s", buffer);
 	}
-	ce_logging_error("soundsystem: %s", message);
+	if (NULL != message) {
+		ce_logging_error("soundsystem: %s", message);
+	}
 }
 
 static void CALLBACK ce_soundsystem_wmm_proc(HWAVEOUT waveout, UINT message,
@@ -67,11 +73,12 @@ static bool ce_soundsystem_wmm_ctor(ce_soundsystem* soundsystem, va_list args)
 {
 	ce_unused(args);
 	ce_soundsystem_wmm* wmmsystem = (ce_soundsystem_wmm*)soundsystem->impl;
+	MMRESULT code = MMSYSERR_NOERROR;
 
 	ce_logging_write("soundsystem: using Windows Waveform-Audio Interface");
 
-	wmmsystem->headers = ce_vector_new_reserved(4);
-	ce_vector_resize(wmmsystem->headers, wmmsystem->headers->capacity);
+	wmmsystem->headers = ce_vector_new_reserved(CE_SOUNDSYSTEM_HEADER_COUNT);
+	ce_vector_resize(wmmsystem->headers, CE_SOUNDSYSTEM_HEADER_COUNT);
 
 	for (int i = 0; i < wmmsystem->headers->count; ++i) {
 		wmmsystem->headers->items[i] = ce_alloc_zero(soundsystem->block_size +
@@ -83,7 +90,7 @@ static bool ce_soundsystem_wmm_ctor(ce_soundsystem* soundsystem, va_list args)
 		header->waveheader.dwFlags = WHDR_DONE;
 	}
 
-	wmmsystem->event = CreateEvent(NULL, FALSE, FALSE, NULL);
+	wmmsystem->event = CreateEvent(NULL, TRUE, FALSE, NULL);
 	if (NULL == wmmsystem->event) {
 		ce_error_report_windows_last("soundsystem");
 		return false;
@@ -99,10 +106,11 @@ static bool ce_soundsystem_wmm_ctor(ce_soundsystem* soundsystem, va_list args)
 	wmmsystem->waveformat.Format.nAvgBytesPerSec = soundsystem->rate *
 													soundsystem->sample_size;
 
-	MMRESULT code = waveOutOpen(&wmmsystem->waveout, WAVE_MAPPER,
-		&wmmsystem->waveformat.Format, (DWORD_PTR)ce_soundsystem_wmm_proc,
-		(DWORD_PTR)wmmsystem, CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
-
+	code = waveOutOpen(&wmmsystem->waveout, WAVE_MAPPER,
+						&wmmsystem->waveformat.Format,
+						(DWORD_PTR)ce_soundsystem_wmm_proc,
+						(DWORD_PTR)wmmsystem,
+						CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
 	if (MMSYSERR_NOERROR != code) {
 		ce_soundsystem_wmm_error(code, "could not open waveform output device");
 		return false;
@@ -114,9 +122,10 @@ static bool ce_soundsystem_wmm_ctor(ce_soundsystem* soundsystem, va_list args)
 static void ce_soundsystem_wmm_dtor(ce_soundsystem* soundsystem)
 {
 	ce_soundsystem_wmm* wmmsystem = (ce_soundsystem_wmm*)soundsystem->impl;
+	MMRESULT code = MMSYSERR_NOERROR;
 
 	if (NULL != wmmsystem->waveout) {
-		MMRESULT code = waveOutReset(wmmsystem->waveout);
+		code = waveOutReset(wmmsystem->waveout);
 		if (MMSYSERR_NOERROR != code) {
 			ce_soundsystem_wmm_error(code, "could not reset waveform output device");
 		}
@@ -125,7 +134,8 @@ static void ce_soundsystem_wmm_dtor(ce_soundsystem* soundsystem)
 			ce_soundsystem_header* header = wmmsystem->headers->items[i];
 			if (header->waveheader.dwFlags & WHDR_PREPARED) {
 				code = waveOutUnprepareHeader(wmmsystem->waveout,
-											&header->waveheader, sizeof(WAVEHDR));
+												&header->waveheader,
+													sizeof(WAVEHDR));
 				if (MMSYSERR_NOERROR != code) {
 					ce_soundsystem_wmm_error(code, "could not unprepare header");
 				}
@@ -161,42 +171,49 @@ static void* ce_soundsystem_wmm_find(ce_soundsystem_wmm* wmmsystem)
 	return NULL;
 }
 
-static void ce_soundsystem_wmm_write(ce_soundsystem* soundsystem, const void* block)
+static bool ce_soundsystem_wmm_write(ce_soundsystem* soundsystem, const void* block)
 {
 	ce_soundsystem_wmm* wmmsystem = (ce_soundsystem_wmm*)soundsystem->impl;
-	ce_soundsystem_header* header = ce_soundsystem_wmm_find(wmmsystem);
+	ce_soundsystem_header* header = NULL;
+	MMRESULT code = MMSYSERR_NOERROR;
 
-	if (NULL == header) {
+	ResetEvent(wmmsystem->event);
+
+	while (NULL == (header = ce_soundsystem_wmm_find(wmmsystem))) {
 		if (WAIT_OBJECT_0 != WaitForSingleObject(wmmsystem->event, INFINITE)) {
 			ce_error_report_windows_last("soundsystem");
+			return false;
 		}
-		header = ce_soundsystem_wmm_find(wmmsystem);
 	}
 
-	if (NULL != header) {
-		MMRESULT code = MMSYSERR_NOERROR;
-		if (header->waveheader.dwFlags & WHDR_PREPARED) {
-			code = waveOutUnprepareHeader(wmmsystem->waveout, &header->waveheader, sizeof(WAVEHDR));
-		}
+	if (header->waveheader.dwFlags & WHDR_PREPARED) {
+		code = waveOutUnprepareHeader(wmmsystem->waveout,
+										&header->waveheader,
+											sizeof(WAVEHDR));
+	}
+
+	if (MMSYSERR_NOERROR == code) {
+		memcpy(header->data, block, soundsystem->block_size);
+		code = waveOutPrepareHeader(wmmsystem->waveout,
+										&header->waveheader,
+											sizeof(WAVEHDR));
 		if (MMSYSERR_NOERROR == code) {
-			memcpy(header->data, block, soundsystem->block_size);
-			code = waveOutPrepareHeader(wmmsystem->waveout, &header->waveheader, sizeof(WAVEHDR));
+			code = waveOutWrite(wmmsystem->waveout,
+									&header->waveheader,
+										sizeof(WAVEHDR));
 			if (MMSYSERR_NOERROR == code) {
-				code = waveOutWrite(wmmsystem->waveout, &header->waveheader, sizeof(WAVEHDR));
-				if (MMSYSERR_NOERROR == code) {
-					ce_pass(); // unbelievable! :)
-				} else {
-					ce_soundsystem_wmm_error(code, "could not write header");
-				}
+				ce_pass(); // unbelievable! :)
 			} else {
-				ce_soundsystem_wmm_error(code, "could not prepare header");
+				ce_soundsystem_wmm_error(code, "could not write header");
 			}
 		} else {
-			ce_soundsystem_wmm_error(code, "could not unprepare header");
+			ce_soundsystem_wmm_error(code, "could not prepare header");
 		}
 	} else {
-		ce_logging_error("soundsystem: could not find header");
+		ce_soundsystem_wmm_error(code, "could not unprepare header");
 	}
+
+	return MMSYSERR_NOERROR == code;
 }
 
 ce_soundsystem* ce_soundsystem_new_platform(void)
