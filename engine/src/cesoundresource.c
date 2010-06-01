@@ -53,7 +53,7 @@ ce_soundresource* ce_soundresource_new_path(const char* path)
 	}
 
 	// TODO: loop and test
-	ce_soundresource* soundresource = ce_soundresource_new(ce_soundresource_builtins[0], file);
+	ce_soundresource* soundresource = ce_soundresource_new(ce_soundresource_builtins[1], file);
 	if (NULL == soundresource) {
 		fclose(file);
 	}

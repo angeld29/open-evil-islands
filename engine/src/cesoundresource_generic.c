@@ -56,13 +56,13 @@ static bool ce_soundresource_vorbis_ctor(ce_soundresource* soundresource, va_lis
 	ce_unused(OV_CALLBACKS_STREAMONLY_NOCLOSE);
 
 	if (0 != ov_open_callbacks(va_arg(args, FILE*), &vorbisresource->vf, NULL, 0, OV_CALLBACKS_DEFAULT)) {
-		ce_logging_error("soundresource: input does not appear to be an ogg bitstream");
+		ce_logging_error("soundresource (vorbis): input does not appear to be an ogg bitstream");
 		return false;
 	}
 
 	vorbis_info* info = ov_info(&vorbisresource->vf, -1);
 	if (NULL == info) {
-		ce_logging_error("soundresource: could not get stream info");
+		ce_logging_error("soundresource (vorbis): could not get stream info");
 		return false;
 	}
 
@@ -91,7 +91,7 @@ static size_t ce_soundresource_vorbis_read(ce_soundresource* soundresource, void
 		if (code >= 0) {
 			return code;
 		}
-		ce_logging_warning("soundresource: error in the stream");
+		ce_logging_warning("soundresource (vorbis): error in the stream");
 	}
 }
 
@@ -108,12 +108,13 @@ typedef struct {
 	struct mad_synth synth;
 	size_t output_buffer_size;
 	unsigned char* output_buffer;
+	unsigned char* output_buffer2;
 	unsigned char input_buffer[];
 } ce_soundresource_mad;
 
 static void ce_soundresource_mad_error(ce_soundresource_mad* madresource)
 {
-	ce_logging_error("soundresource: mad: decoding error 0x%04x (%s)",
+	ce_logging_error("soundresource (mad): decoding error 0x%04x (%s)",
 		madresource->stream.error, mad_stream_errorstr(&madresource->stream));
 }
 
@@ -148,19 +149,13 @@ static void ce_soundresource_mad_input(ce_soundresource_mad* madresource)
 	mad_stream_buffer(&madresource->stream, madresource->input_buffer, size + remaining);
 }
 
-// performs simple rounding, clipping, and scaling down to 16 bits
+// performs simple clipping or scaling down to 16 bits
 // no dithering or noise shaping!
-static int16_t ce_soundresource_mad_scale(mad_fixed_t sample)
+static inline int16_t ce_soundresource_mad_scale(mad_fixed_t sample)
 {
-	// round
-	sample += 1L << (MAD_F_FRACBITS - 16);
-
-	// clip
-	if (sample >= MAD_F_ONE) return INT16_MAX;
-	if (sample <= -MAD_F_ONE) return INT16_MIN;
-
-	// quantize
-	return sample >> (MAD_F_FRACBITS + 1 - 16);
+	return sample >= MAD_F_ONE ? INT16_MAX :
+			(sample <= -MAD_F_ONE ? INT16_MIN :
+				sample >> (MAD_F_FRACBITS + 1 - 16));
 }
 
 static void ce_soundresource_mad_decode(ce_soundresource_mad* madresource)
@@ -168,7 +163,6 @@ static void ce_soundresource_mad_decode(ce_soundresource_mad* madresource)
 	madresource->output_buffer_size = 0;
 
 	while (-1 == mad_frame_decode(&madresource->frame, &madresource->stream)) {
-		ce_logging_debug("soundresource: -1 == mad_frame_decode");
 		if (MAD_ERROR_BUFLEN == madresource->stream.error) {
 			// the input bucket must be filled if it becomes empty
 			ce_soundresource_mad_input(madresource);
@@ -186,15 +180,15 @@ static void ce_soundresource_mad_decode(ce_soundresource_mad* madresource)
 	unsigned int sample_count  = madresource->synth.pcm.length;
 	unsigned int channel_count = madresource->synth.pcm.channels;
 
-	unsigned char* output_buffer = madresource->output_buffer;
+	int16_t* output_buffer = (int16_t*)madresource->output_buffer;
 	madresource->output_buffer_size = 2 * sample_count * channel_count;
 
-	ce_logging_debug("soundresource: bs %lu, samplerate %u",
-		madresource->output_buffer_size, madresource->synth.pcm.samplerate);
+	ce_logging_debug("soundresource: %lu %u",
+		madresource->output_buffer_size, CE_SOUNDRESOURCE_MAD_OUTPUT_BUFFER_CAPACITY);
 
 	if (madresource->output_buffer_size > CE_SOUNDRESOURCE_MAD_OUTPUT_BUFFER_CAPACITY) {
 		madresource->output_buffer_size = CE_SOUNDRESOURCE_MAD_OUTPUT_BUFFER_CAPACITY;
-		ce_logging_critical("soundresource: mad: output buffer overflow, truncated");
+		ce_logging_critical("soundresource (mad): output buffer overflow, truncated");
 		assert(false);
 	}
 
@@ -202,9 +196,8 @@ static void ce_soundresource_mad_decode(ce_soundresource_mad* madresource)
 	// output sample(s) in 16-bit signed little-endian PCM
 	for (unsigned int i = 0; i < sample_count; ++i) {
 		for (unsigned int j = 0; j < channel_count; ++j) {
-			int16_t sample = ce_soundresource_mad_scale(madresource->synth.pcm.samples[j][i]);
-			*output_buffer++ = (sample >> 0) & 0xff;
-			*output_buffer++ = (sample >> 8) & 0xff;
+			output_buffer[channel_count * i + j] =
+				ce_soundresource_mad_scale(madresource->synth.pcm.samples[j][i]);
 		}
 	}
 }
@@ -234,10 +227,6 @@ static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource, va_list a
 	soundresource->channels = MAD_MODE_SINGLE_CHANNEL ==
 								madresource->frame.header.mode ? 1 : 2;
 
-	ce_logging_debug("soundresource: ctor %u %u",
-		soundresource->rate,
-		soundresource->channels);
-
 	return true;
 }
 
@@ -253,19 +242,19 @@ static void ce_soundresource_mad_dtor(ce_soundresource* soundresource)
 static size_t ce_soundresource_mad_read(ce_soundresource* soundresource, void* data, size_t size)
 {
 	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
-	ce_logging_debug("soundresource: ce_soundresource_mad_read");
-	assert(false);
 
 	if (0 == madresource->output_buffer_size) {
-		ce_logging_debug("soundresource: 0 == madresource->output_buffer_size");
 		ce_soundresource_mad_decode(madresource);
+		madresource->output_buffer2 = madresource->output_buffer;
 	}
 
 	size = ce_smin(size, madresource->output_buffer_size);
 	madresource->output_buffer_size -= size;
 
-	memcpy(data, madresource->output_buffer +
-		CE_SOUNDRESOURCE_MAD_OUTPUT_BUFFER_CAPACITY - size, size);
+	//memcpy(data, madresource->output_buffer +
+	//		madresource->output_buffer_size - size, size);
+	memcpy(data, madresource->output_buffer2, size);
+	madresource->output_buffer2 += size;
 
 	return size;
 }
