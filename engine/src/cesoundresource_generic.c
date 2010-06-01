@@ -168,6 +168,7 @@ static void ce_soundresource_mad_decode(ce_soundresource_mad* madresource)
 	madresource->output_buffer_size = 0;
 
 	while (-1 == mad_frame_decode(&madresource->frame, &madresource->stream)) {
+		ce_logging_debug("soundresource: -1 == mad_frame_decode");
 		if (MAD_ERROR_BUFLEN == madresource->stream.error) {
 			// the input bucket must be filled if it becomes empty
 			ce_soundresource_mad_input(madresource);
@@ -252,8 +253,11 @@ static void ce_soundresource_mad_dtor(ce_soundresource* soundresource)
 static size_t ce_soundresource_mad_read(ce_soundresource* soundresource, void* data, size_t size)
 {
 	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
+	ce_logging_debug("soundresource: ce_soundresource_mad_read");
+	assert(false);
 
 	if (0 == madresource->output_buffer_size) {
+		ce_logging_debug("soundresource: 0 == madresource->output_buffer_size");
 		ce_soundresource_mad_decode(madresource);
 	}
 
