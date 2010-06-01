@@ -36,7 +36,7 @@ typedef struct {
 	size_t size;
 	bool (*ctor)(ce_soundresource* soundresource, va_list args);
 	void (*dtor)(ce_soundresource* soundresource);
-	size_t (*read)(ce_soundresource* soundresource, void* buffer, size_t size);
+	size_t (*read)(ce_soundresource* soundresource, void* data, size_t size);
 	bool (*rewind)(ce_soundresource* soundresource);
 } ce_soundresource_vtable;
 
@@ -53,8 +53,7 @@ extern ce_soundresource* ce_soundresource_new(ce_soundresource_vtable vtable, ..
 extern ce_soundresource* ce_soundresource_new_path(const char* path);
 extern void ce_soundresource_del(ce_soundresource* soundresource);
 
-extern size_t ce_soundresource_read(ce_soundresource* soundresource,
-										void* buffer, size_t size);
+extern size_t ce_soundresource_read(ce_soundresource* soundresource, void* data, size_t size);
 extern bool ce_soundresource_rewind(ce_soundresource* soundresource);
 
 #ifdef __cplusplus

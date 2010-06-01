@@ -53,7 +53,7 @@ ce_soundresource* ce_soundresource_new_path(const char* path)
 	}
 
 	// TODO: loop and test
-	ce_soundresource* soundresource = ce_soundresource_new(ce_soundresource_builtins[0], file);
+	ce_soundresource* soundresource = ce_soundresource_new(ce_soundresource_builtins[1], file);
 	if (NULL == soundresource) {
 		fclose(file);
 	}
@@ -71,9 +71,9 @@ void ce_soundresource_del(ce_soundresource* soundresource)
 	}
 }
 
-size_t ce_soundresource_read(ce_soundresource* soundresource, void* buffer, size_t size)
+size_t ce_soundresource_read(ce_soundresource* soundresource, void* data, size_t size)
 {
-	return (*soundresource->vtable.read)(soundresource, buffer, size);
+	return (*soundresource->vtable.read)(soundresource, data, size);
 }
 
 bool ce_soundresource_rewind(ce_soundresource* soundresource)
