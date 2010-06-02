@@ -31,7 +31,6 @@ extern "C"
 /*
  *  Abstraction layer for read-only binary files based on FILE interface.
 */
-
 typedef struct ce_memfile ce_memfile;
 
 typedef struct {
@@ -40,12 +39,18 @@ typedef struct {
 	size_t (*read)(ce_memfile* memfile, void* data, size_t size, size_t n);
 	int (*seek)(ce_memfile* memfile, long int offset, int whence);
 	long int (*tell)(ce_memfile* memfile);
+	int (*eof)(ce_memfile* memfile);
+	int (*error)(ce_memfile* memfile);
 } ce_memfile_vtable;
 
 struct ce_memfile {
 	ce_memfile_vtable vtable;
 	char impl[];
 };
+
+extern int CE_MEMFILE_SEEK_CUR;
+extern int CE_MEMFILE_SEEK_END;
+extern int CE_MEMFILE_SEEK_SET;
 
 /*
  *  You may to instruct memfile to either automatically close or not to close
@@ -55,12 +60,35 @@ struct ce_memfile {
 extern ce_memfile* ce_memfile_open(ce_memfile_vtable vtable);
 extern void ce_memfile_close(ce_memfile* memfile);
 
-extern size_t ce_memfile_read(ce_memfile* memfile, void* data, size_t size, size_t n);
-extern int ce_memfile_seek(ce_memfile* memfile, long int offset, int whence);
-extern long int ce_memfile_tell(ce_memfile* memfile);
-extern void ce_memfile_rewind(ce_memfile* memfile);
-extern int ce_memfile_eof(ce_memfile* memfile);
-extern int ce_memfile_error(ce_memfile* memfile);
+static inline size_t ce_memfile_read(ce_memfile* memfile, void* data, size_t size, size_t n)
+{
+	return (memfile->vtable.read)(memfile, data, size, n);
+}
+
+static inline int ce_memfile_seek(ce_memfile* memfile, long int offset, int whence)
+{
+	return (memfile->vtable.seek)(memfile, offset, whence);
+}
+
+static inline long int ce_memfile_tell(ce_memfile* memfile)
+{
+	return (memfile->vtable.tell)(memfile);
+}
+
+static inline void ce_memfile_rewind(ce_memfile* memfile)
+{
+	ce_memfile_seek(memfile, 0L, CE_MEMFILE_SEEK_SET);
+}
+
+static inline int ce_memfile_eof(ce_memfile* memfile)
+{
+	return (memfile->vtable.eof)(memfile);
+}
+
+static inline int ce_memfile_error(ce_memfile* memfile)
+{
+	return (memfile->vtable.error)(memfile);
+}
 
 /*
  *  Implements in-memory files.

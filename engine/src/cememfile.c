@@ -28,6 +28,10 @@
 #include "ceerror.h"
 #include "cememfile.h"
 
+int CE_MEMFILE_SEEK_CUR = SEEK_CUR;
+int CE_MEMFILE_SEEK_END = SEEK_END;
+int CE_MEMFILE_SEEK_SET = SEEK_SET;
+
 ce_memfile* ce_memfile_open(ce_memfile_vtable vtable)
 {
 	ce_memfile* memfile = ce_alloc_zero(sizeof(ce_memfile) + vtable.size);
@@ -43,38 +47,6 @@ void ce_memfile_close(ce_memfile* memfile)
 		}
 		ce_free(memfile, sizeof(ce_memfile) + memfile->vtable.size);
 	}
-}
-
-size_t ce_memfile_read(ce_memfile* memfile, void* data, size_t size, size_t n)
-{
-	return (memfile->vtable.read)(memfile, data, size, n);
-}
-
-int ce_memfile_seek(ce_memfile* memfile, long int offset, int whence)
-{
- 	return (memfile->vtable.seek)(memfile, offset, whence);
-}
-
-long int ce_memfile_tell(ce_memfile* memfile)
-{
-	return (memfile->vtable.tell)(memfile);
-}
-
-void ce_memfile_rewind(ce_memfile* memfile)
-{
-	// TODO: stub
-}
-
-int ce_memfile_eof(ce_memfile* memfile)
-{
-	// TODO: stub
-	return 1;
-}
-
-int ce_memfile_error(ce_memfile* memfile)
-{
-	// TODO: stub
-	return 1;
 }
 
 typedef struct {
@@ -118,11 +90,24 @@ static long int ce_datafile_tell(ce_memfile* memfile)
 	return datafile->pos;
 }
 
+static int ce_datafile_eof(ce_memfile* memfile)
+{
+	assert(false && "not implemented");
+	return 1;
+}
+
+static int ce_datafile_error(ce_memfile* memfile)
+{
+	assert(false && "not implemented");
+	return 1;
+}
+
 ce_memfile* ce_memfile_open_data(void* data, size_t size)
 {
 	ce_memfile* memfile = ce_memfile_open((ce_memfile_vtable)
 		{sizeof(ce_datafile), ce_datafile_close,
-		ce_datafile_read, ce_datafile_seek, ce_datafile_tell});
+		ce_datafile_read, ce_datafile_seek, ce_datafile_tell,
+		ce_datafile_eof, ce_datafile_error});
 
 	ce_datafile* datafile = (ce_datafile*)memfile->impl;
 	datafile->size = size;
@@ -133,7 +118,7 @@ ce_memfile* ce_memfile_open_data(void* data, size_t size)
 
 typedef struct {
 	FILE* file;
-	char buffer[BUFSIZ];
+	//char buffer[BUFSIZ];
 } ce_bstdfile;
 
 static int ce_bstdfile_close(ce_memfile* memfile)
@@ -161,6 +146,18 @@ static long int ce_bstdfile_tell(ce_memfile* memfile)
 	return ftell(bstdfile->file);
 }
 
+static int ce_bstdfile_eof(ce_memfile* memfile)
+{
+	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
+	return feof(bstdfile->file);
+}
+
+static int ce_bstdfile_error(ce_memfile* memfile)
+{
+	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
+	return ferror(bstdfile->file);
+}
+
 ce_memfile* ce_memfile_open_path(const char* path)
 {
 	FILE* file = fopen(path, "rb");
@@ -172,7 +169,8 @@ ce_memfile* ce_memfile_open_path(const char* path)
 
 	ce_memfile* memfile = ce_memfile_open((ce_memfile_vtable)
 		{sizeof(ce_bstdfile), ce_bstdfile_close,
-		ce_bstdfile_read, ce_bstdfile_seek, ce_bstdfile_tell});
+		ce_bstdfile_read, ce_bstdfile_seek, ce_bstdfile_tell,
+		ce_bstdfile_eof, ce_bstdfile_error});
 
 	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
 	bstdfile->file = file;

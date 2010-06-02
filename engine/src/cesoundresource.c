@@ -47,11 +47,11 @@ ce_soundresource* ce_soundresource_new_builtin_path(const char* path)
 {
 	ce_memfile* memfile = ce_memfile_open_path(path);
 	if (NULL == memfile) {
-		ce_logging_error("soundresource: could not create a sound resource");
+		ce_logging_error("soundresource: could not load sound: '%s'", path);
 		return NULL;
 	}
 
-	for (size_t i = 1 /* HACK */; i < CE_SOUNDRESOURCE_BUILTIN_COUNT; ++i) {
+	for (size_t i = 0 /* HACK */; i < CE_SOUNDRESOURCE_BUILTIN_COUNT; ++i) {
 		bool ok = true; // TODO: test
 		// TODO: rewind
 		if (ok) {
@@ -59,6 +59,7 @@ ce_soundresource* ce_soundresource_new_builtin_path(const char* path)
 				ce_soundresource_new(ce_soundresource_builtins[i], memfile);
 
 			if (NULL == soundresource)  {
+				ce_logging_error("soundresource: could not load sound: '%s'", path);
 				ce_memfile_close(memfile);
 				return NULL;
 			}
@@ -67,8 +68,7 @@ ce_soundresource* ce_soundresource_new_builtin_path(const char* path)
 		}
 	}
 
-	ce_logging_error("soundresource: no appropriate sound decoder found");
-
+	ce_logging_error("soundresource: no appropriate sound decoder found: '%s'", path);
 	ce_memfile_close(memfile);
 	return NULL;
 }

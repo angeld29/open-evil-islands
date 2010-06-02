@@ -39,7 +39,8 @@
 #include "cesoundresource.h"
 
 /*
- *  For more information, see http://www.xiph.org/vorbis/doc/ and
+ *  For more information about vorbis,
+ *  see http://www.xiph.org/vorbis/doc/ and
  *  http://www.xiph.org/vorbis/doc/vorbisfile/index.html
 */
 
@@ -149,8 +150,7 @@ typedef struct {
 	ce_soundresource_mad_stats stats;
 	size_t output_buffer_size;
 	unsigned char* output_buffer;
-	unsigned char* input_buffer;
-	char data[];
+	unsigned char input_buffer[];
 } ce_soundresource_mad;
 
 static void ce_soundresource_mad_error(ce_soundresource_mad* madresource,
@@ -325,13 +325,13 @@ static bool ce_soundresource_mad_decode(ce_soundresource* soundresource)
 static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource)
 {
 	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
-	madresource->input_buffer = (unsigned char*)madresource->data;
 
 	mad_stream_init(&madresource->stream);
 	mad_frame_init(&madresource->frame);
 	mad_synth_init(&madresource->synth);
 
 	if (!ce_soundresource_mad_decode(soundresource)) {
+		ce_logging_error("soundresource: mad: input does not appear to be a MPEG audio");
 		return false;
 	}
 
