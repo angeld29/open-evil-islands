@@ -19,7 +19,6 @@
 */
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <string.h>
 #include <assert.h>
 
@@ -46,7 +45,20 @@ static struct {
 	},
 };
 
-static void ce_logging_report(ce_logging_level level, const char* format, va_list args)
+void ce_logging_set_level(ce_logging_level level)
+{
+	ce_logging_context.level = level;
+}
+
+void ce_logging_report(ce_logging_level level, const char* format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	ce_logging_report_va(level, format, args);
+	va_end(args);
+}
+
+void ce_logging_report_va(ce_logging_level level, const char* format, va_list args)
 {
 	if (CE_LOGGING_LEVEL_NONE != ce_logging_context.level &&
 			(level >= ce_logging_context.level ||
@@ -61,17 +73,12 @@ static void ce_logging_report(ce_logging_level level, const char* format, va_lis
 	}
 }
 
-void ce_logging_set_level(ce_logging_level level)
-{
-	ce_logging_context.level = level;
-}
-
 #define CE_LOGGING_PROC(name, level) \
 void ce_logging_##name(const char* format, ...) \
 { \
 	va_list args; \
 	va_start(args, format); \
-	ce_logging_report(level, format, args); \
+	ce_logging_report_va(level, format, args); \
 	va_end(args); \
 }
 

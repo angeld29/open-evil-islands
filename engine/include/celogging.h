@@ -21,6 +21,8 @@
 #ifndef CE_LOGGING_H
 #define CE_LOGGING_H
 
+#include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -39,6 +41,9 @@ typedef enum {
 } ce_logging_level;
 
 extern void ce_logging_set_level(ce_logging_level level);
+
+extern void ce_logging_report(ce_logging_level level, const char* format, ...);
+extern void ce_logging_report_va(ce_logging_level level, const char* format, va_list args);
 
 extern void ce_logging_debug(const char* format, ...);
 extern void ce_logging_info(const char* format, ...);
