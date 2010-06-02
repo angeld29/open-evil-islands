@@ -51,7 +51,7 @@ ce_soundresource* ce_soundresource_new_builtin_path(const char* path)
 		return NULL;
 	}
 
-	for (size_t i = 0 /* HACK */; i < CE_SOUNDRESOURCE_BUILTIN_COUNT; ++i) {
+	for (size_t i = 0; i < CE_SOUNDRESOURCE_BUILTIN_COUNT; ++i) {
 		bool ok = true; // TODO: test
 		// TODO: rewind
 		if (ok) {
