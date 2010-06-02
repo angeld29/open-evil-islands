@@ -179,6 +179,7 @@ static bool ce_soundresource_mad_input(ce_soundresource* soundresource)
 		CE_MAD_INPUT_BUFFER_CAPACITY - remaining);
 
 	if (ce_memfile_error(soundresource->memfile)) {
+		ce_error_report_c_last("soundresource: mad");
 		return false;
 	}
 
