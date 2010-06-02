@@ -28,7 +28,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-// abstraction layer for read-only binary files based on FILE interface
+/*
+ *  Abstraction layer for read-only binary files based on FILE interface.
+*/
+
 typedef struct {
 	ce_io_callbacks callbacks;
 	void* client_data;
@@ -43,7 +46,7 @@ extern ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
 													void* client_data);
 // memfile takes ownership of the data
 extern ce_memfile* ce_memfile_open_data(void* data, size_t size);
-extern ce_memfile* ce_memfile_open_file(const char* path);
+extern ce_memfile* ce_memfile_open_path(const char* path);
 extern void ce_memfile_close(ce_memfile* memfile);
 
 extern size_t ce_memfile_read(ce_memfile* memfile, void* data,

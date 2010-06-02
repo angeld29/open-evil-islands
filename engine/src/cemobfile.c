@@ -501,7 +501,7 @@ static ce_mobfile* ce_mobfile_open_memfile(const char* name, ce_memfile* memfile
 
 ce_mobfile* ce_mobfile_open(const char* path)
 {
-	ce_memfile* memfile = ce_memfile_open_file(path);
+	ce_memfile* memfile = ce_memfile_open_path(path);
 	if (NULL == memfile) {
 		return NULL;
 	}

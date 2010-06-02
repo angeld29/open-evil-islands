@@ -24,22 +24,22 @@
 
 static int ce_io_file_close(void* client_data)
 {
-	return fclose((FILE*)client_data);
+	return fclose(client_data);
 }
 
 static size_t ce_io_file_read(void* client_data, void* data, size_t size, size_t n)
 {
-	return fread(data, size, n, (FILE*)client_data);
+	return fread(data, size, n, client_data);
 }
 
 static int ce_io_file_seek(void* client_data, long int offset, int whence)
 {
-	return fseek((FILE*)client_data, offset, whence);
+	return fseek(client_data, offset, whence);
 }
 
 static long int ce_io_file_tell(void* client_data)
 {
-	return ftell((FILE*)client_data);
+	return ftell(client_data);
 }
 
 const ce_io_callbacks CE_IO_CALLBACKS_FILE = {
