@@ -101,6 +101,7 @@ extern ce_memfile* ce_memfile_open_data(void* data, size_t size);
  *  Implements a buffered interface for the FILE standard functions
  *  that can signal an EOF of file condition synchronously
  *  with the transmission of the last bytes of a file.
+ *  FIXME: stub implementation!
 */
 extern ce_memfile* ce_memfile_open_path(const char* path);
 

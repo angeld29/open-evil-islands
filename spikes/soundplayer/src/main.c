@@ -45,6 +45,20 @@ int main(int argc, char* argv[])
 	ce_alloc_init();
 	atexit(clean);
 
+	//char* data = ce_alloc(3);
+	//data[0] = '1';data[1] = 'a';data[2] = '1';
+	//ce_memfile* mf = ce_memfile_open_data(data, 3);
+
+	/*ce_memfile* mf = ce_memfile_open_path("test.txt");
+	//ce_memfile_seek(mf, 0, CE_MEMFILE_SEEK_END);
+	while (!ce_memfile_eof(mf)) {
+		char ch[2];
+		size_t sz = ce_memfile_read(mf, ch, 1, 2);
+		printf("%c%c %lu\n", ch[0], ch[1], sz);
+	}
+	ce_memfile_close(mf);
+	return 0;*/
+
 	optparse = ce_root_create_optparse();
 
 	ce_optparse_add(optparse, "track1", CE_TYPE_STRING, NULL, true,
@@ -67,6 +81,7 @@ int main(int argc, char* argv[])
 
 	soundresource2 = ce_soundresource_new_builtin_path(track2);
 	if (NULL == soundresource2) {
+		ce_soundresource_del(soundresource1);
 		return EXIT_FAILURE;
 	}
 

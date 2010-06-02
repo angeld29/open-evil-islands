@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -64,14 +65,11 @@ static int ce_datafile_close(ce_memfile* memfile)
 static size_t ce_datafile_read(ce_memfile* memfile, void* data, size_t size, size_t n)
 {
 	ce_datafile* datafile = (ce_datafile*)memfile->impl;
-	if (datafile->pos == datafile->size) {
-		return 0;
-	}
-	size_t avail_n = ce_smin((datafile->size - datafile->pos) / size, n);
-	size_t avail_size = size * avail_n;
-	memcpy(data, datafile->data + datafile->pos, avail_size);
-	datafile->pos += avail_size;
-	return avail_n;
+	n = ce_smin(n, (datafile->size - datafile->pos) / size);
+	size *= n;
+	memcpy(data, datafile->data + datafile->pos, size);
+	datafile->pos += size;
+	return n;
 }
 
 static int ce_datafile_seek(ce_memfile* memfile, long int offset, int whence)
@@ -119,6 +117,7 @@ ce_memfile* ce_memfile_open_data(void* data, size_t size)
 
 typedef struct {
 	FILE* file;
+	//size_t size, pos;
 	//char buffer[BUFSIZ];
 } ce_bstdfile;
 

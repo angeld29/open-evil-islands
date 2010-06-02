@@ -109,7 +109,7 @@ ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem)
 		return NULL;
 	}
 
-	if (1 != ce_memfile_read(mem, res->names, res->names_length, 1)) {
+	if (res->names_length != ce_memfile_read(mem, res->names, 1, res->names_length)) {
 		ce_logging_error("resfile: io error occured");
 		ce_resfile_close(res);
 		return NULL;
@@ -199,7 +199,7 @@ void* ce_resfile_node_data(ce_resfile* res, int index)
 
 	void* data = ce_alloc(node->data_length);
 	if (0 != ce_memfile_seek(res->mem, node->data_offset, SEEK_SET) ||
-			1 != ce_memfile_read(res->mem, data, node->data_length, 1)) {
+			node->data_length != ce_memfile_read(res->mem, data, 1, node->data_length)) {
 		ce_logging_error("resfile: io error occured");
 		ce_free(data, node->data_length);
 		return NULL;
