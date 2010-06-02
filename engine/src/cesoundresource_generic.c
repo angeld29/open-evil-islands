@@ -119,9 +119,9 @@ enum {
 	CE_MAD_INPUT_BUFFER_CAPACITY = 4 * 8192,
 	CE_MAD_INPUT_BUFFER_GUARD = MAD_BUFFER_GUARD,
 	CE_MAD_OUTPUT_BUFFER_CAPACITY = 8192,
-	CE_MAD_DATA_CAPACITY = CE_MAD_INPUT_BUFFER_CAPACITY +
-							CE_MAD_INPUT_BUFFER_GUARD +
-							CE_MAD_OUTPUT_BUFFER_CAPACITY
+	CE_MAD_DATA_SIZE = CE_MAD_INPUT_BUFFER_CAPACITY +
+						CE_MAD_INPUT_BUFFER_GUARD +
+						CE_MAD_OUTPUT_BUFFER_CAPACITY
 };
 
 typedef struct {
@@ -368,7 +368,7 @@ const ce_soundresource_vtable ce_soundresource_builtins[] = {
 	{sizeof(ce_soundresource_vorbis), ce_soundresource_vorbis_ctor,
 	ce_soundresource_vorbis_dtor, ce_soundresource_vorbis_read, NULL},
 #ifdef CE_ENABLE_PROPRIETARY
-	{sizeof(ce_soundresource_mad) + CE_MAD_DATA_CAPACITY,
+	{sizeof(ce_soundresource_mad) + CE_MAD_DATA_SIZE,
 	ce_soundresource_mad_ctor, ce_soundresource_mad_dtor,
 	ce_soundresource_mad_read, NULL},
 #endif
