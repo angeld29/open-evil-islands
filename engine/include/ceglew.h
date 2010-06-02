@@ -21,6 +21,9 @@
 #ifndef CE_GLEW_H
 #define CE_GLEW_H
 
+#define GLEW_STATIC
+#define GLEW_MX
+
 #include <GL/glew.h>
 
 #ifdef __cplusplus
