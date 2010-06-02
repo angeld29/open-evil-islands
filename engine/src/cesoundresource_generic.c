@@ -32,7 +32,7 @@ int __cdecl __MINGW_NOTHROW fseeko64(FILE*, off64_t, int);
 
 #include <vorbis/vorbisfile.h>
 
-#ifdef CE_NONFREE
+#ifdef CE_ENABLE_PROPRIETARY
 #include <mad.h>
 #endif
 
@@ -40,7 +40,13 @@ int __cdecl __MINGW_NOTHROW fseeko64(FILE*, off64_t, int);
 #include "cealloc.h"
 #include "celogging.h"
 #include "cebyteorder.h"
+#include "ceerror.h"
 #include "cesoundresource.h"
+
+/*
+ *  For more information see http://www.xiph.org/vorbis/doc/ and
+ *  http://www.xiph.org/vorbis/doc/vorbisfile/index.html
+*/
 
 typedef struct {
 	OggVorbis_File vf;
@@ -56,13 +62,13 @@ static bool ce_soundresource_vorbis_ctor(ce_soundresource* soundresource, va_lis
 	ce_unused(OV_CALLBACKS_STREAMONLY_NOCLOSE);
 
 	if (0 != ov_open_callbacks(va_arg(args, FILE*), &vorbisresource->vf, NULL, 0, OV_CALLBACKS_DEFAULT)) {
-		ce_logging_error("soundresource (vorbis): input does not appear to be an ogg bitstream");
+		ce_logging_error("soundresource: vorbis: input does not appear to be an ogg bitstream");
 		return false;
 	}
 
 	vorbis_info* info = ov_info(&vorbisresource->vf, -1);
 	if (NULL == info) {
-		ce_logging_error("soundresource (vorbis): could not get stream info");
+		ce_logging_error("soundresource: vorbis: could not get stream info");
 		return false;
 	}
 
@@ -71,6 +77,11 @@ static bool ce_soundresource_vorbis_ctor(ce_soundresource* soundresource, va_lis
 	soundresource->bps = 16;
 	soundresource->rate = info->rate;
 	soundresource->channels = info->channels;
+
+	ce_logging_debug("soundresource: vorbis: input is "
+					"%ld bit/s (%ld bit/s nominal), %u Hz, %u channel",
+		ov_bitrate(&vorbisresource->vf, -1), info->bitrate_nominal,
+		soundresource->rate, soundresource->channels);
 
 	return true;
 }
@@ -91,115 +102,210 @@ static size_t ce_soundresource_vorbis_read(ce_soundresource* soundresource, void
 		if (code >= 0) {
 			return code;
 		}
-		ce_logging_warning("soundresource (vorbis): error in the stream");
+		ce_logging_warning("soundresource: vorbis: error in the stream");
 	}
 }
 
-#ifdef CE_NONFREE
+#ifdef CE_ENABLE_PROPRIETARY
+/*
+ *  For more information about mad see libmad source code and
+ *  madlld, a simple sample demonstrating how the low-level
+ *  libmad API can be used, which is perfectly commented.
+ *  libmad (C) 2000-2004 Underbit Technologies, Inc.
+ *  madlld (C) 2001-2004 Bertrand Petit
+*/
+
 enum {
-	CE_SOUNDRESOURCE_MAD_INPUT_BUFFER_CAPACITY = 5 * 8192,
-	CE_SOUNDRESOURCE_MAD_OUTPUT_BUFFER_CAPACITY = 8192,
+	CE_MAD_INPUT_BUFFER_CAPACITY = 4 * 8192,
+	CE_MAD_INPUT_BUFFER_GUARD = MAD_BUFFER_GUARD,
+	CE_MAD_OUTPUT_BUFFER_CAPACITY = 8192,
+	CE_MAD_BUFFER_CAPACITY = CE_MAD_INPUT_BUFFER_CAPACITY +
+								CE_MAD_INPUT_BUFFER_GUARD +
+								CE_MAD_OUTPUT_BUFFER_CAPACITY
 };
+
+typedef struct {
+	mad_fixed_t error[3];
+	mad_fixed_t random;
+} ce_soundresource_mad_dither;
+
+typedef struct {
+	mad_fixed_t peak_clipping;
+	mad_fixed_t peak_sample;
+} ce_soundresource_mad_stats;
 
 typedef struct {
 	FILE* file;
 	struct mad_stream stream;
 	struct mad_frame frame;
 	struct mad_synth synth;
+	ce_soundresource_mad_dither dither[2];
+	ce_soundresource_mad_stats stats;
 	size_t output_buffer_size;
 	unsigned char* output_buffer;
-	unsigned char* output_buffer2;
 	unsigned char input_buffer[];
 } ce_soundresource_mad;
 
-static void ce_soundresource_mad_error(ce_soundresource_mad* madresource)
+static void ce_soundresource_mad_error(ce_soundresource_mad* madresource,
+													ce_logging_level level)
 {
-	ce_logging_error("soundresource (mad): decoding error 0x%04x (%s)",
+	ce_logging_report(level, "soundresource: mad: decoding error 0x%04x (%s)",
 		madresource->stream.error, mad_stream_errorstr(&madresource->stream));
 }
 
-static void ce_soundresource_mad_input(ce_soundresource_mad* madresource)
+static bool ce_soundresource_mad_input(ce_soundresource_mad* madresource)
 {
+	// libmad may not consume all bytes of the input buffer
 	size_t remaining = 0;
-	size_t size = CE_SOUNDRESOURCE_MAD_INPUT_BUFFER_CAPACITY;
 
 	if (NULL != madresource->stream.next_frame) {
 		remaining = madresource->stream.bufend -
 					madresource->stream.next_frame;
-
 		memmove(madresource->input_buffer,
 			madresource->stream.next_frame, remaining);
-
-		ce_logging_debug("soundresource: memmove sz %lu rem %lu", size, remaining);
 	}
 
-	size = fread(madresource->input_buffer + remaining,
-				1, size - remaining, madresource->file);
+	size_t size = fread(madresource->input_buffer + remaining,
+		1, CE_MAD_INPUT_BUFFER_CAPACITY - remaining, madresource->file);
 
-	if (0 == size) {
-		ce_logging_debug("soundresource: eof");
-		return /* EOF */;
+	if (ferror(madresource->file)) {
+		ce_error_report_c_last("soundresource: mad");
+		return false;
 	}
 
-	// TODO if eof
-	//memset(madresource->input_buffer + remaining + size, 0, MAD_BUFFER_GUARD);
-	//size += MAD_BUFFER_GUARD;
+	if (feof(madresource->file) || 0 == size) {
+		return false;
+	}
 
-	ce_logging_debug("soundresource: mad_stream_buffer sz %lu rem %lu", size, remaining);
-	mad_stream_buffer(&madresource->stream, madresource->input_buffer, size + remaining);
+	// when decoding the last frame of a file, it must be followed by
+	// MAD_BUFFER_GUARD zero bytes if one wants to decode that last frame
+	//memset(madresource->input_buffer + remaining + size, 0, CE_MAD_INPUT_BUFFER_GUARD);
+	//size += CE_MAD_INPUT_BUFFER_GUARD;
+
+	mad_stream_buffer(&madresource->stream,
+						madresource->input_buffer,
+							remaining + size);
+
+	return true;
 }
 
-// performs simple clipping or scaling down to 16 bits
-// no dithering or noise shaping!
-static inline int16_t ce_soundresource_mad_scale(mad_fixed_t sample)
+// 32-bit pseudo-random number generator
+static inline mad_fixed_t ce_soundresource_mad_prng(mad_fixed_t state)
 {
-	return sample >= MAD_F_ONE ? INT16_MAX :
-			(sample <= -MAD_F_ONE ? INT16_MIN :
-				sample >> (MAD_F_FRACBITS + 1 - 16));
+	return (state * 0x0019660dL + 0x3c6ef35fL) & 0xffffffffL;
 }
 
-static void ce_soundresource_mad_decode(ce_soundresource_mad* madresource)
+// generic linear sample quantize and dither routine
+static int16_t ce_soundresource_mad_scale(mad_fixed_t sample,
+	ce_soundresource_mad_dither* dither, ce_soundresource_mad_stats* stats)
+{
+	enum {
+		MIN = -MAD_F_ONE,
+		MAX =  MAD_F_ONE - 1
+	};
+
+	// noise shape
+	sample += dither->error[0] - dither->error[1] + dither->error[2];
+
+	dither->error[2] = dither->error[1];
+	dither->error[1] = dither->error[0] / 2;
+
+	// bias
+	mad_fixed_t output = sample + (1L << (MAD_F_FRACBITS - 16));
+
+	const unsigned int scalebits = MAD_F_FRACBITS + 1 - 16;
+	const mad_fixed_t mask = (1L << scalebits) - 1;
+
+	// dither
+	const mad_fixed_t random = ce_soundresource_mad_prng(dither->random);
+	output += (random & mask) - (dither->random & mask);
+
+	dither->random = random;
+
+	// clip
+	if (output >= stats->peak_sample) {
+		if (output > MAX) {
+			if (output - MAX > stats->peak_clipping) {
+				stats->peak_clipping = output - MAX;
+			}
+			output = MAX;
+			if (sample > MAX) {
+				sample = MAX;
+			}
+		}
+		stats->peak_sample = output;
+	} else if (output < -stats->peak_sample) {
+		if (output < MIN) {
+			if (MIN - output > stats->peak_clipping) {
+				stats->peak_clipping = MIN - output;
+			}
+			output = MIN;
+			if (sample < MIN) {
+				sample = MIN;
+			}
+		}
+		stats->peak_sample = -output;
+	}
+
+	// quantize
+	output &= ~mask;
+
+	// error feedback
+	dither->error[0] = sample - output;
+
+	// scale
+	return output >> scalebits;
+}
+
+static bool ce_soundresource_mad_decode(ce_soundresource_mad* madresource)
 {
 	madresource->output_buffer_size = 0;
+	madresource->output_buffer = madresource->input_buffer +
+		CE_MAD_INPUT_BUFFER_CAPACITY + CE_MAD_INPUT_BUFFER_GUARD;
 
 	while (-1 == mad_frame_decode(&madresource->frame, &madresource->stream)) {
-		if (MAD_ERROR_BUFLEN == madresource->stream.error) {
+		if (MAD_ERROR_BUFLEN == madresource->stream.error ||
+				MAD_ERROR_BUFPTR == madresource->stream.error) {
 			// the input bucket must be filled if it becomes empty
-			ce_soundresource_mad_input(madresource);
+			// or if it's the first execution of the function
+			if (!ce_soundresource_mad_input(madresource)) {
+				return false;
+			}
+			// new input data loaded successfully, reset error code
 			madresource->stream.error = MAD_ERROR_NONE;
 		} else {
-			ce_soundresource_mad_error(madresource);
 			if (!MAD_RECOVERABLE(madresource->stream.error)) {
-				return;
+				ce_soundresource_mad_error(madresource, CE_LOGGING_LEVEL_ERROR);
+				return false;
 			}
+			ce_soundresource_mad_error(madresource, CE_LOGGING_LEVEL_DEBUG);
 		}
 	}
 
+	// once decoded the frame is synthesized to PCM samples
 	mad_synth_frame(&madresource->synth, &madresource->frame);
 
+	// synthesized samples must be converted from libmad's fixed
+	// point number to the consumer format
 	unsigned int sample_count  = madresource->synth.pcm.length;
 	unsigned int channel_count = madresource->synth.pcm.channels;
 
-	int16_t* output_buffer = (int16_t*)madresource->output_buffer;
 	madresource->output_buffer_size = 2 * sample_count * channel_count;
+	assert(madresource->output_buffer_size <= CE_MAD_OUTPUT_BUFFER_CAPACITY);
 
-	ce_logging_debug("soundresource: %lu %u",
-		madresource->output_buffer_size, CE_SOUNDRESOURCE_MAD_OUTPUT_BUFFER_CAPACITY);
+	// convert to signed 16 bit host endian integers on two channels
+	int16_t* output_buffer = (int16_t*)madresource->output_buffer;
 
-	if (madresource->output_buffer_size > CE_SOUNDRESOURCE_MAD_OUTPUT_BUFFER_CAPACITY) {
-		madresource->output_buffer_size = CE_SOUNDRESOURCE_MAD_OUTPUT_BUFFER_CAPACITY;
-		ce_logging_critical("soundresource (mad): output buffer overflow, truncated");
-		assert(false);
-	}
-
-	// convert libmad's fixed point number to the consumer format
-	// output sample(s) in 16-bit signed little-endian PCM
 	for (unsigned int i = 0; i < sample_count; ++i) {
 		for (unsigned int j = 0; j < channel_count; ++j) {
 			output_buffer[channel_count * i + j] =
-				ce_soundresource_mad_scale(madresource->synth.pcm.samples[j][i]);
+				ce_soundresource_mad_scale(madresource->synth.pcm.samples[j][i],
+					&madresource->dither[j], &madresource->stats);
+			ce_le2cpu16s((uint16_t*)&output_buffer[channel_count * i + j]);
 		}
 	}
+
+	return true;
 }
 
 static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource, va_list args)
@@ -207,18 +313,11 @@ static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource, va_list a
 	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
 	madresource->file = va_arg(args, FILE*);
 
-	madresource->output_buffer = madresource->input_buffer + MAD_BUFFER_GUARD +
-								CE_SOUNDRESOURCE_MAD_INPUT_BUFFER_CAPACITY;
-
 	mad_stream_init(&madresource->stream);
 	mad_frame_init(&madresource->frame);
 	mad_synth_init(&madresource->synth);
 
-	ce_soundresource_mad_input(madresource);
-
-	if (-1 == mad_header_decode(&madresource->frame.header,
-								&madresource->stream)) {
-		ce_soundresource_mad_error(madresource);
+	if (!ce_soundresource_mad_decode(madresource)) {
 		return false;
 	}
 
@@ -226,6 +325,9 @@ static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource, va_list a
 	soundresource->rate = madresource->frame.header.samplerate;
 	soundresource->channels = MAD_MODE_SINGLE_CHANNEL ==
 								madresource->frame.header.mode ? 1 : 2;
+
+	ce_logging_debug("soundresource: mad: input is %lu bit/s, %u Hz, %u channel",
+		madresource->frame.header.bitrate, soundresource->rate, soundresource->channels);
 
 	return true;
 }
@@ -245,16 +347,13 @@ static size_t ce_soundresource_mad_read(ce_soundresource* soundresource, void* d
 
 	if (0 == madresource->output_buffer_size) {
 		ce_soundresource_mad_decode(madresource);
-		madresource->output_buffer2 = madresource->output_buffer;
 	}
 
 	size = ce_smin(size, madresource->output_buffer_size);
-	madresource->output_buffer_size -= size;
+	memcpy(data, madresource->output_buffer, size);
 
-	//memcpy(data, madresource->output_buffer +
-	//		madresource->output_buffer_size - size, size);
-	memcpy(data, madresource->output_buffer2, size);
-	madresource->output_buffer2 += size;
+	madresource->output_buffer_size -= size;
+	madresource->output_buffer += size;
 
 	return size;
 }
@@ -263,9 +362,8 @@ static size_t ce_soundresource_mad_read(ce_soundresource* soundresource, void* d
 const ce_soundresource_vtable ce_soundresource_builtins[] = {
 	{sizeof(ce_soundresource_vorbis), ce_soundresource_vorbis_ctor,
 	ce_soundresource_vorbis_dtor, ce_soundresource_vorbis_read, NULL},
-#ifdef CE_NONFREE
-	{sizeof(ce_soundresource_mad) + CE_SOUNDRESOURCE_MAD_INPUT_BUFFER_CAPACITY +
-	MAD_BUFFER_GUARD + CE_SOUNDRESOURCE_MAD_OUTPUT_BUFFER_CAPACITY,
+#ifdef CE_ENABLE_PROPRIETARY
+	{sizeof(ce_soundresource_mad) + CE_MAD_BUFFER_CAPACITY,
 	ce_soundresource_mad_ctor, ce_soundresource_mad_dtor,
 	ce_soundresource_mad_read, NULL},
 #endif
