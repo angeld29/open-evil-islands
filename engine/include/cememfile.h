@@ -21,7 +21,7 @@
 #ifndef CE_MEMFILE_H
 #define CE_MEMFILE_H
 
-#include "ceio.h"
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -32,28 +32,45 @@ extern "C"
  *  Abstraction layer for read-only binary files based on FILE interface.
 */
 
+typedef struct ce_memfile ce_memfile;
+
 typedef struct {
-	ce_io_callbacks callbacks;
-	void* client_data;
-} ce_memfile;
+	size_t size;
+	int (*close)(ce_memfile* memfile);
+	size_t (*read)(ce_memfile* memfile, void* data, size_t size, size_t n);
+	int (*seek)(ce_memfile* memfile, long int offset, int whence);
+	long int (*tell)(ce_memfile* memfile);
+} ce_memfile_vtable;
+
+struct ce_memfile {
+	ce_memfile_vtable vtable;
+	char impl[];
+};
 
 /*
  *  You may to instruct memfile to either automatically close or not to close
  *  the resource in memfile_close. Automatic closure is disabled by passing
  *  NULL as the close callback.
 */
-extern ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
-													void* client_data);
-// memfile takes ownership of the data
-extern ce_memfile* ce_memfile_open_data(void* data, size_t size);
-extern ce_memfile* ce_memfile_open_path(const char* path);
+extern ce_memfile* ce_memfile_open(ce_memfile_vtable vtable);
 extern void ce_memfile_close(ce_memfile* memfile);
 
-extern size_t ce_memfile_read(ce_memfile* memfile, void* data,
-										size_t size, size_t n);
-
+extern size_t ce_memfile_read(ce_memfile* memfile, void* data, size_t size, size_t n);
 extern int ce_memfile_seek(ce_memfile* memfile, long int offset, int whence);
 extern long int ce_memfile_tell(ce_memfile* memfile);
+
+/*
+ *  Implements in-memory files.
+ *  Note that memfile takes ownership of the data.
+*/
+extern ce_memfile* ce_memfile_open_data(void* data, size_t size);
+
+/*
+ *  Implements a buffered interface for the FILE standard functions
+ *  that can signal an EOF of file condition synchronously
+ *  with the transmission of the last bytes of a file.
+*/
+extern ce_memfile* ce_memfile_open_path(const char* path);
 
 #ifdef __cplusplus
 }

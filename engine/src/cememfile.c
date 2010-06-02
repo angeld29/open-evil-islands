@@ -28,24 +28,53 @@
 #include "ceerror.h"
 #include "cememfile.h"
 
+ce_memfile* ce_memfile_open(ce_memfile_vtable vtable)
+{
+	ce_memfile* memfile = ce_alloc_zero(sizeof(ce_memfile) + vtable.size);
+	memfile->vtable = vtable;
+	return memfile;
+}
+
+void ce_memfile_close(ce_memfile* memfile)
+{
+	if (NULL != memfile) {
+		if (NULL != memfile->vtable.close) {
+			(memfile->vtable.close)(memfile);
+		}
+		ce_free(memfile, sizeof(ce_memfile) + memfile->vtable.size);
+	}
+}
+
+size_t ce_memfile_read(ce_memfile* memfile, void* data, size_t size, size_t n)
+{
+	return (memfile->vtable.read)(memfile, data, size, n);
+}
+
+int ce_memfile_seek(ce_memfile* memfile, long int offset, int whence)
+{
+ 	return (memfile->vtable.seek)(memfile, offset, whence);
+}
+
+long int ce_memfile_tell(ce_memfile* memfile)
+{
+	return (memfile->vtable.tell)(memfile);
+}
+
 typedef struct {
+	size_t size, pos;
 	char* data;
-	size_t size;
-	size_t pos;
 } ce_datafile;
 
-static int ce_datafile_close(void* client_data)
+static int ce_datafile_close(ce_memfile* memfile)
 {
-	ce_datafile* datafile = client_data;
+	ce_datafile* datafile = (ce_datafile*)memfile->impl;
 	ce_free(datafile->data, datafile->size);
-	ce_free(datafile, sizeof(ce_datafile));
 	return 0;
 }
 
-static size_t
-ce_datafile_read(void* client_data, void* data, size_t size, size_t n)
+static size_t ce_datafile_read(ce_memfile* memfile, void* data, size_t size, size_t n)
 {
-	ce_datafile* datafile = client_data;
+	ce_datafile* datafile = (ce_datafile*)memfile->impl;
 	if (datafile->pos == datafile->size) {
 		return 0;
 	}
@@ -56,9 +85,9 @@ ce_datafile_read(void* client_data, void* data, size_t size, size_t n)
 	return avail_n;
 }
 
-static int ce_datafile_seek(void* client_data, long int offset, int whence)
+static int ce_datafile_seek(ce_memfile* memfile, long int offset, int whence)
 {
-	ce_datafile* datafile = client_data;
+	ce_datafile* datafile = (ce_datafile*)memfile->impl;
 	// FIXME: not clean
 	long int size = datafile->size, pos = datafile->pos;
 	pos = SEEK_SET == whence ? offset :
@@ -66,29 +95,53 @@ static int ce_datafile_seek(void* client_data, long int offset, int whence)
 	return pos < 0 || pos > size ? -1 : (datafile->pos = pos, 0);
 }
 
-static long int ce_datafile_tell(void* client_data)
+static long int ce_datafile_tell(ce_memfile* memfile)
 {
-	ce_datafile* datafile = client_data;
+	ce_datafile* datafile = (ce_datafile*)memfile->impl;
 	return datafile->pos;
-}
-
-ce_memfile* ce_memfile_open_callbacks(ce_io_callbacks callbacks,
-											void* client_data)
-{
-	ce_memfile* memfile = ce_alloc(sizeof(ce_memfile));
-	memfile->callbacks = callbacks;
-	memfile->client_data = client_data;
-	return memfile;
 }
 
 ce_memfile* ce_memfile_open_data(void* data, size_t size)
 {
-	ce_datafile* datafile = ce_alloc(sizeof(ce_datafile));
-	datafile->data = data;
+	ce_memfile* memfile = ce_memfile_open((ce_memfile_vtable)
+		{sizeof(ce_datafile), ce_datafile_close,
+		ce_datafile_read, ce_datafile_seek, ce_datafile_tell});
+
+	ce_datafile* datafile = (ce_datafile*)memfile->impl;
 	datafile->size = size;
-	datafile->pos = 0;
-	return ce_memfile_open_callbacks((ce_io_callbacks){ce_datafile_close,
-		ce_datafile_read, ce_datafile_seek, ce_datafile_tell}, datafile);
+	datafile->data = data;
+
+	return memfile;
+}
+
+typedef struct {
+	FILE* file;
+	char buffer[BUFSIZ];
+} ce_bstdfile;
+
+static int ce_bstdfile_close(ce_memfile* memfile)
+{
+	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
+	fclose(bstdfile->file);
+	return 0;
+}
+
+static size_t ce_bstdfile_read(ce_memfile* memfile, void* data, size_t size, size_t n)
+{
+	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
+	return fread(data, size, n, bstdfile->file);
+}
+
+static int ce_bstdfile_seek(ce_memfile* memfile, long int offset, int whence)
+{
+	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
+	return fseek(bstdfile->file, offset, whence);
+}
+
+static long int ce_bstdfile_tell(ce_memfile* memfile)
+{
+	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
+	return ftell(bstdfile->file);
 }
 
 ce_memfile* ce_memfile_open_path(const char* path)
@@ -99,30 +152,13 @@ ce_memfile* ce_memfile_open_path(const char* path)
 		ce_logging_error("memfile: could not open file: '%s'", path);
 		return NULL;
 	}
-	return ce_memfile_open_callbacks(CE_IO_CALLBACKS_FILE, file);
-}
 
-void ce_memfile_close(ce_memfile* memfile)
-{
-	if (NULL != memfile) {
-		if (NULL != memfile->callbacks.close) {
-			(memfile->callbacks.close)(memfile->client_data);
-		}
-		ce_free(memfile, sizeof(ce_memfile));
-	}
-}
+	ce_memfile* memfile = ce_memfile_open((ce_memfile_vtable)
+		{sizeof(ce_bstdfile), ce_bstdfile_close,
+		ce_bstdfile_read, ce_bstdfile_seek, ce_bstdfile_tell});
 
-size_t ce_memfile_read(ce_memfile* memfile, void* data, size_t size, size_t n)
-{
-	return (memfile->callbacks.read)(memfile->client_data, data, size, n);
-}
+	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
+	bstdfile->file = file;
 
-int ce_memfile_seek(ce_memfile* memfile, long int offset, int whence)
-{
- 	return (memfile->callbacks.seek)(memfile->client_data, offset, whence);
-}
-
-long int ce_memfile_tell(ce_memfile* memfile)
-{
-	return (memfile->callbacks.tell)(memfile->client_data);
+	return memfile;
 }
