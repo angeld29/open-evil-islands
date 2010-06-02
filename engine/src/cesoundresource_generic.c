@@ -119,9 +119,9 @@ enum {
 	CE_MAD_INPUT_BUFFER_CAPACITY = 4 * 8192,
 	CE_MAD_INPUT_BUFFER_GUARD = MAD_BUFFER_GUARD,
 	CE_MAD_OUTPUT_BUFFER_CAPACITY = 8192,
-	CE_MAD_BUFFER_CAPACITY = CE_MAD_INPUT_BUFFER_CAPACITY +
-								CE_MAD_INPUT_BUFFER_GUARD +
-								CE_MAD_OUTPUT_BUFFER_CAPACITY
+	CE_MAD_DATA_CAPACITY = CE_MAD_INPUT_BUFFER_CAPACITY +
+							CE_MAD_INPUT_BUFFER_GUARD +
+							CE_MAD_OUTPUT_BUFFER_CAPACITY
 };
 
 typedef struct {
@@ -139,11 +139,12 @@ typedef struct {
 	struct mad_stream stream;
 	struct mad_frame frame;
 	struct mad_synth synth;
-	ce_soundresource_mad_dither dither[2];
+	ce_soundresource_mad_dither dither[2]; // for 2 channels
 	ce_soundresource_mad_stats stats;
 	size_t output_buffer_size;
 	unsigned char* output_buffer;
-	unsigned char input_buffer[];
+	unsigned char* input_buffer;
+	char data[];
 } ce_soundresource_mad;
 
 static void ce_soundresource_mad_error(ce_soundresource_mad* madresource,
@@ -173,14 +174,17 @@ static bool ce_soundresource_mad_input(ce_soundresource_mad* madresource)
 		return false;
 	}
 
-	if (feof(madresource->file) || 0 == size) {
+	if (0 == size) {
+		// EOF and no data available
 		return false;
 	}
 
 	// when decoding the last frame of a file, it must be followed by
 	// MAD_BUFFER_GUARD zero bytes if one wants to decode that last frame
-	//memset(madresource->input_buffer + remaining + size, 0, CE_MAD_INPUT_BUFFER_GUARD);
-	//size += CE_MAD_INPUT_BUFFER_GUARD;
+	if (feof(madresource->file)) {
+		memset(madresource->input_buffer + remaining + size, 0, CE_MAD_INPUT_BUFFER_GUARD);
+		size += CE_MAD_INPUT_BUFFER_GUARD;
+	}
 
 	mad_stream_buffer(&madresource->stream,
 						madresource->input_buffer,
@@ -199,11 +203,6 @@ static inline mad_fixed_t ce_soundresource_mad_prng(mad_fixed_t state)
 static int16_t ce_soundresource_mad_scale(mad_fixed_t sample,
 	ce_soundresource_mad_dither* dither, ce_soundresource_mad_stats* stats)
 {
-	enum {
-		MIN = -MAD_F_ONE,
-		MAX =  MAD_F_ONE - 1
-	};
-
 	// noise shape
 	sample += dither->error[0] - dither->error[1] + dither->error[2];
 
@@ -222,26 +221,31 @@ static int16_t ce_soundresource_mad_scale(mad_fixed_t sample,
 
 	dither->random = random;
 
+	enum {
+		CLIP_MIN = -MAD_F_ONE,
+		CLIP_MAX =  MAD_F_ONE - 1
+	};
+
 	// clip
 	if (output >= stats->peak_sample) {
-		if (output > MAX) {
-			if (output - MAX > stats->peak_clipping) {
-				stats->peak_clipping = output - MAX;
+		if (output > CLIP_MAX) {
+			if (output - CLIP_MAX > stats->peak_clipping) {
+				stats->peak_clipping = output - CLIP_MAX;
 			}
-			output = MAX;
-			if (sample > MAX) {
-				sample = MAX;
+			output = CLIP_MAX;
+			if (sample > CLIP_MAX) {
+				sample = CLIP_MAX;
 			}
 		}
 		stats->peak_sample = output;
 	} else if (output < -stats->peak_sample) {
-		if (output < MIN) {
-			if (MIN - output > stats->peak_clipping) {
-				stats->peak_clipping = MIN - output;
+		if (output < CLIP_MIN) {
+			if (CLIP_MIN - output > stats->peak_clipping) {
+				stats->peak_clipping = CLIP_MIN - output;
 			}
-			output = MIN;
-			if (sample < MIN) {
-				sample = MIN;
+			output = CLIP_MIN;
+			if (sample < CLIP_MIN) {
+				sample = CLIP_MIN;
 			}
 		}
 		stats->peak_sample = -output;
@@ -293,7 +297,7 @@ static bool ce_soundresource_mad_decode(ce_soundresource_mad* madresource)
 	madresource->output_buffer_size = 2 * sample_count * channel_count;
 	assert(madresource->output_buffer_size <= CE_MAD_OUTPUT_BUFFER_CAPACITY);
 
-	// convert to signed 16 bit host endian integers on two channels
+	// convert to signed 16 bit host endian integers
 	int16_t* output_buffer = (int16_t*)madresource->output_buffer;
 
 	for (unsigned int i = 0; i < sample_count; ++i) {
@@ -312,6 +316,7 @@ static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource, va_list a
 {
 	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
 	madresource->file = va_arg(args, FILE*);
+	madresource->input_buffer = (unsigned char*)madresource->data;
 
 	mad_stream_init(&madresource->stream);
 	mad_frame_init(&madresource->frame);
@@ -363,7 +368,7 @@ const ce_soundresource_vtable ce_soundresource_builtins[] = {
 	{sizeof(ce_soundresource_vorbis), ce_soundresource_vorbis_ctor,
 	ce_soundresource_vorbis_dtor, ce_soundresource_vorbis_read, NULL},
 #ifdef CE_ENABLE_PROPRIETARY
-	{sizeof(ce_soundresource_mad) + CE_MAD_BUFFER_CAPACITY,
+	{sizeof(ce_soundresource_mad) + CE_MAD_DATA_CAPACITY,
 	ce_soundresource_mad_ctor, ce_soundresource_mad_dtor,
 	ce_soundresource_mad_read, NULL},
 #endif
