@@ -22,8 +22,9 @@
 #define CE_SOUNDRESOURCE_H
 
 #include <stddef.h>
-#include <stdarg.h>
 #include <stdbool.h>
+
+#include "cememfile.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -34,23 +35,24 @@ typedef struct ce_soundresource ce_soundresource;
 
 typedef struct {
 	size_t size;
-	bool (*ctor)(ce_soundresource* soundresource, va_list args);
+	bool (*ctor)(ce_soundresource* soundresource);
 	void (*dtor)(ce_soundresource* soundresource);
 	size_t (*read)(ce_soundresource* soundresource, void* data, size_t size);
 	bool (*rewind)(ce_soundresource* soundresource);
 } ce_soundresource_vtable;
 
-extern const size_t CE_SOUNDRESOURCE_BUILTIN_COUNT;
-extern const ce_soundresource_vtable ce_soundresource_builtins[];
-
 struct ce_soundresource {
 	unsigned int bps, rate, channels;
+	ce_memfile* memfile;
 	ce_soundresource_vtable vtable;
 	char impl[];
 };
 
-extern ce_soundresource* ce_soundresource_new(ce_soundresource_vtable vtable, ...);
-extern ce_soundresource* ce_soundresource_new_path(const char* path);
+extern const size_t CE_SOUNDRESOURCE_BUILTIN_COUNT;
+extern const ce_soundresource_vtable ce_soundresource_builtins[];
+
+extern ce_soundresource* ce_soundresource_new(ce_soundresource_vtable vtable, ce_memfile* memfile);
+extern ce_soundresource* ce_soundresource_new_builtin_path(const char* path);
 extern void ce_soundresource_del(ce_soundresource* soundresource);
 
 extern size_t ce_soundresource_read(ce_soundresource* soundresource, void* data, size_t size);

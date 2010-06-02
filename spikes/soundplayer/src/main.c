@@ -60,12 +60,12 @@ int main(int argc, char* argv[])
 	ce_optparse_get(optparse, "track1", &track1);
 	ce_optparse_get(optparse, "track2", &track2);
 
-	soundresource1 = ce_soundresource_new_path(track1);
+	soundresource1 = ce_soundresource_new_builtin_path(track1);
 	if (NULL == soundresource1) {
 		return EXIT_FAILURE;
 	}
 
-	soundresource2 = ce_soundresource_new_path(track2);
+	soundresource2 = ce_soundresource_new_builtin_path(track2);
 	if (NULL == soundresource2) {
 		return EXIT_FAILURE;
 	}

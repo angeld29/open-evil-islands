@@ -60,6 +60,23 @@ long int ce_memfile_tell(ce_memfile* memfile)
 	return (memfile->vtable.tell)(memfile);
 }
 
+void ce_memfile_rewind(ce_memfile* memfile)
+{
+	// TODO: stub
+}
+
+int ce_memfile_eof(ce_memfile* memfile)
+{
+	// TODO: stub
+	return 1;
+}
+
+int ce_memfile_error(ce_memfile* memfile)
+{
+	// TODO: stub
+	return 1;
+}
+
 typedef struct {
 	size_t size, pos;
 	char* data;

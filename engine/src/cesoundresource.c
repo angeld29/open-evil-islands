@@ -26,39 +26,51 @@
 #include "celogging.h"
 #include "cesoundresource.h"
 
-ce_soundresource* ce_soundresource_new(ce_soundresource_vtable vtable, ...)
+ce_soundresource* ce_soundresource_new(ce_soundresource_vtable vtable, ce_memfile* memfile)
 {
 	ce_soundresource* soundresource = ce_alloc_zero(sizeof(ce_soundresource) + vtable.size);
+
+	soundresource->memfile = memfile;
 	soundresource->vtable = vtable;
 
-	va_list args;
-	va_start(args, vtable);
-
-	if (!(*vtable.ctor)(soundresource, args)) {
+	if (!(*vtable.ctor)(soundresource)) {
+		// do not take ownership if failed
+		soundresource->memfile = NULL;
 		ce_soundresource_del(soundresource);
-		soundresource = NULL;
+		return NULL;
 	}
-
-	va_end(args);
 
 	return soundresource;
 }
 
-ce_soundresource* ce_soundresource_new_path(const char* path)
+ce_soundresource* ce_soundresource_new_builtin_path(const char* path)
 {
-	FILE* file = fopen(path, "rb");
-	if (NULL == file) {
-		ce_logging_error("soundresource: could not open file '%s'", path);
+	ce_memfile* memfile = ce_memfile_open_path(path);
+	if (NULL == memfile) {
+		ce_logging_error("soundresource: could not create a sound resource");
 		return NULL;
 	}
 
-	// TODO: loop and test
-	ce_soundresource* soundresource = ce_soundresource_new(ce_soundresource_builtins[1], file);
-	if (NULL == soundresource) {
-		fclose(file);
+	for (size_t i = 1 /* HACK */; i < CE_SOUNDRESOURCE_BUILTIN_COUNT; ++i) {
+		bool ok = true; // TODO: test
+		// TODO: rewind
+		if (ok) {
+			ce_soundresource* soundresource =
+				ce_soundresource_new(ce_soundresource_builtins[i], memfile);
+
+			if (NULL == soundresource)  {
+				ce_memfile_close(memfile);
+				return NULL;
+			}
+
+			return soundresource;
+		}
 	}
 
-	return soundresource;
+	ce_logging_error("soundresource: no appropriate sound decoder found");
+
+	ce_memfile_close(memfile);
+	return NULL;
 }
 
 void ce_soundresource_del(ce_soundresource* soundresource)
@@ -67,6 +79,7 @@ void ce_soundresource_del(ce_soundresource* soundresource)
 		if (NULL != soundresource->vtable.dtor) {
 			(*soundresource->vtable.dtor)(soundresource);
 		}
+		ce_memfile_close(soundresource->memfile);
 		ce_free(soundresource, sizeof(ce_soundresource) + soundresource->vtable.size);
 	}
 }

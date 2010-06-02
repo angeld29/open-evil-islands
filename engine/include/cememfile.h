@@ -58,6 +58,9 @@ extern void ce_memfile_close(ce_memfile* memfile);
 extern size_t ce_memfile_read(ce_memfile* memfile, void* data, size_t size, size_t n);
 extern int ce_memfile_seek(ce_memfile* memfile, long int offset, int whence);
 extern long int ce_memfile_tell(ce_memfile* memfile);
+extern void ce_memfile_rewind(ce_memfile* memfile);
+extern int ce_memfile_eof(ce_memfile* memfile);
+extern int ce_memfile_error(ce_memfile* memfile);
 
 /*
  *  Implements in-memory files.

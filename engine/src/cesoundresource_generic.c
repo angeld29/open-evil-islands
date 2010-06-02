@@ -24,12 +24,7 @@
 #include <string.h>
 #include <assert.h>
 
-#if defined(__MINGW32__) && defined(__STRICT_ANSI__)
-// HACK: add fseeko64 function prototype
-#include <sys/types.h>
-int __cdecl __MINGW_NOTHROW fseeko64(FILE*, off64_t, int);
-#endif
-
+#define OV_EXCLUDE_STATIC_CALLBACKS
 #include <vorbis/vorbisfile.h>
 
 #ifdef CE_ENABLE_PROPRIETARY
@@ -44,7 +39,7 @@ int __cdecl __MINGW_NOTHROW fseeko64(FILE*, off64_t, int);
 #include "cesoundresource.h"
 
 /*
- *  For more information see http://www.xiph.org/vorbis/doc/ and
+ *  For more information, see http://www.xiph.org/vorbis/doc/ and
  *  http://www.xiph.org/vorbis/doc/vorbisfile/index.html
 */
 
@@ -53,15 +48,27 @@ typedef struct {
 	int bitstream;
 } ce_soundresource_vorbis;
 
-static bool ce_soundresource_vorbis_ctor(ce_soundresource* soundresource, va_list args)
+static size_t ce_vorbis_read(void* ptr, size_t size, size_t nmemb, void* datasource)
+{
+	return ce_memfile_read(datasource, ptr, size, nmemb);
+}
+
+static int ce_vorbis_seek(void* datasource, ogg_int64_t offset, int whence)
+{
+	return ce_memfile_seek(datasource, offset, whence);
+}
+
+static long ce_vorbis_tell(void* datasource)
+{
+	return ce_memfile_tell(datasource);
+}
+
+static bool ce_soundresource_vorbis_ctor(ce_soundresource* soundresource)
 {
 	ce_soundresource_vorbis* vorbisresource = (ce_soundresource_vorbis*)soundresource->impl;
 
-	ce_unused(OV_CALLBACKS_NOCLOSE);
-	ce_unused(OV_CALLBACKS_STREAMONLY);
-	ce_unused(OV_CALLBACKS_STREAMONLY_NOCLOSE);
-
-	if (0 != ov_open_callbacks(va_arg(args, FILE*), &vorbisresource->vf, NULL, 0, OV_CALLBACKS_DEFAULT)) {
+	if (0 != ov_open_callbacks(soundresource->memfile, &vorbisresource->vf, NULL, 0,
+			(ov_callbacks){ce_vorbis_read, ce_vorbis_seek, NULL, ce_vorbis_tell})) {
 		ce_logging_error("soundresource: vorbis: input does not appear to be an ogg bitstream");
 		return false;
 	}
@@ -108,7 +115,7 @@ static size_t ce_soundresource_vorbis_read(ce_soundresource* soundresource, void
 
 #ifdef CE_ENABLE_PROPRIETARY
 /*
- *  For more information about mad see libmad source code and
+ *  For more information about mad, see libmad source code and
  *  madlld, a simple sample demonstrating how the low-level
  *  libmad API can be used, which is perfectly commented.
  *  libmad (C) 2000-2004 Underbit Technologies, Inc.
@@ -135,7 +142,6 @@ typedef struct {
 } ce_soundresource_mad_stats;
 
 typedef struct {
-	FILE* file;
 	struct mad_stream stream;
 	struct mad_frame frame;
 	struct mad_synth synth;
@@ -154,8 +160,10 @@ static void ce_soundresource_mad_error(ce_soundresource_mad* madresource,
 		madresource->stream.error, mad_stream_errorstr(&madresource->stream));
 }
 
-static bool ce_soundresource_mad_input(ce_soundresource_mad* madresource)
+static bool ce_soundresource_mad_input(ce_soundresource* soundresource)
 {
+	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
+
 	// libmad may not consume all bytes of the input buffer
 	size_t remaining = 0;
 
@@ -166,11 +174,11 @@ static bool ce_soundresource_mad_input(ce_soundresource_mad* madresource)
 			madresource->stream.next_frame, remaining);
 	}
 
-	size_t size = fread(madresource->input_buffer + remaining,
-		1, CE_MAD_INPUT_BUFFER_CAPACITY - remaining, madresource->file);
+	size_t size = ce_memfile_read(soundresource->memfile,
+		madresource->input_buffer + remaining, 1,
+		CE_MAD_INPUT_BUFFER_CAPACITY - remaining);
 
-	if (ferror(madresource->file)) {
-		ce_error_report_c_last("soundresource: mad");
+	if (ce_memfile_error(soundresource->memfile)) {
 		return false;
 	}
 
@@ -181,7 +189,7 @@ static bool ce_soundresource_mad_input(ce_soundresource_mad* madresource)
 
 	// when decoding the last frame of a file, it must be followed by
 	// MAD_BUFFER_GUARD zero bytes if one wants to decode that last frame
-	if (feof(madresource->file)) {
+	if (ce_memfile_eof(soundresource->memfile)) {
 		memset(madresource->input_buffer + remaining + size, 0, CE_MAD_INPUT_BUFFER_GUARD);
 		size += CE_MAD_INPUT_BUFFER_GUARD;
 	}
@@ -261,8 +269,10 @@ static int16_t ce_soundresource_mad_scale(mad_fixed_t sample,
 	return output >> scalebits;
 }
 
-static bool ce_soundresource_mad_decode(ce_soundresource_mad* madresource)
+static bool ce_soundresource_mad_decode(ce_soundresource* soundresource)
 {
+	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
+
 	madresource->output_buffer_size = 0;
 	madresource->output_buffer = madresource->input_buffer +
 		CE_MAD_INPUT_BUFFER_CAPACITY + CE_MAD_INPUT_BUFFER_GUARD;
@@ -272,7 +282,7 @@ static bool ce_soundresource_mad_decode(ce_soundresource_mad* madresource)
 				MAD_ERROR_BUFPTR == madresource->stream.error) {
 			// the input bucket must be filled if it becomes empty
 			// or if it's the first execution of the function
-			if (!ce_soundresource_mad_input(madresource)) {
+			if (!ce_soundresource_mad_input(soundresource)) {
 				return false;
 			}
 			// new input data loaded successfully, reset error code
@@ -312,17 +322,16 @@ static bool ce_soundresource_mad_decode(ce_soundresource_mad* madresource)
 	return true;
 }
 
-static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource, va_list args)
+static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource)
 {
 	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
-	madresource->file = va_arg(args, FILE*);
 	madresource->input_buffer = (unsigned char*)madresource->data;
 
 	mad_stream_init(&madresource->stream);
 	mad_frame_init(&madresource->frame);
 	mad_synth_init(&madresource->synth);
 
-	if (!ce_soundresource_mad_decode(madresource)) {
+	if (!ce_soundresource_mad_decode(soundresource)) {
 		return false;
 	}
 
@@ -351,7 +360,7 @@ static size_t ce_soundresource_mad_read(ce_soundresource* soundresource, void* d
 	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
 
 	if (0 == madresource->output_buffer_size) {
-		ce_soundresource_mad_decode(madresource);
+		ce_soundresource_mad_decode(soundresource);
 	}
 
 	size = ce_smin(size, madresource->output_buffer_size);
