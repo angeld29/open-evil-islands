@@ -92,14 +92,15 @@ static long int ce_datafile_tell(ce_memfile* memfile)
 
 static int ce_datafile_eof(ce_memfile* memfile)
 {
-	assert(false && "not implemented");
-	return 1;
+	ce_datafile* datafile = (ce_datafile*)memfile->impl;
+	return datafile->pos == datafile->size;
 }
 
 static int ce_datafile_error(ce_memfile* memfile)
 {
-	assert(false && "not implemented");
-	return 1;
+	// always successful
+	ce_unused(memfile);
+	return 0;
 }
 
 ce_memfile* ce_memfile_open_data(void* data, size_t size)

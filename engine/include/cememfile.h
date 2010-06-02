@@ -91,8 +91,9 @@ static inline int ce_memfile_error(ce_memfile* memfile)
 }
 
 /*
- *  Implements in-memory files.
- *  Note that memfile takes ownership of the data.
+ *  Implements in-memory files. EOF is signaled synchronously
+ *  with the transmission of the last bytes of a file.
+ *  NOTE: memfile takes ownership of the data.
 */
 extern ce_memfile* ce_memfile_open_data(void* data, size_t size);
 
