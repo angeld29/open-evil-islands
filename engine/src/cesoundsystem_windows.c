@@ -38,14 +38,14 @@ enum {
 
 typedef struct {
 	WAVEHDR waveheader;
-	char data[];
+	char data[CE_SOUNDSYSTEM_BLOCK_SIZE];
 } ce_soundsystem_header;
 
 typedef struct {
 	HANDLE event;
 	WAVEFORMATEXTENSIBLE waveformat;
 	HWAVEOUT waveout;
-	ce_vector* headers;
+	ce_soundsystem_header headers[CE_SOUNDSYSTEM_HEADER_COUNT];
 } ce_soundsystem_wmm;
 
 static void ce_soundsystem_wmm_error(MMRESULT code, const char* message)
@@ -77,26 +77,13 @@ static bool ce_soundsystem_wmm_ctor(ce_soundsystem* soundsystem, va_list args)
 
 	ce_logging_write("soundsystem: using Windows Waveform-Audio Interface");
 
-	wmmsystem->headers = ce_vector_new_reserved(CE_SOUNDSYSTEM_HEADER_COUNT);
-	ce_vector_resize(wmmsystem->headers, CE_SOUNDSYSTEM_HEADER_COUNT);
-
-	for (int i = 0; i < wmmsystem->headers->count; ++i) {
-		wmmsystem->headers->items[i] = ce_alloc_zero(CE_SOUNDSYSTEM_BLOCK_SIZE +
-												sizeof(ce_soundsystem_header));
-		ce_soundsystem_header* header = wmmsystem->headers->items[i];
-		header->waveheader.lpData = header->data;
-		header->waveheader.dwBufferLength = CE_SOUNDSYSTEM_BLOCK_SIZE;
-		header->waveheader.dwUser = (DWORD_PTR)header;
-		header->waveheader.dwFlags = WHDR_DONE;
-	}
-
 	wmmsystem->event = CreateEvent(NULL, TRUE, FALSE, NULL);
 	if (NULL == wmmsystem->event) {
 		ce_error_report_windows_last("soundsystem");
 		return false;
 	}
 
-	assert(2 == CE_SOUNDSYSTEM_CHANNEL_COUNT && "only mono and stereo output implemented");
+	assert(CE_SOUNDSYSTEM_CHANNEL_COUNT <= 2 && "only mono and stereo output implemented");
 
 	wmmsystem->waveformat.Format.wFormatTag = WAVE_FORMAT_PCM;
 	wmmsystem->waveformat.Format.nChannels = CE_SOUNDSYSTEM_CHANNEL_COUNT;
@@ -116,6 +103,13 @@ static bool ce_soundsystem_wmm_ctor(ce_soundsystem* soundsystem, va_list args)
 		return false;
 	}
 
+	for (size_t i = 0; i < CE_SOUNDSYSTEM_HEADER_COUNT; ++i) {
+		wmmsystem->headers[i].waveheader.lpData = wmmsystem->headers[i].data;
+		wmmsystem->headers[i].waveheader.dwBufferLength = CE_SOUNDSYSTEM_BLOCK_SIZE;
+		wmmsystem->headers[i].waveheader.dwUser = (DWORD_PTR)&wmmsystem->headers[i];
+		wmmsystem->headers[i].waveheader.dwFlags = WHDR_DONE;
+	}
+
 	return true;
 }
 
@@ -130,11 +124,10 @@ static void ce_soundsystem_wmm_dtor(ce_soundsystem* soundsystem)
 			ce_soundsystem_wmm_error(code, "could not reset waveform output device");
 		}
 
-		for (int i = 0; i < wmmsystem->headers->count; ++i) {
-			ce_soundsystem_header* header = wmmsystem->headers->items[i];
-			if (header->waveheader.dwFlags & WHDR_PREPARED) {
+		for (size_t i = 0; i < CE_SOUNDSYSTEM_HEADER_COUNT; ++i) {
+			if (wmmsystem->headers[i].waveheader.dwFlags & WHDR_PREPARED) {
 				code = waveOutUnprepareHeader(wmmsystem->waveout,
-												&header->waveheader,
+												&wmmsystem->headers[i].waveheader,
 													sizeof(WAVEHDR));
 				if (MMSYSERR_NOERROR != code) {
 					ce_soundsystem_wmm_error(code, "could not unprepare header");
@@ -151,21 +144,13 @@ static void ce_soundsystem_wmm_dtor(ce_soundsystem* soundsystem)
 	if (NULL != wmmsystem->event) {
 		CloseHandle(wmmsystem->event);
 	}
-
-	for (int i = 0; i < wmmsystem->headers->count; ++i) {
-		ce_free(wmmsystem->headers->items[i], CE_SOUNDSYSTEM_BLOCK_SIZE +
-												sizeof(ce_soundsystem_header));
-	}
-
-	ce_vector_del(wmmsystem->headers);
 }
 
-static void* ce_soundsystem_wmm_find(ce_soundsystem_wmm* wmmsystem)
+static ce_soundsystem_header* ce_soundsystem_wmm_find(ce_soundsystem_wmm* wmmsystem)
 {
-	for (int i = 0; i < wmmsystem->headers->count; ++i) {
-		ce_soundsystem_header* header = wmmsystem->headers->items[i];
-		if (header->waveheader.dwFlags & WHDR_DONE) {
-			return header;
+	for (size_t i = 0; i < CE_SOUNDSYSTEM_HEADER_COUNT; ++i) {
+		if (wmmsystem->headers[i].waveheader.dwFlags & WHDR_DONE) {
+			return &wmmsystem->headers[i];
 		}
 	}
 	return NULL;
