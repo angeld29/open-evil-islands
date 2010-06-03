@@ -146,11 +146,12 @@ typedef struct {
 	struct mad_stream stream;
 	struct mad_frame frame;
 	struct mad_synth synth;
+	mad_timer_t timer;
 	ce_soundresource_mad_dither dither[2]; // for 2 channels
 	ce_soundresource_mad_stats stats;
 	size_t output_buffer_size;
 	unsigned char* output_buffer;
-	unsigned char input_buffer[];
+	unsigned char input_buffer[CE_MAD_DATA_SIZE];
 } ce_soundresource_mad;
 
 static void ce_soundresource_mad_error(ce_soundresource_mad* madresource,
@@ -297,6 +298,8 @@ static bool ce_soundresource_mad_decode(ce_soundresource* soundresource)
 		}
 	}
 
+	mad_timer_add(&madresource->timer, madresource->frame.header.duration);
+
 	// once decoded the frame is synthesized to PCM samples
 	mad_synth_frame(&madresource->synth, &madresource->frame);
 
@@ -330,6 +333,7 @@ static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource)
 	mad_stream_init(&madresource->stream);
 	mad_frame_init(&madresource->frame);
 	mad_synth_init(&madresource->synth);
+	mad_timer_reset(&madresource->timer);
 
 	if (!ce_soundresource_mad_decode(soundresource)) {
 		ce_logging_error("soundresource: mad: input does not appear to be a MPEG audio");
@@ -372,15 +376,14 @@ static size_t ce_soundresource_mad_read(ce_soundresource* soundresource, void* d
 
 	return size;
 }
-#endif
+#endif /* CE_ENABLE_PROPRIETARY */
 
 const ce_soundresource_vtable ce_soundresource_builtins[] = {
 	{sizeof(ce_soundresource_vorbis), ce_soundresource_vorbis_ctor,
 	ce_soundresource_vorbis_dtor, ce_soundresource_vorbis_read, NULL},
 #ifdef CE_ENABLE_PROPRIETARY
-	{sizeof(ce_soundresource_mad) + CE_MAD_DATA_SIZE,
-	ce_soundresource_mad_ctor, ce_soundresource_mad_dtor,
-	ce_soundresource_mad_read, NULL},
+	{sizeof(ce_soundresource_mad), ce_soundresource_mad_ctor,
+	ce_soundresource_mad_dtor, ce_soundresource_mad_read, NULL},
 #endif
 };
 
