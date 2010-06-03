@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include "cealloc.h"
+#include "celogging.h"
 #include "ceroot.h"
 #include "cesoundinstance.h"
 
@@ -60,16 +61,22 @@ int main(int argc, char* argv[])
 	ce_optparse_get(optparse, "track1", &track1);
 	ce_optparse_get(optparse, "track2", &track2);
 
-	soundresource1 = ce_soundresource_new_builtin_path(track1);
-	if (NULL == soundresource1) {
+	ce_memfile* memfile1 = ce_memfile_open_path(track1);
+	if (NULL == memfile1) {
 		return EXIT_FAILURE;
 	}
 
-	soundresource2 = ce_soundresource_new_builtin_path(track2);
-	if (NULL == soundresource2) {
-		ce_soundresource_del(soundresource1);
+	soundresource1 = ce_soundresource_new_builtin(memfile1);
+	if (NULL == soundresource1) {
+		ce_logging_error("main: could not play '%s'", track1);
+		ce_memfile_close(memfile1);
 		return EXIT_FAILURE;
 	}
+
+	/*soundresource2 = ce_soundresource_new_builtin();
+	if (NULL == soundresource2) {
+		return EXIT_FAILURE;
+	}*/
 
 	soundinstance1 = ce_soundinstance_new(soundresource1);
 	//soundinstance2 = ce_soundinstance_new(soundresource2);

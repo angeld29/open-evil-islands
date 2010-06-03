@@ -64,6 +64,17 @@ static long ce_vorbis_tell(void* datasource)
 	return ce_memfile_tell(datasource);
 }
 
+static bool ce_soundresource_vorbis_test(ce_memfile* memfile)
+{
+	OggVorbis_File vf;
+	if (0 == ov_test_callbacks(memfile, &vf, NULL, 0, (ov_callbacks)
+			{ce_vorbis_read, ce_vorbis_seek, NULL, ce_vorbis_tell})) {
+		ov_clear(&vf);
+		return true;
+	}
+	return false;
+}
+
 static bool ce_soundresource_vorbis_ctor(ce_soundresource* soundresource)
 {
 	ce_soundresource_vorbis* vorbisresource = (ce_soundresource_vorbis*)soundresource->impl;
@@ -114,6 +125,13 @@ static size_t ce_soundresource_vorbis_read(ce_soundresource* soundresource, void
 	}
 }
 
+static bool ce_soundresource_vorbis_reset(ce_soundresource* soundresource)
+{
+	// TODO: not tested
+	ce_soundresource_vorbis* vorbisresource = (ce_soundresource_vorbis*)soundresource->impl;
+	return 0 == ov_raw_seek(&vorbisresource->vf, 0);
+}
+
 #ifdef CE_ENABLE_PROPRIETARY
 /*
  *  For more information about mad, see libmad source code and
@@ -153,6 +171,93 @@ typedef struct {
 	unsigned char* output_buffer;
 	unsigned char input_buffer[CE_MAD_DATA_SIZE];
 } ce_soundresource_mad;
+
+/*typedef struct {
+	unsigned char start[CE_MAD_INPUT_BUFFER_CAPACITY +
+						CE_MAD_INPUT_BUFFER_GUARD];
+	unsigned long length;
+} ce_soundresource_mad_buffer;*/
+
+#if 0
+static enum mad_flow ce_soundresource_mad_test_input(void *data, struct mad_stream* stream)
+{
+	ce_soundresource_mad_buffer* buffer = data;
+
+	if (0 == buffer->length) {
+		return MAD_FLOW_STOP;
+	}
+
+	mad_stream_buffer(stream, buffer->start, buffer->length);
+	buffer->length = 0;
+
+	return MAD_FLOW_CONTINUE;
+}
+
+static enum mad_flow ce_soundresource_mad_test_error(void *data,
+	struct mad_stream* stream, struct mad_frame* frame)
+{
+	ce_logging_debug("ce_soundresource_mad_test_error: %s", mad_stream_errorstr(stream));
+	if (MAD_ERROR_LOSTSYNC == stream->error) {
+		return MAD_FLOW_CONTINUE;
+	}
+	return MAD_FLOW_BREAK;
+}
+
+static bool ce_soundresource_mad_test(ce_memfile* memfile)
+{
+	ce_soundresource_mad_buffer* buffer = ce_alloc_zero(sizeof(ce_soundresource_mad_buffer));
+	buffer->length = ce_memfile_read(memfile, buffer->start, 1, CE_MAD_INPUT_BUFFER_CAPACITY);
+
+	struct mad_decoder decoder;
+	mad_decoder_init(&decoder, buffer, ce_soundresource_mad_test_input,
+		NULL /* header */, NULL /* filter */, NULL /* output */,
+		ce_soundresource_mad_test_error, NULL /* message */);
+
+	int result = mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC);
+
+	mad_decoder_finish(&decoder);
+	ce_free(buffer, sizeof(ce_soundresource_mad_buffer));
+
+	ce_logging_debug("ce_soundresource_mad_test: %d", result);
+
+	return MAD_ERROR_NONE == result;
+}
+#endif
+
+static bool ce_soundresource_mad_test(ce_memfile* memfile)
+{
+	// TODO: stub
+	return true;
+
+	/*unsigned char* buffer = ce_alloc(CE_MAD_INPUT_BUFFER_CAPACITY);
+	size_t size = ce_memfile_read(memfile, buffer, 1, CE_MAD_INPUT_BUFFER_CAPACITY);
+
+	struct mad_stream stream;
+	struct mad_header header;
+
+	mad_stream_init(&stream);
+	mad_header_init(&header);
+
+	mad_stream_buffer(&stream, buffer, size);
+
+	int code;
+	while (-1 == (code = mad_header_decode(&header, &stream))) {
+		ce_logging_debug("ce_soundresource_mad_test: %s", mad_stream_errorstr(&stream));
+	}
+
+	ce_logging_debug("ce_soundresource_mad_test: done %d", code);
+	ce_logging_debug("ce_soundresource_mad_test: layer %d", (int)header.layer);
+	ce_logging_debug("ce_soundresource_mad_test: bitrate %lu", header.bitrate);
+	ce_logging_debug("ce_soundresource_mad_test: samplerate %u", header.samplerate);
+
+	mad_header_finish(&header);
+	mad_stream_finish(&stream);
+
+	ce_free(buffer, CE_MAD_INPUT_BUFFER_CAPACITY);
+
+	assert(false);
+	return MAD_ERROR_NONE == code;*/
+}
 
 static void ce_soundresource_mad_error(ce_soundresource_mad* madresource,
 													ce_logging_level level)
@@ -376,14 +481,22 @@ static size_t ce_soundresource_mad_read(ce_soundresource* soundresource, void* d
 
 	return size;
 }
+
+static bool ce_soundresource_mad_reset(ce_soundresource* soundresource)
+{
+	// TODO: not implemented
+	return false;
+}
 #endif /* CE_ENABLE_PROPRIETARY */
 
 const ce_soundresource_vtable ce_soundresource_builtins[] = {
-	{sizeof(ce_soundresource_vorbis), ce_soundresource_vorbis_ctor,
-	ce_soundresource_vorbis_dtor, ce_soundresource_vorbis_read, NULL},
+	{sizeof(ce_soundresource_vorbis), ce_soundresource_vorbis_test,
+	ce_soundresource_vorbis_ctor, ce_soundresource_vorbis_dtor,
+	ce_soundresource_vorbis_read, ce_soundresource_vorbis_reset},
 #ifdef CE_ENABLE_PROPRIETARY
-	{sizeof(ce_soundresource_mad), ce_soundresource_mad_ctor,
-	ce_soundresource_mad_dtor, ce_soundresource_mad_read, NULL},
+	{sizeof(ce_soundresource_mad), ce_soundresource_mad_test,
+	ce_soundresource_mad_ctor, ce_soundresource_mad_dtor,
+	ce_soundresource_mad_read, ce_soundresource_mad_reset},
 #endif
 };
 

@@ -43,33 +43,14 @@ ce_soundresource* ce_soundresource_new(ce_soundresource_vtable vtable, ce_memfil
 	return soundresource;
 }
 
-ce_soundresource* ce_soundresource_new_builtin_path(const char* path)
+ce_soundresource* ce_soundresource_new_builtin(ce_memfile* memfile)
 {
-	ce_memfile* memfile = ce_memfile_open_path(path);
-	if (NULL == memfile) {
-		ce_logging_error("soundresource: could not load sound: '%s'", path);
-		return NULL;
+	size_t index = ce_soundresource_find_builtin(memfile);
+	if (CE_SOUNDRESOURCE_BUILTIN_COUNT != index) {
+		return ce_soundresource_new(ce_soundresource_builtins[index], memfile);
 	}
 
-	for (size_t i = 0; i < CE_SOUNDRESOURCE_BUILTIN_COUNT; ++i) {
-		bool ok = true; // TODO: test
-		// TODO: rewind
-		if (ok) {
-			ce_soundresource* soundresource =
-				ce_soundresource_new(ce_soundresource_builtins[i], memfile);
-
-			if (NULL == soundresource)  {
-				ce_logging_error("soundresource: could not load sound: '%s'", path);
-				ce_memfile_close(memfile);
-				return NULL;
-			}
-
-			return soundresource;
-		}
-	}
-
-	ce_logging_error("soundresource: no appropriate sound decoder found: '%s'", path);
-	ce_memfile_close(memfile);
+	ce_logging_error("soundresource: no appropriate sound decoder found");
 	return NULL;
 }
 
@@ -84,12 +65,21 @@ void ce_soundresource_del(ce_soundresource* soundresource)
 	}
 }
 
-size_t ce_soundresource_read(ce_soundresource* soundresource, void* data, size_t size)
+size_t ce_soundresource_find_builtin(ce_memfile* memfile)
 {
-	return (*soundresource->vtable.read)(soundresource, data, size);
+	for (size_t i = 0; i < CE_SOUNDRESOURCE_BUILTIN_COUNT; ++i) {
+		ce_memfile_rewind(memfile);
+		if ((*ce_soundresource_builtins[i].test)(memfile)) {
+			ce_memfile_rewind(memfile);
+			return i;
+		}
+	}
+	ce_memfile_rewind(memfile);
+	return CE_SOUNDRESOURCE_BUILTIN_COUNT;
 }
 
-bool ce_soundresource_rewind(ce_soundresource* soundresource)
+bool ce_soundresource_reset(ce_soundresource* soundresource)
 {
-	return (*soundresource->vtable.rewind)(soundresource);
+	ce_memfile_rewind(soundresource->memfile);
+	return (*soundresource->vtable.reset)(soundresource);
 }

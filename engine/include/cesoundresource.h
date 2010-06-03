@@ -35,10 +35,11 @@ typedef struct ce_soundresource ce_soundresource;
 
 typedef struct {
 	size_t size;
+	bool (*test)(ce_memfile* memfile);
 	bool (*ctor)(ce_soundresource* soundresource);
 	void (*dtor)(ce_soundresource* soundresource);
 	size_t (*read)(ce_soundresource* soundresource, void* data, size_t size);
-	bool (*rewind)(ce_soundresource* soundresource);
+	bool (*reset)(ce_soundresource* soundresource);
 } ce_soundresource_vtable;
 
 struct ce_soundresource {
@@ -52,11 +53,17 @@ extern const size_t CE_SOUNDRESOURCE_BUILTIN_COUNT;
 extern const ce_soundresource_vtable ce_soundresource_builtins[];
 
 extern ce_soundresource* ce_soundresource_new(ce_soundresource_vtable vtable, ce_memfile* memfile);
-extern ce_soundresource* ce_soundresource_new_builtin_path(const char* path);
+extern ce_soundresource* ce_soundresource_new_builtin(ce_memfile* memfile);
 extern void ce_soundresource_del(ce_soundresource* soundresource);
 
-extern size_t ce_soundresource_read(ce_soundresource* soundresource, void* data, size_t size);
-extern bool ce_soundresource_rewind(ce_soundresource* soundresource);
+extern size_t ce_soundresource_find_builtin(ce_memfile* memfile);
+
+static inline size_t ce_soundresource_read(ce_soundresource* soundresource, void* data, size_t size)
+{
+	return (*soundresource->vtable.read)(soundresource, data, size);
+}
+
+extern bool ce_soundresource_reset(ce_soundresource* soundresource);
 
 #ifdef __cplusplus
 }
