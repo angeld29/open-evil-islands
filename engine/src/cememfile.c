@@ -62,12 +62,12 @@ static int ce_datafile_close(ce_memfile* memfile)
 	return 0;
 }
 
-static size_t ce_datafile_read(ce_memfile* memfile, void* data, size_t size, size_t n)
+static size_t ce_datafile_read(ce_memfile* memfile, void* ptr, size_t size, size_t n)
 {
 	ce_datafile* datafile = (ce_datafile*)memfile->impl;
 	n = ce_smin(n, (datafile->size - datafile->pos) / size);
 	size *= n;
-	memcpy(data, datafile->data + datafile->pos, size);
+	memcpy(ptr, datafile->data + datafile->pos, size);
 	datafile->pos += size;
 	return n;
 }
@@ -115,11 +115,26 @@ ce_memfile* ce_memfile_open_data(void* data, size_t size)
 	return memfile;
 }
 
+/*
+ *  fread(3) is part of the C library, and provides buffered reads.
+ *  It is usually implemented by calling read(2) in order to fill its buffer.
+ *  So we will not try to implement own buffers.
+ *  See also ISO/IEC 9899:1999 remarks below.
+*/
 typedef struct {
 	FILE* file;
-	//size_t size, pos;
-	//char buffer[BUFSIZ];
 } ce_bstdfile;
+
+static inline void ce_bstdfile_detect_eof(ce_bstdfile* bstdfile)
+{
+	// Function getc is implemented as a macro,
+	// so the argument should never be an expression with side effects.
+	int c = getc(bstdfile->file);
+	// One character of pushback is guaranteed.
+	// If the value of c equals that of the macro EOF,
+	// the operation fails and the input stream is unchanged.
+	ungetc(c, bstdfile->file);
+}
 
 static int ce_bstdfile_close(ce_memfile* memfile)
 {
@@ -128,16 +143,23 @@ static int ce_bstdfile_close(ce_memfile* memfile)
 	return 0;
 }
 
-static size_t ce_bstdfile_read(ce_memfile* memfile, void* data, size_t size, size_t n)
+static size_t ce_bstdfile_read(ce_memfile* memfile, void* ptr, size_t size, size_t n)
 {
 	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
-	return fread(data, size, n, bstdfile->file);
+	n = fread(ptr, size, n, bstdfile->file);
+	ce_bstdfile_detect_eof(bstdfile);
+	return n;
 }
 
 static int ce_bstdfile_seek(ce_memfile* memfile, long int offset, int whence)
 {
 	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
-	return fseek(bstdfile->file, offset, whence);
+	// A successful call to the fseek function undoes any
+	// effects of the ungetc function on the stream and
+	// clears the end-of-ﬁle indicator for the stream.
+	int result = fseek(bstdfile->file, offset, whence);
+	ce_bstdfile_detect_eof(bstdfile);
+	return result;
 }
 
 static long int ce_bstdfile_tell(ce_memfile* memfile)
@@ -174,6 +196,8 @@ ce_memfile* ce_memfile_open_path(const char* path)
 
 	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
 	bstdfile->file = file;
+
+	ce_bstdfile_detect_eof(bstdfile);
 
 	return memfile;
 }
