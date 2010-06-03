@@ -490,11 +490,7 @@ static ce_mobfile* ce_mobfile_open_memfile(const char* name, ce_memfile* memfile
 	mobfile->name = ce_string_new_str_n(name,
 		ce_min(strlen(name), strlen(name) - 4));
 
-	ce_memfile_seek(memfile, 0, SEEK_END);
-	size_t size = ce_memfile_tell(memfile);
-	ce_memfile_seek(memfile, 0, SEEK_SET);
-
-	ce_mobfile_block_loop(mobfile, memfile, size);
+	ce_mobfile_block_loop(mobfile, memfile, ce_memfile_size(memfile));
 
 	return mobfile;
 }

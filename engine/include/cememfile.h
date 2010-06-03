@@ -92,6 +92,15 @@ static inline int ce_memfile_error(ce_memfile* memfile)
 	return (memfile->vtable.error)(memfile);
 }
 
+static inline long int ce_memfile_size(ce_memfile* memfile)
+{
+	long int pos = ce_memfile_tell(memfile);
+	ce_memfile_seek(memfile, 0, CE_MEMFILE_SEEK_END);
+	long int size = ce_memfile_tell(memfile);
+	ce_memfile_seek(memfile, pos, CE_MEMFILE_SEEK_SET);
+	return size;
+}
+
 /*
  *  Implements in-memory files.
  *  NOTE: memfile takes ownership of the data.
