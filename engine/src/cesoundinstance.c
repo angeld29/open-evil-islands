@@ -41,13 +41,13 @@ static void ce_soundinstance_exec(ce_soundinstance* soundinstance)
 
 			// some resources do not return requested size in one pass
 			for (size_t bytes = SIZE_MAX; 0 != bytes &&
-					size < ce_root.soundsystem->block_size; size += bytes) {
+					size < CE_SOUNDSYSTEM_BLOCK_SIZE; size += bytes) {
 				bytes = ce_soundresource_read(soundinstance->soundresource,
-					block + size, ce_root.soundsystem->block_size - size);
+					block + size, CE_SOUNDSYSTEM_BLOCK_SIZE - size);
 			}
 
 			// fill tail by silence
-			memset(block + size, 0, ce_root.soundsystem->block_size - size);
+			memset(block + size, 0, CE_SOUNDSYSTEM_BLOCK_SIZE - size);
 
 			if (0 == size) {
 				soundinstance->state = CE_SOUNDINSTANCE_STATE_STOPPED;

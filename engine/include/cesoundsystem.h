@@ -32,6 +32,22 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+/*
+ *  TODO: remarks
+*/
+
+enum {
+	CE_SOUNDSYSTEM_BITS_PER_SAMPLE = 16,
+	CE_SOUNDSYSTEM_SAMPLE_RATE = 44100,
+	CE_SOUNDSYSTEM_CHANNEL_COUNT = 2,
+	CE_SOUNDSYSTEM_SAMPLE_SIZE = CE_SOUNDSYSTEM_CHANNEL_COUNT *
+									(CE_SOUNDSYSTEM_BITS_PER_SAMPLE / 8),
+	CE_SOUNDSYSTEM_SAMPLES_IN_BLOCK = 1024,
+	CE_SOUNDSYSTEM_BLOCK_SIZE = CE_SOUNDSYSTEM_SAMPLES_IN_BLOCK *
+								CE_SOUNDSYSTEM_SAMPLE_SIZE,
+	CE_SOUNDSYSTEM_BLOCK_COUNT = 4,
+};
+
 typedef struct ce_soundsystem ce_soundsystem;
 
 typedef struct {
@@ -41,15 +57,9 @@ typedef struct {
 	bool (*write)(ce_soundsystem* soundsystem, const void* block);
 } ce_soundsystem_vtable;
 
-/*
- *  TODO: remarks
-*/
-
 struct ce_soundsystem {
 	volatile bool done;
-	unsigned int bps, rate, channels;
-	size_t sample_size, sample_count;
-	size_t block_size, block_index;
+	size_t block_index;
 	ce_vector* blocks;
 	ce_thread_sem* free_blocks;
 	ce_thread_sem* used_blocks;

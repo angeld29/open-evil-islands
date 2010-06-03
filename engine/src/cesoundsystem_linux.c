@@ -47,10 +47,10 @@ static void ce_soundsystem_alsa_error_handler(const char* file,
 	va_end(args);
 }
 
-static snd_pcm_format_t ce_soundsystem_alsa_choose_format(int bps)
+static snd_pcm_format_t ce_soundsystem_alsa_choose_format()
 {
 	snd_pcm_format_t format = SND_PCM_FORMAT_UNKNOWN;
-	switch (bps) {
+	switch (CE_SOUNDSYSTEM_BITS_PER_SAMPLE) {
 	case 8:
 		format = SND_PCM_FORMAT_S8;
 		break;
@@ -69,10 +69,10 @@ static snd_pcm_format_t ce_soundsystem_alsa_choose_format(int bps)
 	return format;
 }
 
-static const char* ce_soundsystem_alsa_choose_device(int channels)
+static const char* ce_soundsystem_alsa_choose_device()
 {
 	const char* device = "default";
-	switch (channels) {
+	switch (CE_SOUNDSYSTEM_CHANNEL_COUNT) {
 	case 1:
 	case 2:
 		break;
@@ -117,31 +117,30 @@ static int ce_soundsystem_alsa_set_params(ce_soundsystem* soundsystem)
 	}
 
 	// set the sample format
-	code = snd_pcm_hw_params_set_format(alsasystem->handle, hwparams,
-		ce_soundsystem_alsa_choose_format(soundsystem->bps));
+	code = snd_pcm_hw_params_set_format(alsasystem->handle, hwparams, ce_soundsystem_alsa_choose_format());
 	if (code < 0) {
 		ce_logging_error("soundsystem: sample format not available for playback");
 		return code;
 	}
 
 	// set the count of channels
-	code = snd_pcm_hw_params_set_channels(alsasystem->handle, hwparams, soundsystem->channels);
+	code = snd_pcm_hw_params_set_channels(alsasystem->handle, hwparams, CE_SOUNDSYSTEM_CHANNEL_COUNT);
 	if (code < 0) {
-		ce_logging_error("soundsystem: channels count (%u) not available for playbacks", soundsystem->channels);
+		ce_logging_error("soundsystem: channels count (%u) not available for playbacks", CE_SOUNDSYSTEM_CHANNEL_COUNT);
 		return code;
 	}
 
-	unsigned int rate = soundsystem->rate;
+	unsigned int rate = CE_SOUNDSYSTEM_SAMPLE_RATE;
 
 	// set the stream rate
 	code = snd_pcm_hw_params_set_rate_near(alsasystem->handle, hwparams, &rate, &dir);
 	if (code < 0) {
-		ce_logging_error("soundsystem: rate %u Hz not available for playback", soundsystem->rate);
+		ce_logging_error("soundsystem: rate %u Hz not available for playback", CE_SOUNDSYSTEM_SAMPLE_RATE);
 		return code;
 	}
 
-	if (rate != soundsystem->rate) {
-		ce_logging_warning("soundsystem: sample rate %u Hz not supported by the hardware, using %u Hz", soundsystem->rate, rate);
+	if (rate != CE_SOUNDSYSTEM_SAMPLE_RATE) {
+		ce_logging_warning("soundsystem: sample rate %u Hz not supported by the hardware, using %u Hz", CE_SOUNDSYSTEM_SAMPLE_RATE, rate);
 	}
 
 	// ring buffer length in us
@@ -229,7 +228,7 @@ static bool ce_soundsystem_alsa_ctor(ce_soundsystem* soundsystem, va_list args)
 
 	snd_lib_error_set_handler(ce_soundsystem_alsa_error_handler);
 
-	const char* device = ce_soundsystem_alsa_choose_device(soundsystem->channels);
+	const char* device = ce_soundsystem_alsa_choose_device();
 	int code;
 
 	code = snd_pcm_open(&alsasystem->handle, device, SND_PCM_STREAM_PLAYBACK, 0);
@@ -307,7 +306,7 @@ static bool ce_soundsystem_alsa_write(ce_soundsystem* soundsystem, const void* b
 	const char* data = block;
 	int code;
 
-	for (size_t sample_count = soundsystem->sample_count; sample_count > 0; ) {
+	for (size_t sample_count = CE_SOUNDSYSTEM_SAMPLES_IN_BLOCK; sample_count > 0; ) {
 		code = snd_pcm_writei(alsasystem->handle, data, sample_count);
 		if (code < 0) {
 			code = ce_soundsystem_alsa_recovery(alsasystem, code);
@@ -316,7 +315,7 @@ static bool ce_soundsystem_alsa_write(ce_soundsystem* soundsystem, const void* b
 				return false;
 			}
 		} else {
-			data += code * soundsystem->sample_size;
+			data += code * CE_SOUNDSYSTEM_SAMPLE_SIZE;
 			sample_count -= code;
 		}
 	}

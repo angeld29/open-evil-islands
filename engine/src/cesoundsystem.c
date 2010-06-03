@@ -44,20 +44,11 @@ ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable, ...)
 	ce_soundsystem* soundsystem = ce_alloc_zero(sizeof(ce_soundsystem) + vtable.size);
 	soundsystem->vtable = vtable;
 
-	soundsystem->bps = 16;
-	soundsystem->rate = 44100;
-	soundsystem->channels = 2;
-
-	soundsystem->sample_size = soundsystem->channels * (soundsystem->bps / 8);
-	soundsystem->block_size = 1024 * soundsystem->sample_size;
-	soundsystem->sample_count = soundsystem->block_size / soundsystem->sample_size;
-
-	// reserve 4 blocks (usually ~16 kb total)
-	soundsystem->blocks = ce_vector_new_reserved(4);
+	soundsystem->blocks = ce_vector_new_reserved(CE_SOUNDSYSTEM_BLOCK_COUNT);
 	ce_vector_resize(soundsystem->blocks, soundsystem->blocks->capacity);
 
 	for (int i = 0; i < soundsystem->blocks->count; ++i) {
-		soundsystem->blocks->items[i] = ce_alloc(soundsystem->block_size);
+		soundsystem->blocks->items[i] = ce_alloc(CE_SOUNDSYSTEM_BLOCK_SIZE);
 	}
 
 	soundsystem->free_blocks = ce_thread_sem_new(soundsystem->blocks->count);
@@ -114,7 +105,7 @@ void ce_soundsystem_del(ce_soundsystem* soundsystem)
 		ce_thread_sem_del(soundsystem->free_blocks);
 
 		for (int i = 0; i < soundsystem->blocks->count; ++i) {
-			ce_free(soundsystem->blocks->items[i], soundsystem->block_size);
+			ce_free(soundsystem->blocks->items[i], CE_SOUNDSYSTEM_BLOCK_SIZE);
 		}
 
 		ce_vector_del(soundsystem->blocks);
