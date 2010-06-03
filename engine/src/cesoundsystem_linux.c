@@ -219,9 +219,8 @@ static int ce_soundsystem_alsa_set_params(ce_soundsystem* soundsystem)
 	return 0;
 }
 
-static bool ce_soundsystem_alsa_ctor(ce_soundsystem* soundsystem, va_list args)
+static bool ce_soundsystem_alsa_ctor(ce_soundsystem* soundsystem)
 {
-	ce_unused(args);
 	ce_soundsystem_alsa* alsasystem = (ce_soundsystem_alsa*)soundsystem->impl;
 
 	ce_logging_write("soundsystem: using alsa (Advanced Linux Sound Architecture)");

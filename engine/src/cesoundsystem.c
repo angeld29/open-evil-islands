@@ -31,7 +31,7 @@ static void ce_soundsystem_exec(ce_soundsystem* soundsystem)
 		ce_thread_sem_acquire(soundsystem->used_blocks, 1);
 
 		if (!(*soundsystem->vtable.write)(soundsystem,
-				soundsystem->blocks->items[i % soundsystem->blocks->count])) {
+				soundsystem->blocks[i % CE_SOUNDSYSTEM_BLOCK_COUNT])) {
 			ce_logging_critical("soundsystem: could not write block");
 		}
 
@@ -39,39 +39,27 @@ static void ce_soundsystem_exec(ce_soundsystem* soundsystem)
 	}
 }
 
-ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable, ...)
+ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable)
 {
 	ce_soundsystem* soundsystem = ce_alloc_zero(sizeof(ce_soundsystem) + vtable.size);
 	soundsystem->vtable = vtable;
 
-	soundsystem->blocks = ce_vector_new_reserved(CE_SOUNDSYSTEM_BLOCK_COUNT);
-	ce_vector_resize(soundsystem->blocks, soundsystem->blocks->capacity);
-
-	for (int i = 0; i < soundsystem->blocks->count; ++i) {
-		soundsystem->blocks->items[i] = ce_alloc(CE_SOUNDSYSTEM_BLOCK_SIZE);
-	}
-
-	soundsystem->free_blocks = ce_thread_sem_new(soundsystem->blocks->count);
+	soundsystem->free_blocks = ce_thread_sem_new(CE_SOUNDSYSTEM_BLOCK_COUNT);
 	soundsystem->used_blocks = ce_thread_sem_new(0);
 
 	soundsystem->thread = ce_thread_new(ce_soundsystem_exec, soundsystem);
 
-	va_list args;
-	va_start(args, vtable);
-
-	if (!(*vtable.ctor)(soundsystem, args)) {
+	if (!(*vtable.ctor)(soundsystem)) {
 		ce_soundsystem_del(soundsystem);
-		soundsystem = NULL;
+		return NULL;
 	}
-
-	va_end(args);
 
 	return soundsystem;
 }
 
-static bool ce_soundsystem_null_ctor(ce_soundsystem* soundsystem, va_list args)
+static bool ce_soundsystem_null_ctor(ce_soundsystem* soundsystem)
 {
-	ce_unused(soundsystem), ce_unused(args);
+	ce_unused(soundsystem);
 	ce_logging_write("soundsystem: using null output");
 	return true;
 }
@@ -104,11 +92,6 @@ void ce_soundsystem_del(ce_soundsystem* soundsystem)
 		ce_thread_sem_del(soundsystem->used_blocks);
 		ce_thread_sem_del(soundsystem->free_blocks);
 
-		for (int i = 0; i < soundsystem->blocks->count; ++i) {
-			ce_free(soundsystem->blocks->items[i], CE_SOUNDSYSTEM_BLOCK_SIZE);
-		}
-
-		ce_vector_del(soundsystem->blocks);
 		ce_free(soundsystem, sizeof(ce_soundsystem) + soundsystem->vtable.size);
 	}
 }
@@ -116,8 +99,8 @@ void ce_soundsystem_del(ce_soundsystem* soundsystem)
 void* ce_soundsystem_map_block(ce_soundsystem* soundsystem)
 {
 	ce_thread_sem_acquire(soundsystem->free_blocks, 1);
-	return soundsystem->blocks->items[soundsystem->block_index++ %
-										soundsystem->blocks->count];
+	return soundsystem->blocks[soundsystem->next_block++ %
+								CE_SOUNDSYSTEM_BLOCK_COUNT];
 }
 
 void ce_soundsystem_unmap_block(ce_soundsystem* soundsystem)

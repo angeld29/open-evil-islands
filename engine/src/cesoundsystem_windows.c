@@ -69,9 +69,8 @@ static void CALLBACK ce_soundsystem_wmm_proc(HWAVEOUT waveout, UINT message,
 	}
 }
 
-static bool ce_soundsystem_wmm_ctor(ce_soundsystem* soundsystem, va_list args)
+static bool ce_soundsystem_wmm_ctor(ce_soundsystem* soundsystem)
 {
-	ce_unused(args);
 	ce_soundsystem_wmm* wmmsystem = (ce_soundsystem_wmm*)soundsystem->impl;
 	MMRESULT code = MMSYSERR_NOERROR;
 

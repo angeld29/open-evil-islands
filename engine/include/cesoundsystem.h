@@ -22,7 +22,6 @@
 #define CE_SOUNDSYSTEM_H
 
 #include <stddef.h>
-#include <stdarg.h>
 #include <stdbool.h>
 
 #include "cethread.h"
@@ -52,15 +51,15 @@ typedef struct ce_soundsystem ce_soundsystem;
 
 typedef struct {
 	size_t size;
-	bool (*ctor)(ce_soundsystem* soundsystem, va_list args);
+	bool (*ctor)(ce_soundsystem* soundsystem);
 	void (*dtor)(ce_soundsystem* soundsystem);
 	bool (*write)(ce_soundsystem* soundsystem, const void* block);
 } ce_soundsystem_vtable;
 
 struct ce_soundsystem {
 	volatile bool done;
-	size_t block_index;
-	ce_vector* blocks;
+	size_t next_block;
+	char blocks[CE_SOUNDSYSTEM_BLOCK_COUNT][CE_SOUNDSYSTEM_BLOCK_SIZE];
 	ce_thread_sem* free_blocks;
 	ce_thread_sem* used_blocks;
 	ce_thread* thread;
@@ -68,7 +67,7 @@ struct ce_soundsystem {
 	char impl[];
 };
 
-extern ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable, ...);
+extern ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable);
 extern ce_soundsystem* ce_soundsystem_new_platform(void);
 extern ce_soundsystem* ce_soundsystem_new_null(void);
 extern void ce_soundsystem_del(ce_soundsystem* soundsystem);
