@@ -62,7 +62,7 @@ static int ce_datafile_close(ce_memfile* memfile)
 	return 0;
 }
 
-static size_t ce_datafile_read(ce_memfile* memfile, void* ptr, size_t size, size_t n)
+static size_t ce_datafile_read(ce_memfile* memfile, void* restrict ptr, size_t size, size_t n)
 {
 	ce_datafile* datafile = (ce_datafile*)memfile->impl;
 	n = ce_smin(n, (datafile->size - datafile->pos) / size);
@@ -101,7 +101,7 @@ static int ce_datafile_error(ce_memfile* memfile)
 	return 0;
 }
 
-ce_memfile* ce_memfile_open_data(void* data, size_t size)
+ce_memfile* ce_memfile_open_data(void* restrict data, size_t size)
 {
 	ce_memfile* memfile = ce_memfile_open((ce_memfile_vtable)
 		{sizeof(ce_datafile), ce_datafile_close,
@@ -143,7 +143,7 @@ static int ce_bstdfile_close(ce_memfile* memfile)
 	return 0;
 }
 
-static size_t ce_bstdfile_read(ce_memfile* memfile, void* ptr, size_t size, size_t n)
+static size_t ce_bstdfile_read(ce_memfile* memfile, void* restrict ptr, size_t size, size_t n)
 {
 	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
 	n = fread(ptr, size, n, bstdfile->file);

@@ -38,7 +38,7 @@ typedef struct ce_memfile ce_memfile;
 typedef struct {
 	size_t size;
 	int (*close)(ce_memfile* memfile);
-	size_t (*read)(ce_memfile* memfile, void* ptr, size_t size, size_t n);
+	size_t (*read)(ce_memfile* memfile, void* restrict ptr, size_t size, size_t n);
 	int (*seek)(ce_memfile* memfile, long int offset, int whence);
 	long int (*tell)(ce_memfile* memfile);
 	int (*eof)(ce_memfile* memfile);
@@ -62,7 +62,7 @@ extern int CE_MEMFILE_SEEK_SET;
 extern ce_memfile* ce_memfile_open(ce_memfile_vtable vtable);
 extern void ce_memfile_close(ce_memfile* memfile);
 
-static inline size_t ce_memfile_read(ce_memfile* memfile, void* ptr, size_t size, size_t n)
+static inline size_t ce_memfile_read(ce_memfile* memfile, void* restrict ptr, size_t size, size_t n)
 {
 	return (memfile->vtable.read)(memfile, ptr, size, n);
 }
@@ -96,7 +96,7 @@ static inline int ce_memfile_error(ce_memfile* memfile)
  *  Implements in-memory files.
  *  NOTE: memfile takes ownership of the data.
 */
-extern ce_memfile* ce_memfile_open_data(void* data, size_t size);
+extern ce_memfile* ce_memfile_open_data(void* restrict data, size_t size);
 
 /*
  *  Implements a buffered interface for the FILE standard functions.
