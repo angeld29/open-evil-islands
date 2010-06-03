@@ -19,6 +19,7 @@
 */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
@@ -29,9 +30,9 @@
 #include "ceerror.h"
 #include "cememfile.h"
 
-int CE_MEMFILE_SEEK_CUR = SEEK_CUR;
-int CE_MEMFILE_SEEK_END = SEEK_END;
-int CE_MEMFILE_SEEK_SET = SEEK_SET;
+const int CE_MEMFILE_SEEK_CUR = SEEK_CUR;
+const int CE_MEMFILE_SEEK_END = SEEK_END;
+const int CE_MEMFILE_SEEK_SET = SEEK_SET;
 
 ce_memfile* ce_memfile_open(ce_memfile_vtable vtable)
 {
@@ -75,11 +76,51 @@ static size_t ce_datafile_read(ce_memfile* memfile, void* restrict ptr, size_t s
 static int ce_datafile_seek(ce_memfile* memfile, long int offset, int whence)
 {
 	ce_datafile* datafile = (ce_datafile*)memfile->impl;
-	// FIXME: not clean
-	long int size = datafile->size, pos = datafile->pos;
-	pos = SEEK_SET == whence ? offset :
-		(SEEK_END == whence ? size - offset : pos + offset);
-	return pos < 0 || pos > size ? -1 : (datafile->pos = pos, 0);
+
+	if (CE_MEMFILE_SEEK_SET == whence) {
+		if (offset >= 0) {
+			size_t pos = offset;
+			if (pos <= datafile->size) {
+				datafile->pos = pos;
+				return 0;
+			}
+		}
+		errno = ERANGE;
+		return -1;
+	}
+
+	if (CE_MEMFILE_SEEK_CUR == whence) {
+		if (offset >= 0) {
+			size_t n = offset;
+			if (n <= datafile->size - datafile->pos) {
+				datafile->pos += n;
+				return 0;
+			}
+		} else {
+			size_t n = -offset;
+			if (n <= datafile->pos) {
+				datafile->pos -= n;
+				return 0;
+			}
+		}
+		errno = ERANGE;
+		return -1;
+	}
+
+	if (CE_MEMFILE_SEEK_END == whence) {
+		if (offset <= 0) {
+			size_t n = -offset;
+			if (n <= datafile->size) {
+				datafile->pos = datafile->size - n;
+				return 0;
+			}
+		}
+		errno = ERANGE;
+		return -1;
+	}
+
+	errno = EINVAL;
+	return -1;
 }
 
 static long int ce_datafile_tell(ce_memfile* memfile)
@@ -118,7 +159,7 @@ ce_memfile* ce_memfile_open_data(void* restrict data, size_t size)
 /*
  *  fread(3) is part of the C library, and provides buffered reads.
  *  It is usually implemented by calling read(2) in order to fill its buffer.
- *  So we will not try to implement own buffers.
+ *  So we will not try to implement own buffers here.
  *  See also ISO/IEC 9899:1999 remarks below.
 */
 typedef struct {

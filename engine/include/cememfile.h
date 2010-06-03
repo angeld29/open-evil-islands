@@ -50,9 +50,9 @@ struct ce_memfile {
 	char impl[];
 };
 
-extern int CE_MEMFILE_SEEK_CUR;
-extern int CE_MEMFILE_SEEK_END;
-extern int CE_MEMFILE_SEEK_SET;
+extern const int CE_MEMFILE_SEEK_CUR;
+extern const int CE_MEMFILE_SEEK_END;
+extern const int CE_MEMFILE_SEEK_SET;
 
 /*
  *  You may to instruct memfile to either automatically close or not to close
