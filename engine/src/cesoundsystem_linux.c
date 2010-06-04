@@ -19,6 +19,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
 #include <unistd.h>
@@ -38,12 +39,13 @@ typedef struct {
 static void ce_soundsystem_alsa_error_handler(const char* file,
 	int line, const char* function, int code, const char* format, ...)
 {
-	// TODO: use logging
+	ce_logging_debug("soundsystem: alsa: error %d (%s:%d in %s)",
+									code, file, line, function);
 	va_list args;
 	va_start(args, format);
-	fprintf(stderr, "alsa_error_handler\n");
-	vfprintf(stderr, format, args);
-	fprintf(stderr, "\n");
+	char buffer[strlen(format) + 32];
+	snprintf(buffer, sizeof(buffer), "soundsystem: alsa: %s", format);
+	ce_logging_error_va(buffer, args);
 	va_end(args);
 }
 
