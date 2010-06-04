@@ -45,7 +45,7 @@ static void ce_soundsystem_alsa_error_handler(const char* file,
 	va_start(args, format);
 	char buffer[strlen(format) + 32];
 	snprintf(buffer, sizeof(buffer), "soundsystem: alsa: %s", format);
-	ce_logging_error_va(buffer, args);
+	ce_logging_debug_va(buffer, args);
 	va_end(args);
 }
 
