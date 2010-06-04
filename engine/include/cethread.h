@@ -35,7 +35,9 @@ extern "C"
 
 extern int ce_thread_online_cpu_count(void);
 
-// thread
+/*
+ *  The thread struct provides platform-independent threads.
+*/
 
 typedef struct ce_thread ce_thread;
 
@@ -44,7 +46,9 @@ extern void ce_thread_del(ce_thread* thread);
 
 extern void ce_thread_wait(ce_thread* thread);
 
-// mutex
+/*
+ *  The mutex struct provides access serialization between threads.
+*/
 
 typedef struct ce_thread_mutex ce_thread_mutex;
 
@@ -54,7 +58,9 @@ extern void ce_thread_mutex_del(ce_thread_mutex* mutex);
 extern void ce_thread_mutex_lock(ce_thread_mutex* mutex);
 extern void ce_thread_mutex_unlock(ce_thread_mutex* mutex);
 
-// wait condition
+/*
+ *  The waitcond struct provides a condition variable for synchronizing threads.
+*/
 
 typedef struct ce_thread_cond ce_thread_cond;
 
@@ -65,7 +71,9 @@ extern void ce_thread_cond_wake_one(ce_thread_cond* cond);
 extern void ce_thread_cond_wake_all(ce_thread_cond* cond);
 extern void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex);
 
-// once
+/*
+ *  The once struct provides an once-only initialization.
+*/
 
 typedef struct ce_thread_once ce_thread_once;
 
@@ -75,7 +83,7 @@ extern void ce_thread_once_del(ce_thread_once* once);
 extern void ce_thread_once_exec(ce_thread_once* once, void (*func)(), void* arg);
 
 /*
- *  A general counting semaphore.
+ *  The semaphore struct provides a general counting semaphore.
 */
 
 typedef struct {
@@ -95,7 +103,8 @@ extern void ce_semaphore_release(ce_semaphore* semaphore, size_t n);
 extern bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n);
 
 /*
- *  Thread pool pattern implementation.
+ *  The threadpool struct manages a collection of threads.
+ *  It's a thread pool pattern implementation.
 */
 
 typedef struct {

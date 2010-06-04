@@ -34,6 +34,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+/*
+ *  Platform-independent atomic operations.
+*/
+
 extern size_t ce_atomic_fetch_and_add_size_t(size_t* ptr, size_t value);
 extern size_t ce_atomic_fetch_and_sub_size_t(size_t* ptr, size_t value);
 
