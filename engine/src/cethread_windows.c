@@ -185,7 +185,7 @@ void ce_thread_cond_del(ce_thread_cond* cond)
 void ce_thread_cond_wake_one(ce_thread_cond* cond)
 {
 	EnterCriticalSection(&cond->cs);
-	for (int i = 0; i < cond->events->count; ++i) {
+	for (size_t i = 0; i < cond->events->count; ++i) {
 		ce_thread_cond_event* current = cond->events->items[i];
 		if (!current->woken) {
 			current->woken = true;
@@ -199,7 +199,7 @@ void ce_thread_cond_wake_one(ce_thread_cond* cond)
 void ce_thread_cond_wake_all(ce_thread_cond* cond)
 {
 	EnterCriticalSection(&cond->cs);
-	for (int i = 0; i < cond->events->count; ++i) {
+	for (size_t i = 0; i < cond->events->count; ++i) {
 		ce_thread_cond_event* current = cond->events->items[i];
 		current->woken = true;
 		SetEvent(current->event);
@@ -217,7 +217,7 @@ void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex)
 	event->woken = false;
 
 	// insert event into the queue (sorted by priority)
-	int index = 0;
+	size_t index = 0;
 	for (; index < cond->events->count; ++index) {
 		ce_thread_cond_event* current = cond->events->items[index];
 		if (current->priority < event->priority) {

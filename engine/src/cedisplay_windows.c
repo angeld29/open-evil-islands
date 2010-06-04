@@ -107,7 +107,7 @@ static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list args)
 	}
 }
 
-static void ce_dmmng_enter(ce_displaymng* displaymng, int index,
+static void ce_dmmng_enter(ce_displaymng* displaymng, size_t index,
 	ce_display_rotation rotation, ce_display_reflection reflection)
 {
 	ce_unused(rotation), ce_unused(reflection);
@@ -131,7 +131,7 @@ static void ce_dmmng_dtor(ce_displaymng* displaymng)
 
 	ce_dmmng_exit(displaymng);
 
-	for (int i = 0; i < dmmng->modes->count; ++i) {
+	for (size_t i = 0; i < dmmng->modes->count; ++i) {
 		ce_free(dmmng->modes->items[i], sizeof(DEVMODE));
 	}
 	ce_vector_del(dmmng->modes);
