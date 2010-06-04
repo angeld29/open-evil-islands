@@ -86,12 +86,7 @@ typedef struct {
 	void* arg;
 } ce_poolcookie;
 
-static ce_poolcookie* ce_poolcookie_new(void)
-{
-	return ce_alloc(sizeof(ce_poolcookie));
-}
-
-static void ce_poolcookie_del(ce_poolcookie* poolcookie)
+static inline void ce_poolcookie_del(ce_poolcookie* poolcookie)
 {
 	ce_free(poolcookie, sizeof(ce_poolcookie));
 }
@@ -185,7 +180,7 @@ void ce_threadpool_enqueue(ce_threadpool* threadpool, void (*func)(), void* arg)
 {
 	ce_thread_mutex_lock(threadpool->mutex);
 	ce_poolcookie* poolcookie = ce_vector_empty(threadpool->cache) ?
-		ce_poolcookie_new() : ce_vector_pop_back(threadpool->cache);
+		ce_alloc(sizeof(ce_poolcookie)) : ce_vector_pop_back(threadpool->cache);
 	poolcookie->func = func;
 	poolcookie->arg = arg;
 	ce_vector_push_back(threadpool->queue, poolcookie);
