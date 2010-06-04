@@ -322,7 +322,6 @@ static bool ce_soundresource_mad_decode(ce_soundresource* soundresource)
 {
 	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
 
-	madresource->output_buffer_size = 0;
 	madresource->output_buffer = madresource->input_buffer +
 		CE_MAD_INPUT_BUFFER_CAPACITY + CE_MAD_INPUT_BUFFER_GUARD;
 
@@ -373,14 +372,30 @@ static bool ce_soundresource_mad_decode(ce_soundresource* soundresource)
 	return true;
 }
 
-static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource)
+static void ce_soundresource_mad_init(ce_soundresource_mad* madresource)
 {
-	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
-
 	mad_stream_init(&madresource->stream);
 	mad_frame_init(&madresource->frame);
 	mad_synth_init(&madresource->synth);
 	mad_timer_reset(&madresource->timer);
+
+	memset(&madresource->dither, 0, sizeof(madresource->dither));
+	memset(&madresource->stats, 0, sizeof(madresource->stats));
+
+	madresource->output_buffer_size = 0;
+}
+
+static void ce_soundresource_mad_clean(ce_soundresource_mad* madresource)
+{
+	mad_synth_finish(&madresource->synth);
+	mad_frame_finish(&madresource->frame);
+	mad_stream_finish(&madresource->stream);
+}
+
+static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource)
+{
+	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
+	ce_soundresource_mad_init(madresource);
 
 	if (!ce_soundresource_mad_decode(soundresource)) {
 		ce_logging_error("soundresource: mad: input does not appear to be a MPEG audio");
@@ -401,10 +416,7 @@ static bool ce_soundresource_mad_ctor(ce_soundresource* soundresource)
 static void ce_soundresource_mad_dtor(ce_soundresource* soundresource)
 {
 	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
-
-	mad_synth_finish(&madresource->synth);
-	mad_frame_finish(&madresource->frame);
-	mad_stream_finish(&madresource->stream);
+	ce_soundresource_mad_clean(madresource);
 }
 
 static size_t ce_soundresource_mad_read(ce_soundresource* soundresource, void* data, size_t size)
@@ -426,8 +438,12 @@ static size_t ce_soundresource_mad_read(ce_soundresource* soundresource, void* d
 
 static bool ce_soundresource_mad_reset(ce_soundresource* soundresource)
 {
-	// TODO: not implemented
-	return false;
+	ce_soundresource_mad* madresource = (ce_soundresource_mad*)soundresource->impl;
+
+	ce_soundresource_mad_clean(madresource);
+	ce_soundresource_mad_init(madresource);
+
+	return true;
 }
 #endif /* CE_ENABLE_PROPRIETARY */
 
