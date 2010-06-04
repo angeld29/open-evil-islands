@@ -28,14 +28,14 @@
 static void ce_soundsystem_exec(ce_soundsystem* soundsystem)
 {
 	for (size_t i = 0; !soundsystem->done; ++i) {
-		ce_thread_sem_acquire(soundsystem->used_blocks, 1);
+		ce_semaphore_acquire(soundsystem->used_blocks, 1);
 
 		if (!(*soundsystem->vtable.write)(soundsystem,
 				soundsystem->blocks[i % CE_SOUNDSYSTEM_BLOCK_COUNT])) {
 			ce_logging_critical("soundsystem: could not write block");
 		}
 
-		ce_thread_sem_release(soundsystem->free_blocks, 1);
+		ce_semaphore_release(soundsystem->free_blocks, 1);
 	}
 }
 
@@ -45,8 +45,8 @@ ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable)
 	soundsystem->sample_rate = CE_SOUNDSYSTEM_SAMPLE_RATE;
 	soundsystem->vtable = vtable;
 
-	soundsystem->free_blocks = ce_thread_sem_new(CE_SOUNDSYSTEM_BLOCK_COUNT);
-	soundsystem->used_blocks = ce_thread_sem_new(0);
+	soundsystem->free_blocks = ce_semaphore_new(CE_SOUNDSYSTEM_BLOCK_COUNT);
+	soundsystem->used_blocks = ce_semaphore_new(0);
 
 	soundsystem->thread = ce_thread_new(ce_soundsystem_exec, soundsystem);
 
@@ -88,7 +88,7 @@ void ce_soundsystem_del(ce_soundsystem* soundsystem)
 	if (NULL != soundsystem) {
 		soundsystem->done = true;
 
-		ce_thread_sem_release(soundsystem->used_blocks, 1);
+		ce_semaphore_release(soundsystem->used_blocks, 1);
 		ce_thread_wait(soundsystem->thread);
 
 		if (NULL != soundsystem->vtable.dtor) {
@@ -96,8 +96,8 @@ void ce_soundsystem_del(ce_soundsystem* soundsystem)
 		}
 
 		ce_thread_del(soundsystem->thread);
-		ce_thread_sem_del(soundsystem->used_blocks);
-		ce_thread_sem_del(soundsystem->free_blocks);
+		ce_semaphore_del(soundsystem->used_blocks);
+		ce_semaphore_del(soundsystem->free_blocks);
 
 		ce_free(soundsystem, sizeof(ce_soundsystem) + soundsystem->vtable.size);
 	}
@@ -105,12 +105,12 @@ void ce_soundsystem_del(ce_soundsystem* soundsystem)
 
 void* ce_soundsystem_map_block(ce_soundsystem* soundsystem)
 {
-	ce_thread_sem_acquire(soundsystem->free_blocks, 1);
+	ce_semaphore_acquire(soundsystem->free_blocks, 1);
 	return soundsystem->blocks[soundsystem->next_block++ %
 								CE_SOUNDSYSTEM_BLOCK_COUNT];
 }
 
 void ce_soundsystem_unmap_block(ce_soundsystem* soundsystem)
 {
-	ce_thread_sem_release(soundsystem->used_blocks, 1);
+	ce_semaphore_release(soundsystem->used_blocks, 1);
 }

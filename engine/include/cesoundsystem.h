@@ -61,8 +61,8 @@ struct ce_soundsystem {
 	unsigned int sample_rate; // actual value supported by implementation/hardware
 	size_t next_block;
 	char blocks[CE_SOUNDSYSTEM_BLOCK_COUNT][CE_SOUNDSYSTEM_BLOCK_SIZE];
-	ce_thread_sem* free_blocks;
-	ce_thread_sem* used_blocks;
+	ce_semaphore* free_blocks;
+	ce_semaphore* used_blocks;
 	ce_thread* thread;
 	ce_soundsystem_vtable vtable;
 	char impl[];

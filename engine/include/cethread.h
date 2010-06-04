@@ -74,23 +74,25 @@ extern void ce_thread_once_del(ce_thread_once* once);
 
 extern void ce_thread_once_exec(ce_thread_once* once, void (*func)(), void* arg);
 
-// semaphore
+/*
+ *  A general counting semaphore.
+*/
 
 typedef struct {
 	size_t available;
 	ce_thread_mutex* mutex;
 	ce_thread_cond* cond;
-} ce_thread_sem;
+} ce_semaphore;
 
-extern ce_thread_sem* ce_thread_sem_new(size_t n);
-extern void ce_thread_sem_del(ce_thread_sem* sem);
+extern ce_semaphore* ce_semaphore_new(size_t n);
+extern void ce_semaphore_del(ce_semaphore* semaphore);
 
-extern size_t ce_thread_sem_available(const ce_thread_sem* sem);
+extern size_t ce_semaphore_available(const ce_semaphore* semaphore);
 
-extern void ce_thread_sem_acquire(ce_thread_sem* sem, size_t n);
-extern void ce_thread_sem_release(ce_thread_sem* sem, size_t n);
+extern void ce_semaphore_acquire(ce_semaphore* semaphore, size_t n);
+extern void ce_semaphore_release(ce_semaphore* semaphore, size_t n);
 
-extern bool ce_thread_sem_try_acquire(ce_thread_sem* sem, size_t n);
+extern bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n);
 
 // pool
 

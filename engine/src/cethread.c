@@ -24,60 +24,60 @@
 #include "celogging.h"
 #include "cethread.h"
 
-ce_thread_sem* ce_thread_sem_new(size_t n)
+ce_semaphore* ce_semaphore_new(size_t n)
 {
-	ce_thread_sem* sem = ce_alloc(sizeof(ce_thread_sem));
-	sem->available = n;
-	sem->mutex = ce_thread_mutex_new();
-	sem->cond = ce_thread_cond_new();
-	return sem;
+	ce_semaphore* semaphore = ce_alloc(sizeof(ce_semaphore));
+	semaphore->available = n;
+	semaphore->mutex = ce_thread_mutex_new();
+	semaphore->cond = ce_thread_cond_new();
+	return semaphore;
 }
 
-void ce_thread_sem_del(ce_thread_sem* sem)
+void ce_semaphore_del(ce_semaphore* semaphore)
 {
-	if (NULL != sem) {
-		ce_thread_cond_del(sem->cond);
-		ce_thread_mutex_del(sem->mutex);
-		ce_free(sem, sizeof(ce_thread_sem));
+	if (NULL != semaphore) {
+		ce_thread_cond_del(semaphore->cond);
+		ce_thread_mutex_del(semaphore->mutex);
+		ce_free(semaphore, sizeof(ce_semaphore));
 	}
 }
 
-size_t ce_thread_sem_available(const ce_thread_sem* sem)
+size_t ce_semaphore_available(const ce_semaphore* semaphore)
 {
-	ce_thread_mutex_lock(sem->mutex);
-	size_t n = sem->available;
-	ce_thread_mutex_unlock(sem->mutex);
+	ce_thread_mutex_lock(semaphore->mutex);
+	size_t n = semaphore->available;
+	ce_thread_mutex_unlock(semaphore->mutex);
 	return n;
 }
 
-void ce_thread_sem_acquire(ce_thread_sem* sem, size_t n)
+void ce_semaphore_acquire(ce_semaphore* semaphore, size_t n)
 {
-	ce_thread_mutex_lock(sem->mutex);
-	while (n > sem->available) {
-		ce_thread_cond_wait(sem->cond, sem->mutex);
+	ce_thread_mutex_lock(semaphore->mutex);
+	while (n > semaphore->available) {
+		ce_thread_cond_wait(semaphore->cond, semaphore->mutex);
 	}
-	sem->available -= n;
-	ce_thread_mutex_unlock(sem->mutex);
+	semaphore->available -= n;
+	ce_thread_mutex_unlock(semaphore->mutex);
 }
 
-void ce_thread_sem_release(ce_thread_sem* sem, size_t n)
+void ce_semaphore_release(ce_semaphore* semaphore, size_t n)
 {
-	ce_thread_mutex_lock(sem->mutex);
-	sem->available += n;
-	ce_thread_cond_wake_all(sem->cond);
-	ce_thread_mutex_unlock(sem->mutex);
+	ce_thread_mutex_lock(semaphore->mutex);
+	semaphore->available += n;
+	ce_thread_cond_wake_all(semaphore->cond);
+	ce_thread_mutex_unlock(semaphore->mutex);
 }
 
-bool ce_thread_sem_try_acquire(ce_thread_sem* sem, size_t n)
+bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n)
 {
-	ce_thread_mutex_lock(sem->mutex);
+	ce_thread_mutex_lock(semaphore->mutex);
 	bool result = true;
-	if (n > sem->available) {
+	if (n > semaphore->available) {
 		result = false;
 	} else {
-		sem->available -= n;
+		semaphore->available -= n;
 	}
-	ce_thread_mutex_unlock(sem->mutex);
+	ce_thread_mutex_unlock(semaphore->mutex);
 	return result;
 }
 
