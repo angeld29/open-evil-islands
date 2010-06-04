@@ -81,7 +81,7 @@ static bool ce_soundresource_vorbis_ctor(ce_soundresource* soundresource)
 
 	if (0 != ov_open_callbacks(soundresource->memfile, &vorbisresource->vf, NULL, 0,
 			(ov_callbacks){ce_vorbis_read, ce_vorbis_seek, NULL, ce_vorbis_tell})) {
-		ce_logging_error("soundresource: vorbis: input does not appear to be an ogg bitstream");
+		ce_logging_error("soundresource: vorbis: input does not appear to be an ogg vorbis audio");
 		return false;
 	}
 
@@ -171,64 +171,9 @@ typedef struct {
 	unsigned char input_buffer[CE_MAD_DATA_SIZE];
 } ce_soundresource_mad;
 
-/*typedef struct {
-	unsigned char start[CE_MAD_INPUT_BUFFER_CAPACITY +
-						CE_MAD_INPUT_BUFFER_GUARD];
-	unsigned long length;
-} ce_soundresource_mad_buffer;*/
-
-#if 0
-static enum mad_flow ce_soundresource_mad_test_input(void *data, struct mad_stream* stream)
-{
-	ce_soundresource_mad_buffer* buffer = data;
-
-	if (0 == buffer->length) {
-		return MAD_FLOW_STOP;
-	}
-
-	mad_stream_buffer(stream, buffer->start, buffer->length);
-	buffer->length = 0;
-
-	return MAD_FLOW_CONTINUE;
-}
-
-static enum mad_flow ce_soundresource_mad_test_error(void *data,
-	struct mad_stream* stream, struct mad_frame* frame)
-{
-	ce_logging_debug("ce_soundresource_mad_test_error: %s", mad_stream_errorstr(stream));
-	if (MAD_ERROR_LOSTSYNC == stream->error) {
-		return MAD_FLOW_CONTINUE;
-	}
-	return MAD_FLOW_BREAK;
-}
-
 static bool ce_soundresource_mad_test(ce_memfile* memfile)
 {
-	ce_soundresource_mad_buffer* buffer = ce_alloc_zero(sizeof(ce_soundresource_mad_buffer));
-	buffer->length = ce_memfile_read(memfile, buffer->start, 1, CE_MAD_INPUT_BUFFER_CAPACITY);
-
-	struct mad_decoder decoder;
-	mad_decoder_init(&decoder, buffer, ce_soundresource_mad_test_input,
-		NULL /* header */, NULL /* filter */, NULL /* output */,
-		ce_soundresource_mad_test_error, NULL /* message */);
-
-	int result = mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC);
-
-	mad_decoder_finish(&decoder);
-	ce_free(buffer, sizeof(ce_soundresource_mad_buffer));
-
-	ce_logging_debug("ce_soundresource_mad_test: %d", result);
-
-	return MAD_ERROR_NONE == result;
-}
-#endif
-
-static bool ce_soundresource_mad_test(ce_memfile* memfile)
-{
-	// TODO: stub
-	return true;
-
-	/*unsigned char* buffer = ce_alloc(CE_MAD_INPUT_BUFFER_CAPACITY);
+	unsigned char* buffer = ce_alloc(CE_MAD_INPUT_BUFFER_CAPACITY);
 	size_t size = ce_memfile_read(memfile, buffer, 1, CE_MAD_INPUT_BUFFER_CAPACITY);
 
 	struct mad_stream stream;
@@ -239,23 +184,21 @@ static bool ce_soundresource_mad_test(ce_memfile* memfile)
 
 	mad_stream_buffer(&stream, buffer, size);
 
-	int code;
-	while (-1 == (code = mad_header_decode(&header, &stream))) {
-		ce_logging_debug("ce_soundresource_mad_test: %s", mad_stream_errorstr(&stream));
+	while (-1 == mad_header_decode(&header, &stream)) {
+		if (!MAD_RECOVERABLE(stream.error)) {
+			break;
+		}
 	}
 
-	ce_logging_debug("ce_soundresource_mad_test: done %d", code);
-	ce_logging_debug("ce_soundresource_mad_test: layer %d", (int)header.layer);
-	ce_logging_debug("ce_soundresource_mad_test: bitrate %lu", header.bitrate);
-	ce_logging_debug("ce_soundresource_mad_test: samplerate %u", header.samplerate);
+	// libmad have no good test functions, so use these weak conditions
+	bool ok = MAD_ERROR_NONE == stream.error || MAD_RECOVERABLE(stream.error);
 
 	mad_header_finish(&header);
 	mad_stream_finish(&stream);
 
 	ce_free(buffer, CE_MAD_INPUT_BUFFER_CAPACITY);
 
-	assert(false);
-	return MAD_ERROR_NONE == code;*/
+	return ok;
 }
 
 static void ce_soundresource_mad_error(ce_soundresource_mad* madresource,
