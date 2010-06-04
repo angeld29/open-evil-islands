@@ -21,6 +21,7 @@
 #ifndef CE_STRING_H
 #define CE_STRING_H
 
+#include <stddef.h>
 #include <stdarg.h>
 #include <stdbool.h>
 
@@ -30,33 +31,43 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	int capacity;
-	int length;
+	size_t capacity;
+	size_t length;
 	char* str;
 } ce_string;
 
 extern ce_string* ce_string_new(void);
-extern ce_string* ce_string_new_reserved(int capacity);
+extern ce_string* ce_string_new_reserved(size_t capacity);
 extern ce_string* ce_string_new_str(const char* str);
-extern ce_string* ce_string_new_str_n(const char* str, int n);
+extern ce_string* ce_string_new_str_n(const char* str, size_t n);
 extern void ce_string_del(ce_string* string);
 
-extern void ce_string_reserve(ce_string* string, int capacity);
+extern void ce_string_reserve(ce_string* string, size_t capacity);
 
-extern bool ce_string_empty(const ce_string* string);
+static inline bool ce_string_empty(const ce_string* string)
+{
+	return 0 == string->length;
+}
 
-extern ce_string* ce_string_dup(const ce_string* string);
-extern ce_string* ce_string_dup_n(const ce_string* string, int n);
+static inline ce_string* ce_string_dup(const ce_string* string)
+{
+	return ce_string_new_str(string->str);
+}
+
+static inline ce_string* ce_string_dup_n(const ce_string* string, size_t n)
+{
+	return ce_string_new_str_n(string->str, n);
+}
 
 extern void ce_string_assign(ce_string* string, const char* str);
-extern void ce_string_assign_n(ce_string* string, const char* str, int n);
+extern void ce_string_assign_n(ce_string* string, const char* str, size_t n);
 extern void ce_string_assign_va(ce_string* string, const char* fmt, va_list args);
 extern void ce_string_assign_fmt(ce_string* string, const char* fmt, ...);
 
-extern int ce_string_append(ce_string* string, const char* str);
-extern int ce_string_append_n(ce_string* string, const char* str, int n);
-extern int ce_string_append_va(ce_string* string, const char* fmt, va_list args);
-extern int ce_string_append_fmt(ce_string* string, const char* fmt, ...);
+extern size_t ce_string_append(ce_string* string, const char* str);
+extern size_t ce_string_append_n(ce_string* string, const char* str, size_t n);
+extern size_t ce_string_append_va(ce_string* string, const char* fmt, va_list args);
+extern size_t ce_string_append_fmt(ce_string* string, const char* fmt, ...);
 
 #ifdef __cplusplus
 }
