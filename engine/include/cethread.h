@@ -94,7 +94,9 @@ extern void ce_semaphore_release(ce_semaphore* semaphore, size_t n);
 
 extern bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n);
 
-// pool
+/*
+ *  Thread pool pattern implementation.
+*/
 
 typedef struct {
 	bool done;
@@ -106,15 +108,15 @@ typedef struct {
 	ce_thread_cond* thread_cond;
 	ce_thread_cond* wait_one_cond;
 	ce_thread_cond* wait_all_cond;
-} ce_thread_pool;
+} ce_threadpool;
 
-extern ce_thread_pool* ce_thread_pool_new(size_t thread_count);
-extern void ce_thread_pool_del(ce_thread_pool* pool);
+extern ce_threadpool* ce_threadpool_new(size_t thread_count);
+extern void ce_threadpool_del(ce_threadpool* threadpool);
 
-extern void ce_thread_pool_enqueue(ce_thread_pool* pool, void (*func)(), void* arg);
+extern void ce_threadpool_enqueue(ce_threadpool* threadpool, void (*func)(), void* arg);
 
-extern void ce_thread_pool_wait_one(ce_thread_pool* pool);
-extern void ce_thread_pool_wait_all(ce_thread_pool* pool);
+extern void ce_threadpool_wait_one(ce_threadpool* threadpool);
+extern void ce_threadpool_wait_all(ce_threadpool* threadpool);
 
 #ifdef __cplusplus
 }

@@ -84,131 +84,131 @@ bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n)
 typedef struct {
 	void (*func)(void*);
 	void* arg;
-} ce_thread_cookie;
+} ce_poolcookie;
 
-static ce_thread_cookie* ce_thread_cookie_new(void)
+static ce_poolcookie* ce_poolcookie_new(void)
 {
-	return ce_alloc(sizeof(ce_thread_cookie));
+	return ce_alloc(sizeof(ce_poolcookie));
 }
 
-static void ce_thread_cookie_del(ce_thread_cookie* cookie)
+static void ce_poolcookie_del(ce_poolcookie* poolcookie)
 {
-	ce_free(cookie, sizeof(ce_thread_cookie));
+	ce_free(poolcookie, sizeof(ce_poolcookie));
 }
 
-static void ce_thread_pool_work(void* arg)
+static void ce_threadpool_work(ce_threadpool* threadpool)
 {
-	ce_thread_pool* pool = arg;
-	ce_thread_mutex_lock(pool->mutex);
+	ce_thread_mutex_lock(threadpool->mutex);
 
-	while (!pool->done) {
-		if (ce_vector_empty(pool->queue)) {
-			if (pool->idle_thread_count == pool->threads->count) {
-				ce_thread_cond_wake_one(pool->wait_all_cond);
+	while (!threadpool->done) {
+		if (ce_vector_empty(threadpool->queue)) {
+			if (threadpool->idle_thread_count == threadpool->threads->count) {
+				ce_thread_cond_wake_one(threadpool->wait_all_cond);
 			}
-			ce_thread_cond_wait(pool->thread_cond, pool->mutex);
+			ce_thread_cond_wait(threadpool->thread_cond, threadpool->mutex);
 		} else {
-			ce_thread_cookie* cookie = ce_vector_pop_back(pool->queue);
-			ce_vector_push_back(pool->cache, cookie);
+			ce_poolcookie* poolcookie = ce_vector_pop_back(threadpool->queue);
+			ce_vector_push_back(threadpool->cache, poolcookie);
 
-			void (*func)(void*) = cookie->func;
-			void* arg = cookie->arg;
+			void (*func)(void*) = poolcookie->func;
+			void* arg = poolcookie->arg;
 
-			--pool->idle_thread_count;
-			ce_thread_mutex_unlock(pool->mutex);
+			--threadpool->idle_thread_count;
+			ce_thread_mutex_unlock(threadpool->mutex);
 
 			(*func)(arg);
 
-			ce_thread_mutex_lock(pool->mutex);
-			++pool->idle_thread_count;
+			ce_thread_mutex_lock(threadpool->mutex);
+			++threadpool->idle_thread_count;
 
-			ce_thread_cond_wake_one(pool->wait_one_cond);
+			ce_thread_cond_wake_one(threadpool->wait_one_cond);
 		}
 	}
 
-	ce_thread_mutex_unlock(pool->mutex);
+	ce_thread_mutex_unlock(threadpool->mutex);
 }
 
-ce_thread_pool* ce_thread_pool_new(size_t thread_count)
+ce_threadpool* ce_threadpool_new(size_t thread_count)
 {
-	ce_thread_pool* pool = ce_alloc(sizeof(ce_thread_pool));
-	pool->done = false;
-	pool->idle_thread_count = thread_count;
-	pool->threads = ce_vector_new_reserved(thread_count);
-	pool->queue = ce_vector_new();
-	pool->cache = ce_vector_new();
-	pool->mutex = ce_thread_mutex_new();
-	pool->thread_cond = ce_thread_cond_new();
-	pool->wait_one_cond = ce_thread_cond_new();
-	pool->wait_all_cond = ce_thread_cond_new();
+	ce_threadpool* threadpool = ce_alloc(sizeof(ce_threadpool));
+	threadpool->done = false;
+	threadpool->idle_thread_count = thread_count;
+	threadpool->threads = ce_vector_new_reserved(thread_count);
+	threadpool->queue = ce_vector_new();
+	threadpool->cache = ce_vector_new();
+	threadpool->mutex = ce_thread_mutex_new();
+	threadpool->thread_cond = ce_thread_cond_new();
+	threadpool->wait_one_cond = ce_thread_cond_new();
+	threadpool->wait_all_cond = ce_thread_cond_new();
 
 	for (size_t i = 0; i < thread_count; ++i) {
-		ce_vector_push_back(pool->threads,
-			ce_thread_new(ce_thread_pool_work, pool));
+		ce_vector_push_back(threadpool->threads,
+			ce_thread_new(ce_threadpool_work, threadpool));
 	}
 
-	return pool;
+	return threadpool;
 }
 
-void ce_thread_pool_del(ce_thread_pool* pool)
+void ce_threadpool_del(ce_threadpool* threadpool)
 {
-	if (NULL != pool) {
-		ce_thread_mutex_lock(pool->mutex);
-		pool->done = true;
-		ce_thread_mutex_unlock(pool->mutex);
+	if (NULL != threadpool) {
+		ce_thread_mutex_lock(threadpool->mutex);
+		threadpool->done = true;
+		ce_thread_mutex_unlock(threadpool->mutex);
 
-		ce_thread_cond_wake_all(pool->thread_cond);
-		ce_vector_for_each(pool->threads, ce_thread_wait);
+		ce_thread_cond_wake_all(threadpool->thread_cond);
+		ce_vector_for_each(threadpool->threads, ce_thread_wait);
 
-		if (!ce_vector_empty(pool->queue)) {
-			ce_logging_warning("thread: "
-				"pool is being destroyed while queue is not empty");
+		if (!ce_vector_empty(threadpool->queue)) {
+			ce_logging_warning("threadpool: pool is being "
+								"destroyed while queue is not empty");
 		}
 
-		ce_thread_cond_del(pool->wait_all_cond);
-		ce_thread_cond_del(pool->wait_one_cond);
-		ce_thread_cond_del(pool->thread_cond);
-		ce_thread_mutex_del(pool->mutex);
+		ce_thread_cond_del(threadpool->wait_all_cond);
+		ce_thread_cond_del(threadpool->wait_one_cond);
+		ce_thread_cond_del(threadpool->thread_cond);
+		ce_thread_mutex_del(threadpool->mutex);
 
-		ce_vector_for_each(pool->cache, ce_thread_cookie_del);
-		ce_vector_for_each(pool->queue, ce_thread_cookie_del);
-		ce_vector_for_each(pool->threads, ce_thread_del);
+		ce_vector_for_each(threadpool->cache, ce_poolcookie_del);
+		ce_vector_for_each(threadpool->queue, ce_poolcookie_del);
+		ce_vector_for_each(threadpool->threads, ce_thread_del);
 
-		ce_vector_del(pool->cache);
-		ce_vector_del(pool->queue);
-		ce_vector_del(pool->threads);
+		ce_vector_del(threadpool->cache);
+		ce_vector_del(threadpool->queue);
+		ce_vector_del(threadpool->threads);
 
-		ce_free(pool, sizeof(ce_thread_pool));
+		ce_free(threadpool, sizeof(ce_threadpool));
 	}
 }
 
-void ce_thread_pool_enqueue(ce_thread_pool* pool, void (*func)(), void* arg)
+void ce_threadpool_enqueue(ce_threadpool* threadpool, void (*func)(), void* arg)
 {
-	ce_thread_mutex_lock(pool->mutex);
-	ce_thread_cookie* cookie = ce_vector_empty(pool->cache) ?
-		ce_thread_cookie_new() : ce_vector_pop_back(pool->cache);
-	cookie->func = func; cookie->arg = arg;
-	ce_vector_push_back(pool->queue, cookie);
-	ce_thread_cond_wake_one(pool->thread_cond);
-	ce_thread_mutex_unlock(pool->mutex);
+	ce_thread_mutex_lock(threadpool->mutex);
+	ce_poolcookie* poolcookie = ce_vector_empty(threadpool->cache) ?
+		ce_poolcookie_new() : ce_vector_pop_back(threadpool->cache);
+	poolcookie->func = func;
+	poolcookie->arg = arg;
+	ce_vector_push_back(threadpool->queue, poolcookie);
+	ce_thread_cond_wake_one(threadpool->thread_cond);
+	ce_thread_mutex_unlock(threadpool->mutex);
 }
 
-static void ce_thread_pool_wait(ce_thread_pool* pool, ce_thread_cond* cond)
+static void ce_threadpool_wait(ce_threadpool* threadpool, ce_thread_cond* cond)
 {
-	ce_thread_mutex_lock(pool->mutex);
-	if (!ce_vector_empty(pool->queue) ||
-			pool->idle_thread_count != pool->threads->count) {
-		ce_thread_cond_wait(cond, pool->mutex);
+	ce_thread_mutex_lock(threadpool->mutex);
+	if (!ce_vector_empty(threadpool->queue) ||
+			threadpool->idle_thread_count != threadpool->threads->count) {
+		ce_thread_cond_wait(cond, threadpool->mutex);
 	}
-	ce_thread_mutex_unlock(pool->mutex);
+	ce_thread_mutex_unlock(threadpool->mutex);
 }
 
-void ce_thread_pool_wait_one(ce_thread_pool* pool)
+void ce_threadpool_wait_one(ce_threadpool* threadpool)
 {
-	ce_thread_pool_wait(pool, pool->wait_one_cond);
+	ce_threadpool_wait(threadpool, threadpool->wait_one_cond);
 }
 
-void ce_thread_pool_wait_all(ce_thread_pool* pool)
+void ce_threadpool_wait_all(ce_threadpool* threadpool)
 {
-	ce_thread_pool_wait(pool, pool->wait_all_cond);
+	ce_threadpool_wait(threadpool, threadpool->wait_all_cond);
 }

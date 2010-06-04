@@ -57,7 +57,7 @@ typedef struct {
 	ce_terrain* terrain;
 	ce_texmng* texmng;
 	ce_rendergroup* rendergroups[CE_MPRFILE_MATERIAL_COUNT];
-	ce_thread_pool* pool;
+	ce_threadpool* threadpool;
 	ce_thread_mutex* mutex;
 	ce_thread_once* once;
 	ce_vector* tile_mmpfiles;
@@ -79,7 +79,7 @@ static ce_terrain_cookie* ce_terrain_cookie_new(ce_terrain* terrain,
 	cookie->rendergroups[CE_MPRFILE_MATERIAL_WATER] =
 		ce_renderqueue_get(renderqueue, 100,
 							terrain->materials[CE_MPRFILE_MATERIAL_WATER]);
-	cookie->pool = ce_thread_pool_new(ce_root.thread_count);
+	cookie->threadpool = ce_threadpool_new(ce_root.thread_count);
 	cookie->mutex = ce_thread_mutex_new();
 	cookie->once = ce_thread_once_new();
 	cookie->tile_mmpfiles = ce_vector_new_reserved(terrain->mprfile->texture_count);
@@ -98,7 +98,7 @@ static void ce_terrain_cookie_del(ce_terrain_cookie* cookie)
 		ce_vector_del(cookie->tile_mmpfiles);
 		ce_thread_once_del(cookie->once);
 		ce_thread_mutex_del(cookie->mutex);
-		ce_thread_pool_del(cookie->pool);
+		ce_threadpool_del(cookie->threadpool);
 		ce_free(cookie, sizeof(ce_terrain_cookie));
 	}
 }
@@ -254,7 +254,7 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 		sector->renderlayer = ce_rendergroup_get(rendergroup, sector->texture);
 	} else {
 		// enqueue mmp file loading or generation
-		ce_thread_pool_enqueue(cookie->pool, ce_terrain_process_portion,
+		ce_threadpool_enqueue(cookie->threadpool, ce_terrain_process_portion,
 			ce_terrain_portion_new(cookie, name, index, x, z, water));
 		++cookie->queued_portion_count;
 
@@ -350,7 +350,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_texmng* texmng,
 		ce_thread_mutex_unlock(cookie->mutex);
 
 		ce_terrain_load_portions(cookie);
-		ce_thread_pool_wait_one(cookie->pool);
+		ce_threadpool_wait_one(cookie->threadpool);
 
 		ce_thread_mutex_lock(cookie->mutex);
 	}
