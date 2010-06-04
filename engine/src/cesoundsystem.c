@@ -42,6 +42,7 @@ static void ce_soundsystem_exec(ce_soundsystem* soundsystem)
 ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable)
 {
 	ce_soundsystem* soundsystem = ce_alloc_zero(sizeof(ce_soundsystem) + vtable.size);
+	soundsystem->sample_rate = CE_SOUNDSYSTEM_SAMPLE_RATE;
 	soundsystem->vtable = vtable;
 
 	soundsystem->free_blocks = ce_thread_sem_new(CE_SOUNDSYSTEM_BLOCK_COUNT);
@@ -52,6 +53,12 @@ ce_soundsystem* ce_soundsystem_new(ce_soundsystem_vtable vtable)
 	if (!(*vtable.ctor)(soundsystem)) {
 		ce_soundsystem_del(soundsystem);
 		return NULL;
+	}
+
+	if (CE_SOUNDSYSTEM_SAMPLE_RATE != soundsystem->sample_rate) {
+		ce_logging_warning("soundsystem: sample rate %u Hz not supported "
+							"by the implementation/hardware, using %u Hz",
+							CE_SOUNDSYSTEM_SAMPLE_RATE, soundsystem->sample_rate);
 	}
 
 	return soundsystem;

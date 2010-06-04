@@ -130,17 +130,11 @@ static int ce_soundsystem_alsa_set_params(ce_soundsystem* soundsystem)
 		return code;
 	}
 
-	unsigned int rate = CE_SOUNDSYSTEM_SAMPLE_RATE;
-
 	// set the stream rate
-	code = snd_pcm_hw_params_set_rate_near(alsasystem->handle, hwparams, &rate, &dir);
+	code = snd_pcm_hw_params_set_rate_near(alsasystem->handle, hwparams, &soundsystem->sample_rate, &dir);
 	if (code < 0) {
-		ce_logging_error("soundsystem: rate %u Hz not available for playback", CE_SOUNDSYSTEM_SAMPLE_RATE);
+		ce_logging_error("soundsystem: sample rate %u Hz not available for playback", CE_SOUNDSYSTEM_SAMPLE_RATE);
 		return code;
-	}
-
-	if (rate != CE_SOUNDSYSTEM_SAMPLE_RATE) {
-		ce_logging_warning("soundsystem: sample rate %u Hz not supported by the hardware, using %u Hz", CE_SOUNDSYSTEM_SAMPLE_RATE, rate);
 	}
 
 	// ring buffer length in us

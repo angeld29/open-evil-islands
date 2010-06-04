@@ -58,6 +58,7 @@ typedef struct {
 
 struct ce_soundsystem {
 	volatile bool done;
+	unsigned int sample_rate; // actual value supported by implementation/hardware
 	size_t next_block;
 	char blocks[CE_SOUNDSYSTEM_BLOCK_COUNT][CE_SOUNDSYSTEM_BLOCK_SIZE];
 	ce_thread_sem* free_blocks;
