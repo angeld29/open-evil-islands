@@ -219,7 +219,7 @@ static bool ce_soundsystem_alsa_ctor(ce_soundsystem* soundsystem)
 {
 	ce_soundsystem_alsa* alsasystem = (ce_soundsystem_alsa*)soundsystem->impl;
 
-	ce_logging_write("soundsystem: using alsa (Advanced Linux Sound Architecture)");
+	ce_logging_write("soundsystem: using ALSA (Advanced Linux Sound Architecture)");
 
 	snd_lib_error_set_handler(ce_soundsystem_alsa_error_handler);
 
