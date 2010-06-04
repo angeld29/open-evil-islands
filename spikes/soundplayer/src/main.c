@@ -74,8 +74,10 @@ int main(int argc, char* argv[])
 	}
 
 	const char *track1, *track2;
-	ce_optparse_get(optparse, "track1", &track1);
-	ce_optparse_get(optparse, "track2", &track2);
+	//ce_optparse_get(optparse, "track1", &track1);
+	//ce_optparse_get(optparse, "track2", &track2);
+	ce_optparse_get(optparse, "track2", &track1);
+	ce_optparse_get(optparse, "track1", &track2);
 
 	ce_memfile* memfile1 = ce_memfile_open_path(track1);
 	if (NULL == memfile1) {
