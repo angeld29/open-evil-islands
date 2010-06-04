@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 	srand(time(NULL));
 
 	// play random animations
-	for (int i = 0; i < ce_root.scenemng->figmng->figentities->count; ++i) {
+	for (size_t i = 0; i < ce_root.scenemng->figmng->figentities->count; ++i) {
 		ce_figentity* figentity = ce_root.scenemng->figmng->figentities->items[i];
 		int anm_count = ce_figentity_get_animation_count(figentity);
 		if (anm_count > 0) {

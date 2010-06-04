@@ -34,7 +34,7 @@
 
 static void ce_mobfile_decrypt_script(char* data, size_t size, uint32_t key)
 {
-	for (int i = 0, n = size; i < n; ++i) {
+	for (size_t i = 0; i < size; ++i) {
 		key += (((((key * 13) << 4) + key) << 8) - key) * 4 + 2531011;
 		data[i] ^= key >> 16;
 	}
@@ -370,8 +370,8 @@ static const ce_mobfile_block_pair ce_mobfile_block_pairs[] = {
 static ce_mobfile_block_callback
 ce_mobfile_block_callback_choose(unsigned int type)
 {
-	for (int i = 0, n = sizeof(ce_mobfile_block_pairs) /
-						sizeof(ce_mobfile_block_pairs[0]); i < n; ++i) {
+	for (size_t i = 0; i < sizeof(ce_mobfile_block_pairs) /
+							sizeof(ce_mobfile_block_pairs[0]); ++i) {
 		if (ce_mobfile_block_pairs[i].type == type) {
 			return ce_mobfile_block_pairs[i].callback;
 		}
@@ -519,7 +519,7 @@ void ce_mobfile_close(ce_mobfile* mob)
 {
 	if (NULL != mob) {
 		if (NULL != mob->objects) {
-			for (int i = 0; i < mob->objects->count; ++i) {
+			for (size_t i = 0; i < mob->objects->count; ++i) {
 				ce_mobobject_object* object = mob->objects->items[i];
 				ce_vector_for_each(object->parts, ce_string_del);
 				ce_string_del(object->quest_info);

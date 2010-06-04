@@ -59,7 +59,7 @@ bool ce_anmstate_play_animation(ce_anmstate* anmstate,
 								ce_vector* anmfiles,
 								const char* name)
 {
-	for (int i = 0; i < anmfiles->count; ++i) {
+	for (size_t i = 0; i < anmfiles->count; ++i) {
 		ce_anmfile* anmfile = anmfiles->items[i];
 		if (0 == ce_strcasecmp(name, anmfile->name->str)) {
 			assert(anmfile->rotation_frame_count ==

@@ -133,9 +133,9 @@ ce_cfgfile* ce_cfgfile_open(const char* path)
 void ce_cfgfile_close(ce_cfgfile* cfg)
 {
 	if (NULL != cfg) {
-		for (int i = 0; i < cfg->sections->count; ++i) {
+		for (size_t i = 0; i < cfg->sections->count; ++i) {
 			ce_cfgsection* sec = cfg->sections->items[i];
-			for (int j = 0; j < sec->options->count; ++j) {
+			for (size_t j = 0; j < sec->options->count; ++j) {
 				ce_cfgoption* opt = sec->options->items[j];
 				ce_string_del(opt->value);
 				ce_string_del(opt->name);
@@ -152,7 +152,7 @@ void ce_cfgfile_close(ce_cfgfile* cfg)
 
 int ce_cfgfile_section_index(ce_cfgfile* cfg, const char* section_name)
 {
-	for (int i = 0; i < cfg->sections->count; ++i) {
+	for (size_t i = 0; i < cfg->sections->count; ++i) {
 		ce_cfgsection* sec = cfg->sections->items[i];
 		if (0 == strcmp(section_name, sec->name->str)) {
 			return i;
@@ -165,7 +165,7 @@ int ce_cfgfile_option_index(ce_cfgfile* cfg, int section_index,
 											const char* option_name)
 {
 	ce_cfgsection* sec = cfg->sections->items[section_index];
-	for (int i = 0; i < sec->options->count; ++i) {
+	for (size_t i = 0; i < sec->options->count; ++i) {
 		ce_cfgoption* opt = sec->options->items[i];
 		if (0 == strcmp(option_name, opt->name->str)) {
 			return i;

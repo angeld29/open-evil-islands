@@ -73,7 +73,7 @@ void ce_optparse_set_standard_properties(ce_optparse* optparse,
 bool ce_optparse_get(ce_optparse* optparse, const char* name, void* value)
 {
 	const char* tmp;
-	for (int i = 0; i < optparse->argobjects->count; ++i) {
+	for (size_t i = 0; i < optparse->argobjects->count; ++i) {
 		ce_object* object = optparse->argobjects->items[i];
 		ce_value_get(ce_object_find(object, "name")->value, &tmp);
 		if (0 == strcmp(name, tmp)) {
@@ -261,7 +261,7 @@ static void ce_optparse_usage(ce_optparse* optparse,
 		void* ctrltable[optparse->ctrlobjects->count + 1];
 		ctrltable[optparse->ctrlobjects->count] = arg_end(0);
 
-		for (int i = 0; i < optparse->ctrlobjects->count; ++i) {
+		for (size_t i = 0; i < optparse->ctrlobjects->count; ++i) {
 			ce_object* object = optparse->ctrlobjects->items[i];
 			ce_value_get(ce_object_find(object, "name")->value, &name);
 			ce_value_get(ce_object_find(object, "glossary")->value, &glossary);
@@ -280,7 +280,7 @@ bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[])
 	void* argtable[optparse->argobjects->count + 1];
 	argtable[optparse->argobjects->count] = arg_end(3);
 
-	for (int i = 0; i < optparse->argobjects->count; ++i) {
+	for (size_t i = 0; i < optparse->argobjects->count; ++i) {
 		ce_object* object = optparse->argobjects->items[i];
 		ce_type type = ce_object_find(object, "value")->value->type;
 		argtable[i] = (*ce_optparse_create_procs[type])(object);
@@ -288,7 +288,7 @@ bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[])
 
 	int error_count = arg_parse(argc, argv, argtable);
 
-	for (int i = 0; i < optparse->argobjects->count; ++i) {
+	for (size_t i = 0; i < optparse->argobjects->count; ++i) {
 		ce_object* object = optparse->argobjects->items[i];
 		ce_type type = ce_object_find(object, "value")->value->type;
 		(*ce_optparse_assign_procs[type])(object, argtable[i]);

@@ -53,7 +53,7 @@ void ce_renderlayer_render(ce_renderlayer* renderlayer,
 {
 	if (!ce_vector_empty(renderlayer->renderitems)) {
 		ce_texture_bind(renderlayer->texture);
-		for (int i = 0; i < renderlayer->renderitems->count; ++i) {
+		for (size_t i = 0; i < renderlayer->renderitems->count; ++i) {
 			ce_renderitem* renderitem = renderlayer->renderitems->items[i];
 			if (renderitem->visible) {
 				ce_rendersystem_apply_transform(rendersystem,

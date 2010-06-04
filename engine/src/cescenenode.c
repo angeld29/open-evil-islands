@@ -45,7 +45,7 @@ void ce_scenenode_del(ce_scenenode* scenenode)
 {
 	if (NULL != scenenode) {
 		ce_scenenode_detach_from_parent(scenenode);
-		for (int i = 0; i < scenenode->childs->count; ++i) {
+		for (size_t i = 0; i < scenenode->childs->count; ++i) {
 			ce_scenenode* child = scenenode->childs->items[i];
 			child->parent = NULL;
 			ce_scenenode_del(child);
@@ -65,7 +65,6 @@ void ce_scenenode_detach_from_parent(ce_scenenode* scenenode)
 {
 	if (NULL != scenenode->parent) {
 		ce_scenenode_detach_child(scenenode->parent, scenenode);
-		scenenode->parent = NULL;
 		if (NULL != scenenode->listener.detached) {
 			(*scenenode->listener.detached)(scenenode->listener.listener);
 		}
@@ -74,11 +73,8 @@ void ce_scenenode_detach_from_parent(ce_scenenode* scenenode)
 
 void ce_scenenode_detach_child(ce_scenenode* scenenode, ce_scenenode* child)
 {
-	int index = ce_vector_find(scenenode->childs, child);
-	if (-1 != index) {
-		child->parent = NULL;
-		ce_vector_remove(scenenode->childs, index);
-	}
+	child->parent = NULL;
+	ce_vector_remove_all(scenenode->childs, child);
 }
 
 void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
@@ -94,7 +90,7 @@ int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode)
 	}
 
 	int count = 1;
-	for (int i = 0; i < scenenode->childs->count; ++i) {
+	for (size_t i = 0; i < scenenode->childs->count; ++i) {
 		count += ce_scenenode_count_visible_cascade(scenenode->childs->items[i]);
 	}
 
@@ -119,7 +115,7 @@ static void ce_scenenode_update_transform(ce_scenenode* scenenode)
 					&scenenode->orientation);
 	}
 
-	for (int i = 0; i < scenenode->renderitems->count; ++i) {
+	for (size_t i = 0; i < scenenode->renderitems->count; ++i) {
 		ce_renderitem* renderitem = scenenode->renderitems->items[i];
 		ce_vec3_rot(&renderitem->world_position,
 					&renderitem->position,
@@ -137,7 +133,7 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 {
 	ce_bbox_clear(&scenenode->world_bbox);
 
-	for (int i = 0; i < scenenode->renderitems->count; ++i) {
+	for (size_t i = 0; i < scenenode->renderitems->count; ++i) {
 		ce_renderitem* renderitem = scenenode->renderitems->items[i];
 		if (renderitem->visible) {
 			renderitem->world_bbox.aabb = renderitem->bbox.aabb;
@@ -156,7 +152,7 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
 		}
 	}
 
-	for (int i = 0; i < scenenode->childs->count; ++i) {
+	for (size_t i = 0; i < scenenode->childs->count; ++i) {
 		ce_scenenode* child = scenenode->childs->items[i];
 		ce_bbox_merge(&scenenode->world_bbox, &child->world_bbox);
 	}
@@ -171,7 +167,7 @@ void ce_scenenode_update_force_cascade(ce_scenenode* scenenode)
 	}
 
 	ce_scenenode_update_transform(scenenode);
-	for (int i = 0; i < scenenode->childs->count; ++i) {
+	for (size_t i = 0; i < scenenode->childs->count; ++i) {
 		ce_scenenode_update_force_cascade(scenenode->childs->items[i]);
 	}
 	ce_scenenode_update_bounds(scenenode);
@@ -202,7 +198,7 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode, const ce_frustum* frus
 		}
 
 		ce_scenenode_update_transform(scenenode);
-		for (int i = 0; i < scenenode->childs->count; ++i) {
+		for (size_t i = 0; i < scenenode->childs->count; ++i) {
 			ce_scenenode_update_cascade(scenenode->childs->items[i], frustum);
 		}
 		ce_scenenode_update_bounds(scenenode);
@@ -227,7 +223,7 @@ void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode)
 		ce_scenenode_draw_bbox(&scenenode->world_bbox);
 
 		if (!ce_root.comprehensive_bbox_only) {
-			for (int i = 0; i < scenenode->renderitems->count; ++i) {
+			for (size_t i = 0; i < scenenode->renderitems->count; ++i) {
 				ce_renderitem* renderitem = scenenode->renderitems->items[i];
 				if (renderitem->visible) {
 					ce_scenenode_draw_bbox(&renderitem->world_bbox);
@@ -235,7 +231,7 @@ void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode)
 			}
 		}
 
-		for (int i = 0; i < scenenode->childs->count; ++i) {
+		for (size_t i = 0; i < scenenode->childs->count; ++i) {
 			ce_scenenode_draw_bboxes_cascade(scenenode->childs->items[i]);
 		}
 	}

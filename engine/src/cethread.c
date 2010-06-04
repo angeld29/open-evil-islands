@@ -129,7 +129,7 @@ static void ce_thread_pool_work(void* arg)
 	ce_thread_mutex_unlock(pool->mutex);
 }
 
-ce_thread_pool* ce_thread_pool_new(int thread_count)
+ce_thread_pool* ce_thread_pool_new(size_t thread_count)
 {
 	ce_thread_pool* pool = ce_alloc(sizeof(ce_thread_pool));
 	pool->done = false;
@@ -142,7 +142,7 @@ ce_thread_pool* ce_thread_pool_new(int thread_count)
 	pool->wait_one_cond = ce_thread_cond_new();
 	pool->wait_all_cond = ce_thread_cond_new();
 
-	for (int i = 0; i < thread_count; ++i) {
+	for (size_t i = 0; i < thread_count; ++i) {
 		ce_vector_push_back(pool->threads,
 			ce_thread_new(ce_thread_pool_work, pool));
 	}

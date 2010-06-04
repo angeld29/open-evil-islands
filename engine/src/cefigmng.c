@@ -33,7 +33,7 @@
 static void ce_figmng_notify_figproto_created(ce_vector* listeners,
 											ce_figproto* figproto)
 {
-	for (int i = 0; i < listeners->count; ++i) {
+	for (size_t i = 0; i < listeners->count; ++i) {
 		ce_figmng_listener* listener = listeners->items[i];
 		if (NULL != listener->figproto_created) {
 			(*listener->figproto_created)(listener->listener, figproto);
@@ -44,7 +44,7 @@ static void ce_figmng_notify_figproto_created(ce_vector* listeners,
 static void ce_figmng_notify_figmesh_created(ce_vector* listeners,
 											ce_figmesh* figmesh)
 {
-	for (int i = 0; i < listeners->count; ++i) {
+	for (size_t i = 0; i < listeners->count; ++i) {
 		ce_figmng_listener* listener = listeners->items[i];
 		if (NULL != listener->figmesh_created) {
 			(*listener->figmesh_created)(listener->listener, figmesh);
@@ -102,7 +102,7 @@ void ce_figmng_add_listener(ce_figmng* figmng,
 
 static ce_figproto* ce_figmng_get_figproto(ce_figmng* figmng, const char* name)
 {
-	for (int i = 0; i < figmng->figprotos->count; ++i) {
+	for (size_t i = 0; i < figmng->figprotos->count; ++i) {
 		ce_figproto* figproto = figmng->figprotos->items[i];
 		if (0 == ce_strcasecmp(name, figproto->name->str)) {
 			return figproto;
@@ -113,7 +113,7 @@ static ce_figproto* ce_figmng_get_figproto(ce_figmng* figmng, const char* name)
 	char file_name[strlen(name) + 4 + 1];
 	snprintf(file_name, sizeof(file_name), "%s.mod", name);
 
-	for (int i = 0; i < figmng->resfiles->count; ++i) {
+	for (size_t i = 0; i < figmng->resfiles->count; ++i) {
 		ce_resfile* resfile = figmng->resfiles->items[i];
 		if (-1 != ce_resfile_node_index(resfile, file_name)) {
 			ce_figproto* figproto = ce_figproto_new(name, resfile);
@@ -131,7 +131,7 @@ static ce_figmesh* ce_figmng_get_figmesh(ce_figmng* figmng,
 										const char* name,
 										const ce_complection* complection)
 {
-	for (int i = 0; i < figmng->figmeshes->count; ++i) {
+	for (size_t i = 0; i < figmng->figmeshes->count; ++i) {
 		ce_figmesh* figmesh = figmng->figmeshes->items[i];
 		if (0 == ce_strcasecmp(name, figmesh->figproto->name->str) &&
 				ce_complection_equal(complection, &figmesh->complection)) {
@@ -178,9 +178,6 @@ ce_figentity* ce_figmng_create_figentity(ce_figmng* figmng,
 void ce_figmng_remove_figentity(ce_figmng* figmng,
 								ce_figentity* figentity)
 {
-	int index = ce_vector_find(figmng->figentities, figentity);
-	if (-1 != index) {
-		ce_vector_remove_unordered(figmng->figentities, index);
-	}
+	ce_vector_remove_all(figmng->figentities, figentity);
 	ce_figentity_del(figentity);
 }

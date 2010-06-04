@@ -40,7 +40,7 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 	fignode->rendergroup = NULL;
 	fignode->childs = ce_vector_new();
 
-	for (int i = 0; i < anm_resfiles->count; ++i) {
+	for (size_t i = 0; i < anm_resfiles->count; ++i) {
 		ce_resfile* anm_resfile = anm_resfiles->items[i];
 		int anm_index = ce_resfile_node_index(anm_resfile, fignode->name->str);
 		if (-1 != anm_index) {
@@ -80,7 +80,7 @@ void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode,
 	fignode->rendergroup = ce_renderqueue_get(renderqueue,
 		fignode->figfile->material_group, fignode->material);
 
-	for (int i = 0; i < fignode->childs->count; ++i) {
+	for (size_t i = 0; i < fignode->childs->count; ++i) {
 		ce_fignode_accept_renderqueue_cascade(fignode->childs->items[i],
 															renderqueue);
 	}

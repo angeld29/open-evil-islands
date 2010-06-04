@@ -44,7 +44,7 @@ void ce_soundmanager_advance(ce_soundmanager* soundmanager, float elapsed)
 {
 	//ce_unused(elapsed);
 
-	//for (int i = 0; i < soundmanager->soundinstances->count; ++i) {
+	//for (size_t i = 0; i < soundmanager->soundinstances->count; ++i) {
 	//	ce_soundinstance* instance = soundmanager->instances->items[i];
 	//	ce_vector_remove_unordered(soundmanager->instances, i--);
 	//}

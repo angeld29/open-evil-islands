@@ -55,7 +55,7 @@ static int ce_renderqueue_comp(const void* lhs, const void* rhs)
 ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue,
 									int priority, ce_material* material)
 {
-	for (int i = 0; i < renderqueue->rendergroups->count; ++i) {
+	for (size_t i = 0; i < renderqueue->rendergroups->count; ++i) {
 		ce_rendergroup* rendergroup = renderqueue->rendergroups->items[i];
 		if (priority == rendergroup->priority) {
 			rendergroup->material = material;
@@ -76,7 +76,7 @@ ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue,
 void ce_renderqueue_render(ce_renderqueue* renderqueue,
 							ce_rendersystem* rendersystem)
 {
-	for (int i = 0; i < renderqueue->rendergroups->count; ++i) {
+	for (size_t i = 0; i < renderqueue->rendergroups->count; ++i) {
 		ce_rendergroup_render(renderqueue->rendergroups->items[i], rendersystem);
 	}
 }

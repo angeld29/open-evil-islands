@@ -93,7 +93,7 @@ void ce_displaymng_del(ce_displaymng* displaymng)
 
 void ce_displaymng_dump_supported_modes_to_stdout(ce_displaymng* displaymng)
 {
-	for (int i = 0; i < displaymng->supported_modes->count; ++i) {
+	for (size_t i = 0; i < displaymng->supported_modes->count; ++i) {
 		ce_displaymode* mode = displaymng->supported_modes->items[i];
 		fprintf(stdout, "%dx%d:%d@%d\n", mode->width, mode->height,
 											mode->bpp, mode->rate);
@@ -116,7 +116,7 @@ void ce_displaymng_dump_supported_reflections_to_stdout(ce_displaymng* displaymn
 		CE_DISPLAY_REFLECTION_Y & displaymng->supported_reflection ? "yes" : "no");
 }
 
-int ce_displaymng_enter(ce_displaymng* displaymng,
+size_t ce_displaymng_enter(ce_displaymng* displaymng,
 							int width, int height, int bpp, int rate,
 							ce_display_rotation rotation,
 							ce_display_reflection reflection)
@@ -129,7 +129,7 @@ int ce_displaymng_enter(ce_displaymng* displaymng,
 	int best_width = width, best_height = height;
 	int best_bpp = bpp, best_rate = rate;
 
-	for (int i = 0; i < displaymng->supported_modes->count; ++i) {
+	for (size_t i = 0; i < displaymng->supported_modes->count; ++i) {
 		ce_displaymode* mode = displaymng->supported_modes->items[i];
 		if (width <= 0) best_width = ce_max(best_width, mode->width);
 		if (height <= 0) best_height = ce_max(best_height, mode->height);
@@ -144,9 +144,9 @@ int ce_displaymng_enter(ce_displaymng* displaymng,
 	int best_bpp_score = INT_MAX, best_rate_score = INT_MAX;
 
 	// pass 1: find best width and height
-	for (int i = 0, score; i < displaymng->supported_modes->count; ++i) {
+	for (size_t i = 0; i < displaymng->supported_modes->count; ++i) {
 		ce_displaymode* mode = displaymng->supported_modes->items[i];
-		score = (width - mode->width) * (width - mode->width) +
+		int score = (width - mode->width) * (width - mode->width) +
 				(height - mode->height) * (height - mode->height);
 		if (score < best_size_score) {
 			best_width = mode->width;
@@ -156,10 +156,10 @@ int ce_displaymng_enter(ce_displaymng* displaymng,
 	}
 
 	// pass 2: find best bpp and rate
-	for (int i = 0, score; i < displaymng->supported_modes->count; ++i) {
+	for (size_t i = 0; i < displaymng->supported_modes->count; ++i) {
 		ce_displaymode* mode = displaymng->supported_modes->items[i];
 		if (best_width == mode->width && best_height == mode->height) {
-			score = abs(bpp - mode->bpp);
+			int score = abs(bpp - mode->bpp);
 			if (score < best_bpp_score) {
 				best_bpp = mode->bpp;
 				best_bpp_score = score;
@@ -181,7 +181,7 @@ int ce_displaymng_enter(ce_displaymng* displaymng,
 	}
 
 	// pass 3: find index
-	int index;
+	size_t index;
 	for (index = 0; index < displaymng->supported_modes->count; ++index) {
 		ce_displaymode* mode = displaymng->supported_modes->items[index];
 		if (best_width == mode->width && best_height == mode->height &&

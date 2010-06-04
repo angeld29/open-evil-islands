@@ -47,7 +47,7 @@ void ce_rendergroup_clear(ce_rendergroup* rendergroup)
 ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup,
 									ce_texture* texture)
 {
-	for (int i = 0; i < rendergroup->renderlayers->count; ++i) {
+	for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
 		ce_renderlayer* renderlayer = rendergroup->renderlayers->items[i];
 		if (ce_texture_equal(texture, renderlayer->texture)) {
 			return renderlayer;
@@ -64,13 +64,13 @@ void ce_rendergroup_render(ce_rendergroup* rendergroup,
 							ce_rendersystem* rendersystem)
 {
 	bool empty = true;
-	for (int i = 0; i < rendergroup->renderlayers->count; ++i) {
+	for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
 		ce_renderlayer* renderlayer = rendergroup->renderlayers->items[i];
 		empty = empty && ce_vector_empty(renderlayer->renderitems);
 	}
 	if (!empty) {
 		ce_rendersystem_apply_material(rendersystem, rendergroup->material);
-		for (int i = 0; i < rendergroup->renderlayers->count; ++i) {
+		for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
 			ce_renderlayer_render(rendergroup->renderlayers->items[i], rendersystem);
 		}
 		ce_rendersystem_discard_material(rendersystem, rendergroup->material);

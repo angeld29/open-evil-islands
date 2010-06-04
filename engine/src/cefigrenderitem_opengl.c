@@ -375,7 +375,7 @@ ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode,
 									const ce_complection* complection)
 {
 	bool has_morphing = false;
-	for (int i = 0; i < fignode->anmfiles->count; ++i) {
+	for (size_t i = 0; i < fignode->anmfiles->count; ++i) {
 		ce_anmfile* anmfile = fignode->anmfiles->items[i];
 		has_morphing = has_morphing || NULL != anmfile->morphs;
 	}

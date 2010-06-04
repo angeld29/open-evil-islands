@@ -75,7 +75,7 @@ static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
 	}
 }
 
-static void ce_xf86vmmng_enter(ce_displaymng* displaymng, int index,
+static void ce_xf86vmmng_enter(ce_displaymng* displaymng, size_t index,
 	ce_display_rotation rotation, ce_display_reflection reflection)
 {
 	ce_unused(rotation), ce_unused(reflection);
@@ -245,7 +245,7 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
 	}
 }
 
-static void ce_xrrmng_enter(ce_displaymng* displaymng, int index,
+static void ce_xrrmng_enter(ce_displaymng* displaymng, size_t index,
 	ce_display_rotation rotation, ce_display_reflection reflection)
 {
 	ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;

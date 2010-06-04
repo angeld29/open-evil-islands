@@ -38,7 +38,7 @@ ce_figbone* ce_figbone_new(const ce_fignode* fignode,
 	ce_fighlp_get_bone(&figbone->position, fignode->figfile,
 						fignode->bonfile, complection);
 
-	for (int i = 0; i < fignode->childs->count; ++i) {
+	for (size_t i = 0; i < fignode->childs->count; ++i) {
 		ce_vector_push_back(figbone->childs, ce_figbone_new(
 			fignode->childs->items[i], complection, figbone));
 	}
@@ -60,7 +60,7 @@ void ce_figbone_advance(ce_figbone* figbone, float distance)
 {
 	ce_anmstate_advance(figbone->anmstate, distance);
 
-	for (int i = 0; i < figbone->childs->count; ++i) {
+	for (size_t i = 0; i < figbone->childs->count; ++i) {
 		ce_figbone_advance(figbone->childs->items[i], distance);
 	}
 }
@@ -124,7 +124,7 @@ void ce_figbone_update(ce_figbone* figbone,
 
 	ce_figbone_update_transform(figbone, renderitem);
 
-	for (int i = 0; i < figbone->childs->count; ++i) {
+	for (size_t i = 0; i < figbone->childs->count; ++i) {
 		ce_figbone_update(figbone->childs->items[i],
 							fignode->childs->items[i], renderitems);
 	}
@@ -141,7 +141,7 @@ bool ce_figbone_play_animation(ce_figbone* figbone,
 	bool ok = ce_anmstate_play_animation(
 		figbone->anmstate, fignode->anmfiles, name);
 
-	for (int i = 0; i < figbone->childs->count; ++i) {
+	for (size_t i = 0; i < figbone->childs->count; ++i) {
 		ok = ce_figbone_play_animation(figbone->childs->items[i],
 				fignode->childs->items[i], name) || ok;
 	}
@@ -154,7 +154,7 @@ void ce_figbone_stop_animation(ce_figbone* figbone,
 {
 	ce_anmstate_stop_animation(figbone->anmstate);
 
-	for (int i = 0; i < figbone->childs->count; ++i) {
+	for (size_t i = 0; i < figbone->childs->count; ++i) {
 		ce_figbone_stop_animation(figbone->childs->items[i],
 									fignode->childs->items[i]);
 	}

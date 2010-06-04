@@ -59,7 +59,7 @@ ce_input_supply* ce_input_supply_new(const ce_input_context* context)
 void ce_input_supply_del(ce_input_supply* supply)
 {
 	if (NULL != supply) {
-		for (int i = 0; i < supply->events->count; ++i) {
+		for (size_t i = 0; i < supply->events->count; ++i) {
 			ce_input_event* event = supply->events->items[i];
 			if (NULL != event->vtable.dtor) {
 				(*event->vtable.dtor)(event);
@@ -73,7 +73,7 @@ void ce_input_supply_del(ce_input_supply* supply)
 
 void ce_input_supply_advance(ce_input_supply* supply, float elapsed)
 {
-	for (int i = 0; i < supply->events->count; ++i) {
+	for (size_t i = 0; i < supply->events->count; ++i) {
 		ce_input_event* event = supply->events->items[i];
 		(*event->vtable.advance)(event, elapsed);
 	}
@@ -350,7 +350,7 @@ static ce_input_event*
 ce_input_button_event_from_button_name(ce_input_supply* supply,
 										const char* button_name)
 {
-	for (int i = CE_IB_UNKNOWN; i < CE_IB_COUNT; ++i) {
+	for (size_t i = CE_IB_UNKNOWN; i < CE_IB_COUNT; ++i) {
 		if (0 == strcmp(button_name, ce_input_button_names[i])) {
 			return ce_input_supply_button(supply, i);
 		}

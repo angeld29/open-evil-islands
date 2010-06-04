@@ -220,7 +220,7 @@ static void ce_terrain_load_portions(ce_terrain_cookie* cookie)
 {
 	ce_thread_mutex_lock(cookie->mutex);
 
-	for (int i = 0; i < cookie->portions->count; ++i) {
+	for (size_t i = 0; i < cookie->portions->count; ++i) {
 		ce_terrain_portion* portion = cookie->portions->items[i];
 		ce_terrain_sector* sector = cookie->terrain->sectors->items[portion->index];
 
@@ -384,8 +384,8 @@ ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain, float x, float z)
 	// FIXME: opengl hard-code
 	z = fabsf(z);
 
-	int sector_x = (int)x / (CE_MPRFILE_VERTEX_SIDE - 1);
-	int sector_z = (int)z / (CE_MPRFILE_VERTEX_SIDE - 1);
+	size_t sector_x = (size_t)x / (CE_MPRFILE_VERTEX_SIDE - 1);
+	size_t sector_z = (size_t)z / (CE_MPRFILE_VERTEX_SIDE - 1);
 
 	return terrain->scenenode->childs->items[sector_z *
 		terrain->mprfile->sector_x_count + sector_x];

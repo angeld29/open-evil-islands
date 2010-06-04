@@ -36,7 +36,7 @@ static void ce_figmesh_create_renderitems(ce_figmesh* figmesh,
 
 	ce_vector_push_back(figmesh->renderitems, renderitem);
 
-	for (int i = 0; i < fignode->childs->count; ++i) {
+	for (size_t i = 0; i < fignode->childs->count; ++i) {
 		ce_figmesh_create_renderitems(figmesh, fignode->childs->items[i]);
 	}
 }

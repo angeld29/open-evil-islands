@@ -79,7 +79,7 @@ ce_mmpfile* ce_texmng_open_mmpfile(ce_texmng* texmng, const char* name)
 	}
 
 	// find in resources
-	for (int i = 0; i < texmng->resfiles->count; ++i) {
+	for (size_t i = 0; i < texmng->resfiles->count; ++i) {
 		ce_resfile* resfile = texmng->resfiles->items[i];
 		int index = ce_resfile_node_index(resfile, file_name);
 		if (-1 != index) {
@@ -107,7 +107,7 @@ void ce_texmng_save_mmpfile(ce_texmng* texmng,
 ce_texture* ce_texmng_get(ce_texmng* texmng, const char* name)
 {
 	// first, find texture in cache
-	for (int i = 0; i < texmng->textures->count; ++i) {
+	for (size_t i = 0; i < texmng->textures->count; ++i) {
 		ce_texture* texture = texmng->textures->items[i];
 		if (0 == ce_strcasecmp(name, ce_texture_get_name(texture))) {
 			return texture;

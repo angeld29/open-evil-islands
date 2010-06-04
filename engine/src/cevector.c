@@ -28,7 +28,7 @@ ce_vector* ce_vector_new(void)
 	return ce_vector_new_reserved(16);
 }
 
-ce_vector* ce_vector_new_reserved(int capacity)
+ce_vector* ce_vector_new_reserved(size_t capacity)
 {
 	ce_vector* vector = ce_alloc_zero(sizeof(ce_vector));
 	ce_vector_reserve(vector, capacity);
@@ -43,7 +43,7 @@ void ce_vector_del(ce_vector* vector)
 	}
 }
 
-void ce_vector_reserve(ce_vector* vector, int capacity)
+void ce_vector_reserve(ce_vector* vector, size_t capacity)
 {
 	if (capacity > vector->capacity) {
 		vector->items = ce_realloc(vector->items,
@@ -52,20 +52,20 @@ void ce_vector_reserve(ce_vector* vector, int capacity)
 	}
 }
 
-void ce_vector_resize(ce_vector* vector, int count)
+void ce_vector_resize(ce_vector* vector, size_t count)
 {
 	ce_vector_reserve(vector, count);
 	vector->count = count;
 }
 
-int ce_vector_find(const ce_vector* vector, const void* item)
+size_t ce_vector_find(const ce_vector* vector, const void* item)
 {
-	for (int i = 0; i < vector->count; ++i) {
+	for (size_t i = 0; i < vector->count; ++i) {
 		if (item == vector->items[i]) {
 			return i;
 		}
 	}
-	return -1;
+	return vector->count;
 }
 
 void* ce_vector_pop_front(ce_vector* vector)
@@ -83,35 +83,35 @@ void ce_vector_push_back(ce_vector* vector, void* item)
 	vector->items[vector->count++] = item;
 }
 
-void ce_vector_insert(ce_vector* vector, int index, void* item)
+void ce_vector_insert(ce_vector* vector, size_t index, void* item)
 {
 	if (vector->count == vector->capacity) {
 		ce_vector_reserve(vector, vector->capacity << 1);
 	}
-	for (int i = vector->count++; i > index; --i) {
+	for (size_t i = vector->count++; i > index; --i) {
 		vector->items[i] = vector->items[i - 1];
 	}
 	vector->items[index] = item;
 }
 
-void ce_vector_remove(ce_vector* vector, int index)
+void ce_vector_remove(ce_vector* vector, size_t index)
 {
-	for (int i = index + 1, n = vector->count--; i < n; ++i) {
+	for (size_t i = index + 1, n = vector->count--; i < n; ++i) {
 		vector->items[i - 1] = vector->items[i];
 	}
 }
 
 void ce_vector_remove_all(ce_vector* vector, const void* item)
 {
-	int index;
-	while (-1 != (index = ce_vector_find(vector, item))) {
+	size_t index;
+	while (vector->count != (index = ce_vector_find(vector, item))) {
 		ce_vector_remove(vector, index);
 	}
 }
 
 void ce_vector_for_each(ce_vector* vector, void (*func)(void*))
 {
-	for (int i = 0; i < vector->count; ++i) {
+	for (size_t i = 0; i < vector->count; ++i) {
 		(*func)(vector->items[i]);
 	}
 }

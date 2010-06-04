@@ -79,7 +79,7 @@ void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap,
 void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap,
 										unsigned long keys[CE_IB_COUNT])
 {
-	for (int i = 0; i < CE_IB_COUNT; ++i) {
+	for (size_t i = CE_IB_UNKNOWN; i < CE_IB_COUNT; ++i) {
 		ce_renderwindow_keymap_add(keymap, keys[i], i);
 	}
 }
@@ -180,7 +180,7 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
 			(*renderwindow->vtable.fullscreen.before_enter)(renderwindow);
 		}
 
-		int index = ce_displaymng_enter(renderwindow->displaymng,
+		size_t index = ce_displaymng_enter(renderwindow->displaymng,
 			renderwindow->geometry[renderwindow->state].width,
 			renderwindow->geometry[renderwindow->state].height,
 			renderwindow->visual.bpp, renderwindow->visual.rate,
@@ -253,7 +253,7 @@ void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 
 void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int width, int height)
 {
-	for (int i = 0; i < renderwindow->listeners->count; ++i) {
+	for (size_t i = 0; i < renderwindow->listeners->count; ++i) {
 		ce_renderwindow_listener* listener = renderwindow->listeners->items[i];
 		if (NULL != listener->resized) {
 			(*listener->resized)(listener->listener, width, height);
@@ -263,7 +263,7 @@ void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int width, int 
 
 void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow)
 {
-	for (int i = 0; i < renderwindow->listeners->count; ++i) {
+	for (size_t i = 0; i < renderwindow->listeners->count; ++i) {
 		ce_renderwindow_listener* listener = renderwindow->listeners->items[i];
 		if (NULL != listener->closed) {
 			(*listener->closed)(listener->listener);

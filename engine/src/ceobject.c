@@ -57,7 +57,7 @@ void ce_object_remove(ce_object* object, ce_property* property)
 
 ce_property* ce_object_find(ce_object* object, const char* name)
 {
-	for (int i = 0; i < object->properties->count; ++i) {
+	for (size_t i = 0; i < object->properties->count; ++i) {
 		ce_property* property = object->properties->items[i];
 		if (0 == strcmp(name, property->name->str)) {
 			return property;

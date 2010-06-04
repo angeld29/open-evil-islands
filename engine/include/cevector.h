@@ -21,6 +21,7 @@
 #ifndef CE_VECTOR_H
 #define CE_VECTOR_H
 
+#include <stddef.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -29,17 +30,17 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	int capacity;
-	int count;
+	size_t capacity;
+	size_t count;
 	void** items;
 } ce_vector;
 
 extern ce_vector* ce_vector_new(void);
-extern ce_vector* ce_vector_new_reserved(int capacity);
+extern ce_vector* ce_vector_new_reserved(size_t capacity);
 extern void ce_vector_del(ce_vector* vector);
 
-extern void ce_vector_reserve(ce_vector* vector, int capacity);
-extern void ce_vector_resize(ce_vector* vector, int count);
+extern void ce_vector_reserve(ce_vector* vector, size_t capacity);
+extern void ce_vector_resize(ce_vector* vector, size_t count);
 
 static inline bool ce_vector_empty(const ce_vector* vector)
 {
@@ -51,7 +52,7 @@ static inline void* ce_vector_back(const ce_vector* vector)
 	return vector->items[vector->count - 1];
 }
 
-extern int ce_vector_find(const ce_vector* vector, const void* item);
+extern size_t ce_vector_find(const ce_vector* vector, const void* item);
 
 extern void* ce_vector_pop_front(ce_vector* vector);
 extern void ce_vector_push_back(ce_vector* vector, void* item);
@@ -61,11 +62,11 @@ static inline void* ce_vector_pop_back(ce_vector* vector)
 	return vector->items[--vector->count];
 }
 
-extern void ce_vector_insert(ce_vector* vector, int index, void* item);
-extern void ce_vector_remove(ce_vector* vector, int index);
+extern void ce_vector_insert(ce_vector* vector, size_t index, void* item);
+extern void ce_vector_remove(ce_vector* vector, size_t index);
 extern void ce_vector_remove_all(ce_vector* vector, const void* item);
 
-static inline void ce_vector_remove_unordered(ce_vector* vector, int index)
+static inline void ce_vector_remove_unordered(ce_vector* vector, size_t index)
 {
 	vector->items[index] = vector->items[--vector->count];
 }

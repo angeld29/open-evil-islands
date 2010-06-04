@@ -96,7 +96,7 @@ extern bool ce_thread_sem_try_acquire(ce_thread_sem* sem, size_t n);
 
 typedef struct {
 	bool done;
-	int idle_thread_count;
+	size_t idle_thread_count;
 	ce_vector* threads;
 	ce_vector* queue;
 	ce_vector* cache;
@@ -106,7 +106,7 @@ typedef struct {
 	ce_thread_cond* wait_all_cond;
 } ce_thread_pool;
 
-extern ce_thread_pool* ce_thread_pool_new(int thread_count);
+extern ce_thread_pool* ce_thread_pool_new(size_t thread_count);
 extern void ce_thread_pool_del(ce_thread_pool* pool);
 
 extern void ce_thread_pool_enqueue(ce_thread_pool* pool, void (*func)(), void* arg);

@@ -41,7 +41,7 @@ static void ce_figentity_enqueue(ce_figentity* figentity, ce_fignode* fignode)
 	ce_renderlayer_add(figentity->renderlayers->items[fignode->index],
 		figentity->scenenode->renderitems->items[fignode->index]);
 
-	for (int i = 0; i < fignode->childs->count; ++i) {
+	for (size_t i = 0; i < fignode->childs->count; ++i) {
 		ce_figentity_enqueue(figentity, fignode->childs->items[i]);
 	}
 }
@@ -56,7 +56,7 @@ static void ce_figentity_create_renderlayers(ce_figentity* figentity,
 										ce_vector* parts, ce_fignode* fignode)
 {
 	// FIXME: to be reversed...
-	int index = fignode->figfile->texture_number - 1;
+	size_t index = fignode->figfile->texture_number - 1;
 	if (index > 1) {
 		index = 0;
 	}
@@ -68,7 +68,7 @@ static void ce_figentity_create_renderlayers(ce_figentity* figentity,
 	if (NULL != parts && !ce_vector_empty(parts)) {
 		ce_renderitem* renderitem = figentity->scenenode->renderitems->items[fignode->index];
 		renderitem->visible = false;
-		for (int i = 0; i < parts->count; ++i) {
+		for (size_t i = 0; i < parts->count; ++i) {
 			ce_string* part = parts->items[i];
 			if (0 == strcmp(fignode->name->str, part->str)) {
 				renderitem->visible = true;
@@ -76,7 +76,7 @@ static void ce_figentity_create_renderlayers(ce_figentity* figentity,
 		}
 	}
 
-	for (int i = 0; i < fignode->childs->count; ++i) {
+	for (size_t i = 0; i < fignode->childs->count; ++i) {
 		ce_figentity_create_renderlayers(figentity, parts, fignode->childs->items[i]);
 	}
 }
@@ -108,7 +108,7 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 		ce_texture_wrap(textures[i], CE_TEXTURE_WRAP_MODE_REPEAT);
 	}
 
-	for (int i = 0; i < figmesh->renderitems->count; ++i) {
+	for (size_t i = 0; i < figmesh->renderitems->count; ++i) {
 		ce_scenenode_add_renderitem(figentity->scenenode,
 			ce_renderitem_clone(figmesh->renderitems->items[i]));
 	}

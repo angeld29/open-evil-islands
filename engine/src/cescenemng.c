@@ -85,8 +85,7 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	scenemng->texmng = ce_texmng_new(path);
 
 	const char* texture_resources[] = { "textures", "redress", "menus" };
-	for (int i = 0, n = sizeof(texture_resources) /
-						sizeof(texture_resources[0]); i < n; ++i) {
+	for (size_t i = 0; i < sizeof(texture_resources) / sizeof(texture_resources[0]); ++i) {
 		snprintf(path, sizeof(path), "%s/Res/%s.res", ei_path, texture_resources[i]);
 		ce_texmng_register_resource(scenemng->texmng, path);
 	}
@@ -95,8 +94,7 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 	scenemng->mprmng = ce_mprmng_new(path);
 
 	const char* figure_resources[] = { "figures", "menus" };
-	for (int i = 0, n = sizeof(figure_resources) /
-						sizeof(figure_resources[0]); i < n; ++i) {
+	for (size_t i = 0; i < sizeof(figure_resources) / sizeof(figure_resources[0]); ++i) {
 		snprintf(path, sizeof(path), "%s/Res/%s.res", ei_path, figure_resources[i]);
 		ce_figmng_register_resource(scenemng->figmng, path);
 	}
@@ -166,7 +164,7 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 			ce_deg2rad(ycoef * scenemng->input_supply->context->pointer_offset.y));
 	}
 
-	for (int i = 0; i < scenemng->listeners->count; ++i) {
+	for (size_t i = 0; i < scenemng->listeners->count; ++i) {
 		ce_scenemng_listener* listener = scenemng->listeners->items[i];
 		if (NULL != listener->advance) {
 			(*listener->advance)(listener->listener, elapsed);
@@ -261,7 +259,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_font_get_width(scenemng->font, engine_text) - 10, 10,
 		&CE_COLOR_RED, engine_text);
 
-	for (int i = 0; i < scenemng->listeners->count; ++i) {
+	for (size_t i = 0; i < scenemng->listeners->count; ++i) {
 		ce_scenemng_listener* listener = scenemng->listeners->items[i];
 		if (NULL != listener->render) {
 			(*listener->render)(listener->listener);
@@ -377,7 +375,7 @@ void ce_scenemng_remove_figentity(ce_scenemng* scenemng, ce_figentity* figentity
 void ce_scenemng_load_mobfile(ce_scenemng* scenemng, const ce_mobfile* mobfile)
 {
 	ce_logging_write("scenemng: loading mob '%s'...", mobfile->name->str);
-	for (int i = 0; i < mobfile->objects->count; ++i) {
+	for (size_t i = 0; i < mobfile->objects->count; ++i) {
 		const ce_mobobject_object* mobobject = mobfile->objects->items[i];
 		ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
 	}
