@@ -76,7 +76,7 @@ static void ce_root_term(void)
 	assert(ce_root.inited && "the root subsystem has not yet been inited");
 	ce_root.inited = false;
 
-	ce_input_supply_del(ce_root.input_supply);
+	ce_inputsupply_del(ce_root.inputsupply);
 	ce_scenemng_del(ce_root.scenemng);
 	ce_timer_del(ce_root.timer);
 	ce_soundmanager_del(ce_root.soundmanager);
@@ -177,14 +177,14 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.timer = ce_timer_new();
 	ce_root.scenemng = ce_scenemng_new(ei_path);
 
-	ce_root.input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
-	ce_root.exit_event = ce_input_supply_button(ce_root.input_supply, CE_KB_ESCAPE);
-	ce_root.switch_window_event = ce_input_supply_single_front(ce_root.input_supply,
-		ce_input_supply_shortcut(ce_root.input_supply, "LAlt+Tab, RAlt+Tab"));
-	ce_root.toggle_fullscreen_event = ce_input_supply_single_front(ce_root.input_supply,
-		ce_input_supply_shortcut(ce_root.input_supply, "LAlt+Enter, RAlt+Enter"));
-	ce_root.toggle_bbox_event = ce_input_supply_single_front(ce_root.input_supply,
-		ce_input_supply_shortcut(ce_root.input_supply, "B"));
+	ce_root.inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
+	ce_root.exit_event = ce_inputsupply_button(ce_root.inputsupply, CE_KB_ESCAPE);
+	ce_root.switch_window_event = ce_inputsupply_single_front(ce_root.inputsupply,
+		ce_inputsupply_shortcut(ce_root.inputsupply, "LAlt+Tab, RAlt+Tab"));
+	ce_root.toggle_fullscreen_event = ce_inputsupply_single_front(ce_root.inputsupply,
+		ce_inputsupply_shortcut(ce_root.inputsupply, "LAlt+Enter, RAlt+Enter"));
+	ce_root.toggle_bbox_event = ce_inputsupply_single_front(ce_root.inputsupply,
+		ce_inputsupply_shortcut(ce_root.inputsupply, "B"));
 
 	ce_root.renderwindow_listener = (ce_renderwindow_listener)
 									{.closed = ce_root_renderwindow_closed};
@@ -217,7 +217,7 @@ int ce_root_exec(void)
 			break;
 		}
 
-		ce_input_supply_advance(ce_root.input_supply, elapsed);
+		ce_inputsupply_advance(ce_root.inputsupply, elapsed);
 
 		if (ce_root.exit_event->triggered) {
 			break;

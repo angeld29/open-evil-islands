@@ -31,299 +31,297 @@
 
 // level 0 input API implementation
 
-ce_input_context* ce_input_context_new(void)
+ce_inputcontext* ce_inputcontext_new(void)
 {
-	return ce_alloc_zero(sizeof(ce_input_context));
+	return ce_alloc_zero(sizeof(ce_inputcontext));
 }
 
-void ce_input_context_del(ce_input_context* context)
+void ce_inputcontext_del(ce_inputcontext* inputcontext)
 {
-	ce_free(context, sizeof(ce_input_context));
+	ce_free(inputcontext, sizeof(ce_inputcontext));
 }
 
-void ce_input_context_clear(ce_input_context* context)
+void ce_inputcontext_clear(ce_inputcontext* inputcontext)
 {
-	memset(context, 0, sizeof(ce_input_context));
+	memset(inputcontext, 0, sizeof(ce_inputcontext));
 }
 
 // level 1 input API implementation
 
-ce_input_supply* ce_input_supply_new(const ce_input_context* context)
+ce_inputsupply* ce_inputsupply_new(const ce_inputcontext* inputcontext)
 {
-	ce_input_supply* supply = ce_alloc(sizeof(ce_input_supply));
-	supply->context = context;
-	supply->events = ce_vector_new();
-	return supply;
+	ce_inputsupply* inputsupply = ce_alloc(sizeof(ce_inputsupply));
+	inputsupply->inputcontext = inputcontext;
+	inputsupply->inputevents = ce_vector_new();
+	return inputsupply;
 }
 
-void ce_input_supply_del(ce_input_supply* supply)
+void ce_inputsupply_del(ce_inputsupply* inputsupply)
 {
-	if (NULL != supply) {
-		for (size_t i = 0; i < supply->events->count; ++i) {
-			ce_input_event* event = supply->events->items[i];
-			if (NULL != event->vtable.dtor) {
-				(*event->vtable.dtor)(event);
+	if (NULL != inputsupply) {
+		for (size_t i = 0; i < inputsupply->inputevents->count; ++i) {
+			ce_inputevent* inputevent = inputsupply->inputevents->items[i];
+			if (NULL != inputevent->vtable.dtor) {
+				(*inputevent->vtable.dtor)(inputevent);
 			}
-			ce_free(event, sizeof(ce_input_event) + event->size);
+			ce_free(inputevent, sizeof(ce_inputevent) + inputevent->vtable.size);
 		}
-		ce_vector_del(supply->events);
-		ce_free(supply, sizeof(ce_input_supply));
+		ce_vector_del(inputsupply->inputevents);
+		ce_free(inputsupply, sizeof(ce_inputsupply));
 	}
 }
 
-void ce_input_supply_advance(ce_input_supply* supply, float elapsed)
+void ce_inputsupply_advance(ce_inputsupply* inputsupply, float elapsed)
 {
-	for (size_t i = 0; i < supply->events->count; ++i) {
-		ce_input_event* event = supply->events->items[i];
-		(*event->vtable.advance)(event, elapsed);
+	for (size_t i = 0; i < inputsupply->inputevents->count; ++i) {
+		ce_inputevent* inputevent = inputsupply->inputevents->items[i];
+		(*inputevent->vtable.advance)(inputevent, elapsed);
 	}
 }
 
-static ce_input_event* ce_input_supply_event(ce_input_supply* supply,
-	ce_input_event_vtable vtable, size_t size, ...)
+static ce_inputevent* ce_inputsupply_event(ce_inputsupply* inputsupply,
+											ce_inputevent_vtable vtable, ...)
 {
-	ce_input_event* event = ce_alloc_zero(sizeof(ce_input_event) + size);
-
-	event->vtable = vtable;
-	event->size = size;
+	ce_inputevent* inputevent = ce_alloc_zero(sizeof(ce_inputevent) + vtable.size);
+	inputevent->vtable = vtable;
 
 	va_list args;
-	va_start(args, size);
-	(*vtable.ctor)(event, args);
+	va_start(args, vtable);
+	(*vtable.ctor)(inputevent, args);
 	va_end(args);
 
-	ce_vector_push_back(supply->events, event);
-	return event;
+	ce_vector_push_back(inputsupply->inputevents, inputevent);
+	return inputevent;
 }
 
 // Button event
 
 typedef struct {
-	const ce_input_context* context;
-	ce_input_button button;
-} ce_input_event_button;
+	const ce_inputcontext* inputcontext;
+	ce_inputbutton inputbutton;
+} ce_inputevent_button;
 
-static void ce_input_event_button_ctor(ce_input_event* event, va_list args)
+static void ce_inputevent_button_ctor(ce_inputevent* inputevent, va_list args)
 {
-	ce_input_event_button* button_event = (ce_input_event_button*)event->impl;
-	button_event->context = va_arg(args, const ce_input_context*);
-	button_event->button = va_arg(args, ce_input_button);
+	ce_inputevent_button* buttonevent = (ce_inputevent_button*)inputevent->impl;
+	buttonevent->inputcontext = va_arg(args, const ce_inputcontext*);
+	buttonevent->inputbutton = va_arg(args, ce_inputbutton);
 }
 
-static void ce_input_event_button_advance(ce_input_event* event, float elapsed)
+static void ce_inputevent_button_advance(ce_inputevent* inputevent, float elapsed)
 {
 	ce_unused(elapsed);
-	ce_input_event_button* button_event = (ce_input_event_button*)event->impl;
-	event->triggered = button_event->context->buttons[button_event->button];
+	ce_inputevent_button* buttonevent = (ce_inputevent_button*)inputevent->impl;
+	inputevent->triggered = buttonevent->inputcontext->buttons[buttonevent->inputbutton];
 }
 
-ce_input_event* ce_input_supply_button(ce_input_supply* supply,
-										ce_input_button button)
+ce_inputevent* ce_inputsupply_button(ce_inputsupply* inputsupply,
+										ce_inputbutton inputbutton)
 {
-	return ce_input_supply_event(supply, (ce_input_event_vtable)
-		{ce_input_event_button_ctor, NULL, ce_input_event_button_advance},
-		sizeof(ce_input_event_button), supply->context, button);
+	return ce_inputsupply_event(inputsupply, (ce_inputevent_vtable)
+		{sizeof(ce_inputevent_button), ce_inputevent_button_ctor, NULL,
+		ce_inputevent_button_advance}, inputsupply->inputcontext, inputbutton);
 }
 
 // Single Front event
 
 typedef struct {
-	const ce_input_event* event;
+	const ce_inputevent* event;
 	bool activated;
-} ce_input_event_single_front;
+} ce_inputevent_single_front;
 
-static void ce_input_event_single_front_ctor(ce_input_event* event, va_list args)
+static void ce_inputevent_single_front_ctor(ce_inputevent* inputevent, va_list args)
 {
-	ce_input_event_single_front* sf_event = (ce_input_event_single_front*)event->impl;
-	sf_event->event = va_arg(args, const ce_input_event*);
+	ce_inputevent_single_front* sfevent = (ce_inputevent_single_front*)inputevent->impl;
+	sfevent->event = va_arg(args, const ce_inputevent*);
 }
 
-static void ce_input_event_single_front_advance(ce_input_event* event, float elapsed)
+static void ce_inputevent_single_front_advance(ce_inputevent* inputevent, float elapsed)
 {
 	ce_unused(elapsed);
-	ce_input_event_single_front* sf_event = (ce_input_event_single_front*)event->impl;
-	event->triggered = !sf_event->activated && sf_event->event->triggered;
-	sf_event->activated = sf_event->event->triggered;
+	ce_inputevent_single_front* sfevent = (ce_inputevent_single_front*)inputevent->impl;
+	inputevent->triggered = !sfevent->activated && sfevent->event->triggered;
+	sfevent->activated = sfevent->event->triggered;
 }
 
-ce_input_event* ce_input_supply_single_front(ce_input_supply* supply,
-											const ce_input_event* event)
+ce_inputevent* ce_inputsupply_single_front(ce_inputsupply* inputsupply,
+											const ce_inputevent* inputevent)
 {
-	return ce_input_supply_event(supply, (ce_input_event_vtable)
-		{ce_input_event_single_front_ctor, NULL, ce_input_event_single_front_advance},
-		sizeof(ce_input_event_single_front), event);
+	return ce_inputsupply_event(inputsupply, (ce_inputevent_vtable)
+		{sizeof(ce_inputevent_single_front), ce_inputevent_single_front_ctor,
+		NULL, ce_inputevent_single_front_advance}, inputevent);
 }
 
 // Single Back event
 
 typedef struct {
-	const ce_input_event* event;
+	const ce_inputevent* event;
 	bool activated;
-} ce_input_event_single_back;
+} ce_inputevent_single_back;
 
-static void ce_input_event_single_back_ctor(ce_input_event* event, va_list args)
+static void ce_inputevent_single_back_ctor(ce_inputevent* inputevent, va_list args)
 {
-	ce_input_event_single_back* sb_event = (ce_input_event_single_back*)event->impl;
-	sb_event->event = va_arg(args, const ce_input_event*);
+	ce_inputevent_single_back* sbevent = (ce_inputevent_single_back*)inputevent->impl;
+	sbevent->event = va_arg(args, const ce_inputevent*);
 }
 
-static void ce_input_event_single_back_advance(ce_input_event* event, float elapsed)
+static void ce_inputevent_single_back_advance(ce_inputevent* inputevent, float elapsed)
 {
 	ce_unused(elapsed);
-	ce_input_event_single_back* sb_event = (ce_input_event_single_back*)event->impl;
-	event->triggered = sb_event->activated && !sb_event->event->triggered;
-	sb_event->activated = sb_event->event->triggered;
+	ce_inputevent_single_back* sbevent = (ce_inputevent_single_back*)inputevent->impl;
+	inputevent->triggered = sbevent->activated && !sbevent->event->triggered;
+	sbevent->activated = sbevent->event->triggered;
 }
 
-ce_input_event* ce_input_supply_single_back(ce_input_supply* supply,
-											const ce_input_event* event)
+ce_inputevent* ce_inputsupply_single_back(ce_inputsupply* inputsupply,
+											const ce_inputevent* inputevent)
 {
-	return ce_input_supply_event(supply, (ce_input_event_vtable)
-		{ce_input_event_single_back_ctor, NULL, ce_input_event_single_back_advance},
-		sizeof(ce_input_event_single_back), event);
+	return ce_inputsupply_event(inputsupply, (ce_inputevent_vtable)
+		{sizeof(ce_inputevent_single_back), ce_inputevent_single_back_ctor,
+		NULL, ce_inputevent_single_back_advance}, inputevent);
 }
 
 // AND event
 
 typedef struct {
-	const ce_input_event* event1;
-	const ce_input_event* event2;
-} ce_input_event_and;
+	const ce_inputevent* inputevent1;
+	const ce_inputevent* inputevent2;
+} ce_inputevent_and;
 
-static void ce_input_event_and_ctor(ce_input_event* event, va_list args)
+static void ce_inputevent_and_ctor(ce_inputevent* inputevent, va_list args)
 {
-	ce_input_event_and* and_event = (ce_input_event_and*)event->impl;
-	and_event->event1 = va_arg(args, const ce_input_event*);
-	and_event->event2 = va_arg(args, const ce_input_event*);
+	ce_inputevent_and* andevent = (ce_inputevent_and*)inputevent->impl;
+	andevent->inputevent1 = va_arg(args, const ce_inputevent*);
+	andevent->inputevent2 = va_arg(args, const ce_inputevent*);
 }
 
-static void ce_input_event_and_advance(ce_input_event* event, float elapsed)
+static void ce_inputevent_and_advance(ce_inputevent* inputevent, float elapsed)
 {
 	ce_unused(elapsed);
-	ce_input_event_and* and_event = (ce_input_event_and*)event->impl;
-	event->triggered = and_event->event1->triggered &&
-						and_event->event2->triggered;
+	ce_inputevent_and* andevent = (ce_inputevent_and*)inputevent->impl;
+	inputevent->triggered = andevent->inputevent1->triggered &&
+							andevent->inputevent2->triggered;
 }
 
-ce_input_event* ce_input_supply_and2(ce_input_supply* supply,
-									const ce_input_event* event1,
-									const ce_input_event* event2)
+ce_inputevent* ce_inputsupply_and2(ce_inputsupply* inputsupply,
+									const ce_inputevent* inputevent1,
+									const ce_inputevent* inputevent2)
 {
-	return ce_input_supply_event(supply, (ce_input_event_vtable)
-		{ce_input_event_and_ctor, NULL, ce_input_event_and_advance},
-		sizeof(ce_input_event_and), event1, event2);
+	return ce_inputsupply_event(inputsupply, (ce_inputevent_vtable)
+		{sizeof(ce_inputevent_and), ce_inputevent_and_ctor, NULL,
+		ce_inputevent_and_advance}, inputevent1, inputevent2);
 }
 
-ce_input_event* ce_input_supply_and3(ce_input_supply* supply,
-									const ce_input_event* event1,
-									const ce_input_event* event2,
-									const ce_input_event* event3)
+ce_inputevent* ce_inputsupply_and3(ce_inputsupply* inputsupply,
+									const ce_inputevent* inputevent1,
+									const ce_inputevent* inputevent2,
+									const ce_inputevent* inputevent3)
 {
-	return ce_input_supply_and2(supply, event1,
-			ce_input_supply_and2(supply, event2, event3));
+	return ce_inputsupply_and2(inputsupply, inputevent1,
+			ce_inputsupply_and2(inputsupply, inputevent2, inputevent3));
 }
 
 // OR event
 
 typedef struct {
-	const ce_input_event* event1;
-	const ce_input_event* event2;
-} ce_input_event_or;
+	const ce_inputevent* inputevent1;
+	const ce_inputevent* inputevent2;
+} ce_inputevent_or;
 
-static void ce_input_event_or_ctor(ce_input_event* event, va_list args)
+static void ce_inputevent_or_ctor(ce_inputevent* inputevent, va_list args)
 {
-	ce_input_event_or* or_event = (ce_input_event_or*)event->impl;
-	or_event->event1 = va_arg(args, const ce_input_event*);
-	or_event->event2 = va_arg(args, const ce_input_event*);
+	ce_inputevent_or* orevent = (ce_inputevent_or*)inputevent->impl;
+	orevent->inputevent1 = va_arg(args, const ce_inputevent*);
+	orevent->inputevent2 = va_arg(args, const ce_inputevent*);
 }
 
-static void ce_input_event_or_advance(ce_input_event* event, float elapsed)
+static void ce_inputevent_or_advance(ce_inputevent* inputevent, float elapsed)
 {
 	ce_unused(elapsed);
-	ce_input_event_or* or_event = (ce_input_event_or*)event->impl;
-	event->triggered = or_event->event1->triggered ||
-						or_event->event2->triggered;
+	ce_inputevent_or* orevent = (ce_inputevent_or*)inputevent->impl;
+	inputevent->triggered = orevent->inputevent1->triggered ||
+							orevent->inputevent2->triggered;
 }
 
-ce_input_event* ce_input_supply_or2(ce_input_supply* supply,
-									const ce_input_event* event1,
-									const ce_input_event* event2)
+ce_inputevent* ce_inputsupply_or2(ce_inputsupply* inputsupply,
+									const ce_inputevent* inputevent1,
+									const ce_inputevent* inputevent2)
 {
-	return ce_input_supply_event(supply, (ce_input_event_vtable)
-		{ce_input_event_or_ctor, NULL, ce_input_event_or_advance},
-		sizeof(ce_input_event_or), event1, event2);
+	return ce_inputsupply_event(inputsupply, (ce_inputevent_vtable)
+		{sizeof(ce_inputevent_or), ce_inputevent_or_ctor, NULL,
+		ce_inputevent_or_advance}, inputevent1, inputevent2);
 }
 
-ce_input_event* ce_input_supply_or3(ce_input_supply* supply,
-									const ce_input_event* event1,
-									const ce_input_event* event2,
-									const ce_input_event* event3)
+ce_inputevent* ce_inputsupply_or3(ce_inputsupply* inputsupply,
+									const ce_inputevent* inputevent1,
+									const ce_inputevent* inputevent2,
+									const ce_inputevent* inputevent3)
 {
-	return ce_input_supply_or2(supply, event1,
-			ce_input_supply_or2(supply, event2, event3));
+	return ce_inputsupply_or2(inputsupply, inputevent1,
+			ce_inputsupply_or2(inputsupply, inputevent2, inputevent3));
 }
 
 // Repeat event
 
 typedef struct {
-	const ce_input_event* event;
+	const ce_inputevent* inputevent;
 	float delay, delay_elapsed;
 	float rate, rate_elapsed;
 	bool activated;
-} ce_input_event_repeat;
+} ce_inputevent_repeat;
 
-static void ce_input_event_repeat_ctor(ce_input_event* event, va_list args)
+static void ce_inputevent_repeat_ctor(ce_inputevent* inputevent, va_list args)
 {
-	ce_input_event_repeat* repeat_event = (ce_input_event_repeat*)event->impl;
-	repeat_event->event = va_arg(args, const ce_input_event*);
-	repeat_event->delay = va_arg(args, int) * 1e-3f;
+	ce_inputevent_repeat* repeatevent = (ce_inputevent_repeat*)inputevent->impl;
+	repeatevent->inputevent = va_arg(args, const ce_inputevent*);
+	repeatevent->delay = va_arg(args, int) * 1e-3f;
 	int rate = va_arg(args, int);
-	repeat_event->rate = (rate > 0) ? (1.0f / rate) : FLT_MAX;
+	repeatevent->rate = (rate > 0) ? (1.0f / rate) : FLT_MAX;
 }
 
-static void ce_input_event_repeat_advance(ce_input_event* event, float elapsed)
+static void ce_inputevent_repeat_advance(ce_inputevent* inputevent, float elapsed)
 {
-	ce_input_event_repeat* repeat_event = (ce_input_event_repeat*)event->impl;
-	event->triggered = false;
+	ce_inputevent_repeat* repeatevent = (ce_inputevent_repeat*)inputevent->impl;
+	inputevent->triggered = false;
 
-	if (repeat_event->event->triggered) {
-		if (repeat_event->activated) {
-			if (repeat_event->delay_elapsed < repeat_event->delay) {
-				repeat_event->delay_elapsed += elapsed;
-				if (repeat_event->delay_elapsed >= repeat_event->delay) {
-					elapsed = repeat_event->delay_elapsed - repeat_event->delay;
+	if (repeatevent->inputevent->triggered) {
+		if (repeatevent->activated) {
+			if (repeatevent->delay_elapsed < repeatevent->delay) {
+				repeatevent->delay_elapsed += elapsed;
+				if (repeatevent->delay_elapsed >= repeatevent->delay) {
+					elapsed = repeatevent->delay_elapsed - repeatevent->delay;
 				}
 			}
-			if (repeat_event->delay_elapsed >= repeat_event->delay) {
-				repeat_event->rate_elapsed += elapsed;
-				if (repeat_event->rate_elapsed >= repeat_event->rate) {
-					event->triggered = true;
-					repeat_event->rate_elapsed -= repeat_event->rate;
+			if (repeatevent->delay_elapsed >= repeatevent->delay) {
+				repeatevent->rate_elapsed += elapsed;
+				if (repeatevent->rate_elapsed >= repeatevent->rate) {
+					inputevent->triggered = true;
+					repeatevent->rate_elapsed -= repeatevent->rate;
 				}
 			}
 		} else {
-			event->triggered = true;
-			repeat_event->activated = true;
+			inputevent->triggered = true;
+			repeatevent->activated = true;
 		}
 	} else {
-		repeat_event->delay_elapsed = 0.0f;
-		repeat_event->rate_elapsed = 0.0f;
-		repeat_event->activated = false;
+		repeatevent->delay_elapsed = 0.0f;
+		repeatevent->rate_elapsed = 0.0f;
+		repeatevent->activated = false;
 	}
 }
 
-ce_input_event* ce_input_supply_repeat(ce_input_supply* supply,
-									const ce_input_event* event,
+ce_inputevent* ce_inputsupply_repeat(ce_inputsupply* inputsupply,
+									const ce_inputevent* inputevent,
 									int delay, int rate)
 {
-	return ce_input_supply_event(supply, (ce_input_event_vtable)
-		{ce_input_event_repeat_ctor, NULL, ce_input_event_repeat_advance},
-		sizeof(ce_input_event_repeat), event, delay, rate);
+	return ce_inputsupply_event(inputsupply, (ce_inputevent_vtable)
+		{sizeof(ce_inputevent_repeat), ce_inputevent_repeat_ctor,
+		NULL, ce_inputevent_repeat_advance}, inputevent, delay, rate);
 }
 
 // level 2 input API implementation
 
-static const char* ce_input_button_names[CE_IB_COUNT] = {
+static const char* ce_inputbutton_names[CE_IB_COUNT] = {
 	"unknown", "escape",
 	"f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12",
 	"tilde", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
@@ -346,25 +344,24 @@ static const char* ce_input_button_names[CE_IB_COUNT] = {
 	"wheelup", "wheeldown"
 };
 
-static ce_input_event*
-ce_input_button_event_from_button_name(ce_input_supply* supply,
-										const char* button_name)
+static ce_inputevent* ce_inputsupply_event_from_name(ce_inputsupply* inputsupply,
+														const char* button_name)
 {
 	for (size_t i = CE_IB_UNKNOWN; i < CE_IB_COUNT; ++i) {
-		if (0 == strcmp(button_name, ce_input_button_names[i])) {
-			return ce_input_supply_button(supply, i);
+		if (0 == strcmp(button_name, ce_inputbutton_names[i])) {
+			return ce_inputsupply_button(inputsupply, i);
 		}
 	}
 	return NULL;
 }
 
-ce_input_event* ce_input_supply_shortcut(ce_input_supply* supply,
+ce_inputevent* ce_inputsupply_shortcut(ce_inputsupply* inputsupply,
 										const char* key_sequence)
 {
 	size_t length = strlen(key_sequence);
 	char buffer[length + 1], buffer2[length + 1], buffer3[length + 1];
 	char *or_seq = buffer, *and_seq, *button_name;
-	ce_input_event *or_event = NULL, *and_event, *ev;
+	ce_inputevent *or_event = NULL, *and_event, *ev;
 
 	ce_strlwr(buffer, key_sequence);
 
@@ -381,25 +378,24 @@ ce_input_event* ce_input_supply_shortcut(ce_input_supply* supply,
 			button_name = ce_strtrim(buffer3, ce_strsep(&and_seq, "+"));
 			if (0 == strlen(button_name)) {
 				ce_logging_warning("input: parsing key sequence: '%s': "
-									"empty parts were skipped", key_sequence);
+									"empty parts skipped", key_sequence);
 				continue;
 			}
 
-			if (NULL == (ev = ce_input_button_event_from_button_name(supply,
-														button_name))) {
+			if (NULL == (ev = ce_inputsupply_event_from_name(inputsupply, button_name))) {
 				ce_logging_error("input: failed to parse "
-									"key sequence: '%s'", key_sequence);
+								"key sequence: '%s'", key_sequence);
 				return NULL;
 			}
 
 			if (NULL == (and_event = NULL == and_event ? ev :
-					ce_input_supply_and2(supply, and_event, ev))) {
+					ce_inputsupply_and2(inputsupply, and_event, ev))) {
 				return NULL;
 			}
 		} while (0 != strlen(and_seq));
 
 		if (NULL == (or_event = NULL == or_event ? and_event :
-				ce_input_supply_or2(supply, or_event, and_event))) {
+				ce_inputsupply_or2(inputsupply, or_event, and_event))) {
 			return NULL;
 		}
 	} while (0 != strlen(or_seq));

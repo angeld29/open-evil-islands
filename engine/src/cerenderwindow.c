@@ -27,7 +27,7 @@
 #include "cerenderwindow.h"
 
 static ce_renderwindow_keypair* ce_renderwindow_keypair_new(unsigned long key,
-														ce_input_button button)
+														ce_inputbutton button)
 {
 	ce_renderwindow_keypair* keypair = ce_alloc(sizeof(ce_renderwindow_keypair));
 	keypair->key = key;
@@ -71,7 +71,7 @@ void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap)
 }
 
 void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap,
-								unsigned long key, ce_input_button button)
+								unsigned long key, ce_inputbutton button)
 {
 	ce_vector_push_back(keymap->keypairs, ce_renderwindow_keypair_new(key, button));
 }
@@ -90,7 +90,7 @@ void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap)
 		sizeof(ce_renderwindow_keypair*), ce_renderwindow_keypair_sort_comp);
 }
 
-ce_input_button
+ce_inputbutton
 ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key)
 {
 	ce_renderwindow_keypair** keypair = bsearch(&key,
@@ -112,7 +112,7 @@ ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size,
 	renderwindow->geometry[renderwindow->state].width = ce_max(400, va_arg(args, int));
 	renderwindow->geometry[renderwindow->state].height = ce_max(300, va_arg(args, int));
 
-	renderwindow->input_context = ce_input_context_new();
+	renderwindow->inputcontext = ce_inputcontext_new();
 	renderwindow->keymap = ce_renderwindow_keymap_new();
 	renderwindow->listeners = ce_vector_new();
 
@@ -135,7 +135,7 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
 
 		ce_vector_del(renderwindow->listeners);
 		ce_renderwindow_keymap_del(renderwindow->keymap);
-		ce_input_context_del(renderwindow->input_context);
+		ce_inputcontext_del(renderwindow->inputcontext);
 
 		ce_free(renderwindow, sizeof(ce_renderwindow) + renderwindow->size);
 	}
@@ -239,11 +239,11 @@ static void (*ce_renderwindow_action_procs[CE_RENDERWINDOW_ACTION_COUNT])(ce_ren
 void ce_renderwindow_pump(ce_renderwindow* renderwindow)
 {
 	// reset pointer offset every frame
-	renderwindow->input_context->pointer_offset = CE_VEC2_ZERO;
+	renderwindow->inputcontext->pointer_offset = CE_VEC2_ZERO;
 
 	// reset wheel buttons: there are no 'WheelRelease' events in most cases
-	renderwindow->input_context->buttons[CE_MB_WHEELUP] = false;
-	renderwindow->input_context->buttons[CE_MB_WHEELDOWN] = false;
+	renderwindow->inputcontext->buttons[CE_MB_WHEELUP] = false;
+	renderwindow->inputcontext->buttons[CE_MB_WHEELDOWN] = false;
 
 	(*renderwindow->vtable.pump)(renderwindow);
 

@@ -37,19 +37,19 @@ static ce_soundresource* soundresource2;
 static ce_soundinstance* soundinstance1;
 static ce_soundinstance* soundinstance2;
 
-static ce_input_supply* input_supply;
-static ce_input_event* reset_event;
+static ce_inputsupply* inputsupply;
+static ce_inputevent* reset_event;
 
 static void clean()
 {
-	ce_input_supply_del(input_supply);
+	ce_inputsupply_del(inputsupply);
 	ce_optparse_del(optparse);
 }
 
 static void advance(void* listener, float elapsed)
 {
 	ce_unused(listener);
-	ce_input_supply_advance(input_supply, elapsed);
+	ce_inputsupply_advance(inputsupply, elapsed);
 
 	if (reset_event->triggered) {
 		ce_soundinstance_stop(soundinstance1);
@@ -105,9 +105,9 @@ int main(int argc, char* argv[])
 	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = NULL};
 	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
 
-	input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
-	reset_event = ce_input_supply_single_front(input_supply,
-					ce_input_supply_button(input_supply, CE_KB_R));
+	inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
+	reset_event = ce_inputsupply_single_front(inputsupply,
+					ce_inputsupply_button(inputsupply, CE_KB_R));
 
 	int code = ce_root_exec();
 

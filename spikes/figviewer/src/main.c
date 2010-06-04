@@ -35,13 +35,13 @@ static ce_optparse* optparse;
 static ce_figentity* figentity;
 static ce_string* message;
 
-static ce_input_supply* input_supply;
-static ce_input_event* strength_event;
-static ce_input_event* dexterity_event;
-static ce_input_event* height_event;
-static ce_input_event* anm_change_event;
-static ce_input_event* anmfps_inc_event;
-static ce_input_event* anmfps_dec_event;
+static ce_inputsupply* inputsupply;
+static ce_inputevent* strength_event;
+static ce_inputevent* dexterity_event;
+static ce_inputevent* height_event;
+static ce_inputevent* anm_change_event;
+static ce_inputevent* anmfps_inc_event;
+static ce_inputevent* anmfps_dec_event;
 
 static int anmidx = -1;
 static ce_complection complection = {1.0f, 1.0f, 1.0f};
@@ -51,7 +51,7 @@ static ce_color message_color;
 
 static void clean()
 {
-	ce_input_supply_del(input_supply);
+	ce_inputsupply_del(inputsupply);
 	ce_string_del(message);
 	ce_optparse_del(optparse);
 }
@@ -101,7 +101,7 @@ static void display_message(const char* fmt, ...)
 static void advance(void* listener, float elapsed)
 {
 	ce_unused(listener);
-	ce_input_supply_advance(input_supply, elapsed);
+	ce_inputsupply_advance(inputsupply, elapsed);
 
 	if (message_timeout > 0.0f) {
 		message_timeout -= elapsed;
@@ -243,20 +243,20 @@ int main(int argc, char* argv[])
 	message = ce_string_new();
 	message_color = CE_COLOR_CORNFLOWER;
 
-	input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
-	strength_event = ce_input_supply_single_front(input_supply,
-						ce_input_supply_button(input_supply, CE_KB_1));
-	dexterity_event = ce_input_supply_single_front(input_supply,
-						ce_input_supply_button(input_supply, CE_KB_2));
-	height_event = ce_input_supply_single_front(input_supply,
-						ce_input_supply_button(input_supply, CE_KB_3));
-	anm_change_event = ce_input_supply_single_front(input_supply,
-					ce_input_supply_button(input_supply, CE_KB_A));
-	anmfps_inc_event = ce_input_supply_repeat(input_supply,
-						ce_input_supply_button(input_supply,
+	inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
+	strength_event = ce_inputsupply_single_front(inputsupply,
+						ce_inputsupply_button(inputsupply, CE_KB_1));
+	dexterity_event = ce_inputsupply_single_front(inputsupply,
+						ce_inputsupply_button(inputsupply, CE_KB_2));
+	height_event = ce_inputsupply_single_front(inputsupply,
+						ce_inputsupply_button(inputsupply, CE_KB_3));
+	anm_change_event = ce_inputsupply_single_front(inputsupply,
+					ce_inputsupply_button(inputsupply, CE_KB_A));
+	anmfps_inc_event = ce_inputsupply_repeat(inputsupply,
+						ce_inputsupply_button(inputsupply,
 							CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
-	anmfps_dec_event = ce_input_supply_repeat(input_supply,
-						ce_input_supply_button(input_supply,
+	anmfps_dec_event = ce_inputsupply_repeat(inputsupply,
+						ce_inputsupply_button(inputsupply,
 							CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
 
 	return ce_root_exec();
