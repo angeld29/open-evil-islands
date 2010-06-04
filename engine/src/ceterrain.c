@@ -58,8 +58,8 @@ typedef struct {
 	ce_texmng* texmng;
 	ce_rendergroup* rendergroups[CE_MPRFILE_MATERIAL_COUNT];
 	ce_threadpool* threadpool;
-	ce_thread_mutex* mutex;
-	ce_thread_once* once;
+	ce_mutex* mutex;
+	ce_once* once;
 	ce_vector* tile_mmpfiles;
 	ce_vector* portions;
 	int queued_portion_count;
@@ -80,8 +80,8 @@ static ce_terrain_cookie* ce_terrain_cookie_new(ce_terrain* terrain,
 		ce_renderqueue_get(renderqueue, 100,
 							terrain->materials[CE_MPRFILE_MATERIAL_WATER]);
 	cookie->threadpool = ce_threadpool_new(ce_root.thread_count);
-	cookie->mutex = ce_thread_mutex_new();
-	cookie->once = ce_thread_once_new();
+	cookie->mutex = ce_mutex_new();
+	cookie->once = ce_once_new();
 	cookie->tile_mmpfiles = ce_vector_new_reserved(terrain->mprfile->texture_count);
 	cookie->portions = ce_vector_new();
 	cookie->queued_portion_count = 0;
@@ -96,8 +96,8 @@ static void ce_terrain_cookie_del(ce_terrain_cookie* cookie)
 		ce_vector_del(cookie->portions);
 		ce_vector_for_each(cookie->tile_mmpfiles, ce_mmpfile_del);
 		ce_vector_del(cookie->tile_mmpfiles);
-		ce_thread_once_del(cookie->once);
-		ce_thread_mutex_del(cookie->mutex);
+		ce_once_del(cookie->once);
+		ce_mutex_del(cookie->mutex);
 		ce_threadpool_del(cookie->threadpool);
 		ce_free(cookie, sizeof(ce_terrain_cookie));
 	}
@@ -180,19 +180,19 @@ static void ce_terrain_load_tile_textures(ce_terrain_cookie* cookie)
 
 static void ce_terrain_process_portion(ce_terrain_portion* portion)
 {
-	ce_thread_mutex_lock(portion->cookie->mutex);
+	ce_mutex_lock(portion->cookie->mutex);
 
 	// TODO: describe thread-safe texmng operations
 	portion->mmpfile = ce_texmng_open_mmpfile(portion->cookie->texmng,
 												portion->name->str);
 
-	ce_thread_mutex_unlock(portion->cookie->mutex);
+	ce_mutex_unlock(portion->cookie->mutex);
 
 	if (NULL == portion->mmpfile ||
 			portion->mmpfile->version < CE_MMPFILE_VERSION ||
 			portion->mmpfile->user_info < CE_MPRHLP_MMPFILE_VERSION) {
 		// lazy loading tile mmp files
-		ce_thread_once_exec(portion->cookie->once,
+		ce_once_exec(portion->cookie->once,
 			ce_terrain_load_tile_mmpfiles, portion->cookie);
 
 		ce_mmpfile_del(portion->mmpfile);
@@ -208,17 +208,17 @@ static void ce_terrain_process_portion(ce_terrain_portion* portion)
 								portion->name->str, portion->mmpfile);
 	}
 
-	ce_thread_mutex_lock(portion->cookie->mutex);
+	ce_mutex_lock(portion->cookie->mutex);
 
 	ce_vector_push_back(portion->cookie->portions, portion);
 	++portion->cookie->completed_portion_count;
 
-	ce_thread_mutex_unlock(portion->cookie->mutex);
+	ce_mutex_unlock(portion->cookie->mutex);
 }
 
 static void ce_terrain_load_portions(ce_terrain_cookie* cookie)
 {
-	ce_thread_mutex_lock(cookie->mutex);
+	ce_mutex_lock(cookie->mutex);
 
 	for (size_t i = 0; i < cookie->portions->count; ++i) {
 		ce_terrain_portion* portion = cookie->portions->items[i];
@@ -237,7 +237,7 @@ static void ce_terrain_load_portions(ce_terrain_cookie* cookie)
 
 	ce_vector_clear(cookie->portions);
 
-	ce_thread_mutex_unlock(cookie->mutex);
+	ce_mutex_unlock(cookie->mutex);
 }
 
 static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
@@ -343,19 +343,19 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_texmng* texmng,
 
 	ce_logging_write("terrain: waiting for all tasks to complete...");
 
-	ce_thread_mutex_lock(cookie->mutex);
+	ce_mutex_lock(cookie->mutex);
 
 	while (!ce_vector_empty(cookie->portions) ||
 			cookie->completed_portion_count != cookie->queued_portion_count) {
-		ce_thread_mutex_unlock(cookie->mutex);
+		ce_mutex_unlock(cookie->mutex);
 
 		ce_terrain_load_portions(cookie);
 		ce_threadpool_wait_one(cookie->threadpool);
 
-		ce_thread_mutex_lock(cookie->mutex);
+		ce_mutex_lock(cookie->mutex);
 	}
 
-	ce_thread_mutex_unlock(cookie->mutex);
+	ce_mutex_unlock(cookie->mutex);
 
 	ce_terrain_cookie_del(cookie);
 

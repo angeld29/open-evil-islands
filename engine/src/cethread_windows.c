@@ -37,42 +37,37 @@
 
 #include "ceerror_win32.h"
 
-int ce_thread_online_cpu_count(void)
+int ce_online_cpu_count(void)
 {
 	SYSTEM_INFO info;
 	GetSystemInfo(&info);
 	return ce_max(1, info.dwNumberOfProcessors);
 }
 
-typedef struct {
-	void (*func)(void*);
-	void* arg;
-} ce_thread_cookie;
-
 struct ce_thread {
-	ce_thread_cookie cookie;
-	HANDLE thread;
+	ce_routine routine;
+	HANDLE handle;
 };
 
-static DWORD WINAPI ce_thread_func_wrap(LPVOID arg)
+static DWORD WINAPI ce_thread_wrap(LPVOID arg)
 {
-	ce_thread_cookie* cookie = arg;
-	(*cookie->func)(cookie->arg);
+	ce_routine* routine = arg;
+	(*routine->proc)(routine->arg);
 	return 0;
 }
 
-ce_thread* ce_thread_new(void (*func)(void*), void* arg)
+ce_thread* ce_thread_new(void (*proc)(void*), void* arg)
 {
 	ce_thread* thread = ce_alloc(sizeof(ce_thread));
-	thread->cookie.func = func;
-	thread->cookie.arg = arg;
-	thread->thread = CreateThread(NULL, // default security attributes
+	thread->routine.proc = proc;
+	thread->routine.arg = arg;
+	thread->handle = CreateThread(NULL, // default security attributes
 								0,      // default stack size
-								ce_thread_func_wrap,
-								&thread->cookie,
+								ce_thread_wrap,
+								&thread->routine,
 								0,      // default creation flags
 								NULL);  // no thread identifier
-	if (NULL == thread->thread) {
+	if (NULL == thread->handle) {
 		ce_error_report_windows_last("thread");
 	}
 	return thread;
@@ -81,202 +76,199 @@ ce_thread* ce_thread_new(void (*func)(void*), void* arg)
 void ce_thread_del(ce_thread* thread)
 {
 	if (NULL != thread) {
-		CloseHandle(thread->thread);
+		CloseHandle(thread->handle);
 		ce_free(thread, sizeof(ce_thread));
 	}
 }
 
 void ce_thread_wait(ce_thread* thread)
 {
-	if (WAIT_OBJECT_0 != WaitForSingleObject(thread->thread, INFINITE)) {
+	if (WAIT_OBJECT_0 != WaitForSingleObject(thread->handle, INFINITE)) {
 		ce_error_report_windows_last("thread");
 	}
 }
 
-struct ce_thread_mutex {
-	CRITICAL_SECTION cs;
+struct ce_mutex {
+	CRITICAL_SECTION handle;
 };
 
-ce_thread_mutex* ce_thread_mutex_new(void)
+ce_mutex* ce_mutex_new(void)
 {
-	ce_thread_mutex* mutex = ce_alloc(sizeof(ce_thread_mutex));
-	InitializeCriticalSection(&mutex->cs);
+	ce_mutex* mutex = ce_alloc(sizeof(ce_mutex));
+	InitializeCriticalSection(&mutex->handle);
 	return mutex;
 }
 
-void ce_thread_mutex_del(ce_thread_mutex* mutex)
+void ce_mutex_del(ce_mutex* mutex)
 {
 	if (NULL != mutex) {
-		DeleteCriticalSection(&mutex->cs);
-		ce_free(mutex, sizeof(ce_thread_mutex));
+		DeleteCriticalSection(&mutex->handle);
+		ce_free(mutex, sizeof(ce_mutex));
 	}
 }
 
-void ce_thread_mutex_lock(ce_thread_mutex* mutex)
+void ce_mutex_lock(ce_mutex* mutex)
 {
-	EnterCriticalSection(&mutex->cs);
+	EnterCriticalSection(&mutex->handle);
 }
 
-void ce_thread_mutex_unlock(ce_thread_mutex* mutex)
+void ce_mutex_unlock(ce_mutex* mutex)
 {
-	LeaveCriticalSection(&mutex->cs);
+	LeaveCriticalSection(&mutex->handle);
 }
 
 typedef struct {
 	int priority;
 	bool woken;
-	HANDLE event;
-} ce_thread_cond_event;
+	HANDLE handle;
+} ce_waitcond_event;
 
-static ce_thread_cond_event* ce_thread_cond_event_new(void)
+static ce_waitcond_event* ce_waitcond_event_new(void)
 {
-	ce_thread_cond_event* event = ce_alloc(sizeof(ce_thread_cond_event));
-	event->priority = 0;
-	event->woken = false;
-	event->event = CreateEvent(NULL,   // default security attributes
+	ce_waitcond_event* event = ce_alloc_zero(sizeof(ce_waitcond_event));
+	event->handle = CreateEvent(NULL,  // default security attributes
 								TRUE,  // manual-reset event
 								FALSE, // initial state is nonsignaled
 								NULL); // unnamed
-	if (NULL == event->event) {
-		ce_error_report_windows_last("thread");
+	if (NULL == event->handle) {
+		ce_error_report_windows_last("waitcond");
 	}
 	return event;
 }
 
-static void ce_thread_cond_event_del(ce_thread_cond_event* event)
+static void ce_waitcond_event_del(ce_waitcond_event* event)
 {
 	if (NULL != event) {
-		CloseHandle(event->event);
-		ce_free(event, sizeof(ce_thread_cond_event));
+		CloseHandle(event->handle);
+		ce_free(event, sizeof(ce_waitcond_event));
 	}
 }
 
-struct ce_thread_cond {
-	CRITICAL_SECTION cs;
+struct ce_waitcond {
+	CRITICAL_SECTION mutex;
 	ce_vector* events;
-	ce_vector* free_events;
+	ce_vector* cache;
 };
 
-ce_thread_cond* ce_thread_cond_new(void)
+ce_waitcond* ce_waitcond_new(void)
 {
-	ce_thread_cond* cond = ce_alloc(sizeof(ce_thread_cond));
-	InitializeCriticalSection(&cond->cs);
-	cond->events = ce_vector_new();
-	cond->free_events = ce_vector_new();
-	return cond;
+	ce_waitcond* waitcond = ce_alloc(sizeof(ce_waitcond));
+	InitializeCriticalSection(&waitcond->mutex);
+	waitcond->events = ce_vector_new();
+	waitcond->cache = ce_vector_new();
+	return waitcond;
 }
 
-void ce_thread_cond_del(ce_thread_cond* cond)
+void ce_waitcond_del(ce_waitcond* waitcond)
 {
-	if (NULL != cond) {
-		if (!ce_vector_empty(cond->events)) {
-			ce_logging_warning("thread: "
-				"destroyed while threads are still waiting");
+	if (NULL != waitcond) {
+		if (!ce_vector_empty(waitcond->events)) {
+			ce_logging_warning("waitcond: destroyed while "
+								"threads are still waiting");
 		}
-		ce_vector_for_each(cond->free_events, ce_thread_cond_event_del);
-		ce_vector_for_each(cond->events, ce_thread_cond_event_del);
-		ce_vector_del(cond->free_events);
-		ce_vector_del(cond->events);
-		DeleteCriticalSection(&cond->cs);
-		ce_free(cond, sizeof(ce_thread_cond));
+		ce_vector_for_each(waitcond->cache, ce_waitcond_event_del);
+		ce_vector_for_each(waitcond->events, ce_waitcond_event_del);
+		ce_vector_del(waitcond->cache);
+		ce_vector_del(waitcond->events);
+		DeleteCriticalSection(&waitcond->mutex);
+		ce_free(waitcond, sizeof(ce_waitcond));
 	}
 }
 
-void ce_thread_cond_wake_one(ce_thread_cond* cond)
+void ce_waitcond_wake_one(ce_waitcond* waitcond)
 {
-	EnterCriticalSection(&cond->cs);
-	for (size_t i = 0; i < cond->events->count; ++i) {
-		ce_thread_cond_event* current = cond->events->items[i];
+	EnterCriticalSection(&waitcond->mutex);
+	for (size_t i = 0; i < waitcond->events->count; ++i) {
+		ce_waitcond_event* current = waitcond->events->items[i];
 		if (!current->woken) {
 			current->woken = true;
-			SetEvent(current->event);
+			SetEvent(current->handle);
 			break;
 		}
 	}
-	LeaveCriticalSection(&cond->cs);
+	LeaveCriticalSection(&waitcond->mutex);
 }
 
-void ce_thread_cond_wake_all(ce_thread_cond* cond)
+void ce_waitcond_wake_all(ce_waitcond* waitcond)
 {
-	EnterCriticalSection(&cond->cs);
-	for (size_t i = 0; i < cond->events->count; ++i) {
-		ce_thread_cond_event* current = cond->events->items[i];
+	EnterCriticalSection(&waitcond->mutex);
+	for (size_t i = 0; i < waitcond->events->count; ++i) {
+		ce_waitcond_event* current = waitcond->events->items[i];
 		current->woken = true;
-		SetEvent(current->event);
+		SetEvent(current->handle);
 	}
-	LeaveCriticalSection(&cond->cs);
+	LeaveCriticalSection(&waitcond->mutex);
 }
 
-void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex)
+void ce_waitcond_wait(ce_waitcond* waitcond, ce_mutex* mutex)
 {
-	EnterCriticalSection(&cond->cs);
+	EnterCriticalSection(&waitcond->mutex);
 
-	ce_thread_cond_event* event = ce_vector_empty(cond->free_events) ?
-		ce_thread_cond_event_new() : ce_vector_pop_back(cond->free_events);
+	ce_waitcond_event* event = ce_vector_empty(waitcond->cache) ?
+		ce_waitcond_event_new() : ce_vector_pop_back(waitcond->cache);
 	event->priority = GetThreadPriority(GetCurrentThread());
 	event->woken = false;
 
 	// insert event into the queue (sorted by priority)
 	size_t index = 0;
-	for (; index < cond->events->count; ++index) {
-		ce_thread_cond_event* current = cond->events->items[index];
+	for (; index < waitcond->events->count; ++index) {
+		ce_waitcond_event* current = waitcond->events->items[index];
 		if (current->priority < event->priority) {
 			break;
 		}
 	}
-	ce_vector_insert(cond->events, index, event);
+	ce_vector_insert(waitcond->events, index, event);
 
-	LeaveCriticalSection(&cond->cs);
+	LeaveCriticalSection(&waitcond->mutex);
 
-	ce_thread_mutex_unlock(mutex);
-	if (WAIT_OBJECT_0 != WaitForSingleObject(event->event, INFINITE)) {
-		ce_error_report_windows_last("thread");
+	ce_mutex_unlock(mutex);
+	if (WAIT_OBJECT_0 != WaitForSingleObject(event->handle, INFINITE)) {
+		ce_error_report_windows_last("waitcond");
 	}
-	ce_thread_mutex_lock(mutex);
+	ce_mutex_lock(mutex);
 
-	EnterCriticalSection(&cond->cs);
+	EnterCriticalSection(&waitcond->mutex);
 
 	// do not remove by index because
 	// order of the items may be changed by another thread
-	ce_vector_remove_all(cond->events, event);
-	ce_vector_push_back(cond->free_events, event);
+	ce_vector_remove_all(waitcond->events, event);
+	ce_vector_push_back(waitcond->cache, event);
 
-	ResetEvent(event->event);
+	ResetEvent(event->handle);
 
-	LeaveCriticalSection(&cond->cs);
+	LeaveCriticalSection(&waitcond->mutex);
 }
 
-struct ce_thread_once {
+struct ce_once {
 	bool inited;
-	CRITICAL_SECTION cs;
+	CRITICAL_SECTION mutex;
 };
 
-ce_thread_once* ce_thread_once_new(void)
+ce_once* ce_once_new(void)
 {
-	ce_thread_once* once = ce_alloc(sizeof(ce_thread_once));
-	once->inited = false;
-	InitializeCriticalSection(&once->cs);
+	ce_once* once = ce_alloc_zero(sizeof(ce_once));
+	InitializeCriticalSection(&once->mutex);
 	return once;
 }
 
-void ce_thread_once_del(ce_thread_once* once)
+void ce_once_del(ce_once* once)
 {
 	if (NULL != once) {
-		DeleteCriticalSection(&once->cs);
-		ce_free(once, sizeof(ce_thread_once));
+		DeleteCriticalSection(&once->mutex);
+		ce_free(once, sizeof(ce_once));
 	}
 }
 
-void ce_thread_once_exec(ce_thread_once* once, void (*func)(void*), void* arg)
+void ce_once_exec(ce_once* once, void (*proc)(void*), void* arg)
 {
 	// double-checked locking
 	// another solution ?
 	if (!once->inited) {
-		EnterCriticalSection(&once->cs);
+		EnterCriticalSection(&once->mutex);
 		if (!once->inited) {
-			func(arg);
+			(*proc)(arg);
 			once->inited = true;
 		}
-		LeaveCriticalSection(&once->cs);
+		LeaveCriticalSection(&once->mutex);
 	}
 }

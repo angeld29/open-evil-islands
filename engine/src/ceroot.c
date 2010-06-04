@@ -304,7 +304,7 @@ ce_optparse* ce_root_create_optparse(void)
 		"display supported reflections and exit (output to stdout)");
 
 	ce_optparse_add(optparse, "thread_count", CE_TYPE_INT,
-		(const int[]){ce_thread_online_cpu_count()}, false,
+		(const int[]){ce_online_cpu_count()}, false,
 		"j", "jobs", "allow THREAD_COUNT jobs at once; if this option is not "
 		"specified, the value will be detected automatically depending on the "
 		"number of CPUs you have (or the number of cores your CPU have)");

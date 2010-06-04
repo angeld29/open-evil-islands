@@ -49,7 +49,7 @@
 #include "ceerror.h"
 #include "cethread.h"
 
-int ce_thread_online_cpu_count(void)
+int ce_online_cpu_count(void)
 {
 #ifdef _SC_NPROCESSORS_ONLN
 	return ce_max(1, sysconf(_SC_NPROCESSORS_ONLN));
@@ -58,30 +58,25 @@ int ce_thread_online_cpu_count(void)
 #endif
 }
 
-typedef struct {
-	void (*func)(void*);
-	void* arg;
-} ce_thread_cookie;
-
 struct ce_thread {
-	ce_thread_cookie cookie;
-	pthread_t thread;
+	ce_routine routine;
+	pthread_t handle;
 };
 
-static void* ce_thread_func_wrap(void* arg)
+static void* ce_thread_wrap(void* arg)
 {
-	ce_thread_cookie* cookie = arg;
-	(*cookie->func)(cookie->arg);
+	ce_routine* routine = arg;
+	(*routine->proc)(routine->arg);
 	return arg;
 }
 
-ce_thread* ce_thread_new(void (*func)(void*), void* arg)
+ce_thread* ce_thread_new(void (*proc)(void*), void* arg)
 {
 	ce_thread* thread = ce_alloc(sizeof(ce_thread));
-	thread->cookie.func = func;
-	thread->cookie.arg = arg;
-	int code = pthread_create(&thread->thread,
-		NULL, ce_thread_func_wrap, &thread->cookie);
+	thread->routine.proc = proc;
+	thread->routine.arg = arg;
+	int code = pthread_create(&thread->handle, NULL,
+								ce_thread_wrap, &thread->routine);
 	if (0 != code) {
 		ce_error_report_c_errno(code, "thread");
 	}
@@ -90,155 +85,152 @@ ce_thread* ce_thread_new(void (*func)(void*), void* arg)
 
 void ce_thread_del(ce_thread* thread)
 {
-	if (NULL != thread) {
-		ce_free(thread, sizeof(ce_thread));
-	}
+	ce_free(thread, sizeof(ce_thread));
 }
 
 void ce_thread_wait(ce_thread* thread)
 {
-	int code = pthread_join(thread->thread, NULL);
+	int code = pthread_join(thread->handle, NULL);
 	if (0 != code) {
 		ce_error_report_c_errno(code, "thread");
 	}
 }
 
-struct ce_thread_mutex {
-	pthread_mutex_t mutex;
+struct ce_mutex {
+	pthread_mutex_t handle;
 };
 
-ce_thread_mutex* ce_thread_mutex_new(void)
+ce_mutex* ce_mutex_new(void)
 {
-	ce_thread_mutex* mutex = ce_alloc(sizeof(ce_thread_mutex));
-	pthread_mutex_init(&mutex->mutex, NULL);
+	ce_mutex* mutex = ce_alloc(sizeof(ce_mutex));
+	pthread_mutex_init(&mutex->handle, NULL);
 	return mutex;
 }
 
-void ce_thread_mutex_del(ce_thread_mutex* mutex)
+void ce_mutex_del(ce_mutex* mutex)
 {
 	if (NULL != mutex) {
-		pthread_mutex_destroy(&mutex->mutex);
-		ce_free(mutex, sizeof(ce_thread_mutex));
+		pthread_mutex_destroy(&mutex->handle);
+		ce_free(mutex, sizeof(ce_mutex));
 	}
 }
 
-void ce_thread_mutex_lock(ce_thread_mutex* mutex)
+void ce_mutex_lock(ce_mutex* mutex)
 {
-	pthread_mutex_lock(&mutex->mutex);
+	pthread_mutex_lock(&mutex->handle);
 }
 
-void ce_thread_mutex_unlock(ce_thread_mutex* mutex)
+void ce_mutex_unlock(ce_mutex* mutex)
 {
-	pthread_mutex_unlock(&mutex->mutex);
+	pthread_mutex_unlock(&mutex->handle);
 }
 
-struct ce_thread_cond {
+struct ce_waitcond {
 	int waiter_count;
 	int wakeup_count;
 	pthread_mutex_t mutex;
 	pthread_cond_t cond;
 };
 
-ce_thread_cond* ce_thread_cond_new(void)
+ce_waitcond* ce_waitcond_new(void)
 {
-	ce_thread_cond* cond = ce_alloc(sizeof(ce_thread_cond));
-	cond->waiter_count = 0;
-	cond->wakeup_count = 0;
-	pthread_mutex_init(&cond->mutex, NULL);
-	pthread_cond_init(&cond->cond, NULL);
-	return cond;
+	ce_waitcond* waitcond = ce_alloc(sizeof(ce_waitcond));
+	waitcond->waiter_count = 0;
+	waitcond->wakeup_count = 0;
+	pthread_mutex_init(&waitcond->mutex, NULL);
+	pthread_cond_init(&waitcond->cond, NULL);
+	return waitcond;
 }
 
-void ce_thread_cond_del(ce_thread_cond* cond)
+void ce_waitcond_del(ce_waitcond* waitcond)
 {
-	if (NULL != cond) {
-		pthread_cond_destroy(&cond->cond);
-		pthread_mutex_destroy(&cond->mutex);
-		ce_free(cond, sizeof(ce_thread_cond));
+	if (NULL != waitcond) {
+		pthread_cond_destroy(&waitcond->cond);
+		pthread_mutex_destroy(&waitcond->mutex);
+		ce_free(waitcond, sizeof(ce_waitcond));
 	}
 }
 
-void ce_thread_cond_wake_one(ce_thread_cond* cond)
+void ce_waitcond_wake_one(ce_waitcond* waitcond)
 {
-	pthread_mutex_lock(&cond->mutex);
-	cond->wakeup_count = ce_min(cond->wakeup_count + 1, cond->waiter_count);
-	pthread_cond_signal(&cond->cond);
-	pthread_mutex_unlock(&cond->mutex);
+	pthread_mutex_lock(&waitcond->mutex);
+	waitcond->wakeup_count = ce_min(waitcond->wakeup_count + 1,
+									waitcond->waiter_count);
+	pthread_cond_signal(&waitcond->cond);
+	pthread_mutex_unlock(&waitcond->mutex);
 }
 
-void ce_thread_cond_wake_all(ce_thread_cond* cond)
+void ce_waitcond_wake_all(ce_waitcond* waitcond)
 {
-	pthread_mutex_lock(&cond->mutex);
-	cond->wakeup_count = cond->waiter_count;
-	pthread_cond_broadcast(&cond->cond);
-	pthread_mutex_unlock(&cond->mutex);
+	pthread_mutex_lock(&waitcond->mutex);
+	waitcond->wakeup_count = waitcond->waiter_count;
+	pthread_cond_broadcast(&waitcond->cond);
+	pthread_mutex_unlock(&waitcond->mutex);
 }
 
-void ce_thread_cond_wait(ce_thread_cond* cond, ce_thread_mutex* mutex)
+void ce_waitcond_wait(ce_waitcond* waitcond, ce_mutex* mutex)
 {
-	pthread_mutex_lock(&cond->mutex);
-	++cond->waiter_count;
+	pthread_mutex_lock(&waitcond->mutex);
+	++waitcond->waiter_count;
 
-	ce_thread_mutex_unlock(mutex);
+	ce_mutex_unlock(mutex);
 
 	int code;
 	do {
-		code = pthread_cond_wait(&cond->cond, &cond->mutex);
+		code = pthread_cond_wait(&waitcond->cond, &waitcond->mutex);
 		// many vendors warn of spurious wakeups from pthread_cond_wait,
 		// even though POSIX doesn't allow for it...
-	} while (0 == code && 0 == cond->wakeup_count);
+	} while (0 == code && 0 == waitcond->wakeup_count);
 
-	assert(cond->waiter_count > 0 && "internal error");
-	--cond->waiter_count;
+	assert(waitcond->waiter_count > 0 && "internal error");
+	--waitcond->waiter_count;
 
 	if (0 == code) {
-		assert(cond->wakeup_count > 0 && "internal error");
-		--cond->wakeup_count;
+		assert(waitcond->wakeup_count > 0 && "internal error");
+		--waitcond->wakeup_count;
 	} else {
-		ce_error_report_c_errno(code, "thread");
+		ce_error_report_c_errno(code, "waitcond");
 	}
 
-	pthread_mutex_unlock(&cond->mutex);
+	pthread_mutex_unlock(&waitcond->mutex);
 
-	ce_thread_mutex_lock(mutex);
+	ce_mutex_lock(mutex);
 }
 
-struct ce_thread_once {
-	pthread_once_t once;
+struct ce_once {
+	pthread_once_t handle;
 };
 
-ce_thread_once* ce_thread_once_new(void)
+ce_once* ce_once_new(void)
 {
-	ce_thread_once* once = ce_alloc(sizeof(ce_thread_once));
-	once->once = PTHREAD_ONCE_INIT;
+	ce_once* once = ce_alloc(sizeof(ce_once));
+	once->handle = PTHREAD_ONCE_INIT;
 	return once;
 }
 
-void ce_thread_once_del(ce_thread_once* once)
+void ce_once_del(ce_once* once)
 {
-	if (NULL != once) {
-		ce_free(once, sizeof(ce_thread_once));
-	}
+	ce_free(once, sizeof(ce_once));
 }
 
-static pthread_once_t ce_thread_once_once = PTHREAD_ONCE_INIT;
-static pthread_key_t ce_thread_once_key;
+static pthread_once_t ce_once_once = PTHREAD_ONCE_INIT;
+static pthread_key_t ce_once_key;
 
-static void ce_thread_once_key_init()
+static void ce_once_key_init()
 {
-	pthread_key_create(&ce_thread_once_key, NULL);
+	pthread_key_create(&ce_once_key, NULL);
 }
 
-static void ce_thread_once_exec_wrap(void)
+static void ce_once_wrap(void)
 {
-	ce_thread_cookie* cookie = pthread_getspecific(ce_thread_once_key);
-	(*cookie->func)(cookie->arg);
+	ce_routine* routine = pthread_getspecific(ce_once_key);
+	(*routine->proc)(routine->arg);
 }
 
-void ce_thread_once_exec(ce_thread_once* once, void (*func)(void*), void* arg)
+void ce_once_exec(ce_once* once, void (*proc)(void*), void* arg)
 {
-	pthread_once(&ce_thread_once_once, ce_thread_once_key_init);
-	ce_thread_cookie cookie = { func, arg };
-	pthread_setspecific(ce_thread_once_key, &cookie);
-	pthread_once(&once->once, ce_thread_once_exec_wrap);
+	pthread_once(&ce_once_once, ce_once_key_init);
+	ce_routine routine = {proc, arg};
+	pthread_setspecific(ce_once_key, &routine);
+	pthread_once(&once->handle, ce_once_wrap);
 }

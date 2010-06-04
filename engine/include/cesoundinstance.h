@@ -39,8 +39,8 @@ typedef struct {
 	volatile bool done;
 	ce_soundinstance_state state;
 	ce_soundresource* soundresource;
-	ce_thread_mutex* mutex;
-	ce_thread_cond* cond;
+	ce_mutex* mutex;
+	ce_waitcond* waitcond;
 	ce_thread* thread;
 } ce_soundinstance;
 
