@@ -31,8 +31,6 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-// utils
-
 extern int ce_thread_online_cpu_count(void);
 
 /*
