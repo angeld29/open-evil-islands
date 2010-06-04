@@ -58,16 +58,6 @@ void ce_vector_resize(ce_vector* vector, int count)
 	vector->count = count;
 }
 
-bool ce_vector_empty(const ce_vector* vector)
-{
-	return 0 == vector->count;
-}
-
-void* ce_vector_back(const ce_vector* vector)
-{
-	return vector->items[vector->count - 1];
-}
-
 int ce_vector_find(const ce_vector* vector, const void* item)
 {
 	for (int i = 0; i < vector->count; ++i) {
@@ -93,11 +83,6 @@ void ce_vector_push_back(ce_vector* vector, void* item)
 	vector->items[vector->count++] = item;
 }
 
-void* ce_vector_pop_back(ce_vector* vector)
-{
-	return vector->items[--vector->count];
-}
-
 void ce_vector_insert(ce_vector* vector, int index, void* item)
 {
 	if (vector->count == vector->capacity) {
@@ -116,22 +101,12 @@ void ce_vector_remove(ce_vector* vector, int index)
 	}
 }
 
-void ce_vector_remove_unordered(ce_vector* vector, int index)
-{
-	vector->items[index] = vector->items[--vector->count];
-}
-
 void ce_vector_remove_all(ce_vector* vector, const void* item)
 {
-	int index = ce_vector_find(vector, item);
-	if (-1 != index) {
+	int index;
+	while (-1 != (index = ce_vector_find(vector, item))) {
 		ce_vector_remove(vector, index);
 	}
-}
-
-void ce_vector_clear(ce_vector* vector)
-{
-	vector->count = 0;
 }
 
 void ce_vector_for_each(ce_vector* vector, void (*func)(void*))
