@@ -48,6 +48,7 @@ extern ce_soundinstance* ce_soundinstance_new(ce_soundresource* soundresource);
 extern void ce_soundinstance_del(ce_soundinstance* soundinstance);
 
 extern void ce_soundinstance_play(ce_soundinstance* soundinstance);
+extern void ce_soundinstance_stop(ce_soundinstance* soundinstance);
 
 #ifdef __cplusplus
 }

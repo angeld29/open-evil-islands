@@ -31,10 +31,12 @@
 
 static void ce_soundinstance_exec(ce_soundinstance* soundinstance)
 {
+	ce_thread_mutex_lock(soundinstance->mutex);
+
 	while (!soundinstance->done) {
 		switch (soundinstance->state) {
 		case CE_SOUNDINSTANCE_STATE_PLAYING:
-			ce_pass(); // make C happy :)
+			ce_thread_mutex_unlock(soundinstance->mutex);
 
 			char* block = ce_soundsystem_map_block(ce_root.soundsystem);
 			size_t size = 0;
@@ -49,21 +51,26 @@ static void ce_soundinstance_exec(ce_soundinstance* soundinstance)
 			// fill tail by silence
 			memset(block + size, 0, CE_SOUNDSYSTEM_BLOCK_SIZE - size);
 
+			ce_soundsystem_unmap_block(ce_root.soundsystem);
+
 			if (0 == size) {
+				ce_thread_mutex_lock(soundinstance->mutex);
 				soundinstance->state = CE_SOUNDINSTANCE_STATE_STOPPED;
+				ce_thread_mutex_unlock(soundinstance->mutex);
 			}
 
-			ce_soundsystem_unmap_block(ce_root.soundsystem);
+			ce_thread_mutex_lock(soundinstance->mutex);
 			break;
 
 		case CE_SOUNDINSTANCE_STATE_PAUSED:
 		case CE_SOUNDINSTANCE_STATE_STOPPED:
-			ce_thread_mutex_lock(soundinstance->mutex);
 			ce_thread_cond_wait(soundinstance->cond, soundinstance->mutex);
-			ce_thread_mutex_unlock(soundinstance->mutex);
+			ce_soundresource_reset(soundinstance->soundresource);
 			break;
 		}
 	}
+
+	ce_thread_mutex_unlock(soundinstance->mutex);
 }
 
 ce_soundinstance* ce_soundinstance_new(ce_soundresource* soundresource)
@@ -96,6 +103,16 @@ void ce_soundinstance_del(ce_soundinstance* soundinstance)
 
 void ce_soundinstance_play(ce_soundinstance* soundinstance)
 {
+	ce_thread_mutex_lock(soundinstance->mutex);
 	soundinstance->state = CE_SOUNDINSTANCE_STATE_PLAYING;
 	ce_thread_cond_wake_all(soundinstance->cond);
+	ce_thread_mutex_unlock(soundinstance->mutex);
+}
+
+void ce_soundinstance_stop(ce_soundinstance* soundinstance)
+{
+	ce_thread_mutex_lock(soundinstance->mutex);
+	soundinstance->state = CE_SOUNDINSTANCE_STATE_STOPPED;
+	ce_thread_cond_wake_all(soundinstance->cond);
+	ce_thread_mutex_unlock(soundinstance->mutex);
 }
