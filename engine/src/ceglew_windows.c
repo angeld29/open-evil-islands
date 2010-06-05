@@ -18,6 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ceglew_win32.h"
+#include "ceglew_windows.h"
 
 CE_THREAD WGLEWContext ce_wglewcontext;

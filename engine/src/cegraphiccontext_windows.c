@@ -20,13 +20,12 @@
 
 #include <assert.h>
 
-#include "ceglew_win32.h"
-
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cegraphiccontext.h"
 
+#include "ceglew_windows.h"
 #include "cegraphiccontext_windows.h"
 
 void ce_graphiccontext_del(ce_graphiccontext* graphiccontext)
