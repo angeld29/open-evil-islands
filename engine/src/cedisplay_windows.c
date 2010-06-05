@@ -28,7 +28,7 @@
 #include "celogging.h"
 #include "cedisplay.h"
 
-#include "cedisplay_win32.h"
+#include "cedisplay_windows.h"
 
 typedef struct {
 	ce_vector* modes;

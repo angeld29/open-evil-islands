@@ -31,7 +31,7 @@
 #include "celogging.h"
 #include "cerenderwindow.h"
 
-#include "cedisplay_win32.h"
+#include "cedisplay_windows.h"
 #include "cegraphiccontext_windows.h"
 
 #ifndef MAPVK_VSC_TO_VK_EX
