@@ -35,7 +35,7 @@
 #include "cevector.h"
 #include "cethread.h"
 
-#include "ceerror_win32.h"
+#include "ceerror_windows.h"
 
 int ce_online_cpu_count(void)
 {

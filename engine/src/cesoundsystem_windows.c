@@ -30,7 +30,7 @@
 #include "celogging.h"
 #include "cesoundsystem.h"
 
-#include "ceerror_win32.h"
+#include "ceerror_windows.h"
 
 enum {
 	CE_SOUNDSYSTEM_HEADER_COUNT = 8,

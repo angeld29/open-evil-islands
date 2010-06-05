@@ -28,7 +28,7 @@
 #include "celogging.h"
 #include "cetimer.h"
 
-#include "ceerror_win32.h"
+#include "ceerror_windows.h"
 
 typedef struct {
 	float frequency_inv;
