@@ -99,6 +99,8 @@ void ce_soundinstance_del(ce_soundinstance* soundinstance)
 		ce_waitcond_del(soundinstance->waitcond);
 		ce_mutex_del(soundinstance->mutex);
 
+		ce_soundresource_del(soundinstance->soundresource);
+
 		ce_free(soundinstance, sizeof(ce_soundinstance));
 	}
 }

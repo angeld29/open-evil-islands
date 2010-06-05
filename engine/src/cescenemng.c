@@ -211,6 +211,13 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode);
 	}
 
+	for (size_t i = 0; i < scenemng->listeners->count; ++i) {
+		ce_scenemng_listener* listener = scenemng->listeners->items[i];
+		if (NULL != listener->render) {
+			(*listener->render)(listener->listener);
+		}
+	}
+
 #if 0
 #ifndef NDEBUG
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
@@ -258,13 +265,6 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_font_render(scenemng->font, scenemng->viewport->width -
 		ce_font_get_width(scenemng->font, engine_text) - 10, 10,
 		&CE_COLOR_RED, engine_text);
-
-	for (size_t i = 0; i < scenemng->listeners->count; ++i) {
-		ce_scenemng_listener* listener = scenemng->listeners->items[i];
-		if (NULL != listener->render) {
-			(*listener->render)(listener->listener);
-		}
-	}
 
 	ce_rendersystem_end_render(ce_root.rendersystem);
 }
