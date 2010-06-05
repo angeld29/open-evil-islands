@@ -250,7 +250,7 @@ int ce_root_exec(void)
 		ce_scenemng_advance(ce_root.scenemng, elapsed);
 		ce_scenemng_render(ce_root.scenemng);
 
-		ce_context_swap(ce_root.renderwindow->context);
+		ce_graphiccontext_swap(ce_root.renderwindow->graphiccontext);
 	}
 
 	return EXIT_SUCCESS;

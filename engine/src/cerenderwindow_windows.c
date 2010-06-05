@@ -32,7 +32,7 @@
 #include "cerenderwindow.h"
 
 #include "cedisplay_win32.h"
-#include "cecontext_win32.h"
+#include "cegraphiccontext_windows.h"
 
 #ifndef MAPVK_VSC_TO_VK_EX
 #define MAPVK_VSC_TO_VK_EX 3
@@ -222,9 +222,9 @@ static bool ce_renderwindow_win_ctor(ce_renderwindow* renderwindow, va_list args
 
 	SetWindowLongPtr(winwindow->window, GWLP_USERDATA, (LONG_PTR)renderwindow);
 
-	renderwindow->context = ce_context_create(GetDC(winwindow->window));
-	if (NULL == renderwindow->context) {
-		ce_logging_fatal("renderwindow: could not create context");
+	renderwindow->graphiccontext = ce_graphiccontext_create(GetDC(winwindow->window));
+	if (NULL == renderwindow->graphiccontext) {
+		ce_logging_fatal("renderwindow: could not create graphic context");
 		return false;
 	}
 
@@ -235,7 +235,7 @@ static void ce_renderwindow_win_dtor(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
-	ce_context_del(renderwindow->context);
+	ce_graphiccontext_del(renderwindow->graphiccontext);
 	ce_displaymng_del(renderwindow->displaymng);
 
 	if (NULL != winwindow->window) {

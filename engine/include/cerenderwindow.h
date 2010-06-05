@@ -28,7 +28,7 @@
 #include "cevector.h"
 #include "ceinput.h"
 #include "cedisplay.h"
-#include "cecontext.h"
+#include "cegraphiccontext.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -113,7 +113,7 @@ struct ce_renderwindow {
 	// request to switch in fullscreen mode when the window was restored
 	bool restore_fullscreen;
 	ce_displaymng* displaymng;
-	ce_context* context;
+	ce_graphiccontext* graphiccontext;
 	ce_inputcontext* inputcontext;
 	ce_renderwindow_keymap* keymap;
 	ce_vector* listeners;

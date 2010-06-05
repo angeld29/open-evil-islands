@@ -25,31 +25,31 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cecontext.h"
+#include "cegraphiccontext.h"
 
-#include "cecontext_win32.h"
+#include "cegraphiccontext_windows.h"
 
-void ce_context_del(ce_context* context)
+void ce_graphiccontext_del(ce_graphiccontext* graphiccontext)
 {
-	if (NULL != context) {
-		assert(wglGetCurrentContext() == context->context);
-		if (NULL != context->context) {
+	if (NULL != graphiccontext) {
+		assert(wglGetCurrentContext() == graphiccontext->context);
+		if (NULL != graphiccontext->context) {
 			wglMakeCurrent(wglGetCurrentDC(), NULL);
-			wglDeleteContext(context->context);
+			wglDeleteContext(graphiccontext->context);
 		}
-		ce_free(context, sizeof(ce_context));
+		ce_free(graphiccontext, sizeof(ce_graphiccontext));
 	}
 }
 
-void ce_context_swap(ce_context* context)
+void ce_graphiccontext_swap(ce_graphiccontext* graphiccontext)
 {
-	ce_unused(context);
+	ce_unused(graphiccontext);
 	assert(NULL != wglGetCurrentContext());
-	assert(wglGetCurrentContext() == context->context);
+	assert(wglGetCurrentContext() == graphiccontext->context);
 	SwapBuffers(wglGetCurrentDC());
 }
 
-ce_context* ce_context_create(HDC dc)
+ce_graphiccontext* ce_graphiccontext_create(HDC dc)
 {
 	PIXELFORMATDESCRIPTOR pfd = {
 		sizeof(PIXELFORMATDESCRIPTOR),
@@ -74,33 +74,33 @@ ce_context* ce_context_create(HDC dc)
 
 	int pixel_format = ChoosePixelFormat(dc, &pfd);
 	if (0 == pixel_format) {
-		ce_logging_fatal("context: no appropriate visual found");
+		ce_logging_fatal("graphiccontext: no appropriate visual found");
 		return NULL;
 	}
 
 	DescribePixelFormat(dc, pixel_format, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
-	ce_context_visualinfo(pixel_format, 0 != (pfd.dwFlags & PFD_DOUBLEBUFFER),
+	ce_graphiccontext_visualinfo(pixel_format, 0 != (pfd.dwFlags & PFD_DOUBLEBUFFER),
 		pfd.cColorBits, pfd.cRedBits, pfd.cGreenBits,
 		pfd.cBlueBits, pfd.cAlphaBits, pfd.cDepthBits, pfd.cStencilBits);
 
 	if (!SetPixelFormat(dc, pixel_format, &pfd)) {
-		ce_logging_fatal("context: could not set pixel format");
+		ce_logging_fatal("graphiccontext: could not set pixel format");
 		return NULL;
 	}
 
-	ce_context* context = ce_alloc(sizeof(ce_context));
-	context->context = wglCreateContext(dc);
+	ce_graphiccontext* graphiccontext = ce_alloc(sizeof(ce_graphiccontext));
+	graphiccontext->context = wglCreateContext(dc);
 
 	assert(NULL == wglGetCurrentContext());
-	wglMakeCurrent(dc, context->context);
+	wglMakeCurrent(dc, graphiccontext->context);
 
 	GLenum result;
 	if (GLEW_OK != (result = glewInit()) || GLEW_OK != (result = wglewInit())) {
-		ce_logging_fatal("context: %s", glewGetErrorString(result));
-		ce_context_del(context);
+		ce_logging_fatal("graphiccontext: %s", glewGetErrorString(result));
+		ce_graphiccontext_del(graphiccontext);
 		return NULL;
 	}
 
-	return context;
+	return graphiccontext;
 }

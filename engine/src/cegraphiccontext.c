@@ -21,17 +21,17 @@
 #include <assert.h>
 
 #include "celogging.h"
-#include "cecontext.h"
+#include "cegraphiccontext.h"
 
-void ce_context_visualinfo(int id, int db, int sz, int r,
+void ce_graphiccontext_visualinfo(int id, int db, int sz, int r,
 							int g, int b, int a, int dp, int st)
 {
-	ce_logging_write("context: visual %d chosen", id);
-	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("context: |   id | db | sz |  r |  g |  b |  a | dp | st |");
-	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("context: | %4d | %2c | %2d | %2d | %2d | %2d | %2d | %2d | %2d |",
+	ce_logging_write("graphiccontext: visual %d chosen", id);
+	ce_logging_write("graphiccontext: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("graphiccontext: |   id | db | sz |  r |  g |  b |  a | dp | st |");
+	ce_logging_write("graphiccontext: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("graphiccontext: | %4d | %2c | %2d | %2d | %2d | %2d | %2d | %2d | %2d |",
 		id, "ny"[db], sz, r, g, b, a, dp, st);
-	ce_logging_write("context: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("context: see GLEW visualinfo for more details");
+	ce_logging_write("graphiccontext: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("graphiccontext: see GLEW visualinfo for more details");
 }

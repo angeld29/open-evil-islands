@@ -18,25 +18,24 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_CONTEXT_H
-#define CE_CONTEXT_H
+#ifndef CE_GRAPHICCONTEXT_H
+#define CE_GRAPHICCONTEXT_H
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_context ce_context;
+typedef struct ce_graphiccontext ce_graphiccontext;
 
-extern void ce_context_del(ce_context* context);
+extern void ce_graphiccontext_del(ce_graphiccontext* graphiccontext);
+extern void ce_graphiccontext_swap(ce_graphiccontext* graphiccontext);
 
-extern void ce_context_swap(ce_context* context);
-
-extern void ce_context_visualinfo(int id, int db, int sz, int r,
-									int g, int b, int a, int dp, int st);
+extern void ce_graphiccontext_visualinfo(int id, int db, int sz, int r,
+										int g, int b, int a, int dp, int st);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_CONTEXT_H */
+#endif /* CE_GRAPHICCONTEXT_H */

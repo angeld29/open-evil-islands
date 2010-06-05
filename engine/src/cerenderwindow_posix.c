@@ -34,7 +34,7 @@
 #include "cerenderwindow.h"
 
 #include "cedisplay_posix.h"
-#include "cecontext_posix.h"
+#include "cegraphiccontext_posix.h"
 
 enum {
 	CE_RENDERWINDOW_ATOM_WM_PROTOCOLS,
@@ -112,7 +112,7 @@ static bool ce_renderwindow_x11_ctor(ce_renderwindow* renderwindow, va_list args
 	}
 
 	renderwindow->displaymng = ce_displaymng_create(x11window->display);
-	renderwindow->context = ce_context_create(x11window->display);
+	renderwindow->graphiccontext = ce_graphiccontext_create(x11window->display);
 
 	// absolutely don't understand how XChangeKeyboardMapping work...
 	ce_renderwindow_keymap_add_array(renderwindow->keymap, (unsigned long[]){
@@ -144,7 +144,7 @@ static bool ce_renderwindow_x11_ctor(ce_renderwindow* renderwindow, va_list args
 		x11window->mask[i] = CWColormap | CWEventMask | CWOverrideRedirect;
 		x11window->attrs[i].colormap = XCreateColormap(x11window->display,
 			XDefaultRootWindow(x11window->display),
-			renderwindow->context->visualinfo->visual, AllocNone);
+			renderwindow->graphiccontext->visualinfo->visual, AllocNone);
 		x11window->attrs[i].event_mask = EnterWindowMask | LeaveWindowMask |
 			KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
 			PointerMotionMask | ButtonMotionMask |
@@ -184,14 +184,14 @@ static bool ce_renderwindow_x11_ctor(ce_renderwindow* renderwindow, va_list args
 		XDefaultRootWindow(x11window->display), 0, 0,
 		renderwindow->geometry[renderwindow->state].width,
 		renderwindow->geometry[renderwindow->state].height,
-		0, renderwindow->context->visualinfo->depth,
-		InputOutput, renderwindow->context->visualinfo->visual,
+		0, renderwindow->graphiccontext->visualinfo->depth,
+		InputOutput, renderwindow->graphiccontext->visualinfo->visual,
 		x11window->mask[renderwindow->state],
 		&x11window->attrs[renderwindow->state]);
 
-	if (!ce_context_make_current(renderwindow->context, x11window->display,
-														x11window->window)) {
-		ce_logging_fatal("renderwindow: could not set context");
+	if (!ce_graphiccontext_make_current(renderwindow->graphiccontext,
+										x11window->display, x11window->window)) {
+		ce_logging_fatal("renderwindow: could not set graphic context");
 		return false;
 	}
 
@@ -218,7 +218,7 @@ static void ce_renderwindow_x11_dtor(ce_renderwindow* renderwindow)
 {
 	ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
-	ce_context_del(renderwindow->context);
+	ce_graphiccontext_del(renderwindow->graphiccontext);
 	ce_displaymng_del(renderwindow->displaymng);
 
 	if (0 != x11window->window) {

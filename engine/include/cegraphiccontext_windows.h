@@ -18,26 +18,26 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_CONTEXT_PLATFORM_H
-#define CE_CONTEXT_PLATFORM_H
+#ifndef CE_GRAPHICCONTEXT_PLATFORM_H
+#define CE_GRAPHICCONTEXT_PLATFORM_H
 
 #include <windows.h>
 
-#include "cecontext.h"
+#include "cegraphiccontext.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-struct ce_context {
+struct ce_graphiccontext {
 	HGLRC context;
 };
 
-extern ce_context* ce_context_create(HDC dc);
+extern ce_graphiccontext* ce_graphiccontext_create(HDC dc);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_CONTEXT_PLATFORM_H */
+#endif /* CE_GRAPHICCONTEXT_PLATFORM_H */

@@ -18,34 +18,34 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_CONTEXT_PLATFORM_H
-#define CE_CONTEXT_PLATFORM_H
+#ifndef CE_GRAPHICCONTEXT_PLATFORM_H
+#define CE_GRAPHICCONTEXT_PLATFORM_H
 
 #include <stdbool.h>
 
 #include <GL/glx.h>
 
-#include "cecontext.h"
+#include "cegraphiccontext.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-struct ce_context {
+struct ce_graphiccontext {
 	int error_base, event_base;
 	int major_version, minor_version;
 	XVisualInfo* visualinfo;
 	GLXContext context;
 };
 
-extern ce_context* ce_context_create(Display* display);
+extern ce_graphiccontext* ce_graphiccontext_create(Display* display);
 
-extern bool ce_context_make_current(ce_context* context,
+extern bool ce_graphiccontext_make_current(ce_graphiccontext* graphiccontext,
 									Display* display, GLXDrawable drawable);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CE_CONTEXT_PLATFORM_H */
+#endif /* CE_GRAPHICCONTEXT_PLATFORM_H */
