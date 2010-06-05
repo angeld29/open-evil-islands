@@ -128,7 +128,7 @@ static size_t ce_soundresource_vorbis_read(ce_soundresource* soundresource, void
 static bool ce_soundresource_vorbis_reset(ce_soundresource* soundresource)
 {
 	ce_soundresource_vorbis* vorbisresource = (ce_soundresource_vorbis*)soundresource->impl;
-	return 0 == ov_raw_seek(&vorbisresource->vf, 0);
+	return 0 == ov_raw_seek(&vorbisresource->vf, 1);
 }
 
 #ifdef CE_ENABLE_PROPRIETARY
