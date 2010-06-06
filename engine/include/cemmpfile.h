@@ -23,6 +23,7 @@
 
 #include <stddef.h>
 
+#include "cememfile.h"
 #include "ceresfile.h"
 
 #ifdef __cplusplus
@@ -71,18 +72,17 @@ typedef struct {
 	void* data;
 } ce_mmpfile;
 
+extern int ce_mmpfile_storage_size(int width, int height,
+									int mipmap_count, int bit_count);
+
 extern ce_mmpfile* ce_mmpfile_new(int width, int height,
 	int mipmap_count, ce_mmpfile_format format, int user_info);
 extern ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size);
-extern ce_mmpfile* ce_mmpfile_new_file(const char* path);
+extern ce_mmpfile* ce_mmpfile_new_memfile(ce_memfile* memfile);
 extern ce_mmpfile* ce_mmpfile_new_resfile(ce_resfile* resfile, int index);
 extern void ce_mmpfile_del(ce_mmpfile* mmpfile);
 
 extern void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path);
-
-extern int ce_mmpfile_storage_size(int width, int height,
-									int mipmap_count, int bit_count);
-
 extern void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format);
 
 #ifdef __cplusplus

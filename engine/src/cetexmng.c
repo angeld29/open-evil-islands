@@ -72,10 +72,14 @@ ce_mmpfile* ce_texmng_open_mmpfile(ce_texmng* texmng, const char* name)
 	snprintf(path, sizeof(path), "%s/%s", texmng->path->str, file_name);
 
 	// first, try to load from cache dir
-	ce_mmpfile* mmpfile = ce_mmpfile_new_file(path);
-	if (NULL != mmpfile) {
-		// all mmp's in cache dir are ready to use
-		return mmpfile;
+	ce_memfile* memfile = ce_memfile_open_path(path);
+	if (NULL != memfile) {
+		ce_mmpfile* mmpfile = ce_mmpfile_new_memfile(memfile);
+		ce_memfile_close(memfile);
+		if (NULL != mmpfile) {
+			// all mmp's in cache dir are ready to use
+			return mmpfile;
+		}
 	}
 
 	// find in resources
