@@ -22,7 +22,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <math.h>
 #include <assert.h>
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
@@ -48,6 +47,7 @@
 typedef struct {
 	OggVorbis_File vf;
 	int bitstream;
+	long sample_size;
 } ce_soundresource_vorbis;
 
 static size_t ce_vorbis_read(void* ptr, size_t size, size_t nmemb, void* datasource)
@@ -98,6 +98,9 @@ static bool ce_soundresource_vorbis_ctor(ce_soundresource* soundresource)
 	soundresource->rate = info->rate;
 	soundresource->channels = info->channels;
 
+	vorbisresource->sample_size = soundresource->channels *
+									(soundresource->bps / 8);
+
 	ce_logging_debug("soundresource: vorbis: input is "
 					"%ld bit/s (%ld bit/s nominal), %u Hz, %u channel",
 		ov_bitrate(&vorbisresource->vf, -1), info->bitrate_nominal,
@@ -120,8 +123,15 @@ static size_t ce_soundresource_vorbis_read(ce_soundresource* soundresource, void
 		long code = ov_read(&vorbisresource->vf, data, size,
 					ce_is_big_endian(), 2, 1, &vorbisresource->bitstream);
 		if (code >= 0) {
-			soundresource->time = fmaxf(0.0f, vorbis_granule_time(
-				&vorbisresource->vf.vd, vorbisresource->vf.vd.granulepos));
+			if (vorbisresource->vf.vd.granulepos >= 0) {
+				soundresource->time =
+					vorbis_granule_time(&vorbisresource->vf.vd,
+										vorbisresource->vf.vd.granulepos);
+			} else {
+				soundresource->time +=
+					vorbis_granule_time(&vorbisresource->vf.vd,
+										code / vorbisresource->sample_size);
+			}
 			return code;
 		}
 		ce_logging_warning("soundresource: vorbis: error in the stream");
