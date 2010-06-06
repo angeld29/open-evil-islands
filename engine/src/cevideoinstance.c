@@ -95,11 +95,11 @@ static void ce_videoinstance_report_comments(th_comment* comment)
 	}
 }
 
-static bool ce_videoinstance_pump(ce_videoinstance* videoinstance)
+static bool ce_videoinstance_pump(ce_videoinstance* videoinstance, ce_memfile* memfile)
 {
 	const size_t size = 4096;
 	char* buffer = ogg_sync_buffer(&videoinstance->sync, size);
-	size_t bytes = ce_memfile_read(videoinstance->memfile, buffer, 1, size);
+	size_t bytes = ce_memfile_read(memfile, buffer, 1, size);
 	ogg_sync_wrote(&videoinstance->sync, bytes);
 	return 0 != bytes;
 }
@@ -107,13 +107,9 @@ static bool ce_videoinstance_pump(ce_videoinstance* videoinstance)
 ce_videoinstance* ce_videoinstance_new(ce_memfile* memfile)
 {
 	ce_videoinstance* videoinstance = ce_alloc_zero(sizeof(ce_videoinstance));
-	videoinstance->memfile = memfile;
 	videoinstance->mutex = ce_mutex_new();
 	videoinstance->waitcond = ce_waitcond_new();
 	videoinstance->thread = ce_thread_new(ce_videoinstance_exec, videoinstance);
-	videoinstance->prev_frame = -1.0f;
-
-	ce_anmframe_reset(&videoinstance->anmframe);
 
 	// start up ogg stream synchronization layer
 	ogg_sync_init(&videoinstance->sync);
@@ -128,7 +124,7 @@ ce_videoinstance* ce_videoinstance_new(ce_memfile* memfile)
 
 	// ogg file open; parse the headers
 	while (!done) {
-		if (!ce_videoinstance_pump(videoinstance)) {
+		if (!ce_videoinstance_pump(videoinstance, memfile)) {
 			ce_logging_error("videoinstance: theora: end of file while searching for headers");
 			ce_videoinstance_del(videoinstance);
 			return NULL;
@@ -203,7 +199,7 @@ ce_videoinstance* ce_videoinstance_new(ce_memfile* memfile)
 			code = ogg_stream_pagein(&videoinstance->stream, &videoinstance->page);
 		} else {
 			// someone needs more data
-			if (!ce_videoinstance_pump(videoinstance)) {
+			if (!ce_videoinstance_pump(videoinstance, memfile)) {
 				ce_logging_error("videoinstance: theora: end of file while searching for headers");
 				ce_videoinstance_del(videoinstance);
 				return NULL;
@@ -224,9 +220,11 @@ ce_videoinstance* ce_videoinstance_new(ce_memfile* memfile)
 	videoinstance->height = videoinstance->info.pic_height;
 	videoinstance->fps = (float)videoinstance->info.fps_numerator /
 								videoinstance->info.fps_denominator;
+	videoinstance->frame = -1;
 
 	videoinstance->mmpfile = ce_mmpfile_new(videoinstance->width,
 		videoinstance->height, 1, CE_MMPFILE_FORMAT_R8G8B8A8, 0);
+	ce_logging_debug("%lu", videoinstance->mmpfile->size);
 
 	ce_logging_debug("videoinstance: theora: ogg logical "
 						"stream %lx is theora %dx%d %.02f fps",
@@ -250,6 +248,8 @@ ce_videoinstance* ce_videoinstance_new(ce_memfile* memfile)
 		ce_videoinstance_del(videoinstance);
 		return NULL;
 	}
+
+	videoinstance->memfile = memfile;
 
 	return videoinstance;
 }
@@ -290,13 +290,13 @@ void ce_videoinstance_del(ce_videoinstance* videoinstance)
 	}
 }
 
-static void ce_videoinstance_decode(ce_videoinstance* videoinstance)
+static bool ce_videoinstance_decode(ce_videoinstance* videoinstance)
 {
 	ogg_int64_t granulepos;
 
 	while (ogg_stream_packetout(&videoinstance->stream, &videoinstance->packet) <= 0) {
-		if (!ce_videoinstance_pump(videoinstance)) {
-			return;
+		if (!ce_videoinstance_pump(videoinstance, videoinstance->memfile)) {
+			return false;
 		}
 
 		while (ogg_sync_pageout(&videoinstance->sync, &videoinstance->page) > 0) {
@@ -314,8 +314,8 @@ static void ce_videoinstance_decode(ce_videoinstance* videoinstance)
 	if (0 == th_decode_packetin(videoinstance->context,
 								&videoinstance->packet,
 								&granulepos)) {
-		videoinstance->time = th_granule_time(videoinstance->context, granulepos);
-		++videoinstance->frame_count;
+		videoinstance->video_time = th_granule_time(videoinstance->context, granulepos);
+		++videoinstance->frame;
 
 		th_ycbcr_buffer ycbcr;
 		th_decode_ycbcr_out(videoinstance->context, ycbcr);
@@ -350,14 +350,27 @@ static void ce_videoinstance_decode(ce_videoinstance* videoinstance)
 
 		ce_texture_del(videoinstance->texture);
 		videoinstance->texture = ce_texture_new("frame", videoinstance->mmpfile);
+
+		return true;
+	}
+
+	return false;
+}
+
+void ce_videoinstance_sync(ce_videoinstance* videoinstance, float time)
+{
+	int frame = videoinstance->fps * time;
+	//ce_logging_debug("time %f, dist %f, frame %d %d", time, videoinstance->fps * time, frame, videoinstance->frame);
+
+	while (videoinstance->frame < frame) {
+		if (!ce_videoinstance_decode(videoinstance)) {
+			break;
+		}
 	}
 }
 
 void ce_videoinstance_advance(ce_videoinstance* videoinstance, float elapsed)
 {
-	ce_anmframe_advance(&videoinstance->anmframe, videoinstance->fps * elapsed);
-	if (videoinstance->prev_frame != videoinstance->anmframe.prev_frame) {
-		ce_videoinstance_decode(videoinstance);
-		videoinstance->prev_frame = videoinstance->anmframe.prev_frame;
-	}
+	videoinstance->sync_time += elapsed;
+	ce_videoinstance_sync(videoinstance, videoinstance->sync_time);
 }

@@ -58,10 +58,18 @@ static void advance(void* listener, float elapsed)
 
 	if (pause_event->triggered) {
 		pause = !pause;
+		if (NULL != soundinstance) {
+			if (pause) ce_soundinstance_pause(soundinstance);
+			else ce_soundinstance_play(soundinstance);
+		}
 	}
 
 	if (!pause) {
-		ce_videoinstance_advance(videoinstance, elapsed);
+		if (NULL != soundinstance) {
+			ce_videoinstance_sync(videoinstance, ce_soundinstance_time(soundinstance));
+		} else {
+			ce_videoinstance_advance(videoinstance, elapsed);
+		}
 	}
 }
 
@@ -134,6 +142,22 @@ static ce_soundinstance* create_soundinstance(const char* path)
 	return soundinstance;
 }
 
+static ce_videoinstance* create_videoinstance(const char* path)
+{
+	ce_memfile* memfile = ce_memfile_open_path(path);
+	if (NULL == memfile) {
+		return NULL;
+	}
+
+	ce_videoinstance* videoinstance = ce_videoinstance_new(memfile);
+	if (NULL == videoinstance) {
+		ce_memfile_close(memfile);
+		return NULL;
+	}
+
+	return videoinstance;
+}
+
 int main(int argc, char* argv[])
 {
 	ce_alloc_init();
@@ -153,25 +177,19 @@ int main(int argc, char* argv[])
 	const char* track;
 	ce_optparse_get(optparse, "track", &track);
 
-	ce_memfile* memfile = ce_memfile_open_path(track);
-	if (NULL == memfile) {
-		ce_logging_fatal("main: could not play video track");
-		return EXIT_FAILURE;
-	}
-
-	videoinstance = ce_videoinstance_new(memfile);
-	if (NULL == videoinstance) {
-		ce_logging_fatal("main: could not play video track");
-		return EXIT_FAILURE;
-	}
-
 	soundinstance = create_soundinstance(track);
-	if (NULL == soundinstance) {
-		ce_logging_error("main: could not play '%s'", track);
+	videoinstance = create_videoinstance(track);
+
+	if (NULL == videoinstance) {
+		ce_logging_fatal("main: could not play video track '%s'", track);
 		return EXIT_FAILURE;
 	}
 
-	ce_soundinstance_play(soundinstance);
+	if (NULL != soundinstance) {
+		ce_soundinstance_play(soundinstance);
+	} else {
+		ce_logging_info("main: no audio track found '%s'", track);
+	}
 
 	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = render};
 	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);

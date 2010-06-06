@@ -26,7 +26,6 @@
 
 #include "cememfile.h"
 #include "cethread.h"
-#include "ceanmframe.h"
 #include "cemmpfile.h"
 #include "cetexture.h"
 
@@ -37,18 +36,17 @@ extern "C"
 
 typedef struct {
 	volatile bool done;
+	int width, height;
+	float fps;
+	int frame;
+	float video_time;
+	float sync_time;
 	ce_memfile* memfile;
 	ce_mmpfile* mmpfile;
 	ce_texture* texture;
 	ce_mutex* mutex;
 	ce_waitcond* waitcond;
 	ce_thread* thread;
-	double time;
-	int frame_count;
-	int width, height;
-	float fps;
-	float prev_frame;
-	ce_anmframe anmframe;
 	ogg_sync_state sync;
 	ogg_stream_state stream;
 	ogg_page page;
@@ -62,6 +60,7 @@ typedef struct {
 extern ce_videoinstance* ce_videoinstance_new(ce_memfile* memfile);
 extern void ce_videoinstance_del(ce_videoinstance* videoinstance);
 
+extern void ce_videoinstance_sync(ce_videoinstance* videoinstance, float time);
 extern void ce_videoinstance_advance(ce_videoinstance* videoinstance, float elapsed);
 
 #ifdef __cplusplus
