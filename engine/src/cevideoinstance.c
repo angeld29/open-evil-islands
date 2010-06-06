@@ -320,6 +320,7 @@ static void ce_videoinstance_decode(ce_videoinstance* videoinstance)
 		th_ycbcr_buffer ycbcr;
 		th_decode_ycbcr_out(videoinstance->context, ycbcr);
 
+		// TODO: move conversion details to mmpfile
 		unsigned char* texels = videoinstance->mmpfile->texels;
 
 		ogg_uint32_t y_offset = (videoinstance->info.pic_x & ~1) +
