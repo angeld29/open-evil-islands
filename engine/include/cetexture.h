@@ -42,12 +42,16 @@ typedef struct ce_texture ce_texture;
 extern ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile);
 extern void ce_texture_del(ce_texture* texture);
 
+extern void ce_texture_replace(ce_texture* texture, ce_mmpfile* mmpfile);
 extern void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode);
 
 extern bool ce_texture_equal(const ce_texture* texture,
 							const ce_texture* other);
 
 extern const char* ce_texture_get_name(ce_texture* texture);
+
+extern unsigned int ce_texture_width(ce_texture* texture);
+extern unsigned int ce_texture_height(ce_texture* texture);
 
 extern void ce_texture_bind(ce_texture* texture);
 extern void ce_texture_unbind(ce_texture* texture);

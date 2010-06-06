@@ -36,6 +36,7 @@
 
 struct ce_texture {
 	ce_string* name;
+	unsigned int width, height;
 	int ref_count;
 	GLuint id;
 };
@@ -260,6 +261,8 @@ ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile)
 {
 	ce_texture* texture = ce_alloc(sizeof(ce_texture));
 	texture->name = ce_string_new_str(name);
+	texture->width = mmpfile->width;
+	texture->height = mmpfile->height;
 	texture->ref_count = 1;
 
 	glGenTextures(1, &texture->id);
@@ -283,6 +286,17 @@ void ce_texture_del(ce_texture* texture)
 			ce_string_del(texture->name);
 			ce_free(texture, sizeof(ce_texture));
 		}
+	}
+}
+
+void ce_texture_replace(ce_texture* texture, ce_mmpfile* mmpfile)
+{
+	glBindTexture(GL_TEXTURE_2D, texture->id);
+
+	(*ce_texture_generate_procs[mmpfile->format])(mmpfile);
+
+	if (ce_gl_report_errors()) {
+		ce_logging_error("texture: opengl failed");
 	}
 }
 
@@ -316,6 +330,16 @@ bool ce_texture_equal(const ce_texture* texture, const ce_texture* other)
 const char* ce_texture_get_name(ce_texture* texture)
 {
 	return texture->name->str;
+}
+
+unsigned int ce_texture_width(ce_texture* texture)
+{
+	return texture->width;
+}
+
+unsigned int ce_texture_height(ce_texture* texture)
+{
+	return texture->height;
 }
 
 void ce_texture_bind(ce_texture* texture)

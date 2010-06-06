@@ -27,6 +27,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "cetexture.h"
 #include "ceroot.h"
 #include "cesoundinstance.h"
 #include "cevideoinstance.h"
@@ -36,6 +37,8 @@ static ce_optparse* optparse;
 static ce_soundinstance* soundinstance;
 static ce_videoinstance* videoinstance;
 
+static ce_texture* texture;
+
 static ce_inputsupply* inputsupply;
 static ce_inputevent* pause_event;
 
@@ -44,6 +47,7 @@ static bool pause;
 static void clean()
 {
 	ce_inputsupply_del(inputsupply);
+	ce_texture_del(texture);
 
 	ce_videoinstance_del(videoinstance);
 	ce_soundinstance_del(soundinstance);
@@ -71,23 +75,34 @@ static void advance(void* listener, float elapsed)
 			ce_videoinstance_advance(videoinstance, elapsed);
 		}
 	}
+
+	ce_mmpfile* mmpfile = ce_videoinstance_acquire_frame(videoinstance);
+	if (NULL != mmpfile) {
+		if (NULL != texture) {
+			ce_texture_replace(texture, mmpfile);
+		} else {
+			texture = ce_texture_new("frame", mmpfile);
+		}
+		ce_videoinstance_release_frame(videoinstance);
+	}
 }
 
 static void render(void* listener)
 {
 	ce_unused(listener);
 
-	glColor3f(1.0f, 0.0f, 0.0f);
+	if (NULL == texture) {
+		return;
+	}
+
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	if (NULL != videoinstance->texture) {
-		ce_texture_bind(videoinstance->texture);
-	}
+	ce_texture_bind(texture);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluOrtho2D(0, videoinstance->width, 0, videoinstance->height);
+	gluOrtho2D(0, ce_texture_width(texture), 0, ce_texture_height(texture));
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -99,13 +114,13 @@ static void render(void* listener)
 	glVertex2i(0, 0);
 
 	glTexCoord2f(1.0f, 1.0f);
-	glVertex2i(videoinstance->width, 0);
+	glVertex2i(ce_texture_width(texture), 0);
 
 	glTexCoord2f(1.0f, 0.0f);
-	glVertex2i(videoinstance->width, videoinstance->height);
+	glVertex2i(ce_texture_width(texture), ce_texture_height(texture));
 
 	glTexCoord2f(0.0f, 0.0f);
-	glVertex2i(0, videoinstance->height);
+	glVertex2i(0, ce_texture_height(texture));
 
 	glEnd();
 
@@ -115,9 +130,7 @@ static void render(void* listener)
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 
-	if (NULL != videoinstance->texture) {
-		ce_texture_unbind(videoinstance->texture);
-	}
+	ce_texture_unbind(texture);
 }
 
 static ce_soundinstance* create_soundinstance(const char* path)
@@ -149,9 +162,15 @@ static ce_videoinstance* create_videoinstance(const char* path)
 		return NULL;
 	}
 
-	ce_videoinstance* videoinstance = ce_videoinstance_new(memfile);
-	if (NULL == videoinstance) {
+	ce_videoresource* videoresource = ce_videoresource_new(memfile);
+	if (NULL == videoresource) {
 		ce_memfile_close(memfile);
+		return NULL;
+	}
+
+	ce_videoinstance* videoinstance = ce_videoinstance_new(videoresource);
+	if (NULL == videoinstance) {
+		ce_videoresource_del(videoresource);
 		return NULL;
 	}
 
