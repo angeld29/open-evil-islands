@@ -158,6 +158,8 @@ static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 	ce_texture_setup_filters(mipmap_count);
 }
 
+static void ce_texture_generate_argb8(ce_mmpfile* mmpfile);
+
 static void ce_texture_generate_unknown(ce_mmpfile* mmpfile)
 {
 	assert(false && "not implemented");
@@ -177,6 +179,12 @@ static void ce_texture_generate_dxt(ce_mmpfile* mmpfile)
 		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 		ce_texture_generate(mmpfile, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
 	}
+}
+
+static void ce_texture_generate_pnt3(ce_mmpfile* mmpfile)
+{
+	ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_ARGB8);
+	ce_texture_generate_argb8(mmpfile);
 }
 
 static void ce_texture_generate_r5g6b5(ce_mmpfile* mmpfile)
@@ -237,7 +245,7 @@ static void (*ce_texture_generate_procs[CE_MMPFILE_FORMAT_COUNT])(ce_mmpfile*) =
 	[CE_MMPFILE_FORMAT_UNKNOWN] = ce_texture_generate_unknown,
 	[CE_MMPFILE_FORMAT_DXT1] = ce_texture_generate_dxt,
 	[CE_MMPFILE_FORMAT_DXT3] = ce_texture_generate_dxt,
-	[CE_MMPFILE_FORMAT_PNT3] = ce_texture_generate_unknown,
+	[CE_MMPFILE_FORMAT_PNT3] = ce_texture_generate_pnt3,
 	[CE_MMPFILE_FORMAT_R5G6B5] = ce_texture_generate_r5g6b5,
 	[CE_MMPFILE_FORMAT_A1RGB5] = ce_texture_generate_a1rgb5,
 	[CE_MMPFILE_FORMAT_ARGB4] = ce_texture_generate_argb4,
