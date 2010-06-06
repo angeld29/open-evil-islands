@@ -49,8 +49,6 @@ ce_soundresource* ce_soundresource_new_builtin(ce_memfile* memfile)
 	if (CE_SOUNDRESOURCE_BUILTIN_COUNT != index) {
 		return ce_soundresource_new(ce_soundresource_builtins[index], memfile);
 	}
-
-	ce_logging_error("soundresource: no appropriate sound decoder found");
 	return NULL;
 }
 
