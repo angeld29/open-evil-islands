@@ -80,6 +80,7 @@ size_t ce_soundresource_find_builtin(ce_memfile* memfile)
 
 bool ce_soundresource_reset(ce_soundresource* soundresource)
 {
+	soundresource->time = 0.0f;
 	ce_memfile_rewind(soundresource->memfile);
 	return (*soundresource->vtable.reset)(soundresource);
 }

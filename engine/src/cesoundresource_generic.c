@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 #include <assert.h>
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
@@ -119,6 +120,8 @@ static size_t ce_soundresource_vorbis_read(ce_soundresource* soundresource, void
 		long code = ov_read(&vorbisresource->vf, data, size,
 					ce_is_big_endian(), 2, 1, &vorbisresource->bitstream);
 		if (code >= 0) {
+			soundresource->time = fmaxf(0.0f, vorbis_granule_time(
+				&vorbisresource->vf.vd, vorbisresource->vf.vd.granulepos));
 			return code;
 		}
 		ce_logging_warning("soundresource: vorbis: error in the stream");
@@ -345,6 +348,8 @@ static bool ce_soundresource_mad_decode(ce_soundresource* soundresource)
 	}
 
 	mad_timer_add(&madresource->timer, madresource->frame.header.duration);
+	soundresource->time = 1e-3f * mad_timer_count(madresource->timer,
+													MAD_UNITS_MILLISECONDS);
 
 	// once decoded the frame is synthesized to PCM samples
 	mad_synth_frame(&madresource->synth, &madresource->frame);

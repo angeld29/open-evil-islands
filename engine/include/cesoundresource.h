@@ -44,6 +44,7 @@ typedef struct {
 
 struct ce_soundresource {
 	unsigned int bps, rate, channels;
+	float time; // absolute time in seconds
 	ce_memfile* memfile;
 	ce_soundresource_vtable vtable;
 	char impl[];
