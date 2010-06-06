@@ -39,9 +39,10 @@
 #include "cesoundresource.h"
 
 /*
- *  For more information about vorbis,
- *  see http://www.xiph.org/vorbis/doc/ and
- *  http://www.xiph.org/vorbis/doc/vorbisfile/index.html
+ *  For more information about ogg vorbis, please see
+ *  http://www.xiph.org/ogg/doc/
+ *  http://www.xiph.org/vorbis/doc/
+ *  (C) 1994-2001 Xiph.Org Foundation
 */
 
 typedef struct {
@@ -146,7 +147,7 @@ static bool ce_soundresource_vorbis_reset(ce_soundresource* soundresource)
 
 #ifdef CE_ENABLE_PROPRIETARY
 /*
- *  For more information about mad, see libmad source code and
+ *  For more information about mad, please see libmad source code and
  *  madlld, a simple sample demonstrating how the low-level
  *  libmad API can be used, which is perfectly commented.
  *  libmad (C) 2000-2004 Underbit Technologies, Inc.
