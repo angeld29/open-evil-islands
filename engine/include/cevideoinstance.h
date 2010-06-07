@@ -53,7 +53,7 @@ extern void ce_videoinstance_del(ce_videoinstance* videoinstance);
 // performs synchronization with other streams
 extern void ce_videoinstance_sync(ce_videoinstance* videoinstance, float time);
 
-// advances a video based on its FPS
+// advances a video with specified time
 extern void ce_videoinstance_advance(ce_videoinstance* videoinstance, float elapsed);
 
 extern ce_mmpfile* ce_videoinstance_acquire_frame(ce_videoinstance* videoinstance);

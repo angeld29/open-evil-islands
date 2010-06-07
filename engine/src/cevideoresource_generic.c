@@ -32,10 +32,11 @@
 #include "cevideoresource.h"
 
 /*
- *  For more information about ogg theora, please see
- *  http://www.xiph.org/ogg/doc/
- *  http://theora.org/doc/
- *  (C) 2002-2007 Xiph.Org Foundation
+ *  Ogg Theora (C) 2002-2007 Xiph.Org Foundation
+ *
+ *  See also:
+ *  1. http://www.xiph.org/ogg/doc/
+ *  2. http://theora.org/doc/
 */
 
 typedef struct {

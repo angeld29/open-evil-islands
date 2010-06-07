@@ -24,6 +24,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "cebyteorder.h"
+#include "cebitop.h"
 #include "cebink.h"
 
 enum {
@@ -61,8 +62,7 @@ bool ce_binkheader_read(ce_binkheader* binkheader, ce_memfile* memfile)
 		return false;
 	}
 
-	// original file_size minus 8 bytes
-	binkheader->file_size = ce_le2cpu32(*ptr.u32++) + 8;
+	binkheader->file_size = ce_le2cpu32(*ptr.u32++);
 	binkheader->frame_count = ce_le2cpu32(*ptr.u32++);
 	binkheader->largest_frame_size = ce_le2cpu32(*ptr.u32++);
 	binkheader->last_frame = ce_le2cpu32(*ptr.u32++);
@@ -121,30 +121,19 @@ ce_vector* ce_bink_read_indices(ce_binkheader* binkheader, ce_memfile* memfile)
 	ce_memfile_read(memfile, &next_pos, 4, 1);
 
 	for (uint32_t i = 0; i < binkheader->frame_count; ++i) {
-		ce_binkindex* binkindex = ce_binkindex_new();
 		pos = next_pos;
+		ce_memfile_read(memfile, &next_pos, 4, 1);
 
-		if (i == binkheader->frame_count - 1) {
-			next_pos = binkheader->file_size;
-			binkindex->keyframe = false;
-		} else {
-			ce_memfile_read(memfile, &next_pos, 4, 1);
-			binkindex->keyframe = pos & 0x1;
-		}
+		assert(ce_bitclr32(next_pos, 0) >
+				ce_bitclr32(pos, 0) && "invalid frame index table");
 
-		pos &= ~0x1;
-		next_pos &= ~0x1;
-
-		assert(next_pos > pos && "invalid frame index table");
-
-		binkindex->pos = pos;
-		binkindex->length = next_pos - pos;
+		ce_binkindex* binkindex = ce_binkindex_new();
+		binkindex->keyframe = ce_bittst32(pos, 0);
+		binkindex->pos = ce_bitclr32(pos, 0);
+		binkindex->length = ce_bitclr32(next_pos, 0) - binkindex->pos;
 
 		ce_vector_push_back(binkindices, binkindex);
 	}
-
-	// skip link to first index
-	ce_memfile_read(memfile, &pos, 4, 1);
 
 	return binkindices;
 }

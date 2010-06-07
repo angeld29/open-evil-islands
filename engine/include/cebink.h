@@ -32,8 +32,10 @@ extern "C" {
 #endif /* __cplusplus */
 
 /*
- *  Bink container general routines, see also
- *  http://wiki.multimedia.cx/index.php?title=Bink_Container
+ *  Bink container general routines
+ *
+ *  See also:
+ *  1. http://wiki.multimedia.cx/index.php?title=Bink_Container
  *
  *  For concrete streams, please see corresponding modules.
 */
@@ -70,12 +72,12 @@ enum {
 	CE_BINK_MAX_VIDEO_WIDTH = 32767,
 	CE_BINK_MAX_VIDEO_HEIGHT = 32767,
 	//CE_BINK_MAX_AUDIO_TRACKS = 256, // original
-	CE_BINK_MAX_AUDIO_TRACKS = 1, // CE specific
+	CE_BINK_MAX_AUDIO_TRACKS = 1, // CE-specific
 };
 
 typedef struct {
 	uint8_t revision;
-	uint32_t file_size;
+	uint32_t file_size; // not including the first 8 bytes
 	uint32_t frame_count;
 	uint32_t largest_frame_size;
 	uint32_t last_frame;

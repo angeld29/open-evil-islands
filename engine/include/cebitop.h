@@ -25,18 +25,56 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define CE_DEF_BITSET(type, num) \
+static inline type ce_bitset##num(type v, size_t p) \
+{ \
+	return v | (0x1 << p); \
+}
+
+#define CE_DEF_BITCLR(type, num) \
+static inline type ce_bitclr##num(type v, size_t p) \
+{ \
+	return v & ~(0x1 << p); \
+}
+
+#define CE_DEF_BITFLP(type, num) \
+static inline type ce_bitflp##num(type v, size_t p) \
+{ \
+	return v ^ (0x1 << p); \
+}
+
+#define CE_DEF_BITTST(type, num) \
+static inline bool ce_bittst##num(type v, size_t p) \
+{ \
+	return v & (0x1 << p); \
+}
+
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
 
-extern uint8_t ce_bitset(uint8_t v, size_t p);
-extern uint8_t ce_bitclr(uint8_t v, size_t p);
-extern uint8_t ce_bitflp(uint8_t v, size_t p);
-extern bool ce_bittst(uint8_t v, size_t p);
+CE_DEF_BITSET(uint8_t, 8)
+CE_DEF_BITCLR(uint8_t, 8)
+CE_DEF_BITFLP(uint8_t, 8)
+CE_DEF_BITTST(uint8_t, 8)
+
+CE_DEF_BITSET(uint16_t, 16)
+CE_DEF_BITCLR(uint16_t, 16)
+CE_DEF_BITFLP(uint16_t, 16)
+CE_DEF_BITTST(uint16_t, 16)
+
+CE_DEF_BITSET(uint32_t, 32)
+CE_DEF_BITCLR(uint32_t, 32)
+CE_DEF_BITFLP(uint32_t, 32)
+CE_DEF_BITTST(uint32_t, 32)
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#undef CE_DEF_BITTST
+#undef CE_DEF_BITFLP
+#undef CE_DEF_BITCLR
+#undef CE_DEF_BITSET
 
 #endif /* CE_BITOP_H */

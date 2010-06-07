@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 #include <assert.h>
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
@@ -36,16 +37,15 @@
 #include "celogging.h"
 #include "cebyteorder.h"
 #include "ceerror.h"
-#ifdef CE_ENABLE_PROPRIETARY
 #include "cebink.h"
-#endif
 #include "cesoundresource.h"
 
 /*
- *  For more information about ogg vorbis, please see
- *  http://www.xiph.org/ogg/doc/
- *  http://www.xiph.org/vorbis/doc/
- *  (C) 1994-2001 Xiph.Org Foundation
+ *  Ogg Vorbis (C) 1994-2001 Xiph.Org Foundation
+ *
+ *  See also:
+ *  1. http://www.xiph.org/ogg/doc/
+ *  2. http://www.xiph.org/vorbis/doc/
 */
 
 typedef struct {
@@ -98,15 +98,16 @@ static bool ce_vorbis_ctor(ce_soundresource* soundresource)
 
 	// a vorbis file has no particular number of bits per sample,
 	// so use words, see also ov_read
-	soundresource->bps = 16;
-	soundresource->rate = info->rate;
-	soundresource->channels = info->channels;
+	soundresource->bits_per_sample = 16;
+	soundresource->sample_rate = info->rate;
+	soundresource->channel_count = info->channels;
 
-	vorbis->sample_size = soundresource->channels * (soundresource->bps / 8);
+	vorbis->sample_size = soundresource->channel_count *
+							(soundresource->bits_per_sample / 8);
 
 	ce_logging_debug("vorbis: input is %ld bit/s (%ld bit/s nominal), %u Hz, %u channel",
 		ov_bitrate(&vorbis->vf, -1), info->bitrate_nominal,
-		soundresource->rate, soundresource->channels);
+		soundresource->sample_rate, soundresource->channel_count);
 
 	return true;
 }
@@ -148,11 +149,12 @@ static bool ce_vorbis_reset(ce_soundresource* soundresource)
 
 #ifdef CE_ENABLE_PROPRIETARY
 /*
- *  For more information about mad, please see libmad source code and
- *  madlld, a simple sample demonstrating how the low-level
- *  libmad API can be used, which is perfectly commented.
- *  libmad (C) 2000-2004 Underbit Technologies, Inc.
- *  madlld (C) 2001-2004 Bertrand Petit
+ *  MAD: MPEG Audio Decoder (C) 2000-2004 Underbit Technologies, Inc.
+ *
+ *  See also:
+ *  1. libmad source code
+ *  2. madlld (C) 2001-2004 Bertrand Petit
+ *     a simple sample demonstrating how the low-level libmad API can be used
 */
 
 enum {
@@ -417,13 +419,13 @@ static bool ce_mad_ctor(ce_soundresource* soundresource)
 		return false;
 	}
 
-	soundresource->bps = 16;
-	soundresource->rate = mad->frame.header.samplerate;
-	soundresource->channels = MAD_MODE_SINGLE_CHANNEL ==
-								mad->frame.header.mode ? 1 : 2;
+	soundresource->bits_per_sample = 16;
+	soundresource->sample_rate = mad->frame.header.samplerate;
+	soundresource->channel_count = MAD_MODE_SINGLE_CHANNEL ==
+									mad->frame.header.mode ? 1 : 2;
 
 	ce_logging_debug("mad: input is %lu bit/s, %u Hz, %u channel",
-		mad->frame.header.bitrate, soundresource->rate, soundresource->channels);
+		mad->frame.header.bitrate, soundresource->sample_rate, soundresource->channel_count);
 
 	return true;
 }
@@ -462,26 +464,49 @@ static bool ce_mad_reset(ce_soundresource* soundresource)
 }
 
 /*
- *  Bink Audio, see also
- *  http://wiki.multimedia.cx/index.php?title=Bink_Audio
- *  FFmpeg source code
+ *  Bink Audio (C) RAD Game Tools, Inc.
+ *
+ *  See also:
+ *  1. http://wiki.multimedia.cx/index.php?title=Bink_Audio
+ *  2. FFmpeg source code
 */
 
 typedef struct {
 	ce_binkheader header;
+	unsigned int channel_count;
+	unsigned int frame_size;
+	unsigned int window_size;
+	unsigned int band_count;
+	unsigned int band_freqs[25 + 1];
 	ce_vector* indices;
 } ce_bink;
+
+static const uint16_t ce_bink_critical_freqs[25] = {
+    100,   200,  300,  400,  510,  630,  770,   920,
+    1080,  1270, 1480, 1720, 2000, 2320, 2700,  3150,
+    3700,  4400, 5300, 6400, 7700, 9500, 12000, 15500,
+    24500,
+};
 
 static const uint8_t ce_bink_rle_lengths[16] = {
 	2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64
 };
 
+/*static float ce_bink_get_float()
+{
+	int power = get_bits(gb, 5);
+	float v = ldexpf(get_bits_long(gb, 23), power - 23);
+	if (get_bits1(gb)) {
+		v = -v;
+	}
+	return v;
+}*/
+
 static bool ce_bink_test(ce_memfile* memfile)
 {
 	ce_binkheader binkheader;
-	return true;
-	//return ce_binkheader_read(&binkheader, memfile) &&
-	//		0 != binkheader.audio_track_count;
+	return ce_binkheader_read(&binkheader, memfile) &&
+			0 != binkheader.audio_track_count;
 }
 
 static bool ce_bink_ctor(ce_soundresource* soundresource)
@@ -490,13 +515,49 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 
 	if (!ce_binkheader_read(&bink->header, soundresource->memfile)) {
 		ce_logging_error("bink: input does not appear to be a Bink audio");
-		//return false;
+		return false;
 	}
 
 	if (0 == bink->header.audio_track_count) {
 		ce_logging_error("bink: no audio tracks found in the stream");
-		//return false;
+		return false;
 	}
+
+	soundresource->bits_per_sample = 16;
+	soundresource->sample_rate = bink->header.audio_tracks[0].sample_rate;
+	soundresource->channel_count = bink->header.audio_tracks[0].flags &
+									CE_BINK_AUDIO_FLAG_STEREO ? 2 : 1;
+
+	ce_logging_debug("bink: input is %u Hz, %u channel",
+		soundresource->sample_rate, soundresource->channel_count);
+
+	bink->frame_size = 8192;
+	if (soundresource->sample_rate < 44100) bink->frame_size = 4096;
+	if (soundresource->sample_rate < 22050) bink->frame_size = 2048;
+
+	bink->window_size = bink->frame_size / 16;
+
+	// calculate number of bands
+	unsigned int sample_rate_half = (soundresource->sample_rate + 1) / 2;
+
+	for (bink->band_count = 1; bink->band_count < 25; ++bink->band_count) {
+		if (sample_rate_half <= ce_bink_critical_freqs[bink->band_count - 1]) {
+			break;
+		}
+	}
+
+	// populate bands data
+	bink->band_freqs[0] = 1;
+
+	for (unsigned int i = 1; i < bink->band_count; ++i) {
+		bink->band_freqs[i] = ce_bink_critical_freqs[i - 1] *
+								(bink->frame_size / 2) / sample_rate_half;
+	}
+	bink->band_freqs[bink->band_count] = bink->frame_size / 2;
+
+	ce_logging_debug("bink: frame_size %u, window_size %u, sample_rate_half %u, "
+		"band_count %u",
+		bink->frame_size, bink->window_size, sample_rate_half, bink->band_count);
 
 	bink->indices = ce_bink_read_indices(&bink->header, soundresource->memfile);
 
