@@ -116,15 +116,17 @@ bool ce_binkindex_read(ce_binkindex* binkindices, size_t n, ce_memfile* memfile)
 		pos = next_pos;
 		ce_memfile_read(memfile, &next_pos, 4, 1);
 
-		if (ce_bitclr32(next_pos, 0) <= ce_bitclr32(pos, 0)) {
+		binkindices[i].keyframe = ce_bittst32(pos, 0);
+		binkindices[i].pos = ce_bitclr32(pos, 0);
+		binkindices[i].length = ce_bitclr32(next_pos, 0);
+
+		if (binkindices[i].length <= binkindices[i].pos) {
 			return false;
 		}
 
-		binkindices[i].keyframe = ce_bittst32(pos, 0);
-		binkindices[i].pos = ce_bitclr32(pos, 0);
-		binkindices[i].length = ce_bitclr32(next_pos, 0) - ce_bitclr32(pos, 0);
+		binkindices[i].length -= binkindices[i].pos;
 
-		//ce_logging_debug("pos %ld, sz %u, kf %d\n", binkindex->pos, binkindex->length, (int)binkindex->keyframe);
+		//ce_logging_debug("pos %u, len %u, kf %d\n", binkindex->pos, binkindex->length, (int)binkindex->keyframe);
 	}
 
 	return true;

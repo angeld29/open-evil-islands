@@ -112,7 +112,7 @@ extern bool ce_binktrack_skip(size_t n, ce_memfile* memfile);
 
 typedef struct {
 	bool keyframe;
-	long int pos;
+	uint32_t pos;
 	uint32_t length;
 } ce_binkindex;
 
