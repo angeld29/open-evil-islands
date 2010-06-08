@@ -18,6 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
+#include <assert.h>
+
 #include "cealloc.h"
 #include "cebitarray.h"
 
@@ -66,14 +69,16 @@ void ce_bitarray_get_bits(ce_bitarray* bitarray, void* arg, size_t n)
 		n -= 8;
 	}
 
-	// read remaining bits
-	size_t shift = 8 - n;
+	if (n > 0) {
+		// read remaining bits
+		size_t shift = 8 - n;
 
-	while (n-- > 0) {
-		ptr[index] <<= 1;
-		ptr[index] |= ce_bitarray_get_bit(bitarray);
+		while (n-- > 0) {
+			ptr[index] <<= 1;
+			ptr[index] |= ce_bitarray_get_bit(bitarray);
+		}
+
+		// shift last bits into position
+		ptr[index] <<= shift;
 	}
-
-	// shift last bits into position
-	ptr[index] <<= shift;
 }

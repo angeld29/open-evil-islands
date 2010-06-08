@@ -127,7 +127,7 @@ typedef struct {
 	struct {
 		// a value of zero indicates no audio is present for this track
 		uint32_t packet_length; // in bytes plus four bytes
-		uint32_t sample_count;
+		uint32_t sample_count; // number of samples in packet (in bytes)
 		// audio packet here
 	} audio_data[CE_BINK_MAX_AUDIO_TRACKS];
 	// video packet here

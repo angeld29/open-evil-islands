@@ -37,7 +37,7 @@ typedef struct {
 extern ce_bitarray* ce_bitarray_new(size_t capacity);
 extern void ce_bitarray_del(ce_bitarray* bitarray);
 
-static inline void ce_bitarray_resize(ce_bitarray* bitarray, size_t size)
+static inline void ce_bitarray_reset(ce_bitarray* bitarray, size_t size)
 {
 	bitarray->size = size;
 	bitarray->index = 0;
@@ -46,6 +46,11 @@ static inline void ce_bitarray_resize(ce_bitarray* bitarray, size_t size)
 
 static inline size_t ce_bitarray_count(ce_bitarray* bitarray)
 {
+	return 8 * bitarray->index + bitarray->pos;
+}
+
+static inline size_t ce_bitarray_remain(ce_bitarray* bitarray)
+{
 	return 8 * (bitarray->size - bitarray->index) - bitarray->pos - 1;
 }
 
@@ -53,6 +58,12 @@ extern uint8_t ce_bitarray_get_bit(ce_bitarray* bitarray);
 extern uint8_t ce_bitarray_get_byte(ce_bitarray* bitarray);
 
 extern void ce_bitarray_get_bits(ce_bitarray* bitarray, void* arg, size_t n);
+
+static inline void ce_bitarray_skip_bits(ce_bitarray* bitarray, size_t n)
+{
+	bitarray->index += n / 8;
+	bitarray->pos += n % 8;
+}
 
 #ifdef __cplusplus
 }
