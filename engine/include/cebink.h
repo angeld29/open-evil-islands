@@ -71,9 +71,12 @@ enum {
 	CE_BINK_MAX_FRAMES = 1000000,
 	CE_BINK_MAX_VIDEO_WIDTH = 32767,
 	CE_BINK_MAX_VIDEO_HEIGHT = 32767,
-	//CE_BINK_MAX_AUDIO_TRACKS = 256, // original
-	CE_BINK_MAX_AUDIO_TRACKS = 1, // CE-specific
+	CE_BINK_MAX_AUDIO_TRACKS = 256,
 };
+
+/*
+ *  Header
+*/
 
 typedef struct {
 	uint8_t revision;
@@ -87,13 +90,25 @@ typedef struct {
 	uint32_t fps_divider;
 	uint32_t video_flags;
 	uint32_t audio_track_count;
-	struct {
-		uint16_t sample_rate;
-		uint16_t flags;
-	} audio_tracks[CE_BINK_MAX_AUDIO_TRACKS];
 } ce_binkheader;
 
 extern bool ce_binkheader_read(ce_binkheader* binkheader, ce_memfile* memfile);
+
+/*
+ *  Audio Track
+*/
+
+typedef struct {
+	uint16_t sample_rate;
+	uint16_t flags;
+} ce_binktrack;
+
+extern bool ce_binktrack_read(ce_binktrack* binktracks, size_t n, ce_memfile* memfile);
+extern bool ce_binktrack_skip(size_t n, ce_memfile* memfile);
+
+/*
+ *  Frame Index Table
+*/
 
 typedef struct {
 	bool keyframe;
@@ -101,10 +116,11 @@ typedef struct {
 	uint32_t length;
 } ce_binkindex;
 
-extern ce_binkindex* ce_binkindex_new(void);
-extern void ce_binkindex_del(ce_binkindex* binkindex);
+extern bool ce_binkindex_read(ce_binkindex* binkindices, size_t n, ce_memfile* memfile);
 
-extern ce_vector* ce_bink_read_indices(ce_binkheader* binkheader, ce_memfile* memfile);
+/*
+ *  Frame
+*/
 
 // layout of the frame, only for illustration
 typedef struct {

@@ -32,6 +32,8 @@
 #include <mad.h>
 #endif
 
+#include <fftw3.h>
+
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
@@ -471,14 +473,25 @@ static bool ce_mad_reset(ce_soundresource* soundresource)
  *  2. FFmpeg source code
 */
 
+enum {
+	CE_BINK_CHANNEL_COUNT = 1, // interleaved for the RDFT format variant
+	CE_BINK_BLOCK_SIZE = CE_BINK_CHANNEL_COUNT << 11,
+};
+
 typedef struct {
 	ce_binkheader header;
-	unsigned int channel_count;
+	ce_binktrack track;
 	unsigned int frame_size;
 	unsigned int window_size;
+	unsigned int block_size;
 	unsigned int band_count;
 	unsigned int band_freqs[25 + 1];
-	ce_vector* indices;
+	float root;
+	bool first;
+	fftw_plan rdft;
+	fftw_complex rdft_in[CE_BINK_BLOCK_SIZE];
+	double rdft_out[CE_BINK_BLOCK_SIZE];
+	int16_t previous[CE_BINK_BLOCK_SIZE / 16]; // coeffs from previous audio block
 } ce_bink;
 
 static const uint16_t ce_bink_critical_freqs[25] = {
@@ -502,6 +515,13 @@ static const uint8_t ce_bink_rle_lengths[16] = {
 	return v;
 }*/
 
+static void ce_bink_error_obsolete(const char* message)
+{
+	ce_logging_error(message);
+	ce_logging_warning("bink: this codec is deprecated and "
+						"no longer supported; use ogg vorbis instead");
+}
+
 static bool ce_bink_test(ce_memfile* memfile)
 {
 	ce_binkheader binkheader;
@@ -518,27 +538,56 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 		return false;
 	}
 
-	if (0 == bink->header.audio_track_count) {
-		ce_logging_error("bink: no audio tracks found in the stream");
+	if (1 != bink->header.audio_track_count) {
+		ce_bink_error_obsolete("bink: only one audio track supported");
+		return false;
+	}
+
+	if (!ce_binktrack_read(&bink->track, 1, soundresource->memfile)) {
+		ce_logging_error("bink: input does not appear to be a Bink audio");
+		return false;
+	}
+
+	if (CE_BINK_AUDIO_FLAG_USE_DCT & bink->track.flags) {
+		ce_bink_error_obsolete("bink: DCT audio algorithm not supported");
 		return false;
 	}
 
 	soundresource->bits_per_sample = 16;
-	soundresource->sample_rate = bink->header.audio_tracks[0].sample_rate;
-	soundresource->channel_count = bink->header.audio_tracks[0].flags &
-									CE_BINK_AUDIO_FLAG_STEREO ? 2 : 1;
+	soundresource->sample_rate = bink->track.sample_rate;
+	soundresource->channel_count = CE_BINK_AUDIO_FLAG_STEREO &
+									bink->track.flags ? 2 : 1;
 
 	ce_logging_debug("bink: input is %u Hz, %u channel",
 		soundresource->sample_rate, soundresource->channel_count);
 
-	bink->frame_size = 8192;
-	if (soundresource->sample_rate < 44100) bink->frame_size = 4096;
-	if (soundresource->sample_rate < 22050) bink->frame_size = 2048;
+	size_t frame_size_bits = 11;
+	if (soundresource->sample_rate < 44100) frame_size_bits = 10;
+	if (soundresource->sample_rate < 22050) frame_size_bits = 9;
 
+	// audio is already interleaved for the RDFT format variant
+	unsigned int sample_rate = soundresource->sample_rate *
+								soundresource->channel_count;
+
+	bink->frame_size = (1 << frame_size_bits) * soundresource->channel_count;
 	bink->window_size = bink->frame_size / 16;
+	bink->block_size = bink->frame_size - bink->window_size;
+	bink->root = 2.0f / sqrtf(bink->frame_size);
+	bink->first = true;
+
+	ce_logging_debug("bink: frame_size %u, window_size %u, block_size %u, root %f",
+		bink->frame_size, bink->window_size, bink->block_size, bink->root);
+
+	if (2 == soundresource->channel_count) {
+		++frame_size_bits;
+	}
+
+	ce_logging_debug("bink: %lu", frame_size_bits);
 
 	// calculate number of bands
-	unsigned int sample_rate_half = (soundresource->sample_rate + 1) / 2;
+	unsigned int sample_rate_half = (sample_rate + 1) / 2;
+
+	ce_logging_debug("bink: sample_rate_half %u", sample_rate_half);
 
 	for (bink->band_count = 1; bink->band_count < 25; ++bink->band_count) {
 		if (sample_rate_half <= ce_bink_critical_freqs[bink->band_count - 1]) {
@@ -546,35 +595,50 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 		}
 	}
 
+	ce_logging_debug("bink: band_count %u", bink->band_count);
+
 	// populate bands data
 	bink->band_freqs[0] = 1;
 
 	for (unsigned int i = 1; i < bink->band_count; ++i) {
 		bink->band_freqs[i] = ce_bink_critical_freqs[i - 1] *
 								(bink->frame_size / 2) / sample_rate_half;
+		printf("%u ", bink->band_freqs[i]);
 	}
 	bink->band_freqs[bink->band_count] = bink->frame_size / 2;
+	printf("%u\n", bink->band_freqs[bink->band_count]);
 
 	ce_logging_debug("bink: frame_size %u, window_size %u, sample_rate_half %u, "
 		"band_count %u",
 		bink->frame_size, bink->window_size, sample_rate_half, bink->band_count);
 
-	bink->indices = ce_bink_read_indices(&bink->header, soundresource->memfile);
+	ce_binkindex indices[bink->header.frame_count];
+	if (!ce_binkindex_read(indices, bink->header.frame_count, soundresource->memfile)) {
+		ce_logging_error("bink: invalid frame index table");
+		return false;
+	}
 
-	return false;
+	return true;
 }
 
 static void ce_bink_dtor(ce_soundresource* soundresource)
 {
 	ce_bink* bink = (ce_bink*)soundresource->impl;
+}
 
-	ce_vector_for_each(bink->indices, ce_binkindex_del);
-	ce_vector_del(bink->indices);
+static void ce_bink_decode(ce_soundresource* soundresource)
+{
+	ce_bink* bink = (ce_bink*)soundresource->impl;
 }
 
 static size_t ce_bink_read(ce_soundresource* soundresource, void* data, size_t size)
 {
 	ce_bink* bink = (ce_bink*)soundresource->impl;
+
+	uint32_t v[2];
+	ce_memfile_read(soundresource->memfile, v, 4, 2);
+	ce_logging_debug("v1 v2 %u %u", v[0], v[1]);
+
 	return 0;
 }
 
