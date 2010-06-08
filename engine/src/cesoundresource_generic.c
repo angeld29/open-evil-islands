@@ -660,7 +660,7 @@ static size_t ce_bink_read(ce_soundresource* soundresource, void* data, size_t s
 		return 1;
 	}
 
-	ce_memfile_read(soundresource->memfile, &sample_count, 4, 1);
+	//ce_memfile_read(soundresource->memfile, &sample_count, 4, 1);
 
 	frame_size -= 4 + packet_size;
 
