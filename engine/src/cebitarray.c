@@ -19,7 +19,6 @@
 */
 
 #include "cealloc.h"
-#include "cebitop.h"
 #include "cebitarray.h"
 
 ce_bitarray* ce_bitarray_new(size_t capacity)
