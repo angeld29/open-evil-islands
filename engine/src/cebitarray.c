@@ -41,9 +41,9 @@ void ce_bitarray_del(ce_bitarray* bitarray)
 	}
 }
 
-uint8_t ce_bitarray_get_bit(ce_bitarray* bitarray)
+uint32_t ce_bitarray_get_bit(ce_bitarray* bitarray)
 {
-	uint8_t value = bitarray->array[bitarray->index] >> (7 - bitarray->pos);
+	uint32_t value = bitarray->array[bitarray->index] >> bitarray->pos;
 	if (8 == ++bitarray->pos) {
 		++bitarray->index;
 		bitarray->pos = 0;
@@ -51,34 +51,19 @@ uint8_t ce_bitarray_get_bit(ce_bitarray* bitarray)
 	return value & 0x1;
 }
 
-uint8_t ce_bitarray_get_byte(ce_bitarray* bitarray)
+uint32_t ce_bitarray_get_bits(ce_bitarray* bitarray, size_t n)
 {
-	uint8_t value = bitarray->array[bitarray->index++];
-	return (value << bitarray->pos) |
-			(bitarray->array[bitarray->index] >> (8 - bitarray->pos));
-}
+	uint32_t value = 0;
+	size_t pos = 0;
 
-void ce_bitarray_get_bits(ce_bitarray* bitarray, void* arg, size_t n)
-{
-	uint8_t* ptr = arg;
-	size_t index = 0;
-
-	// read whole bytes
-	while (n >= 8) {
-		ptr[index++] = ce_bitarray_get_byte(bitarray);
-		n -= 8;
+	//printf("n = %lu\n", n);
+	while (n > 0) {
+		uint32_t t = ce_bitarray_get_bit(bitarray);
+		//printf("%u", t);
+		value |= (t << pos);
+		++pos;
+		--n;
 	}
-
-	if (n > 0) {
-		// read remaining bits
-		size_t shift = 8 - n;
-
-		while (n-- > 0) {
-			ptr[index] <<= 1;
-			ptr[index] |= ce_bitarray_get_bit(bitarray);
-		}
-
-		// shift last bits into position
-		ptr[index] <<= shift;
-	}
+	//printf("\n");
+	return value;
 }

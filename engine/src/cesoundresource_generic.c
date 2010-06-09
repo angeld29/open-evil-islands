@@ -89,7 +89,7 @@ static bool ce_vorbis_ctor(ce_soundresource* soundresource)
 
 	if (0 != ov_open_callbacks(soundresource->memfile, &vorbis->vf, NULL, 0,
 			(ov_callbacks){ce_vorbis_read_wrap, ce_vorbis_seek_wrap, NULL, ce_vorbis_tell_wrap})) {
-		ce_logging_error("vorbis: input does not appear to be an ogg vorbis audio");
+		ce_logging_error("vorbis: input does not appear to be an Ogg Vorbis audio");
 		return false;
 	}
 
@@ -488,14 +488,13 @@ typedef struct {
 	unsigned int block_size;
 	unsigned int band_count;
 	unsigned int band_freqs[25 + 1];
-	fftw_plan rdft;
-	fftw_complex rdft_in[CE_BINK_BLOCK_SIZE / 2]; // fftw_complex - 2 doubles
-	double rdft_out[CE_BINK_BLOCK_SIZE];
+	float coeffs[2 * (CE_BINK_BLOCK_SIZE / 2 + 1)];
 	int16_t previous[CE_BINK_BLOCK_SIZE / 16]; // coeffs from previous audio block
 	size_t output_buffer_pos, output_buffer_size;
 	uint8_t output_buffer[CE_BINK_MAX_AUDIO_FRAME_SIZE];
 	ce_binkindex* indices;
 	ce_bitarray* bitarray;
+	fftwf_plan plan;
 	size_t index;
 	float root;
 	bool first;
@@ -516,7 +515,7 @@ static void ce_bink_error_obsolete(const char* message)
 {
 	ce_logging_error(message);
 	ce_logging_warning("bink: this codec is deprecated and "
-						"no longer supported; use ogg vorbis instead");
+						"no longer supported; use Ogg Vorbis instead");
 }
 
 static bool ce_bink_test(ce_memfile* memfile)
@@ -535,12 +534,17 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 		return false;
 	}
 
+	if (CE_BINK_REVISION_I != bink->header.revision) {
+		ce_bink_error_obsolete("bink: unsupported version");
+		return false;
+	}
+
 	if (1 != bink->header.audio_track_count) {
 		ce_bink_error_obsolete("bink: only one audio track supported");
 		return false;
 	}
 
-	if (!ce_binktrack_read(&bink->track, 1, soundresource->memfile)) {
+	if (!ce_binktrack_read(&bink->track, soundresource->memfile)) {
 		ce_logging_error("bink: input does not appear to be a Bink audio");
 		return false;
 	}
@@ -612,12 +616,22 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 		bink->frame_size, bink->window_size, sample_rate_half, bink->band_count);
 
 	bink->indices = ce_alloc(sizeof(ce_binkindex) * bink->header.frame_count);
-	if (!ce_binkindex_read(bink->indices, bink->header.frame_count, soundresource->memfile)) {
+
+	if (!ce_bink_read_indices(bink->indices, bink->header.frame_count, soundresource->memfile)) {
 		ce_logging_error("bink: invalid frame index table");
 		return false;
 	}
 
 	bink->bitarray = ce_bitarray_new(bink->header.largest_frame_size);
+
+	bink->plan = fftwf_plan_dft_c2r_1d(CE_BINK_BLOCK_SIZE,
+		(fftwf_complex*)bink->coeffs, bink->coeffs,
+		FFTW_ESTIMATE | FFTW_PRESERVE_INPUT | FFTW_UNALIGNED);
+
+	if (NULL == bink->plan) {
+		ce_logging_error("bink: could not create a FFT plan");
+		return false;
+	}
 
 	return true;
 }
@@ -625,23 +639,168 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 static void ce_bink_dtor(ce_soundresource* soundresource)
 {
 	ce_bink* bink = (ce_bink*)soundresource->impl;
+
+	if (NULL != bink->plan) {
+		fftwf_destroy_plan(bink->plan);
+	}
+
 	ce_free(bink->indices, sizeof(ce_binkindex) * bink->header.frame_count);
 	ce_bitarray_del(bink->bitarray);
 }
 
-/*static float ce_bink_get_float()
+/*
+void DFT::dft1(bool inverse)
 {
-	int power = get_bits(gb, 5);
-	float v = ldexpf(get_bits_long(gb, 23), power - 23);
-	if (get_bits1(gb)) {
-		v = -v;
-	}
-	return v;
-}*/
+  double pi2 = (inverse)?2.0 * M_PI:-2.0 * M_PI;
+  double a,ca,sa;
+  double invs = 1.0 / size;
+  for(unsigned int y = 0;y < size;y++) {
+    output_data[y] = 0;
+    for(unsigned int x = 0;x < size;x++) {
+      a = pi2 * y * x * invs;
+      ca = cos(a);
+      sa = sin(a);
+      output_data[y].re += input_data[x].re * ca - input_data[x].im * sa;
+      output_data[y].im += input_data[x].re * sa + input_data[x].im * ca;
+    }
+    if(!inverse) {
+      output_data[y] *= invs;
+    }
+  }
+}
+*/
 
-static void ce_bink_decode_block(ce_soundresource* soundresource)
+static float ce_bink_get_float(ce_bitarray* bitarray)
+{
+	/*for (int i = 0; i < 32; ++i) {
+		uint8_t t = ce_bitarray_get_bit(bitarray);
+		printf("%hhu", t);
+	}
+	printf("\n");*/
+	uint32_t exp = ce_bitarray_get_bits(bitarray, 5);
+	/*for (int i = 0; i < 5; ++i) {
+		printf("%u", (exp >> i) & 0x1);
+	}
+	printf("\n");*/
+	uint32_t x = ce_bitarray_get_bits(bitarray, 23);
+	/*for (int i = 0; i < 23; ++i) {
+		printf("%u", (x >> i) & 0x1);
+	}
+	printf("\n");*/
+	//ce_logging_debug("bink: exp %hhu, x %u", exp, x);
+	float value = ldexpf(x, exp - 23);
+	if (ce_bitarray_get_bit(bitarray)) {
+		value = -value;
+	}
+	return value;
+}
+
+static int16_t float_to_int16_one(const float *src){
+    int32_t tmp = *(const int32_t*)src;
+    if(tmp & 0xf0000){
+        tmp = (0x43c0ffff - tmp)>>31;
+    }
+    return tmp - 0x8000;
+}
+
+static void float_to_int16_interleave(int16_t* dst, const float* src, size_t len)
+{
+	for (size_t i = 0; i < len; ++i) {
+		dst[i] = float_to_int16_one(src + i);
+	}
+}
+
+static void ce_bink_decode_block(ce_soundresource* soundresource, int16_t* samples)
 {
 	ce_bink* bink = (ce_bink*)soundresource->impl;
+
+	float f1 = ce_bink_get_float(bink->bitarray);
+	float f2 = ce_bink_get_float(bink->bitarray);
+	ce_logging_debug("bink: f1 f2 %f %f", f1, f2);
+
+	float q, quant[25];
+
+	bink->coeffs[0] = f1 * bink->root;
+	bink->coeffs[1] = f2 * bink->root;
+
+	for (size_t i = 0; i < bink->band_count; ++i) {
+		uint32_t value = ce_bitarray_get_bits(bink->bitarray, 8);
+		// constant is result of 0.066399999/log10(M_E)
+		quant[i] = expf(ce_min(value, 95) * 0.15289164787221953823f) * bink->root;
+	}
+
+	// find band
+	size_t k;
+	for (k = 0; bink->band_freqs[k] < 1; ++k) {
+		q = quant[k];
+	}
+
+	int test = 0;
+	ce_logging_debug("bink: parsecoeffs %lu", ce_bitarray_count(bink->bitarray));
+
+	// parse coefficients
+	for (size_t i = 2, j; i < bink->frame_size; ) {
+		if (ce_bitarray_get_bit(bink->bitarray)) {
+			j = i + ce_bink_rle_lengths[ce_bitarray_get_bits(bink->bitarray, 4)] * 8;
+		} else {
+			j = i + 8;
+		}
+
+		j = ce_smin(j, bink->frame_size);
+
+		size_t width = ce_bitarray_get_bits(bink->bitarray, 4);
+		if (0 == width) {
+			memset(bink->coeffs + i, 0, (j - i) * sizeof(float));
+			i = j;
+			while (bink->band_freqs[k] * 2 < i) {
+				q = quant[k++];
+			}
+		} else {
+			while (i < j) {
+				if (bink->band_freqs[k] * 2 == i) {
+					q = quant[k++];
+				}
+				int coeff = ce_bitarray_get_bits(bink->bitarray, width);
+				if (coeff) {
+					if (ce_bitarray_get_bit(bink->bitarray)) {
+						bink->coeffs[i] = -q * coeff;
+					} else {
+						bink->coeffs[i] =  q * coeff;
+					}
+				} else {
+					bink->coeffs[i] = 0.0f;
+				}
+				++i;
+			}
+		}
+
+		++test;
+	}
+
+	ce_logging_debug("bink: bit_count %lu, test %d",
+		ce_bitarray_count(bink->bitarray), test);
+
+	fftwf_execute(bink->plan);
+
+	for (size_t i = 0; i < bink->frame_size; ++i) {
+		bink->coeffs[i] = 385.0f + bink->coeffs[i] * (1.0f / 32767.0f);
+	}
+
+	float_to_int16_interleave((int16_t*)bink->output_buffer,
+								bink->coeffs, bink->frame_size);
+
+	if (!bink->first) {
+		size_t shift = log2f(bink->window_size);
+		for (size_t i = 0; i < bink->window_size; ++i) {
+			samples[i] = (bink->previous[i] * (bink->window_size - i) +
+												samples[i] * i) >> shift;
+		}
+	}
+
+	memcpy(bink->previous, samples + bink->block_size,
+			bink->window_size * sizeof(int16_t));
+
+	bink->first = false;
 }
 
 static bool ce_bink_decode_frame(ce_soundresource* soundresource)
@@ -670,19 +829,23 @@ static bool ce_bink_decode_frame(ce_soundresource* soundresource)
 		ce_bitarray_reset(bink->bitarray, packet_size);
 		ce_memfile_read(soundresource->memfile, bink->bitarray->array, 1, packet_size);
 
-		uint32_t sample_count;
-		ce_bitarray_get_bits(bink->bitarray, &sample_count, 32);
+		uint32_t sample_count = ce_bitarray_get_bits(bink->bitarray, 32);
 		ce_logging_debug("bink: sample count %u", sample_count);
 		ce_logging_debug("bink: packet size %u", packet_size);
 
-		//while (ce_bitarray_count(bitarray) / 8 < packet_size &&
-		//		samples + s->block_size <= samples_end) {
-
-		//ce_logging_debug("bink: %lu", (4 - (1740 % 4)));
-		//ce_bitarray_skip_bits(bink->bitarray, 32 - (ce_bitarray_count(bink->bitarray) % 32));
+		while (ce_bitarray_count(bink->bitarray) / 8 < packet_size &&
+				samples + bink->block_size <= samples_end) {
+			ce_bink_decode_block(soundresource, samples);
+			samples += bink->block_size;
+			// align 32
+			ce_logging_debug("bink: skip_bits %lu", ce_bitarray_count(bink->bitarray));
+			ce_bitarray_skip_bits(bink->bitarray,
+				32 - (ce_bitarray_count(bink->bitarray) % 32));
+			ce_logging_debug("bink: skip_bits %lu", ce_bitarray_count(bink->bitarray));
+		}
 
 		bink->output_buffer_pos = 0;
-		bink->output_buffer_size = 1024;
+		bink->output_buffer_size = ce_smin(sample_count, (uint8_t*)samples - bink->output_buffer);
 	}
 
 	frame_size -= packet_size + sizeof(packet_size);

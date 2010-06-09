@@ -103,7 +103,7 @@ typedef struct {
 	uint16_t flags;
 } ce_binktrack;
 
-extern bool ce_binktrack_read(ce_binktrack* binktracks, size_t n, ce_memfile* memfile);
+extern bool ce_binktrack_read(ce_binktrack* binktrack, ce_memfile* memfile);
 extern bool ce_binktrack_skip(size_t n, ce_memfile* memfile);
 
 /*
@@ -115,8 +115,6 @@ typedef struct {
 	uint32_t pos;
 	uint32_t length;
 } ce_binkindex;
-
-extern bool ce_binkindex_read(ce_binkindex* binkindices, size_t n, ce_memfile* memfile);
 
 /*
  *  Frame
@@ -132,6 +130,8 @@ typedef struct {
 	} audio_data[CE_BINK_MAX_AUDIO_TRACKS];
 	// video packet here
 } ce_binkframe;
+
+extern bool ce_bink_read_indices(ce_binkindex* binkindices, size_t n, ce_memfile* memfile);
 
 #ifdef __cplusplus
 }

@@ -49,21 +49,18 @@ static inline size_t ce_bitarray_count(ce_bitarray* bitarray)
 	return 8 * bitarray->index + bitarray->pos;
 }
 
-static inline size_t ce_bitarray_remain(ce_bitarray* bitarray)
-{
-	return 8 * (bitarray->size - bitarray->index) - bitarray->pos - 1;
-}
-
-extern uint8_t ce_bitarray_get_bit(ce_bitarray* bitarray);
-extern uint8_t ce_bitarray_get_byte(ce_bitarray* bitarray);
-
-extern void ce_bitarray_get_bits(ce_bitarray* bitarray, void* arg, size_t n);
-
 static inline void ce_bitarray_skip_bits(ce_bitarray* bitarray, size_t n)
 {
 	bitarray->index += n / 8;
 	bitarray->pos += n % 8;
+	if (bitarray->pos >= 8) {
+		++bitarray->index;
+		bitarray->pos -= 8;
+	}
 }
+
+extern uint32_t ce_bitarray_get_bit(ce_bitarray* bitarray);
+extern uint32_t ce_bitarray_get_bits(ce_bitarray* bitarray, size_t n);
 
 #ifdef __cplusplus
 }

@@ -51,16 +51,6 @@ bool ce_binkheader_read(ce_binkheader* binkheader, ce_memfile* memfile)
 	}
 
 	binkheader->revision = *ptr.u8++;
-
-	if (CE_BINK_REVISION_B != binkheader->revision &&
-			CE_BINK_REVISION_D != binkheader->revision &&
-			CE_BINK_REVISION_F != binkheader->revision &&
-			CE_BINK_REVISION_G != binkheader->revision &&
-			CE_BINK_REVISION_H != binkheader->revision &&
-			CE_BINK_REVISION_I != binkheader->revision) {
-		return false;
-	}
-
 	binkheader->file_size = ce_le2cpu32(*ptr.u32++);
 	binkheader->frame_count = ce_le2cpu32(*ptr.u32++);
 	binkheader->largest_frame_size = ce_le2cpu32(*ptr.u32++);
@@ -75,9 +65,9 @@ bool ce_binkheader_read(ce_binkheader* binkheader, ce_memfile* memfile)
 	return true;
 }
 
-bool ce_binktrack_read(ce_binktrack* binktracks, size_t n, ce_memfile* memfile)
+bool ce_binktrack_read(ce_binktrack* binktrack, ce_memfile* memfile)
 {
-	uint8_t header[CE_BINK_AUDIO_HEADER_SIZE * n];
+	uint8_t header[CE_BINK_AUDIO_HEADER_SIZE];
 
 	if (sizeof(header) != ce_memfile_read(memfile, header, 1, sizeof(header))) {
 		return false;
@@ -88,14 +78,12 @@ bool ce_binktrack_read(ce_binktrack* binktracks, size_t n, ce_memfile* memfile)
 		uint16_t* u16;
 	} ptr = {header};
 
-	ptr.u8 += 4 * n; // not authoritative, skip
+	ptr.u8 += 4; // not authoritative, skip
 
-	for (size_t i = 0; i < n; ++i) {
-		binktracks[i].sample_rate = ce_le2cpu16(*ptr.u16++);
-		binktracks[i].flags = ce_le2cpu16(*ptr.u16++);
-	}
+	binktrack->sample_rate = ce_le2cpu16(*ptr.u16++);
+	binktrack->flags = ce_le2cpu16(*ptr.u16++);
 
-	ptr.u8 += 4 * n; // not used, skip
+	ptr.u8 += 4; // not used, skip
 
 	return true;
 }
@@ -106,7 +94,7 @@ bool ce_binktrack_skip(size_t n, ce_memfile* memfile)
 	return sizeof(header) == ce_memfile_read(memfile, header, 1, sizeof(header));
 }
 
-bool ce_binkindex_read(ce_binkindex* binkindices, size_t n, ce_memfile* memfile)
+bool ce_bink_read_indices(ce_binkindex* binkindices, size_t n, ce_memfile* memfile)
 {
 	uint32_t pos, next_pos;
 
