@@ -32,8 +32,6 @@
 #include <mad.h>
 #endif
 
-#include <fftw3.h>
-
 #include "celib.h"
 #include "cemath.h"
 #include "cealloc.h"
@@ -41,6 +39,7 @@
 #include "cebyteorder.h"
 #include "cebitarray.h"
 #include "ceerror.h"
+#include "cefft.h"
 #include "cebink.h"
 #include "cesoundresource.h"
 
@@ -495,11 +494,13 @@ typedef struct {
 	uint8_t output_buffer[CE_BINK_MAX_AUDIO_FRAME_SIZE];
 	ce_binkindex* indices;
 	ce_bitarray* bitarray;
-	fftwf_plan plan;
+	//fftwf_plan plan;
 	size_t index;
 	float root;
 	bool first;
 	float fps;
+	//ce_fft* fft;
+	RDFTContext rdft;
 } ce_bink;
 
 static const uint16_t ce_bink_critical_freqs[25] = {
@@ -627,14 +628,18 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 
 	bink->bitarray = ce_bitarray_new(bink->header.largest_frame_size);
 
-	bink->plan = fftwf_plan_dft_c2r_1d(CE_BINK_BLOCK_SIZE,
+	/*bink->plan = fftwf_plan_dft_c2r_1d(CE_BINK_BLOCK_SIZE,
 		(fftwf_complex*)bink->coeffs, bink->coeffs,
 		FFTW_MEASURE | FFTW_PRESERVE_INPUT | FFTW_PATIENT | FFTW_UNALIGNED);
 
 	if (NULL == bink->plan) {
 		ce_logging_error("bink: could not create a FFT plan");
 		return false;
-	}
+	}*/
+
+	//bink->fft = ce_fft_new(bink->frame_size / 2);
+
+	ff_rdft_init(&bink->rdft, frame_size_bits, DFT_C2R);
 
 	return true;
 }
@@ -643,9 +648,12 @@ static void ce_bink_dtor(ce_soundresource* soundresource)
 {
 	ce_bink* bink = (ce_bink*)soundresource->impl;
 
-	if (NULL != bink->plan) {
-		fftwf_destroy_plan(bink->plan);
-	}
+	ff_rdft_end(&bink->rdft);
+	//ce_fft_del(bink->fft);
+
+	//if (NULL != bink->plan) {
+	//	fftwf_destroy_plan(bink->plan);
+	//}
 
 	ce_free(bink->indices, sizeof(ce_binkindex) * bink->header.frame_count);
 	ce_bitarray_del(bink->bitarray);
@@ -776,7 +784,11 @@ static void ce_bink_decode_block(ce_soundresource* soundresource, int16_t* sampl
 	//ce_logging_debug("bink: bit_count %lu, test %d",
 	//	ce_bitarray_count(bink->bitarray), test);
 
-	fftwf_execute(bink->plan);
+	//fftwf_execute(bink->plan);
+
+	//ifft(bink->fft, (CPLX*)bink->coeffs);
+
+	ff_rdft_calc_c(&bink->rdft, bink->coeffs);
 
 	for (size_t i = 0; i < bink->frame_size; ++i) {
 		bink->coeffs[i] = 385.0f + bink->coeffs[i] * (1.0f / 32767.0f);
