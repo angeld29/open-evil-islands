@@ -18,22 +18,18 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <math.h>
+#include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
-#include "ceanmframe.h"
+#include "cepath.h"
 
-void ce_anmframe_reset(ce_anmframe* anmframe)
+void ce_path_join(ce_string* path1, const char* path2)
 {
-	anmframe->prev_frame = 0.0f;
-	anmframe->next_frame = 0.0f;
-	anmframe->frame = 0.0f;
-	anmframe->coef = 0.0f;
+	assert(false && "not implemented");
 }
 
-void ce_anmframe_advance(ce_anmframe* anmframe, float distance)
+void ce_path_normpath(ce_string* path)
 {
-	anmframe->frame += distance;
-	anmframe->coef = modff(anmframe->frame, &anmframe->prev_frame);
-	anmframe->next_frame = anmframe->prev_frame + 1.0f;
+	assert(false && "not implemented");
 }

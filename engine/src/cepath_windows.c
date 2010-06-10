@@ -18,30 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_PATH_H
-#define CE_PATH_H
+#include <assert.h>
 
-#include <stdbool.h>
+#include "cepath.h"
 
-#include "cestring.h"
+const char CE_PATH_SEP = '\\';
 
-#ifdef __cplusplus
-extern "C"
+bool ce_path_exists(const char* path)
 {
-#endif /* __cplusplus */
-
-extern const char CE_PATH_SEP;
-
-/*
- *  See also python os.path module.
-*/
-
-extern bool ce_path_exists(const char* path);
-extern void ce_path_join(ce_string* path1, const char* path2);
-extern void ce_path_normpath(ce_string* path);
-
-#ifdef __cplusplus
+	assert(false && "not implemented");
+	return false;
 }
-#endif /* __cplusplus */
-
-#endif /* CE_PATH_H */
