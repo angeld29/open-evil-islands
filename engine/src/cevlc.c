@@ -19,6 +19,8 @@
 */
 
 /*
+ *  Variable Length Coding
+ *
  *  Based on:
  *  1. FFmpeg (C) Michael Niedermayer
  *            (C) 2000, 2001 Fabrice Bellard

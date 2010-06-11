@@ -18,15 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_VLC_H
-#define CE_VLC_H
-
-#include <stdint.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
 /*
  *  Variable Length Coding
  *
@@ -36,6 +27,15 @@ extern "C" {
  *            (C) 2002-2004 Michael Niedermayer <michaelni@gmx.at>
  *            (C) 2010 Loren Merritt
 */
+
+#ifndef CE_VLC_H
+#define CE_VLC_H
+
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 typedef enum {
 	CE_VLCTABLE_LE = 1,

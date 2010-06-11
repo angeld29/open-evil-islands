@@ -20,7 +20,6 @@
 
 /*
  *  Based on:
- *
  *  1. FFmpeg (C) Michael Niedermayer
  *            (C) 2008 Loren Merritt
  *            (C) 2002 Fabrice Bellard

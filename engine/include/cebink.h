@@ -33,7 +33,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /*
- *  Bink container general routines
+ *  Bink Container general routines
  *
  *  See also:
  *  1. http://wiki.multimedia.cx/index.php?title=Bink_Container

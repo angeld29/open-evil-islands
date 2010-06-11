@@ -35,6 +35,12 @@ typedef struct FFTComplex {
 
 /*
  *  Fast Fourier transform
+ *
+ *  Based on:
+ *  1. FFmpeg (C) Michael Niedermayer
+ *            (C) 2008 Loren Merritt
+ *            (C) 2002 Fabrice Bellard
+ *            partly based on libdjbfft by D. J. Bernstein
 */
 
 typedef struct {
