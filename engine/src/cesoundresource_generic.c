@@ -37,7 +37,6 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cebyteorder.h"
-#include "cebitarray.h"
 #include "ceerror.h"
 #include "cefft.h"
 #include "cebink.h"
@@ -471,7 +470,11 @@ static bool ce_mad_reset(ce_soundresource* soundresource)
  *
  *  See also:
  *  1. http://wiki.multimedia.cx/index.php?title=Bink_Audio
- *  2. FFmpeg source code
+ *
+ *  Based on:
+ *  1. FFmpeg (C) Michael Niedermayer
+ *            (C) 2007-2010 Peter Ross (pross@xvid.org)
+ *            (C) 2009 Daniel Verkamp (daniel@drv.nu)
 */
 
 enum {

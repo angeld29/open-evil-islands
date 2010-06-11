@@ -120,6 +120,50 @@ bool ce_bink_read_indices(ce_binkindex* binkindices, size_t n, ce_memfile* memfi
 	return true;
 }
 
+ce_bitarray* ce_bitarray_new(size_t capacity)
+{
+	ce_bitarray* bitarray = ce_alloc(sizeof(ce_bitarray) + capacity);
+	bitarray->capacity = capacity;
+	bitarray->size = 0;
+	bitarray->index = 0;
+	bitarray->pos = 0;
+	return bitarray;
+}
+
+void ce_bitarray_del(ce_bitarray* bitarray)
+{
+	if (NULL != bitarray) {
+		ce_free(bitarray, sizeof(ce_bitarray) + bitarray->capacity);
+	}
+}
+
+uint32_t ce_bitarray_get_bit(ce_bitarray* bitarray)
+{
+	uint32_t value = bitarray->array[bitarray->index] >> bitarray->pos;
+	if (8 == ++bitarray->pos) {
+		++bitarray->index;
+		bitarray->pos = 0;
+	}
+	return value & 0x1;
+}
+
+uint32_t ce_bitarray_get_bits(ce_bitarray* bitarray, size_t n)
+{
+	uint32_t value = 0;
+	size_t pos = 0;
+
+	//printf("n = %lu\n", n);
+	while (n > 0) {
+		uint32_t t = ce_bitarray_get_bit(bitarray);
+		//printf("%u", t);
+		value |= (t << pos);
+		++pos;
+		--n;
+	}
+	//printf("\n");
+	return value;
+}
+
 // TODO: for video
 	/*if (0 == binkheader->frame_count ||
 			0 == binkheader->video_width || 0 == binkheader->video_height ||

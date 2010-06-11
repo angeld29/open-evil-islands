@@ -21,6 +21,7 @@
 #ifndef CE_BIKFILE_H
 #define CE_BIKFILE_H
 
+#include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -116,22 +117,60 @@ typedef struct {
 	uint32_t length;
 } ce_binkindex;
 
+extern bool ce_bink_read_indices(ce_binkindex* binkindices,
+								size_t n, ce_memfile* memfile);
+
 /*
- *  Frame
+ *  Frame layout (only for illustration)
 */
 
-// layout of the frame, only for illustration
 typedef struct {
 	struct {
 		// a value of zero indicates no audio is present for this track
 		uint32_t packet_length; // in bytes plus four bytes
 		uint32_t sample_count; // number of samples in packet (in bytes)
-		// audio packet here
+		// audio packet here (variable length)
 	} audio_data[CE_BINK_MAX_AUDIO_TRACKS];
-	// video packet here
+	// video packet here (variable length)
 } ce_binkframe;
 
-extern bool ce_bink_read_indices(ce_binkindex* binkindices, size_t n, ce_memfile* memfile);
+/*
+ *  Bink bitstream is read LSB from 32-bit little-endian words
+*/
+
+typedef struct {
+	size_t capacity, size;
+	size_t index, pos;
+	uint8_t array[];
+} ce_bitarray;
+
+extern ce_bitarray* ce_bitarray_new(size_t capacity);
+extern void ce_bitarray_del(ce_bitarray* bitarray);
+
+static inline void ce_bitarray_reset(ce_bitarray* bitarray, size_t size)
+{
+	bitarray->size = size;
+	bitarray->index = 0;
+	bitarray->pos = 0;
+}
+
+static inline size_t ce_bitarray_count(ce_bitarray* bitarray)
+{
+	return 8 * bitarray->index + bitarray->pos;
+}
+
+static inline void ce_bitarray_skip_bits(ce_bitarray* bitarray, size_t n)
+{
+	bitarray->index += n / 8;
+	bitarray->pos += n % 8;
+	if (bitarray->pos >= 8) {
+		++bitarray->index;
+		bitarray->pos -= 8;
+	}
+}
+
+extern uint32_t ce_bitarray_get_bit(ce_bitarray* bitarray);
+extern uint32_t ce_bitarray_get_bits(ce_bitarray* bitarray, size_t n);
 
 #ifdef __cplusplus
 }
