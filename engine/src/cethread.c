@@ -91,7 +91,7 @@ bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n)
 	return result;
 }
 
-static void ce_threadpool_work(ce_threadpool* threadpool)
+static void ce_threadpool_exec(ce_threadpool* threadpool)
 {
 	ce_mutex_lock(threadpool->mutex);
 
@@ -138,7 +138,7 @@ ce_threadpool* ce_threadpool_new(size_t thread_count)
 
 	for (size_t i = 0; i < thread_count; ++i) {
 		ce_vector_push_back(threadpool->threads,
-			ce_thread_new(ce_threadpool_work, threadpool));
+			ce_thread_new(ce_threadpool_exec, threadpool));
 	}
 
 	return threadpool;
