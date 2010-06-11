@@ -31,6 +31,10 @@ extern "C"
 
 extern bool ce_is_big_endian(void);
 
+extern uint16_t ce_swap16(uint16_t v);
+extern uint32_t ce_swap32(uint32_t v);
+extern uint64_t ce_swap64(uint64_t v);
+
 extern uint16_t ce_cpu2le16(uint16_t v);
 extern uint32_t ce_cpu2le32(uint32_t v);
 extern uint64_t ce_cpu2le64(uint64_t v);

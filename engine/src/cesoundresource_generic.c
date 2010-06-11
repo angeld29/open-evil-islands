@@ -517,12 +517,6 @@ static const uint8_t ce_bink_rle_lengths[16] = {
 	2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 32, 64
 };
 
-static void ce_bink_error_obsolete(const char* message)
-{
-	ce_logging_error(message);
-	ce_logging_warning("bink: this codec is no longer supported; use Ogg Vorbis instead");
-}
-
 static bool ce_bink_test(ce_memfile* memfile)
 {
 	ce_binkheader binkheader;

@@ -68,7 +68,6 @@ enum {
 };
 
 enum {
-	CE_BINK_EXTRADATA_SIZE = 1,
 	CE_BINK_MAX_FRAMES = 1000000,
 	CE_BINK_MAX_VIDEO_WIDTH = 32767,
 	CE_BINK_MAX_VIDEO_HEIGHT = 32767,
@@ -105,7 +104,6 @@ typedef struct {
 } ce_binktrack;
 
 extern bool ce_binktrack_read(ce_binktrack* binktrack, ce_memfile* memfile);
-extern bool ce_binktrack_skip(size_t n, ce_memfile* memfile);
 
 /*
  *  Frame Index Table
@@ -116,9 +114,6 @@ typedef struct {
 	uint32_t pos;
 	uint32_t length;
 } ce_binkindex;
-
-extern bool ce_bink_read_indices(ce_binkindex* binkindices,
-								size_t n, ce_memfile* memfile);
 
 /*
  *  Frame layout (only for illustration)
@@ -171,6 +166,16 @@ static inline void ce_bitarray_skip_bits(ce_bitarray* bitarray, size_t n)
 
 extern uint32_t ce_bitarray_get_bit(ce_bitarray* bitarray);
 extern uint32_t ce_bitarray_get_bits(ce_bitarray* bitarray, size_t n);
+
+/*
+ *  Helpers
+*/
+
+extern bool ce_bink_skip_tracks(size_t n, ce_memfile* memfile);
+extern bool ce_bink_read_indices(ce_binkindex* binkindices,
+								size_t n, ce_memfile* memfile);
+
+extern void ce_bink_error_obsolete(const char* message, ...);
 
 #ifdef __cplusplus
 }

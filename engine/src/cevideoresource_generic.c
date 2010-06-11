@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <math.h>
 #include <assert.h>
 
 #include <theora/theoradec.h>
@@ -29,6 +30,7 @@
 #include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "cevlc.h"
 #include "cebink.h"
 #include "cevideoresource.h"
 
@@ -120,7 +122,7 @@ static bool ce_theora_pump(ce_videoresource* videoresource)
 static bool ce_theora_test(ce_memfile* memfile)
 {
 	ce_unused(memfile);
-	return true;
+	return false;
 }
 
 static bool ce_theora_ctor(ce_videoresource* videoresource)
@@ -352,7 +354,7 @@ static bool ce_theora_reset(ce_videoresource* videoresource)
 */
 
 // IDs for different data types used in Bink video codec
-typedef enum {
+enum {
 	CE_BINK_SRC_BLOCK_TYPES = 0, // 8x8 block types
 	CE_BINK_SRC_SUB_BLOCK_TYPES, // 16x16 block types (a subset of 8x8 block types)
 	CE_BINK_SRC_COLORS,          // pixel values used for different block types
@@ -363,10 +365,10 @@ typedef enum {
 	CE_BINK_SRC_INTER_DC,        // DC values for interblocks with DCT
 	CE_BINK_SRC_RUN,             // run lengths for special fill block
 	CE_BINK_SRC_COUNT
-} ce_bink_sources;
+};
 
 // Bink video block types
-typedef enum {
+enum {
 	CE_BINK_BLOCK_SKIP = 0, // skipped block
 	CE_BINK_BLOCK_SCALED,   // block has size 16x16
 	CE_BINK_BLOCK_MOTION,   // block is copied from previous frame with some offset
@@ -377,46 +379,40 @@ typedef enum {
 	CE_BINK_BLOCK_INTER,    // motion block with DCT applied to the difference
 	CE_BINK_BLOCK_PATTERN,  // block is filled with two colours following custom pattern
 	CE_BINK_BLOCK_RAW,      // uncoded 8x8 block
-} ce_bink_block_types;
-
-typedef struct {
-	int bits;
-	int16_t (*table)[2]; // code, bits
-	int table_size, table_allocated;
-} ce_bink_vlc;
+};
 
 typedef struct {
 	const uint8_t* table;
 	uint8_t permutated[64];
 	uint8_t raster_end[64];
-} ce_bink_scantable;
+} ce_binkscantable;
 
 // data needed to decode 4-bit Huffman-coded value
 typedef struct {
     int vlc_num;      // tree number (in bink_trees[])
     uint8_t syms[16]; // leaf value to symbol mapping
-} ce_bink_tree;
+} ce_binktree;
 
 // data structure used for decoding single Bink data type
 typedef struct Bundle {
     int length;        // length of number of entries to decode (in bits)
-    ce_bink_tree tree; // Huffman tree-related data
+    ce_binktree tree;  // Huffman tree-related data
     uint8_t* data;     // buffer for decoded symbols
     uint8_t* data_end; // buffer end
     uint8_t* cur_dec;  // pointer to the not yet decoded part of the buffer
     uint8_t* cur_ptr;  // pointer to the data that is not read from buffer yet
-} ce_bink_bundle;
+} ce_binkbundle;
 
 typedef struct {
-	int has_alpha;
-	int swap_planes;
+	size_t block_count;
 	int col_lastval; // value of last decoded high nibble in "colours" data type
-	ce_bink_scantable scantable; // permutated scantable for DCT coeffs decoding
-	ce_bink_tree col_high[16]; // trees for decoding high nibble in "colours" data type
-	ce_bink_bundle bundle[CE_BINK_SRC_COUNT]; // bundles for decoding all data types
+	ce_binkheader header;
+	int16_t treetable[16 * 128][2];
+	ce_vlctable trees[16];
+	ce_binkscantable scantable; // permutated scantable for DCT coeffs decoding
+	ce_binktree col_high[16]; // trees for decoding high nibble in "colours" data type
+	ce_binkbundle bundles[CE_BINK_SRC_COUNT]; // bundles for decoding all data types
 } ce_bink;
-
-static ce_bink_vlc ce_bink_trees[16];
 
 // Bink DCT and residue 8x8 block scan order
 static const uint8_t ce_bink_scan[64] = {
@@ -975,27 +971,145 @@ static const uint32_t bink_inter_quant[16][64] = {
 
 static bool ce_bink_test(ce_memfile* memfile)
 {
-	ce_unused(memfile);
-	return false;
+	ce_binkheader binkheader;
+	return ce_binkheader_read(&binkheader, memfile);
+}
+
+static void ce_bink_init_scantable(ce_binkscantable* scantable,
+									const uint8_t* table,
+									uint8_t* permutation)
+{
+	scantable->table = table;
+
+	for (int i = 0, j = table[0]; i < 64; j = table[++i]) {
+		scantable->permutated[i] = permutation[j];
+	}
+
+	for (int i = 0, j = scantable->permutated[0], end = -1;
+					i < 64; j = scantable->permutated[++i]) {
+		end = ce_max(end, j);
+		scantable->raster_end[i] = end;
+	}
+}
+
+static void ce_bink_init_lengths(ce_bink* bink, int width, int bw)
+{
+	bink->bundles[CE_BINK_SRC_BLOCK_TYPES].length = log2f((width >> 3) + 511) + 1;
+	bink->bundles[CE_BINK_SRC_SUB_BLOCK_TYPES].length = log2f((width >> 4) + 511) + 1;
+	bink->bundles[CE_BINK_SRC_COLORS].length = log2f((width >> 3) * 64 + 511) + 1;
+	bink->bundles[CE_BINK_SRC_INTRA_DC].length =
+	bink->bundles[CE_BINK_SRC_INTER_DC].length =
+	bink->bundles[CE_BINK_SRC_X_OFF].length =
+	bink->bundles[CE_BINK_SRC_Y_OFF].length = log2f((width >> 3) + 511) + 1;
+	bink->bundles[CE_BINK_SRC_PATTERN].length = log2f((bw << 3) + 511) + 1;
+	bink->bundles[CE_BINK_SRC_RUN].length = log2f((width >> 3) * 48 + 511) + 1;
+}
+
+// merges two consequent lists of equal size depending on bits read
+static void ce_bink_merge(ce_bitarray* bitarray, uint8_t* dst, uint8_t* src, int size)
+{
+	uint8_t *src2 = src + size;
+	int size2 = size;
+
+	do {
+		if (!ce_bitarray_get_bit(bitarray)) {
+			*dst++ = *src++;
+			size--;
+		} else {
+			*dst++ = *src2++;
+			size2--;
+		}
+	} while (size && size2);
+
+	while (size--) *dst++ = *src++;
+	while (size2--) *dst++ = *src2++;
 }
 
 static bool ce_bink_ctor(ce_videoresource* videoresource)
 {
-	return true;
+	ce_bink* bink = (ce_bink*)videoresource->impl;
+
+	if (!ce_binkheader_read(&bink->header, videoresource->memfile)) {
+		ce_logging_error("bink: input does not appear to be a Bink video");
+		return false;
+	}
+
+	if (CE_BINK_REVISION_I != bink->header.revision) {
+		ce_bink_error_obsolete("bink: unsupported version");
+		return false;
+	}
+
+	if (!ce_bink_skip_tracks(bink->header.audio_track_count, videoresource->memfile)) {
+		ce_logging_error("bink: input does not appear to be a Bink video");
+		return false;
+	}
+
+	if (0 == bink->header.frame_count ||
+			0 == bink->header.video_width || 0 == bink->header.video_height ||
+			0 == bink->header.fps_dividend || 0 == bink->header.fps_divider ||
+			bink->header.largest_frame_size > bink->header.file_size ||
+			bink->header.frame_count > CE_BINK_MAX_FRAMES ||
+			bink->header.video_width > CE_BINK_MAX_VIDEO_WIDTH ||
+			bink->header.video_height > CE_BINK_MAX_VIDEO_HEIGHT) {
+		ce_logging_error("bink: unsupported input");
+		return false;
+	}
+
+	for (size_t i = 0; i < 16; i++) {
+		const int maxbits = ce_bink_tree_lens[i][15];
+		bink->trees[i].table = bink->treetable + i * 128;
+		bink->trees[i].table_allocated = 1 << maxbits;
+		ce_vlctable_init(&bink->trees[i], maxbits, 16,
+			ce_bink_tree_lens[i], 1, 1, ce_bink_tree_bits[i],
+			1, 1, NULL, 0, 0, CE_VLCTABLE_LE);
+	}
+
+	/*FILE* f = fopen("test2.bin", "ab");
+	fwrite(bink->treetable, 1, 16 * 128 * 2, f);
+	fflush(f);
+	fclose(f);*/
+
+	uint8_t idct_permutation[64];
+	for (size_t i = 0; i < 64; ++i) {
+		idct_permutation[i] = i;
+	}
+
+	ce_bink_init_scantable(&bink->scantable, ce_bink_scan, idct_permutation);
+
+	bink->block_count = ((bink->header.video_width  + 7) >> 3) *
+						((bink->header.video_height + 7) >> 3);
+
+	for (size_t i = 0; i < CE_BINK_SRC_COUNT; ++i) {
+		bink->bundles[i].data = ce_alloc(64 * bink->block_count);
+		bink->bundles[i].data_end = bink->bundles[i].data + 64 * bink->block_count;
+	}
+
+	return false;
 }
 
 static void ce_bink_dtor(ce_videoresource* videoresource)
 {
+	ce_bink* bink = (ce_bink*)videoresource->impl;
+
+	for (size_t i = 0; i < CE_BINK_SRC_COUNT; ++i) {
+		ce_free(bink->bundles[i].data, 64 * bink->block_count);
+	}
+
+	for (size_t i = 0; i < 16; i++) {
+		ce_vlctable_clean(&bink->trees[i]);
+	}
 }
 
 static bool ce_bink_read(ce_videoresource* videoresource, void* data)
 {
+	ce_bink* bink = (ce_bink*)videoresource->impl;
 	return false;
 }
 
 static bool ce_bink_reset(ce_videoresource* videoresource)
 {
-	ce_unused(videoresource);
+	ce_bink* bink = (ce_bink*)videoresource->impl;
+	ce_unused(bink);
 	return false;
 }
 #endif /* CE_ENABLE_PROPRIETARY */
