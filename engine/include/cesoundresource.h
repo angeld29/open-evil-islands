@@ -43,7 +43,7 @@ typedef struct {
 } ce_soundresource_vtable;
 
 struct ce_soundresource {
-	unsigned int bits_per_sample, sample_rate, channel_count;
+	unsigned int bits_per_sample, sample_rate, channel_count, sample_size;
 	float time;
 	ce_memfile* memfile;
 	ce_soundresource_vtable vtable;

@@ -34,7 +34,7 @@ extern "C"
 typedef struct ce_videoresource ce_videoresource;
 
 typedef struct {
-	size_t size;
+	size_t (*size_hint)(ce_memfile* memfile);
 	bool (*test)(ce_memfile* memfile);
 	bool (*ctor)(ce_videoresource* videoresource);
 	void (*dtor)(ce_videoresource* videoresource);
@@ -47,6 +47,7 @@ struct ce_videoresource {
 	float fps, time;
 	ce_memfile* memfile;
 	ce_videoresource_vtable vtable;
+	size_t size;
 	char impl[];
 };
 

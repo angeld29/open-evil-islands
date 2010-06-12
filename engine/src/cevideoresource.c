@@ -31,7 +31,6 @@ extern const ce_videoresource_vtable ce_videoresource_builtins[];
 ce_videoresource* ce_videoresource_new(ce_memfile* memfile)
 {
 	size_t index;
-
 	for (index = 0; index < CE_VIDEORESOURCE_BUILTIN_COUNT; ++index) {
 		ce_memfile_rewind(memfile);
 		if ((*ce_videoresource_builtins[index].test)(memfile)) {
@@ -44,11 +43,14 @@ ce_videoresource* ce_videoresource_new(ce_memfile* memfile)
 		return NULL;
 	}
 
-	ce_videoresource* videoresource = ce_alloc_zero(sizeof(ce_videoresource) +
-										ce_videoresource_builtins[index].size);
+	size_t size = (*ce_videoresource_builtins[index].size_hint)(memfile);
+	ce_memfile_rewind(memfile);
+
+	ce_videoresource* videoresource = ce_alloc_zero(sizeof(ce_videoresource) + size);
 
 	videoresource->memfile = memfile;
 	videoresource->vtable = ce_videoresource_builtins[index];
+	videoresource->size = size;
 
 	if (!(*videoresource->vtable.ctor)(videoresource)) {
 		// do not take ownership if failed
@@ -67,7 +69,7 @@ void ce_videoresource_del(ce_videoresource* videoresource)
 			(*videoresource->vtable.dtor)(videoresource);
 		}
 		ce_memfile_close(videoresource->memfile);
-		ce_free(videoresource, sizeof(ce_videoresource) + videoresource->vtable.size);
+		ce_free(videoresource, sizeof(ce_videoresource) + videoresource->size);
 	}
 }
 

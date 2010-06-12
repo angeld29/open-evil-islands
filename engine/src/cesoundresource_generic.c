@@ -30,9 +30,8 @@
 
 #ifdef CE_ENABLE_PROPRIETARY
 #include <mad.h>
-#endif
-
 #include <libavcodec/avcodec.h>
+#endif
 
 #include "celib.h"
 #include "cemath.h"
@@ -54,7 +53,6 @@
 typedef struct {
 	OggVorbis_File vf;
 	int bitstream;
-	long sample_size;
 } ce_vorbis;
 
 static size_t ce_vorbis_size_hint(ce_memfile* memfile)
@@ -111,9 +109,6 @@ static bool ce_vorbis_ctor(ce_soundresource* soundresource)
 	soundresource->sample_rate = info->rate;
 	soundresource->channel_count = info->channels;
 
-	vorbis->sample_size = soundresource->channel_count *
-							(soundresource->bits_per_sample / 8);
-
 	ce_logging_debug("vorbis: input is %ld bit/s (%ld bit/s nominal), %u Hz, %u channel",
 		ov_bitrate(&vorbis->vf, -1), info->bitrate_nominal,
 		soundresource->sample_rate, soundresource->channel_count);
@@ -142,7 +137,7 @@ static size_t ce_vorbis_read(ce_soundresource* soundresource, void* data, size_t
 			} else {
 				soundresource->time +=
 					vorbis_granule_time(&vorbis->vf.vd,
-										code / vorbis->sample_size);
+										code / soundresource->sample_size);
 			}
 			return code;
 		}
@@ -487,12 +482,14 @@ static bool ce_mad_reset(ce_soundresource* soundresource)
 */
 
 typedef struct {
+	int granule_size;
+	float bytes_per_sec_inv;
 	size_t frame_index;
 	ce_binkheader header;
 	ce_binktrack track;
 	ce_binkindex* indices;
 	AVCodec* codec;
-	AVCodecContext* codec_context;
+	AVCodecContext codec_context;
 	AVPacket packet;
 	size_t output_pos, output_size;
 	uint8_t output[AVCODEC_MAX_AUDIO_FRAME_SIZE];
@@ -502,16 +499,15 @@ typedef struct {
 static size_t ce_bink_size_hint(ce_memfile* memfile)
 {
 	ce_binkheader header;
-	return sizeof(ce_bink) + (ce_binkheader_read(&header, memfile) ?
+	return sizeof(ce_bink) + (!ce_binkheader_read(&header, memfile) ? 0 :
 		sizeof(ce_binkindex) * header.frame_count +
-		header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE : 0);
+		header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE);
 }
 
 static bool ce_bink_test(ce_memfile* memfile)
 {
-	ce_binkheader binkheader;
-	return ce_binkheader_read(&binkheader, memfile) &&
-			0 != binkheader.audio_track_count;
+	ce_binkheader header;
+	return ce_binkheader_read(&header, memfile) && 0 != header.audio_track_count;
 }
 
 static void ce_bink_error(void* ptr, int av_level, const char* format, va_list args)
@@ -574,11 +570,14 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 	soundresource->channel_count = CE_BINK_AUDIO_FLAG_STEREO &
 									bink->track.flags ? 2 : 1;
 
-	ce_logging_debug("bink: input is %u Hz, %u channel",
+	ce_logging_debug("bink: audio is %u Hz, %u channel",
 		soundresource->sample_rate, soundresource->channel_count);
 
-	bink->indices = (ce_binkindex*)bink->data;
+	unsigned int sample_size = soundresource->channel_count *
+								(soundresource->bits_per_sample / 8);
+	bink->bytes_per_sec_inv = 1.0f / (soundresource->sample_rate * sample_size);
 
+	bink->indices = (ce_binkindex*)bink->data;
 	if (!ce_binkindex_read(bink->indices, bink->header.frame_count, soundresource->memfile)) {
 		ce_logging_error("bink: invalid frame index table");
 		return false;
@@ -595,12 +594,12 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 		return false;
 	}
 
-	bink->codec_context = avcodec_alloc_context();
-	bink->codec_context->codec_tag = bink->header.four_cc;
-	bink->codec_context->sample_rate = soundresource->sample_rate;
-	bink->codec_context->channels = soundresource->channel_count;
+	avcodec_get_context_defaults(&bink->codec_context);
+	bink->codec_context.codec_tag = bink->header.four_cc;
+	bink->codec_context.sample_rate = soundresource->sample_rate;
+	bink->codec_context.channels = soundresource->channel_count;
 
-	if (avcodec_open(bink->codec_context, bink->codec) < 0) {
+	if (avcodec_open(&bink->codec_context, bink->codec) < 0) {
 		ce_logging_error("bink: could not open RDFT audio codec");
 		return false;
 	}
@@ -615,9 +614,8 @@ static void ce_bink_dtor(ce_soundresource* soundresource)
 {
 	ce_bink* bink = (ce_bink*)soundresource->impl;
 
-	if (NULL != bink->codec_context) {
-		avcodec_close(bink->codec_context);
-		av_free(bink->codec_context);
+	if (NULL != bink->codec && NULL != bink->codec_context.codec) {
+		avcodec_close(&bink->codec_context);
 	}
 }
 
@@ -635,20 +633,26 @@ static bool ce_bink_decode_frame(ce_soundresource* soundresource)
 
 	// our input buffer is largest_frame_size bytes
 	assert(packet_size <= bink->header.largest_frame_size);
+	if (packet_size > bink->header.largest_frame_size) {
+		return false;
+	}
 
 	if (0 != packet_size) {
 		bink->packet.size = ce_memfile_read(soundresource->memfile,
 											bink->packet.data, 1, packet_size);
 
-		int output_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-		int input_size = avcodec_decode_audio3(bink->codec_context,
-			(int16_t*)bink->output, &output_size, &bink->packet);
+		int size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+		int code = avcodec_decode_audio3(&bink->codec_context,
+			(int16_t*)bink->output, &size, &bink->packet);
 
-		if (input_size != (int)packet_size || output_size <= 0) {
-			ce_logging_error("bink: error while decoding");
+		if (code < 0 || (uint32_t)code != packet_size || size <= 0) {
+			ce_logging_error("bink: codec error while decoding audio");
 		} else {
 			bink->output_pos = 0;
-			bink->output_size = output_size;
+			bink->output_size = size;
+
+			bink->granule_size += size;
+			soundresource->time = bink->granule_size * bink->bytes_per_sec_inv;
 		}
 	}
 
@@ -666,7 +670,7 @@ static size_t ce_bink_read(ce_soundresource* soundresource, void* data, size_t s
 	ce_bink* bink = (ce_bink*)soundresource->impl;
 
 	if (0 == bink->output_size) {
-		do { /* nothing */ } while (ce_bink_decode_frame(soundresource));
+		do { ce_pass(); } while (ce_bink_decode_frame(soundresource));
 	}
 
 	size = ce_smin(size, bink->output_size);
@@ -682,7 +686,10 @@ static bool ce_bink_reset(ce_soundresource* soundresource)
 {
 	ce_bink* bink = (ce_bink*)soundresource->impl;
 
+	bink->granule_size = 0;
 	bink->frame_index = 0;
+	bink->output_size = 0;
+
 	ce_memfile_seek(soundresource->memfile,
 		bink->indices[bink->frame_index].pos, CE_MEMFILE_SEEK_SET);
 

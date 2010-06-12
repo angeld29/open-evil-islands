@@ -44,6 +44,9 @@ ce_soundresource* ce_soundresource_new(ce_soundresource_vtable vtable, ce_memfil
 		return NULL;
 	}
 
+	soundresource->sample_size = soundresource->channel_count *
+								(soundresource->bits_per_sample / 8);
+
 	return soundresource;
 }
 
