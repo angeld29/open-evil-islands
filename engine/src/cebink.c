@@ -19,7 +19,6 @@
 */
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -47,11 +46,13 @@ bool ce_binkheader_read(ce_binkheader* binkheader, ce_memfile* memfile)
 		uint32_t* u32;
 	} ptr = {header};
 
-	if ('B' != *ptr.u8++ || 'I' != *ptr.u8++ || 'K' != *ptr.u8++) {
+	if ('B' != ptr.u8[0] || 'I' != ptr.u8[1] || 'K' != ptr.u8[2]) {
 		return false;
 	}
 
-	binkheader->revision = *ptr.u8++;
+	binkheader->four_cc = ce_le2cpu32(*ptr.u32++);
+	printf("bink four cc %#x\n", binkheader->four_cc);
+
 	binkheader->file_size = ce_le2cpu32(*ptr.u32++);
 	binkheader->frame_count = ce_le2cpu32(*ptr.u32++);
 	binkheader->largest_frame_size = ce_le2cpu32(*ptr.u32++);
@@ -89,57 +90,13 @@ bool ce_binktrack_read(ce_binktrack* binktrack, ce_memfile* memfile)
 	return true;
 }
 
-ce_bitarray* ce_bitarray_new(size_t capacity)
-{
-	ce_bitarray* bitarray = ce_alloc(sizeof(ce_bitarray) + capacity);
-	bitarray->capacity = capacity;
-	bitarray->size = 0;
-	bitarray->index = 0;
-	bitarray->pos = 0;
-	return bitarray;
-}
-
-void ce_bitarray_del(ce_bitarray* bitarray)
-{
-	if (NULL != bitarray) {
-		ce_free(bitarray, sizeof(ce_bitarray) + bitarray->capacity);
-	}
-}
-
-uint32_t ce_bitarray_get_bit(ce_bitarray* bitarray)
-{
-	uint32_t value = bitarray->array[bitarray->index] >> bitarray->pos;
-	if (8 == ++bitarray->pos) {
-		++bitarray->index;
-		bitarray->pos = 0;
-	}
-	return value & 0x1;
-}
-
-uint32_t ce_bitarray_get_bits(ce_bitarray* bitarray, size_t n)
-{
-	uint32_t value = 0;
-	size_t pos = 0;
-
-	//printf("n = %lu\n", n);
-	while (n > 0) {
-		uint32_t t = ce_bitarray_get_bit(bitarray);
-		//printf("%u", t);
-		value |= (t << pos);
-		++pos;
-		--n;
-	}
-	//printf("\n");
-	return value;
-}
-
-bool ce_bink_skip_tracks(size_t n, ce_memfile* memfile)
+bool ce_binktrack_skip(size_t n, ce_memfile* memfile)
 {
 	uint8_t header[CE_BINK_AUDIO_HEADER_SIZE * n];
 	return sizeof(header) == ce_memfile_read(memfile, header, 1, sizeof(header));
 }
 
-bool ce_bink_read_indices(ce_binkindex* binkindices, size_t n, ce_memfile* memfile)
+bool ce_binkindex_read(ce_binkindex* binkindices, size_t n, ce_memfile* memfile)
 {
 	uint32_t pos, next_pos;
 
@@ -149,7 +106,6 @@ bool ce_bink_read_indices(ce_binkindex* binkindices, size_t n, ce_memfile* memfi
 		pos = next_pos;
 		ce_memfile_read(memfile, &next_pos, 4, 1);
 
-		binkindices[i].keyframe = ce_bittst32(pos, 0);
 		binkindices[i].pos = ce_bitclr32(pos, 0);
 		binkindices[i].length = ce_bitclr32(next_pos, 0);
 
@@ -158,19 +114,7 @@ bool ce_bink_read_indices(ce_binkindex* binkindices, size_t n, ce_memfile* memfi
 		}
 
 		binkindices[i].length -= binkindices[i].pos;
-
-		//ce_logging_debug("pos %u, len %u, kf %d\n", binkindex->pos, binkindex->length, (int)binkindex->keyframe);
 	}
 
 	return true;
-}
-
-void ce_bink_error_obsolete(const char* message, ...)
-{
-	va_list args;
-	va_start(args, message);
-	ce_logging_error_va(message, args);
-	va_end(args);
-
-	ce_logging_warning("bink: this codec is no longer supported; use Ogg instead");
 }

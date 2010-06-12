@@ -30,7 +30,6 @@
 #include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cevlc.h"
 #include "cebink.h"
 #include "cevideoresource.h"
 
@@ -346,7 +345,8 @@ static bool ce_theora_reset(ce_videoresource* videoresource)
  *  Bink Video (C) RAD Game Tools, Inc.
  *
  *  See also:
- *  1. FFmpeg (C) Michael Niedermayer
+ *  1. http://wiki.multimedia.cx/index.php?title=Bink_Video
+ *  2. FFmpeg (C) Michael Niedermayer
 */
 
 typedef struct {
@@ -368,12 +368,7 @@ static bool ce_bink_ctor(ce_videoresource* videoresource)
 		return false;
 	}
 
-	if (CE_BINK_REVISION_I != bink->header.revision) {
-		ce_bink_error_obsolete("bink: unsupported version");
-		return false;
-	}
-
-	if (!ce_bink_skip_tracks(bink->header.audio_track_count, videoresource->memfile)) {
+	if (!ce_binktrack_skip(bink->header.audio_track_count, videoresource->memfile)) {
 		ce_logging_error("bink: input does not appear to be a Bink video");
 		return false;
 	}

@@ -18,6 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ *  Bink Container (C) RAD Game Tools, Inc.
+ *
+ *  See also:
+ *  1. http://wiki.multimedia.cx/index.php?title=Bink_Container
+*/
+
 #ifndef CE_BIKFILE_H
 #define CE_BIKFILE_H
 
@@ -31,15 +38,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-/*
- *  Bink Container general routines
- *
- *  See also:
- *  1. http://wiki.multimedia.cx/index.php?title=Bink_Container
- *
- *  For concrete streams, please see corresponding modules.
-*/
 
 enum {
 	CE_BINK_REVISION_B = 0x62,
@@ -79,7 +77,7 @@ enum {
 */
 
 typedef struct {
-	uint8_t revision;
+	uint32_t four_cc;
 	uint32_t file_size; // not including the first 8 bytes
 	uint32_t frame_count;
 	uint32_t largest_frame_size;
@@ -104,19 +102,21 @@ typedef struct {
 } ce_binktrack;
 
 extern bool ce_binktrack_read(ce_binktrack* binktrack, ce_memfile* memfile);
+extern bool ce_binktrack_skip(size_t n, ce_memfile* memfile);
 
 /*
  *  Frame Index Table
 */
 
 typedef struct {
-	bool keyframe;
 	uint32_t pos;
 	uint32_t length;
 } ce_binkindex;
 
+extern bool ce_binkindex_read(ce_binkindex* binkindices, size_t n, ce_memfile* memfile);
+
 /*
- *  Frame layout (only for illustration)
+ *  Frame Layout (only for illustration)
 */
 
 typedef struct {
@@ -128,54 +128,6 @@ typedef struct {
 	} audio_data[CE_BINK_MAX_AUDIO_TRACKS];
 	// video packet here (variable length)
 } ce_binkframe;
-
-/*
- *  Bink bitstream is read LSB from 32-bit little-endian words
-*/
-
-typedef struct {
-	size_t capacity, size;
-	size_t index, pos;
-	uint8_t array[];
-} ce_bitarray;
-
-extern ce_bitarray* ce_bitarray_new(size_t capacity);
-extern void ce_bitarray_del(ce_bitarray* bitarray);
-
-static inline void ce_bitarray_reset(ce_bitarray* bitarray, size_t size)
-{
-	bitarray->size = size;
-	bitarray->index = 0;
-	bitarray->pos = 0;
-}
-
-static inline size_t ce_bitarray_count(ce_bitarray* bitarray)
-{
-	return 8 * bitarray->index + bitarray->pos;
-}
-
-static inline void ce_bitarray_skip_bits(ce_bitarray* bitarray, size_t n)
-{
-	bitarray->index += n / 8;
-	bitarray->pos += n % 8;
-	if (bitarray->pos >= 8) {
-		++bitarray->index;
-		bitarray->pos -= 8;
-	}
-}
-
-extern uint32_t ce_bitarray_get_bit(ce_bitarray* bitarray);
-extern uint32_t ce_bitarray_get_bits(ce_bitarray* bitarray, size_t n);
-
-/*
- *  Helpers
-*/
-
-extern bool ce_bink_skip_tracks(size_t n, ce_memfile* memfile);
-extern bool ce_bink_read_indices(ce_binkindex* binkindices,
-								size_t n, ce_memfile* memfile);
-
-extern void ce_bink_error_obsolete(const char* message, ...);
 
 #ifdef __cplusplus
 }
