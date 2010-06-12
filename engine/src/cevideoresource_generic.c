@@ -20,7 +20,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <limits.h>
 #include <math.h>
 #include <assert.h>
 
@@ -52,6 +51,7 @@ typedef struct {
 	th_info info;
 	th_comment comment;
 	th_dec_ctx* context;
+	th_ycbcr_buffer ycbcr;
 } ce_theora;
 
 static size_t ce_theora_size_hint(ce_memfile* memfile)
@@ -282,9 +282,14 @@ static bool ce_theora_ctor(ce_videoresource* videoresource)
 	videoresource->fps = (float)theora->info.fps_numerator /
 								theora->info.fps_denominator;
 
-	ce_logging_debug("theora: ogg logical stream %lx is theora %ux%u %.02f fps",
-		theora->stream.serialno, videoresource->width,
-		videoresource->height, videoresource->fps);
+	ce_logging_debug("theora: ogg logical stream %lx is theora %d bit/s, %ux%u %.02f fps",
+		theora->stream.serialno, theora->info.target_bitrate,
+		videoresource->width, videoresource->height, videoresource->fps);
+
+	videoresource->ycbcr.crop_rect.x = theora->info.pic_x;
+	videoresource->ycbcr.crop_rect.y = theora->info.pic_y;
+	videoresource->ycbcr.crop_rect.width = theora->info.pic_width;
+	videoresource->ycbcr.crop_rect.height = theora->info.pic_height;
 
 	if (theora->info.pic_width != theora->info.frame_width ||
 			theora->info.pic_height != theora->info.frame_height) {
@@ -312,10 +317,9 @@ static void ce_theora_dtor(ce_videoresource* videoresource)
 	ce_theora_clean(theora);
 }
 
-static bool ce_theora_read(ce_videoresource* videoresource, void* data)
+static bool ce_theora_read(ce_videoresource* videoresource)
 {
 	ce_theora* theora = (ce_theora*)videoresource->impl;
-	ogg_int64_t granulepos;
 
 	while (ogg_stream_packetout(&theora->stream, &theora->packet) <= 0) {
 		if (!ce_theora_pump(&theora->sync, videoresource->memfile)) {
@@ -334,38 +338,14 @@ static bool ce_theora_read(ce_videoresource* videoresource, void* data)
 						sizeof(theora->packet.granulepos));
 	}
 
+	ogg_int64_t granulepos;
 	if (0 == th_decode_packetin(theora->context, &theora->packet, &granulepos)) {
 		theora->time = th_granule_time(theora->context, granulepos);
+		th_decode_ycbcr_out(theora->context, theora->ycbcr);
 
-		th_ycbcr_buffer ycbcr;
-		th_decode_ycbcr_out(theora->context, ycbcr);
-
-		// TODO: move conversion details to mmpfile
-		unsigned char* texels = data;
-
-		ogg_uint32_t y_offset = (theora->info.pic_x & ~1) +
-								ycbcr[0].stride * (theora->info.pic_y & ~1);
-
-		ogg_uint32_t cbcr_offset = (theora->info.pic_x / 2) +
-									ycbcr[1].stride * (theora->info.pic_y / 2);
-
-		for (ogg_uint32_t h = 0; h < theora->info.pic_height; ++h) {
-			ogg_uint32_t y_shift = y_offset + ycbcr[0].stride * h;
-			ogg_uint32_t cb_shift = cbcr_offset + ycbcr[1].stride * (h / 2);
-			ogg_uint32_t cr_shift = cbcr_offset + ycbcr[2].stride * (h / 2);
-
-			for (ogg_uint32_t w = 0; w < theora->info.pic_width; ++w) {
-				size_t index = (h * theora->info.pic_width + w) * 4;
-
-				int y = 298 * (ycbcr[0].data[y_shift + w] - 16);
-				int cb = ycbcr[1].data[cb_shift + w / 2] - 128;
-				int cr = ycbcr[2].data[cr_shift + w / 2] - 128;
-
-				texels[index + 0] = ce_clamp((y + 409 * cr + 128) / 256, 0, UCHAR_MAX);
-				texels[index + 1] = ce_clamp((y - 100 * cb - 208 * cr + 128) / 256, 0, UCHAR_MAX);
-				texels[index + 2] = ce_clamp((y + 516 * cb + 128) / 256, 0, UCHAR_MAX);
-				texels[index + 3] = UCHAR_MAX;
-			}
+		for (size_t i = 0; i < 3; ++i) {
+			videoresource->ycbcr.planes[i].stride = theora->ycbcr[i].stride;
+			videoresource->ycbcr.planes[i].data = theora->ycbcr[i].data;
 		}
 
 		return true;
@@ -453,6 +433,11 @@ static bool ce_bink_ctor(ce_videoresource* videoresource)
 	ce_logging_debug("bink: video is %ux%u %.02f fps",
 		videoresource->width, videoresource->height, videoresource->fps);
 
+	videoresource->ycbcr.crop_rect.x = 0;
+	videoresource->ycbcr.crop_rect.y = 0;
+	videoresource->ycbcr.crop_rect.width = bink->header.video_width;
+	videoresource->ycbcr.crop_rect.height = bink->header.video_height;
+
 	bink->indices = (ce_binkindex*)bink->data;
 	if (!ce_binkindex_read(bink->indices, bink->header.frame_count, videoresource->memfile)) {
 		ce_logging_error("bink: invalid frame index table");
@@ -501,7 +486,7 @@ static void ce_bink_dtor(ce_videoresource* videoresource)
 	}
 }
 
-static bool ce_bink_read(ce_videoresource* videoresource, void* data)
+static bool ce_bink_read(ce_videoresource* videoresource)
 {
 	ce_bink* bink = (ce_bink*)videoresource->impl;
 
@@ -538,28 +523,12 @@ static bool ce_bink_read(ce_videoresource* videoresource, void* data)
 
 	if (code < 0 || (uint32_t)code != frame_size || 0 == got_picture) {
 		ce_logging_error("bink: codec error while decoding video");
-	} else {
-		// TODO: move conversion details to mmpfile
-		unsigned char* texels = data;
+		return false;
+	}
 
-		for (uint32_t h = 0; h < bink->header.video_height; ++h) {
-			int y_shift = bink->picture.linesize[0] * h;
-			int cb_shift = bink->picture.linesize[1] * (h / 2);
-			int cr_shift = bink->picture.linesize[2] * (h / 2);
-
-			for (uint32_t w = 0; w < bink->header.video_width; ++w) {
-				size_t index = (h * bink->header.video_width + w) * 4;
-
-				int y = 298 * (bink->picture.data[0][y_shift + w] - 16);
-				int cb = bink->picture.data[1][cb_shift + w / 2] - 128;
-				int cr = bink->picture.data[2][cr_shift + w / 2] - 128;
-
-				texels[index + 0] = ce_clamp((y + 409 * cr + 128) / 256, 0, UCHAR_MAX);
-				texels[index + 1] = ce_clamp((y - 100 * cb - 208 * cr + 128) / 256, 0, UCHAR_MAX);
-				texels[index + 2] = ce_clamp((y + 516 * cb + 128) / 256, 0, UCHAR_MAX);
-				texels[index + 3] = UCHAR_MAX;
-			}
-		}
+	for (size_t i = 0; i < 3; ++i) {
+		videoresource->ycbcr.planes[i].stride = bink->picture.linesize[i];
+		videoresource->ycbcr.planes[i].data = bink->picture.data[i];
 	}
 
 	return true;

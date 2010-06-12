@@ -20,26 +20,58 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include <assert.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cevideoinstance.h"
+
+static void ce_videoinstance_prepare(ce_mmpfile* mmpfile, ce_ycbcr* ycbcr)
+{
+	// TODO: move conversion details to mmpfile
+	unsigned char* texels = mmpfile->texels;
+
+	assert(0 == ycbcr->crop_rect.x);
+	assert(0 == ycbcr->crop_rect.y);
+
+	int y_offset = 0;//(x & ~1) + ycbcr->planes[0].stride * (y & ~1);
+	int cb_offset = 0;//(x / 2) + ycbcr->planes[1].stride * (y / 2);
+	int cr_offset = 0;//(x / 2) + ycbcr->planes[2].stride * (y / 2);
+
+	for (unsigned int h = 0; h < ycbcr->crop_rect.height; ++h) {
+		int y_shift = y_offset + ycbcr->planes[0].stride * h;
+		int cb_shift = cb_offset + ycbcr->planes[1].stride * (h / 2);
+		int cr_shift = cr_offset + ycbcr->planes[2].stride * (h / 2);
+
+		for (unsigned int w = 0; w < ycbcr->crop_rect.width; ++w) {
+			size_t index = (h * ycbcr->crop_rect.width + w) * 4;
+
+			int y = 298 * (ycbcr->planes[0].data[y_shift + w] - 16);
+			int cb = ycbcr->planes[1].data[cb_shift + w / 2] - 128;
+			int cr = ycbcr->planes[2].data[cr_shift + w / 2] - 128;
+
+			texels[index + 0] = ce_clamp((y + 409 * cr + 128) / 256, 0, UCHAR_MAX);
+			texels[index + 1] = ce_clamp((y - 100 * cb - 208 * cr + 128) / 256, 0, UCHAR_MAX);
+			texels[index + 2] = ce_clamp((y + 516 * cb + 128) / 256, 0, UCHAR_MAX);
+			texels[index + 3] = UCHAR_MAX;
+		}
+	}
+}
 
 static void ce_videoinstance_exec(ce_videoinstance* videoinstance)
 {
 	for (size_t i = ce_semaphore_available(videoinstance->prepared_frames); ; ++i) {
 		ce_semaphore_acquire(videoinstance->unprepared_frames, 1);
 
-		if (videoinstance->done) {
+		if (videoinstance->done || !ce_videoresource_read(videoinstance->videoresource)) {
 			break;
 		}
 
 		size_t j = i % CE_VIDEOINSTANCE_CACHE_SIZE;
-		if (!ce_videoresource_read(videoinstance->videoresource,
-									videoinstance->cache[j]->texels)) {
-			break;
-		}
+		ce_videoinstance_prepare(videoinstance->cache[j],
+								&videoinstance->videoresource->ycbcr);
 
 		ce_semaphore_release(videoinstance->prepared_frames, 1);
 	}

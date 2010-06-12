@@ -25,6 +25,7 @@
 #include <stdbool.h>
 
 #include "cememfile.h"
+#include "ceycbcr.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -38,13 +39,14 @@ typedef struct {
 	bool (*test)(ce_memfile* memfile);
 	bool (*ctor)(ce_videoresource* videoresource);
 	void (*dtor)(ce_videoresource* videoresource);
-	bool (*read)(ce_videoresource* videoresource, void* data);
+	bool (*read)(ce_videoresource* videoresource);
 	bool (*reset)(ce_videoresource* videoresource);
 } ce_videoresource_vtable;
 
 struct ce_videoresource {
 	unsigned int width, height;
 	float fps, time;
+	ce_ycbcr ycbcr;
 	ce_memfile* memfile;
 	ce_videoresource_vtable vtable;
 	size_t size;
@@ -54,9 +56,9 @@ struct ce_videoresource {
 extern ce_videoresource* ce_videoresource_new(ce_memfile* memfile);
 extern void ce_videoresource_del(ce_videoresource* videoresource);
 
-static inline bool ce_videoresource_read(ce_videoresource* videoresource, void* data)
+static inline bool ce_videoresource_read(ce_videoresource* videoresource)
 {
-	return (*videoresource->vtable.read)(videoresource, data);
+	return (*videoresource->vtable.read)(videoresource);
 }
 
 extern bool ce_videoresource_reset(ce_videoresource* videoresource);
