@@ -200,6 +200,36 @@ static size_t ce_mad_size_hint(ce_memfile* memfile)
 	return sizeof(ce_mad);
 }
 
+static bool ce_mad_test(ce_memfile* memfile)
+{
+	unsigned char* buffer = ce_alloc(CE_MAD_INPUT_BUFFER_CAPACITY);
+	size_t size = ce_memfile_read(memfile, buffer, 1, CE_MAD_INPUT_BUFFER_CAPACITY);
+
+	struct mad_stream stream;
+	struct mad_header header;
+
+	mad_stream_init(&stream);
+	mad_header_init(&header);
+
+	mad_stream_buffer(&stream, buffer, size);
+
+	while (-1 == mad_header_decode(&header, &stream)) {
+		if (!MAD_RECOVERABLE(stream.error)) {
+			break;
+		}
+	}
+
+	// libmad have no good test functions, so use these weak conditions
+	bool ok = MAD_ERROR_NONE == stream.error || MAD_RECOVERABLE(stream.error);
+
+	mad_header_finish(&header);
+	mad_stream_finish(&stream);
+
+	ce_free(buffer, CE_MAD_INPUT_BUFFER_CAPACITY);
+
+	return ok;
+}
+
 static void ce_mad_error(ce_soundresource* soundresource, ce_logging_level level)
 {
 	ce_mad* mad = (ce_mad*)soundresource->impl;
@@ -389,36 +419,6 @@ static void ce_mad_clean(ce_mad* mad)
 	mad_synth_finish(&mad->synth);
 	mad_frame_finish(&mad->frame);
 	mad_stream_finish(&mad->stream);
-}
-
-static bool ce_mad_test(ce_memfile* memfile)
-{
-	unsigned char* buffer = ce_alloc(CE_MAD_INPUT_BUFFER_CAPACITY);
-	size_t size = ce_memfile_read(memfile, buffer, 1, CE_MAD_INPUT_BUFFER_CAPACITY);
-
-	struct mad_stream stream;
-	struct mad_header header;
-
-	mad_stream_init(&stream);
-	mad_header_init(&header);
-
-	mad_stream_buffer(&stream, buffer, size);
-
-	while (-1 == mad_header_decode(&header, &stream)) {
-		if (!MAD_RECOVERABLE(stream.error)) {
-			break;
-		}
-	}
-
-	// libmad have no good test functions, so use these weak conditions
-	bool ok = MAD_ERROR_NONE == stream.error || MAD_RECOVERABLE(stream.error);
-
-	mad_header_finish(&header);
-	mad_stream_finish(&stream);
-
-	ce_free(buffer, CE_MAD_INPUT_BUFFER_CAPACITY);
-
-	return ok;
 }
 
 static bool ce_mad_ctor(ce_soundresource* soundresource)
