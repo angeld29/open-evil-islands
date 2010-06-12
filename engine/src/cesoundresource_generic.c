@@ -148,6 +148,7 @@ static size_t ce_vorbis_read(ce_soundresource* soundresource, void* data, size_t
 static bool ce_vorbis_reset(ce_soundresource* soundresource)
 {
 	ce_vorbis* vorbis = (ce_vorbis*)soundresource->impl;
+	// infinite loop occurs if seeking at position 0 with multi stream oggs
 	return 0 == ov_raw_seek(&vorbis->vf, 1);
 }
 
