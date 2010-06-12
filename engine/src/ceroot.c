@@ -28,6 +28,7 @@
 #include "cethread.h"
 #include "cesysteminfo.h"
 #include "cesystemevent.h"
+#include "ceavcodec.h"
 #include "ceroot.h"
 
 struct ce_root ce_root;
@@ -196,6 +197,8 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_logging_write("root: using up to %d threads", ce_root.thread_count);
 	ce_logging_write("root: terrain tiling %s",
 		ce_root.terrain_tiling ? "enabled" : "disabled");
+
+	ce_avcodec_init();
 
 	return true;
 }

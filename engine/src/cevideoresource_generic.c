@@ -25,10 +25,7 @@
 #include <assert.h>
 
 #include <theora/theoradec.h>
-
-#ifdef CE_ENABLE_PROPRIETARY
 #include <libavcodec/avcodec.h>
-#endif
 
 #include "celib.h"
 #include "cestr.h"
@@ -384,7 +381,6 @@ static bool ce_theora_reset(ce_videoresource* videoresource)
 	return false;
 }
 
-#ifdef CE_ENABLE_PROPRIETARY
 /*
  *  Bink Video (C) RAD Game Tools, Inc.
  *
@@ -417,36 +413,6 @@ static bool ce_bink_test(ce_memfile* memfile)
 {
 	ce_binkheader header;
 	return ce_binkheader_read(&header, memfile);
-}
-
-static void ce_bink_error(void* ptr, int av_level, const char* format, va_list args)
-{
-	ce_unused(ptr);
-	ce_logging_level level;
-	switch (av_level) {
-	case AV_LOG_PANIC:
-	case AV_LOG_FATAL:
-		level = CE_LOGGING_LEVEL_FATAL;
-		break;
-	case AV_LOG_ERROR:
-		level = CE_LOGGING_LEVEL_ERROR;
-		break;
-	case AV_LOG_WARNING:
-		level = CE_LOGGING_LEVEL_WARNING;
-		break;
-	case AV_LOG_INFO:
-		level = CE_LOGGING_LEVEL_INFO;
-		break;
-	case AV_LOG_DEBUG:
-		level = CE_LOGGING_LEVEL_DEBUG;
-		break;
-	default:
-		level = CE_LOGGING_LEVEL_WRITE;
-		break;
-	}
-	char buffer[strlen(format) + 32];
-	snprintf(buffer, sizeof(buffer), "bink: libAVcodec reported that %s", format);
-	ce_logging_report_va(level, buffer, args);
 }
 
 static bool ce_bink_ctor(ce_videoresource* videoresource)
@@ -493,11 +459,6 @@ static bool ce_bink_ctor(ce_videoresource* videoresource)
 		return false;
 	}
 
-	av_log_set_callback(ce_bink_error);
-
-	avcodec_init();
-	avcodec_register_all();
-
 	bink->codec = avcodec_find_decoder(CODEC_ID_BINKVIDEO);
 	if (NULL == bink->codec) {
 		ce_logging_error("bink: video codec not found");
@@ -535,7 +496,7 @@ static void ce_bink_dtor(ce_videoresource* videoresource)
 {
 	ce_bink* bink = (ce_bink*)videoresource->impl;
 
-	if (NULL != bink->codec && NULL != bink->codec_context.codec) {
+	if (NULL != bink->codec_context.codec) {
 		avcodec_close(&bink->codec_context);
 	}
 }
@@ -615,15 +576,12 @@ static bool ce_bink_reset(ce_videoresource* videoresource)
 
 	return true;
 }
-#endif /* CE_ENABLE_PROPRIETARY */
 
 const ce_videoresource_vtable ce_videoresource_builtins[] = {
 	{ce_theora_size_hint, ce_theora_test, ce_theora_ctor,
 	ce_theora_dtor, ce_theora_read, ce_theora_reset},
-#ifdef CE_ENABLE_PROPRIETARY
 	{ce_bink_size_hint, ce_bink_test, ce_bink_ctor,
 	ce_bink_dtor, ce_bink_read, ce_bink_reset},
-#endif
 };
 
 const size_t CE_VIDEORESOURCE_BUILTIN_COUNT = sizeof(ce_videoresource_builtins) /
