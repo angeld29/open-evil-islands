@@ -76,6 +76,7 @@ void ce_videoresource_del(ce_videoresource* videoresource)
 bool ce_videoresource_reset(ce_videoresource* videoresource)
 {
 	videoresource->time = 0.0f;
+	videoresource->frame_index = 0;
 	ce_memfile_rewind(videoresource->memfile);
 	return (*videoresource->vtable.reset)(videoresource);
 }

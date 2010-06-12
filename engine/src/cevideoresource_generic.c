@@ -341,6 +341,8 @@ static bool ce_theora_read(ce_videoresource* videoresource)
 	ogg_int64_t granulepos;
 	if (0 == th_decode_packetin(theora->context, &theora->packet, &granulepos)) {
 		theora->time = th_granule_time(theora->context, granulepos);
+		++videoresource->frame_index;
+
 		th_decode_ycbcr_out(theora->context, theora->ycbcr);
 
 		for (size_t i = 0; i < 3; ++i) {
@@ -370,7 +372,6 @@ static bool ce_theora_reset(ce_videoresource* videoresource)
 */
 
 typedef struct {
-	size_t frame_index;
 	ce_binkheader header;
 	ce_binkindex* indices;
 	AVCodec* codec;
@@ -433,6 +434,8 @@ static bool ce_bink_ctor(ce_videoresource* videoresource)
 	ce_logging_debug("bink: video is %ux%u %.02f fps",
 		videoresource->width, videoresource->height, videoresource->fps);
 
+	videoresource->frame_count = bink->header.frame_count;
+
 	videoresource->ycbcr.crop_rect.x = 0;
 	videoresource->ycbcr.crop_rect.y = 0;
 	videoresource->ycbcr.crop_rect.width = bink->header.video_width;
@@ -490,12 +493,12 @@ static bool ce_bink_read(ce_videoresource* videoresource)
 {
 	ce_bink* bink = (ce_bink*)videoresource->impl;
 
-	if (bink->frame_index == bink->header.frame_count) {
+	if (videoresource->frame_index == videoresource->frame_count) {
 		assert(ce_memfile_eof(videoresource->memfile));
 		return false;
 	}
 
-	uint32_t frame_size = bink->indices[bink->frame_index++].length;
+	uint32_t frame_size = bink->indices[videoresource->frame_index++].length;
 
 	if (0 != bink->header.audio_track_count) {
 		uint32_t packet_size;
@@ -538,10 +541,8 @@ static bool ce_bink_reset(ce_videoresource* videoresource)
 {
 	ce_bink* bink = (ce_bink*)videoresource->impl;
 
-	bink->frame_index = 0;
-
 	ce_memfile_seek(videoresource->memfile,
-		bink->indices[bink->frame_index].pos, CE_MEMFILE_SEEK_SET);
+		bink->indices[videoresource->frame_index].pos, CE_MEMFILE_SEEK_SET);
 
 	return true;
 }

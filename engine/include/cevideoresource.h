@@ -46,6 +46,7 @@ typedef struct {
 struct ce_videoresource {
 	unsigned int width, height;
 	float fps, time;
+	size_t frame_index, frame_count;
 	ce_ycbcr ycbcr;
 	ce_memfile* memfile;
 	ce_videoresource_vtable vtable;
