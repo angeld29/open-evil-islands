@@ -136,17 +136,17 @@ static void ce_theora_report_pixelformat(ce_videoresource* videoresource)
 	ce_theora* theora = (ce_theora*)videoresource->impl;
 	switch (theora->info.pixel_fmt) {
 	case TH_PF_420:
-		ce_logging_debug("theora: pixel format is 4:2:0");
+		ce_logging_debug("theora: pixel format is YCbCr 4:2:0");
 		break;
 	case TH_PF_422:
-		ce_logging_debug("theora: pixel format is 4:2:2");
+		ce_logging_debug("theora: pixel format is YCbCr 4:2:2");
 		break;
 	case TH_PF_444:
-		ce_logging_debug("theora: pixel format is 4:4:4");
+		ce_logging_debug("theora: pixel format is YCbCr 4:4:4");
 		break;
 	case TH_PF_RSVD:
 	default:
-		ce_logging_error("theora: unknown chroma sampling!");
+		ce_logging_error("theora: unknown chroma sampling");
 		break;
 	}
 }
