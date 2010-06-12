@@ -134,6 +134,13 @@ void ce_videoinstance_advance(ce_videoinstance* videoinstance, float elapsed)
 	ce_videoinstance_advance_frame(videoinstance);
 }
 
+void ce_videoinstance_progress(ce_videoinstance* videoinstance, int percents)
+{
+	videoinstance->time = (videoinstance->videoresource->frame_count /
+		videoinstance->videoresource->fps) * (0.01f * percents);
+	ce_videoinstance_advance_frame(videoinstance);
+}
+
 ce_mmpfile* ce_videoinstance_acquire_frame(ce_videoinstance* videoinstance)
 {
 	// if other streams (or time) far away, skip frames to reach desired frame

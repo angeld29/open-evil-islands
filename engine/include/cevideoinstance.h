@@ -56,6 +56,9 @@ extern void ce_videoinstance_sync(ce_videoinstance* videoinstance, float time);
 // advances a video with specified time
 extern void ce_videoinstance_advance(ce_videoinstance* videoinstance, float elapsed);
 
+// advances a video with specified percents, if not streaming
+extern void ce_videoinstance_progress(ce_videoinstance* videoinstance, int percents);
+
 extern ce_mmpfile* ce_videoinstance_acquire_frame(ce_videoinstance* videoinstance);
 extern void ce_videoinstance_release_frame(ce_videoinstance* videoinstance);
 
