@@ -573,8 +573,13 @@ static bool ce_bink_read(ce_videoresource* videoresource, void* data)
 static bool ce_bink_reset(ce_videoresource* videoresource)
 {
 	ce_bink* bink = (ce_bink*)videoresource->impl;
-	ce_unused(bink);
-	return false;
+
+	bink->frame_index = 0;
+
+	ce_memfile_seek(videoresource->memfile,
+		bink->indices[bink->frame_index].pos, CE_MEMFILE_SEEK_SET);
+
+	return true;
 }
 #endif /* CE_ENABLE_PROPRIETARY */
 
