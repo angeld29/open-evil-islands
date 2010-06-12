@@ -63,9 +63,71 @@ static size_t ce_theora_size_hint(ce_memfile* memfile)
 	return sizeof(ce_theora);
 }
 
+static void ce_theora_init(ce_theora* theora)
+{
+	memset(theora, 0, sizeof(ce_theora));
+
+	// start up ogg stream synchronization layer
+	ogg_sync_init(&theora->sync);
+
+	// init supporting theora structures needed in header parsing
+	th_info_init(&theora->info);
+	th_comment_init(&theora->comment);
+}
+
+static void ce_theora_clean(ce_theora* theora)
+{
+	if (NULL != theora->context) {
+		th_decode_free(theora->context);
+	}
+
+	th_comment_clear(&theora->comment);
+	th_info_clear(&theora->info);
+
+	if (NULL != theora->setup) {
+		th_setup_free(theora->setup);
+	}
+
+	ogg_stream_clear(&theora->stream);
+	ogg_sync_clear(&theora->sync);
+}
+
+static bool ce_theora_pump(ogg_sync_state* sync, ce_memfile* memfile)
+{
+	const size_t size = 4096;
+	char* buffer = ogg_sync_buffer(sync, size);
+	size_t bytes = ce_memfile_read(memfile, buffer, 1, size);
+	ogg_sync_wrote(sync, bytes);
+	return 0 != bytes;
+}
+
 static bool ce_theora_test(ce_memfile* memfile)
 {
-	ce_unused(memfile);
+	ce_theora theora;
+	ce_theora_init(&theora);
+
+	while (ce_theora_pump(&theora.sync, memfile)) {
+		while (ogg_sync_pageout(&theora.sync, &theora.page) > 0) {
+			if (0 == ogg_page_bos(&theora.page)) {
+				ce_theora_clean(&theora);
+				return false;
+			}
+
+			ogg_stream_init(&theora.stream, ogg_page_serialno(&theora.page));
+			ogg_stream_pagein(&theora.stream, &theora.page);
+			ogg_stream_packetout(&theora.stream, &theora.packet);
+
+			if (th_decode_headerin(&theora.info, &theora.comment,
+									&theora.setup, &theora.packet) >= 0) {
+				ce_theora_clean(&theora);
+				return true;
+			}
+
+			ogg_stream_clear(&theora.stream);
+		}
+	}
+
+	ce_theora_clean(&theora);
 	return false;
 }
 
@@ -124,26 +186,10 @@ static void ce_theora_report_comments(ce_videoresource* videoresource)
 	}
 }
 
-static bool ce_theora_pump(ce_videoresource* videoresource)
-{
-	ce_theora* theora = (ce_theora*)videoresource->impl;
-	const size_t size = 4096;
-	char* buffer = ogg_sync_buffer(&theora->sync, size);
-	size_t bytes = ce_memfile_read(videoresource->memfile, buffer, 1, size);
-	ogg_sync_wrote(&theora->sync, bytes);
-	return 0 != bytes;
-}
-
 static bool ce_theora_ctor(ce_videoresource* videoresource)
 {
 	ce_theora* theora = (ce_theora*)videoresource->impl;
-
-	// start up ogg stream synchronization layer
-	ogg_sync_init(&theora->sync);
-
-	// init supporting theora structures needed in header parsing
-	th_info_init(&theora->info);
-	th_comment_init(&theora->comment);
+	ce_theora_init(theora);
 
 	bool done = false;
 	int header_count = 0;
@@ -151,7 +197,7 @@ static bool ce_theora_ctor(ce_videoresource* videoresource)
 
 	// parse the headers
 	while (!done) {
-		if (!ce_theora_pump(videoresource)) {
+		if (!ce_theora_pump(&theora->sync, videoresource->memfile)) {
 			ce_logging_error("theora: end of stream while searching for headers");
 			return false;
 		}
@@ -219,7 +265,7 @@ static bool ce_theora_ctor(ce_videoresource* videoresource)
 			code = ogg_stream_pagein(&theora->stream, &theora->page);
 		} else {
 			// someone needs more data
-			if (!ce_theora_pump(videoresource)) {
+			if (!ce_theora_pump(&theora->sync, videoresource->memfile)) {
 				ce_logging_error("theora: end of stream while searching for headers");
 				return false;
 			}
@@ -266,20 +312,7 @@ static bool ce_theora_ctor(ce_videoresource* videoresource)
 static void ce_theora_dtor(ce_videoresource* videoresource)
 {
 	ce_theora* theora = (ce_theora*)videoresource->impl;
-
-	if (NULL != theora->context) {
-		th_decode_free(theora->context);
-	}
-
-	th_comment_clear(&theora->comment);
-	th_info_clear(&theora->info);
-
-	if (NULL != theora->setup) {
-		th_setup_free(theora->setup);
-	}
-
-	ogg_stream_clear(&theora->stream);
-	ogg_sync_clear(&theora->sync);
+	ce_theora_clean(theora);
 }
 
 static bool ce_theora_read(ce_videoresource* videoresource, void* data)
@@ -288,7 +321,7 @@ static bool ce_theora_read(ce_videoresource* videoresource, void* data)
 	ogg_int64_t granulepos;
 
 	while (ogg_stream_packetout(&theora->stream, &theora->packet) <= 0) {
-		if (!ce_theora_pump(videoresource)) {
+		if (!ce_theora_pump(&theora->sync, videoresource->memfile)) {
 			return false;
 		}
 
@@ -346,6 +379,7 @@ static bool ce_theora_read(ce_videoresource* videoresource, void* data)
 
 static bool ce_theora_reset(ce_videoresource* videoresource)
 {
+	// TODO: not implemented
 	ce_unused(videoresource);
 	return false;
 }

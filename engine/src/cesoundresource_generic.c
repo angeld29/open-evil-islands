@@ -109,7 +109,7 @@ static bool ce_vorbis_ctor(ce_soundresource* soundresource)
 	soundresource->sample_rate = info->rate;
 	soundresource->channel_count = info->channels;
 
-	ce_logging_debug("vorbis: input is %ld bit/s (%ld bit/s nominal), %u Hz, %u channel",
+	ce_logging_debug("vorbis: audio is %ld bit/s (%ld bit/s nominal), %u Hz, %u channel",
 		ov_bitrate(&vorbis->vf, -1), info->bitrate_nominal,
 		soundresource->sample_rate, soundresource->channel_count);
 
@@ -435,7 +435,7 @@ static bool ce_mad_ctor(ce_soundresource* soundresource)
 	soundresource->channel_count = MAD_MODE_SINGLE_CHANNEL ==
 									mad->frame.header.mode ? 1 : 2;
 
-	ce_logging_debug("mad: input is %lu bit/s, %u Hz, %u channel",
+	ce_logging_debug("mad: audio is %lu bit/s, %u Hz, %u channel",
 		mad->frame.header.bitrate, soundresource->sample_rate, soundresource->channel_count);
 
 	return true;
