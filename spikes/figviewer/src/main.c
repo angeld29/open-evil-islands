@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
 	ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(180.0f),
 													ce_deg2rad(30.0f));
 
-	ce_root.scenemng->camera_move_sensitivity = 5.0f;
+	ce_root.scenemng->camera_move_sensitivity = 2.5f;
 	ce_root.scenemng->camera_zoom_sensitivity = 0.5f;
 
 	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = render};
