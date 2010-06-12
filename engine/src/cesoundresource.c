@@ -28,10 +28,14 @@
 
 ce_soundresource* ce_soundresource_new(ce_soundresource_vtable vtable, ce_memfile* memfile)
 {
-	ce_soundresource* soundresource = ce_alloc_zero(sizeof(ce_soundresource) + vtable.size);
+	size_t size = (*vtable.size_hint)(memfile);
+	ce_memfile_rewind(memfile);
+
+	ce_soundresource* soundresource = ce_alloc_zero(sizeof(ce_soundresource) + size);
 
 	soundresource->memfile = memfile;
 	soundresource->vtable = vtable;
+	soundresource->size = size;
 
 	if (!(*vtable.ctor)(soundresource)) {
 		// do not take ownership if failed
@@ -59,7 +63,7 @@ void ce_soundresource_del(ce_soundresource* soundresource)
 			(*soundresource->vtable.dtor)(soundresource);
 		}
 		ce_memfile_close(soundresource->memfile);
-		ce_free(soundresource, sizeof(ce_soundresource) + soundresource->vtable.size);
+		ce_free(soundresource, sizeof(ce_soundresource) + soundresource->size);
 	}
 }
 

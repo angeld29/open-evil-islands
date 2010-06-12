@@ -57,6 +57,12 @@ typedef struct {
 	long sample_size;
 } ce_vorbis;
 
+static size_t ce_vorbis_size_hint(ce_memfile* memfile)
+{
+	ce_unused(memfile);
+	return sizeof(ce_vorbis);
+}
+
 static size_t ce_vorbis_read_wrap(void* ptr, size_t size, size_t nmemb, void* datasource)
 {
 	return ce_memfile_read(datasource, ptr, size, nmemb);
@@ -190,6 +196,12 @@ typedef struct {
 	unsigned char* output_buffer;
 	unsigned char input_buffer[CE_MAD_DATA_SIZE];
 } ce_mad;
+
+static size_t ce_mad_size_hint(ce_memfile* memfile)
+{
+	ce_unused(memfile);
+	return sizeof(ce_mad);
+}
 
 static void ce_mad_error(ce_soundresource* soundresource, ce_logging_level level)
 {
@@ -474,23 +486,62 @@ static bool ce_mad_reset(ce_soundresource* soundresource)
  *  2. FFmpeg (C) Michael Niedermayer
 */
 
-enum {
-	CE_BINK_AUDIO_FRAME_CAPACITY = 192000, // 1 second of 48khz 32bit audio
-};
-
 typedef struct {
+	size_t frame_index;
 	ce_binkheader header;
 	ce_binktrack track;
 	ce_binkindex* indices;
+	AVCodec* codec;
+	AVCodecContext* codec_context;
+	AVPacket packet;
 	size_t output_pos, output_size;
-	uint8_t output[CE_BINK_AUDIO_FRAME_CAPACITY];
+	uint8_t output[AVCODEC_MAX_AUDIO_FRAME_SIZE];
+	uint8_t data[];
 } ce_bink;
+
+static size_t ce_bink_size_hint(ce_memfile* memfile)
+{
+	ce_binkheader header;
+	return sizeof(ce_bink) + (ce_binkheader_read(&header, memfile) ?
+		sizeof(ce_binkindex) * header.frame_count +
+		header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE : 0);
+}
 
 static bool ce_bink_test(ce_memfile* memfile)
 {
 	ce_binkheader binkheader;
 	return ce_binkheader_read(&binkheader, memfile) &&
 			0 != binkheader.audio_track_count;
+}
+
+static void ce_bink_error(void* ptr, int av_level, const char* format, va_list args)
+{
+	ce_unused(ptr);
+	ce_logging_level level;
+	switch (av_level) {
+	case AV_LOG_PANIC:
+	case AV_LOG_FATAL:
+		level = CE_LOGGING_LEVEL_FATAL;
+		break;
+	case AV_LOG_ERROR:
+		level = CE_LOGGING_LEVEL_ERROR;
+		break;
+	case AV_LOG_WARNING:
+		level = CE_LOGGING_LEVEL_WARNING;
+		break;
+	case AV_LOG_INFO:
+		level = CE_LOGGING_LEVEL_INFO;
+		break;
+	case AV_LOG_DEBUG:
+		level = CE_LOGGING_LEVEL_DEBUG;
+		break;
+	default:
+		level = CE_LOGGING_LEVEL_WRITE;
+		break;
+	}
+	char buffer[strlen(format) + 32];
+	snprintf(buffer, sizeof(buffer), "bink: libAVcodec reported that %s", format);
+	ce_logging_report_va(level, buffer, args);
 }
 
 static bool ce_bink_ctor(ce_soundresource* soundresource)
@@ -512,6 +563,7 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 		return false;
 	}
 
+	// only RDFT supported (all original EI BIKs use RDFT)
 	if (CE_BINK_AUDIO_FLAG_USE_DCT & bink->track.flags) {
 		ce_logging_error("bink: DCT audio algorithm not supported");
 		return false;
@@ -525,12 +577,36 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 	ce_logging_debug("bink: input is %u Hz, %u channel",
 		soundresource->sample_rate, soundresource->channel_count);
 
-	bink->indices = ce_alloc(sizeof(ce_binkindex) * bink->header.frame_count);
+	bink->indices = (ce_binkindex*)bink->data;
 
 	if (!ce_binkindex_read(bink->indices, bink->header.frame_count, soundresource->memfile)) {
 		ce_logging_error("bink: invalid frame index table");
 		return false;
 	}
+
+	av_log_set_callback(ce_bink_error);
+
+	avcodec_init();
+	avcodec_register_all();
+
+	bink->codec = avcodec_find_decoder(CODEC_ID_BINKAUDIO_RDFT);
+	if (NULL == bink->codec) {
+		ce_logging_error("bink: RDFT audio codec not found");
+		return false;
+	}
+
+	bink->codec_context = avcodec_alloc_context();
+	bink->codec_context->codec_tag = bink->header.four_cc;
+	bink->codec_context->sample_rate = soundresource->sample_rate;
+	bink->codec_context->channels = soundresource->channel_count;
+
+	if (avcodec_open(bink->codec_context, bink->codec) < 0) {
+		ce_logging_error("bink: could not open RDFT audio codec");
+		return false;
+	}
+
+	av_init_packet(&bink->packet);
+	bink->packet.data = bink->data + sizeof(ce_binkindex) * bink->header.frame_count;
 
 	return true;
 }
@@ -538,13 +614,51 @@ static bool ce_bink_ctor(ce_soundresource* soundresource)
 static void ce_bink_dtor(ce_soundresource* soundresource)
 {
 	ce_bink* bink = (ce_bink*)soundresource->impl;
-	ce_free(bink->indices, sizeof(ce_binkindex) * bink->header.frame_count);
+
+	if (NULL != bink->codec_context) {
+		avcodec_close(bink->codec_context);
+		av_free(bink->codec_context);
+	}
 }
 
 static bool ce_bink_decode_frame(ce_soundresource* soundresource)
 {
 	ce_bink* bink = (ce_bink*)soundresource->impl;
-	return false;
+
+	if (bink->frame_index == bink->header.frame_count) {
+		assert(ce_memfile_eof(soundresource->memfile));
+		return false;
+	}
+
+	uint32_t packet_size;
+	ce_memfile_read(soundresource->memfile, &packet_size, 4, 1);
+
+	// our input buffer is largest_frame_size bytes
+	assert(packet_size <= bink->header.largest_frame_size);
+
+	if (0 != packet_size) {
+		bink->packet.size = ce_memfile_read(soundresource->memfile,
+											bink->packet.data, 1, packet_size);
+
+		int output_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+		int input_size = avcodec_decode_audio3(bink->codec_context,
+			(int16_t*)bink->output, &output_size, &bink->packet);
+
+		if (input_size != (int)packet_size || output_size <= 0) {
+			ce_logging_error("bink: error while decoding");
+		} else {
+			bink->output_pos = 0;
+			bink->output_size = output_size;
+		}
+	}
+
+	uint32_t frame_size = bink->indices[bink->frame_index++].length;
+	frame_size -= packet_size + sizeof(packet_size);
+
+	// skip video packet
+	ce_memfile_seek(soundresource->memfile, frame_size, CE_MEMFILE_SEEK_CUR);
+
+	return 0 == packet_size;
 }
 
 static size_t ce_bink_read(ce_soundresource* soundresource, void* data, size_t size)
@@ -552,6 +666,7 @@ static size_t ce_bink_read(ce_soundresource* soundresource, void* data, size_t s
 	ce_bink* bink = (ce_bink*)soundresource->impl;
 
 	if (0 == bink->output_size) {
+		do { /* nothing */ } while (ce_bink_decode_frame(soundresource));
 	}
 
 	size = ce_smin(size, bink->output_size);
@@ -565,18 +680,23 @@ static size_t ce_bink_read(ce_soundresource* soundresource, void* data, size_t s
 
 static bool ce_bink_reset(ce_soundresource* soundresource)
 {
-	ce_unused(soundresource);
-	return false;
+	ce_bink* bink = (ce_bink*)soundresource->impl;
+
+	bink->frame_index = 0;
+	ce_memfile_seek(soundresource->memfile,
+		bink->indices[bink->frame_index].pos, CE_MEMFILE_SEEK_SET);
+
+	return true;
 }
 #endif /* CE_ENABLE_PROPRIETARY */
 
 const ce_soundresource_vtable ce_soundresource_builtins[] = {
-	{sizeof(ce_vorbis), ce_vorbis_test, ce_vorbis_ctor,
+	{ce_vorbis_size_hint, ce_vorbis_test, ce_vorbis_ctor,
 	ce_vorbis_dtor, ce_vorbis_read, ce_vorbis_reset},
 #ifdef CE_ENABLE_PROPRIETARY
-	{sizeof(ce_mad), ce_mad_test, ce_mad_ctor,
+	{ce_mad_size_hint, ce_mad_test, ce_mad_ctor,
 	ce_mad_dtor, ce_mad_read, ce_mad_reset},
-	{sizeof(ce_bink), ce_bink_test, ce_bink_ctor,
+	{ce_bink_size_hint, ce_bink_test, ce_bink_ctor,
 	ce_bink_dtor, ce_bink_read, ce_bink_reset},
 #endif
 };

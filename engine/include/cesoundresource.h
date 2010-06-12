@@ -34,7 +34,7 @@ extern "C"
 typedef struct ce_soundresource ce_soundresource;
 
 typedef struct {
-	size_t size;
+	size_t (*size_hint)(ce_memfile* memfile);
 	bool (*test)(ce_memfile* memfile);
 	bool (*ctor)(ce_soundresource* soundresource);
 	void (*dtor)(ce_soundresource* soundresource);
@@ -47,6 +47,7 @@ struct ce_soundresource {
 	float time;
 	ce_memfile* memfile;
 	ce_soundresource_vtable vtable;
+	size_t size;
 	char impl[];
 };
 

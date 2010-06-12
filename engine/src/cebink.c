@@ -51,8 +51,6 @@ bool ce_binkheader_read(ce_binkheader* binkheader, ce_memfile* memfile)
 	}
 
 	binkheader->four_cc = ce_le2cpu32(*ptr.u32++);
-	printf("bink four cc %#x\n", binkheader->four_cc);
-
 	binkheader->file_size = ce_le2cpu32(*ptr.u32++);
 	binkheader->frame_count = ce_le2cpu32(*ptr.u32++);
 	binkheader->largest_frame_size = ce_le2cpu32(*ptr.u32++);
