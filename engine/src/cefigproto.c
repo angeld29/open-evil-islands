@@ -29,8 +29,8 @@
 ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile)
 {
 	ce_figproto* figproto = ce_alloc(sizeof(ce_figproto));
-	figproto->name = ce_string_new_str(name);
 	figproto->ref_count = 1;
+	figproto->name = ce_string_new_str(name);
 
 	char file_name[strlen(name) + 4 + 1];
 
@@ -71,19 +71,13 @@ ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile)
 void ce_figproto_del(ce_figproto* figproto)
 {
 	if (NULL != figproto) {
-		assert(figproto->ref_count > 0);
-		if (0 == --figproto->ref_count) {
+		assert(ce_atomic_fetch(int, &figproto->ref_count) > 0);
+		if (0 == ce_atomic_dec_and_fetch(int, &figproto->ref_count)) {
 			ce_fignode_del(figproto->fignode);
 			ce_string_del(figproto->name);
 			ce_free(figproto, sizeof(ce_figproto));
 		}
 	}
-}
-
-ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
-{
-	++figproto->ref_count;
-	return figproto;
 }
 
 void ce_figproto_accept_renderqueue(ce_figproto* figproto,

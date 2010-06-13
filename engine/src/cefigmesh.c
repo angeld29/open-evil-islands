@@ -45,10 +45,10 @@ ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
 							const ce_complection* complection)
 {
 	ce_figmesh* figmesh = ce_alloc(sizeof(ce_figmesh));
+	figmesh->ref_count = 1;
 	figmesh->figproto = ce_figproto_add_ref(figproto);
 	figmesh->complection = *complection;
 	figmesh->renderitems = ce_vector_new();
-	figmesh->ref_count = 1;
 	ce_figmesh_create_renderitems(figmesh, figmesh->figproto->fignode);
 	return figmesh;
 }
@@ -56,18 +56,12 @@ ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
 void ce_figmesh_del(ce_figmesh* figmesh)
 {
 	if (NULL != figmesh) {
-		assert(figmesh->ref_count > 0);
-		if (0 == --figmesh->ref_count) {
+		assert(ce_atomic_fetch(int, &figmesh->ref_count) > 0);
+		if (0 == ce_atomic_dec_and_fetch(int, &figmesh->ref_count)) {
 			ce_vector_for_each(figmesh->renderitems, ce_renderitem_del);
 			ce_vector_del(figmesh->renderitems);
 			ce_figproto_del(figmesh->figproto);
 			ce_free(figmesh, sizeof(ce_figmesh));
 		}
 	}
-}
-
-ce_figmesh* ce_figmesh_add_ref(ce_figmesh* figmesh)
-{
-	++figmesh->ref_count;
-	return figmesh;
 }

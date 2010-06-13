@@ -26,40 +26,41 @@
 #include "cegl.h"
 #include "cemath.h"
 #include "cealloc.h"
+#include "ceatomic.h"
 #include "cefighlp.h"
 #include "ceanmstate.h"
 #include "cefigrenderitem.h"
 
-// fig renderitem static (without morphs): gl's display list
+// fig renderitem static (without morphs): GL's display list
 
 typedef struct {
-	GLuint id;
 	int ref_count;
+	GLuint id;
 } ce_figcookie_static;
 
 static ce_figcookie_static* ce_figcookie_static_new(void)
 {
 	ce_figcookie_static* cookie = ce_alloc(sizeof(ce_figcookie_static));
-	cookie->id = glGenLists(1);
 	cookie->ref_count = 1;
+	cookie->id = glGenLists(1);
 	return cookie;
 }
 
 static void ce_figcookie_static_del(ce_figcookie_static* cookie)
 {
 	if (NULL != cookie) {
-		assert(cookie->ref_count > 0);
-		if (0 == --cookie->ref_count) {
+		assert(ce_atomic_fetch(int, &cookie->ref_count) > 0);
+		if (0 == ce_atomic_dec_and_fetch(int, &cookie->ref_count)) {
 			glDeleteLists(cookie->id, 1);
 			ce_free(cookie, sizeof(ce_figcookie_static));
 		}
 	}
 }
 
-static ce_figcookie_static*
+static inline ce_figcookie_static*
 ce_figcookie_static_add_ref(ce_figcookie_static* cookie)
 {
-	++cookie->ref_count;
+	ce_atomic_inc(int, &cookie->ref_count);
 	return cookie;
 }
 
@@ -127,11 +128,11 @@ static void ce_figrenderitem_static_clone(const ce_renderitem* renderitem,
 		ce_figcookie_static_add_ref(figrenderitem->cookie);
 }
 
-// fig renderitem dynamic (with morphs): gl's vertex buffer object or vertex array
+// fig renderitem dynamic (with morphs): GL's vertex buffer object or vertex array
 
 typedef struct {
-	int vertex_count;
 	int ref_count;
+	int vertex_count;
 	float* vertices; // initial vertices
 	union {
 		float* pointer;
@@ -146,8 +147,8 @@ typedef struct {
 static ce_figcookie_dynamic* ce_figcookie_dynamic_new(int vertex_count)
 {
 	ce_figcookie_dynamic* cookie = ce_alloc(sizeof(ce_figcookie_dynamic));
-	cookie->vertex_count = vertex_count;
 	cookie->ref_count = 1;
+	cookie->vertex_count = vertex_count;
 	cookie->vertices = ce_alloc(sizeof(float) * 3 * vertex_count);
 	if (GLEW_VERSION_1_5) {
 		glGenBuffers(1, &cookie->normals.buffer);
@@ -162,8 +163,8 @@ static ce_figcookie_dynamic* ce_figcookie_dynamic_new(int vertex_count)
 static void ce_figcookie_dynamic_del(ce_figcookie_dynamic* cookie)
 {
 	if (NULL != cookie) {
-		assert(cookie->ref_count > 0);
-		if (0 == --cookie->ref_count) {
+		assert(ce_atomic_fetch(int, &cookie->ref_count) > 0);
+		if (0 == ce_atomic_dec_and_fetch(int, &cookie->ref_count)) {
 			if (GLEW_VERSION_1_5) {
 				glDeleteBuffers(1, &cookie->texcoords.buffer);
 				glDeleteBuffers(1, &cookie->normals.buffer);
@@ -180,10 +181,10 @@ static void ce_figcookie_dynamic_del(ce_figcookie_dynamic* cookie)
 	}
 }
 
-static ce_figcookie_dynamic*
+static inline ce_figcookie_dynamic*
 ce_figcookie_dynamic_add_ref(ce_figcookie_dynamic* cookie)
 {
-	++cookie->ref_count;
+	ce_atomic_inc(int, &cookie->ref_count);
 	return cookie;
 }
 

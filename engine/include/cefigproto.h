@@ -22,6 +22,7 @@
 #define CE_FIGPROTO_H
 
 #include "cestring.h"
+#include "ceatomic.h"
 #include "ceresfile.h"
 #include "cefignode.h"
 #include "cerenderqueue.h"
@@ -32,16 +33,20 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	int ref_count;
 	ce_string* name;
 	ce_fignode* fignode;
-	int ref_count;
 } ce_figproto;
 
 extern ce_figproto* ce_figproto_new(const char* name,
 									ce_resfile* resfile);
 extern void ce_figproto_del(ce_figproto* figproto);
 
-extern ce_figproto* ce_figproto_add_ref(ce_figproto* figproto);
+static inline ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
+{
+	ce_atomic_inc(int, &figproto->ref_count);
+	return figproto;
+}
 
 extern void ce_figproto_accept_renderqueue(ce_figproto* figproto,
 											ce_renderqueue* renderqueue);

@@ -33,7 +33,19 @@
 #define ce_atomic_add_and_fetch(T, ptr, val) ce_atomic_add_and_fetch_##T(ptr, val)
 #define ce_atomic_sub_and_fetch(T, ptr, val) ce_atomic_sub_and_fetch_##T(ptr, val)
 
-#define ce_atomic_fetch(T, ptr) ce_atomic_add_and_fetch_##T(ptr, 0)
+#define ce_atomic_fetch_and_inc(T, ptr) ce_atomic_fetch_and_add(T, ptr, 1)
+#define ce_atomic_fetch_and_dec(T, ptr) ce_atomic_fetch_and_sub(T, ptr, 1)
+
+#define ce_atomic_inc_and_fetch(T, ptr) ce_atomic_add_and_fetch(T, ptr, 1)
+#define ce_atomic_dec_and_fetch(T, ptr) ce_atomic_sub_and_fetch(T, ptr, 1)
+
+#define ce_atomic_add(T, ptr, val) ce_atomic_add_and_fetch(T, ptr, val)
+#define ce_atomic_sub(T, ptr, val) ce_atomic_sub_and_fetch(T, ptr, val)
+
+#define ce_atomic_inc(T, ptr) ce_atomic_inc_and_fetch(T, ptr)
+#define ce_atomic_dec(T, ptr) ce_atomic_dec_and_fetch(T, ptr)
+
+#define ce_atomic_fetch(T, ptr) ce_atomic_add_and_fetch(T, ptr, 0)
 
 #define CE_ATOMIC_DECL_FETCH_AND_OP(type, op) \
 extern type ce_atomic_fetch_and_##op##_##type(type* ptr, type value);
