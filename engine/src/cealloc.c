@@ -69,7 +69,7 @@ typedef struct {
 #endif
 } ce_alloc_mutex;
 
-static void ce_alloc_mutex_init(ce_alloc_mutex* mutex)
+static inline void ce_alloc_mutex_init(ce_alloc_mutex* mutex)
 {
 #ifdef _WIN32
 	InitializeCriticalSection(&mutex->cs);
@@ -78,7 +78,7 @@ static void ce_alloc_mutex_init(ce_alloc_mutex* mutex)
 #endif
 }
 
-static void ce_alloc_mutex_clean(ce_alloc_mutex* mutex)
+static inline void ce_alloc_mutex_clean(ce_alloc_mutex* mutex)
 {
 #ifdef _WIN32
 	DeleteCriticalSection(&mutex->cs);
@@ -87,7 +87,7 @@ static void ce_alloc_mutex_clean(ce_alloc_mutex* mutex)
 #endif
 }
 
-static void ce_alloc_mutex_lock(ce_alloc_mutex* mutex)
+static inline void ce_alloc_mutex_lock(ce_alloc_mutex* mutex)
 {
 #ifdef _WIN32
 	EnterCriticalSection(&mutex->cs);
@@ -96,7 +96,7 @@ static void ce_alloc_mutex_lock(ce_alloc_mutex* mutex)
 #endif
 }
 
-static void ce_alloc_mutex_unlock(ce_alloc_mutex* mutex)
+static inline void ce_alloc_mutex_unlock(ce_alloc_mutex* mutex)
 {
 #ifdef _WIN32
 	LeaveCriticalSection(&mutex->cs);
