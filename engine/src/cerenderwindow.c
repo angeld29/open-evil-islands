@@ -109,8 +109,8 @@ ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size,
 	va_list args;
 	va_start(args, size);
 
-	renderwindow->geometry[renderwindow->state].width = ce_max(400, va_arg(args, int));
-	renderwindow->geometry[renderwindow->state].height = ce_max(300, va_arg(args, int));
+	renderwindow->geometry[renderwindow->state].width = ce_max(int, 400, va_arg(args, int));
+	renderwindow->geometry[renderwindow->state].height = ce_max(int, 300, va_arg(args, int));
 
 	renderwindow->inputcontext = ce_inputcontext_new();
 	renderwindow->keymap = ce_renderwindow_keymap_new();

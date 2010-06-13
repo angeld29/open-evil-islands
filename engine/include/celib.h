@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,57 +28,58 @@
 #define ce_pass() (void)(0)
 #define ce_unused(var) (void)(var)
 
-#define CE_DEF_MIN(name, type) \
-static inline type ce_##name(type a, type b) \
+#define ce_min(T, a, b) ce_min_##T(a, b)
+#define ce_max(T, a, b) ce_max_##T(a, b)
+#define ce_clamp(T, v, a, b) ce_clamp_##T(v, a, b)
+#define ce_swap(T, a, b) ce_swap_##T(a, b)
+
+#define CE_LIB_DEF_MIN(T) \
+static inline T ce_min_##T(T a, T b) \
 { \
 	return a < b ? a : b; \
 }
 
-#define CE_DEF_MAX(name, type) \
-static inline type ce_##name(type a, type b) \
+#define CE_LIB_DEF_MAX(T) \
+static inline T ce_max_##T(T a, T b) \
 { \
 	return a > b ? a : b; \
 }
 
-#define CE_DEF_CLAMP(name, type) \
-static inline type ce_##name(type v, type a, type b) \
+#define CE_LIB_DEF_CLAMP(T) \
+static inline T ce_clamp_##T(T v, T a, T b) \
 { \
 	return v < a ? a : (v > b ? b : v); \
 }
 
-#define CE_DEF_SWAP(name, type) \
-static inline void ce_##name(type* a, type* b) \
+#define CE_LIB_DEF_SWAP(T) \
+static inline void ce_swap_##T(T* a, T* b) \
 { \
 	*a ^= *b; /* a' = (a ^ b)           */ \
 	*b ^= *a; /* b' = (b ^ (a ^ b)) = a */ \
 	*a ^= *b; /* a' = (a ^ b) ^ a = b   */ \
 }
 
+#define CE_LIB_DEF_ALL(T) \
+CE_LIB_DEF_MIN(T) \
+CE_LIB_DEF_MAX(T) \
+CE_LIB_DEF_CLAMP(T) \
+CE_LIB_DEF_SWAP(T)
+
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
-CE_DEF_MIN(min, int)
-CE_DEF_MIN(smin, size_t)
-
-CE_DEF_MAX(max, int)
-CE_DEF_MAX(smax, size_t)
-
-CE_DEF_CLAMP(clamp, int)
-CE_DEF_CLAMP(sclamp, size_t)
-
-CE_DEF_SWAP(swap, int)
-CE_DEF_SWAP(sswap, size_t)
+CE_LIB_DEF_ALL(int)
+CE_LIB_DEF_ALL(size_t)
 
 // is power of two (using 2's complement arithmetic)
-static inline bool ce_sispot(size_t v)
+static inline bool ce_ispot(size_t v)
 {
 	return 0 == (v & (v - 1));
 }
 
 // next largest power of two (using SWAR algorithm)
-static inline size_t ce_snlpot(size_t v)
+static inline size_t ce_nlpot(size_t v)
 {
 	v |= (v >> 1);
 	v |= (v >> 2);
@@ -96,11 +97,12 @@ static inline size_t ce_snlpot(size_t v)
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
-#undef CE_DEF_MIN
-#undef CE_DEF_MAX
-#undef CE_DEF_CLAMP
-#undef CE_DEF_SWAP
+#undef CE_LIB_DEF_ALL
+#undef CE_LIB_DEF_SWAP
+#undef CE_LIB_DEF_CLAMP
+#undef CE_LIB_DEF_MAX
+#undef CE_LIB_DEF_MIN
 
 #endif /* CE_LIB_H */

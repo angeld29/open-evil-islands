@@ -52,9 +52,9 @@ static void ce_videoinstance_prepare(ce_mmpfile* mmpfile, ce_ycbcr* ycbcr)
 			int cb = ycbcr->planes[1].data[cb_shift + w / 2] - 128;
 			int cr = ycbcr->planes[2].data[cr_shift + w / 2] - 128;
 
-			texels[index + 0] = ce_clamp((y + 409 * cr + 128) / 256, 0, UCHAR_MAX);
-			texels[index + 1] = ce_clamp((y - 100 * cb - 208 * cr + 128) / 256, 0, UCHAR_MAX);
-			texels[index + 2] = ce_clamp((y + 516 * cb + 128) / 256, 0, UCHAR_MAX);
+			texels[index + 0] = ce_clamp(int, (y + 409 * cr + 128) / 256, 0, UCHAR_MAX);
+			texels[index + 1] = ce_clamp(int, (y - 100 * cb - 208 * cr + 128) / 256, 0, UCHAR_MAX);
+			texels[index + 2] = ce_clamp(int, (y + 516 * cb + 128) / 256, 0, UCHAR_MAX);
 			texels[index + 3] = UCHAR_MAX;
 		}
 	}

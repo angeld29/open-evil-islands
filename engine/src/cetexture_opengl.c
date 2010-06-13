@@ -56,7 +56,7 @@ static unsigned int ce_texture_correct_mipmap_count(unsigned int mipmap_count)
 		reported = true;
 	}
 
-	return ce_clamp(mipmap_count, 1, max_level + 1);
+	return ce_clamp(size_t, mipmap_count, 1, max_level + 1);
 }
 
 static void ce_texture_setup_filters(unsigned int mipmap_count)
@@ -90,12 +90,12 @@ static void ce_texture_specify(unsigned int width, unsigned int height,
 	GLint max_texture_size;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
 
-	unsigned int new_width = ce_min(width, max_texture_size);
-	unsigned int new_height = ce_min(height, max_texture_size);
+	unsigned int new_width = ce_min(int, width, max_texture_size);
+	unsigned int new_height = ce_min(int, height, max_texture_size);
 
 	if (!GLEW_VERSION_2_0 && !GLEW_ARB_texture_non_power_of_two) {
-		if (!ce_sispot(new_width)) new_width = ce_snlpot(new_width);
-		if (!ce_sispot(new_height)) new_height = ce_snlpot(new_height);
+		if (!ce_ispot(new_width)) new_width = ce_nlpot(new_width);
+		if (!ce_ispot(new_height)) new_height = ce_nlpot(new_height);
 	}
 
 	if (width != new_width || height != new_height) {

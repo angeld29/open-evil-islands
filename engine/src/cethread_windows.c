@@ -41,7 +41,7 @@ int ce_online_cpu_count(void)
 {
 	SYSTEM_INFO info;
 	GetSystemInfo(&info);
-	return ce_max(1, info.dwNumberOfProcessors);
+	return ce_max(int, 1, info.dwNumberOfProcessors);
 }
 
 struct ce_thread {

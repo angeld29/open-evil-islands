@@ -128,16 +128,16 @@ ce_font* ce_font_new(const char* resource_path, int pixel_size)
 
 		line_space -= font->widths[ch];
 
-		max_ascent = ce_max(max_ascent, face->glyph->bitmap_top);
-		max_descent = ce_max(max_descent, face->glyph->bitmap.rows -
-											face->glyph->bitmap_top);
+		max_ascent = ce_max(int, max_ascent, face->glyph->bitmap_top);
+		max_descent = ce_max(int, max_descent, face->glyph->bitmap.rows -
+												face->glyph->bitmap_top);
 	}
 
 	font->height = max_ascent + max_descent;
 
 	size_t image_height = (font->height + CE_FONT_MARGIN) * lines + CE_FONT_MARGIN;
-	if (!ce_sispot(image_height)) {
-		image_height = ce_snlpot(image_height);
+	if (!ce_ispot(image_height)) {
+		image_height = ce_nlpot(image_height);
 	}
 
 	// generation of the actual texture

@@ -26,7 +26,7 @@
 
 char* ce_strleft(char* restrict dst, const char* restrict src, size_t n)
 {
-	n = ce_smin(n, strlen(src));
+	n = ce_min(size_t, n, strlen(src));
 	strncpy(dst, src, n);
 	dst[n] = '\0';
 	return dst;
@@ -35,7 +35,7 @@ char* ce_strleft(char* restrict dst, const char* restrict src, size_t n)
 char* ce_strright(char* restrict dst, const char* restrict src, size_t n)
 {
 	size_t len = strlen(src);
-	return strcpy(dst, src + len - ce_smin(n, len));
+	return strcpy(dst, src + len - ce_min(size_t, n, len));
 }
 
 char*
@@ -45,7 +45,7 @@ ce_strmid(char* restrict dst, const char* restrict src, size_t pos, size_t n)
 	if (pos > len) {
 		return NULL;
 	}
-	n = ce_smin(n, len - pos);
+	n = ce_min(size_t, n, len - pos);
 	strncpy(dst, src + pos, n);
 	dst[n] = '\0';
 	return dst;

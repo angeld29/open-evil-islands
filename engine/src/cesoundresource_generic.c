@@ -456,7 +456,7 @@ static size_t ce_mad_read(ce_soundresource* soundresource, void* data, size_t si
 		ce_mad_decode(soundresource);
 	}
 
-	size = ce_smin(size, mad->output_buffer_size);
+	size = ce_min(size_t, size, mad->output_buffer_size);
 	memcpy(data, mad->output_buffer, size);
 
 	mad->output_buffer_size -= size;
@@ -641,7 +641,7 @@ static size_t ce_bink_read(ce_soundresource* soundresource, void* data, size_t s
 		do { ce_pass(); } while (ce_bink_decode_frame(soundresource));
 	}
 
-	size = ce_smin(size, bink->output_size);
+	size = ce_min(size_t, size, bink->output_size);
 	memcpy(data, bink->output + bink->output_pos, size);
 
 	bink->output_pos += size;

@@ -52,7 +52,7 @@ void ce_ringbuffer_clear(ce_ringbuffer* ringbuffer)
 size_t ce_ringbuffer_read(ce_ringbuffer* ringbuffer, void* buffer, size_t size)
 {
 	char* data = buffer;
-	size = ce_smin(size, ce_ringbuffer_size(ringbuffer));
+	size = ce_min(size_t, size, ce_ringbuffer_size(ringbuffer));
 
 	if (size > ringbuffer->capacity - ringbuffer->start) {
 		size_t length = ringbuffer->capacity - ringbuffer->start;
@@ -71,7 +71,7 @@ size_t ce_ringbuffer_read(ce_ringbuffer* ringbuffer, void* buffer, size_t size)
 size_t ce_ringbuffer_write(ce_ringbuffer* ringbuffer, const void* buffer, size_t size)
 {
 	const char* data = buffer;
-	size = ce_smin(size, ce_ringbuffer_free_space(ringbuffer));
+	size = ce_min(size_t, size, ce_ringbuffer_free_space(ringbuffer));
 
 	if (size > ringbuffer->capacity - ringbuffer->end) {
 		size_t length = ringbuffer->capacity - ringbuffer->end;

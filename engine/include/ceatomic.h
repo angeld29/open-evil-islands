@@ -47,28 +47,28 @@
 
 #define ce_atomic_fetch(T, ptr) ce_atomic_add_and_fetch(T, ptr, 0)
 
-#define CE_ATOMIC_DECL_FETCH_AND_OP(type, op) \
-extern type ce_atomic_fetch_and_##op##_##type(type* ptr, type value);
+#define CE_ATOMIC_DECL_FETCH_AND_OP(T, op) \
+extern T ce_atomic_fetch_and_##op##_##T(T* ptr, T val);
 
-#define CE_ATOMIC_DECL_OP_AND_FETCH(type, op) \
-extern type ce_atomic_##op##_and_fetch_##type(type* ptr, type value);
+#define CE_ATOMIC_DECL_OP_AND_FETCH(T, op) \
+extern T ce_atomic_##op##_and_fetch_##T(T* ptr, T val);
 
-#define CE_ATOMIC_DECL_ALL(type) \
-CE_ATOMIC_DECL_FETCH_AND_OP(type, add) \
-CE_ATOMIC_DECL_FETCH_AND_OP(type, sub) \
-CE_ATOMIC_DECL_OP_AND_FETCH(type, add) \
-CE_ATOMIC_DECL_OP_AND_FETCH(type, sub)
+#define CE_ATOMIC_DECL_ALL(T) \
+CE_ATOMIC_DECL_FETCH_AND_OP(T, add) \
+CE_ATOMIC_DECL_FETCH_AND_OP(T, sub) \
+CE_ATOMIC_DECL_OP_AND_FETCH(T, add) \
+CE_ATOMIC_DECL_OP_AND_FETCH(T, sub)
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
 CE_ATOMIC_DECL_ALL(int)
 CE_ATOMIC_DECL_ALL(size_t)
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #undef CE_ATOMIC_DECL_ALL
 #undef CE_ATOMIC_DECL_OP_AND_FETCH

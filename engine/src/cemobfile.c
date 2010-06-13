@@ -488,7 +488,7 @@ static ce_mobfile* ce_mobfile_open_memfile(const char* name, ce_memfile* memfile
 {
 	ce_mobfile* mobfile = ce_alloc_zero(sizeof(ce_mobfile));
 	mobfile->name = ce_string_new_str_n(name,
-		ce_min(strlen(name), strlen(name) - 4));
+		ce_min(size_t, strlen(name), strlen(name) - 4));
 
 	ce_mobfile_block_loop(mobfile, memfile, ce_memfile_size(memfile));
 

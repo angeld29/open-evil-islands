@@ -20,22 +20,15 @@
 
 /*
  *  Based on:
- *
  *  1. Alexandrescu, Andrei. "Modern C++ Design: Generic Programming and Design
  *     Patterns Applied". Copyright (C) 2001 Addison-Wesley.
- *
  *  2. The Loki Library (C) 2001 by Andrei Alexandrescu.
-*/
-
-/*
- *  Notes:
  *
+ *  Notes:
  *  1. Minimum error checking. Disable smallobj (MAX_SMALL_OBJECT_SIZE = 0)
  *     and use, for example, valgrind on Linux to perform full error checking.
- *
  *  2. Alloc have no external dependencies, so we must
  *     re-implement synchronization stuff here.
- *
  *  3. There are no comments! If this subject is interesting
  *     for you just read the book or see the library.
 */
@@ -188,7 +181,8 @@ static void ce_alloc_chunk_free(ce_alloc_chunk* chunk, void* ptr, size_t block_s
 static void ce_alloc_portion_init(ce_alloc_portion* portion, size_t block_size)
 {
 	portion->block_size = block_size;
-	portion->block_count = ce_sclamp(CE_ALLOC_PAGE_SIZE / block_size, CHAR_BIT, UCHAR_MAX);
+	portion->block_count = ce_clamp(size_t, CE_ALLOC_PAGE_SIZE / block_size,
+														CHAR_BIT, UCHAR_MAX);
 	portion->chunk_count = 0;
 	portion->chunk_capacity = 16;
 	portion->chunks = malloc(sizeof(ce_alloc_chunk) * portion->chunk_capacity);
@@ -358,7 +352,7 @@ void* ce_alloc(size_t size)
 {
 	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
 
-	size = ce_smax(CE_ALLOC_ONE, size);
+	size = ce_max(size_t, CE_ALLOC_ONE, size);
 
 #ifndef NDEBUG
 	// needs to lock mutex here to avoid race conditions
@@ -373,11 +367,11 @@ void* ce_alloc(size_t size)
 #ifndef NDEBUG
 	ce_alloc_context.smallobj_allocated += size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? 0 : size;
 	ce_alloc_context.smallobj_max_allocated =
-		ce_smax(ce_alloc_context.smallobj_allocated,
+		ce_max(size_t, ce_alloc_context.smallobj_allocated,
 				ce_alloc_context.smallobj_max_allocated);
 	ce_alloc_context.system_allocated += size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? size : 0;
 	ce_alloc_context.system_max_allocated =
-		ce_smax(ce_alloc_context.system_allocated,
+		ce_max(size_t, ce_alloc_context.system_allocated,
 				ce_alloc_context.system_max_allocated);
 
 	ce_alloc_context.smallobj_overhead = 0;
@@ -406,7 +400,7 @@ void* ce_alloc_zero(size_t size)
 void* ce_realloc(void* ptr, size_t size, size_t new_size)
 {
 	void* new_ptr = ce_alloc(new_size);
-	memcpy(new_ptr, ptr, ce_smin(size, new_size));
+	memcpy(new_ptr, ptr, ce_min(size_t, size, new_size));
 	ce_free(ptr, size);
 	return new_ptr;
 }
@@ -415,7 +409,7 @@ void ce_free(void* ptr, size_t size)
 {
 	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
 
-	size = ce_smax(CE_ALLOC_ONE, size);
+	size = ce_max(size_t, CE_ALLOC_ONE, size);
 
 #ifndef NDEBUG
 	if (NULL != ptr) {

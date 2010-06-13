@@ -64,7 +64,7 @@ static int ce_datafile_close(ce_memfile* memfile)
 static size_t ce_datafile_read(ce_memfile* memfile, void* restrict ptr, size_t size, size_t n)
 {
 	ce_datafile* datafile = (ce_datafile*)memfile->impl;
-	n = ce_smin(n, (datafile->size - datafile->pos) / size);
+	n = ce_min(size_t, n, (datafile->size - datafile->pos) / size);
 	size *= n;
 	memcpy(ptr, datafile->data + datafile->pos, size);
 	datafile->pos += size;

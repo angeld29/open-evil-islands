@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 */
 
 /*
- *  See doc/formats/mmpfile.txt for more details.
+ *  See doc/formats/mmpfile.txt for more details
 */
 
 #include <stdio.h>
@@ -186,7 +186,7 @@ size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height,
 		if (bit_count < 16) {
 			// special case for compressed mmp files
 			// that have a block of fixed size, for example, 8 for dxt1
-			sz = ce_smax(sz, 2 * bit_count);
+			sz = ce_max(size_t, sz, 2 * bit_count);
 		}
 		size += sz;
 	}

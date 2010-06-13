@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,11 +19,11 @@
 */
 
 /*
- *  Based on PThreads Primer: A Guide to Multithreaded Programming
- *  and other tutorials.
- *
- *  Some ideas are from open source of the greatest Qt toolkit.
- *  Copyright (C) 2009 Nokia Corporation.
+ *  Based on:
+ *  1. PThreads Primer: A Guide to Multithreaded Programming
+ *     and other tutorials.
+ *  2. Some ideas are from open source of the greatest Qt toolkit.
+ *     Copyright (C) 2009 Nokia Corporation.
 */
 
 #include <string.h>
@@ -52,7 +52,7 @@
 int ce_online_cpu_count(void)
 {
 #ifdef _SC_NPROCESSORS_ONLN
-	return ce_max(1, sysconf(_SC_NPROCESSORS_ONLN));
+	return ce_max(int, 1, sysconf(_SC_NPROCESSORS_ONLN));
 #else
 	return 1;
 #endif
@@ -154,8 +154,8 @@ void ce_waitcond_del(ce_waitcond* waitcond)
 void ce_waitcond_wake_one(ce_waitcond* waitcond)
 {
 	pthread_mutex_lock(&waitcond->mutex);
-	waitcond->wakeup_count = ce_min(waitcond->wakeup_count + 1,
-									waitcond->waiter_count);
+	waitcond->wakeup_count = ce_min(int, waitcond->wakeup_count + 1,
+										waitcond->waiter_count);
 	pthread_cond_signal(&waitcond->cond);
 	pthread_mutex_unlock(&waitcond->mutex);
 }

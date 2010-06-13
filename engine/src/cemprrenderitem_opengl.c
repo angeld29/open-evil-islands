@@ -105,7 +105,7 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 				int tx_cur = x / 2;
 				int tx_prev = 1 == x % 2 ? -1 : tx_cur - 1;
 
-				tx_cur = ce_min(tx_cur, CE_MPRFILE_TEXTURE_SIDE - 1);
+				tx_cur = ce_min(int, tx_cur, CE_MPRFILE_TEXTURE_SIDE - 1);
 				tx_prev = -1 == tx_prev ? tx_cur : tx_prev;
 
 				if (-1 == water_allow[tz * CE_MPRFILE_TEXTURE_SIDE + tx_prev] &&

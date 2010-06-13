@@ -131,10 +131,10 @@ size_t ce_displaymng_enter(ce_displaymng* displaymng,
 
 	for (size_t i = 0; i < displaymng->supported_modes->count; ++i) {
 		ce_displaymode* mode = displaymng->supported_modes->items[i];
-		if (width <= 0) best_width = ce_max(best_width, mode->width);
-		if (height <= 0) best_height = ce_max(best_height, mode->height);
-		if (bpp <= 0) best_bpp = ce_max(best_bpp, mode->bpp);
-		if (rate <= 0) best_rate = ce_max(best_rate, mode->rate);
+		if (width <= 0) best_width = ce_max(int, best_width, mode->width);
+		if (height <= 0) best_height = ce_max(int, best_height, mode->height);
+		if (bpp <= 0) best_bpp = ce_max(int, best_bpp, mode->bpp);
+		if (rate <= 0) best_rate = ce_max(int, best_rate, mode->rate);
 	}
 
 	width = best_width, height = best_height;
