@@ -26,8 +26,6 @@
 
 #include "celib.h"
 #include "cealloc.h"
-#include "celogging.h"
-#include "ceerror.h"
 #include "cememfile.h"
 
 const int CE_MEMFILE_SEEK_CUR = SEEK_CUR;
@@ -225,8 +223,6 @@ ce_memfile* ce_memfile_open_path(const char* path)
 {
 	FILE* file = fopen(path, "rb");
 	if (NULL == file) {
-		ce_error_report_c_last("memfile");
-		ce_logging_error("memfile: could not open file: '%s'", path);
 		return NULL;
 	}
 
