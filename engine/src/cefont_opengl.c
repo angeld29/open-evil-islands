@@ -32,11 +32,11 @@
 #include FT_FREETYPE_H
 #include FT_MODULE_H
 
-#include "cegl.h"
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceresource.h"
+#include "ceopengl.h"
 #include "cefont.h"
 
 enum {

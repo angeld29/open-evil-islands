@@ -23,12 +23,12 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cegl.h"
 #include "cemath.h"
 #include "cealloc.h"
 #include "ceatomic.h"
-#include "cefighlp.h"
+#include "ceopengl.h"
 #include "ceanmstate.h"
+#include "cefighlp.h"
 #include "cefigrenderitem.h"
 
 // fig renderitem static (without morphs): GL's display list

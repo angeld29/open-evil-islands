@@ -25,12 +25,12 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "cegl.h"
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cetexture.h"
 #include "ceresource.h"
+#include "ceopengl.h"
+#include "cetexture.h"
 #include "ceroot.h"
 #include "cemprhlp.h"
 #include "cemprrenderitem.h"

@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,10 +20,10 @@
 
 #include <assert.h>
 
-#include "cegl.h"
 #include "celogging.h"
+#include "ceopengl.h"
 
-bool ce_gl_report_errors(void)
+bool ce_opengl_report_errors(void)
 {
 	bool reported = false;
 	GLenum error;

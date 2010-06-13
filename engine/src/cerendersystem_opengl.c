@@ -21,12 +21,12 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "cegl.h"
 #include "celib.h"
 #include "cemath.h"
 #include "cemat4.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceopengl.h"
 #include "cerendersystem.h"
 
 struct ce_rendersystem {
@@ -247,7 +247,7 @@ void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
 	}
 #endif
 
-	ce_gl_report_errors();
+	ce_opengl_report_errors();
 
 	glFlush();
 }

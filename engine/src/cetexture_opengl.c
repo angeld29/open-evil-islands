@@ -25,13 +25,13 @@
 #include <math.h>
 #include <assert.h>
 
-#include "cegl.h"
 #include "celib.h"
 #include "cemath.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cebyteorder.h"
 #include "cestring.h"
+#include "ceopengl.h"
 #include "cetexture.h"
 
 typedef struct {

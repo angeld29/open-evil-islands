@@ -20,8 +20,8 @@
 
 #include <assert.h>
 
-#include "cegl.h"
 #include "cealloc.h"
+#include "ceopengl.h"
 #include "ceocclusion.h"
 
 struct ce_occlusion {
