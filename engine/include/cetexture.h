@@ -23,6 +23,7 @@
 
 #include <stdbool.h>
 
+#include "ceatomic.h"
 #include "cemmpfile.h"
 
 #ifdef __cplusplus
@@ -31,32 +32,35 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef enum {
-	CE_TEXTURE_WRAP_MODE_REPEAT,
-	CE_TEXTURE_WRAP_MODE_CLAMP,
-	CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE,
-	CE_TEXTURE_WRAP_MODE_COUNT
+	CE_TEXTURE_WRAP_REPEAT,
+	CE_TEXTURE_WRAP_CLAMP,
+	CE_TEXTURE_WRAP_CLAMP_TO_EDGE,
+	CE_TEXTURE_WRAP_COUNT
 } ce_texture_wrap_mode;
 
-typedef struct ce_texture ce_texture;
+typedef struct {
+	int ref_count;
+	ce_string* name;
+	unsigned int width, height;
+	char impl[];
+} ce_texture;
 
 extern ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile);
 extern void ce_texture_del(ce_texture* texture);
 
+extern bool ce_texture_equal(const ce_texture* texture, const ce_texture* other);
+
 extern void ce_texture_replace(ce_texture* texture, ce_mmpfile* mmpfile);
 extern void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode);
-
-extern bool ce_texture_equal(const ce_texture* texture,
-							const ce_texture* other);
-
-extern const char* ce_texture_get_name(ce_texture* texture);
-
-extern unsigned int ce_texture_width(ce_texture* texture);
-extern unsigned int ce_texture_height(ce_texture* texture);
 
 extern void ce_texture_bind(ce_texture* texture);
 extern void ce_texture_unbind(ce_texture* texture);
 
-extern ce_texture* ce_texture_add_ref(ce_texture* texture);
+static inline ce_texture* ce_texture_add_ref(ce_texture* texture)
+{
+	ce_atomic_inc(int, &texture->ref_count);
+	return texture;
+}
 
 #ifdef __cplusplus
 }

@@ -162,7 +162,7 @@ static void ce_terrain_load_tile_mmpfile(ce_terrain_cookie* cookie, const char* 
 static void ce_terrain_load_tile_texture(ce_terrain_cookie* cookie, const char* name)
 {
 	ce_texture* texture = ce_texture_add_ref(ce_texmng_get(cookie->texmng, name));
-	ce_texture_wrap(texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
+	ce_texture_wrap(texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
 	ce_vector_push_back(cookie->terrain->tile_textures, texture);
 }
 
@@ -225,7 +225,7 @@ static void ce_terrain_load_portions(ce_terrain_cookie* cookie)
 		ce_terrain_sector* sector = cookie->terrain->sectors->items[portion->index];
 
 		sector->texture = ce_texture_new(portion->name->str, portion->mmpfile);
-		ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
+		ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
 
 		ce_rendergroup* rendergroup = cookie->rendergroups[portion->water];
 		sector->renderlayer = ce_rendergroup_get(rendergroup, sector->texture);
@@ -248,7 +248,7 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 
 	if (ce_root.terrain_tiling) {
 		sector->texture = ce_texture_add_ref(ce_texmng_get(cookie->texmng, "default0"));
-		ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE);
+		ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
 
 		ce_rendergroup* rendergroup = cookie->rendergroups[water];
 		sector->renderlayer = ce_rendergroup_get(rendergroup, sector->texture);

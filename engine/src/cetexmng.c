@@ -108,7 +108,7 @@ ce_texture* ce_texmng_get(ce_texmng* texmng, const char* name)
 	// first, find texture in cache
 	for (size_t i = 0; i < texmng->textures->count; ++i) {
 		ce_texture* texture = texmng->textures->items[i];
-		if (0 == ce_strcasecmp(name, ce_texture_get_name(texture))) {
+		if (0 == ce_strcasecmp(name, texture->name->str)) {
 			return texture;
 		}
 	}

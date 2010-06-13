@@ -105,7 +105,7 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 	for (int i = 0; i < texture_count; ++i) {
 		ce_vector_push_back(figentity->textures,
 			ce_texture_add_ref(textures[i]));
-		ce_texture_wrap(textures[i], CE_TEXTURE_WRAP_MODE_REPEAT);
+		ce_texture_wrap(textures[i], CE_TEXTURE_WRAP_REPEAT);
 	}
 
 	for (size_t i = 0; i < figmesh->renderitems->count; ++i) {

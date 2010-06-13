@@ -34,12 +34,12 @@
 #include "cestring.h"
 #include "cetexture.h"
 
-struct ce_texture {
+typedef struct {
 	ce_string* name;
 	unsigned int width, height;
 	int ref_count;
 	GLuint id;
-};
+} ce_texture_opengl;
 
 static int ce_texture_correct_mipmap_count(int mipmap_count)
 {
@@ -259,20 +259,17 @@ static void (*ce_texture_generate_procs[CE_MMPFILE_FORMAT_COUNT])(ce_mmpfile*) =
 
 ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile)
 {
-	ce_texture* texture = ce_alloc(sizeof(ce_texture));
+	ce_texture* texture = ce_alloc(sizeof(ce_texture) + sizeof(ce_texture_opengl));
+	ce_texture_opengl* opengl_texture = (ce_texture_opengl*)texture->impl;
+
+	texture->ref_count = 1;
 	texture->name = ce_string_new_str(name);
 	texture->width = mmpfile->width;
 	texture->height = mmpfile->height;
-	texture->ref_count = 1;
 
-	glGenTextures(1, &texture->id);
-	glBindTexture(GL_TEXTURE_2D, texture->id);
+	glGenTextures(1, &opengl_texture->id);
 
-	(*ce_texture_generate_procs[mmpfile->format])(mmpfile);
-
-	if (ce_gl_report_errors()) {
-		ce_logging_error("texture: opengl failed");
-	}
+	ce_texture_replace(texture, mmpfile);
 
 	return texture;
 }
@@ -280,31 +277,33 @@ ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile)
 void ce_texture_del(ce_texture* texture)
 {
 	if (NULL != texture) {
-		assert(texture->ref_count > 0);
-		if (0 == --texture->ref_count) {
-			glDeleteTextures(1, &texture->id);
+		assert(ce_atomic_fetch(int, &texture->ref_count) > 0);
+		if (0 == ce_atomic_dec_and_fetch(int, &texture->ref_count)) {
+			ce_texture_opengl* opengl_texture = (ce_texture_opengl*)texture->impl;
+			glDeleteTextures(1, &opengl_texture->id);
 			ce_string_del(texture->name);
-			ce_free(texture, sizeof(ce_texture));
+			ce_free(texture, sizeof(ce_texture) + sizeof(ce_texture_opengl));
 		}
 	}
 }
 
+bool ce_texture_equal(const ce_texture* texture, const ce_texture* other)
+{
+	return ((ce_texture_opengl*)texture->impl)->id ==
+			((ce_texture_opengl*)other->impl)->id;
+}
+
 void ce_texture_replace(ce_texture* texture, ce_mmpfile* mmpfile)
 {
-	glBindTexture(GL_TEXTURE_2D, texture->id);
-
+	ce_texture_bind(texture);
 	(*ce_texture_generate_procs[mmpfile->format])(mmpfile);
-
-	if (ce_gl_report_errors()) {
-		ce_logging_error("texture: opengl failed");
-	}
+	ce_texture_unbind(texture);
 }
 
 void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode)
 {
-	glBindTexture(GL_TEXTURE_2D, texture->id);
-
-	if (CE_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE == mode) {
+	ce_texture_bind(texture);
+	if (CE_TEXTURE_WRAP_CLAMP_TO_EDGE == mode) {
 		if (GLEW_VERSION_1_2 || GLEW_EXT_texture_edge_clamp ||
 								GLEW_SGIS_texture_edge_clamp) {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -313,49 +312,24 @@ void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		}
-	} else if (CE_TEXTURE_WRAP_MODE_CLAMP == mode) {
+	} else if (CE_TEXTURE_WRAP_CLAMP == mode) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	} else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
-}
-
-bool ce_texture_equal(const ce_texture* texture, const ce_texture* other)
-{
-	return texture->id == other->id;
-}
-
-const char* ce_texture_get_name(ce_texture* texture)
-{
-	return texture->name->str;
-}
-
-unsigned int ce_texture_width(ce_texture* texture)
-{
-	return texture->width;
-}
-
-unsigned int ce_texture_height(ce_texture* texture)
-{
-	return texture->height;
+	ce_texture_unbind(texture);
 }
 
 void ce_texture_bind(ce_texture* texture)
 {
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texture->id);
+	glBindTexture(GL_TEXTURE_2D, ((ce_texture_opengl*)texture->impl)->id);
 }
 
 void ce_texture_unbind(ce_texture* texture)
 {
 	ce_unused(texture);
 	glDisable(GL_TEXTURE_2D);
-}
-
-ce_texture* ce_texture_add_ref(ce_texture* texture)
-{
-	++texture->ref_count;
-	return texture;
 }
