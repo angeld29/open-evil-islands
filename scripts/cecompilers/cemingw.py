@@ -31,6 +31,10 @@ def configure(env):
 	cegcc.configure(env)
 
 	env.AppendUnique(
+		CPPFLAGS=["-march=i486"],  # i386 is no longer supported
+	)
+
+	env.AppendUnique(
 		CPPFLAGS=["-mthreads"],  # specifies that MinGW-specific
 		LINKFLAGS=["-mthreads"], # thread support is to be used
 	)
