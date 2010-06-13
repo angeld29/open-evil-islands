@@ -20,20 +20,23 @@
 
 #include "ceatomic.h"
 
-#define CE_ATOMIC_FETCH_AND_OP(op, type) \
+#define CE_ATOMIC_DEF_FETCH_AND_OP(type, op) \
 type ce_atomic_fetch_and_##op##_##type(type* ptr, type value) \
 { \
 	return __extension__ __sync_fetch_and_##op(ptr, value); \
 }
 
-#define CE_ATOMIC_OP_AND_FETCH(op, type) \
+#define CE_ATOMIC_DEF_OP_AND_FETCH(type, op) \
 type ce_atomic_##op##_and_fetch_##type(type* ptr, type value) \
 { \
 	return __extension__ __sync_##op##_and_fetch(ptr, value); \
 }
 
-CE_ATOMIC_FETCH_AND_OP(add, size_t)
-CE_ATOMIC_FETCH_AND_OP(sub, size_t)
+#define CE_ATOMIC_DEF_ALL(type) \
+CE_ATOMIC_DEF_FETCH_AND_OP(type, add) \
+CE_ATOMIC_DEF_FETCH_AND_OP(type, sub) \
+CE_ATOMIC_DEF_OP_AND_FETCH(type, add) \
+CE_ATOMIC_DEF_OP_AND_FETCH(type, sub)
 
-CE_ATOMIC_OP_AND_FETCH(add, size_t)
-CE_ATOMIC_OP_AND_FETCH(sub, size_t)
+CE_ATOMIC_DEF_ALL(int)
+CE_ATOMIC_DEF_ALL(size_t)

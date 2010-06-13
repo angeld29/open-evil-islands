@@ -63,7 +63,7 @@ size_t ce_ringbuffer_read(ce_ringbuffer* ringbuffer, void* buffer, size_t size)
 	}
 
 	ringbuffer->start = (ringbuffer->start + size) % ringbuffer->capacity;
-	ce_atomic_sub_and_fetch_size_t(&ringbuffer->size, size);
+	ce_atomic_sub_and_fetch(size_t, &ringbuffer->size, size);
 
 	return size;
 }
@@ -82,7 +82,7 @@ size_t ce_ringbuffer_write(ce_ringbuffer* ringbuffer, const void* buffer, size_t
 	}
 
 	ringbuffer->end = (ringbuffer->end + size) % ringbuffer->capacity;
-	ce_atomic_add_and_fetch_size_t(&ringbuffer->size, size);
+	ce_atomic_add_and_fetch(size_t, &ringbuffer->size, size);
 
 	return size;
 }

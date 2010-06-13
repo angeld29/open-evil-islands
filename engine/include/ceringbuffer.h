@@ -49,7 +49,7 @@ extern size_t ce_ringbuffer_write(ce_ringbuffer* ringbuffer,
 
 static inline size_t ce_ringbuffer_size(ce_ringbuffer* ringbuffer)
 {
-	return ce_atomic_fetch_size_t(&ringbuffer->size);
+	return ce_atomic_fetch(size_t, &ringbuffer->size);
 }
 
 static inline size_t ce_ringbuffer_free_space(ce_ringbuffer* ringbuffer)
