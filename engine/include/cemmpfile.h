@@ -22,6 +22,7 @@
 #define CE_MMPFILE_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "cememfile.h"
 #include "ceresfile.h"
@@ -55,28 +56,27 @@ enum {
 
 typedef struct {
 	// standard EI header
-	int width;
-	int height;
-	int mipmap_count;
+	uint32_t width, height, mipmap_count;
 	ce_mmpfile_format format;
-	int bit_count;
-	unsigned int amask, rmask, gmask, bmask;
-	int ashift, rshift, gshift, bshift;
-	int acount, rcount, gcount, bcount;
-	int user_data_offset;
+	uint32_t bit_count;
+	uint32_t amask, rmask, gmask, bmask;
+	uint32_t ashift, rshift, gshift, bshift;
+	uint32_t acount, rcount, gcount, bcount;
+	uint32_t user_data_offset;
 	void* texels;
 	// CE extensions
-	int version;
-	int user_info;
+	uint32_t version;
+	uint32_t user_info;
+	// private data
 	size_t size;
 	void* data;
 } ce_mmpfile;
 
-extern int ce_mmpfile_storage_size(int width, int height,
-									int mipmap_count, int bit_count);
+extern size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height,
+								unsigned int mipmap_count, unsigned int bit_count);
 
-extern ce_mmpfile* ce_mmpfile_new(int width, int height,
-	int mipmap_count, ce_mmpfile_format format, int user_info);
+extern ce_mmpfile* ce_mmpfile_new(unsigned int width, unsigned int height,
+	unsigned int mipmap_count, ce_mmpfile_format format, unsigned int user_info);
 extern ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size);
 extern ce_mmpfile* ce_mmpfile_new_memfile(ce_memfile* memfile);
 extern ce_mmpfile* ce_mmpfile_new_resfile(ce_resfile* resfile, int index);

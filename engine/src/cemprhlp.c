@@ -203,7 +203,7 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 		texels2[i] = tile_mmpfile->texels;
 	}
 
-	for (int m = 0, tex_size = mmpfile->width,
+	for (unsigned int m = 0, tex_size = mmpfile->width,
 					tex_size2 = first_mmpfile->width,
 					tile_size2 = mprfile->tile_size;
 					m < first_mmpfile->mipmap_count; ++m,

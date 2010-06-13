@@ -19,6 +19,8 @@
 */
 
 /*
+ *  See doc/formats/mmpfile.txt for more details.
+ *
  *  DXT code based on:
  *  1. DDS GIMP plugin (compression)
  *     Copyright (C) 2004-2008 Shawn Kirst <skirst@insightbb.com>,
@@ -31,45 +33,24 @@
  *  DDS WIC Codec - correct DXT1-alpha / DXT3 decompression
 */
 
-/*
- *  See doc/formats/mmpfile.txt for more details.
-*/
-
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 #include <math.h>
 #include <assert.h>
 
 #include "celib.h"
-#include "cebyteorder.h"
 #include "cealloc.h"
+#include "cebyteorder.h"
 #include "cemmpfile.h"
 
-// FIXME: right shifts on signed integer
+static const uint32_t CE_MMPFILE_SIGNATURE = 0x504d4d;
+static const uint32_t CE_MMPFILE_SIGNATURE_EXT = 0x45434d4d;
 
-static const unsigned int CE_MMPFILE_SIGNATURE = 0x504d4d;
-static const unsigned int CE_MMPFILE_SIGNATURE_EXT = 0x45434d4d;
+enum {
+	CE_MMPFILE_HEADER_SIZE = 76,
+};
 
-static const int CE_MMPFILE_HEADER_SIZE = 76;
-
-int ce_mmpfile_storage_size(int width, int height,
-							int mipmap_count, int bit_count)
-{
-	int size = 0;
-	for (int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
-		int sz = bit_count * width * height / 8;
-		if (bit_count < 16) {
-			// special case for compressed mmp files
-			// that have a block of fixed size, for example, 8 for dxt1
-			sz = ce_max(sz, 2 * bit_count);
-		}
-		size += sz;
-	}
-	return size;
-}
-
-static const unsigned int ce_mmpfile_format_signatures[CE_MMPFILE_FORMAT_COUNT] = {
+static const uint32_t ce_mmpfile_format_signatures[CE_MMPFILE_FORMAT_COUNT] = {
 	[CE_MMPFILE_FORMAT_UNKNOWN] = 0x0,
 	[CE_MMPFILE_FORMAT_DXT1] = 0x31545844,
 	[CE_MMPFILE_FORMAT_DXT3] = 0x33545844,
@@ -84,7 +65,7 @@ static const unsigned int ce_mmpfile_format_signatures[CE_MMPFILE_FORMAT_COUNT] 
 	[CE_MMPFILE_FORMAT_R8G8B8A8] = 0x45435442,
 };
 
-static ce_mmpfile_format ce_mmpfile_format_find(unsigned int signature)
+static ce_mmpfile_format ce_mmpfile_format_find(uint32_t signature)
 {
 	for (int i = 0; i < CE_MMPFILE_FORMAT_COUNT; ++i) {
 		if (ce_mmpfile_format_signatures[i] == signature) {
@@ -96,8 +77,8 @@ static ce_mmpfile_format ce_mmpfile_format_find(unsigned int signature)
 
 static void ce_mmpfile_write_header_unknown(ce_mmpfile* mmpfile)
 {
-	assert(false && "not implemented");
 	ce_unused(mmpfile);
+	assert(false && "not implemented");
 }
 
 static void ce_mmpfile_write_header_dxt1(ce_mmpfile* mmpfile)
@@ -205,8 +186,24 @@ static void (*ce_mmpfile_write_header_procs[CE_MMPFILE_FORMAT_COUNT])(ce_mmpfile
 	[CE_MMPFILE_FORMAT_R8G8B8A8] = ce_mmpfile_write_header_r8g8b8a8,
 };
 
-ce_mmpfile* ce_mmpfile_new(int width, int height,
-	int mipmap_count, ce_mmpfile_format format, int user_info)
+size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height,
+							unsigned int mipmap_count, unsigned int bit_count)
+{
+	size_t size = 0;
+	for (unsigned int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
+		size_t sz = bit_count * width * height / 8;
+		if (bit_count < 16) {
+			// special case for compressed mmp files
+			// that have a block of fixed size, for example, 8 for dxt1
+			sz = ce_smax(sz, 2 * bit_count);
+		}
+		size += sz;
+	}
+	return size;
+}
+
+ce_mmpfile* ce_mmpfile_new(unsigned int width, unsigned int height,
+	unsigned int mipmap_count, ce_mmpfile_format format, unsigned int user_info)
 {
 	ce_mmpfile* mmpfile = ce_alloc(sizeof(ce_mmpfile));
 	(*ce_mmpfile_write_header_procs[format])(mmpfile);
@@ -229,7 +226,7 @@ ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size)
 	union {
 		uint8_t* u8;
 		uint32_t* u32;
-	} ptr = { data };
+	} ptr = {data};
 
 	uint32_t signature = ce_le2cpu32(*ptr.u32++);
 	assert(CE_MMPFILE_SIGNATURE == signature && "wrong signature");
@@ -324,10 +321,10 @@ void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path)
 		header[19] = ce_cpu2le32(CE_MMPFILE_SIGNATURE_EXT);
 		header[20] = ce_cpu2le32(mmpfile->version);
 		header[21] = ce_cpu2le32(mmpfile->user_info);
-		fwrite(header, sizeof(uint32_t), 19, file);
+		fwrite(header, 4, 19, file);
 		fwrite(mmpfile->texels, 1, ce_mmpfile_storage_size(mmpfile->width,
 			mmpfile->height, mmpfile->mipmap_count, mmpfile->bit_count), file);
-		fwrite(header + 19, sizeof(uint32_t), 3, file);
+		fwrite(header + 19, 4, 3, file);
 		fclose(file);
 	}
 }
@@ -336,7 +333,7 @@ static void ce_mmpfile_argb_swap16_rgba(const ce_mmpfile* mmpfile, ce_mmpfile* o
 {
 	uint16_t* dst = other->texels;
 	const uint16_t* src = mmpfile->texels;
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+	for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint16_t* end = src + width * height; src != end; ++src) {
 			*dst++ = *src << mmpfile->acount | *src >> mmpfile->ashift;
@@ -348,7 +345,7 @@ static void ce_mmpfile_argb_swap32_rgba(const ce_mmpfile* mmpfile, ce_mmpfile* o
 {
 	uint32_t* dst = other->texels;
 	const uint32_t* src = mmpfile->texels;
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+	for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint32_t* end = src + width * height; src != end; ++src) {
 			*dst++ = *src << mmpfile->acount | *src >> mmpfile->ashift;
@@ -360,7 +357,7 @@ static void ce_mmpfile_unpack16(const ce_mmpfile* mmpfile, ce_mmpfile* other)
 {
 	uint8_t* dst = other->texels;
 	const uint16_t* src = mmpfile->texels;
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+	for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint16_t* end = src + width * height; src != end; ++src) {
 			*dst++ = ((*src & mmpfile->rmask) >> mmpfile->rshift) *
@@ -380,7 +377,7 @@ static void ce_mmpfile_unpack32(const ce_mmpfile* mmpfile, ce_mmpfile* other)
 {
 	uint8_t* dst = other->texels;
 	const uint32_t* src = mmpfile->texels;
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+	for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		for (const uint32_t* end = src + width * height; src != end; ++src) {
 			*dst++ = ((*src & mmpfile->rmask) >> mmpfile->rshift) *
@@ -401,8 +398,8 @@ static void ce_mmpfile_compress_dxt(const ce_mmpfile* mmpfile, ce_mmpfile* other
 
 static void ce_mmpfile_convert_unknown(const ce_mmpfile* mmpfile, ce_mmpfile* other)
 {
-	assert(false && "not implemented");
 	ce_unused(mmpfile), ce_unused(other);
+	assert(false && "not implemented");
 }
 
 static void ce_mmpfile_convert_dxt(const ce_mmpfile* mmpfile, ce_mmpfile* other)
@@ -414,21 +411,22 @@ static void ce_mmpfile_convert_dxt(const ce_mmpfile* mmpfile, ce_mmpfile* other)
 static void ce_mmpfile_decompress_pnt3(uint8_t* restrict dst,
 								const uint32_t* restrict src, size_t size)
 {
+	// RLE (Run-Length Encoding)
 	assert(0 == size % sizeof(uint32_t));
 
 	const uint32_t* end = src + size / sizeof(uint32_t);
 
-	int n = 0;
+	size_t n = 0;
 	uint32_t v;
 
 	while (src != end) {
 		v = ce_le2cpu32(*src++);
-		if (v > 1000000 || 0 == v) {
+		if (v > 1000000U || 0 == v) {
 			++n;
 		} else {
 			memcpy(dst, src - 1 - n, n * sizeof(uint32_t));
 			dst += n * sizeof(uint32_t);
-			memset(dst, '\0', v);
+			memset(dst, 0, v);
 			dst += v;
 			n = 0;
 		}
@@ -441,7 +439,7 @@ static void ce_mmpfile_convert_pnt3(const ce_mmpfile* mmpfile, ce_mmpfile* other
 {
 	assert(CE_MMPFILE_FORMAT_ARGB8 == other->format && "not implemented");
 	// mipmap_count == compressed size for pnt3
-	if ((size_t)mmpfile->mipmap_count < other->size) { // pnt3 compressed
+	if (mmpfile->mipmap_count < other->size) { // pnt3 compressed
 		ce_mmpfile_decompress_pnt3(other->texels, mmpfile->texels,
 													mmpfile->mipmap_count);
 	} else {
@@ -516,7 +514,7 @@ static void (*ce_mmpfile_convert_procs[CE_MMPFILE_FORMAT_COUNT])
 
 void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format)
 {
-	int mipmap_count = mmpfile->mipmap_count;
+	unsigned int mipmap_count = mmpfile->mipmap_count;
 
 	// special case for pnt3
 	if (CE_MMPFILE_FORMAT_PNT3 == mmpfile->format) {
@@ -654,10 +652,10 @@ static void ce_mmpfile_decompress_dxt(const ce_mmpfile* mmpfile, ce_mmpfile* oth
 	uint8_t* dst = other->texels;
 	const uint8_t* src = mmpfile->texels;
 
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+	for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
-		for (int y = 0; y < height; y += 4) {
-			for (int x = 0; x < width; x += 4) {
+		for (unsigned int y = 0; y < height; y += 4) {
+			for (unsigned int x = 0; x < width; x += 4) {
 				uint8_t targetRgba[4*16];
 				Decompress( targetRgba, src, mmpfile->format );
 				// write the decompressed pixels to the correct image locations
@@ -665,8 +663,8 @@ static void ce_mmpfile_decompress_dxt(const ce_mmpfile* mmpfile, ce_mmpfile* oth
 				for (int py = 0; py < 4; ++py) {
 					for (int px = 0; px < 4; ++px) {
 						// get the target location
-						int sx = x + px;
-						int sy = y + py;
+						unsigned int sx = x + px;
+						unsigned int sy = y + py;
 						if (sx < width && sy < height) {
 							uint8_t* targetPixel = dst + 4*( width*sy + sx );
 							// copy the rgba value
@@ -1328,10 +1326,10 @@ static void ce_mmpfile_compress_dxt(const ce_mmpfile* mmpfile, ce_mmpfile* other
 
 	unsigned char block[64];
 
-	for (int i = 0, width = mmpfile->width, height = mmpfile->height;
+	for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
-		for (int y = 0; y < height; y += 4) {
-			for (int x = 0; x < width; x += 4) {
+		for (unsigned int y = 0; y < height; y += 4) {
+			for (unsigned int x = 0; x < width; x += 4) {
 				extract_block(src, x, y, width, height, block);
 				if (CE_MMPFILE_FORMAT_DXT3 == other->format) {
 					encode_alpha_block_DXT3(dst, block);
