@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,9 +27,8 @@
 #include "cevector.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 extern int ce_online_cpu_count(void);
 
@@ -48,6 +47,10 @@ extern void ce_routine_del(ce_routine* routine);
 /*
  *  The thread struct provides platform-independent threads.
 */
+
+typedef unsigned long int ce_thread_id;
+
+extern ce_thread_id ce_thread_self(void);
 
 typedef struct ce_thread ce_thread;
 
@@ -139,6 +142,6 @@ extern void ce_threadpool_wait_all(ce_threadpool* threadpool);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_THREAD_H */

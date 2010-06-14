@@ -21,8 +21,7 @@
 #ifndef CE_GRAPHICCONTEXT_PLATFORM_H
 #define CE_GRAPHICCONTEXT_PLATFORM_H
 
-#include <windows.h>
-
+#include "ceglew_windows.h"
 #include "cegraphiccontext.h"
 
 #ifdef __cplusplus

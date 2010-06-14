@@ -23,6 +23,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "cegraphiccontext.h"
 #include "cegraphiccontext_posix.h"
 
 void ce_graphiccontext_del(ce_graphiccontext* graphiccontext)

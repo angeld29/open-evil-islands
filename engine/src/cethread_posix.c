@@ -58,6 +58,11 @@ int ce_online_cpu_count(void)
 #endif
 }
 
+ce_thread_id ce_thread_self(void)
+{
+	return pthread_self();
+}
+
 struct ce_thread {
 	ce_routine routine;
 	pthread_t handle;

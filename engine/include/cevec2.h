@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,9 +22,8 @@
 #define CE_VEC2_H
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 typedef struct {
 	float x, y;
@@ -55,6 +54,6 @@ extern ce_vec2* ce_vec2_neg(ce_vec2* vec, const ce_vec2* other);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_VEC2_H */

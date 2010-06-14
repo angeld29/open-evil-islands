@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,10 +19,10 @@
 */
 
 /*
- *  Based on MSDN website.
- *
- *  Some ideas are from open source of the greatest Qt toolkit.
- *  Copyright (C) 2009 Nokia Corporation.
+ *  Based on:
+ *  1. MSDN website.
+ *  2. Some ideas are from open source of the greatest Qt toolkit.
+ *     Copyright (C) 2009 Nokia Corporation.
 */
 
 #include <assert.h>
@@ -42,6 +42,11 @@ int ce_online_cpu_count(void)
 	SYSTEM_INFO info;
 	GetSystemInfo(&info);
 	return ce_max(int, 1, info.dwNumberOfProcessors);
+}
+
+ce_thread_id ce_thread_self(void)
+{
+	return GetCurrentThreadId();
 }
 
 struct ce_thread {
