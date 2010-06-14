@@ -85,6 +85,7 @@ static void advance(void* listener, float elapsed)
 			rgba = ce_mmpfile_new(ycbcr->width, ycbcr->height, 1,
 									CE_MMPFILE_FORMAT_R8G8B8A8, 0);
 		}
+		// TODO: shader
 		ce_mmpfile_convert2(ycbcr, rgba);
 		if (NULL != texture) {
 			ce_texture_replace(texture, rgba);
