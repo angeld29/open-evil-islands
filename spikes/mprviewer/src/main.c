@@ -47,17 +47,14 @@ int main(int argc, char* argv[])
 	const char* zone;
 	ce_optparse_get(optparse, "zone", &zone);
 
-	if (NULL == ce_scenemng_create_terrain(ce_root.scenemng, zone,
-							&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, NULL)) {
-		return EXIT_FAILURE;
-	}
+	ce_scenemng_load_mpr(ce_root.scenemng, zone);
 
-	ce_vec3 position;
+	/*ce_vec3 position;
 	ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position,
 		0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f));
 
 	ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f),
-													ce_deg2rad(30.0f));
+													ce_deg2rad(30.0f));*/
 
 	ce_optparse_del(optparse);
 

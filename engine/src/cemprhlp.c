@@ -50,7 +50,7 @@ ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
 		}
 	}
 
-	// FIXME: negative z in generic code?..
+	// FIXME: negative z?..
 	ce_vec3 min, max;
 	ce_vec3_init(&min, sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f, -1.0f *
 		(sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1)));
@@ -91,7 +91,7 @@ int ce_mprhlp_texture_angle(uint16_t texture)
 float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 {
 	int round_x = x + 0.5f;
-	int round_z = z + 0.5f;
+	int round_z = fabsf(z) + 0.5f; // FIXME: negative z?..
 
 	int sector_x = round_x / (CE_MPRFILE_VERTEX_SIDE - 1);
 	int sector_z = round_z / (CE_MPRFILE_VERTEX_SIDE - 1);

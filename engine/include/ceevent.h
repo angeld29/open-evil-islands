@@ -21,6 +21,9 @@
 #ifndef CE_EVENT_H
 #define CE_EVENT_H
 
+#include <stddef.h>
+#include <stdbool.h>
+
 #include "cevector.h"
 #include "cethread.h"
 
@@ -28,15 +31,21 @@
 extern "C" {
 #endif
 
-typedef enum {
-	CE_EVENT_TYPE_COUNT,
-} ce_event_type;
+typedef struct ce_event ce_event;
 
 typedef struct {
-	ce_event_type type;
-} ce_event;
+	size_t size;
+	void* receiver;
+	void (*dtor)(ce_event* event);
+	bool (*notify)(ce_event* event);
+} ce_event_vtable;
 
-extern ce_event* ce_event_new(ce_event_type type);
+struct ce_event {
+	ce_event_vtable vtable;
+	char impl[];
+};
+
+extern ce_event* ce_event_new(ce_event_vtable vtable);
 extern void ce_event_del(ce_event* event);
 
 /*
@@ -46,24 +55,33 @@ extern void ce_event_del(ce_event* event);
 typedef struct {
 	ce_thread_id id;
 	ce_mutex* mutex;
-	ce_vector* events;
+	ce_vector* prev_events;
+	ce_vector* next_events;
 } ce_event_queue;
 
 extern ce_event_queue* ce_event_queue_new(ce_thread_id id);
 extern void ce_event_queue_del(ce_event_queue* queue);
+
+extern void ce_event_queue_process(ce_event_queue* queue);
+
+extern void ce_event_queue_put(ce_event_queue* queue, ce_event* event);
 
 /*
  *  Thread-safe event manager
 */
 
 typedef struct {
+	ce_mutex* mutex;
 	ce_vector* queues;
 } ce_event_manager;
 
 extern ce_event_manager* ce_event_manager_new(void);
 extern void ce_event_manager_del(ce_event_manager* manager);
 
-extern void ce_event_manager_process(void);
+extern void ce_event_manager_process(ce_event_manager* manager);
+
+extern void ce_event_manager_post(ce_event_manager* manager,
+									ce_thread_id id, ce_event* event);
 
 #ifdef __cplusplus
 }

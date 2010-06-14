@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,13 +23,9 @@
 
 #include <stdbool.h>
 
-#include "cethread.h"
 #include "cetimer.h"
+#include "cethread.h"
 #include "ceinput.h"
-#include "cetexmng.h"
-#include "cemprmng.h"
-#include "cefigmng.h"
-#include "cemobfile.h"
 #include "ceterrain.h"
 #include "cefps.h"
 #include "cefont.h"
@@ -40,9 +36,15 @@
 #include "cerenderwindow.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
+
+typedef enum {
+	CE_SCENEMNG_STATE_STARTING,
+	CE_SCENEMNG_STATE_LOADING,
+	CE_SCENEMNG_STATE_PLAYING,
+	CE_SCENEMNG_STATE_COUNT,
+} ce_scenemng_state;
 
 typedef struct {
 	void (*advance)(void* listener, float elapsed);
@@ -51,21 +53,22 @@ typedef struct {
 } ce_scenemng_listener;
 
 typedef struct {
+	ce_thread_id thread_id;
+	ce_scenemng_state state;
 	float camera_move_sensitivity; // FIXME: hard-coded
 	float camera_zoom_sensitivity; // TODO: make strategy
 	bool scenenode_force_update;
 	ce_scenenode* scenenode;
-	ce_texmng* texmng;
-	ce_mprmng* mprmng;
-	ce_terrain* terrain;
-	ce_figmng* figmng;
 	ce_renderqueue* renderqueue;
 	ce_viewport* viewport;
 	ce_camera* camera;
 	ce_fps* fps;
 	ce_font* font;
+	ce_terrain* terrain;
+	ce_vector* figentities;
 	ce_vector* listeners;
 	ce_inputsupply* inputsupply;
+	ce_inputevent* pause_event;
 	ce_inputevent* move_left_event;
 	ce_inputevent* move_up_event;
 	ce_inputevent* move_right_event;
@@ -75,23 +78,25 @@ typedef struct {
 	ce_inputevent* rotate_on_event;
 	ce_renderwindow_listener renderwindow_listener;
 	ce_figmng_listener figmng_listener;
+	/*struct {
+		ce_soundinstance* soundinstance;
+		ce_videoinstance* videoinstance;
+		ce_mmpfile* rgba;
+		ce_texture* video_frame;
+	} intro;*/
 } ce_scenemng;
 
-extern ce_scenemng* ce_scenemng_new(const char* ei_path);
+extern ce_scenemng* ce_scenemng_new(void);
 extern void ce_scenemng_del(ce_scenemng* scenemng);
 
-extern void ce_scenemng_add_listener(ce_scenemng* scenemng,
-									ce_scenemng_listener* listener);
+static inline void ce_scenemng_add_listener(ce_scenemng* scenemng,
+											ce_scenemng_listener* listener)
+{
+	ce_vector_push_back(scenemng->listeners, listener);
+}
 
 extern void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed);
 extern void ce_scenemng_render(ce_scenemng* scenemng);
-
-extern ce_terrain*
-ce_scenemng_create_terrain(ce_scenemng* scenemng,
-							const char* name,
-							const ce_vec3* position,
-							const ce_quat* orientation,
-							ce_scenenode* scenenode);
 
 extern ce_figentity*
 ce_scenemng_create_figentity(ce_scenemng* scenemng,
@@ -111,11 +116,15 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 extern void ce_scenemng_remove_figentity(ce_scenemng* scenemng,
 										ce_figentity* figentity);
 
-extern void ce_scenemng_load_mobfile(ce_scenemng* scenemng,
-									const ce_mobfile* mobfile);
+/*
+ *  Async operations
+*/
+
+extern void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name);
+extern void ce_scenemng_load_mob(ce_scenemng* scenemng, const char* name);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_SCENEMNG_H */

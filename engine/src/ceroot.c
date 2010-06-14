@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -79,13 +80,17 @@ static void ce_root_term(void)
 
 	ce_inputsupply_del(ce_root.inputsupply);
 	ce_scenemng_del(ce_root.scenemng);
-	ce_timer_del(ce_root.timer);
+	ce_figmng_del(ce_root.figmng);
+	ce_mob_manager_del(ce_root.mob_manager);
+	ce_mprmng_del(ce_root.mprmng);
+	ce_texmng_del(ce_root.texmng);
 	ce_soundmanager_del(ce_root.soundmanager);
 	ce_soundsystem_del(ce_root.soundsystem);
 	ce_rendersystem_del(ce_root.rendersystem);
 	ce_renderwindow_del(ce_root.renderwindow);
 	ce_threadpool_del(ce_root.threadpool);
 	ce_event_manager_del(ce_root.event_manager);
+	ce_timer_del(ce_root.timer);
 }
 
 bool ce_root_init(ce_optparse* optparse)
@@ -133,6 +138,7 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.comprehensive_bbox_only = true;
 	ce_root.anmfps = 15.0f;
 
+	ce_root.timer = ce_timer_new();
 	ce_root.event_manager = ce_event_manager_new();
 	ce_root.threadpool = ce_threadpool_new(ce_root.thread_count);
 
@@ -180,8 +186,34 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.rendersystem = ce_rendersystem_new();
 	ce_root.soundsystem = ce_soundsystem_new_platform();
 	ce_root.soundmanager = ce_soundmanager_new();
-	ce_root.timer = ce_timer_new();
-	ce_root.scenemng = ce_scenemng_new(ei_path);
+
+	char path[strlen(ei_path) + 32];
+
+	ce_logging_write("root: EI path is '%s'", ei_path);
+	ce_logging_write("root: CE path is '%s'", ce_path);
+
+	snprintf(path, sizeof(path), "%s/Textures", ei_path);
+	ce_root.texmng = ce_texmng_new(path);
+
+	const char* texture_resources[] = { "textures", "redress", "menus" };
+	for (size_t i = 0; i < sizeof(texture_resources) / sizeof(texture_resources[0]); ++i) {
+		snprintf(path, sizeof(path), "%s/Res/%s.res", ei_path, texture_resources[i]);
+		ce_texmng_register_resource(ce_root.texmng, path);
+	}
+
+	snprintf(path, sizeof(path), "%s/Maps", ei_path);
+	ce_root.mprmng = ce_mprmng_new(path);
+	ce_root.mob_manager = ce_mob_manager_new(path);
+
+	ce_root.figmng = ce_figmng_new();
+
+	const char* figure_resources[] = { "figures", "menus" };
+	for (size_t i = 0; i < sizeof(figure_resources) / sizeof(figure_resources[0]); ++i) {
+		snprintf(path, sizeof(path), "%s/Res/%s.res", ei_path, figure_resources[i]);
+		ce_figmng_register_resource(ce_root.figmng, path);
+	}
+
+	ce_root.scenemng = ce_scenemng_new();
 
 	ce_root.inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
 	ce_root.exit_event = ce_inputsupply_button(ce_root.inputsupply, CE_KB_ESCAPE);
@@ -219,6 +251,7 @@ int ce_root_exec(void)
 	for (;;) {
 		float elapsed = ce_timer_advance(ce_root.timer);
 
+		ce_event_manager_process(ce_root.event_manager);
 		ce_renderwindow_pump(ce_root.renderwindow);
 
 		if (ce_root.done) {

@@ -29,20 +29,20 @@
 #include "ceopengl.h"
 #include "cerendersystem.h"
 
-struct ce_rendersystem {
+typedef struct {
 	ce_mat4 view;
 	GLuint axes_list;
 	GLuint wire_cube_list;
 	GLuint solid_cube_list;
-};
+} ce_opengl_system;
 
 ce_rendersystem* ce_rendersystem_new(void)
 {
-	ce_logging_write("rendersystem: %s", glGetString(GL_VENDOR));
-	ce_logging_write("rendersystem: %s", glGetString(GL_RENDERER));
-	ce_logging_write("rendersystem: using GL %s", glGetString(GL_VERSION));
-	ce_logging_write("rendersystem: using GLU %s", gluGetString(GLU_VERSION));
-	ce_logging_write("rendersystem: using GLEW %s", glewGetString(GLEW_VERSION));
+	ce_logging_write("render system: %s", glGetString(GL_VENDOR));
+	ce_logging_write("render system: %s", glGetString(GL_RENDERER));
+	ce_logging_write("render system: using GL %s", glGetString(GL_VERSION));
+	ce_logging_write("render system: using GLU %s", gluGetString(GLU_VERSION));
+	ce_logging_write("render system: using GLEW %s", glewGetString(GLEW_VERSION));
 
 	struct {
 		const char* name;
@@ -63,20 +63,24 @@ ce_rendersystem* ce_rendersystem_new(void)
 	};
 
 	for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
-		ce_logging_write("rendersystem: checking for '%s' extension... %s",
+		ce_logging_write("render system: checking for '%s' extension... %s",
 			extensions[i].name, extensions[i].available ? "yes" : "no");
 	}
 
-	ce_rendersystem* rendersystem = ce_alloc(sizeof(ce_rendersystem));
-	rendersystem->view = CE_MAT4_IDENTITY;
-	rendersystem->axes_list = glGenLists(1);
-	rendersystem->wire_cube_list = glGenLists(1);
-	rendersystem->solid_cube_list = glGenLists(1);
+	ce_rendersystem* rendersystem = ce_alloc(sizeof(ce_rendersystem) +
+												sizeof(ce_opengl_system));
+	ce_opengl_system* opengl_system = (ce_opengl_system*)rendersystem->impl;
+
+	rendersystem->thread_id = ce_thread_self();
+	opengl_system->view = CE_MAT4_IDENTITY;
+	opengl_system->axes_list = glGenLists(1);
+	opengl_system->wire_cube_list = glGenLists(1);
+	opengl_system->solid_cube_list = glGenLists(1);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	glNewList(rendersystem->axes_list, GL_COMPILE);
+	glNewList(opengl_system->axes_list, GL_COMPILE);
 	glBegin(GL_LINES);
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glVertex3f(0.0f, 0.0f, 0.0f);
@@ -90,7 +94,7 @@ ce_rendersystem* ce_rendersystem_new(void)
 	glEnd();
 	glEndList();
 
-	glNewList(rendersystem->wire_cube_list, GL_COMPILE);
+	glNewList(opengl_system->wire_cube_list, GL_COMPILE);
 	glBegin(GL_LINE_STRIP);
 	// face 1 front xy plane
 	glVertex3f( 1.0f, -1.0f,  1.0f);
@@ -121,7 +125,7 @@ ce_rendersystem* ce_rendersystem_new(void)
 	glEnd();
 	glEndList();
 
-	glNewList(rendersystem->solid_cube_list, GL_COMPILE);
+	glNewList(opengl_system->solid_cube_list, GL_COMPILE);
 	glBegin(GL_QUADS);
 	// face 1 front xy plane
 	glVertex3f( 1.0f, -1.0f,  1.0f);
@@ -162,10 +166,11 @@ ce_rendersystem* ce_rendersystem_new(void)
 void ce_rendersystem_del(ce_rendersystem* rendersystem)
 {
 	if (NULL != rendersystem) {
-		glDeleteLists(rendersystem->solid_cube_list, 1);
-		glDeleteLists(rendersystem->wire_cube_list, 1);
-		glDeleteLists(rendersystem->axes_list, 1);
-		ce_free(rendersystem, sizeof(ce_rendersystem));
+		ce_opengl_system* opengl_system = (ce_opengl_system*)rendersystem->impl;
+		glDeleteLists(opengl_system->solid_cube_list, 1);
+		glDeleteLists(opengl_system->wire_cube_list, 1);
+		glDeleteLists(opengl_system->axes_list, 1);
+		ce_free(rendersystem, sizeof(ce_rendersystem) + sizeof(ce_opengl_system));
 	}
 }
 
@@ -254,17 +259,62 @@ void ce_rendersystem_end_render(ce_rendersystem* rendersystem)
 
 void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem)
 {
-	glCallList(rendersystem->axes_list);
+	ce_opengl_system* opengl_system = (ce_opengl_system*)rendersystem->impl;
+	glCallList(opengl_system->axes_list);
 }
 
 void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem)
 {
-	glCallList(rendersystem->wire_cube_list);
+	ce_opengl_system* opengl_system = (ce_opengl_system*)rendersystem->impl;
+	glCallList(opengl_system->wire_cube_list);
 }
 
 void ce_rendersystem_draw_solid_cube(ce_rendersystem* rendersystem)
 {
-	glCallList(rendersystem->solid_cube_list);
+	ce_opengl_system* opengl_system = (ce_opengl_system*)rendersystem->impl;
+	glCallList(opengl_system->solid_cube_list);
+}
+
+void ce_rendersystem_draw_video_frame(ce_rendersystem* rendersystem, ce_texture* texture)
+{
+	ce_unused(rendersystem);
+
+	ce_texture_bind(texture);
+
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	gluOrtho2D(0, texture->width, 0, texture->height);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glBegin(GL_QUADS);
+
+	glTexCoord2f(0.0f, 1.0f);
+	glVertex2i(0, 0);
+
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex2i(texture->width, 0);
+
+	glTexCoord2f(1.0f, 0.0f);
+	glVertex2i(texture->width, texture->height);
+
+	glTexCoord2f(0.0f, 0.0f);
+	glVertex2i(0, texture->height);
+
+	glEnd();
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	ce_texture_unbind(texture);
 }
 
 void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,
@@ -279,6 +329,8 @@ void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,
 void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 										ce_camera* camera)
 {
+	ce_opengl_system* opengl_system = (ce_opengl_system*)rendersystem->impl;
+
 	float tx  = 2.0f * camera->orientation.x;
 	float ty  = 2.0f * camera->orientation.y;
 	float tz  = 2.0f * camera->orientation.z;
@@ -292,39 +344,39 @@ void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
 	float tyz = tz * camera->orientation.y;
 	float tzz = tz * camera->orientation.z;
 
-	rendersystem->view.m[0] = 1.0f - (tyy + tzz);
-	rendersystem->view.m[1] = txy + twz;
-	rendersystem->view.m[2] = txz - twy;
+	opengl_system->view.m[0] = 1.0f - (tyy + tzz);
+	opengl_system->view.m[1] = txy + twz;
+	opengl_system->view.m[2] = txz - twy;
 
-	rendersystem->view.m[4] = txy - twz;
-	rendersystem->view.m[5] = 1.0f - (txx + tzz);
-	rendersystem->view.m[6] = tyz + twx;
+	opengl_system->view.m[4] = txy - twz;
+	opengl_system->view.m[5] = 1.0f - (txx + tzz);
+	opengl_system->view.m[6] = tyz + twx;
 
-	rendersystem->view.m[8] = txz + twy;
-	rendersystem->view.m[9] = tyz - twx;
-	rendersystem->view.m[10] = 1.0f - (txx + tyy);
+	opengl_system->view.m[8] = txz + twy;
+	opengl_system->view.m[9] = tyz - twx;
+	opengl_system->view.m[10] = 1.0f - (txx + tyy);
 
-	rendersystem->view.m[12] = -
-		rendersystem->view.m[0] * camera->position.x -
-		rendersystem->view.m[4] * camera->position.y -
-		rendersystem->view.m[8] * camera->position.z;
+	opengl_system->view.m[12] = -
+		opengl_system->view.m[0] * camera->position.x -
+		opengl_system->view.m[4] * camera->position.y -
+		opengl_system->view.m[8] * camera->position.z;
 
-	rendersystem->view.m[13] = -
-		rendersystem->view.m[1] * camera->position.x -
-		rendersystem->view.m[5] * camera->position.y -
-		rendersystem->view.m[9] * camera->position.z;
+	opengl_system->view.m[13] = -
+		opengl_system->view.m[1] * camera->position.x -
+		opengl_system->view.m[5] * camera->position.y -
+		opengl_system->view.m[9] * camera->position.z;
 
-	rendersystem->view.m[14] = -
-		rendersystem->view.m[2] * camera->position.x -
-		rendersystem->view.m[6] * camera->position.y -
-		rendersystem->view.m[10] * camera->position.z;
+	opengl_system->view.m[14] = -
+		opengl_system->view.m[2] * camera->position.x -
+		opengl_system->view.m[6] * camera->position.y -
+		opengl_system->view.m[10] * camera->position.z;
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(camera->fov, camera->aspect, camera->near, camera->far);
 
 	glMatrixMode(GL_MODELVIEW);
-	glMultMatrixf(rendersystem->view.m);
+	glMultMatrixf(opengl_system->view.m);
 }
 
 void ce_rendersystem_begin_occlusion_test(ce_rendersystem* rendersystem)

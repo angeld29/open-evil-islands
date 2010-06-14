@@ -33,7 +33,7 @@ extern "C" {
 extern int ce_online_cpu_count(void);
 
 /*
- *  Useful struct for other thread modules.
+ *  Useful struct for other thread and non-thread modules.
 */
 
 typedef struct {

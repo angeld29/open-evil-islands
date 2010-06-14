@@ -21,11 +21,13 @@
 #ifndef CE_RENDERSYSTEM_H
 #define CE_RENDERSYSTEM_H
 
+#include "cethread.h"
 #include "cevec3.h"
 #include "cequat.h"
 #include "cecolor.h"
 #include "ceviewport.h"
 #include "cecamera.h"
+#include "cetexture.h"
 #include "cematerial.h"
 
 #ifdef __cplusplus
@@ -33,7 +35,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct ce_rendersystem ce_rendersystem;
+typedef struct {
+	ce_thread_id thread_id;
+	char impl[];
+} ce_rendersystem;
 
 extern ce_rendersystem* ce_rendersystem_new(void);
 extern void ce_rendersystem_del(ce_rendersystem* rendersystem);
@@ -47,6 +52,10 @@ extern void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem);
 // draw a cube centered at zero with side of 2
 extern void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem);
 extern void ce_rendersystem_draw_solid_cube(ce_rendersystem* rendersystem);
+
+// draw a fullscreen texture
+extern void ce_rendersystem_draw_video_frame(ce_rendersystem* rendersystem,
+													ce_texture* texture);
 
 extern void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,
 												ce_viewport* viewport);

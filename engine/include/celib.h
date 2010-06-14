@@ -33,6 +33,13 @@
 #define ce_clamp(T, v, a, b) ce_clamp_##T(v, a, b)
 #define ce_swap(T, a, b) ce_swap_##T(a, b)
 
+#define ce_swap_temp(T, a, b) \
+{ \
+	T t = a; \
+	a = b; \
+	b = t; \
+}
+
 #define CE_LIB_DEF_MIN(T) \
 static inline T ce_min_##T(T a, T b) \
 { \

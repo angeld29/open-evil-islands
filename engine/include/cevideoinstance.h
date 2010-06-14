@@ -62,6 +62,8 @@ extern void ce_videoinstance_progress(ce_videoinstance* videoinstance, int perce
 extern ce_mmpfile* ce_videoinstance_acquire_frame(ce_videoinstance* videoinstance);
 extern void ce_videoinstance_release_frame(ce_videoinstance* videoinstance);
 
+extern bool ce_videoinstance_is_playing(ce_videoinstance* videoinstance);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

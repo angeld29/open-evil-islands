@@ -21,6 +21,8 @@
 #ifndef CE_SOUNDINSTANCE_H
 #define CE_SOUNDINSTANCE_H
 
+#include <stdbool.h>
+
 #include "cethread.h"
 #include "cesoundresource.h"
 
@@ -46,6 +48,8 @@ typedef struct {
 
 extern ce_soundinstance* ce_soundinstance_new(ce_soundresource* soundresource);
 extern void ce_soundinstance_del(ce_soundinstance* soundinstance);
+
+extern bool ce_soundinstance_is_playing(ce_soundinstance* soundinstance);
 
 extern void ce_soundinstance_play(ce_soundinstance* soundinstance);
 extern void ce_soundinstance_pause(ce_soundinstance* soundinstance);

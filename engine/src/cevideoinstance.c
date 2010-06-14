@@ -32,7 +32,12 @@ static void ce_videoinstance_exec(ce_videoinstance* videoinstance)
 	for (size_t i = ce_semaphore_available(videoinstance->prepared_frames); ; ++i) {
 		ce_semaphore_acquire(videoinstance->unprepared_frames, 1);
 
-		if (videoinstance->done || !ce_videoresource_read(videoinstance->videoresource)) {
+		if (videoinstance->done) {
+			break;
+		}
+
+		if (!ce_videoresource_read(videoinstance->videoresource)) {
+			videoinstance->done = true;
 			break;
 		}
 
@@ -148,4 +153,9 @@ ce_mmpfile* ce_videoinstance_acquire_frame(ce_videoinstance* videoinstance)
 void ce_videoinstance_release_frame(ce_videoinstance* videoinstance)
 {
 	ce_semaphore_release(videoinstance->unprepared_frames, 1);
+}
+
+bool ce_videoinstance_is_playing(ce_videoinstance* videoinstance)
+{
+	return !videoinstance->done;
 }

@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,8 +24,8 @@
 
 #include "celib.h"
 #include "cestr.h"
-#include "celogging.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "ceresfile.h"
 #include "cefighlp.h"
 #include "cefigmng.h"
@@ -60,7 +60,6 @@ ce_figmng* ce_figmng_new(void)
 	figmng->resfiles = ce_vector_new();
 	figmng->figprotos = ce_vector_new();
 	figmng->figmeshes = ce_vector_new();
-	figmng->figentities = ce_vector_new();
 	figmng->listeners = ce_vector_new();
 	return figmng;
 }
@@ -68,12 +67,10 @@ ce_figmng* ce_figmng_new(void)
 void ce_figmng_del(ce_figmng* figmng)
 {
 	if (NULL != figmng) {
-		ce_vector_for_each(figmng->figentities, ce_figentity_del);
 		ce_vector_for_each(figmng->figmeshes, ce_figmesh_del);
 		ce_vector_for_each(figmng->figprotos, ce_figproto_del);
 		ce_vector_for_each(figmng->resfiles, ce_resfile_close);
 		ce_vector_del(figmng->listeners);
-		ce_vector_del(figmng->figentities);
 		ce_vector_del(figmng->figmeshes);
 		ce_vector_del(figmng->figprotos);
 		ce_vector_del(figmng->resfiles);
@@ -85,19 +82,13 @@ bool ce_figmng_register_resource(ce_figmng* figmng, const char* path)
 {
 	ce_resfile* resfile = ce_resfile_open_file(path);
 	if (NULL == resfile) {
-		ce_logging_error("figmng: loading '%s'... failed", path);
+		ce_logging_error("figure manager: loading '%s'... failed", path);
 		return false;
 	}
 
 	ce_vector_push_back(figmng->resfiles, resfile);
-	ce_logging_write("figmng: loading '%s'... ok", path);
+	ce_logging_write("figure manager: loading '%s'... ok", path);
 	return true;
-}
-
-void ce_figmng_add_listener(ce_figmng* figmng,
-							ce_figmng_listener* listener)
-{
-	ce_vector_push_back(figmng->listeners, listener);
 }
 
 static ce_figproto* ce_figmng_get_figproto(ce_figmng* figmng, const char* name)
@@ -123,7 +114,7 @@ static ce_figproto* ce_figmng_get_figproto(ce_figmng* figmng, const char* name)
 		}
 	}
 
-	ce_logging_error("figmng: could not create figproto: '%s'", name);
+	ce_logging_error("figure manager: could not create figure proto '%s'", name);
 	return NULL;
 }
 
@@ -147,7 +138,7 @@ static ce_figmesh* ce_figmng_get_figmesh(ce_figmng* figmng,
 		return figmesh;
 	}
 
-	ce_logging_error("figmng: could not create figmesh: '%s'", name);
+	ce_logging_error("figure manager: could not create figure mesh '%s'", name);
 	return NULL;
 }
 
@@ -162,22 +153,9 @@ ce_figentity* ce_figmng_create_figentity(ce_figmng* figmng,
 										ce_scenenode* scenenode)
 {
 	ce_figmesh* figmesh = ce_figmng_get_figmesh(figmng, name, complection);
-	if (NULL != figmesh) {
-		ce_figentity* figentity = ce_figentity_new(figmesh, position,
-													orientation, parts,
-													texture_count, textures,
-													scenenode);
-		ce_vector_push_back(figmng->figentities, figentity);
-		return figentity;
+	if (NULL == figmesh) {
+		return NULL;
 	}
-
-	ce_logging_error("figmng: could not create figentity: '%s'", name);
-	return NULL;
-}
-
-void ce_figmng_remove_figentity(ce_figmng* figmng,
-								ce_figentity* figentity)
-{
-	ce_vector_remove_all(figmng->figentities, figentity);
-	ce_figentity_del(figentity);
+	return ce_figentity_new(figmesh, position, orientation, parts,
+							texture_count, textures, scenenode);
 }

@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 #include "ceroot.h"
 #include "cescenemng.h"
 
-void ce_scenemng_renderwindow_resized(void* listener, int width, int height)
+static void ce_scenemng_renderwindow_resized(void* listener, int width, int height)
 {
 	ce_scenemng* scenemng = listener;
 	ce_viewport_set_rect(scenemng->viewport, 0, 0, width, height);
@@ -45,24 +45,25 @@ static void ce_scenemng_figproto_created(void* listener, ce_figproto* figproto)
 	ce_figproto_accept_renderqueue(figproto, scenemng->renderqueue);
 }
 
-ce_scenemng* ce_scenemng_new(const char* ei_path)
+ce_scenemng* ce_scenemng_new(void)
 {
-	ce_logging_write("scenemng: root path: '%s'", ei_path);
-
 	ce_scenemng* scenemng = ce_alloc_zero(sizeof(ce_scenemng));
+	scenemng->thread_id = ce_thread_self();
+
 	scenemng->camera_move_sensitivity = 10.0f;
 	scenemng->camera_zoom_sensitivity = 5.0f;
 
 	scenemng->scenenode = ce_scenenode_new(NULL);
-	scenemng->figmng = ce_figmng_new();
 	scenemng->renderqueue = ce_renderqueue_new();
 	scenemng->viewport = ce_viewport_new();
 	scenemng->camera = ce_camera_new();
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
+	scenemng->figentities = ce_vector_new();
 	scenemng->listeners = ce_vector_new();
 
 	scenemng->inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
+	scenemng->pause_event = ce_inputsupply_shortcut(scenemng->inputsupply, "Space");
 	scenemng->move_left_event = ce_inputsupply_shortcut(scenemng->inputsupply, "ArrowLeft");
 	scenemng->move_up_event = ce_inputsupply_shortcut(scenemng->inputsupply, "ArrowUp");
 	scenemng->move_right_event = ce_inputsupply_shortcut(scenemng->inputsupply, "ArrowRight");
@@ -77,27 +78,7 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 		{.figproto_created = ce_scenemng_figproto_created, .listener = scenemng};
 
 	ce_renderwindow_add_listener(ce_root.renderwindow, &scenemng->renderwindow_listener);
-	ce_figmng_add_listener(scenemng->figmng, &scenemng->figmng_listener);
-
-	char path[strlen(ei_path) + 32];
-
-	snprintf(path, sizeof(path), "%s/Textures", ei_path);
-	scenemng->texmng = ce_texmng_new(path);
-
-	const char* texture_resources[] = { "textures", "redress", "menus" };
-	for (size_t i = 0; i < sizeof(texture_resources) / sizeof(texture_resources[0]); ++i) {
-		snprintf(path, sizeof(path), "%s/Res/%s.res", ei_path, texture_resources[i]);
-		ce_texmng_register_resource(scenemng->texmng, path);
-	}
-
-	snprintf(path, sizeof(path), "%s/Maps", ei_path);
-	scenemng->mprmng = ce_mprmng_new(path);
-
-	const char* figure_resources[] = { "figures", "menus" };
-	for (size_t i = 0; i < sizeof(figure_resources) / sizeof(figure_resources[0]); ++i) {
-		snprintf(path, sizeof(path), "%s/Res/%s.res", ei_path, figure_resources[i]);
-		ce_figmng_register_resource(scenemng->figmng, path);
-	}
+	ce_figmng_add_listener(ce_root.figmng, &scenemng->figmng_listener);
 
 	return scenemng;
 }
@@ -105,33 +86,42 @@ ce_scenemng* ce_scenemng_new(const char* ei_path)
 void ce_scenemng_del(ce_scenemng* scenemng)
 {
 	if (NULL != scenemng) {
+		ce_vector_for_each(scenemng->figentities, ce_figentity_del);
 		ce_inputsupply_del(scenemng->inputsupply);
 		ce_vector_del(scenemng->listeners);
+		ce_vector_del(scenemng->figentities);
+		ce_terrain_del(scenemng->terrain);
 		ce_font_del(scenemng->font);
 		ce_fps_del(scenemng->fps);
 		ce_camera_del(scenemng->camera);
 		ce_viewport_del(scenemng->viewport);
 		ce_renderqueue_del(scenemng->renderqueue);
-		ce_figmng_del(scenemng->figmng);
-		ce_terrain_del(scenemng->terrain);
-		ce_mprmng_del(scenemng->mprmng);
-		ce_texmng_del(scenemng->texmng);
 		ce_scenenode_del(scenemng->scenenode);
 		ce_free(scenemng, sizeof(ce_scenemng));
 	}
 }
 
-void ce_scenemng_add_listener(ce_scenemng* scenemng,
-								ce_scenemng_listener* listener)
+static void ce_scenemng_advance_starting(ce_scenemng* scenemng, float elapsed)
 {
-	ce_vector_push_back(scenemng->listeners, listener);
+	scenemng->state = CE_SCENEMNG_STATE_LOADING;
 }
 
-void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
+static void ce_scenemng_render_starting(ce_scenemng* scenemng)
 {
-	ce_fps_advance(scenemng->fps, elapsed);
-	ce_inputsupply_advance(scenemng->inputsupply, elapsed);
+	//ce_rendersystem_draw_video_frame(ce_root.rendersystem)
+}
 
+static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float elapsed)
+{
+	scenemng->state = CE_SCENEMNG_STATE_PLAYING;
+}
+
+static void ce_scenemng_render_loading(ce_scenemng* scenemng)
+{
+}
+
+static void ce_scenemng_advance_playing(ce_scenemng* scenemng, float elapsed)
+{
 	if (scenemng->move_left_event->triggered) {
 		ce_camera_move(scenemng->camera, -scenemng->camera_move_sensitivity * elapsed, 0.0f);
 	}
@@ -163,19 +153,10 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 			ce_deg2rad(xcoef * scenemng->inputsupply->inputcontext->pointer_offset.x),
 			ce_deg2rad(ycoef * scenemng->inputsupply->inputcontext->pointer_offset.y));
 	}
-
-	for (size_t i = 0; i < scenemng->listeners->count; ++i) {
-		ce_scenemng_listener* listener = scenemng->listeners->items[i];
-		if (NULL != listener->advance) {
-			(*listener->advance)(listener->listener, elapsed);
-		}
-	}
 }
 
-void ce_scenemng_render(ce_scenemng* scenemng)
+static void ce_scenemng_render_playing(ce_scenemng* scenemng)
 {
-	ce_rendersystem_begin_render(ce_root.rendersystem, &CE_COLOR_WHITE);
-
 	ce_rendersystem_setup_viewport(ce_root.rendersystem, scenemng->viewport);
 	ce_rendersystem_setup_camera(ce_root.rendersystem, scenemng->camera);
 
@@ -211,11 +192,60 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode);
 	}
 
+#ifndef NDEBUG
+	char scenenode_text[8];
+	snprintf(scenenode_text, sizeof(scenenode_text), "%d",
+		ce_scenenode_count_visible_cascade(scenemng->scenenode));
+
+	ce_font_render(scenemng->font, 10, 10, &CE_COLOR_SILVER, scenenode_text);
+#endif
+}
+
+static struct {
+	void (*advance)(ce_scenemng* scenemng, float elapsed);
+	void (*render)(ce_scenemng* scenemng);
+} ce_scenemng_state_procs[CE_SCENEMNG_STATE_COUNT] = {
+	[CE_SCENEMNG_STATE_STARTING] = {ce_scenemng_advance_starting,
+									ce_scenemng_render_starting},
+	[CE_SCENEMNG_STATE_LOADING] = {ce_scenemng_advance_loading,
+									ce_scenemng_render_loading},
+	[CE_SCENEMNG_STATE_PLAYING] = {ce_scenemng_advance_playing,
+									ce_scenemng_render_playing},
+};
+
+void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
+{
+	ce_fps_advance(scenemng->fps, elapsed);
+	ce_inputsupply_advance(scenemng->inputsupply, elapsed);
+
+	(*ce_scenemng_state_procs[scenemng->state].advance)(scenemng, elapsed);
+
+	for (size_t i = 0; i < scenemng->listeners->count; ++i) {
+		ce_scenemng_listener* listener = scenemng->listeners->items[i];
+		if (NULL != listener->advance) {
+			(*listener->advance)(listener->listener, elapsed);
+		}
+	}
+}
+
+void ce_scenemng_render(ce_scenemng* scenemng)
+{
+	ce_rendersystem_begin_render(ce_root.rendersystem, &CE_COLOR_WHITE);
+
+	(*ce_scenemng_state_procs[scenemng->state].render)(scenemng);
+
 	for (size_t i = 0; i < scenemng->listeners->count; ++i) {
 		ce_scenemng_listener* listener = scenemng->listeners->items[i];
 		if (NULL != listener->render) {
 			(*listener->render)(listener->listener);
 		}
+	}
+
+	if (ce_root.show_fps) {
+		ce_font_render(scenemng->font, scenemng->viewport->width -
+			ce_font_get_width(scenemng->font, scenemng->fps->text) - 10,
+			scenemng->viewport->height - ce_font_get_height(scenemng->font) - 10,
+			&CE_COLOR_GOLD, scenemng->fps->text);
 	}
 
 #if 0
@@ -245,21 +275,6 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 #endif
 #endif
 
-#ifndef NDEBUG
-	char scenenode_text[8];
-	snprintf(scenenode_text, sizeof(scenenode_text), "%d",
-		ce_scenenode_count_visible_cascade(scenemng->scenenode));
-
-	ce_font_render(scenemng->font, 10, 10, &CE_COLOR_SILVER, scenenode_text);
-#endif
-
-	if (ce_root.show_fps) {
-		ce_font_render(scenemng->font, scenemng->viewport->width -
-			ce_font_get_width(scenemng->font, scenemng->fps->text) - 10,
-			scenemng->viewport->height - ce_font_get_height(scenemng->font) - 10,
-			&CE_COLOR_GOLD, scenemng->fps->text);
-	}
-
 	const char* engine_text = "Powered by Cursed Earth Engine";
 
 	ce_font_render(scenemng->font, scenemng->viewport->width -
@@ -267,30 +282,6 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		&CE_COLOR_RED, engine_text);
 
 	ce_rendersystem_end_render(ce_root.rendersystem);
-}
-
-ce_terrain* ce_scenemng_create_terrain(ce_scenemng* scenemng,
-										const char* name,
-										const ce_vec3* position,
-										const ce_quat* orientation,
-										ce_scenenode* scenenode)
-{
-	ce_mprfile* mprfile = ce_mprmng_open_mprfile(scenemng->mprmng, name);
-	if (NULL == mprfile) {
-		return NULL;
-	}
-
-	if (NULL == scenenode) {
-		scenenode = scenemng->scenenode;
-	}
-
-	ce_terrain_del(scenemng->terrain);
-	scenemng->terrain = ce_terrain_new(mprfile, scenemng->texmng,
-		scenemng->renderqueue, position, orientation, scenenode);
-
-	scenemng->scenenode_force_update = true;
-
-	return scenemng->terrain;
 }
 
 ce_figentity*
@@ -307,7 +298,7 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 	ce_texture* textures[texture_count];
 
 	for (int i = 0; i < texture_count; ++i) {
-		textures[i] = ce_texmng_get(scenemng->texmng, texture_names[i]);
+		textures[i] = ce_texmng_get(ce_root.texmng, texture_names[i]);
 		if (NULL == textures[i]) {
 			ce_logging_error("scenemng: could not load texture "
 				"'%s' for figentity '%s'", texture_names[i], name);
@@ -324,11 +315,17 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 	}
 
 	ce_figentity* figentity =
-		ce_figmng_create_figentity(scenemng->figmng, name,
+		ce_figmng_create_figentity(ce_root.figmng, name,
 									complection, position,
 									orientation, parts,
 									texture_count, textures, scenenode);
 
+	if (NULL == figentity) {
+		ce_logging_error("scene manager: could not create figure entity '%s'", name);
+		return NULL;
+	}
+
+	ce_vector_push_back(scenemng->figentities, figentity);
 	scenemng->scenenode_force_update = true;
 
 	return figentity;
@@ -369,15 +366,88 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 
 void ce_scenemng_remove_figentity(ce_scenemng* scenemng, ce_figentity* figentity)
 {
-	ce_figmng_remove_figentity(scenemng->figmng, figentity);
+	ce_vector_remove_all(scenemng->figentities, figentity);
+	ce_figentity_del(figentity);
 }
 
-void ce_scenemng_load_mobfile(ce_scenemng* scenemng, const ce_mobfile* mobfile)
+typedef struct {
+	ce_string* name;
+} ce_event_name;
+
+static void ce_event_name_del(ce_event* event)
 {
-	ce_logging_write("scenemng: loading mob '%s'...", mobfile->name->str);
-	for (size_t i = 0; i < mobfile->objects->count; ++i) {
-		const ce_mobobject_object* mobobject = mobfile->objects->items[i];
-		ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
+	ce_event_name* name_event = (ce_event_name*)event->impl;
+	ce_string_del(name_event->name);
+}
+
+static bool ce_scenemng_notify_mpr(ce_event* event)
+{
+	ce_event_name* name_event = (ce_event_name*)event->impl;
+	ce_scenemng* scenemng = event->vtable.receiver;
+
+	if (CE_SCENEMNG_STATE_STARTING == scenemng->state) {
+		// do not process event now, intro movies are playing
+		return false;
 	}
-	ce_logging_write("scenemng: done loading mob '%s'", mobfile->name->str);
+
+	ce_mprfile* mprfile = ce_mprmng_open_mprfile(ce_root.mprmng, name_event->name->str);
+	if (NULL == mprfile) {
+		return true;
+	}
+
+	ce_terrain_del(scenemng->terrain);
+	scenemng->terrain = ce_terrain_new(mprfile, ce_root.texmng,
+		scenemng->renderqueue, &CE_VEC3_ZERO, &CE_QUAT_IDENTITY, scenemng->scenenode);
+
+	for (size_t i = 0; i < scenemng->figentities->count; ++i) {
+		ce_figentity* figentity = scenemng->figentities->items[i];
+		figentity->scenenode->position.y += ce_mprhlp_get_height(mprfile,
+			figentity->scenenode->position.x, figentity->scenenode->position.z);
+	}
+
+	scenemng->scenenode_force_update = true;
+	return true;
+}
+
+static bool ce_scenemng_notify_mob(ce_event* event)
+{
+	ce_event_name* name_event = (ce_event_name*)event->impl;
+	ce_scenemng* scenemng = event->vtable.receiver;
+
+	if (CE_SCENEMNG_STATE_STARTING == scenemng->state) {
+		// do not process event now, intro movies are playing
+		return false;
+	}
+
+	ce_mobfile* mobfile = ce_mob_manager_open(ce_root.mob_manager, name_event->name->str);
+
+	if (NULL != mobfile) {
+		ce_logging_write("scenemng: loading mob '%s'...", name_event->name->str);
+		for (size_t i = 0; i < mobfile->objects->count; ++i) {
+			const ce_mobobject_object* mobobject = mobfile->objects->items[i];
+			ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
+		}
+		ce_logging_write("scenemng: done loading mob '%s'", name_event->name->str);
+	}
+
+	ce_mobfile_close(mobfile);
+	return true;
+}
+
+void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
+{
+	ce_event* event = ce_event_new((ce_event_vtable){sizeof(ce_event_name),
+		scenemng, ce_event_name_del, ce_scenemng_notify_mpr});
+	ce_event_name* name_event = (ce_event_name*)event->impl;
+	name_event->name = ce_string_new_str(name);
+	ce_event_manager_post(ce_root.event_manager, scenemng->thread_id, event);
+}
+
+void ce_scenemng_load_mob(ce_scenemng* scenemng, const char* name)
+{
+	ce_event* event = ce_event_new((ce_event_vtable){sizeof(ce_event_name),
+		scenemng, ce_event_name_del, ce_scenemng_notify_mob});
+	ce_event_name* name_event = (ce_event_name*)event->impl;
+	name_event->name = ce_string_new_str(name);
+	ce_event_manager_post(ce_root.event_manager, scenemng->thread_id, event);
 }

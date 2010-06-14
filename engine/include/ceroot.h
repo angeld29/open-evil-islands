@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,13 +31,16 @@
 #include "cerendersystem.h"
 #include "cesoundsystem.h"
 #include "cesoundmanager.h"
+#include "cetexmng.h"
+#include "cemprmng.h"
+#include "cemobmanager.h"
+#include "cefigmng.h"
 #include "cescenemng.h"
 #include "ceoptparse.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 extern struct ce_root {
 	bool inited;
@@ -51,13 +54,17 @@ extern struct ce_root {
 	bool comprehensive_bbox_only;
 	int thread_count;
 	float anmfps;
+	ce_timer* timer;
 	ce_event_manager* event_manager;
 	ce_threadpool* threadpool;
 	ce_renderwindow* renderwindow;
 	ce_rendersystem* rendersystem;
 	ce_soundsystem* soundsystem;
 	ce_soundmanager* soundmanager;
-	ce_timer* timer;
+	ce_texmng* texmng;
+	ce_mprmng* mprmng;
+	ce_mob_manager* mob_manager;
+	ce_figmng* figmng;
 	ce_scenemng* scenemng;
 	ce_inputsupply* inputsupply;
 	ce_inputevent* exit_event;
@@ -75,6 +82,6 @@ extern ce_optparse* ce_root_create_optparse(void);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
-#endif /* CE_VEC2_H */
+#endif /* CE_ROOT_H */

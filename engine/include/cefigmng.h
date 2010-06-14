@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,9 +29,8 @@
 #include "cefigentity.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 typedef struct {
 	void (*figproto_created)(void* listener, ce_figproto* figproto);
@@ -43,7 +42,6 @@ typedef struct {
 	ce_vector* resfiles;
 	ce_vector* figprotos;
 	ce_vector* figmeshes;
-	ce_vector* figentities;
 	ce_vector* listeners;
 } ce_figmng;
 
@@ -52,8 +50,10 @@ extern void ce_figmng_del(ce_figmng* figmng);
 
 extern bool ce_figmng_register_resource(ce_figmng* figmng, const char* path);
 
-extern void ce_figmng_add_listener(ce_figmng* figmng,
-									ce_figmng_listener* listener);
+static inline void ce_figmng_add_listener(ce_figmng* figmng, ce_figmng_listener* listener)
+{
+	ce_vector_push_back(figmng->listeners, listener);
+}
 
 extern ce_figentity*
 ce_figmng_create_figentity(ce_figmng* figmng,
@@ -66,11 +66,8 @@ ce_figmng_create_figentity(ce_figmng* figmng,
 							ce_texture* textures[],
 							ce_scenenode* scenenode);
 
-extern void ce_figmng_remove_figentity(ce_figmng* figmng,
-										ce_figentity* figentity);
-
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_FIGMNG_H */

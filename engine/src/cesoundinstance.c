@@ -105,6 +105,14 @@ void ce_soundinstance_del(ce_soundinstance* soundinstance)
 	}
 }
 
+bool ce_soundinstance_is_playing(ce_soundinstance* soundinstance)
+{
+	ce_mutex_lock(soundinstance->mutex);
+	bool playing = CE_SOUNDINSTANCE_STATE_PLAYING == soundinstance->state;
+	ce_mutex_unlock(soundinstance->mutex);
+	return playing;
+}
+
 void ce_soundinstance_play(ce_soundinstance* soundinstance)
 {
 	ce_mutex_lock(soundinstance->mutex);
