@@ -25,7 +25,6 @@
 #include <time.h>
 #include <assert.h>
 
-#include "cegl.h"
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"

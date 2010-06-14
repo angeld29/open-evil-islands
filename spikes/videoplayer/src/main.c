@@ -23,10 +23,10 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cegl.h"
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceopengl.h"
 #include "cetexture.h"
 #include "ceroot.h"
 #include "cesoundinstance.h"
@@ -102,7 +102,7 @@ static void render(void* listener)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluOrtho2D(0, ce_texture_width(texture), 0, ce_texture_height(texture));
+	gluOrtho2D(0, texture->width, 0, texture->height);
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -114,13 +114,13 @@ static void render(void* listener)
 	glVertex2i(0, 0);
 
 	glTexCoord2f(1.0f, 1.0f);
-	glVertex2i(ce_texture_width(texture), 0);
+	glVertex2i(texture->width, 0);
 
 	glTexCoord2f(1.0f, 0.0f);
-	glVertex2i(ce_texture_width(texture), ce_texture_height(texture));
+	glVertex2i(texture->width, texture->height);
 
 	glTexCoord2f(0.0f, 0.0f);
-	glVertex2i(0, ce_texture_height(texture));
+	glVertex2i(0, texture->height);
 
 	glEnd();
 
