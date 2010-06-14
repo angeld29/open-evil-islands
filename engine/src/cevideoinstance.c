@@ -20,45 +20,12 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <limits.h>
 #include <assert.h>
 
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cevideoinstance.h"
-
-static void ce_videoinstance_prepare(ce_mmpfile* mmpfile, ce_ycbcr* ycbcr)
-{
-	// TODO: move conversion details to mmpfile
-	unsigned char* texels = mmpfile->texels;
-
-	assert(0 == ycbcr->crop_rect.x);
-	assert(0 == ycbcr->crop_rect.y);
-
-	int y_offset = 0;//(x & ~1) + ycbcr->planes[0].stride * (y & ~1);
-	int cb_offset = 0;//(x / 2) + ycbcr->planes[1].stride * (y / 2);
-	int cr_offset = 0;//(x / 2) + ycbcr->planes[2].stride * (y / 2);
-
-	for (unsigned int h = 0; h < ycbcr->crop_rect.height; ++h) {
-		int y_shift = y_offset + ycbcr->planes[0].stride * h;
-		int cb_shift = cb_offset + ycbcr->planes[1].stride * (h / 2);
-		int cr_shift = cr_offset + ycbcr->planes[2].stride * (h / 2);
-
-		for (unsigned int w = 0; w < ycbcr->crop_rect.width; ++w) {
-			size_t index = (h * ycbcr->crop_rect.width + w) * 4;
-
-			int y = 298 * (ycbcr->planes[0].data[y_shift + w] - 16);
-			int cb = ycbcr->planes[1].data[cb_shift + w / 2] - 128;
-			int cr = ycbcr->planes[2].data[cr_shift + w / 2] - 128;
-
-			texels[index + 0] = ce_clamp(int, (y + 409 * cr + 128) / 256, 0, UCHAR_MAX);
-			texels[index + 1] = ce_clamp(int, (y - 100 * cb - 208 * cr + 128) / 256, 0, UCHAR_MAX);
-			texels[index + 2] = ce_clamp(int, (y + 516 * cb + 128) / 256, 0, UCHAR_MAX);
-			texels[index + 3] = UCHAR_MAX;
-		}
-	}
-}
 
 static void ce_videoinstance_exec(ce_videoinstance* videoinstance)
 {
@@ -69,9 +36,28 @@ static void ce_videoinstance_exec(ce_videoinstance* videoinstance)
 			break;
 		}
 
-		size_t j = i % CE_VIDEOINSTANCE_CACHE_SIZE;
-		ce_videoinstance_prepare(videoinstance->cache[j],
-								&videoinstance->videoresource->ycbcr);
+		ce_mmpfile* mmpfile = videoinstance->cache[i % CE_VIDEOINSTANCE_CACHE_SIZE];
+		ce_ycbcr* ycbcr = &videoinstance->videoresource->ycbcr;
+
+		unsigned char* y_data = mmpfile->texels;
+		unsigned char* cb_data = y_data + mmpfile->width * mmpfile->height;
+		unsigned char* cr_data = cb_data + (mmpfile->width / 2) * (mmpfile->height / 2);
+
+		int y_offset = (ycbcr->crop_rect.x & ~1) + ycbcr->planes[0].stride * (ycbcr->crop_rect.y & ~1);
+		int cb_offset = (ycbcr->crop_rect.x / 2) + ycbcr->planes[1].stride * (ycbcr->crop_rect.y / 2);
+		int cr_offset = (ycbcr->crop_rect.x / 2) + ycbcr->planes[2].stride * (ycbcr->crop_rect.y / 2);
+
+		for (unsigned int h = 0; h < ycbcr->crop_rect.height; ++h) {
+			memcpy(y_data + h * ycbcr->crop_rect.width, ycbcr->planes[0].data +
+				y_offset + h * ycbcr->planes[0].stride, ycbcr->crop_rect.width);
+		}
+
+		for (unsigned int h = 0; h < ycbcr->crop_rect.height / 2; ++h) {
+			memcpy(cb_data + h * (ycbcr->crop_rect.width / 2), ycbcr->planes[1].data +
+				cb_offset + h * ycbcr->planes[1].stride, ycbcr->crop_rect.width / 2);
+			memcpy(cr_data + h * (ycbcr->crop_rect.width / 2), ycbcr->planes[2].data +
+				cr_offset + h * ycbcr->planes[2].stride, ycbcr->crop_rect.width / 2);
+		}
 
 		ce_semaphore_release(videoinstance->prepared_frames, 1);
 	}
@@ -86,7 +72,7 @@ ce_videoinstance* ce_videoinstance_new(ce_videoresource* videoresource)
 	for (size_t i = 0; i < CE_VIDEOINSTANCE_CACHE_SIZE; ++i) {
 		videoinstance->cache[i] = ce_mmpfile_new(videoresource->width,
 												videoresource->height, 1,
-												CE_MMPFILE_FORMAT_R8G8B8A8, 0);
+												CE_MMPFILE_FORMAT_YCBCR, 0);
 	}
 	videoinstance->prepared_frames = ce_semaphore_new(0);
 	videoinstance->unprepared_frames = ce_semaphore_new(CE_VIDEOINSTANCE_CACHE_SIZE);

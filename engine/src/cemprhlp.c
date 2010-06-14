@@ -222,8 +222,8 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 				int u = texture_index - texture_index / 8 * 8;
 				int v = 7 - texture_index / 8;
 
-				int p = v * tile_size2 + (8 >> m); // skip border
-				int q = u * tile_size2 + (8 >> m); // skip border
+				int p = v * tile_size2 + (8U >> m); // skip border
+				int q = u * tile_size2 + (8U >> m); // skip border
 
 				int idx = ce_mprhlp_texture_number(texture);
 
@@ -251,12 +251,12 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 	}
 
 	texels += ce_mmpfile_storage_size(tex_size,
-		tex_size, 1, mmpfile->bit_count) / sizeof(uint32_t);
+		tex_size, 1, mmpfile->format) / sizeof(uint32_t);
 
 	for (int i = 0; i < mprfile->texture_count; ++i) {
 		ce_mmpfile* tile_mmpfile = tile_mmpfiles->items[i];
 		texels2[i] += ce_mmpfile_storage_size(tex_size2,
-			tex_size2, 1, tile_mmpfile->bit_count) / sizeof(uint32_t);
+			tex_size2, 1, tile_mmpfile->format) / sizeof(uint32_t);
 	}
 
 	}

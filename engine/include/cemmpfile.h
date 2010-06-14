@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,9 +28,12 @@
 #include "ceresfile.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
+
+enum {
+	CE_MMPFILE_VERSION = 1
+};
 
 typedef enum {
 	CE_MMPFILE_FORMAT_UNKNOWN,
@@ -47,12 +50,9 @@ typedef enum {
 	CE_MMPFILE_FORMAT_RGBA4,
 	CE_MMPFILE_FORMAT_RGBA8,
 	CE_MMPFILE_FORMAT_R8G8B8A8,
+	CE_MMPFILE_FORMAT_YCBCR,
 	CE_MMPFILE_FORMAT_COUNT
 } ce_mmpfile_format;
-
-enum {
-	CE_MMPFILE_VERSION = 1
-};
 
 typedef struct {
 	// standard EI header
@@ -73,7 +73,7 @@ typedef struct {
 } ce_mmpfile;
 
 extern size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height,
-								unsigned int mipmap_count, unsigned int bit_count);
+							unsigned int mipmap_count, ce_mmpfile_format format);
 
 extern ce_mmpfile* ce_mmpfile_new(unsigned int width, unsigned int height,
 	unsigned int mipmap_count, ce_mmpfile_format format, unsigned int user_info);
@@ -84,9 +84,10 @@ extern void ce_mmpfile_del(ce_mmpfile* mmpfile);
 
 extern void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path);
 extern void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format);
+extern void ce_mmpfile_convert2(ce_mmpfile* mmpfile, ce_mmpfile* other);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_MMPFILE_H */

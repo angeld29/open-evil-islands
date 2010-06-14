@@ -37,6 +37,7 @@ static ce_optparse* optparse;
 static ce_soundinstance* soundinstance;
 static ce_videoinstance* videoinstance;
 
+static ce_mmpfile* rgba;
 static ce_texture* texture;
 
 static ce_inputsupply* inputsupply;
@@ -47,7 +48,9 @@ static bool pause;
 static void clean()
 {
 	ce_inputsupply_del(inputsupply);
+
 	ce_texture_del(texture);
+	ce_mmpfile_del(rgba);
 
 	ce_videoinstance_del(videoinstance);
 	ce_soundinstance_del(soundinstance);
@@ -76,12 +79,17 @@ static void advance(void* listener, float elapsed)
 		}
 	}
 
-	ce_mmpfile* mmpfile = ce_videoinstance_acquire_frame(videoinstance);
-	if (NULL != mmpfile) {
+	ce_mmpfile* ycbcr = ce_videoinstance_acquire_frame(videoinstance);
+	if (NULL != ycbcr) {
+		if (NULL == rgba) {
+			rgba = ce_mmpfile_new(ycbcr->width, ycbcr->height, 1,
+									CE_MMPFILE_FORMAT_R8G8B8A8, 0);
+		}
+		ce_mmpfile_convert2(ycbcr, rgba);
 		if (NULL != texture) {
-			ce_texture_replace(texture, mmpfile);
+			ce_texture_replace(texture, rgba);
 		} else {
-			texture = ce_texture_new("frame", mmpfile);
+			texture = ce_texture_new("frame", rgba);
 		}
 		ce_videoinstance_release_frame(videoinstance);
 	}

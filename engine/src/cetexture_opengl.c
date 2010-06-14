@@ -128,7 +128,7 @@ static void ce_texture_generate(ce_mmpfile* mmpfile,
 			i < mipmap_count; ++i, width >>= 1, height >>= 1) {
 		ce_texture_specify(width, height, i,
 			internal_format, data_format, data_type, src);
-		src += ce_mmpfile_storage_size(width, height, 1, mmpfile->bit_count);
+		src += ce_mmpfile_storage_size(width, height, 1, mmpfile->format);
 	}
 
 	if (not_aligned) {
@@ -146,7 +146,7 @@ static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 
 	for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mipmap_count; ++i, width >>= 1, height >>= 1) {
-		size_t size = ce_mmpfile_storage_size(width, height, 1, mmpfile->bit_count);
+		size_t size = ce_mmpfile_storage_size(width, height, 1, mmpfile->format);
 		glCompressedTexImage2D(GL_TEXTURE_2D, i,
 			internal_format, width, height, 0, size, src);
 		src += size;

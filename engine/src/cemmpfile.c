@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include <math.h>
 #include <assert.h>
 
@@ -54,6 +55,7 @@ static const uint32_t ce_mmpfile_format_signatures[CE_MMPFILE_FORMAT_COUNT] = {
 	[CE_MMPFILE_FORMAT_RGBA4] = 0x45434444,
 	[CE_MMPFILE_FORMAT_RGBA8] = 0x45438888,
 	[CE_MMPFILE_FORMAT_R8G8B8A8] = 0x45435442,
+	[CE_MMPFILE_FORMAT_YCBCR] = 0x4543554c,
 };
 
 static ce_mmpfile_format ce_mmpfile_format_find(uint32_t signature)
@@ -66,15 +68,32 @@ static ce_mmpfile_format ce_mmpfile_format_find(uint32_t signature)
 	return CE_MMPFILE_FORMAT_UNKNOWN;
 }
 
-static void ce_mmpfile_write_header_unknown(ce_mmpfile* mmpfile)
+static const uint32_t ce_mmpfile_bit_counts[CE_MMPFILE_FORMAT_COUNT] = {
+	[CE_MMPFILE_FORMAT_UNKNOWN] = 0,
+	[CE_MMPFILE_FORMAT_DXT1] = 4,
+	[CE_MMPFILE_FORMAT_DXT3] = 8,
+	[CE_MMPFILE_FORMAT_PNT3] = 0,
+	[CE_MMPFILE_FORMAT_R5G6B5] = 16,
+	[CE_MMPFILE_FORMAT_A1RGB5] = 16,
+	[CE_MMPFILE_FORMAT_ARGB4] = 16,
+	[CE_MMPFILE_FORMAT_ARGB8] = 32,
+	[CE_MMPFILE_FORMAT_RGB5A1] = 16,
+	[CE_MMPFILE_FORMAT_RGBA4] = 16,
+	[CE_MMPFILE_FORMAT_RGBA8] = 32,
+	[CE_MMPFILE_FORMAT_R8G8B8A8] = 32,
+	[CE_MMPFILE_FORMAT_YCBCR] = 24,
+};
+
+static void ce_mmpfile_write_header_null(ce_mmpfile* mmpfile)
 {
-	ce_unused(mmpfile);
-	assert(false && "not implemented");
+	mmpfile->amask = 0x0; mmpfile->ashift = 0; mmpfile->acount = 0;
+	mmpfile->rmask = 0x0; mmpfile->rshift = 0; mmpfile->rcount = 0;
+	mmpfile->gmask = 0x0; mmpfile->gshift = 0; mmpfile->gcount = 0;
+	mmpfile->bmask = 0x0; mmpfile->bshift = 0; mmpfile->bcount = 0;
 }
 
 static void ce_mmpfile_write_header_dxt1(ce_mmpfile* mmpfile)
 {
-	mmpfile->bit_count = 4;
 	mmpfile->amask = 0x8000; mmpfile->ashift = 15; mmpfile->acount = 1;
 	mmpfile->rmask = 0x7c00; mmpfile->rshift = 10; mmpfile->rcount = 5;
 	mmpfile->gmask = 0x3e0;  mmpfile->gshift = 5;  mmpfile->gcount = 5;
@@ -83,7 +102,6 @@ static void ce_mmpfile_write_header_dxt1(ce_mmpfile* mmpfile)
 
 static void ce_mmpfile_write_header_dxt3(ce_mmpfile* mmpfile)
 {
-	mmpfile->bit_count = 8;
 	mmpfile->amask = 0xf000; mmpfile->ashift = 12; mmpfile->acount = 4;
 	mmpfile->rmask = 0xf00;  mmpfile->rshift = 8;  mmpfile->rcount = 4;
 	mmpfile->gmask = 0xf0;   mmpfile->gshift = 4;  mmpfile->gcount = 4;
@@ -92,7 +110,6 @@ static void ce_mmpfile_write_header_dxt3(ce_mmpfile* mmpfile)
 
 static void ce_mmpfile_write_header_r5g6b5(ce_mmpfile* mmpfile)
 {
-	mmpfile->bit_count = 16;
 	mmpfile->amask = 0x0;    mmpfile->ashift = 0;  mmpfile->acount = 0;
 	mmpfile->rmask = 0xf800; mmpfile->rshift = 11; mmpfile->rcount = 5;
 	mmpfile->gmask = 0x7e0;  mmpfile->gshift = 5;  mmpfile->gcount = 6;
@@ -101,7 +118,6 @@ static void ce_mmpfile_write_header_r5g6b5(ce_mmpfile* mmpfile)
 
 static void ce_mmpfile_write_header_a1rgb5(ce_mmpfile* mmpfile)
 {
-	mmpfile->bit_count = 16;
 	mmpfile->amask = 0x8000; mmpfile->ashift = 15; mmpfile->acount = 1;
 	mmpfile->rmask = 0x7c00; mmpfile->rshift = 10; mmpfile->rcount = 5;
 	mmpfile->gmask = 0x3e0;  mmpfile->gshift = 5;  mmpfile->gcount = 5;
@@ -110,7 +126,6 @@ static void ce_mmpfile_write_header_a1rgb5(ce_mmpfile* mmpfile)
 
 static void ce_mmpfile_write_header_argb4(ce_mmpfile* mmpfile)
 {
-	mmpfile->bit_count = 16;
 	mmpfile->amask = 0xf000; mmpfile->ashift = 12; mmpfile->acount = 4;
 	mmpfile->rmask = 0xf00;  mmpfile->rshift = 8;  mmpfile->rcount = 4;
 	mmpfile->gmask = 0xf0;   mmpfile->gshift = 4;  mmpfile->gcount = 4;
@@ -119,7 +134,6 @@ static void ce_mmpfile_write_header_argb4(ce_mmpfile* mmpfile)
 
 static void ce_mmpfile_write_header_argb8(ce_mmpfile* mmpfile)
 {
-	mmpfile->bit_count = 32;
 	mmpfile->amask = 0xff000000; mmpfile->ashift = 24; mmpfile->acount = 8;
 	mmpfile->rmask = 0xff0000;   mmpfile->rshift = 16; mmpfile->rcount = 8;
 	mmpfile->gmask = 0xff00;     mmpfile->gshift = 8;  mmpfile->gcount = 8;
@@ -128,7 +142,6 @@ static void ce_mmpfile_write_header_argb8(ce_mmpfile* mmpfile)
 
 static void ce_mmpfile_write_header_rgb5a1(ce_mmpfile* mmpfile)
 {
-	mmpfile->bit_count = 16;
 	mmpfile->amask = 0x1f;   mmpfile->ashift = 0;  mmpfile->acount = 5;
 	mmpfile->rmask = 0x8000; mmpfile->rshift = 15; mmpfile->rcount = 1;
 	mmpfile->gmask = 0x7c00; mmpfile->gshift = 10; mmpfile->gcount = 5;
@@ -137,7 +150,6 @@ static void ce_mmpfile_write_header_rgb5a1(ce_mmpfile* mmpfile)
 
 static void ce_mmpfile_write_header_rgba4(ce_mmpfile* mmpfile)
 {
-	mmpfile->bit_count = 16;
 	mmpfile->amask = 0xf;    mmpfile->ashift = 0;  mmpfile->acount = 4;
 	mmpfile->rmask = 0xf000; mmpfile->rshift = 12; mmpfile->rcount = 4;
 	mmpfile->gmask = 0xf00;  mmpfile->gshift = 8;  mmpfile->gcount = 4;
@@ -146,27 +158,17 @@ static void ce_mmpfile_write_header_rgba4(ce_mmpfile* mmpfile)
 
 static void ce_mmpfile_write_header_rgba8(ce_mmpfile* mmpfile)
 {
-	mmpfile->bit_count = 32;
 	mmpfile->amask = 0xff;       mmpfile->ashift = 0;  mmpfile->acount = 8;
 	mmpfile->rmask = 0xff000000; mmpfile->rshift = 24; mmpfile->rcount = 8;
 	mmpfile->gmask = 0xff0000;   mmpfile->gshift = 16; mmpfile->gcount = 8;
 	mmpfile->bmask = 0xff00;     mmpfile->bshift = 8;  mmpfile->bcount = 8;
 }
 
-static void ce_mmpfile_write_header_r8g8b8a8(ce_mmpfile* mmpfile)
-{
-	mmpfile->bit_count = 32;
-	mmpfile->amask = 0x0; mmpfile->ashift = 0; mmpfile->acount = 0;
-	mmpfile->rmask = 0x0; mmpfile->rshift = 0; mmpfile->rcount = 0;
-	mmpfile->gmask = 0x0; mmpfile->gshift = 0; mmpfile->gcount = 0;
-	mmpfile->bmask = 0x0; mmpfile->bshift = 0; mmpfile->bcount = 0;
-}
-
 static void (*ce_mmpfile_write_header_procs[CE_MMPFILE_FORMAT_COUNT])(ce_mmpfile*) = {
-	[CE_MMPFILE_FORMAT_UNKNOWN] = ce_mmpfile_write_header_unknown,
+	[CE_MMPFILE_FORMAT_UNKNOWN] = ce_mmpfile_write_header_null,
 	[CE_MMPFILE_FORMAT_DXT1] = ce_mmpfile_write_header_dxt1,
 	[CE_MMPFILE_FORMAT_DXT3] = ce_mmpfile_write_header_dxt3,
-	[CE_MMPFILE_FORMAT_PNT3] = ce_mmpfile_write_header_unknown,
+	[CE_MMPFILE_FORMAT_PNT3] = ce_mmpfile_write_header_null,
 	[CE_MMPFILE_FORMAT_R5G6B5] = ce_mmpfile_write_header_r5g6b5,
 	[CE_MMPFILE_FORMAT_A1RGB5] = ce_mmpfile_write_header_a1rgb5,
 	[CE_MMPFILE_FORMAT_ARGB4] = ce_mmpfile_write_header_argb4,
@@ -174,21 +176,58 @@ static void (*ce_mmpfile_write_header_procs[CE_MMPFILE_FORMAT_COUNT])(ce_mmpfile
 	[CE_MMPFILE_FORMAT_RGB5A1] = ce_mmpfile_write_header_rgb5a1,
 	[CE_MMPFILE_FORMAT_RGBA4] = ce_mmpfile_write_header_rgba4,
 	[CE_MMPFILE_FORMAT_RGBA8] = ce_mmpfile_write_header_rgba8,
-	[CE_MMPFILE_FORMAT_R8G8B8A8] = ce_mmpfile_write_header_r8g8b8a8,
+	[CE_MMPFILE_FORMAT_R8G8B8A8] = ce_mmpfile_write_header_null,
+	[CE_MMPFILE_FORMAT_YCBCR] = ce_mmpfile_write_header_null,
+};
+
+static inline size_t ce_mmpfile_storage_size_generic(unsigned int width,
+												unsigned int height,
+												ce_mmpfile_format format)
+{
+	return ce_mmpfile_bit_counts[format] * width * height / 8;
+}
+
+static size_t ce_mmpfile_storage_size_dxt(unsigned int width,
+											unsigned int height,
+											ce_mmpfile_format format)
+{
+	// special case for DXT format that have a block of fixed size:
+	// 8 for DXT1, 16 for DXT3
+	return ce_max(size_t, 2 * ce_mmpfile_bit_counts[format],
+		ce_mmpfile_storage_size_generic(width, height, format));
+}
+
+static size_t ce_mmpfile_storage_size_ycbcr(unsigned int width,
+											unsigned int height,
+											ce_mmpfile_format format)
+{
+	ce_unused(format);
+	return 3 * width * height / 2;
+}
+
+static size_t (*ce_mmpfile_storage_size_procs[CE_MMPFILE_FORMAT_COUNT])
+		(unsigned int width, unsigned int height, ce_mmpfile_format format) = {
+	[CE_MMPFILE_FORMAT_UNKNOWN] = ce_mmpfile_storage_size_generic,
+	[CE_MMPFILE_FORMAT_DXT1] = ce_mmpfile_storage_size_dxt,
+	[CE_MMPFILE_FORMAT_DXT3] = ce_mmpfile_storage_size_dxt,
+	[CE_MMPFILE_FORMAT_PNT3] = ce_mmpfile_storage_size_generic,
+	[CE_MMPFILE_FORMAT_R5G6B5] = ce_mmpfile_storage_size_generic,
+	[CE_MMPFILE_FORMAT_A1RGB5] = ce_mmpfile_storage_size_generic,
+	[CE_MMPFILE_FORMAT_ARGB4] = ce_mmpfile_storage_size_generic,
+	[CE_MMPFILE_FORMAT_ARGB8] = ce_mmpfile_storage_size_generic,
+	[CE_MMPFILE_FORMAT_RGB5A1] = ce_mmpfile_storage_size_generic,
+	[CE_MMPFILE_FORMAT_RGBA4] = ce_mmpfile_storage_size_generic,
+	[CE_MMPFILE_FORMAT_RGBA8] = ce_mmpfile_storage_size_generic,
+	[CE_MMPFILE_FORMAT_R8G8B8A8] = ce_mmpfile_storage_size_generic,
+	[CE_MMPFILE_FORMAT_YCBCR] = ce_mmpfile_storage_size_ycbcr,
 };
 
 size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height,
-							unsigned int mipmap_count, unsigned int bit_count)
+							unsigned int mipmap_count, ce_mmpfile_format format)
 {
 	size_t size = 0;
 	for (unsigned int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
-		size_t sz = bit_count * width * height / 8;
-		if (bit_count < 16) {
-			// special case for compressed mmp files
-			// that have a block of fixed size, for example, 8 for dxt1
-			sz = ce_max(size_t, sz, 2 * bit_count);
-		}
-		size += sz;
+		size += (*ce_mmpfile_storage_size_procs[format])(width, height, format);
 	}
 	return size;
 }
@@ -197,18 +236,18 @@ ce_mmpfile* ce_mmpfile_new(unsigned int width, unsigned int height,
 	unsigned int mipmap_count, ce_mmpfile_format format, unsigned int user_info)
 {
 	ce_mmpfile* mmpfile = ce_alloc(sizeof(ce_mmpfile));
-	(*ce_mmpfile_write_header_procs[format])(mmpfile);
 	mmpfile->width = width;
 	mmpfile->height = height;
 	mmpfile->mipmap_count = mipmap_count;
 	mmpfile->format = format;
-	mmpfile->size = ce_mmpfile_storage_size(width, height,
-											mipmap_count, mmpfile->bit_count);
+	mmpfile->bit_count = ce_mmpfile_bit_counts[format];
+	mmpfile->size = ce_mmpfile_storage_size(width, height, mipmap_count, format);
 	mmpfile->user_data_offset = CE_MMPFILE_HEADER_SIZE + mmpfile->size;
 	mmpfile->data = ce_alloc(mmpfile->size);
 	mmpfile->texels = mmpfile->data;
 	mmpfile->version = CE_MMPFILE_VERSION;
 	mmpfile->user_info = user_info;
+	(*ce_mmpfile_write_header_procs[format])(mmpfile);
 	return mmpfile;
 }
 
@@ -314,7 +353,7 @@ void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path)
 		header[21] = ce_cpu2le32(mmpfile->user_info);
 		fwrite(header, 4, 19, file);
 		fwrite(mmpfile->texels, 1, ce_mmpfile_storage_size(mmpfile->width,
-			mmpfile->height, mmpfile->mipmap_count, mmpfile->bit_count), file);
+			mmpfile->height, mmpfile->mipmap_count, mmpfile->format), file);
 		fwrite(header + 19, 4, 3, file);
 		fclose(file);
 	}
@@ -402,8 +441,8 @@ static void ce_mmpfile_convert_dxt(const ce_mmpfile* mmpfile, ce_mmpfile* other)
 	for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		squish_DecompressImage(rgba, width, height, blocks, flags);
-		rgba += ce_mmpfile_storage_size(width, height, 1, other->bit_count);
-		blocks += ce_mmpfile_storage_size(width, height, 1, mmpfile->bit_count);
+		rgba += ce_mmpfile_storage_size(width, height, 1, other->format);
+		blocks += ce_mmpfile_storage_size(width, height, 1, mmpfile->format);
 	}
 }
 
@@ -499,8 +538,34 @@ static void ce_mmpfile_convert_r8g8b8a8(const ce_mmpfile* mmpfile, ce_mmpfile* o
 	for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
 			i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
 		squish_CompressImage(rgba, width, height, blocks, flags, NULL);
-		rgba += ce_mmpfile_storage_size(width, height, 1, mmpfile->bit_count);
-		blocks += ce_mmpfile_storage_size(width, height, 1, other->bit_count);
+		rgba += ce_mmpfile_storage_size(width, height, 1, mmpfile->format);
+		blocks += ce_mmpfile_storage_size(width, height, 1, other->format);
+	}
+}
+
+static void ce_mmpfile_convert_ycbcr(const ce_mmpfile* mmpfile, ce_mmpfile* other)
+{
+	assert(CE_MMPFILE_FORMAT_R8G8B8A8 == other->format && "not implemented");
+
+	const uint8_t* y_data = mmpfile->texels;
+	const uint8_t* cb_data = y_data + mmpfile->width * mmpfile->height;
+	const uint8_t* cr_data = cb_data + (mmpfile->width / 2) * (mmpfile->height / 2);
+
+	uint8_t* texels = other->texels;
+
+	for (unsigned int h = 0; h < mmpfile->height; ++h) {
+		for (unsigned int w = 0; w < mmpfile->width; ++w) {
+			size_t index = 4 * (h * mmpfile->width + w);
+
+			int y = 298 * (y_data[h * mmpfile->width + w] - 16);
+			int cb = cb_data[(h / 2) * (mmpfile->width / 2) + w / 2] - 128;
+			int cr = cr_data[(h / 2) * (mmpfile->width / 2) + w / 2] - 128;
+
+			texels[index + 0] = ce_clamp(int, (y + 409 * cr + 128) / 256, 0, UCHAR_MAX);
+			texels[index + 1] = ce_clamp(int, (y - 100 * cb - 208 * cr + 128) / 256, 0, UCHAR_MAX);
+			texels[index + 2] = ce_clamp(int, (y + 516 * cb + 128) / 256, 0, UCHAR_MAX);
+			texels[index + 3] = UCHAR_MAX;
+		}
 	}
 }
 
@@ -518,6 +583,7 @@ static void (*ce_mmpfile_convert_procs[CE_MMPFILE_FORMAT_COUNT])
 	[CE_MMPFILE_FORMAT_RGBA4] = ce_mmpfile_convert_unknown,
 	[CE_MMPFILE_FORMAT_RGBA8] = ce_mmpfile_convert_unknown,
 	[CE_MMPFILE_FORMAT_R8G8B8A8] = ce_mmpfile_convert_r8g8b8a8,
+	[CE_MMPFILE_FORMAT_YCBCR] = ce_mmpfile_convert_ycbcr,
 };
 
 void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format)
@@ -539,4 +605,9 @@ void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format)
 	*other = temp;
 
 	ce_mmpfile_del(other);
+}
+
+void ce_mmpfile_convert2(ce_mmpfile* mmpfile, ce_mmpfile* other)
+{
+	(*ce_mmpfile_convert_procs[mmpfile->format])(mmpfile, other);
 }
