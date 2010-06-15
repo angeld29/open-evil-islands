@@ -73,8 +73,7 @@ void ce_event_queue_process(ce_event_queue* queue)
 		ce_event* event = queue->prev_events->items[i];
 		if ((*event->vtable.notify)(event)) {
 			ce_event_del(event);
-			ce_vector_remove_unordered(queue->prev_events, i);
-			--i;
+			ce_vector_remove_unordered(queue->prev_events, i--);
 		}
 	}
 

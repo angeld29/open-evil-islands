@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,46 +26,71 @@
 
 #include "cethread.h"
 #include "cemmpfile.h"
+#include "cesound.h"
+#include "cevideo.h"
 #include "cevideoresource.h"
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
 enum {
 	CE_VIDEOINSTANCE_CACHE_SIZE = 8,
 };
 
+enum {
+	CE_VIDEOINSTANCE_STATE_STOPPED,
+	CE_VIDEOINSTANCE_STATE_PAUSED,
+	CE_VIDEOINSTANCE_STATE_PLAYING,
+};
+
+enum {
+	CE_VIDEOINSTANCE_MODE_SYNC,
+	CE_VIDEOINSTANCE_MODE_PROGRESS,
+};
+
 typedef struct {
-	volatile bool done;
-	float time; // synchronization/playing time
+	ce_video_id video_id;
+	ce_sound_id sound_id;
+	int state, mode;
+	float time; // synchronization/playing time in seconds
 	int frame, desired_frame;
 	ce_videoresource* videoresource;
-	ce_mmpfile* cache[CE_VIDEOINSTANCE_CACHE_SIZE];
+	ce_mmpfile* frames[CE_VIDEOINSTANCE_CACHE_SIZE];
 	ce_semaphore* prepared_frames;
 	ce_semaphore* unprepared_frames;
 	ce_thread* thread;
+	volatile bool done;
 } ce_videoinstance;
 
-extern ce_videoinstance* ce_videoinstance_new(ce_videoresource* videoresource);
+extern ce_videoinstance* ce_videoinstance_new(ce_video_id video_id,
+												ce_sound_id sound_id,
+												ce_videoresource* videoresource);
 extern void ce_videoinstance_del(ce_videoinstance* videoinstance);
-
-// performs synchronization with other streams
-extern void ce_videoinstance_sync(ce_videoinstance* videoinstance, float time);
 
 // advances a video with specified time
 extern void ce_videoinstance_advance(ce_videoinstance* videoinstance, float elapsed);
 
-// advances a video with specified percents, if not streaming
+// performs synchronization with sound
+extern void ce_videoinstance_sync(ce_videoinstance* videoinstance, float time);
+
+// advances a video with specified percents
 extern void ce_videoinstance_progress(ce_videoinstance* videoinstance, int percents);
 
 extern ce_mmpfile* ce_videoinstance_acquire_frame(ce_videoinstance* videoinstance);
 extern void ce_videoinstance_release_frame(ce_videoinstance* videoinstance);
 
-extern bool ce_videoinstance_is_playing(ce_videoinstance* videoinstance);
+static inline bool ce_videoinstance_is_stopped(ce_videoinstance* videoinstance)
+{
+	return CE_VIDEOINSTANCE_STATE_STOPPED == videoinstance->state;
+}
+
+extern void ce_videoinstance_play(ce_videoinstance* videoinstance);
+extern void ce_videoinstance_pause(ce_videoinstance* videoinstance);
+extern void ce_videoinstance_stop(ce_videoinstance* videoinstance);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_VIDEOINSTANCE_H */

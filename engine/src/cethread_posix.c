@@ -101,6 +101,11 @@ void ce_thread_wait(ce_thread* thread)
 	}
 }
 
+ce_thread_id ce_thread_get_id(ce_thread* thread)
+{
+	return thread->handle;
+}
+
 struct ce_mutex {
 	pthread_mutex_t handle;
 };

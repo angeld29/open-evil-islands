@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,11 +37,11 @@ static void ce_videoinstance_exec(ce_videoinstance* videoinstance)
 		}
 
 		if (!ce_videoresource_read(videoinstance->videoresource)) {
-			videoinstance->done = true;
+			videoinstance->state = CE_VIDEOINSTANCE_STATE_STOPPED;
 			break;
 		}
 
-		ce_mmpfile* mmpfile = videoinstance->cache[i % CE_VIDEOINSTANCE_CACHE_SIZE];
+		ce_mmpfile* mmpfile = videoinstance->frames[i % CE_VIDEOINSTANCE_CACHE_SIZE];
 		ce_ycbcr* ycbcr = &videoinstance->videoresource->ycbcr;
 
 		unsigned char* y_data = mmpfile->texels;
@@ -68,14 +68,18 @@ static void ce_videoinstance_exec(ce_videoinstance* videoinstance)
 	}
 }
 
-ce_videoinstance* ce_videoinstance_new(ce_videoresource* videoresource)
+ce_videoinstance* ce_videoinstance_new(ce_video_id video_id,
+										ce_sound_id sound_id,
+										ce_videoresource* videoresource)
 {
 	ce_videoinstance* videoinstance = ce_alloc_zero(sizeof(ce_videoinstance));
+	videoinstance->video_id = video_id;
+	videoinstance->sound_id = sound_id;
 	videoinstance->frame = -1;
 	videoinstance->desired_frame = -1;
 	videoinstance->videoresource = videoresource;
 	for (size_t i = 0; i < CE_VIDEOINSTANCE_CACHE_SIZE; ++i) {
-		videoinstance->cache[i] = ce_mmpfile_new(videoresource->width,
+		videoinstance->frames[i] = ce_mmpfile_new(videoresource->width,
 												videoresource->height, 1,
 												CE_MMPFILE_FORMAT_YCBCR, 0);
 	}
@@ -99,7 +103,7 @@ void ce_videoinstance_del(ce_videoinstance* videoinstance)
 		ce_semaphore_del(videoinstance->prepared_frames);
 
 		for (size_t i = 0; i < CE_VIDEOINSTANCE_CACHE_SIZE; ++i) {
-			ce_mmpfile_del(videoinstance->cache[i]);
+			ce_mmpfile_del(videoinstance->frames[i]);
 		}
 
 		ce_videoresource_del(videoinstance->videoresource);
@@ -113,15 +117,15 @@ static inline void ce_videoinstance_advance_frame(ce_videoinstance* videoinstanc
 									videoinstance->time;
 }
 
-void ce_videoinstance_sync(ce_videoinstance* videoinstance, float time)
-{
-	videoinstance->time = time;
-	ce_videoinstance_advance_frame(videoinstance);
-}
-
 void ce_videoinstance_advance(ce_videoinstance* videoinstance, float elapsed)
 {
 	videoinstance->time += elapsed;
+	ce_videoinstance_advance_frame(videoinstance);
+}
+
+void ce_videoinstance_sync(ce_videoinstance* videoinstance, float time)
+{
+	videoinstance->time = time;
 	ce_videoinstance_advance_frame(videoinstance);
 }
 
@@ -140,7 +144,7 @@ ce_mmpfile* ce_videoinstance_acquire_frame(ce_videoinstance* videoinstance)
 			if (++videoinstance->frame == videoinstance->desired_frame ||
 					// or return the closest frame if possible
 					0 == ce_semaphore_available(videoinstance->prepared_frames)) {
-				return videoinstance->cache[videoinstance->frame %
+				return videoinstance->frames[videoinstance->frame %
 											CE_VIDEOINSTANCE_CACHE_SIZE];
 			}
 			ce_semaphore_release(videoinstance->unprepared_frames, 1);
@@ -155,7 +159,17 @@ void ce_videoinstance_release_frame(ce_videoinstance* videoinstance)
 	ce_semaphore_release(videoinstance->unprepared_frames, 1);
 }
 
-bool ce_videoinstance_is_playing(ce_videoinstance* videoinstance)
+void ce_videoinstance_play(ce_videoinstance* videoinstance)
 {
-	return !videoinstance->done;
+	videoinstance->state = CE_VIDEOINSTANCE_STATE_PLAYING;
+}
+
+void ce_videoinstance_pause(ce_videoinstance* videoinstance)
+{
+	videoinstance->state = CE_VIDEOINSTANCE_STATE_PAUSED;
+}
+
+void ce_videoinstance_stop(ce_videoinstance* videoinstance)
+{
+	videoinstance->state = CE_VIDEOINSTANCE_STATE_STOPPED;
 }

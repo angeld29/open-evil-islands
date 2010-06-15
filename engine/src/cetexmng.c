@@ -34,7 +34,7 @@ ce_texmng* ce_texmng_new(const char* path)
 	texmng->path = ce_string_new_str(path);
 	texmng->resfiles = ce_vector_new();
 	texmng->textures = ce_vector_new();
-	ce_logging_write("texmng: root path: '%s'", path);
+	ce_logging_write("texture manager: root path is '%s'", path);
 	return texmng;
 }
 
@@ -54,12 +54,12 @@ bool ce_texmng_register_resource(ce_texmng* texmng, const char* path)
 {
 	ce_resfile* resfile = ce_resfile_open_file(path);
 	if (NULL == resfile) {
-		ce_logging_error("texmng: loading '%s'... failed", path);
+		ce_logging_error("texture manager: loading '%s'... failed", path);
 		return false;
 	}
 
 	ce_vector_push_back(texmng->resfiles, resfile);
-	ce_logging_write("texmng: loading '%s'... ok", path);
+	ce_logging_write("texture manager: loading '%s'... ok", path);
 	return true;
 }
 

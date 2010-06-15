@@ -27,23 +27,17 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceroot.h"
-#include "cesoundinstance.h"
 
 static ce_optparse* optparse;
 
-static ce_soundinstance* soundinstance1;
-static ce_soundinstance* soundinstance2;
-
 static ce_inputsupply* inputsupply;
-static ce_inputevent* reset_event;
+static ce_inputevent* rewind_event;
+
+static ce_sound_id sound_id;
 
 static void clean()
 {
 	ce_inputsupply_del(inputsupply);
-
-	ce_soundinstance_del(soundinstance2);
-	ce_soundinstance_del(soundinstance1);
-
 	ce_optparse_del(optparse);
 }
 
@@ -52,70 +46,39 @@ static void advance(void* listener, float elapsed)
 	ce_unused(listener);
 	ce_inputsupply_advance(inputsupply, elapsed);
 
-	if (reset_event->triggered) {
-		ce_soundinstance_stop(soundinstance2);
-		ce_soundinstance_play(soundinstance2);
+	if (rewind_event->triggered) {
 	}
-}
-
-static ce_soundinstance* create_soundinstance(const char* path)
-{
-	ce_memfile* memfile = ce_memfile_open_path(path);
-	if (NULL == memfile) {
-		return NULL;
-	}
-
-	ce_soundresource* soundresource = ce_soundresource_new_builtin(memfile);
-	if (NULL == soundresource) {
-		ce_memfile_close(memfile);
-		return NULL;
-	}
-
-	ce_soundinstance* soundinstance = ce_soundinstance_new(soundresource);
-	if (NULL == soundinstance) {
-		ce_soundresource_del(soundresource);
-		return NULL;
-	}
-
-	return soundinstance;
 }
 
 int main(int argc, char* argv[])
 {
 	ce_alloc_init();
+	atexit(clean);
 
 	optparse = ce_root_create_optparse();
 
-	//ce_optparse_add(optparse, "track1", CE_TYPE_STRING, NULL, true,
-	//	NULL, NULL, "any *.oga file in 'CE/Stream'");
-	ce_optparse_add(optparse, "track2", CE_TYPE_STRING, NULL, true,
-		NULL, NULL, "any *.oga file in 'CE/Stream'");
+	ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true,
+		NULL, NULL, "any TRACK.* file in 'EI/Stream'");
 
 	if (!ce_optparse_parse(optparse, argc, argv) || !ce_root_init(optparse)) {
-		clean();
 		return EXIT_FAILURE;
 	}
 
-	atexit(clean);
+	const char* track;
+	ce_optparse_get(optparse, "track", &track);
 
-	const char *track1, *track2;
-	ce_optparse_get(optparse, "track1", &track1);
-	ce_optparse_get(optparse, "track2", &track2);
-
-	soundinstance2 = create_soundinstance(track2);
-	if (NULL == soundinstance2) {
-		ce_logging_error("main: could not play '%s'", track2);
-		return EXIT_FAILURE;
+	sound_id = ce_soundmanager_create(ce_root.soundmanager, track);
+	if (0 == sound_id) {
+		ce_logging_error("sound player: could not play audio track '%s'", track);
+	} else {
+		ce_soundmanager_play(ce_root.soundmanager, sound_id);
 	}
-
-	//ce_soundinstance_play(soundinstance1);
-	ce_soundinstance_play(soundinstance2);
 
 	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = NULL};
 	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
 
 	inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
-	reset_event = ce_inputsupply_single_front(inputsupply,
+	rewind_event = ce_inputsupply_single_front(inputsupply,
 					ce_inputsupply_button(inputsupply, CE_KB_R));
 
 	return ce_root_exec();

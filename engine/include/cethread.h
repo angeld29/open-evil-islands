@@ -59,6 +59,8 @@ extern void ce_thread_del(ce_thread* thread);
 
 extern void ce_thread_wait(ce_thread* thread);
 
+extern ce_thread_id ce_thread_get_id(ce_thread* thread);
+
 /*
  *  The mutex struct provides access serialization between threads.
 */

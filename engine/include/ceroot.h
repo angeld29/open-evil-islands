@@ -23,14 +23,15 @@
 
 #include <stdbool.h>
 
-#include "cetimer.h"
 #include "cethread.h"
+#include "cetimer.h"
 #include "ceevent.h"
 #include "ceinput.h"
 #include "cerenderwindow.h"
 #include "cerendersystem.h"
 #include "cesoundsystem.h"
 #include "cesoundmanager.h"
+#include "cevideomanager.h"
 #include "cetexmng.h"
 #include "cemprmng.h"
 #include "cemobmanager.h"
@@ -61,6 +62,7 @@ extern struct ce_root {
 	ce_rendersystem* rendersystem;
 	ce_soundsystem* soundsystem;
 	ce_soundmanager* soundmanager;
+	ce_video_manager* video_manager;
 	ce_texmng* texmng;
 	ce_mprmng* mprmng;
 	ce_mob_manager* mob_manager;

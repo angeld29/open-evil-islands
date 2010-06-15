@@ -84,6 +84,7 @@ static void ce_root_term(void)
 	ce_mob_manager_del(ce_root.mob_manager);
 	ce_mprmng_del(ce_root.mprmng);
 	ce_texmng_del(ce_root.texmng);
+	ce_video_manager_del(ce_root.video_manager);
 	ce_soundmanager_del(ce_root.soundmanager);
 	ce_soundsystem_del(ce_root.soundsystem);
 	ce_rendersystem_del(ce_root.rendersystem);
@@ -185,12 +186,17 @@ bool ce_root_init(ce_optparse* optparse)
 
 	ce_root.rendersystem = ce_rendersystem_new();
 	ce_root.soundsystem = ce_soundsystem_new_platform();
-	ce_root.soundmanager = ce_soundmanager_new();
-
-	char path[strlen(ei_path) + 32];
 
 	ce_logging_write("root: EI path is '%s'", ei_path);
 	ce_logging_write("root: CE path is '%s'", ce_path);
+
+	char path[strlen(ei_path) + 32];
+
+	snprintf(path, sizeof(path), "%s/Stream", ei_path);
+	ce_root.soundmanager = ce_soundmanager_new(path);
+
+	snprintf(path, sizeof(path), "%s/Movies", ei_path);
+	ce_root.video_manager = ce_video_manager_new(path);
 
 	snprintf(path, sizeof(path), "%s/Textures", ei_path);
 	ce_root.texmng = ce_texmng_new(path);
@@ -287,6 +293,7 @@ int ce_root_exec(void)
 		}
 
 		ce_soundmanager_advance(ce_root.soundmanager, elapsed);
+		ce_video_manager_advance(ce_root.video_manager, elapsed);
 
 		ce_scenemng_advance(ce_root.scenemng, elapsed);
 		ce_scenemng_render(ce_root.scenemng);
