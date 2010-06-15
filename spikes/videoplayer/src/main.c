@@ -44,8 +44,8 @@ static void clean()
 static void advance(void* listener, float elapsed)
 {
 	ce_unused(listener);
-	ce_inputsupply_advance(inputsupply, elapsed);
 
+	ce_inputsupply_advance(inputsupply, elapsed);
 	ce_video_helper_advance(video_id, elapsed);
 
 	if (pause_event->triggered) {
@@ -56,6 +56,13 @@ static void advance(void* listener, float elapsed)
 			ce_video_helper_play(video_id);
 		}
 	}
+}
+
+static void render(void* listener)
+{
+	ce_unused(listener);
+
+	ce_video_helper_render(video_id);
 }
 
 int main(int argc, char* argv[])
@@ -82,7 +89,7 @@ int main(int argc, char* argv[])
 		ce_video_helper_play(video_id);
 	}
 
-	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = NULL};
+	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = render};
 	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
 
 	inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
