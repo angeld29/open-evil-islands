@@ -30,12 +30,11 @@ extern "C" {
 #endif
 
 typedef struct {
-	ce_string* path;
 	ce_video_id last_video_id;
 	ce_vector* video_instances;
 } ce_video_manager;
 
-extern ce_video_manager* ce_video_manager_new(const char* path);
+extern ce_video_manager* ce_video_manager_new(void);
 extern void ce_video_manager_del(ce_video_manager* video_manager);
 
 extern void ce_video_manager_advance(ce_video_manager* video_manager, float elapsed);

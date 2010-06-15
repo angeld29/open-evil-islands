@@ -199,8 +199,7 @@ bool ce_root_init(ce_optparse* optparse)
 	snprintf(path, sizeof(path), "%s/Stream", ei_path);
 	ce_root.soundmanager = ce_soundmanager_new(path);
 
-	snprintf(path, sizeof(path), "%s/Movies", ei_path);
-	ce_root.video_manager = ce_video_manager_new(path);
+	ce_root.video_manager = ce_video_manager_new();
 
 	snprintf(path, sizeof(path), "%s/Textures", ei_path);
 	ce_root.texmng = ce_texmng_new(path);

@@ -28,12 +28,26 @@
 #include "ceroot.h"
 #include "cevideomanager.h"
 
-ce_video_manager* ce_video_manager_new(const char* path)
+static const char* ce_video_dirs[] = {"Movies"};
+static const char* ce_video_exts[] = {".ogv", ".bik"};
+
+enum {
+	CE_VIDEO_DIR_COUNT = sizeof(ce_video_dirs) / sizeof(ce_video_dirs[0]),
+	CE_VIDEO_EXT_COUNT = sizeof(ce_video_exts) / sizeof(ce_video_exts[0]),
+};
+
+ce_video_manager* ce_video_manager_new(void)
 {
+	char path[ce_root.ei_path->length + 16];
+
+	for (size_t i = 0; i < CE_VIDEO_DIR_COUNT; ++i) {
+		snprintf(path, sizeof(path), "%s/%s",
+			ce_root.ei_path->str, ce_video_dirs[i]);
+		ce_logging_write("video manager: using path '%s'", path);
+	}
+
 	ce_video_manager* video_manager = ce_alloc_zero(sizeof(ce_video_manager));
-	video_manager->path = ce_string_new_str(path);
 	video_manager->video_instances = ce_vector_new();
-	ce_logging_write("video manager: root path is '%s'", path);
 	return video_manager;
 }
 
@@ -42,7 +56,6 @@ void ce_video_manager_del(ce_video_manager* video_manager)
 	if (NULL != video_manager) {
 		ce_vector_for_each(video_manager->video_instances, ce_videoinstance_del);
 		ce_vector_del(video_manager->video_instances);
-		ce_string_del(video_manager->path);
 		ce_free(video_manager, sizeof(ce_video_manager));
 	}
 }
@@ -62,14 +75,18 @@ void ce_video_manager_advance(ce_video_manager* video_manager, float elapsed)
 
 static ce_memfile* ce_video_manager_open(ce_video_manager* video_manager, const char* name)
 {
-	char path[video_manager->path->length + strlen(name) + 16];
-	const char* extensions[] = {"ogv", "bik"};
+	ce_unused(video_manager);
 
-	for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
-		snprintf(path, sizeof(path), "%s/%s.%s", video_manager->path->str, name, extensions[i]);
-		ce_memfile* memfile = ce_memfile_open_path(path);
-		if (NULL != memfile) {
-			return memfile;
+	char path[ce_root.ei_path->length + strlen(name) + 32];
+
+	for (size_t i = 0; i < CE_VIDEO_DIR_COUNT; ++i) {
+		for (size_t j = 0; j < CE_VIDEO_EXT_COUNT; ++j) {
+			snprintf(path, sizeof(path), "%s/%s/%s%s",
+				ce_root.ei_path->str, ce_video_dirs[i], name, ce_video_exts[j]);
+			ce_memfile* memfile = ce_memfile_open_path(path);
+			if (NULL != memfile) {
+				return memfile;
+			}
 		}
 	}
 
