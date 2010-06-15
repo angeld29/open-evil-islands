@@ -43,14 +43,6 @@ extern void ce_soundmanager_advance(ce_soundmanager* soundmanager, float elapsed
 extern ce_sound_id ce_soundmanager_create(ce_soundmanager* soundmanager, const char* name);
 extern ce_soundinstance* ce_soundmanager_find(ce_soundmanager* soundmanager, ce_sound_id sound_id);
 
-extern bool ce_soundmanager_is_stopped(ce_soundmanager* soundmanager, ce_sound_id sound_id);
-
-extern void ce_soundmanager_play(ce_soundmanager* soundmanager, ce_sound_id sound_id);
-extern void ce_soundmanager_pause(ce_soundmanager* soundmanager, ce_sound_id sound_id);
-extern void ce_soundmanager_stop(ce_soundmanager* soundmanager, ce_sound_id sound_id);
-
-extern float ce_soundmanager_time(ce_soundmanager* soundmanager, ce_sound_id sound_id);
-
 #ifdef __cplusplus
 }
 #endif

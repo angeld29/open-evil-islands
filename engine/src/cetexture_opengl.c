@@ -259,13 +259,13 @@ ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile)
 	ce_texture_opengl* opengl_texture = (ce_texture_opengl*)texture->impl;
 
 	texture->ref_count = 1;
-	texture->name = ce_string_new_str(name);
-	texture->width = mmpfile->width;
-	texture->height = mmpfile->height;
+	texture->name =  ce_string_new_str(NULL != name ? name : "");
 
 	glGenTextures(1, &opengl_texture->id);
 
-	ce_texture_replace(texture, mmpfile);
+	if (NULL != mmpfile) {
+		ce_texture_replace(texture, mmpfile);
+	}
 
 	return texture;
 }
@@ -291,6 +291,9 @@ bool ce_texture_equal(const ce_texture* texture, const ce_texture* other)
 
 void ce_texture_replace(ce_texture* texture, ce_mmpfile* mmpfile)
 {
+	texture->width = mmpfile->width;
+	texture->height = mmpfile->height;
+
 	ce_texture_bind(texture);
 	(*ce_texture_generate_procs[mmpfile->format])(mmpfile);
 	ce_texture_unbind(texture);

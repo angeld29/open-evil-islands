@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,11 +26,8 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceopengl.h"
-#include "cetexture.h"
 #include "ceroot.h"
-#include "cesoundinstance.h"
-#include "cevideoinstance.h"
+#include "cevideohelper.h"
 
 static ce_optparse* optparse;
 static ce_inputsupply* inputsupply;
@@ -49,12 +46,14 @@ static void advance(void* listener, float elapsed)
 	ce_unused(listener);
 	ce_inputsupply_advance(inputsupply, elapsed);
 
+	ce_video_helper_advance(video_id, elapsed);
+
 	if (pause_event->triggered) {
 		pause = !pause;
 		if (pause) {
-			ce_video_manager_pause(ce_root.video_manager, video_id);
+			ce_video_helper_pause(video_id);
 		} else {
-			ce_video_manager_play(ce_root.video_manager, video_id);
+			ce_video_helper_play(video_id);
 		}
 	}
 }
@@ -80,7 +79,7 @@ int main(int argc, char* argv[])
 	if (0 == video_id) {
 		ce_logging_error("video player: could not play video track '%s'", track);
 	} else {
-		ce_video_manager_play(ce_root.video_manager, video_id);
+		ce_video_helper_play(video_id);
 	}
 
 	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = NULL};

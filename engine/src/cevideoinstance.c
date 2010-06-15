@@ -25,6 +25,8 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceroot.h"
+#include "cesoundhelper.h"
 #include "cevideoinstance.h"
 
 static void ce_videoinstance_exec(ce_videoinstance* videoinstance)
@@ -78,6 +80,10 @@ ce_videoinstance* ce_videoinstance_new(ce_video_id video_id,
 	videoinstance->frame = -1;
 	videoinstance->desired_frame = -1;
 	videoinstance->videoresource = videoresource;
+	videoinstance->texture = ce_texture_new("frame", NULL);
+	videoinstance->rgba = ce_mmpfile_new(videoresource->width,
+										videoresource->height, 1,
+										CE_MMPFILE_FORMAT_R8G8B8A8, 0);
 	for (size_t i = 0; i < CE_VIDEOINSTANCE_CACHE_SIZE; ++i) {
 		videoinstance->frames[i] = ce_mmpfile_new(videoresource->width,
 												videoresource->height, 1,
@@ -106,57 +112,71 @@ void ce_videoinstance_del(ce_videoinstance* videoinstance)
 			ce_mmpfile_del(videoinstance->frames[i]);
 		}
 
+		ce_mmpfile_del(videoinstance->rgba);
+		ce_texture_del(videoinstance->texture);
 		ce_videoresource_del(videoinstance->videoresource);
+
 		ce_free(videoinstance, sizeof(ce_videoinstance));
 	}
 }
 
-static inline void ce_videoinstance_advance_frame(ce_videoinstance* videoinstance)
+static inline void ce_videoinstance_replace_texture(ce_videoinstance* videoinstance)
+{
+	ce_mmpfile* ycbcr = videoinstance->frames[videoinstance->frame %
+												CE_VIDEOINSTANCE_CACHE_SIZE];
+	// TODO: shader ?
+	ce_mmpfile_convert2(ycbcr, videoinstance->rgba);
+	ce_texture_replace(videoinstance->texture, videoinstance->rgba);
+}
+
+static void ce_videoinstance_do_advance(ce_videoinstance* videoinstance)
 {
 	videoinstance->desired_frame = videoinstance->videoresource->fps *
 									videoinstance->time;
+
+	// if sound or time far away
+	while (videoinstance->frame < videoinstance->desired_frame &&
+			ce_semaphore_try_acquire(videoinstance->prepared_frames, 1)) {
+		// skip frames to reach desired frame
+		if (++videoinstance->frame == videoinstance->desired_frame ||
+				// or use the closest frame
+				0 == ce_semaphore_available(videoinstance->prepared_frames)) {
+			ce_videoinstance_replace_texture(videoinstance);
+		}
+		ce_semaphore_release(videoinstance->unprepared_frames, 1);
+	}
 }
 
 void ce_videoinstance_advance(ce_videoinstance* videoinstance, float elapsed)
 {
-	videoinstance->time += elapsed;
-	ce_videoinstance_advance_frame(videoinstance);
-}
+	if (0 != videoinstance->sound_id) {
+		// sync with sound
+		videoinstance->time = ce_sound_helper_time(videoinstance->sound_id);
+	} else {
+		videoinstance->time += elapsed;
+	}
 
-void ce_videoinstance_sync(ce_videoinstance* videoinstance, float time)
-{
-	videoinstance->time = time;
-	ce_videoinstance_advance_frame(videoinstance);
+	ce_videoinstance_do_advance(videoinstance);
 }
 
 void ce_videoinstance_progress(ce_videoinstance* videoinstance, int percents)
 {
 	videoinstance->time = (videoinstance->videoresource->frame_count /
 		videoinstance->videoresource->fps) * (0.01f * percents);
-	ce_videoinstance_advance_frame(videoinstance);
+
+	ce_videoinstance_do_advance(videoinstance);
 }
 
-ce_mmpfile* ce_videoinstance_acquire_frame(ce_videoinstance* videoinstance)
+void ce_videoinstance_render(ce_videoinstance* videoinstance)
 {
-	// if other streams (or time) far away, skip frames to reach desired frame
-	if (videoinstance->frame < videoinstance->desired_frame) {
-		while (ce_semaphore_try_acquire(videoinstance->prepared_frames, 1)) {
-			if (++videoinstance->frame == videoinstance->desired_frame ||
-					// or return the closest frame if possible
-					0 == ce_semaphore_available(videoinstance->prepared_frames)) {
-				return videoinstance->frames[videoinstance->frame %
-											CE_VIDEOINSTANCE_CACHE_SIZE];
-			}
-			ce_semaphore_release(videoinstance->unprepared_frames, 1);
-		}
-		// frame is not ready - wait for it!
-	}
-	return NULL;
+	ce_rendersystem_draw_video_frame(ce_root.rendersystem, videoinstance->texture);
 }
 
-void ce_videoinstance_release_frame(ce_videoinstance* videoinstance)
+bool ce_videoinstance_is_stopped(ce_videoinstance* videoinstance)
 {
-	ce_semaphore_release(videoinstance->unprepared_frames, 1);
+	return 0 != videoinstance->sound_id ?
+		ce_sound_helper_is_stopped(videoinstance->sound_id) :
+		CE_VIDEOINSTANCE_STATE_STOPPED == videoinstance->state;
 }
 
 void ce_videoinstance_play(ce_videoinstance* videoinstance)

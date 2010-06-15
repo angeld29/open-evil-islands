@@ -18,33 +18,28 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_VIDEOMANAGER_H
-#define CE_VIDEOMANAGER_H
+#ifndef CE_VIDEOHELPER_H
+#define CE_VIDEOHELPER_H
 
-#include "cevector.h"
-#include "cestring.h"
-#include "cevideoinstance.h"
+#include "cevideo.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct {
-	ce_string* path;
-	ce_video_id last_video_id;
-	ce_vector* video_instances;
-} ce_video_manager;
+extern void ce_video_helper_advance(ce_video_id video_id, float elapsed);
+extern void ce_video_helper_progress(ce_video_id video_id, int percents);
 
-extern ce_video_manager* ce_video_manager_new(const char* path);
-extern void ce_video_manager_del(ce_video_manager* video_manager);
+extern void ce_video_helper_render(ce_video_id video_id);
 
-extern void ce_video_manager_advance(ce_video_manager* video_manager, float elapsed);
+extern bool ce_video_helper_is_stopped(ce_video_id video_id);
 
-extern ce_video_id ce_video_manager_create(ce_video_manager* video_manager, const char* name);
-extern ce_videoinstance* ce_video_manager_find(ce_video_manager* video_manager, ce_video_id video_id);
+extern void ce_video_helper_play(ce_video_id video_id);
+extern void ce_video_helper_pause(ce_video_id video_id);
+extern void ce_video_helper_stop(ce_video_id video_id);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CE_VIDEOMANAGER_H */
+#endif /* CE_VIDEOHELPER_H */

@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceroot.h"
+#include "cesoundhelper.h"
 
 static ce_optparse* optparse;
 
@@ -71,7 +72,7 @@ int main(int argc, char* argv[])
 	if (0 == sound_id) {
 		ce_logging_error("sound player: could not play audio track '%s'", track);
 	} else {
-		ce_soundmanager_play(ce_root.soundmanager, sound_id);
+		ce_sound_helper_play(sound_id);
 	}
 
 	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = NULL};

@@ -49,37 +49,15 @@ void ce_video_manager_del(ce_video_manager* video_manager)
 
 void ce_video_manager_advance(ce_video_manager* video_manager, float elapsed)
 {
-	/*if (!pause) {
-		if (NULL != soundinstance) {
-			ce_videoinstance_sync(videoinstance, ce_soundinstance_time(soundinstance));
-		} else {
-			ce_videoinstance_advance(videoinstance, elapsed);
-		}
-	}*/
-}
+	ce_unused(elapsed);
 
-void ce_video_manager_render(ce_video_manager* video_manager)
-{
-	/*ce_mmpfile* ycbcr = ce_videoinstance_acquire_frame(videoinstance);
-	if (NULL != ycbcr) {
-		if (NULL == rgba) {
-			rgba = ce_mmpfile_new(ycbcr->width, ycbcr->height, 1,
-									CE_MMPFILE_FORMAT_R8G8B8A8, 0);
+	for (size_t i = 0; i < video_manager->video_instances->count; ++i) {
+		ce_videoinstance* videoinstance = video_manager->video_instances->items[i];
+		if (ce_videoinstance_is_stopped(videoinstance)) {
+			ce_videoinstance_del(videoinstance);
+			ce_vector_remove_unordered(video_manager->video_instances, i--);
 		}
-		// TODO: shader
-		ce_mmpfile_convert2(ycbcr, rgba);
-		if (NULL != texture) {
-			ce_texture_replace(texture, rgba);
-		} else {
-			texture = ce_texture_new("frame", rgba);
-		}
-		ce_videoinstance_release_frame(videoinstance);
 	}
-	static ce_mmpfile* rgba;
-static ce_texture* texture;
-	ce_texture_del(texture);
-	ce_mmpfile_del(rgba);
-*/
 }
 
 static ce_memfile* ce_video_manager_open(ce_video_manager* video_manager, const char* name)
@@ -136,34 +114,4 @@ ce_videoinstance* ce_video_manager_find(ce_video_manager* video_manager, ce_vide
 		}
 	}
 	return NULL;
-}
-
-bool ce_video_manager_is_stopped(ce_video_manager* video_manager, ce_video_id video_id)
-{
-	ce_videoinstance* videoinstance = ce_video_manager_find(video_manager, video_id);
-	return NULL != videoinstance ? ce_videoinstance_is_stopped(videoinstance) : true;
-}
-
-void ce_video_manager_play(ce_video_manager* video_manager, ce_video_id video_id)
-{
-	ce_videoinstance* videoinstance = ce_video_manager_find(video_manager, video_id);
-	if (NULL != videoinstance) {
-		ce_videoinstance_play(videoinstance);
-	}
-}
-
-void ce_video_manager_pause(ce_video_manager* video_manager, ce_video_id video_id)
-{
-	ce_videoinstance* videoinstance = ce_video_manager_find(video_manager, video_id);
-	if (NULL != videoinstance) {
-		ce_videoinstance_pause(videoinstance);
-	}
-}
-
-void ce_video_manager_stop(ce_video_manager* video_manager, ce_video_id video_id)
-{
-	ce_videoinstance* videoinstance = ce_video_manager_find(video_manager, video_id);
-	if (NULL != videoinstance) {
-		ce_videoinstance_stop(videoinstance);
-	}
 }

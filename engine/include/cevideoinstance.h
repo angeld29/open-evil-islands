@@ -26,6 +26,7 @@
 
 #include "cethread.h"
 #include "cemmpfile.h"
+#include "cetexture.h"
 #include "cesound.h"
 #include "cevideo.h"
 #include "cevideoresource.h"
@@ -44,18 +45,15 @@ enum {
 	CE_VIDEOINSTANCE_STATE_PLAYING,
 };
 
-enum {
-	CE_VIDEOINSTANCE_MODE_SYNC,
-	CE_VIDEOINSTANCE_MODE_PROGRESS,
-};
-
 typedef struct {
 	ce_video_id video_id;
 	ce_sound_id sound_id;
-	int state, mode;
+	int state;
 	float time; // synchronization/playing time in seconds
 	int frame, desired_frame;
 	ce_videoresource* videoresource;
+	ce_texture* texture;
+	ce_mmpfile* rgba;
 	ce_mmpfile* frames[CE_VIDEOINSTANCE_CACHE_SIZE];
 	ce_semaphore* prepared_frames;
 	ce_semaphore* unprepared_frames;
@@ -68,22 +66,12 @@ extern ce_videoinstance* ce_videoinstance_new(ce_video_id video_id,
 												ce_videoresource* videoresource);
 extern void ce_videoinstance_del(ce_videoinstance* videoinstance);
 
-// advances a video with specified time
 extern void ce_videoinstance_advance(ce_videoinstance* videoinstance, float elapsed);
-
-// performs synchronization with sound
-extern void ce_videoinstance_sync(ce_videoinstance* videoinstance, float time);
-
-// advances a video with specified percents
 extern void ce_videoinstance_progress(ce_videoinstance* videoinstance, int percents);
 
-extern ce_mmpfile* ce_videoinstance_acquire_frame(ce_videoinstance* videoinstance);
-extern void ce_videoinstance_release_frame(ce_videoinstance* videoinstance);
+extern void ce_videoinstance_render(ce_videoinstance* videoinstance);
 
-static inline bool ce_videoinstance_is_stopped(ce_videoinstance* videoinstance)
-{
-	return CE_VIDEOINSTANCE_STATE_STOPPED == videoinstance->state;
-}
+extern bool ce_videoinstance_is_stopped(ce_videoinstance* videoinstance);
 
 extern void ce_videoinstance_play(ce_videoinstance* videoinstance);
 extern void ce_videoinstance_pause(ce_videoinstance* videoinstance);
