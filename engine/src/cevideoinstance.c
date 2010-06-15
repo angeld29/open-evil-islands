@@ -39,20 +39,23 @@ static void ce_videoinstance_exec(ce_videoinstance* videoinstance)
 		}
 
 		if (!ce_videoresource_read(videoinstance->videoresource)) {
-			videoinstance->state = CE_VIDEOINSTANCE_STATE_STOPPED;
+			videoinstance->state = CE_VIDEOINSTANCE_STATE_STOPPING;
 			break;
 		}
 
-		ce_mmpfile* mmpfile = videoinstance->frames[i % CE_VIDEOINSTANCE_CACHE_SIZE];
+		ce_mmpfile* ycbcr_frame = videoinstance->ycbcr_frames[i % CE_VIDEOINSTANCE_CACHE_SIZE];
 		ce_ycbcr* ycbcr = &videoinstance->videoresource->ycbcr;
 
-		unsigned char* y_data = mmpfile->texels;
-		unsigned char* cb_data = y_data + mmpfile->width * mmpfile->height;
-		unsigned char* cr_data = cb_data + (mmpfile->width / 2) * (mmpfile->height / 2);
+		unsigned char* y_data = ycbcr_frame->texels;
+		unsigned char* cb_data = y_data + ycbcr_frame->width * ycbcr_frame->height;
+		unsigned char* cr_data = cb_data + (ycbcr_frame->width / 2) * (ycbcr_frame->height / 2);
 
-		int y_offset = (ycbcr->crop_rect.x & ~1) + ycbcr->planes[0].stride * (ycbcr->crop_rect.y & ~1);
-		int cb_offset = (ycbcr->crop_rect.x / 2) + ycbcr->planes[1].stride * (ycbcr->crop_rect.y / 2);
-		int cr_offset = (ycbcr->crop_rect.x / 2) + ycbcr->planes[2].stride * (ycbcr->crop_rect.y / 2);
+		int y_offset = (ycbcr->crop_rect.x & ~1) +
+						ycbcr->planes[0].stride * (ycbcr->crop_rect.y & ~1);
+		int cb_offset = (ycbcr->crop_rect.x / 2) +
+						ycbcr->planes[1].stride * (ycbcr->crop_rect.y / 2);
+		int cr_offset = (ycbcr->crop_rect.x / 2) +
+						ycbcr->planes[2].stride * (ycbcr->crop_rect.y / 2);
 
 		for (unsigned int h = 0; h < ycbcr->crop_rect.height; ++h) {
 			memcpy(y_data + h * ycbcr->crop_rect.width, ycbcr->planes[0].data +
@@ -78,16 +81,13 @@ ce_videoinstance* ce_videoinstance_new(ce_video_id video_id,
 	videoinstance->video_id = video_id;
 	videoinstance->sound_id = sound_id;
 	videoinstance->frame = -1;
-	videoinstance->desired_frame = -1;
 	videoinstance->videoresource = videoresource;
 	videoinstance->texture = ce_texture_new("frame", NULL);
-	videoinstance->rgba = ce_mmpfile_new(videoresource->width,
-										videoresource->height, 1,
-										CE_MMPFILE_FORMAT_R8G8B8A8, 0);
+	videoinstance->rgba_frame = ce_mmpfile_new(videoresource->width,
+		videoresource->height, 1, CE_MMPFILE_FORMAT_R8G8B8A8, 0);
 	for (size_t i = 0; i < CE_VIDEOINSTANCE_CACHE_SIZE; ++i) {
-		videoinstance->frames[i] = ce_mmpfile_new(videoresource->width,
-												videoresource->height, 1,
-												CE_MMPFILE_FORMAT_YCBCR, 0);
+		videoinstance->ycbcr_frames[i] = ce_mmpfile_new(videoresource->width,
+			videoresource->height, 1, CE_MMPFILE_FORMAT_YCBCR, 0);
 	}
 	videoinstance->prepared_frames = ce_semaphore_new(0);
 	videoinstance->unprepared_frames = ce_semaphore_new(CE_VIDEOINSTANCE_CACHE_SIZE);
@@ -109,10 +109,10 @@ void ce_videoinstance_del(ce_videoinstance* videoinstance)
 		ce_semaphore_del(videoinstance->prepared_frames);
 
 		for (size_t i = 0; i < CE_VIDEOINSTANCE_CACHE_SIZE; ++i) {
-			ce_mmpfile_del(videoinstance->frames[i]);
+			ce_mmpfile_del(videoinstance->ycbcr_frames[i]);
 		}
 
-		ce_mmpfile_del(videoinstance->rgba);
+		ce_mmpfile_del(videoinstance->rgba_frame);
 		ce_texture_del(videoinstance->texture);
 		ce_videoresource_del(videoinstance->videoresource);
 
@@ -120,30 +120,31 @@ void ce_videoinstance_del(ce_videoinstance* videoinstance)
 	}
 }
 
-static inline void ce_videoinstance_replace_texture(ce_videoinstance* videoinstance)
-{
-	ce_mmpfile* ycbcr = videoinstance->frames[videoinstance->frame %
-												CE_VIDEOINSTANCE_CACHE_SIZE];
-	// TODO: shader ?
-	ce_mmpfile_convert2(ycbcr, videoinstance->rgba);
-	ce_texture_replace(videoinstance->texture, videoinstance->rgba);
-}
-
 static void ce_videoinstance_do_advance(ce_videoinstance* videoinstance)
 {
-	videoinstance->desired_frame = videoinstance->videoresource->fps *
-									videoinstance->time;
+	bool acquired = false;
+	int desired_frame = videoinstance->videoresource->fps * videoinstance->time;
 
 	// if sound or time far away
-	while (videoinstance->frame < videoinstance->desired_frame &&
+	while (videoinstance->frame < desired_frame &&
 			ce_semaphore_try_acquire(videoinstance->prepared_frames, 1)) {
 		// skip frames to reach desired frame
-		if (++videoinstance->frame == videoinstance->desired_frame ||
+		if (++videoinstance->frame == desired_frame ||
 				// or use the closest frame
 				0 == ce_semaphore_available(videoinstance->prepared_frames)) {
-			ce_videoinstance_replace_texture(videoinstance);
+			ce_mmpfile* ycbcr_frame = videoinstance->ycbcr_frames
+				[videoinstance->frame % CE_VIDEOINSTANCE_CACHE_SIZE];
+			ce_mmpfile_convert2(ycbcr_frame, videoinstance->rgba_frame);
+			ce_texture_replace(videoinstance->texture, videoinstance->rgba_frame);
+			acquired = true;
 		}
 		ce_semaphore_release(videoinstance->unprepared_frames, 1);
+	}
+
+	// TODO: think again how to hold last frame
+	if (CE_VIDEOINSTANCE_STATE_STOPPING == videoinstance->state && !acquired &&
+			0 == ce_semaphore_available(videoinstance->prepared_frames)) {
+		videoinstance->state = CE_VIDEOINSTANCE_STATE_STOPPED;
 	}
 }
 
@@ -169,7 +170,7 @@ void ce_videoinstance_progress(ce_videoinstance* videoinstance, int percents)
 
 void ce_videoinstance_render(ce_videoinstance* videoinstance)
 {
-	ce_rendersystem_draw_video_frame(ce_root.rendersystem, videoinstance->texture);
+	ce_rendersystem_draw_fullscreen_texture(ce_root.rendersystem, videoinstance->texture);
 }
 
 bool ce_videoinstance_is_stopped(ce_videoinstance* videoinstance)

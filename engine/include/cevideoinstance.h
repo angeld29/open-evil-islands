@@ -41,6 +41,7 @@ enum {
 
 enum {
 	CE_VIDEOINSTANCE_STATE_STOPPED,
+	CE_VIDEOINSTANCE_STATE_STOPPING,
 	CE_VIDEOINSTANCE_STATE_PAUSED,
 	CE_VIDEOINSTANCE_STATE_PLAYING,
 };
@@ -50,11 +51,11 @@ typedef struct {
 	ce_sound_id sound_id;
 	int state;
 	float time; // synchronization/playing time in seconds
-	int frame, desired_frame;
+	int frame;
 	ce_videoresource* videoresource;
 	ce_texture* texture;
-	ce_mmpfile* rgba;
-	ce_mmpfile* frames[CE_VIDEOINSTANCE_CACHE_SIZE];
+	ce_mmpfile* rgba_frame; // TODO: shader
+	ce_mmpfile* ycbcr_frames[CE_VIDEOINSTANCE_CACHE_SIZE];
 	ce_semaphore* prepared_frames;
 	ce_semaphore* unprepared_frames;
 	ce_thread* thread;

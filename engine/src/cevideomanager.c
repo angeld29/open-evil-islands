@@ -65,11 +65,11 @@ void ce_video_manager_advance(ce_video_manager* video_manager, float elapsed)
 	ce_unused(elapsed);
 
 	for (size_t i = 0; i < video_manager->video_instances->count; ++i) {
-		ce_videoinstance* videoinstance = video_manager->video_instances->items[i];
-		if (ce_videoinstance_is_stopped(videoinstance)) {
+		//ce_videoinstance* videoinstance = video_manager->video_instances->items[i];
+		/*if (ce_videoinstance_is_stopped(videoinstance)) {
 			ce_videoinstance_del(videoinstance);
 			ce_vector_remove_unordered(video_manager->video_instances, i--);
-		}
+		}*/
 	}
 }
 

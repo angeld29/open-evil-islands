@@ -54,7 +54,7 @@ extern void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem);
 extern void ce_rendersystem_draw_solid_cube(ce_rendersystem* rendersystem);
 
 // draw a fullscreen texture
-extern void ce_rendersystem_draw_video_frame(ce_rendersystem* rendersystem,
+extern void ce_rendersystem_draw_fullscreen_texture(ce_rendersystem* rendersystem,
 													ce_texture* texture);
 
 extern void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,

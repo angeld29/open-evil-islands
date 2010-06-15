@@ -275,7 +275,7 @@ void ce_rendersystem_draw_solid_cube(ce_rendersystem* rendersystem)
 	glCallList(opengl_system->solid_cube_list);
 }
 
-void ce_rendersystem_draw_video_frame(ce_rendersystem* rendersystem, ce_texture* texture)
+void ce_rendersystem_draw_fullscreen_texture(ce_rendersystem* rendersystem, ce_texture* texture)
 {
 	ce_unused(rendersystem);
 
