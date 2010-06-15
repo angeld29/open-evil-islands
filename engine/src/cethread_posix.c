@@ -26,6 +26,7 @@
  *     Copyright (C) 2009 Nokia Corporation.
 */
 
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 

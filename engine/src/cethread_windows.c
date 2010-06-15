@@ -25,6 +25,7 @@
  *     Copyright (C) 2009 Nokia Corporation.
 */
 
+#include <stdio.h>
 #include <assert.h>
 
 #include <windows.h>
@@ -52,6 +53,7 @@ ce_thread_id ce_thread_self(void)
 struct ce_thread {
 	ce_routine routine;
 	HANDLE handle;
+	DWORD id;
 };
 
 static DWORD WINAPI ce_thread_wrap(LPVOID arg)
@@ -63,18 +65,20 @@ static DWORD WINAPI ce_thread_wrap(LPVOID arg)
 
 ce_thread* ce_thread_new(void (*proc)(void*), void* arg)
 {
-	ce_thread* thread = ce_alloc(sizeof(ce_thread));
+	ce_thread* thread = ce_alloc_zero(sizeof(ce_thread));
 	thread->routine.proc = proc;
 	thread->routine.arg = arg;
 	thread->handle = CreateThread(NULL, // default security attributes
 								0,      // default stack size
 								ce_thread_wrap,
 								&thread->routine,
-								0,      // default creation flags
-								NULL);  // no thread identifier
+								0,            // default creation flags
+								&thread->id); // thread identifier
+
 	if (NULL == thread->handle) {
 		ce_error_report_windows_last("thread");
 	}
+
 	return thread;
 }
 
@@ -95,7 +99,7 @@ void ce_thread_wait(ce_thread* thread)
 
 ce_thread_id ce_thread_get_id(ce_thread* thread)
 {
-	return GetThreadId(thread->handle);
+	return thread->id;
 }
 
 struct ce_mutex {
