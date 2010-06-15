@@ -181,15 +181,18 @@ bool ce_videoinstance_is_stopped(ce_videoinstance* videoinstance)
 
 void ce_videoinstance_play(ce_videoinstance* videoinstance)
 {
+	ce_sound_helper_play(videoinstance->sound_id);
 	videoinstance->state = CE_VIDEOINSTANCE_STATE_PLAYING;
 }
 
 void ce_videoinstance_pause(ce_videoinstance* videoinstance)
 {
+	ce_sound_helper_pause(videoinstance->sound_id);
 	videoinstance->state = CE_VIDEOINSTANCE_STATE_PAUSED;
 }
 
 void ce_videoinstance_stop(ce_videoinstance* videoinstance)
 {
+	ce_sound_helper_stop(videoinstance->sound_id);
 	videoinstance->state = CE_VIDEOINSTANCE_STATE_STOPPED;
 }

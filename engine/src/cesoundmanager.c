@@ -25,14 +25,29 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceroot.h"
 #include "cesoundmanager.h"
 
-ce_soundmanager* ce_soundmanager_new(const char* path)
+static const char* ce_sound_dirs[] = {"Stream", "Movies"};
+static const char* ce_sound_exts[] = {".wav", ".oga", ".mp3", ".ogv", ".bik"};
+
+enum {
+	CE_SOUND_DIR_COUNT = sizeof(ce_sound_dirs) / sizeof(ce_sound_dirs[0]),
+	CE_SOUND_EXT_COUNT = sizeof(ce_sound_exts) / sizeof(ce_sound_exts[0]),
+};
+
+ce_soundmanager* ce_soundmanager_new(void)
 {
+	char path[ce_root.ei_path->length + 16];
+
+	for (size_t i = 0; i < CE_SOUND_DIR_COUNT; ++i) {
+		snprintf(path, sizeof(path), "%s/%s",
+			ce_root.ei_path->str, ce_sound_dirs[i]);
+		ce_logging_write("sound manager: using path '%s'", path);
+	}
+
 	ce_soundmanager* soundmanager = ce_alloc_zero(sizeof(ce_soundmanager));
-	soundmanager->path = ce_string_new_str(path);
 	soundmanager->soundinstances = ce_vector_new();
-	ce_logging_write("sound manager: root path is '%s'", path);
 	return soundmanager;
 }
 
@@ -41,7 +56,6 @@ void ce_soundmanager_del(ce_soundmanager* soundmanager)
 	if (NULL != soundmanager) {
 		ce_vector_for_each(soundmanager->soundinstances, ce_soundinstance_del);
 		ce_vector_del(soundmanager->soundinstances);
-		ce_string_del(soundmanager->path);
 		ce_free(soundmanager, sizeof(ce_soundmanager));
 	}
 }
@@ -59,16 +73,18 @@ void ce_soundmanager_advance(ce_soundmanager* soundmanager, float elapsed)
 	}
 }
 
-static ce_memfile* ce_soundmanager_open(ce_soundmanager* soundmanager, const char* name)
+static ce_memfile* ce_soundmanager_open(const char* name)
 {
-	char path[soundmanager->path->length + strlen(name) + 16];
-	const char* extensions[] = {"wav", "oga", "mp3", "ogv", "bik"};
+	char path[ce_root.ei_path->length + strlen(name) + 32];
 
-	for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
-		snprintf(path, sizeof(path), "%s/%s.%s", soundmanager->path->str, name, extensions[i]);
-		ce_memfile* memfile = ce_memfile_open_path(path);
-		if (NULL != memfile) {
-			return memfile;
+	for (size_t i = 0; i < CE_SOUND_DIR_COUNT; ++i) {
+		for (size_t j = 0; j < CE_SOUND_EXT_COUNT; ++j) {
+			snprintf(path, sizeof(path), "%s/%s/%s%s",
+				ce_root.ei_path->str, ce_sound_dirs[i], name, ce_sound_exts[j]);
+			ce_memfile* memfile = ce_memfile_open_path(path);
+			if (NULL != memfile) {
+				return memfile;
+			}
 		}
 	}
 
@@ -77,14 +93,13 @@ static ce_memfile* ce_soundmanager_open(ce_soundmanager* soundmanager, const cha
 
 ce_sound_id ce_soundmanager_create(ce_soundmanager* soundmanager, const char* name)
 {
-	ce_memfile* memfile = ce_soundmanager_open(soundmanager, name);
+	ce_memfile* memfile = ce_soundmanager_open(name);
 	if (NULL == memfile) {
 		return 0;
 	}
 
 	ce_soundresource* soundresource = ce_soundresource_new_builtin(memfile);
 	if (NULL == soundresource) {
-		ce_logging_error("sound manager: could not find decoder for '%s'", name);
 		ce_memfile_close(memfile);
 		return 0;
 	}

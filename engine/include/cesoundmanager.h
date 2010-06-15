@@ -30,12 +30,11 @@ extern "C" {
 #endif
 
 typedef struct {
-	ce_string* path;
 	ce_sound_id last_sound_id;
 	ce_vector* soundinstances;
 } ce_soundmanager;
 
-extern ce_soundmanager* ce_soundmanager_new(const char* path);
+extern ce_soundmanager* ce_soundmanager_new(void);
 extern void ce_soundmanager_del(ce_soundmanager* soundmanager);
 
 extern void ce_soundmanager_advance(ce_soundmanager* soundmanager, float elapsed);

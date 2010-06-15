@@ -61,8 +61,5 @@ void ce_sound_helper_stop(ce_sound_id sound_id)
 float ce_sound_helper_time(ce_sound_id sound_id)
 {
 	ce_soundinstance* soundinstance = ce_soundmanager_find(ce_root.soundmanager, sound_id);
-	if (NULL != soundinstance) {
-		return ce_soundinstance_time(soundinstance);
-	}
-	return 0.0f;
+	return NULL != soundinstance ? ce_soundinstance_time(soundinstance) : 0.0f;
 }

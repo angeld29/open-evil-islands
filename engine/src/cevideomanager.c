@@ -73,10 +73,8 @@ void ce_video_manager_advance(ce_video_manager* video_manager, float elapsed)
 	}
 }
 
-static ce_memfile* ce_video_manager_open(ce_video_manager* video_manager, const char* name)
+static ce_memfile* ce_video_manager_open(const char* name)
 {
-	ce_unused(video_manager);
-
 	char path[ce_root.ei_path->length + strlen(name) + 32];
 
 	for (size_t i = 0; i < CE_VIDEO_DIR_COUNT; ++i) {
@@ -95,14 +93,13 @@ static ce_memfile* ce_video_manager_open(ce_video_manager* video_manager, const 
 
 ce_video_id ce_video_manager_create(ce_video_manager* video_manager, const char* name)
 {
-	ce_memfile* memfile = ce_video_manager_open(video_manager, name);
+	ce_memfile* memfile = ce_video_manager_open(name);
 	if (NULL == memfile) {
 		return 0;
 	}
 
 	ce_videoresource* video_resource = ce_videoresource_new(memfile);
 	if (NULL == video_resource) {
-		ce_logging_error("video manager: could not find decoder for '%s'", name);
 		ce_memfile_close(memfile);
 		return 0;
 	}
