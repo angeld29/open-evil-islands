@@ -26,7 +26,6 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cethread.h"
 #include "cesysteminfo.h"
 #include "cesystemevent.h"
 #include "ceavcodec.h"
@@ -92,6 +91,8 @@ static void ce_root_term(void)
 	ce_threadpool_del(ce_root.threadpool);
 	ce_event_manager_del(ce_root.event_manager);
 	ce_timer_del(ce_root.timer);
+	ce_string_del(ce_root.ce_path);
+	ce_string_del(ce_root.ei_path);
 }
 
 bool ce_root_init(ce_optparse* optparse)
@@ -138,6 +139,9 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.show_bboxes = false;
 	ce_root.comprehensive_bbox_only = true;
 	ce_root.anmfps = 15.0f;
+
+	ce_root.ei_path = ce_string_new_str(ei_path);
+	ce_root.ce_path = ce_string_new_str(ce_path);
 
 	ce_root.timer = ce_timer_new();
 	ce_root.event_manager = ce_event_manager_new();

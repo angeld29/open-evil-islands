@@ -23,6 +23,7 @@
 
 #include <stdbool.h>
 
+#include "cestring.h"
 #include "cethread.h"
 #include "cetimer.h"
 #include "ceevent.h"
@@ -55,6 +56,8 @@ extern struct ce_root {
 	bool comprehensive_bbox_only;
 	int thread_count;
 	float anmfps;
+	ce_string* ei_path;
+	ce_string* ce_path;
 	ce_timer* timer;
 	ce_event_manager* event_manager;
 	ce_threadpool* threadpool;
