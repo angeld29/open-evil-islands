@@ -31,21 +31,13 @@
 extern "C" {
 #endif
 
-typedef struct ce_event ce_event;
-
-typedef struct {
+typedef struct ce_event {
+	bool (*notify)(struct ce_event* event);
 	size_t size;
-	void* receiver;
-	void (*dtor)(ce_event* event);
-	bool (*notify)(ce_event* event);
-} ce_event_vtable;
-
-struct ce_event {
-	ce_event_vtable vtable;
 	char impl[];
-};
+} ce_event;
 
-extern ce_event* ce_event_new(ce_event_vtable vtable);
+extern ce_event* ce_event_new(bool (*notify)(ce_event*), size_t size);
 extern void ce_event_del(ce_event* event);
 
 /*
@@ -53,18 +45,17 @@ extern void ce_event_del(ce_event* event);
 */
 
 typedef struct {
-	ce_thread_id id;
+	ce_thread_id thread_id;
 	ce_mutex* mutex;
 	ce_vector* prev_events;
 	ce_vector* next_events;
 } ce_event_queue;
 
-extern ce_event_queue* ce_event_queue_new(ce_thread_id id);
+extern ce_event_queue* ce_event_queue_new(ce_thread_id thread_id);
 extern void ce_event_queue_del(ce_event_queue* queue);
 
-extern void ce_event_queue_process(ce_event_queue* queue);
-
-extern void ce_event_queue_put(ce_event_queue* queue, ce_event* event);
+extern void ce_event_queue_process_events(ce_event_queue* queue);
+extern void ce_event_queue_push_event(ce_event_queue* queue, ce_event* event);
 
 /*
  *  Thread-safe event manager.
@@ -78,9 +69,13 @@ extern struct ce_event_manager {
 extern void ce_event_manager_init(void);
 extern void ce_event_manager_term(void);
 
-extern void ce_event_manager_process(void);
+extern void ce_event_manager_create_queue(void);
+extern void ce_event_manager_process_events(void);
 
-extern void ce_event_manager_post(ce_thread_id id, ce_event* event);
+extern void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event);
+extern void ce_event_manager_post_raw(ce_thread_id thread_id,
+										bool (*notify)(ce_event*),
+										const void* impl, size_t size);
 
 #ifdef __cplusplus
 }

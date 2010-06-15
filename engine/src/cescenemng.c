@@ -370,84 +370,63 @@ void ce_scenemng_remove_figentity(ce_scenemng* scenemng, ce_figentity* figentity
 	ce_figentity_del(figentity);
 }
 
-typedef struct {
-	ce_string* name;
-} ce_event_name;
-
-static void ce_event_name_del(ce_event* event)
+static bool ce_scenemng_load_mpr_async(ce_event* event)
 {
-	ce_event_name* name_event = (ce_event_name*)event->impl;
-	ce_string_del(name_event->name);
-}
-
-static bool ce_scenemng_notify_mpr(ce_event* event)
-{
-	ce_event_name* name_event = (ce_event_name*)event->impl;
-	ce_scenemng* scenemng = event->vtable.receiver;
-
-	if (CE_SCENEMNG_STATE_STARTING == scenemng->state) {
+	if (CE_SCENEMNG_STATE_STARTING == ce_root.scenemng->state) {
 		// do not process event now, intro movies are playing
 		return false;
 	}
 
-	ce_mprfile* mprfile = ce_mprmng_open_mprfile(ce_root.mprmng, name_event->name->str);
+	ce_mprfile* mprfile = ce_mprmng_open_mprfile(ce_root.mprmng, (const char*)event->impl);
 	if (NULL == mprfile) {
 		return true;
 	}
 
-	ce_terrain_del(scenemng->terrain);
-	scenemng->terrain = ce_terrain_new(mprfile, ce_root.texmng,
-		scenemng->renderqueue, &CE_VEC3_ZERO, &CE_QUAT_IDENTITY, scenemng->scenenode);
+	ce_terrain_del(ce_root.scenemng->terrain);
+	ce_root.scenemng->terrain = ce_terrain_new(mprfile, ce_root.texmng,
+		ce_root.scenemng->renderqueue,
+		&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, ce_root.scenemng->scenenode);
 
-	for (size_t i = 0; i < scenemng->figentities->count; ++i) {
-		ce_figentity* figentity = scenemng->figentities->items[i];
+	for (size_t i = 0; i < ce_root.scenemng->figentities->count; ++i) {
+		ce_figentity* figentity = ce_root.scenemng->figentities->items[i];
 		figentity->scenenode->position.y += ce_mprhlp_get_height(mprfile,
 			figentity->scenenode->position.x, figentity->scenenode->position.z);
 	}
 
-	scenemng->scenenode_force_update = true;
+	ce_root.scenemng->scenenode_force_update = true;
 	return true;
 }
 
-static bool ce_scenemng_notify_mob(ce_event* event)
+void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
 {
-	ce_event_name* name_event = (ce_event_name*)event->impl;
-	ce_scenemng* scenemng = event->vtable.receiver;
+	ce_event_manager_post_raw(ce_root.scenemng->thread_id,
+		ce_scenemng_load_mpr_async, name, strlen(name) + 1);
+}
 
-	if (CE_SCENEMNG_STATE_STARTING == scenemng->state) {
+static bool ce_scenemng_load_mob_async(ce_event* event)
+{
+	if (CE_SCENEMNG_STATE_STARTING == ce_root.scenemng->state) {
 		// do not process event now, intro movies are playing
 		return false;
 	}
 
-	ce_mobfile* mobfile = ce_mob_manager_open(ce_root.mob_manager, name_event->name->str);
+	ce_mobfile* mobfile = ce_mob_manager_open(ce_root.mob_manager, (const char*)event->impl);
 
 	if (NULL != mobfile) {
-		ce_logging_write("scenemng: loading mob '%s'...", name_event->name->str);
+		ce_logging_write("scene manager: loading mob '%s'...", (const char*)event->impl);
 		for (size_t i = 0; i < mobfile->objects->count; ++i) {
 			const ce_mobobject_object* mobobject = mobfile->objects->items[i];
-			ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
+			ce_scenemng_create_figentity_mobobject(ce_root.scenemng, mobobject);
 		}
-		ce_logging_write("scenemng: done loading mob '%s'", name_event->name->str);
+		ce_logging_write("scene manager: done loading mob '%s'", (const char*)event->impl);
 	}
 
 	ce_mobfile_close(mobfile);
 	return true;
 }
 
-void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
-{
-	ce_event* event = ce_event_new((ce_event_vtable){sizeof(ce_event_name),
-		scenemng, ce_event_name_del, ce_scenemng_notify_mpr});
-	ce_event_name* name_event = (ce_event_name*)event->impl;
-	name_event->name = ce_string_new_str(name);
-	ce_event_manager_post(scenemng->thread_id, event);
-}
-
 void ce_scenemng_load_mob(ce_scenemng* scenemng, const char* name)
 {
-	ce_event* event = ce_event_new((ce_event_vtable){sizeof(ce_event_name),
-		scenemng, ce_event_name_del, ce_scenemng_notify_mob});
-	ce_event_name* name_event = (ce_event_name*)event->impl;
-	name_event->name = ce_string_new_str(name);
-	ce_event_manager_post(scenemng->thread_id, event);
+	ce_event_manager_post_raw(scenemng->thread_id,
+		ce_scenemng_load_mob_async, name, strlen(name) + 1);
 }

@@ -80,12 +80,14 @@ static void advance(void* listener, float elapsed)
 			}
 		}
 
-		ce_vec3 position;
-		ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position,
-			0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f));
+		if (NULL != ce_root.scenemng->terrain) {
+			ce_vec3 position;
+			ce_vec3_init(&position, 0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f);
+			ce_camera_set_position(ce_root.scenemng->camera, &position);
 
-		ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f),
+			ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f),
 														ce_deg2rad(30.0f));
+		}
 
 		state_init = true;
 	}
