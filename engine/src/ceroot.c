@@ -89,10 +89,12 @@ static void ce_root_term(void)
 	ce_rendersystem_del(ce_root.rendersystem);
 	ce_renderwindow_del(ce_root.renderwindow);
 	ce_threadpool_del(ce_root.threadpool);
-	ce_event_manager_del(ce_root.event_manager);
 	ce_timer_del(ce_root.timer);
 	ce_string_del(ce_root.ce_path);
 	ce_string_del(ce_root.ei_path);
+
+	ce_avcodec_term();
+	ce_event_manager_term();
 }
 
 bool ce_root_init(ce_optparse* optparse)
@@ -143,8 +145,10 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.ei_path = ce_string_new_str(ei_path);
 	ce_root.ce_path = ce_string_new_str(ce_path);
 
+	ce_event_manager_init();
+	ce_avcodec_init();
+
 	ce_root.timer = ce_timer_new();
-	ce_root.event_manager = ce_event_manager_new();
 	ce_root.threadpool = ce_threadpool_new(ce_root.thread_count);
 
 	ce_root.renderwindow = ce_renderwindow_create(window_width, window_height, optparse->title->str);
@@ -242,8 +246,6 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_logging_write("root: terrain tiling %s",
 		ce_root.terrain_tiling ? "enabled" : "disabled");
 
-	ce_avcodec_init();
-
 	return true;
 }
 
@@ -258,7 +260,7 @@ int ce_root_exec(void)
 	for (;;) {
 		float elapsed = ce_timer_advance(ce_root.timer);
 
-		ce_event_manager_process(ce_root.event_manager);
+		ce_event_manager_process();
 		ce_renderwindow_pump(ce_root.renderwindow);
 
 		if (ce_root.done) {

@@ -59,7 +59,6 @@ extern struct ce_root {
 	ce_string* ei_path;
 	ce_string* ce_path;
 	ce_timer* timer;
-	ce_event_manager* event_manager;
 	ce_threadpool* threadpool;
 	ce_renderwindow* renderwindow;
 	ce_rendersystem* rendersystem;

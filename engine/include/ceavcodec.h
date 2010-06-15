@@ -28,13 +28,12 @@
 #ifndef CE_AVCODEC_H
 #define CE_AVCODEC_H
 
-#include <stdbool.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-extern bool ce_avcodec_init(void);
+extern void ce_avcodec_init(void);
+extern void ce_avcodec_term(void);
 
 #ifdef __cplusplus
 }

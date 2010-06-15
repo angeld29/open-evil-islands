@@ -440,7 +440,7 @@ void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
 		scenemng, ce_event_name_del, ce_scenemng_notify_mpr});
 	ce_event_name* name_event = (ce_event_name*)event->impl;
 	name_event->name = ce_string_new_str(name);
-	ce_event_manager_post(ce_root.event_manager, scenemng->thread_id, event);
+	ce_event_manager_post(scenemng->thread_id, event);
 }
 
 void ce_scenemng_load_mob(ce_scenemng* scenemng, const char* name)
@@ -449,5 +449,5 @@ void ce_scenemng_load_mob(ce_scenemng* scenemng, const char* name)
 		scenemng, ce_event_name_del, ce_scenemng_notify_mob});
 	ce_event_name* name_event = (ce_event_name*)event->impl;
 	name_event->name = ce_string_new_str(name);
-	ce_event_manager_post(ce_root.event_manager, scenemng->thread_id, event);
+	ce_event_manager_post(scenemng->thread_id, event);
 }

@@ -94,53 +94,50 @@ void ce_event_queue_put(ce_event_queue* queue, ce_event* event)
 	ce_mutex_unlock(queue->mutex);
 }
 
-ce_event_manager* ce_event_manager_new(void)
+struct ce_event_manager ce_event_manager;
+
+void ce_event_manager_init(void)
 {
-	ce_event_manager* manager = ce_alloc(sizeof(ce_event_manager));
-	manager->mutex = ce_mutex_new();
-	manager->queues = ce_vector_new();
-	return manager;
+	ce_event_manager.mutex = ce_mutex_new();
+	ce_event_manager.event_queues = ce_vector_new();
 }
 
-void ce_event_manager_del(ce_event_manager* manager)
+void ce_event_manager_term(void)
 {
-	if (NULL != manager) {
-		ce_vector_for_each(manager->queues, ce_event_queue_del);
-		ce_vector_del(manager->queues);
-		ce_mutex_del(manager->mutex);
-		ce_free(manager, sizeof(ce_event_manager));
-	}
+	ce_vector_for_each(ce_event_manager.event_queues, ce_event_queue_del);
+	ce_vector_del(ce_event_manager.event_queues);
+	ce_mutex_del(ce_event_manager.mutex);
 }
 
-void ce_event_manager_process(ce_event_manager* manager)
+void ce_event_manager_process(void)
 {
 	ce_thread_id id = ce_thread_self();
 
-	for (size_t i = 0; i < manager->queues->count; ++i) {
-		ce_event_queue* queue = manager->queues->items[i];
+	for (size_t i = 0; i < ce_event_manager.event_queues->count; ++i) {
+		ce_event_queue* queue = ce_event_manager.event_queues->items[i];
 		if (id == queue->id) {
 			ce_event_queue_process(queue);
 		}
 	}
 }
 
-void ce_event_manager_post(ce_event_manager* manager, ce_thread_id id, ce_event* event)
+void ce_event_manager_post(ce_thread_id id, ce_event* event)
 {
-	ce_mutex_lock(manager->mutex);
+	ce_mutex_lock(ce_event_manager.mutex);
 
 	size_t index;
-	for (index = 0; index < manager->queues->count; ++index) {
-		ce_event_queue* queue = manager->queues->items[index];
+	for (index = 0; index < ce_event_manager.event_queues->count; ++index) {
+		ce_event_queue* queue = ce_event_manager.event_queues->items[index];
 		if (id == queue->id) {
 			break;
 		}
 	}
 
-	if (index == manager->queues->count) {
-		ce_vector_push_back(manager->queues, ce_event_queue_new(id));
+	if (index == ce_event_manager.event_queues->count) {
+		ce_vector_push_back(ce_event_manager.event_queues, ce_event_queue_new(id));
 	}
 
-	ce_mutex_unlock(manager->mutex);
+	ce_mutex_unlock(ce_event_manager.mutex);
 
-	ce_event_queue_put(manager->queues->items[index], event);
+	ce_event_queue_put(ce_event_manager.event_queues->items[index], event);
 }

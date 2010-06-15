@@ -18,9 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <stdarg.h>
 #include <assert.h>
 
 #include <libavcodec/avcodec.h>
@@ -29,20 +27,6 @@
 #include "celogging.h"
 #include "cethread.h"
 #include "ceavcodec.h"
-
-static struct {
-	bool inited;
-} ce_avcodec_context;
-
-static void ce_avcodec_term(void)
-{
-	if (ce_avcodec_context.inited) {
-		ce_avcodec_context.inited = false;
-
-		av_lockmgr_register(NULL);
-		av_log_set_callback(av_log_default_callback);
-	}
-}
 
 static void ce_avcodec_log(void* ptr, int av_level, const char* format, va_list args)
 {
@@ -97,18 +81,17 @@ static int ce_avcodec_lock(void** mutex, enum AVLockOp op)
 	return 0;
 }
 
-bool ce_avcodec_init(void)
+void ce_avcodec_init(void)
 {
-	if (!ce_avcodec_context.inited) {
-		ce_avcodec_context.inited = true;
-		atexit(ce_avcodec_term);
+	av_log_set_callback(ce_avcodec_log);
+	av_lockmgr_register(ce_avcodec_lock);
 
-		av_log_set_callback(ce_avcodec_log);
-		av_lockmgr_register(ce_avcodec_lock);
+	avcodec_init();
+	avcodec_register_all();
+}
 
-		avcodec_init();
-		avcodec_register_all();
-	}
-
-	return true;
+void ce_avcodec_term(void)
+{
+	av_lockmgr_register(NULL);
+	av_log_set_callback(av_log_default_callback);
 }
