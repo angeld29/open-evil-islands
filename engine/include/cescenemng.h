@@ -26,6 +26,7 @@
 #include "cetimer.h"
 #include "cethread.h"
 #include "ceinput.h"
+#include "cemobfile.h"
 #include "ceterrain.h"
 #include "cefps.h"
 #include "cefont.h"

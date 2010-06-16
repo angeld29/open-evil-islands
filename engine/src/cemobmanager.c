@@ -24,28 +24,49 @@
 
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceroot.h"
 #include "cemobmanager.h"
 
-ce_mob_manager* ce_mob_manager_new(const char* path)
-{
-	ce_logging_write("mob manager: root path is '%s'", path);
+static const char* ce_mob_dirs[] = {"Maps"};
 
-	ce_mob_manager* mob_manager = ce_alloc(sizeof(ce_mob_manager));
-	mob_manager->path = ce_string_new_str(path);
-	return mob_manager;
+enum {
+	CE_MOB_DIR_COUNT = sizeof(ce_mob_dirs) / sizeof(ce_mob_dirs[0]),
+};
+
+struct ce_mob_manager* ce_mob_manager;
+
+void ce_mob_manager_init(void)
+{
+	char path[ce_root.ei_path->length + 16];
+
+	for (size_t i = 0; i < CE_MOB_DIR_COUNT; ++i) {
+		snprintf(path, sizeof(path), "%s/%s",
+			ce_root.ei_path->str, ce_mob_dirs[i]);
+		ce_logging_write("mob manager: using path '%s'", path);
+	}
+
+	ce_mob_manager = ce_alloc(sizeof(struct ce_mob_manager));
 }
 
-void ce_mob_manager_del(ce_mob_manager* mob_manager)
+void ce_mob_manager_term(void)
 {
-	if (NULL != mob_manager) {
-		ce_string_del(mob_manager->path);
-		ce_free(mob_manager, sizeof(ce_mob_manager));
+	if (NULL != ce_mob_manager) {
+		ce_free(ce_mob_manager, sizeof(struct ce_mob_manager));
 	}
 }
 
-ce_mobfile* ce_mob_manager_open(ce_mob_manager* mob_manager, const char* name)
+ce_mobfile* ce_mob_manager_open(const char* name)
 {
-	char path[mob_manager->path->length + strlen(name) + 5 + 1];
-	snprintf(path, sizeof(path), "%s/%s.mob", mob_manager->path->str, name);
-	return ce_mobfile_open(path);
+	char path[ce_root.ei_path->length + strlen(name) + 32];
+
+	for (size_t i = 0; i < CE_MOB_DIR_COUNT; ++i) {
+		snprintf(path, sizeof(path), "%s/%s/%s.mob",
+			ce_root.ei_path->str, ce_mob_dirs[i], name);
+		ce_mobfile* mobfile = ce_mobfile_open(path);
+		if (NULL != mobfile) {
+			return mobfile;
+		}
+	}
+
+	return NULL;
 }

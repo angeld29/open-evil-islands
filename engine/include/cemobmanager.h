@@ -21,21 +21,20 @@
 #ifndef CE_MOBMANAGER_H
 #define CE_MOBMANAGER_H
 
-#include "cestring.h"
 #include "cemobfile.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct {
-	ce_string* path;
-} ce_mob_manager;
+extern struct ce_mob_manager {
+	int stub;
+}* ce_mob_manager;
 
-extern ce_mob_manager* ce_mob_manager_new(const char* path);
-extern void ce_mob_manager_del(ce_mob_manager* mob_manager);
+extern void ce_mob_manager_init(void);
+extern void ce_mob_manager_term(void);
 
-extern ce_mobfile* ce_mob_manager_open(ce_mob_manager* mob_manager, const char* name);
+extern ce_mobfile* ce_mob_manager_open(const char* name);
 
 #ifdef __cplusplus
 }

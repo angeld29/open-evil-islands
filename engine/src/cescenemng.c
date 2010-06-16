@@ -30,6 +30,7 @@
 #include "cefrustum.h"
 #include "cebytefmt.h"
 #include "ceroot.h"
+#include "cemobmanager.h"
 #include "cescenemng.h"
 
 static void ce_scenemng_renderwindow_resized(void* listener, int width, int height)
@@ -404,7 +405,7 @@ void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
 
 void ce_scenemng_load_mob(ce_scenemng* scenemng, const char* name)
 {
-	ce_mobfile* mobfile = ce_mob_manager_open(ce_root.mob_manager, name);
+	ce_mobfile* mobfile = ce_mob_manager_open(name);
 	if (NULL != mobfile) {
 		ce_logging_write("scene manager: loading mob '%s'...", name);
 		for (size_t i = 0; i < mobfile->objects->count; ++i) {

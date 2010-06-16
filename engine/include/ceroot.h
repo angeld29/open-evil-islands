@@ -31,7 +31,6 @@
 #include "cesoundsystem.h"
 #include "cetexmng.h"
 #include "cemprmng.h"
-#include "cemobmanager.h"
 #include "cefigmng.h"
 #include "cescenemng.h"
 #include "ceoptparse.h"
@@ -58,7 +57,6 @@ extern struct ce_root {
 	ce_sound_system* sound_system;
 	ce_texmng* texmng;
 	ce_mprmng* mprmng;
-	ce_mob_manager* mob_manager;
 	ce_figmng* figmng;
 	ce_scenemng* scenemng;
 	ce_timer* timer;
