@@ -18,17 +18,28 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_VIDEO_H
-#define CE_VIDEO_H
+#ifndef CE_VIDEOOBJECT_H
+#define CE_VIDEOOBJECT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef unsigned long int ce_video_id;
+typedef unsigned long int ce_video_object;
+
+extern void ce_video_object_advance(ce_video_object video_object, float elapsed);
+extern void ce_video_object_progress(ce_video_object video_object, int percents);
+
+extern void ce_video_object_render(ce_video_object video_object);
+
+extern bool ce_video_object_is_stopped(ce_video_object video_object);
+
+extern void ce_video_object_play(ce_video_object video_object);
+extern void ce_video_object_pause(ce_video_object video_object);
+extern void ce_video_object_stop(ce_video_object video_object);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CE_VIDEO_H */
+#endif /* CE_VIDEOOBJECT_H */

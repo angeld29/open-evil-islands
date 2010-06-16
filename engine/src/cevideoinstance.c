@@ -73,12 +73,12 @@ static void ce_video_instance_exec(ce_video_instance* video_instance)
 	}
 }
 
-ce_video_instance* ce_video_instance_new(ce_video_id video_id,
+ce_video_instance* ce_video_instance_new(ce_video_object video_object,
 										ce_sound_id sound_id,
 										ce_video_resource* video_resource)
 {
 	ce_video_instance* video_instance = ce_alloc_zero(sizeof(ce_video_instance));
-	video_instance->video_id = video_id;
+	video_instance->video_object = video_object;
 	video_instance->sound_id = sound_id;
 	video_instance->frame = -1;
 	video_instance->video_resource = video_resource;

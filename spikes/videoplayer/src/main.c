@@ -27,10 +27,10 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceroot.h"
-#include "cevideohelper.h"
+#include "cevideoobject.h"
 
 static bool pause;
-static ce_video_id video_id;
+static ce_video_object video_object;
 static ce_optparse* optparse;
 static ce_inputsupply* inputsupply;
 static ce_inputevent* pause_event;
@@ -49,11 +49,11 @@ static void state_changed(void* listener, int state)
 		const char* track;
 		ce_optparse_get(optparse, "track", &track);
 
-		video_id = ce_video_manager_create(ce_root.video_manager, track);
-		if (0 == video_id) {
+		video_object = ce_video_manager_create(ce_root.video_manager, track);
+		if (0 == video_object) {
 			ce_logging_error("video player: could not play video track '%s'", track);
 		} else {
-			ce_video_helper_play(video_id);
+			ce_video_object_play(video_object);
 		}
 
 		ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);
@@ -65,14 +65,14 @@ static void advance(void* listener, float elapsed)
 	ce_unused(listener);
 
 	ce_inputsupply_advance(inputsupply, elapsed);
-	ce_video_helper_advance(video_id, elapsed);
+	ce_video_object_advance(video_object, elapsed);
 
 	if (pause_event->triggered) {
 		pause = !pause;
 		if (pause) {
-			ce_video_helper_pause(video_id);
+			ce_video_object_pause(video_object);
 		} else {
-			ce_video_helper_play(video_id);
+			ce_video_object_play(video_object);
 		}
 	}
 }
@@ -80,7 +80,7 @@ static void advance(void* listener, float elapsed)
 static void render(void* listener)
 {
 	ce_unused(listener);
-	ce_video_helper_render(video_id);
+	ce_video_object_render(video_object);
 }
 
 int main(int argc, char* argv[])

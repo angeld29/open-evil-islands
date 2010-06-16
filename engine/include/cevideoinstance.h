@@ -28,7 +28,7 @@
 #include "cemmpfile.h"
 #include "cetexture.h"
 #include "cesound.h"
-#include "cevideo.h"
+#include "cevideoobject.h"
 #include "cevideoresource.h"
 
 #ifdef __cplusplus
@@ -47,7 +47,7 @@ enum {
 };
 
 typedef struct {
-	ce_video_id video_id;
+	ce_video_object video_object;
 	ce_sound_id sound_id;
 	int state;
 	float time; // synchronization/playing time in seconds
@@ -62,7 +62,7 @@ typedef struct {
 	volatile bool done;
 } ce_video_instance;
 
-extern ce_video_instance* ce_video_instance_new(ce_video_id video_id,
+extern ce_video_instance* ce_video_instance_new(ce_video_object video_object,
 												ce_sound_id sound_id,
 												ce_video_resource* video_resource);
 extern void ce_video_instance_del(ce_video_instance* video_instance);

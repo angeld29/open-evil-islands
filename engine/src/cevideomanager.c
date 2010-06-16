@@ -91,7 +91,7 @@ static ce_memfile* ce_video_manager_open(const char* name)
 	return NULL;
 }
 
-ce_video_id ce_video_manager_create(ce_video_manager* video_manager, const char* name)
+ce_video_object ce_video_manager_create(ce_video_manager* video_manager, const char* name)
 {
 	ce_memfile* memfile = ce_video_manager_open(name);
 	if (NULL == memfile) {
@@ -104,10 +104,10 @@ ce_video_id ce_video_manager_create(ce_video_manager* video_manager, const char*
 		return 0;
 	}
 
-	ce_video_id video_id = ++video_manager->last_video_id;
+	ce_video_object video_object = ++video_manager->last_video_object;
 	ce_sound_id sound_id = ce_sound_manager_create(ce_root.sound_manager, name);
 
-	ce_video_instance* video_instance = ce_video_instance_new(video_id, sound_id, video_resource);
+	ce_video_instance* video_instance = ce_video_instance_new(video_object, sound_id, video_resource);
 	if (NULL == video_instance) {
 		ce_logging_error("video manager: could not create instance for '%s'", name);
 		ce_video_resource_del(video_resource);
@@ -116,14 +116,14 @@ ce_video_id ce_video_manager_create(ce_video_manager* video_manager, const char*
 
 	ce_vector_push_back(video_manager->video_instances, video_instance);
 
-	return video_id;
+	return video_object;
 }
 
-ce_video_instance* ce_video_manager_find(ce_video_manager* video_manager, ce_video_id video_id)
+ce_video_instance* ce_video_manager_find(ce_video_manager* video_manager, ce_video_object video_object)
 {
 	for (size_t i = 0; i < video_manager->video_instances->count; ++i) {
 		ce_video_instance* video_instance = video_manager->video_instances->items[i];
-		if (video_id == video_instance->video_id) {
+		if (video_object == video_instance->video_object) {
 			return video_instance;
 		}
 	}
