@@ -60,7 +60,6 @@ ce_scenemng* ce_scenemng_new(void)
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
 	scenemng->figentities = ce_vector_new();
-	scenemng->listeners = ce_vector_new();
 
 	scenemng->inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
 	scenemng->pause_event = ce_inputsupply_shortcut(scenemng->inputsupply, "Space");
@@ -88,7 +87,6 @@ void ce_scenemng_del(ce_scenemng* scenemng)
 	if (NULL != scenemng) {
 		ce_vector_for_each(scenemng->figentities, ce_figentity_del);
 		ce_inputsupply_del(scenemng->inputsupply);
-		ce_vector_del(scenemng->listeners);
 		ce_vector_del(scenemng->figentities);
 		ce_terrain_del(scenemng->terrain);
 		ce_font_del(scenemng->font);
@@ -101,19 +99,37 @@ void ce_scenemng_del(ce_scenemng* scenemng)
 	}
 }
 
+void ce_scenemng_change_state(ce_scenemng* scenemng, int state)
+{
+	scenemng->state = state;
+	if (NULL != scenemng->listener.state_changed) {
+		(*scenemng->listener.state_changed)(scenemng->listener.receiver, state);
+	}
+}
+
 static void ce_scenemng_advance_starting(ce_scenemng* scenemng, float elapsed)
 {
-	scenemng->state = CE_SCENEMNG_STATE_LOADING;
+	ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_READY);
 }
 
 static void ce_scenemng_render_starting(ce_scenemng* scenemng)
 {
-	//ce_rendersystem_draw_video_frame(ce_root.rendersystem)
+}
+
+static void ce_scenemng_advance_ready(ce_scenemng* scenemng, float elapsed)
+{
+	ce_unused(scenemng);
+	ce_unused(elapsed);
+}
+
+static void ce_scenemng_render_ready(ce_scenemng* scenemng)
+{
+	ce_unused(scenemng);
 }
 
 static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float elapsed)
 {
-	scenemng->state = CE_SCENEMNG_STATE_PLAYING;
+	ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_PLAYING);
 }
 
 static void ce_scenemng_render_loading(ce_scenemng* scenemng)
@@ -207,6 +223,8 @@ static struct {
 } ce_scenemng_state_procs[CE_SCENEMNG_STATE_COUNT] = {
 	[CE_SCENEMNG_STATE_STARTING] = {ce_scenemng_advance_starting,
 									ce_scenemng_render_starting},
+	[CE_SCENEMNG_STATE_READY] = {ce_scenemng_advance_ready,
+									ce_scenemng_render_ready},
 	[CE_SCENEMNG_STATE_LOADING] = {ce_scenemng_advance_loading,
 									ce_scenemng_render_loading},
 	[CE_SCENEMNG_STATE_PLAYING] = {ce_scenemng_advance_playing,
@@ -220,11 +238,8 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 
 	(*ce_scenemng_state_procs[scenemng->state].advance)(scenemng, elapsed);
 
-	for (size_t i = 0; i < scenemng->listeners->count; ++i) {
-		ce_scenemng_listener* listener = scenemng->listeners->items[i];
-		if (NULL != listener->advance) {
-			(*listener->advance)(listener->listener, elapsed);
-		}
+	if (NULL != scenemng->listener.advance) {
+		(*scenemng->listener.advance)(scenemng->listener.receiver, elapsed);
 	}
 }
 
@@ -234,11 +249,8 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 
 	(*ce_scenemng_state_procs[scenemng->state].render)(scenemng);
 
-	for (size_t i = 0; i < scenemng->listeners->count; ++i) {
-		ce_scenemng_listener* listener = scenemng->listeners->items[i];
-		if (NULL != listener->render) {
-			(*listener->render)(listener->listener);
-		}
+	if (NULL != scenemng->listener.render) {
+		(*scenemng->listener.render)(scenemng->listener.receiver);
 	}
 
 	if (ce_root.show_fps) {
@@ -370,63 +382,36 @@ void ce_scenemng_remove_figentity(ce_scenemng* scenemng, ce_figentity* figentity
 	ce_figentity_del(figentity);
 }
 
-static bool ce_scenemng_load_mpr_async(ce_event* event)
+void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
 {
-	if (CE_SCENEMNG_STATE_STARTING == ce_root.scenemng->state) {
-		// do not process event now, intro movies are playing
-		return false;
-	}
-
-	ce_mprfile* mprfile = ce_mprmng_open_mprfile(ce_root.mprmng, (const char*)event->impl);
+	ce_mprfile* mprfile = ce_mprmng_open_mprfile(ce_root.mprmng, name);
 	if (NULL == mprfile) {
-		return true;
+		return;
 	}
 
-	ce_terrain_del(ce_root.scenemng->terrain);
-	ce_root.scenemng->terrain = ce_terrain_new(mprfile, ce_root.texmng,
-		ce_root.scenemng->renderqueue,
-		&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, ce_root.scenemng->scenenode);
+	ce_terrain_del(scenemng->terrain);
+	scenemng->terrain = ce_terrain_new(mprfile, ce_root.texmng, scenemng->renderqueue,
+		&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, scenemng->scenenode);
 
-	for (size_t i = 0; i < ce_root.scenemng->figentities->count; ++i) {
-		ce_figentity* figentity = ce_root.scenemng->figentities->items[i];
+	for (size_t i = 0; i < scenemng->figentities->count; ++i) {
+		ce_figentity* figentity = scenemng->figentities->items[i];
 		figentity->scenenode->position.y += ce_mprhlp_get_height(mprfile,
 			figentity->scenenode->position.x, figentity->scenenode->position.z);
 	}
 
-	ce_root.scenemng->scenenode_force_update = true;
-	return true;
-}
-
-void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
-{
-	ce_event_manager_post_raw(ce_root.scenemng->thread_id,
-		ce_scenemng_load_mpr_async, name, strlen(name) + 1);
-}
-
-static bool ce_scenemng_load_mob_async(ce_event* event)
-{
-	if (CE_SCENEMNG_STATE_STARTING == ce_root.scenemng->state) {
-		// do not process event now, intro movies are playing
-		return false;
-	}
-
-	ce_mobfile* mobfile = ce_mob_manager_open(ce_root.mob_manager, (const char*)event->impl);
-
-	if (NULL != mobfile) {
-		ce_logging_write("scene manager: loading mob '%s'...", (const char*)event->impl);
-		for (size_t i = 0; i < mobfile->objects->count; ++i) {
-			const ce_mobobject_object* mobobject = mobfile->objects->items[i];
-			ce_scenemng_create_figentity_mobobject(ce_root.scenemng, mobobject);
-		}
-		ce_logging_write("scene manager: done loading mob '%s'", (const char*)event->impl);
-	}
-
-	ce_mobfile_close(mobfile);
-	return true;
+	scenemng->scenenode_force_update = true;
 }
 
 void ce_scenemng_load_mob(ce_scenemng* scenemng, const char* name)
 {
-	ce_event_manager_post_raw(scenemng->thread_id,
-		ce_scenemng_load_mob_async, name, strlen(name) + 1);
+	ce_mobfile* mobfile = ce_mob_manager_open(ce_root.mob_manager, name);
+	if (NULL != mobfile) {
+		ce_logging_write("scene manager: loading mob '%s'...", name);
+		for (size_t i = 0; i < mobfile->objects->count; ++i) {
+			const ce_mobobject_object* mobobject = mobfile->objects->items[i];
+			ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
+		}
+		ce_logging_write("scene manager: done loading mob '%s'", name);
+	}
+	ce_mobfile_close(mobfile);
 }

@@ -98,6 +98,45 @@ static void display_message(const char* fmt, ...)
 	message_color.a = 1.0f;
 }
 
+static void state_changed(void* listener, int state)
+{
+	ce_unused(listener);
+
+	if (CE_SCENEMNG_STATE_READY == state) {
+		if (update_figentity()) {
+			const char* anmname;
+			ce_optparse_get(optparse, "anmname", &anmname);
+
+			if (NULL != anmname) {
+				if (ce_figentity_play_animation(figentity, anmname)) {
+					int anmcount = ce_figentity_get_animation_count(figentity);
+					for (anmidx = 0; anmidx < anmcount; ++anmidx) {
+						if (0 == ce_strcasecmp(anmname,
+								ce_figentity_get_animation_name(figentity, anmidx))) {
+							break;
+						}
+					}
+				} else {
+					ce_logging_warning("figure viewer: could not play animation '%s'", anmname);
+				}
+			}
+		}
+
+		ce_vec3 position;
+		ce_camera_set_position(ce_root.scenemng->camera,
+			ce_vec3_init(&position, 0.0f, 2.0f, -4.0f));
+
+		ce_camera_set_near(ce_root.scenemng->camera, 0.1f);
+		ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(180.0f),
+														ce_deg2rad(30.0f));
+
+		ce_root.scenemng->camera_move_sensitivity = 2.5f;
+		ce_root.scenemng->camera_zoom_sensitivity = 0.5f;
+
+		ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);
+	}
+}
+
 static void advance(void* listener, float elapsed)
 {
 	ce_unused(listener);
@@ -179,6 +218,7 @@ static void render(void* listener)
 int main(int argc, char* argv[])
 {
 	ce_alloc_init();
+	atexit(clean);
 
 	optparse = ce_root_create_optparse();
 
@@ -202,43 +242,12 @@ int main(int argc, char* argv[])
 	ce_optparse_add_control(optparse, "2", "change dexterity");
 	ce_optparse_add_control(optparse, "3", "change height");
 
-	atexit(clean);
-
-	if (!ce_optparse_parse(optparse, argc, argv) ||
-			!ce_root_init(optparse) || !update_figentity()) {
+	if (!ce_optparse_parse(optparse, argc, argv) || !ce_root_init(optparse)) {
 		return EXIT_FAILURE;
 	}
 
-	const char* anmname;
-	ce_optparse_get(optparse, "anmname", &anmname);
-
-	if (NULL != anmname) {
-		if (ce_figentity_play_animation(figentity, anmname)) {
-			int anmcount = ce_figentity_get_animation_count(figentity);
-			for (anmidx = 0; anmidx < anmcount; ++anmidx) {
-				if (0 == ce_strcasecmp(anmname,
-						ce_figentity_get_animation_name(figentity, anmidx))) {
-					break;
-				}
-			}
-		} else {
-			ce_logging_warning("main: could not play animation '%s'", anmname);
-		}
-	}
-
-	ce_vec3 position;
-	ce_camera_set_position(ce_root.scenemng->camera,
-		ce_vec3_init(&position, 0.0f, 2.0f, -4.0f));
-
-	ce_camera_set_near(ce_root.scenemng->camera, 0.1f);
-	ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(180.0f),
-													ce_deg2rad(30.0f));
-
-	ce_root.scenemng->camera_move_sensitivity = 2.5f;
-	ce_root.scenemng->camera_zoom_sensitivity = 0.5f;
-
-	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = render};
-	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
+	ce_root.scenemng->listener = (ce_scenemng_listener)
+		{.state_changed = state_changed, .advance = advance, .render = render};
 
 	message = ce_string_new();
 	message_color = CE_COLOR_CORNFLOWER;

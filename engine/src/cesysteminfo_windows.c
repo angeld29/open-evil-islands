@@ -110,7 +110,7 @@ void ce_systeminfo_display(void)
 	}
 }
 
-bool ce_systeminfo_ensure(void)
+bool ce_systeminfo_check(void)
 {
 	OSVERSIONINFOEX osverinfo;
 	BOOL osverinfoex;

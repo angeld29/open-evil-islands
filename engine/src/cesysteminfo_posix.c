@@ -35,7 +35,7 @@ void ce_systeminfo_display(void)
 		osinfo.nodename, osinfo.release, osinfo.version, osinfo.machine);
 }
 
-bool ce_systeminfo_ensure(void)
+bool ce_systeminfo_check(void)
 {
 	if (sysconf(_SC_VERSION) < 200112L || sysconf(_SC_XOPEN_VERSION) < 600L) {
 		ce_logging_fatal("systeminfo: SUSv3 (POSIX.1-2001 + XPG6) system required");

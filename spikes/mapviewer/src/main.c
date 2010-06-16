@@ -38,12 +38,45 @@ static ce_inputevent* anmfps_dec_event;
 static float message_timeout;
 static ce_color message_color;
 
-static bool state_init;
-
 static void clean()
 {
 	ce_inputsupply_del(inputsupply);
 	ce_optparse_del(optparse);
+}
+
+static void state_changed(void* listener, int state)
+{
+	ce_unused(listener);
+
+	if (CE_SCENEMNG_STATE_READY == state) {
+		const char* zone;
+		ce_optparse_get(optparse, "zone", &zone);
+		ce_scenemng_load_mpr(ce_root.scenemng, zone);
+		ce_scenemng_load_mob(ce_root.scenemng, zone);
+		ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);
+	}
+
+	if (CE_SCENEMNG_STATE_PLAYING == state) {
+		// play random animations
+		srand(time(NULL));
+		for (size_t i = 0; i < ce_root.scenemng->figentities->count; ++i) {
+			ce_figentity* figentity = ce_root.scenemng->figentities->items[i];
+			int anm_count = ce_figentity_get_animation_count(figentity);
+			if (anm_count > 0) {
+				const char* name = ce_figentity_get_animation_name(figentity,
+														rand() % anm_count);
+				ce_figentity_play_animation(figentity, name);
+			}
+		}
+
+		if (NULL != ce_root.scenemng->terrain) {
+			ce_vec3 position;
+			ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position,
+				0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f));
+			ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f),
+															ce_deg2rad(30.0f));
+		}
+	}
 }
 
 static void advance(void* listener, float elapsed)
@@ -66,31 +99,6 @@ static void advance(void* listener, float elapsed)
 
 	message_color.a = ce_fclamp(message_timeout, 0.0f, 1.0f);
 	ce_root.anmfps = ce_fclamp(anmfps, 1.0f, 50.0f);
-
-	if (!state_init && CE_SCENEMNG_STATE_PLAYING == ce_root.scenemng->state) {
-		// play random animations
-		srand(time(NULL));
-		for (size_t i = 0; i < ce_root.scenemng->figentities->count; ++i) {
-			ce_figentity* figentity = ce_root.scenemng->figentities->items[i];
-			int anm_count = ce_figentity_get_animation_count(figentity);
-			if (anm_count > 0) {
-				const char* name = ce_figentity_get_animation_name(figentity,
-														rand() % anm_count);
-				ce_figentity_play_animation(figentity, name);
-			}
-		}
-
-		if (NULL != ce_root.scenemng->terrain) {
-			ce_vec3 position;
-			ce_vec3_init(&position, 0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f);
-			ce_camera_set_position(ce_root.scenemng->camera, &position);
-
-			ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f),
-														ce_deg2rad(30.0f));
-		}
-
-		state_init = true;
-	}
 }
 
 static void render(void* listener)
@@ -110,6 +118,7 @@ static void render(void* listener)
 int main(int argc, char* argv[])
 {
 	ce_alloc_init();
+	atexit(clean);
 
 	optparse = ce_root_create_optparse();
 
@@ -123,19 +132,12 @@ int main(int argc, char* argv[])
 
 	ce_optparse_add_control(optparse, "+/-", "change animation FPS");
 
-	atexit(clean);
-
 	if (!ce_optparse_parse(optparse, argc, argv) || !ce_root_init(optparse)) {
 		return EXIT_FAILURE;
 	}
 
-	const char *ei_path, *zone;
-
+	const char* ei_path;
 	ce_optparse_get(optparse, "ei_path", &ei_path);
-	ce_optparse_get(optparse, "zone", &zone);
-
-	ce_scenemng_load_mpr(ce_root.scenemng, zone);
-	ce_scenemng_load_mob(ce_root.scenemng, zone);
 
 	//snprintf(path, sizeof(path), "%s/Camera/%s.cam",
 	//	ei_path->sval[0], zone->sval[0]/*"mainmenu"*/);
@@ -186,8 +188,8 @@ int main(int argc, char* argv[])
 		fclose(file);
 	}*/
 
-	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = render};
-	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
+	ce_root.scenemng->listener = (ce_scenemng_listener)
+		{.state_changed = state_changed, .advance = advance, .render = render};
 
 	message_color = CE_COLOR_CORNFLOWER;
 

@@ -39,22 +39,24 @@
 extern "C" {
 #endif
 
-typedef enum {
+enum {
 	CE_SCENEMNG_STATE_STARTING,
+	CE_SCENEMNG_STATE_READY,
 	CE_SCENEMNG_STATE_LOADING,
 	CE_SCENEMNG_STATE_PLAYING,
 	CE_SCENEMNG_STATE_COUNT,
-} ce_scenemng_state;
+};
 
 typedef struct {
+	void (*state_changed)(void* listener, int state);
 	void (*advance)(void* listener, float elapsed);
 	void (*render)(void* listener);
-	void* listener;
+	void* receiver;
 } ce_scenemng_listener;
 
 typedef struct {
 	ce_thread_id thread_id;
-	ce_scenemng_state state;
+	int state;
 	float camera_move_sensitivity; // FIXME: hard-coded
 	float camera_zoom_sensitivity; // TODO: make strategy
 	bool scenenode_force_update;
@@ -66,7 +68,6 @@ typedef struct {
 	ce_font* font;
 	ce_terrain* terrain;
 	ce_vector* figentities;
-	ce_vector* listeners;
 	ce_inputsupply* inputsupply;
 	ce_inputevent* pause_event;
 	ce_inputevent* move_left_event;
@@ -76,6 +77,7 @@ typedef struct {
 	ce_inputevent* zoom_in_event;
 	ce_inputevent* zoom_out_event;
 	ce_inputevent* rotate_on_event;
+	ce_scenemng_listener listener;
 	ce_renderwindow_listener renderwindow_listener;
 	ce_figmng_listener figmng_listener;
 	/*struct {
@@ -89,11 +91,7 @@ typedef struct {
 extern ce_scenemng* ce_scenemng_new(void);
 extern void ce_scenemng_del(ce_scenemng* scenemng);
 
-static inline void ce_scenemng_add_listener(ce_scenemng* scenemng,
-											ce_scenemng_listener* listener)
-{
-	ce_vector_push_back(scenemng->listeners, listener);
-}
+extern void ce_scenemng_change_state(ce_scenemng* scenemng, int state);
 
 extern void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed);
 extern void ce_scenemng_render(ce_scenemng* scenemng);
@@ -115,10 +113,6 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 
 extern void ce_scenemng_remove_figentity(ce_scenemng* scenemng,
 										ce_figentity* figentity);
-
-/*
- *  Async operations
-*/
 
 extern void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name);
 extern void ce_scenemng_load_mob(ce_scenemng* scenemng, const char* name);

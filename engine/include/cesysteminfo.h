@@ -29,7 +29,7 @@ extern "C"
 #endif /* __cplusplus */
 
 extern void ce_systeminfo_display(void);
-extern bool ce_systeminfo_ensure(void);
+extern bool ce_systeminfo_check(void);
 
 #ifdef __cplusplus
 }

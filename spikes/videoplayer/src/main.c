@@ -29,16 +29,35 @@
 #include "ceroot.h"
 #include "cevideohelper.h"
 
+static bool pause;
+static ce_video_id video_id;
 static ce_optparse* optparse;
 static ce_inputsupply* inputsupply;
 static ce_inputevent* pause_event;
-static ce_video_id video_id;
-static bool pause;
 
 static void clean()
 {
 	ce_inputsupply_del(inputsupply);
 	ce_optparse_del(optparse);
+}
+
+static void state_changed(void* listener, int state)
+{
+	ce_unused(listener);
+
+	if (CE_SCENEMNG_STATE_READY == state) {
+		const char* track;
+		ce_optparse_get(optparse, "track", &track);
+
+		video_id = ce_video_manager_create(ce_root.video_manager, track);
+		if (0 == video_id) {
+			ce_logging_error("video player: could not play video track '%s'", track);
+		} else {
+			ce_video_helper_play(video_id);
+		}
+
+		ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);
+	}
 }
 
 static void advance(void* listener, float elapsed)
@@ -61,7 +80,6 @@ static void advance(void* listener, float elapsed)
 static void render(void* listener)
 {
 	ce_unused(listener);
-
 	ce_video_helper_render(video_id);
 }
 
@@ -79,18 +97,8 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	const char* track;
-	ce_optparse_get(optparse, "track", &track);
-
-	video_id = ce_video_manager_create(ce_root.video_manager, track);
-	if (0 == video_id) {
-		ce_logging_error("video player: could not play video track '%s'", track);
-	} else {
-		ce_video_helper_play(video_id);
-	}
-
-	ce_scenemng_listener scenemng_listener = {.advance = advance, .render = render};
-	ce_scenemng_add_listener(ce_root.scenemng, &scenemng_listener);
+	ce_root.scenemng->listener = (ce_scenemng_listener)
+		{.state_changed = state_changed, .advance = advance, .render = render};
 
 	inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
 	pause_event = ce_inputsupply_single_front(inputsupply,

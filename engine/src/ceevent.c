@@ -19,6 +19,7 @@
 */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <assert.h>
 
@@ -26,7 +27,7 @@
 #include "cealloc.h"
 #include "ceevent.h"
 
-ce_event* ce_event_new(bool (*notify)(ce_event*), size_t size)
+ce_event* ce_event_new(void (*notify)(ce_event*), size_t size)
 {
 	ce_event* event = ce_alloc_zero(sizeof(ce_event) + size);
 	event->notify = notify;
@@ -46,51 +47,42 @@ ce_event_queue* ce_event_queue_new(ce_thread_id thread_id)
 	ce_event_queue* queue = ce_alloc(sizeof(ce_event_queue));
 	queue->thread_id = thread_id;
 	queue->mutex = ce_mutex_new();
-	queue->prev_events = ce_vector_new();
-	queue->next_events = ce_vector_new();
+	queue->pending_events = ce_vector_new();
+	queue->sent_events = ce_vector_new();
 	return queue;
 }
 
 void ce_event_queue_del(ce_event_queue* queue)
 {
 	if (NULL != queue) {
-		ce_vector_for_each(queue->next_events, ce_event_del);
-		ce_vector_for_each(queue->prev_events, ce_event_del);
-		ce_vector_del(queue->next_events);
-		ce_vector_del(queue->prev_events);
+		ce_vector_for_each(queue->sent_events, ce_event_del);
+		ce_vector_for_each(queue->pending_events, ce_event_del);
+		ce_vector_del(queue->sent_events);
+		ce_vector_del(queue->pending_events);
 		ce_mutex_del(queue->mutex);
 		ce_free(queue, sizeof(ce_event_queue));
 	}
 }
 
-void ce_event_queue_process_events(ce_event_queue* queue)
+void ce_event_queue_process(ce_event_queue* queue)
 {
 	ce_mutex_lock(queue->mutex);
-	ce_swap_temp(ce_vector*, queue->prev_events, queue->next_events);
+	ce_swap_temp(ce_vector*, queue->pending_events, queue->sent_events);
 	ce_mutex_unlock(queue->mutex);
 
-	for (size_t i = 0; i < queue->prev_events->count; ++i) {
-		ce_event* event = queue->prev_events->items[i];
-		if ((*event->notify)(event)) {
-			ce_event_del(event);
-			ce_vector_remove_unordered(queue->prev_events, i--);
-		}
+	for (size_t i = 0; i < queue->sent_events->count; ++i) {
+		ce_event* event = queue->sent_events->items[i];
+		(*event->notify)(event);
 	}
 
-	if (!ce_vector_empty(queue->prev_events)) {
-		ce_mutex_lock(queue->mutex);
-		while (!ce_vector_empty(queue->prev_events)) {
-			ce_vector_push_back(queue->next_events,
-				ce_vector_pop_back(queue->prev_events));
-		}
-		ce_mutex_unlock(queue->mutex);
-	}
+	ce_vector_for_each(queue->sent_events, ce_event_del);
+	ce_vector_clear(queue->sent_events);
 }
 
-void ce_event_queue_push_event(ce_event_queue* queue, ce_event* event)
+void ce_event_queue_push(ce_event_queue* queue, ce_event* event)
 {
 	ce_mutex_lock(queue->mutex);
-	ce_vector_push_back(queue->next_events, event);
+	ce_vector_push_back(queue->pending_events, event);
 	ce_mutex_unlock(queue->mutex);
 }
 
@@ -109,7 +101,7 @@ void ce_event_manager_term(void)
 	ce_mutex_del(ce_event_manager.mutex);
 }
 
-void ce_event_manager_create_queue(void)
+void ce_event_manager_create(void)
 {
 	ce_mutex_lock(ce_event_manager.mutex);
 	ce_vector_push_back(ce_event_manager.event_queues,
@@ -117,13 +109,13 @@ void ce_event_manager_create_queue(void)
 	ce_mutex_unlock(ce_event_manager.mutex);
 }
 
-void ce_event_manager_process_events(void)
+void ce_event_manager_process(void)
 {
 	ce_thread_id thread_id = ce_thread_self();
 	for (size_t i = 0; i < ce_event_manager.event_queues->count; ++i) {
 		ce_event_queue* queue = ce_event_manager.event_queues->items[i];
 		if (thread_id == queue->thread_id) {
-			ce_event_queue_process_events(queue);
+			ce_event_queue_process(queue);
 		}
 	}
 }
@@ -133,15 +125,16 @@ void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event)
 	for (size_t i = 0; i < ce_event_manager.event_queues->count; ++i) {
 		ce_event_queue* queue = ce_event_manager.event_queues->items[i];
 		if (thread_id == queue->thread_id) {
-			ce_event_queue_push_event(ce_event_manager.event_queues->items[i], event);
-			break;
+			ce_event_queue_push(ce_event_manager.event_queues->items[i], event);
+			return;
 		}
 	}
+	assert(false && "queue not found");
 }
 
-void ce_event_manager_post_raw(ce_thread_id thread_id,
-								bool (*notify)(ce_event*),
-								const void* impl, size_t size)
+void ce_event_manager_post(ce_thread_id thread_id,
+							void (*notify)(ce_event*),
+							const void* impl, size_t size)
 {
 	ce_event* event = ce_event_new(notify, size);
 	memcpy(event->impl, impl, size);
