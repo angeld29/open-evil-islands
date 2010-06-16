@@ -65,6 +65,8 @@ void ce_option_manager_init(ce_optparse* optparse)
 		ce_option_manager->inverse_trackball_y = true;
 	}
 
+	ce_logging_write("option manager: EI path is '%s'", ei_path);
+	ce_logging_write("option manager: CE path is '%s'", ce_path);
 	ce_logging_write("option manager: using up to %d threads", ce_option_manager->thread_count);
 	ce_logging_write("option manager: terrain tiling %s",
 		ce_option_manager->terrain_tiling ? "enabled" : "disabled");

@@ -102,13 +102,17 @@ static void ce_root_term(void)
 	ce_string_del(ce_root.ei_path);
 }
 
-bool ce_root_init(ce_optparse* optparse)
+bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 {
 	atexit(ce_root_term);
 
 	ce_systeminfo_display();
 
 	if (!ce_systeminfo_check()) {
+		return false;
+	}
+
+	if (!ce_optparse_parse(optparse, argc, argv)) {
 		return false;
 	}
 
@@ -199,9 +203,6 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_sound_manager_init();
 	ce_video_manager_init();
 
-	ce_logging_write("root: EI path is '%s'", ei_path);
-	ce_logging_write("root: CE path is '%s'", ce_path);
-
 	char path[strlen(ei_path) + 32];
 
 	snprintf(path, sizeof(path), "%s/Textures", ei_path);
@@ -243,10 +244,6 @@ bool ce_root_init(ce_optparse* optparse)
 								&ce_root.renderwindow_listener);
 
 	ce_systemevent_register(ce_root_systemevent_handler);
-
-	ce_logging_write("root: using up to %d threads", ce_root.thread_count);
-	ce_logging_write("root: terrain tiling %s",
-		ce_root.terrain_tiling ? "enabled" : "disabled");
 
 	return true;
 }

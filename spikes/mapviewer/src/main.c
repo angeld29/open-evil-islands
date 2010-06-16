@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 
 	ce_optparse_add_control(optparse, "+/-", "change animation FPS");
 
-	if (!ce_optparse_parse(optparse, argc, argv) || !ce_root_init(optparse)) {
+	if (!ce_root_init(optparse, argc, argv)) {
 		return EXIT_FAILURE;
 	}
 

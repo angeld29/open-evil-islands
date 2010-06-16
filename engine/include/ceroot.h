@@ -68,7 +68,7 @@ extern struct ce_root {
 	ce_renderwindow_listener renderwindow_listener;
 } ce_root;
 
-extern bool ce_root_init(ce_optparse* optparse);
+extern bool ce_root_init(ce_optparse* optparse, int argc, char* argv[]);
 
 extern int ce_root_exec(void);
 

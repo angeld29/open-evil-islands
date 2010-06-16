@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 	ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true,
 		NULL, NULL, "any TRACK.* file in 'EI/Movies'");
 
-	if (!ce_optparse_parse(optparse, argc, argv) || !ce_root_init(optparse)) {
+	if (!ce_root_init(optparse, argc, argv)) {
 		return EXIT_FAILURE;
 	}
 
