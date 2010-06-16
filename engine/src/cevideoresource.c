@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,58 +25,58 @@
 #include "celogging.h"
 #include "cevideoresource.h"
 
-extern const size_t CE_VIDEORESOURCE_BUILTIN_COUNT;
-extern const ce_videoresource_vtable ce_videoresource_builtins[];
+extern const size_t CE_VIDEO_RESOURCE_BUILTIN_COUNT;
+extern const ce_video_resource_vtable ce_video_resource_builtins[];
 
-ce_videoresource* ce_videoresource_new(ce_memfile* memfile)
+ce_video_resource* ce_video_resource_new(ce_memfile* memfile)
 {
 	size_t index;
-	for (index = 0; index < CE_VIDEORESOURCE_BUILTIN_COUNT; ++index) {
+	for (index = 0; index < CE_VIDEO_RESOURCE_BUILTIN_COUNT; ++index) {
 		ce_memfile_rewind(memfile);
-		if ((*ce_videoresource_builtins[index].test)(memfile)) {
+		if ((*ce_video_resource_builtins[index].test)(memfile)) {
 			break;
 		}
 	}
 
 	ce_memfile_rewind(memfile);
-	if (CE_VIDEORESOURCE_BUILTIN_COUNT == index) {
+	if (CE_VIDEO_RESOURCE_BUILTIN_COUNT == index) {
 		return NULL;
 	}
 
-	size_t size = (*ce_videoresource_builtins[index].size_hint)(memfile);
+	size_t size = (*ce_video_resource_builtins[index].size_hint)(memfile);
 	ce_memfile_rewind(memfile);
 
-	ce_videoresource* videoresource = ce_alloc_zero(sizeof(ce_videoresource) + size);
+	ce_video_resource* video_resource = ce_alloc_zero(sizeof(ce_video_resource) + size);
 
-	videoresource->memfile = memfile;
-	videoresource->vtable = ce_videoresource_builtins[index];
-	videoresource->size = size;
+	video_resource->memfile = memfile;
+	video_resource->vtable = ce_video_resource_builtins[index];
+	video_resource->size = size;
 
-	if (!(*videoresource->vtable.ctor)(videoresource)) {
+	if (!(*video_resource->vtable.ctor)(video_resource)) {
 		// do not take ownership if failed
-		videoresource->memfile = NULL;
-		ce_videoresource_del(videoresource);
+		video_resource->memfile = NULL;
+		ce_video_resource_del(video_resource);
 		return NULL;
 	}
 
-	return videoresource;
+	return video_resource;
 }
 
-void ce_videoresource_del(ce_videoresource* videoresource)
+void ce_video_resource_del(ce_video_resource* video_resource)
 {
-	if (NULL != videoresource) {
-		if (NULL != videoresource->vtable.dtor) {
-			(*videoresource->vtable.dtor)(videoresource);
+	if (NULL != video_resource) {
+		if (NULL != video_resource->vtable.dtor) {
+			(*video_resource->vtable.dtor)(video_resource);
 		}
-		ce_memfile_close(videoresource->memfile);
-		ce_free(videoresource, sizeof(ce_videoresource) + videoresource->size);
+		ce_memfile_close(video_resource->memfile);
+		ce_free(video_resource, sizeof(ce_video_resource) + video_resource->size);
 	}
 }
 
-bool ce_videoresource_reset(ce_videoresource* videoresource)
+bool ce_video_resource_reset(ce_video_resource* video_resource)
 {
-	videoresource->time = 0.0f;
-	videoresource->frame_index = 0;
-	ce_memfile_rewind(videoresource->memfile);
-	return (*videoresource->vtable.reset)(videoresource);
+	video_resource->time = 0.0f;
+	video_resource->frame_index = 0;
+	ce_memfile_rewind(video_resource->memfile);
+	return (*video_resource->vtable.reset)(video_resource);
 }

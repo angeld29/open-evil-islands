@@ -26,54 +26,54 @@
 
 void ce_video_helper_advance(ce_video_id video_id, float elapsed)
 {
-	ce_videoinstance* videoinstance = ce_video_manager_find(ce_root.video_manager, video_id);
-	if (NULL != videoinstance) {
-		ce_videoinstance_advance(videoinstance, elapsed);
+	ce_video_instance* video_instance = ce_video_manager_find(ce_root.video_manager, video_id);
+	if (NULL != video_instance) {
+		ce_video_instance_advance(video_instance, elapsed);
 	}
 }
 
 void ce_video_helper_progress(ce_video_id video_id, int percents)
 {
-	ce_videoinstance* videoinstance = ce_video_manager_find(ce_root.video_manager, video_id);
-	if (NULL != videoinstance) {
-		ce_videoinstance_progress(videoinstance, percents);
+	ce_video_instance* video_instance = ce_video_manager_find(ce_root.video_manager, video_id);
+	if (NULL != video_instance) {
+		ce_video_instance_progress(video_instance, percents);
 	}
 }
 
 void ce_video_helper_render(ce_video_id video_id)
 {
-	ce_videoinstance* videoinstance = ce_video_manager_find(ce_root.video_manager, video_id);
-	if (NULL != videoinstance) {
-		ce_videoinstance_render(videoinstance);
+	ce_video_instance* video_instance = ce_video_manager_find(ce_root.video_manager, video_id);
+	if (NULL != video_instance) {
+		ce_video_instance_render(video_instance);
 	}
 }
 
 bool ce_video_helper_is_stopped(ce_video_id video_id)
 {
-	ce_videoinstance* videoinstance = ce_video_manager_find(ce_root.video_manager, video_id);
-	return NULL != videoinstance ? ce_videoinstance_is_stopped(videoinstance) : true;
+	ce_video_instance* video_instance = ce_video_manager_find(ce_root.video_manager, video_id);
+	return NULL != video_instance ? ce_video_instance_is_stopped(video_instance) : true;
 }
 
 void ce_video_helper_play(ce_video_id video_id)
 {
-	ce_videoinstance* videoinstance = ce_video_manager_find(ce_root.video_manager, video_id);
-	if (NULL != videoinstance) {
-		ce_videoinstance_play(videoinstance);
+	ce_video_instance* video_instance = ce_video_manager_find(ce_root.video_manager, video_id);
+	if (NULL != video_instance) {
+		ce_video_instance_play(video_instance);
 	}
 }
 
 void ce_video_helper_pause(ce_video_id video_id)
 {
-	ce_videoinstance* videoinstance = ce_video_manager_find(ce_root.video_manager, video_id);
-	if (NULL != videoinstance) {
-		ce_videoinstance_pause(videoinstance);
+	ce_video_instance* video_instance = ce_video_manager_find(ce_root.video_manager, video_id);
+	if (NULL != video_instance) {
+		ce_video_instance_pause(video_instance);
 	}
 }
 
 void ce_video_helper_stop(ce_video_id video_id)
 {
-	ce_videoinstance* videoinstance = ce_video_manager_find(ce_root.video_manager, video_id);
-	if (NULL != videoinstance) {
-		ce_videoinstance_stop(videoinstance);
+	ce_video_instance* video_instance = ce_video_manager_find(ce_root.video_manager, video_id);
+	if (NULL != video_instance) {
+		ce_video_instance_stop(video_instance);
 	}
 }

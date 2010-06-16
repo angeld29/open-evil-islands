@@ -40,7 +40,7 @@ extern void ce_video_manager_del(ce_video_manager* video_manager);
 extern void ce_video_manager_advance(ce_video_manager* video_manager, float elapsed);
 
 extern ce_video_id ce_video_manager_create(ce_video_manager* video_manager, const char* name);
-extern ce_videoinstance* ce_video_manager_find(ce_video_manager* video_manager, ce_video_id video_id);
+extern ce_video_instance* ce_video_manager_find(ce_video_manager* video_manager, ce_video_id video_id);
 
 #ifdef __cplusplus
 }

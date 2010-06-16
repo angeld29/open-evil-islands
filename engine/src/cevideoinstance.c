@@ -29,22 +29,22 @@
 #include "cesoundhelper.h"
 #include "cevideoinstance.h"
 
-static void ce_videoinstance_exec(ce_videoinstance* videoinstance)
+static void ce_video_instance_exec(ce_video_instance* video_instance)
 {
-	for (size_t i = ce_semaphore_available(videoinstance->prepared_frames); ; ++i) {
-		ce_semaphore_acquire(videoinstance->unprepared_frames, 1);
+	for (size_t i = ce_semaphore_available(video_instance->prepared_frames); ; ++i) {
+		ce_semaphore_acquire(video_instance->unprepared_frames, 1);
 
-		if (videoinstance->done) {
+		if (video_instance->done) {
 			break;
 		}
 
-		if (!ce_videoresource_read(videoinstance->videoresource)) {
-			videoinstance->state = CE_VIDEOINSTANCE_STATE_STOPPING;
+		if (!ce_video_resource_read(video_instance->video_resource)) {
+			video_instance->state = CE_VIDEO_INSTANCE_STATE_STOPPING;
 			break;
 		}
 
-		ce_mmpfile* ycbcr_frame = videoinstance->ycbcr_frames[i % CE_VIDEOINSTANCE_CACHE_SIZE];
-		ce_ycbcr* ycbcr = &videoinstance->videoresource->ycbcr;
+		ce_mmpfile* ycbcr_frame = video_instance->ycbcr_frames[i % CE_VIDEO_INSTANCE_CACHE_SIZE];
+		ce_ycbcr* ycbcr = &video_instance->video_resource->ycbcr;
 
 		unsigned char* y_data = ycbcr_frame->texels;
 		unsigned char* cb_data = y_data + ycbcr_frame->width * ycbcr_frame->height;
@@ -69,131 +69,131 @@ static void ce_videoinstance_exec(ce_videoinstance* videoinstance)
 				cr_offset + h * ycbcr->planes[2].stride, ycbcr->crop_rect.width / 2);
 		}
 
-		ce_semaphore_release(videoinstance->prepared_frames, 1);
+		ce_semaphore_release(video_instance->prepared_frames, 1);
 	}
 }
 
-ce_videoinstance* ce_videoinstance_new(ce_video_id video_id,
+ce_video_instance* ce_video_instance_new(ce_video_id video_id,
 										ce_sound_id sound_id,
-										ce_videoresource* videoresource)
+										ce_video_resource* video_resource)
 {
-	ce_videoinstance* videoinstance = ce_alloc_zero(sizeof(ce_videoinstance));
-	videoinstance->video_id = video_id;
-	videoinstance->sound_id = sound_id;
-	videoinstance->frame = -1;
-	videoinstance->videoresource = videoresource;
-	videoinstance->texture = ce_texture_new("frame", NULL);
-	videoinstance->rgba_frame = ce_mmpfile_new(videoresource->width,
-		videoresource->height, 1, CE_MMPFILE_FORMAT_R8G8B8A8, 0);
-	for (size_t i = 0; i < CE_VIDEOINSTANCE_CACHE_SIZE; ++i) {
-		videoinstance->ycbcr_frames[i] = ce_mmpfile_new(videoresource->width,
-			videoresource->height, 1, CE_MMPFILE_FORMAT_YCBCR, 0);
+	ce_video_instance* video_instance = ce_alloc_zero(sizeof(ce_video_instance));
+	video_instance->video_id = video_id;
+	video_instance->sound_id = sound_id;
+	video_instance->frame = -1;
+	video_instance->video_resource = video_resource;
+	video_instance->texture = ce_texture_new("frame", NULL);
+	video_instance->rgba_frame = ce_mmpfile_new(video_resource->width,
+		video_resource->height, 1, CE_MMPFILE_FORMAT_R8G8B8A8, 0);
+	for (size_t i = 0; i < CE_VIDEO_INSTANCE_CACHE_SIZE; ++i) {
+		video_instance->ycbcr_frames[i] = ce_mmpfile_new(video_resource->width,
+			video_resource->height, 1, CE_MMPFILE_FORMAT_YCBCR, 0);
 	}
-	videoinstance->prepared_frames = ce_semaphore_new(0);
-	videoinstance->unprepared_frames = ce_semaphore_new(CE_VIDEOINSTANCE_CACHE_SIZE);
-	videoinstance->thread = ce_thread_new(ce_videoinstance_exec, videoinstance);
+	video_instance->prepared_frames = ce_semaphore_new(0);
+	video_instance->unprepared_frames = ce_semaphore_new(CE_VIDEO_INSTANCE_CACHE_SIZE);
+	video_instance->thread = ce_thread_new(ce_video_instance_exec, video_instance);
 
-	return videoinstance;
+	return video_instance;
 }
 
-void ce_videoinstance_del(ce_videoinstance* videoinstance)
+void ce_video_instance_del(ce_video_instance* video_instance)
 {
-	if (NULL != videoinstance) {
-		videoinstance->done = true;
+	if (NULL != video_instance) {
+		video_instance->done = true;
 
-		ce_semaphore_release(videoinstance->unprepared_frames, 1);
-		ce_thread_wait(videoinstance->thread);
+		ce_semaphore_release(video_instance->unprepared_frames, 1);
+		ce_thread_wait(video_instance->thread);
 
-		ce_thread_del(videoinstance->thread);
-		ce_semaphore_del(videoinstance->unprepared_frames);
-		ce_semaphore_del(videoinstance->prepared_frames);
+		ce_thread_del(video_instance->thread);
+		ce_semaphore_del(video_instance->unprepared_frames);
+		ce_semaphore_del(video_instance->prepared_frames);
 
-		for (size_t i = 0; i < CE_VIDEOINSTANCE_CACHE_SIZE; ++i) {
-			ce_mmpfile_del(videoinstance->ycbcr_frames[i]);
+		for (size_t i = 0; i < CE_VIDEO_INSTANCE_CACHE_SIZE; ++i) {
+			ce_mmpfile_del(video_instance->ycbcr_frames[i]);
 		}
 
-		ce_mmpfile_del(videoinstance->rgba_frame);
-		ce_texture_del(videoinstance->texture);
-		ce_videoresource_del(videoinstance->videoresource);
+		ce_mmpfile_del(video_instance->rgba_frame);
+		ce_texture_del(video_instance->texture);
+		ce_video_resource_del(video_instance->video_resource);
 
-		ce_free(videoinstance, sizeof(ce_videoinstance));
+		ce_free(video_instance, sizeof(ce_video_instance));
 	}
 }
 
-static void ce_videoinstance_do_advance(ce_videoinstance* videoinstance)
+static void ce_video_instance_do_advance(ce_video_instance* video_instance)
 {
 	bool acquired = false;
-	int desired_frame = videoinstance->videoresource->fps * videoinstance->time;
+	int desired_frame = video_instance->video_resource->fps * video_instance->time;
 
 	// if sound or time far away
-	while (videoinstance->frame < desired_frame &&
-			ce_semaphore_try_acquire(videoinstance->prepared_frames, 1)) {
+	while (video_instance->frame < desired_frame &&
+			ce_semaphore_try_acquire(video_instance->prepared_frames, 1)) {
 		// skip frames to reach desired frame
-		if (++videoinstance->frame == desired_frame ||
+		if (++video_instance->frame == desired_frame ||
 				// or use the closest frame
-				0 == ce_semaphore_available(videoinstance->prepared_frames)) {
-			ce_mmpfile* ycbcr_frame = videoinstance->ycbcr_frames
-				[videoinstance->frame % CE_VIDEOINSTANCE_CACHE_SIZE];
-			ce_mmpfile_convert2(ycbcr_frame, videoinstance->rgba_frame);
-			ce_texture_replace(videoinstance->texture, videoinstance->rgba_frame);
+				0 == ce_semaphore_available(video_instance->prepared_frames)) {
+			ce_mmpfile* ycbcr_frame = video_instance->ycbcr_frames
+				[video_instance->frame % CE_VIDEO_INSTANCE_CACHE_SIZE];
+			ce_mmpfile_convert2(ycbcr_frame, video_instance->rgba_frame);
+			ce_texture_replace(video_instance->texture, video_instance->rgba_frame);
 			acquired = true;
 		}
-		ce_semaphore_release(videoinstance->unprepared_frames, 1);
+		ce_semaphore_release(video_instance->unprepared_frames, 1);
 	}
 
 	// TODO: think again how to hold last frame
-	if (CE_VIDEOINSTANCE_STATE_STOPPING == videoinstance->state && !acquired &&
-			0 == ce_semaphore_available(videoinstance->prepared_frames)) {
-		videoinstance->state = CE_VIDEOINSTANCE_STATE_STOPPED;
+	if (CE_VIDEO_INSTANCE_STATE_STOPPING == video_instance->state && !acquired &&
+			0 == ce_semaphore_available(video_instance->prepared_frames)) {
+		video_instance->state = CE_VIDEO_INSTANCE_STATE_STOPPED;
 	}
 }
 
-void ce_videoinstance_advance(ce_videoinstance* videoinstance, float elapsed)
+void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed)
 {
-	if (0 != videoinstance->sound_id) {
+	if (0 != video_instance->sound_id) {
 		// sync with sound
-		videoinstance->time = ce_sound_helper_time(videoinstance->sound_id);
+		video_instance->time = ce_sound_helper_time(video_instance->sound_id);
 	} else {
-		videoinstance->time += elapsed;
+		video_instance->time += elapsed;
 	}
 
-	ce_videoinstance_do_advance(videoinstance);
+	ce_video_instance_do_advance(video_instance);
 }
 
-void ce_videoinstance_progress(ce_videoinstance* videoinstance, int percents)
+void ce_video_instance_progress(ce_video_instance* video_instance, int percents)
 {
-	videoinstance->time = (videoinstance->videoresource->frame_count /
-		videoinstance->videoresource->fps) * (0.01f * percents);
+	video_instance->time = (video_instance->video_resource->frame_count /
+		video_instance->video_resource->fps) * (0.01f * percents);
 
-	ce_videoinstance_do_advance(videoinstance);
+	ce_video_instance_do_advance(video_instance);
 }
 
-void ce_videoinstance_render(ce_videoinstance* videoinstance)
+void ce_video_instance_render(ce_video_instance* video_instance)
 {
-	ce_rendersystem_draw_fullscreen_texture(ce_root.rendersystem, videoinstance->texture);
+	ce_rendersystem_draw_fullscreen_texture(ce_root.rendersystem, video_instance->texture);
 }
 
-bool ce_videoinstance_is_stopped(ce_videoinstance* videoinstance)
+bool ce_video_instance_is_stopped(ce_video_instance* video_instance)
 {
-	return 0 != videoinstance->sound_id ?
-		ce_sound_helper_is_stopped(videoinstance->sound_id) :
-		CE_VIDEOINSTANCE_STATE_STOPPED == videoinstance->state;
+	return 0 != video_instance->sound_id ?
+		ce_sound_helper_is_stopped(video_instance->sound_id) :
+		CE_VIDEO_INSTANCE_STATE_STOPPED == video_instance->state;
 }
 
-void ce_videoinstance_play(ce_videoinstance* videoinstance)
+void ce_video_instance_play(ce_video_instance* video_instance)
 {
-	ce_sound_helper_play(videoinstance->sound_id);
-	videoinstance->state = CE_VIDEOINSTANCE_STATE_PLAYING;
+	ce_sound_helper_play(video_instance->sound_id);
+	video_instance->state = CE_VIDEO_INSTANCE_STATE_PLAYING;
 }
 
-void ce_videoinstance_pause(ce_videoinstance* videoinstance)
+void ce_video_instance_pause(ce_video_instance* video_instance)
 {
-	ce_sound_helper_pause(videoinstance->sound_id);
-	videoinstance->state = CE_VIDEOINSTANCE_STATE_PAUSED;
+	ce_sound_helper_pause(video_instance->sound_id);
+	video_instance->state = CE_VIDEO_INSTANCE_STATE_PAUSED;
 }
 
-void ce_videoinstance_stop(ce_videoinstance* videoinstance)
+void ce_video_instance_stop(ce_video_instance* video_instance)
 {
-	ce_sound_helper_stop(videoinstance->sound_id);
-	videoinstance->state = CE_VIDEOINSTANCE_STATE_STOPPED;
+	ce_sound_helper_stop(video_instance->sound_id);
+	video_instance->state = CE_VIDEO_INSTANCE_STATE_STOPPED;
 }

@@ -128,9 +128,9 @@ static bool ce_theora_test(ce_memfile* memfile)
 	return false;
 }
 
-static void ce_theora_report_pixelformat(ce_videoresource* videoresource)
+static void ce_theora_report_pixelformat(ce_video_resource* video_resource)
 {
-	ce_theora* theora = (ce_theora*)videoresource->impl;
+	ce_theora* theora = (ce_theora*)video_resource->impl;
 	switch (theora->info.pixel_fmt) {
 	case TH_PF_420:
 		ce_logging_debug("theora: pixel format is YCbCr 4:2:0");
@@ -148,9 +148,9 @@ static void ce_theora_report_pixelformat(ce_videoresource* videoresource)
 	}
 }
 
-static void ce_theora_report_colorspace(ce_videoresource* videoresource)
+static void ce_theora_report_colorspace(ce_video_resource* video_resource)
 {
-	ce_theora* theora = (ce_theora*)videoresource->impl;
+	ce_theora* theora = (ce_theora*)video_resource->impl;
 	switch (theora->info.colorspace) {
 	case TH_CS_UNSPECIFIED:
 		// nothing to report
@@ -167,9 +167,9 @@ static void ce_theora_report_colorspace(ce_videoresource* videoresource)
 	}
 }
 
-static void ce_theora_report_comments(ce_videoresource* videoresource)
+static void ce_theora_report_comments(ce_video_resource* video_resource)
 {
-	ce_theora* theora = (ce_theora*)videoresource->impl;
+	ce_theora* theora = (ce_theora*)video_resource->impl;
 	ce_logging_debug("theora: encoded by %s", theora->comment.vendor);
 	if (0 != theora->comment.comments) {
 		ce_logging_debug("theora: theora comment header:");
@@ -183,9 +183,9 @@ static void ce_theora_report_comments(ce_videoresource* videoresource)
 	}
 }
 
-static bool ce_theora_ctor(ce_videoresource* videoresource)
+static bool ce_theora_ctor(ce_video_resource* video_resource)
 {
-	ce_theora* theora = (ce_theora*)videoresource->impl;
+	ce_theora* theora = (ce_theora*)video_resource->impl;
 	ce_theora_init(theora);
 
 	bool done = false;
@@ -194,7 +194,7 @@ static bool ce_theora_ctor(ce_videoresource* videoresource)
 
 	// parse the headers
 	while (!done) {
-		if (!ce_theora_pump(&theora->sync, videoresource->memfile)) {
+		if (!ce_theora_pump(&theora->sync, video_resource->memfile)) {
 			ce_logging_error("theora: end of stream while searching for headers");
 			return false;
 		}
@@ -262,7 +262,7 @@ static bool ce_theora_ctor(ce_videoresource* videoresource)
 			code = ogg_stream_pagein(&theora->stream, &theora->page);
 		} else {
 			// someone needs more data
-			if (!ce_theora_pump(&theora->sync, videoresource->memfile)) {
+			if (!ce_theora_pump(&theora->sync, video_resource->memfile)) {
 				ce_logging_error("theora: end of stream while searching for headers");
 				return false;
 			}
@@ -277,19 +277,19 @@ static bool ce_theora_ctor(ce_videoresource* videoresource)
 	// initialize decoder
 	theora->context = th_decode_alloc(&theora->info, theora->setup);
 
-	videoresource->width = theora->info.pic_width;
-	videoresource->height = theora->info.pic_height;
-	videoresource->fps = (float)theora->info.fps_numerator /
+	video_resource->width = theora->info.pic_width;
+	video_resource->height = theora->info.pic_height;
+	video_resource->fps = (float)theora->info.fps_numerator /
 								theora->info.fps_denominator;
 
 	ce_logging_debug("theora: ogg logical stream %lx is theora %d bit/s, %ux%u %.02f fps",
 		theora->stream.serialno, theora->info.target_bitrate,
-		videoresource->width, videoresource->height, videoresource->fps);
+		video_resource->width, video_resource->height, video_resource->fps);
 
-	videoresource->ycbcr.crop_rect.x = theora->info.pic_x;
-	videoresource->ycbcr.crop_rect.y = theora->info.pic_y;
-	videoresource->ycbcr.crop_rect.width = theora->info.pic_width;
-	videoresource->ycbcr.crop_rect.height = theora->info.pic_height;
+	video_resource->ycbcr.crop_rect.x = theora->info.pic_x;
+	video_resource->ycbcr.crop_rect.y = theora->info.pic_y;
+	video_resource->ycbcr.crop_rect.width = theora->info.pic_width;
+	video_resource->ycbcr.crop_rect.height = theora->info.pic_height;
 
 	if (theora->info.pic_width != theora->info.frame_width ||
 			theora->info.pic_height != theora->info.frame_height) {
@@ -298,9 +298,9 @@ static bool ce_theora_ctor(ce_videoresource* videoresource)
 			theora->info.pic_x, theora->info.pic_y);
 	}
 
-	ce_theora_report_pixelformat(videoresource);
-	ce_theora_report_colorspace(videoresource);
-	ce_theora_report_comments(videoresource);
+	ce_theora_report_pixelformat(video_resource);
+	ce_theora_report_colorspace(video_resource);
+	ce_theora_report_comments(video_resource);
 
 	if (TH_PF_420 != theora->info.pixel_fmt &&
 			TH_PF_444 != theora->info.pixel_fmt) {
@@ -311,18 +311,18 @@ static bool ce_theora_ctor(ce_videoresource* videoresource)
 	return true;
 }
 
-static void ce_theora_dtor(ce_videoresource* videoresource)
+static void ce_theora_dtor(ce_video_resource* video_resource)
 {
-	ce_theora* theora = (ce_theora*)videoresource->impl;
+	ce_theora* theora = (ce_theora*)video_resource->impl;
 	ce_theora_clean(theora);
 }
 
-static bool ce_theora_read(ce_videoresource* videoresource)
+static bool ce_theora_read(ce_video_resource* video_resource)
 {
-	ce_theora* theora = (ce_theora*)videoresource->impl;
+	ce_theora* theora = (ce_theora*)video_resource->impl;
 
 	while (ogg_stream_packetout(&theora->stream, &theora->packet) <= 0) {
-		if (!ce_theora_pump(&theora->sync, videoresource->memfile)) {
+		if (!ce_theora_pump(&theora->sync, video_resource->memfile)) {
 			return false;
 		}
 
@@ -341,13 +341,13 @@ static bool ce_theora_read(ce_videoresource* videoresource)
 	ogg_int64_t granulepos;
 	if (0 == th_decode_packetin(theora->context, &theora->packet, &granulepos)) {
 		theora->time = th_granule_time(theora->context, granulepos);
-		++videoresource->frame_index;
+		++video_resource->frame_index;
 
 		th_decode_ycbcr_out(theora->context, theora->ycbcr);
 
 		for (size_t i = 0; i < 3; ++i) {
-			videoresource->ycbcr.planes[i].stride = theora->ycbcr[i].stride;
-			videoresource->ycbcr.planes[i].data = theora->ycbcr[i].data;
+			video_resource->ycbcr.planes[i].stride = theora->ycbcr[i].stride;
+			video_resource->ycbcr.planes[i].data = theora->ycbcr[i].data;
 		}
 
 		return true;
@@ -356,10 +356,10 @@ static bool ce_theora_read(ce_videoresource* videoresource)
 	return false;
 }
 
-static bool ce_theora_reset(ce_videoresource* videoresource)
+static bool ce_theora_reset(ce_video_resource* video_resource)
 {
 	// TODO: not implemented
-	ce_unused(videoresource);
+	ce_unused(video_resource);
 	return false;
 }
 
@@ -396,17 +396,17 @@ static bool ce_bink_test(ce_memfile* memfile)
 	return ce_binkheader_read(&header, memfile);
 }
 
-static bool ce_bink_ctor(ce_videoresource* videoresource)
+static bool ce_bink_ctor(ce_video_resource* video_resource)
 {
-	ce_bink* bink = (ce_bink*)videoresource->impl;
+	ce_bink* bink = (ce_bink*)video_resource->impl;
 
-	if (!ce_binkheader_read(&bink->header, videoresource->memfile)) {
+	if (!ce_binkheader_read(&bink->header, video_resource->memfile)) {
 		ce_logging_error("bink: input does not appear to be a Bink video");
 		return false;
 	}
 
 	// skip audio headers
-	if (!ce_binktrack_skip(bink->header.audio_track_count, videoresource->memfile)) {
+	if (!ce_binktrack_skip(bink->header.audio_track_count, video_resource->memfile)) {
 		ce_logging_error("bink: input does not appear to be a Bink video");
 		return false;
 	}
@@ -426,23 +426,23 @@ static bool ce_bink_ctor(ce_videoresource* videoresource)
 		ce_logging_warning("bink: alpha plane not supported");
 	}
 
-	videoresource->width = bink->header.video_width;
-	videoresource->height = bink->header.video_height;
-	videoresource->fps = (float)bink->header.fps_dividend /
+	video_resource->width = bink->header.video_width;
+	video_resource->height = bink->header.video_height;
+	video_resource->fps = (float)bink->header.fps_dividend /
 								bink->header.fps_divider;
 
 	ce_logging_debug("bink: video is %ux%u %.02f fps",
-		videoresource->width, videoresource->height, videoresource->fps);
+		video_resource->width, video_resource->height, video_resource->fps);
 
-	videoresource->frame_count = bink->header.frame_count;
+	video_resource->frame_count = bink->header.frame_count;
 
-	videoresource->ycbcr.crop_rect.x = 0;
-	videoresource->ycbcr.crop_rect.y = 0;
-	videoresource->ycbcr.crop_rect.width = bink->header.video_width;
-	videoresource->ycbcr.crop_rect.height = bink->header.video_height;
+	video_resource->ycbcr.crop_rect.x = 0;
+	video_resource->ycbcr.crop_rect.y = 0;
+	video_resource->ycbcr.crop_rect.width = bink->header.video_width;
+	video_resource->ycbcr.crop_rect.height = bink->header.video_height;
 
 	bink->indices = (ce_binkindex*)bink->data;
-	if (!ce_binkindex_read(bink->indices, bink->header.frame_count, videoresource->memfile)) {
+	if (!ce_binkindex_read(bink->indices, bink->header.frame_count, video_resource->memfile)) {
 		ce_logging_error("bink: invalid frame index table");
 		return false;
 	}
@@ -480,32 +480,32 @@ static bool ce_bink_ctor(ce_videoresource* videoresource)
 	return true;
 }
 
-static void ce_bink_dtor(ce_videoresource* videoresource)
+static void ce_bink_dtor(ce_video_resource* video_resource)
 {
-	ce_bink* bink = (ce_bink*)videoresource->impl;
+	ce_bink* bink = (ce_bink*)video_resource->impl;
 
 	if (NULL != bink->codec_context.codec) {
 		avcodec_close(&bink->codec_context);
 	}
 }
 
-static bool ce_bink_read(ce_videoresource* videoresource)
+static bool ce_bink_read(ce_video_resource* video_resource)
 {
-	ce_bink* bink = (ce_bink*)videoresource->impl;
+	ce_bink* bink = (ce_bink*)video_resource->impl;
 
-	if (videoresource->frame_index == videoresource->frame_count) {
-		assert(ce_memfile_eof(videoresource->memfile));
+	if (video_resource->frame_index == video_resource->frame_count) {
+		assert(ce_memfile_eof(video_resource->memfile));
 		return false;
 	}
 
-	uint32_t frame_size = bink->indices[videoresource->frame_index++].length;
+	uint32_t frame_size = bink->indices[video_resource->frame_index++].length;
 
 	if (0 != bink->header.audio_track_count) {
 		uint32_t packet_size;
-		ce_memfile_read(videoresource->memfile, &packet_size, 4, 1);
+		ce_memfile_read(video_resource->memfile, &packet_size, 4, 1);
 
 		// skip audio packet
-		ce_memfile_seek(videoresource->memfile, packet_size, CE_MEMFILE_SEEK_CUR);
+		ce_memfile_seek(video_resource->memfile, packet_size, CE_MEMFILE_SEEK_CUR);
 
 		frame_size -= packet_size + sizeof(packet_size);
 	}
@@ -517,7 +517,7 @@ static bool ce_bink_read(ce_videoresource* videoresource)
 		return false;
 	}
 
-	bink->packet.size = ce_memfile_read(videoresource->memfile,
+	bink->packet.size = ce_memfile_read(video_resource->memfile,
 										bink->packet.data, 1, frame_size);
 
 	int got_picture = 0;
@@ -530,29 +530,29 @@ static bool ce_bink_read(ce_videoresource* videoresource)
 	}
 
 	for (size_t i = 0; i < 3; ++i) {
-		videoresource->ycbcr.planes[i].stride = bink->picture.linesize[i];
-		videoresource->ycbcr.planes[i].data = bink->picture.data[i];
+		video_resource->ycbcr.planes[i].stride = bink->picture.linesize[i];
+		video_resource->ycbcr.planes[i].data = bink->picture.data[i];
 	}
 
 	return true;
 }
 
-static bool ce_bink_reset(ce_videoresource* videoresource)
+static bool ce_bink_reset(ce_video_resource* video_resource)
 {
-	ce_bink* bink = (ce_bink*)videoresource->impl;
+	ce_bink* bink = (ce_bink*)video_resource->impl;
 
-	ce_memfile_seek(videoresource->memfile,
-		bink->indices[videoresource->frame_index].pos, CE_MEMFILE_SEEK_SET);
+	ce_memfile_seek(video_resource->memfile,
+		bink->indices[video_resource->frame_index].pos, CE_MEMFILE_SEEK_SET);
 
 	return true;
 }
 
-const ce_videoresource_vtable ce_videoresource_builtins[] = {
+const ce_video_resource_vtable ce_video_resource_builtins[] = {
 	{ce_theora_size_hint, ce_theora_test, ce_theora_ctor,
 	ce_theora_dtor, ce_theora_read, ce_theora_reset},
 	{ce_bink_size_hint, ce_bink_test, ce_bink_ctor,
 	ce_bink_dtor, ce_bink_read, ce_bink_reset},
 };
 
-const size_t CE_VIDEORESOURCE_BUILTIN_COUNT = sizeof(ce_videoresource_builtins) /
-											sizeof(ce_videoresource_builtins[0]);
+const size_t CE_VIDEO_RESOURCE_BUILTIN_COUNT = sizeof(ce_video_resource_builtins) /
+											sizeof(ce_video_resource_builtins[0]);

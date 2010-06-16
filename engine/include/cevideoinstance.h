@@ -36,14 +36,14 @@ extern "C" {
 #endif
 
 enum {
-	CE_VIDEOINSTANCE_CACHE_SIZE = 8,
+	CE_VIDEO_INSTANCE_CACHE_SIZE = 8,
 };
 
 enum {
-	CE_VIDEOINSTANCE_STATE_STOPPED,
-	CE_VIDEOINSTANCE_STATE_STOPPING,
-	CE_VIDEOINSTANCE_STATE_PAUSED,
-	CE_VIDEOINSTANCE_STATE_PLAYING,
+	CE_VIDEO_INSTANCE_STATE_STOPPED,
+	CE_VIDEO_INSTANCE_STATE_STOPPING,
+	CE_VIDEO_INSTANCE_STATE_PAUSED,
+	CE_VIDEO_INSTANCE_STATE_PLAYING,
 };
 
 typedef struct {
@@ -52,31 +52,31 @@ typedef struct {
 	int state;
 	float time; // synchronization/playing time in seconds
 	int frame;
-	ce_videoresource* videoresource;
+	ce_video_resource* video_resource;
 	ce_texture* texture;
 	ce_mmpfile* rgba_frame; // TODO: shader
-	ce_mmpfile* ycbcr_frames[CE_VIDEOINSTANCE_CACHE_SIZE];
+	ce_mmpfile* ycbcr_frames[CE_VIDEO_INSTANCE_CACHE_SIZE];
 	ce_semaphore* prepared_frames;
 	ce_semaphore* unprepared_frames;
 	ce_thread* thread;
 	volatile bool done;
-} ce_videoinstance;
+} ce_video_instance;
 
-extern ce_videoinstance* ce_videoinstance_new(ce_video_id video_id,
+extern ce_video_instance* ce_video_instance_new(ce_video_id video_id,
 												ce_sound_id sound_id,
-												ce_videoresource* videoresource);
-extern void ce_videoinstance_del(ce_videoinstance* videoinstance);
+												ce_video_resource* video_resource);
+extern void ce_video_instance_del(ce_video_instance* video_instance);
 
-extern void ce_videoinstance_advance(ce_videoinstance* videoinstance, float elapsed);
-extern void ce_videoinstance_progress(ce_videoinstance* videoinstance, int percents);
+extern void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed);
+extern void ce_video_instance_progress(ce_video_instance* video_instance, int percents);
 
-extern void ce_videoinstance_render(ce_videoinstance* videoinstance);
+extern void ce_video_instance_render(ce_video_instance* video_instance);
 
-extern bool ce_videoinstance_is_stopped(ce_videoinstance* videoinstance);
+extern bool ce_video_instance_is_stopped(ce_video_instance* video_instance);
 
-extern void ce_videoinstance_play(ce_videoinstance* videoinstance);
-extern void ce_videoinstance_pause(ce_videoinstance* videoinstance);
-extern void ce_videoinstance_stop(ce_videoinstance* videoinstance);
+extern void ce_video_instance_play(ce_video_instance* video_instance);
+extern void ce_video_instance_pause(ce_video_instance* video_instance);
+extern void ce_video_instance_stop(ce_video_instance* video_instance);
 
 #ifdef __cplusplus
 }

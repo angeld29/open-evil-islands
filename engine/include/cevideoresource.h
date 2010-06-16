@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,44 +28,43 @@
 #include "ceycbcr.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
-typedef struct ce_videoresource ce_videoresource;
+typedef struct ce_video_resource ce_video_resource;
 
 typedef struct {
 	size_t (*size_hint)(ce_memfile* memfile);
 	bool (*test)(ce_memfile* memfile);
-	bool (*ctor)(ce_videoresource* videoresource);
-	void (*dtor)(ce_videoresource* videoresource);
-	bool (*read)(ce_videoresource* videoresource);
-	bool (*reset)(ce_videoresource* videoresource);
-} ce_videoresource_vtable;
+	bool (*ctor)(ce_video_resource* video_resource);
+	void (*dtor)(ce_video_resource* video_resource);
+	bool (*read)(ce_video_resource* video_resource);
+	bool (*reset)(ce_video_resource* video_resource);
+} ce_video_resource_vtable;
 
-struct ce_videoresource {
+struct ce_video_resource {
 	unsigned int width, height;
 	float fps, time;
 	size_t frame_index, frame_count;
 	ce_ycbcr ycbcr;
 	ce_memfile* memfile;
-	ce_videoresource_vtable vtable;
+	ce_video_resource_vtable vtable;
 	size_t size;
 	char impl[];
 };
 
-extern ce_videoresource* ce_videoresource_new(ce_memfile* memfile);
-extern void ce_videoresource_del(ce_videoresource* videoresource);
+extern ce_video_resource* ce_video_resource_new(ce_memfile* memfile);
+extern void ce_video_resource_del(ce_video_resource* video_resource);
 
-static inline bool ce_videoresource_read(ce_videoresource* videoresource)
+static inline bool ce_video_resource_read(ce_video_resource* video_resource)
 {
-	return (*videoresource->vtable.read)(videoresource);
+	return (*video_resource->vtable.read)(video_resource);
 }
 
-extern bool ce_videoresource_reset(ce_videoresource* videoresource);
+extern bool ce_video_resource_reset(ce_video_resource* video_resource);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_VIDEORESOURCE_H */
