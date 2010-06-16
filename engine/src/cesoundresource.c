@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,66 +26,66 @@
 #include "celogging.h"
 #include "cesoundresource.h"
 
-ce_soundresource* ce_soundresource_new(ce_soundresource_vtable vtable, ce_memfile* memfile)
+ce_sound_resource* ce_sound_resource_new(ce_sound_resource_vtable vtable, ce_memfile* memfile)
 {
 	size_t size = (*vtable.size_hint)(memfile);
 	ce_memfile_rewind(memfile);
 
-	ce_soundresource* soundresource = ce_alloc_zero(sizeof(ce_soundresource) + size);
+	ce_sound_resource* sound_resource = ce_alloc_zero(sizeof(ce_sound_resource) + size);
 
-	soundresource->memfile = memfile;
-	soundresource->vtable = vtable;
-	soundresource->size = size;
+	sound_resource->memfile = memfile;
+	sound_resource->vtable = vtable;
+	sound_resource->size = size;
 
-	if (!(*vtable.ctor)(soundresource)) {
+	if (!(*vtable.ctor)(sound_resource)) {
 		// do not take ownership if failed
-		soundresource->memfile = NULL;
-		ce_soundresource_del(soundresource);
+		sound_resource->memfile = NULL;
+		ce_sound_resource_del(sound_resource);
 		return NULL;
 	}
 
-	soundresource->sample_size = soundresource->channel_count *
-								(soundresource->bits_per_sample / 8);
+	sound_resource->sample_size = sound_resource->channel_count *
+								(sound_resource->bits_per_sample / 8);
 
-	return soundresource;
+	return sound_resource;
 }
 
-ce_soundresource* ce_soundresource_new_builtin(ce_memfile* memfile)
+ce_sound_resource* ce_sound_resource_new_builtin(ce_memfile* memfile)
 {
-	size_t index = ce_soundresource_find_builtin(memfile);
-	if (CE_SOUNDRESOURCE_BUILTIN_COUNT != index) {
-		return ce_soundresource_new(ce_soundresource_builtins[index], memfile);
+	size_t index = ce_sound_resource_find_builtin(memfile);
+	if (CE_SOUND_RESOURCE_BUILTIN_COUNT != index) {
+		return ce_sound_resource_new(ce_sound_resource_builtins[index], memfile);
 	}
 	return NULL;
 }
 
-void ce_soundresource_del(ce_soundresource* soundresource)
+void ce_sound_resource_del(ce_sound_resource* sound_resource)
 {
-	if (NULL != soundresource) {
-		if (NULL != soundresource->vtable.dtor) {
-			(*soundresource->vtable.dtor)(soundresource);
+	if (NULL != sound_resource) {
+		if (NULL != sound_resource->vtable.dtor) {
+			(*sound_resource->vtable.dtor)(sound_resource);
 		}
-		ce_memfile_close(soundresource->memfile);
-		ce_free(soundresource, sizeof(ce_soundresource) + soundresource->size);
+		ce_memfile_close(sound_resource->memfile);
+		ce_free(sound_resource, sizeof(ce_sound_resource) + sound_resource->size);
 	}
 }
 
-size_t ce_soundresource_find_builtin(ce_memfile* memfile)
+size_t ce_sound_resource_find_builtin(ce_memfile* memfile)
 {
-	for (size_t i = 0; i < CE_SOUNDRESOURCE_BUILTIN_COUNT; ++i) {
+	for (size_t i = 0; i < CE_SOUND_RESOURCE_BUILTIN_COUNT; ++i) {
 		ce_memfile_rewind(memfile);
-		if ((*ce_soundresource_builtins[i].test)(memfile)) {
+		if ((*ce_sound_resource_builtins[i].test)(memfile)) {
 			ce_memfile_rewind(memfile);
 			return i;
 		}
 	}
 	ce_memfile_rewind(memfile);
-	return CE_SOUNDRESOURCE_BUILTIN_COUNT;
+	return CE_SOUND_RESOURCE_BUILTIN_COUNT;
 }
 
-bool ce_soundresource_reset(ce_soundresource* soundresource)
+bool ce_sound_resource_reset(ce_sound_resource* sound_resource)
 {
-	soundresource->time = 0.0f;
-	ce_memfile_rewind(soundresource->memfile);
-	return (*soundresource->vtable.reset)(soundresource);
+	sound_resource->time = 0.0f;
+	ce_memfile_rewind(sound_resource->memfile);
+	return (*sound_resource->vtable.reset)(sound_resource);
 }

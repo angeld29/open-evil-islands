@@ -48,7 +48,7 @@ static void state_changed(void* listener, int state)
 		const char* track;
 		ce_optparse_get(optparse, "track", &track);
 
-		sound_id = ce_soundmanager_create(ce_root.soundmanager, track);
+		sound_id = ce_sound_manager_create(ce_root.sound_manager, track);
 		if (0 == sound_id) {
 			ce_logging_error("sound player: could not play audio track '%s'", track);
 		} else {

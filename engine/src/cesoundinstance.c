@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,113 +29,113 @@
 #include "ceroot.h"
 #include "cesoundinstance.h"
 
-static void ce_soundinstance_exec(ce_soundinstance* soundinstance)
+static void ce_sound_instance_exec(ce_sound_instance* sound_instance)
 {
-	ce_mutex_lock(soundinstance->mutex);
+	ce_mutex_lock(sound_instance->mutex);
 
-	while (!soundinstance->done) {
-		switch (soundinstance->state) {
-		case CE_SOUNDINSTANCE_STATE_PLAYING:
-			ce_mutex_unlock(soundinstance->mutex);
+	while (!sound_instance->done) {
+		switch (sound_instance->state) {
+		case CE_SOUND_INSTANCE_STATE_PLAYING:
+			ce_mutex_unlock(sound_instance->mutex);
 
-			char* block = ce_soundsystem_map_block(ce_root.soundsystem);
+			char* block = ce_sound_system_map_block(ce_root.sound_system);
 			size_t size = 0;
 
 			// the resource may not return requested size in one pass
 			for (size_t bytes = SIZE_MAX; 0 != bytes &&
-					size < CE_SOUNDSYSTEM_BLOCK_SIZE; size += bytes) {
-				bytes = ce_soundresource_read(soundinstance->soundresource,
-					block + size, CE_SOUNDSYSTEM_BLOCK_SIZE - size);
+					size < CE_SOUND_SYSTEM_BLOCK_SIZE; size += bytes) {
+				bytes = ce_sound_resource_read(sound_instance->sound_resource,
+					block + size, CE_SOUND_SYSTEM_BLOCK_SIZE - size);
 			}
 
 			// fill tail by silence
-			memset(block + size, 0, CE_SOUNDSYSTEM_BLOCK_SIZE - size);
+			memset(block + size, 0, CE_SOUND_SYSTEM_BLOCK_SIZE - size);
 
-			ce_soundsystem_unmap_block(ce_root.soundsystem);
+			ce_sound_system_unmap_block(ce_root.sound_system);
 
-			ce_mutex_lock(soundinstance->mutex);
-			soundinstance->time = soundinstance->soundresource->time;
+			ce_mutex_lock(sound_instance->mutex);
+			sound_instance->time = sound_instance->sound_resource->time;
 
 			if (0 == size) {
-				soundinstance->state = CE_SOUNDINSTANCE_STATE_STOPPED;
+				sound_instance->state = CE_SOUND_INSTANCE_STATE_STOPPED;
 			}
 			break;
 
-		case CE_SOUNDINSTANCE_STATE_STOPPED:
-			soundinstance->time = 0.0f;
-			ce_soundresource_reset(soundinstance->soundresource);
-			ce_waitcond_wake_all(soundinstance->waitcond);
+		case CE_SOUND_INSTANCE_STATE_STOPPED:
+			sound_instance->time = 0.0f;
+			ce_sound_resource_reset(sound_instance->sound_resource);
+			ce_waitcond_wake_all(sound_instance->waitcond);
 
-		case CE_SOUNDINSTANCE_STATE_PAUSED:
-			ce_waitcond_wait(soundinstance->waitcond, soundinstance->mutex);
+		case CE_SOUND_INSTANCE_STATE_PAUSED:
+			ce_waitcond_wait(sound_instance->waitcond, sound_instance->mutex);
 			break;
 		}
 	}
 
-	ce_mutex_unlock(soundinstance->mutex);
+	ce_mutex_unlock(sound_instance->mutex);
 }
 
-ce_soundinstance* ce_soundinstance_new(ce_sound_id sound_id, ce_soundresource* soundresource)
+ce_sound_instance* ce_sound_instance_new(ce_sound_id sound_id, ce_sound_resource* sound_resource)
 {
-	ce_soundinstance* soundinstance = ce_alloc_zero(sizeof(ce_soundinstance));
-	soundinstance->sound_id = sound_id;
-	soundinstance->soundresource = soundresource;
-	soundinstance->mutex = ce_mutex_new();
-	soundinstance->waitcond = ce_waitcond_new();
-	soundinstance->thread = ce_thread_new(ce_soundinstance_exec, soundinstance);
-	return soundinstance;
+	ce_sound_instance* sound_instance = ce_alloc_zero(sizeof(ce_sound_instance));
+	sound_instance->sound_id = sound_id;
+	sound_instance->sound_resource = sound_resource;
+	sound_instance->mutex = ce_mutex_new();
+	sound_instance->waitcond = ce_waitcond_new();
+	sound_instance->thread = ce_thread_new(ce_sound_instance_exec, sound_instance);
+	return sound_instance;
 }
 
-void ce_soundinstance_del(ce_soundinstance* soundinstance)
+void ce_sound_instance_del(ce_sound_instance* sound_instance)
 {
-	if (NULL != soundinstance) {
-		ce_mutex_lock(soundinstance->mutex);
-		soundinstance->done = true;
-		ce_mutex_unlock(soundinstance->mutex);
+	if (NULL != sound_instance) {
+		ce_mutex_lock(sound_instance->mutex);
+		sound_instance->done = true;
+		ce_mutex_unlock(sound_instance->mutex);
 
-		ce_waitcond_wake_all(soundinstance->waitcond);
-		ce_thread_wait(soundinstance->thread);
+		ce_waitcond_wake_all(sound_instance->waitcond);
+		ce_thread_wait(sound_instance->thread);
 
-		ce_thread_del(soundinstance->thread);
-		ce_waitcond_del(soundinstance->waitcond);
-		ce_mutex_del(soundinstance->mutex);
+		ce_thread_del(sound_instance->thread);
+		ce_waitcond_del(sound_instance->waitcond);
+		ce_mutex_del(sound_instance->mutex);
 
-		ce_soundresource_del(soundinstance->soundresource);
+		ce_sound_resource_del(sound_instance->sound_resource);
 
-		ce_free(soundinstance, sizeof(ce_soundinstance));
+		ce_free(sound_instance, sizeof(ce_sound_instance));
 	}
 }
 
-void ce_soundinstance_play(ce_soundinstance* soundinstance)
+float ce_sound_instance_time(ce_sound_instance* sound_instance)
 {
-	ce_mutex_lock(soundinstance->mutex);
-	soundinstance->state = CE_SOUNDINSTANCE_STATE_PLAYING;
-	ce_waitcond_wake_all(soundinstance->waitcond);
-	ce_mutex_unlock(soundinstance->mutex);
-}
-
-void ce_soundinstance_pause(ce_soundinstance* soundinstance)
-{
-	ce_mutex_lock(soundinstance->mutex);
-	soundinstance->state = CE_SOUNDINSTANCE_STATE_PAUSED;
-	ce_waitcond_wake_all(soundinstance->waitcond);
-	ce_mutex_unlock(soundinstance->mutex);
-}
-
-void ce_soundinstance_stop(ce_soundinstance* soundinstance)
-{
-	ce_mutex_lock(soundinstance->mutex);
-	soundinstance->state = CE_SOUNDINSTANCE_STATE_STOPPED;
-	ce_waitcond_wake_all(soundinstance->waitcond);
-	// TODO: make async
-	ce_waitcond_wait(soundinstance->waitcond, soundinstance->mutex);
-	ce_mutex_unlock(soundinstance->mutex);
-}
-
-float ce_soundinstance_time(ce_soundinstance* soundinstance)
-{
-	ce_mutex_lock(soundinstance->mutex);
-	float time = soundinstance->time;
-	ce_mutex_unlock(soundinstance->mutex);
+	ce_mutex_lock(sound_instance->mutex);
+	float time = sound_instance->time;
+	ce_mutex_unlock(sound_instance->mutex);
 	return time;
+}
+
+void ce_sound_instance_play(ce_sound_instance* sound_instance)
+{
+	ce_mutex_lock(sound_instance->mutex);
+	sound_instance->state = CE_SOUND_INSTANCE_STATE_PLAYING;
+	ce_waitcond_wake_all(sound_instance->waitcond);
+	ce_mutex_unlock(sound_instance->mutex);
+}
+
+void ce_sound_instance_pause(ce_sound_instance* sound_instance)
+{
+	ce_mutex_lock(sound_instance->mutex);
+	sound_instance->state = CE_SOUND_INSTANCE_STATE_PAUSED;
+	ce_waitcond_wake_all(sound_instance->waitcond);
+	ce_mutex_unlock(sound_instance->mutex);
+}
+
+void ce_sound_instance_stop(ce_sound_instance* sound_instance)
+{
+	ce_mutex_lock(sound_instance->mutex);
+	sound_instance->state = CE_SOUND_INSTANCE_STATE_STOPPED;
+	ce_waitcond_wake_all(sound_instance->waitcond);
+	// TODO: make async
+	ce_waitcond_wait(sound_instance->waitcond, sound_instance->mutex);
+	ce_mutex_unlock(sound_instance->mutex);
 }

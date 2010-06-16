@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,44 +28,43 @@
 #include "cesoundresource.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 typedef enum {
-	CE_SOUNDINSTANCE_STATE_STOPPED,
-	CE_SOUNDINSTANCE_STATE_PAUSED,
-	CE_SOUNDINSTANCE_STATE_PLAYING,
-} ce_soundinstance_state;
+	CE_SOUND_INSTANCE_STATE_STOPPED,
+	CE_SOUND_INSTANCE_STATE_PAUSED,
+	CE_SOUND_INSTANCE_STATE_PLAYING,
+};
 
 typedef struct {
 	ce_sound_id sound_id;
-	ce_soundinstance_state state;
-	ce_soundresource* soundresource;
+	int state;
 	float time; // playing time in seconds
+	ce_sound_resource* sound_resource;
 	ce_mutex* mutex;
 	ce_waitcond* waitcond;
 	ce_thread* thread;
 	volatile bool done;
-} ce_soundinstance;
+} ce_sound_instance;
 
-extern ce_soundinstance* ce_soundinstance_new(ce_sound_id sound_id,
-											ce_soundresource* soundresource);
-extern void ce_soundinstance_del(ce_soundinstance* soundinstance);
+extern ce_sound_instance* ce_sound_instance_new(ce_sound_id sound_id,
+											ce_sound_resource* sound_resource);
+extern void ce_sound_instance_del(ce_sound_instance* sound_instance);
 
-static inline bool ce_soundinstance_is_stopped(ce_soundinstance* soundinstance)
+extern float ce_sound_instance_time(ce_sound_instance* sound_instance);
+
+static inline bool ce_sound_instance_is_stopped(ce_sound_instance* sound_instance)
 {
-	return CE_SOUNDINSTANCE_STATE_STOPPED == soundinstance->state;
+	return CE_SOUND_INSTANCE_STATE_STOPPED == sound_instance->state;
 }
 
-extern void ce_soundinstance_play(ce_soundinstance* soundinstance);
-extern void ce_soundinstance_pause(ce_soundinstance* soundinstance);
-extern void ce_soundinstance_stop(ce_soundinstance* soundinstance);
-
-extern float ce_soundinstance_time(ce_soundinstance* soundinstance);
+extern void ce_sound_instance_play(ce_sound_instance* sound_instance);
+extern void ce_sound_instance_pause(ce_sound_instance* sound_instance);
+extern void ce_sound_instance_stop(ce_sound_instance* sound_instance);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_SOUNDINSTANCE_H */

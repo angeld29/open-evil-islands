@@ -26,7 +26,6 @@
 #include "cestring.h"
 #include "cethread.h"
 #include "cetimer.h"
-#include "ceevent.h"
 #include "ceinput.h"
 #include "cerenderwindow.h"
 #include "cerendersystem.h"
@@ -62,8 +61,8 @@ extern struct ce_root {
 	ce_threadpool* threadpool;
 	ce_renderwindow* renderwindow;
 	ce_rendersystem* rendersystem;
-	ce_soundsystem* soundsystem;
-	ce_soundmanager* soundmanager;
+	ce_sound_system* sound_system;
+	ce_sound_manager* sound_manager;
 	ce_video_manager* video_manager;
 	ce_texmng* texmng;
 	ce_mprmng* mprmng;

@@ -105,7 +105,7 @@ ce_video_id ce_video_manager_create(ce_video_manager* video_manager, const char*
 	}
 
 	ce_video_id video_id = ++video_manager->last_video_id;
-	ce_sound_id sound_id = ce_soundmanager_create(ce_root.soundmanager, name);
+	ce_sound_id sound_id = ce_sound_manager_create(ce_root.sound_manager, name);
 
 	ce_video_instance* video_instance = ce_video_instance_new(video_id, sound_id, video_resource);
 	if (NULL == video_instance) {

@@ -28,6 +28,7 @@
 #include "celogging.h"
 #include "cesysteminfo.h"
 #include "cesystemevent.h"
+#include "ceevent.h"
 #include "ceavcodec.h"
 #include "ceroot.h"
 
@@ -84,8 +85,8 @@ static void ce_root_term(void)
 	ce_mprmng_del(ce_root.mprmng);
 	ce_texmng_del(ce_root.texmng);
 	ce_video_manager_del(ce_root.video_manager);
-	ce_soundmanager_del(ce_root.soundmanager);
-	ce_soundsystem_del(ce_root.soundsystem);
+	ce_sound_manager_del(ce_root.sound_manager);
+	ce_sound_system_del(ce_root.sound_system);
 	ce_rendersystem_del(ce_root.rendersystem);
 	ce_renderwindow_del(ce_root.renderwindow);
 	ce_threadpool_del(ce_root.threadpool);
@@ -193,15 +194,15 @@ bool ce_root_init(ce_optparse* optparse)
 		ce_display_reflection_from_bool(fs_reflection_x, fs_reflection_y);
 
 	ce_root.rendersystem = ce_rendersystem_new();
-	ce_root.soundsystem = ce_soundsystem_new_platform();
+	ce_root.sound_system = ce_sound_system_new_platform();
+
+	ce_root.sound_manager = ce_sound_manager_new();
+	ce_root.video_manager = ce_video_manager_new();
 
 	ce_logging_write("root: EI path is '%s'", ei_path);
 	ce_logging_write("root: CE path is '%s'", ce_path);
 
 	char path[strlen(ei_path) + 32];
-
-	ce_root.soundmanager = ce_soundmanager_new();
-	ce_root.video_manager = ce_video_manager_new();
 
 	snprintf(path, sizeof(path), "%s/Textures", ei_path);
 	ce_root.texmng = ce_texmng_new(path);
@@ -296,7 +297,7 @@ int ce_root_exec(void)
 			}
 		}
 
-		ce_soundmanager_advance(ce_root.soundmanager, elapsed);
+		ce_sound_manager_advance(ce_root.sound_manager, elapsed);
 		ce_video_manager_advance(ce_root.video_manager, elapsed);
 
 		ce_scenemng_advance(ce_root.scenemng, elapsed);

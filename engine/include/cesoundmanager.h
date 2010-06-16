@@ -31,16 +31,16 @@ extern "C" {
 
 typedef struct {
 	ce_sound_id last_sound_id;
-	ce_vector* soundinstances;
-} ce_soundmanager;
+	ce_vector* sound_instances;
+} ce_sound_manager;
 
-extern ce_soundmanager* ce_soundmanager_new(void);
-extern void ce_soundmanager_del(ce_soundmanager* soundmanager);
+extern ce_sound_manager* ce_sound_manager_new(void);
+extern void ce_sound_manager_del(ce_sound_manager* sound_manager);
 
-extern void ce_soundmanager_advance(ce_soundmanager* soundmanager, float elapsed);
+extern void ce_sound_manager_advance(ce_sound_manager* sound_manager, float elapsed);
 
-extern ce_sound_id ce_soundmanager_create(ce_soundmanager* soundmanager, const char* name);
-extern ce_soundinstance* ce_soundmanager_find(ce_soundmanager* soundmanager, ce_sound_id sound_id);
+extern ce_sound_id ce_sound_manager_create(ce_sound_manager* sound_manager, const char* name);
+extern ce_sound_instance* ce_sound_manager_find(ce_sound_manager* sound_manager, ce_sound_id sound_id);
 
 #ifdef __cplusplus
 }

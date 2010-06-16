@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,15 +23,15 @@
 #include "cealloc.h"
 #include "cesoundmixer.h"
 
-ce_soundmixer* ce_soundmixer_new(void)
+ce_sound_mixer* ce_sound_mixer_new(void)
 {
-	ce_soundmixer* soundmixer = ce_alloc(sizeof(ce_soundmixer));
-	return soundmixer;
+	ce_sound_mixer* sound_mixer = ce_alloc(sizeof(ce_sound_mixer));
+	return sound_mixer;
 }
 
-void ce_soundmixer_del(ce_soundmixer* soundmixer)
+void ce_sound_mixer_del(ce_sound_mixer* sound_mixer)
 {
-	if (NULL != soundmixer) {
-		ce_free(soundmixer, sizeof(ce_soundmixer));
+	if (NULL != sound_mixer) {
+		ce_free(sound_mixer, sizeof(ce_sound_mixer));
 	}
 }

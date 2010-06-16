@@ -27,13 +27,13 @@
 extern "C" {
 #endif
 
+extern float ce_sound_helper_time(ce_sound_id sound_id);
+
 extern bool ce_sound_helper_is_stopped(ce_sound_id sound_id);
 
 extern void ce_sound_helper_play(ce_sound_id sound_id);
 extern void ce_sound_helper_pause(ce_sound_id sound_id);
 extern void ce_sound_helper_stop(ce_sound_id sound_id);
-
-extern float ce_sound_helper_time(ce_sound_id sound_id);
 
 #ifdef __cplusplus
 }

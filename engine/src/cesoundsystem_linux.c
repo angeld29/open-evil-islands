@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,25 +34,24 @@
 
 typedef struct {
 	snd_pcm_t* handle;
-} ce_soundsystem_alsa;
+} ce_alsa;
 
-static void ce_soundsystem_alsa_error_handler(const char* file,
+static void ce_alsa_error_handler(const char* file,
 	int line, const char* function, int code, const char* format, ...)
 {
-	ce_logging_debug("soundsystem: alsa: error %d (%s:%d in %s)",
-									code, file, line, function);
+	ce_logging_debug("alsa: error %d (%s:%d in %s)", code, file, line, function);
 	va_list args;
 	va_start(args, format);
-	char buffer[strlen(format) + 32];
-	snprintf(buffer, sizeof(buffer), "soundsystem: alsa: %s", format);
+	char buffer[strlen(format) + 16];
+	snprintf(buffer, sizeof(buffer), "alsa: %s", format);
 	ce_logging_debug_va(buffer, args);
 	va_end(args);
 }
 
-static snd_pcm_format_t ce_soundsystem_alsa_choose_format()
+static snd_pcm_format_t ce_alsa_choose_format()
 {
 	snd_pcm_format_t format = SND_PCM_FORMAT_UNKNOWN;
-	switch (CE_SOUNDSYSTEM_BITS_PER_SAMPLE) {
+	switch (CE_SOUND_SYSTEM_BITS_PER_SAMPLE) {
 	case 8:
 		format = SND_PCM_FORMAT_S8;
 		break;
@@ -71,10 +70,10 @@ static snd_pcm_format_t ce_soundsystem_alsa_choose_format()
 	return format;
 }
 
-static const char* ce_soundsystem_alsa_choose_device()
+static const char* ce_alsa_choose_device()
 {
 	const char* device = "default";
-	switch (CE_SOUNDSYSTEM_CHANNEL_COUNT) {
+	switch (CE_SOUND_SYSTEM_CHANNEL_COUNT) {
 	case 1:
 	case 2:
 		break;
@@ -84,9 +83,9 @@ static const char* ce_soundsystem_alsa_choose_device()
 	return device;
 }
 
-static int ce_soundsystem_alsa_set_params(ce_soundsystem* soundsystem)
+static int ce_alsa_set_params(ce_sound_system* sound_system)
 {
-	ce_soundsystem_alsa* alsasystem = (ce_soundsystem_alsa*)soundsystem->impl;
+	ce_alsa* alsa = (ce_alsa*)sound_system->impl;
 
 	snd_pcm_hw_params_t* hwparams;
 	snd_pcm_sw_params_t* swparams;
@@ -98,44 +97,44 @@ static int ce_soundsystem_alsa_set_params(ce_soundsystem* soundsystem)
 	snd_pcm_uframes_t size;
 
 	// choose all parameters
-	code = snd_pcm_hw_params_any(alsasystem->handle, hwparams);
+	code = snd_pcm_hw_params_any(alsa->handle, hwparams);
 	if (code < 0) {
-		ce_logging_error("soundsystem: broken configuration for playback: no configurations available");
+		ce_logging_error("alsa: broken configuration for playback; no configurations available");
 		return code;
 	}
 
 	// set hardware resampling
-	code = snd_pcm_hw_params_set_rate_resample(alsasystem->handle, hwparams, 1);
+	code = snd_pcm_hw_params_set_rate_resample(alsa->handle, hwparams, 1);
 	if (code < 0) {
-		ce_logging_error("soundsystem: resampling setup failed for playback");
+		ce_logging_error("alsa: resampling setup failed for playback");
 		return code;
 	}
 
 	// set the interleaved read/write format
-	code = snd_pcm_hw_params_set_access(alsasystem->handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED);
+	code = snd_pcm_hw_params_set_access(alsa->handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED);
 	if (code < 0) {
-		ce_logging_error("soundsystem: access type not available for playback");
+		ce_logging_error("alsa: access type not available for playback");
 		return code;
 	}
 
 	// set the sample format
-	code = snd_pcm_hw_params_set_format(alsasystem->handle, hwparams, ce_soundsystem_alsa_choose_format());
+	code = snd_pcm_hw_params_set_format(alsa->handle, hwparams, ce_alsa_choose_format());
 	if (code < 0) {
-		ce_logging_error("soundsystem: sample format not available for playback");
+		ce_logging_error("alsa: sample format not available for playback");
 		return code;
 	}
 
 	// set the count of channels
-	code = snd_pcm_hw_params_set_channels(alsasystem->handle, hwparams, CE_SOUNDSYSTEM_CHANNEL_COUNT);
+	code = snd_pcm_hw_params_set_channels(alsa->handle, hwparams, CE_SOUND_SYSTEM_CHANNEL_COUNT);
 	if (code < 0) {
-		ce_logging_error("soundsystem: channels count (%u) not available for playbacks", CE_SOUNDSYSTEM_CHANNEL_COUNT);
+		ce_logging_error("alsa: channels count (%u) not available for playbacks", CE_SOUND_SYSTEM_CHANNEL_COUNT);
 		return code;
 	}
 
 	// set the stream rate
-	code = snd_pcm_hw_params_set_rate_near(alsasystem->handle, hwparams, &soundsystem->sample_rate, &dir);
+	code = snd_pcm_hw_params_set_rate_near(alsa->handle, hwparams, &sound_system->sample_rate, &dir);
 	if (code < 0) {
-		ce_logging_error("soundsystem: sample rate %u Hz not available for playback", CE_SOUNDSYSTEM_SAMPLE_RATE);
+		ce_logging_error("alsa: sample rate %u Hz not available for playback", CE_SOUND_SYSTEM_SAMPLE_RATE);
 		return code;
 	}
 
@@ -143,9 +142,9 @@ static int ce_soundsystem_alsa_set_params(ce_soundsystem* soundsystem)
 	unsigned int buffer_time = 500000;
 
 	// set the buffer time
-	code = snd_pcm_hw_params_set_buffer_time_near(alsasystem->handle, hwparams, &buffer_time, &dir);
+	code = snd_pcm_hw_params_set_buffer_time_near(alsa->handle, hwparams, &buffer_time, &dir);
 	if (code < 0) {
-		ce_logging_error("soundsystem: unable to set buffer time %u for playback", buffer_time);
+		ce_logging_error("alsa: unable to set buffer time %u for playback", buffer_time);
 		return code;
 	}
 
@@ -153,15 +152,15 @@ static int ce_soundsystem_alsa_set_params(ce_soundsystem* soundsystem)
 	unsigned int period_time = 100000;
 
 	// set the period time
-	code = snd_pcm_hw_params_set_period_time_near(alsasystem->handle, hwparams, &period_time, &dir);
+	code = snd_pcm_hw_params_set_period_time_near(alsa->handle, hwparams, &period_time, &dir);
 	if (code < 0) {
-		ce_logging_error("soundsystem: unable to set period time %u for playback", period_time);
+		ce_logging_error("alsa: unable to set period time %u for playback", period_time);
 		return code;
 	}
 
 	code = snd_pcm_hw_params_get_buffer_size(hwparams, &size);
 	if (code < 0) {
-		ce_logging_error("soundsystem: unable to get buffer size for playback");
+		ce_logging_error("alsa: unable to get buffer size for playback");
 		return code;
 	}
 
@@ -169,72 +168,72 @@ static int ce_soundsystem_alsa_set_params(ce_soundsystem* soundsystem)
 
 	code = snd_pcm_hw_params_get_period_size(hwparams, &size, &dir);
 	if (code < 0) {
-		ce_logging_error("soundsystem: unable to get period size for playback");
+		ce_logging_error("alsa: unable to get period size for playback");
 		return code;
 	}
 
 	snd_pcm_sframes_t period_size = size;
 
 	// write the parameters to device
-	code = snd_pcm_hw_params(alsasystem->handle, hwparams);
+	code = snd_pcm_hw_params(alsa->handle, hwparams);
 	if (code < 0) {
-		ce_logging_error("soundsystem: unable to set hw params for playback");
+		ce_logging_error("alsa: unable to set hw params for playback");
 		return code;
 	}
 
 	// get the current swparams
-	code = snd_pcm_sw_params_current(alsasystem->handle, swparams);
+	code = snd_pcm_sw_params_current(alsa->handle, swparams);
 	if (code < 0) {
-		ce_logging_error("soundsystem: unable to determine current swparams for playback");
+		ce_logging_error("alsa: unable to determine current swparams for playback");
 		return code;
 	}
 
 	// start the transfer when the buffer is almost full:
 	// (buffer_size / avail_min) * avail_min
-	code = snd_pcm_sw_params_set_start_threshold(alsasystem->handle, swparams,
+	code = snd_pcm_sw_params_set_start_threshold(alsa->handle, swparams,
 												(buffer_size / period_size) * period_size);
 	if (code < 0) {
-		ce_logging_error("soundsystem: unable to set start threshold mode for playback");
+		ce_logging_error("alsa: unable to set start threshold mode for playback");
 		return code;
 	}
 
 	// allow the transfer when at least period_size samples can be processed
-	code = snd_pcm_sw_params_set_avail_min(alsasystem->handle, swparams, period_size);
+	code = snd_pcm_sw_params_set_avail_min(alsa->handle, swparams, period_size);
 	if (code < 0) {
-		ce_logging_error("soundsystem: unable to set avail min for playback");
+		ce_logging_error("alsa: unable to set avail min for playback");
 		return code;
 	}
 
 	// write the parameters to the playback device
-	code = snd_pcm_sw_params(alsasystem->handle, swparams);
+	code = snd_pcm_sw_params(alsa->handle, swparams);
 	if (code < 0) {
-		ce_logging_error("soundsystem: unable to set sw params for playback");
+		ce_logging_error("alsa: unable to set sw params for playback");
 		return code;
 	}
 
 	return 0;
 }
 
-static bool ce_soundsystem_alsa_ctor(ce_soundsystem* soundsystem)
+static bool ce_alsa_ctor(ce_sound_system* sound_system)
 {
-	ce_soundsystem_alsa* alsasystem = (ce_soundsystem_alsa*)soundsystem->impl;
+	ce_alsa* alsa = (ce_alsa*)sound_system->impl;
 
-	ce_logging_write("soundsystem: using ALSA (Advanced Linux Sound Architecture)");
+	ce_logging_write("sound system: using ALSA (Advanced Linux Sound Architecture)");
 
-	snd_lib_error_set_handler(ce_soundsystem_alsa_error_handler);
+	snd_lib_error_set_handler(ce_alsa_error_handler);
 
-	const char* device = ce_soundsystem_alsa_choose_device();
+	const char* device = ce_alsa_choose_device();
 	int code;
 
-	code = snd_pcm_open(&alsasystem->handle, device, SND_PCM_STREAM_PLAYBACK, 0);
+	code = snd_pcm_open(&alsa->handle, device, SND_PCM_STREAM_PLAYBACK, 0);
 	if (code < 0) {
-		ce_logging_error("soundsystem: playback open error: %s", snd_strerror(code));
+		ce_logging_error("alsa: playback open error: %s", snd_strerror(code));
 		return false;
 	}
 
-	code = ce_soundsystem_alsa_set_params(soundsystem);
+	code = ce_alsa_set_params(sound_system);
 	if (code < 0) {
-		ce_logging_error("soundsystem: setting of hw/sw params failed: %s", snd_strerror(code));
+		ce_logging_error("alsa: setting of hw/sw params failed: %s", snd_strerror(code));
 		return false;
 	}
 
@@ -242,7 +241,7 @@ static bool ce_soundsystem_alsa_ctor(ce_soundsystem* soundsystem)
 	snd_output_t* output;
 	code = snd_output_stdio_attach(&output, stderr, 0);
 	if (code >= 0) {
-		//snd_pcm_dump(alsasystem->handle, output);
+		//snd_pcm_dump(alsa->handle, output);
 		snd_output_close(output);
 	}
 #endif
@@ -250,17 +249,17 @@ static bool ce_soundsystem_alsa_ctor(ce_soundsystem* soundsystem)
 	return true;
 }
 
-static void ce_soundsystem_alsa_dtor(ce_soundsystem* soundsystem)
+static void ce_alsa_dtor(ce_sound_system* sound_system)
 {
-	ce_soundsystem_alsa* alsasystem = (ce_soundsystem_alsa*)soundsystem->impl;
+	ce_alsa* alsa = (ce_alsa*)sound_system->impl;
 
-	if (NULL != alsasystem->handle) {
-		snd_pcm_drain(alsasystem->handle);
-		snd_pcm_close(alsasystem->handle);
+	if (NULL != alsa->handle) {
+		snd_pcm_drain(alsa->handle);
+		snd_pcm_close(alsa->handle);
 	}
 }
 
-static int ce_soundsystem_alsa_recovery(ce_soundsystem_alsa* alsasystem, int code)
+static int ce_alsa_recovery(ce_alsa* alsa, int code)
 {
 	// no data transferred or interrupt signal
 	if (-EAGAIN == code || -EINTR == code) {
@@ -269,22 +268,22 @@ static int ce_soundsystem_alsa_recovery(ce_soundsystem_alsa* alsasystem, int cod
 
 	// under-run
 	if (-EPIPE == code) {
-		code = snd_pcm_prepare(alsasystem->handle);
+		code = snd_pcm_prepare(alsa->handle);
 		if (code < 0) {
-			ce_logging_error("soundsystem: can't recovery from underrun, prepare failed");
+			ce_logging_error("alsa: can't recovery from underrun, prepare failed");
 			return code;
 		}
 	}
 
 	if (-ESTRPIPE == code) {
-		while (-EAGAIN == (code = snd_pcm_resume(alsasystem->handle))) {
+		while (-EAGAIN == (code = snd_pcm_resume(alsa->handle))) {
 			sleep(1); // wait until the suspend flag is released
 		}
 
 		if (code < 0) {
-			code = snd_pcm_prepare(alsasystem->handle);
+			code = snd_pcm_prepare(alsa->handle);
 			if (code < 0) {
-				ce_logging_error("soundsystem: can't recovery from suspend, prepare failed");
+				ce_logging_error("alsa: can't recovery from suspend, prepare failed");
 				return code;
 			}
 		}
@@ -295,22 +294,22 @@ static int ce_soundsystem_alsa_recovery(ce_soundsystem_alsa* alsasystem, int cod
 	return code;
 }
 
-static bool ce_soundsystem_alsa_write(ce_soundsystem* soundsystem, const void* block)
+static bool ce_alsa_write(ce_sound_system* sound_system, const void* block)
 {
-	ce_soundsystem_alsa* alsasystem = (ce_soundsystem_alsa*)soundsystem->impl;
+	ce_alsa* alsa = (ce_alsa*)sound_system->impl;
 	const char* data = block;
 	int code;
 
-	for (size_t sample_count = CE_SOUNDSYSTEM_SAMPLES_IN_BLOCK; sample_count > 0; ) {
-		code = snd_pcm_writei(alsasystem->handle, data, sample_count);
+	for (size_t sample_count = CE_SOUND_SYSTEM_SAMPLES_IN_BLOCK; sample_count > 0; ) {
+		code = snd_pcm_writei(alsa->handle, data, sample_count);
 		if (code < 0) {
-			code = ce_soundsystem_alsa_recovery(alsasystem, code);
+			code = ce_alsa_recovery(alsa, code);
 			if (code < 0) {
-				ce_logging_error("soundsystem: %s", snd_strerror(code));
+				ce_logging_error("alsa: %s", snd_strerror(code));
 				return false;
 			}
 		} else {
-			data += code * CE_SOUNDSYSTEM_SAMPLE_SIZE;
+			data += code * CE_SOUND_SYSTEM_SAMPLE_SIZE;
 			sample_count -= code;
 		}
 	}
@@ -318,8 +317,8 @@ static bool ce_soundsystem_alsa_write(ce_soundsystem* soundsystem, const void* b
 	return true;
 }
 
-ce_soundsystem* ce_soundsystem_new_platform(void)
+ce_sound_system* ce_sound_system_new_platform(void)
 {
-	return ce_soundsystem_new((ce_soundsystem_vtable){sizeof(ce_soundsystem_alsa),
-		ce_soundsystem_alsa_ctor, ce_soundsystem_alsa_dtor, ce_soundsystem_alsa_write});
+	return ce_sound_system_new((ce_sound_system_vtable){sizeof(ce_alsa),
+		ce_alsa_ctor, ce_alsa_dtor, ce_alsa_write});
 }

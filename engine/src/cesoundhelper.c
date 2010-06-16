@@ -25,41 +25,41 @@
 #include "ceroot.h"
 #include "cesoundhelper.h"
 
+float ce_sound_helper_time(ce_sound_id sound_id)
+{
+	ce_sound_instance* sound_instance = ce_sound_manager_find(ce_root.sound_manager, sound_id);
+	return NULL != sound_instance ? ce_sound_instance_time(sound_instance) : 0.0f;
+}
+
 bool ce_sound_helper_is_stopped(ce_sound_id sound_id)
 {
-	ce_soundinstance* soundinstance = ce_soundmanager_find(ce_root.soundmanager, sound_id);
-	if (NULL != soundinstance) {
-		return ce_soundinstance_is_stopped(soundinstance);
+	ce_sound_instance* sound_instance = ce_sound_manager_find(ce_root.sound_manager, sound_id);
+	if (NULL != sound_instance) {
+		return ce_sound_instance_is_stopped(sound_instance);
 	}
 	return true;
 }
 
 void ce_sound_helper_play(ce_sound_id sound_id)
 {
-	ce_soundinstance* soundinstance = ce_soundmanager_find(ce_root.soundmanager, sound_id);
-	if (NULL != soundinstance) {
-		ce_soundinstance_play(soundinstance);
+	ce_sound_instance* sound_instance = ce_sound_manager_find(ce_root.sound_manager, sound_id);
+	if (NULL != sound_instance) {
+		ce_sound_instance_play(sound_instance);
 	}
 }
 
 void ce_sound_helper_pause(ce_sound_id sound_id)
 {
-	ce_soundinstance* soundinstance = ce_soundmanager_find(ce_root.soundmanager, sound_id);
-	if (NULL != soundinstance) {
-		ce_soundinstance_pause(soundinstance);
+	ce_sound_instance* sound_instance = ce_sound_manager_find(ce_root.sound_manager, sound_id);
+	if (NULL != sound_instance) {
+		ce_sound_instance_pause(sound_instance);
 	}
 }
 
 void ce_sound_helper_stop(ce_sound_id sound_id)
 {
-	ce_soundinstance* soundinstance = ce_soundmanager_find(ce_root.soundmanager, sound_id);
-	if (NULL != soundinstance) {
-		ce_soundinstance_stop(soundinstance);
+	ce_sound_instance* sound_instance = ce_sound_manager_find(ce_root.sound_manager, sound_id);
+	if (NULL != sound_instance) {
+		ce_sound_instance_stop(sound_instance);
 	}
-}
-
-float ce_sound_helper_time(ce_sound_id sound_id)
-{
-	ce_soundinstance* soundinstance = ce_soundmanager_find(ce_root.soundmanager, sound_id);
-	return NULL != soundinstance ? ce_soundinstance_time(soundinstance) : 0.0f;
 }

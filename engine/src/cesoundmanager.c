@@ -36,7 +36,7 @@ enum {
 	CE_SOUND_EXT_COUNT = sizeof(ce_sound_exts) / sizeof(ce_sound_exts[0]),
 };
 
-ce_soundmanager* ce_soundmanager_new(void)
+ce_sound_manager* ce_sound_manager_new(void)
 {
 	char path[ce_root.ei_path->length + 16];
 
@@ -46,34 +46,34 @@ ce_soundmanager* ce_soundmanager_new(void)
 		ce_logging_write("sound manager: using path '%s'", path);
 	}
 
-	ce_soundmanager* soundmanager = ce_alloc_zero(sizeof(ce_soundmanager));
-	soundmanager->soundinstances = ce_vector_new();
-	return soundmanager;
+	ce_sound_manager* sound_manager = ce_alloc_zero(sizeof(ce_sound_manager));
+	sound_manager->sound_instances = ce_vector_new();
+	return sound_manager;
 }
 
-void ce_soundmanager_del(ce_soundmanager* soundmanager)
+void ce_sound_manager_del(ce_sound_manager* sound_manager)
 {
-	if (NULL != soundmanager) {
-		ce_vector_for_each(soundmanager->soundinstances, ce_soundinstance_del);
-		ce_vector_del(soundmanager->soundinstances);
-		ce_free(soundmanager, sizeof(ce_soundmanager));
+	if (NULL != sound_manager) {
+		ce_vector_for_each(sound_manager->sound_instances, ce_sound_instance_del);
+		ce_vector_del(sound_manager->sound_instances);
+		ce_free(sound_manager, sizeof(ce_sound_manager));
 	}
 }
 
-void ce_soundmanager_advance(ce_soundmanager* soundmanager, float elapsed)
+void ce_sound_manager_advance(ce_sound_manager* sound_manager, float elapsed)
 {
 	ce_unused(elapsed);
 
-	for (size_t i = 0; i < soundmanager->soundinstances->count; ++i) {
-		ce_soundinstance* sound_instance = soundmanager->soundinstances->items[i];
-		if (ce_soundinstance_is_stopped(sound_instance)) {
-			ce_soundinstance_del(sound_instance);
-			ce_vector_remove_unordered(soundmanager->soundinstances, i--);
+	for (size_t i = 0; i < sound_manager->sound_instances->count; ++i) {
+		ce_sound_instance* sound_instance = sound_manager->sound_instances->items[i];
+		if (ce_sound_instance_is_stopped(sound_instance)) {
+			ce_sound_instance_del(sound_instance);
+			ce_vector_remove_unordered(sound_manager->sound_instances, i--);
 		}
 	}
 }
 
-static ce_memfile* ce_soundmanager_open(const char* name)
+static ce_memfile* ce_sound_manager_open(const char* name)
 {
 	char path[ce_root.ei_path->length + strlen(name) + 32];
 
@@ -91,36 +91,36 @@ static ce_memfile* ce_soundmanager_open(const char* name)
 	return NULL;
 }
 
-ce_sound_id ce_soundmanager_create(ce_soundmanager* soundmanager, const char* name)
+ce_sound_id ce_sound_manager_create(ce_sound_manager* sound_manager, const char* name)
 {
-	ce_memfile* memfile = ce_soundmanager_open(name);
+	ce_memfile* memfile = ce_sound_manager_open(name);
 	if (NULL == memfile) {
 		return 0;
 	}
 
-	ce_soundresource* soundresource = ce_soundresource_new_builtin(memfile);
-	if (NULL == soundresource) {
+	ce_sound_resource* sound_resource = ce_sound_resource_new_builtin(memfile);
+	if (NULL == sound_resource) {
 		ce_memfile_close(memfile);
 		return 0;
 	}
 
-	ce_soundinstance* soundinstance =
-		ce_soundinstance_new(++soundmanager->last_sound_id, soundresource);
-	if (NULL == soundinstance) {
+	ce_sound_instance* sound_instance =
+		ce_sound_instance_new(++sound_manager->last_sound_id, sound_resource);
+	if (NULL == sound_instance) {
 		ce_logging_error("sound manager: could not create instance for '%s'", name);
-		ce_soundresource_del(soundresource);
+		ce_sound_resource_del(sound_resource);
 		return 0;
 	}
 
-	ce_vector_push_back(soundmanager->soundinstances, soundinstance);
+	ce_vector_push_back(sound_manager->sound_instances, sound_instance);
 
-	return soundinstance->sound_id;
+	return sound_instance->sound_id;
 }
 
-ce_soundinstance* ce_soundmanager_find(ce_soundmanager* soundmanager, ce_sound_id sound_id)
+ce_sound_instance* ce_sound_manager_find(ce_sound_manager* sound_manager, ce_sound_id sound_id)
 {
-	for (size_t i = 0; i < soundmanager->soundinstances->count; ++i) {
-		ce_soundinstance* sound_instance = soundmanager->soundinstances->items[i];
+	for (size_t i = 0; i < sound_manager->sound_instances->count; ++i) {
+		ce_sound_instance* sound_instance = sound_manager->sound_instances->items[i];
 		if (sound_id == sound_instance->sound_id) {
 			return sound_instance;
 		}

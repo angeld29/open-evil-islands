@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,48 +27,47 @@
 #include "cememfile.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
-typedef struct ce_soundresource ce_soundresource;
+typedef struct ce_sound_resource ce_sound_resource;
 
 typedef struct {
 	size_t (*size_hint)(ce_memfile* memfile);
 	bool (*test)(ce_memfile* memfile);
-	bool (*ctor)(ce_soundresource* soundresource);
-	void (*dtor)(ce_soundresource* soundresource);
-	size_t (*read)(ce_soundresource* soundresource, void* data, size_t size);
-	bool (*reset)(ce_soundresource* soundresource);
-} ce_soundresource_vtable;
+	bool (*ctor)(ce_sound_resource* sound_resource);
+	void (*dtor)(ce_sound_resource* sound_resource);
+	size_t (*read)(ce_sound_resource* sound_resource, void* data, size_t size);
+	bool (*reset)(ce_sound_resource* sound_resource);
+} ce_sound_resource_vtable;
 
-struct ce_soundresource {
+struct ce_sound_resource {
 	unsigned int bits_per_sample, sample_rate, channel_count, sample_size;
 	float time;
 	ce_memfile* memfile;
-	ce_soundresource_vtable vtable;
+	ce_sound_resource_vtable vtable;
 	size_t size;
 	char impl[];
 };
 
-extern const size_t CE_SOUNDRESOURCE_BUILTIN_COUNT;
-extern const ce_soundresource_vtable ce_soundresource_builtins[];
+extern const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT;
+extern const ce_sound_resource_vtable ce_sound_resource_builtins[];
 
-extern ce_soundresource* ce_soundresource_new(ce_soundresource_vtable vtable, ce_memfile* memfile);
-extern ce_soundresource* ce_soundresource_new_builtin(ce_memfile* memfile);
-extern void ce_soundresource_del(ce_soundresource* soundresource);
+extern ce_sound_resource* ce_sound_resource_new(ce_sound_resource_vtable vtable, ce_memfile* memfile);
+extern ce_sound_resource* ce_sound_resource_new_builtin(ce_memfile* memfile);
+extern void ce_sound_resource_del(ce_sound_resource* sound_resource);
 
-extern size_t ce_soundresource_find_builtin(ce_memfile* memfile);
+extern size_t ce_sound_resource_find_builtin(ce_memfile* memfile);
 
-static inline size_t ce_soundresource_read(ce_soundresource* soundresource, void* data, size_t size)
+static inline size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size)
 {
-	return (*soundresource->vtable.read)(soundresource, data, size);
+	return (*sound_resource->vtable.read)(sound_resource, data, size);
 }
 
-extern bool ce_soundresource_reset(ce_soundresource* soundresource);
+extern bool ce_sound_resource_reset(ce_sound_resource* sound_resource);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_SOUNDRESOURCE_H */
