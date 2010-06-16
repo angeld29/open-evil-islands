@@ -29,8 +29,9 @@
 #include "cemprhlp.h"
 #include "cefrustum.h"
 #include "cebytefmt.h"
-#include "ceroot.h"
+#include "ceoptionmanager.h"
 #include "cemobmanager.h"
+#include "ceroot.h"
 #include "cescenemng.h"
 
 static void ce_scenemng_renderwindow_resized(void* listener, int width, int height)
@@ -164,8 +165,8 @@ static void ce_scenemng_advance_playing(ce_scenemng* scenemng, float elapsed)
 	}
 
 	if (scenemng->rotate_on_event->triggered) {
-		float xcoef = 0.25f * (float[]){-1.0f,1.0f}[ce_root.inverse_trackball_x];
-		float ycoef = 0.25f * (float[]){-1.0f,1.0f}[ce_root.inverse_trackball_y];
+		float xcoef = 0.25f * (float[]){-1.0f,1.0f}[ce_option_manager->inverse_trackball_x];
+		float ycoef = 0.25f * (float[]){-1.0f,1.0f}[ce_option_manager->inverse_trackball_y];
 		ce_camera_yaw_pitch(scenemng->camera,
 			ce_deg2rad(xcoef * scenemng->inputsupply->inputcontext->pointer_offset.x),
 			ce_deg2rad(ycoef * scenemng->inputsupply->inputcontext->pointer_offset.y));
@@ -177,7 +178,7 @@ static void ce_scenemng_render_playing(ce_scenemng* scenemng)
 	ce_rendersystem_setup_viewport(ce_root.rendersystem, scenemng->viewport);
 	ce_rendersystem_setup_camera(ce_root.rendersystem, scenemng->camera);
 
-	if (ce_root.show_axes) {
+	if (ce_option_manager->show_axes) {
 		ce_rendersystem_draw_axes(ce_root.rendersystem);
 	}
 
@@ -254,7 +255,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		(*scenemng->listener.render)(scenemng->listener.receiver);
 	}
 
-	if (ce_root.show_fps) {
+	if (ce_option_manager->show_fps) {
 		ce_font_render(scenemng->font, scenemng->viewport->width -
 			ce_font_get_width(scenemng->font, scenemng->fps->text) - 10,
 			scenemng->viewport->height - ce_font_get_height(scenemng->font) - 10,

@@ -23,7 +23,6 @@
 
 #include <stdbool.h>
 
-#include "cestring.h"
 #include "cetimer.h"
 #include "ceinput.h"
 #include "cerenderwindow.h"
@@ -39,19 +38,12 @@
 extern "C" {
 #endif
 
+// TODO: use pointer
 extern struct ce_root {
 	bool done;
-	bool terrain_tiling;
-	bool inverse_trackball_x;
-	bool inverse_trackball_y;
-	bool show_axes;
-	bool show_fps;
 	bool show_bboxes;
 	bool comprehensive_bbox_only;
-	int thread_count;
-	float anmfps;
-	ce_string* ei_path;
-	ce_string* ce_path;
+	float animation_fps;
 	ce_renderwindow* renderwindow;
 	ce_rendersystem* rendersystem;
 	ce_sound_system* sound_system;
@@ -69,10 +61,7 @@ extern struct ce_root {
 } ce_root;
 
 extern bool ce_root_init(ce_optparse* optparse, int argc, char* argv[]);
-
 extern int ce_root_exec(void);
-
-extern ce_optparse* ce_root_create_optparse(void);
 
 #ifdef __cplusplus
 }

@@ -29,10 +29,10 @@
 
 static bool ce_lightcfg_read_section(ce_color section[24],
 									const char* section_name,
-									ce_cfgfile* cfgfile)
+									ce_config_file* config_file)
 {
-	int section_index = ce_cfgfile_section_index(cfgfile, section_name);
-	if (-1 == section_index) {
+	size_t section_index = ce_config_file_section_index(config_file, section_name);
+	if (section_index == ce_config_file_section_count(config_file)) {
 		ce_logging_error("lightcfg: could not find section: '%s'", section_name);
 		return false;
 	}
@@ -42,15 +42,14 @@ static bool ce_lightcfg_read_section(ce_color section[24],
 	for (int i = 0; i < 24; ++i) {
 		snprintf(option_name, sizeof(option_name), "time%02d", i);
 
-		int option_index = ce_cfgfile_option_index(cfgfile, section_index,
-															option_name);
-		if (-1 == option_index) {
+		size_t option_index = ce_config_file_option_index(config_file, section_index, option_name);
+		if (option_index == ce_config_file_option_count(config_file, section_index)) {
 			ce_logging_error("lightcfg: section '%s': "
 				"could not find option: '%s'", section_name, option_name);
 			return false;
 		}
 
-		if (sizeof(option) <= ce_strlcpy(option, ce_cfgfile_get(cfgfile,
+		if (sizeof(option) <= ce_strlcpy(option, ce_config_file_get(config_file,
 						section_index, option_index), sizeof(option))) {
 			ce_logging_error("lightcfg: option is too long: '%s'", option);
 			return false;
@@ -67,12 +66,12 @@ static bool ce_lightcfg_read_section(ce_color section[24],
 	return true;
 }
 
-ce_lightcfg* ce_lightcfg_new(ce_cfgfile* cfgfile)
+ce_lightcfg* ce_lightcfg_new(ce_config_file* config_file)
 {
 	ce_lightcfg* lightcfg = ce_alloc(sizeof(ce_lightcfg));
-	bool ok = ce_lightcfg_read_section(lightcfg->sky, "sky", cfgfile) &&
-		ce_lightcfg_read_section(lightcfg->ambient, "ambient", cfgfile) &&
-		ce_lightcfg_read_section(lightcfg->sunlight, "sunlight", cfgfile);
+	bool ok = ce_lightcfg_read_section(lightcfg->sky, "sky", config_file) &&
+		ce_lightcfg_read_section(lightcfg->ambient, "ambient", config_file) &&
+		ce_lightcfg_read_section(lightcfg->sunlight, "sunlight", config_file);
 	return ok ? lightcfg : (ce_lightcfg_del(lightcfg), NULL);
 }
 

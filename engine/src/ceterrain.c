@@ -27,7 +27,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cestring.h"
-#include "ceroot.h"
+#include "ceoptionmanager.h"
 #include "cemprhlp.h"
 #include "cemprrenderitem.h"
 #include "ceterrain.h"
@@ -242,7 +242,7 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 	ce_terrain_sector* sector = ce_terrain_sector_new();
 	ce_vector_push_back(cookie->terrain->sectors, sector);
 
-	if (ce_root.terrain_tiling) {
+	if (ce_option_manager->terrain_tiling) {
 		sector->texture = ce_texture_add_ref(ce_texmng_get(cookie->texmng, "default0"));
 		ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
 
@@ -329,7 +329,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_texmng* texmng,
 
 	ce_terrain_cookie* cookie = ce_terrain_cookie_new(terrain, texmng, renderqueue);
 
-	if (ce_root.terrain_tiling) {
+	if (ce_option_manager->terrain_tiling) {
 		// load tile textures immediately, because
 		// they are necessary for geometry creation
 		ce_terrain_load_tile_textures(cookie);

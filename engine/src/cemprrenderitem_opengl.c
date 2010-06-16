@@ -28,10 +28,10 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceoptionmanager.h"
 #include "ceresource.h"
 #include "ceopengl.h"
 #include "cetexture.h"
-#include "ceroot.h"
 #include "cemprhlp.h"
 #include "cemprrenderitem.h"
 
@@ -561,7 +561,7 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 									int sector_x, int sector_z,
 									int water, ce_vector* tile_textures)
 {
-	if (ce_root.terrain_tiling) {
+	if (ce_option_manager->terrain_tiling) {
 		// tiling? no speed...
 		ce_renderitem_vtable ce_mprrenderitem_tile_vtable = {
 			ce_mprrenderitem_tile_ctor, ce_mprrenderitem_tile_dtor,

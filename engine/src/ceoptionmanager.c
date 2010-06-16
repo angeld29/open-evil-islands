@@ -65,6 +65,10 @@ void ce_option_manager_init(ce_optparse* optparse)
 		ce_option_manager->inverse_trackball_y = true;
 	}
 
+	for (size_t i = 0; i < CE_OPTION_MOVIE_COUNT; ++i) {
+		ce_option_manager->movies[i] = ce_vector_new_reserved(4);
+	}
+
 	ce_logging_write("option manager: EI path is '%s'", ei_path);
 	ce_logging_write("option manager: CE path is '%s'", ce_path);
 	ce_logging_write("option manager: using up to %d threads", ce_option_manager->thread_count);
@@ -75,13 +79,17 @@ void ce_option_manager_init(ce_optparse* optparse)
 void ce_option_manager_term(void)
 {
 	if (NULL != ce_option_manager) {
+		for (size_t i = 0; i < CE_OPTION_MOVIE_COUNT; ++i) {
+			ce_vector_for_each(ce_option_manager->movies[i], ce_string_del);
+			ce_vector_del(ce_option_manager->movies[i]);
+		}
 		ce_string_del(ce_option_manager->ce_path);
 		ce_string_del(ce_option_manager->ei_path);
 		ce_free(ce_option_manager, sizeof(struct ce_option_manager));
 	}
 }
 
-ce_optparse* ce_option_manager_create_optparse(void)
+ce_optparse* ce_option_manager_create_option_parser(void)
 {
 	ce_optparse* optparse = ce_optparse_new();
 

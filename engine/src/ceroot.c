@@ -97,102 +97,71 @@ static void ce_root_term(void)
 	ce_thread_pool_term();
 	ce_event_manager_term();
 	ce_option_manager_term();
-
-	ce_string_del(ce_root.ce_path);
-	ce_string_del(ce_root.ei_path);
 }
 
 bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 {
-	if (!ce_system_info_check()) {
+	if (!ce_optparse_parse(optparse, argc, argv)) {
 		return false;
 	}
 
-	if (!ce_optparse_parse(optparse, argc, argv)) {
+	if (!ce_system_info_check()) {
 		return false;
 	}
 
 	atexit(ce_root_term);
 
-	bool fs_reflection_x, fs_reflection_y, list_vm,
-			list_vrot, list_vref, inverse_trackball;
-	int window_width, window_height, fs_rotation;
-	const char *ei_path, *ce_path;
-
-	ce_optparse_get(optparse, "ei_path", &ei_path);
-	ce_optparse_get(optparse, "ce_path", &ce_path);
-	ce_optparse_get(optparse, "window_width", &window_width);
-	ce_optparse_get(optparse, "window_height", &window_height);
-	ce_optparse_get(optparse, "fs_rotation", &fs_rotation);
-	ce_optparse_get(optparse, "fs_reflection_x", &fs_reflection_x);
-	ce_optparse_get(optparse, "fs_reflection_y", &fs_reflection_y);
-	ce_optparse_get(optparse, "list_vm", &list_vm);
-	ce_optparse_get(optparse, "list_vrot", &list_vrot);
-	ce_optparse_get(optparse, "list_vref", &list_vref);
-	ce_optparse_get(optparse, "terrain_tiling", &ce_root.terrain_tiling);
-	ce_optparse_get(optparse, "inverse_trackball", &inverse_trackball);
-	ce_optparse_get(optparse, "inverse_trackball_x", &ce_root.inverse_trackball_x);
-	ce_optparse_get(optparse, "inverse_trackball_y", &ce_root.inverse_trackball_y);
-	ce_optparse_get(optparse, "show_axes", &ce_root.show_axes);
-	ce_optparse_get(optparse, "show_fps", &ce_root.show_fps);
-	ce_optparse_get(optparse, "thread_count", &ce_root.thread_count);
-
-	if (inverse_trackball) {
-		ce_root.inverse_trackball_x = true;
-		ce_root.inverse_trackball_y = true;
-	}
-
 	ce_root.show_bboxes = false;
 	ce_root.comprehensive_bbox_only = true;
-	ce_root.anmfps = 15.0f;
-
-	ce_root.ei_path = ce_string_new_str(ei_path);
-	ce_root.ce_path = ce_string_new_str(ce_path);
+	ce_root.animation_fps = 15.0f;
 
 	ce_option_manager_init(optparse);
 	ce_event_manager_init();
-	ce_thread_pool_init(ce_root.thread_count);
+	ce_thread_pool_init(ce_option_manager->thread_count);
 
-	ce_root.renderwindow = ce_renderwindow_create(window_width, window_height, optparse->title->str);
+	ce_root.renderwindow = ce_renderwindow_create(ce_option_manager->window_width,
+		ce_option_manager->window_height, optparse->title->str);
 	if (NULL == ce_root.renderwindow) {
-		ce_logging_fatal("root: could not create a window");
+		ce_logging_fatal("root: could not create window");
 		return false;
 	}
 
-	if (list_vm) { // TODO: try without window creation
+	// TODO: try without window creation
+	if (ce_option_manager->list_video_modes) {
 		ce_displaymng_dump_supported_modes_to_stdout(ce_root.renderwindow->displaymng);
 		return false;
 	}
 
-	if (list_vrot) { // TODO: try without window creation
+	// TODO: try without window creation
+	if (ce_option_manager->list_video_rotations) {
 		ce_displaymng_dump_supported_rotations_to_stdout(ce_root.renderwindow->displaymng);
 		return false;
 	}
 
-	if (list_vref) { // TODO: try without window creation
+	// TODO: try without window creation
+	if (ce_option_manager->list_video_reflections) {
 		ce_displaymng_dump_supported_reflections_to_stdout(ce_root.renderwindow->displaymng);
 		return false;
 	}
 
 	// FIXME: find better solution
-	ce_optparse_get(optparse, "fullscreen", &ce_root.renderwindow->restore_fullscreen);
-	if (ce_root.renderwindow->restore_fullscreen) {
+	ce_root.renderwindow->restore_fullscreen = ce_option_manager->fullscreen;
+	if (ce_option_manager->fullscreen) {
 		ce_root.renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
 	}
 
-	ce_optparse_get(optparse, "fs_width",
-		&ce_root.renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width);
-	ce_optparse_get(optparse, "fs_height",
-		&ce_root.renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height);
+	ce_root.renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = ce_option_manager->fullscreen_width;
+	ce_root.renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = ce_option_manager->fullscreen_height;
 
-	ce_optparse_get(optparse, "fs_bpp", &ce_root.renderwindow->visual.bpp);
-	ce_optparse_get(optparse, "fs_rate", &ce_root.renderwindow->visual.rate);
+	ce_root.renderwindow->visual.bpp = ce_option_manager->fullscreen_bpp;
+	ce_root.renderwindow->visual.rate = ce_option_manager->fullscreen_rate;
 
 	ce_root.renderwindow->visual.rotation =
-		ce_display_rotation_from_degrees(fs_rotation);
+		ce_display_rotation_from_degrees(ce_option_manager->fullscreen_rotation);
 
 	ce_root.renderwindow->visual.reflection =
-		ce_display_reflection_from_bool(fs_reflection_x, fs_reflection_y);
+		ce_display_reflection_from_bool(ce_option_manager->fullscreen_reflection_x,
+										ce_option_manager->fullscreen_reflection_y);
 
 	ce_root.rendersystem = ce_rendersystem_new();
 	ce_root.sound_system = ce_sound_system_new_platform();
@@ -201,18 +170,19 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 	ce_sound_manager_init();
 	ce_video_manager_init();
 
-	char path[strlen(ei_path) + 32];
+	char path[ce_option_manager->ei_path->length + 32];
 
-	snprintf(path, sizeof(path), "%s/Textures", ei_path);
+	snprintf(path, sizeof(path), "%s/Textures", ce_option_manager->ei_path->str);
 	ce_root.texmng = ce_texmng_new(path);
 
 	const char* texture_resources[] = { "textures", "redress", "menus" };
 	for (size_t i = 0; i < sizeof(texture_resources) / sizeof(texture_resources[0]); ++i) {
-		snprintf(path, sizeof(path), "%s/Res/%s.res", ei_path, texture_resources[i]);
+		snprintf(path, sizeof(path), "%s/Res/%s.res",
+			ce_option_manager->ei_path->str, texture_resources[i]);
 		ce_texmng_register_resource(ce_root.texmng, path);
 	}
 
-	snprintf(path, sizeof(path), "%s/Maps", ei_path);
+	snprintf(path, sizeof(path), "%s/Maps", ce_option_manager->ei_path->str);
 	ce_root.mprmng = ce_mprmng_new(path);
 	ce_mob_manager_init();
 
@@ -220,7 +190,8 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 
 	const char* figure_resources[] = { "figures", "menus" };
 	for (size_t i = 0; i < sizeof(figure_resources) / sizeof(figure_resources[0]); ++i) {
-		snprintf(path, sizeof(path), "%s/Res/%s.res", ei_path, figure_resources[i]);
+		snprintf(path, sizeof(path), "%s/Res/%s.res",
+			ce_option_manager->ei_path->str, figure_resources[i]);
 		ce_figmng_register_resource(ce_root.figmng, path);
 	}
 
@@ -301,83 +272,4 @@ int ce_root_exec(void)
 	}
 
 	return EXIT_SUCCESS;
-}
-
-ce_optparse* ce_root_create_optparse(void)
-{
-	ce_optparse* optparse = ce_optparse_new();
-
-	ce_optparse_add(optparse, "ei_path", CE_TYPE_STRING, ".", false,
-		NULL, "ei-path", "path to EI directory (current by default)");
-	ce_optparse_add(optparse, "ce_path", CE_TYPE_STRING, ".", false,
-		NULL, "ce-path",
-		"reserved for future use: path to CE directory (current by default)");
-
-	ce_optparse_add(optparse, "window_width", CE_TYPE_INT, (int[]){1024}, false,
-		NULL, "window-width", "desired window width in window mode");
-	ce_optparse_add(optparse, "window_height", CE_TYPE_INT, (int[]){768}, false,
-		NULL, "window-height", "desired window height in window mode");
-
-	ce_optparse_add(optparse, "fullscreen", CE_TYPE_BOOL, NULL, false,
-		"f", "fullscreen", "start program in fullscreen mode");
-
-	ce_optparse_add(optparse, "fs_width", CE_TYPE_INT, NULL, false,
-		NULL, "fullscreen-width",
-		"desired window width in fullscreen mode (max available by default)");
-	ce_optparse_add(optparse, "fs_height", CE_TYPE_INT, NULL, false,
-		NULL, "fullscreen-height",
-		"desired window height in fullscreen mode (max available by default)");
-
-	ce_optparse_add(optparse, "fs_bpp", CE_TYPE_INT, NULL, false,
-		NULL, "fullscreen-bpp", "desired bits per pixel (max available by default)");
-	ce_optparse_add(optparse, "fs_rate", CE_TYPE_INT, NULL, false,
-		NULL, "fullscreen-rate", "desired refresh rate (max available by default)");
-
-	ce_optparse_add(optparse, "fs_rotation", CE_TYPE_INT, NULL, false,
-		NULL, "fullscreen-rotation", "specify rotation in degrees (90, 180, 270)");
-	ce_optparse_add(optparse, "fs_reflection_x", CE_TYPE_BOOL, NULL, false,
-		NULL, "fullscreen-reflection-x", "reflect around x axis");
-	ce_optparse_add(optparse, "fs_reflection_y", CE_TYPE_BOOL, NULL, false,
-		NULL, "fullscreen-reflection-y", "reflect around y axis");
-
-	ce_optparse_add(optparse, "list_vm", CE_TYPE_BOOL, NULL, false,
-		NULL, "list-video-modes", "display supported video modes in "
-		"format WIDTHxHEIGHT:BPP@RATE and exit (output to stdout)");
-	ce_optparse_add(optparse, "list_vrot", CE_TYPE_BOOL, NULL, false,
-		NULL, "list-video-rotations",
-		"display supported rotations and exit (output to stdout)");
-	ce_optparse_add(optparse, "list_vref", CE_TYPE_BOOL, NULL, false,
-		NULL, "list-video-reflections",
-		"display supported reflections and exit (output to stdout)");
-
-	ce_optparse_add(optparse, "thread_count", CE_TYPE_INT,
-		(const int[]){ce_online_cpu_count()}, false,
-		"j", "jobs", "allow THREAD_COUNT jobs at once; if this option is not "
-		"specified, the value will be detected automatically depending on the "
-		"number of CPUs you have (or the number of cores your CPU have)");
-	ce_optparse_add(optparse, "terrain_tiling", CE_TYPE_BOOL, NULL, false,
-		NULL, "terrain-tiling", "enable terrain tiling; very slow, but reduce "
-		"usage of video memory and disk space; use it if you have an old video card");
-
-	ce_optparse_add(optparse, "inverse_trackball", CE_TYPE_BOOL, NULL, false,
-		NULL, "inverse-trackball", "invert the x and y axes of the mouse movement");
-	ce_optparse_add(optparse, "inverse_trackball_x", CE_TYPE_BOOL, NULL, false,
-		NULL, "inverse-trackball-x", "invert the x axis of the mouse movement");
-	ce_optparse_add(optparse, "inverse_trackball_y", CE_TYPE_BOOL, NULL, false,
-		NULL, "inverse-trackball-y", "invert the y axis of the mouse movement");
-
-	ce_optparse_add(optparse, "show_axes", CE_TYPE_BOOL, NULL, false,
-		NULL, "show-axes", "show x (red), y (green), z (blue) axes");
-	ce_optparse_add(optparse, "show_fps", CE_TYPE_BOOL, NULL, false,
-		NULL, "show-fps", "show fps counter");
-
-	ce_optparse_add_control(optparse, "alt+tab", "minimize fullscreen window");
-	ce_optparse_add_control(optparse, "alt+enter", "toggle fullscreen mode");
-	ce_optparse_add_control(optparse, "b", "toggle bounding boxes "
-										"(comprehensive/comprehensive+bones/none)");
-	ce_optparse_add_control(optparse, "keyboard arrows", "move camera");
-	ce_optparse_add_control(optparse, "mouse right button + motion", "rotate camera");
-	ce_optparse_add_control(optparse, "mouse wheel", "zoom camera");
-
-	return optparse;
 }

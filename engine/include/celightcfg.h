@@ -35,7 +35,7 @@ typedef struct {
 	ce_color sunlight[24];
 } ce_lightcfg;
 
-extern ce_lightcfg* ce_lightcfg_new(ce_cfgfile* cfgfile);
+extern ce_lightcfg* ce_lightcfg_new(ce_config_file* config_file);
 extern ce_lightcfg* ce_lightcfg_new_default(void);
 extern void ce_lightcfg_del(ce_lightcfg* lightcfg);
 

@@ -31,6 +31,15 @@
 extern "C" {
 #endif
 
+enum {
+	CE_OPTION_MOVIE_START,
+	CE_OPTION_MOVIE_CRDTFIN,
+	CE_OPTION_MOVIE_CRDTFOUT,
+	CE_OPTION_MOVIE_TITLESFIN,
+	CE_OPTION_MOVIE_TITLESFOUT,
+	CE_OPTION_MOVIE_COUNT
+};
+
 extern struct ce_option_manager {
 	ce_string* ei_path;
 	ce_string* ce_path;
@@ -54,12 +63,13 @@ extern struct ce_option_manager {
 	int thread_count;
 	bool show_axes;
 	bool show_fps;
+	ce_vector* movies[CE_OPTION_MOVIE_COUNT];
 }* ce_option_manager;
 
 extern void ce_option_manager_init(ce_optparse* optparse);
 extern void ce_option_manager_term(void);
 
-extern ce_optparse* ce_option_manager_create_optparse(void);
+extern ce_optparse* ce_option_manager_create_option_parser(void);
 
 #ifdef __cplusplus
 }

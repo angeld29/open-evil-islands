@@ -31,7 +31,7 @@
 static void ce_figentity_scenenode_about_to_update(void* listener)
 {
 	ce_figentity* figentity = listener;
-	ce_figbone_advance(figentity->figbone, ce_root.anmfps * ce_root.timer->elapsed);
+	ce_figbone_advance(figentity->figbone, ce_root.animation_fps * ce_root.timer->elapsed);
 	ce_figbone_update(figentity->figbone, figentity->figmesh->figproto->fignode,
 											figentity->scenenode->renderitems);
 }

@@ -24,7 +24,7 @@
 
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceroot.h"
+#include "ceoptionmanager.h"
 #include "cemobmanager.h"
 
 static const char* ce_mob_dirs[] = {"Maps"};
@@ -37,11 +37,11 @@ struct ce_mob_manager* ce_mob_manager;
 
 void ce_mob_manager_init(void)
 {
-	char path[ce_root.ei_path->length + 16];
+	char path[ce_option_manager->ei_path->length + 16];
 
 	for (size_t i = 0; i < CE_MOB_DIR_COUNT; ++i) {
 		snprintf(path, sizeof(path), "%s/%s",
-			ce_root.ei_path->str, ce_mob_dirs[i]);
+			ce_option_manager->ei_path->str, ce_mob_dirs[i]);
 		ce_logging_write("mob manager: using path '%s'", path);
 	}
 
@@ -57,11 +57,11 @@ void ce_mob_manager_term(void)
 
 ce_mobfile* ce_mob_manager_open(const char* name)
 {
-	char path[ce_root.ei_path->length + strlen(name) + 32];
+	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
 
 	for (size_t i = 0; i < CE_MOB_DIR_COUNT; ++i) {
 		snprintf(path, sizeof(path), "%s/%s/%s.mob",
-			ce_root.ei_path->str, ce_mob_dirs[i], name);
+			ce_option_manager->ei_path->str, ce_mob_dirs[i], name);
 		ce_mobfile* mobfile = ce_mobfile_open(path);
 		if (NULL != mobfile) {
 			return mobfile;

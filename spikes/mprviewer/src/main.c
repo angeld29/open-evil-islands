@@ -24,6 +24,7 @@
 #include "celib.h"
 #include "cemath.h"
 #include "cealloc.h"
+#include "ceoptionmanager.h"
 #include "ceroot.h"
 
 static ce_optparse* optparse;
@@ -60,7 +61,7 @@ int main(int argc, char* argv[])
 	ce_alloc_init();
 	atexit(clean);
 
-	optparse = ce_root_create_optparse();
+	optparse = ce_option_manager_create_option_parser();
 
 	ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR,
 		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,

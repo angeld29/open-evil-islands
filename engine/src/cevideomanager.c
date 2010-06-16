@@ -25,7 +25,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceroot.h"
+#include "ceoptionmanager.h"
 #include "cesoundmanager.h"
 #include "cevideomanager.h"
 
@@ -41,11 +41,11 @@ struct ce_video_manager* ce_video_manager;
 
 void ce_video_manager_init(void)
 {
-	char path[ce_root.ei_path->length + 16];
+	char path[ce_option_manager->ei_path->length + 16];
 
 	for (size_t i = 0; i < CE_VIDEO_DIR_COUNT; ++i) {
 		snprintf(path, sizeof(path), "%s/%s",
-			ce_root.ei_path->str, ce_video_dirs[i]);
+			ce_option_manager->ei_path->str, ce_video_dirs[i]);
 		ce_logging_write("video manager: using path '%s'", path);
 	}
 
@@ -77,12 +77,12 @@ void ce_video_manager_advance(float elapsed)
 
 static ce_memfile* ce_video_manager_open(const char* name)
 {
-	char path[ce_root.ei_path->length + strlen(name) + 32];
+	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
 
 	for (size_t i = 0; i < CE_VIDEO_DIR_COUNT; ++i) {
 		for (size_t j = 0; j < CE_VIDEO_EXT_COUNT; ++j) {
 			snprintf(path, sizeof(path), "%s/%s/%s%s",
-				ce_root.ei_path->str, ce_video_dirs[i], name, ce_video_exts[j]);
+				ce_option_manager->ei_path->str, ce_video_dirs[i], name, ce_video_exts[j]);
 			ce_memfile* memfile = ce_memfile_open_path(path);
 			if (NULL != memfile) {
 				return memfile;

@@ -26,6 +26,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceoptionmanager.h"
 #include "cesoundobject.h"
 #include "cesoundmanager.h"
 #include "ceroot.h"
@@ -74,7 +75,7 @@ int main(int argc, char* argv[])
 	ce_alloc_init();
 	atexit(clean);
 
-	optparse = ce_root_create_optparse();
+	optparse = ce_option_manager_create_option_parser();
 
 	ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true,
 		NULL, NULL, "any TRACK.* file in 'EI/Stream'");

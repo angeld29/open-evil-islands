@@ -27,6 +27,7 @@
 #include "celib.h"
 #include "cemath.h"
 #include "cealloc.h"
+#include "ceoptionmanager.h"
 #include "ceroot.h"
 
 static ce_optparse* optparse;
@@ -84,21 +85,21 @@ static void advance(void* listener, float elapsed)
 	ce_unused(listener);
 	ce_inputsupply_advance(inputsupply, elapsed);
 
-	float anmfps = ce_root.anmfps;
+	float animation_fps = ce_root.animation_fps;
 
-	if (anmfps_inc_event->triggered) anmfps += 1.0f;
-	if (anmfps_dec_event->triggered) anmfps -= 1.0f;
+	if (anmfps_inc_event->triggered) animation_fps += 1.0f;
+	if (anmfps_dec_event->triggered) animation_fps -= 1.0f;
 
 	if (message_timeout > 0.0f) {
 		message_timeout -= elapsed;
 	}
 
-	if (anmfps != ce_root.anmfps) {
+	if (animation_fps != ce_root.animation_fps) {
 		message_timeout = 3.0f;
 	}
 
 	message_color.a = ce_fclamp(message_timeout, 0.0f, 1.0f);
-	ce_root.anmfps = ce_fclamp(anmfps, 1.0f, 50.0f);
+	ce_root.animation_fps = ce_fclamp(animation_fps, 1.0f, 50.0f);
 }
 
 static void render(void* listener)
@@ -106,7 +107,7 @@ static void render(void* listener)
 	ce_unused(listener);
 	if (message_timeout > 0.0f) {
 		char buffer[32];
-		snprintf(buffer, sizeof(buffer), "Animation FPS: %d", (int)ce_root.anmfps);
+		snprintf(buffer, sizeof(buffer), "Animation FPS: %d", (int)ce_root.animation_fps);
 		ce_font_render(ce_root.scenemng->font, (ce_root.scenemng->viewport->width -
 			ce_font_get_width(ce_root.scenemng->font, buffer)) / 2,
 			1 * (ce_root.scenemng->viewport->height -
@@ -120,7 +121,7 @@ int main(int argc, char* argv[])
 	ce_alloc_init();
 	atexit(clean);
 
-	optparse = ce_root_create_optparse();
+	optparse = ce_option_manager_create_option_parser();
 
 	ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR,
 		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
