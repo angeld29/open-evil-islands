@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,25 +22,24 @@
 #define CE_SYSTEMEVENT_H
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 typedef enum {
-	CE_SYSTEMEVENT_TYPE_INT,
-	CE_SYSTEMEVENT_TYPE_TERM,
-	CE_SYSTEMEVENT_TYPE_CTRLC,
-	CE_SYSTEMEVENT_TYPE_CTRLBREAK,
-	CE_SYSTEMEVENT_TYPE_CLOSE,
-	CE_SYSTEMEVENT_TYPE_LOGOFF,
-	CE_SYSTEMEVENT_TYPE_SHUTDOWN,
-	CE_SYSTEMEVENT_TYPE_COUNT
-} ce_systemevent_type;
+	CE_SYSTEM_EVENT_TYPE_INT,
+	CE_SYSTEM_EVENT_TYPE_TERM,
+	CE_SYSTEM_EVENT_TYPE_CTRLC,
+	CE_SYSTEM_EVENT_TYPE_CTRLBREAK,
+	CE_SYSTEM_EVENT_TYPE_CLOSE,
+	CE_SYSTEM_EVENT_TYPE_LOGOFF,
+	CE_SYSTEM_EVENT_TYPE_SHUTDOWN,
+	CE_SYSTEM_EVENT_TYPE_COUNT
+} ce_system_event_type;
 
-extern void ce_systemevent_register(void (*handler)(ce_systemevent_type type));
+extern void ce_system_event_register(void (*handler)(ce_system_event_type type));
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_SYSTEMEVENT_H */

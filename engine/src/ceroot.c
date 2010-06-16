@@ -39,28 +39,28 @@
 
 struct ce_root ce_root;
 
-static void ce_root_systemevent_handler(ce_systemevent_type type)
+static void ce_root_system_event_handler(ce_system_event_type type)
 {
 	switch (type) {
-	case CE_SYSTEMEVENT_TYPE_INT:
+	case CE_SYSTEM_EVENT_TYPE_INT:
 		ce_logging_warning("root: interactive attention event received");
 		break;
-	case CE_SYSTEMEVENT_TYPE_TERM:
+	case CE_SYSTEM_EVENT_TYPE_TERM:
 		ce_logging_warning("root: termination event received");
 		break;
-	case CE_SYSTEMEVENT_TYPE_CTRLC:
+	case CE_SYSTEM_EVENT_TYPE_CTRLC:
 		ce_logging_warning("root: ctrl+c event received");
 		break;
-	case CE_SYSTEMEVENT_TYPE_CTRLBREAK:
+	case CE_SYSTEM_EVENT_TYPE_CTRLBREAK:
 		ce_logging_warning("root: ctrl+break event received");
 		break;
-	case CE_SYSTEMEVENT_TYPE_CLOSE:
+	case CE_SYSTEM_EVENT_TYPE_CLOSE:
 		ce_logging_warning("root: close event received");
 		break;
-	case CE_SYSTEMEVENT_TYPE_LOGOFF:
+	case CE_SYSTEM_EVENT_TYPE_LOGOFF:
 		ce_logging_warning("root: logoff event received");
 		break;
-	case CE_SYSTEMEVENT_TYPE_SHUTDOWN:
+	case CE_SYSTEM_EVENT_TYPE_SHUTDOWN:
 		ce_logging_warning("root: shutdown event received");
 		break;
 	default:
@@ -104,17 +104,15 @@ static void ce_root_term(void)
 
 bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 {
-	atexit(ce_root_term);
-
-	ce_systeminfo_display();
-
-	if (!ce_systeminfo_check()) {
+	if (!ce_system_info_check()) {
 		return false;
 	}
 
 	if (!ce_optparse_parse(optparse, argc, argv)) {
 		return false;
 	}
+
+	atexit(ce_root_term);
 
 	bool fs_reflection_x, fs_reflection_y, list_vm,
 			list_vrot, list_vref, inverse_trackball;
@@ -243,7 +241,7 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 	ce_renderwindow_add_listener(ce_root.renderwindow,
 								&ce_root.renderwindow_listener);
 
-	ce_systemevent_register(ce_root_systemevent_handler);
+	ce_system_event_register(ce_root_system_event_handler);
 
 	return true;
 }

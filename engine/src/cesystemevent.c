@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,16 +29,16 @@
 
 #include "cesystemevent.h"
 
-static void (*ce_systemevent_handler)(ce_systemevent_type type);
+static void (*ce_system_event_handler)(ce_system_event_type type);
 
-static void ce_systemevent_signal_handler(int type)
+static void ce_system_event_signal_handler(int type)
 {
 	switch (type) {
 	case SIGINT:
-		ce_systemevent_handler(CE_SYSTEMEVENT_TYPE_INT);
+		ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_INT);
 		break;
 	case SIGTERM:
-		ce_systemevent_handler(CE_SYSTEMEVENT_TYPE_TERM);
+		ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_TERM);
 		break;
 	default:
 		assert(false);
@@ -46,23 +46,23 @@ static void ce_systemevent_signal_handler(int type)
 }
 
 #ifdef _WIN32
-static BOOL CALLBACK ce_systemevent_console_handler(DWORD type)
+static BOOL CALLBACK ce_system_event_console_handler(DWORD type)
 {
 	switch (type) {
 	case CTRL_C_EVENT:
-		ce_systemevent_handler(CE_SYSTEMEVENT_TYPE_CTRLC);
+		ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_CTRLC);
 		break;
 	case CTRL_BREAK_EVENT:
-		ce_systemevent_handler(CE_SYSTEMEVENT_TYPE_CTRLBREAK);
+		ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_CTRLBREAK);
 		break;
 	case CTRL_CLOSE_EVENT:
-		ce_systemevent_handler(CE_SYSTEMEVENT_TYPE_CLOSE);
+		ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_CLOSE);
 		break;
 	case CTRL_LOGOFF_EVENT:
-		ce_systemevent_handler(CE_SYSTEMEVENT_TYPE_LOGOFF);
+		ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_LOGOFF);
 		break;
 	case CTRL_SHUTDOWN_EVENT:
-		ce_systemevent_handler(CE_SYSTEMEVENT_TYPE_SHUTDOWN);
+		ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_SHUTDOWN);
 		break;
 	default:
 		assert(false);
@@ -71,15 +71,15 @@ static BOOL CALLBACK ce_systemevent_console_handler(DWORD type)
 }
 #endif
 
-void ce_systemevent_register(void (*handler)(ce_systemevent_type type))
+void ce_system_event_register(void (*handler)(ce_system_event_type type))
 {
-	assert(NULL == ce_systemevent_handler && "only one handler supported");
-	ce_systemevent_handler = handler;
+	assert(NULL == ce_system_event_handler && "only one handler supported");
+	ce_system_event_handler = handler;
 
-	signal(SIGINT, ce_systemevent_signal_handler);
-	signal(SIGTERM, ce_systemevent_signal_handler);
+	signal(SIGINT, ce_system_event_signal_handler);
+	signal(SIGTERM, ce_system_event_signal_handler);
 
 #ifdef _WIN32
-	SetConsoleCtrlHandler(ce_systemevent_console_handler, TRUE);
+	SetConsoleCtrlHandler(ce_system_event_console_handler, TRUE);
 #endif
 }

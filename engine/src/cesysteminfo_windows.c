@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,30 +27,21 @@
 #include "celogging.h"
 #include "cesysteminfo.h"
 
-static bool ce_systeminfo_retrieve_osverinfo(OSVERSIONINFOEX* osverinfo, BOOL* osverinfoex)
-{
-	ZeroMemory(osverinfo, sizeof(OSVERSIONINFOEX));
-	osverinfo->dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-
-	*osverinfoex = GetVersionEx((OSVERSIONINFO*)osverinfo);
-	if (!*osverinfoex) {
-		osverinfo->dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-		if (!GetVersionEx((OSVERSIONINFO*)osverinfo)) {
-			ce_logging_error("systeminfo: could not retrieve os version info");
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void ce_systeminfo_display(void)
+bool ce_system_info_check(void)
 {
 	OSVERSIONINFOEX osverinfo;
 	BOOL osverinfoex;
 
-	if (!ce_systeminfo_retrieve_osverinfo(&osverinfo, &osverinfoex)) {
-		return;
+	ZeroMemory(&osverinfo, sizeof(OSVERSIONINFOEX));
+	osverinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+
+	osverinfoex = GetVersionEx((OSVERSIONINFO*)&osverinfo);
+	if (!osverinfoex) {
+		osverinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		if (!GetVersionEx((OSVERSIONINFO*)&osverinfo)) {
+			ce_logging_fatal("system info: could not retrieve os version info");
+			return false;
+		}
 	}
 
 	SYSTEM_INFO sysinfo;
@@ -61,7 +52,7 @@ void ce_systeminfo_display(void)
 	switch (osverinfo.dwPlatformId) {
 	case VER_PLATFORM_WIN32s:
 	case VER_PLATFORM_WIN32_WINDOWS:
-		ce_logging_write("systeminfo: Microsoft Windows %lu.%lu %s",
+		ce_logging_write("system info: Microsoft Windows %lu.%lu %s",
 			osverinfo.dwMajorVersion, osverinfo.dwMinorVersion, osverinfo.szCSDVersion);
 		break;
 
@@ -105,26 +96,16 @@ void ce_systeminfo_display(void)
 			osverinfo.szCSDVersion, osverinfo.dwBuildNumber & 0xffff);
 		ce_strlcat(buffer, tmp, sizeof(buffer));
 
-		ce_logging_write("systeminfo: %s", buffer);
+		ce_logging_write("system info: %s", buffer);
 		break;
-	}
-}
-
-bool ce_systeminfo_check(void)
-{
-	OSVERSIONINFOEX osverinfo;
-	BOOL osverinfoex;
-
-	if (!ce_systeminfo_retrieve_osverinfo(&osverinfo, &osverinfoex)) {
-		return false;
 	}
 
 	if (VER_PLATFORM_WIN32_NT != osverinfo.dwPlatformId ||
 			osverinfo.dwMajorVersion < 5 || osverinfo.dwMinorVersion < 1) {
-		ce_logging_fatal("systeminfo: Windows XP or above required");
+		ce_logging_fatal("system info: Windows XP or above required");
 		return false;
 	}
 
-	ce_logging_write("systeminfo: Windows XP or above detected");
+	ce_logging_write("system info: Windows XP or above detected");
 	return true;
 }
