@@ -23,6 +23,7 @@
 
 #include "cevector.h"
 #include "cestring.h"
+#include "cesoundobject.h"
 #include "cesoundinstance.h"
 
 #ifdef __cplusplus
@@ -30,7 +31,7 @@ extern "C" {
 #endif
 
 typedef struct {
-	ce_sound_id last_sound_id;
+	ce_sound_object last_sound_object;
 	ce_vector* sound_instances;
 } ce_sound_manager;
 
@@ -39,8 +40,9 @@ extern void ce_sound_manager_del(ce_sound_manager* sound_manager);
 
 extern void ce_sound_manager_advance(ce_sound_manager* sound_manager, float elapsed);
 
-extern ce_sound_id ce_sound_manager_create(ce_sound_manager* sound_manager, const char* name);
-extern ce_sound_instance* ce_sound_manager_find(ce_sound_manager* sound_manager, ce_sound_id sound_id);
+extern ce_sound_object ce_sound_manager_create(ce_sound_manager* sound_manager, const char* name);
+extern ce_sound_instance* ce_sound_manager_find(ce_sound_manager* sound_manager,
+												ce_sound_object sound_object);
 
 #ifdef __cplusplus
 }

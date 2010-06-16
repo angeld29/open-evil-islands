@@ -27,7 +27,6 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceroot.h"
-#include "cevideoobject.h"
 
 static bool pause;
 static ce_video_object video_object;

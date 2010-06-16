@@ -105,9 +105,9 @@ ce_video_object ce_video_manager_create(ce_video_manager* video_manager, const c
 	}
 
 	ce_video_object video_object = ++video_manager->last_video_object;
-	ce_sound_id sound_id = ce_sound_manager_create(ce_root.sound_manager, name);
+	ce_sound_object sound_object = ce_sound_manager_create(ce_root.sound_manager, name);
 
-	ce_video_instance* video_instance = ce_video_instance_new(video_object, sound_id, video_resource);
+	ce_video_instance* video_instance = ce_video_instance_new(video_object, sound_object, video_resource);
 	if (NULL == video_instance) {
 		ce_logging_error("video manager: could not create instance for '%s'", name);
 		ce_video_resource_del(video_resource);

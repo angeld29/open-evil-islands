@@ -91,7 +91,7 @@ static ce_memfile* ce_sound_manager_open(const char* name)
 	return NULL;
 }
 
-ce_sound_id ce_sound_manager_create(ce_sound_manager* sound_manager, const char* name)
+ce_sound_object ce_sound_manager_create(ce_sound_manager* sound_manager, const char* name)
 {
 	ce_memfile* memfile = ce_sound_manager_open(name);
 	if (NULL == memfile) {
@@ -105,7 +105,7 @@ ce_sound_id ce_sound_manager_create(ce_sound_manager* sound_manager, const char*
 	}
 
 	ce_sound_instance* sound_instance =
-		ce_sound_instance_new(++sound_manager->last_sound_id, sound_resource);
+		ce_sound_instance_new(++sound_manager->last_sound_object, sound_resource);
 	if (NULL == sound_instance) {
 		ce_logging_error("sound manager: could not create instance for '%s'", name);
 		ce_sound_resource_del(sound_resource);
@@ -114,14 +114,15 @@ ce_sound_id ce_sound_manager_create(ce_sound_manager* sound_manager, const char*
 
 	ce_vector_push_back(sound_manager->sound_instances, sound_instance);
 
-	return sound_instance->sound_id;
+	return sound_instance->sound_object;
 }
 
-ce_sound_instance* ce_sound_manager_find(ce_sound_manager* sound_manager, ce_sound_id sound_id)
+ce_sound_instance* ce_sound_manager_find(ce_sound_manager* sound_manager,
+										ce_sound_object sound_object)
 {
 	for (size_t i = 0; i < sound_manager->sound_instances->count; ++i) {
 		ce_sound_instance* sound_instance = sound_manager->sound_instances->items[i];
-		if (sound_id == sound_instance->sound_id) {
+		if (sound_object == sound_instance->sound_object) {
 			return sound_instance;
 		}
 	}

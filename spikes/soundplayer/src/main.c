@@ -27,9 +27,8 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceroot.h"
-#include "cesoundhelper.h"
 
-static ce_sound_id sound_id;
+static ce_sound_object sound_object;
 static ce_optparse* optparse;
 static ce_inputsupply* inputsupply;
 static ce_inputevent* rewind_event;
@@ -48,11 +47,11 @@ static void state_changed(void* listener, int state)
 		const char* track;
 		ce_optparse_get(optparse, "track", &track);
 
-		sound_id = ce_sound_manager_create(ce_root.sound_manager, track);
-		if (0 == sound_id) {
+		sound_object = ce_sound_manager_create(ce_root.sound_manager, track);
+		if (0 == sound_object) {
 			ce_logging_error("sound player: could not play audio track '%s'", track);
 		} else {
-			ce_sound_helper_play(sound_id);
+			ce_sound_object_play(sound_object);
 		}
 
 		ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);

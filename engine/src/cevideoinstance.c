@@ -26,7 +26,6 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceroot.h"
-#include "cesoundhelper.h"
 #include "cevideoinstance.h"
 
 static void ce_video_instance_exec(ce_video_instance* video_instance)
@@ -74,12 +73,12 @@ static void ce_video_instance_exec(ce_video_instance* video_instance)
 }
 
 ce_video_instance* ce_video_instance_new(ce_video_object video_object,
-										ce_sound_id sound_id,
+										ce_sound_object sound_object,
 										ce_video_resource* video_resource)
 {
 	ce_video_instance* video_instance = ce_alloc_zero(sizeof(ce_video_instance));
 	video_instance->video_object = video_object;
-	video_instance->sound_id = sound_id;
+	video_instance->sound_object = sound_object;
 	video_instance->frame = -1;
 	video_instance->video_resource = video_resource;
 	video_instance->texture = ce_texture_new("frame", NULL);
@@ -150,9 +149,9 @@ static void ce_video_instance_do_advance(ce_video_instance* video_instance)
 
 void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed)
 {
-	if (0 != video_instance->sound_id) {
+	if (0 != video_instance->sound_object) {
 		// sync with sound
-		video_instance->time = ce_sound_helper_time(video_instance->sound_id);
+		video_instance->time = ce_sound_object_time(video_instance->sound_object);
 	} else {
 		video_instance->time += elapsed;
 	}
@@ -175,25 +174,25 @@ void ce_video_instance_render(ce_video_instance* video_instance)
 
 bool ce_video_instance_is_stopped(ce_video_instance* video_instance)
 {
-	return 0 != video_instance->sound_id ?
-		ce_sound_helper_is_stopped(video_instance->sound_id) :
+	return 0 != video_instance->sound_object ?
+		ce_sound_object_is_stopped(video_instance->sound_object) :
 		CE_VIDEO_INSTANCE_STATE_STOPPED == video_instance->state;
 }
 
 void ce_video_instance_play(ce_video_instance* video_instance)
 {
-	ce_sound_helper_play(video_instance->sound_id);
+	ce_sound_object_play(video_instance->sound_object);
 	video_instance->state = CE_VIDEO_INSTANCE_STATE_PLAYING;
 }
 
 void ce_video_instance_pause(ce_video_instance* video_instance)
 {
-	ce_sound_helper_pause(video_instance->sound_id);
+	ce_sound_object_pause(video_instance->sound_object);
 	video_instance->state = CE_VIDEO_INSTANCE_STATE_PAUSED;
 }
 
 void ce_video_instance_stop(ce_video_instance* video_instance)
 {
-	ce_sound_helper_stop(video_instance->sound_id);
+	ce_sound_object_stop(video_instance->sound_object);
 	video_instance->state = CE_VIDEO_INSTANCE_STATE_STOPPED;
 }

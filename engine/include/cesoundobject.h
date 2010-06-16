@@ -18,25 +18,25 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_SOUNDHELPER_H
-#define CE_SOUNDHELPER_H
-
-#include "cesound.h"
+#ifndef CE_SOUNDOBJECT_H
+#define CE_SOUNDOBJECT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern float ce_sound_helper_time(ce_sound_id sound_id);
+typedef unsigned long int ce_sound_object;
 
-extern bool ce_sound_helper_is_stopped(ce_sound_id sound_id);
+extern float ce_sound_object_time(ce_sound_object sound_object);
 
-extern void ce_sound_helper_play(ce_sound_id sound_id);
-extern void ce_sound_helper_pause(ce_sound_id sound_id);
-extern void ce_sound_helper_stop(ce_sound_id sound_id);
+extern bool ce_sound_object_is_stopped(ce_sound_object sound_object);
+
+extern void ce_sound_object_play(ce_sound_object sound_object);
+extern void ce_sound_object_pause(ce_sound_object sound_object);
+extern void ce_sound_object_stop(ce_sound_object sound_object);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CE_SOUNDHELPER_H */
+#endif /* CE_SOUNDOBJECT_H */

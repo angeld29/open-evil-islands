@@ -75,10 +75,11 @@ static void ce_sound_instance_exec(ce_sound_instance* sound_instance)
 	ce_mutex_unlock(sound_instance->mutex);
 }
 
-ce_sound_instance* ce_sound_instance_new(ce_sound_id sound_id, ce_sound_resource* sound_resource)
+ce_sound_instance* ce_sound_instance_new(ce_sound_object sound_object,
+										ce_sound_resource* sound_resource)
 {
 	ce_sound_instance* sound_instance = ce_alloc_zero(sizeof(ce_sound_instance));
-	sound_instance->sound_id = sound_id;
+	sound_instance->sound_object = sound_object;
 	sound_instance->sound_resource = sound_resource;
 	sound_instance->mutex = ce_mutex_new();
 	sound_instance->waitcond = ce_waitcond_new();
