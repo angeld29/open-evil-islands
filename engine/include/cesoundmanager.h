@@ -32,7 +32,7 @@ extern "C" {
 extern struct ce_sound_manager {
 	ce_sound_object last_sound_object;
 	ce_vector* sound_instances;
-} ce_sound_manager;
+}* ce_sound_manager;
 
 extern void ce_sound_manager_init(void);
 extern void ce_sound_manager_term(void);

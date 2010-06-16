@@ -36,7 +36,7 @@ enum {
 	CE_SOUND_EXT_COUNT = sizeof(ce_sound_exts) / sizeof(ce_sound_exts[0]),
 };
 
-struct ce_sound_manager ce_sound_manager;
+struct ce_sound_manager* ce_sound_manager;
 
 void ce_sound_manager_init(void)
 {
@@ -48,26 +48,28 @@ void ce_sound_manager_init(void)
 		ce_logging_write("sound manager: using path '%s'", path);
 	}
 
-	ce_sound_manager.sound_instances = ce_vector_new();
+	ce_sound_manager = ce_alloc(sizeof(struct ce_sound_manager));
+	ce_sound_manager->sound_instances = ce_vector_new();
 }
 
 void ce_sound_manager_term(void)
 {
-	if (NULL != ce_sound_manager.sound_instances) {
-		ce_vector_for_each(ce_sound_manager.sound_instances, ce_sound_instance_del);
+	if (NULL != ce_sound_manager) {
+		ce_vector_for_each(ce_sound_manager->sound_instances, ce_sound_instance_del);
+		ce_vector_del(ce_sound_manager->sound_instances);
+		ce_free(ce_sound_manager, sizeof(struct ce_sound_manager));
 	}
-	ce_vector_del(ce_sound_manager.sound_instances);
 }
 
 void ce_sound_manager_advance(float elapsed)
 {
 	ce_unused(elapsed);
 
-	for (size_t i = 0; i < ce_sound_manager.sound_instances->count; ++i) {
-		ce_sound_instance* sound_instance = ce_sound_manager.sound_instances->items[i];
+	for (size_t i = 0; i < ce_sound_manager->sound_instances->count; ++i) {
+		ce_sound_instance* sound_instance = ce_sound_manager->sound_instances->items[i];
 		if (ce_sound_instance_is_stopped(sound_instance)) {
 			ce_sound_instance_del(sound_instance);
-			ce_vector_remove_unordered(ce_sound_manager.sound_instances, i--);
+			ce_vector_remove_unordered(ce_sound_manager->sound_instances, i--);
 		}
 	}
 }
@@ -104,22 +106,22 @@ ce_sound_object ce_sound_manager_create(const char* name)
 	}
 
 	ce_sound_instance* sound_instance =
-		ce_sound_instance_new(++ce_sound_manager.last_sound_object, sound_resource);
+		ce_sound_instance_new(++ce_sound_manager->last_sound_object, sound_resource);
 	if (NULL == sound_instance) {
 		ce_logging_error("sound manager: could not create instance for '%s'", name);
 		ce_sound_resource_del(sound_resource);
 		return 0;
 	}
 
-	ce_vector_push_back(ce_sound_manager.sound_instances, sound_instance);
+	ce_vector_push_back(ce_sound_manager->sound_instances, sound_instance);
 
 	return sound_instance->sound_object;
 }
 
 ce_sound_instance* ce_sound_manager_find(ce_sound_object sound_object)
 {
-	for (size_t i = 0; i < ce_sound_manager.sound_instances->count; ++i) {
-		ce_sound_instance* sound_instance = ce_sound_manager.sound_instances->items[i];
+	for (size_t i = 0; i < ce_sound_manager->sound_instances->count; ++i) {
+		ce_sound_instance* sound_instance = ce_sound_manager->sound_instances->items[i];
 		if (sound_object == sound_instance->sound_object) {
 			return sound_instance;
 		}

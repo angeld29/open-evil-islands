@@ -37,7 +37,7 @@ enum {
 	CE_VIDEO_EXT_COUNT = sizeof(ce_video_exts) / sizeof(ce_video_exts[0]),
 };
 
-struct ce_video_manager ce_video_manager;
+struct ce_video_manager* ce_video_manager;
 
 void ce_video_manager_init(void)
 {
@@ -49,22 +49,24 @@ void ce_video_manager_init(void)
 		ce_logging_write("video manager: using path '%s'", path);
 	}
 
-	ce_video_manager.video_instances = ce_vector_new();
+	ce_video_manager = ce_alloc(sizeof(struct ce_video_manager));
+	ce_video_manager->video_instances = ce_vector_new();
 }
 
 void ce_video_manager_term(void)
 {
-	if (NULL != ce_video_manager.video_instances) {
-		ce_vector_for_each(ce_video_manager.video_instances, ce_video_instance_del);
+	if (NULL != ce_video_manager) {
+		ce_vector_for_each(ce_video_manager->video_instances, ce_video_instance_del);
+		ce_vector_del(ce_video_manager->video_instances);
+		ce_free(ce_video_manager, sizeof(struct ce_video_manager));
 	}
-	ce_vector_del(ce_video_manager.video_instances);
 }
 
 void ce_video_manager_advance(float elapsed)
 {
 	ce_unused(elapsed);
 
-	for (size_t i = 0; i < ce_video_manager.video_instances->count; ++i) {
+	for (size_t i = 0; i < ce_video_manager->video_instances->count; ++i) {
 		//ce_video_instance* video_instance = video_manager->video_instances->items[i];
 		/*if (ce_video_instance_is_stopped(video_instance)) {
 			ce_video_instance_del(video_instance);
@@ -104,7 +106,7 @@ ce_video_object ce_video_manager_create(const char* name)
 		return 0;
 	}
 
-	ce_video_object video_object = ++ce_video_manager.last_video_object;
+	ce_video_object video_object = ++ce_video_manager->last_video_object;
 	ce_sound_object sound_object = ce_sound_manager_create(name);
 
 	ce_video_instance* video_instance = ce_video_instance_new(video_object, sound_object, video_resource);
@@ -114,15 +116,15 @@ ce_video_object ce_video_manager_create(const char* name)
 		return 0;
 	}
 
-	ce_vector_push_back(ce_video_manager.video_instances, video_instance);
+	ce_vector_push_back(ce_video_manager->video_instances, video_instance);
 
 	return video_object;
 }
 
 ce_video_instance* ce_video_manager_find(ce_video_object video_object)
 {
-	for (size_t i = 0; i < ce_video_manager.video_instances->count; ++i) {
-		ce_video_instance* video_instance = ce_video_manager.video_instances->items[i];
+	for (size_t i = 0; i < ce_video_manager->video_instances->count; ++i) {
+		ce_video_instance* video_instance = ce_video_manager->video_instances->items[i];
 		if (video_object == video_instance->video_object) {
 			return video_instance;
 		}
