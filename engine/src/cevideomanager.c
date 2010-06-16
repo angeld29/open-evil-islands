@@ -26,6 +26,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceroot.h"
+#include "cesoundmanager.h"
 #include "cevideomanager.h"
 
 static const char* ce_video_dirs[] = {"Movies"};
@@ -36,7 +37,9 @@ enum {
 	CE_VIDEO_EXT_COUNT = sizeof(ce_video_exts) / sizeof(ce_video_exts[0]),
 };
 
-ce_video_manager* ce_video_manager_new(void)
+struct ce_video_manager ce_video_manager;
+
+void ce_video_manager_init(void)
 {
 	char path[ce_root.ei_path->length + 16];
 
@@ -46,25 +49,22 @@ ce_video_manager* ce_video_manager_new(void)
 		ce_logging_write("video manager: using path '%s'", path);
 	}
 
-	ce_video_manager* video_manager = ce_alloc_zero(sizeof(ce_video_manager));
-	video_manager->video_instances = ce_vector_new();
-	return video_manager;
+	ce_video_manager.video_instances = ce_vector_new();
 }
 
-void ce_video_manager_del(ce_video_manager* video_manager)
+void ce_video_manager_term(void)
 {
-	if (NULL != video_manager) {
-		ce_vector_for_each(video_manager->video_instances, ce_video_instance_del);
-		ce_vector_del(video_manager->video_instances);
-		ce_free(video_manager, sizeof(ce_video_manager));
+	if (NULL != ce_video_manager.video_instances) {
+		ce_vector_for_each(ce_video_manager.video_instances, ce_video_instance_del);
 	}
+	ce_vector_del(ce_video_manager.video_instances);
 }
 
-void ce_video_manager_advance(ce_video_manager* video_manager, float elapsed)
+void ce_video_manager_advance(float elapsed)
 {
 	ce_unused(elapsed);
 
-	for (size_t i = 0; i < video_manager->video_instances->count; ++i) {
+	for (size_t i = 0; i < ce_video_manager.video_instances->count; ++i) {
 		//ce_video_instance* video_instance = video_manager->video_instances->items[i];
 		/*if (ce_video_instance_is_stopped(video_instance)) {
 			ce_video_instance_del(video_instance);
@@ -91,7 +91,7 @@ static ce_memfile* ce_video_manager_open(const char* name)
 	return NULL;
 }
 
-ce_video_object ce_video_manager_create(ce_video_manager* video_manager, const char* name)
+ce_video_object ce_video_manager_create(const char* name)
 {
 	ce_memfile* memfile = ce_video_manager_open(name);
 	if (NULL == memfile) {
@@ -104,8 +104,8 @@ ce_video_object ce_video_manager_create(ce_video_manager* video_manager, const c
 		return 0;
 	}
 
-	ce_video_object video_object = ++video_manager->last_video_object;
-	ce_sound_object sound_object = ce_sound_manager_create(ce_root.sound_manager, name);
+	ce_video_object video_object = ++ce_video_manager.last_video_object;
+	ce_sound_object sound_object = ce_sound_manager_create(name);
 
 	ce_video_instance* video_instance = ce_video_instance_new(video_object, sound_object, video_resource);
 	if (NULL == video_instance) {
@@ -114,15 +114,15 @@ ce_video_object ce_video_manager_create(ce_video_manager* video_manager, const c
 		return 0;
 	}
 
-	ce_vector_push_back(video_manager->video_instances, video_instance);
+	ce_vector_push_back(ce_video_manager.video_instances, video_instance);
 
 	return video_object;
 }
 
-ce_video_instance* ce_video_manager_find(ce_video_manager* video_manager, ce_video_object video_object)
+ce_video_instance* ce_video_manager_find(ce_video_object video_object)
 {
-	for (size_t i = 0; i < video_manager->video_instances->count; ++i) {
-		ce_video_instance* video_instance = video_manager->video_instances->items[i];
+	for (size_t i = 0; i < ce_video_manager.video_instances->count; ++i) {
+		ce_video_instance* video_instance = ce_video_manager.video_instances->items[i];
 		if (video_object == video_instance->video_object) {
 			return video_instance;
 		}

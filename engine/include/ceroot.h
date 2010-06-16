@@ -30,8 +30,6 @@
 #include "cerenderwindow.h"
 #include "cerendersystem.h"
 #include "cesoundsystem.h"
-#include "cesoundmanager.h"
-#include "cevideomanager.h"
 #include "cetexmng.h"
 #include "cemprmng.h"
 #include "cemobmanager.h"
@@ -62,8 +60,6 @@ extern struct ce_root {
 	ce_renderwindow* renderwindow;
 	ce_rendersystem* rendersystem;
 	ce_sound_system* sound_system;
-	ce_sound_manager* sound_manager;
-	ce_video_manager* video_manager;
 	ce_texmng* texmng;
 	ce_mprmng* mprmng;
 	ce_mob_manager* mob_manager;

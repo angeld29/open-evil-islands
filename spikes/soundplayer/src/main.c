@@ -26,6 +26,8 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "cesoundobject.h"
+#include "cesoundmanager.h"
 #include "ceroot.h"
 
 static ce_sound_object sound_object;
@@ -47,7 +49,7 @@ static void state_changed(void* listener, int state)
 		const char* track;
 		ce_optparse_get(optparse, "track", &track);
 
-		sound_object = ce_sound_manager_create(ce_root.sound_manager, track);
+		sound_object = ce_sound_manager_create(track);
 		if (0 == sound_object) {
 			ce_logging_error("sound player: could not play audio track '%s'", track);
 		} else {

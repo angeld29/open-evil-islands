@@ -36,7 +36,9 @@ enum {
 	CE_SOUND_EXT_COUNT = sizeof(ce_sound_exts) / sizeof(ce_sound_exts[0]),
 };
 
-ce_sound_manager* ce_sound_manager_new(void)
+struct ce_sound_manager ce_sound_manager;
+
+void ce_sound_manager_init(void)
 {
 	char path[ce_root.ei_path->length + 16];
 
@@ -46,29 +48,26 @@ ce_sound_manager* ce_sound_manager_new(void)
 		ce_logging_write("sound manager: using path '%s'", path);
 	}
 
-	ce_sound_manager* sound_manager = ce_alloc_zero(sizeof(ce_sound_manager));
-	sound_manager->sound_instances = ce_vector_new();
-	return sound_manager;
+	ce_sound_manager.sound_instances = ce_vector_new();
 }
 
-void ce_sound_manager_del(ce_sound_manager* sound_manager)
+void ce_sound_manager_term(void)
 {
-	if (NULL != sound_manager) {
-		ce_vector_for_each(sound_manager->sound_instances, ce_sound_instance_del);
-		ce_vector_del(sound_manager->sound_instances);
-		ce_free(sound_manager, sizeof(ce_sound_manager));
+	if (NULL != ce_sound_manager.sound_instances) {
+		ce_vector_for_each(ce_sound_manager.sound_instances, ce_sound_instance_del);
 	}
+	ce_vector_del(ce_sound_manager.sound_instances);
 }
 
-void ce_sound_manager_advance(ce_sound_manager* sound_manager, float elapsed)
+void ce_sound_manager_advance(float elapsed)
 {
 	ce_unused(elapsed);
 
-	for (size_t i = 0; i < sound_manager->sound_instances->count; ++i) {
-		ce_sound_instance* sound_instance = sound_manager->sound_instances->items[i];
+	for (size_t i = 0; i < ce_sound_manager.sound_instances->count; ++i) {
+		ce_sound_instance* sound_instance = ce_sound_manager.sound_instances->items[i];
 		if (ce_sound_instance_is_stopped(sound_instance)) {
 			ce_sound_instance_del(sound_instance);
-			ce_vector_remove_unordered(sound_manager->sound_instances, i--);
+			ce_vector_remove_unordered(ce_sound_manager.sound_instances, i--);
 		}
 	}
 }
@@ -91,7 +90,7 @@ static ce_memfile* ce_sound_manager_open(const char* name)
 	return NULL;
 }
 
-ce_sound_object ce_sound_manager_create(ce_sound_manager* sound_manager, const char* name)
+ce_sound_object ce_sound_manager_create(const char* name)
 {
 	ce_memfile* memfile = ce_sound_manager_open(name);
 	if (NULL == memfile) {
@@ -105,23 +104,22 @@ ce_sound_object ce_sound_manager_create(ce_sound_manager* sound_manager, const c
 	}
 
 	ce_sound_instance* sound_instance =
-		ce_sound_instance_new(++sound_manager->last_sound_object, sound_resource);
+		ce_sound_instance_new(++ce_sound_manager.last_sound_object, sound_resource);
 	if (NULL == sound_instance) {
 		ce_logging_error("sound manager: could not create instance for '%s'", name);
 		ce_sound_resource_del(sound_resource);
 		return 0;
 	}
 
-	ce_vector_push_back(sound_manager->sound_instances, sound_instance);
+	ce_vector_push_back(ce_sound_manager.sound_instances, sound_instance);
 
 	return sound_instance->sound_object;
 }
 
-ce_sound_instance* ce_sound_manager_find(ce_sound_manager* sound_manager,
-										ce_sound_object sound_object)
+ce_sound_instance* ce_sound_manager_find(ce_sound_object sound_object)
 {
-	for (size_t i = 0; i < sound_manager->sound_instances->count; ++i) {
-		ce_sound_instance* sound_instance = sound_manager->sound_instances->items[i];
+	for (size_t i = 0; i < ce_sound_manager.sound_instances->count; ++i) {
+		ce_sound_instance* sound_instance = ce_sound_manager.sound_instances->items[i];
 		if (sound_object == sound_instance->sound_object) {
 			return sound_instance;
 		}

@@ -22,18 +22,18 @@
 #include <string.h>
 #include <assert.h>
 
-#include "ceroot.h"
+#include "cesoundmanager.h"
 #include "cesoundobject.h"
 
 float ce_sound_object_time(ce_sound_object sound_object)
 {
-	ce_sound_instance* sound_instance = ce_sound_manager_find(ce_root.sound_manager, sound_object);
+	ce_sound_instance* sound_instance = ce_sound_manager_find(sound_object);
 	return NULL != sound_instance ? ce_sound_instance_time(sound_instance) : 0.0f;
 }
 
 bool ce_sound_object_is_stopped(ce_sound_object sound_object)
 {
-	ce_sound_instance* sound_instance = ce_sound_manager_find(ce_root.sound_manager, sound_object);
+	ce_sound_instance* sound_instance = ce_sound_manager_find(sound_object);
 	if (NULL != sound_instance) {
 		return ce_sound_instance_is_stopped(sound_instance);
 	}
@@ -42,7 +42,7 @@ bool ce_sound_object_is_stopped(ce_sound_object sound_object)
 
 void ce_sound_object_play(ce_sound_object sound_object)
 {
-	ce_sound_instance* sound_instance = ce_sound_manager_find(ce_root.sound_manager, sound_object);
+	ce_sound_instance* sound_instance = ce_sound_manager_find(sound_object);
 	if (NULL != sound_instance) {
 		ce_sound_instance_play(sound_instance);
 	}
@@ -50,7 +50,7 @@ void ce_sound_object_play(ce_sound_object sound_object)
 
 void ce_sound_object_pause(ce_sound_object sound_object)
 {
-	ce_sound_instance* sound_instance = ce_sound_manager_find(ce_root.sound_manager, sound_object);
+	ce_sound_instance* sound_instance = ce_sound_manager_find(sound_object);
 	if (NULL != sound_instance) {
 		ce_sound_instance_pause(sound_instance);
 	}
@@ -58,7 +58,7 @@ void ce_sound_object_pause(ce_sound_object sound_object)
 
 void ce_sound_object_stop(ce_sound_object sound_object)
 {
-	ce_sound_instance* sound_instance = ce_sound_manager_find(ce_root.sound_manager, sound_object);
+	ce_sound_instance* sound_instance = ce_sound_manager_find(sound_object);
 	if (NULL != sound_instance) {
 		ce_sound_instance_stop(sound_instance);
 	}

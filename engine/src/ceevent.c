@@ -96,7 +96,9 @@ void ce_event_manager_init(void)
 
 void ce_event_manager_term(void)
 {
-	ce_vector_for_each(ce_event_manager.event_queues, ce_event_queue_del);
+	if (NULL != ce_event_manager.event_queues) {
+		ce_vector_for_each(ce_event_manager.event_queues, ce_event_queue_del);
+	}
 	ce_vector_del(ce_event_manager.event_queues);
 	ce_mutex_del(ce_event_manager.mutex);
 }

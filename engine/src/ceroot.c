@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
 #include "cesystemevent.h"
 #include "ceevent.h"
 #include "ceavcodec.h"
+#include "cesoundmanager.h"
+#include "cevideomanager.h"
 #include "ceroot.h"
 
 struct ce_root ce_root;
@@ -84,8 +86,8 @@ static void ce_root_term(void)
 	ce_mob_manager_del(ce_root.mob_manager);
 	ce_mprmng_del(ce_root.mprmng);
 	ce_texmng_del(ce_root.texmng);
-	ce_video_manager_del(ce_root.video_manager);
-	ce_sound_manager_del(ce_root.sound_manager);
+	ce_video_manager_term();
+	ce_sound_manager_term();
 	ce_sound_system_del(ce_root.sound_system);
 	ce_rendersystem_del(ce_root.rendersystem);
 	ce_renderwindow_del(ce_root.renderwindow);
@@ -93,7 +95,6 @@ static void ce_root_term(void)
 	ce_timer_del(ce_root.timer);
 	ce_string_del(ce_root.ce_path);
 	ce_string_del(ce_root.ei_path);
-
 	ce_avcodec_term();
 	ce_event_manager_term();
 }
@@ -196,8 +197,8 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.rendersystem = ce_rendersystem_new();
 	ce_root.sound_system = ce_sound_system_new_platform();
 
-	ce_root.sound_manager = ce_sound_manager_new();
-	ce_root.video_manager = ce_video_manager_new();
+	ce_sound_manager_init();
+	ce_video_manager_init();
 
 	ce_logging_write("root: EI path is '%s'", ei_path);
 	ce_logging_write("root: CE path is '%s'", ce_path);
@@ -297,8 +298,8 @@ int ce_root_exec(void)
 			}
 		}
 
-		ce_sound_manager_advance(ce_root.sound_manager, elapsed);
-		ce_video_manager_advance(ce_root.video_manager, elapsed);
+		ce_sound_manager_advance(elapsed);
+		ce_video_manager_advance(elapsed);
 
 		ce_scenemng_advance(ce_root.scenemng, elapsed);
 		ce_scenemng_render(ce_root.scenemng);

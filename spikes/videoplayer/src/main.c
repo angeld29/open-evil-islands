@@ -26,6 +26,8 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "cevideoobject.h"
+#include "cevideomanager.h"
 #include "ceroot.h"
 
 static bool pause;
@@ -48,7 +50,7 @@ static void state_changed(void* listener, int state)
 		const char* track;
 		ce_optparse_get(optparse, "track", &track);
 
-		video_object = ce_video_manager_create(ce_root.video_manager, track);
+		video_object = ce_video_manager_create(track);
 		if (0 == video_object) {
 			ce_logging_error("video player: could not play video track '%s'", track);
 		} else {

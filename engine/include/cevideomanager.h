@@ -22,7 +22,6 @@
 #define CE_VIDEOMANAGER_H
 
 #include "cevector.h"
-#include "cestring.h"
 #include "cevideoobject.h"
 #include "cevideoinstance.h"
 
@@ -30,18 +29,18 @@
 extern "C" {
 #endif
 
-typedef struct {
+extern struct ce_video_manager {
 	ce_video_object last_video_object;
 	ce_vector* video_instances;
 } ce_video_manager;
 
-extern ce_video_manager* ce_video_manager_new(void);
-extern void ce_video_manager_del(ce_video_manager* video_manager);
+extern void ce_video_manager_init(void);
+extern void ce_video_manager_term(void);
 
-extern void ce_video_manager_advance(ce_video_manager* video_manager, float elapsed);
+extern void ce_video_manager_advance(float elapsed);
 
-extern ce_video_object ce_video_manager_create(ce_video_manager* video_manager, const char* name);
-extern ce_video_instance* ce_video_manager_find(ce_video_manager* video_manager, ce_video_object video_object);
+extern ce_video_object ce_video_manager_create(const char* name);
+extern ce_video_instance* ce_video_manager_find(ce_video_object video_object);
 
 #ifdef __cplusplus
 }
