@@ -31,6 +31,7 @@
 #include "cebytefmt.h"
 #include "ceoptionmanager.h"
 #include "cemobmanager.h"
+#include "cevideomanager.h"
 #include "ceroot.h"
 #include "cescenemng.h"
 
@@ -111,11 +112,23 @@ void ce_scenemng_change_state(ce_scenemng* scenemng, int state)
 
 static void ce_scenemng_advance_starting(ce_scenemng* scenemng, float elapsed)
 {
-	ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_READY);
+	ce_video_object_advance(scenemng->logo.video_object, elapsed);
+	if (ce_video_object_is_stopped(scenemng->logo.video_object)) {
+		if (scenemng->logo.movie_index ==
+				ce_option_manager->movies[CE_OPTION_MOVIE_START]->count) {
+			ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_READY);
+		} else {
+			ce_string* movie_name = ce_option_manager->
+				movies[CE_OPTION_MOVIE_START]->items[scenemng->logo.movie_index++];
+			scenemng->logo.video_object = ce_video_manager_create(movie_name->str);
+			ce_video_object_play(scenemng->logo.video_object);
+		}
+	}
 }
 
 static void ce_scenemng_render_starting(ce_scenemng* scenemng)
 {
+	ce_video_object_render(scenemng->logo.video_object);
 }
 
 static void ce_scenemng_advance_ready(ce_scenemng* scenemng, float elapsed)

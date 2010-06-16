@@ -35,6 +35,7 @@
 #include "cescenenode.h"
 #include "cerenderqueue.h"
 #include "cerenderwindow.h"
+#include "cevideoobject.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,12 +82,10 @@ typedef struct {
 	ce_scenemng_listener listener;
 	ce_renderwindow_listener renderwindow_listener;
 	ce_figmng_listener figmng_listener;
-	/*struct {
-		ce_soundinstance* soundinstance;
-		ce_videoinstance* videoinstance;
-		ce_mmpfile* rgba;
-		ce_texture* video_frame;
-	} intro;*/
+	struct {
+		size_t movie_index;
+		ce_video_object video_object;
+	} logo;
 } ce_scenemng;
 
 extern ce_scenemng* ce_scenemng_new(void);

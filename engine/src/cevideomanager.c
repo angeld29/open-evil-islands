@@ -23,6 +23,7 @@
 #include <assert.h>
 
 #include "celib.h"
+#include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceoptionmanager.h"
@@ -81,8 +82,11 @@ static ce_memfile* ce_video_manager_open(const char* name)
 
 	for (size_t i = 0; i < CE_VIDEO_DIR_COUNT; ++i) {
 		for (size_t j = 0; j < CE_VIDEO_EXT_COUNT; ++j) {
-			snprintf(path, sizeof(path), "%s/%s/%s%s",
-				ce_option_manager->ei_path->str, ce_video_dirs[i], name, ce_video_exts[j]);
+			snprintf(path, sizeof(path), "%s/%s/%s",
+				ce_option_manager->ei_path->str, ce_video_dirs[i], name);
+			if (NULL == ce_strcasestr(path, ce_video_exts[j])) {
+				ce_strlcat(path, ce_video_exts[j], sizeof(path));
+			}
 			ce_memfile* memfile = ce_memfile_open_path(path);
 			if (NULL != memfile) {
 				return memfile;

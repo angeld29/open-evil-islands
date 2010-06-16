@@ -23,12 +23,50 @@
 #include <assert.h>
 
 #include "celib.h"
+#include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cethread.h"
+#include "ceconfigfile.h"
 #include "ceoptionmanager.h"
 
+static const char* ce_option_movie_sections[CE_OPTION_MOVIE_COUNT] = {
+	[CE_OPTION_MOVIE_START] = "Start",
+	[CE_OPTION_MOVIE_CRDTFIN] = "Crdtfin",
+	[CE_OPTION_MOVIE_CRDTFOUT] = "Crdtfout",
+	[CE_OPTION_MOVIE_TITLESFIN] = "Titlesfin",
+	[CE_OPTION_MOVIE_TITLESFOUT] = "Titlesfout",
+};
+
 struct ce_option_manager* ce_option_manager;
+
+static void ce_option_manager_init_movies(void)
+{
+	char path[ce_option_manager->ei_path->length + 32];
+	snprintf(path, sizeof(path), "%s/Config/movie.ini", ce_option_manager->ei_path->str);
+
+	ce_config_file* config_file = ce_config_file_open(path);
+	if (NULL != config_file) {
+		for (size_t i = 0; i < CE_OPTION_MOVIE_COUNT; ++i) {
+			const char* line = ce_config_file_find(config_file,
+								ce_option_movie_sections[i], "movies");
+			if (NULL != line) { // may be NULL (commented by user)
+				char buffer[strlen(line) + 1], *temp = buffer, *name;
+				// lowercase it to avoid problems on case-sensitive systems
+				// (seems all EI movies are in lower case)
+				ce_strlwr(buffer, line);
+				for (name = ce_strsep(&temp, ",");
+						0 != strlen(name); name = ce_strsep(&temp, ",")) {
+					ce_vector_push_back(ce_option_manager->movies[i],
+										ce_string_new_str(name));
+				}
+			}
+		}
+		ce_config_file_close(config_file);
+	} else {
+		ce_logging_error("option manager: could not read movie configuration");
+	}
+}
 
 void ce_option_manager_init(ce_optparse* optparse)
 {
@@ -68,6 +106,8 @@ void ce_option_manager_init(ce_optparse* optparse)
 	for (size_t i = 0; i < CE_OPTION_MOVIE_COUNT; ++i) {
 		ce_option_manager->movies[i] = ce_vector_new_reserved(4);
 	}
+
+	ce_option_manager_init_movies();
 
 	ce_logging_write("option manager: EI path is '%s'", ei_path);
 	ce_logging_write("option manager: CE path is '%s'", ce_path);
