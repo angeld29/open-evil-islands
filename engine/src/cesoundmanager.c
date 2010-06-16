@@ -48,7 +48,7 @@ void ce_sound_manager_init(void)
 		ce_logging_write("sound manager: using path '%s'", path);
 	}
 
-	ce_sound_manager = ce_alloc(sizeof(struct ce_sound_manager));
+	ce_sound_manager = ce_alloc_zero(sizeof(struct ce_sound_manager));
 	ce_sound_manager->sound_instances = ce_vector_new();
 }
 

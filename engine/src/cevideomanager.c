@@ -49,7 +49,7 @@ void ce_video_manager_init(void)
 		ce_logging_write("video manager: using path '%s'", path);
 	}
 
-	ce_video_manager = ce_alloc(sizeof(struct ce_video_manager));
+	ce_video_manager = ce_alloc_zero(sizeof(struct ce_video_manager));
 	ce_video_manager->video_instances = ce_vector_new();
 }
 

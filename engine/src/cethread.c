@@ -127,9 +127,7 @@ struct ce_thread_pool* ce_thread_pool;
 
 void ce_thread_pool_init(size_t thread_count)
 {
-	ce_thread_pool = ce_alloc(sizeof(struct ce_thread_pool));
-
-	ce_thread_pool->done = false;
+	ce_thread_pool = ce_alloc_zero(sizeof(struct ce_thread_pool));
 	ce_thread_pool->idle_thread_count = thread_count;
 	ce_thread_pool->threads = ce_vector_new_reserved(thread_count);
 	ce_thread_pool->pending_routines = ce_vector_new();

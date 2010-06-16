@@ -45,7 +45,7 @@ void ce_mob_manager_init(void)
 		ce_logging_write("mob manager: using path '%s'", path);
 	}
 
-	ce_mob_manager = ce_alloc(sizeof(struct ce_mob_manager));
+	ce_mob_manager = ce_alloc_zero(sizeof(struct ce_mob_manager));
 }
 
 void ce_mob_manager_term(void)

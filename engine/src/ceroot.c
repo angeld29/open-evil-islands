@@ -29,6 +29,7 @@
 #include "cethread.h"
 #include "cesysteminfo.h"
 #include "cesystemevent.h"
+#include "ceoptionmanager.h"
 #include "ceevent.h"
 #include "ceavcodec.h"
 #include "cesoundmanager.h"
@@ -95,6 +96,7 @@ static void ce_root_term(void)
 	ce_renderwindow_del(ce_root.renderwindow);
 	ce_thread_pool_term();
 	ce_event_manager_term();
+	ce_option_manager_term();
 
 	ce_string_del(ce_root.ce_path);
 	ce_string_del(ce_root.ei_path);
@@ -145,6 +147,7 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.ei_path = ce_string_new_str(ei_path);
 	ce_root.ce_path = ce_string_new_str(ce_path);
 
+	ce_option_manager_init(optparse);
 	ce_event_manager_init();
 	ce_thread_pool_init(ce_root.thread_count);
 
