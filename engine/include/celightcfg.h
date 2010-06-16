@@ -22,7 +22,7 @@
 #define CE_LIGHTCFG_H
 
 #include "cecolor.h"
-#include "cecfgfile.h"
+#include "ceconfigfile.h"
 
 #ifdef __cplusplus
 extern "C"

@@ -21,11 +21,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <assert.h>
 
 #include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cecfgfile.h"
+#include "ceconfigfile.h"
 
 static bool ce_config_file_parse(ce_config_file* config_file, FILE* file)
 {
