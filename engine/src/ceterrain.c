@@ -250,7 +250,7 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 		sector->renderlayer = ce_rendergroup_get(rendergroup, sector->texture);
 	} else {
 		// enqueue mmp file loading or generation
-		ce_threadpool_enqueue(ce_root.threadpool, ce_terrain_process_portion,
+		ce_thread_pool_enqueue(ce_terrain_process_portion,
 			ce_terrain_portion_new(cookie, name, index, x, z, water));
 		++cookie->queued_portion_count;
 
@@ -346,7 +346,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_texmng* texmng,
 		ce_mutex_unlock(cookie->mutex);
 
 		ce_terrain_load_portions(cookie);
-		ce_threadpool_wait_one(ce_root.threadpool);
+		ce_thread_pool_wait_one();
 
 		ce_mutex_lock(cookie->mutex);
 	}

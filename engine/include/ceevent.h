@@ -40,7 +40,7 @@ extern ce_event* ce_event_new(void (*notify)(ce_event*), size_t size);
 extern void ce_event_del(ce_event* event);
 
 /*
- *  Per-thread event queue
+ *  Per-thread event queue.
 */
 
 typedef struct {
@@ -57,7 +57,7 @@ extern void ce_event_queue_process(ce_event_queue* queue);
 extern void ce_event_queue_push(ce_event_queue* queue, ce_event* event);
 
 /*
- *  Thread-safe event manager
+ *  Thread-safe event manager.
 */
 
 extern struct ce_event_manager {

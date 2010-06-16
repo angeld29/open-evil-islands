@@ -26,6 +26,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "cethread.h"
 #include "cesysteminfo.h"
 #include "cesystemevent.h"
 #include "ceevent.h"
@@ -77,10 +78,9 @@ static void ce_root_renderwindow_closed(void* listener)
 
 static void ce_root_term(void)
 {
-	assert(ce_root.inited && "the root subsystem has not yet been inited");
-	ce_root.inited = false;
-
 	ce_inputsupply_del(ce_root.inputsupply);
+	ce_timer_del(ce_root.timer);
+
 	ce_scenemng_del(ce_root.scenemng);
 	ce_figmng_del(ce_root.figmng);
 	ce_mob_manager_del(ce_root.mob_manager);
@@ -88,22 +88,19 @@ static void ce_root_term(void)
 	ce_texmng_del(ce_root.texmng);
 	ce_video_manager_term();
 	ce_sound_manager_term();
+	ce_avcodec_term();
 	ce_sound_system_del(ce_root.sound_system);
 	ce_rendersystem_del(ce_root.rendersystem);
 	ce_renderwindow_del(ce_root.renderwindow);
-	ce_threadpool_del(ce_root.threadpool);
-	ce_timer_del(ce_root.timer);
+	ce_thread_pool_term();
+	ce_event_manager_term();
+
 	ce_string_del(ce_root.ce_path);
 	ce_string_del(ce_root.ei_path);
-	ce_avcodec_term();
-	ce_event_manager_term();
 }
 
 bool ce_root_init(ce_optparse* optparse)
 {
-	assert(!ce_root.inited && "the root subsystem has already been inited");
-	ce_root.inited = true;
-
 	atexit(ce_root_term);
 
 	ce_systeminfo_display();
@@ -148,10 +145,7 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.ce_path = ce_string_new_str(ce_path);
 
 	ce_event_manager_init();
-	ce_avcodec_init();
-
-	ce_root.timer = ce_timer_new();
-	ce_root.threadpool = ce_threadpool_new(ce_root.thread_count);
+	ce_thread_pool_init(ce_root.thread_count);
 
 	ce_root.renderwindow = ce_renderwindow_create(window_width, window_height, optparse->title->str);
 	if (NULL == ce_root.renderwindow) {
@@ -197,6 +191,7 @@ bool ce_root_init(ce_optparse* optparse)
 	ce_root.rendersystem = ce_rendersystem_new();
 	ce_root.sound_system = ce_sound_system_new_platform();
 
+	ce_avcodec_init();
 	ce_sound_manager_init();
 	ce_video_manager_init();
 
@@ -228,6 +223,7 @@ bool ce_root_init(ce_optparse* optparse)
 
 	ce_root.scenemng = ce_scenemng_new();
 
+	ce_root.timer = ce_timer_new();
 	ce_root.inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
 	ce_root.exit_event = ce_inputsupply_button(ce_root.inputsupply, CE_KB_ESCAPE);
 	ce_root.switch_window_event = ce_inputsupply_single_front(ce_root.inputsupply,
@@ -253,8 +249,6 @@ bool ce_root_init(ce_optparse* optparse)
 
 int ce_root_exec(void)
 {
-	assert(ce_root.inited && "the root subsystem has not yet been inited");
-
 	ce_event_manager_create_queue();
 	ce_renderwindow_show(ce_root.renderwindow);
 

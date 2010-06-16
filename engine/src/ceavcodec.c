@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ static void ce_avcodec_log(void* ptr, int av_level, const char* format, va_list 
 	}
 
 	char buffer[strlen(format) + 16];
-	snprintf(buffer, sizeof(buffer), "libavcodec: %s", format);
+	snprintf(buffer, sizeof(buffer), "avcodec: %s", format);
 
 	ce_logging_report_va(level, buffer, args);
 }

@@ -118,29 +118,30 @@ extern void ce_semaphore_release(ce_semaphore* semaphore, size_t n);
 extern bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n);
 
 /*
- *  The threadpool struct manages a collection of threads.
+ *  The thread pool struct manages a collection of threads.
  *  It's a thread pool pattern implementation.
+ *  All functions are thread-safe.
 */
 
-typedef struct {
+extern struct ce_thread_pool {
 	bool done;
 	size_t idle_thread_count;
 	ce_vector* threads;
-	ce_vector* queue;
-	ce_vector* cache;
+	ce_vector* pending_routines;
+	ce_vector* free_routines;
 	ce_mutex* mutex;
 	ce_waitcond* idle;
 	ce_waitcond* wait_one;
 	ce_waitcond* wait_all;
-} ce_threadpool;
+}* ce_thread_pool;
 
-extern ce_threadpool* ce_threadpool_new(size_t thread_count);
-extern void ce_threadpool_del(ce_threadpool* threadpool);
+extern void ce_thread_pool_init(size_t thread_count);
+extern void ce_thread_pool_term(void);
 
-extern void ce_threadpool_enqueue(ce_threadpool* threadpool, void (*proc)(), void* arg);
+extern void ce_thread_pool_enqueue(void (*proc)(), void* arg);
 
-extern void ce_threadpool_wait_one(ce_threadpool* threadpool);
-extern void ce_threadpool_wait_all(ce_threadpool* threadpool);
+extern void ce_thread_pool_wait_one(void);
+extern void ce_thread_pool_wait_all(void);
 
 #ifdef __cplusplus
 }

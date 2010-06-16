@@ -91,119 +91,120 @@ bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n)
 	return result;
 }
 
-static void ce_threadpool_exec(ce_threadpool* threadpool)
+static void ce_thread_pool_exec(struct ce_thread_pool* thread_pool)
 {
-	ce_mutex_lock(threadpool->mutex);
+	ce_mutex_lock(thread_pool->mutex);
 
-	while (!threadpool->done) {
-		if (ce_vector_empty(threadpool->queue)) {
-			if (threadpool->idle_thread_count == threadpool->threads->count) {
-				ce_waitcond_wake_one(threadpool->wait_all);
+	while (!thread_pool->done) {
+		if (ce_vector_empty(thread_pool->pending_routines)) {
+			if (thread_pool->idle_thread_count == thread_pool->threads->count) {
+				ce_waitcond_wake_one(thread_pool->wait_all);
 			}
-			ce_waitcond_wait(threadpool->idle, threadpool->mutex);
+			ce_waitcond_wait(thread_pool->idle, thread_pool->mutex);
 		} else {
-			ce_routine* routine = ce_vector_pop_back(threadpool->queue);
-			ce_vector_push_back(threadpool->cache, routine);
+			ce_routine* routine = ce_vector_pop_back(thread_pool->pending_routines);
+			ce_vector_push_back(thread_pool->free_routines, routine);
 
 			void (*proc)(void*) = routine->proc;
 			void* arg = routine->arg;
 
-			--threadpool->idle_thread_count;
-			ce_mutex_unlock(threadpool->mutex);
+			--thread_pool->idle_thread_count;
+			ce_mutex_unlock(thread_pool->mutex);
 
 			(*proc)(arg);
 
-			ce_mutex_lock(threadpool->mutex);
-			++threadpool->idle_thread_count;
+			ce_mutex_lock(thread_pool->mutex);
+			++thread_pool->idle_thread_count;
 
-			ce_waitcond_wake_one(threadpool->wait_one);
+			ce_waitcond_wake_one(thread_pool->wait_one);
 		}
 	}
 
-	ce_mutex_unlock(threadpool->mutex);
+	ce_mutex_unlock(thread_pool->mutex);
 }
 
-ce_threadpool* ce_threadpool_new(size_t thread_count)
+struct ce_thread_pool* ce_thread_pool;
+
+void ce_thread_pool_init(size_t thread_count)
 {
-	ce_threadpool* threadpool = ce_alloc(sizeof(ce_threadpool));
-	threadpool->done = false;
-	threadpool->idle_thread_count = thread_count;
-	threadpool->threads = ce_vector_new_reserved(thread_count);
-	threadpool->queue = ce_vector_new();
-	threadpool->cache = ce_vector_new();
-	threadpool->mutex = ce_mutex_new();
-	threadpool->idle = ce_waitcond_new();
-	threadpool->wait_one = ce_waitcond_new();
-	threadpool->wait_all = ce_waitcond_new();
+	ce_thread_pool = ce_alloc(sizeof(struct ce_thread_pool));
+
+	ce_thread_pool->done = false;
+	ce_thread_pool->idle_thread_count = thread_count;
+	ce_thread_pool->threads = ce_vector_new_reserved(thread_count);
+	ce_thread_pool->pending_routines = ce_vector_new();
+	ce_thread_pool->free_routines = ce_vector_new();
+	ce_thread_pool->mutex = ce_mutex_new();
+	ce_thread_pool->idle = ce_waitcond_new();
+	ce_thread_pool->wait_one = ce_waitcond_new();
+	ce_thread_pool->wait_all = ce_waitcond_new();
 
 	for (size_t i = 0; i < thread_count; ++i) {
-		ce_vector_push_back(threadpool->threads,
-			ce_thread_new(ce_threadpool_exec, threadpool));
+		ce_vector_push_back(ce_thread_pool->threads,
+			ce_thread_new(ce_thread_pool_exec, ce_thread_pool));
 	}
-
-	return threadpool;
 }
 
-void ce_threadpool_del(ce_threadpool* threadpool)
+void ce_thread_pool_term(void)
 {
-	if (NULL != threadpool) {
-		ce_mutex_lock(threadpool->mutex);
-		threadpool->done = true;
-		ce_mutex_unlock(threadpool->mutex);
+	if (NULL != ce_thread_pool) {
+		ce_mutex_lock(ce_thread_pool->mutex);
+		ce_thread_pool->done = true;
+		ce_mutex_unlock(ce_thread_pool->mutex);
 
-		ce_waitcond_wake_all(threadpool->idle);
-		ce_vector_for_each(threadpool->threads, ce_thread_wait);
+		ce_waitcond_wake_all(ce_thread_pool->idle);
+		ce_vector_for_each(ce_thread_pool->threads, ce_thread_wait);
 
-		ce_waitcond_del(threadpool->wait_all);
-		ce_waitcond_del(threadpool->wait_one);
-		ce_waitcond_del(threadpool->idle);
-		ce_mutex_del(threadpool->mutex);
+		ce_waitcond_del(ce_thread_pool->wait_all);
+		ce_waitcond_del(ce_thread_pool->wait_one);
+		ce_waitcond_del(ce_thread_pool->idle);
+		ce_mutex_del(ce_thread_pool->mutex);
 
-		if (!ce_vector_empty(threadpool->queue)) {
-			ce_logging_warning("threadpool: pool is being "
+		if (!ce_vector_empty(ce_thread_pool->pending_routines)) {
+			ce_logging_warning("thread pool: pool is being "
 								"destroyed while queue is not empty");
 		}
 
-		ce_vector_for_each(threadpool->cache, ce_routine_del);
-		ce_vector_for_each(threadpool->queue, ce_routine_del);
-		ce_vector_for_each(threadpool->threads, ce_thread_del);
+		ce_vector_for_each(ce_thread_pool->free_routines, ce_routine_del);
+		ce_vector_for_each(ce_thread_pool->pending_routines, ce_routine_del);
+		ce_vector_for_each(ce_thread_pool->threads, ce_thread_del);
 
-		ce_vector_del(threadpool->cache);
-		ce_vector_del(threadpool->queue);
-		ce_vector_del(threadpool->threads);
+		ce_vector_del(ce_thread_pool->free_routines);
+		ce_vector_del(ce_thread_pool->pending_routines);
+		ce_vector_del(ce_thread_pool->threads);
 
-		ce_free(threadpool, sizeof(ce_threadpool));
+		ce_free(ce_thread_pool, sizeof(struct ce_thread_pool));
 	}
 }
 
-void ce_threadpool_enqueue(ce_threadpool* threadpool, void (*proc)(), void* arg)
+void ce_thread_pool_enqueue(void (*proc)(), void* arg)
 {
-	ce_mutex_lock(threadpool->mutex);
-	ce_routine* routine = ce_vector_empty(threadpool->cache) ?
-		ce_routine_new() : ce_vector_pop_back(threadpool->cache);
+	ce_mutex_lock(ce_thread_pool->mutex);
+	ce_routine* routine = ce_vector_empty(ce_thread_pool->free_routines) ?
+		ce_routine_new() : ce_vector_pop_back(ce_thread_pool->free_routines);
 	routine->proc = proc;
 	routine->arg = arg;
-	ce_vector_push_back(threadpool->queue, routine);
-	ce_waitcond_wake_one(threadpool->idle);
-	ce_mutex_unlock(threadpool->mutex);
+	ce_vector_push_back(ce_thread_pool->pending_routines, routine);
+	ce_waitcond_wake_one(ce_thread_pool->idle);
+	ce_mutex_unlock(ce_thread_pool->mutex);
 }
 
-static void ce_threadpool_wait(ce_threadpool* threadpool, ce_waitcond* waitcond)
+static void ce_thread_pool_wait(ce_waitcond* waitcond)
 {
-	ce_mutex_lock(threadpool->mutex);
-	if (!ce_vector_empty(threadpool->queue) ||
-			threadpool->idle_thread_count != threadpool->threads->count) {
-		ce_waitcond_wait(waitcond, threadpool->mutex);
+	ce_mutex_lock(ce_thread_pool->mutex);
+	if (!ce_vector_empty(ce_thread_pool->pending_routines) ||
+			ce_thread_pool->idle_thread_count != ce_thread_pool->threads->count) {
+		ce_waitcond_wait(waitcond, ce_thread_pool->mutex);
 	}
-	ce_mutex_unlock(threadpool->mutex);
+	ce_mutex_unlock(ce_thread_pool->mutex);
 }
 
-void ce_threadpool_wait_one(ce_threadpool* threadpool)
+void ce_thread_pool_wait_one(void)
 {
-	ce_threadpool_wait(threadpool, threadpool->wait_one);
+	ce_thread_pool_wait(ce_thread_pool->wait_one);
 }
 
-void ce_threadpool_wait_all(ce_threadpool* threadpool)
+void ce_thread_pool_wait_all(void)
 {
-	ce_threadpool_wait(threadpool, threadpool->wait_all);
+	ce_thread_pool_wait(ce_thread_pool->wait_all);
 }

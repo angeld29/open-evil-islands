@@ -24,7 +24,6 @@
 #include <stdbool.h>
 
 #include "cestring.h"
-#include "cethread.h"
 #include "cetimer.h"
 #include "ceinput.h"
 #include "cerenderwindow.h"
@@ -42,7 +41,6 @@ extern "C" {
 #endif
 
 extern struct ce_root {
-	bool inited;
 	bool done;
 	bool terrain_tiling;
 	bool inverse_trackball_x;
@@ -55,8 +53,6 @@ extern struct ce_root {
 	float anmfps;
 	ce_string* ei_path;
 	ce_string* ce_path;
-	ce_timer* timer;
-	ce_threadpool* threadpool;
 	ce_renderwindow* renderwindow;
 	ce_rendersystem* rendersystem;
 	ce_sound_system* sound_system;
@@ -65,6 +61,7 @@ extern struct ce_root {
 	ce_mob_manager* mob_manager;
 	ce_figmng* figmng;
 	ce_scenemng* scenemng;
+	ce_timer* timer;
 	ce_inputsupply* inputsupply;
 	ce_inputevent* exit_event;
 	ce_inputevent* switch_window_event;
