@@ -101,7 +101,7 @@ void ce_event_manager_term(void)
 	ce_mutex_del(ce_event_manager.mutex);
 }
 
-void ce_event_manager_create(void)
+void ce_event_manager_create_queue(void)
 {
 	ce_mutex_lock(ce_event_manager.mutex);
 	ce_vector_push_back(ce_event_manager.event_queues,
@@ -109,7 +109,7 @@ void ce_event_manager_create(void)
 	ce_mutex_unlock(ce_event_manager.mutex);
 }
 
-void ce_event_manager_process(void)
+void ce_event_manager_process_events(void)
 {
 	ce_thread_id thread_id = ce_thread_self();
 	for (size_t i = 0; i < ce_event_manager.event_queues->count; ++i) {
@@ -129,12 +129,14 @@ void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event)
 			return;
 		}
 	}
-	assert(false && "queue not found");
+
+	assert(false && "could not found queue");
+	ce_event_del(event);
 }
 
-void ce_event_manager_post(ce_thread_id thread_id,
-							void (*notify)(ce_event*),
-							const void* impl, size_t size)
+void ce_event_manager_post_raw(ce_thread_id thread_id,
+								void (*notify)(ce_event*),
+								const void* impl, size_t size)
 {
 	ce_event* event = ce_event_new(notify, size);
 	memcpy(event->impl, impl, size);

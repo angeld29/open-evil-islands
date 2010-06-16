@@ -254,7 +254,7 @@ int ce_root_exec(void)
 {
 	assert(ce_root.inited && "the root subsystem has not yet been inited");
 
-	ce_event_manager_create();
+	ce_event_manager_create_queue();
 	ce_renderwindow_show(ce_root.renderwindow);
 
 	ce_timer_start(ce_root.timer);
@@ -262,7 +262,7 @@ int ce_root_exec(void)
 	for (;;) {
 		float elapsed = ce_timer_advance(ce_root.timer);
 
-		ce_event_manager_process();
+		ce_event_manager_process_events();
 		ce_renderwindow_pump(ce_root.renderwindow);
 
 		if (ce_root.done) {
