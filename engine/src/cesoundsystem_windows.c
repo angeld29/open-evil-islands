@@ -82,15 +82,15 @@ static bool ce_wmm_ctor(ce_sound_system* sound_system)
 		return false;
 	}
 
-	assert(CE_SOUNDSYSTEM_CHANNEL_COUNT <= 2 && "only mono and stereo output implemented");
+	assert(CE_SOUND_SYSTEM_CHANNEL_COUNT <= 2 && "only mono and stereo output implemented");
 
 	wmm->waveformat.Format.wFormatTag = WAVE_FORMAT_PCM;
-	wmm->waveformat.Format.nChannels = CE_SOUNDSYSTEM_CHANNEL_COUNT;
-	wmm->waveformat.Format.nSamplesPerSec = CE_SOUNDSYSTEM_SAMPLE_RATE;
-	wmm->waveformat.Format.wBitsPerSample  = CE_SOUNDSYSTEM_BITS_PER_SAMPLE;
-	wmm->waveformat.Format.nBlockAlign = CE_SOUNDSYSTEM_SAMPLE_SIZE;
-	wmm->waveformat.Format.nAvgBytesPerSec = CE_SOUNDSYSTEM_SAMPLE_RATE *
-												CE_SOUNDSYSTEM_SAMPLE_SIZE;
+	wmm->waveformat.Format.nChannels = CE_SOUND_SYSTEM_CHANNEL_COUNT;
+	wmm->waveformat.Format.nSamplesPerSec = CE_SOUND_SYSTEM_SAMPLE_RATE;
+	wmm->waveformat.Format.wBitsPerSample  = CE_SOUND_SYSTEM_BITS_PER_SAMPLE;
+	wmm->waveformat.Format.nBlockAlign = CE_SOUND_SYSTEM_SAMPLE_SIZE;
+	wmm->waveformat.Format.nAvgBytesPerSec = CE_SOUND_SYSTEM_SAMPLE_RATE *
+												CE_SOUND_SYSTEM_SAMPLE_SIZE;
 
 	code = waveOutOpen(&wmm->waveout, WAVE_MAPPER,
 						&wmm->waveformat.Format,
@@ -102,9 +102,9 @@ static bool ce_wmm_ctor(ce_sound_system* sound_system)
 		return false;
 	}
 
-	for (size_t i = 0; i < CE_SOUNDSYSTEM_HEADER_COUNT; ++i) {
+	for (size_t i = 0; i < CE_SOUND_SYSTEM_HEADER_COUNT; ++i) {
 		wmm->headers[i].waveheader.lpData = wmm->headers[i].data;
-		wmm->headers[i].waveheader.dwBufferLength = CE_SOUNDSYSTEM_BLOCK_SIZE;
+		wmm->headers[i].waveheader.dwBufferLength = CE_SOUND_SYSTEM_BLOCK_SIZE;
 		wmm->headers[i].waveheader.dwUser = (DWORD_PTR)&wmm->headers[i];
 		wmm->headers[i].waveheader.dwFlags = WHDR_DONE;
 	}
@@ -123,7 +123,7 @@ static void ce_wmm_dtor(ce_sound_system* sound_system)
 			ce_wmm_error(code, "could not reset waveform output device");
 		}
 
-		for (size_t i = 0; i < CE_SOUNDSYSTEM_HEADER_COUNT; ++i) {
+		for (size_t i = 0; i < CE_SOUND_SYSTEM_HEADER_COUNT; ++i) {
 			if (wmm->headers[i].waveheader.dwFlags & WHDR_PREPARED) {
 				code = waveOutUnprepareHeader(wmm->waveout,
 												&wmm->headers[i].waveheader,
@@ -147,7 +147,7 @@ static void ce_wmm_dtor(ce_sound_system* sound_system)
 
 static ce_wmm_header* ce_wmm_find(ce_wmm* wmm)
 {
-	for (size_t i = 0; i < CE_SOUNDSYSTEM_HEADER_COUNT; ++i) {
+	for (size_t i = 0; i < CE_SOUND_SYSTEM_HEADER_COUNT; ++i) {
 		if (wmm->headers[i].waveheader.dwFlags & WHDR_DONE) {
 			return &wmm->headers[i];
 		}
@@ -177,7 +177,7 @@ static bool ce_wmm_write(ce_sound_system* sound_system, const void* block)
 	}
 
 	if (MMSYSERR_NOERROR == code) {
-		memcpy(header->data, block, CE_SOUNDSYSTEM_BLOCK_SIZE);
+		memcpy(header->data, block, CE_SOUND_SYSTEM_BLOCK_SIZE);
 		code = waveOutPrepareHeader(wmm->waveout,
 										&header->waveheader,
 											sizeof(WAVEHDR));
