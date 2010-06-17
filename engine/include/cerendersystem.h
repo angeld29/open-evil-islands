@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,70 +21,56 @@
 #ifndef CE_RENDERSYSTEM_H
 #define CE_RENDERSYSTEM_H
 
-#include "cethread.h"
 #include "cevec3.h"
 #include "cequat.h"
 #include "cecolor.h"
+#include "cethread.h"
 #include "ceviewport.h"
 #include "cecamera.h"
 #include "cetexture.h"
 #include "cematerial.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
-typedef struct {
+extern struct ce_render_system {
 	ce_thread_id thread_id;
 	char impl[];
-} ce_rendersystem;
+}* ce_render_system;
 
-extern ce_rendersystem* ce_rendersystem_new(void);
-extern void ce_rendersystem_del(ce_rendersystem* rendersystem);
+extern void ce_render_system_init(void);
+extern void ce_render_system_term(void);
 
-extern void ce_rendersystem_begin_render(ce_rendersystem* rendersystem,
-										const ce_color* clear_color);
-extern void ce_rendersystem_end_render(ce_rendersystem* rendersystem);
+extern void ce_render_system_begin_render(const ce_color* clear_color);
+extern void ce_render_system_end_render(void);
 
-extern void ce_rendersystem_draw_axes(ce_rendersystem* rendersystem);
+extern void ce_render_system_draw_axes(void);
 
 // draw a cube centered at zero with side of 2
-extern void ce_rendersystem_draw_wire_cube(ce_rendersystem* rendersystem);
-extern void ce_rendersystem_draw_solid_cube(ce_rendersystem* rendersystem);
+extern void ce_render_system_draw_wire_cube(void);
+extern void ce_render_system_draw_solid_cube(void);
 
-// draw a fullscreen texture
-extern void ce_rendersystem_draw_fullscreen_texture(ce_rendersystem* rendersystem,
-													ce_texture* texture);
+extern void ce_render_system_draw_fullscreen_texture(ce_texture* texture);
 
-extern void ce_rendersystem_setup_viewport(ce_rendersystem* rendersystem,
-												ce_viewport* viewport);
+extern void ce_render_system_setup_viewport(ce_viewport* viewport);
+extern void ce_render_system_setup_camera(ce_camera* camera);
 
-extern void ce_rendersystem_setup_camera(ce_rendersystem* rendersystem,
-												ce_camera* camera);
+extern void ce_render_system_begin_occlusion_test(void);
+extern void ce_render_system_end_occlusion_test(void);
 
-extern void ce_rendersystem_begin_occlusion_test(ce_rendersystem* rendersystem);
-extern void ce_rendersystem_end_occlusion_test(ce_rendersystem* rendersystem);
+extern void ce_render_system_apply_color(const ce_color* color);
 
-extern void ce_rendersystem_apply_color(ce_rendersystem* rendersystem,
-										const ce_color* color);
+extern void ce_render_system_apply_transform(const ce_vec3* translation,
+											const ce_quat* rotation,
+											const ce_vec3* scaling);
+extern void ce_render_system_discard_transform(void);
 
-extern void
-ce_rendersystem_apply_transform(ce_rendersystem* rendersystem,
-									const ce_vec3* translation,
-									const ce_quat* rotation,
-									const ce_vec3* scaling);
-extern void ce_rendersystem_discard_transform(ce_rendersystem* rendersystem);
-
-extern void
-ce_rendersystem_apply_material(ce_rendersystem* rendersystem,
-									ce_material* material);
-extern void
-ce_rendersystem_discard_material(ce_rendersystem* rendersystem,
-									ce_material* material);
+extern void ce_render_system_apply_material(ce_material* material);
+extern void ce_render_system_discard_material(void);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_RENDERSYSTEM_H */

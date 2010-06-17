@@ -24,7 +24,6 @@
 #include "cevector.h"
 #include "cetexture.h"
 #include "cerenderitem.h"
-#include "cerendersystem.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -44,8 +43,7 @@ extern void ce_renderlayer_clear(ce_renderlayer* renderlayer);
 extern void ce_renderlayer_add(ce_renderlayer* renderlayer,
 								ce_renderitem* renderitem);
 
-extern void ce_renderlayer_render(ce_renderlayer* renderlayer,
-									ce_rendersystem* rendersystem);
+extern void ce_renderlayer_render(ce_renderlayer* renderlayer);
 
 #ifdef __cplusplus
 }

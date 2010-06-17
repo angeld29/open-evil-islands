@@ -25,7 +25,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceroot.h"
+#include "cerendersystem.h"
 #include "cevideoinstance.h"
 
 static void ce_video_instance_exec(ce_video_instance* video_instance)
@@ -176,7 +176,7 @@ void ce_video_instance_progress(ce_video_instance* video_instance, int percents)
 void ce_video_instance_render(ce_video_instance* video_instance)
 {
 	if (ce_texture_is_valid(video_instance->texture)) {
-		ce_rendersystem_draw_fullscreen_texture(ce_root.rendersystem, video_instance->texture);
+		ce_render_system_draw_fullscreen_texture(video_instance->texture);
 	}
 }
 

@@ -25,7 +25,6 @@
 #include "cematerial.h"
 #include "cetexture.h"
 #include "cerenderlayer.h"
-#include "cerendersystem.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -46,8 +45,7 @@ extern void ce_rendergroup_clear(ce_rendergroup* rendergroup);
 extern ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup,
 												ce_texture* texture);
 
-extern void ce_rendergroup_render(ce_rendergroup* rendergroup,
-									ce_rendersystem* rendersystem);
+extern void ce_rendergroup_render(ce_rendergroup* rendergroup);
 
 #ifdef __cplusplus
 }

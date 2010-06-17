@@ -73,10 +73,7 @@ ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue,
 	return rendergroup;
 }
 
-void ce_renderqueue_render(ce_renderqueue* renderqueue,
-							ce_rendersystem* rendersystem)
+void ce_renderqueue_render(ce_renderqueue* renderqueue)
 {
-	for (size_t i = 0; i < renderqueue->rendergroups->count; ++i) {
-		ce_rendergroup_render(renderqueue->rendergroups->items[i], rendersystem);
-	}
+	ce_vector_for_each(renderqueue->rendergroups, ce_rendergroup_render);
 }

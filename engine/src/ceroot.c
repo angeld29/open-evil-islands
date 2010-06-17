@@ -32,6 +32,7 @@
 #include "ceoptionmanager.h"
 #include "ceconfigmanager.h"
 #include "ceevent.h"
+#include "cerendersystem.h"
 #include "ceavcodec.h"
 #include "cesoundmanager.h"
 #include "cevideomanager.h"
@@ -93,7 +94,7 @@ static void ce_root_term(void)
 	ce_sound_manager_term();
 	ce_avcodec_term();
 	ce_sound_system_del(ce_root.sound_system);
-	ce_rendersystem_del(ce_root.rendersystem);
+	ce_render_system_term();
 	ce_renderwindow_del(ce_root.renderwindow);
 	ce_thread_pool_term();
 	ce_event_manager_term();
@@ -166,7 +167,7 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 		ce_display_reflection_from_bool(ce_option_manager->fullscreen_reflection_x,
 										ce_option_manager->fullscreen_reflection_y);
 
-	ce_root.rendersystem = ce_rendersystem_new();
+	ce_render_system_init();
 	ce_root.sound_system = ce_sound_system_new_platform();
 
 	ce_avcodec_init();

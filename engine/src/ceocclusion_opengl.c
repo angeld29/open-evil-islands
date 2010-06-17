@@ -22,6 +22,7 @@
 
 #include "cealloc.h"
 #include "ceopengl.h"
+#include "cerendersystem.h"
 #include "ceocclusion.h"
 
 struct ce_occlusion {
@@ -69,8 +70,7 @@ void ce_occlusion_del(ce_occlusion* occlusion)
 	}
 }
 
-bool ce_occlusion_query(ce_occlusion* occlusion,
-	const ce_bbox* bbox, ce_rendersystem* rendersystem)
+bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox)
 {
 	if (!occlusion->supported) {
 		return true;
@@ -92,10 +92,11 @@ bool ce_occlusion_query(ce_occlusion* occlusion,
 
 	if (0 != result) {
 		glBeginQuery(occlusion->target, occlusion->query);
-		ce_rendersystem_apply_transform(rendersystem,
-			&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
-		ce_rendersystem_draw_solid_cube(rendersystem);
-		ce_rendersystem_discard_transform(rendersystem);
+		ce_render_system_apply_transform(&bbox->aabb.origin,
+											&bbox->axis,
+											&bbox->aabb.extents);
+		ce_render_system_draw_solid_cube();
+		ce_render_system_discard_transform();
 		glEndQuery(occlusion->target);
 	}
 

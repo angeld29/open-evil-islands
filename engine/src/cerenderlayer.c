@@ -19,6 +19,7 @@
 */
 
 #include "cealloc.h"
+#include "cerendersystem.h"
 #include "cerenderlayer.h"
 
 ce_renderlayer* ce_renderlayer_new(ce_texture* texture)
@@ -48,20 +49,18 @@ void ce_renderlayer_add(ce_renderlayer* renderlayer,
 	ce_vector_push_back(renderlayer->renderitems, renderitem);
 }
 
-void ce_renderlayer_render(ce_renderlayer* renderlayer,
-							ce_rendersystem* rendersystem)
+void ce_renderlayer_render(ce_renderlayer* renderlayer)
 {
 	if (!ce_vector_empty(renderlayer->renderitems)) {
 		ce_texture_bind(renderlayer->texture);
 		for (size_t i = 0; i < renderlayer->renderitems->count; ++i) {
 			ce_renderitem* renderitem = renderlayer->renderitems->items[i];
 			if (renderitem->visible) {
-				ce_rendersystem_apply_transform(rendersystem,
-												&renderitem->world_position,
+				ce_render_system_apply_transform(&renderitem->world_position,
 												&renderitem->world_orientation,
 												&CE_VEC3_UNIT_SCALE);
 				ce_renderitem_render(renderitem);
-				ce_rendersystem_discard_transform(rendersystem);
+				ce_render_system_discard_transform();
 			}
 		}
 		ce_texture_unbind(renderlayer->texture);

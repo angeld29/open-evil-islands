@@ -26,7 +26,6 @@
 #include "cetimer.h"
 #include "ceinput.h"
 #include "cerenderwindow.h"
-#include "cerendersystem.h"
 #include "cesoundsystem.h"
 #include "cetexmng.h"
 #include "cemprmng.h"
@@ -45,7 +44,6 @@ extern struct ce_root {
 	bool comprehensive_bbox_only;
 	float animation_fps;
 	ce_renderwindow* renderwindow;
-	ce_rendersystem* rendersystem;
 	ce_sound_system* sound_system;
 	ce_texmng* texmng;
 	ce_mprmng* mprmng;

@@ -23,7 +23,6 @@
 
 #include "cevector.h"
 #include "cerendergroup.h"
-#include "cerendersystem.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -42,8 +41,7 @@ extern void ce_renderqueue_clear(ce_renderqueue* renderqueue);
 extern ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue,
 										int priority, ce_material* material);
 
-extern void ce_renderqueue_render(ce_renderqueue* renderqueue,
-									ce_rendersystem* rendersystem);
+extern void ce_renderqueue_render(ce_renderqueue* renderqueue);
 
 #ifdef __cplusplus
 }

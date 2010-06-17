@@ -24,7 +24,6 @@
 #include <stdbool.h>
 
 #include "cebbox.h"
-#include "cerendersystem.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -36,8 +35,7 @@ typedef struct ce_occlusion ce_occlusion;
 extern ce_occlusion* ce_occlusion_new(void);
 extern void ce_occlusion_del(ce_occlusion* occlusion);
 
-extern bool ce_occlusion_query(ce_occlusion* occlusion,
-	const ce_bbox* bbox, ce_rendersystem* rendersystem);
+extern bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox);
 
 #ifdef __cplusplus
 }

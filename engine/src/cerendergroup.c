@@ -19,6 +19,7 @@
 */
 
 #include "cealloc.h"
+#include "cerendersystem.h"
 #include "cerendergroup.h"
 
 ce_rendergroup* ce_rendergroup_new(int priority, ce_material* material)
@@ -60,8 +61,7 @@ ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup,
 	return renderlayer;
 }
 
-void ce_rendergroup_render(ce_rendergroup* rendergroup,
-							ce_rendersystem* rendersystem)
+void ce_rendergroup_render(ce_rendergroup* rendergroup)
 {
 	bool empty = true;
 	for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
@@ -69,10 +69,8 @@ void ce_rendergroup_render(ce_rendergroup* rendergroup,
 		empty = empty && ce_vector_empty(renderlayer->renderitems);
 	}
 	if (!empty) {
-		ce_rendersystem_apply_material(rendersystem, rendergroup->material);
-		for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
-			ce_renderlayer_render(rendergroup->renderlayers->items[i], rendersystem);
-		}
-		ce_rendersystem_discard_material(rendersystem, rendergroup->material);
+		ce_render_system_apply_material(rendergroup->material);
+		ce_vector_for_each(rendergroup->renderlayers, ce_renderlayer_render);
+		ce_render_system_discard_material();
 	}
 }

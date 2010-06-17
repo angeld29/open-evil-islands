@@ -23,6 +23,7 @@
 
 #include "celib.h"
 #include "cealloc.h"
+#include "cerendersystem.h"
 #include "ceroot.h"
 #include "cescenenode.h"
 
@@ -188,8 +189,7 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode, const ce_frustum* frus
 	// step 2 - HW occlusion test
 	if (!scenenode->culled && NULL != scenenode->occlusion) {
 		scenenode->culled = !ce_occlusion_query(scenenode->occlusion,
-												&scenenode->world_bbox,
-												ce_root.rendersystem);
+												&scenenode->world_bbox);
 	}
 
 	if (!scenenode->culled) {
@@ -211,10 +211,10 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode, const ce_frustum* frus
 
 static void ce_scenenode_draw_bbox(const ce_bbox* bbox)
 {
-	ce_rendersystem_apply_transform(ce_root.rendersystem,
-		&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
-	ce_rendersystem_draw_wire_cube(ce_root.rendersystem);
-	ce_rendersystem_discard_transform(ce_root.rendersystem);
+	ce_render_system_apply_transform(&bbox->aabb.origin,
+									&bbox->axis, &bbox->aabb.extents);
+	ce_render_system_draw_wire_cube();
+	ce_render_system_discard_transform();
 }
 
 void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode)

@@ -31,6 +31,7 @@
 #include "cebytefmt.h"
 #include "ceoptionmanager.h"
 #include "ceconfigmanager.h"
+#include "cerendersystem.h"
 #include "cemobmanager.h"
 #include "cevideomanager.h"
 #include "ceroot.h"
@@ -189,14 +190,14 @@ static void ce_scenemng_advance_playing(ce_scenemng* scenemng, float elapsed)
 
 static void ce_scenemng_render_playing(ce_scenemng* scenemng)
 {
-	ce_rendersystem_setup_viewport(ce_root.rendersystem, scenemng->viewport);
-	ce_rendersystem_setup_camera(ce_root.rendersystem, scenemng->camera);
+	ce_render_system_setup_viewport(scenemng->viewport);
+	ce_render_system_setup_camera(scenemng->camera);
 
 	if (ce_option_manager->show_axes) {
-		ce_rendersystem_draw_axes(ce_root.rendersystem);
+		ce_render_system_draw_axes();
 	}
 
-	ce_renderqueue_render(scenemng->renderqueue, ce_root.rendersystem);
+	ce_renderqueue_render(scenemng->renderqueue);
 	ce_renderqueue_clear(scenemng->renderqueue);
 
 	if (scenemng->scenenode_force_update) {
@@ -214,13 +215,13 @@ static void ce_scenemng_render_playing(ce_scenemng* scenemng)
 			ce_camera_get_right(scenemng->camera, &right),
 			ce_camera_get_up(scenemng->camera, &up));
 
-		ce_rendersystem_begin_occlusion_test(ce_root.rendersystem);
+		ce_render_system_begin_occlusion_test();
 		ce_scenenode_update_cascade(scenemng->scenenode, &frustum);
-		ce_rendersystem_end_occlusion_test(ce_root.rendersystem);
+		ce_render_system_end_occlusion_test();
 	}
 
 	if (ce_root.show_bboxes) {
-		ce_rendersystem_apply_color(ce_root.rendersystem, &CE_COLOR_BLUE);
+		ce_render_system_apply_color(&CE_COLOR_BLUE);
 		ce_scenenode_draw_bboxes_cascade(scenemng->scenenode);
 	}
 
@@ -261,7 +262,7 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 
 void ce_scenemng_render(ce_scenemng* scenemng)
 {
-	ce_rendersystem_begin_render(ce_root.rendersystem, &CE_COLOR_WHITE);
+	ce_render_system_begin_render(&CE_COLOR_WHITE);
 
 	(*ce_scenemng_state_procs[scenemng->state].render)(scenemng);
 
@@ -309,7 +310,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 		ce_font_get_width(scenemng->font, engine_text) - 10, 10,
 		&CE_COLOR_RED, engine_text);
 
-	ce_rendersystem_end_render(ce_root.rendersystem);
+	ce_render_system_end_render();
 }
 
 ce_figentity*
