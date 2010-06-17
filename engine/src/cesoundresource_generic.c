@@ -618,9 +618,6 @@ static bool ce_bink_decode_frame(ce_sound_resource* sound_resource)
 		} else {
 			bink->output_pos = 0;
 			bink->output_size = size;
-
-			bink->granule_size += size;
-			sound_resource->time = bink->granule_size * bink->bytes_per_sec_inv;
 		}
 	}
 
@@ -646,6 +643,9 @@ static size_t ce_bink_read(ce_sound_resource* sound_resource, void* data, size_t
 
 	bink->output_pos += size;
 	bink->output_size -= size;
+
+	bink->granule_size += size;
+	sound_resource->time = bink->granule_size * bink->bytes_per_sec_inv;
 
 	return size;
 }

@@ -49,9 +49,8 @@ enum {
 typedef struct {
 	ce_video_object video_object;
 	ce_sound_object sound_object;
-	int state;
-	float time; // synchronization/playing time in seconds
-	int frame;
+	int state, frame;
+	float play_time, sync_time; // playing/synchronization time in seconds
 	ce_video_resource* video_resource;
 	ce_texture* texture;
 	ce_mmpfile* rgba_frame; // TODO: shader

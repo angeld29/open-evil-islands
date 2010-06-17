@@ -122,7 +122,7 @@ void ce_video_instance_del(ce_video_instance* video_instance)
 static void ce_video_instance_do_advance(ce_video_instance* video_instance)
 {
 	bool acquired = false;
-	int desired_frame = video_instance->video_resource->fps * video_instance->time;
+	int desired_frame = video_instance->video_resource->fps * video_instance->play_time;
 
 	// if sound or time far away
 	while (video_instance->frame < desired_frame &&
@@ -151,9 +151,15 @@ void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed)
 {
 	if (0 != video_instance->sound_object) {
 		// sync with sound
-		video_instance->time = ce_sound_object_time(video_instance->sound_object);
+		float sound_time = ce_sound_object_time(video_instance->sound_object);
+		if (video_instance->sync_time != sound_time) {
+			video_instance->sync_time = sound_time;
+			video_instance->play_time = video_instance->sync_time;
+		} else {
+			video_instance->play_time += elapsed;
+		}
 	} else {
-		video_instance->time += elapsed;
+		video_instance->play_time += elapsed;
 	}
 
 	ce_video_instance_do_advance(video_instance);
@@ -161,7 +167,7 @@ void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed)
 
 void ce_video_instance_progress(ce_video_instance* video_instance, int percents)
 {
-	video_instance->time = (video_instance->video_resource->frame_count /
+	video_instance->play_time = (video_instance->video_resource->frame_count /
 		video_instance->video_resource->fps) * (0.01f * percents);
 
 	ce_video_instance_do_advance(video_instance);
@@ -169,7 +175,9 @@ void ce_video_instance_progress(ce_video_instance* video_instance, int percents)
 
 void ce_video_instance_render(ce_video_instance* video_instance)
 {
-	ce_rendersystem_draw_fullscreen_texture(ce_root.rendersystem, video_instance->texture);
+	if (ce_texture_is_valid(video_instance->texture)) {
+		ce_rendersystem_draw_fullscreen_texture(ce_root.rendersystem, video_instance->texture);
+	}
 }
 
 bool ce_video_instance_is_stopped(ce_video_instance* video_instance)

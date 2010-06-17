@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,9 +27,8 @@
 #include "cemmpfile.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 typedef enum {
 	CE_TEXTURE_WRAP_REPEAT,
@@ -48,7 +47,8 @@ typedef struct {
 extern ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile);
 extern void ce_texture_del(ce_texture* texture);
 
-extern bool ce_texture_equal(const ce_texture* texture, const ce_texture* other);
+extern bool ce_texture_is_valid(const ce_texture* texture);
+extern bool ce_texture_is_equal(const ce_texture* texture, const ce_texture* other);
 
 extern void ce_texture_replace(ce_texture* texture, ce_mmpfile* mmpfile);
 extern void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode);
@@ -64,6 +64,6 @@ static inline ce_texture* ce_texture_add_ref(ce_texture* texture)
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_TEXTURE_H */

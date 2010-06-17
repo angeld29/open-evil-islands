@@ -49,7 +49,7 @@ ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup,
 {
 	for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
 		ce_renderlayer* renderlayer = rendergroup->renderlayers->items[i];
-		if (ce_texture_equal(texture, renderlayer->texture)) {
+		if (ce_texture_is_equal(texture, renderlayer->texture)) {
 			return renderlayer;
 		}
 	}
