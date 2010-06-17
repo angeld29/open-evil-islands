@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,32 +26,47 @@
 #include "cevec3.h"
 #include "cequat.h"
 #include "cevector.h"
+#include "cestring.h"
+#include "cethread.h"
 #include "cemprfile.h"
-#include "cetexmng.h"
 #include "cetexture.h"
 #include "cematerial.h"
 #include "cescenenode.h"
 #include "cerenderqueue.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
+
+typedef struct ce_terrain ce_terrain;
 
 typedef struct {
+	bool water;
+	int index, x, z;
+	ce_string* name;
+	ce_mmpfile* mmpfile;
 	ce_texture* texture;
 	ce_renderlayer* renderlayer;
 	ce_renderitem* renderitem;
+	ce_terrain* terrain;
 } ce_terrain_sector;
 
-typedef struct {
-	int started_job_count;
+extern ce_terrain_sector* ce_terrain_sector_new(ce_terrain* terrain,
+												const char* name,
+												int x, int z, bool water);
+extern void ce_terrain_sector_del(ce_terrain_sector* sector);
+
+struct ce_terrain {
+	int queued_job_count;
 	ce_mprfile* mprfile;
-	ce_vector* tile_textures;
 	ce_material* materials[CE_MPRFILE_MATERIAL_COUNT];
+	ce_rendergroup* rendergroups[CE_MPRFILE_MATERIAL_COUNT];
+	ce_vector* tile_mmpfiles;
+	ce_vector* tile_textures;
+	ce_once* tile_once;
 	ce_vector* sectors;
 	ce_scenenode* scenenode;
-} ce_terrain;
+};
 
 // terrain takes ownership of the mprfile
 extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
@@ -66,6 +81,6 @@ extern ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain,
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_TERRAIN_H */
