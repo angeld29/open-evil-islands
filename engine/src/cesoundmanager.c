@@ -23,29 +23,23 @@
 #include <assert.h>
 
 #include "celib.h"
-#include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "cepath.h"
 #include "ceoptionmanager.h"
 #include "cesoundmanager.h"
 
-static const char* ce_sound_dirs[] = {"Stream", "Movies"};
-static const char* ce_sound_exts[] = {".wav", ".oga", ".mp3", ".ogv", ".bik"};
-
-enum {
-	CE_SOUND_DIR_COUNT = sizeof(ce_sound_dirs) / sizeof(ce_sound_dirs[0]),
-	CE_SOUND_EXT_COUNT = sizeof(ce_sound_exts) / sizeof(ce_sound_exts[0]),
-};
+static const char* ce_sound_dirs[] = {"Stream", "Movies", NULL};
+static const char* ce_sound_exts[] = {".wav", ".oga", ".mp3", ".ogv", ".bik", NULL};
 
 struct ce_sound_manager* ce_sound_manager;
 
 void ce_sound_manager_init(void)
 {
 	char path[ce_option_manager->ei_path->length + 16];
-
-	for (size_t i = 0; i < CE_SOUND_DIR_COUNT; ++i) {
-		snprintf(path, sizeof(path), "%s/%s",
-			ce_option_manager->ei_path->str, ce_sound_dirs[i]);
+	for (size_t i = 0; NULL != ce_sound_dirs[i]; ++i) {
+		ce_path_join_clear(path, sizeof(path),
+			ce_option_manager->ei_path->str, ce_sound_dirs[i], NULL);
 		ce_logging_write("sound manager: using path '%s'", path);
 	}
 
@@ -75,30 +69,16 @@ void ce_sound_manager_advance(float elapsed)
 	}
 }
 
-static ce_memfile* ce_sound_manager_open(const char* name)
-{
-	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
-
-	for (size_t i = 0; i < CE_SOUND_DIR_COUNT; ++i) {
-		for (size_t j = 0; j < CE_SOUND_EXT_COUNT; ++j) {
-			snprintf(path, sizeof(path), "%s/%s/%s",
-				ce_option_manager->ei_path->str, ce_sound_dirs[i], name);
-			if (NULL == ce_strcasestr(path, ce_sound_exts[j])) {
-				ce_strlcat(path, ce_sound_exts[j], sizeof(path));
-			}
-			ce_memfile* memfile = ce_memfile_open_path(path);
-			if (NULL != memfile) {
-				return memfile;
-			}
-		}
-	}
-
-	return NULL;
-}
-
 ce_sound_object ce_sound_manager_create(const char* name)
 {
-	ce_memfile* memfile = ce_sound_manager_open(name);
+	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
+	if (NULL == ce_path_find_special1(path, sizeof(path),
+										ce_option_manager->ei_path->str,
+										name, ce_sound_dirs, ce_sound_exts)) {
+		return 0;
+	}
+
+	ce_memfile* memfile = ce_memfile_open_path(path);
 	if (NULL == memfile) {
 		return 0;
 	}
