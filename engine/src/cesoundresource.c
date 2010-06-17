@@ -46,6 +46,8 @@ ce_sound_resource* ce_sound_resource_new(ce_sound_resource_vtable vtable, ce_mem
 
 	sound_resource->sample_size = sound_resource->channel_count *
 								(sound_resource->bits_per_sample / 8);
+	sound_resource->bytes_per_sec_inv = 1.0f / (sound_resource->sample_rate *
+												sound_resource->sample_size);
 
 	return sound_resource;
 }
@@ -83,9 +85,19 @@ size_t ce_sound_resource_find_builtin(ce_memfile* memfile)
 	return CE_SOUND_RESOURCE_BUILTIN_COUNT;
 }
 
+size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size)
+{
+	size = (*sound_resource->vtable.read)(sound_resource, data, size);
+	sound_resource->granule_pos += size;
+	sound_resource->time = sound_resource->granule_pos *
+							sound_resource->bytes_per_sec_inv;
+	return size;
+}
+
 bool ce_sound_resource_reset(ce_sound_resource* sound_resource)
 {
 	sound_resource->time = 0.0f;
+	sound_resource->granule_pos = 0;
 	ce_memfile_rewind(sound_resource->memfile);
 	return (*sound_resource->vtable.reset)(sound_resource);
 }

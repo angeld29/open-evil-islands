@@ -43,7 +43,8 @@ typedef struct {
 
 struct ce_sound_resource {
 	unsigned int bits_per_sample, sample_rate, channel_count, sample_size;
-	float time;
+	float time, bytes_per_sec_inv;
+	size_t granule_pos;
 	ce_memfile* memfile;
 	ce_sound_resource_vtable vtable;
 	size_t size;
@@ -59,11 +60,7 @@ extern void ce_sound_resource_del(ce_sound_resource* sound_resource);
 
 extern size_t ce_sound_resource_find_builtin(ce_memfile* memfile);
 
-static inline size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size)
-{
-	return (*sound_resource->vtable.read)(sound_resource, data, size);
-}
-
+extern size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size);
 extern bool ce_sound_resource_reset(ce_sound_resource* sound_resource);
 
 #ifdef __cplusplus

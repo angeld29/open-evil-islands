@@ -131,15 +131,6 @@ static size_t ce_vorbis_read(ce_sound_resource* sound_resource, void* data, size
 		long code = ov_read(&vorbis->vf, data, size,
 					ce_is_big_endian(), 2, 1, &vorbis->bitstream);
 		if (code >= 0) {
-			if (vorbis->vf.vd.granulepos >= 0) {
-				sound_resource->time =
-					vorbis_granule_time(&vorbis->vf.vd,
-										vorbis->vf.vd.granulepos);
-			} else {
-				sound_resource->time +=
-					vorbis_granule_time(&vorbis->vf.vd,
-										code / sound_resource->sample_size);
-			}
 			return code;
 		}
 		ce_logging_warning("vorbis: error in the stream");
@@ -186,7 +177,6 @@ typedef struct {
 	struct mad_stream stream;
 	struct mad_frame frame;
 	struct mad_synth synth;
-	mad_timer_t timer;
 	ce_mad_dither dither[2]; // for 2 channels
 	ce_mad_stats stats;
 	size_t output_buffer_size;
@@ -220,14 +210,14 @@ static bool ce_mad_test(ce_memfile* memfile)
 	}
 
 	// libmad have no good test functions, so use these weak conditions
-	bool ok = MAD_ERROR_NONE == stream.error || MAD_RECOVERABLE(stream.error);
+	bool result = MAD_ERROR_NONE == stream.error || MAD_RECOVERABLE(stream.error);
 
 	mad_header_finish(&header);
 	mad_stream_finish(&stream);
 
 	ce_free(buffer, CE_MAD_INPUT_BUFFER_CAPACITY);
 
-	return ok;
+	return result;
 }
 
 static void ce_mad_error(ce_sound_resource* sound_resource, ce_logging_level level)
@@ -372,9 +362,6 @@ static bool ce_mad_decode(ce_sound_resource* sound_resource)
 		}
 	}
 
-	mad_timer_add(&mad->timer, mad->frame.header.duration);
-	sound_resource->time = 1e-3f * mad_timer_count(mad->timer, MAD_UNITS_MILLISECONDS);
-
 	// once decoded the frame is synthesized to PCM samples
 	mad_synth_frame(&mad->synth, &mad->frame);
 
@@ -406,7 +393,6 @@ static void ce_mad_init(ce_mad* mad)
 	mad_stream_init(&mad->stream);
 	mad_frame_init(&mad->frame);
 	mad_synth_init(&mad->synth);
-	mad_timer_reset(&mad->timer);
 
 	memset(&mad->dither, 0, sizeof(mad->dither));
 	memset(&mad->stats, 0, sizeof(mad->stats));
@@ -485,8 +471,6 @@ static bool ce_mad_reset(ce_sound_resource* sound_resource)
 */
 
 typedef struct {
-	int granule_size;
-	float bytes_per_sec_inv;
 	size_t frame_index;
 	ce_binkheader header;
 	ce_binktrack track;
@@ -545,10 +529,6 @@ static bool ce_bink_ctor(ce_sound_resource* sound_resource)
 
 	ce_logging_debug("bink: audio is %u Hz, %u channel",
 		sound_resource->sample_rate, sound_resource->channel_count);
-
-	unsigned int sample_size = sound_resource->channel_count *
-								(sound_resource->bits_per_sample / 8);
-	bink->bytes_per_sec_inv = 1.0f / (sound_resource->sample_rate * sample_size);
 
 	bink->indices = (ce_binkindex*)bink->data;
 	if (!ce_binkindex_read(bink->indices, bink->header.frame_count, sound_resource->memfile)) {
@@ -644,9 +624,6 @@ static size_t ce_bink_read(ce_sound_resource* sound_resource, void* data, size_t
 	bink->output_pos += size;
 	bink->output_size -= size;
 
-	bink->granule_size += size;
-	sound_resource->time = bink->granule_size * bink->bytes_per_sec_inv;
-
 	return size;
 }
 
@@ -654,7 +631,6 @@ static bool ce_bink_reset(ce_sound_resource* sound_resource)
 {
 	ce_bink* bink = (ce_bink*)sound_resource->impl;
 
-	bink->granule_size = 0;
 	bink->frame_index = 0;
 	bink->output_size = 0;
 
