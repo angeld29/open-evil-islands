@@ -22,10 +22,21 @@
 #define CE_CONFIGMANAGER_H
 
 #include "cevector.h"
+#include "cecolor.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+enum {
+	CE_CONFIG_LIGHT_GIPAT,
+	CE_CONFIG_LIGHT_INGOS,
+	CE_CONFIG_LIGHT_SUSLANGER,
+	CE_CONFIG_LIGHT_CAVE_GIPAT,
+	CE_CONFIG_LIGHT_CAVE_INGOS,
+	CE_CONFIG_LIGHT_CAVE_SUSLANGER,
+	CE_CONFIG_LIGHT_COUNT
+};
 
 enum {
 	CE_CONFIG_MOVIE_START,
@@ -37,6 +48,11 @@ enum {
 };
 
 extern struct ce_config_manager {
+	struct {
+		ce_color sky[24];
+		ce_color ambient[24];
+		ce_color sunlight[24];
+	} lights[CE_CONFIG_LIGHT_COUNT];
 	ce_vector* movies[CE_CONFIG_MOVIE_COUNT];
 }* ce_config_manager;
 

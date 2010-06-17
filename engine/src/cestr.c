@@ -150,8 +150,9 @@ char* ce_strcasestr(const char* haystack, const char* needle)
 }
 
 /*
- *  Based on OpenBSD source.
- *  Copyright (C) 1998 Todd C. Miller <Todd.Miller@courtesan.com>.
+ *  Based on:
+ *  1. OpenBSD source.
+ *     Copyright (C) 1998 Todd C. Miller <Todd.Miller@courtesan.com>.
 */
 size_t ce_strlcat(char* restrict dst, const char* restrict src, size_t size)
 {
@@ -160,7 +161,7 @@ size_t ce_strlcat(char* restrict dst, const char* restrict src, size_t size)
 	size_t n = size;
 	size_t dlen;
 
-	// Find the end of dst and adjust bytes left but don't go past end.
+	// find the end of dst and adjust bytes left but don't go past end
 	while (n-- != 0 && *d) {
 		++d;
 	}
@@ -181,7 +182,7 @@ size_t ce_strlcat(char* restrict dst, const char* restrict src, size_t size)
 	}
 	*d = '\0';
 
-	return dlen + (s - src); // Count does not include NULL.
+	return dlen + (s - src); // count does not include NULL
 }
 
 size_t ce_strlcpy(char* restrict dst, const char* restrict src, size_t size)

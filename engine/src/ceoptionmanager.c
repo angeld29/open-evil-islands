@@ -22,8 +22,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cethread.h"

@@ -18,7 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <assert.h>
 
@@ -30,6 +32,15 @@
 #include "ceconfigfile.h"
 #include "ceconfigmanager.h"
 
+static const char* ce_config_light_files[CE_CONFIG_LIGHT_COUNT] = {
+	[CE_CONFIG_LIGHT_GIPAT] = "lightsgipat.ini",
+	[CE_CONFIG_LIGHT_INGOS] = "lightsingos.ini",
+	[CE_CONFIG_LIGHT_SUSLANGER] = "lightssuslanger.ini",
+	[CE_CONFIG_LIGHT_CAVE_GIPAT] = "lightscavegipat.ini",
+	[CE_CONFIG_LIGHT_CAVE_INGOS] = "lightscaveingos.ini",
+	[CE_CONFIG_LIGHT_CAVE_SUSLANGER] = "lightscavesuslanger.ini",
+};
+
 static const char* ce_config_movie_sections[CE_CONFIG_MOVIE_COUNT] = {
 	[CE_CONFIG_MOVIE_START] = "Start",
 	[CE_CONFIG_MOVIE_CRDTFIN] = "Crdtfin",
@@ -39,6 +50,73 @@ static const char* ce_config_movie_sections[CE_CONFIG_MOVIE_COUNT] = {
 };
 
 struct ce_config_manager* ce_config_manager;
+
+static bool ce_config_manager_read_light(ce_color section[24],
+											const char* section_name,
+											ce_config_file* config_file)
+{
+	for (size_t i = 0; i < 24; ++i) {
+		section[i] = CE_COLOR_WHITE;
+	}
+
+	size_t section_index = ce_config_file_section_index(config_file, section_name);
+	if (section_index == ce_config_file_section_count(config_file)) {
+		ce_logging_error("config manager: could not find section '%s'", section_name);
+		return false;
+	}
+
+	char option_name[8], option[16], *temp;
+
+	for (size_t i = 0; i < 24; ++i) {
+		snprintf(option_name, sizeof(option_name), "time%02zu", i);
+
+		size_t option_index = ce_config_file_option_index(config_file, section_index, option_name);
+		if (option_index == ce_config_file_option_count(config_file, section_index)) {
+			ce_logging_error("config manager: section '%s': "
+				"could not find option '%s'", section_name, option_name);
+			return false;
+		}
+
+		if (sizeof(option) <= ce_strlcpy(option, ce_config_file_get(config_file,
+						section_index, option_index), sizeof(option))) {
+			ce_logging_error("config manager: option is too long '%s'", option);
+			return false;
+		}
+
+		temp = option;
+		section[i].r = atoi(ce_strsep(&temp, ",")) / 255.0f;
+		section[i].g = atoi(ce_strsep(&temp, ",")) / 255.0f;
+		section[i].b = atoi(ce_strsep(&temp, ",")) / 255.0f;
+		section[i].a = 1.0f;
+	}
+
+	return true;
+}
+
+static void ce_config_manager_init_lights(void)
+{
+	char path[ce_option_manager->ei_path->length + 32];
+	for (size_t i = 0; i < CE_CONFIG_LIGHT_COUNT; ++i) {
+		snprintf(path, sizeof(path), "%s/Config/%s",
+			ce_option_manager->ei_path->str, ce_config_light_files[i]);
+
+		ce_config_file* config_file = ce_config_file_open(path);
+		if (NULL != config_file) {
+			bool sky_ok = ce_config_manager_read_light(ce_config_manager->
+								lights[i].sky, "sky", config_file);
+			bool ambient_ok = ce_config_manager_read_light(ce_config_manager->
+								lights[i].ambient, "ambient", config_file);
+			bool sunlight_ok = ce_config_manager_read_light(ce_config_manager->
+									lights[i].sunlight, "sunlight", config_file);
+			if (!sky_ok || !ambient_ok || !sunlight_ok) {
+				ce_logging_error("config manager: '%s' contains broken content", path);
+			}
+			ce_config_file_close(config_file);
+		} else {
+			ce_logging_error("config manager: could not read light configuration");
+		}
+	}
+}
 
 static void ce_config_manager_init_movies(void)
 {
@@ -75,6 +153,7 @@ static void ce_config_manager_init_movies(void)
 void ce_config_manager_init(void)
 {
 	ce_config_manager = ce_alloc_zero(sizeof(struct ce_config_manager));
+	ce_config_manager_init_lights();
 	ce_config_manager_init_movies();
 }
 
