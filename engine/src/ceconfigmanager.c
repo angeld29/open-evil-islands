@@ -28,6 +28,7 @@
 #include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "cepath.h"
 #include "ceoptionmanager.h"
 #include "ceconfigfile.h"
 #include "ceconfigmanager.h"
@@ -97,10 +98,10 @@ static bool ce_config_manager_read_light(ce_color section[24],
 
 static void ce_config_manager_init_lights(void)
 {
-	char path[ce_option_manager->ei_path->length + 32];
+	char path[ce_config_manager->config_path->length + 32];
 	for (size_t i = 0; i < CE_CONFIG_LIGHT_COUNT; ++i) {
-		snprintf(path, sizeof(path), "%s/%s/%s", ce_option_manager->
-			ei_path->str, ce_config_dir, ce_config_light_files[i]);
+		ce_path_join_clear(path, sizeof(path), ce_config_manager->
+			config_path->str, ce_config_light_files[i], NULL);
 
 		ce_config_file* config_file = ce_config_file_open(path);
 		if (NULL != config_file) {
@@ -126,9 +127,9 @@ static void ce_config_manager_init_movies(void)
 		ce_config_manager->movies[i] = ce_vector_new_reserved(4);
 	}
 
-	char path[ce_option_manager->ei_path->length + 32];
-	snprintf(path, sizeof(path), "%s/%s/movie.ini",
-		ce_option_manager->ei_path->str, ce_config_dir);
+	char path[ce_config_manager->config_path->length + 32];
+	ce_path_join_clear(path, sizeof(path), ce_config_manager->
+		config_path->str, "movie.ini", NULL);
 
 	ce_config_file* config_file = ce_config_file_open(path);
 	if (NULL != config_file) {
@@ -156,11 +157,13 @@ static void ce_config_manager_init_movies(void)
 void ce_config_manager_init(void)
 {
 	char path[ce_option_manager->ei_path->length + 16];
-	snprintf(path, sizeof(path), "%s/%s",
-		ce_option_manager->ei_path->str, ce_config_dir);
+	ce_path_join_clear(path, sizeof(path),
+		ce_option_manager->ei_path->str, ce_config_dir, NULL);
+
 	ce_logging_write("config manager: using path '%s'", path);
 
 	ce_config_manager = ce_alloc_zero(sizeof(struct ce_config_manager));
+	ce_config_manager->config_path = ce_string_new_str(path);
 	ce_config_manager_init_lights();
 	ce_config_manager_init_movies();
 }
@@ -172,6 +175,7 @@ void ce_config_manager_term(void)
 			ce_vector_for_each(ce_config_manager->movies[i], ce_string_del);
 			ce_vector_del(ce_config_manager->movies[i]);
 		}
+		ce_string_del(ce_config_manager->config_path);
 		ce_free(ce_config_manager, sizeof(struct ce_config_manager));
 	}
 }

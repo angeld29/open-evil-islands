@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,27 +21,30 @@
 #ifndef CE_PATH_H
 #define CE_PATH_H
 
+#include <stddef.h>
+#include <stdarg.h>
 #include <stdbool.h>
 
-#include "cestring.h"
-
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 extern const char CE_PATH_SEP;
 
 /*
- *  See also python os.path module.
+ *  Like python os.path module.
 */
 
 extern bool ce_path_exists(const char* path);
-extern void ce_path_join(ce_string* path1, const char* path2);
-extern void ce_path_normpath(ce_string* path);
+
+extern char* ce_path_join_va(char* path, size_t size, va_list args);
+extern char* ce_path_join(char* path, size_t size, ...);
+extern char* ce_path_join_clear(char* path, size_t size, ...);
+
+extern char* ce_path_normpath(char* path);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_PATH_H */

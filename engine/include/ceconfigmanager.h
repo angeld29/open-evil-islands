@@ -22,6 +22,7 @@
 #define CE_CONFIGMANAGER_H
 
 #include "cevector.h"
+#include "cestring.h"
 #include "cecolor.h"
 
 #ifdef __cplusplus
@@ -48,6 +49,7 @@ enum {
 };
 
 extern struct ce_config_manager {
+	ce_string* config_path;
 	struct {
 		ce_color sky[24];
 		ce_color ambient[24];

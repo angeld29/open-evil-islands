@@ -25,6 +25,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cethread.h"
+#include "cepath.h"
 #include "ceoptionmanager.h"
 
 struct ce_option_manager* ce_option_manager;
@@ -59,13 +60,16 @@ void ce_option_manager_init(ce_optparse* optparse)
 	ce_optparse_get(optparse, "show_axes", &ce_option_manager->show_axes);
 	ce_optparse_get(optparse, "show_fps", &ce_option_manager->show_fps);
 
+	ce_path_normpath(ce_option_manager->ei_path->str);
+	ce_path_normpath(ce_option_manager->ce_path->str);
+
 	if (ce_option_manager->inverse_trackball) {
 		ce_option_manager->inverse_trackball_x = true;
 		ce_option_manager->inverse_trackball_y = true;
 	}
 
-	ce_logging_write("option manager: EI path is '%s'", ei_path);
-	ce_logging_write("option manager: CE path is '%s'", ce_path);
+	ce_logging_write("option manager: EI path is '%s'", ce_option_manager->ei_path->str);
+	ce_logging_write("option manager: CE path is '%s'", ce_option_manager->ce_path->str);
 	ce_logging_write("option manager: using up to %d threads", ce_option_manager->thread_count);
 	ce_logging_write("option manager: terrain tiling %s",
 		ce_option_manager->terrain_tiling ? "enabled" : "disabled");
