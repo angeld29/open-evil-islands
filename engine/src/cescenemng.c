@@ -30,6 +30,7 @@
 #include "cefrustum.h"
 #include "cebytefmt.h"
 #include "ceoptionmanager.h"
+#include "ceconfigmanager.h"
 #include "cemobmanager.h"
 #include "cevideomanager.h"
 #include "ceroot.h"
@@ -115,11 +116,11 @@ static void ce_scenemng_advance_starting(ce_scenemng* scenemng, float elapsed)
 	ce_video_object_advance(scenemng->logo.video_object, elapsed);
 	if (ce_video_object_is_stopped(scenemng->logo.video_object)) {
 		if (scenemng->logo.movie_index ==
-				ce_option_manager->movies[CE_OPTION_MOVIE_START]->count) {
+				ce_config_manager->movies[CE_CONFIG_MOVIE_START]->count) {
 			ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_READY);
 		} else {
-			ce_string* movie_name = ce_option_manager->
-				movies[CE_OPTION_MOVIE_START]->items[scenemng->logo.movie_index++];
+			ce_string* movie_name = ce_config_manager->
+				movies[CE_CONFIG_MOVIE_START]->items[scenemng->logo.movie_index++];
 			scenemng->logo.video_object = ce_video_manager_create(movie_name->str);
 			ce_video_object_play(scenemng->logo.video_object);
 		}

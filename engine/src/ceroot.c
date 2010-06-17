@@ -30,6 +30,7 @@
 #include "cesysteminfo.h"
 #include "cesystemevent.h"
 #include "ceoptionmanager.h"
+#include "ceconfigmanager.h"
 #include "ceevent.h"
 #include "ceavcodec.h"
 #include "cesoundmanager.h"
@@ -96,6 +97,7 @@ static void ce_root_term(void)
 	ce_renderwindow_del(ce_root.renderwindow);
 	ce_thread_pool_term();
 	ce_event_manager_term();
+	ce_config_manager_term();
 	ce_option_manager_term();
 }
 
@@ -116,6 +118,7 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 	ce_root.animation_fps = 15.0f;
 
 	ce_option_manager_init(optparse);
+	ce_config_manager_init();
 	ce_event_manager_init();
 	ce_thread_pool_init(ce_option_manager->thread_count);
 

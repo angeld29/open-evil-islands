@@ -18,50 +18,33 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_OPTIONMANAGER_H
-#define CE_OPTIONMANAGER_H
+#ifndef CE_CONFIGMANAGER_H
+#define CE_CONFIGMANAGER_H
 
-#include <stdbool.h>
-
-#include "cestring.h"
-#include "ceoptparse.h"
+#include "cevector.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern struct ce_option_manager {
-	ce_string* ei_path;
-	ce_string* ce_path;
-	int window_width;
-	int window_height;
-	bool fullscreen;
-	int fullscreen_width;
-	int fullscreen_height;
-	int fullscreen_bpp;
-	int fullscreen_rate;
-	int fullscreen_rotation;
-	bool fullscreen_reflection_x;
-	bool fullscreen_reflection_y;
-	bool list_video_modes;
-	bool list_video_rotations;
-	bool list_video_reflections;
-	bool inverse_trackball;
-	bool inverse_trackball_x;
-	bool inverse_trackball_y;
-	bool terrain_tiling;
-	int thread_count;
-	bool show_axes;
-	bool show_fps;
-}* ce_option_manager;
+enum {
+	CE_CONFIG_MOVIE_START,
+	CE_CONFIG_MOVIE_CRDTFIN,
+	CE_CONFIG_MOVIE_CRDTFOUT,
+	CE_CONFIG_MOVIE_TITLESFIN,
+	CE_CONFIG_MOVIE_TITLESFOUT,
+	CE_CONFIG_MOVIE_COUNT
+};
 
-extern void ce_option_manager_init(ce_optparse* optparse);
-extern void ce_option_manager_term(void);
+extern struct ce_config_manager {
+	ce_vector* movies[CE_CONFIG_MOVIE_COUNT];
+}* ce_config_manager;
 
-extern ce_optparse* ce_option_manager_create_option_parser(void);
+extern void ce_config_manager_init(void);
+extern void ce_config_manager_term(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CE_OPTIONMANAGER_H */
+#endif /* CE_CONFIGMANAGER_H */
