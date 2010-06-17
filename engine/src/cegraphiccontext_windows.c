@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,30 +23,11 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceerror_windows.h"
 #include "cegraphiccontext.h"
 #include "cegraphiccontext_windows.h"
 
-void ce_graphiccontext_del(ce_graphiccontext* graphiccontext)
-{
-	if (NULL != graphiccontext) {
-		assert(wglGetCurrentContext() == graphiccontext->context);
-		if (NULL != graphiccontext->context) {
-			wglMakeCurrent(wglGetCurrentDC(), NULL);
-			wglDeleteContext(graphiccontext->context);
-		}
-		ce_free(graphiccontext, sizeof(ce_graphiccontext));
-	}
-}
-
-void ce_graphiccontext_swap(ce_graphiccontext* graphiccontext)
-{
-	ce_unused(graphiccontext);
-	assert(NULL != wglGetCurrentContext());
-	assert(wglGetCurrentContext() == graphiccontext->context);
-	SwapBuffers(wglGetCurrentDC());
-}
-
-ce_graphiccontext* ce_graphiccontext_create(HDC dc)
+ce_graphic_context* ce_graphic_context_new(HDC dc)
 {
 	PIXELFORMATDESCRIPTOR pfd = {
 		sizeof(PIXELFORMATDESCRIPTOR),
@@ -71,33 +52,63 @@ ce_graphiccontext* ce_graphiccontext_create(HDC dc)
 
 	int pixel_format = ChoosePixelFormat(dc, &pfd);
 	if (0 == pixel_format) {
-		ce_logging_fatal("graphiccontext: no appropriate visual found");
+		ce_error_report_windows_last("graphic context");
+		ce_logging_fatal("graphic context: no appropriate visual found");
 		return NULL;
 	}
 
 	DescribePixelFormat(dc, pixel_format, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
-	ce_graphiccontext_visualinfo(pixel_format, 0 != (pfd.dwFlags & PFD_DOUBLEBUFFER),
+	ce_graphic_context_visual_info(pixel_format,
+		0 != (pfd.dwFlags & PFD_DOUBLEBUFFER),
 		pfd.cColorBits, pfd.cRedBits, pfd.cGreenBits,
 		pfd.cBlueBits, pfd.cAlphaBits, pfd.cDepthBits, pfd.cStencilBits);
 
 	if (!SetPixelFormat(dc, pixel_format, &pfd)) {
-		ce_logging_fatal("graphiccontext: could not set pixel format");
+		ce_error_report_windows_last("graphic context");
+		ce_logging_fatal("graphic context: could not set pixel format");
 		return NULL;
 	}
 
-	ce_graphiccontext* graphiccontext = ce_alloc(sizeof(ce_graphiccontext));
-	graphiccontext->context = wglCreateContext(dc);
+	ce_graphic_context* graphic_context = ce_alloc_zero(sizeof(ce_graphic_context));
+
+	graphic_context->context = wglCreateContext(dc);
+	if (NULL == graphic_context->context) {
+		ce_error_report_windows_last("graphic context");
+		ce_logging_fatal("graphic context: could not create context");
+		ce_graphic_context_del(graphic_context);
+		return NULL;
+	}
 
 	assert(NULL == wglGetCurrentContext());
-	wglMakeCurrent(dc, graphiccontext->context);
+	wglMakeCurrent(dc, graphic_context->context);
 
 	GLenum result;
 	if (GLEW_OK != (result = glewInit()) || GLEW_OK != (result = wglewInit())) {
-		ce_logging_fatal("graphiccontext: %s", glewGetErrorString(result));
-		ce_graphiccontext_del(graphiccontext);
+		ce_logging_fatal("graphic context: %s", glewGetErrorString(result));
+		ce_graphic_context_del(graphic_context);
 		return NULL;
 	}
 
-	return graphiccontext;
+	return graphic_context;
+}
+
+void ce_graphic_context_del(ce_graphic_context* graphic_context)
+{
+	if (NULL != graphic_context) {
+		assert(wglGetCurrentContext() == graphic_context->context);
+		if (NULL != graphic_context->context) {
+			wglMakeCurrent(wglGetCurrentDC(), NULL);
+			wglDeleteContext(graphic_context->context);
+		}
+		ce_free(graphic_context, sizeof(ce_graphic_context));
+	}
+}
+
+void ce_graphic_context_swap(ce_graphic_context* graphic_context)
+{
+	ce_unused(graphic_context);
+	assert(NULL != wglGetCurrentContext());
+	assert(wglGetCurrentContext() == graphic_context->context);
+	SwapBuffers(wglGetCurrentDC());
 }

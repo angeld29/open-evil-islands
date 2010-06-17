@@ -29,10 +29,9 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cerenderwindow.h"
-
 #include "cedisplay_windows.h"
 #include "cegraphiccontext_windows.h"
+#include "cerenderwindow.h"
 
 #ifndef MAPVK_VSC_TO_VK_EX
 #define MAPVK_VSC_TO_VK_EX 3

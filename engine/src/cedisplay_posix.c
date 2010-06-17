@@ -31,7 +31,6 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cedisplay.h"
-
 #include "cedisplay_posix.h"
 
 // XFree86 VidMode, see xf86vidmode(3) for more details

@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,15 +23,15 @@
 #include "celogging.h"
 #include "cegraphiccontext.h"
 
-void ce_graphiccontext_visualinfo(int id, int db, int sz, int r,
-							int g, int b, int a, int dp, int st)
+void ce_graphic_context_visual_info(int id, int db, int sz, int r,
+									int g, int b, int a, int dp, int st)
 {
-	ce_logging_write("graphiccontext: visual %d chosen", id);
-	ce_logging_write("graphiccontext: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("graphiccontext: |   id | db | sz |  r |  g |  b |  a | dp | st |");
-	ce_logging_write("graphiccontext: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("graphiccontext: | %4d | %2c | %2d | %2d | %2d | %2d | %2d | %2d | %2d |",
+	ce_logging_write("graphic context: visual %d chosen", id);
+	ce_logging_write("graphic context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("graphic context: |   id | db | sz |  r |  g |  b |  a | dp | st |");
+	ce_logging_write("graphic context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("graphic context: | %4d | %2c | %2d | %2d | %2d | %2d | %2d | %2d | %2d |",
 		id, "ny"[db], sz, r, g, b, a, dp, st);
-	ce_logging_write("graphiccontext: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("graphiccontext: see GLEW visualinfo for more details");
+	ce_logging_write("graphic context: +------+----+----+----+----+----+----+----+----+");
+	ce_logging_write("graphic context: see GLEW visualinfo for more details");
 }

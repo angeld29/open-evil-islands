@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,22 +21,21 @@
 #ifndef CE_GRAPHICCONTEXT_PLATFORM_H
 #define CE_GRAPHICCONTEXT_PLATFORM_H
 
-#include "ceglew_windows.h"
 #include "cegraphiccontext.h"
+#include "ceglew_windows.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
-struct ce_graphiccontext {
+struct ce_graphic_context {
 	HGLRC context;
 };
 
-extern ce_graphiccontext* ce_graphiccontext_create(HDC dc);
+extern ce_graphic_context* ce_graphic_context_new(HDC dc);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_GRAPHICCONTEXT_PLATFORM_H */

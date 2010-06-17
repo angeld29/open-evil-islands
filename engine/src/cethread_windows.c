@@ -34,9 +34,8 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cevector.h"
-#include "cethread.h"
-
 #include "ceerror_windows.h"
+#include "cethread.h"
 
 int ce_online_cpu_count(void)
 {

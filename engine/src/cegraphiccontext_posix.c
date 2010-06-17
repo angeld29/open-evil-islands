@@ -26,101 +26,109 @@
 #include "cegraphiccontext.h"
 #include "cegraphiccontext_posix.h"
 
-void ce_graphiccontext_del(ce_graphiccontext* graphiccontext)
-{
-	if (NULL != graphiccontext) {
-		assert(glXGetCurrentContext() == graphiccontext->context);
-		if (NULL != graphiccontext->context) {
-			Display* display = glXGetCurrentDisplay();
-			glXMakeCurrent(display, None, NULL);
-			glXDestroyContext(display, graphiccontext->context);
-		}
-		if (NULL != graphiccontext->visualinfo) {
-			XFree(graphiccontext->visualinfo);
-		}
-		ce_free(graphiccontext, sizeof(ce_graphiccontext));
-	}
-}
+enum {
+	CE_GLX_MAJOR_VERSION_REQUIRED = 1,
+	CE_GLX_MINOR_VERSION_MINIMUM = 2,
+};
 
-void ce_graphiccontext_swap(ce_graphiccontext* graphiccontext)
+ce_graphic_context* ce_graphic_context_new(Display* display)
 {
-	ce_unused(graphiccontext);
-	assert(NULL != glXGetCurrentContext());
-	assert(glXGetCurrentContext() == graphiccontext->context);
-	glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
-}
+	ce_graphic_context* graphic_context = ce_alloc_zero(sizeof(ce_graphic_context));
 
-ce_graphiccontext* ce_graphiccontext_create(Display* display)
-{
-	int error_base, event_base;
-	const int major_version_req = 1, minor_version_req = 2;
-	int major_version, minor_version;
-
-	if (!glXQueryExtension(display, &error_base, &event_base) ||
-			!glXQueryVersion(display, &major_version, &minor_version)) {
-		ce_logging_fatal("graphiccontext: no GLX support available");
+	if (!glXQueryExtension(display, &graphic_context->error_base, &graphic_context->event_base) ||
+			!glXQueryVersion(display, &graphic_context->major_version, &graphic_context->minor_version)) {
+		ce_logging_fatal("graphic context: no GLX support available");
+		ce_graphic_context_del(graphic_context);
 		return NULL;
 	}
 
-	ce_logging_write("graphiccontext: using GLX %d.%d", major_version, minor_version);
+	ce_logging_write("graphic context: using GLX %d.%d",
+		graphic_context->major_version, graphic_context->minor_version);
 
-	if (major_version_req != major_version || minor_version < minor_version_req) {
-		ce_logging_fatal("graphiccontext: GLX %d.>=%d required",
-			major_version_req, minor_version_req);
+	if (CE_GLX_MAJOR_VERSION_REQUIRED != graphic_context->major_version ||
+			graphic_context->minor_version < CE_GLX_MINOR_VERSION_MINIMUM) {
+		ce_logging_fatal("graphic context: GLX %d.>=%d required",
+			CE_GLX_MAJOR_VERSION_REQUIRED, CE_GLX_MINOR_VERSION_MINIMUM);
+		ce_graphic_context_del(graphic_context);
 		return NULL;
 	}
 
-	XVisualInfo* visualinfo = glXChooseVisual(display, XDefaultScreen(display),
-		(int[]) { GLX_DOUBLEBUFFER, GLX_RGBA,
-					GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1,
-					GLX_BLUE_SIZE, 1, GLX_ALPHA_SIZE, 1,
-					GLX_DEPTH_SIZE, 1, GLX_STENCIL_SIZE, 1, None });
-	if (NULL == visualinfo) {
-		ce_logging_fatal("graphiccontext: no appropriate visual found");
+	graphic_context->visual_info = glXChooseVisual(display, XDefaultScreen(display),
+		(int[]){GLX_DOUBLEBUFFER, GLX_RGBA,
+				GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1,
+				GLX_BLUE_SIZE, 1, GLX_ALPHA_SIZE, 1,
+				GLX_DEPTH_SIZE, 1, GLX_STENCIL_SIZE, 1, None});
+	if (NULL == graphic_context->visual_info) {
+		ce_logging_fatal("graphic context: no appropriate visual found");
+		ce_graphic_context_del(graphic_context);
 		return NULL;
 	}
 
 	int db, sz, r, g, b, a, dp, st;
+	glXGetConfig(display, graphic_context->visual_info, GLX_DOUBLEBUFFER, &db);
+	glXGetConfig(display, graphic_context->visual_info, GLX_BUFFER_SIZE, &sz);
+	glXGetConfig(display, graphic_context->visual_info, GLX_RED_SIZE, &r);
+	glXGetConfig(display, graphic_context->visual_info, GLX_GREEN_SIZE, &g);
+	glXGetConfig(display, graphic_context->visual_info, GLX_BLUE_SIZE, &b);
+	glXGetConfig(display, graphic_context->visual_info, GLX_ALPHA_SIZE, &a);
+	glXGetConfig(display, graphic_context->visual_info, GLX_DEPTH_SIZE, &dp);
+	glXGetConfig(display, graphic_context->visual_info, GLX_STENCIL_SIZE, &st);
 
-	glXGetConfig(display, visualinfo, GLX_DOUBLEBUFFER, &db);
-	glXGetConfig(display, visualinfo, GLX_BUFFER_SIZE, &sz);
-	glXGetConfig(display, visualinfo, GLX_RED_SIZE, &r);
-	glXGetConfig(display, visualinfo, GLX_GREEN_SIZE, &g);
-	glXGetConfig(display, visualinfo, GLX_BLUE_SIZE, &b);
-	glXGetConfig(display, visualinfo, GLX_ALPHA_SIZE, &a);
-	glXGetConfig(display, visualinfo, GLX_DEPTH_SIZE, &dp);
-	glXGetConfig(display, visualinfo, GLX_STENCIL_SIZE, &st);
+	ce_graphic_context_visual_info(graphic_context->visual_info->visualid,
+											db, sz, r, g, b, a, dp, st);
 
-	ce_graphiccontext_visualinfo(visualinfo->visualid, db, sz, r, g, b, a, dp, st);
-
-	ce_graphiccontext* graphiccontext = ce_alloc(sizeof(ce_graphiccontext));
-	graphiccontext->error_base = error_base;
-	graphiccontext->event_base = event_base;
-	graphiccontext->major_version = major_version;
-	graphiccontext->minor_version = minor_version;
-	graphiccontext->visualinfo = visualinfo;
-	graphiccontext->context = glXCreateContext(display, visualinfo, NULL, True);
-
-	if (glXIsDirect(display, graphiccontext->context)) {
-		ce_logging_write("graphiccontext: you have direct rendering");
-	} else {
-		ce_logging_warning("graphiccontext: no direct rendering possible");
+	graphic_context->context = glXCreateContext(display,
+								graphic_context->visual_info, NULL, True);
+	if (NULL == graphic_context->context) {
+		ce_logging_fatal("graphic context: could not create context");
+		ce_graphic_context_del(graphic_context);
+		return NULL;
 	}
 
-	return graphiccontext;
+	if (glXIsDirect(display, graphic_context->context)) {
+		ce_logging_write("graphic context: you have direct rendering");
+	} else {
+		ce_logging_warning("graphic context: no direct rendering possible");
+	}
+
+	return graphic_context;
 }
 
-bool ce_graphiccontext_make_current(ce_graphiccontext* graphiccontext,
+void ce_graphic_context_del(ce_graphic_context* graphic_context)
+{
+	if (NULL != graphic_context) {
+		assert(glXGetCurrentContext() == graphic_context->context);
+		if (NULL != graphic_context->context) {
+			Display* display = glXGetCurrentDisplay();
+			glXMakeCurrent(display, None, NULL);
+			glXDestroyContext(display, graphic_context->context);
+		}
+		if (NULL != graphic_context->visual_info) {
+			XFree(graphic_context->visual_info);
+		}
+		ce_free(graphic_context, sizeof(ce_graphic_context));
+	}
+}
+
+bool ce_graphic_context_make_current(ce_graphic_context* graphic_context,
 									Display* display, GLXDrawable drawable)
 {
 	assert(NULL == glXGetCurrentContext());
-	glXMakeCurrent(display, drawable, graphiccontext->context);
+	glXMakeCurrent(display, drawable, graphic_context->context);
 
 	GLenum result;
 	if (GLEW_OK != (result = glewInit()) || GLEW_OK != (result = glxewInit())) {
-		ce_logging_fatal("graphiccontext: %s", glewGetErrorString(result));
+		ce_logging_fatal("graphic context: %s", glewGetErrorString(result));
 		return false;
 	}
 
 	return true;
+}
+
+void ce_graphic_context_swap(ce_graphic_context* graphic_context)
+{
+	ce_unused(graphic_context);
+	assert(NULL != glXGetCurrentContext());
+	assert(glXGetCurrentContext() == graphic_context->context);
+	glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
 }

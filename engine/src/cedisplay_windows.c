@@ -27,7 +27,6 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cedisplay.h"
-
 #include "cedisplay_windows.h"
 
 typedef struct {

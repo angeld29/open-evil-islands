@@ -23,23 +23,23 @@
 
 #include <stdbool.h>
 
-#include "ceglew_posix.h"
 #include "cegraphiccontext.h"
+#include "ceglew_posix.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct ce_graphiccontext {
+struct ce_graphic_context {
 	int error_base, event_base;
 	int major_version, minor_version;
-	XVisualInfo* visualinfo;
+	XVisualInfo* visual_info;
 	GLXContext context;
 };
 
-extern ce_graphiccontext* ce_graphiccontext_create(Display* display);
+extern ce_graphic_context* ce_graphic_context_new(Display* display);
 
-extern bool ce_graphiccontext_make_current(ce_graphiccontext* graphiccontext,
+extern bool ce_graphic_context_make_current(ce_graphic_context* graphic_context,
 									Display* display, GLXDrawable drawable);
 
 #ifdef __cplusplus

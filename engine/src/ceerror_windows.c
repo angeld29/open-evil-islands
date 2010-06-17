@@ -22,7 +22,6 @@
 
 #include "celogging.h"
 #include "ceerror.h"
-
 #include "ceerror_windows.h"
 
 void ce_error_report_windows_last(const char* module)

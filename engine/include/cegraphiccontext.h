@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,20 +22,19 @@
 #define CE_GRAPHICCONTEXT_H
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
-typedef struct ce_graphiccontext ce_graphiccontext;
+typedef struct ce_graphic_context ce_graphic_context;
 
-extern void ce_graphiccontext_del(ce_graphiccontext* graphiccontext);
-extern void ce_graphiccontext_swap(ce_graphiccontext* graphiccontext);
+extern void ce_graphic_context_del(ce_graphic_context* graphic_context);
+extern void ce_graphic_context_swap(ce_graphic_context* graphic_context);
 
-extern void ce_graphiccontext_visualinfo(int id, int db, int sz, int r,
-										int g, int b, int a, int dp, int st);
+extern void ce_graphic_context_visual_info(int id, int db, int sz, int r,
+											int g, int b, int a, int dp, int st);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_GRAPHICCONTEXT_H */
