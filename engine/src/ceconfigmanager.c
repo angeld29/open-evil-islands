@@ -32,6 +32,8 @@
 #include "ceconfigfile.h"
 #include "ceconfigmanager.h"
 
+static const char* ce_config_dir = "Config";
+
 static const char* ce_config_light_files[CE_CONFIG_LIGHT_COUNT] = {
 	[CE_CONFIG_LIGHT_GIPAT] = "lightsgipat.ini",
 	[CE_CONFIG_LIGHT_INGOS] = "lightsingos.ini",
@@ -97,8 +99,8 @@ static void ce_config_manager_init_lights(void)
 {
 	char path[ce_option_manager->ei_path->length + 32];
 	for (size_t i = 0; i < CE_CONFIG_LIGHT_COUNT; ++i) {
-		snprintf(path, sizeof(path), "%s/Config/%s",
-			ce_option_manager->ei_path->str, ce_config_light_files[i]);
+		snprintf(path, sizeof(path), "%s/%s/%s", ce_option_manager->
+			ei_path->str, ce_config_dir, ce_config_light_files[i]);
 
 		ce_config_file* config_file = ce_config_file_open(path);
 		if (NULL != config_file) {
@@ -125,7 +127,8 @@ static void ce_config_manager_init_movies(void)
 	}
 
 	char path[ce_option_manager->ei_path->length + 32];
-	snprintf(path, sizeof(path), "%s/Config/movie.ini", ce_option_manager->ei_path->str);
+	snprintf(path, sizeof(path), "%s/%s/movie.ini",
+		ce_option_manager->ei_path->str, ce_config_dir);
 
 	ce_config_file* config_file = ce_config_file_open(path);
 	if (NULL != config_file) {
@@ -152,6 +155,11 @@ static void ce_config_manager_init_movies(void)
 
 void ce_config_manager_init(void)
 {
+	char path[ce_option_manager->ei_path->length + 16];
+	snprintf(path, sizeof(path), "%s/%s",
+		ce_option_manager->ei_path->str, ce_config_dir);
+	ce_logging_write("config manager: using path '%s'", path);
+
 	ce_config_manager = ce_alloc_zero(sizeof(struct ce_config_manager));
 	ce_config_manager_init_lights();
 	ce_config_manager_init_movies();
