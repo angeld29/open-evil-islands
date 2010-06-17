@@ -42,11 +42,11 @@ extern "C" {
 #endif
 
 enum {
-	CE_SCENEMNG_STATE_STARTING,
+	CE_SCENEMNG_STATE_LOGO,
 	CE_SCENEMNG_STATE_READY,
 	CE_SCENEMNG_STATE_LOADING,
 	CE_SCENEMNG_STATE_PLAYING,
-	CE_SCENEMNG_STATE_COUNT,
+	CE_SCENEMNG_STATE_COUNT
 };
 
 typedef struct {
@@ -82,10 +82,15 @@ typedef struct {
 	ce_scenemng_listener listener;
 	ce_renderwindow_listener renderwindow_listener;
 	ce_figmng_listener figmng_listener;
+	// TODO: split by states
 	struct {
 		size_t movie_index;
 		ce_video_object video_object;
 	} logo;
+	struct {
+		int job_index, job_count;
+		ce_video_object video_object;
+	} loading;
 } ce_scenemng;
 
 extern ce_scenemng* ce_scenemng_new(void);

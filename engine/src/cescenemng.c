@@ -112,9 +112,10 @@ void ce_scenemng_change_state(ce_scenemng* scenemng, int state)
 	}
 }
 
-static void ce_scenemng_advance_starting(ce_scenemng* scenemng, float elapsed)
+static void ce_scenemng_advance_logo(ce_scenemng* scenemng, float elapsed)
 {
 	ce_video_object_advance(scenemng->logo.video_object, elapsed);
+
 	if (ce_video_object_is_stopped(scenemng->logo.video_object)) {
 		if (scenemng->logo.movie_index ==
 				ce_config_manager->movies[CE_CONFIG_MOVIE_START]->count) {
@@ -128,7 +129,7 @@ static void ce_scenemng_advance_starting(ce_scenemng* scenemng, float elapsed)
 	}
 }
 
-static void ce_scenemng_render_starting(ce_scenemng* scenemng)
+static void ce_scenemng_render_logo(ce_scenemng* scenemng)
 {
 	ce_video_object_render(scenemng->logo.video_object);
 }
@@ -146,11 +147,26 @@ static void ce_scenemng_render_ready(ce_scenemng* scenemng)
 
 static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float elapsed)
 {
-	ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_PLAYING);
+	ce_unused(elapsed);
+
+	// TODO: constructor
+	if (ce_video_object_is_stopped(scenemng->loading.video_object)) {
+		scenemng->loading.video_object = ce_video_manager_create("progres");
+		ce_video_object_play(scenemng->loading.video_object);
+	}
+
+	ce_video_object_progress(scenemng->loading.video_object,
+		100.0f * scenemng->loading.job_index / scenemng->loading.job_count);
+
+	// TODO: hold last frame
+	if (scenemng->loading.job_index >= scenemng->loading.job_count) {
+		ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_PLAYING);
+	}
 }
 
 static void ce_scenemng_render_loading(ce_scenemng* scenemng)
 {
+	ce_video_object_render(scenemng->loading.video_object);
 }
 
 static void ce_scenemng_advance_playing(ce_scenemng* scenemng, float elapsed)
@@ -238,8 +254,8 @@ static struct {
 	void (*advance)(ce_scenemng* scenemng, float elapsed);
 	void (*render)(ce_scenemng* scenemng);
 } ce_scenemng_state_procs[CE_SCENEMNG_STATE_COUNT] = {
-	[CE_SCENEMNG_STATE_STARTING] = {ce_scenemng_advance_starting,
-									ce_scenemng_render_starting},
+	[CE_SCENEMNG_STATE_LOGO] = {ce_scenemng_advance_logo,
+									ce_scenemng_render_logo},
 	[CE_SCENEMNG_STATE_READY] = {ce_scenemng_advance_ready,
 									ce_scenemng_render_ready},
 	[CE_SCENEMNG_STATE_LOADING] = {ce_scenemng_advance_loading,
