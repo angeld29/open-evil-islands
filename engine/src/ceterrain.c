@@ -28,6 +28,7 @@
 #include "celogging.h"
 #include "cestring.h"
 #include "ceoptionmanager.h"
+#include "ceroot.h"
 #include "cemprhlp.h"
 #include "cemprrenderitem.h"
 #include "ceterrain.h"
@@ -54,7 +55,6 @@ static void ce_terrain_sector_del(ce_terrain_sector* sector)
 
 typedef struct {
 	ce_terrain* terrain;
-	ce_texmng* texmng;
 	ce_rendergroup* rendergroups[CE_MPRFILE_MATERIAL_COUNT];
 	ce_mutex* mutex;
 	ce_once* once;
@@ -65,12 +65,10 @@ typedef struct {
 } ce_terrain_cookie;
 
 static ce_terrain_cookie* ce_terrain_cookie_new(ce_terrain* terrain,
-												ce_texmng* texmng,
 												ce_renderqueue* renderqueue)
 {
 	ce_terrain_cookie* cookie = ce_alloc(sizeof(ce_terrain_cookie));
 	cookie->terrain = terrain;
-	cookie->texmng = texmng;
 	cookie->rendergroups[CE_MPRFILE_MATERIAL_LAND] =
 		ce_renderqueue_get(renderqueue, 0,
 							terrain->materials[CE_MPRFILE_MATERIAL_LAND]);
@@ -150,14 +148,14 @@ static void ce_terrain_load_tile_resources(ce_terrain_cookie* cookie,
 
 static void ce_terrain_load_tile_mmpfile(ce_terrain_cookie* cookie, const char* name)
 {
-	ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(cookie->texmng, name);
+	ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(ce_root.texmng, name);
 	ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 	ce_vector_push_back(cookie->tile_mmpfiles, mmpfile);
 }
 
 static void ce_terrain_load_tile_texture(ce_terrain_cookie* cookie, const char* name)
 {
-	ce_texture* texture = ce_texture_add_ref(ce_texmng_get(cookie->texmng, name));
+	ce_texture* texture = ce_texture_add_ref(ce_texmng_get(ce_root.texmng, name));
 	ce_texture_wrap(texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
 	ce_vector_push_back(cookie->terrain->tile_textures, texture);
 }
@@ -178,9 +176,8 @@ static void ce_terrain_process_portion(ce_terrain_portion* portion)
 {
 	ce_mutex_lock(portion->cookie->mutex);
 
-	// TODO: describe thread-safe texmng operations
-	portion->mmpfile = ce_texmng_open_mmpfile(portion->cookie->texmng,
-												portion->name->str);
+	// TODO: texture manager and threads?
+	portion->mmpfile = ce_texmng_open_mmpfile(ce_root.texmng, portion->name->str);
 
 	ce_mutex_unlock(portion->cookie->mutex);
 
@@ -200,7 +197,7 @@ static void ce_terrain_process_portion(ce_terrain_portion* portion)
 		// force to dxt1?
 		ce_mmpfile_convert(portion->mmpfile, CE_MMPFILE_FORMAT_DXT1);
 
-		ce_texmng_save_mmpfile(portion->cookie->texmng,
+		ce_texmng_save_mmpfile(ce_root.texmng,
 								portion->name->str, portion->mmpfile);
 	}
 
@@ -226,7 +223,7 @@ static void ce_terrain_load_portions(ce_terrain_cookie* cookie)
 		ce_rendergroup* rendergroup = cookie->rendergroups[portion->water];
 		sector->renderlayer = ce_rendergroup_get(rendergroup, sector->texture);
 
-		ce_texmng_put(cookie->texmng, ce_texture_add_ref(sector->texture));
+		ce_texmng_put(ce_root.texmng, ce_texture_add_ref(sector->texture));
 
 		ce_terrain_portion_del(portion);
 	}
@@ -243,7 +240,7 @@ static void ce_terrain_create_sector(ce_terrain_cookie* cookie,
 	ce_vector_push_back(cookie->terrain->sectors, sector);
 
 	if (ce_option_manager->terrain_tiling) {
-		sector->texture = ce_texture_add_ref(ce_texmng_get(cookie->texmng, "default0"));
+		sector->texture = ce_texture_add_ref(ce_texmng_get(ce_root.texmng, "default0"));
 		ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
 
 		ce_rendergroup* rendergroup = cookie->rendergroups[water];
@@ -306,7 +303,7 @@ static void ce_terrain_create_sectors(ce_terrain_cookie* cookie)
 	}
 }
 
-ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_texmng* texmng,
+ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 							ce_renderqueue* renderqueue,
 							const ce_vec3* position,
 							const ce_quat* orientation,
@@ -327,7 +324,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_texmng* texmng,
 	terrain->scenenode->position = *position;
 	terrain->scenenode->orientation = *orientation;
 
-	ce_terrain_cookie* cookie = ce_terrain_cookie_new(terrain, texmng, renderqueue);
+	ce_terrain_cookie* cookie = ce_terrain_cookie_new(terrain, renderqueue);
 
 	if (ce_option_manager->terrain_tiling) {
 		// load tile textures immediately, because

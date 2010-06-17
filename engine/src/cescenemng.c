@@ -423,7 +423,7 @@ void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
 	}
 
 	ce_terrain_del(scenemng->terrain);
-	scenemng->terrain = ce_terrain_new(mprfile, ce_root.texmng, scenemng->renderqueue,
+	scenemng->terrain = ce_terrain_new(mprfile, scenemng->renderqueue,
 		&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, scenemng->scenenode);
 
 	for (size_t i = 0; i < scenemng->figentities->count; ++i) {

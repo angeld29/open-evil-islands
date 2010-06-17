@@ -45,6 +45,7 @@ typedef struct {
 } ce_terrain_sector;
 
 typedef struct {
+	int started_job_count;
 	ce_mprfile* mprfile;
 	ce_vector* tile_textures;
 	ce_material* materials[CE_MPRFILE_MATERIAL_COUNT];
@@ -53,7 +54,7 @@ typedef struct {
 } ce_terrain;
 
 // terrain takes ownership of the mprfile
-extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_texmng* texmng,
+extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 									ce_renderqueue* renderqueue,
 									const ce_vec3* position,
 									const ce_quat* orientation,
