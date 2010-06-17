@@ -43,6 +43,10 @@ extern char* ce_path_join_clear(char* path, size_t size, ...);
 
 extern char* ce_path_normpath(char* path);
 
+extern char* ce_path_find_special1(char* path, size_t size,
+									const char* prefix, const char* name,
+									const char* dirs[], const char* exts[]);
+
 #ifdef __cplusplus
 }
 #endif

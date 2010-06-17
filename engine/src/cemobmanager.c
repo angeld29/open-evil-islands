@@ -24,14 +24,12 @@
 
 #include "cealloc.h"
 #include "celogging.h"
+#include "cepath.h"
 #include "ceoptionmanager.h"
 #include "cemobmanager.h"
 
-static const char* ce_mob_dirs[] = {"Maps"};
-
-enum {
-	CE_MOB_DIR_COUNT = sizeof(ce_mob_dirs) / sizeof(ce_mob_dirs[0]),
-};
+static const char* ce_mob_dirs[] = {"Maps", NULL};
+static const char* ce_mob_exts[] = {".mob", NULL};
 
 struct ce_mob_manager* ce_mob_manager;
 
@@ -39,9 +37,9 @@ void ce_mob_manager_init(void)
 {
 	char path[ce_option_manager->ei_path->length + 16];
 
-	for (size_t i = 0; i < CE_MOB_DIR_COUNT; ++i) {
-		snprintf(path, sizeof(path), "%s/%s",
-			ce_option_manager->ei_path->str, ce_mob_dirs[i]);
+	for (size_t i = 0; NULL != ce_mob_dirs[i]; ++i) {
+		ce_path_join_clear(path, sizeof(path),
+			ce_option_manager->ei_path->str, ce_mob_dirs[i], NULL);
 		ce_logging_write("mob manager: using path '%s'", path);
 	}
 
@@ -58,15 +56,9 @@ void ce_mob_manager_term(void)
 ce_mobfile* ce_mob_manager_open(const char* name)
 {
 	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
-
-	for (size_t i = 0; i < CE_MOB_DIR_COUNT; ++i) {
-		snprintf(path, sizeof(path), "%s/%s/%s.mob",
-			ce_option_manager->ei_path->str, ce_mob_dirs[i], name);
-		ce_mobfile* mobfile = ce_mobfile_open(path);
-		if (NULL != mobfile) {
-			return mobfile;
-		}
+	if (NULL != ce_path_find_special1(path, sizeof(path),
+			ce_option_manager->ei_path->str, name, ce_mob_dirs, ce_mob_exts)) {
+		return ce_mobfile_open(path);
 	}
-
 	return NULL;
 }

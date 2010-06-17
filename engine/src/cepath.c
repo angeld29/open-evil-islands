@@ -22,18 +22,25 @@
 #include <string.h>
 #include <assert.h>
 
+#include "celib.h"
 #include "cestr.h"
 #include "cepath.h"
 
 char* ce_path_join_va(char* path, size_t size, va_list args)
 {
+	if (0 == size) {
+		return NULL;
+	}
+	size_t length = strlen(path);
 	for (const char* tail = va_arg(args, const char*);
 			NULL != tail; tail = va_arg(args, const char*)) {
-		size_t length = strlen(path);
 		if (0 != length && '/' != path[length - 1] && '\\' != path[length - 1]) {
 			ce_strlcat(path, (const char[]){CE_PATH_SEP, '\0'}, size);
+			++length;
 		}
 		ce_strlcat(path, tail, size);
+		length += strlen(tail);
+		length = ce_min(size_t, length, size - 1);
 	}
 	return path;
 }
@@ -42,7 +49,7 @@ char* ce_path_join(char* path, size_t size, ...)
 {
 	va_list args;
 	va_start(args, size);
-	ce_path_join_va(path, size, args);
+	path = ce_path_join_va(path, size, args);
 	va_end(args);
 	return path;
 }
@@ -51,8 +58,7 @@ char* ce_path_join_clear(char* path, size_t size, ...)
 {
 	va_list args;
 	va_start(args, size);
-	memset(path, 0, size);
-	ce_path_join_va(path, size, args);
+	path = ce_path_join_va(memset(path, 0, size), size, args);
 	va_end(args);
 	return path;
 }
@@ -64,4 +70,25 @@ char* ce_path_normpath(char* path)
 		*sep = CE_PATH_SEP;
 	}
 	return path;
+}
+
+char* ce_path_find_special1(char* path, size_t size,
+							const char* prefix, const char* name,
+							const char* dirs[], const char* exts[])
+{
+	char file_name[strlen(name) + 8];
+	for (size_t i = 0; NULL != exts[i]; ++i) {
+		if (NULL == ce_strcasestr(name, exts[i])) {
+			snprintf(file_name, sizeof(file_name), "%s%s", name, exts[i]);
+		} else {
+			ce_strlcpy(file_name, name, sizeof(file_name));
+		}
+		for (size_t j = 0; NULL != dirs[j]; ++j) {
+			if (NULL != ce_path_join_clear(path, size, prefix, dirs[j],
+					file_name, NULL) && ce_path_exists(path)) {
+				return path;
+			}
+		}
+	}
+	return NULL;
 }
