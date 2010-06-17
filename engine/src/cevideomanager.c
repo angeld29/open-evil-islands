@@ -23,30 +23,24 @@
 #include <assert.h>
 
 #include "celib.h"
-#include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "cepath.h"
 #include "ceoptionmanager.h"
 #include "cesoundmanager.h"
 #include "cevideomanager.h"
 
-static const char* ce_video_dirs[] = {"Movies"};
-static const char* ce_video_exts[] = {".ogv", ".bik"};
-
-enum {
-	CE_VIDEO_DIR_COUNT = sizeof(ce_video_dirs) / sizeof(ce_video_dirs[0]),
-	CE_VIDEO_EXT_COUNT = sizeof(ce_video_exts) / sizeof(ce_video_exts[0]),
-};
+static const char* ce_video_dirs[] = {"Movies", NULL};
+static const char* ce_video_exts[] = {".ogv", ".bik", NULL};
 
 struct ce_video_manager* ce_video_manager;
 
 void ce_video_manager_init(void)
 {
 	char path[ce_option_manager->ei_path->length + 16];
-
-	for (size_t i = 0; i < CE_VIDEO_DIR_COUNT; ++i) {
-		snprintf(path, sizeof(path), "%s/%s",
-			ce_option_manager->ei_path->str, ce_video_dirs[i]);
+	for (size_t i = 0; NULL != ce_video_dirs[i]; ++i) {
+		ce_path_join_clear(path, sizeof(path),
+			ce_option_manager->ei_path->str, ce_video_dirs[i], NULL);
 		ce_logging_write("video manager: using path '%s'", path);
 	}
 
@@ -76,30 +70,16 @@ void ce_video_manager_advance(float elapsed)
 	}
 }
 
-static ce_memfile* ce_video_manager_open(const char* name)
-{
-	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
-
-	for (size_t i = 0; i < CE_VIDEO_DIR_COUNT; ++i) {
-		for (size_t j = 0; j < CE_VIDEO_EXT_COUNT; ++j) {
-			snprintf(path, sizeof(path), "%s/%s/%s",
-				ce_option_manager->ei_path->str, ce_video_dirs[i], name);
-			if (NULL == ce_strcasestr(path, ce_video_exts[j])) {
-				ce_strlcat(path, ce_video_exts[j], sizeof(path));
-			}
-			ce_memfile* memfile = ce_memfile_open_path(path);
-			if (NULL != memfile) {
-				return memfile;
-			}
-		}
-	}
-
-	return NULL;
-}
-
 ce_video_object ce_video_manager_create(const char* name)
 {
-	ce_memfile* memfile = ce_video_manager_open(name);
+	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
+	if (NULL == ce_path_find_special1(path, sizeof(path),
+										ce_option_manager->ei_path->str,
+										name, ce_video_dirs, ce_video_exts)) {
+		return 0;
+	}
+
+	ce_memfile* memfile = ce_memfile_open_path(path);
 	if (NULL == memfile) {
 		return 0;
 	}
@@ -121,7 +101,6 @@ ce_video_object ce_video_manager_create(const char* name)
 	}
 
 	ce_vector_push_back(ce_video_manager->video_instances, video_instance);
-
 	return video_object;
 }
 

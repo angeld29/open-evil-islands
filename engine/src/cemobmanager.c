@@ -36,7 +36,6 @@ struct ce_mob_manager* ce_mob_manager;
 void ce_mob_manager_init(void)
 {
 	char path[ce_option_manager->ei_path->length + 16];
-
 	for (size_t i = 0; NULL != ce_mob_dirs[i]; ++i) {
 		ce_path_join_clear(path, sizeof(path),
 			ce_option_manager->ei_path->str, ce_mob_dirs[i], NULL);
@@ -57,7 +56,8 @@ ce_mobfile* ce_mob_manager_open(const char* name)
 {
 	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
 	if (NULL != ce_path_find_special1(path, sizeof(path),
-			ce_option_manager->ei_path->str, name, ce_mob_dirs, ce_mob_exts)) {
+										ce_option_manager->ei_path->str,
+										name, ce_mob_dirs, ce_mob_exts)) {
 		return ce_mobfile_open(path);
 	}
 	return NULL;
