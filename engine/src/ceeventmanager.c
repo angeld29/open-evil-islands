@@ -25,7 +25,7 @@
 
 #include "celib.h"
 #include "cealloc.h"
-#include "ceevent.h"
+#include "ceeventmanager.h"
 
 ce_event* ce_event_new(void (*notify)(ce_event*), size_t size)
 {
@@ -86,36 +86,38 @@ void ce_event_queue_push(ce_event_queue* queue, ce_event* event)
 	ce_mutex_unlock(queue->mutex);
 }
 
-struct ce_event_manager ce_event_manager;
+struct ce_event_manager* ce_event_manager;
 
 void ce_event_manager_init(void)
 {
-	ce_event_manager.mutex = ce_mutex_new();
-	ce_event_manager.event_queues = ce_vector_new();
+	ce_event_manager = ce_alloc_zero(sizeof(struct ce_event_manager));
+	ce_event_manager->mutex = ce_mutex_new();
+	ce_event_manager->event_queues = ce_vector_new();
 }
 
 void ce_event_manager_term(void)
 {
-	if (NULL != ce_event_manager.event_queues) {
-		ce_vector_for_each(ce_event_manager.event_queues, ce_event_queue_del);
+	if (NULL != ce_event_manager) {
+		ce_vector_for_each(ce_event_manager->event_queues, ce_event_queue_del);
+		ce_vector_del(ce_event_manager->event_queues);
+		ce_mutex_del(ce_event_manager->mutex);
+		ce_free(ce_event_manager, sizeof(struct ce_event_manager));
 	}
-	ce_vector_del(ce_event_manager.event_queues);
-	ce_mutex_del(ce_event_manager.mutex);
 }
 
 void ce_event_manager_create_queue(void)
 {
-	ce_mutex_lock(ce_event_manager.mutex);
-	ce_vector_push_back(ce_event_manager.event_queues,
+	ce_mutex_lock(ce_event_manager->mutex);
+	ce_vector_push_back(ce_event_manager->event_queues,
 						ce_event_queue_new(ce_thread_self()));
-	ce_mutex_unlock(ce_event_manager.mutex);
+	ce_mutex_unlock(ce_event_manager->mutex);
 }
 
 void ce_event_manager_process_events(void)
 {
 	ce_thread_id thread_id = ce_thread_self();
-	for (size_t i = 0; i < ce_event_manager.event_queues->count; ++i) {
-		ce_event_queue* queue = ce_event_manager.event_queues->items[i];
+	for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
+		ce_event_queue* queue = ce_event_manager->event_queues->items[i];
 		if (thread_id == queue->thread_id) {
 			ce_event_queue_process(queue);
 		}
@@ -124,10 +126,10 @@ void ce_event_manager_process_events(void)
 
 void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event)
 {
-	for (size_t i = 0; i < ce_event_manager.event_queues->count; ++i) {
-		ce_event_queue* queue = ce_event_manager.event_queues->items[i];
+	for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
+		ce_event_queue* queue = ce_event_manager->event_queues->items[i];
 		if (thread_id == queue->thread_id) {
-			ce_event_queue_push(ce_event_manager.event_queues->items[i], event);
+			ce_event_queue_push(ce_event_manager->event_queues->items[i], event);
 			return;
 		}
 	}

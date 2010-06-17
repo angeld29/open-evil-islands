@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_EVENT_H
-#define CE_EVENT_H
+#ifndef CE_EVENTMANAGER_H
+#define CE_EVENTMANAGER_H
 
 #include <stddef.h>
 
@@ -63,7 +63,7 @@ extern void ce_event_queue_push(ce_event_queue* queue, ce_event* event);
 extern struct ce_event_manager {
 	ce_mutex* mutex;
 	ce_vector* event_queues;
-} ce_event_manager;
+}* ce_event_manager;
 
 extern void ce_event_manager_init(void);
 extern void ce_event_manager_term(void);
@@ -80,4 +80,4 @@ extern void ce_event_manager_post_raw(ce_thread_id thread_id,
 }
 #endif
 
-#endif /* CE_EVENT_H */
+#endif /* CE_EVENTMANAGER_H */

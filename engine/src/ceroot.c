@@ -31,7 +31,7 @@
 #include "cesystemevent.h"
 #include "ceoptionmanager.h"
 #include "ceconfigmanager.h"
-#include "ceevent.h"
+#include "ceeventmanager.h"
 #include "cerendersystem.h"
 #include "ceavcodec.h"
 #include "cesoundmanager.h"
