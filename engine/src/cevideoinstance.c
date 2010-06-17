@@ -150,7 +150,7 @@ static void ce_video_instance_do_advance(ce_video_instance* video_instance)
 void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed)
 {
 	if (0 != video_instance->sound_object) {
-		// sync with sound
+		// synchronization with sound
 		float sound_time = ce_sound_object_time(video_instance->sound_object);
 		if (video_instance->sync_time != sound_time) {
 			video_instance->sync_time = sound_time;
