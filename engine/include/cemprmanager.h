@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,28 +18,27 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_MPRMNG_H
-#define CE_MPRMNG_H
+#ifndef CE_MPRMANAGER_H
+#define CE_MPRMANAGER_H
 
 #include "cestring.h"
 #include "cemprfile.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
-typedef struct {
-	ce_string* path;
-} ce_mprmng;
+extern struct ce_mpr_manager {
+	int stub;
+}* ce_mpr_manager;
 
-extern ce_mprmng* ce_mprmng_new(const char* path);
-extern void ce_mprmng_del(ce_mprmng* mprmng);
+extern void ce_mpr_manager_init(void);
+extern void ce_mpr_manager_term(void);
 
-extern ce_mprfile* ce_mprmng_open_mprfile(ce_mprmng* mprmng, const char* name);
+extern ce_mprfile* ce_mpr_manager_open(const char* name);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
-#endif /* CE_MPRMNG_H */
+#endif /* CE_MPRMANAGER_H */

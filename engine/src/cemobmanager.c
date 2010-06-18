@@ -28,10 +28,10 @@
 #include "ceoptionmanager.h"
 #include "cemobmanager.h"
 
+struct ce_mob_manager* ce_mob_manager;
+
 static const char* ce_mob_dirs[] = {"Maps", NULL};
 static const char* ce_mob_exts[] = {".mob", NULL};
-
-struct ce_mob_manager* ce_mob_manager;
 
 void ce_mob_manager_init(void)
 {

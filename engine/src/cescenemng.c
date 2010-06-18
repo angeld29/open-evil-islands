@@ -32,8 +32,9 @@
 #include "ceoptionmanager.h"
 #include "ceconfigmanager.h"
 #include "cerendersystem.h"
-#include "cemobmanager.h"
 #include "cevideomanager.h"
+#include "cemprmanager.h"
+#include "cemobmanager.h"
 #include "ceroot.h"
 #include "cescenemng.h"
 
@@ -417,22 +418,15 @@ void ce_scenemng_remove_figentity(ce_scenemng* scenemng, ce_figentity* figentity
 
 void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
 {
-	ce_mprfile* mprfile = ce_mprmng_open_mprfile(ce_root.mprmng, name);
-	if (NULL == mprfile) {
-		return;
+	ce_mprfile* mprfile = ce_mpr_manager_open(name);
+	if (NULL != mprfile) {
+		ce_terrain_del(scenemng->terrain);
+
+		scenemng->terrain = ce_terrain_new(mprfile, scenemng->renderqueue,
+			&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, scenemng->scenenode);
+
+		scenemng->scenenode_force_update = true;
 	}
-
-	ce_terrain_del(scenemng->terrain);
-	scenemng->terrain = ce_terrain_new(mprfile, scenemng->renderqueue,
-		&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, scenemng->scenenode);
-
-	for (size_t i = 0; i < scenemng->figentities->count; ++i) {
-		ce_figentity* figentity = scenemng->figentities->items[i];
-		figentity->scenenode->position.y += ce_mprhlp_get_height(mprfile,
-			figentity->scenenode->position.x, figentity->scenenode->position.z);
-	}
-
-	scenemng->scenenode_force_update = true;
 }
 
 void ce_scenemng_load_mob(ce_scenemng* scenemng, const char* name)

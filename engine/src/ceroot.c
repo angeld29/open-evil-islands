@@ -36,6 +36,7 @@
 #include "ceavcodec.h"
 #include "cesoundmanager.h"
 #include "cevideomanager.h"
+#include "cemprmanager.h"
 #include "cemobmanager.h"
 #include "ceroot.h"
 
@@ -88,7 +89,7 @@ static void ce_root_term(void)
 	ce_scenemng_del(ce_root.scenemng);
 	ce_figmng_del(ce_root.figmng);
 	ce_mob_manager_term();
-	ce_mprmng_del(ce_root.mprmng);
+	ce_mpr_manager_term();
 	ce_texmng_del(ce_root.texmng);
 	ce_video_manager_term();
 	ce_sound_manager_term();
@@ -186,8 +187,7 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 		ce_texmng_register_resource(ce_root.texmng, path);
 	}
 
-	snprintf(path, sizeof(path), "%s/Maps", ce_option_manager->ei_path->str);
-	ce_root.mprmng = ce_mprmng_new(path);
+	ce_mpr_manager_init();
 	ce_mob_manager_init();
 
 	ce_root.figmng = ce_figmng_new();

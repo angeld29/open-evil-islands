@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,31 +21,45 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "celogging.h"
 #include "cealloc.h"
+#include "celogging.h"
+#include "cepath.h"
 #include "ceresfile.h"
-#include "cemprmng.h"
+#include "ceoptionmanager.h"
+#include "cemprmanager.h"
 
-ce_mprmng* ce_mprmng_new(const char* path)
+struct ce_mpr_manager* ce_mpr_manager;
+
+static const char* ce_mpr_dirs[] = {"Maps", NULL};
+static const char* ce_mpr_exts[] = {".mpr", NULL};
+
+void ce_mpr_manager_init(void)
 {
-	ce_mprmng* mprmng = ce_alloc(sizeof(ce_mprmng));
-	mprmng->path = ce_string_new_str(path);
-	ce_logging_write("mpr manager: root path is '%s'", path);
-	return mprmng;
+	char path[ce_option_manager->ei_path->length + 16];
+	for (size_t i = 0; NULL != ce_mpr_dirs[i]; ++i) {
+		ce_path_join_clear(path, sizeof(path),
+			ce_option_manager->ei_path->str, ce_mpr_dirs[i], NULL);
+		ce_logging_write("mpr manager: using path '%s'", path);
+	}
+
+	ce_mpr_manager = ce_alloc_zero(sizeof(struct ce_mpr_manager));
 }
 
-void ce_mprmng_del(ce_mprmng* mprmng)
+void ce_mpr_manager_term(void)
 {
-	if (NULL != mprmng) {
-		ce_string_del(mprmng->path);
-		ce_free(mprmng, sizeof(ce_mprmng));
+	if (NULL != ce_mpr_manager) {
+		ce_free(ce_mpr_manager, sizeof(struct ce_mpr_manager));
 	}
 }
 
-ce_mprfile* ce_mprmng_open_mprfile(ce_mprmng* mprmng, const char* name)
+ce_mprfile* ce_mpr_manager_open(const char* name)
 {
-	char path[mprmng->path->length + strlen(name) + 5 + 1];
-	snprintf(path, sizeof(path), "%s/%s.mpr", mprmng->path->str, name);
+	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
+	if (NULL == ce_path_find_special1(path, sizeof(path),
+										ce_option_manager->ei_path->str,
+										name, ce_mpr_dirs, ce_mpr_exts)) {
+		return NULL;
+	}
 
 	ce_resfile* resfile = ce_resfile_open_file(path);
 	if (NULL == resfile) {
@@ -53,5 +67,7 @@ ce_mprfile* ce_mprmng_open_mprfile(ce_mprmng* mprmng, const char* name)
 	}
 
 	ce_mprfile* mprfile = ce_mprfile_open(resfile);
-	return ce_resfile_close(resfile), mprfile;
+	ce_resfile_close(resfile);
+
+	return mprfile;
 }
