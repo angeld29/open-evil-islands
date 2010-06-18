@@ -18,8 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
 #include <assert.h>
+
+#include <windows.h>
 
 #include "cepath.h"
 
@@ -27,10 +28,5 @@ const char CE_PATH_SEP = '\\';
 
 bool ce_path_exists(const char* path)
 {
-	FILE* file = fopen(path, "rb");
-	if (NULL != file) {
-		fclose(file);
-		return true;
-	}
-	return false;
+	return INVALID_FILE_ATTRIBUTES != GetFileAttributes(path);
 }
