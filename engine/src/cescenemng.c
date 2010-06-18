@@ -80,11 +80,11 @@ ce_scenemng* ce_scenemng_new(void)
 
 	scenemng->renderwindow_listener = (ce_renderwindow_listener)
 		{.resized = ce_scenemng_renderwindow_resized, .listener = scenemng};
-	scenemng->figmng_listener = (ce_figmng_listener)
+	scenemng->figure_manager_listener = (ce_figure_manager_listener)
 		{.figproto_created = ce_scenemng_figproto_created, .listener = scenemng};
 
 	ce_renderwindow_add_listener(ce_root.renderwindow, &scenemng->renderwindow_listener);
-	ce_figmng_add_listener(ce_root.figmng, &scenemng->figmng_listener);
+	ce_figure_manager_add_listener(&scenemng->figure_manager_listener);
 
 	return scenemng;
 }
@@ -361,7 +361,7 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 	}
 
 	ce_figentity* figentity =
-		ce_figmng_create_figentity(ce_root.figmng, name,
+		ce_figure_manager_create_figentity(name,
 									complection, position,
 									orientation, parts,
 									texture_count, textures, scenenode);

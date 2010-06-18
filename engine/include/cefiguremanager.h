@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_FIGMNG_H
-#define CE_FIGMNG_H
+#ifndef CE_FIGUREMANAGER_H
+#define CE_FIGUREMANAGER_H
 
 #include <stdbool.h>
 
@@ -36,38 +36,35 @@ typedef struct {
 	void (*figproto_created)(void* listener, ce_figproto* figproto);
 	void (*figmesh_created)(void* listener, ce_figmesh* figmesh);
 	void* listener;
-} ce_figmng_listener;
+} ce_figure_manager_listener;
 
-typedef struct {
+extern struct ce_figure_manager {
 	ce_vector* resfiles;
 	ce_vector* figprotos;
 	ce_vector* figmeshes;
 	ce_vector* listeners;
-} ce_figmng;
+}* ce_figure_manager;
 
-extern ce_figmng* ce_figmng_new(void);
-extern void ce_figmng_del(ce_figmng* figmng);
+extern void ce_figure_manager_init(void);
+extern void ce_figure_manager_term(void);
 
-extern bool ce_figmng_register_resource(ce_figmng* figmng, const char* path);
-
-static inline void ce_figmng_add_listener(ce_figmng* figmng, ce_figmng_listener* listener)
+static inline void ce_figure_manager_add_listener(ce_figure_manager_listener* listener)
 {
-	ce_vector_push_back(figmng->listeners, listener);
+	ce_vector_push_back(ce_figure_manager->listeners, listener);
 }
 
 extern ce_figentity*
-ce_figmng_create_figentity(ce_figmng* figmng,
-							const char* name,
-							const ce_complection* complection,
-							const ce_vec3* position,
-							const ce_quat* orientation,
-							ce_vector* parts,
-							int texture_count,
-							ce_texture* textures[],
-							ce_scenenode* scenenode);
+ce_figure_manager_create_figentity(const char* name,
+									const ce_complection* complection,
+									const ce_vec3* position,
+									const ce_quat* orientation,
+									ce_vector* parts,
+									int texture_count,
+									ce_texture* textures[],
+									ce_scenenode* scenenode);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CE_FIGMNG_H */
+#endif /* CE_FIGUREMANAGER_H */

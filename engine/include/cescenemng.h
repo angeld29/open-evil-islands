@@ -35,6 +35,7 @@
 #include "cescenenode.h"
 #include "cerenderqueue.h"
 #include "cerenderwindow.h"
+#include "cefiguremanager.h"
 #include "cevideoobject.h"
 
 #ifdef __cplusplus
@@ -81,7 +82,7 @@ typedef struct {
 	ce_inputevent* rotate_on_event;
 	ce_scenemng_listener listener;
 	ce_renderwindow_listener renderwindow_listener;
-	ce_figmng_listener figmng_listener;
+	ce_figure_manager_listener figure_manager_listener;
 	// TODO: split by states
 	struct {
 		size_t movie_index;
