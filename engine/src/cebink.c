@@ -105,8 +105,8 @@ bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_memfile* memfi
 		ce_memfile_read(memfile, &next_pos, 4, 1);
 
 		// bit 0 indicates that frame is a keyframe; I'm not using it
-		bink_indices[i].pos = ce_bitclr32(pos, 0);
-		bink_indices[i].length = ce_bitclr32(next_pos, 0);
+		bink_indices[i].pos = ce_bitclr(uint32_t, pos, 0);
+		bink_indices[i].length = ce_bitclr(uint32_t, next_pos, 0);
 
 		if (bink_indices[i].length <= bink_indices[i].pos) {
 			return false;

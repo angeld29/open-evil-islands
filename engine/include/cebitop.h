@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,56 +25,57 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define CE_DEF_BITSET(type, num) \
-static inline type ce_bitset##num(type v, size_t p) \
+#define ce_bitset(T, v, p) ce_bitset_##T(v, p)
+#define ce_bitclr(T, v, p) ce_bitclr_##T(v, p)
+#define ce_bitflp(T, v, p) ce_bitflp_##T(v, p)
+#define ce_bittst(T, v, p) ce_bittst_##T(v, p)
+
+#define CE_BITOP_DEF_BITSET(T) \
+static inline T ce_bitset_##T(T v, size_t p) \
 { \
-	return v | (0x1 << p); \
+	return v | ((T)0x1 << p); \
 }
 
-#define CE_DEF_BITCLR(type, num) \
-static inline type ce_bitclr##num(type v, size_t p) \
+#define CE_BITOP_DEF_BITCLR(T) \
+static inline T ce_bitclr_##T(T v, size_t p) \
 { \
-	return v & ~(0x1 << p); \
+	return v & ~((T)0x1 << p); \
 }
 
-#define CE_DEF_BITFLP(type, num) \
-static inline type ce_bitflp##num(type v, size_t p) \
+#define CE_BITOP_DEF_BITFLP(T) \
+static inline T ce_bitflp_##T(T v, size_t p) \
 { \
-	return v ^ (0x1 << p); \
+	return v ^ ((T)0x1 << p); \
 }
 
-#define CE_DEF_BITTST(type, num) \
-static inline bool ce_bittst##num(type v, size_t p) \
+#define CE_BITOP_DEF_BITTST(T) \
+static inline bool ce_bittst_##T(T v, size_t p) \
 { \
-	return v & (0x1 << p); \
+	return v & ((T)0x1 << p); \
 }
+
+#define CE_BITOP_DEF_ALL(T) \
+CE_BITOP_DEF_BITSET(T) \
+CE_BITOP_DEF_BITCLR(T) \
+CE_BITOP_DEF_BITFLP(T) \
+CE_BITOP_DEF_BITTST(T)
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
-CE_DEF_BITSET(uint8_t, 8)
-CE_DEF_BITCLR(uint8_t, 8)
-CE_DEF_BITFLP(uint8_t, 8)
-CE_DEF_BITTST(uint8_t, 8)
-
-CE_DEF_BITSET(uint16_t, 16)
-CE_DEF_BITCLR(uint16_t, 16)
-CE_DEF_BITFLP(uint16_t, 16)
-CE_DEF_BITTST(uint16_t, 16)
-
-CE_DEF_BITSET(uint32_t, 32)
-CE_DEF_BITCLR(uint32_t, 32)
-CE_DEF_BITFLP(uint32_t, 32)
-CE_DEF_BITTST(uint32_t, 32)
+CE_BITOP_DEF_ALL(uint8_t)
+CE_BITOP_DEF_ALL(uint16_t)
+CE_BITOP_DEF_ALL(uint32_t)
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
-#undef CE_DEF_BITTST
-#undef CE_DEF_BITFLP
-#undef CE_DEF_BITCLR
-#undef CE_DEF_BITSET
+#undef CE_BITOP_DEF_ALL
+#undef CE_BITOP_DEF_BITTST
+#undef CE_BITOP_DEF_BITFLP
+#undef CE_BITOP_DEF_BITCLR
+#undef CE_BITOP_DEF_BITSET
 
 #endif /* CE_BITOP_H */
