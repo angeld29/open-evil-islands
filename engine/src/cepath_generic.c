@@ -18,39 +18,19 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
- *  Like python os.path module.
-*/
+#include <stdio.h>
+#include <assert.h>
 
-#ifndef CE_PATH_H
-#define CE_PATH_H
+#include "cepath.h"
 
-#include <stddef.h>
-#include <stdarg.h>
-#include <stdbool.h>
+const char CE_PATH_SEP = '/';
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern const char CE_PATH_SEP;
-
-extern bool ce_path_exists(const char* path);
-
-extern char* ce_path_join_va(char* path, size_t size, va_list args);
-extern char* ce_path_join(char* path, size_t size, ...);
-
-extern char* ce_path_append_ext(char* file_name, size_t size,
-								const char* name, const char* ext);
-
-extern char* ce_path_normpath(char* path);
-
-extern char* ce_path_find_special1(char* path, size_t size,
-									const char* prefix, const char* name,
-									const char* dirs[], const char* exts[]);
-
-#ifdef __cplusplus
+bool ce_path_exists(const char* path)
+{
+	FILE* file = fopen(path, "rb");
+	if (NULL != file) {
+		fclose(file);
+		return true;
+	}
+	return false;
 }
-#endif
-
-#endif /* CE_PATH_H */
