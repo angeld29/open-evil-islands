@@ -43,6 +43,7 @@ static void ce_scenenode_updated(void* listener)
 
 static void ce_terrain_load_tile_mmpfiles(ce_terrain* terrain)
 {
+	ce_logging_debug("ce_terrain_load_tile_mmpfiles");
 	char name[terrain->mprfile->name->length + 3 + 1];
 	for (int i = 0; i < terrain->mprfile->texture_count; ++i) {
 		snprintf(name, sizeof(name), "%s%03d", terrain->mprfile->name->str, i);
@@ -54,6 +55,7 @@ static void ce_terrain_load_tile_mmpfiles(ce_terrain* terrain)
 
 static void ce_terrain_load_tile_textures(ce_terrain* terrain)
 {
+	ce_logging_debug("ce_terrain_load_tile_textures");
 	char name[terrain->mprfile->name->length + 3 + 1];
 	for (int i = 0; i < terrain->mprfile->texture_count; ++i) {
 		snprintf(name, sizeof(name), "%s%03d", terrain->mprfile->name->str, i);
@@ -70,6 +72,8 @@ typedef struct {
 static void ce_terrain_sector_process(ce_event* event)
 {
 	ce_terrain_sector* sector = ((ce_test*)event->impl)->sector;
+
+	ce_logging_debug("ce_terrain_sector_process %d %d", sector->x, sector->z);
 
 	//ce_logging_debug("%p", sector);
 
@@ -113,6 +117,8 @@ static void ce_terrain_sector_process(ce_event* event)
 
 static void ce_terrain_sector_exec(ce_terrain_sector* sector)
 {
+	ce_logging_debug("ce_terrain_sector_exec %d %d", sector->x, sector->z);
+
 	if (!ce_option_manager->terrain_tiling) {
 		// lazy loading tile mmp files
 		ce_once_exec(sector->terrain->tile_once,
