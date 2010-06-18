@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 #include "ceglew.h"
 
-// HACK: for glew 1.5.4
+// HACK: glew 1.5.4
 #ifdef uint
 #error already defined
 #endif
@@ -32,16 +32,16 @@
 #include <GL/glxew.h>
 #undef uint
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+#define glxewGetContext() (&ce_glxew_context)
 
-extern CE_THREAD GLXEWContext ce_glxewcontext;
-#define glxewGetContext() (&ce_glxewcontext)
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern CE_THREAD GLXEWContext ce_glxew_context;
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_GLEW_PLATFORM_H */

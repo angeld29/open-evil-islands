@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,16 +25,16 @@
 
 #include <GL/wglew.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+#define wglewGetContext() (&ce_wglew_context)
 
-extern CE_THREAD WGLEWContext ce_wglewcontext;
-#define wglewGetContext() (&ce_wglewcontext)
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern CE_THREAD WGLEWContext ce_wglew_context;
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_GLEW_PLATFORM_H */
