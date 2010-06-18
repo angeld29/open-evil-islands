@@ -23,15 +23,16 @@
 #include "cealloc.h"
 #include "cesoundmixer.h"
 
-ce_sound_mixer* ce_sound_mixer_new(void)
+struct ce_sound_mixer* ce_sound_mixer;
+
+void ce_sound_mixer_init(void)
 {
-	ce_sound_mixer* sound_mixer = ce_alloc(sizeof(ce_sound_mixer));
-	return sound_mixer;
+	ce_sound_mixer = ce_alloc_zero(sizeof(struct ce_sound_mixer));
 }
 
-void ce_sound_mixer_del(ce_sound_mixer* sound_mixer)
+void ce_sound_mixer_term(void)
 {
-	if (NULL != sound_mixer) {
-		ce_free(sound_mixer, sizeof(ce_sound_mixer));
+	if (NULL != ce_sound_mixer) {
+		ce_free(ce_sound_mixer, sizeof(struct ce_sound_mixer));
 	}
 }

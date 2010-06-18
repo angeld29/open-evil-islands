@@ -18,6 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ *  TODO: remarks
+*/
+
 #ifndef CE_SOUNDMIXER_H
 #define CE_SOUNDMIXER_H
 
@@ -25,16 +29,14 @@
 extern "C" {
 #endif
 
-/*
- *  TODO: remarks
-*/
+// TODO: not implemented
 
-typedef struct {
+extern struct ce_sound_mixer {
 	int stub;
-} ce_sound_mixer;
+}* ce_sound_mixer;
 
-extern ce_sound_mixer* ce_sound_mixer_new(void);
-extern void ce_sound_mixer_del(ce_sound_mixer* sound_mixer);
+extern void ce_sound_mixer_init(void);
+extern void ce_sound_mixer_term(void);
 
 #ifdef __cplusplus
 }
