@@ -29,8 +29,7 @@
 #include "ceoptionmanager.h"
 #include "ceeventmanager.h"
 #include "cerendersystem.h"
-#include "cetexmng.h"
-#include "ceroot.h"
+#include "cetexturemanager.h"
 #include "cemprhlp.h"
 #include "cemprrenderitem.h"
 #include "ceterrain.h"
@@ -47,7 +46,7 @@ static void ce_terrain_load_tile_mmpfiles(ce_terrain* terrain)
 	char name[terrain->mprfile->name->length + 3 + 1];
 	for (int i = 0; i < terrain->mprfile->texture_count; ++i) {
 		snprintf(name, sizeof(name), "%s%03d", terrain->mprfile->name->str, i);
-		ce_mmpfile* mmpfile = ce_texmng_open_mmpfile(ce_root.texmng, name);
+		ce_mmpfile* mmpfile = ce_texture_manager_open_mmpfile(name);
 		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 		ce_vector_push_back(terrain->tile_mmpfiles, mmpfile);
 	}
@@ -59,7 +58,7 @@ static void ce_terrain_load_tile_textures(ce_terrain* terrain)
 	char name[terrain->mprfile->name->length + 3 + 1];
 	for (int i = 0; i < terrain->mprfile->texture_count; ++i) {
 		snprintf(name, sizeof(name), "%s%03d", terrain->mprfile->name->str, i);
-		ce_texture* texture = ce_texture_add_ref(ce_texmng_get(ce_root.texmng, name));
+		ce_texture* texture = ce_texture_add_ref(ce_texture_manager_get(name));
 		ce_texture_wrap(texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
 		ce_vector_push_back(terrain->tile_textures, texture);
 	}
@@ -78,7 +77,7 @@ static void ce_terrain_sector_process(ce_event* event)
 	//ce_logging_debug("%p", sector);
 
 	if (ce_option_manager->terrain_tiling) {
-		sector->texture = ce_texture_add_ref(ce_texmng_get(ce_root.texmng, "default0"));
+		sector->texture = ce_texture_add_ref(ce_texture_manager_get("default0"));
 	} else {
 		sector->texture = ce_texture_new(sector->name->str, sector->mmpfile);
 		ce_mmpfile_del(sector->mmpfile);
@@ -89,7 +88,7 @@ static void ce_terrain_sector_process(ce_event* event)
 	sector->renderlayer = ce_rendergroup_get(sector->
 		terrain->rendergroups[sector->water], sector->texture);
 
-	//ce_texmng_put(ce_root.texmng, ce_texture_add_ref(sector->texture));
+	//ce_texmng_put(ce_texture_add_ref(sector->texture));
 
 	if (ce_option_manager->terrain_tiling) {
 		// tile textures are necessary for geometry creation if tiling
@@ -135,7 +134,7 @@ static void ce_terrain_sector_exec(ce_terrain_sector* sector)
 		// force to dxt1?
 		ce_mmpfile_convert(sector->mmpfile, CE_MMPFILE_FORMAT_DXT1);
 
-		//ce_texmng_save_mmpfile(ce_root.texmng, sector->name->str, sector->mmpfile);
+		//ce_texmng_save_mmpfile(sector->name->str, sector->mmpfile);
 	}
 
 	//ce_logging_debug("%p", sector);

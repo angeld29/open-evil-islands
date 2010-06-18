@@ -33,6 +33,7 @@
 #include "ceconfigmanager.h"
 #include "cerendersystem.h"
 #include "cevideomanager.h"
+#include "cetexturemanager.h"
 #include "cemprmanager.h"
 #include "cemobmanager.h"
 #include "ceroot.h"
@@ -344,10 +345,9 @@ ce_scenemng_create_figentity(ce_scenemng* scenemng,
 	ce_texture* textures[texture_count];
 
 	for (int i = 0; i < texture_count; ++i) {
-		textures[i] = ce_texmng_get(ce_root.texmng, texture_names[i]);
+		textures[i] = ce_texture_manager_get(texture_names[i]);
 		if (NULL == textures[i]) {
-			ce_logging_error("scenemng: could not load texture "
-				"'%s' for figentity '%s'", texture_names[i], name);
+			ce_logging_error("scenemng: could not load texture '%s'", texture_names[i]);
 			return NULL;
 		}
 	}

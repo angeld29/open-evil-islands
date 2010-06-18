@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_TEXMNG_H
-#define CE_TEXMNG_H
+#ifndef CE_TEXTUREMANAGER_H
+#define CE_TEXTUREMANAGER_H
 
 #include <stdbool.h>
 
@@ -32,27 +32,22 @@
 extern "C" {
 #endif
 
-typedef struct {
-	ce_string* path;
+extern struct ce_texture_manager {
 	ce_vector* resfiles;
 	ce_vector* textures;
-} ce_texmng;
+}* ce_texture_manager;
 
-extern ce_texmng* ce_texmng_new(const char* path);
-extern void ce_texmng_del(ce_texmng* texmng);
+extern void ce_texture_manager_init(void);
+extern void ce_texture_manager_term(void);
 
-extern bool ce_texmng_register_resource(ce_texmng* texmng, const char* path);
+extern ce_mmpfile* ce_texture_manager_open_mmpfile(const char* name);
+extern void ce_texture_manager_save_mmpfile(const char* name, ce_mmpfile* mmpfile);
 
-extern ce_mmpfile* ce_texmng_open_mmpfile(ce_texmng* texmng, const char* name);
-extern void ce_texmng_save_mmpfile(ce_texmng* texmng,
-									const char* name,
-									ce_mmpfile* mmpfile);
-
-extern ce_texture* ce_texmng_get(ce_texmng* texmng, const char* name);
-extern void ce_texmng_put(ce_texmng* texmng, ce_texture* texture);
+extern ce_texture* ce_texture_manager_get(const char* name);
+extern void ce_texture_manager_put(ce_texture* texture);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CE_TEXMNG_H */
+#endif /* CE_TEXTUREMANAGER_H */

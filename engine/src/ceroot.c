@@ -36,6 +36,7 @@
 #include "ceavcodec.h"
 #include "cesoundmanager.h"
 #include "cevideomanager.h"
+#include "cetexturemanager.h"
 #include "cemprmanager.h"
 #include "cemobmanager.h"
 #include "ceroot.h"
@@ -90,7 +91,7 @@ static void ce_root_term(void)
 	ce_figmng_del(ce_root.figmng);
 	ce_mob_manager_term();
 	ce_mpr_manager_term();
-	ce_texmng_del(ce_root.texmng);
+	ce_texture_manager_term();
 	ce_video_manager_term();
 	ce_sound_manager_term();
 	ce_avcodec_term();
@@ -175,17 +176,7 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 	ce_sound_manager_init();
 	ce_video_manager_init();
 
-	char path[ce_option_manager->ei_path->length + 32];
-
-	snprintf(path, sizeof(path), "%s/Textures", ce_option_manager->ei_path->str);
-	ce_root.texmng = ce_texmng_new(path);
-
-	const char* texture_resources[] = { "textures", "redress", "menus" };
-	for (size_t i = 0; i < sizeof(texture_resources) / sizeof(texture_resources[0]); ++i) {
-		snprintf(path, sizeof(path), "%s/Res/%s.res",
-			ce_option_manager->ei_path->str, texture_resources[i]);
-		ce_texmng_register_resource(ce_root.texmng, path);
-	}
+	ce_texture_manager_init();
 
 	ce_mpr_manager_init();
 	ce_mob_manager_init();
@@ -194,6 +185,7 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 
 	const char* figure_resources[] = { "figures", "menus" };
 	for (size_t i = 0; i < sizeof(figure_resources) / sizeof(figure_resources[0]); ++i) {
+		char path[ce_option_manager->ei_path->length + 32];
 		snprintf(path, sizeof(path), "%s/Res/%s.res",
 			ce_option_manager->ei_path->str, figure_resources[i]);
 		ce_figmng_register_resource(ce_root.figmng, path);

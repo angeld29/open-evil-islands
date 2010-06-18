@@ -63,6 +63,16 @@ char* ce_path_join_clear(char* path, size_t size, ...)
 	return path;
 }
 
+char* ce_path_join_ext(char* file_name, size_t size, const char* name, const char* ext)
+{
+	if (NULL == ce_strcasestr(name, ext)) {
+		snprintf(file_name, size, "%s%s", name, ext);
+	} else {
+		ce_strlcpy(file_name, name, size);
+	}
+	return file_name;
+}
+
 char* ce_path_normpath(char* path)
 {
 	for (char* sep = strpbrk(path, "/\\");
@@ -78,11 +88,7 @@ char* ce_path_find_special1(char* path, size_t size,
 {
 	char file_name[strlen(name) + 8];
 	for (size_t i = 0; NULL != exts[i]; ++i) {
-		if (NULL == ce_strcasestr(name, exts[i])) {
-			snprintf(file_name, sizeof(file_name), "%s%s", name, exts[i]);
-		} else {
-			ce_strlcpy(file_name, name, sizeof(file_name));
-		}
+		ce_path_join_ext(file_name, sizeof(file_name), name, exts[i]);
 		for (size_t j = 0; NULL != dirs[j]; ++j) {
 			if (NULL != ce_path_join_clear(path, size, prefix, dirs[j],
 					file_name, NULL) && ce_path_exists(path)) {
