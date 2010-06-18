@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -63,17 +63,17 @@ void ce_logging_report_va(ce_logging_level level, const char* format, va_list ar
 	if (CE_LOGGING_LEVEL_NONE != ce_logging_context.level &&
 			(level >= ce_logging_context.level ||
 			CE_LOGGING_LEVEL_ALL == ce_logging_context.level)) {
-		// FIXME: threads!
-		fprintf(stderr, "%s: ", ce_logging_context.level_names[level]);
-		vfprintf(stderr, format, args);
-		if (0 == strlen(format) || '\n' != format[strlen(format) - 1]) {
-			putc('\n', stderr);
-		}
+		size_t length = strlen(format);
+		char buffer[length + 16];
+		snprintf(buffer, sizeof(buffer), "%s: %s%c",
+			ce_logging_context.level_names[level], format,
+			" \n"[0 == length || '\n' != format[length - 1]]);
+		vfprintf(stderr, buffer, args);
 		fflush(stderr);
 	}
 }
 
-#define CE_LOGGING_PROC(name, level) \
+#define CE_LOGGING_DEF_PROC(name, level) \
 void ce_logging_##name(const char* format, ...) \
 { \
 	va_list args; \
@@ -82,10 +82,10 @@ void ce_logging_##name(const char* format, ...) \
 	va_end(args); \
 }
 
-CE_LOGGING_PROC(debug, CE_LOGGING_LEVEL_DEBUG)
-CE_LOGGING_PROC(info, CE_LOGGING_LEVEL_INFO)
-CE_LOGGING_PROC(warning, CE_LOGGING_LEVEL_WARNING)
-CE_LOGGING_PROC(error, CE_LOGGING_LEVEL_ERROR)
-CE_LOGGING_PROC(critical, CE_LOGGING_LEVEL_CRITICAL)
-CE_LOGGING_PROC(fatal, CE_LOGGING_LEVEL_FATAL)
-CE_LOGGING_PROC(write, CE_LOGGING_LEVEL_WRITE)
+CE_LOGGING_DEF_PROC(debug, CE_LOGGING_LEVEL_DEBUG)
+CE_LOGGING_DEF_PROC(info, CE_LOGGING_LEVEL_INFO)
+CE_LOGGING_DEF_PROC(warning, CE_LOGGING_LEVEL_WARNING)
+CE_LOGGING_DEF_PROC(error, CE_LOGGING_LEVEL_ERROR)
+CE_LOGGING_DEF_PROC(critical, CE_LOGGING_LEVEL_CRITICAL)
+CE_LOGGING_DEF_PROC(fatal, CE_LOGGING_LEVEL_FATAL)
+CE_LOGGING_DEF_PROC(write, CE_LOGGING_LEVEL_WRITE)
