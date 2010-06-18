@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -85,10 +85,14 @@ void ce_string_assign_n(ce_string* string, const char* str, size_t n)
 
 void ce_string_assign_va(ce_string* string, const char* fmt, va_list args)
 {
-	// FIXME
-	char buffer[512];
-	vsnprintf(buffer, sizeof(buffer), fmt, args);
-	ce_string_assign(string, buffer);
+	for (size_t length = 128, limit = 1024; length <= limit; length <<= 1) {
+		char buffer[length];
+		int code = vsnprintf(buffer, sizeof(buffer), fmt, args);
+		if (code >= 0 && (size_t)code < sizeof(buffer)) {
+			ce_string_assign(string, buffer);
+			break;
+		}
+	}
 }
 
 void ce_string_assign_fmt(ce_string* string, const char* fmt, ...)
@@ -119,11 +123,14 @@ size_t ce_string_append_n(ce_string* string, const char* str, size_t n)
 
 size_t ce_string_append_va(ce_string* string, const char* fmt, va_list args)
 {
-	// FIXME
-	char buffer[512];
-	size_t count = vsnprintf(buffer, sizeof(buffer), fmt, args);
-	ce_string_append(string, buffer);
-	return count;
+	for (size_t length = 128, limit = 1024; length <= limit; length <<= 1) {
+		char buffer[length];
+		int code = vsnprintf(buffer, sizeof(buffer), fmt, args);
+		if (code >= 0 && (size_t)code < sizeof(buffer)) {
+			return ce_string_append(string, buffer);
+		}
+	}
+	return 0;
 }
 
 size_t ce_string_append_fmt(ce_string* string, const char* fmt, ...)

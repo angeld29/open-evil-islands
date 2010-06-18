@@ -46,9 +46,7 @@ typedef struct {
 	void* listener;
 } ce_scenenode_listener;
 
-typedef struct ce_scenenode ce_scenenode;
-
-struct ce_scenenode {
+typedef struct ce_scenenode {
 	bool culled;
 	ce_vec3 position;
 	ce_quat orientation;
@@ -59,9 +57,9 @@ struct ce_scenenode {
 	ce_occlusion* occlusion;
 	// only one listener supported for performance reasons
 	ce_scenenode_listener listener;
-	ce_scenenode* parent;
+	struct ce_scenenode* parent;
 	ce_vector* childs;
-};
+} ce_scenenode;
 
 extern ce_scenenode* ce_scenenode_new(ce_scenenode* parent);
 extern void ce_scenenode_del(ce_scenenode* scenenode);
