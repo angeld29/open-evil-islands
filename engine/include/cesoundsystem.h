@@ -18,6 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ *  TODO: remarks
+*/
+
 #ifndef CE_SOUNDSYSTEM_H
 #define CE_SOUNDSYSTEM_H
 
@@ -29,10 +33,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/*
- *  TODO: remarks
-*/
 
 enum {
 	CE_SOUND_SYSTEM_BITS_PER_SAMPLE = 16,
