@@ -25,19 +25,11 @@
 
 #include "cevector.h"
 #include "cethread.h"
+#include "ceevent.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef struct ce_event {
-	void (*notify)(struct ce_event* event);
-	size_t size;
-	char impl[];
-} ce_event;
-
-extern ce_event* ce_event_new(void (*notify)(ce_event*), size_t size);
-extern void ce_event_del(ce_event* event);
 
 /*
  *  Per-thread event queue.

@@ -19,28 +19,13 @@
 */
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <assert.h>
 
 #include "celib.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "ceeventmanager.h"
-
-ce_event* ce_event_new(void (*notify)(ce_event*), size_t size)
-{
-	ce_event* event = ce_alloc_zero(sizeof(ce_event) + size);
-	event->notify = notify;
-	event->size = size;
-	return event;
-}
-
-void ce_event_del(ce_event* event)
-{
-	if (NULL != event) {
-		ce_free(event, sizeof(ce_event) + event->size);
-	}
-}
 
 ce_event_queue* ce_event_queue_new(ce_thread_id thread_id)
 {
@@ -135,6 +120,8 @@ void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event)
 	}
 
 	assert(false && "could not found queue");
+	ce_logging_critical("event manager: could not found queue");
+
 	ce_event_del(event);
 }
 
