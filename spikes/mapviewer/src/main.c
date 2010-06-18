@@ -98,8 +98,8 @@ static void advance(void* listener, float elapsed)
 		message_timeout = 3.0f;
 	}
 
-	message_color.a = ce_fclamp(message_timeout, 0.0f, 1.0f);
-	ce_root.animation_fps = ce_fclamp(animation_fps, 1.0f, 50.0f);
+	message_color.a = ce_clamp(float, message_timeout, 0.0f, 1.0f);
+	ce_root.animation_fps = ce_clamp(float, animation_fps, 1.0f, 50.0f);
 }
 
 static void render(void* listener)

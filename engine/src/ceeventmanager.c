@@ -52,7 +52,7 @@ void ce_event_queue_del(ce_event_queue* queue)
 void ce_event_queue_process(ce_event_queue* queue)
 {
 	ce_mutex_lock(queue->mutex);
-	ce_swap_temp(ce_vector*, queue->pending_events, queue->sent_events);
+	ce_swap_temp(ce_vector*, &queue->pending_events, &queue->sent_events);
 	ce_mutex_unlock(queue->mutex);
 
 	for (size_t i = 0; i < queue->sent_events->count; ++i) {

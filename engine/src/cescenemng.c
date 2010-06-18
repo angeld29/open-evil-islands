@@ -381,7 +381,7 @@ ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
 									const ce_mobobject_object* mobobject)
 {
 	ce_vec3 position = mobobject->position;
-	ce_fswap(&position.y, &position.z);
+	ce_swap_temp(float, &position.y, &position.z);
 	if (NULL != scenemng->terrain) {
 		position.y += ce_mprhlp_get_height(scenemng->terrain->mprfile,
 											position.x, position.z);

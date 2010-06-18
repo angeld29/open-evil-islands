@@ -145,7 +145,7 @@ static void advance(void* listener, float elapsed)
 
 	if (message_timeout > 0.0f) {
 		message_timeout -= elapsed;
-		message_color.a = ce_fclamp(message_timeout, 0.0f, 1.0f);
+		message_color.a = ce_clamp(float, message_timeout, 0.0f, 1.0f);
 	}
 
 	float animation_fps = ce_root.animation_fps;
@@ -154,7 +154,7 @@ static void advance(void* listener, float elapsed)
 	if (anmfps_dec_event->triggered) animation_fps -= 1.0f;
 
 	if (animation_fps != ce_root.animation_fps) {
-		ce_root.animation_fps = ce_fclamp(animation_fps, 1.0f, 50.0f);
+		ce_root.animation_fps = ce_clamp(float, animation_fps, 1.0f, 50.0f);
 		display_message("Animation FPS: %d", (int)ce_root.animation_fps);
 	}
 

@@ -48,18 +48,6 @@ static inline bool ce_fiszero(float a, float tolerance)
 	return ce_fisequal(a, 0.0f, tolerance);
 }
 
-static inline void ce_fswap(float* a, float* b)
-{
-	float t = *a;
-	*a = *b;
-	*b = t;
-}
-
-static inline float ce_fclamp(float v, float a, float b)
-{
-	return v < a ? a : (v > b ? b : v);
-}
-
 static inline float ce_lerp(float u, float a, float b)
 {
 	return a + u * (b - a);

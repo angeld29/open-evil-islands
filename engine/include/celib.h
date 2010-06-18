@@ -35,9 +35,9 @@
 
 #define ce_swap_temp(T, a, b) \
 { \
-	T t = a; \
-	a = b; \
-	b = t; \
+	T t = *(a);  \
+	*(a) = *(b); \
+	*(b) = t;    \
 }
 
 #define CE_LIB_DEF_MIN(T) \
@@ -69,15 +69,19 @@ static inline void ce_swap_##T(T* a, T* b) \
 #define CE_LIB_DEF_ALL(T) \
 CE_LIB_DEF_MIN(T) \
 CE_LIB_DEF_MAX(T) \
-CE_LIB_DEF_CLAMP(T) \
-CE_LIB_DEF_SWAP(T)
+CE_LIB_DEF_CLAMP(T)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 CE_LIB_DEF_ALL(int)
+CE_LIB_DEF_ALL(float)
 CE_LIB_DEF_ALL(size_t)
+
+// only for integers
+CE_LIB_DEF_SWAP(int)
+CE_LIB_DEF_SWAP(size_t)
 
 // is power of two (using 2's complement arithmetic)
 static inline bool ce_ispot(size_t v)
