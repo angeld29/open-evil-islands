@@ -66,6 +66,13 @@ char* ce_path_append_ext(char* file_name, size_t size,
 	return file_name;
 }
 
+char* ce_path_remove_ext(char* name, const char* file_name)
+{
+	char* dot = strrchr(file_name, '.');
+	size_t n = NULL != dot ? (size_t)(dot - file_name) : strlen(file_name);
+	return ce_strleft(name, file_name, n);
+}
+
 char* ce_path_normpath(char* path)
 {
 	for (char* sep = strpbrk(path, "/\\");

@@ -42,6 +42,7 @@ extern char* ce_path_join(char* path, size_t size, ...);
 
 extern char* ce_path_append_ext(char* file_name, size_t size,
 								const char* name, const char* ext);
+extern char* ce_path_remove_ext(char* name, const char* file_name);
 
 extern char* ce_path_normpath(char* path);
 

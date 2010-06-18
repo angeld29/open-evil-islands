@@ -107,22 +107,25 @@ void ce_figure_manager_term(void)
 
 static ce_figproto* ce_figure_manager_get_figproto(const char* name)
 {
-	char file_name[strlen(name) + 8];
-	ce_path_append_ext(file_name, sizeof(file_name),
-						name, ce_figure_exts[0]);
+	char true_name[strlen(name) + 1];
+	ce_path_remove_ext(true_name, name);
 
 	// find in cache
 	for (size_t i = 0; i < ce_figure_manager->figprotos->count; ++i) {
 		ce_figproto* figproto = ce_figure_manager->figprotos->items[i];
-		if (0 == ce_strcasecmp(file_name, figproto->name->str)) {
+		if (0 == ce_strcasecmp(true_name, figproto->name->str)) {
 			return figproto;
 		}
 	}
 
+	char file_name[strlen(name) + 8];
+	ce_path_append_ext(file_name, sizeof(file_name),
+						name, ce_figure_exts[0]);
+
 	for (size_t i = 0; i < ce_figure_manager->resfiles->count; ++i) {
 		ce_resfile* resfile = ce_figure_manager->resfiles->items[i];
 		if (-1 != ce_resfile_node_index(resfile, file_name)) {
-			ce_figproto* figproto = ce_figproto_new(file_name, resfile);
+			ce_figproto* figproto = ce_figproto_new(true_name, resfile);
 			ce_vector_push_back(ce_figure_manager->figprotos, figproto);
 			ce_notify_figproto_created(ce_figure_manager->listeners, figproto);
 			return figproto;
@@ -136,13 +139,12 @@ static ce_figproto* ce_figure_manager_get_figproto(const char* name)
 static ce_figmesh* ce_figure_manager_get_figmesh(const char* name,
 								const ce_complection* complection)
 {
-	char file_name[strlen(name) + 8];
-	ce_path_append_ext(file_name, sizeof(file_name),
-						name, ce_figure_exts[0]);
+	char true_name[strlen(name) + 1];
+	ce_path_remove_ext(true_name, name);
 
 	for (size_t i = 0; i < ce_figure_manager->figmeshes->count; ++i) {
 		ce_figmesh* figmesh = ce_figure_manager->figmeshes->items[i];
-		if (0 == ce_strcasecmp(file_name, figmesh->figproto->name->str) &&
+		if (0 == ce_strcasecmp(true_name, figmesh->figproto->name->str) &&
 				ce_complection_equal(complection, &figmesh->complection)) {
 			return figmesh;
 		}
