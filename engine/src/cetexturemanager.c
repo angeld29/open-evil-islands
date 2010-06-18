@@ -32,8 +32,8 @@
 
 struct ce_texture_manager* ce_texture_manager;
 
+static const char* ce_texture_exts[] = {".mmp", NULL};
 static const char* ce_texture_cache_dirs[] = {"Textures", NULL};
-static const char* ce_texture_cache_exts[] = {".mmp", NULL};
 static const char* ce_texture_resource_dirs[] = {"Res", NULL};
 static const char* ce_texture_resource_exts[] = {".res", NULL};
 static const char* ce_texture_resource_names[] = {"textures", "redress", "menus", NULL};
@@ -90,7 +90,7 @@ ce_mmpfile* ce_texture_manager_open_mmpfile(const char* name)
 	// try to load from cache dir
 	if (NULL != ce_path_find_special1(path, sizeof(path),
 					ce_option_manager->ei_path->str, name,
-					ce_texture_cache_dirs, ce_texture_cache_exts)) {
+					ce_texture_cache_dirs, ce_texture_exts)) {
 		ce_memfile* memfile = ce_memfile_open_path(path);
 		if (NULL != memfile) {
 			ce_mmpfile* mmpfile = ce_mmpfile_new_memfile(memfile);
@@ -102,8 +102,7 @@ ce_mmpfile* ce_texture_manager_open_mmpfile(const char* name)
 	}
 
 	char file_name[strlen(name) + 8];
-	ce_path_append_ext(file_name, sizeof(file_name),
-						name, ce_texture_cache_exts[0]);
+	ce_path_append_ext(file_name, sizeof(file_name), name, ce_texture_exts[0]);
 
 	// find in resources
 	for (size_t i = 0; i < ce_texture_manager->resfiles->count; ++i) {
@@ -120,8 +119,7 @@ ce_mmpfile* ce_texture_manager_open_mmpfile(const char* name)
 void ce_texture_manager_save_mmpfile(const char* name, ce_mmpfile* mmpfile)
 {
 	char file_name[strlen(name) + 8];
-	ce_path_append_ext(file_name, sizeof(file_name),
-						name, ce_texture_cache_exts[0]);
+	ce_path_append_ext(file_name, sizeof(file_name), name, ce_texture_exts[0]);
 
 	char path[ce_option_manager->ei_path->length + strlen(file_name) + 32];
 	ce_path_join(path, sizeof(path), ce_option_manager->
@@ -132,14 +130,13 @@ void ce_texture_manager_save_mmpfile(const char* name, ce_mmpfile* mmpfile)
 
 ce_texture* ce_texture_manager_get(const char* name)
 {
-	char file_name[strlen(name) + 8];
-	ce_path_append_ext(file_name, sizeof(file_name),
-						name, ce_texture_cache_exts[0]);
+	char true_name[strlen(name) + 1];
+	ce_path_remove_ext(true_name, name);
 
 	// find texture in cache
 	for (size_t i = 0; i < ce_texture_manager->textures->count; ++i) {
 		ce_texture* texture = ce_texture_manager->textures->items[i];
-		if (0 == ce_strcasecmp(file_name, texture->name->str)) {
+		if (0 == ce_strcasecmp(true_name, texture->name->str)) {
 			return texture;
 		}
 	}
@@ -147,7 +144,7 @@ ce_texture* ce_texture_manager_get(const char* name)
 	// load texture from resources
 	ce_mmpfile* mmpfile = ce_texture_manager_open_mmpfile(name);
 	if (NULL != mmpfile) {
-		ce_texture* texture = ce_texture_new(file_name, mmpfile);
+		ce_texture* texture = ce_texture_new(true_name, mmpfile);
 		ce_mmpfile_del(mmpfile);
 		ce_vector_push_back(ce_texture_manager->textures, texture);
 		return texture;
