@@ -33,6 +33,8 @@
 #include "ceconfigfile.h"
 #include "ceconfigmanager.h"
 
+struct ce_config_manager* ce_config_manager;
+
 static const char* ce_config_dir = "Config";
 
 static const char* ce_config_light_files[CE_CONFIG_LIGHT_COUNT] = {
@@ -51,8 +53,6 @@ static const char* ce_config_movie_sections[CE_CONFIG_MOVIE_COUNT] = {
 	[CE_CONFIG_MOVIE_TITLESFIN] = "Titlesfin",
 	[CE_CONFIG_MOVIE_TITLESFOUT] = "Titlesfout",
 };
-
-struct ce_config_manager* ce_config_manager;
 
 static bool ce_config_manager_read_light(ce_color section[24],
 											const char* section_name,
@@ -100,7 +100,7 @@ static void ce_config_manager_init_lights(void)
 {
 	char path[ce_config_manager->config_path->length + 32];
 	for (size_t i = 0; i < CE_CONFIG_LIGHT_COUNT; ++i) {
-		ce_path_join_clear(path, sizeof(path), ce_config_manager->
+		ce_path_join(path, sizeof(path), ce_config_manager->
 			config_path->str, ce_config_light_files[i], NULL);
 
 		ce_config_file* config_file = ce_config_file_open(path);
@@ -128,7 +128,7 @@ static void ce_config_manager_init_movies(void)
 	}
 
 	char path[ce_config_manager->config_path->length + 32];
-	ce_path_join_clear(path, sizeof(path), ce_config_manager->
+	ce_path_join(path, sizeof(path), ce_config_manager->
 		config_path->str, "movie.ini", NULL);
 
 	ce_config_file* config_file = ce_config_file_open(path);
@@ -157,7 +157,7 @@ static void ce_config_manager_init_movies(void)
 void ce_config_manager_init(void)
 {
 	char path[ce_option_manager->ei_path->length + 16];
-	ce_path_join_clear(path, sizeof(path),
+	ce_path_join(path, sizeof(path),
 		ce_option_manager->ei_path->str, ce_config_dir, NULL);
 
 	ce_logging_write("config manager: using path '%s'", path);

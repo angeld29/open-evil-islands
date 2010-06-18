@@ -29,16 +29,16 @@
 #include "ceoptionmanager.h"
 #include "cesoundmanager.h"
 
+struct ce_sound_manager* ce_sound_manager;
+
 static const char* ce_sound_dirs[] = {"Stream", "Movies", NULL};
 static const char* ce_sound_exts[] = {".wav", ".oga", ".mp3", ".ogv", ".bik", NULL};
-
-struct ce_sound_manager* ce_sound_manager;
 
 void ce_sound_manager_init(void)
 {
 	char path[ce_option_manager->ei_path->length + 16];
 	for (size_t i = 0; NULL != ce_sound_dirs[i]; ++i) {
-		ce_path_join_clear(path, sizeof(path),
+		ce_path_join(path, sizeof(path),
 			ce_option_manager->ei_path->str, ce_sound_dirs[i], NULL);
 		ce_logging_write("sound manager: using path '%s'", path);
 	}

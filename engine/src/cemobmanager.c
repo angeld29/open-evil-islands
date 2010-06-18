@@ -37,7 +37,7 @@ void ce_mob_manager_init(void)
 {
 	char path[ce_option_manager->ei_path->length + 16];
 	for (size_t i = 0; NULL != ce_mob_dirs[i]; ++i) {
-		ce_path_join_clear(path, sizeof(path),
+		ce_path_join(path, sizeof(path),
 			ce_option_manager->ei_path->str, ce_mob_dirs[i], NULL);
 		ce_logging_write("mob manager: using path '%s'", path);
 	}

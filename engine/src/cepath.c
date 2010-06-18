@@ -31,7 +31,8 @@ char* ce_path_join_va(char* path, size_t size, va_list args)
 	if (0 == size) {
 		return NULL;
 	}
-	size_t length = strlen(path);
+	path[0] = '\0';
+	size_t length = 0;
 	for (const char* tail = va_arg(args, const char*);
 			NULL != tail; tail = va_arg(args, const char*)) {
 		if (0 != length && '/' != path[length - 1] && '\\' != path[length - 1]) {
@@ -54,16 +55,8 @@ char* ce_path_join(char* path, size_t size, ...)
 	return path;
 }
 
-char* ce_path_join_clear(char* path, size_t size, ...)
-{
-	va_list args;
-	va_start(args, size);
-	path = ce_path_join_va(memset(path, 0, size), size, args);
-	va_end(args);
-	return path;
-}
-
-char* ce_path_join_ext(char* file_name, size_t size, const char* name, const char* ext)
+char* ce_path_append_ext(char* file_name, size_t size,
+							const char* name, const char* ext)
 {
 	if (NULL == ce_strcasestr(name, ext)) {
 		snprintf(file_name, size, "%s%s", name, ext);
@@ -86,11 +79,11 @@ char* ce_path_find_special1(char* path, size_t size,
 							const char* prefix, const char* name,
 							const char* dirs[], const char* exts[])
 {
-	char file_name[strlen(name) + 8];
 	for (size_t i = 0; NULL != exts[i]; ++i) {
-		ce_path_join_ext(file_name, sizeof(file_name), name, exts[i]);
+		char file_name[strlen(name) + strlen(exts[i]) + 1];
+		ce_path_append_ext(file_name, sizeof(file_name), name, exts[i]);
 		for (size_t j = 0; NULL != dirs[j]; ++j) {
-			if (NULL != ce_path_join_clear(path, size, prefix, dirs[j],
+			if (NULL != ce_path_join(path, size, prefix, dirs[j],
 					file_name, NULL) && ce_path_exists(path)) {
 				return path;
 			}

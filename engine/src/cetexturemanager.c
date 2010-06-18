@@ -43,13 +43,13 @@ void ce_texture_manager_init(void)
 	char path[ce_option_manager->ei_path->length + 32];
 
 	for (size_t i = 0; NULL != ce_texture_cache_dirs[i]; ++i) {
-		ce_path_join_clear(path, sizeof(path),
+		ce_path_join(path, sizeof(path),
 			ce_option_manager->ei_path->str, ce_texture_cache_dirs[i], NULL);
 		ce_logging_write("texture manager: using cache path '%s'", path);
 	}
 
 	for (size_t i = 0; NULL != ce_texture_resource_dirs[i]; ++i) {
-		ce_path_join_clear(path, sizeof(path),
+		ce_path_join(path, sizeof(path),
 			ce_option_manager->ei_path->str, ce_texture_resource_dirs[i], NULL);
 		ce_logging_write("texture manager: using path '%s'", path);
 	}
@@ -102,7 +102,8 @@ ce_mmpfile* ce_texture_manager_open_mmpfile(const char* name)
 	}
 
 	char file_name[strlen(name) + 8];
-	ce_path_join_ext(file_name, sizeof(file_name), name, ce_texture_cache_exts[0]);
+	ce_path_append_ext(file_name, sizeof(file_name),
+						name, ce_texture_cache_exts[0]);
 
 	// find in resources
 	for (size_t i = 0; i < ce_texture_manager->resfiles->count; ++i) {
@@ -119,11 +120,11 @@ ce_mmpfile* ce_texture_manager_open_mmpfile(const char* name)
 void ce_texture_manager_save_mmpfile(const char* name, ce_mmpfile* mmpfile)
 {
 	char file_name[strlen(name) + 8];
-	ce_path_join_ext(file_name, sizeof(file_name),
+	ce_path_append_ext(file_name, sizeof(file_name),
 						name, ce_texture_cache_exts[0]);
 
 	char path[ce_option_manager->ei_path->length + strlen(file_name) + 32];
-	ce_path_join_clear(path, sizeof(path), ce_option_manager->
+	ce_path_join(path, sizeof(path), ce_option_manager->
 		ei_path->str, ce_texture_cache_dirs[0], file_name, NULL);
 
 	ce_mmpfile_save(mmpfile, path);
@@ -132,7 +133,8 @@ void ce_texture_manager_save_mmpfile(const char* name, ce_mmpfile* mmpfile)
 ce_texture* ce_texture_manager_get(const char* name)
 {
 	char file_name[strlen(name) + 8];
-	ce_path_join_ext(file_name, sizeof(file_name), name, ce_texture_cache_exts[0]);
+	ce_path_append_ext(file_name, sizeof(file_name),
+						name, ce_texture_cache_exts[0]);
 
 	// find texture in cache
 	for (size_t i = 0; i < ce_texture_manager->textures->count; ++i) {

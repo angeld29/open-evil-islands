@@ -30,16 +30,16 @@
 #include "cesoundmanager.h"
 #include "cevideomanager.h"
 
+struct ce_video_manager* ce_video_manager;
+
 static const char* ce_video_dirs[] = {"Movies", NULL};
 static const char* ce_video_exts[] = {".ogv", ".bik", NULL};
-
-struct ce_video_manager* ce_video_manager;
 
 void ce_video_manager_init(void)
 {
 	char path[ce_option_manager->ei_path->length + 16];
 	for (size_t i = 0; NULL != ce_video_dirs[i]; ++i) {
-		ce_path_join_clear(path, sizeof(path),
+		ce_path_join(path, sizeof(path),
 			ce_option_manager->ei_path->str, ce_video_dirs[i], NULL);
 		ce_logging_write("video manager: using path '%s'", path);
 	}
