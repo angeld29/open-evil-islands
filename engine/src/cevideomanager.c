@@ -61,13 +61,15 @@ void ce_video_manager_advance(float elapsed)
 {
 	ce_unused(elapsed);
 
-	for (size_t i = 0; i < ce_video_manager->video_instances->count; ++i) {
-		//ce_video_instance* video_instance = video_manager->video_instances->items[i];
-		/*if (ce_video_instance_is_stopped(video_instance)) {
+	/*for (size_t i = 0; i < ce_video_manager->video_instances->count; ) {
+		ce_video_instance* video_instance = video_manager->video_instances->items[i];
+		if (ce_video_instance_is_stopped(video_instance)) {
 			ce_video_instance_del(video_instance);
-			ce_vector_remove_unordered(video_manager->video_instances, i--);
-		}*/
-	}
+			ce_vector_remove_unordered(video_manager->video_instances, i);
+		} else {
+			++i;
+		}
+	}*/
 }
 
 ce_video_object ce_video_manager_create(const char* name)
