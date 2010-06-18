@@ -372,8 +372,8 @@ static bool ce_theora_reset(ce_video_resource* video_resource)
 */
 
 typedef struct {
-	ce_binkheader header;
-	ce_binkindex* indices;
+	ce_bink_header header;
+	ce_bink_index* indices;
 	AVCodec* codec;
 	AVCodecContext codec_context;
 	AVPacket packet;
@@ -384,29 +384,29 @@ typedef struct {
 
 static size_t ce_bink_size_hint(ce_memfile* memfile)
 {
-	ce_binkheader header;
-	return sizeof(ce_bink) + (!ce_binkheader_read(&header, memfile) ? 0 :
-		sizeof(ce_binkindex) * header.frame_count +
+	ce_bink_header header;
+	return sizeof(ce_bink) + (!ce_bink_header_read(&header, memfile) ? 0 :
+		sizeof(ce_bink_index) * header.frame_count +
 		header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE);
 }
 
 static bool ce_bink_test(ce_memfile* memfile)
 {
-	ce_binkheader header;
-	return ce_binkheader_read(&header, memfile);
+	ce_bink_header header;
+	return ce_bink_header_read(&header, memfile);
 }
 
 static bool ce_bink_ctor(ce_video_resource* video_resource)
 {
 	ce_bink* bink = (ce_bink*)video_resource->impl;
 
-	if (!ce_binkheader_read(&bink->header, video_resource->memfile)) {
+	if (!ce_bink_header_read(&bink->header, video_resource->memfile)) {
 		ce_logging_error("bink: input does not appear to be a Bink video");
 		return false;
 	}
 
 	// skip audio headers
-	if (!ce_binktrack_skip(bink->header.audio_track_count, video_resource->memfile)) {
+	if (!ce_bink_audio_track_skip(bink->header.audio_track_count, video_resource->memfile)) {
 		ce_logging_error("bink: input does not appear to be a Bink video");
 		return false;
 	}
@@ -441,8 +441,8 @@ static bool ce_bink_ctor(ce_video_resource* video_resource)
 	video_resource->ycbcr.crop_rect.width = bink->header.video_width;
 	video_resource->ycbcr.crop_rect.height = bink->header.video_height;
 
-	bink->indices = (ce_binkindex*)bink->data;
-	if (!ce_binkindex_read(bink->indices, bink->header.frame_count, video_resource->memfile)) {
+	bink->indices = (ce_bink_index*)bink->data;
+	if (!ce_bink_index_read(bink->indices, bink->header.frame_count, video_resource->memfile)) {
 		ce_logging_error("bink: invalid frame index table");
 		return false;
 	}
@@ -473,7 +473,7 @@ static bool ce_bink_ctor(ce_video_resource* video_resource)
 	}
 
 	av_init_packet(&bink->packet);
-	bink->packet.data = bink->data + sizeof(ce_binkindex) * bink->header.frame_count;
+	bink->packet.data = bink->data + sizeof(ce_bink_index) * bink->header.frame_count;
 
 	avcodec_get_frame_defaults(&bink->picture);
 

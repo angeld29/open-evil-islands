@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@
  *  1. http://wiki.multimedia.cx/index.php?title=Bink_Container
 */
 
-#ifndef CE_BIKFILE_H
-#define CE_BIKFILE_H
+#ifndef CE_BINK_H
+#define CE_BINK_H
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -37,7 +37,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
 enum {
 	CE_BINK_REVISION_B = 0x62,
@@ -88,9 +88,9 @@ typedef struct {
 	uint32_t fps_divider;
 	uint32_t video_flags;
 	uint32_t audio_track_count;
-} ce_binkheader;
+} ce_bink_header;
 
-extern bool ce_binkheader_read(ce_binkheader* binkheader, ce_memfile* memfile);
+extern bool ce_bink_header_read(ce_bink_header* bink_header, ce_memfile* memfile);
 
 /*
  *  Audio Track
@@ -99,10 +99,10 @@ extern bool ce_binkheader_read(ce_binkheader* binkheader, ce_memfile* memfile);
 typedef struct {
 	uint16_t sample_rate;
 	uint16_t flags;
-} ce_binktrack;
+} ce_bink_audio_track;
 
-extern bool ce_binktrack_read(ce_binktrack* binktrack, ce_memfile* memfile);
-extern bool ce_binktrack_skip(size_t n, ce_memfile* memfile);
+extern bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, ce_memfile* memfile);
+extern bool ce_bink_audio_track_skip(size_t n, ce_memfile* memfile);
 
 /*
  *  Frame Index Table
@@ -111,9 +111,9 @@ extern bool ce_binktrack_skip(size_t n, ce_memfile* memfile);
 typedef struct {
 	uint32_t pos;
 	uint32_t length;
-} ce_binkindex;
+} ce_bink_index;
 
-extern bool ce_binkindex_read(ce_binkindex* binkindices, size_t n, ce_memfile* memfile);
+extern bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_memfile* memfile);
 
 /*
  *  Frame Layout (only for illustration)
@@ -127,10 +127,10 @@ typedef struct {
 		// audio packet here (variable length)
 	} audio_data[CE_BINK_MAX_AUDIO_TRACKS];
 	// video packet here (variable length)
-} ce_binkframe;
+} ce_bink_frame;
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
-#endif /* CE_BIKFILE_H */
+#endif /* CE_BINK_H */
