@@ -24,6 +24,7 @@
 #include <stddef.h>
 
 #include "cevector.h"
+#include "cetimer.h"
 #include "cethread.h"
 #include "ceevent.h"
 
@@ -37,15 +38,21 @@ extern "C" {
 
 typedef struct {
 	ce_thread_id thread_id;
+	ce_timer* timer;
 	ce_mutex* mutex;
 	ce_vector* pending_events;
-	ce_vector* sent_events;
+	ce_vector* sending_events;
 } ce_event_queue;
 
 extern ce_event_queue* ce_event_queue_new(ce_thread_id thread_id);
 extern void ce_event_queue_del(ce_event_queue* queue);
 
+// process all pending events
 extern void ce_event_queue_process(ce_event_queue* queue);
+
+// process pending events for a maximum of max_time milliseconds
+extern void ce_event_queue_process_timeout(ce_event_queue* queue, int max_time);
+
 extern void ce_event_queue_push(ce_event_queue* queue, ce_event* event);
 
 /*
@@ -60,8 +67,14 @@ extern struct ce_event_manager {
 extern void ce_event_manager_init(void);
 extern void ce_event_manager_term(void);
 
+// create a queue for the current thread
 extern void ce_event_manager_create_queue(void);
+
+// process all pending events for the current thread
 extern void ce_event_manager_process_events(void);
+
+// process pending events for the current thread with time limit in milliseconds
+extern void ce_event_manager_process_events_timeout(int max_time);
 
 extern void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event);
 extern void ce_event_manager_post_raw(ce_thread_id thread_id,

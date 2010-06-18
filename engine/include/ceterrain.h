@@ -57,7 +57,8 @@ extern ce_terrain_sector* ce_terrain_sector_new(ce_terrain* terrain,
 extern void ce_terrain_sector_del(ce_terrain_sector* sector);
 
 struct ce_terrain {
-	int queued_job_count;
+	size_t queued_job_count;
+	size_t completed_job_count;
 	ce_mprfile* mprfile;
 	ce_material* materials[CE_MPRFILE_MATERIAL_COUNT];
 	ce_rendergroup* rendergroups[CE_MPRFILE_MATERIAL_COUNT];

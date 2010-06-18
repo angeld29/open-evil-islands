@@ -89,7 +89,7 @@ typedef struct {
 		ce_video_object video_object;
 	} logo;
 	struct {
-		int job_index, job_count;
+		bool created;
 		ce_video_object video_object;
 	} loading;
 } ce_scenemng;

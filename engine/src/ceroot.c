@@ -220,7 +220,10 @@ int ce_root_exec(void)
 	for (;;) {
 		float elapsed = ce_timer_advance(ce_root.timer);
 
-		ce_event_manager_process_events();
+		// I found this optimal limit as:
+		// 40 milliseconds - 25 times per second
+		ce_event_manager_process_events_timeout(40);
+
 		ce_renderwindow_pump(ce_root.renderwindow);
 
 		if (ce_root.done) {

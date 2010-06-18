@@ -152,17 +152,27 @@ static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float elapsed)
 	ce_unused(elapsed);
 
 	// TODO: constructor
-	if (ce_video_object_is_stopped(scenemng->loading.video_object)) {
+	if (!scenemng->loading.created) {
+		scenemng->loading.created = true;
 		scenemng->loading.video_object = ce_video_manager_create("progres");
 		ce_video_object_play(scenemng->loading.video_object);
 	}
 
+	size_t queued_job_count = 0;
+	size_t completed_job_count = 0;
+
+	if (NULL != scenemng->terrain) {
+		queued_job_count += scenemng->terrain->queued_job_count;
+		completed_job_count += scenemng->terrain->completed_job_count;
+	}
+
 	ce_video_object_progress(scenemng->loading.video_object,
-		100.0f * scenemng->loading.job_index / scenemng->loading.job_count);
+		100.0f * completed_job_count / queued_job_count);
 
 	// TODO: hold last frame
-	if (scenemng->loading.job_index >= scenemng->loading.job_count) {
+	if (completed_job_count >= queued_job_count) {
 		ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_PLAYING);
+		ce_logging_debug("new state: playing");
 	}
 }
 
@@ -295,7 +305,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 			&CE_COLOR_GOLD, scenemng->fps->text);
 	}
 
-#if 0
+#if 1
 #ifndef NDEBUG
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
 	snprintf(text, sizeof(text),

@@ -42,7 +42,6 @@ static void ce_scenenode_updated(void* listener)
 
 static void ce_terrain_load_tile_mmpfiles(ce_terrain* terrain)
 {
-	ce_logging_debug("ce_terrain_load_tile_mmpfiles");
 	char name[terrain->mprfile->name->length + 3 + 1];
 	for (int i = 0; i < terrain->mprfile->texture_count; ++i) {
 		snprintf(name, sizeof(name), "%s%03d", terrain->mprfile->name->str, i);
@@ -54,7 +53,6 @@ static void ce_terrain_load_tile_mmpfiles(ce_terrain* terrain)
 
 static void ce_terrain_load_tile_textures(ce_terrain* terrain)
 {
-	ce_logging_debug("ce_terrain_load_tile_textures");
 	char name[terrain->mprfile->name->length + 3 + 1];
 	for (int i = 0; i < terrain->mprfile->texture_count; ++i) {
 		snprintf(name, sizeof(name), "%s%03d", terrain->mprfile->name->str, i);
@@ -72,29 +70,22 @@ static void ce_terrain_sector_process(ce_event* event)
 {
 	ce_terrain_sector* sector = ((ce_test*)event->impl)->sector;
 
-	ce_logging_debug("ce_terrain_sector_process %d %d", sector->x, sector->z);
-
-	//ce_logging_debug("%p", sector);
-
 	if (ce_option_manager->terrain_tiling) {
 		sector->texture = ce_texture_add_ref(ce_texture_manager_get("default0"));
+		// tile textures are necessary for geometry creation if tiling
+		ce_once_exec(sector->terrain->tile_once,
+			ce_terrain_load_tile_textures, sector->terrain);
 	} else {
 		sector->texture = ce_texture_new(sector->name->str, sector->mmpfile);
-		ce_mmpfile_del(sector->mmpfile);
 	}
 
+	ce_mmpfile_del(sector->mmpfile);
 	ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
 
 	sector->renderlayer = ce_rendergroup_get(sector->
 		terrain->rendergroups[sector->water], sector->texture);
 
 	//ce_texmng_put(ce_texture_add_ref(sector->texture));
-
-	if (ce_option_manager->terrain_tiling) {
-		// tile textures are necessary for geometry creation if tiling
-		ce_once_exec(sector->terrain->tile_once,
-			ce_terrain_load_tile_textures, sector->terrain);
-	}
 
 	sector->renderitem = ce_mprrenderitem_new(sector->terrain->mprfile,
 		sector->x, sector->z, sector->water, sector->terrain->tile_textures);
@@ -112,12 +103,12 @@ static void ce_terrain_sector_process(ce_event* event)
 						{NULL, NULL, NULL, ce_scenenode_updated, NULL, sector};
 
 	ce_scenenode_add_renderitem(scenenode, sector->renderitem);
+
+	++sector->terrain->completed_job_count;
 }
 
 static void ce_terrain_sector_exec(ce_terrain_sector* sector)
 {
-	ce_logging_debug("ce_terrain_sector_exec %d %d", sector->x, sector->z);
-
 	if (!ce_option_manager->terrain_tiling) {
 		// lazy loading tile mmp files
 		ce_once_exec(sector->terrain->tile_once,
@@ -136,8 +127,6 @@ static void ce_terrain_sector_exec(ce_terrain_sector* sector)
 
 		//ce_texmng_save_mmpfile(sector->name->str, sector->mmpfile);
 	}
-
-	//ce_logging_debug("%p", sector);
 
 	ce_event_manager_post_raw(ce_render_system->thread_id,
 		ce_terrain_sector_process, (ce_test[]){{sector}}, sizeof(ce_test));
@@ -206,11 +195,12 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 					"%s%03d%03d", terrain->mprfile->name->str, x, z);
 				ce_vector_push_back(terrain->sectors,
 					ce_terrain_sector_new(terrain, name, x, z, water));
+				++terrain->queued_job_count;
 			}
 		}
 	}
 
-	ce_logging_info("terrain: %d jobs queued", terrain->queued_job_count);
+	ce_logging_info("terrain: %zu jobs queued", terrain->queued_job_count);
 	ce_logging_info("terrain: done loading '%s'", mprfile->name->str);
 
 	return terrain;

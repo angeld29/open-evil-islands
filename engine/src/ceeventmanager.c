@@ -19,7 +19,9 @@
 */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
+#include <limits.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -31,37 +33,48 @@ ce_event_queue* ce_event_queue_new(ce_thread_id thread_id)
 {
 	ce_event_queue* queue = ce_alloc(sizeof(ce_event_queue));
 	queue->thread_id = thread_id;
+	queue->timer = ce_timer_new();
 	queue->mutex = ce_mutex_new();
 	queue->pending_events = ce_vector_new();
-	queue->sent_events = ce_vector_new();
+	queue->sending_events = ce_vector_new();
 	return queue;
 }
 
 void ce_event_queue_del(ce_event_queue* queue)
 {
 	if (NULL != queue) {
-		ce_vector_for_each(queue->sent_events, ce_event_del);
+		ce_vector_for_each(queue->sending_events, ce_event_del);
 		ce_vector_for_each(queue->pending_events, ce_event_del);
-		ce_vector_del(queue->sent_events);
+		ce_vector_del(queue->sending_events);
 		ce_vector_del(queue->pending_events);
 		ce_mutex_del(queue->mutex);
+		ce_timer_del(queue->timer);
 		ce_free(queue, sizeof(ce_event_queue));
 	}
 }
 
 void ce_event_queue_process(ce_event_queue* queue)
 {
+	ce_event_queue_process_timeout(queue, INT_MAX);
+}
+
+void ce_event_queue_process_timeout(ce_event_queue* queue, int max_time)
+{
 	ce_mutex_lock(queue->mutex);
-	ce_swap_temp(ce_vector*, &queue->pending_events, &queue->sent_events);
+	ce_swap_temp(ce_vector*, &queue->pending_events, &queue->sending_events);
 	ce_mutex_unlock(queue->mutex);
 
-	for (size_t i = 0; i < queue->sent_events->count; ++i) {
-		ce_event* event = queue->sent_events->items[i];
-		(*event->notify)(event);
-	}
+	ce_timer_start(queue->timer);
 
-	ce_vector_for_each(queue->sent_events, ce_event_del);
-	ce_vector_clear(queue->sent_events);
+	// I (and timer) like seconds
+	for (float time = 0.0f, limit = 1e-3f * max_time;
+			!ce_vector_empty(queue->sending_events) && time < limit;
+			time += queue->timer->elapsed) {
+		ce_event* event = ce_vector_pop_back(queue->sending_events);
+		(*event->notify)(event);
+		ce_event_del(event);
+		ce_timer_advance(queue->timer);
+	}
 }
 
 void ce_event_queue_push(ce_event_queue* queue, ce_event* event)
@@ -100,11 +113,16 @@ void ce_event_manager_create_queue(void)
 
 void ce_event_manager_process_events(void)
 {
+	ce_event_manager_process_events_timeout(INT_MAX);
+}
+
+void ce_event_manager_process_events_timeout(int max_time)
+{
 	ce_thread_id thread_id = ce_thread_self();
 	for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
 		ce_event_queue* queue = ce_event_manager->event_queues->items[i];
 		if (thread_id == queue->thread_id) {
-			ce_event_queue_process(queue);
+			ce_event_queue_process_timeout(queue, max_time);
 		}
 	}
 }
@@ -119,8 +137,8 @@ void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event)
 		}
 	}
 
-	assert(false && "could not found queue");
-	ce_logging_critical("event manager: could not found queue");
+	assert(false && "could not find queue");
+	ce_logging_critical("event manager: internal error: could not find queue");
 
 	ce_event_del(event);
 }
