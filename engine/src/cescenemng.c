@@ -218,9 +218,6 @@ static void ce_scenemng_advance_playing(ce_scenemng* scenemng, float elapsed)
 
 static void ce_scenemng_render_playing(ce_scenemng* scenemng)
 {
-	ce_render_system_setup_viewport(scenemng->viewport);
-	ce_render_system_setup_camera(scenemng->camera);
-
 	if (ce_option_manager->show_axes) {
 		ce_render_system_draw_axes();
 	}
@@ -291,6 +288,9 @@ void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
 void ce_scenemng_render(ce_scenemng* scenemng)
 {
 	ce_render_system_begin_render(&CE_COLOR_WHITE);
+
+	ce_render_system_setup_viewport(scenemng->viewport);
+	ce_render_system_setup_camera(scenemng->camera);
 
 	(*ce_scenemng_state_procs[scenemng->state].render)(scenemng);
 
