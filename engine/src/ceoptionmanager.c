@@ -56,6 +56,7 @@ void ce_option_manager_init(ce_optparse* optparse)
 	ce_optparse_get(optparse, "inverse_trackball_x", &ce_option_manager->inverse_trackball_x);
 	ce_optparse_get(optparse, "inverse_trackball_y", &ce_option_manager->inverse_trackball_y);
 	ce_optparse_get(optparse, "terrain_tiling", &ce_option_manager->terrain_tiling);
+	ce_optparse_get(optparse, "caching_textures", &ce_option_manager->caching_textures);
 	ce_optparse_get(optparse, "thread_count", &ce_option_manager->thread_count);
 	ce_optparse_get(optparse, "show_axes", &ce_option_manager->show_axes);
 	ce_optparse_get(optparse, "show_fps", &ce_option_manager->show_fps);
@@ -163,8 +164,15 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 
 	ce_optparse_add(optparse, "terrain_tiling",
 		CE_TYPE_BOOL, NULL, false, NULL, "terrain-tiling",
-		"enable terrain tiling; very slow, but reduce usage of video "
-		"memory and disk space; use it if you have an old video card");
+		"enable terrain tiling; "
+		"may be useful if you have a prehistoric video adapter; "
+		"very slow!");
+
+	ce_optparse_add(optparse, "caching_textures",
+		CE_TYPE_BOOL, NULL, false, NULL, "caching-textures",
+		"save generated textures in cache (usually 'Textures' directory); "
+		"warning: up to 1 GB disk space usage is normal; "
+		"very useful if you have a single-core slow CPU");
 
 	ce_optparse_add(optparse, "thread_count",
 		CE_TYPE_INT, (const int[]){ce_online_cpu_count()}, false, "j", "jobs",

@@ -45,7 +45,7 @@ static void ce_terrain_load_tile_mmpfiles(ce_terrain* terrain)
 	char name[terrain->mprfile->name->length + 3 + 1];
 	for (int i = 0; i < terrain->mprfile->texture_count; ++i) {
 		snprintf(name, sizeof(name), "%s%03d", terrain->mprfile->name->str, i);
-		ce_mmpfile* mmpfile = ce_texture_manager_open_mmpfile(name);
+		ce_mmpfile* mmpfile = ce_texture_manager_open_mmpfile_from_resources(name);
 		ce_mmpfile_convert(mmpfile, CE_MMPFILE_FORMAT_R8G8B8A8);
 		ce_vector_push_back(terrain->tile_mmpfiles, mmpfile);
 	}
@@ -68,20 +68,24 @@ static void ce_terrain_sector_process(ce_event* event)
 
 	if (ce_option_manager->terrain_tiling) {
 		sector->texture = ce_texture_add_ref(ce_texture_manager_get("default0"));
+
 		// tile textures are necessary for geometry creation
 		ce_once_exec(sector->terrain->tile_once,
 			ce_terrain_load_tile_textures, sector->terrain);
 	} else {
 		sector->texture = ce_texture_new(sector->name->str, sector->mmpfile);
+
+		// we do not more need in mmp file (we already have a texture)
 		ce_mmpfile_del(sector->mmpfile);
+
+		// TODO: ???
+		//ce_texture_manager_put(ce_texture_add_ref(sector->texture));
 	}
 
 	ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
 
 	sector->renderlayer = ce_rendergroup_get(sector->
 		terrain->rendergroups[sector->water], sector->texture);
-
-	//ce_texmng_put(ce_texture_add_ref(sector->texture));
 
 	sector->renderitem = ce_mprrenderitem_new(sector->terrain->mprfile,
 		sector->x, sector->z, sector->water, sector->terrain->tile_textures);
@@ -101,7 +105,7 @@ static void ce_terrain_sector_process(ce_event* event)
 	ce_scenenode_add_renderitem(scenenode, sector->renderitem);
 
 	if (++sector->terrain->completed_job_count == sector->terrain->queued_job_count) {
-		// free mmp files to avoid extra memory usage
+		// free tile mmp files to avoid extra memory usage
 		ce_vector_for_each(sector->terrain->tile_mmpfiles, ce_mmpfile_del);
 		ce_vector_clear(sector->terrain->tile_mmpfiles);
 
@@ -113,22 +117,27 @@ static void ce_terrain_sector_process(ce_event* event)
 static void ce_terrain_sector_exec(ce_terrain_sector* sector)
 {
 	if (!ce_option_manager->terrain_tiling) {
-		// lazy loading tile mmp files
-		ce_once_exec(sector->terrain->tile_once,
-			ce_terrain_load_tile_mmpfiles, sector->terrain);
+		sector->mmpfile = ce_texture_manager_open_mmpfile_from_cache(sector->name->str);
 
 		if (NULL == sector->mmpfile ||
 				sector->mmpfile->version < CE_MMPFILE_VERSION ||
 				sector->mmpfile->user_info < CE_MPRHLP_MMPFILE_VERSION) {
+			ce_mmpfile_del(sector->mmpfile);
+
+			// lazy loading tile mmp files
+			ce_once_exec(sector->terrain->tile_once,
+				ce_terrain_load_tile_mmpfiles, sector->terrain);
+
+			sector->mmpfile = ce_mprhlp_generate_mmpfile(sector->terrain->mprfile,
+				sector->terrain->tile_mmpfiles, sector->x, sector->z, sector->water);
+
+			// force to dxt1?
+			ce_mmpfile_convert(sector->mmpfile, CE_MMPFILE_FORMAT_DXT1);
+
+			if (ce_option_manager->caching_textures) {
+				ce_texture_manager_save_mmpfile(sector->name->str, sector->mmpfile);
+			}
 		}
-
-		sector->mmpfile = ce_mprhlp_generate_mmpfile(sector->terrain->mprfile,
-			sector->terrain->tile_mmpfiles, sector->x, sector->z, sector->water);
-
-		// force to dxt1?
-		ce_mmpfile_convert(sector->mmpfile, CE_MMPFILE_FORMAT_DXT1);
-
-		//ce_texmng_save_mmpfile(sector->name->str, sector->mmpfile);
 	}
 
 	ce_event_manager_post_raw(ce_render_system->thread_id,
