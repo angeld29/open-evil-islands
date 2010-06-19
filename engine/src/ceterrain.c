@@ -62,24 +62,20 @@ static void ce_terrain_load_tile_textures(ce_terrain* terrain)
 	}
 }
 
-typedef struct {
-	ce_terrain_sector* sector;
-} ce_test;
-
 static void ce_terrain_sector_process(ce_event* event)
 {
-	ce_terrain_sector* sector = ((ce_test*)event->impl)->sector;
+	ce_terrain_sector* sector = ((ce_event_ptr*)event->impl)->ptr;
 
 	if (ce_option_manager->terrain_tiling) {
 		sector->texture = ce_texture_add_ref(ce_texture_manager_get("default0"));
-		// tile textures are necessary for geometry creation if tiling
+		// tile textures are necessary for geometry creation
 		ce_once_exec(sector->terrain->tile_once,
 			ce_terrain_load_tile_textures, sector->terrain);
 	} else {
 		sector->texture = ce_texture_new(sector->name->str, sector->mmpfile);
+		ce_mmpfile_del(sector->mmpfile);
 	}
 
-	ce_mmpfile_del(sector->mmpfile);
 	ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
 
 	sector->renderlayer = ce_rendergroup_get(sector->
@@ -104,7 +100,14 @@ static void ce_terrain_sector_process(ce_event* event)
 
 	ce_scenenode_add_renderitem(scenenode, sector->renderitem);
 
-	++sector->terrain->completed_job_count;
+	if (++sector->terrain->completed_job_count == sector->terrain->queued_job_count) {
+		// free mmp files to avoid extra memory usage
+		ce_vector_for_each(sector->terrain->tile_mmpfiles, ce_mmpfile_del);
+		ce_vector_clear(sector->terrain->tile_mmpfiles);
+
+		// tile textures are necessary for geometry rendering if tiling
+		// do not touch it
+	}
 }
 
 static void ce_terrain_sector_exec(ce_terrain_sector* sector)
@@ -129,7 +132,7 @@ static void ce_terrain_sector_exec(ce_terrain_sector* sector)
 	}
 
 	ce_event_manager_post_raw(ce_render_system->thread_id,
-		ce_terrain_sector_process, (ce_test[]){{sector}}, sizeof(ce_test));
+		ce_terrain_sector_process, &(ce_event_ptr){sector}, sizeof(ce_event_ptr));
 }
 
 ce_terrain_sector* ce_terrain_sector_new(ce_terrain* terrain,
@@ -191,10 +194,13 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 					// do not add empty geometry
 					continue;
 				}
+
 				snprintf(name, sizeof(name), water ? "%s%03d%03dw" :
 					"%s%03d%03d", terrain->mprfile->name->str, x, z);
+
 				ce_vector_push_back(terrain->sectors,
 					ce_terrain_sector_new(terrain, name, x, z, water));
+
 				++terrain->queued_job_count;
 			}
 		}

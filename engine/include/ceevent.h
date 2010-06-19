@@ -36,6 +36,10 @@ typedef struct ce_event {
 extern ce_event* ce_event_new(void (*notify)(ce_event*), size_t size);
 extern void ce_event_del(ce_event* event);
 
+typedef struct {
+	void* ptr;
+} ce_event_ptr;
+
 #ifdef __cplusplus
 }
 #endif
