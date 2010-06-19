@@ -89,6 +89,7 @@ static void ce_root_term(void)
 	ce_inputsupply_del(ce_root.inputsupply);
 	ce_timer_del(ce_root.timer);
 
+	ce_thread_pool_term();
 	ce_scenemng_del(ce_root.scenemng);
 	ce_figure_manager_term();
 	ce_mob_manager_term();
@@ -101,7 +102,6 @@ static void ce_root_term(void)
 	ce_sound_system_del(ce_root.sound_system);
 	ce_render_system_term();
 	ce_renderwindow_del(ce_root.renderwindow);
-	ce_thread_pool_term();
 	ce_event_manager_term();
 	ce_config_manager_term();
 	ce_option_manager_term();
@@ -126,7 +126,6 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 	ce_option_manager_init(optparse);
 	ce_config_manager_init();
 	ce_event_manager_init();
-	ce_thread_pool_init(ce_option_manager->thread_count);
 
 	ce_root.renderwindow = ce_renderwindow_create(ce_option_manager->window_width,
 		ce_option_manager->window_height, optparse->title->str);
@@ -189,6 +188,8 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 	ce_figure_manager_init();
 
 	ce_root.scenemng = ce_scenemng_new();
+
+	ce_thread_pool_init(ce_option_manager->thread_count);
 
 	ce_root.timer = ce_timer_new();
 	ce_root.inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);

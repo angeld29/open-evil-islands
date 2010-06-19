@@ -77,6 +77,7 @@ static void ce_terrain_sector_process(ce_event* event)
 
 		// we do not more need in mmp file (we already have a texture)
 		ce_mmpfile_del(sector->mmpfile);
+		sector->mmpfile = NULL;
 
 		// TODO: ???
 		//ce_texture_manager_put(ce_texture_add_ref(sector->texture));
@@ -162,6 +163,7 @@ void ce_terrain_sector_del(ce_terrain_sector* sector)
 {
 	if (NULL != sector) {
 		ce_texture_del(sector->texture);
+		ce_mmpfile_del(sector->mmpfile);
 		ce_string_del(sector->name);
 		ce_free(sector, sizeof(ce_terrain_sector));
 	}
