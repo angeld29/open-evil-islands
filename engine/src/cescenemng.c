@@ -68,7 +68,10 @@ ce_scenemng* ce_scenemng_new(void)
 	scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
 
 	scenemng->inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
-	scenemng->pause_event = ce_inputsupply_shortcut(scenemng->inputsupply, "Space");
+	scenemng->skip_logo_event = ce_inputsupply_single_front(scenemng->inputsupply,
+									ce_inputsupply_shortcut(scenemng->inputsupply, "Space"));
+	scenemng->pause_event = ce_inputsupply_single_front(scenemng->inputsupply,
+									ce_inputsupply_shortcut(scenemng->inputsupply, "Space"));
 	scenemng->move_left_event = ce_inputsupply_shortcut(scenemng->inputsupply, "ArrowLeft");
 	scenemng->move_up_event = ce_inputsupply_shortcut(scenemng->inputsupply, "ArrowUp");
 	scenemng->move_right_event = ce_inputsupply_shortcut(scenemng->inputsupply, "ArrowRight");
@@ -117,6 +120,10 @@ void ce_scenemng_change_state(ce_scenemng* scenemng, int state)
 static void ce_scenemng_advance_logo(ce_scenemng* scenemng, float elapsed)
 {
 	ce_video_object_advance(scenemng->logo.video_object, elapsed);
+
+	if (scenemng->skip_logo_event->triggered) {
+		ce_video_object_stop(scenemng->logo.video_object);
+	}
 
 	if (ce_video_object_is_stopped(scenemng->logo.video_object)) {
 		if (scenemng->logo.movie_index ==

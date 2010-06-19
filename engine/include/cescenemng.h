@@ -70,6 +70,7 @@ typedef struct {
 	ce_font* font;
 	ce_terrain* terrain;
 	ce_inputsupply* inputsupply;
+	ce_inputevent* skip_logo_event;
 	ce_inputevent* pause_event;
 	ce_inputevent* move_left_event;
 	ce_inputevent* move_up_event;
