@@ -65,8 +65,9 @@ extern ce_scenenode* ce_scenenode_new(ce_scenenode* parent);
 extern void ce_scenenode_del(ce_scenenode* scenenode);
 
 extern void ce_scenenode_detach_from_parent(ce_scenenode* scenenode);
-extern void ce_scenenode_detach_child(ce_scenenode* scenenode,
-										ce_scenenode* child);
+
+extern void ce_scenenode_attach_child(ce_scenenode* scenenode, ce_scenenode* child);
+extern void ce_scenenode_detach_child(ce_scenenode* scenenode, ce_scenenode* child);
 
 extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
 										ce_renderitem* renderitem);

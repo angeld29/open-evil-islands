@@ -24,7 +24,9 @@
 
 #include "celib.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "ceroot.h"
+#include "cetexturemanager.h"
 #include "cefighlp.h"
 #include "cefigentity.h"
 
@@ -53,7 +55,8 @@ static void ce_figentity_scenenode_updated(void* listener)
 }
 
 static void ce_figentity_create_renderlayers(ce_figentity* figentity,
-										ce_vector* parts, ce_fignode* fignode)
+												const char* parts[],
+												ce_fignode* fignode)
 {
 	// FIXME: to be reversed...
 	size_t index = fignode->figfile->texture_number - 1;
@@ -65,12 +68,11 @@ static void ce_figentity_create_renderlayers(ce_figentity* figentity,
 		ce_rendergroup_get(fignode->rendergroup,
 							figentity->textures->items[index]));
 
-	if (NULL != parts && !ce_vector_empty(parts)) {
+	if (NULL != parts[0]) {
 		ce_renderitem* renderitem = figentity->scenenode->renderitems->items[fignode->index];
 		renderitem->visible = false;
-		for (size_t i = 0; i < parts->count; ++i) {
-			ce_string* part = parts->items[i];
-			if (0 == strcmp(fignode->name->str, part->str)) {
+		for (size_t i = 0; NULL != parts[i]; ++i) {
+			if (0 == strcmp(parts[i], fignode->name->str)) {
 				renderitem->visible = true;
 			}
 		}
@@ -84,15 +86,17 @@ static void ce_figentity_create_renderlayers(ce_figentity* figentity,
 ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								const ce_vec3* position,
 								const ce_quat* orientation,
-								ce_vector* parts, int texture_count,
-								ce_texture* textures[],
+								const char* parts[],
+								const char* textures[],
 								ce_scenenode* scenenode)
 {
 	ce_figentity* figentity = ce_alloc(sizeof(ce_figentity));
+	figentity->position = *position;
+	figentity->orientation = *orientation;
 	figentity->figmesh = ce_figmesh_add_ref(figmesh);
 	figentity->figbone = ce_figbone_new(figmesh->figproto->fignode,
 										&figmesh->complection, NULL);
-	figentity->textures = ce_vector_new_reserved(texture_count);
+	figentity->textures = ce_vector_new_reserved(2);
 	figentity->renderlayers = ce_vector_new();
 	figentity->scenenode = ce_scenenode_new(scenenode);
 	figentity->scenenode->position = *position;
@@ -102,10 +106,14 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 		{NULL, NULL, ce_figentity_scenenode_about_to_update,
 		ce_figentity_scenenode_updated, NULL, figentity};
 
-	for (int i = 0; i < texture_count; ++i) {
-		ce_vector_push_back(figentity->textures,
-			ce_texture_add_ref(textures[i]));
-		ce_texture_wrap(textures[i], CE_TEXTURE_WRAP_REPEAT);
+	for (size_t i = 0; NULL != textures[i]; ++i) {
+		ce_vector_push_back(figentity->textures, ce_texture_manager_get(textures[i]));
+		if (NULL == figentity->textures->items[i]) {
+			figentity->textures->items[i] = ce_texture_manager_get("default0");
+			ce_logging_error("figure entity: could not find texture '%s'", textures[i]);
+		}
+		ce_texture_add_ref(figentity->textures->items[i]);
+		ce_texture_wrap(figentity->textures->items[i], CE_TEXTURE_WRAP_REPEAT);
 	}
 
 	for (size_t i = 0; i < figmesh->renderitems->count; ++i) {
@@ -130,6 +138,12 @@ void ce_figentity_del(ce_figentity* figentity)
 		ce_figmesh_del(figentity->figmesh);
 		ce_free(figentity, sizeof(ce_figentity));
 	}
+}
+
+void ce_figentity_fix_height(ce_figentity* figentity, float y)
+{
+	figentity->scenenode->position = figentity->position;
+	figentity->scenenode->position.y += y;
 }
 
 int ce_figentity_get_animation_count(ce_figentity* figentity)

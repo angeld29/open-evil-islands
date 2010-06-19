@@ -102,6 +102,8 @@ static void ce_terrain_sector_process(ce_event* event)
 
 		// tile textures are necessary for geometry rendering if tiling
 		// do not touch it
+
+		ce_logging_info("terrain: done loading '%s'", sector->terrain->mprfile->name->str);
 	}
 }
 
@@ -219,8 +221,6 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 	}
 
 	ce_logging_info("terrain: %zu jobs queued", terrain->queued_job_count);
-	ce_logging_info("terrain: done loading '%s'", mprfile->name->str);
-
 	return terrain;
 }
 

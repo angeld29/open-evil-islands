@@ -40,6 +40,7 @@
 #include "cetexturemanager.h"
 #include "cemprmanager.h"
 #include "cemobmanager.h"
+#include "cemobloader.h"
 #include "cefiguremanager.h"
 #include "ceroot.h"
 
@@ -92,6 +93,7 @@ static void ce_root_term(void)
 	ce_thread_pool_term();
 	ce_scenemng_del(ce_root.scenemng);
 	ce_figure_manager_term();
+	ce_mob_loader_term();
 	ce_mob_manager_term();
 	ce_mpr_manager_term();
 	ce_texture_manager_term();
@@ -184,6 +186,7 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 
 	ce_mpr_manager_init();
 	ce_mob_manager_init();
+	ce_mob_loader_init();
 
 	ce_figure_manager_init();
 

@@ -37,7 +37,7 @@ ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 	scenenode->parent = parent;
 	scenenode->childs = ce_vector_new();
 	if (NULL != parent) {
-		ce_vector_push_back(parent->childs, scenenode);
+		ce_scenenode_attach_child(parent, scenenode);
 	}
 	return scenenode;
 }
@@ -70,6 +70,12 @@ void ce_scenenode_detach_from_parent(ce_scenenode* scenenode)
 			(*scenenode->listener.detached)(scenenode->listener.listener);
 		}
 	}
+}
+
+void ce_scenenode_attach_child(ce_scenenode* scenenode, ce_scenenode* child)
+{
+	child->parent = scenenode;
+	ce_vector_push_back(scenenode->childs, child);
 }
 
 void ce_scenenode_detach_child(ce_scenenode* scenenode, ce_scenenode* child)

@@ -30,6 +30,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceoptionmanager.h"
+#include "cefiguremanager.h"
 #include "ceroot.h"
 
 static ce_optparse* optparse;
@@ -59,7 +60,7 @@ static void clean()
 
 static bool update_figentity()
 {
-	ce_scenemng_remove_figentity(ce_root.scenemng, figentity);
+	ce_figure_manager_remove_entity(figentity);
 
 	ce_vec3 position = CE_VEC3_ZERO;
 
@@ -68,17 +69,19 @@ static bool update_figentity()
 	ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
 	ce_quat_mul(&orientation, &q2, &q1);
 
-	const char *textures[2], *figure;
+	const char *parts[1] = {NULL}, *textures[3] = {[2] = NULL}, *figure;
 	ce_optparse_get(optparse, "pritex", &textures[0]);
 	ce_optparse_get(optparse, "sectex", &textures[1]);
 	ce_optparse_get(optparse, "figure", &figure);
 
-	figentity = ce_scenemng_create_figentity(ce_root.scenemng, figure,
-		&complection, &position, &orientation, NULL, 2, textures, NULL);
+	figentity = ce_figure_manager_create_entity(figure,
+		&complection, &position, &orientation, parts, textures);
 
 	if (NULL == figentity) {
 		return false;
 	}
+
+	ce_scenenode_attach_child(ce_root.scenemng->scenenode, figentity->scenenode);
 
 	if (-1 != anmidx) {
 		ce_figentity_play_animation(figentity,

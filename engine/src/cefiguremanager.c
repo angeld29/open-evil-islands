@@ -67,6 +67,7 @@ void ce_figure_manager_init(void)
 	ce_figure_manager->resfiles = ce_vector_new();
 	ce_figure_manager->figprotos = ce_vector_new();
 	ce_figure_manager->figmeshes = ce_vector_new();
+	ce_figure_manager->entities = ce_vector_new_reserved(512);
 	ce_figure_manager->listeners = ce_vector_new();
 
 	char path[ce_option_manager->ei_path->length + 32];
@@ -94,10 +95,12 @@ void ce_figure_manager_init(void)
 void ce_figure_manager_term(void)
 {
 	if (NULL != ce_figure_manager) {
+		ce_figure_manager_clear();
 		ce_vector_for_each(ce_figure_manager->figmeshes, ce_figmesh_del);
 		ce_vector_for_each(ce_figure_manager->figprotos, ce_figproto_del);
 		ce_vector_for_each(ce_figure_manager->resfiles, ce_resfile_close);
 		ce_vector_del(ce_figure_manager->listeners);
+		ce_vector_del(ce_figure_manager->entities);
 		ce_vector_del(ce_figure_manager->figmeshes);
 		ce_vector_del(ce_figure_manager->figprotos);
 		ce_vector_del(ce_figure_manager->resfiles);
@@ -105,7 +108,13 @@ void ce_figure_manager_term(void)
 	}
 }
 
-static ce_figproto* ce_figure_manager_get_figproto(const char* name)
+void ce_figure_manager_clear(void)
+{
+	ce_vector_for_each(ce_figure_manager->entities, ce_figentity_del);
+	ce_vector_clear(ce_figure_manager->entities);
+}
+
+ce_figproto* ce_figure_manager_create_proto(const char* name)
 {
 	char true_name[strlen(name) + 1];
 	ce_path_remove_ext(true_name, name);
@@ -136,8 +145,8 @@ static ce_figproto* ce_figure_manager_get_figproto(const char* name)
 	return NULL;
 }
 
-static ce_figmesh* ce_figure_manager_get_figmesh(const char* name,
-								const ce_complection* complection)
+ce_figmesh* ce_figure_manager_create_mesh(const char* name,
+										const ce_complection* complection)
 {
 	char true_name[strlen(name) + 1];
 	ce_path_remove_ext(true_name, name);
@@ -150,7 +159,7 @@ static ce_figmesh* ce_figure_manager_get_figmesh(const char* name,
 		}
 	}
 
-	ce_figproto* figproto = ce_figure_manager_get_figproto(name);
+	ce_figproto* figproto = ce_figure_manager_create_proto(name);
 	if (NULL != figproto) {
 		ce_figmesh* figmesh = ce_figmesh_new(figproto, complection);
 		ce_vector_push_back(ce_figure_manager->figmeshes, figmesh);
@@ -162,15 +171,27 @@ static ce_figmesh* ce_figure_manager_get_figmesh(const char* name,
 	return NULL;
 }
 
-ce_figentity* ce_figure_manager_create_figentity(const char* name,
-	const ce_complection* complection, const ce_vec3* position,
-	const ce_quat* orientation, ce_vector* parts,
-	int texture_count, ce_texture* textures[], ce_scenenode* scenenode)
+ce_figentity* ce_figure_manager_create_entity(const char* name,
+	const ce_complection* complection,
+	const ce_vec3* position, const ce_quat* orientation,
+	const char* parts[], const char* textures[])
 {
-	ce_figmesh* figmesh = ce_figure_manager_get_figmesh(name, complection);
-	if (NULL == figmesh) {
-		return NULL;
+	ce_figmesh* mesh = ce_figure_manager_create_mesh(name, complection);
+	if (NULL != mesh) {
+		ce_figentity* entity = ce_figentity_new(mesh,
+			position, orientation, parts, textures, NULL);
+		if (NULL != entity) {
+			ce_vector_push_back(ce_figure_manager->entities, entity);
+			return entity;
+		}
 	}
-	return ce_figentity_new(figmesh, position, orientation, parts,
-							texture_count, textures, scenenode);
+
+	ce_logging_error("figure manager: could not create figure entity '%s'", name);
+	return NULL;
+}
+
+void ce_figure_manager_remove_entity(ce_figentity* entity)
+{
+	ce_vector_remove_all(ce_figure_manager->entities, entity);
+	ce_figentity_del(entity);
 }

@@ -28,6 +28,8 @@
 #include "cemath.h"
 #include "cealloc.h"
 #include "ceoptionmanager.h"
+#include "cefiguremanager.h"
+#include "cemobloader.h"
 #include "ceroot.h"
 
 static ce_optparse* optparse;
@@ -53,15 +55,15 @@ static void state_changed(void* listener, int state)
 		const char* zone;
 		ce_optparse_get(optparse, "zone", &zone);
 		ce_scenemng_load_mpr(ce_root.scenemng, zone);
-		ce_scenemng_load_mob(ce_root.scenemng, zone);
+		ce_mob_loader_load_mob(zone);
 		ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);
 	}
 
 	if (CE_SCENEMNG_STATE_PLAYING == state) {
 		// play random animations
 		srand(time(NULL));
-		for (size_t i = 0; i < ce_root.scenemng->figentities->count; ++i) {
-			ce_figentity* figentity = ce_root.scenemng->figentities->items[i];
+		for (size_t i = 0; i < ce_figure_manager->entities->count; ++i) {
+			ce_figentity* figentity = ce_figure_manager->entities->items[i];
 			int anm_count = ce_figentity_get_animation_count(figentity);
 			if (anm_count > 0) {
 				const char* name = ce_figentity_get_animation_name(figentity,

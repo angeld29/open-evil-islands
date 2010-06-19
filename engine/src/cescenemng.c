@@ -33,9 +33,9 @@
 #include "ceconfigmanager.h"
 #include "cerendersystem.h"
 #include "cevideomanager.h"
-#include "cetexturemanager.h"
+#include "cefiguremanager.h"
 #include "cemprmanager.h"
-#include "cemobmanager.h"
+#include "cemobloader.h"
 #include "ceroot.h"
 #include "cescenemng.h"
 
@@ -66,7 +66,6 @@ ce_scenemng* ce_scenemng_new(void)
 	scenemng->camera = ce_camera_new();
 	scenemng->fps = ce_fps_new();
 	scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
-	scenemng->figentities = ce_vector_new();
 
 	scenemng->inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
 	scenemng->pause_event = ce_inputsupply_shortcut(scenemng->inputsupply, "Space");
@@ -92,9 +91,10 @@ ce_scenemng* ce_scenemng_new(void)
 void ce_scenemng_del(ce_scenemng* scenemng)
 {
 	if (NULL != scenemng) {
-		ce_vector_for_each(scenemng->figentities, ce_figentity_del);
+		// FIXME: figure entities must be removed before terrain
+		ce_figure_manager_clear();
+
 		ce_inputsupply_del(scenemng->inputsupply);
-		ce_vector_del(scenemng->figentities);
 		ce_terrain_del(scenemng->terrain);
 		ce_font_del(scenemng->font);
 		ce_fps_del(scenemng->fps);
@@ -121,6 +121,7 @@ static void ce_scenemng_advance_logo(ce_scenemng* scenemng, float elapsed)
 	if (ce_video_object_is_stopped(scenemng->logo.video_object)) {
 		if (scenemng->logo.movie_index ==
 				ce_config_manager->movies[CE_CONFIG_MOVIE_START]->count) {
+			ce_logging_debug("scene manager: switch to 'ready'");
 			ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_READY);
 		} else {
 			ce_string* movie_name = ce_config_manager->
@@ -166,13 +167,32 @@ static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float elapsed)
 		completed_job_count += scenemng->terrain->completed_job_count;
 	}
 
+	for (size_t i = 0; i < ce_mob_loader->mob_tasks->count; ++i) {
+		ce_mob_task* mob_task = ce_mob_loader->mob_tasks->items[i];
+		queued_job_count += mob_task->queued_job_count;
+		completed_job_count += mob_task->completed_job_count;
+	}
+
 	ce_video_object_progress(scenemng->loading.video_object,
 		100.0f * completed_job_count / queued_job_count);
 
 	// TODO: hold last frame
 	if (completed_job_count >= queued_job_count) {
+		if (NULL != scenemng->terrain) {
+			for (size_t i = 0; i < ce_figure_manager->entities->count; ++i) {
+				ce_figentity* figentity = ce_figure_manager->entities->items[i];
+				ce_figentity_fix_height(figentity,
+					ce_mprhlp_get_height(scenemng->terrain->mprfile,
+						figentity->position.x, figentity->position.z));
+				ce_scenenode_attach_child(ce_terrain_find_scenenode(scenemng->terrain,
+					figentity->position.x, figentity->position.z), figentity->scenenode);
+			}
+		}
+
+		ce_mob_loader_clear();
+
+		ce_logging_debug("scene manager: switch to 'playing'");
 		ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_PLAYING);
-		ce_logging_debug("new state: playing");
 	}
 }
 
@@ -341,93 +361,9 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 	ce_render_system_end_render();
 }
 
-ce_figentity*
-ce_scenemng_create_figentity(ce_scenemng* scenemng,
-							const char* name,
-							const ce_complection* complection,
-							const ce_vec3* position,
-							const ce_quat* orientation,
-							ce_vector* parts,
-							int texture_count,
-							const char* texture_names[],
-							ce_scenenode* scenenode)
-{
-	ce_texture* textures[texture_count];
-
-	for (int i = 0; i < texture_count; ++i) {
-		textures[i] = ce_texture_manager_get(texture_names[i]);
-		if (NULL == textures[i]) {
-			ce_logging_error("scenemng: could not load texture '%s'", texture_names[i]);
-			return NULL;
-		}
-	}
-
-	if (NULL == scenenode) {
-		scenenode = scenemng->scenenode;
-		if (NULL != scenemng->terrain) {
-			scenenode = ce_terrain_find_scenenode(scenemng->terrain,
-												position->x, position->z);
-		}
-	}
-
-	ce_figentity* figentity =
-		ce_figure_manager_create_figentity(name,
-									complection, position,
-									orientation, parts,
-									texture_count, textures, scenenode);
-
-	if (NULL == figentity) {
-		ce_logging_error("scene manager: could not create figure entity '%s'", name);
-		return NULL;
-	}
-
-	ce_vector_push_back(scenemng->figentities, figentity);
-	scenemng->scenenode_force_update = true;
-
-	return figentity;
-}
-
-ce_figentity*
-ce_scenemng_create_figentity_mobobject(ce_scenemng* scenemng,
-									const ce_mobobject_object* mobobject)
-{
-	ce_vec3 position = mobobject->position;
-	ce_swap_temp(float, &position.y, &position.z);
-	if (NULL != scenemng->terrain) {
-		position.y += ce_mprhlp_get_height(scenemng->terrain->mprfile,
-											position.x, position.z);
-	}
-	// yeah! it's a real hard-code :) move creatures up
-	if (50 == mobobject->type ||
-			51 == mobobject->type ||
-			52 == mobobject->type) {
-		position.y += 1.0f;
-	}
-	position.z = -position.z; // FIXME: opengl's hardcode
-
-	ce_quat orientation, q;
-	ce_quat_init_polar(&q, ce_deg2rad(-90.0f), &CE_VEC3_UNIT_X);
-	ce_quat_mul(&orientation, &q, &mobobject->rotation);
-
-	const char* texture_names[] = { mobobject->primary_texture->str,
-									mobobject->secondary_texture->str };
-
-	return ce_scenemng_create_figentity(scenemng,
-										mobobject->model_name->str,
-										&mobobject->complection,
-										&position, &orientation,
-										mobobject->parts,
-										2, texture_names, NULL);
-}
-
-void ce_scenemng_remove_figentity(ce_scenemng* scenemng, ce_figentity* figentity)
-{
-	ce_vector_remove_all(scenemng->figentities, figentity);
-	ce_figentity_del(figentity);
-}
-
 void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
 {
+	// TODO: mpr loader?
 	ce_mprfile* mprfile = ce_mpr_manager_open(name);
 	if (NULL != mprfile) {
 		ce_terrain_del(scenemng->terrain);
@@ -437,19 +373,4 @@ void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
 
 		scenemng->scenenode_force_update = true;
 	}
-}
-
-void ce_scenemng_load_mob(ce_scenemng* scenemng, const char* name)
-{
-	ce_mobfile* mobfile = ce_mob_manager_open(name);
-	if (NULL != mobfile) {
-		ce_logging_write("scene manager: loading mob '%s'...", name);
-		for (size_t i = 0; i < mobfile->objects->count; ++i) {
-			const ce_mobobject_object* mobobject = mobfile->objects->items[i];
-			ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
-		}
-		ce_logging_info("scene manager: %zu jobs queued", mobfile->objects->count);
-		ce_logging_write("scene manager: done loading mob '%s'", name);
-	}
-	ce_mobfile_close(mobfile);
 }
