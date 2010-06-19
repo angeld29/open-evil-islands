@@ -42,12 +42,13 @@ typedef struct ce_terrain ce_terrain;
 
 typedef struct {
 	bool water;
-	int index, x, z;
+	int x, z;
 	ce_string* name;
 	ce_mmpfile* mmpfile;
 	ce_texture* texture;
 	ce_renderlayer* renderlayer;
 	ce_renderitem* renderitem;
+	ce_scenenode* scenenode;
 	ce_terrain* terrain;
 } ce_terrain_sector;
 

@@ -34,12 +34,6 @@
 #include "cemprrenderitem.h"
 #include "ceterrain.h"
 
-static void ce_scenenode_updated(void* listener)
-{
-	ce_terrain_sector* sector = listener;
-	ce_renderlayer_add(sector->renderlayer, sector->renderitem);
-}
-
 static void ce_terrain_load_tile_mmpfiles(ce_terrain* terrain)
 {
 	char name[terrain->mprfile->name->length + 3 + 1];
@@ -99,11 +93,7 @@ static void ce_terrain_sector_process(ce_event* event)
 	sector->renderitem->bbox.aabb = sector->renderitem->aabb;
 	sector->renderitem->bbox.axis = CE_QUAT_IDENTITY;
 
-	ce_scenenode* scenenode = ce_scenenode_new(sector->terrain->scenenode);
-	scenenode->listener = (ce_scenenode_listener)
-						{NULL, NULL, NULL, ce_scenenode_updated, NULL, sector};
-
-	ce_scenenode_add_renderitem(scenenode, sector->renderitem);
+	ce_scenenode_add_renderitem(sector->scenenode, sector->renderitem);
 
 	if (++sector->terrain->completed_job_count == sector->terrain->queued_job_count) {
 		// free tile mmp files to avoid extra memory usage
@@ -145,6 +135,12 @@ static void ce_terrain_sector_exec(ce_terrain_sector* sector)
 		ce_terrain_sector_process, &(ce_event_ptr){sector}, sizeof(ce_event_ptr));
 }
 
+static void ce_scenenode_updated(void* listener)
+{
+	ce_terrain_sector* sector = listener;
+	ce_renderlayer_add(sector->renderlayer, sector->renderitem);
+}
+
 ce_terrain_sector* ce_terrain_sector_new(ce_terrain* terrain,
 										const char* name,
 										int x, int z, bool water)
@@ -154,8 +150,13 @@ ce_terrain_sector* ce_terrain_sector_new(ce_terrain* terrain,
 	sector->x = x;
 	sector->z = z;
 	sector->water = water;
+	sector->scenenode = ce_scenenode_new(terrain->scenenode);
+	sector->scenenode->listener = (ce_scenenode_listener)
+		{NULL, NULL, NULL, ce_scenenode_updated, NULL, sector};
 	sector->terrain = terrain;
+
 	ce_thread_pool_enqueue(ce_terrain_sector_exec, sector);
+
 	return sector;
 }
 

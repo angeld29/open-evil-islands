@@ -448,6 +448,7 @@ void ce_scenemng_load_mob(ce_scenemng* scenemng, const char* name)
 			const ce_mobobject_object* mobobject = mobfile->objects->items[i];
 			ce_scenemng_create_figentity_mobobject(scenemng, mobobject);
 		}
+		ce_logging_info("scene manager: %zu jobs queued", mobfile->objects->count);
 		ce_logging_write("scene manager: done loading mob '%s'", name);
 	}
 	ce_mobfile_close(mobfile);
