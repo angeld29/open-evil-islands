@@ -1,0 +1,13 @@
+Cursed Earth Sound Player
+===========================
+
+Sound Player - play Evil Islands sounds.
+
+Sound Player is part of Cursed Earth spikes.
+Check http://cursedearth.sourceforge.net/ for more details.
+
+Try soundplayer -h for help.
+
+Some examples:
+soundplayer --ei-path=c:\evil_islands main
+soundplayer --ei-path=/home/user/evil_islands wild
