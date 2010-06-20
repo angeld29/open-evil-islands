@@ -56,7 +56,7 @@ static void ce_terrain_load_tile_textures(ce_terrain* terrain)
 	}
 }
 
-static void ce_terrain_sector_process(ce_event* event)
+static void ce_terrain_sector_react(ce_event* event)
 {
 	ce_terrain_sector* sector = ((ce_event_ptr*)event->impl)->ptr;
 
@@ -127,14 +127,14 @@ static void ce_terrain_sector_exec(ce_terrain_sector* sector)
 			// force to dxt1?
 			ce_mmpfile_convert(sector->mmpfile, CE_MMPFILE_FORMAT_DXT1);
 
-			if (ce_option_manager->caching_textures) {
+			if (ce_option_manager->texture_caching) {
 				ce_texture_manager_save_mmpfile(sector->name->str, sector->mmpfile);
 			}
 		}
 	}
 
 	ce_event_manager_post_raw(ce_render_system->thread_id,
-		ce_terrain_sector_process, &(ce_event_ptr){sector}, sizeof(ce_event_ptr));
+		ce_terrain_sector_react, &(ce_event_ptr){sector}, sizeof(ce_event_ptr));
 }
 
 static void ce_scenenode_updated(void* listener)

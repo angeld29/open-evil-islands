@@ -56,7 +56,7 @@ void ce_option_manager_init(ce_optparse* optparse)
 	ce_optparse_get(optparse, "inverse_trackball_x", &ce_option_manager->inverse_trackball_x);
 	ce_optparse_get(optparse, "inverse_trackball_y", &ce_option_manager->inverse_trackball_y);
 	ce_optparse_get(optparse, "terrain_tiling", &ce_option_manager->terrain_tiling);
-	ce_optparse_get(optparse, "caching_textures", &ce_option_manager->caching_textures);
+	ce_optparse_get(optparse, "texture_caching", &ce_option_manager->texture_caching);
 	ce_optparse_get(optparse, "thread_count", &ce_option_manager->thread_count);
 	ce_optparse_get(optparse, "show_axes", &ce_option_manager->show_axes);
 	ce_optparse_get(optparse, "show_fps", &ce_option_manager->show_fps);
@@ -168,8 +168,8 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 		"may be useful if you have a prehistoric video adapter; "
 		"very slow!");
 
-	ce_optparse_add(optparse, "caching_textures",
-		CE_TYPE_BOOL, NULL, false, NULL, "caching-textures",
+	ce_optparse_add(optparse, "texture_caching",
+		CE_TYPE_BOOL, NULL, false, NULL, "texture-caching",
 		"save generated textures in cache (usually 'Textures' directory); "
 		"warning: up to 1 GB disk space usage is normal; "
 		"very useful if you have a single-core slow CPU");

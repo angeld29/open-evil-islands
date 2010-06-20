@@ -50,7 +50,7 @@ extern struct ce_option_manager {
 	bool inverse_trackball_x;
 	bool inverse_trackball_y;
 	bool terrain_tiling;
-	bool caching_textures;
+	bool texture_caching;
 	int thread_count;
 	bool show_axes;
 	bool show_fps;
