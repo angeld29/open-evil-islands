@@ -60,20 +60,24 @@ void ce_event_queue_process(ce_event_queue* queue)
 
 void ce_event_queue_process_timeout(ce_event_queue* queue, int max_time)
 {
-	ce_mutex_lock(queue->mutex);
-	ce_swap_temp(ce_vector*, &queue->pending_events, &queue->sending_events);
-	ce_mutex_unlock(queue->mutex);
+	if (ce_vector_empty(queue->sending_events)) {
+		ce_mutex_lock(queue->mutex);
+		ce_swap_temp(ce_vector*, &queue->pending_events, &queue->sending_events);
+		ce_mutex_unlock(queue->mutex);
+	}
 
-	ce_timer_start(queue->timer);
+	if (!ce_vector_empty(queue->sending_events)) {
+		ce_timer_start(queue->timer);
 
-	// I (and timer) like seconds
-	for (float time = 0.0f, limit = 1e-3f * max_time;
-			!ce_vector_empty(queue->sending_events) && time < limit;
-			time += queue->timer->elapsed) {
-		ce_event* event = ce_vector_pop_back(queue->sending_events);
-		(*event->notify)(event);
-		ce_event_del(event);
-		ce_timer_advance(queue->timer);
+		// I (and timer) like seconds
+		for (float time = 0.0f, limit = 1e-3f * max_time;
+				!ce_vector_empty(queue->sending_events) && time < limit;
+				time += queue->timer->elapsed) {
+			ce_event* event = ce_vector_pop_back(queue->sending_events);
+			(*event->notify)(event);
+			ce_event_del(event);
+			ce_timer_advance(queue->timer);
+		}
 	}
 }
 
