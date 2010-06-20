@@ -54,8 +54,17 @@ static void ce_mob_object_event_react(ce_event* event)
 		&mob_event->complection, &mob_event->position,
 		&mob_event->orientation, mob_event->parts, mob_event->textures);
 
-	if (++mob_task->completed_job_count == mob_task->queued_job_count) {
-		ce_logging_write("mob loader: done loading '%s'", mob_task->name->str);
+	if (++mob_task->processed_event_count == mob_task->posted_event_count) {
+		ce_logging_info("mob task: done loading '%s'", mob_task->name->str);
+
+		ce_vector_remove_all(ce_mob_loader->mob_tasks, mob_task);
+		ce_mob_task_del(mob_task);
+
+		if (++ce_mob_loader->completed_job_count == ce_mob_loader->queued_job_count) {
+			// do not accumulate counters
+			ce_mob_loader->completed_job_count = 0;
+			ce_mob_loader->queued_job_count = 0;
+		}
 	}
 }
 
@@ -63,13 +72,14 @@ static void ce_mob_task_exec(ce_mob_task* mob_task)
 {
 	mob_task->mob_file = ce_mob_manager_open(mob_task->name->str);
 	if (NULL == mob_task->mob_file) {
-		ce_logging_error("mob loader: could not load '%s'", mob_task->name->str);
+		ce_logging_error("mob task: could not load '%s'", mob_task->name->str);
 		return;
 	}
 
-	ce_logging_write("mob loader: loading '%s'...", mob_task->name->str);
+	mob_task->posted_event_count = mob_task->mob_file->objects->count;
 
-	mob_task->queued_job_count = mob_task->mob_file->objects->count;
+	ce_logging_info("mob task: loading '%s'...", mob_task->name->str);
+	ce_logging_info("mob task: %zu events posted", mob_task->posted_event_count);
 
 	for (size_t i = 0; i < mob_task->mob_file->objects->count; ++i) {
 		ce_mobobject_object* mob_object = mob_task->mob_file->objects->items[i];
@@ -110,15 +120,12 @@ static void ce_mob_task_exec(ce_mob_task* mob_task)
 
 		ce_event_manager_post_event(ce_render_system->thread_id, event);
 	}
-
-	ce_logging_info("mob loader: %zu jobs queued", mob_task->queued_job_count);
 }
 
 ce_mob_task* ce_mob_task_new(const char* name)
 {
 	ce_mob_task* mob_task = ce_alloc_zero(sizeof(ce_mob_task));
 	mob_task->name = ce_string_new_str(name);
-	mob_task->queued_job_count = 5000; // only guess
 	ce_thread_pool_enqueue(ce_mob_task_exec, mob_task);
 	return mob_task;
 }
@@ -141,19 +148,15 @@ void ce_mob_loader_init(void)
 void ce_mob_loader_term(void)
 {
 	if (NULL != ce_mob_loader) {
-		ce_mob_loader_clear();
+		ce_vector_for_each(ce_mob_loader->mob_tasks, ce_mob_task_del);
 		ce_vector_del(ce_mob_loader->mob_tasks);
 		ce_free(ce_mob_loader, sizeof(struct ce_mob_loader));
 	}
 }
 
-void ce_mob_loader_clear(void)
-{
-	ce_vector_for_each(ce_mob_loader->mob_tasks, ce_mob_task_del);
-	ce_vector_clear(ce_mob_loader->mob_tasks);
-}
-
 void ce_mob_loader_load_mob(const char* name)
 {
+	++ce_mob_loader->queued_job_count;
 	ce_vector_push_back(ce_mob_loader->mob_tasks, ce_mob_task_new(name));
+	ce_logging_info("mob loader: '%s' queued", name);
 }

@@ -19,7 +19,6 @@
 */
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
@@ -31,7 +30,7 @@
 
 ce_event_queue* ce_event_queue_new(ce_thread_id thread_id)
 {
-	ce_event_queue* queue = ce_alloc(sizeof(ce_event_queue));
+	ce_event_queue* queue = ce_alloc_zero(sizeof(ce_event_queue));
 	queue->thread_id = thread_id;
 	queue->timer = ce_timer_new();
 	queue->mutex = ce_mutex_new();
@@ -53,12 +52,20 @@ void ce_event_queue_del(ce_event_queue* queue)
 	}
 }
 
-void ce_event_queue_process(ce_event_queue* queue)
+bool ce_event_queue_has_pending_events(ce_event_queue* queue)
 {
-	ce_event_queue_process_timeout(queue, INT_MAX);
+	ce_mutex_lock(queue->mutex);
+	bool result = 0 != queue->event_count;
+	ce_mutex_unlock(queue->mutex);
+	return result;
 }
 
-void ce_event_queue_process_timeout(ce_event_queue* queue, int max_time)
+void ce_event_queue_process_events(ce_event_queue* queue)
+{
+	ce_event_queue_process_events_timeout(queue, INT_MAX);
+}
+
+void ce_event_queue_process_events_timeout(ce_event_queue* queue, int max_time)
 {
 	if (ce_vector_empty(queue->sending_events)) {
 		ce_mutex_lock(queue->mutex);
@@ -67,24 +74,30 @@ void ce_event_queue_process_timeout(ce_event_queue* queue, int max_time)
 	}
 
 	if (!ce_vector_empty(queue->sending_events)) {
+		size_t sent_event_count = 0;
 		ce_timer_start(queue->timer);
 
 		// I (and timer) like seconds
 		for (float time = 0.0f, limit = 1e-3f * max_time;
 				!ce_vector_empty(queue->sending_events) && time < limit;
-				time += queue->timer->elapsed) {
+				time += queue->timer->elapsed, ++sent_event_count) {
 			ce_event* event = ce_vector_pop_back(queue->sending_events);
 			(*event->notify)(event);
 			ce_event_del(event);
 			ce_timer_advance(queue->timer);
 		}
+
+		ce_mutex_lock(queue->mutex);
+		queue->event_count -= sent_event_count;
+		ce_mutex_unlock(queue->mutex);
 	}
 }
 
-void ce_event_queue_push(ce_event_queue* queue, ce_event* event)
+void ce_event_queue_add_event(ce_event_queue* queue, ce_event* event)
 {
 	ce_mutex_lock(queue->mutex);
 	ce_vector_push_back(queue->pending_events, event);
+	++queue->event_count;
 	ce_mutex_unlock(queue->mutex);
 }
 
@@ -115,6 +128,18 @@ void ce_event_manager_create_queue(void)
 	ce_mutex_unlock(ce_event_manager->mutex);
 }
 
+bool ce_event_manager_has_pending_events(void)
+{
+	ce_thread_id thread_id = ce_thread_self();
+	for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
+		ce_event_queue* queue = ce_event_manager->event_queues->items[i];
+		if (thread_id == queue->thread_id) {
+			return ce_event_queue_has_pending_events(queue);
+		}
+	}
+	return false;
+}
+
 void ce_event_manager_process_events(void)
 {
 	ce_event_manager_process_events_timeout(INT_MAX);
@@ -126,7 +151,7 @@ void ce_event_manager_process_events_timeout(int max_time)
 	for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
 		ce_event_queue* queue = ce_event_manager->event_queues->items[i];
 		if (thread_id == queue->thread_id) {
-			ce_event_queue_process_timeout(queue, max_time);
+			ce_event_queue_process_events_timeout(queue, max_time);
 		}
 	}
 }
@@ -136,7 +161,7 @@ void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event)
 	for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
 		ce_event_queue* queue = ce_event_manager->event_queues->items[i];
 		if (thread_id == queue->thread_id) {
-			ce_event_queue_push(ce_event_manager->event_queues->items[i], event);
+			ce_event_queue_add_event(ce_event_manager->event_queues->items[i], event);
 			return;
 		}
 	}

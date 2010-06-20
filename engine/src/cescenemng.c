@@ -32,6 +32,7 @@
 #include "cebytefmt.h"
 #include "ceoptionmanager.h"
 #include "ceconfigmanager.h"
+#include "ceeventmanager.h"
 #include "cerendersystem.h"
 #include "cevideomanager.h"
 #include "cefiguremanager.h"
@@ -175,18 +176,12 @@ static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float elapsed)
 		scenemng->loading.created = true;
 	}
 
-	size_t queued_job_count = 0;
-	size_t completed_job_count = 0;
+	size_t completed_job_count = ce_mob_loader->completed_job_count;
+	size_t queued_job_count = ce_mob_loader->queued_job_count;
 
 	if (NULL != scenemng->terrain) {
-		queued_job_count += scenemng->terrain->queued_job_count;
 		completed_job_count += scenemng->terrain->completed_job_count;
-	}
-
-	for (size_t i = 0; i < ce_mob_loader->mob_tasks->count; ++i) {
-		ce_mob_task* mob_task = ce_mob_loader->mob_tasks->items[i];
-		queued_job_count += mob_task->queued_job_count;
-		completed_job_count += mob_task->completed_job_count;
+		queued_job_count += scenemng->terrain->queued_job_count;
 	}
 
 	ce_video_object_progress(scenemng->loading.video_object,
@@ -205,10 +200,13 @@ static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float elapsed)
 			}
 		}
 
-		ce_mob_loader_clear();
-
 		ce_logging_debug("scene manager: switch to 'playing'");
 		ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_PLAYING);
+	} else {
+		// do not eat CPU time, mostly for single-core CPU
+		if (!ce_event_manager_has_pending_events()) {
+			ce_thread_pool_wait_one();
+		}
 	}
 }
 

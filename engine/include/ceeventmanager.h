@@ -22,6 +22,7 @@
 #define CE_EVENTMANAGER_H
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "cevector.h"
 #include "cetimer.h"
@@ -37,6 +38,7 @@ extern "C" {
 */
 
 typedef struct {
+	size_t event_count;
 	ce_thread_id thread_id;
 	ce_timer* timer;
 	ce_mutex* mutex;
@@ -47,13 +49,15 @@ typedef struct {
 extern ce_event_queue* ce_event_queue_new(ce_thread_id thread_id);
 extern void ce_event_queue_del(ce_event_queue* queue);
 
+extern bool ce_event_queue_has_pending_events(ce_event_queue* queue);
+
 // process all pending events
-extern void ce_event_queue_process(ce_event_queue* queue);
+extern void ce_event_queue_process_events(ce_event_queue* queue);
 
 // process pending events for a maximum of max_time milliseconds
-extern void ce_event_queue_process_timeout(ce_event_queue* queue, int max_time);
+extern void ce_event_queue_process_events_timeout(ce_event_queue* queue, int max_time);
 
-extern void ce_event_queue_push(ce_event_queue* queue, ce_event* event);
+extern void ce_event_queue_add_event(ce_event_queue* queue, ce_event* event);
 
 /*
  *  Thread-safe event manager.
@@ -69,6 +73,8 @@ extern void ce_event_manager_term(void);
 
 // create a queue for the current thread
 extern void ce_event_manager_create_queue(void);
+
+extern bool ce_event_manager_has_pending_events(void);
 
 // process all pending events for the current thread
 extern void ce_event_manager_process_events(void);

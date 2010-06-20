@@ -33,8 +33,8 @@ extern "C" {
 #endif
 
 typedef struct {
-	size_t queued_job_count;
-	size_t completed_job_count;
+	size_t processed_event_count;
+	size_t posted_event_count;
 	ce_string* name;
 	ce_mobfile* mob_file;
 } ce_mob_task;
@@ -43,13 +43,13 @@ extern ce_mob_task* ce_mob_task_new(const char* name);
 extern void ce_mob_task_del(ce_mob_task* mob_task);
 
 extern struct ce_mob_loader {
+	size_t completed_job_count;
+	size_t queued_job_count;
 	ce_vector* mob_tasks;
 }* ce_mob_loader;
 
 extern void ce_mob_loader_init(void);
 extern void ce_mob_loader_term(void);
-
-extern void ce_mob_loader_clear(void);
 
 extern void ce_mob_loader_load_mob(const char* name);
 
