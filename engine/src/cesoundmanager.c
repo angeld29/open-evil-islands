@@ -60,7 +60,7 @@ void ce_sound_manager_advance(float elapsed)
 {
 	ce_unused(elapsed);
 
-	for (size_t i = 0; i < ce_sound_manager->sound_instances->count; ) {
+	/*for (size_t i = 0; i < ce_sound_manager->sound_instances->count; ) {
 		ce_sound_instance* sound_instance = ce_sound_manager->sound_instances->items[i];
 		if (ce_sound_instance_is_stopped(sound_instance)) {
 			ce_sound_instance_del(sound_instance);
@@ -68,7 +68,7 @@ void ce_sound_manager_advance(float elapsed)
 		} else {
 			++i;
 		}
-	}
+	}*/
 }
 
 ce_sound_object ce_sound_manager_create(const char* name)

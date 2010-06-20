@@ -31,6 +31,11 @@ float ce_sound_object_time(ce_sound_object sound_object)
 	return NULL != sound_instance ? ce_sound_instance_time(sound_instance) : 0.0f;
 }
 
+bool ce_sound_object_is_valid(ce_sound_object sound_object)
+{
+	return 0 != sound_object;
+}
+
 bool ce_sound_object_is_stopped(ce_sound_object sound_object)
 {
 	ce_sound_instance* sound_instance = ce_sound_manager_find(sound_object);

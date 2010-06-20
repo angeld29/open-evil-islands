@@ -61,6 +61,7 @@ typedef struct {
 	int state;
 	float camera_move_sensitivity; // FIXME: hard-coded
 	float camera_zoom_sensitivity; // TODO: make strategy
+	bool block_camera;
 	bool scenenode_force_update;
 	ce_scenenode* scenenode;
 	ce_renderqueue* renderqueue;

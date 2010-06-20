@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -161,9 +162,17 @@ static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float elapsed)
 
 	// TODO: constructor
 	if (!scenemng->loading.created) {
-		scenemng->loading.created = true;
-		scenemng->loading.video_object = ce_video_manager_create("progres");
+		srand(time(NULL));
+		int index = rand() % 5;
+		if (0 == index) {
+			scenemng->loading.video_object = ce_video_manager_create("progres");
+		} else {
+			char name[16];
+			snprintf(name, sizeof(name), "progres%d", index);
+			scenemng->loading.video_object = ce_video_manager_create(name);
+		}
 		ce_video_object_play(scenemng->loading.video_object);
+		scenemng->loading.created = true;
 	}
 
 	size_t queued_job_count = 0;
@@ -210,31 +219,31 @@ static void ce_scenemng_render_loading(ce_scenemng* scenemng)
 
 static void ce_scenemng_advance_playing(ce_scenemng* scenemng, float elapsed)
 {
-	if (scenemng->move_left_event->triggered) {
+	if (scenemng->move_left_event->triggered && !scenemng->block_camera) {
 		ce_camera_move(scenemng->camera, -scenemng->camera_move_sensitivity * elapsed, 0.0f);
 	}
 
-	if (scenemng->move_up_event->triggered) {
+	if (scenemng->move_up_event->triggered && !scenemng->block_camera) {
 		ce_camera_move(scenemng->camera, 0.0f, scenemng->camera_move_sensitivity * elapsed);
 	}
 
-	if (scenemng->move_right_event->triggered) {
+	if (scenemng->move_right_event->triggered && !scenemng->block_camera) {
 		ce_camera_move(scenemng->camera, scenemng->camera_move_sensitivity * elapsed, 0.0f);
 	}
 
-	if (scenemng->move_down_event->triggered) {
+	if (scenemng->move_down_event->triggered && !scenemng->block_camera) {
 		ce_camera_move(scenemng->camera, 0.0f, -scenemng->camera_move_sensitivity * elapsed);
 	}
 
-	if (scenemng->zoom_in_event->triggered) {
+	if (scenemng->zoom_in_event->triggered && !scenemng->block_camera) {
 		ce_camera_zoom(scenemng->camera, scenemng->camera_zoom_sensitivity);
 	}
 
-	if (scenemng->zoom_out_event->triggered) {
+	if (scenemng->zoom_out_event->triggered && !scenemng->block_camera) {
 		ce_camera_zoom(scenemng->camera, -scenemng->camera_zoom_sensitivity);
 	}
 
-	if (scenemng->rotate_on_event->triggered) {
+	if (scenemng->rotate_on_event->triggered && !scenemng->block_camera) {
 		float xcoef = 0.25f * (float[]){-1.0f,1.0f}[ce_option_manager->inverse_trackball_x];
 		float ycoef = 0.25f * (float[]){-1.0f,1.0f}[ce_option_manager->inverse_trackball_y];
 		ce_camera_yaw_pitch(scenemng->camera,
@@ -332,7 +341,7 @@ void ce_scenemng_render(ce_scenemng* scenemng)
 			&CE_COLOR_GOLD, scenemng->fps->text);
 	}
 
-#if 1
+#if 0
 #ifndef NDEBUG
 	char text[128], bytefmt_text[64], bytefmt_text2[64], bytefmt_text3[64];
 	snprintf(text, sizeof(text),

@@ -92,6 +92,11 @@ int main(int argc, char* argv[])
 
 	optparse = ce_option_manager_create_option_parser();
 
+	ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR,
+		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+		"Cursed Earth: Video Player", "This program is part of Cursed "
+		"Earth spikes\nVideo Player - play Evil Islands videos");
+
 	ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true,
 		NULL, NULL, "any TRACK.* file in 'EI/Movies'");
 

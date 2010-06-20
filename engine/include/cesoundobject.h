@@ -29,6 +29,7 @@ typedef unsigned long int ce_sound_object;
 
 extern float ce_sound_object_time(ce_sound_object sound_object);
 
+extern bool ce_sound_object_is_valid(ce_sound_object sound_object);
 extern bool ce_sound_object_is_stopped(ce_sound_object sound_object);
 
 extern void ce_sound_object_play(ce_sound_object sound_object);
