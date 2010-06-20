@@ -98,7 +98,7 @@ static void ce_thread_pool_exec(struct ce_thread_pool* thread_pool)
 	while (!thread_pool->done) {
 		if (ce_vector_empty(thread_pool->pending_routines)) {
 			if (thread_pool->idle_thread_count == thread_pool->threads->count) {
-				ce_waitcond_wake_one(thread_pool->wait_all);
+				ce_waitcond_wake_all(thread_pool->wait_all);
 			}
 			ce_waitcond_wait(thread_pool->idle, thread_pool->mutex);
 		} else {
@@ -116,7 +116,7 @@ static void ce_thread_pool_exec(struct ce_thread_pool* thread_pool)
 			ce_mutex_lock(thread_pool->mutex);
 			++thread_pool->idle_thread_count;
 
-			ce_waitcond_wake_one(thread_pool->wait_one);
+			ce_waitcond_wake_all(thread_pool->wait_one);
 		}
 	}
 
