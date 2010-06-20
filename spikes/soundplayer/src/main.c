@@ -78,6 +78,11 @@ static void advance(void* listener, float elapsed)
 static void render(void* listener)
 {
 	ce_unused(listener);
+
+	if (CE_SCENEMNG_STATE_PLAYING != ce_root.scenemng->state) {
+		return;
+	}
+
 	char message[32];
 
 	const char* track;
