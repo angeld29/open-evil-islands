@@ -28,19 +28,28 @@
 #include "celogging.h"
 #include "ceconfigfile.h"
 
-static bool ce_config_file_parse(ce_config_file* config_file, FILE* file)
+static bool ce_config_file_parse(ce_config_file* config_file,
+									const char* path, FILE* file)
 {
-	const size_t max_line_size = 128;
-	char line[max_line_size], temp[max_line_size], temp2[max_line_size];
+	enum {
+		MAX_LINE_SIZE = 256,
+	};
+
+	char line[MAX_LINE_SIZE], temp[MAX_LINE_SIZE], temp2[MAX_LINE_SIZE];
 	ce_config_section* section = NULL;
 
-	for (int line_number = 1; NULL != fgets(temp, max_line_size, file); ++line_number) {
+	for (int line_number = 1; NULL != fgets(temp, MAX_LINE_SIZE, file); ++line_number) {
 		size_t line_length = strlen(ce_strtrim(line, temp));
 
-		if (line_length + 1 == max_line_size) {
-			ce_logging_error("config file: line %d: "
-							"line is too long: '%s'", line_number, line);
-			return false;
+		if (line_length + 1 == MAX_LINE_SIZE) {
+			ce_logging_warning("config file: %s:%d: line is too long: "
+								"'%s', skipped...", path, line_number, line);
+			// skip line tail until new line
+			int ch;
+			do {
+				ch = fgetc(file);
+			} while (EOF != ch && '\n' != ch);
+			continue;
 		}
 
 		if (0 == line_length || ';' == line[0]) {
@@ -48,15 +57,20 @@ static bool ce_config_file_parse(ce_config_file* config_file, FILE* file)
 		}
 
 		if ('[' == line[0]) {
-			if (']' != line[line_length - 1]) {
-				ce_logging_error("config file: line %d: "
-								"expected ']': '%s'", line_number, line);
+			char* rbracket = strrchr(line, ']');
+			if (NULL == rbracket) {
+				ce_logging_error("config file: %s:%d: expected ']': "
+								"'%s'", path, line_number, line);
 				return false;
 			}
 
+			// truncate right stuff
+			*(rbracket + 1) = '\0';
+			line_length = strlen(line);
+
 			if (line_length <= 2) {
-				ce_logging_error("config file: line %d: "
-								"unnamed section: '%s'", line_number, line);
+				ce_logging_error("config file: %s:%d: unnamed section: "
+									"'%s'", path, line_number, line);
 				return false;
 			}
 
@@ -68,15 +82,16 @@ static bool ce_config_file_parse(ce_config_file* config_file, FILE* file)
 			ce_vector_push_back(config_file->sections, section);
 		} else {
 			if (NULL == section) {
-				ce_logging_error("config file: line %d: option outside of "
-								"any section: '%s'", line_number, line);
-				return false;
+				ce_logging_warning("config file: %s:%d: option outside "
+									"of any section: '%s', skipped...",
+									path, line_number, line);
+				continue;
 			}
 
 			char* eq = strchr(line, '=');
 			if (NULL == eq) {
-				ce_logging_error("config file: line %d: "
-								"expected '=': '%s'", line_number, line);
+				ce_logging_error("config file: %s:%d: expected '=': "
+								"'%s'", path, line_number, line);
 				return false;
 			}
 
@@ -89,8 +104,8 @@ static bool ce_config_file_parse(ce_config_file* config_file, FILE* file)
 			ce_string_assign(option->name, ce_strtrim(temp2, temp));
 
 			if (ce_string_empty(option->name)) {
-				ce_logging_error("config file: line %d: missing "
-								"option name: '%s'", line_number, line);
+				ce_logging_error("config file: %s:%d: missing option name: "
+								"'%s'", path, line_number, line);
 				return false;
 			}
 
@@ -98,8 +113,8 @@ static bool ce_config_file_parse(ce_config_file* config_file, FILE* file)
 			ce_string_assign(option->value, ce_strtrim(temp2, temp));
 
 			if (ce_string_empty(option->value)) {
-				ce_logging_error("config file: line %d: missing "
-								"option value: '%s'", line_number, line);
+				ce_logging_error("config file: %s:%d: missing option value: "
+								"'%s'", path, line_number, line);
 				return false;
 			}
 		}
@@ -119,7 +134,7 @@ ce_config_file* ce_config_file_open(const char* path)
 	ce_config_file* config_file = ce_alloc(sizeof(ce_config_file));
 	config_file->sections = ce_vector_new();
 
-	if (!ce_config_file_parse(config_file, file)) {
+	if (!ce_config_file_parse(config_file, path, file)) {
 		ce_logging_error("config file: failed to parse '%s'", path);
 		ce_config_file_close(config_file);
 		fclose(file);
