@@ -22,10 +22,12 @@
 #include <string.h>
 #include <assert.h>
 
+#include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cethread.h"
 #include "cepath.h"
+#include "ceregistry.h"
 #include "ceoptionmanager.h"
 
 struct ce_option_manager* ce_option_manager;
@@ -89,13 +91,26 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 {
 	ce_optparse* optparse = ce_optparse_new();
 
+	char path[CE_PATH_MAX], help[512];
+
+	if (NULL != ce_registry_get_string_value(path, sizeof(path),
+			CE_REGISTRY_KEY_CURRENT_USER, "Software\\Nival Interactive\\"
+				"EvilIslands\\Path Settings", "WORK PATH")) {
+		snprintf(help, sizeof(help),
+			"path to EI directory; EI_PATH = %s (found in registry)", path);
+	} else {
+		ce_strlcpy(path, ".", sizeof(path));
+		ce_strlcpy(help, "path to EI directory; registry value not found, "
+			"using current directory by default", sizeof(help));
+	}
+
 	ce_optparse_add(optparse, "ei_path",
-		CE_TYPE_STRING, ".", false, NULL, "ei-path",
-		"path to EI directory (current by default)");
+		CE_TYPE_STRING, path, false, NULL, "ei-path", help);
 
 	ce_optparse_add(optparse, "ce_path",
-		CE_TYPE_STRING, ".", false, NULL, "ce-path",
-		"reserved for future use: path to CE directory (current by default)");
+		CE_TYPE_STRING, path, false, NULL, "ce-path",
+		"reserved for future use: path to CE directory; "
+		"using EI path by default");
 
 	ce_optparse_add(optparse, "window_width",
 		CE_TYPE_INT, (int[]){1024}, false, NULL, "window-width",
@@ -174,11 +189,15 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 		"warning: up to 1 GB disk space usage is normal; "
 		"very useful if you have a single-core slow CPU");
 
-	ce_optparse_add(optparse, "thread_count",
-		CE_TYPE_INT, (const int[]){ce_online_cpu_count()}, false, "j", "jobs",
+	int thread_count = ce_online_cpu_count();
+	snprintf(help, sizeof(help),
 		"allow THREAD_COUNT jobs at once; if this option is not "
 		"specified, the value will be detected automatically depending on the "
-		"number of CPUs you have (or the number of cores your CPU have)");
+		"number of CPUs you have (or the number of cores your CPU have); "
+		"THREAD_COUNT = %d (auto-detected)", thread_count);
+
+	ce_optparse_add(optparse, "thread_count",
+		CE_TYPE_INT, &thread_count, false, "j", "jobs", help);
 
 	ce_optparse_add(optparse, "show_axes",
 		CE_TYPE_BOOL, NULL, false, NULL, "show-axes",
