@@ -589,5 +589,5 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 	};
 	return ce_renderitem_new(ce_renderitem_fast_vtable,
 							sizeof(ce_mprrenderitem_fast), mprfile,
-							sector_x, sector_z, water, tile_textures);
+							sector_x, sector_z, water);
 }
