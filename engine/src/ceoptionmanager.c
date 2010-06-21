@@ -96,8 +96,8 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 	if (NULL != ce_registry_get_string_value(path, sizeof(path),
 			CE_REGISTRY_KEY_CURRENT_USER, "Software\\Nival Interactive\\"
 				"EvilIslands\\Path Settings", "WORK PATH")) {
-		snprintf(help, sizeof(help),
-			"path to EI directory; EI_PATH = %s (found in registry)", path);
+		snprintf(help, sizeof(help), "path to EI directory; "
+			"using '%s' (found in registry) by default", path);
 	} else {
 		ce_strlcpy(path, ".", sizeof(path));
 		ce_strlcpy(help, "path to EI directory; registry value not found, "
@@ -194,7 +194,7 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 		"allow THREAD_COUNT jobs at once; if this option is not "
 		"specified, the value will be detected automatically depending on the "
 		"number of CPUs you have (or the number of cores your CPU have); "
-		"THREAD_COUNT = %d (auto-detected)", thread_count);
+		"using %d thread(s) (auto-detected) by default", thread_count);
 
 	ce_optparse_add(optparse, "thread_count",
 		CE_TYPE_INT, &thread_count, false, "j", "jobs", help);
