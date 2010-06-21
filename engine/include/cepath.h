@@ -33,6 +33,10 @@
 extern "C" {
 #endif
 
+enum {
+	CE_PATH_MAX = 512,
+};
+
 extern const char CE_PATH_SEP;
 
 extern bool ce_path_exists(const char* path);
