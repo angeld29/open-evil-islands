@@ -26,18 +26,32 @@
 #include "celogging.h"
 #include "cesoundresource.h"
 
-ce_sound_resource* ce_sound_resource_new(ce_sound_resource_vtable vtable, ce_memfile* memfile)
-{
-	size_t size = (*vtable.size_hint)(memfile);
-	ce_memfile_rewind(memfile);
+extern const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT;
+extern const ce_sound_resource_vtable ce_sound_resource_builtins[];
 
-	ce_sound_resource* sound_resource = ce_alloc_zero(sizeof(ce_sound_resource) + size);
+ce_sound_resource* ce_sound_resource_new(ce_memfile* memfile)
+{
+	ce_sound_probe sound_probe = {.memfile = memfile};
+
+	size_t index;
+	for (index = 0; index < CE_SOUND_RESOURCE_BUILTIN_COUNT; ++index) {
+		ce_memfile_rewind(memfile);
+		if ((*ce_sound_resource_builtins[index].test)(&sound_probe)) {
+			break;
+		}
+	}
+
+	if (CE_SOUND_RESOURCE_BUILTIN_COUNT == index) {
+		return NULL;
+	}
+
+	ce_sound_resource* sound_resource = ce_alloc_zero(sizeof(ce_sound_resource) + sound_probe.size);
 
 	sound_resource->memfile = memfile;
-	sound_resource->vtable = vtable;
-	sound_resource->size = size;
+	sound_resource->vtable = ce_sound_resource_builtins[index];
+	sound_resource->size = sound_probe.size;
 
-	if (!(*vtable.ctor)(sound_resource)) {
+	if (!(*sound_resource->vtable.ctor)(sound_resource, &sound_probe)) {
 		// do not take ownership if failed
 		sound_resource->memfile = NULL;
 		ce_sound_resource_del(sound_resource);
@@ -52,15 +66,6 @@ ce_sound_resource* ce_sound_resource_new(ce_sound_resource_vtable vtable, ce_mem
 	return sound_resource;
 }
 
-ce_sound_resource* ce_sound_resource_new_builtin(ce_memfile* memfile)
-{
-	size_t index = ce_sound_resource_find_builtin(memfile);
-	if (CE_SOUND_RESOURCE_BUILTIN_COUNT != index) {
-		return ce_sound_resource_new(ce_sound_resource_builtins[index], memfile);
-	}
-	return NULL;
-}
-
 void ce_sound_resource_del(ce_sound_resource* sound_resource)
 {
 	if (NULL != sound_resource) {
@@ -70,19 +75,6 @@ void ce_sound_resource_del(ce_sound_resource* sound_resource)
 		ce_memfile_close(sound_resource->memfile);
 		ce_free(sound_resource, sizeof(ce_sound_resource) + sound_resource->size);
 	}
-}
-
-size_t ce_sound_resource_find_builtin(ce_memfile* memfile)
-{
-	for (size_t i = 0; i < CE_SOUND_RESOURCE_BUILTIN_COUNT; ++i) {
-		ce_memfile_rewind(memfile);
-		if ((*ce_sound_resource_builtins[i].test)(memfile)) {
-			ce_memfile_rewind(memfile);
-			return i;
-		}
-	}
-	ce_memfile_rewind(memfile);
-	return CE_SOUND_RESOURCE_BUILTIN_COUNT;
 }
 
 size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size)

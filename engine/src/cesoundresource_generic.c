@@ -58,12 +58,6 @@ typedef struct {
 	int bitstream;
 } ce_vorbis;
 
-static size_t ce_vorbis_size_hint(ce_memfile* memfile)
-{
-	ce_unused(memfile);
-	return sizeof(ce_vorbis);
-}
-
 static size_t ce_vorbis_read_wrap(void* ptr, size_t size, size_t nmemb, void* datasource)
 {
 	return ce_memfile_read(datasource, ptr, size, nmemb);
@@ -79,20 +73,24 @@ static long ce_vorbis_tell_wrap(void* datasource)
 	return ce_memfile_tell(datasource);
 }
 
-static bool ce_vorbis_test(ce_memfile* memfile)
+static bool ce_vorbis_test(ce_sound_probe* sound_probe)
 {
 	OggVorbis_File vf;
-	if (0 == ov_test_callbacks(memfile, &vf, NULL, 0, (ov_callbacks)
+	if (0 == ov_test_callbacks(sound_probe->memfile, &vf, NULL, 0, (ov_callbacks)
 			{ce_vorbis_read_wrap, ce_vorbis_seek_wrap, NULL, ce_vorbis_tell_wrap})) {
+		sound_probe->size = sizeof(ce_vorbis);
 		ov_clear(&vf);
 		return true;
 	}
 	return false;
 }
 
-static bool ce_vorbis_ctor(ce_sound_resource* sound_resource)
+static bool ce_vorbis_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe)
 {
 	ce_vorbis* vorbis = (ce_vorbis*)sound_resource->impl;
+
+	ce_unused(sound_probe);
+	ce_memfile_rewind(sound_resource->memfile);
 
 	if (0 != ov_open_callbacks(sound_resource->memfile, &vorbis->vf, NULL, 0,
 			(ov_callbacks){ce_vorbis_read_wrap, ce_vorbis_seek_wrap, NULL, ce_vorbis_tell_wrap})) {
@@ -160,16 +158,11 @@ typedef struct {
 	uint8_t output_buffer[FLAC__MAX_BLOCK_SIZE * 4 /*FIXME: sample size*/];
 } ce_flac;
 
-static size_t ce_flac_size_hint(ce_memfile* memfile)
-{
-	ce_unused(memfile);
-	return sizeof(ce_flac);
-}
-
-static bool ce_flac_test(ce_memfile* memfile)
+static bool ce_flac_test(ce_sound_probe* sound_probe)
 {
 	char fourcc[4];
-	return 4 == ce_memfile_read(memfile, fourcc, 1, 4) &&
+	sound_probe->size = sizeof(ce_flac);
+	return 4 == ce_memfile_read(sound_probe->memfile, fourcc, 1, 4) &&
 			0 == memcmp(fourcc, "fLaC", 4);
 }
 
@@ -297,9 +290,12 @@ void ce_flac_error_callback(const FLAC__StreamDecoder* decoder,
 	ce_logging_error("flac: an error %d occurred during decompression", status);
 }
 
-static bool ce_flac_ctor(ce_sound_resource* sound_resource)
+static bool ce_flac_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe)
 {
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
+
+	ce_unused(sound_probe);
+	ce_memfile_rewind(sound_resource->memfile);
 
 	flac->decoder = FLAC__stream_decoder_new();
 
@@ -411,16 +407,10 @@ typedef struct {
 	unsigned char input_buffer[CE_MAD_DATA_SIZE];
 } ce_mad;
 
-static size_t ce_mad_size_hint(ce_memfile* memfile)
-{
-	ce_unused(memfile);
-	return sizeof(ce_mad);
-}
-
-static bool ce_mad_test(ce_memfile* memfile)
+static bool ce_mad_test(ce_sound_probe* sound_probe)
 {
 	unsigned char* buffer = ce_alloc(CE_MAD_INPUT_BUFFER_CAPACITY);
-	size_t size = ce_memfile_read(memfile, buffer, 1, CE_MAD_INPUT_BUFFER_CAPACITY);
+	size_t size = ce_memfile_read(sound_probe->memfile, buffer, 1, CE_MAD_INPUT_BUFFER_CAPACITY);
 
 	struct mad_stream stream;
 	struct mad_header header;
@@ -443,6 +433,8 @@ static bool ce_mad_test(ce_memfile* memfile)
 	mad_stream_finish(&stream);
 
 	ce_free(buffer, CE_MAD_INPUT_BUFFER_CAPACITY);
+
+	sound_probe->size = sizeof(ce_mad);
 
 	return result;
 }
@@ -634,9 +626,13 @@ static void ce_mad_clean(ce_mad* mad)
 	mad_stream_finish(&mad->stream);
 }
 
-static bool ce_mad_ctor(ce_sound_resource* sound_resource)
+static bool ce_mad_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe)
 {
 	ce_mad* mad = (ce_mad*)sound_resource->impl;
+
+	ce_unused(sound_probe);
+	ce_memfile_rewind(sound_resource->memfile);
+
 	ce_mad_init(mad);
 
 	if (!ce_mad_decode(sound_resource)) {
@@ -710,23 +706,24 @@ typedef struct {
 	uint8_t data[];
 } ce_bink;
 
-static size_t ce_bink_size_hint(ce_memfile* memfile)
+static bool ce_bink_test(ce_sound_probe* sound_probe)
 {
 	ce_bink_header header;
-	return sizeof(ce_bink) + (!ce_bink_header_read(&header, memfile) ? 0 :
-		sizeof(ce_bink_index) * header.frame_count +
-		header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE);
+	if (ce_bink_header_read(&header, sound_probe->memfile) && 0 != header.audio_track_count) {
+		sound_probe->size = sizeof(ce_bink) +
+			sizeof(ce_bink_index) * header.frame_count +
+			header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE;
+		return true;
+	}
+	return false;
 }
 
-static bool ce_bink_test(ce_memfile* memfile)
-{
-	ce_bink_header header;
-	return ce_bink_header_read(&header, memfile) && 0 != header.audio_track_count;
-}
-
-static bool ce_bink_ctor(ce_sound_resource* sound_resource)
+static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe)
 {
 	ce_bink* bink = (ce_bink*)sound_resource->impl;
+
+	ce_unused(sound_probe);
+	ce_memfile_rewind(sound_resource->memfile);
 
 	if (!ce_bink_header_read(&bink->header, sound_resource->memfile)) {
 		ce_logging_error("bink: input does not appear to be a Bink audio");
@@ -868,16 +865,20 @@ static bool ce_bink_reset(ce_sound_resource* sound_resource)
 }
 
 const ce_sound_resource_vtable ce_sound_resource_builtins[] = {
-	{ce_vorbis_size_hint, ce_vorbis_test, ce_vorbis_ctor,
-	ce_vorbis_dtor, ce_vorbis_read, ce_vorbis_reset},
-	{ce_flac_size_hint, ce_flac_test, ce_flac_ctor,
-	ce_flac_dtor, ce_flac_read, ce_flac_reset},
+	{ce_vorbis_test,
+	ce_vorbis_ctor, ce_vorbis_dtor,
+	ce_vorbis_read, ce_vorbis_reset},
+	{ce_flac_test,
+	ce_flac_ctor, ce_flac_dtor,
+	ce_flac_read, ce_flac_reset},
 #ifdef CE_ENABLE_PROPRIETARY
-	{ce_mad_size_hint, ce_mad_test, ce_mad_ctor,
-	ce_mad_dtor, ce_mad_read, ce_mad_reset},
+	{ce_mad_test,
+	ce_mad_ctor, ce_mad_dtor,
+	ce_mad_read, ce_mad_reset},
 #endif
-	{ce_bink_size_hint, ce_bink_test, ce_bink_ctor,
-	ce_bink_dtor, ce_bink_read, ce_bink_reset},
+	{ce_bink_test,
+	ce_bink_ctor, ce_bink_dtor,
+	ce_bink_read, ce_bink_reset},
 };
 
 const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT = sizeof(ce_sound_resource_builtins) /

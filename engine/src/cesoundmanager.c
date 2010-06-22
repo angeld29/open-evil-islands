@@ -85,7 +85,7 @@ ce_sound_object ce_sound_manager_create(const char* name)
 		return 0;
 	}
 
-	ce_sound_resource* sound_resource = ce_sound_resource_new_builtin(memfile);
+	ce_sound_resource* sound_resource = ce_sound_resource_new(memfile);
 	if (NULL == sound_resource) {
 		ce_memfile_close(memfile);
 		return 0;

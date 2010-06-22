@@ -30,12 +30,17 @@
 extern "C" {
 #endif
 
+typedef struct {
+	ce_memfile* memfile;
+	size_t size;
+	void* data;
+} ce_sound_probe;
+
 typedef struct ce_sound_resource ce_sound_resource;
 
 typedef struct {
-	size_t (*size_hint)(ce_memfile* memfile);
-	bool (*test)(ce_memfile* memfile);
-	bool (*ctor)(ce_sound_resource* sound_resource);
+	bool (*test)(ce_sound_probe* sound_probe);
+	bool (*ctor)(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe);
 	void (*dtor)(ce_sound_resource* sound_resource);
 	size_t (*read)(ce_sound_resource* sound_resource, void* data, size_t size);
 	bool (*reset)(ce_sound_resource* sound_resource);
@@ -51,14 +56,8 @@ struct ce_sound_resource {
 	char impl[];
 };
 
-extern const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT;
-extern const ce_sound_resource_vtable ce_sound_resource_builtins[];
-
-extern ce_sound_resource* ce_sound_resource_new(ce_sound_resource_vtable vtable, ce_memfile* memfile);
-extern ce_sound_resource* ce_sound_resource_new_builtin(ce_memfile* memfile);
+extern ce_sound_resource* ce_sound_resource_new(ce_memfile* memfile);
 extern void ce_sound_resource_del(ce_sound_resource* sound_resource);
-
-extern size_t ce_sound_resource_find_builtin(ce_memfile* memfile);
 
 extern size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size);
 extern bool ce_sound_resource_reset(ce_sound_resource* sound_resource);
