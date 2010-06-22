@@ -166,6 +166,13 @@ static size_t ce_flac_size_hint(ce_memfile* memfile)
 	return sizeof(ce_flac);
 }
 
+static bool ce_flac_test(ce_memfile* memfile)
+{
+	char fourcc[4];
+	return 4 == ce_memfile_read(memfile, fourcc, 1, 4) &&
+			0 == memcmp(fourcc, "fLaC", 4);
+}
+
 FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDecoder* decoder,
 	FLAC__byte buffer[], size_t* bytes, void* client_data)
 {
@@ -290,11 +297,6 @@ void ce_flac_error_callback(const FLAC__StreamDecoder* decoder,
 	ce_logging_error("flac: an error %d occurred during decompression", status);
 }
 
-static bool ce_flac_test(ce_memfile* memfile)
-{
-	return true;
-}
-
 static bool ce_flac_ctor(ce_sound_resource* sound_resource)
 {
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
@@ -322,11 +324,11 @@ static void ce_flac_dtor(ce_sound_resource* sound_resource)
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
 
 	if (NULL != flac->decoder) {
-		FLAC__stream_decoder_delete(flac->decoder);
 		if (!FLAC__stream_decoder_finish(flac->decoder)) {
 			// TODO: FLAC__stream_decoder_get_state(flac->decoder)
 			ce_logging_error("flac: finishing the decoding process failed");
 		}
+		FLAC__stream_decoder_delete(flac->decoder);
 	}
 }
 
@@ -868,14 +870,14 @@ static bool ce_bink_reset(ce_sound_resource* sound_resource)
 const ce_sound_resource_vtable ce_sound_resource_builtins[] = {
 	{ce_vorbis_size_hint, ce_vorbis_test, ce_vorbis_ctor,
 	ce_vorbis_dtor, ce_vorbis_read, ce_vorbis_reset},
+	{ce_flac_size_hint, ce_flac_test, ce_flac_ctor,
+	ce_flac_dtor, ce_flac_read, ce_flac_reset},
 #ifdef CE_ENABLE_PROPRIETARY
 	{ce_mad_size_hint, ce_mad_test, ce_mad_ctor,
 	ce_mad_dtor, ce_mad_read, ce_mad_reset},
 #endif
 	{ce_bink_size_hint, ce_bink_test, ce_bink_ctor,
 	ce_bink_dtor, ce_bink_read, ce_bink_reset},
-	{ce_flac_size_hint, ce_flac_test, ce_flac_ctor,
-	ce_flac_dtor, ce_flac_read, ce_flac_reset},
 };
 
 const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT = sizeof(ce_sound_resource_builtins) /
