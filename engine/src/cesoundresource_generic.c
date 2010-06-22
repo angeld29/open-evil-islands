@@ -18,6 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ *  Supported decoders:
+ *  1. Ogg Vorbis (lossy compression).
+ *  2. FLAC (lossless compression).
+ *  3. MPEG (limited, for backward compatibility with original EI resources).
+ *  4. Bink (limited, for backward compatibility with original EI resources).
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -253,9 +261,12 @@ FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamDecoder*
 	flac->output_buffer_pos = 0;
 	flac->output_buffer_size = sound_resource->sample_size * frame->header.blocksize;
 
-	ce_logging_debug("blocksize %u, channels %u, out sz %zu, max %zu",
-		frame->header.blocksize, frame->header.channels,
-		flac->output_buffer_size, sizeof(flac->output_buffer));
+	if (flac->output_buffer_size > sizeof(flac->output_buffer)) {
+		ce_logging_debug("blocksize %u, channels %u, out sz %zu, max %zu",
+			frame->header.blocksize, frame->header.channels,
+			flac->output_buffer_size, sizeof(flac->output_buffer));
+	}
+
 	assert(flac->output_buffer_size <= sizeof(flac->output_buffer));
 
 	for (unsigned int i = 0; i < frame->header.blocksize; ++i) {

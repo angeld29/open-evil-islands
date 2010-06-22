@@ -18,6 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ *  Supported decoders:
+ *  1. Ogg Theora.
+ *  2. Bink (limited, for backward compatibility with original EI resources).
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
