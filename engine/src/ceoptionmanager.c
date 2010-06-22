@@ -36,9 +36,14 @@ void ce_option_manager_init(ce_optparse* optparse)
 {
 	const char *ei_path, *ce_path;
 
-	ce_option_manager = ce_alloc_zero(sizeof(struct ce_option_manager));
 	ce_optparse_get(optparse, "ei_path", &ei_path);
 	ce_optparse_get(optparse, "ce_path", &ce_path);
+
+	if (NULL == ce_path) {
+		ce_path = ei_path;
+	}
+
+	ce_option_manager = ce_alloc_zero(sizeof(struct ce_option_manager));
 	ce_option_manager->ei_path = ce_string_new_str(ei_path);
 	ce_option_manager->ce_path = ce_string_new_str(ce_path);
 	ce_optparse_get(optparse, "window_width", &ce_option_manager->window_width);
@@ -97,7 +102,7 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 			CE_REGISTRY_KEY_CURRENT_USER, "Software\\Nival Interactive\\"
 				"EvilIslands\\Path Settings", "WORK PATH")) {
 		snprintf(help, sizeof(help), "path to EI directory; "
-			"using '%s' (found in registry) by default", path);
+			"using '%s' by default (found in registry)", path);
 	} else {
 		ce_strlcpy(path, ".", sizeof(path));
 		ce_strlcpy(help, "path to EI directory; registry value not found, "
@@ -108,7 +113,7 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 		CE_TYPE_STRING, path, false, NULL, "ei-path", help);
 
 	ce_optparse_add(optparse, "ce_path",
-		CE_TYPE_STRING, path, false, NULL, "ce-path",
+		CE_TYPE_STRING, NULL, false, NULL, "ce-path",
 		"reserved for future use: path to CE directory; "
 		"using EI path by default");
 
@@ -194,7 +199,7 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 		"allow THREAD_COUNT jobs at once; if this option is not "
 		"specified, the value will be detected automatically depending on the "
 		"number of CPUs you have (or the number of cores your CPU have); "
-		"using %d thread(s) (auto-detected) by default", thread_count);
+		"using %d thread(s) by default (auto-detected)", thread_count);
 
 	ce_optparse_add(optparse, "thread_count",
 		CE_TYPE_INT, &thread_count, false, "j", "jobs", help);
