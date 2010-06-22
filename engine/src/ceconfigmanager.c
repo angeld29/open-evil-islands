@@ -137,15 +137,17 @@ static void ce_config_manager_init_movies(void)
 			const char* line = ce_config_file_find(config_file,
 								ce_config_movie_sections[i], "movies");
 			if (NULL != line) { // may be NULL (commented by user)
-				char buffer[strlen(line) + 1], *temp = buffer, *name;
+				char buffer[strlen(line) + 1], *pos = buffer, *name;
 				// lowercase it to avoid problems on case-sensitive systems
 				// (seems all EI movies are in lower case)
 				ce_strlwr(buffer, line);
-				for (name = ce_strsep(&temp, ",");
-						0 != strlen(name); name = ce_strsep(&temp, ",")) {
-					ce_vector_push_back(ce_config_manager->movies[i],
-										ce_string_new_str(name));
-				}
+				do {
+					name = ce_strsep(&pos, ",");
+					if ('\0' != name[0]) {
+						ce_vector_push_back(ce_config_manager->movies[i],
+											ce_string_new_str(name));
+					}
+				} while (NULL != pos);
 			}
 		}
 		ce_config_file_close(config_file);

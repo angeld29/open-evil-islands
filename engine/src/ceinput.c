@@ -392,13 +392,13 @@ ce_inputevent* ce_inputsupply_shortcut(ce_inputsupply* inputsupply,
 					ce_inputsupply_and2(inputsupply, and_event, ev))) {
 				return NULL;
 			}
-		} while (0 != strlen(and_seq));
+		} while (NULL != and_seq);
 
 		if (NULL == (or_event = NULL == or_event ? and_event :
 				ce_inputsupply_or2(inputsupply, or_event, and_event))) {
 			return NULL;
 		}
-	} while (0 != strlen(or_seq));
+	} while (NULL != or_seq);
 
 	return or_event;
 }

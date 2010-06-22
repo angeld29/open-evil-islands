@@ -219,10 +219,15 @@ char* ce_strrpbrk(const char* s, const char* accept)
 char* ce_strsep(char** sp, const char* delim)
 {
 	char* s = *sp;
+	if (NULL == s) {
+		return NULL;
+	}
 	char* p = s + strcspn(s, delim);
 	if (*p) {
 		*p++ = '\0';
+		*sp = p;
+	} else {
+		*sp = NULL;
 	}
-	*sp = p;
 	return s;
 }
