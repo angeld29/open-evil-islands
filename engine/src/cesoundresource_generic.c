@@ -28,6 +28,8 @@
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <vorbis/vorbisfile.h>
 
+#include <FLAC/stream_decoder.h>
+
 #ifdef CE_ENABLE_PROPRIETARY
 #include <mad.h>
 #endif
@@ -142,6 +144,229 @@ static bool ce_vorbis_reset(ce_sound_resource* sound_resource)
 	ce_vorbis* vorbis = (ce_vorbis*)sound_resource->impl;
 	// infinite loop occurs if seeking at position 0 with multi stream oggs
 	return 0 == ov_raw_seek(&vorbis->vf, 1);
+}
+
+/*
+ *  FLAC: Free Lossless Audio Codec (C) 2000-2007 Josh Coalson
+ *
+ *  See also:
+ *  1. http://flac.sourceforge.net/
+ *  2. http://flac.sourceforge.net/api/index.html
+*/
+
+typedef struct {
+	FLAC__StreamDecoder* decoder;
+	size_t output_buffer_pos, output_buffer_size;
+	uint8_t output_buffer[FLAC__MAX_BLOCK_SIZE * 4 /*FIXME: sample size*/];
+} ce_flac;
+
+static size_t ce_flac_size_hint(ce_memfile* memfile)
+{
+	ce_unused(memfile);
+	return sizeof(ce_flac);
+}
+
+FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDecoder* decoder,
+	FLAC__byte buffer[], size_t* bytes, void* client_data)
+{
+	ce_unused(decoder);
+	ce_sound_resource* sound_resource = client_data;
+
+	if (0 == *bytes) {
+		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+	}
+
+	if (ce_memfile_eof(sound_resource->memfile)) {
+		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+	}
+
+	*bytes = ce_memfile_read(sound_resource->memfile, buffer, sizeof(FLAC__byte), *bytes);
+
+	if (ce_memfile_error(sound_resource->memfile)) {
+		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+	}
+
+	return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+}
+
+FLAC__StreamDecoderSeekStatus ce_flac_seek_callback(const FLAC__StreamDecoder* decoder,
+	FLAC__uint64 absolute_byte_offset, void *client_data)
+{
+	ce_unused(decoder);
+	ce_sound_resource* sound_resource = client_data;
+
+	return ce_memfile_seek(sound_resource->memfile,
+		absolute_byte_offset, CE_MEMFILE_SEEK_SET) < 0 ?
+		FLAC__STREAM_DECODER_SEEK_STATUS_ERROR :
+		FLAC__STREAM_DECODER_SEEK_STATUS_OK;
+}
+
+FLAC__StreamDecoderTellStatus ce_flac_tell_callback(const FLAC__StreamDecoder* decoder,
+	FLAC__uint64* absolute_byte_offset, void* client_data)
+{
+	ce_unused(decoder);
+
+	ce_sound_resource* sound_resource = client_data;
+	long int pos = ce_memfile_tell(sound_resource->memfile);
+
+	if (pos < 0) {
+		return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
+	}
+
+	*absolute_byte_offset = pos;
+	return FLAC__STREAM_DECODER_TELL_STATUS_OK;
+}
+
+FLAC__StreamDecoderLengthStatus ce_flac_length_callback(const FLAC__StreamDecoder* decoder,
+	FLAC__uint64* stream_length, void* client_data)
+{
+	ce_unused(decoder);
+
+	ce_sound_resource* sound_resource = client_data;
+	long int size = ce_memfile_size(sound_resource->memfile);
+
+	if (size < 0) {
+		return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
+	}
+
+	*stream_length = size;
+	return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
+}
+
+FLAC__bool ce_flac_eof_callback(const FLAC__StreamDecoder* decoder, void* client_data)
+{
+	ce_unused(decoder);
+	ce_sound_resource* sound_resource = client_data;
+
+	return ce_memfile_eof(sound_resource->memfile) ? true : false;
+}
+
+FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamDecoder* decoder,
+	const FLAC__Frame* frame, const FLAC__int32* const buffer[], void* client_data)
+{
+	ce_unused(decoder);
+
+	ce_sound_resource* sound_resource = client_data;
+	ce_flac* flac = (ce_flac*)sound_resource->impl;
+	FLAC__int16* output_buffer = (FLAC__int16*)flac->output_buffer;
+
+	flac->output_buffer_pos = 0;
+	flac->output_buffer_size = sound_resource->sample_size * frame->header.blocksize;
+
+	ce_logging_debug("blocksize %u, channels %u, out sz %zu, max %zu",
+		frame->header.blocksize, frame->header.channels,
+		flac->output_buffer_size, sizeof(flac->output_buffer));
+	assert(flac->output_buffer_size <= sizeof(flac->output_buffer));
+
+	for (unsigned int i = 0; i < frame->header.blocksize; ++i) {
+		for (unsigned int j = 0; j < frame->header.channels; ++j) {
+			*output_buffer++ = buffer[j][i];
+		}
+	}
+
+	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+}
+
+void ce_flac_metadata_callback(const FLAC__StreamDecoder* decoder,
+	const FLAC__StreamMetadata* metadata, void* client_data)
+{
+	ce_unused(decoder);
+	ce_sound_resource* sound_resource = client_data;
+
+	if (FLAC__METADATA_TYPE_STREAMINFO == metadata->type) {
+		sound_resource->bits_per_sample = metadata->data.stream_info.bits_per_sample;
+		sound_resource->sample_rate = metadata->data.stream_info.sample_rate;
+		sound_resource->channel_count = metadata->data.stream_info.channels;
+
+		ce_logging_debug("flac: audio is %u bits per sample, %u Hz, %u channel(s)",
+			sound_resource->bits_per_sample, sound_resource->sample_rate, sound_resource->channel_count);
+	}
+}
+
+void ce_flac_error_callback(const FLAC__StreamDecoder* decoder,
+	FLAC__StreamDecoderErrorStatus status, void* client_data)
+{
+	ce_unused(decoder), ce_unused(client_data);
+	ce_logging_error("flac: an error %d occurred during decompression", status);
+}
+
+static bool ce_flac_test(ce_memfile* memfile)
+{
+	return true;
+}
+
+static bool ce_flac_ctor(ce_sound_resource* sound_resource)
+{
+	ce_flac* flac = (ce_flac*)sound_resource->impl;
+
+	flac->decoder = FLAC__stream_decoder_new();
+
+	if (FLAC__STREAM_DECODER_INIT_STATUS_OK != FLAC__stream_decoder_init_stream(flac->decoder,
+			ce_flac_read_callback, ce_flac_seek_callback, ce_flac_tell_callback,
+			ce_flac_length_callback, ce_flac_eof_callback, ce_flac_write_callback,
+			ce_flac_metadata_callback, ce_flac_error_callback, sound_resource)) {
+		ce_logging_error("flac: input does not appear to be a FLAC audio");
+		return false;
+	}
+
+	if (!FLAC__stream_decoder_process_until_end_of_metadata(flac->decoder)) {
+		ce_logging_error("flac: process_until_end_of_metadata failed");
+		return false;
+	}
+
+	return true;
+}
+
+static void ce_flac_dtor(ce_sound_resource* sound_resource)
+{
+	ce_flac* flac = (ce_flac*)sound_resource->impl;
+
+	if (NULL != flac->decoder) {
+		FLAC__stream_decoder_delete(flac->decoder);
+		if (!FLAC__stream_decoder_finish(flac->decoder)) {
+			// TODO: FLAC__stream_decoder_get_state(flac->decoder)
+			ce_logging_error("flac: finishing the decoding process failed");
+		}
+	}
+}
+
+static void ce_flac_decode(ce_sound_resource* sound_resource)
+{
+	ce_flac* flac = (ce_flac*)sound_resource->impl;
+
+	if (!FLAC__stream_decoder_process_single(flac->decoder)) {
+		// TODO: FLAC__stream_decoder_get_state(flac->decoder)
+		ce_logging_error("flac: decode one metadata block or audio frame failed");
+	}
+}
+
+static size_t ce_flac_read(ce_sound_resource* sound_resource, void* data, size_t size)
+{
+	ce_flac* flac = (ce_flac*)sound_resource->impl;
+
+	if (0 == flac->output_buffer_size) {
+		ce_flac_decode(sound_resource);
+	}
+
+	size = ce_min(size_t, size, flac->output_buffer_size);
+	memcpy(data, flac->output_buffer + flac->output_buffer_pos, size);
+
+	flac->output_buffer_pos += size;
+	flac->output_buffer_size -= size;
+
+	return size;
+}
+
+static bool ce_flac_reset(ce_sound_resource* sound_resource)
+{
+	ce_flac* flac = (ce_flac*)sound_resource->impl;
+
+	if (!FLAC__stream_decoder_reset(flac->decoder)) {
+		// TODO: FLAC__stream_decoder_get_state(flac->decoder)
+		ce_logging_error("flac: resetting the decoding process failed");
+	}
+
+	return false;
 }
 
 #ifdef CE_ENABLE_PROPRIETARY
@@ -649,6 +874,8 @@ const ce_sound_resource_vtable ce_sound_resource_builtins[] = {
 #endif
 	{ce_bink_size_hint, ce_bink_test, ce_bink_ctor,
 	ce_bink_dtor, ce_bink_read, ce_bink_reset},
+	{ce_flac_size_hint, ce_flac_test, ce_flac_ctor,
+	ce_flac_dtor, ce_flac_read, ce_flac_reset},
 };
 
 const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT = sizeof(ce_sound_resource_builtins) /

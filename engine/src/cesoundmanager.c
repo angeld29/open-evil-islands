@@ -32,7 +32,7 @@
 struct ce_sound_manager* ce_sound_manager;
 
 static const char* ce_sound_dirs[] = {"Stream", "Movies", NULL};
-static const char* ce_sound_exts[] = {".wav", ".oga", ".mp3", ".ogv", ".bik", NULL};
+static const char* ce_sound_exts[] = {".wav", ".oga", ".mp3", ".ogv", ".bik", ".flac", NULL};
 
 void ce_sound_manager_init(void)
 {
