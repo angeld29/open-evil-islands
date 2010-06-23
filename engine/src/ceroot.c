@@ -38,6 +38,7 @@
 #include "cesoundmanager.h"
 #include "cevideomanager.h"
 #include "cetexturemanager.h"
+#include "ceshadermanager.h"
 #include "cemprmanager.h"
 #include "cemobmanager.h"
 #include "cemobloader.h"
@@ -96,6 +97,7 @@ static void ce_root_term(void)
 	ce_mob_loader_term();
 	ce_mob_manager_term();
 	ce_mpr_manager_term();
+	ce_shader_manager_term();
 	ce_texture_manager_term();
 	ce_video_manager_term();
 	ce_sound_manager_term();
@@ -183,6 +185,7 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 	ce_video_manager_init();
 
 	ce_texture_manager_init();
+	ce_shader_manager_init();
 
 	ce_mpr_manager_init();
 	ce_mob_manager_init();

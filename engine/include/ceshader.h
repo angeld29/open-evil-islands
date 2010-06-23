@@ -18,53 +18,48 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_TEXTURE_H
-#define CE_TEXTURE_H
+#ifndef CE_SHADER_H
+#define CE_SHADER_H
 
+#include <stddef.h>
 #include <stdbool.h>
 
-#include "ceatomic.h"
 #include "cestring.h"
-#include "cemmpfile.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef enum {
-	CE_TEXTURE_WRAP_REPEAT,
-	CE_TEXTURE_WRAP_CLAMP,
-	CE_TEXTURE_WRAP_CLAMP_TO_EDGE,
-	CE_TEXTURE_WRAP_COUNT
-} ce_texture_wrap_mode;
+	CE_SHADER_TYPE_UNKNOWN,
+	CE_SHADER_TYPE_VERTEX,
+	CE_SHADER_TYPE_FRAGMENT,
+	CE_SHADER_TYPE_COUNT
+} ce_shader_type;
+
+typedef struct {
+	ce_shader_type shader_type;
+	size_t resource_index;
+} ce_shader_info;
 
 typedef struct {
 	int ref_count;
 	ce_string* name;
-	unsigned int width, height;
 	char impl[];
-} ce_texture;
+} ce_shader;
 
-extern ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile);
-extern void ce_texture_del(ce_texture* texture);
+extern bool ce_shader_is_available(void);
 
-extern bool ce_texture_is_valid(const ce_texture* texture);
-extern bool ce_texture_is_equal(const ce_texture* texture, const ce_texture* other);
+extern ce_shader* ce_shader_new(const char* name, const ce_shader_info shader_infos[]);
+extern void ce_shader_del(ce_shader* shader);
 
-extern void ce_texture_replace(ce_texture* texture, ce_mmpfile* mmpfile);
-extern void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode);
+extern bool ce_shader_is_valid(const ce_shader* shader);
 
-extern void ce_texture_bind(ce_texture* texture);
-extern void ce_texture_unbind(ce_texture* texture);
-
-static inline ce_texture* ce_texture_add_ref(ce_texture* texture)
-{
-	ce_atomic_inc(int, &texture->ref_count);
-	return texture;
-}
+extern void ce_shader_bind(ce_shader* shader);
+extern void ce_shader_unbind(ce_shader* shader);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CE_TEXTURE_H */
+#endif /* CE_SHADER_H */

@@ -30,7 +30,6 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cebyteorder.h"
-#include "cestring.h"
 #include "ceopengl.h"
 #include "cetexture.h"
 
