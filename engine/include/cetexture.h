@@ -24,6 +24,7 @@
 #include <stdbool.h>
 
 #include "ceatomic.h"
+#include "cestring.h"
 #include "cemmpfile.h"
 
 #ifdef __cplusplus
