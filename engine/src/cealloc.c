@@ -24,13 +24,17 @@
  *     Patterns Applied". Copyright (C) 2001 Addison-Wesley.
  *  2. The Loki Library (C) 2001 by Andrei Alexandrescu.
  *
+ *  See also:
+ *  1. https://www.securecoding.cert.org/confluence/display/seccode/MEM04-C.
+ *     +Do+not+perform+zero+length+allocations
+ *
  *  Notes:
  *  1. Minimum error checking. Disable smallobj (MAX_SMALL_OBJECT_SIZE = 0)
  *     and use, for example, valgrind on Linux to perform full error checking.
  *  2. Alloc have no external dependencies, so we must
  *     re-implement synchronization stuff here.
  *  3. There are no comments! If this subject is interesting
- *     for you just read the book or see the library.
+ *     for you just read the book or see the Loki library.
 */
 
 #include <stdlib.h>
