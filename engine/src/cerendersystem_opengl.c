@@ -268,16 +268,13 @@ void ce_render_system_draw_solid_cube(void)
 	glCallList(ce_opengl_system->solid_cube_list);
 }
 
-void ce_render_system_draw_fullscreen_texture(ce_texture* texture)
+void ce_render_system_draw_fullscreen_wire_rect(unsigned int width,
+												unsigned int height)
 {
-	ce_texture_bind(texture);
-
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluOrtho2D(0, texture->width, 0, texture->height);
+	gluOrtho2D(0, width, 0, height);
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -289,13 +286,13 @@ void ce_render_system_draw_fullscreen_texture(ce_texture* texture)
 	glVertex2i(0, 0);
 
 	glTexCoord2f(1.0f, 1.0f);
-	glVertex2i(texture->width, 0);
+	glVertex2i(width, 0);
 
 	glTexCoord2f(1.0f, 0.0f);
-	glVertex2i(texture->width, texture->height);
+	glVertex2i(width, height);
 
 	glTexCoord2f(0.0f, 0.0f);
-	glVertex2i(0, texture->height);
+	glVertex2i(0, height);
 
 	glEnd();
 
@@ -304,8 +301,6 @@ void ce_render_system_draw_fullscreen_texture(ce_texture* texture)
 
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-
-	ce_texture_unbind(texture);
 }
 
 void ce_render_system_setup_viewport(ce_viewport* viewport)
@@ -404,43 +399,51 @@ void ce_render_system_discard_transform(void)
 
 void ce_render_system_apply_material(ce_material* material)
 {
-	glPushAttrib(GL_ENABLE_BIT);
+	if (NULL != material->shader) {
+		ce_shader_bind(material->shader);
+	} else {
+		glPushAttrib(GL_ENABLE_BIT);
 
-	glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHTING);
 
-	glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]){material->ambient.r,
-												material->ambient.g,
-												material->ambient.b,
-												material->ambient.a});
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, (float[]){material->diffuse.r,
-												material->diffuse.g,
-												material->diffuse.b,
-												material->diffuse.a});
-	glMaterialfv(GL_FRONT, GL_SPECULAR, (float[]){material->specular.r,
-												material->specular.g,
-												material->specular.b,
-												material->specular.a});
-	glMaterialfv(GL_FRONT, GL_EMISSION, (float[]){material->emission.r,
-												material->emission.g,
-												material->emission.b,
-												material->emission.a});
-	glMaterialf(GL_FRONT, GL_SHININESS, material->shininess);
+		glMaterialfv(GL_FRONT, GL_AMBIENT, (float[]){material->ambient.r,
+													material->ambient.g,
+													material->ambient.b,
+													material->ambient.a});
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, (float[]){material->diffuse.r,
+													material->diffuse.g,
+													material->diffuse.b,
+													material->diffuse.a});
+		glMaterialfv(GL_FRONT, GL_SPECULAR, (float[]){material->specular.r,
+													material->specular.g,
+													material->specular.b,
+													material->specular.a});
+		glMaterialfv(GL_FRONT, GL_EMISSION, (float[]){material->emission.r,
+													material->emission.g,
+													material->emission.b,
+													material->emission.a});
+		glMaterialf(GL_FRONT, GL_SHININESS, material->shininess);
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,
-		(GLint[]){GL_MODULATE, GL_DECAL, GL_REPLACE}[material->mode]);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,
+			(GLint[]){GL_MODULATE, GL_DECAL, GL_REPLACE}[material->mode]);
 
-	if (material->alpha_test) {
-		glEnable(GL_ALPHA_TEST);
-		glAlphaFunc(GL_GREATER, 0.5f);
-	}
+		if (material->alpha_test) {
+			glEnable(GL_ALPHA_TEST);
+			glAlphaFunc(GL_GREATER, 0.5f);
+		}
 
-	if (material->blend) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		if (material->blend) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
 	}
 }
 
-void ce_render_system_discard_material(void)
+void ce_render_system_discard_material(ce_material* material)
 {
-	glPopAttrib();
+	if (NULL != material->shader) {
+		ce_shader_unbind(material->shader);
+	} else {
+		glPopAttrib();
+	}
 }

@@ -52,14 +52,17 @@ static void ce_shader_report_errors(GLuint object)
 		glGetProgramiv(object, GL_INFO_LOG_LENGTH, &length);
 	}
 
-	char buffer[length];
-	if (glIsShader(object)) {
-		glGetShaderInfoLog(object, length, NULL, buffer);
+	if (length > 0) {
+		char buffer[length];
+		if (glIsShader(object)) {
+			glGetShaderInfoLog(object, length, NULL, buffer);
+		} else {
+			glGetProgramInfoLog(object, length, NULL, buffer);
+		}
+		ce_logging_error("shader: %s", buffer);
 	} else {
-		glGetProgramInfoLog(object, length, NULL, buffer);
+		ce_logging_error("shader: unknown error");
 	}
-
-	ce_logging_error("shader: %s", buffer);
 }
 
 static bool ce_shader_check_status(GLuint object)

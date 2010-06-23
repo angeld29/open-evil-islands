@@ -27,6 +27,7 @@
 #include "cethread.h"
 #include "cemmpfile.h"
 #include "cetexture.h"
+#include "cematerial.h"
 #include "cesoundobject.h"
 #include "cevideoobject.h"
 #include "cevideoresource.h"
@@ -53,7 +54,8 @@ typedef struct {
 	float play_time, sync_time; // playing/synchronization time in seconds
 	ce_video_resource* video_resource;
 	ce_texture* texture;
-	ce_mmpfile* rgba_frame; // TODO: shader
+	ce_material* material;
+	ce_mmpfile* rgba_frame;
 	ce_mmpfile* ycbcr_frames[CE_VIDEO_INSTANCE_CACHE_SIZE];
 	ce_semaphore* prepared_frames;
 	ce_semaphore* unprepared_frames;

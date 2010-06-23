@@ -51,7 +51,8 @@ extern void ce_render_system_draw_axes(void);
 extern void ce_render_system_draw_wire_cube(void);
 extern void ce_render_system_draw_solid_cube(void);
 
-extern void ce_render_system_draw_fullscreen_texture(ce_texture* texture);
+extern void ce_render_system_draw_fullscreen_wire_rect(unsigned int width,
+														unsigned int height);
 
 extern void ce_render_system_setup_viewport(ce_viewport* viewport);
 extern void ce_render_system_setup_camera(ce_camera* camera);
@@ -67,7 +68,7 @@ extern void ce_render_system_apply_transform(const ce_vec3* translation,
 extern void ce_render_system_discard_transform(void);
 
 extern void ce_render_system_apply_material(ce_material* material);
-extern void ce_render_system_discard_material(void);
+extern void ce_render_system_discard_material(ce_material* material);
 
 #ifdef __cplusplus
 }

@@ -24,6 +24,7 @@
 #include <stdbool.h>
 
 #include "cecolor.h"
+#include "ceshader.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -46,6 +47,7 @@ typedef struct {
 	float shininess;
 	bool alpha_test;
 	bool blend;
+	ce_shader* shader;
 } ce_material;
 
 extern ce_material* ce_material_new(void);

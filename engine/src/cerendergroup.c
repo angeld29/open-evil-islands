@@ -71,6 +71,6 @@ void ce_rendergroup_render(ce_rendergroup* rendergroup)
 	if (!empty) {
 		ce_render_system_apply_material(rendergroup->material);
 		ce_vector_for_each(rendergroup->renderlayers, ce_renderlayer_render);
-		ce_render_system_discard_material();
+		ce_render_system_discard_material(rendergroup->material);
 	}
 }

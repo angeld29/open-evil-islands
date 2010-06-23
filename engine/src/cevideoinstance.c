@@ -26,6 +26,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cerendersystem.h"
+#include "ceshadermanager.h"
 #include "cevideoinstance.h"
 
 static void ce_video_instance_exec(ce_video_instance* video_instance)
@@ -77,17 +78,29 @@ ce_video_instance* ce_video_instance_new(ce_video_object video_object,
 										ce_video_resource* video_resource)
 {
 	ce_video_instance* video_instance = ce_alloc_zero(sizeof(ce_video_instance));
+
 	video_instance->video_object = video_object;
 	video_instance->sound_object = sound_object;
 	video_instance->frame = -1;
 	video_instance->video_resource = video_resource;
 	video_instance->texture = ce_texture_new("frame", NULL);
+	video_instance->material = ce_material_new();
+	video_instance->material->mode = CE_MATERIAL_MODE_REPLACE;
+	video_instance->material->shader = ce_shader_manager_get((const char*[])
+		{"shaders/ycbcr2rgba.vert", "shaders/ycbcr2rgba.frag", NULL});
+
+	if (NULL != video_instance->material->shader) {
+		ce_shader_add_ref(video_instance->material->shader);
+	}
+
 	video_instance->rgba_frame = ce_mmpfile_new(video_resource->width,
 		video_resource->height, 1, CE_MMPFILE_FORMAT_R8G8B8A8, 0);
+
 	for (size_t i = 0; i < CE_VIDEO_INSTANCE_CACHE_SIZE; ++i) {
 		video_instance->ycbcr_frames[i] = ce_mmpfile_new(video_resource->width,
 			video_resource->height, 1, CE_MMPFILE_FORMAT_YCBCR, 0);
 	}
+
 	video_instance->prepared_frames = ce_semaphore_new(0);
 	video_instance->unprepared_frames = ce_semaphore_new(CE_VIDEO_INSTANCE_CACHE_SIZE);
 	video_instance->thread = ce_thread_new(ce_video_instance_exec, video_instance);
@@ -112,6 +125,7 @@ void ce_video_instance_del(ce_video_instance* video_instance)
 		}
 
 		ce_mmpfile_del(video_instance->rgba_frame);
+		ce_material_del(video_instance->material);
 		ce_texture_del(video_instance->texture);
 		ce_video_resource_del(video_instance->video_resource);
 
@@ -133,7 +147,27 @@ static void ce_video_instance_do_advance(ce_video_instance* video_instance)
 				0 == ce_semaphore_available(video_instance->prepared_frames)) {
 			ce_mmpfile* ycbcr_frame = video_instance->ycbcr_frames
 				[video_instance->frame % CE_VIDEO_INSTANCE_CACHE_SIZE];
-			ce_mmpfile_convert2(ycbcr_frame, video_instance->rgba_frame);
+
+			if (NULL != video_instance->material->shader) {
+				const uint8_t* y_data = ycbcr_frame->texels;
+				const uint8_t* cb_data = y_data + ycbcr_frame->width * ycbcr_frame->height;
+				const uint8_t* cr_data = cb_data + (ycbcr_frame->width / 2) * (ycbcr_frame->height / 2);
+
+				uint8_t* texels = video_instance->rgba_frame->texels;
+
+				for (unsigned int h = 0; h < ycbcr_frame->height; ++h) {
+					for (unsigned int w = 0; w < ycbcr_frame->width; ++w) {
+						size_t index = 4 * (h * ycbcr_frame->width + w);
+						texels[index + 0] = y_data[h * ycbcr_frame->width + w];
+						texels[index + 1] = cb_data[(h / 2) * (ycbcr_frame->width / 2) + w / 2];
+						texels[index + 2] = cr_data[(h / 2) * (ycbcr_frame->width / 2) + w / 2];
+						texels[index + 3] = 255;
+					}
+				}
+			} else {
+				ce_mmpfile_convert2(ycbcr_frame, video_instance->rgba_frame);
+			}
+
 			ce_texture_replace(video_instance->texture, video_instance->rgba_frame);
 			acquired = true;
 		}
@@ -179,9 +213,14 @@ void ce_video_instance_progress(ce_video_instance* video_instance, int percents)
 
 void ce_video_instance_render(ce_video_instance* video_instance)
 {
+	ce_render_system_apply_material(video_instance->material);
 	if (ce_texture_is_valid(video_instance->texture)) {
-		ce_render_system_draw_fullscreen_texture(video_instance->texture);
+		ce_texture_bind(video_instance->texture);
+		ce_render_system_draw_fullscreen_wire_rect(video_instance->texture->width,
+												video_instance->texture->height);
+		ce_texture_unbind(video_instance->texture);
 	}
+	ce_render_system_discard_material(video_instance->material);
 }
 
 bool ce_video_instance_is_stopped(ce_video_instance* video_instance)

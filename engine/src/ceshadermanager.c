@@ -79,9 +79,9 @@ ce_shader* ce_shader_manager_get(const char* resource_paths[])
 	ce_shader_info shader_infos[resource_count + 1];
 
 	for (size_t i = 0; i < resource_count; ++i) {
-		if (NULL != strstr(".vert", resource_paths[i])) {
+		if (NULL != strstr(resource_paths[i], ".vert")) {
 			shader_infos[i].shader_type = CE_SHADER_TYPE_VERTEX;
-		} else if (NULL != strstr(".frag", resource_paths[i])) {
+		} else if (NULL != strstr(resource_paths[i], ".frag")) {
 			shader_infos[i].shader_type = CE_SHADER_TYPE_FRAGMENT;
 		} else {
 			shader_infos[i].shader_type = CE_SHADER_TYPE_UNKNOWN;
