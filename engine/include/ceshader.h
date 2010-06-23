@@ -24,6 +24,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "ceatomic.h"
 #include "cestring.h"
 
 #ifdef __cplusplus
@@ -57,6 +58,12 @@ extern bool ce_shader_is_valid(const ce_shader* shader);
 
 extern void ce_shader_bind(ce_shader* shader);
 extern void ce_shader_unbind(ce_shader* shader);
+
+static inline ce_shader* ce_shader_add_ref(ce_shader* shader)
+{
+	ce_atomic_inc(int, &shader->ref_count);
+	return shader;
+}
 
 #ifdef __cplusplus
 }

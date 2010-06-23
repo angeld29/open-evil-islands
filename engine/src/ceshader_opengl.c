@@ -130,10 +130,13 @@ ce_shader* ce_shader_new(const char* name, const ce_shader_info shader_infos[])
 void ce_shader_del(ce_shader* shader)
 {
 	if (NULL != shader) {
-		ce_shader_opengl* opengl_shader = (ce_shader_opengl*)shader->impl;
-		glDeleteProgram(opengl_shader->program);
-		ce_string_del(shader->name);
-		ce_free(shader, sizeof(ce_shader) + sizeof(ce_shader_opengl));
+		assert(ce_atomic_fetch(int, &shader->ref_count) > 0);
+		if (0 == ce_atomic_dec_and_fetch(int, &shader->ref_count)) {
+			ce_shader_opengl* opengl_shader = (ce_shader_opengl*)shader->impl;
+			glDeleteProgram(opengl_shader->program);
+			ce_string_del(shader->name);
+			ce_free(shader, sizeof(ce_shader) + sizeof(ce_shader_opengl));
+		}
 	}
 }
 
