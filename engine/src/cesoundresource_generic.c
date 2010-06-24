@@ -128,7 +128,7 @@ static bool ce_vorbis_ctor(ce_sound_resource* sound_resource, ce_sound_probe* so
 
 	ce_logging_debug("vorbis: audio is %ld bits per second "
 						"(%ld bits per second nominal), "
-						"%u bits per sample, %u Hz, %u channel",
+						"%u bits per sample, %u Hz, %u channel(s)",
 		ov_bitrate(vorbis->vf, -1), info->bitrate_nominal,
 		sound_resource->bits_per_sample,
 		sound_resource->sample_rate, sound_resource->channel_count);
