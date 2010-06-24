@@ -735,6 +735,8 @@ static bool ce_bink_test(ce_sound_probe* sound_probe)
 		sound_probe->size = sizeof(ce_bink) +
 			sizeof(ce_bink_index) * header.frame_count +
 			header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE;
+		assert(sizeof(ce_bink_header) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
+		memcpy(sound_probe->buffer, &header, sizeof(ce_bink_header));
 		return true;
 	}
 	return false;
@@ -743,14 +745,7 @@ static bool ce_bink_test(ce_sound_probe* sound_probe)
 static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe)
 {
 	ce_bink* bink = (ce_bink*)sound_resource->impl;
-
-	ce_unused(sound_probe);
-	ce_memfile_rewind(sound_resource->memfile);
-
-	if (!ce_bink_header_read(&bink->header, sound_resource->memfile)) {
-		ce_logging_error("bink: input does not appear to be a Bink audio");
-		return false;
-	}
+	memcpy(&bink->header, sound_probe->buffer, sizeof(ce_bink_header));
 
 	if (1 != bink->header.audio_track_count) {
 		ce_logging_error("bink: only one audio track supported");
