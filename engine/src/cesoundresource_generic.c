@@ -62,7 +62,7 @@
 */
 
 typedef struct {
-	OggVorbis_File vf;
+	OggVorbis_File* vf;
 	int bitstream;
 } ce_vorbis;
 
@@ -83,30 +83,38 @@ static long ce_vorbis_tell_wrap(void* datasource)
 
 static bool ce_vorbis_test(ce_sound_probe* sound_probe)
 {
-	OggVorbis_File vf;
-	if (0 == ov_test_callbacks(sound_probe->memfile, &vf, NULL, 0, (ov_callbacks)
+	char fourcc[4];
+	if (4 != ce_memfile_read(sound_probe->memfile, fourcc, 1, 4) ||
+			0 != memcmp(fourcc, "OggS", 4)) {
+		return false;
+	}
+
+	ce_memfile_rewind(sound_probe->memfile);
+
+	OggVorbis_File* vf = ce_alloc(sizeof(OggVorbis_File));
+	if (0 == ov_test_callbacks(sound_probe->memfile, vf, NULL, 0, (ov_callbacks)
 			{ce_vorbis_read_wrap, ce_vorbis_seek_wrap, NULL, ce_vorbis_tell_wrap})) {
 		sound_probe->size = sizeof(ce_vorbis);
-		ov_clear(&vf);
+		sound_probe->data = vf;
 		return true;
 	}
+
+	ov_clear(vf);
+	ce_free(vf, sizeof(OggVorbis_File));
 	return false;
 }
 
 static bool ce_vorbis_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe)
 {
 	ce_vorbis* vorbis = (ce_vorbis*)sound_resource->impl;
+	vorbis->vf = sound_probe->data;
 
-	ce_unused(sound_probe);
-	ce_memfile_rewind(sound_resource->memfile);
-
-	if (0 != ov_open_callbacks(sound_resource->memfile, &vorbis->vf, NULL, 0,
-			(ov_callbacks){ce_vorbis_read_wrap, ce_vorbis_seek_wrap, NULL, ce_vorbis_tell_wrap})) {
+	if (0 != ov_test_open(vorbis->vf)) {
 		ce_logging_error("vorbis: input does not appear to be an Ogg Vorbis audio");
 		return false;
 	}
 
-	vorbis_info* info = ov_info(&vorbis->vf, -1);
+	vorbis_info* info = ov_info(vorbis->vf, -1);
 	if (NULL == info) {
 		ce_logging_error("vorbis: could not get stream info");
 		return false;
@@ -118,8 +126,11 @@ static bool ce_vorbis_ctor(ce_sound_resource* sound_resource, ce_sound_probe* so
 	sound_resource->sample_rate = info->rate;
 	sound_resource->channel_count = info->channels;
 
-	ce_logging_debug("vorbis: audio is %ld bit/s (%ld bit/s nominal), %u Hz, %u channel",
-		ov_bitrate(&vorbis->vf, -1), info->bitrate_nominal,
+	ce_logging_debug("vorbis: audio is %ld bits per second "
+						"(%ld bits per second nominal), "
+						"%u bits per sample, %u Hz, %u channel",
+		ov_bitrate(vorbis->vf, -1), info->bitrate_nominal,
+		sound_resource->bits_per_sample,
 		sound_resource->sample_rate, sound_resource->channel_count);
 
 	return true;
@@ -128,7 +139,8 @@ static bool ce_vorbis_ctor(ce_sound_resource* sound_resource, ce_sound_probe* so
 static void ce_vorbis_dtor(ce_sound_resource* sound_resource)
 {
 	ce_vorbis* vorbis = (ce_vorbis*)sound_resource->impl;
-	ov_clear(&vorbis->vf);
+	ov_clear(vorbis->vf);
+	ce_free(vorbis->vf, sizeof(OggVorbis_File));
 }
 
 static size_t ce_vorbis_read(ce_sound_resource* sound_resource, void* data, size_t size)
@@ -136,7 +148,7 @@ static size_t ce_vorbis_read(ce_sound_resource* sound_resource, void* data, size
 	ce_vorbis* vorbis = (ce_vorbis*)sound_resource->impl;
 
 	for (;;) {
-		long code = ov_read(&vorbis->vf, data, size,
+		long code = ov_read(vorbis->vf, data, size,
 					ce_is_big_endian(), 2, 1, &vorbis->bitstream);
 		if (code >= 0) {
 			return code;
@@ -149,7 +161,7 @@ static bool ce_vorbis_reset(ce_sound_resource* sound_resource)
 {
 	ce_vorbis* vorbis = (ce_vorbis*)sound_resource->impl;
 	// infinite loop occurs if seeking at position 0 with multi stream oggs
-	return 0 == ov_raw_seek(&vorbis->vf, 1);
+	return 0 == ov_raw_seek(vorbis->vf, 1);
 }
 
 /*
