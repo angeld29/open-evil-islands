@@ -35,11 +35,11 @@ static bool ce_config_file_parse(ce_config_file* config_file,
 		MAX_LINE_SIZE = 256,
 	};
 
-	char line[MAX_LINE_SIZE], temp[MAX_LINE_SIZE], temp2[MAX_LINE_SIZE];
+	char line[MAX_LINE_SIZE], temp1[MAX_LINE_SIZE], temp2[MAX_LINE_SIZE];
 	ce_config_section* section = NULL;
 
-	for (int line_number = 1; NULL != fgets(temp, MAX_LINE_SIZE, file); ++line_number) {
-		size_t line_length = strlen(ce_strtrim(line, temp));
+	for (int line_number = 1; NULL != fgets(temp1, MAX_LINE_SIZE, file); ++line_number) {
+		size_t line_length = strlen(ce_strtrim(line, temp1));
 
 		if (line_length + 1 == MAX_LINE_SIZE) {
 			ce_logging_warning("config file: %s:%d: line is too long: "
@@ -74,10 +74,10 @@ static bool ce_config_file_parse(ce_config_file* config_file,
 				return false;
 			}
 
-			ce_strmid(temp, line, 1, line_length - 2);
+			ce_strmid(temp1, line, 1, line_length - 2);
 
 			section = ce_alloc(sizeof(ce_config_section));
-			section->name = ce_string_new_str(ce_strtrim(temp2, temp));
+			section->name = ce_string_new_str(ce_strtrim(temp2, temp1));
 			section->options = ce_vector_new();
 			ce_vector_push_back(config_file->sections, section);
 		} else {
@@ -100,22 +100,20 @@ static bool ce_config_file_parse(ce_config_file* config_file,
 			option->value = ce_string_new();
 			ce_vector_push_back(section->options, option);
 
-			ce_strleft(temp, line, eq - line);
-			ce_string_assign(option->name, ce_strtrim(temp2, temp));
+			ce_strleft(temp1, line, eq - line);
+			ce_string_assign(option->name, ce_strtrim(temp2, temp1));
 
 			if (ce_string_empty(option->name)) {
-				ce_logging_error("config file: %s:%d: missing option name: "
+				ce_logging_warning("config file: %s:%d: missing option name: "
 								"'%s'", path, line_number, line);
-				return false;
 			}
 
-			ce_strright(temp, line, line_length - (eq - line) - 1);
-			ce_string_assign(option->value, ce_strtrim(temp2, temp));
+			ce_strright(temp1, line, line_length - (eq - line) - 1);
+			ce_string_assign(option->value, ce_strtrim(temp2, temp1));
 
 			if (ce_string_empty(option->value)) {
-				ce_logging_error("config file: %s:%d: missing option value: "
+				ce_logging_warning("config file: %s:%d: missing option value: "
 								"'%s'", path, line_number, line);
-				return false;
 			}
 		}
 	}
