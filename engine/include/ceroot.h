@@ -18,6 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ *  It's a... God Object anti-pattern implementation :)))
+*/
+
 #ifndef CE_ROOT_H
 #define CE_ROOT_H
 
