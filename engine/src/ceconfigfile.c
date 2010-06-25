@@ -44,7 +44,7 @@ static bool ce_config_file_parse(ce_config_file* config_file,
 		if (line_length + 1 == MAX_LINE_SIZE) {
 			ce_logging_warning("config file: %s:%d: line is too long: "
 								"'%s', skipped...", path, line_number, line);
-			// skip line tail until new line
+			// FIXME: skip line tail until new line
 			int ch;
 			do {
 				ch = fgetc(file);
