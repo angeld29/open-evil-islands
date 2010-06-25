@@ -580,7 +580,7 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 		};
 		return ce_renderitem_new(ce_renderitem_amdvst_vtable,
 								sizeof(ce_mprrenderitem_amdvst), mprfile,
-								sector_x, sector_z, water, tile_textures);
+								sector_x, sector_z, water);
 	}
 
 	ce_renderitem_vtable ce_renderitem_fast_vtable = {
