@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,17 +21,15 @@
 #ifndef CE_VEC3_H
 #define CE_VEC3_H
 
-#include "cequatfwd.h"
-#include "cevec3fwd.h"
-
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
-struct ce_vec3 {
+struct ce_quat;
+
+typedef struct ce_vec3 {
 	float x, y, z;
-};
+} ce_vec3;
 
 extern const ce_vec3 CE_VEC3_ZERO;
 extern const ce_vec3 CE_VEC3_UNIT_X;
@@ -88,7 +86,7 @@ extern ce_vec3* ce_vec3_cross(ce_vec3* restrict vec, const ce_vec3* lhs,
 extern ce_vec3* ce_vec3_mid(ce_vec3* vec, const ce_vec3* lhs,
 											const ce_vec3* rhs);
 extern ce_vec3* ce_vec3_rot(ce_vec3* vec, const ce_vec3* other,
-											const ce_quat* quat);
+											const struct ce_quat* quat);
 
 extern ce_vec3* ce_vec3_lerp(ce_vec3* vec, float u, const ce_vec3* lhs,
 													const ce_vec3* rhs);
@@ -100,6 +98,6 @@ extern ce_vec3* ce_vec3_ceil(ce_vec3* vec, const ce_vec3* lhs,
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_VEC3_H */

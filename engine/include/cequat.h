@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,17 +21,15 @@
 #ifndef CE_QUAT_H
 #define CE_QUAT_H
 
-#include "cevec3fwd.h"
-#include "cequatfwd.h"
-
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
-struct ce_quat {
+struct ce_vec3;
+
+typedef struct ce_quat {
 	float w, x, y, z;
-};
+} ce_quat;
 
 extern const ce_quat CE_QUAT_ZERO;
 extern const ce_quat CE_QUAT_IDENTITY;
@@ -39,7 +37,7 @@ extern const ce_quat CE_QUAT_IDENTITY;
 extern ce_quat* ce_quat_init(ce_quat* quat, float w, float x, float y, float z);
 extern ce_quat* ce_quat_init_array(ce_quat* quat, const float* array);
 extern ce_quat* ce_quat_init_polar(ce_quat* quat, float angle,
-													const ce_vec3* axis);
+									const struct ce_vec3* axis);
 
 extern ce_quat* ce_quat_init_zero(ce_quat* quat);
 extern ce_quat* ce_quat_init_identity(ce_quat* quat);
@@ -68,10 +66,10 @@ extern ce_quat* ce_quat_inv(ce_quat* quat, const ce_quat* other);
 
 extern float ce_quat_dot(const ce_quat* lhs, const ce_quat* rhs);
 
-extern float ce_quat_to_polar(const ce_quat* quat, ce_vec3* axis);
-extern void ce_quat_to_axes(const ce_quat* quat, ce_vec3* xaxis,
-												ce_vec3* yaxis,
-												ce_vec3* zaxis);
+extern float ce_quat_to_polar(const ce_quat* quat, struct ce_vec3* axis);
+extern void ce_quat_to_axes(const ce_quat* quat, struct ce_vec3* xaxis,
+												struct ce_vec3* yaxis,
+												struct ce_vec3* zaxis);
 
 // spherical linear interpolation
 extern ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs,
@@ -79,6 +77,6 @@ extern ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs,
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_QUAT_H */
