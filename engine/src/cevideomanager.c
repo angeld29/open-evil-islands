@@ -33,7 +33,7 @@
 struct ce_video_manager* ce_video_manager;
 
 static const char* ce_video_dirs[] = {"Movies", NULL};
-static const char* ce_video_exts[] = {".ogv", ".bik", NULL};
+static const char* ce_video_exts[] = {".ogv", ".ogg", ".bik", NULL};
 
 void ce_video_manager_init(void)
 {
