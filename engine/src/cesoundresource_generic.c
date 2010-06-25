@@ -83,25 +83,33 @@ static long ce_vorbis_tell_wrap(void* datasource)
 
 static bool ce_vorbis_test(ce_sound_probe* sound_probe)
 {
+	char fourcc[4];
+	if (4 != ce_memfile_read(sound_probe->memfile, fourcc, 1, 4) ||
+			0 != memcmp(fourcc, "OggS", 4)) {
+		return false;
+	}
+
+	ce_memfile_rewind(sound_probe->memfile);
+
 	OggVorbis_File vf;
 	if (0 == ov_test_callbacks(sound_probe->memfile, &vf, NULL, 0, (ov_callbacks)
 			{ce_vorbis_read_wrap, ce_vorbis_seek_wrap, NULL, ce_vorbis_tell_wrap})) {
 		sound_probe->size = sizeof(ce_vorbis);
-		ov_clear(&vf);
+		assert(sizeof(OggVorbis_File) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
+		memcpy(sound_probe->buffer, &vf, sizeof(OggVorbis_File));
 		return true;
 	}
+
+	ov_clear(&vf);
 	return false;
 }
 
 static bool ce_vorbis_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe)
 {
 	ce_vorbis* vorbis = (ce_vorbis*)sound_resource->impl;
+	memcpy(&vorbis->vf, sound_probe->buffer, sizeof(OggVorbis_File));
 
-	ce_unused(sound_probe);
-	ce_memfile_rewind(sound_resource->memfile);
-
-	if (0 != ov_open_callbacks(sound_resource->memfile, &vorbis->vf, NULL, 0,
-			(ov_callbacks){ce_vorbis_read_wrap, ce_vorbis_seek_wrap, NULL, ce_vorbis_tell_wrap})) {
+	if (0 != ov_test_open(&vorbis->vf)) {
 		ce_logging_error("vorbis: input does not appear to be an Ogg Vorbis audio");
 		return false;
 	}
@@ -118,8 +126,11 @@ static bool ce_vorbis_ctor(ce_sound_resource* sound_resource, ce_sound_probe* so
 	sound_resource->sample_rate = info->rate;
 	sound_resource->channel_count = info->channels;
 
-	ce_logging_debug("vorbis: audio is %ld bit/s (%ld bit/s nominal), %u Hz, %u channel",
+	ce_logging_debug("vorbis: audio is %ld bits per second "
+						"(%ld bits per second nominal), "
+						"%u bits per sample, %u Hz, %u channel(s)",
 		ov_bitrate(&vorbis->vf, -1), info->bitrate_nominal,
+		sound_resource->bits_per_sample,
 		sound_resource->sample_rate, sound_resource->channel_count);
 
 	return true;
@@ -724,6 +735,8 @@ static bool ce_bink_test(ce_sound_probe* sound_probe)
 		sound_probe->size = sizeof(ce_bink) +
 			sizeof(ce_bink_index) * header.frame_count +
 			header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE;
+		assert(sizeof(ce_bink_header) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
+		memcpy(sound_probe->buffer, &header, sizeof(ce_bink_header));
 		return true;
 	}
 	return false;
@@ -732,14 +745,7 @@ static bool ce_bink_test(ce_sound_probe* sound_probe)
 static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe)
 {
 	ce_bink* bink = (ce_bink*)sound_resource->impl;
-
-	ce_unused(sound_probe);
-	ce_memfile_rewind(sound_resource->memfile);
-
-	if (!ce_bink_header_read(&bink->header, sound_resource->memfile)) {
-		ce_logging_error("bink: input does not appear to be a Bink audio");
-		return false;
-	}
+	memcpy(&bink->header, sound_probe->buffer, sizeof(ce_bink_header));
 
 	if (1 != bink->header.audio_track_count) {
 		ce_logging_error("bink: only one audio track supported");

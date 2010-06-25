@@ -30,10 +30,14 @@
 extern "C" {
 #endif
 
+enum {
+	CE_SOUND_PROBE_BUFFER_CAPACITY = 1024
+};
+
 typedef struct {
 	ce_memfile* memfile;
 	size_t size;
-	void* data;
+	char buffer[CE_SOUND_PROBE_BUFFER_CAPACITY];
 } ce_sound_probe;
 
 typedef struct ce_sound_resource ce_sound_resource;
