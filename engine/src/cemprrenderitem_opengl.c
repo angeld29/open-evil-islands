@@ -561,6 +561,7 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 									int sector_x, int sector_z,
 									int water, ce_vector* tile_textures)
 {
+	// tiling, very slow!
 	if (ce_option_manager->terrain_tiling) {
 		return ce_renderitem_new((ce_renderitem_vtable)
 			{ce_mprrenderitem_tile_ctor, ce_mprrenderitem_tile_dtor,
@@ -569,7 +570,7 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 			sector_x, sector_z, water, tile_textures);
 	}
 
-	// not implemented properly
+	// experimental, not implemented properly
 	if (false && GLEW_VERSION_3_1 && GLEW_AMD_vertex_shader_tessellator) {
 		return ce_renderitem_new((ce_renderitem_vtable)
 			{ce_mprrenderitem_amdvst_ctor, ce_mprrenderitem_amdvst_dtor,
@@ -577,6 +578,7 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 			sizeof(ce_mprrenderitem_amdvst), mprfile, sector_x, sector_z, water);
 	}
 
+	// continuous geometry, very fast!
 	return ce_renderitem_new((ce_renderitem_vtable)
 		{ce_mprrenderitem_fast_ctor, ce_mprrenderitem_fast_dtor,
 		NULL, ce_mprrenderitem_fast_render, NULL},
