@@ -86,8 +86,8 @@ ce_video_instance* ce_video_instance_new(ce_video_object video_object,
 	video_instance->texture = ce_texture_new("frame", NULL);
 	video_instance->material = ce_material_new();
 	video_instance->material->mode = CE_MATERIAL_MODE_REPLACE;
-	video_instance->material->shader = ce_shader_manager_get((const char*[])
-		{"shaders/ycbcr2rgba.vert", "shaders/ycbcr2rgba.frag", NULL});
+	//video_instance->material->shader = ce_shader_manager_get((const char*[])
+	//	{"shaders/ycbcr2rgba.vert", "shaders/ycbcr2rgba.frag", NULL});
 
 	if (NULL != video_instance->material->shader) {
 		ce_shader_add_ref(video_instance->material->shader);

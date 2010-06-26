@@ -18,16 +18,38 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cemath.h"
-#include "ceplane.h"
+#ifndef CE_RAY_H
+#define CE_RAY_H
 
-bool ce_plane_isect_ray(const ce_plane* plane, const ce_ray* ray, ce_vec3* point)
+#include "cevec3.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct {
+	ce_vec3 origin;
+	ce_vec3 direction;
+} ce_ray;
+
+static inline ce_ray* ce_ray_init(ce_ray* ray, const ce_vec3* origin,
+												const ce_vec3* direction)
 {
-	float dist = ce_plane_dist_ray(plane, ray);
-	if (dist < 0.0f || ce_fiszero(dist, CE_EPS_E6)) {
-		return false;
-	}
-	ce_vec3_scale(point, dist, &ray->direction);
-	ce_vec3_add(point, &ray->origin, point);
-	return true;
+	ce_vec3_copy(&ray->origin, origin);
+	ce_vec3_copy(&ray->direction, direction);
+	return ray;
 }
+
+static inline ce_ray* ce_ray_init_segment(ce_ray* ray, const ce_vec3* start,
+														const ce_vec3* end)
+{
+	ce_vec3_copy(&ray->origin, start);
+	ce_vec3_norm(&ray->direction, ce_vec3_sub(&ray->direction, end, start));
+	return ray;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* CE_RAY_H */

@@ -18,16 +18,28 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cemath.h"
-#include "ceplane.h"
+#include "celogging.h"
+#include "cetriangle.h"
 
-bool ce_plane_isect_ray(const ce_plane* plane, const ce_ray* ray, ce_vec3* point)
+bool ce_triangle_test(const ce_triangle* triangle, const ce_vec3* point)
 {
-	float dist = ce_plane_dist_ray(plane, ray);
-	if (dist < 0.0f || ce_fiszero(dist, CE_EPS_E6)) {
-		return false;
-	}
-	ce_vec3_scale(point, dist, &ray->direction);
-	ce_vec3_add(point, &ray->origin, point);
-	return true;
+	ce_vec3 normal;
+	ce_triangle_calc_normal(triangle, &normal);
+
+	ce_vec3 l1, l2, l3;
+	ce_vec3_sub(&l1, &triangle->a, point);
+	ce_vec3_sub(&l2, &triangle->b, point);
+	ce_vec3_sub(&l3, &triangle->c, point);
+
+	ce_vec3 t1, t2, t3;
+	ce_vec3_cross(&t1, &l1, &l2);
+	ce_vec3_cross(&t2, &l2, &l3);
+	ce_vec3_cross(&t3, &l3, &l1);
+
+	float s1 = ce_vec3_dot(&t1, &normal);
+	float s2 = ce_vec3_dot(&t2, &normal);
+	float s3 = ce_vec3_dot(&t3, &normal);
+
+	return (s1 <= 0.0f && s2 <= 0.0f && s3 <= 0.0f) ||
+			(s1 >= 0.0f && s2 >= 0.0f && s3 >= 0.0f);
 }

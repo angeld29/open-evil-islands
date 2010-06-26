@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,20 +18,25 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <limits.h>
 #include <assert.h>
 
 #include "celib.h"
+#include "cemath.h"
+#include "ceplane.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "cemprhlp.h"
+
+const float CE_MPR_OFFSET_XZ_COEF = 1.0f / (INT8_MAX - INT8_MIN);
+const float CE_MPR_HEIGHT_Y_COEF = 1.0f / (UINT16_MAX - 0);
 
 ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
 							int sector_x, int sector_z, bool water)
 {
-	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
+	const float max_y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
 	float y = 0.0f;
 
 	ce_mprsector* sector = mprfile->sectors + sector_z *
@@ -46,7 +51,7 @@ ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
 					-1 == water_allow[z / 2 * CE_MPRFILE_TEXTURE_SIDE + x / 2]) {
 				continue;
 			}
-			y = fmaxf(y, y_coef * vertices[z * CE_MPRFILE_VERTEX_SIDE + x].coord_y);
+			y = fmaxf(y, max_y_coef * vertices[z * CE_MPRFILE_VERTEX_SIDE + x].coord_y);
 		}
 	}
 
@@ -65,45 +70,144 @@ ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
 	return aabb;
 }
 
-float* ce_mprhlp_normal2vector(float* vector, uint32_t normal)
+#include <GL/gl.h>
+#include "cerendersystem.h"
+
+static bool ce_mprhlp_get_height_triangle(const ce_mprfile* mprfile,
+	int sector_x, int sector_z, int vertex_x1, int vertex_z1,
+	int vertex_x2, int vertex_z2, int vertex_x3, int vertex_z3,
+	float x, float z, float* y)
 {
-	vector[0] = (((normal >> 11) & 0x7ff) - 1000.0f) / 1000.0f;
-	vector[1] = (normal >> 22) / 1000.0f;
-	vector[2] = ((normal & 0x7ff) - 1000.0f) / 1000.0f;
-	return vector;
+	const ce_mprsector* sector = mprfile->sectors +
+		sector_z * mprfile->sector_x_count + sector_x;
+
+	const ce_mprvertex* vertex1 = sector->land_vertices +
+		vertex_z1 * CE_MPRFILE_VERTEX_SIDE + vertex_x1;
+
+	const ce_mprvertex* vertex2 = sector->land_vertices +
+		vertex_z2 * CE_MPRFILE_VERTEX_SIDE + vertex_x2;
+
+	const ce_mprvertex* vertex3 = sector->land_vertices +
+		vertex_z3 * CE_MPRFILE_VERTEX_SIDE + vertex_x3;
+
+	const float max_y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
+
+	ce_triangle triangle;
+
+	ce_vec3_init(&triangle.a,
+		vertex_x1 + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+					CE_MPR_OFFSET_XZ_COEF * vertex1->offset_x,
+		max_y_coef * vertex1->coord_y,
+		vertex_z1 + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+					CE_MPR_OFFSET_XZ_COEF * vertex1->offset_z);
+
+	ce_vec3_init(&triangle.b,
+		vertex_x2 + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+					CE_MPR_OFFSET_XZ_COEF * vertex2->offset_x,
+		max_y_coef * vertex2->coord_y,
+		vertex_z2 + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+					CE_MPR_OFFSET_XZ_COEF * vertex2->offset_z);
+
+	ce_vec3_init(&triangle.c,
+		vertex_x3 + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+					CE_MPR_OFFSET_XZ_COEF * vertex3->offset_x,
+		max_y_coef * vertex3->coord_y,
+		vertex_z3 + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+					CE_MPR_OFFSET_XZ_COEF * vertex3->offset_z);
+
+	ce_plane plane;
+	ce_plane_init_triangle(&plane, &triangle);
+
+	ce_ray ray;
+	ce_vec3_init(&ray.origin, x, mprfile->max_y + 1.0f, z);
+	ce_vec3_init_neg_unit_y(&ray.direction);
+
+	ce_vec3 point;
+	if (!ce_plane_isect_ray(&plane, &ray, &point) ||
+			!ce_triangle_test(&triangle, &point)) {
+		return false;
+	}
+
+	glDisable(GL_CULL_FACE);
+	glBegin(GL_TRIANGLES);
+	glVertex3f(triangle.a.x, triangle.a.y, -triangle.a.z);
+	glVertex3f(triangle.b.x, triangle.b.y, -triangle.b.z);
+	glVertex3f(triangle.c.x, triangle.c.y, -triangle.c.z);
+	glEnd();
+	glEnable(GL_CULL_FACE);
+
+	ce_vec3 scale;
+	ce_vec3_init(&scale, 0.1f, 0.1f, 0.1f);
+	point.z = -point.z;
+	ce_render_system_apply_transform(&point, &CE_QUAT_IDENTITY, &scale);
+	ce_render_system_draw_solid_sphere();
+	ce_render_system_discard_transform();
+
+	*y = point.y;
+	return true;
 }
 
-int ce_mprhlp_texture_index(uint16_t texture)
+static bool ce_mprhlp_get_height_tile(const ce_mprfile* mprfile,
+										float tile_offset_x, float tile_offset_z,
+										float x, float z, float* y)
 {
-	return texture & 0x003f;
-}
+	int round_x = x + tile_offset_x;
+	int round_z = z + tile_offset_z;
 
-int ce_mprhlp_texture_number(uint16_t texture)
-{
-	return (texture & 0x3fc0) >> 6;
-}
+	int sector_x = round_x / (CE_MPRFILE_VERTEX_SIDE - 1);
+	int sector_z = round_z / (CE_MPRFILE_VERTEX_SIDE - 1);
 
-int ce_mprhlp_texture_angle(uint16_t texture)
-{
-	return (texture & 0xc000) >> 14;
+	if (sector_x >= mprfile->sector_x_count ||
+			sector_z >= mprfile->sector_z_count) {
+		ce_logging_debug("mpr helper: out of bounds");
+		return false;
+	}
+
+	int vertex_x = round_x % (CE_MPRFILE_VERTEX_SIDE - 1);
+	int vertex_z = round_z % (CE_MPRFILE_VERTEX_SIDE - 1);
+
+	// round the vertex to left-bottom in tile
+	vertex_x &= ~1;
+	vertex_z &= ~1;
+
+	// 8 triangles in one tile
+	const int tri_offset_x[] = {1, 0, 1, 2, 2, 2, 1, 0, 0};
+	const int tri_offset_z[] = {1, 0, 0, 0, 1, 2, 2, 2, 1};
+
+	const size_t indices[][3] = {{2, 1, 0}, {0, 1, 8}, {0, 8, 6}, {6, 8, 7},
+								{3, 2, 4}, {4, 2, 0}, {4, 0, 5}, {5, 0, 6}};
+
+	for (size_t i = 0; i < 8; ++i) {
+		if (ce_mprhlp_get_height_triangle(mprfile, sector_x, sector_z,
+				vertex_x + tri_offset_x[indices[i][0]], vertex_z + tri_offset_z[indices[i][0]],
+				vertex_x + tri_offset_x[indices[i][1]], vertex_z + tri_offset_z[indices[i][1]],
+				vertex_x + tri_offset_x[indices[i][2]], vertex_z + tri_offset_z[indices[i][2]],
+				x, z, y)) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 {
-	int round_x = x + 0.5f;
-	int round_z = fabsf(z) + 0.5f; // FIXME: negative z?..
+	// FIXME: negative z?..
+	z = fabsf(z);
 
-	int sector_x = round_x / (CE_MPRFILE_VERTEX_SIDE - 1);
-	int sector_z = round_z / (CE_MPRFILE_VERTEX_SIDE - 1);
-	int vertex_x = round_x % (CE_MPRFILE_VERTEX_SIDE - 1);
-	int vertex_z = round_z % (CE_MPRFILE_VERTEX_SIDE - 1);
+	// 8 neighbor tiles
+	const float tile_offset_x[] = {0.0f, -2.0f, 2.0f, 0.0f, 0.0f, -2.0f, 2.0f, -2.0f, 2.0f};
+	const float tile_offset_z[] = {0.0f, 0.0f, 0.0f, -2.0f, 2.0f, -2.0f, 2.0f, 2.0f, -2.0f};
 
-	const ce_mprsector* sector = mprfile->sectors +
-		sector_z * mprfile->sector_x_count + sector_x;
-	const ce_mprvertex* vertex = sector->land_vertices +
-		vertex_z * CE_MPRFILE_VERTEX_SIDE + vertex_x;
+	for (size_t i = 0; i < 9; ++i) {
+		float y;
+		if (ce_mprhlp_get_height_tile(mprfile, tile_offset_x[i], tile_offset_z[i], x, z, &y)) {
+			return y;
+		}
+	}
 
-	return mprfile->max_y / (UINT16_MAX - 0) * vertex->coord_y;
+	ce_logging_debug("mpr helper: triangle not found");
+	return mprfile->max_y;
 }
 
 ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water)
@@ -173,8 +277,8 @@ static void (*ce_mprhlp_rotations[])(uint32_t* restrict,
 ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 	const ce_vector* tile_mmpfiles, int x, int z, bool water)
 {
-	// WARNING: draft code, needs refactoring...
-	// TODO: needs comments...
+	// WARNING: draft code, refactoring is needed...
+	// TODO: comments
 
 	ce_mmpfile* first_mmpfile = tile_mmpfiles->items[0];
 

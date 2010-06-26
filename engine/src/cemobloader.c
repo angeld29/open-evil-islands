@@ -41,7 +41,7 @@ typedef struct {
 	ce_complection complection;
 	ce_vec3 position;
 	ce_quat orientation;
-	const char* textures[3]; // NULL-terminated
+	const char* textures[2 + 1]; // NULL-terminated
 	const char* parts[]; // NULL-terminated
 } ce_mob_object_event;
 
@@ -79,7 +79,7 @@ static void ce_mob_task_exec(ce_mob_task* mob_task)
 	mob_task->posted_event_count = mob_task->mob_file->objects->count;
 
 	ce_logging_info("mob task: loading '%s'...", mob_task->name->str);
-	ce_logging_info("mob task: %zu events posted", mob_task->posted_event_count);
+	ce_logging_info("mob task: posting %zu events...", mob_task->posted_event_count);
 
 	for (size_t i = 0; i < mob_task->mob_file->objects->count; ++i) {
 		ce_mobobject_object* mob_object = mob_task->mob_file->objects->items[i];
@@ -97,11 +97,6 @@ static void ce_mob_task_exec(ce_mob_task* mob_task)
 
 		ce_swap_temp(float, &mob_object_event->position.y,
 							&mob_object_event->position.z);
-
-		// FIXME: yeah! it's a real hard-code :) move creatures up
-		if (50 == mob_object->type || 51 == mob_object->type || 52 == mob_object->type) {
-			mob_object_event->position.y += 1.0f;
-		}
 
 		// FIXME: GL's hard-code
 		mob_object_event->position.z = -mob_object_event->position.z;
