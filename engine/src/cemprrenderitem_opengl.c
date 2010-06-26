@@ -35,7 +35,9 @@
 #include "cemprhlp.h"
 #include "cemprrenderitem.h"
 
-// simple & fast triangulated geometry
+/*
+ *  Simple & fast triangulated geometry.
+*/
 
 typedef struct {
 	GLuint list;
@@ -152,7 +154,9 @@ static void ce_mprrenderitem_fast_render(ce_renderitem* renderitem)
 	glCallList(mprrenderitem->list);
 }
 
-// classic tiling
+/*
+ *  Classic tiling.
+*/
 
 typedef struct {
 	GLuint list;
@@ -308,7 +312,9 @@ static void ce_mprrenderitem_tile_render(ce_renderitem* renderitem)
 	glCallList(mprrenderitem->list);
 }
 
-// tessellated geometry by AMD vertex shader tessellator
+/*
+ *  Experiments with AMD vertex shader tessellator.
+*/
 
 enum {
 	CE_AMDVST_SAMPLER_COUNT = 3
@@ -578,7 +584,7 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 			sizeof(ce_mprrenderitem_amdvst), mprfile, sector_x, sector_z, water);
 	}
 
-	// continuous geometry, very fast!
+	// continuous triangulated geometry, very fast!
 	return ce_renderitem_new((ce_renderitem_vtable)
 		{ce_mprrenderitem_fast_ctor, ce_mprrenderitem_fast_dtor,
 		NULL, ce_mprrenderitem_fast_render, NULL},
