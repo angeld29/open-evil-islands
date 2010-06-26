@@ -27,7 +27,6 @@
 #include "cemath.h"
 #include "celogging.h"
 #include "cealloc.h"
-#include "cemprhlp.h"
 #include "cefrustum.h"
 #include "cebytefmt.h"
 #include "ceoptionmanager.h"
@@ -37,6 +36,7 @@
 #include "cevideomanager.h"
 #include "cefiguremanager.h"
 #include "cemprmanager.h"
+#include "cemprhelper.h"
 #include "cemobloader.h"
 #include "ceroot.h"
 #include "cescenemng.h"
@@ -195,7 +195,7 @@ static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float elapsed)
 				//ce_figentity_fix_height(figentity,
 				//	ce_mprhlp_get_height(scenemng->terrain->mprfile, &figentity->position));
 				ce_vec3 position = figentity->position;
-				position.y += ce_mprhlp_get_height(scenemng->terrain->mprfile, position.x, position.z);
+				position.y += ce_mpr_get_height(scenemng->terrain->mprfile, position.x, position.z);
 				figentity->scenenode->position = position;
 				ce_scenenode_attach_child(ce_terrain_find_scenenode(scenemng->terrain,
 					figentity->position.x, figentity->position.z), figentity->scenenode);
@@ -279,15 +279,6 @@ static void ce_scenemng_render_playing(ce_scenemng* scenemng)
 		ce_render_system_begin_occlusion_test();
 		ce_scenenode_update_cascade(scenemng->scenenode, &frustum);
 		ce_render_system_end_occlusion_test();
-	}
-
-	for (size_t i = 0; i < ce_figure_manager->entities->count; ++i) {
-		ce_figentity* figentity = ce_figure_manager->entities->items[i];
-		//ce_figentity_fix_height(figentity,
-		//	ce_mprhlp_get_height(scenemng->terrain->mprfile, &figentity->position));
-		ce_vec3 position = figentity->position;
-		position.y += ce_mprhlp_get_height(scenemng->terrain->mprfile, position.x, position.z);
-		figentity->scenenode->position = position;
 	}
 
 	if (ce_root.show_bboxes) {

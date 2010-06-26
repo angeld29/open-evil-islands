@@ -32,7 +32,7 @@
 #include "ceresource.h"
 #include "ceopengl.h"
 #include "cetexture.h"
-#include "cemprhlp.h"
+#include "cemprhelper.h"
 #include "cemprrenderitem.h"
 
 /*
@@ -59,8 +59,7 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 	ce_mprvertex* vertices = water ? sector->water_vertices : sector->land_vertices;
 	int16_t* water_allow = water ? sector->water_allow : NULL;
 
-	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
-	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
+	const float y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
 
 	/*
 	 *  Sector rendering: just simple triangle strips!
@@ -77,8 +76,6 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 	 *   |__\|__\|__\|__\|
 	 *  32
 	*/
-
-	float normal[3];
 
 	glNewList(mprrenderitem->list = glGenLists(1), GL_COMPILE);
 
@@ -121,16 +118,18 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 			ce_mprvertex* vertex = vertices + z * CE_MPRFILE_VERTEX_SIDE + x;
 
 			glTexCoord2f(x / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
-				(CE_MPRFILE_VERTEX_SIDE - 1 - z) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+							(CE_MPRFILE_VERTEX_SIDE - 1 - z) /
+							(float)(CE_MPRFILE_VERTEX_SIDE - 1));
 
-			ce_mprhlp_normal2vector(normal, vertex->normal);
-			normal[2] = -normal[2];
-			glNormal3fv(normal);
+			ce_vec3 normal;
+			ce_mpr_unpack_normal(&normal, vertex->normal);
+			glNormal3f(normal.x, normal.y, -normal.z);
 
 			glVertex3f(x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
-				offset_xz_coef * vertex->offset_x, y_coef * vertex->coord_y,
+				CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
+				y_coef * vertex->coord_y,
 				-1.0f * (z + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
-				offset_xz_coef * vertex->offset_z));
+				CE_MPR_OFFSET_XZ_COEF * vertex->offset_z));
 		}
 		glEnd();
 	}
@@ -180,8 +179,7 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 	uint16_t* textures = water ? sector->water_textures : sector->land_textures;
 	int16_t* water_allow = water ? sector->water_allow : NULL;
 
-	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
-	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
+	const float y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
 
 	const float tile_uv_step = 1.0f / 8.0f;
 	const float tile_uv_half_step = 1.0f / 16.0f;
@@ -222,6 +220,11 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 	/*
 	 *  Tile rendering: just simple triangle fan!
 	 *
+	 *  NOTE: original EI engine renders tile in 2 strips (probably),
+	 *        so visual defects are possible with fans.
+	 *        I do not care about it, tiling is only for
+	 *        backward compatibility with primitive video adapters.
+	 *
 	 *    7___6___5
 	 *    |\  |  /|
 	 *    | \ | / |
@@ -234,8 +237,6 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 
 	const int offset_x[10] = {1, 0, 1, 2, 2, 2, 1, 0, 0, 0};
 	const int offset_z[10] = {1, 0, 0, 0, 1, 2, 2, 2, 1, 0};
-
-	float normal[3];
 
 	glNewList(mprrenderitem->list = glGenLists(1), GL_COMPILE);
 
@@ -252,18 +253,18 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 
 			uint16_t texture = textures[z / 2 * CE_MPRFILE_TEXTURE_SIDE + x / 2];
 
-			int texture_index = ce_mprhlp_texture_index(texture);
+			int texture_index = ce_mpr_texture_index(texture);
 			float u = (texture_index - texture_index / 8 * 8) / 8.0f;
 			float v = (7 - texture_index / 8) / 8.0f; // bottom to top
 
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
 			glTranslatef(u + tile_uv_half_step, v + tile_uv_half_step, 0.0f);
-			glRotatef(-90.0f * ce_mprhlp_texture_angle(texture), 0.0f, 0.0f, 1.0f);
+			glRotatef(-90.0f * ce_mpr_texture_angle(texture), 0.0f, 0.0f, 1.0f);
 			glTranslatef(-u - tile_uv_half_step, -v - tile_uv_half_step, 0.0f);
 			glMatrixMode(GL_MODELVIEW);
 
-			ce_texture_bind(tile_textures->items[ce_mprhlp_texture_number(texture)]);
+			ce_texture_bind(tile_textures->items[ce_mpr_texture_number(texture)]);
 
 			glBegin(GL_TRIANGLE_FAN);
 			for (int i = 0; i < 10; ++i) {
@@ -272,20 +273,20 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 
 				glTexCoord2f(u + texcoord[i][0], v + texcoord[i][1]);
 
-				ce_mprhlp_normal2vector(normal, vertex->normal);
-				normal[2] = -normal[2];
-				glNormal3fv(normal);
+				ce_vec3 normal;
+				ce_mpr_unpack_normal(&normal, vertex->normal);
+				glNormal3f(normal.x, normal.y, -normal.z);
 
 				glVertex3f(x + offset_x[i] +
 					sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
-					offset_xz_coef * vertex->offset_x,
+					CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
 					y_coef * vertex->coord_y, -1.0f * (z + offset_z[i] +
 					sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
-					offset_xz_coef * vertex->offset_z));
+					CE_MPR_OFFSET_XZ_COEF * vertex->offset_z));
 			}
 			glEnd();
 
-			ce_texture_unbind(tile_textures->items[ce_mprhlp_texture_number(texture)]);
+			ce_texture_unbind(tile_textures->items[ce_mpr_texture_number(texture)]);
 		}
 	}
 
@@ -365,8 +366,7 @@ static void ce_mprrenderitem_amdvst_ctor(ce_renderitem* renderitem, va_list args
 										sector->land_vertices;
 	//int16_t* water_allow = water ? sector->water_allow : NULL;
 
-	const float offset_xz_coef = 1.0f / (INT8_MAX - INT8_MIN);
-	const float y_coef = mprfile->max_y / (UINT16_MAX - 0);
+	const float y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
 
 	mprrenderitem->vertex_count = 6;
 
@@ -426,12 +426,17 @@ static void ce_mprrenderitem_amdvst_ctor(ce_renderitem* renderitem, va_list args
 		for (int x = 0; x < CE_MPRFILE_VERTEX_SIDE; ++x) {
 			ce_mprvertex* mprvertex = mprvertices + z * CE_MPRFILE_VERTEX_SIDE + x;
 
-			ce_mprhlp_normal2vector(normals, mprvertex->normal);
-			normals[2] = -normals[2];
+			ce_vec3 normal;
+			ce_mpr_unpack_normal(&normal, mprvertex->normal);
+
+			normals[0] = normal.x;
+			normals[1] = normal.y;
+			normals[2] = -normal.z;
+
 			normals += 3;
 
-			*xz_offsets++ = offset_xz_coef * mprvertex->offset_x;
-			*xz_offsets++ = offset_xz_coef * mprvertex->offset_z;
+			*xz_offsets++ = CE_MPR_OFFSET_XZ_COEF * mprvertex->offset_x;
+			*xz_offsets++ = CE_MPR_OFFSET_XZ_COEF * mprvertex->offset_z;
 
 			*height_map++ = y_coef * mprvertex->coord_y;
 		}

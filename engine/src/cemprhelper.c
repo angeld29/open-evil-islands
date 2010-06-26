@@ -19,8 +19,8 @@
 */
 
 #include <string.h>
-#include <math.h>
 #include <limits.h>
+#include <math.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -28,15 +28,15 @@
 #include "ceplane.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cemprhlp.h"
+#include "cemprhelper.h"
 
 const float CE_MPR_OFFSET_XZ_COEF = 1.0f / (INT8_MAX - INT8_MIN);
 const float CE_MPR_HEIGHT_Y_COEF = 1.0f / (UINT16_MAX - 0);
 
-ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
-							int sector_x, int sector_z, bool water)
+ce_aabb* ce_mpr_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
+						int sector_x, int sector_z, bool water)
 {
-	const float max_y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
+	const float y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
 	float y = 0.0f;
 
 	ce_mprsector* sector = mprfile->sectors + sector_z *
@@ -51,7 +51,7 @@ ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
 					-1 == water_allow[z / 2 * CE_MPRFILE_TEXTURE_SIDE + x / 2]) {
 				continue;
 			}
-			y = fmaxf(y, max_y_coef * vertices[z * CE_MPRFILE_VERTEX_SIDE + x].coord_y);
+			y = fmaxf(y, y_coef * vertices[z * CE_MPRFILE_VERTEX_SIDE + x].coord_y);
 		}
 	}
 
@@ -70,13 +70,12 @@ ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
 	return aabb;
 }
 
-#include <GL/gl.h>
-#include "cerendersystem.h"
-
-static bool ce_mprhlp_get_height_triangle(const ce_mprfile* mprfile,
-	int sector_x, int sector_z, int vertex_x1, int vertex_z1,
-	int vertex_x2, int vertex_z2, int vertex_x3, int vertex_z3,
-	float x, float z, float* y)
+static bool ce_mpr_get_height_triangle(const ce_mprfile* mprfile,
+										int sector_x, int sector_z,
+										int vertex_x1, int vertex_z1,
+										int vertex_x2, int vertex_z2,
+										int vertex_x3, int vertex_z3,
+										float x, float z, float* y)
 {
 	const ce_mprsector* sector = mprfile->sectors +
 		sector_z * mprfile->sector_x_count + sector_x;
@@ -90,28 +89,28 @@ static bool ce_mprhlp_get_height_triangle(const ce_mprfile* mprfile,
 	const ce_mprvertex* vertex3 = sector->land_vertices +
 		vertex_z3 * CE_MPRFILE_VERTEX_SIDE + vertex_x3;
 
-	const float max_y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
+	const float y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
 
 	ce_triangle triangle;
 
 	ce_vec3_init(&triangle.a,
 		vertex_x1 + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
 					CE_MPR_OFFSET_XZ_COEF * vertex1->offset_x,
-		max_y_coef * vertex1->coord_y,
+		y_coef * vertex1->coord_y,
 		vertex_z1 + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
 					CE_MPR_OFFSET_XZ_COEF * vertex1->offset_z);
 
 	ce_vec3_init(&triangle.b,
 		vertex_x2 + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
 					CE_MPR_OFFSET_XZ_COEF * vertex2->offset_x,
-		max_y_coef * vertex2->coord_y,
+		y_coef * vertex2->coord_y,
 		vertex_z2 + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
 					CE_MPR_OFFSET_XZ_COEF * vertex2->offset_z);
 
 	ce_vec3_init(&triangle.c,
 		vertex_x3 + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
 					CE_MPR_OFFSET_XZ_COEF * vertex3->offset_x,
-		max_y_coef * vertex3->coord_y,
+		y_coef * vertex3->coord_y,
 		vertex_z3 + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
 					CE_MPR_OFFSET_XZ_COEF * vertex3->offset_z);
 
@@ -128,28 +127,13 @@ static bool ce_mprhlp_get_height_triangle(const ce_mprfile* mprfile,
 		return false;
 	}
 
-	glDisable(GL_CULL_FACE);
-	glBegin(GL_TRIANGLES);
-	glVertex3f(triangle.a.x, triangle.a.y, -triangle.a.z);
-	glVertex3f(triangle.b.x, triangle.b.y, -triangle.b.z);
-	glVertex3f(triangle.c.x, triangle.c.y, -triangle.c.z);
-	glEnd();
-	glEnable(GL_CULL_FACE);
-
-	ce_vec3 scale;
-	ce_vec3_init(&scale, 0.1f, 0.1f, 0.1f);
-	point.z = -point.z;
-	ce_render_system_apply_transform(&point, &CE_QUAT_IDENTITY, &scale);
-	ce_render_system_draw_solid_sphere();
-	ce_render_system_discard_transform();
-
 	*y = point.y;
 	return true;
 }
 
-static bool ce_mprhlp_get_height_tile(const ce_mprfile* mprfile,
-										float tile_offset_x, float tile_offset_z,
-										float x, float z, float* y)
+static bool ce_mpr_get_height_tile(const ce_mprfile* mprfile,
+									float tile_offset_x, float tile_offset_z,
+									float x, float z, float* y)
 {
 	int round_x = x + tile_offset_x;
 	int round_z = z + tile_offset_z;
@@ -178,7 +162,7 @@ static bool ce_mprhlp_get_height_tile(const ce_mprfile* mprfile,
 								{3, 2, 4}, {4, 2, 0}, {4, 0, 5}, {5, 0, 6}};
 
 	for (size_t i = 0; i < 8; ++i) {
-		if (ce_mprhlp_get_height_triangle(mprfile, sector_x, sector_z,
+		if (ce_mpr_get_height_triangle(mprfile, sector_x, sector_z,
 				vertex_x + tri_offset_x[indices[i][0]], vertex_z + tri_offset_z[indices[i][0]],
 				vertex_x + tri_offset_x[indices[i][1]], vertex_z + tri_offset_z[indices[i][1]],
 				vertex_x + tri_offset_x[indices[i][2]], vertex_z + tri_offset_z[indices[i][2]],
@@ -190,7 +174,7 @@ static bool ce_mprhlp_get_height_tile(const ce_mprfile* mprfile,
 	return false;
 }
 
-float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
+float ce_mpr_get_height(const ce_mprfile* mprfile, float x, float z)
 {
 	// FIXME: negative z?..
 	z = fabsf(z);
@@ -201,7 +185,7 @@ float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 
 	for (size_t i = 0; i < 9; ++i) {
 		float y;
-		if (ce_mprhlp_get_height_tile(mprfile, tile_offset_x[i], tile_offset_z[i], x, z, &y)) {
+		if (ce_mpr_get_height_tile(mprfile, tile_offset_x[i], tile_offset_z[i], x, z, &y)) {
 			return y;
 		}
 	}
@@ -210,7 +194,7 @@ float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z)
 	return mprfile->max_y;
 }
 
-ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water)
+ce_material* ce_mpr_create_material(const ce_mprfile* mprfile, bool water)
 {
 	if (NULL == mprfile->materials[water]) {
 		return NULL;
@@ -234,14 +218,14 @@ ce_material* ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water)
 	return material;
 }
 
-static void ce_mprhlp_rotate0(uint32_t* restrict dst,
-								const uint32_t* restrict src, int size)
+static void ce_mpr_rotate_texture_0(uint32_t* restrict dst,
+									const uint32_t* src, int size)
 {
 	memcpy(dst, src, sizeof(uint32_t) * size * size);
 }
 
-static void ce_mprhlp_rotate90(uint32_t* restrict dst,
-								const uint32_t* restrict src, int size)
+static void ce_mpr_rotate_texture_90(uint32_t* restrict dst,
+									const uint32_t* src, int size)
 {
 	for (int i = 0; i < size; ++i) {
 		for (int j = size - 1; j >= 0; --j) {
@@ -250,16 +234,16 @@ static void ce_mprhlp_rotate90(uint32_t* restrict dst,
 	}
 }
 
-static void ce_mprhlp_rotate180(uint32_t* restrict dst,
-								const uint32_t* restrict src, int size)
+static void ce_mpr_rotate_texture_180(uint32_t* restrict dst,
+										const uint32_t* src, int size)
 {
 	for (int i = size * size - 1; i >= 0; --i) {
 		*dst++ = src[i];
 	}
 }
 
-static void ce_mprhlp_rotate270(uint32_t* restrict dst,
-								const uint32_t* restrict src, int size)
+static void ce_mpr_rotate_texture_270(uint32_t* restrict dst,
+										const uint32_t* src, int size)
 {
 	for (int i = size - 1; i >= 0; --i) {
 		for (int j = 0; j < size; ++j) {
@@ -268,19 +252,20 @@ static void ce_mprhlp_rotate270(uint32_t* restrict dst,
 	}
 }
 
-static void (*ce_mprhlp_rotations[])(uint32_t* restrict,
-									const uint32_t* restrict, int) = {
-	ce_mprhlp_rotate0, ce_mprhlp_rotate90,
-	ce_mprhlp_rotate180, ce_mprhlp_rotate270
+static void (*ce_mpr_rotate_texture_procs[])(uint32_t* restrict,
+											const uint32_t*, int) = {
+	ce_mpr_rotate_texture_0, ce_mpr_rotate_texture_90,
+	ce_mpr_rotate_texture_180, ce_mpr_rotate_texture_270,
 };
 
-ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
-	const ce_vector* tile_mmpfiles, int x, int z, bool water)
+ce_mmpfile* ce_mpr_generate_texture(const ce_mprfile* mprfile,
+									const ce_vector* tile_mmp_files,
+									int x, int z, bool water)
 {
 	// WARNING: draft code, refactoring is needed...
 	// TODO: comments
 
-	ce_mmpfile* first_mmpfile = tile_mmpfiles->items[0];
+	ce_mmpfile* first_mmpfile = tile_mmp_files->items[0];
 
 	ce_mprsector* sector = mprfile->sectors + z *
 							mprfile->sector_x_count + x;
@@ -297,13 +282,13 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 
 	ce_mmpfile* mmpfile = ce_mmpfile_new(tile_size * CE_MPRFILE_TEXTURE_SIDE,
 		tile_size * CE_MPRFILE_TEXTURE_SIDE, first_mmpfile->mipmap_count,
-		CE_MMPFILE_FORMAT_R8G8B8A8, CE_MPRHLP_MMPFILE_VERSION);
+		CE_MMPFILE_FORMAT_R8G8B8A8, CE_MPR_TEXTURE_VERSION);
 
 	uint32_t* texels = mmpfile->texels;
 
 	uint32_t* texels2[mprfile->texture_count];
 	for (int i = 0; i < mprfile->texture_count; ++i) {
-		ce_mmpfile* tile_mmpfile = tile_mmpfiles->items[i];
+		ce_mmpfile* tile_mmpfile = tile_mmp_files->items[i];
 		texels2[i] = tile_mmpfile->texels;
 	}
 
@@ -322,14 +307,14 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 			} else {
 				uint16_t texture = textures[i * CE_MPRFILE_TEXTURE_SIDE + j];
 
-				int texture_index = ce_mprhlp_texture_index(texture);
+				int texture_index = ce_mpr_texture_index(texture);
 				int u = texture_index - texture_index / 8 * 8;
 				int v = 7 - texture_index / 8;
 
 				int p = v * tile_size2 + (8U >> m); // skip border
 				int q = u * tile_size2 + (8U >> m); // skip border
 
-				int idx = ce_mprhlp_texture_number(texture);
+				int idx = ce_mpr_texture_number(texture);
 
 				for (int k = 0; k < tile_size; ++k) {
 					for (int l = 0; l < tile_size; ++l) {
@@ -338,8 +323,8 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 					}
 				}
 
-				(*ce_mprhlp_rotations[ce_mprhlp_texture_angle(texture)])
-												(tile, tile2, tile_size);
+				(*ce_mpr_rotate_texture_procs[ce_mpr_texture_angle(texture)])
+													(tile, tile2, tile_size);
 			}
 
 			int s = (CE_MPRFILE_TEXTURE_SIDE - 1 - i) * tile_size;
@@ -358,7 +343,7 @@ ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
 		tex_size, 1, mmpfile->format) / sizeof(uint32_t);
 
 	for (int i = 0; i < mprfile->texture_count; ++i) {
-		ce_mmpfile* tile_mmpfile = tile_mmpfiles->items[i];
+		ce_mmpfile* tile_mmpfile = tile_mmp_files->items[i];
 		texels2[i] += ce_mmpfile_storage_size(tex_size2,
 			tex_size2, 1, tile_mmpfile->format) / sizeof(uint32_t);
 	}

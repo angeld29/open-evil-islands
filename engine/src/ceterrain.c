@@ -30,7 +30,7 @@
 #include "ceeventmanager.h"
 #include "cerendersystem.h"
 #include "cetexturemanager.h"
-#include "cemprhlp.h"
+#include "cemprhelper.h"
 #include "cemprrenderitem.h"
 #include "ceterrain.h"
 
@@ -85,7 +85,7 @@ static void ce_terrain_sector_react(ce_event* event)
 	sector->renderitem = ce_mprrenderitem_new(sector->terrain->mprfile,
 		sector->x, sector->z, sector->water, sector->terrain->tile_textures);
 
-	ce_mprhlp_get_aabb(&sector->renderitem->aabb,
+	ce_mpr_get_aabb(&sector->renderitem->aabb,
 		sector->terrain->mprfile, sector->x, sector->z, sector->water);
 
 	sector->renderitem->position = CE_VEC3_ZERO;
@@ -114,17 +114,17 @@ static void ce_terrain_sector_exec(ce_terrain_sector* sector)
 
 		if (NULL == sector->mmpfile ||
 				sector->mmpfile->version < CE_MMPFILE_VERSION ||
-				sector->mmpfile->user_info < CE_MPRHLP_MMPFILE_VERSION) {
+				sector->mmpfile->user_info < CE_MPR_TEXTURE_VERSION) {
 			ce_mmpfile_del(sector->mmpfile);
 
 			// lazy loading tile mmp files
 			ce_once_exec(sector->terrain->tile_once,
 				ce_terrain_load_tile_mmpfiles, sector->terrain);
 
-			sector->mmpfile = ce_mprhlp_generate_mmpfile(sector->terrain->mprfile,
+			sector->mmpfile = ce_mpr_generate_texture(sector->terrain->mprfile,
 				sector->terrain->tile_mmpfiles, sector->x, sector->z, sector->water);
 
-			// force to dxt1?
+			// force to DXT1?
 			ce_mmpfile_convert(sector->mmpfile, CE_MMPFILE_FORMAT_DXT1);
 
 			if (ce_option_manager->texture_caching) {
@@ -182,8 +182,8 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 
 	ce_terrain* terrain = ce_alloc_zero(sizeof(ce_terrain));
 	terrain->mprfile = mprfile;
-	terrain->materials[CE_MPRFILE_MATERIAL_LAND] = ce_mprhlp_create_material(mprfile, false);
-	terrain->materials[CE_MPRFILE_MATERIAL_WATER] = ce_mprhlp_create_material(mprfile, true);
+	terrain->materials[CE_MPRFILE_MATERIAL_LAND] = ce_mpr_create_material(mprfile, false);
+	terrain->materials[CE_MPRFILE_MATERIAL_WATER] = ce_mpr_create_material(mprfile, true);
 	terrain->rendergroups[CE_MPRFILE_MATERIAL_LAND] =
 		ce_renderqueue_get(renderqueue, 0, terrain->materials[CE_MPRFILE_MATERIAL_LAND]);
 	terrain->rendergroups[CE_MPRFILE_MATERIAL_WATER] =
@@ -198,6 +198,7 @@ ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
 	terrain->scenenode->orientation = *orientation;
 
 	char name[terrain->mprfile->name->length + 3 + 3 + 1 + 1];
+
 	for (int i = 0; i < CE_MPRFILE_MATERIAL_COUNT; ++i) {
 		bool water = CE_MPRFILE_MATERIAL_WATER == i;
 		for (int z = 0; z < terrain->mprfile->sector_z_count; ++z) {

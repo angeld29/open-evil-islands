@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_MPRHLP_H
-#define CE_MPRHLP_H
+#ifndef CE_MPRHELPER_H
+#define CE_MPRHELPER_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -37,48 +37,46 @@ extern "C" {
 #endif
 
 enum {
-	CE_MPRHLP_MMPFILE_VERSION = 1
+	CE_MPR_TEXTURE_VERSION = 1
 };
 
 extern const float CE_MPR_OFFSET_XZ_COEF;
 extern const float CE_MPR_HEIGHT_Y_COEF;
 
-extern ce_aabb* ce_mprhlp_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
-									int sector_x, int sector_z, bool water);
+extern ce_aabb* ce_mpr_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
+								int sector_x, int sector_z, bool water);
 
-static inline float* ce_mprhlp_normal2vector(float* vector, uint32_t normal)
+static inline ce_vec3* ce_mpr_unpack_normal(ce_vec3* normal, uint32_t value)
 {
-	vector[0] = (((normal >> 11) & 0x7ff) - 1000.0f) / 1000.0f;
-	vector[1] = (normal >> 22) / 1000.0f;
-	vector[2] = ((normal & 0x7ff) - 1000.0f) / 1000.0f;
-	return vector;
+	return ce_vec3_init(normal, (((value >> 11) & 0x7ff) - 1000.0f) / 1000.0f,
+		(value >> 22) / 1000.0f, ((value & 0x7ff) - 1000.0f) / 1000.0f);
 }
 
-static inline int ce_mprhlp_texture_index(uint16_t texture)
+static inline int ce_mpr_texture_index(uint16_t value)
 {
-	return texture & 0x003f;
+	return value & 0x003f;
 }
 
-static inline int ce_mprhlp_texture_number(uint16_t texture)
+static inline int ce_mpr_texture_number(uint16_t value)
 {
-	return (texture & 0x3fc0) >> 6;
+	return (value & 0x3fc0) >> 6;
 }
 
-static inline int ce_mprhlp_texture_angle(uint16_t texture)
+static inline int ce_mpr_texture_angle(uint16_t value)
 {
-	return (texture & 0xc000) >> 14;
+	return (value & 0xc000) >> 14;
 }
 
-extern float ce_mprhlp_get_height(const ce_mprfile* mprfile, float x, float z);
+extern float ce_mpr_get_height(const ce_mprfile* mprfile, float x, float z);
 
-extern ce_material*
-ce_mprhlp_create_material(const ce_mprfile* mprfile, bool water);
+extern ce_material* ce_mpr_create_material(const ce_mprfile* mprfile, bool water);
 
-extern ce_mmpfile* ce_mprhlp_generate_mmpfile(const ce_mprfile* mprfile,
-	const ce_vector* tile_mmpfiles, int x, int z, bool water);
+extern ce_mmpfile* ce_mpr_generate_texture(const ce_mprfile* mprfile,
+											const ce_vector* tile_mmp_files,
+											int x, int z, bool water);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CE_MPRHLP_H */
+#endif /* CE_MPRHELPER_H */
