@@ -36,6 +36,7 @@ static struct ce_opengl_system {
 	GLuint axes_list;
 	GLuint wire_cube_list;
 	GLuint solid_cube_list;
+	GLuint solid_sphere_list;
 }* ce_opengl_system;
 
 void ce_render_system_init(void)
@@ -79,9 +80,12 @@ void ce_render_system_init(void)
 	ce_opengl_system->axes_list = glGenLists(1);
 	ce_opengl_system->wire_cube_list = glGenLists(1);
 	ce_opengl_system->solid_cube_list = glGenLists(1);
+	ce_opengl_system->solid_sphere_list = glGenLists(1);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+
+	GLUquadric* quad = gluNewQuadric();
 
 	glNewList(ce_opengl_system->axes_list, GL_COMPILE);
 	glBegin(GL_LINES);
@@ -162,11 +166,18 @@ void ce_render_system_init(void)
 	glVertex3f(-1.0f, -1.0f, -1.0f);
 	glEnd();
 	glEndList();
+
+	glNewList(ce_opengl_system->solid_sphere_list, GL_COMPILE);
+	gluSphere(quad, 1.0, 40, 40);
+	glEndList();
+
+	gluDeleteQuadric(quad);
 }
 
 void ce_render_system_term(void)
 {
 	if (NULL != ce_render_system) {
+		glDeleteLists(ce_opengl_system->solid_sphere_list, 1);
 		glDeleteLists(ce_opengl_system->solid_cube_list, 1);
 		glDeleteLists(ce_opengl_system->wire_cube_list, 1);
 		glDeleteLists(ce_opengl_system->axes_list, 1);
@@ -266,6 +277,11 @@ void ce_render_system_draw_wire_cube(void)
 void ce_render_system_draw_solid_cube(void)
 {
 	glCallList(ce_opengl_system->solid_cube_list);
+}
+
+void ce_render_system_draw_solid_sphere(void)
+{
+	glCallList(ce_opengl_system->solid_sphere_list);
 }
 
 void ce_render_system_draw_fullscreen_wire_rect(unsigned int width,

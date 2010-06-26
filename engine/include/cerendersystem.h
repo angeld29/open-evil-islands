@@ -51,6 +51,9 @@ extern void ce_render_system_draw_axes(void);
 extern void ce_render_system_draw_wire_cube(void);
 extern void ce_render_system_draw_solid_cube(void);
 
+// draw a sphere centered at zero with radius of 1
+extern void ce_render_system_draw_solid_sphere(void);
+
 extern void ce_render_system_draw_fullscreen_wire_rect(unsigned int width,
 														unsigned int height);
 
