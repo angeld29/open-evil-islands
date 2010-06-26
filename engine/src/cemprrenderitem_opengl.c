@@ -562,32 +562,23 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 									int water, ce_vector* tile_textures)
 {
 	if (ce_option_manager->terrain_tiling) {
-		// tiling? no speed...
-		ce_renderitem_vtable ce_mprrenderitem_tile_vtable = {
-			ce_mprrenderitem_tile_ctor, ce_mprrenderitem_tile_dtor,
-			NULL, ce_mprrenderitem_tile_render, NULL
-		};
-		return ce_renderitem_new(ce_mprrenderitem_tile_vtable,
-							sizeof(ce_mprrenderitem_tile), mprfile,
-							sector_x, sector_z, water, tile_textures);
+		return ce_renderitem_new((ce_renderitem_vtable)
+			{ce_mprrenderitem_tile_ctor, ce_mprrenderitem_tile_dtor,
+			NULL, ce_mprrenderitem_tile_render, NULL},
+			sizeof(ce_mprrenderitem_tile), mprfile,
+			sector_x, sector_z, water, tile_textures);
 	}
 
 	// not implemented properly
 	if (false && GLEW_VERSION_3_1 && GLEW_AMD_vertex_shader_tessellator) {
-		ce_renderitem_vtable ce_renderitem_amdvst_vtable = {
-			ce_mprrenderitem_amdvst_ctor, ce_mprrenderitem_amdvst_dtor,
-			NULL, ce_mprrenderitem_amdvst_render, NULL
-		};
-		return ce_renderitem_new(ce_renderitem_amdvst_vtable,
-								sizeof(ce_mprrenderitem_amdvst), mprfile,
-								sector_x, sector_z, water);
+		return ce_renderitem_new((ce_renderitem_vtable)
+			{ce_mprrenderitem_amdvst_ctor, ce_mprrenderitem_amdvst_dtor,
+			NULL, ce_mprrenderitem_amdvst_render, NULL},
+			sizeof(ce_mprrenderitem_amdvst), mprfile, sector_x, sector_z, water);
 	}
 
-	ce_renderitem_vtable ce_renderitem_fast_vtable = {
-		ce_mprrenderitem_fast_ctor, ce_mprrenderitem_fast_dtor,
-		NULL, ce_mprrenderitem_fast_render, NULL
-	};
-	return ce_renderitem_new(ce_renderitem_fast_vtable,
-							sizeof(ce_mprrenderitem_fast), mprfile,
-							sector_x, sector_z, water);
+	return ce_renderitem_new((ce_renderitem_vtable)
+		{ce_mprrenderitem_fast_ctor, ce_mprrenderitem_fast_dtor,
+		NULL, ce_mprrenderitem_fast_render, NULL},
+		sizeof(ce_mprrenderitem_fast), mprfile, sector_x, sector_z, water);
 }
