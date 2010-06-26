@@ -88,8 +88,8 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
 
 			if (NULL != water_allow) {
 				/*
-				 *  This fu... clever code needs to remove some
-				 *  not allowed water triangles.
+				 *  This fu... clever code is needed to remove
+				 *  some not allowed water triangles.
 				 *
 				 *  1 tile = 9 vertices = 8 triangles
 				 *  1/2 tile = 6 vertices = 4 triangles
@@ -203,16 +203,16 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 	*/
 
 	const float texcoord[10][2] = {
-		{ tile_uv_half_step, tile_uv_half_step },
-		{ tile_uv_border_offset, tile_uv_step - tile_uv_border_offset },
-		{ tile_uv_half_step, tile_uv_step - tile_uv_border_offset },
-		{ tile_uv_step - tile_uv_border_offset, tile_uv_step - tile_uv_border_offset },
-		{ tile_uv_step - tile_uv_border_offset, tile_uv_half_step },
-		{ tile_uv_step - tile_uv_border_offset, tile_uv_border_offset },
-		{ tile_uv_half_step, tile_uv_border_offset },
-		{ tile_uv_border_offset, tile_uv_border_offset },
-		{ tile_uv_border_offset, tile_uv_half_step },
-		{ tile_uv_border_offset, tile_uv_step - tile_uv_border_offset }
+		{tile_uv_half_step, tile_uv_half_step},
+		{tile_uv_border_offset, tile_uv_step - tile_uv_border_offset},
+		{tile_uv_half_step, tile_uv_step - tile_uv_border_offset},
+		{tile_uv_step - tile_uv_border_offset, tile_uv_step - tile_uv_border_offset},
+		{tile_uv_step - tile_uv_border_offset, tile_uv_half_step},
+		{tile_uv_step - tile_uv_border_offset, tile_uv_border_offset},
+		{tile_uv_half_step, tile_uv_border_offset},
+		{tile_uv_border_offset, tile_uv_border_offset},
+		{tile_uv_border_offset, tile_uv_half_step},
+		{tile_uv_border_offset, tile_uv_step - tile_uv_border_offset},
 	};
 
 	/*
@@ -228,8 +228,8 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 	 *   1/9  2   3
 	*/
 
-	const int offset_x[10] = { 1, 0, 1, 2, 2, 2, 1, 0, 0, 0 };
-	const int offset_z[10] = { 1, 0, 0, 0, 1, 2, 2, 2, 1, 0 };
+	const int offset_x[10] = {1, 0, 1, 2, 2, 2, 1, 0, 0, 0};
+	const int offset_z[10] = {1, 0, 0, 0, 1, 2, 2, 2, 1, 0};
 
 	float normal[3];
 
