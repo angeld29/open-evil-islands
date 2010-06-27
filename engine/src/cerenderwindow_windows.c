@@ -550,8 +550,11 @@ static bool ce_renderwindow_handler_button(ce_renderwindow* renderwindow, WPARAM
 {
 	ce_unused(wparam);
 
-	renderwindow->inputcontext->pointer_position.x = GET_X_LPARAM(lparam);
-	renderwindow->inputcontext->pointer_position.y = GET_Y_LPARAM(lparam);
+	// TODO: undefined behavior in windows mode
+	if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
+		renderwindow->inputcontext->pointer_position.x = GET_X_LPARAM(lparam);
+		renderwindow->inputcontext->pointer_position.y = GET_Y_LPARAM(lparam);
+	}
 
 	renderwindow->inputcontext->buttons[button] = pressed;
 
