@@ -23,6 +23,7 @@
 #include <assert.h>
 
 #include "cealloc.h"
+#include "ceresourcemanager.h"
 #include "cereshlp.h"
 #include "cefigproto.h"
 
@@ -33,6 +34,9 @@ ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile)
 	figproto->name = ce_string_new_str(name);
 
 	char file_name[strlen(name) + 4 + 1];
+
+	snprintf(file_name, sizeof(file_name), "%s.adb", name);
+	figproto->has_adb = -1 != ce_resfile_node_index(ce_resource_manager->database, file_name);
 
 	snprintf(file_name, sizeof(file_name), "%s.mod", name);
 	ce_resfile* mod_resfile =

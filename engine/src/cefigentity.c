@@ -108,6 +108,10 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 	ce_vec3_copy(&figentity->scenenode->position, position);
 	ce_quat_copy(&figentity->scenenode->orientation, orientation);
 
+	if (figmesh->figproto->has_adb) {
+		figentity->position.y += 1.0f;
+	}
+
 	for (size_t i = 0; NULL != textures[i]; ++i) {
 		ce_vector_push_back(figentity->textures, ce_texture_manager_get(textures[i]));
 		if (NULL == figentity->textures->items[i]) {

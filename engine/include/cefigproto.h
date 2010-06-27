@@ -21,6 +21,8 @@
 #ifndef CE_FIGPROTO_H
 #define CE_FIGPROTO_H
 
+#include <stdbool.h>
+
 #include "cestring.h"
 #include "ceatomic.h"
 #include "ceresfile.h"
@@ -33,6 +35,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	bool has_adb; // stub for animation database
 	int ref_count;
 	ce_string* name;
 	ce_fignode* fignode;
