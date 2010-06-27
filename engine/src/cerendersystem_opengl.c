@@ -375,20 +375,6 @@ void ce_render_system_setup_camera(ce_camera* camera)
 	glMultMatrixf(ce_opengl_system->view.m);
 }
 
-void ce_render_system_begin_occlusion_test(void)
-{
-	glDisable(GL_CULL_FACE);
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	glDepthMask(GL_FALSE);
-}
-
-void ce_render_system_end_occlusion_test(void)
-{
-	glDepthMask(GL_TRUE);
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glEnable(GL_CULL_FACE);
-}
-
 void ce_render_system_apply_color(const ce_color* color)
 {
 	glColor4f(color->r, color->g, color->b, color->a);

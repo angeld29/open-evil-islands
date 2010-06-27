@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -91,13 +91,22 @@ bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox)
 	}
 
 	if (0 != result) {
+		glDisable(GL_CULL_FACE);
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glDepthMask(GL_FALSE);
+
 		glBeginQuery(occlusion->target, occlusion->query);
+
 		ce_render_system_apply_transform(&bbox->aabb.origin,
-											&bbox->axis,
-											&bbox->aabb.extents);
+										&bbox->axis, &bbox->aabb.extents);
 		ce_render_system_draw_solid_cube();
 		ce_render_system_discard_transform();
+
 		glEndQuery(occlusion->target);
+
+		glDepthMask(GL_TRUE);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glEnable(GL_CULL_FACE);
 	}
 
 	return 0 != occlusion->result;

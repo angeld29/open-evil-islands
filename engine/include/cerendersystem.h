@@ -60,9 +60,6 @@ extern void ce_render_system_draw_fullscreen_wire_rect(unsigned int width,
 extern void ce_render_system_setup_viewport(ce_viewport* viewport);
 extern void ce_render_system_setup_camera(ce_camera* camera);
 
-extern void ce_render_system_begin_occlusion_test(void);
-extern void ce_render_system_end_occlusion_test(void);
-
 extern void ce_render_system_apply_color(const ce_color* color);
 
 extern void ce_render_system_apply_transform(const ce_vec3* translation,

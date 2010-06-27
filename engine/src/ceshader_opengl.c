@@ -39,6 +39,9 @@ static const GLenum ce_shader_opengl_types[CE_SHADER_TYPE_COUNT] = {
 
 bool ce_shader_is_available(void)
 {
+#ifdef CE_DISABLE_SHADERS
+	return false;
+#endif
 	// programmable shaders were promoted to core features in OpenGL 2.0
 	return GLEW_VERSION_2_0;
 }

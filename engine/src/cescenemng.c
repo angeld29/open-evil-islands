@@ -202,6 +202,8 @@ static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float elapsed)
 			}
 		}
 
+		ce_scenenode_update_force_cascade(scenemng->scenenode);
+
 		ce_logging_debug("scene manager: switch to 'playing'");
 		ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_PLAYING);
 	} else {
@@ -219,31 +221,31 @@ static void ce_scenemng_render_loading(ce_scenemng* scenemng)
 
 static void ce_scenemng_advance_playing(ce_scenemng* scenemng, float elapsed)
 {
-	if (scenemng->move_left_event->triggered && !scenemng->block_camera) {
+	if (scenemng->move_left_event->triggered) {
 		ce_camera_move(scenemng->camera, -scenemng->camera_move_sensitivity * elapsed, 0.0f);
 	}
 
-	if (scenemng->move_up_event->triggered && !scenemng->block_camera) {
+	if (scenemng->move_up_event->triggered) {
 		ce_camera_move(scenemng->camera, 0.0f, scenemng->camera_move_sensitivity * elapsed);
 	}
 
-	if (scenemng->move_right_event->triggered && !scenemng->block_camera) {
+	if (scenemng->move_right_event->triggered) {
 		ce_camera_move(scenemng->camera, scenemng->camera_move_sensitivity * elapsed, 0.0f);
 	}
 
-	if (scenemng->move_down_event->triggered && !scenemng->block_camera) {
+	if (scenemng->move_down_event->triggered) {
 		ce_camera_move(scenemng->camera, 0.0f, -scenemng->camera_move_sensitivity * elapsed);
 	}
 
-	if (scenemng->zoom_in_event->triggered && !scenemng->block_camera) {
+	if (scenemng->zoom_in_event->triggered) {
 		ce_camera_zoom(scenemng->camera, scenemng->camera_zoom_sensitivity);
 	}
 
-	if (scenemng->zoom_out_event->triggered && !scenemng->block_camera) {
+	if (scenemng->zoom_out_event->triggered) {
 		ce_camera_zoom(scenemng->camera, -scenemng->camera_zoom_sensitivity);
 	}
 
-	if (scenemng->rotate_on_event->triggered && !scenemng->block_camera) {
+	if (scenemng->rotate_on_event->triggered) {
 		float xcoef = 0.25f * (float[]){-1.0f,1.0f}[ce_option_manager->inverse_trackball_x];
 		float ycoef = 0.25f * (float[]){-1.0f,1.0f}[ce_option_manager->inverse_trackball_y];
 		ce_camera_yaw_pitch(scenemng->camera,
@@ -261,25 +263,17 @@ static void ce_scenemng_render_playing(ce_scenemng* scenemng)
 	ce_renderqueue_render(scenemng->renderqueue);
 	ce_renderqueue_clear(scenemng->renderqueue);
 
-	if (scenemng->scenenode_force_update) {
-		// big changes of the scene node tree - force update
-		ce_scenenode_update_force_cascade(scenemng->scenenode);
-		scenemng->scenenode_force_update = false;
-	} else {
-		ce_vec3 forward, right, up;
-		ce_frustum frustum;
+	ce_vec3 forward, right, up;
+	ce_frustum frustum;
 
-		ce_frustum_init(&frustum, scenemng->camera->fov,
-			scenemng->camera->aspect, scenemng->camera->near,
-			scenemng->camera->far, &scenemng->camera->position,
-			ce_camera_get_forward(scenemng->camera, &forward),
-			ce_camera_get_right(scenemng->camera, &right),
-			ce_camera_get_up(scenemng->camera, &up));
+	ce_frustum_init(&frustum, scenemng->camera->fov,
+		scenemng->camera->aspect, scenemng->camera->near,
+		scenemng->camera->far, &scenemng->camera->position,
+		ce_camera_get_forward(scenemng->camera, &forward),
+		ce_camera_get_right(scenemng->camera, &right),
+		ce_camera_get_up(scenemng->camera, &up));
 
-		ce_render_system_begin_occlusion_test();
-		ce_scenenode_update_cascade(scenemng->scenenode, &frustum);
-		ce_render_system_end_occlusion_test();
-	}
+	ce_scenenode_update_cascade(scenemng->scenenode, &frustum);
 
 	if (ce_root.show_bboxes) {
 		ce_render_system_apply_color(&CE_COLOR_BLUE);
@@ -386,7 +380,5 @@ void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
 
 		scenemng->terrain = ce_terrain_new(mprfile, scenemng->renderqueue,
 			&CE_VEC3_ZERO, &CE_QUAT_IDENTITY, scenemng->scenenode);
-
-		scenemng->scenenode_force_update = true;
 	}
 }
