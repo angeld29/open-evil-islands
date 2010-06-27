@@ -38,6 +38,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
+	float height_correction;
 	ce_vec3 position;
 	ce_quat orientation;
 	ce_figmesh* figmesh;
@@ -55,7 +56,7 @@ extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 										ce_scenenode* scenenode);
 extern void ce_figentity_del(ce_figentity* figentity);
 
-extern void ce_figentity_fix_height(ce_figentity* figentity, float y);
+extern void ce_figentity_fix_height(ce_figentity* figentity, float height);
 
 extern int ce_figentity_get_animation_count(ce_figentity* figentity);
 extern const char* ce_figentity_get_animation_name(ce_figentity* figentity, int index);

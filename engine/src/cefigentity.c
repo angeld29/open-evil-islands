@@ -20,6 +20,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <float.h>
+#include <math.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -33,9 +35,15 @@
 static void ce_figentity_scenenode_about_to_update(void* listener)
 {
 	ce_figentity* figentity = listener;
+
 	ce_figbone_advance(figentity->figbone, ce_root.animation_fps * ce_root.timer->elapsed);
 	ce_figbone_update(figentity->figbone, figentity->figmesh->figproto->fignode,
 											figentity->scenenode->renderitems);
+
+	ce_vec3_copy(&figentity->scenenode->position, &figentity->position);
+	ce_quat_copy(&figentity->scenenode->orientation, &figentity->orientation);
+
+	figentity->scenenode->position.y += figentity->height_correction;
 }
 
 static void ce_figentity_enqueue(ce_figentity* figentity, ce_fignode* fignode)
@@ -48,9 +56,60 @@ static void ce_figentity_enqueue(ce_figentity* figentity, ce_fignode* fignode)
 	}
 }
 
+static float ce_figentity_find_min_y(ce_figentity* figentity, ce_fignode* fignode)
+{
+	float y = FLT_MAX;
+
+	// what about small piece of hard-code? :)
+	if (strstr(fignode->name->str, "leg") ||
+			(fignode->name->length >= 2 && 'l' == fignode->name->str[1] &&
+			('l' == fignode->name->str[0] || 'r' == fignode->name->str[0]))) {
+		ce_renderitem* renderitem = figentity->scenenode->renderitems->items[fignode->index];
+		y = renderitem->world_position.y - renderitem->world_bbox.aabb.radius;
+	}
+
+	for (size_t i = 0; i < fignode->childs->count; ++i) {
+		y = fminf(y, ce_figentity_find_min_y(figentity, fignode->childs->items[i]));
+	}
+
+	return y;
+}
+
 static void ce_figentity_scenenode_updated(void* listener)
 {
 	ce_figentity* figentity = listener;
+
+	if (figentity->figmesh->figproto->has_adb) {
+		// WARNING: begin of experimental code
+
+		// fix figure height relative to root node
+		// it's a difference between root and legs
+
+		ce_renderitem* root_renderitem = figentity->scenenode->renderitems->items
+										[figentity->figmesh->figproto->fignode->index];
+
+		float y = ce_figentity_find_min_y(figentity, figentity->figmesh->figproto->fignode);
+
+		if (y <= root_renderitem->world_position.y) {
+			y = root_renderitem->world_position.y - y;
+		} else {
+			// flying creatures ???
+			y = 1.0f;
+		}
+
+		figentity->scenenode->world_position.y += y;
+		figentity->scenenode->world_bbox.aabb.origin.y += y;
+		for (size_t i = 0; i < figentity->scenenode->renderitems->count; ++i) {
+			ce_renderitem* renderitem = figentity->scenenode->renderitems->items[i];
+			if (renderitem->visible) {
+				renderitem->world_position.y += y;
+				renderitem->world_bbox.aabb.origin.y += y;
+			}
+		}
+
+		// WARNING: end of experimental code
+	}
+
 	ce_figentity_enqueue(figentity, figentity->figmesh->figproto->fignode);
 }
 
@@ -90,7 +149,7 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								const char* textures[],
 								ce_scenenode* scenenode)
 {
-	ce_figentity* figentity = ce_alloc(sizeof(ce_figentity));
+	ce_figentity* figentity = ce_alloc_zero(sizeof(ce_figentity));
 	figentity->figmesh = ce_figmesh_add_ref(figmesh);
 	figentity->figbone = ce_figbone_new(figmesh->figproto->fignode,
 										&figmesh->complection, NULL);
@@ -104,13 +163,6 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 
 	ce_vec3_copy(&figentity->position, position);
 	ce_quat_copy(&figentity->orientation, orientation);
-
-	ce_vec3_copy(&figentity->scenenode->position, position);
-	ce_quat_copy(&figentity->scenenode->orientation, orientation);
-
-	if (figmesh->figproto->has_adb) {
-		figentity->position.y += 1.0f;
-	}
 
 	for (size_t i = 0; NULL != textures[i]; ++i) {
 		ce_vector_push_back(figentity->textures, ce_texture_manager_get(textures[i]));
@@ -146,10 +198,9 @@ void ce_figentity_del(ce_figentity* figentity)
 	}
 }
 
-void ce_figentity_fix_height(ce_figentity* figentity, float y)
+void ce_figentity_fix_height(ce_figentity* figentity, float height)
 {
-	ce_vec3_copy(&figentity->scenenode->position, &figentity->position);
-	figentity->scenenode->position.y += y;
+	figentity->height_correction = height;
 }
 
 int ce_figentity_get_animation_count(ce_figentity* figentity)
