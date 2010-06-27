@@ -174,8 +174,11 @@ static bool ce_mpr_get_height_tile(const ce_mprfile* mprfile,
 	return false;
 }
 
-float ce_mpr_get_height(const ce_mprfile* mprfile, float x, float z)
+float ce_mpr_get_height(const ce_mprfile* mprfile, const ce_vec3* position)
 {
+	float x = position->x;
+	float z = position->z;
+
 	// FIXME: negative z?..
 	z = fabsf(z);
 

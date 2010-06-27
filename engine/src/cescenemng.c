@@ -192,11 +192,8 @@ static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float elapsed)
 		if (NULL != scenemng->terrain) {
 			for (size_t i = 0; i < ce_figure_manager->entities->count; ++i) {
 				ce_figentity* figentity = ce_figure_manager->entities->items[i];
-				//ce_figentity_fix_height(figentity,
-				//	ce_mprhlp_get_height(scenemng->terrain->mprfile, &figentity->position));
-				ce_vec3 position = figentity->position;
-				position.y += ce_mpr_get_height(scenemng->terrain->mprfile, position.x, position.z);
-				figentity->scenenode->position = position;
+				ce_figentity_fix_height(figentity,
+					ce_mpr_get_height(scenemng->terrain->mprfile, &figentity->position));
 				ce_scenenode_attach_child(ce_terrain_find_scenenode(scenemng->terrain,
 					figentity->position.x, figentity->position.z), figentity->scenenode);
 			}

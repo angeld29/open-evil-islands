@@ -67,7 +67,7 @@ static inline int ce_mpr_texture_angle(uint16_t value)
 	return (value & 0xc000) >> 14;
 }
 
-extern float ce_mpr_get_height(const ce_mprfile* mprfile, float x, float z);
+extern float ce_mpr_get_height(const ce_mprfile* mprfile, const ce_vec3* position);
 
 extern ce_material* ce_mpr_create_material(const ce_mprfile* mprfile, bool water);
 

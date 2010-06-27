@@ -91,20 +91,22 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 								ce_scenenode* scenenode)
 {
 	ce_figentity* figentity = ce_alloc(sizeof(ce_figentity));
-	figentity->position = *position;
-	figentity->orientation = *orientation;
 	figentity->figmesh = ce_figmesh_add_ref(figmesh);
 	figentity->figbone = ce_figbone_new(figmesh->figproto->fignode,
 										&figmesh->complection, NULL);
 	figentity->textures = ce_vector_new_reserved(2);
 	figentity->renderlayers = ce_vector_new();
 	figentity->scenenode = ce_scenenode_new(scenenode);
-	figentity->scenenode->position = *position;
-	figentity->scenenode->orientation = *orientation;
 	figentity->scenenode->occlusion = ce_occlusion_new();
 	figentity->scenenode->listener = (ce_scenenode_listener)
 		{NULL, NULL, ce_figentity_scenenode_about_to_update,
 		ce_figentity_scenenode_updated, NULL, figentity};
+
+	ce_vec3_copy(&figentity->position, position);
+	ce_quat_copy(&figentity->orientation, orientation);
+
+	ce_vec3_copy(&figentity->scenenode->position, position);
+	ce_quat_copy(&figentity->scenenode->orientation, orientation);
 
 	for (size_t i = 0; NULL != textures[i]; ++i) {
 		ce_vector_push_back(figentity->textures, ce_texture_manager_get(textures[i]));
@@ -142,7 +144,7 @@ void ce_figentity_del(ce_figentity* figentity)
 
 void ce_figentity_fix_height(ce_figentity* figentity, float y)
 {
-	figentity->scenenode->position = figentity->position;
+	ce_vec3_copy(&figentity->scenenode->position, &figentity->position);
 	figentity->scenenode->position.y += y;
 }
 
