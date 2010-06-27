@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <assert.h>
 
+#include "celogging.h"
 #include "cefighlp.h"
 
 ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
@@ -49,13 +50,11 @@ ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
 		figfile->value_callback(figfile->max + 1, 3, complection),
 		figfile->value_callback(figfile->max + 2, 3, complection));
 
-	ce_vec3_sub(&aabb->extents, &max, &min);
-	ce_vec3_scale(&aabb->extents, 0.5f, &aabb->extents);
-
 	// add extra space to guarantee full coating of the object
-	ce_vec3 extra_extents;
-	ce_vec3_init(&extra_extents, 0.1f, 0.1f, 0.1f);
-	ce_vec3_add(&aabb->extents, &aabb->extents, &extra_extents);
+	const float extra = 0.1f;
+
+	ce_vec3_sub(&aabb->extents, &max, &min);
+	ce_vec3_scale(&aabb->extents, 0.5f + extra, &aabb->extents);
 
 	return aabb;
 }
