@@ -68,8 +68,9 @@ void ce_figbone_advance(ce_figbone* figbone, float distance)
 static void ce_figbone_update_transform(ce_figbone* figbone,
 										ce_renderitem* renderitem)
 {
+	// TODO: translations from anm file ???
+
 	// update binding pose
-	// note: translations from anmfile are not used...
 	if (NULL == figbone->anmstate->anmfile) {
 		figbone->orientation = CE_QUAT_IDENTITY;
 	} else {
