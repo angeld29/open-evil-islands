@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 
 /*
  *  Based on:
- *
  *  1. GTKRadiant mathlib,
  *     https://zerowing.idsoftware.com/svn/radiant/GtkRadiant.
  *     GTKRadiant contains software developed by Id Software,
@@ -73,29 +72,29 @@ ce_aabb* ce_aabb_update_radius(ce_aabb* aabb)
 	return aabb;
 }
 
-static void ce_aabb_merge_aabb_pass(float* origin, float* extents,
-									float other_origin, float other_extents)
+static void ce_aabb_merge_aabb_pass(float* origin, float* extent,
+									float other_origin, float other_extent)
 {
 	float displacement = other_origin - *origin;
-	float difference = other_extents - *extents;
-	if (*extents < 0.0f || difference >= fabsf(displacement)) {
+	float difference = other_extent - *extent;
+	if (*extent < 0.0f || difference >= fabsf(displacement)) {
 		// 2nd contains 1st
-		*extents = other_extents;
+		*extent = other_extent;
 		*origin = other_origin;
-	} else if (other_extents < 0.0f || -difference >= fabsf(displacement)) {
+	} else if (other_extent < 0.0f || -difference >= fabsf(displacement)) {
 		// 1st contains 2nd, do nothing
 	} else {
 		// not contained
 		float min, max;
 		if (displacement > 0.0f) {
-			min = *origin - *extents;
-			max = other_origin + other_extents;
+			min = *origin - *extent;
+			max = other_origin + other_extent;
 		} else {
-			min = other_origin - other_extents;
-			max = *origin + *extents;
+			min = other_origin - other_extent;
+			max = *origin + *extent;
 		}
 		*origin = 0.5f * (min + max);
-		*extents = max - *origin;
+		*extent = max - *origin;
 	}
 }
 
@@ -110,22 +109,22 @@ ce_aabb* ce_aabb_merge_aabb(ce_aabb* aabb, const ce_aabb* other)
 	return aabb;
 }
 
-static void ce_aabb_merge_point_pass(float* origin, float* extents, float point)
+static void ce_aabb_merge_point_pass(float* origin, float* extent, float point)
 {
 	float displacement = point - *origin;
-	if (fabsf(displacement) > *extents) {
+	if (fabsf(displacement) > *extent) {
 		float min, max;
-		if (*extents < 0.0f) { // degenerate
+		if (*extent < 0.0f) { // degenerate
 			min = max = point;
 		} else if (displacement > 0.0f) {
-			min = *origin - *extents;
+			min = *origin - *extent;
 			max = *origin + displacement;
 		} else {
-			max = *origin + *extents;
+			max = *origin + *extent;
 			min = *origin + displacement;
 		}
 		*origin = 0.5f * (min + max);
-		*extents = max - *origin;
+		*extent = max - *origin;
 	}
 }
 
@@ -139,8 +138,8 @@ ce_aabb* ce_aabb_merge_point(ce_aabb* aabb, const ce_vec3* point)
 
 ce_aabb* ce_aabb_merge_point_array(ce_aabb* aabb, const float* point)
 {
-	ce_aabb_merge_point_pass(&aabb->origin.x, &aabb->extents.x, *point++);
-	ce_aabb_merge_point_pass(&aabb->origin.y, &aabb->extents.y, *point++);
-	ce_aabb_merge_point_pass(&aabb->origin.z, &aabb->extents.z, *point++);
+	ce_aabb_merge_point_pass(&aabb->origin.x, &aabb->extents.x, point[0]);
+	ce_aabb_merge_point_pass(&aabb->origin.y, &aabb->extents.y, point[1]);
+	ce_aabb_merge_point_pass(&aabb->origin.z, &aabb->extents.z, point[2]);
 	return aabb;
 }

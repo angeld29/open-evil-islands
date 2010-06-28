@@ -42,6 +42,14 @@ ce_vec3* ce_vec3_init(ce_vec3* vec, float x, float y, float z)
 	return vec;
 }
 
+ce_vec3* ce_vec3_init_scalar(ce_vec3* vec, float s)
+{
+	vec->x = s;
+	vec->y = s;
+	vec->z = s;
+	return vec;
+}
+
 ce_vec3* ce_vec3_init_array(ce_vec3* vec, const float* array)
 {
 	vec->x = array[0];

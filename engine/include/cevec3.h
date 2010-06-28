@@ -42,6 +42,7 @@ extern const ce_vec3 CE_VEC3_NEG_UNIT_Z;
 extern const ce_vec3 CE_VEC3_NEG_UNIT_SCALE;
 
 extern ce_vec3* ce_vec3_init(ce_vec3* vec, float x, float y, float z);
+extern ce_vec3* ce_vec3_init_scalar(ce_vec3* vec, float s);
 extern ce_vec3* ce_vec3_init_array(ce_vec3* vec, const float* array);
 
 extern ce_vec3* ce_vec3_init_zero(ce_vec3* vec);

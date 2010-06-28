@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,9 +25,8 @@
 #include "ceaabb.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 typedef struct {
 	ce_aabb aabb;
@@ -35,10 +34,12 @@ typedef struct {
 } ce_bbox;
 
 extern ce_bbox* ce_bbox_clear(ce_bbox* bbox);
+
 extern ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other);
+extern ce_bbox* ce_bbox_merge2(ce_bbox* bbox, const ce_bbox* other);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_BBOX_H */
