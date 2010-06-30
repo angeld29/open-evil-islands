@@ -14,7 +14,8 @@ Evil Islands RES file format
      You should have received a copy of the GNU Free Documentation License
      along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-   * This is an internal documentation currently available only on Russian.
-     Something more strong in English will be later.
+   * The format is already reversed
+     by Gipat.ru Dev Team <http://www.gipat.ru/>
+     and Gipat Group <http://www.gipatgroup.org/>.
 
-   * На подходе...
+     See also EI Model Plugin.
