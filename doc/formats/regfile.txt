@@ -17,4 +17,82 @@ Evil Islands REG file format
    * This is an internal documentation currently available only on Russian.
      Something more strong in English will be later.
 
-   * На подходе...
+   * Введение.
+     Данная документация написана в рамках реверс-инжениринга формата REG.
+     Файл REG - это просто компактно упакованный файл INI.
+
+   * Описание.
+
+     Типы:
+     reg_type_int = 0
+     reg_type_float = 1
+     reg_type_string = 2
+
+     struct reg_value_int
+        int32 value
+
+     struct reg_value_float
+        float value
+
+     struct reg_value_string
+        uint16 length
+        char string[length]
+
+     reg_type_int_array = 128
+     reg_type_float_array = 129
+     reg_type_string_array = 130
+
+     struct reg_value_int_array
+        uint16 count
+        reg_value_int values[count]
+
+     struct reg_value_float_array
+        uint16 count
+        reg_value_float values[count]
+
+     struct reg_value_string_array
+        uint16 count
+        reg_value_string values[count]
+
+     struct reg_line
+        uint16 unknown
+        uint32 offset
+
+     struct reg_option
+        uint8 type
+        reg_value_string name
+        union value
+           reg_value_int
+           reg_value_float
+           reg_value_string
+           reg_value_int_array
+           reg_value_float_array
+           reg_value_string_array
+
+     struct reg_section
+        uint16 option_count
+        reg_value_string name
+        reg_line option_lines[option_count]
+        reg_option options[option_count]
+
+     Формат:
+        uint32 signature - 0x45ab3efbu (little-endian)
+        uint16 section_count
+        reg_line section_lines[section_count]
+        reg_section sections[section_count]
+
+     Если не заботиться о портируемости, то можно соотвествующим образом
+     настроить нужные структуры данных и прочитать файл за один раз.
+     Информация ниже описывает корректный и портируемый способ чтения файла.
+
+     Разбор файла REG начинается с чтения сигнатуры и количества секций.
+     Затем сразу следуют преварительные описания секций (section_lines)
+     со смещениями от начала файла. После прочтения этих описаний можно
+     начинать считывать сами секции. Для этого нужно настроить указатель
+     файла на позицию offset из предварительного описания. Сразу за основными
+     данными секции следуют предварительные описания опций. Последовательность
+     действий в этом случае та же за одним исключением - значение offset в
+     случае опции относительное. Чтобы получить абсолютное смещение, нужно
+     offset опции сложить с offset соответствующей секции. После прочтения
+     основных данных опции можно считывать значение. Тип значения выбирается
+     по полю type в основных данных опции.
