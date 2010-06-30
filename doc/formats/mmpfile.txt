@@ -18,6 +18,7 @@ Evil Islands MMP file format
      Something more strong in English will be later.
 
    * На подходе...
+     Данная документация написана в рамках реверс-инжениринга формата MMP.
 
 /* TODO
  *  signature: uint32 little-endian
