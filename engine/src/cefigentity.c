@@ -79,7 +79,7 @@ static void ce_figentity_scenenode_updated(void* listener)
 {
 	ce_figentity* figentity = listener;
 
-	if (figentity->figmesh->figproto->has_adb) {
+	if (NULL != figentity->figmesh->figproto->adb_file) {
 		// WARNING: begin of experimental code
 
 		// fix figure height relative to root node

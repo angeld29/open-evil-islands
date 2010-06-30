@@ -29,14 +29,18 @@
 
 ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile)
 {
-	ce_figproto* figproto = ce_alloc(sizeof(ce_figproto));
+	ce_figproto* figproto = ce_alloc_zero(sizeof(ce_figproto));
 	figproto->ref_count = 1;
 	figproto->name = ce_string_new_str(name);
 
 	char file_name[strlen(name) + 4 + 1];
 
 	snprintf(file_name, sizeof(file_name), "%s.adb", name);
-	figproto->has_adb = -1 != ce_resfile_node_index(ce_resource_manager->database, file_name);
+	ce_memfile* adb_memfile = ce_reshlp_extract_memfile_by_name(ce_resource_manager->database, file_name);
+	if (NULL != adb_memfile) {
+		figproto->adb_file = ce_adb_file_new(adb_memfile);
+		ce_memfile_close(adb_memfile);
+	}
 
 	snprintf(file_name, sizeof(file_name), "%s.mod", name);
 	ce_resfile* mod_resfile =
@@ -78,6 +82,7 @@ void ce_figproto_del(ce_figproto* figproto)
 		assert(ce_atomic_fetch(int, &figproto->ref_count) > 0);
 		if (0 == ce_atomic_dec_and_fetch(int, &figproto->ref_count)) {
 			ce_fignode_del(figproto->fignode);
+			ce_adb_file_del(figproto->adb_file);
 			ce_string_del(figproto->name);
 			ce_free(figproto, sizeof(ce_figproto));
 		}

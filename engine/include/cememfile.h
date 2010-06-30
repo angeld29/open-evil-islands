@@ -23,6 +23,8 @@
 
 #include <stddef.h>
 
+#include "cebyteorder.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -61,6 +63,17 @@ extern const int CE_MEMFILE_SEEK_SET;
 */
 extern ce_memfile* ce_memfile_open(ce_memfile_vtable vtable);
 extern void ce_memfile_close(ce_memfile* memfile);
+
+/*
+ *  Implements in-memory files.
+ *  NOTE: memfile takes ownership of the data.
+*/
+extern ce_memfile* ce_memfile_open_data(void* restrict data, size_t size);
+
+/*
+ *  Implements a buffered interface for the FILE standard functions.
+*/
+extern ce_memfile* ce_memfile_open_path(const char* path);
 
 static inline size_t ce_memfile_read(ce_memfile* memfile, void* restrict ptr, size_t size, size_t n)
 {
@@ -101,16 +114,71 @@ static inline long int ce_memfile_size(ce_memfile* memfile)
 	return size;
 }
 
-/*
- *  Implements in-memory files.
- *  NOTE: memfile takes ownership of the data.
-*/
-extern ce_memfile* ce_memfile_open_data(void* restrict data, size_t size);
+static inline int8_t ce_memfile_read_i8(ce_memfile* memfile)
+{
+	int8_t value;
+	ce_memfile_read(memfile, &value, 1, 1);
+	return value;
+}
 
-/*
- *  Implements a buffered interface for the FILE standard functions.
-*/
-extern ce_memfile* ce_memfile_open_path(const char* path);
+static inline int16_t ce_memfile_read_i16le(ce_memfile* memfile)
+{
+	int16_t value;
+	ce_memfile_read(memfile, &value, 2, 1);
+	ce_le2cpu16s((uint16_t*)&value);
+	return value;
+}
+
+static inline int32_t ce_memfile_read_i32le(ce_memfile* memfile)
+{
+	int32_t value;
+	ce_memfile_read(memfile, &value, 4, 1);
+	ce_le2cpu32s((uint32_t*)&value);
+	return value;
+}
+
+static inline int64_t ce_memfile_read_i64le(ce_memfile* memfile)
+{
+	int64_t value;
+	ce_memfile_read(memfile, &value, 8, 1);
+	ce_le2cpu64s((uint64_t*)&value);
+	return value;
+}
+
+static inline uint8_t ce_memfile_read_u8(ce_memfile* memfile)
+{
+	uint8_t value;
+	ce_memfile_read(memfile, &value, 1, 1);
+	return value;
+}
+
+static inline uint16_t ce_memfile_read_u16le(ce_memfile* memfile)
+{
+	uint16_t value;
+	ce_memfile_read(memfile, &value, 2, 1);
+	return ce_le2cpu16(value);
+}
+
+static inline uint32_t ce_memfile_read_u32le(ce_memfile* memfile)
+{
+	uint32_t value;
+	ce_memfile_read(memfile, &value, 4, 1);
+	return ce_le2cpu32(value);
+}
+
+static inline uint64_t ce_memfile_read_u64le(ce_memfile* memfile)
+{
+	uint64_t value;
+	ce_memfile_read(memfile, &value, 8, 1);
+	return ce_le2cpu64(value);
+}
+
+static inline uint32_t ce_memfile_read_fle(ce_memfile* memfile)
+{
+	float value;
+	ce_memfile_read(memfile, &value, 4, 1);
+	return value;
+}
 
 #ifdef __cplusplus
 }
