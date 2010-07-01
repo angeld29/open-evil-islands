@@ -40,29 +40,29 @@ static void ce_mobfile_decrypt_script(char* data, size_t size, uint32_t key)
 	}
 }
 
-static void ce_mobfile_skip(ce_memfile* mem, size_t size)
+static void ce_mobfile_skip(ce_mem_file* mem, size_t size)
 {
-	ce_memfile_seek(mem, size, SEEK_CUR);
+	ce_mem_file_seek(mem, size, SEEK_CUR);
 }
 
-static void ce_mobfile_read_generic(ce_memfile* mem, void* data,
+static void ce_mobfile_read_generic(ce_mem_file* mem, void* data,
 										size_t size, size_t count)
 {
-	ce_memfile_read(mem, data, size, count);
+	ce_mem_file_read(mem, data, size, count);
 }
 
-static void ce_mobfile_read_uint8(ce_memfile* mem, uint8_t* value)
+static void ce_mobfile_read_uint8(ce_mem_file* mem, uint8_t* value)
 {
 	ce_mobfile_read_generic(mem, value, sizeof(uint8_t), 1);
 }
 
-static void ce_mobfile_read_uint32(ce_memfile* mem, uint32_t* value)
+static void ce_mobfile_read_uint32(ce_mem_file* mem, uint32_t* value)
 {
 	ce_mobfile_read_generic(mem, value, sizeof(uint32_t), 1);
 	ce_le2cpu32s(value);
 }
 
-static ce_string* ce_mobfile_read_string(ce_memfile* mem, size_t size)
+static ce_string* ce_mobfile_read_string(ce_mem_file* mem, size_t size)
 {
 	char data[size];
 	ce_mobfile_read_generic(mem, data, 1, size);
@@ -71,37 +71,37 @@ static ce_string* ce_mobfile_read_string(ce_memfile* mem, size_t size)
 
 // callbacks
 
-static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size);
+static void ce_mobfile_block_loop(ce_mobfile* mob, ce_mem_file* mem, size_t size);
 
 static void
-ce_mobfile_block_unknown(ce_mobfile* mob, ce_memfile* mem, size_t size)
+ce_mobfile_block_unknown(ce_mobfile* mob, ce_mem_file* mem, size_t size)
 {
 	ce_unused(mob);
 	ce_mobfile_skip(mem, size);
 }
 
 static void
-ce_mobfile_block_main(ce_mobfile* mob, ce_memfile* mem, size_t size)
+ce_mobfile_block_main(ce_mobfile* mob, ce_mem_file* mem, size_t size)
 {
 	ce_mobfile_block_loop(mob, mem, size);
 }
 
 static void
-ce_mobfile_block_quest(ce_mobfile* mob, ce_memfile* mem, size_t size)
-{
-	assert(0 == size);
-	ce_mobfile_block_loop(mob, mem, size);
-}
-
-static void
-ce_mobfile_block_zonal(ce_mobfile* mob, ce_memfile* mem, size_t size)
+ce_mobfile_block_quest(ce_mobfile* mob, ce_mem_file* mem, size_t size)
 {
 	assert(0 == size);
 	ce_mobfile_block_loop(mob, mem, size);
 }
 
 static void
-ce_mobfile_block_text(ce_mobfile* mob, ce_memfile* mem, size_t size)
+ce_mobfile_block_zonal(ce_mobfile* mob, ce_mem_file* mem, size_t size)
+{
+	assert(0 == size);
+	ce_mobfile_block_loop(mob, mem, size);
+}
+
+static void
+ce_mobfile_block_text(ce_mobfile* mob, ce_mem_file* mem, size_t size)
 {
 	// WARNING: string is encrypted and may contain null characters
 	uint32_t key;
@@ -114,7 +114,7 @@ ce_mobfile_block_text(ce_mobfile* mob, ce_memfile* mem, size_t size)
 }
 
 static void
-ce_mobfile_block_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
+ce_mobfile_block_object(ce_mobfile* mob, ce_mem_file* mem, size_t size)
 {
 	assert(NULL == mob->objects);
 	mob->objects = ce_vector_new();
@@ -122,7 +122,7 @@ ce_mobfile_block_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
 }
 
 static void
-ce_mobfile_block_object_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
+ce_mobfile_block_object_object(ce_mobfile* mob, ce_mem_file* mem, size_t size)
 {
 	assert(NULL != mob->objects);
 	ce_mobobject_object* object = ce_alloc_zero(sizeof(ce_mobobject_object));
@@ -132,7 +132,7 @@ ce_mobfile_block_object_object(ce_mobfile* mob, ce_memfile* mem, size_t size)
 
 static void
 ce_mobfile_block_object_object_parts(ce_mobfile* mob,
-									ce_memfile* mem, size_t size)
+									ce_mem_file* mem, size_t size)
 {
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
@@ -149,7 +149,7 @@ ce_mobfile_block_object_object_parts(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_owner(ce_mobfile* mob,
-									ce_memfile* mem, size_t size)
+									ce_mem_file* mem, size_t size)
 {
 	uint8_t owner;
 	assert(sizeof(owner) == size);
@@ -161,7 +161,7 @@ ce_mobfile_block_object_object_owner(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_id(ce_mobfile* mob,
-								ce_memfile* mem, size_t size)
+								ce_mem_file* mem, size_t size)
 {
 	uint32_t id;
 	assert(sizeof(id) == size);
@@ -173,7 +173,7 @@ ce_mobfile_block_object_object_id(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_type(ce_mobfile* mob,
-									ce_memfile* mem, size_t size)
+									ce_mem_file* mem, size_t size)
 {
 	uint32_t type;
 	assert(sizeof(type) == size);
@@ -185,7 +185,7 @@ ce_mobfile_block_object_object_type(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_name(ce_mobfile* mob,
-									ce_memfile* mem, size_t size)
+									ce_mem_file* mem, size_t size)
 {
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
@@ -195,7 +195,7 @@ ce_mobfile_block_object_object_name(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_model_name(ce_mobfile* mob,
-											ce_memfile* mem, size_t size)
+											ce_mem_file* mem, size_t size)
 {
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
@@ -205,7 +205,7 @@ ce_mobfile_block_object_object_model_name(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_parent_name(ce_mobfile* mob,
-											ce_memfile* mem, size_t size)
+											ce_mem_file* mem, size_t size)
 {
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
@@ -215,7 +215,7 @@ ce_mobfile_block_object_object_parent_name(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_primary_texture(ce_mobfile* mob,
-												ce_memfile* mem, size_t size)
+												ce_mem_file* mem, size_t size)
 {
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
@@ -225,7 +225,7 @@ ce_mobfile_block_object_object_primary_texture(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_secondary_texture(ce_mobfile* mob,
-												ce_memfile* mem, size_t size)
+												ce_mem_file* mem, size_t size)
 {
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
@@ -235,7 +235,7 @@ ce_mobfile_block_object_object_secondary_texture(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_comment(ce_mobfile* mob,
-										ce_memfile* mem, size_t size)
+										ce_mem_file* mem, size_t size)
 {
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
@@ -245,7 +245,7 @@ ce_mobfile_block_object_object_comment(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_position(ce_mobfile* mob,
-										ce_memfile* mem, size_t size)
+										ce_mem_file* mem, size_t size)
 {
 	float position[3];
 	assert(sizeof(position) == size);
@@ -257,7 +257,7 @@ ce_mobfile_block_object_object_position(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_rotation(ce_mobfile* mob,
-										ce_memfile* mem, size_t size)
+										ce_mem_file* mem, size_t size)
 {
 	float rotation[4];
 	assert(sizeof(rotation) == size);
@@ -269,7 +269,7 @@ ce_mobfile_block_object_object_rotation(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_quest(ce_mobfile* mob,
-									ce_memfile* mem, size_t size)
+									ce_mem_file* mem, size_t size)
 {
 	uint8_t quest;
 	assert(sizeof(quest) == size);
@@ -281,7 +281,7 @@ ce_mobfile_block_object_object_quest(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_shadow(ce_mobfile* mob,
-										ce_memfile* mem, size_t size)
+										ce_mem_file* mem, size_t size)
 {
 	uint8_t shadow;
 	assert(sizeof(shadow) == size);
@@ -293,7 +293,7 @@ ce_mobfile_block_object_object_shadow(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_parent_id(ce_mobfile* mob,
-										ce_memfile* mem, size_t size)
+										ce_mem_file* mem, size_t size)
 {
 	uint32_t parent_id;
 	assert(sizeof(parent_id) == size);
@@ -305,7 +305,7 @@ ce_mobfile_block_object_object_parent_id(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_quest_info(ce_mobfile* mob,
-											ce_memfile* mem, size_t size)
+											ce_mem_file* mem, size_t size)
 {
 	assert(!ce_vector_empty(mob->objects));
 	ce_mobobject_object* object = ce_vector_back(mob->objects);
@@ -315,7 +315,7 @@ ce_mobfile_block_object_object_quest_info(ce_mobfile* mob,
 
 static void
 ce_mobfile_block_object_object_complection(ce_mobfile* mob,
-											ce_memfile* mem, size_t size)
+											ce_mem_file* mem, size_t size)
 {
 	float complection[3];
 	assert(sizeof(complection) == size);
@@ -326,7 +326,7 @@ ce_mobfile_block_object_object_complection(ce_mobfile* mob,
 }
 
 typedef void
-(*ce_mobfile_block_callback)(ce_mobfile* mob, ce_memfile* mem, size_t size);
+(*ce_mobfile_block_callback)(ce_mobfile* mob, ce_mem_file* mem, size_t size);
 
 typedef struct {
 	unsigned int type;
@@ -379,7 +379,7 @@ ce_mobfile_block_callback_choose(unsigned int type)
 	return ce_mobfile_block_unknown;
 }
 
-static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
+static void ce_mobfile_block_loop(ce_mobfile* mob, ce_mem_file* mem, size_t size)
 {
 	uint32_t child_type, child_size;
 
@@ -398,8 +398,8 @@ static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 			int sz = child_size;
 			uint32_t s1, s2;
 			int16_t v;
-			ce_memfile_read(mem, &s1, sizeof(s1), 1);
-			ce_memfile_read(mem, &s2, sizeof(s2), 1);
+			ce_mem_file_read(mem, &s1, sizeof(s1), 1);
+			ce_mem_file_read(mem, &s2, sizeof(s2), 1);
 			printf("%u %u\n", s1 / 8u, s2 / 8u);
 			printf("%u %u\n", s1, s2);
 			sz -= sizeof(s1) + sizeof(s2);
@@ -410,7 +410,7 @@ static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 			for (unsigned int i = 0; i < s1 / 8; ++i) {
 				for (unsigned int j = 0; j < 8; ++j) {
 					for (unsigned int k = 0; k < 8; ++k) {
-						ce_memfile_read(mem, &v, sizeof(v), 1);
+						ce_mem_file_read(mem, &v, sizeof(v), 1);
 						sz -= sizeof(v);
 						printf("%hd ", v);
 					}
@@ -435,7 +435,7 @@ static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 				printf("---2.1 loop %u---%d\n\n", i + 1, sz);
 				// 2.1: 4*s1/8 numbers
 				for (unsigned int j = 0; j < 4 * s1 / 8; ++j) {
-					ce_memfile_read(mem, &v, sizeof(v), 1);
+					ce_mem_file_read(mem, &v, sizeof(v), 1);
 					sz -= sizeof(v);
 					printf("%hd ", v);
 					if (0 == (j + 1) % 8) printf("\n");
@@ -445,7 +445,7 @@ static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 				printf("\n\n---2.2 loop %u---\n\n", i + 1);
 				for (unsigned int j = 0; j < s1 / 8; ++j) {
 					for (unsigned int k = 0; k < 8; ++k) {
-						ce_memfile_read(mem, &v, sizeof(v), 1);
+						ce_mem_file_read(mem, &v, sizeof(v), 1);
 						sz -= sizeof(v);
 						printf("%hd ", v);
 					}
@@ -456,7 +456,7 @@ static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 				printf("\n---2.3 loop %u---\n\n", i + 1);
 				for (unsigned int j = 0; j < s1; ++j) {
 					for (unsigned int k = 0; k < 8; ++k) {
-						ce_memfile_read(mem, &v, sizeof(v), 1);
+						ce_mem_file_read(mem, &v, sizeof(v), 1);
 						sz -= sizeof(v);
 						printf("%hd ", v);
 					}
@@ -469,7 +469,7 @@ static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 			// 3: s1/8 x 12 numbers
 			for (unsigned int i = 0; i < s1 / 8; ++i) {
 				for (unsigned int j = 0; j < 12; ++j) {
-					ce_memfile_read(mem, &v, sizeof(v), 1);
+					ce_mem_file_read(mem, &v, sizeof(v), 1);
 					sz -= sizeof(v);
 					printf("%hd ", v);
 				}
@@ -484,21 +484,21 @@ static void ce_mobfile_block_loop(ce_mobfile* mob, ce_memfile* mem, size_t size)
 	}
 }
 
-static ce_mobfile* ce_mobfile_open_memfile(const char* name, ce_memfile* memfile)
+static ce_mobfile* ce_mobfile_open_mem_file(const char* name, ce_mem_file* mem_file)
 {
 	ce_mobfile* mobfile = ce_alloc_zero(sizeof(ce_mobfile));
 	mobfile->name = ce_string_new_str_n(name,
 		ce_min(size_t, strlen(name), strlen(name) - 4));
 
-	ce_mobfile_block_loop(mobfile, memfile, ce_memfile_size(memfile));
+	ce_mobfile_block_loop(mobfile, mem_file, ce_mem_file_size(mem_file));
 
 	return mobfile;
 }
 
 ce_mobfile* ce_mobfile_open(const char* path)
 {
-	ce_memfile* memfile = ce_memfile_open_path(path);
-	if (NULL == memfile) {
+	ce_mem_file* mem_file = ce_mem_file_new_path(path);
+	if (NULL == mem_file) {
 		return NULL;
 	}
 
@@ -509,8 +509,8 @@ ce_mobfile* ce_mobfile_open(const char* path)
 		++name;
 	}
 
-	ce_mobfile* mobfile = ce_mobfile_open_memfile(name, memfile);
-	ce_memfile_close(memfile);
+	ce_mobfile* mobfile = ce_mobfile_open_mem_file(name, mem_file);
+	ce_mem_file_del(mem_file);
 
 	return mobfile;
 }

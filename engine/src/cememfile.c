@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,58 +28,58 @@
 #include "cealloc.h"
 #include "cememfile.h"
 
-const int CE_MEMFILE_SEEK_CUR = SEEK_CUR;
-const int CE_MEMFILE_SEEK_END = SEEK_END;
-const int CE_MEMFILE_SEEK_SET = SEEK_SET;
+const int CE_MEM_FILE_SEEK_CUR = SEEK_CUR;
+const int CE_MEM_FILE_SEEK_END = SEEK_END;
+const int CE_MEM_FILE_SEEK_SET = SEEK_SET;
 
-ce_memfile* ce_memfile_open(ce_memfile_vtable vtable)
+ce_mem_file* ce_mem_file_new(ce_mem_file_vtable vtable)
 {
-	ce_memfile* memfile = ce_alloc_zero(sizeof(ce_memfile) + vtable.size);
-	memfile->vtable = vtable;
-	return memfile;
+	ce_mem_file* mem_file = ce_alloc_zero(sizeof(ce_mem_file) + vtable.size);
+	mem_file->vtable = vtable;
+	return mem_file;
 }
 
-void ce_memfile_close(ce_memfile* memfile)
+void ce_mem_file_del(ce_mem_file* mem_file)
 {
-	if (NULL != memfile) {
-		if (NULL != memfile->vtable.close) {
-			(memfile->vtable.close)(memfile);
+	if (NULL != mem_file) {
+		if (NULL != mem_file->vtable.close) {
+			(mem_file->vtable.close)(mem_file);
 		}
-		ce_free(memfile, sizeof(ce_memfile) + memfile->vtable.size);
+		ce_free(mem_file, sizeof(ce_mem_file) + mem_file->vtable.size);
 	}
 }
 
 typedef struct {
 	size_t size, pos;
 	char* data;
-} ce_datafile;
+} ce_data_file;
 
-static int ce_datafile_close(ce_memfile* memfile)
+static int ce_data_file_close(ce_mem_file* mem_file)
 {
-	ce_datafile* datafile = (ce_datafile*)memfile->impl;
-	ce_free(datafile->data, datafile->size);
+	ce_data_file* data_file = (ce_data_file*)mem_file->impl;
+	ce_free(data_file->data, data_file->size);
 	return 0;
 }
 
-static size_t ce_datafile_read(ce_memfile* memfile, void* restrict ptr, size_t size, size_t n)
+static size_t ce_data_file_read(ce_mem_file* mem_file, void* restrict ptr, size_t size, size_t n)
 {
-	ce_datafile* datafile = (ce_datafile*)memfile->impl;
-	n = ce_min(size_t, n, (datafile->size - datafile->pos) / size);
+	ce_data_file* data_file = (ce_data_file*)mem_file->impl;
+	n = ce_min(size_t, n, (data_file->size - data_file->pos) / size);
 	size *= n;
-	memcpy(ptr, datafile->data + datafile->pos, size);
-	datafile->pos += size;
+	memcpy(ptr, data_file->data + data_file->pos, size);
+	data_file->pos += size;
 	return n;
 }
 
-static int ce_datafile_seek(ce_memfile* memfile, long int offset, int whence)
+static int ce_data_file_seek(ce_mem_file* mem_file, long int offset, int whence)
 {
-	ce_datafile* datafile = (ce_datafile*)memfile->impl;
+	ce_data_file* data_file = (ce_data_file*)mem_file->impl;
 
-	if (CE_MEMFILE_SEEK_SET == whence) {
+	if (CE_MEM_FILE_SEEK_SET == whence) {
 		if (offset >= 0) {
 			size_t pos = offset;
-			if (pos <= datafile->size) {
-				datafile->pos = pos;
+			if (pos <= data_file->size) {
+				data_file->pos = pos;
 				return 0;
 			}
 		}
@@ -87,17 +87,17 @@ static int ce_datafile_seek(ce_memfile* memfile, long int offset, int whence)
 		return -1;
 	}
 
-	if (CE_MEMFILE_SEEK_CUR == whence) {
+	if (CE_MEM_FILE_SEEK_CUR == whence) {
 		if (offset >= 0) {
 			size_t n = offset;
-			if (n <= datafile->size - datafile->pos) {
-				datafile->pos += n;
+			if (n <= data_file->size - data_file->pos) {
+				data_file->pos += n;
 				return 0;
 			}
 		} else {
 			size_t n = -offset;
-			if (n <= datafile->pos) {
-				datafile->pos -= n;
+			if (n <= data_file->pos) {
+				data_file->pos -= n;
 				return 0;
 			}
 		}
@@ -105,11 +105,11 @@ static int ce_datafile_seek(ce_memfile* memfile, long int offset, int whence)
 		return -1;
 	}
 
-	if (CE_MEMFILE_SEEK_END == whence) {
+	if (CE_MEM_FILE_SEEK_END == whence) {
 		if (offset <= 0) {
 			size_t n = -offset;
-			if (n <= datafile->size) {
-				datafile->pos = datafile->size - n;
+			if (n <= data_file->size) {
+				data_file->pos = data_file->size - n;
 				return 0;
 			}
 		}
@@ -121,37 +121,37 @@ static int ce_datafile_seek(ce_memfile* memfile, long int offset, int whence)
 	return -1;
 }
 
-static long int ce_datafile_tell(ce_memfile* memfile)
+static long int ce_data_file_tell(ce_mem_file* mem_file)
 {
-	ce_datafile* datafile = (ce_datafile*)memfile->impl;
-	return datafile->pos;
+	ce_data_file* data_file = (ce_data_file*)mem_file->impl;
+	return data_file->pos;
 }
 
-static int ce_datafile_eof(ce_memfile* memfile)
+static int ce_data_file_eof(ce_mem_file* mem_file)
 {
-	ce_datafile* datafile = (ce_datafile*)memfile->impl;
-	return datafile->pos == datafile->size;
+	ce_data_file* data_file = (ce_data_file*)mem_file->impl;
+	return data_file->pos == data_file->size;
 }
 
-static int ce_datafile_error(ce_memfile* memfile)
+static int ce_data_file_error(ce_mem_file* mem_file)
 {
 	// always successful
-	ce_unused(memfile);
+	ce_unused(mem_file);
 	return 0;
 }
 
-ce_memfile* ce_memfile_open_data(void* restrict data, size_t size)
+ce_mem_file* ce_mem_file_new_data(void* restrict data, size_t size)
 {
-	ce_memfile* memfile = ce_memfile_open((ce_memfile_vtable)
-		{sizeof(ce_datafile), ce_datafile_close,
-		ce_datafile_read, ce_datafile_seek, ce_datafile_tell,
-		ce_datafile_eof, ce_datafile_error});
+	ce_mem_file* mem_file = ce_mem_file_new((ce_mem_file_vtable)
+		{sizeof(ce_data_file), ce_data_file_close,
+		ce_data_file_read, ce_data_file_seek, ce_data_file_tell,
+		ce_data_file_eof, ce_data_file_error});
 
-	ce_datafile* datafile = (ce_datafile*)memfile->impl;
-	datafile->size = size;
-	datafile->data = data;
+	ce_data_file* data_file = (ce_data_file*)mem_file->impl;
+	data_file->size = size;
+	data_file->data = data;
 
-	return memfile;
+	return mem_file;
 }
 
 /*
@@ -162,79 +162,79 @@ ce_memfile* ce_memfile_open_data(void* restrict data, size_t size)
 */
 typedef struct {
 	FILE* file;
-} ce_bstdfile;
+} ce_bstd_file;
 
-static inline void ce_bstdfile_detect_eof(ce_bstdfile* bstdfile)
+static inline void ce_bstd_file_detect_eof(ce_bstd_file* bstd_file)
 {
 	// Function getc is implemented as a macro,
 	// so the argument should never be an expression with side effects.
-	int c = getc(bstdfile->file);
+	int c = getc(bstd_file->file);
 	// One character of pushback is guaranteed.
 	// If the value of c equals that of the macro EOF,
 	// the operation fails and the input stream is unchanged.
-	ungetc(c, bstdfile->file);
+	ungetc(c, bstd_file->file);
 }
 
-static int ce_bstdfile_close(ce_memfile* memfile)
+static int ce_bstd_file_close(ce_mem_file* mem_file)
 {
-	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
-	fclose(bstdfile->file);
+	ce_bstd_file* bstd_file = (ce_bstd_file*)mem_file->impl;
+	fclose(bstd_file->file);
 	return 0;
 }
 
-static size_t ce_bstdfile_read(ce_memfile* memfile, void* restrict ptr, size_t size, size_t n)
+static size_t ce_bstd_file_read(ce_mem_file* mem_file, void* restrict ptr, size_t size, size_t n)
 {
-	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
-	n = fread(ptr, size, n, bstdfile->file);
-	ce_bstdfile_detect_eof(bstdfile);
+	ce_bstd_file* bstd_file = (ce_bstd_file*)mem_file->impl;
+	n = fread(ptr, size, n, bstd_file->file);
+	ce_bstd_file_detect_eof(bstd_file);
 	return n;
 }
 
-static int ce_bstdfile_seek(ce_memfile* memfile, long int offset, int whence)
+static int ce_bstd_file_seek(ce_mem_file* mem_file, long int offset, int whence)
 {
-	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
+	ce_bstd_file* bstd_file = (ce_bstd_file*)mem_file->impl;
 	// A successful call to the fseek function undoes any
 	// effects of the ungetc function on the stream and
 	// clears the end-of-ﬁle indicator for the stream.
-	int result = fseek(bstdfile->file, offset, whence);
-	ce_bstdfile_detect_eof(bstdfile);
+	int result = fseek(bstd_file->file, offset, whence);
+	ce_bstd_file_detect_eof(bstd_file);
 	return result;
 }
 
-static long int ce_bstdfile_tell(ce_memfile* memfile)
+static long int ce_bstd_file_tell(ce_mem_file* mem_file)
 {
-	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
-	return ftell(bstdfile->file);
+	ce_bstd_file* bstd_file = (ce_bstd_file*)mem_file->impl;
+	return ftell(bstd_file->file);
 }
 
-static int ce_bstdfile_eof(ce_memfile* memfile)
+static int ce_bstd_file_eof(ce_mem_file* mem_file)
 {
-	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
-	return feof(bstdfile->file);
+	ce_bstd_file* bstd_file = (ce_bstd_file*)mem_file->impl;
+	return feof(bstd_file->file);
 }
 
-static int ce_bstdfile_error(ce_memfile* memfile)
+static int ce_bstd_file_error(ce_mem_file* mem_file)
 {
-	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
-	return ferror(bstdfile->file);
+	ce_bstd_file* bstd_file = (ce_bstd_file*)mem_file->impl;
+	return ferror(bstd_file->file);
 }
 
-ce_memfile* ce_memfile_open_path(const char* path)
+ce_mem_file* ce_mem_file_new_path(const char* path)
 {
 	FILE* file = fopen(path, "rb");
 	if (NULL == file) {
 		return NULL;
 	}
 
-	ce_memfile* memfile = ce_memfile_open((ce_memfile_vtable)
-		{sizeof(ce_bstdfile), ce_bstdfile_close,
-		ce_bstdfile_read, ce_bstdfile_seek, ce_bstdfile_tell,
-		ce_bstdfile_eof, ce_bstdfile_error});
+	ce_mem_file* mem_file = ce_mem_file_new((ce_mem_file_vtable)
+		{sizeof(ce_bstd_file), ce_bstd_file_close,
+		ce_bstd_file_read, ce_bstd_file_seek, ce_bstd_file_tell,
+		ce_bstd_file_eof, ce_bstd_file_error});
 
-	ce_bstdfile* bstdfile = (ce_bstdfile*)memfile->impl;
-	bstdfile->file = file;
+	ce_bstd_file* bstd_file = (ce_bstd_file*)mem_file->impl;
+	bstd_file->file = file;
 
-	ce_bstdfile_detect_eof(bstdfile);
+	ce_bstd_file_detect_eof(bstd_file);
 
-	return memfile;
+	return mem_file;
 }

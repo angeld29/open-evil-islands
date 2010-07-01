@@ -30,12 +30,12 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern ce_memfile* ce_reshlp_extract_memfile(ce_resfile* resfile, int index);
-extern ce_memfile* ce_reshlp_extract_memfile_by_name(ce_resfile* resfile,
+extern ce_mem_file* ce_reshlp_extract_mem_file(ce_resfile* resfile, int index);
+extern ce_mem_file* ce_reshlp_extract_mem_file_by_name(ce_resfile* resfile,
 														const char* name);
 
-extern ce_vector* ce_reshlp_extract_all_memfiles(ce_resfile* resfile);
-extern void ce_reshlp_del_memfiles(ce_vector* memfiles);
+extern ce_vector* ce_reshlp_extract_all_mem_files(ce_resfile* resfile);
+extern void ce_reshlp_del_mem_files(ce_vector* mem_files);
 
 extern ce_resfile* ce_reshlp_extract_resfile(ce_resfile* resfile, int index);
 extern ce_resfile* ce_reshlp_extract_resfile_by_name(ce_resfile* resfile,

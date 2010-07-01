@@ -80,14 +80,14 @@ ce_sound_object ce_sound_manager_create(const char* name)
 		return 0;
 	}
 
-	ce_memfile* memfile = ce_memfile_open_path(path);
-	if (NULL == memfile) {
+	ce_mem_file* mem_file = ce_mem_file_new_path(path);
+	if (NULL == mem_file) {
 		return 0;
 	}
 
-	ce_sound_resource* sound_resource = ce_sound_resource_new(memfile);
+	ce_sound_resource* sound_resource = ce_sound_resource_new(mem_file);
 	if (NULL == sound_resource) {
-		ce_memfile_close(memfile);
+		ce_mem_file_del(mem_file);
 		return 0;
 	}
 

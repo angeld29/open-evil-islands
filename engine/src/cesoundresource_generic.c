@@ -68,31 +68,31 @@ typedef struct {
 
 static size_t ce_vorbis_read_wrap(void* ptr, size_t size, size_t nmemb, void* datasource)
 {
-	return ce_memfile_read(datasource, ptr, size, nmemb);
+	return ce_mem_file_read(datasource, ptr, size, nmemb);
 }
 
 static int ce_vorbis_seek_wrap(void* datasource, ogg_int64_t offset, int whence)
 {
-	return ce_memfile_seek(datasource, offset, whence);
+	return ce_mem_file_seek(datasource, offset, whence);
 }
 
 static long ce_vorbis_tell_wrap(void* datasource)
 {
-	return ce_memfile_tell(datasource);
+	return ce_mem_file_tell(datasource);
 }
 
 static bool ce_vorbis_test(ce_sound_probe* sound_probe)
 {
 	char fourcc[4];
-	if (4 != ce_memfile_read(sound_probe->memfile, fourcc, 1, 4) ||
+	if (4 != ce_mem_file_read(sound_probe->mem_file, fourcc, 1, 4) ||
 			0 != memcmp(fourcc, "OggS", 4)) {
 		return false;
 	}
 
-	ce_memfile_rewind(sound_probe->memfile);
+	ce_mem_file_rewind(sound_probe->mem_file);
 
 	OggVorbis_File vf;
-	if (0 == ov_test_callbacks(sound_probe->memfile, &vf, NULL, 0, (ov_callbacks)
+	if (0 == ov_test_callbacks(sound_probe->mem_file, &vf, NULL, 0, (ov_callbacks)
 			{ce_vorbis_read_wrap, ce_vorbis_seek_wrap, NULL, ce_vorbis_tell_wrap})) {
 		sound_probe->size = sizeof(ce_vorbis);
 		assert(sizeof(OggVorbis_File) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
@@ -181,7 +181,7 @@ static bool ce_flac_test(ce_sound_probe* sound_probe)
 {
 	char fourcc[4];
 	sound_probe->size = sizeof(ce_flac);
-	return 4 == ce_memfile_read(sound_probe->memfile, fourcc, 1, 4) &&
+	return 4 == ce_mem_file_read(sound_probe->mem_file, fourcc, 1, 4) &&
 			0 == memcmp(fourcc, "fLaC", 4);
 }
 
@@ -195,13 +195,13 @@ FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDecoder* d
 		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 	}
 
-	if (ce_memfile_eof(sound_resource->memfile)) {
+	if (ce_mem_file_eof(sound_resource->mem_file)) {
 		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 	}
 
-	*bytes = ce_memfile_read(sound_resource->memfile, buffer, sizeof(FLAC__byte), *bytes);
+	*bytes = ce_mem_file_read(sound_resource->mem_file, buffer, sizeof(FLAC__byte), *bytes);
 
-	if (ce_memfile_error(sound_resource->memfile)) {
+	if (ce_mem_file_error(sound_resource->mem_file)) {
 		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 	}
 
@@ -214,8 +214,8 @@ FLAC__StreamDecoderSeekStatus ce_flac_seek_callback(const FLAC__StreamDecoder* d
 	ce_unused(decoder);
 	ce_sound_resource* sound_resource = client_data;
 
-	return ce_memfile_seek(sound_resource->memfile,
-		absolute_byte_offset, CE_MEMFILE_SEEK_SET) < 0 ?
+	return ce_mem_file_seek(sound_resource->mem_file,
+		absolute_byte_offset, CE_MEM_FILE_SEEK_SET) < 0 ?
 		FLAC__STREAM_DECODER_SEEK_STATUS_ERROR :
 		FLAC__STREAM_DECODER_SEEK_STATUS_OK;
 }
@@ -226,7 +226,7 @@ FLAC__StreamDecoderTellStatus ce_flac_tell_callback(const FLAC__StreamDecoder* d
 	ce_unused(decoder);
 
 	ce_sound_resource* sound_resource = client_data;
-	long int pos = ce_memfile_tell(sound_resource->memfile);
+	long int pos = ce_mem_file_tell(sound_resource->mem_file);
 
 	if (pos < 0) {
 		return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
@@ -242,7 +242,7 @@ FLAC__StreamDecoderLengthStatus ce_flac_length_callback(const FLAC__StreamDecode
 	ce_unused(decoder);
 
 	ce_sound_resource* sound_resource = client_data;
-	long int size = ce_memfile_size(sound_resource->memfile);
+	long int size = ce_mem_file_size(sound_resource->mem_file);
 
 	if (size < 0) {
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
@@ -257,7 +257,7 @@ FLAC__bool ce_flac_eof_callback(const FLAC__StreamDecoder* decoder, void* client
 	ce_unused(decoder);
 	ce_sound_resource* sound_resource = client_data;
 
-	return ce_memfile_eof(sound_resource->memfile) ? true : false;
+	return ce_mem_file_eof(sound_resource->mem_file) ? true : false;
 }
 
 FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamDecoder* decoder,
@@ -317,7 +317,7 @@ static bool ce_flac_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
 
 	ce_unused(sound_probe);
-	ce_memfile_rewind(sound_resource->memfile);
+	ce_mem_file_rewind(sound_resource->mem_file);
 
 	flac->decoder = FLAC__stream_decoder_new();
 
@@ -432,7 +432,7 @@ typedef struct {
 static bool ce_mad_test(ce_sound_probe* sound_probe)
 {
 	unsigned char* buffer = ce_alloc(CE_MAD_INPUT_BUFFER_CAPACITY);
-	size_t size = ce_memfile_read(sound_probe->memfile, buffer, 1, CE_MAD_INPUT_BUFFER_CAPACITY);
+	size_t size = ce_mem_file_read(sound_probe->mem_file, buffer, 1, CE_MAD_INPUT_BUFFER_CAPACITY);
 
 	struct mad_stream stream;
 	struct mad_header header;
@@ -480,11 +480,11 @@ static bool ce_mad_input(ce_sound_resource* sound_resource)
 		memmove(mad->input_buffer, mad->stream.next_frame, remaining);
 	}
 
-	size_t size = ce_memfile_read(sound_resource->memfile,
+	size_t size = ce_mem_file_read(sound_resource->mem_file,
 		mad->input_buffer + remaining, 1,
 		CE_MAD_INPUT_BUFFER_CAPACITY - remaining);
 
-	if (ce_memfile_error(sound_resource->memfile)) {
+	if (ce_mem_file_error(sound_resource->mem_file)) {
 		ce_error_report_c_last("mad");
 		return false;
 	}
@@ -496,7 +496,7 @@ static bool ce_mad_input(ce_sound_resource* sound_resource)
 
 	// when decoding the last frame of a file, it must be followed by
 	// MAD_BUFFER_GUARD zero bytes if one wants to decode that last frame
-	if (ce_memfile_eof(sound_resource->memfile)) {
+	if (ce_mem_file_eof(sound_resource->mem_file)) {
 		memset(mad->input_buffer + remaining + size, 0, CE_MAD_INPUT_BUFFER_GUARD);
 		size += CE_MAD_INPUT_BUFFER_GUARD;
 	}
@@ -653,7 +653,7 @@ static bool ce_mad_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound
 	ce_mad* mad = (ce_mad*)sound_resource->impl;
 
 	ce_unused(sound_probe);
-	ce_memfile_rewind(sound_resource->memfile);
+	ce_mem_file_rewind(sound_resource->mem_file);
 
 	ce_mad_init(mad);
 
@@ -731,7 +731,7 @@ typedef struct {
 static bool ce_bink_test(ce_sound_probe* sound_probe)
 {
 	ce_bink_header header;
-	if (ce_bink_header_read(&header, sound_probe->memfile) && 0 != header.audio_track_count) {
+	if (ce_bink_header_read(&header, sound_probe->mem_file) && 0 != header.audio_track_count) {
 		sound_probe->size = sizeof(ce_bink) +
 			sizeof(ce_bink_index) * header.frame_count +
 			header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE;
@@ -752,7 +752,7 @@ static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 		return false;
 	}
 
-	if (!ce_bink_audio_track_read(&bink->audio_track, sound_resource->memfile)) {
+	if (!ce_bink_audio_track_read(&bink->audio_track, sound_resource->mem_file)) {
 		ce_logging_error("bink: input does not appear to be a Bink audio");
 		return false;
 	}
@@ -772,7 +772,7 @@ static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 		sound_resource->sample_rate, sound_resource->channel_count);
 
 	bink->indices = (ce_bink_index*)bink->data;
-	if (!ce_bink_index_read(bink->indices, bink->header.frame_count, sound_resource->memfile)) {
+	if (!ce_bink_index_read(bink->indices, bink->header.frame_count, sound_resource->mem_file)) {
 		ce_logging_error("bink: invalid frame index table");
 		return false;
 	}
@@ -813,12 +813,12 @@ static bool ce_bink_decode_frame(ce_sound_resource* sound_resource)
 	ce_bink* bink = (ce_bink*)sound_resource->impl;
 
 	if (bink->frame_index == bink->header.frame_count) {
-		assert(ce_memfile_eof(sound_resource->memfile));
+		assert(ce_mem_file_eof(sound_resource->mem_file));
 		return false;
 	}
 
 	uint32_t packet_size;
-	ce_memfile_read(sound_resource->memfile, &packet_size, 4, 1);
+	ce_mem_file_read(sound_resource->mem_file, &packet_size, 4, 1);
 
 	// our input buffer is largest_frame_size bytes
 	assert(packet_size <= bink->header.largest_frame_size);
@@ -827,7 +827,7 @@ static bool ce_bink_decode_frame(ce_sound_resource* sound_resource)
 	}
 
 	if (0 != packet_size) {
-		bink->packet.size = ce_memfile_read(sound_resource->memfile,
+		bink->packet.size = ce_mem_file_read(sound_resource->mem_file,
 											bink->packet.data, 1, packet_size);
 
 		int size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
@@ -846,7 +846,7 @@ static bool ce_bink_decode_frame(ce_sound_resource* sound_resource)
 	frame_size -= packet_size + sizeof(packet_size);
 
 	// skip video packet
-	ce_memfile_seek(sound_resource->memfile, frame_size, CE_MEMFILE_SEEK_CUR);
+	ce_mem_file_seek(sound_resource->mem_file, frame_size, CE_MEM_FILE_SEEK_CUR);
 
 	return 0 == packet_size;
 }
@@ -875,8 +875,8 @@ static bool ce_bink_reset(ce_sound_resource* sound_resource)
 	bink->frame_index = 0;
 	bink->output_size = 0;
 
-	ce_memfile_seek(sound_resource->memfile,
-		bink->indices[bink->frame_index].pos, CE_MEMFILE_SEEK_SET);
+	ce_mem_file_seek(sound_resource->mem_file,
+		bink->indices[bink->frame_index].pos, CE_MEM_FILE_SEEK_SET);
 
 	return true;
 }

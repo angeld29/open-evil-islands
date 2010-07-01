@@ -50,11 +50,11 @@ typedef struct {
 	uint32_t names_length;
 	char* names;
 	ce_resnode* nodes;
-	ce_memfile* mem;
+	ce_mem_file* mem_file;
 } ce_resfile;
 
-/// Resfile takes ownership of the memfile if successfull.
-extern ce_resfile* ce_resfile_open_memfile(const char* name, ce_memfile* mem);
+/// Resfile takes ownership of the mem file if successfull.
+extern ce_resfile* ce_resfile_open_mem_file(const char* name, ce_mem_file* mem_file);
 extern ce_resfile* ce_resfile_open_file(const char* path);
 extern void ce_resfile_close(ce_resfile* res);
 

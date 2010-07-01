@@ -81,14 +81,14 @@ ce_video_object ce_video_manager_create(const char* name)
 		return 0;
 	}
 
-	ce_memfile* memfile = ce_memfile_open_path(path);
-	if (NULL == memfile) {
+	ce_mem_file* mem_file = ce_mem_file_new_path(path);
+	if (NULL == mem_file) {
 		return 0;
 	}
 
-	ce_video_resource* video_resource = ce_video_resource_new(memfile);
+	ce_video_resource* video_resource = ce_video_resource_new(mem_file);
 	if (NULL == video_resource) {
-		ce_memfile_close(memfile);
+		ce_mem_file_del(mem_file);
 		return 0;
 	}
 

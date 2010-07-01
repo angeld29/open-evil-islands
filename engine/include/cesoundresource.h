@@ -35,7 +35,7 @@ enum {
 };
 
 typedef struct {
-	ce_memfile* memfile;
+	ce_mem_file* mem_file;
 	size_t size;
 	char buffer[CE_SOUND_PROBE_BUFFER_CAPACITY];
 } ce_sound_probe;
@@ -54,13 +54,13 @@ struct ce_sound_resource {
 	unsigned int bits_per_sample, sample_rate, channel_count, sample_size;
 	float time, bytes_per_sec_inv;
 	size_t granule_pos;
-	ce_memfile* memfile;
+	ce_mem_file* mem_file;
 	ce_sound_resource_vtable vtable;
 	size_t size;
 	char impl[];
 };
 
-extern ce_sound_resource* ce_sound_resource_new(ce_memfile* memfile);
+extern ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file);
 extern void ce_sound_resource_del(ce_sound_resource* sound_resource);
 
 extern size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size);

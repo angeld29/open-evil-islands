@@ -92,10 +92,10 @@ ce_mmpfile* ce_texture_manager_open_mmpfile_from_cache(const char* name)
 	if (NULL != ce_path_find_special1(path, sizeof(path),
 					ce_option_manager->ei_path->str, name,
 					ce_texture_cache_dirs, ce_texture_exts)) {
-		ce_memfile* memfile = ce_memfile_open_path(path);
-		if (NULL != memfile) {
-			ce_mmpfile* mmpfile = ce_mmpfile_new_memfile(memfile);
-			ce_memfile_close(memfile);
+		ce_mem_file* mem_file = ce_mem_file_new_path(path);
+		if (NULL != mem_file) {
+			ce_mmpfile* mmpfile = ce_mmpfile_new_mem_file(mem_file);
+			ce_mem_file_del(mem_file);
 			return mmpfile;
 		}
 	}

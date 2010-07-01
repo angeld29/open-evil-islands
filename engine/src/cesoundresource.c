@@ -29,13 +29,13 @@
 extern const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT;
 extern const ce_sound_resource_vtable ce_sound_resource_builtins[];
 
-ce_sound_resource* ce_sound_resource_new(ce_memfile* memfile)
+ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file)
 {
-	ce_sound_probe sound_probe = {.memfile = memfile};
+	ce_sound_probe sound_probe = {.mem_file = mem_file};
 
 	size_t index;
 	for (index = 0; index < CE_SOUND_RESOURCE_BUILTIN_COUNT; ++index) {
-		ce_memfile_rewind(memfile);
+		ce_mem_file_rewind(mem_file);
 		if ((*ce_sound_resource_builtins[index].test)(&sound_probe)) {
 			break;
 		}
@@ -47,13 +47,13 @@ ce_sound_resource* ce_sound_resource_new(ce_memfile* memfile)
 
 	ce_sound_resource* sound_resource = ce_alloc_zero(sizeof(ce_sound_resource) + sound_probe.size);
 
-	sound_resource->memfile = memfile;
+	sound_resource->mem_file = mem_file;
 	sound_resource->vtable = ce_sound_resource_builtins[index];
 	sound_resource->size = sound_probe.size;
 
 	if (!(*sound_resource->vtable.ctor)(sound_resource, &sound_probe)) {
 		// do not take ownership if failed
-		sound_resource->memfile = NULL;
+		sound_resource->mem_file = NULL;
 		ce_sound_resource_del(sound_resource);
 		return NULL;
 	}
@@ -72,7 +72,7 @@ void ce_sound_resource_del(ce_sound_resource* sound_resource)
 		if (NULL != sound_resource->vtable.dtor) {
 			(*sound_resource->vtable.dtor)(sound_resource);
 		}
-		ce_memfile_close(sound_resource->memfile);
+		ce_mem_file_del(sound_resource->mem_file);
 		ce_free(sound_resource, sizeof(ce_sound_resource) + sound_resource->size);
 	}
 }
@@ -90,6 +90,6 @@ bool ce_sound_resource_reset(ce_sound_resource* sound_resource)
 {
 	sound_resource->time = 0.0f;
 	sound_resource->granule_pos = 0;
-	ce_memfile_rewind(sound_resource->memfile);
+	ce_mem_file_rewind(sound_resource->mem_file);
 	return (*sound_resource->vtable.reset)(sound_resource);
 }

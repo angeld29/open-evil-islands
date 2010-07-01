@@ -36,10 +36,10 @@ ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile)
 	char file_name[strlen(name) + 4 + 1];
 
 	snprintf(file_name, sizeof(file_name), "%s.adb", name);
-	ce_memfile* adb_memfile = ce_reshlp_extract_memfile_by_name(ce_resource_manager->database, file_name);
-	if (NULL != adb_memfile) {
-		figproto->adb_file = ce_adb_file_new(adb_memfile);
-		ce_memfile_close(adb_memfile);
+	ce_mem_file* adb_mem_file = ce_reshlp_extract_mem_file_by_name(ce_resource_manager->database, file_name);
+	if (NULL != adb_mem_file) {
+		figproto->adb_file = ce_adb_file_new(adb_mem_file);
+		ce_mem_file_del(adb_mem_file);
 	}
 
 	snprintf(file_name, sizeof(file_name), "%s.mod", name);

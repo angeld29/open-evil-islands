@@ -78,7 +78,7 @@ extern size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height,
 extern ce_mmpfile* ce_mmpfile_new(unsigned int width, unsigned int height,
 	unsigned int mipmap_count, ce_mmpfile_format format, unsigned int user_info);
 extern ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size);
-extern ce_mmpfile* ce_mmpfile_new_memfile(ce_memfile* memfile);
+extern ce_mmpfile* ce_mmpfile_new_mem_file(ce_mem_file* mem_file);
 extern ce_mmpfile* ce_mmpfile_new_resfile(ce_resfile* resfile, int index);
 extern void ce_mmpfile_del(ce_mmpfile* mmpfile);
 

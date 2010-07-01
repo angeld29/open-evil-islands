@@ -296,11 +296,11 @@ ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size)
 	return mmpfile;
 }
 
-ce_mmpfile* ce_mmpfile_new_memfile(ce_memfile* memfile)
+ce_mmpfile* ce_mmpfile_new_mem_file(ce_mem_file* mem_file)
 {
-	size_t size = ce_memfile_size(memfile);
+	size_t size = ce_mem_file_size(mem_file);
 	void* data = ce_alloc(size);
-	ce_memfile_read(memfile, data, 1, size);
+	ce_mem_file_read(mem_file, data, 1, size);
 	return ce_mmpfile_new_data(data, size);
 }
 

@@ -34,8 +34,8 @@ extern "C" {
 typedef struct ce_video_resource ce_video_resource;
 
 typedef struct {
-	size_t (*size_hint)(ce_memfile* memfile);
-	bool (*test)(ce_memfile* memfile);
+	size_t (*size_hint)(ce_mem_file* mem_file);
+	bool (*test)(ce_mem_file* mem_file);
 	bool (*ctor)(ce_video_resource* video_resource);
 	void (*dtor)(ce_video_resource* video_resource);
 	bool (*read)(ce_video_resource* video_resource);
@@ -47,13 +47,13 @@ struct ce_video_resource {
 	float fps, time;
 	size_t frame_index, frame_count;
 	ce_ycbcr ycbcr;
-	ce_memfile* memfile;
+	ce_mem_file* mem_file;
 	ce_video_resource_vtable vtable;
 	size_t size;
 	char impl[];
 };
 
-extern ce_video_resource* ce_video_resource_new(ce_memfile* memfile);
+extern ce_video_resource* ce_video_resource_new(ce_mem_file* mem_file);
 extern void ce_video_resource_del(ce_video_resource* video_resource);
 
 static inline bool ce_video_resource_read(ce_video_resource* video_resource)

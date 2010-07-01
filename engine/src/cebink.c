@@ -33,11 +33,11 @@ enum {
 	CE_BINK_AUDIO_HEADER_SIZE = 4 + 4 + 4,
 };
 
-bool ce_bink_header_read(ce_bink_header* bink_header, ce_memfile* memfile)
+bool ce_bink_header_read(ce_bink_header* bink_header, ce_mem_file* mem_file)
 {
 	uint8_t header[CE_BINK_HEADER_SIZE];
 
-	if (sizeof(header) != ce_memfile_read(memfile, header, 1, sizeof(header))) {
+	if (sizeof(header) != ce_mem_file_read(mem_file, header, 1, sizeof(header))) {
 		return false;
 	}
 
@@ -65,11 +65,11 @@ bool ce_bink_header_read(ce_bink_header* bink_header, ce_memfile* memfile)
 	return true;
 }
 
-bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, ce_memfile* memfile)
+bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, ce_mem_file* mem_file)
 {
 	uint8_t header[CE_BINK_AUDIO_HEADER_SIZE];
 
-	if (sizeof(header) != ce_memfile_read(memfile, header, 1, sizeof(header))) {
+	if (sizeof(header) != ce_mem_file_read(mem_file, header, 1, sizeof(header))) {
 		return false;
 	}
 
@@ -88,21 +88,21 @@ bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, ce_memfile*
 	return true;
 }
 
-bool ce_bink_audio_track_skip(size_t n, ce_memfile* memfile)
+bool ce_bink_audio_track_skip(size_t n, ce_mem_file* mem_file)
 {
 	uint8_t header[CE_BINK_AUDIO_HEADER_SIZE * n];
-	return sizeof(header) == ce_memfile_read(memfile, header, 1, sizeof(header));
+	return sizeof(header) == ce_mem_file_read(mem_file, header, 1, sizeof(header));
 }
 
-bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_memfile* memfile)
+bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_mem_file* mem_file)
 {
 	uint32_t pos, next_pos;
 
-	ce_memfile_read(memfile, &next_pos, 4, 1);
+	ce_mem_file_read(mem_file, &next_pos, 4, 1);
 
 	for (size_t i = 0; i < n; ++i) {
 		pos = next_pos;
-		ce_memfile_read(memfile, &next_pos, 4, 1);
+		ce_mem_file_read(mem_file, &next_pos, 4, 1);
 
 		// bit 0 indicates that frame is a keyframe; I'm not using it
 		bink_indices[i].pos = ce_bitclr(uint32_t, pos, 0);

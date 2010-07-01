@@ -21,62 +21,60 @@
 #include "cealloc.h"
 #include "cereshlp.h"
 
-ce_memfile* ce_reshlp_extract_memfile(ce_resfile* resfile, int index)
+ce_mem_file* ce_reshlp_extract_mem_file(ce_resfile* resfile, int index)
 {
 	void* data = ce_resfile_node_data(resfile, index);
 	if (NULL == data) {
 		return NULL;
 	}
 
-	ce_memfile* memfile =
-		ce_memfile_open_data(data, ce_resfile_node_size(resfile, index));
-	if (NULL == memfile) {
+	ce_mem_file* mem_file = ce_mem_file_new_data(data, ce_resfile_node_size(resfile, index));
+	if (NULL == mem_file) {
 		ce_free(data, ce_resfile_node_size(resfile, index));
 		return NULL;
 	}
 
-	return memfile;
+	return mem_file;
 }
 
-ce_memfile* ce_reshlp_extract_memfile_by_name(ce_resfile* resfile,
+ce_mem_file* ce_reshlp_extract_mem_file_by_name(ce_resfile* resfile,
 												const char* name)
 {
 	int index = ce_resfile_node_index(resfile, name);
-	return -1 != index ? ce_reshlp_extract_memfile(resfile, index) : NULL;
+	return -1 != index ? ce_reshlp_extract_mem_file(resfile, index) : NULL;
 }
 
-ce_vector* ce_reshlp_extract_all_memfiles(ce_resfile* resfile)
+ce_vector* ce_reshlp_extract_all_mem_files(ce_resfile* resfile)
 {
-	ce_vector* memfiles = ce_vector_new_reserved(resfile->node_count);
+	ce_vector* mem_files = ce_vector_new_reserved(resfile->node_count);
 	for (int i = 0, n = resfile->node_count; i < n; ++i) {
-		ce_vector_push_back(memfiles, ce_reshlp_extract_memfile(resfile, i));
-		if (NULL == ce_vector_back(memfiles)) {
-			ce_reshlp_del_memfiles(memfiles);
+		ce_vector_push_back(mem_files, ce_reshlp_extract_mem_file(resfile, i));
+		if (NULL == ce_vector_back(mem_files)) {
+			ce_reshlp_del_mem_files(mem_files);
 			return NULL;
 		}
 	}
-	return memfiles;
+	return mem_files;
 }
 
-void ce_reshlp_del_memfiles(ce_vector* memfiles)
+void ce_reshlp_del_mem_files(ce_vector* mem_files)
 {
-	for (int i = 0, n = memfiles->count; i < n; ++i) {
-		ce_memfile_close(memfiles->items[i]);
+	for (int i = 0, n = mem_files->count; i < n; ++i) {
+		ce_mem_file_del(mem_files->items[i]);
 	}
-	ce_vector_del(memfiles);
+	ce_vector_del(mem_files);
 }
 
 ce_resfile* ce_reshlp_extract_resfile(ce_resfile* resfile, int index)
 {
-	ce_memfile* memfile = ce_reshlp_extract_memfile(resfile, index);
-	if (NULL == memfile) {
+	ce_mem_file* mem_file = ce_reshlp_extract_mem_file(resfile, index);
+	if (NULL == mem_file) {
 		return NULL;
 	}
 
-	ce_resfile* child_resfile =
-		ce_resfile_open_memfile(ce_resfile_node_name(resfile, index), memfile);
+	ce_resfile* child_resfile = ce_resfile_open_mem_file(ce_resfile_node_name(resfile, index), mem_file);
 	if (NULL == child_resfile) {
-		ce_memfile_close(memfile);
+		ce_mem_file_del(mem_file);
 		return NULL;
 	}
 

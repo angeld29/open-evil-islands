@@ -60,9 +60,9 @@ typedef struct {
 	th_ycbcr_buffer ycbcr;
 } ce_theora;
 
-static size_t ce_theora_size_hint(ce_memfile* memfile)
+static size_t ce_theora_size_hint(ce_mem_file* mem_file)
 {
-	ce_unused(memfile);
+	ce_unused(mem_file);
 	return sizeof(ce_theora);
 }
 
@@ -95,21 +95,21 @@ static void ce_theora_clean(ce_theora* theora)
 	ogg_sync_clear(&theora->sync);
 }
 
-static bool ce_theora_pump(ogg_sync_state* sync, ce_memfile* memfile)
+static bool ce_theora_pump(ogg_sync_state* sync, ce_mem_file* mem_file)
 {
 	const size_t size = 4096;
 	char* buffer = ogg_sync_buffer(sync, size);
-	size_t bytes = ce_memfile_read(memfile, buffer, 1, size);
+	size_t bytes = ce_mem_file_read(mem_file, buffer, 1, size);
 	ogg_sync_wrote(sync, bytes);
 	return 0 != bytes;
 }
 
-static bool ce_theora_test(ce_memfile* memfile)
+static bool ce_theora_test(ce_mem_file* mem_file)
 {
 	ce_theora theora;
 	ce_theora_init(&theora);
 
-	while (ce_theora_pump(&theora.sync, memfile)) {
+	while (ce_theora_pump(&theora.sync, mem_file)) {
 		while (ogg_sync_pageout(&theora.sync, &theora.page) > 0) {
 			if (0 == ogg_page_bos(&theora.page)) {
 				ce_theora_clean(&theora);
@@ -200,7 +200,7 @@ static bool ce_theora_ctor(ce_video_resource* video_resource)
 
 	// parse the headers
 	while (!done) {
-		if (!ce_theora_pump(&theora->sync, video_resource->memfile)) {
+		if (!ce_theora_pump(&theora->sync, video_resource->mem_file)) {
 			ce_logging_error("theora: end of stream while searching for headers");
 			return false;
 		}
@@ -268,7 +268,7 @@ static bool ce_theora_ctor(ce_video_resource* video_resource)
 			code = ogg_stream_pagein(&theora->stream, &theora->page);
 		} else {
 			// someone needs more data
-			if (!ce_theora_pump(&theora->sync, video_resource->memfile)) {
+			if (!ce_theora_pump(&theora->sync, video_resource->mem_file)) {
 				ce_logging_error("theora: end of stream while searching for headers");
 				return false;
 			}
@@ -328,7 +328,7 @@ static bool ce_theora_read(ce_video_resource* video_resource)
 	ce_theora* theora = (ce_theora*)video_resource->impl;
 
 	while (ogg_stream_packetout(&theora->stream, &theora->packet) <= 0) {
-		if (!ce_theora_pump(&theora->sync, video_resource->memfile)) {
+		if (!ce_theora_pump(&theora->sync, video_resource->mem_file)) {
 			return false;
 		}
 
@@ -388,31 +388,31 @@ typedef struct {
 	uint8_t data[];
 } ce_bink;
 
-static size_t ce_bink_size_hint(ce_memfile* memfile)
+static size_t ce_bink_size_hint(ce_mem_file* mem_file)
 {
 	ce_bink_header header;
-	return sizeof(ce_bink) + (!ce_bink_header_read(&header, memfile) ? 0 :
+	return sizeof(ce_bink) + (!ce_bink_header_read(&header, mem_file) ? 0 :
 		sizeof(ce_bink_index) * header.frame_count +
 		header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE);
 }
 
-static bool ce_bink_test(ce_memfile* memfile)
+static bool ce_bink_test(ce_mem_file* mem_file)
 {
 	ce_bink_header header;
-	return ce_bink_header_read(&header, memfile);
+	return ce_bink_header_read(&header, mem_file);
 }
 
 static bool ce_bink_ctor(ce_video_resource* video_resource)
 {
 	ce_bink* bink = (ce_bink*)video_resource->impl;
 
-	if (!ce_bink_header_read(&bink->header, video_resource->memfile)) {
+	if (!ce_bink_header_read(&bink->header, video_resource->mem_file)) {
 		ce_logging_error("bink: input does not appear to be a Bink video");
 		return false;
 	}
 
 	// skip audio headers
-	if (!ce_bink_audio_track_skip(bink->header.audio_track_count, video_resource->memfile)) {
+	if (!ce_bink_audio_track_skip(bink->header.audio_track_count, video_resource->mem_file)) {
 		ce_logging_error("bink: input does not appear to be a Bink video");
 		return false;
 	}
@@ -448,7 +448,7 @@ static bool ce_bink_ctor(ce_video_resource* video_resource)
 	video_resource->ycbcr.crop_rect.height = bink->header.video_height;
 
 	bink->indices = (ce_bink_index*)bink->data;
-	if (!ce_bink_index_read(bink->indices, bink->header.frame_count, video_resource->memfile)) {
+	if (!ce_bink_index_read(bink->indices, bink->header.frame_count, video_resource->mem_file)) {
 		ce_logging_error("bink: invalid frame index table");
 		return false;
 	}
@@ -500,7 +500,7 @@ static bool ce_bink_read(ce_video_resource* video_resource)
 	ce_bink* bink = (ce_bink*)video_resource->impl;
 
 	if (video_resource->frame_index == video_resource->frame_count) {
-		assert(ce_memfile_eof(video_resource->memfile));
+		assert(ce_mem_file_eof(video_resource->mem_file));
 		return false;
 	}
 
@@ -508,10 +508,10 @@ static bool ce_bink_read(ce_video_resource* video_resource)
 
 	if (0 != bink->header.audio_track_count) {
 		uint32_t packet_size;
-		ce_memfile_read(video_resource->memfile, &packet_size, 4, 1);
+		ce_mem_file_read(video_resource->mem_file, &packet_size, 4, 1);
 
 		// skip audio packet
-		ce_memfile_seek(video_resource->memfile, packet_size, CE_MEMFILE_SEEK_CUR);
+		ce_mem_file_seek(video_resource->mem_file, packet_size, CE_MEM_FILE_SEEK_CUR);
 
 		frame_size -= packet_size + sizeof(packet_size);
 	}
@@ -523,7 +523,7 @@ static bool ce_bink_read(ce_video_resource* video_resource)
 		return false;
 	}
 
-	bink->packet.size = ce_memfile_read(video_resource->memfile,
+	bink->packet.size = ce_mem_file_read(video_resource->mem_file,
 										bink->packet.data, 1, frame_size);
 
 	int got_picture = 0;
@@ -547,8 +547,8 @@ static bool ce_bink_reset(ce_video_resource* video_resource)
 {
 	ce_bink* bink = (ce_bink*)video_resource->impl;
 
-	ce_memfile_seek(video_resource->memfile,
-		bink->indices[video_resource->frame_index].pos, CE_MEMFILE_SEEK_SET);
+	ce_mem_file_seek(video_resource->mem_file,
+		bink->indices[video_resource->frame_index].pos, CE_MEM_FILE_SEEK_SET);
 
 	return true;
 }

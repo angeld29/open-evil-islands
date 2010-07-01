@@ -90,7 +90,7 @@ typedef struct {
 	uint32_t audio_track_count;
 } ce_bink_header;
 
-extern bool ce_bink_header_read(ce_bink_header* bink_header, ce_memfile* memfile);
+extern bool ce_bink_header_read(ce_bink_header* bink_header, ce_mem_file* mem_file);
 
 /*
  *  Audio Track
@@ -101,8 +101,8 @@ typedef struct {
 	uint16_t flags;
 } ce_bink_audio_track;
 
-extern bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, ce_memfile* memfile);
-extern bool ce_bink_audio_track_skip(size_t n, ce_memfile* memfile);
+extern bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, ce_mem_file* mem_file);
+extern bool ce_bink_audio_track_skip(size_t n, ce_mem_file* mem_file);
 
 /*
  *  Frame Index Table
@@ -113,7 +113,7 @@ typedef struct {
 	uint32_t length;
 } ce_bink_index;
 
-extern bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_memfile* memfile);
+extern bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_mem_file* mem_file);
 
 /*
  *  Frame Layout (only for illustration)
