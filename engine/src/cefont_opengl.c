@@ -35,7 +35,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceresource.h"
+#include "ceresourcemanager.h"
 #include "ceopengl.h"
 #include "cefont.h"
 
@@ -87,12 +87,12 @@ ce_font* ce_font_new(const char* resource_path, int pixel_size)
 
 	FT_Add_Default_Modules(font->library);
 
-	size_t resource_index = ce_resource_find(resource_path);
-	assert(resource_index < CE_RESOURCE_DATA_COUNT);
+	size_t resource_data_index = ce_resource_manager_find_data(resource_path);
+	assert(resource_data_index < CE_RESOURCE_DATA_COUNT);
 
 	FT_Face face;
-	code = FT_New_Memory_Face(font->library, ce_resource_data[resource_index],
-							ce_resource_data_sizes[resource_index], 0, &face);
+	code = FT_New_Memory_Face(font->library, ce_resource_data[resource_data_index],
+							ce_resource_data_sizes[resource_data_index], 0, &face);
 	if (0 != code) {
 		assert(FT_Err_Unknown_File_Format != code && "font format is unsupported");
 		ce_logging_error("font: could not load font data");

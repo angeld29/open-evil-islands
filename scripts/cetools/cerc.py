@@ -109,7 +109,7 @@ def build_rc_source(target, source, env):
 	nodes = make_nodes(source[0], env)
 	with open(target[0].get_abspath(), "wt") as file:
 		write_header(file, c_header)
-		file.write("\n#include <stddef.h>\n")
+		file.write("\n#include \"ceresourcedata.h\"\n")
 		for node in nodes:
 			name = hashlib.md5(make_relpath(node, env)).hexdigest()
 			names.append(name)

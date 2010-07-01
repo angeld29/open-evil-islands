@@ -25,7 +25,7 @@
 #include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceresource.h"
+#include "ceresourcemanager.h"
 #include "ceshadermanager.h"
 
 struct ce_shader_manager* ce_shader_manager;
@@ -86,7 +86,7 @@ ce_shader* ce_shader_manager_get(const char* resource_paths[])
 		} else {
 			shader_infos[i].shader_type = CE_SHADER_TYPE_UNKNOWN;
 		}
-		shader_infos[i].resource_index = ce_resource_find(resource_paths[i]);
+		shader_infos[i].resource_index = ce_resource_manager_find_data(resource_paths[i]);
 		assert(shader_infos[i].resource_index < CE_RESOURCE_DATA_COUNT);
 	}
 

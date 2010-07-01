@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,15 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_RESOURCE_H
-#define CE_RESOURCE_H
+#ifndef CE_RESOURCEDATA_H
+#define CE_RESOURCEDATA_H
 
 #include <stddef.h>
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 extern const size_t CE_RESOURCE_DATA_COUNT;
 
@@ -35,10 +34,8 @@ extern const char* ce_resource_data_paths[];
 
 extern const unsigned char* ce_resource_data[];
 
-extern size_t ce_resource_find(const char* path);
-
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
-#endif /* CE_RESOURCE_H */
+#endif /* CE_RESOURCEDATA_H */

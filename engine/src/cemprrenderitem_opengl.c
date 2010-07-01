@@ -29,7 +29,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceoptionmanager.h"
-#include "ceresource.h"
+#include "ceresourcemanager.h"
 #include "ceopengl.h"
 #include "cetexture.h"
 #include "cemprhelper.h"
@@ -448,16 +448,16 @@ static void ce_mprrenderitem_amdvst_ctor(ce_renderitem* renderitem, va_list args
 		glBindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 
-	size_t vert_srcidx = ce_resource_find("shaders/mpramdvst.vert");
-	size_t frag_srcidx = ce_resource_find(water ? "shaders/mprwater.frag" :
-													"shaders/mprland.frag");
+	size_t vert_index = ce_resource_manager_find_data("shaders/mpramdvst.vert");
+	size_t frag_index = ce_resource_manager_find_data(water ? "shaders/mprwater.frag" :
+																"shaders/mprland.frag");
 
-	assert(vert_srcidx < CE_RESOURCE_DATA_COUNT);
-	assert(frag_srcidx < CE_RESOURCE_DATA_COUNT);
+	assert(vert_index < CE_RESOURCE_DATA_COUNT);
+	assert(frag_index < CE_RESOURCE_DATA_COUNT);
 
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex_shader, 1, (const GLchar**)&ce_resource_data[vert_srcidx],
-								(GLint[]){ce_resource_data_sizes[vert_srcidx]});
+	glShaderSource(vertex_shader, 1, (const GLchar**)&ce_resource_data[vert_index],
+								(GLint[]){ce_resource_data_sizes[vert_index]});
 	glCompileShader(vertex_shader);
 
 	GLint result;
@@ -468,8 +468,8 @@ static void ce_mprrenderitem_amdvst_ctor(ce_renderitem* renderitem, va_list args
 	}
 
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment_shader, 1, (const GLchar**)&ce_resource_data[frag_srcidx],
-								(GLint[]){ce_resource_data_sizes[frag_srcidx]});
+	glShaderSource(fragment_shader, 1, (const GLchar**)&ce_resource_data[frag_index],
+								(GLint[]){ce_resource_data_sizes[frag_index]});
 	glCompileShader(fragment_shader);
 
 	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);

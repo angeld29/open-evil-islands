@@ -73,3 +73,13 @@ void ce_resource_manager_term(void)
 		ce_free(ce_resource_manager, sizeof(struct ce_resource_manager));
 	}
 }
+
+size_t ce_resource_manager_find_data(const char* path)
+{
+	for (size_t index = 0; index < CE_RESOURCE_DATA_COUNT; ++index) {
+		if (0 == strcmp(path, ce_resource_data_paths[index])) {
+			return index;
+		}
+	}
+	return CE_RESOURCE_DATA_COUNT;
+}

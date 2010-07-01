@@ -21,6 +21,7 @@
 #ifndef CE_RESOURCEMANAGER_H
 #define CE_RESOURCEMANAGER_H
 
+#include "ceresourcedata.h"
 #include "ceresfile.h"
 
 #ifdef __cplusplus
@@ -33,6 +34,8 @@ extern struct ce_resource_manager {
 
 extern void ce_resource_manager_init(void);
 extern void ce_resource_manager_term(void);
+
+extern size_t ce_resource_manager_find_data(const char* path);
 
 #ifdef __cplusplus
 }
