@@ -29,9 +29,8 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "cebyteorder.h"
+#include "ceresball.h"
 #include "cemprfile.h"
-
-#include "cereshlp.h"
 
 static const unsigned int MP_SIGNATURE = 0xce4af672;
 static const unsigned int SEC_SIGNATURE = 0xcf4bf774;
@@ -60,7 +59,7 @@ static void read_sectors(ce_mprfile* mpr, ce_res_file* res)
 				"%s%03d%03d.sec", mpr->name->str, x, z);
 
 			ce_mprsector* sec = mpr->sectors + z * x_count + x;
-			ce_mem_file* mem = ce_reshlp_extract_mem_file_by_name(res, sec_name);
+			ce_mem_file* mem = ce_res_ball_extract_mem_file_by_name(res, sec_name);
 
 			uint32_t signature;
 			ce_mem_file_read(mem, &signature, sizeof(uint32_t), 1);

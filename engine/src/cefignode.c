@@ -27,7 +27,7 @@
 
 ce_fignode* ce_fignode_new(ce_res_file* mod_res_file,
 							ce_res_file* bon_res_file,
-							ce_vector* anm_res_files,
+							ce_res_file* anm_res_files[],
 							ce_lnkfile* lnkfile)
 {
 	ce_fignode* fignode = ce_alloc(sizeof(ce_fignode));
@@ -40,12 +40,11 @@ ce_fignode* ce_fignode_new(ce_res_file* mod_res_file,
 	fignode->rendergroup = NULL;
 	fignode->childs = ce_vector_new();
 
-	for (size_t i = 0; i < anm_res_files->count; ++i) {
-		ce_res_file* anm_res_file = anm_res_files->items[i];
-		size_t anm_index = ce_res_file_node_index(anm_res_file, fignode->name->str);
-		if (anm_index != anm_res_file->node_count) {
+	for (size_t i = 0; NULL != anm_res_files[i]; ++i) {
+		size_t anm_index = ce_res_file_node_index(anm_res_files[i], fignode->name->str);
+		if (anm_index != anm_res_files[i]->node_count) {
 			ce_vector_push_back(fignode->anmfiles,
-				ce_anmfile_open(anm_res_file, anm_index));
+				ce_anmfile_open(anm_res_files[i], anm_index));
 		} // else ok, there is no animation for this node
 	}
 

@@ -24,7 +24,7 @@
 
 #include "cealloc.h"
 #include "ceresourcemanager.h"
-#include "cereshlp.h"
+#include "ceresball.h"
 #include "cefigproto.h"
 
 ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file)
@@ -36,31 +36,32 @@ ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file)
 	char file_name[strlen(name) + 4 + 1];
 
 	snprintf(file_name, sizeof(file_name), "%s.adb", name);
-	ce_mem_file* adb_mem_file = ce_reshlp_extract_mem_file_by_name(ce_resource_manager->database, file_name);
+	ce_mem_file* adb_mem_file = ce_res_ball_extract_mem_file_by_name(ce_resource_manager->database, file_name);
 	if (NULL != adb_mem_file) {
 		figproto->adb_file = ce_adb_file_new(adb_mem_file);
 		ce_mem_file_del(adb_mem_file);
 	}
 
 	snprintf(file_name, sizeof(file_name), "%s.mod", name);
-	ce_res_file* mod_res_file =
-		ce_reshlp_extract_res_file_by_name(res_file, file_name);
+	ce_res_file* mod_res_file = ce_res_ball_extract_res_file_by_name(res_file, file_name);
 
 	snprintf(file_name, sizeof(file_name), "%s.bon", name);
-	ce_res_file* bon_res_file =
-		ce_reshlp_extract_res_file_by_name(res_file, file_name);
+	ce_res_file* bon_res_file = ce_res_ball_extract_res_file_by_name(res_file, file_name);
 
 	snprintf(file_name, sizeof(file_name), "%s.anm", name);
-	ce_res_file* anm_res_file =
-		ce_reshlp_extract_res_file_by_name(res_file, file_name);
+	ce_res_file* anm_res_file = ce_res_ball_extract_res_file_by_name(res_file, file_name);
 
 	assert(NULL != mod_res_file); // mod required
 	assert(NULL != bon_res_file); // bon required
 
 	// anm optional
-	ce_vector* anm_res_files = NULL == anm_res_file ?
-								ce_vector_new_reserved(0) :
-								ce_reshlp_extract_all_res_files(anm_res_file);
+	ce_res_file* anm_res_files[NULL == anm_res_file ? 1 : anm_res_file->node_count + 1];
+	if (NULL != anm_res_file) {
+		ce_res_ball_extract_all_res_files(anm_res_file, anm_res_files);
+		anm_res_files[anm_res_file->node_count] = NULL;
+	} else {
+		anm_res_files[0] = NULL;
+	}
 
 	ce_lnkfile* lnkfile = ce_lnkfile_open(mod_res_file, name);
 
@@ -68,7 +69,9 @@ ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file)
 										anm_res_files, lnkfile);
 
 	ce_lnkfile_close(lnkfile);
-	ce_reshlp_del_res_files(anm_res_files);
+	if (NULL != anm_res_file) {
+		ce_res_ball_clean_all_res_files(anm_res_file, anm_res_files);
+	}
 	ce_res_file_del(anm_res_file);
 	ce_res_file_del(bon_res_file);
 	ce_res_file_del(mod_res_file);
