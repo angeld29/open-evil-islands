@@ -48,8 +48,8 @@ typedef struct {
 } ce_fignode;
 
 extern ce_fignode*
-ce_fignode_new(ce_resfile* mod_resfile, ce_resfile* bon_resfile,
-				ce_vector* anm_resfiles, ce_lnkfile* lnkfile);
+ce_fignode_new(ce_res_file* mod_res_file, ce_res_file* bon_res_file,
+				ce_vector* anm_res_files, ce_lnkfile* lnkfile);
 extern void ce_fignode_del(ce_fignode* fignode);
 
 extern void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode,

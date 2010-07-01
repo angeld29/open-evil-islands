@@ -42,7 +42,7 @@ void ce_texture_manager_init(void)
 {
 	ce_texture_manager = ce_alloc_zero(sizeof(struct ce_texture_manager));
 	ce_texture_manager->mutex = ce_mutex_new();
-	ce_texture_manager->resfiles = ce_vector_new();
+	ce_texture_manager->res_files = ce_vector_new();
 	ce_texture_manager->textures = ce_vector_new();
 
 	char path[ce_option_manager->ei_path->length + 32];
@@ -60,12 +60,12 @@ void ce_texture_manager_init(void)
 	}
 
 	for (size_t i = 0; NULL != ce_texture_resource_names[i]; ++i) {
-		ce_resfile* resfile;
+		ce_res_file* res_file;
 		if (NULL != ce_path_find_special1(path, sizeof(path),
 				ce_option_manager->ei_path->str, ce_texture_resource_names[i],
 				ce_texture_resource_dirs, ce_texture_resource_exts) &&
-				NULL != (resfile = ce_resfile_open_file(path))) {
-			ce_vector_push_back(ce_texture_manager->resfiles, resfile);
+				NULL != (res_file = ce_res_file_new_path(path))) {
+			ce_vector_push_back(ce_texture_manager->res_files, res_file);
 			ce_logging_write("texture manager: loading '%s'... ok", path);
 		} else {
 			ce_logging_error("texture manager: loading '%s'... failed", path);
@@ -78,8 +78,8 @@ void ce_texture_manager_term(void)
 	if (NULL != ce_texture_manager) {
 		ce_vector_for_each(ce_texture_manager->textures, ce_texture_del);
 		ce_vector_del(ce_texture_manager->textures);
-		ce_vector_for_each(ce_texture_manager->resfiles, ce_resfile_close);
-		ce_vector_del(ce_texture_manager->resfiles);
+		ce_vector_for_each(ce_texture_manager->res_files, ce_res_file_del);
+		ce_vector_del(ce_texture_manager->res_files);
 		ce_mutex_del(ce_texture_manager->mutex);
 		ce_free(ce_texture_manager, sizeof(struct ce_texture_manager));
 	}
@@ -112,11 +112,11 @@ ce_mmpfile* ce_texture_manager_open_mmpfile_from_resources(const char* name)
 
 	// find in resources
 	ce_mutex_lock(ce_texture_manager->mutex);
-	for (size_t i = 0; i < ce_texture_manager->resfiles->count; ++i) {
-		ce_resfile* resfile = ce_texture_manager->resfiles->items[i];
-		int index = ce_resfile_node_index(resfile, file_name);
-		if (-1 != index) {
-			mmpfile = ce_mmpfile_new_resfile(resfile, index);
+	for (size_t i = 0; i < ce_texture_manager->res_files->count; ++i) {
+		ce_res_file* res_file = ce_texture_manager->res_files->items[i];
+		size_t index = ce_res_file_node_index(res_file, file_name);
+		if (res_file->node_count != index) {
+			mmpfile = ce_mmpfile_new_res_file(res_file, index);
 			break;
 		}
 	}

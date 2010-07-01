@@ -26,11 +26,11 @@
 #include "cealloc.h"
 #include "celnkfile.h"
 
-ce_lnkfile* ce_lnkfile_open(ce_resfile* resfile, const char* name)
+ce_lnkfile* ce_lnkfile_open(ce_res_file* res_file, const char* name)
 {
-	int index = ce_resfile_node_index(resfile, name);
-	size_t size = ce_resfile_node_size(resfile, index);
-	void* data = ce_resfile_node_data(resfile, index);
+	size_t index = ce_res_file_node_index(res_file, name);
+	size_t size = ce_res_file_node_size(res_file, index);
+	void* data = ce_res_file_node_data(res_file, index);
 
 	union {
 		char* c;

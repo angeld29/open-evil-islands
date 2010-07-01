@@ -25,12 +25,12 @@
 #include "cealloc.h"
 #include "cebonfile.h"
 
-ce_bonfile* ce_bonfile_open(ce_resfile* resfile, const char* name)
+ce_bonfile* ce_bonfile_open(ce_res_file* res_file, const char* name)
 {
-	int index = ce_resfile_node_index(resfile, name);
+	size_t index = ce_res_file_node_index(res_file, name);
 	ce_bonfile* bonfile = ce_alloc(sizeof(ce_bonfile));
-	bonfile->size = ce_resfile_node_size(resfile, index);
-	bonfile->bone = ce_resfile_node_data(resfile, index);
+	bonfile->size = ce_res_file_node_size(res_file, index);
+	bonfile->bone = ce_res_file_node_data(res_file, index);
 	return bonfile;
 }
 

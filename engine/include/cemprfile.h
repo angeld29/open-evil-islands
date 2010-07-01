@@ -83,7 +83,7 @@ typedef struct {
 	void* data;
 } ce_mprfile;
 
-extern ce_mprfile* ce_mprfile_open(ce_resfile* resfile);
+extern ce_mprfile* ce_mprfile_open(ce_res_file* res_file);
 extern void ce_mprfile_close(ce_mprfile* mprfile);
 
 #ifdef __cplusplus

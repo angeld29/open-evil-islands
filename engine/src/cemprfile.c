@@ -46,7 +46,7 @@ static void read_vertex(ce_mprvertex* ver, ce_mem_file* mem)
 	ce_le2cpu32s(&ver->normal);
 }
 
-static void read_sectors(ce_mprfile* mpr, ce_resfile* res)
+static void read_sectors(ce_mprfile* mpr, ce_res_file* res)
 {
 	mpr->sectors = ce_alloc_zero(sizeof(ce_mprsector) *
 								mpr->sector_x_count * mpr->sector_z_count);
@@ -115,20 +115,20 @@ static void read_sectors(ce_mprfile* mpr, ce_resfile* res)
 	}
 }
 
-ce_mprfile* ce_mprfile_open(ce_resfile* resfile)
+ce_mprfile* ce_mprfile_open(ce_res_file* res_file)
 {
 	ce_mprfile* mprfile = ce_alloc_zero(sizeof(ce_mprfile));
 
 	// mpr name = res name without extension (.mpr)
-	mprfile->name = ce_string_dup_n(resfile->name, resfile->name->length - 4);
+	mprfile->name = ce_string_dup_n(res_file->name, res_file->name->length - 4);
 
 	// mpr name + .mp
 	char mp_name[mprfile->name->length + 3 + 1];
 	snprintf(mp_name, sizeof(mp_name), "%s.mp", mprfile->name->str);
 
-	int mp_index = ce_resfile_node_index(resfile, mp_name);
-	mprfile->size = ce_resfile_node_size(resfile, mp_index);
-	mprfile->data = ce_resfile_node_data(resfile, mp_index);
+	int mp_index = ce_res_file_node_index(res_file, mp_name);
+	mprfile->size = ce_res_file_node_size(res_file, mp_index);
+	mprfile->data = ce_res_file_node_data(res_file, mp_index);
 
 	union {
 		float* f;
@@ -166,7 +166,7 @@ ce_mprfile* ce_mprfile_open(ce_resfile* resfile)
 		ce_le2cpu16s(mprfile->anim_tiles + i);
 	}
 
-	read_sectors(mprfile, resfile);
+	read_sectors(mprfile, res_file);
 
 	return mprfile;
 }

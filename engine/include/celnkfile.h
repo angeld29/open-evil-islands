@@ -40,7 +40,7 @@ typedef struct {
 	ce_lnklink* links;
 } ce_lnkfile;
 
-extern ce_lnkfile* ce_lnkfile_open(ce_resfile* resfile, const char* name);
+extern ce_lnkfile* ce_lnkfile_open(ce_res_file* res_file, const char* name);
 extern void ce_lnkfile_close(ce_lnkfile* lnkfile);
 
 #ifdef __cplusplus

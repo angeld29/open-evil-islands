@@ -304,10 +304,10 @@ ce_mmpfile* ce_mmpfile_new_mem_file(ce_mem_file* mem_file)
 	return ce_mmpfile_new_data(data, size);
 }
 
-ce_mmpfile* ce_mmpfile_new_resfile(ce_resfile* resfile, int index)
+ce_mmpfile* ce_mmpfile_new_res_file(ce_res_file* res_file, size_t index)
 {
-	return ce_mmpfile_new_data(ce_resfile_node_data(resfile, index),
-								ce_resfile_node_size(resfile, index));
+	return ce_mmpfile_new_data(ce_res_file_node_data(res_file, index),
+								ce_res_file_node_size(res_file, index));
 }
 
 void ce_mmpfile_del(ce_mmpfile* mmpfile)

@@ -44,7 +44,7 @@ typedef struct {
 	void* data;
 } ce_anmfile;
 
-extern ce_anmfile* ce_anmfile_open(ce_resfile* resfile, int index);
+extern ce_anmfile* ce_anmfile_open(ce_res_file* res_file, size_t index);
 extern void ce_anmfile_close(ce_anmfile* anmfile);
 
 #ifdef __cplusplus

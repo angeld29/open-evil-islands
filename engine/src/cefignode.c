@@ -25,27 +25,27 @@
 #include "cefighlp.h"
 #include "cefignode.h"
 
-ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
-							ce_resfile* bon_resfile,
-							ce_vector* anm_resfiles,
+ce_fignode* ce_fignode_new(ce_res_file* mod_res_file,
+							ce_res_file* bon_res_file,
+							ce_vector* anm_res_files,
 							ce_lnkfile* lnkfile)
 {
 	ce_fignode* fignode = ce_alloc(sizeof(ce_fignode));
 	fignode->name = ce_string_dup(lnkfile->links[lnkfile->link_index].child_name);
 	fignode->index = lnkfile->link_index++;
-	fignode->figfile = ce_figfile_open(mod_resfile, fignode->name->str);
-	fignode->bonfile = ce_bonfile_open(bon_resfile, fignode->name->str);
+	fignode->figfile = ce_figfile_open(mod_res_file, fignode->name->str);
+	fignode->bonfile = ce_bonfile_open(bon_res_file, fignode->name->str);
 	fignode->anmfiles = ce_vector_new();
 	fignode->material = ce_fighlp_create_material(fignode->figfile);
 	fignode->rendergroup = NULL;
 	fignode->childs = ce_vector_new();
 
-	for (size_t i = 0; i < anm_resfiles->count; ++i) {
-		ce_resfile* anm_resfile = anm_resfiles->items[i];
-		int anm_index = ce_resfile_node_index(anm_resfile, fignode->name->str);
-		if (-1 != anm_index) {
+	for (size_t i = 0; i < anm_res_files->count; ++i) {
+		ce_res_file* anm_res_file = anm_res_files->items[i];
+		size_t anm_index = ce_res_file_node_index(anm_res_file, fignode->name->str);
+		if (anm_index != anm_res_file->node_count) {
 			ce_vector_push_back(fignode->anmfiles,
-				ce_anmfile_open(anm_resfile, anm_index));
+				ce_anmfile_open(anm_res_file, anm_index));
 		} // else ok, there is no animation for this node
 	}
 
@@ -53,7 +53,7 @@ ce_fignode* ce_fignode_new(ce_resfile* mod_resfile,
 			0 == ce_strcasecmp(fignode->name->str,
 				lnkfile->links[lnkfile->link_index].parent_name->str)) {
 		ce_vector_push_back(fignode->childs,
-			ce_fignode_new(mod_resfile, bon_resfile, anm_resfiles, lnkfile));
+			ce_fignode_new(mod_res_file, bon_res_file, anm_res_files, lnkfile));
 	}
 
 	return fignode;

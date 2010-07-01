@@ -39,7 +39,7 @@ typedef struct {
 } ce_figure_manager_listener;
 
 extern struct ce_figure_manager {
-	ce_vector* resfiles;
+	ce_vector* res_files;
 	ce_vector* figprotos;
 	ce_vector* figmeshes;
 	ce_vector* entities;

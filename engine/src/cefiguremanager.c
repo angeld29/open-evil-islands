@@ -64,7 +64,7 @@ static void ce_notify_figmesh_created(ce_vector* listeners, ce_figmesh* figmesh)
 void ce_figure_manager_init(void)
 {
 	ce_figure_manager = ce_alloc_zero(sizeof(struct ce_figure_manager));
-	ce_figure_manager->resfiles = ce_vector_new();
+	ce_figure_manager->res_files = ce_vector_new();
 	ce_figure_manager->figprotos = ce_vector_new();
 	ce_figure_manager->figmeshes = ce_vector_new();
 	ce_figure_manager->entities = ce_vector_new_reserved(512);
@@ -79,12 +79,12 @@ void ce_figure_manager_init(void)
 	}
 
 	for (size_t i = 0; NULL != ce_figure_resource_names[i]; ++i) {
-		ce_resfile* resfile;
+		ce_res_file* res_file;
 		if (NULL != ce_path_find_special1(path, sizeof(path),
 				ce_option_manager->ei_path->str, ce_figure_resource_names[i],
 				ce_figure_resource_dirs, ce_figure_resource_exts) &&
-				NULL != (resfile = ce_resfile_open_file(path))) {
-			ce_vector_push_back(ce_figure_manager->resfiles, resfile);
+				NULL != (res_file = ce_res_file_new_path(path))) {
+			ce_vector_push_back(ce_figure_manager->res_files, res_file);
 			ce_logging_write("figure manager: loading '%s'... ok", path);
 		} else {
 			ce_logging_error("figure manager: loading '%s'... failed", path);
@@ -98,12 +98,12 @@ void ce_figure_manager_term(void)
 		ce_figure_manager_clear();
 		ce_vector_for_each(ce_figure_manager->figmeshes, ce_figmesh_del);
 		ce_vector_for_each(ce_figure_manager->figprotos, ce_figproto_del);
-		ce_vector_for_each(ce_figure_manager->resfiles, ce_resfile_close);
+		ce_vector_for_each(ce_figure_manager->res_files, ce_res_file_del);
 		ce_vector_del(ce_figure_manager->listeners);
 		ce_vector_del(ce_figure_manager->entities);
 		ce_vector_del(ce_figure_manager->figmeshes);
 		ce_vector_del(ce_figure_manager->figprotos);
-		ce_vector_del(ce_figure_manager->resfiles);
+		ce_vector_del(ce_figure_manager->res_files);
 		ce_free(ce_figure_manager, sizeof(struct ce_figure_manager));
 	}
 }
@@ -131,10 +131,10 @@ ce_figproto* ce_figure_manager_create_proto(const char* name)
 	ce_path_append_ext(file_name, sizeof(file_name),
 						name, ce_figure_exts[0]);
 
-	for (size_t i = 0; i < ce_figure_manager->resfiles->count; ++i) {
-		ce_resfile* resfile = ce_figure_manager->resfiles->items[i];
-		if (-1 != ce_resfile_node_index(resfile, file_name)) {
-			ce_figproto* figproto = ce_figproto_new(true_name, resfile);
+	for (size_t i = 0; i < ce_figure_manager->res_files->count; ++i) {
+		ce_res_file* res_file = ce_figure_manager->res_files->items[i];
+		if (res_file->node_count != ce_res_file_node_index(res_file, file_name)) {
+			ce_figproto* figproto = ce_figproto_new(true_name, res_file);
 			ce_vector_push_back(ce_figure_manager->figprotos, figproto);
 			ce_notify_figproto_created(ce_figure_manager->listeners, figproto);
 			return figproto;

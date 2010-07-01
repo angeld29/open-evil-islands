@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,10 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ *  See also:
+ *  1. doc/formats/resfile.txt
+*/
+
 #ifndef CE_RESFILE_H
 #define CE_RESFILE_H
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
 
@@ -29,9 +33,8 @@
 #include "cememfile.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 typedef struct {
 	ce_string* name;
@@ -41,7 +44,7 @@ typedef struct {
 	int32_t modified;
 	uint16_t name_length;
 	uint32_t name_offset;
-} ce_resnode;
+} ce_res_node;
 
 typedef struct {
 	ce_string* name;
@@ -49,24 +52,38 @@ typedef struct {
 	uint32_t metadata_offset;
 	uint32_t names_length;
 	char* names;
-	ce_resnode* nodes;
+	ce_res_node* nodes;
 	ce_mem_file* mem_file;
-} ce_resfile;
+} ce_res_file;
 
-/// Resfile takes ownership of the mem file if successfull.
-extern ce_resfile* ce_resfile_open_mem_file(const char* name, ce_mem_file* mem_file);
-extern ce_resfile* ce_resfile_open_file(const char* path);
-extern void ce_resfile_close(ce_resfile* res);
+/*
+ *  Res file takes ownership of the mem file if successfull.
+*/
+extern ce_res_file* ce_res_file_new(const char* name, ce_mem_file* mem_file);
+extern ce_res_file* ce_res_file_new_path(const char* path);
+extern void ce_res_file_del(ce_res_file* res_file);
 
-extern int ce_resfile_node_index(const ce_resfile* res, const char* name);
+extern size_t ce_res_file_node_index(const ce_res_file* res_file, const char* name);
 
-extern const char* ce_resfile_node_name(const ce_resfile* res, int index);
-extern size_t ce_resfile_node_size(const ce_resfile* res, int index);
-extern time_t ce_resfile_node_modified(const ce_resfile* res, int index);
-extern void* ce_resfile_node_data(ce_resfile* res, int index);
+static inline const char* ce_res_file_node_name(const ce_res_file* res_file, size_t index)
+{
+	return res_file->nodes[index].name->str;
+}
+
+static inline size_t ce_res_file_node_size(const ce_res_file* res_file, size_t index)
+{
+	return res_file->nodes[index].data_length;
+}
+
+static inline time_t ce_res_file_node_modified(const ce_res_file* res_file, int index)
+{
+	return res_file->nodes[index].modified;
+}
+
+extern void* ce_res_file_node_data(ce_res_file* res_file, size_t index);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_RESFILE_H */

@@ -21,34 +21,23 @@
 #include "cealloc.h"
 #include "cereshlp.h"
 
-ce_mem_file* ce_reshlp_extract_mem_file(ce_resfile* resfile, int index)
+ce_mem_file* ce_reshlp_extract_mem_file(ce_res_file* res_file, size_t index)
 {
-	void* data = ce_resfile_node_data(resfile, index);
-	if (NULL == data) {
-		return NULL;
-	}
-
-	ce_mem_file* mem_file = ce_mem_file_new_data(data, ce_resfile_node_size(resfile, index));
-	if (NULL == mem_file) {
-		ce_free(data, ce_resfile_node_size(resfile, index));
-		return NULL;
-	}
-
-	return mem_file;
+	return ce_mem_file_new_data(ce_res_file_node_data(res_file, index),
+								ce_res_file_node_size(res_file, index));
 }
 
-ce_mem_file* ce_reshlp_extract_mem_file_by_name(ce_resfile* resfile,
-												const char* name)
+ce_mem_file* ce_reshlp_extract_mem_file_by_name(ce_res_file* res_file, const char* name)
 {
-	int index = ce_resfile_node_index(resfile, name);
-	return -1 != index ? ce_reshlp_extract_mem_file(resfile, index) : NULL;
+	size_t index = ce_res_file_node_index(res_file, name);
+	return res_file->node_count != index ? ce_reshlp_extract_mem_file(res_file, index) : NULL;
 }
 
-ce_vector* ce_reshlp_extract_all_mem_files(ce_resfile* resfile)
+ce_vector* ce_reshlp_extract_all_mem_files(ce_res_file* res_file)
 {
-	ce_vector* mem_files = ce_vector_new_reserved(resfile->node_count);
-	for (int i = 0, n = resfile->node_count; i < n; ++i) {
-		ce_vector_push_back(mem_files, ce_reshlp_extract_mem_file(resfile, i));
+	ce_vector* mem_files = ce_vector_new_reserved(res_file->node_count);
+	for (size_t i = 0; i < res_file->node_count; ++i) {
+		ce_vector_push_back(mem_files, ce_reshlp_extract_mem_file(res_file, i));
 		if (NULL == ce_vector_back(mem_files)) {
 			ce_reshlp_del_mem_files(mem_files);
 			return NULL;
@@ -59,52 +48,45 @@ ce_vector* ce_reshlp_extract_all_mem_files(ce_resfile* resfile)
 
 void ce_reshlp_del_mem_files(ce_vector* mem_files)
 {
-	for (int i = 0, n = mem_files->count; i < n; ++i) {
+	for (size_t i = 0; i < mem_files->count; ++i) {
 		ce_mem_file_del(mem_files->items[i]);
 	}
 	ce_vector_del(mem_files);
 }
 
-ce_resfile* ce_reshlp_extract_resfile(ce_resfile* resfile, int index)
+ce_res_file* ce_reshlp_extract_res_file(ce_res_file* res_file, size_t index)
 {
-	ce_mem_file* mem_file = ce_reshlp_extract_mem_file(resfile, index);
+	ce_mem_file* mem_file = ce_reshlp_extract_mem_file(res_file, index);
 	if (NULL == mem_file) {
 		return NULL;
 	}
 
-	ce_resfile* child_resfile = ce_resfile_open_mem_file(ce_resfile_node_name(resfile, index), mem_file);
-	if (NULL == child_resfile) {
-		ce_mem_file_del(mem_file);
-		return NULL;
-	}
-
-	return child_resfile;
+	return ce_res_file_new(ce_res_file_node_name(res_file, index), mem_file);
 }
 
-ce_resfile* ce_reshlp_extract_resfile_by_name(ce_resfile* resfile,
-												const char* name)
+ce_res_file* ce_reshlp_extract_res_file_by_name(ce_res_file* res_file, const char* name)
 {
-	int index = ce_resfile_node_index(resfile, name);
-	return -1 != index ? ce_reshlp_extract_resfile(resfile, index) : NULL;
+	size_t index = ce_res_file_node_index(res_file, name);
+	return res_file->node_count != index ? ce_reshlp_extract_res_file(res_file, index) : NULL;
 }
 
-ce_vector* ce_reshlp_extract_all_resfiles(ce_resfile* resfile)
+ce_vector* ce_reshlp_extract_all_res_files(ce_res_file* res_file)
 {
-	ce_vector* resfiles = ce_vector_new_reserved(resfile->node_count);
-	for (int i = 0, n = resfile->node_count; i < n; ++i) {
-		ce_vector_push_back(resfiles, ce_reshlp_extract_resfile(resfile, i));
-		if (NULL == ce_vector_back(resfiles)) {
-			ce_reshlp_del_resfiles(resfiles);
+	ce_vector* res_files = ce_vector_new_reserved(res_file->node_count);
+	for (size_t i = 0; i < res_file->node_count; ++i) {
+		ce_vector_push_back(res_files, ce_reshlp_extract_res_file(res_file, i));
+		if (NULL == ce_vector_back(res_files)) {
+			ce_reshlp_del_res_files(res_files);
 			return NULL;
 		}
 	}
-	return resfiles;
+	return res_files;
 }
 
-void ce_reshlp_del_resfiles(ce_vector* resfiles)
+void ce_reshlp_del_res_files(ce_vector* res_files)
 {
-	for (int i = 0, n = resfiles->count; i < n; ++i) {
-		ce_resfile_close(resfiles->items[i]);
+	for (size_t i = 0; i < res_files->count; ++i) {
+		ce_res_file_del(res_files->items[i]);
 	}
-	ce_vector_del(resfiles);
+	ce_vector_del(res_files);
 }

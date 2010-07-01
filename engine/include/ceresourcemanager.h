@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 extern struct ce_resource_manager {
-	ce_resfile* database;
+	ce_res_file* database;
 }* ce_resource_manager;
 
 extern void ce_resource_manager_init(void);

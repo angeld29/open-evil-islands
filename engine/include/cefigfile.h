@@ -61,7 +61,7 @@ typedef struct {
 	void* data;
 } ce_figfile;
 
-extern ce_figfile* ce_figfile_open(ce_resfile* resfile, const char* name);
+extern ce_figfile* ce_figfile_open(ce_res_file* res_file, const char* name);
 extern void ce_figfile_close(ce_figfile* figfile);
 
 #ifdef __cplusplus

@@ -35,21 +35,21 @@ struct ce_resource_manager* ce_resource_manager;
 static const char* ce_resource_dirs[] = {"Res", NULL};
 static const char* ce_resource_exts[] = {".res", NULL};
 
-static ce_resfile* ce_resource_manager_open(const char* name)
+static ce_res_file* ce_resource_manager_open(const char* name)
 {
 	char path[ce_option_manager->ei_path->length + 32];
-	ce_resfile* resfile = NULL;
+	ce_res_file* res_file = NULL;
 
 	if (NULL != ce_path_find_special1(path, sizeof(path),
 			ce_option_manager->ei_path->str, name,
 			ce_resource_dirs, ce_resource_exts) &&
-			NULL != (resfile = ce_resfile_open_file(path))) {
+			NULL != (res_file = ce_res_file_new_path(path))) {
 		ce_logging_write("resource manager: loading '%s'... ok", path);
 	} else {
 		ce_logging_error("resource manager: loading '%s'... failed", path);
 	}
 
-	return resfile;
+	return res_file;
 }
 
 void ce_resource_manager_init(void)
@@ -69,7 +69,7 @@ void ce_resource_manager_init(void)
 void ce_resource_manager_term(void)
 {
 	if (NULL != ce_resource_manager) {
-		ce_resfile_close(ce_resource_manager->database);
+		ce_res_file_del(ce_resource_manager->database);
 		ce_free(ce_resource_manager, sizeof(struct ce_resource_manager));
 	}
 }

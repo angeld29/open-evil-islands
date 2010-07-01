@@ -43,7 +43,7 @@ typedef struct {
 } ce_figproto;
 
 extern ce_figproto* ce_figproto_new(const char* name,
-									ce_resfile* resfile);
+									ce_res_file* res_file);
 extern void ce_figproto_del(ce_figproto* figproto);
 
 static inline ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)

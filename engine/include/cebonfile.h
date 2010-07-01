@@ -35,7 +35,7 @@ typedef struct {
 	float* bone;
 } ce_bonfile;
 
-extern ce_bonfile* ce_bonfile_open(ce_resfile* resfile, const char* name);
+extern ce_bonfile* ce_bonfile_open(ce_res_file* res_file, const char* name);
 extern void ce_bonfile_close(ce_bonfile* bonfile);
 
 #ifdef __cplusplus

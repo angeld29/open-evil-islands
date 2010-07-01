@@ -61,13 +61,13 @@ ce_mprfile* ce_mpr_manager_open(const char* name)
 		return NULL;
 	}
 
-	ce_resfile* resfile = ce_resfile_open_file(path);
-	if (NULL == resfile) {
+	ce_res_file* res_file = ce_res_file_new_path(path);
+	if (NULL == res_file) {
 		return NULL;
 	}
 
-	ce_mprfile* mprfile = ce_mprfile_open(resfile);
-	ce_resfile_close(resfile);
+	ce_mprfile* mprfile = ce_mprfile_open(res_file);
+	ce_res_file_del(res_file);
 
 	return mprfile;
 }

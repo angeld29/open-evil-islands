@@ -35,7 +35,7 @@ extern "C" {
 
 extern struct ce_texture_manager {
 	ce_mutex* mutex;
-	ce_vector* resfiles;
+	ce_vector* res_files;
 	ce_vector* textures;
 }* ce_texture_manager;
 

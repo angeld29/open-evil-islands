@@ -26,12 +26,12 @@
 #include "cealloc.h"
 #include "ceanmfile.h"
 
-ce_anmfile* ce_anmfile_open(ce_resfile* resfile, int index)
+ce_anmfile* ce_anmfile_open(ce_res_file* res_file, size_t index)
 {
 	ce_anmfile* anmfile = ce_alloc(sizeof(ce_anmfile));
-	anmfile->name = ce_string_dup(resfile->name);
-	anmfile->size = ce_resfile_node_size(resfile, index);
-	anmfile->data = ce_resfile_node_data(resfile, index);
+	anmfile->name = ce_string_dup(res_file->name);
+	anmfile->size = ce_res_file_node_size(res_file, index);
+	anmfile->data = ce_res_file_node_data(res_file, index);
 
 	union {
 		float* f;

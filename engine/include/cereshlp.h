@@ -30,19 +30,17 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern ce_mem_file* ce_reshlp_extract_mem_file(ce_resfile* resfile, int index);
-extern ce_mem_file* ce_reshlp_extract_mem_file_by_name(ce_resfile* resfile,
-														const char* name);
+extern ce_mem_file* ce_reshlp_extract_mem_file(ce_res_file* res_file, size_t index);
+extern ce_mem_file* ce_reshlp_extract_mem_file_by_name(ce_res_file* res_file, const char* name);
 
-extern ce_vector* ce_reshlp_extract_all_mem_files(ce_resfile* resfile);
+extern ce_vector* ce_reshlp_extract_all_mem_files(ce_res_file* res_file);
 extern void ce_reshlp_del_mem_files(ce_vector* mem_files);
 
-extern ce_resfile* ce_reshlp_extract_resfile(ce_resfile* resfile, int index);
-extern ce_resfile* ce_reshlp_extract_resfile_by_name(ce_resfile* resfile,
-														const char* name);
+extern ce_res_file* ce_reshlp_extract_res_file(ce_res_file* res_file, size_t index);
+extern ce_res_file* ce_reshlp_extract_res_file_by_name(ce_res_file* res_file, const char* name);
 
-extern ce_vector* ce_reshlp_extract_all_resfiles(ce_resfile* resfile);
-extern void ce_reshlp_del_resfiles(ce_vector* resfiles);
+extern ce_vector* ce_reshlp_extract_all_res_files(ce_res_file* res_file);
+extern void ce_reshlp_del_res_files(ce_vector* res_files);
 
 #ifdef __cplusplus
 }

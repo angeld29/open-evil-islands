@@ -27,7 +27,7 @@
 #include "cereshlp.h"
 #include "cefigproto.h"
 
-ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile)
+ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file)
 {
 	ce_figproto* figproto = ce_alloc_zero(sizeof(ce_figproto));
 	figproto->ref_count = 1;
@@ -43,35 +43,35 @@ ce_figproto* ce_figproto_new(const char* name, ce_resfile* resfile)
 	}
 
 	snprintf(file_name, sizeof(file_name), "%s.mod", name);
-	ce_resfile* mod_resfile =
-		ce_reshlp_extract_resfile_by_name(resfile, file_name);
+	ce_res_file* mod_res_file =
+		ce_reshlp_extract_res_file_by_name(res_file, file_name);
 
 	snprintf(file_name, sizeof(file_name), "%s.bon", name);
-	ce_resfile* bon_resfile =
-		ce_reshlp_extract_resfile_by_name(resfile, file_name);
+	ce_res_file* bon_res_file =
+		ce_reshlp_extract_res_file_by_name(res_file, file_name);
 
 	snprintf(file_name, sizeof(file_name), "%s.anm", name);
-	ce_resfile* anm_resfile =
-		ce_reshlp_extract_resfile_by_name(resfile, file_name);
+	ce_res_file* anm_res_file =
+		ce_reshlp_extract_res_file_by_name(res_file, file_name);
 
-	assert(NULL != mod_resfile); // mod required
-	assert(NULL != bon_resfile); // bon required
+	assert(NULL != mod_res_file); // mod required
+	assert(NULL != bon_res_file); // bon required
 
 	// anm optional
-	ce_vector* anm_resfiles = NULL == anm_resfile ?
+	ce_vector* anm_res_files = NULL == anm_res_file ?
 								ce_vector_new_reserved(0) :
-								ce_reshlp_extract_all_resfiles(anm_resfile);
+								ce_reshlp_extract_all_res_files(anm_res_file);
 
-	ce_lnkfile* lnkfile = ce_lnkfile_open(mod_resfile, name);
+	ce_lnkfile* lnkfile = ce_lnkfile_open(mod_res_file, name);
 
-	figproto->fignode = ce_fignode_new(mod_resfile, bon_resfile,
-										anm_resfiles, lnkfile);
+	figproto->fignode = ce_fignode_new(mod_res_file, bon_res_file,
+										anm_res_files, lnkfile);
 
 	ce_lnkfile_close(lnkfile);
-	ce_reshlp_del_resfiles(anm_resfiles);
-	ce_resfile_close(anm_resfile);
-	ce_resfile_close(bon_resfile);
-	ce_resfile_close(mod_resfile);
+	ce_reshlp_del_res_files(anm_res_files);
+	ce_res_file_del(anm_res_file);
+	ce_res_file_del(bon_res_file);
+	ce_res_file_del(mod_res_file);
 
 	return figproto;
 }

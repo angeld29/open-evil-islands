@@ -75,13 +75,13 @@ ce_figfile_value_tuple* ce_figfile_value_tuple_choose(uint32_t type)
 	return NULL;
 }
 
-ce_figfile* ce_figfile_open(ce_resfile* resfile, const char* name)
+ce_figfile* ce_figfile_open(ce_res_file* res_file, const char* name)
 {
-	int index = ce_resfile_node_index(resfile, name);
+	size_t index = ce_res_file_node_index(res_file, name);
 
 	ce_figfile* figfile = ce_alloc(sizeof(ce_figfile));
-	figfile->size = ce_resfile_node_size(resfile, index);
-	figfile->data = ce_resfile_node_data(resfile, index);
+	figfile->size = ce_res_file_node_size(res_file, index);
+	figfile->data = ce_res_file_node_data(res_file, index);
 
 	union {
 		float* f;
