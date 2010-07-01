@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,9 +24,8 @@
 #include "cestring.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 typedef enum {
 	CE_TYPE_VOID,
@@ -53,8 +52,56 @@ extern void ce_value_del(ce_value* value);
 extern void ce_value_get(ce_value* value, void* arg);
 extern void ce_value_set(ce_value* value, const void* arg);
 
+static inline bool ce_value_get_bool(ce_value* value)
+{
+	bool arg;
+	ce_value_get(value, &arg);
+	return arg;
+}
+
+static inline int ce_value_get_int(ce_value* value)
+{
+	int arg;
+	ce_value_get(value, &arg);
+	return arg;
+}
+
+static inline float ce_value_get_float(ce_value* value)
+{
+	float arg;
+	ce_value_get(value, &arg);
+	return arg;
+}
+
+static inline const char* ce_value_get_string(ce_value* value)
+{
+	const char* arg = NULL;
+	ce_value_get(value, &arg);
+	return arg;
+}
+
+static inline void ce_value_set_bool(ce_value* value, bool arg)
+{
+	ce_value_set(value, &arg);
+}
+
+static inline void ce_value_set_int(ce_value* value, int arg)
+{
+	ce_value_set(value, &arg);
+}
+
+static inline void ce_value_set_float(ce_value* value, float arg)
+{
+	ce_value_set(value, &arg);
+}
+
+static inline void ce_value_set_string(ce_value* value, const char* arg)
+{
+	ce_value_set(value, arg);
+}
+
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_VALUE_H */

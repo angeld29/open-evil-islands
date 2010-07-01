@@ -114,6 +114,11 @@ static inline long int ce_mem_file_size(ce_mem_file* mem_file)
 	return size;
 }
 
+static inline void ce_mem_file_skip(ce_mem_file* mem_file, size_t size)
+{
+	ce_mem_file_seek(mem_file, size, CE_MEM_FILE_SEEK_CUR);
+}
+
 static inline int8_t ce_mem_file_read_i8(ce_mem_file* mem_file)
 {
 	int8_t value;

@@ -18,46 +18,33 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_OBJECT_H
-#define CE_OBJECT_H
+/*
+ *  See also:
+ *  1. doc/formats/regfile.txt
+*/
 
-#include <stdbool.h>
+#ifndef CE_REGFILE_H
+#define CE_REGFILE_H
+
+#include <stdint.h>
 
 #include "cevector.h"
-#include "cestring.h"
-#include "ceproperty.h"
+#include "ceobject.h"
+#include "cememfile.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct {
-	ce_string* name;
-	ce_vector* properties;
-} ce_object;
+	ce_vector* sections;
+} ce_reg_file;
 
-extern ce_object* ce_object_new(const char* name);
-extern void ce_object_del(ce_object* object);
-
-extern ce_property* ce_object_find(ce_object* object, const char* name);
-
-static inline bool ce_object_exists(ce_object* object, const char* name)
-{
-	return NULL != ce_object_find(object, name);
-}
-
-static inline void ce_object_add(ce_object* object, ce_property* property)
-{
-	ce_vector_push_back(object->properties, property);
-}
-
-static inline void ce_object_remove(ce_object* object, ce_property* property)
-{
-	ce_vector_remove_all(object->properties, property);
-}
+extern ce_reg_file* ce_reg_file_new(ce_mem_file* mem_file);
+extern void ce_reg_file_del(ce_reg_file* reg_file);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CE_OBJECT_H */
+#endif /* CE_REGFILE_H */

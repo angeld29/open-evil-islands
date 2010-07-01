@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,9 +24,10 @@
 #include "cealloc.h"
 #include "ceobject.h"
 
-ce_object* ce_object_new(void)
+ce_object* ce_object_new(const char* name)
 {
-	ce_object* object = ce_alloc(sizeof(ce_object));
+	ce_object* object = ce_alloc_zero(sizeof(ce_object));
+	object->name = ce_string_new_str(name);
 	object->properties = ce_vector_new();
 	return object;
 }
@@ -36,23 +37,9 @@ void ce_object_del(ce_object* object)
 	if (NULL != object) {
 		ce_vector_for_each(object->properties, ce_property_del);
 		ce_vector_del(object->properties);
+		ce_string_del(object->name);
 		ce_free(object, sizeof(ce_object));
 	}
-}
-
-bool ce_object_exists(ce_object* object, const char* name)
-{
-	return NULL != ce_object_find(object, name);
-}
-
-void ce_object_add(ce_object* object, ce_property* property)
-{
-	ce_vector_push_back(object->properties, property);
-}
-
-void ce_object_remove(ce_object* object, ce_property* property)
-{
-	ce_vector_remove_all(object->properties, property);
 }
 
 ce_property* ce_object_find(ce_object* object, const char* name)

@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -62,50 +62,50 @@ static void (*ce_value_del_procs[CE_TYPE_COUNT])(ce_value*) = {
 	[CE_TYPE_STRING] = ce_value_del_string,
 };
 
-static void ce_value_get_bool(ce_value* value, void* arg)
+static void ce_value_get_bool_proc(ce_value* value, void* arg)
 {
 	*(bool*)arg = value->value.b;
 }
 
-static void ce_value_get_int(ce_value* value, void* arg)
+static void ce_value_get_int_proc(ce_value* value, void* arg)
 {
 	*(int*)arg = value->value.i;
 }
 
-static void ce_value_get_float(ce_value* value, void* arg)
+static void ce_value_get_float_proc(ce_value* value, void* arg)
 {
 	*(float*)arg = value->value.f;
 }
 
-static void ce_value_get_string(ce_value* value, void* arg)
+static void ce_value_get_string_proc(ce_value* value, void* arg)
 {
 	*(const char**)arg = NULL != value->value.s ? value->value.s->str : NULL;
 }
 
 static void (*ce_value_get_procs[CE_TYPE_COUNT])(ce_value*, void*) = {
 	[CE_TYPE_VOID] = ce_value_void_arg,
-	[CE_TYPE_BOOL] = ce_value_get_bool,
-	[CE_TYPE_INT] = ce_value_get_int,
-	[CE_TYPE_FLOAT] = ce_value_get_float,
-	[CE_TYPE_STRING] = ce_value_get_string,
+	[CE_TYPE_BOOL] = ce_value_get_bool_proc,
+	[CE_TYPE_INT] = ce_value_get_int_proc,
+	[CE_TYPE_FLOAT] = ce_value_get_float_proc,
+	[CE_TYPE_STRING] = ce_value_get_string_proc,
 };
 
-static void ce_value_set_bool(ce_value* value, const void* arg)
+static void ce_value_set_bool_proc(ce_value* value, const void* arg)
 {
 	if (NULL != arg) value->value.b = *(const bool*)arg;
 }
 
-static void ce_value_set_int(ce_value* value, const void* arg)
+static void ce_value_set_int_proc(ce_value* value, const void* arg)
 {
 	if (NULL != arg) value->value.i = *(const int*)arg;
 }
 
-static void ce_value_set_float(ce_value* value, const void* arg)
+static void ce_value_set_float_proc(ce_value* value, const void* arg)
 {
 	if (NULL != arg) value->value.f = *(const float*)arg;
 }
 
-static void ce_value_set_string(ce_value* value, const void* arg)
+static void ce_value_set_string_proc(ce_value* value, const void* arg)
 {
 	if (NULL != arg) {
 		if (NULL == value->value.s) {
@@ -118,10 +118,10 @@ static void ce_value_set_string(ce_value* value, const void* arg)
 
 static void (*ce_value_set_procs[CE_TYPE_COUNT])(ce_value*, const void*) = {
 	[CE_TYPE_VOID] = ce_value_void_arg_const,
-	[CE_TYPE_BOOL] = ce_value_set_bool,
-	[CE_TYPE_INT] = ce_value_set_int,
-	[CE_TYPE_FLOAT] = ce_value_set_float,
-	[CE_TYPE_STRING] = ce_value_set_string,
+	[CE_TYPE_BOOL] = ce_value_set_bool_proc,
+	[CE_TYPE_INT] = ce_value_set_int_proc,
+	[CE_TYPE_FLOAT] = ce_value_set_float_proc,
+	[CE_TYPE_STRING] = ce_value_set_string_proc,
 };
 
 ce_value* ce_value_new(ce_type type)

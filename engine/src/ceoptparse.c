@@ -88,7 +88,7 @@ void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type,
 						const void* value, bool required, const char* shortopt,
 						const char* longopt, const char* glossary)
 {
-	ce_object* object = ce_object_new();
+	ce_object* object = ce_object_new("unnamed");
 
 	ce_property* propname = ce_property_new("name", CE_TYPE_STRING);
 	ce_property* propval = ce_property_new("value", type);
@@ -125,7 +125,7 @@ void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type,
 void ce_optparse_add_control(ce_optparse* optparse,
 								const char* name, const char* glossary)
 {
-	ce_object* object = ce_object_new();
+	ce_object* object = ce_object_new("unnamed");
 
 	ce_property* propname = ce_property_new("name", CE_TYPE_STRING);
 	ce_property* prophelp = ce_property_new("glossary", CE_TYPE_STRING);
