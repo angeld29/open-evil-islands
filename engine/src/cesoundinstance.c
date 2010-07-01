@@ -64,10 +64,10 @@ static void ce_sound_instance_exec(ce_sound_instance* sound_instance)
 		case CE_SOUND_INSTANCE_STATE_STOPPED:
 			sound_instance->time = 0.0f;
 			ce_sound_resource_reset(sound_instance->sound_resource);
-			ce_waitcond_wake_all(sound_instance->waitcond);
+			ce_wait_condition_wake_all(sound_instance->wait_condition);
 
 		case CE_SOUND_INSTANCE_STATE_PAUSED:
-			ce_waitcond_wait(sound_instance->waitcond, sound_instance->mutex);
+			ce_wait_condition_wait(sound_instance->wait_condition, sound_instance->mutex);
 			break;
 		}
 	}
@@ -82,7 +82,7 @@ ce_sound_instance* ce_sound_instance_new(ce_sound_object sound_object,
 	sound_instance->sound_object = sound_object;
 	sound_instance->sound_resource = sound_resource;
 	sound_instance->mutex = ce_mutex_new();
-	sound_instance->waitcond = ce_waitcond_new();
+	sound_instance->wait_condition = ce_wait_condition_new();
 	sound_instance->thread = ce_thread_new(ce_sound_instance_exec, sound_instance);
 	return sound_instance;
 }
@@ -94,11 +94,11 @@ void ce_sound_instance_del(ce_sound_instance* sound_instance)
 		sound_instance->done = true;
 		ce_mutex_unlock(sound_instance->mutex);
 
-		ce_waitcond_wake_all(sound_instance->waitcond);
+		ce_wait_condition_wake_all(sound_instance->wait_condition);
 		ce_thread_wait(sound_instance->thread);
 
 		ce_thread_del(sound_instance->thread);
-		ce_waitcond_del(sound_instance->waitcond);
+		ce_wait_condition_del(sound_instance->wait_condition);
 		ce_mutex_del(sound_instance->mutex);
 
 		ce_sound_resource_del(sound_instance->sound_resource);
@@ -119,7 +119,7 @@ void ce_sound_instance_play(ce_sound_instance* sound_instance)
 {
 	ce_mutex_lock(sound_instance->mutex);
 	sound_instance->state = CE_SOUND_INSTANCE_STATE_PLAYING;
-	ce_waitcond_wake_all(sound_instance->waitcond);
+	ce_wait_condition_wake_all(sound_instance->wait_condition);
 	ce_mutex_unlock(sound_instance->mutex);
 }
 
@@ -127,7 +127,7 @@ void ce_sound_instance_pause(ce_sound_instance* sound_instance)
 {
 	ce_mutex_lock(sound_instance->mutex);
 	sound_instance->state = CE_SOUND_INSTANCE_STATE_PAUSED;
-	ce_waitcond_wake_all(sound_instance->waitcond);
+	ce_wait_condition_wake_all(sound_instance->wait_condition);
 	ce_mutex_unlock(sound_instance->mutex);
 }
 
@@ -135,8 +135,8 @@ void ce_sound_instance_stop(ce_sound_instance* sound_instance)
 {
 	ce_mutex_lock(sound_instance->mutex);
 	sound_instance->state = CE_SOUND_INSTANCE_STATE_STOPPED;
-	ce_waitcond_wake_all(sound_instance->waitcond);
+	ce_wait_condition_wake_all(sound_instance->wait_condition);
 	// TODO: make async
-	ce_waitcond_wait(sound_instance->waitcond, sound_instance->mutex);
+	ce_wait_condition_wait(sound_instance->wait_condition, sound_instance->mutex);
 	ce_mutex_unlock(sound_instance->mutex);
 }

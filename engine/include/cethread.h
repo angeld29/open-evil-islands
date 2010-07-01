@@ -74,17 +74,17 @@ extern void ce_mutex_lock(ce_mutex* mutex);
 extern void ce_mutex_unlock(ce_mutex* mutex);
 
 /*
- *  The waitcond struct provides a condition variable for synchronizing threads.
+ *  The wait condition struct provides a condition variable for synchronizing threads.
 */
 
-typedef struct ce_waitcond ce_waitcond;
+typedef struct ce_wait_condition ce_wait_condition;
 
-extern ce_waitcond* ce_waitcond_new(void);
-extern void ce_waitcond_del(ce_waitcond* waitcond);
+extern ce_wait_condition* ce_wait_condition_new(void);
+extern void ce_wait_condition_del(ce_wait_condition* wait_condition);
 
-extern void ce_waitcond_wake_one(ce_waitcond* waitcond);
-extern void ce_waitcond_wake_all(ce_waitcond* waitcond);
-extern void ce_waitcond_wait(ce_waitcond* waitcond, ce_mutex* mutex);
+extern void ce_wait_condition_wake_one(ce_wait_condition* wait_condition);
+extern void ce_wait_condition_wake_all(ce_wait_condition* wait_condition);
+extern void ce_wait_condition_wait(ce_wait_condition* wait_condition, ce_mutex* mutex);
 
 /*
  *  The once struct provides an once-only initialization.
@@ -104,7 +104,7 @@ extern void ce_once_exec(ce_once* once, void (*proc)(), void* arg);
 typedef struct {
 	size_t available;
 	ce_mutex* mutex;
-	ce_waitcond* waitcond;
+	ce_wait_condition* wait_condition;
 } ce_semaphore;
 
 extern ce_semaphore* ce_semaphore_new(size_t n);
@@ -130,9 +130,9 @@ extern struct ce_thread_pool {
 	ce_vector* pending_routines;
 	ce_vector* free_routines;
 	ce_mutex* mutex;
-	ce_waitcond* idle;
-	ce_waitcond* wait_one;
-	ce_waitcond* wait_all;
+	ce_wait_condition* idle;
+	ce_wait_condition* wait_one;
+	ce_wait_condition* wait_all;
 }* ce_thread_pool;
 
 extern void ce_thread_pool_init(size_t thread_count);

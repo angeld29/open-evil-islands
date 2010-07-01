@@ -43,7 +43,7 @@ typedef struct {
 	float time; // playing time in seconds
 	ce_sound_resource* sound_resource;
 	ce_mutex* mutex;
-	ce_waitcond* waitcond;
+	ce_wait_condition* wait_condition;
 	ce_thread* thread;
 	volatile bool done;
 } ce_sound_instance;

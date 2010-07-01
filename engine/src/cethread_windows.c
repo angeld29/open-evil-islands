@@ -107,7 +107,7 @@ struct ce_mutex {
 
 ce_mutex* ce_mutex_new(void)
 {
-	ce_mutex* mutex = ce_alloc(sizeof(ce_mutex));
+	ce_mutex* mutex = ce_alloc_zero(sizeof(ce_mutex));
 	InitializeCriticalSection(&mutex->handle);
 	return mutex;
 }
@@ -134,122 +134,122 @@ typedef struct {
 	int priority;
 	bool woken;
 	HANDLE handle;
-} ce_waitcond_event;
+} ce_wait_condition_event;
 
-static ce_waitcond_event* ce_waitcond_event_new(void)
+static ce_wait_condition_event* ce_wait_condition_event_new(void)
 {
-	ce_waitcond_event* event = ce_alloc_zero(sizeof(ce_waitcond_event));
+	ce_wait_condition_event* event = ce_alloc_zero(sizeof(ce_wait_condition_event));
 	event->handle = CreateEvent(NULL,  // default security attributes
 								TRUE,  // manual-reset event
 								FALSE, // initial state is nonsignaled
 								NULL); // unnamed
 	if (NULL == event->handle) {
-		ce_error_report_windows_last("waitcond");
+		ce_error_report_windows_last("wait condition event");
 	}
 	return event;
 }
 
-static void ce_waitcond_event_del(ce_waitcond_event* event)
+static void ce_wait_condition_event_del(ce_wait_condition_event* event)
 {
 	if (NULL != event) {
 		CloseHandle(event->handle);
-		ce_free(event, sizeof(ce_waitcond_event));
+		ce_free(event, sizeof(ce_wait_condition_event));
 	}
 }
 
-struct ce_waitcond {
+struct ce_wait_condition {
 	CRITICAL_SECTION mutex;
 	ce_vector* events;
 	ce_vector* cache;
 };
 
-ce_waitcond* ce_waitcond_new(void)
+ce_wait_condition* ce_wait_condition_new(void)
 {
-	ce_waitcond* waitcond = ce_alloc(sizeof(ce_waitcond));
-	InitializeCriticalSection(&waitcond->mutex);
-	waitcond->events = ce_vector_new();
-	waitcond->cache = ce_vector_new();
-	return waitcond;
+	ce_wait_condition* wait_condition = ce_alloc_zero(sizeof(ce_wait_condition));
+	InitializeCriticalSection(&wait_condition->mutex);
+	wait_condition->events = ce_vector_new();
+	wait_condition->cache = ce_vector_new();
+	return wait_condition;
 }
 
-void ce_waitcond_del(ce_waitcond* waitcond)
+void ce_wait_condition_del(ce_wait_condition* wait_condition)
 {
-	if (NULL != waitcond) {
-		if (!ce_vector_empty(waitcond->events)) {
-			ce_logging_warning("waitcond: destroyed while "
+	if (NULL != wait_condition) {
+		if (!ce_vector_empty(wait_condition->events)) {
+			ce_logging_warning("wait condition: destroyed while "
 								"threads are still waiting");
 		}
-		ce_vector_for_each(waitcond->cache, ce_waitcond_event_del);
-		ce_vector_for_each(waitcond->events, ce_waitcond_event_del);
-		ce_vector_del(waitcond->cache);
-		ce_vector_del(waitcond->events);
-		DeleteCriticalSection(&waitcond->mutex);
-		ce_free(waitcond, sizeof(ce_waitcond));
+		ce_vector_for_each(wait_condition->cache, ce_wait_condition_event_del);
+		ce_vector_for_each(wait_condition->events, ce_wait_condition_event_del);
+		ce_vector_del(wait_condition->cache);
+		ce_vector_del(wait_condition->events);
+		DeleteCriticalSection(&wait_condition->mutex);
+		ce_free(wait_condition, sizeof(ce_wait_condition));
 	}
 }
 
-void ce_waitcond_wake_one(ce_waitcond* waitcond)
+void ce_wait_condition_wake_one(ce_wait_condition* wait_condition)
 {
-	EnterCriticalSection(&waitcond->mutex);
-	for (size_t i = 0; i < waitcond->events->count; ++i) {
-		ce_waitcond_event* current = waitcond->events->items[i];
+	EnterCriticalSection(&wait_condition->mutex);
+	for (size_t i = 0; i < wait_condition->events->count; ++i) {
+		ce_wait_condition_event* current = wait_condition->events->items[i];
 		if (!current->woken) {
 			current->woken = true;
 			SetEvent(current->handle);
 			break;
 		}
 	}
-	LeaveCriticalSection(&waitcond->mutex);
+	LeaveCriticalSection(&wait_condition->mutex);
 }
 
-void ce_waitcond_wake_all(ce_waitcond* waitcond)
+void ce_wait_condition_wake_all(ce_wait_condition* wait_condition)
 {
-	EnterCriticalSection(&waitcond->mutex);
-	for (size_t i = 0; i < waitcond->events->count; ++i) {
-		ce_waitcond_event* current = waitcond->events->items[i];
+	EnterCriticalSection(&wait_condition->mutex);
+	for (size_t i = 0; i < wait_condition->events->count; ++i) {
+		ce_wait_condition_event* current = wait_condition->events->items[i];
 		current->woken = true;
 		SetEvent(current->handle);
 	}
-	LeaveCriticalSection(&waitcond->mutex);
+	LeaveCriticalSection(&wait_condition->mutex);
 }
 
-void ce_waitcond_wait(ce_waitcond* waitcond, ce_mutex* mutex)
+void ce_wait_condition_wait(ce_wait_condition* wait_condition, ce_mutex* mutex)
 {
-	EnterCriticalSection(&waitcond->mutex);
+	EnterCriticalSection(&wait_condition->mutex);
 
-	ce_waitcond_event* event = ce_vector_empty(waitcond->cache) ?
-		ce_waitcond_event_new() : ce_vector_pop_back(waitcond->cache);
+	ce_wait_condition_event* event = ce_vector_empty(wait_condition->cache) ?
+		ce_wait_condition_event_new() : ce_vector_pop_back(wait_condition->cache);
 	event->priority = GetThreadPriority(GetCurrentThread());
 	event->woken = false;
 
 	// insert event into the queue (sorted by priority)
 	size_t index = 0;
-	for (; index < waitcond->events->count; ++index) {
-		ce_waitcond_event* current = waitcond->events->items[index];
+	for (; index < wait_condition->events->count; ++index) {
+		ce_wait_condition_event* current = wait_condition->events->items[index];
 		if (current->priority < event->priority) {
 			break;
 		}
 	}
-	ce_vector_insert(waitcond->events, index, event);
+	ce_vector_insert(wait_condition->events, index, event);
 
-	LeaveCriticalSection(&waitcond->mutex);
+	LeaveCriticalSection(&wait_condition->mutex);
 
 	ce_mutex_unlock(mutex);
 	if (WAIT_OBJECT_0 != WaitForSingleObject(event->handle, INFINITE)) {
-		ce_error_report_windows_last("waitcond");
+		ce_error_report_windows_last("wait condition");
 	}
 	ce_mutex_lock(mutex);
 
-	EnterCriticalSection(&waitcond->mutex);
+	EnterCriticalSection(&wait_condition->mutex);
 
 	// do not remove by index because
 	// order of the items may be changed by another thread
-	ce_vector_remove_all(waitcond->events, event);
-	ce_vector_push_back(waitcond->cache, event);
+	ce_vector_remove_all(wait_condition->events, event);
+	ce_vector_push_back(wait_condition->cache, event);
 
 	ResetEvent(event->handle);
 
-	LeaveCriticalSection(&waitcond->mutex);
+	LeaveCriticalSection(&wait_condition->mutex);
 }
 
 struct ce_once {
