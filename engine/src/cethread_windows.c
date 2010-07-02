@@ -49,11 +49,9 @@ ce_thread_id ce_thread_self(void)
 	return GetCurrentThreadId();
 }
 
-struct ce_thread {
-	ce_routine routine;
+typedef struct {
 	HANDLE handle;
-	DWORD id;
-};
+} ce_thread_windows;
 
 static DWORD WINAPI ce_thread_wrap(LPVOID arg)
 {
@@ -64,19 +62,25 @@ static DWORD WINAPI ce_thread_wrap(LPVOID arg)
 
 ce_thread* ce_thread_new(void (*proc)(void*), void* arg)
 {
-	ce_thread* thread = ce_alloc_zero(sizeof(ce_thread));
+	ce_thread* thread = ce_alloc_zero(sizeof(ce_thread) + sizeof(ce_thread_windows));
+	ce_thread_windows* windows_thread = (ce_thread_windows*)thread->impl;
+
 	thread->routine.proc = proc;
 	thread->routine.arg = arg;
-	thread->handle = CreateThread(NULL, // default security attributes
-								0,      // default stack size
-								ce_thread_wrap,
-								&thread->routine,
-								0,            // default creation flags
-								&thread->id); // thread identifier
 
-	if (NULL == thread->handle) {
+	DWORD id;
+	windows_thread->handle = CreateThread(NULL, // default security attributes
+										0,      // default stack size
+										ce_thread_wrap,
+										&thread->routine,
+										0,      // default creation flags
+										&id);   // thread identifier
+
+	if (NULL == windows_thread->handle) {
 		ce_error_report_windows_last("thread");
 	}
+
+	thread->id = id;
 
 	return thread;
 }
@@ -84,21 +88,18 @@ ce_thread* ce_thread_new(void (*proc)(void*), void* arg)
 void ce_thread_del(ce_thread* thread)
 {
 	if (NULL != thread) {
-		CloseHandle(thread->handle);
-		ce_free(thread, sizeof(ce_thread));
+		ce_thread_windows* windows_thread = (ce_thread_windows*)thread->impl;
+		CloseHandle(windows_thread->handle);
+		ce_free(thread, sizeof(ce_thread) + sizeof(ce_thread_windows));
 	}
 }
 
 void ce_thread_wait(ce_thread* thread)
 {
-	if (WAIT_OBJECT_0 != WaitForSingleObject(thread->handle, INFINITE)) {
+	ce_thread_windows* windows_thread = (ce_thread_windows*)thread->impl;
+	if (WAIT_OBJECT_0 != WaitForSingleObject(windows_thread->handle, INFINITE)) {
 		ce_error_report_windows_last("thread");
 	}
-}
-
-ce_thread_id ce_thread_get_id(ce_thread* thread)
-{
-	return thread->id;
 }
 
 struct ce_mutex {

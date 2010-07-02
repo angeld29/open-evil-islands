@@ -64,10 +64,9 @@ ce_thread_id ce_thread_self(void)
 	return pthread_self();
 }
 
-struct ce_thread {
-	ce_routine routine;
+typedef struct {
 	pthread_t handle;
-};
+} ce_thread_posix;
 
 static void* ce_thread_wrap(void* arg)
 {
@@ -78,33 +77,34 @@ static void* ce_thread_wrap(void* arg)
 
 ce_thread* ce_thread_new(void (*proc)(void*), void* arg)
 {
-	ce_thread* thread = ce_alloc_zero(sizeof(ce_thread));
+	ce_thread* thread = ce_alloc_zero(sizeof(ce_thread) + sizeof(ce_thread_posix));
+	ce_thread_posix* posix_thread = (ce_thread_posix*)thread->impl;
+
 	thread->routine.proc = proc;
 	thread->routine.arg = arg;
-	int code = pthread_create(&thread->handle, NULL,
-								ce_thread_wrap, &thread->routine);
+
+	int code = pthread_create(&posix_thread->handle, NULL, ce_thread_wrap, &thread->routine);
 	if (0 != code) {
 		ce_error_report_c_errno(code, "thread");
 	}
+
+	thread->id = posix_thread->handle;
+
 	return thread;
 }
 
 void ce_thread_del(ce_thread* thread)
 {
-	ce_free(thread, sizeof(ce_thread));
+	ce_free(thread, sizeof(ce_thread) + sizeof(ce_thread_posix));
 }
 
 void ce_thread_wait(ce_thread* thread)
 {
-	int code = pthread_join(thread->handle, NULL);
+	ce_thread_posix* posix_thread = (ce_thread_posix*)thread->impl;
+	int code = pthread_join(posix_thread->handle, NULL);
 	if (0 != code) {
 		ce_error_report_c_errno(code, "thread");
 	}
-}
-
-ce_thread_id ce_thread_get_id(ce_thread* thread)
-{
-	return thread->handle;
 }
 
 struct ce_mutex {

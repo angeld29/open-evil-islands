@@ -78,7 +78,7 @@ void ce_sound_mixer_init(void)
 void ce_sound_mixer_term(void)
 {
 	if (NULL != ce_sound_mixer) {
-		ce_event_manager_post_call(ce_thread_get_id(ce_sound_mixer->thread), ce_sound_mixer_exit_react);
+		ce_event_manager_post_call(ce_sound_mixer->thread->id, ce_sound_mixer_exit_react);
 		ce_thread_wait(ce_sound_mixer->thread);
 		ce_thread_del(ce_sound_mixer->thread);
 		if (!ce_vector_empty(ce_sound_mixer->ring_buffers)) {
@@ -91,12 +91,12 @@ void ce_sound_mixer_term(void)
 
 void ce_sound_mixer_add(ce_ring_buffer* ring_buffer)
 {
-	ce_event_manager_post_raw(ce_thread_get_id(ce_sound_mixer->thread),
-		ce_sound_mixer_add_react, &(ce_event_ptr){ring_buffer}, sizeof(ce_event_ptr));
+	ce_event_manager_post_raw(ce_sound_mixer->thread->id, ce_sound_mixer_add_react,
+							&(ce_event_ptr){ring_buffer}, sizeof(ce_event_ptr));
 }
 
 void ce_sound_mixer_remove(ce_ring_buffer* ring_buffer)
 {
-	ce_event_manager_post_raw(ce_thread_get_id(ce_sound_mixer->thread),
-		ce_sound_mixer_remove_react, &(ce_event_ptr){ring_buffer}, sizeof(ce_event_ptr));
+	ce_event_manager_post_raw(ce_sound_mixer->thread->id, ce_sound_mixer_remove_react,
+							&(ce_event_ptr){ring_buffer}, sizeof(ce_event_ptr));
 }
