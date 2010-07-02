@@ -26,16 +26,20 @@
 
 #include "celib.h"
 #include "cestr.h"
+#include "cepath.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "cepath.h"
 #include "ceoptionmanager.h"
+#include "ceresourcemanager.h"
+#include "ceresball.h"
+#include "ceregfile.h"
 #include "ceconfigfile.h"
 #include "ceconfigmanager.h"
 
 struct ce_config_manager* ce_config_manager;
 
 static const char* ce_config_dir = "Config";
+static const char* ce_resource_dir = "Res";
 
 static const char* ce_config_light_files[CE_CONFIG_LIGHT_COUNT] = {
 	[CE_CONFIG_LIGHT_GIPAT] = "lightsgipat.ini",
@@ -52,6 +56,49 @@ static const char* ce_config_movie_sections[CE_CONFIG_MOVIE_COUNT] = {
 	[CE_CONFIG_MOVIE_CRDTFOUT] = "Crdtfout",
 	[CE_CONFIG_MOVIE_TITLESFIN] = "Titlesfin",
 	[CE_CONFIG_MOVIE_TITLESFOUT] = "Titlesfout",
+};
+
+static const char* ce_config_music_sections[CE_CONFIG_MUSIC_CHAPTER_COUNT] = {
+	[CE_CONFIG_MUSIC_CHAPTER_COMMON] = "common",
+	[CE_CONFIG_MUSIC_CHAPTER_GIPAT] = "gipat",
+	[CE_CONFIG_MUSIC_CHAPTER_INGOS] = "ingos",
+	[CE_CONFIG_MUSIC_CHAPTER_SUSLANGER] = "suslanger",
+	[CE_CONFIG_MUSIC_CHAPTER_FINAL] = "final",
+};
+
+static const char* ce_config_music_names[CE_CONFIG_MUSIC_ITEM_COUNT] = {
+	[CE_CONFIG_MUSIC_CALM_DUNGEON] = "CalmDungeon",
+	[CE_CONFIG_MUSIC_COMBAT] = "Combat",
+	[CE_CONFIG_MUSIC_CONSTRUCTOR] = "Constructor",
+	[CE_CONFIG_MUSIC_BRIEFING] = "Briefing",
+	[CE_CONFIG_MUSIC_CALM_OPEN] = "CalmOpen",
+	[CE_CONFIG_MUSIC_MAIN_MENU] = "MainMenu",
+	[CE_CONFIG_MUSIC_CREDITS] = "Credits",
+};
+
+static const char* ce_config_menu_type_names[CE_CONFIG_MENU_TYPE_COUNT] = {
+	[CE_CONFIG_MENU_MAIN] = "MainMenu",
+	[CE_CONFIG_MENU_ESC] = "EscMenu",
+};
+
+static const char* ce_config_menu_item_names[CE_CONFIG_MENU_TYPE_COUNT]
+											[CE_CONFIG_MENU_ITEM_COUNT] = {
+	[CE_CONFIG_MENU_MAIN] = {
+		[CE_CONFIG_MENU_MAIN_NEW_GAME] = "NewGame",
+		[CE_CONFIG_MENU_MAIN_LOAD_GAME] = "LoadGame",
+		[CE_CONFIG_MENU_MAIN_MULTIPLAYER] = "Multiplayer",
+		[CE_CONFIG_MENU_MAIN_OPTIONS] = "Options",
+		[CE_CONFIG_MENU_MAIN_CREDITS] = "Credits",
+		[CE_CONFIG_MENU_MAIN_EXIT_GAME] = "ExitGame",
+	},
+	[CE_CONFIG_MENU_ESC] = {
+		[CE_CONFIG_MENU_ESC_RESUME_GAME] = "ResumeGame",
+		[CE_CONFIG_MENU_ESC_SAVE_GAME] = "SaveGame",
+		[CE_CONFIG_MENU_ESC_LOAD_GAME] = "LoadGame",
+		[CE_CONFIG_MENU_ESC_OPTIONS] = "Options",
+		[CE_CONFIG_MENU_ESC_EXIT_MM] = "ExitMM",
+		[CE_CONFIG_MENU_ESC_PAD] = "ExitMM",
+	},
 };
 
 static bool ce_config_manager_read_light(ce_color section[24],
@@ -98,10 +145,10 @@ static bool ce_config_manager_read_light(ce_color section[24],
 
 static void ce_config_manager_init_lights(void)
 {
-	char path[ce_config_manager->config_path->length + 32];
+	char path[ce_option_manager->ei_path->length + 32];
 	for (size_t i = 0; i < CE_CONFIG_LIGHT_COUNT; ++i) {
-		ce_path_join(path, sizeof(path), ce_config_manager->
-			config_path->str, ce_config_light_files[i], NULL);
+		ce_path_join(path, sizeof(path), ce_option_manager->ei_path->str,
+			ce_config_dir, ce_config_light_files[i], NULL);
 
 		ce_config_file* config_file = ce_config_file_open(path);
 		if (NULL != config_file) {
@@ -127,9 +174,9 @@ static void ce_config_manager_init_movies(void)
 		ce_config_manager->movies[i] = ce_vector_new_reserved(4);
 	}
 
-	char path[ce_config_manager->config_path->length + 32];
-	ce_path_join(path, sizeof(path), ce_config_manager->
-		config_path->str, "movie.ini", NULL);
+	char path[ce_option_manager->ei_path->length + 32];
+	ce_path_join(path, sizeof(path), ce_option_manager->ei_path->str,
+		ce_config_dir, "movie.ini", NULL);
 
 	ce_config_file* config_file = ce_config_file_open(path);
 	if (NULL != config_file) {
@@ -156,28 +203,102 @@ static void ce_config_manager_init_movies(void)
 	}
 }
 
+static void ce_config_manager_init_music(void)
+{
+	for (size_t i = 0; i < CE_CONFIG_MUSIC_CHAPTER_COUNT; ++i) {
+		for (size_t j = 0; j < CE_CONFIG_MUSIC_ITEM_COUNT; ++j) {
+			ce_config_manager->music[i][j] = ce_vector_new_reserved(4);
+		}
+	}
+
+	char path[ce_option_manager->ei_path->length + 32];
+	ce_path_join(path, sizeof(path), ce_option_manager->ei_path->str,
+		ce_resource_dir, "music.reg", NULL);
+
+	ce_mem_file* mem_file = ce_mem_file_new_path(path);
+	if (NULL != mem_file) {
+		ce_reg_file* reg_file = ce_reg_file_new(mem_file);
+		for (size_t i = 0; i < CE_CONFIG_MUSIC_CHAPTER_COUNT; ++i) {
+			for (size_t j = 0; j < CE_CONFIG_MUSIC_ITEM_COUNT; ++j) {
+				for (size_t k = 0; ; ++k) {
+					ce_value* value = ce_reg_file_find(reg_file,
+						ce_config_music_sections[i], ce_config_music_names[j], k);
+					if (NULL == value) {
+						break;
+					}
+					ce_vector_push_back(ce_config_manager->music[i][j],
+						ce_string_new_str(ce_value_get_string(value)));
+				}
+			}
+		}
+		ce_reg_file_del(reg_file);
+		ce_mem_file_del(mem_file);
+	} else {
+		ce_logging_error("config manager: could not open file '%s'", path);
+		ce_logging_error("config manager: could not read music configuration");
+	}
+}
+
+static void ce_config_manager_init_menus(void)
+{
+	if (NULL != ce_resource_manager->menus) {
+		ce_mem_file* mem_file = ce_res_ball_extract_mem_file_by_name(ce_resource_manager->menus, "menus.reg");
+		assert(NULL != mem_file && "menus.reg required");
+		ce_reg_file* reg_file = ce_reg_file_new(mem_file);
+		for (size_t i = 0; i < CE_CONFIG_MENU_TYPE_COUNT; ++i) {
+			for (size_t j = 0; j < CE_CONFIG_MENU_ITEM_COUNT; ++j) {
+				ce_config_manager->menu_geometry[i][j].x =
+					ce_value_get_int(ce_reg_file_find(reg_file,
+						ce_config_menu_type_names[i], ce_config_menu_item_names[i][j], 0));
+				ce_config_manager->menu_geometry[i][j].y =
+					ce_value_get_int(ce_reg_file_find(reg_file,
+						ce_config_menu_type_names[i], ce_config_menu_item_names[i][j], 1));
+				ce_config_manager->menu_geometry[i][j].width =
+					ce_value_get_int(ce_reg_file_find(reg_file,
+						ce_config_menu_type_names[i], ce_config_menu_item_names[i][j], 2));
+				ce_config_manager->menu_geometry[i][j].height =
+					ce_value_get_int(ce_reg_file_find(reg_file,
+						ce_config_menu_type_names[i], ce_config_menu_item_names[i][j], 3));
+				ce_config_manager->menu_geometry[i][j].width -= ce_config_manager->menu_geometry[i][j].x;
+				ce_config_manager->menu_geometry[i][j].height -= ce_config_manager->menu_geometry[i][j].y;
+			}
+		}
+		ce_reg_file_del(reg_file);
+		ce_mem_file_del(mem_file);
+	} else {
+		ce_logging_error("config manager: could not read menus configuration");
+	}
+}
+
 void ce_config_manager_init(void)
 {
-	char path[ce_option_manager->ei_path->length + 16];
+	ce_config_manager = ce_alloc_zero(sizeof(struct ce_config_manager));
+
+	char path[ce_option_manager->ei_path->length + 32];
 	ce_path_join(path, sizeof(path),
 		ce_option_manager->ei_path->str, ce_config_dir, NULL);
 
 	ce_logging_write("config manager: using path '%s'", path);
 
-	ce_config_manager = ce_alloc_zero(sizeof(struct ce_config_manager));
-	ce_config_manager->config_path = ce_string_new_str(path);
 	ce_config_manager_init_lights();
 	ce_config_manager_init_movies();
+	ce_config_manager_init_music();
+	ce_config_manager_init_menus();
 }
 
 void ce_config_manager_term(void)
 {
 	if (NULL != ce_config_manager) {
+		for (size_t i = 0; i < CE_CONFIG_MUSIC_CHAPTER_COUNT; ++i) {
+			for (size_t j = 0; j < CE_CONFIG_MUSIC_ITEM_COUNT; ++j) {
+				ce_vector_for_each(ce_config_manager->music[i][j], ce_string_del);
+				ce_vector_del(ce_config_manager->music[i][j]);
+			}
+		}
 		for (size_t i = 0; i < CE_CONFIG_MOVIE_COUNT; ++i) {
 			ce_vector_for_each(ce_config_manager->movies[i], ce_string_del);
 			ce_vector_del(ce_config_manager->movies[i]);
 		}
-		ce_string_del(ce_config_manager->config_path);
 		ce_free(ce_config_manager, sizeof(struct ce_config_manager));
 	}
 }

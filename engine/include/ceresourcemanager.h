@@ -21,6 +21,7 @@
 #ifndef CE_RESOURCEMANAGER_H
 #define CE_RESOURCEMANAGER_H
 
+#include "cestring.h"
 #include "ceresourcedata.h"
 #include "ceresfile.h"
 
@@ -29,7 +30,9 @@ extern "C" {
 #endif
 
 extern struct ce_resource_manager {
+	ce_string* path;
 	ce_res_file* database;
+	ce_res_file* menus;
 }* ce_resource_manager;
 
 extern void ce_resource_manager_init(void);

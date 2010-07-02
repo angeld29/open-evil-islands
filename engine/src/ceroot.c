@@ -30,11 +30,11 @@
 #include "cesysteminfo.h"
 #include "cesystemevent.h"
 #include "ceoptionmanager.h"
+#include "ceresourcemanager.h"
 #include "ceconfigmanager.h"
 #include "ceeventmanager.h"
 #include "cerendersystem.h"
 #include "cesoundmixer.h"
-#include "ceresourcemanager.h"
 #include "ceavcodec.h"
 #include "cesoundmanager.h"
 #include "cevideomanager.h"
@@ -103,13 +103,13 @@ static void ce_root_term(void)
 	ce_video_manager_term();
 	ce_sound_manager_term();
 	ce_avcodec_term();
-	ce_resource_manager_term();
 	ce_sound_mixer_term();
 	ce_sound_system_del(ce_root.sound_system);
 	ce_render_system_term();
 	ce_renderwindow_del(ce_root.renderwindow);
 	ce_event_manager_term();
 	ce_config_manager_term();
+	ce_resource_manager_term();
 	ce_option_manager_term();
 }
 
@@ -130,6 +130,7 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 	ce_root.animation_fps = 15.0f;
 
 	ce_option_manager_init(optparse);
+	ce_resource_manager_init();
 	ce_config_manager_init();
 	ce_event_manager_init();
 
@@ -178,11 +179,8 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 										ce_option_manager->fullscreen_reflection_y);
 
 	ce_render_system_init();
-
 	ce_root.sound_system = ce_sound_system_new_platform();
 	ce_sound_mixer_init();
-
-	ce_resource_manager_init();
 
 	ce_avcodec_init();
 	ce_sound_manager_init();

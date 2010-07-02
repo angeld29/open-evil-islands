@@ -55,21 +55,26 @@ static ce_res_file* ce_resource_manager_open(const char* name)
 void ce_resource_manager_init(void)
 {
 	char path[ce_option_manager->ei_path->length + 32];
+	ce_path_join(path, sizeof(path), ce_option_manager->ei_path->str, ce_resource_dirs[0], NULL);
+
+	ce_resource_manager = ce_alloc_zero(sizeof(struct ce_resource_manager));
+	ce_resource_manager->path = ce_string_new_str(path);
 
 	for (size_t i = 0; NULL != ce_resource_dirs[i]; ++i) {
-		ce_path_join(path, sizeof(path),
-			ce_option_manager->ei_path->str, ce_resource_dirs[i], NULL);
+		ce_path_join(path, sizeof(path), ce_option_manager->ei_path->str, ce_resource_dirs[i], NULL);
 		ce_logging_write("resource manager: using path '%s'", path);
 	}
 
-	ce_resource_manager = ce_alloc_zero(sizeof(struct ce_resource_manager));
 	ce_resource_manager->database = ce_resource_manager_open("database");
+	ce_resource_manager->menus = ce_resource_manager_open("menus");
 }
 
 void ce_resource_manager_term(void)
 {
 	if (NULL != ce_resource_manager) {
+		ce_res_file_del(ce_resource_manager->menus);
 		ce_res_file_del(ce_resource_manager->database);
+		ce_string_del(ce_resource_manager->path);
 		ce_free(ce_resource_manager, sizeof(struct ce_resource_manager));
 	}
 }

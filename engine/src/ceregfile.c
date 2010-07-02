@@ -18,7 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
 #include "celib.h"
@@ -28,21 +29,21 @@
 
 static const uint32_t CE_REG_SIGNATURE = 0x45ab3efbu;
 
-static ce_property* ce_reg_create_property_int(ce_mem_file* mem_file, const char* name)
+static ce_property* ce_reg_create_option_int(ce_mem_file* mem_file, const char* name)
 {
 	ce_property* property = ce_property_new(name, CE_TYPE_INT);
 	ce_value_set_int(property->value, ce_mem_file_read_i32le(mem_file));
 	return property;
 }
 
-static ce_property* ce_reg_create_property_float(ce_mem_file* mem_file, const char* name)
+static ce_property* ce_reg_create_option_float(ce_mem_file* mem_file, const char* name)
 {
 	ce_property* property = ce_property_new(name, CE_TYPE_FLOAT);
 	ce_value_set_float(property->value, ce_mem_file_read_fle(mem_file));
 	return property;
 }
 
-static ce_property* ce_reg_create_property_string(ce_mem_file* mem_file, const char* name)
+static ce_property* ce_reg_create_option_string(ce_mem_file* mem_file, const char* name)
 {
 	size_t length = ce_mem_file_read_u16le(mem_file);
 
@@ -57,10 +58,10 @@ static ce_property* ce_reg_create_property_string(ce_mem_file* mem_file, const c
 	return property;
 }
 
-static ce_property* (*ce_reg_create_property_procs[])(ce_mem_file*, const char*) = {
-	[0] = ce_reg_create_property_int,
-	[1] = ce_reg_create_property_float,
-	[2] = ce_reg_create_property_string,
+static ce_property* (*ce_reg_create_option_procs[])(ce_mem_file*, const char*) = {
+	[0] = ce_reg_create_option_int,
+	[1] = ce_reg_create_option_float,
+	[2] = ce_reg_create_option_string,
 };
 
 ce_reg_file* ce_reg_file_new(ce_mem_file* mem_file)
@@ -122,11 +123,17 @@ ce_reg_file* ce_reg_file_new(ce_mem_file* mem_file)
 
 			ce_mem_file_read(mem_file, option_name, 1, options[j].name_length);
 
+			uint16_t value_count = 1;
+
 			if (options[j].type >= 128) {
-				uint16_t value_count = ce_mem_file_read_u16le(mem_file);
 				options[j].type -= 128;
-			} else {
-				ce_object_add(section, (*ce_reg_create_property_procs[options[j].type])(mem_file, option_name));
+				value_count = ce_mem_file_read_u16le(mem_file);
+			}
+
+			for (uint16_t k = 0; k < value_count; ++k) {
+				char array_name[options[j].name_length + 8];
+				snprintf(array_name, sizeof(array_name), "%s%hu", option_name, k);
+				ce_object_add(section, (*ce_reg_create_option_procs[options[j].type])(mem_file, array_name));
 			}
 		}
 	}
@@ -141,4 +148,24 @@ void ce_reg_file_del(ce_reg_file* reg_file)
 		ce_vector_del(reg_file->sections);
 		ce_free(reg_file, sizeof(ce_reg_file));
 	}
+}
+
+ce_value* ce_reg_file_find(ce_reg_file* reg_file,
+							const char* section_name,
+							const char* option_name,
+							size_t index)
+{
+	char array_name[strlen(option_name) + 8];
+	snprintf(array_name, sizeof(array_name), "%s%zu", option_name, index);
+
+	for (size_t i = 0; i < reg_file->sections->count; ++i) {
+		ce_object* section = reg_file->sections->items[i];
+		if (0 == strcmp(section_name, section->name->str)) {
+			ce_property* option = ce_object_find(section, array_name);
+			if (NULL != option) {
+				return option->value;
+			}
+		}
+	}
+	return NULL;
 }
