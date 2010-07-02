@@ -18,9 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 
+#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceroot.h"
@@ -47,20 +49,40 @@ static void ce_sound_mixer_unregister_buffer_react(ce_event* event)
 	ce_vector_remove_all(ce_sound_mixer->ring_buffers, ring_buffer);
 }
 
+static void ce_sound_mixer_mix(void* dst, const void* src1, const void* src2)
+{
+	// 16 bits, 2 channels hard-coded
+
+	int16_t* output = dst;
+	const int16_t *input1 = src1, *input2 = src2;
+
+	for (size_t i = 0; i < 2; ++i) {
+		float value = (float)input1[i] + (float)input2[i];
+		output[i] = ce_clamp(float, value, INT16_MIN, INT16_MAX);
+	}
+}
+
 static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
 {
 	ce_event_manager_create_queue();
 
 	while (!ce_sound_mixer->done) {
 		char* block = ce_sound_system_map_block(ce_root.sound_system);
+		memset(block, 0, CE_SOUND_SYSTEM_BLOCK_SIZE);
 
-		size_t size = 0;
-
-		// fill tail by silence
-		memset(block + size, 0, CE_SOUND_SYSTEM_BLOCK_SIZE - size);
+		for (size_t i = 0; i < CE_SOUND_SYSTEM_SAMPLES_IN_BLOCK;
+							++i, block += CE_SOUND_SYSTEM_SAMPLE_SIZE) {
+			for (size_t j = 0; j < ce_sound_mixer->ring_buffers->count; ++j) {
+				ce_ring_buffer* ring_buffer = ce_sound_mixer->ring_buffers->items[j];
+				if (ce_ring_buffer_read_size(ring_buffer) >= CE_SOUND_SYSTEM_SAMPLE_SIZE) {
+					char buffer[CE_SOUND_SYSTEM_SAMPLE_SIZE];
+					ce_ring_buffer_read(ring_buffer, buffer, CE_SOUND_SYSTEM_SAMPLE_SIZE);
+					ce_sound_mixer_mix(block, block, buffer);
+				}
+			}
+		}
 
 		ce_sound_system_unmap_block(ce_root.sound_system);
-
 		ce_event_manager_process_events();
 	}
 }

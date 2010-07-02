@@ -45,12 +45,12 @@ extern size_t ce_ring_buffer_read(ce_ring_buffer* ring_buffer,
 extern size_t ce_ring_buffer_write(ce_ring_buffer* ring_buffer,
 									const void* buffer, size_t size);
 
-static inline size_t ce_ring_buffer_prepared_size(ce_ring_buffer* ring_buffer)
+static inline size_t ce_ring_buffer_read_size(ce_ring_buffer* ring_buffer)
 {
 	return ce_semaphore_available(ring_buffer->prepared_data);
 }
 
-static inline size_t ce_ring_buffer_unprepared_size(ce_ring_buffer* ring_buffer)
+static inline size_t ce_ring_buffer_write_size(ce_ring_buffer* ring_buffer)
 {
 	return ce_semaphore_available(ring_buffer->unprepared_data);
 }
