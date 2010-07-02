@@ -97,7 +97,7 @@ char* ce_registry_get_string_value(char* value, size_t size,
 
 	ce_config_file* config_file = ce_config_file_open(path);
 	if (NULL == config_file) {
-		ce_logging_error("registry: could not open file '%s'", path);
+		//ce_logging_error("registry: could not open file '%s'", path);
 		return NULL;
 	}
 
