@@ -69,7 +69,7 @@ void ce_event_queue_process_events_timeout(ce_event_queue* queue, int max_time)
 {
 	if (ce_vector_empty(queue->sending_events)) {
 		ce_mutex_lock(queue->mutex);
-		ce_swap_temp(ce_vector*, &queue->pending_events, &queue->sending_events);
+		ce_swap_pointer(&queue->pending_events, &queue->sending_events);
 		ce_mutex_unlock(queue->mutex);
 	}
 

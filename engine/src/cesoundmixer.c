@@ -74,7 +74,7 @@ static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
 							++i, block += CE_SOUND_SYSTEM_SAMPLE_SIZE) {
 			for (size_t j = 0; j < ce_sound_mixer->ring_buffers->count; ++j) {
 				ce_ring_buffer* ring_buffer = ce_sound_mixer->ring_buffers->items[j];
-				if (ce_ring_buffer_read_size(ring_buffer) >= CE_SOUND_SYSTEM_SAMPLE_SIZE) {
+				if (ce_ring_buffer_size_read(ring_buffer) >= CE_SOUND_SYSTEM_SAMPLE_SIZE) {
 					char buffer[CE_SOUND_SYSTEM_SAMPLE_SIZE];
 					ce_ring_buffer_read(ring_buffer, buffer, CE_SOUND_SYSTEM_SAMPLE_SIZE);
 					ce_sound_mixer_mix(block, block, buffer);
