@@ -25,6 +25,7 @@
 #include <stdbool.h>
 
 #include "cevector.h"
+#include "ceatomic.h"
 
 #ifdef __cplusplus
 extern "C" {

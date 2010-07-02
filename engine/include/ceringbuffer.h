@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,42 +23,40 @@
 
 #include <stddef.h>
 
-#include "ceatomic.h"
+#include "cethread.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 typedef struct {
-	size_t capacity, size;
-	size_t start, end;
-	char* data;
-} ce_ringbuffer;
+	size_t capacity, start, end;
+	ce_semaphore* prepared_data;
+	ce_semaphore* unprepared_data;
+	char data[];
+} ce_ring_buffer;
 
-extern ce_ringbuffer* ce_ringbuffer_new(size_t capacity);
-extern void ce_ringbuffer_del(ce_ringbuffer* ringbuffer);
+extern ce_ring_buffer* ce_ring_buffer_new(size_t capacity);
+extern void ce_ring_buffer_del(ce_ring_buffer* ring_buffer);
 
-extern void ce_ringbuffer_clear(ce_ringbuffer* ringbuffer);
-
-extern size_t ce_ringbuffer_read(ce_ringbuffer* ringbuffer,
+extern size_t ce_ring_buffer_read(ce_ring_buffer* ring_buffer,
 									void* buffer, size_t size);
 
-extern size_t ce_ringbuffer_write(ce_ringbuffer* ringbuffer,
+extern size_t ce_ring_buffer_write(ce_ring_buffer* ring_buffer,
 									const void* buffer, size_t size);
 
-static inline size_t ce_ringbuffer_size(ce_ringbuffer* ringbuffer)
+static inline size_t ce_ring_buffer_prepared_size(ce_ring_buffer* ring_buffer)
 {
-	return ce_atomic_fetch(size_t, &ringbuffer->size);
+	return ce_semaphore_available(ring_buffer->prepared_data);
 }
 
-static inline size_t ce_ringbuffer_free_space(ce_ringbuffer* ringbuffer)
+static inline size_t ce_ring_buffer_unprepared_size(ce_ring_buffer* ring_buffer)
 {
-	return ringbuffer->capacity - ce_ringbuffer_size(ringbuffer);
+	return ce_semaphore_available(ring_buffer->unprepared_data);
 }
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_RINGBUFFER_H */

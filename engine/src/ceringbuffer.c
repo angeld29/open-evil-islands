@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,64 +25,58 @@
 #include "cealloc.h"
 #include "ceringbuffer.h"
 
-ce_ringbuffer* ce_ringbuffer_new(size_t capacity)
+ce_ring_buffer* ce_ring_buffer_new(size_t capacity)
 {
-	ce_ringbuffer* ringbuffer = ce_alloc(sizeof(ce_ringbuffer));
-	ringbuffer->capacity = capacity;
-	ringbuffer->data = ce_alloc(capacity);
-	ce_ringbuffer_clear(ringbuffer);
-	return ringbuffer;
+	ce_ring_buffer* ring_buffer = ce_alloc_zero(sizeof(ce_ring_buffer) + capacity);
+	ring_buffer->capacity = capacity;
+	ring_buffer->prepared_data = ce_semaphore_new(0);
+	ring_buffer->unprepared_data = ce_semaphore_new(capacity);
+	return ring_buffer;
 }
 
-void ce_ringbuffer_del(ce_ringbuffer* ringbuffer)
+void ce_ring_buffer_del(ce_ring_buffer* ring_buffer)
 {
-	if (NULL != ringbuffer) {
-		ce_free(ringbuffer->data, ringbuffer->capacity);
-		ce_free(ringbuffer, sizeof(ce_ringbuffer));
+	if (NULL != ring_buffer) {
+		ce_semaphore_del(ring_buffer->unprepared_data);
+		ce_semaphore_del(ring_buffer->prepared_data);
+		ce_free(ring_buffer, sizeof(ce_ring_buffer) + ring_buffer->capacity);
 	}
 }
 
-void ce_ringbuffer_clear(ce_ringbuffer* ringbuffer)
-{
-	ringbuffer->size = 0;
-	ringbuffer->start = 0;
-	ringbuffer->end = 0;
-}
-
-size_t ce_ringbuffer_read(ce_ringbuffer* ringbuffer, void* buffer, size_t size)
+size_t ce_ring_buffer_read(ce_ring_buffer* ring_buffer, void* buffer, size_t size)
 {
 	char* data = buffer;
-	size = ce_min(size_t, size, ce_ringbuffer_size(ringbuffer));
+	ce_semaphore_acquire(ring_buffer->prepared_data, size);
 
-	if (size > ringbuffer->capacity - ringbuffer->start) {
-		size_t length = ringbuffer->capacity - ringbuffer->start;
-		memcpy(data, ringbuffer->data + ringbuffer->start, length);
-		memcpy(data + length, ringbuffer->data, size - length);
+	if (size > ring_buffer->capacity - ring_buffer->start) {
+		size_t length = ring_buffer->capacity - ring_buffer->start;
+		memcpy(data, ring_buffer->data + ring_buffer->start, length);
+		memcpy(data + length, ring_buffer->data, size - length);
 	} else {
-		memcpy(data, ringbuffer->data + ringbuffer->start, size);
+		memcpy(data, ring_buffer->data + ring_buffer->start, size);
 	}
 
-	ringbuffer->start = (ringbuffer->start + size) % ringbuffer->capacity;
-	ce_atomic_sub(size_t, &ringbuffer->size, size);
+	ring_buffer->start = (ring_buffer->start + size) % ring_buffer->capacity;
+	ce_semaphore_release(ring_buffer->unprepared_data, size);
 
 	return size;
 }
 
-size_t ce_ringbuffer_write(ce_ringbuffer* ringbuffer, const void* buffer, size_t size)
+size_t ce_ring_buffer_write(ce_ring_buffer* ring_buffer, const void* buffer, size_t size)
 {
 	const char* data = buffer;
-	size = ce_min(size_t, size, ce_ringbuffer_free_space(ringbuffer));
+	ce_semaphore_acquire(ring_buffer->unprepared_data, size);
 
-	if (size > ringbuffer->capacity - ringbuffer->end) {
-		size_t length = ringbuffer->capacity - ringbuffer->end;
-		memcpy(ringbuffer->data + ringbuffer->end, data, length);
-		memcpy(ringbuffer->data, data + length, size - length);
+	if (size > ring_buffer->capacity - ring_buffer->end) {
+		size_t length = ring_buffer->capacity - ring_buffer->end;
+		memcpy(ring_buffer->data + ring_buffer->end, data, length);
+		memcpy(ring_buffer->data, data + length, size - length);
 	} else {
-		memcpy(ringbuffer->data + ringbuffer->end, data, size);
+		memcpy(ring_buffer->data + ring_buffer->end, data, size);
 	}
 
-	ringbuffer->end = (ringbuffer->end + size) % ringbuffer->capacity;
-	ce_atomic_add(size_t, &ringbuffer->size, size);
+	ring_buffer->end = (ring_buffer->end + size) % ring_buffer->capacity;
+	ce_semaphore_release(ring_buffer->prepared_data, size);
 
 	return size;
 }
