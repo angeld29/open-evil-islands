@@ -23,14 +23,12 @@
 
 #include <libavcodec/avcodec.h>
 
-#include "celib.h"
 #include "celogging.h"
 #include "cethread.h"
 #include "ceavcodec.h"
 
-static void ce_avcodec_log(void* ptr, int av_level, const char* format, va_list args)
+static void ce_avcodec_log(void* CE_UNUSED(ptr), int av_level, const char* format, va_list args)
 {
-	ce_unused(ptr);
 	ce_logging_level level;
 
 	switch (av_level) {

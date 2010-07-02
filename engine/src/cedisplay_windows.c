@@ -23,7 +23,6 @@
 
 #include <windows.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cedisplay.h"
@@ -71,10 +70,8 @@ static void ce_dmmng_change_display_settings(DEVMODE* dm, DWORD flags)
 	}
 }
 
-static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list args)
+static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list CE_UNUSED(args))
 {
-	ce_unused(args);
-
 	ce_logging_write("displaymng: using native Device Context Windows API");
 
 	ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
@@ -107,10 +104,9 @@ static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list args)
 }
 
 static void ce_dmmng_enter(ce_displaymng* displaymng, size_t index,
-	ce_display_rotation rotation, ce_display_reflection reflection)
+							ce_display_rotation CE_UNUSED(rotation),
+							ce_display_reflection CE_UNUSED(reflection))
 {
-	ce_unused(rotation), ce_unused(reflection);
-
 	ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
 	DEVMODE* mode = dmmng->modes->items[index];
 

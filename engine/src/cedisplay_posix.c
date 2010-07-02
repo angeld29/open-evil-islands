@@ -27,7 +27,6 @@
 #include <X11/extensions/xf86vmode.h>
 #include <X11/extensions/Xrandr.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cedisplay.h"
@@ -75,10 +74,9 @@ static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
 }
 
 static void ce_xf86vmmng_enter(ce_displaymng* displaymng, size_t index,
-	ce_display_rotation rotation, ce_display_reflection reflection)
+								ce_display_rotation CE_UNUSED(rotation),
+								ce_display_reflection CE_UNUSED(reflection))
 {
-	ce_unused(rotation), ce_unused(reflection);
-
 	ce_xf86vmmng* xf86vmmng = (ce_xf86vmmng*)displaymng->impl;
 
 	if (NULL != xf86vmmng->modes) {

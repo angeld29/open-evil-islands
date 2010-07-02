@@ -24,15 +24,13 @@
 
 #include <assert.h>
 
-#include "celib.h"
 #include "cebyteorder.h"
 #include "cealloc.h"
 #include "cefigfile.h"
 
-static float ce_figfile_value_fig1(const float* params, size_t stride,
-									const ce_complection* complection)
+static float ce_figfile_value_fig1(const float* params, size_t CE_UNUSED(stride),
+									const ce_complection* CE_UNUSED(complection))
 {
-	ce_unused(stride), ce_unused(complection);
 	return *params;
 }
 
