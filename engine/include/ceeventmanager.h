@@ -87,6 +87,12 @@ extern void ce_event_manager_post_raw(ce_thread_id thread_id,
 										void (*notify)(ce_event*),
 										const void* impl, size_t size);
 
+static inline void ce_event_manager_post_call(ce_thread_id thread_id,
+												void (*notify)(ce_event*))
+{
+	ce_event_manager_post_event(thread_id, ce_event_new(notify, 0));
+}
+
 #ifdef __cplusplus
 }
 #endif

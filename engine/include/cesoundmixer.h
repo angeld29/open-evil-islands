@@ -25,6 +25,12 @@
 #ifndef CE_SOUNDMIXER_H
 #define CE_SOUNDMIXER_H
 
+#include <stdbool.h>
+
+#include "cevector.h"
+#include "cethread.h"
+#include "ceringbuffer.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,11 +38,16 @@ extern "C" {
 // TODO: not implemented
 
 extern struct ce_sound_mixer {
-	int stub;
+	bool done;
+	ce_vector* ring_buffers;
+	ce_thread* thread;
 }* ce_sound_mixer;
 
 extern void ce_sound_mixer_init(void);
 extern void ce_sound_mixer_term(void);
+
+extern void ce_sound_mixer_add(ce_ring_buffer* ring_buffer);
+extern void ce_sound_mixer_remove(ce_ring_buffer* ring_buffer);
 
 #ifdef __cplusplus
 }
