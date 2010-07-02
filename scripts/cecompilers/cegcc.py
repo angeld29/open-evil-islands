@@ -41,7 +41,10 @@ def configure(env):
 	env.AppendUnique(
 		CFLAGS=["-std=c99"],
 		CCFLAGS=["-pipe", "-pedantic-errors"],
-		CPPDEFINES=["CE_THREAD=__thread"],
+		CPPDEFINES=[
+			"CE_THREAD=__thread",
+			"CE_UNUSED(X)=unused##X __attribute__((unused))",
+		],
 	)
 
 	configure_build_mode[env["BUILD_MODE"]](env)

@@ -21,7 +21,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceroot.h"
@@ -31,27 +30,25 @@
 
 struct ce_sound_mixer* ce_sound_mixer;
 
-static void ce_sound_mixer_exit_react(ce_event* event)
+static void ce_sound_mixer_exit_react(ce_event* CE_UNUSED(event))
 {
-	ce_unused(event);
 	ce_sound_mixer->done = true;
 }
 
-static void ce_sound_mixer_add_react(ce_event* event)
+static void ce_sound_mixer_register_buffer_react(ce_event* event)
 {
 	ce_ring_buffer* ring_buffer = ((ce_event_ptr*)event->impl)->ptr;
 	ce_vector_push_back(ce_sound_mixer->ring_buffers, ring_buffer);
 }
 
-static void ce_sound_mixer_remove_react(ce_event* event)
+static void ce_sound_mixer_unregister_buffer_react(ce_event* event)
 {
 	ce_ring_buffer* ring_buffer = ((ce_event_ptr*)event->impl)->ptr;
 	ce_vector_remove_all(ce_sound_mixer->ring_buffers, ring_buffer);
 }
 
-static void ce_sound_mixer_exec(void* arg)
+static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
 {
-	ce_unused(arg);
 	ce_event_manager_create_queue();
 
 	while (!ce_sound_mixer->done) {
@@ -82,21 +79,21 @@ void ce_sound_mixer_term(void)
 		ce_thread_wait(ce_sound_mixer->thread);
 		ce_thread_del(ce_sound_mixer->thread);
 		if (!ce_vector_empty(ce_sound_mixer->ring_buffers)) {
-			ce_logging_warning("sound mixer: some ring buffers have not been removed");
+			ce_logging_warning("sound mixer: some ring buffers have not been unregistered");
 		}
 		ce_vector_del(ce_sound_mixer->ring_buffers);
 		ce_free(ce_sound_mixer, sizeof(struct ce_sound_mixer));
 	}
 }
 
-void ce_sound_mixer_add(ce_ring_buffer* ring_buffer)
+void ce_sound_mixer_register_buffer(ce_ring_buffer* ring_buffer)
 {
-	ce_event_manager_post_raw(ce_sound_mixer->thread->id, ce_sound_mixer_add_react,
+	ce_event_manager_post_raw(ce_sound_mixer->thread->id, ce_sound_mixer_register_buffer_react,
 							&(ce_event_ptr){ring_buffer}, sizeof(ce_event_ptr));
 }
 
-void ce_sound_mixer_remove(ce_ring_buffer* ring_buffer)
+void ce_sound_mixer_unregister_buffer(ce_ring_buffer* ring_buffer)
 {
-	ce_event_manager_post_raw(ce_sound_mixer->thread->id, ce_sound_mixer_remove_react,
+	ce_event_manager_post_raw(ce_sound_mixer->thread->id, ce_sound_mixer_unregister_buffer_react,
 							&(ce_event_ptr){ring_buffer}, sizeof(ce_event_ptr));
 }
