@@ -47,10 +47,8 @@ static void clean()
 	ce_optparse_del(optparse);
 }
 
-static void state_changed(void* listener, int state)
+static void state_changed(void* CE_UNUSED(listener), int state)
 {
-	ce_unused(listener);
-
 	if (CE_SCENEMNG_STATE_READY == state) {
 		const char* zone;
 		ce_optparse_get(optparse, "zone", &zone);
@@ -82,9 +80,8 @@ static void state_changed(void* listener, int state)
 	}
 }
 
-static void advance(void* listener, float elapsed)
+static void advance(void* CE_UNUSED(listener), float elapsed)
 {
-	ce_unused(listener);
 	ce_inputsupply_advance(inputsupply, elapsed);
 
 	float animation_fps = ce_root.animation_fps;
@@ -104,9 +101,8 @@ static void advance(void* listener, float elapsed)
 	ce_root.animation_fps = ce_clamp(float, animation_fps, 1.0f, 50.0f);
 }
 
-static void render(void* listener)
+static void render(void* CE_UNUSED(listener))
 {
-	ce_unused(listener);
 	if (message_timeout > 0.0f) {
 		char buffer[32];
 		snprintf(buffer, sizeof(buffer), "Animation FPS: %d", (int)ce_root.animation_fps);

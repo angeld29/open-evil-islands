@@ -31,11 +31,10 @@ static const uint32_t CE_ADB_SIGNATURE = 0x00424441;
 
 ce_adb_file* ce_adb_file_new(ce_mem_file* mem_file)
 {
-	uint32_t signature = ce_mem_file_read_u32le(mem_file);
+	uint32_t CE_UNUSED(signature) = ce_mem_file_read_u32le(mem_file);
 	uint32_t record_count = ce_mem_file_read_u32le(mem_file);
 
 	assert(CE_ADB_SIGNATURE == signature && "wrong signature");
-	ce_unused(signature);
 
 	ce_adb_file* adb_file = ce_alloc_zero(sizeof(ce_adb_file) +
 										sizeof(ce_adb_record) * record_count);

@@ -74,9 +74,8 @@ static ce_string* ce_mobfile_read_string(ce_mem_file* mem, size_t size)
 static void ce_mobfile_block_loop(ce_mobfile* mob, ce_mem_file* mem, size_t size);
 
 static void
-ce_mobfile_block_unknown(ce_mobfile* mob, ce_mem_file* mem, size_t size)
+ce_mobfile_block_unknown(ce_mobfile* CE_UNUSED(mob), ce_mem_file* mem, size_t size)
 {
-	ce_unused(mob);
 	ce_mobfile_skip(mem, size);
 }
 

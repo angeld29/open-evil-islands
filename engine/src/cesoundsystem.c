@@ -20,7 +20,6 @@
 
 #include <assert.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cesoundsystem.h"
@@ -64,16 +63,14 @@ ce_sound_system* ce_sound_system_new(ce_sound_system_vtable vtable)
 	return sound_system;
 }
 
-static bool ce_sound_system_null_ctor(ce_sound_system* sound_system)
+static bool ce_sound_system_null_ctor(ce_sound_system* CE_UNUSED(sound_system))
 {
-	ce_unused(sound_system);
 	ce_logging_write("sound system: using null output");
 	return true;
 }
 
-static bool ce_sound_system_null_write(ce_sound_system* sound_system, const void* block)
+static bool ce_sound_system_null_write(ce_sound_system* CE_UNUSED(sound_system), const void* CE_UNUSED(block))
 {
-	ce_unused(sound_system), ce_unused(block);
 	return true;
 }
 

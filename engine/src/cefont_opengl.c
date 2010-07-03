@@ -53,22 +53,19 @@ struct ce_font {
 	GLuint list, tex;
 };
 
-static void* ce_font_alloc(FT_Memory memory, long size)
+static void* ce_font_alloc(FT_Memory CE_UNUSED(memory), long size)
 {
-	ce_unused(memory);
 	return ce_alloc_zero(size);
 }
 
-static void ce_font_free(FT_Memory memory, void* block)
+static void ce_font_free(FT_Memory CE_UNUSED(memory), void* block)
 {
-	ce_unused(memory);
 	ce_free_slow(block);
 }
 
-static void* ce_font_realloc(FT_Memory memory, long cur_size,
+static void* ce_font_realloc(FT_Memory CE_UNUSED(memory), long cur_size,
 								long new_size, void* block)
 {
-	ce_unused(memory);
 	return ce_realloc(block, cur_size, new_size);
 }
 

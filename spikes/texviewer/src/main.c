@@ -25,13 +25,13 @@
 #include <time.h>
 #include <assert.h>
 
-#include "celib.h"
+/*#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceinput.h"
 #include "cetimer.h"
 #include "ceresfile.h"
-#include "cetexture.h"
+#include "cetexture.h"*/
 
 // TODO: reanimation after engine 2.x
 
@@ -144,8 +144,6 @@ static bool generate_texture(int index)
 
 static void next_texture(int unused)
 {
-	ce_unused(unused); // :)
-
 	if (0 == res->node_count) {
 		return;
 	}

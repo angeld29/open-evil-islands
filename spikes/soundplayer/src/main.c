@@ -23,7 +23,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
 #include "cemath.h"
 #include "cealloc.h"
 #include "celogging.h"
@@ -45,10 +44,8 @@ static void clean()
 	ce_optparse_del(optparse);
 }
 
-static void state_changed(void* listener, int state)
+static void state_changed(void* CE_UNUSED(listener), int state)
 {
-	ce_unused(listener);
-
 	if (CE_SCENEMNG_STATE_READY == state) {
 		const char* track;
 		ce_optparse_get(optparse, "track", &track);
@@ -60,9 +57,8 @@ static void state_changed(void* listener, int state)
 	}
 }
 
-static void advance(void* listener, float elapsed)
+static void advance(void* CE_UNUSED(listener), float elapsed)
 {
-	ce_unused(listener);
 	ce_inputsupply_advance(inputsupply, elapsed);
 
 	if (ce_sound_object_is_valid(sound_object) &&
@@ -75,10 +71,8 @@ static void advance(void* listener, float elapsed)
 	}
 }
 
-static void render(void* listener)
+static void render(void* CE_UNUSED(listener))
 {
-	ce_unused(listener);
-
 	if (CE_SCENEMNG_STATE_PLAYING != ce_root.scenemng->state) {
 		return;
 	}

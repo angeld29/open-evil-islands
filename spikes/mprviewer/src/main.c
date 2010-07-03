@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "celib.h"
 #include "cemath.h"
 #include "cealloc.h"
 #include "ceoptionmanager.h"
@@ -34,10 +33,8 @@ static void clean()
 	ce_optparse_del(optparse);
 }
 
-static void state_changed(void* listener, int state)
+static void state_changed(void* CE_UNUSED(listener), int state)
 {
-	ce_unused(listener);
-
 	if (CE_SCENEMNG_STATE_READY == state) {
 		const char* zone;
 		ce_optparse_get(optparse, "zone", &zone);

@@ -20,25 +20,19 @@
 
 #include <assert.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "cevalue.h"
 
-static void ce_value_void(ce_value* value)
+static void ce_value_void(ce_value* CE_UNUSED(value))
 {
-	ce_unused(value);
 }
 
-static void ce_value_void_arg(ce_value* value, void* arg)
+static void ce_value_void_arg(ce_value* CE_UNUSED(value), void* CE_UNUSED(arg))
 {
-	ce_unused(value);
-	ce_unused(arg);
 }
 
-static void ce_value_void_arg_const(ce_value* value, const void* arg)
+static void ce_value_void_arg_const(ce_value* CE_UNUSED(value), const void* CE_UNUSED(arg))
 {
-	ce_unused(value);
-	ce_unused(arg);
 }
 
 static void (*ce_value_new_procs[CE_TYPE_COUNT])(ce_value*) = {

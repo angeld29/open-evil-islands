@@ -24,7 +24,6 @@
 
 #include <argtable2.h>
 
-#include "celib.h"
 #include "cestr.h"
 #include "cealloc.h"
 #include "ceoptparse.h"
@@ -151,9 +150,8 @@ static int ce_optparse_get_props(ce_object* object, const char** shortopt,
 	return mincount;
 }
 
-static void* ce_optparse_create_void(ce_object* object)
+static void* ce_optparse_create_void(ce_object* CE_UNUSED(object))
 {
-	ce_unused(object);
 	assert(false);
 	return NULL;
 }
@@ -194,9 +192,8 @@ static void* (*ce_optparse_create_procs[CE_TYPE_COUNT])(ce_object*) = {
 	[CE_TYPE_STRING] = ce_optparse_create_string,
 };
 
-static void ce_optparse_assign_void(ce_object* object, void* arg)
+static void ce_optparse_assign_void(ce_object* CE_UNUSED(object), void* CE_UNUSED(arg))
 {
-	ce_unused(object), ce_unused(arg);
 	assert(false);
 }
 

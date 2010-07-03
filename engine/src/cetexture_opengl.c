@@ -156,9 +156,8 @@ static void ce_texture_generate_compressed(ce_mmpfile* mmpfile,
 
 static void ce_texture_generate_argb8(ce_mmpfile* mmpfile);
 
-static void ce_texture_generate_unknown(ce_mmpfile* mmpfile)
+static void ce_texture_generate_unknown(ce_mmpfile* CE_UNUSED(mmpfile))
 {
-	ce_unused(mmpfile);
 	assert(false && "not implemented");
 }
 
@@ -331,8 +330,7 @@ void ce_texture_bind(ce_texture* texture)
 	glBindTexture(GL_TEXTURE_2D, ((ce_texture_opengl*)texture->impl)->id);
 }
 
-void ce_texture_unbind(ce_texture* texture)
+void ce_texture_unbind(ce_texture* CE_UNUSED(texture))
 {
-	ce_unused(texture);
 	glDisable(GL_TEXTURE_2D);
 }

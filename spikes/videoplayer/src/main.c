@@ -23,7 +23,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "ceoptionmanager.h"
@@ -43,10 +42,8 @@ static void clean()
 	ce_optparse_del(optparse);
 }
 
-static void state_changed(void* listener, int state)
+static void state_changed(void* CE_UNUSED(listener), int state)
 {
-	ce_unused(listener);
-
 	if (CE_SCENEMNG_STATE_READY == state) {
 		const char* track;
 		ce_optparse_get(optparse, "track", &track);
@@ -62,10 +59,8 @@ static void state_changed(void* listener, int state)
 	}
 }
 
-static void advance(void* listener, float elapsed)
+static void advance(void* CE_UNUSED(listener), float elapsed)
 {
-	ce_unused(listener);
-
 	ce_inputsupply_advance(inputsupply, elapsed);
 	ce_video_object_advance(video_object, elapsed);
 
@@ -79,9 +74,8 @@ static void advance(void* listener, float elapsed)
 	}
 }
 
-static void render(void* listener)
+static void render(void* CE_UNUSED(listener))
 {
-	ce_unused(listener);
 	ce_video_object_render(video_object);
 }
 

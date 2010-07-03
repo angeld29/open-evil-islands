@@ -43,7 +43,7 @@ def configure(env):
 		CCFLAGS=["-pipe", "-pedantic-errors"],
 		CPPDEFINES=[
 			"CE_THREAD=__thread",
-			"CE_UNUSED(X)=unused##X __attribute__((unused))",
+			"CE_UNUSED(X)=X __attribute__((unused))",
 		],
 	)
 

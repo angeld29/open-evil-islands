@@ -23,7 +23,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cethread.h"
@@ -81,9 +80,8 @@ static void ce_root_system_event_handler(ce_system_event_type type)
 	ce_root.done = true;
 }
 
-static void ce_root_renderwindow_closed(void* listener)
+static void ce_root_renderwindow_closed(void* CE_UNUSED(listener))
 {
-	ce_unused(listener);
 	ce_root.done = true;
 }
 

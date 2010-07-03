@@ -28,7 +28,6 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cedisplay_posix.h"
@@ -341,9 +340,8 @@ ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title
 		ce_renderwindow_x11_pump}, sizeof(ce_renderwindow_x11), width, height, title);
 }
 
-static void ce_renderwindow_handler_skip(ce_renderwindow* renderwindow, XEvent* event)
+static void ce_renderwindow_handler_skip(ce_renderwindow* CE_UNUSED(renderwindow), XEvent* CE_UNUSED(event))
 {
-	ce_unused(renderwindow), ce_unused(event);
 }
 
 static void ce_renderwindow_handler_client_message(ce_renderwindow* renderwindow, XEvent* event)
@@ -358,17 +356,14 @@ static void ce_renderwindow_handler_client_message(ce_renderwindow* renderwindow
 	}
 }
 
-static void ce_renderwindow_handler_map_notify(ce_renderwindow* renderwindow, XEvent* event)
+static void ce_renderwindow_handler_map_notify(ce_renderwindow* renderwindow, XEvent* CE_UNUSED(event))
 {
-	ce_unused(event);
-
 	assert(CE_RENDERWINDOW_ACTION_NONE == renderwindow->action);
 	renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
 }
 
-static void ce_renderwindow_handler_visibility_notify(ce_renderwindow* renderwindow, XEvent* event)
+static void ce_renderwindow_handler_visibility_notify(ce_renderwindow* CE_UNUSED(renderwindow), XEvent* CE_UNUSED(event))
 {
-	ce_unused(renderwindow), ce_unused(event);
 }
 
 static void ce_renderwindow_handler_configure_notify(ce_renderwindow* renderwindow, XEvent* event)
@@ -382,10 +377,8 @@ static void ce_renderwindow_handler_configure_notify(ce_renderwindow* renderwind
 												event->xconfigure.height);
 }
 
-static void ce_renderwindow_handler_focus_in(ce_renderwindow* renderwindow, XEvent* event)
+static void ce_renderwindow_handler_focus_in(ce_renderwindow* CE_UNUSED(renderwindow), XEvent* event)
 {
-	ce_unused(renderwindow);
-
 	XAutoRepeatOff(event->xfocus.display);
 }
 

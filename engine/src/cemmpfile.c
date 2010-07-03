@@ -199,9 +199,8 @@ static size_t ce_mmpfile_storage_size_dxt(unsigned int width,
 
 static size_t ce_mmpfile_storage_size_ycbcr(unsigned int width,
 											unsigned int height,
-											ce_mmpfile_format format)
+											ce_mmpfile_format CE_UNUSED(format))
 {
-	ce_unused(format);
 	return 3 * width * height / 2;
 }
 
@@ -258,9 +257,8 @@ ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size)
 		uint32_t* u32;
 	} ptr = {data};
 
-	uint32_t signature = ce_le2cpu32(*ptr.u32++);
+	uint32_t CE_UNUSED(signature) = ce_le2cpu32(*ptr.u32++);
 	assert(CE_MMPFILE_SIGNATURE == signature && "wrong signature");
-	ce_unused(signature);
 
 	ce_mmpfile* mmpfile = ce_alloc(sizeof(ce_mmpfile));
 	mmpfile->width = ce_le2cpu32(*ptr.u32++);
@@ -423,9 +421,9 @@ static void ce_mmpfile_unpack32(const ce_mmpfile* mmpfile, ce_mmpfile* other)
 	}
 }
 
-static void ce_mmpfile_convert_unknown(const ce_mmpfile* mmpfile, ce_mmpfile* other)
+static void ce_mmpfile_convert_unknown(const ce_mmpfile* CE_UNUSED(mmpfile),
+											ce_mmpfile* CE_UNUSED(other))
 {
-	ce_unused(mmpfile), ce_unused(other);
 	assert(false && "not implemented");
 }
 

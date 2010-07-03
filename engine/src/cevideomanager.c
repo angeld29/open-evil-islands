@@ -22,7 +22,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cepath.h"
@@ -57,10 +56,8 @@ void ce_video_manager_term(void)
 	}
 }
 
-void ce_video_manager_advance(float elapsed)
+void ce_video_manager_advance(float CE_UNUSED(elapsed))
 {
-	ce_unused(elapsed);
-
 	/*for (size_t i = 0; i < ce_video_manager->video_instances->count; ) {
 		ce_video_instance* video_instance = video_manager->video_instances->items[i];
 		if (ce_video_instance_is_stopped(video_instance)) {

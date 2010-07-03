@@ -185,10 +185,9 @@ static bool ce_flac_test(ce_sound_probe* sound_probe)
 			0 == memcmp(fourcc, "fLaC", 4);
 }
 
-FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDecoder* decoder,
+FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	FLAC__byte buffer[], size_t* bytes, void* client_data)
 {
-	ce_unused(decoder);
 	ce_sound_resource* sound_resource = client_data;
 
 	if (0 == *bytes) {
@@ -208,23 +207,19 @@ FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDecoder* d
 	return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 }
 
-FLAC__StreamDecoderSeekStatus ce_flac_seek_callback(const FLAC__StreamDecoder* decoder,
+FLAC__StreamDecoderSeekStatus ce_flac_seek_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	FLAC__uint64 absolute_byte_offset, void *client_data)
 {
-	ce_unused(decoder);
 	ce_sound_resource* sound_resource = client_data;
-
 	return ce_mem_file_seek(sound_resource->mem_file,
 		absolute_byte_offset, CE_MEM_FILE_SEEK_SET) < 0 ?
 		FLAC__STREAM_DECODER_SEEK_STATUS_ERROR :
 		FLAC__STREAM_DECODER_SEEK_STATUS_OK;
 }
 
-FLAC__StreamDecoderTellStatus ce_flac_tell_callback(const FLAC__StreamDecoder* decoder,
+FLAC__StreamDecoderTellStatus ce_flac_tell_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	FLAC__uint64* absolute_byte_offset, void* client_data)
 {
-	ce_unused(decoder);
-
 	ce_sound_resource* sound_resource = client_data;
 	long int pos = ce_mem_file_tell(sound_resource->mem_file);
 
@@ -236,11 +231,9 @@ FLAC__StreamDecoderTellStatus ce_flac_tell_callback(const FLAC__StreamDecoder* d
 	return FLAC__STREAM_DECODER_TELL_STATUS_OK;
 }
 
-FLAC__StreamDecoderLengthStatus ce_flac_length_callback(const FLAC__StreamDecoder* decoder,
+FLAC__StreamDecoderLengthStatus ce_flac_length_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	FLAC__uint64* stream_length, void* client_data)
 {
-	ce_unused(decoder);
-
 	ce_sound_resource* sound_resource = client_data;
 	long int size = ce_mem_file_size(sound_resource->mem_file);
 
@@ -252,19 +245,15 @@ FLAC__StreamDecoderLengthStatus ce_flac_length_callback(const FLAC__StreamDecode
 	return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
 }
 
-FLAC__bool ce_flac_eof_callback(const FLAC__StreamDecoder* decoder, void* client_data)
+FLAC__bool ce_flac_eof_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder), void* client_data)
 {
-	ce_unused(decoder);
 	ce_sound_resource* sound_resource = client_data;
-
 	return ce_mem_file_eof(sound_resource->mem_file) ? true : false;
 }
 
-FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamDecoder* decoder,
+FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	const FLAC__Frame* frame, const FLAC__int32* const buffer[], void* client_data)
 {
-	ce_unused(decoder);
-
 	ce_sound_resource* sound_resource = client_data;
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
 	FLAC__int16* output_buffer = (FLAC__int16*)flac->output_buffer;
@@ -289,10 +278,9 @@ FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamDecoder*
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-void ce_flac_metadata_callback(const FLAC__StreamDecoder* decoder,
+void ce_flac_metadata_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	const FLAC__StreamMetadata* metadata, void* client_data)
 {
-	ce_unused(decoder);
 	ce_sound_resource* sound_resource = client_data;
 
 	if (FLAC__METADATA_TYPE_STREAMINFO == metadata->type) {
@@ -305,21 +293,18 @@ void ce_flac_metadata_callback(const FLAC__StreamDecoder* decoder,
 	}
 }
 
-void ce_flac_error_callback(const FLAC__StreamDecoder* decoder,
-	FLAC__StreamDecoderErrorStatus status, void* client_data)
+void ce_flac_error_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
+	FLAC__StreamDecoderErrorStatus status, void* CE_UNUSED(client_data))
 {
-	ce_unused(decoder), ce_unused(client_data);
 	ce_logging_error("flac: an error %d occurred during decompression", status);
 }
 
-static bool ce_flac_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe)
+static bool ce_flac_ctor(ce_sound_resource* sound_resource, ce_sound_probe* CE_UNUSED(sound_probe))
 {
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
-
-	ce_unused(sound_probe);
-	ce_mem_file_rewind(sound_resource->mem_file);
-
 	flac->decoder = FLAC__stream_decoder_new();
+
+	ce_mem_file_rewind(sound_resource->mem_file);
 
 	if (FLAC__STREAM_DECODER_INIT_STATUS_OK != FLAC__stream_decoder_init_stream(flac->decoder,
 			ce_flac_read_callback, ce_flac_seek_callback, ce_flac_tell_callback,
@@ -648,14 +633,12 @@ static void ce_mad_clean(ce_mad* mad)
 	mad_stream_finish(&mad->stream);
 }
 
-static bool ce_mad_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe)
+static bool ce_mad_ctor(ce_sound_resource* sound_resource, ce_sound_probe* CE_UNUSED(sound_probe))
 {
 	ce_mad* mad = (ce_mad*)sound_resource->impl;
-
-	ce_unused(sound_probe);
-	ce_mem_file_rewind(sound_resource->mem_file);
-
 	ce_mad_init(mad);
+
+	ce_mem_file_rewind(sound_resource->mem_file);
 
 	if (!ce_mad_decode(sound_resource)) {
 		ce_logging_error("mad: input does not appear to be a MPEG audio");

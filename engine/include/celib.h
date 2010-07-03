@@ -25,8 +25,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define ce_unused(var) (void)(var)
-
 #define CE_LIB_DEF_MIN(T) \
 static inline T ce_min_##T(T a, T b) \
 { \

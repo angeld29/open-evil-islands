@@ -22,7 +22,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
 #include "cepath.h"
@@ -56,10 +55,8 @@ void ce_sound_manager_term(void)
 	}
 }
 
-void ce_sound_manager_advance(float elapsed)
+void ce_sound_manager_advance(float CE_UNUSED(elapsed))
 {
-	ce_unused(elapsed);
-
 	/*for (size_t i = 0; i < ce_sound_manager->sound_instances->count; ) {
 		ce_sound_instance* sound_instance = ce_sound_manager->sound_instances->items[i];
 		if (ce_sound_instance_is_stopped(sound_instance)) {

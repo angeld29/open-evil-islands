@@ -102,10 +102,8 @@ static void display_message(const char* fmt, ...)
 	message_color.a = 1.0f;
 }
 
-static void state_changed(void* listener, int state)
+static void state_changed(void* CE_UNUSED(listener), int state)
 {
-	ce_unused(listener);
-
 	if (CE_SCENEMNG_STATE_READY == state) {
 		if (update_figentity()) {
 			const char* anmname;
@@ -141,9 +139,8 @@ static void state_changed(void* listener, int state)
 	}
 }
 
-static void advance(void* listener, float elapsed)
+static void advance(void* CE_UNUSED(listener), float elapsed)
 {
-	ce_unused(listener);
 	ce_inputsupply_advance(inputsupply, elapsed);
 
 	if (message_timeout > 0.0f) {
@@ -207,9 +204,8 @@ static void advance(void* listener, float elapsed)
 	}
 }
 
-static void render(void* listener)
+static void render(void* CE_UNUSED(listener))
 {
-	ce_unused(listener);
 	if (message_timeout > 0.0f) {
 		ce_font_render(ce_root.scenemng->font, (ce_root.scenemng->viewport->width -
 			ce_font_get_width(ce_root.scenemng->font, message->str)) / 2,

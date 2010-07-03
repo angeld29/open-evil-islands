@@ -32,7 +32,6 @@
 #include <theora/theoradec.h>
 #include <libavcodec/avcodec.h>
 
-#include "celib.h"
 #include "cestr.h"
 #include "cealloc.h"
 #include "celogging.h"
@@ -60,9 +59,8 @@ typedef struct {
 	th_ycbcr_buffer ycbcr;
 } ce_theora;
 
-static size_t ce_theora_size_hint(ce_mem_file* mem_file)
+static size_t ce_theora_size_hint(ce_mem_file* CE_UNUSED(mem_file))
 {
-	ce_unused(mem_file);
 	return sizeof(ce_theora);
 }
 
@@ -362,10 +360,9 @@ static bool ce_theora_read(ce_video_resource* video_resource)
 	return false;
 }
 
-static bool ce_theora_reset(ce_video_resource* video_resource)
+static bool ce_theora_reset(ce_video_resource* CE_UNUSED(video_resource))
 {
-	// TODO: not implemented
-	ce_unused(video_resource);
+	// TODO: implementation
 	return false;
 }
 

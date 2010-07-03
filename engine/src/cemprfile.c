@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "celib.h"
 #include "cealloc.h"
 #include "cebyteorder.h"
 #include "ceresball.h"
@@ -135,9 +134,8 @@ ce_mprfile* ce_mprfile_open(ce_res_file* res_file)
 		uint32_t* u32;
 	} ptr = { mprfile->data };
 
-	uint32_t signature = ce_le2cpu32(*ptr.u32++);
+	uint32_t CE_UNUSED(signature) = ce_le2cpu32(*ptr.u32++);
 	assert(MP_SIGNATURE == signature && "wrong signature");
-	ce_unused(signature);
 
 	mprfile->max_y = *ptr.f++;
 	mprfile->sector_x_count = ce_le2cpu32(*ptr.u32++);
