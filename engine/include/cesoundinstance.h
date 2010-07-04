@@ -23,7 +23,7 @@
 
 #include <stdbool.h>
 
-#include "cethread.h"
+#include "ceringbuffer.h"
 #include "cesoundobject.h"
 #include "cesoundresource.h"
 
@@ -38,21 +38,18 @@ enum {
 };
 
 typedef struct {
-	ce_sound_object sound_object;
 	int state;
 	float time; // playing time in seconds
+	ce_sound_object sound_object;
 	ce_sound_resource* sound_resource;
-	ce_mutex* mutex;
-	ce_wait_condition* wait_condition;
-	ce_thread* thread;
-	volatile bool done;
+	ce_ring_buffer* ring_buffer;
 } ce_sound_instance;
 
 extern ce_sound_instance* ce_sound_instance_new(ce_sound_object sound_object,
 											ce_sound_resource* sound_resource);
 extern void ce_sound_instance_del(ce_sound_instance* sound_instance);
 
-extern float ce_sound_instance_time(ce_sound_instance* sound_instance);
+extern void ce_sound_instance_advance(ce_sound_instance* sound_instance, float elapsed);
 
 static inline bool ce_sound_instance_is_stopped(ce_sound_instance* sound_instance)
 {

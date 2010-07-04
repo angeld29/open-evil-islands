@@ -26,7 +26,6 @@
 #include "celogging.h"
 #include "cepath.h"
 #include "ceoptionmanager.h"
-#include "cesoundmanager.h"
 #include "cevideomanager.h"
 
 struct ce_video_manager* ce_video_manager;
@@ -56,19 +55,6 @@ void ce_video_manager_term(void)
 	}
 }
 
-void ce_video_manager_advance(float CE_UNUSED(elapsed))
-{
-	/*for (size_t i = 0; i < ce_video_manager->video_instances->count; ) {
-		ce_video_instance* video_instance = video_manager->video_instances->items[i];
-		if (ce_video_instance_is_stopped(video_instance)) {
-			ce_video_instance_del(video_instance);
-			ce_vector_remove_unordered(video_manager->video_instances, i);
-		} else {
-			++i;
-		}
-	}*/
-}
-
 ce_video_object ce_video_manager_create(const char* name)
 {
 	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
@@ -90,7 +76,7 @@ ce_video_object ce_video_manager_create(const char* name)
 	}
 
 	ce_video_object video_object = ++ce_video_manager->last_video_object;
-	ce_sound_object sound_object = ce_sound_manager_create(name);
+	ce_sound_object sound_object = ce_sound_object_new(name);
 
 	ce_video_instance* video_instance = ce_video_instance_new(video_object, sound_object, video_resource);
 	if (NULL == video_instance) {

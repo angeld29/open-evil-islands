@@ -81,7 +81,8 @@ void ce_event_queue_process_events_timeout(ce_event_queue* queue, int max_time)
 		for (float time = 0.0f, limit = 1e-3f * max_time;
 				!ce_vector_empty(queue->sending_events) && time < limit;
 				time += queue->timer->elapsed, ++sent_event_count) {
-			ce_event* event = ce_vector_pop_back(queue->sending_events);
+			// TODO: linked list ?
+			ce_event* event = ce_vector_pop_front(queue->sending_events);
 			(*event->notify)(event);
 			ce_event_del(event);
 			ce_timer_advance(queue->timer);
@@ -179,4 +180,11 @@ void ce_event_manager_post_raw(ce_thread_id thread_id,
 	ce_event* event = ce_event_new(notify, size);
 	memcpy(event->impl, impl, size);
 	ce_event_manager_post_event(thread_id, event);
+}
+
+void ce_event_manager_post_pointer(ce_thread_id thread_id,
+									void (*notify)(ce_event*), void* ptr)
+{
+	ce_event_manager_post_raw(thread_id, notify,
+		&(ce_event_ptr){ptr}, sizeof(ce_event_ptr));
 }

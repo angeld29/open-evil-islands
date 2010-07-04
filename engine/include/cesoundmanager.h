@@ -22,6 +22,8 @@
 #define CE_SOUNDMANAGER_H
 
 #include "cevector.h"
+#include "cetimer.h"
+#include "cethread.h"
 #include "cesoundobject.h"
 #include "cesoundinstance.h"
 
@@ -30,16 +32,17 @@ extern "C" {
 #endif
 
 extern struct ce_sound_manager {
+	bool done;
 	ce_sound_object last_sound_object;
 	ce_vector* sound_instances;
+	ce_timer* timer;
+	ce_thread* thread;
 }* ce_sound_manager;
 
 extern void ce_sound_manager_init(void);
 extern void ce_sound_manager_term(void);
 
-extern void ce_sound_manager_advance(float elapsed);
-
-extern ce_sound_object ce_sound_manager_create(const char* name);
+extern ce_sound_object ce_sound_manager_create_object(const char* name);
 extern ce_sound_instance* ce_sound_manager_find(ce_sound_object sound_object);
 
 #ifdef __cplusplus

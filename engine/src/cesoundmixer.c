@@ -110,12 +110,12 @@ void ce_sound_mixer_term(void)
 
 void ce_sound_mixer_register_buffer(ce_ring_buffer* ring_buffer)
 {
-	ce_event_manager_post_raw(ce_sound_mixer->thread->id, ce_sound_mixer_register_buffer_react,
-							&(ce_event_ptr){ring_buffer}, sizeof(ce_event_ptr));
+	ce_event_manager_post_pointer(ce_sound_mixer->thread->id,
+		ce_sound_mixer_register_buffer_react, ring_buffer);
 }
 
 void ce_sound_mixer_unregister_buffer(ce_ring_buffer* ring_buffer)
 {
-	ce_event_manager_post_raw(ce_sound_mixer->thread->id, ce_sound_mixer_unregister_buffer_react,
-							&(ce_event_ptr){ring_buffer}, sizeof(ce_event_ptr));
+	ce_event_manager_post_pointer(ce_sound_mixer->thread->id,
+		ce_sound_mixer_unregister_buffer_react, ring_buffer);
 }

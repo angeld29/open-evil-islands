@@ -25,10 +25,21 @@
 #include "cesoundmanager.h"
 #include "cesoundobject.h"
 
+ce_sound_object ce_sound_object_new(const char* name)
+{
+	return ce_sound_manager_create_object(name);
+}
+
+void ce_sound_object_del(ce_sound_object sound_object)
+{
+	// TODO
+	(void)sound_object;
+}
+
 float ce_sound_object_time(ce_sound_object sound_object)
 {
 	ce_sound_instance* sound_instance = ce_sound_manager_find(sound_object);
-	return NULL != sound_instance ? ce_sound_instance_time(sound_instance) : 0.0f;
+	return NULL != sound_instance ? sound_instance->time : 0.0f;
 }
 
 bool ce_sound_object_is_valid(ce_sound_object sound_object)

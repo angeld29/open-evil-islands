@@ -27,6 +27,9 @@ extern "C" {
 
 typedef unsigned long int ce_sound_object;
 
+extern ce_sound_object ce_sound_object_new(const char* name);
+extern void ce_sound_object_del(ce_sound_object sound_object);
+
 extern float ce_sound_object_time(ce_sound_object sound_object);
 
 extern bool ce_sound_object_is_valid(ce_sound_object sound_object);

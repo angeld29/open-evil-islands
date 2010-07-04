@@ -39,11 +39,11 @@ typedef struct {
 extern ce_ring_buffer* ce_ring_buffer_new(size_t capacity);
 extern void ce_ring_buffer_del(ce_ring_buffer* ring_buffer);
 
-extern size_t ce_ring_buffer_read(ce_ring_buffer* ring_buffer,
-									void* buffer, size_t size);
+extern void ce_ring_buffer_read(ce_ring_buffer* ring_buffer,
+								void* buffer, size_t size);
 
-extern size_t ce_ring_buffer_write(ce_ring_buffer* ring_buffer,
-									const void* buffer, size_t size);
+extern void ce_ring_buffer_write(ce_ring_buffer* ring_buffer,
+								const void* buffer, size_t size);
 
 static inline size_t ce_ring_buffer_size_read(ce_ring_buffer* ring_buffer)
 {

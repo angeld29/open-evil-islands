@@ -265,9 +265,6 @@ int ce_root_exec(void)
 			}
 		}
 
-		ce_sound_manager_advance(elapsed);
-		ce_video_manager_advance(elapsed);
-
 		ce_scenemng_advance(ce_root.scenemng, elapsed);
 		ce_scenemng_render(ce_root.scenemng);
 

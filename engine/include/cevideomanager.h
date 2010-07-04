@@ -37,8 +37,6 @@ extern struct ce_video_manager {
 extern void ce_video_manager_init(void);
 extern void ce_video_manager_term(void);
 
-extern void ce_video_manager_advance(float elapsed);
-
 extern ce_video_object ce_video_manager_create(const char* name);
 extern ce_video_instance* ce_video_manager_find(ce_video_object video_object);
 

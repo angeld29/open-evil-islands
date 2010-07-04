@@ -43,7 +43,7 @@ void ce_ring_buffer_del(ce_ring_buffer* ring_buffer)
 	}
 }
 
-size_t ce_ring_buffer_read(ce_ring_buffer* ring_buffer, void* buffer, size_t size)
+void ce_ring_buffer_read(ce_ring_buffer* ring_buffer, void* buffer, size_t size)
 {
 	char* data = buffer;
 	ce_semaphore_acquire(ring_buffer->prepared_data, size);
@@ -58,11 +58,9 @@ size_t ce_ring_buffer_read(ce_ring_buffer* ring_buffer, void* buffer, size_t siz
 
 	ring_buffer->start = (ring_buffer->start + size) % ring_buffer->capacity;
 	ce_semaphore_release(ring_buffer->unprepared_data, size);
-
-	return size;
 }
 
-size_t ce_ring_buffer_write(ce_ring_buffer* ring_buffer, const void* buffer, size_t size)
+void ce_ring_buffer_write(ce_ring_buffer* ring_buffer, const void* buffer, size_t size)
 {
 	const char* data = buffer;
 	ce_semaphore_acquire(ring_buffer->unprepared_data, size);
@@ -77,6 +75,4 @@ size_t ce_ring_buffer_write(ce_ring_buffer* ring_buffer, const void* buffer, siz
 
 	ring_buffer->end = (ring_buffer->end + size) % ring_buffer->capacity;
 	ce_semaphore_release(ring_buffer->prepared_data, size);
-
-	return size;
 }
