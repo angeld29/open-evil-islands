@@ -224,18 +224,14 @@ static void ce_mob_file_block_object_object_comment(ce_mob_file* mob_file, ce_me
 
 static void ce_mob_file_block_object_object_position(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	float position[3];
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
-	ce_mem_file_read(mem_file, position, sizeof(float), 3);
-	ce_vec3_init_array(&object->position, position);
+	ce_mem_file_read(mem_file, object->position, sizeof(float), 3);
 }
 
 static void ce_mob_file_block_object_object_rotation(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	float rotation[4];
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
-	ce_mem_file_read(mem_file, rotation, sizeof(float), 4);
-	ce_quat_init_array(&object->rotation, rotation);
+	ce_mem_file_read(mem_file, object->rotation, sizeof(float), 4);
 }
 
 static void ce_mob_file_block_object_object_quest(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
@@ -264,10 +260,8 @@ static void ce_mob_file_block_object_object_quest_info(ce_mob_file* mob_file, ce
 
 static void ce_mob_file_block_object_object_complection(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	float complection[3];
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
-	ce_mem_file_read(mem_file, complection, sizeof(float), 3);
-	ce_complection_init_array(&object->complection, complection);
+	ce_mem_file_read(mem_file, object->complection, sizeof(float), 3);
 }
 
 // unit

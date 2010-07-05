@@ -23,9 +23,6 @@
 
 #include <stdint.h>
 
-#include "cevec3.h"
-#include "cequat.h"
-#include "cecomplection.h"
 #include "cevector.h"
 #include "cestring.h"
 
@@ -43,9 +40,9 @@ typedef struct {
 struct ce_mob_object {
 	uint8_t owner, quest, shadow;
 	uint32_t type, id, parent_id;
-	ce_vec3 position;
-	ce_quat rotation;
-	ce_complection complection;
+	float position[3];
+	float rotation[4];
+	float complection[3];
 	ce_vector* parts;
     ce_string* name;
 	ce_string* model_name;

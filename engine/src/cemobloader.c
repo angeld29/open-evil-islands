@@ -38,9 +38,9 @@ struct ce_mob_loader* ce_mob_loader;
 typedef struct {
 	ce_mob_task* mob_task;
 	const char* model_name;
-	ce_complection complection;
 	ce_vec3 position;
 	ce_quat orientation;
+	ce_complection complection;
 	const char* textures[2 + 1]; // NULL-terminated
 	const char* parts[]; // NULL-terminated
 } ce_mob_object_event;
@@ -92,18 +92,20 @@ static void ce_mob_task_exec(ce_mob_task* mob_task)
 
 		mob_object_event->mob_task = mob_task;
 		mob_object_event->model_name = mob_object->model_name->str;
-		mob_object_event->complection = mob_object->complection;
-		mob_object_event->position = mob_object->position;
 
+		ce_vec3_init_array(&mob_object_event->position, mob_object->position);
 		ce_swap_temp(float, &mob_object_event->position.y,
 							&mob_object_event->position.z);
 
 		// FIXME: GL's hard-code
 		mob_object_event->position.z = -mob_object_event->position.z;
 
-		ce_quat quat;
-		ce_quat_init_polar(&quat, ce_deg2rad(-90.0f), &CE_VEC3_UNIT_X);
-		ce_quat_mul(&mob_object_event->orientation, &quat, &mob_object->rotation);
+		ce_quat quat1, quat2;
+		ce_quat_init_array(&quat1, mob_object->rotation);
+		ce_quat_init_polar(&quat2, ce_deg2rad(-90.0f), &CE_VEC3_UNIT_X);
+		ce_quat_mul(&mob_object_event->orientation, &quat2, &quat1);
+
+		ce_complection_init_array(&mob_object_event->complection, mob_object->complection);
 
 		for (size_t j = 0; j < mob_object->parts->count; ++j) {
 			ce_string* part = mob_object->parts->items[j];
