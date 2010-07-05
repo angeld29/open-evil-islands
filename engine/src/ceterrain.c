@@ -133,7 +133,7 @@ static void ce_terrain_sector_exec(ce_terrain_sector* sector)
 		}
 	}
 
-	ce_event_manager_post_pointer(ce_render_system->thread_id, ce_terrain_sector_react, sector);
+	ce_event_manager_post_ptr(ce_render_system->thread_id, ce_terrain_sector_react, sector);
 }
 
 static void ce_scenenode_updated(void* listener)

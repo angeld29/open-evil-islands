@@ -182,7 +182,7 @@ void ce_event_manager_post_raw(ce_thread_id thread_id,
 	ce_event_manager_post_event(thread_id, event);
 }
 
-void ce_event_manager_post_pointer(ce_thread_id thread_id,
+void ce_event_manager_post_ptr(ce_thread_id thread_id,
 									void (*notify)(ce_event*), void* ptr)
 {
 	ce_event_manager_post_raw(thread_id, notify,

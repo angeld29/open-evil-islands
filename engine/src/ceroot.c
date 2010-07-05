@@ -227,7 +227,6 @@ int ce_root_exec(void)
 	for (;;) {
 		float elapsed = ce_timer_advance(ce_root.timer);
 
-		// I found this optimal limit as:
 		// 40 milliseconds - 25 times per second
 		ce_event_manager_process_events_timeout(40);
 
@@ -264,6 +263,8 @@ int ce_root_exec(void)
 				ce_root.comprehensive_bbox_only = true;
 			}
 		}
+
+		ce_sound_manager_advance(elapsed);
 
 		ce_scenemng_advance(ce_root.scenemng, elapsed);
 		ce_scenemng_render(ce_root.scenemng);

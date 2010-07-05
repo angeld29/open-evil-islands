@@ -32,24 +32,25 @@
 
 struct ce_sound_mixer* ce_sound_mixer;
 
-static void ce_sound_mixer_exit_react(ce_event* CE_UNUSED(event))
-{
-	ce_sound_mixer->done = true;
-}
-
-static void ce_sound_mixer_register_buffer_react(ce_event* event)
+static void ce_sound_mixer_acquire_buffer_react(ce_event* event)
 {
 	ce_ring_buffer* ring_buffer = ((ce_event_ptr*)event->impl)->ptr;
 	ce_vector_push_back(ce_sound_mixer->ring_buffers, ring_buffer);
 }
 
-static void ce_sound_mixer_unregister_buffer_react(ce_event* event)
+static void ce_sound_mixer_release_buffer_react(ce_event* event)
 {
 	ce_ring_buffer* ring_buffer = ((ce_event_ptr*)event->impl)->ptr;
 	ce_vector_remove_all(ce_sound_mixer->ring_buffers, ring_buffer);
+	ce_ring_buffer_del(ring_buffer);
 }
 
-static void ce_sound_mixer_mix(void* dst, const void* src1, const void* src2)
+static void ce_sound_mixer_exit(ce_event* CE_UNUSED(event))
+{
+	ce_sound_mixer->done = true;
+}
+
+static void ce_sound_mixer_mix_samples(void* dst, const void* src1, const void* src2)
 {
 	// 16 bits, 2 channels hard-coded
 
@@ -77,7 +78,7 @@ static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
 				if (ce_ring_buffer_size_read(ring_buffer) >= CE_SOUND_SYSTEM_SAMPLE_SIZE) {
 					char buffer[CE_SOUND_SYSTEM_SAMPLE_SIZE];
 					ce_ring_buffer_read(ring_buffer, buffer, CE_SOUND_SYSTEM_SAMPLE_SIZE);
-					ce_sound_mixer_mix(block, block, buffer);
+					ce_sound_mixer_mix_samples(block, block, buffer);
 				}
 			}
 		}
@@ -97,25 +98,28 @@ void ce_sound_mixer_init(void)
 void ce_sound_mixer_term(void)
 {
 	if (NULL != ce_sound_mixer) {
-		ce_event_manager_post_call(ce_sound_mixer->thread->id, ce_sound_mixer_exit_react);
+		ce_event_manager_post_call(ce_sound_mixer->thread->id, ce_sound_mixer_exit);
 		ce_thread_wait(ce_sound_mixer->thread);
 		ce_thread_del(ce_sound_mixer->thread);
 		if (!ce_vector_empty(ce_sound_mixer->ring_buffers)) {
 			ce_logging_warning("sound mixer: some ring buffers have not been unregistered");
 		}
+		ce_vector_for_each(ce_sound_mixer->ring_buffers, ce_ring_buffer_del);
 		ce_vector_del(ce_sound_mixer->ring_buffers);
 		ce_free(ce_sound_mixer, sizeof(struct ce_sound_mixer));
 	}
 }
 
-void ce_sound_mixer_register_buffer(ce_ring_buffer* ring_buffer)
+ce_ring_buffer* ce_sound_mixer_acquire_buffer(void)
 {
-	ce_event_manager_post_pointer(ce_sound_mixer->thread->id,
-		ce_sound_mixer_register_buffer_react, ring_buffer);
+	ce_ring_buffer* ring_buffer = ce_ring_buffer_new(CE_SOUND_SYSTEM_BLOCK_SIZE * CE_SOUND_SYSTEM_BLOCK_COUNT);
+	ce_event_manager_post_ptr(ce_sound_mixer->thread->id,
+		ce_sound_mixer_acquire_buffer_react, ring_buffer);
+	return ring_buffer;
 }
 
-void ce_sound_mixer_unregister_buffer(ce_ring_buffer* ring_buffer)
+void ce_sound_mixer_release_buffer(ce_ring_buffer* ring_buffer)
 {
-	ce_event_manager_post_pointer(ce_sound_mixer->thread->id,
-		ce_sound_mixer_unregister_buffer_react, ring_buffer);
+	ce_event_manager_post_ptr(ce_sound_mixer->thread->id,
+		ce_sound_mixer_release_buffer_react, ring_buffer);
 }

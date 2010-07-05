@@ -35,15 +35,15 @@ static const char* ce_video_exts[] = {".ogv", ".ogg", ".bik", NULL};
 
 void ce_video_manager_init(void)
 {
+	ce_video_manager = ce_alloc_zero(sizeof(struct ce_video_manager));
+	ce_video_manager->video_instances = ce_vector_new();
+
 	char path[ce_option_manager->ei_path->length + 16];
 	for (size_t i = 0; NULL != ce_video_dirs[i]; ++i) {
 		ce_path_join(path, sizeof(path),
 			ce_option_manager->ei_path->str, ce_video_dirs[i], NULL);
 		ce_logging_write("video manager: using path '%s'", path);
 	}
-
-	ce_video_manager = ce_alloc_zero(sizeof(struct ce_video_manager));
-	ce_video_manager->video_instances = ce_vector_new();
 }
 
 void ce_video_manager_term(void)
