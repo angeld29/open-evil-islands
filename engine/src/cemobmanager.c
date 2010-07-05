@@ -52,13 +52,13 @@ void ce_mob_manager_term(void)
 	}
 }
 
-ce_mobfile* ce_mob_manager_open(const char* name)
+ce_mob_file* ce_mob_manager_open(const char* name)
 {
 	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
 	if (NULL != ce_path_find_special1(path, sizeof(path),
 										ce_option_manager->ei_path->str,
 										name, ce_mob_dirs, ce_mob_exts)) {
-		return ce_mobfile_open(path);
+		return ce_mob_file_open(path);
 	}
 	return NULL;
 }

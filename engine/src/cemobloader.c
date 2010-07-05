@@ -82,7 +82,7 @@ static void ce_mob_task_exec(ce_mob_task* mob_task)
 	ce_logging_info("mob task: posting %zu events...", mob_task->posted_event_count);
 
 	for (size_t i = 0; i < mob_task->mob_file->objects->count; ++i) {
-		ce_mobobject_object* mob_object = mob_task->mob_file->objects->items[i];
+		ce_mob_object* mob_object = mob_task->mob_file->objects->items[i];
 
 		ce_event* event = ce_event_new(ce_mob_object_event_react,
 			sizeof(ce_mob_object_event) +
@@ -128,7 +128,7 @@ ce_mob_task* ce_mob_task_new(const char* name)
 void ce_mob_task_del(ce_mob_task* mob_task)
 {
 	if (NULL != mob_task) {
-		ce_mobfile_close(mob_task->mob_file);
+		ce_mob_file_close(mob_task->mob_file);
 		ce_string_del(mob_task->name);
 		ce_free(mob_task, sizeof(ce_mob_task));
 	}

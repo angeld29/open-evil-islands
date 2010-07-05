@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #ifndef CE_MOBFILE_H
 #define CE_MOBFILE_H
 
-#include <stdbool.h>
+#include <stdint.h>
 
 #include "cevec3.h"
 #include "cequat.h"
@@ -30,41 +30,36 @@
 #include "cestring.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 typedef struct {
+	uint8_t owner, quest, shadow;
+	uint32_t type, id, parent_id;
+	ce_vec3 position;
+	ce_quat rotation;
+	ce_complection complection;
 	ce_vector* parts;
-	int owner;
-	int id;
-	int type;
     ce_string* name;
 	ce_string* model_name;
 	ce_string* parent_name;
 	ce_string* primary_texture;
 	ce_string* secondary_texture;
 	ce_string* comment;
-	ce_vec3 position;
-	ce_quat rotation;
-	bool quest;
-	bool shadow;
-	int parent_id;
 	ce_string* quest_info;
-	ce_complection complection;
-} ce_mobobject_object;
+} ce_mob_object;
 
 typedef struct {
 	ce_string* name;
 	ce_string* script;
 	ce_vector* objects;
-} ce_mobfile;
+} ce_mob_file;
 
-extern ce_mobfile* ce_mobfile_open(const char* path);
-extern void ce_mobfile_close(ce_mobfile* mob);
+extern ce_mob_file* ce_mob_file_open(const char* path);
+extern void ce_mob_file_close(ce_mob_file* mob_file);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_MOBFILE_H */

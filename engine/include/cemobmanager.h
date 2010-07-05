@@ -34,7 +34,7 @@ extern struct ce_mob_manager {
 extern void ce_mob_manager_init(void);
 extern void ce_mob_manager_term(void);
 
-extern ce_mobfile* ce_mob_manager_open(const char* name);
+extern ce_mob_file* ce_mob_manager_open(const char* name);
 
 #ifdef __cplusplus
 }

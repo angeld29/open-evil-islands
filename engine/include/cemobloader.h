@@ -36,7 +36,7 @@ typedef struct {
 	size_t processed_event_count;
 	size_t posted_event_count;
 	ce_string* name;
-	ce_mobfile* mob_file;
+	ce_mob_file* mob_file;
 } ce_mob_task;
 
 extern ce_mob_task* ce_mob_task_new(const char* name);
