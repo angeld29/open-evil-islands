@@ -78,6 +78,13 @@ typedef struct {
 } ce_mob_unit;
 
 typedef struct {
+	uint32_t stats[3];
+	uint8_t state, state_count;
+	uint8_t cyclic, door;
+	uint8_t recalc_graph;
+} ce_mob_lever;
+
+typedef struct {
 	ce_string* name;
 	ce_string* script;
 	ce_vector* objects;

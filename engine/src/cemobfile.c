@@ -392,6 +392,15 @@ static void ce_mob_file_block_object_unit_logic_nalarm(ce_mob_file* mob_file, ce
 	mob_unit_logic->nalarm = ce_mem_file_read_u8(mem_file);
 }
 
+// lever
+
+static void ce_mob_file_block_object_lever(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	ce_vector_push_back(mob_file->objects, ce_mob_object_new((ce_mob_object_vtable){sizeof(ce_mob_lever), NULL}));
+	ce_mob_file_block_loop(mob_file, mem_file, size);
+	ce_logging_debug("lever");
+}
+
 typedef void (*ce_mob_file_block_callback)(ce_mob_file*, ce_mem_file*, size_t);
 
 typedef struct {
@@ -444,7 +453,7 @@ static const ce_mob_file_block_pair ce_mob_file_block_pairs[] = {
 	{0xbbbc0005, ce_mob_file_block_object_unit_logic_guard_position},
 	{0xbbbc0007, ce_mob_file_block_object_unit_logic_use},
 	{0xbbbc0006, ce_mob_file_block_object_unit_logic_nalarm},
-	//{0xbbac0000, ce_mob_file_block_object_lever},
+	{0xbbac0000, ce_mob_file_block_object_lever},
 	//{0xbbab0000, ce_mob_file_block_object_trap},
 	//{0xbbbf, ce_mob_file_block_object_flame},
 	//{0xaa01, ce_mob_file_block_object_particle1},
@@ -470,8 +479,7 @@ static void ce_mob_file_block_loop(ce_mob_file* mob_file, ce_mem_file* mem_file,
 		uint32_t child_size = ce_mem_file_read_u32le(mem_file);
 
 		size -= child_size;
-
-		child_size -= 4 * 2;
+		child_size -= 4 + 4;
 
 #if 0
 		// WARNING: graph data reversing
@@ -561,6 +569,7 @@ static void ce_mob_file_block_loop(ce_mob_file* mob_file, ce_mem_file* mem_file,
 		}
 #endif
 
+		ce_logging_debug("callback %#x %u", child_type, child_size);
 		(*ce_mob_choose_callback(child_type))(mob_file, mem_file, child_size);
 	}
 }
