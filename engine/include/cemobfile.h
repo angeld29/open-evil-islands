@@ -33,7 +33,14 @@
 extern "C" {
 #endif
 
+typedef struct ce_mob_object ce_mob_object;
+
 typedef struct {
+	size_t size;
+	void (*dtor)(ce_mob_object* mob_object);
+} ce_mob_object_vtable;
+
+struct ce_mob_object {
 	uint8_t owner, quest, shadow;
 	uint32_t type, id, parent_id;
 	ce_vec3 position;
@@ -47,7 +54,31 @@ typedef struct {
 	ce_string* secondary_texture;
 	ce_string* comment;
 	ce_string* quest_info;
-} ce_mob_object;
+	ce_mob_object_vtable vtable;
+	char impl[];
+};
+
+typedef struct {
+	uint8_t alarm_condition;
+	uint8_t aggression_mode;
+	uint8_t always_active;
+	uint8_t cyclic, use, nalarm;
+	uint32_t model;
+	float guard_radius;
+	float guard_position[3];
+	float wait, help;
+} ce_mob_unit_logic;
+
+typedef struct {
+	uint8_t need_import;
+	ce_string* name;
+	ce_vector* armors;
+	ce_vector* weapons;
+	ce_vector* spells;
+	ce_vector* quick_items;
+	ce_vector* quest_items;
+	ce_vector* logics;
+} ce_mob_unit;
 
 typedef struct {
 	ce_string* name;

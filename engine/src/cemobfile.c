@@ -29,6 +29,76 @@
 #include "cememfile.h"
 #include "cemobfile.h"
 
+#define CE_MOB_DEF_UNIT_VARIABLE() \
+ce_mob_object* mob_object = ce_vector_back(mob_file->objects); \
+ce_mob_unit* mob_unit = (ce_mob_unit*)mob_object->impl;
+
+#define CE_MOB_DEF_UNIT_LOGIC_VARIABLE() \
+CE_MOB_DEF_UNIT_VARIABLE(); \
+ce_mob_unit_logic* mob_unit_logic = ce_vector_back(mob_unit->logics);
+
+#define CE_MOB_READ_VECTOR_OF_STRINGS(V) \
+if (NULL == (V)) { \
+	(V) = ce_vector_new_reserved(ce_mem_file_read_u32le(mem_file)); \
+	ce_mob_file_block_loop(mob_file, mem_file, size -= 4); \
+} else { \
+	ce_vector_push_back((V), ce_mob_read_string(mem_file, size)); \
+}
+
+static ce_mob_object* ce_mob_object_new(ce_mob_object_vtable vtable)
+{
+	ce_mob_object* mob_object = ce_alloc_zero(sizeof(ce_mob_object) + vtable.size);
+	mob_object->vtable = vtable;
+	return mob_object;
+}
+
+static void ce_mob_object_del(ce_mob_object* mob_object)
+{
+	if (NULL != mob_object) {
+		if (NULL != mob_object->vtable.dtor) {
+			(*mob_object->vtable.dtor)(mob_object);
+		}
+		ce_vector_for_each(mob_object->parts, ce_string_del);
+		ce_string_del(mob_object->quest_info);
+		ce_string_del(mob_object->comment);
+		ce_string_del(mob_object->secondary_texture);
+		ce_string_del(mob_object->primary_texture);
+		ce_string_del(mob_object->parent_name);
+		ce_string_del(mob_object->model_name);
+		ce_string_del(mob_object->name);
+		ce_vector_del(mob_object->parts);
+		ce_free(mob_object, sizeof(ce_mob_object) + mob_object->vtable.size);
+	}
+}
+
+static ce_mob_unit_logic* ce_mob_unit_logic_new(void)
+{
+	return ce_alloc_zero(sizeof(ce_mob_unit_logic));
+}
+
+static void ce_mob_unit_logic_del(ce_mob_unit_logic* mob_unit_logic)
+{
+	ce_free(mob_unit_logic, sizeof(ce_mob_unit_logic));
+}
+
+static void ce_mob_unit_dtor(ce_mob_object* mob_object)
+{
+	ce_mob_unit* mob_unit = (ce_mob_unit*)mob_object->impl;
+	ce_vector_for_each(mob_unit->logics, ce_mob_unit_logic_del);
+	ce_vector_for_each(mob_unit->quest_items, ce_string_del);
+	ce_vector_for_each(mob_unit->quick_items, ce_string_del);
+	ce_vector_for_each(mob_unit->spells, ce_string_del);
+	ce_vector_for_each(mob_unit->weapons, ce_string_del);
+	ce_vector_for_each(mob_unit->armors, ce_string_del);
+	ce_vector_del(mob_unit->logics);
+	ce_vector_del(mob_unit->quest_items);
+	ce_vector_del(mob_unit->quick_items);
+	ce_vector_del(mob_unit->spells);
+	ce_vector_del(mob_unit->weapons);
+	ce_vector_del(mob_unit->armors);
+	ce_string_del(mob_unit->name);
+}
+
 static void ce_mob_decrypt_script(char* data, size_t size, uint32_t key)
 {
 	for (size_t i = 0; i < size; ++i) {
@@ -37,7 +107,7 @@ static void ce_mob_decrypt_script(char* data, size_t size, uint32_t key)
 	}
 }
 
-static ce_string* ce_mob_file_read_string(ce_mem_file* mem_file, size_t size)
+static ce_string* ce_mob_read_string(ce_mem_file* mem_file, size_t size)
 {
 	char data[size];
 	ce_mem_file_read(mem_file, data, 1, size);
@@ -46,7 +116,7 @@ static ce_string* ce_mob_file_read_string(ce_mem_file* mem_file, size_t size)
 
 // callbacks
 
-static void ce_mob_file_block_loop(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size);
+static void ce_mob_file_block_loop(ce_mob_file*, ce_mem_file*, size_t);
 
 static void ce_mob_file_block_unknown(ce_mob_file* CE_UNUSED(mob_file), ce_mem_file* mem_file, size_t size)
 {
@@ -60,22 +130,19 @@ static void ce_mob_file_block_main(ce_mob_file* mob_file, ce_mem_file* mem_file,
 
 static void ce_mob_file_block_quest(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(0 == size);
 	ce_mob_file_block_loop(mob_file, mem_file, size);
 }
 
 static void ce_mob_file_block_zonal(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(0 == size);
 	ce_mob_file_block_loop(mob_file, mem_file, size);
 }
 
 static void ce_mob_file_block_text(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
 	// WARNING: string is encrypted and may contain null characters
-	assert(NULL == mob_file->script);
-	char data[size -= 4];
 	uint32_t key = ce_mem_file_read_u32le(mem_file);
+	char data[size -= 4];
 	ce_mem_file_read(mem_file, data, 1, size);
 	ce_mob_decrypt_script(data, size, key);
 	mob_file->script = ce_string_new_str_n(data, size);
@@ -83,168 +150,255 @@ static void ce_mob_file_block_text(ce_mob_file* mob_file, ce_mem_file* mem_file,
 
 static void ce_mob_file_block_object(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(NULL == mob_file->objects);
 	mob_file->objects = ce_vector_new();
 	ce_mob_file_block_loop(mob_file, mem_file, size);
 }
 
+// object
+
 static void ce_mob_file_block_object_object(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(NULL != mob_file->objects);
-	ce_mob_object* object = ce_alloc_zero(sizeof(ce_mob_object));
-	ce_vector_push_back(mob_file->objects, object);
+	ce_vector_push_back(mob_file->objects, ce_mob_object_new((ce_mob_object_vtable){0, NULL}));
 	ce_mob_file_block_loop(mob_file, mem_file, size);
 }
 
 static void ce_mob_file_block_object_object_parts(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
-	if (NULL == object->parts) {
-		uint32_t count = ce_mem_file_read_u32le(mem_file);
-		object->parts = ce_vector_new_reserved(count);
-		ce_mob_file_block_loop(mob_file, mem_file, size -= 4);
-	} else {
-		ce_string* part = ce_mob_file_read_string(mem_file, size);
-		ce_vector_push_back(object->parts, part);
-	}
+	CE_MOB_READ_VECTOR_OF_STRINGS(object->parts);
 }
 
-static void ce_mob_file_block_object_object_owner(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+static void ce_mob_file_block_object_object_owner(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	assert(1 == size);
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
 	object->owner = ce_mem_file_read_u8(mem_file);
 }
 
-static void ce_mob_file_block_object_object_id(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+static void ce_mob_file_block_object_object_id(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	assert(4 == size);
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
 	object->id = ce_mem_file_read_u32le(mem_file);
 }
 
-static void ce_mob_file_block_object_object_type(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+static void ce_mob_file_block_object_object_type(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	assert(4 == size);
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
 	object->type = ce_mem_file_read_u32le(mem_file);
 }
 
 static void ce_mob_file_block_object_object_name(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
-	assert(NULL == object->name);
-	object->name = ce_mob_file_read_string(mem_file, size);
+	object->name = ce_mob_read_string(mem_file, size);
 }
 
 static void ce_mob_file_block_object_object_model_name(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
-	assert(NULL == object->model_name);
-	object->model_name = ce_mob_file_read_string(mem_file, size);
+	object->model_name = ce_mob_read_string(mem_file, size);
 }
 
 static void ce_mob_file_block_object_object_parent_name(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
-	assert(NULL == object->parent_name);
-	object->parent_name = ce_mob_file_read_string(mem_file, size);
+	object->parent_name = ce_mob_read_string(mem_file, size);
 }
 
 static void ce_mob_file_block_object_object_primary_texture(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
-	assert(NULL == object->primary_texture);
-	object->primary_texture = ce_mob_file_read_string(mem_file, size);
+	object->primary_texture = ce_mob_read_string(mem_file, size);
 }
 
 static void ce_mob_file_block_object_object_secondary_texture(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
-	assert(NULL == object->secondary_texture);
-	object->secondary_texture = ce_mob_file_read_string(mem_file, size);
+	object->secondary_texture = ce_mob_read_string(mem_file, size);
 }
 
 static void ce_mob_file_block_object_object_comment(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
-	assert(NULL == object->comment);
-	object->comment = ce_mob_file_read_string(mem_file, size);
+	object->comment = ce_mob_read_string(mem_file, size);
 }
 
-static void ce_mob_file_block_object_object_position(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+static void ce_mob_file_block_object_object_position(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
 	float position[3];
-	assert(sizeof(position) == size);
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
 	ce_mem_file_read(mem_file, position, sizeof(float), 3);
 	ce_vec3_init_array(&object->position, position);
 }
 
-static void ce_mob_file_block_object_object_rotation(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+static void ce_mob_file_block_object_object_rotation(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
 	float rotation[4];
-	assert(sizeof(rotation) == size);
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
 	ce_mem_file_read(mem_file, rotation, sizeof(float), 4);
 	ce_quat_init_array(&object->rotation, rotation);
 }
 
-static void ce_mob_file_block_object_object_quest(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+static void ce_mob_file_block_object_object_quest(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	assert(1 == size);
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
 	object->quest = ce_mem_file_read_u8(mem_file);
 }
 
-static void ce_mob_file_block_object_object_shadow(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+static void ce_mob_file_block_object_object_shadow(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	assert(1 == size);
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
 	object->shadow = ce_mem_file_read_u8(mem_file);
 }
 
-static void ce_mob_file_block_object_object_parent_id(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+static void ce_mob_file_block_object_object_parent_id(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	assert(4 == size);
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
 	object->parent_id = ce_mem_file_read_u32le(mem_file);
 }
 
 static void ce_mob_file_block_object_object_quest_info(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
-	assert(NULL == object->quest_info);
-	object->quest_info = ce_mob_file_read_string(mem_file, size);
+	object->quest_info = ce_mob_read_string(mem_file, size);
 }
 
-static void ce_mob_file_block_object_object_complection(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+static void ce_mob_file_block_object_object_complection(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
 	float complection[3];
-	assert(sizeof(complection) == size);
-	assert(!ce_vector_empty(mob_file->objects));
 	ce_mob_object* object = ce_vector_back(mob_file->objects);
 	ce_mem_file_read(mem_file, complection, sizeof(float), 3);
 	ce_complection_init_array(&object->complection, complection);
 }
 
-typedef void (*ce_mob_file_block_callback)(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size);
+// unit
+
+static void ce_mob_file_block_object_unit(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	ce_vector_push_back(mob_file->objects, ce_mob_object_new((ce_mob_object_vtable){sizeof(ce_mob_unit), ce_mob_unit_dtor}));
+	ce_mob_file_block_loop(mob_file, mem_file, size);
+}
+
+static void ce_mob_file_block_object_unit_need_import(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_VARIABLE();
+	mob_unit->need_import = ce_mem_file_read_u8(mem_file);
+}
+
+static void ce_mob_file_block_object_unit_name(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	CE_MOB_DEF_UNIT_VARIABLE();
+	mob_unit->name = ce_mob_read_string(mem_file, size);
+}
+
+static void ce_mob_file_block_object_unit_armors(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_READ_VECTOR_OF_STRINGS(mob_unit->armors);
+}
+
+static void ce_mob_file_block_object_unit_weapons(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_READ_VECTOR_OF_STRINGS(mob_unit->weapons);
+}
+
+static void ce_mob_file_block_object_unit_spells(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_READ_VECTOR_OF_STRINGS(mob_unit->spells);
+}
+
+static void ce_mob_file_block_object_unit_quick_items(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_READ_VECTOR_OF_STRINGS(mob_unit->quick_items);
+}
+
+static void ce_mob_file_block_object_unit_quest_items(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_READ_VECTOR_OF_STRINGS(mob_unit->quest_items);
+}
+
+// unit logic
+
+static void ce_mob_file_block_object_unit_logic(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	CE_MOB_DEF_UNIT_VARIABLE();
+	if (NULL == mob_unit->logics) {
+		mob_unit->logics = ce_vector_new_reserved(8);
+	}
+	ce_vector_push_back(mob_unit->logics, ce_mob_unit_logic_new());
+	ce_mob_file_block_loop(mob_file, mem_file, size);
+}
+
+static void ce_mob_file_block_object_unit_logic_alarm_condition(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	mob_unit_logic->alarm_condition = ce_mem_file_read_u8(mem_file);
+}
+
+static void ce_mob_file_block_object_unit_logic_help(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	mob_unit_logic->help = ce_mem_file_read_fle(mem_file);
+}
+
+static void ce_mob_file_block_object_unit_logic_cyclic(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	mob_unit_logic->cyclic = ce_mem_file_read_u8(mem_file);
+}
+
+static void ce_mob_file_block_object_unit_logic_aggression_mode(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	mob_unit_logic->aggression_mode = ce_mem_file_read_u8(mem_file);
+}
+
+static void ce_mob_file_block_object_unit_logic_always_active(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	mob_unit_logic->always_active = ce_mem_file_read_u8(mem_file);
+}
+
+static void ce_mob_file_block_object_unit_logic_model(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	mob_unit_logic->model = ce_mem_file_read_u32le(mem_file);
+}
+
+static void ce_mob_file_block_object_unit_logic_guard_radius(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	mob_unit_logic->guard_radius = ce_mem_file_read_fle(mem_file);
+}
+
+static void ce_mob_file_block_object_unit_logic_wait(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	mob_unit_logic->wait = ce_mem_file_read_fle(mem_file);
+}
+
+static void ce_mob_file_block_object_unit_logic_guard_position(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	ce_mem_file_read(mem_file, mob_unit_logic->guard_position, sizeof(float), 3);
+}
+
+static void ce_mob_file_block_object_unit_logic_use(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	mob_unit_logic->use = ce_mem_file_read_u8(mem_file);
+}
+
+static void ce_mob_file_block_object_unit_logic_nalarm(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	mob_unit_logic->nalarm = ce_mem_file_read_u8(mem_file);
+}
+
+typedef void (*ce_mob_file_block_callback)(ce_mob_file*, ce_mem_file*, size_t);
 
 typedef struct {
 	uint32_t type;
@@ -252,37 +406,56 @@ typedef struct {
 } ce_mob_file_block_pair;
 
 static const ce_mob_file_block_pair ce_mob_file_block_pairs[] = {
-	{ 0xa000, ce_mob_file_block_main },
-	{ 0xd000, ce_mob_file_block_quest },
-	{ 0xc000, ce_mob_file_block_zonal },
-	{ 0xacceeccb, ce_mob_file_block_text },
-	{ 0xb000, ce_mob_file_block_object },
-	{ 0xb001, ce_mob_file_block_object_object },
-	{ 0xb00d, ce_mob_file_block_object_object_parts },
-	{ 0xb011, ce_mob_file_block_object_object_owner },
-	{ 0xb002, ce_mob_file_block_object_object_id },
-	{ 0xb003, ce_mob_file_block_object_object_type },
-	{ 0xb004, ce_mob_file_block_object_object_name },
-	{ 0xb006, ce_mob_file_block_object_object_model_name },
-	{ 0xb00e, ce_mob_file_block_object_object_parent_name },
-	{ 0xb007, ce_mob_file_block_object_object_primary_texture },
-	{ 0xb008, ce_mob_file_block_object_object_secondary_texture },
-	{ 0xb00f, ce_mob_file_block_object_object_comment },
-	{ 0xb009, ce_mob_file_block_object_object_position },
-	{ 0xb00a, ce_mob_file_block_object_object_rotation },
-	{ 0xb013, ce_mob_file_block_object_object_quest },
-	{ 0xb014, ce_mob_file_block_object_object_shadow },
-	{ 0xb012, ce_mob_file_block_object_object_parent_id },
-	{ 0xb016, ce_mob_file_block_object_object_quest_info },
-	{ 0xb00c, ce_mob_file_block_object_object_complection },
-	{ 0xbbbb0000, ce_mob_file_block_object_object }
-	//{ 0xbbbb0000, ce_mob_file_block_object_unit },
-	//{ 0xbbac0000, ce_mob_file_block_object_lever },
-	//{ 0xbbab0000, ce_mob_file_block_object_trap },
-	//{ 0xbbbf, ce_mob_file_block_object_flame },
-	//{ 0xaa01, ce_mob_file_block_object_particle1 },
-	//{ 0xcc01, ce_mob_file_block_object_particle2 },
-	//{ 0xdd01, ce_mob_file_block_object_particle3 },
+	{0xa000, ce_mob_file_block_main},
+	{0xd000, ce_mob_file_block_quest},
+	{0xc000, ce_mob_file_block_zonal},
+	{0xacceeccb, ce_mob_file_block_text},
+	{0xb000, ce_mob_file_block_object},
+	{0xb001, ce_mob_file_block_object_object},
+	{0xb00d, ce_mob_file_block_object_object_parts},
+	{0xb011, ce_mob_file_block_object_object_owner},
+	{0xb002, ce_mob_file_block_object_object_id},
+	{0xb003, ce_mob_file_block_object_object_type},
+	{0xb004, ce_mob_file_block_object_object_name},
+	{0xb006, ce_mob_file_block_object_object_model_name},
+	{0xb00e, ce_mob_file_block_object_object_parent_name},
+	{0xb007, ce_mob_file_block_object_object_primary_texture},
+	{0xb008, ce_mob_file_block_object_object_secondary_texture},
+	{0xb00f, ce_mob_file_block_object_object_comment},
+	{0xb009, ce_mob_file_block_object_object_position},
+	{0xb00a, ce_mob_file_block_object_object_rotation},
+	{0xb013, ce_mob_file_block_object_object_quest},
+	{0xb014, ce_mob_file_block_object_object_shadow},
+	{0xb012, ce_mob_file_block_object_object_parent_id},
+	{0xb016, ce_mob_file_block_object_object_quest_info},
+	{0xb00c, ce_mob_file_block_object_object_complection},
+	{0xbbbb0000, ce_mob_file_block_object_unit},
+	{0xbbbb000a, ce_mob_file_block_object_unit_need_import},
+	{0xbbbb0002, ce_mob_file_block_object_unit_name},
+	{0xbbbb0009, ce_mob_file_block_object_unit_armors},
+	{0xbbbb0008, ce_mob_file_block_object_unit_weapons},
+	{0xbbbb0007, ce_mob_file_block_object_unit_spells},
+	{0xbbbb0006, ce_mob_file_block_object_unit_quick_items},
+	{0xbbbb0005, ce_mob_file_block_object_unit_quest_items},
+	//{0xbbbb0004, ce_mob_file_block_object_unit_stats},
+	{0xbbbc0000, ce_mob_file_block_object_unit_logic},
+	{0xbbbc000b, ce_mob_file_block_object_unit_logic_alarm_condition},
+	{0xbbbc000c, ce_mob_file_block_object_unit_logic_help},
+	{0xbbbc0002, ce_mob_file_block_object_unit_logic_cyclic},
+	{0xbbbc000e, ce_mob_file_block_object_unit_logic_aggression_mode},
+	{0xbbbc000d, ce_mob_file_block_object_unit_logic_always_active},
+	{0xbbbc0003, ce_mob_file_block_object_unit_logic_model},
+	{0xbbbc0004, ce_mob_file_block_object_unit_logic_guard_radius},
+	{0xbbbc000a, ce_mob_file_block_object_unit_logic_wait},
+	{0xbbbc0005, ce_mob_file_block_object_unit_logic_guard_position},
+	{0xbbbc0007, ce_mob_file_block_object_unit_logic_use},
+	{0xbbbc0006, ce_mob_file_block_object_unit_logic_nalarm},
+	//{0xbbac0000, ce_mob_file_block_object_lever},
+	//{0xbbab0000, ce_mob_file_block_object_trap},
+	//{0xbbbf, ce_mob_file_block_object_flame},
+	//{0xaa01, ce_mob_file_block_object_particle1},
+	//{0xcc01, ce_mob_file_block_object_particle2},
+	//{0xdd01, ce_mob_file_block_object_particle3},
 };
 
 static ce_mob_file_block_callback ce_mob_choose_callback(uint32_t type)
@@ -433,21 +606,9 @@ void ce_mob_file_close(ce_mob_file* mob_file)
 {
 	if (NULL != mob_file) {
 		if (NULL != mob_file->objects) {
-			for (size_t i = 0; i < mob_file->objects->count; ++i) {
-				ce_mob_object* object = mob_file->objects->items[i];
-				ce_vector_for_each(object->parts, ce_string_del);
-				ce_string_del(object->quest_info);
-				ce_string_del(object->comment);
-				ce_string_del(object->secondary_texture);
-				ce_string_del(object->primary_texture);
-				ce_string_del(object->parent_name);
-				ce_string_del(object->model_name);
-				ce_string_del(object->name);
-				ce_vector_del(object->parts);
-				ce_free(object, sizeof(ce_mob_object));
-			}
-			ce_vector_del(mob_file->objects);
+			ce_vector_for_each(mob_file->objects, ce_mob_object_del);
 		}
+		ce_vector_del(mob_file->objects);
 		ce_string_del(mob_file->script);
 		ce_string_del(mob_file->name);
 		ce_free(mob_file, sizeof(ce_mob_file));
