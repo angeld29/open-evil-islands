@@ -29,13 +29,21 @@
 #include "cememfile.h"
 #include "cemobfile.h"
 
-#define CE_MOB_DEF_UNIT_VARIABLE() \
-ce_mob_object* mob_object = ce_vector_back(mob_file->objects); \
+#define CE_MOB_UNIT_CAST(MF) \
+ce_mob_object* mob_object = ce_vector_back((MF)->objects); \
 ce_mob_unit* mob_unit = (ce_mob_unit*)mob_object->impl;
 
-#define CE_MOB_DEF_UNIT_LOGIC_VARIABLE() \
-CE_MOB_DEF_UNIT_VARIABLE(); \
+#define CE_MOB_UNIT_LOGIC_CAST(MF) \
+CE_MOB_UNIT_CAST(MF); \
 ce_mob_unit_logic* mob_unit_logic = ce_vector_back(mob_unit->logics);
+
+#define CE_MOB_LEVER_CAST(MF) \
+ce_mob_object* mob_object = ce_vector_back((MF)->objects); \
+ce_mob_lever* mob_lever = (ce_mob_lever*)mob_object->impl;
+
+#define CE_MOB_TRAP_CAST(MF) \
+ce_mob_object* mob_object = ce_vector_back((MF)->objects); \
+ce_mob_trap* mob_trap = (ce_mob_trap*)mob_object->impl;
 
 #define CE_MOB_READ_VECTOR_OF_STRINGS(V) \
 if (NULL == (V)) { \
@@ -97,6 +105,18 @@ static void ce_mob_unit_dtor(ce_mob_object* mob_object)
 	ce_vector_del(mob_unit->weapons);
 	ce_vector_del(mob_unit->armors);
 	ce_string_del(mob_unit->name);
+}
+
+static void ce_mob_trap_dtor(ce_mob_object* mob_object)
+{
+	ce_mob_trap* mob_trap = (ce_mob_trap*)mob_object->impl;
+	if (NULL != mob_trap->target) {
+		ce_free(mob_trap->target, sizeof(ce_mob_trap_target) + mob_trap->target->size);
+	}
+	if (NULL != mob_trap->area) {
+		ce_free(mob_trap->area, sizeof(ce_mob_trap_area) + mob_trap->area->size);
+	}
+	ce_string_del(mob_trap->spell);
 }
 
 static void ce_mob_decrypt_script(char* data, size_t size, uint32_t key)
@@ -274,51 +294,56 @@ static void ce_mob_file_block_object_unit(ce_mob_file* mob_file, ce_mem_file* me
 
 static void ce_mob_file_block_object_unit_need_import(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_UNIT_CAST(mob_file);
 	mob_unit->need_import = ce_mem_file_read_u8(mem_file);
 }
 
 static void ce_mob_file_block_object_unit_name(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_UNIT_CAST(mob_file);
 	mob_unit->name = ce_mob_read_string(mem_file, size);
 }
 
 static void ce_mob_file_block_object_unit_armors(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_UNIT_CAST(mob_file);
 	CE_MOB_READ_VECTOR_OF_STRINGS(mob_unit->armors);
 }
 
 static void ce_mob_file_block_object_unit_weapons(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_UNIT_CAST(mob_file);
 	CE_MOB_READ_VECTOR_OF_STRINGS(mob_unit->weapons);
 }
 
 static void ce_mob_file_block_object_unit_spells(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_UNIT_CAST(mob_file);
 	CE_MOB_READ_VECTOR_OF_STRINGS(mob_unit->spells);
 }
 
 static void ce_mob_file_block_object_unit_quick_items(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_UNIT_CAST(mob_file);
 	CE_MOB_READ_VECTOR_OF_STRINGS(mob_unit->quick_items);
 }
 
 static void ce_mob_file_block_object_unit_quest_items(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_UNIT_CAST(mob_file);
 	CE_MOB_READ_VECTOR_OF_STRINGS(mob_unit->quest_items);
+}
+
+static void ce_mob_file_block_object_unit_stats(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	ce_mob_file_block_unknown(mob_file, mem_file, size);
 }
 
 // unit logic
 
 static void ce_mob_file_block_object_unit_logic(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
 {
-	CE_MOB_DEF_UNIT_VARIABLE();
+	CE_MOB_UNIT_CAST(mob_file);
 	if (NULL == mob_unit->logics) {
 		mob_unit->logics = ce_vector_new_reserved(8);
 	}
@@ -328,67 +353,67 @@ static void ce_mob_file_block_object_unit_logic(ce_mob_file* mob_file, ce_mem_fi
 
 static void ce_mob_file_block_object_unit_logic_alarm_condition(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	CE_MOB_UNIT_LOGIC_CAST(mob_file);
 	mob_unit_logic->alarm_condition = ce_mem_file_read_u8(mem_file);
 }
 
 static void ce_mob_file_block_object_unit_logic_help(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	CE_MOB_UNIT_LOGIC_CAST(mob_file);
 	mob_unit_logic->help = ce_mem_file_read_fle(mem_file);
 }
 
 static void ce_mob_file_block_object_unit_logic_cyclic(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	CE_MOB_UNIT_LOGIC_CAST(mob_file);
 	mob_unit_logic->cyclic = ce_mem_file_read_u8(mem_file);
 }
 
 static void ce_mob_file_block_object_unit_logic_aggression_mode(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	CE_MOB_UNIT_LOGIC_CAST(mob_file);
 	mob_unit_logic->aggression_mode = ce_mem_file_read_u8(mem_file);
 }
 
 static void ce_mob_file_block_object_unit_logic_always_active(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	CE_MOB_UNIT_LOGIC_CAST(mob_file);
 	mob_unit_logic->always_active = ce_mem_file_read_u8(mem_file);
 }
 
 static void ce_mob_file_block_object_unit_logic_model(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	CE_MOB_UNIT_LOGIC_CAST(mob_file);
 	mob_unit_logic->model = ce_mem_file_read_u32le(mem_file);
 }
 
 static void ce_mob_file_block_object_unit_logic_guard_radius(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	CE_MOB_UNIT_LOGIC_CAST(mob_file);
 	mob_unit_logic->guard_radius = ce_mem_file_read_fle(mem_file);
 }
 
 static void ce_mob_file_block_object_unit_logic_wait(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	CE_MOB_UNIT_LOGIC_CAST(mob_file);
 	mob_unit_logic->wait = ce_mem_file_read_fle(mem_file);
 }
 
 static void ce_mob_file_block_object_unit_logic_guard_position(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	CE_MOB_UNIT_LOGIC_CAST(mob_file);
 	ce_mem_file_read(mem_file, mob_unit_logic->guard_position, sizeof(float), 3);
 }
 
 static void ce_mob_file_block_object_unit_logic_use(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	CE_MOB_UNIT_LOGIC_CAST(mob_file);
 	mob_unit_logic->use = ce_mem_file_read_u8(mem_file);
 }
 
 static void ce_mob_file_block_object_unit_logic_nalarm(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
 {
-	CE_MOB_DEF_UNIT_LOGIC_VARIABLE();
+	CE_MOB_UNIT_LOGIC_CAST(mob_file);
 	mob_unit_logic->nalarm = ce_mem_file_read_u8(mem_file);
 }
 
@@ -398,7 +423,96 @@ static void ce_mob_file_block_object_lever(ce_mob_file* mob_file, ce_mem_file* m
 {
 	ce_vector_push_back(mob_file->objects, ce_mob_object_new((ce_mob_object_vtable){sizeof(ce_mob_lever), NULL}));
 	ce_mob_file_block_loop(mob_file, mem_file, size);
-	ce_logging_debug("lever");
+}
+
+static void ce_mob_file_block_object_lever_stats(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_LEVER_CAST(mob_file);
+	ce_mem_file_read(mem_file, mob_lever->stats, sizeof(uint32_t), 3);
+}
+
+static void ce_mob_file_block_object_lever_state(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_LEVER_CAST(mob_file);
+	mob_lever->state = ce_mem_file_read_u8(mem_file);
+}
+
+static void ce_mob_file_block_object_lever_state_count(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_LEVER_CAST(mob_file);
+	mob_lever->state_count = ce_mem_file_read_u8(mem_file);
+}
+
+static void ce_mob_file_block_object_lever_cyclic(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_LEVER_CAST(mob_file);
+	mob_lever->cyclic = ce_mem_file_read_u8(mem_file);
+}
+
+static void ce_mob_file_block_object_lever_door(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_LEVER_CAST(mob_file);
+	mob_lever->door = ce_mem_file_read_u8(mem_file);
+}
+
+static void ce_mob_file_block_object_lever_recalc_graph(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_LEVER_CAST(mob_file);
+	mob_lever->recalc_graph = ce_mem_file_read_u8(mem_file);
+}
+
+// trap
+
+static void ce_mob_file_block_object_trap(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	ce_vector_push_back(mob_file->objects, ce_mob_object_new((ce_mob_object_vtable){sizeof(ce_mob_trap), ce_mob_trap_dtor}));
+	ce_mob_file_block_loop(mob_file, mem_file, size);
+}
+
+static void ce_mob_file_block_object_trap_diplomacy(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_TRAP_CAST(mob_file);
+	mob_trap->diplomacy = ce_mem_file_read_u32le(mem_file);
+}
+
+static void ce_mob_file_block_object_trap_spell(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	CE_MOB_TRAP_CAST(mob_file);
+	mob_trap->spell = ce_mob_read_string(mem_file, size);
+}
+
+static void ce_mob_file_block_object_trap_cast_interval(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_TRAP_CAST(mob_file);
+	mob_trap->cast_interval = ce_mem_file_read_u32le(mem_file);
+}
+
+static void ce_mob_file_block_object_trap_cast_once(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t CE_UNUSED(size))
+{
+	CE_MOB_TRAP_CAST(mob_file);
+	mob_trap->cast_once = ce_mem_file_read_u8(mem_file);
+}
+
+static void ce_mob_file_block_object_trap_area(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	CE_MOB_TRAP_CAST(mob_file);
+	uint32_t count = ce_mem_file_read_u32le(mem_file);
+	size -= 4;
+	mob_trap->area = ce_alloc(sizeof(ce_mob_trap_area) + size);
+	mob_trap->area->size = size;
+	mob_trap->area->count = count;
+	ce_mem_file_read(mem_file, mob_trap->area->values, 1, size);
+}
+
+static void ce_mob_file_block_object_trap_target(ce_mob_file* mob_file, ce_mem_file* mem_file, size_t size)
+{
+	CE_MOB_TRAP_CAST(mob_file);
+	uint32_t count = ce_mem_file_read_u32le(mem_file);
+	size -= 4;
+	mob_trap->target = ce_alloc(sizeof(ce_mob_trap_target) + size);
+	mob_trap->target->size = size;
+	mob_trap->target->count = count;
+	ce_mem_file_read(mem_file, mob_trap->target->values, 1, size);
 }
 
 typedef void (*ce_mob_file_block_callback)(ce_mob_file*, ce_mem_file*, size_t);
@@ -440,7 +554,7 @@ static const ce_mob_file_block_pair ce_mob_file_block_pairs[] = {
 	{0xbbbb0007, ce_mob_file_block_object_unit_spells},
 	{0xbbbb0006, ce_mob_file_block_object_unit_quick_items},
 	{0xbbbb0005, ce_mob_file_block_object_unit_quest_items},
-	//{0xbbbb0004, ce_mob_file_block_object_unit_stats},
+	{0xbbbb0004, ce_mob_file_block_object_unit_stats},
 	{0xbbbc0000, ce_mob_file_block_object_unit_logic},
 	{0xbbbc000b, ce_mob_file_block_object_unit_logic_alarm_condition},
 	{0xbbbc000c, ce_mob_file_block_object_unit_logic_help},
@@ -454,7 +568,19 @@ static const ce_mob_file_block_pair ce_mob_file_block_pairs[] = {
 	{0xbbbc0007, ce_mob_file_block_object_unit_logic_use},
 	{0xbbbc0006, ce_mob_file_block_object_unit_logic_nalarm},
 	{0xbbac0000, ce_mob_file_block_object_lever},
-	//{0xbbab0000, ce_mob_file_block_object_trap},
+	{0xbbac0006, ce_mob_file_block_object_lever_stats},
+	{0xbbac0002, ce_mob_file_block_object_lever_state},
+	{0xbbac0003, ce_mob_file_block_object_lever_state_count},
+	{0xbbac0004, ce_mob_file_block_object_lever_cyclic},
+	{0xbbac0007, ce_mob_file_block_object_lever_door},
+	{0xbbac0008, ce_mob_file_block_object_lever_recalc_graph},
+	{0xbbab0000, ce_mob_file_block_object_trap},
+	{0xbbab0001, ce_mob_file_block_object_trap_diplomacy},
+	{0xbbab0002, ce_mob_file_block_object_trap_spell},
+	{0xbbab0005, ce_mob_file_block_object_trap_cast_interval},
+	{0xbbac0005, ce_mob_file_block_object_trap_cast_once},
+	{0xbbab0003, ce_mob_file_block_object_trap_area},
+	{0xbbab0004, ce_mob_file_block_object_trap_target},
 	//{0xbbbf, ce_mob_file_block_object_flame},
 	//{0xaa01, ce_mob_file_block_object_particle1},
 	//{0xcc01, ce_mob_file_block_object_particle2},
@@ -569,7 +695,6 @@ static void ce_mob_file_block_loop(ce_mob_file* mob_file, ce_mem_file* mem_file,
 		}
 #endif
 
-		ce_logging_debug("callback %#x %u", child_type, child_size);
 		(*ce_mob_choose_callback(child_type))(mob_file, mem_file, child_size);
 	}
 }

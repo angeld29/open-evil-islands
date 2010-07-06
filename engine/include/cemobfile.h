@@ -85,6 +85,26 @@ typedef struct {
 } ce_mob_lever;
 
 typedef struct {
+	size_t size;
+	uint32_t count;
+	float values[][3]; // x, z, area
+} ce_mob_trap_area;
+
+typedef struct {
+	size_t size;
+	uint32_t count;
+	float values[][2]; // x, z
+} ce_mob_trap_target;
+
+typedef struct {
+	uint8_t cast_once;
+	uint32_t diplomacy, cast_interval;
+	ce_string* spell;
+	ce_mob_trap_area* area;
+	ce_mob_trap_target* target;
+} ce_mob_trap;
+
+typedef struct {
 	ce_string* name;
 	ce_string* script;
 	ce_vector* objects;
