@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -53,54 +53,19 @@
 #include "celib.h"
 #include "cealloc.h"
 
-static const size_t CE_ALLOC_PAGE_SIZE = 4096;
-static const size_t CE_ALLOC_MAX_SMALL_OBJECT_SIZE = 256;
-static const size_t CE_ALLOC_OBJECT_ALIGNMENT = 4;
-static const size_t CE_ALLOC_ONE = 1;
+enum {
+	CE_ALLOC_PAGE_SIZE = 4096,
+	CE_ALLOC_MAX_SMALL_OBJECT_SIZE = 256,
+	CE_ALLOC_OBJECT_ALIGNMENT = 4,
+};
 
 typedef struct {
 #ifdef _WIN32
-	CRITICAL_SECTION cs;
+	CRITICAL_SECTION handle;
 #else
-	pthread_mutex_t mutex;
+	pthread_mutex_t handle;
 #endif
 } ce_alloc_mutex;
-
-static inline void ce_alloc_mutex_init(ce_alloc_mutex* mutex)
-{
-#ifdef _WIN32
-	InitializeCriticalSection(&mutex->cs);
-#else
-	pthread_mutex_init(&mutex->mutex, NULL);
-#endif
-}
-
-static inline void ce_alloc_mutex_clean(ce_alloc_mutex* mutex)
-{
-#ifdef _WIN32
-	DeleteCriticalSection(&mutex->cs);
-#else
-	pthread_mutex_destroy(&mutex->mutex);
-#endif
-}
-
-static inline void ce_alloc_mutex_lock(ce_alloc_mutex* mutex)
-{
-#ifdef _WIN32
-	EnterCriticalSection(&mutex->cs);
-#else
-	pthread_mutex_lock(&mutex->mutex);
-#endif
-}
-
-static inline void ce_alloc_mutex_unlock(ce_alloc_mutex* mutex)
-{
-#ifdef _WIN32
-	LeaveCriticalSection(&mutex->cs);
-#else
-	pthread_mutex_unlock(&mutex->mutex);
-#endif
-}
 
 typedef struct {
 	unsigned char* data;
@@ -113,10 +78,10 @@ typedef struct {
 	size_t block_count;
 	size_t chunk_count;
 	size_t chunk_capacity;
+	ce_alloc_mutex mutex;
 	ce_alloc_chunk* chunks;
 	ce_alloc_chunk* alloc_chunk;
 	ce_alloc_chunk* dealloc_chunk;
-	ce_alloc_mutex mutex;
 } ce_alloc_portion;
 
 static struct {
@@ -132,6 +97,42 @@ static struct {
 	ce_alloc_mutex mutex;
 #endif
 } ce_alloc_context;
+
+static inline void ce_alloc_mutex_init(ce_alloc_mutex* mutex)
+{
+#ifdef _WIN32
+	InitializeCriticalSection(&mutex->handle);
+#else
+	pthread_mutex_init(&mutex->handle, NULL);
+#endif
+}
+
+static inline void ce_alloc_mutex_clean(ce_alloc_mutex* mutex)
+{
+#ifdef _WIN32
+	DeleteCriticalSection(&mutex->handle);
+#else
+	pthread_mutex_destroy(&mutex->handle);
+#endif
+}
+
+static inline void ce_alloc_mutex_lock(ce_alloc_mutex* mutex)
+{
+#ifdef _WIN32
+	EnterCriticalSection(&mutex->handle);
+#else
+	pthread_mutex_lock(&mutex->handle);
+#endif
+}
+
+static inline void ce_alloc_mutex_unlock(ce_alloc_mutex* mutex)
+{
+#ifdef _WIN32
+	LeaveCriticalSection(&mutex->handle);
+#else
+	pthread_mutex_unlock(&mutex->handle);
+#endif
+}
 
 static void ce_alloc_chunk_init(ce_alloc_chunk* chunk, size_t block_size, unsigned char block_count)
 {
@@ -198,12 +199,12 @@ static void ce_alloc_portion_init(ce_alloc_portion* portion, size_t block_size)
 static void ce_alloc_portion_clean(ce_alloc_portion* portion)
 {
 	if (NULL != portion) {
-		ce_alloc_mutex_clean(&portion->mutex);
 		for (size_t i = 0; i < portion->chunk_count; ++i) {
 			assert(portion->chunks[i].block_count ==
 					portion->block_count && "memory leak detected");
 			ce_alloc_chunk_clean(portion->chunks + i);
 		}
+		ce_alloc_mutex_clean(&portion->mutex);
 		free(portion->chunks);
 	}
 }
@@ -254,7 +255,7 @@ static void ce_alloc_portion_ensure_dealloc_chunk(ce_alloc_portion* portion, voi
 	const ce_alloc_chunk* const hi_bound = portion->chunks + portion->chunk_count;
 	ce_alloc_chunk* lo = NULL != portion->dealloc_chunk ?
 								portion->dealloc_chunk : portion->chunks;
-	ce_alloc_chunk* hi = lo + CE_ALLOC_ONE;
+	ce_alloc_chunk* hi = lo + 1;
 
 	assert(lo_bound <= lo && hi <= hi_bound);
 
@@ -315,7 +316,7 @@ static void ce_alloc_portion_free(ce_alloc_portion* portion, void* ptr)
 // calculates offset into array where an element of size is located
 static inline size_t ce_alloc_get_offset(size_t size)
 {
-	return (size + CE_ALLOC_OBJECT_ALIGNMENT - CE_ALLOC_ONE) / CE_ALLOC_OBJECT_ALIGNMENT;
+	return (size + CE_ALLOC_OBJECT_ALIGNMENT - 1) / CE_ALLOC_OBJECT_ALIGNMENT;
 }
 
 static void ce_alloc_term(void)
@@ -347,7 +348,7 @@ void ce_alloc_init(void)
 											ce_alloc_context.portion_count);
 		for (size_t i = 0; i < ce_alloc_context.portion_count; ++i) {
 			ce_alloc_portion_init(ce_alloc_context.portions + i,
-				(i + CE_ALLOC_ONE) * CE_ALLOC_OBJECT_ALIGNMENT);
+				(i + 1) * CE_ALLOC_OBJECT_ALIGNMENT);
 		}
 	}
 }
@@ -356,7 +357,7 @@ void* ce_alloc(size_t size)
 {
 	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
 
-	size = ce_max(size_t, CE_ALLOC_ONE, size);
+	size = ce_max(size_t, 1, size);
 
 #ifndef NDEBUG
 	// needs to lock mutex here to avoid race conditions
@@ -366,7 +367,7 @@ void* ce_alloc(size_t size)
 
 	void* ptr = size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? malloc(size) :
 		ce_alloc_portion_alloc(ce_alloc_context.portions +
-								ce_alloc_get_offset(size) - CE_ALLOC_ONE);
+								ce_alloc_get_offset(size) - 1);
 
 #ifndef NDEBUG
 	ce_alloc_context.smallobj_allocated += size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? 0 : size;
@@ -413,7 +414,7 @@ void ce_free(void* ptr, size_t size)
 {
 	assert(ce_alloc_context.inited && "the alloc subsystem has not yet been inited");
 
-	size = ce_max(size_t, CE_ALLOC_ONE, size);
+	size = ce_max(size_t, 1, size);
 
 #ifndef NDEBUG
 	if (NULL != ptr) {
@@ -430,7 +431,7 @@ void ce_free(void* ptr, size_t size)
 		free(ptr);
 	} else if (NULL != ptr) {
 		ce_alloc_portion_free(ce_alloc_context.portions +
-								ce_alloc_get_offset(size) - CE_ALLOC_ONE, ptr);
+								ce_alloc_get_offset(size) - 1, ptr);
 	}
 }
 
