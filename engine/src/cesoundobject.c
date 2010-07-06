@@ -31,10 +31,9 @@ ce_sound_object ce_sound_object_new(const char* name)
 	return NULL != sound_instance ? sound_instance->sound_object : 0;
 }
 
-void ce_sound_object_del(ce_sound_object sound_object)
+void ce_sound_object_del(ce_sound_object CE_UNUSED(sound_object))
 {
 	// TODO
-	(void)sound_object;
 }
 
 float ce_sound_object_time(ce_sound_object sound_object)

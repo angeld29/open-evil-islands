@@ -69,6 +69,7 @@ ce_sound_instance* ce_sound_manager_create_instance(const char* name)
 	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
 	if (NULL == ce_path_find_special1(path, sizeof(path),
 			ce_option_manager->ei_path->str, name, ce_sound_dirs, ce_sound_exts)) {
+		ce_logging_error("sound manager: could not find path '%s'", path);
 		return NULL;
 	}
 
@@ -80,12 +81,13 @@ ce_sound_instance* ce_sound_manager_create_instance(const char* name)
 
 	ce_sound_resource* sound_resource = ce_sound_resource_new(mem_file);
 	if (NULL == sound_resource) {
-		ce_logging_info("sound manager: could not find decoder '%s'", path);
+		ce_logging_error("sound manager: could not find decoder '%s'", path);
 		ce_mem_file_del(mem_file);
 		return NULL;
 	}
 
-	ce_sound_instance* sound_instance = ce_sound_instance_new(++ce_sound_manager->last_sound_object, sound_resource);
+	ce_sound_instance* sound_instance =
+		ce_sound_instance_new(++ce_sound_manager->last_sound_object, sound_resource);
 	if (NULL == sound_instance) {
 		ce_logging_error("sound manager: could not create instance '%s'", path);
 		ce_sound_resource_del(sound_resource);

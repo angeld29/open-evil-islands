@@ -27,6 +27,9 @@ extern "C" {
 
 typedef unsigned long int ce_video_object;
 
+extern ce_video_object ce_video_object_new(const char* name);
+extern void ce_video_object_del(ce_video_object video_object);
+
 extern void ce_video_object_advance(ce_video_object video_object, float elapsed);
 extern void ce_video_object_progress(ce_video_object video_object, int percents);
 

@@ -37,8 +37,8 @@ extern struct ce_video_manager {
 extern void ce_video_manager_init(void);
 extern void ce_video_manager_term(void);
 
-extern ce_video_object ce_video_manager_create(const char* name);
-extern ce_video_instance* ce_video_manager_find(ce_video_object video_object);
+extern ce_video_instance* ce_video_manager_create_instance(const char* name);
+extern ce_video_instance* ce_video_manager_find_instance(ce_video_object video_object);
 
 #ifdef __cplusplus
 }

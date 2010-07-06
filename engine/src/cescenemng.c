@@ -32,7 +32,6 @@
 #include "ceconfigmanager.h"
 #include "ceeventmanager.h"
 #include "cerendersystem.h"
-#include "cevideomanager.h"
 #include "cefiguremanager.h"
 #include "cemprmanager.h"
 #include "cemprhelper.h"
@@ -134,7 +133,7 @@ static void ce_scenemng_advance_logo(ce_scenemng* scenemng, float elapsed)
 		} else {
 			ce_string* movie_name = ce_config_manager->
 				movies[CE_CONFIG_MOVIE_START]->items[scenemng->logo.movie_index++];
-			scenemng->logo.video_object = ce_video_manager_create(movie_name->str);
+			scenemng->logo.video_object = ce_video_object_new(movie_name->str);
 			ce_video_object_play(scenemng->logo.video_object);
 		}
 	}
@@ -160,11 +159,11 @@ static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float CE_UNUSED(e
 		srand(time(NULL));
 		int index = rand() % 5;
 		if (0 == index) {
-			scenemng->loading.video_object = ce_video_manager_create("progres");
+			scenemng->loading.video_object = ce_video_object_new("progres");
 		} else {
 			char name[16];
 			snprintf(name, sizeof(name), "progres%d", index);
-			scenemng->loading.video_object = ce_video_manager_create(name);
+			scenemng->loading.video_object = ce_video_object_new(name);
 		}
 		ce_video_object_play(scenemng->loading.video_object);
 		scenemng->loading.created = true;
