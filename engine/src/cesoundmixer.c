@@ -25,7 +25,6 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceroot.h"
 #include "ceeventmanager.h"
 #include "cesoundsystem.h"
 #include "cesoundmixer.h"
@@ -68,7 +67,7 @@ static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
 	ce_event_manager_create_queue();
 
 	while (!ce_sound_mixer->done) {
-		char* block = ce_sound_system_map_block(ce_root.sound_system);
+		char* block = ce_sound_system_map_block();
 		memset(block, 0, CE_SOUND_SYSTEM_BLOCK_SIZE);
 
 		for (size_t i = 0; i < CE_SOUND_SYSTEM_SAMPLES_IN_BLOCK;
@@ -83,7 +82,7 @@ static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
 			}
 		}
 
-		ce_sound_system_unmap_block(ce_root.sound_system);
+		ce_sound_system_unmap_block();
 		ce_event_manager_process_events();
 	}
 }

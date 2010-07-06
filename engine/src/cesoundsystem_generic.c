@@ -22,7 +22,7 @@
 
 #include "cesoundsystem.h"
 
-ce_sound_system* ce_sound_system_new_platform(void)
+ce_sound_system_vtable ce_sound_system_platform(void)
 {
-	return ce_sound_system_new_null();
+	return ce_sound_system_null();
 }

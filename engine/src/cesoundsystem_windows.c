@@ -67,9 +67,9 @@ static void CALLBACK ce_wmm_proc(HWAVEOUT CE_UNUSED(waveout), UINT message,
 	}
 }
 
-static bool ce_wmm_ctor(ce_sound_system* sound_system)
+static bool ce_wmm_ctor()
 {
-	ce_wmm* wmm = (ce_wmm*)sound_system->impl;
+	ce_wmm* wmm = (ce_wmm*)ce_sound_system->impl;
 	MMRESULT code = MMSYSERR_NOERROR;
 
 	ce_logging_write("sound system: using Windows Waveform-Audio Interface");
@@ -110,9 +110,9 @@ static bool ce_wmm_ctor(ce_sound_system* sound_system)
 	return true;
 }
 
-static void ce_wmm_dtor(ce_sound_system* sound_system)
+static void ce_wmm_dtor()
 {
-	ce_wmm* wmm = (ce_wmm*)sound_system->impl;
+	ce_wmm* wmm = (ce_wmm*)ce_sound_system->impl;
 	MMRESULT code = MMSYSERR_NOERROR;
 
 	if (NULL != wmm->waveout) {
@@ -143,7 +143,7 @@ static void ce_wmm_dtor(ce_sound_system* sound_system)
 	}
 }
 
-static ce_wmm_header* ce_wmm_find(ce_wmm* wmm)
+static inline ce_wmm_header* ce_wmm_find(ce_wmm* wmm)
 {
 	for (size_t i = 0; i < CE_SOUND_SYSTEM_HEADER_COUNT; ++i) {
 		if (wmm->headers[i].waveheader.dwFlags & WHDR_DONE) {
@@ -153,9 +153,9 @@ static ce_wmm_header* ce_wmm_find(ce_wmm* wmm)
 	return NULL;
 }
 
-static bool ce_wmm_write(ce_sound_system* sound_system, const void* block)
+static bool ce_wmm_write(const void* block)
 {
-	ce_wmm* wmm = (ce_wmm*)sound_system->impl;
+	ce_wmm* wmm = (ce_wmm*)ce_sound_system->impl;
 	ce_wmm_header* header = NULL;
 	MMRESULT code = MMSYSERR_NOERROR;
 
@@ -198,8 +198,9 @@ static bool ce_wmm_write(ce_sound_system* sound_system, const void* block)
 	return MMSYSERR_NOERROR == code;
 }
 
-ce_sound_system* ce_sound_system_new_platform(void)
+ce_sound_system_vtable ce_sound_system_platform(void)
 {
-	return ce_sound_system_new((ce_sound_system_vtable){sizeof(ce_wmm),
-		ce_wmm_ctor, ce_wmm_dtor, ce_wmm_write});
+	return (ce_sound_system_vtable){
+		sizeof(ce_wmm), ce_wmm_ctor, ce_wmm_dtor, ce_wmm_write
+	};
 }

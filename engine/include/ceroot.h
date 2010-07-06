@@ -30,7 +30,6 @@
 #include "cetimer.h"
 #include "ceinput.h"
 #include "cerenderwindow.h"
-#include "cesoundsystem.h"
 #include "cescenemng.h"
 #include "ceoptparse.h"
 
@@ -45,7 +44,6 @@ extern struct ce_root {
 	bool comprehensive_bbox_only;
 	float animation_fps;
 	ce_renderwindow* renderwindow;
-	ce_sound_system* sound_system;
 	ce_scenemng* scenemng;
 	ce_timer* timer;
 	ce_inputsupply* inputsupply;

@@ -83,9 +83,9 @@ static const char* ce_alsa_choose_device()
 	return device;
 }
 
-static int ce_alsa_set_params(ce_sound_system* sound_system)
+static int ce_alsa_set_params(void)
 {
-	ce_alsa* alsa = (ce_alsa*)sound_system->impl;
+	ce_alsa* alsa = (ce_alsa*)ce_sound_system->impl;
 
 	snd_pcm_hw_params_t* hwparams;
 	snd_pcm_sw_params_t* swparams;
@@ -132,7 +132,7 @@ static int ce_alsa_set_params(ce_sound_system* sound_system)
 	}
 
 	// set the stream rate
-	code = snd_pcm_hw_params_set_rate_near(alsa->handle, hwparams, &sound_system->sample_rate, &dir);
+	code = snd_pcm_hw_params_set_rate_near(alsa->handle, hwparams, &ce_sound_system->sample_rate, &dir);
 	if (code < 0) {
 		ce_logging_error("alsa: sample rate %u Hz not available for playback", CE_SOUND_SYSTEM_SAMPLE_RATE);
 		return code;
@@ -214,9 +214,9 @@ static int ce_alsa_set_params(ce_sound_system* sound_system)
 	return 0;
 }
 
-static bool ce_alsa_ctor(ce_sound_system* sound_system)
+static bool ce_alsa_ctor(void)
 {
-	ce_alsa* alsa = (ce_alsa*)sound_system->impl;
+	ce_alsa* alsa = (ce_alsa*)ce_sound_system->impl;
 
 	ce_logging_write("sound system: using ALSA (Advanced Linux Sound Architecture)");
 
@@ -231,7 +231,7 @@ static bool ce_alsa_ctor(ce_sound_system* sound_system)
 		return false;
 	}
 
-	code = ce_alsa_set_params(sound_system);
+	code = ce_alsa_set_params();
 	if (code < 0) {
 		ce_logging_error("alsa: setting of hw/sw params failed: %s", snd_strerror(code));
 		return false;
@@ -249,9 +249,9 @@ static bool ce_alsa_ctor(ce_sound_system* sound_system)
 	return true;
 }
 
-static void ce_alsa_dtor(ce_sound_system* sound_system)
+static void ce_alsa_dtor(void)
 {
-	ce_alsa* alsa = (ce_alsa*)sound_system->impl;
+	ce_alsa* alsa = (ce_alsa*)ce_sound_system->impl;
 
 	if (NULL != alsa->handle) {
 		snd_pcm_drain(alsa->handle);
@@ -259,8 +259,10 @@ static void ce_alsa_dtor(ce_sound_system* sound_system)
 	}
 }
 
-static int ce_alsa_recovery(ce_alsa* alsa, int code)
+static int ce_alsa_recovery(int code)
 {
+	ce_alsa* alsa = (ce_alsa*)ce_sound_system->impl;
+
 	// no data transferred or interrupt signal
 	if (-EAGAIN == code || -EINTR == code) {
 		return 0;
@@ -294,16 +296,16 @@ static int ce_alsa_recovery(ce_alsa* alsa, int code)
 	return code;
 }
 
-static bool ce_alsa_write(ce_sound_system* sound_system, const void* block)
+static bool ce_alsa_write(const void* block)
 {
-	ce_alsa* alsa = (ce_alsa*)sound_system->impl;
+	ce_alsa* alsa = (ce_alsa*)ce_sound_system->impl;
 	const char* data = block;
 	int code;
 
 	for (size_t sample_count = CE_SOUND_SYSTEM_SAMPLES_IN_BLOCK; sample_count > 0; ) {
 		code = snd_pcm_writei(alsa->handle, data, sample_count);
 		if (code < 0) {
-			code = ce_alsa_recovery(alsa, code);
+			code = ce_alsa_recovery(code);
 			if (code < 0) {
 				ce_logging_error("alsa: %s", snd_strerror(code));
 				return false;
@@ -317,8 +319,9 @@ static bool ce_alsa_write(ce_sound_system* sound_system, const void* block)
 	return true;
 }
 
-ce_sound_system* ce_sound_system_new_platform(void)
+ce_sound_system_vtable ce_sound_system_platform(void)
 {
-	return ce_sound_system_new((ce_sound_system_vtable){sizeof(ce_alsa),
-		ce_alsa_ctor, ce_alsa_dtor, ce_alsa_write});
+	return (ce_sound_system_vtable){
+		sizeof(ce_alsa), ce_alsa_ctor, ce_alsa_dtor, ce_alsa_write
+	};
 }

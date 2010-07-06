@@ -46,17 +46,15 @@ enum {
 	CE_SOUND_SYSTEM_BLOCK_COUNT = 4,
 };
 
-typedef struct ce_sound_system ce_sound_system;
-
 typedef struct {
 	size_t size;
-	bool (*ctor)(ce_sound_system* sound_system);
-	void (*dtor)(ce_sound_system* sound_system);
-	bool (*write)(ce_sound_system* sound_system, const void* block);
+	bool (*ctor)(void);
+	void (*dtor)(void);
+	bool (*write)(const void* block);
 } ce_sound_system_vtable;
 
-struct ce_sound_system {
-	volatile bool done;
+extern struct ce_sound_system {
+	bool done;
 	unsigned int sample_rate; // actual value supported by implementation/hardware
 	size_t next_block;
 	char blocks[CE_SOUND_SYSTEM_BLOCK_COUNT][CE_SOUND_SYSTEM_BLOCK_SIZE];
@@ -65,15 +63,16 @@ struct ce_sound_system {
 	ce_thread* thread;
 	ce_sound_system_vtable vtable;
 	char impl[];
-};
+}* ce_sound_system;
 
-extern ce_sound_system* ce_sound_system_new(ce_sound_system_vtable vtable);
-extern ce_sound_system* ce_sound_system_new_platform(void);
-extern ce_sound_system* ce_sound_system_new_null(void);
-extern void ce_sound_system_del(ce_sound_system* sound_system);
+extern ce_sound_system_vtable ce_sound_system_platform(void);
+extern ce_sound_system_vtable ce_sound_system_null(void);
 
-extern void* ce_sound_system_map_block(ce_sound_system* sound_system);
-extern void ce_sound_system_unmap_block(ce_sound_system* sound_system);
+extern void ce_sound_system_init(void);
+extern void ce_sound_system_term(void);
+
+extern void* ce_sound_system_map_block(void);
+extern void ce_sound_system_unmap_block(void);
 
 #ifdef __cplusplus
 }
