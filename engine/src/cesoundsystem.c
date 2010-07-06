@@ -22,6 +22,7 @@
 
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceoptionmanager.h"
 #include "ceeventmanager.h"
 #include "cesoundsystem.h"
 
@@ -67,23 +68,43 @@ static void ce_sound_system_exec(void* CE_UNUSED(arg))
 	}
 }
 
-void ce_sound_system_init(void)
+static void ce_sound_system_clean(void)
 {
-	ce_sound_system_vtable vtable = ce_sound_system_platform();
+	if (NULL != ce_sound_system) {
+		if (NULL != ce_sound_system->vtable.dtor) {
+			(*ce_sound_system->vtable.dtor)();
+		}
+
+		ce_free(ce_sound_system, sizeof(struct ce_sound_system) + ce_sound_system->vtable.size);
+	}
+}
+
+static bool ce_sound_system_alloc(ce_sound_system_vtable vtable)
+{
 	ce_sound_system = ce_alloc_zero(sizeof(struct ce_sound_system) + vtable.size);
 
 	ce_sound_system->sample_rate = CE_SOUND_SYSTEM_SAMPLE_RATE;
 	ce_sound_system->vtable = vtable;
 
+	if (!(*vtable.ctor)()) {
+		ce_sound_system_clean();
+		return false;
+	}
+
+	return true;
+}
+
+void ce_sound_system_init(void)
+{
+	if (!ce_sound_system_alloc(ce_option_manager->disable_sound ?
+			ce_sound_system_null() : ce_sound_system_platform())) {
+		ce_sound_system_alloc(ce_sound_system_null());
+	}
+
 	ce_sound_system->free_blocks = ce_semaphore_new(CE_SOUND_SYSTEM_BLOCK_COUNT);
 	ce_sound_system->used_blocks = ce_semaphore_new(0);
 
 	ce_sound_system->thread = ce_thread_new(ce_sound_system_exec, NULL);
-
-	if (!(*vtable.ctor)()) {
-		ce_sound_system_term();
-		return;
-	}
 
 	if (CE_SOUND_SYSTEM_SAMPLE_RATE != ce_sound_system->sample_rate) {
 		ce_logging_warning("sound system: sample rate %u Hz not supported "
@@ -100,15 +121,11 @@ void ce_sound_system_term(void)
 		ce_semaphore_release(ce_sound_system->used_blocks, 1);
 		ce_thread_wait(ce_sound_system->thread);
 
-		if (NULL != ce_sound_system->vtable.dtor) {
-			(*ce_sound_system->vtable.dtor)();
-		}
-
 		ce_thread_del(ce_sound_system->thread);
 		ce_semaphore_del(ce_sound_system->used_blocks);
 		ce_semaphore_del(ce_sound_system->free_blocks);
 
-		ce_free(ce_sound_system, sizeof(struct ce_sound_system) + ce_sound_system->vtable.size);
+		ce_sound_system_clean();
 	}
 }
 

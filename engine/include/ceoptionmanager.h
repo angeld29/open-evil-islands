@@ -52,6 +52,7 @@ extern struct ce_option_manager {
 	bool terrain_tiling;
 	bool texture_caching;
 	int thread_count;
+	bool disable_sound;
 	bool show_axes;
 	bool show_fps;
 }* ce_option_manager;

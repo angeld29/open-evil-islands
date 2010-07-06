@@ -65,6 +65,7 @@ void ce_option_manager_init(ce_optparse* optparse)
 	ce_optparse_get(optparse, "terrain_tiling", &ce_option_manager->terrain_tiling);
 	ce_optparse_get(optparse, "texture_caching", &ce_option_manager->texture_caching);
 	ce_optparse_get(optparse, "thread_count", &ce_option_manager->thread_count);
+	ce_optparse_get(optparse, "disable_sound", &ce_option_manager->disable_sound);
 	ce_optparse_get(optparse, "show_axes", &ce_option_manager->show_axes);
 	ce_optparse_get(optparse, "show_fps", &ce_option_manager->show_fps);
 
@@ -203,6 +204,10 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 
 	ce_optparse_add(optparse, "thread_count",
 		CE_TYPE_INT, &thread_count, false, "j", "jobs", help);
+
+	ce_optparse_add(optparse, "disable_sound",
+		CE_TYPE_BOOL, NULL, false, NULL, "disable-sound",
+		"turn off all sounds");
 
 	ce_optparse_add(optparse, "show_axes",
 		CE_TYPE_BOOL, NULL, false, NULL, "show-axes",
