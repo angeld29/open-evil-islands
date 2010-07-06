@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth.
+ *  This file is part of Cursed Earth
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands
+ *  Copyright (C) 2009-2010 Yanis Kurganov
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,9 +25,8 @@
 #include "cequat.h"
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 typedef struct {
 	ce_vec3 translation;
@@ -37,18 +36,36 @@ typedef struct {
 
 extern const ce_transform CE_TRANSFORM_IDENTITY;
 
-extern ce_transform*
-ce_transform_init(ce_transform* transform, const ce_vec3* translation,
+static inline ce_transform* ce_transform_init(ce_transform* transform,
+											const ce_vec3* translation,
 											const ce_quat* rotation,
-											const ce_vec3* scaling);
+											const ce_vec3* scaling)
+{
+	ce_vec3_copy(&transform->translation, translation);
+	ce_quat_copy(&transform->rotation, rotation);
+	ce_vec3_copy(&transform->scaling, scaling);
+	return transform;
+}
 
-extern ce_transform* ce_transform_init_identity(ce_transform* transform);
+static inline ce_transform* ce_transform_init_identity(ce_transform* transform)
+{
+	ce_vec3_init_zero(&transform->translation);
+	ce_quat_init_identity(&transform->rotation);
+	ce_vec3_init_unit_scale(&transform->scaling);
+	return transform;
+}
 
-extern ce_transform*
-ce_transform_copy(ce_transform* transform, const ce_transform* other);
+static inline ce_transform* ce_transform_copy(ce_transform* transform,
+											const ce_transform* other)
+{
+	ce_vec3_copy(&transform->translation, &other->translation);
+	ce_quat_copy(&transform->rotation, &other->rotation);
+	ce_vec3_copy(&transform->scaling, &other->scaling);
+	return transform;
+}
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CE_TRANSFORM_H */
