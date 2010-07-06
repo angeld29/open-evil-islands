@@ -168,7 +168,8 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
 		ce_vector_push_back(figentity->textures, ce_texture_manager_get(textures[i]));
 		if (NULL == figentity->textures->items[i]) {
 			figentity->textures->items[i] = ce_texture_manager_get("default0");
-			ce_logging_error("figure entity: could not find texture '%s'", textures[i]);
+			ce_logging_error("figure entity: could not find texture '%s' for '%s', "
+				"force to 'default0'", textures[i], figmesh->figproto->name->str);
 		}
 		ce_texture_add_ref(figentity->textures->items[i]);
 		ce_texture_wrap(figentity->textures->items[i], CE_TEXTURE_WRAP_REPEAT);
