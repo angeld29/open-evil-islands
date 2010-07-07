@@ -17,6 +17,10 @@ Evil Islands CAM file format
    * This document has been written in course of
      reverse-engineering CAM file format.
 
+     See also CAMEdit
+     at Gipat.ru Dev Team <http://www.gipat.ru/>
+     and Gipat Group <http://www.gipatgroup.org/>.
+
    * Types.
      enum cam_record_size = 36
 
