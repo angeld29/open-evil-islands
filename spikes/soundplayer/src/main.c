@@ -52,9 +52,6 @@ static void state_changed(void* CE_UNUSED(listener), int state)
 		sound_object = ce_sound_object_new(track);
 		ce_sound_object_play(sound_object);
 
-		ce_sound_object_play(ce_sound_object_new("main"));
-		ce_sound_object_play(ce_sound_object_new("wild"));
-
 		ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);
 	}
 }
