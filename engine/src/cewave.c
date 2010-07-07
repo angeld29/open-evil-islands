@@ -46,6 +46,8 @@ static bool ce_wave_header_read_format_ima_adpcm(ce_wave_header* wave_header, ce
 {
 	wave_header->format.extra.ima_adpcm.size = ce_mem_file_read_u16le(mem_file);
 	wave_header->format.extra.ima_adpcm.samples_per_block = ce_mem_file_read_u16le(mem_file);
+	assert(2 * (wave_header->format.block_align - 4 * wave_header->format.channel_count) /
+		wave_header->format.channel_count + 1 == wave_header->format.extra.ima_adpcm.samples_per_block);
 	return true;
 }
 

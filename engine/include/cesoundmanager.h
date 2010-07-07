@@ -31,6 +31,7 @@ extern "C" {
 
 extern struct ce_sound_manager {
 	ce_sound_object last_sound_object;
+	ce_vector* res_files;
 	ce_vector* sound_instances;
 }* ce_sound_manager;
 

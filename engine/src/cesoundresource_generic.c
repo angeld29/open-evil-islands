@@ -22,8 +22,9 @@
  *  Supported decoders:
  *  1. Ogg Vorbis (lossy compression).
  *  2. FLAC (lossless compression).
- *  3. MPEG (limited, for backward compatibility with original EI resources).
- *  4. Bink (limited, for backward compatibility with original EI resources).
+ *  3. WAVE (limited, for backward compatibility with original EI resources).
+ *  4. MPEG (limited, for backward compatibility with original EI resources).
+ *  5. Bink (limited, for backward compatibility with original EI resources).
 */
 
 #include <stdlib.h>
@@ -50,6 +51,7 @@
 #include "celogging.h"
 #include "cebyteorder.h"
 #include "ceerror.h"
+#include "cewave.h"
 #include "cebink.h"
 #include "cesoundresource.h"
 
@@ -372,6 +374,101 @@ static bool ce_flac_reset(ce_sound_resource* sound_resource)
 	}
 
 	return false;
+}
+
+/*
+ *  Waveform Audio File Format (C) Microsoft & IBM
+*/
+
+typedef struct {
+	ce_wave_header wave_header;
+	int block_count, sample_count;
+	int blocks;
+	int previous[2];
+	int step_indices[2];
+	char* block;
+	char data[];
+} ce_wave;
+
+static int ce_wave_ima_index_table[16] = {
+	-1, -1, -1, -1, /* +0 - +3, decrease the step size */
+	 2,  4,  6,  8, /* +4 - +7, increase the step size */
+	-1, -1, -1, -1,	/* -0 - -3, decrease the step size */
+	 2,  4,  6,  8,	/* -4 - -7, increase the step size */
+};
+
+static int ce_wave_ima_step_table[89] = {
+	7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
+	50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230,
+	253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963,
+	1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327,
+	3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487,
+	12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767
+};
+
+static inline int ce_wave_ima_clamp_step_index(int index)
+{
+	return ce_clamp(int, index, 0, 88);
+}
+
+static bool ce_wave_test(ce_sound_probe* sound_probe)
+{
+	ce_wave_header wave_header;
+	if (ce_wave_header_read(&wave_header, sound_probe->mem_file)) {
+		sound_probe->size = sizeof(ce_wave);
+		if (CE_WAVE_FORMAT_IMA_ADPCM == wave_header.format.tag) {
+			sound_probe->size += wave_header.format.block_align * wave_header.format.channel_count +
+				3 * wave_header.format.channel_count * wave_header.format.extra.ima_adpcm.samples_per_block;
+		}
+		ce_logging_debug("wave: size = %zu", sound_probe->size - sizeof(ce_wave));
+		assert(sizeof(ce_wave_header) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
+		memcpy(sound_probe->buffer, &wave_header, sizeof(ce_wave_header));
+		return true;
+	}
+	return false;
+}
+
+static bool ce_wave_decode(ce_sound_resource* sound_resource)
+{
+	ce_wave* wave = (ce_wave*)sound_resource->impl;
+
+	++wave->block_count;
+	wave->sample_count = 0;
+}
+
+static bool ce_wave_ctor(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe)
+{
+	ce_wave* wave = (ce_wave*)sound_resource->impl;
+	memcpy(&wave->wave_header, sound_probe->buffer, sizeof(ce_wave_header));
+
+	sound_resource->bits_per_sample = 16;
+	sound_resource->sample_rate = wave->wave_header.format.samples_per_sec;
+	sound_resource->channel_count = wave->wave_header.format.channel_count;
+
+	ce_logging_debug("wave: audio is %u bits per sample, %u Hz, %u channel(s)",
+		sound_resource->bits_per_sample, sound_resource->sample_rate, sound_resource->channel_count);
+
+	wave->block = wave->data + wave->wave_header.format.extra.ima_adpcm.samples_per_block * wave->wave_header.format.channel_count;
+	//wave->blocks = psf->datalength / pima->blocksize;
+
+	return true;
+}
+
+static void ce_wave_dtor(ce_sound_resource* sound_resource)
+{
+	ce_wave* wave = (ce_wave*)sound_resource->impl;
+}
+
+static size_t ce_wave_read(ce_sound_resource* sound_resource, void* data, size_t size)
+{
+	ce_wave* wave = (ce_wave*)sound_resource->impl;
+	return 0;
+}
+
+static bool ce_wave_reset(ce_sound_resource* sound_resource)
+{
+	ce_wave* wave = (ce_wave*)sound_resource->impl;
+	return true;
 }
 
 #ifdef CE_ENABLE_PROPRIETARY
@@ -871,6 +968,9 @@ const ce_sound_resource_vtable ce_sound_resource_builtins[] = {
 	{ce_flac_test,
 	ce_flac_ctor, ce_flac_dtor,
 	ce_flac_read, ce_flac_reset},
+	{ce_wave_test,
+	ce_wave_ctor, ce_wave_dtor,
+	ce_wave_read, ce_wave_reset},
 #ifdef CE_ENABLE_PROPRIETARY
 	{ce_mad_test,
 	ce_mad_ctor, ce_mad_dtor,
