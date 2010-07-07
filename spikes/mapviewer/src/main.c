@@ -27,10 +27,12 @@
 #include "celib.h"
 #include "cemath.h"
 #include "cealloc.h"
+#include "celogging.h"
 #include "ceoptionmanager.h"
 #include "cefiguremanager.h"
 #include "cemobloader.h"
 #include "ceroot.h"
+#include "cecamfile.h"
 
 static ce_optparse* optparse;
 
@@ -138,54 +140,52 @@ int main(int argc, char* argv[])
 	const char* ei_path;
 	ce_optparse_get(optparse, "ei_path", &ei_path);
 
-	//snprintf(path, sizeof(path), "%s/Camera/%s.cam",
-	//	ei_path->sval[0], zone->sval[0]/*"mainmenu"*/);
+#if 0
+	const char* zone;
+	ce_optparse_get(optparse, "zone", &zone);
 
-	/*FILE* file = NULL;//fopen(path, "rb");
-	if (NULL != file) {
-		for (;;) {
-			uint32_t v1, v2;
+	char path[512];
+	snprintf(path, sizeof(path), "%s/Camera/%s.cam",
+		ei_path, zone /*"mainmenu"*/ /*"camera01"*/);
 
-			if (0 == fread(&v1, 4, 1, file)) {
-				break;
-			}
+	ce_mem_file* mem_file = ce_mem_file_new_path(path);
+	if (NULL != mem_file) {
+		ce_cam_file* cam_file = ce_cam_file_new(mem_file);
 
-			fread(&v2, 4, 1, file);
-
-			printf("%u %u\n", v1, v2);
-
-			float f[4];
-			fread(f, sizeof(float), 3, file);
-			printf("%f %f %f\n", f[0], f[1], f[2]);
-
-			ce_vec3 position;
-			ce_vec3_init_array(&position, f);
-			ce_fswap(&position.z, &position.y);
-			position.y = scenemng->terrain->mprfile->max_y;
-			position.z = -position.z;
-
-			ce_camera_set_position(scenemng->camera, &position);
-
-			fread(f, sizeof(float), 4, file);
-			printf("%f %f %f %f\n", f[0], f[1], f[2], f[3]);
-
-			ce_quat orientation, temp, temp2;//, temp3;
-			ce_quat_init_array(&temp, f);
-
-			ce_quat_init_polar(&temp2, ce_deg2rad(90), &CE_VEC3_UNIT_X);
-			//ce_quat_mul(&temp3, &temp2, &temp);
-
-			ce_quat_mul(&orientation, &temp2, &temp);
-
-			//ce_quat_init_polar(&temp2, ce_deg2rad(180), &CE_VEC3_UNIT_Y);
-			//ce_quat_mul(&orientation, &temp2, &temp3);
-
-			ce_quat_conj(&orientation, &orientation);
-
-			ce_camera_set_orientation(scenemng->camera, &orientation);
+		for (size_t i = 0; i < cam_file->record_count; ++i) {
+			printf("%u %u\n", cam_file->records[i].time, cam_file->records[i].unknown);
+			printf("%f %f %f\n", cam_file->records[i].position[0], cam_file->records[i].position[1], cam_file->records[i].position[2]);
+			printf("%f %f %f %f\n", cam_file->records[i].rotation[0], cam_file->records[i].rotation[1], cam_file->records[i].rotation[2], cam_file->records[i].rotation[3]);
+			printf("-----\n");
 		}
-		fclose(file);
-	}*/
+
+		ce_vec3 position;
+		ce_vec3_init_array(&position, cam_file->records[0].position);
+		ce_swap_temp(float, &position.z, &position.y);
+		position.z = -position.z;
+
+		ce_camera_set_position(ce_root.scenemng->camera, &position);
+
+		ce_quat orientation, temp, temp2, temp3;
+		ce_quat_init_array(&temp, cam_file->records[0].rotation);
+
+		ce_quat_init_polar(&temp2, ce_deg2rad(90), &CE_VEC3_UNIT_X);
+		ce_quat_mul(&temp3, &temp2, &temp);
+
+		ce_quat_init_polar(&temp2, ce_deg2rad(180), &CE_VEC3_UNIT_Y);
+		ce_quat_mul(&orientation, &temp2, &temp3);
+
+		ce_quat_conj(&orientation, &orientation);
+
+		ce_camera_set_orientation(ce_root.scenemng->camera, &orientation);
+		ce_camera_set_orientation(ce_root.scenemng->camera, &temp);
+
+		ce_cam_file_del(cam_file);
+		ce_mem_file_del(mem_file);
+	} else {
+		ce_logging_error("map viewer: could not open file '%s'", path);
+	}
+#endif
 
 	ce_root.scenemng->listener = (ce_scenemng_listener)
 		{.state_changed = state_changed, .advance = advance, .render = render};
