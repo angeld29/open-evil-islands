@@ -441,7 +441,7 @@ static bool ce_wave_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 	ce_logging_debug("wave: audio is %u bits per sample, %u Hz, %u channel(s)",
 		sound_resource->bits_per_sample, sound_resource->sample_rate, sound_resource->channel_count);
 
-	wave->block = (unsigned char*)(wave->data + wave->wave_header.format.extra.ima_adpcm.samples_per_block * wave->wave_header.format.channel_count);
+	wave->block = (unsigned char*)(wave->data + 2 * wave->wave_header.format.extra.ima_adpcm.samples_per_block * wave->wave_header.format.channel_count);
 
 	ce_logging_debug("samples_per_block %hu, ch %hu", wave->wave_header.format.extra.ima_adpcm.samples_per_block, wave->wave_header.format.channel_count);
 	return true;
@@ -456,107 +456,9 @@ static inline int ce_wave_ima_clamp_step_index(int index)
 	return ce_clamp(int, index, 0, 88);
 }
 
-static const uint16_t IMA_ADPCMStepTable[89] =
-	{
-		7,	  8,	9,	 10,   11,	 12,   13,	 14,
-	   16,	 17,   19,	 21,   23,	 25,   28,	 31,
-	   34,	 37,   41,	 45,   50,	 55,   60,	 66,
-	   73,	 80,   88,	 97,  107,	118,  130,	143,
-	  157,	173,  190,	209,  230,	253,  279,	307,
-	  337,	371,  408,	449,  494,	544,  598,	658,
-	  724,	796,  876,	963, 1060, 1166, 1282, 1411,
-	 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024,
-	 3327, 3660, 4026, 4428, 4871, 5358, 5894, 6484,
-	 7132, 7845, 8630, 9493,10442,11487,12635,13899,
-	15289,16818,18500,20350,22385,24623,27086,29794,
-	32767
-	};
-
-
-static const int IMA_ADPCMIndexTable[8] =
-	{
-	-1, -1, -1, -1, 2, 4, 6, 8,
-	};
-
-static uint8_t StepIndex;
-int16_t PredictedValue;
-
-static int Decode(unsigned adpcm)
-	{
-	int stepIndex = StepIndex;
-	int step = IMA_ADPCMStepTable[stepIndex];
-
-	stepIndex += IMA_ADPCMIndexTable[adpcm&7];
-	if(stepIndex<0)
-		stepIndex = 0;
-	else if(stepIndex>88)
-		stepIndex = 88;
-	StepIndex = stepIndex;
-
-	int diff = step>>3;
-	if(adpcm&4)
-		diff += step;
-	if(adpcm&2)
-		diff += step>>1;
-	if(adpcm&1)
-		diff += step>>2;
-
-	int predicedValue = PredictedValue;
-	if(adpcm&8)
-		predicedValue -= diff;
-	else
-		predicedValue += diff;
-	if(predicedValue<-0x8000)
-		predicedValue = -0x8000;
-	else if(predicedValue>0x7fff)
-		predicedValue = 0x7fff;
-	PredictedValue = predicedValue;
-
-	return predicedValue;
-	}
-
-static unsigned Decode2(int16_t* dst, const uint8_t* src, int srcOffset, unsigned srcSize)
-	{
-	// use given bit offset
-	src += srcOffset>>3;
-
-	// calculate pointers to iterate output buffer
-	int16_t* out = dst;
-	int16_t* end = out+(srcSize>>2);
-
-	while(out<end)
-		{
-		// get byte from src
-		unsigned adpcm = *src; 
-
-		// pick which nibble holds a adpcm value...
-		if(srcOffset&4)
-			{
-			adpcm >>= 4;  // use high nibble of byte
-			++src;		  // move on a byte for next sample
-			}
-
-		*out++ = Decode(adpcm);  // decode value and store it
-
-		// toggle which nibble in byte to write to next
-		srcOffset ^= 4;
-		}
-
-	// return number of bytes written to dst
-	return (unsigned)out-(unsigned)dst;
-	}
-
 static void ce_wave_decode(ce_sound_resource* sound_resource)
 {
 	ce_wave* wave = (ce_wave*)sound_resource->impl;
-
-	//if (CE_WAVE_FORMAT_IMA_ADPCM == wave->wave_header.format.tag &&
-	//		wave->wave_header.format.channel_count == 2) {
-	//	wave->output_buffer_pos = 0;
-	//	wave->output_buffer_size = Decode2((int16_t*)wave->data, (const uint8_t*)wave->block, 0, wave->wave_header.format.block_align * 8);
-	//	ce_logging_debug("size %zu", wave->output_buffer_size);
-	//	return;
-	//}
 
 	int16_t* samples = (int16_t*)wave->data;
 	int step_indices[wave->wave_header.format.channel_count];
@@ -576,11 +478,6 @@ static void ce_wave_decode(ce_sound_resource* sound_resource)
 		}
 
 		samples[channel] = current;
-
-		//printf ("%hd ", samples[channel]);
-		//printf ("%d ", step_indices[channel]);
-		//printf ("%hhd %hhd %hhd %hhd ", wave->block[channel * 4], wave->block[channel * 4 + 1],
-		//	wave->block[channel * 4 + 2], wave->block[channel * 4 + 3]);
 	}
 
 	// pull apart the packed 4 bit samples and store them in their
@@ -604,8 +501,6 @@ static void ce_wave_decode(ce_sound_resource* sound_resource)
 		index_start += 8 * wave->wave_header.format.channel_count;
 	}
 
-	FILE* f = fopen("test2.wav", "ab");
-
 	// decode the encoded 4 bit samples
 	for (size_t k = wave->wave_header.format.channel_count;
 			k < wave->wave_header.format.extra.ima_adpcm.samples_per_block *
@@ -613,7 +508,7 @@ static void ce_wave_decode(ce_sound_resource* sound_resource)
 		size_t channel = (wave->wave_header.format.channel_count > 1) ? (k % 2) : 0;
 
 		int16_t byte_code = samples[k] & 0xf;
-		unsigned int step = ce_wave_ima_step_table[step_indices[channel]];
+		int step = ce_wave_ima_step_table[step_indices[channel]];
 		int diff = step >> 3;
 
 		if (byte_code & 1) diff += step >> 2;
@@ -621,20 +516,15 @@ static void ce_wave_decode(ce_sound_resource* sound_resource)
 		if (byte_code & 4) diff += step;
 		if (byte_code & 8) diff = -diff;
 
-		int32_t current = samples[k - wave->wave_header.format.channel_count] + diff;
+		int32_t current = samples[k - wave->wave_header.format.channel_count];
+		current += diff;
 		current = ce_clamp(int32_t, current, INT16_MIN, INT16_MAX);
 
 		step_indices[channel] += ce_wave_ima_index_table[byte_code];
 		step_indices[channel] = ce_wave_ima_clamp_step_index(step_indices[channel]);
 
 		samples[k] = current;
-		fwrite(&samples[k], 1, 2, f);
-		//printf ("%hd ", samples[k]);
 	}
-	//printf("\n");
-
-	fflush(f);
-	fclose(f);
 }
 
 static size_t ce_wave_read(ce_sound_resource* sound_resource, void* data, size_t size)
@@ -671,19 +561,10 @@ static size_t ce_wave_read(ce_sound_resource* sound_resource, void* data, size_t
 
 		wave->output_buffer_pos = 0;
 		wave->output_buffer_size = 2 * wave->wave_header.format.extra.ima_adpcm.samples_per_block * wave->wave_header.format.channel_count;
-
-		ce_logging_debug("output_buffer_size %zu", wave->output_buffer_size);
-
-		/*FILE* f = fopen("test.wav", "ab");
-		fwrite(wave->data, 1, wave->output_buffer_size, f);
-		fflush(f);
-		fclose(f);*/
 	}
 
 	// FIXME
 	if (1 == wave->wave_header.format.channel_count) {
-		//ce_logging_debug("1 ch");
-
 		int16_t* s1 = (int16_t*)data;
 		int16_t* s2 = (int16_t*)(wave->data + wave->output_buffer_pos);
 
@@ -697,13 +578,7 @@ static size_t ce_wave_read(ce_sound_resource* sound_resource, void* data, size_t
 
 		wave->output_buffer_pos += size / 2;
 		wave->output_buffer_size -= size / 2;
-
-		//ce_logging_debug("%zu %zu %zu %zu",
-		//	wave->output_buffer_pos, wave->output_buffer_size,
-		//	size, count);
 	} else {
-		//ce_logging_debug("2 ch");
-
 		size = ce_min(size_t, size, wave->output_buffer_size);
 		memcpy(data, wave->data + wave->output_buffer_pos, size);
 
