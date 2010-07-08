@@ -22,8 +22,7 @@
  *  Waveform Audio File Format (C) Microsoft & IBM
  *
  *  See also:
- *  1. http://wiki.multimedia.cx/index.php?title=IMA_ADPCM
- *  2. http://wiki.multimedia.cx/index.php?title=Microsoft_IMA_ADPCM
+ *  1. http://en.wikipedia.org/wiki/WAV
 */
 
 #ifndef CE_WAVE_H

@@ -76,11 +76,15 @@ extern "C" {
 #endif
 
 CE_LIB_DEF_ALL(int)
-CE_LIB_DEF_ALL(float)
+CE_LIB_DEF_ALL(int16_t)
+CE_LIB_DEF_ALL(int32_t)
 CE_LIB_DEF_ALL(size_t)
+CE_LIB_DEF_ALL(float)
 
 // only for integers
 CE_LIB_DEF_SWAP(int)
+CE_LIB_DEF_SWAP(int16_t)
+CE_LIB_DEF_SWAP(int32_t)
 CE_LIB_DEF_SWAP(size_t)
 
 // only for pointers
