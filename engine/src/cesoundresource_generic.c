@@ -124,18 +124,10 @@ static bool ce_vorbis_ctor(ce_sound_resource* sound_resource, ce_sound_probe* so
 
 	// a vorbis file has no particular number of bits per sample,
 	// so use words, see also ov_read
-	sound_resource->bits_per_sample = 16;
-	sound_resource->sample_rate = info->rate;
-	sound_resource->channel_count = info->channels;
-
 	ce_sound_format_init(&sound_resource->sound_format, 16, info->rate, info->channels);
 
-	ce_logging_debug("vorbis: audio is %ld bits per second "
-						"(%ld bits per second nominal), "
-						"%u bits per sample, %u Hz, %u channel(s)",
-		ov_bitrate(&vorbis->vf, -1), info->bitrate_nominal,
-		sound_resource->bits_per_sample,
-		sound_resource->sample_rate, sound_resource->channel_count);
+	ce_logging_debug("vorbis: audio is %ld bits per second (%ld bits per second nominal)",
+		ov_bitrate(&vorbis->vf, -1), info->bitrate_nominal);
 
 	return true;
 }
@@ -263,7 +255,7 @@ FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamDecoder*
 	FLAC__int16* output_buffer = (FLAC__int16*)flac->output_buffer;
 
 	flac->output_buffer_pos = 0;
-	flac->output_buffer_size = sound_resource->sample_size * frame->header.blocksize;
+	flac->output_buffer_size = sound_resource->sound_format.sample_size * frame->header.blocksize;
 
 	if (flac->output_buffer_size > sizeof(flac->output_buffer)) {
 		ce_logging_debug("blocksize %u, channels %u, out sz %zu, max %zu",
@@ -288,17 +280,10 @@ void ce_flac_metadata_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	ce_sound_resource* sound_resource = client_data;
 
 	if (FLAC__METADATA_TYPE_STREAMINFO == metadata->type) {
-		sound_resource->bits_per_sample = metadata->data.stream_info.bits_per_sample;
-		sound_resource->sample_rate = metadata->data.stream_info.sample_rate;
-		sound_resource->channel_count = metadata->data.stream_info.channels;
-
 		ce_sound_format_init(&sound_resource->sound_format,
 								metadata->data.stream_info.bits_per_sample,
 								metadata->data.stream_info.sample_rate,
 								metadata->data.stream_info.channels);
-
-		ce_logging_debug("flac: audio is %u bits per sample, %u Hz, %u channel(s)",
-			sound_resource->bits_per_sample, sound_resource->sample_rate, sound_resource->channel_count);
 	}
 }
 
@@ -418,20 +403,11 @@ static bool ce_wave_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 	ce_wave* wave = (ce_wave*)sound_resource->impl;
 	memcpy(&wave->wave_header, sound_probe->buffer, sizeof(ce_wave_header));
 
-	sound_resource->bits_per_sample = 16;
-	sound_resource->sample_rate = wave->wave_header.format.samples_per_sec;
-	sound_resource->channel_count = wave->wave_header.format.channel_count;
-
 	ce_sound_format_init(&sound_resource->sound_format,
 						CE_WAVE_FORMAT_IMA_ADPCM == wave->wave_header.format.tag ?
 						16 : wave->wave_header.format.bits_per_sample,
 						wave->wave_header.format.samples_per_sec,
 						wave->wave_header.format.channel_count);
-
-	// FIXME
-	if (1 == sound_resource->channel_count) {
-		sound_resource->channel_count = 2;
-	}
 
 	wave->block = wave->data + ce_wave_ima_adpcm_samples_storage_size(&wave->wave_header);
 
@@ -782,17 +758,11 @@ static bool ce_mad_ctor(ce_sound_resource* sound_resource, ce_sound_probe* CE_UN
 		return false;
 	}
 
-	sound_resource->bits_per_sample = 16;
-	sound_resource->sample_rate = mad->frame.header.samplerate;
-	sound_resource->channel_count = MAD_MODE_SINGLE_CHANNEL ==
-									mad->frame.header.mode ? 1 : 2;
-
 	ce_sound_format_init(&sound_resource->sound_format,
 						16, mad->frame.header.samplerate,
 						MAD_MODE_SINGLE_CHANNEL == mad->frame.header.mode ? 1 : 2);
 
-	ce_logging_debug("mad: audio is %lu bit/s, %u Hz, %u channel",
-		mad->frame.header.bitrate, sound_resource->sample_rate, sound_resource->channel_count);
+	ce_logging_debug("mad: audio is %lu bits per second", mad->frame.header.bitrate);
 
 	return true;
 }
@@ -887,18 +857,6 @@ static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 		return false;
 	}
 
-	sound_resource->bits_per_sample = 16;
-	sound_resource->sample_rate = bink->audio_track.sample_rate;
-	sound_resource->channel_count = CE_BINK_AUDIO_FLAG_STEREO &
-									bink->audio_track.flags ? 2 : 1;
-
-	ce_sound_format_init(&sound_resource->sound_format,
-						16, bink->audio_track.sample_rate,
-						CE_BINK_AUDIO_FLAG_STEREO & bink->audio_track.flags ? 2 : 1);
-
-	ce_logging_debug("bink: audio is %u Hz, %u channel",
-		sound_resource->sample_rate, sound_resource->channel_count);
-
 	bink->indices = (ce_bink_index*)bink->data;
 	if (!ce_bink_index_read(bink->indices, bink->header.frame_count, sound_resource->mem_file)) {
 		ce_logging_error("bink: invalid frame index table");
@@ -911,10 +869,14 @@ static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 		return false;
 	}
 
+	ce_sound_format_init(&sound_resource->sound_format,
+						16, bink->audio_track.sample_rate,
+						CE_BINK_AUDIO_FLAG_STEREO & bink->audio_track.flags ? 2 : 1);
+
 	avcodec_get_context_defaults(&bink->codec_context);
 	bink->codec_context.codec_tag = bink->header.four_cc;
-	bink->codec_context.sample_rate = sound_resource->sample_rate;
-	bink->codec_context.channels = sound_resource->channel_count;
+	bink->codec_context.sample_rate = sound_resource->sound_format.samples_per_second;
+	bink->codec_context.channels = sound_resource->sound_format.channel_count;
 
 	if (avcodec_open(&bink->codec_context, bink->codec) < 0) {
 		ce_logging_error("bink: could not open RDFT audio codec");

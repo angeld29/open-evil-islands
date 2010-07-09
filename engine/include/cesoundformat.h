@@ -27,22 +27,22 @@ extern "C" {
 
 typedef struct {
 	unsigned int bits_per_sample;
-	unsigned int samples_per_sec;
+	unsigned int samples_per_second;
 	unsigned int channel_count;
 	unsigned int sample_size;
-	unsigned int bytes_per_sec;
+	unsigned int bytes_per_second;
 } ce_sound_format;
 
 static inline void ce_sound_format_init(ce_sound_format* sound_format,
 										unsigned int bits_per_sample,
-										unsigned int samples_per_sec,
+										unsigned int samples_per_second,
 										unsigned int channel_count)
 {
 	sound_format->bits_per_sample = bits_per_sample;
-	sound_format->samples_per_sec = samples_per_sec;
+	sound_format->samples_per_second = samples_per_second;
 	sound_format->channel_count = channel_count;
 	sound_format->sample_size = channel_count * (bits_per_sample / 8);
-	sound_format->bytes_per_sec = samples_per_sec * sound_format->sample_size;
+	sound_format->bytes_per_second = samples_per_second * sound_format->sample_size;
 }
 
 #ifdef __cplusplus

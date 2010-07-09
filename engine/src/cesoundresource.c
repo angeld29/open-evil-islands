@@ -58,13 +58,12 @@ ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file)
 		return NULL;
 	}
 
-	sound_resource->sample_size = sound_resource->channel_count *
-								(sound_resource->bits_per_sample / 8);
-	sound_resource->bytes_per_sec_inv = 1.0f / (sound_resource->sample_rate *
-												sound_resource->sample_size);
+	sound_resource->bytes_per_second_inv = 1.0f / sound_resource->sound_format.bytes_per_second;
 
 	ce_logging_debug("sound resource: audio is %u bits per sample, %u Hz, %u channel(s)",
-		sound_resource->bits_per_sample, sound_resource->sample_rate, sound_resource->channel_count);
+		sound_resource->sound_format.bits_per_sample,
+		sound_resource->sound_format.samples_per_second,
+		sound_resource->sound_format.channel_count);
 
 	return sound_resource;
 }
@@ -85,7 +84,7 @@ size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, siz
 	size = (*sound_resource->vtable.read)(sound_resource, data, size);
 	sound_resource->granule_pos += size;
 	sound_resource->time = sound_resource->granule_pos *
-							sound_resource->bytes_per_sec_inv;
+							sound_resource->bytes_per_second_inv;
 	return size;
 }
 

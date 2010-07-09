@@ -84,10 +84,10 @@ static bool ce_wmm_ctor()
 
 	wmm->waveformat.Format.wFormatTag = WAVE_FORMAT_PCM;
 	wmm->waveformat.Format.nChannels = CE_SOUND_SYSTEM_CHANNEL_COUNT;
-	wmm->waveformat.Format.nSamplesPerSec = CE_SOUND_SYSTEM_SAMPLE_RATE;
+	wmm->waveformat.Format.nSamplesPerSec = CE_SOUND_SYSTEM_SAMPLES_PER_SECOND;
 	wmm->waveformat.Format.wBitsPerSample  = CE_SOUND_SYSTEM_BITS_PER_SAMPLE;
 	wmm->waveformat.Format.nBlockAlign = CE_SOUND_SYSTEM_SAMPLE_SIZE;
-	wmm->waveformat.Format.nAvgBytesPerSec = CE_SOUND_SYSTEM_SAMPLE_RATE *
+	wmm->waveformat.Format.nAvgBytesPerSec = CE_SOUND_SYSTEM_SAMPLES_PER_SECOND *
 												CE_SOUND_SYSTEM_SAMPLE_SIZE;
 
 	code = waveOutOpen(&wmm->waveout, WAVE_MAPPER,

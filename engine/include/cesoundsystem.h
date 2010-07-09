@@ -36,7 +36,7 @@ extern "C" {
 
 enum {
 	CE_SOUND_SYSTEM_BITS_PER_SAMPLE = 16,
-	CE_SOUND_SYSTEM_SAMPLE_RATE = 44100,
+	CE_SOUND_SYSTEM_SAMPLES_PER_SECOND = 44100,
 	CE_SOUND_SYSTEM_CHANNEL_COUNT = 2,
 	CE_SOUND_SYSTEM_SAMPLE_SIZE = CE_SOUND_SYSTEM_CHANNEL_COUNT *
 									(CE_SOUND_SYSTEM_BITS_PER_SAMPLE / 8),
@@ -55,7 +55,7 @@ typedef struct {
 
 extern struct ce_sound_system {
 	bool done;
-	unsigned int sample_rate; // actual value supported by implementation/hardware
+	unsigned int samples_per_second; // actual value supported by implementation/hardware
 	size_t next_block;
 	char blocks[CE_SOUND_SYSTEM_BLOCK_COUNT][CE_SOUND_SYSTEM_BLOCK_SIZE];
 	ce_semaphore* free_blocks;

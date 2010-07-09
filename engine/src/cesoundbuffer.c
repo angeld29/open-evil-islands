@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 
@@ -45,7 +46,9 @@ void ce_sound_buffer_del(ce_sound_buffer* sound_buffer)
 
 void ce_sound_buffer_read(ce_sound_buffer* sound_buffer, void* buffer, size_t size)
 {
-	char* data = buffer;
+	uint8_t* data = buffer;
+
+	assert(0 == size % sound_buffer->sound_format.sample_size);
 	ce_semaphore_acquire(sound_buffer->prepared_data, size);
 
 	if (size > sound_buffer->capacity - sound_buffer->start) {
@@ -62,7 +65,9 @@ void ce_sound_buffer_read(ce_sound_buffer* sound_buffer, void* buffer, size_t si
 
 void ce_sound_buffer_write(ce_sound_buffer* sound_buffer, const void* buffer, size_t size)
 {
-	const char* data = buffer;
+	const uint8_t* data = buffer;
+
+	assert(0 == size % sound_buffer->sound_format.sample_size);
 	ce_semaphore_acquire(sound_buffer->unprepared_data, size);
 
 	if (size > sound_buffer->capacity - sound_buffer->end) {

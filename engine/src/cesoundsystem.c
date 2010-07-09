@@ -83,7 +83,7 @@ static bool ce_sound_system_alloc(ce_sound_system_vtable vtable)
 {
 	ce_sound_system = ce_alloc_zero(sizeof(struct ce_sound_system) + vtable.size);
 
-	ce_sound_system->sample_rate = CE_SOUND_SYSTEM_SAMPLE_RATE;
+	ce_sound_system->samples_per_second = CE_SOUND_SYSTEM_SAMPLES_PER_SECOND;
 	ce_sound_system->vtable = vtable;
 
 	if (!(*vtable.ctor)()) {
@@ -106,10 +106,10 @@ void ce_sound_system_init(void)
 
 	ce_sound_system->thread = ce_thread_new(ce_sound_system_exec, NULL);
 
-	if (CE_SOUND_SYSTEM_SAMPLE_RATE != ce_sound_system->sample_rate) {
+	if (CE_SOUND_SYSTEM_SAMPLES_PER_SECOND != ce_sound_system->samples_per_second) {
 		ce_logging_warning("sound system: sample rate %u Hz not supported "
 							"by the implementation/hardware, using %u Hz",
-							CE_SOUND_SYSTEM_SAMPLE_RATE, ce_sound_system->sample_rate);
+			CE_SOUND_SYSTEM_SAMPLES_PER_SECOND, ce_sound_system->samples_per_second);
 	}
 }
 

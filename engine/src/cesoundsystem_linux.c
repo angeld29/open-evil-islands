@@ -132,9 +132,9 @@ static int ce_alsa_set_params(void)
 	}
 
 	// set the stream rate
-	code = snd_pcm_hw_params_set_rate_near(alsa->handle, hwparams, &ce_sound_system->sample_rate, &dir);
+	code = snd_pcm_hw_params_set_rate_near(alsa->handle, hwparams, &ce_sound_system->samples_per_second, &dir);
 	if (code < 0) {
-		ce_logging_error("alsa: sample rate %u Hz not available for playback", CE_SOUND_SYSTEM_SAMPLE_RATE);
+		ce_logging_error("alsa: sample rate %u Hz not available for playback", CE_SOUND_SYSTEM_SAMPLES_PER_SECOND);
 		return code;
 	}
 
