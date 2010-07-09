@@ -175,6 +175,12 @@ typedef struct {
 	FLAC__int16* buffer;
 } ce_flac_bundle;
 
+typedef struct {
+	ce_flac_bundle* bundle;
+	size_t output_buffer_pos, output_buffer_size;
+	uint8_t output_buffer[FLAC__MAX_BLOCK_SIZE * 1 /*FIXME: sample size*/];
+} ce_flac;
+
 static ce_flac_bundle* ce_flac_bundle_new(void)
 {
 	ce_flac_bundle* flac_bundle = ce_alloc_zero(sizeof(ce_flac_bundle));
@@ -191,28 +197,22 @@ static void ce_flac_bundle_del(ce_flac_bundle* flac_bundle)
 	}
 }
 
-typedef struct {
-	ce_flac_bundle* bundle;
-	size_t output_buffer_pos, output_buffer_size;
-	uint8_t output_buffer[FLAC__MAX_BLOCK_SIZE * 1 /*FIXME: sample size*/];
-} ce_flac;
-
 static FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	FLAC__byte buffer[], size_t* bytes, void* client_data)
 {
-	ce_sound_resource* sound_resource = client_data;
+	ce_flac_bundle* flac_bundle = client_data;
 
 	if (0 == *bytes) {
 		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 	}
 
-	if (ce_mem_file_eof(sound_resource->mem_file)) {
+	if (ce_mem_file_eof(flac_bundle->mem_file)) {
 		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 	}
 
-	*bytes = ce_mem_file_read(sound_resource->mem_file, buffer, sizeof(FLAC__byte), *bytes);
+	*bytes = ce_mem_file_read(flac_bundle->mem_file, buffer, sizeof(FLAC__byte), *bytes);
 
-	if (ce_mem_file_error(sound_resource->mem_file)) {
+	if (ce_mem_file_error(flac_bundle->mem_file)) {
 		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 	}
 
@@ -222,8 +222,8 @@ static FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDec
 static FLAC__StreamDecoderSeekStatus ce_flac_seek_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	FLAC__uint64 absolute_byte_offset, void *client_data)
 {
-	ce_sound_resource* sound_resource = client_data;
-	return ce_mem_file_seek(sound_resource->mem_file,
+	ce_flac_bundle* flac_bundle = client_data;
+	return ce_mem_file_seek(flac_bundle->mem_file,
 		absolute_byte_offset, CE_MEM_FILE_SEEK_SET) < 0 ?
 		FLAC__STREAM_DECODER_SEEK_STATUS_ERROR :
 		FLAC__STREAM_DECODER_SEEK_STATUS_OK;
@@ -232,8 +232,8 @@ static FLAC__StreamDecoderSeekStatus ce_flac_seek_callback(const FLAC__StreamDec
 static FLAC__StreamDecoderTellStatus ce_flac_tell_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	FLAC__uint64* absolute_byte_offset, void* client_data)
 {
-	ce_sound_resource* sound_resource = client_data;
-	long int pos = ce_mem_file_tell(sound_resource->mem_file);
+	ce_flac_bundle* flac_bundle = client_data;
+	long int pos = ce_mem_file_tell(flac_bundle->mem_file);
 
 	if (pos < 0) {
 		return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
@@ -246,8 +246,8 @@ static FLAC__StreamDecoderTellStatus ce_flac_tell_callback(const FLAC__StreamDec
 static FLAC__StreamDecoderLengthStatus ce_flac_length_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	FLAC__uint64* stream_length, void* client_data)
 {
-	ce_sound_resource* sound_resource = client_data;
-	long int size = ce_mem_file_size(sound_resource->mem_file);
+	ce_flac_bundle* flac_bundle = client_data;
+	long int size = ce_mem_file_size(flac_bundle->mem_file);
 
 	if (size < 0) {
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
@@ -259,32 +259,28 @@ static FLAC__StreamDecoderLengthStatus ce_flac_length_callback(const FLAC__Strea
 
 static FLAC__bool ce_flac_eof_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder), void* client_data)
 {
-	ce_sound_resource* sound_resource = client_data;
-	return ce_mem_file_eof(sound_resource->mem_file) ? true : false;
+	ce_flac_bundle* flac_bundle = client_data;
+	return ce_mem_file_eof(flac_bundle->mem_file) ? true : false;
 }
 
 static FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	const FLAC__Frame* frame, const FLAC__int32* const buffer[], void* client_data)
 {
-	ce_sound_resource* sound_resource = client_data;
-	ce_flac* flac = (ce_flac*)sound_resource->impl;
+	ce_flac_bundle* flac_bundle = client_data;
 
-	FLAC__int16* output_buffer = (FLAC__int16*)flac->output_buffer;
-
-	flac->output_buffer_pos = 0;
-	flac->output_buffer_size = sound_resource->sound_format.sample_size * frame->header.blocksize;
-
-	if (flac->output_buffer_size > sizeof(flac->output_buffer)) {
+	/*if (flac->output_buffer_size > sizeof(flac->output_buffer)) {
 		ce_logging_debug("blocksize %u, channels %u, out sz %zu, max %zu",
 			frame->header.blocksize, frame->header.channels,
 			flac->output_buffer_size, sizeof(flac->output_buffer));
-	}
+	}*/
 
-	assert(flac->output_buffer_size <= sizeof(flac->output_buffer));
+	//assert(flac->output_buffer_size <= sizeof(flac->output_buffer));
+
+	flac_bundle->block_size = frame->header.blocksize;
 
 	for (unsigned int i = 0; i < frame->header.blocksize; ++i) {
 		for (unsigned int j = 0; j < frame->header.channels; ++j) {
-			*output_buffer++ = buffer[j][i];
+			flac_bundle->buffer[i * frame->header.channels + j] = buffer[j][i];
 		}
 	}
 
@@ -294,10 +290,12 @@ static FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamD
 static void ce_flac_metadata_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	const FLAC__StreamMetadata* metadata, void* client_data)
 {
-	ce_sound_resource* sound_resource = client_data;
+	ce_flac_bundle* flac_bundle = client_data;
 
 	if (FLAC__METADATA_TYPE_STREAMINFO == metadata->type) {
-		ce_sound_format_init(&sound_resource->sound_format,
+		flac_bundle->min_block_size = metadata->data.stream_info.min_blocksize;
+		flac_bundle->max_block_size = metadata->data.stream_info.max_blocksize;
+		ce_sound_format_init(&flac_bundle->sound_format,
 								metadata->data.stream_info.bits_per_sample,
 								metadata->data.stream_info.sample_rate,
 								metadata->data.stream_info.channels);
@@ -334,7 +332,9 @@ static bool ce_flac_test(ce_sound_probe* sound_probe)
 		return false;
 	}
 
-	sound_probe->size = sizeof(ce_flac);
+	sound_probe->size = sizeof(ce_flac) + flac_bundle->sound_format.sample_size * flac_bundle->max_block_size;
+	ce_logging_debug("flac buffer size %zu", flac_bundle->sound_format.sample_size * flac_bundle->max_block_size);
+
 	assert(sizeof(ce_flac_bundle*) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
 	memcpy(sound_probe->buffer, &flac_bundle, sizeof(ce_flac_bundle*));
 
@@ -345,6 +345,8 @@ static bool ce_flac_ctor(ce_sound_resource* sound_resource, ce_sound_probe* CE_U
 {
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
 	memcpy(&flac->bundle, sound_probe->buffer, sizeof(ce_flac_bundle*));
+	flac->bundle->buffer = (FLAC__int16*)flac->output_buffer;
+	sound_resource->sound_format = flac->bundle->sound_format;
 	return true;
 }
 
@@ -358,7 +360,10 @@ static void ce_flac_decode(ce_sound_resource* sound_resource)
 {
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
 
-	if (!FLAC__stream_decoder_process_single(flac->bundle->decoder)) {
+	if (FLAC__stream_decoder_process_single(flac->bundle->decoder)) {
+		flac->output_buffer_pos = 0;
+		flac->output_buffer_size = flac->bundle->sound_format.sample_size * flac->bundle->block_size;
+	} else {
 		// TODO: FLAC__stream_decoder_get_state(flac->decoder)
 		ce_logging_error("flac: decode one metadata block or audio frame failed");
 	}
