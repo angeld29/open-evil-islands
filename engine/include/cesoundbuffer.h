@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_RINGBUFFER_H
-#define CE_RINGBUFFER_H
+#ifndef CE_SOUNDBUFFER_H
+#define CE_SOUNDBUFFER_H
 
 #include <stddef.h>
 
@@ -34,29 +34,29 @@ typedef struct {
 	ce_semaphore* prepared_data;
 	ce_semaphore* unprepared_data;
 	char data[];
-} ce_ring_buffer;
+} ce_sound_buffer;
 
-extern ce_ring_buffer* ce_ring_buffer_new(size_t capacity);
-extern void ce_ring_buffer_del(ce_ring_buffer* ring_buffer);
+extern ce_sound_buffer* ce_sound_buffer_new(size_t capacity);
+extern void ce_sound_buffer_del(ce_sound_buffer* sound_buffer);
 
-extern void ce_ring_buffer_read(ce_ring_buffer* ring_buffer,
+extern void ce_sound_buffer_read(ce_sound_buffer* sound_buffer,
 								void* buffer, size_t size);
 
-extern void ce_ring_buffer_write(ce_ring_buffer* ring_buffer,
+extern void ce_sound_buffer_write(ce_sound_buffer* sound_buffer,
 								const void* buffer, size_t size);
 
-static inline size_t ce_ring_buffer_size_read(ce_ring_buffer* ring_buffer)
+static inline size_t ce_sound_buffer_available_size_for_read(ce_sound_buffer* sound_buffer)
 {
-	return ce_semaphore_available(ring_buffer->prepared_data);
+	return ce_semaphore_available(sound_buffer->prepared_data);
 }
 
-static inline size_t ce_ring_buffer_size_write(ce_ring_buffer* ring_buffer)
+static inline size_t ce_sound_buffer_available_size_for_write(ce_sound_buffer* sound_buffer)
 {
-	return ce_semaphore_available(ring_buffer->unprepared_data);
+	return ce_semaphore_available(sound_buffer->unprepared_data);
 }
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CE_RINGBUFFER_H */
+#endif /* CE_SOUNDBUFFER_H */

@@ -23,56 +23,56 @@
 
 #include "celib.h"
 #include "cealloc.h"
-#include "ceringbuffer.h"
+#include "cesoundbuffer.h"
 
-ce_ring_buffer* ce_ring_buffer_new(size_t capacity)
+ce_sound_buffer* ce_sound_buffer_new(size_t capacity)
 {
-	ce_ring_buffer* ring_buffer = ce_alloc_zero(sizeof(ce_ring_buffer) + capacity);
-	ring_buffer->capacity = capacity;
-	ring_buffer->prepared_data = ce_semaphore_new(0);
-	ring_buffer->unprepared_data = ce_semaphore_new(capacity);
-	return ring_buffer;
+	ce_sound_buffer* sound_buffer = ce_alloc_zero(sizeof(ce_sound_buffer) + capacity);
+	sound_buffer->capacity = capacity;
+	sound_buffer->prepared_data = ce_semaphore_new(0);
+	sound_buffer->unprepared_data = ce_semaphore_new(capacity);
+	return sound_buffer;
 }
 
-void ce_ring_buffer_del(ce_ring_buffer* ring_buffer)
+void ce_sound_buffer_del(ce_sound_buffer* sound_buffer)
 {
-	if (NULL != ring_buffer) {
-		ce_semaphore_del(ring_buffer->unprepared_data);
-		ce_semaphore_del(ring_buffer->prepared_data);
-		ce_free(ring_buffer, sizeof(ce_ring_buffer) + ring_buffer->capacity);
+	if (NULL != sound_buffer) {
+		ce_semaphore_del(sound_buffer->unprepared_data);
+		ce_semaphore_del(sound_buffer->prepared_data);
+		ce_free(sound_buffer, sizeof(ce_sound_buffer) + sound_buffer->capacity);
 	}
 }
 
-void ce_ring_buffer_read(ce_ring_buffer* ring_buffer, void* buffer, size_t size)
+void ce_sound_buffer_read(ce_sound_buffer* sound_buffer, void* buffer, size_t size)
 {
 	char* data = buffer;
-	ce_semaphore_acquire(ring_buffer->prepared_data, size);
+	ce_semaphore_acquire(sound_buffer->prepared_data, size);
 
-	if (size > ring_buffer->capacity - ring_buffer->start) {
-		size_t length = ring_buffer->capacity - ring_buffer->start;
-		memcpy(data, ring_buffer->data + ring_buffer->start, length);
-		memcpy(data + length, ring_buffer->data, size - length);
+	if (size > sound_buffer->capacity - sound_buffer->start) {
+		size_t length = sound_buffer->capacity - sound_buffer->start;
+		memcpy(data, sound_buffer->data + sound_buffer->start, length);
+		memcpy(data + length, sound_buffer->data, size - length);
 	} else {
-		memcpy(data, ring_buffer->data + ring_buffer->start, size);
+		memcpy(data, sound_buffer->data + sound_buffer->start, size);
 	}
 
-	ring_buffer->start = (ring_buffer->start + size) % ring_buffer->capacity;
-	ce_semaphore_release(ring_buffer->unprepared_data, size);
+	sound_buffer->start = (sound_buffer->start + size) % sound_buffer->capacity;
+	ce_semaphore_release(sound_buffer->unprepared_data, size);
 }
 
-void ce_ring_buffer_write(ce_ring_buffer* ring_buffer, const void* buffer, size_t size)
+void ce_sound_buffer_write(ce_sound_buffer* sound_buffer, const void* buffer, size_t size)
 {
 	const char* data = buffer;
-	ce_semaphore_acquire(ring_buffer->unprepared_data, size);
+	ce_semaphore_acquire(sound_buffer->unprepared_data, size);
 
-	if (size > ring_buffer->capacity - ring_buffer->end) {
-		size_t length = ring_buffer->capacity - ring_buffer->end;
-		memcpy(ring_buffer->data + ring_buffer->end, data, length);
-		memcpy(ring_buffer->data, data + length, size - length);
+	if (size > sound_buffer->capacity - sound_buffer->end) {
+		size_t length = sound_buffer->capacity - sound_buffer->end;
+		memcpy(sound_buffer->data + sound_buffer->end, data, length);
+		memcpy(sound_buffer->data, data + length, size - length);
 	} else {
-		memcpy(ring_buffer->data + ring_buffer->end, data, size);
+		memcpy(sound_buffer->data + sound_buffer->end, data, size);
 	}
 
-	ring_buffer->end = (ring_buffer->end + size) % ring_buffer->capacity;
-	ce_semaphore_release(ring_buffer->prepared_data, size);
+	sound_buffer->end = (sound_buffer->end + size) % sound_buffer->capacity;
+	ce_semaphore_release(sound_buffer->prepared_data, size);
 }

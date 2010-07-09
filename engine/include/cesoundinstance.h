@@ -23,7 +23,7 @@
 
 #include <stdbool.h>
 
-#include "ceringbuffer.h"
+#include "cesoundbuffer.h"
 #include "cesoundobject.h"
 #include "cesoundresource.h"
 
@@ -42,7 +42,7 @@ typedef struct {
 	float time; // playing time in seconds
 	ce_sound_object sound_object;
 	ce_sound_resource* sound_resource;
-	ce_ring_buffer* ring_buffer;
+	ce_sound_buffer* sound_buffer;
 } ce_sound_instance;
 
 extern ce_sound_instance* ce_sound_instance_new(ce_sound_object sound_object,

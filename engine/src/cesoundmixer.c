@@ -33,15 +33,15 @@ struct ce_sound_mixer* ce_sound_mixer;
 
 static void ce_sound_mixer_acquire_buffer_react(ce_event* event)
 {
-	ce_ring_buffer* ring_buffer = ((ce_event_ptr*)event->impl)->ptr;
-	ce_vector_push_back(ce_sound_mixer->ring_buffers, ring_buffer);
+	ce_sound_buffer* sound_buffer = ((ce_event_ptr*)event->impl)->ptr;
+	ce_vector_push_back(ce_sound_mixer->sound_buffers, sound_buffer);
 }
 
 static void ce_sound_mixer_release_buffer_react(ce_event* event)
 {
-	ce_ring_buffer* ring_buffer = ((ce_event_ptr*)event->impl)->ptr;
-	ce_vector_remove_all(ce_sound_mixer->ring_buffers, ring_buffer);
-	ce_ring_buffer_del(ring_buffer);
+	ce_sound_buffer* sound_buffer = ((ce_event_ptr*)event->impl)->ptr;
+	ce_vector_remove_all(ce_sound_mixer->sound_buffers, sound_buffer);
+	ce_sound_buffer_del(sound_buffer);
 }
 
 static void ce_sound_mixer_exit(ce_event* CE_UNUSED(event))
@@ -72,11 +72,11 @@ static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
 
 		for (size_t i = 0; i < CE_SOUND_SYSTEM_SAMPLES_IN_BLOCK;
 							++i, block += CE_SOUND_SYSTEM_SAMPLE_SIZE) {
-			for (size_t j = 0; j < ce_sound_mixer->ring_buffers->count; ++j) {
-				ce_ring_buffer* ring_buffer = ce_sound_mixer->ring_buffers->items[j];
-				if (ce_ring_buffer_size_read(ring_buffer) >= CE_SOUND_SYSTEM_SAMPLE_SIZE) {
+			for (size_t j = 0; j < ce_sound_mixer->sound_buffers->count; ++j) {
+				ce_sound_buffer* sound_buffer = ce_sound_mixer->sound_buffers->items[j];
+				if (ce_sound_buffer_available_size_for_read(sound_buffer) >= CE_SOUND_SYSTEM_SAMPLE_SIZE) {
 					char buffer[CE_SOUND_SYSTEM_SAMPLE_SIZE];
-					ce_ring_buffer_read(ring_buffer, buffer, CE_SOUND_SYSTEM_SAMPLE_SIZE);
+					ce_sound_buffer_read(sound_buffer, buffer, CE_SOUND_SYSTEM_SAMPLE_SIZE);
 					ce_sound_mixer_mix_samples(block, block, buffer);
 				}
 			}
@@ -90,7 +90,7 @@ static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
 void ce_sound_mixer_init(void)
 {
 	ce_sound_mixer = ce_alloc_zero(sizeof(struct ce_sound_mixer));
-	ce_sound_mixer->ring_buffers = ce_vector_new();
+	ce_sound_mixer->sound_buffers = ce_vector_new();
 	ce_sound_mixer->thread = ce_thread_new(ce_sound_mixer_exec, NULL);
 }
 
@@ -100,25 +100,25 @@ void ce_sound_mixer_term(void)
 		ce_event_manager_post_call(ce_sound_mixer->thread->id, ce_sound_mixer_exit);
 		ce_thread_wait(ce_sound_mixer->thread);
 		ce_thread_del(ce_sound_mixer->thread);
-		if (!ce_vector_empty(ce_sound_mixer->ring_buffers)) {
-			ce_logging_warning("sound mixer: some ring buffers have not been unregistered");
+		if (!ce_vector_empty(ce_sound_mixer->sound_buffers)) {
+			ce_logging_warning("sound mixer: some buffers have not been unregistered");
 		}
-		ce_vector_for_each(ce_sound_mixer->ring_buffers, ce_ring_buffer_del);
-		ce_vector_del(ce_sound_mixer->ring_buffers);
+		ce_vector_for_each(ce_sound_mixer->sound_buffers, ce_sound_buffer_del);
+		ce_vector_del(ce_sound_mixer->sound_buffers);
 		ce_free(ce_sound_mixer, sizeof(struct ce_sound_mixer));
 	}
 }
 
-ce_ring_buffer* ce_sound_mixer_acquire_buffer(void)
+ce_sound_buffer* ce_sound_mixer_acquire_buffer(void)
 {
-	ce_ring_buffer* ring_buffer = ce_ring_buffer_new(CE_SOUND_SYSTEM_BLOCK_SIZE * CE_SOUND_SYSTEM_BLOCK_COUNT);
+	ce_sound_buffer* sound_buffer = ce_sound_buffer_new(CE_SOUND_SYSTEM_BLOCK_SIZE * CE_SOUND_SYSTEM_BLOCK_COUNT);
 	ce_event_manager_post_ptr(ce_sound_mixer->thread->id,
-		ce_sound_mixer_acquire_buffer_react, ring_buffer);
-	return ring_buffer;
+		ce_sound_mixer_acquire_buffer_react, sound_buffer);
+	return sound_buffer;
 }
 
-void ce_sound_mixer_release_buffer(ce_ring_buffer* ring_buffer)
+void ce_sound_mixer_release_buffer(ce_sound_buffer* sound_buffer)
 {
 	ce_event_manager_post_ptr(ce_sound_mixer->thread->id,
-		ce_sound_mixer_release_buffer_react, ring_buffer);
+		ce_sound_mixer_release_buffer_react, sound_buffer);
 }

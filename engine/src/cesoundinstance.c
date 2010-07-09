@@ -35,14 +35,14 @@ ce_sound_instance* ce_sound_instance_new(ce_sound_object sound_object,
 	ce_sound_instance* sound_instance = ce_alloc_zero(sizeof(ce_sound_instance));
 	sound_instance->sound_object = sound_object;
 	sound_instance->sound_resource = sound_resource;
-	sound_instance->ring_buffer = ce_sound_mixer_acquire_buffer();
+	sound_instance->sound_buffer = ce_sound_mixer_acquire_buffer();
 	return sound_instance;
 }
 
 void ce_sound_instance_del(ce_sound_instance* sound_instance)
 {
 	if (NULL != sound_instance) {
-		ce_sound_mixer_release_buffer(sound_instance->ring_buffer);
+		ce_sound_mixer_release_buffer(sound_instance->sound_buffer);
 		ce_sound_resource_del(sound_instance->sound_resource);
 		ce_free(sound_instance, sizeof(ce_sound_instance));
 	}
@@ -51,12 +51,12 @@ void ce_sound_instance_del(ce_sound_instance* sound_instance)
 void ce_sound_instance_advance(ce_sound_instance* sound_instance, float CE_UNUSED(elapsed))
 {
 	if (CE_SOUND_INSTANCE_STATE_PLAYING == sound_instance->state) {
-		size_t size = ce_ring_buffer_size_write(sound_instance->ring_buffer);
+		size_t size = ce_sound_buffer_available_size_for_write(sound_instance->sound_buffer);
 		size -= size % sound_instance->sound_resource->sample_size;
 		if (0 != size) {
 			char buffer[size];
 			size = ce_sound_resource_read(sound_instance->sound_resource, buffer, size);
-			ce_ring_buffer_write(sound_instance->ring_buffer, buffer, size);
+			ce_sound_buffer_write(sound_instance->sound_buffer, buffer, size);
 			sound_instance->time = sound_instance->sound_resource->time;
 			if (0 == size) {
 				ce_sound_instance_stop(sound_instance);

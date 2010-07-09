@@ -29,7 +29,7 @@
 
 #include "cevector.h"
 #include "cethread.h"
-#include "ceringbuffer.h"
+#include "cesoundbuffer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,15 +39,15 @@ extern "C" {
 
 extern struct ce_sound_mixer {
 	bool done;
-	ce_vector* ring_buffers;
+	ce_vector* sound_buffers;
 	ce_thread* thread;
 }* ce_sound_mixer;
 
 extern void ce_sound_mixer_init(void);
 extern void ce_sound_mixer_term(void);
 
-extern ce_ring_buffer* ce_sound_mixer_acquire_buffer(void);
-extern void ce_sound_mixer_release_buffer(ce_ring_buffer* ring_buffer);
+extern ce_sound_buffer* ce_sound_mixer_acquire_buffer(void);
+extern void ce_sound_mixer_release_buffer(ce_sound_buffer* sound_buffer);
 
 #ifdef __cplusplus
 }
