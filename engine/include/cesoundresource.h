@@ -25,6 +25,7 @@
 #include <stdbool.h>
 
 #include "cememfile.h"
+#include "cesoundformat.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,6 +53,7 @@ typedef struct {
 
 struct ce_sound_resource {
 	unsigned int bits_per_sample, sample_rate, channel_count, sample_size;
+	ce_sound_format sound_format;
 	float time, bytes_per_sec_inv;
 	size_t granule_pos;
 	ce_mem_file* mem_file;

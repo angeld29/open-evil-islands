@@ -24,12 +24,14 @@
 #include <stddef.h>
 
 #include "cethread.h"
+#include "cesoundformat.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct {
+	ce_sound_format sound_format;
 	size_t capacity, start, end;
 	ce_semaphore* prepared_data;
 	ce_semaphore* unprepared_data;

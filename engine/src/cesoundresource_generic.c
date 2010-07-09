@@ -128,6 +128,8 @@ static bool ce_vorbis_ctor(ce_sound_resource* sound_resource, ce_sound_probe* so
 	sound_resource->sample_rate = info->rate;
 	sound_resource->channel_count = info->channels;
 
+	ce_sound_format_init(&sound_resource->sound_format, 16, info->rate, info->channels);
+
 	ce_logging_debug("vorbis: audio is %ld bits per second "
 						"(%ld bits per second nominal), "
 						"%u bits per sample, %u Hz, %u channel(s)",
@@ -290,6 +292,11 @@ void ce_flac_metadata_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 		sound_resource->sample_rate = metadata->data.stream_info.sample_rate;
 		sound_resource->channel_count = metadata->data.stream_info.channels;
 
+		ce_sound_format_init(&sound_resource->sound_format,
+								metadata->data.stream_info.bits_per_sample,
+								metadata->data.stream_info.sample_rate,
+								metadata->data.stream_info.channels);
+
 		ce_logging_debug("flac: audio is %u bits per sample, %u Hz, %u channel(s)",
 			sound_resource->bits_per_sample, sound_resource->sample_rate, sound_resource->channel_count);
 	}
@@ -414,6 +421,12 @@ static bool ce_wave_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 	sound_resource->bits_per_sample = 16;
 	sound_resource->sample_rate = wave->wave_header.format.samples_per_sec;
 	sound_resource->channel_count = wave->wave_header.format.channel_count;
+
+	ce_sound_format_init(&sound_resource->sound_format,
+						CE_WAVE_FORMAT_IMA_ADPCM == wave->wave_header.format.tag ?
+						16 : wave->wave_header.format.bits_per_sample,
+						wave->wave_header.format.samples_per_sec,
+						wave->wave_header.format.channel_count);
 
 	// FIXME
 	if (1 == sound_resource->channel_count) {
@@ -774,6 +787,10 @@ static bool ce_mad_ctor(ce_sound_resource* sound_resource, ce_sound_probe* CE_UN
 	sound_resource->channel_count = MAD_MODE_SINGLE_CHANNEL ==
 									mad->frame.header.mode ? 1 : 2;
 
+	ce_sound_format_init(&sound_resource->sound_format,
+						16, mad->frame.header.samplerate,
+						MAD_MODE_SINGLE_CHANNEL == mad->frame.header.mode ? 1 : 2);
+
 	ce_logging_debug("mad: audio is %lu bit/s, %u Hz, %u channel",
 		mad->frame.header.bitrate, sound_resource->sample_rate, sound_resource->channel_count);
 
@@ -874,6 +891,10 @@ static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 	sound_resource->sample_rate = bink->audio_track.sample_rate;
 	sound_resource->channel_count = CE_BINK_AUDIO_FLAG_STEREO &
 									bink->audio_track.flags ? 2 : 1;
+
+	ce_sound_format_init(&sound_resource->sound_format,
+						16, bink->audio_track.sample_rate,
+						CE_BINK_AUDIO_FLAG_STEREO & bink->audio_track.flags ? 2 : 1);
 
 	ce_logging_debug("bink: audio is %u Hz, %u channel",
 		sound_resource->sample_rate, sound_resource->channel_count);
