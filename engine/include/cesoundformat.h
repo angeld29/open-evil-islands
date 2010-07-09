@@ -21,6 +21,8 @@
 #ifndef CE_SOUNDFORMAT_H
 #define CE_SOUNDFORMAT_H
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,6 +45,14 @@ static inline void ce_sound_format_init(ce_sound_format* sound_format,
 	sound_format->channel_count = channel_count;
 	sound_format->sample_size = channel_count * (bits_per_sample / 8);
 	sound_format->bytes_per_second = samples_per_second * sound_format->sample_size;
+}
+
+static inline bool ce_sound_format_is_equal(const ce_sound_format* sound_format1,
+											const ce_sound_format* sound_format2)
+{
+	return sound_format1->bits_per_sample == sound_format2->bits_per_sample &&
+			sound_format1->samples_per_second == sound_format2->samples_per_second &&
+			sound_format1->channel_count == sound_format2->channel_count;
 }
 
 #ifdef __cplusplus

@@ -377,6 +377,7 @@ static bool ce_flac_reset(ce_sound_resource* sound_resource)
 
 typedef struct {
 	ce_wave_header wave_header;
+	long int data_offset;
 	size_t output_buffer_pos, output_buffer_size;
 	void* block;
 	char data[];
@@ -409,72 +410,37 @@ static bool ce_wave_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 						wave->wave_header.format.samples_per_sec,
 						wave->wave_header.format.channel_count);
 
+	wave->data_offset = ce_mem_file_tell(sound_resource->mem_file);
 	wave->block = wave->data + ce_wave_ima_adpcm_samples_storage_size(&wave->wave_header);
 
 	return true;
-}
-
-static void ce_wave_dtor(ce_sound_resource* CE_UNUSED(sound_resource))
-{
 }
 
 static size_t ce_wave_read(ce_sound_resource* sound_resource, void* data, size_t size)
 {
 	ce_wave* wave = (ce_wave*)sound_resource->impl;
 
-	if (ce_mem_file_eof(sound_resource->mem_file)) {
-		return 0;
-	}
-
-	if (CE_WAVE_FORMAT_PCM == wave->wave_header.format.tag &&
-			wave->wave_header.format.channel_count == 2) {
+	if (CE_WAVE_FORMAT_PCM == wave->wave_header.format.tag) {
 		return ce_mem_file_read(sound_resource->mem_file, data, 1, size);
 	}
 
-	if (CE_WAVE_FORMAT_PCM == wave->wave_header.format.tag) {
-		int16_t* s = (int16_t*)data;
-		size_t i;
-		for (i = 0; i < size; i += 2 * 2) {
-			int16_t sample;
-			ce_mem_file_read(sound_resource->mem_file, &sample, 2, 1);
-			*s++ = sample;
-			*s++ = sample;
-		}
-		return ce_clamp(size_t, i + 1, 0, size);
-	}
-
 	if (0 == wave->output_buffer_size) {
-		ce_mem_file_read(sound_resource->mem_file, wave->block, 1, ce_wave_ima_adpcm_block_storage_size(&wave->wave_header));
-
-		if (CE_WAVE_FORMAT_IMA_ADPCM == wave->wave_header.format.tag) {
-			ce_wave_ima_adpcm_decode(wave->data, wave->block, &wave->wave_header);
+		if (ce_mem_file_eof(sound_resource->mem_file)) {
+			return 0;
 		}
+
+		ce_mem_file_read(sound_resource->mem_file, wave->block, 1, ce_wave_ima_adpcm_block_storage_size(&wave->wave_header));
+		ce_wave_ima_adpcm_decode(wave->data, wave->block, &wave->wave_header);
 
 		wave->output_buffer_pos = 0;
-		wave->output_buffer_size = 2 * wave->wave_header.format.extra.ima_adpcm.samples_per_block * wave->wave_header.format.channel_count;
+		wave->output_buffer_size = ce_wave_ima_adpcm_samples_storage_size(&wave->wave_header);
 	}
 
-	if (1 == wave->wave_header.format.channel_count) {
-		int16_t* s1 = (int16_t*)data;
-		int16_t* s2 = (int16_t*)(wave->data + wave->output_buffer_pos);
+	size = ce_min(size_t, size, wave->output_buffer_size);
+	memcpy(data, wave->data + wave->output_buffer_pos, size);
 
-		size = ce_min(size_t, size, wave->output_buffer_size * 2);
-		size_t count = size / 4;
-
-		for (size_t i = 0; i < count; ++i) {
-			s1[2 * i + 0] = s2[i];
-			s1[2 * i + 1] = s2[i];
-		}
-
-		wave->output_buffer_pos += size / 2;
-		wave->output_buffer_size -= size / 2;
-	} else {
-		size = ce_min(size_t, size, wave->output_buffer_size);
-		memcpy(data, wave->data + wave->output_buffer_pos, size);
-
-		wave->output_buffer_pos += size;
-		wave->output_buffer_size -= size;
-	}
+	wave->output_buffer_pos += size;
+	wave->output_buffer_size -= size;
 
 	return size;
 }
@@ -482,8 +448,12 @@ static size_t ce_wave_read(ce_sound_resource* sound_resource, void* data, size_t
 static bool ce_wave_reset(ce_sound_resource* sound_resource)
 {
 	ce_wave* wave = (ce_wave*)sound_resource->impl;
+
 	wave->output_buffer_pos = 0;
 	wave->output_buffer_size = 0;
+
+	ce_mem_file_seek(sound_resource->mem_file, wave->data_offset, CE_MEM_FILE_SEEK_SET);
+
 	return true;
 }
 
@@ -979,7 +949,7 @@ const ce_sound_resource_vtable ce_sound_resource_builtins[] = {
 	ce_flac_ctor, ce_flac_dtor,
 	ce_flac_read, ce_flac_reset},
 	{ce_wave_test,
-	ce_wave_ctor, ce_wave_dtor,
+	ce_wave_ctor, NULL,
 	ce_wave_read, ce_wave_reset},
 #ifdef CE_ENABLE_PROPRIETARY
 	{ce_mad_test,

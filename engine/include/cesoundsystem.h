@@ -29,6 +29,7 @@
 #include <stdbool.h>
 
 #include "cethread.h"
+#include "cesoundformat.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,6 +56,7 @@ typedef struct {
 
 extern struct ce_sound_system {
 	bool done;
+	ce_sound_format sound_format;
 	unsigned int samples_per_second; // actual value supported by implementation/hardware
 	size_t next_block;
 	char blocks[CE_SOUND_SYSTEM_BLOCK_COUNT][CE_SOUND_SYSTEM_BLOCK_SIZE];

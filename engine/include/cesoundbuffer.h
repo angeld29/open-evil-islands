@@ -22,6 +22,7 @@
 #define CE_SOUNDBUFFER_H
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "cethread.h"
 #include "cesoundformat.h"
@@ -55,6 +56,16 @@ static inline size_t ce_sound_buffer_available_size_for_read(ce_sound_buffer* so
 static inline size_t ce_sound_buffer_available_size_for_write(ce_sound_buffer* sound_buffer)
 {
 	return ce_semaphore_available(sound_buffer->unprepared_data);
+}
+
+static inline bool ce_sound_buffer_is_one_sample_ready(ce_sound_buffer* sound_buffer)
+{
+	return ce_sound_buffer_available_size_for_read(sound_buffer) >= sound_buffer->sound_format.sample_size;
+}
+
+static inline void ce_sound_buffer_read_one_sample(ce_sound_buffer* sound_buffer, void* buffer)
+{
+	ce_sound_buffer_read(sound_buffer, buffer, sound_buffer->sound_format.sample_size);
 }
 
 #ifdef __cplusplus

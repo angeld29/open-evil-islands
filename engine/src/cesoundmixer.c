@@ -49,16 +49,49 @@ static void ce_sound_mixer_exit(ce_event* CE_UNUSED(event))
 	ce_sound_mixer->done = true;
 }
 
-static void ce_sound_mixer_mix_samples(void* dst, const void* src1, const void* src2)
+static void ce_sound_mixer_convert_sample_s16_s16(int16_t* sample1, const int16_t* sample2,
+													const ce_sound_format* sound_format1,
+													const ce_sound_format* sound_format2)
 {
-	// 16 bits, 2 channels hard-coded
+	for (size_t i = 0; i < sound_format1->channel_count; ++i) {
+		if (0 == i || i < sound_format2->channel_count) {
+			sample1[i] = sample2[i];
+		} else {
+			sample1[i] = sample1[i - 1];
+		}
+	}
+}
 
-	int16_t* output = dst;
-	const int16_t *input1 = src1, *input2 = src2;
+static void ce_sound_mixer_convert_sample(void* sample1, const void* sample2,
+											const ce_sound_format* sound_format1,
+											const ce_sound_format* sound_format2)
+{
+	if (16 == sound_format1->bits_per_sample &&
+			16 == sound_format2->bits_per_sample) {
+		ce_sound_mixer_convert_sample_s16_s16(sample1, sample2, sound_format1, sound_format2);
+	} else {
+		assert(false && "not implemented");
+	}
+}
 
-	for (size_t i = 0; i < 2; ++i) {
-		float value = (float)input1[i] + (float)input2[i];
-		output[i] = ce_clamp(float, value, INT16_MIN, INT16_MAX);
+static void ce_sound_mixer_mix_sample_s16(int16_t* sample, const int16_t* other,
+											const ce_sound_format* sound_format)
+{
+	for (size_t i = 0; i < sound_format->channel_count; ++i) {
+		int32_t value = (int32_t)sample[i] + (int32_t)other[i];
+		sample[i] = ce_clamp(int32_t, value, INT16_MIN, INT16_MAX);
+	}
+}
+
+static void ce_sound_mixer_mix_sample(void* sample, const void* other,
+										const ce_sound_format* sound_format)
+{
+	switch (sound_format->bits_per_sample) {
+	case 16:
+		ce_sound_mixer_mix_sample_s16(sample, other, sound_format);
+		break;
+	default:
+		assert(false && "not implemented");
 	}
 }
 
@@ -67,17 +100,21 @@ static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
 	ce_event_manager_create_queue();
 
 	while (!ce_sound_mixer->done) {
+		char sample[ce_sound_system->sound_format.sample_size];
+
 		char* block = ce_sound_system_map_block();
 		memset(block, 0, CE_SOUND_SYSTEM_BLOCK_SIZE);
 
 		for (size_t i = 0; i < CE_SOUND_SYSTEM_SAMPLES_IN_BLOCK;
-							++i, block += CE_SOUND_SYSTEM_SAMPLE_SIZE) {
+							++i, block += ce_sound_system->sound_format.sample_size) {
 			for (size_t j = 0; j < ce_sound_mixer->sound_buffers->count; ++j) {
 				ce_sound_buffer* sound_buffer = ce_sound_mixer->sound_buffers->items[j];
-				if (ce_sound_buffer_available_size_for_read(sound_buffer) >= CE_SOUND_SYSTEM_SAMPLE_SIZE) {
-					char buffer[CE_SOUND_SYSTEM_SAMPLE_SIZE];
-					ce_sound_buffer_read(sound_buffer, buffer, CE_SOUND_SYSTEM_SAMPLE_SIZE);
-					ce_sound_mixer_mix_samples(block, block, buffer);
+				if (ce_sound_buffer_is_one_sample_ready(sound_buffer)) {
+					char sample2[sound_buffer->sound_format.sample_size];
+					ce_sound_buffer_read_one_sample(sound_buffer, sample2);
+					ce_sound_mixer_convert_sample(sample, sample2,
+						&ce_sound_system->sound_format, &sound_buffer->sound_format);
+					ce_sound_mixer_mix_sample(block, sample, &ce_sound_system->sound_format);
 				}
 			}
 		}

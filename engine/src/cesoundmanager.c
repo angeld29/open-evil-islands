@@ -124,7 +124,7 @@ ce_sound_instance* ce_sound_manager_create_instance(const char* name)
 
 	ce_sound_resource* sound_resource = ce_sound_resource_new(mem_file);
 	if (NULL == sound_resource) {
-		ce_logging_error("sound manager: could not find decoder '%s'", name);
+		ce_logging_error("sound manager: could not find decoder for '%s'", name);
 		ce_mem_file_del(mem_file);
 		return NULL;
 	}

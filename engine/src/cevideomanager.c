@@ -72,7 +72,7 @@ ce_video_instance* ce_video_manager_create_instance(const char* name)
 
 	ce_video_resource* video_resource = ce_video_resource_new(mem_file);
 	if (NULL == video_resource) {
-		ce_logging_error("video manager: could not find decoder '%s'", path);
+		ce_logging_error("video manager: could not find decoder for '%s'", path);
 		ce_mem_file_del(mem_file);
 		return NULL;
 	}
