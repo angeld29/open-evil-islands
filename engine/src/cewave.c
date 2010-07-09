@@ -21,6 +21,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "celib.h"
+#include "celogging.h"
 #include "cewave.h"
 
 static const char* ce_wave_four_cc_riff = "RIFF";
@@ -138,4 +140,91 @@ bool ce_wave_header_read(ce_wave_header* wave_header, ce_mem_file* mem_file)
 	}
 
 	return ce_wave_header_check(wave_header);
+}
+
+static int ce_wave_ima_adpcm_index_table[16] = {
+	-1, -1, -1, -1, /* +0 - +3, decrease the step size */
+	 2,  4,  6,  8, /* +4 - +7, increase the step size */
+	-1, -1, -1, -1,	/* -0 - -3, decrease the step size */
+	 2,  4,  6,  8,	/* -4 - -7, increase the step size */
+};
+
+static unsigned int ce_wave_ima_adpcm_step_table[89] = {
+	7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
+	50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230,
+	253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963,
+	1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327,
+	3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487,
+	12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767
+};
+
+static inline int ce_wave_ima_adpcm_clamp_step_index(int index)
+{
+	return ce_clamp(int, index, 0, 88);
+}
+
+void ce_wave_ima_adpcm_decode(void* dst, const void* src, const ce_wave_header* wave_header)
+{
+	int16_t* samples = dst;
+	const uint8_t* block = src;
+
+	int step_indices[wave_header->format.channel_count];
+
+	// read and check the block header
+	for (size_t channel = 0; channel < wave_header->format.channel_count; ++channel) {
+		int32_t current = block[channel * 4 + 0] | (block[channel * 4 + 1] << 8);
+		if (current & 0x8000) {
+			current -= 0x10000;
+		}
+
+		step_indices[channel] = ce_wave_ima_adpcm_clamp_step_index(block[channel * 4 + 2]);
+
+		if (0 != block[channel * 4 + 3]) {
+			ce_logging_error("wave: ima adpcm synchronization error");
+		}
+
+		samples[channel] = current;
+	}
+
+	// pull apart the packed 4 bit samples and store them in their
+	// correct sample positions
+	size_t block_index = 4 * wave_header->format.channel_count;
+	size_t index_start = wave_header->format.channel_count;
+
+	while (block_index < wave_header->format.block_align) {
+		for (size_t channel = 0; channel < wave_header->format.channel_count; ++channel) {
+			size_t index = index_start + channel;
+			for (size_t k = 0; k < 4; ++k) {
+				uint8_t byte_code = block[block_index++];
+				samples[index] = byte_code & 0xf;
+				index += wave_header->format.channel_count;
+				samples[index] = (byte_code >> 4) & 0xf;
+				index += wave_header->format.channel_count;
+			}
+		}
+		index_start += 8 * wave_header->format.channel_count;
+	}
+
+	// decode the encoded 4 bit samples
+	for (size_t k = wave_header->format.channel_count;
+			k < wave_header->format.extra.ima_adpcm.samples_per_block *
+				(size_t)wave_header->format.channel_count; ++k) {
+		size_t channel = (wave_header->format.channel_count > 1) ? (k % 2) : 0;
+
+		uint8_t byte_code = samples[k] & 0xf;
+		unsigned int step = ce_wave_ima_adpcm_step_table[step_indices[channel]];
+		int diff = step >> 3;
+
+		if (byte_code & 1) diff += step >> 2;
+		if (byte_code & 2) diff += step >> 1;
+		if (byte_code & 4) diff += step;
+		if (byte_code & 8) diff = -diff;
+
+		int32_t current = samples[k - wave_header->format.channel_count];
+		current += diff;
+		samples[k] = ce_clamp(int32_t, current, INT16_MIN, INT16_MAX);
+
+		step_indices[channel] += ce_wave_ima_adpcm_index_table[byte_code];
+		step_indices[channel] = ce_wave_ima_adpcm_clamp_step_index(step_indices[channel]);
+	}
 }

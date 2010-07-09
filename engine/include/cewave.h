@@ -23,11 +23,14 @@
  *
  *  See also:
  *  1. http://en.wikipedia.org/wiki/WAV
+ *  2. http://wiki.multimedia.cx/index.php?title=IMA_ADPCM
+ *  3. http://wiki.multimedia.cx/index.php?title=Microsoft_IMA_ADPCM
 */
 
 #ifndef CE_WAVE_H
 #define CE_WAVE_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "cememfile.h"
@@ -89,6 +92,18 @@ typedef struct {
 } ce_wave_header;
 
 extern bool ce_wave_header_read(ce_wave_header* wave_header, ce_mem_file* mem_file);
+
+extern void ce_wave_ima_adpcm_decode(void* dst, const void* src, const ce_wave_header* wave_header);
+
+static inline size_t ce_wave_ima_adpcm_samples_storage_size(const ce_wave_header* wave_header)
+{
+	return 2 * wave_header->format.extra.ima_adpcm.samples_per_block * wave_header->format.channel_count;
+}
+
+static inline size_t ce_wave_ima_adpcm_block_storage_size(const ce_wave_header* wave_header)
+{
+	return wave_header->format.block_align;
+}
 
 #ifdef __cplusplus
 }

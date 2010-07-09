@@ -63,6 +63,9 @@ ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file)
 	sound_resource->bytes_per_sec_inv = 1.0f / (sound_resource->sample_rate *
 												sound_resource->sample_size);
 
+	ce_logging_debug("sound resource: audio is %u bits per sample, %u Hz, %u channel(s)",
+		sound_resource->bits_per_sample, sound_resource->sample_rate, sound_resource->channel_count);
+
 	return sound_resource;
 }
 

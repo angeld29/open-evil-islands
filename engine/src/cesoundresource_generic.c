@@ -380,32 +380,15 @@ static bool ce_flac_reset(ce_sound_resource* sound_resource)
  *  Waveform Audio File Format (C) Microsoft & IBM
  *
  *  See also:
- *  1. http://wiki.multimedia.cx/index.php?title=IMA_ADPCM
- *  2. http://wiki.multimedia.cx/index.php?title=Microsoft_IMA_ADPCM
+ *  1. cewave.h
 */
 
 typedef struct {
 	ce_wave_header wave_header;
 	size_t output_buffer_pos, output_buffer_size;
-	unsigned char* block;
+	void* block;
 	char data[];
 } ce_wave;
-
-static int ce_wave_ima_index_table[16] = {
-	-1, -1, -1, -1, /* +0 - +3, decrease the step size */
-	 2,  4,  6,  8, /* +4 - +7, increase the step size */
-	-1, -1, -1, -1,	/* -0 - -3, decrease the step size */
-	 2,  4,  6,  8,	/* -4 - -7, increase the step size */
-};
-
-static unsigned int ce_wave_ima_step_table[89] = {
-	7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
-	50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230,
-	253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963,
-	1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327,
-	3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487,
-	12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767
-};
 
 static bool ce_wave_test(ce_sound_probe* sound_probe)
 {
@@ -413,10 +396,9 @@ static bool ce_wave_test(ce_sound_probe* sound_probe)
 	if (ce_wave_header_read(&wave_header, sound_probe->mem_file)) {
 		sound_probe->size = sizeof(ce_wave);
 		if (CE_WAVE_FORMAT_IMA_ADPCM == wave_header.format.tag) {
-			sound_probe->size += wave_header.format.block_align * wave_header.format.channel_count +
-				3 * wave_header.format.channel_count * wave_header.format.extra.ima_adpcm.samples_per_block;
+			sound_probe->size += ce_wave_ima_adpcm_samples_storage_size(&wave_header);
+			sound_probe->size += ce_wave_ima_adpcm_block_storage_size(&wave_header);
 		}
-		ce_logging_debug("wave: size = %zu", sound_probe->size - sizeof(ce_wave));
 		assert(sizeof(ce_wave_header) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
 		memcpy(sound_probe->buffer, &wave_header, sizeof(ce_wave_header));
 		return true;
@@ -438,93 +420,13 @@ static bool ce_wave_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 		sound_resource->channel_count = 2;
 	}
 
-	ce_logging_debug("wave: audio is %u bits per sample, %u Hz, %u channel(s)",
-		sound_resource->bits_per_sample, sound_resource->sample_rate, sound_resource->channel_count);
+	wave->block = wave->data + ce_wave_ima_adpcm_samples_storage_size(&wave->wave_header);
 
-	wave->block = (unsigned char*)(wave->data + 2 * wave->wave_header.format.extra.ima_adpcm.samples_per_block * wave->wave_header.format.channel_count);
-
-	ce_logging_debug("samples_per_block %hu, ch %hu", wave->wave_header.format.extra.ima_adpcm.samples_per_block, wave->wave_header.format.channel_count);
 	return true;
 }
 
 static void ce_wave_dtor(ce_sound_resource* CE_UNUSED(sound_resource))
 {
-}
-
-static inline int ce_wave_ima_clamp_step_index(int index)
-{
-	return ce_clamp(int, index, 0, 88);
-}
-
-static void ce_wave_decode(ce_sound_resource* sound_resource)
-{
-	ce_wave* wave = (ce_wave*)sound_resource->impl;
-
-	int16_t* samples = (int16_t*)wave->data;
-	int step_indices[wave->wave_header.format.channel_count];
-
-	// read and check the block header
-	for (size_t channel = 0; channel < wave->wave_header.format.channel_count; ++channel) {
-		int32_t current = wave->block[channel * 4] | (wave->block[channel * 4 + 1] << 8);
-		if (current & 0x8000) {
-			current -= 0x10000;
-		}
-
-		step_indices[channel] = wave->block[channel * 4 + 2];
-		step_indices[channel] = ce_wave_ima_clamp_step_index(step_indices[channel]);
-
-		if (0 != wave->block[channel * 4 + 3]) {
-			ce_logging_error("wave: synchronization error");
-		}
-
-		samples[channel] = current;
-	}
-
-	// pull apart the packed 4 bit samples and store them in their
-	// correct sample positions
-	size_t block_index = 4 * wave->wave_header.format.channel_count;
-	size_t index_start = wave->wave_header.format.channel_count;
-
-	while (block_index < wave->wave_header.format.block_align) {
-		for (size_t channel = 0; channel < wave->wave_header.format.channel_count; ++channel) {
-			size_t index = index_start + channel;
-			for (size_t k = 0; k < 4; ++k) {
-				int16_t byte_code = wave->block[block_index++];
-				samples[index] = byte_code & 0xf;
-				//ce_logging_debug("index %zu", index);
-				index += wave->wave_header.format.channel_count;
-				samples[index] = (byte_code >> 4) & 0xf;
-				//ce_logging_debug("index %zu", index);
-				index += wave->wave_header.format.channel_count;
-				}
-			}
-		index_start += 8 * wave->wave_header.format.channel_count;
-	}
-
-	// decode the encoded 4 bit samples
-	for (size_t k = wave->wave_header.format.channel_count;
-			k < wave->wave_header.format.extra.ima_adpcm.samples_per_block *
-				(size_t)wave->wave_header.format.channel_count; ++k) {
-		size_t channel = (wave->wave_header.format.channel_count > 1) ? (k % 2) : 0;
-
-		int16_t byte_code = samples[k] & 0xf;
-		int step = ce_wave_ima_step_table[step_indices[channel]];
-		int diff = step >> 3;
-
-		if (byte_code & 1) diff += step >> 2;
-		if (byte_code & 2) diff += step >> 1;
-		if (byte_code & 4) diff += step;
-		if (byte_code & 8) diff = -diff;
-
-		int32_t current = samples[k - wave->wave_header.format.channel_count];
-		current += diff;
-		current = ce_clamp(int32_t, current, INT16_MIN, INT16_MAX);
-
-		step_indices[channel] += ce_wave_ima_index_table[byte_code];
-		step_indices[channel] = ce_wave_ima_clamp_step_index(step_indices[channel]);
-
-		samples[k] = current;
-	}
 }
 
 static size_t ce_wave_read(ce_sound_resource* sound_resource, void* data, size_t size)
@@ -553,17 +455,16 @@ static size_t ce_wave_read(ce_sound_resource* sound_resource, void* data, size_t
 	}
 
 	if (0 == wave->output_buffer_size) {
-		ce_mem_file_read(sound_resource->mem_file, wave->block, 1, wave->wave_header.format.block_align);
+		ce_mem_file_read(sound_resource->mem_file, wave->block, 1, ce_wave_ima_adpcm_block_storage_size(&wave->wave_header));
 
 		if (CE_WAVE_FORMAT_IMA_ADPCM == wave->wave_header.format.tag) {
-			ce_wave_decode(sound_resource);
+			ce_wave_ima_adpcm_decode(wave->data, wave->block, &wave->wave_header);
 		}
 
 		wave->output_buffer_pos = 0;
 		wave->output_buffer_size = 2 * wave->wave_header.format.extra.ima_adpcm.samples_per_block * wave->wave_header.format.channel_count;
 	}
 
-	// FIXME
 	if (1 == wave->wave_header.format.channel_count) {
 		int16_t* s1 = (int16_t*)data;
 		int16_t* s2 = (int16_t*)(wave->data + wave->output_buffer_pos);
