@@ -9,5 +9,5 @@ Check http://cursedearth.sourceforge.net/ for more details.
 Try mapviewer -h for help.
 
 Some examples:
-mapviewer -f --ei-path=c:\evil_islands zone2
-mapviewer -f --ei-path=/home/user/evil_islands zone17
+mapviewer -f zone2
+mapviewer -f --ei-path=c:\evil_islands zone17
