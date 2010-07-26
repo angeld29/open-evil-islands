@@ -35,7 +35,7 @@ ce_sound_instance* ce_sound_instance_new(ce_sound_object sound_object,
 	ce_sound_instance* sound_instance = ce_alloc_zero(sizeof(ce_sound_instance));
 	sound_instance->sound_object = sound_object;
 	sound_instance->sound_resource = sound_resource;
-	sound_instance->sound_buffer = ce_sound_mixer_acquire_buffer();
+	sound_instance->sound_buffer = ce_sound_mixer_create_buffer();
 	sound_instance->sound_buffer->sound_format = sound_resource->sound_format;
 	return sound_instance;
 }
@@ -43,7 +43,7 @@ ce_sound_instance* ce_sound_instance_new(ce_sound_object sound_object,
 void ce_sound_instance_del(ce_sound_instance* sound_instance)
 {
 	if (NULL != sound_instance) {
-		ce_sound_mixer_release_buffer(sound_instance->sound_buffer);
+		ce_sound_mixer_destroy_buffer(sound_instance->sound_buffer);
 		ce_sound_resource_del(sound_instance->sound_resource);
 		ce_free(sound_instance, sizeof(ce_sound_instance));
 	}

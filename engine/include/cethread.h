@@ -32,6 +32,7 @@ extern "C" {
 #endif
 
 extern int ce_online_cpu_count(void);
+extern void ce_sleep(unsigned int msec);
 
 /*
  *  Useful struct for other thread and non-thread modules.

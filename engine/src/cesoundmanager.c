@@ -39,6 +39,32 @@ static const char* ce_sound_resource_dirs[] = {"Res", NULL};
 static const char* ce_sound_resource_exts[] = {".res", NULL};
 static const char* ce_sound_resource_names[] = {"sfx", "speech", NULL};
 
+static void ce_sound_manager_exit(ce_event* CE_UNUSED(event))
+{
+	ce_sound_manager->done = true;
+}
+
+static void ce_sound_manager_exec(void* CE_UNUSED(arg))
+{
+	ce_event_manager_create_queue();
+	ce_timer_start(ce_sound_manager->timer);
+
+	while (!ce_sound_manager->done) {
+		float elapsed = ce_timer_advance(ce_sound_manager->timer);
+
+		if (!ce_vector_empty(ce_sound_manager->sound_instances)) {
+			for (size_t i = 0; i < ce_sound_manager->sound_instances->count; ++i) {
+				ce_sound_instance* sound_instance = ce_sound_manager->sound_instances->items[i];
+				ce_sound_instance_advance(sound_instance, elapsed);
+			}
+		} else {
+			ce_sleep(50);
+		}
+
+		ce_event_manager_process_events();
+	}
+}
+
 static ce_res_file* ce_sound_manager_open(const char* name)
 {
 	char path[ce_option_manager->ei_path->length + 32];
@@ -61,6 +87,8 @@ void ce_sound_manager_init(void)
 	ce_sound_manager = ce_alloc_zero(sizeof(struct ce_sound_manager));
 	ce_sound_manager->res_files = ce_vector_new();
 	ce_sound_manager->sound_instances = ce_vector_new();
+	ce_sound_manager->timer = ce_timer_new();
+	ce_sound_manager->thread = ce_thread_new(ce_sound_manager_exec, NULL);
 
 	char path[ce_option_manager->ei_path->length + 16];
 	for (size_t i = 0; NULL != ce_sound_dirs[i]; ++i) {
@@ -80,19 +108,20 @@ void ce_sound_manager_init(void)
 void ce_sound_manager_term(void)
 {
 	if (NULL != ce_sound_manager) {
+		ce_event_manager_post_call(ce_sound_manager->thread->id, ce_sound_manager_exit);
+
+		ce_thread_wait(ce_sound_manager->thread);
+		ce_thread_del(ce_sound_manager->thread);
+
+		ce_timer_del(ce_sound_manager->timer);
+
 		ce_vector_for_each(ce_sound_manager->sound_instances, ce_sound_instance_del);
 		ce_vector_for_each(ce_sound_manager->res_files, ce_res_file_del);
+
 		ce_vector_del(ce_sound_manager->sound_instances);
 		ce_vector_del(ce_sound_manager->res_files);
-		ce_free(ce_sound_manager, sizeof(struct ce_sound_manager));
-	}
-}
 
-void ce_sound_manager_advance(float elapsed)
-{
-	for (size_t i = 0; i < ce_sound_manager->sound_instances->count; ++i) {
-		ce_sound_instance* sound_instance = ce_sound_manager->sound_instances->items[i];
-		ce_sound_instance_advance(sound_instance, elapsed);
+		ce_free(ce_sound_manager, sizeof(struct ce_sound_manager));
 	}
 }
 

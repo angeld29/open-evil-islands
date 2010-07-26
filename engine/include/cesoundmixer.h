@@ -35,8 +35,6 @@
 extern "C" {
 #endif
 
-// TODO: not implemented
-
 extern struct ce_sound_mixer {
 	bool done;
 	ce_vector* sound_buffers;
@@ -46,8 +44,8 @@ extern struct ce_sound_mixer {
 extern void ce_sound_mixer_init(void);
 extern void ce_sound_mixer_term(void);
 
-extern ce_sound_buffer* ce_sound_mixer_acquire_buffer(void);
-extern void ce_sound_mixer_release_buffer(ce_sound_buffer* sound_buffer);
+extern ce_sound_buffer* ce_sound_mixer_create_buffer(void);
+extern void ce_sound_mixer_destroy_buffer(ce_sound_buffer* sound_buffer);
 
 #ifdef __cplusplus
 }

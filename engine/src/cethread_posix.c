@@ -59,6 +59,11 @@ int ce_online_cpu_count(void)
 #endif
 }
 
+void ce_sleep(unsigned int msec)
+{
+	usleep(1000 * msec);
+}
+
 ce_thread_id ce_thread_self(void)
 {
 	return pthread_self();

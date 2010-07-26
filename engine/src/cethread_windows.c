@@ -44,6 +44,11 @@ int ce_online_cpu_count(void)
 	return ce_max(int, 1, info.dwNumberOfProcessors);
 }
 
+void ce_sleep(unsigned int msec)
+{
+	Sleep(msec);
+}
+
 ce_thread_id ce_thread_self(void)
 {
 	return GetCurrentThreadId();
