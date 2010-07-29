@@ -74,7 +74,7 @@ static void ce_video_instance_exec(ce_video_instance* video_instance)
 }
 
 ce_video_instance* ce_video_instance_new(ce_video_object video_object,
-										ce_sound_object sound_object,
+										ce_sound_object* sound_object,
 										ce_video_resource* video_resource)
 {
 	ce_video_instance* video_instance = ce_alloc_zero(sizeof(ce_video_instance));
@@ -128,6 +128,7 @@ void ce_video_instance_del(ce_video_instance* video_instance)
 		ce_material_del(video_instance->material);
 		ce_texture_del(video_instance->texture);
 		ce_video_resource_del(video_instance->video_resource);
+		ce_sound_object_del(video_instance->sound_object);
 
 		ce_free(video_instance, sizeof(ce_video_instance));
 	}
@@ -183,15 +184,16 @@ static void ce_video_instance_do_advance(ce_video_instance* video_instance)
 
 void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed)
 {
+	ce_sound_object_advance(video_instance->sound_object, elapsed);
+
 	if (CE_VIDEO_INSTANCE_STATE_PAUSED == video_instance->state) {
 		return;
 	}
 
-	if (0 != video_instance->sound_object) {
+	if (ce_sound_object_is_valid(video_instance->sound_object)) {
 		// synchronization with sound
-		float sound_time = ce_sound_object_time(video_instance->sound_object);
-		if (video_instance->sync_time != sound_time) {
-			video_instance->sync_time = sound_time;
+		if (video_instance->sync_time != video_instance->sound_object->time) {
+			video_instance->sync_time = video_instance->sound_object->time;
 			video_instance->play_time = video_instance->sync_time;
 		} else {
 			video_instance->play_time += elapsed;

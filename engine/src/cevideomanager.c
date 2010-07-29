@@ -55,6 +55,10 @@ void ce_video_manager_term(void)
 	}
 }
 
+void ce_video_manager_advance(float CE_UNUSED(elapsed))
+{
+}
+
 ce_video_instance* ce_video_manager_create_instance(const char* name)
 {
 	char path[ce_option_manager->ei_path->length + strlen(name) + 32];

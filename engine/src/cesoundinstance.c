@@ -29,11 +29,9 @@
 #include "cesoundmixer.h"
 #include "cesoundinstance.h"
 
-ce_sound_instance* ce_sound_instance_new(ce_sound_object sound_object,
-										ce_sound_resource* sound_resource)
+ce_sound_instance* ce_sound_instance_new(ce_sound_resource* sound_resource)
 {
 	ce_sound_instance* sound_instance = ce_alloc_zero(sizeof(ce_sound_instance));
-	sound_instance->sound_object = sound_object;
 	sound_instance->sound_resource = sound_resource;
 	sound_instance->sound_buffer = ce_sound_mixer_create_buffer();
 	sound_instance->sound_buffer->sound_format = sound_resource->sound_format;
@@ -51,7 +49,7 @@ void ce_sound_instance_del(ce_sound_instance* sound_instance)
 
 void ce_sound_instance_advance(ce_sound_instance* sound_instance, float CE_UNUSED(elapsed))
 {
-	if (CE_SOUND_INSTANCE_STATE_PLAYING == sound_instance->state) {
+	if (CE_SOUND_STATE_PLAYING == sound_instance->state) {
 		size_t size = ce_sound_buffer_available_size_for_write(sound_instance->sound_buffer);
 		if (0 != size) {
 			char buffer[size];
@@ -59,25 +57,20 @@ void ce_sound_instance_advance(ce_sound_instance* sound_instance, float CE_UNUSE
 			ce_sound_buffer_write(sound_instance->sound_buffer, buffer, size);
 			sound_instance->time = sound_instance->sound_resource->time;
 			if (0 == size) {
-				ce_sound_instance_stop(sound_instance);
+				ce_sound_instance_change_state(sound_instance, CE_SOUND_STATE_STOPPED);
 			}
 		}
 	}
 }
 
-void ce_sound_instance_play(ce_sound_instance* sound_instance)
+void ce_sound_instance_change_state(ce_sound_instance* sound_instance, int state)
 {
-	sound_instance->state = CE_SOUND_INSTANCE_STATE_PLAYING;
-}
+	sound_instance->state = state;
 
-void ce_sound_instance_pause(ce_sound_instance* sound_instance)
-{
-	sound_instance->state = CE_SOUND_INSTANCE_STATE_PAUSED;
-}
-
-void ce_sound_instance_stop(ce_sound_instance* sound_instance)
-{
-	sound_instance->state = CE_SOUND_INSTANCE_STATE_STOPPED;
-	sound_instance->time = 0.0f;
-	ce_sound_resource_reset(sound_instance->sound_resource);
+	switch (state) {
+	case CE_SOUND_STATE_STOPPED:
+		sound_instance->time = 0.0f;
+		ce_sound_resource_reset(sound_instance->sound_resource);
+		break;
+	}
 }

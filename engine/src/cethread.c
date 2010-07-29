@@ -22,11 +22,14 @@
 
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceeventmanager.h"
 #include "cethread.h"
+
+struct ce_thread_pool* ce_thread_pool;
 
 ce_routine* ce_routine_new(void)
 {
-	return ce_alloc(sizeof(ce_routine));
+	return ce_alloc_zero(sizeof(ce_routine));
 }
 
 void ce_routine_del(ce_routine* routine)
@@ -34,9 +37,27 @@ void ce_routine_del(ce_routine* routine)
 	ce_free(routine, sizeof(ce_routine));
 }
 
+void ce_thread_exec(ce_thread* thread)
+{
+	while (!thread->done) {
+		ce_event_manager_process_events();
+	}
+}
+
+static void ce_thread_exit_react(ce_event* event)
+{
+	ce_thread* thread = ((ce_event_ptr*)event->impl)->ptr;
+	thread->done = true;
+}
+
+void ce_thread_exit(ce_thread* thread)
+{
+	ce_event_manager_post_ptr(thread->id, ce_thread_exit_react, thread);
+}
+
 ce_semaphore* ce_semaphore_new(size_t n)
 {
-	ce_semaphore* semaphore = ce_alloc(sizeof(ce_semaphore));
+	ce_semaphore* semaphore = ce_alloc_zero(sizeof(ce_semaphore));
 	semaphore->available = n;
 	semaphore->mutex = ce_mutex_new();
 	semaphore->wait_condition = ce_wait_condition_new();
@@ -122,8 +143,6 @@ static void ce_thread_pool_exec(struct ce_thread_pool* thread_pool)
 
 	ce_mutex_unlock(thread_pool->mutex);
 }
-
-struct ce_thread_pool* ce_thread_pool;
 
 void ce_thread_pool_init(size_t thread_count)
 {

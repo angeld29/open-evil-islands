@@ -18,45 +18,29 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_SOUNDOBJECT_H
-#define CE_SOUNDOBJECT_H
+#ifndef CE_SOUNDQUERY_H
+#define CE_SOUNDQUERY_H
 
 #include <stdbool.h>
 
 #include "cehash.h"
-#include "cesoundstate.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct {
+	bool available;
 	int state;
 	float time;
 	ce_hash_key hash_key;
-} ce_sound_object;
+} ce_sound_query;
 
-extern ce_sound_object* ce_sound_object_new(const char* name);
-extern void ce_sound_object_del(ce_sound_object* sound_object);
-
-extern void ce_sound_object_advance(ce_sound_object* sound_object, float elapsed);
-
-extern void ce_sound_object_stop(ce_sound_object* sound_object);
-extern void ce_sound_object_pause(ce_sound_object* sound_object);
-extern void ce_sound_object_play(ce_sound_object* sound_object);
-
-static inline bool ce_sound_object_is_valid(ce_sound_object* sound_object)
-{
-	return 0 != sound_object->hash_key;
-}
-
-static inline bool ce_sound_object_is_stopped(ce_sound_object* sound_object)
-{
-	return CE_SOUND_STATE_STOPPED == sound_object->state;
-}
+extern ce_sound_query* ce_sound_query_new(ce_hash_key hash_key);
+extern void ce_sound_query_del(ce_sound_query* sound_query);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CE_SOUNDOBJECT_H */
+#endif /* CE_SOUNDQUERY_H */

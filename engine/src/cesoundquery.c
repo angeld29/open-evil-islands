@@ -18,34 +18,19 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CE_SOUNDINSTANCE_H
-#define CE_SOUNDINSTANCE_H
+#include <assert.h>
 
-#include <stdbool.h>
+#include "cealloc.h"
+#include "cesoundquery.h"
 
-#include "cesoundstate.h"
-#include "cesoundbuffer.h"
-#include "cesoundresource.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct {
-	int state;
-	float time; // playing time in seconds
-	ce_sound_resource* sound_resource;
-	ce_sound_buffer* sound_buffer;
-} ce_sound_instance;
-
-extern ce_sound_instance* ce_sound_instance_new(ce_sound_resource* sound_resource);
-extern void ce_sound_instance_del(ce_sound_instance* sound_instance);
-
-extern void ce_sound_instance_advance(ce_sound_instance* sound_instance, float elapsed);
-extern void ce_sound_instance_change_state(ce_sound_instance* sound_instance, int state);
-
-#ifdef __cplusplus
+ce_sound_query* ce_sound_query_new(ce_hash_key hash_key)
+{
+	ce_sound_query* sound_query = ce_alloc_zero(sizeof(ce_sound_query));
+	sound_query->hash_key = hash_key;
+	return sound_query;
 }
-#endif
 
-#endif /* CE_SOUNDINSTANCE_H */
+void ce_sound_query_del(ce_sound_query* sound_query)
+{
+	ce_free(sound_query, sizeof(ce_sound_query));
+}

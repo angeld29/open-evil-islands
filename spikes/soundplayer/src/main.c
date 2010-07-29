@@ -32,7 +32,7 @@
 
 static ce_color message_color;
 static float alpha_sign = -1.0f;
-static ce_sound_object sound_object;
+static ce_sound_object* sound_object;
 static ce_optparse* optparse;
 static ce_inputsupply* inputsupply;
 static ce_inputevent* stub_event;
@@ -41,6 +41,7 @@ static void clean()
 {
 	ce_inputsupply_del(inputsupply);
 	ce_optparse_del(optparse);
+	ce_sound_object_del(sound_object);
 }
 
 static void state_changed(void* CE_UNUSED(listener), int state)
@@ -59,6 +60,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
 static void advance(void* CE_UNUSED(listener), float elapsed)
 {
 	ce_inputsupply_advance(inputsupply, elapsed);
+	ce_sound_object_advance(sound_object, elapsed);
 
 	if (ce_sound_object_is_valid(sound_object) &&
 			!ce_sound_object_is_stopped(sound_object)) {
@@ -101,7 +103,6 @@ static void render(void* CE_UNUSED(listener))
 int main(int argc, char* argv[])
 {
 	ce_alloc_init();
-	atexit(clean);
 
 	optparse = ce_option_manager_create_option_parser();
 
@@ -114,6 +115,7 @@ int main(int argc, char* argv[])
 		NULL, NULL, "any TRACK.* file in 'EI/Stream'");
 
 	if (!ce_root_init(optparse, argc, argv)) {
+		clean();
 		return EXIT_FAILURE;
 	}
 
@@ -126,5 +128,6 @@ int main(int argc, char* argv[])
 	stub_event = ce_inputsupply_single_front(inputsupply,
 					ce_inputsupply_button(inputsupply, CE_KB_R));
 
+	atexit(clean);
 	return ce_root_exec();
 }

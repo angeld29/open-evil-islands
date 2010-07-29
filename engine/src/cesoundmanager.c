@@ -31,6 +31,11 @@
 #include "ceeventmanager.h"
 #include "cesoundmanager.h"
 
+typedef struct {
+	ce_hash_key hash_key;
+	char data[];
+} ce_sound_event;
+
 struct ce_sound_manager* ce_sound_manager;
 
 static const char* ce_sound_dirs[] = {"Stream", "Movies", NULL};
@@ -39,33 +44,81 @@ static const char* ce_sound_resource_dirs[] = {"Res", NULL};
 static const char* ce_sound_resource_exts[] = {".res", NULL};
 static const char* ce_sound_resource_names[] = {"sfx", "speech", NULL};
 
-static void ce_sound_manager_exit(ce_event* CE_UNUSED(event))
+static void ce_sound_manager_create_instance_react(ce_event* event)
 {
-	ce_sound_manager->done = true;
-}
+	ce_sound_event* sound_event = (ce_sound_event*)event->impl;
+	const char* name = sound_event->data;
+	ce_mem_file* mem_file = NULL;
 
-static void ce_sound_manager_exec(void* CE_UNUSED(arg))
-{
-	ce_event_manager_create_queue();
-	ce_timer_start(ce_sound_manager->timer);
+	for (size_t i = 0; i < ce_sound_manager->res_files->count; ++i) {
+		ce_res_file* res_file = ce_sound_manager->res_files->items[i];
+		if (NULL != (mem_file = ce_res_ball_extract_mem_file_by_name(res_file, name))) {
+			break;
+		}
+	}
 
-	while (!ce_sound_manager->done) {
-		float elapsed = ce_timer_advance(ce_sound_manager->timer);
-
-		if (!ce_vector_empty(ce_sound_manager->sound_instances)) {
-			for (size_t i = 0; i < ce_sound_manager->sound_instances->count; ++i) {
-				ce_sound_instance* sound_instance = ce_sound_manager->sound_instances->items[i];
-				ce_sound_instance_advance(sound_instance, elapsed);
-			}
-		} else {
-			ce_sleep(50);
+	if (NULL == mem_file) {
+		char path[ce_option_manager->ei_path->length + strlen(name) + 32];
+		if (NULL == ce_path_find_special1(path, sizeof(path),
+				ce_option_manager->ei_path->str, name, ce_sound_dirs, ce_sound_exts)) {
+			ce_logging_error("sound manager: could not find sound '%s'", name);
+			return;
 		}
 
-		ce_event_manager_process_events();
+		mem_file = ce_mem_file_new_path(path);
+		if (NULL == mem_file) {
+			ce_logging_error("sound manager: could not open file '%s'", path);
+			return;
+		}
+	}
+
+	ce_sound_resource* sound_resource = ce_sound_resource_new(mem_file);
+	if (NULL == sound_resource) {
+		ce_logging_error("sound manager: could not find decoder for '%s'", name);
+		ce_mem_file_del(mem_file);
+		return;
+	}
+
+	ce_sound_instance* sound_instance = ce_sound_instance_new(sound_resource);
+	if (NULL == sound_instance) {
+		ce_logging_error("sound manager: could not create instance '%s'", name);
+		ce_sound_resource_del(sound_resource);
+		return;
+	}
+
+	ce_hash_insert(ce_sound_manager->sound_instances, sound_event->hash_key, sound_instance);
+}
+
+static void ce_sound_manager_remove_instance_react(ce_event* event)
+{
+	ce_sound_event* sound_event = (ce_sound_event*)event->impl;
+	ce_hash_remove(ce_sound_manager->sound_instances, sound_event->hash_key);
+}
+
+static void ce_sound_manager_change_instance_state_react(ce_event* event)
+{
+	ce_sound_event* sound_event = (ce_sound_event*)event->impl;
+	ce_sound_instance* sound_instance = ce_hash_find(ce_sound_manager->sound_instances, sound_event->hash_key);
+	if (NULL != sound_instance) {
+		int state;
+		memcpy(&state, sound_event->data, sizeof(int));
+		ce_sound_instance_change_state(sound_instance, state);
 	}
 }
 
-static ce_res_file* ce_sound_manager_open(const char* name)
+static void ce_sound_manager_advance_instance(ce_sound_instance* sound_instance, float* elapsed)
+{
+	ce_sound_instance_advance(sound_instance, *elapsed);
+}
+
+static void ce_sound_manager_idle(ce_event* CE_UNUSED(event))
+{
+	float elapsed = ce_timer_advance(ce_sound_manager->timer);
+	ce_hash_for_each_arg1(ce_sound_manager->sound_instances, ce_sound_manager_advance_instance, &elapsed);
+	ce_event_manager_post_call(ce_sound_manager->thread->id, ce_sound_manager_idle);
+}
+
+static ce_res_file* ce_sound_manager_open_resource(const char* name)
 {
 	char path[ce_option_manager->ei_path->length + 32];
 	ce_res_file* res_file = NULL;
@@ -82,14 +135,8 @@ static ce_res_file* ce_sound_manager_open(const char* name)
 	return res_file;
 }
 
-void ce_sound_manager_init(void)
+static void ce_sound_manager_exec(void* CE_UNUSED(arg))
 {
-	ce_sound_manager = ce_alloc_zero(sizeof(struct ce_sound_manager));
-	ce_sound_manager->res_files = ce_vector_new();
-	ce_sound_manager->sound_instances = ce_vector_new();
-	ce_sound_manager->timer = ce_timer_new();
-	ce_sound_manager->thread = ce_thread_new(ce_sound_manager_exec, NULL);
-
 	char path[ce_option_manager->ei_path->length + 16];
 	for (size_t i = 0; NULL != ce_sound_dirs[i]; ++i) {
 		ce_path_join(path, sizeof(path),
@@ -98,85 +145,75 @@ void ce_sound_manager_init(void)
 	}
 
 	for (size_t i = 0; NULL != ce_sound_resource_names[i]; ++i) {
-		ce_res_file* res_file = ce_sound_manager_open(ce_sound_resource_names[i]);
+		ce_res_file* res_file = ce_sound_manager_open_resource(ce_sound_resource_names[i]);
 		if (NULL != res_file) {
 			ce_vector_push_back(ce_sound_manager->res_files, res_file);
 		}
 	}
+
+	ce_event_manager_create_queue();
+	ce_event_manager_post_call(ce_sound_manager->thread->id, ce_sound_manager_idle);
+
+	ce_timer_start(ce_sound_manager->timer);
+	ce_thread_exec(ce_sound_manager->thread);
+
+	ce_vector_for_each(ce_sound_manager->res_files, ce_res_file_del);
+}
+
+void ce_sound_manager_init(void)
+{
+	ce_sound_manager = ce_alloc_zero(sizeof(struct ce_sound_manager));
+	ce_sound_manager->res_files = ce_vector_new();
+	ce_sound_manager->sound_instances = ce_hash_new(32, ce_sound_instance_del);
+	ce_sound_manager->timer = ce_timer_new();
+	ce_sound_manager->thread = ce_thread_new(ce_sound_manager_exec, NULL);
 }
 
 void ce_sound_manager_term(void)
 {
 	if (NULL != ce_sound_manager) {
-		ce_event_manager_post_call(ce_sound_manager->thread->id, ce_sound_manager_exit);
-
-		ce_thread_wait(ce_sound_manager->thread);
-		ce_thread_del(ce_sound_manager->thread);
+		ce_thread_exit_wait_del(ce_sound_manager->thread);
 
 		ce_timer_del(ce_sound_manager->timer);
-
-		ce_vector_for_each(ce_sound_manager->sound_instances, ce_sound_instance_del);
-		ce_vector_for_each(ce_sound_manager->res_files, ce_res_file_del);
-
-		ce_vector_del(ce_sound_manager->sound_instances);
+		ce_hash_del(ce_sound_manager->sound_instances);
 		ce_vector_del(ce_sound_manager->res_files);
 
 		ce_free(ce_sound_manager, sizeof(struct ce_sound_manager));
 	}
 }
 
-ce_sound_instance* ce_sound_manager_create_instance(const char* name)
+void ce_sound_manager_advance(float CE_UNUSED(elapsed))
 {
-	ce_mem_file* mem_file = NULL;
-
-	for (size_t i = 0; i < ce_sound_manager->res_files->count; ++i) {
-		ce_res_file* res_file = ce_sound_manager->res_files->items[i];
-		if (NULL != (mem_file = ce_res_ball_extract_mem_file_by_name(res_file, name))) {
-			break;
-		}
-	}
-
-	if (NULL == mem_file) {
-		char path[ce_option_manager->ei_path->length + strlen(name) + 32];
-		if (NULL == ce_path_find_special1(path, sizeof(path),
-				ce_option_manager->ei_path->str, name, ce_sound_dirs, ce_sound_exts)) {
-			ce_logging_error("sound manager: could not find sound '%s'", name);
-			return NULL;
-		}
-
-		mem_file = ce_mem_file_new_path(path);
-		if (NULL == mem_file) {
-			ce_logging_error("sound manager: could not open file '%s'", path);
-			return NULL;
-		}
-	}
-
-	ce_sound_resource* sound_resource = ce_sound_resource_new(mem_file);
-	if (NULL == sound_resource) {
-		ce_logging_error("sound manager: could not find decoder for '%s'", name);
-		ce_mem_file_del(mem_file);
-		return NULL;
-	}
-
-	ce_sound_instance* sound_instance =
-		ce_sound_instance_new(++ce_sound_manager->last_sound_object, sound_resource);
-	if (NULL == sound_instance) {
-		ce_logging_error("sound manager: could not create instance '%s'", name);
-		ce_sound_resource_del(sound_resource);
-		return NULL;
-	}
-
-	ce_vector_push_back(ce_sound_manager->sound_instances, sound_instance);
-	return sound_instance;
 }
 
-ce_sound_instance* ce_sound_manager_find_instance(ce_sound_object sound_object)
+ce_hash_key ce_sound_manager_create_instance(const char* name)
 {
-	for (size_t i = 0; i < ce_sound_manager->sound_instances->count; ++i) {
-		ce_sound_instance* sound_instance = ce_sound_manager->sound_instances->items[i];
-		if (sound_object == sound_instance->sound_object) {
-			return sound_instance;
-		}
-	}
-	return NULL;
+	size_t length = strlen(name);
+	size_t size = sizeof(ce_sound_event) + length + 1;
+
+	ce_event* event = ce_event_new(ce_sound_manager_create_instance_react, size);
+	ce_sound_event* sound_event = (ce_sound_event*)event->impl;
+
+	sound_event->hash_key = ++ce_sound_manager->last_hash_key;
+	memcpy(sound_event->data, name, length);
+
+	ce_event_manager_post_event(ce_sound_manager->thread->id, event);
+	return sound_event->hash_key;
+}
+
+void ce_sound_manager_remove_instance(ce_hash_key hash_key)
+{
+	ce_event* event = ce_event_new(ce_sound_manager_remove_instance_react, sizeof(ce_sound_event));
+	ce_sound_event* sound_event = (ce_sound_event*)event->impl;
+	sound_event->hash_key = hash_key;
+	ce_event_manager_post_event(ce_sound_manager->thread->id, event);
+}
+
+void ce_sound_manager_change_instance_state(ce_hash_key hash_key, int state)
+{
+	ce_event* event = ce_event_new(ce_sound_manager_change_instance_state_react, sizeof(ce_sound_event) + sizeof(int));
+	ce_sound_event* sound_event = (ce_sound_event*)event->impl;
+	sound_event->hash_key = hash_key;
+	memcpy(sound_event->data, &state, sizeof(int));
+	ce_event_manager_post_event(ce_sound_manager->thread->id, event);
 }

@@ -21,23 +21,22 @@
 #ifndef CE_SOUNDMANAGER_H
 #define CE_SOUNDMANAGER_H
 
-#include <stdbool.h>
-
 #include "cevector.h"
+#include "cehash.h"
 #include "cethread.h"
 #include "cetimer.h"
-#include "cesoundobject.h"
 #include "cesoundinstance.h"
+#include "cesoundquery.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 extern struct ce_sound_manager {
-	bool done;
-	ce_sound_object last_sound_object;
+	ce_hash_key last_hash_key;
 	ce_vector* res_files;
-	ce_vector* sound_instances;
+	ce_hash* sound_instances;
+	ce_hash* sound_queries;
 	ce_timer* timer;
 	ce_thread* thread;
 }* ce_sound_manager;
@@ -45,8 +44,17 @@ extern struct ce_sound_manager {
 extern void ce_sound_manager_init(void);
 extern void ce_sound_manager_term(void);
 
-extern ce_sound_instance* ce_sound_manager_create_instance(const char* name);
-extern ce_sound_instance* ce_sound_manager_find_instance(ce_sound_object sound_object);
+extern void ce_sound_manager_advance(float elapsed);
+
+extern ce_hash_key ce_sound_manager_create_instance(const char* name);
+extern void ce_sound_manager_remove_instance(ce_hash_key hash_key);
+extern void ce_sound_manager_change_instance_state(ce_hash_key hash_key, int state);
+
+static inline ce_sound_query* ce_sound_manager_get_query(ce_hash_key hash_key)
+{
+	return NULL;
+	return ce_hash_find(ce_sound_manager->sound_queries, hash_key);
+}
 
 #ifdef __cplusplus
 }

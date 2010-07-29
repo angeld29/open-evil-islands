@@ -52,18 +52,29 @@ extern void ce_routine_del(ce_routine* routine);
 
 typedef unsigned long int ce_thread_id;
 
-extern ce_thread_id ce_thread_self(void);
-
 typedef struct {
+	bool done;
 	ce_thread_id id;
 	ce_routine routine;
 	char impl[];
 } ce_thread;
 
+extern ce_thread_id ce_thread_self(void);
+
 extern ce_thread* ce_thread_new(void (*proc)(), void* arg);
 extern void ce_thread_del(ce_thread* thread);
 
 extern void ce_thread_wait(ce_thread* thread);
+
+extern void ce_thread_exec(ce_thread* thread);
+extern void ce_thread_exit(ce_thread* thread);
+
+static inline void ce_thread_exit_wait_del(ce_thread* thread)
+{
+	ce_thread_exit(thread);
+	ce_thread_wait(thread);
+	ce_thread_del(thread);
+}
 
 /*
  *  The mutex struct provides access serialization between threads.
