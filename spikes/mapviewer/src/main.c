@@ -36,16 +36,16 @@
 
 static ce_optparse* optparse;
 
-static ce_inputsupply* inputsupply;
-static ce_inputevent* anmfps_inc_event;
-static ce_inputevent* anmfps_dec_event;
+static ce_input_supply* input_supply;
+static ce_input_event* anmfps_inc_event;
+static ce_input_event* anmfps_dec_event;
 
 static float message_timeout;
 static ce_color message_color;
 
 static void clean()
 {
-	ce_inputsupply_del(inputsupply);
+	ce_input_supply_del(input_supply);
 	ce_optparse_del(optparse);
 }
 
@@ -84,7 +84,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
 
 static void advance(void* CE_UNUSED(listener), float elapsed)
 {
-	ce_inputsupply_advance(inputsupply, elapsed);
+	ce_input_supply_advance(input_supply, elapsed);
 
 	float animation_fps = ce_root.animation_fps;
 
@@ -192,12 +192,12 @@ int main(int argc, char* argv[])
 
 	message_color = CE_COLOR_CORNFLOWER;
 
-	inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
-	anmfps_inc_event = ce_inputsupply_repeat(inputsupply,
-						ce_inputsupply_button(inputsupply,
+	input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
+	anmfps_inc_event = ce_input_supply_repeat(input_supply,
+						ce_input_supply_button(input_supply,
 							CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
-	anmfps_dec_event = ce_inputsupply_repeat(inputsupply,
-						ce_inputsupply_button(inputsupply,
+	anmfps_dec_event = ce_input_supply_repeat(input_supply,
+						ce_input_supply_button(input_supply,
 							CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
 
 	return ce_root_exec();

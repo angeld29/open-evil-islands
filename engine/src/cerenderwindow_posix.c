@@ -390,13 +390,13 @@ static void ce_renderwindow_handler_focus_out(ce_renderwindow* renderwindow, XEv
 		XAutoRepeatOn(event->xfocus.display);
 	}
 
-	ce_inputcontext_clear(renderwindow->inputcontext);
+	ce_input_context_clear(renderwindow->input_context);
 }
 
 static void ce_renderwindow_handler_enter_notify(ce_renderwindow* renderwindow, XEvent* event)
 {
-	renderwindow->inputcontext->pointer_position.x = event->xcrossing.x;
-	renderwindow->inputcontext->pointer_position.y = event->xcrossing.y;
+	renderwindow->input_context->pointer_position.x = event->xcrossing.x;
+	renderwindow->input_context->pointer_position.y = event->xcrossing.y;
 }
 
 static void ce_renderwindow_handler_key(ce_renderwindow* renderwindow, XEvent* event, bool pressed)
@@ -407,11 +407,11 @@ static void ce_renderwindow_handler_key(ce_renderwindow* renderwindow, XEvent* e
 	KeySym key;
 	XLookupString(&event->xkey, NULL, 0, &key, NULL);
 
-	renderwindow->inputcontext->buttons[
+	renderwindow->input_context->buttons[
 		ce_renderwindow_keymap_search(renderwindow->keymap, key)] = pressed;
 
-	renderwindow->inputcontext->pointer_position.x = event->xkey.x;
-	renderwindow->inputcontext->pointer_position.y = event->xkey.y;
+	renderwindow->input_context->pointer_position.x = event->xkey.x;
+	renderwindow->input_context->pointer_position.y = event->xkey.y;
 }
 
 static void ce_renderwindow_handler_key_press(ce_renderwindow* renderwindow, XEvent* event)
@@ -426,11 +426,11 @@ static void ce_renderwindow_handler_key_release(ce_renderwindow* renderwindow, X
 
 static void ce_renderwindow_handler_button(ce_renderwindow* renderwindow, XEvent* event, bool pressed)
 {
-	renderwindow->inputcontext->buttons[
+	renderwindow->input_context->buttons[
 		event->xbutton.button - 1 + CE_MB_LEFT] = pressed;
 
-	renderwindow->inputcontext->pointer_position.x = event->xbutton.x;
-	renderwindow->inputcontext->pointer_position.y = event->xbutton.y;
+	renderwindow->input_context->pointer_position.x = event->xbutton.x;
+	renderwindow->input_context->pointer_position.y = event->xbutton.y;
 }
 
 static void ce_renderwindow_handler_button_press(ce_renderwindow* renderwindow, XEvent* event)
@@ -449,11 +449,11 @@ static void ce_renderwindow_handler_button_release(ce_renderwindow* renderwindow
 
 static void ce_renderwindow_handler_motion_notify(ce_renderwindow* renderwindow, XEvent* event)
 {
-	renderwindow->inputcontext->pointer_offset.x = event->xmotion.x -
-		renderwindow->inputcontext->pointer_position.x;
-	renderwindow->inputcontext->pointer_offset.y = event->xmotion.y -
-		renderwindow->inputcontext->pointer_position.y;
+	renderwindow->input_context->pointer_offset.x = event->xmotion.x -
+		renderwindow->input_context->pointer_position.x;
+	renderwindow->input_context->pointer_offset.y = event->xmotion.y -
+		renderwindow->input_context->pointer_position.y;
 
-	renderwindow->inputcontext->pointer_position.x = event->xmotion.x;
-	renderwindow->inputcontext->pointer_position.y = event->xmotion.y;
+	renderwindow->input_context->pointer_position.x = event->xmotion.x;
+	renderwindow->input_context->pointer_position.y = event->xmotion.y;
 }

@@ -37,7 +37,7 @@ extern "C"
 
 typedef struct {
 	unsigned long key;
-	ce_inputbutton button;
+	ce_input_button button;
 } ce_renderwindow_keypair;
 
 typedef struct {
@@ -48,13 +48,13 @@ extern ce_renderwindow_keymap* ce_renderwindow_keymap_new(void);
 extern void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
 
 extern void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap,
-										unsigned long key, ce_inputbutton button);
+										unsigned long key, ce_input_button button);
 extern void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap,
 										unsigned long keys[CE_IB_COUNT]);
 
 extern void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
 
-extern ce_inputbutton
+extern ce_input_button
 ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key);
 
 typedef enum {
@@ -114,7 +114,7 @@ struct ce_renderwindow {
 	bool restore_fullscreen;
 	ce_displaymng* displaymng;
 	ce_graphic_context* graphic_context;
-	ce_inputcontext* inputcontext;
+	ce_input_context* input_context;
 	ce_renderwindow_keymap* keymap;
 	ce_vector* listeners;
 	ce_renderwindow_vtable vtable;

@@ -32,12 +32,12 @@
 static bool pause;
 static ce_video_object video_object;
 static ce_optparse* optparse;
-static ce_inputsupply* inputsupply;
-static ce_inputevent* pause_event;
+static ce_input_supply* input_supply;
+static ce_input_event* pause_event;
 
 static void clean()
 {
-	ce_inputsupply_del(inputsupply);
+	ce_input_supply_del(input_supply);
 	ce_optparse_del(optparse);
 }
 
@@ -60,7 +60,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
 
 static void advance(void* CE_UNUSED(listener), float elapsed)
 {
-	ce_inputsupply_advance(inputsupply, elapsed);
+	ce_input_supply_advance(input_supply, elapsed);
 	ce_video_object_advance(video_object, elapsed);
 
 	if (pause_event->triggered) {
@@ -100,9 +100,9 @@ int main(int argc, char* argv[])
 	ce_root.scenemng->listener = (ce_scenemng_listener)
 		{.state_changed = state_changed, .advance = advance, .render = render};
 
-	inputsupply = ce_inputsupply_new(ce_root.renderwindow->inputcontext);
-	pause_event = ce_inputsupply_single_front(inputsupply,
-					ce_inputsupply_button(inputsupply, CE_KB_SPACE));
+	input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
+	pause_event = ce_input_supply_single_front(input_supply,
+					ce_input_supply_button(input_supply, CE_KB_SPACE));
 
 	return ce_root_exec();
 }

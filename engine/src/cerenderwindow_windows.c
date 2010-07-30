@@ -436,7 +436,7 @@ static bool ce_renderwindow_handler_syscommand(ce_renderwindow* renderwindow, WP
 
 static bool ce_renderwindow_handler_killfocus(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM CE_UNUSED(lparam))
 {
-	ce_inputcontext_clear(renderwindow->inputcontext);
+	ce_input_context_clear(renderwindow->input_context);
 	return false;
 }
 
@@ -508,7 +508,7 @@ static bool ce_renderwindow_handler_key(ce_renderwindow* renderwindow, WPARAM wp
 		break;
 	}
 
-	renderwindow->inputcontext->buttons[
+	renderwindow->input_context->buttons[
 		ce_renderwindow_keymap_search(renderwindow->keymap, wparam)] = pressed;
 
 	return false;
@@ -524,15 +524,15 @@ static bool ce_renderwindow_handler_keyup(ce_renderwindow* renderwindow, WPARAM 
 	return ce_renderwindow_handler_key(renderwindow, wparam, lparam, false);
 }
 
-static bool ce_renderwindow_handler_button(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM lparam, ce_inputbutton button, bool pressed)
+static bool ce_renderwindow_handler_button(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM lparam, ce_input_button button, bool pressed)
 {
 	// TODO: undefined behavior in windows mode
 	if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
-		renderwindow->inputcontext->pointer_position.x = GET_X_LPARAM(lparam);
-		renderwindow->inputcontext->pointer_position.y = GET_Y_LPARAM(lparam);
+		renderwindow->input_context->pointer_position.x = GET_X_LPARAM(lparam);
+		renderwindow->input_context->pointer_position.y = GET_Y_LPARAM(lparam);
 	}
 
-	renderwindow->inputcontext->buttons[button] = pressed;
+	renderwindow->input_context->buttons[button] = pressed;
 
 	return false;
 }
@@ -571,7 +571,7 @@ static bool ce_renderwindow_handler_mousewheel(ce_renderwindow* renderwindow, WP
 {
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 	if (winwindow->cursor_inside) {
-		return ce_renderwindow_handler_button(renderwindow, wparam, lparam, (ce_inputbutton[])
+		return ce_renderwindow_handler_button(renderwindow, wparam, lparam, (ce_input_button[])
 				{ CE_MB_WHEELUP, CE_MB_WHEELDOWN }[GET_WHEEL_DELTA_WPARAM(wparam) < 0], true);
 	}
 	return false;
@@ -579,8 +579,8 @@ static bool ce_renderwindow_handler_mousewheel(ce_renderwindow* renderwindow, WP
 
 static bool ce_renderwindow_handler_mousehover(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM lparam)
 {
-	renderwindow->inputcontext->pointer_position.x = GET_X_LPARAM(lparam);
-	renderwindow->inputcontext->pointer_position.y = GET_Y_LPARAM(lparam);
+	renderwindow->input_context->pointer_position.x = GET_X_LPARAM(lparam);
+	renderwindow->input_context->pointer_position.y = GET_Y_LPARAM(lparam);
 
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 	winwindow->cursor_inside = true;
@@ -590,7 +590,7 @@ static bool ce_renderwindow_handler_mousehover(ce_renderwindow* renderwindow, WP
 
 static bool ce_renderwindow_handler_mouseleave(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM CE_UNUSED(lparam))
 {
-	renderwindow->inputcontext->pointer_position = CE_VEC2_ZERO;
+	renderwindow->input_context->pointer_position = CE_VEC2_ZERO;
 
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 	winwindow->cursor_inside = false;
@@ -600,13 +600,13 @@ static bool ce_renderwindow_handler_mouseleave(ce_renderwindow* renderwindow, WP
 
 static bool ce_renderwindow_handler_mousemove(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM lparam)
 {
-	renderwindow->inputcontext->pointer_offset.x = GET_X_LPARAM(lparam) -
-		renderwindow->inputcontext->pointer_position.x;
-	renderwindow->inputcontext->pointer_offset.y = GET_Y_LPARAM(lparam) -
-		renderwindow->inputcontext->pointer_position.y;
+	renderwindow->input_context->pointer_offset.x = GET_X_LPARAM(lparam) -
+		renderwindow->input_context->pointer_position.x;
+	renderwindow->input_context->pointer_offset.y = GET_Y_LPARAM(lparam) -
+		renderwindow->input_context->pointer_position.y;
 
-	renderwindow->inputcontext->pointer_position.x = GET_X_LPARAM(lparam);
-	renderwindow->inputcontext->pointer_position.y = GET_Y_LPARAM(lparam);
+	renderwindow->input_context->pointer_position.x = GET_X_LPARAM(lparam);
+	renderwindow->input_context->pointer_position.y = GET_Y_LPARAM(lparam);
 
 	ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
