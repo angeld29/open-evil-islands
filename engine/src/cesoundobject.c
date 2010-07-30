@@ -18,49 +18,50 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <string.h>
 #include <assert.h>
 
-#include "cealloc.h"
 #include "cesoundmanager.h"
 #include "cesoundobject.h"
 
-ce_sound_object* ce_sound_object_new(const char* name)
+ce_sound_object ce_sound_object_new(const char* name)
 {
-	ce_sound_object* sound_object = ce_alloc_zero(sizeof(ce_sound_object));
-	sound_object->hash_key = ce_sound_manager_create_instance(name);
-	return sound_object;
+	return ce_sound_manager_create_object(name);
 }
 
-void ce_sound_object_del(ce_sound_object* sound_object)
+void ce_sound_object_del(ce_sound_object sound_object)
 {
-	if (NULL != sound_object) {
-		ce_sound_manager_remove_instance(sound_object->hash_key);
-		ce_free(sound_object, sizeof(ce_sound_object));
-	}
+	ce_sound_manager_remove_object(sound_object);
 }
 
-void ce_sound_object_advance(ce_sound_object* sound_object, float CE_UNUSED(elapsed))
+bool ce_sound_object_is_valid(ce_sound_object sound_object)
 {
-	ce_sound_query* sound_query = ce_sound_manager_get_query(sound_object->hash_key);
-	if (NULL != sound_query) {
-		sound_object->state = sound_query->state;
-		sound_object->time = sound_query->time;
-	}
+	ce_sound_bundle* sound_bundle = ce_sound_manager_get_bundle(sound_object);
+	return NULL != sound_bundle;
 }
 
-void ce_sound_object_stop(ce_sound_object* sound_object)
+void ce_sound_object_stop(ce_sound_object sound_object)
 {
-	ce_sound_manager_change_instance_state(sound_object->hash_key, CE_SOUND_STATE_STOPPED);
+	ce_sound_manager_state_object(sound_object, CE_SOUND_STATE_STOPPED);
 }
 
-void ce_sound_object_pause(ce_sound_object* sound_object)
+void ce_sound_object_pause(ce_sound_object sound_object)
 {
-	ce_sound_manager_change_instance_state(sound_object->hash_key, CE_SOUND_STATE_PAUSED);
+	ce_sound_manager_state_object(sound_object, CE_SOUND_STATE_PAUSED);
 }
 
-void ce_sound_object_play(ce_sound_object* sound_object)
+void ce_sound_object_play(ce_sound_object sound_object)
 {
-	ce_sound_manager_change_instance_state(sound_object->hash_key, CE_SOUND_STATE_PLAYING);
+	ce_sound_manager_state_object(sound_object, CE_SOUND_STATE_PLAYING);
+}
+
+int ce_sound_object_get_state(ce_sound_object sound_object)
+{
+	ce_sound_bundle* sound_bundle = ce_sound_manager_get_bundle(sound_object);
+	return NULL != sound_bundle ? sound_bundle->state : CE_SOUND_STATE_STOPPED;
+}
+
+float ce_sound_object_get_time(ce_sound_object sound_object)
+{
+	ce_sound_bundle* sound_bundle = ce_sound_manager_get_bundle(sound_object);
+	return NULL != sound_bundle ? sound_bundle->time : 0.0f;
 }

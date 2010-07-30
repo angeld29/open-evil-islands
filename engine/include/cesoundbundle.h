@@ -18,19 +18,23 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
+#ifndef CE_SOUNDBUNDLE_H
+#define CE_SOUNDBUNDLE_H
 
-#include "cealloc.h"
-#include "cesoundquery.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-ce_sound_query* ce_sound_query_new(ce_hash_key hash_key)
-{
-	ce_sound_query* sound_query = ce_alloc_zero(sizeof(ce_sound_query));
-	sound_query->hash_key = hash_key;
-	return sound_query;
+typedef struct {
+	int state;
+	float time;
+} ce_sound_bundle;
+
+extern ce_sound_bundle* ce_sound_bundle_new(void);
+extern void ce_sound_bundle_del(ce_sound_bundle* sound_bundle);
+
+#ifdef __cplusplus
 }
+#endif
 
-void ce_sound_query_del(ce_sound_query* sound_query)
-{
-	ce_free(sound_query, sizeof(ce_sound_query));
-}
+#endif /* CE_SOUNDBUNDLE_H */

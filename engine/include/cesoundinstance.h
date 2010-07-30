@@ -24,6 +24,7 @@
 #include <stdbool.h>
 
 #include "cesoundstate.h"
+#include "cesoundbundle.h"
 #include "cesoundbuffer.h"
 #include "cesoundresource.h"
 
@@ -32,8 +33,7 @@ extern "C" {
 #endif
 
 typedef struct {
-	int state;
-	float time; // playing time in seconds
+	ce_sound_bundle sound_bundle;
 	ce_sound_resource* sound_resource;
 	ce_sound_buffer* sound_buffer;
 } ce_sound_instance;

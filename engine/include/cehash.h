@@ -67,6 +67,8 @@ extern void* ce_hash_find(const ce_hash* hash, ce_hash_key hash_key);
 extern void ce_hash_for_each(ce_hash* hash, void (*func)());
 extern void ce_hash_for_each_arg1(ce_hash* hash, void (*func)(), void* arg);
 
+extern void ce_hash_for_each_key(ce_hash* hash, void (*func)(ce_hash_key));
+
 extern void ce_hash_iter_first(ce_hash_iter* iter, ce_hash* hash);
 extern void ce_hash_iter_next(ce_hash_iter* iter);
 

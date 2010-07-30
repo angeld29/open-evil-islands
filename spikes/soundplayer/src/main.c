@@ -32,7 +32,7 @@
 
 static ce_color message_color;
 static float alpha_sign = -1.0f;
-static ce_sound_object* sound_object;
+static ce_sound_object sound_object;
 static ce_optparse* optparse;
 static ce_inputsupply* inputsupply;
 static ce_inputevent* stub_event;
@@ -60,7 +60,6 @@ static void state_changed(void* CE_UNUSED(listener), int state)
 static void advance(void* CE_UNUSED(listener), float elapsed)
 {
 	ce_inputsupply_advance(inputsupply, elapsed);
-	ce_sound_object_advance(sound_object, elapsed);
 
 	if (ce_sound_object_is_valid(sound_object) &&
 			!ce_sound_object_is_stopped(sound_object)) {

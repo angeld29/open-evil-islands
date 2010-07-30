@@ -62,6 +62,14 @@ static void ce_hash_entry_for_each_arg1(ce_hash_entry* hash_entry, void (*func)(
 	}
 }
 
+static void ce_hash_entry_for_each_key(ce_hash_entry* hash_entry, void (*func)(ce_hash_key))
+{
+	if (NULL != hash_entry) {
+		(*func)(hash_entry->hash_key);
+		ce_hash_entry_for_each_key(hash_entry->next, func);
+	}
+}
+
 ce_hash* ce_hash_new(size_t entry_count, void (*item_dtor)())
 {
 	ce_hash* hash = ce_alloc_zero(sizeof(ce_hash) + sizeof(ce_hash_entry*) * entry_count);
@@ -133,6 +141,13 @@ void ce_hash_for_each_arg1(ce_hash* hash, void (*func)(void*, void*), void* arg)
 {
 	for (size_t i = 0; i < hash->entry_count; ++i) {
 		ce_hash_entry_for_each_arg1(hash->entries[i], func, arg);
+	}
+}
+
+void ce_hash_for_each_key(ce_hash* hash, void (*func)(ce_hash_key))
+{
+	for (size_t i = 0; i < hash->entry_count; ++i) {
+		ce_hash_entry_for_each_key(hash->entries[i], func);
 	}
 }
 

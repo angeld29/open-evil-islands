@@ -49,13 +49,13 @@ void ce_sound_instance_del(ce_sound_instance* sound_instance)
 
 void ce_sound_instance_advance(ce_sound_instance* sound_instance, float CE_UNUSED(elapsed))
 {
-	if (CE_SOUND_STATE_PLAYING == sound_instance->state) {
+	if (CE_SOUND_STATE_PLAYING == sound_instance->sound_bundle.state) {
 		size_t size = ce_sound_buffer_available_size_for_write(sound_instance->sound_buffer);
 		if (0 != size) {
 			char buffer[size];
 			size = ce_sound_resource_read(sound_instance->sound_resource, buffer, size);
 			ce_sound_buffer_write(sound_instance->sound_buffer, buffer, size);
-			sound_instance->time = sound_instance->sound_resource->time;
+			sound_instance->sound_bundle.time = sound_instance->sound_resource->time;
 			if (0 == size) {
 				ce_sound_instance_change_state(sound_instance, CE_SOUND_STATE_STOPPED);
 			}
@@ -65,11 +65,11 @@ void ce_sound_instance_advance(ce_sound_instance* sound_instance, float CE_UNUSE
 
 void ce_sound_instance_change_state(ce_sound_instance* sound_instance, int state)
 {
-	sound_instance->state = state;
+	sound_instance->sound_bundle.state = state;
 
 	switch (state) {
 	case CE_SOUND_STATE_STOPPED:
-		sound_instance->time = 0.0f;
+		sound_instance->sound_bundle.time = 0.0f;
 		ce_sound_resource_reset(sound_instance->sound_resource);
 		break;
 	}
