@@ -172,8 +172,6 @@ static void ce_sound_manager_exec(void* CE_UNUSED(arg))
 
 	ce_timer_start(ce_sound_manager->timer);
 	ce_thread_exec(ce_sound_manager->thread);
-
-	ce_vector_for_each(ce_sound_manager->res_files, ce_res_file_del);
 }
 
 void ce_sound_manager_init(void)
@@ -194,6 +192,7 @@ void ce_sound_manager_term(void)
 		ce_timer_del(ce_sound_manager->timer);
 		ce_hash_del(ce_sound_manager->sound_bundles);
 		ce_hash_del(ce_sound_manager->sound_instances);
+		ce_vector_for_each(ce_sound_manager->res_files, ce_res_file_del);
 		ce_vector_del(ce_sound_manager->res_files);
 		ce_free(ce_sound_manager, sizeof(struct ce_sound_manager));
 	}
