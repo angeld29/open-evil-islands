@@ -30,7 +30,9 @@ ce_sound_object ce_sound_object_new(const char* name)
 
 void ce_sound_object_del(ce_sound_object sound_object)
 {
-	ce_sound_manager_remove_object(sound_object);
+	if (0 != sound_object) {
+		ce_sound_manager_remove_object(sound_object);
+	}
 }
 
 bool ce_sound_object_is_valid(ce_sound_object sound_object)

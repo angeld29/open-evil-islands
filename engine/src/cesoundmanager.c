@@ -45,15 +45,6 @@ static const char* ce_sound_resource_dirs[] = {"Res", NULL};
 static const char* ce_sound_resource_exts[] = {".res", NULL};
 static const char* ce_sound_resource_names[] = {"sfx", "speech", NULL};
 
-static void ce_sound_manager_query_bundle(ce_event* event)
-{
-	ce_sound_event* sound_event = (ce_sound_event*)event->impl;
-	ce_sound_bundle* sound_bundle = ce_hash_find(ce_sound_manager->sound_bundles, sound_event->hash_key);
-	if (NULL != sound_bundle) {
-		*sound_bundle = sound_event->sound_bundle;
-	}
-}
-
 static void ce_sound_manager_create_instance(ce_event* event)
 {
 	ce_sound_event* sound_event = (ce_sound_event*)event->impl;
@@ -113,6 +104,32 @@ static void ce_sound_manager_state_instance(ce_event* event)
 	}
 }
 
+static ce_res_file* ce_sound_manager_open_resource(const char* name)
+{
+	char path[ce_option_manager->ei_path->length + 32];
+	ce_res_file* res_file = NULL;
+
+	if (NULL != ce_path_find_special1(path, sizeof(path),
+			ce_option_manager->ei_path->str, name,
+			ce_sound_resource_dirs, ce_sound_resource_exts) &&
+			NULL != (res_file = ce_res_file_new_path(path))) {
+		ce_logging_write("sound manager: loading '%s'... ok", path);
+	} else {
+		ce_logging_error("sound manager: loading '%s'... failed", path);
+	}
+
+	return res_file;
+}
+
+static void ce_sound_manager_query_bundle(ce_event* event)
+{
+	ce_sound_event* sound_event = (ce_sound_event*)event->impl;
+	ce_sound_bundle* sound_bundle = ce_hash_find(ce_sound_manager->sound_bundles, sound_event->hash_key);
+	if (NULL != sound_bundle) {
+		*sound_bundle = sound_event->sound_bundle;
+	}
+}
+
 static void ce_sound_manager_advance_instance(ce_sound_instance* sound_instance, float* elapsed)
 {
 	ce_sound_instance_advance(sound_instance, *elapsed);
@@ -135,24 +152,6 @@ static void ce_sound_manager_idle(ce_event* CE_UNUSED(event))
 	float elapsed = ce_timer_advance(ce_sound_manager->timer);
 	ce_hash_for_each_arg1(ce_sound_manager->sound_instances, ce_sound_manager_advance_instance, &elapsed);
 	ce_hash_for_each_key(ce_sound_manager->sound_instances, ce_sound_manager_query_instance);
-	ce_event_manager_post_call(ce_sound_manager->thread->id, ce_sound_manager_idle);
-}
-
-static ce_res_file* ce_sound_manager_open_resource(const char* name)
-{
-	char path[ce_option_manager->ei_path->length + 32];
-	ce_res_file* res_file = NULL;
-
-	if (NULL != ce_path_find_special1(path, sizeof(path),
-			ce_option_manager->ei_path->str, name,
-			ce_sound_resource_dirs, ce_sound_resource_exts) &&
-			NULL != (res_file = ce_res_file_new_path(path))) {
-		ce_logging_write("resource manager: loading '%s'... ok", path);
-	} else {
-		ce_logging_error("resource manager: loading '%s'... failed", path);
-	}
-
-	return res_file;
 }
 
 static void ce_sound_manager_exec(void* CE_UNUSED(arg))
@@ -172,7 +171,6 @@ static void ce_sound_manager_exec(void* CE_UNUSED(arg))
 	}
 
 	ce_event_manager_create_queue();
-	ce_event_manager_post_call(ce_sound_manager->thread->id, ce_sound_manager_idle);
 
 	ce_timer_start(ce_sound_manager->timer);
 	ce_thread_exec(ce_sound_manager->thread);
@@ -205,6 +203,7 @@ void ce_sound_manager_term(void)
 
 void ce_sound_manager_advance(float CE_UNUSED(elapsed))
 {
+	ce_event_manager_post_call(ce_sound_manager->thread->id, ce_sound_manager_idle);
 }
 
 ce_hash_key ce_sound_manager_create_object(const char* name)
