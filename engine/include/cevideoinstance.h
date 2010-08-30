@@ -48,6 +48,7 @@ enum {
 };
 
 typedef struct {
+	bool done;
 	ce_video_object video_object;
 	ce_sound_object sound_object;
 	int state, frame;
@@ -60,7 +61,6 @@ typedef struct {
 	ce_semaphore* prepared_frames;
 	ce_semaphore* unprepared_frames;
 	ce_thread* thread;
-	volatile bool done;
 } ce_video_instance;
 
 extern ce_video_instance* ce_video_instance_new(ce_video_object video_object,

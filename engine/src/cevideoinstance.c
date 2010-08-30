@@ -25,18 +25,21 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceeventmanager.h"
 #include "cerendersystem.h"
 #include "ceshadermanager.h"
 #include "cevideoinstance.h"
+
+static void ce_video_instance_exit(ce_event* event)
+{
+	ce_video_instance* video_instance = ((ce_event_ptr*)event->impl)->ptr;
+	video_instance->done = true;
+}
 
 static void ce_video_instance_exec(ce_video_instance* video_instance)
 {
 	for (size_t i = ce_semaphore_available(video_instance->prepared_frames); ; ++i) {
 		ce_semaphore_acquire(video_instance->unprepared_frames, 1);
-
-		if (video_instance->done) {
-			break;
-		}
 
 		if (!ce_video_resource_read(video_instance->video_resource)) {
 			video_instance->state = CE_VIDEO_INSTANCE_STATE_STOPPING;
@@ -70,6 +73,11 @@ static void ce_video_instance_exec(ce_video_instance* video_instance)
 		}
 
 		ce_semaphore_release(video_instance->prepared_frames, 1);
+		ce_event_manager_process_events();
+
+		if (video_instance->done) {
+			break;
+		}
 	}
 }
 
@@ -111,7 +119,7 @@ ce_video_instance* ce_video_instance_new(ce_video_object video_object,
 void ce_video_instance_del(ce_video_instance* video_instance)
 {
 	if (NULL != video_instance) {
-		video_instance->done = true;
+		ce_event_manager_post_ptr(video_instance->thread->id, ce_video_instance_exit, video_instance);
 
 		ce_semaphore_release(video_instance->unprepared_frames, 1);
 		ce_thread_wait(video_instance->thread);
