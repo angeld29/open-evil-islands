@@ -97,8 +97,6 @@ static void ce_sound_mixer_mix_sample(void* sample, const void* other,
 
 static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
 {
-	ce_event_manager_create_queue();
-
 	while (!ce_sound_mixer->done) {
 		char sample[ce_sound_system->sound_format.sample_size];
 

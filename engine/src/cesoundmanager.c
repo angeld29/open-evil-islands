@@ -170,8 +170,6 @@ static void ce_sound_manager_exec(void* CE_UNUSED(arg))
 		}
 	}
 
-	ce_event_manager_create_queue();
-
 	ce_timer_start(ce_sound_manager->timer);
 	ce_thread_exec(ce_sound_manager->thread);
 

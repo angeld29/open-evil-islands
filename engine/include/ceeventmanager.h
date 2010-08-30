@@ -71,9 +71,6 @@ extern struct ce_event_manager {
 extern void ce_event_manager_init(void);
 extern void ce_event_manager_term(void);
 
-// create a queue for the current thread
-extern void ce_event_manager_create_queue(void);
-
 extern bool ce_event_manager_has_pending_events(void);
 
 // process all pending events for the current thread

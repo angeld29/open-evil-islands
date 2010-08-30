@@ -220,9 +220,7 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
 
 int ce_root_exec(void)
 {
-	ce_event_manager_create_queue();
 	ce_renderwindow_show(ce_root.renderwindow);
-
 	ce_timer_start(ce_root.timer);
 
 	for (;;) {

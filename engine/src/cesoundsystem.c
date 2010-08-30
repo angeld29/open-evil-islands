@@ -53,8 +53,6 @@ static void ce_sound_system_exit(ce_event* CE_UNUSED(event))
 
 static void ce_sound_system_exec(void* CE_UNUSED(arg))
 {
-	ce_event_manager_create_queue();
-
 	for (size_t i = 0; !ce_sound_system->done; ++i) {
 		ce_semaphore_acquire(ce_sound_system->used_blocks, 1);
 
@@ -63,7 +61,6 @@ static void ce_sound_system_exec(void* CE_UNUSED(arg))
 		}
 
 		ce_semaphore_release(ce_sound_system->free_blocks, 1);
-
 		ce_event_manager_process_events();
 	}
 }

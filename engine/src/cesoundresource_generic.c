@@ -178,7 +178,7 @@ typedef struct {
 typedef struct {
 	ce_flac_bundle* bundle;
 	size_t output_buffer_pos, output_buffer_size;
-	uint8_t output_buffer[FLAC__MAX_BLOCK_SIZE * 1 /*FIXME: sample size*/];
+	uint8_t output_buffer[FLAC__MAX_BLOCK_SIZE /*from metadata*/ * 1 /*sample size*/];
 } ce_flac;
 
 static ce_flac_bundle* ce_flac_bundle_new(void)
@@ -277,6 +277,7 @@ static FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamD
 	//assert(flac->output_buffer_size <= sizeof(flac->output_buffer));
 
 	flac_bundle->block_size = frame->header.blocksize;
+	//ce_logging_debug("blocksize %u", flac_bundle->block_size);
 
 	for (unsigned int i = 0; i < frame->header.blocksize; ++i) {
 		for (unsigned int j = 0; j < frame->header.channels; ++j) {

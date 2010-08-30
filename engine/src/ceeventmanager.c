@@ -28,6 +28,8 @@
 #include "celogging.h"
 #include "ceeventmanager.h"
 
+struct ce_event_manager* ce_event_manager;
+
 ce_event_queue* ce_event_queue_new(ce_thread_id thread_id)
 {
 	ce_event_queue* queue = ce_alloc_zero(sizeof(ce_event_queue));
@@ -102,8 +104,6 @@ void ce_event_queue_add_event(ce_event_queue* queue, ce_event* event)
 	ce_mutex_unlock(queue->mutex);
 }
 
-struct ce_event_manager* ce_event_manager;
-
 void ce_event_manager_init(void)
 {
 	ce_event_manager = ce_alloc_zero(sizeof(struct ce_event_manager));
@@ -119,14 +119,6 @@ void ce_event_manager_term(void)
 		ce_mutex_del(ce_event_manager->mutex);
 		ce_free(ce_event_manager, sizeof(struct ce_event_manager));
 	}
-}
-
-void ce_event_manager_create_queue(void)
-{
-	ce_mutex_lock(ce_event_manager->mutex);
-	ce_vector_push_back(ce_event_manager->event_queues,
-						ce_event_queue_new(ce_thread_self()));
-	ce_mutex_unlock(ce_event_manager->mutex);
 }
 
 bool ce_event_manager_has_pending_events(void)
@@ -157,20 +149,26 @@ void ce_event_manager_process_events_timeout(int max_time)
 	}
 }
 
+static void ce_event_manager_create_queue(ce_thread_id thread_id)
+{
+	ce_mutex_lock(ce_event_manager->mutex);
+	ce_vector_push_back(ce_event_manager->event_queues,
+						ce_event_queue_new(thread_id));
+	ce_mutex_unlock(ce_event_manager->mutex);
+}
+
 void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event)
 {
 	for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
 		ce_event_queue* queue = ce_event_manager->event_queues->items[i];
 		if (thread_id == queue->thread_id) {
-			ce_event_queue_add_event(ce_event_manager->event_queues->items[i], event);
+			ce_event_queue_add_event(queue, event);
 			return;
 		}
 	}
 
-	assert(false && "could not find queue");
-	ce_logging_critical("event manager: internal error: could not find queue");
-
-	ce_event_del(event);
+	ce_event_manager_create_queue(thread_id);
+	ce_event_manager_post_event(thread_id, event);
 }
 
 void ce_event_manager_post_raw(ce_thread_id thread_id,
