@@ -96,9 +96,13 @@ static bool ce_vorbis_test(ce_sound_probe* sound_probe)
 	OggVorbis_File vf;
 	if (0 == ov_test_callbacks(sound_probe->mem_file, &vf, NULL, 0, (ov_callbacks)
 			{ce_vorbis_read_wrap, ce_vorbis_seek_wrap, NULL, ce_vorbis_tell_wrap})) {
-		sound_probe->size = sizeof(ce_vorbis);
+		sound_probe->name = "ogg vorbis";
+		sound_probe->impl_size = sizeof(ce_vorbis);
+		sound_probe->output_buffer_capacity = 8192;
+
 		assert(sizeof(OggVorbis_File) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
 		memcpy(sound_probe->buffer, &vf, sizeof(OggVorbis_File));
+
 		return true;
 	}
 
@@ -138,18 +142,22 @@ static void ce_vorbis_dtor(ce_sound_resource* sound_resource)
 	ov_clear(&vorbis->vf);
 }
 
-static size_t ce_vorbis_read(ce_sound_resource* sound_resource, void* data, size_t size)
+static bool ce_vorbis_decode(ce_sound_resource* sound_resource)
 {
 	ce_vorbis* vorbis = (ce_vorbis*)sound_resource->impl;
 
 	for (;;) {
-		long code = ov_read(&vorbis->vf, data, size,
-					ce_is_big_endian(), 2, 1, &vorbis->bitstream);
+		long code = ov_read(&vorbis->vf, sound_resource->output_buffer,
+							sound_resource->output_buffer_capacity,
+							ce_is_big_endian(), 2, 1, &vorbis->bitstream);
 		if (code >= 0) {
-			return code;
+			sound_resource->output_buffer_size = code;
+			return true;
 		}
 		ce_logging_warning("vorbis: error in the stream");
 	}
+
+	return false;
 }
 
 static bool ce_vorbis_reset(ce_sound_resource* sound_resource)
@@ -177,8 +185,6 @@ typedef struct {
 
 typedef struct {
 	ce_flac_bundle* bundle;
-	size_t output_buffer_pos, output_buffer_size;
-	uint8_t output_buffer[FLAC__MAX_BLOCK_SIZE /*from metadata*/ * 1 /*sample size*/];
 } ce_flac;
 
 static ce_flac_bundle* ce_flac_bundle_new(void)
@@ -267,17 +273,7 @@ static FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamD
 	const FLAC__Frame* frame, const FLAC__int32* const buffer[], void* client_data)
 {
 	ce_flac_bundle* flac_bundle = client_data;
-
-	/*if (flac->output_buffer_size > sizeof(flac->output_buffer)) {
-		ce_logging_debug("blocksize %u, channels %u, out sz %zu, max %zu",
-			frame->header.blocksize, frame->header.channels,
-			flac->output_buffer_size, sizeof(flac->output_buffer));
-	}*/
-
-	//assert(flac->output_buffer_size <= sizeof(flac->output_buffer));
-
 	flac_bundle->block_size = frame->header.blocksize;
-	//ce_logging_debug("blocksize %u", flac_bundle->block_size);
 
 	for (unsigned int i = 0; i < frame->header.blocksize; ++i) {
 		for (unsigned int j = 0; j < frame->header.channels; ++j) {
@@ -300,8 +296,6 @@ static void ce_flac_metadata_callback(const FLAC__StreamDecoder* CE_UNUSED(decod
 								metadata->data.stream_info.bits_per_sample,
 								metadata->data.stream_info.sample_rate,
 								metadata->data.stream_info.channels);
-		ce_logging_debug("min_blocksize, max_blocksize %u %u",
-			metadata->data.stream_info.min_blocksize, metadata->data.stream_info.max_blocksize);
 	}
 }
 
@@ -333,8 +327,10 @@ static bool ce_flac_test(ce_sound_probe* sound_probe)
 		return false;
 	}
 
-	sound_probe->size = sizeof(ce_flac) + flac_bundle->sound_format.sample_size * flac_bundle->max_block_size;
-	ce_logging_debug("flac buffer size %zu", flac_bundle->sound_format.sample_size * flac_bundle->max_block_size);
+	sound_probe->name = "flac";
+	sound_probe->impl_size = sizeof(ce_flac);
+	sound_probe->output_buffer_capacity = flac_bundle->sound_format.sample_size *
+											flac_bundle->max_block_size;
 
 	assert(sizeof(ce_flac_bundle*) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
 	memcpy(sound_probe->buffer, &flac_bundle, sizeof(ce_flac_bundle*));
@@ -346,7 +342,7 @@ static bool ce_flac_ctor(ce_sound_resource* sound_resource, ce_sound_probe* CE_U
 {
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
 	memcpy(&flac->bundle, sound_probe->buffer, sizeof(ce_flac_bundle*));
-	flac->bundle->buffer = (FLAC__int16*)flac->output_buffer;
+	flac->bundle->buffer = (FLAC__int16*)sound_resource->output_buffer;
 	sound_resource->sound_format = flac->bundle->sound_format;
 	return true;
 }
@@ -357,34 +353,19 @@ static void ce_flac_dtor(ce_sound_resource* sound_resource)
 	ce_flac_bundle_del(flac->bundle);
 }
 
-static void ce_flac_decode(ce_sound_resource* sound_resource)
+static bool ce_flac_decode(ce_sound_resource* sound_resource)
 {
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
 
 	if (FLAC__stream_decoder_process_single(flac->bundle->decoder)) {
-		flac->output_buffer_pos = 0;
-		flac->output_buffer_size = flac->bundle->sound_format.sample_size * flac->bundle->block_size;
-	} else {
-		// TODO: FLAC__stream_decoder_get_state(flac->decoder)
-		ce_logging_error("flac: decode one metadata block or audio frame failed");
-	}
-}
-
-static size_t ce_flac_read(ce_sound_resource* sound_resource, void* data, size_t size)
-{
-	ce_flac* flac = (ce_flac*)sound_resource->impl;
-
-	if (0 == flac->output_buffer_size) {
-		ce_flac_decode(sound_resource);
+		sound_resource->output_buffer_size = flac->bundle->block_size *
+											flac->bundle->sound_format.sample_size;
+		return true;
 	}
 
-	size = ce_min(size_t, size, flac->output_buffer_size);
-	memcpy(data, flac->output_buffer + flac->output_buffer_pos, size);
-
-	flac->output_buffer_pos += size;
-	flac->output_buffer_size -= size;
-
-	return size;
+	// TODO: FLAC__stream_decoder_get_state(flac->decoder);
+	ce_logging_error("flac: decode one metadata block or audio frame failed");
+	return false;
 }
 
 static bool ce_flac_reset(ce_sound_resource* sound_resource)
@@ -392,10 +373,11 @@ static bool ce_flac_reset(ce_sound_resource* sound_resource)
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
 
 	if (!FLAC__stream_decoder_reset(flac->bundle->decoder)) {
-		// TODO: FLAC__stream_decoder_get_state(flac->decoder)
+		// TODO: FLAC__stream_decoder_get_state(flac->decoder);
 		ce_logging_error("flac: resetting the decoding process failed");
 	}
 
+	// TODO
 	return false;
 }
 
@@ -409,22 +391,29 @@ static bool ce_flac_reset(ce_sound_resource* sound_resource)
 typedef struct {
 	ce_wave_header wave_header;
 	long int data_offset;
-	size_t output_buffer_pos, output_buffer_size;
-	void* block;
-	char data[];
 } ce_wave;
 
 static bool ce_wave_test(ce_sound_probe* sound_probe)
 {
 	ce_wave_header wave_header;
 	if (ce_wave_header_read(&wave_header, sound_probe->mem_file)) {
-		sound_probe->size = sizeof(ce_wave);
-		if (CE_WAVE_FORMAT_IMA_ADPCM == wave_header.format.tag) {
-			sound_probe->size += ce_wave_ima_adpcm_samples_storage_size(&wave_header);
-			sound_probe->size += ce_wave_ima_adpcm_block_storage_size(&wave_header);
+		sound_probe->name = "wave";
+		sound_probe->impl_size = sizeof(ce_wave);
+
+		switch (wave_header.format.tag) {
+		case CE_WAVE_FORMAT_PCM:
+			sound_probe->output_buffer_capacity = 8192;
+			break;
+
+		case CE_WAVE_FORMAT_IMA_ADPCM:
+			sound_probe->input_buffer_capacity = ce_wave_ima_adpcm_block_storage_size(&wave_header);
+			sound_probe->output_buffer_capacity = ce_wave_ima_adpcm_samples_storage_size(&wave_header);
+			break;
 		}
+
 		assert(sizeof(ce_wave_header) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
 		memcpy(sound_probe->buffer, &wave_header, sizeof(ce_wave_header));
+
 		return true;
 	}
 	return false;
@@ -442,49 +431,41 @@ static bool ce_wave_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 						wave->wave_header.format.channel_count);
 
 	wave->data_offset = ce_mem_file_tell(sound_resource->mem_file);
-	wave->block = wave->data + ce_wave_ima_adpcm_samples_storage_size(&wave->wave_header);
 
 	return true;
 }
 
-static size_t ce_wave_read(ce_sound_resource* sound_resource, void* data, size_t size)
+static bool ce_wave_decode(ce_sound_resource* sound_resource)
 {
 	ce_wave* wave = (ce_wave*)sound_resource->impl;
 
-	if (CE_WAVE_FORMAT_PCM == wave->wave_header.format.tag) {
-		return ce_mem_file_read(sound_resource->mem_file, data, 1, size);
-	}
+	switch (wave->wave_header.format.tag) {
+	case CE_WAVE_FORMAT_PCM:
+		sound_resource->output_buffer_size = ce_mem_file_read(sound_resource->mem_file,
+			sound_resource->output_buffer, 1, sound_resource->output_buffer_capacity);
+		return true;
 
-	if (0 == wave->output_buffer_size) {
+	case CE_WAVE_FORMAT_IMA_ADPCM:
 		if (ce_mem_file_eof(sound_resource->mem_file)) {
-			return 0;
+			return false;
 		}
 
-		ce_mem_file_read(sound_resource->mem_file, wave->block, 1, ce_wave_ima_adpcm_block_storage_size(&wave->wave_header));
-		ce_wave_ima_adpcm_decode(wave->data, wave->block, &wave->wave_header);
+		sound_resource->output_buffer_size = sound_resource->output_buffer_capacity;
+		ce_mem_file_read(sound_resource->mem_file,
+			sound_resource->input_buffer, 1, sound_resource->input_buffer_capacity);
 
-		wave->output_buffer_pos = 0;
-		wave->output_buffer_size = ce_wave_ima_adpcm_samples_storage_size(&wave->wave_header);
+		ce_wave_ima_adpcm_decode(sound_resource->output_buffer,
+								sound_resource->input_buffer, &wave->wave_header);
+		return true;
 	}
 
-	size = ce_min(size_t, size, wave->output_buffer_size);
-	memcpy(data, wave->data + wave->output_buffer_pos, size);
-
-	wave->output_buffer_pos += size;
-	wave->output_buffer_size -= size;
-
-	return size;
+	return false;
 }
 
 static bool ce_wave_reset(ce_sound_resource* sound_resource)
 {
 	ce_wave* wave = (ce_wave*)sound_resource->impl;
-
-	wave->output_buffer_pos = 0;
-	wave->output_buffer_size = 0;
-
 	ce_mem_file_seek(sound_resource->mem_file, wave->data_offset, CE_MEM_FILE_SEEK_SET);
-
 	return true;
 }
 
@@ -500,11 +481,7 @@ static bool ce_wave_reset(ce_sound_resource* sound_resource)
 
 enum {
 	CE_MAD_INPUT_BUFFER_CAPACITY = 4 * 8192,
-	CE_MAD_INPUT_BUFFER_GUARD = MAD_BUFFER_GUARD,
 	CE_MAD_OUTPUT_BUFFER_CAPACITY = 8192,
-	CE_MAD_DATA_SIZE = CE_MAD_INPUT_BUFFER_CAPACITY +
-						CE_MAD_INPUT_BUFFER_GUARD +
-						CE_MAD_OUTPUT_BUFFER_CAPACITY
 };
 
 typedef struct {
@@ -523,9 +500,6 @@ typedef struct {
 	struct mad_synth synth;
 	ce_mad_dither dither[2]; // for 2 channels
 	ce_mad_stats stats;
-	size_t output_buffer_size;
-	unsigned char* output_buffer;
-	unsigned char input_buffer[CE_MAD_DATA_SIZE];
 } ce_mad;
 
 static bool ce_mad_test(ce_sound_probe* sound_probe)
@@ -555,7 +529,10 @@ static bool ce_mad_test(ce_sound_probe* sound_probe)
 
 	ce_free(buffer, CE_MAD_INPUT_BUFFER_CAPACITY);
 
-	sound_probe->size = sizeof(ce_mad);
+	sound_probe->name = "mad";
+	sound_probe->impl_size = sizeof(ce_mad);
+	sound_probe->input_buffer_capacity = CE_MAD_INPUT_BUFFER_CAPACITY + MAD_BUFFER_GUARD;
+	sound_probe->output_buffer_capacity = CE_MAD_OUTPUT_BUFFER_CAPACITY;
 
 	return result;
 }
@@ -576,11 +553,11 @@ static bool ce_mad_input(ce_sound_resource* sound_resource)
 
 	if (NULL != mad->stream.next_frame) {
 		remaining = mad->stream.bufend - mad->stream.next_frame;
-		memmove(mad->input_buffer, mad->stream.next_frame, remaining);
+		memmove(sound_resource->input_buffer, mad->stream.next_frame, remaining);
 	}
 
 	size_t size = ce_mem_file_read(sound_resource->mem_file,
-		mad->input_buffer + remaining, 1,
+		sound_resource->input_buffer + remaining, 1,
 		CE_MAD_INPUT_BUFFER_CAPACITY - remaining);
 
 	if (ce_mem_file_error(sound_resource->mem_file)) {
@@ -596,13 +573,12 @@ static bool ce_mad_input(ce_sound_resource* sound_resource)
 	// when decoding the last frame of a file, it must be followed by
 	// MAD_BUFFER_GUARD zero bytes if one wants to decode that last frame
 	if (ce_mem_file_eof(sound_resource->mem_file)) {
-		memset(mad->input_buffer + remaining + size, 0, CE_MAD_INPUT_BUFFER_GUARD);
-		size += CE_MAD_INPUT_BUFFER_GUARD;
+		memset(sound_resource->input_buffer + remaining + size, 0, MAD_BUFFER_GUARD);
+		size += MAD_BUFFER_GUARD;
 	}
 
 	mad_stream_buffer(&mad->stream,
-						mad->input_buffer,
-							remaining + size);
+		(const unsigned char*)sound_resource->input_buffer, remaining + size);
 
 	return true;
 }
@@ -680,9 +656,6 @@ static bool ce_mad_decode(ce_sound_resource* sound_resource)
 {
 	ce_mad* mad = (ce_mad*)sound_resource->impl;
 
-	mad->output_buffer = mad->input_buffer +
-		CE_MAD_INPUT_BUFFER_CAPACITY + CE_MAD_INPUT_BUFFER_GUARD;
-
 	while (-1 == mad_frame_decode(&mad->frame, &mad->stream)) {
 		if (MAD_ERROR_BUFLEN == mad->stream.error ||
 				MAD_ERROR_BUFPTR == mad->stream.error) {
@@ -710,11 +683,11 @@ static bool ce_mad_decode(ce_sound_resource* sound_resource)
 	unsigned int sample_count  = mad->synth.pcm.length;
 	unsigned int channel_count = mad->synth.pcm.channels;
 
-	mad->output_buffer_size = 2 * sample_count * channel_count;
-	assert(mad->output_buffer_size <= CE_MAD_OUTPUT_BUFFER_CAPACITY);
+	sound_resource->output_buffer_size = 2 * sample_count * channel_count;
+	assert(sound_resource->output_buffer_size <= sound_resource->output_buffer_capacity);
 
 	// convert to signed 16 bit host endian integers
-	int16_t* output_buffer = (int16_t*)mad->output_buffer;
+	int16_t* output_buffer = (int16_t*)sound_resource->output_buffer;
 
 	for (unsigned int i = 0; i < sample_count; ++i) {
 		for (unsigned int j = 0; j < channel_count; ++j) {
@@ -736,8 +709,6 @@ static void ce_mad_init(ce_mad* mad)
 
 	memset(&mad->dither, 0, sizeof(mad->dither));
 	memset(&mad->stats, 0, sizeof(mad->stats));
-
-	mad->output_buffer_size = 0;
 }
 
 static void ce_mad_clean(ce_mad* mad)
@@ -774,23 +745,6 @@ static void ce_mad_dtor(ce_sound_resource* sound_resource)
 	ce_mad_clean(mad);
 }
 
-static size_t ce_mad_read(ce_sound_resource* sound_resource, void* data, size_t size)
-{
-	ce_mad* mad = (ce_mad*)sound_resource->impl;
-
-	if (0 == mad->output_buffer_size) {
-		ce_mad_decode(sound_resource);
-	}
-
-	size = ce_min(size_t, size, mad->output_buffer_size);
-	memcpy(data, mad->output_buffer, size);
-
-	mad->output_buffer_size -= size;
-	mad->output_buffer += size;
-
-	return size;
-}
-
 static bool ce_mad_reset(ce_sound_resource* sound_resource)
 {
 	ce_mad* mad = (ce_mad*)sound_resource->impl;
@@ -815,24 +769,24 @@ typedef struct {
 	size_t frame_index;
 	ce_bink_header header;
 	ce_bink_audio_track audio_track;
-	ce_bink_index* indices;
 	AVCodec* codec;
 	AVCodecContext codec_context;
 	AVPacket packet;
-	size_t output_pos, output_size;
-	uint8_t output[AVCODEC_MAX_AUDIO_FRAME_SIZE];
-	uint8_t data[];
+	ce_bink_index indices[];
 } ce_bink;
 
 static bool ce_bink_test(ce_sound_probe* sound_probe)
 {
 	ce_bink_header header;
 	if (ce_bink_header_read(&header, sound_probe->mem_file) && 0 != header.audio_track_count) {
-		sound_probe->size = sizeof(ce_bink) +
-			sizeof(ce_bink_index) * header.frame_count +
-			header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE;
+		sound_probe->name = "bink";
+		sound_probe->impl_size = sizeof(ce_bink) + sizeof(ce_bink_index) * header.frame_count;
+		sound_probe->input_buffer_capacity = header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE;
+		sound_probe->output_buffer_capacity = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+
 		assert(sizeof(ce_bink_header) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
 		memcpy(sound_probe->buffer, &header, sizeof(ce_bink_header));
+
 		return true;
 	}
 	return false;
@@ -859,7 +813,6 @@ static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 		return false;
 	}
 
-	bink->indices = (ce_bink_index*)bink->data;
 	if (!ce_bink_index_read(bink->indices, bink->header.frame_count, sound_resource->mem_file)) {
 		ce_logging_error("bink: invalid frame index table");
 		return false;
@@ -886,7 +839,7 @@ static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
 	}
 
 	av_init_packet(&bink->packet);
-	bink->packet.data = bink->data + sizeof(ce_bink_index) * bink->header.frame_count;
+	bink->packet.data = (uint8_t*)sound_resource->input_buffer;
 
 	return true;
 }
@@ -900,7 +853,7 @@ static void ce_bink_dtor(ce_sound_resource* sound_resource)
 	}
 }
 
-static bool ce_bink_decode_frame(ce_sound_resource* sound_resource)
+static bool ce_bink_decode(ce_sound_resource* sound_resource)
 {
 	ce_bink* bink = (ce_bink*)sound_resource->impl;
 
@@ -924,13 +877,12 @@ static bool ce_bink_decode_frame(ce_sound_resource* sound_resource)
 
 		int size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
 		int code = avcodec_decode_audio3(&bink->codec_context,
-			(int16_t*)bink->output, &size, &bink->packet);
+			(int16_t*)sound_resource->output_buffer, &size, &bink->packet);
 
 		if (code < 0 || (uint32_t)code != packet_size || size <= 0) {
 			ce_logging_error("bink: codec error while decoding audio");
 		} else {
-			bink->output_pos = 0;
-			bink->output_size = size;
+			sound_resource->output_buffer_size = size;
 		}
 	}
 
@@ -940,24 +892,7 @@ static bool ce_bink_decode_frame(ce_sound_resource* sound_resource)
 	// skip video packet
 	ce_mem_file_seek(sound_resource->mem_file, frame_size, CE_MEM_FILE_SEEK_CUR);
 
-	return 0 == packet_size;
-}
-
-static size_t ce_bink_read(ce_sound_resource* sound_resource, void* data, size_t size)
-{
-	ce_bink* bink = (ce_bink*)sound_resource->impl;
-
-	if (0 == bink->output_size) {
-		do { ce_pass(); } while (ce_bink_decode_frame(sound_resource));
-	}
-
-	size = ce_min(size_t, size, bink->output_size);
-	memcpy(data, bink->output + bink->output_pos, size);
-
-	bink->output_pos += size;
-	bink->output_size -= size;
-
-	return size;
+	return 0 == packet_size ? /* try next frame */ ce_bink_decode(sound_resource) : true;
 }
 
 static bool ce_bink_reset(ce_sound_resource* sound_resource)
@@ -965,7 +900,6 @@ static bool ce_bink_reset(ce_sound_resource* sound_resource)
 	ce_bink* bink = (ce_bink*)sound_resource->impl;
 
 	bink->frame_index = 0;
-	bink->output_size = 0;
 
 	ce_mem_file_seek(sound_resource->mem_file,
 		bink->indices[bink->frame_index].pos, CE_MEM_FILE_SEEK_SET);
@@ -976,21 +910,21 @@ static bool ce_bink_reset(ce_sound_resource* sound_resource)
 const ce_sound_resource_vtable ce_sound_resource_builtins[] = {
 	{ce_vorbis_test,
 	ce_vorbis_ctor, ce_vorbis_dtor,
-	ce_vorbis_read, ce_vorbis_reset},
+	ce_vorbis_decode, ce_vorbis_reset},
 	{ce_flac_test,
 	ce_flac_ctor, ce_flac_dtor,
-	ce_flac_read, ce_flac_reset},
+	ce_flac_decode, ce_flac_reset},
 	{ce_wave_test,
 	ce_wave_ctor, NULL,
-	ce_wave_read, ce_wave_reset},
+	ce_wave_decode, ce_wave_reset},
 #ifdef CE_ENABLE_PROPRIETARY
 	{ce_mad_test,
 	ce_mad_ctor, ce_mad_dtor,
-	ce_mad_read, ce_mad_reset},
+	ce_mad_decode, ce_mad_reset},
 #endif
 	{ce_bink_test,
 	ce_bink_ctor, ce_bink_dtor,
-	ce_bink_read, ce_bink_reset},
+	ce_bink_decode, ce_bink_reset},
 };
 
 const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT = sizeof(ce_sound_resource_builtins) /
