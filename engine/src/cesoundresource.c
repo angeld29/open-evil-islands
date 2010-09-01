@@ -53,7 +53,6 @@ ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file)
 
 	size_t size = sound_probe.impl_size + sound_probe.input_buffer_capacity +
 											sound_probe.output_buffer_capacity;
-	ce_logging_debug("sound resource: total size %zu", size);
 
 	ce_sound_resource* sound_resource = ce_alloc_zero(sizeof(ce_sound_resource) + size);
 
