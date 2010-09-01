@@ -357,15 +357,21 @@ static bool ce_flac_decode(ce_sound_resource* sound_resource)
 {
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
 
-	if (FLAC__stream_decoder_process_single(flac->bundle->decoder)) {
-		sound_resource->output_buffer_size = flac->bundle->block_size *
-											flac->bundle->sound_format.sample_size;
-		return true;
+	if (!FLAC__stream_decoder_process_single(flac->bundle->decoder)) {
+		ce_logging_error("flac: fatal read, write, or memory allocation error occurred");
+		return false;
 	}
 
-	// TODO: FLAC__stream_decoder_get_state(flac->decoder);
-	ce_logging_error("flac: decode one metadata block or audio frame failed");
-	return false;
+	switch (FLAC__stream_decoder_get_state(flac->bundle->decoder)) {
+	case FLAC__STREAM_DECODER_END_OF_STREAM:
+		return false;
+	default:
+		break;
+	}
+
+	sound_resource->output_buffer_size = flac->bundle->block_size *
+										flac->bundle->sound_format.sample_size;
+	return true;
 }
 
 static bool ce_flac_reset(ce_sound_resource* sound_resource)
