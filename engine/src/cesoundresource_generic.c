@@ -892,7 +892,8 @@ static bool ce_bink_decode(ce_sound_resource* sound_resource)
 	// skip video packet
 	ce_mem_file_seek(sound_resource->mem_file, frame_size, CE_MEM_FILE_SEEK_CUR);
 
-	return 0 == packet_size ? /* try next frame */ ce_bink_decode(sound_resource) : true;
+	return 0 == packet_size ? /* skip to next frame */
+			ce_bink_decode(sound_resource) : true;
 }
 
 static bool ce_bink_reset(ce_sound_resource* sound_resource)
