@@ -203,6 +203,44 @@ static void ce_flac_bundle_del(ce_flac_bundle* flac_bundle)
 	}
 }
 
+static const char* ce_flac_state_to_string(FLAC__StreamDecoderState state)
+{
+	switch (state) {
+	case FLAC__STREAM_DECODER_SEARCH_FOR_METADATA:
+		return "the decoder is ready to search for metadata";
+	case FLAC__STREAM_DECODER_READ_METADATA:
+		return "the decoder is ready to or is in the process of reading metadata";
+	case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
+		return "the decoder is ready to or is in the process of searching for the frame sync code";
+	case FLAC__STREAM_DECODER_READ_FRAME:
+		return "the decoder is ready to or is in the process of reading a frame";
+	case FLAC__STREAM_DECODER_END_OF_STREAM:
+		return "the decoder has reached the end of the stream";
+	case FLAC__STREAM_DECODER_OGG_ERROR:
+		return "an error occurred in the underlying Ogg layer";
+	case FLAC__STREAM_DECODER_SEEK_ERROR:
+		return "an error occurred while seeking";
+	case FLAC__STREAM_DECODER_ABORTED:
+		return "the decoder was aborted by the read callback";
+	case FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR:
+		return "an error occurred allocating memory";
+	case FLAC__STREAM_DECODER_UNINITIALIZED:
+		return "the decoder is in the uninitialized state";
+	}
+	return "unknown state";
+}
+
+static const char* ce_flac_get_state_string(const FLAC__StreamDecoder* decoder)
+{
+	return ce_flac_state_to_string(FLAC__stream_decoder_get_state(decoder));
+}
+
+static void ce_flac_error(const FLAC__StreamDecoder* decoder, const char* message)
+{
+	ce_logging_error("flac: %s", message);
+	ce_logging_error("flac: %s", ce_flac_get_state_string(decoder));
+}
+
 static FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	FLAC__byte buffer[], size_t* bytes, void* client_data)
 {
@@ -302,7 +340,25 @@ static void ce_flac_metadata_callback(const FLAC__StreamDecoder* CE_UNUSED(decod
 static void ce_flac_error_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
 	FLAC__StreamDecoderErrorStatus status, void* CE_UNUSED(client_data))
 {
-	ce_logging_error("flac: an error %d occurred during decompression", status);
+	const char* status_string = "unknown status";
+
+	switch (status) {
+	case FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC:
+		status_string = "an error in the stream caused the decoder to lose synchronization";
+		break;
+	case FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER:
+		status_string = "the decoder encountered a corrupted frame header";
+		break;
+	case FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH:
+		status_string = "the frame's data did not match the CRC in the footer";
+		break;
+	case FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM:
+		status_string = "the decoder encountered reserved fields in use in the stream";
+		break;
+	}
+
+	ce_logging_error("flac: an error occurred during decompression");
+	ce_logging_error("flac: %s", status_string);
 }
 
 static bool ce_flac_test(ce_sound_probe* sound_probe)
@@ -358,15 +414,12 @@ static bool ce_flac_decode(ce_sound_resource* sound_resource)
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
 
 	if (!FLAC__stream_decoder_process_single(flac->bundle->decoder)) {
-		ce_logging_error("flac: fatal read, write, or memory allocation error occurred");
+		ce_flac_error(flac->bundle->decoder, "fatal read, write, or memory allocation error occurred");
 		return false;
 	}
 
-	switch (FLAC__stream_decoder_get_state(flac->bundle->decoder)) {
-	case FLAC__STREAM_DECODER_END_OF_STREAM:
+	if (FLAC__STREAM_DECODER_END_OF_STREAM == FLAC__stream_decoder_get_state(flac->bundle->decoder)) {
 		return false;
-	default:
-		break;
 	}
 
 	sound_resource->output_buffer_size = flac->bundle->block_size *
@@ -379,12 +432,11 @@ static bool ce_flac_reset(ce_sound_resource* sound_resource)
 	ce_flac* flac = (ce_flac*)sound_resource->impl;
 
 	if (!FLAC__stream_decoder_reset(flac->bundle->decoder)) {
-		// TODO: FLAC__stream_decoder_get_state(flac->decoder);
-		ce_logging_error("flac: resetting the decoding process failed");
+		ce_flac_error(flac->bundle->decoder, "resetting the decoding process failed");
+		return false;
 	}
 
-	// TODO
-	return false;
+	return true;
 }
 
 /*
