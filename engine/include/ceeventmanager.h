@@ -37,11 +37,18 @@ extern "C" {
  *  Per-thread event queue.
 */
 
+enum {
+	CE_EVENT_FLAG_ALL_EVENTS = 0x00,
+	CE_EVENT_FLAG_WAIT_FOR_MORE_EVENTS = 0x01,
+};
+
 typedef struct {
-	size_t event_count;
+	volatile bool interrupt;
+	volatile size_t event_count;
 	ce_thread_id thread_id;
 	ce_timer* timer;
 	ce_mutex* mutex;
+	ce_wait_condition* wait_condition;
 	ce_vector* pending_events;
 	ce_vector* sending_events;
 } ce_event_queue;
@@ -57,7 +64,10 @@ extern void ce_event_queue_process_events(ce_event_queue* queue);
 // process pending events for a maximum of max_time milliseconds
 extern void ce_event_queue_process_events_timeout(ce_event_queue* queue, int max_time);
 
+extern void ce_event_queue_process_events2(ce_event_queue* queue, int flags);
+
 extern void ce_event_queue_add_event(ce_event_queue* queue, ce_event* event);
+extern void ce_event_queue_interrupt(ce_event_queue* queue);
 
 /*
  *  Thread-safe event manager.
@@ -78,6 +88,10 @@ extern void ce_event_manager_process_events(void);
 
 // process pending events for the current thread with time limit in milliseconds
 extern void ce_event_manager_process_events_timeout(int max_time);
+
+extern void ce_event_manager_process_events2(int flags);
+
+extern void ce_event_manager_interrupt(ce_thread_id thread_id);
 
 extern void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event);
 extern void ce_event_manager_post_raw(ce_thread_id thread_id,

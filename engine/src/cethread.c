@@ -39,20 +39,12 @@ void ce_routine_del(ce_routine* routine)
 
 void ce_thread_exec(ce_thread* thread)
 {
-	while (!thread->done) {
-		ce_event_manager_process_events();
-	}
-}
-
-static void ce_thread_exit_react(ce_event* event)
-{
-	ce_thread* thread = ((ce_event_ptr*)event->impl)->ptr;
-	thread->done = true;
+	ce_event_manager_process_events2(CE_EVENT_FLAG_WAIT_FOR_MORE_EVENTS);
 }
 
 void ce_thread_exit(ce_thread* thread)
 {
-	ce_event_manager_post_ptr(thread->id, ce_thread_exit_react, thread);
+	ce_event_manager_interrupt(thread->id);
 }
 
 ce_semaphore* ce_semaphore_new(size_t n)

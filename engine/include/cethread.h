@@ -53,7 +53,6 @@ extern void ce_routine_del(ce_routine* routine);
 typedef unsigned long int ce_thread_id;
 
 typedef struct {
-	bool done;
 	ce_thread_id id;
 	ce_routine routine;
 	char impl[];
