@@ -22,7 +22,7 @@
 
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceeventmanager.h"
+#include "ceevent.h"
 #include "cethread.h"
 
 struct ce_thread_pool* ce_thread_pool;

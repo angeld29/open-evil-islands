@@ -26,7 +26,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceeventmanager.h"
+#include "ceevent.h"
 
 struct ce_event_manager* ce_event_manager;
 

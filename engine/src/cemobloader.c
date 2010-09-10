@@ -27,7 +27,7 @@
 #include "cealloc.h"
 #include "celogging.h"
 #include "cethread.h"
-#include "ceeventmanager.h"
+#include "ceevent.h"
 #include "cerendersystem.h"
 #include "cefiguremanager.h"
 #include "cemobmanager.h"

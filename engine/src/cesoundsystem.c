@@ -22,8 +22,8 @@
 
 #include "cealloc.h"
 #include "celogging.h"
+#include "ceevent.h"
 #include "ceoptionmanager.h"
-#include "ceeventmanager.h"
 #include "cesoundsystem.h"
 
 struct ce_sound_system* ce_sound_system;

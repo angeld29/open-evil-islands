@@ -25,7 +25,7 @@
 #include "celib.h"
 #include "cealloc.h"
 #include "celogging.h"
-#include "ceeventmanager.h"
+#include "ceevent.h"
 #include "cesoundsystem.h"
 #include "cesoundmixer.h"
 

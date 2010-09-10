@@ -27,8 +27,8 @@
 #include "celogging.h"
 #include "ceresfile.h"
 #include "ceresball.h"
+#include "ceevent.h"
 #include "ceoptionmanager.h"
-#include "ceeventmanager.h"
 #include "cesoundmanager.h"
 
 typedef struct {
