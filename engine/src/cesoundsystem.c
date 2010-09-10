@@ -61,7 +61,7 @@ static void ce_sound_system_exec(void* CE_UNUSED(arg))
 		}
 
 		ce_semaphore_release(ce_sound_system->free_blocks, 1);
-		ce_event_manager_process_events();
+		ce_event_manager_process_events(ce_thread_self(), CE_EVENT_FLAG_ALL_EVENTS);
 	}
 }
 

@@ -73,7 +73,7 @@ static void ce_video_instance_exec(ce_video_instance* video_instance)
 		}
 
 		ce_semaphore_release(video_instance->prepared_frames, 1);
-		ce_event_manager_process_events();
+		ce_event_manager_process_events(ce_thread_self(), CE_EVENT_FLAG_ALL_EVENTS);
 
 		if (video_instance->done) {
 			break;

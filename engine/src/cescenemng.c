@@ -198,7 +198,7 @@ static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float CE_UNUSED(e
 		ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_PLAYING);
 	} else {
 		// do not eat CPU time, mostly for single-core CPU
-		if (!ce_event_manager_has_pending_events()) {
+		if (!ce_event_manager_has_pending_events(ce_thread_self())) {
 			ce_thread_pool_wait_one();
 		}
 	}

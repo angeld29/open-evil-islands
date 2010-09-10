@@ -71,12 +71,10 @@ extern void ce_event_queue_del(ce_event_queue* queue);
 extern bool ce_event_queue_has_pending_events(ce_event_queue* queue);
 
 // process all pending events
-extern void ce_event_queue_process_events(ce_event_queue* queue);
+extern void ce_event_queue_process_events(ce_event_queue* queue, int flags);
 
 // process pending events for a maximum of max_time milliseconds
-extern void ce_event_queue_process_events_timeout(ce_event_queue* queue, int max_time);
-
-extern void ce_event_queue_process_events2(ce_event_queue* queue, int flags);
+extern void ce_event_queue_process_events_timeout(ce_event_queue* queue, int flags, int max_time);
 
 extern void ce_event_queue_add_event(ce_event_queue* queue, ce_event* event);
 extern void ce_event_queue_interrupt(ce_event_queue* queue);
@@ -93,15 +91,13 @@ extern struct ce_event_manager {
 extern void ce_event_manager_init(void);
 extern void ce_event_manager_term(void);
 
-extern bool ce_event_manager_has_pending_events(void);
+extern bool ce_event_manager_has_pending_events(ce_thread_id thread_id);
 
 // process all pending events for the current thread
-extern void ce_event_manager_process_events(void);
+extern void ce_event_manager_process_events(ce_thread_id thread_id, int flags);
 
 // process pending events for the current thread with time limit in milliseconds
-extern void ce_event_manager_process_events_timeout(int max_time);
-
-extern void ce_event_manager_process_events2(int flags);
+extern void ce_event_manager_process_events_timeout(ce_thread_id thread_id, int flags, int max_time);
 
 extern void ce_event_manager_interrupt(ce_thread_id thread_id);
 

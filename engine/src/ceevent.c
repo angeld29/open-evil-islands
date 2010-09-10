@@ -79,41 +79,12 @@ bool ce_event_queue_has_pending_events(ce_event_queue* queue)
 	return result;
 }
 
-void ce_event_queue_process_events(ce_event_queue* queue)
+void ce_event_queue_process_events(ce_event_queue* queue, int flags)
 {
-	ce_event_queue_process_events_timeout(queue, INT_MAX);
+	ce_event_queue_process_events_timeout(queue, flags, INT_MAX);
 }
 
-void ce_event_queue_process_events_timeout(ce_event_queue* queue, int max_time)
-{
-	if (ce_vector_empty(queue->sending_events)) {
-		ce_mutex_lock(queue->mutex);
-		ce_swap_pointer(&queue->pending_events, &queue->sending_events);
-		ce_mutex_unlock(queue->mutex);
-	}
-
-	if (!ce_vector_empty(queue->sending_events)) {
-		size_t sent_event_count = 0;
-		ce_timer_start(queue->timer);
-
-		// I (and timer) like seconds
-		for (float time = 0.0f, limit = 1e-3f * max_time;
-				!ce_vector_empty(queue->sending_events) && time < limit;
-				time += queue->timer->elapsed, ++sent_event_count) {
-			// TODO: linked list ?
-			ce_event* event = ce_vector_pop_front(queue->sending_events);
-			(*event->notify)(event);
-			ce_event_del(event);
-			ce_timer_advance(queue->timer);
-		}
-
-		ce_mutex_lock(queue->mutex);
-		queue->event_count -= sent_event_count;
-		ce_mutex_unlock(queue->mutex);
-	}
-}
-
-void ce_event_queue_process_events2(ce_event_queue* queue, int flags)
+void ce_event_queue_process_events_timeout(ce_event_queue* queue, int flags, int max_time)
 {
 	bool wait_for_more_events = CE_EVENT_FLAG_WAIT_FOR_MORE_EVENTS & flags;
 
@@ -125,24 +96,31 @@ void ce_event_queue_process_events2(ce_event_queue* queue, int flags)
 		}
 
 		if (!ce_vector_empty(queue->sending_events)) {
-			queue->event_count -= queue->sending_events->count;
-
 			ce_mutex_unlock(queue->mutex);
 
-			while (!ce_vector_empty(queue->sending_events)) {
+			size_t sent_event_count = 0;
+			ce_timer_start(queue->timer);
+
+			// I (and timer) like seconds
+			for (float time = 0.0f, limit = 1e-3f * max_time;
+					!ce_vector_empty(queue->sending_events) && time < limit;
+					time += queue->timer->elapsed, ++sent_event_count) {
+				// TODO: linked list ?
 				ce_event* event = ce_vector_pop_front(queue->sending_events);
 				(*event->notify)(event);
 				ce_event_del(event);
+				ce_timer_advance(queue->timer);
 			}
 
 			ce_mutex_lock(queue->mutex);
+			queue->event_count -= sent_event_count;
 		}
 
 		if (queue->interrupt || !wait_for_more_events) {
 			break;
 		}
 
-		if (ce_vector_empty(queue->pending_events)) {
+		if (0 == queue->event_count) {
 			ce_wait_condition_wait(queue->wait_condition, queue->mutex);
 		}
 	}
@@ -184,9 +162,16 @@ void ce_event_manager_term(void)
 	}
 }
 
-bool ce_event_manager_has_pending_events(void)
+static void ce_event_manager_create_queue(ce_thread_id thread_id)
 {
-	ce_thread_id thread_id = ce_thread_self();
+	ce_mutex_lock(ce_event_manager->mutex);
+	ce_vector_push_back(ce_event_manager->event_queues,
+						ce_event_queue_new(thread_id));
+	ce_mutex_unlock(ce_event_manager->mutex);
+}
+
+bool ce_event_manager_has_pending_events(ce_thread_id thread_id)
+{
 	for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
 		ce_event_queue* queue = ce_event_manager->event_queues->items[i];
 		if (thread_id == queue->thread_id) {
@@ -196,43 +181,23 @@ bool ce_event_manager_has_pending_events(void)
 	return false;
 }
 
-void ce_event_manager_process_events(void)
+void ce_event_manager_process_events(ce_thread_id thread_id, int flags)
 {
-	ce_event_manager_process_events_timeout(INT_MAX);
+	ce_event_manager_process_events_timeout(thread_id, flags, INT_MAX);
 }
 
-void ce_event_manager_process_events_timeout(int max_time)
+void ce_event_manager_process_events_timeout(ce_thread_id thread_id, int flags, int max_time)
 {
-	ce_thread_id thread_id = ce_thread_self();
 	for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
 		ce_event_queue* queue = ce_event_manager->event_queues->items[i];
 		if (thread_id == queue->thread_id) {
-			ce_event_queue_process_events_timeout(queue, max_time);
-		}
-	}
-}
-
-static void ce_event_manager_create_queue(ce_thread_id thread_id)
-{
-	ce_mutex_lock(ce_event_manager->mutex);
-	ce_vector_push_back(ce_event_manager->event_queues,
-						ce_event_queue_new(thread_id));
-	ce_mutex_unlock(ce_event_manager->mutex);
-}
-
-void ce_event_manager_process_events2(int flags)
-{
-	ce_thread_id thread_id = ce_thread_self();
-	for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
-		ce_event_queue* queue = ce_event_manager->event_queues->items[i];
-		if (thread_id == queue->thread_id) {
-			ce_event_queue_process_events2(queue, flags);
+			ce_event_queue_process_events_timeout(queue, flags, max_time);
 			return;
 		}
 	}
 
 	ce_event_manager_create_queue(thread_id);
-	ce_event_manager_process_events2(flags);
+	ce_event_manager_process_events_timeout(thread_id, flags, max_time);
 }
 
 void ce_event_manager_interrupt(ce_thread_id thread_id)

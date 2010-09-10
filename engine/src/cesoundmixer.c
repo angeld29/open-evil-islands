@@ -118,7 +118,7 @@ static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
 		}
 
 		ce_sound_system_unmap_block();
-		ce_event_manager_process_events();
+		ce_event_manager_process_events(ce_thread_self(), CE_EVENT_FLAG_ALL_EVENTS);
 	}
 }
 
