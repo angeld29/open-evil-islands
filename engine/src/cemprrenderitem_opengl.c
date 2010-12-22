@@ -2,7 +2,7 @@
  *  This file is part of Cursed Earth.
  *
  *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Copyright (C) 2009-2010 Yanis Kurganov, Anton Kurkin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,6 +34,178 @@
 #include "cetexture.h"
 #include "cemprhelper.h"
 #include "cemprrenderitem.h"
+
+#include "cetessquad.h"
+
+/*
+ *  Tesselated geometry.
+*/
+
+typedef struct {
+	GLuint list;
+} ce_mprrenderitem_tess;
+
+static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
+{
+	/// TODO: Code refactoring!!! Add argument -LOD= to spike 
+	const int LOD = 5;
+
+	ce_mprrenderitem_tess* mprrenderitem =
+		(ce_mprrenderitem_tess*)renderitem->impl;
+
+	ce_mprfile* mprfile = va_arg(args, ce_mprfile*);
+	int sector_x = va_arg(args, int);
+	int sector_z = va_arg(args, int);
+	int water = va_arg(args, int);
+
+	ce_mprsector* sector = mprfile->sectors + sector_z *
+							mprfile->sector_x_count + sector_x;
+
+	ce_mprvertex* vertices = water ? sector->water_vertices : sector->land_vertices;
+	int16_t* water_allow = water ? sector->water_allow : NULL;
+
+	const float y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
+
+	/*
+	 *  Sector rendering: getting quad -> tesselate it -> draw tesselated quad as quads
+	 *
+	 *   0___1___2__...__32
+	 *   |   |   |   |   |
+	 *   |   |   |   |   | --->
+	 *  1|___|___|___|___|
+	 *   |   |   |   |   |
+	 *  .|   |   |   |   | --->
+	 *  .|___|___|___|___|
+	 *  .|   |   |   |   |
+	 *   |   |   |   |   | --->
+	 *   |___|___|___|___|
+	 *  32
+	*/
+
+	glNewList(mprrenderitem->list = glGenLists(1), GL_COMPILE);
+	int tess_vertex_count=LOD+2;
+	ce_vec3* tess_points = ce_alloc(tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
+	ce_vec3* tess_normals = ce_alloc(tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
+
+	ce_vec3 P[4];
+	ce_vec3 N[4];
+	ce_vec3 Tu[4];
+	ce_vec3 Tw[4];
+	ce_vec3 tv[4][2];
+	float l[4];
+	ce_vec3 tmpv;
+	int tk=1;
+
+	for (int x = 1; x < CE_MPRFILE_VERTEX_SIDE; ++x) {
+		for (int z = CE_MPRFILE_VERTEX_SIDE - 2; z >=0 ; --z) {
+
+			/// z+1 x-1 - z and x - minimal
+			ce_mprvertex* vertex = vertices + (z+1) * CE_MPRFILE_VERTEX_SIDE + (x-1);
+			ce_mpr_unpack_normal(&N[0], vertex->normal);
+			ce_vec3_init(&P[0],(x-1) + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
+						y_coef * vertex->coord_y,
+						-1.0f * ((z+1) + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+						CE_MPR_OFFSET_XZ_COEF * vertex->offset_z));
+			ce_tess_quad_tangent_vectors(tv[0], &N[0]);
+
+			/// z+1 x - z -minimal x -maximal
+			vertex = vertices + (z+1) * CE_MPRFILE_VERTEX_SIDE + x;
+			ce_mpr_unpack_normal(&N[1], vertex->normal);
+			ce_vec3_init(&P[1],x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
+						y_coef * vertex->coord_y,
+						-1.0f * ((z+1) + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+						CE_MPR_OFFSET_XZ_COEF * vertex->offset_z));
+			ce_tess_quad_tangent_vectors(tv[1], &N[1]);
+
+			/// z x-1 - z -maximal x -minimal
+			vertex = vertices + z * CE_MPRFILE_VERTEX_SIDE + (x-1);
+			ce_mpr_unpack_normal(&N[2], vertex->normal);
+			ce_vec3_init(&P[2],(x-1) + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
+						y_coef * vertex->coord_y,
+						-1.0f * (z + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+						CE_MPR_OFFSET_XZ_COEF * vertex->offset_z));
+			ce_tess_quad_tangent_vectors(tv[2], &N[2]);
+
+			/// z x - z and x - maximal
+			vertex = vertices + z * CE_MPRFILE_VERTEX_SIDE + x;
+			ce_mpr_unpack_normal(&N[3], vertex->normal);
+			ce_vec3_init(&P[3],x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
+						y_coef * vertex->coord_y,
+						-1.0f * (z + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+						CE_MPR_OFFSET_XZ_COEF * vertex->offset_z));
+			ce_tess_quad_tangent_vectors(tv[3], &N[3]);
+
+
+			l[0] = ce_vec3_len(ce_vec3_sub(&tmpv,&P[1],&P[0]));
+			l[1] = ce_vec3_len(ce_vec3_sub(&tmpv,&P[2],&P[0]));
+			l[2] = ce_vec3_len(ce_vec3_sub(&tmpv,&P[3],&P[2]));
+			l[3] = ce_vec3_len(ce_vec3_sub(&tmpv,&P[3],&P[1]));
+
+			ce_vec3_scale(&Tu[0],l[0]*tk,&tv[0][0]);
+			ce_vec3_scale(&Tu[1],l[0]*tk,&tv[1][0]);
+			ce_vec3_scale(&Tu[2],l[2]*tk,&tv[2][0]);
+			ce_vec3_scale(&Tu[3],l[2]*tk,&tv[3][0]);
+
+			ce_vec3_scale(&Tw[0],l[1]*tk,&tv[0][1]);
+			ce_vec3_scale(&Tw[1],l[3]*tk,&tv[1][1]);
+			ce_vec3_scale(&Tw[2],l[1]*tk,&tv[2][1]);
+			ce_vec3_scale(&Tw[3],l[3]*tk,&tv[3][1]);
+
+			ce_tess_quad(tess_points, LOD,P,Tu,Tw,0x0F);
+			ce_tess_quad_normal(tess_normals, LOD,P,Tu,Tw,0x0F);
+
+			glBegin(GL_QUADS);
+			for (int i=1; i < tess_vertex_count; ++i) {
+				for (int j = 1; j < tess_vertex_count; ++j) {
+					glTexCoord2f(((x-1)+(float)(i-1)/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)j/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+					glNormal3f(tess_normals[(i-1)*tess_vertex_count+j].x, tess_normals[(i-1)*tess_vertex_count+j].y, -tess_normals[(i-1)*tess_vertex_count+j].z);
+					glVertex3f(tess_points[(i-1)*tess_vertex_count+j].x, tess_points[(i-1)*tess_vertex_count+j].y, tess_points[(i-1)*tess_vertex_count+j].z);
+
+					glTexCoord2f(((x-1)+(float)i/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)j/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+					glNormal3f(tess_normals[i*tess_vertex_count+j].x, tess_normals[i*tess_vertex_count+j].y, -tess_normals[i*tess_vertex_count+j].z);
+					glVertex3f(tess_points[i*tess_vertex_count+j].x, tess_points[i*tess_vertex_count+j].y, tess_points[i*tess_vertex_count+j].z);
+
+					glTexCoord2f(((x-1)+(float)i/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)(j-1)/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+					glNormal3f(tess_normals[i*tess_vertex_count+(j-1)].x, tess_normals[i*tess_vertex_count+(j-1)].y, -tess_normals[i*tess_vertex_count+(j-1)].z);
+					glVertex3f(tess_points[i*tess_vertex_count+(j-1)].x, tess_points[i*tess_vertex_count+(j-1)].y, tess_points[i*tess_vertex_count+(j-1)].z);
+
+					glTexCoord2f(((x-1)+(float)(i-1)/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)(j-1)/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+					glNormal3f(tess_normals[(i-1)*tess_vertex_count+(j-1)].x, tess_normals[(i-1)*tess_vertex_count+(j-1)].y, -tess_normals[(i-1)*tess_vertex_count+(j-1)].z);
+					glVertex3f(tess_points[(i-1)*tess_vertex_count+(j-1)].x, tess_points[(i-1)*tess_vertex_count+(j-1)].y, tess_points[(i-1)*tess_vertex_count+(j-1)].z);
+				}
+			}
+			glEnd();
+		}
+	}
+	glEndList();
+	ce_free(tess_normals,tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
+	ce_free(tess_points,tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
+}
+
+static void ce_mprrenderitem_tess_dtor(ce_renderitem* renderitem)
+{
+	ce_mprrenderitem_tess* mprrenderitem =
+		(ce_mprrenderitem_tess*)renderitem->impl;
+
+	glDeleteLists(mprrenderitem->list, 1);
+}
+
+static void ce_mprrenderitem_tess_render(ce_renderitem* renderitem)
+{
+	ce_mprrenderitem_tess* mprrenderitem =
+		(ce_mprrenderitem_tess*)renderitem->impl;
+
+	glCallList(mprrenderitem->list);
+}
+
 
 /*
  *  Simple & fast triangulated geometry.
@@ -589,9 +761,17 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 			sizeof(ce_mprrenderitem_amdvst), mprfile, sector_x, sector_z, water);
 	}
 
+	if (false) {
 	// continuous triangulated geometry, very fast!
 	return ce_renderitem_new((ce_renderitem_vtable)
 		{ce_mprrenderitem_fast_ctor, ce_mprrenderitem_fast_dtor,
 		NULL, ce_mprrenderitem_fast_render, NULL},
 		sizeof(ce_mprrenderitem_fast), mprfile, sector_x, sector_z, water);
+	}
+
+	// continuous triangulated geometry, very fast!
+	return ce_renderitem_new((ce_renderitem_vtable)
+		{ce_mprrenderitem_tess_ctor, ce_mprrenderitem_fast_dtor,
+		NULL, ce_mprrenderitem_tess_render, NULL},
+		sizeof(ce_mprrenderitem_tess), mprfile, sector_x, sector_z, water);
 }

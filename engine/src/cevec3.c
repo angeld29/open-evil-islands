@@ -72,8 +72,7 @@ float ce_vec3_absdot(const ce_vec3* lhs, const ce_vec3* rhs)
 			fabsf(lhs->z * rhs->z);
 }
 
-ce_vec3* ce_vec3_cross(ce_vec3* restrict vec, const ce_vec3* lhs,
-												const ce_vec3* rhs)
+ce_vec3* ce_vec3_cross(ce_vec3* restrict vec, const ce_vec3* lhs, const ce_vec3* rhs)
 {
 	vec->x = lhs->y * rhs->z - lhs->z * rhs->y;
 	vec->y = lhs->z * rhs->x - lhs->x * rhs->z;
@@ -96,8 +95,7 @@ ce_vec3* ce_vec3_rot(ce_vec3* vec, const ce_vec3* other, const ce_quat* quat)
 	return ce_vec3_add(vec, ce_vec3_add(vec, other, &uv), &uuv);
 }
 
-ce_vec3* ce_vec3_lerp(ce_vec3* vec, float u, const ce_vec3* lhs,
-												const ce_vec3* rhs)
+ce_vec3* ce_vec3_lerp(ce_vec3* vec, float u, const ce_vec3* lhs, const ce_vec3* rhs)
 {
 	vec->x = ce_lerp(u, lhs->x, rhs->x);
 	vec->y = ce_lerp(u, lhs->y, rhs->y);
