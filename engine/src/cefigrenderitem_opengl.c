@@ -31,8 +31,11 @@
 #include "cefighlp.h"
 #include "cefigrenderitem.h"
 
-// fig renderitem static (without morphs): GL's display list
+#include "cevec2.h"
+#include "cevec3.h"
+#include "cetesstri.h"
 
+// cookie for static objects
 typedef struct {
 	int ref_count;
 	GLuint id;
@@ -63,6 +66,103 @@ ce_figcookie_static_add_ref(ce_figcookie_static* cookie)
 	ce_atomic_inc(int, &cookie->ref_count);
 	return cookie;
 }
+
+// fig renderitem tesselated static (without morphs): GL's display list - ce_figcookie_static used
+
+typedef struct {
+	ce_figcookie_static* cookie;
+} ce_figrenderitem_static_tess;
+
+static void
+ce_figrenderitem_static_tess_ctor(ce_renderitem* renderitem, va_list args)
+{
+	const int LOD = 5;
+
+	ce_figrenderitem_static_tess* figrenderitem =
+		(ce_figrenderitem_static_tess*)renderitem->impl;
+
+	const ce_figfile* figfile = va_arg(args, const ce_figfile*);
+	const ce_complection* complection = va_arg(args, const ce_complection*);
+
+	figrenderitem->cookie = ce_figcookie_static_new();
+
+	int tess_vertex_count=LOD+2;
+	ce_vec3* tess_points = ce_alloc(tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
+	ce_vec3* tess_normals = ce_alloc(tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
+
+	glNewList(figrenderitem->cookie->id, GL_COMPILE);
+
+	float array[3];
+	ce_vec2 T[3];
+	ce_vec3 P[3];
+	ce_vec3 N[3];
+
+	for (int i = 0, n = figfile->index_count; i < n; i+=3) {
+		for(int j = 0; j < 3; ++j) {
+			int index = figfile->indices[i+j];
+			int vertex_index = figfile->vertex_components[3 * index + 0];
+			int normal_index = figfile->vertex_components[3 * index + 1];
+			int texcoord_index = figfile->vertex_components[3 * index + 2];
+
+			ce_vec2_init_array(&T[2-j], figfile->texcoords + 2 * texcoord_index);
+			ce_vec3_init_array(&P[2-j], ce_fighlp_get_vertex(array, figfile, vertex_index,complection));
+			ce_vec3_init_array(&N[2-j], ce_fighlp_get_normal(array, figfile, normal_index));
+		}
+		ce_tess_tri_points(tess_points,LOD,P,N,0x07);
+		ce_tess_tri_normals(tess_normals,LOD,P,N,0x07);
+
+		for (int j = 0; j < tess_vertex_count-1; ++j) {
+			glBegin(GL_TRIANGLE_STRIP);
+			for (int k = 0; k < 2 * (tess_vertex_count-j)-1 ; ++k) {
+				int z = j + k % 2;
+				int x = k / 2;
+
+				ce_vec2 tmp1;
+				tmp1.x = T[0].x*(1-(float)(x+z)/(LOD+1)) + T[1].x*((float)x/(LOD+1)) + T[2].x*((float)z/(LOD+1));
+				tmp1.y = T[0].y*(1-(float)(x+z)/(LOD+1)) + T[1].y*((float)x/(LOD+1)) + T[2].y*((float)z/(LOD+1));
+
+				glTexCoord2f(tmp1.x,tmp1.y);
+				glNormal3f(tess_normals[x*tess_vertex_count+z].x, tess_normals[x*tess_vertex_count+z].y, tess_normals[x*tess_vertex_count+z].z);
+				glVertex3f(tess_points[x*tess_vertex_count+z].x, tess_points[x*tess_vertex_count+z].y, tess_points[x*tess_vertex_count+z].z);
+			}
+			glEnd();
+		}
+	}
+	glEndList();
+
+	ce_free(tess_normals,tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
+	ce_free(tess_points,tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
+}
+
+static void ce_figrenderitem_static_tess_dtor(ce_renderitem* renderitem)
+{
+	ce_figrenderitem_static_tess* figrenderitem =
+		(ce_figrenderitem_static_tess*)renderitem->impl;
+
+	ce_figcookie_static_del(figrenderitem->cookie);
+}
+
+static void ce_figrenderitem_static_tess_render(ce_renderitem* renderitem)
+{
+	ce_figrenderitem_static_tess* figrenderitem =
+		(ce_figrenderitem_static_tess*)renderitem->impl;
+
+	glCallList(figrenderitem->cookie->id);
+}
+
+static void ce_figrenderitem_static_tess_clone(const ce_renderitem* renderitem,
+											ce_renderitem* clone_renderitem)
+{
+	const ce_figrenderitem_static_tess* figrenderitem =
+		(const ce_figrenderitem_static_tess*)renderitem->impl;
+	ce_figrenderitem_static_tess* clone_figrenderitem =
+		(ce_figrenderitem_static_tess*)clone_renderitem->impl;
+
+	clone_figrenderitem->cookie =
+		ce_figcookie_static_add_ref(figrenderitem->cookie);
+}
+
+// fig renderitem static (without morphs): GL's display list
 
 typedef struct {
 	ce_figcookie_static* cookie;
@@ -360,8 +460,10 @@ static void ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,
 }
 
 static const ce_renderitem_vtable ce_figrenderitem_vtables[] = {
-	{ ce_figrenderitem_static_ctor, ce_figrenderitem_static_dtor,
-		NULL, ce_figrenderitem_static_render, ce_figrenderitem_static_clone },
+	{ ce_figrenderitem_static_tess_ctor, ce_figrenderitem_static_tess_dtor,
+		NULL, ce_figrenderitem_static_tess_render, ce_figrenderitem_static_tess_clone },
+//	{ ce_figrenderitem_static_ctor, ce_figrenderitem_static_dtor,
+//		NULL, ce_figrenderitem_static_render, ce_figrenderitem_static_clone },
 	{ ce_figrenderitem_dynamic_ctor, ce_figrenderitem_dynamic_dtor,
 		ce_figrenderitem_dynamic_update, ce_figrenderitem_dynamic_render,
 		ce_figrenderitem_dynamic_clone }
