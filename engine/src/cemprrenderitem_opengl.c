@@ -47,7 +47,6 @@ typedef struct {
 
 static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 {
-	/// TODO: Code refactoring!!! Add argument -LOD= to spike 
 	const int LOD = 5;
 
 	ce_mprrenderitem_tess* mprrenderitem =
@@ -67,7 +66,7 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 	const float y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
 
 	/*
-	 *  Sector rendering: getting quad -> tesselate it -> draw tesselated quad as quads
+	 *  Sector rendering: getting quad -> tesselate it -> draw tesselated quad as triangle strips
 	 *
 	 *   0___1___2__...__32
 	 *   |   |   |   |   |
@@ -102,6 +101,7 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 			/// z+1 x-1 - z and x - minimal
 			ce_mprvertex* vertex = vertices + (z+1) * CE_MPRFILE_VERTEX_SIDE + (x-1);
 			ce_mpr_unpack_normal(&N[0], vertex->normal);
+			N[0].z=-N[0].z;
 			ce_vec3_init(&P[0],(x-1) + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
 						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
 						y_coef * vertex->coord_y,
@@ -112,6 +112,7 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 			/// z+1 x - z -minimal x -maximal
 			vertex = vertices + (z+1) * CE_MPRFILE_VERTEX_SIDE + x;
 			ce_mpr_unpack_normal(&N[1], vertex->normal);
+			N[1].z=-N[1].z;
 			ce_vec3_init(&P[1],x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
 						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
 						y_coef * vertex->coord_y,
@@ -122,6 +123,7 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 			/// z x-1 - z -maximal x -minimal
 			vertex = vertices + z * CE_MPRFILE_VERTEX_SIDE + (x-1);
 			ce_mpr_unpack_normal(&N[2], vertex->normal);
+			N[2].z=-N[2].z;
 			ce_vec3_init(&P[2],(x-1) + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
 						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
 						y_coef * vertex->coord_y,
@@ -132,6 +134,7 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 			/// z x - z and x - maximal
 			vertex = vertices + z * CE_MPRFILE_VERTEX_SIDE + x;
 			ce_mpr_unpack_normal(&N[3], vertex->normal);
+			N[3].z=-N[3].z;
 			ce_vec3_init(&P[3],x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
 						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
 						y_coef * vertex->coord_y,
@@ -163,22 +166,22 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 				for (int j = 1; j < tess_vertex_count; ++j) {
 					glTexCoord2f(((x-1)+(float)(i-1)/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
 						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)j/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
-					glNormal3f(tess_normals[(i-1)*tess_vertex_count+j].x, tess_normals[(i-1)*tess_vertex_count+j].y, -tess_normals[(i-1)*tess_vertex_count+j].z);
+					glNormal3f(tess_normals[(i-1)*tess_vertex_count+j].x, tess_normals[(i-1)*tess_vertex_count+j].y, tess_normals[(i-1)*tess_vertex_count+j].z);
 					glVertex3f(tess_points[(i-1)*tess_vertex_count+j].x, tess_points[(i-1)*tess_vertex_count+j].y, tess_points[(i-1)*tess_vertex_count+j].z);
 
 					glTexCoord2f(((x-1)+(float)i/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
 						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)j/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
-					glNormal3f(tess_normals[i*tess_vertex_count+j].x, tess_normals[i*tess_vertex_count+j].y, -tess_normals[i*tess_vertex_count+j].z);
+					glNormal3f(tess_normals[i*tess_vertex_count+j].x, tess_normals[i*tess_vertex_count+j].y, tess_normals[i*tess_vertex_count+j].z);
 					glVertex3f(tess_points[i*tess_vertex_count+j].x, tess_points[i*tess_vertex_count+j].y, tess_points[i*tess_vertex_count+j].z);
 
 					glTexCoord2f(((x-1)+(float)i/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
 						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)(j-1)/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
-					glNormal3f(tess_normals[i*tess_vertex_count+(j-1)].x, tess_normals[i*tess_vertex_count+(j-1)].y, -tess_normals[i*tess_vertex_count+(j-1)].z);
+					glNormal3f(tess_normals[i*tess_vertex_count+(j-1)].x, tess_normals[i*tess_vertex_count+(j-1)].y, tess_normals[i*tess_vertex_count+(j-1)].z);
 					glVertex3f(tess_points[i*tess_vertex_count+(j-1)].x, tess_points[i*tess_vertex_count+(j-1)].y, tess_points[i*tess_vertex_count+(j-1)].z);
 
 					glTexCoord2f(((x-1)+(float)(i-1)/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
 						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)(j-1)/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
-					glNormal3f(tess_normals[(i-1)*tess_vertex_count+(j-1)].x, tess_normals[(i-1)*tess_vertex_count+(j-1)].y, -tess_normals[(i-1)*tess_vertex_count+(j-1)].z);
+					glNormal3f(tess_normals[(i-1)*tess_vertex_count+(j-1)].x, tess_normals[(i-1)*tess_vertex_count+(j-1)].y, tess_normals[(i-1)*tess_vertex_count+(j-1)].z);
 					glVertex3f(tess_points[(i-1)*tess_vertex_count+(j-1)].x, tess_points[(i-1)*tess_vertex_count+(j-1)].y, tess_points[(i-1)*tess_vertex_count+(j-1)].z);
 				}
 			}
