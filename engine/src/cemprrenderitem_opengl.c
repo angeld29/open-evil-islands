@@ -88,68 +88,30 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 
 	ce_vec3 P[4];
 	ce_vec3 N[4];
-	ce_vec3 Tu[4];
-	ce_vec3 Tw[4];
 	ce_vec3 tv[8];
-	float l[4];
-	ce_vec3 tmpv;
 
-	for (int x = 1; x < CE_MPRFILE_VERTEX_SIDE; ++x) {
-		for (int z = CE_MPRFILE_VERTEX_SIDE - 2; z >=0 ; --z) {
+	for (int x = 0; x < CE_MPRFILE_VERTEX_SIDE - 1; ++x) {
+		for (int z = 1; z < CE_MPRFILE_VERTEX_SIDE ; ++z) {
 
-			/// z+1 x-1 - z and x - minimal
-			ce_mprvertex* vertex = vertices + (z+1) * CE_MPRFILE_VERTEX_SIDE + (x-1);
-			ce_mpr_unpack_normal(&N[0], vertex->normal);
-			N[0].z=-N[0].z;
-			ce_vec3_init(&P[0],(x-1) + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
-						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
-						y_coef * vertex->coord_y,
-						-1.0f * ((z+1) + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
-						CE_MPR_OFFSET_XZ_COEF * vertex->offset_z));
-			ce_tess_quad_tangent_vectors(&tv[2*0], &N[0]);
+			/// fill quad corner points for interpolation
+			int n=0;
+			for (int i = 0; i < 2*2; ++i) {
+				int xq = i % 2;	///	x and z inside one sector`s quad
+				int zq = i / 2;
 
-			/// z+1 x - z -minimal x -maximal
-			vertex = vertices + (z+1) * CE_MPRFILE_VERTEX_SIDE + x;
-			ce_mpr_unpack_normal(&N[1], vertex->normal);
-			N[1].z=-N[1].z;
-			ce_vec3_init(&P[1],x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
-						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
-						y_coef * vertex->coord_y,
-						-1.0f * ((z+1) + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
-						CE_MPR_OFFSET_XZ_COEF * vertex->offset_z));
-			ce_tess_quad_tangent_vectors(&tv[2*1], &N[1]);
+				/// z+1 x-1 - z and x - minimal
+				ce_mprvertex* vertex = vertices + (z-zq) * CE_MPRFILE_VERTEX_SIDE + (x+xq);
+				ce_mpr_unpack_normal(&N[n], vertex->normal);
+				N[n].z=-N[n].z;
+				ce_vec3_init(&P[n],(x+xq) + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
+							CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
+							y_coef * vertex->coord_y,
+							-1.0f * ((z-zq) + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
+							CE_MPR_OFFSET_XZ_COEF * vertex->offset_z));
+				ce_tess_quad_tangent_vectors(&tv[2*n], &N[n]);
 
-			/// z x-1 - z -maximal x -minimal
-			vertex = vertices + z * CE_MPRFILE_VERTEX_SIDE + (x-1);
-			ce_mpr_unpack_normal(&N[2], vertex->normal);
-			N[2].z=-N[2].z;
-			ce_vec3_init(&P[2],(x-1) + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
-						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
-						y_coef * vertex->coord_y,
-						-1.0f * (z + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
-						CE_MPR_OFFSET_XZ_COEF * vertex->offset_z));
-			ce_tess_quad_tangent_vectors(&tv[2*2], &N[2]);
-
-			/// z x - z and x - maximal
-			vertex = vertices + z * CE_MPRFILE_VERTEX_SIDE + x;
-			ce_mpr_unpack_normal(&N[3], vertex->normal);
-			N[3].z=-N[3].z;
-			ce_vec3_init(&P[3],x + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
-						CE_MPR_OFFSET_XZ_COEF * vertex->offset_x,
-						y_coef * vertex->coord_y,
-						-1.0f * (z + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
-						CE_MPR_OFFSET_XZ_COEF * vertex->offset_z));
-			ce_tess_quad_tangent_vectors(&tv[2*3], &N[3]);
-
-			ce_vec3_scale(&Tu[0],1,&tv[2*0+0]);
-			ce_vec3_scale(&Tu[1],1,&tv[2*1+0]);
-			ce_vec3_scale(&Tu[2],1,&tv[2*2+0]);
-			ce_vec3_scale(&Tu[3],1,&tv[2*3+0]);
-
-			ce_vec3_scale(&Tw[0],1,&tv[2*0+1]);
-			ce_vec3_scale(&Tw[1],1,&tv[2*1+1]);
-			ce_vec3_scale(&Tw[2],1,&tv[2*2+1]);
-			ce_vec3_scale(&Tw[3],1,&tv[2*3+1]);
+				n++;
+			}
 
 			ce_tess_quad(tess_points, LOD,P,tv,0x0F);
 			ce_tess_quad_normal(tess_normals, LOD,P,tv,0x0F);
@@ -160,8 +122,8 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 					int xq = i - j % 2;	///	x and z inside one sector`s quad
 					int zq = j / 2;
 
-					glTexCoord2f(((x-1)+(float)xq/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
-						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)zq/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+					glTexCoord2f((x+(float)xq/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+						(CE_MPRFILE_VERTEX_SIDE - 1 - (z-(float)zq/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
 					glNormal3f(tess_normals[xq*tess_vertex_count+zq].x, tess_normals[xq*tess_vertex_count+zq].y, tess_normals[xq*tess_vertex_count+zq].z);
 					glVertex3f(tess_points[xq*tess_vertex_count+zq].x, tess_points[xq*tess_vertex_count+zq].y, tess_points[xq*tess_vertex_count+zq].z);
 				}
