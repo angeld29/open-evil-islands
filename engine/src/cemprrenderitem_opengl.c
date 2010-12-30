@@ -161,31 +161,46 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 			ce_tess_quad(tess_points, LOD,P,Tu,Tw,0x0F);
 			ce_tess_quad_normal(tess_normals, LOD,P,Tu,Tw,0x0F);
 
-			glBegin(GL_QUADS);
-			for (int i=1; i < tess_vertex_count; ++i) {
-				for (int j = 1; j < tess_vertex_count; ++j) {
-					glTexCoord2f(((x-1)+(float)(i-1)/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
-						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)j/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
-					glNormal3f(tess_normals[(i-1)*tess_vertex_count+j].x, tess_normals[(i-1)*tess_vertex_count+j].y, tess_normals[(i-1)*tess_vertex_count+j].z);
-					glVertex3f(tess_points[(i-1)*tess_vertex_count+j].x, tess_points[(i-1)*tess_vertex_count+j].y, tess_points[(i-1)*tess_vertex_count+j].z);
+//			glBegin(GL_QUADS);
+//			for (int i=1; i < tess_vertex_count; ++i) {
+//				for (int j = 1; j < tess_vertex_count; ++j) {
+//
+//					glTexCoord2f(((x-1)+(float)(i-1)/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+//						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)j/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+//					glNormal3f(tess_normals[(i-1)*tess_vertex_count+j].x, tess_normals[(i-1)*tess_vertex_count+j].y, tess_normals[(i-1)*tess_vertex_count+j].z);
+//					glVertex3f(tess_points[(i-1)*tess_vertex_count+j].x, tess_points[(i-1)*tess_vertex_count+j].y, tess_points[(i-1)*tess_vertex_count+j].z);
+//
+//					glTexCoord2f(((x-1)+(float)i/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+//						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)j/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+//					glNormal3f(tess_normals[i*tess_vertex_count+j].x, tess_normals[i*tess_vertex_count+j].y, tess_normals[i*tess_vertex_count+j].z);
+//					glVertex3f(tess_points[i*tess_vertex_count+j].x, tess_points[i*tess_vertex_count+j].y, tess_points[i*tess_vertex_count+j].z);
+//
+//					glTexCoord2f(((x-1)+(float)i/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+//						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)(j-1)/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+//					glNormal3f(tess_normals[i*tess_vertex_count+(j-1)].x, tess_normals[i*tess_vertex_count+(j-1)].y, tess_normals[i*tess_vertex_count+(j-1)].z);
+//					glVertex3f(tess_points[i*tess_vertex_count+(j-1)].x, tess_points[i*tess_vertex_count+(j-1)].y, tess_points[i*tess_vertex_count+(j-1)].z);
+//
+//					glTexCoord2f(((x-1)+(float)(i-1)/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+//						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)(j-1)/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+//					glNormal3f(tess_normals[(i-1)*tess_vertex_count+(j-1)].x, tess_normals[(i-1)*tess_vertex_count+(j-1)].y, tess_normals[(i-1)*tess_vertex_count+(j-1)].z);
+//					glVertex3f(tess_points[(i-1)*tess_vertex_count+(j-1)].x, tess_points[(i-1)*tess_vertex_count+(j-1)].y, tess_points[(i-1)*tess_vertex_count+(j-1)].z);
+//				}
+//			}
+//			glEnd();
 
-					glTexCoord2f(((x-1)+(float)i/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
-						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)j/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
-					glNormal3f(tess_normals[i*tess_vertex_count+j].x, tess_normals[i*tess_vertex_count+j].y, tess_normals[i*tess_vertex_count+j].z);
-					glVertex3f(tess_points[i*tess_vertex_count+j].x, tess_points[i*tess_vertex_count+j].y, tess_points[i*tess_vertex_count+j].z);
+			for (int i = 1; i < tess_vertex_count; ++i) {
+				glBegin(GL_TRIANGLE_STRIP);
+				for (int j = 0; j < 2 * tess_vertex_count; ++j) {
+					int xq = i - j % 2;	///	x and z inside one sector`s quad
+					int zq = j / 2;
 
-					glTexCoord2f(((x-1)+(float)i/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
-						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)(j-1)/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
-					glNormal3f(tess_normals[i*tess_vertex_count+(j-1)].x, tess_normals[i*tess_vertex_count+(j-1)].y, tess_normals[i*tess_vertex_count+(j-1)].z);
-					glVertex3f(tess_points[i*tess_vertex_count+(j-1)].x, tess_points[i*tess_vertex_count+(j-1)].y, tess_points[i*tess_vertex_count+(j-1)].z);
-
-					glTexCoord2f(((x-1)+(float)(i-1)/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
-						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)(j-1)/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
-					glNormal3f(tess_normals[(i-1)*tess_vertex_count+(j-1)].x, tess_normals[(i-1)*tess_vertex_count+(j-1)].y, tess_normals[(i-1)*tess_vertex_count+(j-1)].z);
-					glVertex3f(tess_points[(i-1)*tess_vertex_count+(j-1)].x, tess_points[(i-1)*tess_vertex_count+(j-1)].y, tess_points[(i-1)*tess_vertex_count+(j-1)].z);
+					glTexCoord2f(((x-1)+(float)xq/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+						(CE_MPRFILE_VERTEX_SIDE - 1 - ((z+1)-(float)zq/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+					glNormal3f(tess_normals[xq*tess_vertex_count+zq].x, tess_normals[xq*tess_vertex_count+zq].y, tess_normals[xq*tess_vertex_count+zq].z);
+					glVertex3f(tess_points[xq*tess_vertex_count+zq].x, tess_points[xq*tess_vertex_count+zq].y, tess_points[xq*tess_vertex_count+zq].z);
 				}
+				glEnd();
 			}
-			glEnd();
 		}
 	}
 	glEndList();
