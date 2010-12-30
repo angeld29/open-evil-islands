@@ -23,7 +23,7 @@
 
 
 /// Calculation of Ferguson surface patch by 4 points and 2x4 tangent vectors for them. edgeFlags is flags for calculation points on quad`s edges
-ce_vec3* ce_tess_quad(ce_vec3* points, const int lod, const ce_vec3* P, const ce_vec3* Tu, const ce_vec3* Tw, const char edgeFlags)
+ce_vec3* ce_tess_quad(ce_vec3* points, const int lod, const ce_vec3* P, const ce_vec3* TV, const char edgeFlags)
 {
 	/// points and tangent vectors in P and Tu/Tw
 	/// z
@@ -51,14 +51,14 @@ ce_vec3* ce_tess_quad(ce_vec3* points, const int lod, const ce_vec3* P, const ce
 			float w = (float)(z+(1-edgelz)) / (float)(lod+1);
 			ce_tess_quad_basis_func(Fw, w);
 
-			ce_tess_quad_point(&points[x*vertex_count_z+z],P,Tu,Tw,Fu,Fw);
+			ce_tess_quad_point(&points[x*vertex_count_z+z],P,TV,Fu,Fw);
 		}
 	}
 	return points;
 }
 
 /// Calculation of Ferguson surface patch by 4 points and 2x4 tangent vectors for them
-ce_vec3* ce_tess_quad_normal(ce_vec3* normals, const int lod, const ce_vec3* P, const ce_vec3* Tu, const ce_vec3* Tw, const char edgeFlags)
+ce_vec3* ce_tess_quad_normal(ce_vec3* normals, const int lod, const ce_vec3* P, const ce_vec3* TV, const char edgeFlags)
 {
 	/// points and tangent vectors in P and Tu/Tw
 	/// z
@@ -94,9 +94,9 @@ ce_vec3* ce_tess_quad_normal(ce_vec3* normals, const int lod, const ce_vec3* P, 
 			ce_tess_quad_basis_func(Fw, w);
 			ce_tess_quad_basis_func(Fwdelta, w+delta);
 
-			ce_tess_quad_point(&base,P,Tu,Tw,Fu,Fw);
-			ce_tess_quad_point(&a,P,Tu,Tw,Fudelta,Fw);
-			ce_tess_quad_point(&b,P,Tu,Tw,Fu,Fwdelta);
+			ce_tess_quad_point(&base,P,TV,Fu,Fw);
+			ce_tess_quad_point(&a,P,TV,Fudelta,Fw);
+			ce_tess_quad_point(&b,P,TV,Fu,Fwdelta);
 			ce_vec3_sub(&a,&a,&base);
 			ce_vec3_sub(&b,&b,&base);
 			ce_vec3_norm(&normals[x*vertex_count_z+z],ce_vec3_cross(&base,&a,&b));
@@ -120,26 +120,26 @@ ce_vec3* ce_tess_quad_tangent_vectors(ce_vec3* tangent_vectors, const ce_vec3* n
 	return tangent_vectors;
 }
 
-/// Calculation of point on Hermite patch by 4 points, 2x4 tangent vectors, 4 twist vectors and 2 basis functions arrays for this point
-ce_vec3* ce_tess_quad_point(ce_vec3* point, const ce_vec3* P, const ce_vec3* Tu, const ce_vec3* Tw, const float* Fu, const float* Fw)
+/// Calculation of point on Ferguson patch by 4 points, 2x4 tangent vectors, 4 twist vectors and 2 basis functions arrays for this point
+ce_vec3* ce_tess_quad_point(ce_vec3* point, const ce_vec3* P, const ce_vec3* TV, const float* Fu, const float* Fw)
 {
 	point->x=
-	Fw[0]*(Fu[0]*P[0].x  + Fu[1]*P[1].x  + Fu[2]*Tu[0].x + Fu[3]*Tu[1].x) +
-	Fw[1]*(Fu[0]*P[2].x  + Fu[1]*P[3].x  + Fu[2]*Tu[2].x + Fu[3]*Tu[3].x) +
-	Fw[2]*(Fu[0]*Tw[0].x + Fu[1]*Tw[1].x)+
-	Fw[3]*(Fu[0]*Tw[2].x + Fu[1]*Tw[3].x);
+	Fw[0]*(Fu[0]*P[0].x  + Fu[1]*P[1].x  + Fu[2]*TV[2*0+0].x + Fu[3]*TV[2*1+0].x) +
+	Fw[1]*(Fu[0]*P[2].x  + Fu[1]*P[3].x  + Fu[2]*TV[2*2+0].x + Fu[3]*TV[2*3+0].x) +
+	Fw[2]*(Fu[0]*TV[2*0+1].x + Fu[1]*TV[2*1+1].x)+
+	Fw[3]*(Fu[0]*TV[2*2+1].x + Fu[1]*TV[2*3+1].x);
 
 	point->y=
-	Fw[0]*(Fu[0]*P[0].y  + Fu[1]*P[1].y  + Fu[2]*Tu[0].y + Fu[3]*Tu[1].y) +
-	Fw[1]*(Fu[0]*P[2].y  + Fu[1]*P[3].y  + Fu[2]*Tu[2].y + Fu[3]*Tu[3].y) +
-	Fw[2]*(Fu[0]*Tw[0].y + Fu[1]*Tw[1].y)+
-	Fw[3]*(Fu[0]*Tw[2].y + Fu[1]*Tw[3].y);
+	Fw[0]*(Fu[0]*P[0].y  + Fu[1]*P[1].y  + Fu[2]*TV[2*0+0].y + Fu[3]*TV[2*1+0].y) +
+	Fw[1]*(Fu[0]*P[2].y  + Fu[1]*P[3].y  + Fu[2]*TV[2*2+0].y + Fu[3]*TV[2*3+0].y) +
+	Fw[2]*(Fu[0]*TV[2*0+1].y + Fu[1]*TV[2*1+1].y)+
+	Fw[3]*(Fu[0]*TV[2*2+1].y + Fu[1]*TV[2*3+1].y);
 
 	point->z=
-	Fw[0]*(Fu[0]*P[0].z  + Fu[1]*P[1].z  + Fu[2]*Tu[0].z + Fu[3]*Tu[1].z) +
-	Fw[1]*(Fu[0]*P[2].z  + Fu[1]*P[3].z  + Fu[2]*Tu[2].z + Fu[3]*Tu[3].z) +
-	Fw[2]*(Fu[0]*Tw[0].z + Fu[1]*Tw[1].z)+
-	Fw[3]*(Fu[0]*Tw[2].z + Fu[1]*Tw[3].z);
+	Fw[0]*(Fu[0]*P[0].z  + Fu[1]*P[1].z  + Fu[2]*TV[2*0+0].z + Fu[3]*TV[2*1+0].z) +
+	Fw[1]*(Fu[0]*P[2].z  + Fu[1]*P[3].z  + Fu[2]*TV[2*2+0].z + Fu[3]*TV[2*3+0].z) +
+	Fw[2]*(Fu[0]*TV[2*0+1].z + Fu[1]*TV[2*1+1].z)+
+	Fw[3]*(Fu[0]*TV[2*2+1].z + Fu[1]*TV[2*3+1].z);
 
 	return point;
 }

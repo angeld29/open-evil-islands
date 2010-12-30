@@ -30,10 +30,10 @@ enum {
 	CE_TESS_QUAD_EDGE_Z_HIGHER = 0x8,
 };
 
-ce_vec3* ce_tess_quad(ce_vec3* points, const int lod, const ce_vec3* P, const ce_vec3* Tu, const ce_vec3* Tw, const char edgeFlags);
-ce_vec3* ce_tess_quad_normal(ce_vec3* normals, const int lod, const ce_vec3* P, const ce_vec3* Tu, const ce_vec3* Tw, const char edgeFlags);
+extern ce_vec3* ce_tess_quad(ce_vec3* points, const int lod, const ce_vec3* P, const ce_vec3* TV, const char edgeFlags);
+extern ce_vec3* ce_tess_quad_normal(ce_vec3* normals, const int lod, const ce_vec3* P, const ce_vec3* TV, const char edgeFlags);
 ce_vec3* ce_tess_quad_tangent_vectors(ce_vec3* tangent_vectors, const ce_vec3* normal);
-ce_vec3* ce_tess_quad_point(ce_vec3* point, const ce_vec3* P, const ce_vec3* Tu, const ce_vec3* Tw, const float* Fu, const float* Fw);
+ce_vec3* ce_tess_quad_point(ce_vec3* point, const ce_vec3* P, const ce_vec3* TV, const float* Fu, const float* Fw);
 void ce_tess_quad_basis_func(float* F, const float x);
 
 #endif
