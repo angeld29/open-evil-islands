@@ -47,8 +47,6 @@ typedef struct {
 
 static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 {
-	const int LOD = 5;
-
 	ce_mprrenderitem_tess* mprrenderitem =
 		(ce_mprrenderitem_tess*)renderitem->impl;
 
@@ -82,7 +80,7 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 	*/
 
 	glNewList(mprrenderitem->list = glGenLists(1), GL_COMPILE);
-	int tess_vertex_count=LOD+2;
+	int tess_vertex_count = ce_option_manager->terrain_lod + 2;
 	ce_vec3* tess_points = ce_alloc(tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
 	ce_vec3* tess_normals = ce_alloc(tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
 
@@ -113,8 +111,8 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 				n++;
 			}
 
-			ce_tess_quad(tess_points, LOD,P,tv,0x0F);
-			ce_tess_quad_normal(tess_normals, LOD,P,tv,0x0F);
+			ce_tess_quad(tess_points, ce_option_manager->terrain_lod ,P,tv,0x0F);
+			ce_tess_quad_normal(tess_normals, ce_option_manager->terrain_lod ,P,tv,0x0F);
 
 			for (int i = 1; i < tess_vertex_count; ++i) {
 				glBegin(GL_TRIANGLE_STRIP);
@@ -122,8 +120,8 @@ static void ce_mprrenderitem_tess_ctor(ce_renderitem* renderitem, va_list args)
 					int xq = i - j % 2;	///	x and z inside one sector`s quad
 					int zq = j / 2;
 
-					glTexCoord2f((x+(float)xq/(LOD+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
-						(CE_MPRFILE_VERTEX_SIDE - 1 - (z-(float)zq/(LOD+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
+					glTexCoord2f((x+(float)xq/(ce_option_manager->terrain_lod+1)) / (float)(CE_MPRFILE_VERTEX_SIDE - 1),
+						(CE_MPRFILE_VERTEX_SIDE - 1 - (z-(float)zq/(ce_option_manager->terrain_lod+1))) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
 					glNormal3f(tess_normals[xq*tess_vertex_count+zq].x, tess_normals[xq*tess_vertex_count+zq].y, tess_normals[xq*tess_vertex_count+zq].z);
 					glVertex3f(tess_points[xq*tess_vertex_count+zq].x, tess_points[xq*tess_vertex_count+zq].y, tess_points[xq*tess_vertex_count+zq].z);
 				}
@@ -707,17 +705,17 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
 			sizeof(ce_mprrenderitem_amdvst), mprfile, sector_x, sector_z, water);
 	}
 
-	if (false) {
+	// tesselation of terrain
+	if (ce_option_manager->terrain_lod > 0) {
+		return ce_renderitem_new((ce_renderitem_vtable)
+			{ce_mprrenderitem_tess_ctor, ce_mprrenderitem_fast_dtor,
+			NULL, ce_mprrenderitem_tess_render, NULL},
+			sizeof(ce_mprrenderitem_tess), mprfile, sector_x, sector_z, water);
+	}
+
 	// continuous triangulated geometry, very fast!
 	return ce_renderitem_new((ce_renderitem_vtable)
 		{ce_mprrenderitem_fast_ctor, ce_mprrenderitem_fast_dtor,
 		NULL, ce_mprrenderitem_fast_render, NULL},
 		sizeof(ce_mprrenderitem_fast), mprfile, sector_x, sector_z, water);
-	}
-
-	// continuous triangulated geometry, very fast!
-	return ce_renderitem_new((ce_renderitem_vtable)
-		{ce_mprrenderitem_tess_ctor, ce_mprrenderitem_fast_dtor,
-		NULL, ce_mprrenderitem_tess_render, NULL},
-		sizeof(ce_mprrenderitem_tess), mprfile, sector_x, sector_z, water);
 }
