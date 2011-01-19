@@ -63,6 +63,7 @@ void ce_option_manager_init(ce_optparse* optparse)
 	ce_optparse_get(optparse, "inverse_trackball_x", &ce_option_manager->inverse_trackball_x);
 	ce_optparse_get(optparse, "inverse_trackball_y", &ce_option_manager->inverse_trackball_y);
 	ce_optparse_get(optparse, "terrain_tiling", &ce_option_manager->terrain_tiling);
+	ce_optparse_get(optparse, "model_lod", &ce_option_manager->model_lod);
 	ce_optparse_get(optparse, "texture_caching", &ce_option_manager->texture_caching);
 	ce_optparse_get(optparse, "thread_count", &ce_option_manager->thread_count);
 	ce_optparse_get(optparse, "disable_sound", &ce_option_manager->disable_sound);
@@ -188,6 +189,12 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 		"enable terrain tiling; "
 		"may be useful if you have a prehistoric video adapter; "
 		"very slow!");
+
+	int model_lod = 0;
+	ce_optparse_add(optparse, "model_lod",
+		CE_TYPE_INT, &model_lod, false, NULL, "model-lod",
+		"set model interpolation level of detail; "
+		"smooth model; very slow!");
 
 	ce_optparse_add(optparse, "texture_caching",
 		CE_TYPE_BOOL, NULL, false, NULL, "texture-caching",

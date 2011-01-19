@@ -25,6 +25,7 @@
 
 #include "cemath.h"
 #include "cealloc.h"
+#include "ceoptionmanager.h"
 #include "ceatomic.h"
 #include "ceopengl.h"
 #include "ceanmstate.h"
@@ -76,8 +77,6 @@ typedef struct {
 static void
 ce_figrenderitem_static_tess_ctor(ce_renderitem* renderitem, va_list args)
 {
-	const int LOD = 5;
-
 	ce_figrenderitem_static_tess* figrenderitem =
 		(ce_figrenderitem_static_tess*)renderitem->impl;
 
@@ -86,7 +85,7 @@ ce_figrenderitem_static_tess_ctor(ce_renderitem* renderitem, va_list args)
 
 	figrenderitem->cookie = ce_figcookie_static_new();
 
-	int tess_vertex_count=LOD+2;
+	int tess_vertex_count = ce_option_manager->model_lod + 2;
 	ce_vec3* tess_points = ce_alloc(tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
 	ce_vec3* tess_normals = ce_alloc(tess_vertex_count*tess_vertex_count*sizeof(ce_vec3));
 
@@ -108,8 +107,8 @@ ce_figrenderitem_static_tess_ctor(ce_renderitem* renderitem, va_list args)
 			ce_vec3_init_array(&P[2-j], ce_fighlp_get_vertex(array, figfile, vertex_index,complection));
 			ce_vec3_init_array(&N[2-j], ce_fighlp_get_normal(array, figfile, normal_index));
 		}
-		ce_tess_tri_points(tess_points,LOD,P,N,0x07);
-		ce_tess_tri_normals(tess_normals,LOD,P,N,0x07);
+		ce_tess_tri_points(tess_points,ce_option_manager->model_lod,P,N,0x07);
+		ce_tess_tri_normals(tess_normals,ce_option_manager->model_lod,P,N,0x07);
 
 		for (int j = 0; j < tess_vertex_count-1; ++j) {
 			glBegin(GL_TRIANGLE_STRIP);
@@ -117,11 +116,11 @@ ce_figrenderitem_static_tess_ctor(ce_renderitem* renderitem, va_list args)
 				int z = j + k % 2;
 				int x = k / 2;
 
-				ce_vec2 tmp1;
-				tmp1.x = T[0].x*(1-(float)(x+z)/(LOD+1)) + T[1].x*((float)x/(LOD+1)) + T[2].x*((float)z/(LOD+1));
-				tmp1.y = T[0].y*(1-(float)(x+z)/(LOD+1)) + T[1].y*((float)x/(LOD+1)) + T[2].y*((float)z/(LOD+1));
+				ce_vec2 texcoord;
+				texcoord.x = T[0].x*(1-(float)(x+z)/(ce_option_manager->model_lod+1)) + T[1].x*((float)x/(ce_option_manager->model_lod+1)) + T[2].x*((float)z/(ce_option_manager->model_lod+1));
+				texcoord.y = T[0].y*(1-(float)(x+z)/(ce_option_manager->model_lod+1)) + T[1].y*((float)x/(ce_option_manager->model_lod+1)) + T[2].y*((float)z/(ce_option_manager->model_lod+1));
 
-				glTexCoord2f(tmp1.x,tmp1.y);
+				glTexCoord2f(texcoord.x,texcoord.y);
 				glNormal3f(tess_normals[x*tess_vertex_count+z].x, tess_normals[x*tess_vertex_count+z].y, tess_normals[x*tess_vertex_count+z].z);
 				glVertex3f(tess_points[x*tess_vertex_count+z].x, tess_points[x*tess_vertex_count+z].y, tess_points[x*tess_vertex_count+z].z);
 			}
@@ -459,21 +458,6 @@ static void ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,
 			sizeof(float) * 3 * figrenderitem->cookie->vertex_count);
 }
 
-static const ce_renderitem_vtable ce_figrenderitem_vtables[] = {
-	{ ce_figrenderitem_static_tess_ctor, ce_figrenderitem_static_tess_dtor,
-		NULL, ce_figrenderitem_static_tess_render, ce_figrenderitem_static_tess_clone },
-//	{ ce_figrenderitem_static_ctor, ce_figrenderitem_static_dtor,
-//		NULL, ce_figrenderitem_static_render, ce_figrenderitem_static_clone },
-	{ ce_figrenderitem_dynamic_ctor, ce_figrenderitem_dynamic_dtor,
-		ce_figrenderitem_dynamic_update, ce_figrenderitem_dynamic_render,
-		ce_figrenderitem_dynamic_clone }
-};
-
-static const size_t ce_figrenderitem_sizes[] = {
-	sizeof(ce_figrenderitem_static),
-	sizeof(ce_figrenderitem_dynamic)
-};
-
 ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode,
 									const ce_complection* complection)
 {
@@ -483,7 +467,28 @@ ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode,
 		has_morphing = has_morphing || NULL != anmfile->morphs;
 	}
 
-	return ce_renderitem_new(ce_figrenderitem_vtables[has_morphing],
-							ce_figrenderitem_sizes[has_morphing],
-							fignode->figfile, complection);
+	//model with morphing
+	if (has_morphing)	{
+		return ce_renderitem_new((ce_renderitem_vtable)
+			{ce_figrenderitem_dynamic_ctor, ce_figrenderitem_dynamic_dtor,
+			ce_figrenderitem_dynamic_update, ce_figrenderitem_dynamic_render,
+			ce_figrenderitem_dynamic_clone},
+			sizeof(ce_figrenderitem_dynamic),
+			fignode->figfile, complection);		
+	}
+
+	// model interpolation
+	if (ce_option_manager->model_lod > 0) {
+		return ce_renderitem_new((ce_renderitem_vtable)
+			{ce_figrenderitem_static_tess_ctor, ce_figrenderitem_static_tess_dtor,
+			NULL, ce_figrenderitem_static_tess_render, ce_figrenderitem_static_tess_clone},
+			sizeof(ce_figrenderitem_static_tess),
+			fignode->figfile, complection);	
+	}
+
+	return ce_renderitem_new((ce_renderitem_vtable)
+		{ce_figrenderitem_static_ctor, ce_figrenderitem_static_dtor,
+		NULL, ce_figrenderitem_static_render, ce_figrenderitem_static_clone},
+		sizeof(ce_figrenderitem_static),
+		fignode->figfile, complection);	
 }
