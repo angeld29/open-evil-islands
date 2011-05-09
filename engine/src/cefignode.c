@@ -28,10 +28,12 @@
 ce_fignode* ce_fignode_new(ce_res_file* mod_res_file,
 							ce_res_file* bon_res_file,
 							ce_res_file* anm_res_files[],
-							ce_lnkfile* lnkfile)
+							ce_lnkfile* lnkfile,
+							ce_figproto* figproto)
 {
 	ce_fignode* fignode = ce_alloc(sizeof(ce_fignode));
 	fignode->name = ce_string_dup(lnkfile->links[lnkfile->link_index].child_name);
+	fignode->parentproto = figproto;
 	fignode->index = lnkfile->link_index++;
 	fignode->figfile = ce_figfile_open(mod_res_file, fignode->name->str);
 	fignode->bonfile = ce_bonfile_open(bon_res_file, fignode->name->str);
@@ -52,7 +54,7 @@ ce_fignode* ce_fignode_new(ce_res_file* mod_res_file,
 			0 == ce_strcasecmp(fignode->name->str,
 				lnkfile->links[lnkfile->link_index].parent_name->str)) {
 		ce_vector_push_back(fignode->childs,
-			ce_fignode_new(mod_res_file, bon_res_file, anm_res_files, lnkfile));
+			ce_fignode_new(mod_res_file, bon_res_file, anm_res_files, lnkfile, figproto));
 	}
 
 	return fignode;

@@ -27,7 +27,6 @@
 #include "ceatomic.h"
 #include "ceresfile.h"
 #include "ceadbfile.h"
-#include "cefignode.h"
 #include "cerenderqueue.h"
 
 #ifdef __cplusplus
@@ -35,12 +34,16 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef struct {
+struct ce_figproto;
+typedef struct ce_figproto ce_figproto;
+#include "cefignode.h"
+
+typedef struct ce_figproto {
 	int ref_count;
 	ce_string* name;
 	ce_adb_file* adb_file;
 	ce_fignode* fignode;
-} ce_figproto;
+};
 
 extern ce_figproto* ce_figproto_new(const char* name,
 									ce_res_file* res_file);
