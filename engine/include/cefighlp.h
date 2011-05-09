@@ -28,6 +28,7 @@
 #include "cefigfile.h"
 #include "cebonfile.h"
 #include "cematerial.h"
+#include "cefignode.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -56,6 +57,8 @@ ce_fighlp_get_bone(ce_vec3* position,
 					const ce_complection* complection);
 
 extern ce_material* ce_fighlp_create_material(const ce_figfile* figfile);
+
+extern bool ce_fighlp_is_node_tess_blacklisted(const ce_fignode* fignode);
 
 #ifdef __cplusplus
 }

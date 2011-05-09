@@ -474,21 +474,21 @@ ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode,
 			ce_figrenderitem_dynamic_update, ce_figrenderitem_dynamic_render,
 			ce_figrenderitem_dynamic_clone},
 			sizeof(ce_figrenderitem_dynamic),
-			fignode->figfile, complection);		
+			fignode->figfile, complection);
 	}
 
 	// model interpolation
-	if (ce_option_manager->model_lod > 0) {
+	if (ce_option_manager->model_lod > 0 && !ce_fighlp_is_node_tess_blacklisted(fignode)) {
 		return ce_renderitem_new((ce_renderitem_vtable)
 			{ce_figrenderitem_static_tess_ctor, ce_figrenderitem_static_tess_dtor,
 			NULL, ce_figrenderitem_static_tess_render, ce_figrenderitem_static_tess_clone},
 			sizeof(ce_figrenderitem_static_tess),
-			fignode->figfile, complection);	
+			fignode->figfile, complection);
 	}
 
 	return ce_renderitem_new((ce_renderitem_vtable)
 		{ce_figrenderitem_static_ctor, ce_figrenderitem_static_dtor,
 		NULL, ce_figrenderitem_static_render, ce_figrenderitem_static_clone},
 		sizeof(ce_figrenderitem_static),
-		fignode->figfile, complection);	
+		fignode->figfile, complection);
 }
