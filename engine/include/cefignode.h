@@ -36,13 +36,9 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-struct ce_fignode;
-typedef struct ce_fignode ce_fignode;
-#include "cefigproto.h"
 
-struct ce_fignode {
+typedef struct {
 	ce_string* name;
-	ce_figproto* parentproto;
 	int index;
 	ce_figfile* figfile;
 	ce_bonfile* bonfile;
@@ -50,11 +46,11 @@ struct ce_fignode {
 	ce_material* material;
 	ce_rendergroup* rendergroup;
 	ce_vector* childs;
-};
+} ce_fignode;
 
 extern ce_fignode*
 ce_fignode_new(ce_res_file* mod_res_file, ce_res_file* bon_res_file,
-				ce_res_file* anm_res_files[], ce_lnkfile* lnkfile, ce_figproto* figproto);
+				ce_res_file* anm_res_files[], ce_lnkfile* lnkfile);
 extern void ce_fignode_del(ce_fignode* fignode);
 
 extern void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode,

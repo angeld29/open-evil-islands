@@ -459,7 +459,8 @@ static void ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,
 }
 
 ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode,
-									const ce_complection* complection)
+									const ce_complection* complection,
+									const ce_figproto* figproto)
 {
 	bool has_morphing = false;
 	for (size_t i = 0; i < fignode->anmfiles->count; ++i) {
@@ -478,7 +479,7 @@ ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode,
 	}
 
 	// model interpolation
-	if (ce_option_manager->model_lod > 0 && !ce_fighlp_is_node_tess_blacklisted(fignode)) {
+	if (ce_option_manager->model_lod > 0 && !ce_fighlp_is_node_tess_blacklisted(fignode->name, figproto->name)) {
 		return ce_renderitem_new((ce_renderitem_vtable)
 			{ce_figrenderitem_static_tess_ctor, ce_figrenderitem_static_tess_dtor,
 			NULL, ce_figrenderitem_static_tess_render, ce_figrenderitem_static_tess_clone},

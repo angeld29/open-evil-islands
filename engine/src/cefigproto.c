@@ -66,7 +66,7 @@ ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file)
 	ce_lnkfile* lnkfile = ce_lnkfile_open(mod_res_file, name);
 
 	figproto->fignode = ce_fignode_new(mod_res_file, bon_res_file,
-										anm_res_files, lnkfile, figproto);
+										anm_res_files, lnkfile);
 
 	ce_lnkfile_close(lnkfile);
 	if (NULL != anm_res_file) {

@@ -29,7 +29,7 @@ static void ce_figmesh_create_renderitems(ce_figmesh* figmesh,
 										const ce_fignode* fignode)
 {
 	ce_renderitem* renderitem =
-		ce_figrenderitem_new(fignode, &figmesh->complection);
+		ce_figrenderitem_new(fignode, &figmesh->complection, figmesh->figproto);
 
 	ce_fighlp_get_aabb(&renderitem->aabb, fignode->figfile,
 											&figmesh->complection);

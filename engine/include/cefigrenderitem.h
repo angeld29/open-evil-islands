@@ -22,6 +22,7 @@
 #define CE_FIGRENDERITEM_H
 
 #include "cerenderitem.h"
+#include "cefigproto.h"
 #include "cefignode.h"
 #include "cecomplection.h"
 
@@ -32,7 +33,8 @@ extern "C"
 
 extern ce_renderitem*
 ce_figrenderitem_new(const ce_fignode* fignode,
-					const ce_complection* complection);
+					const ce_complection* complection,
+					const ce_figproto* figproto);
 
 #ifdef __cplusplus
 }

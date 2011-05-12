@@ -139,195 +139,195 @@ ce_material* ce_fighlp_create_material(const ce_figfile* figfile)
 	return material;
 }
 
-bool ce_fighlp_is_node_tess_blacklisted(const ce_fignode* fignode)
+bool ce_fighlp_is_node_tess_blacklisted(const ce_string* fignodename, const ce_string* figprotoname)
 {
 	/// here`s a lot of hardcode! but I don`t see any other way
 	bool is_blacklisted = false;
-	const char * figprotoname = fignode->parentproto->name->str;
-	const char * fignodename = fignode->name->str;
+	const char * figprotonamestr = figprotoname->str;
+	const char * fignodenamestr = fignodename->str;
 	/// debug output to get figproto name and fignode name
-	if (strncmp(figprotoname,"un",2) && strncmp(figprotoname,"na",2))
-		printf("%s %s\n", figprotoname, fignodename);
+	if (strncmp(figprotonamestr,"un",2) && strncmp(figprotonamestr,"na",2))
+		printf("%s %s\n", figprotonamestr, fignodenamestr);
 
 	/// figproto name first and by nodename second
-	if (!strncmp(figprotoname,"st",2)) {						// stationary? human made stuff
+	if (!strncmp(figprotonamestr,"st",2)) {						// stationary? human made stuff
 		is_blacklisted = true;									// blacklisted by default
-		if (!strncmp(&figprotoname[2],"br17",4)) {				// whitelisted illithyd bridge
-			if (strncmp(fignodename,"col1",4) &&				// except side borders
-				strncmp(fignodename,"col2",4) &&
-				strncmp(fignodename,"base1",5))					// and moving part of bridge
+		if (!strncmp(&figprotonamestr[2],"br17",4)) {				// whitelisted illithyd bridge
+			if (strncmp(fignodenamestr,"col1",4) &&				// except side borders
+				strncmp(fignodenamestr,"col2",4) &&
+				strncmp(fignodenamestr,"base1",5))					// and moving part of bridge
 			{
 				is_blacklisted = false;
 			}
 		}
-		else if (!strncmp(&figprotoname[2],"bu",2)) {			// building
-			if (!strncmp(&figprotoname[4],"ho",2)) {			// house - some whitelisted buildings
-				if (!strncmp(&figprotoname[6],"11",2) ||		// big hadagan tent
-					!strncmp(&figprotoname[6],"3",2) ||			// ogre`s hut
-					!strncmp(&figprotoname[6],"39",2) ||		// hadagan metal bell crown
-					!strncmp(&figprotoname[6],"46",2) ||		// necromancer`s house
-					!strncmp(&figprotoname[6],"55",2))			// damagedhadagan metal bell crown
+		else if (!strncmp(&figprotonamestr[2],"bu",2)) {			// building
+			if (!strncmp(&figprotonamestr[4],"ho",2)) {			// house - some whitelisted buildings
+				if (!strncmp(&figprotonamestr[6],"11",2) ||		// big hadagan tent
+					!strncmp(&figprotonamestr[6],"3",2) ||			// ogre`s hut
+					!strncmp(&figprotonamestr[6],"39",2) ||		// hadagan metal bell crown
+					!strncmp(&figprotonamestr[6],"46",2) ||		// necromancer`s house
+					!strncmp(&figprotonamestr[6],"55",2))			// damagedhadagan metal bell crown
 				{
 					is_blacklisted = false;
 				}
-				else if (!strncmp(&figprotoname[6],"60",2))	{	// illithyd building
-					if (strncmp(fignodename,"base",4))			// except base
+				else if (!strncmp(&figprotonamestr[6],"60",2))	{	// illithyd building
+					if (strncmp(fignodenamestr,"base",4))			// except base
 						is_blacklisted = false;
 				}
 			}
 		}
-		if (!strncmp(&figprotoname[2],"st",2)) {				// statues? not-building human made stuff
-			if (!strncmp(&figprotoname[4],"002",3) ||			// a lot of interpolation-frendly objects
-				!strncmp(&figprotoname[4],"1",3) ||
-				!strncmp(&figprotoname[4],"10",3) ||
-				!strncmp(&figprotoname[4],"102",3) ||
-				!strncmp(&figprotoname[4],"106",3) ||
-				!strncmp(&figprotoname[4],"107",3) ||
-				!strncmp(&figprotoname[4],"11",3) ||
-				!strncmp(&figprotoname[4],"113",3) ||
-				!strncmp(&figprotoname[4],"114",3) ||
-				!strncmp(&figprotoname[4],"116",3) ||
-				!strncmp(&figprotoname[4],"119",3) ||
-				!strncmp(&figprotoname[4],"120",3) ||	//?
-				!strncmp(&figprotoname[4],"121",3) ||
-				!strncmp(&figprotoname[4],"122",3) ||	//?
-				!strncmp(&figprotoname[4],"123",3) ||	//?
-				!strncmp(&figprotoname[4],"124",3) ||
-				!strncmp(&figprotoname[4],"127",3) ||
-				!strncmp(&figprotoname[4],"131",3) ||
-				!strncmp(&figprotoname[4],"134",3) ||
-				!strncmp(&figprotoname[4],"135",3) ||
-				!strncmp(&figprotoname[4],"136",3) ||
-				!strncmp(&figprotoname[4],"137",3) ||
-				!strncmp(&figprotoname[4],"138",3) ||
-				!strncmp(&figprotoname[4],"143",3) ||
-				!strncmp(&figprotoname[4],"15",3) ||
-				!strncmp(&figprotoname[4],"154",3) ||
-				!strncmp(&figprotoname[4],"155",3) ||
-				!strncmp(&figprotoname[4],"156",3) ||
-				!strncmp(&figprotoname[4],"157",3) ||
-				!strncmp(&figprotoname[4],"16",3) ||
-				!strncmp(&figprotoname[4],"160",3) ||
-				!strncmp(&figprotoname[4],"17",3) ||
-				!strncmp(&figprotoname[4],"18",3) ||	//?
-				!strncmp(&figprotoname[4],"19",3) ||
-				!strncmp(&figprotoname[4],"2",3) ||		//?
-				!strncmp(&figprotoname[4],"20",3) ||
-				!strncmp(&figprotoname[4],"28",3) ||
-				!strncmp(&figprotoname[4],"30",3) ||
-				!strncmp(&figprotoname[4],"31",3) ||
-				!strncmp(&figprotoname[4],"36",3) ||
-				!strncmp(&figprotoname[4],"37",3) ||
-				!strncmp(&figprotoname[4],"64",3) ||
-				!strncmp(&figprotoname[4],"67",3) ||
-				!strncmp(&figprotoname[4],"70",3) ||	//?
-				!strncmp(&figprotoname[4],"73",3) ||	//illithid furniture*
-				!strncmp(&figprotoname[4],"74",3) ||	//
-				!strncmp(&figprotoname[4],"75",3) ||	//
-				!strncmp(&figprotoname[4],"76",3) ||	//*illithid furniture
-				!strncmp(&figprotoname[4],"80",3) ||	//?
-				!strncmp(&figprotoname[4],"81",3) ||	//?
-				!strncmp(&figprotoname[4],"83",3) ||	//?
-				!strncmp(&figprotoname[4],"84",3) ||	//?
-				!strncmp(&figprotoname[4],"88",3) ||
-				!strncmp(&figprotoname[4],"89",3) ||
-				!strncmp(&figprotoname[4],"90",3) ||
-				!strncmp(&figprotoname[4],"91",3) ||
-				!strncmp(&figprotoname[4],"93",3))
+		if (!strncmp(&figprotonamestr[2],"st",2)) {				// statues? not-building human made stuff
+			if (!strncmp(&figprotonamestr[4],"002",3) ||			// a lot of interpolation-frendly objects
+				!strncmp(&figprotonamestr[4],"1",3) ||
+				!strncmp(&figprotonamestr[4],"10",3) ||
+				!strncmp(&figprotonamestr[4],"102",3) ||
+				!strncmp(&figprotonamestr[4],"106",3) ||
+				!strncmp(&figprotonamestr[4],"107",3) ||
+				!strncmp(&figprotonamestr[4],"11",3) ||
+				!strncmp(&figprotonamestr[4],"113",3) ||
+				!strncmp(&figprotonamestr[4],"114",3) ||
+				!strncmp(&figprotonamestr[4],"116",3) ||
+				!strncmp(&figprotonamestr[4],"119",3) ||
+				!strncmp(&figprotonamestr[4],"120",3) ||	//?
+				!strncmp(&figprotonamestr[4],"121",3) ||
+				!strncmp(&figprotonamestr[4],"122",3) ||	//?
+				!strncmp(&figprotonamestr[4],"123",3) ||	//?
+				!strncmp(&figprotonamestr[4],"124",3) ||
+				!strncmp(&figprotonamestr[4],"127",3) ||
+				!strncmp(&figprotonamestr[4],"131",3) ||
+				!strncmp(&figprotonamestr[4],"134",3) ||
+				!strncmp(&figprotonamestr[4],"135",3) ||
+				!strncmp(&figprotonamestr[4],"136",3) ||
+				!strncmp(&figprotonamestr[4],"137",3) ||
+				!strncmp(&figprotonamestr[4],"138",3) ||
+				!strncmp(&figprotonamestr[4],"143",3) ||
+				!strncmp(&figprotonamestr[4],"15",3) ||
+				!strncmp(&figprotonamestr[4],"154",3) ||
+				!strncmp(&figprotonamestr[4],"155",3) ||
+				!strncmp(&figprotonamestr[4],"156",3) ||
+				!strncmp(&figprotonamestr[4],"157",3) ||
+				!strncmp(&figprotonamestr[4],"16",3) ||
+				!strncmp(&figprotonamestr[4],"160",3) ||
+				!strncmp(&figprotonamestr[4],"17",3) ||
+				!strncmp(&figprotonamestr[4],"18",3) ||	//?
+				!strncmp(&figprotonamestr[4],"19",3) ||
+				!strncmp(&figprotonamestr[4],"2",3) ||		//?
+				!strncmp(&figprotonamestr[4],"20",3) ||
+				!strncmp(&figprotonamestr[4],"28",3) ||
+				!strncmp(&figprotonamestr[4],"30",3) ||
+				!strncmp(&figprotonamestr[4],"31",3) ||
+				!strncmp(&figprotonamestr[4],"36",3) ||
+				!strncmp(&figprotonamestr[4],"37",3) ||
+				!strncmp(&figprotonamestr[4],"64",3) ||
+				!strncmp(&figprotonamestr[4],"67",3) ||
+				!strncmp(&figprotonamestr[4],"70",3) ||	//?
+				!strncmp(&figprotonamestr[4],"73",3) ||	//illithid furniture*
+				!strncmp(&figprotonamestr[4],"74",3) ||	//
+				!strncmp(&figprotonamestr[4],"75",3) ||	//
+				!strncmp(&figprotonamestr[4],"76",3) ||	//*illithid furniture
+				!strncmp(&figprotonamestr[4],"80",3) ||	//?
+				!strncmp(&figprotonamestr[4],"81",3) ||	//?
+				!strncmp(&figprotonamestr[4],"83",3) ||	//?
+				!strncmp(&figprotonamestr[4],"84",3) ||	//?
+				!strncmp(&figprotonamestr[4],"88",3) ||
+				!strncmp(&figprotonamestr[4],"89",3) ||
+				!strncmp(&figprotonamestr[4],"90",3) ||
+				!strncmp(&figprotonamestr[4],"91",3) ||
+				!strncmp(&figprotonamestr[4],"93",3))
 			{
 				printf("WHITELISTED STATUE!!!!!!!\n");
 				is_blacklisted = false;
 			}
-			else if (!strncmp(&figprotoname[4],"001",3))	// big stone jun face
+			else if (!strncmp(&figprotonamestr[4],"001",3))	// big stone jun face
 			{
-				if (strncmp(fignodename,"box",3))			// except box
+				if (strncmp(fignodenamestr,"box",3))			// except box
 					is_blacklisted = false;
 			}
-			else if (!strncmp(&figprotoname[4],"12",3))		// dragon on box
+			else if (!strncmp(&figprotonamestr[4],"12",3))		// dragon on box
 			{
-				if (!strncmp(fignodename,"dragon",6))		// dragon only
+				if (!strncmp(fignodenamestr,"dragon",6))		// dragon only
 					is_blacklisted = false;
 			}
-			else if (!strncmp(&figprotoname[4],"56",3))		//sack with money
+			else if (!strncmp(&figprotonamestr[4],"56",3))		//sack with money
 			{
-				if (!strncmp(fignodename,"sack",2))			// sack only
+				if (!strncmp(fignodenamestr,"sack",2))			// sack only
 					is_blacklisted = false;
 			}
-			else if (!strncmp(&figprotoname[4],"87",3))		// goblin head on pike
+			else if (!strncmp(&figprotonamestr[4],"87",3))		// goblin head on pike
 			{
-				if (!strncmp(fignodename,"hd",2))			// head only
+				if (!strncmp(fignodenamestr,"hd",2))			// head only
 					is_blacklisted = false;
 			}
-			else if (!strncmp(&figprotoname[4],"112",3))	// eagle on scull with mantled wings
+			else if (!strncmp(&figprotonamestr[4],"112",3))	// eagle on scull with mantled wings
 			{
-				if (strncmp(fignodename,"eag1",4))			// except eagle
+				if (strncmp(fignodenamestr,"eag1",4))			// except eagle
 					is_blacklisted = false;
 			}
-			else if (!strncmp(&figprotoname[4],"141",3))	// whitch`s kettle
+			else if (!strncmp(&figprotonamestr[4],"141",3))	// whitch`s kettle
 			{
-				if (!strncmp(fignodename,"kettle",6))		// kettle only
+				if (!strncmp(fignodenamestr,"kettle",6))		// kettle only
 					is_blacklisted = false;
 			}
 		}
-		if (!strncmp(&figprotoname[2],"wa",2)) {			// walls
-			if (!strncmp(&figprotoname[4],"6",2) ||			// wood gnomes? walls
-				!strncmp(&figprotoname[4],"7",2) ||
-				!strncmp(&figprotoname[4],"8",2) ||
-				!strncmp(&figprotoname[4],"9",2))
+		if (!strncmp(&figprotonamestr[2],"wa",2)) {			// walls
+			if (!strncmp(&figprotonamestr[4],"6",2) ||			// wood gnomes? walls
+				!strncmp(&figprotonamestr[4],"7",2) ||
+				!strncmp(&figprotonamestr[4],"8",2) ||
+				!strncmp(&figprotonamestr[4],"9",2))
 			{
 				is_blacklisted = false;
 			}
-			if (!strncmp(&figprotoname[4],"10",2) ||		// hadagan walls
-				!strncmp(&figprotoname[4],"11",2) ||
-				!strncmp(&figprotoname[4],"14",2))
+			if (!strncmp(&figprotonamestr[4],"10",2) ||		// hadagan walls
+				!strncmp(&figprotonamestr[4],"11",2) ||
+				!strncmp(&figprotonamestr[4],"14",2))
 			{
-				if (!strncmp(fignodename,"crown",5))		// crowns only
+				if (!strncmp(fignodenamestr,"crown",5))		// crowns only
 					is_blacklisted = false;
 			}
 
 		}
-		if (!strncmp(&figprotoname[2],"we",2)) 				// wells - interpolate
+		if (!strncmp(&figprotonamestr[2],"we",2)) 				// wells - interpolate
 			is_blacklisted = false;
 	}
-	else if (!strncmp(figprotoname,"nafltr",6)) {				// nature flowers? trees
-		if (!strncmp(&figprotoname[6],"2",1) ||			//2*	// stabs and logs
-			!strncmp(&figprotoname[6],"70",2) ||
-			!strncmp(&figprotoname[6],"74",2) ||
-			!strncmp(&figprotoname[6],"83",2) ||
-			!strncmp(&figprotoname[6],"84",2) ||
-			!strncmp(&figprotoname[6],"85",2) ||
-			!strncmp(&figprotoname[6],"86",2))
+	else if (!strncmp(figprotonamestr,"nafltr",6)) {				// nature flowers? trees
+		if (!strncmp(&figprotonamestr[6],"2",1) ||			//2*	// stabs and logs
+			!strncmp(&figprotonamestr[6],"70",2) ||
+			!strncmp(&figprotonamestr[6],"74",2) ||
+			!strncmp(&figprotonamestr[6],"83",2) ||
+			!strncmp(&figprotonamestr[6],"84",2) ||
+			!strncmp(&figprotonamestr[6],"85",2) ||
+			!strncmp(&figprotonamestr[6],"86",2))
 		{
 			is_blacklisted = true;
 		}
 	}
-	else if (!strncmp(figprotoname,"un",2)) {					// units
-		if (!strncmp(&figprotoname[2],"mo",2)) {				// monsters
-			if (!strncmp(&figprotoname[4],"ba",2))				// banshee
+	else if (!strncmp(figprotonamestr,"un",2)) {					// units
+		if (!strncmp(&figprotonamestr[2],"mo",2)) {				// monsters
+			if (!strncmp(&figprotonamestr[4],"ba",2))				// banshee
 				is_blacklisted = true;
-			else if (!strncmp(&figprotoname[4],"co",2))			// menu column
+			else if (!strncmp(&figprotonamestr[4],"co",2))			// menu column
 				is_blacklisted = true;
-			else if (!strncmp(&figprotoname[4],"go",2)) {		// goblin or golem
-				if (!strncmp(&figprotoname[6],"\0",1)) {		// goblin
-					if (!strncmp(fignodename,"rh3.pike00",10))	// goblin`s pike
+			else if (!strncmp(&figprotonamestr[4],"go",2)) {		// goblin or golem
+				if (!strncmp(&figprotonamestr[6],"\0",1)) {		// goblin
+					if (!strncmp(fignodenamestr,"rh3.pike00",10))	// goblin`s pike
 						is_blacklisted = true;
 				}
 				else											// golems
 					is_blacklisted = true;
 			}
-			else if (!strncmp(&figprotoname[4],"og1",3)) {		// ogre with wood club - bone looks fine
-				if (!strncmp(fignodename,"club",4))			// ogre`s club
+			else if (!strncmp(&figprotonamestr[4],"og1",3)) {		// ogre with wood club - bone looks fine
+				if (!strncmp(fignodenamestr,"club",4))			// ogre`s club
 					is_blacklisted = true;
 			}
-			else if (!strncmp(&figprotoname[4],"li",2)) {		// lizardmen
-				if (!strncmp(fignodename,"rh3.trident",11))		// lizardmen`s trident
+			else if (!strncmp(&figprotonamestr[4],"li",2)) {		// lizardmen
+				if (!strncmp(fignodenamestr,"rh3.trident",11))		// lizardmen`s trident
 					is_blacklisted = true;
 			}
-			else if (!strncmp(&figprotoname[4],"ri",2)) {		// tka-rick
-				if (!strncmp(fignodename,"rh3.staff00",11))		// lizardmen`s trident
+			else if (!strncmp(&figprotonamestr[4],"ri",2)) {		// tka-rick
+				if (!strncmp(fignodenamestr,"rh3.staff00",11))		// lizardmen`s trident
 					is_blacklisted = true;
 			}
-			else if (!strncmp(&figprotoname[4],"wi",2)) {		// fire stones
+			else if (!strncmp(&figprotonamestr[4],"wi",2)) {		// fire stones
 				is_blacklisted = true;
 			}
 		}

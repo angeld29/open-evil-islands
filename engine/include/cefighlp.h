@@ -58,7 +58,7 @@ ce_fighlp_get_bone(ce_vec3* position,
 
 extern ce_material* ce_fighlp_create_material(const ce_figfile* figfile);
 
-extern bool ce_fighlp_is_node_tess_blacklisted(const ce_fignode* fignode);
+extern bool ce_fighlp_is_node_tess_blacklisted(const ce_string* fignodename, const ce_string* figprotoname);
 
 #ifdef __cplusplus
 }
