@@ -177,17 +177,16 @@ bool ce_fighlp_is_node_tess_blacklisted(const ce_fignode* fignode)
 			}
 		}
 		if (!strncmp(&figprotoname[2],"st",2)) {				// statues? not-building human made stuff
-			if (!strncmp(&figprotoname[4],"1",3) ||				// a lot of interpolation-frendly objects
+			if (!strncmp(&figprotoname[4],"002",3) ||			// a lot of interpolation-frendly objects
+				!strncmp(&figprotoname[4],"1",3) ||
 				!strncmp(&figprotoname[4],"10",3) ||
 				!strncmp(&figprotoname[4],"102",3) ||
 				!strncmp(&figprotoname[4],"106",3) ||
 				!strncmp(&figprotoname[4],"107",3) ||
 				!strncmp(&figprotoname[4],"11",3) ||
-				!strncmp(&figprotoname[4],"112",3) ||
 				!strncmp(&figprotoname[4],"113",3) ||
 				!strncmp(&figprotoname[4],"114",3) ||
 				!strncmp(&figprotoname[4],"116",3) ||
-				!strncmp(&figprotoname[4],"118",3) ||
 				!strncmp(&figprotoname[4],"119",3) ||
 				!strncmp(&figprotoname[4],"120",3) ||	//?
 				!strncmp(&figprotoname[4],"121",3) ||
@@ -201,9 +200,6 @@ bool ce_fighlp_is_node_tess_blacklisted(const ce_fignode* fignode)
 				!strncmp(&figprotoname[4],"136",3) ||
 				!strncmp(&figprotoname[4],"137",3) ||
 				!strncmp(&figprotoname[4],"138",3) ||
-				!strncmp(&figprotoname[4],"14",3) ||	//?
-				!strncmp(&figprotoname[4],"141",3) ||	//?
-				!strncmp(&figprotoname[4],"142",3) ||	//?
 				!strncmp(&figprotoname[4],"143",3) ||
 				!strncmp(&figprotoname[4],"15",3) ||
 				!strncmp(&figprotoname[4],"154",3) ||
@@ -222,7 +218,6 @@ bool ce_fighlp_is_node_tess_blacklisted(const ce_fignode* fignode)
 				!strncmp(&figprotoname[4],"31",3) ||
 				!strncmp(&figprotoname[4],"36",3) ||
 				!strncmp(&figprotoname[4],"37",3) ||
-				!strncmp(&figprotoname[4],"4",3) ||		//?
 				!strncmp(&figprotoname[4],"64",3) ||
 				!strncmp(&figprotoname[4],"67",3) ||
 				!strncmp(&figprotoname[4],"70",3) ||	//?
@@ -232,26 +227,67 @@ bool ce_fighlp_is_node_tess_blacklisted(const ce_fignode* fignode)
 				!strncmp(&figprotoname[4],"76",3) ||	//*illithid furniture
 				!strncmp(&figprotoname[4],"80",3) ||	//?
 				!strncmp(&figprotoname[4],"81",3) ||	//?
+				!strncmp(&figprotoname[4],"83",3) ||	//?
 				!strncmp(&figprotoname[4],"84",3) ||	//?
 				!strncmp(&figprotoname[4],"88",3) ||
 				!strncmp(&figprotoname[4],"89",3) ||
 				!strncmp(&figprotoname[4],"90",3) ||
-				!strncmp(&figprotoname[4],"91",3))
+				!strncmp(&figprotoname[4],"91",3) ||
+				!strncmp(&figprotoname[4],"93",3))
 			{
 				printf("WHITELISTED STATUE!!!!!!!\n");
 				is_blacklisted = false;
 			}
-			else if (!strncmp(&figprotoname[6],"56",3))
+			else if (!strncmp(&figprotoname[4],"001",3))	// big stone jun face
+			{
+				if (strncmp(fignodename,"box",3))			// except box
+					is_blacklisted = false;
+			}
+			else if (!strncmp(&figprotoname[4],"12",3))		// dragon on box
+			{
+				if (!strncmp(fignodename,"dragon",6))		// dragon only
+					is_blacklisted = false;
+			}
+			else if (!strncmp(&figprotoname[4],"56",3))		//sack with money
 			{
 				if (!strncmp(fignodename,"sack",2))			// sack only
 					is_blacklisted = false;
 			}
-			else if (!strncmp(&figprotoname[6],"87",3))
+			else if (!strncmp(&figprotoname[4],"87",3))		// goblin head on pike
 			{
 				if (!strncmp(fignodename,"hd",2))			// head only
 					is_blacklisted = false;
 			}
+			else if (!strncmp(&figprotoname[4],"112",3))	// eagle on scull with mantled wings
+			{
+				if (strncmp(fignodename,"eag1",4))			// except eagle
+					is_blacklisted = false;
+			}
+			else if (!strncmp(&figprotoname[4],"141",3))	// whitch`s kettle
+			{
+				if (!strncmp(fignodename,"kettle",6))		// kettle only
+					is_blacklisted = false;
+			}
 		}
+		if (!strncmp(&figprotoname[2],"wa",2)) {			// walls
+			if (!strncmp(&figprotoname[4],"6",2) ||			// wood gnomes? walls
+				!strncmp(&figprotoname[4],"7",2) ||
+				!strncmp(&figprotoname[4],"8",2) ||
+				!strncmp(&figprotoname[4],"9",2))
+			{
+				is_blacklisted = false;
+			}
+			if (!strncmp(&figprotoname[4],"10",2) ||		// hadagan walls
+				!strncmp(&figprotoname[4],"11",2) ||
+				!strncmp(&figprotoname[4],"14",2))
+			{
+				if (!strncmp(fignodename,"crown",5))		// crowns only
+					is_blacklisted = false;
+			}
+
+		}
+		if (!strncmp(&figprotoname[2],"we",2)) 				// wells - interpolate
+			is_blacklisted = false;
 	}
 	else if (!strncmp(figprotoname,"nafltr",6)) {				// nature flowers? trees
 		if (!strncmp(&figprotoname[6],"2",1) ||			//2*	// stabs and logs
