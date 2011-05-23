@@ -30,6 +30,7 @@
 #include "celogging.h"
 #include "ceoptionmanager.h"
 #include "cefiguremanager.h"
+#include "cetessblacklist.h"
 #include "cemobloader.h"
 #include "ceroot.h"
 #include "cecamfile.h"
@@ -140,6 +141,12 @@ int main(int argc, char* argv[])
 	const char* ei_path;
 	ce_optparse_get(optparse, "ei_path", &ei_path);
 
+	if (ce_option_manager->model_lod > 0)
+	{
+		char path[512];
+		snprintf(path, sizeof(path), "tessblacklist.ini");     // TODO: changeable path to blacklist
+		ce_blacklist = ce_blacklist_open(path);
+	}
 #if 0
 	const char* zone;
 	ce_optparse_get(optparse, "zone", &zone);

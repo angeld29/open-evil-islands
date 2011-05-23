@@ -2,7 +2,7 @@
  *  This file is part of Cursed Earth.
  *
  *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Copyright (C) 2009-2011 Anton Kurkin, Yanis Kurganov.
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -58,6 +58,22 @@ char* ce_strtrim(char* restrict dst, const char* restrict src)
 		for (first = 0; first < len && isspace(src[first]); ++first) {
 		}
 		for (last = len - 1; last > 0 && isspace(src[last]); --last) {
+		}
+		len = first <= last ? last - first + 1 : 0;
+		strncpy(dst, src + first, len);
+	}
+	dst[len] = '\0';
+	return dst;
+}
+
+char* ce_strtrimblank(char* restrict dst, const char* restrict src)
+{
+	size_t len = strlen(src);
+	if (0 != len) {
+		size_t first, last;
+		for (first = 0; first < len && isblank(src[first]); ++first) {
+		}
+		for (last = len - 1; last > 0 && isblank(src[last]); --last) {
 		}
 		len = first <= last ? last - first + 1 : 0;
 		strncpy(dst, src + first, len);

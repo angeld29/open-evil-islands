@@ -2,7 +2,7 @@
  *  This file is part of Cursed Earth.
  *
  *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Copyright (C) 2009-2011 Anton Kurkin, Yanis Kurganov.
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@
 #include <string.h>
 
 #include "celogging.h"
+#include "cetessblacklist.h"
+#include "ceoptionmanager.h"
 #include "cefighlp.h"
 
 ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
@@ -141,196 +143,54 @@ ce_material* ce_fighlp_create_material(const ce_figfile* figfile)
 
 bool ce_fighlp_is_node_tess_blacklisted(const ce_string* fignodename, const ce_string* figprotoname)
 {
-	/// here`s a lot of hardcode! but I don`t see any other way
 	bool is_blacklisted = false;
+
+	if (NULL == ce_blacklist) {
+	    ce_logging_error("blacklist file wasn`t opened. Model interpolation disabled");
+	    ce_option_manager->model_lod = 0;
+	    return !is_blacklisted;
+	}
+
 	const char * figprotonamestr = figprotoname->str;
 	const char * fignodenamestr = fignodename->str;
-	/// debug output to get figproto name and fignode name
-	if (strncmp(figprotonamestr,"un",2) && strncmp(figprotonamestr,"na",2))
-		printf("%s %s\n", figprotonamestr, fignodenamestr);
 
-	/// figproto name first and by nodename second
-	if (!strncmp(figprotonamestr,"st",2)) {						// stationary? human made stuff
-		is_blacklisted = true;									// blacklisted by default
-		if (!strncmp(&figprotonamestr[2],"br17",4)) {				// whitelisted illithyd bridge
-			if (strncmp(fignodenamestr,"col1",4) &&				// except side borders
-				strncmp(fignodenamestr,"col2",4) &&
-				strncmp(fignodenamestr,"base1",5))					// and moving part of bridge
-			{
-				is_blacklisted = false;
-			}
-		}
-		else if (!strncmp(&figprotonamestr[2],"bu",2)) {			// building
-			if (!strncmp(&figprotonamestr[4],"ho",2)) {			// house - some whitelisted buildings
-				if (!strncmp(&figprotonamestr[6],"11",2) ||		// big hadagan tent
-					!strncmp(&figprotonamestr[6],"3",2) ||			// ogre`s hut
-					!strncmp(&figprotonamestr[6],"39",2) ||		// hadagan metal bell crown
-					!strncmp(&figprotonamestr[6],"46",2) ||		// necromancer`s house
-					!strncmp(&figprotonamestr[6],"55",2))			// damagedhadagan metal bell crown
-				{
-					is_blacklisted = false;
-				}
-				else if (!strncmp(&figprotonamestr[6],"60",2))	{	// illithyd building
-					if (strncmp(fignodenamestr,"base",4))			// except base
-						is_blacklisted = false;
-				}
-			}
-		}
-		if (!strncmp(&figprotonamestr[2],"st",2)) {				// statues? not-building human made stuff
-			if (!strncmp(&figprotonamestr[4],"002",3) ||			// a lot of interpolation-frendly objects
-				!strncmp(&figprotonamestr[4],"1",3) ||
-				!strncmp(&figprotonamestr[4],"10",3) ||
-				!strncmp(&figprotonamestr[4],"102",3) ||
-				!strncmp(&figprotonamestr[4],"106",3) ||
-				!strncmp(&figprotonamestr[4],"107",3) ||
-				!strncmp(&figprotonamestr[4],"11",3) ||
-				!strncmp(&figprotonamestr[4],"113",3) ||
-				!strncmp(&figprotonamestr[4],"114",3) ||
-				!strncmp(&figprotonamestr[4],"116",3) ||
-				!strncmp(&figprotonamestr[4],"119",3) ||
-				!strncmp(&figprotonamestr[4],"120",3) ||	//?
-				!strncmp(&figprotonamestr[4],"121",3) ||
-				!strncmp(&figprotonamestr[4],"122",3) ||	//?
-				!strncmp(&figprotonamestr[4],"123",3) ||	//?
-				!strncmp(&figprotonamestr[4],"124",3) ||
-				!strncmp(&figprotonamestr[4],"127",3) ||
-				!strncmp(&figprotonamestr[4],"131",3) ||
-				!strncmp(&figprotonamestr[4],"134",3) ||
-				!strncmp(&figprotonamestr[4],"135",3) ||
-				!strncmp(&figprotonamestr[4],"136",3) ||
-				!strncmp(&figprotonamestr[4],"137",3) ||
-				!strncmp(&figprotonamestr[4],"138",3) ||
-				!strncmp(&figprotonamestr[4],"143",3) ||
-				!strncmp(&figprotonamestr[4],"15",3) ||
-				!strncmp(&figprotonamestr[4],"154",3) ||
-				!strncmp(&figprotonamestr[4],"155",3) ||
-				!strncmp(&figprotonamestr[4],"156",3) ||
-				!strncmp(&figprotonamestr[4],"157",3) ||
-				!strncmp(&figprotonamestr[4],"16",3) ||
-				!strncmp(&figprotonamestr[4],"160",3) ||
-				!strncmp(&figprotonamestr[4],"17",3) ||
-				!strncmp(&figprotonamestr[4],"18",3) ||	//?
-				!strncmp(&figprotonamestr[4],"19",3) ||
-				!strncmp(&figprotonamestr[4],"2",3) ||		//?
-				!strncmp(&figprotonamestr[4],"20",3) ||
-				!strncmp(&figprotonamestr[4],"28",3) ||
-				!strncmp(&figprotonamestr[4],"30",3) ||
-				!strncmp(&figprotonamestr[4],"31",3) ||
-				!strncmp(&figprotonamestr[4],"36",3) ||
-				!strncmp(&figprotonamestr[4],"37",3) ||
-				!strncmp(&figprotonamestr[4],"64",3) ||
-				!strncmp(&figprotonamestr[4],"67",3) ||
-				!strncmp(&figprotonamestr[4],"70",3) ||	//?
-				!strncmp(&figprotonamestr[4],"73",3) ||	//illithid furniture*
-				!strncmp(&figprotonamestr[4],"74",3) ||	//
-				!strncmp(&figprotonamestr[4],"75",3) ||	//
-				!strncmp(&figprotonamestr[4],"76",3) ||	//*illithid furniture
-				!strncmp(&figprotonamestr[4],"80",3) ||	//?
-				!strncmp(&figprotonamestr[4],"81",3) ||	//?
-				!strncmp(&figprotonamestr[4],"83",3) ||	//?
-				!strncmp(&figprotonamestr[4],"84",3) ||	//?
-				!strncmp(&figprotonamestr[4],"88",3) ||
-				!strncmp(&figprotonamestr[4],"89",3) ||
-				!strncmp(&figprotonamestr[4],"90",3) ||
-				!strncmp(&figprotonamestr[4],"91",3) ||
-				!strncmp(&figprotonamestr[4],"93",3))
-			{
-				printf("WHITELISTED STATUE!!!!!!!\n");
-				is_blacklisted = false;
-			}
-			else if (!strncmp(&figprotonamestr[4],"001",3))	// big stone jun face
-			{
-				if (strncmp(fignodenamestr,"box",3))			// except box
-					is_blacklisted = false;
-			}
-			else if (!strncmp(&figprotonamestr[4],"12",3))		// dragon on box
-			{
-				if (!strncmp(fignodenamestr,"dragon",6))		// dragon only
-					is_blacklisted = false;
-			}
-			else if (!strncmp(&figprotonamestr[4],"56",3))		//sack with money
-			{
-				if (!strncmp(fignodenamestr,"sack",2))			// sack only
-					is_blacklisted = false;
-			}
-			else if (!strncmp(&figprotonamestr[4],"87",3))		// goblin head on pike
-			{
-				if (!strncmp(fignodenamestr,"hd",2))			// head only
-					is_blacklisted = false;
-			}
-			else if (!strncmp(&figprotonamestr[4],"112",3))	// eagle on scull with mantled wings
-			{
-				if (strncmp(fignodenamestr,"eag1",4))			// except eagle
-					is_blacklisted = false;
-			}
-			else if (!strncmp(&figprotonamestr[4],"141",3))	// whitch`s kettle
-			{
-				if (!strncmp(fignodenamestr,"kettle",6))		// kettle only
-					is_blacklisted = false;
-			}
-		}
-		if (!strncmp(&figprotonamestr[2],"wa",2)) {			// walls
-			if (!strncmp(&figprotonamestr[4],"6",2) ||			// wood gnomes? walls
-				!strncmp(&figprotonamestr[4],"7",2) ||
-				!strncmp(&figprotonamestr[4],"8",2) ||
-				!strncmp(&figprotonamestr[4],"9",2))
-			{
-				is_blacklisted = false;
-			}
-			if (!strncmp(&figprotonamestr[4],"10",2) ||		// hadagan walls
-				!strncmp(&figprotonamestr[4],"11",2) ||
-				!strncmp(&figprotonamestr[4],"14",2))
-			{
-				if (!strncmp(fignodenamestr,"crown",5))		// crowns only
-					is_blacklisted = false;
-			}
+	ce_tess_blacklist_section* section;
+	ce_tess_blacklist_section* parent_section = NULL;
 
-		}
-		if (!strncmp(&figprotonamestr[2],"we",2)) 				// wells - interpolate
-			is_blacklisted = false;
-	}
-	else if (!strncmp(figprotonamestr,"nafltr",6)) {				// nature flowers? trees
-		if (!strncmp(&figprotonamestr[6],"2",1) ||			//2*	// stabs and logs
-			!strncmp(&figprotonamestr[6],"70",2) ||
-			!strncmp(&figprotonamestr[6],"74",2) ||
-			!strncmp(&figprotonamestr[6],"83",2) ||
-			!strncmp(&figprotonamestr[6],"84",2) ||
-			!strncmp(&figprotonamestr[6],"85",2) ||
-			!strncmp(&figprotonamestr[6],"86",2))
-		{
-			is_blacklisted = true;
-		}
-	}
-	else if (!strncmp(figprotonamestr,"un",2)) {					// units
-		if (!strncmp(&figprotonamestr[2],"mo",2)) {				// monsters
-			if (!strncmp(&figprotonamestr[4],"ba",2))				// banshee
-				is_blacklisted = true;
-			else if (!strncmp(&figprotonamestr[4],"co",2))			// menu column
-				is_blacklisted = true;
-			else if (!strncmp(&figprotonamestr[4],"go",2)) {		// goblin or golem
-				if (!strncmp(&figprotonamestr[6],"\0",1)) {		// goblin
-					if (!strncmp(fignodenamestr,"rh3.pike00",10))	// goblin`s pike
-						is_blacklisted = true;
-				}
-				else											// golems
-					is_blacklisted = true;
-			}
-			else if (!strncmp(&figprotonamestr[4],"og1",3)) {		// ogre with wood club - bone looks fine
-				if (!strncmp(fignodenamestr,"club",4))			// ogre`s club
-					is_blacklisted = true;
-			}
-			else if (!strncmp(&figprotonamestr[4],"li",2)) {		// lizardmen
-				if (!strncmp(fignodenamestr,"rh3.trident",11))		// lizardmen`s trident
-					is_blacklisted = true;
-			}
-			else if (!strncmp(&figprotonamestr[4],"ri",2)) {		// tka-rick
-				if (!strncmp(fignodenamestr,"rh3.staff00",11))		// lizardmen`s trident
-					is_blacklisted = true;
-			}
-			else if (!strncmp(&figprotonamestr[4],"wi",2)) {		// fire stones
-				is_blacklisted = true;
-			}
-		}
-	}
+    size_t current_list_count = ce_blacklist->sections->count;
+    for (size_t i = 0; i < current_list_count; ++i)
+    {
+        if (NULL == parent_section)
+            section = (ce_tess_blacklist_section*) ce_blacklist->sections->items[i];
+        else
+            section = (ce_tess_blacklist_section*) parent_section->child_sections->items[i];
+
+        if (!strncmp(figprotonamestr,section->name->str,section->name->length)) {
+            if (section->isNameEnd && '\0' != figprotonamestr[section->name->length])
+                continue;
+
+            if (section->isAllExcept) is_blacklisted = !is_blacklisted;
+
+            if (section->isLeafNode) {
+                if (0 == section->child_sections->count)
+                    return !is_blacklisted;                 /// if no node listed - except all nodes for this proto
+
+                for (size_t j = 0; j < section->child_sections->count; ++j) {
+                     if (!strcmp(fignodenamestr,((ce_string*) section->child_sections->items[j])->str))
+                        return !is_blacklisted;             /// if this node listed - except it
+                }
+                return is_blacklisted;                      /// if there are listed nodes but not this one - don`t except it
+            }
+
+            parent_section = section;
+            current_list_count = parent_section->child_sections->count;
+            i = -1;                                         /// needed for getting 0 in i for next iteration (it`ll be new iteration cicle for current section`s childs)
+            if (parent_section->name->length >= strlen(figprotonamestr)) {
+                ce_logging_warning("blacklist processing error: %s protoname closed not at leaf section");
+                return is_blacklisted;
+            }
+            figprotonamestr = &figprotonamestr[parent_section->name->length];
+        }
+    }
 	return is_blacklisted;
 }

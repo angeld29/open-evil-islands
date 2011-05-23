@@ -44,6 +44,7 @@
 #include "cemobmanager.h"
 #include "cemobloader.h"
 #include "cefiguremanager.h"
+#include "cetessblacklist.h"
 #include "ceroot.h"
 
 struct ce_root ce_root;
@@ -109,6 +110,7 @@ static void ce_root_term(void)
 	ce_event_manager_term();
 	ce_config_manager_term();
 	ce_resource_manager_term();
+    ce_blacklist_close(ce_blacklist);
 	ce_option_manager_term();
 }
 

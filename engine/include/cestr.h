@@ -2,7 +2,7 @@
  *  This file is part of Cursed Earth.
  *
  *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Copyright (C) 2009-2011 Anton Kurkin, Yanis Kurganov.
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,6 +51,9 @@ extern char* ce_strmid(char* restrict dst, const char* restrict src, size_t pos,
 
 /// Remove all whitespace from the start and the end.
 extern char* ce_strtrim(char* restrict dst, const char* restrict src);
+
+/// Remove all blank (usually SPC and TAB) from the start and the end. isblank used instead of isspace.
+extern char* ce_strtrimblank(char* restrict dst, const char* restrict src);
 
 /// Convert a string into upper case.
 extern char* ce_strupr(char* restrict dst, const char* restrict src);
