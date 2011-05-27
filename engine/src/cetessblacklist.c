@@ -31,18 +31,17 @@
 ce_tess_blacklist* ce_blacklist;
 
 /// cut comment after # and '\n' char
-char* ce_strtrim_blacklistcomment(char* restrict dst, const char* restrict src)
+char* ce_strtrim_blacklistcomment(char* restrict str)
 {
-	size_t len = strlen(src);
+	size_t len = strlen(str);
 	if (0 != len) {
 		size_t commentpos;
-		for (commentpos = 0; commentpos < len && src[commentpos] != '#' && src[commentpos] != '\n'; ++commentpos) {
+		for (commentpos = 0; commentpos < len && str[commentpos] != '#' && str[commentpos] != '\n'; ++commentpos) {
 		}
-		strncpy(dst, src, commentpos);
 		len = commentpos;
 	}
-	dst[len] = '\0';
-	return dst;
+	str[len] = '\0';
+	return str;
 }
 
 static bool ce_blacklist_parse(ce_tess_blacklist* blacklist,
@@ -61,7 +60,7 @@ static bool ce_blacklist_parse(ce_tess_blacklist* blacklist,
     char* searchedchr;
 
 	for (int line_number = 1; NULL != fgets(temp1, MAX_LINE_SIZE, file); ++line_number) {
-		size_t line_length = strlen(ce_strtrimblank(line,ce_strtrim_blacklistcomment(temp2,temp1)));
+		size_t line_length = strlen(ce_strtrimblank(line,ce_strtrim_blacklistcomment(temp1)));
 
 		if (line_length + 1 == MAX_LINE_SIZE) {
 			ce_logging_warning("blacklist file: %s:%d: line is too long: "
