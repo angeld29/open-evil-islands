@@ -51,6 +51,7 @@ extern struct ce_option_manager {
 	bool inverse_trackball_y;
 	bool terrain_tiling;
 	int model_lod;
+	ce_string* tess_blacklist;
 	bool texture_caching;
 	int thread_count;
 	bool disable_sound;

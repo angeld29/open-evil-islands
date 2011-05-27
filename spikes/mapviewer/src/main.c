@@ -142,11 +142,9 @@ int main(int argc, char* argv[])
 	ce_optparse_get(optparse, "ei_path", &ei_path);
 
 	if (ce_option_manager->model_lod > 0)
-	{
-		char path[512];
-		snprintf(path, sizeof(path), "tessblacklist.ini");     // TODO: changeable path to blacklist
-		ce_blacklist = ce_blacklist_open(path);
-	}
+        if (NULL != ce_option_manager->tess_blacklist->str)
+            ce_blacklist = ce_blacklist_open(ce_option_manager->tess_blacklist->str);
+
 #if 0
 	const char* zone;
 	ce_optparse_get(optparse, "zone", &zone);

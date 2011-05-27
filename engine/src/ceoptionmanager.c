@@ -34,14 +34,18 @@ struct ce_option_manager* ce_option_manager;
 
 void ce_option_manager_init(ce_optparse* optparse)
 {
-	const char *ei_path, *ce_path;
+	const char *ei_path, *ce_path, *tess_blacklist;
 
 	ce_optparse_get(optparse, "ei_path", &ei_path);
 	ce_optparse_get(optparse, "ce_path", &ce_path);
+	ce_optparse_get(optparse, "tess_blacklist", &tess_blacklist);
 
 	if (NULL == ce_path) {
 		ce_path = ei_path;
 	}
+
+    if (NULL == tess_blacklist)
+        tess_blacklist = "";
 
 	ce_option_manager = ce_alloc_zero(sizeof(struct ce_option_manager));
 	ce_option_manager->ei_path = ce_string_new_str(ei_path);
@@ -64,6 +68,7 @@ void ce_option_manager_init(ce_optparse* optparse)
 	ce_optparse_get(optparse, "inverse_trackball_y", &ce_option_manager->inverse_trackball_y);
 	ce_optparse_get(optparse, "terrain_tiling", &ce_option_manager->terrain_tiling);
 	ce_optparse_get(optparse, "model_lod", &ce_option_manager->model_lod);
+	ce_option_manager->tess_blacklist = ce_string_new_str(tess_blacklist);
 	ce_optparse_get(optparse, "texture_caching", &ce_option_manager->texture_caching);
 	ce_optparse_get(optparse, "thread_count", &ce_option_manager->thread_count);
 	ce_optparse_get(optparse, "disable_sound", &ce_option_manager->disable_sound);
@@ -72,6 +77,7 @@ void ce_option_manager_init(ce_optparse* optparse)
 
 	ce_path_normpath(ce_option_manager->ei_path->str);
 	ce_path_normpath(ce_option_manager->ce_path->str);
+	ce_path_normpath(ce_option_manager->tess_blacklist->str);
 
 	if (ce_option_manager->inverse_trackball) {
 		ce_option_manager->inverse_trackball_x = true;
@@ -80,6 +86,7 @@ void ce_option_manager_init(ce_optparse* optparse)
 
 	ce_logging_write("option manager: EI path is '%s'", ce_option_manager->ei_path->str);
 	ce_logging_write("option manager: CE path is '%s'", ce_option_manager->ce_path->str);
+	ce_logging_write("option manager: interpolation blacklist path is '%s'", ce_option_manager->tess_blacklist->str);
 	ce_logging_write("option manager: using up to %d threads", ce_option_manager->thread_count);
 	ce_logging_write("option manager: terrain tiling %s",
 		ce_option_manager->terrain_tiling ? "enabled" : "disabled");
@@ -88,6 +95,7 @@ void ce_option_manager_init(ce_optparse* optparse)
 void ce_option_manager_term(void)
 {
 	if (NULL != ce_option_manager) {
+		ce_string_del(ce_option_manager->tess_blacklist);
 		ce_string_del(ce_option_manager->ce_path);
 		ce_string_del(ce_option_manager->ei_path);
 		ce_free(ce_option_manager, sizeof(struct ce_option_manager));
@@ -195,6 +203,11 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 		CE_TYPE_INT, &model_lod, false, NULL, "model-lod",
 		"set model interpolation level of detail; "
 		"smooth model; very slow!");
+
+	ce_optparse_add(optparse, "tess_blacklist",
+		CE_TYPE_STRING, NULL, false, NULL, "tess-blacklist",
+		"path to interpolation blacklist list file; "
+		"disabled by default");
 
 	ce_optparse_add(optparse, "texture_caching",
 		CE_TYPE_BOOL, NULL, false, NULL, "texture-caching",

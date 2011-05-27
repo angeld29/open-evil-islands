@@ -24,7 +24,6 @@
 
 #include "celogging.h"
 #include "cetessblacklist.h"
-#include "ceoptionmanager.h"
 #include "cefighlp.h"
 
 ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
@@ -146,9 +145,7 @@ bool ce_fighlp_is_node_tess_blacklisted(const ce_string* fignodename, const ce_s
 	bool is_blacklisted = false;
 
 	if (NULL == ce_blacklist) {
-	    ce_logging_error("blacklist file wasn`t opened. Model interpolation disabled");
-	    ce_option_manager->model_lod = 0;
-	    return !is_blacklisted;
+	    return is_blacklisted;      /// without blacklist every fig will be interpolated
 	}
 
 	const char * figprotonamestr = figprotoname->str;
