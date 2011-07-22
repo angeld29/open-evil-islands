@@ -38,7 +38,9 @@ static void ce_figentity_scenenode_about_to_update(void* listener)
 
 	ce_figbone_advance(figentity->figbone, ce_root.animation_fps * ce_root.timer->elapsed);
 	ce_figbone_update(figentity->figbone, figentity->figmesh->figproto->fignode,
-											figentity->scenenode->renderitems);
+											figentity->scenenode->renderitems
+											,&figentity->figmesh->complection,
+											figentity->figmesh->figproto->adb_file);
 
 	ce_vec3_copy(&figentity->scenenode->position, &figentity->position);
 	ce_quat_copy(&figentity->scenenode->orientation, &figentity->orientation);
@@ -56,59 +58,53 @@ static void ce_figentity_enqueue(ce_figentity* figentity, ce_fignode* fignode)
 	}
 }
 
-static float ce_figentity_find_min_y(ce_figentity* figentity, ce_fignode* fignode)
+static ce_vec3* ce_figentity_find_root_position(ce_vec3* root_position, ce_figentity* figentity)
 {
-	float y = FLT_MAX;
+    ce_adb_file* adb_file = figentity->figmesh->figproto->adb_file;
+    ce_figbone* figbone = figentity->figbone;
 
-	// what about small piece of hard-code? :)
-	if (strstr(fignode->name->str, "leg") ||
-			(fignode->name->length >= 2 && 'l' == fignode->name->str[1] &&
-			('l' == fignode->name->str[0] || 'r' == fignode->name->str[0]))) {
-		ce_renderitem* renderitem = figentity->scenenode->renderitems->items[fignode->index];
-		y = renderitem->world_position.y - renderitem->world_bbox.aabb.radius;
-	}
+    ce_vec3 v1, v2;
+	ce_vec3_lerp(root_position, figbone->anmstate->coef,
+        ce_vec3_init_array(&v1,figbone->anmstate->anmfile->translations +
+                                (int)figbone->anmstate->prev_frame * 3),
+        ce_vec3_init_array(&v2,figbone->anmstate->anmfile->translations +
+                                (int)figbone->anmstate->next_frame * 3));
 
-	for (size_t i = 0; i < fignode->childs->count; ++i) {
-		y = fminf(y, ce_figentity_find_min_y(figentity, fignode->childs->items[i]));
-	}
+    if (0 != adb_file->average_height) {
+        float scale_coef = adb_file->min_height + figentity->figmesh->complection.height * (adb_file->max_height - adb_file->min_height) / adb_file->average_height;
+        ce_vec3_scale(root_position, scale_coef, root_position);
+    }
 
-	return y;
+	return root_position;
 }
 
 static void ce_figentity_scenenode_updated(void* listener)
 {
 	ce_figentity* figentity = listener;
 
-	if (NULL != figentity->figmesh->figproto->adb_file) {
-		// WARNING: begin of experimental code
-
-		// fix figure height relative to root node
-		// it's a difference between root and legs
-
-		ce_renderitem* root_renderitem = figentity->scenenode->renderitems->items
-										[figentity->figmesh->figproto->fignode->index];
-
-		float y = ce_figentity_find_min_y(figentity, figentity->figmesh->figproto->fignode);
-
-		if (y <= root_renderitem->world_position.y) {
-			y = root_renderitem->world_position.y - y;
-		} else {
-			// flying creatures ???
-			y = 1.0f;
-		}
-
-		figentity->scenenode->world_position.y += y;
-		figentity->scenenode->world_bbox.aabb.origin.y += y;
-		for (size_t i = 0; i < figentity->scenenode->renderitems->count; ++i) {
-			ce_renderitem* renderitem = figentity->scenenode->renderitems->items[i];
-			if (renderitem->visible) {
-				renderitem->world_position.y += y;
-				renderitem->world_bbox.aabb.origin.y += y;
-			}
-		}
-
-		// WARNING: end of experimental code
-	}
+    // TODO: move here anm translations of root-bone from figbone
+    // TODO: coefficient from RacesDatabase must be used
+    // next commented code dosnt work
+//	if (NULL != figentity->figmesh->figproto->adb_file && NULL != figbone->anmstate->anmfile) {
+//		// WARNING: begin of experimental code
+//
+//		// fix figure height relative to root node
+//
+//        ce_vec3 root_position;
+//        ce_figentity_find_root_position(&root_position, figentity);
+//
+//		ce_vec3_sub(&figentity->scenenode->world_position, &figentity->scenenode->world_position, &root_position);
+//		ce_vec3_add(&figentity->scenenode->world_bbox.aabb.origin, &figentity->scenenode->world_bbox.aabb.origin, &root_position);;
+//		for (size_t i = 0; i < figentity->scenenode->renderitems->count; ++i) {
+//			ce_renderitem* renderitem = figentity->scenenode->renderitems->items[i];
+//			if (renderitem->visible) {
+//                ce_vec3_sub(&renderitem->world_position, &renderitem->world_position, &root_position);
+//                ce_vec3_add(&renderitem->world_bbox.aabb.origin, &renderitem->world_bbox.aabb.origin, &root_position);
+//			}
+//		}
+//
+//		// WARNING: end of experimental code
+//	}
 
 	ce_figentity_enqueue(figentity, figentity->figmesh->figproto->fignode);
 }

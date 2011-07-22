@@ -44,13 +44,13 @@ void ce_anmstate_advance(ce_anmstate* anmstate, float distance)
 	if (NULL != anmstate->anmfile) {
 		anmstate->frame += distance;
 		if (anmstate->frame >= anmstate->frame_count) {
-			anmstate->frame = 0.0f;
+			anmstate->frame -= anmstate->frame_count;
 		}
 
 		anmstate->coef = modff(anmstate->frame, &anmstate->prev_frame);
 		anmstate->next_frame = anmstate->prev_frame + 1.0f;
 		if (anmstate->next_frame >= anmstate->frame_count) {
-			anmstate->next_frame = 0.0f;
+			anmstate->next_frame -= anmstate->frame_count;
 		}
 	}
 }

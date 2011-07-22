@@ -66,13 +66,16 @@ void ce_figbone_advance(ce_figbone* figbone, float distance)
 }
 
 static void ce_figbone_update_transform(ce_figbone* figbone,
-										ce_renderitem* renderitem)
+										ce_renderitem* renderitem
+										,ce_complection* complection,
+										ce_adb_file* adb_file)
 {
 	// TODO: translations from anm file ???
 
 	// update binding pose
 	if (NULL == figbone->anmstate->anmfile) {
 		figbone->orientation = CE_QUAT_IDENTITY;
+		figbone->bone_position = CE_VEC3_ZERO;
 	} else {
 		ce_quat q1, q2;
 		ce_quat_slerp(&figbone->orientation, figbone->anmstate->coef,
@@ -85,9 +88,26 @@ static void ce_figbone_update_transform(ce_figbone* figbone,
 	// update bone pose
 	if (NULL == figbone->parent) {
 		// bone pose == binding pose
-		figbone->bone_position = figbone->position;
+
+        // TODO: move this piece of code to figentity, remove complection and adb_file from args
+        if (NULL != figbone->anmstate->anmfile)
+        {
+            ce_vec3 v1, v2;
+            ce_vec3_lerp(&figbone->bone_position, figbone->anmstate->coef,
+                ce_vec3_init_array(&v1,figbone->anmstate->anmfile->translations +
+                                        (int)figbone->anmstate->prev_frame * 3),
+                ce_vec3_init_array(&v2,figbone->anmstate->anmfile->translations +
+                                        (int)figbone->anmstate->next_frame * 3));
+
+             if (0 != adb_file->average_height){
+                float scale_coef = adb_file->min_height + complection->height * (adb_file->max_height - adb_file->min_height) / adb_file->average_height;
+                ce_vec3_scale(&figbone->bone_position, scale_coef, &figbone->bone_position);
+            }
+        } else
+            figbone->bone_position = figbone->position;
 		figbone->bone_orientation = figbone->orientation;
 	} else {
+
 		ce_vec3_rot(&figbone->bone_position,
 					&figbone->position,
 					&figbone->parent->bone_orientation);
@@ -119,15 +139,18 @@ static void ce_figbone_update_bounds(ce_figbone* figbone,
 
 void ce_figbone_update(ce_figbone* figbone,
 						const ce_fignode* fignode,
-						ce_vector* renderitems)
+						ce_vector* renderitems
+										,ce_complection* complection,
+										ce_adb_file* adb_file)
 {
 	ce_renderitem* renderitem = renderitems->items[fignode->index];
 
-	ce_figbone_update_transform(figbone, renderitem);
+	ce_figbone_update_transform(figbone, renderitem, complection, adb_file);
 
 	for (size_t i = 0; i < figbone->childs->count; ++i) {
 		ce_figbone_update(figbone->childs->items[i],
-							fignode->childs->items[i], renderitems);
+							fignode->childs->items[i], renderitems
+							,complection, adb_file);
 	}
 
 	ce_figbone_update_bounds(figbone, renderitem);

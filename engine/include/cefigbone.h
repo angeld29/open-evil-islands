@@ -29,6 +29,7 @@
 #include "cevector.h"
 #include "ceanmstate.h"
 #include "cefignode.h"
+#include "ceadbfile.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -56,7 +57,9 @@ extern void ce_figbone_advance(ce_figbone* figbone, float distance);
 
 extern void ce_figbone_update(ce_figbone* figbone,
 								const ce_fignode* fignode,
-								ce_vector* renderitems);
+								ce_vector* renderitems
+                                        ,ce_complection* complection,
+                                        ce_adb_file* adb_file);
 
 extern bool ce_figbone_play_animation(ce_figbone* figbone,
 										const ce_fignode* fignode,
