@@ -83,8 +83,6 @@ void ce_avcodec_init(void)
 {
     av_log_set_callback(ce_avcodec_log);
     av_lockmgr_register(ce_avcodec_lock);
-
-    avcodec_init();
     avcodec_register_all();
 }
 

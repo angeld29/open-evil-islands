@@ -378,9 +378,9 @@ typedef struct {
     ce_bink_header header;
     ce_bink_index* indices;
     AVCodec* codec;
-    AVCodecContext codec_context;
+    AVCodecContext* context;
+    AVFrame* frame;
     AVPacket packet;
-    AVFrame picture;
     uint8_t extradata[4 + FF_INPUT_BUFFER_PADDING_SIZE];
     uint8_t data[];
 } ce_bink;
@@ -450,35 +450,43 @@ static bool ce_bink_ctor(ce_video_resource* video_resource)
         return false;
     }
 
-    bink->codec = avcodec_find_decoder(CODEC_ID_BINKVIDEO);
+    bink->codec = avcodec_find_decoder(AV_CODEC_ID_BINKVIDEO);
     if (NULL == bink->codec) {
         ce_logging_error("bink: video codec not found");
         return false;
     }
 
-    avcodec_get_context_defaults(&bink->codec_context);
-    bink->codec_context.codec_tag = bink->header.four_cc;
-    bink->codec_context.width  = bink->header.video_width;
-    bink->codec_context.height = bink->header.video_height;
-    bink->codec_context.extradata = bink->extradata;
-    bink->codec_context.extradata_size = 4;
+    bink->context = avcodec_alloc_context3(bink->codec);
+    if (NULL == bink->context) {
+        ce_logging_error("bink: could not allocate context");
+        return false;
+    }
 
-    memcpy(bink->codec_context.extradata, &bink->header.video_flags, 4);
+    bink->context->codec_tag = bink->header.four_cc;
+    bink->context->width  = bink->header.video_width;
+    bink->context->height = bink->header.video_height;
+    bink->context->extradata = bink->extradata;
+    bink->context->extradata_size = 4;
 
-    if (avcodec_open(&bink->codec_context, bink->codec) < 0) {
+    memcpy(bink->context->extradata, &bink->header.video_flags, 4);
+
+    if (avcodec_open2(bink->context, bink->codec, NULL) < 0) {
         ce_logging_error("bink: could not open video codec");
         return false;
     }
 
-    if (PIX_FMT_YUV420P != bink->codec_context.pix_fmt) {
+    if (PIX_FMT_YUV420P != bink->context->pix_fmt) {
         ce_logging_error("bink: only YCbCr 4:2:0 supported");
+        return false;
+    }
+
+    if (NULL == (bink->frame = av_frame_alloc())) {
+        ce_logging_error("bink: could not allocate frame");
         return false;
     }
 
     av_init_packet(&bink->packet);
     bink->packet.data = bink->data + sizeof(ce_bink_index) * bink->header.frame_count;
-
-    avcodec_get_frame_defaults(&bink->picture);
 
     return true;
 }
@@ -487,8 +495,13 @@ static void ce_bink_dtor(ce_video_resource* video_resource)
 {
     ce_bink* bink = (ce_bink*)video_resource->impl;
 
-    if (NULL != bink->codec_context.codec) {
-        avcodec_close(&bink->codec_context);
+    if (NULL != bink->frame) {
+        av_frame_free(&bink->frame);
+    }
+
+    if (NULL != bink->context) {
+        avcodec_close(bink->context);
+        av_free(bink->context);
     }
 }
 
@@ -523,18 +536,18 @@ static bool ce_bink_read(ce_video_resource* video_resource)
     bink->packet.size = ce_mem_file_read(video_resource->mem_file,
                                         bink->packet.data, 1, frame_size);
 
-    int got_picture = 0;
-    int code = avcodec_decode_video2(&bink->codec_context,
-        &bink->picture, &got_picture, &bink->packet);
+    int got_frame = 0;
+    int code = avcodec_decode_video2(bink->context,
+        bink->frame, &got_frame, &bink->packet);
 
-    if (code < 0 || (uint32_t)code != frame_size || 0 == got_picture) {
+    if (code < 0 || (uint32_t)code != frame_size || 0 == got_frame) {
         ce_logging_error("bink: codec error while decoding video");
         return false;
     }
 
     for (size_t i = 0; i < 3; ++i) {
-        video_resource->ycbcr.planes[i].stride = bink->picture.linesize[i];
-        video_resource->ycbcr.planes[i].data = bink->picture.data[i];
+        video_resource->ycbcr.planes[i].stride = bink->frame->linesize[i];
+        video_resource->ycbcr.planes[i].data = bink->frame->data[i];
     }
 
     return true;

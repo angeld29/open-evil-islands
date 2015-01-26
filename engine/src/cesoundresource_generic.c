@@ -45,6 +45,8 @@
 
 #include <libavcodec/avcodec.h>
 
+#define MAX_AUDIO_FRAME_SIZE 192000 // 1 second of 48khz 32bit audio
+
 #include "celib.h"
 #include "cemath.h"
 #include "cealloc.h"
@@ -828,7 +830,7 @@ typedef struct {
     ce_bink_header header;
     ce_bink_audio_track audio_track;
     AVCodec* codec;
-    AVCodecContext codec_context;
+    AVCodecContext* context;
     AVPacket packet;
     ce_bink_index indices[];
 } ce_bink;
@@ -840,7 +842,7 @@ static bool ce_bink_test(ce_sound_probe* sound_probe)
         sound_probe->name = "bink";
         sound_probe->impl_size = sizeof(ce_bink) + sizeof(ce_bink_index) * header.frame_count;
         sound_probe->input_buffer_capacity = header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE;
-        sound_probe->output_buffer_capacity = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+        sound_probe->output_buffer_capacity = MAX_AUDIO_FRAME_SIZE;
 
         assert(sizeof(ce_bink_header) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
         memcpy(sound_probe->buffer, &header, sizeof(ce_bink_header));
@@ -876,25 +878,30 @@ static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
         return false;
     }
 
-    bink->codec = avcodec_find_decoder(CODEC_ID_BINKAUDIO_RDFT);
+    ce_sound_format_init(&sound_resource->sound_format,
+                        16, bink->audio_track.sample_rate,
+                        CE_BINK_AUDIO_FLAG_STEREO & bink->audio_track.flags ? 2 : 1);
+
+    bink->codec = avcodec_find_decoder(AV_CODEC_ID_BINKAUDIO_RDFT);
     if (NULL == bink->codec) {
         ce_logging_error("bink: RDFT audio codec not found");
         return false;
     }
 
-    ce_sound_format_init(&sound_resource->sound_format,
-                        16, bink->audio_track.sample_rate,
-                        CE_BINK_AUDIO_FLAG_STEREO & bink->audio_track.flags ? 2 : 1);
+    bink->context = avcodec_alloc_context3(bink->codec);
+    if (NULL == bink->context) {
+        ce_logging_error("bink: could not allocate context");
+        return false;
+    }
 
-    avcodec_get_context_defaults(&bink->codec_context);
-    bink->codec_context.codec_tag = bink->header.four_cc;
-    bink->codec_context.sample_rate = sound_resource->sound_format.samples_per_second;
-    bink->codec_context.channels = sound_resource->sound_format.channel_count;
-
-    if (avcodec_open(&bink->codec_context, bink->codec) < 0) {
+    if (avcodec_open2(bink->context, bink->codec, NULL) < 0) {
         ce_logging_error("bink: could not open RDFT audio codec");
         return false;
     }
+
+    bink->context->codec_tag = bink->header.four_cc;
+    bink->context->sample_rate = sound_resource->sound_format.samples_per_second;
+    bink->context->channels = sound_resource->sound_format.channel_count;
 
     av_init_packet(&bink->packet);
     bink->packet.data = (uint8_t*)sound_resource->input_buffer;
@@ -906,8 +913,9 @@ static void ce_bink_dtor(ce_sound_resource* sound_resource)
 {
     ce_bink* bink = (ce_bink*)sound_resource->impl;
 
-    if (NULL != bink->codec_context.codec) {
-        avcodec_close(&bink->codec_context);
+    if (NULL != bink->context) {
+        avcodec_close(bink->context);
+        av_free(bink->context);
     }
 }
 
@@ -933,8 +941,8 @@ static bool ce_bink_decode(ce_sound_resource* sound_resource)
         bink->packet.size = ce_mem_file_read(sound_resource->mem_file,
                                             bink->packet.data, 1, packet_size);
 
-        int size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-        int code = avcodec_decode_audio3(&bink->codec_context,
+        int size = MAX_AUDIO_FRAME_SIZE;
+        int code = avcodec_decode_audio3(bink->context,
             (int16_t*)sound_resource->output_buffer, &size, &bink->packet);
 
         if (code < 0 || (uint32_t)code != packet_size || size <= 0) {
