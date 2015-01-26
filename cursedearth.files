@@ -351,7 +351,6 @@ doc/gpu/g33.txt
 doc/gpu/geforce_6200.txt
 doc/gpu/radeon_hd_5870.txt
 doc/gpu/virtual_box.txt
-doc/portability/portability.txt
 doc/x/damageproto.txt
 doc/x/dbelib.pdf
 doc/x/dri2proto.txt
@@ -1113,3 +1112,5 @@ cursedearth.cfg
 cursedearth_local.cfg
 Mp32Oga.SConscript
 SConstruct
+doc/portability.txt
+doc/ffmpeg.txt
