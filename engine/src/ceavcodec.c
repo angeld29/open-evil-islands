@@ -29,67 +29,67 @@
 
 static void ce_avcodec_log(void* CE_UNUSED(ptr), int av_level, const char* format, va_list args)
 {
-	ce_logging_level level;
+    ce_logging_level level;
 
-	switch (av_level) {
-	case AV_LOG_PANIC:
-	case AV_LOG_FATAL:
-		level = CE_LOGGING_LEVEL_FATAL;
-		break;
-	case AV_LOG_ERROR:
-		level = CE_LOGGING_LEVEL_ERROR;
-		break;
-	case AV_LOG_WARNING:
-		level = CE_LOGGING_LEVEL_WARNING;
-		break;
-	case AV_LOG_INFO:
-		level = CE_LOGGING_LEVEL_INFO;
-		break;
-	case AV_LOG_DEBUG:
-		level = CE_LOGGING_LEVEL_DEBUG;
-		break;
-	default:
-		level = CE_LOGGING_LEVEL_WRITE;
-		break;
-	}
+    switch (av_level) {
+    case AV_LOG_PANIC:
+    case AV_LOG_FATAL:
+        level = CE_LOGGING_LEVEL_FATAL;
+        break;
+    case AV_LOG_ERROR:
+        level = CE_LOGGING_LEVEL_ERROR;
+        break;
+    case AV_LOG_WARNING:
+        level = CE_LOGGING_LEVEL_WARNING;
+        break;
+    case AV_LOG_INFO:
+        level = CE_LOGGING_LEVEL_INFO;
+        break;
+    case AV_LOG_DEBUG:
+        level = CE_LOGGING_LEVEL_DEBUG;
+        break;
+    default:
+        level = CE_LOGGING_LEVEL_WRITE;
+        break;
+    }
 
-	char buffer[strlen(format) + 16];
-	snprintf(buffer, sizeof(buffer), "avcodec: %s", format);
+    char buffer[strlen(format) + 16];
+    snprintf(buffer, sizeof(buffer), "avcodec: %s", format);
 
-	ce_logging_report_va(level, buffer, args);
+    ce_logging_report_va(level, buffer, args);
 }
 
 static int ce_avcodec_lock(void** mutex, enum AVLockOp op)
 {
-	switch (op) {
-	case AV_LOCK_CREATE:
-		*mutex = ce_mutex_new();
-		break;
-	case AV_LOCK_OBTAIN:
-		ce_mutex_lock(*mutex);
-		break;
-	case AV_LOCK_RELEASE:
-		ce_mutex_unlock(*mutex);
-		break;
-	case AV_LOCK_DESTROY:
-		ce_mutex_del(*mutex);
-		break;
-	}
+    switch (op) {
+    case AV_LOCK_CREATE:
+        *mutex = ce_mutex_new();
+        break;
+    case AV_LOCK_OBTAIN:
+        ce_mutex_lock(*mutex);
+        break;
+    case AV_LOCK_RELEASE:
+        ce_mutex_unlock(*mutex);
+        break;
+    case AV_LOCK_DESTROY:
+        ce_mutex_del(*mutex);
+        break;
+    }
 
-	return 0;
+    return 0;
 }
 
 void ce_avcodec_init(void)
 {
-	av_log_set_callback(ce_avcodec_log);
-	av_lockmgr_register(ce_avcodec_lock);
+    av_log_set_callback(ce_avcodec_log);
+    av_lockmgr_register(ce_avcodec_lock);
 
-	avcodec_init();
-	avcodec_register_all();
+    avcodec_init();
+    avcodec_register_all();
 }
 
 void ce_avcodec_term(void)
 {
-	av_lockmgr_register(NULL);
-	av_log_set_callback(av_log_default_callback);
+    av_lockmgr_register(NULL);
+    av_log_set_callback(av_log_default_callback);
 }
