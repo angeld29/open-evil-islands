@@ -45,8 +45,6 @@
 
 #include <libavcodec/avcodec.h>
 
-#define MAX_AUDIO_FRAME_SIZE 192000 // 1 second of 48khz 32bit audio
-
 #include "celib.h"
 #include "cemath.h"
 #include "cealloc.h"
@@ -842,7 +840,7 @@ static bool ce_bink_test(ce_sound_probe* sound_probe)
         sound_probe->name = "bink";
         sound_probe->impl_size = sizeof(ce_bink) + sizeof(ce_bink_index) * header.frame_count;
         sound_probe->input_buffer_capacity = header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE;
-        sound_probe->output_buffer_capacity = MAX_AUDIO_FRAME_SIZE;
+        sound_probe->output_buffer_capacity = AVCODEC_MAX_AUDIO_FRAME_SIZE;
 
         assert(sizeof(ce_bink_header) <= CE_SOUND_PROBE_BUFFER_CAPACITY);
         memcpy(sound_probe->buffer, &header, sizeof(ce_bink_header));
@@ -879,29 +877,28 @@ static bool ce_bink_ctor(ce_sound_resource* sound_resource, ce_sound_probe* soun
     }
 
     ce_sound_format_init(&sound_resource->sound_format,
-                        16, bink->audio_track.sample_rate,
-                        CE_BINK_AUDIO_FLAG_STEREO & bink->audio_track.flags ? 2 : 1);
+        16, bink->audio_track.sample_rate, CE_BINK_AUDIO_FLAG_STEREO & bink->audio_track.flags ? 2 : 1);
 
-    bink->codec = avcodec_find_decoder(AV_CODEC_ID_BINKAUDIO_RDFT);
-    if (NULL == bink->codec) {
+    if (NULL == (bink->codec = avcodec_find_decoder(CODEC_ID_BINKAUDIO_RDFT))) {
         ce_logging_error("bink: RDFT audio codec not found");
         return false;
     }
 
-    bink->context = avcodec_alloc_context3(bink->codec);
-    if (NULL == bink->context) {
+    if (NULL == (bink->context = avcodec_alloc_context())) {
         ce_logging_error("bink: could not allocate context");
-        return false;
-    }
-
-    if (avcodec_open2(bink->context, bink->codec, NULL) < 0) {
-        ce_logging_error("bink: could not open RDFT audio codec");
         return false;
     }
 
     bink->context->codec_tag = bink->header.four_cc;
     bink->context->sample_rate = sound_resource->sound_format.samples_per_second;
     bink->context->channels = sound_resource->sound_format.channel_count;
+
+    if (avcodec_open2(bink->context, bink->codec, NULL) < 0) {
+        ce_logging_error("bink: could not open RDFT audio codec");
+        return false;
+    }
+
+    ce_logging_info("bink: sample format is '%s'", av_get_sample_fmt_name(bink->context->sample_fmt));
 
     av_init_packet(&bink->packet);
     bink->packet.data = (uint8_t*)sound_resource->input_buffer;
@@ -917,54 +914,6 @@ static void ce_bink_dtor(ce_sound_resource* sound_resource)
         avcodec_close(bink->context);
         av_free(bink->context);
     }
-}
-
-static int ce_decode_audio(AVCodecContext* avctx, int16_t* samples, int* frame_size_ptr, AVPacket* avpkt)
-{
-    AVFrame *frame = av_frame_alloc();
-    int ret, got_frame = 0;
-
-    if (!frame)
-        return AVERROR(ENOMEM);
-    if (avctx->get_buffer != avcodec_default_get_buffer) {
-        av_log(avctx, AV_LOG_ERROR, "Custom get_buffer() for use with"
-                                    "avcodec_decode_audio3() detected. Overriding with avcodec_default_get_buffer\n");
-        av_log(avctx, AV_LOG_ERROR, "Please port your application to "
-                                    "avcodec_decode_audio4()\n");
-        avctx->get_buffer = avcodec_default_get_buffer;
-        avctx->release_buffer = avcodec_default_release_buffer;
-    }
-
-    ret = avcodec_decode_audio4(avctx, frame, &got_frame, avpkt);
-
-    if (ret >= 0 && got_frame) {
-        int ch, plane_size;
-        int planar    = av_sample_fmt_is_planar(avctx->sample_fmt);
-        int data_size = av_samples_get_buffer_size(&plane_size, avctx->channels,
-                                                   frame->nb_samples,
-                                                   avctx->sample_fmt, 1);
-        if (*frame_size_ptr < data_size) {
-            av_log(avctx, AV_LOG_ERROR, "output buffer size is too small for "
-                                        "the current frame (%d < %d)\n", *frame_size_ptr, data_size);
-            av_frame_free(&frame);
-            return AVERROR(EINVAL);
-        }
-
-        memcpy(samples, frame->extended_data[0], plane_size);
-
-        if (planar && avctx->channels > 1) {
-            uint8_t *out = ((uint8_t *)samples) + plane_size;
-            for (ch = 1; ch < avctx->channels; ch++) {
-                memcpy(out, frame->extended_data[ch], plane_size);
-                out += plane_size;
-            }
-        }
-        *frame_size_ptr = data_size;
-    } else {
-        *frame_size_ptr = 0;
-    }
-    av_frame_free(&frame);
-    return ret;
 }
 
 static bool ce_bink_decode(ce_sound_resource* sound_resource)
@@ -986,12 +935,10 @@ static bool ce_bink_decode(ce_sound_resource* sound_resource)
     }
 
     if (0 != packet_size) {
-        bink->packet.size = ce_mem_file_read(sound_resource->mem_file,
-                                            bink->packet.data, 1, packet_size);
+        bink->packet.size = ce_mem_file_read(sound_resource->mem_file, bink->packet.data, 1, packet_size);
 
-        int size = MAX_AUDIO_FRAME_SIZE;
-        int code = ce_decode_audio(bink->context,
-            (int16_t*)sound_resource->output_buffer, &size, &bink->packet);
+        int size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+        int code = avcodec_decode_audio3(bink->context, (int16_t*)sound_resource->output_buffer, &size, &bink->packet);
 
         if (code < 0 || (uint32_t)code != packet_size || size <= 0) {
             ce_logging_error("bink: codec error while decoding audio");
@@ -1006,41 +953,25 @@ static bool ce_bink_decode(ce_sound_resource* sound_resource)
     // skip video packet
     ce_mem_file_seek(sound_resource->mem_file, frame_size, CE_MEM_FILE_SEEK_CUR);
 
-    return 0 == packet_size ? /* skip to next frame */
-            ce_bink_decode(sound_resource) : true;
+    return 0 == packet_size ? /* skip to next frame */ ce_bink_decode(sound_resource) : true;
 }
 
 static bool ce_bink_reset(ce_sound_resource* sound_resource)
 {
     ce_bink* bink = (ce_bink*)sound_resource->impl;
-
     bink->frame_index = 0;
-
-    ce_mem_file_seek(sound_resource->mem_file,
-        bink->indices[bink->frame_index].pos, CE_MEM_FILE_SEEK_SET);
-
+    ce_mem_file_seek(sound_resource->mem_file, bink->indices[bink->frame_index].pos, CE_MEM_FILE_SEEK_SET);
     return true;
 }
 
 const ce_sound_resource_vtable ce_sound_resource_builtins[] = {
-    {ce_vorbis_test,
-    ce_vorbis_ctor, ce_vorbis_dtor,
-    ce_vorbis_decode, ce_vorbis_reset},
-    {ce_flac_test,
-    ce_flac_ctor, ce_flac_dtor,
-    ce_flac_decode, ce_flac_reset},
-    {ce_wave_test,
-    ce_wave_ctor, NULL,
-    ce_wave_decode, ce_wave_reset},
+    {ce_vorbis_test, ce_vorbis_ctor, ce_vorbis_dtor, ce_vorbis_decode, ce_vorbis_reset},
+    {ce_flac_test, ce_flac_ctor, ce_flac_dtor, ce_flac_decode, ce_flac_reset},
+    {ce_wave_test, ce_wave_ctor, NULL, ce_wave_decode, ce_wave_reset},
 #ifdef CE_ENABLE_PROPRIETARY
-    {ce_mad_test,
-    ce_mad_ctor, ce_mad_dtor,
-    ce_mad_decode, ce_mad_reset},
+    {ce_mad_test, ce_mad_ctor, ce_mad_dtor, ce_mad_decode, ce_mad_reset},
 #endif
-    {ce_bink_test,
-    ce_bink_ctor, ce_bink_dtor,
-    ce_bink_decode, ce_bink_reset},
+    {ce_bink_test, ce_bink_ctor, ce_bink_dtor, ce_bink_decode, ce_bink_reset},
 };
 
-const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT = sizeof(ce_sound_resource_builtins) /
-                                            sizeof(ce_sound_resource_builtins[0]);
+const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT = sizeof(ce_sound_resource_builtins) / sizeof(ce_sound_resource_builtins[0]);
