@@ -193,7 +193,7 @@ static void usage(const char* progname, void* argtable[])
     arg_freetable(ctrtable, sizeof(ctrtable) / sizeof(ctrtable[0]));
 }*/
 
-int main(int argc, char* argv[])
+int main(int CE_UNUSED(argc), char** CE_UNUSED(argv))
 {
     /*struct arg_lit* help = arg_lit0("h", "help", "display this help and exit");
     struct arg_lit* version = arg_lit0("v", "version",
