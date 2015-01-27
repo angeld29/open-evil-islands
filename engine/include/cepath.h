@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 enum {
-	CE_PATH_MAX = 512,
+    CE_PATH_MAX = 512,
 };
 
 extern const char CE_PATH_SEP;
@@ -45,14 +45,14 @@ extern char* ce_path_join_va(char* path, size_t size, va_list args);
 extern char* ce_path_join(char* path, size_t size, ...);
 
 extern char* ce_path_append_ext(char* file_name, size_t size,
-								const char* name, const char* ext);
+                                const char* name, const char* ext);
 extern char* ce_path_remove_ext(char* name, const char* file_name);
 
 extern char* ce_path_normpath(char* path);
 
 extern char* ce_path_find_special1(char* path, size_t size,
-									const char* prefix, const char* name,
-									const char* dirs[], const char* exts[]);
+                                    const char* prefix, const char* name,
+                                    const char* dirs[], const char* exts[]);
 
 #ifdef __cplusplus
 }

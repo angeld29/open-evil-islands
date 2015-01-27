@@ -32,17 +32,17 @@ extern "C" {
 #endif
 
 typedef enum {
-	CE_TEXTURE_WRAP_REPEAT,
-	CE_TEXTURE_WRAP_CLAMP,
-	CE_TEXTURE_WRAP_CLAMP_TO_EDGE,
-	CE_TEXTURE_WRAP_COUNT
+    CE_TEXTURE_WRAP_REPEAT,
+    CE_TEXTURE_WRAP_CLAMP,
+    CE_TEXTURE_WRAP_CLAMP_TO_EDGE,
+    CE_TEXTURE_WRAP_COUNT
 } ce_texture_wrap_mode;
 
 typedef struct {
-	int ref_count;
-	ce_string* name;
-	unsigned int width, height;
-	char impl[];
+    int ref_count;
+    ce_string* name;
+    unsigned int width, height;
+    char impl[];
 } ce_texture;
 
 extern ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile);
@@ -59,8 +59,8 @@ extern void ce_texture_unbind(ce_texture* texture);
 
 static inline ce_texture* ce_texture_add_ref(ce_texture* texture)
 {
-	ce_atomic_inc(int, &texture->ref_count);
-	return texture;
+    ce_atomic_inc(int, &texture->ref_count);
+    return texture;
 }
 
 #ifdef __cplusplus

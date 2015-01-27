@@ -33,20 +33,20 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	int ref_count;
-	ce_figproto* figproto;
-	ce_complection complection;
-	ce_vector* renderitems;
+    int ref_count;
+    ce_figproto* figproto;
+    ce_complection complection;
+    ce_vector* renderitems;
 } ce_figmesh;
 
 extern ce_figmesh* ce_figmesh_new(ce_figproto* figproto,
-									const ce_complection* complection);
+                                    const ce_complection* complection);
 extern void ce_figmesh_del(ce_figmesh* figmesh);
 
 static inline ce_figmesh* ce_figmesh_add_ref(ce_figmesh* figmesh)
 {
-	ce_atomic_inc(int, &figmesh->ref_count);
-	return figmesh;
+    ce_atomic_inc(int, &figmesh->ref_count);
+    return figmesh;
 }
 
 #ifdef __cplusplus

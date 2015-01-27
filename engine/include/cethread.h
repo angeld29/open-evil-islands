@@ -39,8 +39,8 @@ extern void ce_sleep(unsigned int msec);
 */
 
 typedef struct {
-	void (*proc)(void*);
-	void* arg;
+    void (*proc)(void*);
+    void* arg;
 } ce_routine;
 
 extern ce_routine* ce_routine_new(void);
@@ -53,9 +53,9 @@ extern void ce_routine_del(ce_routine* routine);
 typedef unsigned long int ce_thread_id;
 
 typedef struct {
-	ce_thread_id id;
-	ce_routine routine;
-	char impl[];
+    ce_thread_id id;
+    ce_routine routine;
+    char impl[];
 } ce_thread;
 
 extern ce_thread_id ce_thread_self(void);
@@ -70,9 +70,9 @@ extern void ce_thread_exit(ce_thread* thread);
 
 static inline void ce_thread_exit_wait_del(ce_thread* thread)
 {
-	ce_thread_exit(thread);
-	ce_thread_wait(thread);
-	ce_thread_del(thread);
+    ce_thread_exit(thread);
+    ce_thread_wait(thread);
+    ce_thread_del(thread);
 }
 
 /*
@@ -116,9 +116,9 @@ extern void ce_once_exec(ce_once* once, void (*proc)(), void* arg);
 */
 
 typedef struct {
-	size_t available;
-	ce_mutex* mutex;
-	ce_wait_condition* wait_condition;
+    size_t available;
+    ce_mutex* mutex;
+    ce_wait_condition* wait_condition;
 } ce_semaphore;
 
 extern ce_semaphore* ce_semaphore_new(size_t n);
@@ -138,15 +138,15 @@ extern bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n);
 */
 
 extern struct ce_thread_pool {
-	bool done;
-	size_t idle_thread_count;
-	ce_vector* threads;
-	ce_vector* pending_routines;
-	ce_vector* free_routines;
-	ce_mutex* mutex;
-	ce_wait_condition* idle;
-	ce_wait_condition* wait_one;
-	ce_wait_condition* wait_all;
+    bool done;
+    size_t idle_thread_count;
+    ce_vector* threads;
+    ce_vector* pending_routines;
+    ce_vector* free_routines;
+    ce_mutex* mutex;
+    ce_wait_condition* idle;
+    ce_wait_condition* wait_one;
+    ce_wait_condition* wait_all;
 }* ce_thread_pool;
 
 extern void ce_thread_pool_init(size_t thread_count);

@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 extern struct ce_shader_manager {
-	ce_vector* shaders;
+    ce_vector* shaders;
 }* ce_shader_manager;
 
 extern void ce_shader_manager_init(void);

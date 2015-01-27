@@ -45,22 +45,22 @@ extern bool ce_fisequal(float a, float b, float tolerance);
 
 static inline bool ce_fiszero(float a, float tolerance)
 {
-	return ce_fisequal(a, 0.0f, tolerance);
+    return ce_fisequal(a, 0.0f, tolerance);
 }
 
 static inline float ce_lerp(float u, float a, float b)
 {
-	return a + u * (b - a);
+    return a + u * (b - a);
 }
 
 static inline float ce_deg2rad(float angle)
 {
-	return CE_DEG2RAD * angle;
+    return CE_DEG2RAD * angle;
 }
 
 static inline float ce_rad2deg(float angle)
 {
-	return CE_RAD2DEG * angle;
+    return CE_RAD2DEG * angle;
 }
 
 #ifdef __cplusplus

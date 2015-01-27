@@ -33,98 +33,98 @@ static const uint32_t CE_RES_SIGNATURE = 0x19ce23c;
 
 ce_res_file* ce_res_file_new(const char* name, ce_mem_file* mem_file)
 {
-	ce_res_file* res_file = ce_alloc_zero(sizeof(ce_res_file));
-	res_file->name = ce_string_new_str(name);
-	res_file->mem_file = mem_file;
+    ce_res_file* res_file = ce_alloc_zero(sizeof(ce_res_file));
+    res_file->name = ce_string_new_str(name);
+    res_file->mem_file = mem_file;
 
-	uint32_t CE_UNUSED(signature) = ce_mem_file_read_u32le(mem_file);
-	assert(CE_RES_SIGNATURE == signature && "wrong signature");
+    uint32_t CE_UNUSED(signature) = ce_mem_file_read_u32le(mem_file);
+    assert(CE_RES_SIGNATURE == signature && "wrong signature");
 
-	res_file->node_count = ce_mem_file_read_u32le(mem_file);
-	res_file->metadata_offset = ce_mem_file_read_u32le(mem_file);
-	res_file->names_length = ce_mem_file_read_u32le(mem_file);
-	res_file->nodes = ce_alloc_zero(sizeof(ce_res_node) * res_file->node_count);
+    res_file->node_count = ce_mem_file_read_u32le(mem_file);
+    res_file->metadata_offset = ce_mem_file_read_u32le(mem_file);
+    res_file->names_length = ce_mem_file_read_u32le(mem_file);
+    res_file->nodes = ce_alloc_zero(sizeof(ce_res_node) * res_file->node_count);
 
-	ce_mem_file_seek(mem_file, res_file->metadata_offset, CE_MEM_FILE_SEEK_SET);
+    ce_mem_file_seek(mem_file, res_file->metadata_offset, CE_MEM_FILE_SEEK_SET);
 
-	for (size_t i = 0; i < res_file->node_count; ++i) {
-		res_file->nodes[i].next_index = ce_mem_file_read_i32le(mem_file);
-		res_file->nodes[i].data_length = ce_mem_file_read_u32le(mem_file);
-		res_file->nodes[i].data_offset = ce_mem_file_read_u32le(mem_file);
-		res_file->nodes[i].modified = ce_mem_file_read_i32le(mem_file);
-		res_file->nodes[i].name_length = ce_mem_file_read_u16le(mem_file);
-		res_file->nodes[i].name_offset = ce_mem_file_read_u32le(mem_file);
-	}
+    for (size_t i = 0; i < res_file->node_count; ++i) {
+        res_file->nodes[i].next_index = ce_mem_file_read_i32le(mem_file);
+        res_file->nodes[i].data_length = ce_mem_file_read_u32le(mem_file);
+        res_file->nodes[i].data_offset = ce_mem_file_read_u32le(mem_file);
+        res_file->nodes[i].modified = ce_mem_file_read_i32le(mem_file);
+        res_file->nodes[i].name_length = ce_mem_file_read_u16le(mem_file);
+        res_file->nodes[i].name_offset = ce_mem_file_read_u32le(mem_file);
+    }
 
-	res_file->names = ce_alloc(res_file->names_length);
-	ce_mem_file_read(mem_file, res_file->names, 1, res_file->names_length);
+    res_file->names = ce_alloc(res_file->names_length);
+    ce_mem_file_read(mem_file, res_file->names, 1, res_file->names_length);
 
-	for (size_t i = 0; i < res_file->node_count; ++i) {
-		res_file->nodes[i].name = ce_string_new_str_n(res_file->names +
-			res_file->nodes[i].name_offset, res_file->nodes[i].name_length);
-	}
+    for (size_t i = 0; i < res_file->node_count; ++i) {
+        res_file->nodes[i].name = ce_string_new_str_n(res_file->names +
+            res_file->nodes[i].name_offset, res_file->nodes[i].name_length);
+    }
 
-	return res_file;
+    return res_file;
 }
 
 ce_res_file* ce_res_file_new_path(const char* path)
 {
-	ce_mem_file* mem_file = ce_mem_file_new_path(path);
-	if (NULL == mem_file) {
-		return NULL;
-	}
+    ce_mem_file* mem_file = ce_mem_file_new_path(path);
+    if (NULL == mem_file) {
+        return NULL;
+    }
 
-	const char* name = ce_strrpbrk(path, "\\/");
-	if (NULL == name) {
-		name = path;
-	} else {
-		++name;
-	}
+    const char* name = ce_strrpbrk(path, "\\/");
+    if (NULL == name) {
+        name = path;
+    } else {
+        ++name;
+    }
 
-	return ce_res_file_new(name, mem_file);
+    return ce_res_file_new(name, mem_file);
 }
 
 void ce_res_file_del(ce_res_file* res_file)
 {
-	if (NULL != res_file) {
-		ce_mem_file_del(res_file->mem_file);
-		if (NULL != res_file->nodes) {
-			for (size_t i = 0; i < res_file->node_count; ++i) {
-				ce_string_del(res_file->nodes[i].name);
-			}
-			ce_free(res_file->nodes, sizeof(ce_res_node) * res_file->node_count);
-		}
-		ce_free(res_file->names, res_file->names_length);
-		ce_string_del(res_file->name);
-		ce_free(res_file, sizeof(ce_res_file));
-	}
+    if (NULL != res_file) {
+        ce_mem_file_del(res_file->mem_file);
+        if (NULL != res_file->nodes) {
+            for (size_t i = 0; i < res_file->node_count; ++i) {
+                ce_string_del(res_file->nodes[i].name);
+            }
+            ce_free(res_file->nodes, sizeof(ce_res_node) * res_file->node_count);
+        }
+        ce_free(res_file->names, res_file->names_length);
+        ce_string_del(res_file->name);
+        ce_free(res_file, sizeof(ce_res_file));
+    }
 }
 
 static inline int ce_res_name_hash(const char* name, int limit)
 {
-	int sum = 0;
-	while (*name) {
-		sum += tolower(*name++);
-	}
-	return sum % limit;
+    int sum = 0;
+    while (*name) {
+        sum += tolower(*name++);
+    }
+    return sum % limit;
 }
 
 size_t ce_res_file_node_index(const ce_res_file* res_file, const char* name)
 {
-	int index = ce_res_name_hash(name, res_file->node_count);
-	for (const ce_res_node* node; index >= 0; index = node->next_index) {
-		node = res_file->nodes + index;
-		if (0 == ce_strcasecmp(name, node->name->str)) {
-			break;
-		}
-	}
-	return -1 != index ? (size_t)index : res_file->node_count;
+    int index = ce_res_name_hash(name, res_file->node_count);
+    for (const ce_res_node* node; index >= 0; index = node->next_index) {
+        node = res_file->nodes + index;
+        if (0 == ce_strcasecmp(name, node->name->str)) {
+            break;
+        }
+    }
+    return -1 != index ? (size_t)index : res_file->node_count;
 }
 
 void* ce_res_file_node_data(ce_res_file* res_file, size_t index)
 {
-	void* data = ce_alloc(res_file->nodes[index].data_length);
-	ce_mem_file_seek(res_file->mem_file, res_file->nodes[index].data_offset, CE_MEM_FILE_SEEK_SET);
-	ce_mem_file_read(res_file->mem_file, data, 1, res_file->nodes[index].data_length);
-	return data;
+    void* data = ce_alloc(res_file->nodes[index].data_length);
+    ce_mem_file_seek(res_file->mem_file, res_file->nodes[index].data_offset, CE_MEM_FILE_SEEK_SET);
+    ce_mem_file_read(res_file->mem_file, data, 1, res_file->nodes[index].data_length);
+    return data;
 }

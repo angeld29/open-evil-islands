@@ -29,9 +29,9 @@ extern "C" {
 #endif
 
 typedef struct {
-	size_t capacity;
-	size_t count;
-	void** items;
+    size_t capacity;
+    size_t count;
+    void** items;
 } ce_vector;
 
 extern ce_vector* ce_vector_new(void);
@@ -43,12 +43,12 @@ extern void ce_vector_resize(ce_vector* vector, size_t count);
 
 static inline bool ce_vector_empty(const ce_vector* vector)
 {
-	return 0 == vector->count;
+    return 0 == vector->count;
 }
 
 static inline void* ce_vector_back(const ce_vector* vector)
 {
-	return vector->items[vector->count - 1];
+    return vector->items[vector->count - 1];
 }
 
 extern size_t ce_vector_find(const ce_vector* vector, const void* item);
@@ -58,7 +58,7 @@ extern void ce_vector_push_back(ce_vector* vector, void* item);
 
 static inline void* ce_vector_pop_back(ce_vector* vector)
 {
-	return vector->items[--vector->count];
+    return vector->items[--vector->count];
 }
 
 extern void ce_vector_insert(ce_vector* vector, size_t index, void* item);
@@ -67,12 +67,12 @@ extern void ce_vector_remove_all(ce_vector* vector, const void* item);
 
 static inline void ce_vector_remove_unordered(ce_vector* vector, size_t index)
 {
-	vector->items[index] = vector->items[--vector->count];
+    vector->items[index] = vector->items[--vector->count];
 }
 
 static inline void ce_vector_clear(ce_vector* vector)
 {
-	vector->count = 0;
+    vector->count = 0;
 }
 
 extern void ce_vector_for_each(ce_vector* vector, void (*func)());

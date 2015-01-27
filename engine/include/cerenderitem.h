@@ -38,30 +38,30 @@ extern "C"
 typedef struct ce_renderitem ce_renderitem;
 
 typedef struct {
-	void (*ctor)(ce_renderitem* renderitem, va_list args);   // required
-	void (*dtor)(ce_renderitem* renderitem);                 // required
-	void (*update)(ce_renderitem* renderitem, va_list args); // may be NULL
-	void (*render)(ce_renderitem* renderitem);               // required
-	void (*clone)(const ce_renderitem* renderitem,
-					ce_renderitem* clone_renderitem);        // required
+    void (*ctor)(ce_renderitem* renderitem, va_list args);   // required
+    void (*dtor)(ce_renderitem* renderitem);                 // required
+    void (*update)(ce_renderitem* renderitem, va_list args); // may be NULL
+    void (*render)(ce_renderitem* renderitem);               // required
+    void (*clone)(const ce_renderitem* renderitem,
+                    ce_renderitem* clone_renderitem);        // required
 } ce_renderitem_vtable;
 
 struct ce_renderitem {
-	bool visible;
-	ce_aabb aabb;
-	ce_vec3 position;
-	ce_quat orientation;
-	ce_bbox bbox;
-	ce_vec3 world_position;
-	ce_quat world_orientation;
-	ce_bbox world_bbox;
-	ce_renderitem_vtable vtable;
-	size_t size;
-	char impl[];
+    bool visible;
+    ce_aabb aabb;
+    ce_vec3 position;
+    ce_quat orientation;
+    ce_bbox bbox;
+    ce_vec3 world_position;
+    ce_quat world_orientation;
+    ce_bbox world_bbox;
+    ce_renderitem_vtable vtable;
+    size_t size;
+    char impl[];
 };
 
 extern ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable,
-										size_t size, ...);
+                                        size_t size, ...);
 extern void ce_renderitem_del(ce_renderitem* renderitem);
 
 extern void ce_renderitem_update(ce_renderitem* renderitem, ...);

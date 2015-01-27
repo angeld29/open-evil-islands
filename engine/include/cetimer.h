@@ -27,8 +27,8 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	float elapsed;
-	char impl[];
+    float elapsed;
+    char impl[];
 } ce_timer;
 
 extern ce_timer* ce_timer_new(void);

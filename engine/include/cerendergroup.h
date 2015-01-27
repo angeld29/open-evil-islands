@@ -32,9 +32,9 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	int priority;
-	ce_material* material;
-	ce_vector* renderlayers;
+    int priority;
+    ce_material* material;
+    ce_vector* renderlayers;
 } ce_rendergroup;
 
 extern ce_rendergroup* ce_rendergroup_new(int priority, ce_material* material);
@@ -43,7 +43,7 @@ extern void ce_rendergroup_del(ce_rendergroup* rendergroup);
 extern void ce_rendergroup_clear(ce_rendergroup* rendergroup);
 
 extern ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup,
-												ce_texture* texture);
+                                                ce_texture* texture);
 
 extern void ce_rendergroup_render(ce_rendergroup* rendergroup);
 

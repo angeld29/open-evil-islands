@@ -23,9 +23,9 @@
 #include "ceregistry.h"
 
 char* ce_registry_get_string_value(char* CE_UNUSED(value), size_t CE_UNUSED(size),
-									ce_registry_key CE_UNUSED(key),
-									const char* CE_UNUSED(key_name),
-									const char* CE_UNUSED(value_name))
+                                    ce_registry_key CE_UNUSED(key),
+                                    const char* CE_UNUSED(key_name),
+                                    const char* CE_UNUSED(value_name))
 {
-	return NULL;
+    return NULL;
 }

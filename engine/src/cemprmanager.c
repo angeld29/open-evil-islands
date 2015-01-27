@@ -35,39 +35,39 @@ static const char* ce_mpr_exts[] = {".mpr", NULL};
 
 void ce_mpr_manager_init(void)
 {
-	char path[ce_option_manager->ei_path->length + 16];
-	for (size_t i = 0; NULL != ce_mpr_dirs[i]; ++i) {
-		ce_path_join(path, sizeof(path),
-			ce_option_manager->ei_path->str, ce_mpr_dirs[i], NULL);
-		ce_logging_write("mpr manager: using path '%s'", path);
-	}
+    char path[ce_option_manager->ei_path->length + 16];
+    for (size_t i = 0; NULL != ce_mpr_dirs[i]; ++i) {
+        ce_path_join(path, sizeof(path),
+            ce_option_manager->ei_path->str, ce_mpr_dirs[i], NULL);
+        ce_logging_write("mpr manager: using path '%s'", path);
+    }
 
-	ce_mpr_manager = ce_alloc_zero(sizeof(struct ce_mpr_manager));
+    ce_mpr_manager = ce_alloc_zero(sizeof(struct ce_mpr_manager));
 }
 
 void ce_mpr_manager_term(void)
 {
-	if (NULL != ce_mpr_manager) {
-		ce_free(ce_mpr_manager, sizeof(struct ce_mpr_manager));
-	}
+    if (NULL != ce_mpr_manager) {
+        ce_free(ce_mpr_manager, sizeof(struct ce_mpr_manager));
+    }
 }
 
 ce_mprfile* ce_mpr_manager_open(const char* name)
 {
-	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
-	if (NULL == ce_path_find_special1(path, sizeof(path),
-										ce_option_manager->ei_path->str,
-										name, ce_mpr_dirs, ce_mpr_exts)) {
-		return NULL;
-	}
+    char path[ce_option_manager->ei_path->length + strlen(name) + 32];
+    if (NULL == ce_path_find_special1(path, sizeof(path),
+                                        ce_option_manager->ei_path->str,
+                                        name, ce_mpr_dirs, ce_mpr_exts)) {
+        return NULL;
+    }
 
-	ce_res_file* res_file = ce_res_file_new_path(path);
-	if (NULL == res_file) {
-		return NULL;
-	}
+    ce_res_file* res_file = ce_res_file_new_path(path);
+    if (NULL == res_file) {
+        return NULL;
+    }
 
-	ce_mprfile* mprfile = ce_mprfile_open(res_file);
-	ce_res_file_del(res_file);
+    ce_mprfile* mprfile = ce_mprfile_open(res_file);
+    ce_res_file_del(res_file);
 
-	return mprfile;
+    return mprfile;
 }

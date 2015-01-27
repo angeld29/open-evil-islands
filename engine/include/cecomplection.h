@@ -29,12 +29,12 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	float dexterity, strength, height;
+    float dexterity, strength, height;
 } ce_complection;
 
 extern ce_complection*
 ce_complection_init(ce_complection* complection, float dexterity,
-												float strength, float height);
+                                                float strength, float height);
 extern ce_complection*
 ce_complection_init_array(ce_complection* complection, const float* array);
 
@@ -42,7 +42,7 @@ extern ce_complection*
 ce_complection_copy(ce_complection* complection, const ce_complection* other);
 
 extern bool ce_complection_equal(const ce_complection* complection,
-								const ce_complection* other);
+                                const ce_complection* other);
 
 #ifdef __cplusplus
 }

@@ -23,11 +23,11 @@
 
 bool ce_plane_isect_ray(const ce_plane* plane, const ce_ray* ray, ce_vec3* point)
 {
-	float dist = ce_plane_dist_ray(plane, ray);
-	if (dist < 0.0f || ce_fiszero(dist, CE_EPS_E6)) {
-		return false;
-	}
-	ce_vec3_scale(point, dist, &ray->direction);
-	ce_vec3_add(point, &ray->origin, point);
-	return true;
+    float dist = ce_plane_dist_ray(plane, ray);
+    if (dist < 0.0f || ce_fiszero(dist, CE_EPS_E6)) {
+        return false;
+    }
+    ce_vec3_scale(point, dist, &ray->direction);
+    ce_vec3_add(point, &ray->origin, point);
+    return true;
 }

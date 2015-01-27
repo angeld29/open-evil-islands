@@ -26,24 +26,24 @@
 
 ce_fps* ce_fps_new(void)
 {
-	ce_fps* fps = ce_alloc(sizeof(ce_fps));
-	fps->frame_count = 0;
-	fps->time = 0.0f;
-	ce_strlcpy(fps->text, "---", sizeof(fps->text));
-	return fps;
+    ce_fps* fps = ce_alloc(sizeof(ce_fps));
+    fps->frame_count = 0;
+    fps->time = 0.0f;
+    ce_strlcpy(fps->text, "---", sizeof(fps->text));
+    return fps;
 }
 
 void ce_fps_del(ce_fps* fps)
 {
-	ce_free(fps, sizeof(ce_fps));
+    ce_free(fps, sizeof(ce_fps));
 }
 
 void ce_fps_advance(ce_fps* fps, float elapsed)
 {
-	++fps->frame_count;
-	if ((fps->time += elapsed) >= 1.0f) {
-		snprintf(fps->text, sizeof(fps->text), "%d", fps->frame_count);
-		fps->frame_count = 0;
-		fps->time = 0.0f;
-	}
+    ++fps->frame_count;
+    if ((fps->time += elapsed) >= 1.0f) {
+        snprintf(fps->text, sizeof(fps->text), "%d", fps->frame_count);
+        fps->frame_count = 0;
+        fps->time = 0.0f;
+    }
 }

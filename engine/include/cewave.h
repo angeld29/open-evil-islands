@@ -40,55 +40,55 @@ extern "C" {
 #endif
 
 enum {
-	CE_WAVE_FORMAT_PCM = 0x1,
-	CE_WAVE_FORMAT_IMA_ADPCM = 0x11,
+    CE_WAVE_FORMAT_PCM = 0x1,
+    CE_WAVE_FORMAT_IMA_ADPCM = 0x11,
 };
 
 typedef struct {
-	uint8_t four_cc[4];
-	uint32_t size;
+    uint8_t four_cc[4];
+    uint32_t size;
 } ce_wave_riff;
 
 typedef struct {
-	uint8_t four_cc[4];
+    uint8_t four_cc[4];
 } ce_wave_wave;
 
 typedef struct {
-	uint16_t size;
-	uint16_t samples_per_block;
+    uint16_t size;
+    uint16_t samples_per_block;
 } ce_wave_ima_adpcm;
 
 typedef struct {
-	uint8_t four_cc[4];
-	uint32_t size;
-	uint16_t tag;
-	uint16_t channel_count;
-	uint32_t samples_per_sec;
-	uint32_t bytes_per_sec;
-	uint16_t block_align;
-	uint16_t bits_per_sample;
-	union {
-		ce_wave_ima_adpcm ima_adpcm;
-	} extra;
+    uint8_t four_cc[4];
+    uint32_t size;
+    uint16_t tag;
+    uint16_t channel_count;
+    uint32_t samples_per_sec;
+    uint32_t bytes_per_sec;
+    uint16_t block_align;
+    uint16_t bits_per_sample;
+    union {
+        ce_wave_ima_adpcm ima_adpcm;
+    } extra;
 } ce_wave_format;
 
 typedef struct {
-	uint8_t four_cc[4];
-	uint32_t size;
-	uint32_t uncompressed_size;
+    uint8_t four_cc[4];
+    uint32_t size;
+    uint32_t uncompressed_size;
 } ce_wave_fact;
 
 typedef struct {
-	uint8_t four_cc[4];
-	uint32_t size;
+    uint8_t four_cc[4];
+    uint32_t size;
 } ce_wave_data;
 
 typedef struct {
-	ce_wave_riff riff;
-	ce_wave_wave wave;
-	ce_wave_format format;
-	ce_wave_fact fact;
-	ce_wave_data data;
+    ce_wave_riff riff;
+    ce_wave_wave wave;
+    ce_wave_format format;
+    ce_wave_fact fact;
+    ce_wave_data data;
 } ce_wave_header;
 
 extern bool ce_wave_header_read(ce_wave_header* wave_header, ce_mem_file* mem_file);
@@ -97,12 +97,12 @@ extern void ce_wave_ima_adpcm_decode(void* dst, const void* src, const ce_wave_h
 
 static inline size_t ce_wave_ima_adpcm_samples_storage_size(const ce_wave_header* wave_header)
 {
-	return 2 * wave_header->format.extra.ima_adpcm.samples_per_block * wave_header->format.channel_count;
+    return 2 * wave_header->format.extra.ima_adpcm.samples_per_block * wave_header->format.channel_count;
 }
 
 static inline size_t ce_wave_ima_adpcm_block_storage_size(const ce_wave_header* wave_header)
 {
-	return wave_header->format.block_align;
+    return wave_header->format.block_align;
 }
 
 #ifdef __cplusplus

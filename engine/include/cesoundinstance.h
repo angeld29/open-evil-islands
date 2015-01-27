@@ -33,9 +33,9 @@ extern "C" {
 #endif
 
 typedef struct {
-	ce_sound_bundle sound_bundle;
-	ce_sound_resource* sound_resource;
-	ce_sound_buffer* sound_buffer;
+    ce_sound_bundle sound_bundle;
+    ce_sound_resource* sound_resource;
+    ce_sound_buffer* sound_buffer;
 } ce_sound_instance;
 
 extern ce_sound_instance* ce_sound_instance_new(ce_sound_resource* sound_resource);

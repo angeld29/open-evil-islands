@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 extern struct ce_mpr_manager {
-	int stub;
+    int stub;
 }* ce_mpr_manager;
 
 extern void ce_mpr_manager_init(void);

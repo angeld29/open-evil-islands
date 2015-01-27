@@ -26,14 +26,14 @@ extern "C" {
 #endif
 
 typedef struct {
-	struct {
-		unsigned int x, y;
-		unsigned int width, height;
-	} crop_rect;
-	struct {
-		int stride;
-		unsigned char* data;
-	} planes[3];
+    struct {
+        unsigned int x, y;
+        unsigned int width, height;
+    } crop_rect;
+    struct {
+        int stride;
+        unsigned char* data;
+    } planes[3];
 } ce_ycbcr;
 
 #ifdef __cplusplus

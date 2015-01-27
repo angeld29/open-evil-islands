@@ -41,157 +41,157 @@ static const char* ce_figure_resource_names[] = {"figures", "menus", NULL};
 
 static void ce_notify_figproto_created(ce_vector* listeners, ce_figproto* figproto)
 {
-	for (size_t i = 0; i < listeners->count; ++i) {
-		ce_figure_manager_listener* listener = listeners->items[i];
-		if (NULL != listener->figproto_created) {
-			(*listener->figproto_created)(listener->listener, figproto);
-		}
-	}
+    for (size_t i = 0; i < listeners->count; ++i) {
+        ce_figure_manager_listener* listener = listeners->items[i];
+        if (NULL != listener->figproto_created) {
+            (*listener->figproto_created)(listener->listener, figproto);
+        }
+    }
 }
 
 static void ce_notify_figmesh_created(ce_vector* listeners, ce_figmesh* figmesh)
 {
-	for (size_t i = 0; i < listeners->count; ++i) {
-		ce_figure_manager_listener* listener = listeners->items[i];
-		if (NULL != listener->figmesh_created) {
-			(*listener->figmesh_created)(listener->listener, figmesh);
-		}
-	}
+    for (size_t i = 0; i < listeners->count; ++i) {
+        ce_figure_manager_listener* listener = listeners->items[i];
+        if (NULL != listener->figmesh_created) {
+            (*listener->figmesh_created)(listener->listener, figmesh);
+        }
+    }
 }
 
 // TODO: cleanup unused protos and meshes
 
 void ce_figure_manager_init(void)
 {
-	ce_figure_manager = ce_alloc_zero(sizeof(struct ce_figure_manager));
-	ce_figure_manager->res_files = ce_vector_new();
-	ce_figure_manager->figprotos = ce_vector_new();
-	ce_figure_manager->figmeshes = ce_vector_new();
-	ce_figure_manager->entities = ce_vector_new_reserved(512);
-	ce_figure_manager->listeners = ce_vector_new();
+    ce_figure_manager = ce_alloc_zero(sizeof(struct ce_figure_manager));
+    ce_figure_manager->res_files = ce_vector_new();
+    ce_figure_manager->figprotos = ce_vector_new();
+    ce_figure_manager->figmeshes = ce_vector_new();
+    ce_figure_manager->entities = ce_vector_new_reserved(512);
+    ce_figure_manager->listeners = ce_vector_new();
 
-	char path[ce_option_manager->ei_path->length + 32];
+    char path[ce_option_manager->ei_path->length + 32];
 
-	for (size_t i = 0; NULL != ce_figure_resource_dirs[i]; ++i) {
-		ce_path_join(path, sizeof(path),
-			ce_option_manager->ei_path->str, ce_figure_resource_dirs[i], NULL);
-		ce_logging_write("figure manager: using path '%s'", path);
-	}
+    for (size_t i = 0; NULL != ce_figure_resource_dirs[i]; ++i) {
+        ce_path_join(path, sizeof(path),
+            ce_option_manager->ei_path->str, ce_figure_resource_dirs[i], NULL);
+        ce_logging_write("figure manager: using path '%s'", path);
+    }
 
-	for (size_t i = 0; NULL != ce_figure_resource_names[i]; ++i) {
-		ce_res_file* res_file;
-		if (NULL != ce_path_find_special1(path, sizeof(path),
-				ce_option_manager->ei_path->str, ce_figure_resource_names[i],
-				ce_figure_resource_dirs, ce_figure_resource_exts) &&
-				NULL != (res_file = ce_res_file_new_path(path))) {
-			ce_vector_push_back(ce_figure_manager->res_files, res_file);
-			ce_logging_write("figure manager: loading '%s'... ok", path);
-		} else {
-			ce_logging_error("figure manager: loading '%s'... failed", path);
-		}
-	}
+    for (size_t i = 0; NULL != ce_figure_resource_names[i]; ++i) {
+        ce_res_file* res_file;
+        if (NULL != ce_path_find_special1(path, sizeof(path),
+                ce_option_manager->ei_path->str, ce_figure_resource_names[i],
+                ce_figure_resource_dirs, ce_figure_resource_exts) &&
+                NULL != (res_file = ce_res_file_new_path(path))) {
+            ce_vector_push_back(ce_figure_manager->res_files, res_file);
+            ce_logging_write("figure manager: loading '%s'... ok", path);
+        } else {
+            ce_logging_error("figure manager: loading '%s'... failed", path);
+        }
+    }
 }
 
 void ce_figure_manager_term(void)
 {
-	if (NULL != ce_figure_manager) {
-		ce_figure_manager_clear();
-		ce_vector_for_each(ce_figure_manager->figmeshes, ce_figmesh_del);
-		ce_vector_for_each(ce_figure_manager->figprotos, ce_figproto_del);
-		ce_vector_for_each(ce_figure_manager->res_files, ce_res_file_del);
-		ce_vector_del(ce_figure_manager->listeners);
-		ce_vector_del(ce_figure_manager->entities);
-		ce_vector_del(ce_figure_manager->figmeshes);
-		ce_vector_del(ce_figure_manager->figprotos);
-		ce_vector_del(ce_figure_manager->res_files);
-		ce_free(ce_figure_manager, sizeof(struct ce_figure_manager));
-	}
+    if (NULL != ce_figure_manager) {
+        ce_figure_manager_clear();
+        ce_vector_for_each(ce_figure_manager->figmeshes, ce_figmesh_del);
+        ce_vector_for_each(ce_figure_manager->figprotos, ce_figproto_del);
+        ce_vector_for_each(ce_figure_manager->res_files, ce_res_file_del);
+        ce_vector_del(ce_figure_manager->listeners);
+        ce_vector_del(ce_figure_manager->entities);
+        ce_vector_del(ce_figure_manager->figmeshes);
+        ce_vector_del(ce_figure_manager->figprotos);
+        ce_vector_del(ce_figure_manager->res_files);
+        ce_free(ce_figure_manager, sizeof(struct ce_figure_manager));
+    }
 }
 
 void ce_figure_manager_clear(void)
 {
-	ce_vector_for_each(ce_figure_manager->entities, ce_figentity_del);
-	ce_vector_clear(ce_figure_manager->entities);
+    ce_vector_for_each(ce_figure_manager->entities, ce_figentity_del);
+    ce_vector_clear(ce_figure_manager->entities);
 }
 
 ce_figproto* ce_figure_manager_create_proto(const char* name)
 {
-	char true_name[strlen(name) + 1];
-	ce_path_remove_ext(true_name, name);
+    char true_name[strlen(name) + 1];
+    ce_path_remove_ext(true_name, name);
 
-	// find in cache
-	for (size_t i = 0; i < ce_figure_manager->figprotos->count; ++i) {
-		ce_figproto* figproto = ce_figure_manager->figprotos->items[i];
-		if (0 == ce_strcasecmp(true_name, figproto->name->str)) {
-			return figproto;
-		}
-	}
+    // find in cache
+    for (size_t i = 0; i < ce_figure_manager->figprotos->count; ++i) {
+        ce_figproto* figproto = ce_figure_manager->figprotos->items[i];
+        if (0 == ce_strcasecmp(true_name, figproto->name->str)) {
+            return figproto;
+        }
+    }
 
-	char file_name[strlen(name) + 8];
-	ce_path_append_ext(file_name, sizeof(file_name),
-						name, ce_figure_exts[0]);
+    char file_name[strlen(name) + 8];
+    ce_path_append_ext(file_name, sizeof(file_name),
+                        name, ce_figure_exts[0]);
 
-	for (size_t i = 0; i < ce_figure_manager->res_files->count; ++i) {
-		ce_res_file* res_file = ce_figure_manager->res_files->items[i];
-		if (res_file->node_count != ce_res_file_node_index(res_file, file_name)) {
-			ce_figproto* figproto = ce_figproto_new(true_name, res_file);
-			ce_vector_push_back(ce_figure_manager->figprotos, figproto);
-			ce_notify_figproto_created(ce_figure_manager->listeners, figproto);
-			return figproto;
-		}
-	}
+    for (size_t i = 0; i < ce_figure_manager->res_files->count; ++i) {
+        ce_res_file* res_file = ce_figure_manager->res_files->items[i];
+        if (res_file->node_count != ce_res_file_node_index(res_file, file_name)) {
+            ce_figproto* figproto = ce_figproto_new(true_name, res_file);
+            ce_vector_push_back(ce_figure_manager->figprotos, figproto);
+            ce_notify_figproto_created(ce_figure_manager->listeners, figproto);
+            return figproto;
+        }
+    }
 
-	ce_logging_error("figure manager: could not create figure proto '%s'", name);
-	return NULL;
+    ce_logging_error("figure manager: could not create figure proto '%s'", name);
+    return NULL;
 }
 
 ce_figmesh* ce_figure_manager_create_mesh(const char* name,
-										const ce_complection* complection)
+                                        const ce_complection* complection)
 {
-	char true_name[strlen(name) + 1];
-	ce_path_remove_ext(true_name, name);
+    char true_name[strlen(name) + 1];
+    ce_path_remove_ext(true_name, name);
 
-	for (size_t i = 0; i < ce_figure_manager->figmeshes->count; ++i) {
-		ce_figmesh* figmesh = ce_figure_manager->figmeshes->items[i];
-		if (0 == ce_strcasecmp(true_name, figmesh->figproto->name->str) &&
-				ce_complection_equal(complection, &figmesh->complection)) {
-			return figmesh;
-		}
-	}
+    for (size_t i = 0; i < ce_figure_manager->figmeshes->count; ++i) {
+        ce_figmesh* figmesh = ce_figure_manager->figmeshes->items[i];
+        if (0 == ce_strcasecmp(true_name, figmesh->figproto->name->str) &&
+                ce_complection_equal(complection, &figmesh->complection)) {
+            return figmesh;
+        }
+    }
 
-	ce_figproto* figproto = ce_figure_manager_create_proto(name);
-	if (NULL != figproto) {
-		ce_figmesh* figmesh = ce_figmesh_new(figproto, complection);
-		ce_vector_push_back(ce_figure_manager->figmeshes, figmesh);
-		ce_notify_figmesh_created(ce_figure_manager->listeners, figmesh);
-		return figmesh;
-	}
+    ce_figproto* figproto = ce_figure_manager_create_proto(name);
+    if (NULL != figproto) {
+        ce_figmesh* figmesh = ce_figmesh_new(figproto, complection);
+        ce_vector_push_back(ce_figure_manager->figmeshes, figmesh);
+        ce_notify_figmesh_created(ce_figure_manager->listeners, figmesh);
+        return figmesh;
+    }
 
-	ce_logging_error("figure manager: could not create figure mesh '%s'", name);
-	return NULL;
+    ce_logging_error("figure manager: could not create figure mesh '%s'", name);
+    return NULL;
 }
 
 ce_figentity* ce_figure_manager_create_entity(const char* name,
-	const ce_complection* complection,
-	const ce_vec3* position, const ce_quat* orientation,
-	const char* parts[], const char* textures[])
+    const ce_complection* complection,
+    const ce_vec3* position, const ce_quat* orientation,
+    const char* parts[], const char* textures[])
 {
-	ce_figmesh* mesh = ce_figure_manager_create_mesh(name, complection);
-	if (NULL != mesh) {
-		ce_figentity* entity = ce_figentity_new(mesh,
-			position, orientation, parts, textures, NULL);
-		if (NULL != entity) {
-			ce_vector_push_back(ce_figure_manager->entities, entity);
-			return entity;
-		}
-	}
+    ce_figmesh* mesh = ce_figure_manager_create_mesh(name, complection);
+    if (NULL != mesh) {
+        ce_figentity* entity = ce_figentity_new(mesh,
+            position, orientation, parts, textures, NULL);
+        if (NULL != entity) {
+            ce_vector_push_back(ce_figure_manager->entities, entity);
+            return entity;
+        }
+    }
 
-	ce_logging_error("figure manager: could not create figure entity '%s'", name);
-	return NULL;
+    ce_logging_error("figure manager: could not create figure entity '%s'", name);
+    return NULL;
 }
 
 void ce_figure_manager_remove_entity(ce_figentity* entity)
 {
-	ce_vector_remove_all(ce_figure_manager->entities, entity);
-	ce_figentity_del(entity);
+    ce_vector_remove_all(ce_figure_manager->entities, entity);
+    ce_figentity_del(entity);
 }

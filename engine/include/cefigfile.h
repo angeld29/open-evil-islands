@@ -33,32 +33,32 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef float (*ce_figfile_value_callback)(const float* params, size_t stride,
-											const ce_complection* complection);
+                                            const ce_complection* complection);
 
 typedef struct {
-	size_t value_count;
-	ce_figfile_value_callback value_callback;
-	int vertex_count;
-	int normal_count;
-	int texcoord_count;
-	int index_count;
-	int vertex_component_count;
-	int morph_component_count;
-	int user_data_offset;
-	int material_group;
-	int texture_number;
-	float* center;
-	float* min;
-	float* max;
-	float* radius;
-	float* vertices;
-	float* normals;
-	float* texcoords;
-	uint16_t* indices;
-	uint16_t* vertex_components;
-	uint16_t* morph_components;
-	size_t size;
-	void* data;
+    size_t value_count;
+    ce_figfile_value_callback value_callback;
+    int vertex_count;
+    int normal_count;
+    int texcoord_count;
+    int index_count;
+    int vertex_component_count;
+    int morph_component_count;
+    int user_data_offset;
+    int material_group;
+    int texture_number;
+    float* center;
+    float* min;
+    float* max;
+    float* radius;
+    float* vertices;
+    float* normals;
+    float* texcoords;
+    uint16_t* indices;
+    uint16_t* vertex_components;
+    uint16_t* morph_components;
+    size_t size;
+    void* data;
 } ce_figfile;
 
 extern ce_figfile* ce_figfile_open(ce_res_file* res_file, const char* name);

@@ -24,5 +24,5 @@
 
 ce_sound_system_vtable ce_sound_system_platform(void)
 {
-	return ce_sound_system_null();
+    return ce_sound_system_null();
 }

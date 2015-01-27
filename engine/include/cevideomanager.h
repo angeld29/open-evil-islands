@@ -30,8 +30,8 @@ extern "C" {
 #endif
 
 extern struct ce_video_manager {
-	ce_video_object last_video_object;
-	ce_vector* video_instances;
+    ce_video_object last_video_object;
+    ce_vector* video_instances;
 }* ce_video_manager;
 
 extern void ce_video_manager_init(void);

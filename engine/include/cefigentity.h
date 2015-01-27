@@ -38,22 +38,22 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	float height_correction;
-	ce_vec3 position;
-	ce_quat orientation;
-	ce_figmesh* figmesh;
-	ce_figbone* figbone;
-	ce_vector* textures;
-	ce_vector* renderlayers;
-	ce_scenenode* scenenode;
+    float height_correction;
+    ce_vec3 position;
+    ce_quat orientation;
+    ce_figmesh* figmesh;
+    ce_figbone* figbone;
+    ce_vector* textures;
+    ce_vector* renderlayers;
+    ce_scenenode* scenenode;
 } ce_figentity;
 
 extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
-										const ce_vec3* position,
-										const ce_quat* orientation,
-										const char* parts[],
-										const char* textures[],
-										ce_scenenode* scenenode);
+                                        const ce_vec3* position,
+                                        const ce_quat* orientation,
+                                        const char* parts[],
+                                        const char* textures[],
+                                        ce_scenenode* scenenode);
 extern void ce_figentity_del(ce_figentity* figentity);
 
 extern void ce_figentity_fix_height(ce_figentity* figentity, float height);

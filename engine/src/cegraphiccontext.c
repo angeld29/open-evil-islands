@@ -24,14 +24,14 @@
 #include "cegraphiccontext.h"
 
 void ce_graphic_context_visual_info(int id, int db, int sz, int r,
-									int g, int b, int a, int dp, int st)
+                                    int g, int b, int a, int dp, int st)
 {
-	ce_logging_write("graphic context: visual %d chosen", id);
-	ce_logging_write("graphic context: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("graphic context: |   id | db | sz |  r |  g |  b |  a | dp | st |");
-	ce_logging_write("graphic context: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("graphic context: | %4d | %2c | %2d | %2d | %2d | %2d | %2d | %2d | %2d |",
-		id, "ny"[db], sz, r, g, b, a, dp, st);
-	ce_logging_write("graphic context: +------+----+----+----+----+----+----+----+----+");
-	ce_logging_write("graphic context: see GLEW visualinfo for more details");
+    ce_logging_write("graphic context: visual %d chosen", id);
+    ce_logging_write("graphic context: +------+----+----+----+----+----+----+----+----+");
+    ce_logging_write("graphic context: |   id | db | sz |  r |  g |  b |  a | dp | st |");
+    ce_logging_write("graphic context: +------+----+----+----+----+----+----+----+----+");
+    ce_logging_write("graphic context: | %4d | %2c | %2d | %2d | %2d | %2d | %2d | %2d | %2d |",
+        id, "ny"[db], sz, r, g, b, a, dp, st);
+    ce_logging_write("graphic context: +------+----+----+----+----+----+----+----+----+");
+    ce_logging_write("graphic context: see GLEW visualinfo for more details");
 }

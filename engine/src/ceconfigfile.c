@@ -29,176 +29,176 @@
 #include "ceconfigfile.h"
 
 static bool ce_config_file_parse(ce_config_file* config_file,
-									const char* path, FILE* file)
+                                    const char* path, FILE* file)
 {
-	enum {
-		MAX_LINE_SIZE = 256,
-	};
+    enum {
+        MAX_LINE_SIZE = 256,
+    };
 
-	char line[MAX_LINE_SIZE], temp1[MAX_LINE_SIZE], temp2[MAX_LINE_SIZE];
-	ce_config_section* section = NULL;
+    char line[MAX_LINE_SIZE], temp1[MAX_LINE_SIZE], temp2[MAX_LINE_SIZE];
+    ce_config_section* section = NULL;
 
-	for (int line_number = 1; NULL != fgets(temp1, MAX_LINE_SIZE, file); ++line_number) {
-		size_t line_length = strlen(ce_strtrim(line, temp1));
+    for (int line_number = 1; NULL != fgets(temp1, MAX_LINE_SIZE, file); ++line_number) {
+        size_t line_length = strlen(ce_strtrim(line, temp1));
 
-		if (line_length + 1 == MAX_LINE_SIZE) {
-			ce_logging_warning("config file: %s:%d: line is too long: "
-								"'%s', skipped...", path, line_number, line);
-			// FIXME: skip line tail until new line
-			int ch;
-			do {
-				ch = fgetc(file);
-			} while (EOF != ch && '\n' != ch);
-			continue;
-		}
+        if (line_length + 1 == MAX_LINE_SIZE) {
+            ce_logging_warning("config file: %s:%d: line is too long: "
+                                "'%s', skipped...", path, line_number, line);
+            // FIXME: skip line tail until new line
+            int ch;
+            do {
+                ch = fgetc(file);
+            } while (EOF != ch && '\n' != ch);
+            continue;
+        }
 
-		if (0 == line_length || ';' == line[0]) {
-			continue;
-		}
+        if (0 == line_length || ';' == line[0]) {
+            continue;
+        }
 
-		if ('[' == line[0]) {
-			char* rbracket = strrchr(line, ']');
-			if (NULL == rbracket) {
-				ce_logging_error("config file: %s:%d: expected ']': "
-								"'%s'", path, line_number, line);
-				return false;
-			}
+        if ('[' == line[0]) {
+            char* rbracket = strrchr(line, ']');
+            if (NULL == rbracket) {
+                ce_logging_error("config file: %s:%d: expected ']': "
+                                "'%s'", path, line_number, line);
+                return false;
+            }
 
-			// truncate right stuff
-			*(rbracket + 1) = '\0';
-			line_length = strlen(line);
+            // truncate right stuff
+            *(rbracket + 1) = '\0';
+            line_length = strlen(line);
 
-			if (line_length <= 2) {
-				ce_logging_error("config file: %s:%d: unnamed section: "
-									"'%s'", path, line_number, line);
-				return false;
-			}
+            if (line_length <= 2) {
+                ce_logging_error("config file: %s:%d: unnamed section: "
+                                    "'%s'", path, line_number, line);
+                return false;
+            }
 
-			ce_strmid(temp1, line, 1, line_length - 2);
+            ce_strmid(temp1, line, 1, line_length - 2);
 
-			section = ce_alloc(sizeof(ce_config_section));
-			section->name = ce_string_new_str(ce_strtrim(temp2, temp1));
-			section->options = ce_vector_new();
-			ce_vector_push_back(config_file->sections, section);
-		} else {
-			if (NULL == section) {
-				ce_logging_warning("config file: %s:%d: option outside "
-									"of any section: '%s', skipped...",
-									path, line_number, line);
-				continue;
-			}
+            section = ce_alloc(sizeof(ce_config_section));
+            section->name = ce_string_new_str(ce_strtrim(temp2, temp1));
+            section->options = ce_vector_new();
+            ce_vector_push_back(config_file->sections, section);
+        } else {
+            if (NULL == section) {
+                ce_logging_warning("config file: %s:%d: option outside "
+                                    "of any section: '%s', skipped...",
+                                    path, line_number, line);
+                continue;
+            }
 
-			char* eq = strchr(line, '=');
-			if (NULL == eq) {
-				ce_logging_error("config file: %s:%d: expected '=': "
-								"'%s'", path, line_number, line);
-				return false;
-			}
+            char* eq = strchr(line, '=');
+            if (NULL == eq) {
+                ce_logging_error("config file: %s:%d: expected '=': "
+                                "'%s'", path, line_number, line);
+                return false;
+            }
 
-			ce_config_option* option = ce_alloc(sizeof(ce_config_option));
-			option->name = ce_string_new();
-			option->value = ce_string_new();
-			ce_vector_push_back(section->options, option);
+            ce_config_option* option = ce_alloc(sizeof(ce_config_option));
+            option->name = ce_string_new();
+            option->value = ce_string_new();
+            ce_vector_push_back(section->options, option);
 
-			ce_strleft(temp1, line, eq - line);
-			ce_string_assign(option->name, ce_strtrim(temp2, temp1));
+            ce_strleft(temp1, line, eq - line);
+            ce_string_assign(option->name, ce_strtrim(temp2, temp1));
 
-			if (ce_string_empty(option->name)) {
-				ce_logging_warning("config file: %s:%d: missing option name: "
-								"'%s'", path, line_number, line);
-			}
+            if (ce_string_empty(option->name)) {
+                ce_logging_warning("config file: %s:%d: missing option name: "
+                                "'%s'", path, line_number, line);
+            }
 
-			ce_strright(temp1, line, line_length - (eq - line) - 1);
-			ce_string_assign(option->value, ce_strtrim(temp2, temp1));
+            ce_strright(temp1, line, line_length - (eq - line) - 1);
+            ce_string_assign(option->value, ce_strtrim(temp2, temp1));
 
-			if (ce_string_empty(option->value)) {
-				ce_logging_warning("config file: %s:%d: missing option value: "
-								"'%s'", path, line_number, line);
-			}
-		}
-	}
+            if (ce_string_empty(option->value)) {
+                ce_logging_warning("config file: %s:%d: missing option value: "
+                                "'%s'", path, line_number, line);
+            }
+        }
+    }
 
-	return true;
+    return true;
 }
 
 ce_config_file* ce_config_file_open(const char* path)
 {
-	FILE* file = fopen(path, "rt");
-	if (NULL == file) {
-		ce_logging_error("config file: could not open file '%s'", path);
-		return NULL;
-	}
+    FILE* file = fopen(path, "rt");
+    if (NULL == file) {
+        ce_logging_error("config file: could not open file '%s'", path);
+        return NULL;
+    }
 
-	ce_config_file* config_file = ce_alloc(sizeof(ce_config_file));
-	config_file->sections = ce_vector_new();
+    ce_config_file* config_file = ce_alloc(sizeof(ce_config_file));
+    config_file->sections = ce_vector_new();
 
-	if (!ce_config_file_parse(config_file, path, file)) {
-		ce_logging_error("config file: failed to parse '%s'", path);
-		ce_config_file_close(config_file);
-		fclose(file);
-		return NULL;
-	}
+    if (!ce_config_file_parse(config_file, path, file)) {
+        ce_logging_error("config file: failed to parse '%s'", path);
+        ce_config_file_close(config_file);
+        fclose(file);
+        return NULL;
+    }
 
-	fclose(file);
-	return config_file;
+    fclose(file);
+    return config_file;
 }
 
 void ce_config_file_close(ce_config_file* config_file)
 {
-	if (NULL != config_file) {
-		for (size_t i = 0; i < config_file->sections->count; ++i) {
-			ce_config_section* section = config_file->sections->items[i];
-			for (size_t j = 0; j < section->options->count; ++j) {
-				ce_config_option* option = section->options->items[j];
-				ce_string_del(option->value);
-				ce_string_del(option->name);
-				ce_free(option, sizeof(ce_config_option));
-			}
-			ce_vector_del(section->options);
-			ce_string_del(section->name);
-			ce_free(section, sizeof(ce_config_section));
-		}
-		ce_vector_del(config_file->sections);
-		ce_free(config_file, sizeof(ce_config_file));
-	}
+    if (NULL != config_file) {
+        for (size_t i = 0; i < config_file->sections->count; ++i) {
+            ce_config_section* section = config_file->sections->items[i];
+            for (size_t j = 0; j < section->options->count; ++j) {
+                ce_config_option* option = section->options->items[j];
+                ce_string_del(option->value);
+                ce_string_del(option->name);
+                ce_free(option, sizeof(ce_config_option));
+            }
+            ce_vector_del(section->options);
+            ce_string_del(section->name);
+            ce_free(section, sizeof(ce_config_section));
+        }
+        ce_vector_del(config_file->sections);
+        ce_free(config_file, sizeof(ce_config_file));
+    }
 }
 
 size_t ce_config_file_section_index(ce_config_file* config_file,
-									const char* section_name)
+                                    const char* section_name)
 {
-	for (size_t i = 0; i < config_file->sections->count; ++i) {
-		ce_config_section* section = config_file->sections->items[i];
-		if (0 == strcmp(section_name, section->name->str)) {
-			return i;
-		}
-	}
-	return config_file->sections->count;
+    for (size_t i = 0; i < config_file->sections->count; ++i) {
+        ce_config_section* section = config_file->sections->items[i];
+        if (0 == strcmp(section_name, section->name->str)) {
+            return i;
+        }
+    }
+    return config_file->sections->count;
 }
 
 size_t ce_config_file_option_index(ce_config_file* config_file,
-									size_t section_index,
-									const char* option_name)
+                                    size_t section_index,
+                                    const char* option_name)
 {
-	ce_config_section* section = config_file->sections->items[section_index];
-	for (size_t i = 0; i < section->options->count; ++i) {
-		ce_config_option* option = section->options->items[i];
-		if (0 == strcmp(option_name, option->name->str)) {
-			return i;
-		}
-	}
-	return section->options->count;
+    ce_config_section* section = config_file->sections->items[section_index];
+    for (size_t i = 0; i < section->options->count; ++i) {
+        ce_config_option* option = section->options->items[i];
+        if (0 == strcmp(option_name, option->name->str)) {
+            return i;
+        }
+    }
+    return section->options->count;
 }
 
 const char* ce_config_file_find(ce_config_file* config_file,
-								const char* section_name,
-								const char* option_name)
+                                const char* section_name,
+                                const char* option_name)
 {
-	size_t section_index = ce_config_file_section_index(config_file, section_name);
-	if (section_index != ce_config_file_section_count(config_file)) {
-		size_t option_index = ce_config_file_option_index(config_file, section_index, option_name);
-		if (option_index != ce_config_file_option_count(config_file, section_index)) {
-			return ce_config_file_get(config_file, section_index, option_index);
-		}
-	}
-	return NULL;
+    size_t section_index = ce_config_file_section_index(config_file, section_name);
+    if (section_index != ce_config_file_section_count(config_file)) {
+        size_t option_index = ce_config_file_option_index(config_file, section_index, option_name);
+        if (option_index != ce_config_file_option_count(config_file, section_index)) {
+            return ce_config_file_get(config_file, section_index, option_index);
+        }
+    }
+    return NULL;
 }

@@ -30,14 +30,14 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_string* child_name;
-	ce_string* parent_name;
+    ce_string* child_name;
+    ce_string* parent_name;
 } ce_lnklink;
 
 typedef struct {
-	int link_count;
-	int link_index;
-	ce_lnklink* links;
+    int link_count;
+    int link_index;
+    ce_lnklink* links;
 } ce_lnkfile;
 
 extern ce_lnkfile* ce_lnkfile_open(ce_res_file* res_file, const char* name);

@@ -32,8 +32,8 @@ extern "C" {
 #endif
 
 typedef struct {
-	ce_string* name;
-	ce_vector* properties;
+    ce_string* name;
+    ce_vector* properties;
 } ce_object;
 
 extern ce_object* ce_object_new(const char* name);
@@ -43,17 +43,17 @@ extern ce_property* ce_object_find(ce_object* object, const char* name);
 
 static inline bool ce_object_exists(ce_object* object, const char* name)
 {
-	return NULL != ce_object_find(object, name);
+    return NULL != ce_object_find(object, name);
 }
 
 static inline void ce_object_add(ce_object* object, ce_property* property)
 {
-	ce_vector_push_back(object->properties, property);
+    ce_vector_push_back(object->properties, property);
 }
 
 static inline void ce_object_remove(ce_object* object, ce_property* property)
 {
-	ce_vector_remove_all(object->properties, property);
+    ce_vector_remove_all(object->properties, property);
 }
 
 #ifdef __cplusplus

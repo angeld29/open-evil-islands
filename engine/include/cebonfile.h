@@ -31,8 +31,8 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	size_t size;
-	float* bone;
+    size_t size;
+    float* bone;
 } ce_bonfile;
 
 extern ce_bonfile* ce_bonfile_open(ce_res_file* res_file, const char* name);

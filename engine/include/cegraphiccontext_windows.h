@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 struct ce_graphic_context {
-	HGLRC context;
+    HGLRC context;
 };
 
 extern ce_graphic_context* ce_graphic_context_new(HDC dc);

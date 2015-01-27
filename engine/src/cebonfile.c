@@ -27,17 +27,17 @@
 
 ce_bonfile* ce_bonfile_open(ce_res_file* res_file, const char* name)
 {
-	size_t index = ce_res_file_node_index(res_file, name);
-	ce_bonfile* bonfile = ce_alloc(sizeof(ce_bonfile));
-	bonfile->size = ce_res_file_node_size(res_file, index);
-	bonfile->bone = ce_res_file_node_data(res_file, index);
-	return bonfile;
+    size_t index = ce_res_file_node_index(res_file, name);
+    ce_bonfile* bonfile = ce_alloc(sizeof(ce_bonfile));
+    bonfile->size = ce_res_file_node_size(res_file, index);
+    bonfile->bone = ce_res_file_node_data(res_file, index);
+    return bonfile;
 }
 
 void ce_bonfile_close(ce_bonfile* bonfile)
 {
-	if (NULL != bonfile) {
-		ce_free(bonfile->bone, bonfile->size);
-		ce_free(bonfile, sizeof(ce_bonfile));
-	}
+    if (NULL != bonfile) {
+        ce_free(bonfile->bone, bonfile->size);
+        ce_free(bonfile, sizeof(ce_bonfile));
+    }
 }

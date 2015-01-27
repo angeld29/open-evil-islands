@@ -30,9 +30,9 @@ extern "C" {
 #endif
 
 typedef struct {
-	size_t capacity;
-	size_t length;
-	char* str;
+    size_t capacity;
+    size_t length;
+    char* str;
 } ce_string;
 
 extern ce_string* ce_string_new(void);
@@ -45,17 +45,17 @@ extern void ce_string_reserve(ce_string* string, size_t capacity);
 
 static inline bool ce_string_empty(const ce_string* string)
 {
-	return 0 == string->length;
+    return 0 == string->length;
 }
 
 static inline ce_string* ce_string_dup(const ce_string* string)
 {
-	return ce_string_new_str(string->str);
+    return ce_string_new_str(string->str);
 }
 
 static inline ce_string* ce_string_dup_n(const ce_string* string, size_t n)
 {
-	return ce_string_new_str_n(string->str, n);
+    return ce_string_new_str_n(string->str, n);
 }
 
 extern void ce_string_assign(ce_string* string, const char* str);

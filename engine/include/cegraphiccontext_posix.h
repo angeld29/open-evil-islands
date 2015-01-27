@@ -31,16 +31,16 @@ extern "C" {
 #endif
 
 struct ce_graphic_context {
-	int error_base, event_base;
-	int major_version, minor_version;
-	XVisualInfo* visual_info;
-	GLXContext context;
+    int error_base, event_base;
+    int major_version, minor_version;
+    XVisualInfo* visual_info;
+    GLXContext context;
 };
 
 extern ce_graphic_context* ce_graphic_context_new(Display* display);
 
 extern bool ce_graphic_context_make_current(ce_graphic_context* graphic_context,
-									Display* display, GLXDrawable drawable);
+                                    Display* display, GLXDrawable drawable);
 
 #ifdef __cplusplus
 }

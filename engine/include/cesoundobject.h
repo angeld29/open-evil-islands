@@ -46,7 +46,7 @@ extern float ce_sound_object_get_time(ce_sound_object sound_object);
 
 static inline bool ce_sound_object_is_stopped(ce_sound_object sound_object)
 {
-	return CE_SOUND_STATE_STOPPED == ce_sound_object_get_state(sound_object);
+    return CE_SOUND_STATE_STOPPED == ce_sound_object_get_state(sound_object);
 }
 
 #ifdef __cplusplus

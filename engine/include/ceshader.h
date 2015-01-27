@@ -32,21 +32,21 @@ extern "C" {
 #endif
 
 typedef enum {
-	CE_SHADER_TYPE_UNKNOWN,
-	CE_SHADER_TYPE_VERTEX,
-	CE_SHADER_TYPE_FRAGMENT,
-	CE_SHADER_TYPE_COUNT
+    CE_SHADER_TYPE_UNKNOWN,
+    CE_SHADER_TYPE_VERTEX,
+    CE_SHADER_TYPE_FRAGMENT,
+    CE_SHADER_TYPE_COUNT
 } ce_shader_type;
 
 typedef struct {
-	ce_shader_type shader_type;
-	size_t resource_index;
+    ce_shader_type shader_type;
+    size_t resource_index;
 } ce_shader_info;
 
 typedef struct {
-	int ref_count;
-	ce_string* name;
-	char impl[];
+    int ref_count;
+    ce_string* name;
+    char impl[];
 } ce_shader;
 
 extern bool ce_shader_is_available(void);
@@ -61,8 +61,8 @@ extern void ce_shader_unbind(ce_shader* shader);
 
 static inline ce_shader* ce_shader_add_ref(ce_shader* shader)
 {
-	ce_atomic_inc(int, &shader->ref_count);
-	return shader;
+    ce_atomic_inc(int, &shader->ref_count);
+    return shader;
 }
 
 #ifdef __cplusplus

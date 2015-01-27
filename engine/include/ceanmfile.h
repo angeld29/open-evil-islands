@@ -32,16 +32,16 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_string* name;
-	int rotation_frame_count;
-	int translation_frame_count;
-	int morph_frame_count;
-	int morph_vertex_count;
-	float* rotations;
-	float* translations;
-	float* morphs;
-	size_t size;
-	void* data;
+    ce_string* name;
+    int rotation_frame_count;
+    int translation_frame_count;
+    int morph_frame_count;
+    int morph_vertex_count;
+    float* rotations;
+    float* translations;
+    float* morphs;
+    size_t size;
+    void* data;
 } ce_anmfile;
 
 extern ce_anmfile* ce_anmfile_open(ce_res_file* res_file, size_t index);

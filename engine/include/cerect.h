@@ -26,8 +26,8 @@ extern "C" {
 #endif
 
 typedef struct {
-	float x, y;
-	float width, height;
+    float x, y;
+    float width, height;
 } ce_rect;
 
 #ifdef __cplusplus

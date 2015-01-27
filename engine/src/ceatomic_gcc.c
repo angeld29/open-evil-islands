@@ -23,13 +23,13 @@
 #define CE_ATOMIC_DEF_FETCH_AND_OP(type, op) \
 type ce_atomic_fetch_and_##op##_##type(type* ptr, type value) \
 { \
-	return __extension__ __sync_fetch_and_##op(ptr, value); \
+    return __extension__ __sync_fetch_and_##op(ptr, value); \
 }
 
 #define CE_ATOMIC_DEF_OP_AND_FETCH(type, op) \
 type ce_atomic_##op##_and_fetch_##type(type* ptr, type value) \
 { \
-	return __extension__ __sync_##op##_and_fetch(ptr, value); \
+    return __extension__ __sync_##op##_and_fetch(ptr, value); \
 }
 
 #define CE_ATOMIC_DEF_ALL(type) \

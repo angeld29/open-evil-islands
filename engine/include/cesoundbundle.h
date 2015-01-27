@@ -26,8 +26,8 @@ extern "C" {
 #endif
 
 typedef struct {
-	int state;
-	float time;
+    int state;
+    float time;
 } ce_sound_bundle;
 
 extern ce_sound_bundle* ce_sound_bundle_new(void);

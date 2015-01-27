@@ -25,13 +25,13 @@
 
 bool ce_opengl_report_errors(void)
 {
-	bool reported = false;
-	GLenum error;
+    bool reported = false;
+    GLenum error;
 
-	while (GL_NO_ERROR != (error = glGetError())) {
-		ce_logging_error("opengl: error %u: %s", error, gluErrorString(error));
-		reported = true;
-	}
+    while (GL_NO_ERROR != (error = glGetError())) {
+        ce_logging_error("opengl: error %u: %s", error, gluErrorString(error));
+        reported = true;
+    }
 
-	return reported;
+    return reported;
 }

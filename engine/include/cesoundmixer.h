@@ -36,9 +36,9 @@ extern "C" {
 #endif
 
 extern struct ce_sound_mixer {
-	bool done;
-	ce_vector* sound_buffers;
-	ce_thread* thread;
+    bool done;
+    ce_vector* sound_buffers;
+    ce_thread* thread;
 }* ce_sound_mixer;
 
 extern void ce_sound_mixer_init(void);

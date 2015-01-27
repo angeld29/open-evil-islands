@@ -26,31 +26,31 @@
 static const float CE_TIMER_CLOCKS_PER_SEC_INV = 1.0f / CLOCKS_PER_SEC;
 
 typedef struct {
-	clock_t start;
-	clock_t stop;
+    clock_t start;
+    clock_t stop;
 } ce_timer_std;
 
 ce_timer* ce_timer_new(void)
 {
-	return ce_alloc(sizeof(ce_timer) + sizeof(ce_timer_std));
+    return ce_alloc(sizeof(ce_timer) + sizeof(ce_timer_std));
 }
 
 void ce_timer_del(ce_timer* timer)
 {
-	ce_free(timer, sizeof(ce_timer) + sizeof(ce_timer_std));
+    ce_free(timer, sizeof(ce_timer) + sizeof(ce_timer_std));
 }
 
 void ce_timer_start(ce_timer* timer)
 {
-	ce_timer_std* std_timer = (ce_timer_std*)timer->impl;
-	std_timer->start = clock();
+    ce_timer_std* std_timer = (ce_timer_std*)timer->impl;
+    std_timer->start = clock();
 }
 
 float ce_timer_advance(ce_timer* timer)
 {
-	ce_timer_std* std_timer = (ce_timer_std*)timer->impl;
-	std_timer->stop = clock();
-	timer->elapsed = (std_timer->stop - std_timer->start) * CE_TIMER_CLOCKS_PER_SEC_INV;
-	std_timer->start = std_timer->stop;
-	return timer->elapsed;
+    ce_timer_std* std_timer = (ce_timer_std*)timer->impl;
+    std_timer->stop = clock();
+    timer->elapsed = (std_timer->stop - std_timer->start) * CE_TIMER_CLOCKS_PER_SEC_INV;
+    std_timer->start = std_timer->stop;
+    return timer->elapsed;
 }

@@ -28,35 +28,35 @@
 #define CE_LIB_DEF_MIN(T) \
 static inline T ce_min_##T(T a, T b) \
 { \
-	return a < b ? a : b; \
+    return a < b ? a : b; \
 }
 
 #define CE_LIB_DEF_MAX(T) \
 static inline T ce_max_##T(T a, T b) \
 { \
-	return a > b ? a : b; \
+    return a > b ? a : b; \
 }
 
 #define CE_LIB_DEF_CLAMP(T) \
 static inline T ce_clamp_##T(T v, T a, T b) \
 { \
-	return v < a ? a : (v > b ? b : v); \
+    return v < a ? a : (v > b ? b : v); \
 }
 
 #define CE_LIB_DEF_SWAP(T) \
 static inline void ce_swap_##T(T* a, T* b) \
 { \
-	*a ^= *b; /* a' = (a ^ b)           */ \
-	*b ^= *a; /* b' = (b ^ (a ^ b)) = a */ \
-	*a ^= *b; /* a' = (a ^ b) ^ a = b   */ \
+    *a ^= *b; /* a' = (a ^ b)           */ \
+    *b ^= *a; /* b' = (b ^ (a ^ b)) = a */ \
+    *a ^= *b; /* a' = (a ^ b) ^ a = b   */ \
 }
 
 #define CE_LIB_DEF_SWAP_TEMP(T) \
 static inline void ce_swap_temp_##T(T* a, T* b) \
 { \
-	T t = *a; \
-	*a = *b; \
-	*b = t; \
+    T t = *a; \
+    *a = *b; \
+    *b = t; \
 }
 
 #define CE_LIB_DEF_ALL(T) \
@@ -90,32 +90,32 @@ CE_LIB_DEF_SWAP(size_t)
 // only for pointers
 static inline void ce_swap_pointer(void* a, void* b)
 {
-	void **aa = a, **bb = b, *t = *aa;
-	*aa = *bb;
-	*bb = t;
+    void **aa = a, **bb = b, *t = *aa;
+    *aa = *bb;
+    *bb = t;
 }
 
 // is power of two (using 2's complement arithmetic)
 static inline bool ce_ispot(size_t v)
 {
-	return 0 == (v & (v - 1));
+    return 0 == (v & (v - 1));
 }
 
 // next largest power of two (using SWAR algorithm)
 static inline size_t ce_nlpot(size_t v)
 {
-	v |= (v >> 1);
-	v |= (v >> 2);
-	v |= (v >> 4);
-	v |= (v >> 8);
-	v |= (v >> 16);
+    v |= (v >> 1);
+    v |= (v >> 2);
+    v |= (v >> 4);
+    v |= (v >> 8);
+    v |= (v >> 16);
 #if CE_SIZEOF_SIZE_T > 4
-	v |= (v >> 32);
+    v |= (v >> 32);
 #endif
 #if CE_SIZEOF_SIZE_T > 8
-	v |= (v >> 64);
+    v |= (v >> 64);
 #endif
-	return v + 1;
+    return v + 1;
 }
 
 static inline void ce_pass(void) {}

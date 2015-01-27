@@ -37,23 +37,23 @@ extern "C" {
 #endif
 
 typedef struct {
-	ce_string* name;
-	int32_t next_index;
-	uint32_t data_length;
-	uint32_t data_offset;
-	int32_t modified;
-	uint16_t name_length;
-	uint32_t name_offset;
+    ce_string* name;
+    int32_t next_index;
+    uint32_t data_length;
+    uint32_t data_offset;
+    int32_t modified;
+    uint16_t name_length;
+    uint32_t name_offset;
 } ce_res_node;
 
 typedef struct {
-	ce_string* name;
-	uint32_t node_count;
-	uint32_t metadata_offset;
-	uint32_t names_length;
-	char* names;
-	ce_res_node* nodes;
-	ce_mem_file* mem_file;
+    ce_string* name;
+    uint32_t node_count;
+    uint32_t metadata_offset;
+    uint32_t names_length;
+    char* names;
+    ce_res_node* nodes;
+    ce_mem_file* mem_file;
 } ce_res_file;
 
 /*
@@ -67,17 +67,17 @@ extern size_t ce_res_file_node_index(const ce_res_file* res_file, const char* na
 
 static inline const char* ce_res_file_node_name(const ce_res_file* res_file, size_t index)
 {
-	return res_file->nodes[index].name->str;
+    return res_file->nodes[index].name->str;
 }
 
 static inline size_t ce_res_file_node_size(const ce_res_file* res_file, size_t index)
 {
-	return res_file->nodes[index].data_length;
+    return res_file->nodes[index].data_length;
 }
 
 static inline time_t ce_res_file_node_modified(const ce_res_file* res_file, int index)
 {
-	return res_file->nodes[index].modified;
+    return res_file->nodes[index].modified;
 }
 
 extern void* ce_res_file_node_data(ce_res_file* res_file, size_t index);

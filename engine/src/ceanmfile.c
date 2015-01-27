@@ -28,37 +28,37 @@
 
 ce_anmfile* ce_anmfile_open(ce_res_file* res_file, size_t index)
 {
-	ce_anmfile* anmfile = ce_alloc(sizeof(ce_anmfile));
-	anmfile->name = ce_string_dup(res_file->name);
-	anmfile->size = ce_res_file_node_size(res_file, index);
-	anmfile->data = ce_res_file_node_data(res_file, index);
+    ce_anmfile* anmfile = ce_alloc(sizeof(ce_anmfile));
+    anmfile->name = ce_string_dup(res_file->name);
+    anmfile->size = ce_res_file_node_size(res_file, index);
+    anmfile->data = ce_res_file_node_data(res_file, index);
 
-	union {
-		float* f;
-		uint32_t* u32;
-	} ptr = { anmfile->data };
+    union {
+        float* f;
+        uint32_t* u32;
+    } ptr = { anmfile->data };
 
-	anmfile->rotation_frame_count = ce_le2cpu32(*ptr.u32++);
-	anmfile->rotations = ptr.f;
-	ptr.f += 4 * anmfile->rotation_frame_count;
+    anmfile->rotation_frame_count = ce_le2cpu32(*ptr.u32++);
+    anmfile->rotations = ptr.f;
+    ptr.f += 4 * anmfile->rotation_frame_count;
 
-	anmfile->translation_frame_count = ce_le2cpu32(*ptr.u32++);
-	anmfile->translations = ptr.f;
-	ptr.f += 3 * anmfile->translation_frame_count;
+    anmfile->translation_frame_count = ce_le2cpu32(*ptr.u32++);
+    anmfile->translations = ptr.f;
+    ptr.f += 3 * anmfile->translation_frame_count;
 
-	anmfile->morph_frame_count = ce_le2cpu32(*ptr.u32++);
-	anmfile->morph_vertex_count = ce_le2cpu32(*ptr.u32++);
-	anmfile->morphs = 0 != anmfile->morph_frame_count *
-							anmfile->morph_vertex_count ? ptr.f : NULL;
+    anmfile->morph_frame_count = ce_le2cpu32(*ptr.u32++);
+    anmfile->morph_vertex_count = ce_le2cpu32(*ptr.u32++);
+    anmfile->morphs = 0 != anmfile->morph_frame_count *
+                            anmfile->morph_vertex_count ? ptr.f : NULL;
 
-	return anmfile;
+    return anmfile;
 }
 
 void ce_anmfile_close(ce_anmfile* anmfile)
 {
-	if (NULL != anmfile) {
-		ce_free(anmfile->data, anmfile->size);
-		ce_string_del(anmfile->name);
-		ce_free(anmfile, sizeof(ce_anmfile));
-	}
+    if (NULL != anmfile) {
+        ce_free(anmfile->data, anmfile->size);
+        ce_string_del(anmfile->name);
+        ce_free(anmfile, sizeof(ce_anmfile));
+    }
 }

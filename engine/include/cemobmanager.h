@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 extern struct ce_mob_manager {
-	int stub;
+    int stub;
 }* ce_mob_manager;
 
 extern void ce_mob_manager_init(void);

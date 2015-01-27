@@ -32,22 +32,22 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef enum {
-	CE_MATERIAL_MODE_MODULATE,
-	CE_MATERIAL_MODE_DECAL,
-	CE_MATERIAL_MODE_REPLACE,
-	CE_MATERIAL_MODE_COUNT
+    CE_MATERIAL_MODE_MODULATE,
+    CE_MATERIAL_MODE_DECAL,
+    CE_MATERIAL_MODE_REPLACE,
+    CE_MATERIAL_MODE_COUNT
 } ce_material_mode;
 
 typedef struct {
-	ce_material_mode mode;
-	ce_color ambient;
-	ce_color diffuse;
-	ce_color specular;
-	ce_color emission;
-	float shininess;
-	bool alpha_test;
-	bool blend;
-	ce_shader* shader;
+    ce_material_mode mode;
+    ce_color ambient;
+    ce_color diffuse;
+    ce_color specular;
+    ce_color emission;
+    float shininess;
+    bool alpha_test;
+    bool blend;
+    ce_shader* shader;
 } ce_material;
 
 extern ce_material* ce_material_new(void);

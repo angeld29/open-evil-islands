@@ -37,35 +37,35 @@ extern "C" {
 #endif
 
 enum {
-	CE_VIDEO_INSTANCE_CACHE_SIZE = 8,
+    CE_VIDEO_INSTANCE_CACHE_SIZE = 8,
 };
 
 enum {
-	CE_VIDEO_INSTANCE_STATE_STOPPED,
-	CE_VIDEO_INSTANCE_STATE_STOPPING,
-	CE_VIDEO_INSTANCE_STATE_PAUSED,
-	CE_VIDEO_INSTANCE_STATE_PLAYING,
+    CE_VIDEO_INSTANCE_STATE_STOPPED,
+    CE_VIDEO_INSTANCE_STATE_STOPPING,
+    CE_VIDEO_INSTANCE_STATE_PAUSED,
+    CE_VIDEO_INSTANCE_STATE_PLAYING,
 };
 
 typedef struct {
-	bool done;
-	ce_video_object video_object;
-	ce_sound_object sound_object;
-	int state, frame;
-	float play_time, sync_time; // playing/synchronization time in seconds
-	ce_video_resource* video_resource;
-	ce_texture* texture;
-	ce_material* material;
-	ce_mmpfile* rgba_frame;
-	ce_mmpfile* ycbcr_frames[CE_VIDEO_INSTANCE_CACHE_SIZE];
-	ce_semaphore* prepared_frames;
-	ce_semaphore* unprepared_frames;
-	ce_thread* thread;
+    bool done;
+    ce_video_object video_object;
+    ce_sound_object sound_object;
+    int state, frame;
+    float play_time, sync_time; // playing/synchronization time in seconds
+    ce_video_resource* video_resource;
+    ce_texture* texture;
+    ce_material* material;
+    ce_mmpfile* rgba_frame;
+    ce_mmpfile* ycbcr_frames[CE_VIDEO_INSTANCE_CACHE_SIZE];
+    ce_semaphore* prepared_frames;
+    ce_semaphore* unprepared_frames;
+    ce_thread* thread;
 } ce_video_instance;
 
 extern ce_video_instance* ce_video_instance_new(ce_video_object video_object,
-												ce_sound_object sound_object,
-												ce_video_resource* video_resource);
+                                                ce_sound_object sound_object,
+                                                ce_video_resource* video_resource);
 extern void ce_video_instance_del(ce_video_instance* video_instance);
 
 extern void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed);

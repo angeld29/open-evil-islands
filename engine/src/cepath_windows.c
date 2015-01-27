@@ -28,5 +28,5 @@ const char CE_PATH_SEP = '\\';
 
 bool ce_path_exists(const char* path)
 {
-	return INVALID_FILE_ATTRIBUTES != GetFileAttributes(path);
+    return INVALID_FILE_ATTRIBUTES != GetFileAttributes(path);
 }

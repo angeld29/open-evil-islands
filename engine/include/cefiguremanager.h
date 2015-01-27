@@ -33,17 +33,17 @@ extern "C" {
 #endif
 
 typedef struct {
-	void (*figproto_created)(void* listener, ce_figproto* figproto);
-	void (*figmesh_created)(void* listener, ce_figmesh* figmesh);
-	void* listener;
+    void (*figproto_created)(void* listener, ce_figproto* figproto);
+    void (*figmesh_created)(void* listener, ce_figmesh* figmesh);
+    void* listener;
 } ce_figure_manager_listener;
 
 extern struct ce_figure_manager {
-	ce_vector* res_files;
-	ce_vector* figprotos;
-	ce_vector* figmeshes;
-	ce_vector* entities;
-	ce_vector* listeners;
+    ce_vector* res_files;
+    ce_vector* figprotos;
+    ce_vector* figmeshes;
+    ce_vector* entities;
+    ce_vector* listeners;
 }* ce_figure_manager;
 
 extern void ce_figure_manager_init(void);
@@ -53,18 +53,18 @@ extern void ce_figure_manager_clear(void);
 
 static inline void ce_figure_manager_add_listener(ce_figure_manager_listener* listener)
 {
-	ce_vector_push_back(ce_figure_manager->listeners, listener);
+    ce_vector_push_back(ce_figure_manager->listeners, listener);
 }
 
 extern ce_figproto* ce_figure_manager_create_proto(const char* name);
 
 extern ce_figmesh* ce_figure_manager_create_mesh(const char* name,
-												const ce_complection* complection);
+                                                const ce_complection* complection);
 
 extern ce_figentity* ce_figure_manager_create_entity(const char* name,
-	const ce_complection* complection,
-	const ce_vec3* position, const ce_quat* orientation,
-	const char* parts[], const char* textures[]);
+    const ce_complection* complection,
+    const ce_vec3* position, const ce_quat* orientation,
+    const char* parts[], const char* textures[]);
 
 extern void ce_figure_manager_remove_entity(ce_figentity* entity);
 

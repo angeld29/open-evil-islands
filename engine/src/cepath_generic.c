@@ -27,10 +27,10 @@ const char CE_PATH_SEP = '/';
 
 bool ce_path_exists(const char* path)
 {
-	FILE* file = fopen(path, "rb");
-	if (NULL != file) {
-		fclose(file);
-		return true;
-	}
-	return false;
+    FILE* file = fopen(path, "rb");
+    if (NULL != file) {
+        fclose(file);
+        return true;
+    }
+    return false;
 }

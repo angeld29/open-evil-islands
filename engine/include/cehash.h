@@ -31,24 +31,24 @@ extern "C" {
 typedef unsigned long int ce_hash_key;
 
 typedef struct ce_hash_entry {
-	ce_hash_key hash_key;
-	void* value;
-	struct ce_hash_entry* next;
+    ce_hash_key hash_key;
+    void* value;
+    struct ce_hash_entry* next;
 } ce_hash_entry;
 
 typedef struct {
-	size_t item_count;
-	size_t entry_count;
-	void (*item_dtor)(void*);
-	ce_hash_entry* entries[];
+    size_t item_count;
+    size_t entry_count;
+    void (*item_dtor)(void*);
+    ce_hash_entry* entries[];
 } ce_hash;
 
 typedef struct {
-	bool at_end;
-	void* value;
-	size_t index;
-	ce_hash_entry* entry;
-	ce_hash* hash;
+    bool at_end;
+    void* value;
+    size_t index;
+    ce_hash_entry* entry;
+    ce_hash* hash;
 } ce_hash_iter;
 
 extern ce_hash* ce_hash_new(size_t entry_count, void (*item_dtor)());
@@ -56,7 +56,7 @@ extern void ce_hash_del(ce_hash* hash);
 
 static inline bool ce_hash_is_empty(const ce_hash* hash)
 {
-	return 0 == hash->item_count;
+    return 0 == hash->item_count;
 }
 
 extern void ce_hash_insert(ce_hash* hash, ce_hash_key hash_key, void* value);

@@ -30,8 +30,8 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	ce_string* name;
-	ce_value* value;
+    ce_string* name;
+    ce_value* value;
 } ce_property;
 
 extern ce_property* ce_property_new(const char* name, ce_type type);

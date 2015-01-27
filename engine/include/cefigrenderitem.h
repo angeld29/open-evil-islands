@@ -32,7 +32,7 @@ extern "C"
 
 extern ce_renderitem*
 ce_figrenderitem_new(const ce_fignode* fignode,
-					const ce_complection* complection);
+                    const ce_complection* complection);
 
 #ifdef __cplusplus
 }

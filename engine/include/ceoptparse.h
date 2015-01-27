@@ -33,30 +33,30 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	int version_major;
-	int version_minor;
-	int version_patch;
-	ce_string* title;
-	ce_string* brief;
-	ce_vector* argobjects;
-	ce_vector* ctrlobjects;
+    int version_major;
+    int version_minor;
+    int version_patch;
+    ce_string* title;
+    ce_string* brief;
+    ce_vector* argobjects;
+    ce_vector* ctrlobjects;
 } ce_optparse;
 
 extern ce_optparse* ce_optparse_new(void);
 extern void ce_optparse_del(ce_optparse* optparse);
 
 extern void ce_optparse_set_standard_properties(ce_optparse* optparse,
-	int version_major, int version_minor, int version_patch,
-	const char* title, const char* brief);
+    int version_major, int version_minor, int version_patch,
+    const char* title, const char* brief);
 
 extern bool ce_optparse_get(ce_optparse* optparse, const char* name, void* value);
 
 extern void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type,
-							const void* value, bool required, const char* shortopt,
-							const char* longopt, const char* glossary);
+                            const void* value, bool required, const char* shortopt,
+                            const char* longopt, const char* glossary);
 
 extern void ce_optparse_add_control(ce_optparse* optparse,
-									const char* name, const char* glossary);
+                                    const char* name, const char* glossary);
 
 extern bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[]);
 

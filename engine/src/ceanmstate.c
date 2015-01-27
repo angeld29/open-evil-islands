@@ -27,56 +27,56 @@
 
 ce_anmstate* ce_anmstate_new(void)
 {
-	ce_anmstate* anmstate = ce_alloc(sizeof(ce_anmstate));
-	anmstate->anmfile = NULL;
-	return anmstate;
+    ce_anmstate* anmstate = ce_alloc(sizeof(ce_anmstate));
+    anmstate->anmfile = NULL;
+    return anmstate;
 }
 
 void ce_anmstate_del(ce_anmstate* anmstate)
 {
-	if (NULL != anmstate) {
-		ce_free(anmstate, sizeof(ce_anmstate));
-	}
+    if (NULL != anmstate) {
+        ce_free(anmstate, sizeof(ce_anmstate));
+    }
 }
 
 void ce_anmstate_advance(ce_anmstate* anmstate, float distance)
 {
-	if (NULL != anmstate->anmfile) {
-		anmstate->frame += distance;
-		if (anmstate->frame >= anmstate->frame_count) {
-			anmstate->frame = 0.0f;
-		}
+    if (NULL != anmstate->anmfile) {
+        anmstate->frame += distance;
+        if (anmstate->frame >= anmstate->frame_count) {
+            anmstate->frame = 0.0f;
+        }
 
-		anmstate->coef = modff(anmstate->frame, &anmstate->prev_frame);
-		anmstate->next_frame = anmstate->prev_frame + 1.0f;
-		if (anmstate->next_frame >= anmstate->frame_count) {
-			anmstate->next_frame = 0.0f;
-		}
-	}
+        anmstate->coef = modff(anmstate->frame, &anmstate->prev_frame);
+        anmstate->next_frame = anmstate->prev_frame + 1.0f;
+        if (anmstate->next_frame >= anmstate->frame_count) {
+            anmstate->next_frame = 0.0f;
+        }
+    }
 }
 
 bool ce_anmstate_play_animation(ce_anmstate* anmstate,
-								ce_vector* anmfiles,
-								const char* name)
+                                ce_vector* anmfiles,
+                                const char* name)
 {
-	for (size_t i = 0; i < anmfiles->count; ++i) {
-		ce_anmfile* anmfile = anmfiles->items[i];
-		if (0 == ce_strcasecmp(name, anmfile->name->str)) {
-			assert(anmfile->rotation_frame_count ==
-					anmfile->translation_frame_count);
-			anmstate->anmfile = anmfile;
-			anmstate->frame_count = anmfile->rotation_frame_count;
-			anmstate->prev_frame = 0.0f;
-			anmstate->next_frame = 0.0f;
-			anmstate->frame = 0.0f;
-			anmstate->coef = 0.0f;
-			return true;
-		}
-	}
-	return false;
+    for (size_t i = 0; i < anmfiles->count; ++i) {
+        ce_anmfile* anmfile = anmfiles->items[i];
+        if (0 == ce_strcasecmp(name, anmfile->name->str)) {
+            assert(anmfile->rotation_frame_count ==
+                    anmfile->translation_frame_count);
+            anmstate->anmfile = anmfile;
+            anmstate->frame_count = anmfile->rotation_frame_count;
+            anmstate->prev_frame = 0.0f;
+            anmstate->next_frame = 0.0f;
+            anmstate->frame = 0.0f;
+            anmstate->coef = 0.0f;
+            return true;
+        }
+    }
+    return false;
 }
 
 void ce_anmstate_stop_animation(ce_anmstate* anmstate)
 {
-	anmstate->anmfile = NULL;
+    anmstate->anmfile = NULL;
 }

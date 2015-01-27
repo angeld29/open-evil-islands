@@ -26,9 +26,9 @@ extern "C" {
 #endif
 
 enum {
-	CE_SOUND_STATE_STOPPED,
-	CE_SOUND_STATE_PAUSED,
-	CE_SOUND_STATE_PLAYING,
+    CE_SOUND_STATE_STOPPED,
+    CE_SOUND_STATE_PAUSED,
+    CE_SOUND_STATE_PLAYING,
 };
 
 #ifdef __cplusplus

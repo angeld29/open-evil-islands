@@ -27,62 +27,62 @@
 #include "cetimer.h"
 
 typedef struct {
-	struct timeval start;
-	struct timeval stop;
+    struct timeval start;
+    struct timeval stop;
 } ce_timer_posix;
 
 static void ce_timer_get_time_of_day(struct timeval* tv)
 {
-	// FIXME: not POSIX stuff...
+    // FIXME: not POSIX stuff...
 
-	//cpu_set_t old_cpuset, cpuset;
-	//pthread_t thread = pthread_self();
+    //cpu_set_t old_cpuset, cpuset;
+    //pthread_t thread = pthread_self();
 
-	//CPU_ZERO(&cpuset);
-	//CPU_SET(0, &cpuset);
+    //CPU_ZERO(&cpuset);
+    //CPU_SET(0, &cpuset);
 
-	//pthread_getaffinity_np(thread, sizeof(cpu_set_t), &old_cpuset);
-	//pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+    //pthread_getaffinity_np(thread, sizeof(cpu_set_t), &old_cpuset);
+    //pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 
-	gettimeofday(tv, NULL);
+    gettimeofday(tv, NULL);
 
-	//pthread_setaffinity_np(thread, sizeof(cpu_set_t), &old_cpuset);
+    //pthread_setaffinity_np(thread, sizeof(cpu_set_t), &old_cpuset);
 }
 
 ce_timer* ce_timer_new(void)
 {
-	return ce_alloc(sizeof(ce_timer) + sizeof(ce_timer_posix));
+    return ce_alloc(sizeof(ce_timer) + sizeof(ce_timer_posix));
 }
 
 void ce_timer_del(ce_timer* timer)
 {
-	ce_free(timer, sizeof(ce_timer) + sizeof(ce_timer_posix));
+    ce_free(timer, sizeof(ce_timer) + sizeof(ce_timer_posix));
 }
 
 void ce_timer_start(ce_timer* timer)
 {
-	ce_timer_posix* posix_timer = (ce_timer_posix*)timer->impl;
-	ce_timer_get_time_of_day(&posix_timer->start);
+    ce_timer_posix* posix_timer = (ce_timer_posix*)timer->impl;
+    ce_timer_get_time_of_day(&posix_timer->start);
 }
 
 float ce_timer_advance(ce_timer* timer)
 {
-	ce_timer_posix* posix_timer = (ce_timer_posix*)timer->impl;
+    ce_timer_posix* posix_timer = (ce_timer_posix*)timer->impl;
 
-	ce_timer_get_time_of_day(&posix_timer->stop);
+    ce_timer_get_time_of_day(&posix_timer->stop);
 
-	struct timeval diff = {
-		.tv_sec = posix_timer->stop.tv_sec - posix_timer->start.tv_sec,
-		.tv_usec = posix_timer->stop.tv_usec - posix_timer->start.tv_usec,
-	};
+    struct timeval diff = {
+        .tv_sec = posix_timer->stop.tv_sec - posix_timer->start.tv_sec,
+        .tv_usec = posix_timer->stop.tv_usec - posix_timer->start.tv_usec,
+    };
 
-	if (diff.tv_usec < 0) {
-		--diff.tv_sec;
-		diff.tv_usec += 1000000;
-	}
+    if (diff.tv_usec < 0) {
+        --diff.tv_sec;
+        diff.tv_usec += 1000000;
+    }
 
-	timer->elapsed = diff.tv_sec + diff.tv_usec * 1e-6f;
-	posix_timer->start = posix_timer->stop;
+    timer->elapsed = diff.tv_sec + diff.tv_usec * 1e-6f;
+    posix_timer->start = posix_timer->stop;
 
-	return timer->elapsed;
+    return timer->elapsed;
 }

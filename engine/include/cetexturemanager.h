@@ -33,8 +33,8 @@ extern "C" {
 #endif
 
 extern struct ce_texture_manager {
-	ce_vector* res_files;
-	ce_vector* textures;
+    ce_vector* res_files;
+    ce_vector* textures;
 }* ce_texture_manager;
 
 extern void ce_texture_manager_init(void);

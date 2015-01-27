@@ -27,7 +27,7 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	float m[9];
+    float m[9];
 } ce_mat3;
 
 extern const ce_mat3 CE_MAT3_ZERO;

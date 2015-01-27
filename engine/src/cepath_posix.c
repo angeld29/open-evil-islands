@@ -29,6 +29,6 @@ const char CE_PATH_SEP = '/';
 
 bool ce_path_exists(const char* path)
 {
-	struct stat buffer;
-	return 0 == stat(path, &buffer);
+    struct stat buffer;
+    return 0 == stat(path, &buffer);
 }

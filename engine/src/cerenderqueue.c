@@ -27,53 +27,53 @@
 
 ce_renderqueue* ce_renderqueue_new(void)
 {
-	ce_renderqueue* renderqueue = ce_alloc(sizeof(ce_renderqueue));
-	renderqueue->rendergroups = ce_vector_new();
-	return renderqueue;
+    ce_renderqueue* renderqueue = ce_alloc(sizeof(ce_renderqueue));
+    renderqueue->rendergroups = ce_vector_new();
+    return renderqueue;
 }
 
 void ce_renderqueue_del(ce_renderqueue* renderqueue)
 {
-	if (NULL != renderqueue) {
-		ce_vector_for_each(renderqueue->rendergroups, ce_rendergroup_del);
-		ce_vector_del(renderqueue->rendergroups);
-		ce_free(renderqueue, sizeof(ce_renderqueue));
-	}
+    if (NULL != renderqueue) {
+        ce_vector_for_each(renderqueue->rendergroups, ce_rendergroup_del);
+        ce_vector_del(renderqueue->rendergroups);
+        ce_free(renderqueue, sizeof(ce_renderqueue));
+    }
 }
 
 void ce_renderqueue_clear(ce_renderqueue* renderqueue)
 {
-	ce_vector_for_each(renderqueue->rendergroups, ce_rendergroup_clear);
+    ce_vector_for_each(renderqueue->rendergroups, ce_rendergroup_clear);
 }
 
 static int ce_renderqueue_comp(const void* lhs, const void* rhs)
 {
-	return (*(const ce_rendergroup**)lhs)->priority -
-			(*(const ce_rendergroup**)rhs)->priority;
+    return (*(const ce_rendergroup**)lhs)->priority -
+            (*(const ce_rendergroup**)rhs)->priority;
 }
 
 ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue,
-									int priority, ce_material* material)
+                                    int priority, ce_material* material)
 {
-	for (size_t i = 0; i < renderqueue->rendergroups->count; ++i) {
-		ce_rendergroup* rendergroup = renderqueue->rendergroups->items[i];
-		if (priority == rendergroup->priority) {
-			rendergroup->material = material;
-			return rendergroup;
-		}
-	}
+    for (size_t i = 0; i < renderqueue->rendergroups->count; ++i) {
+        ce_rendergroup* rendergroup = renderqueue->rendergroups->items[i];
+        if (priority == rendergroup->priority) {
+            rendergroup->material = material;
+            return rendergroup;
+        }
+    }
 
-	ce_rendergroup* rendergroup = ce_rendergroup_new(priority, material);
-	ce_vector_push_back(renderqueue->rendergroups, rendergroup);
+    ce_rendergroup* rendergroup = ce_rendergroup_new(priority, material);
+    ce_vector_push_back(renderqueue->rendergroups, rendergroup);
 
-	qsort(renderqueue->rendergroups->items,
-		renderqueue->rendergroups->count,
-		sizeof(ce_rendergroup*), ce_renderqueue_comp);
+    qsort(renderqueue->rendergroups->items,
+        renderqueue->rendergroups->count,
+        sizeof(ce_rendergroup*), ce_renderqueue_comp);
 
-	return rendergroup;
+    return rendergroup;
 }
 
 void ce_renderqueue_render(ce_renderqueue* renderqueue)
 {
-	ce_vector_for_each(renderqueue->rendergroups, ce_rendergroup_render);
+    ce_vector_for_each(renderqueue->rendergroups, ce_rendergroup_render);
 }

@@ -32,7 +32,7 @@ extern "C"
 
 extern ce_renderitem*
 ce_mprrenderitem_new(ce_mprfile* mprfile, int sector_x, int sector_z,
-					int water, ce_vector* tile_textures);
+                    int water, ce_vector* tile_textures);
 
 #ifdef __cplusplus
 }

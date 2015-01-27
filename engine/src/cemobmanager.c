@@ -35,30 +35,30 @@ static const char* ce_mob_exts[] = {".mob", NULL};
 
 void ce_mob_manager_init(void)
 {
-	char path[ce_option_manager->ei_path->length + 16];
-	for (size_t i = 0; NULL != ce_mob_dirs[i]; ++i) {
-		ce_path_join(path, sizeof(path),
-			ce_option_manager->ei_path->str, ce_mob_dirs[i], NULL);
-		ce_logging_write("mob manager: using path '%s'", path);
-	}
+    char path[ce_option_manager->ei_path->length + 16];
+    for (size_t i = 0; NULL != ce_mob_dirs[i]; ++i) {
+        ce_path_join(path, sizeof(path),
+            ce_option_manager->ei_path->str, ce_mob_dirs[i], NULL);
+        ce_logging_write("mob manager: using path '%s'", path);
+    }
 
-	ce_mob_manager = ce_alloc_zero(sizeof(struct ce_mob_manager));
+    ce_mob_manager = ce_alloc_zero(sizeof(struct ce_mob_manager));
 }
 
 void ce_mob_manager_term(void)
 {
-	if (NULL != ce_mob_manager) {
-		ce_free(ce_mob_manager, sizeof(struct ce_mob_manager));
-	}
+    if (NULL != ce_mob_manager) {
+        ce_free(ce_mob_manager, sizeof(struct ce_mob_manager));
+    }
 }
 
 ce_mob_file* ce_mob_manager_open(const char* name)
 {
-	char path[ce_option_manager->ei_path->length + strlen(name) + 32];
-	if (NULL != ce_path_find_special1(path, sizeof(path),
-										ce_option_manager->ei_path->str,
-										name, ce_mob_dirs, ce_mob_exts)) {
-		return ce_mob_file_open(path);
-	}
-	return NULL;
+    char path[ce_option_manager->ei_path->length + strlen(name) + 32];
+    if (NULL != ce_path_find_special1(path, sizeof(path),
+                                        ce_option_manager->ei_path->str,
+                                        name, ce_mob_dirs, ce_mob_exts)) {
+        return ce_mob_file_open(path);
+    }
+    return NULL;
 }

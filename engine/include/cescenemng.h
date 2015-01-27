@@ -42,54 +42,54 @@ extern "C" {
 #endif
 
 enum {
-	CE_SCENEMNG_STATE_LOGO,
-	CE_SCENEMNG_STATE_READY,
-	CE_SCENEMNG_STATE_LOADING,
-	CE_SCENEMNG_STATE_PLAYING,
-	CE_SCENEMNG_STATE_COUNT
+    CE_SCENEMNG_STATE_LOGO,
+    CE_SCENEMNG_STATE_READY,
+    CE_SCENEMNG_STATE_LOADING,
+    CE_SCENEMNG_STATE_PLAYING,
+    CE_SCENEMNG_STATE_COUNT
 };
 
 typedef struct {
-	void (*state_changed)(void* listener, int state);
-	void (*advance)(void* listener, float elapsed);
-	void (*render)(void* listener);
-	void* receiver;
+    void (*state_changed)(void* listener, int state);
+    void (*advance)(void* listener, float elapsed);
+    void (*render)(void* listener);
+    void* receiver;
 } ce_scenemng_listener;
 
 typedef struct {
-	ce_thread_id thread_id;
-	int state;
-	float camera_move_sensitivity; // FIXME: hard-coded
-	float camera_zoom_sensitivity; // TODO: make strategy
-	ce_scenenode* scenenode;
-	ce_renderqueue* renderqueue;
-	ce_viewport* viewport;
-	ce_camera* camera;
-	ce_fps* fps;
-	ce_font* font;
-	ce_terrain* terrain;
-	ce_input_supply* input_supply;
-	ce_input_event* skip_logo_event;
-	ce_input_event* pause_event;
-	ce_input_event* move_left_event;
-	ce_input_event* move_up_event;
-	ce_input_event* move_right_event;
-	ce_input_event* move_down_event;
-	ce_input_event* zoom_in_event;
-	ce_input_event* zoom_out_event;
-	ce_input_event* rotate_on_event;
-	ce_scenemng_listener listener;
-	ce_renderwindow_listener renderwindow_listener;
-	ce_figure_manager_listener figure_manager_listener;
-	// TODO: split by states
-	struct {
-		size_t movie_index;
-		ce_video_object video_object;
-	} logo;
-	struct {
-		bool created;
-		ce_video_object video_object;
-	} loading;
+    ce_thread_id thread_id;
+    int state;
+    float camera_move_sensitivity; // FIXME: hard-coded
+    float camera_zoom_sensitivity; // TODO: make strategy
+    ce_scenenode* scenenode;
+    ce_renderqueue* renderqueue;
+    ce_viewport* viewport;
+    ce_camera* camera;
+    ce_fps* fps;
+    ce_font* font;
+    ce_terrain* terrain;
+    ce_input_supply* input_supply;
+    ce_input_event* skip_logo_event;
+    ce_input_event* pause_event;
+    ce_input_event* move_left_event;
+    ce_input_event* move_up_event;
+    ce_input_event* move_right_event;
+    ce_input_event* move_down_event;
+    ce_input_event* zoom_in_event;
+    ce_input_event* zoom_out_event;
+    ce_input_event* rotate_on_event;
+    ce_scenemng_listener listener;
+    ce_renderwindow_listener renderwindow_listener;
+    ce_figure_manager_listener figure_manager_listener;
+    // TODO: split by states
+    struct {
+        size_t movie_index;
+        ce_video_object video_object;
+    } logo;
+    struct {
+        bool created;
+        ce_video_object video_object;
+    } loading;
 } ce_scenemng;
 
 extern ce_scenemng* ce_scenemng_new(void);

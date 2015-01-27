@@ -27,9 +27,9 @@ extern "C"
 #endif /* __cplusplus */
 
 typedef struct {
-	int frame_count;
-	float time;
-	char text[8];
+    int frame_count;
+    float time;
+    char text[8];
 } ce_fps;
 
 extern ce_fps* ce_fps_new(void);

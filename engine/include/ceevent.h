@@ -33,16 +33,16 @@ extern "C" {
 #endif
 
 typedef struct ce_event {
-	void (*notify)(struct ce_event* event);
-	size_t size;
-	char impl[];
+    void (*notify)(struct ce_event* event);
+    size_t size;
+    char impl[];
 } ce_event;
 
 extern ce_event* ce_event_new(void (*notify)(ce_event*), size_t size);
 extern void ce_event_del(ce_event* event);
 
 typedef struct {
-	void* ptr;
+    void* ptr;
 } ce_event_ptr;
 
 /*
@@ -50,19 +50,19 @@ typedef struct {
 */
 
 enum {
-	CE_EVENT_FLAG_ALL_EVENTS = 0x00,
-	CE_EVENT_FLAG_WAIT_FOR_MORE_EVENTS = 0x01,
+    CE_EVENT_FLAG_ALL_EVENTS = 0x00,
+    CE_EVENT_FLAG_WAIT_FOR_MORE_EVENTS = 0x01,
 };
 
 typedef struct {
-	volatile bool interrupt;
-	volatile size_t event_count;
-	ce_thread_id thread_id;
-	ce_timer* timer;
-	ce_mutex* mutex;
-	ce_wait_condition* wait_condition;
-	ce_vector* pending_events;
-	ce_vector* sending_events;
+    volatile bool interrupt;
+    volatile size_t event_count;
+    ce_thread_id thread_id;
+    ce_timer* timer;
+    ce_mutex* mutex;
+    ce_wait_condition* wait_condition;
+    ce_vector* pending_events;
+    ce_vector* sending_events;
 } ce_event_queue;
 
 extern ce_event_queue* ce_event_queue_new(ce_thread_id thread_id);
@@ -84,8 +84,8 @@ extern void ce_event_queue_interrupt(ce_event_queue* queue);
 */
 
 extern struct ce_event_manager {
-	ce_mutex* mutex;
-	ce_vector* event_queues;
+    ce_mutex* mutex;
+    ce_vector* event_queues;
 }* ce_event_manager;
 
 extern void ce_event_manager_init(void);
@@ -103,16 +103,16 @@ extern void ce_event_manager_interrupt(ce_thread_id thread_id);
 
 extern void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event);
 extern void ce_event_manager_post_raw(ce_thread_id thread_id,
-										void (*notify)(ce_event*),
-										const void* impl, size_t size);
+                                        void (*notify)(ce_event*),
+                                        const void* impl, size_t size);
 
 extern void ce_event_manager_post_ptr(ce_thread_id thread_id,
-										void (*notify)(ce_event*), void* ptr);
+                                        void (*notify)(ce_event*), void* ptr);
 
 static inline void ce_event_manager_post_call(ce_thread_id thread_id,
-												void (*notify)(ce_event*))
+                                                void (*notify)(ce_event*))
 {
-	ce_event_manager_post_event(thread_id, ce_event_new(notify, 0));
+    ce_event_manager_post_event(thread_id, ce_event_new(notify, 0));
 }
 
 #ifdef __cplusplus

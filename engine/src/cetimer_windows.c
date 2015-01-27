@@ -30,54 +30,54 @@
 #include "cetimer.h"
 
 typedef struct {
-	float frequency_inv;
-	LARGE_INTEGER start;
-	LARGE_INTEGER stop;
+    float frequency_inv;
+    LARGE_INTEGER start;
+    LARGE_INTEGER stop;
 } ce_timer_win;
 
 static LONGLONG ce_timer_query_frequency(void)
 {
-	LARGE_INTEGER frequency;
-	if (QueryPerformanceFrequency(&frequency)) {
-		return frequency.QuadPart;
-	}
-	ce_error_report_windows_last("timer");
-	ce_logging_warning("timer: using default frequency");
-	return 1000000;
+    LARGE_INTEGER frequency;
+    if (QueryPerformanceFrequency(&frequency)) {
+        return frequency.QuadPart;
+    }
+    ce_error_report_windows_last("timer");
+    ce_logging_warning("timer: using default frequency");
+    return 1000000;
 }
 
 static void ce_timer_query_counter(LARGE_INTEGER* value)
 {
-	DWORD_PTR old_mask = SetThreadAffinityMask(GetCurrentThread(), 0);
-	QueryPerformanceCounter(value);
-	SetThreadAffinityMask(GetCurrentThread(), old_mask);
+    DWORD_PTR old_mask = SetThreadAffinityMask(GetCurrentThread(), 0);
+    QueryPerformanceCounter(value);
+    SetThreadAffinityMask(GetCurrentThread(), old_mask);
 }
 
 ce_timer* ce_timer_new(void)
 {
-	ce_timer* timer = ce_alloc(sizeof(ce_timer) + sizeof(ce_timer_win));
-	ce_timer_win* win_timer = (ce_timer_win*)timer->impl;
-	win_timer->frequency_inv = 1.0f / ce_timer_query_frequency();
-	return timer;
+    ce_timer* timer = ce_alloc(sizeof(ce_timer) + sizeof(ce_timer_win));
+    ce_timer_win* win_timer = (ce_timer_win*)timer->impl;
+    win_timer->frequency_inv = 1.0f / ce_timer_query_frequency();
+    return timer;
 }
 
 void ce_timer_del(ce_timer* timer)
 {
-	ce_free(timer, sizeof(ce_timer) + sizeof(ce_timer_win));
+    ce_free(timer, sizeof(ce_timer) + sizeof(ce_timer_win));
 }
 
 void ce_timer_start(ce_timer* timer)
 {
-	ce_timer_win* win_timer = (ce_timer_win*)timer->impl;
-	ce_timer_query_counter(&win_timer->start);
+    ce_timer_win* win_timer = (ce_timer_win*)timer->impl;
+    ce_timer_query_counter(&win_timer->start);
 }
 
 float ce_timer_advance(ce_timer* timer)
 {
-	ce_timer_win* win_timer = (ce_timer_win*)timer->impl;
-	ce_timer_query_counter(&win_timer->stop);
-	timer->elapsed = (win_timer->stop.QuadPart -
-					win_timer->start.QuadPart) * win_timer->frequency_inv;
-	win_timer->start = win_timer->stop;
-	return timer->elapsed;
+    ce_timer_win* win_timer = (ce_timer_win*)timer->impl;
+    ce_timer_query_counter(&win_timer->stop);
+    timer->elapsed = (win_timer->stop.QuadPart -
+                    win_timer->start.QuadPart) * win_timer->frequency_inv;
+    win_timer->start = win_timer->stop;
+    return timer->elapsed;
 }

@@ -26,13 +26,13 @@
 
 void ce_error_report_windows_last(const char* module)
 {
-	LPVOID buffer = NULL;
-	if (0 != FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-							FORMAT_MESSAGE_FROM_SYSTEM |
-							FORMAT_MESSAGE_IGNORE_INSERTS,
-							NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL,
-							SUBLANG_DEFAULT), buffer, 0, NULL)) {
-		ce_logging_error("%s: %s", module, buffer);
-	}
-	LocalFree(buffer);
+    LPVOID buffer = NULL;
+    if (0 != FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                            FORMAT_MESSAGE_FROM_SYSTEM |
+                            FORMAT_MESSAGE_IGNORE_INSERTS,
+                            NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL,
+                            SUBLANG_DEFAULT), buffer, 0, NULL)) {
+        ce_logging_error("%s: %s", module, buffer);
+    }
+    LocalFree(buffer);
 }

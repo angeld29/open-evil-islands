@@ -28,40 +28,40 @@
 
 ce_lnkfile* ce_lnkfile_open(ce_res_file* res_file, const char* name)
 {
-	size_t index = ce_res_file_node_index(res_file, name);
-	size_t size = ce_res_file_node_size(res_file, index);
-	void* data = ce_res_file_node_data(res_file, index);
+    size_t index = ce_res_file_node_index(res_file, name);
+    size_t size = ce_res_file_node_size(res_file, index);
+    void* data = ce_res_file_node_data(res_file, index);
 
-	union {
-		char* c;
-		uint32_t* u32;
-	} ptr = { data };
+    union {
+        char* c;
+        uint32_t* u32;
+    } ptr = { data };
 
-	ce_lnkfile* lnkfile = ce_alloc(sizeof(ce_lnkfile));
-	lnkfile->link_count = ce_le2cpu32(*ptr.u32++);
-	lnkfile->link_index = 0;
-	lnkfile->links = ce_alloc(sizeof(ce_lnklink) * lnkfile->link_count);
+    ce_lnkfile* lnkfile = ce_alloc(sizeof(ce_lnkfile));
+    lnkfile->link_count = ce_le2cpu32(*ptr.u32++);
+    lnkfile->link_index = 0;
+    lnkfile->links = ce_alloc(sizeof(ce_lnklink) * lnkfile->link_count);
 
-	for (int i = 0, length; i < lnkfile->link_count; ++i, ptr.c += length) {
-		length = ce_le2cpu32(*ptr.u32++);
-		lnkfile->links[i].child_name = ce_string_new_str_n(ptr.c, length);
-		ptr.c += length;
-		length = ce_le2cpu32(*ptr.u32++);
-		lnkfile->links[i].parent_name = ce_string_new_str_n(ptr.c, length);
-	}
+    for (int i = 0, length; i < lnkfile->link_count; ++i, ptr.c += length) {
+        length = ce_le2cpu32(*ptr.u32++);
+        lnkfile->links[i].child_name = ce_string_new_str_n(ptr.c, length);
+        ptr.c += length;
+        length = ce_le2cpu32(*ptr.u32++);
+        lnkfile->links[i].parent_name = ce_string_new_str_n(ptr.c, length);
+    }
 
-	ce_free(data, size);
-	return lnkfile;
+    ce_free(data, size);
+    return lnkfile;
 }
 
 void ce_lnkfile_close(ce_lnkfile* lnkfile)
 {
-	if (NULL != lnkfile) {
-		for (int i = 0; i < lnkfile->link_count; ++i) {
-			ce_string_del(lnkfile->links[i].parent_name);
-			ce_string_del(lnkfile->links[i].child_name);
-		}
-		ce_free(lnkfile->links, sizeof(ce_lnklink) * lnkfile->link_count);
-		ce_free(lnkfile, sizeof(ce_lnkfile));
-	}
+    if (NULL != lnkfile) {
+        for (int i = 0; i < lnkfile->link_count; ++i) {
+            ce_string_del(lnkfile->links[i].parent_name);
+            ce_string_del(lnkfile->links[i].child_name);
+        }
+        ce_free(lnkfile->links, sizeof(ce_lnklink) * lnkfile->link_count);
+        ce_free(lnkfile, sizeof(ce_lnkfile));
+    }
 }

@@ -29,8 +29,8 @@ extern "C" {
 #endif
 
 typedef struct {
-	ce_aabb aabb;
-	ce_quat axis;
+    ce_aabb aabb;
+    ce_quat axis;
 } ce_bbox;
 
 extern ce_bbox* ce_bbox_clear(ce_bbox* bbox);

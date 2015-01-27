@@ -28,29 +28,29 @@
 
 void ce_error_report_c_last(const char* module)
 {
-	ce_error_report_c_errno(errno, module);
+    ce_error_report_c_errno(errno, module);
 }
 
 void ce_error_report_c_errno(int code, const char* module)
 {
 #ifdef _POSIX_C_SOURCE
-	for (size_t length = 16, limit = 512; length <= limit; length <<= 1) {
-		char buffer[length];
-		switch (strerror_r(code, buffer, length)) {
-		case 0:
-			ce_logging_error("%s: %s", module, buffer);
-			return;
-		case ERANGE:
-			// try again
-			break;
-		case EINVAL:
-			ce_logging_critical("error: %d is not a valid error number", code);
-		default:
-			return;
-		}
-	}
+    for (size_t length = 16, limit = 512; length <= limit; length <<= 1) {
+        char buffer[length];
+        switch (strerror_r(code, buffer, length)) {
+        case 0:
+            ce_logging_error("%s: %s", module, buffer);
+            return;
+        case ERANGE:
+            // try again
+            break;
+        case EINVAL:
+            ce_logging_critical("error: %d is not a valid error number", code);
+        default:
+            return;
+        }
+    }
 #else
-	// FIXME: strerror is not required to be reentrant
-	ce_logging_error("%s: %s", module, strerror(code));
+    // FIXME: strerror is not required to be reentrant
+    ce_logging_error("%s: %s", module, strerror(code));
 #endif
 }
