@@ -40,7 +40,7 @@ def configure(env):
 
         env.AppendUnique(
                 CFLAGS=["-std=c99"],
-                CCFLAGS=["-pipe", "-pedantic-errors"],
+                CCFLAGS=["-pipe", "-pedantic-errors", "-ffast-math"],
                 CPPDEFINES=[
                         "CE_THREAD=__thread",
                         "CE_UNUSED(X)=X __attribute__((unused))",
