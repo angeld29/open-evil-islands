@@ -23,28 +23,28 @@ import cetools
 import ceoggenc
 
 def tune_oggenc(env):
-	env.Replace(
-		OGGENCFLAGS="--quality=$WAV2OGAQUALITY",
-		OGGENCSOURCE="$WAV2OGASOURCE",
+    env.Replace(
+        OGGENCFLAGS="--quality=$WAV2OGAQUALITY",
+        OGGENCSOURCE="$WAV2OGASOURCE",
 
-		WAV2OGACOM="$OGGENCCOM",
-		WAV2OGACOMSTR="$OGGENCCOMSTR",
-	)
+        WAV2OGACOM="$OGGENCCOM",
+        WAV2OGACOMSTR="$OGGENCCOMSTR",
+    )
 
-	env["BUILDERS"]["Wav2Oga"] = env["BUILDERS"]["OggEnc"]
+    env["BUILDERS"]["Wav2Oga"] = env["BUILDERS"]["OggEnc"]
 
 codecs = {
-	ceoggenc.UTILITY: (ceoggenc, tune_oggenc),
+    ceoggenc.UTILITY: (ceoggenc, tune_oggenc),
 }
 
 def generate(env):
-	env.SetDefault(
-		WAV2OGACODEC="auto",
-		WAV2OGAQUALITY="3",
-		WAV2OGASOURCE="$SOURCE",
-	)
+    env.SetDefault(
+        WAV2OGACODEC="auto",
+        WAV2OGAQUALITY="3",
+        WAV2OGASOURCE="$SOURCE",
+    )
 
-	cetools.generate_codec("wav2oga", codecs, "$WAV2OGACODEC", env)
+    cetools.generate_codec("wav2oga", codecs, "$WAV2OGACODEC", env)
 
 def exists(env):
-	return cetools.codec_exists(codecs, env)
+    return cetools.codec_exists(codecs, env)

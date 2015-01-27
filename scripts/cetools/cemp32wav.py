@@ -27,40 +27,40 @@ import cempg123
 import cempg321
 
 def tune_madplay(env):
-	env.Replace(
-		MADPLAYFLAGS="--verbose --display-time=remaining",
-		MADPLAYTYPE="wave",
-		MADPLAYTARGET="$MP32WAVTARGET",
+    env.Replace(
+        MADPLAYFLAGS="--verbose --display-time=remaining",
+        MADPLAYTYPE="wave",
+        MADPLAYTARGET="$MP32WAVTARGET",
 
-		MP32WAVCOM="$MADPLAYCOM",
-		MP32WAVCOMSTR="$MADPLAYCOMSTR",
-	)
+        MP32WAVCOM="$MADPLAYCOM",
+        MP32WAVCOMSTR="$MADPLAYCOMSTR",
+    )
 
-	env["BUILDERS"]["Mp32Wav"] = env["BUILDERS"]["MadPlay"]
+    env["BUILDERS"]["Mp32Wav"] = env["BUILDERS"]["MadPlay"]
 
 def tune_mpg12321(env):
-	env.Replace(
-		MPG123FLAGS="--verbose -w $MP32WAVTARGET",
+    env.Replace(
+        MPG123FLAGS="--verbose -w $MP32WAVTARGET",
 
-		MP32WAVCOM="$MPG123COM",
-		MP32WAVCOMSTR="$MPG123COMSTR",
-	)
+        MP32WAVCOM="$MPG123COM",
+        MP32WAVCOMSTR="$MPG123COMSTR",
+    )
 
-	env["BUILDERS"]["Mp32Wav"] = env["BUILDERS"]["Mpg123"]
+    env["BUILDERS"]["Mp32Wav"] = env["BUILDERS"]["Mpg123"]
 
 codecs = {
-	cemadplay.UTILITY: (cemadplay, tune_madplay),
-	cempg123.UTILITY: (cempg123, tune_mpg12321),
-	cempg321.UTILITY: (cempg321, tune_mpg12321),
+    cemadplay.UTILITY: (cemadplay, tune_madplay),
+    cempg123.UTILITY: (cempg123, tune_mpg12321),
+    cempg321.UTILITY: (cempg321, tune_mpg12321),
 }
 
 def generate(env):
-	env.SetDefault(
-		MP32WAVCODEC="auto",
-		MP32WAVTARGET="$TARGET",
-	)
+    env.SetDefault(
+        MP32WAVCODEC="auto",
+        MP32WAVTARGET="$TARGET",
+    )
 
-	cetools.generate_codec("mp32wav", codecs, "$MP32WAVCODEC", env)
+    cetools.generate_codec("mp32wav", codecs, "$MP32WAVCODEC", env)
 
 def exists(env):
-	return cetools.codec_exists(codecs, env)
+    return cetools.codec_exists(codecs, env)

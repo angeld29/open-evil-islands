@@ -24,37 +24,37 @@ import SCons
 UTILITY = "madplay"
 
 def detect(env):
-	return env.WhereIs(UTILITY)
+    return env.WhereIs(UTILITY)
 
 def generate(env):
-	env.SetDefault(
-		MADPLAY=detect(env),
+    env.SetDefault(
+        MADPLAY=detect(env),
 
-		MADPLAYFLAGS="",
-		MADPLAYTYPE="null",
+        MADPLAYFLAGS="",
+        MADPLAYTYPE="null",
 
-		MADPLAYTARGET="$TARGET",
-		MADPLAYSOURCE="$SOURCE",
+        MADPLAYTARGET="$TARGET",
+        MADPLAYSOURCE="$SOURCE",
 
-		MADPLAYCOM="$MADPLAY $MADPLAYFLAGS -o $MADPLAYTYPE:$MADPLAYTARGET $MADPLAYSOURCE",
-		MADPLAYCOMSTR="",
+        MADPLAYCOM="$MADPLAY $MADPLAYFLAGS -o $MADPLAYTYPE:$MADPLAYTARGET $MADPLAYSOURCE",
+        MADPLAYCOMSTR="",
 
-		MADPLAYPREFIX="",
-		MADPLAYSUFFIX="",
-		MADPLAYSRCSUFFIX="",
-	)
+        MADPLAYPREFIX="",
+        MADPLAYSUFFIX="",
+        MADPLAYSRCSUFFIX="",
+    )
 
-	env.Append(
-		BUILDERS={
-			"MadPlay": SCons.Builder.Builder(
-				action=SCons.Action.Action("$MADPLAYCOM", "$MADPLAYCOMSTR"),
-				prefix="$MADPLAYPREFIX",
-				suffix="$MADPLAYSUFFIX",
-				src_suffix="$MADPLAYSRCSUFFIX",
-				single_source=True,
-			),
-		},
-	)
+    env.Append(
+        BUILDERS={
+            "MadPlay": SCons.Builder.Builder(
+                action=SCons.Action.Action("$MADPLAYCOM", "$MADPLAYCOMSTR"),
+                prefix="$MADPLAYPREFIX",
+                suffix="$MADPLAYSUFFIX",
+                src_suffix="$MADPLAYSRCSUFFIX",
+                single_source=True,
+            ),
+        },
+    )
 
 def exists(env):
-	return detect(env)
+    return detect(env)

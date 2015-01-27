@@ -24,32 +24,31 @@ import os
 import SCons.Util
 
 def detect(env):
-	for variants in ((cpu, kernel) for cpu in xrange(3, 7)
-										for kernel in ("", "msvc")):
-		key_name = "i%d86-mingw32%s" % variants
-		key_program = key_name + "-gcc"
-		key_program = env.WhereIs(key_program) or SCons.Util.WhereIs(key_program)
-		if key_program is not None:
-			return key_name
-	return None
+    for variants in ((cpu, kernel) for cpu in xrange(3, 7) for kernel in ("", "msvc")):
+        key_name = "i%d86-mingw32%s" % variants
+        key_program = key_name + "-gcc"
+        key_program = env.WhereIs(key_program) or SCons.Util.WhereIs(key_program)
+        if key_program is not None:
+            return key_name
+    return None
 
 def generate(env):
-	base_name = detect(env) or "mingw32"
+    base_name = detect(env) or "mingw32"
 
-	env["CC"] = base_name + "-gcc"
-	env["CXX"] = base_name + "-g++"
-	env["AS"] = base_name + "-as"
-	env["RC"] = base_name + "-windres"
-	env["AR"] = base_name + "-ar"
-	env["RANLIB"] = base_name + "-ranlib"
+    env["CC"] = base_name + "-gcc"
+    env["CXX"] = base_name + "-g++"
+    env["AS"] = base_name + "-as"
+    env["RC"] = base_name + "-windres"
+    env["AR"] = base_name + "-ar"
+    env["RANLIB"] = base_name + "-ranlib"
 
-	env["SHLIBSUFFIX"] = ".dll"
-	env["PROGSUFFIX"] = ".exe"
+    env["SHLIBSUFFIX"] = ".dll"
+    env["PROGSUFFIX"] = ".exe"
 
-	env.AppendUnique(
-		CPPPATH=[os.path.join(os.sep, "usr", "local", base_name, "include")],
-		LIBPATH=[os.path.join(os.sep, "usr", "local", base_name, "lib")],
-	)
+    env.AppendUnique(
+        CPPPATH=[os.path.join(os.sep, "usr", "local", base_name, "include")],
+        LIBPATH=[os.path.join(os.sep, "usr", "local", base_name, "lib")],
+    )
 
 def exists(env):
-	return detect(env)
+    return detect(env)

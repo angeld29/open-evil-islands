@@ -28,11 +28,11 @@ import cecompilers.cemingw
 import cegraphlibs.ceopengl
 
 def configure(env):
-	if env["PLATFORM"] != "win32":
-		ceerrors.interrupt("%s: this host is available only on Windows", env["HOST"])
+    if env["PLATFORM"] != "win32":
+        ceerrors.interrupt("%s: this host is available only on Windows", env["HOST"])
 
-	logging.info("%s: using Windows with MinGW x86 compiler", env["HOST"])
+    logging.info("%s: using Windows with MinGW x86 compiler", env["HOST"])
 
-	ceplatforms.cewindows.configure(env)
-	cecompilers.cemingw.configure(env)
-	cegraphlibs.ceopengl.configure(env)
+    ceplatforms.cewindows.configure(env)
+    cecompilers.cemingw.configure(env)
+    cegraphlibs.ceopengl.configure(env)

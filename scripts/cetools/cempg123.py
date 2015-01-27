@@ -24,34 +24,34 @@ import SCons
 UTILITY = "mpg123"
 
 def detect(env):
-	return env.WhereIs(UTILITY)
+    return env.WhereIs(UTILITY)
 
 def generate(env):
-	env.SetDefault(
-		MPG123=detect(env),
+    env.SetDefault(
+        MPG123=detect(env),
 
-		MPG123FLAGS="",
-		MPG123SOURCE="$SOURCE",
+        MPG123FLAGS="",
+        MPG123SOURCE="$SOURCE",
 
-		MPG123COM="$MPG123 $MPG123FLAGS $MPG123SOURCE",
-		MPG123COMSTR="",
+        MPG123COM="$MPG123 $MPG123FLAGS $MPG123SOURCE",
+        MPG123COMSTR="",
 
-		MPG123PREFIX="",
-		MPG123SUFFIX="",
-		MPG123SRCSUFFIX="",
-	)
+        MPG123PREFIX="",
+        MPG123SUFFIX="",
+        MPG123SRCSUFFIX="",
+    )
 
-	env.Append(
-		BUILDERS={
-			"Mpg123": SCons.Builder.Builder(
-				action=SCons.Action.Action("$MPG123COM", "$MPG123COMSTR"),
-				prefix="$MPG123PREFIX",
-				suffix="$MPG123SUFFIX",
-				src_suffix="$MPG123SRCSUFFIX",
-				single_source=True,
-			),
-		},
-	)
+    env.Append(
+        BUILDERS={
+            "Mpg123": SCons.Builder.Builder(
+                action=SCons.Action.Action("$MPG123COM", "$MPG123COMSTR"),
+                prefix="$MPG123PREFIX",
+                suffix="$MPG123SUFFIX",
+                src_suffix="$MPG123SRCSUFFIX",
+                single_source=True,
+            ),
+        },
+    )
 
 def exists(env):
-	return detect(env)
+    return detect(env)

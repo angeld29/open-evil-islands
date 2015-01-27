@@ -26,27 +26,27 @@ import ceerrors
 MODULE, TUNE = range(2)
 
 def generate_codec(module, codecs, codec, env):
-	codec = env.subst(codec)
+    codec = env.subst(codec)
 
-	if "auto" != codec:
-		if not codecs[codec][MODULE].exists(env):
-			ceerrors.interrupt("%s: codec '%s' not found", module, codec)
-	else:
-		for key, value in codecs.iteritems():
-			codec = key
-			if value[MODULE].exists(env):
-				break
-			logging.warning("%s: codec '%s' not found", module, codec)
+    if "auto" != codec:
+        if not codecs[codec][MODULE].exists(env):
+            ceerrors.interrupt("%s: codec '%s' not found", module, codec)
+    else:
+        for key, value in codecs.iteritems():
+            codec = key
+            if value[MODULE].exists(env):
+                break
+            logging.warning("%s: codec '%s' not found", module, codec)
 
-	if not codecs[codec][MODULE].exists(env):
-		ceerrors.interrupt("%s: no appropriate codec found", module)
+    if not codecs[codec][MODULE].exists(env):
+        ceerrors.interrupt("%s: no appropriate codec found", module)
 
-	logging.info("%s: using '%s' codec", module, codec)
+    logging.info("%s: using '%s' codec", module, codec)
 
-	codecs[codec][MODULE].generate(env)
-	codecs[codec][TUNE](env)
+    codecs[codec][MODULE].generate(env)
+    codecs[codec][TUNE](env)
 
-	return codec
+    return codec
 
 def codec_exists(codecs, env):
-	return any(value[MODULE].exists(env) for value in codecs.itervalues())
+    return any(value[MODULE].exists(env) for value in codecs.itervalues())

@@ -24,33 +24,33 @@ import SCons
 UTILITY = "ffmpeg"
 
 def detect(env):
-	return env.WhereIs(UTILITY)
+    return env.WhereIs(UTILITY)
 
 def generate(env):
-	env.SetDefault(
-		FFMPEG=detect(env),
+    env.SetDefault(
+        FFMPEG=detect(env),
 
-		FFMPEGFLAGS="",
+        FFMPEGFLAGS="",
 
-		FFMPEGCOM="$FFMPEG -i $SOURCE $FFMPEGFLAGS $TARGET",
-		FFMPEGCOMSTR="",
+        FFMPEGCOM="$FFMPEG -i $SOURCE $FFMPEGFLAGS $TARGET",
+        FFMPEGCOMSTR="",
 
-		FFMPEGPREFIX="",
-		FFMPEGSUFFIX="",
-		FFMPEGSRCSUFFIX="",
-	)
+        FFMPEGPREFIX="",
+        FFMPEGSUFFIX="",
+        FFMPEGSRCSUFFIX="",
+    )
 
-	env.Append(
-		BUILDERS={
-			"FFmpeg": SCons.Builder.Builder(
-				action=SCons.Action.Action("$FFMPEGCOM", "$FFMPEGCOMSTR"),
-				prefix="$FFMPEGPREFIX",
-				suffix="$FFMPEGSUFFIX",
-				src_suffix="$FFMPEGSRCSUFFIX",
-				single_source=True,
-			),
-		},
-	)
+    env.Append(
+        BUILDERS={
+            "FFmpeg": SCons.Builder.Builder(
+                action=SCons.Action.Action("$FFMPEGCOM", "$FFMPEGCOMSTR"),
+                prefix="$FFMPEGPREFIX",
+                suffix="$FFMPEGSUFFIX",
+                src_suffix="$FFMPEGSRCSUFFIX",
+                single_source=True,
+            ),
+        },
+    )
 
 def exists(env):
-	return detect(env)
+    return detect(env)

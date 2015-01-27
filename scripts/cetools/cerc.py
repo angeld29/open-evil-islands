@@ -31,21 +31,19 @@ import SCons
 import ceutils
 
 def fix_path(path):
-	return path.lower().replace('\\', '/')
+    return path.lower().replace('\\', '/')
 
 def make_relpath(node, env):
-	return fix_path(ceutils.relpath(node.get_abspath(), env.subst("$RCROOTABSPATH")))
+    return fix_path(ceutils.relpath(node.get_abspath(), env.subst("$RCROOTABSPATH")))
 
 def get_paths(node):
-	return [fix_path(line) for line in node.get_contents().splitlines()
-							if len(line) > 0 and not line.startswith(';')]
+    return [fix_path(line) for line in node.get_contents().splitlines() if len(line) > 0 and not line.startswith(';')]
 
 def make_nodes(cache, env):
-	return [env.File(os.path.join("$RCROOTABSPATH",
-			os.path.normpath(path))) for path in get_paths(cache)]
+    return [env.File(os.path.join("$RCROOTABSPATH", os.path.normpath(path))) for path in get_paths(cache)]
 
 def write_header(file, header):
-	file.write(header % datetime.now().strftime("%d %b %Y %H:%M:%S"))
+    file.write(header % datetime.now().strftime("%d %b %Y %H:%M:%S"))
 
 cache_header = \
 """;  Resource cache
@@ -57,41 +55,37 @@ cache_header = \
 """
 
 def emit_rc(target, source, env):
-	srcname = os.path.splitext(source[0].name)[0]
-	tgtname = SCons.Util.adjustixes(srcname, "ce", "data")
-	excludes = get_paths(source[0])
+    srcname = os.path.splitext(source[0].name)[0]
+    tgtname = SCons.Util.adjustixes(srcname, "ce", "data")
+    excludes = get_paths(source[0])
 
-	# save absolute resource root path especially for builder because
-	# last one will be invoked from the project root directory
-	env["RCROOTABSPATH"] = env.Dir("$RCROOTPATH").get_abspath()
+    # save absolute resource root path especially for builder because
+    # last one will be invoked from the project root directory
+    env["RCROOTABSPATH"] = env.Dir("$RCROOTPATH").get_abspath()
 
-	# cache is needed... for example, SCons will not be able to process
-	# dependencies correctly if we only rename some files
-	cache = env.File(os.path.join("$RCBUILDPATH",
-		SCons.Util.adjustixes(srcname, "", env.subst("$RCSOURCESRCSUFFIX"))))
+    # cache is needed... for example, SCons will not be able to process
+    # dependencies correctly if we only rename some files
+    cache = env.File(os.path.join("$RCBUILDPATH", SCons.Util.adjustixes(srcname, "", env.subst("$RCSOURCESRCSUFFIX"))))
 
-	nodes = [node for node in ceutils.get_nodes(["$RCROOTPATH"], ["*"], env)
-				if not make_relpath(node, env) in excludes]
+    nodes = [node for node in ceutils.get_nodes(["$RCROOTPATH"], ["*"], env) if not make_relpath(node, env) in excludes]
+    paths = sorted(make_relpath(node, env) for node in nodes)
 
-	paths = sorted(make_relpath(node, env) for node in nodes)
+    if not env.GetOption("clean") and (not os.path.exists(cache.get_abspath()) or paths != get_paths(cache)):
+        # do not create a cache file if scons -c
+        # note that SCons will create directories only before the builders
+        if not os.path.exists(env.Dir("$RCBUILDPATH").get_abspath()):
+            env.Execute(SCons.Defaults.Mkdir("$RCBUILDPATH"))
+        with open(cache.get_abspath(), "wt") as file:
+            write_header(file, cache_header)
+            file.write('\n' + '\n'.join(paths) + '\n')
 
-	if not env.GetOption("clean") and ( # do not create a cache file if scons -c
-			not os.path.exists(cache.get_abspath()) or paths != get_paths(cache)):
-		# note that SCons will create directories only before the builders
-		if not os.path.exists(env.Dir("$RCBUILDPATH").get_abspath()):
-			env.Execute(SCons.Defaults.Mkdir("$RCBUILDPATH"))
-		with open(cache.get_abspath(), "wt") as file:
-			write_header(file, cache_header)
-			file.write('\n' + '\n'.join(paths) + '\n')
+    target[0] = os.path.join("$RCBUILDOBJPATH", SCons.Util.adjustixes(tgtname, env.subst("$OBJPREFIX"), env.subst("$OBJSUFFIX")))
+    source[0] = env.RcSource(os.path.join("$RCBUILDPATH", "src", tgtname), cache)
 
-	target[0] = os.path.join("$RCBUILDOBJPATH", SCons.Util.adjustixes(tgtname,
-				env.subst("$OBJPREFIX"), env.subst("$OBJSUFFIX")))
-	source[0] = env.RcSource(os.path.join("$RCBUILDPATH", "src", tgtname), cache)
+    # cache node is not a normal target, so mark it as cleanable
+    env.Clean(target[0], cache)
 
-	# cache node is not a normal target, so mark it as cleanable
-	env.Clean(target[0], cache)
-
-	return target, source
+    return target, source
 
 c_header = \
 """/*
@@ -105,70 +99,70 @@ c_header = \
 """
 
 def build_rc_source(target, source, env):
-	sizes, names = [], []
-	nodes = make_nodes(source[0], env)
-	with open(target[0].get_abspath(), "wt") as file:
-		write_header(file, c_header)
-		file.write("\n#include \"ceresourcedata.h\"\n")
-		for node in nodes:
-			name = hashlib.md5(make_relpath(node, env)).hexdigest()
-			names.append(name)
-			file.write("\nstatic const unsigned char ce_resource_data_%s[] = {\n" % name)
-			contents = node.get_contents()
-			sizes.append(len(contents))
-			while len(contents) > 0:
-				line, contents = contents[:15], contents[15:]
-				file.write('\t' + ','.join(hex(ord(ch)) for ch in line) + ",\n")
-			file.write("};\n")
-		file.write("\nconst size_t CE_RESOURCE_DATA_COUNT = %d;\n" % len(nodes))
-		file.write("\nconst size_t ce_resource_data_sizes[] = {\n")
-		for size in sizes:
-			file.write("\t%d,\n" % size)
-		file.write("};\n")
-		file.write("\nconst char* ce_resource_data_paths[] = {\n")
-		for node in nodes:
-			file.write("\t\"%s\",\n" % make_relpath(node, env))
-		file.write("};\n")
-		file.write("\nconst unsigned char* ce_resource_data[] = {\n")
-		for name in names:
-			file.write("\tce_resource_data_%s,\n" % name)
-		file.write("};\n")
+    sizes, names = [], []
+    nodes = make_nodes(source[0], env)
+    with open(target[0].get_abspath(), "wt") as file:
+        write_header(file, c_header)
+        file.write("\n#include \"ceresourcedata.h\"\n")
+        for node in nodes:
+            name = hashlib.md5(make_relpath(node, env)).hexdigest()
+            names.append(name)
+            file.write("\nstatic const unsigned char ce_resource_data_%s[] = {\n" % name)
+            contents = node.get_contents()
+            sizes.append(len(contents))
+            while len(contents) > 0:
+                line, contents = contents[:15], contents[15:]
+                file.write('\t' + ','.join(hex(ord(ch)) for ch in line) + ",\n")
+            file.write("};\n")
+        file.write("\nconst size_t CE_RESOURCE_DATA_COUNT = %d;\n" % len(nodes))
+        file.write("\nconst size_t ce_resource_data_sizes[] = {\n")
+        for size in sizes:
+            file.write("\t%d,\n" % size)
+        file.write("};\n")
+        file.write("\nconst char* ce_resource_data_paths[] = {\n")
+        for node in nodes:
+            file.write("\t\"%s\",\n" % make_relpath(node, env))
+        file.write("};\n")
+        file.write("\nconst unsigned char* ce_resource_data[] = {\n")
+        for name in names:
+            file.write("\tce_resource_data_%s,\n" % name)
+        file.write("};\n")
 
 def generate(env):
-	env.SetDefault(
-		RCROOTPATH="",
-		RCROOTABSPATH="",
-		RCBUILDPATH="",
-		RCBUILDOBJPATH="",
+    env.SetDefault(
+        RCROOTPATH="",
+        RCROOTABSPATH="",
+        RCBUILDPATH="",
+        RCBUILDOBJPATH="",
 
-		RCSUFFIX=".cerc",
+        RCSUFFIX=".cerc",
 
-		RCSOURCEPREFIX="",
-		RCSOURCESUFFIX=".c",
-		RCSOURCESRCSUFFIX=".cerccache",
-	)
+        RCSOURCEPREFIX="",
+        RCSOURCESUFFIX=".c",
+        RCSOURCESRCSUFFIX=".cerccache",
+    )
 
-	env.Append(
-		SCANNERS=SCons.Scanner.Scanner(
-			function=lambda node, env, *args: make_nodes(node, env),
-			skeys="$RCSOURCESRCSUFFIX",
-			recursive=False,
-		),
-		BUILDERS={
-			"RcSource": SCons.Builder.Builder(
-				action=build_rc_source,
-				prefix="$RCSOURCEPREFIX",
-				suffix="$RCSOURCESUFFIX",
-				src_suffix="$RCSOURCESRCSUFFIX",
-				single_source=True,
-			),
-		},
-	)
+    env.Append(
+        SCANNERS=SCons.Scanner.Scanner(
+            function=lambda node, env, *args: make_nodes(node, env),
+            skeys="$RCSOURCESRCSUFFIX",
+            recursive=False,
+        ),
+        BUILDERS={
+            "RcSource": SCons.Builder.Builder(
+                action=build_rc_source,
+                prefix="$RCSOURCEPREFIX",
+                suffix="$RCSOURCESUFFIX",
+                src_suffix="$RCSOURCESRCSUFFIX",
+                single_source=True,
+            ),
+        },
+    )
 
-	objbuilder, _ = SCons.Tool.createObjBuilders(env)
+    objbuilder, _ = SCons.Tool.createObjBuilders(env)
 
-	objbuilder.add_action("$RCSUFFIX", SCons.Defaults.CAction)
-	objbuilder.add_emitter("$RCSUFFIX", emit_rc)
+    objbuilder.add_action("$RCSUFFIX", SCons.Defaults.CAction)
+    objbuilder.add_emitter("$RCSUFFIX", emit_rc)
 
 def exists(env):
-	return True
+    return True

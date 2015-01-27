@@ -28,11 +28,11 @@ import cecompilers.cemingwcross
 import cegraphlibs.ceopengl
 
 def configure(env):
-	if env["PLATFORM"] != "posix": # TODO: SCons PLATFORM variable is weak
-		ceerrors.interrupt("%s: this host is available only on Linux", env["HOST"])
+    if env["PLATFORM"] != "posix": # TODO: SCons PLATFORM variable is weak
+        ceerrors.interrupt("%s: this host is available only on Linux", env["HOST"])
 
-	logging.info("%s: using Linux with MinGW x86 cross compiler", env["HOST"])
+    logging.info("%s: using Linux with MinGW x86 cross compiler", env["HOST"])
 
-	ceplatforms.cewindows.configure(env)
-	cecompilers.cemingwcross.configure(env)
-	cegraphlibs.ceopengl.configure(env)
+    ceplatforms.cewindows.configure(env)
+    cecompilers.cemingwcross.configure(env)
+    cegraphlibs.ceopengl.configure(env)

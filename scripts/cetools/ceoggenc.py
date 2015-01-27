@@ -24,36 +24,36 @@ import SCons
 UTILITY = "oggenc"
 
 def detect(env):
-	return env.WhereIs(UTILITY)
+    return env.WhereIs(UTILITY)
 
 def generate(env):
-	env.SetDefault(
-		OGGENC=detect(env),
+    env.SetDefault(
+        OGGENC=detect(env),
 
-		OGGENCFLAGS="",
+        OGGENCFLAGS="",
 
-		OGGENCTARGET="$TARGET",
-		OGGENCSOURCE="$SOURCE",
+        OGGENCTARGET="$TARGET",
+        OGGENCSOURCE="$SOURCE",
 
-		OGGENCCOM="$OGGENC $OGGENCFLAGS -o $OGGENCTARGET $OGGENCSOURCE",
-		OGGENCCOMSTR="",
+        OGGENCCOM="$OGGENC $OGGENCFLAGS -o $OGGENCTARGET $OGGENCSOURCE",
+        OGGENCCOMSTR="",
 
-		OGGENCPREFIX="",
-		OGGENCSUFFIX="",
-		OGGENCSRCSUFFIX="",
-	)
+        OGGENCPREFIX="",
+        OGGENCSUFFIX="",
+        OGGENCSRCSUFFIX="",
+    )
 
-	env.Append(
-		BUILDERS={
-			"OggEnc": SCons.Builder.Builder(
-				action=SCons.Action.Action("$OGGENCCOM", "$OGGENCCOMSTR"),
-				prefix="$OGGENCPREFIX",
-				suffix="$OGGENCSUFFIX",
-				src_suffix="$OGGENCSRCSUFFIX",
-				single_source=True,
-			),
-		},
-	)
+    env.Append(
+        BUILDERS={
+            "OggEnc": SCons.Builder.Builder(
+                action=SCons.Action.Action("$OGGENCCOM", "$OGGENCCOMSTR"),
+                prefix="$OGGENCPREFIX",
+                suffix="$OGGENCSUFFIX",
+                src_suffix="$OGGENCSRCSUFFIX",
+                single_source=True,
+            ),
+        },
+    )
 
 def exists(env):
-	return detect(env)
+    return detect(env)

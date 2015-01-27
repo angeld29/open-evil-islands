@@ -22,4 +22,4 @@
 import ceerrors
 
 def configure(env):
-	ceerrors.interrupt("%s: not implemented", env["HOST"])
+    ceerrors.interrupt("%s: not implemented", env["HOST"])

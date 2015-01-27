@@ -22,6 +22,6 @@
 import logging
 
 def configure(env):
-	env["CE_OPENGL_BIT"] = True
+    env["CE_OPENGL_BIT"] = True
 
-	logging.info("graphlib: using Open Graphics Library")
+    logging.info("graphlib: using Open Graphics Library")

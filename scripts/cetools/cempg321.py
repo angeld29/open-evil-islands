@@ -24,14 +24,14 @@ import cempg123
 UTILITY = "mpg321"
 
 def detect(env):
-	return env.WhereIs(UTILITY)
+    return env.WhereIs(UTILITY)
 
 def generate(env):
-	env.SetDefault(
-		MPG123=detect(env),
-	)
+    env.SetDefault(
+        MPG123=detect(env),
+    )
 
-	cempg123.generate(env)
+    cempg123.generate(env)
 
 def exists(env):
-	return detect(env)
+    return detect(env)

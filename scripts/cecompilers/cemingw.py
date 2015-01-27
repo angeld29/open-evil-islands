@@ -24,17 +24,17 @@ import SCons.Tool
 import cegcc
 
 def configure(env):
-	env["CE_MINGW_BIT"] = True
+    env["CE_MINGW_BIT"] = True
 
-	SCons.Tool.Tool("mingw")(env)
+    SCons.Tool.Tool("mingw")(env)
 
-	cegcc.configure(env)
+    cegcc.configure(env)
 
-	env.AppendUnique(
-		CPPFLAGS=["-march=i486"],  # i386 is no longer supported
-	)
+    env.AppendUnique(
+        CPPFLAGS=["-march=i486"],  # i386 is no longer supported
+    )
 
-	env.AppendUnique(
-		CPPFLAGS=["-mthreads"],  # specifies that MinGW-specific
-		LINKFLAGS=["-mthreads"], # thread support is to be used
-	)
+    env.AppendUnique(
+        CPPFLAGS=["-mthreads"],  # specifies that MinGW-specific
+        LINKFLAGS=["-mthreads"], # thread support is to be used
+    )

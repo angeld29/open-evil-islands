@@ -26,16 +26,16 @@ import cex86linuxmingw
 import cex86windowsmingw
 
 hosts = {
-	"darwin": cedarwin,
-	"ppc-linux-gnu": ceppclinuxgnu,
-	"x86-linux-gnu": cex86linuxgnu,
-	"x86-linux-mingw": cex86linuxmingw,
-	"x86-windows-mingw": cex86windowsmingw,
+    "darwin": cedarwin,
+    "ppc-linux-gnu": ceppclinuxgnu,
+    "x86-linux-gnu": cex86linuxgnu,
+    "x86-linux-mingw": cex86linuxmingw,
+    "x86-windows-mingw": cex86windowsmingw,
 }
 
 # SCons PLATFORM -> CE HOST
 defaults = {
-	"darwin": "darwin",
-	"posix": "x86-linux-gnu",
-	"win32": "x86-windows-mingw",
+    "darwin": "darwin",
+    "posix": "x86-linux-gnu",
+    "win32": "x86-windows-mingw",
 }

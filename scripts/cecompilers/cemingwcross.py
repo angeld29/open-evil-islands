@@ -26,10 +26,10 @@ import cemingw
 import cetools.cemingwcross
 
 def configure(env):
-	if not cetools.cemingwcross.exists(env):
-		ceerrors.interrupt("mingw: could not locate the MinGW cross compiler")
+    if not cetools.cemingwcross.exists(env):
+        ceerrors.interrupt("mingw: could not locate the MinGW cross compiler")
 
-	logging.info("mingw: using '%s' the MinGW cross compiler", cetools.cemingwcross.detect(env))
+    logging.info("mingw: using '%s' the MinGW cross compiler", cetools.cemingwcross.detect(env))
 
-	cemingw.configure(env)
-	cetools.cemingwcross.generate(env)
+    cemingw.configure(env)
+    cetools.cemingwcross.generate(env)

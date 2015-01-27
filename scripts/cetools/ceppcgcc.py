@@ -23,23 +23,23 @@ import SCons.Tool
 import SCons.Util
 
 def find(env):
-	key_name = "powerpc-linux-gnu"
-	key_program = key_name + "-gcc"
-	key_program = env.WhereIs(key_program) or SCons.Util.WhereIs(key_program)
-	return key_name if key_program is not None else None
+    key_name = "powerpc-linux-gnu"
+    key_program = key_name + "-gcc"
+    key_program = env.WhereIs(key_program) or SCons.Util.WhereIs(key_program)
+    return key_name if key_program is not None else None
 
 def generate(env):
-	for tool in ("gnulink", "gcc", "g++", "gas", "ar"):
-		SCons.Tool.Tool(tool)(env)
+    for tool in ("gnulink", "gcc", "g++", "gas", "ar"):
+        SCons.Tool.Tool(tool)(env)
 
-	base_name = find(env) or ""
+    base_name = find(env) or ""
 
-	env["CC"] = base_name + "-gcc"
-	env["CXX"] = base_name + "-g++"
-	env["AS"] = base_name + "-as"
-	env["RC"] = base_name + "-windres"
-	env["AR"] = base_name + "-ar"
-	env["RANLIB"] = base_name + "-ranlib"
+    env["CC"] = base_name + "-gcc"
+    env["CXX"] = base_name + "-g++"
+    env["AS"] = base_name + "-as"
+    env["RC"] = base_name + "-windres"
+    env["AR"] = base_name + "-ar"
+    env["RANLIB"] = base_name + "-ranlib"
 
 def exists(env):
-	return find(env)
+    return find(env)

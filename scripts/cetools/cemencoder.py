@@ -24,33 +24,33 @@ import SCons
 UTILITY = "mencoder"
 
 def detect(env):
-	return env.WhereIs(UTILITY)
+    return env.WhereIs(UTILITY)
 
 def generate(env):
-	env.SetDefault(
-		MENCODER=detect(env),
+    env.SetDefault(
+        MENCODER=detect(env),
 
-		MENCODERFLAGS="",
+        MENCODERFLAGS="",
 
-		MENCODERCOM="$MENCODER $SOURCE -o $TARGET $MENCODERFLAGS",
-		MENCODERCOMSTR="",
+        MENCODERCOM="$MENCODER $SOURCE -o $TARGET $MENCODERFLAGS",
+        MENCODERCOMSTR="",
 
-		MENCODERPREFIX="",
-		MENCODERSUFFIX="",
-		MENCODERSRCSUFFIX="",
-	)
+        MENCODERPREFIX="",
+        MENCODERSUFFIX="",
+        MENCODERSRCSUFFIX="",
+    )
 
-	env.Append(
-		BUILDERS={
-			"MEncoder": SCons.Builder.Builder(
-				action=SCons.Action.Action("$MENCODERCOM", "$MENCODERCOMSTR"),
-				prefix="$MENCODERPREFIX",
-				suffix="$MENCODERSUFFIX",
-				src_suffix="$MENCODERSRCSUFFIX",
-				single_source=True,
-			),
-		},
-	)
+    env.Append(
+        BUILDERS={
+            "MEncoder": SCons.Builder.Builder(
+                action=SCons.Action.Action("$MENCODERCOM", "$MENCODERCOMSTR"),
+                prefix="$MENCODERPREFIX",
+                suffix="$MENCODERSUFFIX",
+                src_suffix="$MENCODERSRCSUFFIX",
+                single_source=True,
+            ),
+        },
+    )
 
 def exists(env):
-	return detect(env)
+    return detect(env)

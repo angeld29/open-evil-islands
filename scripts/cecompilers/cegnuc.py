@@ -24,16 +24,16 @@ import SCons.Tool
 import cegcc
 
 def configure(env):
-	env["CE_GNUC_BIT"] = True
+    env["CE_GNUC_BIT"] = True
 
-	# prefer GNU tools
-	for tool in ("gnulink", "gcc", "g++", "gas", "ar"):
-		SCons.Tool.Tool(tool)(env)
+    # prefer GNU tools
+    for tool in ("gnulink", "gcc", "g++", "gas", "ar"):
+        SCons.Tool.Tool(tool)(env)
 
-	cegcc.configure(env)
+    cegcc.configure(env)
 
-	if env["CE_POSIX_BIT"]:
-		env.AppendUnique(
-			CPPFLAGS=["-pthread"],  # add support for multithreading
-			LINKFLAGS=["-pthread"], # using the POSIX threads library
-		)
+    if env["CE_POSIX_BIT"]:
+        env.AppendUnique(
+            CPPFLAGS=["-pthread"],  # add support for multithreading
+            LINKFLAGS=["-pthread"], # using the POSIX threads library
+        )

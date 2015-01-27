@@ -20,12 +20,12 @@
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 def configure(env):
-	env["CE_POSIX_BIT"] = True
+    env["CE_POSIX_BIT"] = True
 
-	env.AppendUnique(
-		CPPDEFINES=[
-			# IEEE Std 1003.1-2004, Open Group Single UNIX Specification, version 3
-			# includes POSIX.1-2001 and XPG6 things
-			"_XOPEN_SOURCE=600",
-		],
-	)
+    env.AppendUnique(
+        CPPDEFINES=[
+            # IEEE Std 1003.1-2004, Open Group Single UNIX Specification, version 3
+            # includes POSIX.1-2001 and XPG6 things
+            "_XOPEN_SOURCE=600",
+        ],
+    )

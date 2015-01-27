@@ -24,6 +24,5 @@ import logging
 from SCons.Errors import StopError
 
 def interrupt(message, *args, **kwargs):
-	logging.critical(message, *args, **kwargs)
-	raise StopError("A critical error has occurred "
-					"and SCons can not continue building.")
+    logging.critical(message, *args, **kwargs)
+    raise StopError("A critical error has occurred and SCons can not continue building.")
