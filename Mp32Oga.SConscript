@@ -24,24 +24,24 @@ import os
 Import("env")
 
 env = env.Clone(
-	tools=["cemp32wav", "cewav2oga"],
-	MP32WAVTARGET="${TARGET.base}.wav",
-	WAV2OGASOURCE="$MP32WAVTARGET",
-	MP32WAVCODEC="$MP3_CODEC",
-	WAV2OGACODEC="$OGA_CODEC",
-	WAV2OGAQUALITY="$OGA_QUALITY",
+    tools=["cemp32wav", "cewav2oga"],
+    MP32WAVTARGET="${TARGET.base}.wav",
+    WAV2OGASOURCE="$MP32WAVTARGET",
+    MP32WAVCODEC="$MP3_CODEC",
+    WAV2OGACODEC="$OGA_CODEC",
+    WAV2OGAQUALITY="$OGA_QUALITY",
 )
 
 targets = [
-	env.Command(
-		os.path.join("$OGA_PATH", os.path.splitext(node.name)[0] + ".oga"),
-		node,
-		[
-			Action("$MP32WAVCOM", "$MP32WAVCOMSTR"),
-			Action("$WAV2OGACOM", "$WAV2OGACOMSTR"),
-			Delete("$MP32WAVTARGET"),
-		]
-	) for node in env.Glob(os.path.join("$MP3_PATH", "*.mp3"))
+    env.Command(
+        os.path.join("$OGA_PATH", os.path.splitext(node.name)[0] + ".oga"),
+        node,
+        [
+            Action("$MP32WAVCOM", "$MP32WAVCOMSTR"),
+            Action("$WAV2OGACOM", "$WAV2OGACOMSTR"),
+            Delete("$MP32WAVTARGET"),
+        ]
+    ) for node in env.Glob(os.path.join("$MP3_PATH", "*.mp3"))
 ]
 
 Return("targets")

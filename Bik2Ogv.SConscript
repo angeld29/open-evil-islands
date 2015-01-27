@@ -24,16 +24,16 @@ import os
 Import("env")
 
 env = env.Clone(
-	tools=["cebik2ogv"],
-	BIK2OGVCODEC="$OGV_CODEC",
-	BIK2OGVVIDEOBPS="$OGV_VIDEO_BITRATE",
-	BIK2OGVAUDIOBPS="$OGV_AUDIO_BITRATE",
+    tools=["cebik2ogv"],
+    BIK2OGVCODEC="$OGV_CODEC",
+    BIK2OGVVIDEOBPS="$OGV_VIDEO_BITRATE",
+    BIK2OGVAUDIOBPS="$OGV_AUDIO_BITRATE",
 )
 
 targets = [
-	env.Bik2Ogv(
-		os.path.join("$OGV_PATH", os.path.splitext(node.name)[0]), node
-	) for node in env.Glob(os.path.join("$BIK_PATH", "*.bik"))
+    env.Bik2Ogv(
+        os.path.join("$OGV_PATH", os.path.splitext(node.name)[0]), node
+    ) for node in env.Glob(os.path.join("$BIK_PATH", "*.bik"))
 ]
 
 Return("targets")

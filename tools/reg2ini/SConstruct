@@ -23,6 +23,4 @@ import os
 
 env = Environment(CFLAGS=["-std=c99"])
 
-env.Program(os.path.join("bin", "reg2ini"),
-			env.Object(os.path.join("build", "reg2ini"),
-						os.path.join("src", "reg2ini")))
+env.Program(os.path.join("bin", "reg2ini"), env.Object(os.path.join("build", "reg2ini"), os.path.join("src", "reg2ini")))

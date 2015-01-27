@@ -41,9 +41,9 @@ Default(spikes)
 targets = [engine, spikes]
 
 if "mp32oga" in COMMAND_LINE_TARGETS:
-	targets.append(Alias("mp32oga", SConscript("Mp32Oga.SConscript")))
+    targets.append(Alias("mp32oga", SConscript("Mp32Oga.SConscript")))
 
 if "bik2ogv" in COMMAND_LINE_TARGETS:
-	targets.append(Alias("bik2ogv", SConscript("Bik2Ogv.SConscript")))
+    targets.append(Alias("bik2ogv", SConscript("Bik2Ogv.SConscript")))
 
 Alias("all", targets)

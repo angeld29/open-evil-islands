@@ -32,18 +32,18 @@ TARGET = resfileviewer
 DESTDIR = bin
 
 unix {
-	debug:OBJECTS_DIR = build/obj/posix/debug
-	release:OBJECTS_DIR = build/obj/posix/release
+    debug:OBJECTS_DIR = build/obj/posix/debug
+    release:OBJECTS_DIR = build/obj/posix/release
 }
 
 mac {
-	debug:OBJECTS_DIR = build/obj/darwin/debug
-	release:OBJECTS_DIR = build/obj/darwin/release
+    debug:OBJECTS_DIR = build/obj/darwin/debug
+    release:OBJECTS_DIR = build/obj/darwin/release
 }
 
 win32 {
-	debug:OBJECTS_DIR = build/obj/win32/debug
-	release:OBJECTS_DIR = build/obj/win32/release
+    debug:OBJECTS_DIR = build/obj/win32/debug
+    release:OBJECTS_DIR = build/obj/win32/release
 }
 
 MOC_DIR = build/moc
@@ -58,8 +58,8 @@ INCLUDEPATH += src ../cecore/include
 FORMS = forms/mainwindow.ui
 
 HEADERS = src/gui/treewidget.hpp \
-			src/gui/mainwindow.hpp
+          src/gui/mainwindow.hpp
 
 SOURCES = src/gui/treewidget.cpp \
-			src/gui/mainwindow.cpp \
-			src/main.cpp
+          src/gui/mainwindow.cpp \
+          src/main.cpp
