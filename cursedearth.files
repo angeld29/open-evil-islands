@@ -1113,4 +1113,4 @@ cursedearth_local.cfg
 Mp32Oga.SConscript
 SConstruct
 doc/portability.txt
-doc/ffmpeg.txt
+doc/ffmpeg-0.8.15.txt
