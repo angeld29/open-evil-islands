@@ -28,26 +28,26 @@
 
 namespace Ui
 {
-	class MainWindow;
+    class MainWindow;
 }
 
 namespace ResfileViewer
 {
-	class MainWindow: public QMainWindow
-	{
-		Q_OBJECT
+    class MainWindow: public QMainWindow
+    {
+        Q_OBJECT
 
-	public:
-		MainWindow();
-		~MainWindow();
+    public:
+        MainWindow();
+        ~MainWindow();
 
-	private Q_SLOTS:
-		void open_files();
+    private Q_SLOTS:
+        void open_files();
 
-	private:
-		QSharedPointer<Ui::MainWindow> ui;
-		TreeWidget tree_widget;
-	};
+    private:
+        QSharedPointer<Ui::MainWindow> ui;
+        TreeWidget tree_widget;
+    };
 }
 
 #endif /* MAINWINDOW_HPP */
