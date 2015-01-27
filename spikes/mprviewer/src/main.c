@@ -30,50 +30,50 @@ static ce_optparse* optparse;
 
 static void clean()
 {
-	ce_optparse_del(optparse);
+    ce_optparse_del(optparse);
 }
 
 static void state_changed(void* CE_UNUSED(listener), int state)
 {
-	if (CE_SCENEMNG_STATE_READY == state) {
-		const char* zone;
-		ce_optparse_get(optparse, "zone", &zone);
-		ce_scenemng_load_mpr(ce_root.scenemng, zone);
-		ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);
-	}
+    if (CE_SCENEMNG_STATE_READY == state) {
+        const char* zone;
+        ce_optparse_get(optparse, "zone", &zone);
+        ce_scenemng_load_mpr(ce_root.scenemng, zone);
+        ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);
+    }
 
-	if (CE_SCENEMNG_STATE_PLAYING == state) {
-		if (NULL != ce_root.scenemng->terrain) {
-			ce_vec3 position;
-			ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position,
-				0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f));
-			ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f),
-															ce_deg2rad(30.0f));
-		}
-	}
+    if (CE_SCENEMNG_STATE_PLAYING == state) {
+        if (NULL != ce_root.scenemng->terrain) {
+            ce_vec3 position;
+            ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position,
+                0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f));
+            ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f),
+                                                            ce_deg2rad(30.0f));
+        }
+    }
 }
 
 int main(int argc, char* argv[])
 {
-	ce_alloc_init();
-	atexit(clean);
+    ce_alloc_init();
+    atexit(clean);
 
-	optparse = ce_option_manager_create_option_parser();
+    optparse = ce_option_manager_create_option_parser();
 
-	ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR,
-		CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
-		"Cursed Earth: MPR Viewer", "This program is part of Cursed "
-		"Earth spikes\nMPR Viewer - explore clean Evil Islands zones");
+    ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR,
+        CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+        "Cursed Earth: MPR Viewer", "This program is part of Cursed "
+        "Earth spikes\nMPR Viewer - explore clean Evil Islands zones");
 
-	ce_optparse_add(optparse, "zone", CE_TYPE_STRING, NULL, true,
-		NULL, NULL, "any ZONE.mpr file in 'EI/Maps'");
+    ce_optparse_add(optparse, "zone", CE_TYPE_STRING, NULL, true,
+        NULL, NULL, "any ZONE.mpr file in 'EI/Maps'");
 
-	if (!ce_root_init(optparse, argc, argv)) {
-		return EXIT_FAILURE;
-	}
+    if (!ce_root_init(optparse, argc, argv)) {
+        return EXIT_FAILURE;
+    }
 
-	ce_root.scenemng->listener = (ce_scenemng_listener)
-		{.state_changed = state_changed, .advance = NULL, .render = NULL};
+    ce_root.scenemng->listener = (ce_scenemng_listener)
+        {.state_changed = state_changed, .advance = NULL, .render = NULL};
 
-	return ce_root_exec();
+    return ce_root_exec();
 }
