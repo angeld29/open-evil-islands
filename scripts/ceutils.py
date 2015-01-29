@@ -74,36 +74,3 @@ def filter_sources(env, nodes):
         for node in values:
             nodes.remove(node)
     return nodes
-
-try:
-    relpath = os.path.relpath
-except AttributeError:
-    def relpath(path, start=os.curdir):
-        """Return a relative version of a path"""
-
-        if not path:
-            raise ValueError("no path specified")
-
-        start_list = os.path.abspath(start).split(os.sep)
-        path_list = os.path.abspath(path).split(os.sep)
-
-        if start_list[0].lower() != path_list[0].lower():
-            unc_path, rest = os.path.splitunc(path)
-            unc_start, rest = os.path.splitunc(start)
-            if bool(unc_path) ^ bool(unc_start):
-                raise ValueError("cannot mix UNC and non-UNC paths (%s and %s)" % (path, start))
-            else:
-                raise ValueError("path is on drive %s, start on drive %s" % (path_list[0], start_list[0]))
-
-        # work out how much of the filepath is shared by start and path
-        for i in range(min(len(start_list), len(path_list))):
-            if start_list[i].lower() != path_list[i].lower():
-                break
-            else:
-                i += 1
-
-        rel_list = [os.pardir] * (len(start_list)-i) + path_list[i:]
-        if not rel_list:
-            return curdir
-
-        return os.path.join(*rel_list)

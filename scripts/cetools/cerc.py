@@ -34,7 +34,7 @@ def fix_path(path):
     return path.lower().replace('\\', '/')
 
 def make_relpath(node, env):
-    return fix_path(ceutils.relpath(node.get_abspath(), env.subst("$RCROOTABSPATH")))
+    return fix_path(os.path.relpath(node.get_abspath(), env.subst("$RCROOTABSPATH")))
 
 def get_paths(node):
     return [fix_path(line) for line in node.get_contents().splitlines() if len(line) > 0 and not line.startswith(';')]
