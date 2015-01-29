@@ -42,13 +42,15 @@
 #include <QMenu>
 #include <QFileDialog>
 
-#include "resfile.h"
+#define restrict
+#include <cealloc.h>
+#include <ceresfile.h>
 
 #include "gui/treewidget.hpp"
 
 namespace
 {
-    typedef boost::shared_ptr<resfile> ResfilePtr;
+    typedef boost::shared_ptr<ce_res_file> ResfilePtr;
 
     class ResfileItem: public QTreeWidgetItem
     {
@@ -83,13 +85,15 @@ namespace ResfileViewer
         setSelectionMode(QAbstractItemView::ExtendedSelection);
 
         setHeaderLabels(QStringList("Name") << tr("Size") << tr("Modified"));
+
+        ce_alloc_init();
     }
 
     void TreeWidget::add_files(const QStringList& paths)
     {
         Q_FOREACH(const QString& path, paths) {
-            ResfilePtr res(resfile_open_file(
-                qPrintable(path)), resfile_close);
+            ResfilePtr res(ce_res_file_new_path(
+                qPrintable(path)), ce_res_file_del);
             if (res) {
                 addTopLevelItem(new ResfileItem(res));
             }
@@ -155,20 +159,18 @@ namespace
         index(index)
     {
         if (-1 == index) {
-            QString name(resfile_name(res.get()));
+            QString name(res->name->str);
 
             setText(ColumnName, name);
             setToolTip(ColumnName, name);
 
-            for (int count = resfile_node_count(res.get()),
-                    index = 0; index < count; ++index) {
+            for (unsigned int count = res->node_count, index = 0; index < count; ++index) {
                 addChild(new ResfileItem(res, index));
             }
         } else {
-            QString name(resfile_node_name(index, res.get()));
-            QString size(QString::number(resfile_node_size(index, res.get())));
-            QString modified(QDateTime::fromTime_t(resfile_node_modified(
-                index, res.get())).toString("dd.MM.yyyy hh:mm:ss"));
+            QString name(ce_res_file_node_name(res.get(), index));
+            QString size(QString::number(ce_res_file_node_size(res.get(), index)));
+            QString modified(QDateTime::fromTime_t(ce_res_file_node_modified(res.get(), index)).toString("dd.MM.yyyy hh:mm:ss"));
 
             setText(ColumnName, name);
             setToolTip(ColumnName, name);
