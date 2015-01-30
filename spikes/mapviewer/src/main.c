@@ -137,10 +137,10 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+#if 0
     const char* ei_path;
     ce_optparse_get(optparse, "ei_path", &ei_path);
 
-#if 0
     const char* zone;
     ce_optparse_get(optparse, "zone", &zone);
 
