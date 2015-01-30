@@ -27,10 +27,7 @@
 #include "celogging.h"
 #include "ceregistry.h"
 
-char* ce_registry_get_string_value(char* value, size_t size,
-                                    ce_registry_key key,
-                                    const char* key_name,
-                                    const char* value_name)
+char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
 {
     if (0 == size) {
         return NULL;
@@ -55,8 +52,7 @@ char* ce_registry_get_string_value(char* value, size_t size,
     memset(value, '\0', size);
 
     if (ERROR_SUCCESS == RegOpenKeyEx(hkey, key_name, 0, KEY_READ, &hkey)) {
-        if (ERROR_SUCCESS == RegQueryValueEx(hkey, value_name, NULL,
-                                            &type, data, &data_size)) {
+        if (ERROR_SUCCESS == RegQueryValueEx(hkey, value_name, NULL, &type, data, &data_size)) {
             if (REG_SZ == type || REG_EXPAND_SZ == type || REG_MULTI_SZ == type) {
                 if (0 == data_size) {
                     value[0] = '\0';
@@ -64,8 +60,7 @@ char* ce_registry_get_string_value(char* value, size_t size,
                     value[data_size] = '\0';
                 } else if ('\0' != value[size - 1]) {
                     value[size - 1] = '\0';
-                    ce_logging_warning("registry: key '%s': value '%s': "
-                        "truncation occured: '%s'", key_name, value_name, value);
+                    ce_logging_warning("registry: key `%s': value `%s': truncation occured: `%s'", key_name, value_name, value);
                 }
                 RegCloseKey(hkey);
                 return value;
@@ -75,4 +70,9 @@ char* ce_registry_get_string_value(char* value, size_t size,
     }
 
     return NULL;
+}
+
+char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
+{
+    return ce_registry_get_string_value(value, size, key, key_name, value_name);
 }
