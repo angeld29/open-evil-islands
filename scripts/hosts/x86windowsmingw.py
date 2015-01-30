@@ -21,18 +21,17 @@
 
 import logging
 
-import ceerrors
-
-import ceplatforms.cewindows
-import cecompilers.cemingw
-import cegraphlibs.ceopengl
+import utils
+import compilers.mingw
+import graphiclibs.opengl
+import platforms.windows
 
 def configure(env):
     if env["PLATFORM"] != "win32":
-        ceerrors.interrupt("%s: this host is available only on Windows", env["HOST"])
+        utils.interrupt("%s: this host is available only on Windows", env["HOST"])
 
     logging.info("%s: using Windows with MinGW x86 compiler", env["HOST"])
 
-    ceplatforms.cewindows.configure(env)
-    cecompilers.cemingw.configure(env)
-    cegraphlibs.ceopengl.configure(env)
+    platforms.windows.configure(env)
+    compilers.mingw.configure(env)
+    graphiclibs.opengl.configure(env)

@@ -21,10 +21,10 @@
 
 import logging
 
-import cetools
-import cemadplay
-import cempg123
-import cempg321
+import tools
+import madplay
+import mpg123
+import mpg321
 
 def tune_madplay(env):
     env.Replace(
@@ -49,9 +49,9 @@ def tune_mpg12321(env):
     env["BUILDERS"]["Mp32Wav"] = env["BUILDERS"]["Mpg123"]
 
 codecs = {
-    cemadplay.UTILITY: (cemadplay, tune_madplay),
-    cempg123.UTILITY: (cempg123, tune_mpg12321),
-    cempg321.UTILITY: (cempg321, tune_mpg12321),
+    madplay.UTILITY: (madplay, tune_madplay),
+    mpg123.UTILITY: (mpg123, tune_mpg12321),
+    mpg321.UTILITY: (mpg321, tune_mpg12321),
 }
 
 def generate(env):
@@ -60,7 +60,7 @@ def generate(env):
         MP32WAVTARGET="$TARGET",
     )
 
-    cetools.generate_codec("mp32wav", codecs, "$MP32WAVCODEC", env)
+    tools.generate_codec("mp32wav", codecs, "$MP32WAVCODEC", env)
 
 def exists(env):
-    return cetools.codec_exists(codecs, env)
+    return tools.codec_exists(codecs, env)

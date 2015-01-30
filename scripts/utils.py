@@ -21,6 +21,7 @@
 
 import os
 import logging
+import itertools
 
 import SCons
 

@@ -24,7 +24,7 @@ import os
 Import("env")
 
 env = env.Clone(
-    tools=["cemp32wav", "cewav2oga"],
+    tools=["mp32wav", "wav2oga"],
     MP32WAVTARGET="${TARGET.base}.wav",
     WAV2OGASOURCE="$MP32WAVTARGET",
     MP32WAVCODEC="$MP3_CODEC",

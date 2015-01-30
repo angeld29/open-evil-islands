@@ -21,7 +21,7 @@
 
 import logging
 
-import ceerrors
+import utils
 
 MODULE, TUNE = range(2)
 
@@ -30,7 +30,7 @@ def generate_codec(module, codecs, codec, env):
 
     if "auto" != codec:
         if not codecs[codec][MODULE].exists(env):
-            ceerrors.interrupt("%s: codec '%s' not found", module, codec)
+            utils.interrupt("%s: codec '%s' not found", module, codec)
     else:
         for key, value in codecs.iteritems():
             codec = key
@@ -39,7 +39,7 @@ def generate_codec(module, codecs, codec, env):
             logging.warning("%s: codec '%s' not found", module, codec)
 
     if not codecs[codec][MODULE].exists(env):
-        ceerrors.interrupt("%s: no appropriate codec found", module)
+        utils.interrupt("%s: no appropriate codec found", module)
 
     logging.info("%s: using '%s' codec", module, codec)
 

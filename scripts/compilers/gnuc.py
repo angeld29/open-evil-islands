@@ -19,9 +19,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import SCons.Tool
+import SCons
 
-import cegcc
+import gcc
 
 def configure(env):
     env["CE_GNUC_BIT"] = True
@@ -30,7 +30,7 @@ def configure(env):
     for tool in ("gnulink", "gcc", "g++", "gas", "ar"):
         SCons.Tool.Tool(tool)(env)
 
-    cegcc.configure(env)
+    gcc.configure(env)
 
     if env["CE_POSIX_BIT"]:
         env.AppendUnique(

@@ -19,9 +19,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import cetools
-import ceffmpeg
-import cemencoder
+import tools
+import ffmpeg
+import mencoder
 
 def tune_ffmpeg(env):
     env.Replace(
@@ -42,8 +42,8 @@ def tune_mencoder(env):
     env["BUILDERS"]["Bik2Ogv"] = env["BUILDERS"]["MEncoder"]
 
 codecs = {
-    ceffmpeg.UTILITY: (ceffmpeg, tune_ffmpeg),
-    #cemencoder.UTILITY: (cemencoder, tune_mencoder), # not tested
+    ffmpeg.UTILITY: (ffmpeg, tune_ffmpeg),
+    #mencoder.UTILITY: (mencoder, tune_mencoder), # not tested
 }
 
 def generate(env):
@@ -53,7 +53,7 @@ def generate(env):
         BIK2OGVAUDIOBPS="64",
     )
 
-    cetools.generate_codec("bik2ogv", codecs, "$BIK2OGVCODEC", env)
+    tools.generate_codec("bik2ogv", codecs, "$BIK2OGVCODEC", env)
 
 def exists(env):
-    return cetools.codec_exists(codecs, env)
+    return tools.codec_exists(codecs, env)

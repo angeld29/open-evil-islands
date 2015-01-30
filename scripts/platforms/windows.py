@@ -25,8 +25,7 @@ def configure(env):
     env.AppendUnique(
         CPPDEFINES=[
             "WINVER=0x0501",       # Windows XP required
-            "WIN32_LEAN_AND_MEAN", # excludes some stuff like Cryptography,
-                                   # DDE, RPC, Shell, and Windows Sockets
+            "WIN32_LEAN_AND_MEAN", # excludes some stuff like Cryptography, DDE, RPC, Shell, and Windows Sockets
             "NOCOMM",              # excludes the serial communication API
         ],
     )

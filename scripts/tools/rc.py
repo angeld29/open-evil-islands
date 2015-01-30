@@ -19,14 +19,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import hashlib
 import os
-
-from datetime import datetime
+import hashlib
+import datetime
 
 import SCons
 
-import ceutils
+import utils
 
 def fix_path(path):
     return path.lower().replace('\\', '/')
@@ -41,7 +40,7 @@ def make_nodes(cache, env):
     return [env.File(os.path.join("$RCROOTABSPATH", os.path.normpath(path))) for path in get_paths(cache)]
 
 def write_header(file, header):
-    file.write(header % datetime.now().strftime("%d %b %Y %H:%M:%S"))
+    file.write(header % datetime.datetime.now().strftime("%d %b %Y %H:%M:%S"))
 
 cache_header = \
 """;  Resource cache
@@ -54,7 +53,7 @@ cache_header = \
 
 def emit_rc(target, source, env):
     srcname = os.path.splitext(source[0].name)[0]
-    tgtname = SCons.Util.adjustixes(srcname, "ce", "data")
+    tgtname = SCons.Util.adjustixes(srcname, "", "_data")
     excludes = get_paths(source[0])
 
     # save absolute resource root path especially for builder because
@@ -65,7 +64,7 @@ def emit_rc(target, source, env):
     # dependencies correctly if we only rename some files
     cache = env.File(os.path.join("$RCBUILDPATH", SCons.Util.adjustixes(srcname, "", env.subst("$RCSOURCESRCSUFFIX"))))
 
-    nodes = [node for node in ceutils.get_nodes(["$RCROOTPATH"], ["*"], env) if not make_relpath(node, env) in excludes]
+    nodes = [node for node in utils.get_nodes(["$RCROOTPATH"], ["*"], env) if not make_relpath(node, env) in excludes]
     paths = sorted(make_relpath(node, env) for node in nodes)
 
     if not env.GetOption("clean") and (not os.path.exists(cache.get_abspath()) or paths != get_paths(cache)):

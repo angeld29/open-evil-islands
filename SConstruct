@@ -26,9 +26,9 @@ import site
 
 site.addsitedir("scripts")
 
-import ceenv
+import env as env_module
 
-env = ceenv.create_environment()
+env = env_module.create_environment()
 
 Export("env")
 

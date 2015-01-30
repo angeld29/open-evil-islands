@@ -21,7 +21,7 @@
 
 import os
 
-import SCons.Util
+import SCons
 
 def detect(env):
     for variants in ((cpu, kernel) for cpu in xrange(3, 7) for kernel in ("", "msvc")):

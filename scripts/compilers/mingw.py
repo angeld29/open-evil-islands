@@ -19,16 +19,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import SCons.Tool
+import SCons
 
-import cegcc
+import gcc
 
 def configure(env):
     env["CE_MINGW_BIT"] = True
 
     SCons.Tool.Tool("mingw")(env)
 
-    cegcc.configure(env)
+    gcc.configure(env)
 
     env.AppendUnique(
         CPPFLAGS=["-march=i486"],  # i386 is no longer supported

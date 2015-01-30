@@ -21,20 +21,19 @@
 
 import logging
 
-import ceerrors
-
-import ceplatforms.ceposix
-import cecompilers.cegnuc
-import cegraphlibs.ceopengl
+import utils
+import compilers.gnuc
+import graphiclibs.opengl
+import platforms.posix
 
 def configure(env):
     env["CE_LINUX_BIT"] = True
 
     if env["PLATFORM"] != "posix": # TODO: SCons PLATFORM variable is weak
-        ceerrors.interrupt("%s: this host is available only on Linux", env["HOST"])
+        utils.interrupt("%s: this host is available only on Linux", env["HOST"])
 
     logging.info("%s: using Linux with GNU C/C++ x86 compiler", env["HOST"])
 
-    ceplatforms.ceposix.configure(env)
-    cecompilers.cegnuc.configure(env)
-    cegraphlibs.ceopengl.configure(env)
+    platforms.posix.configure(env)
+    compilers.gnuc.configure(env)
+    graphiclibs.opengl.configure(env)

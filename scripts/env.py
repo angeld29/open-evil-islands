@@ -25,11 +25,10 @@ import ConfigParser
 
 import SCons
 
-import cehosts
-
-import cetools.cemp32wav
-import cetools.cewav2oga
-import cetools.cebik2ogv
+import hosts
+import tools.mp32wav
+import tools.wav2oga
+import tools.bik2ogv
 
 logging_levels = {
     "debug": logging.DEBUG,
@@ -53,8 +52,8 @@ def create_environment():
 
     variables.Add(SCons.Variables.EnumVariable("HOST",
         "Build for HOST",
-        config_get("CE", "HOST", cehosts.defaults[defenv["PLATFORM"]]),
-        cehosts.hosts.keys()))
+        config_get("CE", "HOST", hosts.defaults[defenv["PLATFORM"]]),
+        hosts.hosts.keys()))
 
     variables.Add(SCons.Variables.BoolVariable("RELEASE",
         "Build the project in release mode",
@@ -78,12 +77,12 @@ def create_environment():
     variables.Add(SCons.Variables.EnumVariable("MP3_CODEC",
         "Select MP3 codec to use (for mp32oga target)",
         config_get("CE", "MP3_CODEC", "auto"),
-        ["auto"] + cetools.cemp32wav.codecs.keys()))
+        ["auto"] + tools.mp32wav.codecs.keys()))
 
     variables.Add(SCons.Variables.EnumVariable("OGA_CODEC",
         "Select OGA codec to use (for mp32oga target)",
         config_get("CE", "OGA_CODEC", "auto"),
-        ["auto"] + cetools.cewav2oga.codecs.keys()))
+        ["auto"] + tools.wav2oga.codecs.keys()))
 
     variables.Add(SCons.Variables.EnumVariable("OGA_QUALITY",
         "Set the quality for ogg vorbis encoder in kbit/s (for mp32oga target)",
@@ -102,7 +101,7 @@ def create_environment():
     variables.Add(SCons.Variables.EnumVariable("OGV_CODEC",
         "Select OGV codec to use (for bik2ogv target)",
         config_get("CE", "OGV_CODEC", "auto"),
-        ["auto"] + cetools.cebik2ogv.codecs.keys()))
+        ["auto"] + tools.bik2ogv.codecs.keys()))
 
     variables.Add("OGV_VIDEO_BITRATE", "Set the video bitrate for "
         "ogg theora encoder in kbit/s (for bik2ogv target)",
@@ -115,7 +114,7 @@ def create_environment():
     env = SCons.Environment.Environment(
         variables=variables,
         tools=[],
-        toolpath=[os.path.join("#scripts", "cetools")]
+        toolpath=[os.path.join("#scripts", "tools")]
     )
 
     logging.basicConfig(
@@ -129,7 +128,7 @@ def create_environment():
     env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
     env["GEN_PATH"] = os.path.join("$HOST", "$BUILD_MODE")
 
-    cehosts.hosts[env["HOST"]].configure(env)
+    hosts.hosts[env["HOST"]].configure(env)
 
     if env["RELEASE"]:
         env.AppendUnique(CPPDEFINES=["NDEBUG"])

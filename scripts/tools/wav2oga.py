@@ -19,8 +19,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import cetools
-import ceoggenc
+import tools
+import oggenc
 
 def tune_oggenc(env):
     env.Replace(
@@ -34,7 +34,7 @@ def tune_oggenc(env):
     env["BUILDERS"]["Wav2Oga"] = env["BUILDERS"]["OggEnc"]
 
 codecs = {
-    ceoggenc.UTILITY: (ceoggenc, tune_oggenc),
+    oggenc.UTILITY: (oggenc, tune_oggenc),
 }
 
 def generate(env):
@@ -44,7 +44,7 @@ def generate(env):
         WAV2OGASOURCE="$SOURCE",
     )
 
-    cetools.generate_codec("wav2oga", codecs, "$WAV2OGACODEC", env)
+    tools.generate_codec("wav2oga", codecs, "$WAV2OGACODEC", env)
 
 def exists(env):
-    return cetools.codec_exists(codecs, env)
+    return tools.codec_exists(codecs, env)

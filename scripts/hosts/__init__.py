@@ -19,21 +19,21 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import cedarwin
-import ceppclinuxgnu
-import cex86linuxgnu
-import cex86linuxmingw
-import cex86windowsmingw
+import darwin
+import ppclinuxgnu
+import x86linuxgnu
+import x86linuxmingw
+import x86windowsmingw
 
 hosts = {
-    "darwin": cedarwin,
-    "ppc-linux-gnu": ceppclinuxgnu,
-    "x86-linux-gnu": cex86linuxgnu,
-    "x86-linux-mingw": cex86linuxmingw,
-    "x86-windows-mingw": cex86windowsmingw,
+    "darwin": darwin,
+    "ppc-linux-gnu": ppclinuxgnu,
+    "x86-linux-gnu": x86linuxgnu,
+    "x86-linux-mingw": x86linuxmingw,
+    "x86-windows-mingw": x86windowsmingw,
 }
 
-# SCons PLATFORM -> CE HOST
+# SCons PLATFORM -> HOST
 defaults = {
     "darwin": "darwin",
     "posix": "x86-linux-gnu",
