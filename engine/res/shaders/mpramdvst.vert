@@ -39,8 +39,7 @@ void main(void)
 
     // restore texture coordinates from vertex position
     // it's simple because we have a regular terrain
-    gl_MultiTexCoord0 = vec4(x * vertex_side_offset_inv,
-        1.0 - z * vertex_side_offset_inv, 0.0, 0.0);
+    gl_MultiTexCoord0 = vec4(x * vertex_side_offset_inv, 1.0 - z * vertex_side_offset_inv, 0.0, 0.0);
 
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
     gl_TexCoord[0] = gl_MultiTexCoord0;
