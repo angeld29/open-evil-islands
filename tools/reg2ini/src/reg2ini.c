@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth
+ *  This file is part of Cursed Earth.
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands
- *  Copyright (C) 2009-2010 Yanis Kurganov
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -90,7 +90,8 @@ int main(int argc, char* argv[])
 {
     if (2 != argc) {
         fprintf(stderr, "reg2ini - REG to INI file converter\n"
-                        "Copyright (C) 2009-2010 Yanis Kurganov\n\n"
+                        "Copyright (C) 2009-2015 Yanis Kurganov "
+                        "<ykurganov@users.sourceforge.net>\n\n"
                         "It's a small tool from reverse engineering "
                         "REG file format for project Cursed Earth.\n\n"
                         "usage: %s file.reg\n"
@@ -100,7 +101,7 @@ int main(int argc, char* argv[])
 
     FILE* reg_file = fopen(argv[1], "rb");
     if (NULL == reg_file) {
-        fprintf(stderr, "could not open file '%s'\n", argv[1]);
+        fprintf(stderr, "could not open file `%s'\n", argv[1]);
         return EXIT_FAILURE;
     }
 
