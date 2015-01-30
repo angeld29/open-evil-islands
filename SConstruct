@@ -19,8 +19,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-EnsurePythonVersion(2, 5)
-EnsureSConsVersion(1, 2)
+EnsurePythonVersion(2, 7)
+EnsureSConsVersion(2, 3)
 
 import site
 
