@@ -1,8 +1,0 @@
-Формат файла MOB
-==============================
-
-   * Уже исследован.
-
-     См. также Mob Surgeon от Sagrer и Mob Reversing Tool
-     Gipat Group <http://www.gipatgroup.org/>
-     Gipat.ru Dev Team <http://www.gipat.ru/>

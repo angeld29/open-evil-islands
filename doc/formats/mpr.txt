@@ -1,0 +1,8 @@
+Формат файла MPR
+==============================
+
+   * Уже исследован.
+
+     См. также Pub MPR Format от Sagrer
+     Gipat Group <http://www.gipatgroup.org/>
+     Gipat.ru Dev Team <http://www.gipat.ru/>

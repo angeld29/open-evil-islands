@@ -1,0 +1,8 @@
+Формат файла RES
+==============================
+
+   * Уже исследован.
+
+     См. также EI Model Plugin
+     Gipat Group <http://www.gipatgroup.org/>
+     Gipat.ru Dev Team <http://www.gipat.ru/>

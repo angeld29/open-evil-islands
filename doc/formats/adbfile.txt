@@ -1,8 +1,0 @@
-Формат файла ADB
-==============================
-
-   * Уже исследован.
-
-     См. также ADB Editor, ADB Reversing Tool и ADB Tool
-     Gipat Group <http://www.gipatgroup.org/>
-     Gipat.ru Dev Team <http://www.gipat.ru/>
