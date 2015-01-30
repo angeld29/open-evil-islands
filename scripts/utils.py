@@ -22,9 +22,11 @@
 import os
 import logging
 
-from itertools import chain
-
 import SCons
+
+def interrupt(message, *args, **kwargs):
+    logging.critical(message, *args, **kwargs)
+    raise SCons.Errors.StopError("A critical error has occurred and SCons can not continue building.")
 
 def traverse_files(node, patterns, env):
     return (file for pattern in patterns for file in node.glob(pattern) if isinstance(file, SCons.Node.FS.File))
@@ -33,7 +35,7 @@ def traverse_dirs(node, patterns, env):
     return (file for dir in node.glob("*") if isinstance(dir, SCons.Node.FS.Dir) for file in traverse_all(dir, patterns, env))
 
 def traverse_all(node, patterns, env):
-    return chain(traverse_files(node, patterns, env), traverse_dirs(node, patterns, env))
+    return itertools.chain(traverse_files(node, patterns, env), traverse_dirs(node, patterns, env))
 
 def get_nodes(paths, patterns, env):
     return (file for path in paths for file in traverse_all(env.Dir(path), patterns, env))
