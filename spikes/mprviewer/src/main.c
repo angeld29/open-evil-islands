@@ -2,7 +2,7 @@
  *  This file is part of Cursed Earth.
  *
  *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
         "Earth spikes\nMPR Viewer - explore clean Evil Islands zones");
 
     ce_optparse_add(optparse, "zone", CE_TYPE_STRING, NULL, true,
-        NULL, NULL, "any ZONE.mpr file in 'EI/Maps'");
+        NULL, NULL, "any ZONE.mpr file in `EI/Maps'");
 
     if (!ce_root_init(optparse, argc, argv)) {
         return EXIT_FAILURE;

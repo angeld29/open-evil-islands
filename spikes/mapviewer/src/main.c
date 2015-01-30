@@ -2,7 +2,7 @@
  *  This file is part of Cursed Earth.
  *
  *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
         "spikes\nMap Viewer - explore Evil Islands zones with creatures");
 
     ce_optparse_add(optparse, "zone", CE_TYPE_STRING, NULL, true,
-        NULL, NULL, "any ZONE.mpr file in 'EI/Maps'");
+        NULL, NULL, "any ZONE.mpr file in `EI/Maps'");
 
     ce_optparse_add_control(optparse, "+/-", "change animation FPS");
 
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
         ce_cam_file_del(cam_file);
         ce_mem_file_del(mem_file);
     } else {
-        ce_logging_error("map viewer: could not open file '%s'", path);
+        ce_logging_error("map viewer: could not open file `%s'", path);
     }
 #endif
 

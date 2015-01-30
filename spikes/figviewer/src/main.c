@@ -2,7 +2,7 @@
  *  This file is part of Cursed Earth.
  *
  *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -119,7 +119,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
                         }
                     }
                 } else {
-                    ce_logging_warning("figure viewer: could not play animation '%s'", anmname);
+                    ce_logging_warning("figure viewer: could not play animation `%s'", anmname);
                 }
             }
         }

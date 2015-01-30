@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth
+ *  This file is part of Cursed Earth.
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands
- *  Copyright (C) 2009-2010 Yanis Kurganov
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
         "Earth spikes\nSound Player - play Evil Islands sounds");
 
     ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true,
-        NULL, NULL, "any TRACK.* file in 'EI/Stream'");
+        NULL, NULL, "any TRACK.* file in `EI/Stream'");
 
     if (!ce_root_init(optparse, argc, argv)) {
         clean();

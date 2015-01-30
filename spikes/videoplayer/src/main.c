@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth
+ *  This file is part of Cursed Earth.
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands
- *  Copyright (C) 2009-2010 Yanis Kurganov
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
 
         video_object = ce_video_object_new(track);
         if (0 == video_object) {
-            ce_logging_error("video player: could not play video track '%s'", track);
+            ce_logging_error("video player: could not play video track `%s'", track);
         } else {
             ce_video_object_play(video_object);
         }
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
         "Earth spikes\nVideo Player - play Evil Islands videos");
 
     ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true,
-        NULL, NULL, "any TRACK.* file in 'EI/Movies'");
+        NULL, NULL, "any TRACK.* file in `EI/Movies'");
 
     if (!ce_root_init(optparse, argc, argv)) {
         return EXIT_FAILURE;
