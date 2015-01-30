@@ -1,43 +1,7 @@
-Evil Islands MMP file format
+Формат файла MMP
 ==============================
 
-   * This file is part of Cursed Earth
+   * Введение.
+     Данная документация написана в рамках реверс-инжиниринга формата MMP.
 
-     Cursed Earth is an open source, cross-platform port of Evil Islands
-     Copyright (C) 2009-2010 Yanis Kurganov
-
-     Permission is granted to copy, distribute and/or modify this document
-     under the terms of the GNU Free Documentation License, Version 1.3
-     or any later version published by the Free Software Foundation;
-     with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
-
-     You should have received a copy of the GNU Free Documentation License
-     along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-   * This is an internal documentation currently available only on Russian.
-     Something more strong in English will be later.
-
-   * На подходе...
-     Данная документация написана в рамках реверс-инжениринга формата MMP.
-
-/* TODO
- *  signature: uint32 little-endian
- *  width: uint32 little-endian
- *  height: uint32 little-endian
- *  size (PNT3) or mipmap count (other): uint32 little-endian
- *  format: uint32 little-endian
- *  rgb_bit_count: uint32 little-endian
- *  a_bit_mask: uint32 little-endian
- *  a_bit_shift: uint32 little-endian
- *  a_bit_count: uint32 little-endian
- *  r_bit_mask: uint32 little-endian
- *  r_bit_shift: uint32 little-endian
- *  r_bit_count: uint32 little-endian
- *  g_bit_mask: uint32 little-endian
- *  g_bit_shift: uint32 little-endian
- *  g_bit_count: uint32 little-endian
- *  b_bit_mask: uint32 little-endian
- *  b_bit_shift: uint32 little-endian
- *  b_bit_count: uint32 little-endian
- *  user_data_shift: uint32 little-endian
-*/
+     TODO

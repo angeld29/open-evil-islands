@@ -1,21 +1,5 @@
-Cursed Earth GIT HOWTO
+GIT ЧАВО
 ========================
-
-   * This file is part of Cursed Earth
-
-     Cursed Earth is an open source, cross-platform port of Evil Islands
-     Copyright (C) 2009-2010 Yanis Kurganov
-
-     Permission is granted to copy, distribute and/or modify this document
-     under the terms of the GNU Free Documentation License, Version 1.3
-     or any later version published by the Free Software Foundation;
-     with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
-
-     You should have received a copy of the GNU Free Documentation License
-     along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-   * This is an internal documentation currently available only on Russian.
-     Something more strong in English will be later.
 
    * Прежде всего, советую почитать это:
 
@@ -29,17 +13,13 @@ Cursed Earth GIT HOWTO
      чтобы шпаргалка всегда была под рукой.
 
    * Ссылка на наш репозиторий для чтения:
-     git://cursedearth.git.sourceforge.net/gitroot/cursedearth/cursedearth
+     git clone git://git.code.sf.net/p/cursedearth/code cursedearth
 
      Ссылка на наш репозиторий для разработчиков:
-     ssh://USERNAME@cursedearth.git.sourceforge.net/gitroot/cursedearth/cursedearth
+     git clone ssh://USERNAME@git.code.sf.net/p/cursedearth/code cursedearth
 
      Создание консоли на SF.net для администрирования:
      ssh -t USERNAME,cursedearth@shell.sourceforge.net create
-
-   * Клонирование репозитория себе на машину:
-     git clone git://cursedearth.git.sourceforge.net/gitroot/cursedearth/cursedearth
-     git clone ssh://USERNAME@cursedearth.git.sourceforge.net/gitroot/cursedearth/cursedearth
 
    * Настройка своего имени:
      git config user.name "YOUR NAME"
@@ -55,29 +35,7 @@ Cursed Earth GIT HOWTO
 
      Так можно избавиться от предупреждений при заливке изменений на сервер:
      [push]
-     default = current
-
-     Включить цвета в консоли (cursedearth/.git/config):
-     [color]
-     branch = auto
-     diff = auto
-     status = auto
-
-     [color "branch"]
-     current = yellow reverse
-     local = yellow
-     remote = green
-
-     [color "diff"]
-     meta = yellow bold
-     frag = magenta bold
-     old = red bold
-     new = green bold
-
-     [color "status"]
-     added = yellow
-     changed = green
-     untracked = cyan
+     default = simple
 
    * Редактирование списка исключаемых файлов (cursedearth/.git/info/exclude):
      *.py[co]
@@ -117,7 +75,7 @@ Cursed Earth GIT HOWTO
      git checkout -b feature
 
      Залить изменения из feature в текущую ветку:
-     git merge feature
+     git merge/rebase feature
 
      Опубликовать ветку на сервере (для работы над веткой с кем-то в команде):
      git push origin feature:feature
@@ -136,12 +94,12 @@ Cursed Earth GIT HOWTO
 
      Удаление ссылки на ветку (допустим, кто-то удалил ветку
      на сервере, но у других остались на неё локальные ссылки):
-     git branch -rd public/feature
+     git branch -rd origin/feature
 
    * Базовые действия для манипулирования ветками:
      git checkout -b feature
      ... working ...
-     git merge master
+     git rebase master
      git checkout master
      git merge feature
      git branch -d feature

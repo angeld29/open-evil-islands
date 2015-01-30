@@ -1,27 +1,14 @@
-Evil Islands CAM file format
+Формат файла CAM
 ==============================
 
-   * This file is part of Cursed Earth
+   * Введение.
+     Данная документация написана в рамках реверс-инжиниринга формата CAM.
 
-     Cursed Earth is an open source, cross-platform port of Evil Islands
-     Copyright (C) 2009-2010 Yanis Kurganov
+     См. также CAMEdit
+     Gipat Group <http://www.gipatgroup.org/>
+     Gipat.ru Dev Team <http://www.gipat.ru/>
 
-     Permission is granted to copy, distribute and/or modify this document
-     under the terms of the GNU Free Documentation License, Version 1.3
-     or any later version published by the Free Software Foundation;
-     with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
-
-     You should have received a copy of the GNU Free Documentation License
-     along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-   * This document has been written in course of
-     reverse-engineering CAM file format.
-
-     See also CAMEdit
-     at Gipat.ru Dev Team <http://www.gipat.ru/>
-     and Gipat Group <http://www.gipatgroup.org/>.
-
-   * Types.
+   * Типы:
      enum cam_record_size = 36
 
      struct vec3
@@ -36,5 +23,5 @@ Evil Islands CAM file format
         vec3 position
         quat rotation
 
-   * Format.
+   * Формат:
      cam_record records[cam_file_size / cam_record_size]
