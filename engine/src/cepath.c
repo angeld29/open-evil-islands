@@ -33,8 +33,7 @@ char* ce_path_join_va(char* path, size_t size, va_list args)
     }
     path[0] = '\0';
     size_t length = 0;
-    for (const char* tail = va_arg(args, const char*);
-            NULL != tail; tail = va_arg(args, const char*)) {
+    for (const char* tail = va_arg(args, const char*); NULL != tail; tail = va_arg(args, const char*)) {
         if (0 != length && '/' != path[length - 1] && '\\' != path[length - 1]) {
             ce_strlcat(path, (const char[]){CE_PATH_SEP, '\0'}, size);
             ++length;

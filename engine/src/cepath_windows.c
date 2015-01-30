@@ -30,3 +30,8 @@ bool ce_path_exists(const char* path)
 {
     return INVALID_FILE_ATTRIBUTES != GetFileAttributes(path);
 }
+
+ce_vector* ce_path_ls(const char* CE_UNUSED(path))
+{
+    return NULL;
+}

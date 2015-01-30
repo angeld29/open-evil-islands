@@ -34,3 +34,8 @@ bool ce_path_exists(const char* path)
     }
     return false;
 }
+
+ce_vector* ce_path_ls(const char* CE_UNUSED(path))
+{
+    return NULL;
+}
