@@ -28,8 +28,7 @@
 #include "celogging.h"
 #include "ceconfigfile.h"
 
-static bool ce_config_file_parse(ce_config_file* config_file,
-                                    const char* path, FILE* file)
+static bool ce_config_file_parse(ce_config_file* config_file, const char* path, FILE* file)
 {
     enum {
         MAX_LINE_SIZE = 256,
@@ -37,13 +36,14 @@ static bool ce_config_file_parse(ce_config_file* config_file,
 
     char line[MAX_LINE_SIZE], temp1[MAX_LINE_SIZE], temp2[MAX_LINE_SIZE];
     ce_config_section* section = NULL;
+    ce_config_option* option = NULL;
+    bool was_continuation_character = false;
 
     for (int line_number = 1; NULL != fgets(temp1, MAX_LINE_SIZE, file); ++line_number) {
         size_t line_length = strlen(ce_strtrim(line, temp1));
 
         if (line_length + 1 == MAX_LINE_SIZE) {
-            ce_logging_warning("config file: %s:%d: line is too long: "
-                                "'%s', skipped...", path, line_number, line);
+            ce_logging_warning("config file: %s:%d: line is too long: `%s'", path, line_number, line);
             // FIXME: skip line tail until new line
             int ch;
             do {
@@ -59,8 +59,7 @@ static bool ce_config_file_parse(ce_config_file* config_file,
         if ('[' == line[0]) {
             char* rbracket = strrchr(line, ']');
             if (NULL == rbracket) {
-                ce_logging_error("config file: %s:%d: expected ']': "
-                                "'%s'", path, line_number, line);
+                ce_logging_error("config file: %s:%d: expected `]': `%s'", path, line_number, line);
                 return false;
             }
 
@@ -69,8 +68,7 @@ static bool ce_config_file_parse(ce_config_file* config_file,
             line_length = strlen(line);
 
             if (line_length <= 2) {
-                ce_logging_error("config file: %s:%d: unnamed section: "
-                                    "'%s'", path, line_number, line);
+                ce_logging_error("config file: %s:%d: unnamed section: `%s'", path, line_number, line);
                 return false;
             }
 
@@ -82,39 +80,56 @@ static bool ce_config_file_parse(ce_config_file* config_file,
             ce_vector_push_back(config_file->sections, section);
         } else {
             if (NULL == section) {
-                ce_logging_warning("config file: %s:%d: option outside "
-                                    "of any section: '%s', skipped...",
-                                    path, line_number, line);
+                ce_logging_warning("config file: %s:%d: option outside of any section: `%s'", path, line_number, line);
                 continue;
             }
 
             char* eq = strchr(line, '=');
-            if (NULL == eq) {
-                ce_logging_error("config file: %s:%d: expected '=': "
-                                "'%s'", path, line_number, line);
+            if (NULL == eq && !was_continuation_character) {
+                ce_logging_error("config file: %s:%d: expected `=': `%s'", path, line_number, line);
+                return false;
+            }
+            if (NULL != eq && was_continuation_character) {
+                ce_logging_error("config file: %s:%d: unexpected `=': `%s'", path, line_number, line);
                 return false;
             }
 
-            ce_config_option* option = ce_alloc(sizeof(ce_config_option));
-            option->name = ce_string_new();
-            option->value = ce_string_new();
-            ce_vector_push_back(section->options, option);
-
-            ce_strleft(temp1, line, eq - line);
-            ce_string_assign(option->name, ce_strtrim(temp2, temp1));
-
-            if (ce_string_empty(option->name)) {
-                ce_logging_warning("config file: %s:%d: missing option name: "
-                                "'%s'", path, line_number, line);
+            // find continuation character
+            char* bs = strrchr(line, '\\');
+            if (NULL != bs) {
+                if ('\0' == *(bs + 1)) {
+                    // remove continuation character
+                    *bs = '\0';
+                } else {
+                    // it's not a continuation character
+                    bs = NULL;
+                }
             }
 
-            ce_strright(temp1, line, line_length - (eq - line) - 1);
-            ce_string_assign(option->value, ce_strtrim(temp2, temp1));
+            if (was_continuation_character) {
+                ce_string_append(option->value, line);
+            } else {
+                option = ce_alloc(sizeof(ce_config_option));
+                option->name = ce_string_new();
+                option->value = ce_string_new();
+                ce_vector_push_back(section->options, option);
+
+                ce_strleft(temp1, line, eq - line);
+                ce_string_assign(option->name, ce_strtrim(temp2, temp1));
+
+                if (ce_string_empty(option->name)) {
+                    ce_logging_warning("config file: %s:%d: missing option name: `%s'", path, line_number, line);
+                }
+
+                ce_strright(temp1, line, line_length - (eq - line) - 1);
+                ce_string_assign(option->value, ce_strtrim(temp2, temp1));
+            }
 
             if (ce_string_empty(option->value)) {
-                ce_logging_warning("config file: %s:%d: missing option value: "
-                                "'%s'", path, line_number, line);
+                ce_logging_warning("config file: %s:%d: missing option value: `%s'", path, line_number, line);
             }
+
+            was_continuation_character = (NULL != bs);
         }
     }
 
@@ -125,7 +140,7 @@ ce_config_file* ce_config_file_open(const char* path)
 {
     FILE* file = fopen(path, "rt");
     if (NULL == file) {
-        ce_logging_error("config file: could not open file '%s'", path);
+        ce_logging_error("config file: could not open file `%s'", path);
         return NULL;
     }
 
@@ -133,7 +148,7 @@ ce_config_file* ce_config_file_open(const char* path)
     config_file->sections = ce_vector_new();
 
     if (!ce_config_file_parse(config_file, path, file)) {
-        ce_logging_error("config file: failed to parse '%s'", path);
+        ce_logging_error("config file: failed to parse `%s'", path);
         ce_config_file_close(config_file);
         fclose(file);
         return NULL;
@@ -163,8 +178,7 @@ void ce_config_file_close(ce_config_file* config_file)
     }
 }
 
-size_t ce_config_file_section_index(ce_config_file* config_file,
-                                    const char* section_name)
+size_t ce_config_file_section_index(ce_config_file* config_file, const char* section_name)
 {
     for (size_t i = 0; i < config_file->sections->count; ++i) {
         ce_config_section* section = config_file->sections->items[i];
@@ -175,9 +189,7 @@ size_t ce_config_file_section_index(ce_config_file* config_file,
     return config_file->sections->count;
 }
 
-size_t ce_config_file_option_index(ce_config_file* config_file,
-                                    size_t section_index,
-                                    const char* option_name)
+size_t ce_config_file_option_index(ce_config_file* config_file, size_t section_index, const char* option_name)
 {
     ce_config_section* section = config_file->sections->items[section_index];
     for (size_t i = 0; i < section->options->count; ++i) {
@@ -189,9 +201,7 @@ size_t ce_config_file_option_index(ce_config_file* config_file,
     return section->options->count;
 }
 
-const char* ce_config_file_find(ce_config_file* config_file,
-                                const char* section_name,
-                                const char* option_name)
+const char* ce_config_file_find(ce_config_file* config_file, const char* section_name, const char* option_name)
 {
     size_t section_index = ce_config_file_section_index(config_file, section_name);
     if (section_index != ce_config_file_section_count(config_file)) {
