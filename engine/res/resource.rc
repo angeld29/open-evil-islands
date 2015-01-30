@@ -38,12 +38,12 @@ BEGIN
         BLOCK "000904b0"
         BEGIN
             VALUE "FileDescription", "Cursed Earth is an open source, cross-platform port of Evil Islands"
-            VALUE "FileVersion", "0.0.0"
+            VALUE "FileVersion", "2.3.0"
             VALUE "InternalName", "cursedearth"
-            VALUE "LegalCopyright", "(C) 2009-2010 Yanis Kurganov"
-            VALUE "OriginalFilename", "cursedearth.exe"
+            VALUE "LegalCopyright", "(C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>"
+            VALUE "OriginalFilename", "game.exe"
             VALUE "ProductName", "Cursed Earth"
-            VALUE "ProductVersion", "0.0.0"
+            VALUE "ProductVersion", "2.3.0"
         END
     END
     BLOCK "VarFileInfo"
