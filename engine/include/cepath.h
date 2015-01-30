@@ -29,6 +29,9 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
+#include "cevector.h"
+#include "cestring.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,6 +56,8 @@ extern char* ce_path_normpath(char* path);
 extern char* ce_path_find_special1(char* path, size_t size,
                                     const char* prefix, const char* name,
                                     const char* dirs[], const char* exts[]);
+
+extern ce_vector* ce_path_ls(const char* path);
 
 #ifdef __cplusplus
 }
