@@ -99,7 +99,7 @@ ce_optparse* ce_option_manager_create_option_parser(void)
 
     char path[CE_PATH_MAX], help[512];
 
-    if (NULL != ce_registry_get_string_value(path, sizeof(path),
+    if (NULL != ce_registry_get_path_value(path, sizeof(path),
             CE_REGISTRY_KEY_CURRENT_USER, "Software\\Nival Interactive\\"
                 "EvilIslands\\Path Settings", "WORK PATH")) {
         snprintf(help, sizeof(help), "path to EI directory; "
