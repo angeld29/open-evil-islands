@@ -20,6 +20,7 @@
 
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "celib.h"
 #include "cestr.h"
@@ -94,6 +95,82 @@ char* ce_strrev(char* restrict dst, const char* restrict src)
         *p++ = *--s;
     }
     *p = '\0';
+    return dst;
+}
+
+char* ce_strrep(char* dst, const char* src_orig, size_t size, const char* from, const char* to)
+{
+    if (NULL == dst || NULL == src_orig || 0 == size || NULL == from || NULL == to) {
+        return NULL;
+    }
+
+    size_t src_len = strlen(src_orig);
+    if (0 == src_len) {
+        dst[0] = '\0';
+        return dst;
+    }
+
+    char src_buffer[src_len + 1], *src = src_buffer;
+    memcpy(src, src_orig, sizeof(src_buffer));
+
+    size_t from_len = strlen(from);
+    if (0 == from_len) {
+         ce_strlcpy(dst, src, size);
+         return dst;
+    }
+
+    // Two-pass approach: figure out how much space to allocate for
+    // the new string, pre-allocate it, then perform replacement(s).
+
+    size_t count = 0;
+    const char* src_pos = src;
+    assert(from_len); // otherwise, strstr(src,from) will return src
+
+    do {
+        src_pos = strstr(src_pos, from);
+        if (NULL != src_pos) {
+            src_pos += from_len;
+            ++count;
+        }
+    } while (src_pos);
+
+    if (0 == count) {
+        ce_strlcpy(dst, src, size);
+        return dst;
+    }
+
+    // The following size arithmetic is extremely cautious, to guard against size_t overflows.
+    assert(src_len >= count * from_len);
+    assert(0 != count);
+
+    size_t src_without_from_len = src_len - count * from_len;
+    size_t to_len = strlen(to);
+    size_t newstr_len = src_without_from_len + count * to_len;
+
+    if ((0 != to_len && ((newstr_len <= src_without_from_len) || (newstr_len + 1 == 0))) || (size < newstr_len + 1)) {
+        // overflow
+        return NULL;
+    }
+
+    const char* start_substr = src;
+    char* dst_pos = dst;
+    for (size_t i = 0; i != count; ++i) {
+        const char* end_substr = strstr(start_substr, from);
+        assert(NULL != end_substr);
+        size_t substr_len = end_substr - start_substr;
+        memcpy(dst_pos, start_substr, substr_len);
+        dst_pos += substr_len;
+        memcpy(dst_pos, to, to_len);
+        dst_pos += to_len;
+        start_substr = end_substr + from_len;
+    }
+
+    // copy remainder of src, including trailing '\0'
+    size_t remains = src_len - (start_substr - src) + 1;
+    assert(dst_pos + remains == dst + newstr_len + 1);
+    memcpy(dst_pos, start_substr, remains);
+    assert(strlen(dst) == newstr_len);
+
     return dst;
 }
 

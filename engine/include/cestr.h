@@ -31,13 +31,13 @@ extern "C"
 /**
  *  Copies a string that contains the n leftmost characters of the s.
  *  The entire string is copied if n is greater than string length.
-*/
+ */
 extern char* ce_strleft(char* restrict dst, const char* restrict src, size_t n);
 
 /**
  *  Copies a string that contains the n rightmost characters of the s.
  *  The entire string is copied if n is greater than string length.
-*/
+ */
 extern char* ce_strright(char* restrict dst, const char* restrict src, size_t n);
 
 /**
@@ -46,7 +46,7 @@ extern char* ce_strright(char* restrict dst, const char* restrict src, size_t n)
  *  of the array remain unchanged. If there are less than n characters
  *  available in the string starting at the given position, the function
  *  copies all characters that are available from the specified position.
-*/
+ */
 extern char* ce_strmid(char* restrict dst, const char* restrict src, size_t pos, size_t n);
 
 /// Remove all whitespace from the start and the end.
@@ -62,9 +62,25 @@ extern char* ce_strlwr(char* restrict dst, const char* restrict src);
 extern char* ce_strrev(char* restrict dst, const char* restrict src);
 
 /**
+ *  C substring replacement.
+ *  Based on https://gist.github.com/dhess/975639
+ *
+ *  This function returns string 'src' if string 'from' is an empty string, or
+ *  if 'from' is not found in 'src'. If 'from' is found in 'src', the function
+ *  returns a string whose contents are identical to 'src', except that all
+ *  occurrences of 'from' in the original string 'src' are, in the new string,
+ *  replaced by the string 'to'.
+ *
+ *  Strings 'src', 'from', and 'to' must all be null-terminated strings. If any
+ *  of 'src', 'from', or 'to' are NULL, the function returns NULL, indicating an
+ *  error condition. If any other error occurs, the function returns NULL.
+ */
+extern char* ce_strrep(char* dst, const char* src, size_t size, const char* from, const char* to);
+
+/**
  *  Replaces all occurrences of a character in a string with another character.
  *  Return number of replacements made.
-*/
+ */
 extern size_t ce_strrepc(char* s, char from, char to);
 
 /// Compare s1 and s2, ignoring case.
@@ -85,7 +101,7 @@ extern char* ce_strcasestr(const char* haystack, const char* needle);
  *  will be copied. Always NULL terminates (unless size <= strlen(dst)).
  *  Returns strlen(src) + MIN(size, strlen(initial dst)).
  *  If retval >= size, truncation occurred.
-*/
+ */
 extern size_t ce_strlcat(char* restrict dst, const char* restrict src, size_t size);
 
 /**
@@ -95,13 +111,13 @@ extern size_t ce_strlcat(char* restrict dst, const char* restrict src, size_t si
  *  Copy src to string dst of size size. At most size-1 characters
  *  will be copied. Always NULL terminates (unless size == 0).
  *  Return strlen(src); if retval >= size, truncation occurred.
-*/
+ */
 extern size_t ce_strlcpy(char* restrict dst, const char* restrict src, size_t size);
 
 /**
  *  Find the length of s, but scan at most n characters.
  *  If no '\0' terminator is found in that many characters, return n.
-*/
+ */
 extern size_t ce_strnlen(const char* s, size_t n);
 
 /// Find the last occurrence in string of any character in accept.
@@ -110,7 +126,7 @@ extern char* ce_strrpbrk(const char* s, const char* accept);
 /**
  *  Return the next delimited token from sp, terminating
  *  it with a '\0', and update sp to point past it.
-*/
+ */
 extern char* ce_strsep(char** sp, const char* delim);
 
 #ifdef __cplusplus
