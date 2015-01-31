@@ -25,6 +25,8 @@
 #include "str.hpp"
 #include "path.hpp"
 
+namespace cursedearth
+{
 char* ce_path_join_va(char* path, size_t size, va_list args)
 {
     if (0 == size) {
@@ -90,4 +92,5 @@ char* ce_path_find_special1(char* path, size_t size, const char* prefix, const c
         }
     }
     return NULL;
+}
 }

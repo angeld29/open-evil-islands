@@ -26,6 +26,8 @@
 
 #include "path.hpp"
 
+namespace cursedearth
+{
 const char CE_PATH_SEP = '/';
 
 bool ce_path_exists(const char* path)
@@ -67,4 +69,5 @@ bool ce_path_list_subdirs(const char* path, ce_vector* subdirs)
 
     closedir(dir);
     return true;
+}
 }

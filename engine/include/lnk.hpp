@@ -22,24 +22,27 @@
  *  doc/formats/lnk.txt
  */
 
-#ifndef CE_LNKFILE_HPP
-#define CE_LNKFILE_HPP
+#ifndef CE_LNK_HPP
+#define CE_LNK_HPP
 
 #include "string.hpp"
-#include "resfile.hpp"
+#include "res.hpp"
 
-typedef struct {
-    ce_string* child_name;
-    ce_string* parent_name;
-} ce_lnklink;
+namespace cursedearth
+{
+    typedef struct {
+        ce_string* child_name;
+        ce_string* parent_name;
+    } ce_lnklink;
 
-typedef struct {
-    int link_count;
-    int link_index;
-    ce_lnklink* links;
-} ce_lnkfile;
+    typedef struct {
+        int link_count;
+        int link_index;
+        ce_lnklink* links;
+    } ce_lnkfile;
 
-extern ce_lnkfile* ce_lnkfile_open(ce_res_file* res_file, const char* name);
-extern void ce_lnkfile_close(ce_lnkfile* lnkfile);
+    extern ce_lnkfile* ce_lnkfile_open(ce_res_file* res_file, const char* name);
+    extern void ce_lnkfile_close(ce_lnkfile* lnkfile);
+}
 
-#endif /* CE_LNKFILE_HPP */
+#endif /* CE_LNK_HPP */

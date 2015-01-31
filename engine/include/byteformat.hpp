@@ -18,11 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_BYTEFMT_HPP
-#define CE_BYTEFMT_HPP
+#ifndef CE_BYTEFORMAT_HPP
+#define CE_BYTEFORMAT_HPP
 
-extern char* ce_bytefmt_size(char* buffer, size_t size, long long int bytes);
-extern char* ce_bytefmt_dot(char* buffer, size_t size, long long int bytes);
-extern char* ce_bytefmt_detail(char* buffer, size_t size, long long int bytes);
+namespace cursedearth
+{
+    char* ce_bytefmt_size(char* buffer, size_t size, long long int bytes);
+    char* ce_bytefmt_dot(char* buffer, size_t size, long long int bytes);
+    char* ce_bytefmt_detail(char* buffer, size_t size, long long int bytes);
+}
 
-#endif /* CE_BYTEFMT_HPP */
+#endif /* CE_BYTEFORMAT_HPP */

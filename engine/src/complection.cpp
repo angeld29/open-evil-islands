@@ -21,6 +21,8 @@
 #include "math.hpp"
 #include "complection.hpp"
 
+namespace cursedearth
+{
 ce_complection*
 ce_complection_init(ce_complection* complection,
                     float dexterity, float strength, float height)
@@ -55,4 +57,5 @@ bool ce_complection_equal(const ce_complection* complection,
     return ce_fisequal(complection->dexterity, other->dexterity, CE_EPS_E3) &&
         ce_fisequal(complection->strength, other->strength, CE_EPS_E3) &&
         ce_fisequal(complection->height, other->height, CE_EPS_E3);
+}
 }

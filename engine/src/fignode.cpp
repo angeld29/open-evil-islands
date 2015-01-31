@@ -22,9 +22,11 @@
 
 #include "str.hpp"
 #include "alloc.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "fignode.hpp"
 
+namespace cursedearth
+{
 ce_fignode* ce_fignode_new(ce_res_file* mod_res_file,
                             ce_res_file* bon_res_file,
                             ce_res_file* anm_res_files[],
@@ -83,4 +85,5 @@ void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode,
         ce_fignode_accept_renderqueue_cascade(fignode->childs->items[i],
                                                             renderqueue);
     }
+}
 }

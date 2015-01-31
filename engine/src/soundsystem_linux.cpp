@@ -32,6 +32,8 @@
 #include "logging.hpp"
 #include "soundsystem.hpp"
 
+namespace cursedearth
+{
 typedef struct {
     snd_pcm_t* handle;
 } ce_alsa;
@@ -324,4 +326,5 @@ ce_sound_system_vtable ce_sound_system_platform(void)
     return (ce_sound_system_vtable){
         sizeof(ce_alsa), ce_alsa_ctor, ce_alsa_dtor, ce_alsa_write
     };
+}
 }

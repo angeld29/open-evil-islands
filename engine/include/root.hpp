@@ -27,23 +27,26 @@
 #include "scenemng.hpp"
 #include "optparse.hpp"
 
-extern struct ce_root {
-    bool done;
-    bool show_bboxes;
-    bool comprehensive_bbox_only;
-    float animation_fps;
-    ce_renderwindow* renderwindow;
-    ce_scenemng* scenemng;
-    ce_timer* timer;
-    ce_input_supply* input_supply;
-    ce_input_event* exit_event;
-    ce_input_event* switch_window_event;
-    ce_input_event* toggle_fullscreen_event;
-    ce_input_event* toggle_bbox_event;
-    ce_renderwindow_listener renderwindow_listener;
-} ce_root;
+namespace cursedearth
+{
+    extern struct ce_root {
+        bool done;
+        bool show_bboxes;
+        bool comprehensive_bbox_only;
+        float animation_fps;
+        ce_renderwindow* renderwindow;
+        ce_scenemng* scenemng;
+        timer_ptr_t timer;
+        ce_input_supply* input_supply;
+        ce_input_event* exit_event;
+        ce_input_event* switch_window_event;
+        ce_input_event* toggle_fullscreen_event;
+        ce_input_event* toggle_bbox_event;
+        ce_renderwindow_listener renderwindow_listener;
+    } ce_root;
 
-extern bool ce_root_init(ce_optparse* optparse, int argc, char* argv[]);
-extern int ce_root_exec(void);
+    extern bool ce_root_init(ce_optparse* optparse, int argc, char* argv[]);
+    extern int ce_root_exec(void);
+}
 
 #endif /* CE_ROOT_HPP */

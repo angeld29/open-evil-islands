@@ -21,6 +21,8 @@
 #include "math.hpp"
 #include "color.hpp"
 
+namespace cursedearth
+{
 const ce_color CE_COLOR_BLACK = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 1.0f};
 const ce_color CE_COLOR_WHITE = {.r = 1.0f, .g = 1.0f, .b = 1.0f, .a = 1.0f};
 const ce_color CE_COLOR_RED = {.r = 1.0f, .g = 0.0f, .b = 0.0f, .a = 1.0f};
@@ -130,4 +132,5 @@ ce_color* ce_color_lerp(ce_color* color, float u, const ce_color* lhs,
     color->b = ce_lerp(u, lhs->b, rhs->b);
     color->a = ce_lerp(u, lhs->a, rhs->a);
     return color;
+}
 }

@@ -26,11 +26,13 @@
 #include "path.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "resfile.hpp"
+#include "res.hpp"
 #include "optionmanager.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "figuremanager.hpp"
 
+namespace cursedearth
+{
 struct ce_figure_manager* ce_figure_manager;
 
 static const char* ce_figure_exts[] = {".mod", NULL};
@@ -193,4 +195,5 @@ void ce_figure_manager_remove_entity(ce_figentity* entity)
 {
     ce_vector_remove_all(ce_figure_manager->entities, entity);
     ce_figentity_del(entity);
+}
 }

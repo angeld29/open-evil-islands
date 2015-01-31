@@ -22,46 +22,54 @@
  *  doc/formats/adb.txt
  */
 
-#ifndef CE_ADBFILE_HPP
-#define CE_ADBFILE_HPP
+#ifndef CE_ADB_HPP
+#define CE_ADB_HPP
 
-#include <cstddef>
 #include <cstdint>
+
+#include <memory>
+#include <vector>
 
 #include "memfile.hpp"
 
-typedef struct {
-    char name[16];
-    uint32_t id;
-    uint32_t unknown1;
-    uint32_t unknown2;
-    uint32_t unknown3;
-    uint32_t unknown4;
-    uint32_t unknown5;
-    uint32_t unknown6;
-    uint32_t unknown7;
-    uint32_t unknown8;
-    uint32_t unknown9;
-    uint32_t unknown10;
-    uint32_t unknown11;
-    uint32_t unknown12;
-    float unknown13;
-    uint32_t unknown14;
-    uint32_t unknown15;
-    uint32_t unknown16;
-    uint32_t unknown17;
-} ce_adb_record;
+namespace cursedearth
+{
+    struct adb_record_t
+    {
+        char name[16];
+        uint32_t id;
+        uint32_t unknown1;
+        uint32_t unknown2;
+        uint32_t unknown3;
+        uint32_t unknown4;
+        uint32_t unknown5;
+        uint32_t unknown6;
+        uint32_t unknown7;
+        uint32_t unknown8;
+        uint32_t unknown9;
+        uint32_t unknown10;
+        uint32_t unknown11;
+        uint32_t unknown12;
+        float unknown13;
+        uint32_t unknown14;
+        uint32_t unknown15;
+        uint32_t unknown16;
+        uint32_t unknown17;
+    };
 
-typedef struct {
-    uint32_t record_count;
-    char name[24];
-    float min_height;
-    float average_height;
-    float max_height;
-    ce_adb_record records[];
-} ce_adb_file;
+    struct adb_t
+    {
+        uint32_t record_count;
+        char name[24];
+        float min_height;
+        float average_height;
+        float max_height;
+        std::vector<adb_record_t> records;
+    };
 
-extern ce_adb_file* ce_adb_file_new(ce_mem_file* mem_file);
-extern void ce_adb_file_del(ce_adb_file* adb_file);
+    typedef std::shared_ptr<adb_t> adb_ptr_t;
 
-#endif /* CE_ADBFILE_HPP */
+    adb_ptr_t create_adb(ce_mem_file* mem_file);
+}
+
+#endif /* CE_ADB_HPP */

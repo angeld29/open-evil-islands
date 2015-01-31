@@ -28,6 +28,8 @@
 #include "logging.hpp"
 #include "display.hpp"
 
+namespace cursedearth
+{
 ce_display_rotation ce_display_rotation_from_degrees(int value)
 {
     ce_display_rotation rotation = CE_DISPLAY_ROTATION_NONE;
@@ -232,4 +234,5 @@ size_t ce_displaymng_enter(ce_displaymng* displaymng,
 void ce_displaymng_exit(ce_displaymng* displaymng)
 {
     (*displaymng->vtable.exit)(displaymng);
+}
 }

@@ -21,15 +21,23 @@
 #ifndef CE_TIMER_HPP
 #define CE_TIMER_HPP
 
-typedef struct {
-    float elapsed;
-    char impl[];
-} ce_timer;
+#include <memory>
 
-extern ce_timer* ce_timer_new(void);
-extern void ce_timer_del(ce_timer* timer);
+namespace cursedearth
+{
+    class timer_t
+    {
+    public:
+        virtual ~timer_t() = 0;
 
-extern void ce_timer_start(ce_timer* timer);
-extern float ce_timer_advance(ce_timer* timer);
+        virtual void start() = 0;
+        virtual float advance() = 0;
+        virtual float elapsed() const = 0;
+    };
+
+    typedef std::shared_ptr<timer_t> timer_ptr_t;
+
+    timer_ptr_t create_timer();
+}
 
 #endif /* CE_TIMER_HPP */

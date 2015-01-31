@@ -21,15 +21,18 @@
 #ifndef CE_MOBMANAGER_HPP
 #define CE_MOBMANAGER_HPP
 
-#include "mobfile.hpp"
+#include "mob.hpp"
 
-extern struct ce_mob_manager {
-    int stub;
-}* ce_mob_manager;
+namespace cursedearth
+{
+    extern struct ce_mob_manager {
+        int stub;
+    }* ce_mob_manager;
 
-extern void ce_mob_manager_init(void);
-extern void ce_mob_manager_term(void);
+    extern void ce_mob_manager_init(void);
+    extern void ce_mob_manager_term(void);
 
-extern ce_mob_file* ce_mob_manager_open(const char* name);
+    extern ce_mob_file* ce_mob_manager_open(const char* name);
+}
 
 #endif /* CE_MOBMANAGER_HPP */

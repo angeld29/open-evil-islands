@@ -23,9 +23,11 @@
 
 #include <windows.h>
 
-#include "celogging.h"
-#include "ceregistry.h"
+#include "logging.hpp"
+#include "registry.hpp"
 
+namespace cursedearth
+{
 char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
 {
     if (0 == size) {
@@ -74,4 +76,5 @@ char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key
 char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
 {
     return ce_registry_get_string_value(value, size, key, key_name, value_name);
+}
 }

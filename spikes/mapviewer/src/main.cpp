@@ -32,7 +32,9 @@
 #include "figuremanager.hpp"
 #include "mobloader.hpp"
 #include "root.hpp"
-#include "camfile.hpp"
+#include "cam.hpp"
+
+using namespace cursedearth;
 
 static ce_optparse* optparse;
 
@@ -49,7 +51,7 @@ static void clear()
     ce_optparse_del(optparse);
 }
 
-static void state_changed(void* CE_UNUSED(listener), int state)
+static void state_changed(void* /*listener*/, int state)
 {
     if (CE_SCENEMNG_STATE_READY == state) {
         const char* zone;
@@ -83,7 +85,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
     }
 }
 
-static void advance(void* CE_UNUSED(listener), float elapsed)
+static void advance(void* /*listener*/, float elapsed)
 {
     ce_input_supply_advance(input_supply, elapsed);
 
@@ -104,7 +106,7 @@ static void advance(void* CE_UNUSED(listener), float elapsed)
     ce_root.animation_fps = ce_clamp(float, animation_fps, 1.0f, 50.0f);
 }
 
-static void render(void* CE_UNUSED(listener))
+static void render(void* /*listener*/)
 {
     if (message_timeout > 0.0f) {
         char buffer[32];

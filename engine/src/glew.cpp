@@ -20,4 +20,7 @@
 
 #include "glew.hpp"
 
-CE_THREAD GLEWContext ce_glew_context;
+namespace cursedearth
+{
+    CE_THREAD GLEWContext ce_glew_context;
+}

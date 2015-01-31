@@ -29,8 +29,10 @@
 #include "lib.hpp"
 #include "alloc.hpp"
 #include "byteorder.hpp"
-#include "mmpfile.hpp"
+#include "mmp.hpp"
 
+namespace cursedearth
+{
 static const uint32_t CE_MMPFILE_SIGNATURE = 0x504d4d;
 static const uint32_t CE_MMPFILE_SIGNATURE_EXT = 0x45434d4d;
 
@@ -176,7 +178,7 @@ static void (*ce_mmpfile_write_header_procs[CE_MMPFILE_FORMAT_COUNT])(ce_mmpfile
     [CE_MMPFILE_FORMAT_YCBCR] = ce_mmpfile_write_header_null,
 };
 
-static inline size_t ce_mmpfile_storage_size_generic(unsigned int width,
+inline size_t ce_mmpfile_storage_size_generic(unsigned int width,
                                                 unsigned int height,
                                                 ce_mmpfile_format format)
 {
@@ -193,9 +195,7 @@ static size_t ce_mmpfile_storage_size_dxt(unsigned int width,
         ce_mmpfile_storage_size_generic(width, height, format));
 }
 
-static size_t ce_mmpfile_storage_size_ycbcr(unsigned int width,
-                                            unsigned int height,
-                                            ce_mmpfile_format CE_UNUSED(format))
+static size_t ce_mmpfile_storage_size_ycbcr(unsigned int width, unsigned int height, ce_mmpfile_format)
 {
     return 3 * width * height / 2;
 }
@@ -417,8 +417,7 @@ static void ce_mmpfile_unpack32(const ce_mmpfile* mmpfile, ce_mmpfile* other)
     }
 }
 
-static void ce_mmpfile_convert_unknown(const ce_mmpfile* CE_UNUSED(mmpfile),
-                                            ce_mmpfile* CE_UNUSED(other))
+static void ce_mmpfile_convert_unknown(const ce_mmpfile*, ce_mmpfile*)
 {
     assert(false && "not implemented");
 }
@@ -603,4 +602,5 @@ void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format)
 void ce_mmpfile_convert2(ce_mmpfile* mmpfile, ce_mmpfile* other)
 {
     (*ce_mmpfile_convert_procs[mmpfile->format])(mmpfile, other);
+}
 }

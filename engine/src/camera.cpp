@@ -21,6 +21,8 @@
 #include "alloc.hpp"
 #include "camera.hpp"
 
+namespace cursedearth
+{
 ce_camera* ce_camera_new(void)
 {
     ce_camera* camera = ce_alloc(sizeof(ce_camera));
@@ -128,4 +130,5 @@ void ce_camera_yaw_pitch(ce_camera* camera, float psi, float theta)
                 ce_quat_init_polar(&tmp, psi, &y), &camera->orientation);
     ce_quat_mul(&camera->orientation,
                 ce_quat_init_polar(&tmp, theta, &CE_VEC3_UNIT_X), &tmp2);
+}
 }

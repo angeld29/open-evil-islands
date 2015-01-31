@@ -31,9 +31,11 @@
 #include "resourcemanager.hpp"
 #include "opengl.hpp"
 #include "texture.hpp"
-#include "mprhelper.hpp"
+#include "mprhelpers.hpp"
 #include "mprrenderitem.hpp"
 
+namespace cursedearth
+{
 /*
  *  Simple & fast triangulated geometry.
 */
@@ -593,4 +595,5 @@ ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
         {ce_mprrenderitem_fast_ctor, ce_mprrenderitem_fast_dtor,
         NULL, ce_mprrenderitem_fast_render, NULL},
         sizeof(ce_mprrenderitem_fast), mprfile, sector_x, sector_z, water);
+}
 }

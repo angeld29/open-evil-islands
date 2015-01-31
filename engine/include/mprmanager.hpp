@@ -22,15 +22,18 @@
 #define CE_MPRMANAGER_HPP
 
 #include "string.hpp"
-#include "mprfile.hpp"
+#include "mpr.hpp"
 
-extern struct ce_mpr_manager {
-    int stub;
-}* ce_mpr_manager;
+namespace cursedearth
+{
+    extern struct ce_mpr_manager {
+        int stub;
+    }* ce_mpr_manager;
 
-extern void ce_mpr_manager_init(void);
-extern void ce_mpr_manager_term(void);
+    extern void ce_mpr_manager_init(void);
+    extern void ce_mpr_manager_term(void);
 
-extern ce_mprfile* ce_mpr_manager_open(const char* name);
+    extern ce_mprfile* ce_mpr_manager_open(const char* name);
+}
 
 #endif /* CE_MPRMANAGER_HPP */

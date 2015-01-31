@@ -27,9 +27,11 @@
 #include "atomic.hpp"
 #include "opengl.hpp"
 #include "anmstate.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "figrenderitem.hpp"
 
+namespace cursedearth
+{
 // fig renderitem static (without morphs): GL's display list
 
 typedef struct {
@@ -56,7 +58,7 @@ static void ce_figcookie_static_del(ce_figcookie_static* cookie)
     }
 }
 
-static inline ce_figcookie_static*
+inline ce_figcookie_static*
 ce_figcookie_static_add_ref(ce_figcookie_static* cookie)
 {
     ce_atomic_inc(int, &cookie->ref_count);
@@ -180,7 +182,7 @@ static void ce_figcookie_dynamic_del(ce_figcookie_dynamic* cookie)
     }
 }
 
-static inline ce_figcookie_dynamic*
+inline ce_figcookie_dynamic*
 ce_figcookie_dynamic_add_ref(ce_figcookie_dynamic* cookie)
 {
     ce_atomic_inc(int, &cookie->ref_count);
@@ -383,4 +385,5 @@ ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode,
     return ce_renderitem_new(ce_figrenderitem_vtables[has_morphing],
                             ce_figrenderitem_sizes[has_morphing],
                             fignode->figfile, complection);
+}
 }

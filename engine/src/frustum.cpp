@@ -31,6 +31,8 @@
 #include "math.hpp"
 #include "frustum.hpp"
 
+namespace cursedearth
+{
 ce_frustum* ce_frustum_init(ce_frustum* frustum,
                             float fov, float aspect,
                             float near, float far,
@@ -148,4 +150,5 @@ bool ce_frustum_test_bbox(const ce_frustum* frustum,
     }
 
     return true;
+}
 }

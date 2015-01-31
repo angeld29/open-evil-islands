@@ -23,53 +23,56 @@
 
 #include <cstddef>
 
-typedef struct {
-    size_t capacity;
-    size_t count;
-    void** items;
-} ce_vector;
-
-extern ce_vector* ce_vector_new(void);
-extern ce_vector* ce_vector_new_reserved(size_t capacity);
-extern void ce_vector_del(ce_vector* vector);
-
-extern void ce_vector_reserve(ce_vector* vector, size_t capacity);
-extern void ce_vector_resize(ce_vector* vector, size_t count);
-
-static inline bool ce_vector_empty(const ce_vector* vector)
+namespace cursedearth
 {
-    return 0 == vector->count;
+    typedef struct {
+        size_t capacity;
+        size_t count;
+        void** items;
+    } ce_vector;
+
+    extern ce_vector* ce_vector_new(void);
+    extern ce_vector* ce_vector_new_reserved(size_t capacity);
+    extern void ce_vector_del(ce_vector* vector);
+
+    extern void ce_vector_reserve(ce_vector* vector, size_t capacity);
+    extern void ce_vector_resize(ce_vector* vector, size_t count);
+
+    inline bool ce_vector_empty(const ce_vector* vector)
+    {
+        return 0 == vector->count;
+    }
+
+    inline void* ce_vector_back(const ce_vector* vector)
+    {
+        return vector->items[vector->count - 1];
+    }
+
+    extern size_t ce_vector_find(const ce_vector* vector, const void* item);
+
+    extern void* ce_vector_pop_front(ce_vector* vector);
+    extern void ce_vector_push_back(ce_vector* vector, void* item);
+
+    inline void* ce_vector_pop_back(ce_vector* vector)
+    {
+        return vector->items[--vector->count];
+    }
+
+    extern void ce_vector_insert(ce_vector* vector, size_t index, void* item);
+    extern void ce_vector_remove(ce_vector* vector, size_t index);
+    extern void ce_vector_remove_all(ce_vector* vector, const void* item);
+
+    inline void ce_vector_remove_unordered(ce_vector* vector, size_t index)
+    {
+        vector->items[index] = vector->items[--vector->count];
+    }
+
+    inline void ce_vector_clear(ce_vector* vector)
+    {
+        vector->count = 0;
+    }
+
+    extern void ce_vector_for_each(ce_vector* vector, void (*func)());
 }
-
-static inline void* ce_vector_back(const ce_vector* vector)
-{
-    return vector->items[vector->count - 1];
-}
-
-extern size_t ce_vector_find(const ce_vector* vector, const void* item);
-
-extern void* ce_vector_pop_front(ce_vector* vector);
-extern void ce_vector_push_back(ce_vector* vector, void* item);
-
-static inline void* ce_vector_pop_back(ce_vector* vector)
-{
-    return vector->items[--vector->count];
-}
-
-extern void ce_vector_insert(ce_vector* vector, size_t index, void* item);
-extern void ce_vector_remove(ce_vector* vector, size_t index);
-extern void ce_vector_remove_all(ce_vector* vector, const void* item);
-
-static inline void ce_vector_remove_unordered(ce_vector* vector, size_t index)
-{
-    vector->items[index] = vector->items[--vector->count];
-}
-
-static inline void ce_vector_clear(ce_vector* vector)
-{
-    vector->count = 0;
-}
-
-extern void ce_vector_for_each(ce_vector* vector, void (*func)());
 
 #endif /* CE_VECTOR_HPP */

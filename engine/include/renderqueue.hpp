@@ -24,17 +24,18 @@
 #include "vector.hpp"
 #include "rendergroup.hpp"
 
-typedef struct {
-    ce_vector* rendergroups;
-} ce_renderqueue;
+namespace cursedearth
+{
+    typedef struct {
+        ce_vector* rendergroups;
+    } ce_renderqueue;
 
-extern ce_renderqueue* ce_renderqueue_new(void);
-extern void ce_renderqueue_del(ce_renderqueue* renderqueue);
+    extern ce_renderqueue* ce_renderqueue_new(void);
+    extern void ce_renderqueue_del(ce_renderqueue* renderqueue);
 
-extern void ce_renderqueue_clear(ce_renderqueue* renderqueue);
-
-extern ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue, int priority, ce_material* material);
-
-extern void ce_renderqueue_render(ce_renderqueue* renderqueue);
+    extern void ce_renderqueue_clear(ce_renderqueue* renderqueue);
+    extern ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue, int priority, ce_material* material);
+    extern void ce_renderqueue_render(ce_renderqueue* renderqueue);
+}
 
 #endif /* CE_RENDERQUEUE_HPP */

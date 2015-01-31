@@ -20,12 +20,15 @@
 
 #include "registry.hpp"
 
-char* ce_registry_get_string_value(char* CE_UNUSED(value), size_t CE_UNUSED(size), ce_registry_key CE_UNUSED(key), const char* CE_UNUSED(key_name), const char* CE_UNUSED(value_name))
+namespace cursedearth
 {
-    return NULL;
-}
+    char* ce_registry_get_string_value(char* /*value*/, size_t /*size*/, ce_registry_key /*key*/, const char* /*key_name*/, const char* /*value_name*/)
+    {
+        return NULL;
+    }
 
-char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
-{
-    return ce_registry_get_string_value(value, size, key, key_name, value_name);
+    char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
+    {
+        return ce_registry_get_string_value(value, size, key, key_name, value_name);
+    }
 }

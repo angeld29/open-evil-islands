@@ -21,10 +21,12 @@
 #include <cassert>
 
 #include "alloc.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "figrenderitem.hpp"
 #include "figmesh.hpp"
 
+namespace cursedearth
+{
 static void ce_figmesh_create_renderitems(ce_figmesh* figmesh,
                                         const ce_fignode* fignode)
 {
@@ -64,4 +66,5 @@ void ce_figmesh_del(ce_figmesh* figmesh)
             ce_free(figmesh, sizeof(ce_figmesh));
         }
     }
+}
 }

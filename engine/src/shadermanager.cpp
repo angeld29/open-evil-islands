@@ -28,6 +28,8 @@
 #include "resourcemanager.hpp"
 #include "shadermanager.hpp"
 
+namespace cursedearth
+{
 struct ce_shader_manager* ce_shader_manager;
 
 void ce_shader_manager_init(void)
@@ -101,4 +103,5 @@ ce_shader* ce_shader_manager_get(const char* resource_paths[])
     }
 
     return NULL;
+}
 }

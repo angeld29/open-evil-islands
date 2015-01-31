@@ -26,6 +26,8 @@
 #include "logging.hpp"
 #include "soundresource.hpp"
 
+namespace cursedearth
+{
 extern const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT;
 extern const ce_sound_resource_vtable ce_sound_resource_builtins[];
 
@@ -124,4 +126,5 @@ bool ce_sound_resource_reset(ce_sound_resource* sound_resource)
     ce_mem_file_rewind(sound_resource->mem_file);
 
     return (*sound_resource->vtable.reset)(sound_resource);
+}
 }

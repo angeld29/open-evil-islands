@@ -28,9 +28,11 @@
 #include "logging.hpp"
 #include "root.hpp"
 #include "texturemanager.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "figentity.hpp"
 
+namespace cursedearth
+{
 static void ce_figentity_scenenode_about_to_update(void* listener)
 {
     ce_figentity* figentity = listener;
@@ -225,4 +227,5 @@ void ce_figentity_stop_animation(ce_figentity* figentity)
 {
     ce_figbone_stop_animation(figentity->figbone,
         figentity->figmesh->figproto->fignode);
+}
 }

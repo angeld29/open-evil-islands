@@ -22,28 +22,31 @@
 
 #include "math.hpp"
 
-const float CE_PI = 3.14159265f;
-const float CE_PI2 = 6.28318531f;
-const float CE_PI_DIV_2 = 1.57079633f;
-const float CE_PI_DIV_4 = 0.78539816f;
-const float CE_PI_INV = 0.31830989f;
-
-const float CE_EPS_E3 = 1e-3f;
-const float CE_EPS_E4 = 1e-4f;
-const float CE_EPS_E5 = 1e-5f;
-const float CE_EPS_E6 = 1e-6f;
-
-const float CE_DEG2RAD = 0.01745329f;
-const float CE_RAD2DEG = 57.2957795f;
-
-// based on http://www.c-faq.com/fp/fpequal.html
-static inline float ce_reldif(float a, float b)
+namespace cursedearth
 {
-    float t = fmaxf(fabsf(a), fabsf(b));
-    return 0.0f == t ? 0.0f : fabsf(a - b) / t;
-}
+    const float CE_PI = 3.14159265f;
+    const float CE_PI2 = 6.28318531f;
+    const float CE_PI_DIV_2 = 1.57079633f;
+    const float CE_PI_DIV_4 = 0.78539816f;
+    const float CE_PI_INV = 0.31830989f;
 
-bool ce_fisequal(float a, float b, float tolerance)
-{
-    return a == b || fabsf(a - b) <= tolerance || ce_reldif(a, b) <= tolerance;
+    const float CE_EPS_E3 = 1e-3f;
+    const float CE_EPS_E4 = 1e-4f;
+    const float CE_EPS_E5 = 1e-5f;
+    const float CE_EPS_E6 = 1e-6f;
+
+    const float CE_DEG2RAD = 0.01745329f;
+    const float CE_RAD2DEG = 57.2957795f;
+
+    // based on http://www.c-faq.com/fp/fpequal.html
+    inline float ce_reldif(float a, float b)
+    {
+        float t = fmaxf(fabsf(a), fabsf(b));
+        return 0.0f == t ? 0.0f : fabsf(a - b) / t;
+    }
+
+    bool ce_fisequal(float a, float b, float tolerance)
+    {
+        return a == b || fabsf(a - b) <= tolerance || ce_reldif(a, b) <= tolerance;
+    }
 }

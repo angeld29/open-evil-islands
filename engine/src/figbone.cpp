@@ -20,9 +20,11 @@
 
 #include "alloc.hpp"
 #include "scenenode.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "figbone.hpp"
 
+namespace cursedearth
+{
 ce_figbone* ce_figbone_new(const ce_fignode* fignode,
                             const ce_complection* complection,
                             ce_figbone* parent)
@@ -157,4 +159,5 @@ void ce_figbone_stop_animation(ce_figbone* figbone,
         ce_figbone_stop_animation(figbone->childs->items[i],
                                     fignode->childs->items[i]);
     }
+}
 }

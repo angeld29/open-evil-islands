@@ -26,6 +26,8 @@
 #include "root.hpp"
 #include "scenenode.hpp"
 
+namespace cursedearth
+{
 ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 {
     ce_scenenode* scenenode = ce_alloc_zero(sizeof(ce_scenenode));
@@ -240,4 +242,5 @@ void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode)
             ce_scenenode_draw_bboxes_cascade(scenenode->childs->items[i]);
         }
     }
+}
 }

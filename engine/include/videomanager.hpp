@@ -25,17 +25,20 @@
 #include "videoobject.hpp"
 #include "videoinstance.hpp"
 
-extern struct ce_video_manager {
-    ce_video_object last_video_object;
-    ce_vector* video_instances;
-}* ce_video_manager;
+namespace cursedearth
+{
+    extern struct ce_video_manager {
+        ce_video_object last_video_object;
+        ce_vector* video_instances;
+    }* ce_video_manager;
 
-extern void ce_video_manager_init(void);
-extern void ce_video_manager_term(void);
+    extern void ce_video_manager_init(void);
+    extern void ce_video_manager_term(void);
 
-extern void ce_video_manager_advance(float elapsed);
+    extern void ce_video_manager_advance(float elapsed);
 
-extern ce_video_instance* ce_video_manager_create_instance(const char* name);
-extern ce_video_instance* ce_video_manager_find_instance(ce_video_object video_object);
+    extern ce_video_instance* ce_video_manager_create_instance(const char* name);
+    extern ce_video_instance* ce_video_manager_find_instance(ce_video_object video_object);
+}
 
 #endif /* CE_VIDEOMANAGER_HPP */

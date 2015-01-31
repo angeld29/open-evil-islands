@@ -21,28 +21,31 @@
 #ifndef CE_SOUNDFORMAT_HPP
 #define CE_SOUNDFORMAT_HPP
 
-typedef struct {
-    unsigned int bits_per_sample;
-    unsigned int samples_per_second;
-    unsigned int channel_count;
-    unsigned int sample_size;
-    unsigned int bytes_per_second;
-} ce_sound_format;
-
-static inline void ce_sound_format_init(ce_sound_format* sound_format, unsigned int bits_per_sample, unsigned int samples_per_second, unsigned int channel_count)
+namespace cursedearth
 {
-    sound_format->bits_per_sample = bits_per_sample;
-    sound_format->samples_per_second = samples_per_second;
-    sound_format->channel_count = channel_count;
-    sound_format->sample_size = channel_count * (bits_per_sample / 8);
-    sound_format->bytes_per_second = samples_per_second * sound_format->sample_size;
-}
+    typedef struct {
+        unsigned int bits_per_sample;
+        unsigned int samples_per_second;
+        unsigned int channel_count;
+        unsigned int sample_size;
+        unsigned int bytes_per_second;
+    } ce_sound_format;
 
-static inline bool ce_sound_format_is_equal(const ce_sound_format* sound_format1, const ce_sound_format* sound_format2)
-{
-    return sound_format1->bits_per_sample == sound_format2->bits_per_sample &&
-           sound_format1->samples_per_second == sound_format2->samples_per_second &&
-           sound_format1->channel_count == sound_format2->channel_count;
+    inline void ce_sound_format_init(ce_sound_format* sound_format, unsigned int bits_per_sample, unsigned int samples_per_second, unsigned int channel_count)
+    {
+        sound_format->bits_per_sample = bits_per_sample;
+        sound_format->samples_per_second = samples_per_second;
+        sound_format->channel_count = channel_count;
+        sound_format->sample_size = channel_count * (bits_per_sample / 8);
+        sound_format->bytes_per_second = samples_per_second * sound_format->sample_size;
+    }
+
+    inline bool ce_sound_format_is_equal(const ce_sound_format* sound_format1, const ce_sound_format* sound_format2)
+    {
+        return sound_format1->bits_per_sample == sound_format2->bits_per_sample &&
+               sound_format1->samples_per_second == sound_format2->samples_per_second &&
+               sound_format1->channel_count == sound_format2->channel_count;
+    }
 }
 
 #endif /* CE_SOUNDFORMAT_HPP */

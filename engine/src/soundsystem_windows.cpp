@@ -31,6 +31,8 @@
 #include "error_windows.hpp"
 #include "soundsystem.hpp"
 
+namespace cursedearth
+{
 enum {
     CE_SOUND_SYSTEM_HEADER_COUNT = 8,
 };
@@ -58,8 +60,7 @@ static void ce_wmm_error(MMRESULT code, const char* message)
     }
 }
 
-static void CALLBACK ce_wmm_proc(HWAVEOUT CE_UNUSED(waveout), UINT message,
-    DWORD_PTR instance, DWORD_PTR CE_UNUSED(param1), DWORD_PTR CE_UNUSED(param2))
+static void CALLBACK ce_wmm_proc(HWAVEOUT, UINT message, DWORD_PTR instance, DWORD_PTR, DWORD_PTR)
 {
     if (WOM_DONE == message) {
         ce_wmm* wmm = (ce_wmm*)instance;
@@ -143,7 +144,7 @@ static void ce_wmm_dtor()
     }
 }
 
-static inline ce_wmm_header* ce_wmm_find(ce_wmm* wmm)
+inline ce_wmm_header* ce_wmm_find(ce_wmm* wmm)
 {
     for (size_t i = 0; i < CE_SOUND_SYSTEM_HEADER_COUNT; ++i) {
         if (wmm->headers[i].waveheader.dwFlags & WHDR_DONE) {
@@ -203,4 +204,5 @@ ce_sound_system_vtable ce_sound_system_platform(void)
     return (ce_sound_system_vtable){
         sizeof(ce_wmm), ce_wmm_ctor, ce_wmm_dtor, ce_wmm_write
     };
+}
 }

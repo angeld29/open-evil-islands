@@ -46,6 +46,8 @@
 #include "figuremanager.hpp"
 #include "root.hpp"
 
+namespace cursedearth
+{
 struct ce_root ce_root;
 
 static void ce_root_system_event_handler(ce_system_event_type type)
@@ -81,7 +83,7 @@ static void ce_root_system_event_handler(ce_system_event_type type)
     ce_root.done = true;
 }
 
-static void ce_root_renderwindow_closed(void* CE_UNUSED(listener))
+static void ce_root_renderwindow_closed(void* /*listener*/)
 {
     ce_root.done = true;
 }
@@ -274,4 +276,5 @@ int ce_root_exec(void)
     }
 
     return EXIT_SUCCESS;
+}
 }

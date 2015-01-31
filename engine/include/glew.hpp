@@ -26,8 +26,11 @@
 
 #include <GL/glew.h>
 
-#define glewGetContext() (&ce_glew_context)
+#define glewGetContext() (&cursedearth::ce_glew_context)
 
-extern CE_THREAD GLEWContext ce_glew_context;
+namespace cursedearth
+{
+    CE_THREAD GLEWContext ce_glew_context;
+}
 
 #endif /* CE_GLEW_HPP */

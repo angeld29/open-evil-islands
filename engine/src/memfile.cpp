@@ -26,6 +26,8 @@
 #include "alloc.hpp"
 #include "memfile.hpp"
 
+namespace cursedearth
+{
 const int CE_MEM_FILE_SEEK_CUR = SEEK_CUR;
 const int CE_MEM_FILE_SEEK_END = SEEK_END;
 const int CE_MEM_FILE_SEEK_SET = SEEK_SET;
@@ -131,7 +133,7 @@ static int ce_data_file_eof(ce_mem_file* mem_file)
     return data_file->pos == data_file->size;
 }
 
-static int ce_data_file_error(ce_mem_file* CE_UNUSED(mem_file))
+static int ce_data_file_error(ce_mem_file*)
 {
     // always successful
     return 0;
@@ -161,7 +163,7 @@ typedef struct {
     FILE* file;
 } ce_bstd_file;
 
-static inline void ce_bstd_file_detect_eof(ce_bstd_file* bstd_file)
+inline void ce_bstd_file_detect_eof(ce_bstd_file* bstd_file)
 {
     // Function getc is implemented as a macro,
     // so the argument should never be an expression with side effects.
@@ -234,4 +236,5 @@ ce_mem_file* ce_mem_file_new_path(const char* path)
     ce_bstd_file_detect_eof(bstd_file);
 
     return mem_file;
+}
 }

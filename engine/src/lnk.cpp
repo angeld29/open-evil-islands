@@ -20,8 +20,10 @@
 
 #include "byteorder.hpp"
 #include "alloc.hpp"
-#include "lnkfile.hpp"
+#include "lnk.hpp"
 
+namespace cursedearth
+{
 ce_lnkfile* ce_lnkfile_open(ce_res_file* res_file, const char* name)
 {
     size_t index = ce_res_file_node_index(res_file, name);
@@ -60,4 +62,5 @@ void ce_lnkfile_close(ce_lnkfile* lnkfile)
         ce_free(lnkfile->links, sizeof(ce_lnklink) * lnkfile->link_count);
         ce_free(lnkfile, sizeof(ce_lnkfile));
     }
+}
 }

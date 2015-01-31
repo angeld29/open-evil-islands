@@ -21,40 +21,43 @@
 #ifndef CE_COLOR_HPP
 #define CE_COLOR_HPP
 
-typedef struct {
-    float r, g, b, a;
-} ce_color;
+namespace cursedearth
+{
+    typedef struct {
+        float r, g, b, a;
+    } ce_color;
 
-extern const ce_color CE_COLOR_BLACK;
-extern const ce_color CE_COLOR_WHITE;
-extern const ce_color CE_COLOR_RED;
-extern const ce_color CE_COLOR_GREEN;
-extern const ce_color CE_COLOR_BLUE;
-extern const ce_color CE_COLOR_YELLOW;
-extern const ce_color CE_COLOR_CYAN;
-extern const ce_color CE_COLOR_MAGENTA;
-extern const ce_color CE_COLOR_GRAY;
-extern const ce_color CE_COLOR_CORNFLOWER;
-extern const ce_color CE_COLOR_CRIMSON;
-extern const ce_color CE_COLOR_GOLD;
-extern const ce_color CE_COLOR_GOLDENROD;
-extern const ce_color CE_COLOR_INDIGO;
-extern const ce_color CE_COLOR_ROYAL_BLUE;
-extern const ce_color CE_COLOR_SILVER;
-extern const ce_color CE_COLOR_TOMATO;
-extern const ce_color CE_COLOR_WHEAT;
-extern const ce_color CE_COLOR_TRANSPARENT;
+    extern const ce_color CE_COLOR_BLACK;
+    extern const ce_color CE_COLOR_WHITE;
+    extern const ce_color CE_COLOR_RED;
+    extern const ce_color CE_COLOR_GREEN;
+    extern const ce_color CE_COLOR_BLUE;
+    extern const ce_color CE_COLOR_YELLOW;
+    extern const ce_color CE_COLOR_CYAN;
+    extern const ce_color CE_COLOR_MAGENTA;
+    extern const ce_color CE_COLOR_GRAY;
+    extern const ce_color CE_COLOR_CORNFLOWER;
+    extern const ce_color CE_COLOR_CRIMSON;
+    extern const ce_color CE_COLOR_GOLD;
+    extern const ce_color CE_COLOR_GOLDENROD;
+    extern const ce_color CE_COLOR_INDIGO;
+    extern const ce_color CE_COLOR_ROYAL_BLUE;
+    extern const ce_color CE_COLOR_SILVER;
+    extern const ce_color CE_COLOR_TOMATO;
+    extern const ce_color CE_COLOR_WHEAT;
+    extern const ce_color CE_COLOR_TRANSPARENT;
 
-extern ce_color* ce_color_init(ce_color* color, float r, float g, float b, float a);
-extern ce_color* ce_color_init_array(ce_color* color, const float* array);
+    extern ce_color* ce_color_init(ce_color* color, float r, float g, float b, float a);
+    extern ce_color* ce_color_init_array(ce_color* color, const float* array);
 
-extern ce_color* ce_color_init_black(ce_color* color);
-extern ce_color* ce_color_init_white(ce_color* color);
-extern ce_color* ce_color_init_red(ce_color* color);
-extern ce_color* ce_color_init_green(ce_color* color);
-extern ce_color* ce_color_init_blue(ce_color* color);
+    extern ce_color* ce_color_init_black(ce_color* color);
+    extern ce_color* ce_color_init_white(ce_color* color);
+    extern ce_color* ce_color_init_red(ce_color* color);
+    extern ce_color* ce_color_init_green(ce_color* color);
+    extern ce_color* ce_color_init_blue(ce_color* color);
 
-extern ce_color* ce_color_copy(ce_color* color, const ce_color* other);
-extern ce_color* ce_color_lerp(ce_color* color, float u, const ce_color* lhs, const ce_color* rhs);
+    extern ce_color* ce_color_copy(ce_color* color, const ce_color* other);
+    extern ce_color* ce_color_lerp(ce_color* color, float u, const ce_color* lhs, const ce_color* rhs);
+}
 
 #endif /* CE_COLOR_HPP */

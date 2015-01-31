@@ -23,6 +23,8 @@
 #include "event.hpp"
 #include "thread.hpp"
 
+namespace cursedearth
+{
 struct ce_thread_pool* ce_thread_pool;
 
 ce_routine* ce_routine_new(void)
@@ -214,4 +216,5 @@ void ce_thread_pool_wait_one(void)
 void ce_thread_pool_wait_all(void)
 {
     ce_thread_pool_wait(ce_thread_pool->wait_all);
+}
 }

@@ -25,6 +25,8 @@
 #include "error_windows.hpp"
 #include "timer.hpp"
 
+namespace cursedearth
+{
 typedef struct {
     float frequency_inv;
     LARGE_INTEGER start;
@@ -76,4 +78,5 @@ float ce_timer_advance(ce_timer* timer)
                     win_timer->start.QuadPart) * win_timer->frequency_inv;
     win_timer->start = win_timer->stop;
     return timer->elapsed;
+}
 }

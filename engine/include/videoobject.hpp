@@ -21,20 +21,23 @@
 #ifndef CE_VIDEOOBJECT_HPP
 #define CE_VIDEOOBJECT_HPP
 
-typedef unsigned long int ce_video_object;
+namespace cursedearth
+{
+    typedef unsigned long int ce_video_object;
 
-extern ce_video_object ce_video_object_new(const char* name);
-extern void ce_video_object_del(ce_video_object video_object);
+    extern ce_video_object ce_video_object_new(const char* name);
+    extern void ce_video_object_del(ce_video_object video_object);
 
-extern void ce_video_object_advance(ce_video_object video_object, float elapsed);
-extern void ce_video_object_progress(ce_video_object video_object, int percents);
+    extern void ce_video_object_advance(ce_video_object video_object, float elapsed);
+    extern void ce_video_object_progress(ce_video_object video_object, int percents);
 
-extern void ce_video_object_render(ce_video_object video_object);
+    extern void ce_video_object_render(ce_video_object video_object);
 
-extern bool ce_video_object_is_stopped(ce_video_object video_object);
+    extern bool ce_video_object_is_stopped(ce_video_object video_object);
 
-extern void ce_video_object_play(ce_video_object video_object);
-extern void ce_video_object_pause(ce_video_object video_object);
-extern void ce_video_object_stop(ce_video_object video_object);
+    extern void ce_video_object_play(ce_video_object video_object);
+    extern void ce_video_object_pause(ce_video_object video_object);
+    extern void ce_video_object_stop(ce_video_object video_object);
+}
 
 #endif /* CE_VIDEOOBJECT_HPP */

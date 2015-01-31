@@ -21,12 +21,15 @@
 #ifndef CE_SOUNDBUNDLE_HPP
 #define CE_SOUNDBUNDLE_HPP
 
-typedef struct {
-    int state;
-    float time;
-} ce_sound_bundle;
+namespace cursedearth
+{
+    typedef struct {
+        int state;
+        float time;
+    } ce_sound_bundle;
 
-extern ce_sound_bundle* ce_sound_bundle_new(void);
-extern void ce_sound_bundle_del(ce_sound_bundle* sound_bundle);
+    extern ce_sound_bundle* ce_sound_bundle_new(void);
+    extern void ce_sound_bundle_del(ce_sound_bundle* sound_bundle);
+}
 
 #endif /* CE_SOUNDBUNDLE_HPP */

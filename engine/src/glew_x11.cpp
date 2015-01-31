@@ -20,4 +20,7 @@
 
 #include "glew_x11.hpp"
 
-CE_THREAD GLXEWContext ce_glxew_context;
+namespace cursedearth
+{
+    CE_THREAD GLXEWContext ce_glxew_context;
+}

@@ -24,26 +24,29 @@
 #include "color.hpp"
 #include "shader.hpp"
 
-typedef enum {
-    CE_MATERIAL_MODE_MODULATE,
-    CE_MATERIAL_MODE_DECAL,
-    CE_MATERIAL_MODE_REPLACE,
-    CE_MATERIAL_MODE_COUNT
-} ce_material_mode;
+namespace cursedearth
+{
+    typedef enum {
+        CE_MATERIAL_MODE_MODULATE,
+        CE_MATERIAL_MODE_DECAL,
+        CE_MATERIAL_MODE_REPLACE,
+        CE_MATERIAL_MODE_COUNT
+    } ce_material_mode;
 
-typedef struct {
-    ce_material_mode mode;
-    ce_color ambient;
-    ce_color diffuse;
-    ce_color specular;
-    ce_color emission;
-    float shininess;
-    bool alpha_test;
-    bool blend;
-    ce_shader* shader;
-} ce_material;
+    typedef struct {
+        ce_material_mode mode;
+        ce_color ambient;
+        ce_color diffuse;
+        ce_color specular;
+        ce_color emission;
+        float shininess;
+        bool alpha_test;
+        bool blend;
+        ce_shader* shader;
+    } ce_material;
 
-extern ce_material* ce_material_new(void);
-extern void ce_material_del(ce_material* material);
+    extern ce_material* ce_material_new(void);
+    extern void ce_material_del(ce_material* material);
+}
 
 #endif /* CE_MATERIAL_HPP */

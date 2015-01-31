@@ -22,9 +22,12 @@
 #define CE_MPRRENDERITEM_HPP
 
 #include "vector.hpp"
-#include "mprfile.hpp"
+#include "mpr.hpp"
 #include "renderitem.hpp"
 
-extern ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, int sector_x, int sector_z, int water, ce_vector* tile_textures);
+namespace cursedearth
+{
+    ce_renderitem* ce_mprrenderitem_new(ce_mprfile*, int sector_x, int sector_z, int water, ce_vector* tile_textures);
+}
 
 #endif /* CE_MPRRENDERITEM_HPP */

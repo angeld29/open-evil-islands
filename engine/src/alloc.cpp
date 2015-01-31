@@ -41,6 +41,8 @@
 #include "lib.hpp"
 #include "alloc.hpp"
 
+namespace cursedearth
+{
 enum {
     CE_ALLOC_PAGE_SIZE = 4096,
     CE_ALLOC_MAX_SMALL_OBJECT_SIZE = 256,
@@ -86,7 +88,7 @@ static struct {
 #endif
 } ce_alloc_context;
 
-static inline void ce_alloc_mutex_init(ce_alloc_mutex* mutex)
+inline void ce_alloc_mutex_init(ce_alloc_mutex* mutex)
 {
 #ifdef _WIN32
     InitializeCriticalSection(&mutex->handle);
@@ -95,7 +97,7 @@ static inline void ce_alloc_mutex_init(ce_alloc_mutex* mutex)
 #endif
 }
 
-static inline void ce_alloc_mutex_clean(ce_alloc_mutex* mutex)
+inline void ce_alloc_mutex_clean(ce_alloc_mutex* mutex)
 {
 #ifdef _WIN32
     DeleteCriticalSection(&mutex->handle);
@@ -104,7 +106,7 @@ static inline void ce_alloc_mutex_clean(ce_alloc_mutex* mutex)
 #endif
 }
 
-static inline void ce_alloc_mutex_lock(ce_alloc_mutex* mutex)
+inline void ce_alloc_mutex_lock(ce_alloc_mutex* mutex)
 {
 #ifdef _WIN32
     EnterCriticalSection(&mutex->handle);
@@ -113,7 +115,7 @@ static inline void ce_alloc_mutex_lock(ce_alloc_mutex* mutex)
 #endif
 }
 
-static inline void ce_alloc_mutex_unlock(ce_alloc_mutex* mutex)
+inline void ce_alloc_mutex_unlock(ce_alloc_mutex* mutex)
 {
 #ifdef _WIN32
     LeaveCriticalSection(&mutex->handle);
@@ -140,7 +142,7 @@ static void ce_alloc_chunk_clean(ce_alloc_chunk* chunk)
     }
 }
 
-static inline bool ce_alloc_chunk_has_block(const ce_alloc_chunk* chunk,
+inline bool ce_alloc_chunk_has_block(const ce_alloc_chunk* chunk,
                                             void* ptr, size_t chunk_size)
 {
     unsigned char* p = ptr;
@@ -302,7 +304,7 @@ static void ce_alloc_portion_free(ce_alloc_portion* portion, void* ptr)
 }
 
 // calculates offset into array where an element of size is located
-static inline size_t ce_alloc_get_offset(size_t size)
+inline size_t ce_alloc_get_offset(size_t size)
 {
     return (size + CE_ALLOC_OBJECT_ALIGNMENT - 1) / CE_ALLOC_OBJECT_ALIGNMENT;
 }
@@ -475,3 +477,4 @@ size_t ce_alloc_get_system_max_allocated(void)
     return ce_alloc_context.system_max_allocated;
 }
 #endif
+}

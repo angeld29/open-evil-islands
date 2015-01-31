@@ -26,6 +26,8 @@
 #include "alloc.hpp"
 #include "renderwindow.hpp"
 
+namespace cursedearth
+{
 static ce_renderwindow_keypair* ce_renderwindow_keypair_new(unsigned long key,
                                                         ce_input_button button)
 {
@@ -214,7 +216,7 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
     }
 }
 
-static void ce_renderwindow_action_proc_none(ce_renderwindow* CE_UNUSED(renderwindow))
+static void ce_renderwindow_action_proc_none(ce_renderwindow*)
 {
 }
 
@@ -267,4 +269,5 @@ void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow)
             (*listener->closed)(listener->listener);
         }
     }
+}
 }

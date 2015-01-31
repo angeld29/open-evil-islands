@@ -26,38 +26,41 @@
 #include "atomic.hpp"
 #include "string.hpp"
 
-typedef enum {
-    CE_SHADER_TYPE_UNKNOWN,
-    CE_SHADER_TYPE_VERTEX,
-    CE_SHADER_TYPE_FRAGMENT,
-    CE_SHADER_TYPE_COUNT
-} ce_shader_type;
-
-typedef struct {
-    ce_shader_type shader_type;
-    size_t resource_index;
-} ce_shader_info;
-
-typedef struct {
-    int ref_count;
-    ce_string* name;
-    char impl[];
-} ce_shader;
-
-extern bool ce_shader_is_available(void);
-
-extern ce_shader* ce_shader_new(const char* name, const ce_shader_info shader_infos[]);
-extern void ce_shader_del(ce_shader* shader);
-
-extern bool ce_shader_is_valid(const ce_shader* shader);
-
-extern void ce_shader_bind(ce_shader* shader);
-extern void ce_shader_unbind(ce_shader* shader);
-
-static inline ce_shader* ce_shader_add_ref(ce_shader* shader)
+namespace cursedearth
 {
-    ce_atomic_inc(int, &shader->ref_count);
-    return shader;
+    typedef enum {
+        CE_SHADER_TYPE_UNKNOWN,
+        CE_SHADER_TYPE_VERTEX,
+        CE_SHADER_TYPE_FRAGMENT,
+        CE_SHADER_TYPE_COUNT
+    } ce_shader_type;
+
+    typedef struct {
+        ce_shader_type shader_type;
+        size_t resource_index;
+    } ce_shader_info;
+
+    typedef struct {
+        int ref_count;
+        ce_string* name;
+        char impl[];
+    } ce_shader;
+
+    extern bool ce_shader_is_available(void);
+
+    extern ce_shader* ce_shader_new(const char* name, const ce_shader_info shader_infos[]);
+    extern void ce_shader_del(ce_shader* shader);
+
+    extern bool ce_shader_is_valid(const ce_shader* shader);
+
+    extern void ce_shader_bind(ce_shader* shader);
+    extern void ce_shader_unbind(ce_shader* shader);
+
+    inline ce_shader* ce_shader_add_ref(ce_shader* shader)
+    {
+        ce_atomic_inc(int, &shader->ref_count);
+        return shader;
+    }
 }
 
 #endif /* CE_SHADER_HPP */

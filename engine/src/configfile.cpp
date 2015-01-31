@@ -26,6 +26,8 @@
 #include "logging.hpp"
 #include "configfile.hpp"
 
+namespace cursedearth
+{
 static bool ce_config_file_parse(ce_config_file* config_file, const char* path, FILE* file)
 {
     enum {
@@ -209,4 +211,5 @@ const char* ce_config_file_find(ce_config_file* config_file, const char* section
         }
     }
     return NULL;
+}
 }

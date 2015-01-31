@@ -24,6 +24,8 @@
 #include "quat.hpp"
 #include "vec3.hpp"
 
+namespace cursedearth
+{
 const ce_vec3 CE_VEC3_ZERO = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 const ce_vec3 CE_VEC3_UNIT_X = {.x = 1.0f, .y = 0.0f, .z = 0.0f};
 const ce_vec3 CE_VEC3_UNIT_Y = {.x = 0.0f, .y = 1.0f, .z = 0.0f};
@@ -118,4 +120,5 @@ ce_vec3* ce_vec3_ceil(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
     vec->y = fmaxf(lhs->y, rhs->y);
     vec->z = fmaxf(lhs->z, rhs->z);
     return vec;
+}
 }

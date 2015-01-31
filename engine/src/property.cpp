@@ -21,6 +21,8 @@
 #include "alloc.hpp"
 #include "property.hpp"
 
+namespace cursedearth
+{
 ce_property* ce_property_new(const char* name, ce_type type)
 {
     ce_property* property = ce_alloc(sizeof(ce_property));
@@ -36,4 +38,5 @@ void ce_property_del(ce_property* property)
         ce_string_del(property->name);
         ce_free(property, sizeof(ce_property));
     }
+}
 }

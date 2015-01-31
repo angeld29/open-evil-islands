@@ -24,6 +24,8 @@
 #include "alloc.hpp"
 #include "renderqueue.hpp"
 
+namespace cursedearth
+{
 ce_renderqueue* ce_renderqueue_new(void)
 {
     ce_renderqueue* renderqueue = ce_alloc(sizeof(ce_renderqueue));
@@ -75,4 +77,5 @@ ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue,
 void ce_renderqueue_render(ce_renderqueue* renderqueue)
 {
     ce_vector_for_each(renderqueue->rendergroups, ce_rendergroup_render);
+}
 }

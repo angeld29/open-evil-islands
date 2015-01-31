@@ -25,8 +25,11 @@
 
 #include <GL/wglew.h>
 
-#define wglewGetContext() (&ce_wglew_context)
+#define wglewGetContext() (&cursedearth::ce_wglew_context)
 
-extern CE_THREAD WGLEWContext ce_wglew_context;
+namespace cursedearth
+{
+    CE_THREAD WGLEWContext ce_wglew_context;
+}
 
 #endif /* CE_GLEW_PLATFORM_HPP */

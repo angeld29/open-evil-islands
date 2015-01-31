@@ -28,6 +28,8 @@
 #include "opengl.hpp"
 #include "rendersystem.hpp"
 
+namespace cursedearth
+{
 struct ce_render_system* ce_render_system;
 
 static struct ce_opengl_system {
@@ -447,4 +449,5 @@ void ce_render_system_discard_material(ce_material* material)
     } else {
         glPopAttrib();
     }
+}
 }

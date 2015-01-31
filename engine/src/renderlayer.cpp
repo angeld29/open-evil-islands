@@ -22,6 +22,8 @@
 #include "rendersystem.hpp"
 #include "renderlayer.hpp"
 
+namespace cursedearth
+{
 ce_renderlayer* ce_renderlayer_new(ce_texture* texture)
 {
     ce_renderlayer* renderlayer = ce_alloc(sizeof(ce_renderlayer));
@@ -65,4 +67,5 @@ void ce_renderlayer_render(ce_renderlayer* renderlayer)
         }
         ce_texture_unbind(renderlayer->texture);
     }
+}
 }

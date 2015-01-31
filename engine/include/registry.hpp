@@ -18,21 +18,20 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Registry manipulation
- */
-
 #ifndef CE_REGISTRY_HPP
 #define CE_REGISTRY_HPP
 
 #include <cstddef>
 
-typedef enum {
-    CE_REGISTRY_KEY_CURRENT_USER,
-    CE_REGISTRY_KEY_LOCAL_MACHINE,
-} ce_registry_key;
+namespace cursedearth
+{
+    typedef enum {
+        CE_REGISTRY_KEY_CURRENT_USER,
+        CE_REGISTRY_KEY_LOCAL_MACHINE,
+    } ce_registry_key;
 
-extern char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
-extern char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
+    extern char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
+    extern char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
+}
 
 #endif /* CE_REGISTRY_HPP */

@@ -27,6 +27,8 @@
 #include "optionmanager.hpp"
 #include "videomanager.hpp"
 
+namespace cursedearth
+{
 struct ce_video_manager* ce_video_manager;
 
 static const char* ce_video_dirs[] = {"Movies", NULL};
@@ -54,7 +56,7 @@ void ce_video_manager_term(void)
     }
 }
 
-void ce_video_manager_advance(float CE_UNUSED(elapsed))
+void ce_video_manager_advance(float /*elapsed*/)
 {
 }
 
@@ -102,4 +104,5 @@ ce_video_instance* ce_video_manager_find_instance(ce_video_object video_object)
         }
     }
     return NULL;
+}
 }

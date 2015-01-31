@@ -25,8 +25,10 @@
 #include "alloc.hpp"
 #include "byteorder.hpp"
 #include "resball.hpp"
-#include "mprfile.hpp"
+#include "mpr.hpp"
 
+namespace cursedearth
+{
 static const unsigned int MP_SIGNATURE = 0xce4af672;
 static const unsigned int SEC_SIGNATURE = 0xcf4bf774;
 
@@ -187,4 +189,5 @@ void ce_mprfile_close(ce_mprfile* mprfile)
         ce_string_del(mprfile->name);
         ce_free(mprfile, sizeof(ce_mprfile));
     }
+}
 }

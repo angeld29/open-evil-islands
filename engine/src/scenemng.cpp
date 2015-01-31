@@ -26,18 +26,20 @@
 #include "logging.hpp"
 #include "alloc.hpp"
 #include "frustum.hpp"
-#include "bytefmt.hpp"
+#include "byteformat.hpp"
 #include "event.hpp"
 #include "optionmanager.hpp"
 #include "configmanager.hpp"
 #include "rendersystem.hpp"
 #include "figuremanager.hpp"
 #include "mprmanager.hpp"
-#include "mprhelper.hpp"
+#include "mprhelpers.hpp"
 #include "mobloader.hpp"
 #include "root.hpp"
 #include "scenemng.hpp"
 
+namespace cursedearth
+{
 static void ce_scenemng_renderwindow_resized(void* listener, int width, int height)
 {
     ce_scenemng* scenemng = listener;
@@ -143,15 +145,15 @@ static void ce_scenemng_render_logo(ce_scenemng* scenemng)
     ce_video_object_render(scenemng->logo.video_object);
 }
 
-static void ce_scenemng_advance_ready(ce_scenemng* CE_UNUSED(scenemng), float CE_UNUSED(elapsed))
+static void ce_scenemng_advance_ready(ce_scenemng*, float /*elapsed*/)
 {
 }
 
-static void ce_scenemng_render_ready(ce_scenemng* CE_UNUSED(scenemng))
+static void ce_scenemng_render_ready(ce_scenemng*)
 {
 }
 
-static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float CE_UNUSED(elapsed))
+static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float /*elapsed*/)
 {
     // TODO: constructor
     if (!scenemng->loading.created) {
@@ -370,4 +372,5 @@ void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
         scenemng->terrain = ce_terrain_new(mprfile, scenemng->renderqueue,
             &CE_VEC3_ZERO, &CE_QUAT_IDENTITY, scenemng->scenenode);
     }
+}
 }

@@ -22,8 +22,8 @@
  *  doc/formats/reg.txt
  */
 
-#ifndef CE_REGFILE_HPP
-#define CE_REGFILE_HPP
+#ifndef CE_REG_HPP
+#define CE_REG_HPP
 
 #include <cstdint>
 
@@ -31,13 +31,16 @@
 #include "object.hpp"
 #include "memfile.hpp"
 
-typedef struct {
-    ce_vector* sections;
-} ce_reg_file;
+namespace cursedearth
+{
+    typedef struct {
+        ce_vector* sections;
+    } ce_reg_file;
 
-extern ce_reg_file* ce_reg_file_new(ce_mem_file* mem_file);
-extern void ce_reg_file_del(ce_reg_file* reg_file);
+    extern ce_reg_file* ce_reg_file_new(ce_mem_file* mem_file);
+    extern void ce_reg_file_del(ce_reg_file* reg_file);
 
-extern ce_value* ce_reg_file_find(ce_reg_file* reg_file, const char* section_name, const char* option_name, size_t index);
+    extern ce_value* ce_reg_file_find(ce_reg_file* reg_file, const char* section_name, const char* option_name, size_t index);
+}
 
-#endif /* CE_REGFILE_HPP */
+#endif /* CE_REG_HPP */

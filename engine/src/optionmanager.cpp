@@ -29,6 +29,8 @@
 #include "registry.hpp"
 #include "optionmanager.hpp"
 
+namespace cursedearth
+{
 struct ce_option_manager* ce_option_manager;
 
 void ce_option_manager_init(ce_optparse* optparse)
@@ -225,4 +227,5 @@ ce_optparse* ce_option_manager_create_option_parser(void)
     ce_optparse_add_control(optparse, "mouse wheel", "zoom camera");
 
     return optparse;
+}
 }

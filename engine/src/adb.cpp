@@ -24,8 +24,10 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "byteorder.hpp"
-#include "adbfile.hpp"
+#include "adb.hpp"
 
+namespace cursedearth
+{
 static const uint32_t CE_ADB_SIGNATURE = 0x00424441;
 
 ce_adb_file* ce_adb_file_new(ce_mem_file* mem_file)
@@ -75,4 +77,5 @@ void ce_adb_file_del(ce_adb_file* adb_file)
         ce_free(adb_file, sizeof(ce_adb_file) +
                             sizeof(ce_adb_record) * adb_file->record_count);
     }
+}
 }

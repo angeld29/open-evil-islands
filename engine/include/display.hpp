@@ -26,57 +26,60 @@
 
 #include "vector.hpp"
 
-typedef enum {
-    CE_DISPLAY_ROTATION_NONE,
-    CE_DISPLAY_ROTATION_0 = 1,
-    CE_DISPLAY_ROTATION_90 = 2,
-    CE_DISPLAY_ROTATION_180 = 4,
-    CE_DISPLAY_ROTATION_270 = 8
-} ce_display_rotation;
+namespace cursedearth
+{
+    typedef enum {
+        CE_DISPLAY_ROTATION_NONE,
+        CE_DISPLAY_ROTATION_0 = 1,
+        CE_DISPLAY_ROTATION_90 = 2,
+        CE_DISPLAY_ROTATION_180 = 4,
+        CE_DISPLAY_ROTATION_270 = 8
+    } ce_display_rotation;
 
-typedef enum {
-    CE_DISPLAY_REFLECTION_NONE,
-    CE_DISPLAY_REFLECTION_X = 1,
-    CE_DISPLAY_REFLECTION_Y = 2
-} ce_display_reflection;
+    typedef enum {
+        CE_DISPLAY_REFLECTION_NONE,
+        CE_DISPLAY_REFLECTION_X = 1,
+        CE_DISPLAY_REFLECTION_Y = 2
+    } ce_display_reflection;
 
-extern ce_display_rotation ce_display_rotation_from_degrees(int value);
-extern ce_display_reflection ce_display_reflection_from_bool(bool x, bool y);
+    extern ce_display_rotation ce_display_rotation_from_degrees(int value);
+    extern ce_display_reflection ce_display_reflection_from_bool(bool x, bool y);
 
-typedef struct {
-    int width, height, bpp, rate;
-} ce_displaymode;
+    typedef struct {
+        int width, height, bpp, rate;
+    } ce_displaymode;
 
-extern ce_displaymode* ce_displaymode_new(int width, int height, int bpp, int rate);
-extern void ce_displaymode_del(ce_displaymode* mode);
+    extern ce_displaymode* ce_displaymode_new(int width, int height, int bpp, int rate);
+    extern void ce_displaymode_del(ce_displaymode* mode);
 
-typedef struct ce_displaymng ce_displaymng;
+    typedef struct ce_displaymng ce_displaymng;
 
-typedef struct {
-    void (*ctor)(ce_displaymng* displaymng, va_list args);
-    void (*dtor)(ce_displaymng* displaymng);
-    void (*enter)(ce_displaymng* displaymng, size_t index,
-        ce_display_rotation rotation, ce_display_reflection reflection);
-    void (*exit)(ce_displaymng* displaymng);
-} ce_displaymng_vtable;
+    typedef struct {
+        void (*ctor)(ce_displaymng* displaymng, va_list args);
+        void (*dtor)(ce_displaymng* displaymng);
+        void (*enter)(ce_displaymng* displaymng, size_t index,
+            ce_display_rotation rotation, ce_display_reflection reflection);
+        void (*exit)(ce_displaymng* displaymng);
+    } ce_displaymng_vtable;
 
-struct ce_displaymng {
-    ce_vector* supported_modes;
-    ce_display_rotation supported_rotation;
-    ce_display_reflection supported_reflection;
-    ce_displaymng_vtable vtable;
-    size_t size;
-    char impl[];
-};
+    struct ce_displaymng {
+        ce_vector* supported_modes;
+        ce_display_rotation supported_rotation;
+        ce_display_reflection supported_reflection;
+        ce_displaymng_vtable vtable;
+        size_t size;
+        char impl[];
+    };
 
-extern ce_displaymng* ce_displaymng_new(ce_displaymng_vtable vtable, size_t size, ...);
-extern void ce_displaymng_del(ce_displaymng* displaymng);
+    extern ce_displaymng* ce_displaymng_new(ce_displaymng_vtable vtable, size_t size, ...);
+    extern void ce_displaymng_del(ce_displaymng* displaymng);
 
-extern void ce_displaymng_dump_supported_modes_to_stdout(ce_displaymng* displaymng);
-extern void ce_displaymng_dump_supported_rotations_to_stdout(ce_displaymng* displaymng);
-extern void ce_displaymng_dump_supported_reflections_to_stdout(ce_displaymng* displaymng);
+    extern void ce_displaymng_dump_supported_modes_to_stdout(ce_displaymng* displaymng);
+    extern void ce_displaymng_dump_supported_rotations_to_stdout(ce_displaymng* displaymng);
+    extern void ce_displaymng_dump_supported_reflections_to_stdout(ce_displaymng* displaymng);
 
-extern size_t ce_displaymng_enter(ce_displaymng* displaymng, int width, int height, int bpp, int rate, ce_display_rotation rotation, ce_display_reflection reflection);
-extern void ce_displaymng_exit(ce_displaymng* displaymng);
+    extern size_t ce_displaymng_enter(ce_displaymng* displaymng, int width, int height, int bpp, int rate, ce_display_rotation rotation, ce_display_reflection reflection);
+    extern void ce_displaymng_exit(ce_displaymng* displaymng);
+}
 
 #endif /* CE_DISPLAY_HPP */

@@ -24,6 +24,8 @@
 #include "alloc.hpp"
 #include "string.hpp"
 
+namespace cursedearth
+{
 ce_string* ce_string_new(void)
 {
     return ce_string_new_reserved(16);
@@ -139,4 +141,5 @@ size_t ce_string_append_fmt(ce_string* string, const char* fmt, ...)
     size_t count = ce_string_append_va(string, fmt, args);
     va_end(args);
     return count;
+}
 }

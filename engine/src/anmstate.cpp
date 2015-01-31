@@ -25,6 +25,8 @@
 #include "alloc.hpp"
 #include "anmstate.hpp"
 
+namespace cursedearth
+{
 ce_anmstate* ce_anmstate_new(void)
 {
     ce_anmstate* anmstate = ce_alloc(sizeof(ce_anmstate));
@@ -79,4 +81,5 @@ bool ce_anmstate_play_animation(ce_anmstate* anmstate,
 void ce_anmstate_stop_animation(ce_anmstate* anmstate)
 {
     anmstate->anmfile = NULL;
+}
 }

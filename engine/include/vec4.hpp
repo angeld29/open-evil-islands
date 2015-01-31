@@ -21,44 +21,47 @@
 #ifndef CE_VEC4_HPP
 #define CE_VEC4_HPP
 
-typedef struct {
-    float x, y, z, w;
-} ce_vec4;
-
-static inline ce_vec4* ce_vec4_init(ce_vec4* vec, float x, float y, float z, float w)
+namespace cursedearth
 {
-    vec->x = x;
-    vec->y = y;
-    vec->z = z;
-    vec->w = w;
-    return vec;
-}
+    typedef struct {
+        float x, y, z, w;
+    } ce_vec4;
 
-static inline ce_vec4* ce_vec4_init_scalar(ce_vec4* vec, float s)
-{
-    vec->x = s;
-    vec->y = s;
-    vec->z = s;
-    vec->w = s;
-    return vec;
-}
+    inline ce_vec4* ce_vec4_init(ce_vec4* vec, float x, float y, float z, float w)
+    {
+        vec->x = x;
+        vec->y = y;
+        vec->z = z;
+        vec->w = w;
+        return vec;
+    }
 
-static inline ce_vec4* ce_vec4_init_array(ce_vec4* vec, const float* array)
-{
-    vec->x = array[0];
-    vec->y = array[1];
-    vec->z = array[2];
-    vec->w = array[3];
-    return vec;
-}
+    inline ce_vec4* ce_vec4_init_scalar(ce_vec4* vec, float s)
+    {
+        vec->x = s;
+        vec->y = s;
+        vec->z = s;
+        vec->w = s;
+        return vec;
+    }
 
-static inline ce_vec4* ce_vec4_copy(ce_vec4* vec, const ce_vec4* other)
-{
-    vec->x = other->x;
-    vec->y = other->y;
-    vec->z = other->z;
-    vec->w = other->w;
-    return vec;
+    inline ce_vec4* ce_vec4_init_array(ce_vec4* vec, const float* array)
+    {
+        vec->x = array[0];
+        vec->y = array[1];
+        vec->z = array[2];
+        vec->w = array[3];
+        return vec;
+    }
+
+    inline ce_vec4* ce_vec4_copy(ce_vec4* vec, const ce_vec4* other)
+    {
+        vec->x = other->x;
+        vec->y = other->y;
+        vec->z = other->z;
+        vec->w = other->w;
+        return vec;
+    }
 }
 
 #endif /* CE_VEC4_HPP */

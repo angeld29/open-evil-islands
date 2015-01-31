@@ -27,8 +27,10 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "byteorder.hpp"
-#include "resfile.hpp"
+#include "res.hpp"
 
+namespace cursedearth
+{
 static const uint32_t CE_RES_SIGNATURE = 0x19ce23c;
 
 ce_res_file* ce_res_file_new(const char* name, ce_mem_file* mem_file)
@@ -100,7 +102,7 @@ void ce_res_file_del(ce_res_file* res_file)
     }
 }
 
-static inline int ce_res_name_hash(const char* name, int limit)
+inline int ce_res_name_hash(const char* name, int limit)
 {
     int sum = 0;
     while (*name) {
@@ -127,4 +129,5 @@ void* ce_res_file_node_data(ce_res_file* res_file, size_t index)
     ce_mem_file_seek(res_file->mem_file, res_file->nodes[index].data_offset, CE_MEM_FILE_SEEK_SET);
     ce_mem_file_read(res_file->mem_file, data, 1, res_file->nodes[index].data_length);
     return data;
+}
 }

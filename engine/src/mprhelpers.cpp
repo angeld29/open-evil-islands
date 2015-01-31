@@ -27,8 +27,10 @@
 #include "plane.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "mprhelper.hpp"
+#include "mprhelpers.hpp"
 
+namespace cursedearth
+{
 const float CE_MPR_OFFSET_XZ_COEF = 1.0f / (INT8_MAX - INT8_MIN);
 const float CE_MPR_HEIGHT_Y_COEF = 1.0f / (UINT16_MAX - 0);
 
@@ -351,4 +353,5 @@ ce_mmpfile* ce_mpr_generate_texture(const ce_mprfile* mprfile,
     ce_free(tile, sizeof(uint32_t) * tile_size_sqr);
 
     return mmpfile;
+}
 }

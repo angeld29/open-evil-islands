@@ -28,6 +28,8 @@
 #include "soundmixer.hpp"
 #include "soundinstance.hpp"
 
+namespace cursedearth
+{
 ce_sound_instance* ce_sound_instance_new(ce_sound_resource* sound_resource)
 {
     ce_sound_instance* sound_instance = ce_alloc_zero(sizeof(ce_sound_instance));
@@ -46,7 +48,7 @@ void ce_sound_instance_del(ce_sound_instance* sound_instance)
     }
 }
 
-void ce_sound_instance_advance(ce_sound_instance* sound_instance, float CE_UNUSED(elapsed))
+void ce_sound_instance_advance(ce_sound_instance* sound_instance, float /*elapsed*/)
 {
     if (CE_SOUND_STATE_PLAYING == sound_instance->sound_bundle.state) {
         size_t size = ce_sound_buffer_available_size_for_write(sound_instance->sound_buffer);
@@ -72,4 +74,5 @@ void ce_sound_instance_change_state(ce_sound_instance* sound_instance, int state
         ce_sound_resource_reset(sound_instance->sound_resource);
         break;
     }
+}
 }

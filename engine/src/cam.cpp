@@ -20,8 +20,10 @@
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "camfile.hpp"
+#include "cam.hpp"
 
+namespace cursedearth
+{
 ce_cam_file* ce_cam_file_new(ce_mem_file* mem_file)
 {
     size_t record_count = ce_mem_file_size(mem_file) / 36;
@@ -44,4 +46,5 @@ void ce_cam_file_del(ce_cam_file* cam_file)
     if (NULL != cam_file) {
         ce_free(cam_file, sizeof(ce_cam_file) + sizeof(ce_cam_record) * cam_file->record_count);
     }
+}
 }

@@ -33,6 +33,8 @@
 #include "graphiccontext_x11.hpp"
 #include "renderwindow.hpp"
 
+namespace cursedearth
+{
 enum {
     CE_RENDERWINDOW_ATOM_WM_PROTOCOLS,
     CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW,
@@ -339,7 +341,7 @@ ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title
         ce_renderwindow_x11_pump}, sizeof(ce_renderwindow_x11), width, height, title);
 }
 
-static void ce_renderwindow_handler_skip(ce_renderwindow* CE_UNUSED(renderwindow), XEvent* CE_UNUSED(event))
+static void ce_renderwindow_handler_skip(ce_renderwindow*, XEvent*)
 {
 }
 
@@ -355,13 +357,13 @@ static void ce_renderwindow_handler_client_message(ce_renderwindow* renderwindow
     }
 }
 
-static void ce_renderwindow_handler_map_notify(ce_renderwindow* renderwindow, XEvent* CE_UNUSED(event))
+static void ce_renderwindow_handler_map_notify(ce_renderwindow* renderwindow, XEvent*)
 {
     assert(CE_RENDERWINDOW_ACTION_NONE == renderwindow->action);
     renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
 }
 
-static void ce_renderwindow_handler_visibility_notify(ce_renderwindow* CE_UNUSED(renderwindow), XEvent* CE_UNUSED(event))
+static void ce_renderwindow_handler_visibility_notify(ce_renderwindow*, XEvent*)
 {
 }
 
@@ -376,7 +378,7 @@ static void ce_renderwindow_handler_configure_notify(ce_renderwindow* renderwind
                                                 event->xconfigure.height);
 }
 
-static void ce_renderwindow_handler_focus_in(ce_renderwindow* CE_UNUSED(renderwindow), XEvent* event)
+static void ce_renderwindow_handler_focus_in(ce_renderwindow*, XEvent* event)
 {
     XAutoRepeatOff(event->xfocus.display);
 }
@@ -455,4 +457,5 @@ static void ce_renderwindow_handler_motion_notify(ce_renderwindow* renderwindow,
 
     renderwindow->input_context->pointer_position.x = event->xmotion.x;
     renderwindow->input_context->pointer_position.y = event->xmotion.y;
+}
 }

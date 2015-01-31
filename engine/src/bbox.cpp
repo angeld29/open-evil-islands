@@ -23,6 +23,8 @@
 
 #include "bbox.hpp"
 
+namespace cursedearth
+{
 ce_bbox* ce_bbox_clear(ce_bbox* bbox)
 {
     ce_aabb_clear(&bbox->aabb);
@@ -190,4 +192,5 @@ ce_bbox* ce_bbox_merge2(ce_bbox* bbox, const ce_bbox* other)
     ce_aabb_update_radius(&bbox->aabb);
 
     return bbox;
+}
 }

@@ -23,28 +23,31 @@
 
 #include "string.hpp"
 #include "vector.hpp"
-#include "resfile.hpp"
-#include "lnkfile.hpp"
-#include "figfile.hpp"
-#include "bonfile.hpp"
-#include "anmfile.hpp"
+#include "res.hpp"
+#include "lnk.hpp"
+#include "fig.hpp"
+#include "bon.hpp"
+#include "anm.hpp"
 #include "material.hpp"
 #include "renderqueue.hpp"
 
-typedef struct {
-    ce_string* name;
-    int index;
-    ce_figfile* figfile;
-    ce_bonfile* bonfile;
-    ce_vector* anmfiles;
-    ce_material* material;
-    ce_rendergroup* rendergroup;
-    ce_vector* childs;
-} ce_fignode;
+namespace cursedearth
+{
+    typedef struct {
+        ce_string* name;
+        int index;
+        ce_figfile* figfile;
+        ce_bonfile* bonfile;
+        ce_vector* anmfiles;
+        ce_material* material;
+        ce_rendergroup* rendergroup;
+        ce_vector* childs;
+    } ce_fignode;
 
-extern ce_fignode* ce_fignode_new(ce_res_file* mod_res_file, ce_res_file* bon_res_file, ce_res_file* anm_res_files[], ce_lnkfile* lnkfile);
-extern void ce_fignode_del(ce_fignode* fignode);
+    extern ce_fignode* ce_fignode_new(ce_res_file* mod_res_file, ce_res_file* bon_res_file, ce_res_file* anm_res_files[], ce_lnkfile* lnkfile);
+    extern void ce_fignode_del(ce_fignode* fignode);
 
-extern void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode, ce_renderqueue* renderqueue);
+    extern void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode, ce_renderqueue* renderqueue);
+}
 
 #endif /* CE_FIGNODE_HPP */

@@ -31,10 +31,12 @@
 #include "optionmanager.hpp"
 #include "resourcemanager.hpp"
 #include "resball.hpp"
-#include "regfile.hpp"
+#include "reg.hpp"
 #include "configfile.hpp"
 #include "configmanager.hpp"
 
+namespace cursedearth
+{
 struct ce_config_manager* ce_config_manager;
 
 static const char* ce_config_dir = "Config";
@@ -300,4 +302,5 @@ void ce_config_manager_term(void)
         }
         ce_free(ce_config_manager, sizeof(struct ce_config_manager));
     }
+}
 }

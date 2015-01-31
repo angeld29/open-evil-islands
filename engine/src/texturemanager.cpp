@@ -25,10 +25,12 @@
 #include "logging.hpp"
 #include "str.hpp"
 #include "path.hpp"
-#include "resfile.hpp"
+#include "res.hpp"
 #include "optionmanager.hpp"
 #include "texturemanager.hpp"
 
+namespace cursedearth
+{
 struct ce_texture_manager* ce_texture_manager;
 
 static const char* ce_texture_exts[] = {".mmp", NULL};
@@ -166,4 +168,5 @@ ce_texture* ce_texture_manager_get(const char* name)
 void ce_texture_manager_put(ce_texture* texture)
 {
     ce_vector_push_back(ce_texture_manager->textures, texture);
+}
 }

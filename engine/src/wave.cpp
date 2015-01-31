@@ -25,6 +25,8 @@
 #include "logging.hpp"
 #include "wave.hpp"
 
+namespace cursedearth
+{
 static const char* ce_wave_four_cc_riff = "RIFF";
 static const char* ce_wave_four_cc_wave = "WAVE";
 static const char* ce_wave_four_cc_format = "fmt ";
@@ -38,7 +40,7 @@ static bool ce_wave_header_read_riff(ce_wave_header* wave_header, ce_mem_file* m
     return true;
 }
 
-static bool ce_wave_header_read_wave(ce_wave_header* wave_header, ce_mem_file* CE_UNUSED(mem_file))
+static bool ce_wave_header_read_wave(ce_wave_header* wave_header, ce_mem_file*)
 {
     memcpy(wave_header->wave.four_cc, ce_wave_four_cc_wave, 4);
     return true;
@@ -158,7 +160,7 @@ static unsigned int ce_wave_ima_adpcm_step_table[89] = {
     12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767
 };
 
-static inline int ce_wave_ima_adpcm_clamp_step_index(int index)
+inline int ce_wave_ima_adpcm_clamp_step_index(int index)
 {
     return ce_clamp(int, index, 0, 88);
 }
@@ -227,4 +229,5 @@ void ce_wave_ima_adpcm_decode(void* dst, const void* src, const ce_wave_header* 
         step_indices[channel] += ce_wave_ima_adpcm_index_table[byte_code];
         step_indices[channel] = ce_wave_ima_adpcm_clamp_step_index(step_indices[channel]);
     }
+}
 }

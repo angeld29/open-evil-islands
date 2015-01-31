@@ -38,6 +38,8 @@
 #include "error.hpp"
 #include "thread.hpp"
 
+namespace cursedearth
+{
 int ce_online_cpu_count(void)
 {
 #ifdef _SC_NPROCESSORS_ONLN
@@ -237,4 +239,5 @@ void ce_once_exec(ce_once* once, void (*proc)(void*), void* arg)
     ce_routine routine = {proc, arg};
     pthread_setspecific(ce_once_key, &routine);
     pthread_once(&once->handle, ce_once_wrap);
+}
 }

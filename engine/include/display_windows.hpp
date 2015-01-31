@@ -23,6 +23,9 @@
 
 #include "display.hpp"
 
-extern ce_displaymng* ce_displaymng_create(void);
+namespace cursedearth
+{
+    ce_displaymng* ce_displaymng_create(void);
+}
 
 #endif /* CE_DISPLAY_PLATFORM_HPP */

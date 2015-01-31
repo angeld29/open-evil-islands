@@ -27,7 +27,9 @@
 #include "thread.hpp"
 #include "avcodec.hpp"
 
-static void ce_avcodec_log(void* CE_UNUSED(ptr), int av_level, const char* format, va_list args)
+namespace cursedearth
+{
+static void ce_avcodec_log(void*, int av_level, const char* format, va_list args)
 {
     ce_logging_level level;
 
@@ -91,4 +93,5 @@ void ce_avcodec_term(void)
 {
     av_lockmgr_register(NULL);
     av_log_set_callback(av_log_default_callback);
+}
 }

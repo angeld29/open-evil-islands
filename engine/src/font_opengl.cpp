@@ -37,6 +37,8 @@
 #include "opengl.hpp"
 #include "font.hpp"
 
+namespace cursedearth
+{
 enum {
     CE_FONT_NUM_CHARS = 96,
     CE_FONT_SPACE = 32,
@@ -51,18 +53,17 @@ struct ce_font {
     GLuint list, tex;
 };
 
-static void* ce_font_alloc(FT_Memory CE_UNUSED(memory), long size)
+static void* ce_font_alloc(FT_Memory, long size)
 {
     return ce_alloc_zero(size);
 }
 
-static void ce_font_free(FT_Memory CE_UNUSED(memory), void* block)
+static void ce_font_free(FT_Memory, void* block)
 {
     ce_free_slow(block);
 }
 
-static void* ce_font_realloc(FT_Memory CE_UNUSED(memory), long cur_size,
-                                long new_size, void* block)
+static void* ce_font_realloc(FT_Memory, long cur_size, long new_size, void* block)
 {
     return ce_realloc(block, cur_size, new_size);
 }
@@ -267,4 +268,5 @@ void ce_font_render(ce_font* font, int x, int y,
     glPopMatrix();
 
     glPopAttrib();
+}
 }

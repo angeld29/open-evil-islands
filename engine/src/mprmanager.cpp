@@ -24,10 +24,12 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "path.hpp"
-#include "resfile.hpp"
+#include "res.hpp"
 #include "optionmanager.hpp"
 #include "mprmanager.hpp"
 
+namespace cursedearth
+{
 struct ce_mpr_manager* ce_mpr_manager;
 
 static const char* ce_mpr_dirs[] = {"Maps", NULL};
@@ -70,4 +72,5 @@ ce_mprfile* ce_mpr_manager_open(const char* name)
     ce_res_file_del(res_file);
 
     return mprfile;
+}
 }

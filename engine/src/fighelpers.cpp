@@ -21,8 +21,10 @@
 #include <cassert>
 
 #include "logging.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 
+namespace cursedearth
+{
 ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
                             const ce_complection* complection)
 {
@@ -135,4 +137,5 @@ ce_material* ce_fighlp_create_material(const ce_figfile* figfile)
     }
 
     return material;
+}
 }

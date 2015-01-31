@@ -21,6 +21,8 @@
 #include "soundmanager.hpp"
 #include "soundobject.hpp"
 
+namespace cursedearth
+{
 ce_sound_object ce_sound_object_new(const char* name)
 {
     return ce_sound_manager_create_object(name);
@@ -64,4 +66,5 @@ float ce_sound_object_get_time(ce_sound_object sound_object)
 {
     ce_sound_bundle* sound_bundle = ce_sound_manager_get_bundle(sound_object);
     return NULL != sound_bundle ? sound_bundle->time : 0.0f;
+}
 }

@@ -24,36 +24,39 @@
 #include "vec3.hpp"
 #include "quat.hpp"
 
-typedef struct {
-    ce_vec3 translation;
-    ce_quat rotation;
-    ce_vec3 scaling;
-} ce_transform;
-
-extern const ce_transform CE_TRANSFORM_IDENTITY;
-
-static inline ce_transform* ce_transform_init(ce_transform* transform, const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling)
+namespace cursedearth
 {
-    ce_vec3_copy(&transform->translation, translation);
-    ce_quat_copy(&transform->rotation, rotation);
-    ce_vec3_copy(&transform->scaling, scaling);
-    return transform;
-}
+    typedef struct {
+        ce_vec3 translation;
+        ce_quat rotation;
+        ce_vec3 scaling;
+    } ce_transform;
 
-static inline ce_transform* ce_transform_init_identity(ce_transform* transform)
-{
-    ce_vec3_init_zero(&transform->translation);
-    ce_quat_init_identity(&transform->rotation);
-    ce_vec3_init_unit_scale(&transform->scaling);
-    return transform;
-}
+    extern const ce_transform CE_TRANSFORM_IDENTITY;
 
-static inline ce_transform* ce_transform_copy(ce_transform* transform, const ce_transform* other)
-{
-    ce_vec3_copy(&transform->translation, &other->translation);
-    ce_quat_copy(&transform->rotation, &other->rotation);
-    ce_vec3_copy(&transform->scaling, &other->scaling);
-    return transform;
+    inline ce_transform* ce_transform_init(ce_transform* transform, const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling)
+    {
+        ce_vec3_copy(&transform->translation, translation);
+        ce_quat_copy(&transform->rotation, rotation);
+        ce_vec3_copy(&transform->scaling, scaling);
+        return transform;
+    }
+
+    inline ce_transform* ce_transform_init_identity(ce_transform* transform)
+    {
+        ce_vec3_init_zero(&transform->translation);
+        ce_quat_init_identity(&transform->rotation);
+        ce_vec3_init_unit_scale(&transform->scaling);
+        return transform;
+    }
+
+    inline ce_transform* ce_transform_copy(ce_transform* transform, const ce_transform* other)
+    {
+        ce_vec3_copy(&transform->translation, &other->translation);
+        ce_quat_copy(&transform->rotation, &other->rotation);
+        ce_vec3_copy(&transform->scaling, &other->scaling);
+        return transform;
+    }
 }
 
 #endif /* CE_TRANSFORM_HPP */

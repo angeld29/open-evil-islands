@@ -20,6 +20,8 @@
 
 #include "resball.hpp"
 
+namespace cursedearth
+{
 void ce_res_ball_extract_all_mem_files(ce_res_file* res_file, ce_mem_file* mem_files[])
 {
     for (size_t i = 0; i < res_file->node_count; ++i) {
@@ -46,4 +48,5 @@ void ce_res_ball_clean_all_res_files(ce_res_file* res_file, ce_res_file* res_fil
     for (size_t i = 0; i < res_file->node_count; ++i) {
         ce_res_file_del(res_files[i]);
     }
+}
 }

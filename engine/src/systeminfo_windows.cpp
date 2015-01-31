@@ -26,6 +26,8 @@
 #include "logging.hpp"
 #include "systeminfo.hpp"
 
+namespace cursedearth
+{
 bool ce_system_info_check(void)
 {
     OSVERSIONINFOEX osverinfo;
@@ -107,4 +109,5 @@ bool ce_system_info_check(void)
 
     ce_logging_write("system info: Windows XP or above detected");
     return true;
+}
 }

@@ -20,7 +20,10 @@
 
 #include "soundsystem.hpp"
 
-ce_sound_system_vtable ce_sound_system_platform(void)
+namespace cursedearth
 {
-    return ce_sound_system_null();
+    ce_sound_system_vtable ce_sound_system_platform()
+    {
+        return ce_sound_system_null();
+    }
 }

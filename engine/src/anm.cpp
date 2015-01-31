@@ -20,8 +20,10 @@
 
 #include "byteorder.hpp"
 #include "alloc.hpp"
-#include "anmfile.hpp"
+#include "anm.hpp"
 
+namespace cursedearth
+{
 ce_anmfile* ce_anmfile_open(ce_res_file* res_file, size_t index)
 {
     ce_anmfile* anmfile = ce_alloc(sizeof(ce_anmfile));
@@ -57,4 +59,5 @@ void ce_anmfile_close(ce_anmfile* anmfile)
         ce_string_del(anmfile->name);
         ce_free(anmfile, sizeof(ce_anmfile));
     }
+}
 }

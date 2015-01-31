@@ -29,6 +29,8 @@
 #include "error_windows.hpp"
 #include "thread.hpp"
 
+namespace cursedearth
+{
 int ce_online_cpu_count(void)
 {
     SYSTEM_INFO info;
@@ -282,4 +284,5 @@ void ce_once_exec(ce_once* once, void (*proc)(void*), void* arg)
         }
         LeaveCriticalSection(&once->mutex);
     }
+}
 }

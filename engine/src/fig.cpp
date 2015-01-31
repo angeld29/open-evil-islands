@@ -22,16 +22,16 @@
 
 #include "byteorder.hpp"
 #include "alloc.hpp"
-#include "figfile.hpp"
+#include "fig.hpp"
 
-static float ce_figfile_value_fig1(const float* params, size_t CE_UNUSED(stride),
-                                    const ce_complection* CE_UNUSED(complection))
+namespace cursedearth
+{
+static float ce_figfile_value_fig1(const float* params, size_t /*stride*/, const ce_complection*)
 {
     return *params;
 }
 
-static float ce_figfile_value_fig8(const float* params, size_t stride,
-                                    const ce_complection* complection)
+static float ce_figfile_value_fig8(const float* params, size_t stride, const ce_complection* complection)
 {
     float temp1 = params[0 * stride] +
         (params[1 * stride] - params[0 * stride]) * complection->strength;
@@ -133,4 +133,5 @@ void ce_figfile_close(ce_figfile* figfile)
         ce_free(figfile->data, figfile->size);
         ce_free(figfile, sizeof(ce_figfile));
     }
+}
 }

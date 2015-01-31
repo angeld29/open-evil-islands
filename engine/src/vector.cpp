@@ -21,6 +21,8 @@
 #include "alloc.hpp"
 #include "vector.hpp"
 
+namespace cursedearth
+{
 ce_vector* ce_vector_new(void)
 {
     return ce_vector_new_reserved(16);
@@ -112,4 +114,5 @@ void ce_vector_for_each(ce_vector* vector, void (*func)(void*))
     for (size_t i = 0; i < vector->count; ++i) {
         (*func)(vector->items[i]);
     }
+}
 }

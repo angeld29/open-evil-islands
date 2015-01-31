@@ -27,6 +27,8 @@
 #include "optionmanager.hpp"
 #include "mobmanager.hpp"
 
+namespace cursedearth
+{
 struct ce_mob_manager* ce_mob_manager;
 
 static const char* ce_mob_dirs[] = {"Maps", NULL};
@@ -60,4 +62,5 @@ ce_mob_file* ce_mob_manager_open(const char* name)
         return ce_mob_file_open(path);
     }
     return NULL;
+}
 }

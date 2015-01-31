@@ -38,6 +38,8 @@
 #include "bink.hpp"
 #include "videoresource.hpp"
 
+namespace cursedearth
+{
 /*
  *  Ogg Theora (C) Xiph.Org Foundation
  *  http://www.xiph.org/ogg/doc/
@@ -57,7 +59,7 @@ typedef struct {
     th_ycbcr_buffer ycbcr;
 } ce_theora;
 
-static size_t ce_theora_size_hint(ce_mem_file* CE_UNUSED(mem_file))
+static size_t ce_theora_size_hint(ce_mem_file*)
 {
     return sizeof(ce_theora);
 }
@@ -357,7 +359,7 @@ static bool ce_theora_read(ce_video_resource* video_resource)
     return false;
 }
 
-static bool ce_theora_reset(ce_video_resource* CE_UNUSED(video_resource))
+static bool ce_theora_reset(ce_video_resource*)
 {
     // TODO
     return false;
@@ -558,3 +560,4 @@ const ce_video_resource_vtable ce_video_resource_builtins[] = {
 };
 
 const size_t CE_VIDEO_RESOURCE_BUILTIN_COUNT = sizeof(ce_video_resource_builtins) / sizeof(ce_video_resource_builtins[0]);
+}

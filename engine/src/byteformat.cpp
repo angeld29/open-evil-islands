@@ -21,8 +21,10 @@
 #include <cstdio>
 
 #include "str.hpp"
-#include "bytefmt.hpp"
+#include "byteformat.hpp"
 
+namespace cursedearth
+{
 char* ce_bytefmt_size(char* buffer, size_t size, long long int bytes)
 {
     long double KiB = 1024.0l;
@@ -89,4 +91,5 @@ char* ce_bytefmt_detail(char* buffer, size_t size, long long int bytes)
         ce_bytefmt_size(tmp1, sizeof(tmp1), bytes),
         ce_bytefmt_dot(tmp2, sizeof(tmp2), bytes));
     return buffer;
+}
 }

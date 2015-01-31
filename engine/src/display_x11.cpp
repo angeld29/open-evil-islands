@@ -30,6 +30,8 @@
 #include "display.hpp"
 #include "display_x11.hpp"
 
+namespace cursedearth
+{
 // XFree86 VidMode, see xf86vidmode(3) for more details
 typedef struct {
     int event_base, error_base;
@@ -71,9 +73,7 @@ static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
     }
 }
 
-static void ce_xf86vmmng_enter(ce_displaymng* displaymng, size_t index,
-                                ce_display_rotation CE_UNUSED(rotation),
-                                ce_display_reflection CE_UNUSED(reflection))
+static void ce_xf86vmmng_enter(ce_displaymng* displaymng, size_t index, ce_display_rotation, ce_display_reflection)
 {
     ce_xf86vmmng* xf86vmmng = (ce_xf86vmmng*)displaymng->impl;
 
@@ -326,4 +326,5 @@ ce_displaymng* ce_displaymng_create(Display* display)
     ce_logging_warning("displaymng: no appropriate X11 extensions found, "
                         "fullscreen mode is not available");
     return NULL;
+}
 }

@@ -24,8 +24,10 @@
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "regfile.hpp"
+#include "reg.hpp"
 
+namespace cursedearth
+{
 static const uint32_t CE_REG_SIGNATURE = 0x45ab3efbu;
 
 static ce_property* ce_reg_create_option_int(ce_mem_file* mem_file, const char* name)
@@ -165,4 +167,5 @@ ce_value* ce_reg_file_find(ce_reg_file* reg_file,
         }
     }
     return NULL;
+}
 }

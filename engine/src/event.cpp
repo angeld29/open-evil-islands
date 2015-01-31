@@ -27,6 +27,8 @@
 #include "logging.hpp"
 #include "event.hpp"
 
+namespace cursedearth
+{
 struct ce_event_manager* ce_event_manager;
 
 ce_event* ce_event_new(void (*notify)(ce_event*), size_t size)
@@ -237,4 +239,5 @@ void ce_event_manager_post_ptr(ce_thread_id thread_id,
 {
     ce_event_manager_post_raw(thread_id, notify,
         &(ce_event_ptr){ptr}, sizeof(ce_event_ptr));
+}
 }

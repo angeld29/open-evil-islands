@@ -21,15 +21,18 @@
 #include "logging.hpp"
 #include "opengl.hpp"
 
-bool ce_opengl_report_errors(void)
+namespace cursedearth
 {
-    bool reported = false;
-    GLenum error;
+    bool ce_opengl_report_errors(void)
+    {
+        bool reported = false;
+        GLenum error;
 
-    while (GL_NO_ERROR != (error = glGetError())) {
-        ce_logging_error("opengl: error %u: %s", error, gluErrorString(error));
-        reported = true;
+        while (GL_NO_ERROR != (error = glGetError())) {
+            ce_logging_error("opengl: error %u: %s", error, gluErrorString(error));
+            reported = true;
+        }
+
+        return reported;
     }
-
-    return reported;
 }

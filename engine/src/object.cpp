@@ -23,6 +23,8 @@
 #include "alloc.hpp"
 #include "object.hpp"
 
+namespace cursedearth
+{
 ce_object* ce_object_new(const char* name)
 {
     ce_object* object = ce_alloc_zero(sizeof(ce_object));
@@ -50,4 +52,5 @@ ce_property* ce_object_find(ce_object* object, const char* name)
         }
     }
     return NULL;
+}
 }

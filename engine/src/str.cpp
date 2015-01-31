@@ -25,6 +25,8 @@
 #include "lib.hpp"
 #include "str.hpp"
 
+namespace cursedearth
+{
 char* ce_strleft(char* dst, const char* src, size_t n)
 {
     n = ce_min(size_t, n, strlen(src));
@@ -307,4 +309,5 @@ char* ce_strsep(char** sp, const char* delim)
         *sp = NULL;
     }
     return s;
+}
 }

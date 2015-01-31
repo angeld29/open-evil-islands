@@ -22,6 +22,8 @@
 #include "alloc.hpp"
 #include "renderitem.hpp"
 
+namespace cursedearth
+{
 ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...)
 {
     ce_renderitem* renderitem = ce_alloc_zero(sizeof(ce_renderitem) + size);
@@ -69,4 +71,5 @@ ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem)
     (renderitem->vtable.clone)(renderitem, clone_renderitem);
 
     return clone_renderitem;
+}
 }

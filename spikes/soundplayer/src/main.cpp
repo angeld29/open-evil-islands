@@ -29,6 +29,8 @@
 #include "soundobject.hpp"
 #include "root.hpp"
 
+using namespace cursedearth;
+
 static ce_color message_color;
 static float alpha_sign = -1.0f;
 static ce_sound_object sound_object;
@@ -42,7 +44,7 @@ static void clear()
     ce_optparse_del(optparse);
 }
 
-static void state_changed(void* CE_UNUSED(listener), int state)
+static void state_changed(void* /*listener*/, int state)
 {
     if (CE_SCENEMNG_STATE_READY == state) {
         const char* track;
@@ -55,7 +57,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
     }
 }
 
-static void advance(void* CE_UNUSED(listener), float elapsed)
+static void advance(void* /*listener*/, float elapsed)
 {
     ce_input_supply_advance(input_supply, elapsed);
 
@@ -67,7 +69,7 @@ static void advance(void* CE_UNUSED(listener), float elapsed)
     }
 }
 
-static void render(void* CE_UNUSED(listener))
+static void render(void* /*listener*/)
 {
     if (CE_SCENEMNG_STATE_PLAYING != ce_root.scenemng->state) {
         return;

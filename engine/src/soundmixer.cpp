@@ -29,6 +29,8 @@
 #include "soundsystem.hpp"
 #include "soundmixer.hpp"
 
+namespace cursedearth
+{
 struct ce_sound_mixer* ce_sound_mixer;
 
 static void ce_sound_mixer_create_buffer_react(ce_event* event)
@@ -44,7 +46,7 @@ static void ce_sound_mixer_destroy_buffer_react(ce_event* event)
     ce_sound_buffer_del(sound_buffer);
 }
 
-static void ce_sound_mixer_exit(ce_event* CE_UNUSED(event))
+static void ce_sound_mixer_exit(ce_event*)
 {
     ce_sound_mixer->done = true;
 }
@@ -95,7 +97,7 @@ static void ce_sound_mixer_mix_sample(void* sample, const void* other,
     }
 }
 
-static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
+static void ce_sound_mixer_exec(void*)
 {
     while (!ce_sound_mixer->done) {
         char sample[ce_sound_system->sound_format.sample_size];
@@ -157,4 +159,5 @@ void ce_sound_mixer_destroy_buffer(ce_sound_buffer* sound_buffer)
 {
     ce_event_manager_post_ptr(ce_sound_mixer->thread->id,
         ce_sound_mixer_destroy_buffer_react, sound_buffer);
+}
 }

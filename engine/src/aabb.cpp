@@ -29,6 +29,8 @@
 #include "math.hpp"
 #include "aabb.hpp"
 
+namespace cursedearth
+{
 ce_aabb* ce_aabb_init(ce_aabb* aabb, const ce_vec3* origin,
                         const ce_vec3* extents, float radius)
 {
@@ -138,4 +140,5 @@ ce_aabb* ce_aabb_merge_point_array(ce_aabb* aabb, const float* point)
     ce_aabb_merge_point_pass(&aabb->origin.y, &aabb->extents.y, point[1]);
     ce_aabb_merge_point_pass(&aabb->origin.z, &aabb->extents.z, point[2]);
     return aabb;
+}
 }

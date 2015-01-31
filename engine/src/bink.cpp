@@ -27,6 +27,8 @@
 #include "bitop.hpp"
 #include "bink.hpp"
 
+namespace cursedearth
+{
 enum {
     CE_BINK_HEADER_SIZE = 44,
     CE_BINK_AUDIO_HEADER_SIZE = 4 + 4 + 4,
@@ -115,4 +117,5 @@ bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_mem_file* mem_
     }
 
     return true;
+}
 }

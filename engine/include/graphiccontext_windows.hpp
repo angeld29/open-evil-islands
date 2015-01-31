@@ -24,10 +24,13 @@
 #include "glew_windows.hpp"
 #include "graphiccontext.hpp"
 
-struct ce_graphic_context {
-    HGLRC context;
-};
+namespace cursedearth
+{
+    struct ce_graphic_context {
+        HGLRC context;
+    };
 
-extern ce_graphic_context* ce_graphic_context_new(HDC dc);
+    ce_graphic_context* ce_graphic_context_new(HDC dc);
+}
 
 #endif /* CE_GRAPHICCONTEXT_PLATFORM_HPP */

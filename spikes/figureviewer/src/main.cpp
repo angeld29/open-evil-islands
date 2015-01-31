@@ -32,6 +32,8 @@
 #include "figuremanager.hpp"
 #include "root.hpp"
 
+using namespace cursedearth;
+
 static ce_optparse* optparse;
 static ce_figentity* figentity;
 static ce_string* message;
@@ -99,7 +101,7 @@ static void display_message(const char* fmt, ...)
     message_color.a = 1.0f;
 }
 
-static void state_changed(void* CE_UNUSED(listener), int state)
+static void state_changed(void* /*listener*/, int state)
 {
     if (CE_SCENEMNG_STATE_READY == state) {
         if (update_figentity()) {
@@ -133,7 +135,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
     }
 }
 
-static void advance(void* CE_UNUSED(listener), float elapsed)
+static void advance(void* /*listener*/, float elapsed)
 {
     ce_input_supply_advance(input_supply, elapsed);
 
@@ -198,7 +200,7 @@ static void advance(void* CE_UNUSED(listener), float elapsed)
     }
 }
 
-static void render(void* CE_UNUSED(listener))
+static void render(void* /*listener*/)
 {
     if (message_timeout > 0.0f) {
         ce_font_render(ce_root.scenemng->font,

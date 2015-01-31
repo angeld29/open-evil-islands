@@ -25,29 +25,32 @@
 #include "string.hpp"
 #include "property.hpp"
 
-typedef struct {
-    ce_string* name;
-    ce_vector* properties;
-} ce_object;
-
-extern ce_object* ce_object_new(const char* name);
-extern void ce_object_del(ce_object* object);
-
-extern ce_property* ce_object_find(ce_object* object, const char* name);
-
-static inline bool ce_object_exists(ce_object* object, const char* name)
+namespace cursedearth
 {
-    return NULL != ce_object_find(object, name);
-}
+    typedef struct {
+        ce_string* name;
+        ce_vector* properties;
+    } ce_object;
 
-static inline void ce_object_add(ce_object* object, ce_property* property)
-{
-    ce_vector_push_back(object->properties, property);
-}
+    extern ce_object* ce_object_new(const char* name);
+    extern void ce_object_del(ce_object* object);
 
-static inline void ce_object_remove(ce_object* object, ce_property* property)
-{
-    ce_vector_remove_all(object->properties, property);
+    extern ce_property* ce_object_find(ce_object* object, const char* name);
+
+    inline bool ce_object_exists(ce_object* object, const char* name)
+    {
+        return NULL != ce_object_find(object, name);
+    }
+
+    inline void ce_object_add(ce_object* object, ce_property* property)
+    {
+        ce_vector_push_back(object->properties, property);
+    }
+
+    inline void ce_object_remove(ce_object* object, ce_property* property)
+    {
+        ce_vector_remove_all(object->properties, property);
+    }
 }
 
 #endif /* CE_OBJECT_HPP */

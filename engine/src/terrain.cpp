@@ -28,10 +28,12 @@
 #include "optionmanager.hpp"
 #include "rendersystem.hpp"
 #include "texturemanager.hpp"
-#include "mprhelper.hpp"
+#include "mprhelpers.hpp"
 #include "mprrenderitem.hpp"
 #include "terrain.hpp"
 
+namespace cursedearth
+{
 static void ce_terrain_load_tile_mmpfiles(ce_terrain* terrain)
 {
     char name[terrain->mprfile->name->length + 3 + 1];
@@ -250,4 +252,5 @@ ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain, float x, float z)
 
     return terrain->scenenode->childs->items[sector_z *
         terrain->mprfile->sector_x_count + sector_x];
+}
 }

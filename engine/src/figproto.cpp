@@ -27,6 +27,8 @@
 #include "resball.hpp"
 #include "figproto.hpp"
 
+namespace cursedearth
+{
 ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file)
 {
     ce_figproto* figproto = ce_alloc_zero(sizeof(ce_figproto));
@@ -96,4 +98,5 @@ void ce_figproto_accept_renderqueue(ce_figproto* figproto,
                                     ce_renderqueue* renderqueue)
 {
     ce_fignode_accept_renderqueue_cascade(figproto->fignode, renderqueue);
+}
 }

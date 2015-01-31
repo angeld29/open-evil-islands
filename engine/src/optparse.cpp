@@ -28,6 +28,8 @@
 #include "alloc.hpp"
 #include "optparse.hpp"
 
+namespace cursedearth
+{
 ce_optparse* ce_optparse_new(void)
 {
     ce_optparse* optparse = ce_alloc_zero(sizeof(ce_optparse));
@@ -150,7 +152,7 @@ static int ce_optparse_get_props(ce_object* object, const char** shortopt,
     return mincount;
 }
 
-static void* ce_optparse_create_void(ce_object* CE_UNUSED(object))
+static void* ce_optparse_create_void(ce_object*)
 {
     assert(false);
     return NULL;
@@ -192,7 +194,7 @@ static void* (*ce_optparse_create_procs[CE_TYPE_COUNT])(ce_object*) = {
     [CE_TYPE_STRING] = ce_optparse_create_string,
 };
 
-static void ce_optparse_assign_void(ce_object* CE_UNUSED(object), void* CE_UNUSED(arg))
+static void ce_optparse_assign_void(ce_object*, void*)
 {
     assert(false);
 }
@@ -309,4 +311,5 @@ bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[])
     arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
     return !help && !version && 0 == error_count;
+}
 }

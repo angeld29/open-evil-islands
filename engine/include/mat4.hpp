@@ -21,14 +21,17 @@
 #ifndef CE_MAT4_HPP
 #define CE_MAT4_HPP
 
-typedef struct {
-    float m[16];
-} ce_mat4;
+namespace cursedearth
+{
+    typedef struct {
+        float m[16];
+    } ce_mat4;
 
-extern const ce_mat4 CE_MAT4_ZERO;
-extern const ce_mat4 CE_MAT4_IDENTITY;
+    extern const ce_mat4 CE_MAT4_ZERO;
+    extern const ce_mat4 CE_MAT4_IDENTITY;
 
-extern ce_mat4* ce_mat4_init_zero(ce_mat4* mat);
-extern ce_mat4* ce_mat4_init_identity(ce_mat4* mat);
+    extern ce_mat4* ce_mat4_init_zero(ce_mat4* mat);
+    extern ce_mat4* ce_mat4_init_identity(ce_mat4* mat);
+}
 
 #endif /* CE_MAT4_HPP */
