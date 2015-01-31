@@ -217,7 +217,7 @@ int main(int argc, char* argv[])
     optparse = ce_option_manager_create_option_parser();
 
     ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
-        "Cursed Earth: Figure Viewer", "This program is part of Cursed Earth spikes\nFigure Viewer - explore Evil Islands figures");
+        "Cursed Earth: Figure Viewer", "This program is part of Cursed Earth spikes.\nFigure Viewer - explore Evil Islands figures.");
 
     ce_optparse_add(optparse, "pritex", CE_TYPE_STRING, "default0", false, NULL, "primary-texture", "primary texture");
     ce_optparse_add(optparse, "sectex", CE_TYPE_STRING, "default0", false, NULL, "secondary-texture", "secondary texture");

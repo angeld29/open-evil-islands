@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
     optparse = ce_option_manager_create_option_parser();
 
     ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
-        "Cursed Earth: Map Viewer", "This program is part of Cursed Earth spikes\nMap Viewer - explore Evil Islands zones (with/without objects)");
+        "Cursed Earth: Map Viewer", "This program is part of Cursed Earth spikes.\nMap Viewer - explore Evil Islands zones.");
 
     ce_optparse_add(optparse, "only_mpr", CE_TYPE_BOOL, NULL, false, NULL, "only-mpr", "without objects (do not load mob)");
     ce_optparse_add(optparse, "zone", CE_TYPE_STRING, NULL, true, NULL, NULL, "any ZONE.mpr file in `EI/Maps'");
