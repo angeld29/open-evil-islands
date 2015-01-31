@@ -19,8 +19,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import SCons
-
 def configure_release_mode(env):
     env.AppendUnique(
         CCFLAGS=["-O2", "-w"],
@@ -40,11 +38,9 @@ configure_build_mode = {
 def configure(env):
     env["CE_GCC_BIT"] = True
 
-    env['BUILDERS']['Object'].add_action(".cpp", SCons.Defaults.CAction)
-    env['BUILDERS']['Object'].add_emitter(".cpp", SCons.Defaults.StaticObjectEmitter)
-
     env.AppendUnique(
-        CFLAGS=["-std=c11", SCons.Util.CLVar("-x c")],
+        CFLAGS=["-std=c11"],
+        CXXFLAGS=["-std=c++11"],
         CCFLAGS=["-pipe", "-pedantic-errors", "-ffast-math"],
         CPPDEFINES=[
             "CE_THREAD=__thread",
