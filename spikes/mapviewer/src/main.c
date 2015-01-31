@@ -55,7 +55,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
         const char* zone;
         bool clean;
         ce_optparse_get(optparse, "zone", &zone);
-        ce_optparse_get(optparse, "clean", &clean);
+        ce_optparse_get(optparse, "only_mpr", &clean);
         ce_scenemng_load_mpr(ce_root.scenemng, zone);
         if (!clean) {
             ce_mob_loader_load_mob(zone);
