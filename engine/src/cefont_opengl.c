@@ -172,8 +172,8 @@ ce_font* ce_font_new(const char* resource_path, int pixel_size)
         glTranslatef(font->widths[ch], 0.0f, 0.0f);
         glEndList();
 
-        for (unsigned int row = 0; row < face->glyph->bitmap.rows; ++row) {
-            for (unsigned int pixel = 0; pixel < face->glyph->bitmap.width; ++pixel) {
+        for (int row = 0; row < face->glyph->bitmap.rows; ++row) {
+            for (int pixel = 0; pixel < face->glyph->bitmap.width; ++pixel) {
                 // set pixel at position to intensity (0-255) at the position
                 image[(x + face->glyph->bitmap_left + pixel) +
                     (y - face->glyph->bitmap_top + row) * image_width] =
