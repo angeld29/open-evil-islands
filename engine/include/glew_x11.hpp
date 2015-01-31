@@ -23,14 +23,7 @@
 
 #include "glew.hpp"
 
-// HACK: glew 1.5.4
-#ifdef uint
-#error already defined
-#endif
-
-#define uint GLuint
 #include <GL/glxew.h>
-#undef uint
 
 #define glxewGetContext() (&ce_glxew_context)
 
