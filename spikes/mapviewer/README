@@ -1,7 +1,7 @@
 Cursed Earth Map Viewer
-=========================
+=======================
 
-Map Viewer - explore Evil Islands zones with creatures.
+Map Viewer - explore Evil Islands zones.
 
 Map Viewer is part of Cursed Earth spikes.
 Check http://cursedearth.sourceforge.net/ for more details.
@@ -10,4 +10,4 @@ Try mapviewer -h for help.
 
 Some examples:
 mapviewer -f zone2
-mapviewer -f --ei-path=c:\evil_islands zone17
+mapviewer -f --only-mpr bz8k

@@ -1,5 +1,5 @@
 Cursed Earth Video Player
-===========================
+=========================
 
 Video Player - play Evil Islands videos.
 
@@ -9,5 +9,5 @@ Check http://cursedearth.sourceforge.net/ for more details.
 Try videoplayer -h for help.
 
 Some examples:
-videoplayer --ei-path=c:\evil_islands intro
-videoplayer --ei-path=/home/user/evil_islands dcity
+videoplayer intro
+videoplayer dcity

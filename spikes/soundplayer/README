@@ -1,5 +1,5 @@
 Cursed Earth Sound Player
-===========================
+=========================
 
 Sound Player - play Evil Islands sounds.
 
@@ -10,10 +10,7 @@ Try soundplayer -h for help.
 
 Some examples:
 soundplayer main
-soundplayer --ei-path=/home/user/evil_islands wild
-soundplayer --ei-path=/home/user/evil_islands winter
+soundplayer wild
 soundplayer monsters\\Cyclope\\Attack\\1.wav
 soundplayer ambient\\Ingos\\Water\\circle.wav
-* soundplayer t\\Briefing\\gogo0\\2.mp3
-
-* speech.res required
+soundplayer t\\Briefing\\gogo0\\2.mp3

@@ -1,19 +1,19 @@
 Cursed Earth Figure Viewer
-============================
+==========================
 
-Figure Viewer - control Evil Islands figures.
+Figure Viewer - explore Evil Islands figures.
 
 Figure Viewer is part of Cursed Earth spikes.
 Check http://cursedearth.sourceforge.net/ for more details.
 
-Try figviewer -h for help.
+Try figureviewer -h for help.
 
 Some examples:
-figviewer --ei-path=c:\evil_islands --primary-texture=rick unmori
-figviewer --ei-path=/home/user/evil_islands --primary-texture=troll00 --animation-name=uattack unmotr
-figviewer --ei-path=/path/to/evil_islands --primary-texture=dragon01 --animation-name=cidle unmodg
-figviewer -f --ei-path=/path/to/evil_islands --primary-texture=dragon01 --animation-name=ubriefing01 unmodg
-figviewer -f --ei-path=/path/to/evil_islands --primary-texture=succubus00 --animation-name=cidle unmosu
-figviewer --ei-path=/path/to/evil_islands --primary-texture=troll00 --animation-name=uattack unmotr
-figviewer --ei-path=/path/to/evil_islands --primary-texture=lizardman00 --animation-name=cidle01 unmoli
-figviewer --ei-path=/path/to/evil_islands --primary-texture=mainmenu00 --secondary-texture=mainmenu00labels unmoco2
+figureviewer --primary-texture=rick unmori
+figureviewer --primary-texture=troll00 --animation-name=uattack unmotr
+figureviewer --primary-texture=dragon01 --animation-name=cidle unmodg
+figureviewer --primary-texture=dragon01 --animation-name=ubriefing01 unmodg
+figureviewer --primary-texture=succubus00 --animation-name=cidle unmosu
+figureviewer --primary-texture=troll00 --animation-name=uattack unmotr
+figureviewer --primary-texture=lizardman00 --animation-name=cidle01 unmoli
+figureviewer --primary-texture=mainmenu00 --secondary-texture=mainmenu00labels unmoco2
