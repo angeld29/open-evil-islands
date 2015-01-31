@@ -43,7 +43,7 @@ static ce_input_event* anmfps_dec_event;
 static float message_timeout;
 static ce_color message_color;
 
-static void clean()
+static void clear()
 {
     ce_input_supply_del(input_supply);
     ce_optparse_del(optparse);
@@ -119,7 +119,7 @@ static void render(void* CE_UNUSED(listener))
 int main(int argc, char* argv[])
 {
     ce_alloc_init();
-    atexit(clean);
+    atexit(clear);
 
     optparse = ce_option_manager_create_option_parser();
 

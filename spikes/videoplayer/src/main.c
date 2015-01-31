@@ -35,7 +35,7 @@ static ce_optparse* optparse;
 static ce_input_supply* input_supply;
 static ce_input_event* pause_event;
 
-static void clean()
+static void clear()
 {
     ce_input_supply_del(input_supply);
     ce_optparse_del(optparse);
@@ -81,28 +81,23 @@ static void render(void* CE_UNUSED(listener))
 int main(int argc, char* argv[])
 {
     ce_alloc_init();
-    atexit(clean);
+    atexit(clear);
 
     optparse = ce_option_manager_create_option_parser();
 
-    ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR,
-        CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
-        "Cursed Earth: Video Player", "This program is part of Cursed "
-        "Earth spikes\nVideo Player - play Evil Islands videos");
+    ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+        "Cursed Earth: Video Player", "This program is part of Cursed Earth spikes\nVideo Player - play Evil Islands videos");
 
-    ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true,
-        NULL, NULL, "any TRACK.* file in `EI/Movies'");
+    ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true, NULL, NULL, "any TRACK.* file in `EI/Movies'");
 
     if (!ce_root_init(optparse, argc, argv)) {
         return EXIT_FAILURE;
     }
 
-    ce_root.scenemng->listener = (ce_scenemng_listener)
-        {.state_changed = state_changed, .advance = advance, .render = render};
+    ce_root.scenemng->listener = (ce_scenemng_listener){.state_changed = state_changed, .advance = advance, .render = render};
 
     input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
-    pause_event = ce_input_supply_single_front(input_supply,
-                    ce_input_supply_button(input_supply, CE_KB_SPACE));
+    pause_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_SPACE));
 
     return ce_root_exec();
 }
