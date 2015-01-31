@@ -38,11 +38,8 @@ typedef struct {
 extern ce_sound_buffer* ce_sound_buffer_new(size_t capacity);
 extern void ce_sound_buffer_del(ce_sound_buffer* sound_buffer);
 
-extern void ce_sound_buffer_read(ce_sound_buffer* sound_buffer,
-                                void* buffer, size_t size);
-
-extern void ce_sound_buffer_write(ce_sound_buffer* sound_buffer,
-                                const void* buffer, size_t size);
+extern void ce_sound_buffer_read(ce_sound_buffer* sound_buffer, void* buffer, size_t size);
+extern void ce_sound_buffer_write(ce_sound_buffer* sound_buffer, const void* buffer, size_t size);
 
 static inline size_t ce_sound_buffer_available_size_for_read(ce_sound_buffer* sound_buffer)
 {

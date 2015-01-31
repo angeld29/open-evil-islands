@@ -65,7 +65,7 @@ enum {
     CE_INPUT_DEFAULT_RATE = 25,
 };
 
-// level 0 input API - available through window
+// level 0 - raw
 
 typedef struct {
     bool buttons[CE_IB_COUNT];
@@ -78,7 +78,7 @@ extern void ce_input_context_del(ce_input_context* input_context);
 
 extern void ce_input_context_clear(ce_input_context* input_context);
 
-// level 1 input API - events
+// level 1 - events
 
 typedef struct ce_input_event ce_input_event;
 
@@ -105,41 +105,19 @@ extern void ce_input_supply_del(ce_input_supply* input_supply);
 
 extern void ce_input_supply_advance(ce_input_supply* input_supply, float elapsed);
 
-extern ce_input_event* ce_input_supply_button(ce_input_supply* input_supply,
-                                            ce_input_button input_button);
+extern ce_input_event* ce_input_supply_button(ce_input_supply* input_supply, ce_input_button input_button);
+extern ce_input_event* ce_input_supply_single_front(ce_input_supply* input_supply, const ce_input_event* input_event);
+extern ce_input_event* ce_input_supply_single_back(ce_input_supply* input_supply, const ce_input_event* input_event);
 
-extern ce_input_event* ce_input_supply_single_front(ce_input_supply* input_supply,
-                                                const ce_input_event* input_event);
+extern ce_input_event* ce_input_supply_and2(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2);
+extern ce_input_event* ce_input_supply_and3(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2, const ce_input_event* input_event3);
+extern ce_input_event* ce_input_supply_or2(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2);
+extern ce_input_event* ce_input_supply_or3(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2, const ce_input_event* input_event3);
 
-extern ce_input_event* ce_input_supply_single_back(ce_input_supply* input_supply,
-                                                const ce_input_event* input_event);
+extern ce_input_event* ce_input_supply_repeat(ce_input_supply* input_supply, const ce_input_event* input_event, int delay /* ms */, int rate /* tps riggers per second */);
 
-extern ce_input_event* ce_input_supply_and2(ce_input_supply* input_supply,
-                                            const ce_input_event* input_event1,
-                                            const ce_input_event* input_event2);
+// level 2 - shortcuts
 
-extern ce_input_event* ce_input_supply_and3(ce_input_supply* input_supply,
-                                            const ce_input_event* input_event1,
-                                            const ce_input_event* input_event2,
-                                            const ce_input_event* input_event3);
-
-extern ce_input_event* ce_input_supply_or2(ce_input_supply* input_supply,
-                                            const ce_input_event* input_event1,
-                                            const ce_input_event* input_event2);
-
-extern ce_input_event* ce_input_supply_or3(ce_input_supply* input_supply,
-                                            const ce_input_event* input_event1,
-                                            const ce_input_event* input_event2,
-                                            const ce_input_event* input_event3);
-
-extern ce_input_event* ce_input_supply_repeat(ce_input_supply* input_supply,
-                                        const ce_input_event* input_event,
-                                        int delay /* ms */,
-                                        int rate /* tps */); // triggers per second
-
-// level 2 input API - shortcuts
-
-extern ce_input_event* ce_input_supply_shortcut(ce_input_supply* input_supply,
-                                                const char* key_sequence);
+extern ce_input_event* ce_input_supply_shortcut(ce_input_supply* input_supply, const char* key_sequence);
 
 #endif /* CE_INPUT_HPP */

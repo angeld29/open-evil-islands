@@ -55,8 +55,7 @@ struct ce_renderitem {
     char impl[];
 };
 
-extern ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable,
-                                        size_t size, ...);
+extern ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...);
 extern void ce_renderitem_del(ce_renderitem* renderitem);
 
 extern void ce_renderitem_update(ce_renderitem* renderitem, ...);

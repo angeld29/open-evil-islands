@@ -64,15 +64,12 @@ extern void ce_scenenode_detach_from_parent(ce_scenenode* scenenode);
 extern void ce_scenenode_attach_child(ce_scenenode* scenenode, ce_scenenode* child);
 extern void ce_scenenode_detach_child(ce_scenenode* scenenode, ce_scenenode* child);
 
-extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
-                                        ce_renderitem* renderitem);
+extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode, ce_renderitem* renderitem);
 
 extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
 
 extern void ce_scenenode_update_force_cascade(ce_scenenode* scenenode);
-
-extern void ce_scenenode_update_cascade(ce_scenenode* scenenode,
-                                        const ce_frustum* frustum);
+extern void ce_scenenode_update_cascade(ce_scenenode* scenenode, const ce_frustum* frustum);
 
 extern void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode);
 

@@ -72,11 +72,9 @@ typedef struct {
     void* data;
 } ce_mmpfile;
 
-extern size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height,
-                            unsigned int mipmap_count, ce_mmpfile_format format);
+extern size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height, unsigned int mipmap_count, ce_mmpfile_format format);
 
-extern ce_mmpfile* ce_mmpfile_new(unsigned int width, unsigned int height,
-    unsigned int mipmap_count, ce_mmpfile_format format, unsigned int user_info);
+extern ce_mmpfile* ce_mmpfile_new(unsigned int width, unsigned int height, unsigned int mipmap_count, ce_mmpfile_format format, unsigned int user_info);
 extern ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size);
 extern ce_mmpfile* ce_mmpfile_new_mem_file(ce_mem_file* mem_file);
 extern ce_mmpfile* ce_mmpfile_new_res_file(ce_res_file* res_file, size_t index);

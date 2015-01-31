@@ -31,8 +31,7 @@
 #include "complection.hpp"
 #include "resfile.hpp"
 
-typedef float (*ce_figfile_value_callback)(const float* params, size_t stride,
-                                            const ce_complection* complection);
+typedef float (*ce_figfile_value_callback)(const float* params, size_t stride, const ce_complection* complection);
 
 typedef struct {
     size_t value_count;

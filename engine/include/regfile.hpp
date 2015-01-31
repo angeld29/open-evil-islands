@@ -38,9 +38,6 @@ typedef struct {
 extern ce_reg_file* ce_reg_file_new(ce_mem_file* mem_file);
 extern void ce_reg_file_del(ce_reg_file* reg_file);
 
-extern ce_value* ce_reg_file_find(ce_reg_file* reg_file,
-                                    const char* section_name,
-                                    const char* option_name,
-                                    size_t index);
+extern ce_value* ce_reg_file_find(ce_reg_file* reg_file, const char* section_name, const char* option_name, size_t index);
 
 #endif /* CE_REGFILE_HPP */

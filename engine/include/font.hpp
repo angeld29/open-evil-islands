@@ -31,7 +31,6 @@ extern void ce_font_del(ce_font* font);
 extern int ce_font_get_height(ce_font* font);
 extern int ce_font_get_width(ce_font* font, const char* text);
 
-extern void ce_font_render(ce_font* font, int x, int y,
-                            const ce_color* color, const char* text);
+extern void ce_font_render(ce_font* font, int x, int y, const ce_color* color, const char* text);
 
 #endif /* CE_FONT_HPP */

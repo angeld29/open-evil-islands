@@ -68,7 +68,7 @@ enum {
 
 /*
  *  Header
-*/
+ */
 
 typedef struct {
     uint32_t four_cc;
@@ -88,7 +88,7 @@ extern bool ce_bink_header_read(ce_bink_header* bink_header, ce_mem_file* mem_fi
 
 /*
  *  Audio Track
-*/
+ */
 
 typedef struct {
     uint16_t sample_rate;
@@ -100,7 +100,7 @@ extern bool ce_bink_audio_track_skip(size_t n, ce_mem_file* mem_file);
 
 /*
  *  Frame Index Table
-*/
+ */
 
 typedef struct {
     uint32_t pos;
@@ -111,7 +111,7 @@ extern bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_mem_fil
 
 /*
  *  Frame Layout (only for illustration)
-*/
+ */
 
 typedef struct {
     struct {

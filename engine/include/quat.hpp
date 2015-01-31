@@ -35,13 +35,10 @@ extern const ce_quat CE_QUAT_IDENTITY;
 extern ce_quat* ce_quat_init_polar(ce_quat* quat, float angle, const struct ce_vec3* axis);
 
 extern float ce_quat_to_polar(const ce_quat* quat, struct ce_vec3* axis);
-extern void ce_quat_to_axes(const ce_quat* quat, struct ce_vec3* xaxis,
-                                                struct ce_vec3* yaxis,
-                                                struct ce_vec3* zaxis);
+extern void ce_quat_to_axes(const ce_quat* quat, struct ce_vec3* xaxis, struct ce_vec3* yaxis, struct ce_vec3* zaxis);
 
 // spherical linear interpolation
-extern ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs,
-                                                        const ce_quat* rhs);
+extern ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs, const ce_quat* rhs);
 
 static inline ce_quat* ce_quat_init(ce_quat* quat, float w, float x, float y, float z)
 {
@@ -127,14 +124,10 @@ static inline ce_quat* ce_quat_sub(ce_quat* quat, const ce_quat* lhs, const ce_q
 static inline ce_quat* ce_quat_mul(ce_quat* restrict quat, const ce_quat* lhs,
                                                             const ce_quat* rhs)
 {
-    quat->w = lhs->w * rhs->w - lhs->x * rhs->x -
-                lhs->y * rhs->y - lhs->z * rhs->z;
-    quat->x = lhs->w * rhs->x + lhs->x * rhs->w +
-                lhs->y * rhs->z - lhs->z * rhs->y;
-    quat->y = lhs->w * rhs->y - lhs->x * rhs->z +
-                lhs->y * rhs->w + lhs->z * rhs->x;
-    quat->z = lhs->w * rhs->z + lhs->x * rhs->y -
-                lhs->y * rhs->x + lhs->z * rhs->w;
+    quat->w = lhs->w * rhs->w - lhs->x * rhs->x - lhs->y * rhs->y - lhs->z * rhs->z;
+    quat->x = lhs->w * rhs->x + lhs->x * rhs->w + lhs->y * rhs->z - lhs->z * rhs->y;
+    quat->y = lhs->w * rhs->y - lhs->x * rhs->z + lhs->y * rhs->w + lhs->z * rhs->x;
+    quat->z = lhs->w * rhs->z + lhs->x * rhs->y - lhs->y * rhs->x + lhs->z * rhs->w;
     return quat;
 }
 
@@ -149,8 +142,7 @@ static inline ce_quat* ce_quat_scale(ce_quat* quat, float s, const ce_quat* othe
 
 static inline float ce_quat_len2(const ce_quat* quat)
 {
-    return quat->w * quat->w + quat->x * quat->x +
-            quat->y * quat->y + quat->z * quat->z;
+    return quat->w * quat->w + quat->x * quat->x + quat->y * quat->y + quat->z * quat->z;
 }
 
 static inline float ce_quat_len(const ce_quat* quat)
@@ -160,7 +152,7 @@ static inline float ce_quat_len(const ce_quat* quat)
 
 static inline float ce_quat_arg(const ce_quat* quat)
 {
-    float s = ce_quat_len(quat);
+    const float s = ce_quat_len(quat);
     return 0.0f == s ? 0.0f : acosf(quat->w / s);
 }
 
@@ -171,14 +163,12 @@ static inline ce_quat* ce_quat_norm(ce_quat* quat, const ce_quat* other)
 
 static inline ce_quat* ce_quat_inv(ce_quat* quat, const ce_quat* other)
 {
-    return ce_quat_conj(quat,
-            ce_quat_scale(quat, 1.0f / ce_quat_len2(other), other));
+    return ce_quat_conj(quat, ce_quat_scale(quat, 1.0f / ce_quat_len2(other), other));
 }
 
 static inline float ce_quat_dot(const ce_quat* lhs, const ce_quat* rhs)
 {
-    return lhs->w * rhs->w + lhs->x * rhs->x +
-            lhs->y * rhs->y + lhs->z * rhs->z;
+    return lhs->w * rhs->w + lhs->x * rhs->x + lhs->y * rhs->y + lhs->z * rhs->z;
 }
 
 #endif /* CE_QUAT_HPP */

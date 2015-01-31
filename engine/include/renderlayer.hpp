@@ -35,8 +35,7 @@ extern void ce_renderlayer_del(ce_renderlayer* renderlayer);
 
 extern void ce_renderlayer_clear(ce_renderlayer* renderlayer);
 
-extern void ce_renderlayer_add(ce_renderlayer* renderlayer,
-                                ce_renderitem* renderitem);
+extern void ce_renderlayer_add(ce_renderlayer* renderlayer, ce_renderitem* renderitem);
 
 extern void ce_renderlayer_render(ce_renderlayer* renderlayer);
 

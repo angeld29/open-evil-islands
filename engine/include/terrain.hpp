@@ -48,9 +48,7 @@ typedef struct {
     ce_terrain* terrain;
 } ce_terrain_sector;
 
-extern ce_terrain_sector* ce_terrain_sector_new(ce_terrain* terrain,
-                                                const char* name,
-                                                int x, int z, bool water);
+extern ce_terrain_sector* ce_terrain_sector_new(ce_terrain* terrain, const char* name, int x, int z, bool water);
 extern void ce_terrain_sector_del(ce_terrain_sector* sector);
 
 struct ce_terrain {
@@ -67,14 +65,9 @@ struct ce_terrain {
 };
 
 // terrain takes ownership of the mprfile
-extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
-                                    ce_renderqueue* renderqueue,
-                                    const ce_vec3* position,
-                                    const ce_quat* orientation,
-                                    ce_scenenode* scenenode);
+extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_renderqueue* renderqueue, const ce_vec3* position, const ce_quat* orientation, ce_scenenode* scenenode);
 extern void ce_terrain_del(ce_terrain* terrain);
 
-extern ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain,
-                                                float x, float z);
+extern ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain, float x, float z);
 
 #endif /* CE_TERRAIN_HPP */

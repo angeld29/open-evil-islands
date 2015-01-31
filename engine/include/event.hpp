@@ -98,15 +98,10 @@ extern void ce_event_manager_process_events_timeout(ce_thread_id thread_id, int 
 extern void ce_event_manager_interrupt(ce_thread_id thread_id);
 
 extern void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event);
-extern void ce_event_manager_post_raw(ce_thread_id thread_id,
-                                        void (*notify)(ce_event*),
-                                        const void* impl, size_t size);
+extern void ce_event_manager_post_raw(ce_thread_id thread_id, void (*notify)(ce_event*), const void* impl, size_t size);
+extern void ce_event_manager_post_ptr(ce_thread_id thread_id, void (*notify)(ce_event*), void* ptr);
 
-extern void ce_event_manager_post_ptr(ce_thread_id thread_id,
-                                        void (*notify)(ce_event*), void* ptr);
-
-static inline void ce_event_manager_post_call(ce_thread_id thread_id,
-                                                void (*notify)(ce_event*))
+static inline void ce_event_manager_post_call(ce_thread_id thread_id, void (*notify)(ce_event*))
 {
     ce_event_manager_post_event(thread_id, ce_event_new(notify, 0));
 }

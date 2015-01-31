@@ -42,10 +42,8 @@ typedef struct {
 extern ce_renderwindow_keymap* ce_renderwindow_keymap_new(void);
 extern void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
 
-extern void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap,
-                                        unsigned long key, ce_input_button button);
-extern void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap,
-                                        unsigned long keys[CE_IB_COUNT]);
+extern void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, ce_input_button button);
+extern void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, unsigned long keys[CE_IB_COUNT]);
 
 extern void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
 
@@ -120,8 +118,7 @@ struct ce_renderwindow {
 extern ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...);
 extern void ce_renderwindow_del(ce_renderwindow* renderwindow);
 
-extern void ce_renderwindow_add_listener(ce_renderwindow* renderwindow,
-                                        ce_renderwindow_listener* listener);
+extern void ce_renderwindow_add_listener(ce_renderwindow* renderwindow, ce_renderwindow_listener* listener);
 
 extern void ce_renderwindow_show(ce_renderwindow* renderwindow);
 extern void ce_renderwindow_minimize(ce_renderwindow* renderwindow);

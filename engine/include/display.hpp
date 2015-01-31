@@ -77,10 +77,7 @@ extern void ce_displaymng_dump_supported_modes_to_stdout(ce_displaymng* displaym
 extern void ce_displaymng_dump_supported_rotations_to_stdout(ce_displaymng* displaymng);
 extern void ce_displaymng_dump_supported_reflections_to_stdout(ce_displaymng* displaymng);
 
-extern size_t ce_displaymng_enter(ce_displaymng* displaymng,
-                                int width, int height, int bpp, int rate,
-                                ce_display_rotation rotation,
-                                ce_display_reflection reflection);
+extern size_t ce_displaymng_enter(ce_displaymng* displaymng, int width, int height, int bpp, int rate, ce_display_rotation rotation, ce_display_reflection reflection);
 extern void ce_displaymng_exit(ce_displaymng* displaymng);
 
 #endif /* CE_DISPLAY_HPP */

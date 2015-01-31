@@ -37,8 +37,7 @@ typedef struct {
     ce_fignode* fignode;
 } ce_figproto;
 
-extern ce_figproto* ce_figproto_new(const char* name,
-                                    ce_res_file* res_file);
+extern ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file);
 extern void ce_figproto_del(ce_figproto* figproto);
 
 static inline ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
@@ -47,7 +46,6 @@ static inline ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
     return figproto;
 }
 
-extern void ce_figproto_accept_renderqueue(ce_figproto* figproto,
-                                            ce_renderqueue* renderqueue);
+extern void ce_figproto_accept_renderqueue(ce_figproto* figproto, ce_renderqueue* renderqueue);
 
 #endif /* CE_FIGPROTO_HPP */

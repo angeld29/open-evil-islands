@@ -45,10 +45,8 @@ extern void ce_camera_set_aspect(ce_camera* camera, float aspect);
 extern void ce_camera_set_near(ce_camera* camera, float near);
 extern void ce_camera_set_far(ce_camera* camera, float far);
 
-extern void ce_camera_set_position(ce_camera* camera,
-                                    const ce_vec3* position);
-extern void ce_camera_set_orientation(ce_camera* camera,
-                                    const ce_quat* orientation);
+extern void ce_camera_set_position(ce_camera* camera, const ce_vec3* position);
+extern void ce_camera_set_orientation(ce_camera* camera, const ce_quat* orientation);
 
 extern void ce_camera_move(ce_camera* camera, float xoffset, float zoffset);
 extern void ce_camera_zoom(ce_camera* camera, float offset);

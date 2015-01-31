@@ -40,9 +40,7 @@ extern void ce_anmstate_del(ce_anmstate* anmstate);
 
 extern void ce_anmstate_advance(ce_anmstate* anmstate, float distance);
 
-extern bool ce_anmstate_play_animation(ce_anmstate* anmstate,
-                                        ce_vector* anmfiles,
-                                        const char* name);
+extern bool ce_anmstate_play_animation(ce_anmstate* anmstate, ce_vector* anmfiles, const char* name);
 extern void ce_anmstate_stop_animation(ce_anmstate* anmstate);
 
 #endif /* CE_ANMSTATE_HPP */

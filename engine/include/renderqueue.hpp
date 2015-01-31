@@ -33,8 +33,7 @@ extern void ce_renderqueue_del(ce_renderqueue* renderqueue);
 
 extern void ce_renderqueue_clear(ce_renderqueue* renderqueue);
 
-extern ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue,
-                                        int priority, ce_material* material);
+extern ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue, int priority, ce_material* material);
 
 extern void ce_renderqueue_render(ce_renderqueue* renderqueue);
 

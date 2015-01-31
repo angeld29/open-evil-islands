@@ -29,27 +29,13 @@
 #include "bonfile.hpp"
 #include "material.hpp"
 
-extern ce_aabb*
-ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
-                    const ce_complection* complection);
+extern ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile, const ce_complection* complection);
+extern ce_sphere* ce_fighlp_get_sphere(ce_sphere* sphere, const ce_figfile* figfile, const ce_complection* complection);
 
-extern ce_sphere*
-ce_fighlp_get_sphere(ce_sphere* sphere, const ce_figfile* figfile,
-                    const ce_complection* complection);
+extern float* ce_fighlp_get_vertex(float* array, const ce_figfile* figfile, int index, const ce_complection* complection);
+extern float* ce_fighlp_get_normal(float* array, const ce_figfile* figfile, int index);
 
-extern float*
-ce_fighlp_get_vertex(float* array, const ce_figfile* figfile,
-                        int index, const ce_complection* complection);
-
-extern float*
-ce_fighlp_get_normal(float* array, const ce_figfile* figfile, int index);
-
-extern ce_vec3*
-ce_fighlp_get_bone(ce_vec3* position,
-                    const ce_figfile* figfile,
-                    const ce_bonfile* bonfile,
-                    const ce_complection* complection);
-
+extern ce_vec3* ce_fighlp_get_bone(ce_vec3* position, const ce_figfile* figfile, const ce_bonfile* bonfile, const ce_complection* complection);
 extern ce_material* ce_fighlp_create_material(const ce_figfile* figfile);
 
 #endif /* CE_FIGHLP_HPP */
