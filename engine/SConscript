@@ -41,7 +41,7 @@ env.PrependUnique(
 env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
 
 sources = [os.path.join("build", "$GEN_PATH", node.name) for node in
-    utils.filter_sources(env, env.Glob(os.path.join("src", "*.c")))] + \
+    utils.filter_sources(env, env.Glob(os.path.join("src", "*.cpp")))] + \
     env.Glob(os.path.join("res", "resource.cerc"))
 
 lib = env.Library(os.path.join("lib", "$GEN_PATH", "engine"), sources)
