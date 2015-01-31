@@ -26,8 +26,7 @@ import gcc
 def configure(env):
     env["CE_GNUC_BIT"] = True
 
-    # prefer GNU tools
-    for tool in ("gnulink", "gcc", "g++", "gas", "ar"):
+    for tool in ("gnulink", "gcc", "ar"):
         SCons.Tool.Tool(tool)(env)
 
     gcc.configure(env)
