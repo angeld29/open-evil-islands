@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_QUAT_H
-#define CE_QUAT_H
+#ifndef CE_QUAT_HPP
+#define CE_QUAT_HPP
 
 #include <math.h>
 
@@ -189,4 +189,4 @@ static inline float ce_quat_dot(const ce_quat* lhs, const ce_quat* rhs)
 }
 #endif
 
-#endif /* CE_QUAT_H */
+#endif /* CE_QUAT_HPP */

@@ -24,12 +24,12 @@
  *  with the transmission of the last bytes of a file.
  */
 
-#ifndef CE_MEMFILE_H
-#define CE_MEMFILE_H
+#ifndef CE_MEMFILE_HPP
+#define CE_MEMFILE_HPP
 
 #include <stddef.h>
 
-#include "cebyteorder.h"
+#include "byteorder.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -189,4 +189,4 @@ static inline uint32_t ce_mem_file_read_fle(ce_mem_file* mem_file)
 }
 #endif
 
-#endif /* CE_MEMFILE_H */
+#endif /* CE_MEMFILE_HPP */

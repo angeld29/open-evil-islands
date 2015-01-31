@@ -18,17 +18,17 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FIGBONE_H
-#define CE_FIGBONE_H
+#ifndef CE_FIGBONE_HPP
+#define CE_FIGBONE_HPP
 
 #include <stdbool.h>
 
-#include "cevec3.h"
-#include "cequat.h"
-#include "cebbox.h"
-#include "cevector.h"
-#include "ceanmstate.h"
-#include "cefignode.h"
+#include "vec3.hpp"
+#include "quat.hpp"
+#include "bbox.hpp"
+#include "vector.hpp"
+#include "anmstate.hpp"
+#include "fignode.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -68,4 +68,4 @@ extern void ce_figbone_stop_animation(ce_figbone* figbone,
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGBONE_H */
+#endif /* CE_FIGBONE_HPP */

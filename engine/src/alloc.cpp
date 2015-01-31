@@ -39,8 +39,8 @@
 #include <pthread.h>
 #endif
 
-#include "celib.h"
-#include "cealloc.h"
+#include "lib.hpp"
+#include "alloc.hpp"
 
 enum {
     CE_ALLOC_PAGE_SIZE = 4096,

@@ -22,11 +22,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "cepath.h"
-#include "ceoptionmanager.h"
-#include "cevideomanager.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "path.hpp"
+#include "optionmanager.hpp"
+#include "videomanager.hpp"
 
 struct ce_video_manager* ce_video_manager;
 

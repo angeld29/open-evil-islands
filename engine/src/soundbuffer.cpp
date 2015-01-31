@@ -22,9 +22,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "cesoundbuffer.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "soundbuffer.hpp"
 
 ce_sound_buffer* ce_sound_buffer_new(size_t capacity)
 {

@@ -20,8 +20,8 @@
 
 #include <time.h>
 
-#include "cealloc.h"
-#include "cetimer.h"
+#include "alloc.hpp"
+#include "timer.hpp"
 
 static const float CE_TIMER_CLOCKS_PER_SEC_INV = 1.0f / CLOCKS_PER_SEC;
 

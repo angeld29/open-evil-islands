@@ -21,9 +21,9 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "cevideoresource.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "videoresource.hpp"
 
 extern const size_t CE_VIDEO_RESOURCE_BUILTIN_COUNT;
 extern const ce_video_resource_vtable ce_video_resource_builtins[];

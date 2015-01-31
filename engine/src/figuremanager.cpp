@@ -22,15 +22,15 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cestr.h"
-#include "cepath.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceresfile.h"
-#include "ceoptionmanager.h"
-#include "cefighlp.h"
-#include "cefiguremanager.h"
+#include "lib.hpp"
+#include "str.hpp"
+#include "path.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "resfile.hpp"
+#include "optionmanager.hpp"
+#include "fighlp.hpp"
+#include "figuremanager.hpp"
 
 struct ce_figure_manager* ce_figure_manager;
 

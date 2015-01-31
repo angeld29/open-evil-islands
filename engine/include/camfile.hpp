@@ -22,13 +22,13 @@
  *  doc/formats/cam.txt
  */
 
-#ifndef CE_CAMFILE_H
-#define CE_CAMFILE_H
+#ifndef CE_CAMFILE_HPP
+#define CE_CAMFILE_HPP
 
 #include <stddef.h>
 #include <stdint.h>
 
-#include "cememfile.h"
+#include "memfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,4 +53,4 @@ extern void ce_cam_file_del(ce_cam_file* cam_file);
 }
 #endif
 
-#endif /* CE_CAMFILE_H */
+#endif /* CE_CAMFILE_HPP */

@@ -21,11 +21,11 @@
 #include <stddef.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cebyteorder.h"
-#include "ceadbfile.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "byteorder.hpp"
+#include "adbfile.hpp"
 
 static const uint32_t CE_ADB_SIGNATURE = 0x00424441;
 

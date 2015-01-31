@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "celogging.h"
-#include "cetriangle.h"
+#include "logging.hpp"
+#include "triangle.hpp"
 
 bool ce_triangle_test(const ce_triangle* triangle, const ce_vec3* point)
 {

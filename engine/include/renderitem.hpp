@@ -18,17 +18,17 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RENDERITEM_H
-#define CE_RENDERITEM_H
+#ifndef CE_RENDERITEM_HPP
+#define CE_RENDERITEM_HPP
 
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "cevec3.h"
-#include "cequat.h"
-#include "ceaabb.h"
-#include "cebbox.h"
+#include "vec3.hpp"
+#include "quat.hpp"
+#include "aabb.hpp"
+#include "bbox.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -73,4 +73,4 @@ extern ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_RENDERITEM_H */
+#endif /* CE_RENDERITEM_HPP */

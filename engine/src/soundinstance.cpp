@@ -23,11 +23,11 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cesoundmixer.h"
-#include "cesoundinstance.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "soundmixer.hpp"
+#include "soundinstance.hpp"
 
 ce_sound_instance* ce_sound_instance_new(ce_sound_resource* sound_resource)
 {

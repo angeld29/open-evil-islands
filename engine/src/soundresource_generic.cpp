@@ -45,15 +45,15 @@
 
 #include <libavcodec/avcodec.h>
 
-#include "celib.h"
-#include "cemath.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cebyteorder.h"
-#include "ceerror.h"
-#include "cewave.h"
-#include "cebink.h"
-#include "cesoundresource.h"
+#include "lib.hpp"
+#include "math.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "byteorder.hpp"
+#include "error.hpp"
+#include "wave.hpp"
+#include "bink.hpp"
+#include "soundresource.hpp"
 
 /*
  *  Ogg Vorbis (C) 1994-2001 Xiph.Org Foundation

@@ -23,8 +23,8 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
-#include "celogging.h"
-#include "cesysteminfo.h"
+#include "logging.hpp"
+#include "systeminfo.hpp"
 
 bool ce_system_info_check(void)
 {

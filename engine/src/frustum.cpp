@@ -30,8 +30,8 @@
 #include <math.h>
 #include <assert.h>
 
-#include "cemath.h"
-#include "cefrustum.h"
+#include "math.hpp"
+#include "frustum.hpp"
 
 ce_frustum* ce_frustum_init(ce_frustum* frustum,
                             float fov, float aspect,

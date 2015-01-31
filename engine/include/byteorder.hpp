@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_BYTEORDER_H
-#define CE_BYTEORDER_H
+#ifndef CE_BYTEORDER_HPP
+#define CE_BYTEORDER_HPP
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -71,4 +71,4 @@ extern void ce_be2cpu64s(uint64_t* v);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_BYTEORDER_H */
+#endif /* CE_BYTEORDER_HPP */

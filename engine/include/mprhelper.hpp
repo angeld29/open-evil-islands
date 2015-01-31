@@ -18,19 +18,19 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_MPRHELPER_H
-#define CE_MPRHELPER_H
+#ifndef CE_MPRHELPER_HPP
+#define CE_MPRHELPER_HPP
 
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "cevec3.h"
-#include "ceaabb.h"
-#include "cevector.h"
-#include "cethread.h"
-#include "cemmpfile.h"
-#include "cemprfile.h"
-#include "cematerial.h"
+#include "vec3.hpp"
+#include "aabb.hpp"
+#include "vector.hpp"
+#include "thread.hpp"
+#include "mmpfile.hpp"
+#include "mprfile.hpp"
+#include "material.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,4 +79,4 @@ extern ce_mmpfile* ce_mpr_generate_texture(const ce_mprfile* mprfile,
 }
 #endif
 
-#endif /* CE_MPRHELPER_H */
+#endif /* CE_MPRHELPER_HPP */

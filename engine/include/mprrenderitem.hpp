@@ -18,12 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_MPRRENDERITEM_H
-#define CE_MPRRENDERITEM_H
+#ifndef CE_MPRRENDERITEM_HPP
+#define CE_MPRRENDERITEM_HPP
 
-#include "cevector.h"
-#include "cemprfile.h"
-#include "cerenderitem.h"
+#include "vector.hpp"
+#include "mprfile.hpp"
+#include "renderitem.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -38,4 +38,4 @@ ce_mprrenderitem_new(ce_mprfile* mprfile, int sector_x, int sector_z,
 }
 #endif /* __cplusplus */
 
-#endif /* CE_MPRRENDERITEM_H */
+#endif /* CE_MPRRENDERITEM_HPP */

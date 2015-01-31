@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDSYSTEM_H
-#define CE_SOUNDSYSTEM_H
+#ifndef CE_SOUNDSYSTEM_HPP
+#define CE_SOUNDSYSTEM_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "cethread.h"
-#include "cesoundformat.h"
+#include "thread.hpp"
+#include "soundformat.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,4 +76,4 @@ extern void ce_sound_system_unmap_block(void);
 }
 #endif
 
-#endif /* CE_SOUNDSYSTEM_H */
+#endif /* CE_SOUNDSYSTEM_HPP */

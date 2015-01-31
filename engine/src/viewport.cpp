@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cealloc.h"
-#include "ceviewport.h"
+#include "alloc.hpp"
+#include "viewport.hpp"
 
 ce_viewport* ce_viewport_new(void)
 {

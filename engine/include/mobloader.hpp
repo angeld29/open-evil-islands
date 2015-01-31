@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_MOBLOADER_H
-#define CE_MOBLOADER_H
+#ifndef CE_MOBLOADER_HPP
+#define CE_MOBLOADER_HPP
 
-#include "cevector.h"
-#include "cemobfile.h"
+#include "vector.hpp"
+#include "mobfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,4 +53,4 @@ extern void ce_mob_loader_load_mob(const char* name);
 }
 #endif
 
-#endif /* CE_MOBLOADER_H */
+#endif /* CE_MOBLOADER_HPP */

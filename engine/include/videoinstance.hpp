@@ -18,19 +18,19 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_VIDEOINSTANCE_H
-#define CE_VIDEOINSTANCE_H
+#ifndef CE_VIDEOINSTANCE_HPP
+#define CE_VIDEOINSTANCE_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "cethread.h"
-#include "cemmpfile.h"
-#include "cetexture.h"
-#include "cematerial.h"
-#include "cesoundobject.h"
-#include "cevideoobject.h"
-#include "cevideoresource.h"
+#include "thread.hpp"
+#include "mmpfile.hpp"
+#include "texture.hpp"
+#include "material.hpp"
+#include "soundobject.hpp"
+#include "videoobject.hpp"
+#include "videoresource.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -83,4 +83,4 @@ extern void ce_video_instance_stop(ce_video_instance* video_instance);
 }
 #endif
 
-#endif /* CE_VIDEOINSTANCE_H */
+#endif /* CE_VIDEOINSTANCE_HPP */

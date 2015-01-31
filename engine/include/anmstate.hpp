@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_ANMSTATE_H
-#define CE_ANMSTATE_H
+#ifndef CE_ANMSTATE_HPP
+#define CE_ANMSTATE_HPP
 
 #include <stdbool.h>
 
-#include "cevector.h"
-#include "ceanmfile.h"
+#include "vector.hpp"
+#include "anmfile.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -54,4 +54,4 @@ extern void ce_anmstate_stop_animation(ce_anmstate* anmstate);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_ANMSTATE_H */
+#endif /* CE_ANMSTATE_HPP */

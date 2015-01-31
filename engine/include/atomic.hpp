@@ -22,8 +22,8 @@
  *  Platform-independent atomic operations
  */
 
-#ifndef CE_ATOMIC_H
-#define CE_ATOMIC_H
+#ifndef CE_ATOMIC_HPP
+#define CE_ATOMIC_HPP
 
 #include <stddef.h>
 
@@ -74,4 +74,4 @@ CE_ATOMIC_DECL_ALL(size_t)
 #undef CE_ATOMIC_DECL_OP_AND_FETCH
 #undef CE_ATOMIC_DECL_FETCH_AND_OP
 
-#endif /* CE_ATOMIC_H */
+#endif /* CE_ATOMIC_HPP */

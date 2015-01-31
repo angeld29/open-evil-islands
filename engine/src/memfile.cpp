@@ -24,9 +24,9 @@
 #include <errno.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "cememfile.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "memfile.hpp"
 
 const int CE_MEM_FILE_SEEK_CUR = SEEK_CUR;
 const int CE_MEM_FILE_SEEK_END = SEEK_END;

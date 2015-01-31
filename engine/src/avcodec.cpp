@@ -24,9 +24,9 @@
 
 #include <libavcodec/avcodec.h>
 
-#include "celogging.h"
-#include "cethread.h"
-#include "ceavcodec.h"
+#include "logging.hpp"
+#include "thread.hpp"
+#include "avcodec.hpp"
 
 static void ce_avcodec_log(void* CE_UNUSED(ptr), int av_level, const char* format, va_list args)
 {

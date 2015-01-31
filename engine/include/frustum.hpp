@@ -18,17 +18,17 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FRUSTUM_H
-#define CE_FRUSTUM_H
+#ifndef CE_FRUSTUM_HPP
+#define CE_FRUSTUM_HPP
 
 #include <stdbool.h>
 
-#include "cevec3.h"
-#include "cequat.h"
-#include "cesphere.h"
-#include "ceaabb.h"
-#include "cebbox.h"
-#include "ceplane.h"
+#include "vec3.hpp"
+#include "quat.hpp"
+#include "sphere.hpp"
+#include "aabb.hpp"
+#include "bbox.hpp"
+#include "plane.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -70,4 +70,4 @@ extern bool ce_frustum_test_bbox(const ce_frustum* frustum,
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FRUSTUM_H */
+#endif /* CE_FRUSTUM_HPP */

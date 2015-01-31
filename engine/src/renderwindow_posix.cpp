@@ -28,11 +28,11 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "cedisplay_posix.h"
-#include "cegraphiccontext_posix.h"
-#include "cerenderwindow.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "display_posix.hpp"
+#include "graphiccontext_posix.hpp"
+#include "renderwindow.hpp"
 
 enum {
     CE_RENDERWINDOW_ATOM_WM_PROTOCOLS,

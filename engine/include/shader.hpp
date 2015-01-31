@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SHADER_H
-#define CE_SHADER_H
+#ifndef CE_SHADER_HPP
+#define CE_SHADER_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "ceatomic.h"
-#include "cestring.h"
+#include "atomic.hpp"
+#include "string.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,4 +69,4 @@ static inline ce_shader* ce_shader_add_ref(ce_shader* shader)
 }
 #endif
 
-#endif /* CE_SHADER_H */
+#endif /* CE_SHADER_HPP */

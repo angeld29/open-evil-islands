@@ -27,10 +27,10 @@
 
 #include <alsa/asoundlib.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cesoundsystem.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "soundsystem.hpp"
 
 typedef struct {
     snd_pcm_t* handle;

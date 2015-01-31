@@ -24,13 +24,13 @@
 #include <math.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceroot.h"
-#include "cetexturemanager.h"
-#include "cefighlp.h"
-#include "cefigentity.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "root.hpp"
+#include "texturemanager.hpp"
+#include "fighlp.hpp"
+#include "figentity.hpp"
 
 static void ce_figentity_scenenode_about_to_update(void* listener)
 {

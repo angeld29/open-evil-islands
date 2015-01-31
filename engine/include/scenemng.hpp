@@ -18,24 +18,24 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SCENEMNG_H
-#define CE_SCENEMNG_H
+#ifndef CE_SCENEMNG_HPP
+#define CE_SCENEMNG_HPP
 
 #include <stdbool.h>
 
-#include "cetimer.h"
-#include "cethread.h"
-#include "ceinput.h"
-#include "ceterrain.h"
-#include "cefps.h"
-#include "cefont.h"
-#include "ceviewport.h"
-#include "cecamera.h"
-#include "cescenenode.h"
-#include "cerenderqueue.h"
-#include "cerenderwindow.h"
-#include "cefiguremanager.h"
-#include "cevideoobject.h"
+#include "timer.hpp"
+#include "thread.hpp"
+#include "input.hpp"
+#include "terrain.hpp"
+#include "fps.hpp"
+#include "font.hpp"
+#include "viewport.hpp"
+#include "camera.hpp"
+#include "scenenode.hpp"
+#include "renderqueue.hpp"
+#include "renderwindow.hpp"
+#include "figuremanager.hpp"
+#include "videoobject.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -106,4 +106,4 @@ extern void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name);
 }
 #endif
 
-#endif /* CE_SCENEMNG_H */
+#endif /* CE_SCENEMNG_HPP */

@@ -18,10 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_GLEW_PLATFORM_H
-#define CE_GLEW_PLATFORM_H
+#ifndef CE_GLEW_PLATFORM_HPP
+#define CE_GLEW_PLATFORM_HPP
 
-#include "ceglew.h"
+#include "glew.hpp"
 
 #include <GL/wglew.h>
 
@@ -37,4 +37,4 @@ extern CE_THREAD WGLEWContext ce_wglew_context;
 }
 #endif
 
-#endif /* CE_GLEW_PLATFORM_H */
+#endif /* CE_GLEW_PLATFORM_HPP */

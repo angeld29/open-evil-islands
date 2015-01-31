@@ -20,10 +20,10 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "cegraphiccontext.h"
-#include "cegraphiccontext_posix.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "graphiccontext.hpp"
+#include "graphiccontext_posix.hpp"
 
 enum {
     CE_GLX_MAJOR_VERSION_REQUIRED = 1,

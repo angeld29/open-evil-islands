@@ -25,15 +25,15 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceoptionmanager.h"
-#include "ceresourcemanager.h"
-#include "ceopengl.h"
-#include "cetexture.h"
-#include "cemprhelper.h"
-#include "cemprrenderitem.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "optionmanager.hpp"
+#include "resourcemanager.hpp"
+#include "opengl.hpp"
+#include "texture.hpp"
+#include "mprhelper.hpp"
+#include "mprrenderitem.hpp"
 
 /*
  *  Simple & fast triangulated geometry.

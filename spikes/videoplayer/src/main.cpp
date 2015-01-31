@@ -23,11 +23,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceoptionmanager.h"
-#include "cevideoobject.h"
-#include "ceroot.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "optionmanager.hpp"
+#include "videoobject.hpp"
+#include "root.hpp"
 
 static bool pause;
 static ce_video_object video_object;

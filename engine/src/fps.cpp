@@ -20,9 +20,9 @@
 
 #include <stdio.h>
 
-#include "cestr.h"
-#include "cealloc.h"
-#include "cefps.h"
+#include "str.hpp"
+#include "alloc.hpp"
+#include "fps.hpp"
 
 ce_fps* ce_fps_new(void)
 {

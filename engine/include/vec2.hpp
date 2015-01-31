@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_VEC2_H
-#define CE_VEC2_H
+#ifndef CE_VEC2_HPP
+#define CE_VEC2_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,4 +125,4 @@ static inline ce_vec2* ce_vec2_neg(ce_vec2* vec, const ce_vec2* other)
 }
 #endif
 
-#endif /* CE_VEC2_H */
+#endif /* CE_VEC2_HPP */

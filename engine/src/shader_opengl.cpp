@@ -20,11 +20,11 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceresourcemanager.h"
-#include "ceopengl.h"
-#include "ceshader.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "resourcemanager.hpp"
+#include "opengl.hpp"
+#include "shader.hpp"
 
 typedef struct {
     GLuint program;

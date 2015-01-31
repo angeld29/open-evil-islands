@@ -23,21 +23,21 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cemath.h"
-#include "celogging.h"
-#include "cealloc.h"
-#include "cefrustum.h"
-#include "cebytefmt.h"
-#include "ceevent.h"
-#include "ceoptionmanager.h"
-#include "ceconfigmanager.h"
-#include "cerendersystem.h"
-#include "cefiguremanager.h"
-#include "cemprmanager.h"
-#include "cemprhelper.h"
-#include "cemobloader.h"
-#include "ceroot.h"
-#include "cescenemng.h"
+#include "math.hpp"
+#include "logging.hpp"
+#include "alloc.hpp"
+#include "frustum.hpp"
+#include "bytefmt.hpp"
+#include "event.hpp"
+#include "optionmanager.hpp"
+#include "configmanager.hpp"
+#include "rendersystem.hpp"
+#include "figuremanager.hpp"
+#include "mprmanager.hpp"
+#include "mprhelper.hpp"
+#include "mobloader.hpp"
+#include "root.hpp"
+#include "scenemng.hpp"
 
 static void ce_scenemng_renderwindow_resized(void* listener, int width, int height)
 {

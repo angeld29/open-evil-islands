@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_BBOX_H
-#define CE_BBOX_H
+#ifndef CE_BBOX_HPP
+#define CE_BBOX_HPP
 
-#include "cequat.h"
-#include "ceaabb.h"
+#include "quat.hpp"
+#include "aabb.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,4 +42,4 @@ extern ce_bbox* ce_bbox_merge2(ce_bbox* bbox, const ce_bbox* other);
 }
 #endif
 
-#endif /* CE_BBOX_H */
+#endif /* CE_BBOX_HPP */

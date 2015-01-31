@@ -22,11 +22,11 @@
  *  doc/formats/lnk.txt
  */
 
-#ifndef CE_LNKFILE_H
-#define CE_LNKFILE_H
+#ifndef CE_LNKFILE_HPP
+#define CE_LNKFILE_HPP
 
-#include "cestring.h"
-#include "ceresfile.h"
+#include "string.hpp"
+#include "resfile.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -51,4 +51,4 @@ extern void ce_lnkfile_close(ce_lnkfile* lnkfile);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_LNKFILE_H */
+#endif /* CE_LNKFILE_HPP */

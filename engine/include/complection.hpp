@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_COMPLECTION_H
-#define CE_COMPLECTION_H
+#ifndef CE_COMPLECTION_HPP
+#define CE_COMPLECTION_HPP
 
 #include <stdbool.h>
 
@@ -48,4 +48,4 @@ extern bool ce_complection_equal(const ce_complection* complection,
 }
 #endif /* __cplusplus */
 
-#endif /* CE_COMPLECTION_H */
+#endif /* CE_COMPLECTION_HPP */

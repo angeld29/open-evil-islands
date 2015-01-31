@@ -20,11 +20,11 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceerror_windows.h"
-#include "cegraphiccontext.h"
-#include "cegraphiccontext_windows.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "error_windows.hpp"
+#include "graphiccontext.hpp"
+#include "graphiccontext_windows.hpp"
 
 ce_graphic_context* ce_graphic_context_new(HDC dc)
 {

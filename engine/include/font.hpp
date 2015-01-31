@@ -18,10 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FONT_H
-#define CE_FONT_H
+#ifndef CE_FONT_HPP
+#define CE_FONT_HPP
 
-#include "cecolor.h"
+#include "color.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -43,4 +43,4 @@ extern void ce_font_render(ce_font* font, int x, int y,
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FONT_H */
+#endif /* CE_FONT_HPP */

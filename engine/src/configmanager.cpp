@@ -24,17 +24,17 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cestr.h"
-#include "cepath.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceoptionmanager.h"
-#include "ceresourcemanager.h"
-#include "ceresball.h"
-#include "ceregfile.h"
-#include "ceconfigfile.h"
-#include "ceconfigmanager.h"
+#include "lib.hpp"
+#include "str.hpp"
+#include "path.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "optionmanager.hpp"
+#include "resourcemanager.hpp"
+#include "resball.hpp"
+#include "regfile.hpp"
+#include "configfile.hpp"
+#include "configmanager.hpp"
 
 struct ce_config_manager* ce_config_manager;
 

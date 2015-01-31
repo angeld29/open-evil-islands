@@ -23,15 +23,15 @@
  *  http://wiki.multimedia.cx/index.php?title=Bink_Container
  */
 
-#ifndef CE_BINK_H
-#define CE_BINK_H
+#ifndef CE_BINK_HPP
+#define CE_BINK_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "cememfile.h"
-#include "cevector.h"
+#include "memfile.hpp"
+#include "vector.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -131,4 +131,4 @@ typedef struct {
 }
 #endif
 
-#endif /* CE_BINK_H */
+#endif /* CE_BINK_HPP */

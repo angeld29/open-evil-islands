@@ -18,15 +18,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDMANAGER_H
-#define CE_SOUNDMANAGER_H
+#ifndef CE_SOUNDMANAGER_HPP
+#define CE_SOUNDMANAGER_HPP
 
-#include "cevector.h"
-#include "cehash.h"
-#include "cethread.h"
-#include "cetimer.h"
-#include "cesoundinstance.h"
-#include "cesoundbundle.h"
+#include "vector.hpp"
+#include "hash.hpp"
+#include "thread.hpp"
+#include "timer.hpp"
+#include "soundinstance.hpp"
+#include "soundbundle.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,4 +61,4 @@ static inline ce_sound_bundle* ce_sound_manager_get_bundle(ce_hash_key hash_key)
 }
 #endif
 
-#endif /* CE_SOUNDMANAGER_H */
+#endif /* CE_SOUNDMANAGER_HPP */

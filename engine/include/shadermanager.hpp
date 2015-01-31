@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SHADERMANAGER_H
-#define CE_SHADERMANAGER_H
+#ifndef CE_SHADERMANAGER_HPP
+#define CE_SHADERMANAGER_HPP
 
 #include <stdbool.h>
 
-#include "cevector.h"
-#include "ceshader.h"
+#include "vector.hpp"
+#include "shader.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,4 +43,4 @@ extern ce_shader* ce_shader_manager_get(const char* resource_paths[]);
 }
 #endif
 
-#endif /* CE_SHADERMANAGER_H */
+#endif /* CE_SHADERMANAGER_HPP */

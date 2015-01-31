@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cemat4.h"
+#include "mat4.hpp"
 
 const ce_mat4 CE_MAT4_ZERO = {
     .m = {

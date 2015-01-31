@@ -20,10 +20,10 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "cescenenode.h"
-#include "cefighlp.h"
-#include "cefigbone.h"
+#include "alloc.hpp"
+#include "scenenode.hpp"
+#include "fighlp.hpp"
+#include "figbone.hpp"
 
 ce_figbone* ce_figbone_new(const ce_fignode* fignode,
                             const ce_complection* complection,

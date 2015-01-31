@@ -22,9 +22,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceregfile.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "regfile.hpp"
 
 static const uint32_t CE_REG_SIGNATURE = 0x45ab3efbu;
 

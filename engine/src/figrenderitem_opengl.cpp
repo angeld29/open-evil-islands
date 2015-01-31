@@ -23,13 +23,13 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cemath.h"
-#include "cealloc.h"
-#include "ceatomic.h"
-#include "ceopengl.h"
-#include "ceanmstate.h"
-#include "cefighlp.h"
-#include "cefigrenderitem.h"
+#include "math.hpp"
+#include "alloc.hpp"
+#include "atomic.hpp"
+#include "opengl.hpp"
+#include "anmstate.hpp"
+#include "fighlp.hpp"
+#include "figrenderitem.hpp"
 
 // fig renderitem static (without morphs): GL's display list
 

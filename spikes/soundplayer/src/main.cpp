@@ -23,12 +23,12 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cemath.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceoptionmanager.h"
-#include "cesoundobject.h"
-#include "ceroot.h"
+#include "math.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "optionmanager.hpp"
+#include "soundobject.hpp"
+#include "root.hpp"
 
 static ce_color message_color;
 static float alpha_sign = -1.0f;
@@ -41,7 +41,6 @@ static void clear()
 {
     ce_input_supply_del(input_supply);
     ce_optparse_del(optparse);
-    ce_sound_object_del(sound_object);
 }
 
 static void state_changed(void* CE_UNUSED(listener), int state)

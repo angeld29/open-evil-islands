@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_ALLOC_H
-#define CE_ALLOC_H
+#ifndef CE_ALLOC_HPP
+#define CE_ALLOC_HPP
 
 #include <stddef.h>
 
@@ -47,4 +47,4 @@ extern size_t ce_alloc_get_system_max_allocated(void);
 }
 #endif
 
-#endif /* CE_ALLOC_H */
+#endif /* CE_ALLOC_HPP */

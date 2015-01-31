@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_HASH_H
-#define CE_HASH_H
+#ifndef CE_HASH_HPP
+#define CE_HASH_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -76,4 +76,4 @@ extern void ce_hash_iter_next(ce_hash_iter* iter);
 }
 #endif
 
-#endif /* CE_HASH_H */
+#endif /* CE_HASH_HPP */

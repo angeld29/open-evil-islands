@@ -22,10 +22,10 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "cealloc.h"
-#include "cebyteorder.h"
-#include "ceresball.h"
-#include "cemprfile.h"
+#include "alloc.hpp"
+#include "byteorder.hpp"
+#include "resball.hpp"
+#include "mprfile.hpp"
 
 static const unsigned int MP_SIGNATURE = 0xce4af672;
 static const unsigned int SEC_SIGNATURE = 0xcf4bf774;

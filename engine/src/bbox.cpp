@@ -23,7 +23,7 @@
 #include <math.h>
 #include <assert.h>
 
-#include "cebbox.h"
+#include "bbox.hpp"
 
 ce_bbox* ce_bbox_clear(ce_bbox* bbox)
 {

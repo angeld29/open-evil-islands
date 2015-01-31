@@ -18,10 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RAY_H
-#define CE_RAY_H
+#ifndef CE_RAY_HPP
+#define CE_RAY_HPP
 
-#include "cevec3.h"
+#include "vec3.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,4 +52,4 @@ static inline ce_ray* ce_ray_init_segment(ce_ray* ray, const ce_vec3* start,
 }
 #endif
 
-#endif /* CE_RAY_H */
+#endif /* CE_RAY_HPP */

@@ -37,10 +37,10 @@
 #endif
 #endif
 
-#include "celib.h"
-#include "cealloc.h"
-#include "ceerror.h"
-#include "cethread.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "error.hpp"
+#include "thread.hpp"
 
 int ce_online_cpu_count(void)
 {

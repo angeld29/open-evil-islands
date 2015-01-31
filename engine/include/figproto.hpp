@@ -18,17 +18,17 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FIGPROTO_H
-#define CE_FIGPROTO_H
+#ifndef CE_FIGPROTO_HPP
+#define CE_FIGPROTO_HPP
 
 #include <stdbool.h>
 
-#include "cestring.h"
-#include "ceatomic.h"
-#include "ceresfile.h"
-#include "ceadbfile.h"
-#include "cefignode.h"
-#include "cerenderqueue.h"
+#include "string.hpp"
+#include "atomic.hpp"
+#include "resfile.hpp"
+#include "adbfile.hpp"
+#include "fignode.hpp"
+#include "renderqueue.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -59,4 +59,4 @@ extern void ce_figproto_accept_renderqueue(ce_figproto* figproto,
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGPROTO_H */
+#endif /* CE_FIGPROTO_HPP */

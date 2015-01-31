@@ -18,18 +18,18 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FIGNODE_H
-#define CE_FIGNODE_H
+#ifndef CE_FIGNODE_HPP
+#define CE_FIGNODE_HPP
 
-#include "cestring.h"
-#include "cevector.h"
-#include "ceresfile.h"
-#include "celnkfile.h"
-#include "cefigfile.h"
-#include "cebonfile.h"
-#include "ceanmfile.h"
-#include "cematerial.h"
-#include "cerenderqueue.h"
+#include "string.hpp"
+#include "vector.hpp"
+#include "resfile.hpp"
+#include "lnkfile.hpp"
+#include "figfile.hpp"
+#include "bonfile.hpp"
+#include "anmfile.hpp"
+#include "material.hpp"
+#include "renderqueue.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -59,4 +59,4 @@ extern void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode,
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGNODE_H */
+#endif /* CE_FIGNODE_HPP */

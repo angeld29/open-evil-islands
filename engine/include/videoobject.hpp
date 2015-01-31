@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_VIDEOOBJECT_H
-#define CE_VIDEOOBJECT_H
+#ifndef CE_VIDEOOBJECT_HPP
+#define CE_VIDEOOBJECT_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,4 +45,4 @@ extern void ce_video_object_stop(ce_video_object video_object);
 }
 #endif
 
-#endif /* CE_VIDEOOBJECT_H */
+#endif /* CE_VIDEOOBJECT_HPP */

@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDFORMAT_H
-#define CE_SOUNDFORMAT_H
+#ifndef CE_SOUNDFORMAT_HPP
+#define CE_SOUNDFORMAT_HPP
 
 #include <stdbool.h>
 
@@ -59,4 +59,4 @@ static inline bool ce_sound_format_is_equal(const ce_sound_format* sound_format1
 }
 #endif
 
-#endif /* CE_SOUNDFORMAT_H */
+#endif /* CE_SOUNDFORMAT_HPP */

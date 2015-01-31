@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_AABB_H
-#define CE_AABB_H
+#ifndef CE_AABB_HPP
+#define CE_AABB_HPP
 
-#include "cevec3.h"
-#include "cequat.h"
+#include "vec3.hpp"
+#include "quat.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,4 +53,4 @@ extern ce_aabb* ce_aabb_merge_point_array(ce_aabb* aabb, const float* point);
 }
 #endif
 
-#endif /* CE_AABB_H */
+#endif /* CE_AABB_HPP */

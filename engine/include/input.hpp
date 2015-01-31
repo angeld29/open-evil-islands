@@ -22,15 +22,15 @@
  *  doc/input.txt
  */
 
-#ifndef CE_INPUT_H
-#define CE_INPUT_H
+#ifndef CE_INPUT_HPP
+#define CE_INPUT_HPP
 
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "cevec2.h"
-#include "cevector.h"
+#include "vec2.hpp"
+#include "vector.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -150,4 +150,4 @@ extern ce_input_event* ce_input_supply_shortcut(ce_input_supply* input_supply,
 }
 #endif
 
-#endif /* CE_INPUT_H */
+#endif /* CE_INPUT_HPP */

@@ -18,19 +18,19 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SCENENODE_H
-#define CE_SCENENODE_H
+#ifndef CE_SCENENODE_HPP
+#define CE_SCENENODE_HPP
 
 #include <stdbool.h>
 
-#include "cevec3.h"
-#include "cequat.h"
-#include "cebbox.h"
-#include "cevector.h"
-#include "cefrustum.h"
-#include "ceocclusion.h"
-#include "cerenderitem.h"
-#include "cerendersystem.h"
+#include "vec3.hpp"
+#include "quat.hpp"
+#include "bbox.hpp"
+#include "vector.hpp"
+#include "frustum.hpp"
+#include "occlusion.hpp"
+#include "renderitem.hpp"
+#include "rendersystem.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -85,4 +85,4 @@ extern void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_SCENENODE_H */
+#endif /* CE_SCENENODE_HPP */

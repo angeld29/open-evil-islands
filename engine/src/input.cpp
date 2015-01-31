@@ -23,10 +23,10 @@
 #include <float.h>
 #include <assert.h>
 
-#include "cestr.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceinput.h"
+#include "str.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "input.hpp"
 
 // level 0 input API implementation
 

@@ -26,10 +26,10 @@
 
 #include <squish.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "cebyteorder.h"
-#include "cemmpfile.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "byteorder.hpp"
+#include "mmpfile.hpp"
 
 static const uint32_t CE_MMPFILE_SIGNATURE = 0x504d4d;
 static const uint32_t CE_MMPFILE_SIGNATURE_EXT = 0x45434d4d;

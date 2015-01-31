@@ -22,13 +22,13 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceevent.h"
-#include "cerendersystem.h"
-#include "ceshadermanager.h"
-#include "cevideoinstance.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "event.hpp"
+#include "rendersystem.hpp"
+#include "shadermanager.hpp"
+#include "videoinstance.hpp"
 
 static void ce_video_instance_exit(ce_event* event)
 {

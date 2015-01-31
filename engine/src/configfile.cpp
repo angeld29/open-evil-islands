@@ -23,10 +23,10 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cestr.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceconfigfile.h"
+#include "str.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "configfile.hpp"
 
 static bool ce_config_file_parse(ce_config_file* config_file, const char* path, FILE* file)
 {

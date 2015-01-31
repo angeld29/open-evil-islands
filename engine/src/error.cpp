@@ -23,8 +23,8 @@
 #include <errno.h>
 #include <assert.h>
 
-#include "celogging.h"
-#include "ceerror.h"
+#include "logging.hpp"
+#include "error.hpp"
 
 void ce_error_report_c_last(const char* module)
 {

@@ -18,10 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_DISPLAY_PLATFORM_H
-#define CE_DISPLAY_PLATFORM_H
+#ifndef CE_DISPLAY_PLATFORM_HPP
+#define CE_DISPLAY_PLATFORM_HPP
 
-#include "cedisplay.h"
+#include "display.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -34,4 +34,4 @@ extern ce_displaymng* ce_displaymng_create(void);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_DISPLAY_PLATFORM_H */
+#endif /* CE_DISPLAY_PLATFORM_HPP */

@@ -21,12 +21,12 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cebyteorder.h"
-#include "cebitop.h"
-#include "cebink.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "byteorder.hpp"
+#include "bitop.hpp"
+#include "bink.hpp"
 
 enum {
     CE_BINK_HEADER_SIZE = 44,

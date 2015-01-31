@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_PLANE_H
-#define CE_PLANE_H
+#ifndef CE_PLANE_HPP
+#define CE_PLANE_HPP
 
 #include <stdbool.h>
 
-#include "cevec3.h"
-#include "ceray.h"
-#include "cetriangle.h"
+#include "vec3.hpp"
+#include "ray.hpp"
+#include "triangle.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -93,4 +93,4 @@ extern bool ce_plane_isect_ray(const ce_plane* plane, const ce_ray* ray, ce_vec3
 }
 #endif
 
-#endif /* CE_PLANE_H */
+#endif /* CE_PLANE_HPP */

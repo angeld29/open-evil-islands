@@ -25,13 +25,13 @@
  *  http://wiki.multimedia.cx/index.php?title=Microsoft_IMA_ADPCM
  */
 
-#ifndef CE_WAVE_H
-#define CE_WAVE_H
+#ifndef CE_WAVE_HPP
+#define CE_WAVE_HPP
 
 #include <stddef.h>
 #include <stdint.h>
 
-#include "cememfile.h"
+#include "memfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -107,4 +107,4 @@ static inline size_t ce_wave_ima_adpcm_block_storage_size(const ce_wave_header* 
 }
 #endif
 
-#endif /* CE_WAVE_H */
+#endif /* CE_WAVE_HPP */

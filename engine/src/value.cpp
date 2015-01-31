@@ -20,8 +20,8 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "cevalue.h"
+#include "alloc.hpp"
+#include "value.hpp"
 
 static void ce_value_void(ce_value* CE_UNUSED(value))
 {

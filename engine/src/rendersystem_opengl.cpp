@@ -21,13 +21,13 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cemath.h"
-#include "cemat4.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceopengl.h"
-#include "cerendersystem.h"
+#include "lib.hpp"
+#include "math.hpp"
+#include "mat4.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "opengl.hpp"
+#include "rendersystem.hpp"
 
 struct ce_render_system* ce_render_system;
 

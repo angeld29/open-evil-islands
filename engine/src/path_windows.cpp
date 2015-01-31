@@ -22,7 +22,7 @@
 
 #include <windows.h>
 
-#include "cepath.h"
+#include "path.hpp"
 
 const char CE_PATH_SEP = '\\';
 

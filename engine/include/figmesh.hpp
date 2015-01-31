@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FIGMESH_H
-#define CE_FIGMESH_H
+#ifndef CE_FIGMESH_HPP
+#define CE_FIGMESH_HPP
 
-#include "cevector.h"
-#include "ceatomic.h"
-#include "cefigproto.h"
-#include "cecomplection.h"
-#include "cerenderitem.h"
+#include "vector.hpp"
+#include "atomic.hpp"
+#include "figproto.hpp"
+#include "complection.hpp"
+#include "renderitem.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -53,4 +53,4 @@ static inline ce_figmesh* ce_figmesh_add_ref(ce_figmesh* figmesh)
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGMESH_H */
+#endif /* CE_FIGMESH_HPP */

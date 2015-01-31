@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_MPRMANAGER_H
-#define CE_MPRMANAGER_H
+#ifndef CE_MPRMANAGER_HPP
+#define CE_MPRMANAGER_HPP
 
-#include "cestring.h"
-#include "cemprfile.h"
+#include "string.hpp"
+#include "mprfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern ce_mprfile* ce_mpr_manager_open(const char* name);
 }
 #endif
 
-#endif /* CE_MPRMANAGER_H */
+#endif /* CE_MPRMANAGER_HPP */

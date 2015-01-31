@@ -18,9 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cealloc.h"
-#include "cerendersystem.h"
-#include "cerendergroup.h"
+#include "alloc.hpp"
+#include "rendersystem.hpp"
+#include "rendergroup.hpp"
 
 ce_rendergroup* ce_rendergroup_new(int priority, ce_material* material)
 {

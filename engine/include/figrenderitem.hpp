@@ -18,12 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FIGRENDERITEM_H
-#define CE_FIGRENDERITEM_H
+#ifndef CE_FIGRENDERITEM_HPP
+#define CE_FIGRENDERITEM_HPP
 
-#include "cerenderitem.h"
-#include "cefignode.h"
-#include "cecomplection.h"
+#include "renderitem.hpp"
+#include "fignode.hpp"
+#include "complection.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -38,4 +38,4 @@ ce_figrenderitem_new(const ce_fignode* fignode,
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGRENDERITEM_H */
+#endif /* CE_FIGRENDERITEM_HPP */

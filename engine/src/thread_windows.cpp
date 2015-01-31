@@ -23,12 +23,12 @@
 
 #include <windows.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cevector.h"
-#include "ceerror_windows.h"
-#include "cethread.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "vector.hpp"
+#include "error_windows.hpp"
+#include "thread.hpp"
 
 int ce_online_cpu_count(void)
 {

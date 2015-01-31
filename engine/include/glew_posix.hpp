@@ -18,10 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_GLEW_PLATFORM_H
-#define CE_GLEW_PLATFORM_H
+#ifndef CE_GLEW_PLATFORM_HPP
+#define CE_GLEW_PLATFORM_HPP
 
-#include "ceglew.h"
+#include "glew.hpp"
 
 // HACK: glew 1.5.4
 #ifdef uint
@@ -44,4 +44,4 @@ extern CE_THREAD GLXEWContext ce_glxew_context;
 }
 #endif
 
-#endif /* CE_GLEW_PLATFORM_H */
+#endif /* CE_GLEW_PLATFORM_HPP */

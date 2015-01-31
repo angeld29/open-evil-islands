@@ -22,9 +22,9 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "cerenderwindow.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "renderwindow.hpp"
 
 static ce_renderwindow_keypair* ce_renderwindow_keypair_new(unsigned long key,
                                                         ce_input_button button)

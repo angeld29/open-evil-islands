@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cealloc.h"
-#include "cehash.h"
+#include "alloc.hpp"
+#include "hash.hpp"
 
 static ce_hash_entry* ce_hash_entry_new(ce_hash_key hash_key)
 {

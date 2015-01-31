@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_VECTOR_H
-#define CE_VECTOR_H
+#ifndef CE_VECTOR_HPP
+#define CE_VECTOR_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -81,4 +81,4 @@ extern void ce_vector_for_each(ce_vector* vector, void (*func)());
 }
 #endif
 
-#endif /* CE_VECTOR_H */
+#endif /* CE_VECTOR_HPP */

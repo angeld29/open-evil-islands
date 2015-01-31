@@ -22,12 +22,12 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cestr.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cememfile.h"
-#include "cemobfile.h"
+#include "lib.hpp"
+#include "str.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "memfile.hpp"
+#include "mobfile.hpp"
 
 #define CE_MOB_UNIT_CAST(MF) \
 ce_mob_object* mob_object = ce_vector_back((MF)->objects); \

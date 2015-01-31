@@ -30,12 +30,12 @@
 #include FT_FREETYPE_H
 #include FT_MODULE_H
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceresourcemanager.h"
-#include "ceopengl.h"
-#include "cefont.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "resourcemanager.hpp"
+#include "opengl.hpp"
+#include "font.hpp"
 
 enum {
     CE_FONT_NUM_CHARS = 96,

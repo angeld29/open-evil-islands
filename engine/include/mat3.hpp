@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_MAT3_H
-#define CE_MAT3_H
+#ifndef CE_MAT3_HPP
+#define CE_MAT3_HPP
 
 #ifdef __cplusplus
 extern "C"
@@ -40,4 +40,4 @@ extern ce_mat3* ce_mat3_init_identity(ce_mat3* mat);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_MAT3_H */
+#endif /* CE_MAT3_HPP */

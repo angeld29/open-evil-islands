@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_STRING_H
-#define CE_STRING_H
+#ifndef CE_STRING_HPP
+#define CE_STRING_HPP
 
 #include <stddef.h>
 #include <stdarg.h>
@@ -72,4 +72,4 @@ extern size_t ce_string_append_fmt(ce_string* string, const char* fmt, ...);
 }
 #endif
 
-#endif /* CE_STRING_H */
+#endif /* CE_STRING_HPP */

@@ -18,9 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cebyteorder.h"
-#include "cealloc.h"
-#include "ceanmfile.h"
+#include "byteorder.hpp"
+#include "alloc.hpp"
+#include "anmfile.hpp"
 
 ce_anmfile* ce_anmfile_open(ce_res_file* res_file, size_t index)
 {

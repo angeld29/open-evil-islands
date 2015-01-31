@@ -18,9 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "celogging.h"
-#include "cealloc.h"
-#include "cerenderitem.h"
+#include "logging.hpp"
+#include "alloc.hpp"
+#include "renderitem.hpp"
 
 ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...)
 {

@@ -20,9 +20,9 @@
 
 #include <windows.h>
 
-#include "celogging.h"
-#include "ceerror.h"
-#include "ceerror_windows.h"
+#include "logging.hpp"
+#include "error.hpp"
+#include "error_windows.hpp"
 
 void ce_error_report_windows_last(const char* module)
 {

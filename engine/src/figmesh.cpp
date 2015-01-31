@@ -20,10 +20,10 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "cefighlp.h"
-#include "cefigrenderitem.h"
-#include "cefigmesh.h"
+#include "alloc.hpp"
+#include "fighlp.hpp"
+#include "figrenderitem.hpp"
+#include "figmesh.hpp"
 
 static void ce_figmesh_create_renderitems(ce_figmesh* figmesh,
                                         const ce_fignode* fignode)

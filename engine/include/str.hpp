@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_STR_H
-#define CE_STR_H
+#ifndef CE_STR_HPP
+#define CE_STR_HPP
 
 #include <stddef.h>
 
@@ -133,4 +133,4 @@ extern char* ce_strsep(char** sp, const char* delim);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_STR_H */
+#endif /* CE_STR_HPP */

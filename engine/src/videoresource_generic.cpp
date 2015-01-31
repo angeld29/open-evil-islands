@@ -32,11 +32,11 @@
 #include <theora/theoradec.h>
 #include <libavcodec/avcodec.h>
 
-#include "cestr.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cebink.h"
-#include "cevideoresource.h"
+#include "str.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "bink.hpp"
+#include "videoresource.hpp"
 
 /*
  *  Ogg Theora (C) 2002-2007 Xiph.Org Foundation

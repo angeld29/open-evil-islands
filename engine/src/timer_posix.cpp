@@ -23,8 +23,8 @@
 #include <sys/time.h>
 #include <pthread.h>
 
-#include "cealloc.h"
-#include "cetimer.h"
+#include "alloc.hpp"
+#include "timer.hpp"
 
 typedef struct {
     struct timeval start;

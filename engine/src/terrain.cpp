@@ -23,16 +23,16 @@
 #include <math.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceevent.h"
-#include "ceoptionmanager.h"
-#include "cerendersystem.h"
-#include "cetexturemanager.h"
-#include "cemprhelper.h"
-#include "cemprrenderitem.h"
-#include "ceterrain.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "event.hpp"
+#include "optionmanager.hpp"
+#include "rendersystem.hpp"
+#include "texturemanager.hpp"
+#include "mprhelper.hpp"
+#include "mprrenderitem.hpp"
+#include "terrain.hpp"
 
 static void ce_terrain_load_tile_mmpfiles(ce_terrain* terrain)
 {

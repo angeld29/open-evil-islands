@@ -22,13 +22,13 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cestr.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cethread.h"
-#include "cepath.h"
-#include "ceregistry.h"
-#include "ceoptionmanager.h"
+#include "str.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "thread.hpp"
+#include "path.hpp"
+#include "registry.hpp"
+#include "optionmanager.hpp"
 
 struct ce_option_manager* ce_option_manager;
 

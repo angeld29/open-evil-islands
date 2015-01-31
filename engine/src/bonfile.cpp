@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cealloc.h"
-#include "cebonfile.h"
+#include "alloc.hpp"
+#include "bonfile.hpp"
 
 ce_bonfile* ce_bonfile_open(ce_res_file* res_file, const char* name)
 {

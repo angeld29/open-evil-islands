@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_MATERIAL_H
-#define CE_MATERIAL_H
+#ifndef CE_MATERIAL_HPP
+#define CE_MATERIAL_HPP
 
 #include <stdbool.h>
 
-#include "cecolor.h"
-#include "ceshader.h"
+#include "color.hpp"
+#include "shader.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -57,4 +57,4 @@ extern void ce_material_del(ce_material* material);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_MATERIAL_H */
+#endif /* CE_MATERIAL_HPP */

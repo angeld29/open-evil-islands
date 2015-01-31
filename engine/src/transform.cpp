@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cetransform.h"
+#include "transform.hpp"
 
 const ce_transform CE_TRANSFORM_IDENTITY = {
     .translation = {.x = 0.0f, .y = 0.0f, .z = 0.0f},

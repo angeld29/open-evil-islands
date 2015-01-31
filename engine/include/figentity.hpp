@@ -18,19 +18,19 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FIGENTITY_H
-#define CE_FIGENTITY_H
+#ifndef CE_FIGENTITY_HPP
+#define CE_FIGENTITY_HPP
 
 #include <stdbool.h>
 
-#include "cevec3.h"
-#include "cequat.h"
-#include "cevector.h"
-#include "cefigmesh.h"
-#include "cefigbone.h"
-#include "cetexture.h"
-#include "cescenenode.h"
-#include "cerenderqueue.h"
+#include "vec3.hpp"
+#include "quat.hpp"
+#include "vector.hpp"
+#include "figmesh.hpp"
+#include "figbone.hpp"
+#include "texture.hpp"
+#include "scenenode.hpp"
+#include "renderqueue.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -68,4 +68,4 @@ extern void ce_figentity_stop_animation(ce_figentity* figentity);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGENTITY_H */
+#endif /* CE_FIGENTITY_HPP */

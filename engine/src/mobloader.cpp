@@ -22,16 +22,16 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cemath.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cethread.h"
-#include "ceevent.h"
-#include "cerendersystem.h"
-#include "cefiguremanager.h"
-#include "cemobmanager.h"
-#include "cemobloader.h"
+#include "lib.hpp"
+#include "math.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "thread.hpp"
+#include "event.hpp"
+#include "rendersystem.hpp"
+#include "figuremanager.hpp"
+#include "mobmanager.hpp"
+#include "mobloader.hpp"
 
 struct ce_mob_loader* ce_mob_loader;
 

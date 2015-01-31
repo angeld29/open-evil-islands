@@ -18,10 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_MOBMANAGER_H
-#define CE_MOBMANAGER_H
+#ifndef CE_MOBMANAGER_HPP
+#define CE_MOBMANAGER_HPP
 
-#include "cemobfile.h"
+#include "mobfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,4 +40,4 @@ extern ce_mob_file* ce_mob_manager_open(const char* name);
 }
 #endif
 
-#endif /* CE_MOBMANAGER_H */
+#endif /* CE_MOBMANAGER_HPP */

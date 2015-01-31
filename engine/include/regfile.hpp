@@ -22,14 +22,14 @@
  *  doc/formats/reg.txt
  */
 
-#ifndef CE_REGFILE_H
-#define CE_REGFILE_H
+#ifndef CE_REGFILE_HPP
+#define CE_REGFILE_HPP
 
 #include <stdint.h>
 
-#include "cevector.h"
-#include "ceobject.h"
-#include "cememfile.h"
+#include "vector.hpp"
+#include "object.hpp"
+#include "memfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,4 +51,4 @@ extern ce_value* ce_reg_file_find(ce_reg_file* reg_file,
 }
 #endif
 
-#endif /* CE_REGFILE_H */
+#endif /* CE_REGFILE_HPP */

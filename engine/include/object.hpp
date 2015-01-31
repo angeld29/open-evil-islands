@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_OBJECT_H
-#define CE_OBJECT_H
+#ifndef CE_OBJECT_HPP
+#define CE_OBJECT_HPP
 
 #include <stdbool.h>
 
-#include "cevector.h"
-#include "cestring.h"
-#include "ceproperty.h"
+#include "vector.hpp"
+#include "string.hpp"
+#include "property.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,4 +60,4 @@ static inline void ce_object_remove(ce_object* object, ce_property* property)
 }
 #endif
 
-#endif /* CE_OBJECT_H */
+#endif /* CE_OBJECT_HPP */

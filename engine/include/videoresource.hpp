@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_VIDEORESOURCE_H
-#define CE_VIDEORESOURCE_H
+#ifndef CE_VIDEORESOURCE_HPP
+#define CE_VIDEORESOURCE_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "cememfile.h"
-#include "ceycbcr.h"
+#include "memfile.hpp"
+#include "ycbcr.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,4 +67,4 @@ extern bool ce_video_resource_reset(ce_video_resource* video_resource);
 }
 #endif
 
-#endif /* CE_VIDEORESOURCE_H */
+#endif /* CE_VIDEORESOURCE_HPP */

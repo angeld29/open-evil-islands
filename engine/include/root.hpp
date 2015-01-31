@@ -18,16 +18,16 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_ROOT_H
-#define CE_ROOT_H
+#ifndef CE_ROOT_HPP
+#define CE_ROOT_HPP
 
 #include <stdbool.h>
 
-#include "cetimer.h"
-#include "ceinput.h"
-#include "cerenderwindow.h"
-#include "cescenemng.h"
-#include "ceoptparse.h"
+#include "timer.hpp"
+#include "input.hpp"
+#include "renderwindow.hpp"
+#include "scenemng.hpp"
+#include "optparse.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,4 +57,4 @@ extern int ce_root_exec(void);
 }
 #endif
 
-#endif /* CE_ROOT_H */
+#endif /* CE_ROOT_HPP */

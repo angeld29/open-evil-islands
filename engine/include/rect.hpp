@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RECT_H
-#define CE_RECT_H
+#ifndef CE_RECT_HPP
+#define CE_RECT_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,4 +34,4 @@ typedef struct {
 }
 #endif
 
-#endif /* CE_RECT_H */
+#endif /* CE_RECT_HPP */

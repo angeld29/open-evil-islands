@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_OPTIONMANAGER_H
-#define CE_OPTIONMANAGER_H
+#ifndef CE_OPTIONMANAGER_HPP
+#define CE_OPTIONMANAGER_HPP
 
 #include <stdbool.h>
 
-#include "cestring.h"
-#include "ceoptparse.h"
+#include "string.hpp"
+#include "optparse.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,4 +66,4 @@ extern ce_optparse* ce_option_manager_create_option_parser(void);
 }
 #endif
 
-#endif /* CE_OPTIONMANAGER_H */
+#endif /* CE_OPTIONMANAGER_HPP */

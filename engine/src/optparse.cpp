@@ -24,9 +24,9 @@
 
 #include <argtable2.h>
 
-#include "cestr.h"
-#include "cealloc.h"
-#include "ceoptparse.h"
+#include "str.hpp"
+#include "alloc.hpp"
+#include "optparse.hpp"
 
 ce_optparse* ce_optparse_new(void)
 {

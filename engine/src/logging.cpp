@@ -22,7 +22,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celogging.h"
+#include "logging.hpp"
 
 static struct {
     ce_logging_level level;

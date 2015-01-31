@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RENDERGROUP_H
-#define CE_RENDERGROUP_H
+#ifndef CE_RENDERGROUP_HPP
+#define CE_RENDERGROUP_HPP
 
-#include "cevector.h"
-#include "cematerial.h"
-#include "cetexture.h"
-#include "cerenderlayer.h"
+#include "vector.hpp"
+#include "material.hpp"
+#include "texture.hpp"
+#include "renderlayer.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -51,4 +51,4 @@ extern void ce_rendergroup_render(ce_rendergroup* rendergroup);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_RENDERGROUP_H */
+#endif /* CE_RENDERGROUP_HPP */

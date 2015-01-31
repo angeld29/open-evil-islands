@@ -22,13 +22,13 @@
  *  doc/formats/mob.txt
  */
 
-#ifndef CE_MOBFILE_H
-#define CE_MOBFILE_H
+#ifndef CE_MOBFILE_HPP
+#define CE_MOBFILE_HPP
 
 #include <stdint.h>
 
-#include "cevector.h"
-#include "cestring.h"
+#include "vector.hpp"
+#include "string.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -121,4 +121,4 @@ extern void ce_mob_file_close(ce_mob_file* mob_file);
 }
 #endif
 
-#endif /* CE_MOBFILE_H */
+#endif /* CE_MOBFILE_HPP */

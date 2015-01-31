@@ -23,10 +23,10 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cedisplay.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "display.hpp"
 
 ce_display_rotation ce_display_rotation_from_degrees(int value)
 {

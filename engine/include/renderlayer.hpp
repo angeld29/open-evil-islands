@@ -18,12 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RENDERLAYER_H
-#define CE_RENDERLAYER_H
+#ifndef CE_RENDERLAYER_HPP
+#define CE_RENDERLAYER_HPP
 
-#include "cevector.h"
-#include "cetexture.h"
-#include "cerenderitem.h"
+#include "vector.hpp"
+#include "texture.hpp"
+#include "renderitem.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -49,4 +49,4 @@ extern void ce_renderlayer_render(ce_renderlayer* renderlayer);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_RENDERLAYER_H */
+#endif /* CE_RENDERLAYER_HPP */

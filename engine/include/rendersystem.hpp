@@ -18,17 +18,17 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RENDERSYSTEM_H
-#define CE_RENDERSYSTEM_H
+#ifndef CE_RENDERSYSTEM_HPP
+#define CE_RENDERSYSTEM_HPP
 
-#include "cevec3.h"
-#include "cequat.h"
-#include "cecolor.h"
-#include "cethread.h"
-#include "ceviewport.h"
-#include "cecamera.h"
-#include "cetexture.h"
-#include "cematerial.h"
+#include "vec3.hpp"
+#include "quat.hpp"
+#include "color.hpp"
+#include "thread.hpp"
+#include "viewport.hpp"
+#include "camera.hpp"
+#include "texture.hpp"
+#include "material.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,4 +74,4 @@ extern void ce_render_system_discard_material(ce_material* material);
 }
 #endif
 
-#endif /* CE_RENDERSYSTEM_H */
+#endif /* CE_RENDERSYSTEM_HPP */

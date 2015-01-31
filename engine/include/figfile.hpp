@@ -22,14 +22,14 @@
  *  doc/formats/fig.txt
  */
 
-#ifndef CE_FIGFILE_H
-#define CE_FIGFILE_H
+#ifndef CE_FIGFILE_HPP
+#define CE_FIGFILE_HPP
 
 #include <stddef.h>
 #include <stdint.h>
 
-#include "cecomplection.h"
-#include "ceresfile.h"
+#include "complection.hpp"
+#include "resfile.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -72,4 +72,4 @@ extern void ce_figfile_close(ce_figfile* figfile);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGFILE_H */
+#endif /* CE_FIGFILE_HPP */

@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cevec2.h"
+#include "vec2.hpp"
 
 const ce_vec2 CE_VEC2_ZERO = {.x = 0.0f, .y = 0.0f};
 const ce_vec2 CE_VEC2_UNIT_X = {.x = 1.0f, .y = 0.0f};

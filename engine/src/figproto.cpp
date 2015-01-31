@@ -22,10 +22,10 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cealloc.h"
-#include "ceresourcemanager.h"
-#include "ceresball.h"
-#include "cefigproto.h"
+#include "alloc.hpp"
+#include "resourcemanager.hpp"
+#include "resball.hpp"
+#include "figproto.hpp"
 
 ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file)
 {

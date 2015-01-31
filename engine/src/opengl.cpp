@@ -20,8 +20,8 @@
 
 #include <assert.h>
 
-#include "celogging.h"
-#include "ceopengl.h"
+#include "logging.hpp"
+#include "opengl.hpp"
 
 bool ce_opengl_report_errors(void)
 {

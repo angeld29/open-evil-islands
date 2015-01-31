@@ -24,15 +24,15 @@
 #include <time.h>
 #include <math.h>
 
-#include "celib.h"
-#include "cemath.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceoptionmanager.h"
-#include "cefiguremanager.h"
-#include "cemobloader.h"
-#include "ceroot.h"
-#include "cecamfile.h"
+#include "lib.hpp"
+#include "math.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "optionmanager.hpp"
+#include "figuremanager.hpp"
+#include "mobloader.hpp"
+#include "root.hpp"
+#include "camfile.hpp"
 
 static ce_optparse* optparse;
 

@@ -22,8 +22,8 @@
 #include <ctype.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cestr.h"
+#include "lib.hpp"
+#include "str.hpp"
 
 char* ce_strleft(char* restrict dst, const char* restrict src, size_t n)
 {

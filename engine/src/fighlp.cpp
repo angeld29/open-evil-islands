@@ -21,8 +21,8 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#include "celogging.h"
-#include "cefighlp.h"
+#include "logging.hpp"
+#include "fighlp.hpp"
 
 ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
                             const ce_complection* complection)

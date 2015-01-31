@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_COLOR_H
-#define CE_COLOR_H
+#ifndef CE_COLOR_HPP
+#define CE_COLOR_HPP
 
 #ifdef __cplusplus
 extern "C"
@@ -69,4 +69,4 @@ extern ce_color* ce_color_lerp(ce_color* color, float u, const ce_color* lhs,
 }
 #endif /* __cplusplus */
 
-#endif /* CE_COLOR_H */
+#endif /* CE_COLOR_HPP */

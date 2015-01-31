@@ -20,11 +20,11 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceevent.h"
-#include "ceoptionmanager.h"
-#include "cesoundsystem.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "event.hpp"
+#include "optionmanager.hpp"
+#include "soundsystem.hpp"
 
 struct ce_sound_system* ce_sound_system;
 

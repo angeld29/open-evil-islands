@@ -19,13 +19,13 @@
  */
 
 /*
- *  FFmpeg libavcodec initialization.
+ *  FFmpeg libavcodec initialization
  *  FFmpeg (C) Michael Niedermayer
  *  http://www.ffmpeg.org/
  */
 
-#ifndef CE_AVCODEC_H
-#define CE_AVCODEC_H
+#ifndef CE_AVCODEC_HPP
+#define CE_AVCODEC_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,4 +38,4 @@ extern void ce_avcodec_term(void);
 }
 #endif
 
-#endif /* CE_AVCODEC_H */
+#endif /* CE_AVCODEC_HPP */

@@ -18,9 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cemath.h"
-#include "cevec3.h"
-#include "cequat.h"
+#include "math.hpp"
+#include "vec3.hpp"
+#include "quat.hpp"
 
 const ce_quat CE_QUAT_ZERO = {.w = 0.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f};
 const ce_quat CE_QUAT_IDENTITY = {.w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f};

@@ -18,9 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cebyteorder.h"
-#include "cealloc.h"
-#include "celnkfile.h"
+#include "byteorder.hpp"
+#include "alloc.hpp"
+#include "lnkfile.hpp"
 
 ce_lnkfile* ce_lnkfile_open(ce_res_file* res_file, const char* name)
 {

@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_CONFIGMANAGER_H
-#define CE_CONFIGMANAGER_H
+#ifndef CE_CONFIGMANAGER_HPP
+#define CE_CONFIGMANAGER_HPP
 
-#include "cevector.h"
-#include "cestring.h"
-#include "cecolor.h"
-#include "cerect.h"
+#include "vector.hpp"
+#include "string.hpp"
+#include "color.hpp"
+#include "rect.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -115,4 +115,4 @@ extern void ce_config_manager_term(void);
 }
 #endif
 
-#endif /* CE_CONFIGMANAGER_H */
+#endif /* CE_CONFIGMANAGER_HPP */

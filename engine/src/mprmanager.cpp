@@ -21,12 +21,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "cepath.h"
-#include "ceresfile.h"
-#include "ceoptionmanager.h"
-#include "cemprmanager.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "path.hpp"
+#include "resfile.hpp"
+#include "optionmanager.hpp"
+#include "mprmanager.hpp"
 
 struct ce_mpr_manager* ce_mpr_manager;
 

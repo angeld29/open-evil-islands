@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_YCBCR_H
-#define CE_YCBCR_H
+#ifndef CE_YCBCR_HPP
+#define CE_YCBCR_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,4 +40,4 @@ typedef struct {
 }
 #endif
 
-#endif /* CE_YCBCR_H */
+#endif /* CE_YCBCR_HPP */

@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDBUNDLE_H
-#define CE_SOUNDBUNDLE_H
+#ifndef CE_SOUNDBUNDLE_HPP
+#define CE_SOUNDBUNDLE_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,4 +37,4 @@ extern void ce_sound_bundle_del(ce_sound_bundle* sound_bundle);
 }
 #endif
 
-#endif /* CE_SOUNDBUNDLE_H */
+#endif /* CE_SOUNDBUNDLE_HPP */

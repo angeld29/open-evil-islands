@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDOBJECT_H
-#define CE_SOUNDOBJECT_H
+#ifndef CE_SOUNDOBJECT_HPP
+#define CE_SOUNDOBJECT_HPP
 
 #include <stdbool.h>
 
-#include "cehash.h"
-#include "cesoundstate.h"
+#include "hash.hpp"
+#include "soundstate.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,4 +53,4 @@ static inline bool ce_sound_object_is_stopped(ce_sound_object sound_object)
 }
 #endif
 
-#endif /* CE_SOUNDOBJECT_H */
+#endif /* CE_SOUNDOBJECT_HPP */

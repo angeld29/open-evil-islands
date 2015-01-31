@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FPS_H
-#define CE_FPS_H
+#ifndef CE_FPS_HPP
+#define CE_FPS_HPP
 
 #ifdef __cplusplus
 extern "C"
@@ -41,4 +41,4 @@ extern void ce_fps_advance(ce_fps* fps, float elapsed);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FPS_H */
+#endif /* CE_FPS_HPP */

@@ -20,10 +20,10 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "ceopengl.h"
-#include "cerendersystem.h"
-#include "ceocclusion.h"
+#include "alloc.hpp"
+#include "opengl.hpp"
+#include "rendersystem.hpp"
+#include "occlusion.hpp"
 
 struct ce_occlusion {
     bool supported;

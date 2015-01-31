@@ -20,10 +20,10 @@
 
 #include <windows.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceerror_windows.h"
-#include "cetimer.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "error_windows.hpp"
+#include "timer.hpp"
 
 typedef struct {
     float frequency_inv;

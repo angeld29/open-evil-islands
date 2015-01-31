@@ -18,16 +18,16 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FIGHLP_H
-#define CE_FIGHLP_H
+#ifndef CE_FIGHLP_HPP
+#define CE_FIGHLP_HPP
 
-#include "cevec3.h"
-#include "ceaabb.h"
-#include "cesphere.h"
-#include "cecomplection.h"
-#include "cefigfile.h"
-#include "cebonfile.h"
-#include "cematerial.h"
+#include "vec3.hpp"
+#include "aabb.hpp"
+#include "sphere.hpp"
+#include "complection.hpp"
+#include "figfile.hpp"
+#include "bonfile.hpp"
+#include "material.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -61,4 +61,4 @@ extern ce_material* ce_fighlp_create_material(const ce_figfile* figfile);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_FIGHLP_H */
+#endif /* CE_FIGHLP_HPP */

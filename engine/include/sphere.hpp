@@ -18,10 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SPHERE_H
-#define CE_SPHERE_H
+#ifndef CE_SPHERE_HPP
+#define CE_SPHERE_HPP
 
-#include "cevec3.h"
+#include "vec3.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -46,4 +46,4 @@ extern ce_sphere* ce_sphere_copy(ce_sphere* sphere, const ce_sphere* other);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_SPHERE_H */
+#endif /* CE_SPHERE_HPP */

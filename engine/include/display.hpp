@@ -17,14 +17,15 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef CE_DISPLAY_H
-#define CE_DISPLAY_H
+
+#ifndef CE_DISPLAY_HPP
+#define CE_DISPLAY_HPP
 
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "cevector.h"
+#include "vector.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -91,4 +92,4 @@ extern void ce_displaymng_exit(ce_displaymng* displaymng);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_DISPLAY_H */
+#endif /* CE_DISPLAY_HPP */

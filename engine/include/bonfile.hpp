@@ -22,12 +22,12 @@
  *  doc/formats/bon.txt
  */
 
-#ifndef CE_BONFILE_H
-#define CE_BONFILE_H
+#ifndef CE_BONFILE_HPP
+#define CE_BONFILE_HPP
 
 #include <stddef.h>
 
-#include "ceresfile.h"
+#include "resfile.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -46,4 +46,4 @@ extern void ce_bonfile_close(ce_bonfile* bonfile);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_BONFILE_H */
+#endif /* CE_BONFILE_HPP */

@@ -22,14 +22,14 @@
  *  doc/formats/mpr.txt
  */
 
-#ifndef CE_MPRFILE_H
-#define CE_MPRFILE_H
+#ifndef CE_MPRFILE_HPP
+#define CE_MPRFILE_HPP
 
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "cestring.h"
-#include "ceresfile.h"
+#include "string.hpp"
+#include "resfile.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -94,4 +94,4 @@ extern void ce_mprfile_close(ce_mprfile* mprfile);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_MPRFILE_H */
+#endif /* CE_MPRFILE_HPP */

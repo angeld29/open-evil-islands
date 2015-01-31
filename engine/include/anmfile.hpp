@@ -22,13 +22,13 @@
  *  doc/formats/anm.txt
  */
 
-#ifndef CE_ANMFILE_H
-#define CE_ANMFILE_H
+#ifndef CE_ANMFILE_HPP
+#define CE_ANMFILE_HPP
 
 #include <stddef.h>
 
-#include "cestring.h"
-#include "ceresfile.h"
+#include "string.hpp"
+#include "resfile.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -55,4 +55,4 @@ extern void ce_anmfile_close(ce_anmfile* anmfile);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_ANMFILE_H */
+#endif /* CE_ANMFILE_HPP */

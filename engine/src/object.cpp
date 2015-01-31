@@ -21,8 +21,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cealloc.h"
-#include "ceobject.h"
+#include "alloc.hpp"
+#include "object.hpp"
 
 ce_object* ce_object_new(const char* name)
 {

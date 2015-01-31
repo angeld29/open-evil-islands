@@ -18,12 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_VIDEOMANAGER_H
-#define CE_VIDEOMANAGER_H
+#ifndef CE_VIDEOMANAGER_HPP
+#define CE_VIDEOMANAGER_HPP
 
-#include "cevector.h"
-#include "cevideoobject.h"
-#include "cevideoinstance.h"
+#include "vector.hpp"
+#include "videoobject.hpp"
+#include "videoinstance.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,4 +46,4 @@ extern ce_video_instance* ce_video_manager_find_instance(ce_video_object video_o
 }
 #endif
 
-#endif /* CE_VIDEOMANAGER_H */
+#endif /* CE_VIDEOMANAGER_HPP */

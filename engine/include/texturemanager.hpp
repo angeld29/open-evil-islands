@@ -18,15 +18,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_TEXTUREMANAGER_H
-#define CE_TEXTUREMANAGER_H
+#ifndef CE_TEXTUREMANAGER_HPP
+#define CE_TEXTUREMANAGER_HPP
 
 #include <stdbool.h>
 
-#include "cestring.h"
-#include "cevector.h"
-#include "cemmpfile.h"
-#include "cetexture.h"
+#include "string.hpp"
+#include "vector.hpp"
+#include "mmpfile.hpp"
+#include "texture.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,4 +62,4 @@ extern void ce_texture_manager_put(ce_texture* texture);
 }
 #endif
 
-#endif /* CE_TEXTUREMANAGER_H */
+#endif /* CE_TEXTUREMANAGER_HPP */

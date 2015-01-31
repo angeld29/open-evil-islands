@@ -18,15 +18,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FIGUREMANAGER_H
-#define CE_FIGUREMANAGER_H
+#ifndef CE_FIGUREMANAGER_HPP
+#define CE_FIGUREMANAGER_HPP
 
 #include <stdbool.h>
 
-#include "cevector.h"
-#include "cefigproto.h"
-#include "cefigmesh.h"
-#include "cefigentity.h"
+#include "vector.hpp"
+#include "figproto.hpp"
+#include "figmesh.hpp"
+#include "figentity.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,4 +72,4 @@ extern void ce_figure_manager_remove_entity(ce_figentity* entity);
 }
 #endif
 
-#endif /* CE_FIGUREMANAGER_H */
+#endif /* CE_FIGUREMANAGER_HPP */

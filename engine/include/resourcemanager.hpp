@@ -18,12 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RESOURCEMANAGER_H
-#define CE_RESOURCEMANAGER_H
+#ifndef CE_RESOURCEMANAGER_HPP
+#define CE_RESOURCEMANAGER_HPP
 
-#include "cestring.h"
-#include "ceresourcedata.h"
-#include "ceresfile.h"
+#include "string.hpp"
+#include "resourcedata.hpp"
+#include "resfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,4 +44,4 @@ extern size_t ce_resource_manager_find_data(const char* path);
 }
 #endif
 
-#endif /* CE_RESOURCEMANAGER_H */
+#endif /* CE_RESOURCEMANAGER_HPP */

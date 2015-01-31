@@ -18,17 +18,17 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RENDERWINDOW_H
-#define CE_RENDERWINDOW_H
+#ifndef CE_RENDERWINDOW_HPP
+#define CE_RENDERWINDOW_HPP
 
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "cevector.h"
-#include "ceinput.h"
-#include "cedisplay.h"
-#include "cegraphiccontext.h"
+#include "vector.hpp"
+#include "input.hpp"
+#include "display.hpp"
+#include "graphiccontext.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -144,4 +144,4 @@ extern ce_renderwindow* ce_renderwindow_create(int width, int height, const char
 }
 #endif /* __cplusplus */
 
-#endif /* CE_RENDERWINDOW_H */
+#endif /* CE_RENDERWINDOW_HPP */

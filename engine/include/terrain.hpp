@@ -18,21 +18,21 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_TERRAIN_H
-#define CE_TERRAIN_H
+#ifndef CE_TERRAIN_HPP
+#define CE_TERRAIN_HPP
 
 #include <stdbool.h>
 
-#include "cevec3.h"
-#include "cequat.h"
-#include "cevector.h"
-#include "cestring.h"
-#include "cethread.h"
-#include "cemprfile.h"
-#include "cetexture.h"
-#include "cematerial.h"
-#include "cescenenode.h"
-#include "cerenderqueue.h"
+#include "vec3.hpp"
+#include "quat.hpp"
+#include "vector.hpp"
+#include "string.hpp"
+#include "thread.hpp"
+#include "mprfile.hpp"
+#include "texture.hpp"
+#include "material.hpp"
+#include "scenenode.hpp"
+#include "renderqueue.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,4 +85,4 @@ extern ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain,
 }
 #endif
 
-#endif /* CE_TERRAIN_H */
+#endif /* CE_TERRAIN_HPP */

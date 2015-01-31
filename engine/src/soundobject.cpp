@@ -20,8 +20,8 @@
 
 #include <assert.h>
 
-#include "cesoundmanager.h"
-#include "cesoundobject.h"
+#include "soundmanager.hpp"
+#include "soundobject.hpp"
 
 ce_sound_object ce_sound_object_new(const char* name)
 {

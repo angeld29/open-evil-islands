@@ -22,10 +22,10 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cesoundresource.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "soundresource.hpp"
 
 extern const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT;
 extern const ce_sound_resource_vtable ce_sound_resource_builtins[];

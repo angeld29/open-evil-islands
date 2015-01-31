@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_GRAPHICCONTEXT_PLATFORM_H
-#define CE_GRAPHICCONTEXT_PLATFORM_H
+#ifndef CE_GRAPHICCONTEXT_PLATFORM_HPP
+#define CE_GRAPHICCONTEXT_PLATFORM_HPP
 
 #include <stdbool.h>
 
-#include "cegraphiccontext.h"
-#include "ceglew_posix.h"
+#include "graphiccontext.hpp"
+#include "glew_posix.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,4 +46,4 @@ extern bool ce_graphic_context_make_current(ce_graphic_context* graphic_context,
 }
 #endif
 
-#endif /* CE_GRAPHICCONTEXT_PLATFORM_H */
+#endif /* CE_GRAPHICCONTEXT_PLATFORM_HPP */

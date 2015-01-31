@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cemath.h"
-#include "ceplane.h"
+#include "math.hpp"
+#include "plane.hpp"
 
 bool ce_plane_isect_ray(const ce_plane* plane, const ce_ray* ray, ce_vec3* point)
 {

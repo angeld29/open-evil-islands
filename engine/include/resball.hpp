@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RESBALL_H
-#define CE_RESBALL_H
+#ifndef CE_RESBALL_HPP
+#define CE_RESBALL_HPP
 
-#include "cememfile.h"
-#include "ceresfile.h"
+#include "memfile.hpp"
+#include "resfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,4 +62,4 @@ extern void ce_res_ball_clean_all_res_files(ce_res_file* res_file, ce_res_file* 
 }
 #endif
 
-#endif /* CE_RESBALL_H */
+#endif /* CE_RESBALL_HPP */

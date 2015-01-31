@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_LIB_H
-#define CE_LIB_H
+#ifndef CE_LIB_HPP
+#define CE_LIB_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -131,4 +131,4 @@ static inline void ce_pass(void) {}
 #undef CE_LIB_DEF_MAX
 #undef CE_LIB_DEF_MIN
 
-#endif /* CE_LIB_H */
+#endif /* CE_LIB_HPP */

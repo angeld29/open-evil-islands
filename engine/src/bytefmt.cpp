@@ -20,8 +20,8 @@
 
 #include <stdio.h>
 
-#include "cestr.h"
-#include "cebytefmt.h"
+#include "str.hpp"
+#include "bytefmt.hpp"
 
 char* ce_bytefmt_size(char* buffer, size_t size, long long int bytes)
 {

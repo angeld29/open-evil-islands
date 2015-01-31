@@ -22,14 +22,14 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cepath.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceresfile.h"
-#include "ceresball.h"
-#include "ceevent.h"
-#include "ceoptionmanager.h"
-#include "cesoundmanager.h"
+#include "path.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "resfile.hpp"
+#include "resball.hpp"
+#include "event.hpp"
+#include "optionmanager.hpp"
+#include "soundmanager.hpp"
 
 typedef struct {
     ce_hash_key hash_key;

@@ -27,10 +27,10 @@
 #include <X11/extensions/xf86vmode.h>
 #include <X11/extensions/Xrandr.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "cedisplay.h"
-#include "cedisplay_posix.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "display.hpp"
+#include "display_posix.hpp"
 
 // XFree86 VidMode, see xf86vidmode(3) for more details
 typedef struct {

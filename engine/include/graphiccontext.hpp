@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_GRAPHICCONTEXT_H
-#define CE_GRAPHICCONTEXT_H
+#ifndef CE_GRAPHICCONTEXT_HPP
+#define CE_GRAPHICCONTEXT_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,4 +37,4 @@ extern void ce_graphic_context_visual_info(int id, int db, int sz, int r,
 }
 #endif
 
-#endif /* CE_GRAPHICCONTEXT_H */
+#endif /* CE_GRAPHICCONTEXT_HPP */

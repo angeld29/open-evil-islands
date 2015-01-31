@@ -20,7 +20,7 @@
 
 #include <assert.h>
 
-#include "cesoundsystem.h"
+#include "soundsystem.hpp"
 
 ce_sound_system_vtable ce_sound_system_platform(void)
 {

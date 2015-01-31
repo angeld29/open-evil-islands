@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cealloc.h"
-#include "cematerial.h"
+#include "alloc.hpp"
+#include "material.hpp"
 
 ce_material* ce_material_new(void)
 {

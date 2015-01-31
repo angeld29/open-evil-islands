@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_ERROR_PLATFORM_H
-#define CE_ERROR_PLATFORM_H
+#ifndef CE_ERROR_PLATFORM_HPP
+#define CE_ERROR_PLATFORM_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,4 +31,4 @@ extern void ce_error_report_windows_last(const char* module);
 }
 #endif
 
-#endif /* CE_ERROR_PLATFORM_H */
+#endif /* CE_ERROR_PLATFORM_HPP */

@@ -23,12 +23,12 @@
 #include <math.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cemath.h"
-#include "ceplane.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cemprhelper.h"
+#include "lib.hpp"
+#include "math.hpp"
+#include "plane.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "mprhelper.hpp"
 
 const float CE_MPR_OFFSET_XZ_COEF = 1.0f / (INT8_MAX - INT8_MIN);
 const float CE_MPR_HEIGHT_Y_COEF = 1.0f / (UINT16_MAX - 0);

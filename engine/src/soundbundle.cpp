@@ -20,8 +20,8 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "cesoundbundle.h"
+#include "alloc.hpp"
+#include "soundbundle.hpp"
 
 ce_sound_bundle* ce_sound_bundle_new(void)
 {

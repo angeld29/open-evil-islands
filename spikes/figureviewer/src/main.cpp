@@ -24,14 +24,14 @@
 #include <string.h>
 #include <math.h>
 
-#include "celib.h"
-#include "cestr.h"
-#include "cemath.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceoptionmanager.h"
-#include "cefiguremanager.h"
-#include "ceroot.h"
+#include "lib.hpp"
+#include "str.hpp"
+#include "math.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "optionmanager.hpp"
+#include "figuremanager.hpp"
+#include "root.hpp"
 
 static ce_optparse* optparse;
 static ce_figentity* figentity;

@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_LOGGING_H
-#define CE_LOGGING_H
+#ifndef CE_LOGGING_HPP
+#define CE_LOGGING_HPP
 
 #include <stdarg.h>
 
@@ -72,4 +72,4 @@ CE_LOGGING_DEF_PROC_VA(write, CE_LOGGING_LEVEL_WRITE)
 
 #undef CE_LOGGING_DEF_PROC_VA
 
-#endif /* CE_LOGGING_H */
+#endif /* CE_LOGGING_HPP */

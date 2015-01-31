@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_VEC4_H
-#define CE_VEC4_H
+#ifndef CE_VEC4_HPP
+#define CE_VEC4_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,4 +69,4 @@ static inline ce_vec4* ce_vec4_copy(ce_vec4* vec, const ce_vec4* other)
 }
 #endif
 
-#endif /* CE_VEC4_H */
+#endif /* CE_VEC4_HPP */

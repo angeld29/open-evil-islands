@@ -20,8 +20,8 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "ceproperty.h"
+#include "alloc.hpp"
+#include "property.hpp"
 
 ce_property* ce_property_new(const char* name, ce_type type)
 {

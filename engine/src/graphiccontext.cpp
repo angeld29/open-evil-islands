@@ -20,8 +20,8 @@
 
 #include <assert.h>
 
-#include "celogging.h"
-#include "cegraphiccontext.h"
+#include "logging.hpp"
+#include "graphiccontext.hpp"
 
 void ce_graphic_context_visual_info(int id, int db, int sz, int r,
                                     int g, int b, int a, int dp, int st)

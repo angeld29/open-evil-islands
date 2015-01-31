@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_MATH_H
-#define CE_MATH_H
+#ifndef CE_MATH_HPP
+#define CE_MATH_HPP
 
 #include <stdbool.h>
 
@@ -67,4 +67,4 @@ static inline float ce_rad2deg(float angle)
 }
 #endif
 
-#endif /* CE_MATH_H */
+#endif /* CE_MATH_HPP */

@@ -18,15 +18,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_EVENT_H
-#define CE_EVENT_H
+#ifndef CE_EVENT_HPP
+#define CE_EVENT_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "cevector.h"
-#include "cetimer.h"
-#include "cethread.h"
+#include "vector.hpp"
+#include "timer.hpp"
+#include "thread.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -119,4 +119,4 @@ static inline void ce_event_manager_post_call(ce_thread_id thread_id,
 }
 #endif
 
-#endif /* CE_EVENT_H */
+#endif /* CE_EVENT_HPP */

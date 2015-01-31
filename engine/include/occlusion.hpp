@@ -18,12 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_OCCLUSION_H
-#define CE_OCCLUSION_H
+#ifndef CE_OCCLUSION_HPP
+#define CE_OCCLUSION_HPP
 
 #include <stdbool.h>
 
-#include "cebbox.h"
+#include "bbox.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,4 +40,4 @@ extern bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox);
 }
 #endif
 
-#endif /* CE_OCCLUSION_H */
+#endif /* CE_OCCLUSION_HPP */

@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_ERROR_H
-#define CE_ERROR_H
+#ifndef CE_ERROR_HPP
+#define CE_ERROR_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,4 +32,4 @@ extern void ce_error_report_c_errno(int code, const char* module);
 }
 #endif
 
-#endif /* CE_ERROR_H */
+#endif /* CE_ERROR_HPP */

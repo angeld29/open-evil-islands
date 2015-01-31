@@ -23,12 +23,12 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cestr.h"
-#include "cepath.h"
-#include "celogging.h"
-#include "ceconfigfile.h"
-#include "ceregistry.h"
+#include "lib.hpp"
+#include "str.hpp"
+#include "path.hpp"
+#include "logging.hpp"
+#include "configfile.hpp"
+#include "registry.hpp"
 
 static void ce_registry_append_quotes(char* restrict dst, size_t size, const char* restrict src)
 {

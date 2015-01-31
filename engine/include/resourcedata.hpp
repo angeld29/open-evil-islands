@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RESOURCEDATA_H
-#define CE_RESOURCEDATA_H
+#ifndef CE_RESOURCEDATA_HPP
+#define CE_RESOURCEDATA_HPP
 
 #include <stddef.h>
 
@@ -38,4 +38,4 @@ extern const unsigned char* ce_resource_data[];
 }
 #endif
 
-#endif /* CE_RESOURCEDATA_H */
+#endif /* CE_RESOURCEDATA_HPP */

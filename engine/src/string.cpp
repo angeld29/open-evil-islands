@@ -22,8 +22,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cealloc.h"
-#include "cestring.h"
+#include "alloc.hpp"
+#include "string.hpp"
 
 ce_string* ce_string_new(void)
 {

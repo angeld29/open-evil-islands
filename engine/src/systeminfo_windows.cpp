@@ -23,9 +23,9 @@
 
 #include <windows.h>
 
-#include "cestr.h"
-#include "celogging.h"
-#include "cesysteminfo.h"
+#include "str.hpp"
+#include "logging.hpp"
+#include "systeminfo.hpp"
 
 bool ce_system_info_check(void)
 {

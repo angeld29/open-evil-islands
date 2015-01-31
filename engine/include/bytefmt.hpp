@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_BYTEFMT_H
-#define CE_BYTEFMT_H
+#ifndef CE_BYTEFMT_HPP
+#define CE_BYTEFMT_HPP
 
 #ifdef __cplusplus
 extern "C"
@@ -34,4 +34,4 @@ extern char* ce_bytefmt_detail(char* buffer, size_t size, long long int bytes);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_BYTEFMT_H */
+#endif /* CE_BYTEFMT_HPP */

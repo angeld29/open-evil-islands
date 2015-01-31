@@ -21,9 +21,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "cemath.h"
-#include "cealloc.h"
-#include "cerenderqueue.h"
+#include "math.hpp"
+#include "alloc.hpp"
+#include "renderqueue.hpp"
 
 ce_renderqueue* ce_renderqueue_new(void)
 {

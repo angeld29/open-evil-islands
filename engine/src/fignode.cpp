@@ -20,10 +20,10 @@
 
 #include <stdio.h>
 
-#include "cestr.h"
-#include "cealloc.h"
-#include "cefighlp.h"
-#include "cefignode.h"
+#include "str.hpp"
+#include "alloc.hpp"
+#include "fighlp.hpp"
+#include "fignode.hpp"
 
 ce_fignode* ce_fignode_new(ce_res_file* mod_res_file,
                             ce_res_file* bon_res_file,

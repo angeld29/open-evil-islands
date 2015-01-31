@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDMIXER_H
-#define CE_SOUNDMIXER_H
+#ifndef CE_SOUNDMIXER_HPP
+#define CE_SOUNDMIXER_HPP
 
 #include <stdbool.h>
 
-#include "cevector.h"
-#include "cethread.h"
-#include "cesoundbuffer.h"
+#include "vector.hpp"
+#include "thread.hpp"
+#include "soundbuffer.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,4 +47,4 @@ extern void ce_sound_mixer_destroy_buffer(ce_sound_buffer* sound_buffer);
 }
 #endif
 
-#endif /* CE_SOUNDMIXER_H */
+#endif /* CE_SOUNDMIXER_HPP */

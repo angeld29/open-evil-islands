@@ -19,11 +19,11 @@
  */
 
 /*
- *  Registry manipulation.
+ *  Registry manipulation
  */
 
-#ifndef CE_REGISTRY_H
-#define CE_REGISTRY_H
+#ifndef CE_REGISTRY_HPP
+#define CE_REGISTRY_HPP
 
 #include <stddef.h>
 
@@ -43,4 +43,4 @@ extern char* ce_registry_get_path_value(char* value, size_t size, ce_registry_ke
 }
 #endif
 
-#endif /* CE_REGISTRY_H */
+#endif /* CE_REGISTRY_HPP */

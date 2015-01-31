@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SYSTEMINFO_H
-#define CE_SYSTEMINFO_H
+#ifndef CE_SYSTEMINFO_HPP
+#define CE_SYSTEMINFO_HPP
 
 #include <stdbool.h>
 
@@ -33,4 +33,4 @@ extern bool ce_system_info_check(void);
 }
 #endif
 
-#endif /* CE_SYSTEMINFO_H */
+#endif /* CE_SYSTEMINFO_HPP */

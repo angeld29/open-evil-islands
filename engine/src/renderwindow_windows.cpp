@@ -26,11 +26,11 @@
 
 #include <ddk/hidusage.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "cedisplay_windows.h"
-#include "cegraphiccontext_windows.h"
-#include "cerenderwindow.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "display_windows.hpp"
+#include "graphiccontext_windows.hpp"
+#include "renderwindow.hpp"
 
 #ifndef MAPVK_VSC_TO_VK_EX
 #define MAPVK_VSC_TO_VK_EX 3

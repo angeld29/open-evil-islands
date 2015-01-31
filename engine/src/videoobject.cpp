@@ -21,8 +21,8 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "cevideomanager.h"
-#include "cevideoobject.h"
+#include "videomanager.hpp"
+#include "videoobject.hpp"
 
 ce_video_object ce_video_object_new(const char* name)
 {
@@ -32,7 +32,6 @@ ce_video_object ce_video_object_new(const char* name)
 
 void ce_video_object_del(ce_video_object CE_UNUSED(video_object))
 {
-    // TODO
 }
 
 void ce_video_object_advance(ce_video_object video_object, float elapsed)

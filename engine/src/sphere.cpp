@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cesphere.h"
+#include "sphere.hpp"
 
 ce_sphere*
 ce_sphere_init(ce_sphere* sphere, const ce_vec3* origin, float radius)

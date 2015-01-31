@@ -20,9 +20,9 @@
 
 #include <assert.h>
 
-#include "cebyteorder.h"
-#include "cealloc.h"
-#include "cefigfile.h"
+#include "byteorder.hpp"
+#include "alloc.hpp"
+#include "figfile.hpp"
 
 static float ce_figfile_value_fig1(const float* params, size_t CE_UNUSED(stride),
                                     const ce_complection* CE_UNUSED(complection))

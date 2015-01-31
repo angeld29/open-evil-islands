@@ -27,7 +27,7 @@
 #include <windows.h>
 #endif
 
-#include "cesystemevent.h"
+#include "systemevent.hpp"
 
 static void (*ce_system_event_handler)(ce_system_event_type type);
 

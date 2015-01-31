@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_BITOP_H
-#define CE_BITOP_H
+#ifndef CE_BITOP_HPP
+#define CE_BITOP_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -78,4 +78,4 @@ CE_BITOP_DEF_ALL(uint32_t)
 #undef CE_BITOP_DEF_BITCLR
 #undef CE_BITOP_DEF_BITSET
 
-#endif /* CE_BITOP_H */
+#endif /* CE_BITOP_HPP */

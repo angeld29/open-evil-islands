@@ -18,15 +18,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDINSTANCE_H
-#define CE_SOUNDINSTANCE_H
+#ifndef CE_SOUNDINSTANCE_HPP
+#define CE_SOUNDINSTANCE_HPP
 
 #include <stdbool.h>
 
-#include "cesoundstate.h"
-#include "cesoundbundle.h"
-#include "cesoundbuffer.h"
-#include "cesoundresource.h"
+#include "soundstate.hpp"
+#include "soundbundle.hpp"
+#include "soundbuffer.hpp"
+#include "soundresource.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,4 +48,4 @@ extern void ce_sound_instance_change_state(ce_sound_instance* sound_instance, in
 }
 #endif
 
-#endif /* CE_SOUNDINSTANCE_H */
+#endif /* CE_SOUNDINSTANCE_HPP */

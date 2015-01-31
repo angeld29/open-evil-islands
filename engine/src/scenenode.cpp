@@ -21,11 +21,11 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "cerendersystem.h"
-#include "ceroot.h"
-#include "cescenenode.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "rendersystem.hpp"
+#include "root.hpp"
+#include "scenenode.hpp"
 
 ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 {

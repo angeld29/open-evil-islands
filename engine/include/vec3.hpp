@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_VEC3_H
-#define CE_VEC3_H
+#ifndef CE_VEC3_HPP
+#define CE_VEC3_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -224,4 +224,4 @@ extern ce_vec3* ce_vec3_ceil(ce_vec3* vec, const ce_vec3* lhs,
 }
 #endif
 
-#endif /* CE_VEC3_H */
+#endif /* CE_VEC3_HPP */

@@ -22,14 +22,14 @@
  *  doc/formats/res.txt
  */
 
-#ifndef CE_RESFILE_H
-#define CE_RESFILE_H
+#ifndef CE_RESFILE_HPP
+#define CE_RESFILE_HPP
 
 #include <stdint.h>
 #include <time.h>
 
-#include "cestring.h"
-#include "cememfile.h"
+#include "string.hpp"
+#include "memfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,4 +85,4 @@ extern void* ce_res_file_node_data(ce_res_file* res_file, size_t index);
 }
 #endif
 
-#endif /* CE_RESFILE_H */
+#endif /* CE_RESFILE_HPP */

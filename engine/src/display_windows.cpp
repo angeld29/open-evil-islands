@@ -23,10 +23,10 @@
 
 #include <windows.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "cedisplay.h"
-#include "cedisplay_windows.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "display.hpp"
+#include "display_windows.hpp"
 
 typedef struct {
     ce_vector* modes;

@@ -18,12 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_TRIANGLE_H
-#define CE_TRIANGLE_H
+#ifndef CE_TRIANGLE_HPP
+#define CE_TRIANGLE_HPP
 
 #include <stdbool.h>
 
-#include "cevec3.h"
+#include "vec3.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,4 +58,4 @@ extern bool ce_triangle_test(const ce_triangle* triangle, const ce_vec3* point);
 }
 #endif
 
-#endif /* CE_TRIANGLE_H */
+#endif /* CE_TRIANGLE_HPP */

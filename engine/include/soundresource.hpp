@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDRESOURCE_H
-#define CE_SOUNDRESOURCE_H
+#ifndef CE_SOUNDRESOURCE_HPP
+#define CE_SOUNDRESOURCE_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "cememfile.h"
-#include "cesoundformat.h"
+#include "memfile.hpp"
+#include "soundformat.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,4 +80,4 @@ extern bool ce_sound_resource_reset(ce_sound_resource* sound_resource);
 }
 #endif
 
-#endif /* CE_SOUNDRESOURCE_H */
+#endif /* CE_SOUNDRESOURCE_HPP */

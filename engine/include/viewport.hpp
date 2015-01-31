@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_VIEWPORT_H
-#define CE_VIEWPORT_H
+#ifndef CE_VIEWPORT_HPP
+#define CE_VIEWPORT_HPP
 
 #ifdef __cplusplus
 extern "C"
@@ -44,4 +44,4 @@ extern void ce_viewport_set_rect(ce_viewport* viewport,
 }
 #endif /* __cplusplus */
 
-#endif /* CE_VIEWPORT_H */
+#endif /* CE_VIEWPORT_HPP */

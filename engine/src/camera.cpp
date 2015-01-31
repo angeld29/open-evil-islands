@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cealloc.h"
-#include "cecamera.h"
+#include "alloc.hpp"
+#include "camera.hpp"
 
 ce_camera* ce_camera_new(void)
 {

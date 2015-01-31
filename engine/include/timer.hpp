@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_TIMER_H
-#define CE_TIMER_H
+#ifndef CE_TIMER_HPP
+#define CE_TIMER_HPP
 
 #ifdef __cplusplus
 extern "C"
@@ -41,4 +41,4 @@ extern float ce_timer_advance(ce_timer* timer);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_TIMER_H */
+#endif /* CE_TIMER_HPP */

@@ -21,9 +21,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "celogging.h"
-#include "cewave.h"
+#include "lib.hpp"
+#include "logging.hpp"
+#include "wave.hpp"
 
 static const char* ce_wave_four_cc_riff = "RIFF";
 static const char* ce_wave_four_cc_wave = "WAVE";

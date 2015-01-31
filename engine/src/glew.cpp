@@ -18,6 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ceglew.h"
+#include "glew.hpp"
 
 CE_THREAD GLEWContext ce_glew_context;

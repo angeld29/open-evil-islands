@@ -18,15 +18,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_PATH_H
-#define CE_PATH_H
+#ifndef CE_PATH_HPP
+#define CE_PATH_HPP
 
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "cestring.h"
-#include "cevector.h"
+#include "string.hpp"
+#include "vector.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,4 +59,4 @@ extern char* ce_path_find_special1(char* path, size_t size, const char* prefix, 
 }
 #endif
 
-#endif /* CE_PATH_H */
+#endif /* CE_PATH_HPP */

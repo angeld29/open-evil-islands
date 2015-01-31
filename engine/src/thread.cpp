@@ -20,10 +20,10 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceevent.h"
-#include "cethread.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "event.hpp"
+#include "thread.hpp"
 
 struct ce_thread_pool* ce_thread_pool;
 

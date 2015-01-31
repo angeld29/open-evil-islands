@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_TRANSFORM_H
-#define CE_TRANSFORM_H
+#ifndef CE_TRANSFORM_HPP
+#define CE_TRANSFORM_HPP
 
-#include "cevec3.h"
-#include "cequat.h"
+#include "vec3.hpp"
+#include "quat.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,4 +68,4 @@ static inline ce_transform* ce_transform_copy(ce_transform* transform,
 }
 #endif
 
-#endif /* CE_TRANSFORM_H */
+#endif /* CE_TRANSFORM_HPP */

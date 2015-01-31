@@ -20,8 +20,8 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "cevector.h"
+#include "alloc.hpp"
+#include "vector.hpp"
 
 ce_vector* ce_vector_new(void)
 {

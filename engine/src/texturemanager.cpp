@@ -22,13 +22,13 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "cestr.h"
-#include "cepath.h"
-#include "ceresfile.h"
-#include "ceoptionmanager.h"
-#include "cetexturemanager.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "str.hpp"
+#include "path.hpp"
+#include "resfile.hpp"
+#include "optionmanager.hpp"
+#include "texturemanager.hpp"
 
 struct ce_texture_manager* ce_texture_manager;
 

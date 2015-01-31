@@ -21,7 +21,7 @@
 #include <math.h>
 #include <assert.h>
 
-#include "cemath.h"
+#include "math.hpp"
 
 const float CE_PI = 3.14159265f;
 const float CE_PI2 = 6.28318531f;

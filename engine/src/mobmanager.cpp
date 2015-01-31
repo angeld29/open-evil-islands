@@ -22,11 +22,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "cepath.h"
-#include "ceoptionmanager.h"
-#include "cemobmanager.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "path.hpp"
+#include "optionmanager.hpp"
+#include "mobmanager.hpp"
 
 struct ce_mob_manager* ce_mob_manager;
 

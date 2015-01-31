@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_CONFIGFILE_H
-#define CE_CONFIGFILE_H
+#ifndef CE_CONFIGFILE_HPP
+#define CE_CONFIGFILE_HPP
 
-#include "cevector.h"
-#include "cestring.h"
+#include "vector.hpp"
+#include "string.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,4 +80,4 @@ extern const char* ce_config_file_find(ce_config_file* config_file,
 }
 #endif
 
-#endif /* CE_CONFIGFILE_H */
+#endif /* CE_CONFIGFILE_HPP */

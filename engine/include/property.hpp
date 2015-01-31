@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_PROPERTY_H
-#define CE_PROPERTY_H
+#ifndef CE_PROPERTY_HPP
+#define CE_PROPERTY_HPP
 
-#include "cestring.h"
-#include "cevalue.h"
+#include "string.hpp"
+#include "value.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -41,4 +41,4 @@ extern void ce_property_del(ce_property* property);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_PROPERTY_H */
+#endif /* CE_PROPERTY_HPP */

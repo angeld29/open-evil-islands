@@ -27,8 +27,8 @@
 #include <math.h>
 #include <assert.h>
 
-#include "cemath.h"
-#include "ceaabb.h"
+#include "math.hpp"
+#include "aabb.hpp"
 
 ce_aabb* ce_aabb_init(ce_aabb* aabb, const ce_vec3* origin,
                         const ce_vec3* extents, float radius)

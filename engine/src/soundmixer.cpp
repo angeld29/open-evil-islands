@@ -22,12 +22,12 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceevent.h"
-#include "cesoundsystem.h"
-#include "cesoundmixer.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "event.hpp"
+#include "soundsystem.hpp"
+#include "soundmixer.hpp"
 
 struct ce_sound_mixer* ce_sound_mixer;
 

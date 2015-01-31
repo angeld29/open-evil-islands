@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_GLEW_H
-#define CE_GLEW_H
+#ifndef CE_GLEW_HPP
+#define CE_GLEW_HPP
 
 #define GLEW_STATIC
 #define GLEW_MX
@@ -38,4 +38,4 @@ extern CE_THREAD GLEWContext ce_glew_context;
 }
 #endif
 
-#endif /* CE_GLEW_H */
+#endif /* CE_GLEW_HPP */

@@ -23,11 +23,11 @@
 #include <ctype.h>
 #include <assert.h>
 
-#include "cestr.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cebyteorder.h"
-#include "ceresfile.h"
+#include "str.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "byteorder.hpp"
+#include "resfile.hpp"
 
 static const uint32_t CE_RES_SIGNATURE = 0x19ce23c;
 

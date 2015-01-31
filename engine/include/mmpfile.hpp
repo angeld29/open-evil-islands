@@ -22,14 +22,14 @@
  *  doc/formats/mmp.txt
  */
 
-#ifndef CE_MMPFILE_H
-#define CE_MMPFILE_H
+#ifndef CE_MMPFILE_HPP
+#define CE_MMPFILE_HPP
 
 #include <stddef.h>
 #include <stdint.h>
 
-#include "cememfile.h"
-#include "ceresfile.h"
+#include "memfile.hpp"
+#include "resfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -94,4 +94,4 @@ extern void ce_mmpfile_convert2(ce_mmpfile* mmpfile, ce_mmpfile* other);
 }
 #endif
 
-#endif /* CE_MMPFILE_H */
+#endif /* CE_MMPFILE_HPP */

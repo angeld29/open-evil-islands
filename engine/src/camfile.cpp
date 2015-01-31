@@ -20,9 +20,9 @@
 
 #include <assert.h>
 
-#include "cealloc.h"
-#include "celogging.h"
-#include "cecamfile.h"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "camfile.hpp"
 
 ce_cam_file* ce_cam_file_new(ce_mem_file* mem_file)
 {

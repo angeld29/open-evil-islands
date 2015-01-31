@@ -20,9 +20,9 @@
 
 #include <math.h>
 
-#include "cemath.h"
-#include "cequat.h"
-#include "cevec3.h"
+#include "math.hpp"
+#include "quat.hpp"
+#include "vec3.hpp"
 
 const ce_vec3 CE_VEC3_ZERO = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 const ce_vec3 CE_VEC3_UNIT_X = {.x = 1.0f, .y = 0.0f, .z = 0.0f};

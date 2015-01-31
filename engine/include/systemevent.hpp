@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SYSTEMEVENT_H
-#define CE_SYSTEMEVENT_H
+#ifndef CE_SYSTEMEVENT_HPP
+#define CE_SYSTEMEVENT_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,4 +42,4 @@ extern void ce_system_event_register(void (*handler)(ce_system_event_type type))
 }
 #endif
 
-#endif /* CE_SYSTEMEVENT_H */
+#endif /* CE_SYSTEMEVENT_HPP */

@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ceatomic.h"
+#include "atomic.hpp"
 
 #define CE_ATOMIC_DEF_FETCH_AND_OP(type, op) \
 type ce_atomic_fetch_and_##op##_##type(type* ptr, type value) \

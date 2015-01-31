@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_OPTPARSE_H
-#define CE_OPTPARSE_H
+#ifndef CE_OPTPARSE_HPP
+#define CE_OPTPARSE_HPP
 
 #include <stdbool.h>
 
-#include "cevector.h"
-#include "cestring.h"
-#include "ceobject.h"
+#include "vector.hpp"
+#include "string.hpp"
+#include "object.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -64,4 +64,4 @@ extern bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[]);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_OPTPARSE_H */
+#endif /* CE_OPTPARSE_HPP */

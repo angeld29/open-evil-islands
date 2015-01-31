@@ -18,10 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_VALUE_H
-#define CE_VALUE_H
+#ifndef CE_VALUE_HPP
+#define CE_VALUE_HPP
 
-#include "cestring.h"
+#include "string.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -104,4 +104,4 @@ static inline void ce_value_set_string(ce_value* value, const char* arg)
 }
 #endif
 
-#endif /* CE_VALUE_H */
+#endif /* CE_VALUE_HPP */

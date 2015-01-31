@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDSTATE_H
-#define CE_SOUNDSTATE_H
+#ifndef CE_SOUNDSTATE_HPP
+#define CE_SOUNDSTATE_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,4 +35,4 @@ enum {
 }
 #endif
 
-#endif /* CE_SOUNDSTATE_H */
+#endif /* CE_SOUNDSTATE_HPP */

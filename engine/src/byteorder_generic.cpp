@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cebyteorder.h"
+#include "byteorder.hpp"
 
 uint16_t ce_cpu2le16(uint16_t v)
 {

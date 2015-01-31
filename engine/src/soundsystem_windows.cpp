@@ -25,11 +25,11 @@
 #include <mmsystem.h>
 #include <mmreg.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceerror_windows.h"
-#include "cesoundsystem.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "error_windows.hpp"
+#include "soundsystem.hpp"
 
 enum {
     CE_SOUND_SYSTEM_HEADER_COUNT = 8,

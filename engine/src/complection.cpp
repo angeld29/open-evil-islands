@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cemath.h"
-#include "cecomplection.h"
+#include "math.hpp"
+#include "complection.hpp"
 
 ce_complection*
 ce_complection_init(ce_complection* complection,

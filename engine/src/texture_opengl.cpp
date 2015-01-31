@@ -25,13 +25,13 @@
 #include <math.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cemath.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "cebyteorder.h"
-#include "ceopengl.h"
-#include "cetexture.h"
+#include "lib.hpp"
+#include "math.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "byteorder.hpp"
+#include "opengl.hpp"
+#include "texture.hpp"
 
 typedef struct {
     GLuint id;

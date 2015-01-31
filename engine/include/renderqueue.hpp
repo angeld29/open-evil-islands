@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RENDERQUEUE_H
-#define CE_RENDERQUEUE_H
+#ifndef CE_RENDERQUEUE_HPP
+#define CE_RENDERQUEUE_HPP
 
-#include "cevector.h"
-#include "cerendergroup.h"
+#include "vector.hpp"
+#include "rendergroup.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -47,4 +47,4 @@ extern void ce_renderqueue_render(ce_renderqueue* renderqueue);
 }
 #endif /* __cplusplus */
 
-#endif /* CE_RENDERQUEUE_H */
+#endif /* CE_RENDERQUEUE_HPP */

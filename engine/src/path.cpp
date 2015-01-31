@@ -22,9 +22,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cestr.h"
-#include "cepath.h"
+#include "lib.hpp"
+#include "str.hpp"
+#include "path.hpp"
 
 char* ce_path_join_va(char* path, size_t size, va_list args)
 {

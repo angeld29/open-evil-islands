@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDBUFFER_H
-#define CE_SOUNDBUFFER_H
+#ifndef CE_SOUNDBUFFER_HPP
+#define CE_SOUNDBUFFER_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "cethread.h"
-#include "cesoundformat.h"
+#include "thread.hpp"
+#include "soundformat.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,4 +72,4 @@ static inline void ce_sound_buffer_read_one_sample(ce_sound_buffer* sound_buffer
 }
 #endif
 
-#endif /* CE_SOUNDBUFFER_H */
+#endif /* CE_SOUNDBUFFER_HPP */

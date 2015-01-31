@@ -22,11 +22,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cestr.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceresourcemanager.h"
-#include "ceshadermanager.h"
+#include "str.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "resourcemanager.hpp"
+#include "shadermanager.hpp"
 
 struct ce_shader_manager* ce_shader_manager;
 

@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_THREAD_H
-#define CE_THREAD_H
+#ifndef CE_THREAD_HPP
+#define CE_THREAD_HPP
 
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "cevector.h"
-#include "ceatomic.h"
+#include "vector.hpp"
+#include "atomic.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -161,4 +161,4 @@ extern void ce_thread_pool_wait_all(void);
 }
 #endif
 
-#endif /* CE_THREAD_H */
+#endif /* CE_THREAD_HPP */

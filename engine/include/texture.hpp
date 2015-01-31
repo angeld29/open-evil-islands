@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_TEXTURE_H
-#define CE_TEXTURE_H
+#ifndef CE_TEXTURE_HPP
+#define CE_TEXTURE_HPP
 
 #include <stdbool.h>
 
-#include "ceatomic.h"
-#include "cestring.h"
-#include "cemmpfile.h"
+#include "atomic.hpp"
+#include "string.hpp"
+#include "mmpfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,4 +67,4 @@ static inline ce_texture* ce_texture_add_ref(ce_texture* texture)
 }
 #endif
 
-#endif /* CE_TEXTURE_H */
+#endif /* CE_TEXTURE_HPP */

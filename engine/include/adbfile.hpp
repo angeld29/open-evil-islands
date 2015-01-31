@@ -22,12 +22,12 @@
  *  doc/formats/adb.txt
  */
 
-#ifndef CE_ADBFILE_H
-#define CE_ADBFILE_H
+#ifndef CE_ADBFILE_HPP
+#define CE_ADBFILE_HPP
 
 #include <stdint.h>
 
-#include "cememfile.h"
+#include "memfile.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,4 +71,4 @@ extern void ce_adb_file_del(ce_adb_file* adb_file);
 }
 #endif
 
-#endif /* CE_ADBFILE_H */
+#endif /* CE_ADBFILE_HPP */

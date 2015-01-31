@@ -18,12 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_OPENGL_H
-#define CE_OPENGL_H
+#ifndef CE_OPENGL_HPP
+#define CE_OPENGL_HPP
 
 #include <stdbool.h>
 
-#include "ceglew.h"
+#include "glew.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,4 +35,4 @@ extern bool ce_opengl_report_errors(void);
 }
 #endif
 
-#endif /* CE_OPENGL_H */
+#endif /* CE_OPENGL_HPP */

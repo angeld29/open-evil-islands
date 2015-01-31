@@ -18,9 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cealloc.h"
-#include "cerendersystem.h"
-#include "cerenderlayer.h"
+#include "alloc.hpp"
+#include "rendersystem.hpp"
+#include "renderlayer.hpp"
 
 ce_renderlayer* ce_renderlayer_new(ce_texture* texture)
 {

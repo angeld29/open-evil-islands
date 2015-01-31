@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cemath.h"
-#include "cecolor.h"
+#include "math.hpp"
+#include "color.hpp"
 
 const ce_color CE_COLOR_BLACK = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 1.0f};
 const ce_color CE_COLOR_WHITE = {.r = 1.0f, .g = 1.0f, .b = 1.0f, .a = 1.0f};

@@ -21,9 +21,9 @@
 #include <math.h>
 #include <assert.h>
 
-#include "cestr.h"
-#include "cealloc.h"
-#include "ceanmstate.h"
+#include "str.hpp"
+#include "alloc.hpp"
+#include "anmstate.hpp"
 
 ce_anmstate* ce_anmstate_new(void)
 {

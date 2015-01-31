@@ -23,10 +23,10 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "celib.h"
-#include "cealloc.h"
-#include "celogging.h"
-#include "ceevent.h"
+#include "lib.hpp"
+#include "alloc.hpp"
+#include "logging.hpp"
+#include "event.hpp"
 
 struct ce_event_manager* ce_event_manager;
 
