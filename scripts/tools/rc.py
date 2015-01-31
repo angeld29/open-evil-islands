@@ -53,7 +53,7 @@ cache_header = \
 
 def emit_rc(target, source, env):
     srcname = os.path.splitext(source[0].name)[0]
-    tgtname = SCons.Util.adjustixes(srcname, "", "_data")
+    tgtname = SCons.Util.adjustixes(srcname, "", "data")
     excludes = get_paths(source[0])
 
     # save absolute resource root path especially for builder because
@@ -135,7 +135,7 @@ def generate(env):
         RCSUFFIX=".cerc",
 
         RCSOURCEPREFIX="",
-        RCSOURCESUFFIX=".c",
+        RCSOURCESUFFIX=".cpp",
         RCSOURCESRCSUFFIX=".cerccache",
     )
 
