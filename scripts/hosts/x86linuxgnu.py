@@ -28,6 +28,7 @@ import platforms.posix
 
 def configure(env):
     env["CE_LINUX_BIT"] = True
+    env["CE_X11_BIT"] = True
 
     if env["PLATFORM"] != "posix": # TODO: SCons PLATFORM variable is weak
         utils.interrupt("%s: this host is available only on Linux", env["HOST"])

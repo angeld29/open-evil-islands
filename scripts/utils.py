@@ -44,6 +44,7 @@ def get_nodes(paths, patterns, env):
 bit_suffix_map = [
     ("CE_LINUX_BIT", "linux"),
     ("CE_POSIX_BIT", "posix"),
+    ("CE_X11_BIT", "x11"),
     ("CE_WINDOWS_BIT", "windows"),
     ("CE_GNUC_BIT", "gnuc"),
     ("CE_MINGW_BIT", "mingw"),
