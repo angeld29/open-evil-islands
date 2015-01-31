@@ -21,10 +21,6 @@
 #ifndef CE_VIDEOOBJECT_HPP
 #define CE_VIDEOOBJECT_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef unsigned long int ce_video_object;
 
 extern ce_video_object ce_video_object_new(const char* name);
@@ -40,9 +36,5 @@ extern bool ce_video_object_is_stopped(ce_video_object video_object);
 extern void ce_video_object_play(ce_video_object video_object);
 extern void ce_video_object_pause(ce_video_object video_object);
 extern void ce_video_object_stop(ce_video_object video_object);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_VIDEOOBJECT_HPP */

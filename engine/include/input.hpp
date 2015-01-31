@@ -32,10 +32,6 @@
 #include "vec2.hpp"
 #include "vector.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     CE_IB_UNKNOWN,
     CE_KB_ESCAPE, CE_KB_F1, CE_KB_F2, CE_KB_F3, CE_KB_F4, CE_KB_F5, CE_KB_F6,
@@ -145,9 +141,5 @@ extern ce_input_event* ce_input_supply_repeat(ce_input_supply* input_supply,
 
 extern ce_input_event* ce_input_supply_shortcut(ce_input_supply* input_supply,
                                                 const char* key_sequence);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_INPUT_HPP */

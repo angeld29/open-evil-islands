@@ -25,19 +25,11 @@
 
 #include "bbox.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct ce_occlusion ce_occlusion;
 
 extern ce_occlusion* ce_occlusion_new(void);
 extern void ce_occlusion_del(ce_occlusion* occlusion);
 
 extern bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_OCCLUSION_HPP */

@@ -24,10 +24,6 @@
 #include "vec3.hpp"
 #include "quat.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     ce_vec3 translation;
     ce_quat rotation;
@@ -63,9 +59,5 @@ static inline ce_transform* ce_transform_copy(ce_transform* transform,
     ce_vec3_copy(&transform->scaling, &other->scaling);
     return transform;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_TRANSFORM_HPP */

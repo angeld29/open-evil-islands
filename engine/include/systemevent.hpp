@@ -21,10 +21,6 @@
 #ifndef CE_SYSTEMEVENT_HPP
 #define CE_SYSTEMEVENT_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     CE_SYSTEM_EVENT_TYPE_INT,
     CE_SYSTEM_EVENT_TYPE_TERM,
@@ -37,9 +33,5 @@ typedef enum {
 } ce_system_event_type;
 
 extern void ce_system_event_register(void (*handler)(ce_system_event_type type));
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SYSTEMEVENT_HPP */

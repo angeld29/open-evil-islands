@@ -27,10 +27,6 @@
 #include "atomic.hpp"
 #include "string.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     CE_SHADER_TYPE_UNKNOWN,
     CE_SHADER_TYPE_VERTEX,
@@ -64,9 +60,5 @@ static inline ce_shader* ce_shader_add_ref(ce_shader* shader)
     ce_atomic_inc(int, &shader->ref_count);
     return shader;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SHADER_HPP */

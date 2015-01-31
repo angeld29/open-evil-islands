@@ -27,15 +27,7 @@
 #ifndef CE_AVCODEC_HPP
 #define CE_AVCODEC_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern void ce_avcodec_init(void);
 extern void ce_avcodec_term(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_AVCODEC_HPP */

@@ -21,17 +21,8 @@
 #ifndef CE_BYTEFMT_HPP
 #define CE_BYTEFMT_HPP
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 extern char* ce_bytefmt_size(char* buffer, size_t size, long long int bytes);
 extern char* ce_bytefmt_dot(char* buffer, size_t size, long long int bytes);
 extern char* ce_bytefmt_detail(char* buffer, size_t size, long long int bytes);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_BYTEFMT_HPP */

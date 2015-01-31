@@ -21,10 +21,6 @@
 #ifndef CE_VEC2_HPP
 #define CE_VEC2_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     float x, y;
 } ce_vec2;
@@ -120,9 +116,5 @@ static inline ce_vec2* ce_vec2_neg(ce_vec2* vec, const ce_vec2* other)
     vec->y = -other->y;
     return vec;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_VEC2_HPP */

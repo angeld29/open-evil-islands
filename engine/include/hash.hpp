@@ -24,10 +24,6 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef unsigned long int ce_hash_key;
 
 typedef struct ce_hash_entry {
@@ -71,9 +67,5 @@ extern void ce_hash_for_each_key(ce_hash* hash, void (*func)(ce_hash_key));
 
 extern void ce_hash_iter_first(ce_hash_iter* iter, ce_hash* hash);
 extern void ce_hash_iter_next(ce_hash_iter* iter);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_HASH_HPP */

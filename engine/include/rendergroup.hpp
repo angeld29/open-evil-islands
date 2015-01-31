@@ -26,11 +26,6 @@
 #include "texture.hpp"
 #include "renderlayer.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     int priority;
     ce_material* material;
@@ -46,9 +41,5 @@ extern ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup,
                                                 ce_texture* texture);
 
 extern void ce_rendergroup_render(ce_rendergroup* rendergroup);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_RENDERGROUP_HPP */

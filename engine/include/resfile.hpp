@@ -31,10 +31,6 @@
 #include "string.hpp"
 #include "memfile.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     ce_string* name;
     int32_t next_index;
@@ -80,9 +76,5 @@ static inline time_t ce_res_file_node_modified(const ce_res_file* res_file, int 
 }
 
 extern void* ce_res_file_node_data(ce_res_file* res_file, size_t index);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_RESFILE_HPP */

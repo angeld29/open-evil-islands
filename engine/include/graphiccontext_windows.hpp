@@ -24,18 +24,10 @@
 #include "glew_windows.hpp"
 #include "graphiccontext.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ce_graphic_context {
     HGLRC context;
 };
 
 extern ce_graphic_context* ce_graphic_context_new(HDC dc);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_GRAPHICCONTEXT_PLATFORM_HPP */

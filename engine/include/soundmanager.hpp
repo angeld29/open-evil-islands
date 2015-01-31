@@ -28,10 +28,6 @@
 #include "soundinstance.hpp"
 #include "soundbundle.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern struct ce_sound_manager {
     ce_thread_id thread_id;
     ce_hash_key last_hash_key;
@@ -56,9 +52,5 @@ static inline ce_sound_bundle* ce_sound_manager_get_bundle(ce_hash_key hash_key)
 {
     return ce_hash_find(ce_sound_manager->sound_bundles, hash_key);
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SOUNDMANAGER_HPP */

@@ -24,11 +24,6 @@
 #include "vec3.hpp"
 #include "quat.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     float fov;
     float aspect;
@@ -58,9 +53,5 @@ extern void ce_camera_set_orientation(ce_camera* camera,
 extern void ce_camera_move(ce_camera* camera, float xoffset, float zoffset);
 extern void ce_camera_zoom(ce_camera* camera, float offset);
 extern void ce_camera_yaw_pitch(ce_camera* camera, float psi, float theta);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_CAMERA_HPP */

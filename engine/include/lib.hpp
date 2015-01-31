@@ -71,10 +71,6 @@ CE_LIB_DEF_SWAP_TEMP(T)
 #define ce_swap(T, a, b) ce_swap_##T(a, b)
 #define ce_swap_temp(T, a, b) ce_swap_temp_##T(a, b)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 CE_LIB_DEF_ALL(int)
 CE_LIB_DEF_ALL(int16_t)
 CE_LIB_DEF_ALL(int32_t)
@@ -119,10 +115,6 @@ static inline size_t ce_nlpot(size_t v)
 }
 
 static inline void ce_pass(void) {}
-
-#ifdef __cplusplus
-}
-#endif
 
 #undef CE_LIB_DEF_ALL
 #undef CE_LIB_DEF_SWAP_TEMP

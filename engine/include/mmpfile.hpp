@@ -31,10 +31,6 @@
 #include "memfile.hpp"
 #include "resfile.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
     CE_MMPFILE_VERSION = 1
 };
@@ -89,9 +85,5 @@ extern void ce_mmpfile_del(ce_mmpfile* mmpfile);
 extern void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path);
 extern void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format);
 extern void ce_mmpfile_convert2(ce_mmpfile* mmpfile, ce_mmpfile* other);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_MMPFILE_HPP */

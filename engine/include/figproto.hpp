@@ -30,11 +30,6 @@
 #include "fignode.hpp"
 #include "renderqueue.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     int ref_count;
     ce_string* name;
@@ -54,9 +49,5 @@ static inline ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
 
 extern void ce_figproto_accept_renderqueue(ce_figproto* figproto,
                                             ce_renderqueue* renderqueue);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_FIGPROTO_HPP */

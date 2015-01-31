@@ -32,10 +32,6 @@
 #include "videoobject.hpp"
 #include "videoresource.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
     CE_VIDEO_INSTANCE_CACHE_SIZE = 8,
 };
@@ -78,9 +74,5 @@ extern bool ce_video_instance_is_stopped(ce_video_instance* video_instance);
 extern void ce_video_instance_play(ce_video_instance* video_instance);
 extern void ce_video_instance_pause(ce_video_instance* video_instance);
 extern void ce_video_instance_stop(ce_video_instance* video_instance);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_VIDEOINSTANCE_HPP */

@@ -26,11 +26,6 @@
 #include "color.hpp"
 #include "shader.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef enum {
     CE_MATERIAL_MODE_MODULATE,
     CE_MATERIAL_MODE_DECAL,
@@ -52,9 +47,5 @@ typedef struct {
 
 extern ce_material* ce_material_new(void);
 extern void ce_material_del(ce_material* material);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_MATERIAL_HPP */

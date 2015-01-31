@@ -32,10 +32,6 @@
 #include "mprfile.hpp"
 #include "material.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
     CE_MPR_TEXTURE_VERSION = 1
 };
@@ -74,9 +70,5 @@ extern ce_material* ce_mpr_create_material(const ce_mprfile* mprfile, bool water
 extern ce_mmpfile* ce_mpr_generate_texture(const ce_mprfile* mprfile,
                                             const ce_vector* tile_mmp_files,
                                             int x, int z, bool water);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_MPRHELPER_HPP */

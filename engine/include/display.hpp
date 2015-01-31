@@ -27,11 +27,6 @@
 
 #include "vector.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef enum {
     CE_DISPLAY_ROTATION_NONE,
     CE_DISPLAY_ROTATION_0 = 1,
@@ -87,9 +82,5 @@ extern size_t ce_displaymng_enter(ce_displaymng* displaymng,
                                 ce_display_rotation rotation,
                                 ce_display_reflection reflection);
 extern void ce_displaymng_exit(ce_displaymng* displaymng);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_DISPLAY_HPP */

@@ -29,11 +29,6 @@
 #include "bonfile.hpp"
 #include "material.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 extern ce_aabb*
 ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
                     const ce_complection* complection);
@@ -56,9 +51,5 @@ ce_fighlp_get_bone(ce_vec3* position,
                     const ce_complection* complection);
 
 extern ce_material* ce_fighlp_create_material(const ce_figfile* figfile);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_FIGHLP_HPP */

@@ -23,15 +23,6 @@
 
 #include "display.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 extern ce_displaymng* ce_displaymng_create(void);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_DISPLAY_PLATFORM_HPP */

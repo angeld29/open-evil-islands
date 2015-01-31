@@ -30,11 +30,6 @@
 #include "bbox.hpp"
 #include "plane.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef enum {
     CE_FRUSTUM_PLANE_TOP,
     CE_FRUSTUM_PLANE_BOTTOM,
@@ -65,9 +60,5 @@ extern bool ce_frustum_test_aabb(const ce_frustum* frustum,
                                     const ce_aabb* aabb);
 extern bool ce_frustum_test_bbox(const ce_frustum* frustum,
                                     const ce_bbox* bbox);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_FRUSTUM_HPP */

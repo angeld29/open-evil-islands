@@ -31,11 +31,6 @@
 #include "material.hpp"
 #include "renderqueue.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     ce_string* name;
     int index;
@@ -54,9 +49,5 @@ extern void ce_fignode_del(ce_fignode* fignode);
 
 extern void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode,
                                                 ce_renderqueue* renderqueue);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_FIGNODE_HPP */

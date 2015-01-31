@@ -25,10 +25,6 @@
 
 #include "vec3.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     ce_vec3 a, b, c;
 } ce_triangle;
@@ -53,9 +49,5 @@ static inline ce_vec3* ce_triangle_calc_normal(const ce_triangle* triangle, ce_v
 }
 
 extern bool ce_triangle_test(const ce_triangle* triangle, const ce_vec3* point);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_TRIANGLE_HPP */

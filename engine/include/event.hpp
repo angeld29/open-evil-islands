@@ -28,10 +28,6 @@
 #include "timer.hpp"
 #include "thread.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct ce_event {
     void (*notify)(struct ce_event* event);
     size_t size;
@@ -114,9 +110,5 @@ static inline void ce_event_manager_post_call(ce_thread_id thread_id,
 {
     ce_event_manager_post_event(thread_id, ce_event_new(notify, 0));
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_EVENT_HPP */

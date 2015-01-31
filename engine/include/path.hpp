@@ -28,10 +28,6 @@
 #include "string.hpp"
 #include "vector.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
     CE_PATH_MAX = 512,
 };
@@ -54,9 +50,5 @@ extern char* ce_path_append_ext(char* file_name, size_t size, const char* name, 
 extern char* ce_path_remove_ext(char* name, const char* file_name);
 
 extern char* ce_path_find_special1(char* path, size_t size, const char* prefix, const char* name, const char* dirs[], const char* exts[]);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_PATH_HPP */

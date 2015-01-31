@@ -25,10 +25,6 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     size_t capacity;
     size_t length;
@@ -67,9 +63,5 @@ extern size_t ce_string_append(ce_string* string, const char* str);
 extern size_t ce_string_append_n(ce_string* string, const char* str, size_t n);
 extern size_t ce_string_append_va(ce_string* string, const char* fmt, va_list args);
 extern size_t ce_string_append_fmt(ce_string* string, const char* fmt, ...);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_STRING_HPP */

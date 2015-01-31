@@ -31,11 +31,6 @@
 #include "string.hpp"
 #include "resfile.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 enum {
     CE_MPRFILE_MATERIAL_LAND,
     CE_MPRFILE_MATERIAL_WATER,
@@ -89,9 +84,5 @@ typedef struct {
 
 extern ce_mprfile* ce_mprfile_open(ce_res_file* res_file);
 extern void ce_mprfile_close(ce_mprfile* mprfile);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_MPRFILE_HPP */

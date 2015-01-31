@@ -29,10 +29,6 @@
 
 #include "memfile.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     char name[16];
     uint32_t id;
@@ -66,9 +62,5 @@ typedef struct {
 
 extern ce_adb_file* ce_adb_file_new(ce_mem_file* mem_file);
 extern void ce_adb_file_del(ce_adb_file* adb_file);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_ADBFILE_HPP */

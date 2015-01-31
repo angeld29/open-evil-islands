@@ -25,14 +25,6 @@
 
 #include "glew.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern bool ce_opengl_report_errors(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_OPENGL_HPP */

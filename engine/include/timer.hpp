@@ -21,11 +21,6 @@
 #ifndef CE_TIMER_HPP
 #define CE_TIMER_HPP
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     float elapsed;
     char impl[];
@@ -36,9 +31,5 @@ extern void ce_timer_del(ce_timer* timer);
 
 extern void ce_timer_start(ce_timer* timer);
 extern float ce_timer_advance(ce_timer* timer);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_TIMER_HPP */

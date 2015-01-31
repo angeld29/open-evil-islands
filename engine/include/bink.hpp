@@ -33,10 +33,6 @@
 #include "memfile.hpp"
 #include "vector.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
     CE_BINK_REVISION_B = 0x62,
     CE_BINK_REVISION_D = 0x64,
@@ -126,9 +122,5 @@ typedef struct {
     } audio_data[CE_BINK_MAX_AUDIO_TRACKS];
     // video packet here (variable length)
 } ce_bink_frame;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_BINK_HPP */

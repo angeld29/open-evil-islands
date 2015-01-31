@@ -27,10 +27,6 @@
 #include "string.hpp"
 #include "property.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     ce_string* name;
     ce_vector* properties;
@@ -55,9 +51,5 @@ static inline void ce_object_remove(ce_object* object, ce_property* property)
 {
     ce_vector_remove_all(object->properties, property);
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_OBJECT_HPP */

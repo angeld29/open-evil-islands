@@ -26,10 +26,6 @@
 #include "color.hpp"
 #include "rect.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
     CE_CONFIG_LIGHT_GIPAT,
     CE_CONFIG_LIGHT_INGOS,
@@ -110,9 +106,5 @@ extern struct ce_config_manager {
 
 extern void ce_config_manager_init(void);
 extern void ce_config_manager_term(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_CONFIGMANAGER_HPP */

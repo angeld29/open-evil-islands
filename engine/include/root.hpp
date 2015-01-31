@@ -29,11 +29,6 @@
 #include "scenemng.hpp"
 #include "optparse.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-// TODO: use pointer
 extern struct ce_root {
     bool done;
     bool show_bboxes;
@@ -52,9 +47,5 @@ extern struct ce_root {
 
 extern bool ce_root_init(ce_optparse* optparse, int argc, char* argv[]);
 extern int ce_root_exec(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_ROOT_HPP */

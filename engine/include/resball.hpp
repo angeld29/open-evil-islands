@@ -24,10 +24,6 @@
 #include "memfile.hpp"
 #include "resfile.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static inline ce_mem_file* ce_res_ball_extract_mem_file(ce_res_file* res_file, size_t index)
 {
     return ce_mem_file_new_data(ce_res_file_node_data(res_file, index),
@@ -57,9 +53,5 @@ static inline ce_res_file* ce_res_ball_extract_res_file_by_name(ce_res_file* res
 
 extern void ce_res_ball_extract_all_res_files(ce_res_file* res_file, ce_res_file* res_files[]);
 extern void ce_res_ball_clean_all_res_files(ce_res_file* res_file, ce_res_file* res_files[]);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_RESBALL_HPP */

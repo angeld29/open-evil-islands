@@ -24,11 +24,6 @@
 #include "vector.hpp"
 #include "rendergroup.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     ce_vector* rendergroups;
 } ce_renderqueue;
@@ -42,9 +37,5 @@ extern ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue,
                                         int priority, ce_material* material);
 
 extern void ce_renderqueue_render(ce_renderqueue* renderqueue);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_RENDERQUEUE_HPP */

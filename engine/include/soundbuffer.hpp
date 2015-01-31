@@ -27,10 +27,6 @@
 #include "thread.hpp"
 #include "soundformat.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     ce_sound_format sound_format;
     size_t capacity, start, end;
@@ -67,9 +63,5 @@ static inline void ce_sound_buffer_read_one_sample(ce_sound_buffer* sound_buffer
 {
     ce_sound_buffer_read(sound_buffer, buffer, sound_buffer->sound_format.sample_size);
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SOUNDBUFFER_HPP */

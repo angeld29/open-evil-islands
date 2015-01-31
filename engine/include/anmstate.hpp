@@ -26,11 +26,6 @@
 #include "vector.hpp"
 #include "anmfile.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     ce_anmfile* anmfile;
     float frame_count;
@@ -49,9 +44,5 @@ extern bool ce_anmstate_play_animation(ce_anmstate* anmstate,
                                         ce_vector* anmfiles,
                                         const char* name);
 extern void ce_anmstate_stop_animation(ce_anmstate* anmstate);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_ANMSTATE_HPP */

@@ -27,10 +27,6 @@
 #include "memfile.hpp"
 #include "soundformat.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
     CE_SOUND_PROBE_BUFFER_CAPACITY = 1024
 };
@@ -75,9 +71,5 @@ extern void ce_sound_resource_del(ce_sound_resource* sound_resource);
 
 extern size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size);
 extern bool ce_sound_resource_reset(ce_sound_resource* sound_resource);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SOUNDRESOURCE_HPP */

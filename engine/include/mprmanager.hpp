@@ -24,10 +24,6 @@
 #include "string.hpp"
 #include "mprfile.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern struct ce_mpr_manager {
     int stub;
 }* ce_mpr_manager;
@@ -36,9 +32,5 @@ extern void ce_mpr_manager_init(void);
 extern void ce_mpr_manager_term(void);
 
 extern ce_mprfile* ce_mpr_manager_open(const char* name);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_MPRMANAGER_HPP */

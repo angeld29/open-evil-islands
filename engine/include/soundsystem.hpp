@@ -27,10 +27,6 @@
 #include "thread.hpp"
 #include "soundformat.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
     CE_SOUND_SYSTEM_BITS_PER_SAMPLE = 16,
     CE_SOUND_SYSTEM_SAMPLES_PER_SECOND = 44100,
@@ -71,9 +67,5 @@ extern void ce_sound_system_term(void);
 
 extern void* ce_sound_system_map_block(void);
 extern void ce_sound_system_unmap_block(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SOUNDSYSTEM_HPP */

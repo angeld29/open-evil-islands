@@ -28,11 +28,6 @@
 #include "string.hpp"
 #include "resfile.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     ce_string* child_name;
     ce_string* parent_name;
@@ -46,9 +41,5 @@ typedef struct {
 
 extern ce_lnkfile* ce_lnkfile_open(ce_res_file* res_file, const char* name);
 extern void ce_lnkfile_close(ce_lnkfile* lnkfile);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_LNKFILE_HPP */

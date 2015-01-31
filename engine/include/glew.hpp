@@ -28,14 +28,6 @@
 
 #define glewGetContext() (&ce_glew_context)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern CE_THREAD GLEWContext ce_glew_context;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_GLEW_HPP */

@@ -23,11 +23,6 @@
 
 #include "color.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct ce_font ce_font;
 
 extern ce_font* ce_font_new(const char* resource_path, int pixel_size);
@@ -38,9 +33,5 @@ extern int ce_font_get_width(ce_font* font, const char* text);
 
 extern void ce_font_render(ce_font* font, int x, int y,
                             const ce_color* color, const char* text);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_FONT_HPP */

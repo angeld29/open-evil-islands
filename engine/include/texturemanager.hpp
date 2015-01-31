@@ -28,10 +28,6 @@
 #include "mmpfile.hpp"
 #include "texture.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern struct ce_texture_manager {
     ce_vector* res_files;
     ce_vector* textures;
@@ -57,9 +53,5 @@ extern ce_texture* ce_texture_manager_get(const char* name);
 
 // add new texture, not thread-safe
 extern void ce_texture_manager_put(ce_texture* texture);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_TEXTUREMANAGER_HPP */

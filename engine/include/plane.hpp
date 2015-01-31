@@ -27,10 +27,6 @@
 #include "ray.hpp"
 #include "triangle.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     ce_vec3 n;
     float d;
@@ -88,9 +84,5 @@ static inline float ce_plane_dist_ray(const ce_plane* plane, const ce_ray* ray)
 }
 
 extern bool ce_plane_isect_ray(const ce_plane* plane, const ce_ray* ray, ce_vec3* point);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_PLANE_HPP */

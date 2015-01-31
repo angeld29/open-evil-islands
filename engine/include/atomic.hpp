@@ -59,16 +59,8 @@ CE_ATOMIC_DECL_FETCH_AND_OP(T, sub) \
 CE_ATOMIC_DECL_OP_AND_FETCH(T, add) \
 CE_ATOMIC_DECL_OP_AND_FETCH(T, sub)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 CE_ATOMIC_DECL_ALL(int)
 CE_ATOMIC_DECL_ALL(size_t)
-
-#ifdef __cplusplus
-}
-#endif
 
 #undef CE_ATOMIC_DECL_ALL
 #undef CE_ATOMIC_DECL_OP_AND_FETCH

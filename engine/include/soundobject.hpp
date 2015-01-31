@@ -26,10 +26,6 @@
 #include "hash.hpp"
 #include "soundstate.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef ce_hash_key ce_sound_object;
 
 extern ce_sound_object ce_sound_object_new(const char* name);
@@ -48,9 +44,5 @@ static inline bool ce_sound_object_is_stopped(ce_sound_object sound_object)
 {
     return CE_SOUND_STATE_STOPPED == ce_sound_object_get_state(sound_object);
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SOUNDOBJECT_HPP */

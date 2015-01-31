@@ -24,10 +24,6 @@
 #include "vector.hpp"
 #include "mobfile.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     size_t processed_event_count;
     size_t posted_event_count;
@@ -48,9 +44,5 @@ extern void ce_mob_loader_init(void);
 extern void ce_mob_loader_term(void);
 
 extern void ce_mob_loader_load_mob(const char* name);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_MOBLOADER_HPP */

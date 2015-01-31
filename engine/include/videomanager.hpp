@@ -25,10 +25,6 @@
 #include "videoobject.hpp"
 #include "videoinstance.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern struct ce_video_manager {
     ce_video_object last_video_object;
     ce_vector* video_instances;
@@ -41,9 +37,5 @@ extern void ce_video_manager_advance(float elapsed);
 
 extern ce_video_instance* ce_video_manager_create_instance(const char* name);
 extern ce_video_instance* ce_video_manager_find_instance(ce_video_object video_object);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_VIDEOMANAGER_HPP */

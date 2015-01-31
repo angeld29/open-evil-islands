@@ -32,11 +32,6 @@
 #include "renderitem.hpp"
 #include "rendersystem.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     void (*attached)(void* listener);
     void (*detached)(void* listener);
@@ -80,9 +75,5 @@ extern void ce_scenenode_update_cascade(ce_scenenode* scenenode,
                                         const ce_frustum* frustum);
 
 extern void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_SCENENODE_HPP */

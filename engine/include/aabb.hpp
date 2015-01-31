@@ -24,10 +24,6 @@
 #include "vec3.hpp"
 #include "quat.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     ce_vec3 origin, extents;
     float radius;
@@ -48,9 +44,5 @@ extern ce_aabb* ce_aabb_update_radius(ce_aabb* aabb);
 extern ce_aabb* ce_aabb_merge_aabb(ce_aabb* aabb, const ce_aabb* other);
 extern ce_aabb* ce_aabb_merge_point(ce_aabb* aabb, const ce_vec3* point);
 extern ce_aabb* ce_aabb_merge_point_array(ce_aabb* aabb, const float* point);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_AABB_HPP */

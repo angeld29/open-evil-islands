@@ -27,10 +27,6 @@
 #include "string.hpp"
 #include "mmpfile.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     CE_TEXTURE_WRAP_REPEAT,
     CE_TEXTURE_WRAP_CLAMP,
@@ -62,9 +58,5 @@ static inline ce_texture* ce_texture_add_ref(ce_texture* texture)
     ce_atomic_inc(int, &texture->ref_count);
     return texture;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_TEXTURE_HPP */

@@ -30,11 +30,6 @@
 #include "display.hpp"
 #include "graphiccontext.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     unsigned long key;
     ce_input_button button;
@@ -139,9 +134,5 @@ extern void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int widt
 extern void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow);
 
 extern ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_RENDERWINDOW_HPP */

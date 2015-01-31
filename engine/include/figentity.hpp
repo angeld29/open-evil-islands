@@ -32,11 +32,6 @@
 #include "scenenode.hpp"
 #include "renderqueue.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     float height_correction;
     ce_vec3 position;
@@ -63,9 +58,5 @@ extern const char* ce_figentity_get_animation_name(ce_figentity* figentity, int 
 
 extern bool ce_figentity_play_animation(ce_figentity* figentity, const char* name);
 extern void ce_figentity_stop_animation(ce_figentity* figentity);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_FIGENTITY_HPP */

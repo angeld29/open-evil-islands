@@ -27,14 +27,6 @@
 
 #define wglewGetContext() (&ce_wglew_context)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern CE_THREAD WGLEWContext ce_wglew_context;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_GLEW_PLATFORM_HPP */

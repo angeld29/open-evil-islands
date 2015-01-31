@@ -30,11 +30,6 @@
 #include "aabb.hpp"
 #include "bbox.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct ce_renderitem ce_renderitem;
 
 typedef struct {
@@ -68,9 +63,5 @@ extern void ce_renderitem_update(ce_renderitem* renderitem, ...);
 extern void ce_renderitem_render(ce_renderitem* renderitem);
 
 extern ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_RENDERITEM_HPP */

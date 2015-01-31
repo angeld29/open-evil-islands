@@ -27,10 +27,6 @@
 #include "vector.hpp"
 #include "atomic.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern int ce_online_cpu_count(void);
 extern void ce_sleep(unsigned int msec);
 
@@ -156,9 +152,5 @@ extern void ce_thread_pool_enqueue(void (*proc)(), void* arg);
 
 extern void ce_thread_pool_wait_one(void);
 extern void ce_thread_pool_wait_all(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_THREAD_HPP */

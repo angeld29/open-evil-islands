@@ -25,17 +25,8 @@
 #include "fignode.hpp"
 #include "complection.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 extern ce_renderitem*
 ce_figrenderitem_new(const ce_fignode* fignode,
                     const ce_complection* complection);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_FIGRENDERITEM_HPP */

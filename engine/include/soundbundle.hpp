@@ -21,10 +21,6 @@
 #ifndef CE_SOUNDBUNDLE_HPP
 #define CE_SOUNDBUNDLE_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     int state;
     float time;
@@ -32,9 +28,5 @@ typedef struct {
 
 extern ce_sound_bundle* ce_sound_bundle_new(void);
 extern void ce_sound_bundle_del(ce_sound_bundle* sound_bundle);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SOUNDBUNDLE_HPP */

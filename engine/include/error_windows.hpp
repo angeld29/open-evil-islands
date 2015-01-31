@@ -21,14 +21,6 @@
 #ifndef CE_ERROR_PLATFORM_HPP
 #define CE_ERROR_PLATFORM_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern void ce_error_report_windows_last(const char* module);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_ERROR_PLATFORM_HPP */

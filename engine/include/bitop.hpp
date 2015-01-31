@@ -60,17 +60,9 @@ CE_BITOP_DEF_BITCLR(T) \
 CE_BITOP_DEF_BITFLP(T) \
 CE_BITOP_DEF_BITTST(T)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 CE_BITOP_DEF_ALL(uint8_t)
 CE_BITOP_DEF_ALL(uint16_t)
 CE_BITOP_DEF_ALL(uint32_t)
-
-#ifdef __cplusplus
-}
-#endif
 
 #undef CE_BITOP_DEF_ALL
 #undef CE_BITOP_DEF_BITTST

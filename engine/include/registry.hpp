@@ -27,10 +27,6 @@
 
 #include <stddef.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     CE_REGISTRY_KEY_CURRENT_USER,
     CE_REGISTRY_KEY_LOCAL_MACHINE,
@@ -38,9 +34,5 @@ typedef enum {
 
 extern char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
 extern char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_REGISTRY_HPP */

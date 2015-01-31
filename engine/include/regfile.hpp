@@ -31,10 +31,6 @@
 #include "object.hpp"
 #include "memfile.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     ce_vector* sections;
 } ce_reg_file;
@@ -46,9 +42,5 @@ extern ce_value* ce_reg_file_find(ce_reg_file* reg_file,
                                     const char* section_name,
                                     const char* option_name,
                                     size_t index);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_REGFILE_HPP */

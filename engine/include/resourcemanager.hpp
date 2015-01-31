@@ -25,10 +25,6 @@
 #include "resourcedata.hpp"
 #include "resfile.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern struct ce_resource_manager {
     ce_string* path;
     ce_res_file* database;
@@ -39,9 +35,5 @@ extern void ce_resource_manager_init(void);
 extern void ce_resource_manager_term(void);
 
 extern size_t ce_resource_manager_find_data(const char* path);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_RESOURCEMANAGER_HPP */

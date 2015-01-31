@@ -34,10 +34,6 @@
 #include "scenenode.hpp"
 #include "renderqueue.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct ce_terrain ce_terrain;
 
 typedef struct {
@@ -80,9 +76,5 @@ extern void ce_terrain_del(ce_terrain* terrain);
 
 extern ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain,
                                                 float x, float z);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_TERRAIN_HPP */

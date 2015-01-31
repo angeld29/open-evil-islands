@@ -24,10 +24,6 @@
 #include "vector.hpp"
 #include "string.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     ce_string* name;
     ce_string* value;
@@ -75,9 +71,5 @@ static inline const char* ce_config_file_get(ce_config_file* config_file,
 extern const char* ce_config_file_find(ce_config_file* config_file,
                                         const char* section_name,
                                         const char* option_name);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_CONFIGFILE_HPP */

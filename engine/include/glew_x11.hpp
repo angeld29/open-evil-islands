@@ -27,14 +27,6 @@
 
 #define glxewGetContext() (&ce_glxew_context)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern CE_THREAD GLXEWContext ce_glxew_context;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_GLEW_PLATFORM_HPP */

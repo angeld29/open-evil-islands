@@ -23,10 +23,6 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     unsigned int bits_per_sample;
     unsigned int samples_per_second;
@@ -54,9 +50,5 @@ static inline bool ce_sound_format_is_equal(const ce_sound_format* sound_format1
             sound_format1->samples_per_second == sound_format2->samples_per_second &&
             sound_format1->channel_count == sound_format2->channel_count;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SOUNDFORMAT_HPP */

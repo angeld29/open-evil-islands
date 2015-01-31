@@ -27,11 +27,6 @@
 #include "string.hpp"
 #include "object.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     int version_major;
     int version_minor;
@@ -59,9 +54,5 @@ extern void ce_optparse_add_control(ce_optparse* optparse,
                                     const char* name, const char* glossary);
 
 extern bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[]);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_OPTPARSE_HPP */

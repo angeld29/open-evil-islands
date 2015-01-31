@@ -24,10 +24,6 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     size_t capacity;
     size_t count;
@@ -76,9 +72,5 @@ static inline void ce_vector_clear(ce_vector* vector)
 }
 
 extern void ce_vector_for_each(ce_vector* vector, void (*func)());
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_VECTOR_HPP */

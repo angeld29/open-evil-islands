@@ -21,10 +21,6 @@
 #ifndef CE_VEC3_HPP
 #define CE_VEC3_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ce_quat;
 
 typedef struct ce_vec3 {
@@ -219,9 +215,5 @@ extern ce_vec3* ce_vec3_floor(ce_vec3* vec, const ce_vec3* lhs,
                                             const ce_vec3* rhs);
 extern ce_vec3* ce_vec3_ceil(ce_vec3* vec, const ce_vec3* lhs,
                                             const ce_vec3* rhs);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_VEC3_HPP */

@@ -23,10 +23,6 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern const float CE_PI;
 extern const float CE_PI2;
 extern const float CE_PI_DIV_2;
@@ -62,9 +58,5 @@ static inline float ce_rad2deg(float angle)
 {
     return CE_RAD2DEG * angle;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_MATH_HPP */

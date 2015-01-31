@@ -27,11 +27,6 @@
 #include "complection.hpp"
 #include "renderitem.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     int ref_count;
     ce_figproto* figproto;
@@ -48,9 +43,5 @@ static inline ce_figmesh* ce_figmesh_add_ref(ce_figmesh* figmesh)
     ce_atomic_inc(int, &figmesh->ref_count);
     return figmesh;
 }
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_FIGMESH_HPP */

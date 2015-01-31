@@ -21,17 +21,9 @@
 #ifndef CE_RECT_HPP
 #define CE_RECT_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     float x, y;
     float width, height;
 } ce_rect;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_RECT_HPP */

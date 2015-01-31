@@ -23,14 +23,6 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern bool ce_system_info_check(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SYSTEMINFO_HPP */

@@ -23,11 +23,6 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     float dexterity, strength, height;
 } ce_complection;
@@ -43,9 +38,5 @@ ce_complection_copy(ce_complection* complection, const ce_complection* other);
 
 extern bool ce_complection_equal(const ce_complection* complection,
                                 const ce_complection* other);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_COMPLECTION_HPP */

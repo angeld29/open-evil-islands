@@ -30,10 +30,6 @@
 #include "vector.hpp"
 #include "string.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct ce_mob_object ce_mob_object;
 
 typedef struct {
@@ -116,9 +112,5 @@ typedef struct {
 
 extern ce_mob_file* ce_mob_file_open(const char* path);
 extern void ce_mob_file_close(ce_mob_file* mob_file);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_MOBFILE_HPP */

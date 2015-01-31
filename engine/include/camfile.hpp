@@ -30,10 +30,6 @@
 
 #include "memfile.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     uint32_t time;
     uint32_t unknown;
@@ -48,9 +44,5 @@ typedef struct {
 
 extern ce_cam_file* ce_cam_file_new(ce_mem_file* mem_file);
 extern void ce_cam_file_del(ce_cam_file* cam_file);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_CAMFILE_HPP */

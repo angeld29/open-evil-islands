@@ -23,10 +23,6 @@
 
 #include <stddef.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern void ce_alloc_init(void);
 
 extern void* ce_alloc(size_t size);
@@ -41,10 +37,6 @@ extern size_t ce_alloc_get_smallobj_max_allocated(void);
 extern size_t ce_alloc_get_smallobj_overhead(void);
 extern size_t ce_alloc_get_system_allocated(void);
 extern size_t ce_alloc_get_system_max_allocated(void);
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif /* CE_ALLOC_HPP */

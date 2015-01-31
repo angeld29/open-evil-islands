@@ -27,10 +27,6 @@
 #include "thread.hpp"
 #include "soundbuffer.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern struct ce_sound_mixer {
     bool done;
     ce_vector* sound_buffers;
@@ -42,9 +38,5 @@ extern void ce_sound_mixer_term(void);
 
 extern ce_sound_buffer* ce_sound_mixer_create_buffer(void);
 extern void ce_sound_mixer_destroy_buffer(ce_sound_buffer* sound_buffer);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SOUNDMIXER_HPP */

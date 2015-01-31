@@ -24,11 +24,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 extern bool ce_is_big_endian(void);
 
 extern uint16_t ce_swap16(uint16_t v);
@@ -66,9 +61,5 @@ extern void ce_cpu2be64s(uint64_t* v);
 extern void ce_be2cpu16s(uint16_t* v);
 extern void ce_be2cpu32s(uint32_t* v);
 extern void ce_be2cpu64s(uint64_t* v);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_BYTEORDER_HPP */

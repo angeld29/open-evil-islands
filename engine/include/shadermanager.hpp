@@ -26,10 +26,6 @@
 #include "vector.hpp"
 #include "shader.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern struct ce_shader_manager {
     ce_vector* shaders;
 }* ce_shader_manager;
@@ -38,9 +34,5 @@ extern void ce_shader_manager_init(void);
 extern void ce_shader_manager_term(void);
 
 extern ce_shader* ce_shader_manager_get(const char* resource_paths[]);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SHADERMANAGER_HPP */

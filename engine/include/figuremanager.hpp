@@ -28,10 +28,6 @@
 #include "figmesh.hpp"
 #include "figentity.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     void (*figproto_created)(void* listener, ce_figproto* figproto);
     void (*figmesh_created)(void* listener, ce_figmesh* figmesh);
@@ -67,9 +63,5 @@ extern ce_figentity* ce_figure_manager_create_entity(const char* name,
     const char* parts[], const char* textures[]);
 
 extern void ce_figure_manager_remove_entity(ce_figentity* entity);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_FIGUREMANAGER_HPP */

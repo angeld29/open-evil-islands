@@ -21,11 +21,6 @@
 #ifndef CE_COLOR_HPP
 #define CE_COLOR_HPP
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     float r, g, b, a;
 } ce_color;
@@ -64,9 +59,5 @@ extern ce_color* ce_color_copy(ce_color* color, const ce_color* other);
 
 extern ce_color* ce_color_lerp(ce_color* color, float u, const ce_color* lhs,
                                                         const ce_color* rhs);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_COLOR_HPP */

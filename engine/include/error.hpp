@@ -21,15 +21,7 @@
 #ifndef CE_ERROR_HPP
 #define CE_ERROR_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern void ce_error_report_c_last(const char* module);
 extern void ce_error_report_c_errno(int code, const char* module);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_ERROR_HPP */

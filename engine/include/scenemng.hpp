@@ -37,10 +37,6 @@
 #include "figuremanager.hpp"
 #include "videoobject.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
     CE_SCENEMNG_STATE_LOGO,
     CE_SCENEMNG_STATE_READY,
@@ -101,9 +97,5 @@ extern void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed);
 extern void ce_scenemng_render(ce_scenemng* scenemng);
 
 extern void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SCENEMNG_HPP */

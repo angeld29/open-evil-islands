@@ -26,10 +26,6 @@
 #include "string.hpp"
 #include "optparse.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern struct ce_option_manager {
     ce_string* ei_path;
     ce_string* ce_path;
@@ -61,9 +57,5 @@ extern void ce_option_manager_init(ce_optparse* optparse);
 extern void ce_option_manager_term(void);
 
 extern ce_optparse* ce_option_manager_create_option_parser(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_OPTIONMANAGER_HPP */

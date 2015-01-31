@@ -30,10 +30,6 @@
 #include "texture.hpp"
 #include "material.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern struct ce_render_system {
     ce_thread_id thread_id;
     char impl[];
@@ -69,9 +65,5 @@ extern void ce_render_system_discard_transform(void);
 
 extern void ce_render_system_apply_material(ce_material* material);
 extern void ce_render_system_discard_material(ce_material* material);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_RENDERSYSTEM_HPP */

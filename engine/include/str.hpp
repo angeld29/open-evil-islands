@@ -23,11 +23,6 @@
 
 #include <stddef.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 /**
  *  Copies a string that contains the n leftmost characters of the s.
  *  The entire string is copied if n is greater than string length.
@@ -128,9 +123,5 @@ extern char* ce_strrpbrk(const char* s, const char* accept);
  *  it with a '\0', and update sp to point past it.
  */
 extern char* ce_strsep(char** sp, const char* delim);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_STR_HPP */

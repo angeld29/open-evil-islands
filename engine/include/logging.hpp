@@ -29,10 +29,6 @@ static inline void ce_logging_##name##_va(const char* format, va_list args) \
     ce_logging_report_va(level, format, args); \
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     CE_LOGGING_LEVEL_NONE,
     CE_LOGGING_LEVEL_DEBUG,
@@ -65,10 +61,6 @@ CE_LOGGING_DEF_PROC_VA(error, CE_LOGGING_LEVEL_ERROR)
 CE_LOGGING_DEF_PROC_VA(critical, CE_LOGGING_LEVEL_CRITICAL)
 CE_LOGGING_DEF_PROC_VA(fatal, CE_LOGGING_LEVEL_FATAL)
 CE_LOGGING_DEF_PROC_VA(write, CE_LOGGING_LEVEL_WRITE)
-
-#ifdef __cplusplus
-}
-#endif
 
 #undef CE_LOGGING_DEF_PROC_VA
 

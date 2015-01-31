@@ -21,11 +21,6 @@
 #ifndef CE_VIEWPORT_HPP
 #define CE_VIEWPORT_HPP
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     int x, y; // lower left corner in pixels
     int width, height;
@@ -39,9 +34,5 @@ extern void ce_viewport_set_dimensions(ce_viewport* viewport,
                                         int width, int height);
 extern void ce_viewport_set_rect(ce_viewport* viewport,
                                     int x, int y, int width, int height);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_VIEWPORT_HPP */

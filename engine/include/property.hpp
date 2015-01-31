@@ -24,11 +24,6 @@
 #include "string.hpp"
 #include "value.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     ce_string* name;
     ce_value* value;
@@ -36,9 +31,5 @@ typedef struct {
 
 extern ce_property* ce_property_new(const char* name, ce_type type);
 extern void ce_property_del(ce_property* property);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_PROPERTY_HPP */

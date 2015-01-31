@@ -21,10 +21,6 @@
 #ifndef CE_VEC4_HPP
 #define CE_VEC4_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     float x, y, z, w;
 } ce_vec4;
@@ -64,9 +60,5 @@ static inline ce_vec4* ce_vec4_copy(ce_vec4* vec, const ce_vec4* other)
     vec->w = other->w;
     return vec;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_VEC4_HPP */

@@ -33,10 +33,6 @@
 
 #include "memfile.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
     CE_WAVE_FORMAT_PCM = 0x1,
     CE_WAVE_FORMAT_IMA_ADPCM = 0x11,
@@ -102,9 +98,5 @@ static inline size_t ce_wave_ima_adpcm_block_storage_size(const ce_wave_header* 
 {
     return wave_header->format.block_align;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_WAVE_HPP */

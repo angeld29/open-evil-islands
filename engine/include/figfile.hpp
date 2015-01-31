@@ -31,11 +31,6 @@
 #include "complection.hpp"
 #include "resfile.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef float (*ce_figfile_value_callback)(const float* params, size_t stride,
                                             const ce_complection* complection);
 
@@ -67,9 +62,5 @@ typedef struct {
 
 extern ce_figfile* ce_figfile_open(ce_res_file* res_file, const char* name);
 extern void ce_figfile_close(ce_figfile* figfile);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_FIGFILE_HPP */

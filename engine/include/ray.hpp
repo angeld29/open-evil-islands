@@ -23,10 +23,6 @@
 
 #include "vec3.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     ce_vec3 origin;
     ce_vec3 direction;
@@ -47,9 +43,5 @@ static inline ce_ray* ce_ray_init_segment(ce_ray* ray, const ce_vec3* start,
     ce_vec3_norm(&ray->direction, ce_vec3_sub(&ray->direction, end, start));
     return ray;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_RAY_HPP */

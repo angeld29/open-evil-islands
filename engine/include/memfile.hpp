@@ -31,10 +31,6 @@
 
 #include "byteorder.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct ce_mem_file ce_mem_file;
 
 typedef struct {
@@ -184,9 +180,5 @@ static inline uint32_t ce_mem_file_read_fle(ce_mem_file* mem_file)
     ce_mem_file_read(mem_file, &value, 4, 1);
     return value;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_MEMFILE_HPP */

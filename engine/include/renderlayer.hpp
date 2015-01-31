@@ -25,11 +25,6 @@
 #include "texture.hpp"
 #include "renderitem.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     ce_texture* texture;
     ce_vector* renderitems;
@@ -44,9 +39,5 @@ extern void ce_renderlayer_add(ce_renderlayer* renderlayer,
                                 ce_renderitem* renderitem);
 
 extern void ce_renderlayer_render(ce_renderlayer* renderlayer);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_RENDERLAYER_HPP */

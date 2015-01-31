@@ -23,10 +23,6 @@
 
 #include "string.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     CE_TYPE_VOID,
     CE_TYPE_BOOL,
@@ -99,9 +95,5 @@ static inline void ce_value_set_string(ce_value* value, const char* arg)
 {
     ce_value_set(value, arg);
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_VALUE_HPP */

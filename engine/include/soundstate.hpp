@@ -21,18 +21,10 @@
 #ifndef CE_SOUNDSTATE_HPP
 #define CE_SOUNDSTATE_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
     CE_SOUND_STATE_STOPPED,
     CE_SOUND_STATE_PAUSED,
     CE_SOUND_STATE_PLAYING,
 };
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SOUNDSTATE_HPP */

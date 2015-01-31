@@ -21,11 +21,6 @@
 #ifndef CE_MAT4_HPP
 #define CE_MAT4_HPP
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     float m[16];
 } ce_mat4;
@@ -35,9 +30,5 @@ extern const ce_mat4 CE_MAT4_IDENTITY;
 
 extern ce_mat4* ce_mat4_init_zero(ce_mat4* mat);
 extern ce_mat4* ce_mat4_init_identity(ce_mat4* mat);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_MAT4_HPP */

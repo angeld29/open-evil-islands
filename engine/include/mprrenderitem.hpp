@@ -25,17 +25,8 @@
 #include "mprfile.hpp"
 #include "renderitem.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 extern ce_renderitem*
 ce_mprrenderitem_new(ce_mprfile* mprfile, int sector_x, int sector_z,
                     int water, ce_vector* tile_textures);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_MPRRENDERITEM_HPP */

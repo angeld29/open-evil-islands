@@ -27,10 +27,6 @@
 #include "memfile.hpp"
 #include "ycbcr.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct ce_video_resource ce_video_resource;
 
 typedef struct {
@@ -62,9 +58,5 @@ static inline bool ce_video_resource_read(ce_video_resource* video_resource)
 }
 
 extern bool ce_video_resource_reset(ce_video_resource* video_resource);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_VIDEORESOURCE_HPP */

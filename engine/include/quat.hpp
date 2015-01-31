@@ -23,10 +23,6 @@
 
 #include <math.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ce_vec3;
 
 typedef struct ce_quat {
@@ -184,9 +180,5 @@ static inline float ce_quat_dot(const ce_quat* lhs, const ce_quat* rhs)
     return lhs->w * rhs->w + lhs->x * rhs->x +
             lhs->y * rhs->y + lhs->z * rhs->z;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_QUAT_HPP */

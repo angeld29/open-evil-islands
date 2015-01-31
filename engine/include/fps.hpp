@@ -21,11 +21,6 @@
 #ifndef CE_FPS_HPP
 #define CE_FPS_HPP
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
-
 typedef struct {
     int frame_count;
     float time;
@@ -36,9 +31,5 @@ extern ce_fps* ce_fps_new(void);
 extern void ce_fps_del(ce_fps* fps);
 
 extern void ce_fps_advance(ce_fps* fps, float elapsed);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* CE_FPS_HPP */

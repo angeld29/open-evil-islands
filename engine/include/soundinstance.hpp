@@ -28,10 +28,6 @@
 #include "soundbuffer.hpp"
 #include "soundresource.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     ce_sound_bundle sound_bundle;
     ce_sound_resource* sound_resource;
@@ -43,9 +39,5 @@ extern void ce_sound_instance_del(ce_sound_instance* sound_instance);
 
 extern void ce_sound_instance_advance(ce_sound_instance* sound_instance, float elapsed);
 extern void ce_sound_instance_change_state(ce_sound_instance* sound_instance, int state);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_SOUNDINSTANCE_HPP */

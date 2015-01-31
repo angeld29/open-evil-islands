@@ -21,10 +21,6 @@
 #ifndef CE_YCBCR_HPP
 #define CE_YCBCR_HPP
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     struct {
         unsigned int x, y;
@@ -35,9 +31,5 @@ typedef struct {
         unsigned char* data;
     } planes[3];
 } ce_ycbcr;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CE_YCBCR_HPP */
