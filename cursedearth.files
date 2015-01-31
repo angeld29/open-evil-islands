@@ -293,3 +293,4 @@ tools/resfileviewer/src/gui/mainwindow.hpp
 tools/resfileviewer/src/gui/treewidget.cpp
 tools/resfileviewer/src/gui/treewidget.hpp
 tools/resfileviewer/src/main.cpp
+engine/include/singleton.hpp
