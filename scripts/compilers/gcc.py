@@ -40,16 +40,16 @@ configure_build_mode = {
 def configure(env):
     env["CE_GCC_BIT"] = True
 
+    env['BUILDERS']['Object'].add_action(".cpp", SCons.Defaults.CAction)
+    env['BUILDERS']['Object'].add_emitter(".cpp", SCons.Defaults.StaticObjectEmitter)
+
     env.AppendUnique(
-        CFLAGS=["-std=c99", SCons.Util.CLVar("-x c")],
+        CFLAGS=["-std=c11", SCons.Util.CLVar("-x c")],
         CCFLAGS=["-pipe", "-pedantic-errors", "-ffast-math"],
         CPPDEFINES=[
             "CE_THREAD=__thread",
             "CE_UNUSED(X)=X __attribute__((unused))",
         ],
     )
-
-    env['BUILDERS']['Object'].add_action(".cpp", SCons.Defaults.CAction)
-    env['BUILDERS']['Object'].add_emitter(".cpp", SCons.Defaults.StaticObjectEmitter)
 
     configure_build_mode[env["BUILD_MODE"]](env)
