@@ -24,7 +24,6 @@ typedef __u64 __bitwise __le64;
 typedef __u64 __bitwise __be64;
 #endif
 
-// FIXME: not POSIX!
 #include <asm/byteorder.h>
 
 #include "byteorder.hpp"
