@@ -53,9 +53,13 @@ static void state_changed(void* CE_UNUSED(listener), int state)
 {
     if (CE_SCENEMNG_STATE_READY == state) {
         const char* zone;
+        bool clean;
         ce_optparse_get(optparse, "zone", &zone);
+        ce_optparse_get(optparse, "clean", &clean);
         ce_scenemng_load_mpr(ce_root.scenemng, zone);
-        ce_mob_loader_load_mob(zone);
+        if (!clean) {
+            ce_mob_loader_load_mob(zone);
+        }
         ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);
     }
 
@@ -66,18 +70,15 @@ static void state_changed(void* CE_UNUSED(listener), int state)
             ce_figentity* figentity = ce_figure_manager->entities->items[i];
             int anm_count = ce_figentity_get_animation_count(figentity);
             if (anm_count > 0) {
-                const char* name = ce_figentity_get_animation_name(figentity,
-                                                        rand() % anm_count);
+                const char* name = ce_figentity_get_animation_name(figentity, rand() % anm_count);
                 ce_figentity_play_animation(figentity, name);
             }
         }
 
         if (NULL != ce_root.scenemng->terrain) {
             ce_vec3 position;
-            ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position,
-                0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f));
-            ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f),
-                                                            ce_deg2rad(30.0f));
+            ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position, 0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f));
+            ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
         }
     }
 }
@@ -108,10 +109,9 @@ static void render(void* CE_UNUSED(listener))
     if (message_timeout > 0.0f) {
         char buffer[32];
         snprintf(buffer, sizeof(buffer), "Animation FPS: %d", (int)ce_root.animation_fps);
-        ce_font_render(ce_root.scenemng->font, (ce_root.scenemng->viewport->width -
-            ce_font_get_width(ce_root.scenemng->font, buffer)) / 2,
-            1 * (ce_root.scenemng->viewport->height -
-            ce_font_get_height(ce_root.scenemng->font)) / 5,
+        ce_font_render(ce_root.scenemng->font,
+            (ce_root.scenemng->viewport->width - ce_font_get_width(ce_root.scenemng->font, buffer)) / 2,
+            1 * (ce_root.scenemng->viewport->height - ce_font_get_height(ce_root.scenemng->font)) / 5,
             &message_color, buffer);
     }
 }
@@ -123,14 +123,11 @@ int main(int argc, char* argv[])
 
     optparse = ce_option_manager_create_option_parser();
 
-    ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR,
-        CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
-        "Cursed Earth: Map Viewer", "This program is part of Cursed Earth "
-        "spikes\nMap Viewer - explore Evil Islands zones with creatures");
+    ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+        "Cursed Earth: Map Viewer", "This program is part of Cursed Earth spikes\nMap Viewer - explore Evil Islands zones (with/without objects)");
 
-    ce_optparse_add(optparse, "zone", CE_TYPE_STRING, NULL, true,
-        NULL, NULL, "any ZONE.mpr file in `EI/Maps'");
-
+    ce_optparse_add(optparse, "only_mpr", CE_TYPE_BOOL, NULL, false, NULL, "only-mpr", "without objects (do not load mob)");
+    ce_optparse_add(optparse, "zone", CE_TYPE_STRING, NULL, true, NULL, NULL, "any ZONE.mpr file in `EI/Maps'");
     ce_optparse_add_control(optparse, "+/-", "change animation FPS");
 
     if (!ce_root_init(optparse, argc, argv)) {
@@ -187,18 +184,13 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    ce_root.scenemng->listener = (ce_scenemng_listener)
-        {.state_changed = state_changed, .advance = advance, .render = render};
+    ce_root.scenemng->listener = (ce_scenemng_listener){.state_changed = state_changed, .advance = advance, .render = render};
 
     message_color = CE_COLOR_CORNFLOWER;
 
     input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
-    anmfps_inc_event = ce_input_supply_repeat(input_supply,
-                        ce_input_supply_button(input_supply,
-                            CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
-    anmfps_dec_event = ce_input_supply_repeat(input_supply,
-                        ce_input_supply_button(input_supply,
-                            CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
+    anmfps_inc_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
+    anmfps_dec_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
 
     return ce_root_exec();
 }
