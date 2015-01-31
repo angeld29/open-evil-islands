@@ -31,7 +31,20 @@ bool ce_path_exists(const char* path)
     return INVALID_FILE_ATTRIBUTES != GetFileAttributes(path);
 }
 
-ce_vector* ce_path_ls(const char* CE_UNUSED(path))
+bool ce_path_is_dir(const char* CE_UNUSED(path))
 {
-    return NULL;
+    assert(false && "not implemented");
+    return false;
+}
+
+bool ce_path_is_file(const char* CE_UNUSED(path))
+{
+    assert(false && "not implemented");
+    return false;
+}
+
+bool ce_path_list_subdirs(const char* CE_UNUSED(path), ce_vector* CE_UNUSED(subdirs))
+{
+    assert(false && "not implemented");
+    return false;
 }
