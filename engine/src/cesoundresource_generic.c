@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth
+ *  This file is part of Cursed Earth.
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands
- *  Copyright (C) 2009-2010 Yanis Kurganov
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,16 +16,16 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 /*
  *  Supported decoders:
- *  1. Ogg Vorbis (lossy compression).
- *  2. FLAC (lossless compression).
- *  3. WAVE (limited, for backward compatibility with original EI resources).
- *  4. MPEG (limited, for backward compatibility with original EI resources).
- *  5. Bink (limited, for backward compatibility with original EI resources).
-*/
+ *  Ogg Vorbis (lossy compression)
+ *  FLAC (lossless compression)
+ *  WAVE (limited, for backward compatibility with original EI resources)
+ *  MPEG (limited, for backward compatibility with original EI resources)
+ *  Bink (limited, for backward compatibility with original EI resources)
+ */
 
 #include <stdlib.h>
 #include <stdio.h>

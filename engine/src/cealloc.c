@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth
+ *  This file is part of Cursed Earth.
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands
- *  Copyright (C) 2009-2010 Yanis Kurganov
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,26 +16,15 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 /*
- *  Based on:
- *  1. Alexandrescu, Andrei. "Modern C++ Design: Generic Programming and Design
- *     Patterns Applied". Copyright (C) 2001 Addison-Wesley.
- *  2. The Loki Library (C) 2001 by Andrei Alexandrescu.
+ *  Alexandrescu, Andrei. "Modern C++ Design: Generic Programming and Design Patterns Applied"
+ *  Copyright (C) 2001 Addison-Wesley
  *
- *  See also:
- *  1. https://www.securecoding.cert.org/confluence/display/seccode/MEM04-C.
- *     +Do+not+perform+zero+length+allocations
- *
- *  Notes:
- *  1. Minimum error checking. Disable smallobj (MAX_SMALL_OBJECT_SIZE = 0)
- *     and use, for example, valgrind on Linux to perform full error checking.
- *  2. Alloc have no external dependencies, so we must
- *     re-implement synchronization stuff here.
- *  3. There are no comments! If this subject is interesting
- *     for you just read the book or see the Loki library.
-*/
+ *  The Loki Library
+ *  Copyright (C) 2001 by Andrei Alexandrescu
+ */
 
 #include <stdlib.h>
 #include <stdio.h>

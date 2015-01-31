@@ -2,7 +2,7 @@
  *  This file is part of Cursed Earth.
  *
  *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,18 +16,14 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 /*
- *  Based on:
+ *  View Frustum Culling Tutorial @ Lighthouse3d.com
+ *  http://www.lighthouse3d.com/opengl/viewfrustum/
  *
- *  1. View Frustum Culling Tutorial @ Lighthouse3d.com,
- *     http://www.lighthouse3d.com/opengl/viewfrustum/.
- *
- *  2. GTKRadiant mathlib,
- *     https://zerowing.idsoftware.com/svn/radiant/GtkRadiant.
- *     GTKRadiant contains software developed by Id Software,
- *     Loki Software and third party contributors.
+ *  GTKRadiant mathlib
+ *  https://zerowing.idsoftware.com/svn/radiant/GtkRadiant
 */
 
 #include <stddef.h>
