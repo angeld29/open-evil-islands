@@ -39,8 +39,8 @@ def configure(env):
     env["CE_GCC_BIT"] = True
 
     env.AppendUnique(
-        CFLAGS=["-std=c11"],
-        CXXFLAGS=["-std=c++11"],
+        CFLAGS=["-std=c11"],     # C11   ISO/IEC 9899:2011
+        CXXFLAGS=["-std=c++11"], # C++11 ISO/IEC 14882:2011
         CCFLAGS=["-pipe", "-pedantic-errors", "-ffast-math"],
         CPPDEFINES=[
             "CE_THREAD=__thread",
