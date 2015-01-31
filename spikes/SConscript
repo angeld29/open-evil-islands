@@ -61,7 +61,7 @@ def make_target(name):
         SCons.Util.adjustixes(name, spike_env.subst("$PROGPREFIX"),
         spike_env.subst("$PROGSUFFIX"))), spike_env.Program(os.path.join(name,
         "bin", "$GEN_PATH", name), [os.path.join(name, "build", "$GEN_PATH",
-        node.name) for node in spike_env.Glob(os.path.join(name, "src", "*.c"))]),
+        node.name) for node in spike_env.Glob(os.path.join(name, "src", "*.cpp"))]),
         Copy("$TARGET", "$SOURCE")))
 
 targets = [make_target(name) for name in os.listdir(".") if os.path.isdir(name)]
