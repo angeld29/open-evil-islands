@@ -2,7 +2,7 @@
  *  This file is part of Cursed Earth.
  *
  *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2010 Yanis Kurganov.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,11 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
+
+/*
+ *  doc/formats/bon.txt
+ */
 
 #ifndef CE_BONFILE_H
 #define CE_BONFILE_H

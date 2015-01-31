@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth
+ *  This file is part of Cursed Earth.
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands
- *  Copyright (C) 2009-2010 Yanis Kurganov
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 #ifndef CE_OBJECT_H
 #define CE_OBJECT_H

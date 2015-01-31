@@ -1,8 +1,8 @@
 /*
- *  This file is part of Cursed Earth
+ *  This file is part of Cursed Earth.
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands
- *  Copyright (C) 2009-2010 Yanis Kurganov
+ *  Cursed Earth is an open source, cross-platform port of Evil Islands.
+ *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,16 +16,14 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 /*
  *  Waveform Audio File Format (C) Microsoft & IBM
- *
- *  See also:
- *  1. http://en.wikipedia.org/wiki/WAV
- *  2. http://wiki.multimedia.cx/index.php?title=IMA_ADPCM
- *  3. http://wiki.multimedia.cx/index.php?title=Microsoft_IMA_ADPCM
-*/
+ *  http://en.wikipedia.org/wiki/WAV
+ *  http://wiki.multimedia.cx/index.php?title=IMA_ADPCM
+ *  http://wiki.multimedia.cx/index.php?title=Microsoft_IMA_ADPCM
+ */
 
 #ifndef CE_WAVE_H
 #define CE_WAVE_H
