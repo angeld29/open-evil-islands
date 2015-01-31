@@ -112,7 +112,9 @@ int main(int argc, char* argv[])
 
     message_color = CE_COLOR_CORNFLOWER;
 
-    ce_root.scenemng->listener = (ce_scenemng_listener){.state_changed = state_changed, .advance = advance, .render = render};
+    ce_root.scenemng->listener.state_changed = state_changed;
+    ce_root.scenemng->listener.advance = advance;
+    ce_root.scenemng->listener.render = render;
 
     input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
     stub_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_R));

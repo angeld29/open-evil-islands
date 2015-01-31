@@ -68,7 +68,7 @@ static bool update_figentity()
     ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
     ce_quat_mul(&orientation, &q2, &q1);
 
-    const char *parts[1] = {NULL}, *textures[3] = {[2] = NULL}, *figure;
+    const char *parts[1] = { NULL }, *textures[3] = { NULL, NULL, NULL }, *figure;
     ce_optparse_get(optparse, "pritex", &textures[0]);
     ce_optparse_get(optparse, "sectex", &textures[1]);
     ce_optparse_get(optparse, "figure", &figure);
@@ -233,7 +233,9 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    ce_root.scenemng->listener = (ce_scenemng_listener){.state_changed = state_changed, .advance = advance, .render = render};
+    ce_root.scenemng->listener.state_changed = state_changed;
+    ce_root.scenemng->listener.advance = advance;
+    ce_root.scenemng->listener.render = render;
 
     message = ce_string_new();
     message_color = CE_COLOR_CORNFLOWER;

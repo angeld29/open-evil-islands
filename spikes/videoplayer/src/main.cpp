@@ -93,7 +93,9 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    ce_root.scenemng->listener = (ce_scenemng_listener){.state_changed = state_changed, .advance = advance, .render = render};
+    ce_root.scenemng->listener.state_changed = state_changed;
+    ce_root.scenemng->listener.advance = advance;
+    ce_root.scenemng->listener.render = render;
 
     input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
     pause_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_SPACE));

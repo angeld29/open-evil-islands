@@ -67,7 +67,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
         // play random animations
         srand(time(NULL));
         for (size_t i = 0; i < ce_figure_manager->entities->count; ++i) {
-            ce_figentity* figentity = ce_figure_manager->entities->items[i];
+            ce_figentity* figentity = static_cast<ce_figentity*>(ce_figure_manager->entities->items[i]);
             int anm_count = ce_figentity_get_animation_count(figentity);
             if (anm_count > 0) {
                 const char* name = ce_figentity_get_animation_name(figentity, rand() % anm_count);
@@ -184,7 +184,9 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    ce_root.scenemng->listener = (ce_scenemng_listener){.state_changed = state_changed, .advance = advance, .render = render};
+    ce_root.scenemng->listener.state_changed = state_changed;
+    ce_root.scenemng->listener.advance = advance;
+    ce_root.scenemng->listener.render = render;
 
     message_color = CE_COLOR_CORNFLOWER;
 
