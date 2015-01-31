@@ -23,7 +23,7 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "graphiccontext.hpp"
-#include "graphiccontext_posix.hpp"
+#include "graphiccontext_x11.hpp"
 
 enum {
     CE_GLX_MAJOR_VERSION_REQUIRED = 1,

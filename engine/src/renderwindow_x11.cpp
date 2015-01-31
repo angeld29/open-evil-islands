@@ -30,8 +30,8 @@
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "display_posix.hpp"
-#include "graphiccontext_posix.hpp"
+#include "display_x11.hpp"
+#include "graphiccontext_x11.hpp"
 #include "renderwindow.hpp"
 
 enum {

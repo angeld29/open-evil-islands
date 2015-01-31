@@ -21,8 +21,8 @@
 #ifndef CE_GRAPHICCONTEXT_PLATFORM_HPP
 #define CE_GRAPHICCONTEXT_PLATFORM_HPP
 
-#include "graphiccontext.hpp"
 #include "glew_windows.hpp"
+#include "graphiccontext.hpp"
 
 #ifdef __cplusplus
 extern "C" {

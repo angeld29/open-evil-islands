@@ -18,6 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "glew_posix.hpp"
+#include "glew_x11.hpp"
 
 CE_THREAD GLXEWContext ce_glxew_context;

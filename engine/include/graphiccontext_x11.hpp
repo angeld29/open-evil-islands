@@ -23,8 +23,8 @@
 
 #include <stdbool.h>
 
+#include "glew_x11.hpp"
 #include "graphiccontext.hpp"
-#include "glew_posix.hpp"
 
 #ifdef __cplusplus
 extern "C" {

@@ -30,7 +30,7 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "display.hpp"
-#include "display_posix.hpp"
+#include "display_x11.hpp"
 
 // XFree86 VidMode, see xf86vidmode(3) for more details
 typedef struct {
