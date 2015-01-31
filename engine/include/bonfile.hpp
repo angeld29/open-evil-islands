@@ -25,7 +25,7 @@
 #ifndef CE_BONFILE_HPP
 #define CE_BONFILE_HPP
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "resfile.hpp"
 

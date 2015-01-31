@@ -21,9 +21,8 @@
 #ifndef CE_PATH_HPP
 #define CE_PATH_HPP
 
-#include <stddef.h>
-#include <stdarg.h>
-#include <stdbool.h>
+#include <cstddef>
+#include <cstdarg>
 
 #include "string.hpp"
 #include "vector.hpp"

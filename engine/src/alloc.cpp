@@ -26,12 +26,11 @@
  *  Copyright (C) 2001 by Andrei Alexandrescu
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <limits.h>
-#include <assert.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <climits>
+#include <cassert>
 
 #ifdef _WIN32
 #include <windows.h>

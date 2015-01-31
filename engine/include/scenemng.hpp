@@ -21,8 +21,6 @@
 #ifndef CE_SCENEMNG_HPP
 #define CE_SCENEMNG_HPP
 
-#include <stdbool.h>
-
 #include "timer.hpp"
 #include "thread.hpp"
 #include "input.hpp"

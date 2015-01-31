@@ -21,8 +21,6 @@
 #ifndef CE_MATERIAL_HPP
 #define CE_MATERIAL_HPP
 
-#include <stdbool.h>
-
 #include "color.hpp"
 #include "shader.hpp"
 

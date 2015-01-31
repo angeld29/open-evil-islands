@@ -21,8 +21,6 @@
 #ifndef CE_FIGUREMANAGER_HPP
 #define CE_FIGUREMANAGER_HPP
 
-#include <stdbool.h>
-
 #include "vector.hpp"
 #include "figproto.hpp"
 #include "figmesh.hpp"

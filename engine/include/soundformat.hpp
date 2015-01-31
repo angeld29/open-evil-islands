@@ -21,8 +21,6 @@
 #ifndef CE_SOUNDFORMAT_HPP
 #define CE_SOUNDFORMAT_HPP
 
-#include <stdbool.h>
-
 typedef struct {
     unsigned int bits_per_sample;
     unsigned int samples_per_second;

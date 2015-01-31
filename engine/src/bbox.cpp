@@ -18,10 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stddef.h>
-#include <float.h>
-#include <math.h>
-#include <assert.h>
+#include <cfloat>
+#include <cmath>
 
 #include "bbox.hpp"
 

@@ -21,7 +21,7 @@
 #ifndef CE_ALLOC_HPP
 #define CE_ALLOC_HPP
 
-#include <stddef.h>
+#include <cstddef>
 
 extern void ce_alloc_init(void);
 

@@ -21,8 +21,6 @@
 #ifndef CE_ROOT_HPP
 #define CE_ROOT_HPP
 
-#include <stdbool.h>
-
 #include "timer.hpp"
 #include "input.hpp"
 #include "renderwindow.hpp"

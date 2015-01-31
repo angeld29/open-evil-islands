@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
-#include <math.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstring>
+#include <climits>
+#include <cmath>
+#include <cassert>
 
 #include <squish.h>
 
@@ -441,8 +441,7 @@ static void ce_mmpfile_convert_dxt(const ce_mmpfile* mmpfile, ce_mmpfile* other)
 }
 
 // PNT3 is just a simple RLE (Run-Length Encoding)
-static void ce_mmpfile_decompress_pnt3(uint8_t* restrict dst,
-                                const uint32_t* restrict src, size_t size)
+static void ce_mmpfile_decompress_pnt3(uint8_t* dst, const uint32_t* src, size_t size)
 {
     assert(0 == size % sizeof(uint32_t));
 

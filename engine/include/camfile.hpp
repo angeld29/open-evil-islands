@@ -25,8 +25,8 @@
 #ifndef CE_CAMFILE_HPP
 #define CE_CAMFILE_HPP
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "memfile.hpp"
 

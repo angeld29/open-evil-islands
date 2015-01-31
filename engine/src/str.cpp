@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-#include <ctype.h>
-#include <assert.h>
+#include <cstring>
+#include <cctype>
+#include <cassert>
 
 #include "lib.hpp"
 #include "str.hpp"
 
-char* ce_strleft(char* restrict dst, const char* restrict src, size_t n)
+char* ce_strleft(char* dst, const char* src, size_t n)
 {
     n = ce_min(size_t, n, strlen(src));
     strncpy(dst, src, n);
@@ -33,13 +33,13 @@ char* ce_strleft(char* restrict dst, const char* restrict src, size_t n)
     return dst;
 }
 
-char* ce_strright(char* restrict dst, const char* restrict src, size_t n)
+char* ce_strright(char* dst, const char* src, size_t n)
 {
     size_t len = strlen(src);
     return strcpy(dst, src + len - ce_min(size_t, n, len));
 }
 
-char* ce_strmid(char* restrict dst, const char* restrict src, size_t pos, size_t n)
+char* ce_strmid(char* dst, const char* src, size_t pos, size_t n)
 {
     size_t len = strlen(src);
     if (pos > len) {
@@ -51,7 +51,7 @@ char* ce_strmid(char* restrict dst, const char* restrict src, size_t pos, size_t
     return dst;
 }
 
-char* ce_strtrim(char* restrict dst, const char* restrict src)
+char* ce_strtrim(char* dst, const char* src)
 {
     size_t len = strlen(src);
     if (0 != len) {
@@ -67,7 +67,7 @@ char* ce_strtrim(char* restrict dst, const char* restrict src)
     return dst;
 }
 
-char* ce_strupr(char* restrict dst, const char* restrict src)
+char* ce_strupr(char* dst, const char* src)
 {
     char* p = dst;
     while (*src) {
@@ -77,7 +77,7 @@ char* ce_strupr(char* restrict dst, const char* restrict src)
     return dst;
 }
 
-char* ce_strlwr(char* restrict dst, const char* restrict src)
+char* ce_strlwr(char* dst, const char* src)
 {
     char* p = dst;
     while (*src) {
@@ -87,7 +87,7 @@ char* ce_strlwr(char* restrict dst, const char* restrict src)
     return dst;
 }
 
-char* ce_strrev(char* restrict dst, const char* restrict src)
+char* ce_strrev(char* dst, const char* src)
 {
     char* p = dst;
     const char *s = src + strlen(src);
@@ -230,7 +230,7 @@ char* ce_strcasestr(const char* haystack, const char* needle)
  *  1. OpenBSD source.
  *     Copyright (C) 1998 Todd C. Miller <Todd.Miller@courtesan.com>.
 */
-size_t ce_strlcat(char* restrict dst, const char* restrict src, size_t size)
+size_t ce_strlcat(char* dst, const char* src, size_t size)
 {
     char* d = dst;
     const char* s = src;
@@ -261,7 +261,7 @@ size_t ce_strlcat(char* restrict dst, const char* restrict src, size_t size)
     return dlen + (s - src); // count does not include NULL
 }
 
-size_t ce_strlcpy(char* restrict dst, const char* restrict src, size_t size)
+size_t ce_strlcpy(char* dst, const char* src, size_t size)
 {
     size_t srclen = strlen(src);
     if (0 != size) {

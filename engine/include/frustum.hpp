@@ -21,8 +21,6 @@
 #ifndef CE_FRUSTUM_HPP
 #define CE_FRUSTUM_HPP
 
-#include <stdbool.h>
-
 #include "vec3.hpp"
 #include "quat.hpp"
 #include "sphere.hpp"

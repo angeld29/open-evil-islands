@@ -21,8 +21,6 @@
 #ifndef CE_SOUNDOBJECT_HPP
 #define CE_SOUNDOBJECT_HPP
 
-#include <stdbool.h>
-
 #include "hash.hpp"
 #include "soundstate.hpp"
 

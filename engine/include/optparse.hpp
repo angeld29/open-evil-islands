@@ -21,8 +21,6 @@
 #ifndef CE_OPTPARSE_HPP
 #define CE_OPTPARSE_HPP
 
-#include <stdbool.h>
-
 #include "vector.hpp"
 #include "string.hpp"
 #include "object.hpp"

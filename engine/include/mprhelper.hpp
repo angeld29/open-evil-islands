@@ -21,8 +21,7 @@
 #ifndef CE_MPRHELPER_HPP
 #define CE_MPRHELPER_HPP
 
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstdint>
 
 #include "vec3.hpp"
 #include "aabb.hpp"

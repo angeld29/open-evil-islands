@@ -21,8 +21,6 @@
 #ifndef CE_OPTIONMANAGER_HPP
 #define CE_OPTIONMANAGER_HPP
 
-#include <stdbool.h>
-
 #include "string.hpp"
 #include "optparse.hpp"
 

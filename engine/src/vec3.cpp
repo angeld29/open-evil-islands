@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "math.hpp"
 #include "quat.hpp"
@@ -72,8 +72,7 @@ float ce_vec3_absdot(const ce_vec3* lhs, const ce_vec3* rhs)
             fabsf(lhs->z * rhs->z);
 }
 
-ce_vec3* ce_vec3_cross(ce_vec3* restrict vec, const ce_vec3* lhs,
-                                                const ce_vec3* rhs)
+ce_vec3* ce_vec3_cross(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
 {
     vec->x = lhs->y * rhs->z - lhs->z * rhs->y;
     vec->y = lhs->z * rhs->x - lhs->x * rhs->z;

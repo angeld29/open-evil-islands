@@ -27,7 +27,7 @@
 #ifndef CE_MEMFILE_HPP
 #define CE_MEMFILE_HPP
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "byteorder.hpp"
 
@@ -36,7 +36,7 @@ typedef struct ce_mem_file ce_mem_file;
 typedef struct {
     size_t size;
     int (*close)(ce_mem_file* mem_file);
-    size_t (*read)(ce_mem_file* mem_file, void* restrict ptr, size_t size, size_t n);
+    size_t (*read)(ce_mem_file* mem_file, void* ptr, size_t size, size_t n);
     int (*seek)(ce_mem_file* mem_file, long int offset, int whence);
     long int (*tell)(ce_mem_file* mem_file);
     int (*eof)(ce_mem_file* mem_file);
@@ -64,14 +64,14 @@ extern void ce_mem_file_del(ce_mem_file* mem_file);
  *  Implements in-memory files.
  *  NOTE: mem file takes ownership of the data.
 */
-extern ce_mem_file* ce_mem_file_new_data(void* restrict data, size_t size);
+extern ce_mem_file* ce_mem_file_new_data(void* data, size_t size);
 
 /*
  *  Implements a buffered interface for the FILE standard functions.
 */
 extern ce_mem_file* ce_mem_file_new_path(const char* path);
 
-static inline size_t ce_mem_file_read(ce_mem_file* mem_file, void* restrict ptr, size_t size, size_t n)
+static inline size_t ce_mem_file_read(ce_mem_file* mem_file, void* ptr, size_t size, size_t n)
 {
     return (mem_file->vtable.read)(mem_file, ptr, size, n);
 }

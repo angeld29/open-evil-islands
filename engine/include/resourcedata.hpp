@@ -21,7 +21,7 @@
 #ifndef CE_RESOURCEDATA_HPP
 #define CE_RESOURCEDATA_HPP
 
-#include <stddef.h>
+#include <cstddef>
 
 extern const size_t CE_RESOURCE_DATA_COUNT;
 

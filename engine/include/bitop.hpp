@@ -21,9 +21,8 @@
 #ifndef CE_BITOP_HPP
 #define CE_BITOP_HPP
 
-#include <stddef.h>
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #define ce_bitset(T, v, p) ce_bitset_##T(v, p)
 #define ce_bitclr(T, v, p) ce_bitclr_##T(v, p)

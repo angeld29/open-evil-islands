@@ -21,8 +21,7 @@
 #ifndef CE_SOUNDBUFFER_HPP
 #define CE_SOUNDBUFFER_HPP
 
-#include <stddef.h>
-#include <stdbool.h>
+#include <cstddef>
 
 #include "thread.hpp"
 #include "soundformat.hpp"

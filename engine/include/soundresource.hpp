@@ -21,8 +21,7 @@
 #ifndef CE_SOUNDRESOURCE_HPP
 #define CE_SOUNDRESOURCE_HPP
 
-#include <stddef.h>
-#include <stdbool.h>
+#include <cstddef>
 
 #include "memfile.hpp"
 #include "soundformat.hpp"

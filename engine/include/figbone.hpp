@@ -21,8 +21,6 @@
 #ifndef CE_FIGBONE_HPP
 #define CE_FIGBONE_HPP
 
-#include <stdbool.h>
-
 #include "vec3.hpp"
 #include "quat.hpp"
 #include "bbox.hpp"

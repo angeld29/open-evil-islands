@@ -21,8 +21,6 @@
 #ifndef CE_ANMSTATE_HPP
 #define CE_ANMSTATE_HPP
 
-#include <stdbool.h>
-
 #include "vector.hpp"
 #include "anmfile.hpp"
 

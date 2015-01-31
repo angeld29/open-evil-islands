@@ -21,8 +21,6 @@
 #ifndef CE_SYSTEMINFO_HPP
 #define CE_SYSTEMINFO_HPP
 
-#include <stdbool.h>
-
 extern bool ce_system_info_check(void);
 
 #endif /* CE_SYSTEMINFO_HPP */

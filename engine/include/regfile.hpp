@@ -25,7 +25,7 @@
 #ifndef CE_REGFILE_HPP
 #define CE_REGFILE_HPP
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "vector.hpp"
 #include "object.hpp"

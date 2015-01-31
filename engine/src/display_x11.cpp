@@ -18,9 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <assert.h>
+#include <cstdio>
 
 #include <X11/Xlib.h>
 #include <X11/extensions/xf86vmproto.h>

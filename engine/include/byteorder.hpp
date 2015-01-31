@@ -21,8 +21,7 @@
 #ifndef CE_BYTEORDER_HPP
 #define CE_BYTEORDER_HPP
 
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstdint>
 
 extern bool ce_is_big_endian(void);
 

@@ -21,8 +21,6 @@
 #ifndef CE_TERRAIN_HPP
 #define CE_TERRAIN_HPP
 
-#include <stdbool.h>
-
 #include "vec3.hpp"
 #include "quat.hpp"
 #include "vector.hpp"

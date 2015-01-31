@@ -18,10 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <math.h>
-#include <assert.h>
+#include <cstdio>
+#include <cmath>
 
 #include "lib.hpp"
 #include "alloc.hpp"

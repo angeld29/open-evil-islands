@@ -21,8 +21,6 @@
 #ifndef CE_OPENGL_HPP
 #define CE_OPENGL_HPP
 
-#include <stdbool.h>
-
 #include "glew.hpp"
 
 extern bool ce_opengl_report_errors(void);

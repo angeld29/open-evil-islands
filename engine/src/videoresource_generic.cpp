@@ -24,10 +24,10 @@
  *  Bink (limited, for backward compatibility with original EI resources)
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <cassert>
 
 #include <theora/theoradec.h>
 #include <libavcodec/avcodec.h>
@@ -39,12 +39,10 @@
 #include "videoresource.hpp"
 
 /*
- *  Ogg Theora (C) 2002-2007 Xiph.Org Foundation
- *
- *  See also:
- *  1. http://www.xiph.org/ogg/doc/
- *  2. http://theora.org/doc/
-*/
+ *  Ogg Theora (C) Xiph.Org Foundation
+ *  http://www.xiph.org/ogg/doc/
+ *  http://theora.org/doc/
+ */
 
 typedef struct {
     float time; // absolute time in seconds
@@ -306,8 +304,7 @@ static bool ce_theora_ctor(ce_video_resource* video_resource)
     ce_theora_report_colorspace(video_resource);
     ce_theora_report_comments(video_resource);
 
-    if (TH_PF_420 != theora->info.pixel_fmt &&
-            TH_PF_444 != theora->info.pixel_fmt) {
+    if (TH_PF_420 != theora->info.pixel_fmt && TH_PF_444 != theora->info.pixel_fmt) {
         ce_logging_error("theora: pixel format not supported");
         return false;
     }
@@ -362,17 +359,15 @@ static bool ce_theora_read(ce_video_resource* video_resource)
 
 static bool ce_theora_reset(ce_video_resource* CE_UNUSED(video_resource))
 {
-    // TODO: implementation
+    // TODO
     return false;
 }
 
 /*
  *  Bink Video (C) RAD Game Tools, Inc.
- *
- *  See also:
- *  1. http://wiki.multimedia.cx/index.php?title=Bink_Video
- *  2. FFmpeg (C) Michael Niedermayer
-*/
+ *  http://wiki.multimedia.cx/index.php?title=Bink_Video
+ *  FFmpeg (C) Michael Niedermayer
+ */
 
 typedef struct {
     ce_bink_header header;

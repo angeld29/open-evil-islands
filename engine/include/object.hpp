@@ -21,8 +21,6 @@
 #ifndef CE_OBJECT_HPP
 #define CE_OBJECT_HPP
 
-#include <stdbool.h>
-
 #include "vector.hpp"
 #include "string.hpp"
 #include "property.hpp"

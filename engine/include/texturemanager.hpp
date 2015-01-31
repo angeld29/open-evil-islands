@@ -21,8 +21,6 @@
 #ifndef CE_TEXTUREMANAGER_HPP
 #define CE_TEXTUREMANAGER_HPP
 
-#include <stdbool.h>
-
 #include "string.hpp"
 #include "vector.hpp"
 #include "mmpfile.hpp"

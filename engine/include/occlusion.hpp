@@ -21,8 +21,6 @@
 #ifndef CE_OCCLUSION_HPP
 #define CE_OCCLUSION_HPP
 
-#include <stdbool.h>
-
 #include "bbox.hpp"
 
 typedef struct ce_occlusion ce_occlusion;

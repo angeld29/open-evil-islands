@@ -25,7 +25,7 @@
 #ifndef CE_ATOMIC_HPP
 #define CE_ATOMIC_HPP
 
-#include <stddef.h>
+#include <cstddef>
 
 #define ce_atomic_fetch_and_add(T, ptr, val) ce_atomic_fetch_and_add_##T(ptr, val)
 #define ce_atomic_fetch_and_sub(T, ptr, val) ce_atomic_fetch_and_sub_##T(ptr, val)

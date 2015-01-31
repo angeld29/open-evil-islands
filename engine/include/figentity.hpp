@@ -21,8 +21,6 @@
 #ifndef CE_FIGENTITY_HPP
 #define CE_FIGENTITY_HPP
 
-#include <stdbool.h>
-
 #include "vec3.hpp"
 #include "quat.hpp"
 #include "vector.hpp"

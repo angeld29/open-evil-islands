@@ -21,8 +21,6 @@
 #ifndef CE_PLANE_HPP
 #define CE_PLANE_HPP
 
-#include <stdbool.h>
-
 #include "vec3.hpp"
 #include "ray.hpp"
 #include "triangle.hpp"

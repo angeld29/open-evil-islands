@@ -21,8 +21,7 @@
 #ifndef CE_THREAD_HPP
 #define CE_THREAD_HPP
 
-#include <stddef.h>
-#include <stdbool.h>
+#include <cstddef>
 
 #include "vector.hpp"
 #include "atomic.hpp"

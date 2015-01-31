@@ -23,9 +23,8 @@
  *  https://zerowing.idsoftware.com/svn/radiant/GtkRadiant
  */
 
-#include <float.h>
-#include <math.h>
-#include <assert.h>
+#include <cfloat>
+#include <cmath>
 
 #include "math.hpp"
 #include "aabb.hpp"

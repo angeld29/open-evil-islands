@@ -21,9 +21,8 @@
 #ifndef CE_RENDERITEM_HPP
 #define CE_RENDERITEM_HPP
 
-#include <stddef.h>
-#include <stdarg.h>
-#include <stdbool.h>
+#include <cstddef>
+#include <cstdarg>
 
 #include "vec3.hpp"
 #include "quat.hpp"

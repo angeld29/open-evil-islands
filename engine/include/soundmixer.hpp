@@ -21,8 +21,6 @@
 #ifndef CE_SOUNDMIXER_HPP
 #define CE_SOUNDMIXER_HPP
 
-#include <stdbool.h>
-
 #include "vector.hpp"
 #include "thread.hpp"
 #include "soundbuffer.hpp"

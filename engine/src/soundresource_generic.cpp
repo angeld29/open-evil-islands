@@ -27,12 +27,12 @@
  *  Bink (limited, for backward compatibility with original EI resources)
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <math.h>
-#include <assert.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstdint>
+#include <cstring>
+#include <cmath>
+#include <cassert>
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <vorbis/vorbisfile.h>
@@ -56,12 +56,10 @@
 #include "soundresource.hpp"
 
 /*
- *  Ogg Vorbis (C) 1994-2001 Xiph.Org Foundation
- *
- *  See also:
- *  1. http://www.xiph.org/ogg/doc/
- *  2. http://www.xiph.org/vorbis/doc/
-*/
+ *  Ogg Vorbis (C) Xiph.Org Foundation
+ *  http://www.xiph.org/ogg/doc/
+ *  http://www.xiph.org/vorbis/doc/
+ */
 
 typedef struct {
     OggVorbis_File vf;
@@ -168,12 +166,10 @@ static bool ce_vorbis_reset(ce_sound_resource* sound_resource)
 }
 
 /*
- *  FLAC: Free Lossless Audio Codec (C) 2000-2007 Josh Coalson
- *
- *  See also:
- *  1. http://flac.sourceforge.net/
- *  2. http://flac.sourceforge.net/api/index.html
-*/
+ *  FLAC: Free Lossless Audio Codec (C) Josh Coalson
+ *  http://flac.sourceforge.net/
+ *  http://flac.sourceforge.net/api/index.html
+ */
 
 typedef struct {
     unsigned int block_size, min_block_size, max_block_size;
@@ -441,10 +437,8 @@ static bool ce_flac_reset(ce_sound_resource* sound_resource)
 
 /*
  *  Waveform Audio File Format (C) Microsoft & IBM
- *
- *  See also:
- *  1. cewave.h
-*/
+ *  cewave.h
+ */
 
 typedef struct {
     ce_wave_header wave_header;
@@ -529,13 +523,9 @@ static bool ce_wave_reset(ce_sound_resource* sound_resource)
 
 #ifdef CE_ENABLE_PROPRIETARY
 /*
- *  MAD: MPEG Audio Decoder (C) 2000-2004 Underbit Technologies, Inc.
- *
- *  See also:
- *  1. libmad source code
- *  2. madlld (C) 2001-2004 Bertrand Petit
- *     a simple sample demonstrating how the low-level libmad API can be used
-*/
+ *  MAD: MPEG Audio Decoder (C) Underbit Technologies, Inc.
+ *  madlld (C) Bertrand Petit - a simple sample demonstrating how the low-level libmad API can be used
+ */
 
 enum {
     CE_MAD_INPUT_BUFFER_CAPACITY = 4 * 8192,
@@ -816,12 +806,10 @@ static bool ce_mad_reset(ce_sound_resource* sound_resource)
 
 /*
  *  Bink Audio (C) RAD Game Tools, Inc.
- *
- *  See also:
- *  1. cebink.h
- *  2. http://wiki.multimedia.cx/index.php?title=Bink_Audio
- *  3. FFmpeg (C) Michael Niedermayer
-*/
+ *  cebink.h
+ *  http://wiki.multimedia.cx/index.php?title=Bink_Audio
+ *  FFmpeg (C) Michael Niedermayer
+ */
 
 typedef struct {
     size_t frame_index;

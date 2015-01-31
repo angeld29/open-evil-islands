@@ -21,8 +21,6 @@
 #ifndef CE_MATH_HPP
 #define CE_MATH_HPP
 
-#include <stdbool.h>
-
 extern const float CE_PI;
 extern const float CE_PI2;
 extern const float CE_PI_DIV_2;

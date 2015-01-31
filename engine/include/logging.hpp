@@ -21,7 +21,7 @@
 #ifndef CE_LOGGING_HPP
 #define CE_LOGGING_HPP
 
-#include <stdarg.h>
+#include <cstdarg>
 
 #define CE_LOGGING_DEF_PROC_VA(name, level) \
 static inline void ce_logging_##name##_va(const char* format, va_list args) \

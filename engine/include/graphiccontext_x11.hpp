@@ -21,8 +21,6 @@
 #ifndef CE_GRAPHICCONTEXT_PLATFORM_HPP
 #define CE_GRAPHICCONTEXT_PLATFORM_HPP
 
-#include <stdbool.h>
-
 #include "glew_x11.hpp"
 #include "graphiccontext.hpp"
 

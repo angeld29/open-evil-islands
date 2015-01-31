@@ -18,9 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdint.h>
-#include <string.h>
-#include <assert.h>
+#include <cstdint>
+#include <cstring>
+#include <cassert>
 
 #include "lib.hpp"
 #include "alloc.hpp"

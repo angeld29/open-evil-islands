@@ -26,9 +26,7 @@
  *  https://zerowing.idsoftware.com/svn/radiant/GtkRadiant
 */
 
-#include <stddef.h>
-#include <math.h>
-#include <assert.h>
+#include <cmath>
 
 #include "math.hpp"
 #include "frustum.hpp"

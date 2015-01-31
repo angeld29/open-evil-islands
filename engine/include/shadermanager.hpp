@@ -21,8 +21,6 @@
 #ifndef CE_SHADERMANAGER_HPP
 #define CE_SHADERMANAGER_HPP
 
-#include <stdbool.h>
-
 #include "vector.hpp"
 #include "shader.hpp"
 

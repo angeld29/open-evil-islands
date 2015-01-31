@@ -25,7 +25,8 @@
 #ifndef CE_ADBFILE_HPP
 #define CE_ADBFILE_HPP
 
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "memfile.hpp"
 

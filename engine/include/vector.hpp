@@ -21,8 +21,7 @@
 #ifndef CE_VECTOR_HPP
 #define CE_VECTOR_HPP
 
-#include <stddef.h>
-#include <stdbool.h>
+#include <cstddef>
 
 typedef struct {
     size_t capacity;

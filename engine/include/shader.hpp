@@ -21,8 +21,7 @@
 #ifndef CE_SHADER_HPP
 #define CE_SHADER_HPP
 
-#include <stddef.h>
-#include <stdbool.h>
+#include <cstddef>
 
 #include "atomic.hpp"
 #include "string.hpp"

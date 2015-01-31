@@ -21,19 +21,19 @@
 #ifndef CE_STR_HPP
 #define CE_STR_HPP
 
-#include <stddef.h>
+#include <cstddef>
 
 /**
  *  Copies a string that contains the n leftmost characters of the s.
  *  The entire string is copied if n is greater than string length.
  */
-extern char* ce_strleft(char* restrict dst, const char* restrict src, size_t n);
+extern char* ce_strleft(char* dst, const char* src, size_t n);
 
 /**
  *  Copies a string that contains the n rightmost characters of the s.
  *  The entire string is copied if n is greater than string length.
  */
-extern char* ce_strright(char* restrict dst, const char* restrict src, size_t n);
+extern char* ce_strright(char* dst, const char* src, size_t n);
 
 /**
  *  Copies a string, n characters long beginning at position pos.
@@ -42,19 +42,19 @@ extern char* ce_strright(char* restrict dst, const char* restrict src, size_t n)
  *  available in the string starting at the given position, the function
  *  copies all characters that are available from the specified position.
  */
-extern char* ce_strmid(char* restrict dst, const char* restrict src, size_t pos, size_t n);
+extern char* ce_strmid(char* dst, const char* src, size_t pos, size_t n);
 
 /// Remove all whitespace from the start and the end.
-extern char* ce_strtrim(char* restrict dst, const char* restrict src);
+extern char* ce_strtrim(char* dst, const char* src);
 
 /// Convert a string into upper case.
-extern char* ce_strupr(char* restrict dst, const char* restrict src);
+extern char* ce_strupr(char* dst, const char* src);
 
 /// Convert a string into lower case.
-extern char* ce_strlwr(char* restrict dst, const char* restrict src);
+extern char* ce_strlwr(char* dst, const char* src);
 
 /// Reverse a string.
-extern char* ce_strrev(char* restrict dst, const char* restrict src);
+extern char* ce_strrev(char* dst, const char* src);
 
 /**
  *  C substring replacement.
@@ -97,7 +97,7 @@ extern char* ce_strcasestr(const char* haystack, const char* needle);
  *  Returns strlen(src) + MIN(size, strlen(initial dst)).
  *  If retval >= size, truncation occurred.
  */
-extern size_t ce_strlcat(char* restrict dst, const char* restrict src, size_t size);
+extern size_t ce_strlcat(char* dst, const char* src, size_t size);
 
 /**
  *  @brief Consistent, safe string copy.
@@ -107,7 +107,7 @@ extern size_t ce_strlcat(char* restrict dst, const char* restrict src, size_t si
  *  will be copied. Always NULL terminates (unless size == 0).
  *  Return strlen(src); if retval >= size, truncation occurred.
  */
-extern size_t ce_strlcpy(char* restrict dst, const char* restrict src, size_t size);
+extern size_t ce_strlcpy(char* dst, const char* src, size_t size);
 
 /**
  *  Find the length of s, but scan at most n characters.

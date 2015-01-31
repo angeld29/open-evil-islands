@@ -18,8 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
-
 #include "resball.hpp"
 
 void ce_res_ball_extract_all_mem_files(ce_res_file* res_file, ce_mem_file* mem_files[])

@@ -21,8 +21,6 @@
 #ifndef CE_TEXTURE_HPP
 #define CE_TEXTURE_HPP
 
-#include <stdbool.h>
-
 #include "atomic.hpp"
 #include "string.hpp"
 #include "mmpfile.hpp"

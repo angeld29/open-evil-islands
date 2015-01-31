@@ -18,10 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stddef.h>
-#include <stdbool.h>
-#include <signal.h>
-#include <assert.h>
+#include <csignal>
+#include <cassert>
 
 #ifdef _WIN32
 #include <windows.h>

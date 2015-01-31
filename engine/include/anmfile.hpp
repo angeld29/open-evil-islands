@@ -25,7 +25,7 @@
 #ifndef CE_ANMFILE_HPP
 #define CE_ANMFILE_HPP
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "string.hpp"
 #include "resfile.hpp"

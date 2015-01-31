@@ -18,8 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
-
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "camfile.hpp"
@@ -28,8 +26,7 @@ ce_cam_file* ce_cam_file_new(ce_mem_file* mem_file)
 {
     size_t record_count = ce_mem_file_size(mem_file) / 36;
 
-    ce_cam_file* cam_file = ce_alloc_zero(sizeof(ce_cam_file) +
-                            sizeof(ce_cam_record) * record_count);
+    ce_cam_file* cam_file = ce_alloc_zero(sizeof(ce_cam_file) + sizeof(ce_cam_record) * record_count);
     cam_file->record_count = record_count;
 
     for (size_t i = 0; i < record_count; ++i) {
@@ -45,7 +42,6 @@ ce_cam_file* ce_cam_file_new(ce_mem_file* mem_file)
 void ce_cam_file_del(ce_cam_file* cam_file)
 {
     if (NULL != cam_file) {
-        ce_free(cam_file, sizeof(ce_cam_file) +
-                        sizeof(ce_cam_record) * cam_file->record_count);
+        ce_free(cam_file, sizeof(ce_cam_file) + sizeof(ce_cam_record) * cam_file->record_count);
     }
 }

@@ -26,9 +26,8 @@
 #ifndef CE_BINK_HPP
 #define CE_BINK_HPP
 
-#include <stddef.h>
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "memfile.hpp"
 #include "vector.hpp"

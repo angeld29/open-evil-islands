@@ -21,8 +21,6 @@
 #ifndef CE_FIGPROTO_HPP
 #define CE_FIGPROTO_HPP
 
-#include <stdbool.h>
-
 #include "string.hpp"
 #include "atomic.hpp"
 #include "resfile.hpp"

@@ -21,9 +21,6 @@
 #ifndef CE_EVENT_HPP
 #define CE_EVENT_HPP
 
-#include <stddef.h>
-#include <stdbool.h>
-
 #include "vector.hpp"
 #include "timer.hpp"
 #include "thread.hpp"

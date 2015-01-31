@@ -25,8 +25,8 @@
 #ifndef CE_RESFILE_HPP
 #define CE_RESFILE_HPP
 
-#include <stdint.h>
-#include <time.h>
+#include <cstdint>
+#include <ctime>
 
 #include "string.hpp"
 #include "memfile.hpp"

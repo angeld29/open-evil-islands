@@ -21,8 +21,6 @@
 #ifndef CE_SOUNDINSTANCE_HPP
 #define CE_SOUNDINSTANCE_HPP
 
-#include <stdbool.h>
-
 #include "soundstate.hpp"
 #include "soundbundle.hpp"
 #include "soundbuffer.hpp"

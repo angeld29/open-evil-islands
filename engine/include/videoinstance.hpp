@@ -21,8 +21,7 @@
 #ifndef CE_VIDEOINSTANCE_HPP
 #define CE_VIDEOINSTANCE_HPP
 
-#include <stddef.h>
-#include <stdbool.h>
+#include <cstddef>
 
 #include "thread.hpp"
 #include "mmpfile.hpp"

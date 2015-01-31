@@ -25,7 +25,7 @@
 #ifndef CE_MOBFILE_HPP
 #define CE_MOBFILE_HPP
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "vector.hpp"
 #include "string.hpp"

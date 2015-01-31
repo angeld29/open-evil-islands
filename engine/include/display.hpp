@@ -21,9 +21,8 @@
 #ifndef CE_DISPLAY_HPP
 #define CE_DISPLAY_HPP
 
-#include <stddef.h>
-#include <stdarg.h>
-#include <stdbool.h>
+#include <cstddef>
+#include <cstdarg>
 
 #include "vector.hpp"
 

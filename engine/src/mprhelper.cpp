@@ -18,10 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-#include <limits.h>
-#include <math.h>
-#include <assert.h>
+#include <cstring>
+#include <climits>
+#include <cmath>
 
 #include "lib.hpp"
 #include "math.hpp"
@@ -221,14 +220,12 @@ ce_material* ce_mpr_create_material(const ce_mprfile* mprfile, bool water)
     return material;
 }
 
-static void ce_mpr_rotate_texture_0(uint32_t* restrict dst,
-                                    const uint32_t* src, int size)
+static void ce_mpr_rotate_texture_0(uint32_t* dst, const uint32_t* src, int size)
 {
     memcpy(dst, src, sizeof(uint32_t) * size * size);
 }
 
-static void ce_mpr_rotate_texture_90(uint32_t* restrict dst,
-                                    const uint32_t* src, int size)
+static void ce_mpr_rotate_texture_90(uint32_t* dst, const uint32_t* src, int size)
 {
     for (int i = 0; i < size; ++i) {
         for (int j = size - 1; j >= 0; --j) {
@@ -237,16 +234,14 @@ static void ce_mpr_rotate_texture_90(uint32_t* restrict dst,
     }
 }
 
-static void ce_mpr_rotate_texture_180(uint32_t* restrict dst,
-                                        const uint32_t* src, int size)
+static void ce_mpr_rotate_texture_180(uint32_t* dst, const uint32_t* src, int size)
 {
     for (int i = size * size - 1; i >= 0; --i) {
         *dst++ = src[i];
     }
 }
 
-static void ce_mpr_rotate_texture_270(uint32_t* restrict dst,
-                                        const uint32_t* src, int size)
+static void ce_mpr_rotate_texture_270(uint32_t* dst, const uint32_t* src, int size)
 {
     for (int i = size - 1; i >= 0; --i) {
         for (int j = 0; j < size; ++j) {
@@ -255,8 +250,7 @@ static void ce_mpr_rotate_texture_270(uint32_t* restrict dst,
     }
 }
 
-static void (*ce_mpr_rotate_texture_procs[])(uint32_t* restrict,
-                                            const uint32_t*, int) = {
+static void (*ce_mpr_rotate_texture_procs[])(uint32_t*, const uint32_t*, int) = {
     ce_mpr_rotate_texture_0, ce_mpr_rotate_texture_90,
     ce_mpr_rotate_texture_180, ce_mpr_rotate_texture_270,
 };

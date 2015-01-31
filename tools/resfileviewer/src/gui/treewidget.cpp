@@ -42,7 +42,6 @@
 #include <QMenu>
 #include <QFileDialog>
 
-#define restrict
 #include <cealloc.h>
 #include <ceresfile.h>
 

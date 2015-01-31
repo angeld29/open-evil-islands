@@ -28,8 +28,8 @@
 #ifndef CE_WAVE_HPP
 #define CE_WAVE_HPP
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "memfile.hpp"
 

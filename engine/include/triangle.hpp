@@ -21,8 +21,6 @@
 #ifndef CE_TRIANGLE_HPP
 #define CE_TRIANGLE_HPP
 
-#include <stdbool.h>
-
 #include "vec3.hpp"
 
 typedef struct {

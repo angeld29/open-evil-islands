@@ -25,9 +25,8 @@
 #ifndef CE_INPUT_HPP
 #define CE_INPUT_HPP
 
-#include <stddef.h>
-#include <stdarg.h>
-#include <stdbool.h>
+#include <cstddef>
+#include <cstdarg>
 
 #include "vec2.hpp"
 #include "vector.hpp"

@@ -26,7 +26,6 @@ typedef struct ce_graphic_context ce_graphic_context;
 extern void ce_graphic_context_del(ce_graphic_context* graphic_context);
 extern void ce_graphic_context_swap(ce_graphic_context* graphic_context);
 
-extern void ce_graphic_context_visual_info(int id, int db, int sz, int r,
-                                            int g, int b, int a, int dp, int st);
+extern void ce_graphic_context_visual_info(int id, int db, int sz, int r, int g, int b, int a, int dp, int st);
 
 #endif /* CE_GRAPHICCONTEXT_HPP */

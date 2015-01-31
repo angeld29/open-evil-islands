@@ -25,8 +25,7 @@
 #ifndef CE_MPRFILE_HPP
 #define CE_MPRFILE_HPP
 
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstdint>
 
 #include "string.hpp"
 #include "resfile.hpp"

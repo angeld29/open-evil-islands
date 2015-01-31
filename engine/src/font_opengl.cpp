@@ -23,8 +23,8 @@
  *  Simple library/example for using FreeType fonts within OpenGL
  */
 
-#include <stdio.h>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

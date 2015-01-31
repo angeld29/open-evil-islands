@@ -21,8 +21,7 @@
 #ifndef CE_HASH_HPP
 #define CE_HASH_HPP
 
-#include <stddef.h>
-#include <stdbool.h>
+#include <cstddef>
 
 typedef unsigned long int ce_hash_key;
 

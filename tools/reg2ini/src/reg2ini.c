@@ -23,7 +23,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <assert.h>
 
 static const uint32_t SIGNATURE = 0x45ab3efbu;
 

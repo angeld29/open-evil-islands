@@ -25,8 +25,8 @@
 #ifndef CE_MMPFILE_HPP
 #define CE_MMPFILE_HPP
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "memfile.hpp"
 #include "resfile.hpp"

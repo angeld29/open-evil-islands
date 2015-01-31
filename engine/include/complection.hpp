@@ -21,8 +21,6 @@
 #ifndef CE_COMPLECTION_HPP
 #define CE_COMPLECTION_HPP
 
-#include <stdbool.h>
-
 typedef struct {
     float dexterity, strength, height;
 } ce_complection;

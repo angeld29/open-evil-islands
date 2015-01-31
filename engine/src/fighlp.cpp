@@ -18,8 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdbool.h>
-#include <assert.h>
+#include <cassert>
 
 #include "logging.hpp"
 #include "fighlp.hpp"

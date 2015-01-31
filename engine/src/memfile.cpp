@@ -18,11 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <errno.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstring>
+#include <cerrno>
 
 #include "lib.hpp"
 #include "alloc.hpp"
@@ -61,7 +59,7 @@ static int ce_data_file_close(ce_mem_file* mem_file)
     return 0;
 }
 
-static size_t ce_data_file_read(ce_mem_file* mem_file, void* restrict ptr, size_t size, size_t n)
+static size_t ce_data_file_read(ce_mem_file* mem_file, void* ptr, size_t size, size_t n)
 {
     ce_data_file* data_file = (ce_data_file*)mem_file->impl;
     n = ce_min(size_t, n, (data_file->size - data_file->pos) / size);
@@ -139,7 +137,7 @@ static int ce_data_file_error(ce_mem_file* CE_UNUSED(mem_file))
     return 0;
 }
 
-ce_mem_file* ce_mem_file_new_data(void* restrict data, size_t size)
+ce_mem_file* ce_mem_file_new_data(void* data, size_t size)
 {
     ce_mem_file* mem_file = ce_mem_file_new((ce_mem_file_vtable)
         {sizeof(ce_data_file), ce_data_file_close,
@@ -181,7 +179,7 @@ static int ce_bstd_file_close(ce_mem_file* mem_file)
     return 0;
 }
 
-static size_t ce_bstd_file_read(ce_mem_file* mem_file, void* restrict ptr, size_t size, size_t n)
+static size_t ce_bstd_file_read(ce_mem_file* mem_file, void* ptr, size_t size, size_t n)
 {
     ce_bstd_file* bstd_file = (ce_bstd_file*)mem_file->impl;
     n = fread(ptr, size, n, bstd_file->file);

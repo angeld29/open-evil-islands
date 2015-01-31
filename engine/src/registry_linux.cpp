@@ -18,10 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 
 #include "lib.hpp"
 #include "str.hpp"
@@ -30,7 +29,7 @@
 #include "configfile.hpp"
 #include "registry.hpp"
 
-static void ce_registry_append_quotes(char* restrict dst, size_t size, const char* restrict src)
+static void ce_registry_append_quotes(char* dst, size_t size, const char* src)
 {
     if (NULL != dst && NULL != src) {
         ce_strlcpy(dst, "\"", size);
@@ -39,7 +38,7 @@ static void ce_registry_append_quotes(char* restrict dst, size_t size, const cha
     }
 }
 
-static void ce_registry_remove_quotes(char* restrict dst, size_t size, const char* restrict src)
+static void ce_registry_remove_quotes(char* dst, size_t size, const char* src)
 {
     if (NULL != dst && NULL != src) {
         char* left = strchr(src, '"');

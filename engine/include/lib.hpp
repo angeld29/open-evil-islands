@@ -21,9 +21,8 @@
 #ifndef CE_LIB_HPP
 #define CE_LIB_HPP
 
-#include <stddef.h>
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #define CE_LIB_DEF_MIN(T) \
 static inline T ce_min_##T(T a, T b) \

@@ -21,7 +21,7 @@
 #ifndef CE_QUAT_HPP
 #define CE_QUAT_HPP
 
-#include <math.h>
+#include <cmath>
 
 struct ce_vec3;
 
@@ -121,8 +121,7 @@ static inline ce_quat* ce_quat_sub(ce_quat* quat, const ce_quat* lhs, const ce_q
     return quat;
 }
 
-static inline ce_quat* ce_quat_mul(ce_quat* restrict quat, const ce_quat* lhs,
-                                                            const ce_quat* rhs)
+static inline ce_quat* ce_quat_mul(ce_quat* quat, const ce_quat* lhs, const ce_quat* rhs)
 {
     quat->w = lhs->w * rhs->w - lhs->x * rhs->x - lhs->y * rhs->y - lhs->z * rhs->z;
     quat->x = lhs->w * rhs->x + lhs->x * rhs->w + lhs->y * rhs->z - lhs->z * rhs->y;

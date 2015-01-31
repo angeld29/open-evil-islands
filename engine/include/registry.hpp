@@ -25,7 +25,7 @@
 #ifndef CE_REGISTRY_HPP
 #define CE_REGISTRY_HPP
 
-#include <stddef.h>
+#include <cstddef>
 
 typedef enum {
     CE_REGISTRY_KEY_CURRENT_USER,

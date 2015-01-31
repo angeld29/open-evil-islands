@@ -21,9 +21,8 @@
 #ifndef CE_STRING_HPP
 #define CE_STRING_HPP
 
-#include <stddef.h>
-#include <stdarg.h>
-#include <stdbool.h>
+#include <cstddef>
+#include <cstdarg>
 
 typedef struct {
     size_t capacity;

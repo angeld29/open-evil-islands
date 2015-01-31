@@ -18,8 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
-
 #include "registry.hpp"
 
 char* ce_registry_get_string_value(char* CE_UNUSED(value), size_t CE_UNUSED(size), ce_registry_key CE_UNUSED(key), const char* CE_UNUSED(key_name), const char* CE_UNUSED(value_name))

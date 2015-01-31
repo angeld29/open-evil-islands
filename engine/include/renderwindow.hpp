@@ -21,9 +21,8 @@
 #ifndef CE_RENDERWINDOW_HPP
 #define CE_RENDERWINDOW_HPP
 
-#include <stddef.h>
-#include <stdarg.h>
-#include <stdbool.h>
+#include <cstddef>
+#include <cstdarg>
 
 #include "vector.hpp"
 #include "input.hpp"

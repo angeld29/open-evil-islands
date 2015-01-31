@@ -25,8 +25,8 @@
 #ifndef CE_FIGFILE_HPP
 #define CE_FIGFILE_HPP
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "complection.hpp"
 #include "resfile.hpp"
