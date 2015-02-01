@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
     ce_root.scenemng->listener.advance = advance;
     ce_root.scenemng->listener.render = render;
 
-    input_supply = std::unique_ptr<input_supply_t>(new input_supply_t(ce_root.renderwindow->input_context));
+    input_supply = make_unique<input_supply_t>(ce_root.renderwindow->get_input_context());
     pause_event = input_supply->single_front(input_supply->push(CE_KB_SPACE));
 
     return ce_root_exec();

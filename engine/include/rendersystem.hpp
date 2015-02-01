@@ -32,13 +32,12 @@
 
 namespace cursedearth
 {
-    extern struct ce_render_system {
-        ce_thread_id thread_id;
-        char impl[];
-    }* ce_render_system;
+    extern struct render_system_t* ce_render_system;
 
     extern void ce_render_system_init(void);
     extern void ce_render_system_term(void);
+
+    extern void ce_render_system_thread_id(void);
 
     extern void ce_render_system_begin_render(const ce_color* clear_color);
     extern void ce_render_system_end_render(void);

@@ -46,7 +46,7 @@ static int ce_xf86vmmng_calc_rate(XF86VidModeModeInfo* info)
     return (info->dotclock * 1000.0f) / (info->htotal * info->vtotal) + 0.5f;
 }
 
-static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
+static void ce_xf86vmmng_ctor(display_manager_t* displaymng, va_list args)
 {
     ce_xf86vmmng* xf86vmmng = (ce_xf86vmmng*)displaymng->impl;
     xf86vmmng->display = va_arg(args, Display*);
@@ -67,13 +67,13 @@ static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
 
     for (int i = 0; i < mode_count; ++i) {
         XF86VidModeModeInfo* info = xf86vmmng->modes[i];
-        ce_vector_push_back(displaymng->supported_modes,
+        ce_vector_push_back(displaymng->m_supported_modes,
             ce_displaymode_new(info->hdisplay, info->vdisplay,
                 bpp, ce_xf86vmmng_calc_rate(info)));
     }
 }
 
-static void ce_xf86vmmng_enter(ce_displaymng* displaymng, size_t index, ce_display_rotation, ce_display_reflection)
+static void ce_xf86vmmng_enter(display_manager_t* displaymng, size_t index, display_rotation_t, display_reflection_t)
 {
     ce_xf86vmmng* xf86vmmng = (ce_xf86vmmng*)displaymng->impl;
 
@@ -85,13 +85,13 @@ static void ce_xf86vmmng_enter(ce_displaymng* displaymng, size_t index, ce_displ
     }
 }
 
-static void ce_xf86vmmng_exit(ce_displaymng* displaymng)
+static void ce_xf86vmmng_exit(display_manager_t* displaymng)
 {
-    ce_xf86vmmng_enter(displaymng, 0, CE_DISPLAY_ROTATION_NONE,
-                                        CE_DISPLAY_REFLECTION_NONE);
+    ce_xf86vmmng_enter(displaymng, 0, DISPLAY_ROTATION_NONE,
+                                        DISPLAY_REFLECTION_NONE);
 }
 
-static void ce_xf86vmmng_dtor(ce_displaymng* displaymng)
+static void ce_xf86vmmng_dtor(display_manager_t* displaymng)
 {
     ce_xf86vmmng* xf86vmmng = (ce_xf86vmmng*)displaymng->impl;
 
@@ -132,13 +132,13 @@ typedef struct {
     Rotation orig_rotation;
 } ce_xrrmng;
 
-static ce_display_rotation ce_xrrmng_xrr2ce_rotation(Rotation xrr_rotation)
+static display_rotation_t ce_xrrmng_xrr2ce_rotation(Rotation xrr_rotation)
 {
-    ce_display_rotation rotation = CE_DISPLAY_ROTATION_NONE;
-    const ce_display_rotation rotations[] = { CE_DISPLAY_ROTATION_0,
-                                                CE_DISPLAY_ROTATION_90,
-                                                CE_DISPLAY_ROTATION_180,
-                                                CE_DISPLAY_ROTATION_270 };
+    display_rotation_t rotation = DISPLAY_ROTATION_NONE;
+    const display_rotation_t rotations[] = { DISPLAY_ROTATION_0,
+                                                DISPLAY_ROTATION_90,
+                                                DISPLAY_ROTATION_180,
+                                                DISPLAY_ROTATION_270 };
     const Rotation xrr_rotations[] = { RR_Rotate_0, RR_Rotate_90,
                                         RR_Rotate_180, RR_Rotate_270 };
     for (size_t i = 0; i < sizeof(xrr_rotations) /
@@ -150,11 +150,11 @@ static ce_display_rotation ce_xrrmng_xrr2ce_rotation(Rotation xrr_rotation)
     return rotation;
 }
 
-static ce_display_reflection ce_xrrmng_xrr2ce_reflection(Rotation xrr_reflection)
+static display_reflection_t ce_xrrmng_xrr2ce_reflection(Rotation xrr_reflection)
 {
-    ce_display_reflection reflection = CE_DISPLAY_REFLECTION_NONE;
-    const ce_display_reflection reflections[] = { CE_DISPLAY_REFLECTION_X,
-                                                    CE_DISPLAY_REFLECTION_Y };
+    display_reflection_t reflection = DISPLAY_REFLECTION_NONE;
+    const display_reflection_t reflections[] = { DISPLAY_REFLECTION_X,
+                                                    DISPLAY_REFLECTION_Y };
     const Rotation xrr_reflections[] = { RR_Reflect_X, RR_Reflect_Y };
     for (size_t i = 0; i < sizeof(xrr_reflections) /
                             sizeof(xrr_reflections[0]); ++i) {
@@ -165,19 +165,19 @@ static ce_display_reflection ce_xrrmng_xrr2ce_reflection(Rotation xrr_reflection
     return reflection;
 }
 
-static Rotation ce_xrrmng_ce2xrr_rotation(ce_display_rotation rotation,
-                                        ce_display_reflection reflection)
+static Rotation ce_xrrmng_ce2xrr_rotation(display_rotation_t rotation,
+                                        display_reflection_t reflection)
 {
     Rotation xrr_rotation = 0;
     const Rotation xrr_rotations[] = { RR_Rotate_0, RR_Rotate_90,
                                         RR_Rotate_180, RR_Rotate_270 };
     const Rotation xrr_reflections[] = { RR_Reflect_X, RR_Reflect_Y };
-    const ce_display_rotation rotations[] = { CE_DISPLAY_ROTATION_0,
-                                                CE_DISPLAY_ROTATION_90,
-                                                CE_DISPLAY_ROTATION_180,
-                                                CE_DISPLAY_ROTATION_270 };
-    const ce_display_reflection reflections[] = { CE_DISPLAY_REFLECTION_X,
-                                                    CE_DISPLAY_REFLECTION_Y };
+    const display_rotation_t rotations[] = { DISPLAY_ROTATION_0,
+                                                DISPLAY_ROTATION_90,
+                                                DISPLAY_ROTATION_180,
+                                                DISPLAY_ROTATION_270 };
+    const display_reflection_t reflections[] = { DISPLAY_REFLECTION_X,
+                                                    DISPLAY_REFLECTION_Y };
     for (size_t i = 0; i < sizeof(rotations) / sizeof(rotations[0]); ++i) {
         if (rotation & rotations[i]) {
             xrr_rotation |= xrr_rotations[i];
@@ -194,7 +194,7 @@ static Rotation ce_xrrmng_ce2xrr_rotation(ce_display_rotation rotation,
     return xrr_rotation;
 }
 
-static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
+static void ce_xrrmng_ctor(display_manager_t* displaymng, va_list args)
 {
     ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
     xrrmng->display = va_arg(args, Display*);
@@ -223,8 +223,8 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
     // get the possible set of rotations/reflections supported
     Rotation rotation = XRRConfigRotations(xrrmng->conf, &xrrmng->orig_rotation);
 
-    displaymng->supported_rotation = ce_xrrmng_xrr2ce_rotation(rotation);
-    displaymng->supported_reflection = ce_xrrmng_xrr2ce_reflection(rotation);
+    displaymng->m_supported_rotation = ce_xrrmng_xrr2ce_rotation(rotation);
+    displaymng->m_supported_reflection = ce_xrrmng_xrr2ce_reflection(rotation);
 
     // get possible screen resolutions
     xrrmng->sizes = XRRConfigSizes(xrrmng->conf, &xrrmng->size_count);
@@ -233,18 +233,18 @@ static void ce_xrrmng_ctor(ce_displaymng* displaymng, va_list args)
         int rate_count;
         short* rates = XRRConfigRates(xrrmng->conf, i, &rate_count);
         for (int j = 0; j < rate_count; ++j) {
-            ce_vector_push_back(displaymng->supported_modes,
+            ce_vector_push_back(displaymng->m_supported_modes,
                 ce_displaymode_new(xrrmng->sizes[i].width,
                     xrrmng->sizes[i].height, bpp, rates[j]));
         }
     }
 }
 
-static void ce_xrrmng_enter(ce_displaymng* displaymng, size_t index,
-    ce_display_rotation rotation, ce_display_reflection reflection)
+static void ce_xrrmng_enter(display_manager_t* displaymng, size_t index,
+    display_rotation_t rotation, display_reflection_t reflection)
 {
     ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
-    ce_displaymode* mode = displaymng->supported_modes->items[index];
+    display_mode_t* mode = displaymng->m_supported_modes->items[index];
     SizeID size_index;
 
     for (size_index = xrrmng->size_count - 1; size_index > 0; --size_index) {
@@ -260,7 +260,7 @@ static void ce_xrrmng_enter(ce_displaymng* displaymng, size_t index,
         mode->rate, CurrentTime);
 }
 
-static void ce_xrrmng_exit(ce_displaymng* displaymng)
+static void ce_xrrmng_exit(display_manager_t* displaymng)
 {
     ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
 
@@ -269,7 +269,7 @@ static void ce_xrrmng_exit(ce_displaymng* displaymng)
         xrrmng->orig_rotation, xrrmng->orig_rate, CurrentTime);
 }
 
-static void ce_xrrmng_dtor(ce_displaymng* displaymng)
+static void ce_xrrmng_dtor(display_manager_t* displaymng)
 {
     ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
 
@@ -295,7 +295,7 @@ static bool ce_xrrmng_query(Display* display)
     return false;
 }
 
-ce_displaymng* ce_displaymng_create(Display* display)
+display_manager_t* ce_displaymng_create(Display* display)
 {
     struct {
         const char* name;

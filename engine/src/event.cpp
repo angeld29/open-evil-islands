@@ -46,7 +46,7 @@ void ce_event_del(ce_event* event)
     }
 }
 
-ce_event_queue* ce_event_queue_new(ce_thread_id thread_id)
+ce_event_queue* ce_event_queue_new(thread_id_t thread_id)
 {
     ce_event_queue* queue = ce_alloc_zero(sizeof(ce_event_queue));
     queue->thread_id = thread_id;
@@ -163,7 +163,7 @@ void ce_event_manager_term(void)
     }
 }
 
-static void ce_event_manager_create_queue(ce_thread_id thread_id)
+static void ce_event_manager_create_queue(thread_id_t thread_id)
 {
     ce_mutex_lock(ce_event_manager->mutex);
     ce_vector_push_back(ce_event_manager->event_queues,
@@ -171,7 +171,7 @@ static void ce_event_manager_create_queue(ce_thread_id thread_id)
     ce_mutex_unlock(ce_event_manager->mutex);
 }
 
-bool ce_event_manager_has_pending_events(ce_thread_id thread_id)
+bool ce_event_manager_has_pending_events(thread_id_t thread_id)
 {
     for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
         ce_event_queue* queue = ce_event_manager->event_queues->items[i];
@@ -182,12 +182,12 @@ bool ce_event_manager_has_pending_events(ce_thread_id thread_id)
     return false;
 }
 
-void ce_event_manager_process_events(ce_thread_id thread_id, int flags)
+void ce_event_manager_process_events(thread_id_t thread_id, int flags)
 {
     ce_event_manager_process_events_timeout(thread_id, flags, INT_MAX);
 }
 
-void ce_event_manager_process_events_timeout(ce_thread_id thread_id, int flags, int max_time)
+void ce_event_manager_process_events_timeout(thread_id_t thread_id, int flags, int max_time)
 {
     for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
         ce_event_queue* queue = ce_event_manager->event_queues->items[i];
@@ -201,7 +201,7 @@ void ce_event_manager_process_events_timeout(ce_thread_id thread_id, int flags, 
     ce_event_manager_process_events_timeout(thread_id, flags, max_time);
 }
 
-void ce_event_manager_interrupt(ce_thread_id thread_id)
+void ce_event_manager_interrupt(thread_id_t thread_id)
 {
     for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
         ce_event_queue* queue = ce_event_manager->event_queues->items[i];
@@ -211,7 +211,7 @@ void ce_event_manager_interrupt(ce_thread_id thread_id)
     }
 }
 
-void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event)
+void ce_event_manager_post_event(thread_id_t thread_id, ce_event* event)
 {
     for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
         ce_event_queue* queue = ce_event_manager->event_queues->items[i];
@@ -225,7 +225,7 @@ void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event)
     ce_event_manager_post_event(thread_id, event);
 }
 
-void ce_event_manager_post_raw(ce_thread_id thread_id,
+void ce_event_manager_post_raw(thread_id_t thread_id,
                                 void (*notify)(ce_event*),
                                 const void* impl, size_t size)
 {
@@ -234,7 +234,7 @@ void ce_event_manager_post_raw(ce_thread_id thread_id,
     ce_event_manager_post_event(thread_id, event);
 }
 
-void ce_event_manager_post_ptr(ce_thread_id thread_id,
+void ce_event_manager_post_ptr(thread_id_t thread_id,
                                     void (*notify)(ce_event*), void* ptr)
 {
     ce_event_manager_post_raw(thread_id, notify,

@@ -31,8 +31,8 @@ namespace cursedearth
     typedef struct {
         ce_sound_format sound_format;
         size_t capacity, start, end;
-        ce_semaphore* prepared_data;
-        ce_semaphore* unprepared_data;
+        semaphore_t* prepared_data;
+        semaphore_t* unprepared_data;
         char data[];
     } ce_sound_buffer;
 

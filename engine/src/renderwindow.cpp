@@ -28,81 +28,10 @@
 
 namespace cursedearth
 {
-static ce_renderwindow_keypair* ce_renderwindow_keypair_new(unsigned long key,
-                                                        ce_input_button button)
-{
-    ce_renderwindow_keypair* keypair = ce_alloc(sizeof(ce_renderwindow_keypair));
-    keypair->key = key;
-    keypair->button = button;
-    return keypair;
-}
 
-static void ce_renderwindow_keypair_del(ce_renderwindow_keypair* keypair)
+render_window_t* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...)
 {
-    ce_free(keypair, sizeof(ce_renderwindow_keypair));
-}
-
-static int ce_renderwindow_keypair_sort_comp(const void* arg1, const void* arg2)
-{
-    const ce_renderwindow_keypair* keypair1 = *(const ce_renderwindow_keypair**)arg1;
-    const ce_renderwindow_keypair* keypair2 = *(const ce_renderwindow_keypair**)arg2;
-    return keypair1->key < keypair2->key ? -1 : (int)(keypair1->key - keypair2->key);
-}
-
-static int ce_renderwindow_keypair_search_comp(const void* arg1, const void* arg2)
-{
-    const unsigned long* key = arg1;
-    const ce_renderwindow_keypair* keypair = *(const ce_renderwindow_keypair**)arg2;
-    return *key < keypair->key ? -1 : (int)(*key - keypair->key);
-}
-
-ce_renderwindow_keymap* ce_renderwindow_keymap_new(void)
-{
-    ce_renderwindow_keymap* keymap = ce_alloc(sizeof(ce_renderwindow_keymap));
-    keymap->keypairs = ce_vector_new_reserved(CE_IB_COUNT);
-    return keymap;
-}
-
-void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap)
-{
-    if (NULL != keymap) {
-        ce_vector_for_each(keymap->keypairs, ce_renderwindow_keypair_del);
-        ce_vector_del(keymap->keypairs);
-        ce_free(keymap, sizeof(ce_renderwindow_keymap));
-    }
-}
-
-void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap,
-                                unsigned long key, ce_input_button button)
-{
-    ce_vector_push_back(keymap->keypairs, ce_renderwindow_keypair_new(key, button));
-}
-
-void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap,
-                                        unsigned long keys[CE_IB_COUNT])
-{
-    for (size_t i = CE_IB_UNKNOWN; i < CE_IB_COUNT; ++i) {
-        ce_renderwindow_keymap_add(keymap, keys[i], i);
-    }
-}
-
-void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap)
-{
-    qsort(keymap->keypairs->items, keymap->keypairs->count,
-        sizeof(ce_renderwindow_keypair*), ce_renderwindow_keypair_sort_comp);
-}
-
-ce_input_button ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key)
-{
-    ce_renderwindow_keypair** keypair = bsearch(&key,
-        keymap->keypairs->items, keymap->keypairs->count,
-        sizeof(ce_renderwindow_keypair*), ce_renderwindow_keypair_search_comp);
-    return NULL != keypair ? (*keypair)->button : CE_IB_UNKNOWN;
-}
-
-ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...)
-{
-    ce_renderwindow* renderwindow = ce_alloc_zero(sizeof(ce_renderwindow) + size);
+    render_window_t* renderwindow = ce_alloc_zero(sizeof(render_window_t) + size);
 
     renderwindow->vtable = vtable;
     renderwindow->size = size;
@@ -129,7 +58,7 @@ ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size,
     return renderwindow;
 }
 
-void ce_renderwindow_del(ce_renderwindow* renderwindow)
+void ce_renderwindow_del(render_window_t* renderwindow)
 {
     if (NULL != renderwindow) {
         (*renderwindow->vtable.dtor)(renderwindow);
@@ -138,24 +67,24 @@ void ce_renderwindow_del(ce_renderwindow* renderwindow)
         ce_renderwindow_keymap_del(renderwindow->keymap);
         ce_input_context_del(renderwindow->input_context);
 
-        ce_free(renderwindow, sizeof(ce_renderwindow) + renderwindow->size);
+        ce_free(renderwindow, sizeof(render_window_t) + renderwindow->size);
     }
 }
 
-void ce_renderwindow_add_listener(ce_renderwindow* renderwindow,
+void ce_renderwindow_add_listener(render_window_t* renderwindow,
                                     ce_renderwindow_listener* listener)
 {
     ce_vector_push_back(renderwindow->listeners, listener);
 }
 
-void ce_renderwindow_show(ce_renderwindow* renderwindow)
+void ce_renderwindow_show(render_window_t* renderwindow)
 {
     (*renderwindow->vtable.show)(renderwindow);
 }
 
-void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
+void ce_renderwindow_minimize(render_window_t* renderwindow)
 {
-    if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
+    if (RENDER_WINDOW_STATE_FULLSCREEN == renderwindow->state) {
         assert(!renderwindow->restore_fullscreen);
         renderwindow->restore_fullscreen = true;
 
@@ -166,17 +95,17 @@ void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
     (*renderwindow->vtable.minimize)(renderwindow);
 }
 
-void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
+void ce_renderwindow_toggle_fullscreen(render_window_t* renderwindow)
 {
-    renderwindow->state = (ce_renderwindow_state[])
-        { CE_RENDERWINDOW_STATE_FULLSCREEN,
-        CE_RENDERWINDOW_STATE_WINDOW }[renderwindow->state];
+    renderwindow->state = (render_window_state_t[])
+        { RENDER_WINDOW_STATE_FULLSCREEN,
+        RENDER_WINDOW_STATE_WINDOW }[renderwindow->state];
 
     if (NULL != renderwindow->vtable.fullscreen.prepare) {
         (*renderwindow->vtable.fullscreen.prepare)(renderwindow);
     }
 
-    if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
+    if (RENDER_WINDOW_STATE_FULLSCREEN == renderwindow->state) {
         if (NULL != renderwindow->vtable.fullscreen.before_enter) {
             (*renderwindow->vtable.fullscreen.before_enter)(renderwindow);
         }
@@ -187,7 +116,7 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
             renderwindow->visual.bpp, renderwindow->visual.rate,
             renderwindow->visual.rotation, renderwindow->visual.reflection);
 
-        const ce_displaymode* mode = renderwindow->displaymng->supported_modes->items[index];
+        const display_mode_t* mode = renderwindow->displaymng->m_supported_modes->items[index];
 
         renderwindow->geometry[renderwindow->state].width = mode->width;
         renderwindow->geometry[renderwindow->state].height = mode->height;
@@ -216,16 +145,16 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
     }
 }
 
-static void ce_renderwindow_action_proc_none(ce_renderwindow*)
+static void ce_renderwindow_action_proc_none(render_window_t*)
 {
 }
 
-static void ce_renderwindow_action_proc_restored(ce_renderwindow* renderwindow)
+static void ce_renderwindow_action_proc_restored(render_window_t* renderwindow)
 {
     if (renderwindow->restore_fullscreen) {
         renderwindow->restore_fullscreen = false;
 
-        assert(CE_RENDERWINDOW_STATE_WINDOW == renderwindow->state);
+        assert(RENDER_WINDOW_STATE_WINDOW == renderwindow->state);
         ce_renderwindow_toggle_fullscreen(renderwindow);
     }
 }

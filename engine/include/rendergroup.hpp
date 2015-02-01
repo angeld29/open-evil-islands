@@ -39,7 +39,7 @@ namespace cursedearth
 
     extern void ce_rendergroup_clear(ce_rendergroup* rendergroup);
 
-    extern ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup, ce_texture* texture);
+    extern ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup, texture_t* texture);
 
     extern void ce_rendergroup_render(ce_rendergroup* rendergroup);
 }

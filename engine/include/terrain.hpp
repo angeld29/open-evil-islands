@@ -41,7 +41,7 @@ namespace cursedearth
         int x, z;
         ce_string* name;
         ce_mmpfile* mmpfile;
-        ce_texture* texture;
+        texture_t* texture;
         ce_renderlayer* renderlayer;
         ce_renderitem* renderitem;
         ce_scenenode* scenenode;
@@ -59,7 +59,7 @@ namespace cursedearth
         ce_rendergroup* rendergroups[CE_MPRFILE_MATERIAL_COUNT];
         ce_vector* tile_mmpfiles;
         ce_vector* tile_textures;
-        ce_once* tile_once;
+        once_t* tile_once;
         ce_vector* sectors;
         ce_scenenode* scenenode;
     };

@@ -53,7 +53,7 @@ namespace cursedearth
     } ce_scenemng_listener;
 
     typedef struct {
-        ce_thread_id thread_id;
+        thread_id_t thread_id;
         int state;
         float camera_move_sensitivity; // FIXME: hard-coded
         float camera_zoom_sensitivity; // TODO: make strategy

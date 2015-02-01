@@ -30,7 +30,7 @@
 #include <memory>
 #include <vector>
 
-#include "memfile.hpp"
+#include "memoryfile.hpp"
 
 namespace cursedearth
 {
@@ -69,7 +69,7 @@ namespace cursedearth
 
     typedef std::shared_ptr<adb_t> adb_ptr_t;
 
-    adb_ptr_t create_adb(ce_mem_file* mem_file);
+    adb_ptr_t make_adb(memory_file_t* mem_file);
 }
 
 #endif /* CE_ADB_HPP */

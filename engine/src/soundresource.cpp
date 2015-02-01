@@ -31,7 +31,7 @@ namespace cursedearth
 extern const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT;
 extern const ce_sound_resource_vtable ce_sound_resource_builtins[];
 
-ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file)
+ce_sound_resource* ce_sound_resource_new(memory_file_t* mem_file)
 {
     ce_sound_probe sound_probe;
 

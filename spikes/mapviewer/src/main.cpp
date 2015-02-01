@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
 
     message_color = CE_COLOR_CORNFLOWER;
 
-    input_supply = std::unique_ptr<input_supply_t>(new input_supply_t(ce_root.renderwindow->input_context));
+    input_supply = make_unique<input_supply_t>(ce_root.renderwindow->get_input_context());
     anmfps_inc_event = input_supply->repeat(input_supply->push(CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
     anmfps_dec_event = input_supply->repeat(input_supply->push(CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
 

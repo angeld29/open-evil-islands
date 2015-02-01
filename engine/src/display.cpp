@@ -30,50 +30,35 @@
 
 namespace cursedearth
 {
-ce_display_rotation ce_display_rotation_from_degrees(int value)
+display_rotation_t display_rotation_from_degrees(int value)
 {
-    ce_display_rotation rotation = CE_DISPLAY_ROTATION_NONE;
+    display_rotation_t rotation = DISPLAY_ROTATION_NONE;
     if (value < 90) {
-        rotation |= CE_DISPLAY_ROTATION_0;
+        rotation |= DISPLAY_ROTATION_0;
     } else if (value < 180) {
-        rotation |= CE_DISPLAY_ROTATION_90;
+        rotation |= DISPLAY_ROTATION_90;
     } else if (value < 270) {
-        rotation |= CE_DISPLAY_ROTATION_180;
+        rotation |= DISPLAY_ROTATION_180;
     } else if (value < 360) {
-        rotation |= CE_DISPLAY_ROTATION_270;
+        rotation |= DISPLAY_ROTATION_270;
     }
     return rotation;
 }
 
-ce_display_reflection ce_display_reflection_from_bool(bool x, bool y)
+display_reflection_t display_reflection_from_bool(bool x, bool y)
 {
-    ce_display_reflection reflection = CE_DISPLAY_REFLECTION_NONE;
-    if (x) reflection |= CE_DISPLAY_REFLECTION_X;
-    if (y) reflection |= CE_DISPLAY_REFLECTION_Y;
+    display_reflection_t reflection = DISPLAY_REFLECTION_NONE;
+    if (x) reflection |= DISPLAY_REFLECTION_X;
+    if (y) reflection |= DISPLAY_REFLECTION_Y;
     return reflection;
 }
 
-ce_displaymode* ce_displaymode_new(int width, int height, int bpp, int rate)
+display_manager_t* ce_displaymng_new(ce_displaymng_vtable vtable, size_t size, ...)
 {
-    ce_displaymode* mode = ce_alloc(sizeof(ce_displaymode));
-    mode->width = width;
-    mode->height = height;
-    mode->bpp = bpp;
-    mode->rate = rate;
-    return mode;
-}
-
-void ce_displaymode_del(ce_displaymode* mode)
-{
-    ce_free(mode, sizeof(ce_displaymode));
-}
-
-ce_displaymng* ce_displaymng_new(ce_displaymng_vtable vtable, size_t size, ...)
-{
-    ce_displaymng* displaymng = ce_alloc(sizeof(ce_displaymng) + size);
-    displaymng->supported_modes = ce_vector_new();
-    displaymng->supported_rotation = CE_DISPLAY_ROTATION_NONE;
-    displaymng->supported_reflection = CE_DISPLAY_REFLECTION_NONE;
+    display_manager_t* displaymng = ce_alloc(sizeof(display_manager_t) + size);
+    displaymng->m_supported_modes = ce_vector_new();
+    displaymng->m_supported_rotation = DISPLAY_ROTATION_NONE;
+    displaymng->m_supported_reflection = DISPLAY_REFLECTION_NONE;
     displaymng->vtable = vtable;
     displaymng->size = size;
     va_list args;
@@ -83,47 +68,47 @@ ce_displaymng* ce_displaymng_new(ce_displaymng_vtable vtable, size_t size, ...)
     return displaymng;
 }
 
-void ce_displaymng_del(ce_displaymng* displaymng)
+void ce_displaymng_del(display_manager_t* displaymng)
 {
     if (NULL != displaymng) {
         (*displaymng->vtable.dtor)(displaymng);
-        ce_vector_for_each(displaymng->supported_modes, ce_displaymode_del);
-        ce_vector_del(displaymng->supported_modes);
-        ce_free(displaymng, sizeof(ce_displaymng) + displaymng->size);
+        ce_vector_for_each(displaymng->m_supported_modes, ce_displaymode_del);
+        ce_vector_del(displaymng->m_supported_modes);
+        ce_free(displaymng, sizeof(display_manager_t) + displaymng->size);
     }
 }
 
-void ce_displaymng_dump_supported_modes_to_stdout(ce_displaymng* displaymng)
+void ce_displaymng_dump_supported_modes_to_stdout(display_manager_t* displaymng)
 {
-    for (size_t i = 0; i < displaymng->supported_modes->count; ++i) {
-        ce_displaymode* mode = displaymng->supported_modes->items[i];
+    for (size_t i = 0; i < displaymng->m_supported_modes->count; ++i) {
+        display_mode_t* mode = displaymng->m_supported_modes->items[i];
         fprintf(stdout, "%dx%d:%d@%d\n", mode->width, mode->height,
                                             mode->bpp, mode->rate);
     }
 }
 
-void ce_displaymng_dump_supported_rotations_to_stdout(ce_displaymng* displaymng)
+void ce_displaymng_dump_supported_rotations_to_stdout(display_manager_t* displaymng)
 {
-    for (unsigned int i = 0, j = CE_DISPLAY_ROTATION_0;
-                            j <= CE_DISPLAY_ROTATION_270; ++i, j <<= 1) {
+    for (unsigned int i = 0, j = DISPLAY_ROTATION_0;
+                            j <= DISPLAY_ROTATION_270; ++i, j <<= 1) {
         fprintf(stdout, "%d: %s\n", (int[]){0,90,180,270}[i],
-            j & displaymng->supported_rotation ? "yes" : "no");
+            j & displaymng->m_supported_rotation ? "yes" : "no");
     }
 }
 
-void ce_displaymng_dump_supported_reflections_to_stdout(ce_displaymng* displaymng)
+void ce_displaymng_dump_supported_reflections_to_stdout(display_manager_t* displaymng)
 {
     fprintf(stdout, "x: %s\ny: %s\n",
-        CE_DISPLAY_REFLECTION_X & displaymng->supported_reflection ? "yes" : "no",
-        CE_DISPLAY_REFLECTION_Y & displaymng->supported_reflection ? "yes" : "no");
+        DISPLAY_REFLECTION_X & displaymng->m_supported_reflection ? "yes" : "no",
+        DISPLAY_REFLECTION_Y & displaymng->m_supported_reflection ? "yes" : "no");
 }
 
-size_t ce_displaymng_enter(ce_displaymng* displaymng,
+size_t ce_displaymng_enter(display_manager_t* displaymng,
                             int width, int height, int bpp, int rate,
-                            ce_display_rotation rotation,
-                            ce_display_reflection reflection)
+                            display_rotation_t rotation,
+                            display_reflection_t reflection)
 {
-    if (ce_vector_empty(displaymng->supported_modes)) {
+    if (ce_vector_empty(displaymng->m_supported_modes)) {
         ce_logging_warning("displaymng: no display modes found");
         return -1;
     }
@@ -131,8 +116,8 @@ size_t ce_displaymng_enter(ce_displaymng* displaymng,
     int best_width = width, best_height = height;
     int best_bpp = bpp, best_rate = rate;
 
-    for (size_t i = 0; i < displaymng->supported_modes->count; ++i) {
-        ce_displaymode* mode = displaymng->supported_modes->items[i];
+    for (size_t i = 0; i < displaymng->m_supported_modes->count; ++i) {
+        display_mode_t* mode = displaymng->m_supported_modes->items[i];
         if (width <= 0) best_width = ce_max(int, best_width, mode->width);
         if (height <= 0) best_height = ce_max(int, best_height, mode->height);
         if (bpp <= 0) best_bpp = ce_max(int, best_bpp, mode->bpp);
@@ -146,8 +131,8 @@ size_t ce_displaymng_enter(ce_displaymng* displaymng,
     int best_bpp_score = INT_MAX, best_rate_score = INT_MAX;
 
     // pass 1: find best width and height
-    for (size_t i = 0; i < displaymng->supported_modes->count; ++i) {
-        ce_displaymode* mode = displaymng->supported_modes->items[i];
+    for (size_t i = 0; i < displaymng->m_supported_modes->count; ++i) {
+        display_mode_t* mode = displaymng->m_supported_modes->items[i];
         int score = (width - mode->width) * (width - mode->width) +
                 (height - mode->height) * (height - mode->height);
         if (score < best_size_score) {
@@ -158,8 +143,8 @@ size_t ce_displaymng_enter(ce_displaymng* displaymng,
     }
 
     // pass 2: find best bpp and rate
-    for (size_t i = 0; i < displaymng->supported_modes->count; ++i) {
-        ce_displaymode* mode = displaymng->supported_modes->items[i];
+    for (size_t i = 0; i < displaymng->m_supported_modes->count; ++i) {
+        display_mode_t* mode = displaymng->m_supported_modes->items[i];
         if (best_width == mode->width && best_height == mode->height) {
             int score = abs(bpp - mode->bpp);
             if (score < best_bpp_score) {
@@ -184,46 +169,46 @@ size_t ce_displaymng_enter(ce_displaymng* displaymng,
 
     // pass 3: find index
     size_t index;
-    for (index = 0; index < displaymng->supported_modes->count; ++index) {
-        ce_displaymode* mode = displaymng->supported_modes->items[index];
+    for (index = 0; index < displaymng->m_supported_modes->count; ++index) {
+        display_mode_t* mode = displaymng->m_supported_modes->items[index];
         if (best_width == mode->width && best_height == mode->height &&
                 best_bpp == mode->bpp && best_rate == mode->rate) {
             break;
         }
     }
 
-    if (index == displaymng->supported_modes->count) {
+    if (index == displaymng->m_supported_modes->count) {
         assert(false);
         index = 0;
     }
 
     // correct rotation and reflection
-    ce_display_rotation best_rotation = CE_DISPLAY_ROTATION_NONE;
-    ce_display_reflection best_reflection = CE_DISPLAY_REFLECTION_NONE;
+    display_rotation_t best_rotation = DISPLAY_ROTATION_NONE;
+    display_reflection_t best_reflection = DISPLAY_REFLECTION_NONE;
 
     // exclusive mode!
-    if (rotation & CE_DISPLAY_ROTATION_0 &&
-            displaymng->supported_rotation & CE_DISPLAY_ROTATION_0) {
-        best_rotation = CE_DISPLAY_ROTATION_0;
-    } else if (rotation & CE_DISPLAY_ROTATION_90 &&
-            displaymng->supported_rotation & CE_DISPLAY_ROTATION_90) {
-        best_rotation = CE_DISPLAY_ROTATION_90;
-    } else if (rotation & CE_DISPLAY_ROTATION_180 &&
-            displaymng->supported_rotation & CE_DISPLAY_ROTATION_180) {
-        best_rotation = CE_DISPLAY_ROTATION_180;
-    } else if (rotation & CE_DISPLAY_ROTATION_270 &&
-            displaymng->supported_rotation & CE_DISPLAY_ROTATION_270) {
-        best_rotation = CE_DISPLAY_ROTATION_270;
+    if (rotation & DISPLAY_ROTATION_0 &&
+            displaymng->m_supported_rotation & DISPLAY_ROTATION_0) {
+        best_rotation = DISPLAY_ROTATION_0;
+    } else if (rotation & DISPLAY_ROTATION_90 &&
+            displaymng->m_supported_rotation & DISPLAY_ROTATION_90) {
+        best_rotation = DISPLAY_ROTATION_90;
+    } else if (rotation & DISPLAY_ROTATION_180 &&
+            displaymng->m_supported_rotation & DISPLAY_ROTATION_180) {
+        best_rotation = DISPLAY_ROTATION_180;
+    } else if (rotation & DISPLAY_ROTATION_270 &&
+            displaymng->m_supported_rotation & DISPLAY_ROTATION_270) {
+        best_rotation = DISPLAY_ROTATION_270;
     }
 
-    if (reflection & CE_DISPLAY_REFLECTION_X &&
-            displaymng->supported_reflection & CE_DISPLAY_REFLECTION_X) {
-        best_reflection |= CE_DISPLAY_REFLECTION_X;
+    if (reflection & DISPLAY_REFLECTION_X &&
+            displaymng->m_supported_reflection & DISPLAY_REFLECTION_X) {
+        best_reflection |= DISPLAY_REFLECTION_X;
     }
 
-    if (reflection & CE_DISPLAY_REFLECTION_Y &&
-            displaymng->supported_reflection & CE_DISPLAY_REFLECTION_Y) {
-        best_reflection |= CE_DISPLAY_REFLECTION_Y;
+    if (reflection & DISPLAY_REFLECTION_Y &&
+            displaymng->m_supported_reflection & DISPLAY_REFLECTION_Y) {
+        best_reflection |= DISPLAY_REFLECTION_Y;
     }
 
     (*displaymng->vtable.enter)(displaymng, index, best_rotation, best_reflection);
@@ -231,7 +216,7 @@ size_t ce_displaymng_enter(ce_displaymng* displaymng,
     return index;
 }
 
-void ce_displaymng_exit(ce_displaymng* displaymng)
+void ce_displaymng_exit(display_manager_t* displaymng)
 {
     (*displaymng->vtable.exit)(displaymng);
 }

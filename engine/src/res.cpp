@@ -33,7 +33,7 @@ namespace cursedearth
 {
 static const uint32_t CE_RES_SIGNATURE = 0x19ce23c;
 
-ce_res_file* ce_res_file_new(const char* name, ce_mem_file* mem_file)
+ce_res_file* ce_res_file_new(const char* name, memory_file_t* mem_file)
 {
     ce_res_file* res_file = ce_alloc_zero(sizeof(ce_res_file));
     res_file->name = ce_string_new_str(name);
@@ -71,7 +71,7 @@ ce_res_file* ce_res_file_new(const char* name, ce_mem_file* mem_file)
 
 ce_res_file* ce_res_file_new_path(const char* path)
 {
-    ce_mem_file* mem_file = ce_mem_file_new_path(path);
+    memory_file_t* mem_file = ce_mem_file_new_path(path);
     if (NULL == mem_file) {
         return NULL;
     }

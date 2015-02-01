@@ -60,7 +60,7 @@ namespace cursedearth
         struct timeval m_stop;
     };
 
-    timer_ptr_t create_timer()
+    timer_ptr_t make_timer()
     {
         return std::make_shared<posix_timer_t>();
     }

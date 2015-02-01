@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
     message = ce_string_new();
     message_color = CE_COLOR_CORNFLOWER;
 
-    input_supply = std::unique_ptr<input_supply_t>(new input_supply_t(ce_root.renderwindow->input_context));
+    input_supply = make_unique<input_supply_t>(ce_root.renderwindow->get_input_context());
     strength_event = input_supply->single_front(input_supply->push(CE_KB_1));
     dexterity_event = input_supply->single_front(input_supply->push(CE_KB_2));
     height_event = input_supply->single_front(input_supply->push(CE_KB_3));

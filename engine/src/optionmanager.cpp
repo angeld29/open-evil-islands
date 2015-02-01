@@ -196,7 +196,7 @@ ce_optparse* ce_option_manager_create_option_parser(void)
         "warning: up to 1 GB disk space usage is normal; "
         "very useful if you have a single-core slow CPU");
 
-    int thread_count = ce_online_cpu_count();
+    int thread_count = online_cpu_count();
     snprintf(help, sizeof(help),
         "allow THREAD_COUNT jobs at once; if this option is not "
         "specified, the value will be detected automatically depending on the "

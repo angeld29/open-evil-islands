@@ -27,7 +27,7 @@
 
 namespace cursedearth
 {
-    ce_displaymng* ce_displaymng_create(Display* display);
+    display_manager_ptr_t make_display_manager(Display* display);
 }
 
 #endif /* CE_DISPLAY_PLATFORM_HPP */

@@ -30,7 +30,7 @@ namespace cursedearth
     extern struct ce_sound_mixer {
         bool done;
         ce_vector* sound_buffers;
-        ce_thread* thread;
+        thread_t* thread;
     }* ce_sound_mixer;
 
     extern void ce_sound_mixer_init(void);

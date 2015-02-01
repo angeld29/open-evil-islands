@@ -51,13 +51,13 @@ namespace cursedearth
         int state, frame;
         float play_time, sync_time; // playing/synchronization time in seconds
         ce_video_resource* video_resource;
-        ce_texture* texture;
+        texture_t* texture;
         ce_material* material;
         ce_mmpfile* rgba_frame;
         ce_mmpfile* ycbcr_frames[CE_VIDEO_INSTANCE_CACHE_SIZE];
-        ce_semaphore* prepared_frames;
-        ce_semaphore* unprepared_frames;
-        ce_thread* thread;
+        semaphore_t* prepared_frames;
+        semaphore_t* unprepared_frames;
+        thread_t* thread;
     } ce_video_instance;
 
     extern ce_video_instance* ce_video_instance_new(ce_video_object video_object, ce_sound_object sound_object, ce_video_resource* video_resource);

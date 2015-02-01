@@ -49,7 +49,7 @@ static const char* ce_sound_resource_names[] = {"sfx", "speech", NULL};
 static void ce_sound_manager_create_instance(ce_event* event)
 {
     ce_sound_event* sound_event = (ce_sound_event*)event->impl;
-    ce_mem_file* mem_file = NULL;
+    memory_file_t* mem_file = NULL;
 
     for (size_t i = 0; i < ce_sound_manager->res_files->count; ++i) {
         ce_res_file* res_file = ce_sound_manager->res_files->items[i];

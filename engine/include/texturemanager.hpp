@@ -49,10 +49,10 @@ namespace cursedearth
     extern void ce_texture_manager_save_mmpfile(const char* name, ce_mmpfile* mmpfile);
 
     // acquire texture, not thread-safe
-    extern ce_texture* ce_texture_manager_get(const char* name);
+    extern texture_t* ce_texture_manager_get(const char* name);
 
     // add new texture, not thread-safe
-    extern void ce_texture_manager_put(ce_texture* texture);
+    extern void ce_texture_manager_put(texture_t* texture);
 }
 
 #endif /* CE_TEXTUREMANAGER_HPP */

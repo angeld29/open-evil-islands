@@ -38,7 +38,7 @@ ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file)
     char file_name[strlen(name) + 4 + 1];
 
     snprintf(file_name, sizeof(file_name), "%s.adb", name);
-    ce_mem_file* adb_mem_file = ce_res_ball_extract_mem_file_by_name(ce_resource_manager->database, file_name);
+    memory_file_t* adb_mem_file = ce_res_ball_extract_mem_file_by_name(ce_resource_manager->database, file_name);
     if (NULL != adb_mem_file) {
         figproto->adb_file = ce_adb_file_new(adb_mem_file);
         ce_mem_file_del(adb_mem_file);

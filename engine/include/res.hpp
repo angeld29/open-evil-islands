@@ -29,7 +29,7 @@
 #include <ctime>
 
 #include "string.hpp"
-#include "memfile.hpp"
+#include "memoryfile.hpp"
 
 namespace cursedearth
 {
@@ -50,13 +50,13 @@ namespace cursedearth
         uint32_t names_length;
         char* names;
         ce_res_node* nodes;
-        ce_mem_file* mem_file;
+        memory_file_t* mem_file;
     } ce_res_file;
 
     /*
      *  Res file takes ownership of the mem file if successfull.
     */
-    extern ce_res_file* ce_res_file_new(const char* name, ce_mem_file* mem_file);
+    extern ce_res_file* ce_res_file_new(const char* name, memory_file_t* mem_file);
     extern ce_res_file* ce_res_file_new_path(const char* path);
     extern void ce_res_file_del(ce_res_file* res_file);
 

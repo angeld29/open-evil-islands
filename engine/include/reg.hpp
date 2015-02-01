@@ -29,7 +29,7 @@
 
 #include "vector.hpp"
 #include "object.hpp"
-#include "memfile.hpp"
+#include "memoryfile.hpp"
 
 namespace cursedearth
 {
@@ -37,7 +37,7 @@ namespace cursedearth
         ce_vector* sections;
     } ce_reg_file;
 
-    extern ce_reg_file* ce_reg_file_new(ce_mem_file* mem_file);
+    extern ce_reg_file* ce_reg_file_new(memory_file_t* mem_file);
     extern void ce_reg_file_del(ce_reg_file* reg_file);
 
     extern ce_value* ce_reg_file_find(ce_reg_file* reg_file, const char* section_name, const char* option_name, size_t index);

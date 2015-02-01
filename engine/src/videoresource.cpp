@@ -29,7 +29,7 @@ namespace cursedearth
 extern const size_t CE_VIDEO_RESOURCE_BUILTIN_COUNT;
 extern const ce_video_resource_vtable ce_video_resource_builtins[];
 
-ce_video_resource* ce_video_resource_new(ce_mem_file* mem_file)
+ce_video_resource* ce_video_resource_new(memory_file_t* mem_file)
 {
     size_t index;
     for (index = 0; index < CE_VIDEO_RESOURCE_BUILTIN_COUNT; ++index) {

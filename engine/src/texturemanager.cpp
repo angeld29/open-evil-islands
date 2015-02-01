@@ -90,7 +90,7 @@ ce_mmpfile* ce_texture_manager_open_mmpfile_from_cache(const char* name)
 
     if (NULL != ce_path_find_special1(path, sizeof(path), ce_option_manager->
             ei_path->str, name, ce_texture_cache_dirs, ce_texture_exts)) {
-        ce_mem_file* mem_file = ce_mem_file_new_path(path);
+        memory_file_t* mem_file = ce_mem_file_new_path(path);
         if (NULL != mem_file) {
             ce_mmpfile* mmpfile = ce_mmpfile_new_mem_file(mem_file);
             ce_mem_file_del(mem_file);
@@ -140,14 +140,14 @@ void ce_texture_manager_save_mmpfile(const char* name, ce_mmpfile* mmpfile)
     ce_mmpfile_save(mmpfile, path);
 }
 
-ce_texture* ce_texture_manager_get(const char* name)
+texture_t* ce_texture_manager_get(const char* name)
 {
     char base_name[strlen(name) + 1];
     ce_path_remove_ext(base_name, name);
 
     // find texture in cache
     for (size_t i = 0; i < ce_texture_manager->textures->count; ++i) {
-        ce_texture* texture = ce_texture_manager->textures->items[i];
+        texture_t* texture = ce_texture_manager->textures->items[i];
         if (0 == ce_strcasecmp(base_name, texture->name->str)) {
             return texture;
         }
@@ -156,7 +156,7 @@ ce_texture* ce_texture_manager_get(const char* name)
     // load texture from resources
     ce_mmpfile* mmpfile = ce_texture_manager_open_mmpfile(name);
     if (NULL != mmpfile) {
-        ce_texture* texture = ce_texture_new(base_name, mmpfile);
+        texture_t* texture = ce_texture_new(base_name, mmpfile);
         ce_mmpfile_del(mmpfile);
         ce_texture_manager_put(texture);
         return texture;
@@ -165,7 +165,7 @@ ce_texture* ce_texture_manager_get(const char* name)
     return NULL;
 }
 
-void ce_texture_manager_put(ce_texture* texture)
+void ce_texture_manager_put(texture_t* texture)
 {
     ce_vector_push_back(ce_texture_manager->textures, texture);
 }

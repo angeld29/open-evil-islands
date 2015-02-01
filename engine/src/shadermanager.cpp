@@ -53,7 +53,7 @@ void ce_shader_manager_term(void)
     }
 }
 
-ce_shader* ce_shader_manager_get(const char* resource_paths[])
+shader_t* ce_shader_manager_get(const char* resource_paths[])
 {
     size_t name_length = 0;
     size_t resource_count = 0;
@@ -72,31 +72,31 @@ ce_shader* ce_shader_manager_get(const char* resource_paths[])
 
     // find shader in cache
     for (size_t i = 0; i < ce_shader_manager->shaders->count; ++i) {
-        ce_shader* shader = ce_shader_manager->shaders->items[i];
+        shader_t* shader = ce_shader_manager->shaders->items[i];
         if (0 == strcmp(name, shader->name->str)) {
             return shader;
         }
     }
 
-    ce_shader_info shader_infos[resource_count + 1];
+    shader_info_t shader_infos[resource_count + 1];
 
     for (size_t i = 0; i < resource_count; ++i) {
         if (NULL != strstr(resource_paths[i], ".vert")) {
-            shader_infos[i].shader_type = CE_SHADER_TYPE_VERTEX;
+            shader_infos[i].shader_type = SHADER_TYPE_VERTEX;
         } else if (NULL != strstr(resource_paths[i], ".frag")) {
-            shader_infos[i].shader_type = CE_SHADER_TYPE_FRAGMENT;
+            shader_infos[i].shader_type = SHADER_TYPE_FRAGMENT;
         } else {
-            shader_infos[i].shader_type = CE_SHADER_TYPE_UNKNOWN;
+            shader_infos[i].shader_type = SHADER_TYPE_UNKNOWN;
         }
         shader_infos[i].resource_index = ce_resource_manager_find_data(resource_paths[i]);
         assert(shader_infos[i].resource_index < CE_RESOURCE_DATA_COUNT);
     }
 
     // add guard element
-    shader_infos[resource_count].shader_type = CE_SHADER_TYPE_UNKNOWN;
+    shader_infos[resource_count].shader_type = SHADER_TYPE_UNKNOWN;
     shader_infos[resource_count].resource_index = CE_RESOURCE_DATA_COUNT;
 
-    ce_shader* shader = ce_shader_new(name, shader_infos);
+    shader_t* shader = ce_shader_new(name, shader_infos);
     if (NULL != shader) {
         ce_vector_push_back(ce_shader_manager->shaders, shader);
         return shader;

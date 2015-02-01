@@ -52,15 +52,15 @@ namespace cursedearth
     typedef struct {
         volatile bool interrupt;
         volatile size_t event_count;
-        ce_thread_id thread_id;
+        thread_id_t thread_id;
         ce_timer* timer;
-        ce_mutex* mutex;
-        ce_wait_condition* wait_condition;
+        mutex_t* mutex;
+        wait_condition_t* wait_condition;
         ce_vector* pending_events;
         ce_vector* sending_events;
     } ce_event_queue;
 
-    extern ce_event_queue* ce_event_queue_new(ce_thread_id thread_id);
+    extern ce_event_queue* ce_event_queue_new(thread_id_t thread_id);
     extern void ce_event_queue_del(ce_event_queue* queue);
 
     extern bool ce_event_queue_has_pending_events(ce_event_queue* queue);
@@ -79,28 +79,28 @@ namespace cursedearth
      */
 
     extern struct ce_event_manager {
-        ce_mutex* mutex;
+        mutex_t* mutex;
         ce_vector* event_queues;
     }* ce_event_manager;
 
     extern void ce_event_manager_init(void);
     extern void ce_event_manager_term(void);
 
-    extern bool ce_event_manager_has_pending_events(ce_thread_id thread_id);
+    extern bool ce_event_manager_has_pending_events(thread_id_t thread_id);
 
     // process all pending events for the current thread
-    extern void ce_event_manager_process_events(ce_thread_id thread_id, int flags);
+    extern void ce_event_manager_process_events(thread_id_t thread_id, int flags);
 
     // process pending events for the current thread with time limit in milliseconds
-    extern void ce_event_manager_process_events_timeout(ce_thread_id thread_id, int flags, int max_time);
+    extern void ce_event_manager_process_events_timeout(thread_id_t thread_id, int flags, int max_time);
 
-    extern void ce_event_manager_interrupt(ce_thread_id thread_id);
+    extern void ce_event_manager_interrupt(thread_id_t thread_id);
 
-    extern void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event);
-    extern void ce_event_manager_post_raw(ce_thread_id thread_id, void (*notify)(ce_event*), const void* impl, size_t size);
-    extern void ce_event_manager_post_ptr(ce_thread_id thread_id, void (*notify)(ce_event*), void* ptr);
+    extern void ce_event_manager_post_event(thread_id_t thread_id, ce_event* event);
+    extern void ce_event_manager_post_raw(thread_id_t thread_id, void (*notify)(ce_event*), const void* impl, size_t size);
+    extern void ce_event_manager_post_ptr(thread_id_t thread_id, void (*notify)(ce_event*), void* ptr);
 
-    inline void ce_event_manager_post_call(ce_thread_id thread_id, void (*notify)(ce_event*))
+    inline void ce_event_manager_post_call(thread_id_t thread_id, void (*notify)(ce_event*))
     {
         ce_event_manager_post_event(thread_id, ce_event_new(notify, 0));
     }

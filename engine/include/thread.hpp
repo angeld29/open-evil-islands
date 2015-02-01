@@ -21,130 +21,122 @@
 #ifndef CE_THREAD_HPP
 #define CE_THREAD_HPP
 
-#include <cstddef>
+#include <vector>
 
-#include "vector.hpp"
 #include "atomic.hpp"
 
 namespace cursedearth
 {
-    extern int ce_online_cpu_count(void);
-    extern void ce_sleep(unsigned int msec);
+    int online_cpu_count();
+    void sleep(unsigned int ms);
 
-    /*
-     *  Useful struct for other thread and non-thread modules.
-     */
-
-    typedef struct {
-        void (*proc)(void*);
-        void* arg;
-    } ce_routine;
-
-    extern ce_routine* ce_routine_new(void);
-    extern void ce_routine_del(ce_routine* routine);
-
-    /*
+    /**
      *  The thread struct provides platform-independent threads.
      */
 
-    typedef unsigned long int ce_thread_id;
+    struct routine_t
+    {
+        void (*func)(void*);
+        void* arg;
+    };
 
-    typedef struct {
-        ce_thread_id id;
-        ce_routine routine;
-        char impl[];
-    } ce_thread;
+    typedef unsigned long int thread_id_t;
+    struct thread_t;
 
-    extern ce_thread_id ce_thread_self(void);
+    extern thread_id_t ce_thread_self(void);
 
-    extern ce_thread* ce_thread_new(void (*proc)(), void* arg);
-    extern void ce_thread_del(ce_thread* thread);
+    extern thread_t* ce_thread_new(void (*proc)(), void* arg);
+    extern void ce_thread_del(thread_t* thread);
 
-    extern void ce_thread_wait(ce_thread* thread);
+    extern thread_id_t ce_thread_id(thread_t* thread);
 
-    extern void ce_thread_exec(ce_thread* thread);
-    extern void ce_thread_exit(ce_thread* thread);
+    extern void ce_thread_wait(thread_t* thread);
 
-    inline void ce_thread_exit_wait_del(ce_thread* thread)
+    extern void ce_thread_exec(thread_t* thread);
+    extern void ce_thread_exit(thread_t* thread);
+
+    inline void ce_thread_exit_wait_del(thread_t* thread)
     {
         ce_thread_exit(thread);
         ce_thread_wait(thread);
         ce_thread_del(thread);
     }
 
-    /*
+    /**
      *  The mutex struct provides access serialization between threads.
      */
 
-    typedef struct ce_mutex ce_mutex;
+    struct mutex_t;
 
-    extern ce_mutex* ce_mutex_new(void);
-    extern void ce_mutex_del(ce_mutex* mutex);
+    extern mutex_t* ce_mutex_new(void);
+    extern void ce_mutex_del(mutex_t* mutex);
 
-    extern void ce_mutex_lock(ce_mutex* mutex);
-    extern void ce_mutex_unlock(ce_mutex* mutex);
+    extern void ce_mutex_lock(mutex_t* mutex);
+    extern void ce_mutex_unlock(mutex_t* mutex);
 
-    /*
+    /**
      *  The wait condition struct provides a condition variable for synchronizing threads.
      */
 
-    typedef struct ce_wait_condition ce_wait_condition;
+    struct wait_condition_t;
 
-    extern ce_wait_condition* ce_wait_condition_new(void);
-    extern void ce_wait_condition_del(ce_wait_condition* wait_condition);
+    extern wait_condition_t* ce_wait_condition_new(void);
+    extern void ce_wait_condition_del(wait_condition_t* wait_condition);
 
-    extern void ce_wait_condition_wake_one(ce_wait_condition* wait_condition);
-    extern void ce_wait_condition_wake_all(ce_wait_condition* wait_condition);
-    extern void ce_wait_condition_wait(ce_wait_condition* wait_condition, ce_mutex* mutex);
+    extern void ce_wait_condition_wake_one(wait_condition_t* wait_condition);
+    extern void ce_wait_condition_wake_all(wait_condition_t* wait_condition);
+    extern void ce_wait_condition_wait(wait_condition_t* wait_condition, mutex_t* mutex);
 
-    /*
+    /**
      *  The once struct provides an once-only initialization.
      */
 
-    typedef struct ce_once ce_once;
+    struct once_t;
 
-    extern ce_once* ce_once_new(void);
-    extern void ce_once_del(ce_once* once);
+    extern once_t* ce_once_new(void);
+    extern void ce_once_del(once_t* once);
 
-    extern void ce_once_exec(ce_once* once, void (*proc)(), void* arg);
+    extern void ce_once_exec(once_t* once, void (*proc)(), void* arg);
 
-    /*
+    /**
      *  The semaphore struct provides a general counting semaphore.
      */
 
-    typedef struct {
+    struct semaphore_t
+    {
         size_t available;
-        ce_mutex* mutex;
-        ce_wait_condition* wait_condition;
-    } ce_semaphore;
+        mutex_t* mutex;
+        wait_condition_t* wait_condition;
+    };
 
-    extern ce_semaphore* ce_semaphore_new(size_t n);
-    extern void ce_semaphore_del(ce_semaphore* semaphore);
+    extern semaphore_t* ce_semaphore_new(size_t n);
+    extern void ce_semaphore_del(semaphore_t* semaphore);
 
-    extern size_t ce_semaphore_available(const ce_semaphore* semaphore);
+    extern size_t ce_semaphore_available(const semaphore_t* semaphore);
 
-    extern void ce_semaphore_acquire(ce_semaphore* semaphore, size_t n);
-    extern void ce_semaphore_release(ce_semaphore* semaphore, size_t n);
+    extern void ce_semaphore_acquire(semaphore_t* semaphore, size_t n);
+    extern void ce_semaphore_release(semaphore_t* semaphore, size_t n);
 
-    extern bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n);
+    extern bool ce_semaphore_try_acquire(semaphore_t* semaphore, size_t n);
 
-    /*
+    /**
      *  The thread pool struct manages a collection of threads.
      *  It's a thread pool pattern implementation.
      *  All functions are thread-safe.
      */
 
-    extern struct ce_thread_pool {
+    extern struct thread_pool_t
+    {
         bool done;
         size_t idle_thread_count;
         ce_vector* threads;
         ce_vector* pending_routines;
         ce_vector* free_routines;
-        ce_mutex* mutex;
-        ce_wait_condition* idle;
-        ce_wait_condition* wait_one;
-        ce_wait_condition* wait_all;
-    }* ce_thread_pool;
+        mutex_t* mutex;
+        wait_condition_t* idle;
+        wait_condition_t* wait_one;
+        wait_condition_t* wait_all;
+    }* thread_pool;
 
     extern void ce_thread_pool_init(size_t thread_count);
     extern void ce_thread_pool_term(void);

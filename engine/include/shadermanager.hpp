@@ -33,7 +33,7 @@ namespace cursedearth
     extern void ce_shader_manager_init(void);
     extern void ce_shader_manager_term(void);
 
-    extern ce_shader* ce_shader_manager_get(const char* resource_paths[]);
+    extern shader_t* ce_shader_manager_get(const char* resource_paths[]);
 }
 
 #endif /* CE_SHADERMANAGER_HPP */

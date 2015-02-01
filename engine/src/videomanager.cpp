@@ -69,7 +69,7 @@ ce_video_instance* ce_video_manager_create_instance(const char* name)
         return NULL;
     }
 
-    ce_mem_file* mem_file = ce_mem_file_new_path(path);
+    memory_file_t* mem_file = ce_mem_file_new_path(path);
     if (NULL == mem_file) {
         ce_logging_error("video manager: could not open file '%s'", path);
         return NULL;

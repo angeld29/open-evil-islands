@@ -24,7 +24,7 @@
 
 namespace cursedearth
 {
-ce_renderlayer* ce_renderlayer_new(ce_texture* texture)
+ce_renderlayer* ce_renderlayer_new(texture_t* texture)
 {
     ce_renderlayer* renderlayer = ce_alloc(sizeof(ce_renderlayer));
     renderlayer->texture = texture;

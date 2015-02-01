@@ -30,13 +30,13 @@
 namespace cursedearth
 {
     extern struct ce_sound_manager {
-        ce_thread_id thread_id;
+        thread_id_t thread_id;
         ce_hash_key last_hash_key;
         ce_vector* res_files;
         ce_hash* sound_instances;
         ce_hash* sound_bundles;
         ce_timer* timer;
-        ce_thread* thread;
+        thread_t* thread;
     }* ce_sound_manager;
 
     extern void ce_sound_manager_init(void);

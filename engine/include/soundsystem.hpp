@@ -51,9 +51,9 @@ namespace cursedearth
         unsigned int samples_per_second; // actual value supported by implementation/hardware
         size_t next_block;
         char blocks[CE_SOUND_SYSTEM_BLOCK_COUNT][CE_SOUND_SYSTEM_BLOCK_SIZE];
-        ce_semaphore* free_blocks;
-        ce_semaphore* used_blocks;
-        ce_thread* thread;
+        semaphore_t* free_blocks;
+        semaphore_t* used_blocks;
+        thread_t* thread;
         ce_sound_system_vtable vtable;
         char impl[];
     }* ce_sound_system;

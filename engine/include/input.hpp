@@ -31,11 +31,13 @@
 
 #include <boost/noncopyable.hpp>
 
+#include "makeunique.hpp"
 #include "vec2.hpp"
 
 namespace cursedearth
 {
-    enum input_button_t {
+    enum input_button_t
+    {
         CE_IB_UNKNOWN,
         CE_KB_ESCAPE, CE_KB_F1, CE_KB_F2, CE_KB_F3, CE_KB_F4, CE_KB_F5, CE_KB_F6,
         CE_KB_F7, CE_KB_F8, CE_KB_F9, CE_KB_F10, CE_KB_F11, CE_KB_F12, CE_KB_TILDE,
@@ -58,12 +60,14 @@ namespace cursedearth
         CE_IB_COUNT
     };
 
-    enum {
+    enum
+    {
         CE_INPUT_NO_DELAY,
         CE_INPUT_DEFAULT_DELAY = 450,
     };
 
-    enum {
+    enum
+    {
         CE_INPUT_NO_RATE,
         CE_INPUT_DEFAULT_RATE = 25,
     };

@@ -30,21 +30,21 @@ namespace cursedearth
 {
 static const uint32_t CE_REG_SIGNATURE = 0x45ab3efbu;
 
-static ce_property* ce_reg_create_option_int(ce_mem_file* mem_file, const char* name)
+static ce_property* ce_reg_create_option_int(memory_file_t* mem_file, const char* name)
 {
     ce_property* property = ce_property_new(name, CE_TYPE_INT);
     ce_value_set_int(property->value, ce_mem_file_read_i32le(mem_file));
     return property;
 }
 
-static ce_property* ce_reg_create_option_float(ce_mem_file* mem_file, const char* name)
+static ce_property* ce_reg_create_option_float(memory_file_t* mem_file, const char* name)
 {
     ce_property* property = ce_property_new(name, CE_TYPE_FLOAT);
     ce_value_set_float(property->value, ce_mem_file_read_fle(mem_file));
     return property;
 }
 
-static ce_property* ce_reg_create_option_string(ce_mem_file* mem_file, const char* name)
+static ce_property* ce_reg_create_option_string(memory_file_t* mem_file, const char* name)
 {
     size_t length = ce_mem_file_read_u16le(mem_file);
 

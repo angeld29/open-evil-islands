@@ -33,20 +33,20 @@ static const char* ce_wave_four_cc_format = "fmt ";
 static const char* ce_wave_four_cc_fact = "fact";
 static const char* ce_wave_four_cc_data = "data";
 
-static bool ce_wave_header_read_riff(ce_wave_header* wave_header, ce_mem_file* mem_file)
+static bool ce_wave_header_read_riff(ce_wave_header* wave_header, memory_file_t* mem_file)
 {
     memcpy(wave_header->riff.four_cc, ce_wave_four_cc_riff, 4);
     wave_header->riff.size = ce_mem_file_read_u32le(mem_file);
     return true;
 }
 
-static bool ce_wave_header_read_wave(ce_wave_header* wave_header, ce_mem_file*)
+static bool ce_wave_header_read_wave(ce_wave_header* wave_header, memory_file_t*)
 {
     memcpy(wave_header->wave.four_cc, ce_wave_four_cc_wave, 4);
     return true;
 }
 
-static bool ce_wave_header_read_format_ima_adpcm(ce_wave_header* wave_header, ce_mem_file* mem_file)
+static bool ce_wave_header_read_format_ima_adpcm(ce_wave_header* wave_header, memory_file_t* mem_file)
 {
     wave_header->format.extra.ima_adpcm.size = ce_mem_file_read_u16le(mem_file);
     wave_header->format.extra.ima_adpcm.samples_per_block = ce_mem_file_read_u16le(mem_file);
@@ -55,7 +55,7 @@ static bool ce_wave_header_read_format_ima_adpcm(ce_wave_header* wave_header, ce
     return true;
 }
 
-static bool ce_wave_header_read_format(ce_wave_header* wave_header, ce_mem_file* mem_file)
+static bool ce_wave_header_read_format(ce_wave_header* wave_header, memory_file_t* mem_file)
 {
     memcpy(wave_header->format.four_cc, ce_wave_four_cc_format, 4);
     wave_header->format.size = ce_mem_file_read_u32le(mem_file);
@@ -79,7 +79,7 @@ static bool ce_wave_header_read_format(ce_wave_header* wave_header, ce_mem_file*
     return result;
 }
 
-static bool ce_wave_header_read_fact(ce_wave_header* wave_header, ce_mem_file* mem_file)
+static bool ce_wave_header_read_fact(ce_wave_header* wave_header, memory_file_t* mem_file)
 {
     memcpy(wave_header->fact.four_cc, ce_wave_four_cc_fact, 4);
     wave_header->fact.size = ce_mem_file_read_u32le(mem_file);
@@ -87,7 +87,7 @@ static bool ce_wave_header_read_fact(ce_wave_header* wave_header, ce_mem_file* m
     return true;
 }
 
-static bool ce_wave_header_read_data(ce_wave_header* wave_header, ce_mem_file* mem_file)
+static bool ce_wave_header_read_data(ce_wave_header* wave_header, memory_file_t* mem_file)
 {
     memcpy(wave_header->data.four_cc, ce_wave_four_cc_data, 4);
     wave_header->data.size = ce_mem_file_read_u32le(mem_file);
@@ -111,7 +111,7 @@ static bool ce_wave_header_check(const ce_wave_header* wave_header)
     return true;
 }
 
-bool ce_wave_header_read(ce_wave_header* wave_header, ce_mem_file* mem_file)
+bool ce_wave_header_read(ce_wave_header* wave_header, memory_file_t* mem_file)
 {
     memset(wave_header, 0, sizeof(ce_wave_header));
 

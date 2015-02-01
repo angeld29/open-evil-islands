@@ -31,7 +31,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "memfile.hpp"
+#include "memoryfile.hpp"
 
 namespace cursedearth
 {
@@ -87,7 +87,7 @@ namespace cursedearth
         ce_wave_data data;
     } ce_wave_header;
 
-    extern bool ce_wave_header_read(ce_wave_header* wave_header, ce_mem_file* mem_file);
+    extern bool ce_wave_header_read(ce_wave_header* wave_header, memory_file_t* mem_file);
 
     extern void ce_wave_ima_adpcm_decode(void* dst, const void* src, const ce_wave_header* wave_header);
 

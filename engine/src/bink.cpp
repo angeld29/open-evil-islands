@@ -34,7 +34,7 @@ enum {
     CE_BINK_AUDIO_HEADER_SIZE = 4 + 4 + 4,
 };
 
-bool ce_bink_header_read(ce_bink_header* bink_header, ce_mem_file* mem_file)
+bool ce_bink_header_read(ce_bink_header* bink_header, memory_file_t* mem_file)
 {
     uint8_t header[CE_BINK_HEADER_SIZE];
 
@@ -66,7 +66,7 @@ bool ce_bink_header_read(ce_bink_header* bink_header, ce_mem_file* mem_file)
     return true;
 }
 
-bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, ce_mem_file* mem_file)
+bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, memory_file_t* mem_file)
 {
     uint8_t header[CE_BINK_AUDIO_HEADER_SIZE];
 
@@ -89,13 +89,13 @@ bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, ce_mem_file
     return true;
 }
 
-bool ce_bink_audio_track_skip(size_t n, ce_mem_file* mem_file)
+bool ce_bink_audio_track_skip(size_t n, memory_file_t* mem_file)
 {
     uint8_t header[CE_BINK_AUDIO_HEADER_SIZE * n];
     return sizeof(header) == ce_mem_file_read(mem_file, header, 1, sizeof(header));
 }
 
-bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_mem_file* mem_file)
+bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, memory_file_t* mem_file)
 {
     uint32_t pos, next_pos;
 

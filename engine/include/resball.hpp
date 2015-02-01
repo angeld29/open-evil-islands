@@ -21,24 +21,24 @@
 #ifndef CE_RESBALL_HPP
 #define CE_RESBALL_HPP
 
-#include "memfile.hpp"
+#include "memoryfile.hpp"
 #include "res.hpp"
 
 namespace cursedearth
 {
-    inline ce_mem_file* ce_res_ball_extract_mem_file(ce_res_file* res_file, size_t index)
+    inline memory_file_t* ce_res_ball_extract_mem_file(ce_res_file* res_file, size_t index)
     {
         return ce_mem_file_new_data(ce_res_file_node_data(res_file, index), ce_res_file_node_size(res_file, index));
     }
 
-    inline ce_mem_file* ce_res_ball_extract_mem_file_by_name(ce_res_file* res_file, const char* name)
+    inline memory_file_t* ce_res_ball_extract_mem_file_by_name(ce_res_file* res_file, const char* name)
     {
         size_t index = ce_res_file_node_index(res_file, name);
         return res_file->node_count != index ? ce_res_ball_extract_mem_file(res_file, index) : NULL;
     }
 
-    extern void ce_res_ball_extract_all_mem_files(ce_res_file* res_file, ce_mem_file* mem_files[]);
-    extern void ce_res_ball_clean_all_mem_files(ce_res_file* res_file, ce_mem_file* mem_files[]);
+    extern void ce_res_ball_extract_all_mem_files(ce_res_file* res_file, memory_file_t* mem_files[]);
+    extern void ce_res_ball_clean_all_mem_files(ce_res_file* res_file, memory_file_t* mem_files[]);
 
     inline ce_res_file* ce_res_ball_extract_res_file(ce_res_file* res_file, size_t index)
     {

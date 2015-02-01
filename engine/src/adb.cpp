@@ -30,7 +30,7 @@ namespace cursedearth
 {
 static const uint32_t CE_ADB_SIGNATURE = 0x00424441;
 
-ce_adb_file* ce_adb_file_new(ce_mem_file* mem_file)
+ce_adb_file* ce_adb_file_new(memory_file_t* mem_file)
 {
     uint32_t CE_UNUSED(signature) = ce_mem_file_read_u32le(mem_file);
     uint32_t record_count = ce_mem_file_read_u32le(mem_file);

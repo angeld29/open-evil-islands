@@ -50,8 +50,8 @@ static void ce_terrain_load_tile_textures(ce_terrain* terrain)
     char name[terrain->mprfile->name->length + 3 + 1];
     for (int i = 0; i < terrain->mprfile->texture_count; ++i) {
         snprintf(name, sizeof(name), "%s%03d", terrain->mprfile->name->str, i);
-        ce_texture* texture = ce_texture_add_ref(ce_texture_manager_get(name));
-        ce_texture_wrap(texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
+        texture_t* texture = ce_texture_add_ref(ce_texture_manager_get(name));
+        ce_texture_wrap(texture, WRAP_MODE_CLAMP_TO_EDGE);
         ce_vector_push_back(terrain->tile_textures, texture);
     }
 }
@@ -77,7 +77,7 @@ static void ce_terrain_sector_react(ce_event* event)
         //ce_texture_manager_put(ce_texture_add_ref(sector->texture));
     }
 
-    ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
+    ce_texture_wrap(sector->texture, WRAP_MODE_CLAMP_TO_EDGE);
 
     sector->renderlayer = ce_rendergroup_get(sector->
         terrain->rendergroups[sector->water], sector->texture);

@@ -23,7 +23,7 @@
 
 #include <cstddef>
 
-#include "memfile.hpp"
+#include "memoryfile.hpp"
 #include "soundformat.hpp"
 
 namespace cursedearth
@@ -33,7 +33,7 @@ namespace cursedearth
     };
 
     typedef struct {
-        ce_mem_file* mem_file;
+        memory_file_t* mem_file;
         const char* name;
         size_t impl_size;
         size_t input_buffer_capacity;
@@ -61,13 +61,13 @@ namespace cursedearth
         size_t output_buffer_pos;
         char* input_buffer;
         char* output_buffer;
-        ce_mem_file* mem_file;
+        memory_file_t* mem_file;
         ce_sound_resource_vtable vtable;
         size_t size;
         char impl[];
     };
 
-    extern ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file);
+    extern ce_sound_resource* ce_sound_resource_new(memory_file_t* mem_file);
     extern void ce_sound_resource_del(ce_sound_resource* sound_resource);
 
     extern size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size);

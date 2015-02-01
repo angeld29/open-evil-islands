@@ -177,7 +177,7 @@ typedef struct {
     unsigned int block_size, min_block_size, max_block_size;
     ce_sound_format sound_format;
     FLAC__StreamDecoder* decoder;
-    ce_mem_file* mem_file;
+    memory_file_t* mem_file;
     FLAC__int16* buffer;
 } ce_flac_bundle;
 

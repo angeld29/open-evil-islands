@@ -59,7 +59,7 @@ typedef struct {
     th_ycbcr_buffer ycbcr;
 } ce_theora;
 
-static size_t ce_theora_size_hint(ce_mem_file*)
+static size_t ce_theora_size_hint(memory_file_t*)
 {
     return sizeof(ce_theora);
 }
@@ -93,7 +93,7 @@ static void ce_theora_clean(ce_theora* theora)
     ogg_sync_clear(&theora->sync);
 }
 
-static bool ce_theora_pump(ogg_sync_state* sync, ce_mem_file* mem_file)
+static bool ce_theora_pump(ogg_sync_state* sync, memory_file_t* mem_file)
 {
     const size_t size = 4096;
     char* buffer = ogg_sync_buffer(sync, size);
@@ -102,7 +102,7 @@ static bool ce_theora_pump(ogg_sync_state* sync, ce_mem_file* mem_file)
     return 0 != bytes;
 }
 
-static bool ce_theora_test(ce_mem_file* mem_file)
+static bool ce_theora_test(memory_file_t* mem_file)
 {
     ce_theora theora;
     ce_theora_init(&theora);
@@ -382,7 +382,7 @@ typedef struct {
     uint8_t data[];
 } ce_bink;
 
-static size_t ce_bink_size_hint(ce_mem_file* mem_file)
+static size_t ce_bink_size_hint(memory_file_t* mem_file)
 {
     ce_bink_header header;
     return sizeof(ce_bink) + (!ce_bink_header_read(&header, mem_file) ? 0 :
@@ -390,7 +390,7 @@ static size_t ce_bink_size_hint(ce_mem_file* mem_file)
         header.largest_frame_size + FF_INPUT_BUFFER_PADDING_SIZE);
 }
 
-static bool ce_bink_test(ce_mem_file* mem_file)
+static bool ce_bink_test(memory_file_t* mem_file)
 {
     ce_bink_header header;
     return ce_bink_header_read(&header, mem_file);

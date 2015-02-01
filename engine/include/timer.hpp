@@ -23,9 +23,11 @@
 
 #include <memory>
 
+#include <boost/noncopyable.hpp>
+
 namespace cursedearth
 {
-    class timer_t
+    class timer_t: boost::noncopyable
     {
     public:
         virtual ~timer_t() = 0;
@@ -36,8 +38,9 @@ namespace cursedearth
     };
 
     typedef std::shared_ptr<timer_t> timer_ptr_t;
+    typedef std::shared_ptr<const timer_t> timer_const_ptr_t;
 
-    timer_ptr_t create_timer();
+    timer_ptr_t make_timer();
 }
 
 #endif /* CE_TIMER_HPP */

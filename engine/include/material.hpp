@@ -42,7 +42,7 @@ namespace cursedearth
         float shininess;
         bool alpha_test;
         bool blend;
-        ce_shader* shader;
+        shader_t* shader;
     } ce_material;
 
     extern ce_material* ce_material_new(void);

@@ -30,15 +30,15 @@
 
 namespace cursedearth
 {
-struct ce_render_system* ce_render_system;
-
-static struct ce_opengl_system {
+struct render_system_t
+{
+    thread_id_t thread_id;
     ce_mat4 view;
     GLuint axes_list;
     GLuint wire_cube_list;
     GLuint solid_cube_list;
     GLuint solid_sphere_list;
-}* ce_opengl_system;
+}* ce_render_system;
 
 void ce_render_system_init(void)
 {

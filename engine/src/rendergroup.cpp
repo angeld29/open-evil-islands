@@ -48,7 +48,7 @@ void ce_rendergroup_clear(ce_rendergroup* rendergroup)
 }
 
 ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup,
-                                    ce_texture* texture)
+                                    texture_t* texture)
 {
     for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
         ce_renderlayer* renderlayer = rendergroup->renderlayers->items[i];

@@ -34,7 +34,7 @@ namespace cursedearth
         bool show_bboxes;
         bool comprehensive_bbox_only;
         float animation_fps;
-        ce_renderwindow* renderwindow;
+        render_window_t* renderwindow;
         ce_scenemng* scenemng;
         timer_ptr_t timer;
         input_supply_ptr_t input_supply;

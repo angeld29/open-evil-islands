@@ -173,7 +173,7 @@ ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
                 "force to 'default0'", textures[i], figmesh->figproto->name->str);
         }
         ce_texture_add_ref(figentity->textures->items[i]);
-        ce_texture_wrap(figentity->textures->items[i], CE_TEXTURE_WRAP_REPEAT);
+        ce_texture_wrap(figentity->textures->items[i], WRAP_MODE_REPEAT);
     }
 
     for (size_t i = 0; i < figmesh->renderitems->count; ++i) {
