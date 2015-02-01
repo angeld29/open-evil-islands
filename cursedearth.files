@@ -50,7 +50,7 @@ engine/include/mat3.hpp
 engine/include/mat4.hpp
 engine/include/material.hpp
 engine/include/math.hpp
-engine/include/memfile.hpp
+engine/include/memoryfile.hpp
 engine/include/mmp.hpp
 engine/include/mob.hpp
 engine/include/mobloader.hpp
@@ -78,7 +78,7 @@ engine/include/renderlayer.hpp
 engine/include/renderqueue.hpp
 engine/include/rendersystem.hpp
 engine/include/renderwindow.hpp
-engine/include/resball.hpp
+engine/include/reshelpers.hpp
 engine/include/res.hpp
 engine/include/resourcedata.hpp
 engine/include/resourcemanager.hpp
@@ -172,7 +172,7 @@ engine/src/mat3.cpp
 engine/src/mat4.cpp
 engine/src/material.cpp
 engine/src/math.cpp
-engine/src/memfile.cpp
+engine/src/memoryfile.cpp
 engine/src/mmp.cpp
 engine/src/mob.cpp
 engine/src/mobloader.cpp
@@ -197,14 +197,13 @@ engine/src/registry_generic.cpp
 engine/src/registry_linux.cpp
 engine/src/registry_windows.cpp
 engine/src/rendergroup.cpp
-engine/src/renderitem.cpp
 engine/src/renderlayer.cpp
 engine/src/renderqueue.cpp
 engine/src/rendersystem_opengl.cpp
 engine/src/renderwindow.cpp
 engine/src/renderwindow_windows.cpp
 engine/src/renderwindow_x11.cpp
-engine/src/resball.cpp
+engine/src/reshelpers.cpp
 engine/src/res.cpp
 engine/src/resourcemanager.cpp
 engine/src/root.cpp
@@ -242,7 +241,6 @@ engine/src/timer_windows.cpp
 engine/src/transform.cpp
 engine/src/triangle.cpp
 engine/src/value.cpp
-engine/src/vec2.cpp
 engine/src/vec3.cpp
 engine/src/vector.cpp
 engine/src/videoinstance.cpp
@@ -294,3 +292,5 @@ tools/resfileviewer/src/gui/treewidget.cpp
 tools/resfileviewer/src/gui/treewidget.hpp
 tools/resfileviewer/src/main.cpp
 engine/include/singleton.hpp
+engine/include/makeunique.hpp
+engine/include/segment.hpp
