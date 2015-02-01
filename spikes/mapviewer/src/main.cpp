@@ -38,16 +38,15 @@ using namespace cursedearth;
 
 static ce_optparse* optparse;
 
-static ce_input_supply* input_supply;
-static ce_input_event* anmfps_inc_event;
-static ce_input_event* anmfps_dec_event;
+static input_supply_ptr_t input_supply;
+static input_event_const_ptr_t anmfps_inc_event;
+static input_event_const_ptr_t anmfps_dec_event;
 
 static float message_timeout;
 static ce_color message_color;
 
 static void clear()
 {
-    ce_input_supply_del(input_supply);
     ce_optparse_del(optparse);
 }
 
@@ -87,12 +86,12 @@ static void state_changed(void* /*listener*/, int state)
 
 static void advance(void* /*listener*/, float elapsed)
 {
-    ce_input_supply_advance(input_supply, elapsed);
+    input_supply->advance(elapsed);
 
     float animation_fps = ce_root.animation_fps;
 
-    if (anmfps_inc_event->triggered) animation_fps += 1.0f;
-    if (anmfps_dec_event->triggered) animation_fps -= 1.0f;
+    if (anmfps_inc_event->is_triggered()) animation_fps += 1.0f;
+    if (anmfps_dec_event->is_triggered()) animation_fps -= 1.0f;
 
     if (message_timeout > 0.0f) {
         message_timeout -= elapsed;
@@ -106,7 +105,7 @@ static void advance(void* /*listener*/, float elapsed)
     ce_root.animation_fps = ce_clamp(float, animation_fps, 1.0f, 50.0f);
 }
 
-static void render(void* /*listener*/)
+static void render(void*)
 {
     if (message_timeout > 0.0f) {
         char buffer[32];
@@ -192,9 +191,9 @@ int main(int argc, char* argv[])
 
     message_color = CE_COLOR_CORNFLOWER;
 
-    input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
-    anmfps_inc_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
-    anmfps_dec_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
+    input_supply = std::unique_ptr<input_supply_t>(new input_supply_t(ce_root.renderwindow->input_context));
+    anmfps_inc_event = input_supply->repeat(input_supply->push(CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
+    anmfps_dec_event = input_supply->repeat(input_supply->push(CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
 
     return ce_root_exec();
 }

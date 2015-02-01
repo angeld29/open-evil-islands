@@ -30,15 +30,14 @@
 
 using namespace cursedearth;
 
-static bool pause;
+static bool paused;
 static ce_video_object video_object;
 static ce_optparse* optparse;
-static ce_input_supply* input_supply;
-static ce_input_event* pause_event;
+static input_supply_ptr_t input_supply;
+static input_event_const_ptr_t pause_event;
 
 static void clear()
 {
-    ce_input_supply_del(input_supply);
     ce_optparse_del(optparse);
 }
 
@@ -61,12 +60,12 @@ static void state_changed(void* /*listener*/, int state)
 
 static void advance(void* /*listener*/, float elapsed)
 {
-    ce_input_supply_advance(input_supply, elapsed);
+    input_supply->advance(elapsed);
     ce_video_object_advance(video_object, elapsed);
 
-    if (pause_event->triggered) {
-        pause = !pause;
-        if (pause) {
+    if (pause_event->is_triggered()) {
+        paused = !paused;
+        if (paused) {
             ce_video_object_pause(video_object);
         } else {
             ce_video_object_play(video_object);
@@ -74,7 +73,7 @@ static void advance(void* /*listener*/, float elapsed)
     }
 }
 
-static void render(void* /*listener*/)
+static void render(void*)
 {
     ce_video_object_render(video_object);
 }
@@ -99,8 +98,8 @@ int main(int argc, char* argv[])
     ce_root.scenemng->listener.advance = advance;
     ce_root.scenemng->listener.render = render;
 
-    input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
-    pause_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_SPACE));
+    input_supply = std::unique_ptr<input_supply_t>(new input_supply_t(ce_root.renderwindow->input_context));
+    pause_event = input_supply->single_front(input_supply->push(CE_KB_SPACE));
 
     return ce_root_exec();
 }

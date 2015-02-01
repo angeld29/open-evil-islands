@@ -35,12 +35,11 @@ static ce_color message_color;
 static float alpha_sign = -1.0f;
 static ce_sound_object sound_object;
 static ce_optparse* optparse;
-static ce_input_supply* input_supply;
-static ce_input_event* stub_event;
+static input_supply_ptr_t input_supply;
+static input_event_const_ptr_t stub_event;
 
 static void clear()
 {
-    ce_input_supply_del(input_supply);
     ce_optparse_del(optparse);
 }
 
@@ -59,7 +58,7 @@ static void state_changed(void* /*listener*/, int state)
 
 static void advance(void* /*listener*/, float elapsed)
 {
-    ce_input_supply_advance(input_supply, elapsed);
+    input_supply->advance(elapsed);
 
     if (ce_sound_object_is_valid(sound_object) && !ce_sound_object_is_stopped(sound_object)) {
         message_color.a += elapsed * alpha_sign;
@@ -69,7 +68,7 @@ static void advance(void* /*listener*/, float elapsed)
     }
 }
 
-static void render(void* /*listener*/)
+static void render(void*)
 {
     if (CE_SCENEMNG_STATE_PLAYING != ce_root.scenemng->state) {
         return;
@@ -118,8 +117,8 @@ int main(int argc, char* argv[])
     ce_root.scenemng->listener.advance = advance;
     ce_root.scenemng->listener.render = render;
 
-    input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
-    stub_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_R));
+    input_supply = std::unique_ptr<input_supply_t>(new input_supply_t(ce_root.renderwindow->input_context));
+    stub_event = input_supply->single_front(input_supply->push(CE_KB_R));
 
     return ce_root_exec();
 }

@@ -38,13 +38,13 @@ static ce_optparse* optparse;
 static ce_figentity* figentity;
 static ce_string* message;
 
-static ce_input_supply* input_supply;
-static ce_input_event* strength_event;
-static ce_input_event* dexterity_event;
-static ce_input_event* height_event;
-static ce_input_event* anm_change_event;
-static ce_input_event* anmfps_inc_event;
-static ce_input_event* anmfps_dec_event;
+static input_supply_ptr_t input_supply;
+static input_event_const_ptr_t strength_event;
+static input_event_const_ptr_t dexterity_event;
+static input_event_const_ptr_t height_event;
+static input_event_const_ptr_t anm_change_event;
+static input_event_const_ptr_t anmfps_inc_event;
+static input_event_const_ptr_t anmfps_dec_event;
 
 static int anmidx = -1;
 static ce_complection complection = {1.0f, 1.0f, 1.0f};
@@ -54,7 +54,6 @@ static ce_color message_color;
 
 static void clear()
 {
-    ce_input_supply_del(input_supply);
     ce_string_del(message);
     ce_optparse_del(optparse);
 }
@@ -137,7 +136,7 @@ static void state_changed(void* /*listener*/, int state)
 
 static void advance(void* /*listener*/, float elapsed)
 {
-    ce_input_supply_advance(input_supply, elapsed);
+    input_supply->advance(elapsed);
 
     if (message_timeout > 0.0f) {
         message_timeout -= elapsed;
@@ -146,8 +145,8 @@ static void advance(void* /*listener*/, float elapsed)
 
     float animation_fps = ce_root.animation_fps;
 
-    if (anmfps_inc_event->triggered) animation_fps += 1.0f;
-    if (anmfps_dec_event->triggered) animation_fps -= 1.0f;
+    if (anmfps_inc_event->is_triggered()) animation_fps += 1.0f;
+    if (anmfps_dec_event->is_triggered()) animation_fps -= 1.0f;
 
     if (animation_fps != ce_root.animation_fps) {
         ce_root.animation_fps = ce_clamp(float, animation_fps, 1.0f, 50.0f);
@@ -156,7 +155,7 @@ static void advance(void* /*listener*/, float elapsed)
 
     bool need_update_figentity = false;
 
-    if (strength_event->triggered) {
+    if (strength_event->is_triggered()) {
         if ((complection.strength += 0.1f) >= 1.1f) {
             complection.strength = 0.0f;
         }
@@ -164,7 +163,7 @@ static void advance(void* /*listener*/, float elapsed)
         display_message("Strength: %.2f", complection.strength);
     }
 
-    if (dexterity_event->triggered) {
+    if (dexterity_event->is_triggered()) {
         if ((complection.dexterity += 0.1f) >= 1.1f) {
             complection.dexterity = 0.0f;
         }
@@ -172,7 +171,7 @@ static void advance(void* /*listener*/, float elapsed)
         display_message("Dexterity: %.2f", complection.dexterity);
     }
 
-    if (height_event->triggered) {
+    if (height_event->is_triggered()) {
         if ((complection.height += 0.1f) >= 1.1f) {
             complection.height = 0.0f;
         }
@@ -184,7 +183,7 @@ static void advance(void* /*listener*/, float elapsed)
         update_figentity();
     }
 
-    if (anm_change_event->triggered) {
+    if (anm_change_event->is_triggered()) {
         ce_figentity_stop_animation(figentity);
         int anm_count = ce_figentity_get_animation_count(figentity);
         if (++anmidx == anm_count) {
@@ -200,7 +199,7 @@ static void advance(void* /*listener*/, float elapsed)
     }
 }
 
-static void render(void* /*listener*/)
+static void render(void*)
 {
     if (message_timeout > 0.0f) {
         ce_font_render(ce_root.scenemng->font,
@@ -242,13 +241,13 @@ int main(int argc, char* argv[])
     message = ce_string_new();
     message_color = CE_COLOR_CORNFLOWER;
 
-    input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
-    strength_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_1));
-    dexterity_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_2));
-    height_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_3));
-    anm_change_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_A));
-    anmfps_inc_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
-    anmfps_dec_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
+    input_supply = std::unique_ptr<input_supply_t>(new input_supply_t(ce_root.renderwindow->input_context));
+    strength_event = input_supply->single_front(input_supply->push(CE_KB_1));
+    dexterity_event = input_supply->single_front(input_supply->push(CE_KB_2));
+    height_event = input_supply->single_front(input_supply->push(CE_KB_3));
+    anm_change_event = input_supply->single_front(input_supply->push(CE_KB_A));
+    anmfps_inc_event = input_supply->repeat(input_supply->push(CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
+    anmfps_dec_event = input_supply->repeat(input_supply->push(CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
 
     return ce_root_exec();
 }

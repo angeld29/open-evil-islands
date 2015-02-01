@@ -37,11 +37,11 @@ namespace cursedearth
         ce_renderwindow* renderwindow;
         ce_scenemng* scenemng;
         timer_ptr_t timer;
-        ce_input_supply* input_supply;
-        ce_input_event* exit_event;
-        ce_input_event* switch_window_event;
-        ce_input_event* toggle_fullscreen_event;
-        ce_input_event* toggle_bbox_event;
+        input_supply_ptr_t input_supply;
+        input_event_const_ptr_t exit_event;
+        input_event_const_ptr_t switch_window_event;
+        input_event_const_ptr_t toggle_fullscreen_event;
+        input_event_const_ptr_t toggle_bbox_event;
         ce_renderwindow_listener renderwindow_listener;
     } ce_root;
 

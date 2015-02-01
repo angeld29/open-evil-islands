@@ -33,7 +33,7 @@ namespace cursedearth
 {
     typedef struct {
         unsigned long key;
-        ce_input_button button;
+        input_button_t button;
     } ce_renderwindow_keypair;
 
     typedef struct {
@@ -43,13 +43,12 @@ namespace cursedearth
     extern ce_renderwindow_keymap* ce_renderwindow_keymap_new(void);
     extern void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
 
-    extern void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, ce_input_button button);
+    extern void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, input_button_t button);
     extern void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, unsigned long keys[CE_IB_COUNT]);
 
     extern void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
 
-    extern ce_input_button
-    ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key);
+    extern input_button_t ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key);
 
     typedef enum {
         CE_RENDERWINDOW_STATE_WINDOW,
@@ -108,7 +107,7 @@ namespace cursedearth
         bool restore_fullscreen;
         ce_displaymng* displaymng;
         ce_graphic_context* graphic_context;
-        ce_input_context* input_context;
+        input_context_ptr_t input_context;
         ce_renderwindow_keymap* keymap;
         ce_vector* listeners;
         ce_renderwindow_vtable vtable;
