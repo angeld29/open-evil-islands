@@ -1,0 +1,36 @@
+Pre-defined Compiler Macros
+===========================
+
+Language Standards
+----------------------------------------------------------------------
+| Name    | Macro                      | Standard                    |
+| C89     | __STDC__                   | ANSI X3.159-1989            |
+| C90     | __STDC__                   | ISO/IEC 9899:1990           |
+| C94     | __STDC_VERSION__ = 199409L | ISO/IEC 9899-1:1994         |
+| C99     | __STDC_VERSION__ = 199901L | ISO/IEC 9899:1999           |
+| C11     | __STDC_VERSION__ = 201112L | ISO/IEC 9899:2011           |
+| C++98   | __cplusplus = 199711L      | ISO/IEC 14882:1998          |
+| C++11   | __cplusplus = 201103L      | ISO/IEC 14882:2011          |
+| C++14   | __cplusplus = 201402L      | ISO/IEC 14882:2014          |
+| C++/CLI | __cplusplus_cli = 200406L  | ECMA-372                    |
+| DSP-C   |                            | ISO/IEC JTC1/SC22 WG14/N854 |
+| EC++    | __embedded_cplusplus       | Embedded C++                |
+----------------------------------------------------------------------
+
+Unix Standards
+----------------------------------------------------------------------------------------------------------------
+| POSIX.1-1988  | _POSIX_VERSION = 198808L          |                                                          |
+| POSIX.1-1990  | _POSIX_VERSION = 199009L          | ISO/IEC 9945-1:1990                                      |
+| POSIX.2       | _POSIX2_C_VERSION = 199209L       | ISO/IEC 9945-2:1993                                      |
+| POSIX.1b-1993 | _POSIX_VERSION = 199309L          | IEEE 1003.1b-1993                                        |
+| POSIX.1-1996  | _POSIX_VERSION = 199506L          | IEEE 1003.1-1996                                         |
+| POSIX.1-2001  | _POSIX_VERSION = 200112L          | IEEE 1003.1-2001                                         |
+| POSIX.1-2008  | _POSIX_VERSION = 200809L          | IEEE 1003.1-2008                                         |
+| XPG3          | _XOPEN_VERSION = 3                | X/Open Portability Guide 3 (1989)                        |
+| XPG4          | _XOPEN_VERSION = 4                | X/Open Portability Guide 4 (1992)                        |
+| SUS           | _XOPEN_VERSION = 4 && _XOPEN_UNIX | X/Open Single UNIX Specification (UNIX95)                |
+| SUSv2         | _XOPEN_VERSION = 500              | X/Open Single UNIX Specification, Version 2 (UNIX98)     |
+| SUSv3         | _XOPEN_VERSION = 600              | Open Group Single UNIX Specification, Version 3 (UNIX03) |
+| SUSv4         | _XOPEN_VERSION = 700              | Open Group Single UNIX Specification, Version 4          |
+| LSB           | __LSB_VERSION__ = VR              | Linux Standards Base V = Version R = Revision            |
+----------------------------------------------------------------------------------------------------------------
