@@ -36,8 +36,8 @@ namespace cursedearth
 ce_frustum* ce_frustum_init(ce_frustum* frustum,
                             float fov, float aspect,
                             float near, float far,
-                            const ce_vec3* position, const ce_vec3* forward,
-                            const ce_vec3* right, const ce_vec3* up)
+                            const vec3_t* position, const vec3_t* forward,
+                            const vec3_t* right, const vec3_t* up)
 {
     float tang = tanf(0.5f * ce_deg2rad(fov));
     float nh = tang * near;
@@ -45,8 +45,8 @@ ce_frustum* ce_frustum_init(ce_frustum* frustum,
     float fh = tang * far;
     float fw = fh * aspect;
 
-    ce_vec3 nc, fc, xw, yh;
-    ce_vec3 ntl, ntr, nbl, nbr, ftl, ftr, fbl, fbr;
+    vec3_t nc, fc, xw, yh;
+    vec3_t ntl, ntr, nbl, nbr, ftl, ftr, fbl, fbr;
 
     ce_vec3_add(&nc, position, ce_vec3_scale(&nc, near, forward));
     ce_vec3_add(&fc, position, ce_vec3_scale(&fc, far, forward));
@@ -77,7 +77,7 @@ ce_frustum* ce_frustum_init(ce_frustum* frustum,
     return frustum;
 }
 
-bool ce_frustum_test_point(const ce_frustum* frustum, const ce_vec3* point)
+bool ce_frustum_test_point(const ce_frustum* frustum, const vec3_t* point)
 {
     for (int i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {
         if (ce_plane_dist(&frustum->planes[i], point) < 0.0f) {
@@ -98,7 +98,7 @@ bool ce_frustum_test_sphere(const ce_frustum* frustum, const ce_sphere* sphere)
     return true;
 }
 
-bool ce_frustum_test_aabb(const ce_frustum* frustum, const ce_aabb* aabb)
+bool ce_frustum_test_aabb(const ce_frustum* frustum, const aabb_t* aabb)
 {
     for (int i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {
         float dist = ce_plane_dist(&frustum->planes[i], &aabb->origin);
@@ -122,9 +122,9 @@ bool ce_frustum_test_aabb(const ce_frustum* frustum, const ce_aabb* aabb)
 }
 
 bool ce_frustum_test_bbox(const ce_frustum* frustum,
-                            const ce_bbox* bbox)
+                            const bbox_t* bbox)
 {
-    ce_vec3 xaxis, yaxis, zaxis, nb;
+    vec3_t xaxis, yaxis, zaxis, nb;
     ce_quat_to_axes(&bbox->axis, &xaxis, &yaxis, &zaxis);
 
     for (int i = 0; i < CE_FRUSTUM_PLANE_COUNT; ++i) {

@@ -22,7 +22,7 @@
 
 namespace cursedearth
 {
-    ce_sphere* ce_sphere_init(ce_sphere* sphere, const ce_vec3* origin, float radius)
+    ce_sphere* ce_sphere_init(ce_sphere* sphere, const vec3_t* origin, float radius)
     {
         sphere->origin = *origin;
         sphere->radius = radius;

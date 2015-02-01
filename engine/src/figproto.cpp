@@ -24,7 +24,7 @@
 
 #include "alloc.hpp"
 #include "resourcemanager.hpp"
-#include "resball.hpp"
+#include "reshelpers.hpp"
 #include "figproto.hpp"
 
 namespace cursedearth

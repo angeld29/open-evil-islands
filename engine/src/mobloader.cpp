@@ -39,7 +39,7 @@ struct ce_mob_loader* ce_mob_loader;
 typedef struct {
     ce_mob_task* mob_task;
     const char* model_name;
-    ce_vec3 position;
+    vec3_t position;
     ce_quat orientation;
     ce_complection complection;
     const char* textures[2 + 1]; // NULL-terminated

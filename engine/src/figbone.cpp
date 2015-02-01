@@ -66,7 +66,7 @@ void ce_figbone_advance(ce_figbone* figbone, float distance)
 }
 
 static void ce_figbone_update_transform(ce_figbone* figbone,
-                                        ce_renderitem* renderitem)
+                                        render_item_t* renderitem)
 {
     // TODO: translations from anm file ???
 
@@ -104,7 +104,7 @@ static void ce_figbone_update_transform(ce_figbone* figbone,
 }
 
 static void ce_figbone_update_bounds(ce_figbone* figbone,
-                                    ce_renderitem* renderitem)
+                                    render_item_t* renderitem)
 {
     renderitem->bbox.aabb = renderitem->aabb;
     renderitem->bbox.axis = figbone->bone_orientation;
@@ -121,7 +121,7 @@ void ce_figbone_update(ce_figbone* figbone,
                         const ce_fignode* fignode,
                         ce_vector* renderitems)
 {
-    ce_renderitem* renderitem = renderitems->items[fignode->index];
+    render_item_t* renderitem = renderitems->items[fignode->index];
 
     ce_figbone_update_transform(figbone, renderitem);
 

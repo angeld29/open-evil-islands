@@ -43,11 +43,11 @@ namespace cursedearth
 
     typedef struct ce_scenenode {
         bool culled;
-        ce_vec3 position;
+        vec3_t position;
         ce_quat orientation;
-        ce_vec3 world_position;
+        vec3_t world_position;
         ce_quat world_orientation;
-        ce_bbox world_bbox;
+        bbox_t world_bbox;
         ce_vector* renderitems;
         ce_occlusion* occlusion;
         // only one listener supported for performance reasons
@@ -64,7 +64,7 @@ namespace cursedearth
     extern void ce_scenenode_attach_child(ce_scenenode* scenenode, ce_scenenode* child);
     extern void ce_scenenode_detach_child(ce_scenenode* scenenode, ce_scenenode* child);
 
-    extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode, ce_renderitem* renderitem);
+    extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode, render_item_t* renderitem);
 
     extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
 

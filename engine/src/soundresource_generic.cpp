@@ -285,7 +285,7 @@ static FLAC__StreamDecoderTellStatus ce_flac_tell_callback(const FLAC__StreamDec
 static FLAC__StreamDecoderLengthStatus ce_flac_length_callback(const FLAC__StreamDecoder*, FLAC__uint64* stream_length, void* client_data)
 {
     ce_flac_bundle* flac_bundle = client_data;
-    long int size = ce_mem_file_size(flac_bundle->mem_file);
+    long int size = file_size(flac_bundle->mem_file);
 
     if (size < 0) {
         return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;

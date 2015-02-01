@@ -26,7 +26,7 @@ namespace cursedearth
 {
 ce_cam_file* ce_cam_file_new(memory_file_t* mem_file)
 {
-    size_t record_count = ce_mem_file_size(mem_file) / 36;
+    size_t record_count = file_size(mem_file) / 36;
 
     ce_cam_file* cam_file = ce_alloc_zero(sizeof(ce_cam_file) + sizeof(ce_cam_record) * record_count);
     cam_file->record_count = record_count;

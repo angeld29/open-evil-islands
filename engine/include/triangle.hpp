@@ -25,27 +25,17 @@
 
 namespace cursedearth
 {
-    typedef struct {
-        ce_vec3 a, b, c;
-    } ce_triangle;
-
-    inline ce_triangle* ce_triangle_init(ce_triangle* triangle, const ce_vec3* a, const ce_vec3* b, const ce_vec3* c)
+    struct triangle_t
     {
-        ce_vec3_copy(&triangle->a, a);
-        ce_vec3_copy(&triangle->b, b);
-        ce_vec3_copy(&triangle->c, c);
-        return triangle;
-    }
+        vec3_t a, b, c;
 
-    inline ce_vec3* ce_triangle_calc_normal(const ce_triangle* triangle, ce_vec3* normal)
-    {
-        ce_vec3 edge1, edge2;
-        ce_vec3_sub(&edge1, &triangle->b, &triangle->a);
-        ce_vec3_sub(&edge2, &triangle->c, &triangle->a);
-        return ce_vec3_norm(normal, ce_vec3_cross(normal, &edge1, &edge2));
-    }
+        bool intersect(const vec3_t& point) const;
 
-    extern bool ce_triangle_test(const ce_triangle* triangle, const ce_vec3* point);
+        vec3_t get_normal() const
+        {
+            return normalize(cross(b - a, c - a));
+        }
+    };
 }
 
-#endif /* CE_TRIANGLE_HPP */
+#endif

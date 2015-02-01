@@ -43,7 +43,7 @@ namespace cursedearth
         ce_mmpfile* mmpfile;
         texture_t* texture;
         ce_renderlayer* renderlayer;
-        ce_renderitem* renderitem;
+        render_item_t* renderitem;
         ce_scenenode* scenenode;
         ce_terrain* terrain;
     } ce_terrain_sector;
@@ -65,7 +65,7 @@ namespace cursedearth
     };
 
     // terrain takes ownership of the mprfile
-    extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_renderqueue* renderqueue, const ce_vec3* position, const ce_quat* orientation, ce_scenenode* scenenode);
+    extern ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_renderqueue* renderqueue, const vec3_t* position, const ce_quat* orientation, ce_scenenode* scenenode);
     extern void ce_terrain_del(ce_terrain* terrain);
 
     extern ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain, float x, float z);

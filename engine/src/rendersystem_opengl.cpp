@@ -381,11 +381,11 @@ void ce_render_system_apply_color(const ce_color* color)
     glColor4f(color->r, color->g, color->b, color->a);
 }
 
-void ce_render_system_apply_transform(const ce_vec3* translation,
+void ce_render_system_apply_transform(const vec3_t* translation,
                                         const ce_quat* rotation,
-                                        const ce_vec3* scaling)
+                                        const vec3_t* scaling)
 {
-    ce_vec3 axis;
+    vec3_t axis;
     float angle = ce_quat_to_polar(rotation, &axis);
 
     glPushMatrix();

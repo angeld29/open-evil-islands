@@ -23,7 +23,7 @@
 
 namespace cursedearth
 {
-    typedef unsigned long int ce_video_object;
+    typedef unsigned long ce_video_object;
 
     extern ce_video_object ce_video_object_new(const char* name);
     extern void ce_video_object_del(ce_video_object video_object);

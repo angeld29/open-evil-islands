@@ -40,9 +40,9 @@ namespace cursedearth
     extern const float CE_MPR_OFFSET_XZ_COEF;
     extern const float CE_MPR_HEIGHT_Y_COEF;
 
-    extern ce_aabb* ce_mpr_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile, int sector_x, int sector_z, bool water);
+    extern aabb_t* ce_mpr_get_aabb(aabb_t* aabb, const ce_mprfile* mprfile, int sector_x, int sector_z, bool water);
 
-    inline ce_vec3* ce_mpr_unpack_normal(ce_vec3* normal, uint32_t value)
+    inline vec3_t* ce_mpr_unpack_normal(vec3_t* normal, uint32_t value)
     {
         return ce_vec3_init(normal, (((value >> 11) & 0x7ff) - 1000.0f) / 1000.0f, (value >> 22) / 1000.0f, ((value & 0x7ff) - 1000.0f) / 1000.0f);
     }
@@ -62,7 +62,7 @@ namespace cursedearth
         return (value & 0xc000) >> 14;
     }
 
-    extern float ce_mpr_get_height(const ce_mprfile* mprfile, const ce_vec3* position);
+    extern float ce_mpr_get_height(const ce_mprfile* mprfile, const vec3_t* position);
 
     extern ce_material* ce_mpr_create_material(const ce_mprfile* mprfile, bool water);
     extern ce_mmpfile* ce_mpr_generate_texture(const ce_mprfile* mprfile, const ce_vector* tile_mmp_files, int x, int z, bool water);

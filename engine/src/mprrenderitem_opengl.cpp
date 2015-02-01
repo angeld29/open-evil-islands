@@ -44,7 +44,7 @@ typedef struct {
     GLuint list;
 } ce_mprrenderitem_fast;
 
-static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
+static void ce_mprrenderitem_fast_ctor(render_item_t* renderitem, va_list args)
 {
     ce_mprrenderitem_fast* mprrenderitem =
         (ce_mprrenderitem_fast*)renderitem->impl;
@@ -122,7 +122,7 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
                             (CE_MPRFILE_VERTEX_SIDE - 1 - z) /
                             (float)(CE_MPRFILE_VERTEX_SIDE - 1));
 
-            ce_vec3 normal;
+            vec3_t normal;
             ce_mpr_unpack_normal(&normal, vertex->normal);
             glNormal3f(normal.x, normal.y, -normal.z);
 
@@ -138,7 +138,7 @@ static void ce_mprrenderitem_fast_ctor(ce_renderitem* renderitem, va_list args)
     glEndList();
 }
 
-static void ce_mprrenderitem_fast_dtor(ce_renderitem* renderitem)
+static void ce_mprrenderitem_fast_dtor(render_item_t* renderitem)
 {
     ce_mprrenderitem_fast* mprrenderitem =
         (ce_mprrenderitem_fast*)renderitem->impl;
@@ -146,7 +146,7 @@ static void ce_mprrenderitem_fast_dtor(ce_renderitem* renderitem)
     glDeleteLists(mprrenderitem->list, 1);
 }
 
-static void ce_mprrenderitem_fast_render(ce_renderitem* renderitem)
+static void ce_mprrenderitem_fast_render(render_item_t* renderitem)
 {
     ce_mprrenderitem_fast* mprrenderitem =
         (ce_mprrenderitem_fast*)renderitem->impl;
@@ -162,7 +162,7 @@ typedef struct {
     GLuint list;
 } ce_mprrenderitem_tile;
 
-static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
+static void ce_mprrenderitem_tile_ctor(render_item_t* renderitem, va_list args)
 {
     ce_mprrenderitem_tile* mprrenderitem =
         (ce_mprrenderitem_tile*)renderitem->impl;
@@ -274,7 +274,7 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
 
                 glTexCoord2f(u + texcoord[i][0], v + texcoord[i][1]);
 
-                ce_vec3 normal;
+                vec3_t normal;
                 ce_mpr_unpack_normal(&normal, vertex->normal);
                 glNormal3f(normal.x, normal.y, -normal.z);
 
@@ -298,7 +298,7 @@ static void ce_mprrenderitem_tile_ctor(ce_renderitem* renderitem, va_list args)
     glEndList();
 }
 
-static void ce_mprrenderitem_tile_dtor(ce_renderitem* renderitem)
+static void ce_mprrenderitem_tile_dtor(render_item_t* renderitem)
 {
     ce_mprrenderitem_tile* mprrenderitem =
         (ce_mprrenderitem_tile*)renderitem->impl;
@@ -306,7 +306,7 @@ static void ce_mprrenderitem_tile_dtor(ce_renderitem* renderitem)
     glDeleteLists(mprrenderitem->list, 1);
 }
 
-static void ce_mprrenderitem_tile_render(ce_renderitem* renderitem)
+static void ce_mprrenderitem_tile_render(render_item_t* renderitem)
 {
     ce_mprrenderitem_tile* mprrenderitem =
         (ce_mprrenderitem_tile*)renderitem->impl;
@@ -350,7 +350,7 @@ static void ce_mprrenderitem_amdvst_print_log(GLuint object)
     ce_logging_error("mprrenderitem: %s", buffer);
 }
 
-static void ce_mprrenderitem_amdvst_ctor(ce_renderitem* renderitem, va_list args)
+static void ce_mprrenderitem_amdvst_ctor(render_item_t* renderitem, va_list args)
 {
     ce_mprrenderitem_amdvst* mprrenderitem =
         (ce_mprrenderitem_amdvst*)renderitem->impl;
@@ -427,7 +427,7 @@ static void ce_mprrenderitem_amdvst_ctor(ce_renderitem* renderitem, va_list args
         for (int x = 0; x < CE_MPRFILE_VERTEX_SIDE; ++x) {
             ce_mprvertex* mprvertex = mprvertices + z * CE_MPRFILE_VERTEX_SIDE + x;
 
-            ce_vec3 normal;
+            vec3_t normal;
             ce_mpr_unpack_normal(&normal, mprvertex->normal);
 
             normals[0] = normal.x;
@@ -526,7 +526,7 @@ static void ce_mprrenderitem_amdvst_ctor(ce_renderitem* renderitem, va_list args
     glUseProgram(0);
 }
 
-static void ce_mprrenderitem_amdvst_dtor(ce_renderitem* renderitem)
+static void ce_mprrenderitem_amdvst_dtor(render_item_t* renderitem)
 {
     ce_mprrenderitem_amdvst* mprrenderitem =
         (ce_mprrenderitem_amdvst*)renderitem->impl;
@@ -537,7 +537,7 @@ static void ce_mprrenderitem_amdvst_dtor(ce_renderitem* renderitem)
     glDeleteBuffers(1, &mprrenderitem->vertex_buffer);
 }
 
-static void ce_mprrenderitem_amdvst_render(ce_renderitem* renderitem)
+static void ce_mprrenderitem_amdvst_render(render_item_t* renderitem)
 {
     ce_mprrenderitem_amdvst* mprrenderitem =
         (ce_mprrenderitem_amdvst*)renderitem->impl;
@@ -569,7 +569,7 @@ static void ce_mprrenderitem_amdvst_render(ce_renderitem* renderitem)
     glPopClientAttrib();
 }
 
-ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile,
+render_item_t* ce_mprrenderitem_new(ce_mprfile* mprfile,
                                     int sector_x, int sector_z,
                                     int water, ce_vector* tile_textures)
 {

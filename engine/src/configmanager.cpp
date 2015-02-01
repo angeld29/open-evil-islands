@@ -30,7 +30,7 @@
 #include "logging.hpp"
 #include "optionmanager.hpp"
 #include "resourcemanager.hpp"
-#include "resball.hpp"
+#include "reshelpers.hpp"
 #include "reg.hpp"
 #include "configfile.hpp"
 #include "configmanager.hpp"

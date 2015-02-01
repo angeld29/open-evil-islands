@@ -706,7 +706,7 @@ static ce_mob_file* ce_mob_file_open_mem_file(const char* name, memory_file_t* m
     mob_file->name = ce_string_new_str_n(name,
         ce_min(size_t, strlen(name), strlen(name) - 4));
 
-    ce_mob_file_block_loop(mob_file, mem_file, ce_mem_file_size(mem_file));
+    ce_mob_file_block_loop(mob_file, mem_file, file_size(mem_file));
 
     return mob_file;
 }

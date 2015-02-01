@@ -21,13 +21,14 @@
 #ifndef CE_MPRRENDERITEM_HPP
 #define CE_MPRRENDERITEM_HPP
 
-#include "vector.hpp"
-#include "mpr.hpp"
+#include <vector>
+
 #include "renderitem.hpp"
+#include "mpr.hpp"
 
 namespace cursedearth
 {
-    ce_renderitem* ce_mprrenderitem_new(ce_mprfile*, int sector_x, int sector_z, int water, ce_vector* tile_textures);
+    render_item_ptr_t make_render_item(ce_mprfile*, int sector_x, int sector_z, int water, std::vector<int> tile_textures);
 }
 
 #endif /* CE_MPRRENDERITEM_HPP */

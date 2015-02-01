@@ -25,23 +25,23 @@
 
 namespace cursedearth
 {
-ce_bbox* ce_bbox_clear(ce_bbox* bbox)
+bbox_t* ce_bbox_clear(bbox_t* bbox)
 {
     ce_aabb_clear(&bbox->aabb);
     bbox->axis = CE_QUAT_IDENTITY;
     return bbox;
 }
 
-ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other)
+bbox_t* ce_bbox_merge(bbox_t* bbox, const bbox_t* other)
 {
-    ce_vec3 axis_x, axis_y, axis_z;
+    vec3_t axis_x, axis_y, axis_z;
     ce_quat_to_axes(&other->axis, &axis_x, &axis_y, &axis_z);
 
     ce_vec3_scale(&axis_x, other->aabb.extents.x, &axis_x);
     ce_vec3_scale(&axis_y, other->aabb.extents.y, &axis_y);
     ce_vec3_scale(&axis_z, other->aabb.extents.z, &axis_z);
 
-    ce_aabb aabb;
+    aabb_t aabb;
     aabb.origin = other->aabb.origin;
 
     // calculate the aabb extents in local coord space
@@ -58,9 +58,9 @@ ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other)
     return bbox;
 }
 
-static void ce_bbox_compute_corners(const ce_bbox* bbox, ce_vec3 corners[8])
+static void ce_bbox_compute_corners(const bbox_t* bbox, vec3_t corners[8])
 {
-    ce_vec3 axis_x, axis_y, axis_z;
+    vec3_t axis_x, axis_y, axis_z;
     ce_quat_to_axes(&bbox->axis, &axis_x, &axis_y, &axis_z);
 
     ce_vec3_scale(&axis_x, bbox->aabb.extents.x, &axis_x);
@@ -104,9 +104,9 @@ static void ce_bbox_compute_corners(const ce_bbox* bbox, ce_vec3 corners[8])
     ce_vec3_add(&corners[7], &corners[7], &axis_z);
 }
 
-static void ce_bbox_find_min_max(const ce_vec3* center, const ce_vec3* axis_x,
-                                const ce_vec3* axis_y, const ce_vec3* axis_z,
-                                ce_vec3 corners[8], ce_vec3* min, ce_vec3* max)
+static void ce_bbox_find_min_max(const vec3_t* center, const vec3_t* axis_x,
+                                const vec3_t* axis_y, const vec3_t* axis_z,
+                                vec3_t corners[8], vec3_t* min, vec3_t* max)
 {
     float dot;
 
@@ -136,7 +136,7 @@ static void ce_bbox_find_min_max(const ce_vec3* center, const ce_vec3* axis_x,
     }
 }
 
-ce_bbox* ce_bbox_merge2(ce_bbox* bbox, const ce_bbox* other)
+bbox_t* ce_bbox_merge2(bbox_t* bbox, const bbox_t* other)
 {
     if (-FLT_MAX == bbox->aabb.extents.x) {
         *bbox = *other;
@@ -153,14 +153,14 @@ ce_bbox* ce_bbox_merge2(ce_bbox* bbox, const ce_bbox* other)
     ce_quat_add(&axis, &axis, &bbox->axis);
     ce_quat_norm(&axis, &axis);
 
-    ce_vec3 axis_x, axis_y, axis_z;
+    vec3_t axis_x, axis_y, axis_z;
     ce_quat_to_axes(&axis, &axis_x, &axis_y, &axis_z);
 
-    ce_vec3 center;
+    vec3_t center;
     ce_vec3_mid(&center, &bbox->aabb.origin, &other->aabb.origin);
 
-    ce_vec3 min, max;
-    ce_vec3 corners[8];
+    vec3_t min, max;
+    vec3_t corners[8];
 
     ce_vec3_init_zero(&min);
     ce_vec3_init_zero(&max);

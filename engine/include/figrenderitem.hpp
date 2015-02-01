@@ -27,7 +27,7 @@
 
 namespace cursedearth
 {
-    ce_renderitem* ce_figrenderitem_new(const ce_fignode*, const ce_complection*);
+    render_item_ptr_t make_render_item(const ce_fignode*, const ce_complection*);
 }
 
 #endif /* CE_FIGRENDERITEM_HPP */

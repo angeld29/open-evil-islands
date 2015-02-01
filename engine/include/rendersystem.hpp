@@ -58,7 +58,7 @@ namespace cursedearth
 
     extern void ce_render_system_apply_color(const ce_color* color);
 
-    extern void ce_render_system_apply_transform(const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling);
+    extern void ce_render_system_apply_transform(const vec3_t* translation, const ce_quat* rotation, const vec3_t* scaling);
     extern void ce_render_system_discard_transform(void);
 
     extern void ce_render_system_apply_material(ce_material* material);

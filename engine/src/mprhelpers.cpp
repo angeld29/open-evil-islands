@@ -34,7 +34,7 @@ namespace cursedearth
 const float CE_MPR_OFFSET_XZ_COEF = 1.0f / (INT8_MAX - INT8_MIN);
 const float CE_MPR_HEIGHT_Y_COEF = 1.0f / (UINT16_MAX - 0);
 
-ce_aabb* ce_mpr_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
+aabb_t* ce_mpr_get_aabb(aabb_t* aabb, const ce_mprfile* mprfile,
                         int sector_x, int sector_z, bool water)
 {
     const float y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
@@ -57,7 +57,7 @@ ce_aabb* ce_mpr_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile,
     }
 
     // FIXME: negative z?..
-    ce_vec3 min, max;
+    vec3_t min, max;
     ce_vec3_init(&min, sector_x * (CE_MPRFILE_VERTEX_SIDE - 1), 0.0f, -1.0f *
         (sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) + (CE_MPRFILE_VERTEX_SIDE - 1)));
     ce_vec3_init(&max,
@@ -92,7 +92,7 @@ static bool ce_mpr_get_height_triangle(const ce_mprfile* mprfile,
 
     const float y_coef = CE_MPR_HEIGHT_Y_COEF * mprfile->max_y;
 
-    ce_triangle triangle;
+    triangle_t triangle;
 
     ce_vec3_init(&triangle.a,
         vertex_x1 + sector_x * (CE_MPRFILE_VERTEX_SIDE - 1) +
@@ -115,14 +115,14 @@ static bool ce_mpr_get_height_triangle(const ce_mprfile* mprfile,
         vertex_z3 + sector_z * (CE_MPRFILE_VERTEX_SIDE - 1) +
                     CE_MPR_OFFSET_XZ_COEF * vertex3->offset_z);
 
-    ce_plane plane;
+    plane_t plane;
     ce_plane_init_triangle(&plane, &triangle);
 
-    ce_ray ray;
+    ray_t ray;
     ce_vec3_init(&ray.origin, x, mprfile->max_y + 1.0f, z);
     ce_vec3_init_neg_unit_y(&ray.direction);
 
-    ce_vec3 point;
+    vec3_t point;
     if (!ce_plane_isect_ray(&plane, &ray, &point) ||
             !ce_triangle_test(&triangle, &point)) {
         return false;
@@ -175,7 +175,7 @@ static bool ce_mpr_get_height_tile(const ce_mprfile* mprfile,
     return false;
 }
 
-float ce_mpr_get_height(const ce_mprfile* mprfile, const ce_vec3* position)
+float ce_mpr_get_height(const ce_mprfile* mprfile, const vec3_t* position)
 {
     float x = position->x;
     float z = position->z;

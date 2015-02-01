@@ -25,7 +25,7 @@
 
 namespace cursedearth
 {
-ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
+aabb_t* ce_fighlp_get_aabb(aabb_t* aabb, const ce_figfile* figfile,
                             const ce_complection* complection)
 {
     if (0 == figfile->vertex_count) {
@@ -41,7 +41,7 @@ ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
         figfile->value_callback(figfile->center + 1, 3, complection),
         figfile->value_callback(figfile->center + 2, 3, complection));
 
-    ce_vec3 min, max;
+    vec3_t min, max;
     ce_vec3_init(&min,
         figfile->value_callback(figfile->min + 0, 3, complection),
         figfile->value_callback(figfile->min + 1, 3, complection),
@@ -63,7 +63,7 @@ ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile,
 ce_sphere* ce_fighlp_get_sphere(ce_sphere* sphere, const ce_figfile* figfile,
                                 const ce_complection* complection)
 {
-    ce_vec3 center;
+    vec3_t center;
     return ce_sphere_init(sphere, ce_vec3_init(&center,
         figfile->value_callback(figfile->center + 0, 3, complection),
         figfile->value_callback(figfile->center + 1, 3, complection),
@@ -96,7 +96,7 @@ float* ce_fighlp_get_normal(float* array, const ce_figfile* figfile, int index)
     return array;
 }
 
-ce_vec3* ce_fighlp_get_bone(ce_vec3* position,
+vec3_t* ce_fighlp_get_bone(vec3_t* position,
                             const ce_figfile* figfile,
                             const ce_bonfile* bonfile,
                             const ce_complection* complection)

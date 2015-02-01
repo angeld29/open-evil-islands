@@ -21,196 +21,139 @@
 #ifndef CE_VEC3_HPP
 #define CE_VEC3_HPP
 
+#include "math.hpp"
+
 namespace cursedearth
 {
     struct ce_quat;
 
-    typedef struct ce_vec3 {
-        float x, y, z;
-    } ce_vec3;
-
-    extern const ce_vec3 CE_VEC3_ZERO;
-    extern const ce_vec3 CE_VEC3_UNIT_X;
-    extern const ce_vec3 CE_VEC3_UNIT_Y;
-    extern const ce_vec3 CE_VEC3_UNIT_Z;
-    extern const ce_vec3 CE_VEC3_UNIT_SCALE;
-    extern const ce_vec3 CE_VEC3_NEG_UNIT_X;
-    extern const ce_vec3 CE_VEC3_NEG_UNIT_Y;
-    extern const ce_vec3 CE_VEC3_NEG_UNIT_Z;
-    extern const ce_vec3 CE_VEC3_NEG_UNIT_SCALE;
-
-    inline ce_vec3* ce_vec3_init(ce_vec3* vec, float x, float y, float z)
+    struct vec3_t
     {
-        vec->x = x;
-        vec->y = y;
-        vec->z = z;
-        return vec;
+        float x = 0.0f, y = 0.0f, z = 0.0f;
+
+        vec3_t() {}
+        vec3_t(float x, float y, float z): x(x), y(y), z(z) {}
+        explicit vec3_t(float scalar): x(scalar), y(scalar), z(scalar) {}
+        explicit vec3_t(const float array[3]): x(array[0]), y(array[1]), z(array[2]) {}
+
+        float length() const;
+        void rotate(const ce_quat&);
+
+        vec3_t& operator -()
+        {
+            x = -x;
+            y = -y;
+            z = -z;
+            return *this;
+        }
+
+        vec3_t& operator +=(const vec3_t& rhs)
+        {
+            x += rhs.x;
+            y += rhs.y;
+            z += rhs.z;
+            return *this;
+        }
+
+        vec3_t& operator -=(const vec3_t& rhs)
+        {
+            x -= rhs.x;
+            y -= rhs.y;
+            z -= rhs.z;
+            return *this;
+        }
+
+        vec3_t& operator *=(const vec3_t& rhs)
+        {
+            x *= rhs.x;
+            y *= rhs.y;
+            z *= rhs.z;
+            return *this;
+        }
+
+        vec3_t& operator /=(const vec3_t& rhs)
+        {
+            x /= rhs.x;
+            y /= rhs.y;
+            z /= rhs.z;
+            return *this;
+        }
+
+        vec3_t& operator *=(float rhs)
+        {
+            x *= rhs;
+            y *= rhs;
+            z *= rhs;
+            return *this;
+        }
+
+        float square_length() const
+        {
+            return x * x + y * y + z * z;
+        }
+
+        void normalize()
+        {
+            *this *= 1.0f / length();
+        }
+
+        static vec3_t make_unit_x() { return { 1.0f, 0.0f, 0.0f }; }
+        static vec3_t make_unit_y() { return { 0.0f, 1.0f, 0.0f }; }
+        static vec3_t make_unit_z() { return { 0.0f, 0.0f, 1.0f }; }
+        static vec3_t make_unit_scale() { return { 1.0f, 1.0f, 1.0f }; }
+        static vec3_t make_neg_unit_x() { return { -1.0f, 0.0f, 0.0f }; }
+        static vec3_t make_neg_unit_y() { return { 0.0f, -1.0f, 0.0f }; }
+        static vec3_t make_neg_unit_z() { return { 0.0f, 0.0f, -1.0f }; }
+        static vec3_t make_neg_unit_scale() { return { -1.0f, -1.0f, -1.0f }; }
+    };
+
+    float distance(const vec3_t& lhs, const vec3_t& rhs);
+    float absolute_dot(const vec3_t& lhs, const vec3_t& rhs);
+
+    vec3_t floor(const vec3_t& lhs, const vec3_t& rhs);
+    vec3_t ceil(const vec3_t& lhs, const vec3_t& rhs);
+
+    inline vec3_t operator +(const vec3_t& lhs, const vec3_t& rhs) { return { lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z }; }
+    inline vec3_t operator -(const vec3_t& lhs, const vec3_t& rhs) { return { lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z }; }
+    inline vec3_t operator *(const vec3_t& lhs, const vec3_t& rhs) { return { lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z }; }
+    inline vec3_t operator /(const vec3_t& lhs, const vec3_t& rhs) { return { lhs.x / rhs.x, lhs.y / rhs.y, lhs.z / rhs.z }; }
+
+    inline vec3_t operator *(const vec3_t& lhs, float rhs) { return { lhs.x * rhs, lhs.y * rhs, lhs.z * rhs }; }
+    inline vec3_t operator *(float lhs, const vec3_t& rhs) { return { lhs * rhs.x, lhs * rhs.y, lhs * rhs.z }; }
+
+    vec3_t normalize(const vec3_t& vec3)
+    {
+        return vec3 * (1.0f / vec3.length());
     }
 
-    inline ce_vec3* ce_vec3_init_scalar(ce_vec3* vec, float s)
+    inline float square_distance(const vec3_t& lhs, const vec3_t& rhs)
     {
-        vec->x = s;
-        vec->y = s;
-        vec->z = s;
-        return vec;
+        return (rhs - lhs).square_length();
     }
 
-    inline ce_vec3* ce_vec3_init_array(ce_vec3* vec, const float* array)
+    inline float dot(const vec3_t& lhs, const vec3_t& rhs)
     {
-        vec->x = array[0];
-        vec->y = array[1];
-        vec->z = array[2];
-        return vec;
+        return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
     }
 
-    inline ce_vec3* ce_vec3_init_zero(ce_vec3* vec)
+    inline vec3_t cross(const vec3_t& lhs, const vec3_t& rhs)
     {
-        vec->x = 0.0f;
-        vec->y = 0.0f;
-        vec->z = 0.0f;
-        return vec;
+        return { lhs.y * rhs.z - lhs.z * rhs.y,
+                 lhs.z * rhs.x - lhs.x * rhs.z,
+                 lhs.x * rhs.y - lhs.y * rhs.x };
     }
 
-    inline ce_vec3* ce_vec3_init_unit_x(ce_vec3* vec)
+    inline vec3_t midpoint(const vec3_t& lhs, const vec3_t& rhs)
     {
-        vec->x = 1.0f;
-        vec->y = 0.0f;
-        vec->z = 0.0f;
-        return vec;
+        return 0.5f * (lhs + rhs);
     }
 
-    inline ce_vec3* ce_vec3_init_unit_y(ce_vec3* vec)
+    inline vec3_t lerp(const vec3_t& lhs, const vec3_t& rhs, float u)
     {
-        vec->x = 0.0f;
-        vec->y = 1.0f;
-        vec->z = 0.0f;
-        return vec;
+        return { lerp(lhs.x, rhs.x, u),
+                 lerp(lhs.y, rhs.y, u),
+                 lerp(lhs.z, rhs.z, u) };
     }
-
-    inline ce_vec3* ce_vec3_init_unit_z(ce_vec3* vec)
-    {
-        vec->x = 0.0f;
-        vec->y = 0.0f;
-        vec->z = 1.0f;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_init_unit_scale(ce_vec3* vec)
-    {
-        vec->x = 1.0f;
-        vec->y = 1.0f;
-        vec->z = 1.0f;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_init_neg_unit_x(ce_vec3* vec)
-    {
-        vec->x = -1.0f;
-        vec->y = 0.0f;
-        vec->z = 0.0f;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_init_neg_unit_y(ce_vec3* vec)
-    {
-        vec->x = 0.0f;
-        vec->y = -1.0f;
-        vec->z = 0.0f;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_init_neg_unit_z(ce_vec3* vec)
-    {
-        vec->x = 0.0f;
-        vec->y = 0.0f;
-        vec->z = -1.0f;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_init_neg_unit_scale(ce_vec3* vec)
-    {
-        vec->x = -1.0f;
-        vec->y = -1.0f;
-        vec->z = -1.0f;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_copy(ce_vec3* vec, const ce_vec3* other)
-    {
-        vec->x = other->x;
-        vec->y = other->y;
-        vec->z = other->z;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_neg(ce_vec3* vec, const ce_vec3* other)
-    {
-        vec->x = -other->x;
-        vec->y = -other->y;
-        vec->z = -other->z;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_add(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
-    {
-        vec->x = lhs->x + rhs->x;
-        vec->y = lhs->y + rhs->y;
-        vec->z = lhs->z + rhs->z;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_sub(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
-    {
-        vec->x = lhs->x - rhs->x;
-        vec->y = lhs->y - rhs->y;
-        vec->z = lhs->z - rhs->z;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_mul(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
-    {
-        vec->x = lhs->x * rhs->x;
-        vec->y = lhs->y * rhs->y;
-        vec->z = lhs->z * rhs->z;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_div(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
-    {
-        vec->x = lhs->x / rhs->x;
-        vec->y = lhs->y / rhs->y;
-        vec->z = lhs->z / rhs->z;
-        return vec;
-    }
-
-    inline ce_vec3* ce_vec3_scale(ce_vec3* vec, float s, const ce_vec3* other)
-    {
-        vec->x = s * other->x;
-        vec->y = s * other->y;
-        vec->z = s * other->z;
-        return vec;
-    }
-
-    extern float ce_vec3_len(const ce_vec3* vec);
-    extern float ce_vec3_len2(const ce_vec3* vec);
-
-    extern float ce_vec3_dist(const ce_vec3* lhs, const ce_vec3* rhs);
-    extern float ce_vec3_dist2(const ce_vec3* lhs, const ce_vec3* rhs);
-
-    extern ce_vec3* ce_vec3_norm(ce_vec3* vec, const ce_vec3* other);
-
-    extern float ce_vec3_dot(const ce_vec3* lhs, const ce_vec3* rhs);
-    extern float ce_vec3_absdot(const ce_vec3* lhs, const ce_vec3* rhs);
-
-    extern ce_vec3* ce_vec3_cross(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
-
-    extern ce_vec3* ce_vec3_mid(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
-    extern ce_vec3* ce_vec3_rot(ce_vec3* vec, const ce_vec3* other, const struct ce_quat* quat);
-
-    extern ce_vec3* ce_vec3_lerp(ce_vec3* vec, float u, const ce_vec3* lhs, const ce_vec3* rhs);
-
-    extern ce_vec3* ce_vec3_floor(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
-    extern ce_vec3* ce_vec3_ceil(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
 }
 
 #endif /* CE_VEC3_HPP */

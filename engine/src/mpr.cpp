@@ -24,7 +24,7 @@
 
 #include "alloc.hpp"
 #include "byteorder.hpp"
-#include "resball.hpp"
+#include "reshelpers.hpp"
 #include "mpr.hpp"
 
 namespace cursedearth

@@ -22,27 +22,21 @@
 #define CE_RAY_HPP
 
 #include "vec3.hpp"
+#include "segment.hpp"
 
 namespace cursedearth
 {
-    typedef struct {
-        ce_vec3 origin;
-        ce_vec3 direction;
-    } ce_ray;
-
-    inline ce_ray* ce_ray_init(ce_ray* ray, const ce_vec3* origin, const ce_vec3* direction)
+    struct ray_t
     {
-        ce_vec3_copy(&ray->origin, origin);
-        ce_vec3_copy(&ray->direction, direction);
-        return ray;
-    }
+        vec3_t origin, direction;
 
-    inline ce_ray* ce_ray_init_segment(ce_ray* ray, const ce_vec3* start, const ce_vec3* end)
-    {
-        ce_vec3_copy(&ray->origin, start);
-        ce_vec3_norm(&ray->direction, ce_vec3_sub(&ray->direction, end, start));
-        return ray;
-    }
+        ray_t() {}
+        ray_t(const vec3_t& origin, const vec3_t& direction): origin(origin), direction(direction) {}
+        explicit ray_t(const segment_t& segment): origin(segment.start), direction(segment.end - segment.start)
+        {
+            direction.normalize();
+        }
+    };
 }
 
-#endif /* CE_RAY_HPP */
+#endif

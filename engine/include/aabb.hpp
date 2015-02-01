@@ -22,25 +22,31 @@
 #define CE_AABB_HPP
 
 #include "vec3.hpp"
-#include "quat.hpp"
 
 namespace cursedearth
 {
-    typedef struct {
-        ce_vec3 origin, extents;
-        float radius;
-    } ce_aabb;
+    /**
+     * @brief Axis-Aligned Bounding Box
+     *        origin: centre of bounding box
+     *        extents: +/- extents of box from origin
+     *        radius: cached length of extents vector
+     */
+    struct aabb_t
+    {
+        vec3_t origin, extents;
+        float radius = 0.0f;
 
-    extern ce_aabb* ce_aabb_init(ce_aabb* aabb, const ce_vec3* origin, const ce_vec3* extents, float radius);
-    extern ce_aabb* ce_aabb_init_zero(ce_aabb* aabb);
-    extern ce_aabb* ce_aabb_copy(ce_aabb* aabb, const ce_aabb* other);
+        void clear();
 
-    extern ce_aabb* ce_aabb_clear(ce_aabb* aabb);
-    extern ce_aabb* ce_aabb_update_radius(ce_aabb* aabb);
+        void merge(const aabb_t& other);
+        void merge(const vec3_t& point);
+        void merge(const float array[3]);
 
-    extern ce_aabb* ce_aabb_merge_aabb(ce_aabb* aabb, const ce_aabb* other);
-    extern ce_aabb* ce_aabb_merge_point(ce_aabb* aabb, const ce_vec3* point);
-    extern ce_aabb* ce_aabb_merge_point_array(ce_aabb* aabb, const float* point);
+        void update_radius()
+        {
+            radius = extents.length();
+        }
+    };
 }
 
-#endif /* CE_AABB_HPP */
+#endif

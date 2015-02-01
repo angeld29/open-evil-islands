@@ -27,13 +27,18 @@
 #ifndef CE_MEMORYFILE_HPP
 #define CE_MEMORYFILE_HPP
 
-#include <cstddef>
+#include <memory>
+
+#include <boost/noncopyable.hpp>
 
 #include "byteorder.hpp"
 
 namespace cursedearth
 {
-    class memory_file_t
+    typedef std::shared_ptr<class memory_file_t> memory_file_ptr_t;
+    typedef std::shared_ptr<const class memory_file_t> memory_file_const_ptr_t;
+
+    class memory_file_t: boost::noncopyable
     {
     public:
         enum seek_mode_t
@@ -44,140 +49,105 @@ namespace cursedearth
         };
 
     public:
-        int (*close)(memory_file_t* mem_file);
-        size_t (*read)(memory_file_t* mem_file, void* ptr, size_t size, size_t n);
-        int (*seek)(memory_file_t* mem_file, long int offset, int whence);
-        long int (*tell)(memory_file_t* mem_file);
-        int (*eof)(memory_file_t* mem_file);
-        int (*error)(memory_file_t* mem_file);
+        virtual ~memory_file_t() = 0;
+
+        virtual int close() = 0;
+        virtual size_t read(void* ptr, size_t size, size_t n) = 0;
+        virtual int seek(long int offset, seek_mode_t whence) = 0;
+        virtual long int tell() = 0;
+        virtual int eof() = 0;
+        virtual int error() = 0;
     };
 
-    /*
-     *  You may to instruct mem file to either automatically close or not to close
-     *  the resource in mem file_close. Automatic closure is disabled by passing
-     *  NULL as the close callback.
-    */
-    extern memory_file_t* ce_mem_file_new(ce_mem_file_vtable vtable);
-    extern void ce_mem_file_del(memory_file_t* mem_file);
+    // in-memory files
+    // takes ownership of the data
+    memory_file_ptr_t make_memory_file(void* data, size_t size);
 
-    /*
-     *  Implements in-memory files.
-     *  NOTE: mem file takes ownership of the data.
-    */
-    extern memory_file_t* ce_mem_file_new_data(void* data, size_t size);
+    // buffered interface for the FILE standard functions
+    memory_file_ptr_t make_memory_file(const char* path);
 
-    /*
-     *  Implements a buffered interface for the FILE standard functions.
-    */
-    extern memory_file_t* ce_mem_file_new_path(const char* path);
-
-    inline size_t ce_mem_file_read(memory_file_t* mem_file, void* ptr, size_t size, size_t n)
+    inline void rewind(memory_file_t* memory_file)
     {
-        return (mem_file->vtable.read)(mem_file, ptr, size, n);
+        memory_file->seek(0L, memory_file_t::SEEK_MODE_SET);
     }
 
-    inline int ce_mem_file_seek(memory_file_t* mem_file, long int offset, int whence)
+    inline long int file_size(memory_file_t* memory_file)
     {
-        return (mem_file->vtable.seek)(mem_file, offset, whence);
-    }
-
-    inline long int ce_mem_file_tell(memory_file_t* mem_file)
-    {
-        return (mem_file->vtable.tell)(mem_file);
-    }
-
-    inline void ce_mem_file_rewind(memory_file_t* mem_file)
-    {
-        ce_mem_file_seek(mem_file, 0L, CE_MEM_FILE_SEEK_SET);
-    }
-
-    inline int ce_mem_file_eof(memory_file_t* mem_file)
-    {
-        return (mem_file->vtable.eof)(mem_file);
-    }
-
-    inline int ce_mem_file_error(memory_file_t* mem_file)
-    {
-        return (mem_file->vtable.error)(mem_file);
-    }
-
-    inline long int ce_mem_file_size(memory_file_t* mem_file)
-    {
-        long int pos = ce_mem_file_tell(mem_file);
-        ce_mem_file_seek(mem_file, 0, CE_MEM_FILE_SEEK_END);
-        long int size = ce_mem_file_tell(mem_file);
-        ce_mem_file_seek(mem_file, pos, CE_MEM_FILE_SEEK_SET);
+        long int pos = memory_file->tell();
+        memory_file->seek(0, memory_file_t::SEEK_MODE_END);
+        long int size = memory_file->tell();
+        memory_file->seek(pos, memory_file_t::SEEK_MODE_SET);
         return size;
     }
 
-    inline void ce_mem_file_skip(memory_file_t* mem_file, size_t size)
+    inline void skip(memory_file_t* memory_file, size_t size)
     {
-        ce_mem_file_seek(mem_file, size, CE_MEM_FILE_SEEK_CUR);
+        memory_file->seek(size, memory_file_t::SEEK_MODE_CUR);
     }
 
-    inline int8_t ce_mem_file_read_i8(memory_file_t* mem_file)
+    inline int8_t read_i8(memory_file_t* memory_file)
     {
         int8_t value;
-        ce_mem_file_read(mem_file, &value, 1, 1);
+        memory_file->read(&value, 1, 1);
         return value;
     }
 
-    inline int16_t ce_mem_file_read_i16le(memory_file_t* mem_file)
+    inline int16_t read_i16le(memory_file_t* memory_file)
     {
         int16_t value;
-        ce_mem_file_read(mem_file, &value, 2, 1);
+        memory_file->read(&value, 2, 1);
         ce_le2cpu16s((uint16_t*)&value);
         return value;
     }
 
-    inline int32_t ce_mem_file_read_i32le(memory_file_t* mem_file)
+    inline int32_t read_i32le(memory_file_t* memory_file)
     {
         int32_t value;
-        ce_mem_file_read(mem_file, &value, 4, 1);
+        memory_file->read(&value, 4, 1);
         ce_le2cpu32s((uint32_t*)&value);
         return value;
     }
 
-    inline int64_t ce_mem_file_read_i64le(memory_file_t* mem_file)
+    inline int64_t read_i64le(memory_file_t* memory_file)
     {
         int64_t value;
-        ce_mem_file_read(mem_file, &value, 8, 1);
+        memory_file->read(&value, 8, 1);
         ce_le2cpu64s((uint64_t*)&value);
         return value;
     }
 
-    inline uint8_t ce_mem_file_read_u8(memory_file_t* mem_file)
+    inline uint8_t read_u8(memory_file_t* memory_file)
     {
         uint8_t value;
-        ce_mem_file_read(mem_file, &value, 1, 1);
+        memory_file->read(&value, 1, 1);
         return value;
     }
 
-    inline uint16_t ce_mem_file_read_u16le(memory_file_t* mem_file)
+    inline uint16_t read_u16le(memory_file_t* memory_file)
     {
         uint16_t value;
-        ce_mem_file_read(mem_file, &value, 2, 1);
+        memory_file->read(&value, 2, 1);
         return ce_le2cpu16(value);
     }
 
-    inline uint32_t ce_mem_file_read_u32le(memory_file_t* mem_file)
+    inline uint32_t read_u32le(memory_file_t* memory_file)
     {
         uint32_t value;
-        ce_mem_file_read(mem_file, &value, 4, 1);
+        memory_file->read(&value, 4, 1);
         return ce_le2cpu32(value);
     }
 
-    inline uint64_t ce_mem_file_read_u64le(memory_file_t* mem_file)
+    inline uint64_t read_u64le(memory_file_t* memory_file)
     {
         uint64_t value;
-        ce_mem_file_read(mem_file, &value, 8, 1);
+        memory_file->read(&value, 8, 1);
         return ce_le2cpu64(value);
     }
 
-    inline uint32_t ce_mem_file_read_fle(memory_file_t* mem_file)
+    inline uint32_t read_fle(memory_file_t* memory_file)
     {
         float value;
-        ce_mem_file_read(mem_file, &value, 4, 1);
+        memory_file->read(&value, 4, 1);
         return value;
     }
 }

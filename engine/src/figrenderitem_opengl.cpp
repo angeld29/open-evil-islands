@@ -70,7 +70,7 @@ typedef struct {
 } ce_figrenderitem_static;
 
 static void
-ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
+ce_figrenderitem_static_ctor(render_item_t* renderitem, va_list args)
 {
     ce_figrenderitem_static* figrenderitem =
         (ce_figrenderitem_static*)renderitem->impl;
@@ -101,7 +101,7 @@ ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
     glEndList();
 }
 
-static void ce_figrenderitem_static_dtor(ce_renderitem* renderitem)
+static void ce_figrenderitem_static_dtor(render_item_t* renderitem)
 {
     ce_figrenderitem_static* figrenderitem =
         (ce_figrenderitem_static*)renderitem->impl;
@@ -109,7 +109,7 @@ static void ce_figrenderitem_static_dtor(ce_renderitem* renderitem)
     ce_figcookie_static_del(figrenderitem->cookie);
 }
 
-static void ce_figrenderitem_static_render(ce_renderitem* renderitem)
+static void ce_figrenderitem_static_render(render_item_t* renderitem)
 {
     ce_figrenderitem_static* figrenderitem =
         (ce_figrenderitem_static*)renderitem->impl;
@@ -117,8 +117,8 @@ static void ce_figrenderitem_static_render(ce_renderitem* renderitem)
     glCallList(figrenderitem->cookie->id);
 }
 
-static void ce_figrenderitem_static_clone(const ce_renderitem* renderitem,
-                                            ce_renderitem* clone_renderitem)
+static void ce_figrenderitem_static_clone(const render_item_t* renderitem,
+                                            render_item_t* clone_renderitem)
 {
     const ce_figrenderitem_static* figrenderitem =
         (const ce_figrenderitem_static*)renderitem->impl;
@@ -195,7 +195,7 @@ typedef struct {
 } ce_figrenderitem_dynamic;
 
 static void
-ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
+ce_figrenderitem_dynamic_ctor(render_item_t* renderitem, va_list args)
 {
     ce_figrenderitem_dynamic* figrenderitem =
         (ce_figrenderitem_dynamic*)renderitem->impl;
@@ -252,7 +252,7 @@ ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
             sizeof(float) * 3 * figfile->index_count);
 }
 
-static void ce_figrenderitem_dynamic_dtor(ce_renderitem* renderitem)
+static void ce_figrenderitem_dynamic_dtor(render_item_t* renderitem)
 {
     ce_figrenderitem_dynamic* figrenderitem =
         (ce_figrenderitem_dynamic*)renderitem->impl;
@@ -263,7 +263,7 @@ static void ce_figrenderitem_dynamic_dtor(ce_renderitem* renderitem)
 }
 
 static void
-ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
+ce_figrenderitem_dynamic_update(render_item_t* renderitem, va_list args)
 {
     ce_figrenderitem_dynamic* figrenderitem =
         (ce_figrenderitem_dynamic*)renderitem->impl;
@@ -313,7 +313,7 @@ ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
     ce_aabb_update_radius(&renderitem->aabb);
 }
 
-static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
+static void ce_figrenderitem_dynamic_render(render_item_t* renderitem)
 {
     ce_figrenderitem_dynamic* figrenderitem =
         (ce_figrenderitem_dynamic*)renderitem->impl;
@@ -342,8 +342,8 @@ static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
     glPopClientAttrib();
 }
 
-static void ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,
-                                            ce_renderitem* clone_renderitem)
+static void ce_figrenderitem_dynamic_clone(const render_item_t* renderitem,
+                                            render_item_t* clone_renderitem)
 {
     const ce_figrenderitem_dynamic* figrenderitem =
         (const ce_figrenderitem_dynamic*)renderitem->impl;
@@ -373,7 +373,7 @@ static const size_t ce_figrenderitem_sizes[] = {
     sizeof(ce_figrenderitem_dynamic)
 };
 
-ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode,
+render_item_t* ce_figrenderitem_new(const ce_fignode* fignode,
                                     const ce_complection* complection)
 {
     bool has_morphing = false;

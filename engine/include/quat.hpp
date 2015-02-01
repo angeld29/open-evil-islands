@@ -25,7 +25,7 @@
 
 namespace cursedearth
 {
-    struct ce_vec3;
+    struct vec3_t;
 
     typedef struct ce_quat {
         float w, x, y, z;
@@ -34,10 +34,10 @@ namespace cursedearth
     extern const ce_quat CE_QUAT_ZERO;
     extern const ce_quat CE_QUAT_IDENTITY;
 
-    extern ce_quat* ce_quat_init_polar(ce_quat* quat, float angle, const struct ce_vec3* axis);
+    extern ce_quat* ce_quat_init_polar(ce_quat* quat, float angle, const struct vec3_t* axis);
 
-    extern float ce_quat_to_polar(const ce_quat* quat, struct ce_vec3* axis);
-    extern void ce_quat_to_axes(const ce_quat* quat, struct ce_vec3* xaxis, struct ce_vec3* yaxis, struct ce_vec3* zaxis);
+    extern float ce_quat_to_polar(const ce_quat* quat, struct vec3_t* axis);
+    extern void ce_quat_to_axes(const ce_quat* quat, struct vec3_t* xaxis, struct vec3_t* yaxis, struct vec3_t* zaxis);
 
     // spherical linear interpolation
     extern ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs, const ce_quat* rhs);

@@ -18,22 +18,21 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "logging.hpp"
 #include "triangle.hpp"
 
 namespace cursedearth
 {
-    bool ce_triangle_test(const ce_triangle* triangle, const ce_vec3* point)
+    bool triangle_t::test(const vec3_t& point) const
     {
-        ce_vec3 normal;
+        vec3_t normal;
         ce_triangle_calc_normal(triangle, &normal);
 
-        ce_vec3 l1, l2, l3;
+        vec3_t l1, l2, l3;
         ce_vec3_sub(&l1, &triangle->a, point);
         ce_vec3_sub(&l2, &triangle->b, point);
         ce_vec3_sub(&l3, &triangle->c, point);
 
-        ce_vec3 t1, t2, t3;
+        vec3_t t1, t2, t3;
         ce_vec3_cross(&t1, &l1, &l2);
         ce_vec3_cross(&t2, &l2, &l3);
         ce_vec3_cross(&t3, &l3, &l1);

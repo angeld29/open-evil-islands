@@ -62,7 +62,7 @@ static bool update_figentity()
 {
     ce_figure_manager_remove_entity(figentity);
 
-    ce_vec3 position = CE_VEC3_ZERO;
+    vec3_t position = CE_VEC3_ZERO;
 
     ce_quat orientation, q1, q2;
     ce_quat_init_polar(&q1, ce_deg2rad(180.0f), &CE_VEC3_UNIT_Z);
@@ -121,7 +121,7 @@ static void state_changed(void* /*listener*/, int state)
             }
         }
 
-        ce_vec3 position;
+        vec3_t position;
         ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position, 0.0f, 2.0f, -4.0f));
 
         ce_camera_set_near(ce_root.scenemng->camera, 0.1f);

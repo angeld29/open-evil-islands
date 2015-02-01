@@ -173,7 +173,7 @@ void ce_terrain_sector_del(ce_terrain_sector* sector)
 
 ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
                             ce_renderqueue* renderqueue,
-                            const ce_vec3* position,
+                            const vec3_t* position,
                             const ce_quat* orientation,
                             ce_scenenode* scenenode)
 {

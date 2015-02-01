@@ -27,14 +27,14 @@
 namespace cursedearth
 {
     typedef struct {
-        ce_vec3 translation;
+        vec3_t translation;
         ce_quat rotation;
-        ce_vec3 scaling;
+        vec3_t scaling;
     } ce_transform;
 
     extern const ce_transform CE_TRANSFORM_IDENTITY;
 
-    inline ce_transform* ce_transform_init(ce_transform* transform, const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling)
+    inline ce_transform* ce_transform_init(ce_transform* transform, const vec3_t* translation, const ce_quat* rotation, const vec3_t* scaling)
     {
         ce_vec3_copy(&transform->translation, translation);
         ce_quat_copy(&transform->rotation, rotation);

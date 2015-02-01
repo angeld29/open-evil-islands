@@ -41,15 +41,15 @@ namespace cursedearth
     } ce_frustum_plane;
 
     typedef struct {
-        ce_plane planes[CE_FRUSTUM_PLANE_COUNT];
+        plane_t planes[CE_FRUSTUM_PLANE_COUNT];
     } ce_frustum;
 
-    extern ce_frustum* ce_frustum_init(ce_frustum* frustum, float fov, float aspect, float near, float far, const ce_vec3* position, const ce_vec3* forward, const ce_vec3* right, const ce_vec3* up);
+    extern ce_frustum* ce_frustum_init(ce_frustum* frustum, float fov, float aspect, float near, float far, const vec3_t* position, const vec3_t* forward, const vec3_t* right, const vec3_t* up);
 
-    extern bool ce_frustum_test_point(const ce_frustum* frustum, const ce_vec3* point);
+    extern bool ce_frustum_test_point(const ce_frustum* frustum, const vec3_t* point);
     extern bool ce_frustum_test_sphere(const ce_frustum* frustum, const ce_sphere* sphere);
-    extern bool ce_frustum_test_aabb(const ce_frustum* frustum, const ce_aabb* aabb);
-    extern bool ce_frustum_test_bbox(const ce_frustum* frustum, const ce_bbox* bbox);
+    extern bool ce_frustum_test_aabb(const ce_frustum* frustum, const aabb_t* aabb);
+    extern bool ce_frustum_test_bbox(const ce_frustum* frustum, const bbox_t* bbox);
 }
 
 #endif /* CE_FRUSTUM_HPP */

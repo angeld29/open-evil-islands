@@ -25,7 +25,7 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "res.hpp"
-#include "resball.hpp"
+#include "reshelpers.hpp"
 #include "event.hpp"
 #include "optionmanager.hpp"
 #include "soundmanager.hpp"

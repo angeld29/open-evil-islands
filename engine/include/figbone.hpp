@@ -33,9 +33,9 @@ namespace cursedearth
     typedef struct ce_figbone ce_figbone;
 
     struct ce_figbone {
-        ce_vec3 position;
+        vec3_t position;
         ce_quat orientation;
-        ce_vec3 bone_position;
+        vec3_t bone_position;
         ce_quat bone_orientation;
         ce_anmstate* anmstate;
         ce_figbone* parent;

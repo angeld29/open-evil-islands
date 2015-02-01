@@ -25,7 +25,7 @@
 
 namespace cursedearth
 {
-    typedef unsigned long int ce_sound_object;
+    typedef unsigned long ce_sound_object;
 
     extern ce_sound_object ce_sound_object_new(const char* name);
     extern void ce_sound_object_del(ce_sound_object sound_object);

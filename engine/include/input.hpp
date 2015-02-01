@@ -77,8 +77,8 @@ namespace cursedearth
     struct input_context_t
     {
         bool buttons[CE_IB_COUNT];
-        ce_vec2 pointer_position;
-        ce_vec2 pointer_offset;
+        vec2_t pointer_position;
+        vec2_t pointer_offset;
 
         void clear();
     };

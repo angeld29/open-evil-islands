@@ -49,6 +49,11 @@ namespace cursedearth
         return a + u * (b - a);
     }
 
+    inline float lerp(float a, float b, float u)
+    {
+        return a + u * (b - a);
+    }
+
     inline float ce_deg2rad(float angle)
     {
         return CE_DEG2RAD * angle;

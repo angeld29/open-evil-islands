@@ -18,10 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RESBALL_HPP
-#define CE_RESBALL_HPP
+#ifndef CE_RESHELPERS_HPP
+#define CE_RESHELPERS_HPP
 
-#include "memoryfile.hpp"
 #include "res.hpp"
 
 namespace cursedearth
@@ -37,8 +36,8 @@ namespace cursedearth
         return res_file->node_count != index ? ce_res_ball_extract_mem_file(res_file, index) : NULL;
     }
 
-    extern void ce_res_ball_extract_all_mem_files(ce_res_file* res_file, memory_file_t* mem_files[]);
-    extern void ce_res_ball_clean_all_mem_files(ce_res_file* res_file, memory_file_t* mem_files[]);
+    void ce_res_ball_extract_all_mem_files(ce_res_file* res_file, memory_file_t* mem_files[]);
+    void ce_res_ball_clean_all_mem_files(ce_res_file* res_file, memory_file_t* mem_files[]);
 
     inline ce_res_file* ce_res_ball_extract_res_file(ce_res_file* res_file, size_t index)
     {
@@ -51,8 +50,8 @@ namespace cursedearth
         return res_file->node_count != index ? ce_res_ball_extract_res_file(res_file, index) : NULL;
     }
 
-    extern void ce_res_ball_extract_all_res_files(ce_res_file* res_file, ce_res_file* res_files[]);
-    extern void ce_res_ball_clean_all_res_files(ce_res_file* res_file, ce_res_file* res_files[]);
+    void ce_res_ball_extract_all_res_files(ce_res_file* res_file, ce_res_file* res_files[]);
+    void ce_res_ball_clean_all_res_files(ce_res_file* res_file, ce_res_file* res_files[]);
 }
 
-#endif /* CE_RESBALL_HPP */
+#endif /* CE_RESHELPERS_HPP */

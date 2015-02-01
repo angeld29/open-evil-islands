@@ -26,14 +26,23 @@
 
 namespace cursedearth
 {
-    typedef struct {
-        ce_aabb aabb;
+    /**
+     * @brief Oriented Bounding Box
+     *        aabb: axis-aligned bounding box
+     *        axis: orientation axis
+     */
+    struct bbox_t
+    {
+        aabb_t aabb;
         ce_quat axis;
-    } ce_bbox;
 
-    extern ce_bbox* ce_bbox_clear(ce_bbox* bbox);
-    extern ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other);
-    extern ce_bbox* ce_bbox_merge2(ce_bbox* bbox, const ce_bbox* other);
+        void clear();
+
+        void merge(const bbox_t& other);
+        void merge2(const bbox_t& other);
+    };
+
+
 }
 
 #endif /* CE_BBOX_HPP */

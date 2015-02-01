@@ -174,7 +174,7 @@ ce_figmesh* ce_figure_manager_create_mesh(const char* name,
 
 ce_figentity* ce_figure_manager_create_entity(const char* name,
     const ce_complection* complection,
-    const ce_vec3* position, const ce_quat* orientation,
+    const vec3_t* position, const ce_quat* orientation,
     const char* parts[], const char* textures[])
 {
     ce_figmesh* mesh = ce_figure_manager_create_mesh(name, complection);

@@ -108,7 +108,7 @@ namespace cursedearth
         display_manager_t* displaymng;
         ce_graphic_context* graphic_context;
         input_context_ptr_t m_input_context;
-        std::unordered_map<unsigned long int, input_button_t> keymap;
+        std::unordered_map<unsigned long, input_button_t> keymap;
         ce_vector* listeners;
     };
 

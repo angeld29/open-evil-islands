@@ -65,7 +65,7 @@ static float ce_figentity_find_min_y(ce_figentity* figentity, ce_fignode* fignod
     if (strstr(fignode->name->str, "leg") ||
             (fignode->name->length >= 2 && 'l' == fignode->name->str[1] &&
             ('l' == fignode->name->str[0] || 'r' == fignode->name->str[0]))) {
-        ce_renderitem* renderitem = figentity->scenenode->renderitems->items[fignode->index];
+        render_item_t* renderitem = figentity->scenenode->renderitems->items[fignode->index];
         y = renderitem->world_position.y - renderitem->world_bbox.aabb.radius;
     }
 
@@ -86,7 +86,7 @@ static void ce_figentity_scenenode_updated(void* listener)
         // fix figure height relative to root node
         // it's a difference between root and legs
 
-        ce_renderitem* root_renderitem = figentity->scenenode->renderitems->items
+        render_item_t* root_renderitem = figentity->scenenode->renderitems->items
                                         [figentity->figmesh->figproto->fignode->index];
 
         float y = ce_figentity_find_min_y(figentity, figentity->figmesh->figproto->fignode);
@@ -101,7 +101,7 @@ static void ce_figentity_scenenode_updated(void* listener)
         figentity->scenenode->world_position.y += y;
         figentity->scenenode->world_bbox.aabb.origin.y += y;
         for (size_t i = 0; i < figentity->scenenode->renderitems->count; ++i) {
-            ce_renderitem* renderitem = figentity->scenenode->renderitems->items[i];
+            render_item_t* renderitem = figentity->scenenode->renderitems->items[i];
             if (renderitem->visible) {
                 renderitem->world_position.y += y;
                 renderitem->world_bbox.aabb.origin.y += y;
@@ -129,7 +129,7 @@ static void ce_figentity_create_renderlayers(ce_figentity* figentity,
                             figentity->textures->items[index]));
 
     if (NULL != parts[0]) {
-        ce_renderitem* renderitem = figentity->scenenode->renderitems->items[fignode->index];
+        render_item_t* renderitem = figentity->scenenode->renderitems->items[fignode->index];
         renderitem->visible = false;
         for (size_t i = 0; NULL != parts[i]; ++i) {
             if (0 == strcmp(parts[i], fignode->name->str)) {
@@ -144,7 +144,7 @@ static void ce_figentity_create_renderlayers(ce_figentity* figentity,
 }
 
 ce_figentity* ce_figentity_new(ce_figmesh* figmesh,
-                                const ce_vec3* position,
+                                const vec3_t* position,
                                 const ce_quat* orientation,
                                 const char* parts[],
                                 const char* textures[],

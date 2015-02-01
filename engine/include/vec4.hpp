@@ -23,45 +23,15 @@
 
 namespace cursedearth
 {
-    typedef struct {
-        float x, y, z, w;
-    } ce_vec4;
-
-    inline ce_vec4* ce_vec4_init(ce_vec4* vec, float x, float y, float z, float w)
+    struct vec4_t
     {
-        vec->x = x;
-        vec->y = y;
-        vec->z = z;
-        vec->w = w;
-        return vec;
-    }
+        float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
 
-    inline ce_vec4* ce_vec4_init_scalar(ce_vec4* vec, float s)
-    {
-        vec->x = s;
-        vec->y = s;
-        vec->z = s;
-        vec->w = s;
-        return vec;
-    }
-
-    inline ce_vec4* ce_vec4_init_array(ce_vec4* vec, const float* array)
-    {
-        vec->x = array[0];
-        vec->y = array[1];
-        vec->z = array[2];
-        vec->w = array[3];
-        return vec;
-    }
-
-    inline ce_vec4* ce_vec4_copy(ce_vec4* vec, const ce_vec4* other)
-    {
-        vec->x = other->x;
-        vec->y = other->y;
-        vec->z = other->z;
-        vec->w = other->w;
-        return vec;
-    }
+        vec4_t() {}
+        vec4_t(float x, float y, float z, float w): x(x), y(y), z(z), w(w) {}
+        explicit vec4_t(float scalar): x(scalar), y(scalar), z(scalar), w(scalar) {}
+        explicit vec4_t(const float array[4]): x(array[0]), y(array[1]), z(array[2]), w(array[3]) {}
+    };
 }
 
 #endif /* CE_VEC4_HPP */
