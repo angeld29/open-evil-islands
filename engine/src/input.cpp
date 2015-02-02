@@ -21,7 +21,6 @@
 #include <cstring>
 #include <limits>
 #include <stdexcept>
-#include <algorithm>
 
 #include "str.hpp"
 #include "alloc.hpp"
@@ -232,7 +231,10 @@ namespace cursedearth
 
     void input_supply_t::advance(float elapsed)
     {
-        std::for_each(m_events.begin(), m_events.end(), [elapsed] (const input_event_ptr_t& event) { event->advance(elapsed) });
+        for (const auto& event: m_events)
+        {
+            event->advance(elapsed);
+        }
     }
 
     // Level 2

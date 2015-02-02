@@ -60,6 +60,38 @@ namespace cursedearth
         CE_IB_COUNT
     };
 
+    // Level 0: raw
+
+    typedef std::shared_ptr<class input_context_t> input_context_ptr_t;
+    typedef std::shared_ptr<const class input_context_t> input_context_const_ptr_t;
+
+    struct input_context_t
+    {
+        bool buttons[CE_IB_COUNT];
+        vec2_t pointer_position;
+        vec2_t pointer_offset;
+
+        void clear();
+    };
+
+    // Level 1: events
+
+    typedef std::shared_ptr<class input_event_t> input_event_ptr_t;
+    typedef std::shared_ptr<const class input_event_t> input_event_const_ptr_t;
+
+    class input_event_t: boost::noncopyable
+    {
+    public:
+        virtual ~input_event_t() = default;
+
+        virtual void advance(float elapsed) = 0;
+
+        bool is_triggered() const { return m_triggered; }
+
+    protected:
+        bool m_triggered = false;
+    };
+
     enum
     {
         CE_INPUT_NO_DELAY,
@@ -71,38 +103,6 @@ namespace cursedearth
         CE_INPUT_NO_RATE,
         CE_INPUT_DEFAULT_RATE = 25,
     };
-
-    // Level 0: raw
-
-    struct input_context_t
-    {
-        bool buttons[CE_IB_COUNT];
-        vec2_t pointer_position;
-        vec2_t pointer_offset;
-
-        void clear();
-    };
-
-    typedef std::shared_ptr<input_context_t> input_context_ptr_t;
-    typedef std::shared_ptr<const input_context_t> input_context_const_ptr_t;
-
-    // Level 1: events
-
-    class input_event_t: boost::noncopyable
-    {
-    public:
-        virtual ~input_event_t() = 0;
-
-        virtual void advance(float elapsed) = 0;
-
-        bool is_triggered() const { return m_triggered; }
-
-    protected:
-        bool m_triggered = false;
-    };
-
-    typedef std::shared_ptr<input_event_t> input_event_ptr_t;
-    typedef std::shared_ptr<const input_event_t> input_event_const_ptr_t;
 
     class input_supply_t: boost::noncopyable
     {

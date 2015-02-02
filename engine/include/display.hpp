@@ -44,8 +44,8 @@ namespace cursedearth
         DISPLAY_REFLECTION_Y    = 2
     };
 
-    extern display_rotation_t display_rotation_from_degrees(int value);
-    extern display_reflection_t display_reflection_from_bool(bool x, bool y);
+    display_rotation_t display_rotation_from_degrees(int value);
+    display_reflection_t display_reflection_from_bool(bool x, bool y);
 
     struct display_mode_t
     {
@@ -60,7 +60,7 @@ namespace cursedearth
     {
     public:
         display_manager_t();
-        virtual ~display_manager_t();
+        virtual ~display_manager_t() = default;
 
         void enter(size_t index, display_rotation_t, display_reflection_t);
         void exit();

@@ -49,7 +49,7 @@ namespace cursedearth
         };
 
     public:
-        virtual ~memory_file_t() = 0;
+        virtual ~memory_file_t() = default;
 
         virtual int close() = 0;
         virtual size_t read(void* ptr, size_t size, size_t n) = 0;
@@ -66,12 +66,12 @@ namespace cursedearth
     // buffered interface for the FILE standard functions
     memory_file_ptr_t make_memory_file(const char* path);
 
-    inline void rewind(memory_file_t* memory_file)
+    inline void rewind(const memory_file_ptr_t& memory_file)
     {
         memory_file->seek(0L, memory_file_t::SEEK_MODE_SET);
     }
 
-    inline long int file_size(memory_file_t* memory_file)
+    inline long int file_size(const memory_file_ptr_t& memory_file)
     {
         long int pos = memory_file->tell();
         memory_file->seek(0, memory_file_t::SEEK_MODE_END);
@@ -80,19 +80,19 @@ namespace cursedearth
         return size;
     }
 
-    inline void skip(memory_file_t* memory_file, size_t size)
+    inline void skip(const memory_file_ptr_t& memory_file, size_t size)
     {
         memory_file->seek(size, memory_file_t::SEEK_MODE_CUR);
     }
 
-    inline int8_t read_i8(memory_file_t* memory_file)
+    inline int8_t read_i8(const memory_file_ptr_t& memory_file)
     {
         int8_t value;
         memory_file->read(&value, 1, 1);
         return value;
     }
 
-    inline int16_t read_i16le(memory_file_t* memory_file)
+    inline int16_t read_i16le(const memory_file_ptr_t& memory_file)
     {
         int16_t value;
         memory_file->read(&value, 2, 1);
@@ -100,7 +100,7 @@ namespace cursedearth
         return value;
     }
 
-    inline int32_t read_i32le(memory_file_t* memory_file)
+    inline int32_t read_i32le(const memory_file_ptr_t& memory_file)
     {
         int32_t value;
         memory_file->read(&value, 4, 1);
@@ -108,7 +108,7 @@ namespace cursedearth
         return value;
     }
 
-    inline int64_t read_i64le(memory_file_t* memory_file)
+    inline int64_t read_i64le(const memory_file_ptr_t& memory_file)
     {
         int64_t value;
         memory_file->read(&value, 8, 1);
@@ -116,35 +116,35 @@ namespace cursedearth
         return value;
     }
 
-    inline uint8_t read_u8(memory_file_t* memory_file)
+    inline uint8_t read_u8(const memory_file_ptr_t& memory_file)
     {
         uint8_t value;
         memory_file->read(&value, 1, 1);
         return value;
     }
 
-    inline uint16_t read_u16le(memory_file_t* memory_file)
+    inline uint16_t read_u16le(const memory_file_ptr_t& memory_file)
     {
         uint16_t value;
         memory_file->read(&value, 2, 1);
         return ce_le2cpu16(value);
     }
 
-    inline uint32_t read_u32le(memory_file_t* memory_file)
+    inline uint32_t read_u32le(const memory_file_ptr_t& memory_file)
     {
         uint32_t value;
         memory_file->read(&value, 4, 1);
         return ce_le2cpu32(value);
     }
 
-    inline uint64_t read_u64le(memory_file_t* memory_file)
+    inline uint64_t read_u64le(const memory_file_ptr_t& memory_file)
     {
         uint64_t value;
         memory_file->read(&value, 8, 1);
         return ce_le2cpu64(value);
     }
 
-    inline uint32_t read_fle(memory_file_t* memory_file)
+    inline uint32_t read_fle(const memory_file_ptr_t& memory_file)
     {
         float value;
         memory_file->read(&value, 4, 1);

@@ -29,7 +29,7 @@ namespace cursedearth
 {
 ce_anmstate* ce_anmstate_new(void)
 {
-    ce_anmstate* anmstate = ce_alloc(sizeof(ce_anmstate));
+    ce_anmstate* anmstate = (ce_anmstate*)ce_alloc(sizeof(ce_anmstate));
     anmstate->anmfile = NULL;
     return anmstate;
 }
@@ -62,7 +62,7 @@ bool ce_anmstate_play_animation(ce_anmstate* anmstate,
                                 const char* name)
 {
     for (size_t i = 0; i < anmfiles->count; ++i) {
-        ce_anmfile* anmfile = anmfiles->items[i];
+        ce_anmfile* anmfile = (ce_anmfile*)anmfiles->items[i];
         if (0 == ce_strcasecmp(name, anmfile->name->str)) {
             assert(anmfile->rotation_frame_count ==
                     anmfile->translation_frame_count);

@@ -84,14 +84,6 @@ namespace cursedearth
     CE_LIB_DEF_SWAP(int32_t)
     CE_LIB_DEF_SWAP(size_t)
 
-    // only for pointers
-    inline void ce_swap_pointer(void* a, void* b)
-    {
-        void **aa = a, **bb = b, *t = *aa;
-        *aa = *bb;
-        *bb = t;
-    }
-
     // is power of two (using 2's complement arithmetic)
     inline bool ce_ispot(size_t v)
     {

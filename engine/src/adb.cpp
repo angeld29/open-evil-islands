@@ -26,56 +26,52 @@
 #include "byteorder.hpp"
 #include "adb.hpp"
 
+namespace
+{
+    const uint32_t CE_ADB_SIGNATURE = 0x00424441;
+}
+
 namespace cursedearth
 {
-static const uint32_t CE_ADB_SIGNATURE = 0x00424441;
+    adb_ptr_t make_adb(const memory_file_ptr_t& memory_file)
+    {
+        adb_ptr_t adb = std::make_shared<adb_t>();
 
-ce_adb_file* ce_adb_file_new(memory_file_t* mem_file)
-{
-    uint32_t CE_UNUSED(signature) = ce_mem_file_read_u32le(mem_file);
-    uint32_t record_count = ce_mem_file_read_u32le(mem_file);
+        uint32_t CE_UNUSED(signature) = read_u32le(memory_file);
+        uint32_t record_count = read_u32le(memory_file);
 
-    assert(CE_ADB_SIGNATURE == signature && "wrong signature");
+        assert(CE_ADB_SIGNATURE == signature && "wrong signature");
 
-    ce_adb_file* adb_file = ce_alloc_zero(sizeof(ce_adb_file) +
-                                        sizeof(ce_adb_record) * record_count);
+        adb->record_count = record_count;
+        memory_file->read(adb->name, 1, 24);
+        adb->min_height = read_fle(memory_file);
+        adb->average_height = read_fle(memory_file);
+        adb->max_height = read_fle(memory_file);
 
-    adb_file->record_count = record_count;
-    ce_mem_file_read(mem_file, adb_file->name, 1, 24);
-    adb_file->min_height = ce_mem_file_read_fle(mem_file);
-    adb_file->average_height = ce_mem_file_read_fle(mem_file);
-    adb_file->max_height = ce_mem_file_read_fle(mem_file);
+        adb->records.resize(record_count);
 
-    for (size_t i = 0; i < record_count; ++i) {
-        ce_mem_file_read(mem_file, adb_file->records[i].name, 1, 16);
-        adb_file->records[i].id = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown1 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown2 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown3 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown4 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown5 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown6 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown7 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown8 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown9 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown10 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown11 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown12 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown13 = ce_mem_file_read_fle(mem_file);
-        adb_file->records[i].unknown14 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown15 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown16 = ce_mem_file_read_u32le(mem_file);
-        adb_file->records[i].unknown17 = ce_mem_file_read_u32le(mem_file);
+        for (size_t i = 0; i < record_count; ++i) {
+            memory_file->read(adb->records[i].name, 1, 16);
+            adb->records[i].id = read_u32le(memory_file);
+            adb->records[i].unknown1 = read_u32le(memory_file);
+            adb->records[i].unknown2 = read_u32le(memory_file);
+            adb->records[i].unknown3 = read_u32le(memory_file);
+            adb->records[i].unknown4 = read_u32le(memory_file);
+            adb->records[i].unknown5 = read_u32le(memory_file);
+            adb->records[i].unknown6 = read_u32le(memory_file);
+            adb->records[i].unknown7 = read_u32le(memory_file);
+            adb->records[i].unknown8 = read_u32le(memory_file);
+            adb->records[i].unknown9 = read_u32le(memory_file);
+            adb->records[i].unknown10 = read_u32le(memory_file);
+            adb->records[i].unknown11 = read_u32le(memory_file);
+            adb->records[i].unknown12 = read_u32le(memory_file);
+            adb->records[i].unknown13 = read_fle(memory_file);
+            adb->records[i].unknown14 = read_u32le(memory_file);
+            adb->records[i].unknown15 = read_u32le(memory_file);
+            adb->records[i].unknown16 = read_u32le(memory_file);
+            adb->records[i].unknown17 = read_u32le(memory_file);
+        }
+
+        return adb;
     }
-
-    return adb_file;
-}
-
-void ce_adb_file_del(ce_adb_file* adb_file)
-{
-    if (NULL != adb_file) {
-        ce_free(adb_file, sizeof(ce_adb_file) +
-                            sizeof(ce_adb_record) * adb_file->record_count);
-    }
-}
 }

@@ -62,11 +62,13 @@ static bool update_figentity()
 {
     ce_figure_manager_remove_entity(figentity);
 
-    vec3_t position = CE_VEC3_ZERO;
+    vec3_t position;
+    vec3_t unit_z = vec3_t::make_unit_z();
+    vec3_t unit_x = vec3_t::make_unit_x();
 
     ce_quat orientation, q1, q2;
-    ce_quat_init_polar(&q1, ce_deg2rad(180.0f), &CE_VEC3_UNIT_Z);
-    ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
+    ce_quat_init_polar(&q1, ce_deg2rad(180.0f), &unit_z);
+    ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &unit_x);
     ce_quat_mul(&orientation, &q2, &q1);
 
     const char *parts[1] = { NULL }, *textures[3] = { NULL, NULL, NULL }, *figure;
@@ -121,8 +123,8 @@ static void state_changed(void* /*listener*/, int state)
             }
         }
 
-        vec3_t position;
-        ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position, 0.0f, 2.0f, -4.0f));
+        vec3_t position(0.0f, 2.0f, -4.0f);
+        ce_camera_set_position(ce_root.scenemng->camera, &position);
 
         ce_camera_set_near(ce_root.scenemng->camera, 0.1f);
         ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(180.0f), ce_deg2rad(30.0f));

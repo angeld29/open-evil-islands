@@ -30,7 +30,7 @@ namespace cursedearth
     class timer_t: boost::noncopyable
     {
     public:
-        virtual ~timer_t() = 0;
+        virtual ~timer_t() = default;
 
         virtual void start() = 0;
         virtual float advance() = 0;

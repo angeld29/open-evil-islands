@@ -54,10 +54,11 @@ namespace cursedearth
         };
 
     public:
-        virtual ~shader_t() = 0;
+        virtual ~shader_t() = default;
 
         virtual void bind() = 0;
         virtual void unbind() = 0;
+
         virtual bool is_valid() = 0;
 
     protected:

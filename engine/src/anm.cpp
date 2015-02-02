@@ -26,7 +26,7 @@ namespace cursedearth
 {
 ce_anmfile* ce_anmfile_open(ce_res_file* res_file, size_t index)
 {
-    ce_anmfile* anmfile = ce_alloc(sizeof(ce_anmfile));
+    ce_anmfile* anmfile = (ce_anmfile*)ce_alloc(sizeof(ce_anmfile));
     anmfile->name = ce_string_dup(res_file->name);
     anmfile->size = ce_res_file_node_size(res_file, index);
     anmfile->data = ce_res_file_node_data(res_file, index);
@@ -34,7 +34,7 @@ ce_anmfile* ce_anmfile_open(ce_res_file* res_file, size_t index)
     union {
         float* f;
         uint32_t* u32;
-    } ptr = { anmfile->data };
+    } ptr = { (float*)anmfile->data };
 
     anmfile->rotation_frame_count = ce_le2cpu32(*ptr.u32++);
     anmfile->rotations = ptr.f;

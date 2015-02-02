@@ -45,7 +45,7 @@ namespace cursedearth
         };
 
     public:
-        virtual ~texture_t() = 0;
+        virtual ~texture_t() = default;
 
         virtual bool is_valid() = 0;
         virtual bool is_equal(const texture_const_ptr_t&) = 0;

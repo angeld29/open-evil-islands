@@ -38,10 +38,11 @@ namespace cursedearth
     class render_item_t: boost::noncopyable
     {
     public:
-        virtual ~render_item_t() = 0;
+        virtual ~render_item_t() = default;
 
         virtual void update() = 0;
-        virtual void render(render_item_t* renderitem) = 0;
+        virtual void render() = 0;
+
         virtual render_item_ptr_t clone() const = 0;
 
     protected:

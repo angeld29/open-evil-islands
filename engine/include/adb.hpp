@@ -68,8 +68,9 @@ namespace cursedearth
     };
 
     typedef std::shared_ptr<adb_t> adb_ptr_t;
+    typedef std::shared_ptr<const adb_t> adb_const_ptr_t;
 
-    adb_ptr_t make_adb(memory_file_t* mem_file);
+    adb_ptr_t make_adb(const memory_file_ptr_t&);
 }
 
-#endif /* CE_ADB_HPP */
+#endif

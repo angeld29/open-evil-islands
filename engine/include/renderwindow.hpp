@@ -73,7 +73,7 @@ namespace cursedearth
     {
     public:
         render_window_t();
-        virtual ~render_window_t();
+        virtual ~render_window_t() = default;
 
         void add_listener(ce_renderwindow_listener* listener);
 
