@@ -67,7 +67,7 @@ static void ce_xf86vmmng_ctor(display_manager_t* displaymng, va_list args)
 
     for (int i = 0; i < mode_count; ++i) {
         XF86VidModeModeInfo* info = xf86vmmng->modes[i];
-        ce_vector_push_back(displaymng->m_supported_modes,
+        ce_vector_push_back(displaymng->m_modes,
             ce_displaymode_new(info->hdisplay, info->vdisplay,
                 bpp, ce_xf86vmmng_calc_rate(info)));
     }
@@ -233,7 +233,7 @@ static void ce_xrrmng_ctor(display_manager_t* displaymng, va_list args)
         int rate_count;
         short* rates = XRRConfigRates(xrrmng->conf, i, &rate_count);
         for (int j = 0; j < rate_count; ++j) {
-            ce_vector_push_back(displaymng->m_supported_modes,
+            ce_vector_push_back(displaymng->m_modes,
                 ce_displaymode_new(xrrmng->sizes[i].width,
                     xrrmng->sizes[i].height, bpp, rates[j]));
         }
@@ -244,7 +244,7 @@ static void ce_xrrmng_enter(display_manager_t* displaymng, size_t index,
     display_rotation_t rotation, display_reflection_t reflection)
 {
     ce_xrrmng* xrrmng = (ce_xrrmng*)displaymng->impl;
-    display_mode_t* mode = displaymng->m_supported_modes->items[index];
+    display_mode_t* mode = displaymng->m_modes->items[index];
     SizeID size_index;
 
     for (size_index = xrrmng->size_count - 1; size_index > 0; --size_index) {

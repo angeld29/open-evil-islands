@@ -18,15 +18,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  doc/formats/cam.txt
+/**
+ * @brief doc/formats/cam.txt
  */
 
 #ifndef CE_CAM_HPP
 #define CE_CAM_HPP
 
-#include <cstddef>
 #include <cstdint>
+#include <vector>
 
 #include "memoryfile.hpp"
 
@@ -41,11 +41,11 @@ namespace cursedearth
 
     typedef struct {
         size_t record_count;
-        ce_cam_record records[];
+        std::vector<ce_cam_record> records;
     } ce_cam_file;
 
-    extern ce_cam_file* ce_cam_file_new(memory_file_t* mem_file);
+    extern ce_cam_file* ce_cam_file_new(const memory_file_ptr_t&);
     extern void ce_cam_file_del(ce_cam_file* cam_file);
 }
 
-#endif /* CE_CAM_HPP */
+#endif

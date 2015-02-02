@@ -40,4 +40,4 @@ namespace cursedearth
     extern void ce_bonfile_close(ce_bonfile* bonfile);
 }
 
-#endif /* CE_BON_HPP */
+#endif

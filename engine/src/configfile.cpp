@@ -74,7 +74,7 @@ static bool ce_config_file_parse(ce_config_file* config_file, const char* path, 
 
             ce_strmid(temp1, line, 1, line_length - 2);
 
-            section = ce_alloc(sizeof(ce_config_section));
+            section = (ce_config_section*)ce_alloc(sizeof(ce_config_section));
             section->name = ce_string_new_str(ce_strtrim(temp2, temp1));
             section->options = ce_vector_new();
             ce_vector_push_back(config_file->sections, section);
@@ -109,7 +109,7 @@ static bool ce_config_file_parse(ce_config_file* config_file, const char* path, 
             if (was_continuation_character) {
                 ce_string_append(option->value, line);
             } else {
-                option = ce_alloc(sizeof(ce_config_option));
+                option = (ce_config_option*)ce_alloc(sizeof(ce_config_option));
                 option->name = ce_string_new();
                 option->value = ce_string_new();
                 ce_vector_push_back(section->options, option);
@@ -144,7 +144,7 @@ ce_config_file* ce_config_file_open(const char* path)
         return NULL;
     }
 
-    ce_config_file* config_file = ce_alloc(sizeof(ce_config_file));
+    ce_config_file* config_file = (ce_config_file*)ce_alloc(sizeof(ce_config_file));
     config_file->sections = ce_vector_new();
 
     if (!ce_config_file_parse(config_file, path, file)) {
@@ -162,9 +162,9 @@ void ce_config_file_close(ce_config_file* config_file)
 {
     if (NULL != config_file) {
         for (size_t i = 0; i < config_file->sections->count; ++i) {
-            ce_config_section* section = config_file->sections->items[i];
+            ce_config_section* section = (ce_config_section*)config_file->sections->items[i];
             for (size_t j = 0; j < section->options->count; ++j) {
-                ce_config_option* option = section->options->items[j];
+                ce_config_option* option = (ce_config_option*)section->options->items[j];
                 ce_string_del(option->value);
                 ce_string_del(option->name);
                 ce_free(option, sizeof(ce_config_option));
@@ -181,7 +181,7 @@ void ce_config_file_close(ce_config_file* config_file)
 size_t ce_config_file_section_index(ce_config_file* config_file, const char* section_name)
 {
     for (size_t i = 0; i < config_file->sections->count; ++i) {
-        ce_config_section* section = config_file->sections->items[i];
+        ce_config_section* section = (ce_config_section*)config_file->sections->items[i];
         if (0 == strcmp(section_name, section->name->str)) {
             return i;
         }
@@ -191,9 +191,9 @@ size_t ce_config_file_section_index(ce_config_file* config_file, const char* sec
 
 size_t ce_config_file_option_index(ce_config_file* config_file, size_t section_index, const char* option_name)
 {
-    ce_config_section* section = config_file->sections->items[section_index];
+    ce_config_section* section = (ce_config_section*)config_file->sections->items[section_index];
     for (size_t i = 0; i < section->options->count; ++i) {
-        ce_config_option* option = section->options->items[i];
+        ce_config_option* option = (ce_config_option*)section->options->items[i];
         if (0 == strcmp(option_name, option->name->str)) {
             return i;
         }

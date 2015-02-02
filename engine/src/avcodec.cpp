@@ -20,7 +20,7 @@
 
 #include <cstdio>
 #include <cstring>
-#include <memory>
+#include <vector>
 
 #include <libavcodec/avcodec.h>
 
@@ -56,11 +56,10 @@ static void ce_avcodec_log(void*, int av_level, const char* format, va_list args
         break;
     }
 
-    const size_t size = strlen(format) + 16;
-    std::unique_ptr<char[]> buffer(new char[size]);
-    snprintf(buffer.get(), size, "avcodec: %s", format);
+    std::vector<char> buffer(strlen(format) + 16);
+    snprintf(buffer.data(), buffer.size(), "avcodec: %s", format);
 
-    ce_logging_report_va(level, buffer.get(), args);
+    ce_logging_report_va(level, buffer.data(), args);
 }
 
 static int ce_avcodec_lock(void** mutex, enum AVLockOp op)

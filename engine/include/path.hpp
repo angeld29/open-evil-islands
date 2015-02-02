@@ -33,7 +33,7 @@ namespace cursedearth
         CE_PATH_MAX = 512,
     };
 
-    const char CE_PATH_SEP;
+    extern const char CE_PATH_SEP;
 
     bool ce_path_exists(const char*);
 
@@ -53,4 +53,4 @@ namespace cursedearth
     char* ce_path_find_special1(char* path, size_t size, const char* prefix, const char* name, const char* dirs[], const char* exts[]);
 }
 
-#endif /* CE_PATH_HPP */
+#endif

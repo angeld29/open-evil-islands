@@ -56,7 +56,7 @@ namespace cursedearth
     /*
      *  Res file takes ownership of the mem file if successfull.
     */
-    extern ce_res_file* ce_res_file_new(const char* name, memory_file_t* mem_file);
+    extern ce_res_file* ce_res_file_new(const char* name, const memory_file_ptr_t mem_file);
     extern ce_res_file* ce_res_file_new_path(const char* path);
     extern void ce_res_file_del(ce_res_file* res_file);
 

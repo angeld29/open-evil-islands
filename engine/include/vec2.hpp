@@ -39,13 +39,14 @@ namespace cursedearth
             return *this;
         }
 
-        static vec2_t make_unit_x() { return { 1.0f, 0.0f }; }
-        static vec2_t make_unit_y() { return { 0.0f, 1.0f }; }
-        static vec2_t make_unit_scale() { return { 1.0f, 1.0f }; }
-        static vec2_t make_neg_unit_x() { return { -1.0f, 0.0f }; }
-        static vec2_t make_neg_unit_y() { return { 0.0f, -1.0f }; }
-        static vec2_t make_neg_unit_scale() { return { -1.0f, -1.0f }; }
+        static vec2_t zero() { return { 0.0f, 0.0f }; }
+        static vec2_t unit_x() { return { 1.0f, 0.0f }; }
+        static vec2_t unit_y() { return { 0.0f, 1.0f }; }
+        static vec2_t unit_scale() { return { 1.0f, 1.0f }; }
+        static vec2_t neg_unit_x() { return { -1.0f, 0.0f }; }
+        static vec2_t neg_unit_y() { return { 0.0f, -1.0f }; }
+        static vec2_t neg_unit_scale() { return { -1.0f, -1.0f }; }
     };
 }
 
-#endif /* CE_VEC2_HPP */
+#endif

@@ -24,27 +24,29 @@
 
 namespace cursedearth
 {
-ce_cam_file* ce_cam_file_new(memory_file_t* mem_file)
-{
-    size_t record_count = file_size(mem_file) / 36;
+    ce_cam_file* ce_cam_file_new(const memory_file_ptr_t& mem_file)
+    {
+        size_t record_count = file_size(mem_file) / 36;
 
-    ce_cam_file* cam_file = ce_alloc_zero(sizeof(ce_cam_file) + sizeof(ce_cam_record) * record_count);
-    cam_file->record_count = record_count;
+        ce_cam_file* cam_file = (ce_cam_file*)ce_alloc_zero(sizeof(ce_cam_file) + sizeof(ce_cam_record) * record_count);
+        cam_file->record_count = record_count;
 
-    for (size_t i = 0; i < record_count; ++i) {
-        cam_file->records[i].time = ce_mem_file_read_u32le(mem_file);
-        cam_file->records[i].unknown = ce_mem_file_read_u32le(mem_file);
-        ce_mem_file_read(mem_file, cam_file->records[i].position, sizeof(float), 3);
-        ce_mem_file_read(mem_file, cam_file->records[i].rotation, sizeof(float), 4);
+        cam_file->records.resize(record_count);
+
+        for (size_t i = 0; i < record_count; ++i) {
+            cam_file->records[i].time = read_u32le(mem_file);
+            cam_file->records[i].unknown = read_u32le(mem_file);
+            mem_file->read(cam_file->records[i].position, sizeof(float), 3);
+            mem_file->read(cam_file->records[i].rotation, sizeof(float), 4);
+        }
+
+        return cam_file;
     }
 
-    return cam_file;
-}
-
-void ce_cam_file_del(ce_cam_file* cam_file)
-{
-    if (NULL != cam_file) {
-        ce_free(cam_file, sizeof(ce_cam_file) + sizeof(ce_cam_record) * cam_file->record_count);
+    void ce_cam_file_del(ce_cam_file* cam_file)
+    {
+        if (NULL != cam_file) {
+            ce_free(cam_file, sizeof(ce_cam_file) + sizeof(ce_cam_record) * cam_file->record_count);
+        }
     }
-}
 }

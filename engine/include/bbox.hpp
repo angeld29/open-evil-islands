@@ -36,13 +36,15 @@ namespace cursedearth
         aabb_t aabb;
         ce_quat axis;
 
-        void clear();
-
         void merge(const bbox_t& other);
         void merge2(const bbox_t& other);
+
+        void clear()
+        {
+            aabb.clear();
+            axis = CE_QUAT_IDENTITY;
+        }
     };
-
-
 }
 
-#endif /* CE_BBOX_HPP */
+#endif

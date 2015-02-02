@@ -23,9 +23,10 @@
 
 namespace cursedearth
 {
-    typedef struct {
+    struct ce_color
+    {
         float r, g, b, a;
-    } ce_color;
+    };
 
     extern const ce_color CE_COLOR_BLACK;
     extern const ce_color CE_COLOR_WHITE;
@@ -60,4 +61,4 @@ namespace cursedearth
     extern ce_color* ce_color_lerp(ce_color* color, float u, const ce_color* lhs, const ce_color* rhs);
 }
 
-#endif /* CE_COLOR_HPP */
+#endif

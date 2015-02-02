@@ -34,4 +34,4 @@ namespace cursedearth
     };
 }
 
-#endif /* CE_VEC4_HPP */
+#endif

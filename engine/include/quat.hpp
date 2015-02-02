@@ -21,26 +21,28 @@
 #ifndef CE_QUAT_HPP
 #define CE_QUAT_HPP
 
-#include <cmath>
-
 namespace cursedearth
 {
     struct vec3_t;
 
-    typedef struct ce_quat {
+    struct ce_quat
+    {
         float w, x, y, z;
-    } ce_quat;
+    };
 
     extern const ce_quat CE_QUAT_ZERO;
     extern const ce_quat CE_QUAT_IDENTITY;
 
-    extern ce_quat* ce_quat_init_polar(ce_quat* quat, float angle, const struct vec3_t* axis);
+    ce_quat* ce_quat_init_polar(ce_quat* quat, float angle, const struct vec3_t* axis);
 
-    extern float ce_quat_to_polar(const ce_quat* quat, struct vec3_t* axis);
-    extern void ce_quat_to_axes(const ce_quat* quat, struct vec3_t* xaxis, struct vec3_t* yaxis, struct vec3_t* zaxis);
+    float ce_quat_to_polar(const ce_quat* quat, struct vec3_t* axis);
+    void ce_quat_to_axes(const ce_quat* quat, struct vec3_t* xaxis, struct vec3_t* yaxis, struct vec3_t* zaxis);
 
     // spherical linear interpolation
-    extern ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs, const ce_quat* rhs);
+    ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs, const ce_quat* rhs);
+
+    float ce_quat_len(const ce_quat* quat);
+    float ce_quat_arg(const ce_quat* quat);
 
     inline ce_quat* ce_quat_init(ce_quat* quat, float w, float x, float y, float z)
     {
@@ -146,17 +148,6 @@ namespace cursedearth
         return quat->w * quat->w + quat->x * quat->x + quat->y * quat->y + quat->z * quat->z;
     }
 
-    inline float ce_quat_len(const ce_quat* quat)
-    {
-        return sqrtf(ce_quat_len2(quat));
-    }
-
-    inline float ce_quat_arg(const ce_quat* quat)
-    {
-        const float s = ce_quat_len(quat);
-        return 0.0f == s ? 0.0f : acosf(quat->w / s);
-    }
-
     inline ce_quat* ce_quat_norm(ce_quat* quat, const ce_quat* other)
     {
         return ce_quat_scale(quat, 1.0f / ce_quat_len(other), other);
@@ -173,4 +164,4 @@ namespace cursedearth
     }
 }
 
-#endif /* CE_QUAT_HPP */
+#endif

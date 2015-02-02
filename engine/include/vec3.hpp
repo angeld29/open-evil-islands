@@ -97,14 +97,15 @@ namespace cursedearth
             *this *= 1.0f / length();
         }
 
-        static vec3_t make_unit_x() { return { 1.0f, 0.0f, 0.0f }; }
-        static vec3_t make_unit_y() { return { 0.0f, 1.0f, 0.0f }; }
-        static vec3_t make_unit_z() { return { 0.0f, 0.0f, 1.0f }; }
-        static vec3_t make_unit_scale() { return { 1.0f, 1.0f, 1.0f }; }
-        static vec3_t make_neg_unit_x() { return { -1.0f, 0.0f, 0.0f }; }
-        static vec3_t make_neg_unit_y() { return { 0.0f, -1.0f, 0.0f }; }
-        static vec3_t make_neg_unit_z() { return { 0.0f, 0.0f, -1.0f }; }
-        static vec3_t make_neg_unit_scale() { return { -1.0f, -1.0f, -1.0f }; }
+        static vec3_t zero() { return { 0.0f, 0.0f, 0.0f }; }
+        static vec3_t unit_x() { return { 1.0f, 0.0f, 0.0f }; }
+        static vec3_t unit_y() { return { 0.0f, 1.0f, 0.0f }; }
+        static vec3_t unit_z() { return { 0.0f, 0.0f, 1.0f }; }
+        static vec3_t unit_scale() { return { 1.0f, 1.0f, 1.0f }; }
+        static vec3_t neg_unit_x() { return { -1.0f, 0.0f, 0.0f }; }
+        static vec3_t neg_unit_y() { return { 0.0f, -1.0f, 0.0f }; }
+        static vec3_t neg_unit_z() { return { 0.0f, 0.0f, -1.0f }; }
+        static vec3_t neg_unit_scale() { return { -1.0f, -1.0f, -1.0f }; }
     };
 
     float distance(const vec3_t& lhs, const vec3_t& rhs);
@@ -156,4 +157,4 @@ namespace cursedearth
     }
 }
 
-#endif /* CE_VEC3_HPP */
+#endif

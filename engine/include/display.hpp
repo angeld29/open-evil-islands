@@ -59,25 +59,24 @@ namespace cursedearth
     class display_manager_t: boost::noncopyable
     {
     public:
-        display_manager_t();
         virtual ~display_manager_t() = default;
 
-        void enter(size_t index, display_rotation_t, display_reflection_t);
-        void exit();
+        size_t enter(int width, int height, int bpp, int rate, display_rotation_t, display_reflection_t);
+        void exit() { do_exit(); }
 
-        void dump_supported_modes_to_stdout();
-        void dump_supported_rotations_to_stdout();
-        void dump_supported_reflections_to_stdout();
+        void dump_supported_modes_to_stdout() const;
+        void dump_supported_rotations_to_stdout() const;
+        void dump_supported_reflections_to_stdout() const;
 
     private:
-        virtual void do_enter(int width, int height, int bpp, int rate, display_rotation_t, display_reflection_t) = 0;
+        virtual void do_enter(size_t index, display_rotation_t, display_reflection_t) = 0;
         virtual void do_exit() = 0;
 
-    private:
-        display_rotation_t m_supported_rotation;
-        display_reflection_t m_supported_reflection;
-        std::vector<display_mode_t> m_supported_modes;
+    protected:
+        display_rotation_t m_rotation = DISPLAY_ROTATION_NONE;
+        display_reflection_t m_reflection = DISPLAY_REFLECTION_NONE;
+        std::vector<display_mode_t> m_modes;
     };
 }
 
-#endif /* CE_DISPLAY_HPP */
+#endif

@@ -25,13 +25,6 @@
 
 namespace cursedearth
 {
-    void aabb_t::clear()
-    {
-        origin = vec3_t();
-        extents = vec3_t(-std::numeric_limits<float>::max());
-        radius = 0.0f;
-    }
-
     namespace
     {
         void merge_pass(float& origin, float& extent, float other_origin, float other_extent)
@@ -77,6 +70,13 @@ namespace cursedearth
                 extent = max - origin;
             }
         }
+    }
+
+    void aabb_t::clear()
+    {
+        origin = vec3_t::zero();
+        extents = vec3_t(-std::numeric_limits<float>::max());
+        radius = 0.0f;
     }
 
     void aabb_t::merge(const aabb_t& other)

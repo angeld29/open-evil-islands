@@ -55,4 +55,4 @@ namespace cursedearth
     extern void ce_camera_yaw_pitch(ce_camera* camera, float psi, float theta);
 }
 
-#endif /* CE_CAMERA_HPP */
+#endif

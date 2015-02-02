@@ -125,4 +125,4 @@ namespace cursedearth
     } ce_bink_frame;
 }
 
-#endif /* CE_BINK_HPP */
+#endif

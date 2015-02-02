@@ -21,8 +21,9 @@
 #ifndef CE_CONFIGMANAGER_HPP
 #define CE_CONFIGMANAGER_HPP
 
-#include "vector.hpp"
-#include "string.hpp"
+#include <string>
+#include <vector>
+
 #include "color.hpp"
 #include "rect.hpp"
 
@@ -95,14 +96,16 @@ namespace cursedearth
         CE_CONFIG_MENU_ESC_PAD,
     };
 
-    extern struct ce_config_manager {
-        struct {
+    extern struct ce_config_manager
+    {
+        struct
+        {
             ce_color sky[24];
             ce_color ambient[24];
             ce_color sunlight[24];
         } lights[CE_CONFIG_LIGHT_COUNT];
-        ce_vector* movies[CE_CONFIG_MOVIE_COUNT];
-        ce_vector* music[CE_CONFIG_MUSIC_CHAPTER_COUNT][CE_CONFIG_MUSIC_ITEM_COUNT];
+        std::vector<std::string> movies[CE_CONFIG_MOVIE_COUNT];
+        std::vector<std::string> music[CE_CONFIG_MUSIC_CHAPTER_COUNT][CE_CONFIG_MUSIC_ITEM_COUNT];
         ce_rect menu_geometry[CE_CONFIG_MENU_TYPE_COUNT][CE_CONFIG_MENU_ITEM_COUNT];
     }* ce_config_manager;
 
@@ -110,4 +113,4 @@ namespace cursedearth
     void ce_config_manager_term(void);
 }
 
-#endif /* CE_CONFIGMANAGER_HPP */
+#endif

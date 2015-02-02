@@ -26,19 +26,22 @@
 
 namespace cursedearth
 {
-    typedef struct {
+    struct ce_config_option
+    {
         ce_string* name;
         ce_string* value;
-    } ce_config_option;
+    };
 
-    typedef struct {
+    struct ce_config_section
+    {
         ce_string* name;
         ce_vector* options;
-    } ce_config_section;
+    };
 
-    typedef struct {
+    struct ce_config_file
+    {
         ce_vector* sections;
-    } ce_config_file;
+    };
 
     extern ce_config_file* ce_config_file_open(const char* path);
     extern void ce_config_file_close(ce_config_file* config_file);
@@ -50,7 +53,7 @@ namespace cursedearth
 
     inline size_t ce_config_file_option_count(ce_config_file* config_file, size_t section_index)
     {
-        ce_config_section* section = config_file->sections->items[section_index];
+        ce_config_section* section = (ce_config_section*)config_file->sections->items[section_index];
         return section->options->count;
     }
 
@@ -59,12 +62,12 @@ namespace cursedearth
 
     inline const char* ce_config_file_get(ce_config_file* config_file, size_t section_index, size_t option_index)
     {
-        ce_config_section* section = config_file->sections->items[section_index];
-        ce_config_option* option = section->options->items[option_index];
+        ce_config_section* section = (ce_config_section*)config_file->sections->items[section_index];
+        ce_config_option* option = (ce_config_option*)section->options->items[option_index];
         return option->value->str;
     }
 
     extern const char* ce_config_file_find(ce_config_file* config_file, const char* section_name, const char* option_name);
 }
 
-#endif /* CE_CONFIGFILE_HPP */
+#endif
