@@ -67,4 +67,4 @@ namespace cursedearth
     boost::atomic<T*> singleton_t<T>::m_instance;
 }
 
-#endif /* CE_SINGLETON_HPP */
+#endif

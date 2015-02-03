@@ -27,7 +27,7 @@ namespace cursedearth
 {
     struct segment_t
     {
-        vec3_t start, end;
+        ce_vec3 start, end;
     };
 }
 

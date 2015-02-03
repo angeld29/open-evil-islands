@@ -36,4 +36,4 @@ namespace cursedearth
     }
 }
 
-#endif /* CE_MAKEUNIQUE_HPP */
+#endif
