@@ -29,10 +29,10 @@ namespace cursedearth
         char text[8];
     } ce_fps;
 
-    extern ce_fps* ce_fps_new(void);
-    extern void ce_fps_del(ce_fps* fps);
+    ce_fps* ce_fps_new(void);
+    void ce_fps_del(ce_fps* fps);
 
-    extern void ce_fps_advance(ce_fps* fps, float elapsed);
+    void ce_fps_advance(ce_fps* fps, float elapsed);
 }
 
 #endif

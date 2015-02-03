@@ -37,17 +37,17 @@ namespace cursedearth
         ce_vector* ctrlobjects;
     } ce_optparse;
 
-    extern ce_optparse* ce_optparse_new(void);
-    extern void ce_optparse_del(ce_optparse* optparse);
+    ce_optparse* ce_optparse_new(void);
+    void ce_optparse_del(ce_optparse* optparse);
 
-    extern void ce_optparse_set_standard_properties(ce_optparse* optparse, int version_major, int version_minor, int version_patch, const char* title, const char* brief);
+    void ce_optparse_set_standard_properties(ce_optparse* optparse, int version_major, int version_minor, int version_patch, const char* title, const char* brief);
 
-    extern bool ce_optparse_get(ce_optparse* optparse, const char* name, void* value);
+    bool ce_optparse_get(ce_optparse* optparse, const char* name, void* value);
 
-    extern void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type, const void* value, bool required, const char* shortopt, const char* longopt, const char* glossary);
-    extern void ce_optparse_add_control(ce_optparse* optparse, const char* name, const char* glossary);
+    void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type, const void* value, bool required, const char* shortopt, const char* longopt, const char* glossary);
+    void ce_optparse_add_control(ce_optparse* optparse, const char* name, const char* glossary);
 
-    extern bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[]);
+    bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[]);
 }
 
 #endif

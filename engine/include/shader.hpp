@@ -46,17 +46,17 @@ namespace cursedearth
         void* impl;
     } ce_shader;
 
-    extern bool ce_shader_is_available(void);
+    bool ce_shader_is_available(void);
 
-    extern ce_shader* ce_shader_new(const char* name, const ce_shader_info shader_infos[]);
-    extern void ce_shader_del(ce_shader* shader);
+    ce_shader* ce_shader_new(const char* name, const ce_shader_info shader_infos[]);
+    void ce_shader_del(ce_shader* shader);
 
-    extern bool ce_shader_is_valid(const ce_shader* shader);
+    bool ce_shader_is_valid(const ce_shader* shader);
 
-    extern void ce_shader_bind(ce_shader* shader);
-    extern void ce_shader_unbind(ce_shader* shader);
+    void ce_shader_bind(ce_shader* shader);
+    void ce_shader_unbind(ce_shader* shader);
 
-    static inline ce_shader* ce_shader_add_ref(ce_shader* shader)
+    inline ce_shader* ce_shader_add_ref(ce_shader* shader)
     {
         ce_atomic_inc(int, &shader->ref_count);
         return shader;

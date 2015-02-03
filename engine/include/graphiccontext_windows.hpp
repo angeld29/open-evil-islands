@@ -30,7 +30,7 @@ namespace cursedearth
         HGLRC context;
     };
 
-    extern ce_graphic_context* ce_graphic_context_new(HDC dc);
+    ce_graphic_context* ce_graphic_context_new(HDC dc);
 }
 
 #endif

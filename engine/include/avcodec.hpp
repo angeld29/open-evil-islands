@@ -29,8 +29,8 @@
 
 namespace cursedearth
 {
-    extern void ce_avcodec_init(void);
-    extern void ce_avcodec_term(void);
+    void ce_avcodec_init(void);
+    void ce_avcodec_term(void);
 }
 
 #endif

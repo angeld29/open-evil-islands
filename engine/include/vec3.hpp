@@ -39,7 +39,7 @@ namespace cursedearth
     extern const ce_vec3 CE_VEC3_NEG_UNIT_Z;
     extern const ce_vec3 CE_VEC3_NEG_UNIT_SCALE;
 
-    static inline ce_vec3* ce_vec3_init(ce_vec3* vec, float x, float y, float z)
+    inline ce_vec3* ce_vec3_init(ce_vec3* vec, float x, float y, float z)
     {
         vec->x = x;
         vec->y = y;
@@ -47,7 +47,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_init_scalar(ce_vec3* vec, float s)
+    inline ce_vec3* ce_vec3_init_scalar(ce_vec3* vec, float s)
     {
         vec->x = s;
         vec->y = s;
@@ -55,7 +55,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_init_array(ce_vec3* vec, const float* array)
+    inline ce_vec3* ce_vec3_init_array(ce_vec3* vec, const float* array)
     {
         vec->x = array[0];
         vec->y = array[1];
@@ -63,7 +63,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_init_zero(ce_vec3* vec)
+    inline ce_vec3* ce_vec3_init_zero(ce_vec3* vec)
     {
         vec->x = 0.0f;
         vec->y = 0.0f;
@@ -71,7 +71,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_init_unit_x(ce_vec3* vec)
+    inline ce_vec3* ce_vec3_init_unit_x(ce_vec3* vec)
     {
         vec->x = 1.0f;
         vec->y = 0.0f;
@@ -79,7 +79,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_init_unit_y(ce_vec3* vec)
+    inline ce_vec3* ce_vec3_init_unit_y(ce_vec3* vec)
     {
         vec->x = 0.0f;
         vec->y = 1.0f;
@@ -87,7 +87,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_init_unit_z(ce_vec3* vec)
+    inline ce_vec3* ce_vec3_init_unit_z(ce_vec3* vec)
     {
         vec->x = 0.0f;
         vec->y = 0.0f;
@@ -95,7 +95,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_init_unit_scale(ce_vec3* vec)
+    inline ce_vec3* ce_vec3_init_unit_scale(ce_vec3* vec)
     {
         vec->x = 1.0f;
         vec->y = 1.0f;
@@ -103,7 +103,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_init_neg_unit_x(ce_vec3* vec)
+    inline ce_vec3* ce_vec3_init_neg_unit_x(ce_vec3* vec)
     {
         vec->x = -1.0f;
         vec->y = 0.0f;
@@ -111,7 +111,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_init_neg_unit_y(ce_vec3* vec)
+    inline ce_vec3* ce_vec3_init_neg_unit_y(ce_vec3* vec)
     {
         vec->x = 0.0f;
         vec->y = -1.0f;
@@ -119,7 +119,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_init_neg_unit_z(ce_vec3* vec)
+    inline ce_vec3* ce_vec3_init_neg_unit_z(ce_vec3* vec)
     {
         vec->x = 0.0f;
         vec->y = 0.0f;
@@ -127,7 +127,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_init_neg_unit_scale(ce_vec3* vec)
+    inline ce_vec3* ce_vec3_init_neg_unit_scale(ce_vec3* vec)
     {
         vec->x = -1.0f;
         vec->y = -1.0f;
@@ -135,7 +135,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_copy(ce_vec3* vec, const ce_vec3* other)
+    inline ce_vec3* ce_vec3_copy(ce_vec3* vec, const ce_vec3* other)
     {
         vec->x = other->x;
         vec->y = other->y;
@@ -143,7 +143,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_neg(ce_vec3* vec, const ce_vec3* other)
+    inline ce_vec3* ce_vec3_neg(ce_vec3* vec, const ce_vec3* other)
     {
         vec->x = -other->x;
         vec->y = -other->y;
@@ -151,7 +151,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_add(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
+    inline ce_vec3* ce_vec3_add(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
     {
         vec->x = lhs->x + rhs->x;
         vec->y = lhs->y + rhs->y;
@@ -159,7 +159,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_sub(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
+    inline ce_vec3* ce_vec3_sub(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
     {
         vec->x = lhs->x - rhs->x;
         vec->y = lhs->y - rhs->y;
@@ -167,7 +167,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_mul(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
+    inline ce_vec3* ce_vec3_mul(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
     {
         vec->x = lhs->x * rhs->x;
         vec->y = lhs->y * rhs->y;
@@ -175,7 +175,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_div(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
+    inline ce_vec3* ce_vec3_div(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
     {
         vec->x = lhs->x / rhs->x;
         vec->y = lhs->y / rhs->y;
@@ -183,7 +183,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec3* ce_vec3_scale(ce_vec3* vec, float s, const ce_vec3* other)
+    inline ce_vec3* ce_vec3_scale(ce_vec3* vec, float s, const ce_vec3* other)
     {
         vec->x = s * other->x;
         vec->y = s * other->y;
@@ -191,26 +191,26 @@ namespace cursedearth
         return vec;
     }
 
-    extern float ce_vec3_len(const ce_vec3* vec);
-    extern float ce_vec3_len2(const ce_vec3* vec);
+    float ce_vec3_len(const ce_vec3* vec);
+    float ce_vec3_len2(const ce_vec3* vec);
 
-    extern float ce_vec3_dist(const ce_vec3* lhs, const ce_vec3* rhs);
-    extern float ce_vec3_dist2(const ce_vec3* lhs, const ce_vec3* rhs);
+    float ce_vec3_dist(const ce_vec3* lhs, const ce_vec3* rhs);
+    float ce_vec3_dist2(const ce_vec3* lhs, const ce_vec3* rhs);
 
-    extern ce_vec3* ce_vec3_norm(ce_vec3* vec, const ce_vec3* other);
+    ce_vec3* ce_vec3_norm(ce_vec3* vec, const ce_vec3* other);
 
-    extern float ce_vec3_dot(const ce_vec3* lhs, const ce_vec3* rhs);
-    extern float ce_vec3_absdot(const ce_vec3* lhs, const ce_vec3* rhs);
+    float ce_vec3_dot(const ce_vec3* lhs, const ce_vec3* rhs);
+    float ce_vec3_absdot(const ce_vec3* lhs, const ce_vec3* rhs);
 
-    extern ce_vec3* ce_vec3_cross(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
+    ce_vec3* ce_vec3_cross(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
 
-    extern ce_vec3* ce_vec3_mid(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
-    extern ce_vec3* ce_vec3_rot(ce_vec3* vec, const ce_vec3* other, const struct ce_quat* quat);
+    ce_vec3* ce_vec3_mid(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
+    ce_vec3* ce_vec3_rot(ce_vec3* vec, const ce_vec3* other, const struct ce_quat* quat);
 
-    extern ce_vec3* ce_vec3_lerp(ce_vec3* vec, float u, const ce_vec3* lhs, const ce_vec3* rhs);
+    ce_vec3* ce_vec3_lerp(ce_vec3* vec, float u, const ce_vec3* lhs, const ce_vec3* rhs);
 
-    extern ce_vec3* ce_vec3_floor(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
-    extern ce_vec3* ce_vec3_ceil(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
+    ce_vec3* ce_vec3_floor(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
+    ce_vec3* ce_vec3_ceil(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs);
 }
 
 #endif

@@ -40,15 +40,15 @@ namespace cursedearth
         ce_vector* keypairs;
     } ce_renderwindow_keymap;
 
-    extern ce_renderwindow_keymap* ce_renderwindow_keymap_new(void);
-    extern void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
+    ce_renderwindow_keymap* ce_renderwindow_keymap_new(void);
+    void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
 
-    extern void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, ce_input_button button);
-    extern void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, unsigned long keys[CE_IB_COUNT]);
+    void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, ce_input_button button);
+    void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, unsigned long keys[CE_IB_COUNT]);
 
-    extern void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
+    void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
 
-    extern ce_input_button
+    ce_input_button
     ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key);
 
     typedef enum {
@@ -116,22 +116,22 @@ namespace cursedearth
         void* impl;
     };
 
-    extern ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...);
-    extern void ce_renderwindow_del(ce_renderwindow* renderwindow);
+    ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...);
+    void ce_renderwindow_del(ce_renderwindow* renderwindow);
 
-    extern void ce_renderwindow_add_listener(ce_renderwindow* renderwindow, ce_renderwindow_listener* listener);
+    void ce_renderwindow_add_listener(ce_renderwindow* renderwindow, ce_renderwindow_listener* listener);
 
-    extern void ce_renderwindow_show(ce_renderwindow* renderwindow);
-    extern void ce_renderwindow_minimize(ce_renderwindow* renderwindow);
+    void ce_renderwindow_show(ce_renderwindow* renderwindow);
+    void ce_renderwindow_minimize(ce_renderwindow* renderwindow);
 
-    extern void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow);
+    void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow);
 
-    extern void ce_renderwindow_pump(ce_renderwindow* renderwindow);
+    void ce_renderwindow_pump(ce_renderwindow* renderwindow);
 
-    extern void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int width, int height);
-    extern void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow);
+    void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int width, int height);
+    void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow);
 
-    extern ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title);
+    ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title);
 }
 
 #endif

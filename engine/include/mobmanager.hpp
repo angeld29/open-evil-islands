@@ -25,14 +25,14 @@
 
 namespace cursedearth
 {
-    extern struct ce_mob_manager {
+    struct ce_mob_manager {
         int stub;
     }* ce_mob_manager;
 
-    extern void ce_mob_manager_init(void);
-    extern void ce_mob_manager_term(void);
+    void ce_mob_manager_init(void);
+    void ce_mob_manager_term(void);
 
-    extern ce_mob_file* ce_mob_manager_open(const char* name);
+    ce_mob_file* ce_mob_manager_open(const char* name);
 }
 
 #endif

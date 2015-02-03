@@ -40,31 +40,31 @@ namespace cursedearth
         ce_vector* sections;
     } ce_config_file;
 
-    extern ce_config_file* ce_config_file_open(const char* path);
-    extern void ce_config_file_close(ce_config_file* config_file);
+    ce_config_file* ce_config_file_open(const char* path);
+    void ce_config_file_close(ce_config_file* config_file);
 
-    static inline size_t ce_config_file_section_count(ce_config_file* config_file)
+    inline size_t ce_config_file_section_count(ce_config_file* config_file)
     {
         return config_file->sections->count;
     }
 
-    static inline size_t ce_config_file_option_count(ce_config_file* config_file, size_t section_index)
+    inline size_t ce_config_file_option_count(ce_config_file* config_file, size_t section_index)
     {
         ce_config_section* section = config_file->sections->items[section_index];
         return section->options->count;
     }
 
-    extern size_t ce_config_file_section_index(ce_config_file* config_file, const char* section_name);
-    extern size_t ce_config_file_option_index(ce_config_file* config_file, size_t section_index, const char* option_name);
+    size_t ce_config_file_section_index(ce_config_file* config_file, const char* section_name);
+    size_t ce_config_file_option_index(ce_config_file* config_file, size_t section_index, const char* option_name);
 
-    static inline const char* ce_config_file_get(ce_config_file* config_file, size_t section_index, size_t option_index)
+    inline const char* ce_config_file_get(ce_config_file* config_file, size_t section_index, size_t option_index)
     {
         ce_config_section* section = config_file->sections->items[section_index];
         ce_config_option* option = section->options->items[option_index];
         return option->value->str;
     }
 
-    extern const char* ce_config_file_find(ce_config_file* config_file, const char* section_name, const char* option_name);
+    const char* ce_config_file_find(ce_config_file* config_file, const char* section_name, const char* option_name);
 }
 
 #endif

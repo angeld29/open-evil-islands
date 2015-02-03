@@ -37,35 +37,35 @@ namespace cursedearth
         CE_MPR_TEXTURE_VERSION = 1
     };
 
-    extern const float CE_MPR_OFFSET_XZ_COEF;
-    extern const float CE_MPR_HEIGHT_Y_COEF;
+    const float CE_MPR_OFFSET_XZ_COEF;
+    const float CE_MPR_HEIGHT_Y_COEF;
 
-    extern ce_aabb* ce_mpr_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile, int sector_x, int sector_z, bool water);
+    ce_aabb* ce_mpr_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile, int sector_x, int sector_z, bool water);
 
-    static inline ce_vec3* ce_mpr_unpack_normal(ce_vec3* normal, uint32_t value)
+    inline ce_vec3* ce_mpr_unpack_normal(ce_vec3* normal, uint32_t value)
     {
         return ce_vec3_init(normal, (((value >> 11) & 0x7ff) - 1000.0f) / 1000.0f, (value >> 22) / 1000.0f, ((value & 0x7ff) - 1000.0f) / 1000.0f);
     }
 
-    static inline int ce_mpr_texture_index(uint16_t value)
+    inline int ce_mpr_texture_index(uint16_t value)
     {
         return value & 0x003f;
     }
 
-    static inline int ce_mpr_texture_number(uint16_t value)
+    inline int ce_mpr_texture_number(uint16_t value)
     {
         return (value & 0x3fc0) >> 6;
     }
 
-    static inline int ce_mpr_texture_angle(uint16_t value)
+    inline int ce_mpr_texture_angle(uint16_t value)
     {
         return (value & 0xc000) >> 14;
     }
 
-    extern float ce_mpr_get_height(const ce_mprfile* mprfile, const ce_vec3* position);
+    float ce_mpr_get_height(const ce_mprfile* mprfile, const ce_vec3* position);
 
-    extern ce_material* ce_mpr_create_material(const ce_mprfile* mprfile, bool water);
-    extern ce_mmpfile* ce_mpr_generate_texture(const ce_mprfile* mprfile, const ce_vector* tile_mmp_files, int x, int z, bool water);
+    ce_material* ce_mpr_create_material(const ce_mprfile* mprfile, bool water);
+    ce_mmpfile* ce_mpr_generate_texture(const ce_mprfile* mprfile, const ce_vector* tile_mmp_files, int x, int z, bool water);
 }
 
 #endif

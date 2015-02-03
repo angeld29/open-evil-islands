@@ -37,7 +37,7 @@ const float CE_DEG2RAD = 0.01745329f;
 const float CE_RAD2DEG = 57.2957795f;
 
 // based on http://www.c-faq.com/fp/fpequal.html
-static inline float ce_reldif(float a, float b)
+inline float ce_reldif(float a, float b)
 {
     float t = fmaxf(fabsf(a), fabsf(b));
     return 0.0f == t ? 0.0f : fabsf(a - b) / t;

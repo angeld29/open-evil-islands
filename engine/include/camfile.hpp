@@ -44,8 +44,8 @@ namespace cursedearth
         ce_cam_record* records;
     } ce_cam_file;
 
-    extern ce_cam_file* ce_cam_file_new(ce_mem_file* mem_file);
-    extern void ce_cam_file_del(ce_cam_file* cam_file);
+    ce_cam_file* ce_cam_file_new(ce_mem_file* mem_file);
+    void ce_cam_file_del(ce_cam_file* cam_file);
 }
 
 #endif

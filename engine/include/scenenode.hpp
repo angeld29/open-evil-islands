@@ -56,22 +56,22 @@ namespace cursedearth
         ce_vector* childs;
     } ce_scenenode;
 
-    extern ce_scenenode* ce_scenenode_new(ce_scenenode* parent);
-    extern void ce_scenenode_del(ce_scenenode* scenenode);
+    ce_scenenode* ce_scenenode_new(ce_scenenode* parent);
+    void ce_scenenode_del(ce_scenenode* scenenode);
 
-    extern void ce_scenenode_detach_from_parent(ce_scenenode* scenenode);
+    void ce_scenenode_detach_from_parent(ce_scenenode* scenenode);
 
-    extern void ce_scenenode_attach_child(ce_scenenode* scenenode, ce_scenenode* child);
-    extern void ce_scenenode_detach_child(ce_scenenode* scenenode, ce_scenenode* child);
+    void ce_scenenode_attach_child(ce_scenenode* scenenode, ce_scenenode* child);
+    void ce_scenenode_detach_child(ce_scenenode* scenenode, ce_scenenode* child);
 
-    extern void ce_scenenode_add_renderitem(ce_scenenode* scenenode, ce_renderitem* renderitem);
+    void ce_scenenode_add_renderitem(ce_scenenode* scenenode, ce_renderitem* renderitem);
 
-    extern int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
+    int ce_scenenode_count_visible_cascade(ce_scenenode* scenenode);
 
-    extern void ce_scenenode_update_force_cascade(ce_scenenode* scenenode);
-    extern void ce_scenenode_update_cascade(ce_scenenode* scenenode, const ce_frustum* frustum);
+    void ce_scenenode_update_force_cascade(ce_scenenode* scenenode);
+    void ce_scenenode_update_cascade(ce_scenenode* scenenode, const ce_frustum* frustum);
 
-    extern void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode);
+    void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode);
 }
 
 #endif

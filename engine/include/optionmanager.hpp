@@ -26,7 +26,7 @@
 
 namespace cursedearth
 {
-    extern struct ce_option_manager {
+    struct ce_option_manager {
         ce_string* ei_path;
         ce_string* ce_path;
         int window_width;
@@ -53,10 +53,10 @@ namespace cursedearth
         bool show_fps;
     }* ce_option_manager;
 
-    extern void ce_option_manager_init(ce_optparse* optparse);
-    extern void ce_option_manager_term(void);
+    void ce_option_manager_init(ce_optparse* optparse);
+    void ce_option_manager_term(void);
 
-    extern ce_optparse* ce_option_manager_create_option_parser(void);
+    ce_optparse* ce_option_manager_create_option_parser(void);
 }
 
 #endif

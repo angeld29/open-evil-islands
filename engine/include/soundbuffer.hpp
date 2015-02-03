@@ -36,28 +36,28 @@ namespace cursedearth
         char data[];
     } ce_sound_buffer;
 
-    extern ce_sound_buffer* ce_sound_buffer_new(size_t capacity);
-    extern void ce_sound_buffer_del(ce_sound_buffer* sound_buffer);
+    ce_sound_buffer* ce_sound_buffer_new(size_t capacity);
+    void ce_sound_buffer_del(ce_sound_buffer* sound_buffer);
 
-    extern void ce_sound_buffer_read(ce_sound_buffer* sound_buffer, void* buffer, size_t size);
-    extern void ce_sound_buffer_write(ce_sound_buffer* sound_buffer, const void* buffer, size_t size);
+    void ce_sound_buffer_read(ce_sound_buffer* sound_buffer, void* buffer, size_t size);
+    void ce_sound_buffer_write(ce_sound_buffer* sound_buffer, const void* buffer, size_t size);
 
-    static inline size_t ce_sound_buffer_available_size_for_read(ce_sound_buffer* sound_buffer)
+    inline size_t ce_sound_buffer_available_size_for_read(ce_sound_buffer* sound_buffer)
     {
         return ce_semaphore_available(sound_buffer->prepared_data);
     }
 
-    static inline size_t ce_sound_buffer_available_size_for_write(ce_sound_buffer* sound_buffer)
+    inline size_t ce_sound_buffer_available_size_for_write(ce_sound_buffer* sound_buffer)
     {
         return ce_semaphore_available(sound_buffer->unprepared_data);
     }
 
-    static inline bool ce_sound_buffer_is_one_sample_ready(ce_sound_buffer* sound_buffer)
+    inline bool ce_sound_buffer_is_one_sample_ready(ce_sound_buffer* sound_buffer)
     {
         return ce_sound_buffer_available_size_for_read(sound_buffer) >= sound_buffer->sound_format.sample_size;
     }
 
-    static inline void ce_sound_buffer_read_one_sample(ce_sound_buffer* sound_buffer, void* buffer)
+    inline void ce_sound_buffer_read_one_sample(ce_sound_buffer* sound_buffer, void* buffer)
     {
         ce_sound_buffer_read(sound_buffer, buffer, sound_buffer->sound_format.sample_size);
     }

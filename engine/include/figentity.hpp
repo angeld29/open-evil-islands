@@ -43,16 +43,16 @@ namespace cursedearth
         ce_scenenode* scenenode;
     } ce_figentity;
 
-    extern ce_figentity* ce_figentity_new(ce_figmesh* figmesh, const ce_vec3* position, const ce_quat* orientation, const char* parts[], const char* textures[], ce_scenenode* scenenode);
-    extern void ce_figentity_del(ce_figentity* figentity);
+    ce_figentity* ce_figentity_new(ce_figmesh* figmesh, const ce_vec3* position, const ce_quat* orientation, const char* parts[], const char* textures[], ce_scenenode* scenenode);
+    void ce_figentity_del(ce_figentity* figentity);
 
-    extern void ce_figentity_fix_height(ce_figentity* figentity, float height);
+    void ce_figentity_fix_height(ce_figentity* figentity, float height);
 
-    extern int ce_figentity_get_animation_count(ce_figentity* figentity);
-    extern const char* ce_figentity_get_animation_name(ce_figentity* figentity, int index);
+    int ce_figentity_get_animation_count(ce_figentity* figentity);
+    const char* ce_figentity_get_animation_name(ce_figentity* figentity, int index);
 
-    extern bool ce_figentity_play_animation(ce_figentity* figentity, const char* name);
-    extern void ce_figentity_stop_animation(ce_figentity* figentity);
+    bool ce_figentity_play_animation(ce_figentity* figentity, const char* name);
+    void ce_figentity_stop_animation(ce_figentity* figentity);
 }
 
 #endif

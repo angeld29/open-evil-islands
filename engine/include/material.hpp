@@ -45,8 +45,8 @@ namespace cursedearth
         ce_shader* shader;
     } ce_material;
 
-    extern ce_material* ce_material_new(void);
-    extern void ce_material_del(ce_material* material);
+    ce_material* ce_material_new(void);
+    void ce_material_del(ce_material* material);
 }
 
 #endif

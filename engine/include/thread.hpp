@@ -28,8 +28,8 @@
 
 namespace cursedearth
 {
-    extern int ce_online_cpu_count(void);
-    extern void ce_sleep(unsigned int msec);
+    int ce_online_cpu_count(void);
+    void ce_sleep(unsigned int msec);
 
     /*
      *  Useful struct for other thread and non-thread modules.
@@ -40,8 +40,8 @@ namespace cursedearth
         void* arg;
     } ce_routine;
 
-    extern ce_routine* ce_routine_new(void);
-    extern void ce_routine_del(ce_routine* routine);
+    ce_routine* ce_routine_new(void);
+    void ce_routine_del(ce_routine* routine);
 
     /*
      *  The thread struct provides platform-independent threads.
@@ -51,19 +51,19 @@ namespace cursedearth
 
     struct ce_thread;
 
-    extern ce_thread_id ce_thread_self(void);
+    ce_thread_id ce_thread_self(void);
 
-    extern ce_thread* ce_thread_new(void (*proc)(), void* arg);
-    extern void ce_thread_del(ce_thread* thread);
+    ce_thread* ce_thread_new(void (*proc)(), void* arg);
+    void ce_thread_del(ce_thread* thread);
 
-    extern ce_thread_id ce_thread_get_id(ce_thread* thread);
+    ce_thread_id ce_thread_get_id(ce_thread* thread);
 
-    extern void ce_thread_wait(ce_thread* thread);
+    void ce_thread_wait(ce_thread* thread);
 
-    extern void ce_thread_exec(ce_thread* thread);
-    extern void ce_thread_exit(ce_thread* thread);
+    void ce_thread_exec(ce_thread* thread);
+    void ce_thread_exit(ce_thread* thread);
 
-    static inline void ce_thread_exit_wait_del(ce_thread* thread)
+    inline void ce_thread_exit_wait_del(ce_thread* thread)
     {
         ce_thread_exit(thread);
         ce_thread_wait(thread);
@@ -76,11 +76,11 @@ namespace cursedearth
 
     typedef struct ce_mutex ce_mutex;
 
-    extern ce_mutex* ce_mutex_new(void);
-    extern void ce_mutex_del(ce_mutex* mutex);
+    ce_mutex* ce_mutex_new(void);
+    void ce_mutex_del(ce_mutex* mutex);
 
-    extern void ce_mutex_lock(ce_mutex* mutex);
-    extern void ce_mutex_unlock(ce_mutex* mutex);
+    void ce_mutex_lock(ce_mutex* mutex);
+    void ce_mutex_unlock(ce_mutex* mutex);
 
     /*
      *  The wait condition struct provides a condition variable for synchronizing threads.
@@ -88,12 +88,12 @@ namespace cursedearth
 
     typedef struct ce_wait_condition ce_wait_condition;
 
-    extern ce_wait_condition* ce_wait_condition_new(void);
-    extern void ce_wait_condition_del(ce_wait_condition* wait_condition);
+    ce_wait_condition* ce_wait_condition_new(void);
+    void ce_wait_condition_del(ce_wait_condition* wait_condition);
 
-    extern void ce_wait_condition_wake_one(ce_wait_condition* wait_condition);
-    extern void ce_wait_condition_wake_all(ce_wait_condition* wait_condition);
-    extern void ce_wait_condition_wait(ce_wait_condition* wait_condition, ce_mutex* mutex);
+    void ce_wait_condition_wake_one(ce_wait_condition* wait_condition);
+    void ce_wait_condition_wake_all(ce_wait_condition* wait_condition);
+    void ce_wait_condition_wait(ce_wait_condition* wait_condition, ce_mutex* mutex);
 
     /*
      *  The once struct provides an once-only initialization.
@@ -101,10 +101,10 @@ namespace cursedearth
 
     typedef struct ce_once ce_once;
 
-    extern ce_once* ce_once_new(void);
-    extern void ce_once_del(ce_once* once);
+    ce_once* ce_once_new(void);
+    void ce_once_del(ce_once* once);
 
-    extern void ce_once_exec(ce_once* once, void (*proc)(), void* arg);
+    void ce_once_exec(ce_once* once, void (*proc)(), void* arg);
 
     /*
      *  The semaphore struct provides a general counting semaphore.
@@ -116,15 +116,15 @@ namespace cursedearth
         ce_wait_condition* wait_condition;
     } ce_semaphore;
 
-    extern ce_semaphore* ce_semaphore_new(size_t n);
-    extern void ce_semaphore_del(ce_semaphore* semaphore);
+    ce_semaphore* ce_semaphore_new(size_t n);
+    void ce_semaphore_del(ce_semaphore* semaphore);
 
-    extern size_t ce_semaphore_available(const ce_semaphore* semaphore);
+    size_t ce_semaphore_available(const ce_semaphore* semaphore);
 
-    extern void ce_semaphore_acquire(ce_semaphore* semaphore, size_t n);
-    extern void ce_semaphore_release(ce_semaphore* semaphore, size_t n);
+    void ce_semaphore_acquire(ce_semaphore* semaphore, size_t n);
+    void ce_semaphore_release(ce_semaphore* semaphore, size_t n);
 
-    extern bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n);
+    bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n);
 
     /*
      *  The thread pool struct manages a collection of threads.
@@ -132,7 +132,7 @@ namespace cursedearth
      *  All functions are thread-safe.
     */
 
-    extern struct ce_thread_pool {
+    struct ce_thread_pool {
         bool done;
         size_t idle_thread_count;
         ce_vector* threads;
@@ -144,13 +144,13 @@ namespace cursedearth
         ce_wait_condition* wait_all;
     }* ce_thread_pool;
 
-    extern void ce_thread_pool_init(size_t thread_count);
-    extern void ce_thread_pool_term(void);
+    void ce_thread_pool_init(size_t thread_count);
+    void ce_thread_pool_term(void);
 
-    extern void ce_thread_pool_enqueue(void (*proc)(), void* arg);
+    void ce_thread_pool_enqueue(void (*proc)(), void* arg);
 
-    extern void ce_thread_pool_wait_one(void);
-    extern void ce_thread_pool_wait_all(void);
+    void ce_thread_pool_wait_one(void);
+    void ce_thread_pool_wait_all(void);
 }
 
 #endif

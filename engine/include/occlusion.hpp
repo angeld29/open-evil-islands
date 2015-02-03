@@ -27,10 +27,10 @@ namespace cursedearth
 {
     typedef struct ce_occlusion ce_occlusion;
 
-    extern ce_occlusion* ce_occlusion_new(void);
-    extern void ce_occlusion_del(ce_occlusion* occlusion);
+    ce_occlusion* ce_occlusion_new(void);
+    void ce_occlusion_del(ce_occlusion* occlusion);
 
-    extern bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox);
+    bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox);
 }
 
 #endif

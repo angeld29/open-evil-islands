@@ -28,12 +28,12 @@ namespace cursedearth
         int width, height;
     } ce_viewport;
 
-    extern ce_viewport* ce_viewport_new(void);
-    extern void ce_viewport_del(ce_viewport* viewport);
+    ce_viewport* ce_viewport_new(void);
+    void ce_viewport_del(ce_viewport* viewport);
 
-    extern void ce_viewport_set_corner(ce_viewport* viewport, int x, int y);
-    extern void ce_viewport_set_dimensions(ce_viewport* viewport, int width, int height);
-    extern void ce_viewport_set_rect(ce_viewport* viewport, int x, int y, int width, int height);
+    void ce_viewport_set_corner(ce_viewport* viewport, int x, int y);
+    void ce_viewport_set_dimensions(ce_viewport* viewport, int width, int height);
+    void ce_viewport_set_rect(ce_viewport* viewport, int x, int y, int width, int height);
 }
 
 #endif

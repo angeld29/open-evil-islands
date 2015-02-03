@@ -24,7 +24,7 @@
 #include <cstdarg>
 
 #define CE_LOGGING_DEF_PROC_VA(name, level) \
-static inline void ce_logging_##name##_va(const char* format, va_list args) \
+inline void ce_logging_##name##_va(const char* format, va_list args) \
 { \
     ce_logging_report_va(level, format, args); \
 }
@@ -43,18 +43,18 @@ namespace cursedearth
         CE_LOGGING_LEVEL_ALL
     } ce_logging_level;
 
-    extern void ce_logging_set_level(ce_logging_level level);
+    void ce_logging_set_level(ce_logging_level level);
 
-    extern void ce_logging_report(ce_logging_level level, const char* format, ...);
-    extern void ce_logging_report_va(ce_logging_level level, const char* format, va_list args);
+    void ce_logging_report(ce_logging_level level, const char* format, ...);
+    void ce_logging_report_va(ce_logging_level level, const char* format, va_list args);
 
-    extern void ce_logging_debug(const char* format, ...);
-    extern void ce_logging_info(const char* format, ...);
-    extern void ce_logging_warning(const char* format, ...);
-    extern void ce_logging_error(const char* format, ...);
-    extern void ce_logging_critical(const char* format, ...);
-    extern void ce_logging_fatal(const char* format, ...);
-    extern void ce_logging_write(const char* format, ...);
+    void ce_logging_debug(const char* format, ...);
+    void ce_logging_info(const char* format, ...);
+    void ce_logging_warning(const char* format, ...);
+    void ce_logging_error(const char* format, ...);
+    void ce_logging_critical(const char* format, ...);
+    void ce_logging_fatal(const char* format, ...);
+    void ce_logging_write(const char* format, ...);
 
     CE_LOGGING_DEF_PROC_VA(debug, CE_LOGGING_LEVEL_DEBUG)
     CE_LOGGING_DEF_PROC_VA(info, CE_LOGGING_LEVEL_INFO)

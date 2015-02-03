@@ -45,8 +45,8 @@ namespace cursedearth
         void* data;
     } ce_anmfile;
 
-    extern ce_anmfile* ce_anmfile_open(ce_res_file* res_file, size_t index);
-    extern void ce_anmfile_close(ce_anmfile* anmfile);
+    ce_anmfile* ce_anmfile_open(ce_res_file* res_file, size_t index);
+    void ce_anmfile_close(ce_anmfile* anmfile);
 }
 
 #endif

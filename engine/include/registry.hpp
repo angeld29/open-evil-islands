@@ -30,8 +30,8 @@ namespace cursedearth
         CE_REGISTRY_KEY_LOCAL_MACHINE,
     } ce_registry_key;
 
-    extern char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
-    extern char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
+    char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
+    char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
 }
 
 #endif

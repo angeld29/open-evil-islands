@@ -42,15 +42,15 @@ namespace cursedearth
         CE_DISPLAY_REFLECTION_Y = 2
     } ce_display_reflection;
 
-    extern ce_display_rotation ce_display_rotation_from_degrees(int value);
-    extern ce_display_reflection ce_display_reflection_from_bool(bool x, bool y);
+    ce_display_rotation ce_display_rotation_from_degrees(int value);
+    ce_display_reflection ce_display_reflection_from_bool(bool x, bool y);
 
     typedef struct {
         int width, height, bpp, rate;
     } ce_displaymode;
 
-    extern ce_displaymode* ce_displaymode_new(int width, int height, int bpp, int rate);
-    extern void ce_displaymode_del(ce_displaymode* mode);
+    ce_displaymode* ce_displaymode_new(int width, int height, int bpp, int rate);
+    void ce_displaymode_del(ce_displaymode* mode);
 
     typedef struct ce_displaymng ce_displaymng;
 
@@ -71,15 +71,15 @@ namespace cursedearth
         void* impl;
     };
 
-    extern ce_displaymng* ce_displaymng_new(ce_displaymng_vtable vtable, size_t size, ...);
-    extern void ce_displaymng_del(ce_displaymng* displaymng);
+    ce_displaymng* ce_displaymng_new(ce_displaymng_vtable vtable, size_t size, ...);
+    void ce_displaymng_del(ce_displaymng* displaymng);
 
-    extern void ce_displaymng_dump_supported_modes_to_stdout(ce_displaymng* displaymng);
-    extern void ce_displaymng_dump_supported_rotations_to_stdout(ce_displaymng* displaymng);
-    extern void ce_displaymng_dump_supported_reflections_to_stdout(ce_displaymng* displaymng);
+    void ce_displaymng_dump_supported_modes_to_stdout(ce_displaymng* displaymng);
+    void ce_displaymng_dump_supported_rotations_to_stdout(ce_displaymng* displaymng);
+    void ce_displaymng_dump_supported_reflections_to_stdout(ce_displaymng* displaymng);
 
-    extern size_t ce_displaymng_enter(ce_displaymng* displaymng, int width, int height, int bpp, int rate, ce_display_rotation rotation, ce_display_reflection reflection);
-    extern void ce_displaymng_exit(ce_displaymng* displaymng);
+    size_t ce_displaymng_enter(ce_displaymng* displaymng, int width, int height, int bpp, int rate, ce_display_rotation rotation, ce_display_reflection reflection);
+    void ce_displaymng_exit(ce_displaymng* displaymng);
 }
 
 #endif

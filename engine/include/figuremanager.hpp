@@ -34,7 +34,7 @@ namespace cursedearth
         void* listener;
     } ce_figure_manager_listener;
 
-    extern struct ce_figure_manager {
+    struct ce_figure_manager {
         ce_vector* res_files;
         ce_vector* figprotos;
         ce_vector* figmeshes;
@@ -42,20 +42,20 @@ namespace cursedearth
         ce_vector* listeners;
     }* ce_figure_manager;
 
-    extern void ce_figure_manager_init(void);
-    extern void ce_figure_manager_term(void);
-    extern void ce_figure_manager_clear(void);
+    void ce_figure_manager_init(void);
+    void ce_figure_manager_term(void);
+    void ce_figure_manager_clear(void);
 
-    static inline void ce_figure_manager_add_listener(ce_figure_manager_listener* listener)
+    inline void ce_figure_manager_add_listener(ce_figure_manager_listener* listener)
     {
         ce_vector_push_back(ce_figure_manager->listeners, listener);
     }
 
-    extern ce_figproto* ce_figure_manager_create_proto(const char* name);
-    extern ce_figmesh* ce_figure_manager_create_mesh(const char* name, const ce_complection* complection);
-    extern ce_figentity* ce_figure_manager_create_entity(const char* name, const ce_complection* complection, const ce_vec3* position, const ce_quat* orientation, const char* parts[], const char* textures[]);
+    ce_figproto* ce_figure_manager_create_proto(const char* name);
+    ce_figmesh* ce_figure_manager_create_mesh(const char* name, const ce_complection* complection);
+    ce_figentity* ce_figure_manager_create_entity(const char* name, const ce_complection* complection, const ce_vec3* position, const ce_quat* orientation, const char* parts[], const char* textures[]);
 
-    extern void ce_figure_manager_remove_entity(ce_figentity* entity);
+    void ce_figure_manager_remove_entity(ce_figentity* entity);
 }
 
 #endif

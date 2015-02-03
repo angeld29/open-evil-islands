@@ -25,25 +25,25 @@
 #include <cstdint>
 
 #define CE_LIB_DEF_MIN(T) \
-static inline T ce_min_##T(T a, T b) \
+inline T ce_min_##T(T a, T b) \
 { \
     return a < b ? a : b; \
 }
 
 #define CE_LIB_DEF_MAX(T) \
-static inline T ce_max_##T(T a, T b) \
+inline T ce_max_##T(T a, T b) \
 { \
     return a > b ? a : b; \
 }
 
 #define CE_LIB_DEF_CLAMP(T) \
-static inline T ce_clamp_##T(T v, T a, T b) \
+inline T ce_clamp_##T(T v, T a, T b) \
 { \
     return v < a ? a : (v > b ? b : v); \
 }
 
 #define CE_LIB_DEF_SWAP(T) \
-static inline void ce_swap_##T(T* a, T* b) \
+inline void ce_swap_##T(T* a, T* b) \
 { \
     *a ^= *b; /* a' = (a ^ b)           */ \
     *b ^= *a; /* b' = (b ^ (a ^ b)) = a */ \
@@ -51,7 +51,7 @@ static inline void ce_swap_##T(T* a, T* b) \
 }
 
 #define CE_LIB_DEF_SWAP_TEMP(T) \
-static inline void ce_swap_temp_##T(T* a, T* b) \
+inline void ce_swap_temp_##T(T* a, T* b) \
 { \
     T t = *a; \
     *a = *b; \
@@ -85,13 +85,13 @@ namespace cursedearth
     CE_LIB_DEF_SWAP(size_t)
 
     // is power of two (using 2's complement arithmetic)
-    static inline bool ce_ispot(size_t v)
+    inline bool ce_ispot(size_t v)
     {
         return 0 == (v & (v - 1));
     }
 
     // next largest power of two (using SWAR algorithm)
-    static inline size_t ce_nlpot(size_t v)
+    inline size_t ce_nlpot(size_t v)
     {
         v |= (v >> 1);
         v |= (v >> 2);
@@ -107,7 +107,7 @@ namespace cursedearth
         return v + 1;
     }
 
-    static inline void ce_pass(void) {}
+    inline void ce_pass(void) {}
 }
 
 #undef CE_LIB_DEF_ALL

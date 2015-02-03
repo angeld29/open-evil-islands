@@ -25,7 +25,7 @@
 
 namespace cursedearth
 {
-    extern ce_displaymng* ce_displaymng_create(void);
+    ce_displaymng* ce_displaymng_create(void);
 }
 
 #endif

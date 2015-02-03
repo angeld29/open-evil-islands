@@ -54,28 +54,28 @@ namespace cursedearth
     } ce_res_file;
 
     // res file takes ownership of the mem file if successfull
-    extern ce_res_file* ce_res_file_new(const char* name, ce_mem_file* mem_file);
-    extern ce_res_file* ce_res_file_new_path(const char* path);
-    extern void ce_res_file_del(ce_res_file* res_file);
+    ce_res_file* ce_res_file_new(const char* name, ce_mem_file* mem_file);
+    ce_res_file* ce_res_file_new_path(const char* path);
+    void ce_res_file_del(ce_res_file* res_file);
 
-    extern size_t ce_res_file_node_index(const ce_res_file* res_file, const char* name);
+    size_t ce_res_file_node_index(const ce_res_file* res_file, const char* name);
 
-    static inline const char* ce_res_file_node_name(const ce_res_file* res_file, size_t index)
+    inline const char* ce_res_file_node_name(const ce_res_file* res_file, size_t index)
     {
         return res_file->nodes[index].name->str;
     }
 
-    static inline size_t ce_res_file_node_size(const ce_res_file* res_file, size_t index)
+    inline size_t ce_res_file_node_size(const ce_res_file* res_file, size_t index)
     {
         return res_file->nodes[index].data_length;
     }
 
-    static inline time_t ce_res_file_node_modified(const ce_res_file* res_file, int index)
+    inline time_t ce_res_file_node_modified(const ce_res_file* res_file, int index)
     {
         return res_file->nodes[index].modified;
     }
 
-    extern void* ce_res_file_node_data(ce_res_file* res_file, size_t index);
+    void* ce_res_file_node_data(ce_res_file* res_file, size_t index);
 }
 
 #endif

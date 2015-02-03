@@ -44,56 +44,56 @@ namespace cursedearth
         } value;
     } ce_value;
 
-    extern ce_value* ce_value_new(ce_type type);
-    extern void ce_value_del(ce_value* value);
+    ce_value* ce_value_new(ce_type type);
+    void ce_value_del(ce_value* value);
 
-    extern void ce_value_get(ce_value* value, void* arg);
-    extern void ce_value_set(ce_value* value, const void* arg);
+    void ce_value_get(ce_value* value, void* arg);
+    void ce_value_set(ce_value* value, const void* arg);
 
-    static inline bool ce_value_get_bool(ce_value* value)
+    inline bool ce_value_get_bool(ce_value* value)
     {
         bool arg;
         ce_value_get(value, &arg);
         return arg;
     }
 
-    static inline int ce_value_get_int(ce_value* value)
+    inline int ce_value_get_int(ce_value* value)
     {
         int arg;
         ce_value_get(value, &arg);
         return arg;
     }
 
-    static inline float ce_value_get_float(ce_value* value)
+    inline float ce_value_get_float(ce_value* value)
     {
         float arg;
         ce_value_get(value, &arg);
         return arg;
     }
 
-    static inline const char* ce_value_get_string(ce_value* value)
+    inline const char* ce_value_get_string(ce_value* value)
     {
         const char* arg = NULL;
         ce_value_get(value, &arg);
         return arg;
     }
 
-    static inline void ce_value_set_bool(ce_value* value, bool arg)
+    inline void ce_value_set_bool(ce_value* value, bool arg)
     {
         ce_value_set(value, &arg);
     }
 
-    static inline void ce_value_set_int(ce_value* value, int arg)
+    inline void ce_value_set_int(ce_value* value, int arg)
     {
         ce_value_set(value, &arg);
     }
 
-    static inline void ce_value_set_float(ce_value* value, float arg)
+    inline void ce_value_set_float(ce_value* value, float arg)
     {
         ce_value_set(value, &arg);
     }
 
-    static inline void ce_value_set_string(ce_value* value, const char* arg)
+    inline void ce_value_set_string(ce_value* value, const char* arg)
     {
         ce_value_set(value, arg);
     }

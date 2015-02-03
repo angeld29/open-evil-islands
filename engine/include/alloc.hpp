@@ -25,13 +25,13 @@
 
 namespace cursedearth
 {
-    extern void ce_alloc_init(void);
+    void ce_alloc_init(void);
 
-    extern void* ce_alloc(size_t size);
-    extern void* ce_alloc_zero(size_t size);
-    extern void* ce_realloc(void* ptr, size_t size, size_t new_size);
-    extern void ce_free(void* ptr, size_t size);
-    extern void ce_free_slow(void* ptr);
+    void* ce_alloc(size_t size);
+    void* ce_alloc_zero(size_t size);
+    void* ce_realloc(void* ptr, size_t size, size_t new_size);
+    void ce_free(void* ptr, size_t size);
+    void ce_free_slow(void* ptr);
 }
 
 #endif

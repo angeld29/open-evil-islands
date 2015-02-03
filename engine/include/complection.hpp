@@ -27,10 +27,10 @@ namespace cursedearth
         float dexterity, strength, height;
     } ce_complection;
 
-    extern ce_complection* ce_complection_init(ce_complection* complection, float dexterity, float strength, float height);
-    extern ce_complection* ce_complection_init_array(ce_complection* complection, const float* array);
-    extern ce_complection* ce_complection_copy(ce_complection* complection, const ce_complection* other);
-    extern bool ce_complection_equal(const ce_complection* complection, const ce_complection* other);
+    ce_complection* ce_complection_init(ce_complection* complection, float dexterity, float strength, float height);
+    ce_complection* ce_complection_init_array(ce_complection* complection, const float* array);
+    ce_complection* ce_complection_copy(ce_complection* complection, const ce_complection* other);
+    bool ce_complection_equal(const ce_complection* complection, const ce_complection* other);
 }
 
 #endif

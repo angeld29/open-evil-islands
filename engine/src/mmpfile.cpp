@@ -176,7 +176,7 @@ static void (*ce_mmpfile_write_header_procs[CE_MMPFILE_FORMAT_COUNT])(ce_mmpfile
     [CE_MMPFILE_FORMAT_YCBCR] = ce_mmpfile_write_header_null,
 };
 
-static inline size_t ce_mmpfile_storage_size_generic(unsigned int width,
+inline size_t ce_mmpfile_storage_size_generic(unsigned int width,
                                                 unsigned int height,
                                                 ce_mmpfile_format format)
 {

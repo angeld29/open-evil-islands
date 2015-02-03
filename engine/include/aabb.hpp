@@ -37,16 +37,16 @@ namespace cursedearth
         float radius;
     } ce_aabb;
 
-    extern ce_aabb* ce_aabb_init(ce_aabb* aabb, const ce_vec3* origin, const ce_vec3* extents, float radius);
-    extern ce_aabb* ce_aabb_init_zero(ce_aabb* aabb);
-    extern ce_aabb* ce_aabb_copy(ce_aabb* aabb, const ce_aabb* other);
+    ce_aabb* ce_aabb_init(ce_aabb* aabb, const ce_vec3* origin, const ce_vec3* extents, float radius);
+    ce_aabb* ce_aabb_init_zero(ce_aabb* aabb);
+    ce_aabb* ce_aabb_copy(ce_aabb* aabb, const ce_aabb* other);
 
-    extern ce_aabb* ce_aabb_clear(ce_aabb* aabb);
-    extern ce_aabb* ce_aabb_update_radius(ce_aabb* aabb);
+    ce_aabb* ce_aabb_clear(ce_aabb* aabb);
+    ce_aabb* ce_aabb_update_radius(ce_aabb* aabb);
 
-    extern ce_aabb* ce_aabb_merge_aabb(ce_aabb* aabb, const ce_aabb* other);
-    extern ce_aabb* ce_aabb_merge_point(ce_aabb* aabb, const ce_vec3* point);
-    extern ce_aabb* ce_aabb_merge_point_array(ce_aabb* aabb, const float* point);
+    ce_aabb* ce_aabb_merge_aabb(ce_aabb* aabb, const ce_aabb* other);
+    ce_aabb* ce_aabb_merge_point(ce_aabb* aabb, const ce_vec3* point);
+    ce_aabb* ce_aabb_merge_point_array(ce_aabb* aabb, const float* point);
 }
 
 #endif

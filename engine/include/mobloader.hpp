@@ -33,19 +33,19 @@ namespace cursedearth
         ce_mob_file* mob_file;
     } ce_mob_task;
 
-    extern ce_mob_task* ce_mob_task_new(const char* name);
-    extern void ce_mob_task_del(ce_mob_task* mob_task);
+    ce_mob_task* ce_mob_task_new(const char* name);
+    void ce_mob_task_del(ce_mob_task* mob_task);
 
-    extern struct ce_mob_loader {
+    struct ce_mob_loader {
         size_t completed_job_count;
         size_t queued_job_count;
         ce_vector* mob_tasks;
     }* ce_mob_loader;
 
-    extern void ce_mob_loader_init(void);
-    extern void ce_mob_loader_term(void);
+    void ce_mob_loader_init(void);
+    void ce_mob_loader_term(void);
 
-    extern void ce_mob_loader_load_mob(const char* name);
+    void ce_mob_loader_load_mob(const char* name);
 }
 
 #endif

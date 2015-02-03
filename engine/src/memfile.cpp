@@ -161,7 +161,7 @@ typedef struct {
     FILE* file;
 } ce_bstd_file;
 
-static inline void ce_bstd_file_detect_eof(ce_bstd_file* bstd_file)
+inline void ce_bstd_file_detect_eof(ce_bstd_file* bstd_file)
 {
     // Function getc is implemented as a macro,
     // so the argument should never be an expression with side effects.

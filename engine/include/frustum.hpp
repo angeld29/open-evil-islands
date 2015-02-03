@@ -44,12 +44,12 @@ namespace cursedearth
         ce_plane planes[CE_FRUSTUM_PLANE_COUNT];
     } ce_frustum;
 
-    extern ce_frustum* ce_frustum_init(ce_frustum* frustum, float fov, float aspect, float near, float far, const ce_vec3* position, const ce_vec3* forward, const ce_vec3* right, const ce_vec3* up);
+    ce_frustum* ce_frustum_init(ce_frustum* frustum, float fov, float aspect, float near, float far, const ce_vec3* position, const ce_vec3* forward, const ce_vec3* right, const ce_vec3* up);
 
-    extern bool ce_frustum_test_point(const ce_frustum* frustum, const ce_vec3* point);
-    extern bool ce_frustum_test_sphere(const ce_frustum* frustum, const ce_sphere* sphere);
-    extern bool ce_frustum_test_aabb(const ce_frustum* frustum, const ce_aabb* aabb);
-    extern bool ce_frustum_test_bbox(const ce_frustum* frustum, const ce_bbox* bbox);
+    bool ce_frustum_test_point(const ce_frustum* frustum, const ce_vec3* point);
+    bool ce_frustum_test_sphere(const ce_frustum* frustum, const ce_sphere* sphere);
+    bool ce_frustum_test_aabb(const ce_frustum* frustum, const ce_aabb* aabb);
+    bool ce_frustum_test_bbox(const ce_frustum* frustum, const ce_bbox* bbox);
 }
 
 #endif

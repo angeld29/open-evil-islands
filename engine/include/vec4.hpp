@@ -27,7 +27,7 @@ namespace cursedearth
         float x, y, z, w;
     } ce_vec4;
 
-    static inline ce_vec4* ce_vec4_init(ce_vec4* vec, float x, float y, float z, float w)
+    inline ce_vec4* ce_vec4_init(ce_vec4* vec, float x, float y, float z, float w)
     {
         vec->x = x;
         vec->y = y;
@@ -36,7 +36,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec4* ce_vec4_init_scalar(ce_vec4* vec, float s)
+    inline ce_vec4* ce_vec4_init_scalar(ce_vec4* vec, float s)
     {
         vec->x = s;
         vec->y = s;
@@ -45,7 +45,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec4* ce_vec4_init_array(ce_vec4* vec, const float* array)
+    inline ce_vec4* ce_vec4_init_array(ce_vec4* vec, const float* array)
     {
         vec->x = array[0];
         vec->y = array[1];
@@ -54,7 +54,7 @@ namespace cursedearth
         return vec;
     }
 
-    static inline ce_vec4* ce_vec4_copy(ce_vec4* vec, const ce_vec4* other)
+    inline ce_vec4* ce_vec4_copy(ce_vec4* vec, const ce_vec4* other)
     {
         vec->x = other->x;
         vec->y = other->y;

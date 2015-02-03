@@ -74,10 +74,10 @@ namespace cursedearth
         ce_vec2 pointer_offset;
     } ce_input_context;
 
-    extern ce_input_context* ce_input_context_new(void);
-    extern void ce_input_context_del(ce_input_context* input_context);
+    ce_input_context* ce_input_context_new(void);
+    void ce_input_context_del(ce_input_context* input_context);
 
-    extern void ce_input_context_clear(ce_input_context* input_context);
+    void ce_input_context_clear(ce_input_context* input_context);
 
     // level 1 - events
 
@@ -101,25 +101,25 @@ namespace cursedearth
         ce_vector* input_events;
     } ce_input_supply;
 
-    extern ce_input_supply* ce_input_supply_new(const ce_input_context* input_context);
-    extern void ce_input_supply_del(ce_input_supply* input_supply);
+    ce_input_supply* ce_input_supply_new(const ce_input_context* input_context);
+    void ce_input_supply_del(ce_input_supply* input_supply);
 
-    extern void ce_input_supply_advance(ce_input_supply* input_supply, float elapsed);
+    void ce_input_supply_advance(ce_input_supply* input_supply, float elapsed);
 
-    extern ce_input_event* ce_input_supply_button(ce_input_supply* input_supply, ce_input_button input_button);
-    extern ce_input_event* ce_input_supply_single_front(ce_input_supply* input_supply, const ce_input_event* input_event);
-    extern ce_input_event* ce_input_supply_single_back(ce_input_supply* input_supply, const ce_input_event* input_event);
+    ce_input_event* ce_input_supply_button(ce_input_supply* input_supply, ce_input_button input_button);
+    ce_input_event* ce_input_supply_single_front(ce_input_supply* input_supply, const ce_input_event* input_event);
+    ce_input_event* ce_input_supply_single_back(ce_input_supply* input_supply, const ce_input_event* input_event);
 
-    extern ce_input_event* ce_input_supply_and2(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2);
-    extern ce_input_event* ce_input_supply_and3(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2, const ce_input_event* input_event3);
-    extern ce_input_event* ce_input_supply_or2(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2);
-    extern ce_input_event* ce_input_supply_or3(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2, const ce_input_event* input_event3);
+    ce_input_event* ce_input_supply_and2(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2);
+    ce_input_event* ce_input_supply_and3(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2, const ce_input_event* input_event3);
+    ce_input_event* ce_input_supply_or2(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2);
+    ce_input_event* ce_input_supply_or3(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2, const ce_input_event* input_event3);
 
-    extern ce_input_event* ce_input_supply_repeat(ce_input_supply* input_supply, const ce_input_event* input_event, int delay /* ms */, int rate /* tps riggers per second */);
+    ce_input_event* ce_input_supply_repeat(ce_input_supply* input_supply, const ce_input_event* input_event, int delay /* ms */, int rate /* tps riggers per second */);
 
     // level 2 - shortcuts
 
-    extern ce_input_event* ce_input_supply_shortcut(ce_input_supply* input_supply, const char* key_sequence);
+    ce_input_event* ce_input_supply_shortcut(ce_input_supply* input_supply, const char* key_sequence);
 }
 
 #endif

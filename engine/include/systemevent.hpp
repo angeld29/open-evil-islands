@@ -34,7 +34,7 @@ namespace cursedearth
         CE_SYSTEM_EVENT_TYPE_COUNT
     } ce_system_event_type;
 
-    extern void ce_system_event_register(void (*handler)(ce_system_event_type type));
+    void ce_system_event_register(void (*handler)(ce_system_event_type type));
 }
 
 #endif

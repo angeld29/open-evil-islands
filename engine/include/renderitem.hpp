@@ -55,13 +55,13 @@ namespace cursedearth
         void* impl;
     };
 
-    extern ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...);
-    extern void ce_renderitem_del(ce_renderitem* renderitem);
+    ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...);
+    void ce_renderitem_del(ce_renderitem* renderitem);
 
-    extern void ce_renderitem_update(ce_renderitem* renderitem, ...);
-    extern void ce_renderitem_render(ce_renderitem* renderitem);
+    void ce_renderitem_update(ce_renderitem* renderitem, ...);
+    void ce_renderitem_render(ce_renderitem* renderitem);
 
-    extern ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem);
+    ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem);
 }
 
 #endif

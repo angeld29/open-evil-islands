@@ -83,8 +83,8 @@ namespace cursedearth
         void* data;
     } ce_mprfile;
 
-    extern ce_mprfile* ce_mprfile_open(ce_res_file* res_file);
-    extern void ce_mprfile_close(ce_mprfile* mprfile);
+    ce_mprfile* ce_mprfile_open(ce_res_file* res_file);
+    void ce_mprfile_close(ce_mprfile* mprfile);
 }
 
 #endif

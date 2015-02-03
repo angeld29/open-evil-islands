@@ -44,10 +44,10 @@ namespace cursedearth
         ce_vector* childs;
     } ce_fignode;
 
-    extern ce_fignode* ce_fignode_new(ce_res_file* mod_res_file, ce_res_file* bon_res_file, ce_res_file* anm_res_files[], ce_lnkfile* lnkfile);
-    extern void ce_fignode_del(ce_fignode* fignode);
+    ce_fignode* ce_fignode_new(ce_res_file* mod_res_file, ce_res_file* bon_res_file, ce_res_file* anm_res_files[], ce_lnkfile* lnkfile);
+    void ce_fignode_del(ce_fignode* fignode);
 
-    extern void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode, ce_renderqueue* renderqueue);
+    void ce_fignode_accept_renderqueue_cascade(ce_fignode* fignode, ce_renderqueue* renderqueue);
 }
 
 #endif

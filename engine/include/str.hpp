@@ -29,13 +29,13 @@ namespace cursedearth
      *  Copies a string that contains the n leftmost characters of the s.
      *  The entire string is copied if n is greater than string length.
      */
-    extern char* ce_strleft(char* dst, const char* src, size_t n);
+    char* ce_strleft(char* dst, const char* src, size_t n);
 
     /**
      *  Copies a string that contains the n rightmost characters of the s.
      *  The entire string is copied if n is greater than string length.
      */
-    extern char* ce_strright(char* dst, const char* src, size_t n);
+    char* ce_strright(char* dst, const char* src, size_t n);
 
     /**
      *  Copies a string, n characters long beginning at position pos.
@@ -44,19 +44,19 @@ namespace cursedearth
      *  available in the string starting at the given position, the function
      *  copies all characters that are available from the specified position.
      */
-    extern char* ce_strmid(char* dst, const char* src, size_t pos, size_t n);
+    char* ce_strmid(char* dst, const char* src, size_t pos, size_t n);
 
     /// Remove all whitespace from the start and the end.
-    extern char* ce_strtrim(char* dst, const char* src);
+    char* ce_strtrim(char* dst, const char* src);
 
     /// Convert a string into upper case.
-    extern char* ce_strupr(char* dst, const char* src);
+    char* ce_strupr(char* dst, const char* src);
 
     /// Convert a string into lower case.
-    extern char* ce_strlwr(char* dst, const char* src);
+    char* ce_strlwr(char* dst, const char* src);
 
     /// Reverse a string.
-    extern char* ce_strrev(char* dst, const char* src);
+    char* ce_strrev(char* dst, const char* src);
 
     /**
      *  C substring replacement.
@@ -72,22 +72,22 @@ namespace cursedearth
      *  of 'src', 'from', or 'to' are NULL, the function returns NULL, indicating an
      *  error condition. If any other error occurs, the function returns NULL.
      */
-    extern char* ce_strrep(char* dst, const char* src, size_t size, const char* from, const char* to);
+    char* ce_strrep(char* dst, const char* src, size_t size, const char* from, const char* to);
 
     /**
      *  Replaces all occurrences of a character in a string with another character.
      *  Return number of replacements made.
      */
-    extern size_t ce_strrepc(char* s, char from, char to);
+    size_t ce_strrepc(char* s, char from, char to);
 
     /// Compare s1 and s2, ignoring case.
-    extern int ce_strcasecmp(const char* s1, const char* s2);
+    int ce_strcasecmp(const char* s1, const char* s2);
 
     /// Compare no more than n chars of s1 and s2, ignoring case.
-    extern int ce_strncasecmp(const char* s1, const char* s2, size_t n);
+    int ce_strncasecmp(const char* s1, const char* s2, size_t n);
 
     /// Similar to strstr but this function ignores the case of both strings.
-    extern char* ce_strcasestr(const char* haystack, const char* needle);
+    char* ce_strcasestr(const char* haystack, const char* needle);
 
     /**
      *  @brief Consistent, safe string concatenation.
@@ -99,7 +99,7 @@ namespace cursedearth
      *  Returns strlen(src) + MIN(size, strlen(initial dst)).
      *  If retval >= size, truncation occurred.
      */
-    extern size_t ce_strlcat(char* dst, const char* src, size_t size);
+    size_t ce_strlcat(char* dst, const char* src, size_t size);
 
     /**
      *  @brief Consistent, safe string copy.
@@ -109,22 +109,22 @@ namespace cursedearth
      *  will be copied. Always NULL terminates (unless size == 0).
      *  Return strlen(src); if retval >= size, truncation occurred.
      */
-    extern size_t ce_strlcpy(char* dst, const char* src, size_t size);
+    size_t ce_strlcpy(char* dst, const char* src, size_t size);
 
     /**
      *  Find the length of s, but scan at most n characters.
      *  If no '\0' terminator is found in that many characters, return n.
      */
-    extern size_t ce_strnlen(const char* s, size_t n);
+    size_t ce_strnlen(const char* s, size_t n);
 
     /// Find the last occurrence in string of any character in accept.
-    extern char* ce_strrpbrk(const char* s, const char* accept);
+    char* ce_strrpbrk(const char* s, const char* accept);
 
     /**
      *  Return the next delimited token from sp, terminating
      *  it with a '\0', and update sp to point past it.
      */
-    extern char* ce_strsep(char** sp, const char* delim);
+    char* ce_strsep(char** sp, const char* delim);
 }
 
 #endif

@@ -50,15 +50,15 @@ namespace cursedearth
         char impl[];
     };
 
-    extern ce_video_resource* ce_video_resource_new(ce_mem_file* mem_file);
-    extern void ce_video_resource_del(ce_video_resource* video_resource);
+    ce_video_resource* ce_video_resource_new(ce_mem_file* mem_file);
+    void ce_video_resource_del(ce_video_resource* video_resource);
 
-    static inline bool ce_video_resource_read(ce_video_resource* video_resource)
+    inline bool ce_video_resource_read(ce_video_resource* video_resource)
     {
         return (*video_resource->vtable.read)(video_resource);
     }
 
-    extern bool ce_video_resource_reset(ce_video_resource* video_resource);
+    bool ce_video_resource_reset(ce_video_resource* video_resource);
 }
 
 #endif

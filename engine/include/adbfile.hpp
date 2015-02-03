@@ -63,8 +63,8 @@ namespace cursedearth
         ce_adb_record* records;
     } ce_adb_file;
 
-    extern ce_adb_file* ce_adb_file_new(ce_mem_file* mem_file);
-    extern void ce_adb_file_del(ce_adb_file* adb_file);
+    ce_adb_file* ce_adb_file_new(ce_mem_file* mem_file);
+    void ce_adb_file_del(ce_adb_file* adb_file);
 }
 
 #endif

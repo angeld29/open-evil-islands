@@ -41,8 +41,8 @@ namespace cursedearth
         ce_lnklink* links;
     } ce_lnkfile;
 
-    extern ce_lnkfile* ce_lnkfile_open(ce_res_file* res_file, const char* name);
-    extern void ce_lnkfile_close(ce_lnkfile* lnkfile);
+    ce_lnkfile* ce_lnkfile_open(ce_res_file* res_file, const char* name);
+    void ce_lnkfile_close(ce_lnkfile* lnkfile);
 }
 
 #endif

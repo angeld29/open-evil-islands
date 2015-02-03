@@ -31,8 +31,8 @@ namespace cursedearth
         ce_value* value;
     } ce_property;
 
-    extern ce_property* ce_property_new(const char* name, ce_type type);
-    extern void ce_property_del(ce_property* property);
+    ce_property* ce_property_new(const char* name, ce_type type);
+    void ce_property_del(ce_property* property);
 }
 
 #endif

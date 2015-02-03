@@ -41,19 +41,19 @@ namespace cursedearth
         void* impl;
     } ce_texture;
 
-    extern ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile);
-    extern void ce_texture_del(ce_texture* texture);
+    ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile);
+    void ce_texture_del(ce_texture* texture);
 
-    extern bool ce_texture_is_valid(const ce_texture* texture);
-    extern bool ce_texture_is_equal(const ce_texture* texture, const ce_texture* other);
+    bool ce_texture_is_valid(const ce_texture* texture);
+    bool ce_texture_is_equal(const ce_texture* texture, const ce_texture* other);
 
-    extern void ce_texture_replace(ce_texture* texture, ce_mmpfile* mmpfile);
-    extern void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode);
+    void ce_texture_replace(ce_texture* texture, ce_mmpfile* mmpfile);
+    void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode);
 
-    extern void ce_texture_bind(ce_texture* texture);
-    extern void ce_texture_unbind(ce_texture* texture);
+    void ce_texture_bind(ce_texture* texture);
+    void ce_texture_unbind(ce_texture* texture);
 
-    static inline ce_texture* ce_texture_add_ref(ce_texture* texture)
+    inline ce_texture* ce_texture_add_ref(ce_texture* texture)
     {
         ce_atomic_inc(int, &texture->ref_count);
         return texture;

@@ -88,15 +88,15 @@ namespace cursedearth
         } loading;
     } ce_scenemng;
 
-    extern ce_scenemng* ce_scenemng_new(void);
-    extern void ce_scenemng_del(ce_scenemng* scenemng);
+    ce_scenemng* ce_scenemng_new(void);
+    void ce_scenemng_del(ce_scenemng* scenemng);
 
-    extern void ce_scenemng_change_state(ce_scenemng* scenemng, int state);
+    void ce_scenemng_change_state(ce_scenemng* scenemng, int state);
 
-    extern void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed);
-    extern void ce_scenemng_render(ce_scenemng* scenemng);
+    void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed);
+    void ce_scenemng_render(ce_scenemng* scenemng);
 
-    extern void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name);
+    void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name);
 }
 
 #endif

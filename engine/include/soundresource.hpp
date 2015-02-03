@@ -67,11 +67,11 @@ namespace cursedearth
         char impl[];
     };
 
-    extern ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file);
-    extern void ce_sound_resource_del(ce_sound_resource* sound_resource);
+    ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file);
+    void ce_sound_resource_del(ce_sound_resource* sound_resource);
 
-    extern size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size);
-    extern bool ce_sound_resource_reset(ce_sound_resource* sound_resource);
+    size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size);
+    bool ce_sound_resource_reset(ce_sound_resource* sound_resource);
 }
 
 #endif

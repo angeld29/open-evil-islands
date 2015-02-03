@@ -29,7 +29,7 @@
 
 namespace cursedearth
 {
-    extern struct ce_root {
+    struct ce_root {
         bool done;
         bool show_bboxes;
         bool comprehensive_bbox_only;
@@ -45,8 +45,8 @@ namespace cursedearth
         ce_renderwindow_listener renderwindow_listener;
     } ce_root;
 
-    extern bool ce_root_init(ce_optparse* optparse, int argc, char* argv[]);
-    extern int ce_root_exec(void);
+    bool ce_root_init(ce_optparse* optparse, int argc, char* argv[]);
+    int ce_root_exec(void);
 }
 
 #endif

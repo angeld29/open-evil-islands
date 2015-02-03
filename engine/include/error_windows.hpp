@@ -23,7 +23,7 @@
 
 namespace cursedearth
 {
-    extern void ce_error_report_windows_last(const char* module);
+    void ce_error_report_windows_last(const char* module);
 }
 
 #endif

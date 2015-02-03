@@ -37,16 +37,16 @@ namespace cursedearth
         ce_fignode* fignode;
     } ce_figproto;
 
-    extern ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file);
-    extern void ce_figproto_del(ce_figproto* figproto);
+    ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file);
+    void ce_figproto_del(ce_figproto* figproto);
 
-    static inline ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
+    inline ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
     {
         ce_atomic_inc(int, &figproto->ref_count);
         return figproto;
     }
 
-    extern void ce_figproto_accept_renderqueue(ce_figproto* figproto, ce_renderqueue* renderqueue);
+    void ce_figproto_accept_renderqueue(ce_figproto* figproto, ce_renderqueue* renderqueue);
 }
 
 #endif

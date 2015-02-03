@@ -23,9 +23,9 @@
 
 namespace cursedearth
 {
-    extern char* ce_bytefmt_size(char* buffer, size_t size, long long int bytes);
-    extern char* ce_bytefmt_dot(char* buffer, size_t size, long long int bytes);
-    extern char* ce_bytefmt_detail(char* buffer, size_t size, long long int bytes);
+    char* ce_bytefmt_size(char* buffer, size_t size, long long int bytes);
+    char* ce_bytefmt_dot(char* buffer, size_t size, long long int bytes);
+    char* ce_bytefmt_detail(char* buffer, size_t size, long long int bytes);
 }
 
 #endif

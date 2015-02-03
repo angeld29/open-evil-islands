@@ -32,9 +32,9 @@ namespace cursedearth
         ce_vec3 scaling;
     } ce_transform;
 
-    extern const ce_transform CE_TRANSFORM_IDENTITY;
+    const ce_transform CE_TRANSFORM_IDENTITY;
 
-    static inline ce_transform* ce_transform_init(ce_transform* transform, const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling)
+    inline ce_transform* ce_transform_init(ce_transform* transform, const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling)
     {
         ce_vec3_copy(&transform->translation, translation);
         ce_quat_copy(&transform->rotation, rotation);
@@ -42,7 +42,7 @@ namespace cursedearth
         return transform;
     }
 
-    static inline ce_transform* ce_transform_init_identity(ce_transform* transform)
+    inline ce_transform* ce_transform_init_identity(ce_transform* transform)
     {
         ce_vec3_init_zero(&transform->translation);
         ce_quat_init_identity(&transform->rotation);
@@ -50,7 +50,7 @@ namespace cursedearth
         return transform;
     }
 
-    static inline ce_transform* ce_transform_copy(ce_transform* transform, const ce_transform* other)
+    inline ce_transform* ce_transform_copy(ce_transform* transform, const ce_transform* other)
     {
         ce_vec3_copy(&transform->translation, &other->translation);
         ce_quat_copy(&transform->rotation, &other->rotation);

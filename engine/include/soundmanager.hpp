@@ -30,7 +30,7 @@
 
 namespace cursedearth
 {
-    extern struct ce_sound_manager {
+    struct ce_sound_manager {
         ce_thread_id thread_id;
         ce_hash_key last_hash_key;
         ce_vector* res_files;
@@ -40,17 +40,17 @@ namespace cursedearth
         ce_thread* thread;
     }* ce_sound_manager;
 
-    extern void ce_sound_manager_init(void);
-    extern void ce_sound_manager_term(void);
+    void ce_sound_manager_init(void);
+    void ce_sound_manager_term(void);
 
-    extern void ce_sound_manager_advance(float elapsed);
+    void ce_sound_manager_advance(float elapsed);
 
-    extern ce_hash_key ce_sound_manager_create_object(const char* name);
-    extern void ce_sound_manager_remove_object(ce_hash_key hash_key);
+    ce_hash_key ce_sound_manager_create_object(const char* name);
+    void ce_sound_manager_remove_object(ce_hash_key hash_key);
 
-    extern void ce_sound_manager_state_object(ce_hash_key hash_key, int state);
+    void ce_sound_manager_state_object(ce_hash_key hash_key, int state);
 
-    static inline ce_sound_bundle* ce_sound_manager_get_bundle(ce_hash_key hash_key)
+    inline ce_sound_bundle* ce_sound_manager_get_bundle(ce_hash_key hash_key)
     {
         return ce_hash_find(ce_sound_manager->sound_bundles, hash_key);
     }

@@ -142,7 +142,7 @@ static void ce_wmm_dtor()
     }
 }
 
-static inline ce_wmm_header* ce_wmm_find(ce_wmm* wmm)
+inline ce_wmm_header* ce_wmm_find(ce_wmm* wmm)
 {
     for (size_t i = 0; i < CE_SOUND_SYSTEM_HEADER_COUNT; ++i) {
         if (wmm->headers[i].waveheader.dwFlags & WHDR_DONE) {

@@ -28,19 +28,19 @@ namespace cursedearth
 {
     typedef ce_hash_key ce_sound_object;
 
-    extern ce_sound_object ce_sound_object_new(const char* name);
-    extern void ce_sound_object_del(ce_sound_object sound_object);
+    ce_sound_object ce_sound_object_new(const char* name);
+    void ce_sound_object_del(ce_sound_object sound_object);
 
-    extern bool ce_sound_object_is_valid(ce_sound_object sound_object);
+    bool ce_sound_object_is_valid(ce_sound_object sound_object);
 
-    extern void ce_sound_object_stop(ce_sound_object sound_object);
-    extern void ce_sound_object_pause(ce_sound_object sound_object);
-    extern void ce_sound_object_play(ce_sound_object sound_object);
+    void ce_sound_object_stop(ce_sound_object sound_object);
+    void ce_sound_object_pause(ce_sound_object sound_object);
+    void ce_sound_object_play(ce_sound_object sound_object);
 
-    extern int ce_sound_object_get_state(ce_sound_object sound_object);
-    extern float ce_sound_object_get_time(ce_sound_object sound_object);
+    int ce_sound_object_get_state(ce_sound_object sound_object);
+    float ce_sound_object_get_time(ce_sound_object sound_object);
 
-    static inline bool ce_sound_object_is_stopped(ce_sound_object sound_object)
+    inline bool ce_sound_object_is_stopped(ce_sound_object sound_object)
     {
         return CE_SOUND_STATE_STOPPED == ce_sound_object_get_state(sound_object);
     }

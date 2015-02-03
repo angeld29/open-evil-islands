@@ -33,9 +33,9 @@ namespace cursedearth
         GLXContext context;
     };
 
-    extern ce_graphic_context* ce_graphic_context_new(Display* display);
+    ce_graphic_context* ce_graphic_context_new(Display* display);
 
-    extern bool ce_graphic_context_make_current(ce_graphic_context* graphic_context, Display* display, GLXDrawable drawable);
+    bool ce_graphic_context_make_current(ce_graphic_context* graphic_context, Display* display, GLXDrawable drawable);
 }
 
 #endif

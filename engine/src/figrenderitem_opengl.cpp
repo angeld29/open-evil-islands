@@ -56,7 +56,7 @@ static void ce_figcookie_static_del(ce_figcookie_static* cookie)
     }
 }
 
-static inline ce_figcookie_static*
+inline ce_figcookie_static*
 ce_figcookie_static_add_ref(ce_figcookie_static* cookie)
 {
     ce_atomic_inc(int, &cookie->ref_count);
@@ -180,7 +180,7 @@ static void ce_figcookie_dynamic_del(ce_figcookie_dynamic* cookie)
     }
 }
 
-static inline ce_figcookie_dynamic*
+inline ce_figcookie_dynamic*
 ce_figcookie_dynamic_add_ref(ce_figcookie_dynamic* cookie)
 {
     ce_atomic_inc(int, &cookie->ref_count);

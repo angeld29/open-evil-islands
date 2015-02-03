@@ -32,37 +32,37 @@
 
 namespace cursedearth
 {
-    extern struct ce_render_system* ce_render_system;
+    struct ce_render_system* ce_render_system;
 
-    extern void ce_render_system_init(void);
-    extern void ce_render_system_term(void);
+    void ce_render_system_init(void);
+    void ce_render_system_term(void);
 
-    extern ce_thread_id ce_render_system_thread_id(void);
+    ce_thread_id ce_render_system_thread_id(void);
 
-    extern void ce_render_system_begin_render(const ce_color* clear_color);
-    extern void ce_render_system_end_render(void);
+    void ce_render_system_begin_render(const ce_color* clear_color);
+    void ce_render_system_end_render(void);
 
-    extern void ce_render_system_draw_axes(void);
+    void ce_render_system_draw_axes(void);
 
     // draw a cube centered at zero with side of 2
-    extern void ce_render_system_draw_wire_cube(void);
-    extern void ce_render_system_draw_solid_cube(void);
+    void ce_render_system_draw_wire_cube(void);
+    void ce_render_system_draw_solid_cube(void);
 
     // draw a sphere centered at zero with radius of 1
-    extern void ce_render_system_draw_solid_sphere(void);
+    void ce_render_system_draw_solid_sphere(void);
 
-    extern void ce_render_system_draw_fullscreen_wire_rect(unsigned int width, unsigned int height);
+    void ce_render_system_draw_fullscreen_wire_rect(unsigned int width, unsigned int height);
 
-    extern void ce_render_system_setup_viewport(ce_viewport* viewport);
-    extern void ce_render_system_setup_camera(ce_camera* camera);
+    void ce_render_system_setup_viewport(ce_viewport* viewport);
+    void ce_render_system_setup_camera(ce_camera* camera);
 
-    extern void ce_render_system_apply_color(const ce_color* color);
+    void ce_render_system_apply_color(const ce_color* color);
 
-    extern void ce_render_system_apply_transform(const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling);
-    extern void ce_render_system_discard_transform(void);
+    void ce_render_system_apply_transform(const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling);
+    void ce_render_system_discard_transform(void);
 
-    extern void ce_render_system_apply_material(ce_material* material);
-    extern void ce_render_system_discard_material(ce_material* material);
+    void ce_render_system_apply_material(ce_material* material);
+    void ce_render_system_discard_material(ce_material* material);
 }
 
 #endif

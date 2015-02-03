@@ -158,7 +158,7 @@ static unsigned int ce_wave_ima_adpcm_step_table[89] = {
     12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767
 };
 
-static inline int ce_wave_ima_adpcm_clamp_step_index(int index)
+inline int ce_wave_ima_adpcm_clamp_step_index(int index)
 {
     return ce_clamp(int, index, 0, 88);
 }

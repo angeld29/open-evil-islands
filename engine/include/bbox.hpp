@@ -36,9 +36,9 @@ namespace cursedearth
         ce_quat axis;
     } ce_bbox;
 
-    extern ce_bbox* ce_bbox_clear(ce_bbox* bbox);
-    extern ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other);
-    extern ce_bbox* ce_bbox_merge2(ce_bbox* bbox, const ce_bbox* other);
+    ce_bbox* ce_bbox_clear(ce_bbox* bbox);
+    ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other);
+    ce_bbox* ce_bbox_merge2(ce_bbox* bbox, const ce_bbox* other);
 }
 
 #endif

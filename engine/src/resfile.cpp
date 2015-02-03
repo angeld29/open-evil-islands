@@ -100,7 +100,7 @@ void ce_res_file_del(ce_res_file* res_file)
     }
 }
 
-static inline int ce_res_name_hash(const char* name, int limit)
+inline int ce_res_name_hash(const char* name, int limit)
 {
     int sum = 0;
     while (*name) {

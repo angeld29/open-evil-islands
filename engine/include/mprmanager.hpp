@@ -26,14 +26,14 @@
 
 namespace cursedearth
 {
-    extern struct ce_mpr_manager {
+    struct ce_mpr_manager {
         int stub;
     }* ce_mpr_manager;
 
-    extern void ce_mpr_manager_init(void);
-    extern void ce_mpr_manager_term(void);
+    void ce_mpr_manager_init(void);
+    void ce_mpr_manager_term(void);
 
-    extern ce_mprfile* ce_mpr_manager_open(const char* name);
+    ce_mprfile* ce_mpr_manager_open(const char* name);
 }
 
 #endif

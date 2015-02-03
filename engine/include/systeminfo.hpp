@@ -23,7 +23,7 @@
 
 namespace cursedearth
 {
-    extern bool ce_system_info_check(void);
+    bool ce_system_info_check(void);
 }
 
 #endif

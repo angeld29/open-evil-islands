@@ -87,16 +87,16 @@ namespace cursedearth
         ce_wave_data data;
     } ce_wave_header;
 
-    extern bool ce_wave_header_read(ce_wave_header* wave_header, ce_mem_file* mem_file);
+    bool ce_wave_header_read(ce_wave_header* wave_header, ce_mem_file* mem_file);
 
-    extern void ce_wave_ima_adpcm_decode(void* dst, const void* src, const ce_wave_header* wave_header);
+    void ce_wave_ima_adpcm_decode(void* dst, const void* src, const ce_wave_header* wave_header);
 
-    static inline size_t ce_wave_ima_adpcm_samples_storage_size(const ce_wave_header* wave_header)
+    inline size_t ce_wave_ima_adpcm_samples_storage_size(const ce_wave_header* wave_header)
     {
         return 2 * wave_header->format.extra.ima_adpcm.samples_per_block * wave_header->format.channel_count;
     }
 
-    static inline size_t ce_wave_ima_adpcm_block_storage_size(const ce_wave_header* wave_header)
+    inline size_t ce_wave_ima_adpcm_block_storage_size(const ce_wave_header* wave_header)
     {
         return wave_header->format.block_align;
     }

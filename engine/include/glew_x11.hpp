@@ -29,7 +29,7 @@
 
 namespace cursedearth
 {
-    extern CE_THREAD GLXEWContext ce_glxew_context;
+    CE_THREAD GLXEWContext ce_glxew_context;
 }
 
 #endif

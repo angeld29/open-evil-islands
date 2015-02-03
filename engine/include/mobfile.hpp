@@ -112,8 +112,8 @@ namespace cursedearth
         ce_vector* objects;
     } ce_mob_file;
 
-    extern ce_mob_file* ce_mob_file_open(const char* path);
-    extern void ce_mob_file_close(ce_mob_file* mob_file);
+    ce_mob_file* ce_mob_file_open(const char* path);
+    void ce_mob_file_close(ce_mob_file* mob_file);
 }
 
 #endif

@@ -26,14 +26,14 @@
 
 namespace cursedearth
 {
-    extern struct ce_shader_manager {
+    struct ce_shader_manager {
         ce_vector* shaders;
     }* ce_shader_manager;
 
-    extern void ce_shader_manager_init(void);
-    extern void ce_shader_manager_term(void);
+    void ce_shader_manager_init(void);
+    void ce_shader_manager_term(void);
 
-    extern ce_shader* ce_shader_manager_get(const char* resource_paths[]);
+    ce_shader* ce_shader_manager_get(const char* resource_paths[]);
 }
 
 #endif

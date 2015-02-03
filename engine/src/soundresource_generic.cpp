@@ -625,7 +625,7 @@ static bool ce_mad_input(ce_sound_resource* sound_resource)
 }
 
 // 32-bit pseudo-random number generator
-static inline mad_fixed_t ce_mad_prng(mad_fixed_t state)
+inline mad_fixed_t ce_mad_prng(mad_fixed_t state)
 {
     return (state * 0x0019660dL + 0x3c6ef35fL) & 0xffffffffL;
 }

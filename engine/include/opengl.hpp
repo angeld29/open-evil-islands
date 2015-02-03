@@ -25,7 +25,7 @@
 
 namespace cursedearth
 {
-    extern bool ce_opengl_report_errors(void);
+    bool ce_opengl_report_errors(void);
 }
 
 #endif

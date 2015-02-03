@@ -32,22 +32,22 @@ namespace cursedearth
         ce_vector* properties;
     } ce_object;
 
-    extern ce_object* ce_object_new(const char* name);
-    extern void ce_object_del(ce_object* object);
+    ce_object* ce_object_new(const char* name);
+    void ce_object_del(ce_object* object);
 
-    extern ce_property* ce_object_find(ce_object* object, const char* name);
+    ce_property* ce_object_find(ce_object* object, const char* name);
 
-    static inline bool ce_object_exists(ce_object* object, const char* name)
+    inline bool ce_object_exists(ce_object* object, const char* name)
     {
         return NULL != ce_object_find(object, name);
     }
 
-    static inline void ce_object_add(ce_object* object, ce_property* property)
+    inline void ce_object_add(ce_object* object, ce_property* property)
     {
         ce_vector_push_back(object->properties, property);
     }
 
-    static inline void ce_object_remove(ce_object* object, ce_property* property)
+    inline void ce_object_remove(ce_object* object, ce_property* property)
     {
         ce_vector_remove_all(object->properties, property);
     }
