@@ -18,11 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  GLFT by James Turk (james.p.turk@gmail.com)
- *  Simple library/example for using FreeType fonts within OpenGL
- */
-
 #include <cstdio>
 #include <cassert>
 

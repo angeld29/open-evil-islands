@@ -28,6 +28,8 @@
 #include "videoobject.hpp"
 #include "root.hpp"
 
+using namespace cursedearth;
+
 static bool pause;
 static ce_video_object video_object;
 static ce_optparse* optparse;

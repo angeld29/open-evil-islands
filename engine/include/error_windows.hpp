@@ -21,6 +21,9 @@
 #ifndef CE_ERROR_PLATFORM_HPP
 #define CE_ERROR_PLATFORM_HPP
 
-extern void ce_error_report_windows_last(const char* module);
+namespace cursedearth
+{
+    extern void ce_error_report_windows_last(const char* module);
+}
 
-#endif /* CE_ERROR_PLATFORM_HPP */
+#endif

@@ -18,14 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  View Frustum Culling Tutorial @ Lighthouse3d.com
- *  http://www.lighthouse3d.com/opengl/viewfrustum/
- *
- *  GTKRadiant mathlib
- *  https://zerowing.idsoftware.com/svn/radiant/GtkRadiant
-*/
-
 #include <cmath>
 
 #include "math.hpp"

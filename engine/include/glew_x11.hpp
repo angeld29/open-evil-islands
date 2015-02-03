@@ -27,6 +27,9 @@
 
 #define glxewGetContext() (&ce_glxew_context)
 
-extern CE_THREAD GLXEWContext ce_glxew_context;
+namespace cursedearth
+{
+    extern CE_THREAD GLXEWContext ce_glxew_context;
+}
 
-#endif /* CE_GLEW_PLATFORM_HPP */
+#endif

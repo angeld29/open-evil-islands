@@ -59,9 +59,12 @@ CE_BITOP_DEF_BITCLR(T) \
 CE_BITOP_DEF_BITFLP(T) \
 CE_BITOP_DEF_BITTST(T)
 
-CE_BITOP_DEF_ALL(uint8_t)
-CE_BITOP_DEF_ALL(uint16_t)
-CE_BITOP_DEF_ALL(uint32_t)
+namespace cursedearth
+{
+    CE_BITOP_DEF_ALL(uint8_t)
+    CE_BITOP_DEF_ALL(uint16_t)
+    CE_BITOP_DEF_ALL(uint32_t)
+}
 
 #undef CE_BITOP_DEF_ALL
 #undef CE_BITOP_DEF_BITTST
@@ -69,4 +72,4 @@ CE_BITOP_DEF_ALL(uint32_t)
 #undef CE_BITOP_DEF_BITCLR
 #undef CE_BITOP_DEF_BITSET
 
-#endif /* CE_BITOP_HPP */
+#endif

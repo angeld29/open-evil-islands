@@ -21,15 +21,18 @@
 #ifndef CE_YCBCR_HPP
 #define CE_YCBCR_HPP
 
-typedef struct {
-    struct {
-        unsigned int x, y;
-        unsigned int width, height;
-    } crop_rect;
-    struct {
-        int stride;
-        unsigned char* data;
-    } planes[3];
-} ce_ycbcr;
+namespace cursedearth
+{
+    typedef struct {
+        struct {
+            unsigned int x, y;
+            unsigned int width, height;
+        } crop_rect;
+        struct {
+            int stride;
+            unsigned char* data;
+        } planes[3];
+    } ce_ycbcr;
+}
 
-#endif /* CE_YCBCR_HPP */
+#endif

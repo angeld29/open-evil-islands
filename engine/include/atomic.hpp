@@ -18,10 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Platform-independent atomic operations
- */
-
 #ifndef CE_ATOMIC_HPP
 #define CE_ATOMIC_HPP
 
@@ -59,11 +55,14 @@ CE_ATOMIC_DECL_FETCH_AND_OP(T, sub) \
 CE_ATOMIC_DECL_OP_AND_FETCH(T, add) \
 CE_ATOMIC_DECL_OP_AND_FETCH(T, sub)
 
-CE_ATOMIC_DECL_ALL(int)
-CE_ATOMIC_DECL_ALL(size_t)
+namespace cursedearth
+{
+    CE_ATOMIC_DECL_ALL(int)
+    CE_ATOMIC_DECL_ALL(size_t)
+}
 
 #undef CE_ATOMIC_DECL_ALL
 #undef CE_ATOMIC_DECL_OP_AND_FETCH
 #undef CE_ATOMIC_DECL_FETCH_AND_OP
 
-#endif /* CE_ATOMIC_HPP */
+#endif

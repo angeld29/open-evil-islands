@@ -24,32 +24,35 @@
 #include "memfile.hpp"
 #include "resfile.hpp"
 
-static inline ce_mem_file* ce_res_ball_extract_mem_file(ce_res_file* res_file, size_t index)
+namespace cursedearth
 {
-    return ce_mem_file_new_data(ce_res_file_node_data(res_file, index), ce_res_file_node_size(res_file, index));
+    static inline ce_mem_file* ce_res_ball_extract_mem_file(ce_res_file* res_file, size_t index)
+    {
+        return ce_mem_file_new_data(ce_res_file_node_data(res_file, index), ce_res_file_node_size(res_file, index));
+    }
+
+    static inline ce_mem_file* ce_res_ball_extract_mem_file_by_name(ce_res_file* res_file, const char* name)
+    {
+        size_t index = ce_res_file_node_index(res_file, name);
+        return res_file->node_count != index ? ce_res_ball_extract_mem_file(res_file, index) : NULL;
+    }
+
+    extern void ce_res_ball_extract_all_mem_files(ce_res_file* res_file, ce_mem_file* mem_files[]);
+    extern void ce_res_ball_clean_all_mem_files(ce_res_file* res_file, ce_mem_file* mem_files[]);
+
+    static inline ce_res_file* ce_res_ball_extract_res_file(ce_res_file* res_file, size_t index)
+    {
+        return ce_res_file_new(ce_res_file_node_name(res_file, index), ce_res_ball_extract_mem_file(res_file, index));
+    }
+
+    static inline ce_res_file* ce_res_ball_extract_res_file_by_name(ce_res_file* res_file, const char* name)
+    {
+        const size_t index = ce_res_file_node_index(res_file, name);
+        return res_file->node_count != index ? ce_res_ball_extract_res_file(res_file, index) : NULL;
+    }
+
+    extern void ce_res_ball_extract_all_res_files(ce_res_file* res_file, ce_res_file* res_files[]);
+    extern void ce_res_ball_clean_all_res_files(ce_res_file* res_file, ce_res_file* res_files[]);
 }
 
-static inline ce_mem_file* ce_res_ball_extract_mem_file_by_name(ce_res_file* res_file, const char* name)
-{
-    size_t index = ce_res_file_node_index(res_file, name);
-    return res_file->node_count != index ? ce_res_ball_extract_mem_file(res_file, index) : NULL;
-}
-
-extern void ce_res_ball_extract_all_mem_files(ce_res_file* res_file, ce_mem_file* mem_files[]);
-extern void ce_res_ball_clean_all_mem_files(ce_res_file* res_file, ce_mem_file* mem_files[]);
-
-static inline ce_res_file* ce_res_ball_extract_res_file(ce_res_file* res_file, size_t index)
-{
-    return ce_res_file_new(ce_res_file_node_name(res_file, index), ce_res_ball_extract_mem_file(res_file, index));
-}
-
-static inline ce_res_file* ce_res_ball_extract_res_file_by_name(ce_res_file* res_file, const char* name)
-{
-    const size_t index = ce_res_file_node_index(res_file, name);
-    return res_file->node_count != index ? ce_res_ball_extract_res_file(res_file, index) : NULL;
-}
-
-extern void ce_res_ball_extract_all_res_files(ce_res_file* res_file, ce_res_file* res_files[]);
-extern void ce_res_ball_clean_all_res_files(ce_res_file* res_file, ce_res_file* res_files[]);
-
-#endif /* CE_RESBALL_HPP */
+#endif

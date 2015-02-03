@@ -21,16 +21,19 @@
 #ifndef CE_VIEWPORT_HPP
 #define CE_VIEWPORT_HPP
 
-typedef struct {
-    int x, y; // lower left corner in pixels
-    int width, height;
-} ce_viewport;
+namespace cursedearth
+{
+    typedef struct {
+        int x, y; // lower left corner in pixels
+        int width, height;
+    } ce_viewport;
 
-extern ce_viewport* ce_viewport_new(void);
-extern void ce_viewport_del(ce_viewport* viewport);
+    extern ce_viewport* ce_viewport_new(void);
+    extern void ce_viewport_del(ce_viewport* viewport);
 
-extern void ce_viewport_set_corner(ce_viewport* viewport, int x, int y);
-extern void ce_viewport_set_dimensions(ce_viewport* viewport, int width, int height);
-extern void ce_viewport_set_rect(ce_viewport* viewport, int x, int y, int width, int height);
+    extern void ce_viewport_set_corner(ce_viewport* viewport, int x, int y);
+    extern void ce_viewport_set_dimensions(ce_viewport* viewport, int width, int height);
+    extern void ce_viewport_set_rect(ce_viewport* viewport, int x, int y, int width, int height);
+}
 
-#endif /* CE_VIEWPORT_HPP */
+#endif

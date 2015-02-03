@@ -23,20 +23,15 @@
 
 #include <cstddef>
 
-extern void ce_alloc_init(void);
+namespace cursedearth
+{
+    extern void ce_alloc_init(void);
 
-extern void* ce_alloc(size_t size);
-extern void* ce_alloc_zero(size_t size);
-extern void* ce_realloc(void* ptr, size_t size, size_t new_size);
-extern void ce_free(void* ptr, size_t size);
-extern void ce_free_slow(void* ptr);
+    extern void* ce_alloc(size_t size);
+    extern void* ce_alloc_zero(size_t size);
+    extern void* ce_realloc(void* ptr, size_t size, size_t new_size);
+    extern void ce_free(void* ptr, size_t size);
+    extern void ce_free_slow(void* ptr);
+}
 
-#ifndef NDEBUG
-extern size_t ce_alloc_get_smallobj_allocated(void);
-extern size_t ce_alloc_get_smallobj_max_allocated(void);
-extern size_t ce_alloc_get_smallobj_overhead(void);
-extern size_t ce_alloc_get_system_allocated(void);
-extern size_t ce_alloc_get_system_max_allocated(void);
 #endif
-
-#endif /* CE_ALLOC_HPP */

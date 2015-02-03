@@ -24,12 +24,15 @@
 #include "string.hpp"
 #include "value.hpp"
 
-typedef struct {
-    ce_string* name;
-    ce_value* value;
-} ce_property;
+namespace cursedearth
+{
+    typedef struct {
+        ce_string* name;
+        ce_value* value;
+    } ce_property;
 
-extern ce_property* ce_property_new(const char* name, ce_type type);
-extern void ce_property_del(ce_property* property);
+    extern ce_property* ce_property_new(const char* name, ce_type type);
+    extern void ce_property_del(ce_property* property);
+}
 
-#endif /* CE_PROPERTY_HPP */
+#endif

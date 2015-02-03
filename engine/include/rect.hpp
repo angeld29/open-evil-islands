@@ -21,9 +21,12 @@
 #ifndef CE_RECT_HPP
 #define CE_RECT_HPP
 
-typedef struct {
-    float x, y;
-    float width, height;
-} ce_rect;
+namespace cursedearth
+{
+    typedef struct {
+        float x, y;
+        float width, height;
+    } ce_rect;
+}
 
-#endif /* CE_RECT_HPP */
+#endif

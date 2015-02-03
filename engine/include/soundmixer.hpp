@@ -25,16 +25,19 @@
 #include "thread.hpp"
 #include "soundbuffer.hpp"
 
-extern struct ce_sound_mixer {
-    bool done;
-    ce_vector* sound_buffers;
-    ce_thread* thread;
-}* ce_sound_mixer;
+namespace cursedearth
+{
+    extern struct ce_sound_mixer {
+        bool done;
+        ce_vector* sound_buffers;
+        ce_thread* thread;
+    }* ce_sound_mixer;
 
-extern void ce_sound_mixer_init(void);
-extern void ce_sound_mixer_term(void);
+    extern void ce_sound_mixer_init(void);
+    extern void ce_sound_mixer_term(void);
 
-extern ce_sound_buffer* ce_sound_mixer_create_buffer(void);
-extern void ce_sound_mixer_destroy_buffer(ce_sound_buffer* sound_buffer);
+    extern ce_sound_buffer* ce_sound_mixer_create_buffer(void);
+    extern void ce_sound_mixer_destroy_buffer(ce_sound_buffer* sound_buffer);
+}
 
-#endif /* CE_SOUNDMIXER_HPP */
+#endif

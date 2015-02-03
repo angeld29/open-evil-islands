@@ -28,29 +28,32 @@
 #include "soundinstance.hpp"
 #include "soundbundle.hpp"
 
-extern struct ce_sound_manager {
-    ce_thread_id thread_id;
-    ce_hash_key last_hash_key;
-    ce_vector* res_files;
-    ce_hash* sound_instances;
-    ce_hash* sound_bundles;
-    ce_timer* timer;
-    ce_thread* thread;
-}* ce_sound_manager;
-
-extern void ce_sound_manager_init(void);
-extern void ce_sound_manager_term(void);
-
-extern void ce_sound_manager_advance(float elapsed);
-
-extern ce_hash_key ce_sound_manager_create_object(const char* name);
-extern void ce_sound_manager_remove_object(ce_hash_key hash_key);
-
-extern void ce_sound_manager_state_object(ce_hash_key hash_key, int state);
-
-static inline ce_sound_bundle* ce_sound_manager_get_bundle(ce_hash_key hash_key)
+namespace cursedearth
 {
-    return ce_hash_find(ce_sound_manager->sound_bundles, hash_key);
+    extern struct ce_sound_manager {
+        ce_thread_id thread_id;
+        ce_hash_key last_hash_key;
+        ce_vector* res_files;
+        ce_hash* sound_instances;
+        ce_hash* sound_bundles;
+        ce_timer* timer;
+        ce_thread* thread;
+    }* ce_sound_manager;
+
+    extern void ce_sound_manager_init(void);
+    extern void ce_sound_manager_term(void);
+
+    extern void ce_sound_manager_advance(float elapsed);
+
+    extern ce_hash_key ce_sound_manager_create_object(const char* name);
+    extern void ce_sound_manager_remove_object(ce_hash_key hash_key);
+
+    extern void ce_sound_manager_state_object(ce_hash_key hash_key, int state);
+
+    static inline ce_sound_bundle* ce_sound_manager_get_bundle(ce_hash_key hash_key)
+    {
+        return ce_hash_find(ce_sound_manager->sound_bundles, hash_key);
+    }
 }
 
-#endif /* CE_SOUNDMANAGER_HPP */
+#endif

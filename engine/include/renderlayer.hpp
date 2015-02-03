@@ -25,18 +25,21 @@
 #include "texture.hpp"
 #include "renderitem.hpp"
 
-typedef struct {
-    ce_texture* texture;
-    ce_vector* renderitems;
-} ce_renderlayer;
+namespace cursedearth
+{
+    typedef struct {
+        ce_texture* texture;
+        ce_vector* renderitems;
+    } ce_renderlayer;
 
-extern ce_renderlayer* ce_renderlayer_new(ce_texture* texture);
-extern void ce_renderlayer_del(ce_renderlayer* renderlayer);
+    extern ce_renderlayer* ce_renderlayer_new(ce_texture* texture);
+    extern void ce_renderlayer_del(ce_renderlayer* renderlayer);
 
-extern void ce_renderlayer_clear(ce_renderlayer* renderlayer);
+    extern void ce_renderlayer_clear(ce_renderlayer* renderlayer);
 
-extern void ce_renderlayer_add(ce_renderlayer* renderlayer, ce_renderitem* renderitem);
+    extern void ce_renderlayer_add(ce_renderlayer* renderlayer, ce_renderitem* renderitem);
 
-extern void ce_renderlayer_render(ce_renderlayer* renderlayer);
+    extern void ce_renderlayer_render(ce_renderlayer* renderlayer);
+}
 
-#endif /* CE_RENDERLAYER_HPP */
+#endif

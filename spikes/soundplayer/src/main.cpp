@@ -29,6 +29,8 @@
 #include "soundobject.hpp"
 #include "root.hpp"
 
+using namespace cursedearth;
+
 static ce_color message_color;
 static float alpha_sign = -1.0f;
 static ce_sound_object sound_object;

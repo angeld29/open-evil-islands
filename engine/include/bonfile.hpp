@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  doc/formats/bon.txt
+/**
+ * doc/formats/bon.txt
  */
 
 #ifndef CE_BONFILE_HPP
@@ -29,12 +29,15 @@
 
 #include "resfile.hpp"
 
-typedef struct {
-    size_t size;
-    float* bone;
-} ce_bonfile;
+namespace cursedearth
+{
+    typedef struct {
+        size_t size;
+        float* bone;
+    } ce_bonfile;
 
-extern ce_bonfile* ce_bonfile_open(ce_res_file* res_file, const char* name);
-extern void ce_bonfile_close(ce_bonfile* bonfile);
+    extern ce_bonfile* ce_bonfile_open(ce_res_file* res_file, const char* name);
+    extern void ce_bonfile_close(ce_bonfile* bonfile);
+}
 
-#endif /* CE_BONFILE_HPP */
+#endif

@@ -25,6 +25,9 @@
 
 #include "display.hpp"
 
-extern ce_displaymng* ce_displaymng_create(Display* display);
+namespace cursedearth
+{
+    extern ce_displaymng* ce_displaymng_create(Display* display);
+}
 
-#endif /* CE_DISPLAY_PLATFORM_HPP */
+#endif

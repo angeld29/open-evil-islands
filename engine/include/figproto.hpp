@@ -28,22 +28,25 @@
 #include "fignode.hpp"
 #include "renderqueue.hpp"
 
-typedef struct {
-    int ref_count;
-    ce_string* name;
-    ce_adb_file* adb_file;
-    ce_fignode* fignode;
-} ce_figproto;
-
-extern ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file);
-extern void ce_figproto_del(ce_figproto* figproto);
-
-static inline ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
+namespace cursedearth
 {
-    ce_atomic_inc(int, &figproto->ref_count);
-    return figproto;
+    typedef struct {
+        int ref_count;
+        ce_string* name;
+        ce_adb_file* adb_file;
+        ce_fignode* fignode;
+    } ce_figproto;
+
+    extern ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file);
+    extern void ce_figproto_del(ce_figproto* figproto);
+
+    static inline ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
+    {
+        ce_atomic_inc(int, &figproto->ref_count);
+        return figproto;
+    }
+
+    extern void ce_figproto_accept_renderqueue(ce_figproto* figproto, ce_renderqueue* renderqueue);
 }
 
-extern void ce_figproto_accept_renderqueue(ce_figproto* figproto, ce_renderqueue* renderqueue);
-
-#endif /* CE_FIGPROTO_HPP */
+#endif

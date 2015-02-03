@@ -21,13 +21,16 @@
 #ifndef CE_TIMER_HPP
 #define CE_TIMER_HPP
 
-struct ce_timer;
+namespace cursedearth
+{
+    struct ce_timer;
 
-extern ce_timer* ce_timer_new(void);
-extern void ce_timer_del(ce_timer* timer);
+    extern ce_timer* ce_timer_new(void);
+    extern void ce_timer_del(ce_timer* timer);
 
-extern void ce_timer_start(ce_timer* timer);
-extern float ce_timer_advance(ce_timer* timer);
-extern float ce_timer_elapsed(ce_timer* timer);
+    extern void ce_timer_start(ce_timer* timer);
+    extern float ce_timer_advance(ce_timer* timer);
+    extern float ce_timer_elapsed(ce_timer* timer);
+}
 
 #endif

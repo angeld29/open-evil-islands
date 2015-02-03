@@ -29,36 +29,39 @@
 #include "aabb.hpp"
 #include "bbox.hpp"
 
-typedef struct ce_renderitem ce_renderitem;
+namespace cursedearth
+{
+    typedef struct ce_renderitem ce_renderitem;
 
-typedef struct {
-    void (*ctor)(ce_renderitem* renderitem, va_list args);
-    void (*dtor)(ce_renderitem* renderitem);
-    void (*update)(ce_renderitem* renderitem, va_list args);
-    void (*render)(ce_renderitem* renderitem);
-    void (*clone)(const ce_renderitem* renderitem, ce_renderitem* clone_renderitem);
-} ce_renderitem_vtable;
+    typedef struct {
+        void (*ctor)(ce_renderitem* renderitem, va_list args);
+        void (*dtor)(ce_renderitem* renderitem);
+        void (*update)(ce_renderitem* renderitem, va_list args);
+        void (*render)(ce_renderitem* renderitem);
+        void (*clone)(const ce_renderitem* renderitem, ce_renderitem* clone_renderitem);
+    } ce_renderitem_vtable;
 
-struct ce_renderitem {
-    bool visible;
-    ce_aabb aabb;
-    ce_vec3 position;
-    ce_quat orientation;
-    ce_bbox bbox;
-    ce_vec3 world_position;
-    ce_quat world_orientation;
-    ce_bbox world_bbox;
-    ce_renderitem_vtable vtable;
-    size_t size;
-    void* impl;
-};
+    struct ce_renderitem {
+        bool visible;
+        ce_aabb aabb;
+        ce_vec3 position;
+        ce_quat orientation;
+        ce_bbox bbox;
+        ce_vec3 world_position;
+        ce_quat world_orientation;
+        ce_bbox world_bbox;
+        ce_renderitem_vtable vtable;
+        size_t size;
+        void* impl;
+    };
 
-extern ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...);
-extern void ce_renderitem_del(ce_renderitem* renderitem);
+    extern ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...);
+    extern void ce_renderitem_del(ce_renderitem* renderitem);
 
-extern void ce_renderitem_update(ce_renderitem* renderitem, ...);
-extern void ce_renderitem_render(ce_renderitem* renderitem);
+    extern void ce_renderitem_update(ce_renderitem* renderitem, ...);
+    extern void ce_renderitem_render(ce_renderitem* renderitem);
 
-extern ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem);
+    extern ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem);
+}
 
 #endif

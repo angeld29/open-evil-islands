@@ -25,15 +25,18 @@
 #include "resourcedata.hpp"
 #include "resfile.hpp"
 
-extern struct ce_resource_manager {
-    ce_string* path;
-    ce_res_file* database;
-    ce_res_file* menus;
-}* ce_resource_manager;
+namespace cursedearth
+{
+    extern struct ce_resource_manager {
+        ce_string* path;
+        ce_res_file* database;
+        ce_res_file* menus;
+    }* ce_resource_manager;
 
-extern void ce_resource_manager_init(void);
-extern void ce_resource_manager_term(void);
+    extern void ce_resource_manager_init(void);
+    extern void ce_resource_manager_term(void);
 
-extern size_t ce_resource_manager_find_data(const char* path);
+    extern size_t ce_resource_manager_find_data(const char* path);
+}
 
-#endif /* CE_RESOURCEMANAGER_HPP */
+#endif

@@ -21,17 +21,20 @@
 #ifndef CE_SYSTEMEVENT_HPP
 #define CE_SYSTEMEVENT_HPP
 
-typedef enum {
-    CE_SYSTEM_EVENT_TYPE_INT,
-    CE_SYSTEM_EVENT_TYPE_TERM,
-    CE_SYSTEM_EVENT_TYPE_CTRLC,
-    CE_SYSTEM_EVENT_TYPE_CTRLBREAK,
-    CE_SYSTEM_EVENT_TYPE_CLOSE,
-    CE_SYSTEM_EVENT_TYPE_LOGOFF,
-    CE_SYSTEM_EVENT_TYPE_SHUTDOWN,
-    CE_SYSTEM_EVENT_TYPE_COUNT
-} ce_system_event_type;
+namespace cursedearth
+{
+    typedef enum {
+        CE_SYSTEM_EVENT_TYPE_INT,
+        CE_SYSTEM_EVENT_TYPE_TERM,
+        CE_SYSTEM_EVENT_TYPE_CTRLC,
+        CE_SYSTEM_EVENT_TYPE_CTRLBREAK,
+        CE_SYSTEM_EVENT_TYPE_CLOSE,
+        CE_SYSTEM_EVENT_TYPE_LOGOFF,
+        CE_SYSTEM_EVENT_TYPE_SHUTDOWN,
+        CE_SYSTEM_EVENT_TYPE_COUNT
+    } ce_system_event_type;
 
-extern void ce_system_event_register(void (*handler)(ce_system_event_type type));
+    extern void ce_system_event_register(void (*handler)(ce_system_event_type type));
+}
 
-#endif /* CE_SYSTEMEVENT_HPP */
+#endif

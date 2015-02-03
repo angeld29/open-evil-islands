@@ -26,49 +26,52 @@
 #include "memfile.hpp"
 #include "soundformat.hpp"
 
-enum {
-    CE_SOUND_PROBE_BUFFER_CAPACITY = 1024
-};
+namespace cursedearth
+{
+    enum {
+        CE_SOUND_PROBE_BUFFER_CAPACITY = 1024
+    };
 
-typedef struct {
-    ce_mem_file* mem_file;
-    const char* name;
-    size_t impl_size;
-    size_t input_buffer_capacity;
-    size_t output_buffer_capacity;
-    char buffer[CE_SOUND_PROBE_BUFFER_CAPACITY];
-} ce_sound_probe;
+    typedef struct {
+        ce_mem_file* mem_file;
+        const char* name;
+        size_t impl_size;
+        size_t input_buffer_capacity;
+        size_t output_buffer_capacity;
+        char buffer[CE_SOUND_PROBE_BUFFER_CAPACITY];
+    } ce_sound_probe;
 
-typedef struct ce_sound_resource ce_sound_resource;
+    typedef struct ce_sound_resource ce_sound_resource;
 
-typedef struct {
-    bool (*test)(ce_sound_probe* sound_probe);
-    bool (*ctor)(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe);
-    void (*dtor)(ce_sound_resource* sound_resource);
-    bool (*decode)(ce_sound_resource* sound_resource);
-    bool (*reset)(ce_sound_resource* sound_resource);
-} ce_sound_resource_vtable;
+    typedef struct {
+        bool (*test)(ce_sound_probe* sound_probe);
+        bool (*ctor)(ce_sound_resource* sound_resource, ce_sound_probe* sound_probe);
+        void (*dtor)(ce_sound_resource* sound_resource);
+        bool (*decode)(ce_sound_resource* sound_resource);
+        bool (*reset)(ce_sound_resource* sound_resource);
+    } ce_sound_resource_vtable;
 
-struct ce_sound_resource {
-    ce_sound_format sound_format;
-    float time, bytes_per_second_inv;
-    size_t granule_pos;
-    size_t input_buffer_capacity;
-    size_t output_buffer_capacity;
-    size_t output_buffer_size;
-    size_t output_buffer_pos;
-    char* input_buffer;
-    char* output_buffer;
-    ce_mem_file* mem_file;
-    ce_sound_resource_vtable vtable;
-    size_t size;
-    char impl[];
-};
+    struct ce_sound_resource {
+        ce_sound_format sound_format;
+        float time, bytes_per_second_inv;
+        size_t granule_pos;
+        size_t input_buffer_capacity;
+        size_t output_buffer_capacity;
+        size_t output_buffer_size;
+        size_t output_buffer_pos;
+        char* input_buffer;
+        char* output_buffer;
+        ce_mem_file* mem_file;
+        ce_sound_resource_vtable vtable;
+        size_t size;
+        char impl[];
+    };
 
-extern ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file);
-extern void ce_sound_resource_del(ce_sound_resource* sound_resource);
+    extern ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file);
+    extern void ce_sound_resource_del(ce_sound_resource* sound_resource);
 
-extern size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size);
-extern bool ce_sound_resource_reset(ce_sound_resource* sound_resource);
+    extern size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size);
+    extern bool ce_sound_resource_reset(ce_sound_resource* sound_resource);
+}
 
-#endif /* CE_SOUNDRESOURCE_HPP */
+#endif

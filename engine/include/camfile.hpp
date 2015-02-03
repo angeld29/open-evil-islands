@@ -30,19 +30,22 @@
 
 #include "memfile.hpp"
 
-typedef struct {
-    uint32_t time;
-    uint32_t unknown;
-    float position[3];
-    float rotation[4];
-} ce_cam_record;
+namespace cursedearth
+{
+    typedef struct {
+        uint32_t time;
+        uint32_t unknown;
+        float position[3];
+        float rotation[4];
+    } ce_cam_record;
 
-typedef struct {
-    size_t record_count;
-    ce_cam_record* records;
-} ce_cam_file;
+    typedef struct {
+        size_t record_count;
+        ce_cam_record* records;
+    } ce_cam_file;
 
-extern ce_cam_file* ce_cam_file_new(ce_mem_file* mem_file);
-extern void ce_cam_file_del(ce_cam_file* cam_file);
+    extern ce_cam_file* ce_cam_file_new(ce_mem_file* mem_file);
+    extern void ce_cam_file_del(ce_cam_file* cam_file);
+}
 
 #endif

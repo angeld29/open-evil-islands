@@ -34,6 +34,8 @@
 #include "root.hpp"
 #include "camfile.hpp"
 
+using namespace cursedearth;
+
 static ce_optparse* optparse;
 static ce_input_supply* input_supply;
 static ce_input_event* anmfps_inc_event;

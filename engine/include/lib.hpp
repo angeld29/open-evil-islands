@@ -70,42 +70,45 @@ CE_LIB_DEF_SWAP_TEMP(T)
 #define ce_swap(T, a, b) ce_swap_##T(a, b)
 #define ce_swap_temp(T, a, b) ce_swap_temp_##T(a, b)
 
-CE_LIB_DEF_ALL(int)
-CE_LIB_DEF_ALL(int16_t)
-CE_LIB_DEF_ALL(int32_t)
-CE_LIB_DEF_ALL(size_t)
-CE_LIB_DEF_ALL(float)
-
-// only for integers
-CE_LIB_DEF_SWAP(int)
-CE_LIB_DEF_SWAP(int16_t)
-CE_LIB_DEF_SWAP(int32_t)
-CE_LIB_DEF_SWAP(size_t)
-
-// is power of two (using 2's complement arithmetic)
-static inline bool ce_ispot(size_t v)
+namespace cursedearth
 {
-    return 0 == (v & (v - 1));
-}
+    CE_LIB_DEF_ALL(int)
+    CE_LIB_DEF_ALL(int16_t)
+    CE_LIB_DEF_ALL(int32_t)
+    CE_LIB_DEF_ALL(size_t)
+    CE_LIB_DEF_ALL(float)
 
-// next largest power of two (using SWAR algorithm)
-static inline size_t ce_nlpot(size_t v)
-{
-    v |= (v >> 1);
-    v |= (v >> 2);
-    v |= (v >> 4);
-    v |= (v >> 8);
-    v |= (v >> 16);
+    // only for integers
+    CE_LIB_DEF_SWAP(int)
+    CE_LIB_DEF_SWAP(int16_t)
+    CE_LIB_DEF_SWAP(int32_t)
+    CE_LIB_DEF_SWAP(size_t)
+
+    // is power of two (using 2's complement arithmetic)
+    static inline bool ce_ispot(size_t v)
+    {
+        return 0 == (v & (v - 1));
+    }
+
+    // next largest power of two (using SWAR algorithm)
+    static inline size_t ce_nlpot(size_t v)
+    {
+        v |= (v >> 1);
+        v |= (v >> 2);
+        v |= (v >> 4);
+        v |= (v >> 8);
+        v |= (v >> 16);
 #if CE_SIZEOF_SIZE_T > 4
-    v |= (v >> 32);
+        v |= (v >> 32);
 #endif
 #if CE_SIZEOF_SIZE_T > 8
-    v |= (v >> 64);
+        v |= (v >> 64);
 #endif
-    return v + 1;
-}
+        return v + 1;
+    }
 
-static inline void ce_pass(void) {}
+    static inline void ce_pass(void) {}
+}
 
 #undef CE_LIB_DEF_ALL
 #undef CE_LIB_DEF_SWAP_TEMP

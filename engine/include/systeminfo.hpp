@@ -21,6 +21,9 @@
 #ifndef CE_SYSTEMINFO_HPP
 #define CE_SYSTEMINFO_HPP
 
-extern bool ce_system_info_check(void);
+namespace cursedearth
+{
+    extern bool ce_system_info_check(void);
+}
 
-#endif /* CE_SYSTEMINFO_HPP */
+#endif

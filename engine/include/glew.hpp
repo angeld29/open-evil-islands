@@ -28,6 +28,9 @@
 
 #define glewGetContext() (&ce_glew_context)
 
-extern CE_THREAD GLEWContext ce_glew_context;
+namespace cursedearth
+{
+    extern CE_THREAD GLEWContext ce_glew_context;
+}
 
-#endif /* CE_GLEW_HPP */
+#endif

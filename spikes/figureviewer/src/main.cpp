@@ -32,6 +32,8 @@
 #include "figuremanager.hpp"
 #include "root.hpp"
 
+using namespace cursedearth;
+
 static ce_optparse* optparse;
 static ce_figentity* figentity;
 static ce_string* message;
