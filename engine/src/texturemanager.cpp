@@ -74,9 +74,9 @@ void ce_texture_manager_init(void)
 void ce_texture_manager_term(void)
 {
     if (NULL != ce_texture_manager) {
-        ce_vector_for_each(ce_texture_manager->textures, ce_texture_del);
+        ce_vector_for_each(ce_texture_manager->textures, (void(*)(void*))ce_texture_del);
         ce_vector_del(ce_texture_manager->textures);
-        ce_vector_for_each(ce_texture_manager->res_files, ce_res_file_del);
+        ce_vector_for_each(ce_texture_manager->res_files, (void(*)(void*))ce_res_file_del);
         ce_vector_del(ce_texture_manager->res_files);
         ce_free(ce_texture_manager, sizeof(struct ce_texture_manager));
     }

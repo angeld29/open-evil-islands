@@ -23,138 +23,120 @@
 #include "fighlp.hpp"
 #include "figbone.hpp"
 
-ce_figbone* ce_figbone_new(const ce_fignode* fignode,
-                            const ce_complection* complection,
-                            ce_figbone* parent)
+namespace cursedearth
 {
-    ce_figbone* figbone = ce_alloc(sizeof(ce_figbone));
-    figbone->orientation = CE_QUAT_IDENTITY;
-    figbone->anmstate = ce_anmstate_new();
-    figbone->parent = parent;
-    figbone->childs = ce_vector_new();
-
-    ce_fighlp_get_bone(&figbone->position, fignode->figfile,
-                        fignode->bonfile, complection);
-
-    for (size_t i = 0; i < fignode->childs->count; ++i) {
-        ce_vector_push_back(figbone->childs, ce_figbone_new(
-            fignode->childs->items[i], complection, figbone));
-    }
-
-    return figbone;
-}
-
-void ce_figbone_del(ce_figbone* figbone)
-{
-    if (NULL != figbone) {
-        ce_vector_for_each(figbone->childs, ce_figbone_del);
-        ce_vector_del(figbone->childs);
-        ce_anmstate_del(figbone->anmstate);
-        ce_free(figbone, sizeof(ce_figbone));
-    }
-}
-
-void ce_figbone_advance(ce_figbone* figbone, float distance)
-{
-    ce_anmstate_advance(figbone->anmstate, distance);
-
-    for (size_t i = 0; i < figbone->childs->count; ++i) {
-        ce_figbone_advance(figbone->childs->items[i], distance);
-    }
-}
-
-static void ce_figbone_update_transform(ce_figbone* figbone,
-                                        ce_renderitem* renderitem)
-{
-    // TODO: translations from anm file ???
-
-    // update binding pose
-    if (NULL == figbone->anmstate->anmfile) {
+    ce_figbone* ce_figbone_new(const ce_fignode* fignode, const ce_complection* complection, ce_figbone* parent)
+    {
+        ce_figbone* figbone = (ce_figbone*)ce_alloc(sizeof(ce_figbone));
         figbone->orientation = CE_QUAT_IDENTITY;
-    } else {
-        ce_quat q1, q2;
-        ce_quat_slerp(&figbone->orientation, figbone->anmstate->coef,
-            ce_quat_init_array(&q1, figbone->anmstate->anmfile->rotations +
-                                    (int)figbone->anmstate->prev_frame * 4),
-            ce_quat_init_array(&q2, figbone->anmstate->anmfile->rotations +
-                                    (int)figbone->anmstate->next_frame * 4));
+        figbone->anmstate = ce_anmstate_new();
+        figbone->parent = parent;
+        figbone->childs = ce_vector_new();
+
+        ce_fighlp_get_bone(&figbone->position, fignode->figfile, fignode->bonfile, complection);
+
+        for (size_t i = 0; i < fignode->childs->count; ++i) {
+            ce_vector_push_back(figbone->childs, ce_figbone_new((ce_fignode*)fignode->childs->items[i], complection, figbone));
+        }
+
+        return figbone;
     }
 
-    // update bone pose
-    if (NULL == figbone->parent) {
-        // bone pose == binding pose
-        figbone->bone_position = figbone->position;
-        figbone->bone_orientation = figbone->orientation;
-    } else {
-        ce_vec3_rot(&figbone->bone_position,
-                    &figbone->position,
-                    &figbone->parent->bone_orientation);
-        ce_vec3_add(&figbone->bone_position,
-                    &figbone->bone_position,
-                    &figbone->parent->bone_position);
-        ce_quat_mul(&figbone->bone_orientation,
-                    &figbone->orientation,
-                    &figbone->parent->bone_orientation);
+    void ce_figbone_del(ce_figbone* figbone)
+    {
+        if (NULL != figbone) {
+            ce_vector_for_each(figbone->childs, (void(*)(void*))ce_figbone_del);
+            ce_vector_del(figbone->childs);
+            ce_anmstate_del(figbone->anmstate);
+            ce_free(figbone, sizeof(ce_figbone));
+        }
     }
 
-    renderitem->position = figbone->bone_position;
-    renderitem->orientation = figbone->bone_orientation;
-}
+    void ce_figbone_advance(ce_figbone* figbone, float distance)
+    {
+        ce_anmstate_advance(figbone->anmstate, distance);
 
-static void ce_figbone_update_bounds(ce_figbone* figbone,
-                                    ce_renderitem* renderitem)
-{
-    renderitem->bbox.aabb = renderitem->aabb;
-    renderitem->bbox.axis = figbone->bone_orientation;
-
-    ce_vec3_rot(&renderitem->bbox.aabb.origin,
-                &renderitem->bbox.aabb.origin,
-                &figbone->bone_orientation);
-    ce_vec3_add(&renderitem->bbox.aabb.origin,
-                &renderitem->bbox.aabb.origin,
-                &figbone->bone_position);
-}
-
-void ce_figbone_update(ce_figbone* figbone,
-                        const ce_fignode* fignode,
-                        ce_vector* renderitems)
-{
-    ce_renderitem* renderitem = renderitems->items[fignode->index];
-
-    ce_figbone_update_transform(figbone, renderitem);
-
-    for (size_t i = 0; i < figbone->childs->count; ++i) {
-        ce_figbone_update(figbone->childs->items[i],
-                            fignode->childs->items[i], renderitems);
+        for (size_t i = 0; i < figbone->childs->count; ++i) {
+            ce_figbone_advance((ce_figbone*)figbone->childs->items[i], distance);
+        }
     }
 
-    ce_figbone_update_bounds(figbone, renderitem);
+    void ce_figbone_update_transform(ce_figbone* figbone, ce_renderitem* renderitem)
+    {
+        // TODO: translations from anm file ???
 
-    ce_renderitem_update(renderitem, fignode->figfile, figbone->anmstate);
-}
+        // update binding pose
+        if (NULL == figbone->anmstate->anmfile) {
+            figbone->orientation = CE_QUAT_IDENTITY;
+        } else {
+            ce_quat q1, q2;
+            ce_quat_slerp(&figbone->orientation, figbone->anmstate->coef,
+                ce_quat_init_array(&q1, figbone->anmstate->anmfile->rotations +
+                                        (int)figbone->anmstate->prev_frame * 4),
+                ce_quat_init_array(&q2, figbone->anmstate->anmfile->rotations +
+                                        (int)figbone->anmstate->next_frame * 4));
+        }
 
-bool ce_figbone_play_animation(ce_figbone* figbone,
-                                    const ce_fignode* fignode,
-                                    const char* name)
-{
-    bool ok = ce_anmstate_play_animation(
-        figbone->anmstate, fignode->anmfiles, name);
+        // update bone pose
+        if (NULL == figbone->parent) {
+            // bone pose == binding pose
+            figbone->bone_position = figbone->position;
+            figbone->bone_orientation = figbone->orientation;
+        } else {
+            ce_vec3_rot(&figbone->bone_position,
+                        &figbone->position,
+                        &figbone->parent->bone_orientation);
+            ce_vec3_add(&figbone->bone_position,
+                        &figbone->bone_position,
+                        &figbone->parent->bone_position);
+            ce_quat_mul(&figbone->bone_orientation,
+                        &figbone->orientation,
+                        &figbone->parent->bone_orientation);
+        }
 
-    for (size_t i = 0; i < figbone->childs->count; ++i) {
-        ok = ce_figbone_play_animation(figbone->childs->items[i],
-                fignode->childs->items[i], name) || ok;
+        renderitem->position = figbone->bone_position;
+        renderitem->orientation = figbone->bone_orientation;
     }
 
-    return ok;
-}
+    void ce_figbone_update_bounds(ce_figbone* figbone, ce_renderitem* renderitem)
+    {
+        renderitem->bbox.aabb = renderitem->aabb;
+        renderitem->bbox.axis = figbone->bone_orientation;
 
-void ce_figbone_stop_animation(ce_figbone* figbone,
-                                const ce_fignode* fignode)
-{
-    ce_anmstate_stop_animation(figbone->anmstate);
+        ce_vec3_rot(&renderitem->bbox.aabb.origin, &renderitem->bbox.aabb.origin, &figbone->bone_orientation);
+        ce_vec3_add(&renderitem->bbox.aabb.origin, &renderitem->bbox.aabb.origin, &figbone->bone_position);
+    }
 
-    for (size_t i = 0; i < figbone->childs->count; ++i) {
-        ce_figbone_stop_animation(figbone->childs->items[i],
-                                    fignode->childs->items[i]);
+    void ce_figbone_update(ce_figbone* figbone, const ce_fignode* fignode, ce_vector* renderitems)
+    {
+        ce_renderitem* renderitem = (ce_renderitem*)renderitems->items[fignode->index];
+
+        ce_figbone_update_transform(figbone, renderitem);
+
+        for (size_t i = 0; i < figbone->childs->count; ++i) {
+            ce_figbone_update((ce_figbone*)figbone->childs->items[i], (ce_fignode*)fignode->childs->items[i], renderitems);
+        }
+
+        ce_figbone_update_bounds(figbone, renderitem);
+
+        ce_renderitem_update(renderitem, fignode->figfile, figbone->anmstate);
+    }
+
+    bool ce_figbone_play_animation(ce_figbone* figbone, const ce_fignode* fignode, const char* name)
+    {
+        bool ok = ce_anmstate_play_animation(figbone->anmstate, fignode->anmfiles, name);
+        for (size_t i = 0; i < figbone->childs->count; ++i) {
+            ok = ce_figbone_play_animation((ce_figbone*)figbone->childs->items[i], (ce_fignode*)fignode->childs->items[i], name) || ok;
+        }
+        return ok;
+    }
+
+    void ce_figbone_stop_animation(ce_figbone* figbone, const ce_fignode* fignode)
+    {
+        ce_anmstate_stop_animation(figbone->anmstate);
+
+        for (size_t i = 0; i < figbone->childs->count; ++i) {
+            ce_figbone_stop_animation((ce_figbone*)figbone->childs->items[i], (ce_fignode*)fignode->childs->items[i]);
+        }
     }
 }

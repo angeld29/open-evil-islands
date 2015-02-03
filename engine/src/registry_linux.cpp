@@ -141,7 +141,7 @@ static char* ce_registry_get_value(char* value, size_t size, ce_registry_key key
 
     value = (*func)(value, size, wine_prefixes, reg_file_name, key_name, value_name);
 
-    ce_vector_for_each(wine_prefixes, ce_string_del);
+    ce_vector_for_each(wine_prefixes, (void(*)(void*))ce_string_del);
     ce_vector_del(wine_prefixes);
 
     return value;

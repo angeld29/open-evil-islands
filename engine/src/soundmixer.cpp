@@ -138,7 +138,7 @@ void ce_sound_mixer_term(void)
         if (!ce_vector_empty(ce_sound_mixer->sound_buffers)) {
             ce_logging_warning("sound mixer: some buffers have not been unregistered");
         }
-        ce_vector_for_each(ce_sound_mixer->sound_buffers, ce_sound_buffer_del);
+        ce_vector_for_each(ce_sound_mixer->sound_buffers, (void(*)(void*))ce_sound_buffer_del);
         ce_vector_del(ce_sound_mixer->sound_buffers);
         ce_free(ce_sound_mixer, sizeof(struct ce_sound_mixer));
     }

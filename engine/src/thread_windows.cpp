@@ -179,8 +179,8 @@ void ce_wait_condition_del(ce_wait_condition* wait_condition)
             ce_logging_warning("wait condition: destroyed while "
                                 "threads are still waiting");
         }
-        ce_vector_for_each(wait_condition->cache, ce_wait_condition_event_del);
-        ce_vector_for_each(wait_condition->events, ce_wait_condition_event_del);
+        ce_vector_for_each(wait_condition->cache, (void(*)(void*))ce_wait_condition_event_del);
+        ce_vector_for_each(wait_condition->events, (void(*)(void*))ce_wait_condition_event_del);
         ce_vector_del(wait_condition->cache);
         ce_vector_del(wait_condition->events);
         DeleteCriticalSection(&wait_condition->mutex);

@@ -72,7 +72,7 @@ namespace cursedearth
         vector->count = 0;
     }
 
-    void ce_vector_for_each(ce_vector* vector, void (*func)());
+    void ce_vector_for_each(ce_vector* vector, void (*)(void*));
 }
 
 #endif

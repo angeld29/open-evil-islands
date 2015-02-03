@@ -34,7 +34,7 @@ ce_object* ce_object_new(const char* name)
 void ce_object_del(ce_object* object)
 {
     if (NULL != object) {
-        ce_vector_for_each(object->properties, ce_property_del);
+        ce_vector_for_each(object->properties, (void(*)(void*))ce_property_del);
         ce_vector_del(object->properties);
         ce_string_del(object->name);
         ce_free(object, sizeof(ce_object));

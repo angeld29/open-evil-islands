@@ -141,7 +141,7 @@ ce_reg_file* ce_reg_file_new(ce_mem_file* mem_file)
 void ce_reg_file_del(ce_reg_file* reg_file)
 {
     if (NULL != reg_file) {
-        ce_vector_for_each(reg_file->sections, ce_object_del);
+        ce_vector_for_each(reg_file->sections, (void(*)(void*))ce_object_del);
         ce_vector_del(reg_file->sections);
         ce_free(reg_file, sizeof(ce_reg_file));
     }

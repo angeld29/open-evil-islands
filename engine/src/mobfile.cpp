@@ -65,7 +65,7 @@ static void ce_mob_object_del(ce_mob_object* mob_object)
         if (NULL != mob_object->vtable.dtor) {
             (*mob_object->vtable.dtor)(mob_object);
         }
-        ce_vector_for_each(mob_object->parts, ce_string_del);
+        ce_vector_for_each(mob_object->parts, (void(*)(void*))ce_string_del);
         ce_string_del(mob_object->quest_info);
         ce_string_del(mob_object->comment);
         ce_string_del(mob_object->secondary_texture);
@@ -91,12 +91,12 @@ static void ce_mob_unit_logic_del(ce_mob_unit_logic* mob_unit_logic)
 static void ce_mob_unit_dtor(ce_mob_object* mob_object)
 {
     ce_mob_unit* mob_unit = (ce_mob_unit*)mob_object->impl;
-    ce_vector_for_each(mob_unit->logics, ce_mob_unit_logic_del);
-    ce_vector_for_each(mob_unit->quest_items, ce_string_del);
-    ce_vector_for_each(mob_unit->quick_items, ce_string_del);
-    ce_vector_for_each(mob_unit->spells, ce_string_del);
-    ce_vector_for_each(mob_unit->weapons, ce_string_del);
-    ce_vector_for_each(mob_unit->armors, ce_string_del);
+    ce_vector_for_each(mob_unit->logics, (void(*)(void*))ce_mob_unit_logic_del);
+    ce_vector_for_each(mob_unit->quest_items, (void(*)(void*))ce_string_del);
+    ce_vector_for_each(mob_unit->quick_items, (void(*)(void*))ce_string_del);
+    ce_vector_for_each(mob_unit->spells, (void(*)(void*))ce_string_del);
+    ce_vector_for_each(mob_unit->weapons, (void(*)(void*))ce_string_del);
+    ce_vector_for_each(mob_unit->armors, (void(*)(void*))ce_string_del);
     ce_vector_del(mob_unit->logics);
     ce_vector_del(mob_unit->quest_items);
     ce_vector_del(mob_unit->quick_items);
@@ -733,7 +733,7 @@ void ce_mob_file_close(ce_mob_file* mob_file)
 {
     if (NULL != mob_file) {
         if (NULL != mob_file->objects) {
-            ce_vector_for_each(mob_file->objects, ce_mob_object_del);
+            ce_vector_for_each(mob_file->objects, (void(*)(void*))ce_mob_object_del);
         }
         ce_vector_del(mob_file->objects);
         ce_string_del(mob_file->script);

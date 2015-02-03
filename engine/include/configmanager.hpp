@@ -95,7 +95,7 @@ namespace cursedearth
         CE_CONFIG_MENU_ESC_PAD,
     };
 
-    struct ce_config_manager {
+    extern struct ce_config_manager {
         struct {
             ce_color sky[24];
             ce_color ambient[24];

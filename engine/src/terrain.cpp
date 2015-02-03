@@ -95,7 +95,7 @@ static void ce_terrain_sector_react(ce_event* event)
 
     if (++sector->terrain->completed_job_count == sector->terrain->queued_job_count) {
         // free tile mmp files to avoid extra memory usage
-        ce_vector_for_each(sector->terrain->tile_mmpfiles, ce_mmpfile_del);
+        ce_vector_for_each(sector->terrain->tile_mmpfiles, (void(*)(void*))ce_mmpfile_del);
         ce_vector_clear(sector->terrain->tile_mmpfiles);
 
         // tile textures are necessary for geometry rendering if tiling
@@ -226,12 +226,12 @@ void ce_terrain_del(ce_terrain* terrain)
 {
     if (NULL != terrain) {
         ce_scenenode_del(terrain->scenenode);
-        ce_vector_for_each(terrain->sectors, ce_terrain_sector_del);
+        ce_vector_for_each(terrain->sectors, (void(*)(void*))ce_terrain_sector_del);
         ce_vector_del(terrain->sectors);
         ce_once_del(terrain->tile_once);
-        ce_vector_for_each(terrain->tile_textures, ce_texture_del);
+        ce_vector_for_each(terrain->tile_textures, (void(*)(void*))ce_texture_del);
         ce_vector_del(terrain->tile_textures);
-        ce_vector_for_each(terrain->tile_mmpfiles, ce_mmpfile_del);
+        ce_vector_for_each(terrain->tile_mmpfiles, (void(*)(void*))ce_mmpfile_del);
         ce_vector_del(terrain->tile_mmpfiles);
         ce_material_del(terrain->materials[CE_MPRFILE_MATERIAL_WATER]);
         ce_material_del(terrain->materials[CE_MPRFILE_MATERIAL_LAND]);

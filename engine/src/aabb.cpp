@@ -26,6 +26,50 @@
 
 namespace cursedearth
 {
+    void ce_aabb_merge_aabb_pass(float* origin, float* extent, float other_origin, float other_extent)
+    {
+        float displacement = other_origin - *origin;
+        float difference = other_extent - *extent;
+        if (*extent < 0.0f || difference >= fabsf(displacement)) {
+            // 2nd contains 1st
+            *extent = other_extent;
+            *origin = other_origin;
+        } else if (other_extent < 0.0f || -difference >= fabsf(displacement)) {
+            // 1st contains 2nd, do nothing
+        } else {
+            // not contained
+            float min, max;
+            if (displacement > 0.0f) {
+                min = *origin - *extent;
+                max = other_origin + other_extent;
+            } else {
+                min = other_origin - other_extent;
+                max = *origin + *extent;
+            }
+            *origin = 0.5f * (min + max);
+            *extent = max - *origin;
+        }
+    }
+
+    void ce_aabb_merge_point_pass(float* origin, float* extent, float point)
+    {
+        float displacement = point - *origin;
+        if (fabsf(displacement) > *extent) {
+            float min, max;
+            if (*extent < 0.0f) { // degenerate
+                min = max = point;
+            } else if (displacement > 0.0f) {
+                min = *origin - *extent;
+                max = *origin + displacement;
+            } else {
+                max = *origin + *extent;
+                min = *origin + displacement;
+            }
+            *origin = 0.5f * (min + max);
+            *extent = max - *origin;
+        }
+    }
+
     ce_aabb* ce_aabb_init(ce_aabb* aabb, const ce_vec3* origin, const ce_vec3* extents, float radius)
     {
         aabb->origin = *origin;
@@ -64,31 +108,6 @@ namespace cursedearth
         return aabb;
     }
 
-    static void ce_aabb_merge_aabb_pass(float* origin, float* extent, float other_origin, float other_extent)
-    {
-        float displacement = other_origin - *origin;
-        float difference = other_extent - *extent;
-        if (*extent < 0.0f || difference >= fabsf(displacement)) {
-            // 2nd contains 1st
-            *extent = other_extent;
-            *origin = other_origin;
-        } else if (other_extent < 0.0f || -difference >= fabsf(displacement)) {
-            // 1st contains 2nd, do nothing
-        } else {
-            // not contained
-            float min, max;
-            if (displacement > 0.0f) {
-                min = *origin - *extent;
-                max = other_origin + other_extent;
-            } else {
-                min = other_origin - other_extent;
-                max = *origin + *extent;
-            }
-            *origin = 0.5f * (min + max);
-            *extent = max - *origin;
-        }
-    }
-
     ce_aabb* ce_aabb_merge_aabb(ce_aabb* aabb, const ce_aabb* other)
     {
         ce_aabb_merge_aabb_pass(&aabb->origin.x, &aabb->extents.x,
@@ -98,25 +117,6 @@ namespace cursedearth
         ce_aabb_merge_aabb_pass(&aabb->origin.z, &aabb->extents.z,
                                 other->origin.z, other->extents.z);
         return aabb;
-    }
-
-    static void ce_aabb_merge_point_pass(float* origin, float* extent, float point)
-    {
-        float displacement = point - *origin;
-        if (fabsf(displacement) > *extent) {
-            float min, max;
-            if (*extent < 0.0f) { // degenerate
-                min = max = point;
-            } else if (displacement > 0.0f) {
-                min = *origin - *extent;
-                max = *origin + displacement;
-            } else {
-                max = *origin + *extent;
-                min = *origin + displacement;
-            }
-            *origin = 0.5f * (min + max);
-            *extent = max - *origin;
-        }
     }
 
     ce_aabb* ce_aabb_merge_point(ce_aabb* aabb, const ce_vec3* point)

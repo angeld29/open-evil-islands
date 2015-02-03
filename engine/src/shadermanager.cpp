@@ -45,7 +45,7 @@ void ce_shader_manager_init(void)
 void ce_shader_manager_term(void)
 {
     if (NULL != ce_shader_manager) {
-        ce_vector_for_each(ce_shader_manager->shaders, ce_shader_del);
+        ce_vector_for_each(ce_shader_manager->shaders, (void(*)(void*))ce_shader_del);
         ce_vector_del(ce_shader_manager->shaders);
         ce_free(ce_shader_manager, sizeof(struct ce_shader_manager));
     }

@@ -48,8 +48,8 @@ ce_optparse* ce_optparse_new(void)
 void ce_optparse_del(ce_optparse* optparse)
 {
     if (NULL != optparse) {
-        ce_vector_for_each(optparse->ctrlobjects, ce_object_del);
-        ce_vector_for_each(optparse->argobjects, ce_object_del);
+        ce_vector_for_each(optparse->ctrlobjects, (void(*)(void*))ce_object_del);
+        ce_vector_for_each(optparse->argobjects, (void(*)(void*))ce_object_del);
         ce_vector_del(optparse->ctrlobjects);
         ce_vector_del(optparse->argobjects);
         ce_string_del(optparse->brief);

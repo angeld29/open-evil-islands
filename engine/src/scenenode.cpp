@@ -52,7 +52,7 @@ void ce_scenenode_del(ce_scenenode* scenenode)
         }
         ce_vector_del(scenenode->childs);
         ce_occlusion_del(scenenode->occlusion);
-        ce_vector_for_each(scenenode->renderitems, ce_renderitem_del);
+        ce_vector_for_each(scenenode->renderitems, (void(*)(void*))ce_renderitem_del);
         ce_vector_del(scenenode->renderitems);
         if (NULL != scenenode->listener.destroyed) {
             (*scenenode->listener.destroyed)(scenenode->listener.listener);

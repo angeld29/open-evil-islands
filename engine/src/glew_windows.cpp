@@ -20,4 +20,7 @@
 
 #include "glew_windows.hpp"
 
-thread_local WGLEWContext ce_wglew_context;
+namespace cursedearth
+{
+    thread_local WGLEWContext ce_wglew_context;
+}

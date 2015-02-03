@@ -19,6 +19,7 @@
  */
 
 #include <cstdio>
+#include <vector>
 
 #include "lib.hpp"
 #include "alloc.hpp"
@@ -27,92 +28,95 @@
 #include "bitop.hpp"
 #include "bink.hpp"
 
-enum {
-    CE_BINK_HEADER_SIZE = 44,
-    CE_BINK_AUDIO_HEADER_SIZE = 4 + 4 + 4,
-};
-
-bool ce_bink_header_read(ce_bink_header* bink_header, ce_mem_file* mem_file)
+namespace cursedearth
 {
-    uint8_t header[CE_BINK_HEADER_SIZE];
+    enum {
+        CE_BINK_HEADER_SIZE = 44,
+        CE_BINK_AUDIO_HEADER_SIZE = 4 + 4 + 4,
+    };
 
-    if (sizeof(header) != ce_mem_file_read(mem_file, header, 1, sizeof(header))) {
-        return false;
-    }
+    bool ce_bink_header_read(ce_bink_header* bink_header, ce_mem_file* mem_file)
+    {
+        uint8_t header[CE_BINK_HEADER_SIZE];
 
-    union {
-        uint8_t* u8;
-        uint32_t* u32;
-    } ptr = {header};
-
-    if ('B' != ptr.u8[0] || 'I' != ptr.u8[1] || 'K' != ptr.u8[2]) {
-        return false;
-    }
-
-    bink_header->four_cc = ce_le2cpu32(*ptr.u32++);
-    bink_header->file_size = ce_le2cpu32(*ptr.u32++);
-    bink_header->frame_count = ce_le2cpu32(*ptr.u32++);
-    bink_header->largest_frame_size = ce_le2cpu32(*ptr.u32++);
-    bink_header->last_frame = ce_le2cpu32(*ptr.u32++);
-    bink_header->video_width = ce_le2cpu32(*ptr.u32++);
-    bink_header->video_height = ce_le2cpu32(*ptr.u32++);
-    bink_header->fps_dividend = ce_le2cpu32(*ptr.u32++);
-    bink_header->fps_divider = ce_le2cpu32(*ptr.u32++);
-    bink_header->video_flags = ce_le2cpu32(*ptr.u32++);
-    bink_header->audio_track_count = ce_le2cpu32(*ptr.u32++);
-
-    return true;
-}
-
-bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, ce_mem_file* mem_file)
-{
-    uint8_t header[CE_BINK_AUDIO_HEADER_SIZE];
-
-    if (sizeof(header) != ce_mem_file_read(mem_file, header, 1, sizeof(header))) {
-        return false;
-    }
-
-    union {
-        uint8_t* u8;
-        uint16_t* u16;
-    } ptr = {header};
-
-    ptr.u8 += 4; // not authoritative, skip
-
-    bink_audio_track->sample_rate = ce_le2cpu16(*ptr.u16++);
-    bink_audio_track->flags = ce_le2cpu16(*ptr.u16++);
-
-    ptr.u8 += 4; // not used, skip
-
-    return true;
-}
-
-bool ce_bink_audio_track_skip(size_t n, ce_mem_file* mem_file)
-{
-    uint8_t header[CE_BINK_AUDIO_HEADER_SIZE * n];
-    return sizeof(header) == ce_mem_file_read(mem_file, header, 1, sizeof(header));
-}
-
-bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_mem_file* mem_file)
-{
-    uint32_t pos, next_pos;
-
-    ce_mem_file_read(mem_file, &next_pos, 4, 1);
-
-    for (size_t i = 0; i < n; ++i) {
-        pos = next_pos;
-        ce_mem_file_read(mem_file, &next_pos, 4, 1);
-
-        // bit 0 indicates that frame is a keyframe; I'm not using it
-        bink_indices[i].pos = ce_bitclr(uint32_t, pos, 0);
-        bink_indices[i].length = ce_bitclr(uint32_t, next_pos, 0);
-
-        if (bink_indices[i].length <= bink_indices[i].pos) {
+        if (sizeof(header) != ce_mem_file_read(mem_file, header, 1, sizeof(header))) {
             return false;
         }
 
-        bink_indices[i].length -= bink_indices[i].pos;
+        union {
+            uint8_t* u8;
+            uint32_t* u32;
+        } ptr = {header};
+
+        if ('B' != ptr.u8[0] || 'I' != ptr.u8[1] || 'K' != ptr.u8[2]) {
+            return false;
+        }
+
+        bink_header->four_cc = ce_le2cpu32(*ptr.u32++);
+        bink_header->file_size = ce_le2cpu32(*ptr.u32++);
+        bink_header->frame_count = ce_le2cpu32(*ptr.u32++);
+        bink_header->largest_frame_size = ce_le2cpu32(*ptr.u32++);
+        bink_header->last_frame = ce_le2cpu32(*ptr.u32++);
+        bink_header->video_width = ce_le2cpu32(*ptr.u32++);
+        bink_header->video_height = ce_le2cpu32(*ptr.u32++);
+        bink_header->fps_dividend = ce_le2cpu32(*ptr.u32++);
+        bink_header->fps_divider = ce_le2cpu32(*ptr.u32++);
+        bink_header->video_flags = ce_le2cpu32(*ptr.u32++);
+        bink_header->audio_track_count = ce_le2cpu32(*ptr.u32++);
+
+        return true;
     }
 
-    return true;
+    bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, ce_mem_file* mem_file)
+    {
+        uint8_t header[CE_BINK_AUDIO_HEADER_SIZE];
+
+        if (sizeof(header) != ce_mem_file_read(mem_file, header, 1, sizeof(header))) {
+            return false;
+        }
+
+        union {
+            uint8_t* u8;
+            uint16_t* u16;
+        } ptr = { header };
+
+        ptr.u8 += 4; // not authoritative, skip
+
+        bink_audio_track->sample_rate = ce_le2cpu16(*ptr.u16++);
+        bink_audio_track->flags = ce_le2cpu16(*ptr.u16++);
+
+        ptr.u8 += 4; // not used, skip
+
+        return true;
+    }
+
+    bool ce_bink_audio_track_skip(size_t n, ce_mem_file* mem_file)
+    {
+        std::vector<uint8_t> header(CE_BINK_AUDIO_HEADER_SIZE * n);
+        return header.size() == ce_mem_file_read(mem_file, header.data(), 1, header.size());
+    }
+
+    bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_mem_file* mem_file)
+    {
+        uint32_t pos, next_pos;
+
+        ce_mem_file_read(mem_file, &next_pos, 4, 1);
+
+        for (size_t i = 0; i < n; ++i) {
+            pos = next_pos;
+            ce_mem_file_read(mem_file, &next_pos, 4, 1);
+
+            // bit 0 indicates that frame is a keyframe; I'm not using it
+            bink_indices[i].pos = ce_bitclr(uint32_t, pos, 0);
+            bink_indices[i].length = ce_bitclr(uint32_t, next_pos, 0);
+
+            if (bink_indices[i].length <= bink_indices[i].pos) {
+                return false;
+            }
+
+            bink_indices[i].length -= bink_indices[i].pos;
+        }
+
+        return true;
+    }
 }

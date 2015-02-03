@@ -144,7 +144,7 @@ void ce_mob_loader_init(void)
 void ce_mob_loader_term(void)
 {
     if (NULL != ce_mob_loader) {
-        ce_vector_for_each(ce_mob_loader->mob_tasks, ce_mob_task_del);
+        ce_vector_for_each(ce_mob_loader->mob_tasks, (void(*)(void*))ce_mob_task_del);
         ce_vector_del(ce_mob_loader->mob_tasks);
         ce_free(ce_mob_loader, sizeof(struct ce_mob_loader));
     }

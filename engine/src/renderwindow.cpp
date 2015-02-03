@@ -64,7 +64,7 @@ ce_renderwindow_keymap* ce_renderwindow_keymap_new(void)
 void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap)
 {
     if (NULL != keymap) {
-        ce_vector_for_each(keymap->keypairs, ce_renderwindow_keypair_del);
+        ce_vector_for_each(keymap->keypairs, (void(*)(void*))ce_renderwindow_keypair_del);
         ce_vector_del(keymap->keypairs);
         ce_free(keymap, sizeof(ce_renderwindow_keymap));
     }

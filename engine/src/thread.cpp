@@ -160,7 +160,7 @@ void ce_thread_pool_term(void)
         ce_mutex_unlock(ce_thread_pool->mutex);
 
         ce_wait_condition_wake_all(ce_thread_pool->idle);
-        ce_vector_for_each(ce_thread_pool->threads, ce_thread_wait);
+        ce_vector_for_each(ce_thread_pool->threads, (void(*)(void*))ce_thread_wait);
 
         ce_wait_condition_del(ce_thread_pool->wait_all);
         ce_wait_condition_del(ce_thread_pool->wait_one);
@@ -172,9 +172,9 @@ void ce_thread_pool_term(void)
                                 "destroyed while queue is not empty");
         }
 
-        ce_vector_for_each(ce_thread_pool->free_routines, ce_routine_del);
-        ce_vector_for_each(ce_thread_pool->pending_routines, ce_routine_del);
-        ce_vector_for_each(ce_thread_pool->threads, ce_thread_del);
+        ce_vector_for_each(ce_thread_pool->free_routines, (void(*)(void*))ce_routine_del);
+        ce_vector_for_each(ce_thread_pool->pending_routines, (void(*)(void*))ce_routine_del);
+        ce_vector_for_each(ce_thread_pool->threads, (void(*)(void*))ce_thread_del);
 
         ce_vector_del(ce_thread_pool->free_routines);
         ce_vector_del(ce_thread_pool->pending_routines);

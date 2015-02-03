@@ -48,7 +48,7 @@ void ce_video_manager_init(void)
 void ce_video_manager_term(void)
 {
     if (NULL != ce_video_manager) {
-        ce_vector_for_each(ce_video_manager->video_instances, ce_video_instance_del);
+        ce_vector_for_each(ce_video_manager->video_instances, (void(*)(void*))ce_video_instance_del);
         ce_vector_del(ce_video_manager->video_instances);
         ce_free(ce_video_manager, sizeof(struct ce_video_manager));
     }

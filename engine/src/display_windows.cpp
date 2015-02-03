@@ -24,7 +24,6 @@
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "display.hpp"
 #include "display_windows.hpp"
 
 typedef struct {

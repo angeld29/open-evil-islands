@@ -34,7 +34,7 @@ namespace cursedearth
         void* listener;
     } ce_figure_manager_listener;
 
-    struct ce_figure_manager {
+    extern struct ce_figure_manager {
         ce_vector* res_files;
         ce_vector* figprotos;
         ce_vector* figmeshes;

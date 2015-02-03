@@ -21,21 +21,24 @@
 #include "alloc.hpp"
 #include "material.hpp"
 
-ce_material* ce_material_new(void)
+namespace cursedearth
 {
-    ce_material* material = ce_alloc_zero(sizeof(ce_material));
-    material->mode = CE_MATERIAL_MODE_MODULATE;
-    ce_color_init(&material->ambient, 0.2f, 0.2f, 0.2f, 1.0f);
-    ce_color_init(&material->diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
-    ce_color_init(&material->specular, 0.0f, 0.0f, 0.0f, 1.0f);
-    ce_color_init(&material->emission, 0.0f, 0.0f, 0.0f, 1.0f);
-    return material;
-}
+    ce_material* ce_material_new(void)
+    {
+        ce_material* material = (ce_material*)ce_alloc_zero(sizeof(ce_material));
+        material->mode = CE_MATERIAL_MODE_MODULATE;
+        ce_color_init(&material->ambient, 0.2f, 0.2f, 0.2f, 1.0f);
+        ce_color_init(&material->diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
+        ce_color_init(&material->specular, 0.0f, 0.0f, 0.0f, 1.0f);
+        ce_color_init(&material->emission, 0.0f, 0.0f, 0.0f, 1.0f);
+        return material;
+    }
 
-void ce_material_del(ce_material* material)
-{
-    if (NULL != material) {
-        ce_shader_del(material->shader);
-        ce_free(material, sizeof(ce_material));
+    void ce_material_del(ce_material* material)
+    {
+        if (NULL != material) {
+            ce_shader_del(material->shader);
+            ce_free(material, sizeof(ce_material));
+        }
     }
 }

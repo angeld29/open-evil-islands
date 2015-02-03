@@ -26,7 +26,6 @@
 namespace cursedearth
 {
     void ce_alloc_init(void);
-
     void* ce_alloc(size_t size);
     void* ce_alloc_zero(size_t size);
     void* ce_realloc(void* ptr, size_t size, size_t new_size);

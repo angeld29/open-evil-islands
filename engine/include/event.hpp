@@ -30,7 +30,7 @@ namespace cursedearth
     typedef struct ce_event {
         void (*notify)(struct ce_event* event);
         size_t size;
-        char impl[];
+        void* impl;
     } ce_event;
 
     ce_event* ce_event_new(void (*notify)(ce_event*), size_t size);
@@ -78,7 +78,7 @@ namespace cursedearth
      *  Thread-safe event manager.
     */
 
-    struct ce_event_manager {
+    extern struct ce_event_manager {
         ce_mutex* mutex;
         ce_vector* event_queues;
     }* ce_event_manager;

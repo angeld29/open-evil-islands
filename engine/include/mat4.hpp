@@ -27,8 +27,8 @@ namespace cursedearth
         float m[16];
     } ce_mat4;
 
-    const ce_mat4 CE_MAT4_ZERO;
-    const ce_mat4 CE_MAT4_IDENTITY;
+    extern const ce_mat4 CE_MAT4_ZERO;
+    extern const ce_mat4 CE_MAT4_IDENTITY;
 
     ce_mat4* ce_mat4_init_zero(ce_mat4* mat);
     ce_mat4* ce_mat4_init_identity(ce_mat4* mat);
