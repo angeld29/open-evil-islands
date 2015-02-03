@@ -104,7 +104,7 @@ void ce_graphic_context_del(ce_graphic_context* graphic_context)
     }
 }
 
-void ce_graphic_context_swap(ce_graphic_context* CE_UNUSED(graphic_context))
+void ce_graphic_context_swap(ce_graphic_context*)
 {
     assert(NULL != wglGetCurrentContext());
     assert(wglGetCurrentContext() == graphic_context->context);

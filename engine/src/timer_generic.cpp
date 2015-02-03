@@ -26,6 +26,7 @@
 static const float CE_TIMER_CLOCKS_PER_SEC_INV = 1.0f / CLOCKS_PER_SEC;
 
 typedef struct {
+    float elapsed;
     clock_t start;
     clock_t stop;
 } ce_timer_std;

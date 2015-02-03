@@ -40,7 +40,7 @@ static void clear()
     ce_optparse_del(optparse);
 }
 
-static void state_changed(void* CE_UNUSED(listener), int state)
+static void state_changed(void*, int state)
 {
     if (CE_SCENEMNG_STATE_READY == state) {
         const char* track;
@@ -57,7 +57,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
     }
 }
 
-static void advance(void* CE_UNUSED(listener), float elapsed)
+static void advance(void*, float elapsed)
 {
     ce_input_supply_advance(input_supply, elapsed);
     ce_video_object_advance(video_object, elapsed);
@@ -72,7 +72,7 @@ static void advance(void* CE_UNUSED(listener), float elapsed)
     }
 }
 
-static void render(void* CE_UNUSED(listener))
+static void render(void*)
 {
     ce_video_object_render(video_object);
 }

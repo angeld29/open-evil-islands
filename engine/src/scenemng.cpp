@@ -143,15 +143,15 @@ static void ce_scenemng_render_logo(ce_scenemng* scenemng)
     ce_video_object_render(scenemng->logo.video_object);
 }
 
-static void ce_scenemng_advance_ready(ce_scenemng* CE_UNUSED(scenemng), float CE_UNUSED(elapsed))
+static void ce_scenemng_advance_ready(ce_scenemng*, float /*elapsed*/)
 {
 }
 
-static void ce_scenemng_render_ready(ce_scenemng* CE_UNUSED(scenemng))
+static void ce_scenemng_render_ready(ce_scenemng*)
 {
 }
 
-static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float CE_UNUSED(elapsed))
+static void ce_scenemng_advance_loading(ce_scenemng* scenemng, float /*elapsed*/)
 {
     // TODO: constructor
     if (!scenemng->loading.created) {

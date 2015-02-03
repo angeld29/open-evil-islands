@@ -58,8 +58,7 @@ static void ce_wmm_error(MMRESULT code, const char* message)
     }
 }
 
-static void CALLBACK ce_wmm_proc(HWAVEOUT CE_UNUSED(waveout), UINT message,
-    DWORD_PTR instance, DWORD_PTR CE_UNUSED(param1), DWORD_PTR CE_UNUSED(param2))
+static void CALLBACK ce_wmm_proc(HWAVEOUT, UINT message, DWORD_PTR instance, DWORD_PTR /*param1*/, DWORD_PTR /*param2*/)
 {
     if (WOM_DONE == message) {
         ce_wmm* wmm = (ce_wmm*)instance;

@@ -54,7 +54,7 @@ void ce_video_manager_term(void)
     }
 }
 
-void ce_video_manager_advance(float CE_UNUSED(elapsed))
+void ce_video_manager_advance(float /*elapsed*/)
 {
 }
 

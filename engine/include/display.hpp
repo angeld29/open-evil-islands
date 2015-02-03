@@ -66,7 +66,7 @@ struct ce_displaymng {
     ce_display_reflection supported_reflection;
     ce_displaymng_vtable vtable;
     size_t size;
-    char impl[];
+    void* impl;
 };
 
 extern ce_displaymng* ce_displaymng_new(ce_displaymng_vtable vtable, size_t size, ...);

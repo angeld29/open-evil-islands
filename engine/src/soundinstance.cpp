@@ -46,7 +46,7 @@ void ce_sound_instance_del(ce_sound_instance* sound_instance)
     }
 }
 
-void ce_sound_instance_advance(ce_sound_instance* sound_instance, float CE_UNUSED(elapsed))
+void ce_sound_instance_advance(ce_sound_instance* sound_instance, float /*elapsed*/)
 {
     if (CE_SOUND_STATE_PLAYING == sound_instance->sound_bundle.state) {
         size_t size = ce_sound_buffer_available_size_for_write(sound_instance->sound_buffer);

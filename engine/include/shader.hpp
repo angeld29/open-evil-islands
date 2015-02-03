@@ -41,7 +41,7 @@ typedef struct {
 typedef struct {
     int ref_count;
     ce_string* name;
-    char impl[];
+    void* impl;
 } ce_shader;
 
 extern bool ce_shader_is_available(void);
@@ -60,4 +60,4 @@ static inline ce_shader* ce_shader_add_ref(ce_shader* shader)
     return shader;
 }
 
-#endif /* CE_SHADER_HPP */
+#endif

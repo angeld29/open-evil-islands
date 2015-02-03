@@ -71,9 +71,7 @@ static void ce_xf86vmmng_ctor(ce_displaymng* displaymng, va_list args)
     }
 }
 
-static void ce_xf86vmmng_enter(ce_displaymng* displaymng, size_t index,
-                                ce_display_rotation CE_UNUSED(rotation),
-                                ce_display_reflection CE_UNUSED(reflection))
+static void ce_xf86vmmng_enter(ce_displaymng* displaymng, size_t index, ce_display_rotation, ce_display_reflection)
 {
     ce_xf86vmmng* xf86vmmng = (ce_xf86vmmng*)displaymng->impl;
 

@@ -45,7 +45,7 @@ typedef struct {
 
 struct ce_mem_file {
     ce_mem_file_vtable vtable;
-    char impl[];
+    void* impl;
 };
 
 extern const int CE_MEM_FILE_SEEK_CUR;
@@ -181,4 +181,4 @@ static inline uint32_t ce_mem_file_read_fle(ce_mem_file* mem_file)
     return value;
 }
 
-#endif /* CE_MEMFILE_HPP */
+#endif

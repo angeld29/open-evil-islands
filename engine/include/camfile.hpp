@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  doc/formats/cam.txt
+/**
+ * doc/formats/cam.txt
  */
 
 #ifndef CE_CAMFILE_HPP
@@ -39,10 +39,10 @@ typedef struct {
 
 typedef struct {
     size_t record_count;
-    ce_cam_record records[];
+    ce_cam_record* records;
 } ce_cam_file;
 
 extern ce_cam_file* ce_cam_file_new(ce_mem_file* mem_file);
 extern void ce_cam_file_del(ce_cam_file* cam_file);
 
-#endif /* CE_CAMFILE_HPP */
+#endif

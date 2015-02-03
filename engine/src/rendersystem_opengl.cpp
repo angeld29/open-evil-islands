@@ -31,6 +31,7 @@
 struct ce_render_system* ce_render_system;
 
 static struct ce_opengl_system {
+    ce_thread_id thread_id;
     ce_mat4 view;
     GLuint axes_list;
     GLuint wire_cube_list;

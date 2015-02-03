@@ -157,7 +157,7 @@ void ce_shader_bind(ce_shader* shader)
     glUseProgram(opengl_shader->program);
 }
 
-void ce_shader_unbind(ce_shader* CE_UNUSED(shader))
+void ce_shader_unbind(ce_shader*)
 {
     glUseProgram(0);
 }

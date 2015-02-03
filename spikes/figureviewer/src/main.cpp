@@ -35,7 +35,6 @@
 static ce_optparse* optparse;
 static ce_figentity* figentity;
 static ce_string* message;
-
 static ce_input_supply* input_supply;
 static ce_input_event* strength_event;
 static ce_input_event* dexterity_event;
@@ -43,10 +42,8 @@ static ce_input_event* height_event;
 static ce_input_event* anm_change_event;
 static ce_input_event* anmfps_inc_event;
 static ce_input_event* anmfps_dec_event;
-
 static int anmidx = -1;
 static ce_complection complection = {1.0f, 1.0f, 1.0f};
-
 static float message_timeout;
 static ce_color message_color;
 
@@ -99,7 +96,7 @@ static void display_message(const char* fmt, ...)
     message_color.a = 1.0f;
 }
 
-static void state_changed(void* CE_UNUSED(listener), int state)
+static void state_changed(void*, int state)
 {
     if (CE_SCENEMNG_STATE_READY == state) {
         if (update_figentity()) {
@@ -133,7 +130,7 @@ static void state_changed(void* CE_UNUSED(listener), int state)
     }
 }
 
-static void advance(void* CE_UNUSED(listener), float elapsed)
+static void advance(void*, float elapsed)
 {
     ce_input_supply_advance(input_supply, elapsed);
 
@@ -198,7 +195,7 @@ static void advance(void* CE_UNUSED(listener), float elapsed)
     }
 }
 
-static void render(void* CE_UNUSED(listener))
+static void render(void*)
 {
     if (message_timeout > 0.0f) {
         ce_font_render(ce_root.scenemng->font,

@@ -21,15 +21,13 @@
 #ifndef CE_TIMER_HPP
 #define CE_TIMER_HPP
 
-typedef struct {
-    float elapsed;
-    char impl[];
-} ce_timer;
+struct ce_timer;
 
 extern ce_timer* ce_timer_new(void);
 extern void ce_timer_del(ce_timer* timer);
 
 extern void ce_timer_start(ce_timer* timer);
 extern float ce_timer_advance(ce_timer* timer);
+extern float ce_timer_elapsed(ce_timer* timer);
 
-#endif /* CE_TIMER_HPP */
+#endif

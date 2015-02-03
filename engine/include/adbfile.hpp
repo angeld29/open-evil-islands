@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  doc/formats/adb.txt
+/**
+ * doc/formats/adb.txt
  */
 
 #ifndef CE_ADBFILE_HPP
@@ -58,10 +58,10 @@ typedef struct {
     float min_height;
     float average_height;
     float max_height;
-    ce_adb_record records[];
+    ce_adb_record* records;
 } ce_adb_file;
 
 extern ce_adb_file* ce_adb_file_new(ce_mem_file* mem_file);
 extern void ce_adb_file_del(ce_adb_file* adb_file);
 
-#endif /* CE_ADBFILE_HPP */
+#endif

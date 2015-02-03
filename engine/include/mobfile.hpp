@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  doc/formats/mob.txt
+/**
+ * doc/formats/mob.txt
  */
 
 #ifndef CE_MOBFILE_HPP
@@ -52,7 +52,7 @@ struct ce_mob_object {
     ce_string* comment;
     ce_string* quest_info;
     ce_mob_object_vtable vtable;
-    char impl[];
+    void* impl;
 };
 
 typedef struct {
@@ -87,13 +87,13 @@ typedef struct {
 typedef struct {
     size_t size;
     uint32_t count;
-    float values[][3]; // x, z, area
+    float* values[3]; // x, z, area
 } ce_mob_trap_area;
 
 typedef struct {
     size_t size;
     uint32_t count;
-    float values[][2]; // x, z
+    float* values[2]; // x, z
 } ce_mob_trap_target;
 
 typedef struct {
@@ -113,4 +113,4 @@ typedef struct {
 extern ce_mob_file* ce_mob_file_open(const char* path);
 extern void ce_mob_file_close(ce_mob_file* mob_file);
 
-#endif /* CE_MOBFILE_HPP */
+#endif

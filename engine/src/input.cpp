@@ -106,7 +106,7 @@ static void ce_input_event_button_ctor(ce_input_event* input_event, va_list args
     button_event->input_button = va_arg(args, ce_input_button);
 }
 
-static void ce_input_event_button_advance(ce_input_event* input_event, float CE_UNUSED(elapsed))
+static void ce_input_event_button_advance(ce_input_event* input_event, float)
 {
     ce_input_event_button* button_event = (ce_input_event_button*)input_event->impl;
     input_event->triggered = button_event->input_context->buttons[button_event->input_button];
@@ -133,7 +133,7 @@ static void ce_input_event_single_front_ctor(ce_input_event* input_event, va_lis
     single_front_event->event = va_arg(args, const ce_input_event*);
 }
 
-static void ce_input_event_single_front_advance(ce_input_event* input_event, float CE_UNUSED(elapsed))
+static void ce_input_event_single_front_advance(ce_input_event* input_event, float)
 {
     ce_input_event_single_front* single_front_event = (ce_input_event_single_front*)input_event->impl;
     input_event->triggered = !single_front_event->activated && single_front_event->event->triggered;
@@ -161,7 +161,7 @@ static void ce_input_event_single_back_ctor(ce_input_event* input_event, va_list
     single_back_event->event = va_arg(args, const ce_input_event*);
 }
 
-static void ce_input_event_single_back_advance(ce_input_event* input_event, float CE_UNUSED(elapsed))
+static void ce_input_event_single_back_advance(ce_input_event* input_event, float)
 {
     ce_input_event_single_back* single_back_event = (ce_input_event_single_back*)input_event->impl;
     input_event->triggered = single_back_event->activated && !single_back_event->event->triggered;
@@ -190,7 +190,7 @@ static void ce_input_event_and_ctor(ce_input_event* input_event, va_list args)
     and_event->input_event2 = va_arg(args, const ce_input_event*);
 }
 
-static void ce_input_event_and_advance(ce_input_event* input_event, float CE_UNUSED(elapsed))
+static void ce_input_event_and_advance(ce_input_event* input_event, float)
 {
     ce_input_event_and* and_event = (ce_input_event_and*)input_event->impl;
     input_event->triggered = and_event->input_event1->triggered &&
@@ -229,7 +229,7 @@ static void ce_input_event_or_ctor(ce_input_event* input_event, va_list args)
     or_event->input_event2 = va_arg(args, const ce_input_event*);
 }
 
-static void ce_input_event_or_advance(ce_input_event* input_event, float CE_UNUSED(elapsed))
+static void ce_input_event_or_advance(ce_input_event* input_event, float)
 {
     ce_input_event_or* or_event = (ce_input_event_or*)input_event->impl;
     input_event->triggered = or_event->input_event1->triggered ||

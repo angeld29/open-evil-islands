@@ -58,6 +58,8 @@ ce_thread_id ce_thread_self(void)
 }
 
 typedef struct {
+    ce_thread_id id;
+    ce_routine routine;
     pthread_t handle;
 } ce_thread_posix;
 

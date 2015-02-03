@@ -26,6 +26,7 @@
 #include "timer.hpp"
 
 typedef struct {
+    float elapsed;
     float frequency_inv;
     LARGE_INTEGER start;
     LARGE_INTEGER stop;

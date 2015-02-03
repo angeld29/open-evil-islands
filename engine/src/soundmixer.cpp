@@ -44,7 +44,7 @@ static void ce_sound_mixer_destroy_buffer_react(ce_event* event)
     ce_sound_buffer_del(sound_buffer);
 }
 
-static void ce_sound_mixer_exit(ce_event* CE_UNUSED(event))
+static void ce_sound_mixer_exit(ce_event*)
 {
     ce_sound_mixer->done = true;
 }
@@ -95,7 +95,7 @@ static void ce_sound_mixer_mix_sample(void* sample, const void* other,
     }
 }
 
-static void ce_sound_mixer_exec(void* CE_UNUSED(arg))
+static void ce_sound_mixer_exec(void*)
 {
     while (!ce_sound_mixer->done) {
         char sample[ce_sound_system->sound_format.sample_size];

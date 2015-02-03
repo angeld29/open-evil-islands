@@ -82,14 +82,6 @@ CE_LIB_DEF_SWAP(int16_t)
 CE_LIB_DEF_SWAP(int32_t)
 CE_LIB_DEF_SWAP(size_t)
 
-// only for pointers
-static inline void ce_swap_pointer(void* a, void* b)
-{
-    void **aa = a, **bb = b, *t = *aa;
-    *aa = *bb;
-    *bb = t;
-}
-
 // is power of two (using 2's complement arithmetic)
 static inline bool ce_ispot(size_t v)
 {
@@ -122,4 +114,4 @@ static inline void ce_pass(void) {}
 #undef CE_LIB_DEF_MAX
 #undef CE_LIB_DEF_MIN
 
-#endif /* CE_LIB_HPP */
+#endif

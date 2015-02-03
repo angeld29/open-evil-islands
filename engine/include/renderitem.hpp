@@ -32,12 +32,11 @@
 typedef struct ce_renderitem ce_renderitem;
 
 typedef struct {
-    void (*ctor)(ce_renderitem* renderitem, va_list args);   // required
-    void (*dtor)(ce_renderitem* renderitem);                 // required
-    void (*update)(ce_renderitem* renderitem, va_list args); // may be NULL
-    void (*render)(ce_renderitem* renderitem);               // required
-    void (*clone)(const ce_renderitem* renderitem,
-                    ce_renderitem* clone_renderitem);        // required
+    void (*ctor)(ce_renderitem* renderitem, va_list args);
+    void (*dtor)(ce_renderitem* renderitem);
+    void (*update)(ce_renderitem* renderitem, va_list args);
+    void (*render)(ce_renderitem* renderitem);
+    void (*clone)(const ce_renderitem* renderitem, ce_renderitem* clone_renderitem);
 } ce_renderitem_vtable;
 
 struct ce_renderitem {
@@ -51,7 +50,7 @@ struct ce_renderitem {
     ce_bbox world_bbox;
     ce_renderitem_vtable vtable;
     size_t size;
-    char impl[];
+    void* impl;
 };
 
 extern ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...);
@@ -62,4 +61,4 @@ extern void ce_renderitem_render(ce_renderitem* renderitem);
 
 extern ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem);
 
-#endif /* CE_RENDERITEM_HPP */
+#endif

@@ -111,7 +111,7 @@ struct ce_renderwindow {
     ce_vector* listeners;
     ce_renderwindow_vtable vtable;
     size_t size;
-    char impl[];
+    void* impl;
 };
 
 extern ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...);
@@ -131,4 +131,4 @@ extern void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow);
 
 extern ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title);
 
-#endif /* CE_RENDERWINDOW_HPP */
+#endif

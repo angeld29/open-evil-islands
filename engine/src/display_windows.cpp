@@ -69,7 +69,7 @@ static void ce_dmmng_change_display_settings(DEVMODE* dm, DWORD flags)
     }
 }
 
-static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list CE_UNUSED(args))
+static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list)
 {
     ce_logging_write("displaymng: using native Device Context Windows API");
 
@@ -102,9 +102,7 @@ static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list CE_UNUSED(args))
     }
 }
 
-static void ce_dmmng_enter(ce_displaymng* displaymng, size_t index,
-                            ce_display_rotation CE_UNUSED(rotation),
-                            ce_display_reflection CE_UNUSED(reflection))
+static void ce_dmmng_enter(ce_displaymng* displaymng, size_t index, ce_display_rotation, ce_display_reflection)
 {
     ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
     DEVMODE* mode = dmmng->modes->items[index];

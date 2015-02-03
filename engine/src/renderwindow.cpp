@@ -214,7 +214,7 @@ void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
     }
 }
 
-static void ce_renderwindow_action_proc_none(ce_renderwindow* CE_UNUSED(renderwindow))
+static void ce_renderwindow_action_proc_none(ce_renderwindow*)
 {
 }
 

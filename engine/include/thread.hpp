@@ -47,16 +47,14 @@ extern void ce_routine_del(ce_routine* routine);
 
 typedef unsigned long int ce_thread_id;
 
-typedef struct {
-    ce_thread_id id;
-    ce_routine routine;
-    char impl[];
-} ce_thread;
+struct ce_thread;
 
 extern ce_thread_id ce_thread_self(void);
 
 extern ce_thread* ce_thread_new(void (*proc)(), void* arg);
 extern void ce_thread_del(ce_thread* thread);
+
+extern ce_thread_id ce_thread_get_id(ce_thread* thread);
 
 extern void ce_thread_wait(ce_thread* thread);
 
@@ -152,4 +150,4 @@ extern void ce_thread_pool_enqueue(void (*proc)(), void* arg);
 extern void ce_thread_pool_wait_one(void);
 extern void ce_thread_pool_wait_all(void);
 
-#endif /* CE_THREAD_HPP */
+#endif

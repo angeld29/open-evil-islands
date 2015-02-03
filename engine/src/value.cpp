@@ -21,15 +21,15 @@
 #include "alloc.hpp"
 #include "value.hpp"
 
-static void ce_value_void(ce_value* CE_UNUSED(value))
+static void ce_value_void(ce_value*)
 {
 }
 
-static void ce_value_void_arg(ce_value* CE_UNUSED(value), void* CE_UNUSED(arg))
+static void ce_value_void_arg(ce_value*, void*)
 {
 }
 
-static void ce_value_void_arg_const(ce_value* CE_UNUSED(value), const void* CE_UNUSED(arg))
+static void ce_value_void_arg_const(ce_value*, const void*)
 {
 }
 

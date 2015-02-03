@@ -306,7 +306,7 @@ static void ce_renderwindow_win_fullscreen_done(ce_renderwindow* renderwindow)
         SWP_FRAMECHANGED);
 }
 
-static void ce_renderwindow_win_pump(ce_renderwindow* CE_UNUSED(renderwindow))
+static void ce_renderwindow_win_pump(ce_renderwindow*)
 {
     MSG message;
     while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
@@ -326,8 +326,7 @@ ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title
         ce_renderwindow_win_pump}, sizeof(ce_renderwindow_win), width, height, title);
 }
 
-static LRESULT CALLBACK ce_renderwindow_proc(HWND window, UINT message,
-                                            WPARAM wparam, LPARAM lparam)
+static LRESULT CALLBACK ce_renderwindow_proc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 {
     ce_renderwindow* renderwindow =
         (ce_renderwindow*)GetWindowLongPtr(window, GWLP_USERDATA);
@@ -342,12 +341,12 @@ static LRESULT CALLBACK ce_renderwindow_proc(HWND window, UINT message,
     return DefWindowProc(window, message, wparam, lparam);
 }
 
-static bool ce_renderwindow_handler_skip(ce_renderwindow* CE_UNUSED(renderwindow), WPARAM CE_UNUSED(wparam), LPARAM CE_UNUSED(lparam))
+static bool ce_renderwindow_handler_skip(ce_renderwindow*, WPARAM, LPARAM)
 {
     return false;
 }
 
-static bool ce_renderwindow_handler_close(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM CE_UNUSED(lparam))
+static bool ce_renderwindow_handler_close(ce_renderwindow* renderwindow, WPARAM, LPARAM)
 {
     ce_renderwindow_emit_closed(renderwindow);
 
@@ -356,7 +355,7 @@ static bool ce_renderwindow_handler_close(ce_renderwindow* renderwindow, WPARAM 
     return true;
 }
 
-static bool ce_renderwindow_handler_entersizemove(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM CE_UNUSED(lparam))
+static bool ce_renderwindow_handler_entersizemove(ce_renderwindow* renderwindow, WPARAM, LPARAM)
 {
     ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
     winwindow->in_sizemove = true;
@@ -364,7 +363,7 @@ static bool ce_renderwindow_handler_entersizemove(ce_renderwindow* renderwindow,
     return false;
 }
 
-static bool ce_renderwindow_handler_exitsizemove(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM CE_UNUSED(lparam))
+static bool ce_renderwindow_handler_exitsizemove(ce_renderwindow* renderwindow, WPARAM, LPARAM)
 {
     ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
     winwindow->in_sizemove = false;
@@ -372,7 +371,7 @@ static bool ce_renderwindow_handler_exitsizemove(ce_renderwindow* renderwindow, 
     return false;
 }
 
-static bool ce_renderwindow_handler_windowposchanged(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM lparam)
+static bool ce_renderwindow_handler_windowposchanged(ce_renderwindow* renderwindow, WPARAM, LPARAM lparam)
 {
     ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
@@ -404,7 +403,7 @@ static bool ce_renderwindow_handler_size(ce_renderwindow* renderwindow, WPARAM w
     return false;
 }
 
-static bool ce_renderwindow_handler_activate(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM CE_UNUSED(lparam))
+static bool ce_renderwindow_handler_activate(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM)
 {
     if (WA_INACTIVE == LOWORD(wparam)) {
         if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
@@ -416,7 +415,7 @@ static bool ce_renderwindow_handler_activate(ce_renderwindow* renderwindow, WPAR
     return false;
 }
 
-static bool ce_renderwindow_handler_syscommand(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM CE_UNUSED(lparam))
+static bool ce_renderwindow_handler_syscommand(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM)
 {
     wparam &= 0xfff0;
 
@@ -434,13 +433,13 @@ static bool ce_renderwindow_handler_syscommand(ce_renderwindow* renderwindow, WP
     return false;
 }
 
-static bool ce_renderwindow_handler_killfocus(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM CE_UNUSED(lparam))
+static bool ce_renderwindow_handler_killfocus(ce_renderwindow* renderwindow, WPARAM, LPARAM)
 {
     ce_input_context_clear(renderwindow->input_context);
     return false;
 }
 
-static bool ce_renderwindow_handler_hotkey(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM CE_UNUSED(lparam))
+static bool ce_renderwindow_handler_hotkey(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM)
 {
     // hotkeys are active only in fullscreen mode
     if (CE_RENDERWINDOW_HOTKEY_ALTTAB == wparam ||
@@ -453,7 +452,7 @@ static bool ce_renderwindow_handler_hotkey(ce_renderwindow* renderwindow, WPARAM
     return false;
 }
 
-static bool ce_renderwindow_handler_input(ce_renderwindow* CE_UNUSED(renderwindow), WPARAM CE_UNUSED(wparam), LPARAM CE_UNUSED(lparam))
+static bool ce_renderwindow_handler_input(ce_renderwindow*, WPARAM, LPARAM)
 {
     // TODO: implement RID
     //printf("ce_renderwindow_handler_input\n");
@@ -524,7 +523,7 @@ static bool ce_renderwindow_handler_keyup(ce_renderwindow* renderwindow, WPARAM 
     return ce_renderwindow_handler_key(renderwindow, wparam, lparam, false);
 }
 
-static bool ce_renderwindow_handler_button(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM lparam, ce_input_button button, bool pressed)
+static bool ce_renderwindow_handler_button(ce_renderwindow* renderwindow, WPARAM, LPARAM lparam, ce_input_button button, bool pressed)
 {
     // TODO: undefined behavior in windows mode
     if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
@@ -577,7 +576,7 @@ static bool ce_renderwindow_handler_mousewheel(ce_renderwindow* renderwindow, WP
     return false;
 }
 
-static bool ce_renderwindow_handler_mousehover(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM lparam)
+static bool ce_renderwindow_handler_mousehover(ce_renderwindow* renderwindow, WPARAM, LPARAM lparam)
 {
     renderwindow->input_context->pointer_position.x = GET_X_LPARAM(lparam);
     renderwindow->input_context->pointer_position.y = GET_Y_LPARAM(lparam);
@@ -588,7 +587,7 @@ static bool ce_renderwindow_handler_mousehover(ce_renderwindow* renderwindow, WP
     return false;
 }
 
-static bool ce_renderwindow_handler_mouseleave(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM CE_UNUSED(lparam))
+static bool ce_renderwindow_handler_mouseleave(ce_renderwindow* renderwindow, WPARAM, LPARAM)
 {
     renderwindow->input_context->pointer_position = CE_VEC2_ZERO;
 
@@ -598,7 +597,7 @@ static bool ce_renderwindow_handler_mouseleave(ce_renderwindow* renderwindow, WP
     return false;
 }
 
-static bool ce_renderwindow_handler_mousemove(ce_renderwindow* renderwindow, WPARAM CE_UNUSED(wparam), LPARAM lparam)
+static bool ce_renderwindow_handler_mousemove(ce_renderwindow* renderwindow, WPARAM, LPARAM lparam)
 {
     renderwindow->input_context->pointer_offset.x = GET_X_LPARAM(lparam) -
         renderwindow->input_context->pointer_position.x;

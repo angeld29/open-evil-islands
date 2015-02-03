@@ -24,14 +24,12 @@
 #include "alloc.hpp"
 #include "figfile.hpp"
 
-static float ce_figfile_value_fig1(const float* params, size_t CE_UNUSED(stride),
-                                    const ce_complection* CE_UNUSED(complection))
+static float ce_figfile_value_fig1(const float* params, size_t /*stride*/, const ce_complection*)
 {
     return *params;
 }
 
-static float ce_figfile_value_fig8(const float* params, size_t stride,
-                                    const ce_complection* complection)
+static float ce_figfile_value_fig8(const float* params, size_t stride, const ce_complection* complection)
 {
     float temp1 = params[0 * stride] +
         (params[1 * stride] - params[0 * stride]) * complection->strength;

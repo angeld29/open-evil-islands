@@ -30,13 +30,12 @@
 #include "texture.hpp"
 #include "material.hpp"
 
-extern struct ce_render_system {
-    ce_thread_id thread_id;
-    char impl[];
-}* ce_render_system;
+extern struct ce_render_system* ce_render_system;
 
 extern void ce_render_system_init(void);
 extern void ce_render_system_term(void);
+
+extern ce_thread_id ce_render_system_thread_id(void);
 
 extern void ce_render_system_begin_render(const ce_color* clear_color);
 extern void ce_render_system_end_render(void);
@@ -63,4 +62,4 @@ extern void ce_render_system_discard_transform(void);
 extern void ce_render_system_apply_material(ce_material* material);
 extern void ce_render_system_discard_material(ce_material* material);
 
-#endif /* CE_RENDERSYSTEM_HPP */
+#endif

@@ -25,6 +25,7 @@
 #include "timer.hpp"
 
 typedef struct {
+    float elapsed;
     struct timeval start;
     struct timeval stop;
 } ce_timer_posix;

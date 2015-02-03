@@ -193,9 +193,7 @@ static size_t ce_mmpfile_storage_size_dxt(unsigned int width,
         ce_mmpfile_storage_size_generic(width, height, format));
 }
 
-static size_t ce_mmpfile_storage_size_ycbcr(unsigned int width,
-                                            unsigned int height,
-                                            ce_mmpfile_format CE_UNUSED(format))
+static size_t ce_mmpfile_storage_size_ycbcr(unsigned int width, unsigned int height, ce_mmpfile_format)
 {
     return 3 * width * height / 2;
 }
@@ -417,8 +415,7 @@ static void ce_mmpfile_unpack32(const ce_mmpfile* mmpfile, ce_mmpfile* other)
     }
 }
 
-static void ce_mmpfile_convert_unknown(const ce_mmpfile* CE_UNUSED(mmpfile),
-                                            ce_mmpfile* CE_UNUSED(other))
+static void ce_mmpfile_convert_unknown(const ce_mmpfile*, ce_mmpfile*)
 {
     assert(false && "not implemented");
 }

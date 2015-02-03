@@ -146,14 +146,14 @@ static void ce_sound_manager_query_instance(ce_hash_key hash_key)
     }
 }
 
-static void ce_sound_manager_idle(ce_event* CE_UNUSED(event))
+static void ce_sound_manager_idle(ce_event*)
 {
     float elapsed = ce_timer_advance(ce_sound_manager->timer);
     ce_hash_for_each_arg1(ce_sound_manager->sound_instances, ce_sound_manager_advance_instance, &elapsed);
     ce_hash_for_each_key(ce_sound_manager->sound_instances, ce_sound_manager_query_instance);
 }
 
-static void ce_sound_manager_exec(void* CE_UNUSED(arg))
+static void ce_sound_manager_exec(void*)
 {
     char path[ce_option_manager->ei_path->length + 16];
     for (size_t i = 0; NULL != ce_sound_dirs[i]; ++i) {
@@ -197,7 +197,7 @@ void ce_sound_manager_term(void)
     }
 }
 
-void ce_sound_manager_advance(float CE_UNUSED(elapsed))
+void ce_sound_manager_advance(float /*elapsed*/)
 {
     ce_event_manager_post_call(ce_sound_manager->thread->id, ce_sound_manager_idle);
 }

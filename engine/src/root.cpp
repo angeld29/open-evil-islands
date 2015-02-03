@@ -81,7 +81,7 @@ static void ce_root_system_event_handler(ce_system_event_type type)
     ce_root.done = true;
 }
 
-static void ce_root_renderwindow_closed(void* CE_UNUSED(listener))
+static void ce_root_renderwindow_closed(void*)
 {
     ce_root.done = true;
 }

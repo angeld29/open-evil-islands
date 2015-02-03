@@ -124,7 +124,7 @@ bool ce_graphic_context_make_current(ce_graphic_context* graphic_context,
     return true;
 }
 
-void ce_graphic_context_swap(ce_graphic_context* CE_UNUSED(graphic_context))
+void ce_graphic_context_swap(ce_graphic_context*)
 {
     assert(NULL != glXGetCurrentContext());
     assert(glXGetCurrentContext() == graphic_context->context);

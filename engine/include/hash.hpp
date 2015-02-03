@@ -35,7 +35,7 @@ typedef struct {
     size_t item_count;
     size_t entry_count;
     void (*item_dtor)(void*);
-    ce_hash_entry* entries[];
+    ce_hash_entry** entries;
 } ce_hash;
 
 typedef struct {
@@ -67,4 +67,4 @@ extern void ce_hash_for_each_key(ce_hash* hash, void (*func)(ce_hash_key));
 extern void ce_hash_iter_first(ce_hash_iter* iter, ce_hash* hash);
 extern void ce_hash_iter_next(ce_hash_iter* iter);
 
-#endif /* CE_HASH_HPP */
+#endif

@@ -38,7 +38,7 @@ static bool ce_wave_header_read_riff(ce_wave_header* wave_header, ce_mem_file* m
     return true;
 }
 
-static bool ce_wave_header_read_wave(ce_wave_header* wave_header, ce_mem_file* CE_UNUSED(mem_file))
+static bool ce_wave_header_read_wave(ce_wave_header* wave_header, ce_mem_file*)
 {
     memcpy(wave_header->wave.four_cc, ce_wave_four_cc_wave, 4);
     return true;

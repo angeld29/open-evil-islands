@@ -237,8 +237,7 @@ static void ce_flac_error(const FLAC__StreamDecoder* decoder, const char* messag
     ce_logging_error("flac: %s", ce_flac_get_state_string(decoder));
 }
 
-static FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
-    FLAC__byte buffer[], size_t* bytes, void* client_data)
+static FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDecoder*, FLAC__byte buffer[], size_t* bytes, void* client_data)
 {
     ce_flac_bundle* flac_bundle = client_data;
 
@@ -259,8 +258,7 @@ static FLAC__StreamDecoderReadStatus ce_flac_read_callback(const FLAC__StreamDec
     return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 }
 
-static FLAC__StreamDecoderSeekStatus ce_flac_seek_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
-    FLAC__uint64 absolute_byte_offset, void *client_data)
+static FLAC__StreamDecoderSeekStatus ce_flac_seek_callback(const FLAC__StreamDecoder*, FLAC__uint64 absolute_byte_offset, void *client_data)
 {
     ce_flac_bundle* flac_bundle = client_data;
     return ce_mem_file_seek(flac_bundle->mem_file,
@@ -269,8 +267,7 @@ static FLAC__StreamDecoderSeekStatus ce_flac_seek_callback(const FLAC__StreamDec
         FLAC__STREAM_DECODER_SEEK_STATUS_OK;
 }
 
-static FLAC__StreamDecoderTellStatus ce_flac_tell_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
-    FLAC__uint64* absolute_byte_offset, void* client_data)
+static FLAC__StreamDecoderTellStatus ce_flac_tell_callback(const FLAC__StreamDecoder*, FLAC__uint64* absolute_byte_offset, void* client_data)
 {
     ce_flac_bundle* flac_bundle = client_data;
     long int pos = ce_mem_file_tell(flac_bundle->mem_file);
@@ -283,8 +280,7 @@ static FLAC__StreamDecoderTellStatus ce_flac_tell_callback(const FLAC__StreamDec
     return FLAC__STREAM_DECODER_TELL_STATUS_OK;
 }
 
-static FLAC__StreamDecoderLengthStatus ce_flac_length_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
-    FLAC__uint64* stream_length, void* client_data)
+static FLAC__StreamDecoderLengthStatus ce_flac_length_callback(const FLAC__StreamDecoder*, FLAC__uint64* stream_length, void* client_data)
 {
     ce_flac_bundle* flac_bundle = client_data;
     long int size = ce_mem_file_size(flac_bundle->mem_file);
@@ -297,14 +293,13 @@ static FLAC__StreamDecoderLengthStatus ce_flac_length_callback(const FLAC__Strea
     return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
 }
 
-static FLAC__bool ce_flac_eof_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder), void* client_data)
+static FLAC__bool ce_flac_eof_callback(const FLAC__StreamDecoder*, void* client_data)
 {
     ce_flac_bundle* flac_bundle = client_data;
     return ce_mem_file_eof(flac_bundle->mem_file) ? true : false;
 }
 
-static FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
-    const FLAC__Frame* frame, const FLAC__int32* const buffer[], void* client_data)
+static FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamDecoder*, const FLAC__Frame* frame, const FLAC__int32* const buffer[], void* client_data)
 {
     ce_flac_bundle* flac_bundle = client_data;
     flac_bundle->block_size = frame->header.blocksize;
@@ -318,8 +313,7 @@ static FLAC__StreamDecoderWriteStatus ce_flac_write_callback(const FLAC__StreamD
     return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-static void ce_flac_metadata_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
-    const FLAC__StreamMetadata* metadata, void* client_data)
+static void ce_flac_metadata_callback(const FLAC__StreamDecoder*, const FLAC__StreamMetadata* metadata, void* client_data)
 {
     ce_flac_bundle* flac_bundle = client_data;
 
@@ -333,8 +327,7 @@ static void ce_flac_metadata_callback(const FLAC__StreamDecoder* CE_UNUSED(decod
     }
 }
 
-static void ce_flac_error_callback(const FLAC__StreamDecoder* CE_UNUSED(decoder),
-    FLAC__StreamDecoderErrorStatus status, void* CE_UNUSED(client_data))
+static void ce_flac_error_callback(const FLAC__StreamDecoder*, FLAC__StreamDecoderErrorStatus status, void* /*client_data*/)
 {
     const char* status_string = "unknown status";
 
@@ -390,7 +383,7 @@ static bool ce_flac_test(ce_sound_probe* sound_probe)
     return true;
 }
 
-static bool ce_flac_ctor(ce_sound_resource* sound_resource, ce_sound_probe* CE_UNUSED(sound_probe))
+static bool ce_flac_ctor(ce_sound_resource* sound_resource, ce_sound_probe*)
 {
     ce_flac* flac = (ce_flac*)sound_resource->impl;
     memcpy(&flac->bundle, sound_probe->buffer, sizeof(ce_flac_bundle*));
@@ -766,7 +759,7 @@ static void ce_mad_clean(ce_mad* mad)
     mad_stream_finish(&mad->stream);
 }
 
-static bool ce_mad_ctor(ce_sound_resource* sound_resource, ce_sound_probe* CE_UNUSED(sound_probe))
+static bool ce_mad_ctor(ce_sound_resource* sound_resource, ce_sound_probe*)
 {
     ce_mad* mad = (ce_mad*)sound_resource->impl;
     ce_mad_init(mad);

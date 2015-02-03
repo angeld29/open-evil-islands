@@ -91,7 +91,7 @@ typedef struct {
 struct ce_input_event {
     bool triggered;
     ce_input_event_vtable vtable;
-    char impl[];
+    void* impl;
 };
 
 typedef struct {
@@ -119,4 +119,4 @@ extern ce_input_event* ce_input_supply_repeat(ce_input_supply* input_supply, con
 
 extern ce_input_event* ce_input_supply_shortcut(ce_input_supply* input_supply, const char* key_sequence);
 
-#endif /* CE_INPUT_HPP */
+#endif

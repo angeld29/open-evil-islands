@@ -47,6 +47,8 @@ ce_thread_id ce_thread_self(void)
 }
 
 typedef struct {
+    ce_thread_id id;
+    ce_routine routine;
     HANDLE handle;
 } ce_thread_windows;
 

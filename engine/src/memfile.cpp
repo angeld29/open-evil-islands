@@ -131,7 +131,7 @@ static int ce_data_file_eof(ce_mem_file* mem_file)
     return data_file->pos == data_file->size;
 }
 
-static int ce_data_file_error(ce_mem_file* CE_UNUSED(mem_file))
+static int ce_data_file_error(ce_mem_file*)
 {
     // always successful
     return 0;

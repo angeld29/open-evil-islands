@@ -29,7 +29,7 @@ ce_video_object ce_video_object_new(const char* name)
     return NULL != video_instance ? video_instance->video_object : 0;
 }
 
-void ce_video_object_del(ce_video_object CE_UNUSED(video_object))
+void ce_video_object_del(ce_video_object)
 {
 }
 

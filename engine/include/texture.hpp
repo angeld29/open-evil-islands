@@ -36,7 +36,7 @@ typedef struct {
     int ref_count;
     ce_string* name;
     unsigned int width, height;
-    char impl[];
+    void* impl;
 } ce_texture;
 
 extern ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile);
@@ -57,4 +57,4 @@ static inline ce_texture* ce_texture_add_ref(ce_texture* texture)
     return texture;
 }
 
-#endif /* CE_TEXTURE_HPP */
+#endif
