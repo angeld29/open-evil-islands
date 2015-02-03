@@ -20,7 +20,6 @@
 
 #include <cstdio>
 #include <cstring>
-#include <vector>
 
 #include <libavcodec/avcodec.h>
 
@@ -28,9 +27,7 @@
 #include "thread.hpp"
 #include "avcodec.hpp"
 
-namespace cursedearth
-{
-static void ce_avcodec_log(void*, int av_level, const char* format, va_list args)
+static void ce_avcodec_log(void* CE_UNUSED(ptr), int av_level, const char* format, va_list args)
 {
     ce_logging_level level;
 
@@ -56,10 +53,10 @@ static void ce_avcodec_log(void*, int av_level, const char* format, va_list args
         break;
     }
 
-    std::vector<char> buffer(strlen(format) + 16);
-    snprintf(buffer.data(), buffer.size(), "avcodec: %s", format);
+    char buffer[strlen(format) + 16];
+    snprintf(buffer, sizeof(buffer), "avcodec: %s", format);
 
-    ce_logging_report_va(level, buffer.data(), args);
+    ce_logging_report_va(level, buffer, args);
 }
 
 static int ce_avcodec_lock(void** mutex, enum AVLockOp op)
@@ -69,13 +66,13 @@ static int ce_avcodec_lock(void** mutex, enum AVLockOp op)
         *mutex = ce_mutex_new();
         break;
     case AV_LOCK_OBTAIN:
-        ce_mutex_lock(static_cast<mutex_t*>(*mutex));
+        ce_mutex_lock(*mutex);
         break;
     case AV_LOCK_RELEASE:
-        ce_mutex_unlock(static_cast<mutex_t*>(*mutex));
+        ce_mutex_unlock(*mutex);
         break;
     case AV_LOCK_DESTROY:
-        ce_mutex_del(static_cast<mutex_t*>(*mutex));
+        ce_mutex_del(*mutex);
         break;
     }
 
@@ -94,5 +91,4 @@ void ce_avcodec_term(void)
 {
     av_lockmgr_register(NULL);
     av_log_set_callback(av_log_default_callback);
-}
 }

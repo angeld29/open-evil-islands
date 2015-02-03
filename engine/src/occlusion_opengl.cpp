@@ -23,8 +23,6 @@
 #include "rendersystem.hpp"
 #include "occlusion.hpp"
 
-namespace cursedearth
-{
 struct ce_occlusion {
     bool supported;
     GLenum target;
@@ -70,7 +68,7 @@ void ce_occlusion_del(ce_occlusion* occlusion)
     }
 }
 
-bool ce_occlusion_query(ce_occlusion* occlusion, const bbox_t* bbox)
+bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox)
 {
     if (!occlusion->supported) {
         return true;
@@ -110,5 +108,4 @@ bool ce_occlusion_query(ce_occlusion* occlusion, const bbox_t* bbox)
     }
 
     return 0 != occlusion->result;
-}
 }

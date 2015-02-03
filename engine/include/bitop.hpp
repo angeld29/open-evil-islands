@@ -30,25 +30,25 @@
 #define ce_bittst(T, v, p) ce_bittst_##T(v, p)
 
 #define CE_BITOP_DEF_BITSET(T) \
-inline T ce_bitset_##T(T v, size_t p) \
+static inline T ce_bitset_##T(T v, size_t p) \
 { \
     return v | ((T)0x1 << p); \
 }
 
 #define CE_BITOP_DEF_BITCLR(T) \
-inline T ce_bitclr_##T(T v, size_t p) \
+static inline T ce_bitclr_##T(T v, size_t p) \
 { \
     return v & ~((T)0x1 << p); \
 }
 
 #define CE_BITOP_DEF_BITFLP(T) \
-inline T ce_bitflp_##T(T v, size_t p) \
+static inline T ce_bitflp_##T(T v, size_t p) \
 { \
     return v ^ ((T)0x1 << p); \
 }
 
 #define CE_BITOP_DEF_BITTST(T) \
-inline bool ce_bittst_##T(T v, size_t p) \
+static inline bool ce_bittst_##T(T v, size_t p) \
 { \
     return v & ((T)0x1 << p); \
 }
@@ -59,12 +59,9 @@ CE_BITOP_DEF_BITCLR(T) \
 CE_BITOP_DEF_BITFLP(T) \
 CE_BITOP_DEF_BITTST(T)
 
-namespace cursedearth
-{
-    CE_BITOP_DEF_ALL(uint8_t)
-    CE_BITOP_DEF_ALL(uint16_t)
-    CE_BITOP_DEF_ALL(uint32_t)
-}
+CE_BITOP_DEF_ALL(uint8_t)
+CE_BITOP_DEF_ALL(uint16_t)
+CE_BITOP_DEF_ALL(uint32_t)
 
 #undef CE_BITOP_DEF_ALL
 #undef CE_BITOP_DEF_BITTST

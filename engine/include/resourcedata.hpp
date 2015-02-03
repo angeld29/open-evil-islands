@@ -23,14 +23,11 @@
 
 #include <cstddef>
 
-namespace cursedearth
-{
-    extern const size_t CE_RESOURCE_DATA_COUNT;
+extern const size_t CE_RESOURCE_DATA_COUNT;
 
-    extern const size_t ce_resource_data_sizes[];
-    extern const char* ce_resource_data_paths[];
+extern const size_t ce_resource_data_sizes[];
+extern const char* ce_resource_data_paths[];
 
-    extern const unsigned char* ce_resource_data[];
-}
+extern const unsigned char* ce_resource_data[];
 
 #endif /* CE_RESOURCEDATA_HPP */

@@ -20,37 +20,34 @@
 
 #include "mat3.hpp"
 
-namespace cursedearth
+const ce_mat3 CE_MAT3_ZERO = {
+    .m = {
+        0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f
+    }
+};
+
+const ce_mat3 CE_MAT3_IDENTITY = {
+    .m = {
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f
+    }
+};
+
+ce_mat3* ce_mat3_init_zero(ce_mat3* mat)
 {
-    const ce_mat3 CE_MAT3_ZERO = {
-        .m = {
-            0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f
-        }
-    };
+    mat->m[0] = 0.0f; mat->m[1] = 0.0f; mat->m[2] = 0.0f;
+    mat->m[3] = 0.0f; mat->m[4] = 0.0f; mat->m[5] = 0.0f;
+    mat->m[6] = 0.0f; mat->m[7] = 0.0f; mat->m[8] = 0.0f;
+    return mat;
+}
 
-    const ce_mat3 CE_MAT3_IDENTITY = {
-        .m = {
-            1.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 1.0f
-        }
-    };
-
-    ce_mat3* ce_mat3_init_zero(ce_mat3* mat)
-    {
-        mat->m[0] = 0.0f; mat->m[1] = 0.0f; mat->m[2] = 0.0f;
-        mat->m[3] = 0.0f; mat->m[4] = 0.0f; mat->m[5] = 0.0f;
-        mat->m[6] = 0.0f; mat->m[7] = 0.0f; mat->m[8] = 0.0f;
-        return mat;
-    }
-
-    ce_mat3* ce_mat3_init_identity(ce_mat3* mat)
-    {
-        mat->m[0] = 1.0f; mat->m[1] = 0.0f; mat->m[2] = 0.0f;
-        mat->m[3] = 0.0f; mat->m[4] = 1.0f; mat->m[5] = 0.0f;
-        mat->m[6] = 0.0f; mat->m[7] = 0.0f; mat->m[8] = 1.0f;
-        return mat;
-    }
+ce_mat3* ce_mat3_init_identity(ce_mat3* mat)
+{
+    mat->m[0] = 1.0f; mat->m[1] = 0.0f; mat->m[2] = 0.0f;
+    mat->m[3] = 0.0f; mat->m[4] = 1.0f; mat->m[5] = 0.0f;
+    mat->m[6] = 0.0f; mat->m[7] = 0.0f; mat->m[8] = 1.0f;
+    return mat;
 }

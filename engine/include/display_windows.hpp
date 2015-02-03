@@ -23,9 +23,6 @@
 
 #include "display.hpp"
 
-namespace cursedearth
-{
-    display_manager_ptr_t make_display_manager();
-}
+extern ce_displaymng* ce_displaymng_create(void);
 
 #endif /* CE_DISPLAY_PLATFORM_HPP */

@@ -20,149 +20,146 @@
 
 #include "byteorder.hpp"
 
-namespace cursedearth
+uint16_t ce_cpu2le16(uint16_t v)
 {
-    uint16_t ce_cpu2le16(uint16_t v)
-    {
-        return ce_is_big_endian() ? ce_swap16(v) : v;
-    }
+    return ce_is_big_endian() ? ce_swap16(v) : v;
+}
 
-    uint32_t ce_cpu2le32(uint32_t v)
-    {
-        return ce_is_big_endian() ? ce_swap32(v) : v;
-    }
+uint32_t ce_cpu2le32(uint32_t v)
+{
+    return ce_is_big_endian() ? ce_swap32(v) : v;
+}
 
-    uint64_t ce_cpu2le64(uint64_t v)
-    {
-        return ce_is_big_endian() ? ce_swap64(v) : v;
-    }
+uint64_t ce_cpu2le64(uint64_t v)
+{
+    return ce_is_big_endian() ? ce_swap64(v) : v;
+}
 
-    uint16_t ce_le2cpu16(uint16_t v)
-    {
-        return ce_is_big_endian() ? ce_swap16(v) : v;
-    }
+uint16_t ce_le2cpu16(uint16_t v)
+{
+    return ce_is_big_endian() ? ce_swap16(v) : v;
+}
 
-    uint32_t ce_le2cpu32(uint32_t v)
-    {
-        return ce_is_big_endian() ? ce_swap32(v) : v;
-    }
+uint32_t ce_le2cpu32(uint32_t v)
+{
+    return ce_is_big_endian() ? ce_swap32(v) : v;
+}
 
-    uint64_t ce_le2cpu64(uint64_t v)
-    {
-        return ce_is_big_endian() ? ce_swap64(v) : v;
-    }
+uint64_t ce_le2cpu64(uint64_t v)
+{
+    return ce_is_big_endian() ? ce_swap64(v) : v;
+}
 
-    uint16_t ce_cpu2be16(uint16_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap16(v);
-    }
+uint16_t ce_cpu2be16(uint16_t v)
+{
+    return ce_is_big_endian() ? v : ce_swap16(v);
+}
 
-    uint32_t ce_cpu2be32(uint32_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap32(v);
-    }
+uint32_t ce_cpu2be32(uint32_t v)
+{
+    return ce_is_big_endian() ? v : ce_swap32(v);
+}
 
-    uint64_t ce_cpu2be64(uint64_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap64(v);
-    }
+uint64_t ce_cpu2be64(uint64_t v)
+{
+    return ce_is_big_endian() ? v : ce_swap64(v);
+}
 
-    uint16_t ce_be2cpu16(uint16_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap16(v);
-    }
+uint16_t ce_be2cpu16(uint16_t v)
+{
+    return ce_is_big_endian() ? v : ce_swap16(v);
+}
 
-    uint32_t ce_be2cpu32(uint32_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap32(v);
-    }
+uint32_t ce_be2cpu32(uint32_t v)
+{
+    return ce_is_big_endian() ? v : ce_swap32(v);
+}
 
-    uint64_t ce_be2cpu64(uint64_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap64(v);
-    }
+uint64_t ce_be2cpu64(uint64_t v)
+{
+    return ce_is_big_endian() ? v : ce_swap64(v);
+}
 
-    void ce_cpu2le16s(uint16_t* v)
-    {
-        if (ce_is_big_endian()) {
-            *v = ce_swap16(*v);
-        }
+void ce_cpu2le16s(uint16_t* v)
+{
+    if (ce_is_big_endian()) {
+        *v = ce_swap16(*v);
     }
+}
 
-    void ce_cpu2le32s(uint32_t* v)
-    {
-        if (ce_is_big_endian()) {
-            *v = ce_swap32(*v);
-        }
+void ce_cpu2le32s(uint32_t* v)
+{
+    if (ce_is_big_endian()) {
+        *v = ce_swap32(*v);
     }
+}
 
-    void ce_cpu2le64s(uint64_t* v)
-    {
-        if (ce_is_big_endian()) {
-            *v = ce_swap64(*v);
-        }
+void ce_cpu2le64s(uint64_t* v)
+{
+    if (ce_is_big_endian()) {
+        *v = ce_swap64(*v);
     }
+}
 
-    void ce_le2cpu16s(uint16_t* v)
-    {
-        if (ce_is_big_endian()) {
-            *v = ce_swap16(*v);
-        }
+void ce_le2cpu16s(uint16_t* v)
+{
+    if (ce_is_big_endian()) {
+        *v = ce_swap16(*v);
     }
+}
 
-    void ce_le2cpu32s(uint32_t* v)
-    {
-        if (ce_is_big_endian()) {
-            *v = ce_swap32(*v);
-        }
+void ce_le2cpu32s(uint32_t* v)
+{
+    if (ce_is_big_endian()) {
+        *v = ce_swap32(*v);
     }
+}
 
-    void ce_le2cpu64s(uint64_t* v)
-    {
-        if (ce_is_big_endian()) {
-            *v = ce_swap64(*v);
-        }
+void ce_le2cpu64s(uint64_t* v)
+{
+    if (ce_is_big_endian()) {
+        *v = ce_swap64(*v);
     }
+}
 
-    void ce_cpu2be16s(uint16_t* v)
-    {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap16(*v);
-        }
+void ce_cpu2be16s(uint16_t* v)
+{
+    if (!ce_is_big_endian()) {
+        *v = ce_swap16(*v);
     }
+}
 
-    void ce_cpu2be32s(uint32_t* v)
-    {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap32(*v);
-        }
+void ce_cpu2be32s(uint32_t* v)
+{
+    if (!ce_is_big_endian()) {
+        *v = ce_swap32(*v);
     }
+}
 
-    void ce_cpu2be64s(uint64_t* v)
-    {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap64(*v);
-        }
+void ce_cpu2be64s(uint64_t* v)
+{
+    if (!ce_is_big_endian()) {
+        *v = ce_swap64(*v);
     }
+}
 
-    void ce_be2cpu16s(uint16_t* v)
-    {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap16(*v);
-        }
+void ce_be2cpu16s(uint16_t* v)
+{
+    if (!ce_is_big_endian()) {
+        *v = ce_swap16(*v);
     }
+}
 
-    void ce_be2cpu32s(uint32_t* v)
-    {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap32(*v);
-        }
+void ce_be2cpu32s(uint32_t* v)
+{
+    if (!ce_is_big_endian()) {
+        *v = ce_swap32(*v);
     }
+}
 
-    void ce_be2cpu64s(uint64_t* v)
-    {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap64(*v);
-        }
+void ce_be2cpu64s(uint64_t* v)
+{
+    if (!ce_is_big_endian()) {
+        *v = ce_swap64(*v);
     }
 }

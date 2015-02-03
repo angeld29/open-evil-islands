@@ -22,9 +22,7 @@
 #include "rendersystem.hpp"
 #include "renderlayer.hpp"
 
-namespace cursedearth
-{
-ce_renderlayer* ce_renderlayer_new(texture_t* texture)
+ce_renderlayer* ce_renderlayer_new(ce_texture* texture)
 {
     ce_renderlayer* renderlayer = ce_alloc(sizeof(ce_renderlayer));
     renderlayer->texture = texture;
@@ -46,7 +44,7 @@ void ce_renderlayer_clear(ce_renderlayer* renderlayer)
 }
 
 void ce_renderlayer_add(ce_renderlayer* renderlayer,
-                        render_item_t* renderitem)
+                        ce_renderitem* renderitem)
 {
     ce_vector_push_back(renderlayer->renderitems, renderitem);
 }
@@ -56,7 +54,7 @@ void ce_renderlayer_render(ce_renderlayer* renderlayer)
     if (!ce_vector_empty(renderlayer->renderitems)) {
         ce_texture_bind(renderlayer->texture);
         for (size_t i = 0; i < renderlayer->renderitems->count; ++i) {
-            render_item_t* renderitem = renderlayer->renderitems->items[i];
+            ce_renderitem* renderitem = renderlayer->renderitems->items[i];
             if (renderitem->visible) {
                 ce_render_system_apply_transform(&renderitem->world_position,
                                                 &renderitem->world_orientation,
@@ -67,5 +65,4 @@ void ce_renderlayer_render(ce_renderlayer* renderlayer)
         }
         ce_texture_unbind(renderlayer->texture);
     }
-}
 }

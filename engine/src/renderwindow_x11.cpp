@@ -33,8 +33,6 @@
 #include "graphiccontext_x11.hpp"
 #include "renderwindow.hpp"
 
-namespace cursedearth
-{
 enum {
     CE_RENDERWINDOW_ATOM_WM_PROTOCOLS,
     CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW,
@@ -45,9 +43,9 @@ enum {
 
 typedef struct {
     Atom atoms[CE_RENDERWINDOW_ATOM_COUNT];
-    unsigned long mask[RENDER_WINDOW_STATE_COUNT];
-    XSetWindowAttributes attrs[RENDER_WINDOW_STATE_COUNT];
-    void (*handlers[LASTEvent])(render_window_t*, XEvent*);
+    unsigned long mask[CE_RENDERWINDOW_STATE_COUNT];
+    XSetWindowAttributes attrs[CE_RENDERWINDOW_STATE_COUNT];
+    void (*handlers[LASTEvent])(ce_renderwindow*, XEvent*);
     bool autorepeat; // remember old auto repeat settings
     struct {
         int timeout, interval;
@@ -58,21 +56,21 @@ typedef struct {
     Window window;
 } ce_renderwindow_x11;
 
-static void ce_renderwindow_handler_skip(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_client_message(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_map_notify(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_visibility_notify(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_configure_notify(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_focus_in(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_focus_out(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_enter_notify(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_key_press(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_key_release(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_button_press(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_button_release(render_window_t*, XEvent*);
-static void ce_renderwindow_handler_motion_notify(render_window_t*, XEvent*);
+static void ce_renderwindow_handler_skip(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_client_message(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_map_notify(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_visibility_notify(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_configure_notify(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_focus_in(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_focus_out(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_enter_notify(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_key_press(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_key_release(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_button_press(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_button_release(ce_renderwindow*, XEvent*);
+static void ce_renderwindow_handler_motion_notify(ce_renderwindow*, XEvent*);
 
-static bool ce_renderwindow_x11_ctor(render_window_t* renderwindow, va_list args)
+static bool ce_renderwindow_x11_ctor(ce_renderwindow* renderwindow, va_list args)
 {
     ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
     const char* title = va_arg(args, const char*);
@@ -93,13 +91,13 @@ static bool ce_renderwindow_x11_ctor(render_window_t* renderwindow, va_list args
         XServerVendor(x11window->display),
         XVendorRelease(x11window->display));
 
-    renderwindow->geometry[RENDER_WINDOW_STATE_WINDOW].x =
+    renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].x =
         (XDisplayWidth(x11window->display, XDefaultScreen(x11window->display)) -
-        renderwindow->geometry[RENDER_WINDOW_STATE_WINDOW].width) / 2;
+        renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].width) / 2;
 
-    renderwindow->geometry[RENDER_WINDOW_STATE_WINDOW].y =
+    renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].y =
         (XDisplayHeight(x11window->display, XDefaultScreen(x11window->display)) -
-        renderwindow->geometry[RENDER_WINDOW_STATE_WINDOW].height) / 2;
+        renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].height) / 2;
 
     if (0 == renderwindow->visual.bpp) {
         renderwindow->visual.bpp = XDefaultDepth(x11window->display,
@@ -139,7 +137,7 @@ static bool ce_renderwindow_x11_ctor(render_window_t* renderwindow, va_list args
     x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
     x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE] = XInternAtom(x11window->display, "_NET_WM_STATE", False);
 
-    for (int i = 0; i < RENDER_WINDOW_STATE_COUNT; ++i) {
+    for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
         x11window->mask[i] = CWColormap | CWEventMask | CWOverrideRedirect;
         x11window->attrs[i].colormap = XCreateColormap(x11window->display,
             XDefaultRootWindow(x11window->display),
@@ -148,7 +146,7 @@ static bool ce_renderwindow_x11_ctor(render_window_t* renderwindow, va_list args
             KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
             PointerMotionMask | ButtonMotionMask |
             FocusChangeMask | VisibilityChangeMask | StructureNotifyMask;
-        x11window->attrs[i].override_redirect = RENDER_WINDOW_STATE_FULLSCREEN == i;
+        x11window->attrs[i].override_redirect = CE_RENDERWINDOW_STATE_FULLSCREEN == i;
     }
 
     for (int i = 0; i < LASTEvent; ++i) {
@@ -213,7 +211,7 @@ static bool ce_renderwindow_x11_ctor(render_window_t* renderwindow, va_list args
     return true;
 }
 
-static void ce_renderwindow_x11_dtor(render_window_t* renderwindow)
+static void ce_renderwindow_x11_dtor(ce_renderwindow* renderwindow)
 {
     ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -239,7 +237,7 @@ static void ce_renderwindow_x11_dtor(render_window_t* renderwindow)
     }
 }
 
-static void ce_renderwindow_x11_show(render_window_t* renderwindow)
+static void ce_renderwindow_x11_show(ce_renderwindow* renderwindow)
 {
     ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -252,7 +250,7 @@ static void ce_renderwindow_x11_show(render_window_t* renderwindow)
         renderwindow->geometry[renderwindow->state].y);
 }
 
-static void ce_renderwindow_x11_minimize(render_window_t* renderwindow)
+static void ce_renderwindow_x11_minimize(ce_renderwindow* renderwindow)
 {
     ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -260,7 +258,7 @@ static void ce_renderwindow_x11_minimize(render_window_t* renderwindow)
         x11window->window, XDefaultScreen(x11window->display));
 }
 
-static void ce_renderwindow_x11_fullscreen_before_enter(render_window_t* renderwindow)
+static void ce_renderwindow_x11_fullscreen_before_enter(ce_renderwindow* renderwindow)
 {
     ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -274,7 +272,7 @@ static void ce_renderwindow_x11_fullscreen_before_enter(render_window_t* renderw
         DontPreferBlanking, DefaultExposures);
 }
 
-static void ce_renderwindow_x11_fullscreen_after_exit(render_window_t* renderwindow)
+static void ce_renderwindow_x11_fullscreen_after_exit(ce_renderwindow* renderwindow)
 {
     ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -288,7 +286,7 @@ static void ce_renderwindow_x11_fullscreen_after_exit(render_window_t* renderwin
         x11window->screensaver.allow_exposures);
 }
 
-static void ce_renderwindow_x11_fullscreen_done(render_window_t* renderwindow)
+static void ce_renderwindow_x11_fullscreen_done(ce_renderwindow* renderwindow)
 {
     ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -312,7 +310,7 @@ static void ce_renderwindow_x11_fullscreen_done(render_window_t* renderwindow)
         False, SubstructureRedirectMask | SubstructureNotifyMask, &event);
 }
 
-static void ce_renderwindow_x11_pump(render_window_t* renderwindow)
+static void ce_renderwindow_x11_pump(ce_renderwindow* renderwindow)
 {
     ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -330,7 +328,7 @@ static void ce_renderwindow_x11_pump(render_window_t* renderwindow)
     }
 }
 
-render_window_t* create_render_window(int width, int height, const char* title)
+ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title)
 {
     return ce_renderwindow_new((ce_renderwindow_vtable)
         {ce_renderwindow_x11_ctor, ce_renderwindow_x11_dtor,
@@ -341,7 +339,7 @@ render_window_t* create_render_window(int width, int height, const char* title)
         ce_renderwindow_x11_pump}, sizeof(ce_renderwindow_x11), width, height, title);
 }
 
-static void ce_renderwindow_handler_skip(ce_renderwindow*, XEvent*)
+static void ce_renderwindow_handler_skip(ce_renderwindow* CE_UNUSED(renderwindow), XEvent* CE_UNUSED(event))
 {
 }
 
@@ -357,13 +355,13 @@ static void ce_renderwindow_handler_client_message(ce_renderwindow* renderwindow
     }
 }
 
-static void ce_renderwindow_handler_map_notify(ce_renderwindow* renderwindow, XEvent*)
+static void ce_renderwindow_handler_map_notify(ce_renderwindow* renderwindow, XEvent* CE_UNUSED(event))
 {
     assert(CE_RENDERWINDOW_ACTION_NONE == renderwindow->action);
     renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
 }
 
-static void ce_renderwindow_handler_visibility_notify(ce_renderwindow*, XEvent*)
+static void ce_renderwindow_handler_visibility_notify(ce_renderwindow* CE_UNUSED(renderwindow), XEvent* CE_UNUSED(event))
 {
 }
 
@@ -378,7 +376,7 @@ static void ce_renderwindow_handler_configure_notify(ce_renderwindow* renderwind
                                                 event->xconfigure.height);
 }
 
-static void ce_renderwindow_handler_focus_in(ce_renderwindow*, XEvent* event)
+static void ce_renderwindow_handler_focus_in(ce_renderwindow* CE_UNUSED(renderwindow), XEvent* event)
 {
     XAutoRepeatOff(event->xfocus.display);
 }
@@ -457,5 +455,4 @@ static void ce_renderwindow_handler_motion_notify(ce_renderwindow* renderwindow,
 
     renderwindow->input_context->pointer_position.x = event->xmotion.x;
     renderwindow->input_context->pointer_position.y = event->xmotion.y;
-}
 }

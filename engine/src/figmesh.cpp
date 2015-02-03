@@ -21,16 +21,14 @@
 #include <cassert>
 
 #include "alloc.hpp"
-#include "fighelpers.hpp"
+#include "fighlp.hpp"
 #include "figrenderitem.hpp"
 #include "figmesh.hpp"
 
-namespace cursedearth
-{
 static void ce_figmesh_create_renderitems(ce_figmesh* figmesh,
                                         const ce_fignode* fignode)
 {
-    render_item_t* renderitem =
+    ce_renderitem* renderitem =
         ce_figrenderitem_new(fignode, &figmesh->complection);
 
     ce_fighlp_get_aabb(&renderitem->aabb, fignode->figfile,
@@ -66,5 +64,4 @@ void ce_figmesh_del(ce_figmesh* figmesh)
             ce_free(figmesh, sizeof(ce_figmesh));
         }
     }
-}
 }

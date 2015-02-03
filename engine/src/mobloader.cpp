@@ -32,14 +32,12 @@
 #include "mobmanager.hpp"
 #include "mobloader.hpp"
 
-namespace cursedearth
-{
 struct ce_mob_loader* ce_mob_loader;
 
 typedef struct {
     ce_mob_task* mob_task;
     const char* model_name;
-    vec3_t position;
+    ce_vec3 position;
     ce_quat orientation;
     ce_complection complection;
     const char* textures[2 + 1]; // NULL-terminated
@@ -157,5 +155,4 @@ void ce_mob_loader_load_mob(const char* name)
     ++ce_mob_loader->queued_job_count;
     ce_vector_push_back(ce_mob_loader->mob_tasks, ce_mob_task_new(name));
     ce_logging_info("mob loader: '%s' queued", name);
-}
 }

@@ -20,8 +20,6 @@
 
 #include "byteorder.hpp"
 
-namespace cursedearth
-{
 static const uint16_t pattern = 0xceca;
 
 bool ce_is_big_endian(void)
@@ -50,5 +48,4 @@ uint64_t ce_swap64(uint64_t v)
         (v & (uint64_t)0x000000ff00000000ULL) >> 8  |
         (v & (uint64_t)0x0000ff0000000000ULL) >> 24 |
         (v & (uint64_t)0x00ff000000000000ULL) >> 40;
-}
 }

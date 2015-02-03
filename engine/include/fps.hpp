@@ -21,18 +21,15 @@
 #ifndef CE_FPS_HPP
 #define CE_FPS_HPP
 
-namespace cursedearth
-{
-    typedef struct {
-        int frame_count;
-        float time;
-        char text[8];
-    } ce_fps;
+typedef struct {
+    int frame_count;
+    float time;
+    char text[8];
+} ce_fps;
 
-    extern ce_fps* ce_fps_new(void);
-    extern void ce_fps_del(ce_fps* fps);
+extern ce_fps* ce_fps_new(void);
+extern void ce_fps_del(ce_fps* fps);
 
-    extern void ce_fps_advance(ce_fps* fps, float elapsed);
-}
+extern void ce_fps_advance(ce_fps* fps, float elapsed);
 
 #endif /* CE_FPS_HPP */

@@ -24,44 +24,63 @@
 #include "alloc.hpp"
 #include "timer.hpp"
 
-namespace cursedearth
+typedef struct {
+    struct timeval start;
+    struct timeval stop;
+} ce_timer_posix;
+
+static void ce_timer_get_time_of_day(struct timeval* tv)
 {
-    class posix_timer_t final: timer_t
-    {
-        virtual void start() final
-        {
-            gettimeofday(&m_start, NULL);
-        }
+    // FIXME: not POSIX stuff...
 
-        virtual float advance() final
-        {
-            gettimeofday(&m_stop, NULL);
+    //cpu_set_t old_cpuset, cpuset;
+    //pthread_t thread = pthread_self();
 
-            struct timeval diff = {
-                m_stop.tv_sec - m_start.tv_sec,
-                m_stop.tv_usec - m_start.tv_usec,
-            };
+    //CPU_ZERO(&cpuset);
+    //CPU_SET(0, &cpuset);
 
-            if (diff.tv_usec < 0) {
-                --diff.tv_sec;
-                diff.tv_usec += 1000000;
-            }
+    //pthread_getaffinity_np(thread, sizeof(cpu_set_t), &old_cpuset);
+    //pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 
-            m_elapsed = diff.tv_sec + diff.tv_usec * 1e-6f;
-            m_start = m_stop;
+    gettimeofday(tv, NULL);
 
-            return m_elapsed;
-        }
+    //pthread_setaffinity_np(thread, sizeof(cpu_set_t), &old_cpuset);
+}
 
-        virtual float get_elapsed() const final { return m_elapsed; }
+ce_timer* ce_timer_new(void)
+{
+    return ce_alloc(sizeof(ce_timer) + sizeof(ce_timer_posix));
+}
 
-        float m_elapsed = 0.0f;
-        struct timeval m_start;
-        struct timeval m_stop;
+void ce_timer_del(ce_timer* timer)
+{
+    ce_free(timer, sizeof(ce_timer) + sizeof(ce_timer_posix));
+}
+
+void ce_timer_start(ce_timer* timer)
+{
+    ce_timer_posix* posix_timer = (ce_timer_posix*)timer->impl;
+    ce_timer_get_time_of_day(&posix_timer->start);
+}
+
+float ce_timer_advance(ce_timer* timer)
+{
+    ce_timer_posix* posix_timer = (ce_timer_posix*)timer->impl;
+
+    ce_timer_get_time_of_day(&posix_timer->stop);
+
+    struct timeval diff = {
+        .tv_sec = posix_timer->stop.tv_sec - posix_timer->start.tv_sec,
+        .tv_usec = posix_timer->stop.tv_usec - posix_timer->start.tv_usec,
     };
 
-    timer_ptr_t make_timer()
-    {
-        return std::make_shared<posix_timer_t>();
+    if (diff.tv_usec < 0) {
+        --diff.tv_sec;
+        diff.tv_usec += 1000000;
     }
+
+    timer->elapsed = diff.tv_sec + diff.tv_usec * 1e-6f;
+    posix_timer->start = posix_timer->stop;
+
+    return timer->elapsed;
 }

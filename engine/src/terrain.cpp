@@ -28,12 +28,10 @@
 #include "optionmanager.hpp"
 #include "rendersystem.hpp"
 #include "texturemanager.hpp"
-#include "mprhelpers.hpp"
+#include "mprhelper.hpp"
 #include "mprrenderitem.hpp"
 #include "terrain.hpp"
 
-namespace cursedearth
-{
 static void ce_terrain_load_tile_mmpfiles(ce_terrain* terrain)
 {
     char name[terrain->mprfile->name->length + 3 + 1];
@@ -50,8 +48,8 @@ static void ce_terrain_load_tile_textures(ce_terrain* terrain)
     char name[terrain->mprfile->name->length + 3 + 1];
     for (int i = 0; i < terrain->mprfile->texture_count; ++i) {
         snprintf(name, sizeof(name), "%s%03d", terrain->mprfile->name->str, i);
-        texture_t* texture = ce_texture_add_ref(ce_texture_manager_get(name));
-        ce_texture_wrap(texture, WRAP_MODE_CLAMP_TO_EDGE);
+        ce_texture* texture = ce_texture_add_ref(ce_texture_manager_get(name));
+        ce_texture_wrap(texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
         ce_vector_push_back(terrain->tile_textures, texture);
     }
 }
@@ -77,7 +75,7 @@ static void ce_terrain_sector_react(ce_event* event)
         //ce_texture_manager_put(ce_texture_add_ref(sector->texture));
     }
 
-    ce_texture_wrap(sector->texture, WRAP_MODE_CLAMP_TO_EDGE);
+    ce_texture_wrap(sector->texture, CE_TEXTURE_WRAP_CLAMP_TO_EDGE);
 
     sector->renderlayer = ce_rendergroup_get(sector->
         terrain->rendergroups[sector->water], sector->texture);
@@ -173,7 +171,7 @@ void ce_terrain_sector_del(ce_terrain_sector* sector)
 
 ce_terrain* ce_terrain_new(ce_mprfile* mprfile,
                             ce_renderqueue* renderqueue,
-                            const vec3_t* position,
+                            const ce_vec3* position,
                             const ce_quat* orientation,
                             ce_scenenode* scenenode)
 {
@@ -252,5 +250,4 @@ ce_scenenode* ce_terrain_find_scenenode(ce_terrain* terrain, float x, float z)
 
     return terrain->scenenode->childs->items[sector_z *
         terrain->mprfile->sector_x_count + sector_x];
-}
 }

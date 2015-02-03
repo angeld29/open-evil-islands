@@ -28,17 +28,15 @@
 #include "opengl.hpp"
 #include "rendersystem.hpp"
 
-namespace cursedearth
-{
-struct render_system_t
-{
-    thread_id_t thread_id;
+struct ce_render_system* ce_render_system;
+
+static struct ce_opengl_system {
     ce_mat4 view;
     GLuint axes_list;
     GLuint wire_cube_list;
     GLuint solid_cube_list;
     GLuint solid_sphere_list;
-}* ce_render_system;
+}* ce_opengl_system;
 
 void ce_render_system_init(void)
 {
@@ -381,11 +379,11 @@ void ce_render_system_apply_color(const ce_color* color)
     glColor4f(color->r, color->g, color->b, color->a);
 }
 
-void ce_render_system_apply_transform(const vec3_t* translation,
+void ce_render_system_apply_transform(const ce_vec3* translation,
                                         const ce_quat* rotation,
-                                        const vec3_t* scaling)
+                                        const ce_vec3* scaling)
 {
-    vec3_t axis;
+    ce_vec3 axis;
     float angle = ce_quat_to_polar(rotation, &axis);
 
     glPushMatrix();
@@ -449,5 +447,4 @@ void ce_render_system_discard_material(ce_material* material)
     } else {
         glPopAttrib();
     }
-}
 }

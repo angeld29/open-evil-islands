@@ -21,100 +21,114 @@
 #ifndef CE_RENDERWINDOW_HPP
 #define CE_RENDERWINDOW_HPP
 
-#include <memory>
-#include <string>
-#include <unordered_map>
-
-#include <boost/noncopyable.hpp>
+#include <cstddef>
+#include <cstdarg>
 
 #include "vector.hpp"
 #include "input.hpp"
 #include "display.hpp"
 #include "graphiccontext.hpp"
 
-namespace cursedearth
-{
-    enum render_window_state_t
-    {
-        RENDER_WINDOW_STATE_WINDOW,
-        RENDER_WINDOW_STATE_FULLSCREEN,
-        RENDER_WINDOW_STATE_COUNT
-    };
+typedef struct {
+    unsigned long key;
+    ce_input_button button;
+} ce_renderwindow_keypair;
 
-    enum render_window_action_t
-    {
-        RENDER_WINDOW_ACTION_NONE,
-        RENDER_WINDOW_ACTION_MINIMIZE,
-        RENDER_WINDOW_ACTION_RESTORED,
-        RENDER_WINDOW_ACTION_COUNT
-    };
+typedef struct {
+    ce_vector* keypairs;
+} ce_renderwindow_keymap;
 
-    struct render_window_geometry_t
-    {
-        int x, y;
-        int width, height;
-    };
+extern ce_renderwindow_keymap* ce_renderwindow_keymap_new(void);
+extern void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
 
-    struct render_window_visual_t
-    {
-        int bpp, rate;
-        display_rotation_t rotation;
-        display_reflection_t reflection;
-    };
+extern void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, ce_input_button button);
+extern void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, unsigned long keys[CE_IB_COUNT]);
 
-    struct ce_renderwindow_listener
-    {
-        void (*resized)(void* listener, int width, int height);
-        void (*closed)(void* listener);
-        void* listener;
-    };
+extern void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
 
-    class render_window_t: boost::noncopyable
-    {
-    public:
-        render_window_t();
-        virtual ~render_window_t() = default;
+extern ce_input_button
+ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key);
 
-        void add_listener(ce_renderwindow_listener* listener);
+typedef enum {
+    CE_RENDERWINDOW_STATE_WINDOW,
+    CE_RENDERWINDOW_STATE_FULLSCREEN,
+    CE_RENDERWINDOW_STATE_COUNT
+} ce_renderwindow_state;
 
-        void show();
-        void minimize();
-        void toggle_fullscreen();
+typedef enum {
+    CE_RENDERWINDOW_ACTION_NONE,
+    CE_RENDERWINDOW_ACTION_MINIMIZE,
+    CE_RENDERWINDOW_ACTION_RESTORED,
+    CE_RENDERWINDOW_ACTION_COUNT
+} ce_renderwindow_action;
 
-        void pump();
+typedef struct {
+    int x, y;
+    int width, height;
+} ce_renderwindow_geometry;
 
-        void emit_resized(int width, int height);
-        void emit_closed();
+typedef struct {
+    int bpp, rate;
+    ce_display_rotation rotation;
+    ce_display_reflection reflection;
+} ce_renderwindow_visual;
 
-        input_context_const_ptr_t get_input_context() const { return m_input_context; }
+typedef struct {
+    void (*resized)(void* listener, int width, int height);
+    void (*closed)(void* listener);
+    void* listener;
+} ce_renderwindow_listener;
 
-    private:
-        virtual void do_show() = 0;
-        virtual void do_minimize() = 0;
-        virtual void prepare_fullscreen() = 0;
-        virtual void before_enter_in_fullscreen() = 0;
-        virtual void after_enter_in_fullscreen() = 0;
-        virtual void before_exit_from_fullscreen() = 0;
-        virtual void after_exit_fromfullscreen() = 0;
-        virtual void done_fullscreen() = 0;
-        virtual void do_pump() = 0;
+typedef struct ce_renderwindow ce_renderwindow;
 
-    private:
-        render_window_state_t state;
-        render_window_action_t action;
-        render_window_geometry_t geometry[RENDER_WINDOW_STATE_COUNT];
-        render_window_visual_t visual;
-        bool restore_fullscreen; // request to switch in fullscreen mode when the window was restored
-        display_manager_t* displaymng;
-        ce_graphic_context* graphic_context;
-        input_context_ptr_t m_input_context;
-        std::unordered_map<unsigned long, input_button_t> keymap;
-        ce_vector* listeners;
-    };
+typedef struct {
+    bool (*ctor)(ce_renderwindow* renderwindow, va_list args);
+    void (*dtor)(ce_renderwindow* renderwindow);
+    void (*show)(ce_renderwindow* renderwindow);
+    void (*minimize)(ce_renderwindow* renderwindow);
+    struct {
+        void (*prepare)(ce_renderwindow* renderwindow);
+        void (*before_enter)(ce_renderwindow* renderwindow);
+        void (*after_enter)(ce_renderwindow* renderwindow);
+        void (*before_exit)(ce_renderwindow* renderwindow);
+        void (*after_exit)(ce_renderwindow* renderwindow);
+        void (*done)(ce_renderwindow* renderwindow);
+    } fullscreen;
+    void (*pump)(ce_renderwindow* renderwindow);
+} ce_renderwindow_vtable;
 
-    typedef std::shared_ptr<render_window_t> render_window_ptr_t;
+struct ce_renderwindow {
+    ce_renderwindow_state state;
+    ce_renderwindow_action action;
+    ce_renderwindow_geometry geometry[CE_RENDERWINDOW_STATE_COUNT];
+    ce_renderwindow_visual visual;
+    // request to switch in fullscreen mode when the window was restored
+    bool restore_fullscreen;
+    ce_displaymng* displaymng;
+    ce_graphic_context* graphic_context;
+    ce_input_context* input_context;
+    ce_renderwindow_keymap* keymap;
+    ce_vector* listeners;
+    ce_renderwindow_vtable vtable;
+    size_t size;
+    char impl[];
+};
 
-    render_window_ptr_t create_render_window(int width, int height, const std::string& title);
-}
+extern ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...);
+extern void ce_renderwindow_del(ce_renderwindow* renderwindow);
+
+extern void ce_renderwindow_add_listener(ce_renderwindow* renderwindow, ce_renderwindow_listener* listener);
+
+extern void ce_renderwindow_show(ce_renderwindow* renderwindow);
+extern void ce_renderwindow_minimize(ce_renderwindow* renderwindow);
+
+extern void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow);
+
+extern void ce_renderwindow_pump(ce_renderwindow* renderwindow);
+
+extern void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int width, int height);
+extern void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow);
+
+extern ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title);
 
 #endif /* CE_RENDERWINDOW_HPP */

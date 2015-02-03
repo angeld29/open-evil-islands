@@ -28,28 +28,25 @@
 #include "anmstate.hpp"
 #include "fignode.hpp"
 
-namespace cursedearth
-{
-    typedef struct ce_figbone ce_figbone;
+typedef struct ce_figbone ce_figbone;
 
-    struct ce_figbone {
-        vec3_t position;
-        ce_quat orientation;
-        vec3_t bone_position;
-        ce_quat bone_orientation;
-        ce_anmstate* anmstate;
-        ce_figbone* parent;
-        ce_vector* childs;
-    };
+struct ce_figbone {
+    ce_vec3 position;
+    ce_quat orientation;
+    ce_vec3 bone_position;
+    ce_quat bone_orientation;
+    ce_anmstate* anmstate;
+    ce_figbone* parent;
+    ce_vector* childs;
+};
 
-    extern ce_figbone* ce_figbone_new(const ce_fignode* fignode, const ce_complection* complection, ce_figbone* parent);
-    extern void ce_figbone_del(ce_figbone* figbone);
+extern ce_figbone* ce_figbone_new(const ce_fignode* fignode, const ce_complection* complection, ce_figbone* parent);
+extern void ce_figbone_del(ce_figbone* figbone);
 
-    extern void ce_figbone_advance(ce_figbone* figbone, float distance);
-    extern void ce_figbone_update(ce_figbone* figbone, const ce_fignode* fignode, ce_vector* renderitems);
+extern void ce_figbone_advance(ce_figbone* figbone, float distance);
+extern void ce_figbone_update(ce_figbone* figbone, const ce_fignode* fignode, ce_vector* renderitems);
 
-    extern bool ce_figbone_play_animation(ce_figbone* figbone, const ce_fignode* fignode, const char* name);
-    extern void ce_figbone_stop_animation(ce_figbone* figbone, const ce_fignode* fignode);
-}
+extern bool ce_figbone_play_animation(ce_figbone* figbone, const ce_fignode* fignode, const char* name);
+extern void ce_figbone_stop_animation(ce_figbone* figbone, const ce_fignode* fignode);
 
 #endif /* CE_FIGBONE_HPP */

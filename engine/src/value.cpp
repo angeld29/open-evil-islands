@@ -21,17 +21,15 @@
 #include "alloc.hpp"
 #include "value.hpp"
 
-namespace cursedearth
-{
-static void ce_value_void(ce_value*)
+static void ce_value_void(ce_value* CE_UNUSED(value))
 {
 }
 
-static void ce_value_void_arg(ce_value*, void*)
+static void ce_value_void_arg(ce_value* CE_UNUSED(value), void* CE_UNUSED(arg))
 {
 }
 
-static void ce_value_void_arg_const(ce_value*, const void*)
+static void ce_value_void_arg_const(ce_value* CE_UNUSED(value), const void* CE_UNUSED(arg))
 {
 }
 
@@ -142,5 +140,4 @@ void ce_value_get(ce_value* value, void* arg)
 void ce_value_set(ce_value* value, const void* arg)
 {
     (*ce_value_set_procs[value->type])(value, arg);
-}
 }

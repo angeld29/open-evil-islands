@@ -20,11 +20,9 @@
 
 #include "alloc.hpp"
 #include "scenenode.hpp"
-#include "fighelpers.hpp"
+#include "fighlp.hpp"
 #include "figbone.hpp"
 
-namespace cursedearth
-{
 ce_figbone* ce_figbone_new(const ce_fignode* fignode,
                             const ce_complection* complection,
                             ce_figbone* parent)
@@ -66,7 +64,7 @@ void ce_figbone_advance(ce_figbone* figbone, float distance)
 }
 
 static void ce_figbone_update_transform(ce_figbone* figbone,
-                                        render_item_t* renderitem)
+                                        ce_renderitem* renderitem)
 {
     // TODO: translations from anm file ???
 
@@ -104,7 +102,7 @@ static void ce_figbone_update_transform(ce_figbone* figbone,
 }
 
 static void ce_figbone_update_bounds(ce_figbone* figbone,
-                                    render_item_t* renderitem)
+                                    ce_renderitem* renderitem)
 {
     renderitem->bbox.aabb = renderitem->aabb;
     renderitem->bbox.axis = figbone->bone_orientation;
@@ -121,7 +119,7 @@ void ce_figbone_update(ce_figbone* figbone,
                         const ce_fignode* fignode,
                         ce_vector* renderitems)
 {
-    render_item_t* renderitem = renderitems->items[fignode->index];
+    ce_renderitem* renderitem = renderitems->items[fignode->index];
 
     ce_figbone_update_transform(figbone, renderitem);
 
@@ -159,5 +157,4 @@ void ce_figbone_stop_animation(ce_figbone* figbone,
         ce_figbone_stop_animation(figbone->childs->items[i],
                                     fignode->childs->items[i]);
     }
-}
 }

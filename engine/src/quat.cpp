@@ -22,8 +22,6 @@
 #include "vec3.hpp"
 #include "quat.hpp"
 
-namespace cursedearth
-{
 const ce_quat CE_QUAT_ZERO = {.w = 0.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f};
 const ce_quat CE_QUAT_IDENTITY = {.w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f};
 
@@ -114,16 +112,4 @@ ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs,
         ce_quat_add(quat,
             ce_quat_scale(&ta, 1.0f - u, lhs),
             ce_quat_scale(&tb, u, &tb)));
-}
-
-float ce_quat_len(const ce_quat* quat)
-{
-    return sqrtf(ce_quat_len2(quat));
-}
-
-float ce_quat_arg(const ce_quat* quat)
-{
-    const float s = ce_quat_len(quat);
-    return 0.0f == s ? 0.0f : acosf(quat->w / s);
-}
 }

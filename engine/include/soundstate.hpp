@@ -21,13 +21,10 @@
 #ifndef CE_SOUNDSTATE_HPP
 #define CE_SOUNDSTATE_HPP
 
-namespace cursedearth
-{
-    enum {
-        CE_SOUND_STATE_STOPPED,
-        CE_SOUND_STATE_PAUSED,
-        CE_SOUND_STATE_PLAYING,
-    };
-}
+enum {
+    CE_SOUND_STATE_STOPPED,
+    CE_SOUND_STATE_PAUSED,
+    CE_SOUND_STATE_PLAYING,
+};
 
 #endif /* CE_SOUNDSTATE_HPP */

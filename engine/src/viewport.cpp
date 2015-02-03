@@ -21,36 +21,33 @@
 #include "alloc.hpp"
 #include "viewport.hpp"
 
-namespace cursedearth
+ce_viewport* ce_viewport_new(void)
 {
-    ce_viewport* ce_viewport_new(void)
-    {
-        ce_viewport* viewport = ce_alloc(sizeof(ce_viewport));
-        ce_viewport_set_rect(viewport, 0, 0, 100, 100);
-        return viewport;
-    }
+    ce_viewport* viewport = ce_alloc(sizeof(ce_viewport));
+    ce_viewport_set_rect(viewport, 0, 0, 100, 100);
+    return viewport;
+}
 
-    void ce_viewport_del(ce_viewport* viewport)
-    {
-        ce_free(viewport, sizeof(ce_viewport));
-    }
+void ce_viewport_del(ce_viewport* viewport)
+{
+    ce_free(viewport, sizeof(ce_viewport));
+}
 
-    void ce_viewport_set_corner(ce_viewport* viewport, int x, int y)
-    {
-        viewport->x = x;
-        viewport->y = y;
-    }
+void ce_viewport_set_corner(ce_viewport* viewport, int x, int y)
+{
+    viewport->x = x;
+    viewport->y = y;
+}
 
-    void ce_viewport_set_dimensions(ce_viewport* viewport, int width, int height)
-    {
-        viewport->width = width;
-        viewport->height = height;
-    }
+void ce_viewport_set_dimensions(ce_viewport* viewport, int width, int height)
+{
+    viewport->width = width;
+    viewport->height = height;
+}
 
-    void ce_viewport_set_rect(ce_viewport* viewport,
-                                int x, int y, int width, int height)
-    {
-        ce_viewport_set_corner(viewport, x, y);
-        ce_viewport_set_dimensions(viewport, width, height);
-    }
+void ce_viewport_set_rect(ce_viewport* viewport,
+                            int x, int y, int width, int height)
+{
+    ce_viewport_set_corner(viewport, x, y);
+    ce_viewport_set_dimensions(viewport, width, height);
 }

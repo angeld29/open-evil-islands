@@ -27,8 +27,6 @@
 #include "optionmanager.hpp"
 #include "videomanager.hpp"
 
-namespace cursedearth
-{
 struct ce_video_manager* ce_video_manager;
 
 static const char* ce_video_dirs[] = {"Movies", NULL};
@@ -56,7 +54,7 @@ void ce_video_manager_term(void)
     }
 }
 
-void ce_video_manager_advance(float /*elapsed*/)
+void ce_video_manager_advance(float CE_UNUSED(elapsed))
 {
 }
 
@@ -69,7 +67,7 @@ ce_video_instance* ce_video_manager_create_instance(const char* name)
         return NULL;
     }
 
-    memory_file_t* mem_file = ce_mem_file_new_path(path);
+    ce_mem_file* mem_file = ce_mem_file_new_path(path);
     if (NULL == mem_file) {
         ce_logging_error("video manager: could not open file '%s'", path);
         return NULL;
@@ -104,5 +102,4 @@ ce_video_instance* ce_video_manager_find_instance(ce_video_object video_object)
         }
     }
     return NULL;
-}
 }

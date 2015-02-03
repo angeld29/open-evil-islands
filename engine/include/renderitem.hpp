@@ -21,40 +21,45 @@
 #ifndef CE_RENDERITEM_HPP
 #define CE_RENDERITEM_HPP
 
-#include <memory>
-
-#include <boost/noncopyable.hpp>
+#include <cstddef>
+#include <cstdarg>
 
 #include "vec3.hpp"
 #include "quat.hpp"
 #include "aabb.hpp"
 #include "bbox.hpp"
 
-namespace cursedearth
-{
-    typedef std::shared_ptr<class render_item_t> render_item_ptr_t;
-    typedef std::shared_ptr<const class render_item_t> render_item_const_ptr_t;
+typedef struct ce_renderitem ce_renderitem;
 
-    class render_item_t: boost::noncopyable
-    {
-    public:
-        virtual ~render_item_t() = default;
+typedef struct {
+    void (*ctor)(ce_renderitem* renderitem, va_list args);   // required
+    void (*dtor)(ce_renderitem* renderitem);                 // required
+    void (*update)(ce_renderitem* renderitem, va_list args); // may be NULL
+    void (*render)(ce_renderitem* renderitem);               // required
+    void (*clone)(const ce_renderitem* renderitem,
+                    ce_renderitem* clone_renderitem);        // required
+} ce_renderitem_vtable;
 
-        virtual void update() = 0;
-        virtual void render() = 0;
+struct ce_renderitem {
+    bool visible;
+    ce_aabb aabb;
+    ce_vec3 position;
+    ce_quat orientation;
+    ce_bbox bbox;
+    ce_vec3 world_position;
+    ce_quat world_orientation;
+    ce_bbox world_bbox;
+    ce_renderitem_vtable vtable;
+    size_t size;
+    char impl[];
+};
 
-        virtual render_item_ptr_t clone() const = 0;
+extern ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...);
+extern void ce_renderitem_del(ce_renderitem* renderitem);
 
-    protected:
-        bool visible = true;
-        aabb_t aabb;
-        vec3_t position;
-        ce_quat orientation;
-        bbox_t bbox;
-        vec3_t world_position;
-        ce_quat world_orientation;
-        bbox_t world_bbox;
-    };
-}
+extern void ce_renderitem_update(ce_renderitem* renderitem, ...);
+extern void ce_renderitem_render(ce_renderitem* renderitem);
+
+extern ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem);
 
 #endif /* CE_RENDERITEM_HPP */

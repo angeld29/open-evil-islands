@@ -27,10 +27,7 @@
 #ifndef CE_AVCODEC_HPP
 #define CE_AVCODEC_HPP
 
-namespace cursedearth
-{
-    void ce_avcodec_init(void);
-    void ce_avcodec_term(void);
-}
+extern void ce_avcodec_init(void);
+extern void ce_avcodec_term(void);
 
 #endif /* CE_AVCODEC_HPP */

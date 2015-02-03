@@ -24,39 +24,36 @@
 #include "string.hpp"
 #include "optparse.hpp"
 
-namespace cursedearth
-{
-    extern struct ce_option_manager {
-        ce_string* ei_path;
-        ce_string* ce_path;
-        int window_width;
-        int window_height;
-        bool fullscreen;
-        int fullscreen_width;
-        int fullscreen_height;
-        int fullscreen_bpp;
-        int fullscreen_rate;
-        int fullscreen_rotation;
-        bool fullscreen_reflection_x;
-        bool fullscreen_reflection_y;
-        bool list_video_modes;
-        bool list_video_rotations;
-        bool list_video_reflections;
-        bool inverse_trackball;
-        bool inverse_trackball_x;
-        bool inverse_trackball_y;
-        bool terrain_tiling;
-        bool texture_caching;
-        int thread_count;
-        bool disable_sound;
-        bool show_axes;
-        bool show_fps;
-    }* ce_option_manager;
+extern struct ce_option_manager {
+    ce_string* ei_path;
+    ce_string* ce_path;
+    int window_width;
+    int window_height;
+    bool fullscreen;
+    int fullscreen_width;
+    int fullscreen_height;
+    int fullscreen_bpp;
+    int fullscreen_rate;
+    int fullscreen_rotation;
+    bool fullscreen_reflection_x;
+    bool fullscreen_reflection_y;
+    bool list_video_modes;
+    bool list_video_rotations;
+    bool list_video_reflections;
+    bool inverse_trackball;
+    bool inverse_trackball_x;
+    bool inverse_trackball_y;
+    bool terrain_tiling;
+    bool texture_caching;
+    int thread_count;
+    bool disable_sound;
+    bool show_axes;
+    bool show_fps;
+}* ce_option_manager;
 
-    extern void ce_option_manager_init(ce_optparse* optparse);
-    extern void ce_option_manager_term(void);
+extern void ce_option_manager_init(ce_optparse* optparse);
+extern void ce_option_manager_term(void);
 
-    extern ce_optparse* ce_option_manager_create_option_parser(void);
-}
+extern ce_optparse* ce_option_manager_create_option_parser(void);
 
 #endif /* CE_OPTIONMANAGER_HPP */

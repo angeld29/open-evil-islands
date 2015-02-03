@@ -23,8 +23,6 @@
 #include "alloc.hpp"
 #include "timer.hpp"
 
-namespace cursedearth
-{
 static const float CE_TIMER_CLOCKS_PER_SEC_INV = 1.0f / CLOCKS_PER_SEC;
 
 typedef struct {
@@ -55,5 +53,4 @@ float ce_timer_advance(ce_timer* timer)
     timer->elapsed = (std_timer->stop - std_timer->start) * CE_TIMER_CLOCKS_PER_SEC_INV;
     std_timer->start = std_timer->stop;
     return timer->elapsed;
-}
 }

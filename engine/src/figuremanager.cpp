@@ -26,13 +26,11 @@
 #include "path.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "res.hpp"
+#include "resfile.hpp"
 #include "optionmanager.hpp"
-#include "fighelpers.hpp"
+#include "fighlp.hpp"
 #include "figuremanager.hpp"
 
-namespace cursedearth
-{
 struct ce_figure_manager* ce_figure_manager;
 
 static const char* ce_figure_exts[] = {".mod", NULL};
@@ -174,7 +172,7 @@ ce_figmesh* ce_figure_manager_create_mesh(const char* name,
 
 ce_figentity* ce_figure_manager_create_entity(const char* name,
     const ce_complection* complection,
-    const vec3_t* position, const ce_quat* orientation,
+    const ce_vec3* position, const ce_quat* orientation,
     const char* parts[], const char* textures[])
 {
     ce_figmesh* mesh = ce_figure_manager_create_mesh(name, complection);
@@ -195,5 +193,4 @@ void ce_figure_manager_remove_entity(ce_figentity* entity)
 {
     ce_vector_remove_all(ce_figure_manager->entities, entity);
     ce_figentity_del(entity);
-}
 }

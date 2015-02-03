@@ -21,47 +21,40 @@
 #ifndef CE_TEXTURE_HPP
 #define CE_TEXTURE_HPP
 
-#include <memory>
-#include <string>
+#include "atomic.hpp"
+#include "string.hpp"
+#include "mmpfile.hpp"
 
-#include <boost/noncopyable.hpp>
+typedef enum {
+    CE_TEXTURE_WRAP_REPEAT,
+    CE_TEXTURE_WRAP_CLAMP,
+    CE_TEXTURE_WRAP_CLAMP_TO_EDGE,
+    CE_TEXTURE_WRAP_COUNT
+} ce_texture_wrap_mode;
 
-#include "mmp.hpp"
+typedef struct {
+    int ref_count;
+    ce_string* name;
+    unsigned int width, height;
+    char impl[];
+} ce_texture;
 
-namespace cursedearth
+extern ce_texture* ce_texture_new(const char* name, ce_mmpfile* mmpfile);
+extern void ce_texture_del(ce_texture* texture);
+
+extern bool ce_texture_is_valid(const ce_texture* texture);
+extern bool ce_texture_is_equal(const ce_texture* texture, const ce_texture* other);
+
+extern void ce_texture_replace(ce_texture* texture, ce_mmpfile* mmpfile);
+extern void ce_texture_wrap(ce_texture* texture, ce_texture_wrap_mode mode);
+
+extern void ce_texture_bind(ce_texture* texture);
+extern void ce_texture_unbind(ce_texture* texture);
+
+static inline ce_texture* ce_texture_add_ref(ce_texture* texture)
 {
-    typedef std::shared_ptr<class texture_t> texture_ptr_t;
-    typedef std::shared_ptr<const class texture_t> texture_const_ptr_t;
-
-    class texture_t: boost::noncopyable
-    {
-    public:
-        enum wrap_mode_t
-        {
-            WRAP_MODE_REPEAT,
-            WRAP_MODE_CLAMP,
-            WRAP_MODE_CLAMP_TO_EDGE,
-            WRAP_MODE_COUNT
-        };
-
-    public:
-        virtual ~texture_t() = default;
-
-        virtual bool is_valid() = 0;
-        virtual bool is_equal(const texture_const_ptr_t&) = 0;
-
-        virtual void replace(ce_mmpfile*) = 0;
-        virtual void wrap(wrap_mode_t) = 0;
-
-        virtual void bind() = 0;
-        virtual void unbind() = 0;
-
-    protected:
-        std::string m_name;
-        unsigned int m_width, m_height;
-    };
-
-    texture_ptr_t make_texture(ce_mmpfile* mmpfile);
+    ce_atomic_inc(int, &texture->ref_count);
+    return texture;
 }
 
 #endif /* CE_TEXTURE_HPP */

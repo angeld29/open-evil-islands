@@ -25,11 +25,8 @@
 
 #include <GL/glxew.h>
 
-#define glxewGetContext() (&cursedearth::ce_glxew_context)
+#define glxewGetContext() (&ce_glxew_context)
 
-namespace cursedearth
-{
-    CE_THREAD GLXEWContext ce_glxew_context;
-}
+extern CE_THREAD GLXEWContext ce_glxew_context;
 
 #endif /* CE_GLEW_PLATFORM_HPP */

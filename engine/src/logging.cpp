@@ -23,8 +23,6 @@
 
 #include "logging.hpp"
 
-namespace cursedearth
-{
 static struct {
     ce_logging_level level;
     const char* level_names[CE_LOGGING_LEVEL_ALL];
@@ -90,4 +88,3 @@ CE_LOGGING_DEF_PROC(error, CE_LOGGING_LEVEL_ERROR)
 CE_LOGGING_DEF_PROC(critical, CE_LOGGING_LEVEL_CRITICAL)
 CE_LOGGING_DEF_PROC(fatal, CE_LOGGING_LEVEL_FATAL)
 CE_LOGGING_DEF_PROC(write, CE_LOGGING_LEVEL_WRITE)
-}

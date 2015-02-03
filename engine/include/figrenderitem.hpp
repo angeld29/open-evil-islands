@@ -25,9 +25,6 @@
 #include "fignode.hpp"
 #include "complection.hpp"
 
-namespace cursedearth
-{
-    render_item_ptr_t make_render_item(const ce_fignode*, const ce_complection*);
-}
+extern ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode, const ce_complection* complection);
 
 #endif /* CE_FIGRENDERITEM_HPP */

@@ -32,25 +32,24 @@
 #include "figuremanager.hpp"
 #include "mobloader.hpp"
 #include "root.hpp"
-#include "cam.hpp"
-
-using namespace cursedearth;
+#include "camfile.hpp"
 
 static ce_optparse* optparse;
 
-static input_supply_ptr_t input_supply;
-static input_event_const_ptr_t anmfps_inc_event;
-static input_event_const_ptr_t anmfps_dec_event;
+static ce_input_supply* input_supply;
+static ce_input_event* anmfps_inc_event;
+static ce_input_event* anmfps_dec_event;
 
 static float message_timeout;
 static ce_color message_color;
 
 static void clear()
 {
+    ce_input_supply_del(input_supply);
     ce_optparse_del(optparse);
 }
 
-static void state_changed(void* /*listener*/, int state)
+static void state_changed(void* CE_UNUSED(listener), int state)
 {
     if (CE_SCENEMNG_STATE_READY == state) {
         const char* zone;
@@ -77,21 +76,21 @@ static void state_changed(void* /*listener*/, int state)
         }
 
         if (NULL != ce_root.scenemng->terrain) {
-            vec3_t position;
+            ce_vec3 position;
             ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position, 0.0f, ce_root.scenemng->terrain->mprfile->max_y, 0.0f));
             ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
         }
     }
 }
 
-static void advance(void* /*listener*/, float elapsed)
+static void advance(void* CE_UNUSED(listener), float elapsed)
 {
-    input_supply->advance(elapsed);
+    ce_input_supply_advance(input_supply, elapsed);
 
     float animation_fps = ce_root.animation_fps;
 
-    if (anmfps_inc_event->is_triggered()) animation_fps += 1.0f;
-    if (anmfps_dec_event->is_triggered()) animation_fps -= 1.0f;
+    if (anmfps_inc_event->triggered) animation_fps += 1.0f;
+    if (anmfps_dec_event->triggered) animation_fps -= 1.0f;
 
     if (message_timeout > 0.0f) {
         message_timeout -= elapsed;
@@ -105,7 +104,7 @@ static void advance(void* /*listener*/, float elapsed)
     ce_root.animation_fps = ce_clamp(float, animation_fps, 1.0f, 50.0f);
 }
 
-static void render(void*)
+static void render(void* CE_UNUSED(listener))
 {
     if (message_timeout > 0.0f) {
         char buffer[32];
@@ -191,9 +190,9 @@ int main(int argc, char* argv[])
 
     message_color = CE_COLOR_CORNFLOWER;
 
-    input_supply = make_unique<input_supply_t>(ce_root.renderwindow->get_input_context());
-    anmfps_inc_event = input_supply->repeat(input_supply->push(CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
-    anmfps_dec_event = input_supply->repeat(input_supply->push(CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
+    input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
+    anmfps_inc_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
+    anmfps_dec_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
 
     return ce_root_exec();
 }

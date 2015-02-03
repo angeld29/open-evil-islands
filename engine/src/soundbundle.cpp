@@ -21,8 +21,6 @@
 #include "alloc.hpp"
 #include "soundbundle.hpp"
 
-namespace cursedearth
-{
 ce_sound_bundle* ce_sound_bundle_new(void)
 {
     return ce_alloc_zero(sizeof(ce_sound_bundle));
@@ -31,5 +29,4 @@ ce_sound_bundle* ce_sound_bundle_new(void)
 void ce_sound_bundle_del(ce_sound_bundle* sound_bundle)
 {
     ce_free(sound_bundle, sizeof(ce_sound_bundle));
-}
 }

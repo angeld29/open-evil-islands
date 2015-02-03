@@ -19,7 +19,6 @@
  */
 
 #include <cstdio>
-#include <vector>
 
 #include "lib.hpp"
 #include "alloc.hpp"
@@ -28,18 +27,16 @@
 #include "bitop.hpp"
 #include "bink.hpp"
 
-namespace cursedearth
-{
 enum {
     CE_BINK_HEADER_SIZE = 44,
     CE_BINK_AUDIO_HEADER_SIZE = 4 + 4 + 4,
 };
 
-bool ce_bink_header_read(ce_bink_header* bink_header, memory_file_t* mem_file)
+bool ce_bink_header_read(ce_bink_header* bink_header, ce_mem_file* mem_file)
 {
     uint8_t header[CE_BINK_HEADER_SIZE];
 
-    if (sizeof(header) != mem_file->read(header, 1, sizeof(header))) {
+    if (sizeof(header) != ce_mem_file_read(mem_file, header, 1, sizeof(header))) {
         return false;
     }
 
@@ -67,11 +64,11 @@ bool ce_bink_header_read(ce_bink_header* bink_header, memory_file_t* mem_file)
     return true;
 }
 
-bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, memory_file_t* mem_file)
+bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, ce_mem_file* mem_file)
 {
     uint8_t header[CE_BINK_AUDIO_HEADER_SIZE];
 
-    if (sizeof(header) != mem_file->read(header, 1, sizeof(header))) {
+    if (sizeof(header) != ce_mem_file_read(mem_file, header, 1, sizeof(header))) {
         return false;
     }
 
@@ -90,21 +87,21 @@ bool ce_bink_audio_track_read(ce_bink_audio_track* bink_audio_track, memory_file
     return true;
 }
 
-bool ce_bink_audio_track_skip(size_t n, memory_file_t* mem_file)
+bool ce_bink_audio_track_skip(size_t n, ce_mem_file* mem_file)
 {
-    std::vector<uint8_t> header(CE_BINK_AUDIO_HEADER_SIZE * n);
-    return header.size() == mem_file->read(header.data(), 1, header.size());
+    uint8_t header[CE_BINK_AUDIO_HEADER_SIZE * n];
+    return sizeof(header) == ce_mem_file_read(mem_file, header, 1, sizeof(header));
 }
 
-bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, memory_file_t* mem_file)
+bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, ce_mem_file* mem_file)
 {
     uint32_t pos, next_pos;
 
-    mem_file->read(&next_pos, 4, 1);
+    ce_mem_file_read(mem_file, &next_pos, 4, 1);
 
     for (size_t i = 0; i < n; ++i) {
         pos = next_pos;
-        mem_file->read(&next_pos, 4, 1);
+        ce_mem_file_read(mem_file, &next_pos, 4, 1);
 
         // bit 0 indicates that frame is a keyframe; I'm not using it
         bink_indices[i].pos = ce_bitclr(uint32_t, pos, 0);
@@ -118,5 +115,4 @@ bool ce_bink_index_read(ce_bink_index* bink_indices, size_t n, memory_file_t* me
     }
 
     return true;
-}
 }

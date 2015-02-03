@@ -24,16 +24,13 @@
 #include "vector.hpp"
 #include "shader.hpp"
 
-namespace cursedearth
-{
-    extern struct ce_shader_manager {
-        ce_vector* shaders;
-    }* ce_shader_manager;
+extern struct ce_shader_manager {
+    ce_vector* shaders;
+}* ce_shader_manager;
 
-    extern void ce_shader_manager_init(void);
-    extern void ce_shader_manager_term(void);
+extern void ce_shader_manager_init(void);
+extern void ce_shader_manager_term(void);
 
-    extern shader_t* ce_shader_manager_get(const char* resource_paths[]);
-}
+extern ce_shader* ce_shader_manager_get(const char* resource_paths[]);
 
 #endif /* CE_SHADERMANAGER_HPP */

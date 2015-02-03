@@ -26,8 +26,6 @@
 #include "opengl.hpp"
 #include "shader.hpp"
 
-namespace cursedearth
-{
 typedef struct {
     GLuint program;
 } ce_shader_opengl;
@@ -159,8 +157,7 @@ void ce_shader_bind(ce_shader* shader)
     glUseProgram(opengl_shader->program);
 }
 
-void ce_shader_unbind(ce_shader*)
+void ce_shader_unbind(ce_shader* CE_UNUSED(shader))
 {
     glUseProgram(0);
-}
 }

@@ -27,8 +27,6 @@
 #include "display.hpp"
 #include "display_windows.hpp"
 
-namespace cursedearth
-{
 typedef struct {
     ce_vector* modes;
     DEVMODE orig_mode;
@@ -71,7 +69,7 @@ static void ce_dmmng_change_display_settings(DEVMODE* dm, DWORD flags)
     }
 }
 
-static void ce_dmmng_ctor(display_manager_t* displaymng, va_list /*args*/)
+static void ce_dmmng_ctor(ce_displaymng* displaymng, va_list CE_UNUSED(args))
 {
     ce_logging_write("displaymng: using native Device Context Windows API");
 
@@ -98,13 +96,15 @@ static void ce_dmmng_ctor(display_manager_t* displaymng, va_list /*args*/)
         ce_vector_push_back(dmmng->modes, ce_alloc(sizeof(DEVMODE)));
         *(DEVMODE*)ce_vector_back(dmmng->modes) = mode;
 
-        ce_vector_push_back(displaymng->m_modes,
+        ce_vector_push_back(displaymng->supported_modes,
             ce_displaymode_new(mode.dmPelsWidth, mode.dmPelsHeight,
                 mode.dmBitsPerPel, mode.dmDisplayFrequency));
     }
 }
 
-static void ce_dmmng_enter(display_manager_t* displaymng, size_t index, display_rotation_t, display_reflection_t)
+static void ce_dmmng_enter(ce_displaymng* displaymng, size_t index,
+                            ce_display_rotation CE_UNUSED(rotation),
+                            ce_display_reflection CE_UNUSED(reflection))
 {
     ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
     DEVMODE* mode = dmmng->modes->items[index];
@@ -112,14 +112,14 @@ static void ce_dmmng_enter(display_manager_t* displaymng, size_t index, display_
     ce_dmmng_change_display_settings(mode, CDS_FULLSCREEN);
 }
 
-static void ce_dmmng_exit(display_manager_t* displaymng)
+static void ce_dmmng_exit(ce_displaymng* displaymng)
 {
     ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
 
     ce_dmmng_change_display_settings(&dmmng->orig_mode, 0);
 }
 
-static void ce_dmmng_dtor(display_manager_t* displaymng)
+static void ce_dmmng_dtor(ce_displaymng* displaymng)
 {
     ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
 
@@ -131,11 +131,10 @@ static void ce_dmmng_dtor(display_manager_t* displaymng)
     ce_vector_del(dmmng->modes);
 }
 
-display_manager_t* ce_displaymng_create(void)
+ce_displaymng* ce_displaymng_create(void)
 {
     ce_displaymng_vtable vtable = {
         ce_dmmng_ctor, ce_dmmng_dtor, ce_dmmng_enter, ce_dmmng_exit
     };
     return ce_displaymng_new(vtable, sizeof(ce_dmmng));
-}
 }

@@ -26,8 +26,6 @@
 #include "root.hpp"
 #include "scenenode.hpp"
 
-namespace cursedearth
-{
 ce_scenenode* ce_scenenode_new(ce_scenenode* parent)
 {
     ce_scenenode* scenenode = ce_alloc_zero(sizeof(ce_scenenode));
@@ -86,7 +84,7 @@ void ce_scenenode_detach_child(ce_scenenode* scenenode, ce_scenenode* child)
 }
 
 void ce_scenenode_add_renderitem(ce_scenenode* scenenode,
-                                render_item_t* renderitem)
+                                ce_renderitem* renderitem)
 {
     ce_vector_push_back(scenenode->renderitems, renderitem);
 }
@@ -124,7 +122,7 @@ static void ce_scenenode_update_transform(ce_scenenode* scenenode)
     }
 
     for (size_t i = 0; i < scenenode->renderitems->count; ++i) {
-        render_item_t* renderitem = scenenode->renderitems->items[i];
+        ce_renderitem* renderitem = scenenode->renderitems->items[i];
         ce_vec3_rot(&renderitem->world_position,
                     &renderitem->position,
                     &scenenode->world_orientation);
@@ -142,7 +140,7 @@ static void ce_scenenode_update_bounds(ce_scenenode* scenenode)
     ce_bbox_clear(&scenenode->world_bbox);
 
     for (size_t i = 0; i < scenenode->renderitems->count; ++i) {
-        render_item_t* renderitem = scenenode->renderitems->items[i];
+        ce_renderitem* renderitem = scenenode->renderitems->items[i];
         if (renderitem->visible) {
             renderitem->world_bbox.aabb = renderitem->bbox.aabb;
 
@@ -216,7 +214,7 @@ void ce_scenenode_update_cascade(ce_scenenode* scenenode, const ce_frustum* frus
     }
 }
 
-static void ce_scenenode_draw_bbox(const bbox_t* bbox)
+static void ce_scenenode_draw_bbox(const ce_bbox* bbox)
 {
     ce_render_system_apply_transform(&bbox->aabb.origin,
                                     &bbox->axis, &bbox->aabb.extents);
@@ -231,7 +229,7 @@ void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode)
 
         if (!ce_root.comprehensive_bbox_only) {
             for (size_t i = 0; i < scenenode->renderitems->count; ++i) {
-                render_item_t* renderitem = scenenode->renderitems->items[i];
+                ce_renderitem* renderitem = scenenode->renderitems->items[i];
                 if (renderitem->visible) {
                     ce_scenenode_draw_bbox(&renderitem->world_bbox);
                 }
@@ -242,5 +240,4 @@ void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode)
             ce_scenenode_draw_bboxes_cascade(scenenode->childs->items[i]);
         }
     }
-}
 }

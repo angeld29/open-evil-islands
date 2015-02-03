@@ -22,30 +22,27 @@
 #define CE_MOBLOADER_HPP
 
 #include "vector.hpp"
-#include "mob.hpp"
+#include "mobfile.hpp"
 
-namespace cursedearth
-{
-    typedef struct {
-        size_t processed_event_count;
-        size_t posted_event_count;
-        ce_string* name;
-        ce_mob_file* mob_file;
-    } ce_mob_task;
+typedef struct {
+    size_t processed_event_count;
+    size_t posted_event_count;
+    ce_string* name;
+    ce_mob_file* mob_file;
+} ce_mob_task;
 
-    extern ce_mob_task* ce_mob_task_new(const char* name);
-    extern void ce_mob_task_del(ce_mob_task* mob_task);
+extern ce_mob_task* ce_mob_task_new(const char* name);
+extern void ce_mob_task_del(ce_mob_task* mob_task);
 
-    extern struct ce_mob_loader {
-        size_t completed_job_count;
-        size_t queued_job_count;
-        ce_vector* mob_tasks;
-    }* ce_mob_loader;
+extern struct ce_mob_loader {
+    size_t completed_job_count;
+    size_t queued_job_count;
+    ce_vector* mob_tasks;
+}* ce_mob_loader;
 
-    extern void ce_mob_loader_init(void);
-    extern void ce_mob_loader_term(void);
+extern void ce_mob_loader_init(void);
+extern void ce_mob_loader_term(void);
 
-    extern void ce_mob_loader_load_mob(const char* name);
-}
+extern void ce_mob_loader_load_mob(const char* name);
 
 #endif /* CE_MOBLOADER_HPP */

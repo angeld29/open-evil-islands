@@ -26,8 +26,6 @@
 #include "alloc.hpp"
 #include "soundbuffer.hpp"
 
-namespace cursedearth
-{
 ce_sound_buffer* ce_sound_buffer_new(size_t capacity)
 {
     ce_sound_buffer* sound_buffer = ce_alloc_zero(sizeof(ce_sound_buffer) + capacity);
@@ -82,5 +80,4 @@ void ce_sound_buffer_write(ce_sound_buffer* sound_buffer, const void* buffer, si
 
     sound_buffer->end = (sound_buffer->end + size) % sound_buffer->capacity;
     ce_semaphore_release(sound_buffer->prepared_data, size);
-}
 }

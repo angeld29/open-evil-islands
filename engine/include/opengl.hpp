@@ -23,9 +23,6 @@
 
 #include "glew.hpp"
 
-namespace cursedearth
-{
-    bool ce_opengl_report_errors(void);
-}
+extern bool ce_opengl_report_errors(void);
 
 #endif /* CE_OPENGL_HPP */

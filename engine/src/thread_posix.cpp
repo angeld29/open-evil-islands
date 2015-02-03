@@ -38,9 +38,7 @@
 #include "error.hpp"
 #include "thread.hpp"
 
-namespace cursedearth
-{
-int online_cpu_count(void)
+int ce_online_cpu_count(void)
 {
 #ifdef _SC_NPROCESSORS_ONLN
     return ce_max(int, 1, sysconf(_SC_NPROCESSORS_ONLN));
@@ -49,36 +47,33 @@ int online_cpu_count(void)
 #endif
 }
 
-void sleep(unsigned int msec)
+void ce_sleep(unsigned int msec)
 {
     usleep(1000 * msec);
 }
 
-thread_id_t ce_thread_self(void)
+ce_thread_id ce_thread_self(void)
 {
     return pthread_self();
 }
 
-struct thread_t
-{
-    thread_id_t id;
-    routine_t routine;
+typedef struct {
     pthread_t handle;
-};
+} ce_thread_posix;
 
 static void* ce_thread_wrap(void* arg)
 {
-    routine_t* routine = arg;
-    (*routine->func)(routine->arg);
+    ce_routine* routine = arg;
+    (*routine->proc)(routine->arg);
     return arg;
 }
 
-thread_t* ce_thread_new(void (*proc)(void*), void* arg)
+ce_thread* ce_thread_new(void (*proc)(void*), void* arg)
 {
-    thread_t* thread = ce_alloc_zero(sizeof(thread_t) + sizeof(ce_thread_posix));
+    ce_thread* thread = ce_alloc_zero(sizeof(ce_thread) + sizeof(ce_thread_posix));
     ce_thread_posix* posix_thread = (ce_thread_posix*)thread->impl;
 
-    thread->routine.func = proc;
+    thread->routine.proc = proc;
     thread->routine.arg = arg;
 
     int code = pthread_create(&posix_thread->handle, NULL, ce_thread_wrap, &thread->routine);
@@ -91,12 +86,12 @@ thread_t* ce_thread_new(void (*proc)(void*), void* arg)
     return thread;
 }
 
-void ce_thread_del(thread_t* thread)
+void ce_thread_del(ce_thread* thread)
 {
-    ce_free(thread, sizeof(thread_t) + sizeof(ce_thread_posix));
+    ce_free(thread, sizeof(ce_thread) + sizeof(ce_thread_posix));
 }
 
-void ce_thread_wait(thread_t* thread)
+void ce_thread_wait(ce_thread* thread)
 {
     ce_thread_posix* posix_thread = (ce_thread_posix*)thread->impl;
     int code = pthread_join(posix_thread->handle, NULL);
@@ -105,45 +100,45 @@ void ce_thread_wait(thread_t* thread)
     }
 }
 
-struct mutex_t {
+struct ce_mutex {
     pthread_mutex_t handle;
 };
 
-mutex_t* ce_mutex_new(void)
+ce_mutex* ce_mutex_new(void)
 {
-    mutex_t* mutex = ce_alloc_zero(sizeof(mutex_t));
+    ce_mutex* mutex = ce_alloc_zero(sizeof(ce_mutex));
     pthread_mutex_init(&mutex->handle, NULL);
     return mutex;
 }
 
-void ce_mutex_del(mutex_t* mutex)
+void ce_mutex_del(ce_mutex* mutex)
 {
     if (NULL != mutex) {
         pthread_mutex_destroy(&mutex->handle);
-        ce_free(mutex, sizeof(mutex_t));
+        ce_free(mutex, sizeof(ce_mutex));
     }
 }
 
-void ce_mutex_lock(mutex_t* mutex)
+void ce_mutex_lock(ce_mutex* mutex)
 {
     pthread_mutex_lock(&mutex->handle);
 }
 
-void ce_mutex_unlock(mutex_t* mutex)
+void ce_mutex_unlock(ce_mutex* mutex)
 {
     pthread_mutex_unlock(&mutex->handle);
 }
 
-struct wait_condition_t {
+struct ce_wait_condition {
     int waiter_count;
     int wakeup_count;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
 };
 
-wait_condition_t* ce_wait_condition_new(void)
+ce_wait_condition* ce_wait_condition_new(void)
 {
-    wait_condition_t* wait_condition = ce_alloc_zero(sizeof(wait_condition_t));
+    ce_wait_condition* wait_condition = ce_alloc_zero(sizeof(ce_wait_condition));
     wait_condition->waiter_count = 0;
     wait_condition->wakeup_count = 0;
     pthread_mutex_init(&wait_condition->mutex, NULL);
@@ -151,16 +146,16 @@ wait_condition_t* ce_wait_condition_new(void)
     return wait_condition;
 }
 
-void ce_wait_condition_del(wait_condition_t* wait_condition)
+void ce_wait_condition_del(ce_wait_condition* wait_condition)
 {
     if (NULL != wait_condition) {
         pthread_cond_destroy(&wait_condition->cond);
         pthread_mutex_destroy(&wait_condition->mutex);
-        ce_free(wait_condition, sizeof(wait_condition_t));
+        ce_free(wait_condition, sizeof(ce_wait_condition));
     }
 }
 
-void ce_wait_condition_wake_one(wait_condition_t* wait_condition)
+void ce_wait_condition_wake_one(ce_wait_condition* wait_condition)
 {
     pthread_mutex_lock(&wait_condition->mutex);
     wait_condition->wakeup_count = ce_min(int, wait_condition->wakeup_count + 1,
@@ -169,7 +164,7 @@ void ce_wait_condition_wake_one(wait_condition_t* wait_condition)
     pthread_mutex_unlock(&wait_condition->mutex);
 }
 
-void ce_wait_condition_wake_all(wait_condition_t* wait_condition)
+void ce_wait_condition_wake_all(ce_wait_condition* wait_condition)
 {
     pthread_mutex_lock(&wait_condition->mutex);
     wait_condition->wakeup_count = wait_condition->waiter_count;
@@ -177,7 +172,7 @@ void ce_wait_condition_wake_all(wait_condition_t* wait_condition)
     pthread_mutex_unlock(&wait_condition->mutex);
 }
 
-void ce_wait_condition_wait(wait_condition_t* wait_condition, mutex_t* mutex)
+void ce_wait_condition_wait(ce_wait_condition* wait_condition, ce_mutex* mutex)
 {
     pthread_mutex_lock(&wait_condition->mutex);
     ++wait_condition->waiter_count;
@@ -206,20 +201,20 @@ void ce_wait_condition_wait(wait_condition_t* wait_condition, mutex_t* mutex)
     ce_mutex_lock(mutex);
 }
 
-struct once_t {
+struct ce_once {
     pthread_once_t handle;
 };
 
-once_t* ce_once_new(void)
+ce_once* ce_once_new(void)
 {
-    once_t* once = ce_alloc_zero(sizeof(once_t));
+    ce_once* once = ce_alloc_zero(sizeof(ce_once));
     once->handle = PTHREAD_ONCE_INIT;
     return once;
 }
 
-void ce_once_del(once_t* once)
+void ce_once_del(ce_once* once)
 {
-    ce_free(once, sizeof(once_t));
+    ce_free(once, sizeof(ce_once));
 }
 
 static pthread_once_t ce_once_once = PTHREAD_ONCE_INIT;
@@ -232,15 +227,14 @@ static void ce_once_key_init()
 
 static void ce_once_wrap(void)
 {
-    routine_t* routine = pthread_getspecific(ce_once_key);
-    (*routine->func)(routine->arg);
+    ce_routine* routine = pthread_getspecific(ce_once_key);
+    (*routine->proc)(routine->arg);
 }
 
-void ce_once_exec(once_t* once, void (*proc)(void*), void* arg)
+void ce_once_exec(ce_once* once, void (*proc)(void*), void* arg)
 {
     pthread_once(&ce_once_once, ce_once_key_init);
-    routine_t routine = {proc, arg};
+    ce_routine routine = {proc, arg};
     pthread_setspecific(ce_once_key, &routine);
     pthread_once(&once->handle, ce_once_wrap);
-}
 }

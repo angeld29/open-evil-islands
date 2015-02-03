@@ -21,48 +21,40 @@
 #ifndef CE_MATH_HPP
 #define CE_MATH_HPP
 
-namespace cursedearth
+extern const float CE_PI;
+extern const float CE_PI2;
+extern const float CE_PI_DIV_2;
+extern const float CE_PI_DIV_4;
+extern const float CE_PI_INV;
+
+extern const float CE_EPS_E3;
+extern const float CE_EPS_E4;
+extern const float CE_EPS_E5;
+extern const float CE_EPS_E6;
+
+extern const float CE_DEG2RAD;
+extern const float CE_RAD2DEG;
+
+extern bool ce_fisequal(float a, float b, float tolerance);
+
+static inline bool ce_fiszero(float a, float tolerance)
 {
-    extern const float CE_PI;
-    extern const float CE_PI2;
-    extern const float CE_PI_DIV_2;
-    extern const float CE_PI_DIV_4;
-    extern const float CE_PI_INV;
+    return ce_fisequal(a, 0.0f, tolerance);
+}
 
-    extern const float CE_EPS_E3;
-    extern const float CE_EPS_E4;
-    extern const float CE_EPS_E5;
-    extern const float CE_EPS_E6;
+static inline float ce_lerp(float u, float a, float b)
+{
+    return a + u * (b - a);
+}
 
-    extern const float CE_DEG2RAD;
-    extern const float CE_RAD2DEG;
+static inline float ce_deg2rad(float angle)
+{
+    return CE_DEG2RAD * angle;
+}
 
-    bool ce_fisequal(float a, float b, float tolerance);
-
-    inline bool ce_fiszero(float a, float tolerance)
-    {
-        return ce_fisequal(a, 0.0f, tolerance);
-    }
-
-    inline float ce_lerp(float u, float a, float b)
-    {
-        return a + u * (b - a);
-    }
-
-    inline float lerp(float a, float b, float u)
-    {
-        return a + u * (b - a);
-    }
-
-    inline float ce_deg2rad(float angle)
-    {
-        return CE_DEG2RAD * angle;
-    }
-
-    inline float ce_rad2deg(float angle)
-    {
-        return CE_RAD2DEG * angle;
-    }
+static inline float ce_rad2deg(float angle)
+{
+    return CE_RAD2DEG * angle;
 }
 
 #endif /* CE_MATH_HPP */

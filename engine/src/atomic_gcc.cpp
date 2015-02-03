@@ -38,8 +38,5 @@ CE_ATOMIC_DEF_FETCH_AND_OP(type, sub) \
 CE_ATOMIC_DEF_OP_AND_FETCH(type, add) \
 CE_ATOMIC_DEF_OP_AND_FETCH(type, sub)
 
-namespace cursedearth
-{
-    CE_ATOMIC_DEF_ALL(int)
-    CE_ATOMIC_DEF_ALL(size_t)
-}
+CE_ATOMIC_DEF_ALL(int)
+CE_ATOMIC_DEF_ALL(size_t)

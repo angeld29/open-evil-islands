@@ -22,8 +22,6 @@
 #include "rendersystem.hpp"
 #include "rendergroup.hpp"
 
-namespace cursedearth
-{
 ce_rendergroup* ce_rendergroup_new(int priority, ce_material* material)
 {
     ce_rendergroup* rendergroup = ce_alloc(sizeof(ce_rendergroup));
@@ -48,7 +46,7 @@ void ce_rendergroup_clear(ce_rendergroup* rendergroup)
 }
 
 ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup,
-                                    texture_t* texture)
+                                    ce_texture* texture)
 {
     for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
         ce_renderlayer* renderlayer = rendergroup->renderlayers->items[i];
@@ -75,5 +73,4 @@ void ce_rendergroup_render(ce_rendergroup* rendergroup)
         ce_vector_for_each(rendergroup->renderlayers, ce_renderlayer_render);
         ce_render_system_discard_material(rendergroup->material);
     }
-}
 }

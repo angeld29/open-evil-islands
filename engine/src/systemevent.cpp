@@ -27,8 +27,6 @@
 
 #include "systemevent.hpp"
 
-namespace cursedearth
-{
 static void (*ce_system_event_handler)(ce_system_event_type type);
 
 static void ce_system_event_signal_handler(int type)
@@ -82,5 +80,4 @@ void ce_system_event_register(void (*handler)(ce_system_event_type type))
 #ifdef _WIN32
     SetConsoleCtrlHandler(ce_system_event_console_handler, TRUE);
 #endif
-}
 }

@@ -28,20 +28,19 @@
 #include "videoobject.hpp"
 #include "root.hpp"
 
-using namespace cursedearth;
-
-static bool paused;
+static bool pause;
 static ce_video_object video_object;
 static ce_optparse* optparse;
-static input_supply_ptr_t input_supply;
-static input_event_const_ptr_t pause_event;
+static ce_input_supply* input_supply;
+static ce_input_event* pause_event;
 
 static void clear()
 {
+    ce_input_supply_del(input_supply);
     ce_optparse_del(optparse);
 }
 
-static void state_changed(void* /*listener*/, int state)
+static void state_changed(void* CE_UNUSED(listener), int state)
 {
     if (CE_SCENEMNG_STATE_READY == state) {
         const char* track;
@@ -58,14 +57,14 @@ static void state_changed(void* /*listener*/, int state)
     }
 }
 
-static void advance(void* /*listener*/, float elapsed)
+static void advance(void* CE_UNUSED(listener), float elapsed)
 {
-    input_supply->advance(elapsed);
+    ce_input_supply_advance(input_supply, elapsed);
     ce_video_object_advance(video_object, elapsed);
 
-    if (pause_event->is_triggered()) {
-        paused = !paused;
-        if (paused) {
+    if (pause_event->triggered) {
+        pause = !pause;
+        if (pause) {
             ce_video_object_pause(video_object);
         } else {
             ce_video_object_play(video_object);
@@ -73,7 +72,7 @@ static void advance(void* /*listener*/, float elapsed)
     }
 }
 
-static void render(void*)
+static void render(void* CE_UNUSED(listener))
 {
     ce_video_object_render(video_object);
 }
@@ -98,8 +97,8 @@ int main(int argc, char* argv[])
     ce_root.scenemng->listener.advance = advance;
     ce_root.scenemng->listener.render = render;
 
-    input_supply = make_unique<input_supply_t>(ce_root.renderwindow->get_input_context());
-    pause_event = input_supply->single_front(input_supply->push(CE_KB_SPACE));
+    input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
+    pause_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_SPACE));
 
     return ce_root_exec();
 }

@@ -21,51 +21,43 @@
 #ifndef CE_SHADER_HPP
 #define CE_SHADER_HPP
 
-#include <memory>
-#include <stdexcept>
-#include <vector>
+#include <cstddef>
 
-#include <boost/noncopyable.hpp>
+#include "atomic.hpp"
+#include "string.hpp"
 
-namespace cursedearth
+typedef enum {
+    CE_SHADER_TYPE_UNKNOWN,
+    CE_SHADER_TYPE_VERTEX,
+    CE_SHADER_TYPE_FRAGMENT,
+    CE_SHADER_TYPE_COUNT
+} ce_shader_type;
+
+typedef struct {
+    ce_shader_type shader_type;
+    size_t resource_index;
+} ce_shader_info;
+
+typedef struct {
+    int ref_count;
+    ce_string* name;
+    char impl[];
+} ce_shader;
+
+extern bool ce_shader_is_available(void);
+
+extern ce_shader* ce_shader_new(const char* name, const ce_shader_info shader_infos[]);
+extern void ce_shader_del(ce_shader* shader);
+
+extern bool ce_shader_is_valid(const ce_shader* shader);
+
+extern void ce_shader_bind(ce_shader* shader);
+extern void ce_shader_unbind(ce_shader* shader);
+
+static inline ce_shader* ce_shader_add_ref(ce_shader* shader)
 {
-    typedef std::shared_ptr<class shader_t> shader_ptr_t;
-    typedef std::shared_ptr<const class shader_t> shader_const_ptr_t;
-
-    class shader_t: boost::noncopyable
-    {
-    public:
-        enum type_t
-        {
-            TYPE_VERTEX,
-            TYPE_FRAGMENT
-        };
-
-        struct info_t
-        {
-            type_t shader_type;
-            size_t resource_index;
-        };
-
-        class not_available_error_t: public std::runtime_error
-        {
-        public:
-            explicit not_available_error_t(const std::string& message): std::runtime_error(message) {}
-        };
-
-    public:
-        virtual ~shader_t() = default;
-
-        virtual void bind() = 0;
-        virtual void unbind() = 0;
-
-        virtual bool is_valid() = 0;
-
-    protected:
-        std::string m_name;
-    };
-
-    shader_ptr_t make_shader(const std::string& name, const std::vector<shader_t::info_t>&); // throw(not_available_error_t)
+    ce_atomic_inc(int, &shader->ref_count);
+    return shader;
 }
 
 #endif /* CE_SHADER_HPP */

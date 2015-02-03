@@ -29,8 +29,6 @@
 #include "configfile.hpp"
 #include "registry.hpp"
 
-namespace cursedearth
-{
 static void ce_registry_append_quotes(char* dst, size_t size, const char* src)
 {
     if (NULL != dst && NULL != src) {
@@ -157,5 +155,4 @@ char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key
 char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
 {
     return ce_registry_get_value(value, size, key, key_name, value_name, ce_registry_find_path_value);
-}
 }

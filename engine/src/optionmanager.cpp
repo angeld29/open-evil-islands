@@ -29,8 +29,6 @@
 #include "registry.hpp"
 #include "optionmanager.hpp"
 
-namespace cursedearth
-{
 struct ce_option_manager* ce_option_manager;
 
 void ce_option_manager_init(ce_optparse* optparse)
@@ -196,7 +194,7 @@ ce_optparse* ce_option_manager_create_option_parser(void)
         "warning: up to 1 GB disk space usage is normal; "
         "very useful if you have a single-core slow CPU");
 
-    int thread_count = online_cpu_count();
+    int thread_count = ce_online_cpu_count();
     snprintf(help, sizeof(help),
         "allow THREAD_COUNT jobs at once; if this option is not "
         "specified, the value will be detected automatically depending on the "
@@ -227,5 +225,4 @@ ce_optparse* ce_option_manager_create_option_parser(void)
     ce_optparse_add_control(optparse, "mouse wheel", "zoom camera");
 
     return optparse;
-}
 }

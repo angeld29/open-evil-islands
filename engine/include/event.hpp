@@ -25,85 +25,82 @@
 #include "timer.hpp"
 #include "thread.hpp"
 
-namespace cursedearth
+typedef struct ce_event {
+    void (*notify)(struct ce_event* event);
+    size_t size;
+    char impl[];
+} ce_event;
+
+extern ce_event* ce_event_new(void (*notify)(ce_event*), size_t size);
+extern void ce_event_del(ce_event* event);
+
+typedef struct {
+    void* ptr;
+} ce_event_ptr;
+
+/*
+ *  Per-thread event queue.
+*/
+
+enum {
+    CE_EVENT_FLAG_ALL_EVENTS = 0x00,
+    CE_EVENT_FLAG_WAIT_FOR_MORE_EVENTS = 0x01,
+};
+
+typedef struct {
+    volatile bool interrupt;
+    volatile size_t event_count;
+    ce_thread_id thread_id;
+    ce_timer* timer;
+    ce_mutex* mutex;
+    ce_wait_condition* wait_condition;
+    ce_vector* pending_events;
+    ce_vector* sending_events;
+} ce_event_queue;
+
+extern ce_event_queue* ce_event_queue_new(ce_thread_id thread_id);
+extern void ce_event_queue_del(ce_event_queue* queue);
+
+extern bool ce_event_queue_has_pending_events(ce_event_queue* queue);
+
+// process all pending events
+extern void ce_event_queue_process_events(ce_event_queue* queue, int flags);
+
+// process pending events for a maximum of max_time milliseconds
+extern void ce_event_queue_process_events_timeout(ce_event_queue* queue, int flags, int max_time);
+
+extern void ce_event_queue_add_event(ce_event_queue* queue, ce_event* event);
+extern void ce_event_queue_interrupt(ce_event_queue* queue);
+
+/*
+ *  Thread-safe event manager.
+*/
+
+extern struct ce_event_manager {
+    ce_mutex* mutex;
+    ce_vector* event_queues;
+}* ce_event_manager;
+
+extern void ce_event_manager_init(void);
+extern void ce_event_manager_term(void);
+
+extern bool ce_event_manager_has_pending_events(ce_thread_id thread_id);
+
+// process all pending events for the current thread
+extern void ce_event_manager_process_events(ce_thread_id thread_id, int flags);
+
+// process pending events for the current thread with time limit in milliseconds
+extern void ce_event_manager_process_events_timeout(ce_thread_id thread_id, int flags, int max_time);
+
+extern void ce_event_manager_interrupt(ce_thread_id thread_id);
+
+extern void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event);
+extern void ce_event_manager_post_raw(ce_thread_id thread_id, void (*notify)(ce_event*), const void* impl, size_t size);
+extern void ce_event_manager_post_ptr(ce_thread_id thread_id, void (*notify)(ce_event*), void* ptr);
+
+static inline void ce_event_manager_post_call(ce_thread_id thread_id, void (*notify)(ce_event*))
 {
-    typedef struct ce_event {
-        void (*notify)(struct ce_event* event);
-        size_t size;
-        char impl[];
-    } ce_event;
-
-    extern ce_event* ce_event_new(void (*notify)(ce_event*), size_t size);
-    extern void ce_event_del(ce_event* event);
-
-    typedef struct {
-        void* ptr;
-    } ce_event_ptr;
-
-    /*
-     *  Per-thread event queue.
-     */
-
-    enum {
-        CE_EVENT_FLAG_ALL_EVENTS = 0x00,
-        CE_EVENT_FLAG_WAIT_FOR_MORE_EVENTS = 0x01,
-    };
-
-    typedef struct {
-        volatile bool interrupt;
-        volatile size_t event_count;
-        thread_id_t thread_id;
-        ce_timer* timer;
-        mutex_t* mutex;
-        wait_condition_t* wait_condition;
-        ce_vector* pending_events;
-        ce_vector* sending_events;
-    } ce_event_queue;
-
-    extern ce_event_queue* ce_event_queue_new(thread_id_t thread_id);
-    extern void ce_event_queue_del(ce_event_queue* queue);
-
-    extern bool ce_event_queue_has_pending_events(ce_event_queue* queue);
-
-    // process all pending events
-    extern void ce_event_queue_process_events(ce_event_queue* queue, int flags);
-
-    // process pending events for a maximum of max_time milliseconds
-    extern void ce_event_queue_process_events_timeout(ce_event_queue* queue, int flags, int max_time);
-
-    extern void ce_event_queue_add_event(ce_event_queue* queue, ce_event* event);
-    extern void ce_event_queue_interrupt(ce_event_queue* queue);
-
-    /*
-     *  Thread-safe event manager.
-     */
-
-    extern struct ce_event_manager {
-        mutex_t* mutex;
-        ce_vector* event_queues;
-    }* ce_event_manager;
-
-    extern void ce_event_manager_init(void);
-    extern void ce_event_manager_term(void);
-
-    extern bool ce_event_manager_has_pending_events(thread_id_t thread_id);
-
-    // process all pending events for the current thread
-    extern void ce_event_manager_process_events(thread_id_t thread_id, int flags);
-
-    // process pending events for the current thread with time limit in milliseconds
-    extern void ce_event_manager_process_events_timeout(thread_id_t thread_id, int flags, int max_time);
-
-    extern void ce_event_manager_interrupt(thread_id_t thread_id);
-
-    extern void ce_event_manager_post_event(thread_id_t thread_id, ce_event* event);
-    extern void ce_event_manager_post_raw(thread_id_t thread_id, void (*notify)(ce_event*), const void* impl, size_t size);
-    extern void ce_event_manager_post_ptr(thread_id_t thread_id, void (*notify)(ce_event*), void* ptr);
-
-    inline void ce_event_manager_post_call(thread_id_t thread_id, void (*notify)(ce_event*))
-    {
-        ce_event_manager_post_event(thread_id, ce_event_new(notify, 0));
-    }
+    ce_event_manager_post_event(thread_id, ce_event_new(notify, 0));
 }
 
 #endif /* CE_EVENT_HPP */

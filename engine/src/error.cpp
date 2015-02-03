@@ -24,8 +24,6 @@
 #include "logging.hpp"
 #include "error.hpp"
 
-namespace cursedearth
-{
 void ce_error_report_c_last(const char* module)
 {
     ce_error_report_c_errno(errno, module);
@@ -53,5 +51,4 @@ void ce_error_report_c_errno(int code, const char* module)
     // FIXME: strerror is not required to be reentrant
     ce_logging_error("%s: %s", module, strerror(code));
 #endif
-}
 }

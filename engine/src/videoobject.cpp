@@ -23,15 +23,13 @@
 #include "videomanager.hpp"
 #include "videoobject.hpp"
 
-namespace cursedearth
-{
 ce_video_object ce_video_object_new(const char* name)
 {
     ce_video_instance* video_instance = ce_video_manager_create_instance(name);
     return NULL != video_instance ? video_instance->video_object : 0;
 }
 
-void ce_video_object_del(ce_video_object)
+void ce_video_object_del(ce_video_object CE_UNUSED(video_object))
 {
 }
 
@@ -87,5 +85,4 @@ void ce_video_object_stop(ce_video_object video_object)
     if (NULL != video_instance) {
         ce_video_instance_stop(video_instance);
     }
-}
 }

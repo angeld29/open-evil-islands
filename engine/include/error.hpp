@@ -21,10 +21,7 @@
 #ifndef CE_ERROR_HPP
 #define CE_ERROR_HPP
 
-namespace cursedearth
-{
-    void ce_error_report_c_last(const char* module);
-    void ce_error_report_c_errno(int code, const char* module);
-}
+extern void ce_error_report_c_last(const char* module);
+extern void ce_error_report_c_errno(int code, const char* module);
 
 #endif /* CE_ERROR_HPP */

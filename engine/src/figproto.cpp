@@ -24,11 +24,9 @@
 
 #include "alloc.hpp"
 #include "resourcemanager.hpp"
-#include "reshelpers.hpp"
+#include "resball.hpp"
 #include "figproto.hpp"
 
-namespace cursedearth
-{
 ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file)
 {
     ce_figproto* figproto = ce_alloc_zero(sizeof(ce_figproto));
@@ -38,7 +36,7 @@ ce_figproto* ce_figproto_new(const char* name, ce_res_file* res_file)
     char file_name[strlen(name) + 4 + 1];
 
     snprintf(file_name, sizeof(file_name), "%s.adb", name);
-    memory_file_t* adb_mem_file = ce_res_ball_extract_mem_file_by_name(ce_resource_manager->database, file_name);
+    ce_mem_file* adb_mem_file = ce_res_ball_extract_mem_file_by_name(ce_resource_manager->database, file_name);
     if (NULL != adb_mem_file) {
         figproto->adb_file = ce_adb_file_new(adb_mem_file);
         ce_mem_file_del(adb_mem_file);
@@ -98,5 +96,4 @@ void ce_figproto_accept_renderqueue(ce_figproto* figproto,
                                     ce_renderqueue* renderqueue)
 {
     ce_fignode_accept_renderqueue_cascade(figproto->fignode, renderqueue);
-}
 }

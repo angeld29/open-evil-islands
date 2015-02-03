@@ -22,26 +22,23 @@
 #define CE_ANMSTATE_HPP
 
 #include "vector.hpp"
-#include "anm.hpp"
+#include "anmfile.hpp"
 
-namespace cursedearth
-{
-    typedef struct {
-        ce_anmfile* anmfile;
-        float frame_count;
-        float prev_frame;
-        float next_frame;
-        float frame;
-        float coef;
-    } ce_anmstate;
+typedef struct {
+    ce_anmfile* anmfile;
+    float frame_count;
+    float prev_frame;
+    float next_frame;
+    float frame;
+    float coef;
+} ce_anmstate;
 
-    extern ce_anmstate* ce_anmstate_new(void);
-    extern void ce_anmstate_del(ce_anmstate* anmstate);
+extern ce_anmstate* ce_anmstate_new(void);
+extern void ce_anmstate_del(ce_anmstate* anmstate);
 
-    extern void ce_anmstate_advance(ce_anmstate* anmstate, float distance);
+extern void ce_anmstate_advance(ce_anmstate* anmstate, float distance);
 
-    extern bool ce_anmstate_play_animation(ce_anmstate* anmstate, ce_vector* anmfiles, const char* name);
-    extern void ce_anmstate_stop_animation(ce_anmstate* anmstate);
-}
+extern bool ce_anmstate_play_animation(ce_anmstate* anmstate, ce_vector* anmfiles, const char* name);
+extern void ce_anmstate_stop_animation(ce_anmstate* anmstate);
 
 #endif /* CE_ANMSTATE_HPP */

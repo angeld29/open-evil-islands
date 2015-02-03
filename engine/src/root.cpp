@@ -46,8 +46,6 @@
 #include "figuremanager.hpp"
 #include "root.hpp"
 
-namespace cursedearth
-{
 struct ce_root ce_root;
 
 static void ce_root_system_event_handler(ce_system_event_type type)
@@ -83,7 +81,7 @@ static void ce_root_system_event_handler(ce_system_event_type type)
     ce_root.done = true;
 }
 
-static void ce_root_renderwindow_closed(void* /*listener*/)
+static void ce_root_renderwindow_closed(void* CE_UNUSED(listener))
 {
     ce_root.done = true;
 }
@@ -135,7 +133,7 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
     ce_config_manager_init();
     ce_event_manager_init();
 
-    ce_root.renderwindow = create_render_window(ce_option_manager->window_width,
+    ce_root.renderwindow = ce_renderwindow_create(ce_option_manager->window_width,
         ce_option_manager->window_height, optparse->title->str);
     if (NULL == ce_root.renderwindow) {
         ce_logging_fatal("root: could not create window");
@@ -163,20 +161,20 @@ bool ce_root_init(ce_optparse* optparse, int argc, char* argv[])
     // FIXME: find better solution
     ce_root.renderwindow->restore_fullscreen = ce_option_manager->fullscreen;
     if (ce_option_manager->fullscreen) {
-        ce_root.renderwindow->action = RENDER_WINDOW_ACTION_RESTORED;
+        ce_root.renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
     }
 
-    ce_root.renderwindow->geometry[RENDER_WINDOW_STATE_FULLSCREEN].width = ce_option_manager->fullscreen_width;
-    ce_root.renderwindow->geometry[RENDER_WINDOW_STATE_FULLSCREEN].height = ce_option_manager->fullscreen_height;
+    ce_root.renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = ce_option_manager->fullscreen_width;
+    ce_root.renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = ce_option_manager->fullscreen_height;
 
     ce_root.renderwindow->visual.bpp = ce_option_manager->fullscreen_bpp;
     ce_root.renderwindow->visual.rate = ce_option_manager->fullscreen_rate;
 
     ce_root.renderwindow->visual.rotation =
-        display_rotation_from_degrees(ce_option_manager->fullscreen_rotation);
+        ce_display_rotation_from_degrees(ce_option_manager->fullscreen_rotation);
 
     ce_root.renderwindow->visual.reflection =
-        display_reflection_from_bool(ce_option_manager->fullscreen_reflection_x,
+        ce_display_reflection_from_bool(ce_option_manager->fullscreen_reflection_x,
                                         ce_option_manager->fullscreen_reflection_y);
 
     ce_render_system_init();
@@ -276,5 +274,4 @@ int ce_root_exec(void)
     }
 
     return EXIT_SUCCESS;
-}
 }

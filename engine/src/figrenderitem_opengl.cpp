@@ -27,11 +27,9 @@
 #include "atomic.hpp"
 #include "opengl.hpp"
 #include "anmstate.hpp"
-#include "fighelpers.hpp"
+#include "fighlp.hpp"
 #include "figrenderitem.hpp"
 
-namespace cursedearth
-{
 // fig renderitem static (without morphs): GL's display list
 
 typedef struct {
@@ -58,7 +56,7 @@ static void ce_figcookie_static_del(ce_figcookie_static* cookie)
     }
 }
 
-inline ce_figcookie_static*
+static inline ce_figcookie_static*
 ce_figcookie_static_add_ref(ce_figcookie_static* cookie)
 {
     ce_atomic_inc(int, &cookie->ref_count);
@@ -70,7 +68,7 @@ typedef struct {
 } ce_figrenderitem_static;
 
 static void
-ce_figrenderitem_static_ctor(render_item_t* renderitem, va_list args)
+ce_figrenderitem_static_ctor(ce_renderitem* renderitem, va_list args)
 {
     ce_figrenderitem_static* figrenderitem =
         (ce_figrenderitem_static*)renderitem->impl;
@@ -101,7 +99,7 @@ ce_figrenderitem_static_ctor(render_item_t* renderitem, va_list args)
     glEndList();
 }
 
-static void ce_figrenderitem_static_dtor(render_item_t* renderitem)
+static void ce_figrenderitem_static_dtor(ce_renderitem* renderitem)
 {
     ce_figrenderitem_static* figrenderitem =
         (ce_figrenderitem_static*)renderitem->impl;
@@ -109,7 +107,7 @@ static void ce_figrenderitem_static_dtor(render_item_t* renderitem)
     ce_figcookie_static_del(figrenderitem->cookie);
 }
 
-static void ce_figrenderitem_static_render(render_item_t* renderitem)
+static void ce_figrenderitem_static_render(ce_renderitem* renderitem)
 {
     ce_figrenderitem_static* figrenderitem =
         (ce_figrenderitem_static*)renderitem->impl;
@@ -117,8 +115,8 @@ static void ce_figrenderitem_static_render(render_item_t* renderitem)
     glCallList(figrenderitem->cookie->id);
 }
 
-static void ce_figrenderitem_static_clone(const render_item_t* renderitem,
-                                            render_item_t* clone_renderitem)
+static void ce_figrenderitem_static_clone(const ce_renderitem* renderitem,
+                                            ce_renderitem* clone_renderitem)
 {
     const ce_figrenderitem_static* figrenderitem =
         (const ce_figrenderitem_static*)renderitem->impl;
@@ -182,7 +180,7 @@ static void ce_figcookie_dynamic_del(ce_figcookie_dynamic* cookie)
     }
 }
 
-inline ce_figcookie_dynamic*
+static inline ce_figcookie_dynamic*
 ce_figcookie_dynamic_add_ref(ce_figcookie_dynamic* cookie)
 {
     ce_atomic_inc(int, &cookie->ref_count);
@@ -195,7 +193,7 @@ typedef struct {
 } ce_figrenderitem_dynamic;
 
 static void
-ce_figrenderitem_dynamic_ctor(render_item_t* renderitem, va_list args)
+ce_figrenderitem_dynamic_ctor(ce_renderitem* renderitem, va_list args)
 {
     ce_figrenderitem_dynamic* figrenderitem =
         (ce_figrenderitem_dynamic*)renderitem->impl;
@@ -252,7 +250,7 @@ ce_figrenderitem_dynamic_ctor(render_item_t* renderitem, va_list args)
             sizeof(float) * 3 * figfile->index_count);
 }
 
-static void ce_figrenderitem_dynamic_dtor(render_item_t* renderitem)
+static void ce_figrenderitem_dynamic_dtor(ce_renderitem* renderitem)
 {
     ce_figrenderitem_dynamic* figrenderitem =
         (ce_figrenderitem_dynamic*)renderitem->impl;
@@ -263,7 +261,7 @@ static void ce_figrenderitem_dynamic_dtor(render_item_t* renderitem)
 }
 
 static void
-ce_figrenderitem_dynamic_update(render_item_t* renderitem, va_list args)
+ce_figrenderitem_dynamic_update(ce_renderitem* renderitem, va_list args)
 {
     ce_figrenderitem_dynamic* figrenderitem =
         (ce_figrenderitem_dynamic*)renderitem->impl;
@@ -313,7 +311,7 @@ ce_figrenderitem_dynamic_update(render_item_t* renderitem, va_list args)
     ce_aabb_update_radius(&renderitem->aabb);
 }
 
-static void ce_figrenderitem_dynamic_render(render_item_t* renderitem)
+static void ce_figrenderitem_dynamic_render(ce_renderitem* renderitem)
 {
     ce_figrenderitem_dynamic* figrenderitem =
         (ce_figrenderitem_dynamic*)renderitem->impl;
@@ -342,8 +340,8 @@ static void ce_figrenderitem_dynamic_render(render_item_t* renderitem)
     glPopClientAttrib();
 }
 
-static void ce_figrenderitem_dynamic_clone(const render_item_t* renderitem,
-                                            render_item_t* clone_renderitem)
+static void ce_figrenderitem_dynamic_clone(const ce_renderitem* renderitem,
+                                            ce_renderitem* clone_renderitem)
 {
     const ce_figrenderitem_dynamic* figrenderitem =
         (const ce_figrenderitem_dynamic*)renderitem->impl;
@@ -373,7 +371,7 @@ static const size_t ce_figrenderitem_sizes[] = {
     sizeof(ce_figrenderitem_dynamic)
 };
 
-render_item_t* ce_figrenderitem_new(const ce_fignode* fignode,
+ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode,
                                     const ce_complection* complection)
 {
     bool has_morphing = false;
@@ -385,5 +383,4 @@ render_item_t* ce_figrenderitem_new(const ce_fignode* fignode,
     return ce_renderitem_new(ce_figrenderitem_vtables[has_morphing],
                             ce_figrenderitem_sizes[has_morphing],
                             fignode->figfile, complection);
-}
 }

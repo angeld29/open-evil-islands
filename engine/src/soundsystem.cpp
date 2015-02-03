@@ -24,8 +24,6 @@
 #include "optionmanager.hpp"
 #include "soundsystem.hpp"
 
-namespace cursedearth
-{
 struct ce_sound_system* ce_sound_system;
 
 static bool ce_sound_system_null_ctor(void)
@@ -34,7 +32,7 @@ static bool ce_sound_system_null_ctor(void)
     return true;
 }
 
-static bool ce_sound_system_null_write(const void* /*block*/)
+static bool ce_sound_system_null_write(const void* CE_UNUSED(block))
 {
     return true;
 }
@@ -46,12 +44,12 @@ ce_sound_system_vtable ce_sound_system_null(void)
     };
 }
 
-static void ce_sound_system_exit(ce_event*)
+static void ce_sound_system_exit(ce_event* CE_UNUSED(event))
 {
     ce_sound_system->done = true;
 }
 
-static void ce_sound_system_exec(void*)
+static void ce_sound_system_exec(void* CE_UNUSED(arg))
 {
     for (size_t i = 0; !ce_sound_system->done; ++i) {
         ce_semaphore_acquire(ce_sound_system->used_blocks, 1);
@@ -140,5 +138,4 @@ void* ce_sound_system_map_block(void)
 void ce_sound_system_unmap_block(void)
 {
     ce_semaphore_release(ce_sound_system->used_blocks, 1);
-}
 }

@@ -29,8 +29,6 @@
 #include "shadermanager.hpp"
 #include "videoinstance.hpp"
 
-namespace cursedearth
-{
 static void ce_video_instance_exit(ce_event* event)
 {
     ce_video_instance* video_instance = ((ce_event_ptr*)event->impl)->ptr;
@@ -256,5 +254,4 @@ void ce_video_instance_stop(ce_video_instance* video_instance)
 {
     ce_sound_object_stop(video_instance->sound_object);
     video_instance->state = CE_VIDEO_INSTANCE_STATE_STOPPED;
-}
 }

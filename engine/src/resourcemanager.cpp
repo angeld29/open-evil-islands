@@ -29,8 +29,6 @@
 #include "optionmanager.hpp"
 #include "resourcemanager.hpp"
 
-namespace cursedearth
-{
 struct ce_resource_manager* ce_resource_manager;
 
 static const char* ce_resource_dirs[] = {"Res", NULL};
@@ -88,5 +86,4 @@ size_t ce_resource_manager_find_data(const char* path)
         }
     }
     return CE_RESOURCE_DATA_COUNT;
-}
 }

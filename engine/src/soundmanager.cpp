@@ -24,14 +24,12 @@
 #include "path.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "res.hpp"
-#include "reshelpers.hpp"
+#include "resfile.hpp"
+#include "resball.hpp"
 #include "event.hpp"
 #include "optionmanager.hpp"
 #include "soundmanager.hpp"
 
-namespace cursedearth
-{
 typedef struct {
     ce_hash_key hash_key;
     ce_sound_bundle sound_bundle;
@@ -49,7 +47,7 @@ static const char* ce_sound_resource_names[] = {"sfx", "speech", NULL};
 static void ce_sound_manager_create_instance(ce_event* event)
 {
     ce_sound_event* sound_event = (ce_sound_event*)event->impl;
-    memory_file_t* mem_file = NULL;
+    ce_mem_file* mem_file = NULL;
 
     for (size_t i = 0; i < ce_sound_manager->res_files->count; ++i) {
         ce_res_file* res_file = ce_sound_manager->res_files->items[i];
@@ -148,14 +146,14 @@ static void ce_sound_manager_query_instance(ce_hash_key hash_key)
     }
 }
 
-static void ce_sound_manager_idle(ce_event*)
+static void ce_sound_manager_idle(ce_event* CE_UNUSED(event))
 {
     float elapsed = ce_timer_advance(ce_sound_manager->timer);
     ce_hash_for_each_arg1(ce_sound_manager->sound_instances, ce_sound_manager_advance_instance, &elapsed);
     ce_hash_for_each_key(ce_sound_manager->sound_instances, ce_sound_manager_query_instance);
 }
 
-static void ce_sound_manager_exec(void*)
+static void ce_sound_manager_exec(void* CE_UNUSED(arg))
 {
     char path[ce_option_manager->ei_path->length + 16];
     for (size_t i = 0; NULL != ce_sound_dirs[i]; ++i) {
@@ -199,7 +197,7 @@ void ce_sound_manager_term(void)
     }
 }
 
-void ce_sound_manager_advance(float /*elapsed*/)
+void ce_sound_manager_advance(float CE_UNUSED(elapsed))
 {
     ce_event_manager_post_call(ce_sound_manager->thread->id, ce_sound_manager_idle);
 }
@@ -237,5 +235,4 @@ void ce_sound_manager_state_object(ce_hash_key hash_key, int state)
     sound_event->hash_key = hash_key;
     sound_event->sound_bundle.state = state;
     ce_event_manager_post_event(ce_sound_manager->thread->id, event);
-}
 }

@@ -24,27 +24,13 @@
 #include "quat.hpp"
 #include "aabb.hpp"
 
-namespace cursedearth
-{
-    /**
-     * @brief Oriented Bounding Box
-     *        aabb: axis-aligned bounding box
-     *        axis: orientation axis
-     */
-    struct bbox_t
-    {
-        aabb_t aabb;
-        ce_quat axis;
+typedef struct {
+    ce_aabb aabb;
+    ce_quat axis;
+} ce_bbox;
 
-        void merge(const bbox_t& other);
-        void merge2(const bbox_t& other);
+extern ce_bbox* ce_bbox_clear(ce_bbox* bbox);
+extern ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other);
+extern ce_bbox* ce_bbox_merge2(ce_bbox* bbox, const ce_bbox* other);
 
-        void clear()
-        {
-            aabb.clear();
-            axis = CE_QUAT_IDENTITY;
-        }
-    };
-}
-
-#endif
+#endif /* CE_BBOX_HPP */
