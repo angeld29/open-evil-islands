@@ -20,4 +20,4 @@
 
 #include "glew_windows.hpp"
 
-CE_THREAD WGLEWContext ce_wglew_context;
+thread_local WGLEWContext ce_wglew_context;

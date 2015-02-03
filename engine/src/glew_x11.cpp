@@ -20,4 +20,4 @@
 
 #include "glew_x11.hpp"
 
-CE_THREAD GLXEWContext ce_glxew_context;
+thread_local GLXEWContext ce_glxew_context;

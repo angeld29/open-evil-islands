@@ -20,4 +20,4 @@
 
 #include "glew.hpp"
 
-CE_THREAD GLEWContext ce_glew_context;
+thread_local GLEWContext ce_glew_context;

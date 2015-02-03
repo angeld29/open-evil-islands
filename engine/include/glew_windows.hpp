@@ -29,7 +29,7 @@
 
 namespace cursedearth
 {
-    CE_THREAD WGLEWContext ce_wglew_context;
+    extern thread_local WGLEWContext ce_wglew_context;
 }
 
 #endif

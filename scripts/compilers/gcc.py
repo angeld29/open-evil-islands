@@ -43,7 +43,6 @@ def configure(env):
         CXXFLAGS=["-std=c++11"], # C++11 ISO/IEC 14882:2011
         CCFLAGS=["-pipe", "-pedantic-errors", "-ffast-math"],
         CPPDEFINES=[
-            "CE_THREAD=__thread",
             "CE_UNUSED(X)=X __attribute__((unused))",
         ],
     )

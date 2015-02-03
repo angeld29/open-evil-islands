@@ -30,7 +30,7 @@
 
 namespace cursedearth
 {
-    CE_THREAD GLEWContext ce_glew_context;
+    extern thread_local GLEWContext ce_glew_context;
 }
 
 #endif
