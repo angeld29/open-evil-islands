@@ -65,7 +65,7 @@ static ce_property* (*ce_reg_create_option_procs[])(ce_mem_file*, const char*) =
 
 ce_reg_file* ce_reg_file_new(ce_mem_file* mem_file)
 {
-    uint32_t CE_UNUSED(signature) = ce_mem_file_read_u32le(mem_file);
+    uint32_t signature = ce_mem_file_read_u32le(mem_file);
     assert(CE_REG_SIGNATURE == signature && "wrong signature");
 
     uint16_t section_count = ce_mem_file_read_u16le(mem_file);

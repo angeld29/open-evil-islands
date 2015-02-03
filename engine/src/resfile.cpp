@@ -37,7 +37,7 @@ ce_res_file* ce_res_file_new(const char* name, ce_mem_file* mem_file)
     res_file->name = ce_string_new_str(name);
     res_file->mem_file = mem_file;
 
-    uint32_t CE_UNUSED(signature) = ce_mem_file_read_u32le(mem_file);
+    uint32_t signature = ce_mem_file_read_u32le(mem_file);
     assert(CE_RES_SIGNATURE == signature && "wrong signature");
 
     res_file->node_count = ce_mem_file_read_u32le(mem_file);

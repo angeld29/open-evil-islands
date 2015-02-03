@@ -251,7 +251,7 @@ ce_mmpfile* ce_mmpfile_new_data(void* data, size_t size)
         uint32_t* u32;
     } ptr = {data};
 
-    uint32_t CE_UNUSED(signature) = ce_le2cpu32(*ptr.u32++);
+    uint32_t signature = ce_le2cpu32(*ptr.u32++);
     assert(CE_MMPFILE_SIGNATURE == signature && "wrong signature");
 
     ce_mmpfile* mmpfile = ce_alloc(sizeof(ce_mmpfile));
