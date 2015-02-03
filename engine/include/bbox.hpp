@@ -24,6 +24,11 @@
 #include "quat.hpp"
 #include "aabb.hpp"
 
+/**
+ * @brief Oriented Bounding Box
+ *        aabb: axis-aligned bounding box
+ *        axis: orientation axis
+ */
 typedef struct {
     ce_aabb aabb;
     ce_quat axis;
@@ -33,4 +38,4 @@ extern ce_bbox* ce_bbox_clear(ce_bbox* bbox);
 extern ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other);
 extern ce_bbox* ce_bbox_merge2(ce_bbox* bbox, const ce_bbox* other);
 
-#endif /* CE_BBOX_HPP */
+#endif

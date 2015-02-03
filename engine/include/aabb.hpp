@@ -24,6 +24,12 @@
 #include "vec3.hpp"
 #include "quat.hpp"
 
+/**
+ * @brief Axis-Aligned Bounding Box
+ *        origin: centre of bounding box
+ *        extents: +/- extents of box from origin
+ *        radius: cached length of extents vector
+ */
 typedef struct {
     ce_vec3 origin, extents;
     float radius;
@@ -40,4 +46,4 @@ extern ce_aabb* ce_aabb_merge_aabb(ce_aabb* aabb, const ce_aabb* other);
 extern ce_aabb* ce_aabb_merge_point(ce_aabb* aabb, const ce_vec3* point);
 extern ce_aabb* ce_aabb_merge_point_array(ce_aabb* aabb, const float* point);
 
-#endif /* CE_AABB_HPP */
+#endif
