@@ -123,7 +123,7 @@ namespace cursedearth
 
         renderwindow->displaymng = ce_displaymng_create();
 
-        unsigned long keys[CE_IB_COUNT] = {
+        const unsigned long keys[CE_IB_COUNT] = {
             0, VK_ESCAPE, VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8,
             VK_F9, VK_F10, VK_F11, VK_F12, VK_OEM_3, '0', '1', '2', '3', '4', '5',
             '6', '7', '8', '9', VK_OEM_MINUS, VK_OEM_PLUS, VK_OEM_5, VK_BACK, VK_TAB,

@@ -26,45 +26,48 @@
 
 #include "path.hpp"
 
-const char CE_PATH_SEP = '/';
-
-bool ce_path_exists(const char* path)
+namespace cursedearth
 {
-    struct stat info;
-    return 0 == stat(path, &info);
-}
+    const char CE_PATH_SEP = '/';
 
-bool ce_path_is_dir(const char* path)
-{
-    struct stat info;
-    return 0 == stat(path, &info) && S_ISDIR(info.st_mode);
-}
-
-bool ce_path_is_file(const char* path)
-{
-    struct stat info;
-    return 0 == stat(path, &info) && S_ISREG(info.st_mode);
-}
-
-bool ce_path_list_subdirs(const char* path, ce_vector* subdirs)
-{
-    DIR* dir;
-    struct dirent* entry;
-    char buffer[CE_PATH_MAX];
-
-    if (NULL == (dir = opendir(path))) {
-        return false;
+    bool ce_path_exists(const char* path)
+    {
+        struct stat info;
+        return 0 == stat(path, &info);
     }
 
-    while (NULL != (entry = readdir(dir))) {
-        if (0 != strcmp(".", entry->d_name) && 0 != strcmp("..", entry->d_name)) {
-            ce_path_join(buffer, sizeof(buffer), path, entry->d_name, NULL);
-            if (ce_path_is_dir(buffer)) {
-                ce_vector_push_back(subdirs, ce_string_new_str(buffer));
+    bool ce_path_is_dir(const char* path)
+    {
+        struct stat info;
+        return 0 == stat(path, &info) && S_ISDIR(info.st_mode);
+    }
+
+    bool ce_path_is_file(const char* path)
+    {
+        struct stat info;
+        return 0 == stat(path, &info) && S_ISREG(info.st_mode);
+    }
+
+    bool ce_path_list_subdirs(const char* path, ce_vector* subdirs)
+    {
+        DIR* dir;
+        struct dirent* entry;
+        char buffer[CE_PATH_MAX];
+
+        if (NULL == (dir = opendir(path))) {
+            return false;
+        }
+
+        while (NULL != (entry = readdir(dir))) {
+            if (0 != strcmp(".", entry->d_name) && 0 != strcmp("..", entry->d_name)) {
+                ce_path_join(buffer, sizeof(buffer), path, entry->d_name, NULL);
+                if (ce_path_is_dir(buffer)) {
+                    ce_vector_push_back(subdirs, ce_string_new_str(buffer));
+                }
             }
         }
-    }
 
-    closedir(dir);
-    return true;
+        closedir(dir);
+        return true;
+    }
 }

@@ -284,10 +284,10 @@ namespace cursedearth
         return i;
     }
 
-    char* ce_strrpbrk(const char* s, const char* accept)
+    const char* ce_strrpbrk(const char* s, const char* accept)
     {
         const char* p;
-        char *p0, *p1;
+        const char *p0, *p1;
         for (p = accept, p0 = p1 = NULL; *p; ++p) {
             p1 = strrchr(s, *p);
             if (p1 && p1 > p0) {

@@ -76,7 +76,7 @@ namespace cursedearth
         ce_vector_push_back(keymap->keypairs, ce_renderwindow_keypair_new(key, button));
     }
 
-    void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, unsigned long keys[CE_IB_COUNT])
+    void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, const unsigned long keys[CE_IB_COUNT])
     {
         for (size_t i = CE_IB_UNKNOWN; i < CE_IB_COUNT; ++i) {
             ce_renderwindow_keymap_add(keymap, keys[i], static_cast<ce_input_button>(i));

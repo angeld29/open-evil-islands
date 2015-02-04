@@ -118,7 +118,7 @@ namespace cursedearth
     size_t ce_strnlen(const char* s, size_t n);
 
     /// Find the last occurrence in string of any character in accept.
-    char* ce_strrpbrk(const char* s, const char* accept);
+    const char* ce_strrpbrk(const char* s, const char* accept);
 
     /**
      *  Return the next delimited token from sp, terminating

@@ -44,7 +44,7 @@ namespace cursedearth
     void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
 
     void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, ce_input_button button);
-    void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, unsigned long keys[CE_IB_COUNT]);
+    void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, const unsigned long keys[CE_IB_COUNT]);
 
     void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
 

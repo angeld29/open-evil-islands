@@ -28,7 +28,7 @@
 
 namespace cursedearth
 {
-    struct ce_texture_manager {
+    extern struct ce_texture_manager {
         ce_vector* res_files;
         ce_vector* textures;
     }* ce_texture_manager;

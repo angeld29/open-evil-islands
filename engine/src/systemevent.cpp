@@ -73,7 +73,7 @@ namespace cursedearth
 
     void ce_system_event_register(void (*handler)(ce_system_event_type type))
     {
-        assert(NULL == ce_system_event_handler && "only one handler supported");
+        assert(nullptr == ce_system_event_handler && "only one handler supported");
         ce_system_event_handler = handler;
 
         signal(SIGINT, ce_system_event_signal_handler);
