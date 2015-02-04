@@ -26,7 +26,7 @@
 
 namespace cursedearth
 {
-    struct ce_option_manager {
+    extern struct ce_option_manager {
         ce_string* ei_path;
         ce_string* ce_path;
         int window_width;

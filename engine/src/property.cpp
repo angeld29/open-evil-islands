@@ -21,19 +21,22 @@
 #include "alloc.hpp"
 #include "property.hpp"
 
-ce_property* ce_property_new(const char* name, ce_type type)
+namespace cursedearth
 {
-    ce_property* property = ce_alloc(sizeof(ce_property));
-    property->name = ce_string_new_str(name);
-    property->value = ce_value_new(type);
-    return property;
-}
+    ce_property* ce_property_new(const char* name, ce_type type)
+    {
+        ce_property* property =(ce_property*)ce_alloc(sizeof(ce_property));
+        property->name = ce_string_new_str(name);
+        property->value = ce_value_new(type);
+        return property;
+    }
 
-void ce_property_del(ce_property* property)
-{
-    if (NULL != property) {
-        ce_value_del(property->value);
-        ce_string_del(property->name);
-        ce_free(property, sizeof(ce_property));
+    void ce_property_del(ce_property* property)
+    {
+        if (NULL != property) {
+            ce_value_del(property->value);
+            ce_string_del(property->name);
+            ce_free(property, sizeof(ce_property));
+        }
     }
 }

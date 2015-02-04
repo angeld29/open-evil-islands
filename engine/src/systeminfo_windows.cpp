@@ -26,85 +26,88 @@
 #include "logging.hpp"
 #include "systeminfo.hpp"
 
-bool ce_system_info_check(void)
+namespace cursedearth
 {
-    OSVERSIONINFOEX osverinfo;
-    BOOL osverinfoex;
+    bool ce_system_info_check(void)
+    {
+        OSVERSIONINFOEX osverinfo;
+        BOOL osverinfoex;
 
-    ZeroMemory(&osverinfo, sizeof(OSVERSIONINFOEX));
-    osverinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+        ZeroMemory(&osverinfo, sizeof(OSVERSIONINFOEX));
+        osverinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 
-    osverinfoex = GetVersionEx((OSVERSIONINFO*)&osverinfo);
-    if (!osverinfoex) {
-        osverinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-        if (!GetVersionEx((OSVERSIONINFO*)&osverinfo)) {
-            ce_logging_fatal("system info: could not retrieve os version info");
-            return false;
-        }
-    }
-
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-
-    char buffer[512], tmp[128];
-
-    switch (osverinfo.dwPlatformId) {
-    case VER_PLATFORM_WIN32s:
-    case VER_PLATFORM_WIN32_WINDOWS:
-        ce_logging_write("system info: Microsoft Windows %lu.%lu %s",
-            osverinfo.dwMajorVersion, osverinfo.dwMinorVersion, osverinfo.szCSDVersion);
-        break;
-
-    case VER_PLATFORM_WIN32_NT:
-        if (6 == osverinfo.dwMajorVersion && 1 == osverinfo.dwMinorVersion) {
-            ce_strlcpy(buffer, "Microsoft Windows 7 ", sizeof(buffer));
-        } else if (6 == osverinfo.dwMajorVersion && 0 == osverinfo.dwMinorVersion) {
-            ce_strlcpy(buffer, "Microsoft Windows Vista ", sizeof(buffer));
-        } else if (5 == osverinfo.dwMajorVersion && 1 == osverinfo.dwMinorVersion) {
-            ce_strlcpy(buffer, "Microsoft Windows XP ", sizeof(buffer));
-        } else if (5 == osverinfo.dwMajorVersion && 0 == osverinfo.dwMinorVersion) {
-            ce_strlcpy(buffer, "Microsoft Windows 2000 ", sizeof(buffer));
-        } else {
-            ce_strlcpy(buffer, "Microsoft Windows NT ", sizeof(buffer));
-        }
-
-        if (osverinfoex) {
-            if (VER_NT_WORKSTATION == osverinfo.wProductType) {
-                if (osverinfo.wSuiteMask & VER_SUITE_PERSONAL) {
-                    ce_strlcat(buffer, "Personal ", sizeof(buffer));
-                } else {
-                    ce_strlcat(buffer, "Professional ", sizeof(buffer));
-                }
-            } else {
-                if (osverinfo.wSuiteMask & VER_SUITE_DATACENTER) {
-                    ce_strlcat(buffer, "DataCenter Server ", sizeof(buffer));
-                } else if (osverinfo.wSuiteMask & VER_SUITE_ENTERPRISE) {
-                    ce_strlcat(buffer, "Advanced Server ", sizeof(buffer));
-                } else {
-                    ce_strlcat(buffer, "Server ", sizeof(buffer));
-                }
+        osverinfoex = GetVersionEx((OSVERSIONINFO*)&osverinfo);
+        if (!osverinfoex) {
+            osverinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+            if (!GetVersionEx((OSVERSIONINFO*)&osverinfo)) {
+                ce_logging_fatal("system info: could not retrieve os version info");
+                return false;
             }
         }
 
-        if (PROCESSOR_ARCHITECTURE_AMD64 == sysinfo.wProcessorArchitecture) {
-            ce_strlcat(buffer, "x86_64 ", sizeof(buffer));
+        SYSTEM_INFO sysinfo;
+        GetSystemInfo(&sysinfo);
+
+        char buffer[512], tmp[128];
+
+        switch (osverinfo.dwPlatformId) {
+        case VER_PLATFORM_WIN32s:
+        case VER_PLATFORM_WIN32_WINDOWS:
+            ce_logging_write("system info: Microsoft Windows %lu.%lu %s",
+                osverinfo.dwMajorVersion, osverinfo.dwMinorVersion, osverinfo.szCSDVersion);
+            break;
+
+        case VER_PLATFORM_WIN32_NT:
+            if (6 == osverinfo.dwMajorVersion && 1 == osverinfo.dwMinorVersion) {
+                ce_strlcpy(buffer, "Microsoft Windows 7 ", sizeof(buffer));
+            } else if (6 == osverinfo.dwMajorVersion && 0 == osverinfo.dwMinorVersion) {
+                ce_strlcpy(buffer, "Microsoft Windows Vista ", sizeof(buffer));
+            } else if (5 == osverinfo.dwMajorVersion && 1 == osverinfo.dwMinorVersion) {
+                ce_strlcpy(buffer, "Microsoft Windows XP ", sizeof(buffer));
+            } else if (5 == osverinfo.dwMajorVersion && 0 == osverinfo.dwMinorVersion) {
+                ce_strlcpy(buffer, "Microsoft Windows 2000 ", sizeof(buffer));
+            } else {
+                ce_strlcpy(buffer, "Microsoft Windows NT ", sizeof(buffer));
+            }
+
+            if (osverinfoex) {
+                if (VER_NT_WORKSTATION == osverinfo.wProductType) {
+                    if (osverinfo.wSuiteMask & VER_SUITE_PERSONAL) {
+                        ce_strlcat(buffer, "Personal ", sizeof(buffer));
+                    } else {
+                        ce_strlcat(buffer, "Professional ", sizeof(buffer));
+                    }
+                } else {
+                    if (osverinfo.wSuiteMask & VER_SUITE_DATACENTER) {
+                        ce_strlcat(buffer, "DataCenter Server ", sizeof(buffer));
+                    } else if (osverinfo.wSuiteMask & VER_SUITE_ENTERPRISE) {
+                        ce_strlcat(buffer, "Advanced Server ", sizeof(buffer));
+                    } else {
+                        ce_strlcat(buffer, "Server ", sizeof(buffer));
+                    }
+                }
+            }
+
+            if (PROCESSOR_ARCHITECTURE_AMD64 == sysinfo.wProcessorArchitecture) {
+                ce_strlcat(buffer, "x86_64 ", sizeof(buffer));
+            }
+
+            snprintf(tmp, sizeof(tmp), "Version %lu.%lu %s Build %lu",
+                osverinfo.dwMajorVersion, osverinfo.dwMinorVersion,
+                osverinfo.szCSDVersion, osverinfo.dwBuildNumber & 0xffff);
+            ce_strlcat(buffer, tmp, sizeof(buffer));
+
+            ce_logging_write("system info: %s", buffer);
+            break;
         }
 
-        snprintf(tmp, sizeof(tmp), "Version %lu.%lu %s Build %lu",
-            osverinfo.dwMajorVersion, osverinfo.dwMinorVersion,
-            osverinfo.szCSDVersion, osverinfo.dwBuildNumber & 0xffff);
-        ce_strlcat(buffer, tmp, sizeof(buffer));
+        if (VER_PLATFORM_WIN32_NT != osverinfo.dwPlatformId ||
+                osverinfo.dwMajorVersion < 5 || osverinfo.dwMinorVersion < 1) {
+            ce_logging_fatal("system info: Windows XP or above required");
+            return false;
+        }
 
-        ce_logging_write("system info: %s", buffer);
-        break;
+        ce_logging_write("system info: Windows XP or above detected");
+        return true;
     }
-
-    if (VER_PLATFORM_WIN32_NT != osverinfo.dwPlatformId ||
-            osverinfo.dwMajorVersion < 5 || osverinfo.dwMinorVersion < 1) {
-        ce_logging_fatal("system info: Windows XP or above required");
-        return false;
-    }
-
-    ce_logging_write("system info: Windows XP or above detected");
-    return true;
 }

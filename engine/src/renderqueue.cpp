@@ -24,55 +24,56 @@
 #include "alloc.hpp"
 #include "renderqueue.hpp"
 
-ce_renderqueue* ce_renderqueue_new(void)
+namespace cursedearth
 {
-    ce_renderqueue* renderqueue = ce_alloc(sizeof(ce_renderqueue));
-    renderqueue->rendergroups = ce_vector_new();
-    return renderqueue;
-}
-
-void ce_renderqueue_del(ce_renderqueue* renderqueue)
-{
-    if (NULL != renderqueue) {
-        ce_vector_for_each(renderqueue->rendergroups, (void(*)(void*))ce_rendergroup_del);
-        ce_vector_del(renderqueue->rendergroups);
-        ce_free(renderqueue, sizeof(ce_renderqueue));
+    ce_renderqueue* ce_renderqueue_new(void)
+    {
+        ce_renderqueue* renderqueue = (ce_renderqueue*)ce_alloc(sizeof(ce_renderqueue));
+        renderqueue->rendergroups = ce_vector_new();
+        return renderqueue;
     }
-}
 
-void ce_renderqueue_clear(ce_renderqueue* renderqueue)
-{
-    ce_vector_for_each(renderqueue->rendergroups, (void(*)(void*))ce_rendergroup_clear);
-}
-
-static int ce_renderqueue_comp(const void* lhs, const void* rhs)
-{
-    return (*(const ce_rendergroup**)lhs)->priority -
-            (*(const ce_rendergroup**)rhs)->priority;
-}
-
-ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue,
-                                    int priority, ce_material* material)
-{
-    for (size_t i = 0; i < renderqueue->rendergroups->count; ++i) {
-        ce_rendergroup* rendergroup = renderqueue->rendergroups->items[i];
-        if (priority == rendergroup->priority) {
-            rendergroup->material = material;
-            return rendergroup;
+    void ce_renderqueue_del(ce_renderqueue* renderqueue)
+    {
+        if (NULL != renderqueue) {
+            ce_vector_for_each(renderqueue->rendergroups, (void(*)(void*))ce_rendergroup_del);
+            ce_vector_del(renderqueue->rendergroups);
+            ce_free(renderqueue, sizeof(ce_renderqueue));
         }
     }
 
-    ce_rendergroup* rendergroup = ce_rendergroup_new(priority, material);
-    ce_vector_push_back(renderqueue->rendergroups, rendergroup);
+    void ce_renderqueue_clear(ce_renderqueue* renderqueue)
+    {
+        ce_vector_for_each(renderqueue->rendergroups, (void(*)(void*))ce_rendergroup_clear);
+    }
 
-    qsort(renderqueue->rendergroups->items,
-        renderqueue->rendergroups->count,
-        sizeof(ce_rendergroup*), ce_renderqueue_comp);
+    int ce_renderqueue_comp(const void* lhs, const void* rhs)
+    {
+        return (*(const ce_rendergroup**)lhs)->priority -
+                (*(const ce_rendergroup**)rhs)->priority;
+    }
 
-    return rendergroup;
-}
+    ce_rendergroup* ce_renderqueue_get(ce_renderqueue* renderqueue,
+                                        int priority, ce_material* material)
+    {
+        for (size_t i = 0; i < renderqueue->rendergroups->count; ++i) {
+            ce_rendergroup* rendergroup = (ce_rendergroup*)renderqueue->rendergroups->items[i];
+            if (priority == rendergroup->priority) {
+                rendergroup->material = material;
+                return rendergroup;
+            }
+        }
 
-void ce_renderqueue_render(ce_renderqueue* renderqueue)
-{
-    ce_vector_for_each(renderqueue->rendergroups, (void(*)(void*))ce_rendergroup_render);
+        ce_rendergroup* rendergroup = ce_rendergroup_new(priority, material);
+        ce_vector_push_back(renderqueue->rendergroups, rendergroup);
+
+        qsort(renderqueue->rendergroups->items, renderqueue->rendergroups->count, sizeof(ce_rendergroup*), ce_renderqueue_comp);
+
+        return rendergroup;
+    }
+
+    void ce_renderqueue_render(ce_renderqueue* renderqueue)
+    {
+        ce_vector_for_each(renderqueue->rendergroups, (void(*)(void*))ce_rendergroup_render);
+    }
 }

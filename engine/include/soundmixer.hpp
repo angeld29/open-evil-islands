@@ -27,7 +27,7 @@
 
 namespace cursedearth
 {
-    struct ce_sound_mixer {
+    extern struct ce_sound_mixer {
         bool done;
         ce_vector* sound_buffers;
         ce_thread* thread;

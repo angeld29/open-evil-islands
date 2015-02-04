@@ -22,7 +22,6 @@
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "graphiccontext.hpp"
 #include "graphiccontext_x11.hpp"
 
 namespace cursedearth

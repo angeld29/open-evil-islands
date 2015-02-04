@@ -22,6 +22,7 @@
 #define CE_SOUNDBUFFER_HPP
 
 #include <cstddef>
+#include <cstdint>
 
 #include "thread.hpp"
 #include "soundformat.hpp"
@@ -33,7 +34,7 @@ namespace cursedearth
         size_t capacity, start, end;
         ce_semaphore* prepared_data;
         ce_semaphore* unprepared_data;
-        char data[];
+        uint8_t* data;
     } ce_sound_buffer;
 
     ce_sound_buffer* ce_sound_buffer_new(size_t capacity);

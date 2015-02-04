@@ -26,7 +26,7 @@
 
 namespace cursedearth
 {
-    struct ce_shader_manager {
+    extern struct ce_shader_manager {
         ce_vector* shaders;
     }* ce_shader_manager;
 

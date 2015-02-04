@@ -23,31 +23,34 @@
 #include "alloc.hpp"
 #include "object.hpp"
 
-ce_object* ce_object_new(const char* name)
+namespace cursedearth
 {
-    ce_object* object = ce_alloc_zero(sizeof(ce_object));
-    object->name = ce_string_new_str(name);
-    object->properties = ce_vector_new();
-    return object;
-}
-
-void ce_object_del(ce_object* object)
-{
-    if (NULL != object) {
-        ce_vector_for_each(object->properties, (void(*)(void*))ce_property_del);
-        ce_vector_del(object->properties);
-        ce_string_del(object->name);
-        ce_free(object, sizeof(ce_object));
+    ce_object* ce_object_new(const char* name)
+    {
+        ce_object* object = (ce_object*)ce_alloc_zero(sizeof(ce_object));
+        object->name = ce_string_new_str(name);
+        object->properties = ce_vector_new();
+        return object;
     }
-}
 
-ce_property* ce_object_find(ce_object* object, const char* name)
-{
-    for (size_t i = 0; i < object->properties->count; ++i) {
-        ce_property* property = object->properties->items[i];
-        if (0 == strcmp(name, property->name->str)) {
-            return property;
+    void ce_object_del(ce_object* object)
+    {
+        if (NULL != object) {
+            ce_vector_for_each(object->properties, (void(*)(void*))ce_property_del);
+            ce_vector_del(object->properties);
+            ce_string_del(object->name);
+            ce_free(object, sizeof(ce_object));
         }
     }
-    return NULL;
+
+    ce_property* ce_object_find(ce_object* object, const char* name)
+    {
+        for (size_t i = 0; i < object->properties->count; ++i) {
+            ce_property* property = (ce_property*)object->properties->items[i];
+            if (0 == strcmp(name, property->name->str)) {
+                return property;
+            }
+        }
+        return NULL;
+    }
 }

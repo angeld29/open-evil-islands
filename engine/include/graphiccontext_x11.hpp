@@ -21,8 +21,8 @@
 #ifndef CE_GRAPHICCONTEXT_PLATFORM_HPP
 #define CE_GRAPHICCONTEXT_PLATFORM_HPP
 
-#include "glew_x11.hpp"
 #include "graphiccontext.hpp"
+#include "glew_x11.hpp"
 
 namespace cursedearth
 {

@@ -37,8 +37,8 @@ namespace cursedearth
         CE_MPR_TEXTURE_VERSION = 1
     };
 
-    const float CE_MPR_OFFSET_XZ_COEF;
-    const float CE_MPR_HEIGHT_Y_COEF;
+    extern const float CE_MPR_OFFSET_XZ_COEF;
+    extern const float CE_MPR_HEIGHT_Y_COEF;
 
     ce_aabb* ce_mpr_get_aabb(ce_aabb* aabb, const ce_mprfile* mprfile, int sector_x, int sector_z, bool water);
 

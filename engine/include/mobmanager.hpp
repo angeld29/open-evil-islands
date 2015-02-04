@@ -25,7 +25,7 @@
 
 namespace cursedearth
 {
-    struct ce_mob_manager {
+    extern struct ce_mob_manager {
         int stub;
     }* ce_mob_manager;
 

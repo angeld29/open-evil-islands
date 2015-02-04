@@ -22,55 +22,57 @@
 #include "rendersystem.hpp"
 #include "rendergroup.hpp"
 
-ce_rendergroup* ce_rendergroup_new(int priority, ce_material* material)
+namespace cursedearth
 {
-    ce_rendergroup* rendergroup = ce_alloc(sizeof(ce_rendergroup));
-    rendergroup->priority = priority;
-    rendergroup->material = material;
-    rendergroup->renderlayers = ce_vector_new();
-    return rendergroup;
-}
-
-void ce_rendergroup_del(ce_rendergroup* rendergroup)
-{
-    if (NULL != rendergroup) {
-        ce_vector_for_each(rendergroup->renderlayers, (void(*)(void*))ce_renderlayer_del);
-        ce_vector_del(rendergroup->renderlayers);
-        ce_free(rendergroup, sizeof(ce_rendergroup));
+    ce_rendergroup* ce_rendergroup_new(int priority, ce_material* material)
+    {
+        ce_rendergroup* rendergroup = (ce_rendergroup*)ce_alloc(sizeof(ce_rendergroup));
+        rendergroup->priority = priority;
+        rendergroup->material = material;
+        rendergroup->renderlayers = ce_vector_new();
+        return rendergroup;
     }
-}
 
-void ce_rendergroup_clear(ce_rendergroup* rendergroup)
-{
-    ce_vector_for_each(rendergroup->renderlayers, (void(*)(void*))ce_renderlayer_clear);
-}
-
-ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup,
-                                    ce_texture* texture)
-{
-    for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
-        ce_renderlayer* renderlayer = rendergroup->renderlayers->items[i];
-        if (ce_texture_is_equal(texture, renderlayer->texture)) {
-            return renderlayer;
+    void ce_rendergroup_del(ce_rendergroup* rendergroup)
+    {
+        if (NULL != rendergroup) {
+            ce_vector_for_each(rendergroup->renderlayers, (void(*)(void*))ce_renderlayer_del);
+            ce_vector_del(rendergroup->renderlayers);
+            ce_free(rendergroup, sizeof(ce_rendergroup));
         }
     }
 
-    ce_renderlayer* renderlayer = ce_renderlayer_new(texture);
-    ce_vector_push_back(rendergroup->renderlayers, renderlayer);
-
-    return renderlayer;
-}
-
-void ce_rendergroup_render(ce_rendergroup* rendergroup)
-{
-    bool empty = true;
-    for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
-        ce_renderlayer* renderlayer = rendergroup->renderlayers->items[i];
-        empty = empty && ce_vector_empty(renderlayer->renderitems);
+    void ce_rendergroup_clear(ce_rendergroup* rendergroup)
+    {
+        ce_vector_for_each(rendergroup->renderlayers, (void(*)(void*))ce_renderlayer_clear);
     }
-    if (!empty) {
-        ce_render_system_apply_material(rendergroup->material);
-        ce_vector_for_each(rendergroup->renderlayers, (void(*)(void*))ce_renderlayer_render);
-        ce_render_system_discard_material(rendergroup->material);
+
+    ce_renderlayer* ce_rendergroup_get(ce_rendergroup* rendergroup, ce_texture* texture)
+    {
+        for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
+            ce_renderlayer* renderlayer = (ce_renderlayer*)rendergroup->renderlayers->items[i];
+            if (ce_texture_is_equal(texture, renderlayer->texture)) {
+                return renderlayer;
+            }
+        }
+
+        ce_renderlayer* renderlayer = ce_renderlayer_new(texture);
+        ce_vector_push_back(rendergroup->renderlayers, renderlayer);
+
+        return renderlayer;
+    }
+
+    void ce_rendergroup_render(ce_rendergroup* rendergroup)
+    {
+        bool empty = true;
+        for (size_t i = 0; i < rendergroup->renderlayers->count; ++i) {
+            ce_renderlayer* renderlayer = (ce_renderlayer*)rendergroup->renderlayers->items[i];
+            empty = empty && ce_vector_empty(renderlayer->renderitems);
+        }
+        if (!empty) {
+            ce_render_system_apply_material(rendergroup->material);
+            ce_vector_for_each(rendergroup->renderlayers, (void(*)(void*))ce_renderlayer_render);
+            ce_render_system_discard_material(rendergroup->material);
+        }
     }
 }

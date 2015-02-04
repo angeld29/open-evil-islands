@@ -29,7 +29,7 @@
 
 namespace cursedearth
 {
-    struct ce_root {
+    extern struct ce_root {
         bool done;
         bool show_bboxes;
         bool comprehensive_bbox_only;

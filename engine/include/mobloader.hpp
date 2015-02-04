@@ -36,7 +36,7 @@ namespace cursedearth
     ce_mob_task* ce_mob_task_new(const char* name);
     void ce_mob_task_del(ce_mob_task* mob_task);
 
-    struct ce_mob_loader {
+    extern struct ce_mob_loader {
         size_t completed_job_count;
         size_t queued_job_count;
         ce_vector* mob_tasks;

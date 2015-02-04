@@ -21,12 +21,11 @@
 #ifndef CE_MPRMANAGER_HPP
 #define CE_MPRMANAGER_HPP
 
-#include "string.hpp"
 #include "mprfile.hpp"
 
 namespace cursedearth
 {
-    struct ce_mpr_manager {
+    extern struct ce_mpr_manager {
         int stub;
     }* ce_mpr_manager;
 

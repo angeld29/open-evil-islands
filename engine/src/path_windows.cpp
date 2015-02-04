@@ -24,27 +24,30 @@
 
 #include "path.hpp"
 
-const char CE_PATH_SEP = '\\';
-
-bool ce_path_exists(const char* path)
+namespace cursedearth
 {
-    return INVALID_FILE_ATTRIBUTES != GetFileAttributes(path);
-}
+    const char CE_PATH_SEP = '\\';
 
-bool ce_path_is_dir(const char*)
-{
-    assert(false && "not implemented");
-    return false;
-}
+    bool ce_path_exists(const char* path)
+    {
+        return INVALID_FILE_ATTRIBUTES != GetFileAttributes(path);
+    }
 
-bool ce_path_is_file(const char*)
-{
-    assert(false && "not implemented");
-    return false;
-}
+    bool ce_path_is_dir(const char*)
+    {
+        assert(false && "not implemented");
+        return false;
+    }
 
-bool ce_path_list_subdirs(const char*, ce_vector*)
-{
-    assert(false && "not implemented");
-    return false;
+    bool ce_path_is_file(const char*)
+    {
+        assert(false && "not implemented");
+        return false;
+    }
+
+    bool ce_path_list_subdirs(const char*, ce_vector*)
+    {
+        assert(false && "not implemented");
+        return false;
+    }
 }

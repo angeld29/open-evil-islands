@@ -24,118 +24,119 @@
 #include "optionmanager.hpp"
 #include "soundsystem.hpp"
 
-struct ce_sound_system* ce_sound_system;
-
-static bool ce_sound_system_null_ctor(void)
+namespace cursedearth
 {
-    ce_logging_write("sound system: using null output");
-    return true;
-}
+    struct ce_sound_system* ce_sound_system;
 
-static bool ce_sound_system_null_write(const void* /*block*/)
-{
-    return true;
-}
+    bool ce_sound_system_null_ctor(void)
+    {
+        ce_logging_write("sound system: using null output");
+        return true;
+    }
 
-ce_sound_system_vtable ce_sound_system_null(void)
-{
-    return (ce_sound_system_vtable){
-        0, ce_sound_system_null_ctor, NULL, ce_sound_system_null_write
-    };
-}
+    bool ce_sound_system_null_write(const void* /*block*/)
+    {
+        return true;
+    }
 
-static void ce_sound_system_exit(ce_event*)
-{
-    ce_sound_system->done = true;
-}
+    ce_sound_system_vtable ce_sound_system_null(void)
+    {
+        ce_sound_system_vtable vt = { 0, ce_sound_system_null_ctor, NULL, ce_sound_system_null_write };
+        return vt;
+    }
 
-static void ce_sound_system_exec(void*)
-{
-    for (size_t i = 0; !ce_sound_system->done; ++i) {
-        ce_semaphore_acquire(ce_sound_system->used_blocks, 1);
+    void ce_sound_system_exit(ce_event*)
+    {
+        ce_sound_system->done = true;
+    }
 
-        if (!(*ce_sound_system->vtable.write)(ce_sound_system->blocks[i % CE_SOUND_SYSTEM_BLOCK_COUNT])) {
-            ce_logging_critical("sound system: could not write block");
+    void ce_sound_system_exec(void*)
+    {
+        for (size_t i = 0; !ce_sound_system->done; ++i) {
+            ce_semaphore_acquire(ce_sound_system->used_blocks, 1);
+
+            if (!(*ce_sound_system->vtable.write)(ce_sound_system->blocks[i % CE_SOUND_SYSTEM_BLOCK_COUNT])) {
+                ce_logging_critical("sound system: could not write block");
+            }
+
+            ce_semaphore_release(ce_sound_system->free_blocks, 1);
+            ce_event_manager_process_events(ce_thread_self(), CE_EVENT_FLAG_ALL_EVENTS);
+        }
+    }
+
+    void ce_sound_system_dtor(void)
+    {
+        if (NULL != ce_sound_system) {
+            if (NULL != ce_sound_system->vtable.dtor) {
+                (*ce_sound_system->vtable.dtor)();
+            }
+            ce_free(ce_sound_system->impl, ce_sound_system->vtable.size);
+            ce_free(ce_sound_system, sizeof(struct ce_sound_system));
+        }
+    }
+
+    bool ce_sound_system_ctor(ce_sound_system_vtable vtable)
+    {
+        ce_sound_system = (struct ce_sound_system*)ce_alloc_zero(sizeof(struct ce_sound_system));
+        ce_sound_system->impl = ce_alloc_zero(vtable.size);
+
+        ce_sound_system->samples_per_second = CE_SOUND_SYSTEM_SAMPLES_PER_SECOND;
+        ce_sound_system->vtable = vtable;
+
+        if (!(*vtable.ctor)()) {
+            ce_sound_system_dtor();
+            return false;
         }
 
-        ce_semaphore_release(ce_sound_system->free_blocks, 1);
-        ce_event_manager_process_events(ce_thread_self(), CE_EVENT_FLAG_ALL_EVENTS);
+        return true;
     }
-}
 
-static void ce_sound_system_dtor(void)
-{
-    if (NULL != ce_sound_system) {
-        if (NULL != ce_sound_system->vtable.dtor) {
-            (*ce_sound_system->vtable.dtor)();
+    void ce_sound_system_init(void)
+    {
+        if (!ce_sound_system_ctor(ce_option_manager->disable_sound ? ce_sound_system_null() : ce_sound_system_platform())) {
+            ce_sound_system_ctor(ce_sound_system_null());
         }
 
-        ce_free(ce_sound_system, sizeof(struct ce_sound_system) + ce_sound_system->vtable.size);
-    }
-}
+        ce_sound_system->free_blocks = ce_semaphore_new(CE_SOUND_SYSTEM_BLOCK_COUNT);
+        ce_sound_system->used_blocks = ce_semaphore_new(0);
 
-static bool ce_sound_system_ctor(ce_sound_system_vtable vtable)
-{
-    ce_sound_system = ce_alloc_zero(sizeof(struct ce_sound_system) + vtable.size);
+        ce_sound_system->thread = ce_thread_new((void(*)())ce_sound_system_exec, NULL);
 
-    ce_sound_system->samples_per_second = CE_SOUND_SYSTEM_SAMPLES_PER_SECOND;
-    ce_sound_system->vtable = vtable;
+        ce_sound_format_init(&ce_sound_system->sound_format,
+                             CE_SOUND_SYSTEM_BITS_PER_SAMPLE,
+                             ce_sound_system->samples_per_second,
+                             CE_SOUND_SYSTEM_CHANNEL_COUNT);
 
-    if (!(*vtable.ctor)()) {
-        ce_sound_system_dtor();
-        return false;
-    }
-
-    return true;
-}
-
-void ce_sound_system_init(void)
-{
-    if (!ce_sound_system_ctor(ce_option_manager->disable_sound ?
-            ce_sound_system_null() : ce_sound_system_platform())) {
-        ce_sound_system_ctor(ce_sound_system_null());
+        if (CE_SOUND_SYSTEM_SAMPLES_PER_SECOND != ce_sound_system->samples_per_second) {
+            ce_logging_warning("sound system: sample rate %u Hz not supported by the implementation/hardware, using %u Hz",
+                CE_SOUND_SYSTEM_SAMPLES_PER_SECOND, ce_sound_system->samples_per_second);
+        }
     }
 
-    ce_sound_system->free_blocks = ce_semaphore_new(CE_SOUND_SYSTEM_BLOCK_COUNT);
-    ce_sound_system->used_blocks = ce_semaphore_new(0);
+    void ce_sound_system_term(void)
+    {
+        if (NULL != ce_sound_system) {
+            ce_event_manager_post_call(ce_thread_get_id(ce_sound_system->thread), ce_sound_system_exit);
 
-    ce_sound_system->thread = ce_thread_new(ce_sound_system_exec, NULL);
+            ce_semaphore_release(ce_sound_system->used_blocks, 1);
+            ce_thread_wait(ce_sound_system->thread);
 
-    ce_sound_format_init(&ce_sound_system->sound_format,
-                        CE_SOUND_SYSTEM_BITS_PER_SAMPLE,
-                        ce_sound_system->samples_per_second,
-                        CE_SOUND_SYSTEM_CHANNEL_COUNT);
+            ce_thread_del(ce_sound_system->thread);
+            ce_semaphore_del(ce_sound_system->used_blocks);
+            ce_semaphore_del(ce_sound_system->free_blocks);
 
-    if (CE_SOUND_SYSTEM_SAMPLES_PER_SECOND != ce_sound_system->samples_per_second) {
-        ce_logging_warning("sound system: sample rate %u Hz not supported "
-                            "by the implementation/hardware, using %u Hz",
-            CE_SOUND_SYSTEM_SAMPLES_PER_SECOND, ce_sound_system->samples_per_second);
+            ce_sound_system_dtor();
+        }
     }
-}
 
-void ce_sound_system_term(void)
-{
-    if (NULL != ce_sound_system) {
-        ce_event_manager_post_call(ce_sound_system->thread->id, ce_sound_system_exit);
+    void* ce_sound_system_map_block(void)
+    {
+        ce_semaphore_acquire(ce_sound_system->free_blocks, 1);
+        return ce_sound_system->blocks[ce_sound_system->next_block++ % CE_SOUND_SYSTEM_BLOCK_COUNT];
+    }
 
+    void ce_sound_system_unmap_block(void)
+    {
         ce_semaphore_release(ce_sound_system->used_blocks, 1);
-        ce_thread_wait(ce_sound_system->thread);
-
-        ce_thread_del(ce_sound_system->thread);
-        ce_semaphore_del(ce_sound_system->used_blocks);
-        ce_semaphore_del(ce_sound_system->free_blocks);
-
-        ce_sound_system_dtor();
     }
-}
-
-void* ce_sound_system_map_block(void)
-{
-    ce_semaphore_acquire(ce_sound_system->free_blocks, 1);
-    return ce_sound_system->blocks[ce_sound_system->next_block++ % CE_SOUND_SYSTEM_BLOCK_COUNT];
-}
-
-void ce_sound_system_unmap_block(void)
-{
-    ce_semaphore_release(ce_sound_system->used_blocks, 1);
 }

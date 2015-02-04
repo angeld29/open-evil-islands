@@ -32,7 +32,7 @@
 
 namespace cursedearth
 {
-    struct ce_render_system* ce_render_system;
+    extern struct ce_render_system* ce_render_system;
 
     void ce_render_system_init(void);
     void ce_render_system_term(void);

@@ -64,7 +64,7 @@ namespace cursedearth
         ce_mem_file* mem_file;
         ce_sound_resource_vtable vtable;
         size_t size;
-        char impl[];
+        void* impl;
     };
 
     ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file);

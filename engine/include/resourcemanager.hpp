@@ -27,7 +27,7 @@
 
 namespace cursedearth
 {
-    struct ce_resource_manager {
+    extern struct ce_resource_manager {
         ce_string* path;
         ce_res_file* database;
         ce_res_file* menus;

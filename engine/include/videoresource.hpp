@@ -47,7 +47,7 @@ namespace cursedearth
         ce_mem_file* mem_file;
         ce_video_resource_vtable vtable;
         size_t size;
-        char impl[];
+        void* impl;
     };
 
     ce_video_resource* ce_video_resource_new(ce_mem_file* mem_file);

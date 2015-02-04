@@ -45,7 +45,7 @@ namespace cursedearth
         bool (*write)(const void* block);
     } ce_sound_system_vtable;
 
-    struct ce_sound_system {
+    extern struct ce_sound_system {
         bool done;
         ce_sound_format sound_format;
         unsigned int samples_per_second; // actual value supported by implementation/hardware
@@ -55,7 +55,7 @@ namespace cursedearth
         ce_semaphore* used_blocks;
         ce_thread* thread;
         ce_sound_system_vtable vtable;
-        char impl[];
+        void* impl;
     }* ce_sound_system;
 
     ce_sound_system_vtable ce_sound_system_platform(void);

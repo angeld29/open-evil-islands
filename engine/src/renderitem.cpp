@@ -22,51 +22,51 @@
 #include "alloc.hpp"
 #include "renderitem.hpp"
 
-ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...)
+namespace cursedearth
 {
-    ce_renderitem* renderitem = ce_alloc_zero(sizeof(ce_renderitem) + size);
-    renderitem->visible = true;
-    renderitem->vtable = vtable;
-    renderitem->size = size;
+    ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...)
+    {
+        ce_renderitem* renderitem = (ce_renderitem*)ce_alloc_zero(sizeof(ce_renderitem) + size);
+        renderitem->visible = true;
+        renderitem->vtable = vtable;
+        renderitem->size = size;
 
-    va_list args;
-    va_start(args, size);
-    (vtable.ctor)(renderitem, args);
-    va_end(args);
-
-    return renderitem;
-}
-
-void ce_renderitem_del(ce_renderitem* renderitem)
-{
-    if (NULL != renderitem) {
-        (renderitem->vtable.dtor)(renderitem);
-        ce_free(renderitem, sizeof(ce_renderitem) + renderitem->size);
-    }
-}
-
-void ce_renderitem_update(ce_renderitem* renderitem, ...)
-{
-    if (NULL != renderitem->vtable.update) {
         va_list args;
-        va_start(args, renderitem);
-        (renderitem->vtable.update)(renderitem, args);
+        va_start(args, size);
+        (vtable.ctor)(renderitem, args);
         va_end(args);
+
+        return renderitem;
     }
-}
 
-void ce_renderitem_render(ce_renderitem* renderitem)
-{
-    (renderitem->vtable.render)(renderitem);
-}
+    void ce_renderitem_del(ce_renderitem* renderitem)
+    {
+        if (NULL != renderitem) {
+            (renderitem->vtable.dtor)(renderitem);
+            ce_free(renderitem, sizeof(ce_renderitem) + renderitem->size);
+        }
+    }
 
-ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem)
-{
-    ce_renderitem* clone_renderitem =
-        ce_alloc_zero(sizeof(ce_renderitem) + renderitem->size);
+    void ce_renderitem_update(ce_renderitem* renderitem, ...)
+    {
+        if (NULL != renderitem->vtable.update) {
+            va_list args;
+            va_start(args, renderitem);
+            (renderitem->vtable.update)(renderitem, args);
+            va_end(args);
+        }
+    }
 
-    *clone_renderitem = *renderitem;
-    (renderitem->vtable.clone)(renderitem, clone_renderitem);
+    void ce_renderitem_render(ce_renderitem* renderitem)
+    {
+        (renderitem->vtable.render)(renderitem);
+    }
 
-    return clone_renderitem;
+    ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem)
+    {
+        ce_renderitem* clone_renderitem = (ce_renderitem*)ce_alloc_zero(sizeof(ce_renderitem) + renderitem->size);
+        *clone_renderitem = *renderitem;
+        (renderitem->vtable.clone)(renderitem, clone_renderitem);
+        return clone_renderitem;
+    }
 }

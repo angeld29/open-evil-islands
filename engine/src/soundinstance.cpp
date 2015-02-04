@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <cstring>
 #include <climits>
+#include <vector>
 
 #include "lib.hpp"
 #include "alloc.hpp"
@@ -28,48 +29,51 @@
 #include "soundmixer.hpp"
 #include "soundinstance.hpp"
 
-ce_sound_instance* ce_sound_instance_new(ce_sound_resource* sound_resource)
+namespace cursedearth
 {
-    ce_sound_instance* sound_instance = ce_alloc_zero(sizeof(ce_sound_instance));
-    sound_instance->sound_resource = sound_resource;
-    sound_instance->sound_buffer = ce_sound_mixer_create_buffer();
-    sound_instance->sound_buffer->sound_format = sound_resource->sound_format;
-    return sound_instance;
-}
-
-void ce_sound_instance_del(ce_sound_instance* sound_instance)
-{
-    if (NULL != sound_instance) {
-        ce_sound_mixer_destroy_buffer(sound_instance->sound_buffer);
-        ce_sound_resource_del(sound_instance->sound_resource);
-        ce_free(sound_instance, sizeof(ce_sound_instance));
+    ce_sound_instance* ce_sound_instance_new(ce_sound_resource* sound_resource)
+    {
+        ce_sound_instance* sound_instance = (ce_sound_instance*)ce_alloc_zero(sizeof(ce_sound_instance));
+        sound_instance->sound_resource = sound_resource;
+        sound_instance->sound_buffer = ce_sound_mixer_create_buffer();
+        sound_instance->sound_buffer->sound_format = sound_resource->sound_format;
+        return sound_instance;
     }
-}
 
-void ce_sound_instance_advance(ce_sound_instance* sound_instance, float /*elapsed*/)
-{
-    if (CE_SOUND_STATE_PLAYING == sound_instance->sound_bundle.state) {
-        size_t size = ce_sound_buffer_available_size_for_write(sound_instance->sound_buffer);
-        if (0 != size) {
-            char buffer[size];
-            size = ce_sound_resource_read(sound_instance->sound_resource, buffer, size);
-            ce_sound_buffer_write(sound_instance->sound_buffer, buffer, size);
-            sound_instance->sound_bundle.time = sound_instance->sound_resource->time;
-            if (0 == size) {
-                ce_sound_instance_change_state(sound_instance, CE_SOUND_STATE_STOPPED);
+    void ce_sound_instance_del(ce_sound_instance* sound_instance)
+    {
+        if (NULL != sound_instance) {
+            ce_sound_mixer_destroy_buffer(sound_instance->sound_buffer);
+            ce_sound_resource_del(sound_instance->sound_resource);
+            ce_free(sound_instance, sizeof(ce_sound_instance));
+        }
+    }
+
+    void ce_sound_instance_advance(ce_sound_instance* sound_instance, float /*elapsed*/)
+    {
+        if (CE_SOUND_STATE_PLAYING == sound_instance->sound_bundle.state) {
+            size_t size = ce_sound_buffer_available_size_for_write(sound_instance->sound_buffer);
+            if (0 != size) {
+                std::vector<char> buffer(size);
+                size = ce_sound_resource_read(sound_instance->sound_resource, buffer.data(), size);
+                ce_sound_buffer_write(sound_instance->sound_buffer, buffer.data(), size);
+                sound_instance->sound_bundle.time = sound_instance->sound_resource->time;
+                if (0 == size) {
+                    ce_sound_instance_change_state(sound_instance, CE_SOUND_STATE_STOPPED);
+                }
             }
         }
     }
-}
 
-void ce_sound_instance_change_state(ce_sound_instance* sound_instance, int state)
-{
-    sound_instance->sound_bundle.state = state;
+    void ce_sound_instance_change_state(ce_sound_instance* sound_instance, int state)
+    {
+        sound_instance->sound_bundle.state = state;
 
-    switch (state) {
-    case CE_SOUND_STATE_STOPPED:
-        sound_instance->sound_bundle.time = 0.0f;
-        ce_sound_resource_reset(sound_instance->sound_resource);
-        break;
+        switch (state) {
+        case CE_SOUND_STATE_STOPPED:
+            sound_instance->sound_bundle.time = 0.0f;
+            ce_sound_resource_reset(sound_instance->sound_resource);
+            break;
+        }
     }
 }

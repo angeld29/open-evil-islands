@@ -23,89 +23,88 @@
 #include "rendersystem.hpp"
 #include "occlusion.hpp"
 
-struct ce_occlusion {
-    bool supported;
-    GLenum target;
-    GLuint query;
-    GLint result;
-};
-
-ce_occlusion* ce_occlusion_new(void)
+namespace cursedearth
 {
-    ce_occlusion* occlusion = ce_alloc(sizeof(ce_occlusion));
-    occlusion->supported = GLEW_VERSION_1_5;
-    occlusion->target = GL_SAMPLES_PASSED;
-
-    // the first real result may be only in next 1-2 frames, so force to true
-    occlusion->result = 1;
-
-    if (occlusion->supported) {
-        if (GLEW_VERSION_3_3 || GLEW_ARB_occlusion_query2) {
-            occlusion->target = GL_ANY_SAMPLES_PASSED;
-        }
-
-        // check to make sure functionality is supported
+    struct ce_occlusion {
+        bool supported;
+        GLenum target;
+        GLuint query;
         GLint result;
-        glGetQueryiv(occlusion->target, GL_QUERY_COUNTER_BITS, &result);
+    };
 
-        occlusion->supported = 0 != result;
-    }
+    ce_occlusion* ce_occlusion_new(void)
+    {
+        ce_occlusion* occlusion = (ce_occlusion*)ce_alloc(sizeof(ce_occlusion));
+        occlusion->supported = GLEW_VERSION_1_5;
+        occlusion->target = GL_SAMPLES_PASSED;
 
-    if (occlusion->supported) {
-        glGenQueries(1, &occlusion->query);
-    }
+        // the first real result may be only in next 1-2 frames, so force to true
+        occlusion->result = 1;
 
-    return occlusion;
-}
-
-void ce_occlusion_del(ce_occlusion* occlusion)
-{
-    if (NULL != occlusion) {
         if (occlusion->supported) {
-            glDeleteQueries(1, &occlusion->query);
+            if (GLEW_VERSION_3_3 || GLEW_ARB_occlusion_query2) {
+                occlusion->target = GL_ANY_SAMPLES_PASSED;
+            }
+
+            // check to make sure functionality is supported
+            GLint result;
+            glGetQueryiv(occlusion->target, GL_QUERY_COUNTER_BITS, &result);
+
+            occlusion->supported = 0 != result;
         }
-        ce_free(occlusion, sizeof(ce_occlusion));
-    }
-}
 
-bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox)
-{
-    if (!occlusion->supported) {
-        return true;
+        if (occlusion->supported) {
+            glGenQueries(1, &occlusion->query);
+        }
+
+        return occlusion;
     }
 
-    // begin new query if and only if old one was finished
-    // otherwise use result from last successful query
-    GLint result = 1;
+    void ce_occlusion_del(ce_occlusion* occlusion)
+    {
+        if (NULL != occlusion) {
+            if (occlusion->supported) {
+                glDeleteQueries(1, &occlusion->query);
+            }
+            ce_free(occlusion, sizeof(ce_occlusion));
+        }
+    }
 
-    if (glIsQuery(occlusion->query)) {
-        glGetQueryObjectiv(occlusion->query,
-            GL_QUERY_RESULT_AVAILABLE, &result);
+    bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox)
+    {
+        if (!occlusion->supported) {
+            return true;
+        }
+
+        // begin new query if and only if old one was finished
+        // otherwise use result from last successful query
+        GLint result = 1;
+
+        if (glIsQuery(occlusion->query)) {
+            glGetQueryObjectiv(occlusion->query, GL_QUERY_RESULT_AVAILABLE, &result);
+            if (0 != result) {
+                glGetQueryObjectiv(occlusion->query, GL_QUERY_RESULT, &occlusion->result);
+            }
+        }
 
         if (0 != result) {
-            glGetQueryObjectiv(occlusion->query,
-                GL_QUERY_RESULT, &occlusion->result);
+            glDisable(GL_CULL_FACE);
+            glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+            glDepthMask(GL_FALSE);
+
+            glBeginQuery(occlusion->target, occlusion->query);
+
+            ce_render_system_apply_transform(&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
+            ce_render_system_draw_solid_cube();
+            ce_render_system_discard_transform();
+
+            glEndQuery(occlusion->target);
+
+            glDepthMask(GL_TRUE);
+            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+            glEnable(GL_CULL_FACE);
         }
+
+        return 0 != occlusion->result;
     }
-
-    if (0 != result) {
-        glDisable(GL_CULL_FACE);
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        glDepthMask(GL_FALSE);
-
-        glBeginQuery(occlusion->target, occlusion->query);
-
-        ce_render_system_apply_transform(&bbox->aabb.origin,
-                                        &bbox->axis, &bbox->aabb.extents);
-        ce_render_system_draw_solid_cube();
-        ce_render_system_discard_transform();
-
-        glEndQuery(occlusion->target);
-
-        glDepthMask(GL_TRUE);
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-        glEnable(GL_CULL_FACE);
-    }
-
-    return 0 != occlusion->result;
 }

@@ -60,7 +60,7 @@ namespace cursedearth
     {
         for (int i = 0; i < CE_MMPFILE_FORMAT_COUNT; ++i) {
             if (ce_mmpfile_format_signatures[i] == signature) {
-                return i;
+                return static_cast<ce_mmpfile_format>(i);
             }
         }
         return CE_MMPFILE_FORMAT_UNKNOWN;
@@ -178,21 +178,15 @@ namespace cursedearth
         [CE_MMPFILE_FORMAT_YCBCR] = ce_mmpfile_write_header_null,
     };
 
-    inline size_t ce_mmpfile_storage_size_generic(unsigned int width,
-                                                    unsigned int height,
-                                                    ce_mmpfile_format format)
+    inline size_t ce_mmpfile_storage_size_generic(unsigned int width, unsigned int height, ce_mmpfile_format format)
     {
         return ce_mmpfile_bit_counts[format] * width * height / 8;
     }
 
-    size_t ce_mmpfile_storage_size_dxt(unsigned int width,
-                                                unsigned int height,
-                                                ce_mmpfile_format format)
+    size_t ce_mmpfile_storage_size_dxt(unsigned int width, unsigned int height, ce_mmpfile_format format)
     {
-        // special case for DXT format that have a block of fixed size:
-        // 8 for DXT1, 16 for DXT3
-        return ce_max(size_t, 2 * ce_mmpfile_bit_counts[format],
-            ce_mmpfile_storage_size_generic(width, height, format));
+        // special case for DXT format that have a block of fixed size: 8 for DXT1, 16 for DXT3
+        return ce_max(size_t, 2 * ce_mmpfile_bit_counts[format], ce_mmpfile_storage_size_generic(width, height, format));
     }
 
     size_t ce_mmpfile_storage_size_ycbcr(unsigned int width, unsigned int height, ce_mmpfile_format)
@@ -200,8 +194,7 @@ namespace cursedearth
         return 3 * width * height / 2;
     }
 
-    size_t (*ce_mmpfile_storage_size_procs[CE_MMPFILE_FORMAT_COUNT])
-            (unsigned int width, unsigned int height, ce_mmpfile_format format) = {
+    size_t (*ce_mmpfile_storage_size_procs[CE_MMPFILE_FORMAT_COUNT])(unsigned int width, unsigned int height, ce_mmpfile_format format) = {
         [CE_MMPFILE_FORMAT_UNKNOWN] = ce_mmpfile_storage_size_generic,
         [CE_MMPFILE_FORMAT_DXT1] = ce_mmpfile_storage_size_dxt,
         [CE_MMPFILE_FORMAT_DXT3] = ce_mmpfile_storage_size_dxt,
@@ -217,8 +210,7 @@ namespace cursedearth
         [CE_MMPFILE_FORMAT_YCBCR] = ce_mmpfile_storage_size_ycbcr,
     };
 
-    size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height,
-                                unsigned int mipmap_count, ce_mmpfile_format format)
+    size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height, unsigned int mipmap_count, ce_mmpfile_format format)
     {
         size_t size = 0;
         for (unsigned int i = 0; i < mipmap_count; ++i, width >>= 1, height >>= 1) {
@@ -227,10 +219,9 @@ namespace cursedearth
         return size;
     }
 
-    ce_mmpfile* ce_mmpfile_new(unsigned int width, unsigned int height,
-        unsigned int mipmap_count, ce_mmpfile_format format, unsigned int user_info)
+    ce_mmpfile* ce_mmpfile_new(unsigned int width, unsigned int height, unsigned int mipmap_count, ce_mmpfile_format format, unsigned int user_info)
     {
-        ce_mmpfile* mmpfile = ce_alloc(sizeof(ce_mmpfile));
+        ce_mmpfile* mmpfile = (ce_mmpfile*)ce_alloc(sizeof(ce_mmpfile));
         mmpfile->width = width;
         mmpfile->height = height;
         mmpfile->mipmap_count = mipmap_count;
@@ -251,12 +242,12 @@ namespace cursedearth
         union {
             uint8_t* u8;
             uint32_t* u32;
-        } ptr = {data};
+        } ptr = { static_cast<uint8_t*>(data) };
 
         uint32_t signature = ce_le2cpu32(*ptr.u32++);
         assert(CE_MMPFILE_SIGNATURE == signature && "wrong signature");
 
-        ce_mmpfile* mmpfile = ce_alloc(sizeof(ce_mmpfile));
+        ce_mmpfile* mmpfile = (ce_mmpfile*)ce_alloc(sizeof(ce_mmpfile));
         mmpfile->width = ce_le2cpu32(*ptr.u32++);
         mmpfile->height = ce_le2cpu32(*ptr.u32++);
         mmpfile->mipmap_count = ce_le2cpu32(*ptr.u32++);
@@ -300,8 +291,7 @@ namespace cursedearth
 
     ce_mmpfile* ce_mmpfile_new_res_file(ce_res_file* res_file, size_t index)
     {
-        return ce_mmpfile_new_data(ce_res_file_node_data(res_file, index),
-                                    ce_res_file_node_size(res_file, index));
+        return ce_mmpfile_new_data(ce_res_file_node_data(res_file, index), ce_res_file_node_size(res_file, index));
     }
 
     void ce_mmpfile_del(ce_mmpfile* mmpfile)
@@ -346,8 +336,7 @@ namespace cursedearth
             header[20] = ce_cpu2le32(mmpfile->version);
             header[21] = ce_cpu2le32(mmpfile->user_info);
             fwrite(header, 4, 19, file);
-            fwrite(mmpfile->texels, 1, ce_mmpfile_storage_size(mmpfile->width,
-                mmpfile->height, mmpfile->mipmap_count, mmpfile->format), file);
+            fwrite(mmpfile->texels, 1, ce_mmpfile_storage_size(mmpfile->width, mmpfile->height, mmpfile->mipmap_count, mmpfile->format), file);
             fwrite(header + 19, 4, 3, file);
             fclose(file);
         }
@@ -355,10 +344,9 @@ namespace cursedearth
 
     void ce_mmpfile_argb_swap16_rgba(const ce_mmpfile* mmpfile, ce_mmpfile* other)
     {
-        uint16_t* dst = other->texels;
-        const uint16_t* src = mmpfile->texels;
-        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
-                i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+        uint16_t* dst = static_cast<uint16_t*>(other->texels);
+        const uint16_t* src = static_cast<const uint16_t*>(mmpfile->texels);
+        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height; i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
             for (const uint16_t* end = src + width * height; src != end; ++src) {
                 *dst++ = *src << mmpfile->acount | *src >> mmpfile->ashift;
             }
@@ -367,10 +355,9 @@ namespace cursedearth
 
     void ce_mmpfile_argb_swap32_rgba(const ce_mmpfile* mmpfile, ce_mmpfile* other)
     {
-        uint32_t* dst = other->texels;
-        const uint32_t* src = mmpfile->texels;
-        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
-                i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+        uint32_t* dst = static_cast<uint32_t*>(other->texels);
+        const uint32_t* src = static_cast<uint32_t*>(mmpfile->texels);
+        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height; i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
             for (const uint32_t* end = src + width * height; src != end; ++src) {
                 *dst++ = *src << mmpfile->acount | *src >> mmpfile->ashift;
             }
@@ -379,40 +366,28 @@ namespace cursedearth
 
     void ce_mmpfile_unpack16(const ce_mmpfile* mmpfile, ce_mmpfile* other)
     {
-        uint8_t* dst = other->texels;
-        const uint16_t* src = mmpfile->texels;
-        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
-                i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+        uint8_t* dst = static_cast<uint8_t*>(other->texels);
+        const uint16_t* src = static_cast<const uint16_t*>(mmpfile->texels);
+        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height; i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
             for (const uint16_t* end = src + width * height; src != end; ++src) {
-                *dst++ = ((*src & mmpfile->rmask) >> mmpfile->rshift) *
-                    255 / (mmpfile->rmask >> mmpfile->rshift);
-                *dst++ = ((*src & mmpfile->gmask) >> mmpfile->gshift) *
-                    255 / (mmpfile->gmask >> mmpfile->gshift);
-                *dst++ = ((*src & mmpfile->bmask) >> mmpfile->bshift) *
-                    255 / (mmpfile->bmask >> mmpfile->bshift);
-                *dst++ = 0 == mmpfile->amask ? 255 :
-                    ((*src & mmpfile->amask) >> mmpfile->ashift) *
-                    255 / (mmpfile->amask >> mmpfile->ashift);
+                *dst++ = ((*src & mmpfile->rmask) >> mmpfile->rshift) * 255 / (mmpfile->rmask >> mmpfile->rshift);
+                *dst++ = ((*src & mmpfile->gmask) >> mmpfile->gshift) * 255 / (mmpfile->gmask >> mmpfile->gshift);
+                *dst++ = ((*src & mmpfile->bmask) >> mmpfile->bshift) * 255 / (mmpfile->bmask >> mmpfile->bshift);
+                *dst++ = 0 == mmpfile->amask ? 255 : ((*src & mmpfile->amask) >> mmpfile->ashift) * 255 / (mmpfile->amask >> mmpfile->ashift);
             }
         }
     }
 
     void ce_mmpfile_unpack32(const ce_mmpfile* mmpfile, ce_mmpfile* other)
     {
-        uint8_t* dst = other->texels;
-        const uint32_t* src = mmpfile->texels;
-        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
-                i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+        uint8_t* dst = static_cast<uint8_t*>(other->texels);
+        const uint32_t* src = static_cast<const uint32_t*>(mmpfile->texels);
+        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height; i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
             for (const uint32_t* end = src + width * height; src != end; ++src) {
-                *dst++ = ((*src & mmpfile->rmask) >> mmpfile->rshift) *
-                    255 / (mmpfile->rmask >> mmpfile->rshift);
-                *dst++ = ((*src & mmpfile->gmask) >> mmpfile->gshift) *
-                    255 / (mmpfile->gmask >> mmpfile->gshift);
-                *dst++ = ((*src & mmpfile->bmask) >> mmpfile->bshift) *
-                    255 / (mmpfile->bmask >> mmpfile->bshift);
-                *dst++ = 0 == mmpfile->amask ? 255 :
-                    ((*src & mmpfile->amask) >> mmpfile->ashift) *
-                    255 / (mmpfile->amask >> mmpfile->ashift);
+                *dst++ = ((*src & mmpfile->rmask) >> mmpfile->rshift) * 255 / (mmpfile->rmask >> mmpfile->rshift);
+                *dst++ = ((*src & mmpfile->gmask) >> mmpfile->gshift) * 255 / (mmpfile->gmask >> mmpfile->gshift);
+                *dst++ = ((*src & mmpfile->bmask) >> mmpfile->bshift) * 255 / (mmpfile->bmask >> mmpfile->bshift);
+                *dst++ = 0 == mmpfile->amask ? 255 : ((*src & mmpfile->amask) >> mmpfile->ashift) * 255 / (mmpfile->amask >> mmpfile->ashift);
             }
         }
     }
@@ -426,14 +401,12 @@ namespace cursedearth
     {
         assert(CE_MMPFILE_FORMAT_R8G8B8A8 == other->format && "not implemented");
 
-        uint8_t* rgba = other->texels;
-        const uint8_t* blocks = mmpfile->texels;
+        uint8_t* rgba = static_cast<uint8_t*>(other->texels);
+        const uint8_t* blocks = static_cast<const uint8_t*>(mmpfile->texels);
+        int flags = CE_MMPFILE_FORMAT_DXT3 == mmpfile->format ? squish::kDxt3 : squish::kDxt1;
 
-        int flags = (int[]){squish_kDxt1, squish_kDxt3}[CE_MMPFILE_FORMAT_DXT3 == mmpfile->format];
-
-        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
-                i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
-            squish_DecompressImage(rgba, width, height, blocks, flags);
+        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height; i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+            squish::DecompressImage(rgba, width, height, blocks, flags);
             rgba += ce_mmpfile_storage_size(width, height, 1, other->format);
             blocks += ce_mmpfile_storage_size(width, height, 1, mmpfile->format);
         }
@@ -469,9 +442,9 @@ namespace cursedearth
     {
         assert(CE_MMPFILE_FORMAT_ARGB8 == other->format && "not implemented");
         // mipmap_count == compressed size for pnt3
-        if (mmpfile->mipmap_count < other->size) { // pnt3 compressed
-            ce_mmpfile_decompress_pnt3(other->texels, mmpfile->texels,
-                                                        mmpfile->mipmap_count);
+        if (mmpfile->mipmap_count < other->size) {
+            // pnt3 compressed
+            ce_mmpfile_decompress_pnt3(static_cast<uint8_t*>(other->texels), static_cast<const uint32_t*>(mmpfile->texels), mmpfile->mipmap_count);
         } else {
             memcpy(other->texels, mmpfile->texels, other->size);
         }
@@ -518,18 +491,14 @@ namespace cursedearth
 
     void ce_mmpfile_convert_r8g8b8a8(const ce_mmpfile* mmpfile, ce_mmpfile* other)
     {
-        assert((CE_MMPFILE_FORMAT_DXT1 == other->format ||
-                CE_MMPFILE_FORMAT_DXT3 == other->format) && "not implemented");
+        assert((CE_MMPFILE_FORMAT_DXT1 == other->format || CE_MMPFILE_FORMAT_DXT3 == other->format) && "not implemented");
 
-        const uint8_t* rgba = mmpfile->texels;
-        uint8_t* blocks = other->texels;
+        const uint8_t* rgba = static_cast<const uint8_t*>(mmpfile->texels);
+        uint8_t* blocks = static_cast<uint8_t*>(other->texels);
+        int flags = squish::kColourRangeFit | (CE_MMPFILE_FORMAT_DXT3 == other->format ? squish::kDxt3 : squish::kDxt1);
 
-        int flags = (int[]){squish_kDxt1, squish_kDxt3}[CE_MMPFILE_FORMAT_DXT3 == other->format];
-        flags |= squish_kColourRangeFit;
-
-        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height;
-                i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
-            squish_CompressImage(rgba, width, height, blocks, flags, NULL);
+        for (unsigned int i = 0, width = mmpfile->width, height = mmpfile->height; i < mmpfile->mipmap_count; ++i, width >>= 1, height >>= 1) {
+            squish::CompressImage(rgba, width, height, blocks, flags);
             rgba += ce_mmpfile_storage_size(width, height, 1, mmpfile->format);
             blocks += ce_mmpfile_storage_size(width, height, 1, other->format);
         }
@@ -539,11 +508,11 @@ namespace cursedearth
     {
         assert(CE_MMPFILE_FORMAT_R8G8B8A8 == other->format && "not implemented");
 
-        const uint8_t* y_data = mmpfile->texels;
+        const uint8_t* y_data = static_cast<const uint8_t*>(mmpfile->texels);
         const uint8_t* cb_data = y_data + mmpfile->width * mmpfile->height;
         const uint8_t* cr_data = cb_data + (mmpfile->width / 2) * (mmpfile->height / 2);
 
-        uint8_t* texels = other->texels;
+        uint8_t* texels = static_cast<uint8_t*>(other->texels);
 
         for (unsigned int h = 0; h < mmpfile->height; ++h) {
             for (unsigned int w = 0; w < mmpfile->width; ++w) {
@@ -561,8 +530,7 @@ namespace cursedearth
         }
     }
 
-    void (*ce_mmpfile_convert_procs[CE_MMPFILE_FORMAT_COUNT])
-                                    (const ce_mmpfile*, ce_mmpfile*) = {
+    void (*ce_mmpfile_convert_procs[CE_MMPFILE_FORMAT_COUNT])(const ce_mmpfile*, ce_mmpfile*) = {
         [CE_MMPFILE_FORMAT_UNKNOWN] = ce_mmpfile_convert_unknown,
         [CE_MMPFILE_FORMAT_DXT1] = ce_mmpfile_convert_dxt,
         [CE_MMPFILE_FORMAT_DXT3] = ce_mmpfile_convert_dxt,
@@ -587,9 +555,7 @@ namespace cursedearth
             mipmap_count = 1;
         }
 
-        ce_mmpfile* other = ce_mmpfile_new(mmpfile->width,
-            mmpfile->height, mipmap_count, format, mmpfile->user_info);
-
+        ce_mmpfile* other = ce_mmpfile_new(mmpfile->width, mmpfile->height, mipmap_count, format, mmpfile->user_info);
         (*ce_mmpfile_convert_procs[mmpfile->format])(mmpfile, other);
 
         ce_mmpfile temp = *mmpfile;
