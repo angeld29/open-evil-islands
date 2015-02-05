@@ -14,6 +14,5 @@ figureviewer --primary-texture=troll00 --animation-name=uattack unmotr
 figureviewer --primary-texture=dragon01 --animation-name=cidle unmodg
 figureviewer --primary-texture=dragon01 --animation-name=ubriefing01 unmodg
 figureviewer --primary-texture=succubus00 --animation-name=cidle unmosu
-figureviewer --primary-texture=troll00 --animation-name=uattack unmotr
 figureviewer --primary-texture=lizardman00 --animation-name=cidle01 unmoli
 figureviewer --primary-texture=mainmenu00 --secondary-texture=mainmenu00labels unmoco2
