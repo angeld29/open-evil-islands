@@ -21,7 +21,7 @@
 #include <cstdio>
 
 #include "str.hpp"
-#include "bytefmt.hpp"
+#include "byteformat.hpp"
 
 namespace cursedearth
 {

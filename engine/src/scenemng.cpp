@@ -26,7 +26,7 @@
 #include "logging.hpp"
 #include "alloc.hpp"
 #include "frustum.hpp"
-#include "bytefmt.hpp"
+#include "byteformat.hpp"
 #include "event.hpp"
 #include "optionmanager.hpp"
 #include "configmanager.hpp"
