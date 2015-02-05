@@ -100,7 +100,8 @@ def build_rc_source(target, source, env):
     nodes = make_nodes(source[0], env)
     with open(target[0].get_abspath(), "wt") as file:
         write_header(file, c_header)
-        file.write("\n#include \"resourcedata.hpp\"\n")
+        file.write("""\n#include "resourcedata.hpp"\n""")
+        file.write("\nnamespace cursedearth\n{\n")
         for node in nodes:
             name = hashlib.md5(make_relpath(node, env)).hexdigest()
             names.append(name)
@@ -123,7 +124,7 @@ def build_rc_source(target, source, env):
         file.write("\nconst unsigned char* ce_resource_data[] = {\n")
         for name in names:
             file.write("\tce_resource_data_%s,\n" % name)
-        file.write("};\n")
+        file.write("};\n\n}\n")
 
 def generate(env):
     env.SetDefault(
