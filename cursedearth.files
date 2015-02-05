@@ -68,7 +68,7 @@ engine/include/optparse.hpp
 engine/include/path.hpp
 engine/include/plane.hpp
 engine/include/property.hpp
-engine/include/quat.hpp
+engine/include/quaternion.hpp
 engine/include/ray.hpp
 engine/include/rect.hpp
 engine/include/regfile.hpp
@@ -202,7 +202,7 @@ engine/src/path_posix.cpp
 engine/src/path_windows.cpp
 engine/src/plane.cpp
 engine/src/property.cpp
-engine/src/quat.cpp
+engine/src/quaternion.cpp
 engine/src/regfile.cpp
 engine/src/registry_generic.cpp
 engine/src/registry_linux.cpp
