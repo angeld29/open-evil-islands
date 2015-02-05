@@ -57,7 +57,7 @@ engine/include/mobfile.hpp
 engine/include/mobloader.hpp
 engine/include/mobmanager.hpp
 engine/include/mprfile.hpp
-engine/include/mprhelper.hpp
+engine/include/mprhelpers.hpp
 engine/include/mprmanager.hpp
 engine/include/mprrenderitem.hpp
 engine/include/object.hpp
@@ -189,7 +189,7 @@ engine/src/mobfile.cpp
 engine/src/mobloader.cpp
 engine/src/mobmanager.cpp
 engine/src/mprfile.cpp
-engine/src/mprhelper.cpp
+engine/src/mprhelpers.cpp
 engine/src/mprmanager.cpp
 engine/src/mprrenderitem_opengl.cpp
 engine/src/object.cpp
