@@ -26,7 +26,7 @@ engine/include/event.hpp
 engine/include/figbone.hpp
 engine/include/figentity.hpp
 engine/include/figfile.hpp
-engine/include/fighlp.hpp
+engine/include/fighelpers.hpp
 engine/include/figmesh.hpp
 engine/include/fignode.hpp
 engine/include/figproto.hpp
@@ -160,7 +160,7 @@ engine/src/event.cpp
 engine/src/figbone.cpp
 engine/src/figentity.cpp
 engine/src/figfile.cpp
-engine/src/fighlp.cpp
+engine/src/fighelpers.cpp
 engine/src/figmesh.cpp
 engine/src/fignode.cpp
 engine/src/figproto.cpp
