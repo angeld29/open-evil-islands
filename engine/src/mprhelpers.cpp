@@ -28,7 +28,7 @@
 #include "plane.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "mprhelper.hpp"
+#include "mprhelpers.hpp"
 
 namespace cursedearth
 {

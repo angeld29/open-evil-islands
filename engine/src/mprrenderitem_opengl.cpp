@@ -32,7 +32,7 @@
 #include "resourcemanager.hpp"
 #include "opengl.hpp"
 #include "texture.hpp"
-#include "mprhelper.hpp"
+#include "mprhelpers.hpp"
 #include "mprrenderitem.hpp"
 
 namespace cursedearth

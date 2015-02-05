@@ -29,7 +29,7 @@
 #include "optionmanager.hpp"
 #include "rendersystem.hpp"
 #include "texturemanager.hpp"
-#include "mprhelper.hpp"
+#include "mprhelpers.hpp"
 #include "mprrenderitem.hpp"
 #include "terrain.hpp"
 

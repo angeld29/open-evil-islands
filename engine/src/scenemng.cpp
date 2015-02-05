@@ -33,7 +33,7 @@
 #include "rendersystem.hpp"
 #include "figuremanager.hpp"
 #include "mprmanager.hpp"
-#include "mprhelper.hpp"
+#include "mprhelpers.hpp"
 #include "mobloader.hpp"
 #include "root.hpp"
 #include "scenemng.hpp"
