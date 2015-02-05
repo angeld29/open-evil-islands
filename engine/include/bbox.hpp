@@ -21,7 +21,7 @@
 #ifndef CE_BBOX_HPP
 #define CE_BBOX_HPP
 
-#include "quat.hpp"
+#include "quaternion.hpp"
 #include "aabb.hpp"
 
 namespace cursedearth

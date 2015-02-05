@@ -22,7 +22,7 @@
 #define CE_RENDERSYSTEM_HPP
 
 #include "vector3.hpp"
-#include "quat.hpp"
+#include "quaternion.hpp"
 #include "color.hpp"
 #include "thread.hpp"
 #include "viewport.hpp"

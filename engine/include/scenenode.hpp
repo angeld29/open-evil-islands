@@ -22,7 +22,7 @@
 #define CE_SCENENODE_HPP
 
 #include "vector3.hpp"
-#include "quat.hpp"
+#include "quaternion.hpp"
 #include "bbox.hpp"
 #include "vector.hpp"
 #include "frustum.hpp"

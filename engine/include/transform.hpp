@@ -22,7 +22,7 @@
 #define CE_TRANSFORM_HPP
 
 #include "vector3.hpp"
-#include "quat.hpp"
+#include "quaternion.hpp"
 
 namespace cursedearth
 {

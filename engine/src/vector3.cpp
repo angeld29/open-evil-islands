@@ -21,7 +21,7 @@
 #include <cmath>
 
 #include "math.hpp"
-#include "quat.hpp"
+#include "quaternion.hpp"
 #include "vector3.hpp"
 
 namespace cursedearth

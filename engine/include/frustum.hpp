@@ -22,7 +22,7 @@
 #define CE_FRUSTUM_HPP
 
 #include "vector3.hpp"
-#include "quat.hpp"
+#include "quaternion.hpp"
 #include "sphere.hpp"
 #include "aabb.hpp"
 #include "bbox.hpp"

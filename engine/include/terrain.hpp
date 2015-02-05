@@ -22,7 +22,7 @@
 #define CE_TERRAIN_HPP
 
 #include "vector3.hpp"
-#include "quat.hpp"
+#include "quaternion.hpp"
 #include "vector.hpp"
 #include "string.hpp"
 #include "thread.hpp"
