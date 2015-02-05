@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_FIGHLP_HPP
-#define CE_FIGHLP_HPP
+#ifndef CE_FIGHELPERS_HPP
+#define CE_FIGHELPERS_HPP
 
 #include "vector3.hpp"
 #include "aabb.hpp"

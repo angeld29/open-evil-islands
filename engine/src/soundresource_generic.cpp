@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
+/**
  * Supported decoders:
  * Ogg Vorbis (lossy compression)
  * FLAC (lossless compression)
@@ -38,10 +38,7 @@
 #include <vorbis/vorbisfile.h>
 
 #include <FLAC/stream_decoder.h>
-
-#ifdef CE_ENABLE_PROPRIETARY
 #include <mad.h>
-#endif
 
 extern "C"
 {
@@ -507,7 +504,6 @@ namespace cursedearth
         return true;
     }
 
-#ifdef CE_ENABLE_PROPRIETARY
     enum {
         CE_MAD_INPUT_BUFFER_CAPACITY = 4 * 8192,
         CE_MAD_OUTPUT_BUFFER_CAPACITY = 8192,
@@ -778,7 +774,6 @@ namespace cursedearth
         ce_mad_init(mad);
         return true;
     }
-#endif
 
     /**
      * @brief Bink Audio (C) RAD Game Tools, Inc.
@@ -931,9 +926,7 @@ namespace cursedearth
         {ce_vorbis_test, ce_vorbis_ctor, ce_vorbis_dtor, ce_vorbis_decode, ce_vorbis_reset},
         {ce_flac_test, ce_flac_ctor, ce_flac_dtor, ce_flac_decode, ce_flac_reset},
         {ce_wave_test, ce_wave_ctor, NULL, ce_wave_decode, ce_wave_reset},
-#ifdef CE_ENABLE_PROPRIETARY
         {ce_mad_test, ce_mad_ctor, ce_mad_dtor, ce_mad_decode, ce_mad_reset},
-#endif
         {ce_bink_test, ce_bink_ctor, ce_bink_dtor, ce_bink_decode, ce_bink_reset},
     };
 

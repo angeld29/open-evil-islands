@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_MAT3_HPP
-#define CE_MAT3_HPP
+#ifndef CE_MATRIX3_HPP
+#define CE_MATRIX3_HPP
 
 namespace cursedearth
 {

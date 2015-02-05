@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_RECT_HPP
-#define CE_RECT_HPP
+#ifndef CE_RECTANGLE_HPP
+#define CE_RECTANGLE_HPP
 
 namespace cursedearth
 {

@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_MPRHELPER_HPP
-#define CE_MPRHELPER_HPP
+#ifndef CE_MPRHELPERS_HPP
+#define CE_MPRHELPERS_HPP
 
 #include <cstdint>
 

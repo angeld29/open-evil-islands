@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_QUAT_HPP
-#define CE_QUAT_HPP
+#ifndef CE_QUATERNION_HPP
+#define CE_QUATERNION_HPP
 
 #include <cmath>
 

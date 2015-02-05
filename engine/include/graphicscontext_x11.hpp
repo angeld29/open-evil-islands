@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_GRAPHICCONTEXT_PLATFORM_HPP
-#define CE_GRAPHICCONTEXT_PLATFORM_HPP
+#ifndef CE_GRAPHICSCONTEXT_PLATFORM_HPP
+#define CE_GRAPHICSCONTEXT_PLATFORM_HPP
 
 #include "graphicscontext.hpp"
 #include "glew_x11.hpp"

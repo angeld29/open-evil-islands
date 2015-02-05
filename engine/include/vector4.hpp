@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_VEC4_HPP
-#define CE_VEC4_HPP
+#ifndef CE_VECTOR4_HPP
+#define CE_VECTOR4_HPP
 
 namespace cursedearth
 {

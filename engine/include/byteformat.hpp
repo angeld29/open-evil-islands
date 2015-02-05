@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_BYTEFMT_HPP
-#define CE_BYTEFMT_HPP
+#ifndef CE_BYTEFORMAT_HPP
+#define CE_BYTEFORMAT_HPP
 
 namespace cursedearth
 {

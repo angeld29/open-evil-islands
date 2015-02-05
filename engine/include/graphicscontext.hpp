@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_GRAPHICCONTEXT_HPP
-#define CE_GRAPHICCONTEXT_HPP
+#ifndef CE_GRAPHICSCONTEXT_HPP
+#define CE_GRAPHICSCONTEXT_HPP
 
 namespace cursedearth
 {
