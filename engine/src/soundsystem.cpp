@@ -20,7 +20,6 @@
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "event.hpp"
 #include "optionmanager.hpp"
 #include "soundsystem.hpp"
 
@@ -45,22 +44,14 @@ namespace cursedearth
         return vt;
     }
 
-    void ce_sound_system_exit(ce_event*)
-    {
-        ce_sound_system->done = true;
-    }
-
     void ce_sound_system_exec(void*)
     {
         for (size_t i = 0; !ce_sound_system->done; ++i) {
             ce_semaphore_acquire(ce_sound_system->used_blocks, 1);
-
             if (!(*ce_sound_system->vtable.write)(ce_sound_system->blocks[i % CE_SOUND_SYSTEM_BLOCK_COUNT])) {
                 ce_logging_critical("sound system: could not write block");
             }
-
             ce_semaphore_release(ce_sound_system->free_blocks, 1);
-            ce_event_manager_process_events(ce_thread_self(), CE_EVENT_FLAG_ALL_EVENTS);
         }
     }
 
@@ -116,15 +107,12 @@ namespace cursedearth
     void ce_sound_system_term(void)
     {
         if (NULL != ce_sound_system) {
-            ce_event_manager_post_call(ce_thread_get_id(ce_sound_system->thread), ce_sound_system_exit);
-
+            ce_sound_system->done = true;
             ce_semaphore_release(ce_sound_system->used_blocks, 1);
             ce_thread_wait(ce_sound_system->thread);
-
             ce_thread_del(ce_sound_system->thread);
             ce_semaphore_del(ce_sound_system->used_blocks);
             ce_semaphore_del(ce_sound_system->free_blocks);
-
             ce_sound_system_dtor();
         }
     }

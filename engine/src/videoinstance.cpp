@@ -24,22 +24,15 @@
 #include "lib.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "event.hpp"
 #include "rendersystem.hpp"
 #include "shadermanager.hpp"
 #include "videoinstance.hpp"
 
 namespace cursedearth
 {
-    void ce_video_instance_exit(ce_event* event)
-    {
-        ce_video_instance* video_instance = (ce_video_instance*)((ce_event_ptr*)event->impl)->ptr;
-        video_instance->done = true;
-    }
-
     void ce_video_instance_exec(ce_video_instance* video_instance)
     {
-        for (size_t i = ce_semaphore_available(video_instance->prepared_frames); ; ++i) {
+        for (size_t i = ce_semaphore_available(video_instance->prepared_frames); !video_instance->done; ++i) {
             ce_semaphore_acquire(video_instance->unprepared_frames, 1);
 
             if (!ce_video_resource_read(video_instance->video_resource)) {
@@ -68,11 +61,6 @@ namespace cursedearth
             }
 
             ce_semaphore_release(video_instance->prepared_frames, 1);
-            ce_event_manager_process_events(ce_thread_self(), CE_EVENT_FLAG_ALL_EVENTS);
-
-            if (video_instance->done) {
-                break;
-            }
         }
     }
 
@@ -111,25 +99,20 @@ namespace cursedearth
     void ce_video_instance_del(ce_video_instance* video_instance)
     {
         if (NULL != video_instance) {
-            ce_event_manager_post_ptr(ce_thread_get_id(video_instance->thread), ce_video_instance_exit, video_instance);
-
+            video_instance->done = true;
             ce_semaphore_release(video_instance->unprepared_frames, 1);
             ce_thread_wait(video_instance->thread);
-
             ce_thread_del(video_instance->thread);
             ce_semaphore_del(video_instance->unprepared_frames);
             ce_semaphore_del(video_instance->prepared_frames);
-
             for (size_t i = 0; i < CE_VIDEO_INSTANCE_CACHE_SIZE; ++i) {
                 ce_mmpfile_del(video_instance->ycbcr_frames[i]);
             }
-
             ce_mmpfile_del(video_instance->rgba_frame);
             ce_material_del(video_instance->material);
             ce_texture_del(video_instance->texture);
             ce_video_resource_del(video_instance->video_resource);
             ce_sound_object_del(video_instance->sound_object);
-
             ce_free(video_instance, sizeof(ce_video_instance));
         }
     }

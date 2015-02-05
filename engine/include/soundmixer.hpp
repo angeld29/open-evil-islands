@@ -21,6 +21,8 @@
 #ifndef CE_SOUNDMIXER_HPP
 #define CE_SOUNDMIXER_HPP
 
+#include <atomic>
+
 #include "vector.hpp"
 #include "thread.hpp"
 #include "soundbuffer.hpp"
@@ -28,7 +30,7 @@
 namespace cursedearth
 {
     extern struct ce_sound_mixer {
-        bool done;
+        std::atomic<bool> done;
         ce_vector* sound_buffers;
         ce_thread* thread;
     }* ce_sound_mixer;

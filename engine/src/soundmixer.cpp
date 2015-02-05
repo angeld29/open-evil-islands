@@ -47,11 +47,6 @@ namespace cursedearth
         ce_sound_buffer_del(sound_buffer);
     }
 
-    void ce_sound_mixer_exit(ce_event*)
-    {
-        ce_sound_mixer->done = true;
-    }
-
     void ce_sound_mixer_convert_sample_s16_s16(int16_t* sample1, const int16_t* sample2, const ce_sound_format* sound_format1, const ce_sound_format* sound_format2)
     {
         for (size_t i = 0; i < sound_format1->channel_count; ++i) {
@@ -126,7 +121,7 @@ namespace cursedearth
     void ce_sound_mixer_term(void)
     {
         if (NULL != ce_sound_mixer) {
-            ce_event_manager_post_call(ce_thread_get_id(ce_sound_mixer->thread), ce_sound_mixer_exit);
+            ce_sound_mixer->done = true;
             ce_thread_wait(ce_sound_mixer->thread);
             ce_thread_del(ce_sound_mixer->thread);
             if (!ce_vector_empty(ce_sound_mixer->sound_buffers)) {

@@ -21,7 +21,7 @@
 #ifndef CE_VIDEOINSTANCE_HPP
 #define CE_VIDEOINSTANCE_HPP
 
-#include <cstddef>
+#include <atomic>
 
 #include "thread.hpp"
 #include "mmpfile.hpp"
@@ -45,7 +45,7 @@ namespace cursedearth
     };
 
     typedef struct {
-        bool done;
+        std::atomic<bool> done;
         ce_video_object video_object;
         ce_sound_object sound_object;
         int state, frame;

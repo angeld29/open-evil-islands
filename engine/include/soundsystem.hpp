@@ -21,7 +21,7 @@
 #ifndef CE_SOUNDSYSTEM_HPP
 #define CE_SOUNDSYSTEM_HPP
 
-#include <cstddef>
+#include <atomic>
 
 #include "thread.hpp"
 #include "soundformat.hpp"
@@ -46,7 +46,7 @@ namespace cursedearth
     } ce_sound_system_vtable;
 
     extern struct ce_sound_system {
-        bool done;
+        std::atomic<bool> done;
         ce_sound_format sound_format;
         unsigned int samples_per_second; // actual value supported by implementation/hardware
         size_t next_block;
