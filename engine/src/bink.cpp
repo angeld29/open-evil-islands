@@ -25,7 +25,7 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "byteorder.hpp"
-#include "bitwiseoperations.hpp"
+#include "bitmanipulations.hpp"
 #include "bink.hpp"
 
 namespace cursedearth
@@ -107,8 +107,8 @@ namespace cursedearth
             ce_mem_file_read(mem_file, &next_pos, 4, 1);
 
             // bit 0 indicates that frame is a keyframe; I'm not using it
-            bink_indices[i].pos = ce_bitclr(uint32_t, pos, 0);
-            bink_indices[i].length = ce_bitclr(uint32_t, next_pos, 0);
+            bink_indices[i].pos = clear_bit(pos, 0);
+            bink_indices[i].length = clear_bit(next_pos, 0);
 
             if (bink_indices[i].length <= bink_indices[i].pos) {
                 return false;
