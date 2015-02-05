@@ -21,7 +21,7 @@
 #ifndef CE_FIGENTITY_HPP
 #define CE_FIGENTITY_HPP
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 #include "quat.hpp"
 #include "vector.hpp"
 #include "figmesh.hpp"

@@ -21,7 +21,7 @@
 #ifndef CE_SPHERE_HPP
 #define CE_SPHERE_HPP
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 
 namespace cursedearth
 {

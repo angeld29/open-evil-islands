@@ -21,7 +21,7 @@
 #ifndef CE_FRUSTUM_HPP
 #define CE_FRUSTUM_HPP
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 #include "quat.hpp"
 #include "sphere.hpp"
 #include "aabb.hpp"

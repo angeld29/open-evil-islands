@@ -21,7 +21,7 @@
 #ifndef CE_SEGMENT_HPP
 #define CE_SEGMENT_HPP
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 
 namespace cursedearth
 {

@@ -22,7 +22,7 @@
 
 #include "math.hpp"
 #include "quat.hpp"
-#include "vec3.hpp"
+#include "vector3.hpp"
 
 namespace cursedearth
 {

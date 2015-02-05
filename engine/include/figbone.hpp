@@ -21,7 +21,7 @@
 #ifndef CE_FIGBONE_HPP
 #define CE_FIGBONE_HPP
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 #include "quat.hpp"
 #include "bbox.hpp"
 #include "vector.hpp"

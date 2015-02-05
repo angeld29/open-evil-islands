@@ -21,7 +21,7 @@
 #ifndef CE_TERRAIN_HPP
 #define CE_TERRAIN_HPP
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 #include "quat.hpp"
 #include "vector.hpp"
 #include "string.hpp"

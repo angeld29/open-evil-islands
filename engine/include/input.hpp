@@ -28,7 +28,7 @@
 #include <cstddef>
 #include <cstdarg>
 
-#include "vec2.hpp"
+#include "vector2.hpp"
 #include "vector.hpp"
 
 namespace cursedearth

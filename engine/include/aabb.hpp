@@ -21,7 +21,7 @@
 #ifndef CE_AABB_HPP
 #define CE_AABB_HPP
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 #include "quat.hpp"
 
 namespace cursedearth

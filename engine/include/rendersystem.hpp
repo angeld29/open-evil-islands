@@ -21,7 +21,7 @@
 #ifndef CE_RENDERSYSTEM_HPP
 #define CE_RENDERSYSTEM_HPP
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 #include "quat.hpp"
 #include "color.hpp"
 #include "thread.hpp"

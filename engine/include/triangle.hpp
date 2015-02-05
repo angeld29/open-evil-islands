@@ -21,7 +21,7 @@
 #ifndef CE_TRIANGLE_HPP
 #define CE_TRIANGLE_HPP
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 
 namespace cursedearth
 {

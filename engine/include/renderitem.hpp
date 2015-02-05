@@ -24,7 +24,7 @@
 #include <cstddef>
 #include <cstdarg>
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 #include "quat.hpp"
 #include "aabb.hpp"
 #include "bbox.hpp"

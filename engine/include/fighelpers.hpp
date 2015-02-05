@@ -21,7 +21,7 @@
 #ifndef CE_FIGHLP_HPP
 #define CE_FIGHLP_HPP
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 #include "aabb.hpp"
 #include "sphere.hpp"
 #include "complection.hpp"

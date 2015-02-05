@@ -21,7 +21,7 @@
 #ifndef CE_SCENENODE_HPP
 #define CE_SCENENODE_HPP
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 #include "quat.hpp"
 #include "bbox.hpp"
 #include "vector.hpp"

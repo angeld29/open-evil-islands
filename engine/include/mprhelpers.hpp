@@ -23,7 +23,7 @@
 
 #include <cstdint>
 
-#include "vec3.hpp"
+#include "vector3.hpp"
 #include "aabb.hpp"
 #include "vector.hpp"
 #include "thread.hpp"
