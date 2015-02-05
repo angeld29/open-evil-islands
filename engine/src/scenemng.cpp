@@ -277,14 +277,10 @@ namespace cursedearth
         void (*advance)(ce_scenemng* scenemng, float elapsed);
         void (*render)(ce_scenemng* scenemng);
     } ce_scenemng_state_procs[CE_SCENEMNG_STATE_COUNT] = {
-        [CE_SCENEMNG_STATE_LOGO] = {ce_scenemng_advance_logo,
-                                        ce_scenemng_render_logo},
-        [CE_SCENEMNG_STATE_READY] = {ce_scenemng_advance_ready,
-                                        ce_scenemng_render_ready},
-        [CE_SCENEMNG_STATE_LOADING] = {ce_scenemng_advance_loading,
-                                        ce_scenemng_render_loading},
-        [CE_SCENEMNG_STATE_PLAYING] = {ce_scenemng_advance_playing,
-                                        ce_scenemng_render_playing},
+        { ce_scenemng_advance_logo, ce_scenemng_render_logo },
+        { ce_scenemng_advance_ready, ce_scenemng_render_ready },
+        { ce_scenemng_advance_loading, ce_scenemng_render_loading },
+        { ce_scenemng_advance_playing, ce_scenemng_render_playing }
     };
 
     void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)

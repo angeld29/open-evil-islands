@@ -34,9 +34,9 @@ namespace cursedearth
     } ce_shader_opengl;
 
     const GLenum ce_shader_opengl_types[CE_SHADER_TYPE_COUNT] = {
-        [CE_SHADER_TYPE_UNKNOWN] = 0,
-        [CE_SHADER_TYPE_VERTEX] = GL_VERTEX_SHADER,
-        [CE_SHADER_TYPE_FRAGMENT] = GL_FRAGMENT_SHADER,
+        0,
+        GL_VERTEX_SHADER,
+        GL_FRAGMENT_SHADER
     };
 
     bool ce_shader_is_available(void)

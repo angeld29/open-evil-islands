@@ -41,19 +41,8 @@ namespace cursedearth
     };
 
     const uint32_t ce_mmpfile_format_signatures[CE_MMPFILE_FORMAT_COUNT] = {
-        [CE_MMPFILE_FORMAT_UNKNOWN] = 0x0,
-        [CE_MMPFILE_FORMAT_DXT1] = 0x31545844,
-        [CE_MMPFILE_FORMAT_DXT3] = 0x33545844,
-        [CE_MMPFILE_FORMAT_PNT3] = 0x33544e50,
-        [CE_MMPFILE_FORMAT_R5G6B5] = 0x5650,
-        [CE_MMPFILE_FORMAT_A1RGB5] = 0x5551,
-        [CE_MMPFILE_FORMAT_ARGB4] = 0x4444,
-        [CE_MMPFILE_FORMAT_ARGB8] = 0x8888,
-        [CE_MMPFILE_FORMAT_RGB5A1] = 0x45431555,
-        [CE_MMPFILE_FORMAT_RGBA4] = 0x45434444,
-        [CE_MMPFILE_FORMAT_RGBA8] = 0x45438888,
-        [CE_MMPFILE_FORMAT_R8G8B8A8] = 0x45435442,
-        [CE_MMPFILE_FORMAT_YCBCR] = 0x4543554c,
+        0x0, 0x31545844, 0x33545844, 0x33544e50, 0x5650, 0x5551, 0x4444,
+        0x8888, 0x45431555, 0x45434444, 0x45438888, 0x45435442, 0x4543554c
     };
 
     ce_mmpfile_format ce_mmpfile_format_find(uint32_t signature)
@@ -67,19 +56,7 @@ namespace cursedearth
     }
 
     const uint32_t ce_mmpfile_bit_counts[CE_MMPFILE_FORMAT_COUNT] = {
-        [CE_MMPFILE_FORMAT_UNKNOWN] = 0,
-        [CE_MMPFILE_FORMAT_DXT1] = 4,
-        [CE_MMPFILE_FORMAT_DXT3] = 8,
-        [CE_MMPFILE_FORMAT_PNT3] = 0,
-        [CE_MMPFILE_FORMAT_R5G6B5] = 16,
-        [CE_MMPFILE_FORMAT_A1RGB5] = 16,
-        [CE_MMPFILE_FORMAT_ARGB4] = 16,
-        [CE_MMPFILE_FORMAT_ARGB8] = 32,
-        [CE_MMPFILE_FORMAT_RGB5A1] = 16,
-        [CE_MMPFILE_FORMAT_RGBA4] = 16,
-        [CE_MMPFILE_FORMAT_RGBA8] = 32,
-        [CE_MMPFILE_FORMAT_R8G8B8A8] = 32,
-        [CE_MMPFILE_FORMAT_YCBCR] = 24,
+        0, 4, 8, 0, 16, 16, 16, 32, 16, 16, 32, 32, 24
     };
 
     void ce_mmpfile_write_header_null(ce_mmpfile* mmpfile)
@@ -163,19 +140,19 @@ namespace cursedearth
     }
 
     void (*ce_mmpfile_write_header_procs[CE_MMPFILE_FORMAT_COUNT])(ce_mmpfile*) = {
-        [CE_MMPFILE_FORMAT_UNKNOWN] = ce_mmpfile_write_header_null,
-        [CE_MMPFILE_FORMAT_DXT1] = ce_mmpfile_write_header_dxt1,
-        [CE_MMPFILE_FORMAT_DXT3] = ce_mmpfile_write_header_dxt3,
-        [CE_MMPFILE_FORMAT_PNT3] = ce_mmpfile_write_header_null,
-        [CE_MMPFILE_FORMAT_R5G6B5] = ce_mmpfile_write_header_r5g6b5,
-        [CE_MMPFILE_FORMAT_A1RGB5] = ce_mmpfile_write_header_a1rgb5,
-        [CE_MMPFILE_FORMAT_ARGB4] = ce_mmpfile_write_header_argb4,
-        [CE_MMPFILE_FORMAT_ARGB8] = ce_mmpfile_write_header_argb8,
-        [CE_MMPFILE_FORMAT_RGB5A1] = ce_mmpfile_write_header_rgb5a1,
-        [CE_MMPFILE_FORMAT_RGBA4] = ce_mmpfile_write_header_rgba4,
-        [CE_MMPFILE_FORMAT_RGBA8] = ce_mmpfile_write_header_rgba8,
-        [CE_MMPFILE_FORMAT_R8G8B8A8] = ce_mmpfile_write_header_null,
-        [CE_MMPFILE_FORMAT_YCBCR] = ce_mmpfile_write_header_null,
+        ce_mmpfile_write_header_null,
+        ce_mmpfile_write_header_dxt1,
+        ce_mmpfile_write_header_dxt3,
+        ce_mmpfile_write_header_null,
+        ce_mmpfile_write_header_r5g6b5,
+        ce_mmpfile_write_header_a1rgb5,
+        ce_mmpfile_write_header_argb4,
+        ce_mmpfile_write_header_argb8,
+        ce_mmpfile_write_header_rgb5a1,
+        ce_mmpfile_write_header_rgba4,
+        ce_mmpfile_write_header_rgba8,
+        ce_mmpfile_write_header_null,
+        ce_mmpfile_write_header_null
     };
 
     inline size_t ce_mmpfile_storage_size_generic(unsigned int width, unsigned int height, ce_mmpfile_format format)
@@ -195,19 +172,19 @@ namespace cursedearth
     }
 
     size_t (*ce_mmpfile_storage_size_procs[CE_MMPFILE_FORMAT_COUNT])(unsigned int width, unsigned int height, ce_mmpfile_format format) = {
-        [CE_MMPFILE_FORMAT_UNKNOWN] = ce_mmpfile_storage_size_generic,
-        [CE_MMPFILE_FORMAT_DXT1] = ce_mmpfile_storage_size_dxt,
-        [CE_MMPFILE_FORMAT_DXT3] = ce_mmpfile_storage_size_dxt,
-        [CE_MMPFILE_FORMAT_PNT3] = ce_mmpfile_storage_size_generic,
-        [CE_MMPFILE_FORMAT_R5G6B5] = ce_mmpfile_storage_size_generic,
-        [CE_MMPFILE_FORMAT_A1RGB5] = ce_mmpfile_storage_size_generic,
-        [CE_MMPFILE_FORMAT_ARGB4] = ce_mmpfile_storage_size_generic,
-        [CE_MMPFILE_FORMAT_ARGB8] = ce_mmpfile_storage_size_generic,
-        [CE_MMPFILE_FORMAT_RGB5A1] = ce_mmpfile_storage_size_generic,
-        [CE_MMPFILE_FORMAT_RGBA4] = ce_mmpfile_storage_size_generic,
-        [CE_MMPFILE_FORMAT_RGBA8] = ce_mmpfile_storage_size_generic,
-        [CE_MMPFILE_FORMAT_R8G8B8A8] = ce_mmpfile_storage_size_generic,
-        [CE_MMPFILE_FORMAT_YCBCR] = ce_mmpfile_storage_size_ycbcr,
+        ce_mmpfile_storage_size_generic,
+        ce_mmpfile_storage_size_dxt,
+        ce_mmpfile_storage_size_dxt,
+        ce_mmpfile_storage_size_generic,
+        ce_mmpfile_storage_size_generic,
+        ce_mmpfile_storage_size_generic,
+        ce_mmpfile_storage_size_generic,
+        ce_mmpfile_storage_size_generic,
+        ce_mmpfile_storage_size_generic,
+        ce_mmpfile_storage_size_generic,
+        ce_mmpfile_storage_size_generic,
+        ce_mmpfile_storage_size_generic,
+        ce_mmpfile_storage_size_ycbcr
     };
 
     size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height, unsigned int mipmap_count, ce_mmpfile_format format)
@@ -531,19 +508,19 @@ namespace cursedearth
     }
 
     void (*ce_mmpfile_convert_procs[CE_MMPFILE_FORMAT_COUNT])(const ce_mmpfile*, ce_mmpfile*) = {
-        [CE_MMPFILE_FORMAT_UNKNOWN] = ce_mmpfile_convert_unknown,
-        [CE_MMPFILE_FORMAT_DXT1] = ce_mmpfile_convert_dxt,
-        [CE_MMPFILE_FORMAT_DXT3] = ce_mmpfile_convert_dxt,
-        [CE_MMPFILE_FORMAT_PNT3] = ce_mmpfile_convert_pnt3,
-        [CE_MMPFILE_FORMAT_R5G6B5] = ce_mmpfile_convert_r5g6b5,
-        [CE_MMPFILE_FORMAT_A1RGB5] = ce_mmpfile_convert_a1rgb5,
-        [CE_MMPFILE_FORMAT_ARGB4] = ce_mmpfile_convert_argb4,
-        [CE_MMPFILE_FORMAT_ARGB8] = ce_mmpfile_convert_argb8,
-        [CE_MMPFILE_FORMAT_RGB5A1] = ce_mmpfile_convert_unknown,
-        [CE_MMPFILE_FORMAT_RGBA4] = ce_mmpfile_convert_unknown,
-        [CE_MMPFILE_FORMAT_RGBA8] = ce_mmpfile_convert_unknown,
-        [CE_MMPFILE_FORMAT_R8G8B8A8] = ce_mmpfile_convert_r8g8b8a8,
-        [CE_MMPFILE_FORMAT_YCBCR] = ce_mmpfile_convert_ycbcr,
+        ce_mmpfile_convert_unknown,
+        ce_mmpfile_convert_dxt,
+        ce_mmpfile_convert_dxt,
+        ce_mmpfile_convert_pnt3,
+        ce_mmpfile_convert_r5g6b5,
+        ce_mmpfile_convert_a1rgb5,
+        ce_mmpfile_convert_argb4,
+        ce_mmpfile_convert_argb8,
+        ce_mmpfile_convert_unknown,
+        ce_mmpfile_convert_unknown,
+        ce_mmpfile_convert_unknown,
+        ce_mmpfile_convert_r8g8b8a8,
+        ce_mmpfile_convert_ycbcr
     };
 
     void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format)

@@ -36,11 +36,11 @@ namespace cursedearth
     }
 
     void (*ce_value_new_procs[CE_TYPE_COUNT])(ce_value*) = {
-        [CE_TYPE_VOID] = ce_value_void,
-        [CE_TYPE_BOOL] = ce_value_void,
-        [CE_TYPE_INT] = ce_value_void,
-        [CE_TYPE_FLOAT] = ce_value_void,
-        [CE_TYPE_STRING] = ce_value_void,
+        ce_value_void,
+        ce_value_void,
+        ce_value_void,
+        ce_value_void,
+        ce_value_void
     };
 
     void ce_value_del_string(ce_value* value)
@@ -49,11 +49,11 @@ namespace cursedearth
     }
 
     void (*ce_value_del_procs[CE_TYPE_COUNT])(ce_value*) = {
-        [CE_TYPE_VOID] = ce_value_void,
-        [CE_TYPE_BOOL] = ce_value_void,
-        [CE_TYPE_INT] = ce_value_void,
-        [CE_TYPE_FLOAT] = ce_value_void,
-        [CE_TYPE_STRING] = ce_value_del_string,
+        ce_value_void,
+        ce_value_void,
+        ce_value_void,
+        ce_value_void,
+        ce_value_del_string
     };
 
     void ce_value_get_bool_proc(ce_value* value, void* arg)
@@ -77,11 +77,11 @@ namespace cursedearth
     }
 
     void (*ce_value_get_procs[CE_TYPE_COUNT])(ce_value*, void*) = {
-        [CE_TYPE_VOID] = ce_value_void_arg,
-        [CE_TYPE_BOOL] = ce_value_get_bool_proc,
-        [CE_TYPE_INT] = ce_value_get_int_proc,
-        [CE_TYPE_FLOAT] = ce_value_get_float_proc,
-        [CE_TYPE_STRING] = ce_value_get_string_proc,
+        ce_value_void_arg,
+        ce_value_get_bool_proc,
+        ce_value_get_int_proc,
+        ce_value_get_float_proc,
+        ce_value_get_string_proc
     };
 
     void ce_value_set_bool_proc(ce_value* value, const void* arg)
@@ -111,11 +111,11 @@ namespace cursedearth
     }
 
     void (*ce_value_set_procs[CE_TYPE_COUNT])(ce_value*, const void*) = {
-        [CE_TYPE_VOID] = ce_value_void_arg_const,
-        [CE_TYPE_BOOL] = ce_value_set_bool_proc,
-        [CE_TYPE_INT] = ce_value_set_int_proc,
-        [CE_TYPE_FLOAT] = ce_value_set_float_proc,
-        [CE_TYPE_STRING] = ce_value_set_string_proc,
+        ce_value_void_arg_const,
+        ce_value_set_bool_proc,
+        ce_value_set_int_proc,
+        ce_value_set_float_proc,
+        ce_value_set_string_proc
     };
 
     ce_value* ce_value_new(ce_type type)

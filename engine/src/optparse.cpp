@@ -187,11 +187,11 @@ namespace cursedearth
     }
 
     void* (*ce_optparse_create_procs[CE_TYPE_COUNT])(ce_object*) = {
-        [CE_TYPE_VOID] = ce_optparse_create_void,
-        [CE_TYPE_BOOL] = ce_optparse_create_bool,
-        [CE_TYPE_INT] = ce_optparse_create_int,
-        [CE_TYPE_FLOAT] = ce_optparse_create_float,
-        [CE_TYPE_STRING] = ce_optparse_create_string,
+        ce_optparse_create_void,
+        ce_optparse_create_bool,
+        ce_optparse_create_int,
+        ce_optparse_create_float,
+        ce_optparse_create_string
     };
 
     void ce_optparse_assign_void(ce_object*, void*)
@@ -234,11 +234,11 @@ namespace cursedearth
     }
 
     void (*ce_optparse_assign_procs[CE_TYPE_COUNT])(ce_object*, void*) = {
-        [CE_TYPE_VOID] = ce_optparse_assign_void,
-        [CE_TYPE_BOOL] = ce_optparse_assign_bool,
-        [CE_TYPE_INT] = ce_optparse_assign_int,
-        [CE_TYPE_FLOAT] = ce_optparse_assign_float,
-        [CE_TYPE_STRING] = ce_optparse_assign_string,
+        ce_optparse_assign_void,
+        ce_optparse_assign_bool,
+        ce_optparse_assign_int,
+        ce_optparse_assign_float,
+        ce_optparse_assign_string
     };
 
     void ce_optparse_usage(ce_optparse* optparse, void* argtable[], const char* progname)

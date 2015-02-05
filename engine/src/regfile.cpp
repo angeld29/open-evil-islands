@@ -61,9 +61,9 @@ namespace cursedearth
     }
 
     ce_property* (*ce_reg_create_option_procs[])(ce_mem_file*, const char*) = {
-        [0] = ce_reg_create_option_int,
-        [1] = ce_reg_create_option_float,
-        [2] = ce_reg_create_option_string,
+        ce_reg_create_option_int,
+        ce_reg_create_option_float,
+        ce_reg_create_option_string,
     };
 
     ce_reg_file* ce_reg_file_new(ce_mem_file* mem_file)
