@@ -21,9 +21,6 @@
 #ifndef CE_GLEW_HPP
 #define CE_GLEW_HPP
 
-#define GLEW_STATIC
-#define GLEW_MX
-
 #include <GL/glew.h>
 
 #define glewGetContext() (&ce_glew_context)

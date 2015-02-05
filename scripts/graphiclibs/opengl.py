@@ -24,4 +24,11 @@ import logging
 def configure(env):
     env["CE_OPENGL_BIT"] = True
 
+    env.AppendUnique(
+        CPPDEFINES=[
+            "GLEW_STATIC",
+            "GLEW_MX",
+        ],
+    )
+
     logging.info("graphiclibs: using Open Graphics Library")
