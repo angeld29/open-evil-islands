@@ -21,8 +21,9 @@
 #ifndef CE_FIGPROTO_HPP
 #define CE_FIGPROTO_HPP
 
+#include <atomic>
+
 #include "string.hpp"
-#include "atomic.hpp"
 #include "resfile.hpp"
 #include "adbfile.hpp"
 #include "fignode.hpp"
@@ -31,7 +32,7 @@
 namespace cursedearth
 {
     typedef struct {
-        int ref_count;
+        std::atomic<int> ref_count;
         ce_string* name;
         ce_adb_file* adb_file;
         ce_fignode* fignode;
@@ -42,7 +43,7 @@ namespace cursedearth
 
     inline ce_figproto* ce_figproto_add_ref(ce_figproto* figproto)
     {
-        ce_atomic_inc(int, &figproto->ref_count);
+        ++figproto->ref_count;
         return figproto;
     }
 

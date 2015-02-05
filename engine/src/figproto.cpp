@@ -84,8 +84,8 @@ namespace cursedearth
     void ce_figproto_del(ce_figproto* figproto)
     {
         if (NULL != figproto) {
-            assert(ce_atomic_fetch(int, &figproto->ref_count) > 0);
-            if (0 == ce_atomic_dec_and_fetch(int, &figproto->ref_count)) {
+            assert(figproto->ref_count > 0);
+            if (0 == --figproto->ref_count) {
                 ce_fignode_del(figproto->fignode);
                 ce_adb_file_del(figproto->adb_file);
                 ce_string_del(figproto->name);

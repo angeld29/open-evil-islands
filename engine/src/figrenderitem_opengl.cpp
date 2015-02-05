@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
 #include <cstdio>
 #include <cstring>
-#include <cassert>
+#include <atomic>
 
 #include "math.hpp"
 #include "alloc.hpp"
-#include "atomic.hpp"
 #include "opengl.hpp"
 #include "anmstate.hpp"
 #include "fighelpers.hpp"
@@ -37,7 +37,7 @@ namespace cursedearth
      */
     struct ce_figcookie_static
     {
-        int ref_count;
+        std::atomic<int> ref_count;
         GLuint id;
     };
 
@@ -52,8 +52,8 @@ namespace cursedearth
     void ce_figcookie_static_del(ce_figcookie_static* cookie)
     {
         if (NULL != cookie) {
-            assert(ce_atomic_fetch(int, &cookie->ref_count) > 0);
-            if (0 == ce_atomic_dec_and_fetch(int, &cookie->ref_count)) {
+            assert(cookie->ref_count > 0);
+            if (0 == --cookie->ref_count) {
                 glDeleteLists(cookie->id, 1);
                 ce_free(cookie, sizeof(ce_figcookie_static));
             }
@@ -62,7 +62,7 @@ namespace cursedearth
 
     inline ce_figcookie_static* ce_figcookie_static_add_ref(ce_figcookie_static* cookie)
     {
-        ce_atomic_inc(int, &cookie->ref_count);
+        ++cookie->ref_count;
         return cookie;
     }
 
@@ -154,8 +154,8 @@ namespace cursedearth
     void ce_figcookie_dynamic_del(ce_figcookie_dynamic* cookie)
     {
         if (NULL != cookie) {
-            assert(ce_atomic_fetch(int, &cookie->ref_count) > 0);
-            if (0 == ce_atomic_dec_and_fetch(int, &cookie->ref_count)) {
+            assert(cookie->ref_count > 0);
+            if (0 == --cookie->ref_count) {
                 if (GLEW_VERSION_1_5) {
                     glDeleteBuffers(1, &cookie->texcoords.buffer);
                     glDeleteBuffers(1, &cookie->normals.buffer);
@@ -171,7 +171,7 @@ namespace cursedearth
 
     inline ce_figcookie_dynamic* ce_figcookie_dynamic_add_ref(ce_figcookie_dynamic* cookie)
     {
-        ce_atomic_inc(int, &cookie->ref_count);
+        ++cookie->ref_count;
         return cookie;
     }
 

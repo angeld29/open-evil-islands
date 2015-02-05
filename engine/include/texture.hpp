@@ -21,7 +21,8 @@
 #ifndef CE_TEXTURE_HPP
 #define CE_TEXTURE_HPP
 
-#include "atomic.hpp"
+#include <atomic>
+
 #include "string.hpp"
 #include "mmpfile.hpp"
 
@@ -35,7 +36,7 @@ namespace cursedearth
     } ce_texture_wrap_mode;
 
     typedef struct {
-        int ref_count;
+        std::atomic<int> ref_count;
         ce_string* name;
         unsigned int width, height;
         void* impl;
@@ -55,7 +56,7 @@ namespace cursedearth
 
     inline ce_texture* ce_texture_add_ref(ce_texture* texture)
     {
-        ce_atomic_inc(int, &texture->ref_count);
+        ++texture->ref_count;
         return texture;
     }
 }

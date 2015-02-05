@@ -21,9 +21,8 @@
 #ifndef CE_SHADER_HPP
 #define CE_SHADER_HPP
 
-#include <cstddef>
+#include <atomic>
 
-#include "atomic.hpp"
 #include "string.hpp"
 
 namespace cursedearth
@@ -41,7 +40,7 @@ namespace cursedearth
     } ce_shader_info;
 
     typedef struct {
-        int ref_count;
+        std::atomic<int> ref_count;
         ce_string* name;
         void* impl;
     } ce_shader;
@@ -58,7 +57,7 @@ namespace cursedearth
 
     inline ce_shader* ce_shader_add_ref(ce_shader* shader)
     {
-        ce_atomic_inc(int, &shader->ref_count);
+        ++shader->ref_count;
         return shader;
     }
 }

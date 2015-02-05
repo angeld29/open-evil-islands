@@ -257,8 +257,8 @@ namespace cursedearth
     void ce_texture_del(ce_texture* texture)
     {
         if (NULL != texture) {
-            assert(ce_atomic_fetch(int, &texture->ref_count) > 0);
-            if (0 == ce_atomic_dec_and_fetch(int, &texture->ref_count)) {
+            assert(texture->ref_count > 0);
+            if (0 == --texture->ref_count) {
                 ce_texture_opengl* opengl_texture = (ce_texture_opengl*)texture->impl;
                 glDeleteTextures(1, &opengl_texture->id);
                 ce_string_del(texture->name);

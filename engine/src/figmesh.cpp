@@ -51,8 +51,8 @@ namespace cursedearth
     void ce_figmesh_del(ce_figmesh* figmesh)
     {
         if (NULL != figmesh) {
-            assert(ce_atomic_fetch(int, &figmesh->ref_count) > 0);
-            if (0 == ce_atomic_dec_and_fetch(int, &figmesh->ref_count)) {
+            assert(figmesh->ref_count > 0);
+            if (0 == --figmesh->ref_count) {
                 ce_vector_for_each(figmesh->renderitems, (void(*)(void*))ce_renderitem_del);
                 ce_vector_del(figmesh->renderitems);
                 ce_figproto_del(figmesh->figproto);

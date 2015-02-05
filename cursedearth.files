@@ -3,7 +3,6 @@ engine/include/adbfile.hpp
 engine/include/alloc.hpp
 engine/include/anmfile.hpp
 engine/include/anmstate.hpp
-engine/include/atomic.hpp
 engine/include/avcodec.hpp
 engine/include/bbox.hpp
 engine/include/bink.hpp
@@ -136,7 +135,6 @@ engine/src/adbfile.cpp
 engine/src/alloc.cpp
 engine/src/anmfile.cpp
 engine/src/anmstate.cpp
-engine/src/atomic_gcc.cpp
 engine/src/avcodec.cpp
 engine/src/bbox.cpp
 engine/src/bink.cpp

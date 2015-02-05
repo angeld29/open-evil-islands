@@ -21,8 +21,9 @@
 #ifndef CE_FIGMESH_HPP
 #define CE_FIGMESH_HPP
 
+#include <atomic>
+
 #include "vector.hpp"
-#include "atomic.hpp"
 #include "figproto.hpp"
 #include "complection.hpp"
 #include "renderitem.hpp"
@@ -30,7 +31,7 @@
 namespace cursedearth
 {
     typedef struct {
-        int ref_count;
+        std::atomic<int> ref_count;
         ce_figproto* figproto;
         ce_complection complection;
         ce_vector* renderitems;
@@ -41,7 +42,7 @@ namespace cursedearth
 
     inline ce_figmesh* ce_figmesh_add_ref(ce_figmesh* figmesh)
     {
-        ce_atomic_inc(int, &figmesh->ref_count);
+        ++figmesh->ref_count;
         return figmesh;
     }
 }

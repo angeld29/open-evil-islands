@@ -21,10 +21,7 @@
 #ifndef CE_THREAD_HPP
 #define CE_THREAD_HPP
 
-#include <cstddef>
-
 #include "vector.hpp"
-#include "atomic.hpp"
 
 namespace cursedearth
 {
