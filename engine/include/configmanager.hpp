@@ -24,7 +24,7 @@
 #include "vector.hpp"
 #include "string.hpp"
 #include "color.hpp"
-#include "rect.hpp"
+#include "rectangle.hpp"
 
 namespace cursedearth
 {
