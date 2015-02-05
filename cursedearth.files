@@ -47,8 +47,8 @@ engine/include/lib.hpp
 engine/include/lnkfile.hpp
 engine/include/logging.hpp
 engine/include/makeunique.hpp
-engine/include/mat3.hpp
-engine/include/mat4.hpp
+engine/include/matrix3.hpp
+engine/include/matrix4.hpp
 engine/include/material.hpp
 engine/include/math.hpp
 engine/include/memfile.hpp
@@ -179,8 +179,8 @@ engine/src/hash.cpp
 engine/src/input.cpp
 engine/src/lnkfile.cpp
 engine/src/logging.cpp
-engine/src/mat3.cpp
-engine/src/mat4.cpp
+engine/src/matrix3.cpp
+engine/src/matrix4.cpp
 engine/src/material.cpp
 engine/src/math.cpp
 engine/src/memfile.cpp
