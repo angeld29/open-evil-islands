@@ -27,12 +27,16 @@ namespace cursedearth
 {
     ce_video_object ce_video_object_new(const char* name)
     {
-        ce_video_instance* video_instance = ce_video_manager_create_instance(name);
-        return NULL != video_instance ? video_instance->video_object : 0;
+        return ce_video_manager_create_object(name);
     }
 
     void ce_video_object_del(ce_video_object)
     {
+    }
+
+    bool ce_video_object_is_valid(ce_video_object video_object)
+    {
+        return 0 != video_object && NULL != ce_video_manager_find_instance(video_object);
     }
 
     void ce_video_object_advance(ce_video_object video_object, float elapsed)

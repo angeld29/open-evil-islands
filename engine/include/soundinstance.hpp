@@ -21,24 +21,31 @@
 #ifndef CE_SOUNDINSTANCE_HPP
 #define CE_SOUNDINSTANCE_HPP
 
-#include "soundstate.hpp"
-#include "soundbundle.hpp"
-#include "soundbuffer.hpp"
+#include <atomic>
+
+#include "thread.hpp"
+#include "soundobject.hpp"
 #include "soundresource.hpp"
+#include "soundbuffer.hpp"
 
 namespace cursedearth
 {
-    typedef struct {
-        ce_sound_bundle sound_bundle;
+    struct ce_sound_instance
+    {
+        ce_sound_object sound_object;
         ce_sound_resource* sound_resource;
         ce_sound_buffer* sound_buffer;
-    } ce_sound_instance;
+        std::atomic<int> state;
+        std::atomic<float> time;
+        std::atomic<bool> done;
+        ce_thread* thread;
+    };
 
-    ce_sound_instance* ce_sound_instance_new(ce_sound_resource* sound_resource);
-    void ce_sound_instance_del(ce_sound_instance* sound_instance);
+    ce_sound_instance* ce_sound_instance_new(ce_sound_object, ce_sound_resource*);
+    void ce_sound_instance_del(ce_sound_instance*);
 
-    void ce_sound_instance_advance(ce_sound_instance* sound_instance, float elapsed);
-    void ce_sound_instance_change_state(ce_sound_instance* sound_instance, int state);
+    void ce_sound_instance_advance(ce_sound_instance*, float elapsed);
+    void ce_sound_instance_change_state(ce_sound_instance*, int state);
 }
 
 #endif

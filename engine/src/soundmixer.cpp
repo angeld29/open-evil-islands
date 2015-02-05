@@ -135,7 +135,7 @@ namespace cursedearth
 
     ce_sound_buffer* ce_sound_mixer_create_buffer(void)
     {
-        ce_sound_buffer* sound_buffer = ce_sound_buffer_new(CE_SOUND_SYSTEM_BLOCK_SIZE * CE_SOUND_SYSTEM_BLOCK_COUNT);
+        ce_sound_buffer* sound_buffer = ce_sound_buffer_new(2 * CE_SOUND_SYSTEM_BLOCK_SIZE);
         ce_event_manager_post_ptr(ce_thread_get_id(ce_sound_mixer->thread), ce_sound_mixer_create_buffer_react, sound_buffer);
         return sound_buffer;
     }

@@ -22,8 +22,8 @@
 #define CE_VIDEOMANAGER_HPP
 
 #include "vector.hpp"
-#include "videoobject.hpp"
 #include "videoinstance.hpp"
+#include "videoobject.hpp"
 
 namespace cursedearth
 {
@@ -37,7 +37,7 @@ namespace cursedearth
 
     void ce_video_manager_advance(float elapsed);
 
-    ce_video_instance* ce_video_manager_create_instance(const char* name);
+    ce_video_object ce_video_manager_create_object(const char* name);
     ce_video_instance* ce_video_manager_find_instance(ce_video_object video_object);
 }
 

@@ -69,8 +69,8 @@ namespace cursedearth
         ce_video_instance* video_instance = (ce_video_instance*)ce_alloc_zero(sizeof(ce_video_instance));
         video_instance->video_object = video_object;
         video_instance->sound_object = sound_object;
-        video_instance->frame = -1;
         video_instance->video_resource = video_resource;
+        video_instance->frame = -1;
         video_instance->texture = ce_texture_new("frame", NULL);
         video_instance->material = ce_material_new();
         video_instance->material->mode = CE_MATERIAL_MODE_REPLACE;

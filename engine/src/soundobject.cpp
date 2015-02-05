@@ -28,43 +28,55 @@ namespace cursedearth
         return ce_sound_manager_create_object(name);
     }
 
-    void ce_sound_object_del(ce_sound_object sound_object)
+    void ce_sound_object_del(ce_sound_object)
     {
-        if (0 != sound_object) {
-            ce_sound_manager_remove_object(sound_object);
-        }
     }
 
     bool ce_sound_object_is_valid(ce_sound_object sound_object)
     {
-        ce_sound_bundle* sound_bundle = ce_sound_manager_get_bundle(sound_object);
-        return NULL != sound_bundle;
+        return 0 != sound_object && NULL != ce_sound_manager_find_instance(sound_object);
+    }
+
+    void ce_sound_object_advance(ce_sound_object, float elapsed)
+    {
+        if (ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object)) {
+            ce_sound_instance_advance(sound_instance, elapsed);
+        }
     }
 
     void ce_sound_object_stop(ce_sound_object sound_object)
     {
-        ce_sound_manager_state_object(sound_object, CE_SOUND_STATE_STOPPED);
+        ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object);
+        if (NULL != sound_instance) {
+            ce_sound_instance_change_state(CE_SOUND_STATE_STOPPED);
+        }
     }
 
     void ce_sound_object_pause(ce_sound_object sound_object)
     {
-        ce_sound_manager_state_object(sound_object, CE_SOUND_STATE_PAUSED);
+        ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object);
+        if (NULL != sound_instance) {
+            // CE_SOUND_STATE_PAUSED
+        }
     }
 
     void ce_sound_object_play(ce_sound_object sound_object)
     {
-        ce_sound_manager_state_object(sound_object, CE_SOUND_STATE_PLAYING);
+        ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object);
+        if (NULL != sound_instance) {
+            // CE_SOUND_STATE_PLAYING
+        }
     }
 
     int ce_sound_object_get_state(ce_sound_object sound_object)
     {
-        ce_sound_bundle* sound_bundle = ce_sound_manager_get_bundle(sound_object);
-        return NULL != sound_bundle ? sound_bundle->state : CE_SOUND_STATE_STOPPED;
+        ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object);
+        return NULL != sound_instance ? sound_instance->state.load() : CE_SOUND_STATE_STOPPED;
     }
 
     float ce_sound_object_get_time(ce_sound_object sound_object)
     {
-        ce_sound_bundle* sound_bundle = ce_sound_manager_get_bundle(sound_object);
-        return NULL != sound_bundle ? sound_bundle->time : 0.0f;
+        ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object);
+        return NULL != sound_instance ? sound_instance->time.load() : 0.0f;
     }
 }

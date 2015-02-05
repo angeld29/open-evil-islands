@@ -22,22 +22,14 @@
 #define CE_SOUNDMANAGER_HPP
 
 #include "vector.hpp"
-#include "hash.hpp"
-#include "thread.hpp"
-#include "timer.hpp"
 #include "soundinstance.hpp"
-#include "soundbundle.hpp"
 
 namespace cursedearth
 {
     extern struct ce_sound_manager {
-        ce_thread_id thread_id;
-        ce_hash_key last_hash_key;
+        ce_sound_object last_sound_object;
         ce_vector* res_files;
-        ce_hash* sound_instances;
-        ce_hash* sound_bundles;
-        ce_timer* timer;
-        ce_thread* thread;
+        ce_vector* sound_instances;
     }* ce_sound_manager;
 
     void ce_sound_manager_init(void);
@@ -45,15 +37,8 @@ namespace cursedearth
 
     void ce_sound_manager_advance(float elapsed);
 
-    ce_hash_key ce_sound_manager_create_object(const char* name);
-    void ce_sound_manager_remove_object(ce_hash_key hash_key);
-
-    void ce_sound_manager_state_object(ce_hash_key hash_key, int state);
-
-    inline ce_sound_bundle* ce_sound_manager_get_bundle(ce_hash_key hash_key)
-    {
-        return (ce_sound_bundle*)ce_hash_find(ce_sound_manager->sound_bundles, hash_key);
-    }
+    ce_sound_object ce_sound_manager_create_object(const char* name);
+    ce_sound_instance* ce_sound_manager_find_instance(ce_sound_object sound_object);
 }
 
 #endif
