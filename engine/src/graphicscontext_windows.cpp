@@ -23,11 +23,11 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "error_windows.hpp"
-#include "graphiccontext_windows.hpp"
+#include "graphicscontext_windows.hpp"
 
 namespace cursedearth
 {
-    ce_graphic_context* ce_graphic_context_new(HDC dc)
+    ce_graphics_context* ce_graphics_context_new(HDC dc)
     {
         PIXELFORMATDESCRIPTOR pfd = {
             sizeof(PIXELFORMATDESCRIPTOR),
@@ -59,7 +59,7 @@ namespace cursedearth
 
         DescribePixelFormat(dc, pixel_format, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
-        ce_graphic_context_visual_info(pixel_format, 0 != (pfd.dwFlags & PFD_DOUBLEBUFFER), pfd.cColorBits,
+        ce_graphics_context_visual_info(pixel_format, 0 != (pfd.dwFlags & PFD_DOUBLEBUFFER), pfd.cColorBits,
             pfd.cRedBits, pfd.cGreenBits, pfd.cBlueBits, pfd.cAlphaBits, pfd.cDepthBits, pfd.cStencilBits);
 
         if (!SetPixelFormat(dc, pixel_format, &pfd)) {
@@ -68,45 +68,45 @@ namespace cursedearth
             return NULL;
         }
 
-        ce_graphic_context* graphic_context = (ce_graphic_context*)ce_alloc_zero(sizeof(ce_graphic_context));
+        ce_graphics_context* graphics_context = (ce_graphics_context*)ce_alloc_zero(sizeof(ce_graphics_context));
 
-        graphic_context->context = wglCreateContext(dc);
-        if (NULL == graphic_context->context) {
+        graphics_context->context = wglCreateContext(dc);
+        if (NULL == graphics_context->context) {
             ce_error_report_windows_last("graphic context");
             ce_logging_fatal("graphic context: could not create context");
-            ce_graphic_context_del(graphic_context);
+            ce_graphics_context_del(graphics_context);
             return NULL;
         }
 
         assert(NULL == wglGetCurrentContext());
-        wglMakeCurrent(dc, graphic_context->context);
+        wglMakeCurrent(dc, graphics_context->context);
 
         GLenum result;
         if (GLEW_OK != (result = glewInit()) || GLEW_OK != (result = wglewInit())) {
             ce_logging_fatal("graphic context: %s", glewGetErrorString(result));
-            ce_graphic_context_del(graphic_context);
+            ce_graphics_context_del(graphics_context);
             return NULL;
         }
 
-        return graphic_context;
+        return graphics_context;
     }
 
-    void ce_graphic_context_del(ce_graphic_context* graphic_context)
+    void ce_graphics_context_del(ce_graphics_context* graphics_context)
     {
-        if (NULL != graphic_context) {
-            assert(wglGetCurrentContext() == graphic_context->context);
-            if (NULL != graphic_context->context) {
+        if (NULL != graphics_context) {
+            assert(wglGetCurrentContext() == graphics_context->context);
+            if (NULL != graphics_context->context) {
                 wglMakeCurrent(wglGetCurrentDC(), NULL);
-                wglDeleteContext(graphic_context->context);
+                wglDeleteContext(graphics_context->context);
             }
-            ce_free(graphic_context, sizeof(ce_graphic_context));
+            ce_free(graphics_context, sizeof(ce_graphics_context));
         }
     }
 
-    void ce_graphic_context_swap(ce_graphic_context* graphic_context)
+    void ce_graphics_context_swap(ce_graphics_context* graphics_context)
     {
         assert(NULL != wglGetCurrentContext());
-        assert(wglGetCurrentContext() == graphic_context->context);
+        assert(wglGetCurrentContext() == graphics_context->context);
         SwapBuffers(wglGetCurrentDC());
     }
 }

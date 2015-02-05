@@ -21,21 +21,21 @@
 #ifndef CE_GRAPHICCONTEXT_PLATFORM_HPP
 #define CE_GRAPHICCONTEXT_PLATFORM_HPP
 
-#include "graphiccontext.hpp"
+#include "graphicscontext.hpp"
 #include "glew_x11.hpp"
 
 namespace cursedearth
 {
-    struct ce_graphic_context {
+    struct ce_graphics_context {
         int error_base, event_base;
         int major_version, minor_version;
         XVisualInfo* visual_info;
         GLXContext context;
     };
 
-    ce_graphic_context* ce_graphic_context_new(Display* display);
+    ce_graphics_context* ce_graphics_context_new(Display* display);
 
-    bool ce_graphic_context_make_current(ce_graphic_context* graphic_context, Display* display, GLXDrawable drawable);
+    bool ce_graphics_context_make_current(ce_graphics_context* graphics_context, Display* display, GLXDrawable drawable);
 }
 
 #endif

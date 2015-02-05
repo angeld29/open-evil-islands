@@ -30,7 +30,7 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "display_x11.hpp"
-#include "graphiccontext_x11.hpp"
+#include "graphicscontext_x11.hpp"
 #include "renderwindow.hpp"
 
 namespace cursedearth
@@ -104,7 +104,7 @@ namespace cursedearth
         }
 
         renderwindow->displaymng = ce_displaymng_create(x11window->display);
-        renderwindow->graphic_context = ce_graphic_context_new(x11window->display);
+        renderwindow->graphics_context = ce_graphics_context_new(x11window->display);
 
         // absolutely don't understand how XChangeKeyboardMapping work...
         const unsigned long keys[CE_IB_COUNT] = {
@@ -135,7 +135,7 @@ namespace cursedearth
 
         for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
             x11window->mask[i] = CWColormap | CWEventMask | CWOverrideRedirect;
-            x11window->attrs[i].colormap = XCreateColormap(x11window->display, XDefaultRootWindow(x11window->display), renderwindow->graphic_context->visual_info->visual, AllocNone);
+            x11window->attrs[i].colormap = XCreateColormap(x11window->display, XDefaultRootWindow(x11window->display), renderwindow->graphics_context->visual_info->visual, AllocNone);
             x11window->attrs[i].event_mask = EnterWindowMask | LeaveWindowMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
                 PointerMotionMask | ButtonMotionMask | FocusChangeMask | VisibilityChangeMask | StructureNotifyMask;
             x11window->attrs[i].override_redirect = (CE_RENDERWINDOW_STATE_FULLSCREEN == i);
@@ -169,12 +169,12 @@ namespace cursedearth
             XDefaultRootWindow(x11window->display), 0, 0,
             renderwindow->geometry[renderwindow->state].width,
             renderwindow->geometry[renderwindow->state].height,
-            0, renderwindow->graphic_context->visual_info->depth,
-            InputOutput, renderwindow->graphic_context->visual_info->visual,
+            0, renderwindow->graphics_context->visual_info->depth,
+            InputOutput, renderwindow->graphics_context->visual_info->visual,
             x11window->mask[renderwindow->state],
             &x11window->attrs[renderwindow->state]);
 
-        if (!ce_graphic_context_make_current(renderwindow->graphic_context, x11window->display, x11window->window)) {
+        if (!ce_graphics_context_make_current(renderwindow->graphics_context, x11window->display, x11window->window)) {
             ce_logging_fatal("renderwindow: could not set graphic context");
             return false;
         }
@@ -200,7 +200,7 @@ namespace cursedearth
     {
         ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
-        ce_graphic_context_del(renderwindow->graphic_context);
+        ce_graphics_context_del(renderwindow->graphics_context);
         ce_displaymng_del(renderwindow->displaymng);
 
         if (0 != x11window->window) {

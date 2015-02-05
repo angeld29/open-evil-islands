@@ -21,16 +21,16 @@
 #ifndef CE_GRAPHICCONTEXT_PLATFORM_HPP
 #define CE_GRAPHICCONTEXT_PLATFORM_HPP
 
-#include "graphiccontext.hpp"
+#include "graphicscontext.hpp"
 #include "glew_windows.hpp"
 
 namespace cursedearth
 {
-    struct ce_graphic_context {
+    struct ce_graphics_context {
         HGLRC context;
     };
 
-    ce_graphic_context* ce_graphic_context_new(HDC dc);
+    ce_graphics_context* ce_graphics_context_new(HDC dc);
 }
 
 #endif

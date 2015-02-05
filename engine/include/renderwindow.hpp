@@ -27,7 +27,7 @@
 #include "vector.hpp"
 #include "input.hpp"
 #include "display.hpp"
-#include "graphiccontext.hpp"
+#include "graphicscontext.hpp"
 
 namespace cursedearth
 {
@@ -107,7 +107,7 @@ namespace cursedearth
         // request to switch in fullscreen mode when the window was restored
         bool restore_fullscreen;
         ce_displaymng* displaymng;
-        ce_graphic_context* graphic_context;
+        ce_graphics_context* graphics_context;
         ce_input_context* input_context;
         ce_renderwindow_keymap* keymap;
         ce_vector* listeners;

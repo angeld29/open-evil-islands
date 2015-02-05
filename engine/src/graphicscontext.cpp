@@ -19,11 +19,11 @@
  */
 
 #include "logging.hpp"
-#include "graphiccontext.hpp"
+#include "graphicscontext.hpp"
 
 namespace cursedearth
 {
-    void ce_graphic_context_visual_info(int id, int db, int sz, int r, int g, int b, int a, int dp, int st)
+    void ce_graphics_context_visual_info(int id, int db, int sz, int r, int g, int b, int a, int dp, int st)
     {
         ce_logging_write("graphic context: visual %d chosen", id);
         ce_logging_write("graphic context: +------+----+----+----+----+----+----+----+----+");

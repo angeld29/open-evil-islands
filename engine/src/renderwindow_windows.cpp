@@ -29,7 +29,7 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "display_windows.hpp"
-#include "graphiccontext_windows.hpp"
+#include "graphicscontext_windows.hpp"
 #include "renderwindow.hpp"
 
 namespace cursedearth
@@ -217,8 +217,8 @@ namespace cursedearth
 
         SetWindowLongPtr(winwindow->window, GWLP_USERDATA, (LONG_PTR)renderwindow);
 
-        renderwindow->graphic_context = ce_graphic_context_new(GetDC(winwindow->window));
-        if (NULL == renderwindow->graphic_context) {
+        renderwindow->graphics_context = ce_graphics_context_new(GetDC(winwindow->window));
+        if (NULL == renderwindow->graphics_context) {
             ce_logging_fatal("renderwindow: could not create graphic context");
             return false;
         }
@@ -230,7 +230,7 @@ namespace cursedearth
     {
         ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 
-        ce_graphic_context_del(renderwindow->graphic_context);
+        ce_graphics_context_del(renderwindow->graphics_context);
         ce_displaymng_del(renderwindow->displaymng);
 
         if (NULL != winwindow->window) {
