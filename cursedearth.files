@@ -6,7 +6,7 @@ engine/include/anmstate.hpp
 engine/include/avcodec.hpp
 engine/include/bbox.hpp
 engine/include/bink.hpp
-engine/include/bitop.hpp
+engine/include/bitwiseoperations.hpp
 engine/include/bonfile.hpp
 engine/include/byteformat.hpp
 engine/include/byteorder.hpp
