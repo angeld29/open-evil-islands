@@ -28,7 +28,7 @@
 #include "logging.hpp"
 #include "root.hpp"
 #include "texturemanager.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "figentity.hpp"
 
 namespace cursedearth

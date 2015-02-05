@@ -27,7 +27,7 @@
 #include "atomic.hpp"
 #include "opengl.hpp"
 #include "anmstate.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "figrenderitem.hpp"
 
 namespace cursedearth

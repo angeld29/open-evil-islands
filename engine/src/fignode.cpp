@@ -22,7 +22,7 @@
 
 #include "str.hpp"
 #include "alloc.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "fignode.hpp"
 
 namespace cursedearth

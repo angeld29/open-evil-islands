@@ -29,7 +29,7 @@
 #include "logging.hpp"
 #include "resfile.hpp"
 #include "optionmanager.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "figuremanager.hpp"
 
 namespace cursedearth

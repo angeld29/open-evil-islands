@@ -21,7 +21,7 @@
 #include <cassert>
 
 #include "logging.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 
 namespace cursedearth
 {

@@ -20,7 +20,7 @@
 
 #include "alloc.hpp"
 #include "scenenode.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "figbone.hpp"
 
 namespace cursedearth

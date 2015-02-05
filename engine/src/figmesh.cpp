@@ -21,7 +21,7 @@
 #include <cassert>
 
 #include "alloc.hpp"
-#include "fighlp.hpp"
+#include "fighelpers.hpp"
 #include "figrenderitem.hpp"
 #include "figmesh.hpp"
 
