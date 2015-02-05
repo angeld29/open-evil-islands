@@ -70,7 +70,7 @@ engine/include/plane.hpp
 engine/include/property.hpp
 engine/include/quaternion.hpp
 engine/include/ray.hpp
-engine/include/rect.hpp
+engine/include/rectangle.hpp
 engine/include/regfile.hpp
 engine/include/registry.hpp
 engine/include/rendergroup.hpp
