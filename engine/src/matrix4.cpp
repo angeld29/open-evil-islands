@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mat4.hpp"
+#include "matrix4.hpp"
 
 namespace cursedearth
 {

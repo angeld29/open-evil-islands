@@ -22,7 +22,7 @@
 
 #include "lib.hpp"
 #include "math.hpp"
-#include "mat4.hpp"
+#include "matrix4.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "opengl.hpp"
