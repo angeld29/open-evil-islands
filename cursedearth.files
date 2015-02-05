@@ -9,7 +9,7 @@ engine/include/bbox.hpp
 engine/include/bink.hpp
 engine/include/bitop.hpp
 engine/include/bonfile.hpp
-engine/include/bytefmt.hpp
+engine/include/byteformat.hpp
 engine/include/byteorder.hpp
 engine/include/camera.hpp
 engine/include/camfile.hpp
@@ -141,7 +141,7 @@ engine/src/avcodec.cpp
 engine/src/bbox.cpp
 engine/src/bink.cpp
 engine/src/bonfile.cpp
-engine/src/bytefmt.cpp
+engine/src/byteformat.cpp
 engine/src/byteorder.cpp
 engine/src/byteorder_generic.cpp
 engine/src/byteorder_linux.cpp
