@@ -22,12 +22,12 @@
 def configure_release_mode(env):
     env.AppendUnique(
         CCFLAGS=["-O2", "-w"],
-        LINKFLAGS=["-s"], # remove all symbol table and relocation information
+        LINKFLAGS=["-s"],
     )
 
 def configure_debug_mode(env):
     env.AppendUnique(
-        CCFLAGS=["-g", "-Wall", "-Wextra"],
+        CCFLAGS=["-ggdb", "-Wall", "-Wextra"],
     )
 
 configure_build_mode = {
@@ -41,7 +41,8 @@ def configure(env):
     env.AppendUnique(
         CFLAGS=["-std=c11"],     # C11   ISO/IEC 9899:2011
         CXXFLAGS=["-std=c++11"], # C++11 ISO/IEC 14882:2011
-        CCFLAGS=["-pipe", "-pedantic-errors", "-ffast-math"],
+        CCFLAGS=["-pipe", "-pedantic-errors"],
+        LINKFLAGS=["-static"],
     )
 
     configure_build_mode[env["BUILD_MODE"]](env)
