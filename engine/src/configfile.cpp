@@ -80,7 +80,7 @@ namespace cursedearth
                 ce_vector_push_back(config_file->sections, section);
             } else {
                 if (NULL == section) {
-                    ce_logging_warning("config file: %s:%d: option outside of any section: `%s'", path, line_number, line);
+                    // skip comments on top of the file
                     continue;
                 }
 

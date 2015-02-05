@@ -66,7 +66,7 @@ namespace cursedearth
         };
 
         for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
-            ce_logging_write("render system: checking for '%s' extension... %s",
+            ce_logging_write("render system: checking for `%s' extension... %s",
                 extensions[i].name, extensions[i].available ? "yes" : "no");
         }
 
