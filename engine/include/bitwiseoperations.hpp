@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_BITOP_HPP
-#define CE_BITOP_HPP
+#ifndef CE_BITWISEOPERATIONS_HPP
+#define CE_BITWISEOPERATIONS_HPP
 
 #include <cstddef>
 #include <cstdint>
