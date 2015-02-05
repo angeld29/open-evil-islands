@@ -42,7 +42,6 @@ def configure(env):
         CFLAGS=["-std=c11"],     # C11   ISO/IEC 9899:2011
         CXXFLAGS=["-std=c++11"], # C++11 ISO/IEC 14882:2011
         CCFLAGS=["-pipe", "-pedantic-errors"],
-        LINKFLAGS=["-static"],
     )
 
     configure_build_mode[env["BUILD_MODE"]](env)
