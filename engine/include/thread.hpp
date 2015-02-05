@@ -132,7 +132,7 @@ namespace cursedearth
      *  All functions are thread-safe.
     */
 
-    struct ce_thread_pool {
+    extern struct ce_thread_pool {
         bool done;
         size_t idle_thread_count;
         ce_vector* threads;

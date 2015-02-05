@@ -98,8 +98,8 @@ namespace cursedearth
 
     ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...)
     {
-        ce_renderwindow* renderwindow = (ce_renderwindow*)ce_alloc_zero(sizeof(ce_renderwindow) + size);
-
+        ce_renderwindow* renderwindow = (ce_renderwindow*)ce_alloc_zero(sizeof(ce_renderwindow));
+        renderwindow->impl = ce_alloc_zero(size);
         renderwindow->vtable = vtable;
         renderwindow->size = size;
 
@@ -134,12 +134,12 @@ namespace cursedearth
             ce_renderwindow_keymap_del(renderwindow->keymap);
             ce_input_context_del(renderwindow->input_context);
 
-            ce_free(renderwindow, sizeof(ce_renderwindow) + renderwindow->size);
+            ce_free(renderwindow->impl, renderwindow->size);
+            ce_free(renderwindow, sizeof(ce_renderwindow));
         }
     }
 
-    void ce_renderwindow_add_listener(ce_renderwindow* renderwindow,
-                                        ce_renderwindow_listener* listener)
+    void ce_renderwindow_add_listener(ce_renderwindow* renderwindow, ce_renderwindow_listener* listener)
     {
         ce_vector_push_back(renderwindow->listeners, listener);
     }

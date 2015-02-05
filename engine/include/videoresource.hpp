@@ -50,6 +50,9 @@ namespace cursedearth
         void* impl;
     };
 
+    extern const size_t CE_VIDEO_RESOURCE_BUILTIN_COUNT;
+    extern const ce_video_resource_vtable ce_video_resource_builtins[];
+
     ce_video_resource* ce_video_resource_new(ce_mem_file* mem_file);
     void ce_video_resource_del(ce_video_resource* video_resource);
 

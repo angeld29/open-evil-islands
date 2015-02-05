@@ -310,10 +310,8 @@ namespace cursedearth
     {
         const ce_figrenderitem_dynamic* figrenderitem = (const ce_figrenderitem_dynamic*)renderitem->impl;
         ce_figrenderitem_dynamic* clone_figrenderitem = (ce_figrenderitem_dynamic*)clone_renderitem->impl;
-
         clone_figrenderitem->cookie = ce_figcookie_dynamic_add_ref(figrenderitem->cookie);
         clone_figrenderitem->vertices = (float*)ce_alloc(sizeof(float) * 3 * figrenderitem->cookie->vertex_count);
-
         memcpy(clone_figrenderitem->vertices, figrenderitem->vertices, sizeof(float) * 3 * figrenderitem->cookie->vertex_count);
     }
 

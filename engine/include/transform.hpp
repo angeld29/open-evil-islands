@@ -32,7 +32,7 @@ namespace cursedearth
         ce_vec3 scaling;
     } ce_transform;
 
-    const ce_transform CE_TRANSFORM_IDENTITY;
+    extern const ce_transform CE_TRANSFORM_IDENTITY;
 
     inline ce_transform* ce_transform_init(ce_transform* transform, const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling)
     {

@@ -65,7 +65,8 @@ namespace cursedearth
                 if (NULL != input_event->vtable.dtor) {
                     (*input_event->vtable.dtor)(input_event);
                 }
-                ce_free(input_event, sizeof(ce_input_event) + input_event->vtable.size);
+                ce_free(input_event->impl, input_event->vtable.size);
+                ce_free(input_event, sizeof(ce_input_event));
             }
             ce_vector_del(input_supply->input_events);
             ce_free(input_supply, sizeof(ce_input_supply));
@@ -80,10 +81,10 @@ namespace cursedearth
         }
     }
 
-    ce_input_event* ce_input_supply_event(ce_input_supply* input_supply,
-                                                ce_input_event_vtable vtable, ...)
+    ce_input_event* ce_input_supply_event(ce_input_supply* input_supply, ce_input_event_vtable vtable, ...)
     {
-        ce_input_event* input_event = (ce_input_event*)ce_alloc_zero(sizeof(ce_input_event) + vtable.size);
+        ce_input_event* input_event = (ce_input_event*)ce_alloc_zero(sizeof(ce_input_event));
+        input_event->impl = ce_alloc_zero(vtable.size);
         input_event->vtable = vtable;
 
         va_list args;
@@ -141,8 +142,7 @@ namespace cursedearth
         single_front_event->activated = single_front_event->event->triggered;
     }
 
-    ce_input_event* ce_input_supply_single_front(ce_input_supply* input_supply,
-                                                const ce_input_event* input_event)
+    ce_input_event* ce_input_supply_single_front(ce_input_supply* input_supply, const ce_input_event* input_event)
     {
         ce_input_event_vtable vt = { sizeof(ce_input_event_single_front), ce_input_event_single_front_ctor, NULL, ce_input_event_single_front_advance };
         return ce_input_supply_event(input_supply, vt, input_event);
@@ -168,8 +168,7 @@ namespace cursedearth
         single_back_event->activated = single_back_event->event->triggered;
     }
 
-    ce_input_event* ce_input_supply_single_back(ce_input_supply* input_supply,
-                                                const ce_input_event* input_event)
+    ce_input_event* ce_input_supply_single_back(ce_input_supply* input_supply, const ce_input_event* input_event)
     {
         ce_input_event_vtable vt = { sizeof(ce_input_event_single_back), ce_input_event_single_back_ctor, NULL, ce_input_event_single_back_advance };
         return ce_input_supply_event(input_supply, vt, input_event);
@@ -300,9 +299,7 @@ namespace cursedearth
         }
     }
 
-    ce_input_event* ce_input_supply_repeat(ce_input_supply* input_supply,
-                                        const ce_input_event* input_event,
-                                        int delay, int rate)
+    ce_input_event* ce_input_supply_repeat(ce_input_supply* input_supply, const ce_input_event* input_event, int delay, int rate)
     {
         ce_input_event_vtable vt = { sizeof(ce_input_event_repeat), ce_input_event_repeat_ctor, NULL, ce_input_event_repeat_advance };
         return ce_input_supply_event(input_supply, vt, input_event, delay, rate);

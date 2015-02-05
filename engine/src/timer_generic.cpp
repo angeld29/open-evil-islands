@@ -23,35 +23,42 @@
 #include "alloc.hpp"
 #include "timer.hpp"
 
-static const float CE_TIMER_CLOCKS_PER_SEC_INV = 1.0f / CLOCKS_PER_SEC;
-
-typedef struct {
-    float elapsed;
-    clock_t start;
-    clock_t stop;
-} ce_timer_std;
-
-ce_timer* ce_timer_new(void)
+namespace cursedearth
 {
-    return ce_alloc(sizeof(ce_timer) + sizeof(ce_timer_std));
-}
+    const float CE_TIMER_CLOCKS_PER_SEC_INV = 1.0f / CLOCKS_PER_SEC;
 
-void ce_timer_del(ce_timer* timer)
-{
-    ce_free(timer, sizeof(ce_timer) + sizeof(ce_timer_std));
-}
+    struct ce_timer
+    {
+        float elapsed;
+        clock_t start;
+        clock_t stop;
+    };
 
-void ce_timer_start(ce_timer* timer)
-{
-    ce_timer_std* std_timer = (ce_timer_std*)timer->impl;
-    std_timer->start = clock();
-}
+    ce_timer* ce_timer_new(void)
+    {
+        return (ce_timer*)ce_alloc(sizeof(ce_timer));
+    }
 
-float ce_timer_advance(ce_timer* timer)
-{
-    ce_timer_std* std_timer = (ce_timer_std*)timer->impl;
-    std_timer->stop = clock();
-    timer->elapsed = (std_timer->stop - std_timer->start) * CE_TIMER_CLOCKS_PER_SEC_INV;
-    std_timer->start = std_timer->stop;
-    return timer->elapsed;
+    void ce_timer_del(ce_timer* timer)
+    {
+        ce_free(timer, sizeof(ce_timer));
+    }
+
+    void ce_timer_start(ce_timer* timer)
+    {
+        timer->start = clock();
+    }
+
+    float ce_timer_advance(ce_timer* timer)
+    {
+        timer->stop = clock();
+        timer->elapsed = (timer->stop - timer->start) * CE_TIMER_CLOCKS_PER_SEC_INV;
+        timer->start = timer->stop;
+        return timer->elapsed;
+    }
+
+    float ce_timer_elapsed(ce_timer* timer)
+    {
+        return timer->elapsed;
+    }
 }

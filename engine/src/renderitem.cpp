@@ -26,7 +26,8 @@ namespace cursedearth
 {
     ce_renderitem* ce_renderitem_new(ce_renderitem_vtable vtable, size_t size, ...)
     {
-        ce_renderitem* renderitem = (ce_renderitem*)ce_alloc_zero(sizeof(ce_renderitem) + size);
+        ce_renderitem* renderitem = (ce_renderitem*)ce_alloc_zero(sizeof(ce_renderitem));
+        renderitem->impl = ce_alloc_zero(size);
         renderitem->visible = true;
         renderitem->vtable = vtable;
         renderitem->size = size;
@@ -43,7 +44,8 @@ namespace cursedearth
     {
         if (NULL != renderitem) {
             (renderitem->vtable.dtor)(renderitem);
-            ce_free(renderitem, sizeof(ce_renderitem) + renderitem->size);
+            ce_free(renderitem->impl, renderitem->size);
+            ce_free(renderitem, sizeof(ce_renderitem));
         }
     }
 
@@ -64,8 +66,9 @@ namespace cursedearth
 
     ce_renderitem* ce_renderitem_clone(const ce_renderitem* renderitem)
     {
-        ce_renderitem* clone_renderitem = (ce_renderitem*)ce_alloc_zero(sizeof(ce_renderitem) + renderitem->size);
+        ce_renderitem* clone_renderitem = (ce_renderitem*)ce_alloc_zero(sizeof(ce_renderitem));
         *clone_renderitem = *renderitem;
+        clone_renderitem->impl = ce_alloc_zero(renderitem->size);
         (renderitem->vtable.clone)(renderitem, clone_renderitem);
         return clone_renderitem;
     }

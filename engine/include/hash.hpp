@@ -40,14 +40,6 @@ namespace cursedearth
         ce_hash_entry** entries;
     } ce_hash;
 
-    typedef struct {
-        bool at_end;
-        void* value;
-        size_t index;
-        ce_hash_entry* entry;
-        ce_hash* hash;
-    } ce_hash_iter;
-
     ce_hash* ce_hash_new(size_t entry_count, void (*item_dtor)());
     void ce_hash_del(ce_hash* hash);
 
@@ -63,11 +55,7 @@ namespace cursedearth
 
     void ce_hash_for_each(ce_hash* hash, void (*func)());
     void ce_hash_for_each_arg1(ce_hash* hash, void (*func)(), void* arg);
-
     void ce_hash_for_each_key(ce_hash* hash, void (*func)(ce_hash_key));
-
-    void ce_hash_iter_first(ce_hash_iter* iter, ce_hash* hash);
-    void ce_hash_iter_next(ce_hash_iter* iter);
 }
 
 #endif

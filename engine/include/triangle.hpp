@@ -25,9 +25,10 @@
 
 namespace cursedearth
 {
-    typedef struct {
+    struct ce_triangle
+    {
         ce_vec3 a, b, c;
-    } ce_triangle;
+    };
 
     inline ce_triangle* ce_triangle_init(ce_triangle* triangle, const ce_vec3* a, const ce_vec3* b, const ce_vec3* c)
     {

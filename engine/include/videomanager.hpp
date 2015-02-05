@@ -27,7 +27,7 @@
 
 namespace cursedearth
 {
-    struct ce_video_manager {
+    extern struct ce_video_manager {
         ce_video_object last_video_object;
         ce_vector* video_instances;
     }* ce_video_manager;

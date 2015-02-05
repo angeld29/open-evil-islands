@@ -22,7 +22,10 @@
 #include <cstring>
 #include <vector>
 
+extern "C"
+{
 #include <libavcodec/avcodec.h>
+}
 
 #include "logging.hpp"
 #include "thread.hpp"

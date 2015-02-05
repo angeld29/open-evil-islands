@@ -43,7 +43,10 @@
 #include <mad.h>
 #endif
 
+extern "C"
+{
 #include <libavcodec/avcodec.h>
+}
 
 #include "lib.hpp"
 #include "math.hpp"

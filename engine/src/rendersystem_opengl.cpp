@@ -177,7 +177,7 @@ namespace cursedearth
             glDeleteLists(ce_render_system->solid_cube_list, 1);
             glDeleteLists(ce_render_system->wire_cube_list, 1);
             glDeleteLists(ce_render_system->axes_list, 1);
-            ce_free(ce_render_system, sizeof(struct ce_render_system) + sizeof(struct ce_render_system));
+            ce_free(ce_render_system, sizeof(struct ce_render_system));
         }
     }
 

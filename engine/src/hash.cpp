@@ -74,7 +74,8 @@ namespace cursedearth
 
     ce_hash* ce_hash_new(size_t entry_count, void (*item_dtor)())
     {
-        ce_hash* hash = (ce_hash*)ce_alloc_zero(sizeof(ce_hash) + sizeof(ce_hash_entry*) * entry_count);
+        ce_hash* hash = (ce_hash*)ce_alloc_zero(sizeof(ce_hash));
+        hash->entries = (ce_hash_entry**)ce_alloc_zero(sizeof(ce_hash_entry*) * entry_count);
         hash->entry_count = entry_count;
         hash->item_dtor = (void(*)(void*))item_dtor;
         return hash;
@@ -86,7 +87,8 @@ namespace cursedearth
             for (size_t i = 0; i < hash->entry_count; ++i) {
                 ce_hash_entry_del_cascade(hash->entries[i], hash->item_dtor);
             }
-            ce_free(hash, sizeof(ce_hash) + sizeof(ce_hash_entry*) * hash->entry_count);
+            ce_free(hash->entries, sizeof(ce_hash_entry*) * hash->entry_count);
+            ce_free(hash, sizeof(ce_hash));
         }
     }
 
@@ -132,17 +134,17 @@ namespace cursedearth
         return NULL;
     }
 
-    void ce_hash_for_each(ce_hash* hash, void (*func)(void*))
+    void ce_hash_for_each(ce_hash* hash, void (*func)())
     {
         for (size_t i = 0; i < hash->entry_count; ++i) {
-            ce_hash_entry_for_each(hash->entries[i], func);
+            ce_hash_entry_for_each(hash->entries[i], (void (*)(void*))func);
         }
     }
 
-    void ce_hash_for_each_arg1(ce_hash* hash, void (*func)(void*, void*), void* arg)
+    void ce_hash_for_each_arg1(ce_hash* hash, void (*func)(), void* arg)
     {
         for (size_t i = 0; i < hash->entry_count; ++i) {
-            ce_hash_entry_for_each_arg1(hash->entries[i], func, arg);
+            ce_hash_entry_for_each_arg1(hash->entries[i], (void (*)(void*, void*))func, arg);
         }
     }
 
@@ -150,45 +152,6 @@ namespace cursedearth
     {
         for (size_t i = 0; i < hash->entry_count; ++i) {
             ce_hash_entry_for_each_key(hash->entries[i], func);
-        }
-    }
-
-    void ce_hash_iter_first(ce_hash_iter* iter, ce_hash* hash)
-    {
-        iter->hash = hash;
-
-        if (0 != hash->item_count && 0 != hash->entry_count) {
-            iter->at_end = false;
-            iter->index = 0;
-            iter->entry = hash->entries[0];
-
-            if (NULL != iter->entry) {
-                iter->value = iter->entry->value;
-            } else {
-                ce_hash_iter_next(iter);
-            }
-        } else {
-            iter->at_end = true;
-        }
-    }
-
-    void ce_hash_iter_next(ce_hash_iter* iter)
-    {
-        while (!iter->at_end) {
-            if (NULL != iter->entry) {
-                iter->entry = iter->entry->next;
-            } else {
-                if (++iter->index < iter->hash->entry_count) {
-                    iter->entry = iter->hash->entries[iter->index];
-                } else {
-                    iter->at_end = true;
-                }
-            }
-
-            if (NULL != iter->entry) {
-                iter->value = iter->entry->value;
-                break;
-            }
         }
     }
 }

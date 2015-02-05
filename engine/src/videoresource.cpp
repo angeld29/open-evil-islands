@@ -24,58 +24,59 @@
 #include "logging.hpp"
 #include "videoresource.hpp"
 
-extern const size_t CE_VIDEO_RESOURCE_BUILTIN_COUNT;
-extern const ce_video_resource_vtable ce_video_resource_builtins[];
-
-ce_video_resource* ce_video_resource_new(ce_mem_file* mem_file)
+namespace cursedearth
 {
-    size_t index;
-    for (index = 0; index < CE_VIDEO_RESOURCE_BUILTIN_COUNT; ++index) {
+    ce_video_resource* ce_video_resource_new(ce_mem_file* mem_file)
+    {
+        size_t index;
+        for (index = 0; index < CE_VIDEO_RESOURCE_BUILTIN_COUNT; ++index) {
+            ce_mem_file_rewind(mem_file);
+            if ((*ce_video_resource_builtins[index].test)(mem_file)) {
+                break;
+            }
+        }
+
         ce_mem_file_rewind(mem_file);
-        if ((*ce_video_resource_builtins[index].test)(mem_file)) {
-            break;
+        if (CE_VIDEO_RESOURCE_BUILTIN_COUNT == index) {
+            return NULL;
+        }
+
+        size_t size = (*ce_video_resource_builtins[index].size_hint)(mem_file);
+        ce_mem_file_rewind(mem_file);
+
+        ce_video_resource* video_resource =(ce_video_resource*)ce_alloc_zero(sizeof(ce_video_resource));
+        video_resource->impl = ce_alloc_zero(size);
+        video_resource->mem_file = mem_file;
+        video_resource->vtable = ce_video_resource_builtins[index];
+        video_resource->size = size;
+
+        if (!(*video_resource->vtable.ctor)(video_resource)) {
+            // do not take ownership if failed
+            video_resource->mem_file = NULL;
+            ce_video_resource_del(video_resource);
+            return NULL;
+        }
+
+        return video_resource;
+    }
+
+    void ce_video_resource_del(ce_video_resource* video_resource)
+    {
+        if (NULL != video_resource) {
+            if (NULL != video_resource->vtable.dtor) {
+                (*video_resource->vtable.dtor)(video_resource);
+            }
+            ce_mem_file_del(video_resource->mem_file);
+            ce_free(video_resource->impl, video_resource->size);
+            ce_free(video_resource, sizeof(ce_video_resource));
         }
     }
 
-    ce_mem_file_rewind(mem_file);
-    if (CE_VIDEO_RESOURCE_BUILTIN_COUNT == index) {
-        return NULL;
+    bool ce_video_resource_reset(ce_video_resource* video_resource)
+    {
+        video_resource->time = 0.0f;
+        video_resource->frame_index = 0;
+        ce_mem_file_rewind(video_resource->mem_file);
+        return (*video_resource->vtable.reset)(video_resource);
     }
-
-    size_t size = (*ce_video_resource_builtins[index].size_hint)(mem_file);
-    ce_mem_file_rewind(mem_file);
-
-    ce_video_resource* video_resource = ce_alloc_zero(sizeof(ce_video_resource) + size);
-
-    video_resource->mem_file = mem_file;
-    video_resource->vtable = ce_video_resource_builtins[index];
-    video_resource->size = size;
-
-    if (!(*video_resource->vtable.ctor)(video_resource)) {
-        // do not take ownership if failed
-        video_resource->mem_file = NULL;
-        ce_video_resource_del(video_resource);
-        return NULL;
-    }
-
-    return video_resource;
-}
-
-void ce_video_resource_del(ce_video_resource* video_resource)
-{
-    if (NULL != video_resource) {
-        if (NULL != video_resource->vtable.dtor) {
-            (*video_resource->vtable.dtor)(video_resource);
-        }
-        ce_mem_file_del(video_resource->mem_file);
-        ce_free(video_resource, sizeof(ce_video_resource) + video_resource->size);
-    }
-}
-
-bool ce_video_resource_reset(ce_video_resource* video_resource)
-{
-    video_resource->time = 0.0f;
-    video_resource->frame_index = 0;
-    ce_mem_file_rewind(video_resource->mem_file);
-    return (*video_resource->vtable.reset)(video_resource);
 }
