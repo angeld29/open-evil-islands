@@ -21,6 +21,8 @@
 #ifndef CE_BITMANIPULATIONS_HPP
 #define CE_BITMANIPULATIONS_HPP
 
+#include <cstddef>
+
 namespace cursedearth
 {
     template <typename T>
