@@ -24,64 +24,52 @@
 #include "alloc.hpp"
 #include "timer.hpp"
 
-typedef struct {
-    float elapsed;
-    struct timeval start;
-    struct timeval stop;
-} ce_timer_posix;
-
-static void ce_timer_get_time_of_day(struct timeval* tv)
+namespace cursedearth
 {
-    // FIXME: not POSIX stuff...
-
-    //cpu_set_t old_cpuset, cpuset;
-    //pthread_t thread = pthread_self();
-
-    //CPU_ZERO(&cpuset);
-    //CPU_SET(0, &cpuset);
-
-    //pthread_getaffinity_np(thread, sizeof(cpu_set_t), &old_cpuset);
-    //pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
-
-    gettimeofday(tv, NULL);
-
-    //pthread_setaffinity_np(thread, sizeof(cpu_set_t), &old_cpuset);
-}
-
-ce_timer* ce_timer_new(void)
-{
-    return ce_alloc(sizeof(ce_timer) + sizeof(ce_timer_posix));
-}
-
-void ce_timer_del(ce_timer* timer)
-{
-    ce_free(timer, sizeof(ce_timer) + sizeof(ce_timer_posix));
-}
-
-void ce_timer_start(ce_timer* timer)
-{
-    ce_timer_posix* posix_timer = (ce_timer_posix*)timer->impl;
-    ce_timer_get_time_of_day(&posix_timer->start);
-}
-
-float ce_timer_advance(ce_timer* timer)
-{
-    ce_timer_posix* posix_timer = (ce_timer_posix*)timer->impl;
-
-    ce_timer_get_time_of_day(&posix_timer->stop);
-
-    struct timeval diff = {
-        .tv_sec = posix_timer->stop.tv_sec - posix_timer->start.tv_sec,
-        .tv_usec = posix_timer->stop.tv_usec - posix_timer->start.tv_usec,
+    struct ce_timer
+    {
+        float elapsed;
+        struct timeval start;
+        struct timeval stop;
     };
 
-    if (diff.tv_usec < 0) {
-        --diff.tv_sec;
-        diff.tv_usec += 1000000;
+    ce_timer* ce_timer_new(void)
+    {
+        return (ce_timer*)ce_alloc(sizeof(ce_timer));
     }
 
-    timer->elapsed = diff.tv_sec + diff.tv_usec * 1e-6f;
-    posix_timer->start = posix_timer->stop;
+    void ce_timer_del(ce_timer* timer)
+    {
+        ce_free(timer, sizeof(ce_timer));
+    }
 
-    return timer->elapsed;
+    void ce_timer_start(ce_timer* timer)
+    {
+        gettimeofday(&timer->start, NULL);
+    }
+
+    float ce_timer_advance(ce_timer* timer)
+    {
+        gettimeofday(&timer->stop, NULL);
+
+        struct timeval diff = {
+            timer->stop.tv_sec - timer->start.tv_sec,
+            timer->stop.tv_usec - timer->start.tv_usec,
+        };
+
+        if (diff.tv_usec < 0) {
+            --diff.tv_sec;
+            diff.tv_usec += 1000000;
+        }
+
+        timer->elapsed = diff.tv_sec + diff.tv_usec * 1e-6f;
+        timer->start = timer->stop;
+
+        return timer->elapsed;
+    }
+
+    float ce_timer_elapsed(ce_timer* timer)
+    {
+        return timer->elapsed;
+    }
 }
