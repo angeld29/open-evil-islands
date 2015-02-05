@@ -113,9 +113,9 @@ engine/include/timer.hpp
 engine/include/transform.hpp
 engine/include/triangle.hpp
 engine/include/value.hpp
-engine/include/vec2.hpp
-engine/include/vec3.hpp
-engine/include/vec4.hpp
+engine/include/vector2.hpp
+engine/include/vector3.hpp
+engine/include/vector4.hpp
 engine/include/vector.hpp
 engine/include/videoinstance.hpp
 engine/include/videomanager.hpp
@@ -253,8 +253,8 @@ engine/src/timer_windows.cpp
 engine/src/transform.cpp
 engine/src/triangle.cpp
 engine/src/value.cpp
-engine/src/vec2.cpp
-engine/src/vec3.cpp
+engine/src/vector2.cpp
+engine/src/vector3.cpp
 engine/src/vector.cpp
 engine/src/videoinstance.cpp
 engine/src/videomanager.cpp
