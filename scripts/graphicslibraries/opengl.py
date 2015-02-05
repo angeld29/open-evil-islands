@@ -31,4 +31,4 @@ def configure(env):
         ],
     )
 
-    logging.info("graphiclibs: using Open Graphics Library")
+    logging.info("graphics libraries: using Open Graphics Library")

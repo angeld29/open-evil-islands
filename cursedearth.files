@@ -269,8 +269,8 @@ scripts/compilers/gcc.py
 scripts/compilers/gnuc.py
 scripts/compilers/mingw.py
 scripts/compilers/mingwcross.py
-scripts/graphiclibs/__init__.py
-scripts/graphiclibs/opengl.py
+scripts/graphicslibraries/__init__.py
+scripts/graphicslibraries/opengl.py
 scripts/hosts/__init__.py
 scripts/hosts/darwin.py
 scripts/hosts/ppclinuxgnu.py

@@ -23,7 +23,7 @@ import logging
 
 import utils
 import compilers.mingw
-import graphiclibs.opengl
+import graphicslibraries.opengl
 import platforms.windows
 
 def configure(env):
@@ -34,4 +34,4 @@ def configure(env):
 
     platforms.windows.configure(env)
     compilers.mingw.configure(env)
-    graphiclibs.opengl.configure(env)
+    graphicslibraries.opengl.configure(env)

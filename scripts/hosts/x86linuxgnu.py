@@ -23,7 +23,7 @@ import logging
 
 import utils
 import compilers.gnuc
-import graphiclibs.opengl
+import graphicslibraries.opengl
 import platforms.posix
 
 def configure(env):
@@ -37,4 +37,4 @@ def configure(env):
 
     platforms.posix.configure(env)
     compilers.gnuc.configure(env)
-    graphiclibs.opengl.configure(env)
+    graphicslibraries.opengl.configure(env)

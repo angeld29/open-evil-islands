@@ -23,7 +23,7 @@ import logging
 
 import utils
 import compilers.mingwcross
-import graphiclibs.opengl
+import graphicslibraries.opengl
 import platforms.windows
 
 def configure(env):
@@ -34,4 +34,4 @@ def configure(env):
 
     platforms.windows.configure(env)
     compilers.mingwcross.configure(env)
-    graphiclibs.opengl.configure(env)
+    graphicslibraries.opengl.configure(env)
