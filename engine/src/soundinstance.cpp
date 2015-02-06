@@ -31,18 +31,25 @@
 
 namespace cursedearth
 {
+    void ce_sound_instance_exec_playing(ce_sound_instance* sound_instance)
+    {
+        size_t size = 4096;
+        std::vector<char> buffer(size);
+        size = ce_sound_resource_read(sound_instance->sound_resource, buffer.data(), size);
+        if (0 != size) {
+            ce_sound_buffer_write(sound_instance->sound_buffer, buffer.data(), size);
+            sound_instance->time = sound_instance->sound_resource->time;
+        } else {
+            ce_sound_instance_change_state(sound_instance, CE_SOUND_STATE_STOPPED);
+        }
+    }
+
     void ce_sound_instance_exec(ce_sound_instance* sound_instance)
     {
         while (!sound_instance->done) {
-            //std::vector<char> buffer();
             switch (sound_instance->state) {
             case CE_SOUND_STATE_PLAYING:
-                size = ce_sound_resource_read(sound_instance->sound_resource, buffer.data(), size);
-                ce_sound_buffer_write(sound_instance->sound_buffer, buffer.data(), size);
-                sound_instance->time = sound_instance->sound_resource->time;
-                if (0 == size) {
-                    ce_sound_instance_change_state(sound_instance, CE_SOUND_STATE_STOPPED);
-                }
+                ce_sound_instance_exec_playing(sound_instance);
                 break;
             case CE_SOUND_STATE_STOPPED:
                 sound_instance->time = 0.0f;

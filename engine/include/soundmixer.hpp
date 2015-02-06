@@ -30,8 +30,8 @@
 namespace cursedearth
 {
     extern struct ce_sound_mixer {
-        std::atomic<bool> done;
         ce_vector* sound_buffers;
+        std::atomic<bool> done;
         ce_thread* thread;
     }* ce_sound_mixer;
 

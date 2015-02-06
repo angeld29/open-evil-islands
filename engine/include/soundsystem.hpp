@@ -24,20 +24,10 @@
 #include <atomic>
 
 #include "thread.hpp"
-#include "soundformat.hpp"
+#include "soundbuffer.hpp"
 
 namespace cursedearth
 {
-    enum {
-        CE_SOUND_SYSTEM_BITS_PER_SAMPLE = 16,
-        CE_SOUND_SYSTEM_SAMPLES_PER_SECOND = 44100,
-        CE_SOUND_SYSTEM_CHANNEL_COUNT = 2,
-        CE_SOUND_SYSTEM_SAMPLE_SIZE = CE_SOUND_SYSTEM_CHANNEL_COUNT * (CE_SOUND_SYSTEM_BITS_PER_SAMPLE / 8),
-        CE_SOUND_SYSTEM_SAMPLES_IN_BLOCK = 1024,
-        CE_SOUND_SYSTEM_BLOCK_SIZE = CE_SOUND_SYSTEM_SAMPLES_IN_BLOCK * CE_SOUND_SYSTEM_SAMPLE_SIZE,
-        CE_SOUND_SYSTEM_BLOCK_COUNT = 4,
-    };
-
     typedef struct {
         size_t size;
         bool (*ctor)(void);
@@ -46,13 +36,10 @@ namespace cursedearth
     } ce_sound_system_vtable;
 
     extern struct ce_sound_system {
-        std::atomic<bool> done;
         ce_sound_format sound_format;
         unsigned int samples_per_second; // actual value supported by implementation/hardware
-        size_t next_block;
-        char blocks[CE_SOUND_SYSTEM_BLOCK_COUNT][CE_SOUND_SYSTEM_BLOCK_SIZE];
-        ce_semaphore* free_blocks;
-        ce_semaphore* used_blocks;
+        ce_sound_buffer* sound_buffer;
+        std::atomic<bool> done;
         ce_thread* thread;
         ce_sound_system_vtable vtable;
         void* impl;

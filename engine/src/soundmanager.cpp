@@ -140,6 +140,6 @@ namespace cursedearth
                 return sound_instance;
             }
         }
-        return NULL;
+        return nullptr;
     }
 }

@@ -70,9 +70,9 @@ namespace cursedearth
     {
         ce_sound_system = (struct ce_sound_system*)ce_alloc_zero(sizeof(struct ce_sound_system));
         ce_sound_system->impl = ce_alloc_zero(vtable.size);
-
-        ce_sound_system->samples_per_second = CE_SOUND_SYSTEM_SAMPLES_PER_SECOND;
         ce_sound_system->vtable = vtable;
+
+        ce_sound_system->samples_per_second = sound_feature_t::SAMPLES_PER_SECOND;
 
         if (!(*vtable.ctor)()) {
             ce_sound_system_dtor();
@@ -88,15 +88,10 @@ namespace cursedearth
             ce_sound_system_ctor(ce_sound_system_null());
         }
 
-        ce_sound_system->free_blocks = ce_semaphore_new(CE_SOUND_SYSTEM_BLOCK_COUNT);
-        ce_sound_system->used_blocks = ce_semaphore_new(0);
-
+        ce_sound_system->sound_buffer = ce_sound_buffer_new();
         ce_sound_system->thread = ce_thread_new((void(*)())ce_sound_system_exec, NULL);
 
-        ce_sound_format_init(&ce_sound_system->sound_format,
-                             CE_SOUND_SYSTEM_BITS_PER_SAMPLE,
-                             ce_sound_system->samples_per_second,
-                             CE_SOUND_SYSTEM_CHANNEL_COUNT);
+        ce_sound_format_init(&ce_sound_system->sound_format, CE_SOUND_SYSTEM_BITS_PER_SAMPLE, ce_sound_system->samples_per_second, CE_SOUND_SYSTEM_CHANNEL_COUNT);
 
         if (CE_SOUND_SYSTEM_SAMPLES_PER_SECOND != ce_sound_system->samples_per_second) {
             ce_logging_warning("sound system: sample rate %u Hz not supported by the implementation/hardware, using %u Hz",
@@ -111,8 +106,7 @@ namespace cursedearth
             ce_semaphore_release(ce_sound_system->used_blocks, 1);
             ce_thread_wait(ce_sound_system->thread);
             ce_thread_del(ce_sound_system->thread);
-            ce_semaphore_del(ce_sound_system->used_blocks);
-            ce_semaphore_del(ce_sound_system->free_blocks);
+            ce_sound_buffer_del(ce_sound_system->sound_buffer);
             ce_sound_system_dtor();
         }
     }

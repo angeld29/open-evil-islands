@@ -66,11 +66,9 @@ namespace cursedearth
 
     void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed);
     void ce_video_instance_progress(ce_video_instance* video_instance, int percents);
-
     void ce_video_instance_render(ce_video_instance* video_instance);
 
     bool ce_video_instance_is_stopped(ce_video_instance* video_instance);
-
     void ce_video_instance_play(ce_video_instance* video_instance);
     void ce_video_instance_pause(ce_video_instance* video_instance);
     void ce_video_instance_stop(ce_video_instance* video_instance);

@@ -23,7 +23,6 @@
 
 #include "vector.hpp"
 #include "videoinstance.hpp"
-#include "videoobject.hpp"
 
 namespace cursedearth
 {

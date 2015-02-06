@@ -25,19 +25,21 @@
 #include <cstdint>
 
 #include "thread.hpp"
+#include "soundfeature.hpp"
 #include "soundformat.hpp"
 
 namespace cursedearth
 {
-    typedef struct {
+    struct ce_sound_buffer
+    {
         ce_sound_format sound_format;
-        size_t capacity, start, end;
-        ce_semaphore* prepared_data;
-        ce_semaphore* unprepared_data;
-        uint8_t* data;
-    } ce_sound_buffer;
+        ce_semaphore* free_blocks;
+        ce_semaphore* used_blocks;
+        size_t next_block;
+        uint8_t blocks[sound_feature_t::BLOCK_COUNT][sound_feature_t::BLOCK_SIZE];
+    };
 
-    ce_sound_buffer* ce_sound_buffer_new(size_t capacity);
+    ce_sound_buffer* ce_sound_buffer_new();
     void ce_sound_buffer_del(ce_sound_buffer* sound_buffer);
 
     void ce_sound_buffer_read(ce_sound_buffer* sound_buffer, void* buffer, size_t size);
@@ -61,6 +63,17 @@ namespace cursedearth
     inline void ce_sound_buffer_read_one_sample(ce_sound_buffer* sound_buffer, void* buffer)
     {
         ce_sound_buffer_read(sound_buffer, buffer, sound_buffer->sound_format.sample_size);
+    }
+
+    void* ce_sound_buffer_map_block(void)
+    {
+        ce_semaphore_acquire(ce_sound_system->free_blocks, 1);
+        return ce_sound_system->blocks[ce_sound_system->next_block++ % CE_SOUND_SYSTEM_BLOCK_COUNT];
+    }
+
+    void ce_sound_buffer_unmap_block(void)
+    {
+        ce_semaphore_release(ce_sound_system->used_blocks, 1);
     }
 }
 

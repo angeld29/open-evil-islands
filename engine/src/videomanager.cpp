@@ -65,27 +65,27 @@ namespace cursedearth
         std::vector<char> path(ce_option_manager->ei_path->length + strlen(name) + 32);
         if (NULL == ce_path_find_special1(path.data(), path.size(), ce_option_manager->ei_path->str, name, ce_video_dirs, ce_video_exts)) {
             ce_logging_error("video manager: could not find path `%s'", path.data());
-            return NULL;
+            return 0;
         }
 
         ce_mem_file* mem_file = ce_mem_file_new_path(path.data());
         if (NULL == mem_file) {
             ce_logging_error("video manager: could not open file `%s'", path.data());
-            return NULL;
+            return 0;
         }
 
         ce_video_resource* video_resource = ce_video_resource_new(mem_file);
         if (NULL == video_resource) {
             ce_logging_error("video manager: could not create resource `%s'", path.data());
             ce_mem_file_del(mem_file);
-            return NULL;
+            return 0;
         }
 
         ce_video_instance* video_instance = ce_video_instance_new(++ce_video_manager->last_video_object, ce_sound_object_new(name), video_resource);
         if (NULL == video_instance) {
             ce_logging_error("video manager: could not create instance `%s'", path.data());
             ce_video_resource_del(video_resource);
-            return NULL;
+            return 0;
         }
 
         ce_vector_push_back(ce_video_manager->video_instances, video_instance);
@@ -100,6 +100,6 @@ namespace cursedearth
                 return video_instance;
             }
         }
-        return NULL;
+        return nullptr;
     }
 }

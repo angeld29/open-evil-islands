@@ -121,8 +121,7 @@ namespace cursedearth
                 ogg_stream_pagein(&theora.stream, &theora.page);
                 ogg_stream_packetout(&theora.stream, &theora.packet);
 
-                if (th_decode_headerin(&theora.info, &theora.comment,
-                                        &theora.setup, &theora.packet) >= 0) {
+                if (th_decode_headerin(&theora.info, &theora.comment, &theora.setup, &theora.packet) >= 0) {
                     ce_theora_clean(&theora);
                     return true;
                 }

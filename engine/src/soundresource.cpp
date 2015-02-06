@@ -31,8 +31,8 @@ namespace cursedearth
     ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file)
     {
         ce_sound_probe sound_probe;
-
         size_t index;
+
         for (index = 0; index < CE_SOUND_RESOURCE_BUILTIN_COUNT; ++index) {
             ce_mem_file_rewind(mem_file);
 
@@ -71,10 +71,7 @@ namespace cursedearth
         sound_resource->bytes_per_second_inv = 1.0f / sound_resource->sound_format.bytes_per_second;
 
         ce_logging_debug("sound resource: %s, audio is %u bits per sample, %u Hz, %u channel(s)",
-            sound_probe.name,
-            sound_resource->sound_format.bits_per_sample,
-            sound_resource->sound_format.samples_per_second,
-            sound_resource->sound_format.channel_count);
+            sound_probe.name, sound_resource->sound_format.bits_per_sample, sound_resource->sound_format.samples_per_second, sound_resource->sound_format.channel_count);
 
         return sound_resource;
     }

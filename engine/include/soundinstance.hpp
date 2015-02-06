@@ -30,6 +30,12 @@
 
 namespace cursedearth
 {
+    enum {
+        CE_SOUND_STATE_STOPPED,
+        CE_SOUND_STATE_PAUSED,
+        CE_SOUND_STATE_PLAYING,
+    };
+
     struct ce_sound_instance
     {
         ce_sound_object sound_object;

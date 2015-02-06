@@ -28,22 +28,19 @@
 
 namespace cursedearth
 {
-    ce_sound_buffer* ce_sound_buffer_new(size_t capacity)
+    ce_sound_buffer* ce_sound_buffer_new()
     {
         ce_sound_buffer* sound_buffer = (ce_sound_buffer*)ce_alloc_zero(sizeof(ce_sound_buffer));
-        sound_buffer->data = (uint8_t*)ce_alloc_zero(capacity);
-        sound_buffer->capacity = capacity;
-        sound_buffer->prepared_data = ce_semaphore_new(0);
-        sound_buffer->unprepared_data = ce_semaphore_new(capacity);
+        sound_buffer->free_blocks = ce_semaphore_new(CE_SOUND_SYSTEM_BLOCK_COUNT);
+        sound_buffer->used_blocks = ce_semaphore_new(0);
         return sound_buffer;
     }
 
     void ce_sound_buffer_del(ce_sound_buffer* sound_buffer)
     {
         if (NULL != sound_buffer) {
-            ce_semaphore_del(sound_buffer->unprepared_data);
-            ce_semaphore_del(sound_buffer->prepared_data);
-            ce_free(sound_buffer->data, sound_buffer->capacity);
+            ce_semaphore_del(sound_buffer->used_blocks);
+            ce_semaphore_del(sound_buffer->free_blocks);
             ce_free(sound_buffer, sizeof(ce_sound_buffer));
         }
     }
