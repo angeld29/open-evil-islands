@@ -90,6 +90,7 @@ engine/include/shader.hpp
 engine/include/shadermanager.hpp
 engine/include/singleton.hpp
 engine/include/soundbuffer.hpp
+engine/include/soundfeature.hpp
 engine/include/soundformat.hpp
 engine/include/soundinstance.hpp
 engine/include/soundmanager.hpp
