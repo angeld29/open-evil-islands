@@ -90,14 +90,12 @@ engine/include/shader.hpp
 engine/include/shadermanager.hpp
 engine/include/singleton.hpp
 engine/include/soundbuffer.hpp
-engine/include/soundbundle.hpp
 engine/include/soundformat.hpp
 engine/include/soundinstance.hpp
 engine/include/soundmanager.hpp
 engine/include/soundmixer.hpp
 engine/include/soundobject.hpp
 engine/include/soundresource.hpp
-engine/include/soundstate.hpp
 engine/include/soundsystem.hpp
 engine/include/sphere.hpp
 engine/include/str.hpp
@@ -222,7 +220,6 @@ engine/src/scenenode.cpp
 engine/src/shader_opengl.cpp
 engine/src/shadermanager.cpp
 engine/src/soundbuffer.cpp
-engine/src/soundbundle.cpp
 engine/src/soundinstance.cpp
 engine/src/soundmanager.cpp
 engine/src/soundmixer.cpp
@@ -308,5 +305,6 @@ tools/resfileviewer/src/main.cpp
 Bik2Ogv.SConscript
 cursedearth.cfg
 cursedearth_local.cfg
+cursedearth_local.cfg.example
 Mp32Oga.SConscript
 SConstruct
