@@ -23,11 +23,9 @@
 #include <vector>
 
 #include "path.hpp"
-#include "alloc.hpp"
 #include "logging.hpp"
 #include "resfile.hpp"
 #include "resball.hpp"
-#include "event.hpp"
 #include "optionmanager.hpp"
 #include "soundmanager.hpp"
 

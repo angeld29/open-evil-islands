@@ -24,7 +24,6 @@
 
 #include "lib.hpp"
 #include "logging.hpp"
-#include "makeunique.hpp"
 #include "soundsystem.hpp"
 #include "soundmixer.hpp"
 
@@ -53,7 +52,6 @@ namespace cursedearth
     {
         sound_buffer_ptr_t buffer = std::make_shared<sound_buffer_t>(format);
         ce_mutex_lock(m_mutex);
-        m_max_sample_size = std::max(m_max_sample_size, format.sample_size);
         m_buffers.push_back(buffer);
         ce_mutex_unlock(m_mutex);
         return buffer;
@@ -92,31 +90,23 @@ namespace cursedearth
 
     void sound_mixer_t::exec(sound_mixer_t* mixer)
     {
-        const size_t n = SOUND_CAPABILITY_SAMPLES_IN_BLOCK;
         uint8_t block[SOUND_CAPABILITY_BLOCK_SIZE];
+        uint8_t native_sample[SOUND_CAPABILITY_SAMPLE_SIZE];
+        uint8_t foreign_sample[SOUND_CAPABILITY_MAX_SAMPLE_SIZE];
 
         while (!mixer->m_done) {
-            memset(block, 0, SOUND_CAPABILITY_BLOCK_SIZE);
+            uint8_t* data = block;
             ce_mutex_lock(mixer->m_mutex);
-
-            if (!mixer->m_buffers.empty()) {
-                auto buffer = mixer->m_buffers.front();
-                buffer->pop(block, n);
-            }
-
-            /*uint8_t* data = block;
-            uint8_t native_sample[SOUND_CAPABILITY_SAMPLE_SIZE];
-            std::unique_ptr<uint8_t[]> foreign_sample = make_unique<uint8_t[]>(mixer->m_max_sample_size);
 
             for (size_t i = 0; i < SOUND_CAPABILITY_SAMPLES_IN_BLOCK; ++i, data += SOUND_CAPABILITY_SAMPLE_SIZE) {
                 memset(data, 0, SOUND_CAPABILITY_SAMPLE_SIZE);
                 for (const auto& buffer: mixer->m_buffers) {
-                    if (buffer->pop(foreign_sample.get(), false)) {
-                        convert_sample(native_sample, foreign_sample.get(), buffer->format());
-                        mix_sample(block, native_sample);
+                    if (buffer->pop(foreign_sample, false)) {
+                        convert_sample(native_sample, foreign_sample, buffer->format());
+                        mix_sample(data, native_sample);
                     }
                 }
-            }*/
+            }
 
             ce_mutex_unlock(mixer->m_mutex);
             sound_system_t::instance()->write(block);

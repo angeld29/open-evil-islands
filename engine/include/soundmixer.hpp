@@ -41,7 +41,6 @@ namespace cursedearth
         static void exec(sound_mixer_t*);
 
     private:
-        size_t m_max_sample_size = 0;
         std::list<sound_buffer_ptr_t> m_buffers;
         std::atomic<bool> m_done;
         ce_mutex* m_mutex;

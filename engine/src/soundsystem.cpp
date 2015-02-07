@@ -86,17 +86,14 @@ namespace cursedearth
 
     void sound_system_t::write(void* block)
     {
-        const size_t n = SOUND_CAPABILITY_SAMPLES_IN_BLOCK;
-        m_buffer->push(block, n);
+        m_buffer->push(block, SOUND_CAPABILITY_SAMPLES_IN_BLOCK, true);
     }
 
     void sound_system_t::exec(sound_system_t* sound_system)
     {
         uint8_t block[SOUND_CAPABILITY_BLOCK_SIZE];
-        const size_t n = SOUND_CAPABILITY_SAMPLES_IN_BLOCK;
-
         while (!sound_system->m_done) {
-            sound_system->m_buffer->pop(block, n);
+            sound_system->m_buffer->pop(block, SOUND_CAPABILITY_SAMPLES_IN_BLOCK, true);
             if (!(*sound_system->vtable.write)(block)) {
                 ce_logging_critical("sound system: could not write block");
             }

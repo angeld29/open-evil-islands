@@ -35,9 +35,10 @@ using namespace cursedearth;
 static ce_color message_color;
 static float alpha_sign = -1.0f;
 static sound_object_t sound_object;
+static sound_object_t lightning_object;
 static ce_optparse* optparse;
 static ce_input_supply* input_supply;
-static ce_input_event* stub_event;
+static ce_input_event* lightning_event;
 
 static void clear()
 {
@@ -66,6 +67,11 @@ static void advance(void*, float elapsed)
 {
     ce_input_supply_advance(input_supply, elapsed);
     sound_object_advance(sound_object, elapsed);
+
+    if (lightning_event->triggered) {
+        lightning_object = make_sound_object("magic\\Lightning\\start.wav");
+        play_sound_object(lightning_object);
+    }
 
     if (sound_object_is_valid(sound_object) && !sound_object_is_stopped(sound_object)) {
         message_color.a += elapsed * alpha_sign;
@@ -123,7 +129,7 @@ int main(int argc, char* argv[])
         ce_root::instance()->scenemng->listener.render = render;
 
         input_supply = ce_input_supply_new(ce_root::instance()->renderwindow->input_context);
-        stub_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_R));
+        lightning_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_L));
 
         return ce_root::instance()->exec();
     } catch (const std::exception& error) {
