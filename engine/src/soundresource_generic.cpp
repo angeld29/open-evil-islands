@@ -169,7 +169,7 @@ namespace cursedearth
      */
     typedef struct {
         unsigned int block_size, min_block_size, max_block_size;
-        ce_sound_format sound_format;
+        sound_format_t sound_format;
         FLAC__StreamDecoder* decoder;
         ce_mem_file* mem_file;
         FLAC__int16* buffer;
@@ -678,6 +678,23 @@ namespace cursedearth
         return output >> scalebits;
     }
 
+    void ce_mad_init(ce_mad* mad)
+    {
+        mad_stream_init(&mad->stream);
+        mad_frame_init(&mad->frame);
+        mad_synth_init(&mad->synth);
+
+        memset(&mad->dither, 0, sizeof(mad->dither));
+        memset(&mad->stats, 0, sizeof(mad->stats));
+    }
+
+    void ce_mad_clean(ce_mad* mad)
+    {
+        mad_synth_finish(&mad->synth);
+        mad_frame_finish(&mad->frame);
+        mad_stream_finish(&mad->stream);
+    }
+
     bool ce_mad_decode(ce_sound_resource* sound_resource)
     {
         ce_mad* mad = (ce_mad*)sound_resource->impl;
@@ -724,23 +741,6 @@ namespace cursedearth
         }
 
         return true;
-    }
-
-    void ce_mad_init(ce_mad* mad)
-    {
-        mad_stream_init(&mad->stream);
-        mad_frame_init(&mad->frame);
-        mad_synth_init(&mad->synth);
-
-        memset(&mad->dither, 0, sizeof(mad->dither));
-        memset(&mad->stats, 0, sizeof(mad->stats));
-    }
-
-    void ce_mad_clean(ce_mad* mad)
-    {
-        mad_synth_finish(&mad->synth);
-        mad_frame_finish(&mad->frame);
-        mad_stream_finish(&mad->stream);
     }
 
     bool ce_mad_ctor(ce_sound_resource* sound_resource, ce_sound_probe*)
@@ -900,9 +900,10 @@ namespace cursedearth
 
             if (code < 0 || (uint32_t)code != packet_size || size <= 0) {
                 ce_logging_error("bink: codec error while decoding audio");
-            } else {
-                sound_resource->output_buffer_size = size;
+                return false;
             }
+
+            sound_resource->output_buffer_size = size;
         }
 
         uint32_t frame_size = bink->indices[bink->frame_index++].length;
