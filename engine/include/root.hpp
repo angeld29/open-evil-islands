@@ -21,6 +21,9 @@
 #ifndef CE_ROOT_HPP
 #define CE_ROOT_HPP
 
+#include <memory>
+
+#include "singleton.hpp"
 #include "timer.hpp"
 #include "input.hpp"
 #include "renderwindow.hpp"
@@ -29,11 +32,17 @@
 
 namespace cursedearth
 {
-    extern struct ce_root {
-        bool done;
-        bool show_bboxes;
-        bool comprehensive_bbox_only;
-        float animation_fps;
+    struct ce_root: singleton_t<ce_root>
+    {
+        ce_root(ce_optparse* optparse, int argc, char* argv[]);
+        ~ce_root();
+
+        int exec();
+
+        bool done = false;
+        bool show_bboxes = false;
+        bool comprehensive_bbox_only = false;
+        float animation_fps = 0.0f;
         ce_renderwindow* renderwindow;
         ce_scenemng* scenemng;
         ce_timer* timer;
@@ -43,10 +52,10 @@ namespace cursedearth
         ce_input_event* toggle_fullscreen_event;
         ce_input_event* toggle_bbox_event;
         ce_renderwindow_listener renderwindow_listener;
-    } ce_root;
-
-    bool ce_root_init(ce_optparse* optparse, int argc, char* argv[]);
-    int ce_root_exec(void);
+        std::unique_ptr<class sound_system_t> m_sound_system;
+        std::unique_ptr<class sound_mixer_t> m_sound_mixer;
+        std::unique_ptr<class sound_manager_t> m_sound_manager;
+    };
 }
 
 #endif

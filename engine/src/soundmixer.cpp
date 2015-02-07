@@ -19,129 +19,107 @@
  */
 
 #include <cassert>
-#include <cstdint>
 #include <cstring>
-#include <vector>
+#include <algorithm>
 
 #include "lib.hpp"
-#include "alloc.hpp"
 #include "logging.hpp"
-#include "event.hpp"
+#include "makeunique.hpp"
 #include "soundsystem.hpp"
 #include "soundmixer.hpp"
 
 namespace cursedearth
 {
-    struct ce_sound_mixer* ce_sound_mixer;
-
-    void ce_sound_mixer_create_buffer_react(ce_event* event)
+    sound_mixer_t::sound_mixer_t():
+        singleton_t<sound_mixer_t>(this),
+        m_done(false),
+        m_mutex(ce_mutex_new()),
+        m_thread(ce_thread_new((void(*)())exec, this))
     {
-        ce_sound_buffer* sound_buffer = (ce_sound_buffer*)((ce_event_ptr*)event->impl)->ptr;
-        ce_vector_push_back(ce_sound_mixer->sound_buffers, sound_buffer);
     }
 
-    void ce_sound_mixer_destroy_buffer_react(ce_event* event)
+    sound_mixer_t::~sound_mixer_t()
     {
-        ce_sound_buffer* sound_buffer = (ce_sound_buffer*)((ce_event_ptr*)event->impl)->ptr;
-        ce_vector_remove_all(ce_sound_mixer->sound_buffers, sound_buffer);
-        ce_sound_buffer_del(sound_buffer);
-    }
-
-    void ce_sound_mixer_convert_sample_s16_s16(int16_t* sample1, const int16_t* sample2, const ce_sound_format* sound_format1, const ce_sound_format* sound_format2)
-    {
-        for (size_t i = 0; i < sound_format1->channel_count; ++i) {
-            if (0 == i || i < sound_format2->channel_count) {
-                sample1[i] = sample2[i];
-            } else {
-                sample1[i] = sample1[i - 1];
-            }
+        m_done = true;
+        ce_thread_wait(m_thread);
+        ce_thread_del(m_thread);
+        ce_mutex_del(m_mutex);
+        if (!m_buffers.empty()) {
+            ce_logging_warning("sound mixer: some buffers have not been unregistered");
         }
     }
 
-    void ce_sound_mixer_convert_sample(void* sample1, const void* sample2, const ce_sound_format* sound_format1, const ce_sound_format* sound_format2)
+    sound_buffer_ptr_t sound_mixer_t::make_buffer(const sound_format_t& format)
     {
-        if (16 == sound_format1->bits_per_sample && 16 == sound_format2->bits_per_sample) {
-            ce_sound_mixer_convert_sample_s16_s16(static_cast<int16_t*>(sample1), static_cast<const int16_t*>(sample2), sound_format1, sound_format2);
-        } else {
-            assert(false && "not implemented");
+        sound_buffer_ptr_t buffer = std::make_shared<sound_buffer_t>(format);
+        ce_mutex_lock(m_mutex);
+        m_max_sample_size = std::max(m_max_sample_size, format.sample_size);
+        m_buffers.push_back(buffer);
+        ce_mutex_unlock(m_mutex);
+        return buffer;
+    }
+
+    void convert_sample_s16(int16_t* sample, const int16_t* other, const sound_format_t& format)
+    {
+        for (size_t i = 0; i < SOUND_CAPABILITY_CHANNEL_COUNT; ++i) {
+            sample[i] = (0 == i || i < format.channel_count) ? other[i] : sample[i - 1];
         }
     }
 
-    void ce_sound_mixer_mix_sample_s16(int16_t* sample, const int16_t* other, const ce_sound_format* sound_format)
+    void convert_sample(void* sample, const void* other, const sound_format_t& format)
     {
-        for (size_t i = 0; i < sound_format->channel_count; ++i) {
-            int32_t value = (int32_t)sample[i] + (int32_t)other[i];
-            sample[i] = ce_clamp(int32_t, value, INT16_MIN, INT16_MAX);
-        }
-    }
-
-    void ce_sound_mixer_mix_sample(void* sample, const void* other, const ce_sound_format* sound_format)
-    {
-        switch (sound_format->bits_per_sample) {
+        switch (format.bits_per_sample) {
         case 16:
-            ce_sound_mixer_mix_sample_s16(static_cast<int16_t*>(sample), static_cast<const int16_t*>(other), sound_format);
+            convert_sample_s16(static_cast<int16_t*>(sample), static_cast<const int16_t*>(other), format);
             break;
         default:
             assert(false && "not implemented");
         }
     }
 
-    void ce_sound_mixer_exec(void*)
+    void mix_sample_s16(int16_t* sample, const int16_t* other)
     {
-        while (!ce_sound_mixer->done) {
-            std::vector<char> sample(ce_sound_system->sound_format.sample_size);
+        for (size_t i = 0; i < SOUND_CAPABILITY_CHANNEL_COUNT; ++i) {
+            int32_t value = static_cast<int32_t>(sample[i]) + static_cast<int32_t>(other[i]);
+            sample[i] = clamp(value, std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max());
+        }
+    }
 
-            char* block = static_cast<char*>(ce_sound_system_map_block());
-            memset(block, 0, CE_SOUND_SYSTEM_BLOCK_SIZE);
+    void mix_sample(void* sample, const void* other)
+    {
+        mix_sample_s16(static_cast<int16_t*>(sample), static_cast<const int16_t*>(other));
+    }
 
-            for (size_t i = 0; i < CE_SOUND_SYSTEM_SAMPLES_IN_BLOCK; ++i, block += ce_sound_system->sound_format.sample_size) {
-                for (size_t j = 0; j < ce_sound_mixer->sound_buffers->count; ++j) {
-                    ce_sound_buffer* sound_buffer = (ce_sound_buffer*)ce_sound_mixer->sound_buffers->items[j];
-                    if (ce_sound_buffer_is_one_sample_ready(sound_buffer)) {
-                        std::vector<char> sample2(sound_buffer->sound_format.sample_size);
-                        ce_sound_buffer_read_one_sample(sound_buffer, sample2.data());
-                        ce_sound_mixer_convert_sample(sample.data(), sample2.data(), &ce_sound_system->sound_format, &sound_buffer->sound_format);
-                        ce_sound_mixer_mix_sample(block, sample.data(), &ce_sound_system->sound_format);
+    void sound_mixer_t::exec(sound_mixer_t* mixer)
+    {
+        const size_t n = SOUND_CAPABILITY_SAMPLES_IN_BLOCK;
+        uint8_t block[SOUND_CAPABILITY_BLOCK_SIZE];
+
+        while (!mixer->m_done) {
+            memset(block, 0, SOUND_CAPABILITY_BLOCK_SIZE);
+            ce_mutex_lock(mixer->m_mutex);
+
+            if (!mixer->m_buffers.empty()) {
+                auto buffer = mixer->m_buffers.front();
+                buffer->pop(block, n);
+            }
+
+            /*uint8_t* data = block;
+            uint8_t native_sample[SOUND_CAPABILITY_SAMPLE_SIZE];
+            std::unique_ptr<uint8_t[]> foreign_sample = make_unique<uint8_t[]>(mixer->m_max_sample_size);
+
+            for (size_t i = 0; i < SOUND_CAPABILITY_SAMPLES_IN_BLOCK; ++i, data += SOUND_CAPABILITY_SAMPLE_SIZE) {
+                memset(data, 0, SOUND_CAPABILITY_SAMPLE_SIZE);
+                for (const auto& buffer: mixer->m_buffers) {
+                    if (buffer->pop(foreign_sample.get(), false)) {
+                        convert_sample(native_sample, foreign_sample.get(), buffer->format());
+                        mix_sample(block, native_sample);
                     }
                 }
-            }
+            }*/
 
-            ce_sound_system_unmap_block();
-            ce_event_manager_process_events(ce_thread_self(), CE_EVENT_FLAG_ALL_EVENTS);
+            ce_mutex_unlock(mixer->m_mutex);
+            sound_system_t::instance()->write(block);
         }
-    }
-
-    void ce_sound_mixer_init(void)
-    {
-        ce_sound_mixer = (struct ce_sound_mixer*)ce_alloc_zero(sizeof(struct ce_sound_mixer));
-        ce_sound_mixer->sound_buffers = ce_vector_new();
-        ce_sound_mixer->thread = ce_thread_new((void(*)())ce_sound_mixer_exec, NULL);
-    }
-
-    void ce_sound_mixer_term(void)
-    {
-        if (NULL != ce_sound_mixer) {
-            ce_sound_mixer->done = true;
-            ce_thread_wait(ce_sound_mixer->thread);
-            ce_thread_del(ce_sound_mixer->thread);
-            if (!ce_vector_empty(ce_sound_mixer->sound_buffers)) {
-                ce_logging_warning("sound mixer: some buffers have not been unregistered");
-            }
-            ce_vector_for_each(ce_sound_mixer->sound_buffers, (void(*)(void*))ce_sound_buffer_del);
-            ce_vector_del(ce_sound_mixer->sound_buffers);
-            ce_free(ce_sound_mixer, sizeof(struct ce_sound_mixer));
-        }
-    }
-
-    ce_sound_buffer* ce_sound_mixer_create_buffer(void)
-    {
-        ce_sound_buffer* sound_buffer = ce_sound_buffer_new();
-        ce_event_manager_post_ptr(ce_thread_get_id(ce_sound_mixer->thread), ce_sound_mixer_create_buffer_react, sound_buffer);
-        return sound_buffer;
-    }
-
-    void ce_sound_mixer_destroy_buffer(ce_sound_buffer* sound_buffer)
-    {
-        ce_event_manager_post_ptr(ce_thread_get_id(ce_sound_mixer->thread), ce_sound_mixer_destroy_buffer_react, sound_buffer);
     }
 }

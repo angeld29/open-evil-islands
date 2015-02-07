@@ -68,7 +68,7 @@ namespace cursedearth
         scenemng->fps = ce_fps_new();
         scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
 
-        scenemng->input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
+        scenemng->input_supply = ce_input_supply_new(ce_root::instance()->renderwindow->input_context);
         scenemng->skip_logo_event = ce_input_supply_single_front(scenemng->input_supply,
                                         ce_input_supply_shortcut(scenemng->input_supply, "Space"));
         scenemng->pause_event = ce_input_supply_single_front(scenemng->input_supply,
@@ -84,7 +84,7 @@ namespace cursedearth
         scenemng->renderwindow_listener = {ce_scenemng_renderwindow_resized, NULL, scenemng};
         scenemng->figure_manager_listener = {ce_scenemng_figproto_created, NULL, scenemng};
 
-        ce_renderwindow_add_listener(ce_root.renderwindow, &scenemng->renderwindow_listener);
+        ce_renderwindow_add_listener(ce_root::instance()->renderwindow, &scenemng->renderwindow_listener);
         ce_figure_manager_add_listener(&scenemng->figure_manager_listener);
 
         return scenemng;
@@ -260,7 +260,7 @@ namespace cursedearth
 
         ce_scenenode_update_cascade(scenemng->scenenode, &frustum);
 
-        if (ce_root.show_bboxes) {
+        if (ce_root::instance()->show_bboxes) {
             ce_render_system_apply_color(&CE_COLOR_BLUE);
             ce_scenenode_draw_bboxes_cascade(scenemng->scenenode);
         }

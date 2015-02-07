@@ -21,24 +21,30 @@
 #ifndef CE_SOUNDMANAGER_HPP
 #define CE_SOUNDMANAGER_HPP
 
-#include "vector.hpp"
+#include <vector>
+
+#include "singleton.hpp"
+#include "resfile.hpp"
 #include "soundinstance.hpp"
 
 namespace cursedearth
 {
-    extern struct ce_sound_manager {
-        ce_sound_object last_sound_object;
-        ce_vector* res_files;
-        ce_vector* sound_instances;
-    }* ce_sound_manager;
+    class sound_manager_t: public singleton_t<sound_manager_t>
+    {
+    public:
+        sound_manager_t();
+        ~sound_manager_t();
 
-    void ce_sound_manager_init(void);
-    void ce_sound_manager_term(void);
+        void advance(float elapsed);
 
-    void ce_sound_manager_advance(float elapsed);
+        sound_object_t create_object(const char* name);
+        sound_instance_ptr_t find_instance(sound_object_t);
 
-    ce_sound_object ce_sound_manager_create_object(const char* name);
-    ce_sound_instance* ce_sound_manager_find_instance(ce_sound_object sound_object);
+    private:
+        sound_object_t m_last_object;
+        std::vector<ce_res_file*> m_res_files;
+        std::vector<sound_instance_ptr_t> m_sound_instances;
+    };
 }
 
 #endif

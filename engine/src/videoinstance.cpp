@@ -64,7 +64,7 @@ namespace cursedearth
         }
     }
 
-    ce_video_instance* ce_video_instance_new(ce_video_object video_object, ce_sound_object sound_object, ce_video_resource* video_resource)
+    ce_video_instance* ce_video_instance_new(ce_video_object video_object, sound_object_t sound_object, ce_video_resource* video_resource)
     {
         ce_video_instance* video_instance = (ce_video_instance*)ce_alloc_zero(sizeof(ce_video_instance));
         video_instance->video_object = video_object;
@@ -112,7 +112,7 @@ namespace cursedearth
             ce_material_del(video_instance->material);
             ce_texture_del(video_instance->texture);
             ce_video_resource_del(video_instance->video_resource);
-            ce_sound_object_del(video_instance->sound_object);
+            remove_sound_object(video_instance->sound_object);
             ce_free(video_instance, sizeof(ce_video_instance));
         }
     }
@@ -166,9 +166,9 @@ namespace cursedearth
             return;
         }
 
-        if (ce_sound_object_is_valid(video_instance->sound_object)) {
+        if (sound_object_is_valid(video_instance->sound_object)) {
             // synchronization with sound
-            float sound_time = ce_sound_object_get_time(video_instance->sound_object);
+            float sound_time = get_sound_object_time(video_instance->sound_object);
             if (video_instance->sync_time != sound_time) {
                 video_instance->sync_time = sound_time;
                 video_instance->play_time = sound_time;
@@ -201,24 +201,24 @@ namespace cursedearth
 
     bool ce_video_instance_is_stopped(ce_video_instance* video_instance)
     {
-        return 0 != video_instance->sound_object ? ce_sound_object_is_stopped(video_instance->sound_object) : CE_VIDEO_INSTANCE_STATE_STOPPED == video_instance->state;
+        return 0 != video_instance->sound_object ? sound_object_is_stopped(video_instance->sound_object) : CE_VIDEO_INSTANCE_STATE_STOPPED == video_instance->state;
     }
 
     void ce_video_instance_play(ce_video_instance* video_instance)
     {
-        ce_sound_object_play(video_instance->sound_object);
+        play_sound_object(video_instance->sound_object);
         video_instance->state = CE_VIDEO_INSTANCE_STATE_PLAYING;
     }
 
     void ce_video_instance_pause(ce_video_instance* video_instance)
     {
-        ce_sound_object_pause(video_instance->sound_object);
+        pause_sound_object(video_instance->sound_object);
         video_instance->state = CE_VIDEO_INSTANCE_STATE_PAUSED;
     }
 
     void ce_video_instance_stop(ce_video_instance* video_instance)
     {
-        ce_sound_object_stop(video_instance->sound_object);
+        stop_sound_object(video_instance->sound_object);
         video_instance->state = CE_VIDEO_INSTANCE_STATE_STOPPED;
     }
 }

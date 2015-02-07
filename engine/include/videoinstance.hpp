@@ -47,7 +47,7 @@ namespace cursedearth
     struct ce_video_instance
     {
         ce_video_object video_object;
-        ce_sound_object sound_object;
+        sound_object_t sound_object;
         ce_video_resource* video_resource;
         int state, frame;
         float play_time, sync_time; // playing/synchronization time in seconds
@@ -61,7 +61,7 @@ namespace cursedearth
         ce_thread* thread;
     };
 
-    ce_video_instance* ce_video_instance_new(ce_video_object video_object, ce_sound_object sound_object, ce_video_resource* video_resource);
+    ce_video_instance* ce_video_instance_new(ce_video_object video_object, sound_object_t sound_object, ce_video_resource* video_resource);
     void ce_video_instance_del(ce_video_instance* video_instance);
 
     void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed);

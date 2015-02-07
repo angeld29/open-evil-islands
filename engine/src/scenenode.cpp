@@ -226,7 +226,7 @@ namespace cursedearth
         if (!scenenode->culled) {
             ce_scenenode_draw_bbox(&scenenode->world_bbox);
 
-            if (!ce_root.comprehensive_bbox_only) {
+            if (!ce_root::instance()->comprehensive_bbox_only) {
                 for (size_t i = 0; i < scenenode->renderitems->count; ++i) {
                     ce_renderitem* renderitem = (ce_renderitem*)scenenode->renderitems->items[i];
                     if (renderitem->visible) {

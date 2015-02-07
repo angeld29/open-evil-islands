@@ -18,6 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
 #include <cstdio>
 #include <cstring>
 
@@ -56,7 +57,7 @@ namespace cursedearth
         sound_resource->mem_file = mem_file;
         sound_resource->input_buffer_capacity = sound_probe.input_buffer_capacity;
         sound_resource->output_buffer_capacity = sound_probe.output_buffer_capacity;
-        sound_resource->input_buffer = static_cast<char*>(sound_resource->impl) + sound_probe.impl_size;
+        sound_resource->input_buffer = static_cast<uint8_t*>(sound_resource->impl) + sound_probe.impl_size;
         sound_resource->output_buffer = sound_resource->input_buffer + sound_probe.input_buffer_capacity;
         sound_resource->vtable = ce_sound_resource_builtins[index];
         sound_resource->size = size;
@@ -88,32 +89,34 @@ namespace cursedearth
         }
     }
 
-    size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size)
+    bool ce_sound_resource_read(ce_sound_resource* resource, const sound_buffer_ptr_t& buffer)
     {
-        if (0 == sound_resource->output_buffer_size) {
-            sound_resource->output_buffer_pos = 0;
-            (*sound_resource->vtable.decode)(sound_resource);
+        if (0 == resource->output_buffer_size) {
+            resource->output_buffer_pos = 0;
+            if (!(*resource->vtable.decode)(resource)) {
+                return false;
+            }
         }
 
-        size = ce_min(size_t, size, sound_resource->output_buffer_size);
-        memcpy(data, sound_resource->output_buffer + sound_resource->output_buffer_pos, size);
+        assert(0 == resource->output_buffer_size % buffer->format().sample_size);
+        size_t size = std::min(resource->output_buffer_size, buffer->format().sample_size * SOUND_CAPABILITY_SAMPLES_IN_BLOCK);
+        buffer->push(resource->output_buffer + resource->output_buffer_pos, size / buffer->format().sample_size);
 
-        sound_resource->output_buffer_pos += size;
-        sound_resource->output_buffer_size -= size;
+        resource->output_buffer_pos += size;
+        resource->output_buffer_size -= size;
 
-        sound_resource->granule_pos += size;
-        sound_resource->time = sound_resource->granule_pos * sound_resource->bytes_per_second_inv;
-
-        return size;
+        resource->granule_pos += size;
+        resource->time = resource->granule_pos * resource->bytes_per_second_inv;
+        return true;
     }
 
-    bool ce_sound_resource_reset(ce_sound_resource* sound_resource)
+    bool ce_sound_resource_reset(ce_sound_resource* resource)
     {
-        sound_resource->time = 0.0f;
-        sound_resource->granule_pos = 0;
-        sound_resource->output_buffer_size = 0;
-        sound_resource->output_buffer_pos = 0;
-        ce_mem_file_rewind(sound_resource->mem_file);
-        return (*sound_resource->vtable.reset)(sound_resource);
+        resource->time = 0.0f;
+        resource->granule_pos = 0;
+        resource->output_buffer_size = 0;
+        resource->output_buffer_pos = 0;
+        ce_mem_file_rewind(resource->mem_file);
+        return (*resource->vtable.reset)(resource);
     }
 }

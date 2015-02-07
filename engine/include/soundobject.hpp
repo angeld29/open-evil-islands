@@ -23,22 +23,22 @@
 
 namespace cursedearth
 {
-    typedef unsigned long ce_sound_object;
+    typedef unsigned long sound_object_t;
 
-    ce_sound_object ce_sound_object_new(const char* name);
-    void ce_sound_object_del(ce_sound_object);
+    sound_object_t make_sound_object(const char* name);
+    void remove_sound_object(sound_object_t);
 
-    bool ce_sound_object_is_valid(ce_sound_object);
+    bool sound_object_is_valid(sound_object_t);
 
-    void ce_sound_object_advance(ce_sound_object, float elapsed);
+    void sound_object_advance(sound_object_t, float elapsed);
 
-    bool ce_sound_object_is_stopped(ce_sound_object);
-    void ce_sound_object_play(ce_sound_object);
-    void ce_sound_object_pause(ce_sound_object);
-    void ce_sound_object_stop(ce_sound_object);
+    bool sound_object_is_stopped(sound_object_t);
+    void play_sound_object(sound_object_t);
+    void pause_sound_object(sound_object_t);
+    void stop_sound_object(sound_object_t);
 
-    int ce_sound_object_get_state(ce_sound_object);
-    float ce_sound_object_get_time(ce_sound_object);
+    int get_sound_object_state(sound_object_t);
+    float get_sound_object_time(sound_object_t);
 }
 
 #endif

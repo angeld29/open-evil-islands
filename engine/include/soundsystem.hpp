@@ -23,6 +23,7 @@
 
 #include <atomic>
 
+#include "singleton.hpp"
 #include "thread.hpp"
 #include "soundbuffer.hpp"
 
@@ -35,24 +36,29 @@ namespace cursedearth
         bool (*write)(const void* block);
     } ce_sound_system_vtable;
 
-    extern struct ce_sound_system {
-        ce_sound_format sound_format;
-        unsigned int samples_per_second; // actual value supported by implementation/hardware
-        ce_sound_buffer* sound_buffer;
-        std::atomic<bool> done;
-        ce_thread* thread;
+    class sound_system_t: public singleton_t<sound_system_t>
+    {
+    public:
+        sound_system_t();
+        ~sound_system_t();
+
+        void write(void* block);
+
+    private:
+        static void exec(sound_system_t*);
+
+    private:
+        sound_buffer_ptr_t m_buffer;
+        std::atomic<bool> m_done;
+        ce_thread* m_thread;
+
+    public:
         ce_sound_system_vtable vtable;
         void* impl;
-    }* ce_sound_system;
+    };
 
     ce_sound_system_vtable ce_sound_system_platform(void);
     ce_sound_system_vtable ce_sound_system_null(void);
-
-    void ce_sound_system_init(void);
-    void ce_sound_system_term(void);
-
-    void* ce_sound_system_map_block(void);
-    void ce_sound_system_unmap_block(void);
 }
 
 #endif

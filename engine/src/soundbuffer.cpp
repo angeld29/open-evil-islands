@@ -18,68 +18,56 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdint>
-#include <cstring>
-#include <cassert>
-
-#include "lib.hpp"
-#include "alloc.hpp"
+#include "logging.hpp"
 #include "soundbuffer.hpp"
 
 namespace cursedearth
 {
-    ce_sound_buffer* ce_sound_buffer_new()
+    sound_buffer_t::sound_buffer_t(const sound_format_t& format):
+        m_format(format),
+        m_buffer(format.sample_size * SOUND_CAPABILITY_SAMPLES_IN_BLOCK * SOUND_CAPABILITY_BLOCK_COUNT)
     {
-        ce_sound_buffer* sound_buffer = (ce_sound_buffer*)ce_alloc_zero(sizeof(ce_sound_buffer));
-        sound_buffer->free_blocks = ce_semaphore_new(CE_SOUND_SYSTEM_BLOCK_COUNT);
-        sound_buffer->used_blocks = ce_semaphore_new(0);
-        return sound_buffer;
     }
 
-    void ce_sound_buffer_del(ce_sound_buffer* sound_buffer)
+    bool sound_buffer_t::push(const void* array, bool wait)
     {
-        if (NULL != sound_buffer) {
-            ce_semaphore_del(sound_buffer->used_blocks);
-            ce_semaphore_del(sound_buffer->free_blocks);
-            ce_free(sound_buffer, sizeof(ce_sound_buffer));
+        const size_t available = m_buffer.write_available();
+        if (available < m_format.sample_size && !wait) {
+            return false;
         }
+        m_buffer.write(array, m_format.sample_size);
+        return true;
     }
 
-    void ce_sound_buffer_read(ce_sound_buffer* sound_buffer, void* buffer, size_t size)
+    size_t sound_buffer_t::push(const void* array, size_t n, bool wait)
     {
-        uint8_t* data = static_cast<uint8_t*>(buffer);
-
-        assert(0 == size % sound_buffer->sound_format.sample_size);
-        ce_semaphore_acquire(sound_buffer->prepared_data, size);
-
-        if (size > sound_buffer->capacity - sound_buffer->start) {
-            size_t length = sound_buffer->capacity - sound_buffer->start;
-            memcpy(data, sound_buffer->data + sound_buffer->start, length);
-            memcpy(data + length, sound_buffer->data, size - length);
-        } else {
-            memcpy(data, sound_buffer->data + sound_buffer->start, size);
+        const size_t available = m_buffer.write_available();
+        size_t size = m_format.sample_size * n;
+        if (available < size && !wait) {
+            size = available - (available % m_format.sample_size);
         }
-
-        sound_buffer->start = (sound_buffer->start + size) % sound_buffer->capacity;
-        ce_semaphore_release(sound_buffer->unprepared_data, size);
+        m_buffer.write(array, size);
+        return size;
     }
 
-    void ce_sound_buffer_write(ce_sound_buffer* sound_buffer, const void* buffer, size_t size)
+    bool sound_buffer_t::pop(void* array, bool wait)
     {
-        const uint8_t* data = static_cast<const uint8_t*>(buffer);
-
-        assert(0 == size % sound_buffer->sound_format.sample_size);
-        ce_semaphore_acquire(sound_buffer->unprepared_data, size);
-
-        if (size > sound_buffer->capacity - sound_buffer->end) {
-            size_t length = sound_buffer->capacity - sound_buffer->end;
-            memcpy(sound_buffer->data + sound_buffer->end, data, length);
-            memcpy(sound_buffer->data, data + length, size - length);
-        } else {
-            memcpy(sound_buffer->data + sound_buffer->end, data, size);
+        const size_t available = m_buffer.read_available();
+        if (available < m_format.sample_size && !wait) {
+            return false;
         }
+        m_buffer.read(array, m_format.sample_size);
+        return true;
+    }
 
-        sound_buffer->end = (sound_buffer->end + size) % sound_buffer->capacity;
-        ce_semaphore_release(sound_buffer->prepared_data, size);
+    size_t sound_buffer_t::pop(void* array, size_t n, bool wait)
+    {
+        const size_t available = m_buffer.read_available();
+        size_t size = m_format.sample_size * n;
+        if (available < size && !wait) {
+            size = available - (available % m_format.sample_size);
+        }
+        m_buffer.read(array, size);
+        return size;
     }
 }

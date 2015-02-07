@@ -108,6 +108,12 @@ namespace cursedearth
     }
 
     inline void ce_pass(void) {}
+
+    template <typename T, typename U>
+    inline T clamp(T value, U min, U max)
+    {
+        return value < min ? min : (value > max ? max : value);
+    }
 }
 
 #undef CE_LIB_DEF_ALL

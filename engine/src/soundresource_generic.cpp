@@ -123,9 +123,8 @@ namespace cursedearth
             return false;
         }
 
-        // a vorbis file has no particular number of bits per sample,
-        // so use words, see also ov_read
-        ce_sound_format_init(&sound_resource->sound_format, 16, info->rate, info->channels);
+        // a vorbis file has no particular number of bits per sample, so use words, see also ov_read
+        sound_resource->sound_format = sound_format_t(16, info->rate, info->channels);
 
         ce_logging_debug("vorbis: audio is %ld bits per second (%ld bits per second nominal)",
             ov_bitrate(&vorbis->vf, -1), info->bitrate_nominal);
@@ -144,9 +143,8 @@ namespace cursedearth
         ce_vorbis* vorbis = (ce_vorbis*)sound_resource->impl;
 
         for (;;) {
-            long code = ov_read(&vorbis->vf, sound_resource->output_buffer,
-                                sound_resource->output_buffer_capacity,
-                                ce_is_big_endian(), 2, 1, &vorbis->bitstream);
+            long code = ov_read(&vorbis->vf, reinterpret_cast<char*>(sound_resource->output_buffer),
+                sound_resource->output_buffer_capacity, ce_is_big_endian(), 2, 1, &vorbis->bitstream);
             if (code >= 0) {
                 sound_resource->output_buffer_size = code;
                 return true;
@@ -316,10 +314,7 @@ namespace cursedearth
         if (FLAC__METADATA_TYPE_STREAMINFO == metadata->type) {
             flac_bundle->min_block_size = metadata->data.stream_info.min_blocksize;
             flac_bundle->max_block_size = metadata->data.stream_info.max_blocksize;
-            ce_sound_format_init(&flac_bundle->sound_format,
-                                    metadata->data.stream_info.bits_per_sample,
-                                    metadata->data.stream_info.sample_rate,
-                                    metadata->data.stream_info.channels);
+            flac_bundle->sound_format = sound_format_t(metadata->data.stream_info.bits_per_sample, metadata->data.stream_info.sample_rate, metadata->data.stream_info.channels);
         }
     }
 
@@ -461,14 +456,10 @@ namespace cursedearth
         ce_wave* wave = (ce_wave*)sound_resource->impl;
         memcpy(&wave->wave_header, sound_probe->buffer, sizeof(ce_wave_header));
 
-        ce_sound_format_init(&sound_resource->sound_format,
-                            CE_WAVE_FORMAT_IMA_ADPCM == wave->wave_header.format.tag ?
-                            16 : wave->wave_header.format.bits_per_sample,
-                            wave->wave_header.format.samples_per_sec,
-                            wave->wave_header.format.channel_count);
+        sound_resource->sound_format = sound_format_t(CE_WAVE_FORMAT_IMA_ADPCM == wave->wave_header.format.tag ?
+            16 : wave->wave_header.format.bits_per_sample, wave->wave_header.format.samples_per_sec, wave->wave_header.format.channel_count);
 
         wave->data_offset = ce_mem_file_tell(sound_resource->mem_file);
-
         return true;
     }
 
@@ -755,7 +746,7 @@ namespace cursedearth
             return false;
         }
 
-        ce_sound_format_init(&sound_resource->sound_format, 16, mad->frame.header.samplerate, MAD_MODE_SINGLE_CHANNEL == mad->frame.header.mode ? 1 : 2);
+        sound_resource->sound_format = sound_format_t(16, mad->frame.header.samplerate, MAD_MODE_SINGLE_CHANNEL == mad->frame.header.mode ? 1 : 2);
         ce_logging_debug("mad: audio is %lu bits per second", mad->frame.header.bitrate);
 
         return true;
@@ -834,7 +825,7 @@ namespace cursedearth
             return false;
         }
 
-        ce_sound_format_init(&sound_resource->sound_format, 16, bink->audio_track.sample_rate, CE_BINK_AUDIO_FLAG_STEREO & bink->audio_track.flags ? 2 : 1);
+        sound_resource->sound_format = sound_format_t(16, bink->audio_track.sample_rate, CE_BINK_AUDIO_FLAG_STEREO & bink->audio_track.flags ? 2 : 1);
 
         if (NULL == (bink->codec = avcodec_find_decoder(CODEC_ID_BINKAUDIO_RDFT))) {
             ce_logging_error("bink: RDFT audio codec not found");

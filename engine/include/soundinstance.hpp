@@ -22,36 +22,50 @@
 #define CE_SOUNDINSTANCE_HPP
 
 #include <atomic>
+#include <memory>
+
+#include <boost/noncopyable.hpp>
 
 #include "thread.hpp"
 #include "soundobject.hpp"
 #include "soundresource.hpp"
-#include "soundbuffer.hpp"
 
 namespace cursedearth
 {
-    enum {
-        CE_SOUND_STATE_STOPPED,
-        CE_SOUND_STATE_PAUSED,
-        CE_SOUND_STATE_PLAYING,
+    enum sound_instance_state_t {
+        SOUND_INSTANCE_STATE_STOPPED,
+        SOUND_INSTANCE_STATE_PAUSED,
+        SOUND_INSTANCE_STATE_PLAYING
     };
 
-    struct ce_sound_instance
+    class sound_instance_t: boost::noncopyable
     {
-        ce_sound_object sound_object;
-        ce_sound_resource* sound_resource;
-        ce_sound_buffer* sound_buffer;
-        std::atomic<int> state;
-        std::atomic<float> time;
-        std::atomic<bool> done;
-        ce_thread* thread;
+    public:
+        sound_instance_t(sound_object_t, ce_sound_resource*);
+        ~sound_instance_t();
+
+        sound_object_t sound_object() const { return m_object; }
+        sound_instance_state_t state() const { return m_state; }
+        float time() const { return m_time; }
+
+        void advance(float elapsed);
+        void change_state(sound_instance_state_t);
+
+    private:
+        static void exec_playing(sound_instance_t*);
+        static void exec(sound_instance_t*);
+
+    private:
+        const sound_object_t m_object;
+        ce_sound_resource* m_resource;
+        sound_buffer_ptr_t m_buffer;
+        std::atomic<sound_instance_state_t> m_state;
+        std::atomic<float> m_time;
+        std::atomic<bool> m_done;
+        ce_thread* m_thread;
     };
 
-    ce_sound_instance* ce_sound_instance_new(ce_sound_object, ce_sound_resource*);
-    void ce_sound_instance_del(ce_sound_instance*);
-
-    void ce_sound_instance_advance(ce_sound_instance*, float elapsed);
-    void ce_sound_instance_change_state(ce_sound_instance*, int state);
+    typedef std::shared_ptr<sound_instance_t> sound_instance_ptr_t;
 }
 
 #endif

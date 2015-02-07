@@ -81,7 +81,7 @@ namespace cursedearth
             return 0;
         }
 
-        ce_video_instance* video_instance = ce_video_instance_new(++ce_video_manager->last_video_object, ce_sound_object_new(name), video_resource);
+        ce_video_instance* video_instance = ce_video_instance_new(++ce_video_manager->last_video_object, make_sound_object(name), video_resource);
         if (NULL == video_instance) {
             ce_logging_error("video manager: could not create instance `%s'", path.data());
             ce_video_resource_del(video_resource);

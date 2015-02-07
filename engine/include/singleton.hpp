@@ -36,7 +36,7 @@ namespace cursedearth
         ~singleton_t();
 
     public:
-        static T* get_instance();
+        static T* instance();
 
     private:
         static std::atomic<T*> m_instance;
@@ -57,14 +57,14 @@ namespace cursedearth
     }
 
     template <typename T>
-    T* singleton_t<T>::get_instance()
+    T* singleton_t<T>::instance()
     {
         assert(nullptr != m_instance.load() && "the singleton has not yet been created");
         return m_instance.load();
     }
 
     template <typename T>
-    boost::atomic<T*> singleton_t<T>::m_instance;
+    std::atomic<T*> singleton_t<T>::m_instance;
 }
 
 #endif

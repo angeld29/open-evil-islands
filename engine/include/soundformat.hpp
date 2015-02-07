@@ -21,30 +21,28 @@
 #ifndef CE_SOUNDFORMAT_HPP
 #define CE_SOUNDFORMAT_HPP
 
+#include <cstddef>
+
 namespace cursedearth
 {
-    typedef struct {
-        unsigned int bits_per_sample;
-        unsigned int samples_per_second;
-        unsigned int channel_count;
-        unsigned int sample_size;
-        unsigned int bytes_per_second;
-    } ce_sound_format;
-
-    inline void ce_sound_format_init(ce_sound_format* sound_format, unsigned int bits_per_sample, unsigned int samples_per_second, unsigned int channel_count)
+    struct sound_format_t
     {
-        sound_format->bits_per_sample = bits_per_sample;
-        sound_format->samples_per_second = samples_per_second;
-        sound_format->channel_count = channel_count;
-        sound_format->sample_size = channel_count * (bits_per_sample / 8);
-        sound_format->bytes_per_second = samples_per_second * sound_format->sample_size;
-    }
+        size_t bits_per_sample;
+        size_t samples_per_second;
+        size_t channel_count;
+        size_t sample_size;
+        size_t bytes_per_second;
 
-    inline bool ce_sound_format_is_equal(const ce_sound_format* sound_format1, const ce_sound_format* sound_format2)
+        sound_format_t(size_t bits_per_sample, size_t samples_per_second, size_t channel_count):
+            bits_per_sample(bits_per_sample), samples_per_second(samples_per_second), channel_count(channel_count),
+            sample_size(channel_count * (bits_per_sample / 8)), bytes_per_second(samples_per_second * sample_size) {}
+    };
+
+    inline bool operator ==(const sound_format_t& lhs, const sound_format_t& rhs)
     {
-        return sound_format1->bits_per_sample == sound_format2->bits_per_sample &&
-               sound_format1->samples_per_second == sound_format2->samples_per_second &&
-               sound_format1->channel_count == sound_format2->channel_count;
+        return lhs.bits_per_sample    == rhs.bits_per_sample    &&
+               lhs.samples_per_second == rhs.samples_per_second &&
+               lhs.channel_count      == rhs.channel_count;
     }
 }
 

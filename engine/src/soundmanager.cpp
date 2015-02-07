@@ -33,8 +33,6 @@
 
 namespace cursedearth
 {
-    struct ce_sound_manager* ce_sound_manager;
-
     const char* ce_sound_dirs[] = { "Stream", "Movies", NULL };
     const char* ce_sound_exts[] = { ".wav", ".oga", ".ogv", ".ogg", ".mp3", ".bik", ".flac", NULL };
     const char* ce_sound_resource_dirs[] = { "Res", NULL };
@@ -56,12 +54,9 @@ namespace cursedearth
         return res_file;
     }
 
-    void ce_sound_manager_init(void)
+    sound_manager_t::sound_manager_t():
+        singleton_t<sound_manager_t>(this)
     {
-        ce_sound_manager = (struct ce_sound_manager*)ce_alloc_zero(sizeof(struct ce_sound_manager));
-        ce_sound_manager->res_files = ce_vector_new();
-        ce_sound_manager->sound_instances = ce_vector_new();
-
         std::vector<char> path(ce_option_manager->ei_path->length + 16);
         for (size_t i = 0; NULL != ce_sound_dirs[i]; ++i) {
             ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_sound_dirs[i], NULL);
@@ -69,32 +64,27 @@ namespace cursedearth
         }
 
         for (size_t i = 0; NULL != ce_sound_resource_names[i]; ++i) {
-            ce_res_file* res_file = ce_sound_manager_open_resource(ce_sound_resource_names[i]);
-            if (NULL != res_file) {
-                ce_vector_push_back(ce_sound_manager->res_files, res_file);
+            if (ce_res_file* res_file = ce_sound_manager_open_resource(ce_sound_resource_names[i])) {
+                m_res_files.push_back(res_file);
             }
         }
     }
 
-    void ce_sound_manager_term(void)
+    sound_manager_t::~sound_manager_t()
     {
-        if (NULL != ce_sound_manager) {
-            ce_vector_for_each(ce_sound_manager->sound_instances, (void(*)(void*))ce_sound_instance_del);
-            ce_vector_for_each(ce_sound_manager->res_files, (void(*)(void*))ce_res_file_del);
-            ce_vector_del(ce_sound_manager->res_files);
-            ce_free(ce_sound_manager, sizeof(struct ce_sound_manager));
+        for (const auto& res_file: m_res_files) {
+            ce_res_file_del(res_file);
         }
     }
 
-    void ce_sound_manager_advance(float /*elapsed*/)
+    void sound_manager_t::advance(float /*elapsed*/)
     {
     }
 
-    ce_sound_object ce_sound_manager_create_object(const char* name)
+    sound_object_t sound_manager_t::create_object(const char* name)
     {
         ce_mem_file* mem_file = NULL;
-        for (size_t i = 0; i < ce_sound_manager->res_files->count; ++i) {
-            ce_res_file* res_file = (ce_res_file*)ce_sound_manager->res_files->items[i];
+        for (const auto& res_file: m_res_files) {
             if (NULL != (mem_file = ce_res_ball_extract_mem_file_by_name(res_file, name))) {
                 break;
             }
@@ -121,25 +111,25 @@ namespace cursedearth
             return 0;
         }
 
-        ce_sound_instance* sound_instance = ce_sound_instance_new(++ce_sound_manager->last_sound_object, sound_resource);
-        if (NULL == sound_instance) {
+        const sound_object_t sound_object = ++m_last_object;
+        sound_instance_ptr_t sound_instance = std::make_shared<sound_instance_t>(sound_object, sound_resource);
+        if (!sound_instance) {
             ce_logging_error("sound manager: could not create instance '%s'", name);
             ce_sound_resource_del(sound_resource);
             return 0;
         }
 
-        ce_vector_push_back(ce_sound_manager->sound_instances, sound_instance);
-        return sound_instance->sound_object;
+        m_sound_instances.push_back(sound_instance);
+        return sound_object;
     }
 
-    ce_sound_instance* ce_sound_manager_find_instance(ce_sound_object sound_object)
+    sound_instance_ptr_t sound_manager_t::find_instance(sound_object_t sound_object)
     {
-        for (size_t i = 0; i < ce_sound_manager->sound_instances->count; ++i) {
-            ce_sound_instance* sound_instance = (ce_sound_instance*)ce_sound_manager->sound_instances->items[i];
-            if (sound_object == sound_instance->sound_object) {
+        for (const auto& sound_instance: m_sound_instances) {
+            if (sound_object == sound_instance->sound_object()) {
                 return sound_instance;
             }
         }
-        return nullptr;
+        return sound_instance_ptr_t();
     }
 }

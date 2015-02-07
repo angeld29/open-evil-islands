@@ -78,7 +78,7 @@ static bool update_figentity()
         return false;
     }
 
-    ce_scenenode_attach_child(ce_root.scenemng->scenenode, figentity->scenenode);
+    ce_scenenode_attach_child(ce_root::instance()->scenemng->scenenode, figentity->scenenode);
 
     if (-1 != anmidx) {
         ce_figentity_play_animation(figentity, ce_figentity_get_animation_name(figentity, anmidx));
@@ -120,15 +120,15 @@ static void state_changed(void*, int state)
         }
 
         ce_vec3 position;
-        ce_camera_set_position(ce_root.scenemng->camera, ce_vec3_init(&position, 0.0f, 2.0f, -4.0f));
+        ce_camera_set_position(ce_root::instance()->scenemng->camera, ce_vec3_init(&position, 0.0f, 2.0f, -4.0f));
 
-        ce_camera_set_near(ce_root.scenemng->camera, 0.1f);
-        ce_camera_yaw_pitch(ce_root.scenemng->camera, ce_deg2rad(180.0f), ce_deg2rad(30.0f));
+        ce_camera_set_near(ce_root::instance()->scenemng->camera, 0.1f);
+        ce_camera_yaw_pitch(ce_root::instance()->scenemng->camera, ce_deg2rad(180.0f), ce_deg2rad(30.0f));
 
-        ce_root.scenemng->camera_move_sensitivity = 2.5f;
-        ce_root.scenemng->camera_zoom_sensitivity = 0.5f;
+        ce_root::instance()->scenemng->camera_move_sensitivity = 2.5f;
+        ce_root::instance()->scenemng->camera_zoom_sensitivity = 0.5f;
 
-        ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);
+        ce_scenemng_change_state(ce_root::instance()->scenemng, CE_SCENEMNG_STATE_LOADING);
     }
 }
 
@@ -141,14 +141,14 @@ static void advance(void*, float elapsed)
         message_color.a = ce_clamp(float, message_timeout, 0.0f, 1.0f);
     }
 
-    float animation_fps = ce_root.animation_fps;
+    float animation_fps = ce_root::instance()->animation_fps;
 
     if (anmfps_inc_event->triggered) animation_fps += 1.0f;
     if (anmfps_dec_event->triggered) animation_fps -= 1.0f;
 
-    if (animation_fps != ce_root.animation_fps) {
-        ce_root.animation_fps = ce_clamp(float, animation_fps, 1.0f, 50.0f);
-        display_message("Animation FPS: %d", (int)ce_root.animation_fps);
+    if (animation_fps != ce_root::instance()->animation_fps) {
+        ce_root::instance()->animation_fps = ce_clamp(float, animation_fps, 1.0f, 50.0f);
+        display_message("Animation FPS: %d", (int)ce_root::instance()->animation_fps);
     }
 
     bool need_update_figentity = false;
@@ -190,7 +190,7 @@ static void advance(void*, float elapsed)
         if (-1 != anmidx) {
             const char* anmname = ce_figentity_get_animation_name(figentity, anmidx);
             ce_figentity_play_animation(figentity, anmname);
-            display_message("Animation name: %s", anmname);
+            display_message("Animation name: `%s'", anmname);
         } else {
             display_message("No animation");
         }
@@ -200,9 +200,9 @@ static void advance(void*, float elapsed)
 static void render(void*)
 {
     if (message_timeout > 0.0f) {
-        ce_font_render(ce_root.scenemng->font,
-            (ce_root.scenemng->viewport->width - ce_font_get_width(ce_root.scenemng->font, message->str)) / 2,
-            1 * (ce_root.scenemng->viewport->height - ce_font_get_height(ce_root.scenemng->font)) / 5,
+        ce_font_render(ce_root::instance()->scenemng->font,
+            (ce_root::instance()->scenemng->viewport->width - ce_font_get_width(ce_root::instance()->scenemng->font, message->str)) / 2,
+            1 * (ce_root::instance()->scenemng->viewport->height - ce_font_get_height(ce_root::instance()->scenemng->font)) / 5,
             &message_color, message->str);
     }
 }
@@ -212,40 +212,43 @@ int main(int argc, char* argv[])
     ce_alloc_init();
     atexit(clear);
 
-    optparse = ce_option_manager_create_option_parser();
+    try {
+        optparse = ce_option_manager_create_option_parser();
 
-    ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
-        "Cursed Earth: Figure Viewer", "This program is part of Cursed Earth spikes.\nFigure Viewer - explore Evil Islands figures.");
+        ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+            "Cursed Earth: Figure Viewer", "This program is part of Cursed Earth spikes.\nFigure Viewer - explore Evil Islands figures.");
 
-    ce_optparse_add(optparse, "pritex", CE_TYPE_STRING, "default0", false, NULL, "primary-texture", "primary texture");
-    ce_optparse_add(optparse, "sectex", CE_TYPE_STRING, "default0", false, NULL, "secondary-texture", "secondary texture");
-    ce_optparse_add(optparse, "anmname", CE_TYPE_STRING, NULL, false, NULL, "animation-name", "play animation with specified name");
-    ce_optparse_add(optparse, "figure", CE_TYPE_STRING, NULL, true, NULL, NULL, "internal figure name");
+        ce_optparse_add(optparse, "pritex", CE_TYPE_STRING, "default0", false, NULL, "primary-texture", "primary texture");
+        ce_optparse_add(optparse, "sectex", CE_TYPE_STRING, "default0", false, NULL, "secondary-texture", "secondary texture");
+        ce_optparse_add(optparse, "anmname", CE_TYPE_STRING, NULL, false, NULL, "animation-name", "play animation with specified name");
+        ce_optparse_add(optparse, "figure", CE_TYPE_STRING, NULL, true, NULL, NULL, "internal figure name");
 
-    ce_optparse_add_control(optparse, "+/-", "change animation FPS");
-    ce_optparse_add_control(optparse, "a", "play next animation");
-    ce_optparse_add_control(optparse, "1", "change strength");
-    ce_optparse_add_control(optparse, "2", "change dexterity");
-    ce_optparse_add_control(optparse, "3", "change height");
+        ce_optparse_add_control(optparse, "+/-", "change animation FPS");
+        ce_optparse_add_control(optparse, "a", "play next animation");
+        ce_optparse_add_control(optparse, "1", "change strength");
+        ce_optparse_add_control(optparse, "2", "change dexterity");
+        ce_optparse_add_control(optparse, "3", "change height");
 
-    if (!ce_root_init(optparse, argc, argv)) {
-        return EXIT_FAILURE;
+        ce_root root(optparse, argc, argv);
+
+        ce_root::instance()->scenemng->listener.state_changed = state_changed;
+        ce_root::instance()->scenemng->listener.advance = advance;
+        ce_root::instance()->scenemng->listener.render = render;
+
+        message = ce_string_new();
+        message_color = CE_COLOR_CORNFLOWER;
+
+        input_supply = ce_input_supply_new(ce_root::instance()->renderwindow->input_context);
+        strength_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_1));
+        dexterity_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_2));
+        height_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_3));
+        anm_change_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_A));
+        anmfps_inc_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
+        anmfps_dec_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
+
+        return ce_root::instance()->exec();
+    } catch (const std::exception& error) {
+        ce_logging_fatal("figure viewer: %s", error.what());
     }
-
-    ce_root.scenemng->listener.state_changed = state_changed;
-    ce_root.scenemng->listener.advance = advance;
-    ce_root.scenemng->listener.render = render;
-
-    message = ce_string_new();
-    message_color = CE_COLOR_CORNFLOWER;
-
-    input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
-    strength_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_1));
-    dexterity_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_2));
-    height_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_3));
-    anm_change_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_A));
-    anmfps_inc_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_ADD), CE_INPUT_DEFAULT_DELAY, 10);
-    anmfps_dec_event = ce_input_supply_repeat(input_supply, ce_input_supply_button(input_supply, CE_KB_SUBTRACT), CE_INPUT_DEFAULT_DELAY, 10);
-
-    return ce_root_exec();
+    return EXIT_FAILURE;
 }

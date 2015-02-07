@@ -23,62 +23,62 @@
 
 namespace cursedearth
 {
-    ce_sound_object ce_sound_object_new(const char* name)
+    sound_object_t make_sound_object(const char* name)
     {
-        return ce_sound_manager_create_object(name);
+        return sound_manager_t::instance()->create_object(name);
     }
 
-    void ce_sound_object_del(ce_sound_object)
+    void remove_sound_object(sound_object_t)
     {
     }
 
-    bool ce_sound_object_is_valid(ce_sound_object sound_object)
+    bool sound_object_is_valid(sound_object_t sound_object)
     {
-        return 0 != sound_object && nullptr != ce_sound_manager_find_instance(sound_object);
+        return 0 != sound_object && sound_manager_t::instance()->find_instance(sound_object);
     }
 
-    void ce_sound_object_advance(ce_sound_object sound_object, float elapsed)
+    void sound_object_advance(sound_object_t sound_object, float elapsed)
     {
-        if (ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object)) {
-            ce_sound_instance_advance(sound_instance, elapsed);
+        if (sound_instance_ptr_t sound_instance = sound_manager_t::instance()->find_instance(sound_object)) {
+            sound_instance->advance(elapsed);
         }
     }
 
-    bool ce_sound_object_is_stopped(ce_sound_object sound_object)
+    bool sound_object_is_stopped(sound_object_t sound_object)
     {
-        return CE_SOUND_STATE_STOPPED == ce_sound_object_get_state(sound_object);
+        return SOUND_INSTANCE_STATE_STOPPED == get_sound_object_state(sound_object);
     }
 
-    void ce_sound_object_play(ce_sound_object sound_object)
+    void play_sound_object(sound_object_t sound_object)
     {
-        if (ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object)) {
-            ce_sound_instance_change_state(sound_instance, CE_SOUND_STATE_PLAYING);
+        if (sound_instance_ptr_t sound_instance = sound_manager_t::instance()->find_instance(sound_object)) {
+            sound_instance->change_state(SOUND_INSTANCE_STATE_PLAYING);
         }
     }
 
-    void ce_sound_object_pause(ce_sound_object sound_object)
+    void pause_sound_object(sound_object_t sound_object)
     {
-        if (ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object)) {
-            ce_sound_instance_change_state(sound_instance, CE_SOUND_STATE_PAUSED);
+        if (sound_instance_ptr_t sound_instance = sound_manager_t::instance()->find_instance(sound_object)) {
+            sound_instance->change_state(SOUND_INSTANCE_STATE_PAUSED);
         }
     }
 
-    void ce_sound_object_stop(ce_sound_object sound_object)
+    void stop_sound_object(sound_object_t sound_object)
     {
-        if (ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object)) {
-            ce_sound_instance_change_state(sound_instance, CE_SOUND_STATE_STOPPED);
+        if (sound_instance_ptr_t sound_instance = sound_manager_t::instance()->find_instance(sound_object)) {
+            sound_instance->change_state(SOUND_INSTANCE_STATE_STOPPED);
         }
     }
 
-    int ce_sound_object_get_state(ce_sound_object sound_object)
+    int get_sound_object_state(sound_object_t sound_object)
     {
-        ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object);
-        return nullptr != sound_instance ? sound_instance->state.load() : CE_SOUND_STATE_STOPPED;
+        sound_instance_ptr_t sound_instance = sound_manager_t::instance()->find_instance(sound_object);
+        return sound_instance ? sound_instance->state() : SOUND_INSTANCE_STATE_STOPPED;
     }
 
-    float ce_sound_object_get_time(ce_sound_object sound_object)
+    float get_sound_object_time(sound_object_t sound_object)
     {
-        ce_sound_instance* sound_instance = ce_sound_manager_find_instance(sound_object);
-        return nullptr != sound_instance ? sound_instance->time.load() : 0.0f;
+        sound_instance_ptr_t sound_instance = sound_manager_t::instance()->find_instance(sound_object);
+        return sound_instance ? sound_instance->time() : 0.0f;
     }
 }

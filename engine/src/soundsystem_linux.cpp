@@ -53,7 +53,7 @@ namespace cursedearth
     snd_pcm_format_t ce_alsa_choose_format()
     {
         snd_pcm_format_t format = SND_PCM_FORMAT_UNKNOWN;
-        switch (static_cast<int>(CE_SOUND_SYSTEM_BITS_PER_SAMPLE)) {
+        switch (static_cast<int>(SOUND_CAPABILITY_BITS_PER_SAMPLE)) {
         case 8:
             format = SND_PCM_FORMAT_S8;
             break;
@@ -75,7 +75,7 @@ namespace cursedearth
     const char* ce_alsa_choose_device()
     {
         const char* device = "default";
-        switch (static_cast<int>(CE_SOUND_SYSTEM_CHANNEL_COUNT)) {
+        switch (static_cast<int>(SOUND_CAPABILITY_CHANNEL_COUNT)) {
         case 1:
         case 2:
             break;
@@ -87,7 +87,7 @@ namespace cursedearth
 
     int ce_alsa_set_params(void)
     {
-        ce_alsa* alsa = (ce_alsa*)ce_sound_system->impl;
+        ce_alsa* alsa = (ce_alsa*)sound_system_t::instance()->impl;
 
         snd_pcm_hw_params_t* hwparams;
         snd_pcm_sw_params_t* swparams;
@@ -127,17 +127,23 @@ namespace cursedearth
         }
 
         // set the count of channels
-        code = snd_pcm_hw_params_set_channels(alsa->handle, hwparams, CE_SOUND_SYSTEM_CHANNEL_COUNT);
+        code = snd_pcm_hw_params_set_channels(alsa->handle, hwparams, SOUND_CAPABILITY_CHANNEL_COUNT);
         if (code < 0) {
-            ce_logging_error("alsa: channels count (%u) not available for playbacks", CE_SOUND_SYSTEM_CHANNEL_COUNT);
+            ce_logging_error("alsa: channels count (%u) not available for playbacks", SOUND_CAPABILITY_CHANNEL_COUNT);
             return code;
         }
 
+        unsigned int samples_per_second = SOUND_CAPABILITY_SAMPLES_PER_SECOND;
+
         // set the stream rate
-        code = snd_pcm_hw_params_set_rate_near(alsa->handle, hwparams, &ce_sound_system->samples_per_second, &dir);
+        code = snd_pcm_hw_params_set_rate_near(alsa->handle, hwparams, &samples_per_second, &dir);
         if (code < 0) {
-            ce_logging_error("alsa: sample rate %u Hz not available for playback", CE_SOUND_SYSTEM_SAMPLES_PER_SECOND);
+            ce_logging_error("alsa: sample rate %u Hz not available for playback", SOUND_CAPABILITY_SAMPLES_PER_SECOND);
             return code;
+        }
+
+        if (SOUND_CAPABILITY_SAMPLES_PER_SECOND != samples_per_second) {
+            ce_logging_warning("alsa: sample rate %d Hz not supported by the implementation/hardware, using %u Hz", SOUND_CAPABILITY_SAMPLES_PER_SECOND, samples_per_second);
         }
 
         // ring buffer length in us
@@ -217,7 +223,7 @@ namespace cursedearth
 
     bool ce_alsa_ctor(void)
     {
-        ce_alsa* alsa = (ce_alsa*)ce_sound_system->impl;
+        ce_alsa* alsa = (ce_alsa*)sound_system_t::instance()->impl;
 
         ce_logging_write("sound system: using ALSA (Advanced Linux Sound Architecture)");
 
@@ -252,7 +258,7 @@ namespace cursedearth
 
     void ce_alsa_dtor(void)
     {
-        ce_alsa* alsa = (ce_alsa*)ce_sound_system->impl;
+        ce_alsa* alsa = (ce_alsa*)sound_system_t::instance()->impl;
         if (NULL != alsa->handle) {
             snd_pcm_drain(alsa->handle);
             snd_pcm_close(alsa->handle);
@@ -261,7 +267,7 @@ namespace cursedearth
 
     int ce_alsa_recovery(int code)
     {
-        ce_alsa* alsa = (ce_alsa*)ce_sound_system->impl;
+        ce_alsa* alsa = (ce_alsa*)sound_system_t::instance()->impl;
 
         // no data transferred or interrupt signal
         if (-EAGAIN == code || -EINTR == code) {
@@ -298,12 +304,10 @@ namespace cursedearth
 
     bool ce_alsa_write(const void* block)
     {
-        ce_alsa* alsa = (ce_alsa*)ce_sound_system->impl;
-        const char* data = static_cast<const char*>(block);
-        int code;
-
-        for (size_t sample_count = CE_SOUND_SYSTEM_SAMPLES_IN_BLOCK; sample_count > 0; ) {
-            code = snd_pcm_writei(alsa->handle, data, sample_count);
+        ce_alsa* alsa = (ce_alsa*)sound_system_t::instance()->impl;
+        const uint8_t* data = static_cast<const uint8_t*>(block);
+        for (size_t sample_count = SOUND_CAPABILITY_SAMPLES_IN_BLOCK; sample_count > 0; ) {
+            int code = snd_pcm_writei(alsa->handle, data, sample_count);
             if (code < 0) {
                 code = ce_alsa_recovery(code);
                 if (code < 0) {
@@ -311,7 +315,7 @@ namespace cursedearth
                     return false;
                 }
             } else {
-                data += code * CE_SOUND_SYSTEM_SAMPLE_SIZE;
+                data += code * SOUND_CAPABILITY_SAMPLE_SIZE;
                 sample_count -= code;
             }
         }

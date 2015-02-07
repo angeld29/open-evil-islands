@@ -30,7 +30,7 @@
 
 using namespace cursedearth;
 
-static bool pause;
+static bool video_paused;
 static ce_video_object video_object;
 static ce_optparse* optparse;
 static ce_input_supply* input_supply;
@@ -55,7 +55,7 @@ static void state_changed(void*, int state)
             ce_video_object_play(video_object);
         }
 
-        ce_scenemng_change_state(ce_root.scenemng, CE_SCENEMNG_STATE_LOADING);
+        ce_scenemng_change_state(ce_root::instance()->scenemng, CE_SCENEMNG_STATE_LOADING);
     }
 }
 
@@ -65,8 +65,8 @@ static void advance(void*, float elapsed)
     ce_video_object_advance(video_object, elapsed);
 
     if (pause_event->triggered) {
-        pause = !pause;
-        if (pause) {
+        video_paused = !video_paused;
+        if (video_paused) {
             ce_video_object_pause(video_object);
         } else {
             ce_video_object_play(video_object);
@@ -84,23 +84,26 @@ int main(int argc, char* argv[])
     ce_alloc_init();
     atexit(clear);
 
-    optparse = ce_option_manager_create_option_parser();
+    try {
+        optparse = ce_option_manager_create_option_parser();
 
-    ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
-        "Cursed Earth: Video Player", "This program is part of Cursed Earth spikes.\nVideo Player - play Evil Islands videos.");
+        ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+            "Cursed Earth: Video Player", "This program is part of Cursed Earth spikes.\nVideo Player - play Evil Islands videos.");
 
-    ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true, NULL, NULL, "any TRACK.* file in `EI/Movies'");
+        ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true, NULL, NULL, "any TRACK.* file in `EI/Movies'");
 
-    if (!ce_root_init(optparse, argc, argv)) {
-        return EXIT_FAILURE;
+        ce_root root(optparse, argc, argv);
+
+        ce_root::instance()->scenemng->listener.state_changed = state_changed;
+        ce_root::instance()->scenemng->listener.advance = advance;
+        ce_root::instance()->scenemng->listener.render = render;
+
+        input_supply = ce_input_supply_new(ce_root::instance()->renderwindow->input_context);
+        pause_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_SPACE));
+
+        return ce_root::instance()->exec();
+    } catch (const std::exception& error) {
+        ce_logging_fatal("video player: %s", error.what());
     }
-
-    ce_root.scenemng->listener.state_changed = state_changed;
-    ce_root.scenemng->listener.advance = advance;
-    ce_root.scenemng->listener.render = render;
-
-    input_supply = ce_input_supply_new(ce_root.renderwindow->input_context);
-    pause_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_SPACE));
-
-    return ce_root_exec();
+    return EXIT_FAILURE;
 }

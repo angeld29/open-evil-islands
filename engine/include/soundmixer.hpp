@@ -21,25 +21,32 @@
 #ifndef CE_SOUNDMIXER_HPP
 #define CE_SOUNDMIXER_HPP
 
-#include <atomic>
+#include <list>
 
-#include "vector.hpp"
+#include "singleton.hpp"
 #include "thread.hpp"
 #include "soundbuffer.hpp"
 
 namespace cursedearth
 {
-    extern struct ce_sound_mixer {
-        ce_vector* sound_buffers;
-        std::atomic<bool> done;
-        ce_thread* thread;
-    }* ce_sound_mixer;
+    class sound_mixer_t: public singleton_t<sound_mixer_t>
+    {
+    public:
+        sound_mixer_t();
+        ~sound_mixer_t();
 
-    void ce_sound_mixer_init(void);
-    void ce_sound_mixer_term(void);
+        sound_buffer_ptr_t make_buffer(const sound_format_t&);
 
-    ce_sound_buffer* ce_sound_mixer_create_buffer(void);
-    void ce_sound_mixer_destroy_buffer(ce_sound_buffer* sound_buffer);
+    private:
+        static void exec(sound_mixer_t*);
+
+    private:
+        size_t m_max_sample_size = 0;
+        std::list<sound_buffer_ptr_t> m_buffers;
+        std::atomic<bool> m_done;
+        ce_mutex* m_mutex;
+        ce_thread* m_thread;
+    };
 }
 
 #endif

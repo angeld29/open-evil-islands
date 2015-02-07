@@ -31,63 +31,57 @@
 
 namespace cursedearth
 {
-    void ce_sound_instance_exec_playing(ce_sound_instance* sound_instance)
+    sound_instance_t::sound_instance_t(sound_object_t object, ce_sound_resource* resource):
+        m_object(object),
+        m_resource(resource),
+        m_buffer(sound_mixer_t::instance()->make_buffer(resource->sound_format)),
+        m_state(SOUND_INSTANCE_STATE_STOPPED),
+        m_time(0.0f),
+        m_done(false),
+        m_thread(ce_thread_new((void(*)())exec, this))
     {
-        size_t size = 4096;
-        std::vector<char> buffer(size);
-        size = ce_sound_resource_read(sound_instance->sound_resource, buffer.data(), size);
-        if (0 != size) {
-            ce_sound_buffer_write(sound_instance->sound_buffer, buffer.data(), size);
-            sound_instance->time = sound_instance->sound_resource->time;
+    }
+
+    sound_instance_t::~sound_instance_t()
+    {
+        m_done = true;
+        ce_thread_wait(m_thread);
+        ce_thread_del(m_thread);
+        ce_sound_resource_del(m_resource);
+    }
+
+    void sound_instance_t::advance(float)
+    {
+    }
+
+    void sound_instance_t::change_state(sound_instance_state_t state)
+    {
+        m_state = state;
+    }
+
+    void sound_instance_t::exec_playing(sound_instance_t* instance)
+    {
+        if (ce_sound_resource_read(instance->m_resource, instance->m_buffer)) {
+            instance->m_time = instance->m_resource->time;
         } else {
-            ce_sound_instance_change_state(sound_instance, CE_SOUND_STATE_STOPPED);
+            instance->change_state(SOUND_INSTANCE_STATE_STOPPED);
         }
     }
 
-    void ce_sound_instance_exec(ce_sound_instance* sound_instance)
+    void sound_instance_t::exec(sound_instance_t* instance)
     {
-        while (!sound_instance->done) {
-            switch (sound_instance->state) {
-            case CE_SOUND_STATE_PLAYING:
-                ce_sound_instance_exec_playing(sound_instance);
+        while (!instance->m_done) {
+            switch (instance->m_state) {
+            case SOUND_INSTANCE_STATE_PLAYING:
+                exec_playing(instance);
                 break;
-            case CE_SOUND_STATE_STOPPED:
-                sound_instance->time = 0.0f;
-                ce_sound_resource_reset(sound_instance->sound_resource);
+            case SOUND_INSTANCE_STATE_PAUSED:
+                break;
+            case SOUND_INSTANCE_STATE_STOPPED:
+                instance->m_time = 0.0f;
+                ce_sound_resource_reset(instance->m_resource);
                 break;
             }
         }
-    }
-
-    ce_sound_instance* ce_sound_instance_new(ce_sound_object sound_object, ce_sound_resource* sound_resource)
-    {
-        ce_sound_instance* sound_instance = (ce_sound_instance*)ce_alloc_zero(sizeof(ce_sound_instance));
-        sound_instance->sound_object = sound_object;
-        sound_instance->sound_resource = sound_resource;
-        sound_instance->sound_buffer = ce_sound_mixer_create_buffer();
-        sound_instance->sound_buffer->sound_format = sound_resource->sound_format;
-        sound_instance->thread = ce_thread_new((void(*)())ce_sound_instance_exec, sound_instance);
-        return sound_instance;
-    }
-
-    void ce_sound_instance_del(ce_sound_instance* sound_instance)
-    {
-        if (NULL != sound_instance) {
-            sound_instance->done = true;
-            ce_thread_wait(sound_instance->thread);
-            ce_thread_del(sound_instance->thread);
-            ce_sound_mixer_destroy_buffer(sound_instance->sound_buffer);
-            ce_sound_resource_del(sound_instance->sound_resource);
-            ce_free(sound_instance, sizeof(ce_sound_instance));
-        }
-    }
-
-    void ce_sound_instance_advance(ce_sound_instance*, float /*elapsed*/)
-    {
-    }
-
-    void ce_sound_instance_change_state(ce_sound_instance* sound_instance, int state)
-    {
-        sound_instance->state = state;
     }
 }

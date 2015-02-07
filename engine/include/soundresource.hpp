@@ -21,10 +21,8 @@
 #ifndef CE_SOUNDRESOURCE_HPP
 #define CE_SOUNDRESOURCE_HPP
 
-#include <cstddef>
-
 #include "memfile.hpp"
-#include "soundformat.hpp"
+#include "soundbuffer.hpp"
 
 namespace cursedearth
 {
@@ -52,15 +50,15 @@ namespace cursedearth
     } ce_sound_resource_vtable;
 
     struct ce_sound_resource {
-        ce_sound_format sound_format;
+        sound_format_t sound_format;
         float time, bytes_per_second_inv;
         size_t granule_pos;
         size_t input_buffer_capacity;
         size_t output_buffer_capacity;
         size_t output_buffer_size;
         size_t output_buffer_pos;
-        char* input_buffer;
-        char* output_buffer;
+        uint8_t* input_buffer;
+        uint8_t* output_buffer;
         ce_mem_file* mem_file;
         ce_sound_resource_vtable vtable;
         size_t size;
@@ -70,11 +68,11 @@ namespace cursedearth
     extern const size_t CE_SOUND_RESOURCE_BUILTIN_COUNT;
     extern const ce_sound_resource_vtable ce_sound_resource_builtins[];
 
-    ce_sound_resource* ce_sound_resource_new(ce_mem_file* mem_file);
-    void ce_sound_resource_del(ce_sound_resource* sound_resource);
+    ce_sound_resource* ce_sound_resource_new(ce_mem_file*);
+    void ce_sound_resource_del(ce_sound_resource*);
 
-    size_t ce_sound_resource_read(ce_sound_resource* sound_resource, void* data, size_t size);
-    bool ce_sound_resource_reset(ce_sound_resource* sound_resource);
+    bool ce_sound_resource_read(ce_sound_resource*, const sound_buffer_ptr_t&);
+    bool ce_sound_resource_reset(ce_sound_resource*);
 }
 
 #endif

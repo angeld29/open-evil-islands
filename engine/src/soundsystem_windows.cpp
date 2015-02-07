@@ -34,19 +34,19 @@
 namespace cursedearth
 {
     enum {
-        CE_SOUND_SYSTEM_HEADER_COUNT = 8,
+        SOUND_CAPABILITY_HEADER_COUNT = 8,
     };
 
     typedef struct {
         WAVEHDR waveheader;
-        char data[CE_SOUND_SYSTEM_BLOCK_SIZE];
+        char data[SOUND_CAPABILITY_BLOCK_SIZE];
     } ce_wmm_header;
 
     typedef struct {
         HANDLE event;
         WAVEFORMATEXTENSIBLE waveformat;
         HWAVEOUT waveout;
-        ce_wmm_header headers[CE_SOUND_SYSTEM_HEADER_COUNT];
+        ce_wmm_header headers[SOUND_CAPABILITY_HEADER_COUNT];
     } ce_wmm;
 
     void ce_wmm_error(MMRESULT code, const char* message)
@@ -81,14 +81,14 @@ namespace cursedearth
             return false;
         }
 
-        assert(CE_SOUND_SYSTEM_CHANNEL_COUNT <= 2 && "only mono and stereo output implemented");
+        assert(SOUND_CAPABILITY_CHANNEL_COUNT <= 2 && "only mono and stereo output implemented");
 
         wmm->waveformat.Format.wFormatTag = WAVE_FORMAT_PCM;
-        wmm->waveformat.Format.nChannels = CE_SOUND_SYSTEM_CHANNEL_COUNT;
-        wmm->waveformat.Format.nSamplesPerSec = CE_SOUND_SYSTEM_SAMPLES_PER_SECOND;
-        wmm->waveformat.Format.wBitsPerSample  = CE_SOUND_SYSTEM_BITS_PER_SAMPLE;
-        wmm->waveformat.Format.nBlockAlign = CE_SOUND_SYSTEM_SAMPLE_SIZE;
-        wmm->waveformat.Format.nAvgBytesPerSec = CE_SOUND_SYSTEM_SAMPLES_PER_SECOND * CE_SOUND_SYSTEM_SAMPLE_SIZE;
+        wmm->waveformat.Format.nChannels = SOUND_CAPABILITY_CHANNEL_COUNT;
+        wmm->waveformat.Format.nSamplesPerSec = SOUND_CAPABILITY_SAMPLES_PER_SECOND;
+        wmm->waveformat.Format.wBitsPerSample  = SOUND_CAPABILITY_BITS_PER_SAMPLE;
+        wmm->waveformat.Format.nBlockAlign = SOUND_CAPABILITY_SAMPLE_SIZE;
+        wmm->waveformat.Format.nAvgBytesPerSec = SOUND_CAPABILITY_SAMPLES_PER_SECOND * SOUND_CAPABILITY_SAMPLE_SIZE;
 
         code = waveOutOpen(&wmm->waveout, WAVE_MAPPER, &wmm->waveformat.Format,
             (DWORD_PTR)ce_wmm_proc, (DWORD_PTR)wmm, CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
@@ -97,9 +97,9 @@ namespace cursedearth
             return false;
         }
 
-        for (size_t i = 0; i < CE_SOUND_SYSTEM_HEADER_COUNT; ++i) {
+        for (size_t i = 0; i < SOUND_CAPABILITY_HEADER_COUNT; ++i) {
             wmm->headers[i].waveheader.lpData = wmm->headers[i].data;
-            wmm->headers[i].waveheader.dwBufferLength = CE_SOUND_SYSTEM_BLOCK_SIZE;
+            wmm->headers[i].waveheader.dwBufferLength = SOUND_CAPABILITY_BLOCK_SIZE;
             wmm->headers[i].waveheader.dwUser = (DWORD_PTR)&wmm->headers[i];
             wmm->headers[i].waveheader.dwFlags = WHDR_DONE;
         }
@@ -118,7 +118,7 @@ namespace cursedearth
                 ce_wmm_error(code, "could not reset waveform output device");
             }
 
-            for (size_t i = 0; i < CE_SOUND_SYSTEM_HEADER_COUNT; ++i) {
+            for (size_t i = 0; i < SOUND_CAPABILITY_HEADER_COUNT; ++i) {
                 if (wmm->headers[i].waveheader.dwFlags & WHDR_PREPARED) {
                     code = waveOutUnprepareHeader(wmm->waveout, &wmm->headers[i].waveheader, sizeof(WAVEHDR));
                     if (MMSYSERR_NOERROR != code) {
@@ -140,7 +140,7 @@ namespace cursedearth
 
     inline ce_wmm_header* ce_wmm_find(ce_wmm* wmm)
     {
-        for (size_t i = 0; i < CE_SOUND_SYSTEM_HEADER_COUNT; ++i) {
+        for (size_t i = 0; i < SOUND_CAPABILITY_HEADER_COUNT; ++i) {
             if (wmm->headers[i].waveheader.dwFlags & WHDR_DONE) {
                 return &wmm->headers[i];
             }
@@ -168,7 +168,7 @@ namespace cursedearth
         }
 
         if (MMSYSERR_NOERROR == code) {
-            memcpy(header->data, block, CE_SOUND_SYSTEM_BLOCK_SIZE);
+            memcpy(header->data, block, SOUND_CAPABILITY_BLOCK_SIZE);
             code = waveOutPrepareHeader(wmm->waveout, &header->waveheader, sizeof(WAVEHDR));
             if (MMSYSERR_NOERROR == code) {
                 code = waveOutWrite(wmm->waveout, &header->waveheader, sizeof(WAVEHDR));
