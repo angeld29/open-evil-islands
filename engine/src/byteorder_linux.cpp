@@ -18,129 +18,70 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <asm/byteorder.h>
+#define _BSD_SOURCE
+#include <endian.h>
 
 #include "byteorder.hpp"
 
 namespace cursedearth
 {
-    uint16_t ce_cpu2le16(uint16_t v)
+    void do_cpu2le(uint16_t& value)
     {
-        return __cpu_to_le16(v);
+        value = htole16(value);
     }
 
-    uint32_t ce_cpu2le32(uint32_t v)
+    void do_cpu2le(uint32_t& value)
     {
-        return __cpu_to_le32(v);
+        value = htole32(value);
     }
 
-    uint64_t ce_cpu2le64(uint64_t v)
+    void do_cpu2le(uint64_t& value)
     {
-        return __cpu_to_le64(v);
+        value = htole64(value);
     }
 
-    uint16_t ce_le2cpu16(uint16_t v)
+    void do_le2cpu(uint16_t& value)
     {
-        return __le16_to_cpu(v);
+        value = le16toh(value);
     }
 
-    uint32_t ce_le2cpu32(uint32_t v)
+    void do_le2cpu(uint32_t& value)
     {
-        return __le32_to_cpu(v);
+        value = le32toh(value);
     }
 
-    uint64_t ce_le2cpu64(uint64_t v)
+    void do_le2cpu(uint64_t& value)
     {
-        return __le64_to_cpu(v);
+        value = le64toh(value);
     }
 
-    uint16_t ce_cpu2be16(uint16_t v)
+    void do_cpu2be(uint16_t& value)
     {
-        return __cpu_to_be16(v);
+        value = htobe16(value);
     }
 
-    uint32_t ce_cpu2be32(uint32_t v)
+    void do_cpu2be(uint32_t& value)
     {
-        return __cpu_to_be32(v);
+        value = htobe32(value);
     }
 
-    uint64_t ce_cpu2be64(uint64_t v)
+    void do_cpu2be(uint64_t& value)
     {
-        return __cpu_to_be64(v);
+        value = htobe64(value);
     }
 
-    uint16_t ce_be2cpu16(uint16_t v)
+    void do_be2cpu(uint16_t& value)
     {
-        return __be16_to_cpu(v);
+        value = be16toh(value);
     }
 
-    uint32_t ce_be2cpu32(uint32_t v)
+    void do_be2cpu(uint32_t& value)
     {
-        return __be32_to_cpu(v);
+        value = be32toh(value);
     }
 
-    uint64_t ce_be2cpu64(uint64_t v)
+    void do_be2cpu(uint64_t& value)
     {
-        return __be64_to_cpu(v);
-    }
-
-    void ce_cpu2le16s(uint16_t* v)
-    {
-        __cpu_to_le16s((__u16*)v);
-    }
-
-    void ce_cpu2le32s(uint32_t* v)
-    {
-        __cpu_to_le32s((__u32*)v);
-    }
-
-    void ce_cpu2le64s(uint64_t* v)
-    {
-        __cpu_to_le64s((__u64*)v);
-    }
-
-    void ce_le2cpu16s(uint16_t* v)
-    {
-        __le16_to_cpus((__u16*)v);
-    }
-
-    void ce_le2cpu32s(uint32_t* v)
-    {
-        __le32_to_cpus((__u32*)v);
-    }
-
-    void ce_le2cpu64s(uint64_t* v)
-    {
-        __le64_to_cpus((__u64*)v);
-    }
-
-    void ce_cpu2be16s(uint16_t* v)
-    {
-        __cpu_to_be16s((__u16*)v);
-    }
-
-    void ce_cpu2be32s(uint32_t* v)
-    {
-        __cpu_to_be32s((__u32*)v);
-    }
-
-    void ce_cpu2be64s(uint64_t* v)
-    {
-        __cpu_to_be64s((__u64*)v);
-    }
-
-    void ce_be2cpu16s(uint16_t* v)
-    {
-        __be16_to_cpus((__u16*)v);
-    }
-
-    void ce_be2cpu32s(uint32_t* v)
-    {
-        __be32_to_cpus((__u32*)v);
-    }
-
-    void ce_be2cpu64s(uint64_t* v)
-    {
-        __be64_to_cpus((__u64*)v);
+        value = be64toh(value);
     }
 }

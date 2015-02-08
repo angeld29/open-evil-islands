@@ -22,46 +22,95 @@
 #define CE_BYTEORDER_HPP
 
 #include <cstdint>
+#include <type_traits>
 
 namespace cursedearth
 {
-    bool ce_is_big_endian(void);
+    bool big_endian(void);
 
-    uint16_t ce_swap16(uint16_t v);
-    uint32_t ce_swap32(uint32_t v);
-    uint64_t ce_swap64(uint64_t v);
+    /**
+     * @brief convert values between host (cpu) and big-/little-endian byte order
+     */
 
-    uint16_t ce_cpu2le16(uint16_t v);
-    uint32_t ce_cpu2le32(uint32_t v);
-    uint64_t ce_cpu2le64(uint64_t v);
+    void do_cpu2le(uint16_t&);
+    void do_cpu2le(uint32_t&);
+    void do_cpu2le(uint64_t&);
 
-    uint16_t ce_le2cpu16(uint16_t v);
-    uint32_t ce_le2cpu32(uint32_t v);
-    uint64_t ce_le2cpu64(uint64_t v);
+    inline void do_cpu2le(uint8_t&) {}
 
-    uint16_t ce_cpu2be16(uint16_t v);
-    uint32_t ce_cpu2be32(uint32_t v);
-    uint64_t ce_cpu2be64(uint64_t v);
+    template <typename T>
+    inline typename std::enable_if<std::is_unsigned<T>::value, T>::type cpu2le(T value)
+    {
+        do_cpu2le(value);
+        return value;
+    }
 
-    uint16_t ce_be2cpu16(uint16_t v);
-    uint32_t ce_be2cpu32(uint32_t v);
-    uint64_t ce_be2cpu64(uint64_t v);
+    template <typename T, typename U = typename std::make_unsigned<T>::type>
+    inline typename std::enable_if<std::is_signed<T>::value, T>::type cpu2le(T value)
+    {
+        do_cpu2le(*reinterpret_cast<U*>(&value));
+        return value;
+    }
 
-    void ce_cpu2le16s(uint16_t* v);
-    void ce_cpu2le32s(uint32_t* v);
-    void ce_cpu2le64s(uint64_t* v);
+    void do_le2cpu(uint16_t&);
+    void do_le2cpu(uint32_t&);
+    void do_le2cpu(uint64_t&);
 
-    void ce_le2cpu16s(uint16_t* v);
-    void ce_le2cpu32s(uint32_t* v);
-    void ce_le2cpu64s(uint64_t* v);
+    inline void do_le2cpu(uint8_t&) {}
 
-    void ce_cpu2be16s(uint16_t* v);
-    void ce_cpu2be32s(uint32_t* v);
-    void ce_cpu2be64s(uint64_t* v);
+    template <typename T>
+    inline typename std::enable_if<std::is_unsigned<T>::value, T>::type le2cpu(T value)
+    {
+        do_le2cpu(value);
+        return value;
+    }
 
-    void ce_be2cpu16s(uint16_t* v);
-    void ce_be2cpu32s(uint32_t* v);
-    void ce_be2cpu64s(uint64_t* v);
+    template <typename T, typename U = typename std::make_unsigned<T>::type>
+    inline typename std::enable_if<std::is_signed<T>::value, T>::type le2cpu(T value)
+    {
+        do_le2cpu(*reinterpret_cast<U*>(&value));
+        return value;
+    }
+
+    void do_cpu2be(uint16_t&);
+    void do_cpu2be(uint32_t&);
+    void do_cpu2be(uint64_t&);
+
+    inline void do_cpu2be(uint8_t&) {}
+
+    template <typename T>
+    inline typename std::enable_if<std::is_unsigned<T>::value, T>::type cpu2be(T value)
+    {
+        do_cpu2be(value);
+        return value;
+    }
+
+    template <typename T, typename U = typename std::make_unsigned<T>::type>
+    inline typename std::enable_if<std::is_signed<T>::value, T>::type cpu2be(T value)
+    {
+        do_cpu2be(*reinterpret_cast<U*>(&value));
+        return value;
+    }
+
+    void do_be2cpu(uint16_t&);
+    void do_be2cpu(uint32_t&);
+    void do_be2cpu(uint64_t&);
+
+    inline void do_be2cpu(uint8_t&) {}
+
+    template <typename T>
+    inline typename std::enable_if<std::is_unsigned<T>::value, T>::type be2cpu(T value)
+    {
+        do_be2cpu(value);
+        return value;
+    }
+
+    template <typename T, typename U = typename std::make_unsigned<T>::type>
+    inline typename std::enable_if<std::is_signed<T>::value, T>::type be2cpu(T value)
+    {
+        do_be2cpu(*reinterpret_cast<U*>(&value));
+        return value;
+    }
 }
 
 #endif

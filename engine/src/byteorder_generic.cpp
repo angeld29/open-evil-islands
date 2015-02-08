@@ -22,147 +22,110 @@
 
 namespace cursedearth
 {
-    uint16_t ce_cpu2le16(uint16_t v)
+    void endian_swap(uint16_t& value)
     {
-        return ce_is_big_endian() ? ce_swap16(v) : v;
+        value = value << 8 | value >> 8;
     }
 
-    uint32_t ce_cpu2le32(uint32_t v)
+    void endian_swap(uint32_t& value)
     {
-        return ce_is_big_endian() ? ce_swap32(v) : v;
+        value = value << 24 | value >> 24 |
+            (value & static_cast<uint32_t>(0x0000ff00UL)) << 8 |
+            (value & static_cast<uint32_t>(0x00ff0000UL)) >> 8;
     }
 
-    uint64_t ce_cpu2le64(uint64_t v)
+    void endian_swap(uint64_t& value)
     {
-        return ce_is_big_endian() ? ce_swap64(v) : v;
+        value = value << 56 | value >> 56 |
+            (value & static_cast<uint64_t>(0x000000000000ff00ULL)) << 40 |
+            (value & static_cast<uint64_t>(0x0000000000ff0000ULL)) << 24 |
+            (value & static_cast<uint64_t>(0x00000000ff000000ULL)) << 8  |
+            (value & static_cast<uint64_t>(0x000000ff00000000ULL)) >> 8  |
+            (value & static_cast<uint64_t>(0x0000ff0000000000ULL)) >> 24 |
+            (value & static_cast<uint64_t>(0x00ff000000000000ULL)) >> 40;
     }
 
-    uint16_t ce_le2cpu16(uint16_t v)
+    void do_cpu2le(uint16_t& value)
     {
-        return ce_is_big_endian() ? ce_swap16(v) : v;
-    }
-
-    uint32_t ce_le2cpu32(uint32_t v)
-    {
-        return ce_is_big_endian() ? ce_swap32(v) : v;
-    }
-
-    uint64_t ce_le2cpu64(uint64_t v)
-    {
-        return ce_is_big_endian() ? ce_swap64(v) : v;
-    }
-
-    uint16_t ce_cpu2be16(uint16_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap16(v);
-    }
-
-    uint32_t ce_cpu2be32(uint32_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap32(v);
-    }
-
-    uint64_t ce_cpu2be64(uint64_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap64(v);
-    }
-
-    uint16_t ce_be2cpu16(uint16_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap16(v);
-    }
-
-    uint32_t ce_be2cpu32(uint32_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap32(v);
-    }
-
-    uint64_t ce_be2cpu64(uint64_t v)
-    {
-        return ce_is_big_endian() ? v : ce_swap64(v);
-    }
-
-    void ce_cpu2le16s(uint16_t* v)
-    {
-        if (ce_is_big_endian()) {
-            *v = ce_swap16(*v);
+        if (big_endian()) {
+            endian_swap(value);
         }
     }
 
-    void ce_cpu2le32s(uint32_t* v)
+    void do_cpu2le(uint32_t& value)
     {
-        if (ce_is_big_endian()) {
-            *v = ce_swap32(*v);
+        if (big_endian()) {
+            endian_swap(value);
         }
     }
 
-    void ce_cpu2le64s(uint64_t* v)
+    void do_cpu2le(uint64_t& value)
     {
-        if (ce_is_big_endian()) {
-            *v = ce_swap64(*v);
+        if (big_endian()) {
+            endian_swap(value);
         }
     }
 
-    void ce_le2cpu16s(uint16_t* v)
+    void do_le2cpu(uint16_t& value)
     {
-        if (ce_is_big_endian()) {
-            *v = ce_swap16(*v);
+        if (big_endian()) {
+            endian_swap(value);
         }
     }
 
-    void ce_le2cpu32s(uint32_t* v)
+    void do_le2cpu(uint32_t& value)
     {
-        if (ce_is_big_endian()) {
-            *v = ce_swap32(*v);
+        if (big_endian()) {
+            endian_swap(value);
         }
     }
 
-    void ce_le2cpu64s(uint64_t* v)
+    void do_le2cpu(uint64_t& value)
     {
-        if (ce_is_big_endian()) {
-            *v = ce_swap64(*v);
+        if (big_endian()) {
+            endian_swap(value);
         }
     }
 
-    void ce_cpu2be16s(uint16_t* v)
+    void do_cpu2be(uint16_t& value)
     {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap16(*v);
+        if (!big_endian()) {
+            endian_swap(value);
         }
     }
 
-    void ce_cpu2be32s(uint32_t* v)
+    void do_cpu2be(uint32_t& value)
     {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap32(*v);
+        if (!big_endian()) {
+            endian_swap(value);
         }
     }
 
-    void ce_cpu2be64s(uint64_t* v)
+    void do_cpu2be(uint64_t& value)
     {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap64(*v);
+        if (!big_endian()) {
+            endian_swap(value);
         }
     }
 
-    void ce_be2cpu16s(uint16_t* v)
+    void do_be2cpu(uint16_t& value)
     {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap16(*v);
+        if (!big_endian()) {
+            endian_swap(value);
         }
     }
 
-    void ce_be2cpu32s(uint32_t* v)
+    void do_be2cpu(uint32_t& value)
     {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap32(*v);
+        if (!big_endian()) {
+            endian_swap(value);
         }
     }
 
-    void ce_be2cpu64s(uint64_t* v)
+    void do_be2cpu(uint64_t& value)
     {
-        if (!ce_is_big_endian()) {
-            *v = ce_swap64(*v);
+        if (!big_endian()) {
+            endian_swap(value);
         }
     }
 }

@@ -221,28 +221,28 @@ namespace cursedearth
             uint32_t* u32;
         } ptr = { static_cast<uint8_t*>(data) };
 
-        uint32_t signature = ce_le2cpu32(*ptr.u32++);
+        uint32_t signature = le2cpu(*ptr.u32++);
         assert(CE_MMPFILE_SIGNATURE == signature && "wrong signature");
 
         ce_mmpfile* mmpfile = (ce_mmpfile*)ce_alloc(sizeof(ce_mmpfile));
-        mmpfile->width = ce_le2cpu32(*ptr.u32++);
-        mmpfile->height = ce_le2cpu32(*ptr.u32++);
-        mmpfile->mipmap_count = ce_le2cpu32(*ptr.u32++);
-        mmpfile->format = ce_mmpfile_format_find(ce_le2cpu32(*ptr.u32++));
-        mmpfile->bit_count = ce_le2cpu32(*ptr.u32++);
-        mmpfile->amask = ce_le2cpu32(*ptr.u32++);
-        mmpfile->ashift = ce_le2cpu32(*ptr.u32++);
-        mmpfile->acount = ce_le2cpu32(*ptr.u32++);
-        mmpfile->rmask = ce_le2cpu32(*ptr.u32++);
-        mmpfile->rshift = ce_le2cpu32(*ptr.u32++);
-        mmpfile->rcount = ce_le2cpu32(*ptr.u32++);
-        mmpfile->gmask = ce_le2cpu32(*ptr.u32++);
-        mmpfile->gshift = ce_le2cpu32(*ptr.u32++);
-        mmpfile->gcount = ce_le2cpu32(*ptr.u32++);
-        mmpfile->bmask = ce_le2cpu32(*ptr.u32++);
-        mmpfile->bshift = ce_le2cpu32(*ptr.u32++);
-        mmpfile->bcount = ce_le2cpu32(*ptr.u32++);
-        mmpfile->user_data_offset = ce_le2cpu32(*ptr.u32++);
+        mmpfile->width = le2cpu(*ptr.u32++);
+        mmpfile->height = le2cpu(*ptr.u32++);
+        mmpfile->mipmap_count = le2cpu(*ptr.u32++);
+        mmpfile->format = ce_mmpfile_format_find(le2cpu(*ptr.u32++));
+        mmpfile->bit_count = le2cpu(*ptr.u32++);
+        mmpfile->amask = le2cpu(*ptr.u32++);
+        mmpfile->ashift = le2cpu(*ptr.u32++);
+        mmpfile->acount = le2cpu(*ptr.u32++);
+        mmpfile->rmask = le2cpu(*ptr.u32++);
+        mmpfile->rshift = le2cpu(*ptr.u32++);
+        mmpfile->rcount = le2cpu(*ptr.u32++);
+        mmpfile->gmask = le2cpu(*ptr.u32++);
+        mmpfile->gshift = le2cpu(*ptr.u32++);
+        mmpfile->gcount = le2cpu(*ptr.u32++);
+        mmpfile->bmask = le2cpu(*ptr.u32++);
+        mmpfile->bshift = le2cpu(*ptr.u32++);
+        mmpfile->bcount = le2cpu(*ptr.u32++);
+        mmpfile->user_data_offset = le2cpu(*ptr.u32++);
         mmpfile->texels = ptr.u8;
         mmpfile->version = 0;
         mmpfile->user_info = 0;
@@ -250,9 +250,9 @@ namespace cursedearth
         mmpfile->data = data;
         if (mmpfile->user_data_offset > CE_MMPFILE_HEADER_SIZE) {
             ptr.u8 += mmpfile->user_data_offset - CE_MMPFILE_HEADER_SIZE;
-            if (CE_MMPFILE_SIGNATURE_EXT == ce_le2cpu32(*ptr.u32++)) {
-                mmpfile->version = ce_le2cpu32(*ptr.u32++);
-                mmpfile->user_info = ce_le2cpu32(*ptr.u32);
+            if (CE_MMPFILE_SIGNATURE_EXT == le2cpu(*ptr.u32++)) {
+                mmpfile->version = le2cpu(*ptr.u32++);
+                mmpfile->user_info = le2cpu(*ptr.u32);
             }
         }
         return mmpfile;
@@ -290,28 +290,28 @@ namespace cursedearth
         FILE* file = fopen(path, "wb");
         if (NULL != file) {
             uint32_t header[22];
-            header[0] = ce_cpu2le32(CE_MMPFILE_SIGNATURE);
-            header[1] = ce_cpu2le32(mmpfile->width);
-            header[2] = ce_cpu2le32(mmpfile->height);
-            header[3] = ce_cpu2le32(mmpfile->mipmap_count);
-            header[4] = ce_cpu2le32(ce_mmpfile_format_signatures[mmpfile->format]);
-            header[5] = ce_cpu2le32(mmpfile->bit_count);
-            header[6] = ce_cpu2le32(mmpfile->amask);
-            header[7] = ce_cpu2le32(mmpfile->ashift);
-            header[8] = ce_cpu2le32(mmpfile->acount);
-            header[9] = ce_cpu2le32(mmpfile->rmask);
-            header[10] = ce_cpu2le32(mmpfile->rshift);
-            header[11] = ce_cpu2le32(mmpfile->rcount);
-            header[12] = ce_cpu2le32(mmpfile->gmask);
-            header[13] = ce_cpu2le32(mmpfile->gshift);
-            header[14] = ce_cpu2le32(mmpfile->gcount);
-            header[15] = ce_cpu2le32(mmpfile->bmask);
-            header[16] = ce_cpu2le32(mmpfile->bshift);
-            header[17] = ce_cpu2le32(mmpfile->bcount);
-            header[18] = ce_cpu2le32(mmpfile->user_data_offset);
-            header[19] = ce_cpu2le32(CE_MMPFILE_SIGNATURE_EXT);
-            header[20] = ce_cpu2le32(mmpfile->version);
-            header[21] = ce_cpu2le32(mmpfile->user_info);
+            header[0] = cpu2le(CE_MMPFILE_SIGNATURE);
+            header[1] = cpu2le(mmpfile->width);
+            header[2] = cpu2le(mmpfile->height);
+            header[3] = cpu2le(mmpfile->mipmap_count);
+            header[4] = cpu2le(ce_mmpfile_format_signatures[mmpfile->format]);
+            header[5] = cpu2le(mmpfile->bit_count);
+            header[6] = cpu2le(mmpfile->amask);
+            header[7] = cpu2le(mmpfile->ashift);
+            header[8] = cpu2le(mmpfile->acount);
+            header[9] = cpu2le(mmpfile->rmask);
+            header[10] = cpu2le(mmpfile->rshift);
+            header[11] = cpu2le(mmpfile->rcount);
+            header[12] = cpu2le(mmpfile->gmask);
+            header[13] = cpu2le(mmpfile->gshift);
+            header[14] = cpu2le(mmpfile->gcount);
+            header[15] = cpu2le(mmpfile->bmask);
+            header[16] = cpu2le(mmpfile->bshift);
+            header[17] = cpu2le(mmpfile->bcount);
+            header[18] = cpu2le(mmpfile->user_data_offset);
+            header[19] = cpu2le(CE_MMPFILE_SIGNATURE_EXT);
+            header[20] = cpu2le(mmpfile->version);
+            header[21] = cpu2le(mmpfile->user_info);
             fwrite(header, 4, 19, file);
             fwrite(mmpfile->texels, 1, ce_mmpfile_storage_size(mmpfile->width, mmpfile->height, mmpfile->mipmap_count, mmpfile->format), file);
             fwrite(header + 19, 4, 3, file);
@@ -400,7 +400,7 @@ namespace cursedearth
         uint32_t v;
 
         while (src != end) {
-            v = ce_le2cpu32(*src++);
+            v = le2cpu(*src++);
             if (v > 1000000U || 0 == v) {
                 ++n;
             } else {

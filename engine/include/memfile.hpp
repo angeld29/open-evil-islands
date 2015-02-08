@@ -122,24 +122,21 @@ namespace cursedearth
     {
         int16_t value;
         ce_mem_file_read(mem_file, &value, 2, 1);
-        ce_le2cpu16s((uint16_t*)&value);
-        return value;
+        return le2cpu(value);
     }
 
     inline int32_t ce_mem_file_read_i32le(ce_mem_file* mem_file)
     {
         int32_t value;
         ce_mem_file_read(mem_file, &value, 4, 1);
-        ce_le2cpu32s((uint32_t*)&value);
-        return value;
+        return le2cpu(value);
     }
 
     inline int64_t ce_mem_file_read_i64le(ce_mem_file* mem_file)
     {
         int64_t value;
         ce_mem_file_read(mem_file, &value, 8, 1);
-        ce_le2cpu64s((uint64_t*)&value);
-        return value;
+        return le2cpu(value);
     }
 
     inline uint8_t ce_mem_file_read_u8(ce_mem_file* mem_file)
@@ -153,21 +150,21 @@ namespace cursedearth
     {
         uint16_t value;
         ce_mem_file_read(mem_file, &value, 2, 1);
-        return ce_le2cpu16(value);
+        return le2cpu(value);
     }
 
     inline uint32_t ce_mem_file_read_u32le(ce_mem_file* mem_file)
     {
         uint32_t value;
         ce_mem_file_read(mem_file, &value, 4, 1);
-        return ce_le2cpu32(value);
+        return le2cpu(value);
     }
 
     inline uint64_t ce_mem_file_read_u64le(ce_mem_file* mem_file)
     {
         uint64_t value;
         ce_mem_file_read(mem_file, &value, 8, 1);
-        return ce_le2cpu64(value);
+        return le2cpu(value);
     }
 
     inline uint32_t ce_mem_file_read_fle(ce_mem_file* mem_file)

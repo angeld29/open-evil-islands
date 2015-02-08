@@ -52,17 +52,17 @@ namespace cursedearth
             return false;
         }
 
-        bink_header->four_cc = ce_le2cpu32(*ptr.u32++);
-        bink_header->file_size = ce_le2cpu32(*ptr.u32++);
-        bink_header->frame_count = ce_le2cpu32(*ptr.u32++);
-        bink_header->largest_frame_size = ce_le2cpu32(*ptr.u32++);
-        bink_header->last_frame = ce_le2cpu32(*ptr.u32++);
-        bink_header->video_width = ce_le2cpu32(*ptr.u32++);
-        bink_header->video_height = ce_le2cpu32(*ptr.u32++);
-        bink_header->fps_dividend = ce_le2cpu32(*ptr.u32++);
-        bink_header->fps_divider = ce_le2cpu32(*ptr.u32++);
-        bink_header->video_flags = ce_le2cpu32(*ptr.u32++);
-        bink_header->audio_track_count = ce_le2cpu32(*ptr.u32++);
+        bink_header->four_cc = le2cpu(*ptr.u32++);
+        bink_header->file_size = le2cpu(*ptr.u32++);
+        bink_header->frame_count = le2cpu(*ptr.u32++);
+        bink_header->largest_frame_size = le2cpu(*ptr.u32++);
+        bink_header->last_frame = le2cpu(*ptr.u32++);
+        bink_header->video_width = le2cpu(*ptr.u32++);
+        bink_header->video_height = le2cpu(*ptr.u32++);
+        bink_header->fps_dividend = le2cpu(*ptr.u32++);
+        bink_header->fps_divider = le2cpu(*ptr.u32++);
+        bink_header->video_flags = le2cpu(*ptr.u32++);
+        bink_header->audio_track_count = le2cpu(*ptr.u32++);
 
         return true;
     }
@@ -82,8 +82,8 @@ namespace cursedearth
 
         ptr.u8 += 4; // not authoritative, skip
 
-        bink_audio_track->sample_rate = ce_le2cpu16(*ptr.u16++);
-        bink_audio_track->flags = ce_le2cpu16(*ptr.u16++);
+        bink_audio_track->sample_rate = le2cpu(*ptr.u16++);
+        bink_audio_track->flags = le2cpu(*ptr.u16++);
 
         ptr.u8 += 4; // not used, skip
 

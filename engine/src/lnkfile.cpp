@@ -36,15 +36,15 @@ namespace cursedearth
         } ptr = { (char*)data };
 
         ce_lnkfile* lnkfile = (ce_lnkfile*)ce_alloc(sizeof(ce_lnkfile));
-        lnkfile->link_count = ce_le2cpu32(*ptr.u32++);
+        lnkfile->link_count = le2cpu(*ptr.u32++);
         lnkfile->link_index = 0;
         lnkfile->links = (ce_lnklink*)ce_alloc(sizeof(ce_lnklink) * lnkfile->link_count);
 
         for (int i = 0, length; i < lnkfile->link_count; ++i, ptr.c += length) {
-            length = ce_le2cpu32(*ptr.u32++);
+            length = le2cpu(*ptr.u32++);
             lnkfile->links[i].child_name = ce_string_new_str_n(ptr.c, length);
             ptr.c += length;
-            length = ce_le2cpu32(*ptr.u32++);
+            length = le2cpu(*ptr.u32++);
             lnkfile->links[i].parent_name = ce_string_new_str_n(ptr.c, length);
         }
 

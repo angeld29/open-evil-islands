@@ -39,8 +39,8 @@ namespace cursedearth
         ce_mem_file_read(mem, &ver->offset_z, sizeof(int8_t), 1);
         ce_mem_file_read(mem, &ver->coord_y, sizeof(uint16_t), 1);
         ce_mem_file_read(mem, &ver->normal, sizeof(uint32_t), 1);
-        ce_le2cpu16s(&ver->coord_y);
-        ce_le2cpu32s(&ver->normal);
+        ver->coord_y = le2cpu(ver->coord_y);
+        ver->normal = le2cpu(ver->normal);
     }
 
     void read_sectors(ce_mprfile* mpr, ce_res_file* res)
@@ -59,9 +59,7 @@ namespace cursedearth
 
                 uint32_t signature;
                 ce_mem_file_read(mem, &signature, sizeof(uint32_t), 1);
-
-                ce_le2cpu32s(&signature);
-                assert(SEC_SIGNATURE == signature && "wrong signature");
+                assert(SEC_SIGNATURE == le2cpu(signature) && "wrong signature");
 
                 ce_mem_file_read(mem, &sec->water, sizeof(uint8_t), 1);
 
@@ -80,7 +78,7 @@ namespace cursedearth
                 sec->land_textures = (uint16_t*)ce_alloc(sizeof(uint16_t) * CE_MPRFILE_TEXTURE_COUNT);
                 ce_mem_file_read(mem, sec->land_textures, sizeof(uint16_t), CE_MPRFILE_TEXTURE_COUNT);
                 for (unsigned int i = 0; i < CE_MPRFILE_TEXTURE_COUNT; ++i) {
-                    ce_le2cpu16s(sec->land_textures + i);
+                    sec->land_textures[i] = le2cpu(sec->land_textures[i]);
                 }
 
                 if (0 != sec->water) {
@@ -91,8 +89,8 @@ namespace cursedearth
                     ce_mem_file_read(mem, sec->water_allow, sizeof(int16_t), CE_MPRFILE_TEXTURE_COUNT);
 
                     for (unsigned int i = 0; i < CE_MPRFILE_TEXTURE_COUNT; ++i) {
-                        ce_le2cpu16s(sec->water_textures + i);
-                        ce_le2cpu16s((uint16_t*)(sec->water_allow + i));
+                        sec->water_textures[i] = le2cpu(sec->water_textures[i]);
+                        sec->water_allow[i] = le2cpu(sec->water_allow[i]);
                     }
                 }
 
@@ -122,21 +120,21 @@ namespace cursedearth
             uint32_t* u32;
         } ptr = { (float*)mprfile->data };
 
-        uint32_t signature = ce_le2cpu32(*ptr.u32++);
+        uint32_t signature = le2cpu(*ptr.u32++);
         assert(MP_SIGNATURE == signature && "wrong signature");
 
         mprfile->max_y = *ptr.f++;
-        mprfile->sector_x_count = ce_le2cpu32(*ptr.u32++);
-        mprfile->sector_z_count = ce_le2cpu32(*ptr.u32++);
-        mprfile->texture_count = ce_le2cpu32(*ptr.u32++);
-        mprfile->texture_size = ce_le2cpu32(*ptr.u32++);
-        mprfile->tile_count = ce_le2cpu32(*ptr.u32++);
-        mprfile->tile_size = ce_le2cpu32(*ptr.u32++);
-        mprfile->material_count = ce_le2cpu16(*ptr.u16++);
-        mprfile->anim_tile_count = ce_le2cpu32(*ptr.u32++);
+        mprfile->sector_x_count = le2cpu(*ptr.u32++);
+        mprfile->sector_z_count = le2cpu(*ptr.u32++);
+        mprfile->texture_count = le2cpu(*ptr.u32++);
+        mprfile->texture_size = le2cpu(*ptr.u32++);
+        mprfile->tile_count = le2cpu(*ptr.u32++);
+        mprfile->tile_size = le2cpu(*ptr.u32++);
+        mprfile->material_count = le2cpu(*ptr.u16++);
+        mprfile->anim_tile_count = le2cpu(*ptr.u32++);
 
         for (int i = 0; i < mprfile->material_count; ++i, ptr.f += 10) {
-            int type = ce_le2cpu32(*ptr.u32++);
+            int type = le2cpu(*ptr.u32++);
             mprfile->materials[1 != type] = ptr.f;
         }
 
@@ -144,11 +142,11 @@ namespace cursedearth
         mprfile->anim_tiles = ptr.u16;
 
         for (int i = 0; i < mprfile->tile_count; ++i) {
-            ce_le2cpu32s(mprfile->tiles + i);
+            mprfile->tiles[i] = le2cpu(mprfile->tiles[i]);
         }
 
         for (int i = 0, n = 2 * mprfile->anim_tile_count; i < n; ++i) {
-            ce_le2cpu16s(mprfile->anim_tiles + i);
+            mprfile->anim_tiles[i] = le2cpu(mprfile->anim_tiles[i]);
         }
 
         read_sectors(mprfile, res_file);

@@ -36,16 +36,16 @@ namespace cursedearth
             uint32_t* u32;
         } ptr = { (float*)anmfile->data };
 
-        anmfile->rotation_frame_count = ce_le2cpu32(*ptr.u32++);
+        anmfile->rotation_frame_count = le2cpu(*ptr.u32++);
         anmfile->rotations = ptr.f;
         ptr.f += 4 * anmfile->rotation_frame_count;
 
-        anmfile->translation_frame_count = ce_le2cpu32(*ptr.u32++);
+        anmfile->translation_frame_count = le2cpu(*ptr.u32++);
         anmfile->translations = ptr.f;
         ptr.f += 3 * anmfile->translation_frame_count;
 
-        anmfile->morph_frame_count = ce_le2cpu32(*ptr.u32++);
-        anmfile->morph_vertex_count = ce_le2cpu32(*ptr.u32++);
+        anmfile->morph_frame_count = le2cpu(*ptr.u32++);
+        anmfile->morph_vertex_count = le2cpu(*ptr.u32++);
         anmfile->morphs = 0 != anmfile->morph_frame_count * anmfile->morph_vertex_count ? ptr.f : NULL;
 
         return anmfile;

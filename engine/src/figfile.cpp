@@ -82,20 +82,20 @@ namespace cursedearth
             uint32_t* u32;
         } ptr = { (float*)figfile->data };
 
-        const ce_figfile_value_tuple* value_tuple = ce_figfile_value_tuple_choose(ce_le2cpu32(*ptr.u32++));
+        const ce_figfile_value_tuple* value_tuple = ce_figfile_value_tuple_choose(le2cpu(*ptr.u32++));
         assert(NULL != value_tuple && "wrong signature");
 
         figfile->value_count = value_tuple->count;
         figfile->value_callback = value_tuple->callback;
-        figfile->vertex_count = ce_le2cpu32(*ptr.u32++);
-        figfile->normal_count = ce_le2cpu32(*ptr.u32++);
-        figfile->texcoord_count = ce_le2cpu32(*ptr.u32++);
-        figfile->index_count = ce_le2cpu32(*ptr.u32++);
-        figfile->vertex_component_count = ce_le2cpu32(*ptr.u32++);
-        figfile->morph_component_count = ce_le2cpu32(*ptr.u32++);
-        figfile->user_data_offset = ce_le2cpu32(*ptr.u32++);
-        figfile->material_group = ce_le2cpu32(*ptr.u32++);
-        figfile->texture_number = ce_le2cpu32(*ptr.u32++);
+        figfile->vertex_count = le2cpu(*ptr.u32++);
+        figfile->normal_count = le2cpu(*ptr.u32++);
+        figfile->texcoord_count = le2cpu(*ptr.u32++);
+        figfile->index_count = le2cpu(*ptr.u32++);
+        figfile->vertex_component_count = le2cpu(*ptr.u32++);
+        figfile->morph_component_count = le2cpu(*ptr.u32++);
+        figfile->user_data_offset = le2cpu(*ptr.u32++);
+        figfile->material_group = le2cpu(*ptr.u32++);
+        figfile->texture_number = le2cpu(*ptr.u32++);
 
         figfile->center = ptr.f;
         figfile->min = ptr.f += 3 * figfile->value_count;
@@ -111,15 +111,15 @@ namespace cursedearth
         figfile->morph_components = ptr.u16 += 3 * figfile->vertex_component_count;
 
         for (int i = 0; i < figfile->index_count; ++i) {
-            ce_le2cpu16s(&figfile->indices[i]);
+            figfile->indices[i] = le2cpu(figfile->indices[i]);
         }
 
         for (int i = 0; i < 3 * figfile->vertex_component_count; ++i) {
-            ce_le2cpu16s(&figfile->vertex_components[i]);
+            figfile->vertex_components[i] = le2cpu(figfile->vertex_components[i]);
         }
 
         for (int i = 0; i < 2 * figfile->morph_component_count; ++i) {
-            ce_le2cpu16s(&figfile->morph_components[i]);
+            figfile->morph_components[i] = le2cpu(figfile->morph_components[i]);
         }
 
         return figfile;

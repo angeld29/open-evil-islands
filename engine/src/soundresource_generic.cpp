@@ -144,7 +144,7 @@ namespace cursedearth
 
         for (;;) {
             long code = ov_read(&vorbis->vf, reinterpret_cast<char*>(sound_resource->output_buffer),
-                sound_resource->output_buffer_capacity, ce_is_big_endian(), 2, 1, &vorbis->bitstream);
+                sound_resource->output_buffer_capacity, big_endian(), 2, 1, &vorbis->bitstream);
             if (code >= 0) {
                 sound_resource->output_buffer_size = code;
                 return true;
@@ -724,10 +724,7 @@ namespace cursedearth
 
         for (unsigned int i = 0; i < sample_count; ++i) {
             for (unsigned int j = 0; j < channel_count; ++j) {
-                output_buffer[channel_count * i + j] =
-                    ce_mad_scale(mad->synth.pcm.samples[j][i],
-                                &mad->dither[j], &mad->stats);
-                ce_le2cpu16s((uint16_t*)&output_buffer[channel_count * i + j]);
+                output_buffer[channel_count * i + j] = le2cpu(ce_mad_scale(mad->synth.pcm.samples[j][i], &mad->dither[j], &mad->stats));
             }
         }
 

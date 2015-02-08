@@ -18,10 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
+/*
  * FFmpeg libavcodec initialization
  * FFmpeg (C) Michael Niedermayer
- * http://www.ffmpeg.org/
  */
 
 #ifndef CE_AVCODEC_HPP

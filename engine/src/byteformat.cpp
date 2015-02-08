@@ -25,7 +25,7 @@
 
 namespace cursedearth
 {
-    char* ce_bytefmt_size(char* buffer, size_t size, long long int bytes)
+    char* ce_bytefmt_size(char* buffer, size_t size, long long bytes)
     {
         long double KiB = 1024.0l;
         long double MiB = 1024.0l * KiB;
@@ -44,7 +44,7 @@ namespace cursedearth
         return buffer;
     }
 
-    char* ce_bytefmt_dot(char* buffer, size_t size, long long int bytes)
+    char* ce_bytefmt_dot(char* buffer, size_t size, long long bytes)
     {
         char triple[8];
         const char* triple_format = "%llu";
@@ -84,12 +84,10 @@ namespace cursedearth
         return buffer;
     }
 
-    char* ce_bytefmt_detail(char* buffer, size_t size, long long int bytes)
+    char* ce_bytefmt_detail(char* buffer, size_t size, long long bytes)
     {
         char tmp1[16], tmp2[32];
-        snprintf(buffer, size, "%s (%s)",
-            ce_bytefmt_size(tmp1, sizeof(tmp1), bytes),
-            ce_bytefmt_dot(tmp2, sizeof(tmp2), bytes));
+        snprintf(buffer, size, "%s (%s)", ce_bytefmt_size(tmp1, sizeof(tmp1), bytes), ce_bytefmt_dot(tmp2, sizeof(tmp2), bytes));
         return buffer;
     }
 }
