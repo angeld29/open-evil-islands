@@ -18,14 +18,25 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdexcept>
+
 #include "byteorder.hpp"
 
 namespace cursedearth
 {
-    const uint16_t ENDIAN_PATTERN = 0xceca;
+    const uint32_t g_little_endian_pattern = 0x03020100ul;
+    const uint32_t g_big_endian_pattern = 0x00010203ul;
+    const uint32_t g_middle_endian_pattern = 0x01000302ul;
 
-    bool big_endian(void)
+    const union { uint8_t bytes[4]; uint32_t value; } g_host_order = { { 0u, 1u, 2u, 3u } };
+
+    endian_t host_order()
     {
-        return 0xce == 0[reinterpret_cast<const uint8_t*>(&ENDIAN_PATTERN)];
+        switch (g_host_order.value) {
+        case g_little_endian_pattern: return endian_t::LITTLE;
+        case g_big_endian_pattern: return endian_t::BIG;
+        case g_middle_endian_pattern: return endian_t::MIDDLE;
+        }
+        throw std::runtime_error("unknown-endian system");
     }
 }

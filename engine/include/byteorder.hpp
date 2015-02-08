@@ -26,7 +26,13 @@
 
 namespace cursedearth
 {
-    bool big_endian(void);
+    enum class endian_t {
+        LITTLE,
+        BIG,
+        MIDDLE // this ordering is known as PDP
+    };
+
+    endian_t host_order();
 
     /**
      * @brief convert values between host (cpu) and big-/little-endian byte order

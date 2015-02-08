@@ -144,7 +144,7 @@ namespace cursedearth
 
         for (;;) {
             long code = ov_read(&vorbis->vf, reinterpret_cast<char*>(sound_resource->output_buffer),
-                sound_resource->output_buffer_capacity, big_endian(), 2, 1, &vorbis->bitstream);
+                sound_resource->output_buffer_capacity, endian_t::BIG == host_order(), 2, 1, &vorbis->bitstream);
             if (code >= 0) {
                 sound_resource->output_buffer_size = code;
                 return true;
