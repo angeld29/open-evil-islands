@@ -32,8 +32,9 @@
 
 namespace cursedearth
 {
-    struct ce_root: singleton_t<ce_root>
+    class ce_root: public singleton_t<ce_root>
     {
+    public:
         ce_root(ce_optparse* optparse, int argc, char* argv[]);
         ~ce_root();
 
@@ -41,16 +42,16 @@ namespace cursedearth
 
         bool done = false;
         bool show_bboxes = false;
-        bool comprehensive_bbox_only = false;
-        float animation_fps = 0.0f;
+        bool comprehensive_bbox_only = true;
+        float animation_fps = 15.0f;
         ce_renderwindow* renderwindow;
         ce_scenemng* scenemng;
         ce_timer* timer;
-        ce_input_supply* input_supply;
-        ce_input_event* exit_event;
-        ce_input_event* switch_window_event;
-        ce_input_event* toggle_fullscreen_event;
-        ce_input_event* toggle_bbox_event;
+        input_supply_ptr_t input_supply;
+        input_event_const_ptr_t exit_event;
+        input_event_const_ptr_t switch_window_event;
+        input_event_const_ptr_t toggle_fullscreen_event;
+        input_event_const_ptr_t toggle_bbox_event;
         ce_renderwindow_listener renderwindow_listener;
         std::unique_ptr<class sound_system_t> m_sound_system;
         std::unique_ptr<class sound_mixer_t> m_sound_mixer;

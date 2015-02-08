@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
+#include <cstring>
 #include <cstdio>
 #include <cassert>
 
@@ -28,7 +28,7 @@
 
 namespace cursedearth
 {
-    ce_renderwindow_keypair* ce_renderwindow_keypair_new(unsigned long key, ce_input_button button)
+    ce_renderwindow_keypair* ce_renderwindow_keypair_new(unsigned long key, input_button_t button)
     {
         ce_renderwindow_keypair* keypair = (ce_renderwindow_keypair*)ce_alloc(sizeof(ce_renderwindow_keypair));
         keypair->key = key;
@@ -71,7 +71,7 @@ namespace cursedearth
         }
     }
 
-    void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, ce_input_button button)
+    void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, input_button_t button)
     {
         ce_vector_push_back(keymap->keypairs, ce_renderwindow_keypair_new(key, button));
     }
@@ -79,7 +79,7 @@ namespace cursedearth
     void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, const unsigned long keys[CE_IB_COUNT])
     {
         for (size_t i = CE_IB_UNKNOWN; i < CE_IB_COUNT; ++i) {
-            ce_renderwindow_keymap_add(keymap, keys[i], static_cast<ce_input_button>(i));
+            ce_renderwindow_keymap_add(keymap, keys[i], static_cast<input_button_t>(i));
         }
     }
 
@@ -89,7 +89,7 @@ namespace cursedearth
             sizeof(ce_renderwindow_keypair*), ce_renderwindow_keypair_sort_comp);
     }
 
-    ce_input_button ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key)
+    input_button_t ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key)
     {
         ce_renderwindow_keypair** keypair = (ce_renderwindow_keypair**)bsearch(&key, keymap->keypairs->items,
             keymap->keypairs->count, sizeof(ce_renderwindow_keypair*), ce_renderwindow_keypair_search_comp);
@@ -98,8 +98,10 @@ namespace cursedearth
 
     ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...)
     {
-        ce_renderwindow* renderwindow = (ce_renderwindow*)ce_alloc_zero(sizeof(ce_renderwindow));
-        renderwindow->impl = ce_alloc_zero(size);
+        ce_renderwindow* renderwindow = new ce_renderwindow;
+        memset(renderwindow, 0, sizeof(ce_renderwindow));
+        renderwindow->impl = new uint8_t[size];
+        memset(renderwindow->impl, 0, size);
         renderwindow->vtable = vtable;
         renderwindow->size = size;
 
@@ -109,7 +111,9 @@ namespace cursedearth
         renderwindow->geometry[renderwindow->state].width = ce_max(int, 400, va_arg(args, int));
         renderwindow->geometry[renderwindow->state].height = ce_max(int, 300, va_arg(args, int));
 
-        renderwindow->input_context = ce_input_context_new();
+        renderwindow->m_input_context = std::make_shared<input_context_t>();
+        renderwindow->m_input_context->clear();
+
         renderwindow->keymap = ce_renderwindow_keymap_new();
         renderwindow->listeners = ce_vector_new();
 
@@ -132,10 +136,9 @@ namespace cursedearth
 
             ce_vector_del(renderwindow->listeners);
             ce_renderwindow_keymap_del(renderwindow->keymap);
-            ce_input_context_del(renderwindow->input_context);
 
-            ce_free(renderwindow->impl, renderwindow->size);
-            ce_free(renderwindow, sizeof(ce_renderwindow));
+            delete[] static_cast<uint8_t*>(renderwindow->impl);
+            delete renderwindow;
         }
     }
 
@@ -225,24 +228,24 @@ namespace cursedearth
     }
 
     void (*ce_renderwindow_action_procs[CE_RENDERWINDOW_ACTION_COUNT])(ce_renderwindow*) = {
-        [CE_RENDERWINDOW_ACTION_NONE] = ce_renderwindow_action_proc_none,
-        [CE_RENDERWINDOW_ACTION_MINIMIZE] = ce_renderwindow_minimize,
-        [CE_RENDERWINDOW_ACTION_RESTORED] = ce_renderwindow_action_proc_restored,
+        ce_renderwindow_action_proc_none,
+        ce_renderwindow_minimize,
+        ce_renderwindow_action_proc_restored
     };
 
-    void ce_renderwindow_pump(ce_renderwindow* renderwindow)
+    void ce_renderwindow::pump()
     {
         // reset pointer offset every frame
-        renderwindow->input_context->pointer_offset = CE_VEC2_ZERO;
+        m_input_context->pointer_offset = CE_VEC2_ZERO;
 
         // reset wheel buttons: there are no 'WheelRelease' events in most cases
-        renderwindow->input_context->buttons[CE_MB_WHEELUP] = false;
-        renderwindow->input_context->buttons[CE_MB_WHEELDOWN] = false;
+        m_input_context->buttons[CE_MB_WHEELUP] = false;
+        m_input_context->buttons[CE_MB_WHEELDOWN] = false;
 
-        (*renderwindow->vtable.pump)(renderwindow);
+        (*vtable.pump)(this);
 
-        (*ce_renderwindow_action_procs[renderwindow->action])(renderwindow);
-        renderwindow->action = CE_RENDERWINDOW_ACTION_NONE;
+        (*ce_renderwindow_action_procs[action])(this);
+        action = CE_RENDERWINDOW_ACTION_NONE;
     }
 
     void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int width, int height)

@@ -44,7 +44,7 @@ namespace cursedearth
     {
         ce_scenemng* scenemng = (ce_scenemng*)listener;
         ce_viewport_set_rect(scenemng->viewport, 0, 0, width, height);
-        ce_camera_set_aspect(scenemng->camera, (float)width / height);
+        ce_camera_set_aspect(scenemng->camera, static_cast<float>(width) / height);
     }
 
     void ce_scenemng_figproto_created(void* listener, ce_figproto* figproto)
@@ -55,7 +55,8 @@ namespace cursedearth
 
     ce_scenemng* ce_scenemng_new(void)
     {
-        ce_scenemng* scenemng = (ce_scenemng*)ce_alloc_zero(sizeof(ce_scenemng));
+        ce_scenemng* scenemng = new ce_scenemng;
+        memset(scenemng, 0, sizeof(ce_scenemng));
         scenemng->thread_id = ce_thread_self();
 
         scenemng->camera_move_sensitivity = 10.0f;
@@ -68,18 +69,16 @@ namespace cursedearth
         scenemng->fps = ce_fps_new();
         scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
 
-        scenemng->input_supply = ce_input_supply_new(ce_root::instance()->renderwindow->input_context);
-        scenemng->skip_logo_event = ce_input_supply_single_front(scenemng->input_supply,
-                                        ce_input_supply_shortcut(scenemng->input_supply, "Space"));
-        scenemng->pause_event = ce_input_supply_single_front(scenemng->input_supply,
-                                        ce_input_supply_shortcut(scenemng->input_supply, "Space"));
-        scenemng->move_left_event = ce_input_supply_shortcut(scenemng->input_supply, "ArrowLeft");
-        scenemng->move_up_event = ce_input_supply_shortcut(scenemng->input_supply, "ArrowUp");
-        scenemng->move_right_event = ce_input_supply_shortcut(scenemng->input_supply, "ArrowRight");
-        scenemng->move_down_event = ce_input_supply_shortcut(scenemng->input_supply, "ArrowDown");
-        scenemng->zoom_in_event = ce_input_supply_shortcut(scenemng->input_supply, "WheelUp");
-        scenemng->zoom_out_event = ce_input_supply_shortcut(scenemng->input_supply, "WheelDown");
-        scenemng->rotate_on_event = ce_input_supply_shortcut(scenemng->input_supply, "MouseRight");
+        scenemng->input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
+        scenemng->skip_logo_event = scenemng->input_supply->single_front(scenemng->input_supply->push(CE_KB_SPACE));
+        scenemng->pause_event = scenemng->input_supply->single_front(scenemng->input_supply->push(CE_KB_SPACE));
+        scenemng->move_left_event = scenemng->input_supply->push(CE_KB_LEFT);
+        scenemng->move_up_event = scenemng->input_supply->push(CE_KB_UP);
+        scenemng->move_right_event = scenemng->input_supply->push(CE_KB_RIGHT);
+        scenemng->move_down_event = scenemng->input_supply->push(CE_KB_DOWN);
+        scenemng->zoom_in_event = scenemng->input_supply->push(CE_MB_WHEELUP);
+        scenemng->zoom_out_event = scenemng->input_supply->push(CE_MB_WHEELDOWN);
+        scenemng->rotate_on_event = scenemng->input_supply->push(CE_MB_RIGHT);
 
         scenemng->renderwindow_listener = {ce_scenemng_renderwindow_resized, NULL, scenemng};
         scenemng->figure_manager_listener = {ce_scenemng_figproto_created, NULL, scenemng};
@@ -95,8 +94,6 @@ namespace cursedearth
         if (NULL != scenemng) {
             // FIXME: figure entities must be removed before terrain
             ce_figure_manager_clear();
-
-            ce_input_supply_del(scenemng->input_supply);
             ce_terrain_del(scenemng->terrain);
             ce_font_del(scenemng->font);
             ce_fps_del(scenemng->fps);
@@ -104,7 +101,7 @@ namespace cursedearth
             ce_viewport_del(scenemng->viewport);
             ce_renderqueue_del(scenemng->renderqueue);
             ce_scenenode_del(scenemng->scenenode);
-            ce_free(scenemng, sizeof(ce_scenemng));
+            delete scenemng;
         }
     }
 
@@ -120,7 +117,7 @@ namespace cursedearth
     {
         ce_video_object_advance(scenemng->logo.video_object, elapsed);
 
-        if (scenemng->skip_logo_event->triggered) {
+        if (scenemng->skip_logo_event->triggered()) {
             ce_video_object_stop(scenemng->logo.video_object);
         }
 
@@ -206,36 +203,36 @@ namespace cursedearth
 
     void ce_scenemng_advance_playing(ce_scenemng* scenemng, float elapsed)
     {
-        if (scenemng->move_left_event->triggered) {
+        if (scenemng->move_left_event->triggered()) {
             ce_camera_move(scenemng->camera, -scenemng->camera_move_sensitivity * elapsed, 0.0f);
         }
 
-        if (scenemng->move_up_event->triggered) {
+        if (scenemng->move_up_event->triggered()) {
             ce_camera_move(scenemng->camera, 0.0f, scenemng->camera_move_sensitivity * elapsed);
         }
 
-        if (scenemng->move_right_event->triggered) {
+        if (scenemng->move_right_event->triggered()) {
             ce_camera_move(scenemng->camera, scenemng->camera_move_sensitivity * elapsed, 0.0f);
         }
 
-        if (scenemng->move_down_event->triggered) {
+        if (scenemng->move_down_event->triggered()) {
             ce_camera_move(scenemng->camera, 0.0f, -scenemng->camera_move_sensitivity * elapsed);
         }
 
-        if (scenemng->zoom_in_event->triggered) {
+        if (scenemng->zoom_in_event->triggered()) {
             ce_camera_zoom(scenemng->camera, scenemng->camera_zoom_sensitivity);
         }
 
-        if (scenemng->zoom_out_event->triggered) {
+        if (scenemng->zoom_out_event->triggered()) {
             ce_camera_zoom(scenemng->camera, -scenemng->camera_zoom_sensitivity);
         }
 
-        if (scenemng->rotate_on_event->triggered) {
+        if (scenemng->rotate_on_event->triggered()) {
             float xcoef = 0.25f * (ce_option_manager->inverse_trackball_x ? 1.0f : -1.0f);
             float ycoef = 0.25f * (ce_option_manager->inverse_trackball_y ? 1.0f : -1.0f);
             ce_camera_yaw_pitch(scenemng->camera,
-                ce_deg2rad(xcoef * scenemng->input_supply->input_context->pointer_offset.x),
-                ce_deg2rad(ycoef * scenemng->input_supply->input_context->pointer_offset.y));
+                ce_deg2rad(xcoef * scenemng->input_supply->pointer_offset().x),
+                ce_deg2rad(ycoef * scenemng->input_supply->pointer_offset().y));
         }
     }
 
@@ -286,7 +283,7 @@ namespace cursedearth
     void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
     {
         ce_fps_advance(scenemng->fps, elapsed);
-        ce_input_supply_advance(scenemng->input_supply, elapsed);
+        scenemng->input_supply->advance(elapsed);
 
         (*ce_scenemng_state_procs[scenemng->state].advance)(scenemng, elapsed);
 

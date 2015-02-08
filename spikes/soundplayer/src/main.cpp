@@ -37,12 +37,11 @@ static float alpha_sign = -1.0f;
 static sound_object_t sound_object;
 static sound_object_t lightning_object;
 static ce_optparse* optparse;
-static ce_input_supply* input_supply;
-static ce_input_event* lightning_event;
+static input_supply_ptr_t input_supply;
+static input_event_const_ptr_t lightning_event;
 
 static void clear()
 {
-    ce_input_supply_del(input_supply);
     ce_optparse_del(optparse);
 }
 
@@ -65,10 +64,10 @@ static void state_changed(void*, int state)
 
 static void advance(void*, float elapsed)
 {
-    ce_input_supply_advance(input_supply, elapsed);
+    input_supply->advance(elapsed);
     sound_object_advance(sound_object, elapsed);
 
-    if (lightning_event->triggered) {
+    if (lightning_event->triggered()) {
         lightning_object = make_sound_object("magic\\Lightning\\start.wav");
         play_sound_object(lightning_object);
     }
@@ -128,8 +127,8 @@ int main(int argc, char* argv[])
         ce_root::instance()->scenemng->listener.advance = advance;
         ce_root::instance()->scenemng->listener.render = render;
 
-        input_supply = ce_input_supply_new(ce_root::instance()->renderwindow->input_context);
-        lightning_event = ce_input_supply_single_front(input_supply, ce_input_supply_button(input_supply, CE_KB_L));
+        input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
+        lightning_event = input_supply->single_front(input_supply->push(CE_KB_L));
 
         return ce_root::instance()->exec();
     } catch (const std::exception& error) {

@@ -99,53 +99,48 @@ namespace cursedearth
             throw std::runtime_error("root: system info checker failed");
         }
 
-        ce_root::instance()->show_bboxes = false;
-        ce_root::instance()->comprehensive_bbox_only = true;
-        ce_root::instance()->animation_fps = 15.0f;
-
         ce_option_manager_init(optparse);
         ce_resource_manager_init();
         ce_config_manager_init();
         ce_event_manager_init();
 
-        ce_root::instance()->renderwindow = ce_renderwindow_create(ce_option_manager->window_width,
-            ce_option_manager->window_height, optparse->title->str);
-        if (NULL == ce_root::instance()->renderwindow) {
+        renderwindow = ce_renderwindow_create(ce_option_manager->window_width, ce_option_manager->window_height, optparse->title->str);
+        if (NULL == renderwindow) {
             throw std::runtime_error("root: could not create window");
         }
 
         // TODO: try without window creation
         if (ce_option_manager->list_video_modes) {
-            ce_displaymng_dump_supported_modes_to_stdout(ce_root::instance()->renderwindow->displaymng);
+            ce_displaymng_dump_supported_modes_to_stdout(renderwindow->displaymng);
             throw std::runtime_error("root: dump_supported_modes_to_stdout failed");
         }
 
         // TODO: try without window creation
         if (ce_option_manager->list_video_rotations) {
-            ce_displaymng_dump_supported_rotations_to_stdout(ce_root::instance()->renderwindow->displaymng);
+            ce_displaymng_dump_supported_rotations_to_stdout(renderwindow->displaymng);
             throw std::runtime_error("root: dump_supported_rotations_to_stdout failed");
         }
 
         // TODO: try without window creation
         if (ce_option_manager->list_video_reflections) {
-            ce_displaymng_dump_supported_reflections_to_stdout(ce_root::instance()->renderwindow->displaymng);
+            ce_displaymng_dump_supported_reflections_to_stdout(renderwindow->displaymng);
             throw std::runtime_error("root: dump_supported_reflections_to_stdout failed");
         }
 
         // FIXME: find better solution
-        ce_root::instance()->renderwindow->restore_fullscreen = ce_option_manager->fullscreen;
+        renderwindow->restore_fullscreen = ce_option_manager->fullscreen;
         if (ce_option_manager->fullscreen) {
-            ce_root::instance()->renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
+            renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
         }
 
-        ce_root::instance()->renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = ce_option_manager->fullscreen_width;
-        ce_root::instance()->renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = ce_option_manager->fullscreen_height;
+        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = ce_option_manager->fullscreen_width;
+        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = ce_option_manager->fullscreen_height;
 
-        ce_root::instance()->renderwindow->visual.bpp = ce_option_manager->fullscreen_bpp;
-        ce_root::instance()->renderwindow->visual.rate = ce_option_manager->fullscreen_rate;
+        renderwindow->visual.bpp = ce_option_manager->fullscreen_bpp;
+        renderwindow->visual.rate = ce_option_manager->fullscreen_rate;
 
-        ce_root::instance()->renderwindow->visual.rotation = ce_display_rotation_from_degrees(ce_option_manager->fullscreen_rotation);
-        ce_root::instance()->renderwindow->visual.reflection = ce_display_reflection_from_bool(ce_option_manager->fullscreen_reflection_x, ce_option_manager->fullscreen_reflection_y);
+        renderwindow->visual.rotation = ce_display_rotation_from_degrees(ce_option_manager->fullscreen_rotation);
+        renderwindow->visual.reflection = ce_display_reflection_from_bool(ce_option_manager->fullscreen_reflection_x, ce_option_manager->fullscreen_reflection_y);
 
         ce_render_system_init();
         m_sound_system = make_unique<sound_system_t>();
@@ -164,32 +159,28 @@ namespace cursedearth
 
         ce_figure_manager_init();
 
-        ce_root::instance()->scenemng = ce_scenemng_new();
+        scenemng = ce_scenemng_new();
 
         ce_thread_pool_init(ce_option_manager->thread_count);
 
-        ce_root::instance()->timer = ce_timer_new();
-        ce_root::instance()->input_supply = ce_input_supply_new(ce_root::instance()->renderwindow->input_context);
-        ce_root::instance()->exit_event = ce_input_supply_button(ce_root::instance()->input_supply, CE_KB_ESCAPE);
-        ce_root::instance()->switch_window_event = ce_input_supply_single_front(ce_root::instance()->input_supply,
-            ce_input_supply_shortcut(ce_root::instance()->input_supply, "LAlt+Tab, RAlt+Tab"));
-        ce_root::instance()->toggle_fullscreen_event = ce_input_supply_single_front(ce_root::instance()->input_supply,
-            ce_input_supply_shortcut(ce_root::instance()->input_supply, "LAlt+Enter, RAlt+Enter"));
-        ce_root::instance()->toggle_bbox_event = ce_input_supply_single_front(ce_root::instance()->input_supply,
-            ce_input_supply_shortcut(ce_root::instance()->input_supply, "B"));
+        timer = ce_timer_new();
+        input_supply = std::make_shared<input_supply_t>(renderwindow->input_context());
+        exit_event = input_supply->push(CE_KB_ESCAPE);
+        switch_window_event = input_supply->single_front(shortcut(input_supply, "LAlt+Tab, RAlt+Tab"));
+        toggle_fullscreen_event = input_supply->single_front(shortcut(input_supply, "LAlt+Enter, RAlt+Enter"));
+        toggle_bbox_event = input_supply->single_front(input_supply->push(CE_KB_B));
 
-        ce_root::instance()->renderwindow_listener = {NULL, ce_root_renderwindow_closed, NULL};
-        ce_renderwindow_add_listener(ce_root::instance()->renderwindow, &ce_root::instance()->renderwindow_listener);
+        renderwindow_listener = {NULL, ce_root_renderwindow_closed, NULL};
+        ce_renderwindow_add_listener(renderwindow, &renderwindow_listener);
         ce_system_event_register(ce_root_system_event_handler);
     }
 
     ce_root::~ce_root()
     {
-        ce_input_supply_del(ce_root::instance()->input_supply);
-        ce_timer_del(ce_root::instance()->timer);
+        ce_timer_del(timer);
 
         ce_thread_pool_term();
-        ce_scenemng_del(ce_root::instance()->scenemng);
+        ce_scenemng_del(scenemng);
         ce_figure_manager_term();
         ce_mob_loader_term();
         ce_mob_manager_term();
@@ -202,7 +193,7 @@ namespace cursedearth
         m_sound_mixer.reset();
         m_sound_system.reset();
         ce_render_system_term();
-        ce_renderwindow_del(ce_root::instance()->renderwindow);
+        ce_renderwindow_del(renderwindow);
         ce_event_manager_term();
         ce_config_manager_term();
         ce_resource_manager_term();
@@ -211,55 +202,55 @@ namespace cursedearth
 
     int ce_root::exec()
     {
-        ce_renderwindow_show(ce_root::instance()->renderwindow);
-        ce_timer_start(ce_root::instance()->timer);
+        ce_renderwindow_show(renderwindow);
+        ce_timer_start(timer);
 
         for (;;) {
-            float elapsed = ce_timer_advance(ce_root::instance()->timer);
+            float elapsed = ce_timer_advance(timer);
 
             // 40 milliseconds - 25 times per second
             ce_event_manager_process_events_timeout(ce_thread_self(), CE_EVENT_FLAG_ALL_EVENTS, 40);
 
-            ce_renderwindow_pump(ce_root::instance()->renderwindow);
+            renderwindow->pump();
 
-            if (ce_root::instance()->done) {
+            if (done) {
                 break;
             }
 
-            ce_input_supply_advance(ce_root::instance()->input_supply, elapsed);
+            input_supply->advance(elapsed);
 
-            if (ce_root::instance()->exit_event->triggered) {
+            if (exit_event->triggered()) {
                 break;
             }
 
-            if (ce_root::instance()->switch_window_event->triggered && CE_RENDERWINDOW_STATE_FULLSCREEN == ce_root::instance()->renderwindow->state) {
-                ce_renderwindow_minimize(ce_root::instance()->renderwindow);
+            if (switch_window_event->triggered() && CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
+                ce_renderwindow_minimize(renderwindow);
             }
 
-            if (ce_root::instance()->toggle_fullscreen_event->triggered) {
-                ce_renderwindow_toggle_fullscreen(ce_root::instance()->renderwindow);
+            if (toggle_fullscreen_event->triggered()) {
+                ce_renderwindow_toggle_fullscreen(renderwindow);
             }
 
-            if (ce_root::instance()->toggle_bbox_event->triggered) {
-                if (ce_root::instance()->show_bboxes) {
-                    if (ce_root::instance()->comprehensive_bbox_only) {
-                        ce_root::instance()->comprehensive_bbox_only = false;
+            if (toggle_bbox_event->triggered()) {
+                if (show_bboxes) {
+                    if (comprehensive_bbox_only) {
+                        comprehensive_bbox_only = false;
                     } else {
-                        ce_root::instance()->show_bboxes = false;
+                        show_bboxes = false;
                     }
                 } else {
-                    ce_root::instance()->show_bboxes = true;
-                    ce_root::instance()->comprehensive_bbox_only = true;
+                    show_bboxes = true;
+                    comprehensive_bbox_only = true;
                 }
             }
 
             m_sound_manager->advance(elapsed);
             ce_video_manager_advance(elapsed);
 
-            ce_scenemng_advance(ce_root::instance()->scenemng, elapsed);
-            ce_scenemng_render(ce_root::instance()->scenemng);
+            ce_scenemng_advance(scenemng, elapsed);
+            ce_scenemng_render(scenemng);
 
-            ce_graphics_context_swap(ce_root::instance()->renderwindow->graphics_context);
+            ce_graphics_context_swap(renderwindow->graphics_context);
         }
 
         return EXIT_SUCCESS;

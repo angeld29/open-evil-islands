@@ -340,13 +340,13 @@ namespace cursedearth
             XAutoRepeatOn(event->xfocus.display);
         }
 
-        ce_input_context_clear(renderwindow->input_context);
+        renderwindow->m_input_context->clear();
     }
 
     void ce_renderwindow_handler_enter_notify(ce_renderwindow* renderwindow, XEvent* event)
     {
-        renderwindow->input_context->pointer_position.x = event->xcrossing.x;
-        renderwindow->input_context->pointer_position.y = event->xcrossing.y;
+        renderwindow->m_input_context->pointer_position.x = event->xcrossing.x;
+        renderwindow->m_input_context->pointer_position.y = event->xcrossing.y;
     }
 
     void ce_renderwindow_handler_key(ce_renderwindow* renderwindow, XEvent* event, bool pressed)
@@ -357,9 +357,9 @@ namespace cursedearth
         KeySym key;
         XLookupString(&event->xkey, NULL, 0, &key, NULL);
 
-        renderwindow->input_context->buttons[ce_renderwindow_keymap_search(renderwindow->keymap, key)] = pressed;
-        renderwindow->input_context->pointer_position.x = event->xkey.x;
-        renderwindow->input_context->pointer_position.y = event->xkey.y;
+        renderwindow->m_input_context->buttons[ce_renderwindow_keymap_search(renderwindow->keymap, key)] = pressed;
+        renderwindow->m_input_context->pointer_position.x = event->xkey.x;
+        renderwindow->m_input_context->pointer_position.y = event->xkey.y;
     }
 
     void ce_renderwindow_handler_key_press(ce_renderwindow* renderwindow, XEvent* event)
@@ -374,9 +374,9 @@ namespace cursedearth
 
     void ce_renderwindow_handler_button(ce_renderwindow* renderwindow, XEvent* event, bool pressed)
     {
-        renderwindow->input_context->buttons[event->xbutton.button - 1 + CE_MB_LEFT] = pressed;
-        renderwindow->input_context->pointer_position.x = event->xbutton.x;
-        renderwindow->input_context->pointer_position.y = event->xbutton.y;
+        renderwindow->m_input_context->buttons[event->xbutton.button - 1 + CE_MB_LEFT] = pressed;
+        renderwindow->m_input_context->pointer_position.x = event->xbutton.x;
+        renderwindow->m_input_context->pointer_position.y = event->xbutton.y;
     }
 
     void ce_renderwindow_handler_button_press(ce_renderwindow* renderwindow, XEvent* event)
@@ -395,9 +395,9 @@ namespace cursedearth
 
     void ce_renderwindow_handler_motion_notify(ce_renderwindow* renderwindow, XEvent* event)
     {
-        renderwindow->input_context->pointer_offset.x = event->xmotion.x - renderwindow->input_context->pointer_position.x;
-        renderwindow->input_context->pointer_offset.y = event->xmotion.y - renderwindow->input_context->pointer_position.y;
-        renderwindow->input_context->pointer_position.x = event->xmotion.x;
-        renderwindow->input_context->pointer_position.y = event->xmotion.y;
+        renderwindow->m_input_context->pointer_offset.x = event->xmotion.x - renderwindow->m_input_context->pointer_position.x;
+        renderwindow->m_input_context->pointer_offset.y = event->xmotion.y - renderwindow->m_input_context->pointer_position.y;
+        renderwindow->m_input_context->pointer_position.x = event->xmotion.x;
+        renderwindow->m_input_context->pointer_position.y = event->xmotion.y;
     }
 }

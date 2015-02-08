@@ -52,7 +52,9 @@ namespace cursedearth
         void* receiver;
     } ce_scenemng_listener;
 
-    typedef struct {
+    class ce_scenemng
+    {
+    public:
         ce_thread_id thread_id;
         int state;
         float camera_move_sensitivity; // FIXME: hard-coded
@@ -64,16 +66,16 @@ namespace cursedearth
         ce_fps* fps;
         ce_font* font;
         ce_terrain* terrain;
-        ce_input_supply* input_supply;
-        ce_input_event* skip_logo_event;
-        ce_input_event* pause_event;
-        ce_input_event* move_left_event;
-        ce_input_event* move_up_event;
-        ce_input_event* move_right_event;
-        ce_input_event* move_down_event;
-        ce_input_event* zoom_in_event;
-        ce_input_event* zoom_out_event;
-        ce_input_event* rotate_on_event;
+        input_supply_ptr_t input_supply;
+        input_event_const_ptr_t skip_logo_event;
+        input_event_const_ptr_t pause_event;
+        input_event_const_ptr_t move_left_event;
+        input_event_const_ptr_t move_up_event;
+        input_event_const_ptr_t move_right_event;
+        input_event_const_ptr_t move_down_event;
+        input_event_const_ptr_t zoom_in_event;
+        input_event_const_ptr_t zoom_out_event;
+        input_event_const_ptr_t rotate_on_event;
         ce_scenemng_listener listener;
         ce_renderwindow_listener renderwindow_listener;
         ce_figure_manager_listener figure_manager_listener;
@@ -86,9 +88,9 @@ namespace cursedearth
             bool created;
             ce_video_object video_object;
         } loading;
-    } ce_scenemng;
+    };
 
-    ce_scenemng* ce_scenemng_new(void);
+    ce_scenemng* ce_scenemng_new();
     void ce_scenemng_del(ce_scenemng* scenemng);
 
     void ce_scenemng_change_state(ce_scenemng* scenemng, int state);

@@ -33,7 +33,7 @@ namespace cursedearth
 {
     typedef struct {
         unsigned long key;
-        ce_input_button button;
+        input_button_t button;
     } ce_renderwindow_keypair;
 
     typedef struct {
@@ -43,12 +43,12 @@ namespace cursedearth
     ce_renderwindow_keymap* ce_renderwindow_keymap_new(void);
     void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
 
-    void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, ce_input_button button);
+    void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, input_button_t button);
     void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, const unsigned long keys[CE_IB_COUNT]);
 
     void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
 
-    ce_input_button
+    input_button_t
     ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key);
 
     typedef enum {
@@ -99,16 +99,22 @@ namespace cursedearth
         void (*pump)(ce_renderwindow* renderwindow);
     } ce_renderwindow_vtable;
 
-    struct ce_renderwindow {
+    class ce_renderwindow
+    {
+    public:
+        input_context_const_ptr_t input_context() const { return m_input_context; }
+
+        void pump();
+
         ce_renderwindow_state state;
         ce_renderwindow_action action;
         ce_renderwindow_geometry geometry[CE_RENDERWINDOW_STATE_COUNT];
         ce_renderwindow_visual visual;
         // request to switch in fullscreen mode when the window was restored
-        bool restore_fullscreen;
+        bool restore_fullscreen = false;
+        input_context_ptr_t m_input_context;
         ce_displaymng* displaymng;
         ce_graphics_context* graphics_context;
-        ce_input_context* input_context;
         ce_renderwindow_keymap* keymap;
         ce_vector* listeners;
         ce_renderwindow_vtable vtable;
@@ -125,8 +131,6 @@ namespace cursedearth
     void ce_renderwindow_minimize(ce_renderwindow* renderwindow);
 
     void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow);
-
-    void ce_renderwindow_pump(ce_renderwindow* renderwindow);
 
     void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int width, int height);
     void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow);

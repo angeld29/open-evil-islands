@@ -1,27 +1,26 @@
 /*
- *  This file is part of Cursed Earth.
+ * This file is part of Cursed Earth.
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
+ * Cursed Earth is an open source, cross-platform port of Evil Islands.
+ * Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
 #include <cstring>
-#include <cfloat>
-#include <vector>
+#include <limits>
+#include <stdexcept>
 
 #include "str.hpp"
 #include "alloc.hpp"
@@ -30,284 +29,205 @@
 
 namespace cursedearth
 {
-    // level 0 input API implementation
+    // Level 0
 
-    ce_input_context* ce_input_context_new(void)
+    void input_context_t::clear()
     {
-        return (ce_input_context*)ce_alloc_zero(sizeof(ce_input_context));
+        memset(buttons, 0, sizeof(buttons));
+        pointer_position = CE_VEC2_ZERO;
+        pointer_offset = CE_VEC2_ZERO;
     }
 
-    void ce_input_context_del(ce_input_context* input_context)
-    {
-        ce_free(input_context, sizeof(ce_input_context));
-    }
+    // Level 1
 
-    void ce_input_context_clear(ce_input_context* input_context)
-    {
-        memset(input_context, 0, sizeof(ce_input_context));
-    }
+    // Push event
 
-    // level 1 input API implementation
-
-    ce_input_supply* ce_input_supply_new(const ce_input_context* input_context)
+    class input_event_push_t final: public input_event_t
     {
-        ce_input_supply* input_supply = (ce_input_supply*)ce_alloc(sizeof(ce_input_supply));
-        input_supply->input_context = input_context;
-        input_supply->input_events = ce_vector_new();
-        return input_supply;
-    }
+    public:
+        input_event_push_t(const input_context_const_ptr_t& context, input_button_t button): m_context(context), m_button(button) {}
 
-    void ce_input_supply_del(ce_input_supply* input_supply)
-    {
-        if (NULL != input_supply) {
-            for (size_t i = 0; i < input_supply->input_events->count; ++i) {
-                ce_input_event* input_event = (ce_input_event*)input_supply->input_events->items[i];
-                if (NULL != input_event->vtable.dtor) {
-                    (*input_event->vtable.dtor)(input_event);
-                }
-                ce_free(input_event->impl, input_event->vtable.size);
-                ce_free(input_event, sizeof(ce_input_event));
-            }
-            ce_vector_del(input_supply->input_events);
-            ce_free(input_supply, sizeof(ce_input_supply));
+    private:
+        virtual void advance(float) final
+        {
+            m_triggered = m_context->buttons[m_button];
         }
-    }
 
-    void ce_input_supply_advance(ce_input_supply* input_supply, float elapsed)
-    {
-        for (size_t i = 0; i < input_supply->input_events->count; ++i) {
-            ce_input_event* input_event = (ce_input_event*)input_supply->input_events->items[i];
-            (*input_event->vtable.advance)(input_event, elapsed);
-        }
-    }
-
-    ce_input_event* ce_input_supply_event(ce_input_supply* input_supply, ce_input_event_vtable vtable, ...)
-    {
-        ce_input_event* input_event = (ce_input_event*)ce_alloc_zero(sizeof(ce_input_event));
-        input_event->impl = ce_alloc_zero(vtable.size);
-        input_event->vtable = vtable;
-
-        va_list args;
-        va_start(args, vtable);
-        (*vtable.ctor)(input_event, args);
-        va_end(args);
-
-        ce_vector_push_back(input_supply->input_events, input_event);
-        return input_event;
-    }
-
-    // Button event
-
-    typedef struct {
-        const ce_input_context* input_context;
-        ce_input_button input_button;
-    } ce_input_event_button;
-
-    void ce_input_event_button_ctor(ce_input_event* input_event, va_list args)
-    {
-        ce_input_event_button* button_event = (ce_input_event_button*)input_event->impl;
-        button_event->input_context = va_arg(args, const ce_input_context*);
-        button_event->input_button = static_cast<ce_input_button>(va_arg(args, int));
-    }
-
-    void ce_input_event_button_advance(ce_input_event* input_event, float)
-    {
-        ce_input_event_button* button_event = (ce_input_event_button*)input_event->impl;
-        input_event->triggered = button_event->input_context->buttons[button_event->input_button];
-    }
-
-    ce_input_event* ce_input_supply_button(ce_input_supply* input_supply, ce_input_button input_button)
-    {
-        ce_input_event_vtable vt = { sizeof(ce_input_event_button), ce_input_event_button_ctor, NULL, ce_input_event_button_advance };
-        return ce_input_supply_event(input_supply, vt, input_supply->input_context, static_cast<int>(input_button));
-    }
+    private:
+        input_context_const_ptr_t m_context;
+        const input_button_t m_button;
+    };
 
     // Single Front event
 
-    typedef struct {
-        const ce_input_event* event;
-        bool activated;
-    } ce_input_event_single_front;
-
-    void ce_input_event_single_front_ctor(ce_input_event* input_event, va_list args)
+    class input_event_single_front_t final: public input_event_t
     {
-        ce_input_event_single_front* single_front_event = (ce_input_event_single_front*)input_event->impl;
-        single_front_event->event = va_arg(args, const ce_input_event*);
-    }
+    public:
+        explicit input_event_single_front_t(const input_event_const_ptr_t& event): m_event(event) {}
 
-    void ce_input_event_single_front_advance(ce_input_event* input_event, float)
-    {
-        ce_input_event_single_front* single_front_event = (ce_input_event_single_front*)input_event->impl;
-        input_event->triggered = !single_front_event->activated && single_front_event->event->triggered;
-        single_front_event->activated = single_front_event->event->triggered;
-    }
+    private:
+        virtual void advance(float) final
+        {
+            m_triggered = !m_activated && m_event->triggered();
+            m_activated = m_event->triggered();
+        }
 
-    ce_input_event* ce_input_supply_single_front(ce_input_supply* input_supply, const ce_input_event* input_event)
-    {
-        ce_input_event_vtable vt = { sizeof(ce_input_event_single_front), ce_input_event_single_front_ctor, NULL, ce_input_event_single_front_advance };
-        return ce_input_supply_event(input_supply, vt, input_event);
-    }
+    private:
+        input_event_const_ptr_t m_event;
+        bool m_activated = false;
+    };
 
     // Single Back event
 
-    typedef struct {
-        const ce_input_event* event;
-        bool activated;
-    } ce_input_event_single_back;
-
-    void ce_input_event_single_back_ctor(ce_input_event* input_event, va_list args)
+    class input_event_single_back_t final: public input_event_t
     {
-        ce_input_event_single_back* single_back_event = (ce_input_event_single_back*)input_event->impl;
-        single_back_event->event = va_arg(args, const ce_input_event*);
-    }
+    public:
+        explicit input_event_single_back_t(const input_event_const_ptr_t& event): m_event(event) {}
 
-    void ce_input_event_single_back_advance(ce_input_event* input_event, float)
+    private:
+        virtual void advance(float) final
+        {
+            m_triggered = m_activated && !m_event->triggered();
+            m_activated = m_event->triggered();
+        }
+
+    private:
+        input_event_const_ptr_t m_event;
+        bool m_activated = false;
+    };
+
+    // And event
+
+    class input_event_and_t final: public input_event_t
     {
-        ce_input_event_single_back* single_back_event = (ce_input_event_single_back*)input_event->impl;
-        input_event->triggered = single_back_event->activated && !single_back_event->event->triggered;
-        single_back_event->activated = single_back_event->event->triggered;
-    }
+    public:
+        input_event_and_t(const input_event_const_ptr_t& event1, const input_event_const_ptr_t& event2): m_event1(event1), m_event2(event2) {}
 
-    ce_input_event* ce_input_supply_single_back(ce_input_supply* input_supply, const ce_input_event* input_event)
+    private:
+        virtual void advance(float) final
+        {
+            m_triggered = m_event1->triggered() && m_event2->triggered();
+        }
+
+    private:
+        input_event_const_ptr_t m_event1;
+        input_event_const_ptr_t m_event2;
+    };
+
+    // Or event
+
+    class input_event_or_t final: public input_event_t
     {
-        ce_input_event_vtable vt = { sizeof(ce_input_event_single_back), ce_input_event_single_back_ctor, NULL, ce_input_event_single_back_advance };
-        return ce_input_supply_event(input_supply, vt, input_event);
-    }
+    public:
+        input_event_or_t(const input_event_const_ptr_t& event1, const input_event_const_ptr_t& event2): m_event1(event1), m_event2(event2) {}
 
-    // AND event
+    private:
+        virtual void advance(float) final
+        {
+            m_triggered = m_event1->triggered() || m_event2->triggered();
+        }
 
-    typedef struct {
-        const ce_input_event* input_event1;
-        const ce_input_event* input_event2;
-    } ce_input_event_and;
-
-    void ce_input_event_and_ctor(ce_input_event* input_event, va_list args)
-    {
-        ce_input_event_and* and_event = (ce_input_event_and*)input_event->impl;
-        and_event->input_event1 = va_arg(args, const ce_input_event*);
-        and_event->input_event2 = va_arg(args, const ce_input_event*);
-    }
-
-    void ce_input_event_and_advance(ce_input_event* input_event, float)
-    {
-        ce_input_event_and* and_event = (ce_input_event_and*)input_event->impl;
-        input_event->triggered = and_event->input_event1->triggered &&
-                                and_event->input_event2->triggered;
-    }
-
-    ce_input_event* ce_input_supply_and2(ce_input_supply* input_supply,
-                                        const ce_input_event* input_event1,
-                                        const ce_input_event* input_event2)
-    {
-        ce_input_event_vtable vt = { sizeof(ce_input_event_and), ce_input_event_and_ctor, NULL, ce_input_event_and_advance };
-        return ce_input_supply_event(input_supply, vt, input_event1, input_event2);
-    }
-
-    ce_input_event* ce_input_supply_and3(ce_input_supply* input_supply,
-                                        const ce_input_event* input_event1,
-                                        const ce_input_event* input_event2,
-                                        const ce_input_event* input_event3)
-    {
-        return ce_input_supply_and2(input_supply, input_event1,
-                ce_input_supply_and2(input_supply, input_event2, input_event3));
-    }
-
-    // OR event
-
-    typedef struct {
-        const ce_input_event* input_event1;
-        const ce_input_event* input_event2;
-    } ce_input_event_or;
-
-    void ce_input_event_or_ctor(ce_input_event* input_event, va_list args)
-    {
-        ce_input_event_or* or_event = (ce_input_event_or*)input_event->impl;
-        or_event->input_event1 = va_arg(args, const ce_input_event*);
-        or_event->input_event2 = va_arg(args, const ce_input_event*);
-    }
-
-    void ce_input_event_or_advance(ce_input_event* input_event, float)
-    {
-        ce_input_event_or* or_event = (ce_input_event_or*)input_event->impl;
-        input_event->triggered = or_event->input_event1->triggered ||
-                                or_event->input_event2->triggered;
-    }
-
-    ce_input_event* ce_input_supply_or2(ce_input_supply* input_supply,
-                                        const ce_input_event* input_event1,
-                                        const ce_input_event* input_event2)
-    {
-        ce_input_event_vtable vt = { sizeof(ce_input_event_or), ce_input_event_or_ctor, NULL, ce_input_event_or_advance };
-        return ce_input_supply_event(input_supply, vt, input_event1, input_event2);
-    }
-
-    ce_input_event* ce_input_supply_or3(ce_input_supply* input_supply,
-                                        const ce_input_event* input_event1,
-                                        const ce_input_event* input_event2,
-                                        const ce_input_event* input_event3)
-    {
-        return ce_input_supply_or2(input_supply, input_event1,
-                ce_input_supply_or2(input_supply, input_event2, input_event3));
-    }
+    private:
+        input_event_const_ptr_t m_event1;
+        input_event_const_ptr_t m_event2;
+    };
 
     // Repeat event
 
-    typedef struct {
-        const ce_input_event* input_event;
-        float delay, delay_elapsed;
-        float rate, rate_elapsed;
-        bool activated;
-    } ce_input_event_repeat;
-
-    void ce_input_event_repeat_ctor(ce_input_event* input_event, va_list args)
+    class input_event_repeat_t final: public input_event_t
     {
-        ce_input_event_repeat* repeat_event = (ce_input_event_repeat*)input_event->impl;
-        repeat_event->input_event = va_arg(args, const ce_input_event*);
-        repeat_event->delay = va_arg(args, int) * 1e-3f;
-        int rate = va_arg(args, int);
-        repeat_event->rate = (rate > 0) ? (1.0f / rate) : FLT_MAX;
-    }
+    public:
+        input_event_repeat_t(const input_event_const_ptr_t& event, unsigned int delay , unsigned int rate): m_event(event),
+            m_delay(delay * 1e-3f),
+            m_rate((0 != rate) ? (1.0f / rate) : std::numeric_limits<float>::max())
+        {}
 
-    void ce_input_event_repeat_advance(ce_input_event* input_event, float elapsed)
-    {
-        ce_input_event_repeat* repeat_event = (ce_input_event_repeat*)input_event->impl;
-        input_event->triggered = false;
-
-        if (repeat_event->input_event->triggered) {
-            if (repeat_event->activated) {
-                if (repeat_event->delay_elapsed < repeat_event->delay) {
-                    repeat_event->delay_elapsed += elapsed;
-                    if (repeat_event->delay_elapsed >= repeat_event->delay) {
-                        elapsed = repeat_event->delay_elapsed - repeat_event->delay;
+    private:
+        virtual void advance(float elapsed) final
+        {
+            m_triggered = false;
+            if (m_event->triggered()) {
+                if (m_activated) {
+                    if (m_delay_elapsed < m_delay) {
+                        m_delay_elapsed += elapsed;
+                        if (m_delay_elapsed >= m_delay) {
+                            elapsed = m_delay_elapsed - m_delay;
+                        }
                     }
-                }
-                if (repeat_event->delay_elapsed >= repeat_event->delay) {
-                    repeat_event->rate_elapsed += elapsed;
-                    if (repeat_event->rate_elapsed >= repeat_event->rate) {
-                        input_event->triggered = true;
-                        repeat_event->rate_elapsed -= repeat_event->rate;
+                    if (m_delay_elapsed >= m_delay) {
+                        m_rate_elapsed += elapsed;
+                        if (m_rate_elapsed >= m_rate) {
+                            m_triggered = true;
+                            m_rate_elapsed -= m_rate;
+                        }
                     }
+                } else {
+                    m_triggered = true;
+                    m_activated = true;
                 }
             } else {
-                input_event->triggered = true;
-                repeat_event->activated = true;
+                m_delay_elapsed = 0.0f;
+                m_rate_elapsed = 0.0f;
+                m_activated = false;
             }
-        } else {
-            repeat_event->delay_elapsed = 0.0f;
-            repeat_event->rate_elapsed = 0.0f;
-            repeat_event->activated = false;
+        }
+
+    private:
+        input_event_const_ptr_t m_event;
+        const float m_delay, m_rate;
+        float m_delay_elapsed = 0.0f, m_rate_elapsed = 0.0f;
+        bool m_activated = false;
+    };
+
+    input_supply_t::input_supply_t(const input_context_const_ptr_t& context): m_context(context) {}
+
+    input_event_const_ptr_t input_supply_t::push(input_button_t button)
+    {
+        m_events.push_back(std::make_shared<input_event_push_t>(m_context, button));
+        return m_events.back();
+    }
+
+    input_event_const_ptr_t input_supply_t::single_front(const input_event_const_ptr_t& event)
+    {
+        m_events.push_back(std::make_shared<input_event_single_front_t>(event));
+        return m_events.back();
+    }
+
+    input_event_const_ptr_t input_supply_t::single_back(const input_event_const_ptr_t& event)
+    {
+        m_events.push_back(std::make_shared<input_event_single_back_t>(event));
+        return m_events.back();
+    }
+
+    input_event_const_ptr_t input_supply_t::and_(const input_event_const_ptr_t& event1, const input_event_const_ptr_t& event2)
+    {
+        m_events.push_back(std::make_shared<input_event_and_t>(event1, event2));
+        return m_events.back();
+    }
+
+    input_event_const_ptr_t input_supply_t::or_(const input_event_const_ptr_t& event1, const input_event_const_ptr_t& event2)
+    {
+        m_events.push_back(std::make_shared<input_event_or_t>(event1, event2));
+        return m_events.back();
+    }
+
+    input_event_const_ptr_t input_supply_t::repeat(const input_event_const_ptr_t& event, unsigned int delay, unsigned int rate)
+    {
+        m_events.push_back(std::make_shared<input_event_repeat_t>(event, delay, rate));
+        return m_events.back();
+    }
+
+    void input_supply_t::advance(float elapsed)
+    {
+        for (const auto& event: m_events)
+        {
+            event->advance(elapsed);
         }
     }
 
-    ce_input_event* ce_input_supply_repeat(ce_input_supply* input_supply, const ce_input_event* input_event, int delay, int rate)
-    {
-        ce_input_event_vtable vt = { sizeof(ce_input_event_repeat), ce_input_event_repeat_ctor, NULL, ce_input_event_repeat_advance };
-        return ce_input_supply_event(input_supply, vt, input_event, delay, rate);
-    }
+    // Level 2
 
-    // level 2 input API implementation
-
-    const char* ce_input_button_names[CE_IB_COUNT] = {
+    const char* button_names[CE_IB_COUNT] = {
         "unknown", "escape",
         "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12",
         "tilde", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
@@ -330,54 +250,47 @@ namespace cursedearth
         "wheelup", "wheeldown"
     };
 
-    ce_input_event* ce_input_supply_event_from_name(ce_input_supply* input_supply, const char* button_name)
+    input_event_const_ptr_t event_from_name(const input_supply_ptr_t& supply, const char* button_name)
     {
         for (size_t i = CE_IB_UNKNOWN; i < CE_IB_COUNT; ++i) {
-            if (0 == strcmp(button_name, ce_input_button_names[i])) {
-                return ce_input_supply_button(input_supply, static_cast<ce_input_button>(i));
+            if (0 == strcmp(button_name, button_names[i])) {
+                return supply->push(static_cast<input_button_t>(i));
             }
         }
-        return NULL;
+        return input_event_const_ptr_t();
     }
 
-    ce_input_event* ce_input_supply_shortcut(ce_input_supply* input_supply, const char* key_sequence)
+    input_event_const_ptr_t shortcut(const input_supply_ptr_t& supply, const std::string& key_sequence2)
     {
-        size_t length = strlen(key_sequence);
-        std::vector<char> buffer(length + 1), buffer2(length + 1), buffer3(length + 1);
-        char *or_seq = buffer.data(), *and_seq, *button_name;
-        ce_input_event *or_event = NULL, *and_event, *ev;
+        // TODO: high level parser
+        const char* key_sequence = key_sequence2.c_str();
+        char buffer[32], buffer2[32], buffer3[32];
+        char *or_seq = buffer, *and_seq, *button_name;
+        input_event_const_ptr_t or_event, and_event, event;
 
-        ce_strlwr(buffer.data(), key_sequence);
+        ce_strlwr(buffer, key_sequence);
 
         do {
-            and_seq = ce_strtrim(buffer2.data(), ce_strsep(&or_seq, ","));
+            and_seq = ce_strtrim(buffer2, ce_strsep(&or_seq, ","));
             if (0 == strlen(and_seq)) {
-                ce_logging_warning("input: parsing key sequence: `%s': empty parts were skipped", key_sequence);
+                ce_logging_warning("input: parsing key sequence: `%s': empty parts skipped", key_sequence);
                 continue;
             }
-
-            and_event = NULL;
+            and_event.reset();
             do {
-                button_name = ce_strtrim(buffer3.data(), ce_strsep(&and_seq, "+"));
+                button_name = ce_strtrim(buffer3, ce_strsep(&and_seq, "+"));
                 if (0 == strlen(button_name)) {
                     ce_logging_warning("input: parsing key sequence: `%s': empty parts skipped", key_sequence);
                     continue;
                 }
-
-                if (NULL == (ev = ce_input_supply_event_from_name(input_supply, button_name))) {
-                    ce_logging_error("input: failed to parse key sequence: `%s'", key_sequence);
-                    return NULL;
+                event = event_from_name(supply, button_name);
+                if (!event) {
+                    throw std::runtime_error(str(boost::format("input: failed to parse key sequence: `%1%'") % key_sequence));
                 }
-
-                if (NULL == (and_event = NULL == and_event ? ev : ce_input_supply_and2(input_supply, and_event, ev))) {
-                    return NULL;
-                }
-            } while (NULL != and_seq);
-
-            if (NULL == (or_event = NULL == or_event ? and_event : ce_input_supply_or2(input_supply, or_event, and_event))) {
-                return NULL;
-            }
-        } while (NULL != or_seq);
+                and_event = !and_event ? event : supply->and_(and_event, event);
+            } while (nullptr != and_seq);
+            or_event = !or_event ? and_event : supply->or_(or_event, and_event);
+        } while (nullptr != or_seq);
 
         return or_event;
     }

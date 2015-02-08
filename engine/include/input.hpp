@@ -1,39 +1,41 @@
 /*
- *  This file is part of Cursed Earth.
+ * This file is part of Cursed Earth.
  *
- *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
+ * Cursed Earth is an open source, cross-platform port of Evil Islands.
+ * Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
+/*
  * doc/input.txt
  */
 
 #ifndef CE_INPUT_HPP
 #define CE_INPUT_HPP
 
-#include <cstddef>
-#include <cstdarg>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <boost/noncopyable.hpp>
 
 #include "vector2.hpp"
-#include "vector.hpp"
 
 namespace cursedearth
 {
-    typedef enum {
+    enum input_button_t {
         CE_IB_UNKNOWN,
         CE_KB_ESCAPE, CE_KB_F1, CE_KB_F2, CE_KB_F3, CE_KB_F4, CE_KB_F5, CE_KB_F6,
         CE_KB_F7, CE_KB_F8, CE_KB_F9, CE_KB_F10, CE_KB_F11, CE_KB_F12, CE_KB_TILDE,
@@ -54,72 +56,82 @@ namespace cursedearth
         CE_KB_NUMPAD6, CE_KB_NUMPAD1, CE_KB_NUMPAD2, CE_KB_NUMPAD3, CE_KB_NUMPAD0,
         CE_MB_LEFT, CE_MB_MIDDLE, CE_MB_RIGHT, CE_MB_WHEELUP, CE_MB_WHEELDOWN,
         CE_IB_COUNT
-    } ce_input_button;
-
-    enum {
-        CE_INPUT_NO_DELAY,
-        CE_INPUT_DEFAULT_DELAY = 450,
     };
 
-    enum {
-        CE_INPUT_NO_RATE,
-        CE_INPUT_DEFAULT_RATE = 25,
-    };
+    // Level 0: raw
 
-    // level 0 - raw
-
-    typedef struct {
+    struct input_context_t
+    {
         bool buttons[CE_IB_COUNT];
         ce_vec2 pointer_position;
         ce_vec2 pointer_offset;
-    } ce_input_context;
 
-    ce_input_context* ce_input_context_new(void);
-    void ce_input_context_del(ce_input_context* input_context);
-
-    void ce_input_context_clear(ce_input_context* input_context);
-
-    // level 1 - events
-
-    typedef struct ce_input_event ce_input_event;
-
-    typedef struct {
-        size_t size;
-        void (*ctor)(ce_input_event* input_event, va_list args);
-        void (*dtor)(ce_input_event* input_event);
-        void (*advance)(ce_input_event* input_event, float elapsed);
-    } ce_input_event_vtable;
-
-    struct ce_input_event {
-        bool triggered;
-        ce_input_event_vtable vtable;
-        void* impl;
+        void clear();
     };
 
-    typedef struct {
-        const ce_input_context* input_context;
-        ce_vector* input_events;
-    } ce_input_supply;
+    typedef std::shared_ptr<input_context_t> input_context_ptr_t;
+    typedef std::shared_ptr<const input_context_t> input_context_const_ptr_t;
 
-    ce_input_supply* ce_input_supply_new(const ce_input_context* input_context);
-    void ce_input_supply_del(ce_input_supply* input_supply);
+    // Level 1: events
 
-    void ce_input_supply_advance(ce_input_supply* input_supply, float elapsed);
+    class input_event_t: boost::noncopyable
+    {
+    public:
+        virtual ~input_event_t() = default;
 
-    ce_input_event* ce_input_supply_button(ce_input_supply* input_supply, ce_input_button input_button);
-    ce_input_event* ce_input_supply_single_front(ce_input_supply* input_supply, const ce_input_event* input_event);
-    ce_input_event* ce_input_supply_single_back(ce_input_supply* input_supply, const ce_input_event* input_event);
+        virtual void advance(float elapsed) = 0;
 
-    ce_input_event* ce_input_supply_and2(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2);
-    ce_input_event* ce_input_supply_and3(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2, const ce_input_event* input_event3);
-    ce_input_event* ce_input_supply_or2(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2);
-    ce_input_event* ce_input_supply_or3(ce_input_supply* input_supply, const ce_input_event* input_event1, const ce_input_event* input_event2, const ce_input_event* input_event3);
+        bool triggered() const { return m_triggered; }
 
-    ce_input_event* ce_input_supply_repeat(ce_input_supply* input_supply, const ce_input_event* input_event, int delay /* ms */, int rate /* tps riggers per second */);
+    protected:
+        bool m_triggered = false;
+    };
 
-    // level 2 - shortcuts
+    typedef std::shared_ptr<input_event_t> input_event_ptr_t;
+    typedef std::shared_ptr<const input_event_t> input_event_const_ptr_t;
 
-    ce_input_event* ce_input_supply_shortcut(ce_input_supply* input_supply, const char* key_sequence);
+    class input_supply_t final: boost::noncopyable
+    {
+        enum {
+            DEFAULT_DELAY = 450, // delay in milliseconds
+            DEFAULT_RATE = 10    // rate in triggers per second
+        };
+
+    public:
+        explicit input_supply_t(const input_context_const_ptr_t&);
+
+        input_event_const_ptr_t push(input_button_t);
+        input_event_const_ptr_t single_front(const input_event_const_ptr_t&);
+        input_event_const_ptr_t single_back(const input_event_const_ptr_t&);
+        input_event_const_ptr_t and_(const input_event_const_ptr_t&, const input_event_const_ptr_t&);
+        input_event_const_ptr_t or_(const input_event_const_ptr_t&, const input_event_const_ptr_t&);
+        input_event_const_ptr_t repeat(const input_event_const_ptr_t&, unsigned int = DEFAULT_DELAY, unsigned int = DEFAULT_RATE);
+
+        void advance(float elapsed);
+
+        const ce_vec2& pointer_position() const { return m_context->pointer_position; }
+        const ce_vec2& pointer_offset() const { return m_context->pointer_offset; }
+
+    private:
+        input_context_const_ptr_t m_context;
+        std::vector<input_event_ptr_t> m_events;
+    };
+
+    typedef std::shared_ptr<input_supply_t> input_supply_ptr_t;
+
+    inline input_event_const_ptr_t and_(const input_supply_ptr_t& supply, const input_event_const_ptr_t& event1, const input_event_const_ptr_t& event2, const input_event_const_ptr_t& event3)
+    {
+        return supply->and_(event1, supply->and_(event2, event3));
+    }
+
+    inline input_event_const_ptr_t or_(const input_supply_ptr_t& supply, const input_event_const_ptr_t& event1, const input_event_const_ptr_t& event2, const input_event_const_ptr_t& event3)
+    {
+        return supply->or_(event1, supply->or_(event2, event3));
+    }
+
+    // Level 2: shortcuts
+
+    input_event_const_ptr_t shortcut(const input_supply_ptr_t&, const std::string& key_sequence);
 }
 
 #endif

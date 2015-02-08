@@ -503,7 +503,7 @@ namespace cursedearth
         return ce_renderwindow_handler_key(renderwindow, wparam, lparam, false);
     }
 
-    bool ce_renderwindow_handler_button(ce_renderwindow* renderwindow, WPARAM, LPARAM lparam, ce_input_button button, bool pressed)
+    bool ce_renderwindow_handler_button(ce_renderwindow* renderwindow, WPARAM, LPARAM lparam, input_button_t button, bool pressed)
     {
         // TODO: undefined behavior in windows mode
         if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
