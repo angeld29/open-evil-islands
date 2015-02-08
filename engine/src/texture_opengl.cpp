@@ -25,8 +25,8 @@
 #include <cmath>
 #include <algorithm>
 
-#include "math.hpp"
 #include "alloc.hpp"
+#include "utility.hpp"
 #include "logging.hpp"
 #include "byteorder.hpp"
 #include "opengl.hpp"
@@ -90,8 +90,8 @@ namespace cursedearth
         unsigned int new_height = std::min<unsigned int>(height, max_texture_size);
 
         if (!GLEW_VERSION_2_0 && !GLEW_ARB_texture_non_power_of_two) {
-            if (!ce_ispot(new_width)) new_width = ce_nlpot(new_width);
-            if (!ce_ispot(new_height)) new_height = ce_nlpot(new_height);
+            if (!is_power_of_two(new_width)) new_width = next_largest_power_of_two(new_width);
+            if (!is_power_of_two(new_height)) new_height = next_largest_power_of_two(new_height);
         }
 
         if (width != new_width || height != new_height) {

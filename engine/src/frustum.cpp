@@ -20,14 +20,14 @@
 
 #include <cmath>
 
-#include "math.hpp"
+#include "utility.hpp"
 #include "frustum.hpp"
 
 namespace cursedearth
 {
     ce_frustum* ce_frustum_init(ce_frustum* frustum, float fov, float aspect, float near, float far, const ce_vec3* position, const ce_vec3* forward, const ce_vec3* right, const ce_vec3* up)
     {
-        float tang = tanf(0.5f * ce_deg2rad(fov));
+        float tang = tanf(0.5f * deg2rad(fov));
         float nh = tang * near;
         float nw = nh * aspect;
         float fh = tang * far;

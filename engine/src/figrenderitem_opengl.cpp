@@ -23,8 +23,8 @@
 #include <cstring>
 #include <atomic>
 
-#include "math.hpp"
 #include "alloc.hpp"
+#include "utility.hpp"
 #include "opengl.hpp"
 #include "anmstate.hpp"
 #include "fighelpers.hpp"
@@ -268,8 +268,7 @@ namespace cursedearth
             for (int j = 0; j < 3; ++j) {
                 figrenderitem->vertices[3 * i + j] =
                     figrenderitem->cookie->vertices[3 * i + j] +
-                        ce_lerp(anmstate->coef, prev_morphs[3 * morph_index + j],
-                                                next_morphs[3 * morph_index + j]);
+                        lerp(anmstate->coef, prev_morphs[3 * morph_index + j], next_morphs[3 * morph_index + j]);
             }
 
             ce_aabb_merge_point_array(&renderitem->aabb, figrenderitem->vertices + 3 * i);

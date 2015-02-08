@@ -20,7 +20,7 @@
 
 #include <cmath>
 
-#include "math.hpp"
+#include "utility.hpp"
 #include "quaternion.hpp"
 #include "vector3.hpp"
 
@@ -97,9 +97,9 @@ namespace cursedearth
 
     ce_vec3* ce_vec3_lerp(ce_vec3* vec, float u, const ce_vec3* lhs, const ce_vec3* rhs)
     {
-        vec->x = ce_lerp(u, lhs->x, rhs->x);
-        vec->y = ce_lerp(u, lhs->y, rhs->y);
-        vec->z = ce_lerp(u, lhs->z, rhs->z);
+        vec->x = lerp(u, lhs->x, rhs->x);
+        vec->y = lerp(u, lhs->y, rhs->y);
+        vec->z = lerp(u, lhs->z, rhs->z);
         return vec;
     }
 

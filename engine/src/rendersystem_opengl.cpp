@@ -20,11 +20,10 @@
 
 #include <cstdio>
 
-#include "lib.hpp"
-#include "math.hpp"
-#include "matrix4.hpp"
 #include "alloc.hpp"
+#include "utility.hpp"
 #include "logging.hpp"
+#include "matrix4.hpp"
 #include "opengl.hpp"
 #include "rendersystem.hpp"
 
@@ -385,7 +384,7 @@ namespace cursedearth
         glPushMatrix();
 
         glTranslatef(translation->x, translation->y, translation->z);
-        glRotatef(ce_rad2deg(angle), axis.x, axis.y, axis.z);
+        glRotatef(rad2deg(angle), axis.x, axis.y, axis.z);
         glScalef(scaling->x, scaling->y, scaling->z);
     }
 

@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "math.hpp"
+#include "utility.hpp"
 #include "vector3.hpp"
 #include "quaternion.hpp"
 
@@ -93,7 +93,7 @@ namespace cursedearth
             ce_quat_neg(&tb, rhs);
         }
 
-        if (cosom < 1.0f - CE_EPS_E3) {
+        if (cosom < 1.0f - g_epsilon_e3) {
             // standard case
             float angle = acosf(cosom);
             float inv_sinom = 1.0f / sinf(angle);

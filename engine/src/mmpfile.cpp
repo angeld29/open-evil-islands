@@ -28,7 +28,7 @@
 #include <squish.h>
 
 #include "alloc.hpp"
-#include "math.hpp"
+#include "utility.hpp"
 #include "byteorder.hpp"
 #include "mmpfile.hpp"
 

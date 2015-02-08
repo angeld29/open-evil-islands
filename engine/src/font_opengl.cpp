@@ -27,7 +27,7 @@
 #include FT_MODULE_H
 
 #include "alloc.hpp"
-#include "math.hpp"
+#include "utility.hpp"
 #include "logging.hpp"
 #include "resourcemanager.hpp"
 #include "opengl.hpp"
@@ -127,8 +127,8 @@ namespace cursedearth
         font->height = max_ascent + max_descent;
 
         size_t image_height = (font->height + CE_FONT_MARGIN) * lines + CE_FONT_MARGIN;
-        if (!ce_ispot(image_height)) {
-            image_height = ce_nlpot(image_height);
+        if (!is_power_of_two(image_height)) {
+            image_height = next_largest_power_of_two(image_height);
         }
 
         // generation of the actual texture

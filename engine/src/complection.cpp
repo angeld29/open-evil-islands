@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "math.hpp"
+#include "utility.hpp"
 #include "complection.hpp"
 
 namespace cursedearth
@@ -49,8 +49,8 @@ namespace cursedearth
 
     bool ce_complection_equal(const ce_complection* complection, const ce_complection* other)
     {
-        return ce_fisequal(complection->dexterity, other->dexterity, CE_EPS_E3) &&
-                ce_fisequal(complection->strength, other->strength, CE_EPS_E3) &&
-                ce_fisequal(complection->height, other->height, CE_EPS_E3);
+        return fisequal(complection->dexterity, other->dexterity) &&
+                fisequal(complection->strength, other->strength) &&
+                fisequal(complection->height, other->height);
     }
 }

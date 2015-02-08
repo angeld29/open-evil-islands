@@ -23,7 +23,7 @@
 #include <limits>
 #include <memory>
 
-#include "math.hpp"
+#include "utility.hpp"
 #include "logging.hpp"
 #include "wave.hpp"
 

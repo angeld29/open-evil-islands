@@ -22,9 +22,8 @@
 #include <cstdio>
 #include <cstring>
 
-#include "math.hpp"
+#include "utility.hpp"
 #include "logging.hpp"
-#include "alloc.hpp"
 #include "frustum.hpp"
 #include "byteformat.hpp"
 #include "event.hpp"
@@ -231,8 +230,8 @@ namespace cursedearth
             float xcoef = 0.25f * (ce_option_manager->inverse_trackball_x ? 1.0f : -1.0f);
             float ycoef = 0.25f * (ce_option_manager->inverse_trackball_y ? 1.0f : -1.0f);
             ce_camera_yaw_pitch(scenemng->camera,
-                ce_deg2rad(xcoef * scenemng->input_supply->pointer_offset().x),
-                ce_deg2rad(ycoef * scenemng->input_supply->pointer_offset().y));
+                deg2rad(xcoef * scenemng->input_supply->pointer_offset().x),
+                deg2rad(ycoef * scenemng->input_supply->pointer_offset().y));
         }
     }
 

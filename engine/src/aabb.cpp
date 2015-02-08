@@ -21,7 +21,6 @@
 #include <cfloat>
 #include <cmath>
 
-#include "math.hpp"
 #include "aabb.hpp"
 
 namespace cursedearth

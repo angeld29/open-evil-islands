@@ -23,8 +23,6 @@
 #include <cmath>
 #include <vector>
 
-#include "lib.hpp"
-#include "math.hpp"
 #include "plane.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"

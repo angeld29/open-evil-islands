@@ -22,9 +22,8 @@
 #include <cstring>
 #include <algorithm>
 
-#include "lib.hpp"
-#include "math.hpp"
 #include "alloc.hpp"
+#include "utility.hpp"
 #include "logging.hpp"
 #include "thread.hpp"
 #include "event.hpp"
@@ -96,7 +95,7 @@ namespace cursedearth
 
             ce_quat quat1, quat2;
             ce_quat_init_array(&quat1, mob_object->rotation);
-            ce_quat_init_polar(&quat2, ce_deg2rad(-90.0f), &CE_VEC3_UNIT_X);
+            ce_quat_init_polar(&quat2, deg2rad(-90.0f), &CE_VEC3_UNIT_X);
             ce_quat_mul(&mob_object_event->orientation, &quat2, &quat1);
 
             ce_complection_init_array(&mob_object_event->complection, mob_object->complection);

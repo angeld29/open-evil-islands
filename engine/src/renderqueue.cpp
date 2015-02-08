@@ -20,7 +20,6 @@
 
 #include <cstdlib>
 
-#include "math.hpp"
 #include "alloc.hpp"
 #include "renderqueue.hpp"
 

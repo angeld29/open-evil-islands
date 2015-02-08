@@ -24,14 +24,14 @@
 #include <ctime>
 #include <cmath>
 
-#include "math.hpp"
 #include "alloc.hpp"
+#include "utility.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
 #include "figuremanager.hpp"
 #include "mobloader.hpp"
-#include "root.hpp"
 #include "camfile.hpp"
+#include "root.hpp"
 
 using namespace cursedearth;
 
@@ -76,7 +76,7 @@ static void state_changed(void*, int state)
         if (NULL != ce_root::instance()->scenemng->terrain) {
             ce_vec3 position;
             ce_camera_set_position(ce_root::instance()->scenemng->camera, ce_vec3_init(&position, 0.0f, ce_root::instance()->scenemng->terrain->mprfile->max_y, 0.0f));
-            ce_camera_yaw_pitch(ce_root::instance()->scenemng->camera, ce_deg2rad(45.0f), ce_deg2rad(30.0f));
+            ce_camera_yaw_pitch(ce_root::instance()->scenemng->camera, deg2rad(45.0f), deg2rad(30.0f));
         }
     }
 }

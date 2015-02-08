@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "math.hpp"
+#include "utility.hpp"
 #include "color.hpp"
 
 namespace cursedearth
@@ -117,10 +117,10 @@ namespace cursedearth
 
     ce_color* ce_color_lerp(ce_color* color, float u, const ce_color* lhs, const ce_color* rhs)
     {
-        color->r = ce_lerp(u, lhs->r, rhs->r);
-        color->g = ce_lerp(u, lhs->g, rhs->g);
-        color->b = ce_lerp(u, lhs->b, rhs->b);
-        color->a = ce_lerp(u, lhs->a, rhs->a);
+        color->r = lerp(u, lhs->r, rhs->r);
+        color->g = lerp(u, lhs->g, rhs->g);
+        color->b = lerp(u, lhs->b, rhs->b);
+        color->a = lerp(u, lhs->a, rhs->a);
         return color;
     }
 }

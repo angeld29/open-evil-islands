@@ -45,8 +45,6 @@ extern "C"
 #include <libavcodec/avcodec.h>
 }
 
-#include "lib.hpp"
-#include "math.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "byteorder.hpp"

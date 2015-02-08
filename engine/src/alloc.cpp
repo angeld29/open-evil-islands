@@ -39,7 +39,7 @@
 #include <pthread.h>
 #endif
 
-#include "math.hpp"
+#include "utility.hpp"
 #include "alloc.hpp"
 
 namespace cursedearth
@@ -168,7 +168,7 @@ namespace cursedearth
     void ce_alloc_portion_init(ce_alloc_portion* portion, size_t block_size)
     {
         portion->block_size = block_size;
-        portion->block_count = clamp(CE_ALLOC_PAGE_SIZE / block_size, CHAR_BIT, UCHAR_MAX);
+        portion->block_count = clamp(CE_ALLOC_PAGE_SIZE / block_size, (size_t)CHAR_BIT, (size_t)UCHAR_MAX);
         portion->chunk_count = 0;
         portion->chunk_capacity = 16;
         portion->chunks = (ce_alloc_chunk*)malloc(sizeof(ce_alloc_chunk) * portion->chunk_capacity);

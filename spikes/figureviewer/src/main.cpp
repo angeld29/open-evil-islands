@@ -24,8 +24,8 @@
 #include <cmath>
 
 #include "alloc.hpp"
+#include "utility.hpp"
 #include "str.hpp"
-#include "math.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
 #include "figuremanager.hpp"
@@ -61,8 +61,8 @@ static bool update_figentity()
     ce_vec3 position = CE_VEC3_ZERO;
 
     ce_quat orientation, q1, q2;
-    ce_quat_init_polar(&q1, ce_deg2rad(180.0f), &CE_VEC3_UNIT_Z);
-    ce_quat_init_polar(&q2, ce_deg2rad(270.0f), &CE_VEC3_UNIT_X);
+    ce_quat_init_polar(&q1, deg2rad(180.0f), &CE_VEC3_UNIT_Z);
+    ce_quat_init_polar(&q2, deg2rad(270.0f), &CE_VEC3_UNIT_X);
     ce_quat_mul(&orientation, &q2, &q1);
 
     const char *parts[1] = { NULL }, *textures[3] = { NULL, NULL, NULL }, *figure;
@@ -121,7 +121,7 @@ static void state_changed(void*, int state)
         ce_camera_set_position(ce_root::instance()->scenemng->camera, ce_vec3_init(&position, 0.0f, 2.0f, -4.0f));
 
         ce_camera_set_near(ce_root::instance()->scenemng->camera, 0.1f);
-        ce_camera_yaw_pitch(ce_root::instance()->scenemng->camera, ce_deg2rad(180.0f), ce_deg2rad(30.0f));
+        ce_camera_yaw_pitch(ce_root::instance()->scenemng->camera, deg2rad(180.0f), deg2rad(30.0f));
 
         ce_root::instance()->scenemng->camera_move_sensitivity = 2.5f;
         ce_root::instance()->scenemng->camera_zoom_sensitivity = 0.5f;

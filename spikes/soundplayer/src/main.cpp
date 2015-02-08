@@ -23,7 +23,6 @@
 #include <cstring>
 #include <exception>
 
-#include "math.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
