@@ -99,6 +99,17 @@ namespace cursedearth
             throw std::runtime_error("root: system info checker failed");
         }
 
+        switch (host_order()) {
+        case endian_t::LITTLE:
+            ce_logging_info("root: little-endian system detected");
+            break;
+        case endian_t::BIG:
+            ce_logging_info("root: big-endian system detected");
+            break;
+        case endian_t::MIDDLE:
+            throw std::runtime_error("PDP-endian system are not supported");
+        }
+
         ce_option_manager_init(optparse);
         ce_resource_manager_init();
         ce_config_manager_init();
