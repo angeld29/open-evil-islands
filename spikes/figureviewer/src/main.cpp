@@ -238,12 +238,12 @@ int main(int argc, char* argv[])
         message_color = CE_COLOR_CORNFLOWER;
 
         input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
-        strength_event = input_supply->single_front(input_supply->push(CE_KB_1));
-        dexterity_event = input_supply->single_front(input_supply->push(CE_KB_2));
-        height_event = input_supply->single_front(input_supply->push(CE_KB_3));
-        anm_change_event = input_supply->single_front(input_supply->push(CE_KB_A));
-        anmfps_inc_event = input_supply->repeat(input_supply->push(CE_KB_ADD));
-        anmfps_dec_event = input_supply->repeat(input_supply->push(CE_KB_SUBTRACT));
+        strength_event = input_supply->single_front(input_supply->push(input_button_t::kb_1));
+        dexterity_event = input_supply->single_front(input_supply->push(input_button_t::kb_2));
+        height_event = input_supply->single_front(input_supply->push(input_button_t::kb_3));
+        anm_change_event = input_supply->single_front(input_supply->push(input_button_t::kb_a));
+        anmfps_inc_event = input_supply->repeat(input_supply->push(input_button_t::kb_add));
+        anmfps_dec_event = input_supply->repeat(input_supply->push(input_button_t::kb_subtract));
 
         return ce_root::instance()->exec();
     } catch (const std::exception& error) {

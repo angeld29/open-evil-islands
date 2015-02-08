@@ -70,15 +70,15 @@ namespace cursedearth
         scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
 
         scenemng->input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
-        scenemng->skip_logo_event = scenemng->input_supply->single_front(scenemng->input_supply->push(CE_KB_SPACE));
-        scenemng->pause_event = scenemng->input_supply->single_front(scenemng->input_supply->push(CE_KB_SPACE));
-        scenemng->move_left_event = scenemng->input_supply->push(CE_KB_LEFT);
-        scenemng->move_up_event = scenemng->input_supply->push(CE_KB_UP);
-        scenemng->move_right_event = scenemng->input_supply->push(CE_KB_RIGHT);
-        scenemng->move_down_event = scenemng->input_supply->push(CE_KB_DOWN);
-        scenemng->zoom_in_event = scenemng->input_supply->push(CE_MB_WHEELUP);
-        scenemng->zoom_out_event = scenemng->input_supply->push(CE_MB_WHEELDOWN);
-        scenemng->rotate_on_event = scenemng->input_supply->push(CE_MB_RIGHT);
+        scenemng->skip_logo_event = scenemng->input_supply->single_front(scenemng->input_supply->push(input_button_t::kb_space));
+        scenemng->pause_event = scenemng->input_supply->single_front(scenemng->input_supply->push(input_button_t::kb_space));
+        scenemng->move_left_event = scenemng->input_supply->push(input_button_t::kb_left);
+        scenemng->move_up_event = scenemng->input_supply->push(input_button_t::kb_up);
+        scenemng->move_right_event = scenemng->input_supply->push(input_button_t::kb_right);
+        scenemng->move_down_event = scenemng->input_supply->push(input_button_t::kb_down);
+        scenemng->zoom_in_event = scenemng->input_supply->push(input_button_t::mb_wheelup);
+        scenemng->zoom_out_event = scenemng->input_supply->push(input_button_t::mb_wheeldown);
+        scenemng->rotate_on_event = scenemng->input_supply->push(input_button_t::mb_right);
 
         scenemng->renderwindow_listener = {ce_scenemng_renderwindow_resized, NULL, scenemng};
         scenemng->figure_manager_listener = {ce_scenemng_figproto_created, NULL, scenemng};

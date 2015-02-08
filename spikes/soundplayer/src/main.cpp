@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
         ce_root::instance()->scenemng->listener.render = render;
 
         input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
-        lightning_event = input_supply->single_front(input_supply->push(CE_KB_L));
+        lightning_event = input_supply->single_front(input_supply->push(input_button_t::kb_l));
 
         return ce_root::instance()->exec();
     } catch (const std::exception& error) {

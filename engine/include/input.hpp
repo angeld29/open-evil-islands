@@ -35,34 +35,34 @@
 
 namespace cursedearth
 {
-    enum input_button_t {
-        CE_IB_UNKNOWN,
-        CE_KB_ESCAPE, CE_KB_F1, CE_KB_F2, CE_KB_F3, CE_KB_F4, CE_KB_F5, CE_KB_F6,
-        CE_KB_F7, CE_KB_F8, CE_KB_F9, CE_KB_F10, CE_KB_F11, CE_KB_F12, CE_KB_TILDE,
-        CE_KB_0, CE_KB_1, CE_KB_2, CE_KB_3, CE_KB_4, CE_KB_5, CE_KB_6, CE_KB_7,
-        CE_KB_8, CE_KB_9, CE_KB_MINUS, CE_KB_EQUALS, CE_KB_BACKSLASH, CE_KB_BACKSPACE,
-        CE_KB_TAB, CE_KB_Q, CE_KB_W, CE_KB_E, CE_KB_R, CE_KB_T, CE_KB_Y, CE_KB_U,
-        CE_KB_I, CE_KB_O, CE_KB_P, CE_KB_LBRACKET, CE_KB_RBRACKET, CE_KB_CAPSLOCK,
-        CE_KB_A, CE_KB_S, CE_KB_D, CE_KB_F, CE_KB_G, CE_KB_H, CE_KB_J, CE_KB_K,
-        CE_KB_L, CE_KB_SEMICOLON, CE_KB_APOSTROPHE, CE_KB_ENTER, CE_KB_LSHIFT,
-        CE_KB_Z, CE_KB_X, CE_KB_C, CE_KB_V, CE_KB_B, CE_KB_N, CE_KB_M, CE_KB_COMMA,
-        CE_KB_PERIOD, CE_KB_SLASH, CE_KB_RSHIFT, CE_KB_LCONTROL, CE_KB_LMETA,
-        CE_KB_LALT, CE_KB_SPACE, CE_KB_RALT, CE_KB_RMETA, CE_KB_MENU, CE_KB_RCONTROL,
-        CE_KB_PRINT, CE_KB_SCROLLLOCK, CE_KB_PAUSE, CE_KB_INSERT, CE_KB_DELETE,
-        CE_KB_HOME, CE_KB_END, CE_KB_PAGEUP, CE_KB_PAGEDOWN, CE_KB_LEFT, CE_KB_UP,
-        CE_KB_RIGHT, CE_KB_DOWN, CE_KB_NUMLOCK, CE_KB_DIVIDE, CE_KB_MULTIPLY,
-        CE_KB_SUBTRACT, CE_KB_ADD, CE_KB_NUMPADENTER, CE_KB_DECIMAL,
-        CE_KB_NUMPAD7, CE_KB_NUMPAD8, CE_KB_NUMPAD9, CE_KB_NUMPAD4, CE_KB_NUMPAD5,
-        CE_KB_NUMPAD6, CE_KB_NUMPAD1, CE_KB_NUMPAD2, CE_KB_NUMPAD3, CE_KB_NUMPAD0,
-        CE_MB_LEFT, CE_MB_MIDDLE, CE_MB_RIGHT, CE_MB_WHEELUP, CE_MB_WHEELDOWN,
-        CE_IB_COUNT
+    enum class input_button_t {
+        unknown,
+        kb_escape, kb_f1, kb_f2, kb_f3, kb_f4, kb_f5, kb_f6,
+        kb_f7, kb_f8, kb_f9, kb_f10, kb_f11, kb_f12, kb_tilde,
+        kb_0, kb_1, kb_2, kb_3, kb_4, kb_5, kb_6, kb_7,
+        kb_8, kb_9, kb_minus, kb_equals, kb_backslash, kb_backspace,
+        kb_tab, kb_q, kb_w, kb_e, kb_r, kb_t, kb_y, kb_u,
+        kb_i, kb_o, kb_p, kb_lbracket, kb_rbracket, kb_capslock,
+        kb_a, kb_s, kb_d, kb_f, kb_g, kb_h, kb_j, kb_k,
+        kb_l, kb_semicolon, kb_apostrophe, kb_enter, kb_lshift,
+        kb_z, kb_x, kb_c, kb_v, kb_b, kb_n, kb_m, kb_comma,
+        kb_period, kb_slash, kb_rshift, kb_lcontrol, kb_lmeta,
+        kb_lalt, kb_space, kb_ralt, kb_rmeta, kb_menu, kb_rcontrol,
+        kb_print, kb_scrolllock, kb_pause, kb_insert, kb_delete,
+        kb_home, kb_end, kb_pageup, kb_pagedown, kb_left, kb_up,
+        kb_right, kb_down, kb_numlock, kb_divide, kb_multiply,
+        kb_subtract, kb_add, kb_numpadenter, kb_decimal,
+        kb_numpad7, kb_numpad8, kb_numpad9, kb_numpad4, kb_numpad5,
+        kb_numpad6, kb_numpad1, kb_numpad2, kb_numpad3, kb_numpad0,
+        mb_left, mb_middle, mb_right, mb_wheelup, mb_wheeldown,
+        count
     };
 
     // Level 0: raw
 
     struct input_context_t
     {
-        bool buttons[CE_IB_COUNT];
+        bool buttons[static_cast<size_t>(input_button_t::count)];
         ce_vec2 pointer_position;
         ce_vec2 pointer_offset;
 
@@ -93,8 +93,8 @@ namespace cursedearth
     class input_supply_t final: boost::noncopyable
     {
         enum {
-            DEFAULT_DELAY = 450, // delay in milliseconds
-            DEFAULT_RATE = 10    // rate in triggers per second
+            default_delay = 450, // delay in milliseconds
+            default_rate = 10    // rate in triggers per second
         };
 
     public:
@@ -105,7 +105,7 @@ namespace cursedearth
         input_event_const_ptr_t single_back(const input_event_const_ptr_t&);
         input_event_const_ptr_t and_(const input_event_const_ptr_t&, const input_event_const_ptr_t&);
         input_event_const_ptr_t or_(const input_event_const_ptr_t&, const input_event_const_ptr_t&);
-        input_event_const_ptr_t repeat(const input_event_const_ptr_t&, unsigned int = DEFAULT_DELAY, unsigned int = DEFAULT_RATE);
+        input_event_const_ptr_t repeat(const input_event_const_ptr_t&, unsigned int = default_delay, unsigned int = default_rate);
 
         void advance(float elapsed);
 

@@ -50,7 +50,7 @@ namespace cursedearth
     private:
         virtual void advance(float) final
         {
-            m_triggered = m_context->buttons[m_button];
+            m_triggered = m_context->buttons[static_cast<size_t>(m_button)];
         }
 
     private:
@@ -227,7 +227,7 @@ namespace cursedearth
 
     // Level 2
 
-    const char* button_names[CE_IB_COUNT] = {
+    const char* button_names[static_cast<size_t>(input_button_t::count)] = {
         "unknown", "escape",
         "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12",
         "tilde", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
@@ -252,7 +252,7 @@ namespace cursedearth
 
     input_event_const_ptr_t event_from_name(const input_supply_ptr_t& supply, const char* button_name)
     {
-        for (size_t i = CE_IB_UNKNOWN; i < CE_IB_COUNT; ++i) {
+        for (size_t i = static_cast<size_t>(input_button_t::unknown); i < static_cast<size_t>(input_button_t::count); ++i) {
             if (0 == strcmp(button_name, button_names[i])) {
                 return supply->push(static_cast<input_button_t>(i));
             }

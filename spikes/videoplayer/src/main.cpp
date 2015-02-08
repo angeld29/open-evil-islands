@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
         ce_root::instance()->scenemng->listener.render = render;
 
         input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
-        pause_event = input_supply->single_front(input_supply->push(CE_KB_SPACE));
+        pause_event = input_supply->single_front(input_supply->push(input_button_t::kb_space));
 
         return ce_root::instance()->exec();
     } catch (const std::exception& error) {

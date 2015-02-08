@@ -58,7 +58,7 @@ namespace cursedearth
     ce_renderwindow_keymap* ce_renderwindow_keymap_new(void)
     {
         ce_renderwindow_keymap* keymap = (ce_renderwindow_keymap*)ce_alloc(sizeof(ce_renderwindow_keymap));
-        keymap->keypairs = ce_vector_new_reserved(CE_IB_COUNT);
+        keymap->keypairs = ce_vector_new_reserved(static_cast<size_t>(input_button_t::count));
         return keymap;
     }
 
@@ -76,9 +76,9 @@ namespace cursedearth
         ce_vector_push_back(keymap->keypairs, ce_renderwindow_keypair_new(key, button));
     }
 
-    void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, const unsigned long keys[CE_IB_COUNT])
+    void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, const unsigned long keys[static_cast<size_t>(input_button_t::count)])
     {
-        for (size_t i = CE_IB_UNKNOWN; i < CE_IB_COUNT; ++i) {
+        for (size_t i = static_cast<size_t>(input_button_t::unknown); i < static_cast<size_t>(input_button_t::count); ++i) {
             ce_renderwindow_keymap_add(keymap, keys[i], static_cast<input_button_t>(i));
         }
     }
@@ -89,11 +89,11 @@ namespace cursedearth
             sizeof(ce_renderwindow_keypair*), ce_renderwindow_keypair_sort_comp);
     }
 
-    input_button_t ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key)
+    size_t ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key)
     {
         ce_renderwindow_keypair** keypair = (ce_renderwindow_keypair**)bsearch(&key, keymap->keypairs->items,
             keymap->keypairs->count, sizeof(ce_renderwindow_keypair*), ce_renderwindow_keypair_search_comp);
-        return NULL != keypair ? (*keypair)->button : CE_IB_UNKNOWN;
+        return static_cast<size_t>(NULL != keypair ? (*keypair)->button : input_button_t::unknown);
     }
 
     ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...)
@@ -238,9 +238,9 @@ namespace cursedearth
         // reset pointer offset every frame
         m_input_context->pointer_offset = CE_VEC2_ZERO;
 
-        // reset wheel buttons: there are no 'WheelRelease' events in most cases
-        m_input_context->buttons[CE_MB_WHEELUP] = false;
-        m_input_context->buttons[CE_MB_WHEELDOWN] = false;
+        // reset wheel buttons: there are no "WheelRelease" events in most cases
+        m_input_context->buttons[static_cast<size_t>(input_button_t::mb_wheelup)] = false;
+        m_input_context->buttons[static_cast<size_t>(input_button_t::mb_wheeldown)] = false;
 
         (*vtable.pump)(this);
 

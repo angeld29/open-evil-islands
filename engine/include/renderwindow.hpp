@@ -42,14 +42,10 @@ namespace cursedearth
 
     ce_renderwindow_keymap* ce_renderwindow_keymap_new(void);
     void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
-
     void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, input_button_t button);
-    void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, const unsigned long keys[CE_IB_COUNT]);
-
+    void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, const unsigned long keys[static_cast<size_t>(input_button_t::count)]);
     void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
-
-    input_button_t
-    ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key);
+    size_t ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key);
 
     typedef enum {
         CE_RENDERWINDOW_STATE_WINDOW,

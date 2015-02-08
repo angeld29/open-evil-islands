@@ -107,7 +107,7 @@ namespace cursedearth
         renderwindow->graphics_context = ce_graphics_context_new(x11window->display);
 
         // absolutely don't understand how XChangeKeyboardMapping work...
-        const unsigned long keys[CE_IB_COUNT] = {
+        const unsigned long keys[static_cast<size_t>(input_button_t::count)] = {
             XK_VoidSymbol, XK_Escape, XK_F1, XK_F2, XK_F3, XK_F4, XK_F5, XK_F6,
             XK_F7, XK_F8, XK_F9, XK_F10, XK_F11, XK_F12, XK_grave, XK_0, XK_1,
             XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9, XK_minus, XK_equal,
@@ -374,7 +374,7 @@ namespace cursedearth
 
     void ce_renderwindow_handler_button(ce_renderwindow* renderwindow, XEvent* event, bool pressed)
     {
-        renderwindow->m_input_context->buttons[event->xbutton.button - 1 + CE_MB_LEFT] = pressed;
+        renderwindow->m_input_context->buttons[event->xbutton.button - 1 + static_cast<size_t>(input_button_t::mb_left)] = pressed;
         renderwindow->m_input_context->pointer_position.x = event->xbutton.x;
         renderwindow->m_input_context->pointer_position.y = event->xbutton.y;
     }

@@ -189,8 +189,8 @@ int main(int argc, char* argv[])
         message_color = CE_COLOR_CORNFLOWER;
 
         input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
-        anmfps_inc_event = input_supply->repeat(input_supply->push(CE_KB_ADD));
-        anmfps_dec_event = input_supply->repeat(input_supply->push(CE_KB_SUBTRACT));
+        anmfps_inc_event = input_supply->repeat(input_supply->push(input_button_t::kb_add));
+        anmfps_dec_event = input_supply->repeat(input_supply->push(input_button_t::kb_subtract));
 
         return ce_root::instance()->exec();
     } catch (const std::exception& error) {

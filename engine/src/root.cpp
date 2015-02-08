@@ -176,10 +176,10 @@ namespace cursedearth
 
         timer = ce_timer_new();
         input_supply = std::make_shared<input_supply_t>(renderwindow->input_context());
-        exit_event = input_supply->push(CE_KB_ESCAPE);
+        exit_event = input_supply->push(input_button_t::kb_escape);
         switch_window_event = input_supply->single_front(shortcut(input_supply, "LAlt+Tab, RAlt+Tab"));
         toggle_fullscreen_event = input_supply->single_front(shortcut(input_supply, "LAlt+Enter, RAlt+Enter"));
-        toggle_bbox_event = input_supply->single_front(input_supply->push(CE_KB_B));
+        toggle_bbox_event = input_supply->single_front(input_supply->push(input_button_t::kb_b));
 
         renderwindow_listener = {NULL, ce_root_renderwindow_closed, NULL};
         ce_renderwindow_add_listener(renderwindow, &renderwindow_listener);
