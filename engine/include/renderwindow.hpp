@@ -21,8 +21,8 @@
 #ifndef CE_RENDERWINDOW_HPP
 #define CE_RENDERWINDOW_HPP
 
-#include <cstddef>
 #include <cstdarg>
+#include <unordered_map>
 
 #include "vector.hpp"
 #include "input.hpp"
@@ -31,45 +31,31 @@
 
 namespace cursedearth
 {
-    typedef struct {
-        unsigned long key;
-        input_button_t button;
-    } ce_renderwindow_keypair;
-
-    typedef struct {
-        ce_vector* keypairs;
-    } ce_renderwindow_keymap;
-
-    ce_renderwindow_keymap* ce_renderwindow_keymap_new(void);
-    void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap);
-    void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, input_button_t button);
-    void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, const unsigned long keys[static_cast<size_t>(input_button_t::count)]);
-    void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap);
-    size_t ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key);
-
-    typedef enum {
+    enum ce_renderwindow_state {
         CE_RENDERWINDOW_STATE_WINDOW,
         CE_RENDERWINDOW_STATE_FULLSCREEN,
         CE_RENDERWINDOW_STATE_COUNT
-    } ce_renderwindow_state;
+    };
 
-    typedef enum {
+    enum ce_renderwindow_action {
         CE_RENDERWINDOW_ACTION_NONE,
         CE_RENDERWINDOW_ACTION_MINIMIZE,
         CE_RENDERWINDOW_ACTION_RESTORED,
         CE_RENDERWINDOW_ACTION_COUNT
-    } ce_renderwindow_action;
+    };
 
-    typedef struct {
+    struct ce_renderwindow_geometry
+    {
         int x, y;
         int width, height;
-    } ce_renderwindow_geometry;
+    };
 
-    typedef struct {
+    struct ce_renderwindow_visual
+    {
         int bpp, rate;
         ce_display_rotation rotation;
         ce_display_reflection reflection;
-    } ce_renderwindow_visual;
+    };
 
     typedef struct {
         void (*resized)(void* listener, int width, int height);
@@ -102,16 +88,15 @@ namespace cursedearth
 
         void pump();
 
-        ce_renderwindow_state state;
-        ce_renderwindow_action action;
+        ce_renderwindow_state state = CE_RENDERWINDOW_STATE_WINDOW;
+        ce_renderwindow_action action = CE_RENDERWINDOW_ACTION_NONE;
         ce_renderwindow_geometry geometry[CE_RENDERWINDOW_STATE_COUNT];
         ce_renderwindow_visual visual;
-        // request to switch in fullscreen mode when the window was restored
-        bool restore_fullscreen = false;
+        bool restore_fullscreen = false; // request to switch in fullscreen mode when the window was restored
         input_context_ptr_t m_input_context;
+        std::unordered_map<unsigned long, input_button_t> m_input_map; // map platform-depended buttons to our buttons
         ce_displaymng* displaymng;
         ce_graphics_context* graphics_context;
-        ce_renderwindow_keymap* keymap;
         ce_vector* listeners;
         ce_renderwindow_vtable vtable;
         size_t size;

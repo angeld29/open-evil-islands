@@ -43,7 +43,8 @@ namespace cursedearth
         CE_RENDERWINDOW_ATOM_COUNT
     };
 
-    typedef struct {
+    struct ce_renderwindow_x11
+    {
         Atom atoms[CE_RENDERWINDOW_ATOM_COUNT];
         unsigned long mask[CE_RENDERWINDOW_STATE_COUNT];
         XSetWindowAttributes attrs[CE_RENDERWINDOW_STATE_COUNT];
@@ -56,7 +57,7 @@ namespace cursedearth
         } screensaver; // remember old screen saver settings
         Display* display;
         Window window;
-    } ce_renderwindow_x11;
+    };
 
     void ce_renderwindow_handler_skip(ce_renderwindow*, XEvent*);
     void ce_renderwindow_handler_client_message(ce_renderwindow*, XEvent*);
@@ -81,12 +82,12 @@ namespace cursedearth
 
         x11window->display = XOpenDisplay(NULL);
         if (NULL == x11window->display) {
-            ce_logging_fatal("renderwindow: could not connect to X server");
+            ce_logging_fatal("render window: could not connect to X server");
             return false;
         }
 
-        ce_logging_info("renderwindow: using X server %d.%d", XProtocolVersion(x11window->display), XProtocolRevision(x11window->display));
-        ce_logging_info("renderwindow: %s %d", XServerVendor(x11window->display), XVendorRelease(x11window->display));
+        ce_logging_info("render window: using X server %d.%d", XProtocolVersion(x11window->display), XProtocolRevision(x11window->display));
+        ce_logging_info("render window: %s %d", XServerVendor(x11window->display), XVendorRelease(x11window->display));
 
         renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].x =
             (XDisplayWidth(x11window->display, XDefaultScreen(x11window->display)) -
@@ -99,34 +100,51 @@ namespace cursedearth
         if (0 == renderwindow->visual.bpp) {
             renderwindow->visual.bpp = XDefaultDepth(x11window->display, XDefaultScreen(x11window->display));
             if (1 == renderwindow->visual.bpp) {
-                ce_logging_warning("renderwindow: you live in prehistoric times");
+                ce_logging_warning("render window: you live in prehistoric times");
             }
         }
 
         renderwindow->displaymng = ce_displaymng_create(x11window->display);
         renderwindow->graphics_context = ce_graphics_context_new(x11window->display);
 
-        // absolutely don't understand how XChangeKeyboardMapping work...
-        const unsigned long keys[static_cast<size_t>(input_button_t::count)] = {
-            XK_VoidSymbol, XK_Escape, XK_F1, XK_F2, XK_F3, XK_F4, XK_F5, XK_F6,
-            XK_F7, XK_F8, XK_F9, XK_F10, XK_F11, XK_F12, XK_grave, XK_0, XK_1,
-            XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9, XK_minus, XK_equal,
-            XK_backslash, XK_BackSpace, XK_Tab, XK_q, XK_w, XK_e, XK_r, XK_t, XK_y,
-            XK_u, XK_i, XK_o, XK_p, XK_bracketleft, XK_bracketright, XK_Caps_Lock,
-            XK_a, XK_s, XK_d, XK_f, XK_g, XK_h, XK_j, XK_k, XK_l, XK_semicolon,
-            XK_apostrophe, XK_Return, XK_Shift_L, XK_z, XK_x, XK_c, XK_v, XK_b,
-            XK_n, XK_m, XK_comma, XK_period, XK_slash, XK_Shift_R, XK_Control_L,
-            XK_Super_L, XK_Alt_L, XK_space, XK_Alt_R, XK_Super_R, XK_Menu, XK_Control_R,
-            XK_Print, XK_Scroll_Lock, XK_Pause, XK_Insert, XK_Delete, XK_Home, XK_End,
-            XK_Page_Up, XK_Page_Down, XK_Left, XK_Up, XK_Right, XK_Down, XK_Num_Lock,
-            XK_KP_Divide, XK_KP_Multiply, XK_KP_Subtract, XK_KP_Add, XK_KP_Enter,
-            XK_KP_Delete, XK_KP_Home, XK_KP_Up, XK_KP_Page_Up, XK_KP_Left, XK_KP_Begin,
-            XK_KP_Right, XK_KP_End, XK_KP_Down, XK_KP_Page_Down, XK_KP_Insert,
-            XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol, XK_VoidSymbol
-        };
-
-        ce_renderwindow_keymap_add_array(renderwindow->keymap, keys);
-        ce_renderwindow_keymap_sort(renderwindow->keymap);
+        // absolutely don't understand how XChangeKeyboardMapping works...
+        renderwindow->m_input_map.insert({
+            { XK_VoidSymbol , input_button_t::unknown        }, { XK_Escape      , input_button_t::kb_escape     }, { XK_F1          , input_button_t::kb_f1         },
+            { XK_F2         , input_button_t::kb_f2          }, { XK_F3          , input_button_t::kb_f3         }, { XK_F4          , input_button_t::kb_f4         },
+            { XK_F5         , input_button_t::kb_f5          }, { XK_F6          , input_button_t::kb_f6         }, { XK_F7          , input_button_t::kb_f7         },
+            { XK_F8         , input_button_t::kb_f8          }, { XK_F9          , input_button_t::kb_f9         }, { XK_F10         , input_button_t::kb_f10        },
+            { XK_F11        , input_button_t::kb_f11         }, { XK_F12         , input_button_t::kb_f12        }, { XK_grave       , input_button_t::kb_tilde      },
+            { XK_0          , input_button_t::kb_0           }, { XK_1           , input_button_t::kb_1          }, { XK_2           , input_button_t::kb_2          },
+            { XK_3          , input_button_t::kb_3           }, { XK_4           , input_button_t::kb_4          }, { XK_5           , input_button_t::kb_5          },
+            { XK_6          , input_button_t::kb_6           }, { XK_7           , input_button_t::kb_7          }, { XK_8           , input_button_t::kb_8          },
+            { XK_9          , input_button_t::kb_9           }, { XK_minus       , input_button_t::kb_minus      }, { XK_equal       , input_button_t::kb_equals     },
+            { XK_backslash  , input_button_t::kb_backslash   }, { XK_BackSpace   , input_button_t::kb_backspace  }, { XK_Tab         , input_button_t::kb_tab        },
+            { XK_q          , input_button_t::kb_q           }, { XK_w           , input_button_t::kb_w          }, { XK_e           , input_button_t::kb_e          },
+            { XK_r          , input_button_t::kb_r           }, { XK_t           , input_button_t::kb_t          }, { XK_y           , input_button_t::kb_y          },
+            { XK_u          , input_button_t::kb_u           }, { XK_i           , input_button_t::kb_i          }, { XK_o           , input_button_t::kb_o          },
+            { XK_p          , input_button_t::kb_p           }, { XK_bracketleft , input_button_t::kb_lbracket   }, { XK_bracketright, input_button_t::kb_rbracket   },
+            { XK_Caps_Lock  , input_button_t::kb_capslock    }, { XK_a           , input_button_t::kb_a          }, { XK_s           , input_button_t::kb_s          },
+            { XK_d          , input_button_t::kb_d           }, { XK_f           , input_button_t::kb_f          }, { XK_g           , input_button_t::kb_g          },
+            { XK_h          , input_button_t::kb_h           }, { XK_j           , input_button_t::kb_j          }, { XK_k           , input_button_t::kb_k          },
+            { XK_l          , input_button_t::kb_l           }, { XK_semicolon   , input_button_t::kb_semicolon  }, { XK_apostrophe  , input_button_t::kb_apostrophe },
+            { XK_Return     , input_button_t::kb_enter       }, { XK_Shift_L     , input_button_t::kb_lshift     }, { XK_z           , input_button_t::kb_z          },
+            { XK_x          , input_button_t::kb_x           }, { XK_c           , input_button_t::kb_c          }, { XK_v           , input_button_t::kb_v          },
+            { XK_b          , input_button_t::kb_b           }, { XK_n           , input_button_t::kb_n          }, { XK_m           , input_button_t::kb_m          },
+            { XK_comma      , input_button_t::kb_comma       }, { XK_period      , input_button_t::kb_period     }, { XK_slash       , input_button_t::kb_slash      },
+            { XK_Shift_R    , input_button_t::kb_rshift      }, { XK_Control_L   , input_button_t::kb_lcontrol   }, { XK_Super_L     , input_button_t::kb_lmeta      },
+            { XK_Alt_L      , input_button_t::kb_lalt        }, { XK_space       , input_button_t::kb_space      }, { XK_Alt_R       , input_button_t::kb_ralt       },
+            { XK_Super_R    , input_button_t::kb_rmeta       }, { XK_Menu        , input_button_t::kb_menu       }, { XK_Control_R   , input_button_t::kb_rcontrol   },
+            { XK_Print      , input_button_t::kb_print       }, { XK_Scroll_Lock , input_button_t::kb_scrolllock }, { XK_Pause       , input_button_t::kb_pause      },
+            { XK_Insert     , input_button_t::kb_insert      }, { XK_Delete      , input_button_t::kb_delete     }, { XK_Home        , input_button_t::kb_home       },
+            { XK_End        , input_button_t::kb_end         }, { XK_Page_Up     , input_button_t::kb_pageup     }, { XK_Page_Down   , input_button_t::kb_pagedown   },
+            { XK_Left       , input_button_t::kb_left        }, { XK_Up          , input_button_t::kb_up         }, { XK_Right       , input_button_t::kb_right      },
+            { XK_Down       , input_button_t::kb_down        }, { XK_Num_Lock    , input_button_t::kb_numlock    }, { XK_KP_Divide   , input_button_t::kb_divide     },
+            { XK_KP_Multiply, input_button_t::kb_multiply    }, { XK_KP_Subtract , input_button_t::kb_subtract   }, { XK_KP_Add      , input_button_t::kb_add        },
+            { XK_KP_Enter   , input_button_t::kb_numpadenter }, { XK_KP_Delete   , input_button_t::kb_decimal    }, { XK_KP_Home     , input_button_t::kb_numpad7    },
+            { XK_KP_Up      , input_button_t::kb_numpad8     }, { XK_KP_Page_Up  , input_button_t::kb_numpad9    }, { XK_KP_Left     , input_button_t::kb_numpad4    },
+            { XK_KP_Begin   , input_button_t::kb_numpad5     }, { XK_KP_Right    , input_button_t::kb_numpad6    }, { XK_KP_End      , input_button_t::kb_numpad1    },
+            { XK_KP_Down    , input_button_t::kb_numpad2     }, { XK_KP_Page_Down, input_button_t::kb_numpad3    }, { XK_KP_Insert   , input_button_t::kb_numpad0    }
+        });
 
         x11window->atoms[CE_RENDERWINDOW_ATOM_WM_PROTOCOLS] = XInternAtom(x11window->display, "WM_PROTOCOLS", False);
         x11window->atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW] = XInternAtom(x11window->display, "WM_DELETE_WINDOW", False);
@@ -175,7 +193,7 @@ namespace cursedearth
             &x11window->attrs[renderwindow->state]);
 
         if (!ce_graphics_context_make_current(renderwindow->graphics_context, x11window->display, x11window->window)) {
-            ce_logging_fatal("renderwindow: could not set graphic context");
+            ce_logging_fatal("render window: could not set graphic context");
             return false;
         }
 
@@ -357,7 +375,7 @@ namespace cursedearth
         KeySym key;
         XLookupString(&event->xkey, NULL, 0, &key, NULL);
 
-        renderwindow->m_input_context->buttons[ce_renderwindow_keymap_search(renderwindow->keymap, key)] = pressed;
+        renderwindow->m_input_context->buttons[static_cast<size_t>(renderwindow->m_input_map[key])] = pressed;
         renderwindow->m_input_context->pointer_position.x = event->xkey.x;
         renderwindow->m_input_context->pointer_position.y = event->xkey.y;
     }
@@ -386,7 +404,7 @@ namespace cursedearth
 
     void ce_renderwindow_handler_button_release(ce_renderwindow* renderwindow, XEvent* event)
     {
-        // special case: ignore wheel buttons, see renderwindow_pump
+        // special case: ignore wheel buttons, see pump method
         // ButtonPress event is immediately followed by ButtonRelease event
         if (Button4 != event->xbutton.button && Button5 != event->xbutton.button) {
             ce_renderwindow_handler_button(renderwindow, event, false);

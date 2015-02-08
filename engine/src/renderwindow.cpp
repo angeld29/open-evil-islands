@@ -28,82 +28,18 @@
 
 namespace cursedearth
 {
-    ce_renderwindow_keypair* ce_renderwindow_keypair_new(unsigned long key, input_button_t button)
-    {
-        ce_renderwindow_keypair* keypair = (ce_renderwindow_keypair*)ce_alloc(sizeof(ce_renderwindow_keypair));
-        keypair->key = key;
-        keypair->button = button;
-        return keypair;
-    }
-
-    void ce_renderwindow_keypair_del(ce_renderwindow_keypair* keypair)
-    {
-        ce_free(keypair, sizeof(ce_renderwindow_keypair));
-    }
-
-    int ce_renderwindow_keypair_sort_comp(const void* arg1, const void* arg2)
-    {
-        const ce_renderwindow_keypair* keypair1 = *(const ce_renderwindow_keypair**)arg1;
-        const ce_renderwindow_keypair* keypair2 = *(const ce_renderwindow_keypair**)arg2;
-        return keypair1->key < keypair2->key ? -1 : (int)(keypair1->key - keypair2->key);
-    }
-
-    int ce_renderwindow_keypair_search_comp(const void* arg1, const void* arg2)
-    {
-        const unsigned long* key = static_cast<const unsigned long*>(arg1);
-        const ce_renderwindow_keypair* keypair = *(const ce_renderwindow_keypair**)arg2;
-        return *key < keypair->key ? -1 : (int)(*key - keypair->key);
-    }
-
-    ce_renderwindow_keymap* ce_renderwindow_keymap_new(void)
-    {
-        ce_renderwindow_keymap* keymap = (ce_renderwindow_keymap*)ce_alloc(sizeof(ce_renderwindow_keymap));
-        keymap->keypairs = ce_vector_new_reserved(static_cast<size_t>(input_button_t::count));
-        return keymap;
-    }
-
-    void ce_renderwindow_keymap_del(ce_renderwindow_keymap* keymap)
-    {
-        if (NULL != keymap) {
-            ce_vector_for_each(keymap->keypairs, (void(*)(void*))ce_renderwindow_keypair_del);
-            ce_vector_del(keymap->keypairs);
-            ce_free(keymap, sizeof(ce_renderwindow_keymap));
-        }
-    }
-
-    void ce_renderwindow_keymap_add(ce_renderwindow_keymap* keymap, unsigned long key, input_button_t button)
-    {
-        ce_vector_push_back(keymap->keypairs, ce_renderwindow_keypair_new(key, button));
-    }
-
-    void ce_renderwindow_keymap_add_array(ce_renderwindow_keymap* keymap, const unsigned long keys[static_cast<size_t>(input_button_t::count)])
-    {
-        for (size_t i = static_cast<size_t>(input_button_t::unknown); i < static_cast<size_t>(input_button_t::count); ++i) {
-            ce_renderwindow_keymap_add(keymap, keys[i], static_cast<input_button_t>(i));
-        }
-    }
-
-    void ce_renderwindow_keymap_sort(ce_renderwindow_keymap* keymap)
-    {
-        qsort(keymap->keypairs->items, keymap->keypairs->count,
-            sizeof(ce_renderwindow_keypair*), ce_renderwindow_keypair_sort_comp);
-    }
-
-    size_t ce_renderwindow_keymap_search(ce_renderwindow_keymap* keymap, unsigned long key)
-    {
-        ce_renderwindow_keypair** keypair = (ce_renderwindow_keypair**)bsearch(&key, keymap->keypairs->items,
-            keymap->keypairs->count, sizeof(ce_renderwindow_keypair*), ce_renderwindow_keypair_search_comp);
-        return static_cast<size_t>(NULL != keypair ? (*keypair)->button : input_button_t::unknown);
-    }
-
     ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...)
     {
         ce_renderwindow* renderwindow = new ce_renderwindow;
-        memset(renderwindow, 0, sizeof(ce_renderwindow));
+
+        memset(&renderwindow->visual, 0, sizeof(ce_renderwindow_visual));
         renderwindow->impl = new uint8_t[size];
         memset(renderwindow->impl, 0, size);
         renderwindow->vtable = vtable;
         renderwindow->size = size;
+
+        renderwindow->displaymng = NULL;
+        renderwindow->graphics_context = NULL;
 
         va_list args;
         va_start(args, size);
@@ -112,9 +48,6 @@ namespace cursedearth
         renderwindow->geometry[renderwindow->state].height = ce_max(int, 300, va_arg(args, int));
 
         renderwindow->m_input_context = std::make_shared<input_context_t>();
-        renderwindow->m_input_context->clear();
-
-        renderwindow->keymap = ce_renderwindow_keymap_new();
         renderwindow->listeners = ce_vector_new();
 
         bool ok = (*vtable.ctor)(renderwindow, args);
@@ -133,10 +66,7 @@ namespace cursedearth
     {
         if (NULL != renderwindow) {
             (*renderwindow->vtable.dtor)(renderwindow);
-
             ce_vector_del(renderwindow->listeners);
-            ce_renderwindow_keymap_del(renderwindow->keymap);
-
             delete[] static_cast<uint8_t*>(renderwindow->impl);
             delete renderwindow;
         }

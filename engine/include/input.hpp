@@ -66,6 +66,8 @@ namespace cursedearth
         ce_vec2 pointer_position;
         ce_vec2 pointer_offset;
 
+        input_context_t() { clear(); }
+
         void clear();
     };
 
