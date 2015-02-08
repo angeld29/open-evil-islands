@@ -25,12 +25,8 @@
 
 namespace cursedearth
 {
-    int ce_online_cpu_count(void);
-    void ce_sleep(unsigned int msec);
-
-    /*
-     *  Useful struct for other thread and non-thread modules.
-    */
+    size_t online_cpu_count();
+    void sleep(unsigned int milliseconds);
 
     typedef struct {
         void (*proc)(void*);
@@ -141,13 +137,13 @@ namespace cursedearth
         ce_wait_condition* wait_all;
     }* ce_thread_pool;
 
-    void ce_thread_pool_init(size_t thread_count);
-    void ce_thread_pool_term(void);
+    void ce_thread_pool_init();
+    void ce_thread_pool_term();
 
     void ce_thread_pool_enqueue(void (*proc)(), void* arg);
 
-    void ce_thread_pool_wait_one(void);
-    void ce_thread_pool_wait_all(void);
+    void ce_thread_pool_wait_one();
+    void ce_thread_pool_wait_all();
 }
 
 #endif

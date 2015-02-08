@@ -40,7 +40,6 @@ engine/include/glew_x11.hpp
 engine/include/graphicscontext.hpp
 engine/include/graphicscontext_windows.hpp
 engine/include/graphicscontext_x11.hpp
-engine/include/hash.hpp
 engine/include/input.hpp
 engine/include/lib.hpp
 engine/include/lnkfile.hpp
@@ -173,7 +172,6 @@ engine/src/glew_x11.cpp
 engine/src/graphicscontext.cpp
 engine/src/graphicscontext_windows.cpp
 engine/src/graphicscontext_x11.cpp
-engine/src/hash.cpp
 engine/src/input.cpp
 engine/src/lnkfile.cpp
 engine/src/logging.cpp

@@ -24,7 +24,6 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "alloc.hpp"
 #include "makeunique.hpp"
 #include "logging.hpp"
 #include "thread.hpp"
@@ -169,10 +168,8 @@ namespace cursedearth
         ce_mob_loader_init();
 
         ce_figure_manager_init();
-
         scenemng = ce_scenemng_new();
-
-        ce_thread_pool_init(ce_option_manager->thread_count);
+        ce_thread_pool_init();
 
         timer = ce_timer_new();
         input_supply = std::make_shared<input_supply_t>(renderwindow->input_context());

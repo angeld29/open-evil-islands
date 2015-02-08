@@ -18,11 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
+/*
  * Waveform Audio File Format (C) Microsoft & IBM
- * http://en.wikipedia.org/wiki/WAV
- * http://wiki.multimedia.cx/index.php?title=IMA_ADPCM
- * http://wiki.multimedia.cx/index.php?title=Microsoft_IMA_ADPCM
  */
 
 #ifndef CE_WAVE_HPP

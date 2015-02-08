@@ -24,7 +24,6 @@
 #include <ctime>
 #include <cmath>
 
-#include "lib.hpp"
 #include "math.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
@@ -99,8 +98,8 @@ static void advance(void*, float elapsed)
         message_timeout = 3.0f;
     }
 
-    message_color.a = ce_clamp(float, message_timeout, 0.0f, 1.0f);
-    ce_root::instance()->animation_fps = ce_clamp(float, animation_fps, 1.0f, 50.0f);
+    message_color.a = clamp(message_timeout, 0.0f, 1.0f);
+    ce_root::instance()->animation_fps = clamp(animation_fps, 1.0f, 50.0f);
 }
 
 static void render(void*)

@@ -47,7 +47,6 @@ namespace cursedearth
         bool inverse_trackball_y;
         bool terrain_tiling;
         bool texture_caching;
-        int thread_count;
         bool disable_sound;
         bool show_axes;
         bool show_fps;

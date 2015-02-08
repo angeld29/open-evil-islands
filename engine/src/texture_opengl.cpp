@@ -23,8 +23,8 @@
 #include <cstdint>
 #include <cstring>
 #include <cmath>
+#include <algorithm>
 
-#include "lib.hpp"
 #include "math.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
@@ -55,7 +55,7 @@ namespace cursedearth
             reported = true;
         }
 
-        return ce_clamp(size_t, mipmap_count, 1, max_level + 1);
+        return clamp(mipmap_count, 1u, max_level + 1u);
     }
 
     void ce_texture_setup_filters(unsigned int mipmap_count)
@@ -86,8 +86,8 @@ namespace cursedearth
         GLint max_texture_size;
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
 
-        unsigned int new_width = ce_min(int, width, max_texture_size);
-        unsigned int new_height = ce_min(int, height, max_texture_size);
+        unsigned int new_width = std::min<unsigned int>(width, max_texture_size);
+        unsigned int new_height = std::min<unsigned int>(height, max_texture_size);
 
         if (!GLEW_VERSION_2_0 && !GLEW_ARB_texture_non_power_of_two) {
             if (!ce_ispot(new_width)) new_width = ce_nlpot(new_width);

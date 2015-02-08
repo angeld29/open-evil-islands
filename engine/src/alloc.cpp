@@ -26,11 +26,12 @@
  * Copyright (C) 2001 by Andrei Alexandrescu
  */
 
+#include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <climits>
-#include <cassert>
+#include <algorithm>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -38,7 +39,7 @@
 #include <pthread.h>
 #endif
 
-#include "lib.hpp"
+#include "math.hpp"
 #include "alloc.hpp"
 
 namespace cursedearth
@@ -167,7 +168,7 @@ namespace cursedearth
     void ce_alloc_portion_init(ce_alloc_portion* portion, size_t block_size)
     {
         portion->block_size = block_size;
-        portion->block_count = ce_clamp(size_t, CE_ALLOC_PAGE_SIZE / block_size, CHAR_BIT, UCHAR_MAX);
+        portion->block_count = clamp(CE_ALLOC_PAGE_SIZE / block_size, CHAR_BIT, UCHAR_MAX);
         portion->chunk_count = 0;
         portion->chunk_capacity = 16;
         portion->chunks = (ce_alloc_chunk*)malloc(sizeof(ce_alloc_chunk) * portion->chunk_capacity);
@@ -325,7 +326,7 @@ namespace cursedearth
     void* ce_alloc(size_t size)
     {
         assert(ce_alloc_context.inited && "alloc subsystem has not yet been inited");
-        size = ce_max(size_t, 1, size);
+        size = std::max<size_t>(1, size);
         return size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE ? malloc(size) : ce_alloc_portion_alloc(ce_alloc_context.portions + ce_alloc_get_offset(size) - 1);
     }
 
@@ -337,7 +338,7 @@ namespace cursedearth
     void* ce_realloc(void* ptr, size_t size, size_t new_size)
     {
         void* new_ptr = ce_alloc(new_size);
-        memcpy(new_ptr, ptr, ce_min(size_t, size, new_size));
+        memcpy(new_ptr, ptr, std::min(size, new_size));
         ce_free(ptr, size);
         return new_ptr;
     }
@@ -345,7 +346,7 @@ namespace cursedearth
     void ce_free(void* ptr, size_t size)
     {
         assert(ce_alloc_context.inited && "alloc subsystem has not yet been inited");
-        size = ce_max(size_t, 1, size);
+        size = std::max<size_t>(1, size);
         if (size > CE_ALLOC_MAX_SMALL_OBJECT_SIZE) {
             free(ptr);
         } else if (NULL != ptr) {

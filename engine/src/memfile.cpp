@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cerrno>
 #include <cstdio>
 #include <cstring>
-#include <cerrno>
+#include <algorithm>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "memfile.hpp"
 
@@ -66,7 +66,7 @@ namespace cursedearth
     size_t ce_data_file_read(ce_mem_file* mem_file, void* ptr, size_t size, size_t n)
     {
         ce_data_file* data_file = (ce_data_file*)mem_file->impl;
-        n = ce_min(size_t, n, (data_file->size - data_file->pos) / size);
+        n = std::min(n, (data_file->size - data_file->pos) / size);
         size *= n;
         memcpy(ptr, data_file->data + data_file->pos, size);
         data_file->pos += size;

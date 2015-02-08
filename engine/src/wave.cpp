@@ -20,9 +20,10 @@
 
 #include <cassert>
 #include <cstring>
+#include <limits>
 #include <memory>
 
-#include "lib.hpp"
+#include "math.hpp"
 #include "logging.hpp"
 #include "wave.hpp"
 
@@ -163,7 +164,7 @@ namespace cursedearth
 
     inline int ce_wave_ima_adpcm_clamp_step_index(int index)
     {
-        return ce_clamp(int, index, 0, 88);
+        return clamp(index, 0, 88);
     }
 
     void ce_wave_ima_adpcm_decode(void* dst, const void* src, const ce_wave_header* wave_header)
@@ -223,7 +224,7 @@ namespace cursedearth
 
             int32_t current = samples[k - wave_header->format.channel_count];
             current += diff;
-            samples[k] = ce_clamp(int32_t, current, INT16_MIN, INT16_MAX);
+            samples[k] = clamp(current, std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max());
 
             step_indices[channel] += ce_wave_ima_adpcm_index_table[byte_code];
             step_indices[channel] = ce_wave_ima_adpcm_clamp_step_index(step_indices[channel]);

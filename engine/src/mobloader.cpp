@@ -20,6 +20,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <algorithm>
 
 #include "lib.hpp"
 #include "math.hpp"
@@ -88,7 +89,7 @@ namespace cursedearth
             mob_object_event->model_name = mob_object->model_name->str;
 
             ce_vec3_init_array(&mob_object_event->position, mob_object->position);
-            ce_swap_temp(float, &mob_object_event->position.y, &mob_object_event->position.z);
+            std::swap(mob_object_event->position.y, mob_object_event->position.z);
 
             // FIXME: GL's hard-code
             mob_object_event->position.z = -mob_object_event->position.z;

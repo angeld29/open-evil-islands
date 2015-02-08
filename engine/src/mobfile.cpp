@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <cstring>
 #include <vector>
+#include <algorithm>
 
 #include "lib.hpp"
 #include "str.hpp"
@@ -709,7 +710,7 @@ namespace cursedearth
     ce_mob_file* ce_mob_file_open_mem_file(const char* name, ce_mem_file* mem_file)
     {
         ce_mob_file* mob_file = (ce_mob_file*)ce_alloc_zero(sizeof(ce_mob_file));
-        mob_file->name = ce_string_new_str_n(name, ce_min(size_t, strlen(name), strlen(name) - 4));
+        mob_file->name = ce_string_new_str_n(name, std::min(strlen(name), strlen(name) - 4));
 
         ce_mob_file_block_loop(mob_file, mem_file, ce_mem_file_size(mem_file));
 

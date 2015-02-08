@@ -56,18 +56,15 @@ namespace cursedearth
     ce_scenemng* ce_scenemng_new(void)
     {
         ce_scenemng* scenemng = new ce_scenemng;
-        memset(scenemng, 0, sizeof(ce_scenemng));
+
         scenemng->thread_id = ce_thread_self();
-
-        scenemng->camera_move_sensitivity = 10.0f;
-        scenemng->camera_zoom_sensitivity = 5.0f;
-
         scenemng->scenenode = ce_scenenode_new(NULL);
         scenemng->renderqueue = ce_renderqueue_new();
         scenemng->viewport = ce_viewport_new();
         scenemng->camera = ce_camera_new();
         scenemng->fps = ce_fps_new();
         scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
+        scenemng->terrain = NULL;
 
         scenemng->input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
         scenemng->skip_logo_event = scenemng->input_supply->single_front(scenemng->input_supply->push(input_button_t::kb_space));
@@ -85,6 +82,9 @@ namespace cursedearth
 
         ce_renderwindow_add_listener(ce_root::instance()->renderwindow, &scenemng->renderwindow_listener);
         ce_figure_manager_add_listener(&scenemng->figure_manager_listener);
+
+        memset(&scenemng->logo, 0, sizeof(scenemng->logo));
+        memset(&scenemng->loading, 0, sizeof(scenemng->loading));
 
         return scenemng;
     }

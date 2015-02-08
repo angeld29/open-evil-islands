@@ -18,15 +18,16 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
 #include <cassert>
+#include <cstdio>
+#include <algorithm>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_MODULE_H
 
-#include "lib.hpp"
 #include "alloc.hpp"
+#include "math.hpp"
 #include "logging.hpp"
 #include "resourcemanager.hpp"
 #include "opengl.hpp"
@@ -119,8 +120,8 @@ namespace cursedearth
 
             line_space -= font->widths[ch];
 
-            max_ascent = ce_max(int, max_ascent, face->glyph->bitmap_top);
-            max_descent = ce_max(int, max_descent, face->glyph->bitmap.rows - face->glyph->bitmap_top);
+            max_ascent = std::max(max_ascent, face->glyph->bitmap_top);
+            max_descent = std::max(max_descent, face->glyph->bitmap.rows - face->glyph->bitmap_top);
         }
 
         font->height = max_ascent + max_descent;

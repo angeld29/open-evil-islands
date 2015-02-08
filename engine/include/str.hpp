@@ -55,36 +55,11 @@ namespace cursedearth
     /// Convert a string into lower case.
     char* ce_strlwr(char* dst, const char* src);
 
-    /// Reverse a string.
-    char* ce_strrev(char* dst, const char* src);
-
-    /**
-     *  C substring replacement.
-     *  Based on https://gist.github.com/dhess/975639
-     *
-     *  This function returns string 'src' if string 'from' is an empty string, or
-     *  if 'from' is not found in 'src'. If 'from' is found in 'src', the function
-     *  returns a string whose contents are identical to 'src', except that all
-     *  occurrences of 'from' in the original string 'src' are, in the new string,
-     *  replaced by the string 'to'.
-     *
-     *  Strings 'src', 'from', and 'to' must all be null-terminated strings. If any
-     *  of 'src', 'from', or 'to' are NULL, the function returns NULL, indicating an
-     *  error condition. If any other error occurs, the function returns NULL.
-     */
+    /// C substring replacement
     char* ce_strrep(char* dst, const char* src, size_t size, const char* from, const char* to);
-
-    /**
-     *  Replaces all occurrences of a character in a string with another character.
-     *  Return number of replacements made.
-     */
-    size_t ce_strrepc(char* s, char from, char to);
 
     /// Compare s1 and s2, ignoring case.
     int ce_strcasecmp(const char* s1, const char* s2);
-
-    /// Compare no more than n chars of s1 and s2, ignoring case.
-    int ce_strncasecmp(const char* s1, const char* s2, size_t n);
 
     /// Similar to strstr but this function ignores the case of both strings.
     char* ce_strcasestr(const char* haystack, const char* needle);
@@ -110,12 +85,6 @@ namespace cursedearth
      *  Return strlen(src); if retval >= size, truncation occurred.
      */
     size_t ce_strlcpy(char* dst, const char* src, size_t size);
-
-    /**
-     *  Find the length of s, but scan at most n characters.
-     *  If no '\0' terminator is found in that many characters, return n.
-     */
-    size_t ce_strnlen(const char* s, size_t n);
 
     /// Find the last occurrence in string of any character in accept.
     const char* ce_strrpbrk(const char* s, const char* accept);

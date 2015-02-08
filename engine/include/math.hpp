@@ -21,6 +21,8 @@
 #ifndef CE_MATH_HPP
 #define CE_MATH_HPP
 
+#include <cstddef>
+
 namespace cursedearth
 {
     extern const float CE_PI;
@@ -57,6 +59,35 @@ namespace cursedearth
     inline float ce_rad2deg(float angle)
     {
         return CE_RAD2DEG * angle;
+    }
+
+    template <typename T, typename U>
+    inline T clamp(T value, U min, U max)
+    {
+        return value < min ? min : (value > max ? max : value);
+    }
+
+    // is power of two (using 2's complement arithmetic)
+    inline bool ce_ispot(size_t v)
+    {
+        return 0 == (v & (v - 1));
+    }
+
+    // next largest power of two (using SWAR algorithm)
+    inline size_t ce_nlpot(size_t v)
+    {
+        v |= (v >> 1);
+        v |= (v >> 2);
+        v |= (v >> 4);
+        v |= (v >> 8);
+        v |= (v >> 16);
+#if CE_SIZEOF_SIZE_T > 4
+        v |= (v >> 32);
+#endif
+#if CE_SIZEOF_SIZE_T > 8
+        v |= (v >> 64);
+#endif
+        return v + 1;
     }
 }
 

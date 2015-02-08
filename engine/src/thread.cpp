@@ -27,7 +27,7 @@ namespace cursedearth
 {
     struct ce_thread_pool* ce_thread_pool;
 
-    ce_routine* ce_routine_new(void)
+    ce_routine* ce_routine_new()
     {
         return (ce_routine*)ce_alloc_zero(sizeof(ce_routine));
     }
@@ -136,8 +136,9 @@ namespace cursedearth
         ce_mutex_unlock(thread_pool->mutex);
     }
 
-    void ce_thread_pool_init(size_t thread_count)
+    void ce_thread_pool_init()
     {
+        size_t thread_count = online_cpu_count();
         ce_thread_pool = (struct ce_thread_pool*)ce_alloc_zero(sizeof(struct ce_thread_pool));
         ce_thread_pool->idle_thread_count = thread_count;
         ce_thread_pool->threads = ce_vector_new_reserved(thread_count);
@@ -151,9 +152,11 @@ namespace cursedearth
         for (size_t i = 0; i < thread_count; ++i) {
             ce_vector_push_back(ce_thread_pool->threads, ce_thread_new((void(*)())ce_thread_pool_exec, ce_thread_pool));
         }
+
+        ce_logging_info("thread pool: using up to %d threads", thread_count);
     }
 
-    void ce_thread_pool_term(void)
+    void ce_thread_pool_term()
     {
         if (NULL != ce_thread_pool) {
             ce_mutex_lock(ce_thread_pool->mutex);
@@ -204,12 +207,12 @@ namespace cursedearth
         ce_mutex_unlock(ce_thread_pool->mutex);
     }
 
-    void ce_thread_pool_wait_one(void)
+    void ce_thread_pool_wait_one()
     {
         ce_thread_pool_wait(ce_thread_pool->wait_one);
     }
 
-    void ce_thread_pool_wait_all(void)
+    void ce_thread_pool_wait_all()
     {
         ce_thread_pool_wait(ce_thread_pool->wait_all);
     }

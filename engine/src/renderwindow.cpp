@@ -18,12 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
 #include <cstring>
 #include <cstdio>
-#include <cassert>
+#include <algorithm>
 
-#include "lib.hpp"
-#include "alloc.hpp"
 #include "renderwindow.hpp"
 
 namespace cursedearth
@@ -44,8 +43,8 @@ namespace cursedearth
         va_list args;
         va_start(args, size);
 
-        renderwindow->geometry[renderwindow->state].width = ce_max(int, 400, va_arg(args, int));
-        renderwindow->geometry[renderwindow->state].height = ce_max(int, 300, va_arg(args, int));
+        renderwindow->geometry[renderwindow->state].width = std::max(400, va_arg(args, int));
+        renderwindow->geometry[renderwindow->state].height = std::max(300, va_arg(args, int));
 
         renderwindow->m_input_context = std::make_shared<input_context_t>();
         renderwindow->listeners = ce_vector_new();

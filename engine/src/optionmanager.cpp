@@ -66,7 +66,6 @@ namespace cursedearth
         ce_optparse_get(optparse, "inverse_trackball_y", &ce_option_manager->inverse_trackball_y);
         ce_optparse_get(optparse, "terrain_tiling", &ce_option_manager->terrain_tiling);
         ce_optparse_get(optparse, "texture_caching", &ce_option_manager->texture_caching);
-        ce_optparse_get(optparse, "thread_count", &ce_option_manager->thread_count);
         ce_optparse_get(optparse, "disable_sound", &ce_option_manager->disable_sound);
         ce_optparse_get(optparse, "show_axes", &ce_option_manager->show_axes);
         ce_optparse_get(optparse, "show_fps", &ce_option_manager->show_fps);
@@ -81,7 +80,6 @@ namespace cursedearth
 
         ce_logging_info("option manager: EI path is `%s'", ce_option_manager->ei_path->str);
         ce_logging_info("option manager: CE path is `%s'", ce_option_manager->ce_path->str);
-        ce_logging_info("option manager: using up to %d threads", ce_option_manager->thread_count);
         ce_logging_info("option manager: terrain tiling %s", ce_option_manager->terrain_tiling ? "enabled" : "disabled");
     }
 
@@ -191,7 +189,7 @@ namespace cursedearth
             "warning: up to 1 GB disk space usage is normal; "
             "very useful if you have a single-core slow CPU");
 
-        const int thread_count = ce_online_cpu_count();
+        const int thread_count = online_cpu_count();
         snprintf(help.data(), help.size(),
             "allow THREAD_COUNT jobs at once; if this option is not "
             "specified, the value will be detected automatically depending on the "

@@ -18,10 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <climits>
-#include <cassert>
+#include <algorithm>
 
 #include "lib.hpp"
 #include "alloc.hpp"
@@ -130,10 +131,10 @@ namespace cursedearth
 
         for (size_t i = 0; i < displaymng->supported_modes->count; ++i) {
             ce_displaymode* mode = (ce_displaymode*)displaymng->supported_modes->items[i];
-            if (width <= 0) best_width = ce_max(int, best_width, mode->width);
-            if (height <= 0) best_height = ce_max(int, best_height, mode->height);
-            if (bpp <= 0) best_bpp = ce_max(int, best_bpp, mode->bpp);
-            if (rate <= 0) best_rate = ce_max(int, best_rate, mode->rate);
+            if (width <= 0) best_width = std::max(best_width, mode->width);
+            if (height <= 0) best_height = std::max(best_height, mode->height);
+            if (bpp <= 0) best_bpp = std::max(best_bpp, mode->bpp);
+            if (rate <= 0) best_rate = std::max(best_rate, mode->rate);
         }
 
         width = best_width, height = best_height;

@@ -56,9 +56,9 @@ namespace cursedearth
     {
     public:
         ce_thread_id thread_id;
-        int state;
-        float camera_move_sensitivity; // FIXME: hard-coded
-        float camera_zoom_sensitivity; // TODO: make strategy
+        int state = CE_SCENEMNG_STATE_LOGO;
+        float camera_move_sensitivity = 10.0f; // FIXME: hard-coded
+        float camera_zoom_sensitivity = 5.0f; // TODO: make strategy
         ce_scenenode* scenenode;
         ce_renderqueue* renderqueue;
         ce_viewport* viewport;

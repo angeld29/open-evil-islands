@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <cstring>
 #include <vector>
+#include <algorithm>
 
 #include "lib.hpp"
 #include "str.hpp"
@@ -43,7 +44,7 @@ namespace cursedearth
             }
             ce_strlcat(path, tail, size);
             length += strlen(tail);
-            length = ce_min(size_t, length, size - 1);
+            length = std::min(length, size - 1);
         }
         return path;
     }

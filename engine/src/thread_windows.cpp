@@ -19,10 +19,10 @@
  */
 
 #include <cstdio>
+#include <algorithm>
 
 #include <windows.h>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "vector.hpp"
@@ -31,16 +31,16 @@
 
 namespace cursedearth
 {
-    int ce_online_cpu_count(void)
+    size_t online_cpu_count()
     {
         SYSTEM_INFO info;
         GetSystemInfo(&info);
-        return ce_max(int, 1, info.dwNumberOfProcessors);
+        return std::max<size_t>(1, info.dwNumberOfProcessors);
     }
 
-    void ce_sleep(unsigned int msec)
+    void sleep(unsigned int milliseconds)
     {
-        Sleep(msec);
+        Sleep(milliseconds);
     }
 
     ce_thread_id ce_thread_self(void)

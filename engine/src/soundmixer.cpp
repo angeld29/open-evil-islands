@@ -22,7 +22,7 @@
 #include <cstring>
 #include <algorithm>
 
-#include "lib.hpp"
+#include "math.hpp"
 #include "logging.hpp"
 #include "soundsystem.hpp"
 #include "soundmixer.hpp"

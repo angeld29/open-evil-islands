@@ -30,7 +30,7 @@ namespace cursedearth
 {
     char* ce_strleft(char* dst, const char* src, size_t n)
     {
-        n = ce_min(size_t, n, strlen(src));
+        n = std::min(n, strlen(src));
         strncpy(dst, src, n);
         dst[n] = '\0';
         return dst;
@@ -39,7 +39,7 @@ namespace cursedearth
     char* ce_strright(char* dst, const char* src, size_t n)
     {
         size_t len = strlen(src);
-        return strcpy(dst, src + len - ce_min(size_t, n, len));
+        return strcpy(dst, src + len - std::min(n, len));
     }
 
     char* ce_strmid(char* dst, const char* src, size_t pos, size_t n)
@@ -48,7 +48,7 @@ namespace cursedearth
         if (pos > len) {
             return NULL;
         }
-        n = ce_min(size_t, n, len - pos);
+        n = std::min(n, len - pos);
         strncpy(dst, src + pos, n);
         dst[n] = '\0';
         return dst;
@@ -85,17 +85,6 @@ namespace cursedearth
         char* p = dst;
         while (*src) {
             *p++ = tolower(*src++);
-        }
-        *p = '\0';
-        return dst;
-    }
-
-    char* ce_strrev(char* dst, const char* src)
-    {
-        char* p = dst;
-        const char *s = src + strlen(src);
-        while (s > src) {
-            *p++ = *--s;
         }
         *p = '\0';
         return dst;
@@ -178,15 +167,6 @@ namespace cursedearth
         return dst;
     }
 
-    size_t ce_strrepc(char* s, char from, char to)
-    {
-        size_t n = 0;
-        for (char* p = strchr(s, from); p; p = strchr(p + 1, from), ++n) {
-            *p = to;
-        }
-        return n;
-    }
-
     int ce_strcasecmp(const char* s1, const char* s2)
     {
         char c1, c2;
@@ -194,19 +174,6 @@ namespace cursedearth
             c1 = tolower(*s1++);
             c2 = tolower(*s2++);
         } while (c1 && c1 == c2);
-        return c1 - c2;
-    }
-
-    int ce_strncasecmp(const char* s1, const char* s2, size_t n)
-    {
-        char c1, c2;
-        if (0 == n) {
-            return 0;
-        }
-        do {
-            c1 = tolower(*s1++);
-            c2 = tolower(*s2++);
-        } while (--n > 0 && c1 && c1 == c2);
         return c1 - c2;
     }
 
@@ -274,14 +241,6 @@ namespace cursedearth
             dst[size] = '\0';
         }
         return srclen;
-    }
-
-    size_t ce_strnlen(const char* s, size_t n)
-    {
-        size_t i;
-        for (i = 0; i < n && *s; ++i, ++s) {
-        }
-        return i;
     }
 
     const char* ce_strrpbrk(const char* s, const char* accept)

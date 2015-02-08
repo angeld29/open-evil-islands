@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
 #include <cstdio>
 #include <cstring>
-#include <cassert>
+#include <algorithm>
 
 #include <unistd.h>
 #include <pthread.h>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "error.hpp"
 #include "thread.hpp"
@@ -40,18 +40,18 @@
 
 namespace cursedearth
 {
-    int ce_online_cpu_count(void)
+    size_t online_cpu_count()
     {
 #ifdef _SC_NPROCESSORS_ONLN
-        return ce_max(int, 1, sysconf(_SC_NPROCESSORS_ONLN));
+        return std::max<size_t>(1, sysconf(_SC_NPROCESSORS_ONLN));
 #else
         return 1;
 #endif
     }
 
-    void ce_sleep(unsigned int msec)
+    void sleep(unsigned int milliseconds)
     {
-        usleep(1000 * msec);
+        usleep(1000 * milliseconds);
     }
 
     ce_thread_id ce_thread_self(void)
@@ -162,7 +162,7 @@ namespace cursedearth
     void ce_wait_condition_wake_one(ce_wait_condition* wait_condition)
     {
         pthread_mutex_lock(&wait_condition->mutex);
-        wait_condition->wakeup_count = ce_min(int, wait_condition->wakeup_count + 1, wait_condition->waiter_count);
+        wait_condition->wakeup_count = std::min(wait_condition->wakeup_count + 1, wait_condition->waiter_count);
         pthread_cond_signal(&wait_condition->cond);
         pthread_mutex_unlock(&wait_condition->mutex);
     }

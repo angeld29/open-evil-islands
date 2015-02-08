@@ -18,16 +18,17 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
 #include <cstdio>
 #include <cstring>
-#include <climits>
 #include <cmath>
-#include <cassert>
+#include <limits>
+#include <algorithm>
 
 #include <squish.h>
 
-#include "lib.hpp"
 #include "alloc.hpp"
+#include "math.hpp"
 #include "byteorder.hpp"
 #include "mmpfile.hpp"
 
@@ -163,7 +164,7 @@ namespace cursedearth
     size_t ce_mmpfile_storage_size_dxt(unsigned int width, unsigned int height, ce_mmpfile_format format)
     {
         // special case for DXT format that have a block of fixed size: 8 for DXT1, 16 for DXT3
-        return ce_max(size_t, 2 * ce_mmpfile_bit_counts[format], ce_mmpfile_storage_size_generic(width, height, format));
+        return std::max<size_t>(2 * ce_mmpfile_bit_counts[format], ce_mmpfile_storage_size_generic(width, height, format));
     }
 
     size_t ce_mmpfile_storage_size_ycbcr(unsigned int width, unsigned int height, ce_mmpfile_format)
@@ -499,10 +500,10 @@ namespace cursedearth
                 int cb = cb_data[(h / 2) * (mmpfile->width / 2) + w / 2] - 128;
                 int cr = cr_data[(h / 2) * (mmpfile->width / 2) + w / 2] - 128;
 
-                texels[index + 0] = ce_clamp(int, (y + 409 * cr + 128) / 256, 0, UCHAR_MAX);
-                texels[index + 1] = ce_clamp(int, (y - 100 * cb - 208 * cr + 128) / 256, 0, UCHAR_MAX);
-                texels[index + 2] = ce_clamp(int, (y + 516 * cb + 128) / 256, 0, UCHAR_MAX);
-                texels[index + 3] = UCHAR_MAX;
+                texels[index + 0] = clamp((y + 409 * cr + 128) / 256, std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max());
+                texels[index + 1] = clamp((y - 100 * cb - 208 * cr + 128) / 256, std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max());
+                texels[index + 2] = clamp((y + 516 * cb + 128) / 256, std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max());
+                texels[index + 3] = std::numeric_limits<uint8_t>::max();
             }
         }
     }

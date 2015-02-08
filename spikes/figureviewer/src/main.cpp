@@ -23,10 +23,9 @@
 #include <cstring>
 #include <cmath>
 
-#include "lib.hpp"
+#include "alloc.hpp"
 #include "str.hpp"
 #include "math.hpp"
-#include "alloc.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
 #include "figuremanager.hpp"
@@ -137,7 +136,7 @@ static void advance(void*, float elapsed)
 
     if (message_timeout > 0.0f) {
         message_timeout -= elapsed;
-        message_color.a = ce_clamp(float, message_timeout, 0.0f, 1.0f);
+        message_color.a = clamp(message_timeout, 0.0f, 1.0f);
     }
 
     float animation_fps = ce_root::instance()->animation_fps;
@@ -146,7 +145,7 @@ static void advance(void*, float elapsed)
     if (anmfps_dec_event->triggered()) animation_fps -= 1.0f;
 
     if (animation_fps != ce_root::instance()->animation_fps) {
-        ce_root::instance()->animation_fps = ce_clamp(float, animation_fps, 1.0f, 50.0f);
+        ce_root::instance()->animation_fps = clamp(animation_fps, 1.0f, 50.0f);
         display_message("Animation FPS: %d", (int)ce_root::instance()->animation_fps);
     }
 
