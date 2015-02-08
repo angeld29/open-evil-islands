@@ -75,7 +75,7 @@ namespace cursedearth
         ce_figrenderitem_static* figrenderitem = (ce_figrenderitem_static*)renderitem->impl;
 
         const ce_figfile* figfile = va_arg(args, const ce_figfile*);
-        const ce_complection* complection = va_arg(args, const ce_complection*);
+        const complection_t* complection = va_arg(args, const complection_t*);
 
         figrenderitem->cookie = ce_figcookie_static_new();
 
@@ -185,7 +185,7 @@ namespace cursedearth
         ce_figrenderitem_dynamic* figrenderitem = (ce_figrenderitem_dynamic*)renderitem->impl;
 
         const ce_figfile* figfile = va_arg(args, const ce_figfile*);
-        const ce_complection* complection = va_arg(args, const ce_complection*);
+        const complection_t* complection = va_arg(args, const complection_t*);
 
         figrenderitem->cookie = ce_figcookie_dynamic_new(figfile->index_count);
         figrenderitem->vertices = (float*)ce_alloc(sizeof(float) * 3 * figfile->index_count);
@@ -324,7 +324,7 @@ namespace cursedearth
         sizeof(ce_figrenderitem_dynamic)
     };
 
-    ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode, const ce_complection* complection)
+    ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode, const complection_t* complection)
     {
         bool has_morphing = false;
         for (size_t i = 0; i < fignode->anmfiles->count; ++i) {

@@ -21,7 +21,6 @@
 #include <cstdio>
 #include <vector>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "byteorder.hpp"

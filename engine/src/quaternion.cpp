@@ -18,16 +18,18 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cmath>
+
 #include "utility.hpp"
 #include "vector3.hpp"
 #include "quaternion.hpp"
 
 namespace cursedearth
 {
-    const ce_quat CE_QUAT_ZERO = { 0.0f, 0.0f, 0.0f, 0.0f };
-    const ce_quat CE_QUAT_IDENTITY = { 1.0f, 0.0f, 0.0f, 0.0f };
+    const quaternion_t CE_QUAT_ZERO = { 0.0f, 0.0f, 0.0f, 0.0f };
+    const quaternion_t CE_QUAT_IDENTITY = { 1.0f, 0.0f, 0.0f, 0.0f };
 
-    ce_quat* ce_quat_init_polar(ce_quat* quat, float angle, const ce_vec3* axis)
+    quaternion_t* ce_quat_init_polar(quaternion_t* quat, float angle, const vector3_t* axis)
     {
         float t = 0.5f * angle;
         float s = sinf(t);
@@ -38,7 +40,7 @@ namespace cursedearth
         return quat;
     }
 
-    float ce_quat_to_polar(const ce_quat* quat, ce_vec3* axis)
+    float ce_quat_to_polar(const quaternion_t* quat, vector3_t* axis)
     {
         float sqr_length = quat->x * quat->x + quat->y * quat->y + quat->z * quat->z;
 
@@ -54,7 +56,7 @@ namespace cursedearth
         return 0.0f;
     }
 
-    void ce_quat_to_axes(const ce_quat* quat, ce_vec3* xaxis, ce_vec3* yaxis, ce_vec3* zaxis)
+    void ce_quat_to_axes(const quaternion_t* quat, vector3_t* xaxis, vector3_t* yaxis, vector3_t* zaxis)
     {
         float tx = 2.0f * quat->x;
         float ty = 2.0f * quat->y;
@@ -82,9 +84,20 @@ namespace cursedearth
         zaxis->z = 1.0f - (txx + tyy);
     }
 
-    ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs, const ce_quat* rhs)
+    float ce_quat_len(const quaternion_t* quat)
     {
-        ce_quat ta, tb = *rhs;
+        return sqrtf(ce_quat_len2(quat));
+    }
+
+    float ce_quat_arg(const quaternion_t* quat)
+    {
+        const float s = ce_quat_len(quat);
+        return 0.0f == s ? 0.0f : acosf(quat->w / s);
+    }
+
+    quaternion_t* ce_quat_slerp(quaternion_t* quat, float u, const quaternion_t* lhs, const quaternion_t* rhs)
+    {
+        quaternion_t ta, tb = *rhs;
         float cosom = ce_quat_dot(lhs, rhs);
 
         if (cosom < 0.0f) {

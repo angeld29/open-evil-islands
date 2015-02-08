@@ -22,10 +22,9 @@
 #include <cstring>
 #include <vector>
 
-#include "lib.hpp"
+#include "alloc.hpp"
 #include "str.hpp"
 #include "path.hpp"
-#include "alloc.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
 #include "resourcemanager.hpp"

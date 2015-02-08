@@ -23,7 +23,6 @@
 #include <cstring>
 #include <vector>
 
-#include "lib.hpp"
 #include "str.hpp"
 #include "path.hpp"
 #include "logging.hpp"

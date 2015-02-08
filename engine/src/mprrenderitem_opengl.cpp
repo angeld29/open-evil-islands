@@ -26,7 +26,6 @@
 #include <vector>
 #include <algorithm>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
@@ -116,7 +115,7 @@ namespace cursedearth
 
                 glTexCoord2f(x / (float)(CE_MPRFILE_VERTEX_SIDE - 1), (CE_MPRFILE_VERTEX_SIDE - 1 - z) / (float)(CE_MPRFILE_VERTEX_SIDE - 1));
 
-                ce_vec3 normal;
+                vector3_t normal;
                 ce_mprvertex* vertex = vertices + z * CE_MPRFILE_VERTEX_SIDE + x;
                 ce_mpr_unpack_normal(&normal, vertex->normal);
 
@@ -256,7 +255,7 @@ namespace cursedearth
 
                     glTexCoord2f(u + texcoord[i][0], v + texcoord[i][1]);
 
-                    ce_vec3 normal;
+                    vector3_t normal;
                     ce_mpr_unpack_normal(&normal, vertex->normal);
                     glNormal3f(normal.x, normal.y, -normal.z);
 
@@ -393,7 +392,7 @@ namespace cursedearth
             for (int x = 0; x < CE_MPRFILE_VERTEX_SIDE; ++x) {
                 ce_mprvertex* mprvertex = mprvertices + z * CE_MPRFILE_VERTEX_SIDE + x;
 
-                ce_vec3 normal;
+                vector3_t normal;
                 ce_mpr_unpack_normal(&normal, mprvertex->normal);
 
                 normals[0] = normal.x;

@@ -28,7 +28,6 @@
 
 #include <alsa/asoundlib.h>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "soundsystem.hpp"

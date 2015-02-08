@@ -23,15 +23,16 @@
 
 namespace cursedearth
 {
-    typedef struct {
+    struct matrix3_t
+    {
         float m[9];
-    } ce_mat3;
+    };
 
-    extern const ce_mat3 CE_MAT3_ZERO;
-    extern const ce_mat3 CE_MAT3_IDENTITY;
+    extern const matrix3_t CE_MAT3_ZERO;
+    extern const matrix3_t CE_MAT3_IDENTITY;
 
-    ce_mat3* ce_mat3_init_zero(ce_mat3* mat);
-    ce_mat3* ce_mat3_init_identity(ce_mat3* mat);
+    matrix3_t* ce_mat3_init_zero(matrix3_t* mat);
+    matrix3_t* ce_mat3_init_identity(matrix3_t* mat);
 }
 
 #endif

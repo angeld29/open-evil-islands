@@ -24,10 +24,9 @@
 #include <cstring>
 #include <vector>
 
-#include "lib.hpp"
+#include "alloc.hpp"
 #include "str.hpp"
 #include "path.hpp"
-#include "alloc.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
 #include "resourcemanager.hpp"
@@ -102,7 +101,7 @@ namespace cursedearth
         }
     };
 
-    bool ce_config_manager_read_light(ce_color section[24], const char* section_name, ce_config_file* config_file)
+    bool ce_config_manager_read_light(color_t section[24], const char* section_name, ce_config_file* config_file)
     {
         for (size_t i = 0; i < 24; ++i) {
             section[i] = CE_COLOR_WHITE;

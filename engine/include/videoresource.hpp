@@ -43,7 +43,7 @@ namespace cursedearth
         unsigned int width, height;
         float fps, time;
         size_t frame_index, frame_count;
-        ce_ycbcr ycbcr;
+        ycbcr_t ycbcr;
         ce_mem_file* mem_file;
         ce_video_resource_vtable vtable;
         size_t size;

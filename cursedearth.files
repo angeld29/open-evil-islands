@@ -41,7 +41,6 @@ engine/include/graphicscontext.hpp
 engine/include/graphicscontext_windows.hpp
 engine/include/graphicscontext_x11.hpp
 engine/include/input.hpp
-engine/include/lib.hpp
 engine/include/lnkfile.hpp
 engine/include/logging.hpp
 engine/include/makeunique.hpp

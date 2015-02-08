@@ -25,7 +25,7 @@
 
 namespace cursedearth
 {
-    ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile, const ce_complection* complection)
+    aabb_t* ce_fighlp_get_aabb(aabb_t* aabb, const ce_figfile* figfile, const complection_t* complection)
     {
         if (0 == figfile->vertex_count) {
             // I found some strange figure files!
@@ -40,7 +40,7 @@ namespace cursedearth
             figfile->value_callback(figfile->center + 1, 3, complection),
             figfile->value_callback(figfile->center + 2, 3, complection));
 
-        ce_vec3 min, max;
+        vector3_t min, max;
         ce_vec3_init(&min,
             figfile->value_callback(figfile->min + 0, 3, complection),
             figfile->value_callback(figfile->min + 1, 3, complection),
@@ -59,9 +59,9 @@ namespace cursedearth
         return aabb;
     }
 
-    ce_sphere* ce_fighlp_get_sphere(ce_sphere* sphere, const ce_figfile* figfile, const ce_complection* complection)
+    sphere_t* ce_fighlp_get_sphere(sphere_t* sphere, const ce_figfile* figfile, const complection_t* complection)
     {
-        ce_vec3 center;
+        vector3_t center;
         return ce_sphere_init(sphere, ce_vec3_init(&center,
             figfile->value_callback(figfile->center + 0, 3, complection),
             figfile->value_callback(figfile->center + 1, 3, complection),
@@ -69,7 +69,7 @@ namespace cursedearth
             figfile->value_callback(figfile->radius, 1, complection));
     }
 
-    float* ce_fighlp_get_vertex(float* array, const ce_figfile* figfile, int index, const ce_complection* complection)
+    float* ce_fighlp_get_vertex(float* array, const ce_figfile* figfile, int index, const complection_t* complection)
     {
         // see doc/formats/figfile.txt for details!
         size_t i = 3 * figfile->value_count * 4 * (index / 4) + index % 4;
@@ -90,7 +90,7 @@ namespace cursedearth
         return array;
     }
 
-    ce_vec3* ce_fighlp_get_bone(ce_vec3* position, const ce_figfile* figfile, const ce_bonfile* bonfile, const ce_complection* complection)
+    vector3_t* ce_fighlp_get_bone(vector3_t* position, const ce_figfile* figfile, const ce_bonfile* bonfile, const complection_t* complection)
     {
         return ce_vec3_init(position,
             figfile->value_callback(bonfile->bone + 0, 3, complection),

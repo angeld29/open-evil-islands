@@ -26,53 +26,53 @@
 
 namespace cursedearth
 {
-    const ce_vec3 CE_VEC3_ZERO = { 0.0f, 0.0f, 0.0f };
-    const ce_vec3 CE_VEC3_UNIT_X = { 1.0f, 0.0f, 0.0f };
-    const ce_vec3 CE_VEC3_UNIT_Y = { 0.0f, 1.0f, 0.0f };
-    const ce_vec3 CE_VEC3_UNIT_Z = { 0.0f, 0.0f, 1.0f };
-    const ce_vec3 CE_VEC3_UNIT_SCALE = { 1.0f, 1.0f, 1.0f };
-    const ce_vec3 CE_VEC3_NEG_UNIT_X = { -1.0f, 0.0f, 0.0f };
-    const ce_vec3 CE_VEC3_NEG_UNIT_Y = { 0.0f, -1.0f, 0.0f };
-    const ce_vec3 CE_VEC3_NEG_UNIT_Z = { 0.0f, 0.0f, -1.0f };
-    const ce_vec3 CE_VEC3_NEG_UNIT_SCALE = { -1.0f, -1.0f, -1.0f };
+    const vector3_t CE_VEC3_ZERO = { 0.0f, 0.0f, 0.0f };
+    const vector3_t CE_VEC3_UNIT_X = { 1.0f, 0.0f, 0.0f };
+    const vector3_t CE_VEC3_UNIT_Y = { 0.0f, 1.0f, 0.0f };
+    const vector3_t CE_VEC3_UNIT_Z = { 0.0f, 0.0f, 1.0f };
+    const vector3_t CE_VEC3_UNIT_SCALE = { 1.0f, 1.0f, 1.0f };
+    const vector3_t CE_VEC3_NEG_UNIT_X = { -1.0f, 0.0f, 0.0f };
+    const vector3_t CE_VEC3_NEG_UNIT_Y = { 0.0f, -1.0f, 0.0f };
+    const vector3_t CE_VEC3_NEG_UNIT_Z = { 0.0f, 0.0f, -1.0f };
+    const vector3_t CE_VEC3_NEG_UNIT_SCALE = { -1.0f, -1.0f, -1.0f };
 
-    float ce_vec3_len(const ce_vec3* vec)
+    float ce_vec3_len(const vector3_t* vec)
     {
         return sqrtf(ce_vec3_len2(vec));
     }
 
-    float ce_vec3_len2(const ce_vec3* vec)
+    float ce_vec3_len2(const vector3_t* vec)
     {
         return vec->x * vec->x + vec->y * vec->y + vec->z * vec->z;
     }
 
-    float ce_vec3_dist(const ce_vec3* lhs, const ce_vec3* rhs)
+    float ce_vec3_dist(const vector3_t* lhs, const vector3_t* rhs)
     {
         return sqrtf(ce_vec3_dist2(lhs, rhs));
     }
 
-    float ce_vec3_dist2(const ce_vec3* lhs, const ce_vec3* rhs)
+    float ce_vec3_dist2(const vector3_t* lhs, const vector3_t* rhs)
     {
-        ce_vec3 tmp;
+        vector3_t tmp;
         return ce_vec3_len2(ce_vec3_sub(&tmp, rhs, lhs));
     }
 
-    ce_vec3* ce_vec3_norm(ce_vec3* vec, const ce_vec3* other)
+    vector3_t* ce_vec3_norm(vector3_t* vec, const vector3_t* other)
     {
         return ce_vec3_scale(vec, 1.0f / ce_vec3_len(other), other);
     }
 
-    float ce_vec3_dot(const ce_vec3* lhs, const ce_vec3* rhs)
+    float ce_vec3_dot(const vector3_t* lhs, const vector3_t* rhs)
     {
         return lhs->x * rhs->x + lhs->y * rhs->y + lhs->z * rhs->z;
     }
 
-    float ce_vec3_absdot(const ce_vec3* lhs, const ce_vec3* rhs)
+    float ce_vec3_absdot(const vector3_t* lhs, const vector3_t* rhs)
     {
         return fabsf(lhs->x * rhs->x) + fabsf(lhs->y * rhs->y) + fabsf(lhs->z * rhs->z);
     }
 
-    ce_vec3* ce_vec3_cross(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
+    vector3_t* ce_vec3_cross(vector3_t* vec, const vector3_t* lhs, const vector3_t* rhs)
     {
         vec->x = lhs->y * rhs->z - lhs->z * rhs->y;
         vec->y = lhs->z * rhs->x - lhs->x * rhs->z;
@@ -80,14 +80,14 @@ namespace cursedearth
         return vec;
     }
 
-    ce_vec3* ce_vec3_mid(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
+    vector3_t* ce_vec3_mid(vector3_t* vec, const vector3_t* lhs, const vector3_t* rhs)
     {
         return ce_vec3_scale(vec, 0.5f, ce_vec3_add(vec, lhs, rhs));
     }
 
-    ce_vec3* ce_vec3_rot(ce_vec3* vec, const ce_vec3* other, const ce_quat* quat)
+    vector3_t* ce_vec3_rot(vector3_t* vec, const vector3_t* other, const quaternion_t* quat)
     {
-        ce_vec3 qv = { quat->x, quat->y, quat->z }, uv, uuv;
+        vector3_t qv = { quat->x, quat->y, quat->z }, uv, uuv;
         ce_vec3_cross(&uv, &qv, other);
         ce_vec3_cross(&uuv, &qv, &uv);
         ce_vec3_scale(&uv, 2.0f * quat->w, &uv);
@@ -95,7 +95,7 @@ namespace cursedearth
         return ce_vec3_add(vec, ce_vec3_add(vec, other, &uv), &uuv);
     }
 
-    ce_vec3* ce_vec3_lerp(ce_vec3* vec, float u, const ce_vec3* lhs, const ce_vec3* rhs)
+    vector3_t* ce_vec3_lerp(vector3_t* vec, float u, const vector3_t* lhs, const vector3_t* rhs)
     {
         vec->x = lerp(u, lhs->x, rhs->x);
         vec->y = lerp(u, lhs->y, rhs->y);
@@ -103,7 +103,7 @@ namespace cursedearth
         return vec;
     }
 
-    ce_vec3* ce_vec3_floor(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
+    vector3_t* ce_vec3_floor(vector3_t* vec, const vector3_t* lhs, const vector3_t* rhs)
     {
         vec->x = fminf(lhs->x, rhs->x);
         vec->y = fminf(lhs->y, rhs->y);
@@ -111,7 +111,7 @@ namespace cursedearth
         return vec;
     }
 
-    ce_vec3* ce_vec3_ceil(ce_vec3* vec, const ce_vec3* lhs, const ce_vec3* rhs)
+    vector3_t* ce_vec3_ceil(vector3_t* vec, const vector3_t* lhs, const vector3_t* rhs)
     {
         vec->x = fmaxf(lhs->x, rhs->x);
         vec->y = fmaxf(lhs->y, rhs->y);

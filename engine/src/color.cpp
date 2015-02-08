@@ -23,27 +23,27 @@
 
 namespace cursedearth
 {
-    const ce_color CE_COLOR_BLACK = { 0.0f, 0.0f, 0.0f, 1.0f };
-    const ce_color CE_COLOR_WHITE = { 1.0f, 1.0f, 1.0f, 1.0f };
-    const ce_color CE_COLOR_RED = { 1.0f, 0.0f, 0.0f, 1.0f };
-    const ce_color CE_COLOR_GREEN = { 0.0f, 1.0f, 0.0f, 1.0f };
-    const ce_color CE_COLOR_BLUE = { 0.0f, 0.0f, 1.0f, 1.0f };
-    const ce_color CE_COLOR_YELLOW = { 1.0f, 1.0f, 0.0f, 1.0f };
-    const ce_color CE_COLOR_CYAN = { 0.0f, 1.0f, 1.0f, 1.0f };
-    const ce_color CE_COLOR_MAGENTA = { 1.0f, 0.0f, 1.0f, 1.0f };
-    const ce_color CE_COLOR_GRAY = { 160.0f / 255.0f, 160.0f / 255.0f, 164.0f / 255.0f, 1.0f };
-    const ce_color CE_COLOR_CORNFLOWER = { 100.0f / 255.0f, 149.0f / 255.0f, 237.0f / 255.0f, 1.0f };
-    const ce_color CE_COLOR_CRIMSON = { 220.0f / 255.0f, 20.0f / 255.0f, 60.0f / 255.0f, 1.0f };
-    const ce_color CE_COLOR_GOLD = { 1.0f, 215.0f / 255.0f, 0.0f, 1.0f };
-    const ce_color CE_COLOR_GOLDENROD = { 218.0f / 255.0f, 165.0f / 255.0f, 32.0f / 255.0f, 1.0f };
-    const ce_color CE_COLOR_INDIGO = { 75.0f / 255.0f, 0.0f, 130.0f / 255.0f, 1.0f };
-    const ce_color CE_COLOR_ROYAL_BLUE = { 65.0f / 255.0f, 105.0f / 255.0f, 1.0f, 1.0f };
-    const ce_color CE_COLOR_SILVER = { 192.0f / 255.0f, 192.0f / 255.0f, 192.0f / 255.0f, 1.0f };
-    const ce_color CE_COLOR_TOMATO = { 1.0f, 99.0f / 255.0f, 71.0f / 255.0f, 1.0f };
-    const ce_color CE_COLOR_WHEAT = { 245.0f / 255.0f, 222.0f / 255.0f, 179.0f / 255.0f, 1.0f };
-    const ce_color CE_COLOR_TRANSPARENT = { 0.0f, 0.0f, 0.0f, 0.0f };
+    const color_t CE_COLOR_BLACK = { 0.0f, 0.0f, 0.0f, 1.0f };
+    const color_t CE_COLOR_WHITE = { 1.0f, 1.0f, 1.0f, 1.0f };
+    const color_t CE_COLOR_RED = { 1.0f, 0.0f, 0.0f, 1.0f };
+    const color_t CE_COLOR_GREEN = { 0.0f, 1.0f, 0.0f, 1.0f };
+    const color_t CE_COLOR_BLUE = { 0.0f, 0.0f, 1.0f, 1.0f };
+    const color_t CE_COLOR_YELLOW = { 1.0f, 1.0f, 0.0f, 1.0f };
+    const color_t CE_COLOR_CYAN = { 0.0f, 1.0f, 1.0f, 1.0f };
+    const color_t CE_COLOR_MAGENTA = { 1.0f, 0.0f, 1.0f, 1.0f };
+    const color_t CE_COLOR_GRAY = { 160.0f / 255.0f, 160.0f / 255.0f, 164.0f / 255.0f, 1.0f };
+    const color_t CE_COLOR_CORNFLOWER = { 100.0f / 255.0f, 149.0f / 255.0f, 237.0f / 255.0f, 1.0f };
+    const color_t CE_COLOR_CRIMSON = { 220.0f / 255.0f, 20.0f / 255.0f, 60.0f / 255.0f, 1.0f };
+    const color_t CE_COLOR_GOLD = { 1.0f, 215.0f / 255.0f, 0.0f, 1.0f };
+    const color_t CE_COLOR_GOLDENROD = { 218.0f / 255.0f, 165.0f / 255.0f, 32.0f / 255.0f, 1.0f };
+    const color_t CE_COLOR_INDIGO = { 75.0f / 255.0f, 0.0f, 130.0f / 255.0f, 1.0f };
+    const color_t CE_COLOR_ROYAL_BLUE = { 65.0f / 255.0f, 105.0f / 255.0f, 1.0f, 1.0f };
+    const color_t CE_COLOR_SILVER = { 192.0f / 255.0f, 192.0f / 255.0f, 192.0f / 255.0f, 1.0f };
+    const color_t CE_COLOR_TOMATO = { 1.0f, 99.0f / 255.0f, 71.0f / 255.0f, 1.0f };
+    const color_t CE_COLOR_WHEAT = { 245.0f / 255.0f, 222.0f / 255.0f, 179.0f / 255.0f, 1.0f };
+    const color_t CE_COLOR_TRANSPARENT = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-    ce_color* ce_color_init(ce_color* color, float r, float g, float b, float a)
+    color_t* ce_color_init(color_t* color, float r, float g, float b, float a)
     {
         color->r = r;
         color->g = g;
@@ -52,7 +52,7 @@ namespace cursedearth
         return color;
     }
 
-    ce_color* ce_color_init_array(ce_color* color, const float* array)
+    color_t* ce_color_init_array(color_t* color, const float* array)
     {
         color->r = array[0];
         color->g = array[1];
@@ -61,7 +61,7 @@ namespace cursedearth
         return color;
     }
 
-    ce_color* ce_color_init_black(ce_color* color)
+    color_t* ce_color_init_black(color_t* color)
     {
         color->r = 0.0f;
         color->g = 0.0f;
@@ -70,7 +70,7 @@ namespace cursedearth
         return color;
     }
 
-    ce_color* ce_color_init_white(ce_color* color)
+    color_t* ce_color_init_white(color_t* color)
     {
         color->r = 1.0f;
         color->g = 1.0f;
@@ -79,7 +79,7 @@ namespace cursedearth
         return color;
     }
 
-    ce_color* ce_color_init_red(ce_color* color)
+    color_t* ce_color_init_red(color_t* color)
     {
         color->r = 1.0f;
         color->g = 0.0f;
@@ -88,7 +88,7 @@ namespace cursedearth
         return color;
     }
 
-    ce_color* ce_color_init_green(ce_color* color)
+    color_t* ce_color_init_green(color_t* color)
     {
         color->r = 0.0f;
         color->g = 1.0f;
@@ -97,7 +97,7 @@ namespace cursedearth
         return color;
     }
 
-    ce_color* ce_color_init_blue(ce_color* color)
+    color_t* ce_color_init_blue(color_t* color)
     {
         color->r = 0.0f;
         color->g = 0.0f;
@@ -106,7 +106,7 @@ namespace cursedearth
         return color;
     }
 
-    ce_color* ce_color_copy(ce_color* color, const ce_color* other)
+    color_t* ce_color_copy(color_t* color, const color_t* other)
     {
         color->r = other->r;
         color->g = other->g;
@@ -115,7 +115,7 @@ namespace cursedearth
         return color;
     }
 
-    ce_color* ce_color_lerp(ce_color* color, float u, const ce_color* lhs, const ce_color* rhs)
+    color_t* ce_color_lerp(color_t* color, float u, const color_t* lhs, const color_t* rhs)
     {
         color->r = lerp(u, lhs->r, rhs->r);
         color->g = lerp(u, lhs->g, rhs->g);

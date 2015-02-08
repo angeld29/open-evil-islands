@@ -22,7 +22,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "soundresource.hpp"

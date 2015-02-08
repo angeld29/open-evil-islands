@@ -23,7 +23,8 @@
 
 namespace cursedearth
 {
-    typedef struct {
+    struct ycbcr_t
+    {
         struct {
             unsigned int x, y;
             unsigned int width, height;
@@ -32,7 +33,7 @@ namespace cursedearth
             int stride;
             unsigned char* data;
         } planes[3];
-    } ce_ycbcr;
+    };
 }
 
 #endif

@@ -31,24 +31,24 @@ namespace cursedearth
         float aspect;
         float near;
         float far;
-        ce_vec3 position;
-        ce_quat orientation;
+        vector3_t position;
+        quaternion_t orientation;
     } ce_camera;
 
     ce_camera* ce_camera_new(void);
     void ce_camera_del(ce_camera* camera);
 
-    ce_vec3* ce_camera_get_forward(ce_camera* camera, ce_vec3* forward);
-    ce_vec3* ce_camera_get_up(ce_camera* camera, ce_vec3* up);
-    ce_vec3* ce_camera_get_right(ce_camera* camera, ce_vec3* right);
+    vector3_t* ce_camera_get_forward(ce_camera* camera, vector3_t* forward);
+    vector3_t* ce_camera_get_up(ce_camera* camera, vector3_t* up);
+    vector3_t* ce_camera_get_right(ce_camera* camera, vector3_t* right);
 
     void ce_camera_set_fov(ce_camera* camera, float fov);
     void ce_camera_set_aspect(ce_camera* camera, float aspect);
     void ce_camera_set_near(ce_camera* camera, float near);
     void ce_camera_set_far(ce_camera* camera, float far);
 
-    void ce_camera_set_position(ce_camera* camera, const ce_vec3* position);
-    void ce_camera_set_orientation(ce_camera* camera, const ce_quat* orientation);
+    void ce_camera_set_position(ce_camera* camera, const vector3_t* position);
+    void ce_camera_set_orientation(ce_camera* camera, const quaternion_t* orientation);
 
     void ce_camera_move(ce_camera* camera, float xoffset, float zoffset);
     void ce_camera_zoom(ce_camera* camera, float offset);

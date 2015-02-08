@@ -25,7 +25,7 @@
 
 namespace cursedearth
 {
-    ce_figbone* ce_figbone_new(const ce_fignode* fignode, const ce_complection* complection, ce_figbone* parent)
+    ce_figbone* ce_figbone_new(const ce_fignode* fignode, const complection_t* complection, ce_figbone* parent)
     {
         ce_figbone* figbone = (ce_figbone*)ce_alloc(sizeof(ce_figbone));
         figbone->orientation = CE_QUAT_IDENTITY;
@@ -69,7 +69,7 @@ namespace cursedearth
         if (NULL == figbone->anmstate->anmfile) {
             figbone->orientation = CE_QUAT_IDENTITY;
         } else {
-            ce_quat q1, q2;
+            quaternion_t q1, q2;
             ce_quat_slerp(&figbone->orientation, figbone->anmstate->coef,
                 ce_quat_init_array(&q1, figbone->anmstate->anmfile->rotations +
                                         (int)figbone->anmstate->prev_frame * 4),

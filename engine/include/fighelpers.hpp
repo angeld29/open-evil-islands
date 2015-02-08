@@ -31,13 +31,13 @@
 
 namespace cursedearth
 {
-    ce_aabb* ce_fighlp_get_aabb(ce_aabb* aabb, const ce_figfile* figfile, const ce_complection* complection);
-    ce_sphere* ce_fighlp_get_sphere(ce_sphere* sphere, const ce_figfile* figfile, const ce_complection* complection);
+    aabb_t* ce_fighlp_get_aabb(aabb_t* aabb, const ce_figfile* figfile, const complection_t* complection);
+    sphere_t* ce_fighlp_get_sphere(sphere_t* sphere, const ce_figfile* figfile, const complection_t* complection);
 
-    float* ce_fighlp_get_vertex(float* array, const ce_figfile* figfile, int index, const ce_complection* complection);
+    float* ce_fighlp_get_vertex(float* array, const ce_figfile* figfile, int index, const complection_t* complection);
     float* ce_fighlp_get_normal(float* array, const ce_figfile* figfile, int index);
 
-    ce_vec3* ce_fighlp_get_bone(ce_vec3* position, const ce_figfile* figfile, const ce_bonfile* bonfile, const ce_complection* complection);
+    vector3_t* ce_fighlp_get_bone(vector3_t* position, const ce_figfile* figfile, const ce_bonfile* bonfile, const complection_t* complection);
     ce_material* ce_fighlp_create_material(const ce_figfile* figfile);
 }
 

@@ -31,7 +31,7 @@ namespace cursedearth
 {
     struct ce_render_system {
         ce_thread_id thread_id;
-        ce_mat4 view;
+        matrix4_t view;
         GLuint axes_list;
         GLuint wire_cube_list;
         GLuint solid_cube_list;
@@ -185,7 +185,7 @@ namespace cursedearth
         return ce_render_system->thread_id;
     }
 
-    void ce_render_system_begin_render(const ce_color* clear_color)
+    void ce_render_system_begin_render(const color_t* clear_color)
     {
         glClearColor(clear_color->r, clear_color->g, clear_color->b, clear_color->a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -371,14 +371,14 @@ namespace cursedearth
         glMultMatrixf(ce_render_system->view.m);
     }
 
-    void ce_render_system_apply_color(const ce_color* color)
+    void ce_render_system_apply_color(const color_t* color)
     {
         glColor4f(color->r, color->g, color->b, color->a);
     }
 
-    void ce_render_system_apply_transform(const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling)
+    void ce_render_system_apply_transform(const vector3_t* translation, const quaternion_t* rotation, const vector3_t* scaling)
     {
-        ce_vec3 axis;
+        vector3_t axis;
         float angle = ce_quat_to_polar(rotation, &axis);
 
         glPushMatrix();

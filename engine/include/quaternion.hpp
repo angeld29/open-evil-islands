@@ -21,28 +21,30 @@
 #ifndef CE_QUATERNION_HPP
 #define CE_QUATERNION_HPP
 
-#include <cmath>
-
 namespace cursedearth
 {
-    struct ce_vec3;
+    struct vector3_t;
 
-    typedef struct ce_quat {
+    struct quaternion_t
+    {
         float w, x, y, z;
-    } ce_quat;
+    };
 
-    extern const ce_quat CE_QUAT_ZERO;
-    extern const ce_quat CE_QUAT_IDENTITY;
+    extern const quaternion_t CE_QUAT_ZERO;
+    extern const quaternion_t CE_QUAT_IDENTITY;
 
-    ce_quat* ce_quat_init_polar(ce_quat* quat, float angle, const struct ce_vec3* axis);
+    quaternion_t* ce_quat_init_polar(quaternion_t* quat, float angle, const struct vector3_t* axis);
 
-    float ce_quat_to_polar(const ce_quat* quat, struct ce_vec3* axis);
-    void ce_quat_to_axes(const ce_quat* quat, struct ce_vec3* xaxis, struct ce_vec3* yaxis, struct ce_vec3* zaxis);
+    float ce_quat_to_polar(const quaternion_t* quat, struct vector3_t* axis);
+    void ce_quat_to_axes(const quaternion_t* quat, struct vector3_t* xaxis, struct vector3_t* yaxis, struct vector3_t* zaxis);
+
+    float ce_quat_len(const quaternion_t* quat);
+    float ce_quat_arg(const quaternion_t* quat);
 
     // spherical linear interpolation
-    ce_quat* ce_quat_slerp(ce_quat* quat, float u, const ce_quat* lhs, const ce_quat* rhs);
+    quaternion_t* ce_quat_slerp(quaternion_t* quat, float u, const quaternion_t* lhs, const quaternion_t* rhs);
 
-    inline ce_quat* ce_quat_init(ce_quat* quat, float w, float x, float y, float z)
+    inline quaternion_t* ce_quat_init(quaternion_t* quat, float w, float x, float y, float z)
     {
         quat->w = w;
         quat->x = x;
@@ -51,7 +53,7 @@ namespace cursedearth
         return quat;
     }
 
-    inline ce_quat* ce_quat_init_array(ce_quat* quat, const float* array)
+    inline quaternion_t* ce_quat_init_array(quaternion_t* quat, const float* array)
     {
         quat->w = array[0];
         quat->x = array[1];
@@ -60,7 +62,7 @@ namespace cursedearth
         return quat;
     }
 
-    inline ce_quat* ce_quat_init_zero(ce_quat* quat)
+    inline quaternion_t* ce_quat_init_zero(quaternion_t* quat)
     {
         quat->w = 0.0f;
         quat->x = 0.0f;
@@ -69,7 +71,7 @@ namespace cursedearth
         return quat;
     }
 
-    inline ce_quat* ce_quat_init_identity(ce_quat* quat)
+    inline quaternion_t* ce_quat_init_identity(quaternion_t* quat)
     {
         quat->w = 1.0f;
         quat->x = 0.0f;
@@ -78,7 +80,7 @@ namespace cursedearth
         return quat;
     }
 
-    inline ce_quat* ce_quat_copy(ce_quat* quat, const ce_quat* other)
+    inline quaternion_t* ce_quat_copy(quaternion_t* quat, const quaternion_t* other)
     {
         quat->w = other->w;
         quat->x = other->x;
@@ -87,7 +89,7 @@ namespace cursedearth
         return quat;
     }
 
-    inline ce_quat* ce_quat_neg(ce_quat* quat, const ce_quat* other)
+    inline quaternion_t* ce_quat_neg(quaternion_t* quat, const quaternion_t* other)
     {
         quat->w = -other->w;
         quat->x = -other->x;
@@ -96,7 +98,7 @@ namespace cursedearth
         return quat;
     }
 
-    inline ce_quat* ce_quat_conj(ce_quat* quat, const ce_quat* other)
+    inline quaternion_t* ce_quat_conj(quaternion_t* quat, const quaternion_t* other)
     {
         quat->w = other->w;
         quat->x = -other->x;
@@ -105,7 +107,7 @@ namespace cursedearth
         return quat;
     }
 
-    inline ce_quat* ce_quat_add(ce_quat* quat, const ce_quat* lhs, const ce_quat* rhs)
+    inline quaternion_t* ce_quat_add(quaternion_t* quat, const quaternion_t* lhs, const quaternion_t* rhs)
     {
         quat->w = lhs->w + rhs->w;
         quat->x = lhs->x + rhs->x;
@@ -114,7 +116,7 @@ namespace cursedearth
         return quat;
     }
 
-    inline ce_quat* ce_quat_sub(ce_quat* quat, const ce_quat* lhs, const ce_quat* rhs)
+    inline quaternion_t* ce_quat_sub(quaternion_t* quat, const quaternion_t* lhs, const quaternion_t* rhs)
     {
         quat->w = lhs->w - rhs->w;
         quat->x = lhs->x - rhs->x;
@@ -123,7 +125,7 @@ namespace cursedearth
         return quat;
     }
 
-    inline ce_quat* ce_quat_mul(ce_quat* quat, const ce_quat* lhs, const ce_quat* rhs)
+    inline quaternion_t* ce_quat_mul(quaternion_t* quat, const quaternion_t* lhs, const quaternion_t* rhs)
     {
         quat->w = lhs->w * rhs->w - lhs->x * rhs->x - lhs->y * rhs->y - lhs->z * rhs->z;
         quat->x = lhs->w * rhs->x + lhs->x * rhs->w + lhs->y * rhs->z - lhs->z * rhs->y;
@@ -132,7 +134,7 @@ namespace cursedearth
         return quat;
     }
 
-    inline ce_quat* ce_quat_scale(ce_quat* quat, float s, const ce_quat* other)
+    inline quaternion_t* ce_quat_scale(quaternion_t* quat, float s, const quaternion_t* other)
     {
         quat->w = s * other->w;
         quat->x = s * other->x;
@@ -141,33 +143,22 @@ namespace cursedearth
         return quat;
     }
 
-    inline float ce_quat_len2(const ce_quat* quat)
+    inline float ce_quat_len2(const quaternion_t* quat)
     {
         return quat->w * quat->w + quat->x * quat->x + quat->y * quat->y + quat->z * quat->z;
     }
 
-    inline float ce_quat_len(const ce_quat* quat)
-    {
-        return sqrtf(ce_quat_len2(quat));
-    }
-
-    inline float ce_quat_arg(const ce_quat* quat)
-    {
-        const float s = ce_quat_len(quat);
-        return 0.0f == s ? 0.0f : acosf(quat->w / s);
-    }
-
-    inline ce_quat* ce_quat_norm(ce_quat* quat, const ce_quat* other)
+    inline quaternion_t* ce_quat_norm(quaternion_t* quat, const quaternion_t* other)
     {
         return ce_quat_scale(quat, 1.0f / ce_quat_len(other), other);
     }
 
-    inline ce_quat* ce_quat_inv(ce_quat* quat, const ce_quat* other)
+    inline quaternion_t* ce_quat_inv(quaternion_t* quat, const quaternion_t* other)
     {
         return ce_quat_conj(quat, ce_quat_scale(quat, 1.0f / ce_quat_len2(other), other));
     }
 
-    inline float ce_quat_dot(const ce_quat* lhs, const ce_quat* rhs)
+    inline float ce_quat_dot(const quaternion_t* lhs, const quaternion_t* rhs)
     {
         return lhs->w * rhs->w + lhs->x * rhs->x + lhs->y * rhs->y + lhs->z * rhs->z;
     }

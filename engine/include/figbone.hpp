@@ -33,16 +33,16 @@ namespace cursedearth
     typedef struct ce_figbone ce_figbone;
 
     struct ce_figbone {
-        ce_vec3 position;
-        ce_quat orientation;
-        ce_vec3 bone_position;
-        ce_quat bone_orientation;
+        vector3_t position;
+        quaternion_t orientation;
+        vector3_t bone_position;
+        quaternion_t bone_orientation;
         ce_anmstate* anmstate;
         ce_figbone* parent;
         ce_vector* childs;
     };
 
-    ce_figbone* ce_figbone_new(const ce_fignode* fignode, const ce_complection* complection, ce_figbone* parent);
+    ce_figbone* ce_figbone_new(const ce_fignode* fignode, const complection_t* complection, ce_figbone* parent);
     void ce_figbone_del(ce_figbone* figbone);
 
     void ce_figbone_advance(ce_figbone* figbone, float distance);

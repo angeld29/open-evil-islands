@@ -23,7 +23,7 @@
 
 namespace cursedearth
 {
-    bool ce_plane_isect_ray(const ce_plane* plane, const ce_ray* ray, ce_vec3* point)
+    bool ce_plane_isect_ray(const plane_t* plane, const ray_t* ray, vector3_t* point)
     {
         float dist = ce_plane_dist_ray(plane, ray);
         if (dist < 0.0f || fiszero(dist, g_epsilon_e6)) {

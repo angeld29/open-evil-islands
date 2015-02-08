@@ -69,7 +69,7 @@ namespace cursedearth
         }
     }
 
-    ce_aabb* ce_aabb_init(ce_aabb* aabb, const ce_vec3* origin, const ce_vec3* extents, float radius)
+    aabb_t* ce_aabb_init(aabb_t* aabb, const vector3_t* origin, const vector3_t* extents, float radius)
     {
         aabb->origin = *origin;
         aabb->extents = *extents;
@@ -77,7 +77,7 @@ namespace cursedearth
         return aabb;
     }
 
-    ce_aabb* ce_aabb_init_zero(ce_aabb* aabb)
+    aabb_t* ce_aabb_init_zero(aabb_t* aabb)
     {
         aabb->origin = CE_VEC3_ZERO;
         aabb->extents = CE_VEC3_ZERO;
@@ -85,7 +85,7 @@ namespace cursedearth
         return aabb;
     }
 
-    ce_aabb* ce_aabb_copy(ce_aabb* aabb, const ce_aabb* other)
+    aabb_t* ce_aabb_copy(aabb_t* aabb, const aabb_t* other)
     {
         aabb->origin = other->origin;
         aabb->extents = other->extents;
@@ -93,7 +93,7 @@ namespace cursedearth
         return aabb;
     }
 
-    ce_aabb* ce_aabb_clear(ce_aabb* aabb)
+    aabb_t* ce_aabb_clear(aabb_t* aabb)
     {
         aabb->origin = CE_VEC3_ZERO;
         aabb->extents.x = aabb->extents.y = aabb->extents.z = -FLT_MAX;
@@ -101,13 +101,13 @@ namespace cursedearth
         return aabb;
     }
 
-    ce_aabb* ce_aabb_update_radius(ce_aabb* aabb)
+    aabb_t* ce_aabb_update_radius(aabb_t* aabb)
     {
         aabb->radius = ce_vec3_len(&aabb->extents);
         return aabb;
     }
 
-    ce_aabb* ce_aabb_merge_aabb(ce_aabb* aabb, const ce_aabb* other)
+    aabb_t* ce_aabb_merge_aabb(aabb_t* aabb, const aabb_t* other)
     {
         ce_aabb_merge_aabb_pass(&aabb->origin.x, &aabb->extents.x,
                                 other->origin.x, other->extents.x);
@@ -118,7 +118,7 @@ namespace cursedearth
         return aabb;
     }
 
-    ce_aabb* ce_aabb_merge_point(ce_aabb* aabb, const ce_vec3* point)
+    aabb_t* ce_aabb_merge_point(aabb_t* aabb, const vector3_t* point)
     {
         ce_aabb_merge_point_pass(&aabb->origin.x, &aabb->extents.x, point->x);
         ce_aabb_merge_point_pass(&aabb->origin.y, &aabb->extents.y, point->y);
@@ -126,7 +126,7 @@ namespace cursedearth
         return aabb;
     }
 
-    ce_aabb* ce_aabb_merge_point_array(ce_aabb* aabb, const float* point)
+    aabb_t* ce_aabb_merge_point_array(aabb_t* aabb, const float* point)
     {
         ce_aabb_merge_point_pass(&aabb->origin.x, &aabb->extents.x, point[0]);
         ce_aabb_merge_point_pass(&aabb->origin.y, &aabb->extents.y, point[1]);

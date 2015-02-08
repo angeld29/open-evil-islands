@@ -31,7 +31,7 @@
 
 using namespace cursedearth;
 
-static ce_color message_color;
+static color_t message_color;
 static float alpha_sign = -1.0f;
 static sound_object_t sound_object;
 static sound_object_t lightning_object;

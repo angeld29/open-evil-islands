@@ -26,15 +26,16 @@
 
 namespace cursedearth
 {
-    typedef struct {
-        ce_vec3 translation;
-        ce_quat rotation;
-        ce_vec3 scaling;
-    } ce_transform;
+    struct transform_t
+    {
+        vector3_t translation;
+        quaternion_t rotation;
+        vector3_t scaling;
+    };
 
-    extern const ce_transform CE_TRANSFORM_IDENTITY;
+    extern const transform_t CE_TRANSFORM_IDENTITY;
 
-    inline ce_transform* ce_transform_init(ce_transform* transform, const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling)
+    inline transform_t* ce_transform_init(transform_t* transform, const vector3_t* translation, const quaternion_t* rotation, const vector3_t* scaling)
     {
         ce_vec3_copy(&transform->translation, translation);
         ce_quat_copy(&transform->rotation, rotation);
@@ -42,7 +43,7 @@ namespace cursedearth
         return transform;
     }
 
-    inline ce_transform* ce_transform_init_identity(ce_transform* transform)
+    inline transform_t* ce_transform_init_identity(transform_t* transform)
     {
         ce_vec3_init_zero(&transform->translation);
         ce_quat_init_identity(&transform->rotation);
@@ -50,7 +51,7 @@ namespace cursedearth
         return transform;
     }
 
-    inline ce_transform* ce_transform_copy(ce_transform* transform, const ce_transform* other)
+    inline transform_t* ce_transform_copy(transform_t* transform, const transform_t* other)
     {
         ce_vec3_copy(&transform->translation, &other->translation);
         ce_quat_copy(&transform->rotation, &other->rotation);

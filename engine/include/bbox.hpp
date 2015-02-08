@@ -21,8 +21,8 @@
 #ifndef CE_BBOX_HPP
 #define CE_BBOX_HPP
 
-#include "quaternion.hpp"
 #include "aabb.hpp"
+#include "quaternion.hpp"
 
 namespace cursedearth
 {
@@ -31,13 +31,14 @@ namespace cursedearth
      *        aabb: axis-aligned bounding box
      *        axis: orientation axis
      */
-    typedef struct {
-        ce_aabb aabb;
-        ce_quat axis;
-    } ce_bbox;
+    struct bbox_t
+    {
+        aabb_t aabb;
+        quaternion_t axis;
+    };
 
-    ce_bbox* ce_bbox_clear(ce_bbox* bbox);
-    ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other);
+    bbox_t* ce_bbox_clear(bbox_t* bbox);
+    bbox_t* ce_bbox_merge(bbox_t* bbox, const bbox_t* other);
 }
 
 #endif

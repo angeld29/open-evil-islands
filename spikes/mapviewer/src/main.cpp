@@ -40,7 +40,7 @@ static input_supply_ptr_t input_supply;
 static input_event_const_ptr_t anmfps_inc_event;
 static input_event_const_ptr_t anmfps_dec_event;
 static float message_timeout;
-static ce_color message_color;
+static color_t message_color;
 
 static void clear()
 {
@@ -74,7 +74,7 @@ static void state_changed(void*, int state)
         }
 
         if (NULL != ce_root::instance()->scenemng->terrain) {
-            ce_vec3 position;
+            vector3_t position;
             ce_camera_set_position(ce_root::instance()->scenemng->camera, ce_vec3_init(&position, 0.0f, ce_root::instance()->scenemng->terrain->mprfile->max_y, 0.0f));
             ce_camera_yaw_pitch(ce_root::instance()->scenemng->camera, deg2rad(45.0f), deg2rad(30.0f));
         }

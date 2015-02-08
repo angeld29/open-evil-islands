@@ -22,11 +22,11 @@
 
 namespace cursedearth
 {
-    const ce_vec2 CE_VEC2_ZERO = { 0.0f, 0.0f };
-    const ce_vec2 CE_VEC2_UNIT_X = { 1.0f, 0.0f };
-    const ce_vec2 CE_VEC2_UNIT_Y = { 0.0f, 1.0f };
-    const ce_vec2 CE_VEC2_UNIT_SCALE = { 1.0f, 1.0f };
-    const ce_vec2 CE_VEC2_NEG_UNIT_X = { -1.0f, 0.0f };
-    const ce_vec2 CE_VEC2_NEG_UNIT_Y = { 0.0f, -1.0f };
-    const ce_vec2 CE_VEC2_NEG_UNIT_SCALE = { -1.0f, -1.0f };
+    const vector2_t CE_VEC2_ZERO = { 0.0f, 0.0f };
+    const vector2_t CE_VEC2_UNIT_X = { 1.0f, 0.0f };
+    const vector2_t CE_VEC2_UNIT_Y = { 0.0f, 1.0f };
+    const vector2_t CE_VEC2_UNIT_SCALE = { 1.0f, 1.0f };
+    const vector2_t CE_VEC2_NEG_UNIT_X = { -1.0f, 0.0f };
+    const vector2_t CE_VEC2_NEG_UNIT_Y = { 0.0f, -1.0f };
+    const vector2_t CE_VEC2_NEG_UNIT_SCALE = { -1.0f, -1.0f };
 }

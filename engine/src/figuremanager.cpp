@@ -22,10 +22,9 @@
 #include <cstring>
 #include <vector>
 
-#include "lib.hpp"
+#include "alloc.hpp"
 #include "str.hpp"
 #include "path.hpp"
-#include "alloc.hpp"
 #include "logging.hpp"
 #include "resfile.hpp"
 #include "optionmanager.hpp"
@@ -144,7 +143,7 @@ namespace cursedearth
         return NULL;
     }
 
-    ce_figmesh* ce_figure_manager_create_mesh(const char* name, const ce_complection* complection)
+    ce_figmesh* ce_figure_manager_create_mesh(const char* name, const complection_t* complection)
     {
         std::vector<char> true_name(strlen(name) + 1);
         ce_path_remove_ext(true_name.data(), name);
@@ -168,7 +167,7 @@ namespace cursedearth
         return NULL;
     }
 
-    ce_figentity* ce_figure_manager_create_entity(const char* name, const ce_complection* complection, const ce_vec3* position, const ce_quat* orientation, const char* parts[], const char* textures[])
+    ce_figentity* ce_figure_manager_create_entity(const char* name, const complection_t* complection, const vector3_t* position, const quaternion_t* orientation, const char* parts[], const char* textures[])
     {
         ce_figmesh* mesh = ce_figure_manager_create_mesh(name, complection);
         if (NULL != mesh) {

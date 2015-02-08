@@ -40,23 +40,23 @@ namespace cursedearth
         ce_free(camera, sizeof(ce_camera));
     }
 
-    ce_vec3* ce_camera_get_forward(ce_camera* camera, ce_vec3* forward)
+    vector3_t* ce_camera_get_forward(ce_camera* camera, vector3_t* forward)
     {
-        ce_quat tmp;
+        quaternion_t tmp;
         return ce_vec3_rot(forward, &CE_VEC3_NEG_UNIT_Z,
                             ce_quat_conj(&tmp, &camera->orientation));
     }
 
-    ce_vec3* ce_camera_get_up(ce_camera* camera, ce_vec3* up)
+    vector3_t* ce_camera_get_up(ce_camera* camera, vector3_t* up)
     {
-        ce_quat tmp;
+        quaternion_t tmp;
         return ce_vec3_rot(up, &CE_VEC3_UNIT_Y,
                             ce_quat_conj(&tmp, &camera->orientation));
     }
 
-    ce_vec3* ce_camera_get_right(ce_camera* camera, ce_vec3* right)
+    vector3_t* ce_camera_get_right(ce_camera* camera, vector3_t* right)
     {
-        ce_quat tmp;
+        quaternion_t tmp;
         return ce_vec3_rot(right, &CE_VEC3_UNIT_X,
                             ce_quat_conj(&tmp, &camera->orientation));
     }
@@ -81,19 +81,19 @@ namespace cursedearth
         camera->far = far;
     }
 
-    void ce_camera_set_position(ce_camera* camera, const ce_vec3* position)
+    void ce_camera_set_position(ce_camera* camera, const vector3_t* position)
     {
         camera->position = *position;
     }
 
-    void ce_camera_set_orientation(ce_camera* camera, const ce_quat* orientation)
+    void ce_camera_set_orientation(ce_camera* camera, const quaternion_t* orientation)
     {
         camera->orientation = *orientation;
     }
 
     void ce_camera_move(ce_camera* camera, float xoffset, float zoffset)
     {
-        ce_vec3 forward, right;
+        vector3_t forward, right;
         ce_camera_get_forward(camera, &forward);
         ce_camera_get_right(camera, &right);
 
@@ -113,7 +113,7 @@ namespace cursedearth
 
     void ce_camera_zoom(ce_camera* camera, float offset)
     {
-        ce_vec3 forward;
+        vector3_t forward;
         ce_camera_get_forward(camera, &forward);
 
         ce_vec3_scale(&forward, offset, &forward);
@@ -123,8 +123,8 @@ namespace cursedearth
 
     void ce_camera_yaw_pitch(ce_camera* camera, float psi, float theta)
     {
-        ce_vec3 y;
-        ce_quat tmp, tmp2;
+        vector3_t y;
+        quaternion_t tmp, tmp2;
         ce_vec3_rot(&y, &CE_VEC3_UNIT_Y, &camera->orientation);
         ce_quat_mul(&tmp2,
                     ce_quat_init_polar(&tmp, psi, &y), &camera->orientation);

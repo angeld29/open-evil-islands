@@ -97,13 +97,13 @@ namespace cursedearth
 
     extern struct ce_config_manager {
         struct {
-            ce_color sky[24];
-            ce_color ambient[24];
-            ce_color sunlight[24];
+            color_t sky[24];
+            color_t ambient[24];
+            color_t sunlight[24];
         } lights[CE_CONFIG_LIGHT_COUNT];
         ce_vector* movies[CE_CONFIG_MOVIE_COUNT];
         ce_vector* music[CE_CONFIG_MUSIC_CHAPTER_COUNT][CE_CONFIG_MUSIC_ITEM_COUNT];
-        ce_rect menu_geometry[CE_CONFIG_MENU_TYPE_COUNT][CE_CONFIG_MENU_ITEM_COUNT];
+        rectangle_t menu_geometry[CE_CONFIG_MENU_TYPE_COUNT][CE_CONFIG_MENU_ITEM_COUNT];
     }* ce_config_manager;
 
     void ce_config_manager_init(void);

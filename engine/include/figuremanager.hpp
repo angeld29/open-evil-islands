@@ -52,8 +52,8 @@ namespace cursedearth
     }
 
     ce_figproto* ce_figure_manager_create_proto(const char* name);
-    ce_figmesh* ce_figure_manager_create_mesh(const char* name, const ce_complection* complection);
-    ce_figentity* ce_figure_manager_create_entity(const char* name, const ce_complection* complection, const ce_vec3* position, const ce_quat* orientation, const char* parts[], const char* textures[]);
+    ce_figmesh* ce_figure_manager_create_mesh(const char* name, const complection_t* complection);
+    ce_figentity* ce_figure_manager_create_entity(const char* name, const complection_t* complection, const vector3_t* position, const quaternion_t* orientation, const char* parts[], const char* textures[]);
 
     void ce_figure_manager_remove_entity(ce_figentity* entity);
 }

@@ -37,7 +37,7 @@ namespace cursedearth
         }
     }
 
-    ce_figmesh* ce_figmesh_new(ce_figproto* figproto, const ce_complection* complection)
+    ce_figmesh* ce_figmesh_new(ce_figproto* figproto, const complection_t* complection)
     {
         ce_figmesh* figmesh = (ce_figmesh*)ce_alloc(sizeof(ce_figmesh));
         figmesh->ref_count = 1;

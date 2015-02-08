@@ -70,7 +70,7 @@ namespace cursedearth
         }
     }
 
-    bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox)
+    bool ce_occlusion_query(ce_occlusion* occlusion, const bbox_t* bbox)
     {
         if (!occlusion->supported) {
             return true;

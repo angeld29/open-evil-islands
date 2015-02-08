@@ -23,96 +23,97 @@
 
 namespace cursedearth
 {
-    typedef struct {
+    struct vector2_t
+    {
         float x, y;
-    } ce_vec2;
+    };
 
-    extern const ce_vec2 CE_VEC2_ZERO;
-    extern const ce_vec2 CE_VEC2_UNIT_X;
-    extern const ce_vec2 CE_VEC2_UNIT_Y;
-    extern const ce_vec2 CE_VEC2_UNIT_SCALE;
-    extern const ce_vec2 CE_VEC2_NEG_UNIT_X;
-    extern const ce_vec2 CE_VEC2_NEG_UNIT_Y;
-    extern const ce_vec2 CE_VEC2_NEG_UNIT_SCALE;
+    extern const vector2_t CE_VEC2_ZERO;
+    extern const vector2_t CE_VEC2_UNIT_X;
+    extern const vector2_t CE_VEC2_UNIT_Y;
+    extern const vector2_t CE_VEC2_UNIT_SCALE;
+    extern const vector2_t CE_VEC2_NEG_UNIT_X;
+    extern const vector2_t CE_VEC2_NEG_UNIT_Y;
+    extern const vector2_t CE_VEC2_NEG_UNIT_SCALE;
 
-    inline ce_vec2* ce_vec2_init(ce_vec2* vec, float x, float y)
+    inline vector2_t* ce_vec2_init(vector2_t* vec, float x, float y)
     {
         vec->x = x;
         vec->y = y;
         return vec;
     }
 
-    inline ce_vec2* ce_vec2_init_scalar(ce_vec2* vec, float s)
+    inline vector2_t* ce_vec2_init_scalar(vector2_t* vec, float s)
     {
         vec->x = s;
         vec->y = s;
         return vec;
     }
 
-    inline ce_vec2* ce_vec2_init_array(ce_vec2* vec, const float* array)
+    inline vector2_t* ce_vec2_init_array(vector2_t* vec, const float* array)
     {
         vec->x = array[0];
         vec->y = array[1];
         return vec;
     }
 
-    inline ce_vec2* ce_vec2_init_zero(ce_vec2* vec)
+    inline vector2_t* ce_vec2_init_zero(vector2_t* vec)
     {
         vec->x = 0.0f;
         vec->y = 0.0f;
         return vec;
     }
 
-    inline ce_vec2* ce_vec2_init_unit_x(ce_vec2* vec)
+    inline vector2_t* ce_vec2_init_unit_x(vector2_t* vec)
     {
         vec->x = 1.0f;
         vec->y = 0.0f;
         return vec;
     }
 
-    inline ce_vec2* ce_vec2_init_unit_y(ce_vec2* vec)
+    inline vector2_t* ce_vec2_init_unit_y(vector2_t* vec)
     {
         vec->x = 0.0f;
         vec->y = 1.0f;
         return vec;
     }
 
-    inline ce_vec2* ce_vec2_init_unit_scale(ce_vec2* vec)
+    inline vector2_t* ce_vec2_init_unit_scale(vector2_t* vec)
     {
         vec->x = 1.0f;
         vec->y = 1.0f;
         return vec;
     }
 
-    inline ce_vec2* ce_vec2_init_neg_unit_x(ce_vec2* vec)
+    inline vector2_t* ce_vec2_init_neg_unit_x(vector2_t* vec)
     {
         vec->x = -1.0f;
         vec->y = 0.0f;
         return vec;
     }
 
-    inline ce_vec2* ce_vec2_init_neg_unit_y(ce_vec2* vec)
+    inline vector2_t* ce_vec2_init_neg_unit_y(vector2_t* vec)
     {
         vec->x = 0.0f;
         vec->y = -1.0f;
         return vec;
     }
 
-    inline ce_vec2* ce_vec2_init_neg_unit_scale(ce_vec2* vec)
+    inline vector2_t* ce_vec2_init_neg_unit_scale(vector2_t* vec)
     {
         vec->x = -1.0f;
         vec->y = -1.0f;
         return vec;
     }
 
-    inline ce_vec2* ce_vec2_copy(ce_vec2* vec, const ce_vec2* other)
+    inline vector2_t* ce_vec2_copy(vector2_t* vec, const vector2_t* other)
     {
         vec->x = other->x;
         vec->y = other->y;
         return vec;
     }
 
-    inline ce_vec2* ce_vec2_neg(ce_vec2* vec, const ce_vec2* other)
+    inline vector2_t* ce_vec2_neg(vector2_t* vec, const vector2_t* other)
     {
         vec->x = -other->x;
         vec->y = -other->y;

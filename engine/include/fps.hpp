@@ -23,16 +23,17 @@
 
 namespace cursedearth
 {
-    typedef struct {
+    struct fps_t
+    {
         int frame_count;
         float time;
         char text[8];
-    } ce_fps;
+    };
 
-    ce_fps* ce_fps_new(void);
-    void ce_fps_del(ce_fps* fps);
+    fps_t* ce_fps_new(void);
+    void ce_fps_del(fps_t* fps);
 
-    void ce_fps_advance(ce_fps* fps, float elapsed);
+    void ce_fps_advance(fps_t* fps, float elapsed);
 }
 
 #endif

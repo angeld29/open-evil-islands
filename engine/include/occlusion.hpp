@@ -30,7 +30,7 @@ namespace cursedearth
     ce_occlusion* ce_occlusion_new(void);
     void ce_occlusion_del(ce_occlusion* occlusion);
 
-    bool ce_occlusion_query(ce_occlusion* occlusion, const ce_bbox* bbox);
+    bool ce_occlusion_query(ce_occlusion* occlusion, const bbox_t* bbox);
 }
 
 #endif

@@ -25,9 +25,9 @@ namespace cursedearth
 {
     typedef struct {
         float x, y, z, w;
-    } ce_vec4;
+    } vector4_t;
 
-    inline ce_vec4* ce_vec4_init(ce_vec4* vec, float x, float y, float z, float w)
+    inline vector4_t* ce_vec4_init(vector4_t* vec, float x, float y, float z, float w)
     {
         vec->x = x;
         vec->y = y;
@@ -36,7 +36,7 @@ namespace cursedearth
         return vec;
     }
 
-    inline ce_vec4* ce_vec4_init_scalar(ce_vec4* vec, float s)
+    inline vector4_t* ce_vec4_init_scalar(vector4_t* vec, float s)
     {
         vec->x = s;
         vec->y = s;
@@ -45,7 +45,7 @@ namespace cursedearth
         return vec;
     }
 
-    inline ce_vec4* ce_vec4_init_array(ce_vec4* vec, const float* array)
+    inline vector4_t* ce_vec4_init_array(vector4_t* vec, const float* array)
     {
         vec->x = array[0];
         vec->y = array[1];
@@ -54,7 +54,7 @@ namespace cursedearth
         return vec;
     }
 
-    inline ce_vec4* ce_vec4_copy(ce_vec4* vec, const ce_vec4* other)
+    inline vector4_t* ce_vec4_copy(vector4_t* vec, const vector4_t* other)
     {
         vec->x = other->x;
         vec->y = other->y;

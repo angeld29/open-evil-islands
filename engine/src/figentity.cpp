@@ -23,7 +23,6 @@
 #include <cfloat>
 #include <cmath>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "root.hpp"
@@ -130,7 +129,7 @@ namespace cursedearth
         }
     }
 
-    ce_figentity* ce_figentity_new(ce_figmesh* figmesh, const ce_vec3* position, const ce_quat* orientation, const char* parts[], const char* textures[], ce_scenenode* scenenode)
+    ce_figentity* ce_figentity_new(ce_figmesh* figmesh, const vector3_t* position, const quaternion_t* orientation, const char* parts[], const char* textures[], ce_scenenode* scenenode)
     {
         ce_figentity* figentity = (ce_figentity*)ce_alloc_zero(sizeof(ce_figentity));
         figentity->figmesh = ce_figmesh_add_ref(figmesh);

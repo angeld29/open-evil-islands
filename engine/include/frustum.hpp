@@ -30,7 +30,7 @@
 
 namespace cursedearth
 {
-    typedef enum {
+    enum frustum_plane_t {
         CE_FRUSTUM_PLANE_TOP,
         CE_FRUSTUM_PLANE_BOTTOM,
         CE_FRUSTUM_PLANE_LEFT,
@@ -38,18 +38,19 @@ namespace cursedearth
         CE_FRUSTUM_PLANE_NEAR,
         CE_FRUSTUM_PLANE_FAR,
         CE_FRUSTUM_PLANE_COUNT
-    } ce_frustum_plane;
+    };
 
-    typedef struct {
-        ce_plane planes[CE_FRUSTUM_PLANE_COUNT];
-    } ce_frustum;
+    struct frustum_t
+    {
+        plane_t planes[CE_FRUSTUM_PLANE_COUNT];
+    };
 
-    ce_frustum* ce_frustum_init(ce_frustum* frustum, float fov, float aspect, float near, float far, const ce_vec3* position, const ce_vec3* forward, const ce_vec3* right, const ce_vec3* up);
+    frustum_t* ce_frustum_init(frustum_t* frustum, float fov, float aspect, float near, float far, const vector3_t* position, const vector3_t* forward, const vector3_t* right, const vector3_t* up);
 
-    bool ce_frustum_test_point(const ce_frustum* frustum, const ce_vec3* point);
-    bool ce_frustum_test_sphere(const ce_frustum* frustum, const ce_sphere* sphere);
-    bool ce_frustum_test_aabb(const ce_frustum* frustum, const ce_aabb* aabb);
-    bool ce_frustum_test_bbox(const ce_frustum* frustum, const ce_bbox* bbox);
+    bool ce_frustum_test_point(const frustum_t* frustum, const vector3_t* point);
+    bool ce_frustum_test_sphere(const frustum_t* frustum, const sphere_t* sphere);
+    bool ce_frustum_test_aabb(const frustum_t* frustum, const aabb_t* aabb);
+    bool ce_frustum_test_bbox(const frustum_t* frustum, const bbox_t* bbox);
 }
 
 #endif

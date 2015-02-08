@@ -26,12 +26,12 @@
 
 namespace cursedearth
 {
-    float ce_figfile_value_fig1(const float* params, size_t /*stride*/, const ce_complection*)
+    float ce_figfile_value_fig1(const float* params, size_t /*stride*/, const complection_t*)
     {
         return *params;
     }
 
-    float ce_figfile_value_fig8(const float* params, size_t stride, const ce_complection* complection)
+    float ce_figfile_value_fig8(const float* params, size_t stride, const complection_t* complection)
     {
         float temp1 = params[0 * stride] +
             (params[1 * stride] - params[0 * stride]) * complection->strength;

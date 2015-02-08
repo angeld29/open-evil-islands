@@ -35,10 +35,10 @@ namespace cursedearth
 
     typedef struct {
         ce_material_mode mode;
-        ce_color ambient;
-        ce_color diffuse;
-        ce_color specular;
-        ce_color emission;
+        color_t ambient;
+        color_t diffuse;
+        color_t specular;
+        color_t emission;
         float shininess;
         bool alpha_test;
         bool blend;

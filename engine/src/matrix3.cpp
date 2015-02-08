@@ -22,7 +22,7 @@
 
 namespace cursedearth
 {
-    const ce_mat3 CE_MAT3_ZERO = {
+    const matrix3_t CE_MAT3_ZERO = {
         {
             0.0f, 0.0f, 0.0f,
             0.0f, 0.0f, 0.0f,
@@ -30,7 +30,7 @@ namespace cursedearth
         }
     };
 
-    const ce_mat3 CE_MAT3_IDENTITY = {
+    const matrix3_t CE_MAT3_IDENTITY = {
         {
             1.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f,
@@ -38,7 +38,7 @@ namespace cursedearth
         }
     };
 
-    ce_mat3* ce_mat3_init_zero(ce_mat3* mat)
+    matrix3_t* ce_mat3_init_zero(matrix3_t* mat)
     {
         mat->m[0] = 0.0f; mat->m[1] = 0.0f; mat->m[2] = 0.0f;
         mat->m[3] = 0.0f; mat->m[4] = 0.0f; mat->m[5] = 0.0f;
@@ -46,7 +46,7 @@ namespace cursedearth
         return mat;
     }
 
-    ce_mat3* ce_mat3_init_identity(ce_mat3* mat)
+    matrix3_t* ce_mat3_init_identity(matrix3_t* mat)
     {
         mat->m[0] = 1.0f; mat->m[1] = 0.0f; mat->m[2] = 0.0f;
         mat->m[3] = 0.0f; mat->m[4] = 1.0f; mat->m[5] = 0.0f;

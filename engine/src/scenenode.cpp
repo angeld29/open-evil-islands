@@ -20,7 +20,6 @@
 
 #include <cstdio>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "rendersystem.hpp"
 #include "root.hpp"
@@ -184,7 +183,7 @@ namespace cursedearth
         }
     }
 
-    void ce_scenenode_update_cascade(ce_scenenode* scenenode, const ce_frustum* frustum)
+    void ce_scenenode_update_cascade(ce_scenenode* scenenode, const frustum_t* frustum)
     {
         // try to cull scene node BEFORE update for performance reasons
         // rendering defects are possible, such as culling partially visible objects
@@ -214,7 +213,7 @@ namespace cursedearth
         }
     }
 
-    void ce_scenenode_draw_bbox(const ce_bbox* bbox)
+    void ce_scenenode_draw_bbox(const bbox_t* bbox)
     {
         ce_render_system_apply_transform(&bbox->aabb.origin, &bbox->axis, &bbox->aabb.extents);
         ce_render_system_draw_wire_cube();

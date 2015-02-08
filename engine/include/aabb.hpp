@@ -22,7 +22,6 @@
 #define CE_AABB_HPP
 
 #include "vector3.hpp"
-#include "quaternion.hpp"
 
 namespace cursedearth
 {
@@ -32,21 +31,22 @@ namespace cursedearth
      *        extents: +/- extents of box from origin
      *        radius: cached length of extents vector
      */
-    typedef struct {
-        ce_vec3 origin, extents;
+    struct aabb_t
+    {
+        vector3_t origin, extents;
         float radius;
-    } ce_aabb;
+    };
 
-    ce_aabb* ce_aabb_init(ce_aabb* aabb, const ce_vec3* origin, const ce_vec3* extents, float radius);
-    ce_aabb* ce_aabb_init_zero(ce_aabb* aabb);
-    ce_aabb* ce_aabb_copy(ce_aabb* aabb, const ce_aabb* other);
+    aabb_t* ce_aabb_init(aabb_t* aabb, const vector3_t* origin, const vector3_t* extents, float radius);
+    aabb_t* ce_aabb_init_zero(aabb_t* aabb);
+    aabb_t* ce_aabb_copy(aabb_t* aabb, const aabb_t* other);
 
-    ce_aabb* ce_aabb_clear(ce_aabb* aabb);
-    ce_aabb* ce_aabb_update_radius(ce_aabb* aabb);
+    aabb_t* ce_aabb_clear(aabb_t* aabb);
+    aabb_t* ce_aabb_update_radius(aabb_t* aabb);
 
-    ce_aabb* ce_aabb_merge_aabb(ce_aabb* aabb, const ce_aabb* other);
-    ce_aabb* ce_aabb_merge_point(ce_aabb* aabb, const ce_vec3* point);
-    ce_aabb* ce_aabb_merge_point_array(ce_aabb* aabb, const float* point);
+    aabb_t* ce_aabb_merge_aabb(aabb_t* aabb, const aabb_t* other);
+    aabb_t* ce_aabb_merge_point(aabb_t* aabb, const vector3_t* point);
+    aabb_t* ce_aabb_merge_point_array(aabb_t* aabb, const float* point);
 }
 
 #endif

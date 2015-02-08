@@ -33,11 +33,11 @@ namespace cursedearth
     typedef struct {
         std::atomic<int> ref_count;
         ce_figproto* figproto;
-        ce_complection complection;
+        complection_t complection;
         ce_vector* renderitems;
     } ce_figmesh;
 
-    ce_figmesh* ce_figmesh_new(ce_figproto* figproto, const ce_complection* complection);
+    ce_figmesh* ce_figmesh_new(ce_figproto* figproto, const complection_t* complection);
     void ce_figmesh_del(ce_figmesh* figmesh);
 
     inline ce_figmesh* ce_figmesh_add_ref(ce_figmesh* figmesh)

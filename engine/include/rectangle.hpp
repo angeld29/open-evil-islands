@@ -23,10 +23,11 @@
 
 namespace cursedearth
 {
-    typedef struct {
+    struct rectangle_t
+    {
         float x, y;
         float width, height;
-    } ce_rect;
+    };
 }
 
 #endif

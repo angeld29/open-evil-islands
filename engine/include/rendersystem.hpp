@@ -39,7 +39,7 @@ namespace cursedearth
 
     ce_thread_id ce_render_system_thread_id(void);
 
-    void ce_render_system_begin_render(const ce_color* clear_color);
+    void ce_render_system_begin_render(const color_t* clear_color);
     void ce_render_system_end_render(void);
 
     void ce_render_system_draw_axes(void);
@@ -56,9 +56,9 @@ namespace cursedearth
     void ce_render_system_setup_viewport(ce_viewport* viewport);
     void ce_render_system_setup_camera(ce_camera* camera);
 
-    void ce_render_system_apply_color(const ce_color* color);
+    void ce_render_system_apply_color(const color_t* color);
 
-    void ce_render_system_apply_transform(const ce_vec3* translation, const ce_quat* rotation, const ce_vec3* scaling);
+    void ce_render_system_apply_transform(const vector3_t* translation, const quaternion_t* rotation, const vector3_t* scaling);
     void ce_render_system_discard_transform(void);
 
     void ce_render_system_apply_material(ce_material* material);

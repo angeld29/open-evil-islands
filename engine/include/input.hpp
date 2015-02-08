@@ -63,8 +63,8 @@ namespace cursedearth
     struct input_context_t
     {
         bool buttons[static_cast<size_t>(input_button_t::count)];
-        ce_vec2 pointer_position;
-        ce_vec2 pointer_offset;
+        vector2_t pointer_position;
+        vector2_t pointer_offset;
 
         input_context_t() { clear(); }
 
@@ -111,8 +111,8 @@ namespace cursedearth
 
         void advance(float elapsed);
 
-        const ce_vec2& pointer_position() const { return m_context->pointer_position; }
-        const ce_vec2& pointer_offset() const { return m_context->pointer_offset; }
+        const vector2_t& pointer_position() const { return m_context->pointer_position; }
+        const vector2_t& pointer_offset() const { return m_context->pointer_offset; }
 
     private:
         input_context_const_ptr_t m_context;

@@ -34,8 +34,8 @@ namespace cursedearth
 {
     typedef struct {
         float height_correction;
-        ce_vec3 position;
-        ce_quat orientation;
+        vector3_t position;
+        quaternion_t orientation;
         ce_figmesh* figmesh;
         ce_figbone* figbone;
         ce_vector* textures;
@@ -43,7 +43,7 @@ namespace cursedearth
         ce_scenenode* scenenode;
     } ce_figentity;
 
-    ce_figentity* ce_figentity_new(ce_figmesh* figmesh, const ce_vec3* position, const ce_quat* orientation, const char* parts[], const char* textures[], ce_scenenode* scenenode);
+    ce_figentity* ce_figentity_new(ce_figmesh* figmesh, const vector3_t* position, const quaternion_t* orientation, const char* parts[], const char* textures[], ce_scenenode* scenenode);
     void ce_figentity_del(ce_figentity* figentity);
 
     void ce_figentity_fix_height(ce_figentity* figentity, float height);

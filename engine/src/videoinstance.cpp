@@ -21,7 +21,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "rendersystem.hpp"
@@ -41,7 +40,7 @@ namespace cursedearth
             }
 
             ce_mmpfile* ycbcr_frame = video_instance->ycbcr_frames[i % CE_VIDEO_INSTANCE_CACHE_SIZE];
-            ce_ycbcr* ycbcr = &video_instance->video_resource->ycbcr;
+            ycbcr_t* ycbcr = &video_instance->video_resource->ycbcr;
 
             uint8_t* y_data = static_cast<uint8_t*>(ycbcr_frame->texels);
             uint8_t* cb_data = y_data + ycbcr_frame->width * ycbcr_frame->height;

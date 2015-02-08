@@ -39,9 +39,9 @@ namespace cursedearth
     typedef struct {
         ce_mob_task* mob_task;
         const char* model_name;
-        ce_vec3 position;
-        ce_quat orientation;
-        ce_complection complection;
+        vector3_t position;
+        quaternion_t orientation;
+        complection_t complection;
         const char* textures[2 + 1]; // NULL-terminated
         const char* parts[32]; // NULL-terminated
     } ce_mob_object_event;
@@ -93,7 +93,7 @@ namespace cursedearth
             // FIXME: GL's hard-code
             mob_object_event->position.z = -mob_object_event->position.z;
 
-            ce_quat quat1, quat2;
+            quaternion_t quat1, quat2;
             ce_quat_init_array(&quat1, mob_object->rotation);
             ce_quat_init_polar(&quat2, deg2rad(-90.0f), &CE_VEC3_UNIT_X);
             ce_quat_mul(&mob_object_event->orientation, &quat2, &quat1);

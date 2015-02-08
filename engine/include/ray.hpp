@@ -25,19 +25,20 @@
 
 namespace cursedearth
 {
-    typedef struct {
-        ce_vec3 origin;
-        ce_vec3 direction;
-    } ce_ray;
+    struct ray_t
+    {
+        vector3_t origin;
+        vector3_t direction;
+    };
 
-    inline ce_ray* ce_ray_init(ce_ray* ray, const ce_vec3* origin, const ce_vec3* direction)
+    inline ray_t* ce_ray_init(ray_t* ray, const vector3_t* origin, const vector3_t* direction)
     {
         ce_vec3_copy(&ray->origin, origin);
         ce_vec3_copy(&ray->direction, direction);
         return ray;
     }
 
-    inline ce_ray* ce_ray_init_segment(ce_ray* ray, const ce_vec3* start, const ce_vec3* end)
+    inline ray_t* ce_ray_init_segment(ray_t* ray, const vector3_t* start, const vector3_t* end)
     {
         ce_vec3_copy(&ray->origin, start);
         ce_vec3_norm(&ray->direction, ce_vec3_sub(&ray->direction, end, start));

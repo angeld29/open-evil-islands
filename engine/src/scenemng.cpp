@@ -244,8 +244,8 @@ namespace cursedearth
         ce_renderqueue_render(scenemng->renderqueue);
         ce_renderqueue_clear(scenemng->renderqueue);
 
-        ce_vec3 forward, right, up;
-        ce_frustum frustum;
+        vector3_t forward, right, up;
+        frustum_t frustum;
 
         ce_frustum_init(&frustum, scenemng->camera->fov,
             scenemng->camera->aspect, scenemng->camera->near,

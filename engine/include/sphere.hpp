@@ -25,15 +25,16 @@
 
 namespace cursedearth
 {
-    typedef struct {
-        ce_vec3 origin;
+    struct sphere_t
+    {
+        vector3_t origin;
         float radius;
-    } ce_sphere;
+    };
 
-    ce_sphere* ce_sphere_init(ce_sphere* sphere, const ce_vec3* origin, float radius);
-    ce_sphere* ce_sphere_init_array(ce_sphere* sphere, const float* array);
-    ce_sphere* ce_sphere_init_zero(ce_sphere* sphere);
-    ce_sphere* ce_sphere_copy(ce_sphere* sphere, const ce_sphere* other);
+    sphere_t* ce_sphere_init(sphere_t* sphere, const vector3_t* origin, float radius);
+    sphere_t* ce_sphere_init_array(sphere_t* sphere, const float* array);
+    sphere_t* ce_sphere_init_zero(sphere_t* sphere);
+    sphere_t* ce_sphere_copy(sphere_t* sphere, const sphere_t* other);
 }
 
 #endif

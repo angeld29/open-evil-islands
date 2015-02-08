@@ -23,9 +23,8 @@
 #include <vector>
 #include <algorithm>
 
-#include "lib.hpp"
-#include "str.hpp"
 #include "alloc.hpp"
+#include "str.hpp"
 #include "logging.hpp"
 #include "memfile.hpp"
 #include "mobfile.hpp"

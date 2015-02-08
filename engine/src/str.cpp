@@ -23,7 +23,6 @@
 #include <cctype>
 #include <vector>
 
-#include "lib.hpp"
 #include "str.hpp"
 
 namespace cursedearth

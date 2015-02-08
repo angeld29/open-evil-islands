@@ -23,7 +23,6 @@
 #include <vector>
 #include <algorithm>
 
-#include "lib.hpp"
 #include "str.hpp"
 #include "path.hpp"
 

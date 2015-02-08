@@ -44,9 +44,9 @@ static input_event_const_ptr_t anm_change_event;
 static input_event_const_ptr_t anmfps_inc_event;
 static input_event_const_ptr_t anmfps_dec_event;
 static int anmidx = -1;
-static ce_complection complection = {1.0f, 1.0f, 1.0f};
+static complection_t complection = {1.0f, 1.0f, 1.0f};
 static float message_timeout;
-static ce_color message_color;
+static color_t message_color;
 
 static void clear()
 {
@@ -58,9 +58,9 @@ static bool update_figentity()
 {
     ce_figure_manager_remove_entity(figentity);
 
-    ce_vec3 position = CE_VEC3_ZERO;
+    vector3_t position = CE_VEC3_ZERO;
 
-    ce_quat orientation, q1, q2;
+    quaternion_t orientation, q1, q2;
     ce_quat_init_polar(&q1, deg2rad(180.0f), &CE_VEC3_UNIT_Z);
     ce_quat_init_polar(&q2, deg2rad(270.0f), &CE_VEC3_UNIT_X);
     ce_quat_mul(&orientation, &q2, &q1);
@@ -117,7 +117,7 @@ static void state_changed(void*, int state)
             }
         }
 
-        ce_vec3 position;
+        vector3_t position;
         ce_camera_set_position(ce_root::instance()->scenemng->camera, ce_vec3_init(&position, 0.0f, 2.0f, -4.0f));
 
         ce_camera_set_near(ce_root::instance()->scenemng->camera, 0.1f);

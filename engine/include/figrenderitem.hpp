@@ -27,7 +27,7 @@
 
 namespace cursedearth
 {
-    ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode, const ce_complection* complection);
+    ce_renderitem* ce_figrenderitem_new(const ce_fignode* fignode, const complection_t* complection);
 }
 
 #endif

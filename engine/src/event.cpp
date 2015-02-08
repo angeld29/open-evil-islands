@@ -23,7 +23,6 @@
 #include <climits>
 #include <algorithm>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "event.hpp"

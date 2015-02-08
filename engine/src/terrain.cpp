@@ -22,7 +22,6 @@
 #include <cmath>
 #include <vector>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "event.hpp"
@@ -159,7 +158,7 @@ namespace cursedearth
         }
     }
 
-    ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_renderqueue* renderqueue, const ce_vec3* position, const ce_quat* orientation, ce_scenenode* scenenode)
+    ce_terrain* ce_terrain_new(ce_mprfile* mprfile, ce_renderqueue* renderqueue, const vector3_t* position, const quaternion_t* orientation, ce_scenenode* scenenode)
     {
         ce_logging_info("terrain: loading `%s'...", mprfile->name->str);
 

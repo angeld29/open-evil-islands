@@ -23,14 +23,15 @@
 
 namespace cursedearth
 {
-    typedef struct {
+    struct complection_t
+    {
         float dexterity, strength, height;
-    } ce_complection;
+    };
 
-    ce_complection* ce_complection_init(ce_complection* complection, float dexterity, float strength, float height);
-    ce_complection* ce_complection_init_array(ce_complection* complection, const float* array);
-    ce_complection* ce_complection_copy(ce_complection* complection, const ce_complection* other);
-    bool ce_complection_equal(const ce_complection* complection, const ce_complection* other);
+    complection_t* ce_complection_init(complection_t* complection, float dexterity, float strength, float height);
+    complection_t* ce_complection_init_array(complection_t* complection, const float* array);
+    complection_t* ce_complection_copy(complection_t* complection, const complection_t* other);
+    bool ce_complection_equal(const complection_t* complection, const complection_t* other);
 }
 
 #endif

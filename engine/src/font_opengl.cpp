@@ -217,7 +217,7 @@ namespace cursedearth
         return width;
     }
 
-    void ce_font_render(ce_font* font, int x, int y, const ce_color* color, const char* text)
+    void ce_font_render(ce_font* font, int x, int y, const color_t* color, const char* text)
     {
         glPushAttrib(GL_ENABLE_BIT | GL_LIST_BIT);
 

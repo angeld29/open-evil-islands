@@ -26,23 +26,23 @@
 
 namespace cursedearth
 {
-    ce_bbox* ce_bbox_clear(ce_bbox* bbox)
+    bbox_t* ce_bbox_clear(bbox_t* bbox)
     {
         ce_aabb_clear(&bbox->aabb);
         bbox->axis = CE_QUAT_IDENTITY;
         return bbox;
     }
 
-    ce_bbox* ce_bbox_merge(ce_bbox* bbox, const ce_bbox* other)
+    bbox_t* ce_bbox_merge(bbox_t* bbox, const bbox_t* other)
     {
-        ce_vec3 axis_x, axis_y, axis_z;
+        vector3_t axis_x, axis_y, axis_z;
         ce_quat_to_axes(&other->axis, &axis_x, &axis_y, &axis_z);
 
         ce_vec3_scale(&axis_x, other->aabb.extents.x, &axis_x);
         ce_vec3_scale(&axis_y, other->aabb.extents.y, &axis_y);
         ce_vec3_scale(&axis_z, other->aabb.extents.z, &axis_z);
 
-        ce_aabb aabb;
+        aabb_t aabb;
         aabb.origin = other->aabb.origin;
 
         // calculate the aabb extents in local coord space

@@ -63,7 +63,7 @@ namespace cursedearth
         ce_renderqueue* renderqueue;
         ce_viewport* viewport;
         ce_camera* camera;
-        ce_fps* fps;
+        fps_t* fps;
         ce_font* font;
         ce_terrain* terrain;
         input_supply_ptr_t input_supply;

@@ -43,13 +43,13 @@ namespace cursedearth
 
     struct ce_renderitem {
         bool visible;
-        ce_aabb aabb;
-        ce_vec3 position;
-        ce_quat orientation;
-        ce_bbox bbox;
-        ce_vec3 world_position;
-        ce_quat world_orientation;
-        ce_bbox world_bbox;
+        aabb_t aabb;
+        vector3_t position;
+        quaternion_t orientation;
+        bbox_t bbox;
+        vector3_t world_position;
+        quaternion_t world_orientation;
+        bbox_t world_bbox;
         ce_renderitem_vtable vtable;
         size_t size;
         void* impl;

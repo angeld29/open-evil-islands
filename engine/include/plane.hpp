@@ -27,40 +27,41 @@
 
 namespace cursedearth
 {
-    typedef struct {
-        ce_vec3 n;
+    struct plane_t
+    {
+        vector3_t n;
         float d;
-    } ce_plane;
+    };
 
-    inline ce_plane* ce_plane_init(ce_plane* plane, float a, float b, float c, float d)
+    inline plane_t* ce_plane_init(plane_t* plane, float a, float b, float c, float d)
     {
         ce_vec3_init(&plane->n, a, b, c);
         plane->d = d;
         return plane;
     }
 
-    inline ce_plane* ce_plane_init_array(ce_plane* plane, const float* array)
+    inline plane_t* ce_plane_init_array(plane_t* plane, const float* array)
     {
         ce_vec3_init_array(&plane->n, array);
         plane->d = array[3];
         return plane;
     }
 
-    inline ce_plane* ce_plane_init_triangle(ce_plane* plane, const ce_triangle* triangle)
+    inline plane_t* ce_plane_init_triangle(plane_t* plane, const triangle_t* triangle)
     {
         ce_triangle_calc_normal(triangle, &plane->n);
         plane->d = -ce_vec3_dot(&plane->n, &triangle->a);
         return plane;
     }
 
-    inline ce_plane* ce_plane_init_tri(ce_plane* plane, const ce_vec3* a, const ce_vec3* b, const ce_vec3* c)
+    inline plane_t* ce_plane_init_tri(plane_t* plane, const vector3_t* a, const vector3_t* b, const vector3_t* c)
     {
-        ce_triangle triangle;
+        triangle_t triangle;
         ce_triangle_init(&triangle, a, b, c);
         return ce_plane_init_triangle(plane, &triangle);
     }
 
-    inline ce_plane* ce_plane_normalise(ce_plane* plane, const ce_plane* other)
+    inline plane_t* ce_plane_normalise(plane_t* plane, const plane_t* other)
     {
         const float s = 1.0f / ce_vec3_len(&other->n);
         ce_vec3_scale(&plane->n, s, &other->n);
@@ -68,17 +69,17 @@ namespace cursedearth
         return plane;
     }
 
-    inline float ce_plane_dist(const ce_plane* plane, const ce_vec3* point)
+    inline float ce_plane_dist(const plane_t* plane, const vector3_t* point)
     {
         return ce_vec3_dot(&plane->n, point) + plane->d;
     }
 
-    inline float ce_plane_dist_ray(const ce_plane* plane, const ce_ray* ray)
+    inline float ce_plane_dist_ray(const plane_t* plane, const ray_t* ray)
     {
         return (-plane->d - ce_vec3_dot(&plane->n, &ray->origin)) / ce_vec3_dot(&plane->n, &ray->direction);
     }
 
-    bool ce_plane_isect_ray(const ce_plane* plane, const ce_ray* ray, ce_vec3* point);
+    bool ce_plane_isect_ray(const plane_t* plane, const ray_t* ray, vector3_t* point);
 }
 
 #endif

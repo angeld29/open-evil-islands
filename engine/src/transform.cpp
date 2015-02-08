@@ -22,7 +22,7 @@
 
 namespace cursedearth
 {
-    const ce_transform CE_TRANSFORM_IDENTITY = {
+    const transform_t CE_TRANSFORM_IDENTITY = {
         { 0.0f, 0.0f, 0.0f },
         { 1.0f, 0.0f, 0.0f, 0.0f },
         { 1.0f, 1.0f, 1.0f }

@@ -22,14 +22,14 @@
 
 namespace cursedearth
 {
-    ce_sphere* ce_sphere_init(ce_sphere* sphere, const ce_vec3* origin, float radius)
+    sphere_t* ce_sphere_init(sphere_t* sphere, const vector3_t* origin, float radius)
     {
         sphere->origin = *origin;
         sphere->radius = radius;
         return sphere;
     }
 
-    ce_sphere* ce_sphere_init_array(ce_sphere* sphere, const float* array)
+    sphere_t* ce_sphere_init_array(sphere_t* sphere, const float* array)
     {
         sphere->origin.x = array[0];
         sphere->origin.y = array[1];
@@ -38,14 +38,14 @@ namespace cursedearth
         return sphere;
     }
 
-    ce_sphere* ce_sphere_init_zero(ce_sphere* sphere)
+    sphere_t* ce_sphere_init_zero(sphere_t* sphere)
     {
         sphere->origin = CE_VEC3_ZERO;
         sphere->radius = 0.0f;
         return sphere;
     }
 
-    ce_sphere* ce_sphere_copy(ce_sphere* sphere, const ce_sphere* other)
+    sphere_t* ce_sphere_copy(sphere_t* sphere, const sphere_t* other)
     {
         sphere->origin = other->origin;
         sphere->radius = other->radius;
