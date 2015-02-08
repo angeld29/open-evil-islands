@@ -27,9 +27,9 @@
 namespace cursedearth
 {
     enum class endian_t {
-        LITTLE,
-        BIG,
-        MIDDLE // this ordering is known as PDP
+        little,
+        big,
+        middle // this ordering is known as PDP
     };
 
     endian_t host_order();

@@ -100,13 +100,13 @@ namespace cursedearth
         }
 
         switch (host_order()) {
-        case endian_t::LITTLE:
+        case endian_t::little:
             ce_logging_info("root: little-endian system detected");
             break;
-        case endian_t::BIG:
+        case endian_t::big:
             ce_logging_info("root: big-endian system detected");
             break;
-        case endian_t::MIDDLE:
+        case endian_t::middle:
             throw std::runtime_error("PDP-endian system are not supported");
         }
 

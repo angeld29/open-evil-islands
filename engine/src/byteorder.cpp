@@ -33,9 +33,9 @@ namespace cursedearth
     endian_t host_order()
     {
         switch (g_host_order.value) {
-        case g_little_endian_pattern: return endian_t::LITTLE;
-        case g_big_endian_pattern: return endian_t::BIG;
-        case g_middle_endian_pattern: return endian_t::MIDDLE;
+        case g_little_endian_pattern: return endian_t::little;
+        case g_big_endian_pattern: return endian_t::big;
+        case g_middle_endian_pattern: return endian_t::middle;
         }
         throw std::runtime_error("unknown-endian system");
     }

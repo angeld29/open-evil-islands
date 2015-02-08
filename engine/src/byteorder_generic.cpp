@@ -47,84 +47,84 @@ namespace cursedearth
 
     void do_cpu2le(uint16_t& value)
     {
-        if (endian_t::BIG == host_order()) {
+        if (endian_t::big == host_order()) {
             endian_swap(value);
         }
     }
 
     void do_cpu2le(uint32_t& value)
     {
-        if (endian_t::BIG == host_order()) {
+        if (endian_t::big == host_order()) {
             endian_swap(value);
         }
     }
 
     void do_cpu2le(uint64_t& value)
     {
-        if (endian_t::BIG == host_order()) {
+        if (endian_t::big == host_order()) {
             endian_swap(value);
         }
     }
 
     void do_le2cpu(uint16_t& value)
     {
-        if (endian_t::BIG == host_order()) {
+        if (endian_t::big == host_order()) {
             endian_swap(value);
         }
     }
 
     void do_le2cpu(uint32_t& value)
     {
-        if (endian_t::BIG == host_order()) {
+        if (endian_t::big == host_order()) {
             endian_swap(value);
         }
     }
 
     void do_le2cpu(uint64_t& value)
     {
-        if (endian_t::BIG == host_order()) {
+        if (endian_t::big == host_order()) {
             endian_swap(value);
         }
     }
 
     void do_cpu2be(uint16_t& value)
     {
-        if (endian_t::LITTLE == host_order()) {
+        if (endian_t::little == host_order()) {
             endian_swap(value);
         }
     }
 
     void do_cpu2be(uint32_t& value)
     {
-        if (endian_t::LITTLE == host_order()) {
+        if (endian_t::little == host_order()) {
             endian_swap(value);
         }
     }
 
     void do_cpu2be(uint64_t& value)
     {
-        if (endian_t::LITTLE == host_order()) {
+        if (endian_t::little == host_order()) {
             endian_swap(value);
         }
     }
 
     void do_be2cpu(uint16_t& value)
     {
-        if (endian_t::LITTLE == host_order()) {
+        if (endian_t::little == host_order()) {
             endian_swap(value);
         }
     }
 
     void do_be2cpu(uint32_t& value)
     {
-        if (endian_t::LITTLE == host_order()) {
+        if (endian_t::little == host_order()) {
             endian_swap(value);
         }
     }
 
     void do_be2cpu(uint64_t& value)
     {
-        if (endian_t::LITTLE == host_order()) {
+        if (endian_t::little == host_order()) {
             endian_swap(value);
         }
     }
