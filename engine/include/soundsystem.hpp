@@ -36,7 +36,7 @@ namespace cursedearth
         bool (*write)(const void* block);
     } ce_sound_system_vtable;
 
-    class sound_system_t: public singleton_t<sound_system_t>
+    class sound_system_t final: public singleton_t<sound_system_t>
     {
     public:
         sound_system_t();
@@ -45,7 +45,7 @@ namespace cursedearth
         void write(void* block);
 
     private:
-        static void exec(sound_system_t*);
+        static void execute(sound_system_t*);
 
     private:
         sound_buffer_ptr_t m_buffer;

@@ -21,7 +21,9 @@
 #ifndef CE_SOUNDMANAGER_HPP
 #define CE_SOUNDMANAGER_HPP
 
+#include <string>
 #include <vector>
+#include <unordered_map>
 
 #include "singleton.hpp"
 #include "resfile.hpp"
@@ -29,7 +31,7 @@
 
 namespace cursedearth
 {
-    class sound_manager_t: public singleton_t<sound_manager_t>
+    class sound_manager_t final: public singleton_t<sound_manager_t>
     {
     public:
         sound_manager_t();
@@ -37,13 +39,17 @@ namespace cursedearth
 
         void advance(float elapsed);
 
-        sound_object_t create_object(const char* name);
-        sound_instance_ptr_t find_instance(sound_object_t);
+        sound_object_t make_instance(const std::string&);
+
+        sound_instance_ptr_t find_instance(sound_object_t object)
+        {
+            return m_instances[object];
+        }
 
     private:
         sound_object_t m_last_object;
-        std::vector<ce_res_file*> m_res_files;
-        std::vector<sound_instance_ptr_t> m_sound_instances;
+        std::vector<ce_res_file*> m_files;
+        std::unordered_map<sound_object_t, sound_instance_ptr_t> m_instances;
     };
 }
 

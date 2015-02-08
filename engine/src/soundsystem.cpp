@@ -73,7 +73,7 @@ namespace cursedearth
         if (!ce_sound_system_ctor(ce_option_manager->disable_sound ? ce_sound_system_null() : ce_sound_system_platform())) {
             ce_sound_system_ctor(ce_sound_system_null());
         }
-        m_thread = ce_thread_new((void(*)())exec, this);
+        m_thread = ce_thread_new((void(*)())execute, this);
     }
 
     sound_system_t::~sound_system_t()
@@ -89,7 +89,7 @@ namespace cursedearth
         m_buffer->push(block, SOUND_CAPABILITY_SAMPLES_IN_BLOCK, true);
     }
 
-    void sound_system_t::exec(sound_system_t* sound_system)
+    void sound_system_t::execute(sound_system_t* sound_system)
     {
         uint8_t block[SOUND_CAPABILITY_BLOCK_SIZE];
         while (!sound_system->m_done) {

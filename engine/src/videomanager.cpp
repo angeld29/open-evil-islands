@@ -18,88 +18,68 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-#include <cstring>
+#include <stdexcept>
 #include <vector>
 
-#include "alloc.hpp"
+#include <boost/filesystem.hpp>
+
 #include "logging.hpp"
-#include "path.hpp"
 #include "optionmanager.hpp"
 #include "videomanager.hpp"
 
 namespace cursedearth
 {
-    struct ce_video_manager* ce_video_manager;
+    namespace fs = boost::filesystem;
 
-    const char* ce_video_dirs[] = { "Movies", NULL };
-    const char* ce_video_exts[] = { ".ogv", ".ogg", ".bik", NULL };
+    const std::vector<fs::path> g_video_directories = { "Movies" };
+    const std::vector<std::string> g_video_extensions = { ".ogv" , ".ogg", ".bik" };
 
-    void ce_video_manager_init(void)
+    video_manager_t::video_manager_t():
+        singleton_t<video_manager_t>(this)
     {
-        ce_video_manager = (struct ce_video_manager*)ce_alloc_zero(sizeof(struct ce_video_manager));
-        ce_video_manager->video_instances = ce_vector_new();
-
-        std::vector<char> path(ce_option_manager->ei_path->length + 16);
-        for (size_t i = 0; NULL != ce_video_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_video_dirs[i], NULL);
-            ce_logging_info("video manager: using path `%s'", path.data());
+        fs::path root = ce_option_manager->ei_path->str;
+        for (const auto& directory: g_video_directories) {
+            ce_logging_info("video manager: using path `%s'", (root / directory).string().c_str());
         }
     }
 
-    void ce_video_manager_term(void)
-    {
-        if (NULL != ce_video_manager) {
-            ce_vector_for_each(ce_video_manager->video_instances, (void(*)(void*))ce_video_instance_del);
-            ce_vector_del(ce_video_manager->video_instances);
-            ce_free(ce_video_manager, sizeof(struct ce_video_manager));
-        }
-    }
-
-    void ce_video_manager_advance(float /*elapsed*/)
+    void video_manager_t::advance(float /*elapsed*/)
     {
     }
 
-    ce_video_object ce_video_manager_create_object(const char* name)
+    fs::path find_resource(const std::string& name)
     {
-        std::vector<char> path(ce_option_manager->ei_path->length + strlen(name) + 32);
-        if (NULL == ce_path_find_special1(path.data(), path.size(), ce_option_manager->ei_path->str, name, ce_video_dirs, ce_video_exts)) {
-            ce_logging_error("video manager: could not find path `%s'", path.data());
-            return 0;
-        }
-
-        ce_mem_file* mem_file = ce_mem_file_new_path(path.data());
-        if (NULL == mem_file) {
-            ce_logging_error("video manager: could not open file `%s'", path.data());
-            return 0;
-        }
-
-        ce_video_resource* video_resource = ce_video_resource_new(mem_file);
-        if (NULL == video_resource) {
-            ce_logging_error("video manager: could not create resource `%s'", path.data());
-            ce_mem_file_del(mem_file);
-            return 0;
-        }
-
-        ce_video_instance* video_instance = ce_video_instance_new(++ce_video_manager->last_video_object, make_sound_object(name), video_resource);
-        if (NULL == video_instance) {
-            ce_logging_error("video manager: could not create instance `%s'", path.data());
-            ce_video_resource_del(video_resource);
-            return 0;
-        }
-
-        ce_vector_push_back(ce_video_manager->video_instances, video_instance);
-        return video_instance->video_object;
-    }
-
-    ce_video_instance* ce_video_manager_find_instance(ce_video_object video_object)
-    {
-        for (size_t i = 0; i < ce_video_manager->video_instances->count; ++i) {
-            ce_video_instance* video_instance = (ce_video_instance*)ce_video_manager->video_instances->items[i];
-            if (video_object == video_instance->video_object) {
-                return video_instance;
+        fs::path root = ce_option_manager->ei_path->str;
+        for (const auto& extension: g_video_extensions) {
+            const fs::path file_name = name + extension;
+            for (const auto& directory: g_video_directories) {
+                const fs::path file_path = root / directory / file_name;
+                if (exists(file_path)) {
+                    return file_path;
+                }
             }
         }
-        return nullptr;
+        throw std::runtime_error(str(boost::format("could not find resource `%1%'") % name));
+    }
+
+    video_object_t video_manager_t::make_instance(const std::string& name)
+    {
+        fs::path file_path = find_resource(name);
+        ce_mem_file* mem_file = ce_mem_file_new_path(file_path.string().c_str());
+        if (NULL == mem_file) {
+            throw std::runtime_error(str(boost::format("could not open file `%1%'") % file_path));
+        }
+
+        ce_video_resource* resource = ce_video_resource_new(mem_file);
+        if (NULL == resource) {
+            ce_mem_file_del(mem_file);
+            throw std::runtime_error(str(boost::format("could not create resource `%1%'") % file_path));
+        }
+
+        const video_object_t object = ++m_last_object;
+        video_instance_ptr_t instance = std::make_shared<video_instance_t>(make_sound_object(name), resource);
+
+        m_instances.insert({ object, instance });
+        return object;
     }
 }

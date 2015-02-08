@@ -19,12 +19,11 @@
  */
 
 #include <cassert>
-#include <cstdio>
 #include <cstring>
 #include <vector>
 
-#include "str.hpp"
 #include "alloc.hpp"
+#include "str.hpp"
 #include "logging.hpp"
 #include "resourcemanager.hpp"
 #include "shadermanager.hpp"

@@ -21,8 +21,6 @@
 #ifndef CE_VIDEORESOURCE_HPP
 #define CE_VIDEORESOURCE_HPP
 
-#include <cstddef>
-
 #include "memfile.hpp"
 #include "ycbcr.hpp"
 

@@ -153,12 +153,12 @@ namespace cursedearth
         renderwindow->visual.reflection = ce_display_reflection_from_bool(ce_option_manager->fullscreen_reflection_x, ce_option_manager->fullscreen_reflection_y);
 
         ce_render_system_init();
+
         m_sound_system = make_unique<sound_system_t>();
         m_sound_mixer = make_unique<sound_mixer_t>();
-
         ce_avcodec_init();
         m_sound_manager = make_unique<sound_manager_t>();
-        ce_video_manager_init();
+        m_video_manager = make_unique<video_manager_t>();
 
         ce_texture_manager_init();
         ce_shader_manager_init();
@@ -195,7 +195,7 @@ namespace cursedearth
         ce_mpr_manager_term();
         ce_shader_manager_term();
         ce_texture_manager_term();
-        ce_video_manager_term();
+        m_video_manager.reset();
         m_sound_manager.reset();
         ce_avcodec_term();
         m_sound_mixer.reset();
@@ -253,7 +253,7 @@ namespace cursedearth
             }
 
             m_sound_manager->advance(elapsed);
-            ce_video_manager_advance(elapsed);
+            m_video_manager->advance(elapsed);
 
             ce_scenemng_advance(scenemng, elapsed);
             ce_scenemng_render(scenemng);

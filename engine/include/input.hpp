@@ -94,10 +94,8 @@ namespace cursedearth
 
     class input_supply_t final: boost::noncopyable
     {
-        enum {
-            default_delay = 450, // delay in milliseconds
-            default_rate = 10    // rate in triggers per second
-        };
+        static const unsigned int s_default_delay = 450; // delay in milliseconds
+        static const unsigned int s_default_rate = 10;   // rate in triggers per second
 
     public:
         explicit input_supply_t(const input_context_const_ptr_t&);
@@ -107,7 +105,7 @@ namespace cursedearth
         input_event_const_ptr_t single_back(const input_event_const_ptr_t&);
         input_event_const_ptr_t and_(const input_event_const_ptr_t&, const input_event_const_ptr_t&);
         input_event_const_ptr_t or_(const input_event_const_ptr_t&, const input_event_const_ptr_t&);
-        input_event_const_ptr_t repeat(const input_event_const_ptr_t&, unsigned int = default_delay, unsigned int = default_rate);
+        input_event_const_ptr_t repeat(const input_event_const_ptr_t&, unsigned int = s_default_delay, unsigned int = s_default_rate);
 
         void advance(float elapsed);
 

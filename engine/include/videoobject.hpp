@@ -21,23 +21,25 @@
 #ifndef CE_VIDEOOBJECT_HPP
 #define CE_VIDEOOBJECT_HPP
 
+#include <string>
+
 namespace cursedearth
 {
-    typedef unsigned long ce_video_object;
+    typedef unsigned long video_object_t;
 
-    ce_video_object ce_video_object_new(const char* name);
-    void ce_video_object_del(ce_video_object);
+    video_object_t make_video_object(const std::string&);
+    void remove_video_object(video_object_t);
 
-    bool ce_video_object_is_valid(ce_video_object);
+    bool video_object_is_valid(video_object_t);
 
-    void ce_video_object_advance(ce_video_object, float elapsed);
-    void ce_video_object_progress(ce_video_object, int percents);
-    void ce_video_object_render(ce_video_object);
+    void video_object_advance(video_object_t, float elapsed);
+    void video_object_progress(video_object_t, int percents);
+    void video_object_render(video_object_t);
 
-    bool ce_video_object_is_stopped(ce_video_object);
-    void ce_video_object_play(ce_video_object);
-    void ce_video_object_pause(ce_video_object);
-    void ce_video_object_stop(ce_video_object);
+    bool video_object_is_stopped(video_object_t);
+    void play_video_object(video_object_t);
+    void pause_video_object(video_object_t);
+    void stop_video_object(video_object_t);
 }
 
 #endif

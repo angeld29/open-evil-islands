@@ -18,25 +18,19 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-#include <cstring>
-#include <climits>
-#include <vector>
-
 #include "logging.hpp"
 #include "soundmixer.hpp"
 #include "soundinstance.hpp"
 
 namespace cursedearth
 {
-    sound_instance_t::sound_instance_t(sound_object_t object, ce_sound_resource* resource):
-        m_object(object),
+    sound_instance_t::sound_instance_t(ce_sound_resource* resource):
         m_resource(resource),
         m_buffer(sound_mixer_t::instance()->make_buffer(resource->sound_format)),
         m_state(SOUND_INSTANCE_STATE_STOPPED),
         m_time(0.0f),
         m_done(false),
-        m_thread(ce_thread_new((void(*)())exec, this))
+        m_thread(ce_thread_new((void(*)())execute, this))
     {
     }
 
@@ -57,7 +51,7 @@ namespace cursedearth
         m_state = state;
     }
 
-    void sound_instance_t::exec_playing(sound_instance_t* instance)
+    void sound_instance_t::execute_playing(sound_instance_t* instance)
     {
         if (ce_sound_resource_read(instance->m_resource, instance->m_buffer)) {
             instance->m_time = instance->m_resource->time;
@@ -66,12 +60,12 @@ namespace cursedearth
         }
     }
 
-    void sound_instance_t::exec(sound_instance_t* instance)
+    void sound_instance_t::execute(sound_instance_t* instance)
     {
         while (!instance->m_done) {
             switch (instance->m_state) {
             case SOUND_INSTANCE_STATE_PLAYING:
-                exec_playing(instance);
+                execute_playing(instance);
                 break;
             case SOUND_INSTANCE_STATE_PAUSED:
                 break;

@@ -23,9 +23,9 @@
 
 namespace cursedearth
 {
-    sound_object_t make_sound_object(const char* name)
+    sound_object_t make_sound_object(const std::string& name)
     {
-        return sound_manager_t::instance()->create_object(name);
+        return sound_manager_t::instance()->make_instance(name);
     }
 
     void remove_sound_object(sound_object_t)

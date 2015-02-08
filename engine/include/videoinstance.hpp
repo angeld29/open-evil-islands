@@ -22,6 +22,9 @@
 #define CE_VIDEOINSTANCE_HPP
 
 #include <atomic>
+#include <memory>
+
+#include <boost/noncopyable.hpp>
 
 #include "thread.hpp"
 #include "mmpfile.hpp"
@@ -33,45 +36,51 @@
 
 namespace cursedearth
 {
-    enum {
-        CE_VIDEO_INSTANCE_CACHE_SIZE = 8,
-    };
-
-    enum {
-        CE_VIDEO_INSTANCE_STATE_STOPPED,
-        CE_VIDEO_INSTANCE_STATE_STOPPING,
-        CE_VIDEO_INSTANCE_STATE_PAUSED,
-        CE_VIDEO_INSTANCE_STATE_PLAYING,
-    };
-
-    struct ce_video_instance
+    class video_instance_t final: boost::noncopyable
     {
-        ce_video_object video_object;
-        sound_object_t sound_object;
-        ce_video_resource* video_resource;
-        int state, frame;
-        float play_time, sync_time; // playing/synchronization time in seconds
-        ce_texture* texture;
-        ce_material* material;
-        ce_mmpfile* rgba_frame;
-        ce_mmpfile* ycbcr_frames[CE_VIDEO_INSTANCE_CACHE_SIZE];
-        ce_semaphore* prepared_frames;
-        ce_semaphore* unprepared_frames;
-        std::atomic<bool> done;
-        ce_thread* thread;
+        enum class state_t {
+            stopped,
+            stopping,
+            paused,
+            playing
+        };
+
+        static const size_t s_cache_size = 8;
+
+    public:
+        video_instance_t(sound_object_t, ce_video_resource*);
+        ~video_instance_t();
+
+        void advance(float elapsed);
+        void progress(int percents);
+        void render();
+
+        bool is_stopped();
+        void play();
+        void pause();
+        void stop();
+
+    private:
+        void do_advance();
+        static void execute(video_instance_t*);
+
+    private:
+        const sound_object_t m_object;
+        ce_video_resource* m_resource;
+        state_t m_state = state_t::stopped;
+        int m_frame = -1;
+        float m_play_time = 0.0f, m_sync_time = 0.0f; // playing/synchronization time in seconds
+        ce_texture* m_texture;
+        ce_material* m_material;
+        ce_mmpfile* m_rgba_frame;
+        ce_mmpfile* m_ycbcr_frames[s_cache_size];
+        ce_semaphore* m_prepared_frames;
+        ce_semaphore* m_unprepared_frames;
+        std::atomic<bool> m_done;
+        ce_thread* m_thread;
     };
 
-    ce_video_instance* ce_video_instance_new(ce_video_object video_object, sound_object_t sound_object, ce_video_resource* video_resource);
-    void ce_video_instance_del(ce_video_instance* video_instance);
-
-    void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed);
-    void ce_video_instance_progress(ce_video_instance* video_instance, int percents);
-    void ce_video_instance_render(ce_video_instance* video_instance);
-
-    bool ce_video_instance_is_stopped(ce_video_instance* video_instance);
-    void ce_video_instance_play(ce_video_instance* video_instance);
-    void ce_video_instance_pause(ce_video_instance* video_instance);
-    void ce_video_instance_stop(ce_video_instance* video_instance);
+    typedef std::shared_ptr<video_instance_t> video_instance_ptr_t;
 }
 
 #endif

@@ -21,23 +21,32 @@
 #ifndef CE_VIDEOMANAGER_HPP
 #define CE_VIDEOMANAGER_HPP
 
-#include "vector.hpp"
+#include <string>
+#include <unordered_map>
+
+#include "singleton.hpp"
 #include "videoinstance.hpp"
 
 namespace cursedearth
 {
-    extern struct ce_video_manager {
-        ce_video_object last_video_object;
-        ce_vector* video_instances;
-    }* ce_video_manager;
+    class video_manager_t: public singleton_t<video_manager_t>
+    {
+    public:
+        video_manager_t();
 
-    void ce_video_manager_init(void);
-    void ce_video_manager_term(void);
+        void advance(float elapsed);
 
-    void ce_video_manager_advance(float elapsed);
+        video_object_t make_instance(const std::string&);
 
-    ce_video_object ce_video_manager_create_object(const char* name);
-    ce_video_instance* ce_video_manager_find_instance(ce_video_object video_object);
+        video_instance_ptr_t find_instance(video_object_t object)
+        {
+            return m_instances[object];
+        }
+
+    private:
+        video_object_t m_last_object;
+        std::unordered_map<video_object_t, video_instance_ptr_t> m_instances;
+    };
 }
 
 #endif

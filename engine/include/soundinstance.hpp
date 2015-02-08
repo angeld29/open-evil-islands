@@ -38,13 +38,12 @@ namespace cursedearth
         SOUND_INSTANCE_STATE_PLAYING
     };
 
-    class sound_instance_t: boost::noncopyable
+    class sound_instance_t final: boost::noncopyable
     {
     public:
-        sound_instance_t(sound_object_t, ce_sound_resource*);
+        explicit sound_instance_t(ce_sound_resource*);
         ~sound_instance_t();
 
-        sound_object_t sound_object() const { return m_object; }
         sound_instance_state_t state() const { return m_state; }
         float time() const { return m_time; }
 
@@ -52,11 +51,10 @@ namespace cursedearth
         void change_state(sound_instance_state_t);
 
     private:
-        static void exec_playing(sound_instance_t*);
-        static void exec(sound_instance_t*);
+        static void execute_playing(sound_instance_t*);
+        static void execute(sound_instance_t*);
 
     private:
-        const sound_object_t m_object;
         ce_sound_resource* m_resource;
         sound_buffer_ptr_t m_buffer;
         std::atomic<sound_instance_state_t> m_state;

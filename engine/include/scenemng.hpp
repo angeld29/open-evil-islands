@@ -82,11 +82,11 @@ namespace cursedearth
         // TODO: split by states
         struct {
             size_t movie_index;
-            ce_video_object video_object;
+            video_object_t video_object;
         } logo;
         struct {
             bool created;
-            ce_video_object video_object;
+            video_object_t video_object;
         } loading;
     };
 

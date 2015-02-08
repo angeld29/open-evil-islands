@@ -31,7 +31,7 @@
 using namespace cursedearth;
 
 static bool video_paused;
-static ce_video_object video_object;
+static video_object_t video_object;
 static ce_optparse* optparse;
 static input_supply_ptr_t input_supply;
 static input_event_const_ptr_t pause_event;
@@ -47,11 +47,11 @@ static void state_changed(void*, int state)
         const char* track;
         ce_optparse_get(optparse, "track", &track);
 
-        video_object = ce_video_object_new(track);
+        video_object = make_video_object(track);
         if (0 == video_object) {
             ce_logging_error("video player: could not play video track `%s'", track);
         } else {
-            ce_video_object_play(video_object);
+            play_video_object(video_object);
         }
 
         ce_scenemng_change_state(ce_root::instance()->scenemng, CE_SCENEMNG_STATE_LOADING);
@@ -61,21 +61,21 @@ static void state_changed(void*, int state)
 static void advance(void*, float elapsed)
 {
     input_supply->advance(elapsed);
-    ce_video_object_advance(video_object, elapsed);
+    video_object_advance(video_object, elapsed);
 
     if (pause_event->triggered()) {
         video_paused = !video_paused;
         if (video_paused) {
-            ce_video_object_pause(video_object);
+            pause_video_object(video_object);
         } else {
-            ce_video_object_play(video_object);
+            play_video_object(video_object);
         }
     }
 }
 
 static void render(void*)
 {
-    ce_video_object_render(video_object);
+    video_object_render(video_object);
 }
 
 int main(int argc, char* argv[])

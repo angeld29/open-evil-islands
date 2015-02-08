@@ -21,11 +21,13 @@
 #ifndef CE_SOUNDOBJECT_HPP
 #define CE_SOUNDOBJECT_HPP
 
+#include <string>
+
 namespace cursedearth
 {
     typedef unsigned long sound_object_t;
 
-    sound_object_t make_sound_object(const char* name);
+    sound_object_t make_sound_object(const std::string&);
     void remove_sound_object(sound_object_t);
 
     bool sound_object_is_valid(sound_object_t);

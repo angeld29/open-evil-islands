@@ -29,7 +29,7 @@
 
 namespace cursedearth
 {
-    class sound_mixer_t: public singleton_t<sound_mixer_t>
+    class sound_mixer_t final: public singleton_t<sound_mixer_t>
     {
     public:
         sound_mixer_t();
@@ -38,7 +38,7 @@ namespace cursedearth
         sound_buffer_ptr_t make_buffer(const sound_format_t&);
 
     private:
-        static void exec(sound_mixer_t*);
+        static void execute(sound_mixer_t*);
 
     private:
         std::list<sound_buffer_ptr_t> m_buffers;

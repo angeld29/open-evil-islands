@@ -18,14 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
+/*
  * doc/formats/mmp.txt
  */
 
 #ifndef CE_MMPFILE_HPP
 #define CE_MMPFILE_HPP
 
-#include <cstddef>
 #include <cstdint>
 
 #include "memfile.hpp"

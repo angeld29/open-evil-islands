@@ -33,7 +33,7 @@ namespace cursedearth
         singleton_t<sound_mixer_t>(this),
         m_done(false),
         m_mutex(ce_mutex_new()),
-        m_thread(ce_thread_new((void(*)())exec, this))
+        m_thread(ce_thread_new((void(*)())execute, this))
     {
     }
 
@@ -88,7 +88,7 @@ namespace cursedearth
         mix_sample_s16(static_cast<int16_t*>(sample), static_cast<const int16_t*>(other));
     }
 
-    void sound_mixer_t::exec(sound_mixer_t* mixer)
+    void sound_mixer_t::execute(sound_mixer_t* mixer)
     {
         uint8_t block[SOUND_CAPABILITY_BLOCK_SIZE];
         uint8_t native_sample[SOUND_CAPABILITY_SAMPLE_SIZE];

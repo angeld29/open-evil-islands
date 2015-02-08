@@ -18,10 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
 #include <cstring>
 
-#include "alloc.hpp"
 #include "logging.hpp"
 #include "rendersystem.hpp"
 #include "shadermanager.hpp"
@@ -29,18 +27,166 @@
 
 namespace cursedearth
 {
-    void ce_video_instance_exec(ce_video_instance* video_instance)
+    video_instance_t::video_instance_t(sound_object_t object, ce_video_resource* resource):
+        m_object(object),
+        m_resource(resource),
+        m_texture(ce_texture_new("frame", NULL)),
+        m_material(ce_material_new()),
+        m_rgba_frame(ce_mmpfile_new(resource->width, resource->height, 1, CE_MMPFILE_FORMAT_R8G8B8A8, 0)),
+        m_prepared_frames(ce_semaphore_new(0)),
+        m_unprepared_frames(ce_semaphore_new(s_cache_size)),
+        m_done(false)
     {
-        for (size_t i = ce_semaphore_available(video_instance->prepared_frames); !video_instance->done; ++i) {
-            ce_semaphore_acquire(video_instance->unprepared_frames, 1);
+        const char* shaders[] = { "shaders/ycbcr2rgba.vert", "shaders/ycbcr2rgba.frag", NULL };
+        m_material->mode = CE_MATERIAL_MODE_REPLACE;
+        m_material->shader = ce_shader_manager_get(shaders);
 
-            if (!ce_video_resource_read(video_instance->video_resource)) {
-                video_instance->state = CE_VIDEO_INSTANCE_STATE_STOPPING;
+        if (NULL != m_material->shader) {
+            ce_shader_add_ref(m_material->shader);
+        }
+
+        for (size_t i = 0; i < s_cache_size; ++i) {
+            m_ycbcr_frames[i] = ce_mmpfile_new(resource->width, resource->height, 1, CE_MMPFILE_FORMAT_YCBCR, 0);
+        }
+
+        m_thread = ce_thread_new((void(*)())execute, this);
+    }
+
+    video_instance_t::~video_instance_t()
+    {
+        m_done = true;
+        ce_semaphore_release(m_unprepared_frames, 1);
+        ce_thread_wait(m_thread);
+        ce_thread_del(m_thread);
+        ce_semaphore_del(m_unprepared_frames);
+        ce_semaphore_del(m_prepared_frames);
+        for (size_t i = 0; i < s_cache_size; ++i) {
+            ce_mmpfile_del(m_ycbcr_frames[i]);
+        }
+        ce_mmpfile_del(m_rgba_frame);
+        ce_material_del(m_material);
+        ce_texture_del(m_texture);
+        ce_video_resource_del(m_resource);
+        remove_sound_object(m_object);
+    }
+
+    void video_instance_t::advance(float elapsed)
+    {
+        if (state_t::paused == m_state) {
+            return;
+        }
+
+        if (sound_object_is_valid(m_object)) {
+            // synchronization with sound
+            float sound_time = get_sound_object_time(m_object);
+            if (m_sync_time != sound_time) {
+                m_sync_time = sound_time;
+                m_play_time = sound_time;
+            } else {
+                m_play_time += elapsed;
+            }
+        } else {
+            m_play_time += elapsed;
+        }
+
+        do_advance();
+    }
+
+    void video_instance_t::progress(int percents)
+    {
+        m_play_time = (m_resource->frame_count / m_resource->fps) * (0.01f * percents);
+        do_advance();
+    }
+
+    void video_instance_t::render()
+    {
+        ce_render_system_apply_material(m_material);
+        if (ce_texture_is_valid(m_texture)) {
+            ce_texture_bind(m_texture);
+            ce_render_system_draw_fullscreen_wire_rect(m_texture->width, m_texture->height);
+            ce_texture_unbind(m_texture);
+        }
+        ce_render_system_discard_material(m_material);
+    }
+
+    bool video_instance_t::is_stopped()
+    {
+        return sound_object_is_valid(m_object) ? sound_object_is_stopped(m_object) : state_t::stopped == m_state;
+    }
+
+    void video_instance_t::play()
+    {
+        play_sound_object(m_object);
+        m_state = state_t::playing;
+    }
+
+    void video_instance_t::pause()
+    {
+        pause_sound_object(m_object);
+        m_state = state_t::paused;
+    }
+
+    void video_instance_t::stop()
+    {
+        stop_sound_object(m_object);
+        m_state = state_t::stopped;
+    }
+
+    void video_instance_t::do_advance()
+    {
+        bool acquired = false;
+        const int desired_frame = m_resource->fps * m_play_time;
+
+        // if sound or time far away
+        while (m_frame < desired_frame && ce_semaphore_try_acquire(m_prepared_frames, 1)) {
+            // skip frames to reach desired frame
+            if (++m_frame == desired_frame || /* or use the closest frame */ 0 == ce_semaphore_available(m_prepared_frames)) {
+                ce_mmpfile* ycbcr_frame = m_ycbcr_frames[m_frame % s_cache_size];
+
+                if (NULL != m_material->shader) {
+                    const uint8_t* y_data = static_cast<const uint8_t*>(ycbcr_frame->texels);
+                    const uint8_t* cb_data = y_data + ycbcr_frame->width * ycbcr_frame->height;
+                    const uint8_t* cr_data = cb_data + (ycbcr_frame->width / 2) * (ycbcr_frame->height / 2);
+
+                    uint8_t* texels = static_cast<uint8_t*>(m_rgba_frame->texels);
+
+                    for (unsigned int h = 0; h < ycbcr_frame->height; ++h) {
+                        for (unsigned int w = 0; w < ycbcr_frame->width; ++w) {
+                            size_t index = 4 * (h * ycbcr_frame->width + w);
+                            texels[index + 0] = y_data[h * ycbcr_frame->width + w];
+                            texels[index + 1] = cb_data[(h / 2) * (ycbcr_frame->width / 2) + w / 2];
+                            texels[index + 2] = cr_data[(h / 2) * (ycbcr_frame->width / 2) + w / 2];
+                            texels[index + 3] = 255;
+                        }
+                    }
+                } else {
+                    ce_mmpfile_convert2(ycbcr_frame, m_rgba_frame);
+                }
+
+                ce_texture_replace(m_texture, m_rgba_frame);
+                acquired = true;
+            }
+            ce_semaphore_release(m_unprepared_frames, 1);
+        }
+
+        // TODO: think again how to hold last frame
+        if (state_t::stopping == m_state && !acquired && 0 == ce_semaphore_available(m_prepared_frames)) {
+            m_state = state_t::stopped;
+        }
+    }
+
+    void video_instance_t::execute(video_instance_t* instance)
+    {
+        for (size_t i = ce_semaphore_available(instance->m_prepared_frames); !instance->m_done; ++i) {
+            ce_semaphore_acquire(instance->m_unprepared_frames, 1);
+
+            if (!ce_video_resource_read(instance->m_resource)) {
+                instance->m_state = state_t::stopping;
                 break;
             }
 
-            ce_mmpfile* ycbcr_frame = video_instance->ycbcr_frames[i % CE_VIDEO_INSTANCE_CACHE_SIZE];
-            ycbcr_t* ycbcr = &video_instance->video_resource->ycbcr;
+            ce_mmpfile* ycbcr_frame = instance->m_ycbcr_frames[i % s_cache_size];
+            ycbcr_t* ycbcr = &instance->m_resource->ycbcr;
 
             uint8_t* y_data = static_cast<uint8_t*>(ycbcr_frame->texels);
             uint8_t* cb_data = y_data + ycbcr_frame->width * ycbcr_frame->height;
@@ -59,165 +205,7 @@ namespace cursedearth
                 memcpy(cr_data + h * (ycbcr->crop_rect.width / 2), ycbcr->planes[2].data + cr_offset + h * ycbcr->planes[2].stride, ycbcr->crop_rect.width / 2);
             }
 
-            ce_semaphore_release(video_instance->prepared_frames, 1);
+            ce_semaphore_release(instance->m_prepared_frames, 1);
         }
-    }
-
-    ce_video_instance* ce_video_instance_new(ce_video_object video_object, sound_object_t sound_object, ce_video_resource* video_resource)
-    {
-        ce_video_instance* video_instance = (ce_video_instance*)ce_alloc_zero(sizeof(ce_video_instance));
-        video_instance->video_object = video_object;
-        video_instance->sound_object = sound_object;
-        video_instance->video_resource = video_resource;
-        video_instance->frame = -1;
-        video_instance->texture = ce_texture_new("frame", NULL);
-        video_instance->material = ce_material_new();
-        video_instance->material->mode = CE_MATERIAL_MODE_REPLACE;
-        const char* shaders[] = { "shaders/ycbcr2rgba.vert", "shaders/ycbcr2rgba.frag", NULL };
-        video_instance->material->shader = ce_shader_manager_get(shaders);
-
-        if (NULL != video_instance->material->shader) {
-            ce_shader_add_ref(video_instance->material->shader);
-        }
-
-        video_instance->rgba_frame = ce_mmpfile_new(video_resource->width,
-            video_resource->height, 1, CE_MMPFILE_FORMAT_R8G8B8A8, 0);
-
-        for (size_t i = 0; i < CE_VIDEO_INSTANCE_CACHE_SIZE; ++i) {
-            video_instance->ycbcr_frames[i] = ce_mmpfile_new(video_resource->width,
-                video_resource->height, 1, CE_MMPFILE_FORMAT_YCBCR, 0);
-        }
-
-        video_instance->prepared_frames = ce_semaphore_new(0);
-        video_instance->unprepared_frames = ce_semaphore_new(CE_VIDEO_INSTANCE_CACHE_SIZE);
-        video_instance->thread = ce_thread_new((void(*)())ce_video_instance_exec, video_instance);
-
-        return video_instance;
-    }
-
-    void ce_video_instance_del(ce_video_instance* video_instance)
-    {
-        if (NULL != video_instance) {
-            video_instance->done = true;
-            ce_semaphore_release(video_instance->unprepared_frames, 1);
-            ce_thread_wait(video_instance->thread);
-            ce_thread_del(video_instance->thread);
-            ce_semaphore_del(video_instance->unprepared_frames);
-            ce_semaphore_del(video_instance->prepared_frames);
-            for (size_t i = 0; i < CE_VIDEO_INSTANCE_CACHE_SIZE; ++i) {
-                ce_mmpfile_del(video_instance->ycbcr_frames[i]);
-            }
-            ce_mmpfile_del(video_instance->rgba_frame);
-            ce_material_del(video_instance->material);
-            ce_texture_del(video_instance->texture);
-            ce_video_resource_del(video_instance->video_resource);
-            remove_sound_object(video_instance->sound_object);
-            ce_free(video_instance, sizeof(ce_video_instance));
-        }
-    }
-
-    void ce_video_instance_do_advance(ce_video_instance* video_instance)
-    {
-        bool acquired = false;
-        const int desired_frame = video_instance->video_resource->fps * video_instance->play_time;
-
-        // if sound or time far away
-        while (video_instance->frame < desired_frame && ce_semaphore_try_acquire(video_instance->prepared_frames, 1)) {
-            // skip frames to reach desired frame
-            if (++video_instance->frame == desired_frame || /* or use the closest frame */ 0 == ce_semaphore_available(video_instance->prepared_frames)) {
-                ce_mmpfile* ycbcr_frame = video_instance->ycbcr_frames[video_instance->frame % CE_VIDEO_INSTANCE_CACHE_SIZE];
-
-                if (NULL != video_instance->material->shader) {
-                    const uint8_t* y_data = static_cast<const uint8_t*>(ycbcr_frame->texels);
-                    const uint8_t* cb_data = y_data + ycbcr_frame->width * ycbcr_frame->height;
-                    const uint8_t* cr_data = cb_data + (ycbcr_frame->width / 2) * (ycbcr_frame->height / 2);
-
-                    uint8_t* texels = static_cast<uint8_t*>(video_instance->rgba_frame->texels);
-
-                    for (unsigned int h = 0; h < ycbcr_frame->height; ++h) {
-                        for (unsigned int w = 0; w < ycbcr_frame->width; ++w) {
-                            size_t index = 4 * (h * ycbcr_frame->width + w);
-                            texels[index + 0] = y_data[h * ycbcr_frame->width + w];
-                            texels[index + 1] = cb_data[(h / 2) * (ycbcr_frame->width / 2) + w / 2];
-                            texels[index + 2] = cr_data[(h / 2) * (ycbcr_frame->width / 2) + w / 2];
-                            texels[index + 3] = 255;
-                        }
-                    }
-                } else {
-                    ce_mmpfile_convert2(ycbcr_frame, video_instance->rgba_frame);
-                }
-
-                ce_texture_replace(video_instance->texture, video_instance->rgba_frame);
-                acquired = true;
-            }
-            ce_semaphore_release(video_instance->unprepared_frames, 1);
-        }
-
-        // TODO: think again how to hold last frame
-        if (CE_VIDEO_INSTANCE_STATE_STOPPING == video_instance->state && !acquired && 0 == ce_semaphore_available(video_instance->prepared_frames)) {
-            video_instance->state = CE_VIDEO_INSTANCE_STATE_STOPPED;
-        }
-    }
-
-    void ce_video_instance_advance(ce_video_instance* video_instance, float elapsed)
-    {
-        if (CE_VIDEO_INSTANCE_STATE_PAUSED == video_instance->state) {
-            return;
-        }
-
-        if (sound_object_is_valid(video_instance->sound_object)) {
-            // synchronization with sound
-            float sound_time = get_sound_object_time(video_instance->sound_object);
-            if (video_instance->sync_time != sound_time) {
-                video_instance->sync_time = sound_time;
-                video_instance->play_time = sound_time;
-            } else {
-                video_instance->play_time += elapsed;
-            }
-        } else {
-            video_instance->play_time += elapsed;
-        }
-
-        ce_video_instance_do_advance(video_instance);
-    }
-
-    void ce_video_instance_progress(ce_video_instance* video_instance, int percents)
-    {
-        video_instance->play_time = (video_instance->video_resource->frame_count / video_instance->video_resource->fps) * (0.01f * percents);
-        ce_video_instance_do_advance(video_instance);
-    }
-
-    void ce_video_instance_render(ce_video_instance* video_instance)
-    {
-        ce_render_system_apply_material(video_instance->material);
-        if (ce_texture_is_valid(video_instance->texture)) {
-            ce_texture_bind(video_instance->texture);
-            ce_render_system_draw_fullscreen_wire_rect(video_instance->texture->width, video_instance->texture->height);
-            ce_texture_unbind(video_instance->texture);
-        }
-        ce_render_system_discard_material(video_instance->material);
-    }
-
-    bool ce_video_instance_is_stopped(ce_video_instance* video_instance)
-    {
-        return 0 != video_instance->sound_object ? sound_object_is_stopped(video_instance->sound_object) : CE_VIDEO_INSTANCE_STATE_STOPPED == video_instance->state;
-    }
-
-    void ce_video_instance_play(ce_video_instance* video_instance)
-    {
-        play_sound_object(video_instance->sound_object);
-        video_instance->state = CE_VIDEO_INSTANCE_STATE_PLAYING;
-    }
-
-    void ce_video_instance_pause(ce_video_instance* video_instance)
-    {
-        pause_sound_object(video_instance->sound_object);
-        video_instance->state = CE_VIDEO_INSTANCE_STATE_PAUSED;
-    }
-
-    void ce_video_instance_stop(ce_video_instance* video_instance)
-    {
-        stop_sound_object(video_instance->sound_object);
-        video_instance->state = CE_VIDEO_INSTANCE_STATE_STOPPED;
     }
 }

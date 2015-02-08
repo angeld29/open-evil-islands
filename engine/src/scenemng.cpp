@@ -114,27 +114,27 @@ namespace cursedearth
 
     void ce_scenemng_advance_logo(ce_scenemng* scenemng, float elapsed)
     {
-        ce_video_object_advance(scenemng->logo.video_object, elapsed);
+        video_object_advance(scenemng->logo.video_object, elapsed);
 
         if (scenemng->skip_logo_event->triggered()) {
-            ce_video_object_stop(scenemng->logo.video_object);
+            stop_video_object(scenemng->logo.video_object);
         }
 
-        if (ce_video_object_is_stopped(scenemng->logo.video_object)) {
+        if (video_object_is_stopped(scenemng->logo.video_object)) {
             if (scenemng->logo.movie_index == ce_config_manager->movies[CE_CONFIG_MOVIE_START]->count) {
                 ce_logging_debug("scene manager: switch to `ready'");
                 ce_scenemng_change_state(scenemng, CE_SCENEMNG_STATE_READY);
             } else {
                 ce_string* movie_name = (ce_string*)ce_config_manager->movies[CE_CONFIG_MOVIE_START]->items[scenemng->logo.movie_index++];
-                scenemng->logo.video_object = ce_video_object_new(movie_name->str);
-                ce_video_object_play(scenemng->logo.video_object);
+                scenemng->logo.video_object = make_video_object(movie_name->str);
+                play_video_object(scenemng->logo.video_object);
             }
         }
     }
 
     void ce_scenemng_render_logo(ce_scenemng* scenemng)
     {
-        ce_video_object_render(scenemng->logo.video_object);
+        video_object_render(scenemng->logo.video_object);
     }
 
     void ce_scenemng_advance_ready(ce_scenemng*, float /*elapsed*/)
@@ -152,13 +152,13 @@ namespace cursedearth
             srand(time(NULL));
             int index = rand() % 5;
             if (0 == index) {
-                scenemng->loading.video_object = ce_video_object_new("progres");
+                scenemng->loading.video_object = make_video_object("progres");
             } else {
                 char name[16];
                 snprintf(name, sizeof(name), "progres%d", index);
-                scenemng->loading.video_object = ce_video_object_new(name);
+                scenemng->loading.video_object = make_video_object(name);
             }
-            ce_video_object_play(scenemng->loading.video_object);
+            play_video_object(scenemng->loading.video_object);
             scenemng->loading.created = true;
         }
 
@@ -170,7 +170,7 @@ namespace cursedearth
             queued_job_count += scenemng->terrain->queued_job_count;
         }
 
-        ce_video_object_progress(scenemng->loading.video_object,
+        video_object_progress(scenemng->loading.video_object,
             100.0f * completed_job_count / queued_job_count);
 
         // TODO: hold last frame
@@ -197,7 +197,7 @@ namespace cursedearth
 
     void ce_scenemng_render_loading(ce_scenemng* scenemng)
     {
-        ce_video_object_render(scenemng->loading.video_object);
+        video_object_render(scenemng->loading.video_object);
     }
 
     void ce_scenemng_advance_playing(ce_scenemng* scenemng, float elapsed)
