@@ -42,7 +42,7 @@ namespace cursedearth
             return NULL;
         }
 
-        ce_logging_write("graphic context: using GLX %d.%d", graphics_context->major_version, graphics_context->minor_version);
+        ce_logging_info("graphic context: using GLX %d.%d", graphics_context->major_version, graphics_context->minor_version);
 
         if (CE_GLX_MAJOR_VERSION_REQUIRED != graphics_context->major_version || graphics_context->minor_version < CE_GLX_MINOR_VERSION_MINIMUM) {
             ce_logging_fatal("graphic context: GLX %d.>=%d required", CE_GLX_MAJOR_VERSION_REQUIRED, CE_GLX_MINOR_VERSION_MINIMUM);
@@ -78,7 +78,7 @@ namespace cursedearth
         }
 
         if (glXIsDirect(display, graphics_context->context)) {
-            ce_logging_write("graphic context: you have direct rendering");
+            ce_logging_info("graphic context: you have direct rendering");
         } else {
             ce_logging_warning("graphic context: no direct rendering possible");
         }

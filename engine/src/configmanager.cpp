@@ -258,7 +258,7 @@ namespace cursedearth
         std::vector<char> path(ce_option_manager->ei_path->length + 32);
         ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_config_dir, NULL);
 
-        ce_logging_write("config manager: using path `%s'", path.data());
+        ce_logging_info("config manager: using path `%s'", path.data());
 
         ce_config_manager_init_lights();
         ce_config_manager_init_movies();

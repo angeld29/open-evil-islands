@@ -225,7 +225,7 @@ namespace cursedearth
     {
         ce_alsa* alsa = (ce_alsa*)sound_system_t::instance()->impl;
 
-        ce_logging_write("sound system: using ALSA (Advanced Linux Sound Architecture)");
+        ce_logging_info("sound system: using ALSA (Advanced Linux Sound Architecture)");
 
         snd_lib_error_set_handler(ce_alsa_error_handler);
 

@@ -44,7 +44,7 @@ namespace cursedearth
 
         if (NULL != ce_path_find_special1(path.data(), path.size(), ce_option_manager->ei_path->str,
                 name, ce_sound_resource_dirs, ce_sound_resource_exts) && NULL != (res_file = ce_res_file_new_path(path.data()))) {
-            ce_logging_write("sound manager: loading `%s'... ok", path.data());
+            ce_logging_info("sound manager: loading `%s'... ok", path.data());
         } else {
             ce_logging_error("sound manager: loading `%s'... failed", path.data());
         }
@@ -58,7 +58,7 @@ namespace cursedearth
         std::vector<char> path(ce_option_manager->ei_path->length + 16);
         for (size_t i = 0; NULL != ce_sound_dirs[i]; ++i) {
             ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_sound_dirs[i], NULL);
-            ce_logging_write("sound manager: using path `%s'", path.data());
+            ce_logging_info("sound manager: using path `%s'", path.data());
         }
 
         for (size_t i = 0; NULL != ce_sound_resource_names[i]; ++i) {

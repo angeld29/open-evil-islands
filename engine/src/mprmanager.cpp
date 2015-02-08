@@ -41,7 +41,7 @@ namespace cursedearth
         std::vector<char> path(ce_option_manager->ei_path->length + 16);
         for (size_t i = 0; NULL != ce_mpr_dirs[i]; ++i) {
             ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_mpr_dirs[i], NULL);
-            ce_logging_write("mpr manager: using path '%s'", path.data());
+            ce_logging_info("mpr manager: using path '%s'", path.data());
         }
 
         ce_mpr_manager = (struct ce_mpr_manager*)ce_alloc_zero(sizeof(struct ce_mpr_manager));

@@ -79,10 +79,10 @@ namespace cursedearth
             ce_option_manager->inverse_trackball_y = true;
         }
 
-        ce_logging_write("option manager: EI path is `%s'", ce_option_manager->ei_path->str);
-        ce_logging_write("option manager: CE path is `%s'", ce_option_manager->ce_path->str);
-        ce_logging_write("option manager: using up to %d threads", ce_option_manager->thread_count);
-        ce_logging_write("option manager: terrain tiling %s", ce_option_manager->terrain_tiling ? "enabled" : "disabled");
+        ce_logging_info("option manager: EI path is `%s'", ce_option_manager->ei_path->str);
+        ce_logging_info("option manager: CE path is `%s'", ce_option_manager->ce_path->str);
+        ce_logging_info("option manager: using up to %d threads", ce_option_manager->thread_count);
+        ce_logging_info("option manager: terrain tiling %s", ce_option_manager->terrain_tiling ? "enabled" : "disabled");
     }
 
     void ce_option_manager_term(void)

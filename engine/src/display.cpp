@@ -172,7 +172,7 @@ namespace cursedearth
 
         if (width != best_width || height != best_height || bpp != best_bpp || rate != best_rate) {
             ce_logging_warning("displaymng: mode %dx%d:%d@%d not found", width, height, bpp, rate);
-            ce_logging_write("displaymng: using best match %dx%d:%d@%d", best_width, best_height, best_bpp, best_rate);
+            ce_logging_info("displaymng: using best match %dx%d:%d@%d", best_width, best_height, best_bpp, best_rate);
         }
 
         // pass 3: find index

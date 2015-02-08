@@ -79,7 +79,7 @@ namespace cursedearth
             assert(false);
         }
 
-        ce_logging_write("root: exiting sanely...");
+        ce_logging_info("root: exiting sanely...");
         ce_root::instance()->done = true;
     }
 

@@ -39,7 +39,7 @@ namespace cursedearth
         ce_shader_manager->shaders = ce_vector_new();
 
         if (ce_shader_is_available()) {
-            ce_logging_write("shader manager: you have shader support");
+            ce_logging_info("shader manager: you have shader support");
         } else {
             ce_logging_warning("shader manager: shader support is not available");
         }

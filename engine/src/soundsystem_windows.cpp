@@ -73,7 +73,7 @@ namespace cursedearth
         ce_wmm* wmm = (ce_wmm*)ce_sound_system->impl;
         MMRESULT code = MMSYSERR_NOERROR;
 
-        ce_logging_write("sound system: using Windows Waveform-Audio Interface");
+        ce_logging_info("sound system: using Windows Waveform-Audio Interface");
 
         wmm->event = CreateEvent(NULL, TRUE, FALSE, NULL);
         if (NULL == wmm->event) {

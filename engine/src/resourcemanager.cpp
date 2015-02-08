@@ -44,7 +44,7 @@ namespace cursedearth
 
         if (NULL != ce_path_find_special1(path.data(), path.size(), ce_option_manager->ei_path->str, name,
                 ce_resource_dirs, ce_resource_exts) && NULL != (res_file = ce_res_file_new_path(path.data()))) {
-            ce_logging_write("resource manager: loading `%s'... ok", path.data());
+            ce_logging_info("resource manager: loading `%s'... ok", path.data());
         } else {
             ce_logging_error("resource manager: loading `%s'... failed", path.data());
         }
@@ -62,7 +62,7 @@ namespace cursedearth
 
         for (size_t i = 0; NULL != ce_resource_dirs[i]; ++i) {
             ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_resource_dirs[i], NULL);
-            ce_logging_write("resource manager: using path `%s'", path.data());
+            ce_logging_info("resource manager: using path `%s'", path.data());
         }
 
         ce_resource_manager->database = ce_resource_manager_open("database");

@@ -31,7 +31,7 @@ namespace cursedearth
         struct utsname osinfo;
         uname(&osinfo);
 
-        ce_logging_write("system info: %s %s %s %s %s", osinfo.sysname,
+        ce_logging_info("system info: %s %s %s %s %s", osinfo.sysname,
             osinfo.nodename, osinfo.release, osinfo.version, osinfo.machine);
 
         if (sysconf(_SC_VERSION) < 200112L || sysconf(_SC_XOPEN_VERSION) < 600L) {
@@ -39,7 +39,7 @@ namespace cursedearth
             return false;
         }
 
-        ce_logging_write("system info: SUSv3 (POSIX.1-2001 + XPG6) system detected");
+        ce_logging_info("system info: SUSv3 (POSIX.1-2001 + XPG6) system detected");
         return true;
     }
 }

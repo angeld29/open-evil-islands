@@ -76,7 +76,7 @@ namespace cursedearth
 
         for (size_t i = 0; NULL != ce_figure_resource_dirs[i]; ++i) {
             ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_figure_resource_dirs[i], NULL);
-            ce_logging_write("figure manager: using path `%s'", path.data());
+            ce_logging_info("figure manager: using path `%s'", path.data());
         }
 
         for (size_t i = 0; NULL != ce_figure_resource_names[i]; ++i) {
@@ -85,7 +85,7 @@ namespace cursedearth
                     ce_figure_resource_names[i], ce_figure_resource_dirs, ce_figure_resource_exts) &&
                     NULL != (res_file = ce_res_file_new_path(path.data()))) {
                 ce_vector_push_back(ce_figure_manager->res_files, res_file);
-                ce_logging_write("figure manager: loading `%s'... ok", path.data());
+                ce_logging_info("figure manager: loading `%s'... ok", path.data());
             } else {
                 ce_logging_error("figure manager: loading `%s'... failed", path.data());
             }

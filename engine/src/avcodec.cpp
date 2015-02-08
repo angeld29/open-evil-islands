@@ -48,15 +48,12 @@ namespace cursedearth
         case AV_LOG_WARNING:
             level = CE_LOGGING_LEVEL_WARNING;
             break;
-        case AV_LOG_INFO:
-            level = CE_LOGGING_LEVEL_INFO;
-            break;
         case AV_LOG_DEBUG:
             level = CE_LOGGING_LEVEL_DEBUG;
             break;
+        case AV_LOG_INFO:
         default:
-            level = CE_LOGGING_LEVEL_WRITE;
-            break;
+            level = CE_LOGGING_LEVEL_INFO;
         }
 
         std::vector<char> buffer(strlen(format) + 16);

@@ -35,7 +35,8 @@ void ce_logging_##name(const char* format, ...) \
 
 namespace cursedearth
 {
-    struct {
+    struct
+    {
         ce_logging_level level;
         const char* level_names[CE_LOGGING_LEVEL_ALL];
     } ce_logging_context = {
@@ -51,8 +52,7 @@ namespace cursedearth
             "WARNING",
             "ERROR",
             "CRITICAL",
-            "FATAL",
-            "WRITE",
+            "FATAL"
         }
     };
 
@@ -71,7 +71,7 @@ namespace cursedearth
 
     void ce_logging_report_va(ce_logging_level level, const char* format, va_list args)
     {
-        if (CE_LOGGING_LEVEL_NONE != ce_logging_context.level && (level >= ce_logging_context.level || CE_LOGGING_LEVEL_ALL == ce_logging_context.level)) {
+        if (CE_LOGGING_LEVEL_NONE != ce_logging_context.level && (CE_LOGGING_LEVEL_ALL == ce_logging_context.level || level >= ce_logging_context.level)) {
             size_t length = strlen(format);
             std::vector<char> buffer(length + 16);
             snprintf(buffer.data(), buffer.size(), "%s: %s%c", ce_logging_context.level_names[level], format, " \n"[0 == length || '\n' != format[length - 1]]);
@@ -86,5 +86,4 @@ namespace cursedearth
     CE_LOGGING_DEF_PROC(error, CE_LOGGING_LEVEL_ERROR)
     CE_LOGGING_DEF_PROC(critical, CE_LOGGING_LEVEL_CRITICAL)
     CE_LOGGING_DEF_PROC(fatal, CE_LOGGING_LEVEL_FATAL)
-    CE_LOGGING_DEF_PROC(write, CE_LOGGING_LEVEL_WRITE)
 }

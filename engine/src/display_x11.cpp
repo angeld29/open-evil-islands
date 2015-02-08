@@ -55,7 +55,7 @@ namespace cursedearth
         XF86VidModeQueryExtension(xf86vmmng->display, &xf86vmmng->event_base, &xf86vmmng->error_base);
         XF86VidModeQueryVersion(xf86vmmng->display, &xf86vmmng->major_version, &xf86vmmng->minor_version);
 
-        ce_logging_write("displaymng: using XFree86 Video Mode Extension %d.%d", xf86vmmng->major_version, xf86vmmng->minor_version);
+        ce_logging_info("displaymng: using XFree86 Video Mode Extension %d.%d", xf86vmmng->major_version, xf86vmmng->minor_version);
 
         int bpp = XDefaultDepth(xf86vmmng->display, XDefaultScreen(xf86vmmng->display));
 
@@ -179,7 +179,7 @@ namespace cursedearth
         XRRQueryExtension(xrrmng->display, &xrrmng->event_base, &xrrmng->error_base);
         XRRQueryVersion(xrrmng->display, &xrrmng->major_version, &xrrmng->minor_version);
 
-        ce_logging_write("displaymng: using XRandR Extension %d.%d", xrrmng->major_version, xrrmng->minor_version);
+        ce_logging_info("displaymng: using XRandR Extension %d.%d", xrrmng->major_version, xrrmng->minor_version);
 
         int bpp = XDefaultDepth(xrrmng->display, XDefaultScreen(xrrmng->display));
 

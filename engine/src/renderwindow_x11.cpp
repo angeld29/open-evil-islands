@@ -85,8 +85,8 @@ namespace cursedearth
             return false;
         }
 
-        ce_logging_write("renderwindow: using X server %d.%d", XProtocolVersion(x11window->display), XProtocolRevision(x11window->display));
-        ce_logging_write("renderwindow: %s %d", XServerVendor(x11window->display), XVendorRelease(x11window->display));
+        ce_logging_info("renderwindow: using X server %d.%d", XProtocolVersion(x11window->display), XProtocolRevision(x11window->display));
+        ce_logging_info("renderwindow: %s %d", XServerVendor(x11window->display), XVendorRelease(x11window->display));
 
         renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].x =
             (XDisplayWidth(x11window->display, XDefaultScreen(x11window->display)) -

@@ -41,11 +41,11 @@ namespace cursedearth
 
     void ce_render_system_init(void)
     {
-        ce_logging_write("render system: %s", glGetString(GL_VENDOR));
-        ce_logging_write("render system: %s", glGetString(GL_RENDERER));
-        ce_logging_write("render system: using GL %s", glGetString(GL_VERSION));
-        ce_logging_write("render system: using GLU %s", gluGetString(GLU_VERSION));
-        ce_logging_write("render system: using GLEW %s", glewGetString(GLEW_VERSION));
+        ce_logging_info("render system: %s", glGetString(GL_VENDOR));
+        ce_logging_info("render system: %s", glGetString(GL_RENDERER));
+        ce_logging_info("render system: using GL %s", glGetString(GL_VERSION));
+        ce_logging_info("render system: using GLU %s", gluGetString(GLU_VERSION));
+        ce_logging_info("render system: using GLEW %s", glewGetString(GLEW_VERSION));
 
         struct {
             const char* name;
@@ -66,7 +66,7 @@ namespace cursedearth
         };
 
         for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
-            ce_logging_write("render system: checking for `%s' extension... %s",
+            ce_logging_info("render system: checking for `%s' extension... %s",
                 extensions[i].name, extensions[i].available ? "yes" : "no");
         }
 

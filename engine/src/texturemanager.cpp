@@ -50,12 +50,12 @@ namespace cursedearth
 
         for (size_t i = 0; NULL != ce_texture_cache_dirs[i]; ++i) {
             ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_texture_cache_dirs[i], NULL);
-            ce_logging_write("texture manager: using cache path `%s'", path.data());
+            ce_logging_info("texture manager: using cache path `%s'", path.data());
         }
 
         for (size_t i = 0; NULL != ce_texture_resource_dirs[i]; ++i) {
             ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_texture_resource_dirs[i], NULL);
-            ce_logging_write("texture manager: using path `%s'", path.data());
+            ce_logging_info("texture manager: using path `%s'", path.data());
         }
 
         for (size_t i = 0; NULL != ce_texture_resource_names[i]; ++i) {
@@ -63,7 +63,7 @@ namespace cursedearth
             if (NULL != ce_path_find_special1(path.data(), path.size(), ce_option_manager->ei_path->str, ce_texture_resource_names[i],
                     ce_texture_resource_dirs, ce_texture_resource_exts) && NULL != (res_file = ce_res_file_new_path(path.data()))) {
                 ce_vector_push_back(ce_texture_manager->res_files, res_file);
-                ce_logging_write("texture manager: loading `%s'... ok", path.data());
+                ce_logging_info("texture manager: loading `%s'... ok", path.data());
             } else {
                 ce_logging_error("texture manager: loading `%s'... failed", path.data());
             }

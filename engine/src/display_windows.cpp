@@ -68,7 +68,7 @@ namespace cursedearth
 
     void ce_dmmng_ctor(ce_displaymng* displaymng, va_list)
     {
-        ce_logging_write("displaymng: using native Device Context Windows API");
+        ce_logging_info("displaymng: using native Device Context Windows API");
 
         ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
         dmmng->modes = ce_vector_new();

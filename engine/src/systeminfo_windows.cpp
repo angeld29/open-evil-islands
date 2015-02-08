@@ -53,7 +53,7 @@ namespace cursedearth
         switch (osverinfo.dwPlatformId) {
         case VER_PLATFORM_WIN32s:
         case VER_PLATFORM_WIN32_WINDOWS:
-            ce_logging_write("system info: Microsoft Windows %lu.%lu %s",
+            ce_logging_info("system info: Microsoft Windows %lu.%lu %s",
                 osverinfo.dwMajorVersion, osverinfo.dwMinorVersion, osverinfo.szCSDVersion);
             break;
 
@@ -97,7 +97,7 @@ namespace cursedearth
                 osverinfo.szCSDVersion, osverinfo.dwBuildNumber & 0xffff);
             ce_strlcat(buffer, tmp, sizeof(buffer));
 
-            ce_logging_write("system info: %s", buffer);
+            ce_logging_info("system info: %s", buffer);
             break;
         }
 
@@ -107,7 +107,7 @@ namespace cursedearth
             return false;
         }
 
-        ce_logging_write("system info: Windows XP or above detected");
+        ce_logging_info("system info: Windows XP or above detected");
         return true;
     }
 }

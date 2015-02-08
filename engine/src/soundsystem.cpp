@@ -27,7 +27,7 @@ namespace cursedearth
 {
     bool ce_sound_system_null_ctor()
     {
-        ce_logging_write("sound system: using null output");
+        ce_logging_info("sound system: using null output");
         return true;
     }
 

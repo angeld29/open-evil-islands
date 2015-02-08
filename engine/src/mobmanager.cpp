@@ -40,7 +40,7 @@ namespace cursedearth
         std::vector<char> path(ce_option_manager->ei_path->length + 16);
         for (size_t i = 0; NULL != ce_mob_dirs[i]; ++i) {
             ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_mob_dirs[i], NULL);
-            ce_logging_write("mob manager: using path `%s'", path.data());
+            ce_logging_info("mob manager: using path `%s'", path.data());
         }
 
         ce_mob_manager = (struct ce_mob_manager*)ce_alloc_zero(sizeof(struct ce_mob_manager));

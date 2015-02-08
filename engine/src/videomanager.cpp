@@ -43,7 +43,7 @@ namespace cursedearth
         std::vector<char> path(ce_option_manager->ei_path->length + 16);
         for (size_t i = 0; NULL != ce_video_dirs[i]; ++i) {
             ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_video_dirs[i], NULL);
-            ce_logging_write("video manager: using path `%s'", path.data());
+            ce_logging_info("video manager: using path `%s'", path.data());
         }
     }
 
