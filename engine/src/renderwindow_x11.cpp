@@ -18,9 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
 #include <cstdio>
 #include <cstring>
-#include <cassert>
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>

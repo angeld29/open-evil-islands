@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
 #include <cstdio>
 #include <cstring>
 #include <cctype>
-#include <cassert>
 
-#include "str.hpp"
 #include "alloc.hpp"
+#include "str.hpp"
 #include "logging.hpp"
 #include "byteorder.hpp"
 #include "resfile.hpp"

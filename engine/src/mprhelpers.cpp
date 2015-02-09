@@ -23,9 +23,9 @@
 #include <cmath>
 #include <vector>
 
-#include "plane.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
+#include "plane.hpp"
 #include "mprhelpers.hpp"
 
 namespace cursedearth

@@ -20,8 +20,8 @@
 
 #include <cassert>
 
-#include "byteorder.hpp"
 #include "alloc.hpp"
+#include "byteorder.hpp"
 #include "figfile.hpp"
 
 namespace cursedearth

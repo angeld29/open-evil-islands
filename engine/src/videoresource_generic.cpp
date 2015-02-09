@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
+/*
  * Supported decoders:
  * Ogg Theora
  * Bink (limited, for backward compatibility with original EI resources)
@@ -37,8 +37,8 @@ extern "C"
 #include <libavcodec/avcodec.h>
 }
 
-#include "str.hpp"
 #include "alloc.hpp"
+#include "str.hpp"
 #include "logging.hpp"
 #include "bink.hpp"
 #include "videoresource.hpp"

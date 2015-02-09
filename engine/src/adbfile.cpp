@@ -21,8 +21,8 @@
 #include <cassert>
 
 #include "alloc.hpp"
-#include "logging.hpp"
 #include "byteorder.hpp"
+#include "logging.hpp"
 #include "adbfile.hpp"
 
 namespace cursedearth

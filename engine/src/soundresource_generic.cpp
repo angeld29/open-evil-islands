@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
+/*
  * Supported decoders:
  * Ogg Vorbis (lossy compression)
  * FLAC (lossless compression)

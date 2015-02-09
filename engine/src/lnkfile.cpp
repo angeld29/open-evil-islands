@@ -18,8 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "byteorder.hpp"
 #include "alloc.hpp"
+#include "byteorder.hpp"
 #include "lnkfile.hpp"
 
 namespace cursedearth

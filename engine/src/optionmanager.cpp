@@ -22,8 +22,8 @@
 #include <cstring>
 #include <vector>
 
-#include "str.hpp"
 #include "alloc.hpp"
+#include "str.hpp"
 #include "logging.hpp"
 #include "thread.hpp"
 #include "path.hpp"

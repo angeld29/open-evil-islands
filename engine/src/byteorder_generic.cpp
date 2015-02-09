@@ -30,19 +30,19 @@ namespace cursedearth
     void endian_swap(uint32_t& value)
     {
         value = value << 24 | value >> 24 |
-            (value & static_cast<uint32_t>(0x0000ff00UL)) << 8 |
-            (value & static_cast<uint32_t>(0x00ff0000UL)) >> 8;
+            (value & static_cast<uint32_t>(0x0000ff00ul)) << 8 |
+            (value & static_cast<uint32_t>(0x00ff0000ul)) >> 8;
     }
 
     void endian_swap(uint64_t& value)
     {
         value = value << 56 | value >> 56 |
-            (value & static_cast<uint64_t>(0x000000000000ff00ULL)) << 40 |
-            (value & static_cast<uint64_t>(0x0000000000ff0000ULL)) << 24 |
-            (value & static_cast<uint64_t>(0x00000000ff000000ULL)) << 8  |
-            (value & static_cast<uint64_t>(0x000000ff00000000ULL)) >> 8  |
-            (value & static_cast<uint64_t>(0x0000ff0000000000ULL)) >> 24 |
-            (value & static_cast<uint64_t>(0x00ff000000000000ULL)) >> 40;
+            (value & static_cast<uint64_t>(0x000000000000ff00ull)) << 40 |
+            (value & static_cast<uint64_t>(0x0000000000ff0000ull)) << 24 |
+            (value & static_cast<uint64_t>(0x00000000ff000000ull)) << 8  |
+            (value & static_cast<uint64_t>(0x000000ff00000000ull)) >> 8  |
+            (value & static_cast<uint64_t>(0x0000ff0000000000ull)) >> 24 |
+            (value & static_cast<uint64_t>(0x00ff000000000000ull)) >> 40;
     }
 
     void do_cpu2le(uint16_t& value)

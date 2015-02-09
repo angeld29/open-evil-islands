@@ -22,9 +22,9 @@
 #include <vector>
 
 #include "alloc.hpp"
-#include "logging.hpp"
-#include "byteorder.hpp"
 #include "bitmanipulations.hpp"
+#include "byteorder.hpp"
+#include "logging.hpp"
 #include "bink.hpp"
 
 namespace cursedearth

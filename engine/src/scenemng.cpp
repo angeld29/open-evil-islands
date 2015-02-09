@@ -25,7 +25,6 @@
 #include "utility.hpp"
 #include "logging.hpp"
 #include "frustum.hpp"
-#include "byteformat.hpp"
 #include "event.hpp"
 #include "optionmanager.hpp"
 #include "configmanager.hpp"

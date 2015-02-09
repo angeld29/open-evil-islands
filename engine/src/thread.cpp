@@ -153,7 +153,7 @@ namespace cursedearth
             ce_vector_push_back(ce_thread_pool->threads, ce_thread_new((void(*)())ce_thread_pool_exec, ce_thread_pool));
         }
 
-        ce_logging_info("thread pool: using up to %d threads", thread_count);
+        ce_logging_info("thread pool: using up to %d threads", (int)thread_count);
     }
 
     void ce_thread_pool_term()
