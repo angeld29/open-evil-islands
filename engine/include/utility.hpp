@@ -23,7 +23,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 
 namespace cursedearth
 {
@@ -74,20 +73,9 @@ namespace cursedearth
         return angle * g_rad2deg;
     }
 
-    template <typename T>
-    inline typename std::enable_if<std::is_unsigned<T>::value, bool>::type is_power_of_two(T value)
+    inline bool is_power_of_two(size_t value)
     {
         return 0 == (value & (value - 1));
-    }
-
-    inline uint32_t next_largest_power_of_two(uint32_t value)
-    {
-        value |= (value >> 1);
-        value |= (value >> 2);
-        value |= (value >> 4);
-        value |= (value >> 8);
-        value |= (value >> 16);
-        return value + 1;
     }
 
     inline uint64_t next_largest_power_of_two(uint64_t value)

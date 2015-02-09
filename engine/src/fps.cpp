@@ -18,35 +18,22 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-
-#include "str.hpp"
-#include "alloc.hpp"
 #include "fps.hpp"
 
 namespace cursedearth
 {
-    fps_t* ce_fps_new(void)
+    fps_t::fps_t():
+        m_text("--")
     {
-        fps_t* fps = (fps_t*)ce_alloc(sizeof(fps_t));
-        fps->frame_count = 0;
-        fps->time = 0.0f;
-        ce_strlcpy(fps->text, "---", sizeof(fps->text));
-        return fps;
     }
 
-    void ce_fps_del(fps_t* fps)
+    void fps_t::advance(float elapsed)
     {
-        ce_free(fps, sizeof(fps_t));
-    }
-
-    void ce_fps_advance(fps_t* fps, float elapsed)
-    {
-        ++fps->frame_count;
-        if ((fps->time += elapsed) >= 1.0f) {
-            snprintf(fps->text, sizeof(fps->text), "%d", fps->frame_count);
-            fps->frame_count = 0;
-            fps->time = 0.0f;
+        ++m_frame_count;
+        if ((m_time += elapsed) >= 1.0f) {
+            m_text = std::to_string(m_frame_count);
+            m_frame_count = 0;
+            m_time = 0.0f;
         }
     }
 }

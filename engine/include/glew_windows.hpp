@@ -25,11 +25,11 @@
 
 #include <GL/wglew.h>
 
-#define wglewGetContext() (&ce_wglew_context)
+#define wglewGetContext() (&g_wglew_context)
 
 namespace cursedearth
 {
-    extern thread_local WGLEWContext ce_wglew_context;
+    extern thread_local WGLEWContext g_wglew_context;
 }
 
 #endif

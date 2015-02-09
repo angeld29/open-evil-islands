@@ -22,5 +22,5 @@
 
 namespace cursedearth
 {
-    thread_local GLXEWContext ce_glxew_context;
+    thread_local GLXEWContext g_glxew_context;
 }

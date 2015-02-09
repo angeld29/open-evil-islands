@@ -21,6 +21,8 @@
 #ifndef CE_FONT_HPP
 #define CE_FONT_HPP
 
+#include <string>
+
 #include "color.hpp"
 
 namespace cursedearth
@@ -28,12 +30,12 @@ namespace cursedearth
     typedef struct ce_font ce_font;
 
     ce_font* ce_font_new(const char* resource_path, int pixel_size);
-    void ce_font_del(ce_font* font);
+    void ce_font_del(ce_font*);
 
-    int ce_font_get_height(ce_font* font);
-    int ce_font_get_width(ce_font* font, const char* text);
+    int ce_font_get_height(ce_font*);
+    int ce_font_get_width(ce_font*, const std::string& text);
 
-    void ce_font_render(ce_font* font, int x, int y, const color_t* color, const char* text);
+    void ce_font_render(ce_font*, int x, int y, const color_t*, const std::string& text);
 }
 
 #endif

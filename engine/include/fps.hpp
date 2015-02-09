@@ -21,19 +21,29 @@
 #ifndef CE_FPS_HPP
 #define CE_FPS_HPP
 
+#include <memory>
+#include <string>
+
+#include <boost/noncopyable.hpp>
+
 namespace cursedearth
 {
-    struct fps_t
+    class fps_t final: boost::noncopyable
     {
-        int frame_count;
-        float time;
-        char text[8];
+    public:
+        fps_t();
+
+        void advance(float elapsed);
+
+        const std::string& text() { return m_text; }
+
+    private:
+        int m_frame_count = 0;
+        float m_time = 0.0f;
+        std::string m_text;
     };
 
-    fps_t* ce_fps_new(void);
-    void ce_fps_del(fps_t* fps);
-
-    void ce_fps_advance(fps_t* fps, float elapsed);
+    typedef std::shared_ptr<fps_t> fps_ptr_t;
 }
 
 #endif

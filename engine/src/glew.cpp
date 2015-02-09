@@ -22,5 +22,5 @@
 
 namespace cursedearth
 {
-    thread_local GLEWContext ce_glew_context;
+    thread_local GLEWContext g_glew_context;
 }

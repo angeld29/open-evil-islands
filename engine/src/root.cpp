@@ -106,7 +106,7 @@ namespace cursedearth
             ce_logging_info("root: big-endian system detected");
             break;
         case endian_t::middle:
-            throw std::runtime_error("PDP-endian system are not supported");
+            throw std::runtime_error("PDP-endian systems are not supported");
         }
 
         ce_option_manager_init(optparse);

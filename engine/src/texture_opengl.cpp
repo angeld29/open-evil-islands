@@ -86,8 +86,8 @@ namespace cursedearth
         GLint max_texture_size;
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
 
-        unsigned int new_width = std::min<unsigned int>(width, max_texture_size);
-        unsigned int new_height = std::min<unsigned int>(height, max_texture_size);
+        size_t new_width = std::min<size_t>(width, max_texture_size);
+        size_t new_height = std::min<size_t>(height, max_texture_size);
 
         if (!GLEW_VERSION_2_0 && !GLEW_ARB_texture_non_power_of_two) {
             if (!is_power_of_two(new_width)) new_width = next_largest_power_of_two(new_width);

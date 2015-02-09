@@ -23,7 +23,6 @@
 #include <stdexcept>
 
 #include "str.hpp"
-#include "alloc.hpp"
 #include "logging.hpp"
 #include "input.hpp"
 

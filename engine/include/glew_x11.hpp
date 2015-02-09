@@ -25,11 +25,11 @@
 
 #include <GL/glxew.h>
 
-#define glxewGetContext() (&ce_glxew_context)
+#define glxewGetContext() (&g_glxew_context)
 
 namespace cursedearth
 {
-    extern thread_local GLXEWContext ce_glxew_context;
+    extern thread_local GLXEWContext g_glxew_context;
 }
 
 #endif

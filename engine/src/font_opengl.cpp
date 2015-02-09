@@ -20,6 +20,7 @@
 
 #include <cassert>
 #include <cstdio>
+#include <numeric>
 #include <algorithm>
 
 #include <ft2build.h>
@@ -208,16 +209,12 @@ namespace cursedearth
         return font->height;
     }
 
-    int ce_font_get_width(ce_font* font, const char* text)
+    int ce_font_get_width(ce_font* font, const std::string& text)
     {
-        int width = 0;
-        while (*text) {
-            width += font->widths[*text++ - CE_FONT_SPACE];
-        }
-        return width;
+        return std::accumulate(text.begin(), text.end(), 0, [font] (int r, char c) { return r + font->widths[c - CE_FONT_SPACE]; });
     }
 
-    void ce_font_render(ce_font* font, int x, int y, const color_t* color, const char* text)
+    void ce_font_render(ce_font* font, int x, int y, const color_t* color, const std::string& text)
     {
         glPushAttrib(GL_ENABLE_BIT | GL_LIST_BIT);
 
@@ -244,7 +241,7 @@ namespace cursedearth
         glTranslatef(x, y, 0.0f);
 
 #ifndef NDEBUG
-        for (size_t i = 0, length = strlen(text); i < length; ++i) {
+        for (size_t i = 0, length = text.length(); i < length; ++i) {
             assert(text[i] - CE_FONT_SPACE < CE_FONT_NUM_CHARS);
         }
 #endif
@@ -252,7 +249,7 @@ namespace cursedearth
         glColor4f(color->r, color->g, color->b, color->a);
 
         glListBase(font->list - CE_FONT_SPACE);
-        glCallLists(strlen(text), GL_UNSIGNED_BYTE, text);
+        glCallLists(text.length(), GL_UNSIGNED_BYTE, text.c_str());
 
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();

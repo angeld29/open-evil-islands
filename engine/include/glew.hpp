@@ -23,11 +23,11 @@
 
 #include <GL/glew.h>
 
-#define glewGetContext() (&ce_glew_context)
+#define glewGetContext() (&g_glew_context)
 
 namespace cursedearth
 {
-    extern thread_local GLEWContext ce_glew_context;
+    extern thread_local GLEWContext g_glew_context;
 }
 
 #endif

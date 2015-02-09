@@ -61,7 +61,7 @@ namespace cursedearth
         scenemng->renderqueue = ce_renderqueue_new();
         scenemng->viewport = ce_viewport_new();
         scenemng->camera = ce_camera_new();
-        scenemng->fps = ce_fps_new();
+        scenemng->fps = std::make_shared<fps_t>();
         scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
         scenemng->terrain = NULL;
 
@@ -95,7 +95,6 @@ namespace cursedearth
             ce_figure_manager_clear();
             ce_terrain_del(scenemng->terrain);
             ce_font_del(scenemng->font);
-            ce_fps_del(scenemng->fps);
             ce_camera_del(scenemng->camera);
             ce_viewport_del(scenemng->viewport);
             ce_renderqueue_del(scenemng->renderqueue);
@@ -281,7 +280,7 @@ namespace cursedearth
 
     void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
     {
-        ce_fps_advance(scenemng->fps, elapsed);
+        scenemng->fps->advance(elapsed);
         scenemng->input_supply->advance(elapsed);
 
         (*ce_scenemng_state_procs[scenemng->state].advance)(scenemng, elapsed);
@@ -306,9 +305,9 @@ namespace cursedearth
 
         if (ce_option_manager->show_fps) {
             ce_font_render(scenemng->font, scenemng->viewport->width -
-                ce_font_get_width(scenemng->font, scenemng->fps->text) - 10,
+                ce_font_get_width(scenemng->font, scenemng->fps->text()) - 10,
                 scenemng->viewport->height - ce_font_get_height(scenemng->font) - 10,
-                &CE_COLOR_GOLD, scenemng->fps->text);
+                &CE_COLOR_GOLD, scenemng->fps->text());
         }
 
         const char* engine_text = "Powered by Cursed Earth engine";
