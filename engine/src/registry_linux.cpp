@@ -19,143 +19,159 @@
  */
 
 #include <cstdlib>
-#include <cstdio>
-#include <cstring>
+#include <memory>
+#include <functional>
 #include <vector>
 
-#include "str.hpp"
-#include "path.hpp"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
+#include <boost/algorithm/string.hpp>
+
 #include "logging.hpp"
 #include "configfile.hpp"
 #include "registry.hpp"
 
 namespace cursedearth
 {
-    void ce_registry_append_quotes(char* dst, size_t size, const char* src)
+    namespace
     {
-        if (NULL != dst && NULL != src) {
-            ce_strlcpy(dst, "\"", size);
-            ce_strlcat(dst, src, size);
-            ce_strlcat(dst, "\"", size);
+        bool is_directory(const std::string& path)
+        {
+            struct stat info;
+            return 0 == stat(path.c_str(), &info) && S_ISDIR(info.st_mode);
         }
-    }
 
-    void ce_registry_remove_quotes(char* dst, size_t size, const char* src)
-    {
-        if (NULL != dst && NULL != src) {
-            const char* left = strchr(src, '"');
-            const char* right = strrchr(src, '"');
-            if (NULL != left && NULL != right && left < right) {
-                ce_strmid(dst, src, left - src + 1, right - src - 1);
-            } else {
-                ce_strlcpy(dst, src, size);
+        std::vector<std::string> list_subdirectories(const std::string& path)
+        {
+            std::vector<std::string> directories;
+            if (DIR* dir = opendir(path.c_str())) {
+                struct dirent* entry;
+                while ((entry = readdir(dir))) {
+                    std::string node_name(entry->d_name);
+                    if ("." != node_name && ".." != node_name) {
+                        std::string directory = path + '/' + node_name;
+                        if (is_directory(directory)) {
+                            directories.push_back(directory);
+                        }
+                    }
+                }
+                closedir(dir);
             }
-        }
-    }
-
-    char* ce_registry_find_value(char* value, size_t size, const char* wine_prefix, const char* reg_file_name, const char* key_name, const char* value_name)
-    {
-        char buffer[CE_PATH_MAX];
-        ce_path_join(buffer, sizeof(buffer), wine_prefix, reg_file_name, NULL);
-
-        ce_config_file* config_file = ce_config_file_open(buffer);
-        if (NULL == config_file) {
-            ce_logging_error("registry: could not open file `%s'", buffer);
-            return NULL;
+            return directories;
         }
 
-        std::vector<char> fixed_key_name(strlen(key_name) + 64);
-        ce_strrep(fixed_key_name.data(), key_name, fixed_key_name.size(), "\\", "\\\\");
-
-        std::vector<char> fixed_value_name(strlen(value_name) + 8);
-        ce_registry_append_quotes(fixed_value_name.data(), fixed_value_name.size(), value_name);
-
-        const char* reg_value = ce_config_file_find(config_file, fixed_key_name.data(), fixed_value_name.data());
-        if (NULL == reg_value) {
-            ce_logging_warning("registry: could not find `%s\\%s'", key_name, value_name);
-            value = NULL;
-        } else {
-            ce_registry_remove_quotes(value, size, reg_value);
-        }
-
-        ce_config_file_close(config_file);
-        return value;
-    }
-
-    char* ce_registry_find_string_value(char* value, size_t size, const ce_vector* wine_prefixes, const char* reg_file_name, const char* key_name, const char* value_name)
-    {
-        for (size_t i = 0; i < wine_prefixes->count; ++i) {
-            ce_string* wine_prefix = (ce_string*)wine_prefixes->items[i];
-            if (NULL != ce_registry_find_value(value, size, wine_prefix->str, reg_file_name, key_name, value_name)) {
-                return value;
+        std::string get_home_path()
+        {
+            if (const char* home_path = getenv("HOME")) {
+                return home_path;
             }
+            throw std::runtime_error("could not get environment variable `HOME'");
         }
-        return NULL;
-    }
 
-    char* ce_registry_find_path_value(char* value, size_t size, const ce_vector* wine_prefixes, const char* reg_file_name, const char* key_name, const char* value_name)
-    {
-        char buffer[CE_PATH_MAX];
-        for (size_t i = 0; i < wine_prefixes->count; ++i) {
-            ce_string* wine_prefix = (ce_string*)wine_prefixes->items[i];
-            if (NULL != ce_registry_find_value(buffer, sizeof(buffer), wine_prefix->str, reg_file_name, key_name, value_name)) {
-                ce_strrep(buffer, buffer, sizeof(buffer), "\\\\", "/");
-                ce_strrep(buffer, buffer, sizeof(buffer), "C:", "drive_c");
-                ce_strrep(buffer, buffer, sizeof(buffer), "D:", "drive_d");
-                return ce_path_join(value, size, wine_prefix->str, buffer, NULL);
+        std::string get_reg_file_name(registry_key_t key)
+        {
+            switch (key) {
+            case registry_key_t::current_user:  return "user.reg";
+            case registry_key_t::local_machine: return "system.reg";
             }
-        }
-        return NULL;
-    }
-
-    char* ce_registry_get_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name,
-        char* (func)(char*, size_t, const ce_vector*, const char*, const char*, const char*))
-    {
-        const char* home_path = getenv("HOME");
-        if (NULL == home_path) {
-            ce_logging_error("registry: could not get environment variable `HOME'");
-            return NULL;
+            throw std::runtime_error("unknown key");
         }
 
-        const char* reg_file_name;
-        switch (key) {
-        case CE_REGISTRY_KEY_CURRENT_USER:
-            reg_file_name = "user.reg";
-            break;
-        case CE_REGISTRY_KEY_LOCAL_MACHINE:
-            reg_file_name = "system.reg";
-            break;
-        default:
-            ce_logging_error("registry: unknown key");
-            return NULL;
+        struct config_file_deleter_t
+        {
+            void operator ()(ce_config_file* config_file)
+            {
+                ce_config_file_close(config_file);
+            }
+        };
+
+        std::string get_value(const std::string& wine_prefix, const std::string& reg_file_name, const std::string& key_name, const std::string& value_name)
+        {
+            const std::string reg_file_path = wine_prefix + '/' + reg_file_name;
+            std::unique_ptr<ce_config_file, config_file_deleter_t> config_file(ce_config_file_open(reg_file_path.c_str()));
+            if (!config_file) {
+                ce_logging_error("registry: could not open file `%s'", reg_file_path.c_str());
+                return std::string();
+            }
+
+            // double backslash
+            const std::string fixed_key_name = boost::replace_all_copy(key_name, "\\", "\\\\");
+
+            // append quotes
+            const std::string fixed_value_name = '"' + value_name + '"';
+
+            std::string reg_value = ce_config_file_find(config_file.get(), fixed_key_name.c_str(), fixed_value_name.c_str());
+            if (reg_value.empty()) {
+                ce_logging_warning("registry: could not find `%s\\%s'", key_name.c_str(), value_name.c_str());
+                return std::string();
+            }
+
+            // remove quotes
+            boost::algorithm::replace_first(reg_value, "\"", "");
+            boost::algorithm::replace_last(reg_value, "\"", "");
+
+            return reg_value;
         }
 
-        char buffer[CE_PATH_MAX];
-        ce_vector* wine_prefixes = ce_vector_new_reserved(1);
+        std::string get_string(const std::vector<std::string>& wine_prefixes, const std::string& reg_file_name, const std::string& key_name, const std::string& value_name)
+        {
+            for (const auto& wine_prefix: wine_prefixes) {
+                const std::string value = get_value(wine_prefix, reg_file_name, key_name, value_name);
+                if (!value.empty()) {
+                    return value;
+                }
+            }
+            return std::string();
+        }
 
-        // add .PlayOnLinux prefixes
-        ce_path_join(buffer, sizeof(buffer), home_path, ".PlayOnLinux", "wineprefix", NULL);
-        ce_path_list_subdirs(buffer, wine_prefixes);
+        std::string get_path(const std::vector<std::string>& wine_prefixes, const std::string& reg_file_name, const std::string& key_name, const std::string& value_name)
+        {
+            for (const auto& wine_prefix: wine_prefixes) {
+                std::string value = get_value(wine_prefix, reg_file_name, key_name, value_name);
+                if (!value.empty()) {
+                    boost::replace_all(value, "\\\\", "/");
+                    boost::ireplace_all(value, "c:", "drive_c");
+                    boost::ireplace_all(value, "d:", "drive_d");
+                    // more?
+                    return wine_prefix + '/' + value;
+                }
+            }
+            return std::string();
+        }
 
-        // add .wine prefix
-        ce_path_join(buffer, sizeof(buffer), home_path, ".wine", NULL);
-        ce_vector_push_back(wine_prefixes, ce_string_new_str(buffer));
+        typedef std::function<std::string (const std::vector<std::string>&, const std::string&, const std::string&, const std::string&)> get_func_t;
 
-        value = (*func)(value, size, wine_prefixes, reg_file_name, key_name, value_name);
+        std::string find_value(registry_key_t key, const std::string& key_name, const std::string& value_name, const get_func_t& func)
+        {
+            try {
+                const std::string home_path = get_home_path();
+                const std::string reg_file_name = get_reg_file_name(key);
 
-        ce_vector_for_each(wine_prefixes, (void(*)(void*))ce_string_del);
-        ce_vector_del(wine_prefixes);
+                // add .PlayOnLinux prefixes (preferred)
+                std::vector<std::string> wine_prefixes = list_subdirectories(home_path + "/.PlayOnLinux/wineprefix");
 
-        return value;
+                // add .wine prefix at the end
+                wine_prefixes.push_back(home_path + "/.wine");
+
+                return func(wine_prefixes, reg_file_name, key_name, value_name);
+            } catch (const std::exception& error) {
+                ce_logging_error("registry: %s", error.what());
+            }
+
+            // not critical error, just return empty string
+            return std::string();
+        }
     }
 
-    char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
+    std::string find_string_in_registry(registry_key_t key, const std::string& key_name, const std::string& value_name)
     {
-        return ce_registry_get_value(value, size, key, key_name, value_name, ce_registry_find_string_value);
+        return find_value(key, key_name, value_name, get_string);
     }
 
-    char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
+    std::string find_path_in_registry(registry_key_t key, const std::string& key_name, const std::string& value_name)
     {
-        return ce_registry_get_value(value, size, key, key_name, value_name, ce_registry_find_path_value);
+        return find_value(key, key_name, value_name, get_path);
     }
 }

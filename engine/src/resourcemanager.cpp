@@ -38,10 +38,10 @@ namespace cursedearth
 
     ce_res_file* ce_resource_manager_open(const char* name)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 32);
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
         ce_res_file* res_file = NULL;
 
-        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, name,
+        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), name,
                 ce_resource_dirs, ce_resource_exts) && NULL != (res_file = ce_res_file_new_path(path.data()))) {
             ce_logging_info("resource manager: loading `%s'... ok", path.data());
         } else {
@@ -53,14 +53,14 @@ namespace cursedearth
 
     void ce_resource_manager_init(void)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 32);
-        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_resource_dirs[0], NULL);
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
+        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_resource_dirs[0], NULL);
 
         ce_resource_manager = (struct ce_resource_manager*)ce_alloc_zero(sizeof(struct ce_resource_manager));
         ce_resource_manager->path = ce_string_new_str(path.data());
 
         for (size_t i = 0; NULL != ce_resource_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_resource_dirs[i], NULL);
+            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_resource_dirs[i], NULL);
             ce_logging_info("resource manager: using path `%s'", path.data());
         }
 

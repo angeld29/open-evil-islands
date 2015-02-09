@@ -22,13 +22,13 @@
 
 namespace cursedearth
 {
-    char* ce_registry_get_string_value(char* /*value*/, size_t /*size*/, ce_registry_key /*key*/, const char* /*key_name*/, const char* /*value_name*/)
+    std::string find_string_in_registry(registry_key_t, const std::string&, const std::string&)
     {
-        return NULL;
+        return std::string();
     }
 
-    char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
+    std::string find_path_in_registry(registry_key_t, const std::string&, const std::string&)
     {
-        return ce_registry_get_string_value(value, size, key, key_name, value_name);
+        return std::string();
     }
 }

@@ -37,10 +37,10 @@ namespace cursedearth
 
     ce_res_file* ce_sound_manager_open_resource(const char* name)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 32);
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
         ce_res_file* res_file = NULL;
 
-        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path2->str,
+        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(),
                 name, ce_sound_resource_dirs, ce_sound_resource_exts) && NULL != (res_file = ce_res_file_new_path(path.data()))) {
             ce_logging_info("sound manager: loading `%s'... ok", path.data());
         } else {
@@ -53,9 +53,9 @@ namespace cursedearth
     sound_manager_t::sound_manager_t():
         singleton_t<sound_manager_t>(this)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 16);
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 16);
         for (size_t i = 0; NULL != ce_sound_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_sound_dirs[i], NULL);
+            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_sound_dirs[i], NULL);
             ce_logging_info("sound manager: using path `%s'", path.data());
         }
 
@@ -87,8 +87,8 @@ namespace cursedearth
         }
 
         if (NULL == mem_file) {
-            std::vector<char> path(option_manager_t::instance()->ei_path2->length + strlen(name.c_str()) + 32);
-            if (NULL == ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, name.c_str(), ce_sound_dirs, ce_sound_exts)) {
+            std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + strlen(name.c_str()) + 32);
+            if (NULL == ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), name.c_str(), ce_sound_dirs, ce_sound_exts)) {
                 ce_logging_error("sound manager: could not find sound `%s'", name.c_str());
                 return 0;
             }

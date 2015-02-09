@@ -141,9 +141,9 @@ namespace cursedearth
 
     void ce_config_manager_init_lights(void)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 32);
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
         for (size_t i = 0; i < CE_CONFIG_LIGHT_COUNT; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_config_dir, ce_config_light_files[i], NULL);
+            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_config_dir, ce_config_light_files[i], NULL);
 
             ce_config_file* config_file = ce_config_file_open(path.data());
             if (NULL != config_file) {
@@ -166,8 +166,8 @@ namespace cursedearth
             ce_config_manager->movies[i] = ce_vector_new_reserved(4);
         }
 
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 32);
-        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_config_dir, "movie.ini", NULL);
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
+        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_config_dir, "movie.ini", NULL);
 
         ce_config_file* config_file = ce_config_file_open(path.data());
         if (NULL != config_file) {
@@ -202,8 +202,8 @@ namespace cursedearth
             }
         }
 
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 32);
-        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_resource_dir, "music.reg", NULL);
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
+        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_resource_dir, "music.reg", NULL);
 
         ce_mem_file* mem_file = ce_mem_file_new_path(path.data());
         if (NULL != mem_file) {
@@ -254,8 +254,8 @@ namespace cursedearth
     {
         ce_config_manager = (struct ce_config_manager*)ce_alloc_zero(sizeof(struct ce_config_manager));
 
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 32);
-        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_config_dir, NULL);
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
+        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_config_dir, NULL);
 
         ce_logging_info("config manager: using path `%s'", path.data());
 

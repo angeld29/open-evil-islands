@@ -24,7 +24,6 @@
 #include <boost/filesystem/path.hpp>
 
 #include "singleton.hpp"
-#include "string.hpp"
 #include "optparse.hpp"
 
 namespace cursedearth
@@ -33,7 +32,6 @@ namespace cursedearth
     {
     public:
         explicit option_manager_t(ce_optparse*);
-        ~option_manager_t();
 
         static ce_optparse* make_parser();
 
@@ -48,7 +46,6 @@ namespace cursedearth
         bool show_fps() const { return m_show_fps; }
 
     public:
-        ce_string* ei_path2;
         int window_width;
         int window_height;
         bool fullscreen;

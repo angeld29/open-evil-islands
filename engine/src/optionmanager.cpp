@@ -18,13 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-#include <cstring>
-#include <vector>
+#include <boost/filesystem.hpp>
 
-#include "str.hpp"
 #include "logging.hpp"
-#include "path.hpp"
 #include "registry.hpp"
 #include "optionmanager.hpp"
 
@@ -44,9 +40,6 @@ namespace cursedearth
 
         m_ei_path = ei_path;
         m_ce_path = ce_path;
-
-        ei_path2 = ce_string_new_str(ei_path);
-        ce_path_normpath(ei_path2->str);
 
         ce_optparse_get(parser, "window_width", &window_width);
         ce_optparse_get(parser, "window_height", &window_height);
@@ -76,25 +69,25 @@ namespace cursedearth
         }
     }
 
-    option_manager_t::~option_manager_t()
-    {
-        ce_string_del(ei_path2);
-    }
-
     ce_optparse* option_manager_t::make_parser()
     {
         ce_optparse* parser = ce_optparse_new();
-        std::vector<char> path(CE_PATH_MAX), help(512);
 
-        if (NULL != ce_registry_get_path_value(path.data(), path.size(), CE_REGISTRY_KEY_CURRENT_USER, "Software\\Nival Interactive\\EvilIslands\\Path Settings", "WORK PATH")) {
-            snprintf(help.data(), help.size(), "path to EI directory; using `%s' by default (found in registry)", path.data());
+        boost::filesystem::path ei_path = find_path_in_registry(registry_key_t::current_user, "Software\\Nival Interactive\\EvilIslands\\Path Settings", "WORK PATH");
+        std::string ei_help;
+
+        if (exists(ei_path)) {
+            ei_help = str(boost::format("path to EI directory; using %1% by default (found in registry)") % ei_path);
         } else {
-            ce_strlcpy(path.data(), ".", path.size());
-            ce_strlcpy(help.data(), "path to EI directory; registry value not found, using current directory by default", help.size());
+            if (!ei_path.empty()) {
+                ce_logging_warning("option manager: EI path `%s' found in registry but it doesn't exist", ei_path.string().c_str());
+            }
+            ei_path = boost::filesystem::current_path();
+            ei_help = "path to EI directory; registry value not found, using current directory by default";
         }
 
-        ce_optparse_add(parser, "ei_path", CE_TYPE_STRING, path.data(), false, NULL, "ei-path", help.data());
-        ce_optparse_add(parser, "ce_path", CE_TYPE_STRING, NULL, false, NULL, "ce-path", "reserved for future use: path to CE directory; using EI path by default");
+        ce_optparse_add(parser, "ei_path", CE_TYPE_STRING, ei_path.string().c_str(), false, NULL, "ei-path", ei_help.c_str());
+        ce_optparse_add(parser, "ce_path", CE_TYPE_STRING, NULL, false, NULL, "ce-path", "path to CE directory; using EI path by default");
 
         const int window_width_default = 1024;
         ce_optparse_add(parser, "window_width", CE_TYPE_INT, &window_width_default, false, NULL, "window-width", "desired window width in window mode");

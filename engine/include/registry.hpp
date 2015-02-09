@@ -21,17 +21,17 @@
 #ifndef CE_REGISTRY_HPP
 #define CE_REGISTRY_HPP
 
-#include <cstddef>
+#include <string>
 
 namespace cursedearth
 {
-    typedef enum {
-        CE_REGISTRY_KEY_CURRENT_USER,
-        CE_REGISTRY_KEY_LOCAL_MACHINE,
-    } ce_registry_key;
+    enum class registry_key_t {
+        current_user,
+        local_machine
+    };
 
-    char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
-    char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name);
+    std::string find_string_in_registry(registry_key_t, const std::string& key_name, const std::string& value_name);
+    std::string find_path_in_registry(registry_key_t, const std::string& key_name, const std::string& value_name);
 }
 
 #endif

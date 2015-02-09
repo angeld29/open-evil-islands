@@ -37,9 +37,9 @@ namespace cursedearth
 
     void ce_mob_manager_init(void)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 16);
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 16);
         for (size_t i = 0; NULL != ce_mob_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_mob_dirs[i], NULL);
+            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_mob_dirs[i], NULL);
             ce_logging_info("mob manager: using path `%s'", path.data());
         }
 
@@ -55,8 +55,8 @@ namespace cursedearth
 
     ce_mob_file* ce_mob_manager_open(const char* name)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + strlen(name) + 32);
-        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, name, ce_mob_dirs, ce_mob_exts)) {
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + strlen(name) + 32);
+        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), name, ce_mob_dirs, ce_mob_exts)) {
             return ce_mob_file_open(path.data());
         }
         return NULL;

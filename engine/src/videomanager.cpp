@@ -37,7 +37,7 @@ namespace cursedearth
     video_manager_t::video_manager_t():
         singleton_t<video_manager_t>(this)
     {
-        fs::path root = option_manager_t::instance()->ei_path2->str;
+        fs::path root = option_manager_t::instance()->ei_path().string().c_str();
         for (const auto& directory: g_video_directories) {
             ce_logging_info("video manager: using path `%s'", (root / directory).string().c_str());
         }
@@ -49,7 +49,7 @@ namespace cursedearth
 
     fs::path find_resource(const std::string& name)
     {
-        fs::path root = option_manager_t::instance()->ei_path2->str;
+        fs::path root = option_manager_t::instance()->ei_path().string().c_str();
         for (const auto& extension: g_video_extensions) {
             const fs::path file_name = name + extension;
             for (const auto& directory: g_video_directories) {

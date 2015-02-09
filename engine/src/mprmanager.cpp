@@ -38,9 +38,9 @@ namespace cursedearth
 
     void ce_mpr_manager_init(void)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 16);
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 16);
         for (size_t i = 0; NULL != ce_mpr_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_mpr_dirs[i], NULL);
+            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_mpr_dirs[i], NULL);
             ce_logging_info("mpr manager: using path '%s'", path.data());
         }
 
@@ -56,8 +56,8 @@ namespace cursedearth
 
     ce_mprfile* ce_mpr_manager_open(const char* name)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path2->length + strlen(name) + 32);
-        if (NULL == ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, name, ce_mpr_dirs, ce_mpr_exts)) {
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + strlen(name) + 32);
+        if (NULL == ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), name, ce_mpr_dirs, ce_mpr_exts)) {
             return NULL;
         }
 

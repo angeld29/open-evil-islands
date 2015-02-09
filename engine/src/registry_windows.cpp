@@ -28,7 +28,7 @@
 
 namespace cursedearth
 {
-    char* ce_registry_get_string_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
+    char* ce_registry_get_string_value(char* value, size_t size, registry_key_t key, const char* key_name, const char* value_name)
     {
         if (0 == size) {
             return NULL;
@@ -73,7 +73,7 @@ namespace cursedearth
         return NULL;
     }
 
-    char* ce_registry_get_path_value(char* value, size_t size, ce_registry_key key, const char* key_name, const char* value_name)
+    char* ce_registry_get_path_value(char* value, size_t size, registry_key_t key, const char* key_name, const char* value_name)
     {
         return ce_registry_get_string_value(value, size, key, key_name, value_name);
     }
