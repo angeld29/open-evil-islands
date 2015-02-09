@@ -110,6 +110,12 @@ namespace cursedearth
         }
 
         m_option_manager = make_unique<option_manager_t>(optparse);
+
+        ce_logging_info("root: EI path is `%s'", option_manager_t::instance()->ei_path().string().c_str());
+        ce_logging_info("root: CE path is `%s'", option_manager_t::instance()->ce_path().string().c_str());
+        ce_logging_info("root: terrain tiling %s", option_manager_t::instance()->terrain_tiling() ? "enabled" : "disabled");
+        ce_logging_info("root: texture caching %s", option_manager_t::instance()->texture_caching() ? "enabled" : "disabled");
+
         ce_resource_manager_init();
         ce_config_manager_init();
         ce_event_manager_init();

@@ -70,7 +70,7 @@ namespace cursedearth
         m_buffer(std::make_shared<sound_buffer_t>(sound_format_t(SOUND_CAPABILITY_BITS_PER_SAMPLE, SOUND_CAPABILITY_SAMPLES_PER_SECOND, SOUND_CAPABILITY_CHANNEL_COUNT))),
         m_done(false)
     {
-        if (!ce_sound_system_ctor(option_manager_t::instance()->disable_sound ? ce_sound_system_null() : ce_sound_system_platform())) {
+        if (!ce_sound_system_ctor(option_manager_t::instance()->disable_sound() ? ce_sound_system_null() : ce_sound_system_platform())) {
             ce_sound_system_ctor(ce_sound_system_null());
         }
         m_thread = ce_thread_new((void(*)())execute, this);

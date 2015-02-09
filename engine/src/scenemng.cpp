@@ -233,7 +233,7 @@ namespace cursedearth
 
     void ce_scenemng_render_playing(ce_scenemng* scenemng)
     {
-        if (option_manager_t::instance()->show_axes) {
+        if (option_manager_t::instance()->show_axes()) {
             ce_render_system_draw_axes();
         }
 
@@ -300,7 +300,7 @@ namespace cursedearth
             (*scenemng->listener.render)(scenemng->listener.receiver);
         }
 
-        if (option_manager_t::instance()->show_fps) {
+        if (option_manager_t::instance()->show_fps()) {
             ce_font_render(scenemng->font, scenemng->viewport.width -
                 ce_font_get_width(scenemng->font, scenemng->fps->text()) - 10,
                 scenemng->viewport.height - ce_font_get_height(scenemng->font) - 10,

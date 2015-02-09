@@ -60,7 +60,7 @@ namespace cursedearth
     {
         ce_terrain_sector* sector = (ce_terrain_sector*)((ce_event_ptr*)event->impl)->ptr;
 
-        if (option_manager_t::instance()->terrain_tiling) {
+        if (option_manager_t::instance()->terrain_tiling()) {
             sector->texture = ce_texture_add_ref(ce_texture_manager_get("default0"));
 
             // tile textures are necessary for geometry creation
@@ -103,7 +103,7 @@ namespace cursedearth
 
     void ce_terrain_sector_exec(ce_terrain_sector* sector)
     {
-        if (!option_manager_t::instance()->terrain_tiling) {
+        if (!option_manager_t::instance()->terrain_tiling()) {
             sector->mmpfile = ce_texture_manager_open_mmpfile_from_cache(sector->name->str);
 
             if (NULL == sector->mmpfile || sector->mmpfile->version < CE_MMPFILE_VERSION || sector->mmpfile->user_info < CE_MPR_TEXTURE_VERSION) {
@@ -117,7 +117,7 @@ namespace cursedearth
                 // force to DXT1?
                 ce_mmpfile_convert(sector->mmpfile, CE_MMPFILE_FORMAT_DXT1);
 
-                if (option_manager_t::instance()->texture_caching) {
+                if (option_manager_t::instance()->texture_caching()) {
                     ce_texture_manager_save_mmpfile(sector->name->str, sector->mmpfile);
                 }
             }

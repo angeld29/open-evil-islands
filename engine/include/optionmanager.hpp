@@ -40,33 +40,40 @@ namespace cursedearth
         const boost::filesystem::path& ei_path() const { return m_ei_path; }
         const boost::filesystem::path& ce_path() const { return m_ce_path; }
 
+        bool terrain_tiling() const { return m_enable_terrain_tiling; }
+        bool texture_caching() const { return !m_disable_texture_caching; }
+        bool disable_sound() const { return m_disable_sound; }
+
+        bool show_axes() const { return m_show_axes; }
+        bool show_fps() const { return m_show_fps; }
+
     public:
         ce_string* ei_path2;
-        int window_width = 1024;
-        int window_height = 768;
-        bool fullscreen = false;
-        int fullscreen_width = 1024;
-        int fullscreen_height = 768;
+        int window_width;
+        int window_height;
+        bool fullscreen;
+        int fullscreen_width;
+        int fullscreen_height;
         int fullscreen_bpp;
         int fullscreen_rate;
-        int fullscreen_rotation = 0;
-        bool fullscreen_reflection_x = false;
-        bool fullscreen_reflection_y = false;
-        bool list_video_modes = false;
-        bool list_video_rotations = false;
-        bool list_video_reflections = false;
-        bool inverse_trackball = false;
-        bool inverse_trackball_x = false;
-        bool inverse_trackball_y = false;
-        bool terrain_tiling = false;
-        bool texture_caching = false;
-        bool disable_sound = false;
-        bool show_axes = false;
-        bool show_fps = false;
+        int fullscreen_rotation;
+        bool fullscreen_reflection_x;
+        bool fullscreen_reflection_y;
+        bool list_video_modes;
+        bool list_video_rotations;
+        bool list_video_reflections;
+        bool inverse_trackball;
+        bool inverse_trackball_x;
+        bool inverse_trackball_y;
 
     private:
         boost::filesystem::path m_ei_path;
         boost::filesystem::path m_ce_path;
+        bool m_enable_terrain_tiling;
+        bool m_disable_texture_caching;
+        bool m_disable_sound;
+        bool m_show_axes;
+        bool m_show_fps;
     };
 }
 
