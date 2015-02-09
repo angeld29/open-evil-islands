@@ -21,41 +21,53 @@
 #ifndef CE_OPTIONMANAGER_HPP
 #define CE_OPTIONMANAGER_HPP
 
+#include <boost/filesystem/path.hpp>
+
+#include "singleton.hpp"
 #include "string.hpp"
 #include "optparse.hpp"
 
 namespace cursedearth
 {
-    extern struct ce_option_manager {
-        ce_string* ei_path;
-        ce_string* ce_path;
-        int window_width;
-        int window_height;
-        bool fullscreen;
-        int fullscreen_width;
-        int fullscreen_height;
+    class option_manager_t: public singleton_t<option_manager_t>
+    {
+    public:
+        explicit option_manager_t(ce_optparse*);
+        ~option_manager_t();
+
+        static ce_optparse* make_parser();
+
+        const boost::filesystem::path& ei_path() const { return m_ei_path; }
+        const boost::filesystem::path& ce_path() const { return m_ce_path; }
+
+    public:
+        ce_string* ei_path2;
+        int window_width = 1024;
+        int window_height = 768;
+        bool fullscreen = false;
+        int fullscreen_width = 1024;
+        int fullscreen_height = 768;
         int fullscreen_bpp;
         int fullscreen_rate;
-        int fullscreen_rotation;
-        bool fullscreen_reflection_x;
-        bool fullscreen_reflection_y;
-        bool list_video_modes;
-        bool list_video_rotations;
-        bool list_video_reflections;
-        bool inverse_trackball;
-        bool inverse_trackball_x;
-        bool inverse_trackball_y;
-        bool terrain_tiling;
-        bool texture_caching;
-        bool disable_sound;
-        bool show_axes;
-        bool show_fps;
-    }* ce_option_manager;
+        int fullscreen_rotation = 0;
+        bool fullscreen_reflection_x = false;
+        bool fullscreen_reflection_y = false;
+        bool list_video_modes = false;
+        bool list_video_rotations = false;
+        bool list_video_reflections = false;
+        bool inverse_trackball = false;
+        bool inverse_trackball_x = false;
+        bool inverse_trackball_y = false;
+        bool terrain_tiling = false;
+        bool texture_caching = false;
+        bool disable_sound = false;
+        bool show_axes = false;
+        bool show_fps = false;
 
-    void ce_option_manager_init(ce_optparse* optparse);
-    void ce_option_manager_term(void);
-
-    ce_optparse* ce_option_manager_create_option_parser(void);
+    private:
+        boost::filesystem::path m_ei_path;
+        boost::filesystem::path m_ce_path;
+    };
 }
 
 #endif

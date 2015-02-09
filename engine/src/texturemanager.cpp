@@ -46,21 +46,21 @@ namespace cursedearth
         ce_texture_manager->res_files = ce_vector_new();
         ce_texture_manager->textures = ce_vector_new();
 
-        std::vector<char> path(ce_option_manager->ei_path->length + 32);
+        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 32);
 
         for (size_t i = 0; NULL != ce_texture_cache_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_texture_cache_dirs[i], NULL);
+            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_texture_cache_dirs[i], NULL);
             ce_logging_info("texture manager: using cache path `%s'", path.data());
         }
 
         for (size_t i = 0; NULL != ce_texture_resource_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_texture_resource_dirs[i], NULL);
+            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_texture_resource_dirs[i], NULL);
             ce_logging_info("texture manager: using path `%s'", path.data());
         }
 
         for (size_t i = 0; NULL != ce_texture_resource_names[i]; ++i) {
             ce_res_file* res_file;
-            if (NULL != ce_path_find_special1(path.data(), path.size(), ce_option_manager->ei_path->str, ce_texture_resource_names[i],
+            if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_texture_resource_names[i],
                     ce_texture_resource_dirs, ce_texture_resource_exts) && NULL != (res_file = ce_res_file_new_path(path.data()))) {
                 ce_vector_push_back(ce_texture_manager->res_files, res_file);
                 ce_logging_info("texture manager: loading `%s'... ok", path.data());
@@ -83,9 +83,9 @@ namespace cursedearth
 
     ce_mmpfile* ce_texture_manager_open_mmpfile_from_cache(const char* name)
     {
-        std::vector<char> path(ce_option_manager->ei_path->length + strlen(name) + 32);
+        std::vector<char> path(option_manager_t::instance()->ei_path2->length + strlen(name) + 32);
 
-        if (NULL != ce_path_find_special1(path.data(), path.size(), ce_option_manager->ei_path->str, name, ce_texture_cache_dirs, ce_texture_exts)) {
+        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, name, ce_texture_cache_dirs, ce_texture_exts)) {
             ce_mem_file* mem_file = ce_mem_file_new_path(path.data());
             if (NULL != mem_file) {
                 ce_mmpfile* mmpfile = ce_mmpfile_new_mem_file(mem_file);
@@ -129,8 +129,8 @@ namespace cursedearth
         std::vector<char> file_name(strlen(name) + 8);
         ce_path_append_ext(file_name.data(), file_name.size(), name, ce_texture_exts[0]);
 
-        std::vector<char> path(ce_option_manager->ei_path->length + file_name.size() + 32);
-        ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_texture_cache_dirs[0], file_name.data(), NULL);
+        std::vector<char> path(option_manager_t::instance()->ei_path2->length + file_name.size() + 32);
+        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_texture_cache_dirs[0], file_name.data(), NULL);
 
         ce_mmpfile_save(mmpfile, path.data());
     }

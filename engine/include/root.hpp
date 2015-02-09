@@ -53,6 +53,7 @@ namespace cursedearth
         input_event_const_ptr_t toggle_fullscreen_event;
         input_event_const_ptr_t toggle_bbox_event;
         ce_renderwindow_listener renderwindow_listener;
+        std::unique_ptr<class option_manager_t> m_option_manager;
         std::unique_ptr<class sound_system_t> m_sound_system;
         std::unique_ptr<class sound_mixer_t> m_sound_mixer;
         std::unique_ptr<class sound_manager_t> m_sound_manager;

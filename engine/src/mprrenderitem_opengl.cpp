@@ -518,7 +518,7 @@ namespace cursedearth
 
     ce_renderitem* ce_mprrenderitem_new(ce_mprfile* mprfile, int sector_x, int sector_z, int water, ce_vector* tile_textures)
     {
-        if (ce_option_manager->terrain_tiling) {
+        if (option_manager_t::instance()->terrain_tiling) {
             ce_renderitem_vtable vt = {ce_mprrenderitem_tile_ctor, ce_mprrenderitem_tile_dtor, NULL, ce_mprrenderitem_tile_render, NULL};
             return ce_renderitem_new(vt, sizeof(ce_mprrenderitem_tile), mprfile, sector_x, sector_z, water, tile_textures);
         }

@@ -27,7 +27,7 @@
 #include <pthread.h>
 
 #include "alloc.hpp"
-#include "error.hpp"
+#include "logging.hpp"
 #include "thread.hpp"
 
 #ifndef _SC_NPROCESSORS_ONLN
@@ -80,7 +80,7 @@ namespace cursedearth
 
         int code = pthread_create(&thread->handle, NULL, ce_thread_wrap, &thread->routine);
         if (0 != code) {
-            ce_error_report_c_errno(code, "thread");
+            ce_logging_error("thread: pthread_create failed");
         }
 
         return thread;
@@ -100,7 +100,7 @@ namespace cursedearth
     {
         int code = pthread_join(thread->handle, NULL);
         if (0 != code) {
-            ce_error_report_c_errno(code, "thread");
+            ce_logging_error("thread: pthread_join failed");
         }
     }
 
@@ -196,7 +196,7 @@ namespace cursedearth
             assert(wait_condition->wakeup_count > 0 && "internal error");
             --wait_condition->wakeup_count;
         } else {
-            ce_error_report_c_errno(code, "wait condition");
+            ce_logging_error("thread: pthread_cond_wait failed");
         }
 
         pthread_mutex_unlock(&wait_condition->mutex);

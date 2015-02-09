@@ -109,48 +109,48 @@ namespace cursedearth
             throw std::runtime_error("PDP-endian systems are not supported");
         }
 
-        ce_option_manager_init(optparse);
+        m_option_manager = make_unique<option_manager_t>(optparse);
         ce_resource_manager_init();
         ce_config_manager_init();
         ce_event_manager_init();
 
-        renderwindow = ce_renderwindow_create(ce_option_manager->window_width, ce_option_manager->window_height, optparse->title->str);
+        renderwindow = ce_renderwindow_create(option_manager_t::instance()->window_width, option_manager_t::instance()->window_height, optparse->title->str);
         if (NULL == renderwindow) {
             throw std::runtime_error("root: could not create window");
         }
 
         // TODO: try without window creation
-        if (ce_option_manager->list_video_modes) {
+        if (option_manager_t::instance()->list_video_modes) {
             ce_displaymng_dump_supported_modes_to_stdout(renderwindow->displaymng);
             throw std::runtime_error("root: dump_supported_modes_to_stdout failed");
         }
 
         // TODO: try without window creation
-        if (ce_option_manager->list_video_rotations) {
+        if (option_manager_t::instance()->list_video_rotations) {
             ce_displaymng_dump_supported_rotations_to_stdout(renderwindow->displaymng);
             throw std::runtime_error("root: dump_supported_rotations_to_stdout failed");
         }
 
         // TODO: try without window creation
-        if (ce_option_manager->list_video_reflections) {
+        if (option_manager_t::instance()->list_video_reflections) {
             ce_displaymng_dump_supported_reflections_to_stdout(renderwindow->displaymng);
             throw std::runtime_error("root: dump_supported_reflections_to_stdout failed");
         }
 
         // FIXME: find better solution
-        renderwindow->restore_fullscreen = ce_option_manager->fullscreen;
-        if (ce_option_manager->fullscreen) {
+        renderwindow->restore_fullscreen = option_manager_t::instance()->fullscreen;
+        if (option_manager_t::instance()->fullscreen) {
             renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
         }
 
-        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = ce_option_manager->fullscreen_width;
-        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = ce_option_manager->fullscreen_height;
+        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = option_manager_t::instance()->fullscreen_width;
+        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = option_manager_t::instance()->fullscreen_height;
 
-        renderwindow->visual.bpp = ce_option_manager->fullscreen_bpp;
-        renderwindow->visual.rate = ce_option_manager->fullscreen_rate;
+        renderwindow->visual.bpp = option_manager_t::instance()->fullscreen_bpp;
+        renderwindow->visual.rate = option_manager_t::instance()->fullscreen_rate;
 
-        renderwindow->visual.rotation = ce_display_rotation_from_degrees(ce_option_manager->fullscreen_rotation);
-        renderwindow->visual.reflection = ce_display_reflection_from_bool(ce_option_manager->fullscreen_reflection_x, ce_option_manager->fullscreen_reflection_y);
+        renderwindow->visual.rotation = ce_display_rotation_from_degrees(option_manager_t::instance()->fullscreen_rotation);
+        renderwindow->visual.reflection = ce_display_reflection_from_bool(option_manager_t::instance()->fullscreen_reflection_x, option_manager_t::instance()->fullscreen_reflection_y);
 
         ce_render_system_init();
 
@@ -186,7 +186,6 @@ namespace cursedearth
     ce_root::~ce_root()
     {
         ce_timer_del(timer);
-
         ce_thread_pool_term();
         ce_scenemng_del(scenemng);
         ce_figure_manager_term();
@@ -205,7 +204,7 @@ namespace cursedearth
         ce_event_manager_term();
         ce_config_manager_term();
         ce_resource_manager_term();
-        ce_option_manager_term();
+        m_option_manager.reset();
     }
 
     int ce_root::exec()

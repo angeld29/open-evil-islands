@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
     atexit(clear);
 
     try {
-        optparse = ce_option_manager_create_option_parser();
+        optparse = option_manager_t::make_parser();
 
         ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
             "Cursed Earth: Map Viewer", "This program is part of Cursed Earth spikes.\nMap Viewer - explore Evil Islands zones.");
@@ -132,15 +132,15 @@ int main(int argc, char* argv[])
         ce_root root(optparse, argc, argv);
 
     #if 0
-        const char* ei_path;
-        ce_optparse_get(optparse, "ei_path", &ei_path);
+        const char* ei_path2;
+        ce_optparse_get(optparse, "ei_path2", &ei_path2);
 
         const char* zone;
         ce_optparse_get(optparse, "zone", &zone);
 
         char path[512];
         snprintf(path, sizeof(path), "%s/Camera/%s.cam",
-            ei_path, zone /*"mainmenu"*/ /*"camera01"*/);
+            ei_path2, zone /*"mainmenu"*/ /*"camera01"*/);
 
         ce_mem_file* mem_file = ce_mem_file_new_path(path);
         if (NULL != mem_file) {

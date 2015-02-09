@@ -223,8 +223,8 @@ namespace cursedearth
         }
 
         if (scenemng->rotate_on_event->triggered()) {
-            float xcoef = 0.25f * (ce_option_manager->inverse_trackball_x ? 1.0f : -1.0f);
-            float ycoef = 0.25f * (ce_option_manager->inverse_trackball_y ? 1.0f : -1.0f);
+            float xcoef = 0.25f * (option_manager_t::instance()->inverse_trackball_x ? 1.0f : -1.0f);
+            float ycoef = 0.25f * (option_manager_t::instance()->inverse_trackball_y ? 1.0f : -1.0f);
             ce_camera_yaw_pitch(scenemng->camera,
                 deg2rad(xcoef * scenemng->input_supply->pointer_offset().x),
                 deg2rad(ycoef * scenemng->input_supply->pointer_offset().y));
@@ -233,7 +233,7 @@ namespace cursedearth
 
     void ce_scenemng_render_playing(ce_scenemng* scenemng)
     {
-        if (ce_option_manager->show_axes) {
+        if (option_manager_t::instance()->show_axes) {
             ce_render_system_draw_axes();
         }
 
@@ -300,7 +300,7 @@ namespace cursedearth
             (*scenemng->listener.render)(scenemng->listener.receiver);
         }
 
-        if (ce_option_manager->show_fps) {
+        if (option_manager_t::instance()->show_fps) {
             ce_font_render(scenemng->font, scenemng->viewport.width -
                 ce_font_get_width(scenemng->font, scenemng->fps->text()) - 10,
                 scenemng->viewport.height - ce_font_get_height(scenemng->font) - 10,

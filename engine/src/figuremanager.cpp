@@ -71,16 +71,16 @@ namespace cursedearth
         ce_figure_manager->entities = ce_vector_new_reserved(512);
         ce_figure_manager->listeners = ce_vector_new();
 
-        std::vector<char> path(ce_option_manager->ei_path->length + 32);
+        std::vector<char> path(option_manager_t::instance()->ei_path2->length + 32);
 
         for (size_t i = 0; NULL != ce_figure_resource_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), ce_option_manager->ei_path->str, ce_figure_resource_dirs[i], NULL);
+            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path2->str, ce_figure_resource_dirs[i], NULL);
             ce_logging_info("figure manager: using path `%s'", path.data());
         }
 
         for (size_t i = 0; NULL != ce_figure_resource_names[i]; ++i) {
             ce_res_file* res_file;
-            if (NULL != ce_path_find_special1(path.data(), path.size(), ce_option_manager->ei_path->str,
+            if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path2->str,
                     ce_figure_resource_names[i], ce_figure_resource_dirs, ce_figure_resource_exts) &&
                     NULL != (res_file = ce_res_file_new_path(path.data()))) {
                 ce_vector_push_back(ce_figure_manager->res_files, res_file);
