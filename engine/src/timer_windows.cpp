@@ -22,7 +22,6 @@
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "error_windows.hpp"
 #include "timer.hpp"
 
 namespace cursedearth
@@ -41,9 +40,8 @@ namespace cursedearth
         if (QueryPerformanceFrequency(&frequency)) {
             return frequency.QuadPart;
         }
-        ce_error_report_windows_last("timer");
         ce_logging_warning("timer: using default frequency");
-        return 1000000;
+        return 1000000ll;
     }
 
     void ce_timer_query_counter(LARGE_INTEGER* value)

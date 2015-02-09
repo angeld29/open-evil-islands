@@ -22,7 +22,6 @@
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "error_windows.hpp"
 #include "graphicscontext_windows.hpp"
 
 namespace cursedearth
@@ -52,7 +51,6 @@ namespace cursedearth
 
         int pixel_format = ChoosePixelFormat(dc, &pfd);
         if (0 == pixel_format) {
-            ce_error_report_windows_last("graphic context");
             ce_logging_fatal("graphic context: no appropriate visual found");
             return NULL;
         }
@@ -63,7 +61,6 @@ namespace cursedearth
             pfd.cRedBits, pfd.cGreenBits, pfd.cBlueBits, pfd.cAlphaBits, pfd.cDepthBits, pfd.cStencilBits);
 
         if (!SetPixelFormat(dc, pixel_format, &pfd)) {
-            ce_error_report_windows_last("graphic context");
             ce_logging_fatal("graphic context: could not set pixel format");
             return NULL;
         }
@@ -72,7 +69,6 @@ namespace cursedearth
 
         graphics_context->context = wglCreateContext(dc);
         if (NULL == graphics_context->context) {
-            ce_error_report_windows_last("graphic context");
             ce_logging_fatal("graphic context: could not create context");
             ce_graphics_context_del(graphics_context);
             return NULL;

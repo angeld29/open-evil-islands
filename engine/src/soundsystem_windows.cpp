@@ -25,9 +25,7 @@
 #include <mmsystem.h>
 #include <mmreg.h>
 
-#include "alloc.hpp"
 #include "logging.hpp"
-#include "error_windows.hpp"
 #include "soundsystem.hpp"
 
 namespace cursedearth
@@ -76,7 +74,7 @@ namespace cursedearth
 
         wmm->event = CreateEvent(NULL, TRUE, FALSE, NULL);
         if (NULL == wmm->event) {
-            ce_error_report_windows_last("wmm");
+            ce_logging_error("wmm: CreateEvent failed");
             return false;
         }
 
@@ -92,7 +90,7 @@ namespace cursedearth
         code = waveOutOpen(&wmm->waveout, WAVE_MAPPER, &wmm->waveformat.Format,
             (DWORD_PTR)ce_wmm_proc, (DWORD_PTR)wmm, CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
         if (MMSYSERR_NOERROR != code) {
-            ce_wmm_error(code, "could not open waveform output device");
+            ce_wmm_error(code, "waveOutOpen failed");
             return false;
         }
 
@@ -114,21 +112,21 @@ namespace cursedearth
         if (NULL != wmm->waveout) {
             code = waveOutReset(wmm->waveout);
             if (MMSYSERR_NOERROR != code) {
-                ce_wmm_error(code, "could not reset waveform output device");
+                ce_wmm_error(code, "waveOutReset failed");
             }
 
             for (size_t i = 0; i < SOUND_CAPABILITY_HEADER_COUNT; ++i) {
                 if (wmm->headers[i].waveheader.dwFlags & WHDR_PREPARED) {
                     code = waveOutUnprepareHeader(wmm->waveout, &wmm->headers[i].waveheader, sizeof(WAVEHDR));
                     if (MMSYSERR_NOERROR != code) {
-                        ce_wmm_error(code, "could not unprepare header");
+                        ce_wmm_error(code, "waveOutUnprepareHeader failed");
                     }
                 }
             }
 
             code = waveOutClose(wmm->waveout);
             if (MMSYSERR_NOERROR != code) {
-                ce_wmm_error(code, "could not close waveform output device");
+                ce_wmm_error(code, "waveOutClose failed");
             }
         }
 
@@ -157,7 +155,7 @@ namespace cursedearth
 
         while (NULL == (header = ce_wmm_find(wmm))) {
             if (WAIT_OBJECT_0 != WaitForSingleObject(wmm->event, INFINITE)) {
-                ce_error_report_windows_last("wmm");
+                ce_logging_error("wmm: WaitForSingleObject failed");
                 return false;
             }
         }
@@ -174,13 +172,13 @@ namespace cursedearth
                 if (MMSYSERR_NOERROR == code) {
                     // unbelievable! :)
                 } else {
-                    ce_wmm_error(code, "could not write header");
+                    ce_wmm_error(code, "waveOutWrite failed");
                 }
             } else {
-                ce_wmm_error(code, "could not prepare header");
+                ce_wmm_error(code, "waveOutPrepareHeader failed");
             }
         } else {
-            ce_wmm_error(code, "could not unprepare header");
+            ce_wmm_error(code, "waveOutUnprepareHeader failed");
         }
 
         return MMSYSERR_NOERROR == code;

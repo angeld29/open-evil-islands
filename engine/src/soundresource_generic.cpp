@@ -46,9 +46,8 @@ extern "C"
 }
 
 #include "alloc.hpp"
-#include "logging.hpp"
 #include "byteorder.hpp"
-#include "error.hpp"
+#include "logging.hpp"
 #include "wave.hpp"
 #include "bink.hpp"
 #include "soundresource.hpp"
@@ -579,7 +578,6 @@ namespace cursedearth
             CE_MAD_INPUT_BUFFER_CAPACITY - remaining);
 
         if (ce_mem_file_error(sound_resource->mem_file)) {
-            ce_error_report_c_last("mad");
             return false;
         }
 

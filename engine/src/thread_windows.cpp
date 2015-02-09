@@ -26,7 +26,6 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "vector.hpp"
-#include "error_windows.hpp"
 #include "thread.hpp"
 
 namespace cursedearth
@@ -77,7 +76,7 @@ namespace cursedearth
                                       &id);   // thread identifier
 
         if (NULL == thread->handle) {
-            ce_error_report_windows_last("thread");
+            ce_logging_error("thread: CreateThread failed");
         }
 
         thread->id = id;
@@ -101,7 +100,7 @@ namespace cursedearth
     void ce_thread_wait(ce_thread* thread)
     {
         if (WAIT_OBJECT_0 != WaitForSingleObject(thread->handle, INFINITE)) {
-            ce_error_report_windows_last("thread");
+            ce_logging_error("thread: WaitForSingleObject failed");
         }
     }
 
@@ -149,7 +148,7 @@ namespace cursedearth
                                     FALSE, // initial state is nonsignaled
                                     NULL); // unnamed
         if (NULL == event->handle) {
-            ce_error_report_windows_last("wait condition event");
+            ce_logging_error("thread: CreateEvent failed");
         }
         return event;
     }
@@ -241,7 +240,7 @@ namespace cursedearth
 
         ce_mutex_unlock(mutex);
         if (WAIT_OBJECT_0 != WaitForSingleObject(event->handle, INFINITE)) {
-            ce_error_report_windows_last("wait condition");
+            ce_logging_error("thread: WaitForSingleObject failed");
         }
         ce_mutex_lock(mutex);
 

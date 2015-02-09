@@ -20,8 +20,6 @@ engine/include/configmanager.hpp
 engine/include/display.hpp
 engine/include/display_windows.hpp
 engine/include/display_x11.hpp
-engine/include/error.hpp
-engine/include/error_windows.hpp
 engine/include/event.hpp
 engine/include/figbone.hpp
 engine/include/figentity.hpp
@@ -151,8 +149,6 @@ engine/src/configmanager.cpp
 engine/src/display.cpp
 engine/src/display_windows.cpp
 engine/src/display_x11.cpp
-engine/src/error.cpp
-engine/src/error_windows.cpp
 engine/src/event.cpp
 engine/src/figbone.cpp
 engine/src/figentity.cpp

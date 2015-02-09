@@ -18,9 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
+/*
  * Bink Container (C) RAD Game Tools, Inc.
- * http://wiki.multimedia.cx/index.php?title=Bink_Container
  */
 
 #ifndef CE_BINK_HPP
