@@ -284,10 +284,10 @@ namespace cursedearth
         ce_logging_debug("theora: ogg logical stream %lx is theora %d bit/s, %ux%u %.02f fps",
             theora->stream.serialno, theora->info.target_bitrate, video_resource->width, video_resource->height, video_resource->fps);
 
-        video_resource->ycbcr.crop_rect.x = theora->info.pic_x;
-        video_resource->ycbcr.crop_rect.y = theora->info.pic_y;
-        video_resource->ycbcr.crop_rect.width = theora->info.pic_width;
-        video_resource->ycbcr.crop_rect.height = theora->info.pic_height;
+        video_resource->ycbcr.crop_rectangle.x = theora->info.pic_x;
+        video_resource->ycbcr.crop_rectangle.y = theora->info.pic_y;
+        video_resource->ycbcr.crop_rectangle.width = theora->info.pic_width;
+        video_resource->ycbcr.crop_rectangle.height = theora->info.pic_height;
 
         if (theora->info.pic_width != theora->info.frame_width || theora->info.pic_height != theora->info.frame_height) {
             ce_logging_debug("theora: frame content is %dx%d with offset (%d,%d)",
@@ -418,10 +418,10 @@ namespace cursedearth
 
         video_resource->frame_count = bink->header.frame_count;
 
-        video_resource->ycbcr.crop_rect.x = 0;
-        video_resource->ycbcr.crop_rect.y = 0;
-        video_resource->ycbcr.crop_rect.width = bink->header.video_width;
-        video_resource->ycbcr.crop_rect.height = bink->header.video_height;
+        video_resource->ycbcr.crop_rectangle.x = 0;
+        video_resource->ycbcr.crop_rectangle.y = 0;
+        video_resource->ycbcr.crop_rectangle.width = bink->header.video_width;
+        video_resource->ycbcr.crop_rectangle.height = bink->header.video_height;
 
         bink->indices = (ce_bink_index*)bink->data;
         if (!ce_bink_index_read(bink->indices, bink->header.frame_count, video_resource->mem_file)) {

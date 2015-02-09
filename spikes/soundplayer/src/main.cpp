@@ -100,8 +100,8 @@ static void render(void*)
     }
 
     ce_font_render(ce_root::instance()->scenemng->font,
-        (ce_root::instance()->scenemng->viewport->width - ce_font_get_width(ce_root::instance()->scenemng->font, message)) / 2,
-        1 * (ce_root::instance()->scenemng->viewport->height - ce_font_get_height(ce_root::instance()->scenemng->font)) / 5,
+        (ce_root::instance()->scenemng->viewport.width - ce_font_get_width(ce_root::instance()->scenemng->font, message)) / 2,
+        1 * (ce_root::instance()->scenemng->viewport.height - ce_font_get_height(ce_root::instance()->scenemng->font)) / 5,
         &message_color, message);
 }
 

@@ -23,17 +23,23 @@
 
 namespace cursedearth
 {
-    typedef struct {
-        int x, y; // lower left corner in pixels
-        int width, height;
-    } ce_viewport;
+    struct viewport_t
+    {
+        int x = 0, y = 0; // lower left corner in pixels
+        int width = 100, height = 100;
 
-    ce_viewport* ce_viewport_new(void);
-    void ce_viewport_del(ce_viewport* viewport);
+        void set_corner(int x, int y)
+        {
+            this->x = x;
+            this->y = y;
+        }
 
-    void ce_viewport_set_corner(ce_viewport* viewport, int x, int y);
-    void ce_viewport_set_dimensions(ce_viewport* viewport, int width, int height);
-    void ce_viewport_set_rect(ce_viewport* viewport, int x, int y, int width, int height);
+        void set_dimensions(int width, int height)
+        {
+            this->width = width;
+            this->height = height;
+        }
+    };
 }
 
 #endif

@@ -253,7 +253,6 @@ engine/src/videomanager.cpp
 engine/src/videoobject.cpp
 engine/src/videoresource.cpp
 engine/src/videoresource_generic.cpp
-engine/src/viewport.cpp
 engine/src/wave.cpp
 engine/SConscript
 scripts/compilers/__init__.py

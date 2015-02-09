@@ -28,7 +28,7 @@ namespace cursedearth
         struct {
             unsigned int x, y;
             unsigned int width, height;
-        } crop_rect;
+        } crop_rectangle;
         struct {
             int stride;
             unsigned char* data;

@@ -53,7 +53,7 @@ namespace cursedearth
 
     void ce_render_system_draw_fullscreen_wire_rect(unsigned int width, unsigned int height);
 
-    void ce_render_system_setup_viewport(ce_viewport* viewport);
+    void ce_render_system_setup_viewport(viewport_t* viewport);
     void ce_render_system_setup_camera(ce_camera* camera);
 
     void ce_render_system_apply_color(const color_t* color);

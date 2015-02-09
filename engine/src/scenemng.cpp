@@ -42,7 +42,7 @@ namespace cursedearth
     void ce_scenemng_renderwindow_resized(void* listener, int width, int height)
     {
         ce_scenemng* scenemng = (ce_scenemng*)listener;
-        ce_viewport_set_rect(scenemng->viewport, 0, 0, width, height);
+        scenemng->viewport.set_dimensions(width, height);
         ce_camera_set_aspect(scenemng->camera, static_cast<float>(width) / height);
     }
 
@@ -59,7 +59,6 @@ namespace cursedearth
         scenemng->thread_id = ce_thread_self();
         scenemng->scenenode = ce_scenenode_new(NULL);
         scenemng->renderqueue = ce_renderqueue_new();
-        scenemng->viewport = ce_viewport_new();
         scenemng->camera = ce_camera_new();
         scenemng->fps = std::make_shared<fps_t>();
         scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
@@ -96,7 +95,6 @@ namespace cursedearth
             ce_terrain_del(scenemng->terrain);
             ce_font_del(scenemng->font);
             ce_camera_del(scenemng->camera);
-            ce_viewport_del(scenemng->viewport);
             ce_renderqueue_del(scenemng->renderqueue);
             ce_scenenode_del(scenemng->scenenode);
             delete scenemng;
@@ -294,7 +292,7 @@ namespace cursedearth
     {
         ce_render_system_begin_render(&CE_COLOR_WHITE);
 
-        ce_render_system_setup_viewport(scenemng->viewport);
+        ce_render_system_setup_viewport(&scenemng->viewport);
         ce_render_system_setup_camera(scenemng->camera);
 
         (*ce_scenemng_state_procs[scenemng->state].render)(scenemng);
@@ -304,14 +302,14 @@ namespace cursedearth
         }
 
         if (ce_option_manager->show_fps) {
-            ce_font_render(scenemng->font, scenemng->viewport->width -
+            ce_font_render(scenemng->font, scenemng->viewport.width -
                 ce_font_get_width(scenemng->font, scenemng->fps->text()) - 10,
-                scenemng->viewport->height - ce_font_get_height(scenemng->font) - 10,
+                scenemng->viewport.height - ce_font_get_height(scenemng->font) - 10,
                 &CE_COLOR_GOLD, scenemng->fps->text());
         }
 
         const char* engine_text = "Powered by Cursed Earth engine";
-        ce_font_render(scenemng->font, scenemng->viewport->width - ce_font_get_width(scenemng->font, engine_text) - 10, 10, &CE_COLOR_RED, engine_text);
+        ce_font_render(scenemng->font, scenemng->viewport.width - ce_font_get_width(scenemng->font, engine_text) - 10, 10, &CE_COLOR_RED, engine_text);
 
         ce_render_system_end_render();
     }

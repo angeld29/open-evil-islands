@@ -61,7 +61,7 @@ namespace cursedearth
         float camera_zoom_sensitivity = 5.0f; // TODO: make strategy
         ce_scenenode* scenenode;
         ce_renderqueue* renderqueue;
-        ce_viewport* viewport;
+        viewport_t viewport;
         ce_camera* camera;
         fps_ptr_t fps;
         ce_font* font;

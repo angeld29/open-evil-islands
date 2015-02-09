@@ -192,17 +192,17 @@ namespace cursedearth
             uint8_t* cb_data = y_data + ycbcr_frame->width * ycbcr_frame->height;
             uint8_t* cr_data = cb_data + (ycbcr_frame->width / 2) * (ycbcr_frame->height / 2);
 
-            int y_offset = (ycbcr->crop_rect.x & ~1) + ycbcr->planes[0].stride * (ycbcr->crop_rect.y & ~1);
-            int cb_offset = (ycbcr->crop_rect.x / 2) + ycbcr->planes[1].stride * (ycbcr->crop_rect.y / 2);
-            int cr_offset = (ycbcr->crop_rect.x / 2) + ycbcr->planes[2].stride * (ycbcr->crop_rect.y / 2);
+            int y_offset = (ycbcr->crop_rectangle.x & ~1) + ycbcr->planes[0].stride * (ycbcr->crop_rectangle.y & ~1);
+            int cb_offset = (ycbcr->crop_rectangle.x / 2) + ycbcr->planes[1].stride * (ycbcr->crop_rectangle.y / 2);
+            int cr_offset = (ycbcr->crop_rectangle.x / 2) + ycbcr->planes[2].stride * (ycbcr->crop_rectangle.y / 2);
 
-            for (unsigned int h = 0; h < ycbcr->crop_rect.height; ++h) {
-                memcpy(y_data + h * ycbcr->crop_rect.width, ycbcr->planes[0].data + y_offset + h * ycbcr->planes[0].stride, ycbcr->crop_rect.width);
+            for (unsigned int h = 0; h < ycbcr->crop_rectangle.height; ++h) {
+                memcpy(y_data + h * ycbcr->crop_rectangle.width, ycbcr->planes[0].data + y_offset + h * ycbcr->planes[0].stride, ycbcr->crop_rectangle.width);
             }
 
-            for (unsigned int h = 0; h < ycbcr->crop_rect.height / 2; ++h) {
-                memcpy(cb_data + h * (ycbcr->crop_rect.width / 2), ycbcr->planes[1].data + cb_offset + h * ycbcr->planes[1].stride, ycbcr->crop_rect.width / 2);
-                memcpy(cr_data + h * (ycbcr->crop_rect.width / 2), ycbcr->planes[2].data + cr_offset + h * ycbcr->planes[2].stride, ycbcr->crop_rect.width / 2);
+            for (unsigned int h = 0; h < ycbcr->crop_rectangle.height / 2; ++h) {
+                memcpy(cb_data + h * (ycbcr->crop_rectangle.width / 2), ycbcr->planes[1].data + cb_offset + h * ycbcr->planes[1].stride, ycbcr->crop_rectangle.width / 2);
+                memcpy(cr_data + h * (ycbcr->crop_rectangle.width / 2), ycbcr->planes[2].data + cr_offset + h * ycbcr->planes[2].stride, ycbcr->crop_rectangle.width / 2);
             }
 
             ce_semaphore_release(instance->m_prepared_frames, 1);

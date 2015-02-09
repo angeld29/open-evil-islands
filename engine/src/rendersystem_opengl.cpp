@@ -315,7 +315,7 @@ namespace cursedearth
         glPopMatrix();
     }
 
-    void ce_render_system_setup_viewport(ce_viewport* viewport)
+    void ce_render_system_setup_viewport(viewport_t* viewport)
     {
         glViewport(viewport->x, viewport->y, viewport->width, viewport->height);
         glScissor(viewport->x, viewport->y, viewport->width, viewport->height);
