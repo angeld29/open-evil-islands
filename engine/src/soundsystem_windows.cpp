@@ -18,14 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
 #include <cassert>
+#include <cstdio>
 
 #include <windows.h>
 #include <mmsystem.h>
 #include <mmreg.h>
 
-#include "lib.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "error_windows.hpp"
@@ -70,7 +69,7 @@ namespace cursedearth
 
     bool ce_wmm_ctor()
     {
-        ce_wmm* wmm = (ce_wmm*)ce_sound_system->impl;
+        ce_wmm* wmm = (ce_wmm*)sound_system_t::instance()->impl;
         MMRESULT code = MMSYSERR_NOERROR;
 
         ce_logging_info("sound system: using Windows Waveform-Audio Interface");
@@ -109,7 +108,7 @@ namespace cursedearth
 
     void ce_wmm_dtor()
     {
-        ce_wmm* wmm = (ce_wmm*)ce_sound_system->impl;
+        ce_wmm* wmm = (ce_wmm*)sound_system_t::instance()->impl;
         MMRESULT code = MMSYSERR_NOERROR;
 
         if (NULL != wmm->waveout) {
@@ -150,7 +149,7 @@ namespace cursedearth
 
     bool ce_wmm_write(const void* block)
     {
-        ce_wmm* wmm = (ce_wmm*)ce_sound_system->impl;
+        ce_wmm* wmm = (ce_wmm*)sound_system_t::instance()->impl;
         ce_wmm_header* header = NULL;
         MMRESULT code = MMSYSERR_NOERROR;
 
@@ -173,7 +172,7 @@ namespace cursedearth
             if (MMSYSERR_NOERROR == code) {
                 code = waveOutWrite(wmm->waveout, &header->waveheader, sizeof(WAVEHDR));
                 if (MMSYSERR_NOERROR == code) {
-                    ce_pass(); // unbelievable! :)
+                    // unbelievable! :)
                 } else {
                     ce_wmm_error(code, "could not write header");
                 }

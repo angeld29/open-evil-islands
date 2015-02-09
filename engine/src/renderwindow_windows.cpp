@@ -56,7 +56,8 @@ namespace cursedearth
         { MOD_WIN, VK_RWIN },
     };
 
-    typedef struct {
+    struct ce_renderwindow_win
+    {
         DWORD style[CE_RENDERWINDOW_STATE_COUNT];
         DWORD extended_style[CE_RENDERWINDOW_STATE_COUNT];
         RAWINPUTDEVICE rid[CE_RENDERWINDOW_RID_COUNT];
@@ -64,7 +65,7 @@ namespace cursedearth
         bool in_sizemove;
         bool cursor_inside;
         HWND window;
-    } ce_renderwindow_win;
+    };
 
     LRESULT CALLBACK ce_renderwindow_proc(HWND, UINT, WPARAM, LPARAM);
 
@@ -123,24 +124,43 @@ namespace cursedearth
 
         renderwindow->displaymng = ce_displaymng_create();
 
-        const unsigned long keys[CE_IB_COUNT] = {
-            0, VK_ESCAPE, VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8,
-            VK_F9, VK_F10, VK_F11, VK_F12, VK_OEM_3, '0', '1', '2', '3', '4', '5',
-            '6', '7', '8', '9', VK_OEM_MINUS, VK_OEM_PLUS, VK_OEM_5, VK_BACK, VK_TAB,
-            'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', VK_OEM_4, VK_OEM_6,
-            VK_CAPITAL, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', VK_OEM_1,
-            VK_OEM_7, VK_RETURN, VK_LSHIFT, 'Z', 'X', 'C', 'V', 'B', 'N', 'M',
-            VK_OEM_COMMA, VK_OEM_PERIOD, VK_OEM_2, VK_RSHIFT, VK_LCONTROL, VK_LWIN,
-            VK_LMENU, VK_SPACE, VK_RMENU, VK_RWIN, VK_APPS, VK_RCONTROL, VK_SNAPSHOT,
-            VK_SCROLL, VK_PAUSE, VK_INSERT, VK_DELETE, VK_HOME, VK_END, VK_PRIOR,
-            VK_NEXT, VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN, VK_NUMLOCK, VK_DIVIDE,
-            VK_MULTIPLY, VK_SUBTRACT, VK_ADD, VK_EXECUTE, VK_DECIMAL, VK_NUMPAD7,
-            VK_NUMPAD8, VK_NUMPAD9, VK_NUMPAD4, VK_NUMPAD5, VK_NUMPAD6, VK_NUMPAD1,
-            VK_NUMPAD2, VK_NUMPAD3, VK_NUMPAD0, 0, 0, 0, 0, 0
-        };
-
-        ce_renderwindow_keymap_add_array(renderwindow->keymap, keys);
-        ce_renderwindow_keymap_sort(renderwindow->keymap);
+        renderwindow->m_input_map.insert({
+            { 0           , input_button_t::unknown        }, { VK_ESCAPE    , input_button_t::kb_escape     }, { VK_F1      , input_button_t::kb_f1         },
+            { VK_F2       , input_button_t::kb_f2          }, { VK_F3        , input_button_t::kb_f3         }, { VK_F4      , input_button_t::kb_f4         },
+            { VK_F5       , input_button_t::kb_f5          }, { VK_F6        , input_button_t::kb_f6         }, { VK_F7      , input_button_t::kb_f7         },
+            { VK_F8       , input_button_t::kb_f8          }, { VK_F9        , input_button_t::kb_f9         }, { VK_F10     , input_button_t::kb_f10        },
+            { VK_F11      , input_button_t::kb_f11         }, { VK_F12       , input_button_t::kb_f12        }, { VK_OEM_3   , input_button_t::kb_tilde      },
+            { '0'         , input_button_t::kb_0           }, { '1'          , input_button_t::kb_1          }, { '2'        , input_button_t::kb_2          },
+            { '3'         , input_button_t::kb_3           }, { '4'          , input_button_t::kb_4          }, { '5'        , input_button_t::kb_5          },
+            { '6'         , input_button_t::kb_6           }, { '7'          , input_button_t::kb_7          }, { '8'        , input_button_t::kb_8          },
+            { '9'         , input_button_t::kb_9           }, { VK_OEM_MINUS , input_button_t::kb_minus      }, { VK_OEM_PLUS, input_button_t::kb_equals     },
+            { VK_OEM_5    , input_button_t::kb_backslash   }, { VK_BACK      , input_button_t::kb_backspace  }, { VK_TAB     , input_button_t::kb_tab        },
+            { 'Q'         , input_button_t::kb_q           }, { 'W'          , input_button_t::kb_w          }, { 'E'        , input_button_t::kb_e          },
+            { 'R'         , input_button_t::kb_r           }, { 'T'          , input_button_t::kb_t          }, { 'Y'        , input_button_t::kb_y          },
+            { 'U'         , input_button_t::kb_u           }, { 'I'          , input_button_t::kb_i          }, { 'O'        , input_button_t::kb_o          },
+            { 'P'         , input_button_t::kb_p           }, { VK_OEM_4     , input_button_t::kb_lbracket   }, { VK_OEM_6   , input_button_t::kb_rbracket   },
+            { VK_CAPITAL  , input_button_t::kb_capslock    }, { 'A'          , input_button_t::kb_a          }, { 'S'        , input_button_t::kb_s          },
+            { 'D'         , input_button_t::kb_d           }, { 'F'          , input_button_t::kb_f          }, { 'G'        , input_button_t::kb_g          },
+            { 'H'         , input_button_t::kb_h           }, { 'J'          , input_button_t::kb_j          }, { 'K'        , input_button_t::kb_k          },
+            { 'L'         , input_button_t::kb_l           }, { VK_OEM_1     , input_button_t::kb_semicolon  }, { VK_OEM_7   , input_button_t::kb_apostrophe },
+            { VK_RETURN   , input_button_t::kb_enter       }, { VK_LSHIFT    , input_button_t::kb_lshift     }, { 'Z'        , input_button_t::kb_z          },
+            { 'X'         , input_button_t::kb_x           }, { 'C'          , input_button_t::kb_c          }, { 'V'        , input_button_t::kb_v          },
+            { 'B'         , input_button_t::kb_b           }, { 'N'          , input_button_t::kb_n          }, { 'M'        , input_button_t::kb_m          },
+            { VK_OEM_COMMA, input_button_t::kb_comma       }, { VK_OEM_PERIOD, input_button_t::kb_period     }, { VK_OEM_2   , input_button_t::kb_slash      },
+            { VK_RSHIFT   , input_button_t::kb_rshift      }, { VK_LCONTROL  , input_button_t::kb_lcontrol   }, { VK_LWIN    , input_button_t::kb_lmeta      },
+            { VK_LMENU    , input_button_t::kb_lalt        }, { VK_SPACE     , input_button_t::kb_space      }, { VK_RMENU   , input_button_t::kb_ralt       },
+            { VK_RWIN     , input_button_t::kb_rmeta       }, { VK_APPS      , input_button_t::kb_menu       }, { VK_RCONTROL, input_button_t::kb_rcontrol   },
+            { VK_SNAPSHOT , input_button_t::kb_print       }, { VK_SCROLL    , input_button_t::kb_scrolllock }, { VK_PAUSE   , input_button_t::kb_pause      },
+            { VK_INSERT   , input_button_t::kb_insert      }, { VK_DELETE    , input_button_t::kb_delete     }, { VK_HOME    , input_button_t::kb_home       },
+            { VK_END      , input_button_t::kb_end         }, { VK_PRIOR     , input_button_t::kb_pageup     }, { VK_NEXT    , input_button_t::kb_pagedown   },
+            { VK_LEFT     , input_button_t::kb_left        }, { VK_UP        , input_button_t::kb_up         }, { VK_RIGHT   , input_button_t::kb_right      },
+            { VK_DOWN     , input_button_t::kb_down        }, { VK_NUMLOCK   , input_button_t::kb_numlock    }, { VK_DIVIDE  , input_button_t::kb_divide     },
+            { VK_MULTIPLY , input_button_t::kb_multiply    }, { VK_SUBTRACT  , input_button_t::kb_subtract   }, { VK_ADD     , input_button_t::kb_add        },
+            { VK_EXECUTE  , input_button_t::kb_numpadenter }, { VK_DECIMAL   , input_button_t::kb_decimal    }, { VK_NUMPAD7 , input_button_t::kb_numpad7    },
+            { VK_NUMPAD8  , input_button_t::kb_numpad8     }, { VK_NUMPAD9   , input_button_t::kb_numpad9    }, { VK_NUMPAD4 , input_button_t::kb_numpad4    },
+            { VK_NUMPAD5  , input_button_t::kb_numpad5     }, { VK_NUMPAD6   , input_button_t::kb_numpad6    }, { VK_NUMPAD1 , input_button_t::kb_numpad1    },
+            { VK_NUMPAD2  , input_button_t::kb_numpad2     }, { VK_NUMPAD3   , input_button_t::kb_numpad3    }, { VK_NUMPAD0 , input_button_t::kb_numpad0    }
+        });
 
         winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].usUsagePage = HID_USAGE_PAGE_GENERIC;
         winwindow->rid[CE_RENDERWINDOW_RID_KEYBOARD].usUsage = HID_USAGE_GENERIC_KEYBOARD;
@@ -152,7 +172,7 @@ namespace cursedearth
         winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].dwFlags = RIDEV_NOLEGACY;
         winwindow->rid[CE_RENDERWINDOW_RID_MOUSE].hwndTarget = NULL;
 
-        // TODO: implement RID
+        // TODO: implement RID ?
         //if (RegisterRawInputDevices(winwindow->rid, 2, sizeof(RAWINPUTDEVICE))) {
         //	ce_logging_warning("renderwindow: using raw input");
         //} else {
@@ -418,7 +438,7 @@ namespace cursedearth
 
     bool ce_renderwindow_handler_killfocus(ce_renderwindow* renderwindow, WPARAM, LPARAM)
     {
-        ce_input_context_clear(renderwindow->input_context);
+        renderwindow->m_input_context->clear();
         return false;
     }
 
@@ -488,8 +508,7 @@ namespace cursedearth
             break;
         }
 
-        renderwindow->input_context->buttons[ce_renderwindow_keymap_search(renderwindow->keymap, wparam)] = pressed;
-
+        renderwindow->m_input_context->buttons[static_cast<size_t>(renderwindow->m_input_map[wparam])] = pressed;
         return false;
     }
 
@@ -507,43 +526,42 @@ namespace cursedearth
     {
         // TODO: undefined behavior in windows mode
         if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
-            renderwindow->input_context->pointer_position.x = GET_X_LPARAM(lparam);
-            renderwindow->input_context->pointer_position.y = GET_Y_LPARAM(lparam);
+            renderwindow->m_input_context->pointer_position.x = GET_X_LPARAM(lparam);
+            renderwindow->m_input_context->pointer_position.y = GET_Y_LPARAM(lparam);
         }
 
-        renderwindow->input_context->buttons[button] = pressed;
-
+        renderwindow->m_input_context->buttons[static_cast<size_t>(button)] = pressed;
         return false;
     }
 
     bool ce_renderwindow_handler_lbuttondown(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
     {
-        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, CE_MB_LEFT, true);
+        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, input_button_t::mb_left, true);
     }
 
     bool ce_renderwindow_handler_lbuttonup(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
     {
-        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, CE_MB_LEFT, false);
+        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, input_button_t::mb_left, false);
     }
 
     bool ce_renderwindow_handler_mbuttondown(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
     {
-        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, CE_MB_MIDDLE, true);
+        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, input_button_t::mb_middle, true);
     }
 
     bool ce_renderwindow_handler_mbuttonup(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
     {
-        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, CE_MB_MIDDLE, false);
+        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, input_button_t::mb_middle, false);
     }
 
     bool ce_renderwindow_handler_rbuttondown(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
     {
-        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, CE_MB_RIGHT, true);
+        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, input_button_t::mb_right, true);
     }
 
     bool ce_renderwindow_handler_rbuttonup(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
     {
-        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, CE_MB_RIGHT, false);
+        return ce_renderwindow_handler_button(renderwindow, wparam, lparam, input_button_t::mb_right, false);
     }
 
     bool ce_renderwindow_handler_mousewheel(ce_renderwindow* renderwindow, WPARAM wparam, LPARAM lparam)
@@ -551,15 +569,15 @@ namespace cursedearth
         ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
         if (winwindow->cursor_inside) {
             return ce_renderwindow_handler_button(renderwindow, wparam, lparam,
-                (GET_WHEEL_DELTA_WPARAM(wparam) < 0 ? CE_MB_WHEELDOWN : CE_MB_WHEELUP), true);
+                (GET_WHEEL_DELTA_WPARAM(wparam) < 0 ? input_button_t::mb_wheeldown : input_button_t::mb_wheelup), true);
         }
         return false;
     }
 
     bool ce_renderwindow_handler_mousehover(ce_renderwindow* renderwindow, WPARAM, LPARAM lparam)
     {
-        renderwindow->input_context->pointer_position.x = GET_X_LPARAM(lparam);
-        renderwindow->input_context->pointer_position.y = GET_Y_LPARAM(lparam);
+        renderwindow->m_input_context->pointer_position.x = GET_X_LPARAM(lparam);
+        renderwindow->m_input_context->pointer_position.y = GET_Y_LPARAM(lparam);
 
         ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
         winwindow->cursor_inside = true;
@@ -569,7 +587,7 @@ namespace cursedearth
 
     bool ce_renderwindow_handler_mouseleave(ce_renderwindow* renderwindow, WPARAM, LPARAM)
     {
-        renderwindow->input_context->pointer_position = CE_VEC2_ZERO;
+        renderwindow->m_input_context->pointer_position = CE_VEC2_ZERO;
 
         ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
         winwindow->cursor_inside = false;
@@ -579,11 +597,11 @@ namespace cursedearth
 
     bool ce_renderwindow_handler_mousemove(ce_renderwindow* renderwindow, WPARAM, LPARAM lparam)
     {
-        renderwindow->input_context->pointer_offset.x = GET_X_LPARAM(lparam) - renderwindow->input_context->pointer_position.x;
-        renderwindow->input_context->pointer_offset.y = GET_Y_LPARAM(lparam) - renderwindow->input_context->pointer_position.y;
+        renderwindow->m_input_context->pointer_offset.x = GET_X_LPARAM(lparam) - renderwindow->m_input_context->pointer_position.x;
+        renderwindow->m_input_context->pointer_offset.y = GET_Y_LPARAM(lparam) - renderwindow->m_input_context->pointer_position.y;
 
-        renderwindow->input_context->pointer_position.x = GET_X_LPARAM(lparam);
-        renderwindow->input_context->pointer_position.y = GET_Y_LPARAM(lparam);
+        renderwindow->m_input_context->pointer_position.x = GET_X_LPARAM(lparam);
+        renderwindow->m_input_context->pointer_position.y = GET_Y_LPARAM(lparam);
 
         ce_renderwindow_win* winwindow = (ce_renderwindow_win*)renderwindow->impl;
 

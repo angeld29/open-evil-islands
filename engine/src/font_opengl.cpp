@@ -120,8 +120,8 @@ namespace cursedearth
 
             line_space -= font->widths[ch];
 
-            max_ascent = std::max(max_ascent, face->glyph->bitmap_top);
-            max_descent = std::max(max_descent, face->glyph->bitmap.rows - face->glyph->bitmap_top);
+            max_ascent = std::max<int>(max_ascent, face->glyph->bitmap_top);
+            max_descent = std::max<int>(max_descent, face->glyph->bitmap.rows - face->glyph->bitmap_top);
         }
 
         font->height = max_ascent + max_descent;

@@ -1,3 +1,4 @@
+engine/build/src/resourcedata.cpp
 engine/include/aabb.hpp
 engine/include/adbfile.hpp
 engine/include/alloc.hpp
@@ -44,10 +45,9 @@ engine/include/input.hpp
 engine/include/lnkfile.hpp
 engine/include/logging.hpp
 engine/include/makeunique.hpp
+engine/include/material.hpp
 engine/include/matrix3.hpp
 engine/include/matrix4.hpp
-engine/include/material.hpp
-engine/include/utility.hpp
 engine/include/memfile.hpp
 engine/include/mmpfile.hpp
 engine/include/mobfile.hpp
@@ -109,11 +109,12 @@ engine/include/thread.hpp
 engine/include/timer.hpp
 engine/include/transform.hpp
 engine/include/triangle.hpp
+engine/include/utility.hpp
 engine/include/value.hpp
+engine/include/vector.hpp
 engine/include/vector2.hpp
 engine/include/vector3.hpp
 engine/include/vector4.hpp
-engine/include/vector.hpp
 engine/include/videoinstance.hpp
 engine/include/videomanager.hpp
 engine/include/videoobject.hpp
@@ -174,10 +175,9 @@ engine/src/graphicscontext_x11.cpp
 engine/src/input.cpp
 engine/src/lnkfile.cpp
 engine/src/logging.cpp
+engine/src/material.cpp
 engine/src/matrix3.cpp
 engine/src/matrix4.cpp
-engine/src/material.cpp
-engine/src/utility.cpp
 engine/src/memfile.cpp
 engine/src/mmpfile.cpp
 engine/src/mobfile.cpp
@@ -247,10 +247,11 @@ engine/src/timer_posix.cpp
 engine/src/timer_windows.cpp
 engine/src/transform.cpp
 engine/src/triangle.cpp
+engine/src/utility.cpp
 engine/src/value.cpp
+engine/src/vector.cpp
 engine/src/vector2.cpp
 engine/src/vector3.cpp
-engine/src/vector.cpp
 engine/src/videoinstance.cpp
 engine/src/videomanager.cpp
 engine/src/videoobject.cpp
