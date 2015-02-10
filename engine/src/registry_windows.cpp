@@ -18,63 +18,58 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-#include <cstring>
+#include <memory>
 
 #include <windows.h>
 
-#include "logging.hpp"
+#include <boost/algorithm/string.hpp>
+
 #include "registry.hpp"
 
 namespace cursedearth
 {
-    char* ce_registry_get_string_value(char* value, size_t size, registry_key_t key, const char* key_name, const char* value_name)
+    struct hkey_dtor_t
     {
-        if (0 == size) {
-            return NULL;
+        void operator ()(HKEY* hkey)
+        {
+            RegCloseKey(*hkey);
         }
+    };
 
+    std::string find_string_in_registry(registry_key_t key, const std::string& key_name, const std::string& value_name)
+    {
         HKEY hkey;
-        DWORD type = REG_SZ;
+        DWORD htype = REG_SZ;
 
-        LPBYTE data = reinterpret_cast<LPBYTE>(value);
-        DWORD data_size = static_cast<DWORD>(size);
+        BYTE data[1024];
+        DWORD size = sizeof(data);
 
         switch (key) {
-        case CE_REGISTRY_KEY_CURRENT_USER:
+        case registry_key_t::current_user:
             hkey = HKEY_CURRENT_USER;
             break;
-        case CE_REGISTRY_KEY_LOCAL_MACHINE:
+        case registry_key_t::local_machine:
             hkey = HKEY_LOCAL_MACHINE;
             break;
+        default:
+            return std::string();
         }
 
-        // see MSDN RegQueryValueEx
-        memset(value, '\0', size);
-
-        if (ERROR_SUCCESS == RegOpenKeyEx(hkey, key_name, 0, KEY_READ, &hkey)) {
-            if (ERROR_SUCCESS == RegQueryValueEx(hkey, value_name, NULL, &type, data, &data_size)) {
-                if (REG_SZ == type || REG_EXPAND_SZ == type || REG_MULTI_SZ == type) {
-                    if (0 == data_size) {
-                        value[0] = '\0';
-                    } else if (data_size < size) {
-                        value[data_size] = '\0';
-                    } else if ('\0' != value[size - 1]) {
-                        value[size - 1] = '\0';
-                        ce_logging_warning("registry: key `%s': value `%s': truncation occured: `%s'", key_name, value_name, value);
-                    }
-                    RegCloseKey(hkey);
-                    return value;
+        if (ERROR_SUCCESS == RegOpenKeyEx(hkey, key_name.c_str(), 0, KEY_READ, &hkey)) {
+            std::unique_ptr<HKEY, hkey_dtor_t> hhkey(&hkey);
+            if (ERROR_SUCCESS == RegQueryValueEx(*hhkey, value_name.c_str(), NULL, &htype, data, &size)) {
+                if (REG_SZ == htype) {
+                    // size includes any terminating null character or characters unless the data was stored without them
+                    return boost::algorithm::trim_right_copy_if(std::string(reinterpret_cast<char*>(data), size), [] (char c) { return '\0' == c; });
                 }
             }
-            RegCloseKey(hkey);
         }
 
-        return NULL;
+        return std::string();
     }
 
-    char* ce_registry_get_path_value(char* value, size_t size, registry_key_t key, const char* key_name, const char* value_name)
+    std::string find_path_in_registry(registry_key_t key, const std::string& key_name, const std::string& value_name)
     {
-        return ce_registry_get_string_value(value, size, key, key_name, value_name);
+        return find_string_in_registry(key, key_name, value_name);
     }
 }

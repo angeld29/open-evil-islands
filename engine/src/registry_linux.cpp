@@ -79,7 +79,7 @@ namespace cursedearth
             throw std::runtime_error("unknown key");
         }
 
-        struct config_file_deleter_t
+        struct config_file_dtor_t
         {
             void operator ()(ce_config_file* config_file)
             {
@@ -90,7 +90,7 @@ namespace cursedearth
         std::string get_value(const std::string& wine_prefix, const std::string& reg_file_name, const std::string& key_name, const std::string& value_name)
         {
             const std::string reg_file_path = wine_prefix + '/' + reg_file_name;
-            std::unique_ptr<ce_config_file, config_file_deleter_t> config_file(ce_config_file_open(reg_file_path.c_str()));
+            std::unique_ptr<ce_config_file, config_file_dtor_t> config_file(ce_config_file_open(reg_file_path.c_str()));
             if (!config_file) {
                 ce_logging_error("registry: could not open file `%s'", reg_file_path.c_str());
                 return std::string();

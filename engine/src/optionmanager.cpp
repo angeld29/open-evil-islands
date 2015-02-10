@@ -67,6 +67,11 @@ namespace cursedearth
             inverse_trackball_x = true;
             inverse_trackball_y = true;
         }
+
+        ce_logging_info("option manager: EI path is `%s'", m_ei_path.string().c_str());
+        ce_logging_info("option manager: CE path is `%s'", m_ce_path.string().c_str());
+        ce_logging_info("option manager: terrain tiling %s", m_enable_terrain_tiling ? "enabled" : "disabled");
+        ce_logging_info("option manager: texture caching %s", m_disable_texture_caching ? "disabled" : "enabled");
     }
 
     ce_optparse* option_manager_t::make_parser()
