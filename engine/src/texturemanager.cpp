@@ -81,11 +81,11 @@ namespace cursedearth
         }
     }
 
-    ce_mmpfile* ce_texture_manager_open_mmpfile_from_cache(const char* name)
+    ce_mmpfile* ce_texture_manager_open_mmpfile_from_cache(const std::string& name)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + strlen(name) + 32);
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + name.length() + 32);
 
-        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), name, ce_texture_cache_dirs, ce_texture_exts)) {
+        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), name.c_str(), ce_texture_cache_dirs, ce_texture_exts)) {
             ce_mem_file* mem_file = ce_mem_file_new_path(path.data());
             if (NULL != mem_file) {
                 ce_mmpfile* mmpfile = ce_mmpfile_new_mem_file(mem_file);
@@ -97,9 +97,9 @@ namespace cursedearth
         return NULL;
     }
 
-    ce_mmpfile* ce_texture_manager_open_mmpfile_from_resources(const char* name)
+    ce_mmpfile* ce_texture_manager_open_mmpfile_from_resources(const std::string& name)
     {
-        std::string file_name = std::string(name) + ce_texture_exts[0];
+        std::string file_name = name + ce_texture_exts[0];
 
         // find in resources
         for (size_t i = 0; i < ce_texture_manager->res_files->count; ++i) {
@@ -114,40 +114,39 @@ namespace cursedearth
         return NULL;
     }
 
-    ce_mmpfile* ce_texture_manager_open_mmpfile(const char* name)
+    ce_mmpfile* ce_texture_manager_open_mmpfile(const std::string& name)
     {
-        ce_mmpfile* mmpfile = ce_texture_manager_open_mmpfile_from_cache(name);
+        ce_mmpfile* mmpfile = ce_texture_manager_open_mmpfile_from_cache(name.c_str());
         if (NULL == mmpfile) {
-            mmpfile = ce_texture_manager_open_mmpfile_from_resources(name);
+            mmpfile = ce_texture_manager_open_mmpfile_from_resources(name.c_str());
         }
         return mmpfile;
     }
 
-    void ce_texture_manager_save_mmpfile(const char* name, ce_mmpfile* mmpfile)
+    void ce_texture_manager_save_mmpfile(const std::string& name, ce_mmpfile* mmpfile)
     {
-        std::string file_name = std::string(name) + ce_texture_exts[0];
+        std::string file_name = name + ce_texture_exts[0];
         std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + file_name.length() + 32);
         ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_texture_cache_dirs[0], file_name.c_str(), NULL);
         ce_mmpfile_save(mmpfile, path.data());
     }
 
-    ce_texture* ce_texture_manager_get(const char* name)
+    ce_texture* ce_texture_manager_get(const std::string& name)
     {
-        std::vector<char> base_name(strlen(name) + 1);
-        ce_path_remove_ext(base_name.data(), name);
+        std::string base_name = name.substr(0, name.find_last_of("."));
 
         // find texture in cache
         for (size_t i = 0; i < ce_texture_manager->textures->count; ++i) {
             ce_texture* texture = (ce_texture*)ce_texture_manager->textures->items[i];
-            if (0 == ce_strcasecmp(base_name.data(), texture->name->str)) {
+            if (0 == ce_strcasecmp(base_name.c_str(), texture->name->str)) {
                 return texture;
             }
         }
 
         // load texture from resources
-        ce_mmpfile* mmpfile = ce_texture_manager_open_mmpfile(name);
+        ce_mmpfile* mmpfile = ce_texture_manager_open_mmpfile(name.c_str());
         if (NULL != mmpfile) {
-            ce_texture* texture = ce_texture_new(base_name.data(), mmpfile);
+            ce_texture* texture = ce_texture_new(base_name.c_str(), mmpfile);
             ce_mmpfile_del(mmpfile);
             ce_texture_manager_put(texture);
             return texture;

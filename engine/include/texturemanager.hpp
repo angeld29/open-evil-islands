@@ -21,6 +21,8 @@
 #ifndef CE_TEXTUREMANAGER_HPP
 #define CE_TEXTUREMANAGER_HPP
 
+#include <string>
+
 #include "string.hpp"
 #include "vector.hpp"
 #include "mmpfile.hpp"
@@ -37,19 +39,19 @@ namespace cursedearth
     void ce_texture_manager_term(void);
 
     // search mmp file only in cache directory; thread-safe
-    ce_mmpfile* ce_texture_manager_open_mmpfile_from_cache(const char* name);
+    ce_mmpfile* ce_texture_manager_open_mmpfile_from_cache(const std::string& name);
 
     // search mmp file only in resources; not thread-safe
-    ce_mmpfile* ce_texture_manager_open_mmpfile_from_resources(const char* name);
+    ce_mmpfile* ce_texture_manager_open_mmpfile_from_resources(const std::string& name);
 
     // search mmp file in both cache directory and resources
-    ce_mmpfile* ce_texture_manager_open_mmpfile(const char* name);
+    ce_mmpfile* ce_texture_manager_open_mmpfile(const std::string& name);
 
     // save mmp file in cache directory; thread-safe
-    void ce_texture_manager_save_mmpfile(const char* name, ce_mmpfile* mmpfile);
+    void ce_texture_manager_save_mmpfile(const std::string& name, ce_mmpfile* mmpfile);
 
     // acquire texture, not thread-safe
-    ce_texture* ce_texture_manager_get(const char* name);
+    ce_texture* ce_texture_manager_get(const std::string& name);
 
     // add new texture, not thread-safe
     void ce_texture_manager_put(ce_texture* texture);

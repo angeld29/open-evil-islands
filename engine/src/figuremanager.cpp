@@ -113,42 +113,40 @@ namespace cursedearth
         ce_vector_clear(ce_figure_manager->entities);
     }
 
-    ce_figproto* ce_figure_manager_create_proto(const char* name)
+    ce_figproto* ce_figure_manager_create_proto(const std::string& name)
     {
-        std::vector<char> true_name(strlen(name) + 1);
-        ce_path_remove_ext(true_name.data(), name);
+        std::string base_name = name.substr(0, name.find_last_of("."));
 
         // find in cache
         for (size_t i = 0; i < ce_figure_manager->figprotos->count; ++i) {
             ce_figproto* figproto = (ce_figproto*)ce_figure_manager->figprotos->items[i];
-            if (0 == ce_strcasecmp(true_name.data(), figproto->name->str)) {
+            if (0 == ce_strcasecmp(base_name.c_str(), figproto->name->str)) {
                 return figproto;
             }
         }
 
-        std::string file_name = std::string(name) + ce_figure_exts[0];
+        std::string file_name = name + ce_figure_exts[0];
         for (size_t i = 0; i < ce_figure_manager->res_files->count; ++i) {
             ce_res_file* res_file = (ce_res_file*)ce_figure_manager->res_files->items[i];
             if (res_file->node_count != ce_res_file_node_index(res_file, file_name.c_str())) {
-                ce_figproto* figproto = ce_figproto_new(true_name.data(), res_file);
+                ce_figproto* figproto = ce_figproto_new(base_name.data(), res_file);
                 ce_vector_push_back(ce_figure_manager->figprotos, figproto);
                 ce_notify_figproto_created(ce_figure_manager->listeners, figproto);
                 return figproto;
             }
         }
 
-        ce_logging_error("figure manager: could not create figure proto `%s'", name);
+        ce_logging_error("figure manager: could not create figure proto `%s'", name.c_str());
         return NULL;
     }
 
-    ce_figmesh* ce_figure_manager_create_mesh(const char* name, const complection_t* complection)
+    ce_figmesh* ce_figure_manager_create_mesh(const std::string& name, const complection_t* complection)
     {
-        std::vector<char> true_name(strlen(name) + 1);
-        ce_path_remove_ext(true_name.data(), name);
+        std::string base_name = name.substr(0, name.find_last_of("."));
 
         for (size_t i = 0; i < ce_figure_manager->figmeshes->count; ++i) {
             ce_figmesh* figmesh = (ce_figmesh*)ce_figure_manager->figmeshes->items[i];
-            if (0 == ce_strcasecmp(true_name.data(), figmesh->figproto->name->str) && ce_complection_equal(complection, &figmesh->complection)) {
+            if (0 == ce_strcasecmp(base_name.c_str(), figmesh->figproto->name->str) && ce_complection_equal(complection, &figmesh->complection)) {
                 return figmesh;
             }
         }
@@ -161,11 +159,11 @@ namespace cursedearth
             return figmesh;
         }
 
-        ce_logging_error("figure manager: could not create figure mesh `%s'", name);
+        ce_logging_error("figure manager: could not create figure mesh `%s'", name.c_str());
         return NULL;
     }
 
-    ce_figentity* ce_figure_manager_create_entity(const char* name, const complection_t* complection, const vector3_t* position, const quaternion_t* orientation, const char* parts[], const char* textures[])
+    ce_figentity* ce_figure_manager_create_entity(const std::string& name, const complection_t* complection, const vector3_t* position, const quaternion_t* orientation, const char* parts[], const char* textures[])
     {
         ce_figmesh* mesh = ce_figure_manager_create_mesh(name, complection);
         if (NULL != mesh) {
@@ -176,7 +174,7 @@ namespace cursedearth
             }
         }
 
-        ce_logging_error("figure manager: could not create figure entity `%s'", name);
+        ce_logging_error("figure manager: could not create figure entity `%s'", name.c_str());
         return NULL;
     }
 
