@@ -30,15 +30,14 @@ namespace cursedearth
         m_state(SOUND_INSTANCE_STATE_STOPPED),
         m_time(0.0f),
         m_done(false),
-        m_thread(ce_thread_new((void(*)())execute, this))
+        m_thread(std::bind(&sound_instance_t::execute, this))
     {
     }
 
     sound_instance_t::~sound_instance_t()
     {
         m_done = true;
-        ce_thread_wait(m_thread);
-        ce_thread_del(m_thread);
+        m_thread.join();
         ce_sound_resource_del(m_resource);
     }
 
@@ -51,27 +50,27 @@ namespace cursedearth
         m_state = state;
     }
 
-    void sound_instance_t::execute_playing(sound_instance_t* instance)
+    void sound_instance_t::execute_playing()
     {
-        if (ce_sound_resource_read(instance->m_resource, instance->m_buffer)) {
-            instance->m_time = instance->m_resource->time;
+        if (ce_sound_resource_read(m_resource, m_buffer)) {
+            m_time = m_resource->time;
         } else {
-            instance->change_state(SOUND_INSTANCE_STATE_STOPPED);
+            change_state(SOUND_INSTANCE_STATE_STOPPED);
         }
     }
 
-    void sound_instance_t::execute(sound_instance_t* instance)
+    void sound_instance_t::execute()
     {
-        while (!instance->m_done) {
-            switch (instance->m_state) {
+        while (!m_done) {
+            switch (m_state) {
             case SOUND_INSTANCE_STATE_PLAYING:
-                execute_playing(instance);
+                execute_playing();
                 break;
             case SOUND_INSTANCE_STATE_PAUSED:
                 break;
             case SOUND_INSTANCE_STATE_STOPPED:
-                instance->m_time = 0.0f;
-                ce_sound_resource_reset(instance->m_resource);
+                m_time = 0.0f;
+                ce_sound_resource_reset(m_resource);
                 break;
             }
         }

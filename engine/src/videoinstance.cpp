@@ -19,6 +19,7 @@
  */
 
 #include <cstring>
+#include <functional>
 
 #include "logging.hpp"
 #include "rendersystem.hpp"
@@ -49,15 +50,14 @@ namespace cursedearth
             m_ycbcr_frames[i] = ce_mmpfile_new(resource->width, resource->height, 1, CE_MMPFILE_FORMAT_YCBCR, 0);
         }
 
-        m_thread = ce_thread_new((void(*)())execute, this);
+        m_thread = std::thread(std::bind(&video_instance_t::execute, this));
     }
 
     video_instance_t::~video_instance_t()
     {
         m_done = true;
         ce_semaphore_release(m_unprepared_frames, 1);
-        ce_thread_wait(m_thread);
-        ce_thread_del(m_thread);
+        m_thread.join();
         ce_semaphore_del(m_unprepared_frames);
         ce_semaphore_del(m_prepared_frames);
         for (size_t i = 0; i < s_cache_size; ++i) {
@@ -175,18 +175,18 @@ namespace cursedearth
         }
     }
 
-    void video_instance_t::execute(video_instance_t* instance)
+    void video_instance_t::execute()
     {
-        for (size_t i = ce_semaphore_available(instance->m_prepared_frames); !instance->m_done; ++i) {
-            ce_semaphore_acquire(instance->m_unprepared_frames, 1);
+        for (size_t i = ce_semaphore_available(m_prepared_frames); !m_done; ++i) {
+            ce_semaphore_acquire(m_unprepared_frames, 1);
 
-            if (!ce_video_resource_read(instance->m_resource)) {
-                instance->m_state = state_t::stopping;
+            if (!ce_video_resource_read(m_resource)) {
+                m_state = state_t::stopping;
                 break;
             }
 
-            ce_mmpfile* ycbcr_frame = instance->m_ycbcr_frames[i % s_cache_size];
-            ycbcr_t* ycbcr = &instance->m_resource->ycbcr;
+            ce_mmpfile* ycbcr_frame = m_ycbcr_frames[i % s_cache_size];
+            ycbcr_t* ycbcr = &m_resource->ycbcr;
 
             uint8_t* y_data = static_cast<uint8_t*>(ycbcr_frame->texels);
             uint8_t* cb_data = y_data + ycbcr_frame->width * ycbcr_frame->height;
@@ -205,7 +205,7 @@ namespace cursedearth
                 memcpy(cr_data + h * (ycbcr->crop_rectangle.width / 2), ycbcr->planes[2].data + cr_offset + h * ycbcr->planes[2].stride, ycbcr->crop_rectangle.width / 2);
             }
 
-            ce_semaphore_release(instance->m_prepared_frames, 1);
+            ce_semaphore_release(m_prepared_frames, 1);
         }
     }
 }

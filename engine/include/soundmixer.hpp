@@ -21,10 +21,12 @@
 #ifndef CE_SOUNDMIXER_HPP
 #define CE_SOUNDMIXER_HPP
 
+#include <atomic>
+#include <thread>
+#include <mutex>
 #include <list>
 
 #include "singleton.hpp"
-#include "thread.hpp"
 #include "soundbuffer.hpp"
 
 namespace cursedearth
@@ -38,13 +40,13 @@ namespace cursedearth
         sound_buffer_ptr_t make_buffer(const sound_format_t&);
 
     private:
-        static void execute(sound_mixer_t*);
+        void execute();
 
     private:
         std::list<sound_buffer_ptr_t> m_buffers;
         std::atomic<bool> m_done;
-        ce_mutex* m_mutex;
-        ce_thread* m_thread;
+        std::mutex m_mutex;
+        std::thread m_thread;
     };
 }
 

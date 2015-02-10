@@ -28,6 +28,7 @@
 #include "singleton.hpp"
 #include "resfile.hpp"
 #include "soundinstance.hpp"
+#include "soundobject.hpp"
 
 namespace cursedearth
 {

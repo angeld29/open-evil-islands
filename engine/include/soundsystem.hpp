@@ -22,9 +22,9 @@
 #define CE_SOUNDSYSTEM_HPP
 
 #include <atomic>
+#include <thread>
 
 #include "singleton.hpp"
-#include "thread.hpp"
 #include "soundbuffer.hpp"
 
 namespace cursedearth
@@ -45,12 +45,12 @@ namespace cursedearth
         void write(void* block);
 
     private:
-        static void execute(sound_system_t*);
+        void execute();
 
     private:
         sound_buffer_ptr_t m_buffer;
         std::atomic<bool> m_done;
-        ce_thread* m_thread;
+        std::thread m_thread;
 
     public:
         ce_sound_system_vtable vtable;

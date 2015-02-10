@@ -22,12 +22,11 @@
 #define CE_SOUNDINSTANCE_HPP
 
 #include <atomic>
+#include <thread>
 #include <memory>
 
 #include <boost/noncopyable.hpp>
 
-#include "thread.hpp"
-#include "soundobject.hpp"
 #include "soundresource.hpp"
 
 namespace cursedearth
@@ -51,8 +50,8 @@ namespace cursedearth
         void change_state(sound_instance_state_t);
 
     private:
-        static void execute_playing(sound_instance_t*);
-        static void execute(sound_instance_t*);
+        void execute_playing();
+        void execute();
 
     private:
         ce_sound_resource* m_resource;
@@ -60,7 +59,7 @@ namespace cursedearth
         std::atomic<sound_instance_state_t> m_state;
         std::atomic<float> m_time;
         std::atomic<bool> m_done;
-        ce_thread* m_thread;
+        std::thread m_thread;
     };
 
     typedef std::shared_ptr<sound_instance_t> sound_instance_ptr_t;

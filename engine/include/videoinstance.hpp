@@ -22,6 +22,7 @@
 #define CE_VIDEOINSTANCE_HPP
 
 #include <atomic>
+#include <thread>
 #include <memory>
 
 #include <boost/noncopyable.hpp>
@@ -31,7 +32,6 @@
 #include "texture.hpp"
 #include "material.hpp"
 #include "soundobject.hpp"
-#include "videoobject.hpp"
 #include "videoresource.hpp"
 
 namespace cursedearth
@@ -62,7 +62,7 @@ namespace cursedearth
 
     private:
         void do_advance();
-        static void execute(video_instance_t*);
+        void execute();
 
     private:
         const sound_object_t m_object;
@@ -77,7 +77,7 @@ namespace cursedearth
         ce_semaphore* m_prepared_frames;
         ce_semaphore* m_unprepared_frames;
         std::atomic<bool> m_done;
-        ce_thread* m_thread;
+        std::thread m_thread;
     };
 
     typedef std::shared_ptr<video_instance_t> video_instance_ptr_t;

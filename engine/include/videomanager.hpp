@@ -26,10 +26,11 @@
 
 #include "singleton.hpp"
 #include "videoinstance.hpp"
+#include "videoobject.hpp"
 
 namespace cursedearth
 {
-    class video_manager_t: public singleton_t<video_manager_t>
+    class video_manager_t final: public singleton_t<video_manager_t>
     {
     public:
         video_manager_t();

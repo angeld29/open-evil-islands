@@ -32,17 +32,14 @@ namespace cursedearth
     sound_mixer_t::sound_mixer_t():
         singleton_t<sound_mixer_t>(this),
         m_done(false),
-        m_mutex(ce_mutex_new()),
-        m_thread(ce_thread_new((void(*)())execute, this))
+        m_thread(std::bind(&sound_mixer_t::execute, this))
     {
     }
 
     sound_mixer_t::~sound_mixer_t()
     {
         m_done = true;
-        ce_thread_wait(m_thread);
-        ce_thread_del(m_thread);
-        ce_mutex_del(m_mutex);
+        m_thread.join();
         if (!m_buffers.empty()) {
             ce_logging_warning("sound mixer: some buffers have not been unregistered");
         }
@@ -51,9 +48,8 @@ namespace cursedearth
     sound_buffer_ptr_t sound_mixer_t::make_buffer(const sound_format_t& format)
     {
         sound_buffer_ptr_t buffer = std::make_shared<sound_buffer_t>(format);
-        ce_mutex_lock(m_mutex);
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_buffers.push_back(buffer);
-        ce_mutex_unlock(m_mutex);
         return buffer;
     }
 
@@ -88,27 +84,24 @@ namespace cursedearth
         mix_sample_s16(static_cast<int16_t*>(sample), static_cast<const int16_t*>(other));
     }
 
-    void sound_mixer_t::execute(sound_mixer_t* mixer)
+    void sound_mixer_t::execute()
     {
         uint8_t block[SOUND_CAPABILITY_BLOCK_SIZE];
         uint8_t native_sample[SOUND_CAPABILITY_SAMPLE_SIZE];
         uint8_t foreign_sample[SOUND_CAPABILITY_MAX_SAMPLE_SIZE];
 
-        while (!mixer->m_done) {
+        while (!m_done) {
             uint8_t* data = block;
-            ce_mutex_lock(mixer->m_mutex);
-
             for (size_t i = 0; i < SOUND_CAPABILITY_SAMPLES_IN_BLOCK; ++i, data += SOUND_CAPABILITY_SAMPLE_SIZE) {
                 memset(data, 0, SOUND_CAPABILITY_SAMPLE_SIZE);
-                for (const auto& buffer: mixer->m_buffers) {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                for (const auto& buffer: m_buffers) {
                     if (buffer->pop(foreign_sample, false)) {
                         convert_sample(native_sample, foreign_sample, buffer->format());
                         mix_sample(data, native_sample);
                     }
                 }
             }
-
-            ce_mutex_unlock(mixer->m_mutex);
             sound_system_t::instance()->write(block);
         }
     }

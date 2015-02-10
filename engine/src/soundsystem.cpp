@@ -18,6 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <functional>
+
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
@@ -73,14 +75,13 @@ namespace cursedearth
         if (!ce_sound_system_ctor(option_manager_t::instance()->disable_sound() ? ce_sound_system_null() : ce_sound_system_platform())) {
             ce_sound_system_ctor(ce_sound_system_null());
         }
-        m_thread = ce_thread_new((void(*)())execute, this);
+        m_thread = std::thread(std::bind(&sound_system_t::execute, this));
     }
 
     sound_system_t::~sound_system_t()
     {
         m_done = true;
-        ce_thread_wait(m_thread);
-        ce_thread_del(m_thread);
+        m_thread.join();
         ce_sound_system_dtor();
     }
 
@@ -89,12 +90,12 @@ namespace cursedearth
         m_buffer->push(block, SOUND_CAPABILITY_SAMPLES_IN_BLOCK, true);
     }
 
-    void sound_system_t::execute(sound_system_t* sound_system)
+    void sound_system_t::execute()
     {
         uint8_t block[SOUND_CAPABILITY_BLOCK_SIZE];
-        while (!sound_system->m_done) {
-            sound_system->m_buffer->pop(block, SOUND_CAPABILITY_SAMPLES_IN_BLOCK, true);
-            if (!(*sound_system->vtable.write)(block)) {
+        while (!m_done) {
+            m_buffer->pop(block, SOUND_CAPABILITY_SAMPLES_IN_BLOCK, true);
+            if (!(*vtable.write)(block)) {
                 ce_logging_critical("sound system: could not write block");
             }
         }
