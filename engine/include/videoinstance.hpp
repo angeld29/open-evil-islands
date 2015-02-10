@@ -74,8 +74,8 @@ namespace cursedearth
         ce_material* m_material;
         ce_mmpfile* m_rgba_frame;
         ce_mmpfile* m_ycbcr_frames[s_cache_size];
-        ce_semaphore* m_prepared_frames;
-        ce_semaphore* m_unprepared_frames;
+        semaphore_t* m_prepared_frames;
+        semaphore_t* m_unprepared_frames;
         std::atomic<bool> m_done;
         std::thread m_thread;
     };

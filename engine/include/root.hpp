@@ -58,6 +58,7 @@ namespace cursedearth
         std::unique_ptr<class sound_mixer_t> m_sound_mixer;
         std::unique_ptr<class sound_manager_t> m_sound_manager;
         std::unique_ptr<class video_manager_t> m_video_manager;
+        std::unique_ptr<class thread_pool_t> m_thread_pool;
     };
 }
 

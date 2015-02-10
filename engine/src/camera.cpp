@@ -28,8 +28,8 @@ namespace cursedearth
         ce_camera* camera = (ce_camera*)ce_alloc(sizeof(ce_camera));
         camera->fov = 60.0f;
         camera->aspect = 1.0f;
-        camera->near = 1.0f;
-        camera->far = 500.0f;
+        camera->m_near = 1.0f;
+        camera->m_far = 500.0f;
         camera->position = CE_VEC3_ZERO;
         camera->orientation = CE_QUAT_IDENTITY;
         return camera;
@@ -73,12 +73,12 @@ namespace cursedearth
 
     void ce_camera_set_near(ce_camera* camera, float near)
     {
-        camera->near = near;
+        camera->m_near = near;
     }
 
     void ce_camera_set_far(ce_camera* camera, float far)
     {
-        camera->far = far;
+        camera->m_far = far;
     }
 
     void ce_camera_set_position(ce_camera* camera, const vector3_t* position)

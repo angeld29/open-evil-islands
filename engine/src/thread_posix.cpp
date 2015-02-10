@@ -49,25 +49,26 @@ namespace cursedearth
 #endif
     }
 
-    void sleep(unsigned int milliseconds)
-    {
-        usleep(1000 * milliseconds);
-    }
-
     ce_thread_id ce_thread_self(void)
     {
         return pthread_self();
     }
 
+    struct routine_t
+    {
+        void (*proc)(void*);
+        void* arg;
+    };
+
     struct ce_thread
     {
-        ce_routine routine;
+        routine_t routine;
         pthread_t handle;
     };
 
     void* ce_thread_wrap(void* arg)
     {
-        ce_routine* routine = (ce_routine*)arg;
+        routine_t* routine = (routine_t*)arg;
         (*routine->proc)(routine->arg);
         return arg;
     }
@@ -230,14 +231,14 @@ namespace cursedearth
 
     void ce_once_wrap(void)
     {
-        ce_routine* routine = (ce_routine*)pthread_getspecific(ce_once_key);
+        routine_t* routine = (routine_t*)pthread_getspecific(ce_once_key);
         (*routine->proc)(routine->arg);
     }
 
     void ce_once_exec(ce_once* once, void (*proc)(), void* arg)
     {
         pthread_once(&ce_once_once, ce_once_key_init);
-        ce_routine routine = { (void(*)(void*))proc, arg };
+        routine_t routine = { (void(*)(void*))proc, arg };
         pthread_setspecific(ce_once_key, &routine);
         pthread_once(&once->handle, ce_once_wrap);
     }

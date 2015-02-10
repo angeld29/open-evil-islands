@@ -116,7 +116,7 @@ namespace cursedearth
     {
         ce_mob_task* mob_task = (ce_mob_task*)ce_alloc_zero(sizeof(ce_mob_task));
         mob_task->name = ce_string_new_str(name);
-        ce_thread_pool_enqueue((void(*)())ce_mob_task_exec, mob_task);
+        thread_pool_t::instance()->enqueue(std::bind(ce_mob_task_exec, mob_task));
         return mob_task;
     }
 

@@ -186,7 +186,8 @@ namespace cursedearth
         } else {
             // do not eat CPU time, mostly for single-core CPU
             if (!ce_event_manager_has_pending_events(ce_thread_self())) {
-                ce_thread_pool_wait_one();
+                thread_pool_t::instance()->wait_one();
+
             }
         }
     }
@@ -244,8 +245,8 @@ namespace cursedearth
         frustum_t frustum;
 
         ce_frustum_init(&frustum, scenemng->camera->fov,
-            scenemng->camera->aspect, scenemng->camera->near,
-            scenemng->camera->far, &scenemng->camera->position,
+            scenemng->camera->aspect, scenemng->camera->m_near,
+            scenemng->camera->m_far, &scenemng->camera->position,
             ce_camera_get_forward(scenemng->camera, &forward),
             ce_camera_get_right(scenemng->camera, &right),
             ce_camera_get_up(scenemng->camera, &up));

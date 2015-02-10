@@ -18,18 +18,16 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * FFmpeg libavcodec initialization
- * FFmpeg (C) Michael Niedermayer
- */
-
 #ifndef CE_AVCODEC_HPP
 #define CE_AVCODEC_HPP
 
 namespace cursedearth
 {
-    void ce_avcodec_init(void);
-    void ce_avcodec_term(void);
+    /**
+     * @brief ffmpeg avcodec initialization
+     */
+    void initialize_avcodec();
+    void terminate_avcodec();
 }
 
 #endif

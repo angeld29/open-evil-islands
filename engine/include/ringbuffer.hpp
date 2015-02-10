@@ -69,8 +69,8 @@ namespace cursedearth
 
     private:
         const size_t m_capacity;
-        ce_semaphore* m_free_data;
-        ce_semaphore* m_used_data;
+        semaphore_t* m_free_data;
+        semaphore_t* m_used_data;
         size_t m_start = 0, m_end = 0;
         std::unique_ptr<uint8_t[]> m_data;
     };

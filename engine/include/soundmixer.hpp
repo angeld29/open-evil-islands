@@ -45,8 +45,8 @@ namespace cursedearth
     private:
         std::list<sound_buffer_ptr_t> m_buffers;
         std::atomic<bool> m_done;
-        std::mutex m_mutex;
         std::thread m_thread;
+        std::mutex m_mutex;
     };
 }
 

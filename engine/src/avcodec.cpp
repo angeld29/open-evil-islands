@@ -18,9 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-#include <cstring>
-#include <vector>
+#include <string>
 
 extern "C"
 {
@@ -33,10 +31,28 @@ extern "C"
 
 namespace cursedearth
 {
-    void ce_avcodec_log(void*, int av_level, const char* format, va_list args)
+    std::mutex g_avcodec_mutex;
+
+    int avcodec_lock(void**, enum AVLockOp operation)
+    {
+        switch (operation) {
+        case AV_LOCK_OBTAIN:
+            g_avcodec_mutex.lock();
+            break;
+        case AV_LOCK_RELEASE:
+            g_avcodec_mutex.unlock();
+            break;
+        case AV_LOCK_CREATE:
+        case AV_LOCK_DESTROY:
+            // do nothing
+            break;
+        }
+        return 0;
+    }
+
+    void avcodec_log(void*, int av_level, const char* format, va_list args)
     {
         ce_logging_level level;
-
         switch (av_level) {
         case AV_LOG_PANIC:
         case AV_LOG_FATAL:
@@ -55,44 +71,21 @@ namespace cursedearth
         default:
             level = CE_LOGGING_LEVEL_INFO;
         }
-
-        std::vector<char> buffer(strlen(format) + 16);
-        snprintf(buffer.data(), buffer.size(), "avcodec: %s", format);
-
-        ce_logging_report_va(level, buffer.data(), args);
+        const std::string message = std::string("avcodec: ") + format;
+        ce_logging_report_va(level, message.c_str(), args);
     }
 
-    int ce_avcodec_lock(void** mutex, enum AVLockOp op)
+    void initialize_avcodec()
     {
-        switch (op) {
-        case AV_LOCK_CREATE:
-            *mutex = ce_mutex_new();
-            break;
-        case AV_LOCK_OBTAIN:
-            ce_mutex_lock((ce_mutex*)*mutex);
-            break;
-        case AV_LOCK_RELEASE:
-            ce_mutex_unlock((ce_mutex*)*mutex);
-            break;
-        case AV_LOCK_DESTROY:
-            ce_mutex_del((ce_mutex*)*mutex);
-            break;
-        }
-
-        return 0;
-    }
-
-    void ce_avcodec_init(void)
-    {
-        av_log_set_callback(ce_avcodec_log);
-        av_lockmgr_register(ce_avcodec_lock);
+        av_lockmgr_register(avcodec_lock);
+        av_log_set_callback(avcodec_log);
         avcodec_init();
         avcodec_register_all();
     }
 
-    void ce_avcodec_term(void)
+    void terminate_avcodec()
     {
-        av_lockmgr_register(NULL);
         av_log_set_callback(av_log_default_callback);
+        av_lockmgr_register(NULL);
     }
 }

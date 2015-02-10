@@ -157,9 +157,10 @@ namespace cursedearth
 
         m_sound_system = make_unique<sound_system_t>();
         m_sound_mixer = make_unique<sound_mixer_t>();
-        ce_avcodec_init();
         m_sound_manager = make_unique<sound_manager_t>();
         m_video_manager = make_unique<video_manager_t>();
+
+        initialize_avcodec();
 
         ce_texture_manager_init();
         ce_shader_manager_init();
@@ -170,7 +171,7 @@ namespace cursedearth
 
         ce_figure_manager_init();
         scenemng = ce_scenemng_new();
-        ce_thread_pool_init();
+        m_thread_pool = make_unique<thread_pool_t>();
 
         timer = ce_timer_new();
         input_supply = std::make_shared<input_supply_t>(renderwindow->input_context());
@@ -187,7 +188,7 @@ namespace cursedearth
     ce_root::~ce_root()
     {
         ce_timer_del(timer);
-        ce_thread_pool_term();
+        m_thread_pool.reset();
         ce_scenemng_del(scenemng);
         ce_figure_manager_term();
         ce_mob_loader_term();
@@ -197,7 +198,7 @@ namespace cursedearth
         ce_texture_manager_term();
         m_video_manager.reset();
         m_sound_manager.reset();
-        ce_avcodec_term();
+        terminate_avcodec();
         m_sound_mixer.reset();
         m_sound_system.reset();
         ce_render_system_term();

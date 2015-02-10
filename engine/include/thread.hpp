@@ -21,24 +21,18 @@
 #ifndef CE_THREAD_HPP
 #define CE_THREAD_HPP
 
-#include "vector.hpp"
+#include <atomic>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <functional>
+#include <vector>
+
+#include "singleton.hpp"
 
 namespace cursedearth
 {
     size_t online_cpu_count();
-    void sleep(unsigned int milliseconds);
-
-    typedef struct {
-        void (*proc)(void*);
-        void* arg;
-    } ce_routine;
-
-    ce_routine* ce_routine_new(void);
-    void ce_routine_del(ce_routine* routine);
-
-    /*
-     *  The thread struct provides platform-independent threads.
-    */
 
     typedef unsigned long int ce_thread_id;
 
@@ -53,20 +47,6 @@ namespace cursedearth
 
     void ce_thread_wait(ce_thread* thread);
 
-    void ce_thread_exec(ce_thread* thread);
-    void ce_thread_exit(ce_thread* thread);
-
-    inline void ce_thread_exit_wait_del(ce_thread* thread)
-    {
-        ce_thread_exit(thread);
-        ce_thread_wait(thread);
-        ce_thread_del(thread);
-    }
-
-    /*
-     *  The mutex struct provides access serialization between threads.
-    */
-
     typedef struct ce_mutex ce_mutex;
 
     ce_mutex* ce_mutex_new(void);
@@ -74,10 +54,6 @@ namespace cursedearth
 
     void ce_mutex_lock(ce_mutex* mutex);
     void ce_mutex_unlock(ce_mutex* mutex);
-
-    /*
-     *  The wait condition struct provides a condition variable for synchronizing threads.
-    */
 
     typedef struct ce_wait_condition ce_wait_condition;
 
@@ -88,10 +64,9 @@ namespace cursedearth
     void ce_wait_condition_wake_all(ce_wait_condition* wait_condition);
     void ce_wait_condition_wait(ce_wait_condition* wait_condition, ce_mutex* mutex);
 
-    /*
-     *  The once struct provides an once-only initialization.
-    */
-
+    /**
+     * @brief The once struct provides an once-only initialization.
+     */
     typedef struct ce_once ce_once;
 
     ce_once* ce_once_new(void);
@@ -99,51 +74,57 @@ namespace cursedearth
 
     void ce_once_exec(ce_once* once, void (*proc)(), void* arg);
 
-    /*
-     *  The semaphore struct provides a general counting semaphore.
-    */
-
-    typedef struct {
+    /**
+     * @brief The semaphore class provides a general counting semaphore.
+     */
+    struct semaphore_t
+    {
         size_t available;
         ce_mutex* mutex;
         ce_wait_condition* wait_condition;
-    } ce_semaphore;
+    };
 
-    ce_semaphore* ce_semaphore_new(size_t n);
-    void ce_semaphore_del(ce_semaphore* semaphore);
+    semaphore_t* ce_semaphore_new(size_t n);
+    void ce_semaphore_del(semaphore_t* semaphore);
 
-    size_t ce_semaphore_available(const ce_semaphore* semaphore);
+    size_t ce_semaphore_available(const semaphore_t* semaphore);
 
-    void ce_semaphore_acquire(ce_semaphore* semaphore, size_t n);
-    void ce_semaphore_release(ce_semaphore* semaphore, size_t n);
+    void ce_semaphore_acquire(semaphore_t* semaphore, size_t n);
+    void ce_semaphore_release(semaphore_t* semaphore, size_t n);
 
-    bool ce_semaphore_try_acquire(ce_semaphore* semaphore, size_t n);
+    bool ce_semaphore_try_acquire(semaphore_t* semaphore, size_t n);
 
-    /*
-     *  The thread pool struct manages a collection of threads.
-     *  It's a thread pool pattern implementation.
-     *  All functions are thread-safe.
-    */
+    /**
+     * @brief The thread pool class manages a collection of threads.
+     *        It's a thread pool pattern implementation.
+     *        All functions are thread-safe.
+     */
+    class thread_pool_t: public singleton_t<thread_pool_t>
+    {
+        typedef std::function<void ()> task_t;
 
-    extern struct ce_thread_pool {
-        bool done;
-        size_t idle_thread_count;
-        ce_vector* threads;
-        ce_vector* pending_routines;
-        ce_vector* free_routines;
-        ce_mutex* mutex;
-        ce_wait_condition* idle;
-        ce_wait_condition* wait_one;
-        ce_wait_condition* wait_all;
-    }* ce_thread_pool;
+    public:
+        thread_pool_t();
+        ~thread_pool_t();
 
-    void ce_thread_pool_init();
-    void ce_thread_pool_term();
+        void enqueue(const task_t&);
 
-    void ce_thread_pool_enqueue(void (*proc)(), void* arg);
+        void wait_one();
+        void wait_all();
 
-    void ce_thread_pool_wait_one();
-    void ce_thread_pool_wait_all();
+    private:
+        void execute();
+
+    private:
+        size_t m_idle_thread_count;
+        std::atomic<bool> m_done;
+        std::mutex m_mutex;
+        std::condition_variable m_idle;
+        std::condition_variable m_wait_one;
+        std::condition_variable m_wait_all;
+        std::vector<task_t> m_tasks;
+        std::vector<std::thread> m_threads;
+    };
 }
 
 #endif

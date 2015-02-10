@@ -143,7 +143,7 @@ namespace cursedearth
         sector->scenenode->listener = { NULL, NULL, NULL, ce_scenenode_updated, NULL, sector };
         sector->terrain = terrain;
 
-        ce_thread_pool_enqueue((void(*)())ce_terrain_sector_exec, sector);
+        thread_pool_t::instance()->enqueue(std::bind(ce_terrain_sector_exec, sector));
 
         return sector;
     }

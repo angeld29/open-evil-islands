@@ -37,26 +37,27 @@ namespace cursedearth
         return std::max<size_t>(1, info.dwNumberOfProcessors);
     }
 
-    void sleep(unsigned int milliseconds)
-    {
-        Sleep(milliseconds);
-    }
-
     ce_thread_id ce_thread_self(void)
     {
         return static_cast<ce_thread_id>(GetCurrentThreadId());
     }
 
+    struct routine_t
+    {
+        void (*proc)(void*);
+        void* arg;
+    };
+
     struct ce_thread
     {
         ce_thread_id id;
-        ce_routine routine;
+        routine_t routine;
         HANDLE handle;
     };
 
     DWORD WINAPI ce_thread_wrap(LPVOID arg)
     {
-        ce_routine* routine = (ce_routine*)arg;
+        routine_t* routine = (routine_t*)arg;
         (*routine->proc)(routine->arg);
         return 0;
     }

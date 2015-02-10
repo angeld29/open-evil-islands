@@ -365,7 +365,7 @@ namespace cursedearth
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        gluPerspective(camera->fov, camera->aspect, camera->near, camera->far);
+        gluPerspective(camera->fov, camera->aspect, camera->m_near, camera->m_far);
 
         glMatrixMode(GL_MODELVIEW);
         glMultMatrixf(ce_render_system->view.m);

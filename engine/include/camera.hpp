@@ -29,8 +29,8 @@ namespace cursedearth
     typedef struct {
         float fov;
         float aspect;
-        float near;
-        float far;
+        float m_near;
+        float m_far;
         vector3_t position;
         quaternion_t orientation;
     } ce_camera;
