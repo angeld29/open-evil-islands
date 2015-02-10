@@ -57,17 +57,9 @@ namespace cursedearth
         return path;
     }
 
-    char* ce_path_normpath(char* path)
-    {
-        for (char* sep = strpbrk(path, "/\\"); NULL != sep; sep = strpbrk(sep + 1, "/\\")) {
-            *sep = CE_PATH_SEP;
-        }
-        return path;
-    }
-
     char* ce_path_append_ext(char* file_name, size_t size, const char* name, const char* ext)
     {
-        if (NULL == ce_strcasestr(name, ext)) {
+        if (NULL == strstr(name, ext)) {
             snprintf(file_name, size, "%s%s", name, ext);
         } else {
             ce_strlcpy(file_name, name, size);

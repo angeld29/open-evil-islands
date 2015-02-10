@@ -41,12 +41,10 @@ namespace cursedearth
     } ce_event_ptr;
 
     typedef struct {
-        volatile bool interrupt;
         volatile size_t event_count;
         ce_thread_id thread_id;
         ce_timer* timer;
         ce_mutex* mutex;
-        ce_wait_condition* wait_condition;
         ce_vector* pending_events;
         ce_vector* sending_events;
     } ce_event_queue;
@@ -56,14 +54,10 @@ namespace cursedearth
 
     bool ce_event_queue_has_pending_events(ce_event_queue* queue);
 
-    // process all pending events
-    void ce_event_queue_process_events(ce_event_queue* queue);
-
     // process pending events for a maximum of max_time milliseconds
     void ce_event_queue_process_events_timeout(ce_event_queue* queue, int max_time);
 
     void ce_event_queue_add_event(ce_event_queue* queue, ce_event* event);
-    void ce_event_queue_interrupt(ce_event_queue* queue);
 
     extern struct ce_event_manager {
         ce_mutex* mutex;

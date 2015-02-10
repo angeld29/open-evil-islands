@@ -21,31 +21,16 @@
 #ifndef CE_PATH_HPP
 #define CE_PATH_HPP
 
-#include <cstddef>
-#include <cstdarg>
-
 #include "string.hpp"
 #include "vector.hpp"
 
 namespace cursedearth
 {
-    enum {
-        CE_PATH_MAX = 512,
-    };
-
     extern const char CE_PATH_SEP;
 
     bool ce_path_exists(const char* path);
 
-    bool ce_path_is_dir(const char* path);
-    bool ce_path_is_file(const char* path);
-
-    bool ce_path_list_subdirs(const char* path, ce_vector* subdirs);
-
-    char* ce_path_join_va(char* path, size_t size, va_list args);
     char* ce_path_join(char* path, size_t size, ...);
-
-    char* ce_path_normpath(char* path);
 
     char* ce_path_append_ext(char* file_name, size_t size, const char* name, const char* ext);
     char* ce_path_remove_ext(char* name, const char* file_name);

@@ -54,7 +54,6 @@ namespace cursedearth
         queue->thread_id = thread_id;
         queue->timer = ce_timer_new();
         queue->mutex = ce_mutex_new();
-        queue->wait_condition = ce_wait_condition_new();
         queue->pending_events = ce_vector_new();
         queue->sending_events = ce_vector_new();
         return queue;
@@ -67,7 +66,6 @@ namespace cursedearth
             ce_vector_for_each(queue->pending_events, (void(*)(void*))ce_event_del);
             ce_vector_del(queue->sending_events);
             ce_vector_del(queue->pending_events);
-            ce_wait_condition_del(queue->wait_condition);
             ce_mutex_del(queue->mutex);
             ce_timer_del(queue->timer);
             ce_free(queue, sizeof(ce_event_queue));
@@ -82,46 +80,31 @@ namespace cursedearth
         return result;
     }
 
-    void ce_event_queue_process_events(ce_event_queue* queue)
-    {
-        ce_event_queue_process_events_timeout(queue, INT_MAX);
-    }
-
     void ce_event_queue_process_events_timeout(ce_event_queue* queue, int max_time)
     {
         ce_mutex_lock(queue->mutex);
 
-        for (;;) {
-            if (ce_vector_empty(queue->sending_events)) {
-                std::swap(queue->pending_events, queue->sending_events);
+        if (ce_vector_empty(queue->sending_events)) {
+            std::swap(queue->pending_events, queue->sending_events);
+        }
+
+        if (!ce_vector_empty(queue->sending_events)) {
+            ce_mutex_unlock(queue->mutex);
+
+            size_t sent_event_count = 0;
+            ce_timer_start(queue->timer);
+
+            // I (and timer) like seconds
+            for (float time = 0.0f, limit = 1e-3f * max_time; !ce_vector_empty(queue->sending_events) && time < limit; time += ce_timer_elapsed(queue->timer), ++sent_event_count) {
+                // TODO: linked list ?
+                ce_event* event = (ce_event*)ce_vector_pop_front(queue->sending_events);
+                (*event->notify)(event);
+                ce_event_del(event);
+                ce_timer_advance(queue->timer);
             }
 
-            if (!ce_vector_empty(queue->sending_events)) {
-                ce_mutex_unlock(queue->mutex);
-
-                size_t sent_event_count = 0;
-                ce_timer_start(queue->timer);
-
-                // I (and timer) like seconds
-                for (float time = 0.0f, limit = 1e-3f * max_time; !ce_vector_empty(queue->sending_events) && time < limit; time += ce_timer_elapsed(queue->timer), ++sent_event_count) {
-                    // TODO: linked list ?
-                    ce_event* event = (ce_event*)ce_vector_pop_front(queue->sending_events);
-                    (*event->notify)(event);
-                    ce_event_del(event);
-                    ce_timer_advance(queue->timer);
-                }
-
-                ce_mutex_lock(queue->mutex);
-                queue->event_count -= sent_event_count;
-            }
-
-            if (queue->interrupt) {
-                break;
-            }
-
-            if (0 == queue->event_count) {
-                ce_wait_condition_wait(queue->wait_condition, queue->mutex);
-            }
+            ce_mutex_lock(queue->mutex);
+            queue->event_count -= sent_event_count;
         }
 
         ce_mutex_unlock(queue->mutex);
@@ -132,15 +115,6 @@ namespace cursedearth
         ce_mutex_lock(queue->mutex);
         ce_vector_push_back(queue->pending_events, event);
         ++queue->event_count;
-        ce_wait_condition_wake_all(queue->wait_condition);
-        ce_mutex_unlock(queue->mutex);
-    }
-
-    void ce_event_queue_interrupt(ce_event_queue* queue)
-    {
-        ce_mutex_lock(queue->mutex);
-        queue->interrupt = true;
-        ce_wait_condition_wake_all(queue->wait_condition);
         ce_mutex_unlock(queue->mutex);
     }
 

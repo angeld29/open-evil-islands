@@ -55,14 +55,8 @@ namespace cursedearth
     /// Convert a string into lower case.
     char* ce_strlwr(char* dst, const char* src);
 
-    /// C substring replacement
-    char* ce_strrep(char* dst, const char* src, size_t size, const char* from, const char* to);
-
     /// Compare s1 and s2, ignoring case.
     int ce_strcasecmp(const char* s1, const char* s2);
-
-    /// Similar to strstr but this function ignores the case of both strings.
-    char* ce_strcasestr(const char* haystack, const char* needle);
 
     /**
      *  @brief Consistent, safe string concatenation.
