@@ -31,6 +31,13 @@
 
 namespace cursedearth
 {
+    char* ce_path_remove_ext(char* name, const char* file_name)
+    {
+        const char* dot = strrchr(file_name, '.');
+        size_t n = NULL != dot ? (size_t)(dot - file_name) : strlen(file_name);
+        return ce_strleft(name, file_name, n);
+    }
+
     char* ce_path_join_va(char* path, size_t size, va_list args)
     {
         if (0 == size) {
@@ -60,30 +67,12 @@ namespace cursedearth
         return path;
     }
 
-    char* ce_path_append_ext(char* file_name, size_t size, const char* name, const char* ext)
-    {
-        if (NULL == strstr(name, ext)) {
-            snprintf(file_name, size, "%s%s", name, ext);
-        } else {
-            ce_strlcpy(file_name, name, size);
-        }
-        return file_name;
-    }
-
-    char* ce_path_remove_ext(char* name, const char* file_name)
-    {
-        const char* dot = strrchr(file_name, '.');
-        size_t n = NULL != dot ? (size_t)(dot - file_name) : strlen(file_name);
-        return ce_strleft(name, file_name, n);
-    }
-
     char* ce_path_find_special1(char* path, size_t size, const char* prefix, const char* name, const char* dirs[], const char* exts[])
     {
         for (size_t i = 0; NULL != exts[i]; ++i) {
-            std::vector<char> file_name(strlen(name) + strlen(exts[i]) + 1);
-            ce_path_append_ext(file_name.data(), file_name.size(), name, exts[i]);
+            std::string file_name = std::string(name) + exts[i];
             for (size_t j = 0; NULL != dirs[j]; ++j) {
-                if (NULL != ce_path_join(path, size, prefix, dirs[j], file_name.data(), NULL) && boost::filesystem::exists(path)) {
+                if (NULL != ce_path_join(path, size, prefix, dirs[j], file_name.c_str(), NULL) && boost::filesystem::exists(path)) {
                     return path;
                 }
             }

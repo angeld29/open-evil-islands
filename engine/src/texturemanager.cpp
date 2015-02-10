@@ -99,13 +99,12 @@ namespace cursedearth
 
     ce_mmpfile* ce_texture_manager_open_mmpfile_from_resources(const char* name)
     {
-        std::vector<char> file_name(strlen(name) + 8);
-        ce_path_append_ext(file_name.data(), file_name.size(), name, ce_texture_exts[0]);
+        std::string file_name = std::string(name) + ce_texture_exts[0];
 
         // find in resources
         for (size_t i = 0; i < ce_texture_manager->res_files->count; ++i) {
             ce_res_file* res_file = (ce_res_file*)ce_texture_manager->res_files->items[i];
-            size_t index = ce_res_file_node_index(res_file, file_name.data());
+            size_t index = ce_res_file_node_index(res_file, file_name.c_str());
             if (res_file->node_count != index) {
                 ce_mmpfile* mmpfile = ce_mmpfile_new_res_file(res_file, index);
                 return mmpfile;
@@ -126,12 +125,9 @@ namespace cursedearth
 
     void ce_texture_manager_save_mmpfile(const char* name, ce_mmpfile* mmpfile)
     {
-        std::vector<char> file_name(strlen(name) + 8);
-        ce_path_append_ext(file_name.data(), file_name.size(), name, ce_texture_exts[0]);
-
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + file_name.size() + 32);
-        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_texture_cache_dirs[0], file_name.data(), NULL);
-
+        std::string file_name = std::string(name) + ce_texture_exts[0];
+        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + file_name.length() + 32);
+        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_texture_cache_dirs[0], file_name.c_str(), NULL);
         ce_mmpfile_save(mmpfile, path.data());
     }
 

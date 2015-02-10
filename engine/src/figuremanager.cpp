@@ -126,12 +126,10 @@ namespace cursedearth
             }
         }
 
-        std::vector<char> file_name(strlen(name) + 8);
-        ce_path_append_ext(file_name.data(), file_name.size(), name, ce_figure_exts[0]);
-
+        std::string file_name = std::string(name) + ce_figure_exts[0];
         for (size_t i = 0; i < ce_figure_manager->res_files->count; ++i) {
             ce_res_file* res_file = (ce_res_file*)ce_figure_manager->res_files->items[i];
-            if (res_file->node_count != ce_res_file_node_index(res_file, file_name.data())) {
+            if (res_file->node_count != ce_res_file_node_index(res_file, file_name.c_str())) {
                 ce_figproto* figproto = ce_figproto_new(true_name.data(), res_file);
                 ce_vector_push_back(ce_figure_manager->figprotos, figproto);
                 ce_notify_figproto_created(ce_figure_manager->listeners, figproto);

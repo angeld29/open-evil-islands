@@ -27,11 +27,9 @@ namespace cursedearth
 {
     extern const char CE_PATH_SEP;
 
-    char* ce_path_join(char* path, size_t size, ...);
-
-    char* ce_path_append_ext(char* file_name, size_t size, const char* name, const char* ext);
     char* ce_path_remove_ext(char* name, const char* file_name);
 
+    char* ce_path_join(char* path, size_t size, ...);
     char* ce_path_find_special1(char* path, size_t size, const char* prefix, const char* name, const char* dirs[], const char* exts[]);
 }
 
