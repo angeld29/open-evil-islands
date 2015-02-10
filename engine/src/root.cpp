@@ -218,7 +218,7 @@ namespace cursedearth
             float elapsed = ce_timer_advance(timer);
 
             // 40 milliseconds - 25 times per second
-            ce_event_manager_process_events_timeout(ce_thread_self(), CE_EVENT_FLAG_ALL_EVENTS, 40);
+            ce_event_manager_process_events_timeout(ce_thread_self(), 40);
 
             renderwindow->pump();
 

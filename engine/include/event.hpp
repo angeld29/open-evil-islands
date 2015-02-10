@@ -40,15 +40,6 @@ namespace cursedearth
         void* ptr;
     } ce_event_ptr;
 
-    /*
-     *  Per-thread event queue.
-    */
-
-    enum {
-        CE_EVENT_FLAG_ALL_EVENTS = 0x00,
-        CE_EVENT_FLAG_WAIT_FOR_MORE_EVENTS = 0x01,
-    };
-
     typedef struct {
         volatile bool interrupt;
         volatile size_t event_count;
@@ -66,17 +57,13 @@ namespace cursedearth
     bool ce_event_queue_has_pending_events(ce_event_queue* queue);
 
     // process all pending events
-    void ce_event_queue_process_events(ce_event_queue* queue, int flags);
+    void ce_event_queue_process_events(ce_event_queue* queue);
 
     // process pending events for a maximum of max_time milliseconds
-    void ce_event_queue_process_events_timeout(ce_event_queue* queue, int flags, int max_time);
+    void ce_event_queue_process_events_timeout(ce_event_queue* queue, int max_time);
 
     void ce_event_queue_add_event(ce_event_queue* queue, ce_event* event);
     void ce_event_queue_interrupt(ce_event_queue* queue);
-
-    /*
-     *  Thread-safe event manager.
-    */
 
     extern struct ce_event_manager {
         ce_mutex* mutex;
@@ -88,22 +75,12 @@ namespace cursedearth
 
     bool ce_event_manager_has_pending_events(ce_thread_id thread_id);
 
-    // process all pending events for the current thread
-    void ce_event_manager_process_events(ce_thread_id thread_id, int flags);
-
     // process pending events for the current thread with time limit in milliseconds
-    void ce_event_manager_process_events_timeout(ce_thread_id thread_id, int flags, int max_time);
-
-    void ce_event_manager_interrupt(ce_thread_id thread_id);
+    void ce_event_manager_process_events_timeout(ce_thread_id thread_id, int max_time);
 
     void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event);
     void ce_event_manager_post_raw(ce_thread_id thread_id, void (*notify)(ce_event*), const void* impl, size_t size);
     void ce_event_manager_post_ptr(ce_thread_id thread_id, void (*notify)(ce_event*), void* ptr);
-
-    inline void ce_event_manager_post_call(ce_thread_id thread_id, void (*notify)(ce_event*))
-    {
-        ce_event_manager_post_event(thread_id, ce_event_new(notify, 0));
-    }
 }
 
 #endif

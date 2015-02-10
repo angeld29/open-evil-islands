@@ -82,15 +82,13 @@ namespace cursedearth
         return result;
     }
 
-    void ce_event_queue_process_events(ce_event_queue* queue, int flags)
+    void ce_event_queue_process_events(ce_event_queue* queue)
     {
-        ce_event_queue_process_events_timeout(queue, flags, INT_MAX);
+        ce_event_queue_process_events_timeout(queue, INT_MAX);
     }
 
-    void ce_event_queue_process_events_timeout(ce_event_queue* queue, int flags, int max_time)
+    void ce_event_queue_process_events_timeout(ce_event_queue* queue, int max_time)
     {
-        bool wait_for_more_events = CE_EVENT_FLAG_WAIT_FOR_MORE_EVENTS & flags;
-
         ce_mutex_lock(queue->mutex);
 
         for (;;) {
@@ -117,7 +115,7 @@ namespace cursedearth
                 queue->event_count -= sent_event_count;
             }
 
-            if (queue->interrupt || !wait_for_more_events) {
+            if (queue->interrupt) {
                 break;
             }
 
@@ -182,33 +180,18 @@ namespace cursedearth
         return false;
     }
 
-    void ce_event_manager_process_events(ce_thread_id thread_id, int flags)
-    {
-        ce_event_manager_process_events_timeout(thread_id, flags, INT_MAX);
-    }
-
-    void ce_event_manager_process_events_timeout(ce_thread_id thread_id, int flags, int max_time)
+    void ce_event_manager_process_events_timeout(ce_thread_id thread_id, int max_time)
     {
         for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
             ce_event_queue* queue = (ce_event_queue*)ce_event_manager->event_queues->items[i];
             if (thread_id == queue->thread_id) {
-                ce_event_queue_process_events_timeout(queue, flags, max_time);
+                ce_event_queue_process_events_timeout(queue, max_time);
                 return;
             }
         }
 
         ce_event_manager_create_queue(thread_id);
-        ce_event_manager_process_events_timeout(thread_id, flags, max_time);
-    }
-
-    void ce_event_manager_interrupt(ce_thread_id thread_id)
-    {
-        for (size_t i = 0; i < ce_event_manager->event_queues->count; ++i) {
-            ce_event_queue* queue = (ce_event_queue*)ce_event_manager->event_queues->items[i];
-            if (thread_id == queue->thread_id) {
-                ce_event_queue_interrupt(queue);
-            }
-        }
+        ce_event_manager_process_events_timeout(thread_id, max_time);
     }
 
     void ce_event_manager_post_event(ce_thread_id thread_id, ce_event* event)
