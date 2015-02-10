@@ -21,14 +21,11 @@
 #ifndef CE_PATH_HPP
 #define CE_PATH_HPP
 
-#include "string.hpp"
-#include "vector.hpp"
+#include <cstddef>
 
 namespace cursedearth
 {
     extern const char CE_PATH_SEP;
-
-    bool ce_path_exists(const char* path);
 
     char* ce_path_join(char* path, size_t size, ...);
 

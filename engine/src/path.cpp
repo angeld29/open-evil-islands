@@ -18,10 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstdarg>
 #include <cstdio>
 #include <cstring>
 #include <vector>
 #include <algorithm>
+
+#include <boost/filesystem.hpp>
 
 #include "str.hpp"
 #include "path.hpp"
@@ -80,7 +83,7 @@ namespace cursedearth
             std::vector<char> file_name(strlen(name) + strlen(exts[i]) + 1);
             ce_path_append_ext(file_name.data(), file_name.size(), name, exts[i]);
             for (size_t j = 0; NULL != dirs[j]; ++j) {
-                if (NULL != ce_path_join(path, size, prefix, dirs[j], file_name.data(), NULL) && ce_path_exists(path)) {
+                if (NULL != ce_path_join(path, size, prefix, dirs[j], file_name.data(), NULL) && boost::filesystem::exists(path)) {
                     return path;
                 }
             }

@@ -18,16 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <windows.h>
-
 #include "path.hpp"
 
 namespace cursedearth
 {
     const char CE_PATH_SEP = '\\';
-
-    bool ce_path_exists(const char* path)
-    {
-        return INVALID_FILE_ATTRIBUTES != GetFileAttributes(path);
-    }
 }

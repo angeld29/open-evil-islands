@@ -90,6 +90,7 @@ namespace cursedearth
         for (auto& thread: m_threads) {
             thread = std::thread(std::bind(&thread_pool_t::execute, this));
         }
+        // TODO: std::thread::hardware_concurrency()
         ce_logging_info("thread pool: using up to %u threads", m_threads.size());
     }
 
