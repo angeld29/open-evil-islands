@@ -31,6 +31,12 @@
 
 namespace cursedearth
 {
+#ifdef _WIN32
+    const char CE_PATH_SEP = '\\';
+#else
+    const char CE_PATH_SEP = '/';
+#endif
+
     char* ce_path_join_va(char* path, size_t size, va_list args)
     {
         if (0 == size) {

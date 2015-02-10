@@ -187,8 +187,6 @@ engine/src/opengl.cpp
 engine/src/optionmanager.cpp
 engine/src/optparse.cpp
 engine/src/path.cpp
-engine/src/path_posix.cpp
-engine/src/path_windows.cpp
 engine/src/plane.cpp
 engine/src/property.cpp
 engine/src/quaternion.cpp
