@@ -30,6 +30,7 @@
 #include "alloc.hpp"
 #include "utility.hpp"
 #include "byteorder.hpp"
+#include "logging.hpp"
 #include "mmpfile.hpp"
 
 namespace cursedearth
@@ -317,6 +318,8 @@ namespace cursedearth
             fwrite(mmpfile->texels, 1, ce_mmpfile_storage_size(mmpfile->width, mmpfile->height, mmpfile->mipmap_count, mmpfile->format), file);
             fwrite(header + 19, 4, 3, file);
             fclose(file);
+        } else {
+            ce_logging_error("mmp: couldn't save file `%s'", path);
         }
     }
 

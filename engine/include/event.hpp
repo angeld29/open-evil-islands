@@ -41,7 +41,7 @@ namespace cursedearth
     } ce_event_ptr;
 
     typedef struct {
-        volatile size_t event_count;
+        std::atomic<size_t> event_count;
         ce_thread_id thread_id;
         ce_timer* timer;
         ce_mutex* mutex;
