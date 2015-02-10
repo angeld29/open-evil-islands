@@ -18,6 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdexcept>
+
 #include <sys/utsname.h>
 #include <unistd.h>
 
@@ -26,20 +28,30 @@
 
 namespace cursedearth
 {
-    bool ce_system_info_check(void)
+    void detect_system()
     {
         struct utsname osinfo;
-        uname(&osinfo);
-
-        ce_logging_info("system info: %s %s %s %s %s", osinfo.sysname,
-            osinfo.nodename, osinfo.release, osinfo.version, osinfo.machine);
-
-        if (sysconf(_SC_VERSION) < 200112L || sysconf(_SC_XOPEN_VERSION) < 600L) {
-            ce_logging_fatal("system info: SUSv3 (POSIX.1-2001 + XPG6) system required");
-            return false;
+        if (uname(&osinfo) >= 0) {
+            ce_logging_info("system info: %s %s %s %s %s", osinfo.sysname, osinfo.nodename, osinfo.release, osinfo.version, osinfo.machine);
         }
 
-        ce_logging_info("system info: SUSv3 (POSIX.1-2001 + XPG6) system detected");
-        return true;
+        const std::string posix_2004_v3 = "SUSv3 POSIX.1-2004 (IEEE Std 1003.1-2004) system";
+        const std::string posix_2008_v4 = "SUSv4 POSIX.1-2008 (IEEE Std 1003.1-2008) system";
+
+        // _SC_VERSION Inquire about the parameter corresponding to _POSIX_VERSION.
+        const long posix_version = sysconf(_SC_VERSION);
+
+        // _SC_XOPEN_VERSION Inquire about the parameter corresponding to _XOPEN_VERSION.
+        const long xopen_version = sysconf(_SC_XOPEN_VERSION);
+
+        if (posix_version < 200112l || xopen_version < 600l) {
+            throw std::runtime_error(posix_2004_v3 + " required");
+        }
+
+        if (posix_version == 200809l && xopen_version == 700l) {
+            ce_logging_info("system info: %s detected", posix_2008_v4.c_str());
+        } else {
+            ce_logging_info("system info: %s detected", posix_2004_v3.c_str());
+        }
     }
 }

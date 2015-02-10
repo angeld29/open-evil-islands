@@ -24,7 +24,6 @@ def configure(env):
 
     env.AppendUnique(
         CPPDEFINES=[
-            # IEEE Std 1003.1-2004, SUSv3 (Open Group Single UNIX Specification, Version 3)
-            "_XOPEN_SOURCE=600",
+            "_XOPEN_SOURCE=600", # SUSv3 POSIX.1-2004 (IEEE Std 1003.1-2004)
         ],
     )

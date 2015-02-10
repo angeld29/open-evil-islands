@@ -18,12 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SYSTEMINFO_HPP
-#define CE_SYSTEMINFO_HPP
+#include "logging.hpp"
+#include "systeminfo.hpp"
 
 namespace cursedearth
 {
-    void detect_system();
+    void detect_system()
+    {
+        ce_logging_info("system info: unknown system");
+    }
 }
-
-#endif

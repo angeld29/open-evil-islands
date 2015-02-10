@@ -18,17 +18,16 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
+#include <stdexcept>
 
 #include <windows.h>
 
-#include "str.hpp"
 #include "logging.hpp"
 #include "systeminfo.hpp"
 
 namespace cursedearth
 {
-    bool ce_system_info_check(void)
+    void detect_system()
     {
         OSVERSIONINFOEX osverinfo;
         BOOL osverinfoex;

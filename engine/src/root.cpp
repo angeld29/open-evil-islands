@@ -94,9 +94,7 @@ namespace cursedearth
             throw std::runtime_error("root: option parser failed");
         }
 
-        if (!ce_system_info_check()) {
-            throw std::runtime_error("root: system info checker failed");
-        }
+        detect_system();
 
         switch (host_order()) {
         case endian_t::little:

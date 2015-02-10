@@ -226,6 +226,7 @@ engine/src/sphere.cpp
 engine/src/str.cpp
 engine/src/string.cpp
 engine/src/systemevent.cpp
+engine/src/systeminfo_generic.cpp
 engine/src/systeminfo_posix.cpp
 engine/src/systeminfo_windows.cpp
 engine/src/terrain.cpp
