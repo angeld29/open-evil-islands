@@ -26,29 +26,29 @@
 
 namespace cursedearth
 {
-    struct ce_timer
+    struct timer_t
     {
         float elapsed;
         struct timeval start;
         struct timeval stop;
     };
 
-    ce_timer* ce_timer_new(void)
+    timer_t* ce_timer_new(void)
     {
-        return (ce_timer*)ce_alloc(sizeof(ce_timer));
+        return (timer_t*)ce_alloc(sizeof(timer_t));
     }
 
-    void ce_timer_del(ce_timer* timer)
+    void ce_timer_del(timer_t* timer)
     {
-        ce_free(timer, sizeof(ce_timer));
+        ce_free(timer, sizeof(timer_t));
     }
 
-    void ce_timer_start(ce_timer* timer)
+    void ce_timer_start(timer_t* timer)
     {
         gettimeofday(&timer->start, NULL);
     }
 
-    float ce_timer_advance(ce_timer* timer)
+    float ce_timer_advance(timer_t* timer)
     {
         gettimeofday(&timer->stop, NULL);
 
@@ -68,7 +68,7 @@ namespace cursedearth
         return timer->elapsed;
     }
 
-    float ce_timer_elapsed(ce_timer* timer)
+    float ce_timer_elapsed(timer_t* timer)
     {
         return timer->elapsed;
     }

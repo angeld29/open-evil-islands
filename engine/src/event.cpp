@@ -52,7 +52,7 @@ namespace cursedearth
     {
         ce_event_queue* queue = (ce_event_queue*)ce_alloc_zero(sizeof(ce_event_queue));
         queue->thread_id = thread_id;
-        queue->timer = ce_timer_new();
+        queue->timer = make_timer();
         queue->mutex = ce_mutex_new();
         queue->pending_events = ce_vector_new();
         queue->sending_events = ce_vector_new();
@@ -67,7 +67,7 @@ namespace cursedearth
             ce_vector_del(queue->sending_events);
             ce_vector_del(queue->pending_events);
             ce_mutex_del(queue->mutex);
-            ce_timer_del(queue->timer);
+            queue->timer.reset();
             ce_free(queue, sizeof(ce_event_queue));
         }
     }
@@ -92,15 +92,15 @@ namespace cursedearth
             ce_mutex_unlock(queue->mutex);
 
             size_t sent_event_count = 0;
-            ce_timer_start(queue->timer);
+            queue->timer->start();
 
             // I (and timer) like seconds
-            for (float time = 0.0f, limit = 1e-3f * max_time; !ce_vector_empty(queue->sending_events) && time < limit; time += ce_timer_elapsed(queue->timer), ++sent_event_count) {
+            for (float time = 0.0f, limit = 1e-3f * max_time; !ce_vector_empty(queue->sending_events) && time < limit; time += queue->timer->elapsed(), ++sent_event_count) {
                 // TODO: linked list ?
                 ce_event* event = (ce_event*)ce_vector_pop_front(queue->sending_events);
                 (*event->notify)(event);
                 ce_event_del(event);
-                ce_timer_advance(queue->timer);
+                queue->timer->advance();
             }
 
             ce_mutex_lock(queue->mutex);

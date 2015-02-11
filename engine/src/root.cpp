@@ -88,7 +88,8 @@ namespace cursedearth
     }
 
     ce_root::ce_root(ce_optparse* optparse, int argc, char* argv[]):
-        singleton_t<ce_root>(this)
+        singleton_t<ce_root>(this),
+        timer(make_timer())
     {
         if (!ce_optparse_parse(optparse, argc, argv)) {
             throw game_error("root", "option parser failed");
@@ -171,7 +172,6 @@ namespace cursedearth
         scenemng = ce_scenemng_new();
         m_thread_pool = make_unique<thread_pool_t>();
 
-        timer = ce_timer_new();
         input_supply = std::make_shared<input_supply_t>(renderwindow->input_context());
         exit_event = input_supply->push(input_button_t::kb_escape);
         switch_window_event = input_supply->single_front(shortcut(input_supply, "LAlt+Tab, RAlt+Tab"));
@@ -185,7 +185,6 @@ namespace cursedearth
 
     ce_root::~ce_root()
     {
-        ce_timer_del(timer);
         m_thread_pool.reset();
         ce_scenemng_del(scenemng);
         ce_figure_manager_term();
@@ -210,10 +209,10 @@ namespace cursedearth
     int ce_root::exec()
     {
         ce_renderwindow_show(renderwindow);
-        ce_timer_start(timer);
+        timer->start();
 
         for (;;) {
-            float elapsed = ce_timer_advance(timer);
+            float elapsed = timer->advance();
 
             // 40 milliseconds - 25 times per second
             ce_event_manager_process_events_timeout(ce_thread_self(), 40);

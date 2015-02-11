@@ -43,7 +43,7 @@ namespace cursedearth
     typedef struct {
         std::atomic<size_t> event_count;
         ce_thread_id thread_id;
-        ce_timer* timer;
+        timer_ptr_t timer;
         ce_mutex* mutex;
         ce_vector* pending_events;
         ce_vector* sending_events;

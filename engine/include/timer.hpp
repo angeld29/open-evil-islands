@@ -21,16 +21,29 @@
 #ifndef CE_TIMER_HPP
 #define CE_TIMER_HPP
 
+#include <memory>
+
+#include <boost/noncopyable.hpp>
+
 namespace cursedearth
 {
-    struct ce_timer;
+    class timer_t: boost::noncopyable
+    {
+    public:
+        virtual ~timer_t() = default;
 
-    ce_timer* ce_timer_new(void);
-    void ce_timer_del(ce_timer* timer);
+        virtual void start() = 0;
+        virtual float advance() = 0;
 
-    void ce_timer_start(ce_timer* timer);
-    float ce_timer_advance(ce_timer* timer);
-    float ce_timer_elapsed(ce_timer* timer);
+        float elapsed() const { return m_elapsed; }
+
+    protected:
+        float m_elapsed = 0.0f;
+    };
+
+    typedef std::shared_ptr<timer_t> timer_ptr_t;
+
+    timer_ptr_t make_timer();
 }
 
 #endif

@@ -36,7 +36,7 @@ namespace cursedearth
     {
         ce_figentity* figentity = (ce_figentity*)listener;
 
-        ce_figbone_advance(figentity->figbone, ce_root::instance()->animation_fps * ce_timer_elapsed(ce_root::instance()->timer));
+        ce_figbone_advance(figentity->figbone, ce_root::instance()->animation_fps * ce_root::instance()->timer->elapsed());
         ce_figbone_update(figentity->figbone, figentity->figmesh->figproto->fignode, figentity->scenenode->renderitems);
 
         ce_vec3_copy(&figentity->scenenode->position, &figentity->position);

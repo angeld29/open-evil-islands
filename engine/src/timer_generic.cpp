@@ -20,45 +20,36 @@
 
 #include <ctime>
 
-#include "alloc.hpp"
 #include "timer.hpp"
 
 namespace cursedearth
 {
-    const float CE_TIMER_CLOCKS_PER_SEC_INV = 1.0f / CLOCKS_PER_SEC;
-
-    struct ce_timer
+    class standard_timer_t final: public timer_t
     {
-        float elapsed;
-        clock_t start;
-        clock_t stop;
+    public:
+        standard_timer_t(): m_clocks_per_sec_inv(1.0f / CLOCKS_PER_SEC) {}
+
+        virtual void start() final
+        {
+            m_start = clock();
+        }
+
+        virtual float advance() final
+        {
+            m_stop = clock();
+            m_elapsed = (m_stop - m_start) * m_clocks_per_sec_inv;
+            m_start = m_stop;
+            return m_elapsed;
+        }
+
+    private:
+        const float m_clocks_per_sec_inv;
+        clock_t m_start;
+        clock_t m_stop;
     };
 
-    ce_timer* ce_timer_new(void)
+    timer_ptr_t make_timer()
     {
-        return (ce_timer*)ce_alloc(sizeof(ce_timer));
-    }
-
-    void ce_timer_del(ce_timer* timer)
-    {
-        ce_free(timer, sizeof(ce_timer));
-    }
-
-    void ce_timer_start(ce_timer* timer)
-    {
-        timer->start = clock();
-    }
-
-    float ce_timer_advance(ce_timer* timer)
-    {
-        timer->stop = clock();
-        timer->elapsed = (timer->stop - timer->start) * CE_TIMER_CLOCKS_PER_SEC_INV;
-        timer->start = timer->stop;
-        return timer->elapsed;
-    }
-
-    float ce_timer_elapsed(ce_timer* timer)
-    {
-        return timer->elapsed;
+        return std::make_shared<standard_timer_t>();
     }
 }

@@ -20,64 +20,54 @@
 
 #include <windows.h>
 
-#include "alloc.hpp"
 #include "logging.hpp"
 #include "timer.hpp"
 
 namespace cursedearth
 {
-    struct ce_timer
+    class performance_timer_t final: public timer_t
     {
-        float elapsed;
-        float frequency_inv;
-        LARGE_INTEGER start;
-        LARGE_INTEGER stop;
+        static LONGLONG query_frequency()
+        {
+            LARGE_INTEGER frequency;
+            if (QueryPerformanceFrequency(&frequency)) {
+                return frequency.QuadPart;
+            }
+            ce_logging_warning("timer: using default frequency");
+            return 1000000ll;
+        }
+
+        static void query_counter(LARGE_INTEGER& value)
+        {
+            DWORD_PTR old_mask = SetThreadAffinityMask(GetCurrentThread(), 0);
+            QueryPerformanceCounter(&value);
+            SetThreadAffinityMask(GetCurrentThread(), old_mask);
+        }
+
+    public:
+        performance_timer_t(): m_frequency_inv(1.0f / query_frequency()) {}
+
+        virtual void start() final
+        {
+            query_counter(m_start);
+        }
+
+        virtual float advance() final
+        {
+            query_counter(m_stop);
+            m_elapsed = (m_stop.QuadPart - m_start.QuadPart) * m_frequency_inv;
+            m_start = m_stop;
+            return m_elapsed;
+        }
+
+    private:
+        const float m_frequency_inv;
+        LARGE_INTEGER m_start;
+        LARGE_INTEGER m_stop;
     };
 
-    LONGLONG ce_timer_query_frequency(void)
+    timer_ptr_t make_timer()
     {
-        LARGE_INTEGER frequency;
-        if (QueryPerformanceFrequency(&frequency)) {
-            return frequency.QuadPart;
-        }
-        ce_logging_warning("timer: using default frequency");
-        return 1000000ll;
-    }
-
-    void ce_timer_query_counter(LARGE_INTEGER* value)
-    {
-        DWORD_PTR old_mask = SetThreadAffinityMask(GetCurrentThread(), 0);
-        QueryPerformanceCounter(value);
-        SetThreadAffinityMask(GetCurrentThread(), old_mask);
-    }
-
-    ce_timer* ce_timer_new(void)
-    {
-        ce_timer* timer = (ce_timer*)ce_alloc(sizeof(ce_timer));
-        timer->frequency_inv = 1.0f / ce_timer_query_frequency();
-        return timer;
-    }
-
-    void ce_timer_del(ce_timer* timer)
-    {
-        ce_free(timer, sizeof(ce_timer));
-    }
-
-    void ce_timer_start(ce_timer* timer)
-    {
-        ce_timer_query_counter(&timer->start);
-    }
-
-    float ce_timer_advance(ce_timer* timer)
-    {
-        ce_timer_query_counter(&timer->stop);
-        timer->elapsed = (timer->stop.QuadPart - timer->start.QuadPart) * timer->frequency_inv;
-        timer->start = timer->stop;
-        return timer->elapsed;
-    }
-
-    float ce_timer_elapsed(ce_timer* timer)
-    {
-        return timer->elapsed;
+        return std::make_shared<performance_timer_t>();
     }
 }

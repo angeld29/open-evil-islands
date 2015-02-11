@@ -46,7 +46,7 @@ namespace cursedearth
         float animation_fps = 15.0f;
         ce_renderwindow* renderwindow;
         ce_scenemng* scenemng;
-        ce_timer* timer;
+        timer_ptr_t timer;
         input_supply_ptr_t input_supply;
         input_event_const_ptr_t exit_event;
         input_event_const_ptr_t switch_window_event;
