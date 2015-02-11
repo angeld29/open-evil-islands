@@ -31,9 +31,9 @@ namespace cursedearth
     class option_manager_t: public singleton_t<option_manager_t>
     {
     public:
-        explicit option_manager_t(ce_optparse*);
+        explicit option_manager_t(const ce_optparse_ptr_t&);
 
-        static ce_optparse* make_parser();
+        static ce_optparse_ptr_t make_parser();
 
         const boost::filesystem::path& ei_path() const { return m_ei_path; }
         const boost::filesystem::path& ce_path() const { return m_ce_path; }

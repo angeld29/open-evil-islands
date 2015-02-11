@@ -18,8 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SCENEMNG_HPP
-#define CE_SCENEMNG_HPP
+#ifndef CE_SCENEMANAGER_HPP
+#define CE_SCENEMANAGER_HPP
+
+#include <memory>
+
+#include <boost/noncopyable.hpp>
 
 #include "timer.hpp"
 #include "thread.hpp"
@@ -37,70 +41,57 @@
 
 namespace cursedearth
 {
-    enum {
-        CE_SCENEMNG_STATE_LOGO,
-        CE_SCENEMNG_STATE_READY,
-        CE_SCENEMNG_STATE_LOADING,
-        CE_SCENEMNG_STATE_PLAYING,
-        CE_SCENEMNG_STATE_COUNT
-    };
-
-    typedef struct {
-        void (*state_changed)(void* listener, int state);
-        void (*advance)(void* listener, float elapsed);
-        void (*render)(void* listener);
-        void* receiver;
-    } ce_scenemng_listener;
-
-    class scene_manager_t
+    class scene_manager_t: boost::noncopyable
     {
     public:
+        scene_manager_t();
+        virtual ~scene_manager_t();
+
+        void advance(float elapsed);
+        void render();
+
+    protected:
+        void load_mpr(const std::string& name);
+        void load_mob(const std::string& name);
+
+        void add_node(ce_scenenode*);
+
+        const viewport_t& get_viewport() const { return m_viewport; }
+        ce_font* get_font() { return m_font; }
+
+    private:
+        virtual void do_advance(float elapsed) = 0;
+        virtual void do_render() = 0;
+
     public:
-        ce_thread_id thread_id;
-        int state = CE_SCENEMNG_STATE_LOGO;
-        float camera_move_sensitivity = 10.0f; // FIXME: hard-coded
-        float camera_zoom_sensitivity = 5.0f; // TODO: make strategy
-        ce_scenenode* scenenode;
-        ce_renderqueue* renderqueue;
-        viewport_t viewport;
-        ce_camera* camera;
-        fps_ptr_t fps;
-        ce_font* font;
-        ce_terrain* terrain;
-        input_supply_ptr_t input_supply;
-        input_event_const_ptr_t skip_logo_event;
-        input_event_const_ptr_t pause_event;
-        input_event_const_ptr_t move_left_event;
-        input_event_const_ptr_t move_up_event;
-        input_event_const_ptr_t move_right_event;
-        input_event_const_ptr_t move_down_event;
-        input_event_const_ptr_t zoom_in_event;
-        input_event_const_ptr_t zoom_out_event;
-        input_event_const_ptr_t rotate_on_event;
-        ce_scenemng_listener listener;
-        ce_renderwindow_listener renderwindow_listener;
-        ce_figure_manager_listener figure_manager_listener;
-        // TODO: split by states
-        struct {
-            size_t movie_index;
-            video_object_t video_object;
-        } logo;
-        struct {
-            bool created;
-            video_object_t video_object;
-        } loading;
+        viewport_t m_viewport;
+        ce_camera* m_camera;
+        ce_renderqueue* m_renderqueue;
+
+    private:
+        ce_thread_id m_thread_id;
+        float m_camera_move_sensitivity = 10.0f; // FIXME: hard-coded
+        float m_camera_zoom_sensitivity = 5.0f; // TODO: make strategy
+        const std::string m_engine_text = "Powered by Cursed Earth engine";
+        fps_ptr_t m_fps;
+        ce_font* m_font;
+        ce_scenenode* m_scenenode;
+        ce_terrain* m_terrain;
+        input_supply_ptr_t m_input_supply;
+        input_event_const_ptr_t m_skip_logo_event;
+        input_event_const_ptr_t m_pause_event;
+        input_event_const_ptr_t m_move_left_event;
+        input_event_const_ptr_t m_move_up_event;
+        input_event_const_ptr_t m_move_right_event;
+        input_event_const_ptr_t m_move_down_event;
+        input_event_const_ptr_t m_zoom_in_event;
+        input_event_const_ptr_t m_zoom_out_event;
+        input_event_const_ptr_t m_rotate_on_event;
+        ce_renderwindow_listener m_renderwindow_listener;
+        ce_figure_manager_listener m_figure_manager_listener;
     };
 
-    scene_manager_t* ce_scenemng_new();
-    void ce_scenemng_del(scene_manager_t* scenemng);
-
-    void ce_scenemng_change_state(scene_manager_t* scenemng, int state);
-
-    void ce_scenemng_advance(scene_manager_t* scenemng, float elapsed);
-    void ce_scenemng_render(scene_manager_t* scenemng);
-
-    void ce_scenemng_load_mpr(scene_manager_t* scenemng, const std::string& name);
-    void ce_scenemng_load_mob(scene_manager_t* scenemng, const std::string& name);
+    typedef std::shared_ptr<scene_manager_t> scene_manager_ptr_t;
 }
 
 #endif

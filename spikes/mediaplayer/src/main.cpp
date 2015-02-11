@@ -20,132 +20,119 @@
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "optionmanager.hpp"
 #include "soundobject.hpp"
 #include "videoobject.hpp"
 #include "root.hpp"
 
-using namespace cursedearth;
-
-static bool paused;
-static bool only_sound;
-static color_t message_color;
-static float alpha_sign = -1.0f;
-static sound_object_t sound_object;
-static video_object_t video_object;
-static ce_optparse* optparse;
-static input_supply_ptr_t input_supply;
-static input_event_const_ptr_t pause_event;
-
-static void clear()
+namespace cursedearth
 {
-    ce_optparse_del(optparse);
-}
+    class media_player_t final: public scene_manager_t
+    {
+    public:
+        explicit media_player_t(const ce_optparse_ptr_t& option_parser):
+            m_input_supply(std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context())),
+            m_pause_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space)))
+        {
+            const char* track;
+            ce_optparse_get(option_parser, "track", &track);
+            ce_optparse_get(option_parser, "only_sound", &m_only_sound);
 
-static void state_changed(void*, int state)
-{
-    if (CE_SCENEMNG_STATE_READY == state) {
-        const char* track;
-        ce_optparse_get(optparse, "track", &track);
-        ce_optparse_get(optparse, "only_sound", &only_sound);
+            m_track.assign(track);
 
-        if (only_sound) {
-            play_sound_object(sound_object = make_sound_object(track));
-        } else {
-            play_video_object(video_object = make_video_object(track));
-        }
-
-        if (0 == sound_object && 0 == video_object) {
-            ce_logging_error("media player: could not play track `%s'", track);
-        }
-
-        ce_scenemng_change_state(ce_root::instance()->scenemng, CE_SCENEMNG_STATE_LOADING);
-    }
-}
-
-static void advance(void*, float elapsed)
-{
-    input_supply->advance(elapsed);
-    sound_object_advance(sound_object, elapsed);
-    video_object_advance(video_object, elapsed);
-
-    if (pause_event->triggered()) {
-        paused = !paused;
-        if (paused) {
-            pause_sound_object(sound_object);
-            pause_video_object(video_object);
-        } else {
-            play_sound_object(sound_object);
-            play_video_object(video_object);
-        }
-    }
-
-    if (only_sound) {
-        if (sound_object_is_valid(sound_object) && !sound_object_is_stopped(sound_object)) {
-            message_color.a += elapsed * alpha_sign;
-            alpha_sign = message_color.a < 0.25f ? 1.0f : (message_color.a > 1.0f ? -1.0f : alpha_sign);
-        } else {
-            message_color.a = 1.0f;
-        }
-    }
-}
-
-static void render(void*)
-{
-    if (CE_SCENEMNG_STATE_PLAYING != ce_root::instance()->scenemng->state) {
-        return;
-    }
-
-    if (only_sound) {
-        char message[32];
-        const char* track;
-        ce_optparse_get(optparse, "track", &track);
-
-        if (sound_object_is_valid(sound_object)) {
-            if (sound_object_is_stopped(sound_object)) {
-                snprintf(message, sizeof(message), "Track `%s' stopped", track);
+            if (m_only_sound) {
+                play_sound_object(m_sound_object = make_sound_object(m_track));
             } else {
-                snprintf(message, sizeof(message), "Playing track `%s'", track);
+                play_video_object(m_video_object = make_video_object(m_track));
             }
-        } else {
-            snprintf(message, sizeof(message), "Unable to play track `%s'", track);
+
+            if (0 == m_sound_object && 0 == m_video_object) {
+                ce_logging_error("media player: could not play track `%s'", m_track.c_str());
+            }
         }
 
-        ce_font_render(ce_root::instance()->scenemng->font,
-            (ce_root::instance()->scenemng->viewport.width - ce_font_get_width(ce_root::instance()->scenemng->font, message)) / 2,
-            1 * (ce_root::instance()->scenemng->viewport.height - ce_font_get_height(ce_root::instance()->scenemng->font)) / 5,
-            &message_color, message);
-    }
+    private:
+        virtual void do_advance(float elapsed) final
+        {
+            m_input_supply->advance(elapsed);
+            sound_object_advance(m_sound_object, elapsed);
+            video_object_advance(m_video_object, elapsed);
 
-    video_object_render(video_object);
+            if (m_pause_event->triggered()) {
+                m_paused = !m_paused;
+                if (m_paused) {
+                    pause_sound_object(m_sound_object);
+                    pause_video_object(m_video_object);
+                } else {
+                    play_sound_object(m_sound_object);
+                    play_video_object(m_video_object);
+                }
+            }
+
+            if (m_only_sound) {
+                if (sound_object_is_valid(m_sound_object) && !sound_object_is_stopped(m_sound_object)) {
+                    m_text_color.a += elapsed * m_alpha_sign;
+                    m_alpha_sign = m_text_color.a < 0.25f ? 1.0f : (m_text_color.a > 1.0f ? -1.0f : m_alpha_sign);
+                } else {
+                    m_text_color.a = 1.0f;
+                }
+            }
+        }
+
+        virtual void do_render() final
+        {
+            if (m_only_sound) {
+                std::string text;
+
+                if (sound_object_is_valid(m_sound_object)) {
+                    if (sound_object_is_stopped(m_sound_object)) {
+                        text = str(boost::format("Track `%1%' stopped") % m_track);
+                    } else {
+                        text = str(boost::format("Playing track `%1%'") % m_track);
+                    }
+                } else {
+                    text = str(boost::format("Unable to play track `%1%'") % m_track);
+                }
+
+                viewport_t viewport = get_viewport();
+                ce_font* font = get_font();
+                ce_font_render(font, (viewport.width - ce_font_get_width(font, text)) / 2,
+                    1 * (viewport.height - ce_font_get_height(font)) / 5, m_text_color, text);
+            }
+
+            video_object_render(m_video_object);
+        }
+
+    private:
+        bool m_only_sound = false;
+        bool m_paused = false;
+        float m_alpha_sign = -1.0f;
+        std::string m_track;
+        color_t m_text_color = CE_COLOR_CORNFLOWER;
+        input_supply_ptr_t m_input_supply;
+        input_event_const_ptr_t m_pause_event;
+        sound_object_t m_sound_object;
+        video_object_t m_video_object;
+    };
 }
 
 int main(int argc, char* argv[])
 {
+    using namespace cursedearth;
     ce_alloc_init();
-    atexit(clear);
-
     try {
-        optparse = option_manager_t::make_parser();
+        ce_optparse_ptr_t option_parser = option_manager_t::make_parser();
 
-        ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+        ce_optparse_add(option_parser, "help", CE_TYPE_BOOL, NULL, false, "h", "help", "display this help and exit");
+        ce_optparse_add(option_parser, "version", CE_TYPE_BOOL, NULL, false, "v", "version", "display version information and exit");
+
+        ce_optparse_set_standard_properties(option_parser, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
             "Cursed Earth: Media Player", "This program is part of Cursed Earth spikes.\nMedia Player - play Evil Islands sounds and videos.");
 
-        ce_optparse_add(optparse, "only_sound", CE_TYPE_BOOL, NULL, false, NULL, "only-sound", "do not try to play video");
-        ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true, NULL, NULL, "TRACK.* file in `EI/Stream' or TRACK.* file in `EI/Movies' or internal resource");
+        ce_optparse_add(option_parser, "only_sound", CE_TYPE_BOOL, NULL, false, NULL, "only-sound", "do not try to play video");
+        ce_optparse_add(option_parser, "track", CE_TYPE_STRING, NULL, true, NULL, NULL, "TRACK.* file in `EI/Stream' or TRACK.* file in `EI/Movies' or internal resource");
 
-        ce_root root(optparse, argc, argv);
-
-        message_color = CE_COLOR_CORNFLOWER;
-
-        ce_root::instance()->scenemng->listener.state_changed = state_changed;
-        ce_root::instance()->scenemng->listener.advance = advance;
-        ce_root::instance()->scenemng->listener.render = render;
-
-        input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
-        pause_event = input_supply->single_front(input_supply->push(input_button_t::kb_space));
-
-        return ce_root::instance()->exec();
+        ce_root root(option_parser, argc, argv);
+        return root.exec(std::make_shared<media_player_t>(option_parser));
     } catch (const std::exception& error) {
         ce_logging_fatal("media player: %s", error.what());
     }

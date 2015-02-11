@@ -26,27 +26,27 @@
 #include "singleton.hpp"
 #include "timer.hpp"
 #include "input.hpp"
-#include "renderwindow.hpp"
-#include "scenemng.hpp"
+#include "optionmanager.hpp"
 #include "optparse.hpp"
+#include "renderwindow.hpp"
+#include "scenemanager.hpp"
 
 namespace cursedearth
 {
     class ce_root: public singleton_t<ce_root>
     {
     public:
-        ce_root(ce_optparse* optparse, int argc, char* argv[]);
+        ce_root(const ce_optparse_ptr_t&, int argc, char* argv[]);
         ~ce_root();
 
-        int exec();
+        int exec(const scene_manager_ptr_t& scene_manager);
 
         bool done = false;
         bool show_bboxes = false;
         bool comprehensive_bbox_only = true;
         float animation_fps = 15.0f;
-        ce_renderwindow* renderwindow;
-        scene_manager_t* scenemng;
         timer_ptr_t timer;
+        ce_renderwindow* renderwindow;
         input_supply_ptr_t input_supply;
         input_event_const_ptr_t exit_event;
         input_event_const_ptr_t switch_window_event;

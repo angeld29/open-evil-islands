@@ -144,10 +144,10 @@ namespace cursedearth
         }
     }
 
-    void ce_mob_loader_load_mob(const char* name)
+    void ce_mob_loader_load_mob(const std::string& name)
     {
         ++ce_mob_loader->queued_job_count;
-        ce_vector_push_back(ce_mob_loader->mob_tasks, ce_mob_task_new(name));
-        ce_logging_info("mob loader: '%s' queued", name);
+        ce_vector_push_back(ce_mob_loader->mob_tasks, ce_mob_task_new(name.c_str()));
+        ce_logging_info("mob loader: '%s' queued", name.c_str());
     }
 }

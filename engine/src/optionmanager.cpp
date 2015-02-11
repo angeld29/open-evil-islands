@@ -26,7 +26,7 @@
 
 namespace cursedearth
 {
-    option_manager_t::option_manager_t(ce_optparse* parser):
+    option_manager_t::option_manager_t(const ce_optparse_ptr_t& parser):
         singleton_t<option_manager_t>(this)
     {
         const char *ei_path, *ce_path;
@@ -74,9 +74,9 @@ namespace cursedearth
         ce_logging_info("option manager: texture caching %s", m_disable_texture_caching ? "disabled" : "enabled");
     }
 
-    ce_optparse* option_manager_t::make_parser()
+    ce_optparse_ptr_t option_manager_t::make_parser()
     {
-        ce_optparse* parser = ce_optparse_new();
+        ce_optparse_ptr_t parser = std::make_shared<ce_optparse>();
 
         boost::filesystem::path ei_path = find_path_in_registry(registry_key_t::current_user, "Software\\Nival Interactive\\EvilIslands\\Path Settings", "WORK PATH");
         std::string ei_help;

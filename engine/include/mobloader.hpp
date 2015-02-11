@@ -21,6 +21,8 @@
 #ifndef CE_MOBLOADER_HPP
 #define CE_MOBLOADER_HPP
 
+#include <string>
+
 #include "vector.hpp"
 #include "mobfile.hpp"
 
@@ -45,7 +47,7 @@ namespace cursedearth
     void ce_mob_loader_init(void);
     void ce_mob_loader_term(void);
 
-    void ce_mob_loader_load_mob(const char* name);
+    void ce_mob_loader_load_mob(const std::string& name);
 }
 
 #endif

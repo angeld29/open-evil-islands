@@ -31,37 +31,25 @@
 
 namespace cursedearth
 {
-    ce_optparse* ce_optparse_new(void)
+    ce_optparse::ce_optparse()
     {
-        ce_optparse* optparse = (ce_optparse*)ce_alloc_zero(sizeof(ce_optparse));
-        optparse->title = ce_string_new_str("Cursed Earth");
-        optparse->brief = ce_string_new();
-        optparse->argobjects = ce_vector_new();
-        optparse->ctrlobjects = ce_vector_new();
-
-        // some options hard-coded
-        ce_optparse_add(optparse, "help", CE_TYPE_BOOL, NULL, false,
-            "h", "help", "display this help and exit");
-        ce_optparse_add(optparse, "version", CE_TYPE_BOOL, NULL, false,
-            "v", "version", "display version information and exit");
-
-        return optparse;
+        title = ce_string_new_str("Cursed Earth");
+        brief = ce_string_new();
+        argobjects = ce_vector_new();
+        ctrlobjects = ce_vector_new();
     }
 
-    void ce_optparse_del(ce_optparse* optparse)
+    ce_optparse::~ce_optparse()
     {
-        if (NULL != optparse) {
-            ce_vector_for_each(optparse->ctrlobjects, (void(*)(void*))ce_object_del);
-            ce_vector_for_each(optparse->argobjects, (void(*)(void*))ce_object_del);
-            ce_vector_del(optparse->ctrlobjects);
-            ce_vector_del(optparse->argobjects);
-            ce_string_del(optparse->brief);
-            ce_string_del(optparse->title);
-            ce_free(optparse, sizeof(ce_optparse));
-        }
+        ce_vector_for_each(ctrlobjects, (void(*)(void*))ce_object_del);
+        ce_vector_for_each(argobjects, (void(*)(void*))ce_object_del);
+        ce_vector_del(ctrlobjects);
+        ce_vector_del(argobjects);
+        ce_string_del(brief);
+        ce_string_del(title);
     }
 
-    void ce_optparse_set_standard_properties(ce_optparse* optparse,
+    void ce_optparse_set_standard_properties(const ce_optparse_ptr_t& optparse,
         int version_major, int version_minor, int version_patch,
         const char* title, const char* brief)
     {
@@ -72,7 +60,7 @@ namespace cursedearth
         if (NULL != brief) ce_string_assign(optparse->brief, brief);
     }
 
-    bool ce_optparse_get(ce_optparse* optparse, const char* name, void* value)
+    bool ce_optparse_get(const ce_optparse_ptr_t& optparse, const char* name, void* value)
     {
         const char* tmp;
         for (size_t i = 0; i < optparse->argobjects->count; ++i) {
@@ -86,7 +74,7 @@ namespace cursedearth
         return false;
     }
 
-    void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type,
+    void ce_optparse_add(const ce_optparse_ptr_t& optparse, const char* name, ce_type type,
                             const void* value, bool required, const char* shortopt,
                             const char* longopt, const char* glossary)
     {
@@ -124,7 +112,7 @@ namespace cursedearth
         ce_vector_push_back(optparse->argobjects, object);
     }
 
-    void ce_optparse_add_control(ce_optparse* optparse, const char* name, const char* glossary)
+    void ce_optparse_add_control(const ce_optparse_ptr_t& optparse, const char* name, const char* glossary)
     {
         ce_object* object = ce_object_new("unnamed");
 
@@ -241,7 +229,7 @@ namespace cursedearth
         ce_optparse_assign_string
     };
 
-    void ce_optparse_usage(ce_optparse* optparse, void* argtable[], const char* progname)
+    void ce_optparse_usage(const ce_optparse_ptr_t& optparse, void* argtable[], const char* progname)
     {
         fprintf(stderr, "Cursed Earth is an open source, cross-platform port of Evil Islands.\n"
                         "Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>\n\n");
@@ -273,7 +261,7 @@ namespace cursedearth
         }
     }
 
-    bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[])
+    bool ce_optparse_parse(const ce_optparse_ptr_t& optparse, int argc, char* argv[])
     {
         std::vector<void*> argtable(optparse->argobjects->count + 1);
         argtable[optparse->argobjects->count] = arg_end(3);

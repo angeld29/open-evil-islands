@@ -214,7 +214,7 @@ namespace cursedearth
         return std::accumulate(text.begin(), text.end(), 0, [font] (int r, char c) { return r + font->widths[c - CE_FONT_SPACE]; });
     }
 
-    void ce_font_render(ce_font* font, int x, int y, const color_t* color, const std::string& text)
+    void ce_font_render(ce_font* font, int x, int y, const color_t& color, const std::string& text)
     {
         glPushAttrib(GL_ENABLE_BIT | GL_LIST_BIT);
 
@@ -246,7 +246,7 @@ namespace cursedearth
         }
 #endif
 
-        glColor4f(color->r, color->g, color->b, color->a);
+        glColor4f(color.r, color.g, color.b, color.a);
 
         glListBase(font->list - CE_FONT_SPACE);
         glCallLists(text.length(), GL_UNSIGNED_BYTE, text.c_str());

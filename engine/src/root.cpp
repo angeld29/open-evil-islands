@@ -87,7 +87,7 @@ namespace cursedearth
         ce_root::instance()->done = true;
     }
 
-    ce_root::ce_root(ce_optparse* optparse, int argc, char* argv[]):
+    ce_root::ce_root(const ce_optparse_ptr_t& optparse, int argc, char* argv[]):
         singleton_t<ce_root>(this),
         timer(make_timer())
     {
@@ -114,43 +114,43 @@ namespace cursedearth
         ce_config_manager_init();
         ce_event_manager_init();
 
-        renderwindow = ce_renderwindow_create(option_manager_t::instance()->window_width, option_manager_t::instance()->window_height, optparse->title->str);
+        renderwindow = ce_renderwindow_create(m_option_manager->window_width, m_option_manager->window_height, optparse->title->str);
         if (NULL == renderwindow) {
             throw game_error("root", "could not create window");
         }
 
         // TODO: try without window creation
-        if (option_manager_t::instance()->list_video_modes) {
+        if (m_option_manager->list_video_modes) {
             ce_displaymng_dump_supported_modes_to_stdout(renderwindow->displaymng);
             throw game_error("root", "dump_supported_modes_to_stdout failed");
         }
 
         // TODO: try without window creation
-        if (option_manager_t::instance()->list_video_rotations) {
+        if (m_option_manager->list_video_rotations) {
             ce_displaymng_dump_supported_rotations_to_stdout(renderwindow->displaymng);
             throw game_error("root", "dump_supported_rotations_to_stdout failed");
         }
 
         // TODO: try without window creation
-        if (option_manager_t::instance()->list_video_reflections) {
+        if (m_option_manager->list_video_reflections) {
             ce_displaymng_dump_supported_reflections_to_stdout(renderwindow->displaymng);
             throw game_error("root", "dump_supported_reflections_to_stdout failed");
         }
 
         // FIXME: find better solution
-        renderwindow->restore_fullscreen = option_manager_t::instance()->fullscreen;
-        if (option_manager_t::instance()->fullscreen) {
+        renderwindow->restore_fullscreen = m_option_manager->fullscreen;
+        if (m_option_manager->fullscreen) {
             renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
         }
 
-        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = option_manager_t::instance()->fullscreen_width;
-        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = option_manager_t::instance()->fullscreen_height;
+        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = m_option_manager->fullscreen_width;
+        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = m_option_manager->fullscreen_height;
 
-        renderwindow->visual.bpp = option_manager_t::instance()->fullscreen_bpp;
-        renderwindow->visual.rate = option_manager_t::instance()->fullscreen_rate;
+        renderwindow->visual.bpp = m_option_manager->fullscreen_bpp;
+        renderwindow->visual.rate = m_option_manager->fullscreen_rate;
 
-        renderwindow->visual.rotation = ce_display_rotation_from_degrees(option_manager_t::instance()->fullscreen_rotation);
-        renderwindow->visual.reflection = ce_display_reflection_from_bool(option_manager_t::instance()->fullscreen_reflection_x, option_manager_t::instance()->fullscreen_reflection_y);
+        renderwindow->visual.rotation = ce_display_rotation_from_degrees(m_option_manager->fullscreen_rotation);
+        renderwindow->visual.reflection = ce_display_reflection_from_bool(m_option_manager->fullscreen_reflection_x, m_option_manager->fullscreen_reflection_y);
 
         ce_render_system_init();
 
@@ -169,7 +169,6 @@ namespace cursedearth
         ce_mob_loader_init();
 
         ce_figure_manager_init();
-        scenemng = ce_scenemng_new();
         m_thread_pool = make_unique<thread_pool_t>();
 
         input_supply = std::make_shared<input_supply_t>(renderwindow->input_context());
@@ -186,7 +185,6 @@ namespace cursedearth
     ce_root::~ce_root()
     {
         m_thread_pool.reset();
-        ce_scenemng_del(scenemng);
         ce_figure_manager_term();
         ce_mob_loader_term();
         ce_mob_manager_term();
@@ -206,7 +204,7 @@ namespace cursedearth
         m_option_manager.reset();
     }
 
-    int ce_root::exec()
+    int ce_root::exec(const scene_manager_ptr_t& scene_manager)
     {
         ce_renderwindow_show(renderwindow);
         timer->start();
@@ -253,8 +251,8 @@ namespace cursedearth
             m_sound_manager->advance(elapsed);
             m_video_manager->advance(elapsed);
 
-            ce_scenemng_advance(scenemng, elapsed);
-            ce_scenemng_render(scenemng);
+            scene_manager->advance(elapsed);
+            scene_manager->render();
 
             ce_graphics_context_swap(renderwindow->graphics_context);
         }

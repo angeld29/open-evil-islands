@@ -34,81 +34,172 @@
 #include "mprhelpers.hpp"
 #include "mobloader.hpp"
 #include "root.hpp"
-#include "scenemng.hpp"
+#include "scenemanager.hpp"
 
 namespace cursedearth
 {
     void ce_scenemng_renderwindow_resized(void* listener, int width, int height)
     {
         scene_manager_t* scenemng = (scene_manager_t*)listener;
-        scenemng->viewport.set_dimensions(width, height);
-        ce_camera_set_aspect(scenemng->camera, static_cast<float>(width) / height);
+        scenemng->m_viewport.set_dimensions(width, height);
+        ce_camera_set_aspect(scenemng->m_camera, static_cast<float>(width) / height);
     }
 
     void ce_scenemng_figproto_created(void* listener, ce_figproto* figproto)
     {
         scene_manager_t* scenemng = (scene_manager_t*)listener;
-        ce_figproto_accept_renderqueue(figproto, scenemng->renderqueue);
+        ce_figproto_accept_renderqueue(figproto, scenemng->m_renderqueue);
     }
 
-    scene_manager_t* ce_scenemng_new(void)
+    scene_manager_t::scene_manager_t()
     {
-        scene_manager_t* scenemng = new scene_manager_t;
+        m_thread_id = ce_thread_self();
+        m_scenenode = ce_scenenode_new(NULL);
+        m_renderqueue = ce_renderqueue_new();
+        m_camera = ce_camera_new();
+        m_fps = std::make_shared<fps_t>();
+        m_font = ce_font_new("fonts/evilislands.ttf", 24);
+        m_terrain = NULL;
 
-        scenemng->thread_id = ce_thread_self();
-        scenemng->scenenode = ce_scenenode_new(NULL);
-        scenemng->renderqueue = ce_renderqueue_new();
-        scenemng->camera = ce_camera_new();
-        scenemng->fps = std::make_shared<fps_t>();
-        scenemng->font = ce_font_new("fonts/evilislands.ttf", 24);
-        scenemng->terrain = NULL;
+        m_input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
+        m_skip_logo_event = m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space));
+        m_pause_event = m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space));
+        m_move_left_event = m_input_supply->push(input_button_t::kb_left);
+        m_move_up_event = m_input_supply->push(input_button_t::kb_up);
+        m_move_right_event = m_input_supply->push(input_button_t::kb_right);
+        m_move_down_event = m_input_supply->push(input_button_t::kb_down);
+        m_zoom_in_event = m_input_supply->push(input_button_t::mb_wheelup);
+        m_zoom_out_event = m_input_supply->push(input_button_t::mb_wheeldown);
+        m_rotate_on_event = m_input_supply->push(input_button_t::mb_right);
 
-        scenemng->input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
-        scenemng->skip_logo_event = scenemng->input_supply->single_front(scenemng->input_supply->push(input_button_t::kb_space));
-        scenemng->pause_event = scenemng->input_supply->single_front(scenemng->input_supply->push(input_button_t::kb_space));
-        scenemng->move_left_event = scenemng->input_supply->push(input_button_t::kb_left);
-        scenemng->move_up_event = scenemng->input_supply->push(input_button_t::kb_up);
-        scenemng->move_right_event = scenemng->input_supply->push(input_button_t::kb_right);
-        scenemng->move_down_event = scenemng->input_supply->push(input_button_t::kb_down);
-        scenemng->zoom_in_event = scenemng->input_supply->push(input_button_t::mb_wheelup);
-        scenemng->zoom_out_event = scenemng->input_supply->push(input_button_t::mb_wheeldown);
-        scenemng->rotate_on_event = scenemng->input_supply->push(input_button_t::mb_right);
+        m_renderwindow_listener = {ce_scenemng_renderwindow_resized, NULL, this};
+        m_figure_manager_listener = {ce_scenemng_figproto_created, NULL, this};
 
-        scenemng->renderwindow_listener = {ce_scenemng_renderwindow_resized, NULL, scenemng};
-        scenemng->figure_manager_listener = {ce_scenemng_figproto_created, NULL, scenemng};
-
-        ce_renderwindow_add_listener(ce_root::instance()->renderwindow, &scenemng->renderwindow_listener);
-        ce_figure_manager_add_listener(&scenemng->figure_manager_listener);
-
-        memset(&scenemng->logo, 0, sizeof(scenemng->logo));
-        memset(&scenemng->loading, 0, sizeof(scenemng->loading));
-
-        return scenemng;
+        ce_renderwindow_add_listener(ce_root::instance()->renderwindow, &m_renderwindow_listener);
+        ce_figure_manager_add_listener(&m_figure_manager_listener);
     }
 
-    void ce_scenemng_del(scene_manager_t* scenemng)
+    scene_manager_t::~scene_manager_t()
     {
-        if (NULL != scenemng) {
-            // FIXME: figure entities must be removed before terrain
-            ce_figure_manager_clear();
-            ce_terrain_del(scenemng->terrain);
-            ce_font_del(scenemng->font);
-            ce_camera_del(scenemng->camera);
-            ce_renderqueue_del(scenemng->renderqueue);
-            ce_scenenode_del(scenemng->scenenode);
-            delete scenemng;
+        // FIXME: figure entities must be removed before terrain
+        ce_figure_manager_clear();
+        ce_terrain_del(m_terrain);
+        ce_font_del(m_font);
+        ce_camera_del(m_camera);
+        ce_renderqueue_del(m_renderqueue);
+        ce_scenenode_del(m_scenenode);
+    }
+
+    void scene_manager_t::advance(float elapsed)
+    {
+        m_fps->advance(elapsed);
+        m_input_supply->advance(elapsed);
+
+        if (m_move_left_event->triggered()) {
+            ce_camera_move(m_camera, -m_camera_move_sensitivity * elapsed, 0.0f);
+        }
+
+        if (m_move_up_event->triggered()) {
+            ce_camera_move(m_camera, 0.0f, m_camera_move_sensitivity * elapsed);
+        }
+
+        if (m_move_right_event->triggered()) {
+            ce_camera_move(m_camera, m_camera_move_sensitivity * elapsed, 0.0f);
+        }
+
+        if (m_move_down_event->triggered()) {
+            ce_camera_move(m_camera, 0.0f, -m_camera_move_sensitivity * elapsed);
+        }
+
+        if (m_zoom_in_event->triggered()) {
+            ce_camera_zoom(m_camera, m_camera_zoom_sensitivity);
+        }
+
+        if (m_zoom_out_event->triggered()) {
+            ce_camera_zoom(m_camera, -m_camera_zoom_sensitivity);
+        }
+
+        if (m_rotate_on_event->triggered()) {
+            float xcoef = 0.25f * (option_manager_t::instance()->inverse_trackball_x ? 1.0f : -1.0f);
+            float ycoef = 0.25f * (option_manager_t::instance()->inverse_trackball_y ? 1.0f : -1.0f);
+            ce_camera_yaw_pitch(m_camera,
+                deg2rad(xcoef * m_input_supply->pointer_offset().x),
+                deg2rad(ycoef * m_input_supply->pointer_offset().y));
+        }
+
+        do_advance(elapsed);
+    }
+
+    void scene_manager_t::render()
+    {
+        ce_render_system_begin_render(&CE_COLOR_WHITE);
+
+        ce_render_system_setup_viewport(&m_viewport);
+        ce_render_system_setup_camera(m_camera);
+
+        if (option_manager_t::instance()->show_axes()) {
+            ce_render_system_draw_axes();
+        }
+
+        ce_renderqueue_render(m_renderqueue);
+        ce_renderqueue_clear(m_renderqueue);
+
+        vector3_t forward, right, up;
+        frustum_t frustum;
+
+        ce_frustum_init(&frustum, m_camera->fov,
+            m_camera->aspect, m_camera->m_near,
+            m_camera->m_far, &m_camera->position,
+            ce_camera_get_forward(m_camera, &forward),
+            ce_camera_get_right(m_camera, &right),
+            ce_camera_get_up(m_camera, &up));
+
+        ce_scenenode_update_cascade(m_scenenode, &frustum);
+
+        if (ce_root::instance()->show_bboxes) {
+            ce_render_system_apply_color(&CE_COLOR_BLUE);
+            ce_scenenode_draw_bboxes_cascade(m_scenenode);
+        }
+
+        do_render();
+
+#ifndef NDEBUG
+        ce_font_render(m_font, 10, 10, CE_COLOR_SILVER, std::to_string(ce_scenenode_count_visible_cascade(m_scenenode)));
+#endif
+
+        if (option_manager_t::instance()->show_fps()) {
+            ce_font_render(m_font, m_viewport.width - ce_font_get_width(m_font, m_fps->text()) - 10,
+                m_viewport.height - ce_font_get_height(m_font) - 10, CE_COLOR_GOLD, m_fps->text());
+        }
+
+        ce_font_render(m_font, m_viewport.width - ce_font_get_width(m_font, m_engine_text) - 10, 10, CE_COLOR_RED, m_engine_text);
+
+        ce_render_system_end_render();
+    }
+
+    void scene_manager_t::load_mpr(const std::string& name)
+    {
+        // TODO: mpr loader?
+        ce_mprfile* mprfile = ce_mpr_manager_open(name);
+        if (NULL != mprfile) {
+            ce_terrain_del(m_terrain);
+
+            m_terrain = ce_terrain_new(mprfile, m_renderqueue,
+                &CE_VEC3_ZERO, &CE_QUAT_IDENTITY, m_scenenode);
         }
     }
 
-    void ce_scenemng_change_state(scene_manager_t* scenemng, int state)
+    void scene_manager_t::load_mob(const std::string& name)
     {
-        scenemng->state = state;
-        if (NULL != scenemng->listener.state_changed) {
-            (*scenemng->listener.state_changed)(scenemng->listener.receiver, state);
-        }
+        ce_mob_loader_load_mob(name);
     }
 
-    void ce_scenemng_advance_logo(scene_manager_t* scenemng, float elapsed)
+    void scene_manager_t::add_node(ce_scenenode* node)
+    {
+        ce_scenenode_attach_child(m_scenenode, node);
+    }
+
+    /*void ce_scenemng_advance_logo(scene_manager_t* scenemng, float elapsed)
     {
         video_object_advance(scenemng->logo.video_object, elapsed);
 
@@ -128,20 +219,7 @@ namespace cursedearth
         }
     }
 
-    void ce_scenemng_render_logo(scene_manager_t* scenemng)
-    {
-        video_object_render(scenemng->logo.video_object);
-    }
-
-    void ce_scenemng_advance_ready(scene_manager_t*, float /*elapsed*/)
-    {
-    }
-
-    void ce_scenemng_render_ready(scene_manager_t*)
-    {
-    }
-
-    void ce_scenemng_advance_loading(scene_manager_t* scenemng, float /*elapsed*/)
+    void ce_scenemng_advance_loading(scene_manager_t* scenemng, float elapsed)
     {
         // TODO: constructor
         if (!scenemng->loading.created) {
@@ -190,143 +268,5 @@ namespace cursedearth
 
             }
         }
-    }
-
-    void ce_scenemng_render_loading(scene_manager_t* scenemng)
-    {
-        video_object_render(scenemng->loading.video_object);
-    }
-
-    void ce_scenemng_advance_playing(scene_manager_t* scenemng, float elapsed)
-    {
-        if (scenemng->move_left_event->triggered()) {
-            ce_camera_move(scenemng->camera, -scenemng->camera_move_sensitivity * elapsed, 0.0f);
-        }
-
-        if (scenemng->move_up_event->triggered()) {
-            ce_camera_move(scenemng->camera, 0.0f, scenemng->camera_move_sensitivity * elapsed);
-        }
-
-        if (scenemng->move_right_event->triggered()) {
-            ce_camera_move(scenemng->camera, scenemng->camera_move_sensitivity * elapsed, 0.0f);
-        }
-
-        if (scenemng->move_down_event->triggered()) {
-            ce_camera_move(scenemng->camera, 0.0f, -scenemng->camera_move_sensitivity * elapsed);
-        }
-
-        if (scenemng->zoom_in_event->triggered()) {
-            ce_camera_zoom(scenemng->camera, scenemng->camera_zoom_sensitivity);
-        }
-
-        if (scenemng->zoom_out_event->triggered()) {
-            ce_camera_zoom(scenemng->camera, -scenemng->camera_zoom_sensitivity);
-        }
-
-        if (scenemng->rotate_on_event->triggered()) {
-            float xcoef = 0.25f * (option_manager_t::instance()->inverse_trackball_x ? 1.0f : -1.0f);
-            float ycoef = 0.25f * (option_manager_t::instance()->inverse_trackball_y ? 1.0f : -1.0f);
-            ce_camera_yaw_pitch(scenemng->camera,
-                deg2rad(xcoef * scenemng->input_supply->pointer_offset().x),
-                deg2rad(ycoef * scenemng->input_supply->pointer_offset().y));
-        }
-    }
-
-    void ce_scenemng_render_playing(scene_manager_t* scenemng)
-    {
-        if (option_manager_t::instance()->show_axes()) {
-            ce_render_system_draw_axes();
-        }
-
-        ce_renderqueue_render(scenemng->renderqueue);
-        ce_renderqueue_clear(scenemng->renderqueue);
-
-        vector3_t forward, right, up;
-        frustum_t frustum;
-
-        ce_frustum_init(&frustum, scenemng->camera->fov,
-            scenemng->camera->aspect, scenemng->camera->m_near,
-            scenemng->camera->m_far, &scenemng->camera->position,
-            ce_camera_get_forward(scenemng->camera, &forward),
-            ce_camera_get_right(scenemng->camera, &right),
-            ce_camera_get_up(scenemng->camera, &up));
-
-        ce_scenenode_update_cascade(scenemng->scenenode, &frustum);
-
-        if (ce_root::instance()->show_bboxes) {
-            ce_render_system_apply_color(&CE_COLOR_BLUE);
-            ce_scenenode_draw_bboxes_cascade(scenemng->scenenode);
-        }
-
-    #ifndef NDEBUG
-        char scenenode_text[8];
-        snprintf(scenenode_text, sizeof(scenenode_text), "%d",
-            ce_scenenode_count_visible_cascade(scenemng->scenenode));
-        ce_font_render(scenemng->font, 10, 10, &CE_COLOR_SILVER, scenenode_text);
-    #endif
-    }
-
-    struct {
-        void (*advance)(scene_manager_t* scenemng, float elapsed);
-        void (*render)(scene_manager_t* scenemng);
-    } ce_scenemng_state_procs[CE_SCENEMNG_STATE_COUNT] = {
-        { ce_scenemng_advance_logo, ce_scenemng_render_logo },
-        { ce_scenemng_advance_ready, ce_scenemng_render_ready },
-        { ce_scenemng_advance_loading, ce_scenemng_render_loading },
-        { ce_scenemng_advance_playing, ce_scenemng_render_playing }
-    };
-
-    void ce_scenemng_advance(scene_manager_t* scenemng, float elapsed)
-    {
-        scenemng->fps->advance(elapsed);
-        scenemng->input_supply->advance(elapsed);
-
-        (*ce_scenemng_state_procs[scenemng->state].advance)(scenemng, elapsed);
-
-        if (NULL != scenemng->listener.advance) {
-            (*scenemng->listener.advance)(scenemng->listener.receiver, elapsed);
-        }
-    }
-
-    void ce_scenemng_render(scene_manager_t* scenemng)
-    {
-        ce_render_system_begin_render(&CE_COLOR_WHITE);
-
-        ce_render_system_setup_viewport(&scenemng->viewport);
-        ce_render_system_setup_camera(scenemng->camera);
-
-        (*ce_scenemng_state_procs[scenemng->state].render)(scenemng);
-
-        if (NULL != scenemng->listener.render) {
-            (*scenemng->listener.render)(scenemng->listener.receiver);
-        }
-
-        if (option_manager_t::instance()->show_fps()) {
-            ce_font_render(scenemng->font, scenemng->viewport.width -
-                ce_font_get_width(scenemng->font, scenemng->fps->text()) - 10,
-                scenemng->viewport.height - ce_font_get_height(scenemng->font) - 10,
-                &CE_COLOR_GOLD, scenemng->fps->text());
-        }
-
-        const char* engine_text = "Powered by Cursed Earth engine";
-        ce_font_render(scenemng->font, scenemng->viewport.width - ce_font_get_width(scenemng->font, engine_text) - 10, 10, &CE_COLOR_RED, engine_text);
-
-        ce_render_system_end_render();
-    }
-
-    void ce_scenemng_load_mpr(scene_manager_t* scenemng, const std::string& name)
-    {
-        // TODO: mpr loader?
-        ce_mprfile* mprfile = ce_mpr_manager_open(name);
-        if (NULL != mprfile) {
-            ce_terrain_del(scenemng->terrain);
-
-            scenemng->terrain = ce_terrain_new(mprfile, scenemng->renderqueue,
-                &CE_VEC3_ZERO, &CE_QUAT_IDENTITY, scenemng->scenenode);
-        }
-    }
-
-    void ce_scenemng_load_mob(scene_manager_t* scenemng, const std::string& name)
-    {
-    }
+    }*/
 }

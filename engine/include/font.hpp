@@ -35,7 +35,7 @@ namespace cursedearth
     int ce_font_get_height(ce_font*);
     int ce_font_get_width(ce_font*, const std::string& text);
 
-    void ce_font_render(ce_font*, int x, int y, const color_t*, const std::string& text);
+    void ce_font_render(ce_font*, int x, int y, const color_t&, const std::string& text);
 }
 
 #endif

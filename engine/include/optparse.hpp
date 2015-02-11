@@ -21,13 +21,19 @@
 #ifndef CE_OPTPARSE_HPP
 #define CE_OPTPARSE_HPP
 
+#include <memory>
+
 #include "vector.hpp"
 #include "string.hpp"
 #include "object.hpp"
 
 namespace cursedearth
 {
-    typedef struct {
+    struct ce_optparse
+    {
+        ce_optparse();
+        ~ce_optparse();
+
         int version_major;
         int version_minor;
         int version_patch;
@@ -35,19 +41,18 @@ namespace cursedearth
         ce_string* brief;
         ce_vector* argobjects;
         ce_vector* ctrlobjects;
-    } ce_optparse;
+    };
 
-    ce_optparse* ce_optparse_new(void);
-    void ce_optparse_del(ce_optparse* optparse);
+    typedef std::shared_ptr<ce_optparse> ce_optparse_ptr_t;
 
-    void ce_optparse_set_standard_properties(ce_optparse* optparse, int version_major, int version_minor, int version_patch, const char* title, const char* brief);
+    void ce_optparse_set_standard_properties(const ce_optparse_ptr_t& optparse, int version_major, int version_minor, int version_patch, const char* title, const char* brief);
 
-    bool ce_optparse_get(ce_optparse* optparse, const char* name, void* value);
+    bool ce_optparse_get(const ce_optparse_ptr_t& optparse, const char* name, void* value);
 
-    void ce_optparse_add(ce_optparse* optparse, const char* name, ce_type type, const void* value, bool required, const char* shortopt, const char* longopt, const char* glossary);
-    void ce_optparse_add_control(ce_optparse* optparse, const char* name, const char* glossary);
+    void ce_optparse_add(const ce_optparse_ptr_t& optparse, const char* name, ce_type type, const void* value, bool required, const char* shortopt, const char* longopt, const char* glossary);
+    void ce_optparse_add_control(const ce_optparse_ptr_t& optparse, const char* name, const char* glossary);
 
-    bool ce_optparse_parse(ce_optparse* optparse, int argc, char* argv[]);
+    bool ce_optparse_parse(const ce_optparse_ptr_t& optparse, int argc, char* argv[]);
 }
 
 #endif
