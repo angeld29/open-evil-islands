@@ -20,6 +20,7 @@ engine/include/display.hpp
 engine/include/display_windows.hpp
 engine/include/display_x11.hpp
 engine/include/event.hpp
+engine/include/exception.hpp
 engine/include/figbone.hpp
 engine/include/figentity.hpp
 engine/include/figfile.hpp
