@@ -49,7 +49,7 @@ namespace cursedearth
 
     fs::path find_resource(const std::string& name)
     {
-        fs::path root = option_manager_t::instance()->ei_path().string().c_str();
+        const fs::path root = option_manager_t::instance()->ei_path();
         for (const auto& extension: g_video_extensions) {
             const fs::path file_name = name + extension;
             for (const auto& directory: g_video_directories) {

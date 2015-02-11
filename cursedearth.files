@@ -60,7 +60,6 @@ engine/include/occlusion.hpp
 engine/include/opengl.hpp
 engine/include/optionmanager.hpp
 engine/include/optparse.hpp
-engine/include/path.hpp
 engine/include/plane.hpp
 engine/include/property.hpp
 engine/include/quaternion.hpp
@@ -187,7 +186,6 @@ engine/src/occlusion_opengl.cpp
 engine/src/opengl.cpp
 engine/src/optionmanager.cpp
 engine/src/optparse.cpp
-engine/src/path.cpp
 engine/src/plane.cpp
 engine/src/property.cpp
 engine/src/quaternion.cpp

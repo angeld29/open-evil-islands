@@ -18,70 +18,77 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-#include <cstring>
 #include <vector>
 
+#include <boost/filesystem.hpp>
+
 #include "alloc.hpp"
-#include "str.hpp"
-#include "path.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
 #include "resourcemanager.hpp"
 
 namespace cursedearth
 {
+    namespace fs = boost::filesystem;
+
     struct ce_resource_manager* ce_resource_manager;
 
-    const char* ce_resource_dirs[] = { "Res", NULL };
-    const char* ce_resource_exts[] = { ".res", NULL };
+    const std::vector<std::string> ce_resource_dirs = { "Res" };
+    const std::vector<std::string> ce_resource_exts = { ".res" };
 
-    ce_res_file* ce_resource_manager_open(const char* name)
+    fs::path find_resource_resource(const std::string& name)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
+        const fs::path root = option_manager_t::instance()->ei_path();
+        for (const auto& extension: ce_resource_exts) {
+            const fs::path file_name = name + extension;
+            for (const auto& directory: ce_resource_dirs) {
+                const fs::path file_path = root / directory / file_name;
+                if (exists(file_path)) {
+                    return file_path;
+                }
+            }
+        }
+        return fs::path();
+    }
+
+    ce_res_file* ce_resource_manager_open(const std::string& name)
+    {
+        fs::path path = find_resource_resource(name);
         ce_res_file* res_file = NULL;
 
-        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), name,
-                ce_resource_dirs, ce_resource_exts) && NULL != (res_file = ce_res_file_new_path(path.data()))) {
-            ce_logging_info("resource manager: loading `%s'... ok", path.data());
+        if (!path.empty() && NULL != (res_file = ce_res_file_new_path(path))) {
+            ce_logging_info("resource manager: loading `%s'... ok", path.string().c_str());
         } else {
-            ce_logging_error("resource manager: loading `%s'... failed", path.data());
+            ce_logging_error("resource manager: loading `%s'... failed", path.string().c_str());
         }
 
         return res_file;
     }
 
-    void ce_resource_manager_init(void)
+    void ce_resource_manager_init()
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
-        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_resource_dirs[0], NULL);
-
         ce_resource_manager = (struct ce_resource_manager*)ce_alloc_zero(sizeof(struct ce_resource_manager));
-        ce_resource_manager->path = ce_string_new_str(path.data());
-
-        for (size_t i = 0; NULL != ce_resource_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_resource_dirs[i], NULL);
-            ce_logging_info("resource manager: using path `%s'", path.data());
+        for (const auto& directory: ce_resource_dirs) {
+            fs::path path = option_manager_t::instance()->ei_path() / directory;
+            ce_logging_info("resource manager: using path `%s'", path.string().c_str());
         }
-
         ce_resource_manager->database = ce_resource_manager_open("database");
         ce_resource_manager->menus = ce_resource_manager_open("menus");
     }
 
-    void ce_resource_manager_term(void)
+    void ce_resource_manager_term()
     {
         if (NULL != ce_resource_manager) {
             ce_res_file_del(ce_resource_manager->menus);
             ce_res_file_del(ce_resource_manager->database);
-            ce_string_del(ce_resource_manager->path);
             ce_free(ce_resource_manager, sizeof(struct ce_resource_manager));
         }
     }
 
-    size_t ce_resource_manager_find_data(const char* path)
+    size_t ce_resource_manager_find_data(const std::string& path)
     {
         for (size_t index = 0; index < CE_RESOURCE_DATA_COUNT; ++index) {
-            if (0 == strcmp(path, ce_resource_data_paths[index])) {
+            if (path == ce_resource_data_paths[index]) {
                 return index;
             }
         }

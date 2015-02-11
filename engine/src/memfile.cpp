@@ -218,9 +218,9 @@ namespace cursedearth
         return ferror(bstd_file->file);
     }
 
-    ce_mem_file* ce_mem_file_new_path(const char* path)
+    ce_mem_file* ce_mem_file_new_path(const boost::filesystem::path& path)
     {
-        FILE* file = fopen(path, "rb");
+        FILE* file = fopen(path.string().c_str(), "rb");
         if (NULL == file) {
             return NULL;
         }

@@ -21,6 +21,8 @@
 #ifndef CE_MPRMANAGER_HPP
 #define CE_MPRMANAGER_HPP
 
+#include <string>
+
 #include "mprfile.hpp"
 
 namespace cursedearth
@@ -29,10 +31,10 @@ namespace cursedearth
         int stub;
     }* ce_mpr_manager;
 
-    void ce_mpr_manager_init(void);
-    void ce_mpr_manager_term(void);
+    void ce_mpr_manager_init();
+    void ce_mpr_manager_term();
 
-    ce_mprfile* ce_mpr_manager_open(const char* name);
+    ce_mprfile* ce_mpr_manager_open(const std::string& name);
 }
 
 #endif

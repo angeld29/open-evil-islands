@@ -42,9 +42,9 @@ namespace cursedearth
         ce_vector* listeners;
     }* ce_figure_manager;
 
-    void ce_figure_manager_init(void);
-    void ce_figure_manager_term(void);
-    void ce_figure_manager_clear(void);
+    void ce_figure_manager_init();
+    void ce_figure_manager_term();
+    void ce_figure_manager_clear();
 
     inline void ce_figure_manager_add_listener(ce_figure_manager_listener* listener)
     {

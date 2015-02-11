@@ -18,14 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * doc/formats/mob.txt
- */
-
 #ifndef CE_MOBFILE_HPP
 #define CE_MOBFILE_HPP
 
 #include <cstdint>
+
+#include <boost/filesystem/path.hpp>
 
 #include "vector.hpp"
 #include "string.hpp"
@@ -106,13 +104,16 @@ namespace cursedearth
         ce_mob_trap_target* target;
     } ce_mob_trap;
 
+    /**
+     * @brief doc/formats/mob.txt
+     */
     typedef struct {
         ce_string* name;
         ce_string* script;
         ce_vector* objects;
     } ce_mob_file;
 
-    ce_mob_file* ce_mob_file_open(const char* path);
+    ce_mob_file* ce_mob_file_open(const boost::filesystem::path&);
     void ce_mob_file_close(ce_mob_file* mob_file);
 }
 

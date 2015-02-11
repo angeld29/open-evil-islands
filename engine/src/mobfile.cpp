@@ -706,31 +706,24 @@ namespace cursedearth
         }
     }
 
-    ce_mob_file* ce_mob_file_open_mem_file(const char* name, ce_mem_file* mem_file)
+    ce_mob_file* ce_mob_file_open_mem_file(const std::string& name, ce_mem_file* mem_file)
     {
         ce_mob_file* mob_file = (ce_mob_file*)ce_alloc_zero(sizeof(ce_mob_file));
-        mob_file->name = ce_string_new_str_n(name, std::min(strlen(name), strlen(name) - 4));
+        mob_file->name = ce_string_new_str(name.c_str());
 
         ce_mob_file_block_loop(mob_file, mem_file, ce_mem_file_size(mem_file));
 
         return mob_file;
     }
 
-    ce_mob_file* ce_mob_file_open(const char* path)
+    ce_mob_file* ce_mob_file_open(const boost::filesystem::path& path)
     {
         ce_mem_file* mem_file = ce_mem_file_new_path(path);
         if (NULL == mem_file) {
             return NULL;
         }
 
-        const char* name = ce_strrpbrk(path, "\\/");
-        if (NULL == name) {
-            name = path;
-        } else {
-            ++name;
-        }
-
-        ce_mob_file* mob_file = ce_mob_file_open_mem_file(name, mem_file);
+        ce_mob_file* mob_file = ce_mob_file_open_mem_file(path.filename().string(), mem_file);
         ce_mem_file_del(mem_file);
 
         return mob_file;

@@ -33,10 +33,10 @@ namespace cursedearth
 {
     const uint32_t CE_RES_SIGNATURE = 0x19ce23c;
 
-    ce_res_file* ce_res_file_new(const char* name, ce_mem_file* mem_file)
+    ce_res_file* ce_res_file_new(const std::string& name, ce_mem_file* mem_file)
     {
         ce_res_file* res_file = (ce_res_file*)ce_alloc_zero(sizeof(ce_res_file));
-        res_file->name = ce_string_new_str(name);
+        res_file->name = ce_string_new_str(name.c_str());
         res_file->mem_file = mem_file;
 
         uint32_t signature = ce_mem_file_read_u32le(mem_file);
@@ -69,21 +69,13 @@ namespace cursedearth
         return res_file;
     }
 
-    ce_res_file* ce_res_file_new_path(const char* path)
+    ce_res_file* ce_res_file_new_path(const boost::filesystem::path& path)
     {
         ce_mem_file* mem_file = ce_mem_file_new_path(path);
         if (NULL == mem_file) {
             return NULL;
         }
-
-        const char* name = ce_strrpbrk(path, "\\/");
-        if (NULL == name) {
-            name = path;
-        } else {
-            ++name;
-        }
-
-        return ce_res_file_new(name, mem_file);
+        return ce_res_file_new(path.filename().string(), mem_file);
     }
 
     void ce_res_file_del(ce_res_file* res_file)
@@ -111,12 +103,12 @@ namespace cursedearth
         return sum % limit;
     }
 
-    size_t ce_res_file_node_index(const ce_res_file* res_file, const char* name)
+    size_t ce_res_file_node_index(const ce_res_file* res_file, const std::string& name)
     {
-        int index = ce_res_name_hash(name, res_file->node_count);
+        int index = ce_res_name_hash(name.c_str(), res_file->node_count);
         for (const ce_res_node* node; index >= 0; index = node->next_index) {
             node = res_file->nodes + index;
-            if (0 == ce_strcasecmp(name, node->name->str)) {
+            if (0 == ce_strcasecmp(name.c_str(), node->name->str)) {
                 break;
             }
         }

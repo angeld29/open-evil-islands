@@ -281,7 +281,7 @@ namespace cursedearth
         }
     }
 
-    void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path)
+    void ce_mmpfile_save(const ce_mmpfile* mmpfile, const boost::filesystem::path& path)
     {
         // compressed PNT3 not supported
         assert(CE_MMPFILE_FORMAT_PNT3 != mmpfile->format);
@@ -289,7 +289,7 @@ namespace cursedearth
             return;
         }
 
-        FILE* file = fopen(path, "wb");
+        FILE* file = fopen(path.string().c_str(), "wb");
         if (NULL != file) {
             uint32_t header[22];
             header[0] = cpu2le(CE_MMPFILE_SIGNATURE);
@@ -319,7 +319,7 @@ namespace cursedearth
             fwrite(header + 19, 4, 3, file);
             fclose(file);
         } else {
-            ce_logging_error("mmp: couldn't save file `%s'", path);
+            ce_logging_error("mmp: couldn't save file `%s'", path.string().c_str());
         }
     }
 

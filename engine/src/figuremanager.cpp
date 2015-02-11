@@ -18,13 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-#include <cstring>
 #include <vector>
+
+#include <boost/filesystem.hpp>
 
 #include "alloc.hpp"
 #include "str.hpp"
-#include "path.hpp"
 #include "logging.hpp"
 #include "resfile.hpp"
 #include "optionmanager.hpp"
@@ -33,12 +32,14 @@
 
 namespace cursedearth
 {
+    namespace fs = boost::filesystem;
+
     struct ce_figure_manager* ce_figure_manager;
 
-    const char* ce_figure_exts[] = { ".mod", NULL };
-    const char* ce_figure_resource_dirs[] = { "Res", NULL };
-    const char* ce_figure_resource_exts[] = { ".res", NULL };
-    const char* ce_figure_resource_names[] = { "figures", "menus", NULL };
+    const std::vector<std::string> ce_figure_exts = { ".mod" };
+    const std::vector<std::string> ce_figure_resource_dirs = { "Res" };
+    const std::vector<std::string> ce_figure_resource_exts = { ".res" };
+    const std::vector<std::string> ce_figure_resource_names = { "figures", "menus" };
 
     void ce_notify_figproto_created(ce_vector* listeners, ce_figproto* figproto)
     {
@@ -60,9 +61,24 @@ namespace cursedearth
         }
     }
 
+    fs::path find_figure_resource(const std::string& name)
+    {
+        const fs::path root = option_manager_t::instance()->ei_path();
+        for (const auto& extension: ce_figure_resource_exts) {
+            const fs::path file_name = name + extension;
+            for (const auto& directory: ce_figure_resource_dirs) {
+                const fs::path file_path = root / directory / file_name;
+                if (exists(file_path)) {
+                    return file_path;
+                }
+            }
+        }
+        return fs::path();
+    }
+
     // TODO: cleanup unused protos and meshes
 
-    void ce_figure_manager_init(void)
+    void ce_figure_manager_init()
     {
         ce_figure_manager = (struct ce_figure_manager*)ce_alloc_zero(sizeof(struct ce_figure_manager));
         ce_figure_manager->res_files = ce_vector_new();
@@ -71,27 +87,24 @@ namespace cursedearth
         ce_figure_manager->entities = ce_vector_new_reserved(512);
         ce_figure_manager->listeners = ce_vector_new();
 
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
-
-        for (size_t i = 0; NULL != ce_figure_resource_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_figure_resource_dirs[i], NULL);
-            ce_logging_info("figure manager: using path `%s'", path.data());
+        for (const auto& dir: ce_figure_resource_dirs) {
+            fs::path path = option_manager_t::instance()->ei_path() / dir;
+            ce_logging_info("figure manager: using path `%s'", path.string().c_str());
         }
 
-        for (size_t i = 0; NULL != ce_figure_resource_names[i]; ++i) {
+        for (const auto& name: ce_figure_resource_names) {
             ce_res_file* res_file;
-            if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(),
-                    ce_figure_resource_names[i], ce_figure_resource_dirs, ce_figure_resource_exts) &&
-                    NULL != (res_file = ce_res_file_new_path(path.data()))) {
+            fs::path path = find_figure_resource(name);
+            if (!path.empty() && NULL != (res_file = ce_res_file_new_path(path))) {
                 ce_vector_push_back(ce_figure_manager->res_files, res_file);
-                ce_logging_info("figure manager: loading `%s'... ok", path.data());
+                ce_logging_info("figure manager: loading `%s'... ok", path.string().c_str());
             } else {
-                ce_logging_error("figure manager: loading `%s'... failed", path.data());
+                ce_logging_error("figure manager: loading `%s'... failed", path.string().c_str());
             }
         }
     }
 
-    void ce_figure_manager_term(void)
+    void ce_figure_manager_term()
     {
         if (NULL != ce_figure_manager) {
             ce_figure_manager_clear();
@@ -107,7 +120,7 @@ namespace cursedearth
         }
     }
 
-    void ce_figure_manager_clear(void)
+    void ce_figure_manager_clear()
     {
         ce_vector_for_each(ce_figure_manager->entities, (void(*)(void*))ce_figentity_del);
         ce_vector_clear(ce_figure_manager->entities);

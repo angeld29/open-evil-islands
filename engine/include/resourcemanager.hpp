@@ -21,6 +21,8 @@
 #ifndef CE_RESOURCEMANAGER_HPP
 #define CE_RESOURCEMANAGER_HPP
 
+#include <string>
+
 #include "string.hpp"
 #include "resourcedata.hpp"
 #include "resfile.hpp"
@@ -28,15 +30,14 @@
 namespace cursedearth
 {
     extern struct ce_resource_manager {
-        ce_string* path;
         ce_res_file* database;
         ce_res_file* menus;
     }* ce_resource_manager;
 
-    void ce_resource_manager_init(void);
-    void ce_resource_manager_term(void);
+    void ce_resource_manager_init();
+    void ce_resource_manager_term();
 
-    size_t ce_resource_manager_find_data(const char* path);
+    size_t ce_resource_manager_find_data(const std::string& path);
 }
 
 #endif

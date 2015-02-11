@@ -18,59 +18,87 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-#include <cstring>
 #include <vector>
+
+#include <boost/filesystem.hpp>
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "str.hpp"
-#include "path.hpp"
 #include "resfile.hpp"
 #include "optionmanager.hpp"
 #include "texturemanager.hpp"
 
 namespace cursedearth
 {
+    namespace fs = boost::filesystem;
+
     struct ce_texture_manager* ce_texture_manager;
 
-    const char* ce_texture_exts[] = {".mmp", NULL};
-    const char* ce_texture_cache_dirs[] = {"Textures", NULL};
-    const char* ce_texture_resource_dirs[] = {"Res", NULL};
-    const char* ce_texture_resource_exts[] = {".res", NULL};
-    const char* ce_texture_resource_names[] = {"textures", "redress", "menus", NULL};
+    const std::vector<std::string> ce_texture_exts = { ".mmp" };
+    const std::vector<std::string> ce_texture_cache_dirs = { "Textures" };
+    const std::vector<std::string> ce_texture_resource_dirs = { "Res" };
+    const std::vector<std::string> ce_texture_resource_exts = { ".res" };
+    const std::vector<std::string> ce_texture_resource_names = { "textures", "redress", "menus" };
 
-    void ce_texture_manager_init(void)
+    fs::path find_cache_resource(const std::string& name)
+    {
+        const fs::path root = option_manager_t::instance()->ei_path();
+        for (const auto& extension: ce_texture_exts) {
+            const fs::path file_name = name + extension;
+            for (const auto& directory: ce_texture_cache_dirs) {
+                const fs::path file_path = root / directory / file_name;
+                if (exists(file_path)) {
+                    return file_path;
+                }
+            }
+        }
+        return fs::path();
+    }
+
+    fs::path find_texture_resource(const std::string& name)
+    {
+        const fs::path root = option_manager_t::instance()->ei_path();
+        for (const auto& extension: ce_texture_resource_exts) {
+            const fs::path file_name = name + extension;
+            for (const auto& directory: ce_texture_resource_dirs) {
+                const fs::path file_path = root / directory / file_name;
+                if (exists(file_path)) {
+                    return file_path;
+                }
+            }
+        }
+        return fs::path();
+    }
+
+    void ce_texture_manager_init()
     {
         ce_texture_manager = (struct ce_texture_manager*)ce_alloc_zero(sizeof(struct ce_texture_manager));
         ce_texture_manager->res_files = ce_vector_new();
         ce_texture_manager->textures = ce_vector_new();
 
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
-
-        for (size_t i = 0; NULL != ce_texture_cache_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_texture_cache_dirs[i], NULL);
-            ce_logging_info("texture manager: using cache path `%s'", path.data());
+        for (const auto& dir: ce_texture_cache_dirs) {
+            fs::path path = option_manager_t::instance()->ei_path() / dir;
+            ce_logging_info("texture manager: using cache path `%s'", path.string().c_str());
         }
 
-        for (size_t i = 0; NULL != ce_texture_resource_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_texture_resource_dirs[i], NULL);
-            ce_logging_info("texture manager: using path `%s'", path.data());
+        for (const auto& dir: ce_texture_resource_dirs) {
+            fs::path path = option_manager_t::instance()->ei_path() / dir;
+            ce_logging_info("texture manager: using path `%s'", path.string().c_str());
         }
 
-        for (size_t i = 0; NULL != ce_texture_resource_names[i]; ++i) {
+        for (const auto& name: ce_texture_resource_names) {
+            fs::path path = find_texture_resource(name);
             ce_res_file* res_file;
-            if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_texture_resource_names[i],
-                    ce_texture_resource_dirs, ce_texture_resource_exts) && NULL != (res_file = ce_res_file_new_path(path.data()))) {
+            if (!path.empty() && NULL != (res_file = ce_res_file_new_path(path))) {
                 ce_vector_push_back(ce_texture_manager->res_files, res_file);
-                ce_logging_info("texture manager: loading `%s'... ok", path.data());
+                ce_logging_info("texture manager: loading `%s'... ok", path.string().c_str());
             } else {
-                ce_logging_error("texture manager: loading `%s'... failed", path.data());
+                ce_logging_error("texture manager: loading `%s'... failed", path.string().c_str());
             }
         }
     }
 
-    void ce_texture_manager_term(void)
+    void ce_texture_manager_term()
     {
         if (NULL != ce_texture_manager) {
             ce_vector_for_each(ce_texture_manager->textures, (void(*)(void*))ce_texture_del);
@@ -83,10 +111,9 @@ namespace cursedearth
 
     ce_mmpfile* ce_texture_manager_open_mmpfile_from_cache(const std::string& name)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + name.length() + 32);
-
-        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), name.c_str(), ce_texture_cache_dirs, ce_texture_exts)) {
-            ce_mem_file* mem_file = ce_mem_file_new_path(path.data());
+        fs::path path = find_cache_resource(name);
+        if (!path.empty()) {
+            ce_mem_file* mem_file = ce_mem_file_new_path(path);
             if (NULL != mem_file) {
                 ce_mmpfile* mmpfile = ce_mmpfile_new_mem_file(mem_file);
                 ce_mem_file_del(mem_file);
@@ -126,9 +153,8 @@ namespace cursedearth
     void ce_texture_manager_save_mmpfile(const std::string& name, ce_mmpfile* mmpfile)
     {
         std::string file_name = name + ce_texture_exts[0];
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + file_name.length() + 32);
-        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_texture_cache_dirs[0], file_name.c_str(), NULL);
-        ce_mmpfile_save(mmpfile, path.data());
+        fs::path path = option_manager_t::instance()->ei_path() / ce_texture_cache_dirs[0] / file_name;
+        ce_mmpfile_save(mmpfile, path);
     }
 
     ce_texture* ce_texture_manager_get(const std::string& name)
@@ -138,7 +164,7 @@ namespace cursedearth
         // find texture in cache
         for (size_t i = 0; i < ce_texture_manager->textures->count; ++i) {
             ce_texture* texture = (ce_texture*)ce_texture_manager->textures->items[i];
-            if (0 == ce_strcasecmp(base_name.c_str(), texture->name->str)) {
+            if (base_name == texture->name->str) {
                 return texture;
             }
         }

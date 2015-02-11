@@ -21,6 +21,8 @@
 #ifndef CE_CONFIGFILE_HPP
 #define CE_CONFIGFILE_HPP
 
+#include <boost/filesystem/path.hpp>
+
 #include "vector.hpp"
 #include "string.hpp"
 
@@ -40,7 +42,7 @@ namespace cursedearth
         ce_vector* sections;
     } ce_config_file;
 
-    ce_config_file* ce_config_file_open(const char* path);
+    ce_config_file* ce_config_file_open(const boost::filesystem::path&);
     void ce_config_file_close(ce_config_file* config_file);
 
     inline size_t ce_config_file_section_count(ce_config_file* config_file)

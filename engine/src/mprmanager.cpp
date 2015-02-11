@@ -18,50 +18,64 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-#include <cstring>
 #include <vector>
+
+#include <boost/filesystem.hpp>
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "path.hpp"
 #include "resfile.hpp"
 #include "optionmanager.hpp"
 #include "mprmanager.hpp"
 
 namespace cursedearth
 {
+    namespace fs = boost::filesystem;
+
     struct ce_mpr_manager* ce_mpr_manager;
 
-    const char* ce_mpr_dirs[] = { "Maps", NULL };
-    const char* ce_mpr_exts[] = { ".mpr", NULL };
+    const std::vector<std::string> ce_mpr_dirs = { "Maps" };
+    const std::vector<std::string> ce_mpr_exts = { ".mpr" };
 
-    void ce_mpr_manager_init(void)
+    void ce_mpr_manager_init()
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 16);
-        for (size_t i = 0; NULL != ce_mpr_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_mpr_dirs[i], NULL);
-            ce_logging_info("mpr manager: using path '%s'", path.data());
+        for (const auto& dir: ce_mpr_dirs) {
+            fs::path path = option_manager_t::instance()->ei_path() / dir;
+            ce_logging_info("mpr manager: using path '%s'", path.string().c_str());
         }
-
         ce_mpr_manager = (struct ce_mpr_manager*)ce_alloc_zero(sizeof(struct ce_mpr_manager));
     }
 
-    void ce_mpr_manager_term(void)
+    void ce_mpr_manager_term()
     {
         if (NULL != ce_mpr_manager) {
             ce_free(ce_mpr_manager, sizeof(struct ce_mpr_manager));
         }
     }
 
-    ce_mprfile* ce_mpr_manager_open(const char* name)
+    fs::path find_mpr_resource(const std::string& name)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + strlen(name) + 32);
-        if (NULL == ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), name, ce_mpr_dirs, ce_mpr_exts)) {
+        const fs::path root = option_manager_t::instance()->ei_path();
+        for (const auto& extension: ce_mpr_exts) {
+            const fs::path file_name = name + extension;
+            for (const auto& directory: ce_mpr_dirs) {
+                const fs::path file_path = root / directory / file_name;
+                if (exists(file_path)) {
+                    return file_path;
+                }
+            }
+        }
+        return fs::path();
+    }
+
+    ce_mprfile* ce_mpr_manager_open(const std::string& name)
+    {
+        fs::path path = find_mpr_resource(name);
+        if (path.empty()) {
             return NULL;
         }
 
-        ce_res_file* res_file = ce_res_file_new_path(path.data());
+        ce_res_file* res_file = ce_res_file_new_path(path);
         if (NULL == res_file) {
             return NULL;
         }

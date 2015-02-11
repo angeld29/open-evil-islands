@@ -18,14 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * doc/formats/mmp.txt
- */
-
 #ifndef CE_MMPFILE_HPP
 #define CE_MMPFILE_HPP
 
 #include <cstdint>
+
+#include <boost/filesystem/path.hpp>
 
 #include "memfile.hpp"
 #include "resfile.hpp"
@@ -55,6 +53,9 @@ namespace cursedearth
         CE_MMPFILE_FORMAT_COUNT
     } ce_mmpfile_format;
 
+    /**
+     * @brief doc/formats/mmp.txt
+     */
     typedef struct {
         // standard EI header
         uint32_t width, height, mipmap_count;
@@ -81,7 +82,7 @@ namespace cursedearth
     ce_mmpfile* ce_mmpfile_new_res_file(ce_res_file* res_file, size_t index);
     void ce_mmpfile_del(ce_mmpfile* mmpfile);
 
-    void ce_mmpfile_save(const ce_mmpfile* mmpfile, const char* path);
+    void ce_mmpfile_save(const ce_mmpfile* mmpfile, const boost::filesystem::path&);
     void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format);
     void ce_mmpfile_convert2(ce_mmpfile* mmpfile, ce_mmpfile* other);
 }

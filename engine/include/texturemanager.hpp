@@ -35,8 +35,8 @@ namespace cursedearth
         ce_vector* textures;
     }* ce_texture_manager;
 
-    void ce_texture_manager_init(void);
-    void ce_texture_manager_term(void);
+    void ce_texture_manager_init();
+    void ce_texture_manager_term();
 
     // search mmp file only in cache directory; thread-safe
     ce_mmpfile* ce_texture_manager_open_mmpfile_from_cache(const std::string& name);

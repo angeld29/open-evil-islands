@@ -18,9 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstring>
+#include <boost/filesystem.hpp>
 
-#include "path.hpp"
 #include "logging.hpp"
 #include "resfile.hpp"
 #include "resball.hpp"
@@ -29,38 +28,66 @@
 
 namespace cursedearth
 {
-    const char* ce_sound_dirs[] = { "Stream", "Movies", NULL };
-    const char* ce_sound_exts[] = { ".wav", ".oga", ".ogv", ".ogg", ".mp3", ".bik", ".flac", NULL };
-    const char* ce_sound_resource_dirs[] = { "Res", NULL };
-    const char* ce_sound_resource_exts[] = { ".res", NULL };
-    const char* ce_sound_resource_names[] = { "sfx", "speech", NULL };
+    namespace fs = boost::filesystem;
 
-    ce_res_file* ce_sound_manager_open_resource(const char* name)
+    const std::vector<std::string> ce_sound_dirs = { "Stream", "Movies" };
+    const std::vector<std::string> ce_sound_exts = { ".wav", ".oga", ".ogv", ".ogg", ".mp3", ".bik", ".flac" };
+    const std::vector<std::string> ce_sound_resource_dirs = { "Res" };
+    const std::vector<std::string> ce_sound_resource_exts = { ".res" };
+    const std::vector<std::string> ce_sound_resource_names = { "sfx", "speech" };
+
+    fs::path find_sound(const std::string& name)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
-        ce_res_file* res_file = NULL;
-
-        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(),
-                name, ce_sound_resource_dirs, ce_sound_resource_exts) && NULL != (res_file = ce_res_file_new_path(path.data()))) {
-            ce_logging_info("sound manager: loading `%s'... ok", path.data());
-        } else {
-            ce_logging_error("sound manager: loading `%s'... failed", path.data());
+        const fs::path root = option_manager_t::instance()->ei_path();
+        for (const auto& extension: ce_sound_exts) {
+            const fs::path file_name = name + extension;
+            for (const auto& directory: ce_sound_dirs) {
+                const fs::path file_path = root / directory / file_name;
+                if (exists(file_path)) {
+                    return file_path;
+                }
+            }
         }
+        return fs::path();
+    }
 
+    fs::path find_sound_resource(const std::string& name)
+    {
+        const fs::path root = option_manager_t::instance()->ei_path();
+        for (const auto& extension: ce_sound_resource_exts) {
+            const fs::path file_name = name + extension;
+            for (const auto& directory: ce_sound_resource_dirs) {
+                const fs::path file_path = root / directory / file_name;
+                if (exists(file_path)) {
+                    return file_path;
+                }
+            }
+        }
+        return fs::path();
+    }
+
+    ce_res_file* ce_sound_manager_open_resource(const std::string& name)
+    {
+        fs::path path = find_sound_resource(name);
+        ce_res_file* res_file = NULL;
+        if (!path.empty() && NULL != (res_file = ce_res_file_new_path(path))) {
+            ce_logging_info("sound manager: loading `%s'... ok", path.string().c_str());
+        } else {
+            ce_logging_error("sound manager: loading `%s'... failed", path.string().c_str());
+        }
         return res_file;
     }
 
     sound_manager_t::sound_manager_t():
         singleton_t<sound_manager_t>(this)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 16);
-        for (size_t i = 0; NULL != ce_sound_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_sound_dirs[i], NULL);
-            ce_logging_info("sound manager: using path `%s'", path.data());
+        for (const auto& directory: ce_sound_dirs) {
+            fs::path path = option_manager_t::instance()->ei_path() / directory;
+            ce_logging_info("sound manager: using path `%s'", path.string().c_str());
         }
 
-        for (size_t i = 0; NULL != ce_sound_resource_names[i]; ++i) {
-            if (ce_res_file* res_file = ce_sound_manager_open_resource(ce_sound_resource_names[i])) {
+        for (const auto& name: ce_sound_resource_names) {
+            if (ce_res_file* res_file = ce_sound_manager_open_resource(name)) {
                 m_files.push_back(res_file);
             }
         }
@@ -81,21 +108,21 @@ namespace cursedearth
     {
         ce_mem_file* mem_file = NULL;
         for (const auto& file: m_files) {
-            if (NULL != (mem_file = ce_res_ball_extract_mem_file_by_name(file, name.c_str()))) {
+            if (NULL != (mem_file = ce_res_ball_extract_mem_file_by_name(file, name))) {
                 break;
             }
         }
 
         if (NULL == mem_file) {
-            std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + strlen(name.c_str()) + 32);
-            if (NULL == ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), name.c_str(), ce_sound_dirs, ce_sound_exts)) {
+            fs::path path = find_sound(name);
+            if (path.empty()) {
                 ce_logging_error("sound manager: could not find sound `%s'", name.c_str());
                 return 0;
             }
 
-            mem_file = ce_mem_file_new_path(path.data());
+            mem_file = ce_mem_file_new_path(path);
             if (NULL == mem_file) {
-                ce_logging_error("sound manager: could not open file `%s'", path.data());
+                ce_logging_error("sound manager: could not open file `%s'", path.string().c_str());
                 return 0;
             }
         }

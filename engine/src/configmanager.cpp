@@ -24,9 +24,10 @@
 #include <cstring>
 #include <vector>
 
+#include <boost/filesystem.hpp>
+
 #include "alloc.hpp"
 #include "str.hpp"
-#include "path.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
 #include "resourcemanager.hpp"
@@ -37,6 +38,8 @@
 
 namespace cursedearth
 {
+    namespace fs = boost::filesystem;
+
     struct ce_config_manager* ce_config_manager;
 
     const char* ce_config_dir = "Config";
@@ -139,19 +142,17 @@ namespace cursedearth
         return true;
     }
 
-    void ce_config_manager_init_lights(void)
+    void ce_config_manager_init_lights()
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
         for (size_t i = 0; i < CE_CONFIG_LIGHT_COUNT; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_config_dir, ce_config_light_files[i], NULL);
-
-            ce_config_file* config_file = ce_config_file_open(path.data());
+            fs::path path = option_manager_t::instance()->ei_path() / ce_config_dir / ce_config_light_files[i];
+            ce_config_file* config_file = ce_config_file_open(path);
             if (NULL != config_file) {
                 bool sky_ok = ce_config_manager_read_light(ce_config_manager->lights[i].sky, "sky", config_file);
                 bool ambient_ok = ce_config_manager_read_light(ce_config_manager->lights[i].ambient, "ambient", config_file);
                 bool sunlight_ok = ce_config_manager_read_light(ce_config_manager->lights[i].sunlight, "sunlight", config_file);
                 if (!sky_ok || !ambient_ok || !sunlight_ok) {
-                    ce_logging_error("config manager: `%s' contains broken content", path.data());
+                    ce_logging_error("config manager: `%s' contains broken content", path.string().c_str());
                 }
                 ce_config_file_close(config_file);
             } else {
@@ -166,10 +167,8 @@ namespace cursedearth
             ce_config_manager->movies[i] = ce_vector_new_reserved(4);
         }
 
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
-        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_config_dir, "movie.ini", NULL);
-
-        ce_config_file* config_file = ce_config_file_open(path.data());
+        fs::path path = option_manager_t::instance()->ei_path() / ce_config_dir / "movie.ini";
+        ce_config_file* config_file = ce_config_file_open(path);
         if (NULL != config_file) {
             for (size_t i = 0; i < CE_CONFIG_MOVIE_COUNT; ++i) {
                 // may be NULL (commented by user)
@@ -202,10 +201,8 @@ namespace cursedearth
             }
         }
 
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
-        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_resource_dir, "music.reg", NULL);
-
-        ce_mem_file* mem_file = ce_mem_file_new_path(path.data());
+        fs::path path = option_manager_t::instance()->ei_path() / ce_resource_dir / "music.reg";
+        ce_mem_file* mem_file = ce_mem_file_new_path(path);
         if (NULL != mem_file) {
             ce_reg_file* reg_file = ce_reg_file_new(mem_file);
             for (size_t i = 0; i < CE_CONFIG_MUSIC_CHAPTER_COUNT; ++i) {
@@ -222,7 +219,7 @@ namespace cursedearth
             ce_reg_file_del(reg_file);
             ce_mem_file_del(mem_file);
         } else {
-            ce_logging_error("config manager: could not open file `%s'", path.data());
+            ce_logging_error("config manager: could not open file `%s'", path.string().c_str());
             ce_logging_error("config manager: could not read music configuration");
         }
     }
@@ -253,12 +250,8 @@ namespace cursedearth
     void ce_config_manager_init(void)
     {
         ce_config_manager = (struct ce_config_manager*)ce_alloc_zero(sizeof(struct ce_config_manager));
-
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 32);
-        ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_config_dir, NULL);
-
-        ce_logging_info("config manager: using path `%s'", path.data());
-
+        fs::path path = option_manager_t::instance()->ei_path() / ce_config_dir;
+        ce_logging_info("config manager: using path `%s'", path.string().c_str());
         ce_config_manager_init_lights();
         ce_config_manager_init_movies();
         ce_config_manager_init_music();

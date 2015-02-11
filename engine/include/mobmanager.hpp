@@ -21,6 +21,8 @@
 #ifndef CE_MOBMANAGER_HPP
 #define CE_MOBMANAGER_HPP
 
+#include <string>
+
 #include "mobfile.hpp"
 
 namespace cursedearth
@@ -32,7 +34,7 @@ namespace cursedearth
     void ce_mob_manager_init(void);
     void ce_mob_manager_term(void);
 
-    ce_mob_file* ce_mob_manager_open(const char* name);
+    ce_mob_file* ce_mob_manager_open(const std::string& name);
 }
 
 #endif

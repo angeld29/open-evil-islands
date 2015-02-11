@@ -18,31 +18,30 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-#include <cstring>
 #include <vector>
+
+#include <boost/filesystem.hpp>
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "path.hpp"
 #include "optionmanager.hpp"
 #include "mobmanager.hpp"
 
 namespace cursedearth
 {
+    namespace fs = boost::filesystem;
+
     struct ce_mob_manager* ce_mob_manager;
 
-    const char* ce_mob_dirs[] = { "Maps", NULL };
-    const char* ce_mob_exts[] = { ".mob", NULL };
+    const std::vector<std::string> ce_mob_dirs = { "Maps" };
+    const std::vector<std::string> ce_mob_exts = { ".mob" };
 
     void ce_mob_manager_init(void)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + 16);
-        for (size_t i = 0; NULL != ce_mob_dirs[i]; ++i) {
-            ce_path_join(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), ce_mob_dirs[i], NULL);
-            ce_logging_info("mob manager: using path `%s'", path.data());
+        for (const auto& dir: ce_mob_dirs) {
+            fs::path path = option_manager_t::instance()->ei_path() / dir;
+            ce_logging_info("mob manager: using path `%s'", path.string().c_str());
         }
-
         ce_mob_manager = (struct ce_mob_manager*)ce_alloc_zero(sizeof(struct ce_mob_manager));
     }
 
@@ -53,11 +52,26 @@ namespace cursedearth
         }
     }
 
-    ce_mob_file* ce_mob_manager_open(const char* name)
+    fs::path find_mob_resource(const std::string& name)
     {
-        std::vector<char> path(option_manager_t::instance()->ei_path().string().length() + strlen(name) + 32);
-        if (NULL != ce_path_find_special1(path.data(), path.size(), option_manager_t::instance()->ei_path().string().c_str(), name, ce_mob_dirs, ce_mob_exts)) {
-            return ce_mob_file_open(path.data());
+        const fs::path root = option_manager_t::instance()->ei_path();
+        for (const auto& extension: ce_mob_exts) {
+            const fs::path file_name = name + extension;
+            for (const auto& directory: ce_mob_dirs) {
+                const fs::path file_path = root / directory / file_name;
+                if (exists(file_path)) {
+                    return file_path;
+                }
+            }
+        }
+        return fs::path();
+    }
+
+    ce_mob_file* ce_mob_manager_open(const std::string& name)
+    {
+        fs::path path = find_mob_resource(name);
+        if (!path.empty()) {
+            return ce_mob_file_open(path);
         }
         return NULL;
     }

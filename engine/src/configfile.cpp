@@ -136,19 +136,19 @@ namespace cursedearth
         return true;
     }
 
-    ce_config_file* ce_config_file_open(const char* path)
+    ce_config_file* ce_config_file_open(const boost::filesystem::path& path)
     {
-        FILE* file = fopen(path, "rt");
+        FILE* file = fopen(path.string().c_str(), "rt");
         if (NULL == file) {
-            ce_logging_error("config file: could not open file `%s'", path);
+            ce_logging_error("config file: could not open file `%s'", path.string().c_str());
             return NULL;
         }
 
         ce_config_file* config_file = (ce_config_file*)ce_alloc(sizeof(ce_config_file));
         config_file->sections = ce_vector_new();
 
-        if (!ce_config_file_parse(config_file, path, file)) {
-            ce_logging_error("config file: failed to parse `%s'", path);
+        if (!ce_config_file_parse(config_file, path.string().c_str(), file)) {
+            ce_logging_error("config file: failed to parse `%s'", path.string().c_str());
             ce_config_file_close(config_file);
             fclose(file);
             return NULL;

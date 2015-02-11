@@ -21,7 +21,7 @@
 #ifndef CE_MEMFILE_HPP
 #define CE_MEMFILE_HPP
 
-#include <cstddef>
+#include <boost/filesystem/path.hpp>
 
 #include "byteorder.hpp"
 
@@ -65,7 +65,7 @@ namespace cursedearth
     /*
      *  Implements a buffered interface for the FILE standard functions.
     */
-    ce_mem_file* ce_mem_file_new_path(const char* path);
+    ce_mem_file* ce_mem_file_new_path(const boost::filesystem::path&);
 
     inline size_t ce_mem_file_read(ce_mem_file* mem_file, void* ptr, size_t size, size_t n)
     {

@@ -18,15 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * doc/formats/res.txt
- */
-
 #ifndef CE_RESFILE_HPP
 #define CE_RESFILE_HPP
 
 #include <cstdint>
 #include <ctime>
+
+#include <boost/filesystem/path.hpp>
 
 #include "string.hpp"
 #include "memfile.hpp"
@@ -43,6 +41,9 @@ namespace cursedearth
         uint32_t name_offset;
     } ce_res_node;
 
+    /**
+     * @brief doc/formats/res.txt
+     */
     typedef struct {
         ce_string* name;
         uint32_t node_count;
@@ -54,11 +55,11 @@ namespace cursedearth
     } ce_res_file;
 
     // res file takes ownership of the mem file if successfull
-    ce_res_file* ce_res_file_new(const char* name, ce_mem_file* mem_file);
-    ce_res_file* ce_res_file_new_path(const char* path);
+    ce_res_file* ce_res_file_new(const std::string& name, ce_mem_file*);
+    ce_res_file* ce_res_file_new_path(const boost::filesystem::path&);
     void ce_res_file_del(ce_res_file* res_file);
 
-    size_t ce_res_file_node_index(const ce_res_file* res_file, const char* name);
+    size_t ce_res_file_node_index(const ce_res_file* res_file, const std::string& name);
 
     inline const char* ce_res_file_node_name(const ce_res_file* res_file, size_t index)
     {
