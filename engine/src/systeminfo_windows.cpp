@@ -18,10 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdexcept>
-
 #include <windows.h>
 
+#include "exception.hpp"
 #include "logging.hpp"
 #include "systeminfo.hpp"
 
@@ -30,83 +29,69 @@ namespace cursedearth
     void detect_system()
     {
         OSVERSIONINFOEX osverinfo;
-        BOOL osverinfoex;
-
         ZeroMemory(&osverinfo, sizeof(OSVERSIONINFOEX));
         osverinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 
-        osverinfoex = GetVersionEx((OSVERSIONINFO*)&osverinfo);
+        BOOL osverinfoex = GetVersionEx((OSVERSIONINFO*)&osverinfo);
         if (!osverinfoex) {
+            ZeroMemory(&osverinfo, sizeof(OSVERSIONINFOEX));
             osverinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
             if (!GetVersionEx((OSVERSIONINFO*)&osverinfo)) {
-                ce_logging_fatal("system info: could not retrieve os version info");
-                return false;
+                throw game_error("system info", "unable to get os version info");
+            }
+        }
+
+        if (VER_PLATFORM_WIN32_NT != osverinfo.dwPlatformId) {
+            throw game_error("system info", "Microsoft Windows NT platform required");
+        }
+
+        std::string message;
+        if (6 == osverinfo.dwMajorVersion && 3 == osverinfo.dwMinorVersion) {
+            message = "Microsoft Windows 8.1 ";
+        } else if (6 == osverinfo.dwMajorVersion && 2 == osverinfo.dwMinorVersion) {
+            message = "Microsoft Windows 8 ";
+        } else if (6 == osverinfo.dwMajorVersion && 1 == osverinfo.dwMinorVersion) {
+            message = "Microsoft Windows 7 ";
+        } else if (6 == osverinfo.dwMajorVersion && 0 == osverinfo.dwMinorVersion) {
+            message = "Microsoft Windows Vista ";
+        } else if (5 == osverinfo.dwMajorVersion && 2 == osverinfo.dwMinorVersion) {
+            message = "Microsoft Windows XP Professional ";
+        } else if (5 == osverinfo.dwMajorVersion && 1 == osverinfo.dwMinorVersion) {
+            message = "Microsoft Windows XP ";
+        } else if (5 == osverinfo.dwMajorVersion && 0 == osverinfo.dwMinorVersion) {
+            message = "Microsoft Windows 2000 ";
+        } else {
+            message = "Microsoft Windows NT ";
+        }
+
+        if (osverinfoex) {
+            if (VER_NT_WORKSTATION == osverinfo.wProductType) {
+                message += (osverinfo.wSuiteMask & VER_SUITE_PERSONAL) ? "Personal " : "Professional ";
+            } else {
+                message += "Server ";
             }
         }
 
         SYSTEM_INFO sysinfo;
         GetSystemInfo(&sysinfo);
 
-        char buffer[512], tmp[128];
-
-        switch (osverinfo.dwPlatformId) {
-        case VER_PLATFORM_WIN32s:
-        case VER_PLATFORM_WIN32_WINDOWS:
-            ce_logging_info("system info: Microsoft Windows %lu.%lu %s",
-                osverinfo.dwMajorVersion, osverinfo.dwMinorVersion, osverinfo.szCSDVersion);
-            break;
-
-        case VER_PLATFORM_WIN32_NT:
-            if (6 == osverinfo.dwMajorVersion && 1 == osverinfo.dwMinorVersion) {
-                ce_strlcpy(buffer, "Microsoft Windows 7 ", sizeof(buffer));
-            } else if (6 == osverinfo.dwMajorVersion && 0 == osverinfo.dwMinorVersion) {
-                ce_strlcpy(buffer, "Microsoft Windows Vista ", sizeof(buffer));
-            } else if (5 == osverinfo.dwMajorVersion && 1 == osverinfo.dwMinorVersion) {
-                ce_strlcpy(buffer, "Microsoft Windows XP ", sizeof(buffer));
-            } else if (5 == osverinfo.dwMajorVersion && 0 == osverinfo.dwMinorVersion) {
-                ce_strlcpy(buffer, "Microsoft Windows 2000 ", sizeof(buffer));
-            } else {
-                ce_strlcpy(buffer, "Microsoft Windows NT ", sizeof(buffer));
-            }
-
-            if (osverinfoex) {
-                if (VER_NT_WORKSTATION == osverinfo.wProductType) {
-                    if (osverinfo.wSuiteMask & VER_SUITE_PERSONAL) {
-                        ce_strlcat(buffer, "Personal ", sizeof(buffer));
-                    } else {
-                        ce_strlcat(buffer, "Professional ", sizeof(buffer));
-                    }
-                } else {
-                    if (osverinfo.wSuiteMask & VER_SUITE_DATACENTER) {
-                        ce_strlcat(buffer, "DataCenter Server ", sizeof(buffer));
-                    } else if (osverinfo.wSuiteMask & VER_SUITE_ENTERPRISE) {
-                        ce_strlcat(buffer, "Advanced Server ", sizeof(buffer));
-                    } else {
-                        ce_strlcat(buffer, "Server ", sizeof(buffer));
-                    }
-                }
-            }
-
-            if (PROCESSOR_ARCHITECTURE_AMD64 == sysinfo.wProcessorArchitecture) {
-                ce_strlcat(buffer, "x86_64 ", sizeof(buffer));
-            }
-
-            snprintf(tmp, sizeof(tmp), "Version %lu.%lu %s Build %lu",
-                osverinfo.dwMajorVersion, osverinfo.dwMinorVersion,
-                osverinfo.szCSDVersion, osverinfo.dwBuildNumber & 0xffff);
-            ce_strlcat(buffer, tmp, sizeof(buffer));
-
-            ce_logging_info("system info: %s", buffer);
-            break;
+        if (PROCESSOR_ARCHITECTURE_AMD64 == sysinfo.wProcessorArchitecture) {
+            message += "x86_64 ";
+        } else if (PROCESSOR_ARCHITECTURE_INTEL == sysinfo.wProcessorArchitecture) {
+            message += "x86 ";
+        } else if (PROCESSOR_ARCHITECTURE_IA64 == sysinfo.wProcessorArchitecture) {
+            message += "Intel Itanium ";
         }
 
-        if (VER_PLATFORM_WIN32_NT != osverinfo.dwPlatformId ||
-                osverinfo.dwMajorVersion < 5 || osverinfo.dwMinorVersion < 1) {
-            ce_logging_fatal("system info: Windows XP or above required");
-            return false;
+        message += str(boost::format("Version %1%.%2% %3% Build %4%") % osverinfo.dwMajorVersion %
+            osverinfo.dwMinorVersion % osverinfo.szCSDVersion % (osverinfo.dwBuildNumber & 0xffff));
+
+        ce_logging_info("system info: %s", message.c_str());
+
+        if (osverinfo.dwMajorVersion < 5) {
+            throw game_error("system info", "Windows XP Professional or above required");
         }
 
-        ce_logging_info("system info: Windows XP or above detected");
-        return true;
+        ce_logging_info("system info: Windows XP Professional or above detected");
     }
 }

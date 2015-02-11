@@ -38,20 +38,20 @@ namespace cursedearth
         const std::string posix_2004_v3 = "SUSv3 POSIX.1-2004 (IEEE Std 1003.1-2004) system";
         const std::string posix_2008_v4 = "SUSv4 POSIX.1-2008 (IEEE Std 1003.1-2008) system";
 
-        // _SC_VERSION Inquire about the parameter corresponding to _POSIX_VERSION.
+        // _SC_VERSION inquire about the parameter corresponding to _POSIX_VERSION
         const long posix_version = sysconf(_SC_VERSION);
 
-        // _SC_XOPEN_VERSION Inquire about the parameter corresponding to _XOPEN_VERSION.
+        // _SC_XOPEN_VERSION inquire about the parameter corresponding to _XOPEN_VERSION
         const long xopen_version = sysconf(_SC_XOPEN_VERSION);
 
         if (posix_version < 200112l || xopen_version < 600l) {
-            throw std::runtime_error(posix_2004_v3 + " required");
+            throw std::runtime_error(posix_2004_v3 + " or above required");
         }
 
         if (posix_version == 200809l && xopen_version == 700l) {
             ce_logging_info("system info: %s detected", posix_2008_v4.c_str());
         } else {
-            ce_logging_info("system info: %s detected", posix_2004_v3.c_str());
+            ce_logging_info("system info: %s or above detected", posix_2004_v3.c_str());
         }
     }
 }
