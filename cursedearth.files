@@ -79,7 +79,7 @@ engine/include/resourcedata.hpp
 engine/include/resourcemanager.hpp
 engine/include/ringbuffer.hpp
 engine/include/root.hpp
-engine/include/scenemng.hpp
+engine/include/scenemanager.hpp
 engine/include/scenenode.hpp
 engine/include/segment.hpp
 engine/include/shader.hpp
@@ -206,7 +206,7 @@ engine/src/resfile.cpp
 engine/src/resourcemanager.cpp
 engine/src/ringbuffer.cpp
 engine/src/root.cpp
-engine/src/scenemng.cpp
+engine/src/scenemanager.cpp
 engine/src/scenenode.cpp
 engine/src/shader_opengl.cpp
 engine/src/shadermanager.cpp
