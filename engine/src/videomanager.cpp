@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdexcept>
 #include <vector>
 
 #include <boost/filesystem.hpp>
 
+#include "exception.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
 #include "videomanager.hpp"
@@ -59,7 +59,7 @@ namespace cursedearth
                 }
             }
         }
-        throw std::runtime_error(str(boost::format("could not find resource `%1%'") % name));
+        throw game_error("video manager", boost::format("could not find resource `%1%'") % name);
     }
 
     video_object_t video_manager_t::make_instance(const std::string& name)
@@ -67,13 +67,13 @@ namespace cursedearth
         fs::path file_path = find_resource(name);
         ce_mem_file* mem_file = ce_mem_file_new_path(file_path.string().c_str());
         if (NULL == mem_file) {
-            throw std::runtime_error(str(boost::format("could not open file `%1%'") % file_path));
+            throw game_error("video manager", boost::format("could not open file `%1%'") % file_path);
         }
 
         ce_video_resource* resource = ce_video_resource_new(mem_file);
         if (NULL == resource) {
             ce_mem_file_del(mem_file);
-            throw std::runtime_error(str(boost::format("could not create resource `%1%'") % file_path));
+            throw game_error("video manager", boost::format("could not create resource `%1%'") % file_path);
         }
 
         const video_object_t object = ++m_last_object;

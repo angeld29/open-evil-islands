@@ -18,8 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdexcept>
-
+#include "exception.hpp"
 #include "byteorder.hpp"
 
 namespace cursedearth
@@ -37,6 +36,6 @@ namespace cursedearth
         case g_big_endian_pattern: return endian_t::big;
         case g_middle_endian_pattern: return endian_t::middle;
         }
-        throw std::runtime_error("unknown-endian system");
+        throw game_error("byte order", "unknown-endian system");
     }
 }

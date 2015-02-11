@@ -21,7 +21,6 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-#include <exception>
 
 #include "alloc.hpp"
 #include "logging.hpp"

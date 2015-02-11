@@ -20,9 +20,9 @@
 
 #include <cstring>
 #include <limits>
-#include <stdexcept>
 
 #include "str.hpp"
+#include "exception.hpp"
 #include "logging.hpp"
 #include "input.hpp"
 
@@ -284,7 +284,7 @@ namespace cursedearth
                 }
                 event = event_from_name(supply, button_name);
                 if (!event) {
-                    throw std::runtime_error(str(boost::format("input: failed to parse key sequence: `%1%'") % key_sequence));
+                    throw game_error("input", boost::format("failed to parse key sequence: `%1%'") % key_sequence);
                 }
                 and_event = !and_event ? event : supply->and_(and_event, event);
             } while (nullptr != and_seq);

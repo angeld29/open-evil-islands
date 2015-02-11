@@ -22,9 +22,9 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-#include <stdexcept>
 
 #include "makeunique.hpp"
+#include "exception.hpp"
 #include "logging.hpp"
 #include "thread.hpp"
 #include "event.hpp"
@@ -91,7 +91,7 @@ namespace cursedearth
         singleton_t<ce_root>(this)
     {
         if (!ce_optparse_parse(optparse, argc, argv)) {
-            throw std::runtime_error("root: option parser failed");
+            throw game_error("root", "option parser failed");
         }
 
         detect_system();
@@ -104,7 +104,7 @@ namespace cursedearth
             ce_logging_info("root: big-endian system detected");
             break;
         case endian_t::middle:
-            throw std::runtime_error("PDP-endian systems are not supported");
+            throw game_error("root", "PDP-endian systems are not supported");
         }
 
         m_option_manager = make_unique<option_manager_t>(optparse);
@@ -115,25 +115,25 @@ namespace cursedearth
 
         renderwindow = ce_renderwindow_create(option_manager_t::instance()->window_width, option_manager_t::instance()->window_height, optparse->title->str);
         if (NULL == renderwindow) {
-            throw std::runtime_error("root: could not create window");
+            throw game_error("root", "could not create window");
         }
 
         // TODO: try without window creation
         if (option_manager_t::instance()->list_video_modes) {
             ce_displaymng_dump_supported_modes_to_stdout(renderwindow->displaymng);
-            throw std::runtime_error("root: dump_supported_modes_to_stdout failed");
+            throw game_error("root", "dump_supported_modes_to_stdout failed");
         }
 
         // TODO: try without window creation
         if (option_manager_t::instance()->list_video_rotations) {
             ce_displaymng_dump_supported_rotations_to_stdout(renderwindow->displaymng);
-            throw std::runtime_error("root: dump_supported_rotations_to_stdout failed");
+            throw game_error("root", "dump_supported_rotations_to_stdout failed");
         }
 
         // TODO: try without window creation
         if (option_manager_t::instance()->list_video_reflections) {
             ce_displaymng_dump_supported_reflections_to_stdout(renderwindow->displaymng);
-            throw std::runtime_error("root: dump_supported_reflections_to_stdout failed");
+            throw game_error("root", "dump_supported_reflections_to_stdout failed");
         }
 
         // FIXME: find better solution

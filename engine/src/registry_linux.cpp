@@ -64,10 +64,11 @@ namespace cursedearth
 
         std::string get_home_path()
         {
-            if (const char* home_path = getenv("HOME")) {
-                return home_path;
+            if (const char* path = getenv("HOME")) {
+                return path;
             }
-            throw std::runtime_error("could not get environment variable `HOME'");
+            ce_logging_error("registry: could not get environment variable `HOME'");
+            return "/home/unknown";
         }
 
         std::string get_reg_file_name(registry_key_t key)
@@ -76,7 +77,8 @@ namespace cursedearth
             case registry_key_t::current_user:  return "user.reg";
             case registry_key_t::local_machine: return "system.reg";
             }
-            throw std::runtime_error("unknown key");
+            ce_logging_error("registry: unknown key");
+            return "unknown.reg";
         }
 
         struct config_file_dtor_t
@@ -145,23 +147,16 @@ namespace cursedearth
 
         std::string find_value(registry_key_t key, const std::string& key_name, const std::string& value_name, const get_func_t& func)
         {
-            try {
-                const std::string home_path = get_home_path();
-                const std::string reg_file_name = get_reg_file_name(key);
+            const std::string home_path = get_home_path();
+            const std::string reg_file_name = get_reg_file_name(key);
 
-                // add .PlayOnLinux prefixes (preferred)
-                std::vector<std::string> wine_prefixes = list_subdirectories(home_path + "/.PlayOnLinux/wineprefix");
+            // add .PlayOnLinux prefixes (preferred)
+            std::vector<std::string> wine_prefixes = list_subdirectories(home_path + "/.PlayOnLinux/wineprefix");
 
-                // add .wine prefix at the end
-                wine_prefixes.push_back(home_path + "/.wine");
+            // add .wine prefix at the end
+            wine_prefixes.push_back(home_path + "/.wine");
 
-                return func(wine_prefixes, reg_file_name, key_name, value_name);
-            } catch (const std::exception& error) {
-                ce_logging_error("registry: %s", error.what());
-            }
-
-            // not critical error, just return empty string
-            return std::string();
+            return func(wine_prefixes, reg_file_name, key_name, value_name);
         }
     }
 

@@ -18,11 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdexcept>
-
 #include <sys/utsname.h>
 #include <unistd.h>
 
+#include "exception.hpp"
 #include "logging.hpp"
 #include "systeminfo.hpp"
 
@@ -45,7 +44,7 @@ namespace cursedearth
         const long xopen_version = sysconf(_SC_XOPEN_VERSION);
 
         if (posix_version < 200112l || xopen_version < 600l) {
-            throw std::runtime_error(posix_2004_v3 + " or above required");
+            throw game_error("system info", posix_2004_v3 + " or above required");
         }
 
         if (posix_version == 200809l && xopen_version == 700l) {
