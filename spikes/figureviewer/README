@@ -6,9 +6,9 @@ Figure Viewer - explore Evil Islands figures.
 Figure Viewer is part of Cursed Earth spikes.
 Check http://cursedearth.sourceforge.net/ for more details.
 
-Try figureviewer -h for help.
+Check figureviewer -h for help.
 
-Some examples:
+Examples:
 figureviewer --primary-texture=rick unmori
 figureviewer --primary-texture=troll00 --animation-name=uattack unmotr
 figureviewer --primary-texture=dragon01 --animation-name=cidle unmodg

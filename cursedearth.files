@@ -285,8 +285,7 @@ scripts/env.py
 scripts/utils.py
 spikes/figureviewer/src/main.cpp
 spikes/mapviewer/src/main.cpp
-spikes/soundplayer/src/main.cpp
-spikes/videoplayer/src/main.cpp
+spikes/mediaplayer/src/main.cpp
 spikes/SConscript
 tools/reg2ini/src/reg2ini.c
 tools/reg2ini/SConstruct

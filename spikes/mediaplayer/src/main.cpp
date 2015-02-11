@@ -18,19 +18,20 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
+#include "soundobject.hpp"
 #include "videoobject.hpp"
 #include "root.hpp"
 
 using namespace cursedearth;
 
-static bool video_paused;
+static bool paused;
+static bool only_sound;
+static color_t message_color;
+static float alpha_sign = -1.0f;
+static sound_object_t sound_object;
 static video_object_t video_object;
 static ce_optparse* optparse;
 static input_supply_ptr_t input_supply;
@@ -46,12 +47,16 @@ static void state_changed(void*, int state)
     if (CE_SCENEMNG_STATE_READY == state) {
         const char* track;
         ce_optparse_get(optparse, "track", &track);
+        ce_optparse_get(optparse, "only_sound", &only_sound);
 
-        video_object = make_video_object(track);
-        if (0 == video_object) {
-            ce_logging_error("video player: could not play video track `%s'", track);
+        if (only_sound) {
+            play_sound_object(sound_object = make_sound_object(track));
         } else {
-            play_video_object(video_object);
+            play_video_object(video_object = make_video_object(track));
+        }
+
+        if (0 == sound_object && 0 == video_object) {
+            ce_logging_error("media player: could not play track `%s'", track);
         }
 
         ce_scenemng_change_state(ce_root::instance()->scenemng, CE_SCENEMNG_STATE_LOADING);
@@ -61,20 +66,57 @@ static void state_changed(void*, int state)
 static void advance(void*, float elapsed)
 {
     input_supply->advance(elapsed);
+    sound_object_advance(sound_object, elapsed);
     video_object_advance(video_object, elapsed);
 
     if (pause_event->triggered()) {
-        video_paused = !video_paused;
-        if (video_paused) {
+        paused = !paused;
+        if (paused) {
+            pause_sound_object(sound_object);
             pause_video_object(video_object);
         } else {
+            play_sound_object(sound_object);
             play_video_object(video_object);
+        }
+    }
+
+    if (only_sound) {
+        if (sound_object_is_valid(sound_object) && !sound_object_is_stopped(sound_object)) {
+            message_color.a += elapsed * alpha_sign;
+            alpha_sign = message_color.a < 0.25f ? 1.0f : (message_color.a > 1.0f ? -1.0f : alpha_sign);
+        } else {
+            message_color.a = 1.0f;
         }
     }
 }
 
 static void render(void*)
 {
+    if (CE_SCENEMNG_STATE_PLAYING != ce_root::instance()->scenemng->state) {
+        return;
+    }
+
+    if (only_sound) {
+        char message[32];
+        const char* track;
+        ce_optparse_get(optparse, "track", &track);
+
+        if (sound_object_is_valid(sound_object)) {
+            if (sound_object_is_stopped(sound_object)) {
+                snprintf(message, sizeof(message), "Track `%s' stopped", track);
+            } else {
+                snprintf(message, sizeof(message), "Playing track `%s'", track);
+            }
+        } else {
+            snprintf(message, sizeof(message), "Unable to play track `%s'", track);
+        }
+
+        ce_font_render(ce_root::instance()->scenemng->font,
+            (ce_root::instance()->scenemng->viewport.width - ce_font_get_width(ce_root::instance()->scenemng->font, message)) / 2,
+            1 * (ce_root::instance()->scenemng->viewport.height - ce_font_get_height(ce_root::instance()->scenemng->font)) / 5,
+            &message_color, message);
+    }
+
     video_object_render(video_object);
 }
 
@@ -87,11 +129,14 @@ int main(int argc, char* argv[])
         optparse = option_manager_t::make_parser();
 
         ce_optparse_set_standard_properties(optparse, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
-            "Cursed Earth: Video Player", "This program is part of Cursed Earth spikes.\nVideo Player - play Evil Islands videos.");
+            "Cursed Earth: Media Player", "This program is part of Cursed Earth spikes.\nMedia Player - play Evil Islands sounds and videos.");
 
-        ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true, NULL, NULL, "any TRACK.* file in `EI/Movies'");
+        ce_optparse_add(optparse, "only_sound", CE_TYPE_BOOL, NULL, false, NULL, "only-sound", "do not try to play video");
+        ce_optparse_add(optparse, "track", CE_TYPE_STRING, NULL, true, NULL, NULL, "TRACK.* file in `EI/Stream' or TRACK.* file in `EI/Movies' or internal resource");
 
         ce_root root(optparse, argc, argv);
+
+        message_color = CE_COLOR_CORNFLOWER;
 
         ce_root::instance()->scenemng->listener.state_changed = state_changed;
         ce_root::instance()->scenemng->listener.advance = advance;
@@ -102,7 +147,7 @@ int main(int argc, char* argv[])
 
         return ce_root::instance()->exec();
     } catch (const std::exception& error) {
-        ce_logging_fatal("video player: %s", error.what());
+        ce_logging_fatal("media player: %s", error.what());
     }
     return EXIT_FAILURE;
 }

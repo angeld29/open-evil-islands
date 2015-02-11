@@ -1,0 +1,19 @@
+Cursed Earth Media Player
+=========================
+
+Media Player - play Evil Islands sounds and videos.
+
+Media Player is part of Cursed Earth spikes.
+Check http://cursedearth.sourceforge.net/ for more details.
+
+Check mediaplayer -h for help.
+
+Examples:
+mediaplayer --only-sound main
+mediaplayer --only-sound wild
+mediaplayer --only-sound monsters\\Cyclope\\Attack\\1.wav
+mediaplayer --only-sound ambient\\Ingos\\Water\\circle.wav
+mediaplayer --only-sound t\\Briefing\\gogo0\\2.mp3
+mediaplayer --only-sound magic\\Lightning\\start.wav
+mediaplayer intro
+mediaplayer dcity
