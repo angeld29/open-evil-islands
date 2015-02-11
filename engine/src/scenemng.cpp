@@ -40,20 +40,20 @@ namespace cursedearth
 {
     void ce_scenemng_renderwindow_resized(void* listener, int width, int height)
     {
-        ce_scenemng* scenemng = (ce_scenemng*)listener;
+        scene_manager_t* scenemng = (scene_manager_t*)listener;
         scenemng->viewport.set_dimensions(width, height);
         ce_camera_set_aspect(scenemng->camera, static_cast<float>(width) / height);
     }
 
     void ce_scenemng_figproto_created(void* listener, ce_figproto* figproto)
     {
-        ce_scenemng* scenemng = (ce_scenemng*)listener;
+        scene_manager_t* scenemng = (scene_manager_t*)listener;
         ce_figproto_accept_renderqueue(figproto, scenemng->renderqueue);
     }
 
-    ce_scenemng* ce_scenemng_new(void)
+    scene_manager_t* ce_scenemng_new(void)
     {
-        ce_scenemng* scenemng = new ce_scenemng;
+        scene_manager_t* scenemng = new scene_manager_t;
 
         scenemng->thread_id = ce_thread_self();
         scenemng->scenenode = ce_scenenode_new(NULL);
@@ -86,7 +86,7 @@ namespace cursedearth
         return scenemng;
     }
 
-    void ce_scenemng_del(ce_scenemng* scenemng)
+    void ce_scenemng_del(scene_manager_t* scenemng)
     {
         if (NULL != scenemng) {
             // FIXME: figure entities must be removed before terrain
@@ -100,7 +100,7 @@ namespace cursedearth
         }
     }
 
-    void ce_scenemng_change_state(ce_scenemng* scenemng, int state)
+    void ce_scenemng_change_state(scene_manager_t* scenemng, int state)
     {
         scenemng->state = state;
         if (NULL != scenemng->listener.state_changed) {
@@ -108,7 +108,7 @@ namespace cursedearth
         }
     }
 
-    void ce_scenemng_advance_logo(ce_scenemng* scenemng, float elapsed)
+    void ce_scenemng_advance_logo(scene_manager_t* scenemng, float elapsed)
     {
         video_object_advance(scenemng->logo.video_object, elapsed);
 
@@ -128,20 +128,20 @@ namespace cursedearth
         }
     }
 
-    void ce_scenemng_render_logo(ce_scenemng* scenemng)
+    void ce_scenemng_render_logo(scene_manager_t* scenemng)
     {
         video_object_render(scenemng->logo.video_object);
     }
 
-    void ce_scenemng_advance_ready(ce_scenemng*, float /*elapsed*/)
+    void ce_scenemng_advance_ready(scene_manager_t*, float /*elapsed*/)
     {
     }
 
-    void ce_scenemng_render_ready(ce_scenemng*)
+    void ce_scenemng_render_ready(scene_manager_t*)
     {
     }
 
-    void ce_scenemng_advance_loading(ce_scenemng* scenemng, float /*elapsed*/)
+    void ce_scenemng_advance_loading(scene_manager_t* scenemng, float /*elapsed*/)
     {
         // TODO: constructor
         if (!scenemng->loading.created) {
@@ -192,12 +192,12 @@ namespace cursedearth
         }
     }
 
-    void ce_scenemng_render_loading(ce_scenemng* scenemng)
+    void ce_scenemng_render_loading(scene_manager_t* scenemng)
     {
         video_object_render(scenemng->loading.video_object);
     }
 
-    void ce_scenemng_advance_playing(ce_scenemng* scenemng, float elapsed)
+    void ce_scenemng_advance_playing(scene_manager_t* scenemng, float elapsed)
     {
         if (scenemng->move_left_event->triggered()) {
             ce_camera_move(scenemng->camera, -scenemng->camera_move_sensitivity * elapsed, 0.0f);
@@ -232,7 +232,7 @@ namespace cursedearth
         }
     }
 
-    void ce_scenemng_render_playing(ce_scenemng* scenemng)
+    void ce_scenemng_render_playing(scene_manager_t* scenemng)
     {
         if (option_manager_t::instance()->show_axes()) {
             ce_render_system_draw_axes();
@@ -267,8 +267,8 @@ namespace cursedearth
     }
 
     struct {
-        void (*advance)(ce_scenemng* scenemng, float elapsed);
-        void (*render)(ce_scenemng* scenemng);
+        void (*advance)(scene_manager_t* scenemng, float elapsed);
+        void (*render)(scene_manager_t* scenemng);
     } ce_scenemng_state_procs[CE_SCENEMNG_STATE_COUNT] = {
         { ce_scenemng_advance_logo, ce_scenemng_render_logo },
         { ce_scenemng_advance_ready, ce_scenemng_render_ready },
@@ -276,7 +276,7 @@ namespace cursedearth
         { ce_scenemng_advance_playing, ce_scenemng_render_playing }
     };
 
-    void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed)
+    void ce_scenemng_advance(scene_manager_t* scenemng, float elapsed)
     {
         scenemng->fps->advance(elapsed);
         scenemng->input_supply->advance(elapsed);
@@ -288,7 +288,7 @@ namespace cursedearth
         }
     }
 
-    void ce_scenemng_render(ce_scenemng* scenemng)
+    void ce_scenemng_render(scene_manager_t* scenemng)
     {
         ce_render_system_begin_render(&CE_COLOR_WHITE);
 
@@ -314,7 +314,7 @@ namespace cursedearth
         ce_render_system_end_render();
     }
 
-    void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name)
+    void ce_scenemng_load_mpr(scene_manager_t* scenemng, const std::string& name)
     {
         // TODO: mpr loader?
         ce_mprfile* mprfile = ce_mpr_manager_open(name);
@@ -324,5 +324,9 @@ namespace cursedearth
             scenemng->terrain = ce_terrain_new(mprfile, scenemng->renderqueue,
                 &CE_VEC3_ZERO, &CE_QUAT_IDENTITY, scenemng->scenenode);
         }
+    }
+
+    void ce_scenemng_load_mob(scene_manager_t* scenemng, const std::string& name)
+    {
     }
 }

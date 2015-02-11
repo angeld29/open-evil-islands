@@ -52,8 +52,9 @@ namespace cursedearth
         void* receiver;
     } ce_scenemng_listener;
 
-    class ce_scenemng
+    class scene_manager_t
     {
+    public:
     public:
         ce_thread_id thread_id;
         int state = CE_SCENEMNG_STATE_LOGO;
@@ -90,15 +91,16 @@ namespace cursedearth
         } loading;
     };
 
-    ce_scenemng* ce_scenemng_new();
-    void ce_scenemng_del(ce_scenemng* scenemng);
+    scene_manager_t* ce_scenemng_new();
+    void ce_scenemng_del(scene_manager_t* scenemng);
 
-    void ce_scenemng_change_state(ce_scenemng* scenemng, int state);
+    void ce_scenemng_change_state(scene_manager_t* scenemng, int state);
 
-    void ce_scenemng_advance(ce_scenemng* scenemng, float elapsed);
-    void ce_scenemng_render(ce_scenemng* scenemng);
+    void ce_scenemng_advance(scene_manager_t* scenemng, float elapsed);
+    void ce_scenemng_render(scene_manager_t* scenemng);
 
-    void ce_scenemng_load_mpr(ce_scenemng* scenemng, const char* name);
+    void ce_scenemng_load_mpr(scene_manager_t* scenemng, const std::string& name);
+    void ce_scenemng_load_mob(scene_manager_t* scenemng, const std::string& name);
 }
 
 #endif

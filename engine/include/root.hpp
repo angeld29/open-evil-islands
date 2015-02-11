@@ -45,7 +45,7 @@ namespace cursedearth
         bool comprehensive_bbox_only = true;
         float animation_fps = 15.0f;
         ce_renderwindow* renderwindow;
-        ce_scenemng* scenemng;
+        scene_manager_t* scenemng;
         timer_ptr_t timer;
         input_supply_ptr_t input_supply;
         input_event_const_ptr_t exit_event;
