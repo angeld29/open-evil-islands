@@ -23,6 +23,8 @@
 
 #include <string>
 
+#include <boost/filesystem/path.hpp>
+
 namespace cursedearth
 {
     enum class registry_key_t {
@@ -31,7 +33,7 @@ namespace cursedearth
     };
 
     std::string find_string_in_registry(registry_key_t, const std::string& key_name, const std::string& value_name);
-    std::string find_path_in_registry(registry_key_t, const std::string& key_name, const std::string& value_name);
+    boost::filesystem::path find_path_in_registry(registry_key_t, const std::string& key_name, const std::string& value_name);
 }
 
 #endif

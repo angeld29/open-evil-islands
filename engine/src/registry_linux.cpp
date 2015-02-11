@@ -165,8 +165,8 @@ namespace cursedearth
         return find_value(key, key_name, value_name, get_string);
     }
 
-    std::string find_path_in_registry(registry_key_t key, const std::string& key_name, const std::string& value_name)
+    boost::filesystem::path find_path_in_registry(registry_key_t key, const std::string& key_name, const std::string& value_name)
     {
-        return find_value(key, key_name, value_name, get_path);
+        return boost::filesystem::path(find_value(key, key_name, value_name, get_path));
     }
 }

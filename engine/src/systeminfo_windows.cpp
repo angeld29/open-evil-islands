@@ -42,7 +42,7 @@ namespace cursedearth
         }
 
         if (VER_PLATFORM_WIN32_NT != osverinfo.dwPlatformId) {
-            throw game_error("system info", "Microsoft Windows NT platform required");
+            throw game_error("system info", "Windows NT platform required");
         }
 
         std::string message;

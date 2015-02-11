@@ -27,8 +27,8 @@ namespace cursedearth
         return std::string();
     }
 
-    std::string find_path_in_registry(registry_key_t, const std::string&, const std::string&)
+    boost::filesystem::path find_path_in_registry(registry_key_t, const std::string&, const std::string&)
     {
-        return std::string();
+        return boost::filesystem::path();
     }
 }
