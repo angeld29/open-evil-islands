@@ -19,57 +19,46 @@
  */
 
 #include <sys/time.h>
-#include <pthread.h>
 
-#include "alloc.hpp"
 #include "timer.hpp"
 
 namespace cursedearth
 {
-    struct timer_t
+    class posix_timer_t final: public timer_t
     {
-        float elapsed;
-        struct timeval start;
-        struct timeval stop;
-    };
-
-    timer_t* ce_timer_new(void)
-    {
-        return (timer_t*)ce_alloc(sizeof(timer_t));
-    }
-
-    void ce_timer_del(timer_t* timer)
-    {
-        ce_free(timer, sizeof(timer_t));
-    }
-
-    void ce_timer_start(timer_t* timer)
-    {
-        gettimeofday(&timer->start, NULL);
-    }
-
-    float ce_timer_advance(timer_t* timer)
-    {
-        gettimeofday(&timer->stop, NULL);
-
-        struct timeval diff = {
-            timer->stop.tv_sec - timer->start.tv_sec,
-            timer->stop.tv_usec - timer->start.tv_usec,
-        };
-
-        if (diff.tv_usec < 0) {
-            --diff.tv_sec;
-            diff.tv_usec += 1000000;
+    public:
+        virtual void start() final
+        {
+            gettimeofday(&m_start, NULL);
         }
 
-        timer->elapsed = diff.tv_sec + diff.tv_usec * 1e-6f;
-        timer->start = timer->stop;
+        virtual float advance() final
+        {
+            gettimeofday(&m_stop, NULL);
 
-        return timer->elapsed;
-    }
+            timeval diff = {
+                m_stop.tv_sec - m_start.tv_sec,
+                m_stop.tv_usec - m_start.tv_usec,
+            };
 
-    float ce_timer_elapsed(timer_t* timer)
+            if (diff.tv_usec < 0) {
+                --diff.tv_sec;
+                diff.tv_usec += 1000000;
+            }
+
+            m_elapsed = diff.tv_sec + diff.tv_usec * 1e-6f;
+            m_start = m_stop;
+
+            return m_elapsed;
+        }
+
+    private:
+        timeval m_start;
+        timeval m_stop;
+    };
+
+    timer_ptr_t make_timer()
     {
-        return timer->elapsed;
+        return std::make_shared<posix_timer_t>();
     }
 }
