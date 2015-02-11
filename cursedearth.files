@@ -265,6 +265,7 @@ scripts/hosts/x86linuxgnu.py
 scripts/hosts/x86linuxmingw.py
 scripts/hosts/x86windowsmingw.py
 scripts/platforms/__init__.py
+scripts/platforms/linux.py
 scripts/platforms/posix.py
 scripts/platforms/windows.py
 scripts/tools/__init__.py

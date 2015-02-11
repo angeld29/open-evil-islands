@@ -19,19 +19,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-
-import utils
-import compilers.gnuc
-import graphicslibraries.opengl
-import platforms.linux
+import posix
 
 def configure(env):
-    if env["PLATFORM"] != "posix": # TODO: SCons PLATFORM variable is weak
-        utils.interrupt("%s: this host is available only on Linux", env["HOST"])
+    env["CE_LINUX_BIT"] = True
+    env["CE_X11_BIT"] = True
 
-    logging.info("%s: using Linux with GNU C/C++ x86 compiler", env["HOST"])
+    posix.configure(env)
 
-    platforms.linux.configure(env)
-    compilers.gnuc.configure(env)
-    graphicslibraries.opengl.configure(env)
+    env.AppendUnique(
+        CPPDEFINES=[
+            "_GNU_SOURCE", # turn on all the GNU/Linux features
+        ],
+    )
