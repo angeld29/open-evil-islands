@@ -35,24 +35,24 @@ namespace cursedearth
         explicit window_t(const std::string& title):
             render_window_t(title)
         {
-            style[CE_RENDERWINDOW_STATE_WINDOW] = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
-            style[CE_RENDERWINDOW_STATE_FULLSCREEN] = WS_VISIBLE | WS_POPUP;
+            style[state_window] = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
+            style[state_fullscreen] = WS_VISIBLE | WS_POPUP;
 
-            extended_style[CE_RENDERWINDOW_STATE_WINDOW] = WS_EX_APPWINDOW;
-            extended_style[CE_RENDERWINDOW_STATE_FULLSCREEN] = WS_EX_TOOLWINDOW;
+            extended_style[state_window] = WS_EX_APPWINDOW;
+            extended_style[state_fullscreen] = WS_EX_TOOLWINDOW;
 
-            for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
-                RECT rect = { 0, 0, geometry[i].width, geometry[i].height };
+            for (int i = 0; i < state_count; ++i) {
+                RECT rect = { 0, 0, m_geometry[i].width, m_geometry[i].height };
                 if (AdjustWindowRectEx(&rect, style[i], FALSE, extended_style[i])) {
-                    geometry[i].width = rect.right - rect.left;
-                    geometry[i].height = rect.bottom - rect.top;
+                    m_geometry[i].width = rect.right - rect.left;
+                    m_geometry[i].height = rect.bottom - rect.top;
                 }
             }
 
-            geometry[CE_RENDERWINDOW_STATE_WINDOW].x = (GetSystemMetrics(SM_CXSCREEN) - geometry[CE_RENDERWINDOW_STATE_WINDOW].width) / 2;
-            geometry[CE_RENDERWINDOW_STATE_WINDOW].y = (GetSystemMetrics(SM_CYSCREEN) - geometry[CE_RENDERWINDOW_STATE_WINDOW].height) / 2;
+            m_geometry[state_window].x = (GetSystemMetrics(SM_CXSCREEN) - m_geometry[state_window].width) / 2;
+            m_geometry[state_window].y = (GetSystemMetrics(SM_CYSCREEN) - m_geometry[state_window].height) / 2;
 
-            displaymng = ce_displaymng_create();
+            m_display_manager = ce_displaymng_create();
 
             m_input_map.insert({
                 { 0           , input_button_t::unknown        }, { VK_ESCAPE    , input_button_t::kb_escape     }, { VK_F1      , input_button_t::kb_f1         },
@@ -132,8 +132,8 @@ namespace cursedearth
                 throw game_error("render window", "could not register class");
             }
 
-            hwindow = CreateWindowEx(extended_style[state], wc.lpszClassName, title.c_str(), style[state],
-                geometry[state].x, geometry[state].y, geometry[state].width, geometry[state].height,
+            hwindow = CreateWindowEx(extended_style[m_state], wc.lpszClassName, title.c_str(), style[m_state],
+                m_geometry[m_state].x, m_geometry[m_state].y, m_geometry[m_state].width, m_geometry[m_state].height,
                 HWND_DESKTOP, NULL, wc.hInstance, NULL);
 
             if (NULL == hwindow) {
@@ -142,16 +142,16 @@ namespace cursedearth
 
             SetWindowLongPtr(hwindow, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
-            graphics_context = ce_graphics_context_new(GetDC(hwindow));
-            if (NULL == graphics_context) {
+            m_graphics_context = ce_graphics_context_new(GetDC(hwindow));
+            if (NULL == m_graphics_context) {
                 throw game_error("render window", "could not create graphic context");
             }
         }
 
         virtual ~window_t()
         {
-            ce_graphics_context_del(graphics_context);
-            ce_displaymng_del(displaymng);
+            ce_graphics_context_del(m_graphics_context);
+            ce_displaymng_del(m_display_manager);
 
             ReleaseDC(hwindow, GetDC(hwindow));
             DestroyWindow(hwindow);
@@ -182,9 +182,9 @@ namespace cursedearth
 
         virtual void do_toggle_fullscreen() final
         {
-            SetWindowLong(hwindow, GWL_STYLE, style[state]);
-            SetWindowLong(hwindow, GWL_EXSTYLE, extended_style[state]);
-            SetWindowPos(hwindow, HWND_TOP, geometry[state].x, geometry[state].y, geometry[state].width, geometry[state].height, SWP_FRAMECHANGED);
+            SetWindowLong(hwindow, GWL_STYLE, style[m_state]);
+            SetWindowLong(hwindow, GWL_EXSTYLE, extended_style[m_state]);
+            SetWindowPos(hwindow, HWND_TOP, m_geometry[m_state].x, m_geometry[m_state].y, m_geometry[m_state].width, m_geometry[m_state].height, SWP_FRAMECHANGED);
         }
 
         virtual void do_pump() final
@@ -225,12 +225,12 @@ namespace cursedearth
             if (in_sizemove) {
                 WINDOWPOS* wp = reinterpret_cast<WINDOWPOS*>(lparam);
                 if (!(SWP_NOMOVE & wp->flags)) {
-                    geometry[state].x = wp->x;
-                    geometry[state].y = wp->y;
+                    m_geometry[m_state].x = wp->x;
+                    m_geometry[m_state].y = wp->y;
                 }
                 if (!(SWP_NOSIZE & wp->flags)) {
-                    geometry[state].width = wp->cx;
-                    geometry[state].height = wp->cy;
+                    m_geometry[m_state].width = wp->cx;
+                    m_geometry[m_state].height = wp->cy;
                 }
             }
             return false;
@@ -247,7 +247,7 @@ namespace cursedearth
         bool syscommand_handler(WPARAM wparam, LPARAM)
         {
             wparam &= 0xfff0;
-            if (CE_RENDERWINDOW_STATE_FULLSCREEN == state && (SC_MONITORPOWER == wparam || SC_SCREENSAVE == wparam)) {
+            if (state_fullscreen == m_state && (SC_MONITORPOWER == wparam || SC_SCREENSAVE == wparam)) {
                 // prevent monitor powersave mode or screensaver from starting
                 return true;
             }
@@ -303,7 +303,7 @@ namespace cursedearth
         bool button_handler(WPARAM, LPARAM lparam, input_button_t button, bool pressed)
         {
             // TODO: undefined behavior in window mode
-            if (CE_RENDERWINDOW_STATE_FULLSCREEN == state) {
+            if (state_fullscreen == m_state) {
                 m_input_context->pointer_position.x = GET_X_LPARAM(lparam);
                 m_input_context->pointer_position.y = GET_Y_LPARAM(lparam);
             }
@@ -392,8 +392,8 @@ namespace cursedearth
         }
 
     private:
-        DWORD style[CE_RENDERWINDOW_STATE_COUNT];
-        DWORD extended_style[CE_RENDERWINDOW_STATE_COUNT];
+        DWORD style[state_count];
+        DWORD extended_style[state_count];
         //bool (*handlers[WM_USER])(WPARAM, LPARAM);
         bool (window_t::*handlers[WM_USER])(WPARAM, LPARAM);
         bool in_sizemove;

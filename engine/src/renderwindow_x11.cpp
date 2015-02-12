@@ -34,42 +34,42 @@
 
 namespace cursedearth
 {
-    enum {
-        CE_RENDERWINDOW_ATOM_WM_PROTOCOLS,
-        CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW,
-        CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN,
-        CE_RENDERWINDOW_ATOM_NET_WM_STATE,
-        CE_RENDERWINDOW_ATOM_COUNT
-    };
-
     class x11_window_t final: public render_window_t
     {
+        enum {
+            atom_wm_protocols,
+            atom_wm_delete_window,
+            atom_net_wm_state_fullscreen,
+            atom_net_wm_state,
+            atom_count
+        };
+
     public:
         explicit x11_window_t(const std::string& title):
             render_window_t(title)
         {
             XInitThreads();
 
-            display = XOpenDisplay(NULL);
-            if (NULL == display) {
+            m_display = XOpenDisplay(NULL);
+            if (NULL == m_display) {
                 throw game_error("render window", "could not connect to X server");
             }
 
-            ce_logging_info("render window: using X server %d.%d", XProtocolVersion(display), XProtocolRevision(display));
-            ce_logging_info("render window: %s %d", XServerVendor(display), XVendorRelease(display));
+            ce_logging_info("render window: using X server %d.%d", XProtocolVersion(m_display), XProtocolRevision(m_display));
+            ce_logging_info("render window: %s %d", XServerVendor(m_display), XVendorRelease(m_display));
 
-            geometry[CE_RENDERWINDOW_STATE_WINDOW].x = (XDisplayWidth(display, XDefaultScreen(display)) - geometry[CE_RENDERWINDOW_STATE_WINDOW].width) / 2;
-            geometry[CE_RENDERWINDOW_STATE_WINDOW].y = (XDisplayHeight(display, XDefaultScreen(display)) - geometry[CE_RENDERWINDOW_STATE_WINDOW].height) / 2;
+            m_geometry[state_window].x = (XDisplayWidth(m_display, XDefaultScreen(m_display)) - m_geometry[state_window].width) / 2;
+            m_geometry[state_window].y = (XDisplayHeight(m_display, XDefaultScreen(m_display)) - m_geometry[state_window].height) / 2;
 
-            if (0 == visual.bpp) {
-                visual.bpp = XDefaultDepth(display, XDefaultScreen(display));
-                if (1 == visual.bpp) {
+            if (0 == m_visual.bpp) {
+                m_visual.bpp = XDefaultDepth(m_display, XDefaultScreen(m_display));
+                if (1 == m_visual.bpp) {
                     ce_logging_warning("render window: you live in prehistoric times");
                 }
             }
 
-            displaymng = ce_displaymng_create(display);
-            graphics_context = ce_graphics_context_new(display);
+            m_display_manager = ce_displaymng_create(m_display);
+            m_graphics_context = ce_graphics_context_new(m_display);
 
             // absolutely don't understand how XChangeKeyboardMapping works...
             m_input_map.insert({
@@ -110,53 +110,53 @@ namespace cursedearth
                 { XK_KP_Down    , input_button_t::kb_numpad2     }, { XK_KP_Page_Down, input_button_t::kb_numpad3    }, { XK_KP_Insert   , input_button_t::kb_numpad0    }
             });
 
-            atoms[CE_RENDERWINDOW_ATOM_WM_PROTOCOLS] = XInternAtom(display, "WM_PROTOCOLS", False);
-            atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW] = XInternAtom(display, "WM_DELETE_WINDOW", False);
-            atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN] = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", False);
-            atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE] = XInternAtom(display, "_NET_WM_STATE", False);
+            m_atoms[atom_wm_protocols] = XInternAtom(m_display, "WM_PROTOCOLS", False);
+            m_atoms[atom_wm_delete_window] = XInternAtom(m_display, "WM_DELETE_WINDOW", False);
+            m_atoms[atom_net_wm_state_fullscreen] = XInternAtom(m_display, "_NET_WM_STATE_FULLSCREEN", False);
+            m_atoms[atom_net_wm_state] = XInternAtom(m_display, "_NET_WM_STATE", False);
 
-            for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
-                mask[i] = CWColormap | CWEventMask | CWOverrideRedirect;
-                attrs[i].colormap = XCreateColormap(display, XDefaultRootWindow(display), graphics_context->visual_info->visual, AllocNone);
-                attrs[i].event_mask = EnterWindowMask | LeaveWindowMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
+            for (int i = 0; i < state_count; ++i) {
+                m_masks[i] = CWColormap | CWEventMask | CWOverrideRedirect;
+                m_attributes[i].colormap = XCreateColormap(m_display, XDefaultRootWindow(m_display), m_graphics_context->visual_info->visual, AllocNone);
+                m_attributes[i].event_mask = EnterWindowMask | LeaveWindowMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
                     PointerMotionMask | ButtonMotionMask | FocusChangeMask | VisibilityChangeMask | StructureNotifyMask;
-                attrs[i].override_redirect = (CE_RENDERWINDOW_STATE_FULLSCREEN == i);
+                m_attributes[i].override_redirect = (state_fullscreen == i);
             }
 
             for (int i = 0; i < LASTEvent; ++i) {
-                handlers[i] = &x11_window_t::skip_handler;
+                m_handlers[i] = &x11_window_t::skip_handler;
             }
 
-            handlers[ClientMessage] = &x11_window_t::client_message_handler;
-            handlers[MapNotify] = &x11_window_t::map_notify_handler;
-            handlers[VisibilityNotify] = &x11_window_t::visibility_notify_handler;
-            handlers[ConfigureNotify] = &x11_window_t::configure_notify_handler;
-            handlers[FocusIn] = &x11_window_t::focus_in_handler;
-            handlers[FocusOut] = &x11_window_t::focus_out_handler;
-            handlers[EnterNotify] = &x11_window_t::enter_notify_handler;
-            handlers[KeyPress] = &x11_window_t::key_press_handler;
-            handlers[KeyRelease] = &x11_window_t::key_release_handler;
-            handlers[ButtonPress] = &x11_window_t::button_press_handler;
-            handlers[ButtonRelease] = &x11_window_t::button_release_handler;
-            handlers[MotionNotify] = &x11_window_t::motion_notify_handler;
+            m_handlers[ClientMessage] = &x11_window_t::client_message_handler;
+            m_handlers[MapNotify] = &x11_window_t::map_notify_handler;
+            m_handlers[VisibilityNotify] = &x11_window_t::visibility_notify_handler;
+            m_handlers[ConfigureNotify] = &x11_window_t::configure_notify_handler;
+            m_handlers[FocusIn] = &x11_window_t::focus_in_handler;
+            m_handlers[FocusOut] = &x11_window_t::focus_out_handler;
+            m_handlers[EnterNotify] = &x11_window_t::enter_notify_handler;
+            m_handlers[KeyPress] = &x11_window_t::key_press_handler;
+            m_handlers[KeyRelease] = &x11_window_t::key_release_handler;
+            m_handlers[ButtonPress] = &x11_window_t::button_press_handler;
+            m_handlers[ButtonRelease] = &x11_window_t::button_release_handler;
+            m_handlers[MotionNotify] = &x11_window_t::motion_notify_handler;
 
             XKeyboardState kbdstate;
-            XGetKeyboardControl(display, &kbdstate);
+            XGetKeyboardControl(m_display, &kbdstate);
 
-            autorepeat = (AutoRepeatModeOn == kbdstate.global_auto_repeat);
+            m_autorepeat = (AutoRepeatModeOn == kbdstate.global_auto_repeat);
 
-            XGetScreenSaver(display, &screensaver.timeout, &screensaver.interval, &screensaver.prefer_blanking, &screensaver.allow_exposures);
+            XGetScreenSaver(m_display, &m_screensaver.timeout, &m_screensaver.interval, &m_screensaver.prefer_blanking, &m_screensaver.allow_exposures);
 
-            window = XCreateWindow(display,
-                XDefaultRootWindow(display), 0, 0,
-                geometry[state].width,
-                geometry[state].height,
-                0, graphics_context->visual_info->depth,
-                InputOutput, graphics_context->visual_info->visual,
-                mask[state],
-                &attrs[state]);
+            m_window = XCreateWindow(m_display,
+                XDefaultRootWindow(m_display), 0, 0,
+                m_geometry[m_state].width,
+                m_geometry[m_state].height,
+                0, m_graphics_context->visual_info->depth,
+                InputOutput, m_graphics_context->visual_info->visual,
+                m_masks[m_state],
+                &m_attributes[m_state]);
 
-            if (!ce_graphics_context_make_current(graphics_context, display, window)) {
+            if (!ce_graphics_context_make_current(m_graphics_context, m_display, m_window)) {
                 throw game_error("render window", "could not set graphic context");
             }
 
@@ -164,90 +164,90 @@ namespace cursedearth
             size_hints->flags = PSize | PMinSize;
             size_hints->min_width = 400;
             size_hints->min_height = 300;
-            size_hints->base_width = geometry[state].width;
-            size_hints->base_height = geometry[state].height;
-            XSetWMNormalHints(display, window, size_hints);
+            size_hints->base_width = m_geometry[m_state].width;
+            size_hints->base_height = m_geometry[m_state].height;
+            XSetWMNormalHints(m_display, m_window, size_hints);
             XFree(size_hints);
 
-            XSetStandardProperties(display, window, title.c_str(), title.c_str(), None, NULL, 0, NULL);
+            XSetStandardProperties(m_display, m_window, title.c_str(), title.c_str(), None, NULL, 0, NULL);
 
             // handle wm_delete_events
-            XSetWMProtocols(display, window, &atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW], 1);
+            XSetWMProtocols(m_display, m_window, &m_atoms[atom_wm_delete_window], 1);
         }
 
         virtual ~x11_window_t()
         {
-            ce_graphics_context_del(graphics_context);
-            ce_displaymng_del(displaymng);
+            ce_graphics_context_del(m_graphics_context);
+            ce_displaymng_del(m_display_manager);
 
-            if (0 != window) {
-                XDestroyWindow(display, window);
+            if (0 != m_window) {
+                XDestroyWindow(m_display, m_window);
             }
 
-            if (NULL != display) {
-                XSetScreenSaver(display, screensaver.timeout, screensaver.interval, screensaver.prefer_blanking, screensaver.allow_exposures);
-                if (autorepeat) {
-                    XAutoRepeatOn(display);
+            if (NULL != m_display) {
+                XSetScreenSaver(m_display, m_screensaver.timeout, m_screensaver.interval, m_screensaver.prefer_blanking, m_screensaver.allow_exposures);
+                if (m_autorepeat) {
+                    XAutoRepeatOn(m_display);
                 }
-                XCloseDisplay(display);
+                XCloseDisplay(m_display);
             }
         }
 
     private:
         virtual void do_show() final
         {
-            XMapRaised(display, window);
+            XMapRaised(m_display, m_window);
             // x and y values in XCreateWindow are ignored by most windows managers,
             // which means that top-level windows maybe placed somewhere else on the desktop
-            XMoveWindow(display, window, geometry[state].x, geometry[state].y);
+            XMoveWindow(m_display, m_window, m_geometry[m_state].x, m_geometry[m_state].y);
         }
 
         virtual void do_minimize() final
         {
-            XIconifyWindow(display, window, XDefaultScreen(display));
+            XIconifyWindow(m_display, m_window, XDefaultScreen(m_display));
         }
 
         virtual void do_toggle_fullscreen() final
         {
-            if (CE_RENDERWINDOW_STATE_FULLSCREEN == state) {
-                XGrabPointer(display, window, True, NoEventMask, GrabModeAsync, GrabModeAsync, window, None, CurrentTime);
-                XGrabKeyboard(display, window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
-                XSetScreenSaver(display, DisableScreenSaver, DisableScreenInterval, DontPreferBlanking, DefaultExposures);
+            if (state_fullscreen == m_state) {
+                XGrabPointer(m_display, m_window, True, NoEventMask, GrabModeAsync, GrabModeAsync, m_window, None, CurrentTime);
+                XGrabKeyboard(m_display, m_window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+                XSetScreenSaver(m_display, DisableScreenSaver, DisableScreenInterval, DontPreferBlanking, DefaultExposures);
             } else {
-                XUngrabPointer(display, CurrentTime);
-                XUngrabKeyboard(display, CurrentTime);
-                XSetScreenSaver(display, screensaver.timeout, screensaver.interval, screensaver.prefer_blanking, screensaver.allow_exposures);
+                XUngrabPointer(m_display, CurrentTime);
+                XUngrabKeyboard(m_display, CurrentTime);
+                XSetScreenSaver(m_display, m_screensaver.timeout, m_screensaver.interval, m_screensaver.prefer_blanking, m_screensaver.allow_exposures);
             }
 
-            XChangeWindowAttributes(display, window, mask[state], &attrs[state]);
+            XChangeWindowAttributes(m_display, m_window, m_masks[m_state], &m_attributes[m_state]);
 
             XEvent event;
             memset(&event, 0, sizeof(event));
 
             event.xclient.type = ClientMessage;
             event.xclient.send_event = True;
-            event.xclient.window = window;
-            event.xclient.message_type = atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE];
+            event.xclient.window = m_window;
+            event.xclient.message_type = m_atoms[atom_net_wm_state];
             event.xclient.format = 32;
-            event.xclient.data.l[0] = state;
-            event.xclient.data.l[1] = atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN];
+            event.xclient.data.l[0] = m_state;
+            event.xclient.data.l[1] = m_atoms[atom_net_wm_state_fullscreen];
 
             // absolutely don't understand how event masks work...
-            XSendEvent(display, XDefaultRootWindow(display), False, SubstructureRedirectMask | SubstructureNotifyMask, &event);
+            XSendEvent(m_display, XDefaultRootWindow(m_display), False, SubstructureRedirectMask | SubstructureNotifyMask, &event);
         }
 
         virtual void do_pump() final
         {
             XEvent event;
-            while (XPending(display) > 0) {
-                XNextEvent(display, &event);
+            while (XPending(m_display) > 0) {
+                XNextEvent(m_display, &event);
 
                 // is it possible? may be new version of the X server...
                 assert(0 <= event.type && event.type < LASTEvent);
 
                 // just in case
                 if (event.type < LASTEvent) {
-                    (this->*handlers[event.type])(&event);
+                    (this->*m_handlers[event.type])(&event);
                 }
             }
         }
@@ -258,8 +258,8 @@ namespace cursedearth
 
         void client_message_handler(XEvent* event)
         {
-            if (atoms[CE_RENDERWINDOW_ATOM_WM_PROTOCOLS] == event->xclient.message_type &&
-                    atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW] == static_cast<Atom>(event->xclient.data.l[0])) {
+            if (m_atoms[atom_wm_protocols] == event->xclient.message_type &&
+                    m_atoms[atom_wm_delete_window] == static_cast<Atom>(event->xclient.data.l[0])) {
                 emit_closed();
             }
         }
@@ -275,10 +275,10 @@ namespace cursedearth
 
         void configure_notify_handler(XEvent* event)
         {
-            geometry[state].x = event->xconfigure.x;
-            geometry[state].y = event->xconfigure.y;
-            geometry[state].width = event->xconfigure.width;
-            geometry[state].height = event->xconfigure.height;
+            m_geometry[m_state].x = event->xconfigure.x;
+            m_geometry[m_state].y = event->xconfigure.y;
+            m_geometry[m_state].width = event->xconfigure.width;
+            m_geometry[m_state].height = event->xconfigure.height;
             emit_resized(event->xconfigure.width, event->xconfigure.height);
         }
 
@@ -289,7 +289,7 @@ namespace cursedearth
 
         void focus_out_handler(XEvent* event)
         {
-            if (autorepeat) {
+            if (m_autorepeat) {
                 XAutoRepeatOn(event->xfocus.display);
             }
             m_input_context->clear();
@@ -354,18 +354,23 @@ namespace cursedearth
         }
 
     private:
-        Atom atoms[CE_RENDERWINDOW_ATOM_COUNT];
-        unsigned long mask[CE_RENDERWINDOW_STATE_COUNT];
-        XSetWindowAttributes attrs[CE_RENDERWINDOW_STATE_COUNT];
-        void (x11_window_t::*handlers[LASTEvent])(XEvent*);
-        bool autorepeat; // remember old auto repeat settings
-        struct {
+        // remember old screen saver settings
+        struct screensaver_t
+        {
             int timeout, interval;
             int prefer_blanking;
             int allow_exposures;
-        } screensaver; // remember old screen saver settings
-        Display* display;
-        Window window;
+        };
+
+    private:
+        Atom m_atoms[atom_count];
+        unsigned long m_masks[state_count];
+        XSetWindowAttributes m_attributes[state_count];
+        void (x11_window_t::*m_handlers[LASTEvent])(XEvent*);
+        bool m_autorepeat; // remember old auto repeat settings
+        screensaver_t m_screensaver;
+        Display* m_display;
+        Window m_window;
     };
 
     render_window_ptr_t make_render_window(const std::string& title)

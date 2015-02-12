@@ -30,17 +30,17 @@ namespace cursedearth
         m_input_context(std::make_shared<input_context_t>()),
         listeners(ce_vector_new())
     {
-        geometry[CE_RENDERWINDOW_STATE_WINDOW].width = option_manager_t::instance()->window_width;
-        geometry[CE_RENDERWINDOW_STATE_WINDOW].height = option_manager_t::instance()->window_height;
+        m_geometry[state_window].width = option_manager_t::instance()->window_width;
+        m_geometry[state_window].height = option_manager_t::instance()->window_height;
 
-        geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = option_manager_t::instance()->fullscreen_width;
-        geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = option_manager_t::instance()->fullscreen_height;
+        m_geometry[state_fullscreen].width = option_manager_t::instance()->fullscreen_width;
+        m_geometry[state_fullscreen].height = option_manager_t::instance()->fullscreen_height;
 
-        visual.bpp = option_manager_t::instance()->fullscreen_bpp;
-        visual.rate = option_manager_t::instance()->fullscreen_rate;
+        m_visual.bpp = option_manager_t::instance()->fullscreen_bpp;
+        m_visual.rate = option_manager_t::instance()->fullscreen_rate;
 
-        visual.rotation = ce_display_rotation_from_degrees(option_manager_t::instance()->fullscreen_rotation);
-        visual.reflection = ce_display_reflection_from_bool(option_manager_t::instance()->fullscreen_reflection_x, option_manager_t::instance()->fullscreen_reflection_y);
+        m_visual.rotation = ce_display_rotation_from_degrees(option_manager_t::instance()->fullscreen_rotation);
+        m_visual.reflection = ce_display_reflection_from_bool(option_manager_t::instance()->fullscreen_reflection_x, option_manager_t::instance()->fullscreen_reflection_y);
     }
 
     render_window_t::~render_window_t()
@@ -55,7 +55,7 @@ namespace cursedearth
 
     void render_window_t::minimize()
     {
-        if (CE_RENDERWINDOW_STATE_FULLSCREEN == state) {
+        if (state_fullscreen == m_state) {
             // exit fullscreen before minimizing
             toggle_fullscreen();
         }
@@ -64,26 +64,25 @@ namespace cursedearth
 
     void render_window_t::toggle_fullscreen()
     {
-        if (CE_RENDERWINDOW_STATE_WINDOW == state) {
-            state = CE_RENDERWINDOW_STATE_FULLSCREEN;
+        if (state_window == m_state) {
+            m_state = state_fullscreen;
 
-            size_t index = ce_displaymng_enter(displaymng,
-                geometry[state].width, geometry[state].height,
-                visual.bpp, visual.rate, visual.rotation, visual.reflection);
+            size_t index = ce_displaymng_enter(m_display_manager,
+                m_geometry[m_state].width, m_geometry[m_state].height,
+                m_visual.bpp, m_visual.rate, m_visual.rotation, m_visual.reflection);
 
-            const ce_displaymode* mode = (const ce_displaymode*)displaymng->supported_modes->items[index];
+            const ce_displaymode* mode = (const ce_displaymode*)m_display_manager->supported_modes->items[index];
 
-            geometry[state].width = mode->width;
-            geometry[state].height = mode->height;
+            m_geometry[m_state].width = mode->width;
+            m_geometry[m_state].height = mode->height;
 
-            visual.bpp = mode->bpp;
-            visual.rate = mode->rate;
+            m_visual.bpp = mode->bpp;
+            m_visual.rate = mode->rate;
             // TODO: rotation, reflection
         } else {
-            state = CE_RENDERWINDOW_STATE_WINDOW;
-            ce_displaymng_exit(displaymng);
+            m_state = state_window;
+            ce_displaymng_exit(m_display_manager);
         }
-
         do_toggle_fullscreen();
     }
 
@@ -101,7 +100,7 @@ namespace cursedearth
 
     void render_window_t::swap()
     {
-        ce_graphics_context_swap(graphics_context);
+        ce_graphics_context_swap(m_graphics_context);
     }
 
     void render_window_t::emit_resized(size_t width, size_t height)

@@ -42,31 +42,18 @@ namespace cursedearth
 
     class render_window_t: boost::noncopyable
     {
-        struct ce_renderwindow_geometry
-        {
-            int x, y;
-            int width, height;
-        };
-
-        struct ce_renderwindow_visual
-        {
-            int bpp, rate;
-            ce_display_rotation rotation;
-            ce_display_reflection reflection;
-        };
-
     protected:
-        enum ce_renderwindow_state {
-            CE_RENDERWINDOW_STATE_WINDOW,
-            CE_RENDERWINDOW_STATE_FULLSCREEN,
-            CE_RENDERWINDOW_STATE_COUNT
+        enum state_t {
+            state_window,
+            state_fullscreen,
+            state_count
         };
 
     public:
         explicit render_window_t(const std::string& title);
         virtual ~render_window_t();
 
-        bool fullscreen() const { return CE_RENDERWINDOW_STATE_FULLSCREEN == state; }
+        bool fullscreen() const { return state_fullscreen == m_state; }
         input_context_const_ptr_t input_context() const { return m_input_context; }
 
         void show();
@@ -86,15 +73,29 @@ namespace cursedearth
         virtual void do_toggle_fullscreen() = 0;
         virtual void do_pump() = 0;
 
+    private:
+        struct geometry_t
+        {
+            int x, y;
+            int width, height;
+        };
+
+        struct visual_t
+        {
+            int bpp, rate;
+            ce_display_rotation rotation;
+            ce_display_reflection reflection;
+        };
+
     protected:
         const std::string m_title;
-        ce_renderwindow_state state = CE_RENDERWINDOW_STATE_WINDOW;
-        ce_renderwindow_geometry geometry[CE_RENDERWINDOW_STATE_COUNT];
-        ce_renderwindow_visual visual;
+        state_t m_state = state_window;
+        geometry_t m_geometry[state_count];
+        visual_t m_visual;
         input_context_ptr_t m_input_context;
         std::unordered_map<unsigned long, input_button_t> m_input_map; // map platform-depended buttons to our buttons
-        ce_displaymng* displaymng;
-        ce_graphics_context* graphics_context;
+        ce_displaymng* m_display_manager;
+        ce_graphics_context* m_graphics_context;
         ce_vector* listeners;
     };
 
