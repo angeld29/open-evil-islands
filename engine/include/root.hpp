@@ -50,7 +50,7 @@ namespace cursedearth
     public:
         float animation_fps = 15.0f;
         timer_ptr_t timer;
-        render_window_t* renderwindow;
+        render_window_ptr_t renderwindow;
 
     private:
         std::atomic<bool> m_done;

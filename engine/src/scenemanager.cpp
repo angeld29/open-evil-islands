@@ -38,7 +38,7 @@
 
 namespace cursedearth
 {
-    void ce_scenemng_renderwindow_resized(void* listener, int width, int height)
+    void ce_scenemng_renderwindow_resized(void* listener, size_t width, size_t height)
     {
         scene_manager_t* scenemng = (scene_manager_t*)listener;
         scenemng->m_viewport.set_dimensions(width, height);
@@ -74,7 +74,7 @@ namespace cursedearth
         m_renderwindow_listener = {ce_scenemng_renderwindow_resized, NULL, this};
         m_figure_manager_listener = {ce_scenemng_figproto_created, NULL, this};
 
-        ce_renderwindow_add_listener(root_t::instance()->renderwindow, &m_renderwindow_listener);
+        root_t::instance()->renderwindow->add_listener(&m_renderwindow_listener);
         ce_figure_manager_add_listener(&m_figure_manager_listener);
     }
 

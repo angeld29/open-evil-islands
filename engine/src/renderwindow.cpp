@@ -18,72 +18,48 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cassert>
-#include <cstring>
-#include <cstdio>
 #include <algorithm>
 
+#include "optionmanager.hpp"
 #include "renderwindow.hpp"
 
 namespace cursedearth
 {
-    render_window_t* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...)
+    render_window_t::render_window_t(const std::string& title):
+        m_title(title),
+        m_input_context(std::make_shared<input_context_t>()),
+        listeners(ce_vector_new())
     {
-        render_window_t* renderwindow = new render_window_t;
+        geometry[CE_RENDERWINDOW_STATE_WINDOW].width = option_manager_t::instance()->window_width;
+        geometry[CE_RENDERWINDOW_STATE_WINDOW].height = option_manager_t::instance()->window_height;
 
-        memset(&renderwindow->visual, 0, sizeof(ce_renderwindow_visual));
+        geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = option_manager_t::instance()->fullscreen_width;
+        geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = option_manager_t::instance()->fullscreen_height;
 
-        renderwindow->impl = new uint8_t[size];
-        memset(renderwindow->impl, 0, size);
+        visual.bpp = option_manager_t::instance()->fullscreen_bpp;
+        visual.rate = option_manager_t::instance()->fullscreen_rate;
 
-        renderwindow->vtable = vtable;
-        renderwindow->size = size;
-
-        renderwindow->displaymng = NULL;
-        renderwindow->graphics_context = NULL;
-        renderwindow->m_input_context = std::make_shared<input_context_t>();
-        renderwindow->listeners = ce_vector_new();
-
-        va_list args;
-        va_start(args, size);
-
-        renderwindow->geometry[renderwindow->state].width = std::max(400, va_arg(args, int));
-        renderwindow->geometry[renderwindow->state].height = std::max(300, va_arg(args, int));
-
-        bool ok = (*vtable.ctor)(renderwindow, args);
-
-        va_end(args);
-
-        if (!ok) {
-            ce_renderwindow_del(renderwindow);
-            return NULL;
-        }
-
-        return renderwindow;
+        visual.rotation = ce_display_rotation_from_degrees(option_manager_t::instance()->fullscreen_rotation);
+        visual.reflection = ce_display_reflection_from_bool(option_manager_t::instance()->fullscreen_reflection_x, option_manager_t::instance()->fullscreen_reflection_y);
     }
 
-    void ce_renderwindow_del(render_window_t* renderwindow)
+    render_window_t::~render_window_t()
     {
-        if (NULL != renderwindow) {
-            (*renderwindow->vtable.dtor)(renderwindow);
-            ce_vector_del(renderwindow->listeners);
-            delete[] static_cast<uint8_t*>(renderwindow->impl);
-            delete renderwindow;
-        }
+        ce_vector_del(listeners);
     }
 
     void render_window_t::show()
     {
-        (*vtable.show)(this);
+        do_show();
     }
 
     void render_window_t::minimize()
     {
         if (CE_RENDERWINDOW_STATE_FULLSCREEN == state) {
-            // exit from fullscreen before minimizing
+            // exit fullscreen before minimizing
             toggle_fullscreen();
         }
-        (*vtable.minimize)(this);
+        do_minimize();
     }
 
     void render_window_t::toggle_fullscreen()
@@ -108,9 +84,7 @@ namespace cursedearth
             ce_displaymng_exit(displaymng);
         }
 
-        if (NULL != vtable.toggle_fullscreen) {
-            (*vtable.toggle_fullscreen)(this);
-        }
+        do_toggle_fullscreen();
     }
 
     void render_window_t::pump()
@@ -122,31 +96,36 @@ namespace cursedearth
         m_input_context->buttons[static_cast<size_t>(input_button_t::mb_wheelup)] = false;
         m_input_context->buttons[static_cast<size_t>(input_button_t::mb_wheeldown)] = false;
 
-        (*vtable.pump)(this);
+        do_pump();
     }
 
-    void ce_renderwindow_add_listener(render_window_t* renderwindow, ce_renderwindow_listener* listener)
+    void render_window_t::swap()
     {
-        ce_vector_push_back(renderwindow->listeners, listener);
+        ce_graphics_context_swap(graphics_context);
     }
 
-    void ce_renderwindow_emit_resized(render_window_t* renderwindow, int width, int height)
+    void render_window_t::emit_resized(size_t width, size_t height)
     {
-        for (size_t i = 0; i < renderwindow->listeners->count; ++i) {
-            ce_renderwindow_listener* listener = (ce_renderwindow_listener*)renderwindow->listeners->items[i];
+        for (size_t i = 0; i < listeners->count; ++i) {
+            ce_renderwindow_listener* listener = (ce_renderwindow_listener*)listeners->items[i];
             if (NULL != listener->resized) {
                 (*listener->resized)(listener->listener, width, height);
             }
         }
     }
 
-    void ce_renderwindow_emit_closed(render_window_t* renderwindow)
+    void render_window_t::emit_closed()
     {
-        for (size_t i = 0; i < renderwindow->listeners->count; ++i) {
-            ce_renderwindow_listener* listener = (ce_renderwindow_listener*)renderwindow->listeners->items[i];
+        for (size_t i = 0; i < listeners->count; ++i) {
+            ce_renderwindow_listener* listener = (ce_renderwindow_listener*)listeners->items[i];
             if (NULL != listener->closed) {
                 (*listener->closed)(listener->listener);
             }
         }
+    }
+
+    void render_window_t::add_listener(ce_renderwindow_listener* listener)
+    {
+        ce_vector_push_back(listeners, listener);
     }
 }

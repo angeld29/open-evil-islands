@@ -76,37 +76,28 @@ namespace cursedearth
         ce_config_manager_init();
         ce_event_manager_init();
 
-        renderwindow = ce_renderwindow_create(m_option_manager->window_width, m_option_manager->window_height, optparse->title->str);
+        renderwindow = make_render_window(optparse->title->str);
         if (NULL == renderwindow) {
             throw game_error("root", "could not create window");
         }
 
         // TODO: try without window creation
         if (m_option_manager->list_video_modes) {
-            ce_displaymng_dump_supported_modes_to_stdout(renderwindow->displaymng);
+            //ce_displaymng_dump_supported_modes_to_stdout(renderwindow->displaymng);
             throw game_error("root", "dump_supported_modes_to_stdout failed");
         }
 
         // TODO: try without window creation
         if (m_option_manager->list_video_rotations) {
-            ce_displaymng_dump_supported_rotations_to_stdout(renderwindow->displaymng);
+            //ce_displaymng_dump_supported_rotations_to_stdout(renderwindow->displaymng);
             throw game_error("root", "dump_supported_rotations_to_stdout failed");
         }
 
         // TODO: try without window creation
         if (m_option_manager->list_video_reflections) {
-            ce_displaymng_dump_supported_reflections_to_stdout(renderwindow->displaymng);
+            //ce_displaymng_dump_supported_reflections_to_stdout(renderwindow->displaymng);
             throw game_error("root", "dump_supported_reflections_to_stdout failed");
         }
-
-        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = m_option_manager->fullscreen_width;
-        renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = m_option_manager->fullscreen_height;
-
-        renderwindow->visual.bpp = m_option_manager->fullscreen_bpp;
-        renderwindow->visual.rate = m_option_manager->fullscreen_rate;
-
-        renderwindow->visual.rotation = ce_display_rotation_from_degrees(m_option_manager->fullscreen_rotation);
-        renderwindow->visual.reflection = ce_display_reflection_from_bool(m_option_manager->fullscreen_reflection_x, m_option_manager->fullscreen_reflection_y);
 
         ce_render_system_init();
 
@@ -133,7 +124,7 @@ namespace cursedearth
         m_toggle_fullscreen_event = m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Enter, RAlt+Enter"));
 
         renderwindow_listener = {NULL, renderwindow_closed, NULL};
-        ce_renderwindow_add_listener(renderwindow, &renderwindow_listener);
+        renderwindow->add_listener(&renderwindow_listener);
         ce_system_event_register(system_event_handler);
     }
 
@@ -152,7 +143,7 @@ namespace cursedearth
         m_sound_mixer.reset();
         m_sound_system.reset();
         ce_render_system_term();
-        ce_renderwindow_del(renderwindow);
+        renderwindow.reset();
         ce_event_manager_term();
         ce_config_manager_term();
         ce_resource_manager_term();
@@ -183,7 +174,7 @@ namespace cursedearth
             }
 
             // TODO: win keys also
-            if (m_switch_window_event->triggered() && CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
+            if (m_switch_window_event->triggered() && renderwindow->fullscreen()) {
                 renderwindow->minimize();
             }
 
@@ -197,7 +188,7 @@ namespace cursedearth
             scene_manager->advance(elapsed);
             scene_manager->render();
 
-            ce_graphics_context_swap(renderwindow->graphics_context);
+            renderwindow->swap();
         }
 
         return EXIT_SUCCESS;

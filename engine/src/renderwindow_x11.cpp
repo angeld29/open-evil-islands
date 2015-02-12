@@ -59,7 +59,7 @@ namespace cursedearth
         Window window;
     };
 
-    void ce_renderwindow_handler_skip(render_window_t*, XEvent*);
+    void skip_handler(render_window_t*, XEvent*);
     void ce_renderwindow_handler_client_message(render_window_t*, XEvent*);
     void ce_renderwindow_handler_map_notify(render_window_t*, XEvent*);
     void ce_renderwindow_handler_visibility_notify(render_window_t*, XEvent*);
@@ -160,7 +160,7 @@ namespace cursedearth
         }
 
         for (int i = 0; i < LASTEvent; ++i) {
-            x11window->handlers[i] = ce_renderwindow_handler_skip;
+            x11window->handlers[i] = skip_handler;
         }
 
         x11window->handlers[ClientMessage] = ce_renderwindow_handler_client_message;
@@ -311,7 +311,7 @@ namespace cursedearth
         return ce_renderwindow_new(vt, sizeof(ce_renderwindow_x11), width, height, title);
     }
 
-    void ce_renderwindow_handler_skip(render_window_t*, XEvent*)
+    void skip_handler(render_window_t*, XEvent*)
     {
     }
 

@@ -21,8 +21,11 @@
 #ifndef CE_RENDERWINDOW_HPP
 #define CE_RENDERWINDOW_HPP
 
-#include <cstdarg>
+#include <memory>
+#include <string>
 #include <unordered_map>
+
+#include <boost/noncopyable.hpp>
 
 #include "vector.hpp"
 #include "input.hpp"
@@ -31,50 +34,60 @@
 
 namespace cursedearth
 {
-    enum ce_renderwindow_state {
-        CE_RENDERWINDOW_STATE_WINDOW,
-        CE_RENDERWINDOW_STATE_FULLSCREEN,
-        CE_RENDERWINDOW_STATE_COUNT
-    };
-
-    struct ce_renderwindow_geometry
-    {
-        int x, y;
-        int width, height;
-    };
-
-    struct ce_renderwindow_visual
-    {
-        int bpp, rate;
-        ce_display_rotation rotation;
-        ce_display_reflection reflection;
-    };
-
     typedef struct {
-        void (*resized)(void* listener, int width, int height);
+        void (*resized)(void* listener, size_t width, size_t height);
         void (*closed)(void* listener);
         void* listener;
     } ce_renderwindow_listener;
 
-    typedef struct {
-        bool (*ctor)(class render_window_t* renderwindow, va_list args);
-        void (*dtor)(class render_window_t* renderwindow);
-        void (*show)(class render_window_t* renderwindow);
-        void (*minimize)(class render_window_t* renderwindow);
-        void (*toggle_fullscreen)(class render_window_t* renderwindow);
-        void (*pump)(class render_window_t* renderwindow);
-    } ce_renderwindow_vtable;
-
-    class render_window_t
+    class render_window_t: boost::noncopyable
     {
+        struct ce_renderwindow_geometry
+        {
+            int x, y;
+            int width, height;
+        };
+
+        struct ce_renderwindow_visual
+        {
+            int bpp, rate;
+            ce_display_rotation rotation;
+            ce_display_reflection reflection;
+        };
+
+    protected:
+        enum ce_renderwindow_state {
+            CE_RENDERWINDOW_STATE_WINDOW,
+            CE_RENDERWINDOW_STATE_FULLSCREEN,
+            CE_RENDERWINDOW_STATE_COUNT
+        };
+
     public:
+        explicit render_window_t(const std::string& title);
+        virtual ~render_window_t();
+
+        bool fullscreen() const { return CE_RENDERWINDOW_STATE_FULLSCREEN == state; }
         input_context_const_ptr_t input_context() const { return m_input_context; }
 
         void show();
         void minimize();
         void toggle_fullscreen();
         void pump();
+        void swap();
 
+        void emit_resized(size_t width, size_t height);
+        void emit_closed();
+
+        void add_listener(ce_renderwindow_listener* listener);
+
+    private:
+        virtual void do_show() = 0;
+        virtual void do_minimize() = 0;
+        virtual void do_toggle_fullscreen() = 0;
+        virtual void do_pump() = 0;
+
+    protected:
+        const std::string m_title;
         ce_renderwindow_state state = CE_RENDERWINDOW_STATE_WINDOW;
         ce_renderwindow_geometry geometry[CE_RENDERWINDOW_STATE_COUNT];
         ce_renderwindow_visual visual;
@@ -83,20 +96,11 @@ namespace cursedearth
         ce_displaymng* displaymng;
         ce_graphics_context* graphics_context;
         ce_vector* listeners;
-        ce_renderwindow_vtable vtable;
-        size_t size;
-        void* impl;
     };
 
-    render_window_t* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...);
-    void ce_renderwindow_del(render_window_t* renderwindow);
+    typedef std::shared_ptr<render_window_t> render_window_ptr_t;
 
-    void ce_renderwindow_add_listener(render_window_t* renderwindow, ce_renderwindow_listener* listener);
-
-    void ce_renderwindow_emit_resized(render_window_t* renderwindow, int width, int height);
-    void ce_renderwindow_emit_closed(render_window_t* renderwindow);
-
-    render_window_t* ce_renderwindow_create(int width, int height, const char* title);
+    render_window_ptr_t make_render_window(const std::string& title);
 }
 
 #endif
