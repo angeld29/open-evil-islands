@@ -115,9 +115,7 @@ namespace cursedearth
     void ce_dmmng_dtor(ce_displaymng* displaymng)
     {
         ce_dmmng* dmmng = (ce_dmmng*)displaymng->impl;
-
         ce_dmmng_exit(displaymng);
-
         for (size_t i = 0; i < dmmng->modes->count; ++i) {
             ce_free(dmmng->modes->items[i], sizeof(DEVMODE));
         }

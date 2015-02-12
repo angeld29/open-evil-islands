@@ -99,12 +99,6 @@ namespace cursedearth
             throw game_error("root", "dump_supported_reflections_to_stdout failed");
         }
 
-        // FIXME: find better solution
-        renderwindow->restore_fullscreen = m_option_manager->fullscreen;
-        if (m_option_manager->fullscreen) {
-            renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
-        }
-
         renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].width = m_option_manager->fullscreen_width;
         renderwindow->geometry[CE_RENDERWINDOW_STATE_FULLSCREEN].height = m_option_manager->fullscreen_height;
 
@@ -167,7 +161,11 @@ namespace cursedearth
 
     int root_t::exec(const scene_manager_ptr_t& scene_manager)
     {
-        ce_renderwindow_show(renderwindow);
+        renderwindow->show();
+        if (m_option_manager->fullscreen) {
+            renderwindow->toggle_fullscreen();
+        }
+
         timer->start();
 
         while (!m_done) {
@@ -184,12 +182,13 @@ namespace cursedearth
                 m_done = true;
             }
 
+            // TODO: win keys also
             if (m_switch_window_event->triggered() && CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
-                ce_renderwindow_minimize(renderwindow);
+                renderwindow->minimize();
             }
 
             if (m_toggle_fullscreen_event->triggered()) {
-                ce_renderwindow_toggle_fullscreen(renderwindow);
+                renderwindow->toggle_fullscreen();
             }
 
             m_sound_manager->advance(elapsed);

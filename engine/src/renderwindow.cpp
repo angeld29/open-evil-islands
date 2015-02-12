@@ -27,27 +27,28 @@
 
 namespace cursedearth
 {
-    ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...)
+    render_window_t* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...)
     {
-        ce_renderwindow* renderwindow = new ce_renderwindow;
+        render_window_t* renderwindow = new render_window_t;
 
         memset(&renderwindow->visual, 0, sizeof(ce_renderwindow_visual));
+
         renderwindow->impl = new uint8_t[size];
         memset(renderwindow->impl, 0, size);
+
         renderwindow->vtable = vtable;
         renderwindow->size = size;
 
         renderwindow->displaymng = NULL;
         renderwindow->graphics_context = NULL;
+        renderwindow->m_input_context = std::make_shared<input_context_t>();
+        renderwindow->listeners = ce_vector_new();
 
         va_list args;
         va_start(args, size);
 
         renderwindow->geometry[renderwindow->state].width = std::max(400, va_arg(args, int));
         renderwindow->geometry[renderwindow->state].height = std::max(300, va_arg(args, int));
-
-        renderwindow->m_input_context = std::make_shared<input_context_t>();
-        renderwindow->listeners = ce_vector_new();
 
         bool ok = (*vtable.ctor)(renderwindow, args);
 
@@ -61,7 +62,7 @@ namespace cursedearth
         return renderwindow;
     }
 
-    void ce_renderwindow_del(ce_renderwindow* renderwindow)
+    void ce_renderwindow_del(render_window_t* renderwindow)
     {
         if (NULL != renderwindow) {
             (*renderwindow->vtable.dtor)(renderwindow);
@@ -71,98 +72,48 @@ namespace cursedearth
         }
     }
 
-    void ce_renderwindow_add_listener(ce_renderwindow* renderwindow, ce_renderwindow_listener* listener)
+    void render_window_t::show()
     {
-        ce_vector_push_back(renderwindow->listeners, listener);
+        (*vtable.show)(this);
     }
 
-    void ce_renderwindow_show(ce_renderwindow* renderwindow)
+    void render_window_t::minimize()
     {
-        (*renderwindow->vtable.show)(renderwindow);
-    }
-
-    void ce_renderwindow_minimize(ce_renderwindow* renderwindow)
-    {
-        if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
-            assert(!renderwindow->restore_fullscreen);
-            renderwindow->restore_fullscreen = true;
-
+        if (CE_RENDERWINDOW_STATE_FULLSCREEN == state) {
             // exit from fullscreen before minimizing
-            ce_renderwindow_toggle_fullscreen(renderwindow);
+            toggle_fullscreen();
         }
-
-        (*renderwindow->vtable.minimize)(renderwindow);
+        (*vtable.minimize)(this);
     }
 
-    void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow)
+    void render_window_t::toggle_fullscreen()
     {
-        const ce_renderwindow_state state[] = { CE_RENDERWINDOW_STATE_FULLSCREEN, CE_RENDERWINDOW_STATE_WINDOW };
-        renderwindow->state = state[renderwindow->state];
+        if (CE_RENDERWINDOW_STATE_WINDOW == state) {
+            state = CE_RENDERWINDOW_STATE_FULLSCREEN;
 
-        if (NULL != renderwindow->vtable.fullscreen.prepare) {
-            (*renderwindow->vtable.fullscreen.prepare)(renderwindow);
-        }
+            size_t index = ce_displaymng_enter(displaymng,
+                geometry[state].width, geometry[state].height,
+                visual.bpp, visual.rate, visual.rotation, visual.reflection);
 
-        if (CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
-            if (NULL != renderwindow->vtable.fullscreen.before_enter) {
-                (*renderwindow->vtable.fullscreen.before_enter)(renderwindow);
-            }
+            const ce_displaymode* mode = (const ce_displaymode*)displaymng->supported_modes->items[index];
 
-            size_t index = ce_displaymng_enter(renderwindow->displaymng,
-                renderwindow->geometry[renderwindow->state].width,
-                renderwindow->geometry[renderwindow->state].height,
-                renderwindow->visual.bpp, renderwindow->visual.rate,
-                renderwindow->visual.rotation, renderwindow->visual.reflection);
+            geometry[state].width = mode->width;
+            geometry[state].height = mode->height;
 
-            const ce_displaymode* mode = (const ce_displaymode*)renderwindow->displaymng->supported_modes->items[index];
-
-            renderwindow->geometry[renderwindow->state].width = mode->width;
-            renderwindow->geometry[renderwindow->state].height = mode->height;
-
-            renderwindow->visual.bpp = mode->bpp;
-            renderwindow->visual.rate = mode->rate;
+            visual.bpp = mode->bpp;
+            visual.rate = mode->rate;
             // TODO: rotation, reflection
-
-            if (NULL != renderwindow->vtable.fullscreen.after_enter) {
-                (*renderwindow->vtable.fullscreen.after_enter)(renderwindow);
-            }
         } else {
-            if (NULL != renderwindow->vtable.fullscreen.before_exit) {
-                (*renderwindow->vtable.fullscreen.before_exit)(renderwindow);
-            }
-
-            ce_displaymng_exit(renderwindow->displaymng);
-
-            if (NULL != renderwindow->vtable.fullscreen.after_exit) {
-                (*renderwindow->vtable.fullscreen.after_exit)(renderwindow);
-            }
+            state = CE_RENDERWINDOW_STATE_WINDOW;
+            ce_displaymng_exit(displaymng);
         }
 
-        if (NULL != renderwindow->vtable.fullscreen.done) {
-            (*renderwindow->vtable.fullscreen.done)(renderwindow);
+        if (NULL != vtable.toggle_fullscreen) {
+            (*vtable.toggle_fullscreen)(this);
         }
     }
 
-    void ce_renderwindow_action_proc_none(ce_renderwindow*)
-    {
-    }
-
-    void ce_renderwindow_action_proc_restored(ce_renderwindow* renderwindow)
-    {
-        if (renderwindow->restore_fullscreen) {
-            renderwindow->restore_fullscreen = false;
-            assert(CE_RENDERWINDOW_STATE_WINDOW == renderwindow->state);
-            ce_renderwindow_toggle_fullscreen(renderwindow);
-        }
-    }
-
-    void (*ce_renderwindow_action_procs[CE_RENDERWINDOW_ACTION_COUNT])(ce_renderwindow*) = {
-        ce_renderwindow_action_proc_none,
-        ce_renderwindow_minimize,
-        ce_renderwindow_action_proc_restored
-    };
-
-    void ce_renderwindow::pump()
+    void render_window_t::pump()
     {
         // reset pointer offset every frame
         m_input_context->pointer_offset = CE_VEC2_ZERO;
@@ -172,12 +123,14 @@ namespace cursedearth
         m_input_context->buttons[static_cast<size_t>(input_button_t::mb_wheeldown)] = false;
 
         (*vtable.pump)(this);
-
-        (*ce_renderwindow_action_procs[action])(this);
-        action = CE_RENDERWINDOW_ACTION_NONE;
     }
 
-    void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int width, int height)
+    void ce_renderwindow_add_listener(render_window_t* renderwindow, ce_renderwindow_listener* listener)
+    {
+        ce_vector_push_back(renderwindow->listeners, listener);
+    }
+
+    void ce_renderwindow_emit_resized(render_window_t* renderwindow, int width, int height)
     {
         for (size_t i = 0; i < renderwindow->listeners->count; ++i) {
             ce_renderwindow_listener* listener = (ce_renderwindow_listener*)renderwindow->listeners->items[i];
@@ -187,7 +140,7 @@ namespace cursedearth
         }
     }
 
-    void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow)
+    void ce_renderwindow_emit_closed(render_window_t* renderwindow)
     {
         for (size_t i = 0; i < renderwindow->listeners->count; ++i) {
             ce_renderwindow_listener* listener = (ce_renderwindow_listener*)renderwindow->listeners->items[i];

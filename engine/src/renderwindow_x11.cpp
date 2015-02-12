@@ -48,7 +48,7 @@ namespace cursedearth
         Atom atoms[CE_RENDERWINDOW_ATOM_COUNT];
         unsigned long mask[CE_RENDERWINDOW_STATE_COUNT];
         XSetWindowAttributes attrs[CE_RENDERWINDOW_STATE_COUNT];
-        void (*handlers[LASTEvent])(ce_renderwindow*, XEvent*);
+        void (*handlers[LASTEvent])(render_window_t*, XEvent*);
         bool autorepeat; // remember old auto repeat settings
         struct {
             int timeout, interval;
@@ -59,21 +59,21 @@ namespace cursedearth
         Window window;
     };
 
-    void ce_renderwindow_handler_skip(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_client_message(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_map_notify(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_visibility_notify(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_configure_notify(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_focus_in(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_focus_out(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_enter_notify(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_key_press(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_key_release(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_button_press(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_button_release(ce_renderwindow*, XEvent*);
-    void ce_renderwindow_handler_motion_notify(ce_renderwindow*, XEvent*);
+    void ce_renderwindow_handler_skip(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_client_message(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_map_notify(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_visibility_notify(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_configure_notify(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_focus_in(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_focus_out(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_enter_notify(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_key_press(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_key_release(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_button_press(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_button_release(render_window_t*, XEvent*);
+    void ce_renderwindow_handler_motion_notify(render_window_t*, XEvent*);
 
-    bool ce_renderwindow_x11_ctor(ce_renderwindow* renderwindow, va_list args)
+    bool ce_renderwindow_x11_ctor(render_window_t* renderwindow, va_list args)
     {
         ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
         const char* title = va_arg(args, const char*);
@@ -214,7 +214,7 @@ namespace cursedearth
         return true;
     }
 
-    void ce_renderwindow_x11_dtor(ce_renderwindow* renderwindow)
+    void ce_renderwindow_x11_dtor(render_window_t* renderwindow)
     {
         ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -234,7 +234,7 @@ namespace cursedearth
         }
     }
 
-    void ce_renderwindow_x11_show(ce_renderwindow* renderwindow)
+    void ce_renderwindow_x11_show(render_window_t* renderwindow)
     {
         ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
         XMapRaised(x11window->display, x11window->window);
@@ -244,13 +244,13 @@ namespace cursedearth
         XMoveWindow(x11window->display, x11window->window, renderwindow->geometry[renderwindow->state].x, renderwindow->geometry[renderwindow->state].y);
     }
 
-    void ce_renderwindow_x11_minimize(ce_renderwindow* renderwindow)
+    void ce_renderwindow_x11_minimize(render_window_t* renderwindow)
     {
         ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
         XIconifyWindow(x11window->display, x11window->window, XDefaultScreen(x11window->display));
     }
 
-    void ce_renderwindow_x11_fullscreen_before_enter(ce_renderwindow* renderwindow)
+    void ce_renderwindow_x11_fullscreen_before_enter(render_window_t* renderwindow)
     {
         ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
         XGrabPointer(x11window->display, x11window->window, True, NoEventMask, GrabModeAsync, GrabModeAsync, x11window->window, None, CurrentTime);
@@ -258,7 +258,7 @@ namespace cursedearth
         XSetScreenSaver(x11window->display, DisableScreenSaver, DisableScreenInterval, DontPreferBlanking, DefaultExposures);
     }
 
-    void ce_renderwindow_x11_fullscreen_after_exit(ce_renderwindow* renderwindow)
+    void ce_renderwindow_x11_fullscreen_after_exit(render_window_t* renderwindow)
     {
         ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
         XUngrabPointer(x11window->display, CurrentTime);
@@ -266,7 +266,7 @@ namespace cursedearth
         XSetScreenSaver(x11window->display, x11window->screensaver.timeout, x11window->screensaver.interval, x11window->screensaver.prefer_blanking, x11window->screensaver.allow_exposures);
     }
 
-    void ce_renderwindow_x11_fullscreen_done(ce_renderwindow* renderwindow)
+    void ce_renderwindow_x11_fullscreen_done(render_window_t* renderwindow)
     {
         ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
         XChangeWindowAttributes(x11window->display, x11window->window, x11window->mask[renderwindow->state], &x11window->attrs[renderwindow->state]);
@@ -286,7 +286,7 @@ namespace cursedearth
         XSendEvent(x11window->display, XDefaultRootWindow(x11window->display), False, SubstructureRedirectMask | SubstructureNotifyMask, &event);
     }
 
-    void ce_renderwindow_x11_pump(ce_renderwindow* renderwindow)
+    void ce_renderwindow_x11_pump(render_window_t* renderwindow)
     {
         ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -304,18 +304,18 @@ namespace cursedearth
         }
     }
 
-    ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title)
+    render_window_t* ce_renderwindow_create(int width, int height, const char* title)
     {
         ce_renderwindow_vtable vt = {ce_renderwindow_x11_ctor, ce_renderwindow_x11_dtor, ce_renderwindow_x11_show, ce_renderwindow_x11_minimize,
             {NULL,ce_renderwindow_x11_fullscreen_before_enter,NULL,NULL, ce_renderwindow_x11_fullscreen_after_exit, ce_renderwindow_x11_fullscreen_done}, ce_renderwindow_x11_pump};
         return ce_renderwindow_new(vt, sizeof(ce_renderwindow_x11), width, height, title);
     }
 
-    void ce_renderwindow_handler_skip(ce_renderwindow*, XEvent*)
+    void ce_renderwindow_handler_skip(render_window_t*, XEvent*)
     {
     }
 
-    void ce_renderwindow_handler_client_message(ce_renderwindow* renderwindow, XEvent* event)
+    void ce_renderwindow_handler_client_message(render_window_t* renderwindow, XEvent* event)
     {
         ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -325,17 +325,17 @@ namespace cursedearth
         }
     }
 
-    void ce_renderwindow_handler_map_notify(ce_renderwindow* renderwindow, XEvent*)
+    void ce_renderwindow_handler_map_notify(render_window_t* renderwindow, XEvent*)
     {
         assert(CE_RENDERWINDOW_ACTION_NONE == renderwindow->action);
         renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
     }
 
-    void ce_renderwindow_handler_visibility_notify(ce_renderwindow*, XEvent*)
+    void ce_renderwindow_handler_visibility_notify(render_window_t*, XEvent*)
     {
     }
 
-    void ce_renderwindow_handler_configure_notify(ce_renderwindow* renderwindow, XEvent* event)
+    void ce_renderwindow_handler_configure_notify(render_window_t* renderwindow, XEvent* event)
     {
         renderwindow->geometry[renderwindow->state].x = event->xconfigure.x;
         renderwindow->geometry[renderwindow->state].y = event->xconfigure.y;
@@ -345,12 +345,12 @@ namespace cursedearth
         ce_renderwindow_emit_resized(renderwindow, event->xconfigure.width, event->xconfigure.height);
     }
 
-    void ce_renderwindow_handler_focus_in(ce_renderwindow*, XEvent* event)
+    void ce_renderwindow_handler_focus_in(render_window_t*, XEvent* event)
     {
         XAutoRepeatOff(event->xfocus.display);
     }
 
-    void ce_renderwindow_handler_focus_out(ce_renderwindow* renderwindow, XEvent* event)
+    void ce_renderwindow_handler_focus_out(render_window_t* renderwindow, XEvent* event)
     {
         ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
 
@@ -361,13 +361,13 @@ namespace cursedearth
         renderwindow->m_input_context->clear();
     }
 
-    void ce_renderwindow_handler_enter_notify(ce_renderwindow* renderwindow, XEvent* event)
+    void ce_renderwindow_handler_enter_notify(render_window_t* renderwindow, XEvent* event)
     {
         renderwindow->m_input_context->pointer_position.x = event->xcrossing.x;
         renderwindow->m_input_context->pointer_position.y = event->xcrossing.y;
     }
 
-    void ce_renderwindow_handler_key(ce_renderwindow* renderwindow, XEvent* event, bool pressed)
+    void ce_renderwindow_handler_key(render_window_t* renderwindow, XEvent* event, bool pressed)
     {
         // reset modifier keys to disable uppercase keys
         event->xkey.state = 0;
@@ -380,29 +380,29 @@ namespace cursedearth
         renderwindow->m_input_context->pointer_position.y = event->xkey.y;
     }
 
-    void ce_renderwindow_handler_key_press(ce_renderwindow* renderwindow, XEvent* event)
+    void ce_renderwindow_handler_key_press(render_window_t* renderwindow, XEvent* event)
     {
         ce_renderwindow_handler_key(renderwindow, event, true);
     }
 
-    void ce_renderwindow_handler_key_release(ce_renderwindow* renderwindow, XEvent* event)
+    void ce_renderwindow_handler_key_release(render_window_t* renderwindow, XEvent* event)
     {
         ce_renderwindow_handler_key(renderwindow, event, false);
     }
 
-    void ce_renderwindow_handler_button(ce_renderwindow* renderwindow, XEvent* event, bool pressed)
+    void ce_renderwindow_handler_button(render_window_t* renderwindow, XEvent* event, bool pressed)
     {
         renderwindow->m_input_context->buttons[event->xbutton.button - 1 + static_cast<size_t>(input_button_t::mb_left)] = pressed;
         renderwindow->m_input_context->pointer_position.x = event->xbutton.x;
         renderwindow->m_input_context->pointer_position.y = event->xbutton.y;
     }
 
-    void ce_renderwindow_handler_button_press(ce_renderwindow* renderwindow, XEvent* event)
+    void ce_renderwindow_handler_button_press(render_window_t* renderwindow, XEvent* event)
     {
         ce_renderwindow_handler_button(renderwindow, event, true);
     }
 
-    void ce_renderwindow_handler_button_release(ce_renderwindow* renderwindow, XEvent* event)
+    void ce_renderwindow_handler_button_release(render_window_t* renderwindow, XEvent* event)
     {
         // special case: ignore wheel buttons, see pump method
         // ButtonPress event is immediately followed by ButtonRelease event
@@ -411,7 +411,7 @@ namespace cursedearth
         }
     }
 
-    void ce_renderwindow_handler_motion_notify(ce_renderwindow* renderwindow, XEvent* event)
+    void ce_renderwindow_handler_motion_notify(render_window_t* renderwindow, XEvent* event)
     {
         renderwindow->m_input_context->pointer_offset.x = event->xmotion.x - renderwindow->m_input_context->pointer_position.x;
         renderwindow->m_input_context->pointer_offset.y = event->xmotion.y - renderwindow->m_input_context->pointer_position.y;

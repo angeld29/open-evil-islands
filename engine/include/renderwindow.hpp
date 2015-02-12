@@ -37,13 +37,6 @@ namespace cursedearth
         CE_RENDERWINDOW_STATE_COUNT
     };
 
-    enum ce_renderwindow_action {
-        CE_RENDERWINDOW_ACTION_NONE,
-        CE_RENDERWINDOW_ACTION_MINIMIZE,
-        CE_RENDERWINDOW_ACTION_RESTORED,
-        CE_RENDERWINDOW_ACTION_COUNT
-    };
-
     struct ce_renderwindow_geometry
     {
         int x, y;
@@ -63,36 +56,28 @@ namespace cursedearth
         void* listener;
     } ce_renderwindow_listener;
 
-    typedef struct ce_renderwindow ce_renderwindow;
-
     typedef struct {
-        bool (*ctor)(ce_renderwindow* renderwindow, va_list args);
-        void (*dtor)(ce_renderwindow* renderwindow);
-        void (*show)(ce_renderwindow* renderwindow);
-        void (*minimize)(ce_renderwindow* renderwindow);
-        struct {
-            void (*prepare)(ce_renderwindow* renderwindow);
-            void (*before_enter)(ce_renderwindow* renderwindow);
-            void (*after_enter)(ce_renderwindow* renderwindow);
-            void (*before_exit)(ce_renderwindow* renderwindow);
-            void (*after_exit)(ce_renderwindow* renderwindow);
-            void (*done)(ce_renderwindow* renderwindow);
-        } fullscreen;
-        void (*pump)(ce_renderwindow* renderwindow);
+        bool (*ctor)(class render_window_t* renderwindow, va_list args);
+        void (*dtor)(class render_window_t* renderwindow);
+        void (*show)(class render_window_t* renderwindow);
+        void (*minimize)(class render_window_t* renderwindow);
+        void (*toggle_fullscreen)(class render_window_t* renderwindow);
+        void (*pump)(class render_window_t* renderwindow);
     } ce_renderwindow_vtable;
 
-    class ce_renderwindow
+    class render_window_t
     {
     public:
         input_context_const_ptr_t input_context() const { return m_input_context; }
 
+        void show();
+        void minimize();
+        void toggle_fullscreen();
         void pump();
 
         ce_renderwindow_state state = CE_RENDERWINDOW_STATE_WINDOW;
-        ce_renderwindow_action action = CE_RENDERWINDOW_ACTION_NONE;
         ce_renderwindow_geometry geometry[CE_RENDERWINDOW_STATE_COUNT];
         ce_renderwindow_visual visual;
-        bool restore_fullscreen = false; // request to switch in fullscreen mode when the window was restored
         input_context_ptr_t m_input_context;
         std::unordered_map<unsigned long, input_button_t> m_input_map; // map platform-depended buttons to our buttons
         ce_displaymng* displaymng;
@@ -103,20 +88,15 @@ namespace cursedearth
         void* impl;
     };
 
-    ce_renderwindow* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...);
-    void ce_renderwindow_del(ce_renderwindow* renderwindow);
+    render_window_t* ce_renderwindow_new(ce_renderwindow_vtable vtable, size_t size, ...);
+    void ce_renderwindow_del(render_window_t* renderwindow);
 
-    void ce_renderwindow_add_listener(ce_renderwindow* renderwindow, ce_renderwindow_listener* listener);
+    void ce_renderwindow_add_listener(render_window_t* renderwindow, ce_renderwindow_listener* listener);
 
-    void ce_renderwindow_show(ce_renderwindow* renderwindow);
-    void ce_renderwindow_minimize(ce_renderwindow* renderwindow);
+    void ce_renderwindow_emit_resized(render_window_t* renderwindow, int width, int height);
+    void ce_renderwindow_emit_closed(render_window_t* renderwindow);
 
-    void ce_renderwindow_toggle_fullscreen(ce_renderwindow* renderwindow);
-
-    void ce_renderwindow_emit_resized(ce_renderwindow* renderwindow, int width, int height);
-    void ce_renderwindow_emit_closed(ce_renderwindow* renderwindow);
-
-    ce_renderwindow* ce_renderwindow_create(int width, int height, const char* title);
+    render_window_t* ce_renderwindow_create(int width, int height, const char* title);
 }
 
 #endif
