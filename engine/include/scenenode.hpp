@@ -71,7 +71,7 @@ namespace cursedearth
     void ce_scenenode_update_force_cascade(ce_scenenode* scenenode);
     void ce_scenenode_update_cascade(ce_scenenode* scenenode, const frustum_t* frustum);
 
-    void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode);
+    void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode, bool only_comprehensive);
 }
 
 #endif

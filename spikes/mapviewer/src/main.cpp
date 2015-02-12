@@ -32,7 +32,7 @@ namespace cursedearth
     {
     public:
         explicit map_viewer_t(const ce_optparse_ptr_t& option_parser):
-            m_input_supply(std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context())),
+            m_input_supply(std::make_shared<input_supply_t>(root_t::instance()->renderwindow->input_context())),
             m_anmfps_inc_event(m_input_supply->repeat(m_input_supply->push(input_button_t::kb_add))),
             m_anmfps_dec_event(m_input_supply->repeat(m_input_supply->push(input_button_t::kb_subtract)))
         {
@@ -70,7 +70,7 @@ namespace cursedearth
         {
             m_input_supply->advance(elapsed);
 
-            float animation_fps = ce_root::instance()->animation_fps;
+            float animation_fps = root_t::instance()->animation_fps;
 
             if (m_anmfps_inc_event->triggered()) animation_fps += 1.0f;
             if (m_anmfps_dec_event->triggered()) animation_fps -= 1.0f;
@@ -79,18 +79,18 @@ namespace cursedearth
                 m_text_timeout -= elapsed;
             }
 
-            if (animation_fps != ce_root::instance()->animation_fps) {
+            if (animation_fps != root_t::instance()->animation_fps) {
                 m_text_timeout = 3.0f;
             }
 
             m_text_color.a = clamp(m_text_timeout, 0.0f, 1.0f);
-            ce_root::instance()->animation_fps = clamp(animation_fps, 1.0f, 50.0f);
+            root_t::instance()->animation_fps = clamp(animation_fps, 1.0f, 50.0f);
         }
 
         virtual void do_render() final
         {
             if (m_text_timeout > 0.0f) {
-                std::string text = str(boost::format("Animation FPS: %1%") % ce_root::instance()->animation_fps);
+                std::string text = str(boost::format("Animation FPS: %1%") % root_t::instance()->animation_fps);
                 viewport_t viewport = get_viewport();
                 ce_font* font = get_font();
 
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
         ce_optparse_add(option_parser, "zone", CE_TYPE_STRING, NULL, true, NULL, NULL, "any ZONE.mpr file in `EI/Maps'");
         ce_optparse_add_control(option_parser, "+/-", "change animation FPS");
 
-        ce_root root(option_parser, argc, argv);
+        root_t root(option_parser, argc, argv);
         return root.exec(std::make_shared<map_viewer_t>(option_parser));
     } catch (const std::exception& error) {
         ce_logging_fatal("map viewer: %s", error.what());

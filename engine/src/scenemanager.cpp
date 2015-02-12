@@ -51,31 +51,30 @@ namespace cursedearth
         ce_figproto_accept_renderqueue(figproto, scenemng->m_renderqueue);
     }
 
-    scene_manager_t::scene_manager_t()
+    scene_manager_t::scene_manager_t():
+        m_camera(ce_camera_new()),
+        m_renderqueue(ce_renderqueue_new()),
+        m_thread_id(ce_thread_self()),
+        m_fps(std::make_shared<fps_t>()),
+        m_font(ce_font_new("fonts/evilislands.ttf", 24)),
+        m_scenenode(ce_scenenode_new(NULL)),
+        m_terrain(NULL),
+        m_input_supply(std::make_shared<input_supply_t>(root_t::instance()->renderwindow->input_context())),
+        m_toggle_bbox_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_b))),
+        m_skip_logo_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space))),
+        m_pause_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space))),
+        m_move_left_event(m_input_supply->push(input_button_t::kb_left)),
+        m_move_up_event(m_input_supply->push(input_button_t::kb_up)),
+        m_move_right_event(m_input_supply->push(input_button_t::kb_right)),
+        m_move_down_event(m_input_supply->push(input_button_t::kb_down)),
+        m_zoom_in_event(m_input_supply->push(input_button_t::mb_wheelup)),
+        m_zoom_out_event(m_input_supply->push(input_button_t::mb_wheeldown)),
+        m_rotate_on_event(m_input_supply->push(input_button_t::mb_right))
     {
-        m_thread_id = ce_thread_self();
-        m_scenenode = ce_scenenode_new(NULL);
-        m_renderqueue = ce_renderqueue_new();
-        m_camera = ce_camera_new();
-        m_fps = std::make_shared<fps_t>();
-        m_font = ce_font_new("fonts/evilislands.ttf", 24);
-        m_terrain = NULL;
-
-        m_input_supply = std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context());
-        m_skip_logo_event = m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space));
-        m_pause_event = m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space));
-        m_move_left_event = m_input_supply->push(input_button_t::kb_left);
-        m_move_up_event = m_input_supply->push(input_button_t::kb_up);
-        m_move_right_event = m_input_supply->push(input_button_t::kb_right);
-        m_move_down_event = m_input_supply->push(input_button_t::kb_down);
-        m_zoom_in_event = m_input_supply->push(input_button_t::mb_wheelup);
-        m_zoom_out_event = m_input_supply->push(input_button_t::mb_wheeldown);
-        m_rotate_on_event = m_input_supply->push(input_button_t::mb_right);
-
         m_renderwindow_listener = {ce_scenemng_renderwindow_resized, NULL, this};
         m_figure_manager_listener = {ce_scenemng_figproto_created, NULL, this};
 
-        ce_renderwindow_add_listener(ce_root::instance()->renderwindow, &m_renderwindow_listener);
+        ce_renderwindow_add_listener(root_t::instance()->renderwindow, &m_renderwindow_listener);
         ce_figure_manager_add_listener(&m_figure_manager_listener);
     }
 
@@ -94,6 +93,19 @@ namespace cursedearth
     {
         m_fps->advance(elapsed);
         m_input_supply->advance(elapsed);
+
+        if (m_toggle_bbox_event->triggered()) {
+            if (m_show_bboxes) {
+                if (m_comprehensive_bbox_only) {
+                    m_comprehensive_bbox_only = false;
+                } else {
+                    m_show_bboxes = false;
+                }
+            } else {
+                m_show_bboxes = true;
+                m_comprehensive_bbox_only = true;
+            }
+        }
 
         if (m_move_left_event->triggered()) {
             ce_camera_move(m_camera, -m_camera_move_sensitivity * elapsed, 0.0f);
@@ -156,9 +168,9 @@ namespace cursedearth
 
         ce_scenenode_update_cascade(m_scenenode, &frustum);
 
-        if (ce_root::instance()->show_bboxes) {
+        if (m_show_bboxes) {
             ce_render_system_apply_color(&CE_COLOR_BLUE);
-            ce_scenenode_draw_bboxes_cascade(m_scenenode);
+            ce_scenenode_draw_bboxes_cascade(m_scenenode, m_comprehensive_bbox_only);
         }
 
         do_render();

@@ -21,11 +21,13 @@
 #ifndef CE_ROOT_HPP
 #define CE_ROOT_HPP
 
+#include <atomic>
 #include <memory>
 
 #include "singleton.hpp"
 #include "timer.hpp"
 #include "input.hpp"
+#include "systemevent.hpp"
 #include "optionmanager.hpp"
 #include "optparse.hpp"
 #include "renderwindow.hpp"
@@ -33,32 +35,36 @@
 
 namespace cursedearth
 {
-    class ce_root: public singleton_t<ce_root>
+    class root_t: public singleton_t<root_t>
     {
     public:
-        ce_root(const ce_optparse_ptr_t&, int argc, char* argv[]);
-        ~ce_root();
+        root_t(const ce_optparse_ptr_t&, int argc, char* argv[]);
+        ~root_t();
 
         int exec(const scene_manager_ptr_t& scene_manager);
 
-        bool done = false;
-        bool show_bboxes = false;
-        bool comprehensive_bbox_only = true;
+    private:
+        static void system_event_handler(ce_system_event_type);
+        static void renderwindow_closed(void*);
+
+    public:
         float animation_fps = 15.0f;
         timer_ptr_t timer;
         ce_renderwindow* renderwindow;
-        input_supply_ptr_t input_supply;
-        input_event_const_ptr_t exit_event;
-        input_event_const_ptr_t switch_window_event;
-        input_event_const_ptr_t toggle_fullscreen_event;
-        input_event_const_ptr_t toggle_bbox_event;
-        ce_renderwindow_listener renderwindow_listener;
+
+    private:
+        std::atomic<bool> m_done;
+        input_supply_ptr_t m_input_supply;
+        input_event_const_ptr_t m_exit_event;
+        input_event_const_ptr_t m_switch_window_event;
+        input_event_const_ptr_t m_toggle_fullscreen_event;
         std::unique_ptr<class option_manager_t> m_option_manager;
         std::unique_ptr<class sound_system_t> m_sound_system;
         std::unique_ptr<class sound_mixer_t> m_sound_mixer;
         std::unique_ptr<class sound_manager_t> m_sound_manager;
         std::unique_ptr<class video_manager_t> m_video_manager;
         std::unique_ptr<class thread_pool_t> m_thread_pool;
+        ce_renderwindow_listener renderwindow_listener;
     };
 }
 

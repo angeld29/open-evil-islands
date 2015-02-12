@@ -30,7 +30,7 @@ namespace cursedearth
     {
     public:
         explicit figure_viewer_t(const ce_optparse_ptr_t& option_parser):
-            m_input_supply(std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context())),
+            m_input_supply(std::make_shared<input_supply_t>(root_t::instance()->renderwindow->input_context())),
             m_strength_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_1))),
             m_dexterity_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_2))),
             m_height_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_3))),
@@ -126,14 +126,14 @@ namespace cursedearth
                 m_text_color.a = clamp(m_text_timeout, 0.0f, 1.0f);
             }
 
-            float animation_fps = ce_root::instance()->animation_fps;
+            float animation_fps = root_t::instance()->animation_fps;
 
             if (m_animation_fps_plus_event->triggered()) animation_fps += 1.0f;
             if (m_animation_fps_minus_event->triggered()) animation_fps -= 1.0f;
 
-            if (animation_fps != ce_root::instance()->animation_fps) {
-                ce_root::instance()->animation_fps = clamp(animation_fps, 1.0f, 50.0f);
-                set_text(boost::format("Animation FPS: %1%") % ce_root::instance()->animation_fps);
+            if (animation_fps != root_t::instance()->animation_fps) {
+                root_t::instance()->animation_fps = clamp(animation_fps, 1.0f, 50.0f);
+                set_text(boost::format("Animation FPS: %1%") % root_t::instance()->animation_fps);
             }
 
             bool need_update_figure = false;
@@ -236,7 +236,7 @@ int main(int argc, char* argv[])
         ce_optparse_add_control(option_parser, "2", "change dexterity");
         ce_optparse_add_control(option_parser, "3", "change height");
 
-        ce_root root(option_parser, argc, argv);
+        root_t root(option_parser, argc, argv);
         return root.exec(std::make_shared<figure_viewer_t>(option_parser));
     } catch (const std::exception& error) {
         ce_logging_fatal("figure viewer: %s", error.what());

@@ -30,7 +30,7 @@ namespace cursedearth
     {
     public:
         explicit media_player_t(const ce_optparse_ptr_t& option_parser):
-            m_input_supply(std::make_shared<input_supply_t>(ce_root::instance()->renderwindow->input_context())),
+            m_input_supply(std::make_shared<input_supply_t>(root_t::instance()->renderwindow->input_context())),
             m_pause_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space)))
         {
             const char* track;
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
         ce_optparse_add(option_parser, "only_sound", CE_TYPE_BOOL, NULL, false, NULL, "only-sound", "do not try to play video");
         ce_optparse_add(option_parser, "track", CE_TYPE_STRING, NULL, true, NULL, NULL, "TRACK.* file in `EI/Stream' or TRACK.* file in `EI/Movies' or internal resource");
 
-        ce_root root(option_parser, argc, argv);
+        root_t root(option_parser, argc, argv);
         return root.exec(std::make_shared<media_player_t>(option_parser));
     } catch (const std::exception& error) {
         ce_logging_fatal("media player: %s", error.what());

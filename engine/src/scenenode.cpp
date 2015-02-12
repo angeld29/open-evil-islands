@@ -22,7 +22,6 @@
 
 #include "alloc.hpp"
 #include "rendersystem.hpp"
-#include "root.hpp"
 #include "scenenode.hpp"
 
 namespace cursedearth
@@ -220,12 +219,12 @@ namespace cursedearth
         ce_render_system_discard_transform();
     }
 
-    void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode)
+    void ce_scenenode_draw_bboxes_cascade(ce_scenenode* scenenode, bool only_comprehensive)
     {
         if (!scenenode->culled) {
             ce_scenenode_draw_bbox(&scenenode->world_bbox);
 
-            if (!ce_root::instance()->comprehensive_bbox_only) {
+            if (!only_comprehensive) {
                 for (size_t i = 0; i < scenenode->renderitems->count; ++i) {
                     ce_renderitem* renderitem = (ce_renderitem*)scenenode->renderitems->items[i];
                     if (renderitem->visible) {
@@ -235,7 +234,7 @@ namespace cursedearth
             }
 
             for (size_t i = 0; i < scenenode->childs->count; ++i) {
-                ce_scenenode_draw_bboxes_cascade((ce_scenenode*)scenenode->childs->items[i]);
+                ce_scenenode_draw_bboxes_cascade((ce_scenenode*)scenenode->childs->items[i], only_comprehensive);
             }
         }
     }

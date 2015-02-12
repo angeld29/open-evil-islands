@@ -29,7 +29,6 @@
 #include "thread.hpp"
 #include "event.hpp"
 #include "systeminfo.hpp"
-#include "systemevent.hpp"
 #include "optionmanager.hpp"
 #include "resourcemanager.hpp"
 #include "configmanager.hpp"
@@ -49,47 +48,10 @@
 
 namespace cursedearth
 {
-    void ce_root_system_event_handler(ce_system_event_type type)
-    {
-        switch (type) {
-        case CE_SYSTEM_EVENT_TYPE_INT:
-            ce_logging_warning("root: interactive attention event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_TERM:
-            ce_logging_warning("root: termination event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_CTRLC:
-            ce_logging_warning("root: ctrl+c event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_CTRLBREAK:
-            ce_logging_warning("root: ctrl+break event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_CLOSE:
-            ce_logging_warning("root: close event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_LOGOFF:
-            ce_logging_warning("root: logoff event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_SHUTDOWN:
-            ce_logging_warning("root: shutdown event received");
-            break;
-        default:
-            ce_logging_critical("root: unknown event received");
-            assert(false);
-        }
-
-        ce_logging_info("root: exiting sanely...");
-        ce_root::instance()->done = true;
-    }
-
-    void ce_root_renderwindow_closed(void*)
-    {
-        ce_root::instance()->done = true;
-    }
-
-    ce_root::ce_root(const ce_optparse_ptr_t& optparse, int argc, char* argv[]):
-        singleton_t<ce_root>(this),
-        timer(make_timer())
+    root_t::root_t(const ce_optparse_ptr_t& optparse, int argc, char* argv[]):
+        singleton_t<root_t>(this),
+        timer(make_timer()),
+        m_done(false)
     {
         if (!ce_optparse_parse(optparse, argc, argv)) {
             throw game_error("root", "option parser failed");
@@ -171,18 +133,17 @@ namespace cursedearth
         ce_figure_manager_init();
         m_thread_pool = make_unique<thread_pool_t>();
 
-        input_supply = std::make_shared<input_supply_t>(renderwindow->input_context());
-        exit_event = input_supply->push(input_button_t::kb_escape);
-        switch_window_event = input_supply->single_front(shortcut(input_supply, "LAlt+Tab, RAlt+Tab"));
-        toggle_fullscreen_event = input_supply->single_front(shortcut(input_supply, "LAlt+Enter, RAlt+Enter"));
-        toggle_bbox_event = input_supply->single_front(input_supply->push(input_button_t::kb_b));
+        m_input_supply = std::make_shared<input_supply_t>(renderwindow->input_context());
+        m_exit_event = m_input_supply->push(input_button_t::kb_escape);
+        m_switch_window_event = m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Tab, RAlt+Tab"));
+        m_toggle_fullscreen_event = m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Enter, RAlt+Enter"));
 
-        renderwindow_listener = {NULL, ce_root_renderwindow_closed, NULL};
+        renderwindow_listener = {NULL, renderwindow_closed, NULL};
         ce_renderwindow_add_listener(renderwindow, &renderwindow_listener);
-        ce_system_event_register(ce_root_system_event_handler);
+        ce_system_event_register(system_event_handler);
     }
 
-    ce_root::~ce_root()
+    root_t::~root_t()
     {
         m_thread_pool.reset();
         ce_figure_manager_term();
@@ -204,48 +165,31 @@ namespace cursedearth
         m_option_manager.reset();
     }
 
-    int ce_root::exec(const scene_manager_ptr_t& scene_manager)
+    int root_t::exec(const scene_manager_ptr_t& scene_manager)
     {
         ce_renderwindow_show(renderwindow);
         timer->start();
 
-        for (;;) {
-            float elapsed = timer->advance();
+        while (!m_done) {
+            const float elapsed = timer->advance();
 
             // 40 milliseconds - 25 times per second
             ce_event_manager_process_events_timeout(ce_thread_self(), 40);
 
             renderwindow->pump();
 
-            if (done) {
-                break;
+            m_input_supply->advance(elapsed);
+
+            if (m_exit_event->triggered()) {
+                m_done = true;
             }
 
-            input_supply->advance(elapsed);
-
-            if (exit_event->triggered()) {
-                break;
-            }
-
-            if (switch_window_event->triggered() && CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
+            if (m_switch_window_event->triggered() && CE_RENDERWINDOW_STATE_FULLSCREEN == renderwindow->state) {
                 ce_renderwindow_minimize(renderwindow);
             }
 
-            if (toggle_fullscreen_event->triggered()) {
+            if (m_toggle_fullscreen_event->triggered()) {
                 ce_renderwindow_toggle_fullscreen(renderwindow);
-            }
-
-            if (toggle_bbox_event->triggered()) {
-                if (show_bboxes) {
-                    if (comprehensive_bbox_only) {
-                        comprehensive_bbox_only = false;
-                    } else {
-                        show_bboxes = false;
-                    }
-                } else {
-                    show_bboxes = true;
-                    comprehensive_bbox_only = true;
-                }
             }
 
             m_sound_manager->advance(elapsed);
@@ -258,5 +202,43 @@ namespace cursedearth
         }
 
         return EXIT_SUCCESS;
+    }
+
+    void root_t::system_event_handler(ce_system_event_type type)
+    {
+        switch (type) {
+        case CE_SYSTEM_EVENT_TYPE_INT:
+            ce_logging_warning("root: interactive attention event received");
+            break;
+        case CE_SYSTEM_EVENT_TYPE_TERM:
+            ce_logging_warning("root: termination event received");
+            break;
+        case CE_SYSTEM_EVENT_TYPE_CTRLC:
+            ce_logging_warning("root: ctrl+c event received");
+            break;
+        case CE_SYSTEM_EVENT_TYPE_CTRLBREAK:
+            ce_logging_warning("root: ctrl+break event received");
+            break;
+        case CE_SYSTEM_EVENT_TYPE_CLOSE:
+            ce_logging_warning("root: close event received");
+            break;
+        case CE_SYSTEM_EVENT_TYPE_LOGOFF:
+            ce_logging_warning("root: logoff event received");
+            break;
+        case CE_SYSTEM_EVENT_TYPE_SHUTDOWN:
+            ce_logging_warning("root: shutdown event received");
+            break;
+        default:
+            ce_logging_critical("root: unknown event received");
+            assert(false);
+        }
+
+        ce_logging_info("root: exiting sanely...");
+        root_t::instance()->m_done = true;
+    }
+
+    void root_t::renderwindow_closed(void*)
+    {
+        root_t::instance()->m_done = true;
     }
 }

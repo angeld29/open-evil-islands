@@ -69,15 +69,18 @@ namespace cursedearth
         ce_renderqueue* m_renderqueue;
 
     private:
-        ce_thread_id m_thread_id;
-        float m_camera_move_sensitivity = 10.0f; // FIXME: hard-coded
-        float m_camera_zoom_sensitivity = 5.0f; // TODO: make strategy
+        const ce_thread_id m_thread_id;
+        bool m_show_bboxes = false;
+        bool m_comprehensive_bbox_only = true;
+        float m_camera_move_sensitivity = 10.0f;
+        float m_camera_zoom_sensitivity = 5.0f;
         const std::string m_engine_text = "Powered by Cursed Earth engine";
         fps_ptr_t m_fps;
         ce_font* m_font;
         ce_scenenode* m_scenenode;
         ce_terrain* m_terrain;
         input_supply_ptr_t m_input_supply;
+        input_event_const_ptr_t m_toggle_bbox_event;
         input_event_const_ptr_t m_skip_logo_event;
         input_event_const_ptr_t m_pause_event;
         input_event_const_ptr_t m_move_left_event;
