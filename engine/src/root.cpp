@@ -43,7 +43,7 @@ namespace cursedearth
         m_input_context(std::make_shared<input_context_t>()),
         m_input_supply(std::make_shared<input_supply_t>(m_input_context)),
         m_exit_event(m_input_supply->push(input_button_t::kb_escape)),
-        m_switch_window_event(m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Tab, RAlt+Tab"))),
+        m_minimize_fullscreen_event(m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Tab, RAlt+Tab, LMeta, RMeta"))),
         m_toggle_fullscreen_event(m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Enter, RAlt+Enter")))
     {
         if (!ce_optparse_parse(option_parser, argc, argv)) {
@@ -143,10 +143,6 @@ namespace cursedearth
     int root_t::exec()
     {
         m_render_window->show();
-        if (m_option_manager->fullscreen) {
-            m_render_window->toggle_fullscreen();
-        }
-
         timer->start();
 
         while (!m_done) {
@@ -163,8 +159,7 @@ namespace cursedearth
                 m_done = true;
             }
 
-            // TODO: win keys also
-            if (m_switch_window_event->triggered() && m_render_window->fullscreen()) {
+            if (m_minimize_fullscreen_event->triggered() && m_render_window->fullscreen()) {
                 m_render_window->minimize();
             }
 

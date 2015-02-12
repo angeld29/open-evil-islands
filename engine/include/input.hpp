@@ -18,10 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * doc/input.txt
- */
-
 #ifndef CE_INPUT_HPP
 #define CE_INPUT_HPP
 
@@ -35,6 +31,9 @@
 
 namespace cursedearth
 {
+    /**
+     * @brief doc/input.txt
+     */
     enum class input_button_t {
         unknown,
         kb_escape, kb_f1, kb_f2, kb_f3, kb_f4, kb_f5, kb_f6,

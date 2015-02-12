@@ -56,7 +56,7 @@ namespace cursedearth
         input_context_ptr_t m_input_context;
         input_supply_ptr_t m_input_supply;
         input_event_const_ptr_t m_exit_event;
-        input_event_const_ptr_t m_switch_window_event;
+        input_event_const_ptr_t m_minimize_fullscreen_event;
         input_event_const_ptr_t m_toggle_fullscreen_event;
         option_manager_ptr_t m_option_manager;
         render_window_ptr_t m_render_window;

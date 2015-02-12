@@ -46,6 +46,9 @@ namespace cursedearth
     void render_window_t::show()
     {
         do_show();
+        if (option_manager_t::instance()->fullscreen) {
+            toggle_fullscreen();
+        }
     }
 
     void render_window_t::minimize()

@@ -18,10 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstring>
 #include <limits>
+#include <unordered_map>
 
-#include "str.hpp"
+#include <boost/algorithm/string.hpp>
+
 #include "exception.hpp"
 #include "logging.hpp"
 #include "input.hpp"
@@ -226,9 +227,32 @@ namespace cursedearth
 
     // Level 2
 
-    const char* button_names[static_cast<size_t>(input_button_t::count)] = {
-        "unknown", "escape",
-        "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12",
+    enum class input_button_t {
+        ,
+        , , , , , , ,
+        kb_f7, kb_f8, kb_f9, kb_f10, kb_f11, kb_f12, kb_tilde,
+        kb_0, kb_1, kb_2, kb_3, kb_4, kb_5, kb_6, kb_7,
+        kb_8, kb_9, kb_minus, kb_equals, kb_backslash, kb_backspace,
+        kb_tab, kb_q, kb_w, kb_e, kb_r, kb_t, kb_y, kb_u,
+        kb_i, kb_o, kb_p, kb_lbracket, kb_rbracket, kb_capslock,
+        kb_a, kb_s, kb_d, kb_f, kb_g, kb_h, kb_j, kb_k,
+        kb_l, kb_semicolon, kb_apostrophe, kb_enter, kb_lshift,
+        kb_z, kb_x, kb_c, kb_v, kb_b, kb_n, kb_m, kb_comma,
+        kb_period, kb_slash, kb_rshift, kb_lcontrol, kb_lmeta,
+        kb_lalt, kb_space, kb_ralt, kb_rmeta, kb_menu, kb_rcontrol,
+        kb_print, kb_scrolllock, kb_pause, kb_insert, kb_delete,
+        kb_home, kb_end, kb_pageup, kb_pagedown, kb_left, kb_up,
+        kb_right, kb_down, kb_numlock, kb_divide, kb_multiply,
+        kb_subtract, kb_add, kb_numpadenter, kb_decimal,
+        kb_numpad7, kb_numpad8, kb_numpad9, kb_numpad4, kb_numpad5,
+        kb_numpad6, kb_numpad1, kb_numpad2, kb_numpad3, kb_numpad0,
+        mb_left, mb_middle, mb_right, mb_wheelup, mb_wheeldown,
+        count
+    };
+
+    const std::unordered_map<std::string, input_button_t> g_input_button_map = {
+        { "unknown" , unknown }, { "escape", kb_escape },
+        "f1", kb_f1, "f2", kb_f2, "f3", kb_f3, "f4", kb_f4, "f5", kb_f5, "f6", kb_f6, "f7", "f8", "f9", "f10", "f11", "f12",
         "tilde", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
         "minus", "equals", "backslash", "backspace",
         "tab", "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
@@ -249,18 +273,35 @@ namespace cursedearth
         "wheelup", "wheeldown"
     };
 
-    input_event_const_ptr_t event_from_name(const input_supply_ptr_t& supply, const char* button_name)
+    input_event_const_ptr_t event_from_name(const input_supply_ptr_t& supply, const std::string& button_name)
     {
+        for (const auto& name: button_names) {
         for (size_t i = static_cast<size_t>(input_button_t::unknown); i < static_cast<size_t>(input_button_t::count); ++i) {
-            if (0 == strcmp(button_name, button_names[i])) {
+            if (boost::algorithm::iequals(button_name, button_names[i])) {
                 return supply->push(static_cast<input_button_t>(i));
             }
         }
         return input_event_const_ptr_t();
     }
 
-    input_event_const_ptr_t shortcut(const input_supply_ptr_t& supply, const std::string& key_sequence2)
+    input_event_const_ptr_t shortcut(const input_supply_ptr_t& supply, const std::string& key_sequence)
     {
+        input_event_const_ptr_t or_event, and_event, event;
+
+        std::vector<std::string> or_parts;
+        boost::algorithm::split(or_parts, key_sequence, boost::is_any_of(","), boost::algorithm::token_compress_on);
+
+        for (const auto& or_part: or_parts) {
+            std::vector<std::string> and_parts;
+            boost::algorithm::split(and_parts, or_part, boost::is_any_of("+"), boost::algorithm::token_compress_on);
+
+            and_event.reset();
+            for (const auto& and_part: and_parts) {
+                event = event_from_name(supply, button_name);
+                if ()
+            }
+        }
+
         // TODO: high level parser
         const char* key_sequence = key_sequence2.c_str();
         char buffer[32], buffer2[32], buffer3[32];
@@ -271,6 +312,7 @@ namespace cursedearth
 
         do {
             and_seq = ce_strtrim(buffer2, ce_strsep(&or_seq, ","));
+            if (NULL == or_seq) ce_logging_warning("NULL == or_seq");
             if (0 == strlen(and_seq)) {
                 ce_logging_warning("input: parsing key sequence: `%s': empty parts skipped", key_sequence);
                 continue;
@@ -278,17 +320,21 @@ namespace cursedearth
             and_event.reset();
             do {
                 button_name = ce_strtrim(buffer3, ce_strsep(&and_seq, "+"));
+                if (NULL == and_seq) ce_logging_warning("NULL == and_seq");
                 if (0 == strlen(button_name)) {
                     ce_logging_warning("input: parsing key sequence: `%s': empty parts skipped", key_sequence);
                     continue;
                 }
                 event = event_from_name(supply, button_name);
+                ce_logging_warning("%s", button_name);
                 if (!event) {
                     throw game_error("input", boost::format("failed to parse key sequence: `%1%'") % key_sequence);
                 }
                 and_event = !and_event ? event : supply->and_(and_event, event);
+                ce_logging_warning("AND");
             } while (nullptr != and_seq);
             or_event = !or_event ? and_event : supply->or_(or_event, and_event);
+            ce_logging_warning("OR");
         } while (nullptr != or_seq);
 
         return or_event;
