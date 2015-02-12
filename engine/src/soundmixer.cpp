@@ -105,4 +105,9 @@ namespace cursedearth
             sound_system_t::instance()->write(block);
         }
     }
+
+    sound_mixer_ptr_t make_sound_mixer()
+    {
+        return make_unique<sound_mixer_t>();
+    }
 }

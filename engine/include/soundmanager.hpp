@@ -52,6 +52,10 @@ namespace cursedearth
         std::vector<ce_res_file*> m_files;
         std::unordered_map<sound_object_t, sound_instance_ptr_t> m_instances;
     };
+
+    typedef std::unique_ptr<sound_manager_t> sound_manager_ptr_t;
+
+    sound_manager_ptr_t make_sound_manager();
 }
 
 #endif

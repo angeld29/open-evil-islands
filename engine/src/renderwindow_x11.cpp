@@ -375,6 +375,6 @@ namespace cursedearth
 
     render_window_ptr_t make_render_window(const std::string& title)
     {
-        return std::make_shared<x11_window_t>(title);
+        return make_unique<x11_window_t>(title);
     }
 }

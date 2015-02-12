@@ -18,26 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cassert>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-
-#include "makeunique.hpp"
 #include "exception.hpp"
 #include "logging.hpp"
-#include "thread.hpp"
 #include "event.hpp"
 #include "systeminfo.hpp"
-#include "optionmanager.hpp"
 #include "resourcemanager.hpp"
 #include "configmanager.hpp"
 #include "rendersystem.hpp"
-#include "soundsystem.hpp"
-#include "soundmixer.hpp"
 #include "avcodec.hpp"
-#include "soundmanager.hpp"
-#include "videomanager.hpp"
 #include "texturemanager.hpp"
 #include "shadermanager.hpp"
 #include "mprmanager.hpp"
@@ -70,14 +58,14 @@ namespace cursedearth
             throw game_error("root", "PDP-endian systems are not supported");
         }
 
-        m_option_manager = make_unique<option_manager_t>(optparse);
+        m_option_manager = make_option_manager(optparse);
 
         ce_resource_manager_init();
         ce_config_manager_init();
         ce_event_manager_init();
 
-        renderwindow = make_render_window(optparse->title->str);
-        if (NULL == renderwindow) {
+        m_render_window = make_render_window(optparse->title->str);
+        if (NULL == m_render_window) {
             throw game_error("root", "could not create window");
         }
 
@@ -101,10 +89,10 @@ namespace cursedearth
 
         ce_render_system_init();
 
-        m_sound_system = make_unique<sound_system_t>();
-        m_sound_mixer = make_unique<sound_mixer_t>();
-        m_sound_manager = make_unique<sound_manager_t>();
-        m_video_manager = make_unique<video_manager_t>();
+        m_sound_system = make_sound_system();
+        m_sound_mixer = make_sound_mixer();
+        m_sound_manager = make_sound_manager();
+        m_video_manager = make_video_manager();
 
         initialize_avcodec();
 
@@ -116,15 +104,15 @@ namespace cursedearth
         ce_mob_loader_init();
 
         ce_figure_manager_init();
-        m_thread_pool = make_unique<thread_pool_t>();
+        m_thread_pool = make_thread_pool();
 
-        m_input_supply = std::make_shared<input_supply_t>(renderwindow->input_context());
+        m_input_supply = std::make_shared<input_supply_t>(m_render_window->input_context());
         m_exit_event = m_input_supply->push(input_button_t::kb_escape);
         m_switch_window_event = m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Tab, RAlt+Tab"));
         m_toggle_fullscreen_event = m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Enter, RAlt+Enter"));
 
         renderwindow_listener = {NULL, renderwindow_closed, NULL};
-        renderwindow->add_listener(&renderwindow_listener);
+        m_render_window->add_listener(&renderwindow_listener);
         ce_system_event_register(system_event_handler);
     }
 
@@ -143,7 +131,7 @@ namespace cursedearth
         m_sound_mixer.reset();
         m_sound_system.reset();
         ce_render_system_term();
-        renderwindow.reset();
+        m_render_window.reset();
         ce_event_manager_term();
         ce_config_manager_term();
         ce_resource_manager_term();
@@ -152,9 +140,9 @@ namespace cursedearth
 
     int root_t::exec(const scene_manager_ptr_t& scene_manager)
     {
-        renderwindow->show();
+        m_render_window->show();
         if (m_option_manager->fullscreen) {
-            renderwindow->toggle_fullscreen();
+            m_render_window->toggle_fullscreen();
         }
 
         timer->start();
@@ -165,7 +153,7 @@ namespace cursedearth
             // 40 milliseconds - 25 times per second
             ce_event_manager_process_events_timeout(ce_thread_self(), 40);
 
-            renderwindow->pump();
+            m_render_window->pump();
 
             m_input_supply->advance(elapsed);
 
@@ -174,12 +162,12 @@ namespace cursedearth
             }
 
             // TODO: win keys also
-            if (m_switch_window_event->triggered() && renderwindow->fullscreen()) {
-                renderwindow->minimize();
+            if (m_switch_window_event->triggered() && m_render_window->fullscreen()) {
+                m_render_window->minimize();
             }
 
             if (m_toggle_fullscreen_event->triggered()) {
-                renderwindow->toggle_fullscreen();
+                m_render_window->toggle_fullscreen();
             }
 
             m_sound_manager->advance(elapsed);
@@ -188,7 +176,7 @@ namespace cursedearth
             scene_manager->advance(elapsed);
             scene_manager->render();
 
-            renderwindow->swap();
+            m_render_window->swap();
         }
 
         return EXIT_SUCCESS;

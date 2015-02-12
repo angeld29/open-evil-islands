@@ -32,7 +32,7 @@ namespace cursedearth
     {
     public:
         explicit map_viewer_t(const ce_optparse_ptr_t& option_parser):
-            m_input_supply(std::make_shared<input_supply_t>(root_t::instance()->renderwindow->input_context())),
+            m_input_supply(std::make_shared<input_supply_t>(render_window_t::instance()->input_context())),
             m_anmfps_inc_event(m_input_supply->repeat(m_input_supply->push(input_button_t::kb_add))),
             m_anmfps_dec_event(m_input_supply->repeat(m_input_supply->push(input_button_t::kb_subtract)))
         {

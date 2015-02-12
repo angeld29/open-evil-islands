@@ -26,6 +26,7 @@
 namespace cursedearth
 {
     render_window_t::render_window_t(const std::string& title):
+        singleton_t<render_window_t>(this),
         m_title(title),
         m_input_context(std::make_shared<input_context_t>()),
         listeners(ce_vector_new())

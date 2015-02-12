@@ -33,7 +33,6 @@
 #include "mprmanager.hpp"
 #include "mprhelpers.hpp"
 #include "mobloader.hpp"
-#include "root.hpp"
 #include "scenemanager.hpp"
 
 namespace cursedearth
@@ -59,7 +58,7 @@ namespace cursedearth
         m_font(ce_font_new("fonts/evilislands.ttf", 24)),
         m_scenenode(ce_scenenode_new(NULL)),
         m_terrain(NULL),
-        m_input_supply(std::make_shared<input_supply_t>(root_t::instance()->renderwindow->input_context())),
+        m_input_supply(std::make_shared<input_supply_t>(render_window_t::instance()->input_context())),
         m_toggle_bbox_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_b))),
         m_skip_logo_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space))),
         m_pause_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space))),
@@ -74,7 +73,7 @@ namespace cursedearth
         m_renderwindow_listener = {ce_scenemng_renderwindow_resized, NULL, this};
         m_figure_manager_listener = {ce_scenemng_figproto_created, NULL, this};
 
-        root_t::instance()->renderwindow->add_listener(&m_renderwindow_listener);
+        render_window_t::instance()->add_listener(&m_renderwindow_listener);
         ce_figure_manager_add_listener(&m_figure_manager_listener);
     }
 

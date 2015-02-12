@@ -139,4 +139,9 @@ namespace cursedearth
 
         return parser;
     }
+
+    option_manager_ptr_t make_option_manager(const ce_optparse_ptr_t& parser)
+    {
+        return make_unique<option_manager_t>(parser);
+    }
 }

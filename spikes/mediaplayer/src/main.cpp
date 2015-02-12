@@ -30,7 +30,7 @@ namespace cursedearth
     {
     public:
         explicit media_player_t(const ce_optparse_ptr_t& option_parser):
-            m_input_supply(std::make_shared<input_supply_t>(root_t::instance()->renderwindow->input_context())),
+            m_input_supply(std::make_shared<input_supply_t>(render_window_t::instance()->input_context())),
             m_pause_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space)))
         {
             const char* track;

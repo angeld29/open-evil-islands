@@ -21,6 +21,8 @@
 #ifndef CE_OPTIONMANAGER_HPP
 #define CE_OPTIONMANAGER_HPP
 
+#include <memory>
+
 #include <boost/filesystem/path.hpp>
 
 #include "singleton.hpp"
@@ -28,7 +30,7 @@
 
 namespace cursedearth
 {
-    class option_manager_t: public singleton_t<option_manager_t>
+    class option_manager_t final: public singleton_t<option_manager_t>
     {
     public:
         explicit option_manager_t(const ce_optparse_ptr_t&);
@@ -72,6 +74,10 @@ namespace cursedearth
         bool m_show_axes;
         bool m_show_fps;
     };
+
+    typedef std::unique_ptr<option_manager_t> option_manager_ptr_t;
+
+    option_manager_ptr_t make_option_manager(const ce_optparse_ptr_t&);
 }
 
 #endif

@@ -25,8 +25,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <boost/noncopyable.hpp>
-
+#include "singleton.hpp"
 #include "vector.hpp"
 #include "input.hpp"
 #include "display.hpp"
@@ -40,7 +39,7 @@ namespace cursedearth
         void* listener;
     } ce_renderwindow_listener;
 
-    class render_window_t: boost::noncopyable
+    class render_window_t: public singleton_t<render_window_t>
     {
     protected:
         enum state_t {
@@ -99,7 +98,7 @@ namespace cursedearth
         ce_vector* listeners;
     };
 
-    typedef std::shared_ptr<render_window_t> render_window_ptr_t;
+    typedef std::unique_ptr<render_window_t> render_window_ptr_t;
 
     render_window_ptr_t make_render_window(const std::string& title);
 }

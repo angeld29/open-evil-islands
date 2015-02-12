@@ -82,4 +82,9 @@ namespace cursedearth
         m_instances.insert({ object, instance });
         return object;
     }
+
+    video_manager_ptr_t make_video_manager()
+    {
+        return make_unique<video_manager_t>();
+    }
 }

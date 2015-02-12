@@ -21,10 +21,8 @@
 #ifndef CE_SOUNDSYSTEM_HPP
 #define CE_SOUNDSYSTEM_HPP
 
-#include <atomic>
-#include <thread>
-
 #include "singleton.hpp"
+#include "thread.hpp"
 #include "soundbuffer.hpp"
 
 namespace cursedearth
@@ -56,6 +54,10 @@ namespace cursedearth
         ce_sound_system_vtable vtable;
         void* impl;
     };
+
+    typedef std::unique_ptr<sound_system_t> sound_system_ptr_t;
+
+    sound_system_ptr_t make_sound_system();
 
     ce_sound_system_vtable ce_sound_system_platform(void);
     ce_sound_system_vtable ce_sound_system_null(void);

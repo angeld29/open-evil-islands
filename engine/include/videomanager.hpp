@@ -48,6 +48,10 @@ namespace cursedearth
         video_object_t m_last_object;
         std::unordered_map<video_object_t, video_instance_ptr_t> m_instances;
     };
+
+    typedef std::unique_ptr<video_manager_t> video_manager_ptr_t;
+
+    video_manager_ptr_t make_video_manager();
 }
 
 #endif

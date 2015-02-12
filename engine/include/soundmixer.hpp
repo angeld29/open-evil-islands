@@ -21,12 +21,10 @@
 #ifndef CE_SOUNDMIXER_HPP
 #define CE_SOUNDMIXER_HPP
 
-#include <atomic>
-#include <thread>
-#include <mutex>
 #include <list>
 
 #include "singleton.hpp"
+#include "thread.hpp"
 #include "soundbuffer.hpp"
 
 namespace cursedearth
@@ -48,6 +46,10 @@ namespace cursedearth
         std::thread m_thread;
         std::mutex m_mutex;
     };
+
+    typedef std::unique_ptr<sound_mixer_t> sound_mixer_ptr_t;
+
+    sound_mixer_ptr_t make_sound_mixer();
 }
 
 #endif

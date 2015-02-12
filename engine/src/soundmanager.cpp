@@ -140,4 +140,9 @@ namespace cursedearth
         m_instances.insert({ object, instance });
         return object;
     }
+
+    sound_manager_ptr_t make_sound_manager()
+    {
+        return make_unique<sound_manager_t>();
+    }
 }

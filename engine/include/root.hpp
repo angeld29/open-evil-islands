@@ -21,16 +21,15 @@
 #ifndef CE_ROOT_HPP
 #define CE_ROOT_HPP
 
-#include <atomic>
-#include <memory>
-
-#include "singleton.hpp"
 #include "timer.hpp"
 #include "input.hpp"
 #include "systemevent.hpp"
 #include "optionmanager.hpp"
-#include "optparse.hpp"
 #include "renderwindow.hpp"
+#include "soundsystem.hpp"
+#include "soundmixer.hpp"
+#include "soundmanager.hpp"
+#include "videomanager.hpp"
 #include "scenemanager.hpp"
 
 namespace cursedearth
@@ -50,7 +49,6 @@ namespace cursedearth
     public:
         float animation_fps = 15.0f;
         timer_ptr_t timer;
-        render_window_ptr_t renderwindow;
 
     private:
         std::atomic<bool> m_done;
@@ -58,12 +56,13 @@ namespace cursedearth
         input_event_const_ptr_t m_exit_event;
         input_event_const_ptr_t m_switch_window_event;
         input_event_const_ptr_t m_toggle_fullscreen_event;
-        std::unique_ptr<class option_manager_t> m_option_manager;
-        std::unique_ptr<class sound_system_t> m_sound_system;
-        std::unique_ptr<class sound_mixer_t> m_sound_mixer;
-        std::unique_ptr<class sound_manager_t> m_sound_manager;
-        std::unique_ptr<class video_manager_t> m_video_manager;
-        std::unique_ptr<class thread_pool_t> m_thread_pool;
+        option_manager_ptr_t m_option_manager;
+        render_window_ptr_t m_render_window;
+        sound_system_ptr_t m_sound_system;
+        sound_mixer_ptr_t m_sound_mixer;
+        sound_manager_ptr_t m_sound_manager;
+        video_manager_ptr_t m_video_manager;
+        thread_pool_ptr_t m_thread_pool;
         ce_renderwindow_listener renderwindow_listener;
     };
 }

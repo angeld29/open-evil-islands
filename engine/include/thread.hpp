@@ -125,6 +125,10 @@ namespace cursedearth
         std::vector<task_t> m_tasks;
         std::vector<std::thread> m_threads;
     };
+
+    typedef std::unique_ptr<thread_pool_t> thread_pool_ptr_t;
+
+    thread_pool_ptr_t make_thread_pool();
 }
 
 #endif
