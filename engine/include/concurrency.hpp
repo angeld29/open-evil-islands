@@ -18,17 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_THREAD_HPP
-#define CE_THREAD_HPP
+#ifndef CE_CONCURRENCY_HPP
+#define CE_CONCURRENCY_HPP
 
 #include <atomic>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <functional>
-#include <vector>
-
-#include "singleton.hpp"
 
 namespace cursedearth
 {
@@ -93,42 +89,6 @@ namespace cursedearth
     void ce_semaphore_release(semaphore_t* semaphore, size_t n);
 
     bool ce_semaphore_try_acquire(semaphore_t* semaphore, size_t n);
-
-    /**
-     * @brief The thread pool class manages a collection of threads.
-     *        It's a thread pool pattern implementation.
-     *        All functions are thread-safe.
-     */
-    class thread_pool_t: public singleton_t<thread_pool_t>
-    {
-        typedef std::function<void ()> task_t;
-
-    public:
-        thread_pool_t();
-        ~thread_pool_t();
-
-        void enqueue(const task_t&);
-
-        void wait_one();
-        void wait_all();
-
-    private:
-        void execute();
-
-    private:
-        size_t m_idle_thread_count;
-        std::atomic<bool> m_done;
-        std::mutex m_mutex;
-        std::condition_variable m_idle;
-        std::condition_variable m_wait_one;
-        std::condition_variable m_wait_all;
-        std::vector<task_t> m_tasks;
-        std::vector<std::thread> m_threads;
-    };
-
-    typedef std::unique_ptr<thread_pool_t> thread_pool_ptr_t;
-
-    thread_pool_ptr_t make_thread_pool();
 }
 
 #endif

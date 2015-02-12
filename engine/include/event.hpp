@@ -21,9 +21,9 @@
 #ifndef CE_EVENT_HPP
 #define CE_EVENT_HPP
 
+#include "concurrency.hpp"
 #include "vector.hpp"
 #include "timer.hpp"
-#include "thread.hpp"
 
 namespace cursedearth
 {

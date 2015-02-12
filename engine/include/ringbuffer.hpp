@@ -25,7 +25,7 @@
 
 #include <boost/noncopyable.hpp>
 
-#include "thread.hpp"
+#include "concurrency.hpp"
 
 namespace cursedearth
 {

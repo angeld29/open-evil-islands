@@ -22,7 +22,6 @@
 #define CE_SOUNDSYSTEM_HPP
 
 #include "singleton.hpp"
-#include "thread.hpp"
 #include "soundbuffer.hpp"
 
 namespace cursedearth

@@ -21,10 +21,10 @@
 #ifndef CE_RENDERSYSTEM_HPP
 #define CE_RENDERSYSTEM_HPP
 
+#include "concurrency.hpp"
 #include "vector3.hpp"
 #include "quaternion.hpp"
 #include "color.hpp"
-#include "thread.hpp"
 #include "viewport.hpp"
 #include "camera.hpp"
 #include "texture.hpp"

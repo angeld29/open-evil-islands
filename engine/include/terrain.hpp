@@ -25,7 +25,6 @@
 #include "quaternion.hpp"
 #include "vector.hpp"
 #include "string.hpp"
-#include "thread.hpp"
 #include "mprfile.hpp"
 #include "texture.hpp"
 #include "material.hpp"

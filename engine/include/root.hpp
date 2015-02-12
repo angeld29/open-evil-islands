@@ -30,6 +30,7 @@
 #include "soundmixer.hpp"
 #include "soundmanager.hpp"
 #include "videomanager.hpp"
+#include "threadpool.hpp"
 #include "scenemanager.hpp"
 
 namespace cursedearth

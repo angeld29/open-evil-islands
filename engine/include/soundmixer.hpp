@@ -24,7 +24,6 @@
 #include <list>
 
 #include "singleton.hpp"
-#include "thread.hpp"
 #include "soundbuffer.hpp"
 
 namespace cursedearth

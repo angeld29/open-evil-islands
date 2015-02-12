@@ -25,6 +25,7 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "event.hpp"
+#include "threadpool.hpp"
 #include "optionmanager.hpp"
 #include "rendersystem.hpp"
 #include "texturemanager.hpp"

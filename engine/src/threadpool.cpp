@@ -18,69 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "alloc.hpp"
 #include "logging.hpp"
-#include "thread.hpp"
+#include "threadpool.hpp"
 
 namespace cursedearth
 {
-    semaphore_t* ce_semaphore_new(size_t n)
-    {
-        semaphore_t* semaphore = (semaphore_t*)ce_alloc_zero(sizeof(semaphore_t));
-        semaphore->available = n;
-        semaphore->mutex = ce_mutex_new();
-        semaphore->wait_condition = ce_wait_condition_new();
-        return semaphore;
-    }
-
-    void ce_semaphore_del(semaphore_t* semaphore)
-    {
-        if (NULL != semaphore) {
-            ce_wait_condition_del(semaphore->wait_condition);
-            ce_mutex_del(semaphore->mutex);
-            ce_free(semaphore, sizeof(semaphore_t));
-        }
-    }
-
-    size_t ce_semaphore_available(const semaphore_t* semaphore)
-    {
-        ce_mutex_lock(semaphore->mutex);
-        size_t n = semaphore->available;
-        ce_mutex_unlock(semaphore->mutex);
-        return n;
-    }
-
-    void ce_semaphore_acquire(semaphore_t* semaphore, size_t n)
-    {
-        ce_mutex_lock(semaphore->mutex);
-        while (n > semaphore->available) {
-            ce_wait_condition_wait(semaphore->wait_condition, semaphore->mutex);
-        }
-        semaphore->available -= n;
-        ce_mutex_unlock(semaphore->mutex);
-    }
-
-    void ce_semaphore_release(semaphore_t* semaphore, size_t n)
-    {
-        ce_mutex_lock(semaphore->mutex);
-        semaphore->available += n;
-        ce_wait_condition_wake_all(semaphore->wait_condition);
-        ce_mutex_unlock(semaphore->mutex);
-    }
-
-    bool ce_semaphore_try_acquire(semaphore_t* semaphore, size_t n)
-    {
-        ce_mutex_lock(semaphore->mutex);
-        bool result = true;
-        if (n > semaphore->available) {
-            result = false;
-        } else {
-            semaphore->available -= n;
-        }
-        ce_mutex_unlock(semaphore->mutex);
-        return result;
-    }
-
     thread_pool_t::thread_pool_t():
         singleton_t<thread_pool_t>(this),
         m_idle_thread_count(online_cpu_count()),

@@ -28,7 +28,7 @@
 
 #include "alloc.hpp"
 #include "logging.hpp"
-#include "thread.hpp"
+#include "concurrency.hpp"
 
 #ifndef _SC_NPROCESSORS_ONLN
 #ifdef _SC_NPROC_ONLN

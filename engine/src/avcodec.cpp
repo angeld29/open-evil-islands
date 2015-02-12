@@ -25,8 +25,8 @@ extern "C"
 #include <libavcodec/avcodec.h>
 }
 
+#include "concurrency.hpp"
 #include "logging.hpp"
-#include "thread.hpp"
 #include "avcodec.hpp"
 
 namespace cursedearth

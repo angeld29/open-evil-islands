@@ -26,7 +26,6 @@
 #include "vector3.hpp"
 #include "aabb.hpp"
 #include "vector.hpp"
-#include "thread.hpp"
 #include "mmpfile.hpp"
 #include "mprfile.hpp"
 #include "material.hpp"

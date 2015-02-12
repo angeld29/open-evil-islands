@@ -25,7 +25,6 @@
 
 #include <boost/noncopyable.hpp>
 
-#include "thread.hpp"
 #include "input.hpp"
 #include "terrain.hpp"
 #include "fps.hpp"
