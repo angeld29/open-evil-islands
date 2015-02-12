@@ -19,7 +19,6 @@
  */
 
 #include <cassert>
-#include <cstdio>
 #include <cstring>
 
 #include <X11/Xlib.h>
@@ -27,7 +26,7 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-#include "alloc.hpp"
+#include "exception.hpp"
 #include "logging.hpp"
 #include "display_x11.hpp"
 #include "graphicscontext_x11.hpp"
@@ -43,12 +42,322 @@ namespace cursedearth
         CE_RENDERWINDOW_ATOM_COUNT
     };
 
-    struct ce_renderwindow_x11
+    class x11_window_t final: public render_window_t
     {
+    public:
+        explicit x11_window_t(const std::string& title):
+            render_window_t(title)
+        {
+            XInitThreads();
+
+            display = XOpenDisplay(NULL);
+            if (NULL == display) {
+                throw game_error("render window", "could not connect to X server");
+            }
+
+            ce_logging_info("render window: using X server %d.%d", XProtocolVersion(display), XProtocolRevision(display));
+            ce_logging_info("render window: %s %d", XServerVendor(display), XVendorRelease(display));
+
+            geometry[CE_RENDERWINDOW_STATE_WINDOW].x = (XDisplayWidth(display, XDefaultScreen(display)) - geometry[CE_RENDERWINDOW_STATE_WINDOW].width) / 2;
+            geometry[CE_RENDERWINDOW_STATE_WINDOW].y = (XDisplayHeight(display, XDefaultScreen(display)) - geometry[CE_RENDERWINDOW_STATE_WINDOW].height) / 2;
+
+            if (0 == visual.bpp) {
+                visual.bpp = XDefaultDepth(display, XDefaultScreen(display));
+                if (1 == visual.bpp) {
+                    ce_logging_warning("render window: you live in prehistoric times");
+                }
+            }
+
+            displaymng = ce_displaymng_create(display);
+            graphics_context = ce_graphics_context_new(display);
+
+            // absolutely don't understand how XChangeKeyboardMapping works...
+            m_input_map.insert({
+                { XK_VoidSymbol , input_button_t::unknown        }, { XK_Escape      , input_button_t::kb_escape     }, { XK_F1          , input_button_t::kb_f1         },
+                { XK_F2         , input_button_t::kb_f2          }, { XK_F3          , input_button_t::kb_f3         }, { XK_F4          , input_button_t::kb_f4         },
+                { XK_F5         , input_button_t::kb_f5          }, { XK_F6          , input_button_t::kb_f6         }, { XK_F7          , input_button_t::kb_f7         },
+                { XK_F8         , input_button_t::kb_f8          }, { XK_F9          , input_button_t::kb_f9         }, { XK_F10         , input_button_t::kb_f10        },
+                { XK_F11        , input_button_t::kb_f11         }, { XK_F12         , input_button_t::kb_f12        }, { XK_grave       , input_button_t::kb_tilde      },
+                { XK_0          , input_button_t::kb_0           }, { XK_1           , input_button_t::kb_1          }, { XK_2           , input_button_t::kb_2          },
+                { XK_3          , input_button_t::kb_3           }, { XK_4           , input_button_t::kb_4          }, { XK_5           , input_button_t::kb_5          },
+                { XK_6          , input_button_t::kb_6           }, { XK_7           , input_button_t::kb_7          }, { XK_8           , input_button_t::kb_8          },
+                { XK_9          , input_button_t::kb_9           }, { XK_minus       , input_button_t::kb_minus      }, { XK_equal       , input_button_t::kb_equals     },
+                { XK_backslash  , input_button_t::kb_backslash   }, { XK_BackSpace   , input_button_t::kb_backspace  }, { XK_Tab         , input_button_t::kb_tab        },
+                { XK_q          , input_button_t::kb_q           }, { XK_w           , input_button_t::kb_w          }, { XK_e           , input_button_t::kb_e          },
+                { XK_r          , input_button_t::kb_r           }, { XK_t           , input_button_t::kb_t          }, { XK_y           , input_button_t::kb_y          },
+                { XK_u          , input_button_t::kb_u           }, { XK_i           , input_button_t::kb_i          }, { XK_o           , input_button_t::kb_o          },
+                { XK_p          , input_button_t::kb_p           }, { XK_bracketleft , input_button_t::kb_lbracket   }, { XK_bracketright, input_button_t::kb_rbracket   },
+                { XK_Caps_Lock  , input_button_t::kb_capslock    }, { XK_a           , input_button_t::kb_a          }, { XK_s           , input_button_t::kb_s          },
+                { XK_d          , input_button_t::kb_d           }, { XK_f           , input_button_t::kb_f          }, { XK_g           , input_button_t::kb_g          },
+                { XK_h          , input_button_t::kb_h           }, { XK_j           , input_button_t::kb_j          }, { XK_k           , input_button_t::kb_k          },
+                { XK_l          , input_button_t::kb_l           }, { XK_semicolon   , input_button_t::kb_semicolon  }, { XK_apostrophe  , input_button_t::kb_apostrophe },
+                { XK_Return     , input_button_t::kb_enter       }, { XK_Shift_L     , input_button_t::kb_lshift     }, { XK_z           , input_button_t::kb_z          },
+                { XK_x          , input_button_t::kb_x           }, { XK_c           , input_button_t::kb_c          }, { XK_v           , input_button_t::kb_v          },
+                { XK_b          , input_button_t::kb_b           }, { XK_n           , input_button_t::kb_n          }, { XK_m           , input_button_t::kb_m          },
+                { XK_comma      , input_button_t::kb_comma       }, { XK_period      , input_button_t::kb_period     }, { XK_slash       , input_button_t::kb_slash      },
+                { XK_Shift_R    , input_button_t::kb_rshift      }, { XK_Control_L   , input_button_t::kb_lcontrol   }, { XK_Super_L     , input_button_t::kb_lmeta      },
+                { XK_Alt_L      , input_button_t::kb_lalt        }, { XK_space       , input_button_t::kb_space      }, { XK_Alt_R       , input_button_t::kb_ralt       },
+                { XK_Super_R    , input_button_t::kb_rmeta       }, { XK_Menu        , input_button_t::kb_menu       }, { XK_Control_R   , input_button_t::kb_rcontrol   },
+                { XK_Print      , input_button_t::kb_print       }, { XK_Scroll_Lock , input_button_t::kb_scrolllock }, { XK_Pause       , input_button_t::kb_pause      },
+                { XK_Insert     , input_button_t::kb_insert      }, { XK_Delete      , input_button_t::kb_delete     }, { XK_Home        , input_button_t::kb_home       },
+                { XK_End        , input_button_t::kb_end         }, { XK_Page_Up     , input_button_t::kb_pageup     }, { XK_Page_Down   , input_button_t::kb_pagedown   },
+                { XK_Left       , input_button_t::kb_left        }, { XK_Up          , input_button_t::kb_up         }, { XK_Right       , input_button_t::kb_right      },
+                { XK_Down       , input_button_t::kb_down        }, { XK_Num_Lock    , input_button_t::kb_numlock    }, { XK_KP_Divide   , input_button_t::kb_divide     },
+                { XK_KP_Multiply, input_button_t::kb_multiply    }, { XK_KP_Subtract , input_button_t::kb_subtract   }, { XK_KP_Add      , input_button_t::kb_add        },
+                { XK_KP_Enter   , input_button_t::kb_numpadenter }, { XK_KP_Delete   , input_button_t::kb_decimal    }, { XK_KP_Home     , input_button_t::kb_numpad7    },
+                { XK_KP_Up      , input_button_t::kb_numpad8     }, { XK_KP_Page_Up  , input_button_t::kb_numpad9    }, { XK_KP_Left     , input_button_t::kb_numpad4    },
+                { XK_KP_Begin   , input_button_t::kb_numpad5     }, { XK_KP_Right    , input_button_t::kb_numpad6    }, { XK_KP_End      , input_button_t::kb_numpad1    },
+                { XK_KP_Down    , input_button_t::kb_numpad2     }, { XK_KP_Page_Down, input_button_t::kb_numpad3    }, { XK_KP_Insert   , input_button_t::kb_numpad0    }
+            });
+
+            atoms[CE_RENDERWINDOW_ATOM_WM_PROTOCOLS] = XInternAtom(display, "WM_PROTOCOLS", False);
+            atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW] = XInternAtom(display, "WM_DELETE_WINDOW", False);
+            atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN] = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", False);
+            atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE] = XInternAtom(display, "_NET_WM_STATE", False);
+
+            for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
+                mask[i] = CWColormap | CWEventMask | CWOverrideRedirect;
+                attrs[i].colormap = XCreateColormap(display, XDefaultRootWindow(display), graphics_context->visual_info->visual, AllocNone);
+                attrs[i].event_mask = EnterWindowMask | LeaveWindowMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
+                    PointerMotionMask | ButtonMotionMask | FocusChangeMask | VisibilityChangeMask | StructureNotifyMask;
+                attrs[i].override_redirect = (CE_RENDERWINDOW_STATE_FULLSCREEN == i);
+            }
+
+            for (int i = 0; i < LASTEvent; ++i) {
+                handlers[i] = &x11_window_t::skip_handler;
+            }
+
+            handlers[ClientMessage] = &x11_window_t::client_message_handler;
+            handlers[MapNotify] = &x11_window_t::map_notify_handler;
+            handlers[VisibilityNotify] = &x11_window_t::visibility_notify_handler;
+            handlers[ConfigureNotify] = &x11_window_t::configure_notify_handler;
+            handlers[FocusIn] = &x11_window_t::focus_in_handler;
+            handlers[FocusOut] = &x11_window_t::focus_out_handler;
+            handlers[EnterNotify] = &x11_window_t::enter_notify_handler;
+            handlers[KeyPress] = &x11_window_t::key_press_handler;
+            handlers[KeyRelease] = &x11_window_t::key_release_handler;
+            handlers[ButtonPress] = &x11_window_t::button_press_handler;
+            handlers[ButtonRelease] = &x11_window_t::button_release_handler;
+            handlers[MotionNotify] = &x11_window_t::motion_notify_handler;
+
+            XKeyboardState kbdstate;
+            XGetKeyboardControl(display, &kbdstate);
+
+            autorepeat = (AutoRepeatModeOn == kbdstate.global_auto_repeat);
+
+            XGetScreenSaver(display, &screensaver.timeout, &screensaver.interval, &screensaver.prefer_blanking, &screensaver.allow_exposures);
+
+            window = XCreateWindow(display,
+                XDefaultRootWindow(display), 0, 0,
+                geometry[state].width,
+                geometry[state].height,
+                0, graphics_context->visual_info->depth,
+                InputOutput, graphics_context->visual_info->visual,
+                mask[state],
+                &attrs[state]);
+
+            if (!ce_graphics_context_make_current(graphics_context, display, window)) {
+                throw game_error("render window", "could not set graphic context");
+            }
+
+            XSizeHints* size_hints = XAllocSizeHints();
+            size_hints->flags = PSize | PMinSize;
+            size_hints->min_width = 400;
+            size_hints->min_height = 300;
+            size_hints->base_width = geometry[state].width;
+            size_hints->base_height = geometry[state].height;
+            XSetWMNormalHints(display, window, size_hints);
+            XFree(size_hints);
+
+            XSetStandardProperties(display, window, title.c_str(), title.c_str(), None, NULL, 0, NULL);
+
+            // handle wm_delete_events
+            XSetWMProtocols(display, window, &atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW], 1);
+        }
+
+        virtual ~x11_window_t()
+        {
+            ce_graphics_context_del(graphics_context);
+            ce_displaymng_del(displaymng);
+
+            if (0 != window) {
+                XDestroyWindow(display, window);
+            }
+
+            if (NULL != display) {
+                XSetScreenSaver(display, screensaver.timeout, screensaver.interval, screensaver.prefer_blanking, screensaver.allow_exposures);
+                if (autorepeat) {
+                    XAutoRepeatOn(display);
+                }
+                XCloseDisplay(display);
+            }
+        }
+
+    private:
+        virtual void do_show() final
+        {
+            XMapRaised(display, window);
+            // x and y values in XCreateWindow are ignored by most windows managers,
+            // which means that top-level windows maybe placed somewhere else on the desktop
+            XMoveWindow(display, window, geometry[state].x, geometry[state].y);
+        }
+
+        virtual void do_minimize() final
+        {
+            XIconifyWindow(display, window, XDefaultScreen(display));
+        }
+
+        virtual void do_toggle_fullscreen() final
+        {
+            if (CE_RENDERWINDOW_STATE_FULLSCREEN == state) {
+                XGrabPointer(display, window, True, NoEventMask, GrabModeAsync, GrabModeAsync, window, None, CurrentTime);
+                XGrabKeyboard(display, window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+                XSetScreenSaver(display, DisableScreenSaver, DisableScreenInterval, DontPreferBlanking, DefaultExposures);
+            } else {
+                XUngrabPointer(display, CurrentTime);
+                XUngrabKeyboard(display, CurrentTime);
+                XSetScreenSaver(display, screensaver.timeout, screensaver.interval, screensaver.prefer_blanking, screensaver.allow_exposures);
+            }
+
+            XChangeWindowAttributes(display, window, mask[state], &attrs[state]);
+
+            XEvent event;
+            memset(&event, 0, sizeof(event));
+
+            event.xclient.type = ClientMessage;
+            event.xclient.send_event = True;
+            event.xclient.window = window;
+            event.xclient.message_type = atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE];
+            event.xclient.format = 32;
+            event.xclient.data.l[0] = state;
+            event.xclient.data.l[1] = atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN];
+
+            // absolutely don't understand how event masks work...
+            XSendEvent(display, XDefaultRootWindow(display), False, SubstructureRedirectMask | SubstructureNotifyMask, &event);
+        }
+
+        virtual void do_pump() final
+        {
+            XEvent event;
+            while (XPending(display) > 0) {
+                XNextEvent(display, &event);
+
+                // is it possible? may be new version of the X server...
+                assert(0 <= event.type && event.type < LASTEvent);
+
+                // just in case
+                if (event.type < LASTEvent) {
+                    (this->*handlers[event.type])(&event);
+                }
+            }
+        }
+
+        void skip_handler(XEvent*)
+        {
+        }
+
+        void client_message_handler(XEvent* event)
+        {
+            if (atoms[CE_RENDERWINDOW_ATOM_WM_PROTOCOLS] == event->xclient.message_type &&
+                    atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW] == static_cast<Atom>(event->xclient.data.l[0])) {
+                emit_closed();
+            }
+        }
+
+        void map_notify_handler(XEvent*)
+        {
+            // TODO: restore window
+        }
+
+        void visibility_notify_handler(XEvent*)
+        {
+        }
+
+        void configure_notify_handler(XEvent* event)
+        {
+            geometry[state].x = event->xconfigure.x;
+            geometry[state].y = event->xconfigure.y;
+            geometry[state].width = event->xconfigure.width;
+            geometry[state].height = event->xconfigure.height;
+            emit_resized(event->xconfigure.width, event->xconfigure.height);
+        }
+
+        void focus_in_handler(XEvent* event)
+        {
+            XAutoRepeatOff(event->xfocus.display);
+        }
+
+        void focus_out_handler(XEvent* event)
+        {
+            if (autorepeat) {
+                XAutoRepeatOn(event->xfocus.display);
+            }
+            m_input_context->clear();
+        }
+
+        void enter_notify_handler(XEvent* event)
+        {
+            m_input_context->pointer_position.x = event->xcrossing.x;
+            m_input_context->pointer_position.y = event->xcrossing.y;
+        }
+
+        void key_handler(XEvent* event, bool pressed)
+        {
+            // reset modifier keys to disable uppercase keys
+            event->xkey.state = 0;
+
+            KeySym key;
+            XLookupString(&event->xkey, NULL, 0, &key, NULL);
+
+            m_input_context->buttons[static_cast<size_t>(m_input_map[key])] = pressed;
+            m_input_context->pointer_position.x = event->xkey.x;
+            m_input_context->pointer_position.y = event->xkey.y;
+        }
+
+        void key_press_handler(XEvent* event)
+        {
+            key_handler(event, true);
+        }
+
+        void key_release_handler(XEvent* event)
+        {
+            key_handler(event, false);
+        }
+
+        void button_handler(XEvent* event, bool pressed)
+        {
+            m_input_context->buttons[event->xbutton.button - 1 + static_cast<size_t>(input_button_t::mb_left)] = pressed;
+            m_input_context->pointer_position.x = event->xbutton.x;
+            m_input_context->pointer_position.y = event->xbutton.y;
+        }
+
+        void button_press_handler(XEvent* event)
+        {
+            button_handler(event, true);
+        }
+
+        void button_release_handler(XEvent* event)
+        {
+            // special case: ignore wheel buttons
+            // ButtonPress event is immediately followed by ButtonRelease event
+            if (Button4 != event->xbutton.button && Button5 != event->xbutton.button) {
+                button_handler(event, false);
+            }
+        }
+
+        void motion_notify_handler(XEvent* event)
+        {
+            m_input_context->pointer_offset.x = event->xmotion.x - m_input_context->pointer_position.x;
+            m_input_context->pointer_offset.y = event->xmotion.y - m_input_context->pointer_position.y;
+            m_input_context->pointer_position.x = event->xmotion.x;
+            m_input_context->pointer_position.y = event->xmotion.y;
+        }
+
+    private:
         Atom atoms[CE_RENDERWINDOW_ATOM_COUNT];
         unsigned long mask[CE_RENDERWINDOW_STATE_COUNT];
         XSetWindowAttributes attrs[CE_RENDERWINDOW_STATE_COUNT];
-        void (*handlers[LASTEvent])(render_window_t*, XEvent*);
+        void (x11_window_t::*handlers[LASTEvent])(XEvent*);
         bool autorepeat; // remember old auto repeat settings
         struct {
             int timeout, interval;
@@ -59,363 +368,8 @@ namespace cursedearth
         Window window;
     };
 
-    void skip_handler(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_client_message(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_map_notify(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_visibility_notify(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_configure_notify(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_focus_in(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_focus_out(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_enter_notify(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_key_press(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_key_release(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_button_press(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_button_release(render_window_t*, XEvent*);
-    void ce_renderwindow_handler_motion_notify(render_window_t*, XEvent*);
-
-    bool ce_renderwindow_x11_ctor(render_window_t* renderwindow, va_list args)
+    render_window_ptr_t make_render_window(const std::string& title)
     {
-        ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
-        const char* title = va_arg(args, const char*);
-
-        XInitThreads();
-
-        x11window->display = XOpenDisplay(NULL);
-        if (NULL == x11window->display) {
-            ce_logging_fatal("render window: could not connect to X server");
-            return false;
-        }
-
-        ce_logging_info("render window: using X server %d.%d", XProtocolVersion(x11window->display), XProtocolRevision(x11window->display));
-        ce_logging_info("render window: %s %d", XServerVendor(x11window->display), XVendorRelease(x11window->display));
-
-        renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].x =
-            (XDisplayWidth(x11window->display, XDefaultScreen(x11window->display)) -
-            renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].width) / 2;
-
-        renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].y =
-            (XDisplayHeight(x11window->display, XDefaultScreen(x11window->display)) -
-            renderwindow->geometry[CE_RENDERWINDOW_STATE_WINDOW].height) / 2;
-
-        if (0 == renderwindow->visual.bpp) {
-            renderwindow->visual.bpp = XDefaultDepth(x11window->display, XDefaultScreen(x11window->display));
-            if (1 == renderwindow->visual.bpp) {
-                ce_logging_warning("render window: you live in prehistoric times");
-            }
-        }
-
-        renderwindow->displaymng = ce_displaymng_create(x11window->display);
-        renderwindow->graphics_context = ce_graphics_context_new(x11window->display);
-
-        // absolutely don't understand how XChangeKeyboardMapping works...
-        renderwindow->m_input_map.insert({
-            { XK_VoidSymbol , input_button_t::unknown        }, { XK_Escape      , input_button_t::kb_escape     }, { XK_F1          , input_button_t::kb_f1         },
-            { XK_F2         , input_button_t::kb_f2          }, { XK_F3          , input_button_t::kb_f3         }, { XK_F4          , input_button_t::kb_f4         },
-            { XK_F5         , input_button_t::kb_f5          }, { XK_F6          , input_button_t::kb_f6         }, { XK_F7          , input_button_t::kb_f7         },
-            { XK_F8         , input_button_t::kb_f8          }, { XK_F9          , input_button_t::kb_f9         }, { XK_F10         , input_button_t::kb_f10        },
-            { XK_F11        , input_button_t::kb_f11         }, { XK_F12         , input_button_t::kb_f12        }, { XK_grave       , input_button_t::kb_tilde      },
-            { XK_0          , input_button_t::kb_0           }, { XK_1           , input_button_t::kb_1          }, { XK_2           , input_button_t::kb_2          },
-            { XK_3          , input_button_t::kb_3           }, { XK_4           , input_button_t::kb_4          }, { XK_5           , input_button_t::kb_5          },
-            { XK_6          , input_button_t::kb_6           }, { XK_7           , input_button_t::kb_7          }, { XK_8           , input_button_t::kb_8          },
-            { XK_9          , input_button_t::kb_9           }, { XK_minus       , input_button_t::kb_minus      }, { XK_equal       , input_button_t::kb_equals     },
-            { XK_backslash  , input_button_t::kb_backslash   }, { XK_BackSpace   , input_button_t::kb_backspace  }, { XK_Tab         , input_button_t::kb_tab        },
-            { XK_q          , input_button_t::kb_q           }, { XK_w           , input_button_t::kb_w          }, { XK_e           , input_button_t::kb_e          },
-            { XK_r          , input_button_t::kb_r           }, { XK_t           , input_button_t::kb_t          }, { XK_y           , input_button_t::kb_y          },
-            { XK_u          , input_button_t::kb_u           }, { XK_i           , input_button_t::kb_i          }, { XK_o           , input_button_t::kb_o          },
-            { XK_p          , input_button_t::kb_p           }, { XK_bracketleft , input_button_t::kb_lbracket   }, { XK_bracketright, input_button_t::kb_rbracket   },
-            { XK_Caps_Lock  , input_button_t::kb_capslock    }, { XK_a           , input_button_t::kb_a          }, { XK_s           , input_button_t::kb_s          },
-            { XK_d          , input_button_t::kb_d           }, { XK_f           , input_button_t::kb_f          }, { XK_g           , input_button_t::kb_g          },
-            { XK_h          , input_button_t::kb_h           }, { XK_j           , input_button_t::kb_j          }, { XK_k           , input_button_t::kb_k          },
-            { XK_l          , input_button_t::kb_l           }, { XK_semicolon   , input_button_t::kb_semicolon  }, { XK_apostrophe  , input_button_t::kb_apostrophe },
-            { XK_Return     , input_button_t::kb_enter       }, { XK_Shift_L     , input_button_t::kb_lshift     }, { XK_z           , input_button_t::kb_z          },
-            { XK_x          , input_button_t::kb_x           }, { XK_c           , input_button_t::kb_c          }, { XK_v           , input_button_t::kb_v          },
-            { XK_b          , input_button_t::kb_b           }, { XK_n           , input_button_t::kb_n          }, { XK_m           , input_button_t::kb_m          },
-            { XK_comma      , input_button_t::kb_comma       }, { XK_period      , input_button_t::kb_period     }, { XK_slash       , input_button_t::kb_slash      },
-            { XK_Shift_R    , input_button_t::kb_rshift      }, { XK_Control_L   , input_button_t::kb_lcontrol   }, { XK_Super_L     , input_button_t::kb_lmeta      },
-            { XK_Alt_L      , input_button_t::kb_lalt        }, { XK_space       , input_button_t::kb_space      }, { XK_Alt_R       , input_button_t::kb_ralt       },
-            { XK_Super_R    , input_button_t::kb_rmeta       }, { XK_Menu        , input_button_t::kb_menu       }, { XK_Control_R   , input_button_t::kb_rcontrol   },
-            { XK_Print      , input_button_t::kb_print       }, { XK_Scroll_Lock , input_button_t::kb_scrolllock }, { XK_Pause       , input_button_t::kb_pause      },
-            { XK_Insert     , input_button_t::kb_insert      }, { XK_Delete      , input_button_t::kb_delete     }, { XK_Home        , input_button_t::kb_home       },
-            { XK_End        , input_button_t::kb_end         }, { XK_Page_Up     , input_button_t::kb_pageup     }, { XK_Page_Down   , input_button_t::kb_pagedown   },
-            { XK_Left       , input_button_t::kb_left        }, { XK_Up          , input_button_t::kb_up         }, { XK_Right       , input_button_t::kb_right      },
-            { XK_Down       , input_button_t::kb_down        }, { XK_Num_Lock    , input_button_t::kb_numlock    }, { XK_KP_Divide   , input_button_t::kb_divide     },
-            { XK_KP_Multiply, input_button_t::kb_multiply    }, { XK_KP_Subtract , input_button_t::kb_subtract   }, { XK_KP_Add      , input_button_t::kb_add        },
-            { XK_KP_Enter   , input_button_t::kb_numpadenter }, { XK_KP_Delete   , input_button_t::kb_decimal    }, { XK_KP_Home     , input_button_t::kb_numpad7    },
-            { XK_KP_Up      , input_button_t::kb_numpad8     }, { XK_KP_Page_Up  , input_button_t::kb_numpad9    }, { XK_KP_Left     , input_button_t::kb_numpad4    },
-            { XK_KP_Begin   , input_button_t::kb_numpad5     }, { XK_KP_Right    , input_button_t::kb_numpad6    }, { XK_KP_End      , input_button_t::kb_numpad1    },
-            { XK_KP_Down    , input_button_t::kb_numpad2     }, { XK_KP_Page_Down, input_button_t::kb_numpad3    }, { XK_KP_Insert   , input_button_t::kb_numpad0    }
-        });
-
-        x11window->atoms[CE_RENDERWINDOW_ATOM_WM_PROTOCOLS] = XInternAtom(x11window->display, "WM_PROTOCOLS", False);
-        x11window->atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW] = XInternAtom(x11window->display, "WM_DELETE_WINDOW", False);
-        x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN] = XInternAtom(x11window->display, "_NET_WM_STATE_FULLSCREEN", False);
-        x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE] = XInternAtom(x11window->display, "_NET_WM_STATE", False);
-
-        for (int i = 0; i < CE_RENDERWINDOW_STATE_COUNT; ++i) {
-            x11window->mask[i] = CWColormap | CWEventMask | CWOverrideRedirect;
-            x11window->attrs[i].colormap = XCreateColormap(x11window->display, XDefaultRootWindow(x11window->display), renderwindow->graphics_context->visual_info->visual, AllocNone);
-            x11window->attrs[i].event_mask = EnterWindowMask | LeaveWindowMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
-                PointerMotionMask | ButtonMotionMask | FocusChangeMask | VisibilityChangeMask | StructureNotifyMask;
-            x11window->attrs[i].override_redirect = (CE_RENDERWINDOW_STATE_FULLSCREEN == i);
-        }
-
-        for (int i = 0; i < LASTEvent; ++i) {
-            x11window->handlers[i] = skip_handler;
-        }
-
-        x11window->handlers[ClientMessage] = ce_renderwindow_handler_client_message;
-        x11window->handlers[MapNotify] = ce_renderwindow_handler_map_notify;
-        x11window->handlers[VisibilityNotify] = ce_renderwindow_handler_visibility_notify;
-        x11window->handlers[ConfigureNotify] = ce_renderwindow_handler_configure_notify;
-        x11window->handlers[FocusIn] = ce_renderwindow_handler_focus_in;
-        x11window->handlers[FocusOut] = ce_renderwindow_handler_focus_out;
-        x11window->handlers[EnterNotify] = ce_renderwindow_handler_enter_notify;
-        x11window->handlers[KeyPress] = ce_renderwindow_handler_key_press;
-        x11window->handlers[KeyRelease] = ce_renderwindow_handler_key_release;
-        x11window->handlers[ButtonPress] = ce_renderwindow_handler_button_press;
-        x11window->handlers[ButtonRelease] = ce_renderwindow_handler_button_release;
-        x11window->handlers[MotionNotify] = ce_renderwindow_handler_motion_notify;
-
-        XKeyboardState kbdstate;
-        XGetKeyboardControl(x11window->display, &kbdstate);
-
-        x11window->autorepeat = (AutoRepeatModeOn == kbdstate.global_auto_repeat);
-
-        XGetScreenSaver(x11window->display, &x11window->screensaver.timeout, &x11window->screensaver.interval, &x11window->screensaver.prefer_blanking, &x11window->screensaver.allow_exposures);
-
-        x11window->window = XCreateWindow(x11window->display,
-            XDefaultRootWindow(x11window->display), 0, 0,
-            renderwindow->geometry[renderwindow->state].width,
-            renderwindow->geometry[renderwindow->state].height,
-            0, renderwindow->graphics_context->visual_info->depth,
-            InputOutput, renderwindow->graphics_context->visual_info->visual,
-            x11window->mask[renderwindow->state],
-            &x11window->attrs[renderwindow->state]);
-
-        if (!ce_graphics_context_make_current(renderwindow->graphics_context, x11window->display, x11window->window)) {
-            ce_logging_fatal("render window: could not set graphic context");
-            return false;
-        }
-
-        XSizeHints* size_hints = XAllocSizeHints();
-        size_hints->flags = PSize | PMinSize;
-        size_hints->min_width = 400;
-        size_hints->min_height = 300;
-        size_hints->base_width = renderwindow->geometry[renderwindow->state].width;
-        size_hints->base_height = renderwindow->geometry[renderwindow->state].height;
-        XSetWMNormalHints(x11window->display, x11window->window, size_hints);
-        XFree(size_hints);
-
-        XSetStandardProperties(x11window->display, x11window->window, title, title, None, NULL, 0, NULL);
-
-        // handle wm_delete_events
-        XSetWMProtocols(x11window->display, x11window->window, &x11window->atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW], 1);
-
-        return true;
-    }
-
-    void ce_renderwindow_x11_dtor(render_window_t* renderwindow)
-    {
-        ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
-
-        ce_graphics_context_del(renderwindow->graphics_context);
-        ce_displaymng_del(renderwindow->displaymng);
-
-        if (0 != x11window->window) {
-            XDestroyWindow(x11window->display, x11window->window);
-        }
-
-        if (NULL != x11window->display) {
-            XSetScreenSaver(x11window->display, x11window->screensaver.timeout, x11window->screensaver.interval, x11window->screensaver.prefer_blanking, x11window->screensaver.allow_exposures);
-            if (x11window->autorepeat) {
-                XAutoRepeatOn(x11window->display);
-            }
-            XCloseDisplay(x11window->display);
-        }
-    }
-
-    void ce_renderwindow_x11_show(render_window_t* renderwindow)
-    {
-        ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
-        XMapRaised(x11window->display, x11window->window);
-
-        // x and y values in XCreateWindow are ignored by most windows managers,
-        // which means that top-level windows maybe placed somewhere else on the desktop
-        XMoveWindow(x11window->display, x11window->window, renderwindow->geometry[renderwindow->state].x, renderwindow->geometry[renderwindow->state].y);
-    }
-
-    void ce_renderwindow_x11_minimize(render_window_t* renderwindow)
-    {
-        ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
-        XIconifyWindow(x11window->display, x11window->window, XDefaultScreen(x11window->display));
-    }
-
-    void ce_renderwindow_x11_fullscreen_before_enter(render_window_t* renderwindow)
-    {
-        ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
-        XGrabPointer(x11window->display, x11window->window, True, NoEventMask, GrabModeAsync, GrabModeAsync, x11window->window, None, CurrentTime);
-        XGrabKeyboard(x11window->display, x11window->window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
-        XSetScreenSaver(x11window->display, DisableScreenSaver, DisableScreenInterval, DontPreferBlanking, DefaultExposures);
-    }
-
-    void ce_renderwindow_x11_fullscreen_after_exit(render_window_t* renderwindow)
-    {
-        ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
-        XUngrabPointer(x11window->display, CurrentTime);
-        XUngrabKeyboard(x11window->display, CurrentTime);
-        XSetScreenSaver(x11window->display, x11window->screensaver.timeout, x11window->screensaver.interval, x11window->screensaver.prefer_blanking, x11window->screensaver.allow_exposures);
-    }
-
-    void ce_renderwindow_x11_fullscreen_done(render_window_t* renderwindow)
-    {
-        ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
-        XChangeWindowAttributes(x11window->display, x11window->window, x11window->mask[renderwindow->state], &x11window->attrs[renderwindow->state]);
-
-        XEvent event;
-        memset(&event, 0, sizeof(event));
-
-        event.xclient.type = ClientMessage;
-        event.xclient.send_event = True;
-        event.xclient.window = x11window->window;
-        event.xclient.message_type = x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE];
-        event.xclient.format = 32;
-        event.xclient.data.l[0] = renderwindow->state;
-        event.xclient.data.l[1] = x11window->atoms[CE_RENDERWINDOW_ATOM_NET_WM_STATE_FULLSCREEN];
-
-        // absolutely don't understand how event masks work...
-        XSendEvent(x11window->display, XDefaultRootWindow(x11window->display), False, SubstructureRedirectMask | SubstructureNotifyMask, &event);
-    }
-
-    void ce_renderwindow_x11_pump(render_window_t* renderwindow)
-    {
-        ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
-
-        XEvent event;
-        while (XPending(x11window->display) > 0) {
-            XNextEvent(x11window->display, &event);
-
-            // is it possible? may be new version of the X server...
-            assert(0 <= event.type && event.type < LASTEvent);
-
-            // just in case
-            if (event.type < LASTEvent) {
-                (*x11window->handlers[event.type])(renderwindow, &event);
-            }
-        }
-    }
-
-    render_window_t* ce_renderwindow_create(int width, int height, const char* title)
-    {
-        ce_renderwindow_vtable vt = {ce_renderwindow_x11_ctor, ce_renderwindow_x11_dtor, ce_renderwindow_x11_show, ce_renderwindow_x11_minimize,
-            {NULL,ce_renderwindow_x11_fullscreen_before_enter,NULL,NULL, ce_renderwindow_x11_fullscreen_after_exit, ce_renderwindow_x11_fullscreen_done}, ce_renderwindow_x11_pump};
-        return ce_renderwindow_new(vt, sizeof(ce_renderwindow_x11), width, height, title);
-    }
-
-    void skip_handler(render_window_t*, XEvent*)
-    {
-    }
-
-    void ce_renderwindow_handler_client_message(render_window_t* renderwindow, XEvent* event)
-    {
-        ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
-
-        if (x11window->atoms[CE_RENDERWINDOW_ATOM_WM_PROTOCOLS] == event->xclient.message_type &&
-                x11window->atoms[CE_RENDERWINDOW_ATOM_WM_DELETE_WINDOW] == (Atom)event->xclient.data.l[0]) {
-            ce_renderwindow_emit_closed(renderwindow);
-        }
-    }
-
-    void ce_renderwindow_handler_map_notify(render_window_t* renderwindow, XEvent*)
-    {
-        assert(CE_RENDERWINDOW_ACTION_NONE == renderwindow->action);
-        renderwindow->action = CE_RENDERWINDOW_ACTION_RESTORED;
-    }
-
-    void ce_renderwindow_handler_visibility_notify(render_window_t*, XEvent*)
-    {
-    }
-
-    void ce_renderwindow_handler_configure_notify(render_window_t* renderwindow, XEvent* event)
-    {
-        renderwindow->geometry[renderwindow->state].x = event->xconfigure.x;
-        renderwindow->geometry[renderwindow->state].y = event->xconfigure.y;
-        renderwindow->geometry[renderwindow->state].width = event->xconfigure.width;
-        renderwindow->geometry[renderwindow->state].height = event->xconfigure.height;
-
-        ce_renderwindow_emit_resized(renderwindow, event->xconfigure.width, event->xconfigure.height);
-    }
-
-    void ce_renderwindow_handler_focus_in(render_window_t*, XEvent* event)
-    {
-        XAutoRepeatOff(event->xfocus.display);
-    }
-
-    void ce_renderwindow_handler_focus_out(render_window_t* renderwindow, XEvent* event)
-    {
-        ce_renderwindow_x11* x11window = (ce_renderwindow_x11*)renderwindow->impl;
-
-        if (x11window->autorepeat) {
-            XAutoRepeatOn(event->xfocus.display);
-        }
-
-        renderwindow->m_input_context->clear();
-    }
-
-    void ce_renderwindow_handler_enter_notify(render_window_t* renderwindow, XEvent* event)
-    {
-        renderwindow->m_input_context->pointer_position.x = event->xcrossing.x;
-        renderwindow->m_input_context->pointer_position.y = event->xcrossing.y;
-    }
-
-    void ce_renderwindow_handler_key(render_window_t* renderwindow, XEvent* event, bool pressed)
-    {
-        // reset modifier keys to disable uppercase keys
-        event->xkey.state = 0;
-
-        KeySym key;
-        XLookupString(&event->xkey, NULL, 0, &key, NULL);
-
-        renderwindow->m_input_context->buttons[static_cast<size_t>(renderwindow->m_input_map[key])] = pressed;
-        renderwindow->m_input_context->pointer_position.x = event->xkey.x;
-        renderwindow->m_input_context->pointer_position.y = event->xkey.y;
-    }
-
-    void ce_renderwindow_handler_key_press(render_window_t* renderwindow, XEvent* event)
-    {
-        ce_renderwindow_handler_key(renderwindow, event, true);
-    }
-
-    void ce_renderwindow_handler_key_release(render_window_t* renderwindow, XEvent* event)
-    {
-        ce_renderwindow_handler_key(renderwindow, event, false);
-    }
-
-    void ce_renderwindow_handler_button(render_window_t* renderwindow, XEvent* event, bool pressed)
-    {
-        renderwindow->m_input_context->buttons[event->xbutton.button - 1 + static_cast<size_t>(input_button_t::mb_left)] = pressed;
-        renderwindow->m_input_context->pointer_position.x = event->xbutton.x;
-        renderwindow->m_input_context->pointer_position.y = event->xbutton.y;
-    }
-
-    void ce_renderwindow_handler_button_press(render_window_t* renderwindow, XEvent* event)
-    {
-        ce_renderwindow_handler_button(renderwindow, event, true);
-    }
-
-    void ce_renderwindow_handler_button_release(render_window_t* renderwindow, XEvent* event)
-    {
-        // special case: ignore wheel buttons, see pump method
-        // ButtonPress event is immediately followed by ButtonRelease event
-        if (Button4 != event->xbutton.button && Button5 != event->xbutton.button) {
-            ce_renderwindow_handler_button(renderwindow, event, false);
-        }
-    }
-
-    void ce_renderwindow_handler_motion_notify(render_window_t* renderwindow, XEvent* event)
-    {
-        renderwindow->m_input_context->pointer_offset.x = event->xmotion.x - renderwindow->m_input_context->pointer_position.x;
-        renderwindow->m_input_context->pointer_offset.y = event->xmotion.y - renderwindow->m_input_context->pointer_position.y;
-        renderwindow->m_input_context->pointer_position.x = event->xmotion.x;
-        renderwindow->m_input_context->pointer_position.y = event->xmotion.y;
+        return std::make_shared<x11_window_t>(title);
     }
 }
