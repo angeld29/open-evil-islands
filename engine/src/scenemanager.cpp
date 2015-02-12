@@ -37,20 +37,14 @@
 
 namespace cursedearth
 {
-    void ce_scenemng_renderwindow_resized(void* listener, size_t width, size_t height)
-    {
-        scene_manager_t* scenemng = (scene_manager_t*)listener;
-        scenemng->m_viewport.set_dimensions(width, height);
-        ce_camera_set_aspect(scenemng->m_camera, static_cast<float>(width) / height);
-    }
-
     void ce_scenemng_figproto_created(void* listener, ce_figproto* figproto)
     {
         scene_manager_t* scenemng = (scene_manager_t*)listener;
         ce_figproto_accept_renderqueue(figproto, scenemng->m_renderqueue);
     }
 
-    scene_manager_t::scene_manager_t():
+    scene_manager_t::scene_manager_t(const input_context_const_ptr_t& input_context):
+        singleton_t<scene_manager_t>(this),
         m_camera(ce_camera_new()),
         m_renderqueue(ce_renderqueue_new()),
         m_thread_id(ce_thread_self()),
@@ -58,7 +52,7 @@ namespace cursedearth
         m_font(ce_font_new("fonts/evilislands.ttf", 24)),
         m_scenenode(ce_scenenode_new(NULL)),
         m_terrain(NULL),
-        m_input_supply(std::make_shared<input_supply_t>(render_window_t::instance()->input_context())),
+        m_input_supply(std::make_shared<input_supply_t>(input_context)),
         m_toggle_bbox_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_b))),
         m_skip_logo_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space))),
         m_pause_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space))),
@@ -70,10 +64,7 @@ namespace cursedearth
         m_zoom_out_event(m_input_supply->push(input_button_t::mb_wheeldown)),
         m_rotate_on_event(m_input_supply->push(input_button_t::mb_right))
     {
-        m_renderwindow_listener = {ce_scenemng_renderwindow_resized, NULL, this};
         m_figure_manager_listener = {ce_scenemng_figproto_created, NULL, this};
-
-        render_window_t::instance()->add_listener(&m_renderwindow_listener);
         ce_figure_manager_add_listener(&m_figure_manager_listener);
     }
 
@@ -86,6 +77,12 @@ namespace cursedearth
         ce_camera_del(m_camera);
         ce_renderqueue_del(m_renderqueue);
         ce_scenenode_del(m_scenenode);
+    }
+
+    void scene_manager_t::resize(size_t width, size_t height)
+    {
+        m_viewport.set_dimensions(width, height);
+        ce_camera_set_aspect(m_camera, static_cast<float>(width) / height);
     }
 
     void scene_manager_t::advance(float elapsed)

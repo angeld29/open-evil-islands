@@ -45,8 +45,8 @@ namespace cursedearth
         };
 
     public:
-        explicit x11_window_t(const std::string& title):
-            render_window_t(title)
+        x11_window_t(const std::string& title, const input_context_ptr_t& input_context):
+            render_window_t(title, input_context)
         {
             XInitThreads();
 
@@ -258,9 +258,8 @@ namespace cursedearth
 
         void client_message_handler(XEvent* event)
         {
-            if (m_atoms[atom_wm_protocols] == event->xclient.message_type &&
-                    m_atoms[atom_wm_delete_window] == static_cast<Atom>(event->xclient.data.l[0])) {
-                emit_closed();
+            if (m_atoms[atom_wm_protocols] == event->xclient.message_type && m_atoms[atom_wm_delete_window] == static_cast<Atom>(event->xclient.data.l[0])) {
+                closed();
             }
         }
 
@@ -279,7 +278,7 @@ namespace cursedearth
             m_geometry[m_state].y = event->xconfigure.y;
             m_geometry[m_state].width = event->xconfigure.width;
             m_geometry[m_state].height = event->xconfigure.height;
-            emit_resized(event->xconfigure.width, event->xconfigure.height);
+            resized(event->xconfigure.width, event->xconfigure.height);
         }
 
         void focus_in_handler(XEvent* event)
@@ -373,8 +372,8 @@ namespace cursedearth
         Window m_window;
     };
 
-    render_window_ptr_t make_render_window(const std::string& title)
+    render_window_ptr_t make_render_window(const std::string& title, const input_context_ptr_t& input_context)
     {
-        return make_unique<x11_window_t>(title);
+        return make_unique<x11_window_t>(title, input_context);
     }
 }

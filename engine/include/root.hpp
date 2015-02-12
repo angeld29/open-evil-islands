@@ -41,7 +41,7 @@ namespace cursedearth
         root_t(const ce_optparse_ptr_t&, int argc, char* argv[]);
         ~root_t();
 
-        int exec(const scene_manager_ptr_t& scene_manager);
+        int exec();
 
     private:
         static void system_event_handler(ce_system_event_type);
@@ -53,6 +53,7 @@ namespace cursedearth
 
     private:
         std::atomic<bool> m_done;
+        input_context_ptr_t m_input_context;
         input_supply_ptr_t m_input_supply;
         input_event_const_ptr_t m_exit_event;
         input_event_const_ptr_t m_switch_window_event;
@@ -64,7 +65,7 @@ namespace cursedearth
         sound_manager_ptr_t m_sound_manager;
         video_manager_ptr_t m_video_manager;
         thread_pool_ptr_t m_thread_pool;
-        ce_renderwindow_listener renderwindow_listener;
+        scene_manager_ptr_t m_scene_manager;
     };
 }
 

@@ -21,11 +21,9 @@
 #ifndef CE_SCENEMANAGER_HPP
 #define CE_SCENEMANAGER_HPP
 
-#include <memory>
-
-#include <boost/noncopyable.hpp>
-
+#include "singleton.hpp"
 #include "input.hpp"
+#include "optparse.hpp"
 #include "terrain.hpp"
 #include "fps.hpp"
 #include "font.hpp"
@@ -33,17 +31,17 @@
 #include "camera.hpp"
 #include "scenenode.hpp"
 #include "renderqueue.hpp"
-#include "renderwindow.hpp"
 #include "figuremanager.hpp"
-#include "videoobject.hpp"
 
 namespace cursedearth
 {
-    class scene_manager_t: boost::noncopyable
+    class scene_manager_t: public singleton_t<scene_manager_t>
     {
     public:
-        scene_manager_t();
+        explicit scene_manager_t(const input_context_const_ptr_t&);
         virtual ~scene_manager_t();
+
+        void resize(size_t width, size_t height);
 
         void advance(float elapsed);
         void render();
@@ -88,11 +86,12 @@ namespace cursedearth
         input_event_const_ptr_t m_zoom_in_event;
         input_event_const_ptr_t m_zoom_out_event;
         input_event_const_ptr_t m_rotate_on_event;
-        ce_renderwindow_listener m_renderwindow_listener;
         ce_figure_manager_listener m_figure_manager_listener;
     };
 
-    typedef std::shared_ptr<scene_manager_t> scene_manager_ptr_t;
+    typedef std::unique_ptr<scene_manager_t> scene_manager_ptr_t;
+
+    scene_manager_ptr_t make_scene_manager(const input_context_const_ptr_t&, const ce_optparse_ptr_t&);
 }
 
 #endif

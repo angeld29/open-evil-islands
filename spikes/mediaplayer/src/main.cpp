@@ -29,8 +29,9 @@ namespace cursedearth
     class media_player_t final: public scene_manager_t
     {
     public:
-        explicit media_player_t(const ce_optparse_ptr_t& option_parser):
-            m_input_supply(std::make_shared<input_supply_t>(render_window_t::instance()->input_context())),
+        media_player_t(const input_context_const_ptr_t& input_context, const ce_optparse_ptr_t& option_parser):
+            scene_manager_t(input_context),
+            m_input_supply(std::make_shared<input_supply_t>(input_context)),
             m_pause_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space)))
         {
             const char* track;
@@ -113,6 +114,11 @@ namespace cursedearth
         sound_object_t m_sound_object;
         video_object_t m_video_object;
     };
+
+    scene_manager_ptr_t make_scene_manager(const input_context_const_ptr_t& input_context, const ce_optparse_ptr_t& option_parser)
+    {
+        return make_unique<media_player_t>(input_context, option_parser);
+    }
 }
 
 int main(int argc, char* argv[])
@@ -132,7 +138,7 @@ int main(int argc, char* argv[])
         ce_optparse_add(option_parser, "track", CE_TYPE_STRING, NULL, true, NULL, NULL, "TRACK.* file in `EI/Stream' or TRACK.* file in `EI/Movies' or internal resource");
 
         root_t root(option_parser, argc, argv);
-        return root.exec(std::make_shared<media_player_t>(option_parser));
+        return root.exec();
     } catch (const std::exception& error) {
         ce_logging_fatal("media player: %s", error.what());
     }

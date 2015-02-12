@@ -25,11 +25,10 @@
 
 namespace cursedearth
 {
-    render_window_t::render_window_t(const std::string& title):
+    render_window_t::render_window_t(const std::string& title, const input_context_ptr_t& input_context):
         singleton_t<render_window_t>(this),
         m_title(title),
-        m_input_context(std::make_shared<input_context_t>()),
-        listeners(ce_vector_new())
+        m_input_context(input_context)
     {
         m_geometry[state_window].width = option_manager_t::instance()->window_width;
         m_geometry[state_window].height = option_manager_t::instance()->window_height;
@@ -42,11 +41,6 @@ namespace cursedearth
 
         m_visual.rotation = ce_display_rotation_from_degrees(option_manager_t::instance()->fullscreen_rotation);
         m_visual.reflection = ce_display_reflection_from_bool(option_manager_t::instance()->fullscreen_reflection_x, option_manager_t::instance()->fullscreen_reflection_y);
-    }
-
-    render_window_t::~render_window_t()
-    {
-        ce_vector_del(listeners);
     }
 
     void render_window_t::show()
@@ -102,30 +96,5 @@ namespace cursedearth
     void render_window_t::swap()
     {
         ce_graphics_context_swap(m_graphics_context);
-    }
-
-    void render_window_t::emit_resized(size_t width, size_t height)
-    {
-        for (size_t i = 0; i < listeners->count; ++i) {
-            ce_renderwindow_listener* listener = (ce_renderwindow_listener*)listeners->items[i];
-            if (NULL != listener->resized) {
-                (*listener->resized)(listener->listener, width, height);
-            }
-        }
-    }
-
-    void render_window_t::emit_closed()
-    {
-        for (size_t i = 0; i < listeners->count; ++i) {
-            ce_renderwindow_listener* listener = (ce_renderwindow_listener*)listeners->items[i];
-            if (NULL != listener->closed) {
-                (*listener->closed)(listener->listener);
-            }
-        }
-    }
-
-    void render_window_t::add_listener(ce_renderwindow_listener* listener)
-    {
-        ce_vector_push_back(listeners, listener);
     }
 }

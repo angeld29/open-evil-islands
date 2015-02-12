@@ -36,12 +36,17 @@
 
 namespace cursedearth
 {
-    root_t::root_t(const ce_optparse_ptr_t& optparse, int argc, char* argv[]):
+    root_t::root_t(const ce_optparse_ptr_t& option_parser, int argc, char* argv[]):
         singleton_t<root_t>(this),
         timer(make_timer()),
-        m_done(false)
+        m_done(false),
+        m_input_context(std::make_shared<input_context_t>()),
+        m_input_supply(std::make_shared<input_supply_t>(m_input_context)),
+        m_exit_event(m_input_supply->push(input_button_t::kb_escape)),
+        m_switch_window_event(m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Tab, RAlt+Tab"))),
+        m_toggle_fullscreen_event(m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Enter, RAlt+Enter")))
     {
-        if (!ce_optparse_parse(optparse, argc, argv)) {
+        if (!ce_optparse_parse(option_parser, argc, argv)) {
             throw game_error("root", "option parser failed");
         }
 
@@ -58,16 +63,13 @@ namespace cursedearth
             throw game_error("root", "PDP-endian systems are not supported");
         }
 
-        m_option_manager = make_option_manager(optparse);
+        m_option_manager = make_option_manager(option_parser);
 
         ce_resource_manager_init();
         ce_config_manager_init();
         ce_event_manager_init();
 
-        m_render_window = make_render_window(optparse->title->str);
-        if (NULL == m_render_window) {
-            throw game_error("root", "could not create window");
-        }
+        m_render_window = make_render_window(option_parser->title->str, m_input_context);
 
         // TODO: try without window creation
         if (m_option_manager->list_video_modes) {
@@ -105,19 +107,19 @@ namespace cursedearth
 
         ce_figure_manager_init();
         m_thread_pool = make_thread_pool();
+        m_scene_manager = make_scene_manager(m_input_context, option_parser);
 
-        m_input_supply = std::make_shared<input_supply_t>(m_render_window->input_context());
-        m_exit_event = m_input_supply->push(input_button_t::kb_escape);
-        m_switch_window_event = m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Tab, RAlt+Tab"));
-        m_toggle_fullscreen_event = m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Enter, RAlt+Enter"));
+        m_render_window->closed.connect([this] { m_done = true; });
+        m_render_window->resized.connect([this] (size_t width, size_t height) {
+            m_scene_manager->resize(width, height);
+        });
 
-        renderwindow_listener = {NULL, renderwindow_closed, NULL};
-        m_render_window->add_listener(&renderwindow_listener);
         ce_system_event_register(system_event_handler);
     }
 
     root_t::~root_t()
     {
+        m_scene_manager.reset();
         m_thread_pool.reset();
         ce_figure_manager_term();
         ce_mob_loader_term();
@@ -138,7 +140,7 @@ namespace cursedearth
         m_option_manager.reset();
     }
 
-    int root_t::exec(const scene_manager_ptr_t& scene_manager)
+    int root_t::exec()
     {
         m_render_window->show();
         if (m_option_manager->fullscreen) {
@@ -172,10 +174,9 @@ namespace cursedearth
 
             m_sound_manager->advance(elapsed);
             m_video_manager->advance(elapsed);
+            m_scene_manager->advance(elapsed);
 
-            scene_manager->advance(elapsed);
-            scene_manager->render();
-
+            m_scene_manager->render();
             m_render_window->swap();
         }
 
@@ -212,11 +213,6 @@ namespace cursedearth
         }
 
         ce_logging_info("root: exiting sanely...");
-        root_t::instance()->m_done = true;
-    }
-
-    void root_t::renderwindow_closed(void*)
-    {
         root_t::instance()->m_done = true;
     }
 }

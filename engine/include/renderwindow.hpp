@@ -25,20 +25,15 @@
 #include <string>
 #include <unordered_map>
 
+#include <boost/signals2.hpp>
+
 #include "singleton.hpp"
-#include "vector.hpp"
 #include "input.hpp"
 #include "display.hpp"
 #include "graphicscontext.hpp"
 
 namespace cursedearth
 {
-    typedef struct {
-        void (*resized)(void* listener, size_t width, size_t height);
-        void (*closed)(void* listener);
-        void* listener;
-    } ce_renderwindow_listener;
-
     class render_window_t: public singleton_t<render_window_t>
     {
     protected:
@@ -49,11 +44,10 @@ namespace cursedearth
         };
 
     public:
-        explicit render_window_t(const std::string& title);
-        virtual ~render_window_t();
+        render_window_t(const std::string& title, const input_context_ptr_t&);
+        virtual ~render_window_t() = default;
 
         bool fullscreen() const { return state_fullscreen == m_state; }
-        input_context_const_ptr_t input_context() const { return m_input_context; }
 
         void show();
         void minimize();
@@ -61,10 +55,9 @@ namespace cursedearth
         void pump();
         void swap();
 
-        void emit_resized(size_t width, size_t height);
-        void emit_closed();
-
-        void add_listener(ce_renderwindow_listener* listener);
+    public:
+        boost::signals2::signal<void (size_t width, size_t height)> resized;
+        boost::signals2::signal<void ()> closed;
 
     private:
         virtual void do_show() = 0;
@@ -88,19 +81,18 @@ namespace cursedearth
 
     protected:
         const std::string m_title;
+        input_context_ptr_t m_input_context;
         state_t m_state = state_window;
         geometry_t m_geometry[state_count];
         visual_t m_visual;
-        input_context_ptr_t m_input_context;
         std::unordered_map<unsigned long, input_button_t> m_input_map; // map platform-depended buttons to our buttons
         ce_displaymng* m_display_manager;
         ce_graphics_context* m_graphics_context;
-        ce_vector* listeners;
     };
 
     typedef std::unique_ptr<render_window_t> render_window_ptr_t;
 
-    render_window_ptr_t make_render_window(const std::string& title);
+    render_window_ptr_t make_render_window(const std::string& title, const input_context_ptr_t&);
 }
 
 #endif

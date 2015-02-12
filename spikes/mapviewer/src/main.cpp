@@ -21,9 +21,6 @@
 #include "alloc.hpp"
 #include "utility.hpp"
 #include "logging.hpp"
-#include "figuremanager.hpp"
-#include "mobloader.hpp"
-#include "camfile.hpp"
 #include "root.hpp"
 
 namespace cursedearth
@@ -31,8 +28,9 @@ namespace cursedearth
     class map_viewer_t final: public scene_manager_t
     {
     public:
-        explicit map_viewer_t(const ce_optparse_ptr_t& option_parser):
-            m_input_supply(std::make_shared<input_supply_t>(render_window_t::instance()->input_context())),
+        map_viewer_t(const input_context_const_ptr_t& input_context, const ce_optparse_ptr_t& option_parser):
+            scene_manager_t(input_context),
+            m_input_supply(std::make_shared<input_supply_t>(input_context)),
             m_anmfps_inc_event(m_input_supply->repeat(m_input_supply->push(input_button_t::kb_add))),
             m_anmfps_dec_event(m_input_supply->repeat(m_input_supply->push(input_button_t::kb_subtract)))
         {
@@ -106,6 +104,11 @@ namespace cursedearth
         input_event_const_ptr_t m_anmfps_inc_event;
         input_event_const_ptr_t m_anmfps_dec_event;
     };
+
+    scene_manager_ptr_t make_scene_manager(const input_context_const_ptr_t& input_context, const ce_optparse_ptr_t& option_parser)
+    {
+        return make_unique<map_viewer_t>(input_context, option_parser);
+    }
 }
 
 int main(int argc, char* argv[])
@@ -126,7 +129,7 @@ int main(int argc, char* argv[])
         ce_optparse_add_control(option_parser, "+/-", "change animation FPS");
 
         root_t root(option_parser, argc, argv);
-        return root.exec(std::make_shared<map_viewer_t>(option_parser));
+        return root.exec();
     } catch (const std::exception& error) {
         ce_logging_fatal("map viewer: %s", error.what());
     }
