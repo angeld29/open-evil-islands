@@ -14,6 +14,7 @@ engine/include/camera.hpp
 engine/include/camfile.hpp
 engine/include/color.hpp
 engine/include/complection.hpp
+engine/include/concurrency.hpp
 engine/include/configfile.hpp
 engine/include/configmanager.hpp
 engine/include/display.hpp
@@ -102,7 +103,7 @@ engine/include/systeminfo.hpp
 engine/include/terrain.hpp
 engine/include/texture.hpp
 engine/include/texturemanager.hpp
-engine/include/thread.hpp
+engine/include/threadpool.hpp
 engine/include/timer.hpp
 engine/include/transform.hpp
 engine/include/triangle.hpp
@@ -142,6 +143,7 @@ engine/src/camera.cpp
 engine/src/camfile.cpp
 engine/src/color.cpp
 engine/src/complection.cpp
+engine/src/concurrency.cpp
 engine/src/configfile.cpp
 engine/src/configmanager.cpp
 engine/src/display.cpp
@@ -231,9 +233,9 @@ engine/src/systeminfo_windows.cpp
 engine/src/terrain.cpp
 engine/src/texture_opengl.cpp
 engine/src/texturemanager.cpp
-engine/src/thread.cpp
 engine/src/thread_posix.cpp
 engine/src/thread_windows.cpp
+engine/src/threadpool.cpp
 engine/src/timer_generic.cpp
 engine/src/timer_posix.cpp
 engine/src/timer_windows.cpp
