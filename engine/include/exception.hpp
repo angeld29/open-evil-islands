@@ -25,28 +25,41 @@
 
 #include <boost/format.hpp>
 
-/*
-template<typename T>
-T adder(T v) {
-  return v;
-}
-
-template<typename T, typename... Args>
-T adder(T first, Args... args) {
-  return first + adder(args...);
-}
-*/
-
 namespace cursedearth
 {
     class game_error: public std::runtime_error
     {
+        template<typename T>
+        void apply_cascade(boost::format& format, const T& arg)
+        {
+            format % arg;
+        }
+
+        template<typename T, typename... Args>
+        void apply_cascade(boost::format& format, const T& arg, Args... args)
+        {
+            format % arg;
+            apply_cascade(format, args...);
+        }
+
+        template <typename... Args>
+        boost::format make_format(const std::string& message, Args... args)
+        {
+            boost::format format(message);
+            apply_cascade(format, args...);
+            return format;
+        }
+
     public:
         game_error(const std::string& token, const std::string& message):
             std::runtime_error(token + ": " + message) {}
 
         game_error(const std::string& token, const boost::format& message):
             game_error(token, str(message)) {}
+
+        template <typename... Args>
+        game_error(const std::string& token, const std::string& message, Args... args):
+            game_error(token, make_format(message, args...)) {}
     };
 }
 

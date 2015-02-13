@@ -274,7 +274,7 @@ namespace cursedearth
                 if (input_event_const_ptr_t event = event_from_name(supply, boost::algorithm::trim_copy(and_part))) {
                     and_event = !and_event ? event : supply->and_(and_event, event);
                 } else {
-                    throw game_error("input", boost::format("failed to parse key sequence: `%1%'") % key_sequence);
+                    throw game_error("input", "failed to parse key sequence: `%1%'", key_sequence);
                 }
             }
             or_event = !or_event ? and_event : supply->or_(or_event, and_event);
