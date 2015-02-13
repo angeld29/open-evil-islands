@@ -25,6 +25,18 @@
 
 #include <boost/format.hpp>
 
+/*
+template<typename T>
+T adder(T v) {
+  return v;
+}
+
+template<typename T, typename... Args>
+T adder(T first, Args... args) {
+  return first + adder(args...);
+}
+*/
+
 namespace cursedearth
 {
     class game_error: public std::runtime_error

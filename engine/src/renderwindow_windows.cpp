@@ -29,21 +29,21 @@
 
 namespace cursedearth
 {
-    class window_t final: public render_window_t
+    class ms_window_t final: public render_window_t
     {
     public:
-        explicit window_t(const std::string& title):
-            render_window_t(title)
+        ms_window_t(const std::string& title, const input_context_ptr_t& input_context):
+            render_window_t(title, input_context)
         {
-            style[state_window] = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
-            style[state_fullscreen] = WS_VISIBLE | WS_POPUP;
+            m_style[state_window] = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
+            m_style[state_fullscreen] = WS_VISIBLE | WS_POPUP;
 
-            extended_style[state_window] = WS_EX_APPWINDOW;
-            extended_style[state_fullscreen] = WS_EX_TOOLWINDOW;
+            m_extended_style[state_window] = WS_EX_APPWINDOW;
+            m_extended_style[state_fullscreen] = WS_EX_TOOLWINDOW;
 
             for (int i = 0; i < state_count; ++i) {
                 RECT rect = { 0, 0, m_geometry[i].width, m_geometry[i].height };
-                if (AdjustWindowRectEx(&rect, style[i], FALSE, extended_style[i])) {
+                if (AdjustWindowRectEx(&rect, m_style[i], FALSE, m_extended_style[i])) {
                     m_geometry[i].width = rect.right - rect.left;
                     m_geometry[i].height = rect.bottom - rect.top;
                 }
@@ -51,8 +51,6 @@ namespace cursedearth
 
             m_geometry[state_window].x = (GetSystemMetrics(SM_CXSCREEN) - m_geometry[state_window].width) / 2;
             m_geometry[state_window].y = (GetSystemMetrics(SM_CYSCREEN) - m_geometry[state_window].height) / 2;
-
-            m_display_manager = ce_displaymng_create();
 
             m_input_map.insert({
                 { 0           , input_button_t::unknown        }, { VK_ESCAPE    , input_button_t::kb_escape     }, { VK_F1      , input_button_t::kb_f1         },
@@ -93,30 +91,32 @@ namespace cursedearth
             });
 
             for (int i = 0; i < WM_USER; ++i) {
-                handlers[i] = &window_t::skip_handler;
+                m_handlers[i] = &ms_window_t::skip_handler;
             }
 
-            handlers[WM_CLOSE] = &window_t::close_handler;
-            handlers[WM_ENTERSIZEMOVE] = &window_t::entersizemove_handler;
-            handlers[WM_EXITSIZEMOVE] = &window_t::exitsizemove_handler;
-            handlers[WM_WINDOWPOSCHANGED] = &window_t::windowposchanged_handler;
-            handlers[WM_SIZE] = &window_t::size_handler;
-            handlers[WM_SYSCOMMAND] = &window_t::syscommand_handler;
-            handlers[WM_KILLFOCUS] = &window_t::killfocus_handler;
-            handlers[WM_KEYDOWN] = &window_t::keydown_handler;
-            handlers[WM_SYSKEYDOWN] = &window_t::keydown_handler;
-            handlers[WM_KEYUP] = &window_t::keyup_handler;
-            handlers[WM_SYSKEYUP] = &window_t::keyup_handler;
-            handlers[WM_LBUTTONDOWN] = &window_t::lbuttondown_handler;
-            handlers[WM_LBUTTONUP] = &window_t::lbuttonup_handler;
-            handlers[WM_MBUTTONDOWN] = &window_t::mbuttondown_handler;
-            handlers[WM_MBUTTONUP] = &window_t::mbuttonup_handler;
-            handlers[WM_RBUTTONDOWN] = &window_t::rbuttondown_handler;
-            handlers[WM_RBUTTONUP] = &window_t::rbuttonup_handler;
-            handlers[WM_MOUSEWHEEL] = &window_t::mousewheel_handler;
-            handlers[WM_MOUSEHOVER] = &window_t::mousehover_handler;
-            handlers[WM_MOUSELEAVE] = &window_t::mouseleave_handler;
-            handlers[WM_MOUSEMOVE] = &window_t::mousemove_handler;
+            m_handlers[WM_CLOSE] = &ms_window_t::close_handler;
+            m_handlers[WM_ENTERSIZEMOVE] = &ms_window_t::entersizemove_handler;
+            m_handlers[WM_EXITSIZEMOVE] = &ms_window_t::exitsizemove_handler;
+            m_handlers[WM_WINDOWPOSCHANGED] = &ms_window_t::windowposchanged_handler;
+            m_handlers[WM_SIZE] = &ms_window_t::size_handler;
+            m_handlers[WM_SYSCOMMAND] = &ms_window_t::syscommand_handler;
+            m_handlers[WM_KILLFOCUS] = &ms_window_t::killfocus_handler;
+            m_handlers[WM_KEYDOWN] = &ms_window_t::keydown_handler;
+            m_handlers[WM_SYSKEYDOWN] = &ms_window_t::keydown_handler;
+            m_handlers[WM_KEYUP] = &ms_window_t::keyup_handler;
+            m_handlers[WM_SYSKEYUP] = &ms_window_t::keyup_handler;
+            m_handlers[WM_LBUTTONDOWN] = &ms_window_t::lbuttondown_handler;
+            m_handlers[WM_LBUTTONUP] = &ms_window_t::lbuttonup_handler;
+            m_handlers[WM_MBUTTONDOWN] = &ms_window_t::mbuttondown_handler;
+            m_handlers[WM_MBUTTONUP] = &ms_window_t::mbuttonup_handler;
+            m_handlers[WM_RBUTTONDOWN] = &ms_window_t::rbuttondown_handler;
+            m_handlers[WM_RBUTTONUP] = &ms_window_t::rbuttonup_handler;
+            m_handlers[WM_MOUSEWHEEL] = &ms_window_t::mousewheel_handler;
+            m_handlers[WM_MOUSEHOVER] = &ms_window_t::mousehover_handler;
+            m_handlers[WM_MOUSELEAVE] = &ms_window_t::mouseleave_handler;
+            m_handlers[WM_MOUSEMOVE] = &ms_window_t::mousemove_handler;
+
+            m_display_manager = ce_displaymng_create();
 
             WNDCLASSEX wc;
             ZeroMemory(&wc, sizeof(WNDCLASSEX));
@@ -132,29 +132,29 @@ namespace cursedearth
                 throw game_error("render window", "could not register class");
             }
 
-            hwindow = CreateWindowEx(extended_style[m_state], wc.lpszClassName, title.c_str(), style[m_state],
+            m_window = CreateWindowEx(m_extended_style[m_state], wc.lpszClassName, title.c_str(), m_style[m_state],
                 m_geometry[m_state].x, m_geometry[m_state].y, m_geometry[m_state].width, m_geometry[m_state].height,
                 HWND_DESKTOP, NULL, wc.hInstance, NULL);
 
-            if (NULL == hwindow) {
+            if (NULL == m_window) {
                 throw game_error("render window", "could not create window");
             }
 
-            SetWindowLongPtr(hwindow, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+            SetWindowLongPtr(m_window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
-            m_graphics_context = ce_graphics_context_new(GetDC(hwindow));
+            m_graphics_context = ce_graphics_context_new(GetDC(m_window));
             if (NULL == m_graphics_context) {
                 throw game_error("render window", "could not create graphic context");
             }
         }
 
-        virtual ~window_t()
+        virtual ~ms_window_t()
         {
             ce_graphics_context_del(m_graphics_context);
             ce_displaymng_del(m_display_manager);
 
-            ReleaseDC(hwindow, GetDC(hwindow));
-            DestroyWindow(hwindow);
+            ReleaseDC(m_window, GetDC(m_window));
+            DestroyWindow(m_window);
 
             UnregisterClass("cursedearth", GetModuleHandle(NULL));
         }
@@ -162,29 +162,29 @@ namespace cursedearth
     private:
         virtual void do_show() final
         {
-            ShowWindow(hwindow, SW_SHOW);
-            UpdateWindow(hwindow);
+            ShowWindow(m_window, SW_SHOW);
+            UpdateWindow(m_window);
 
-            SetForegroundWindow(hwindow);
-            SetFocus(hwindow);
+            SetForegroundWindow(m_window);
+            SetFocus(m_window);
 
             // WM_SIZE event is not coming, so force it
             RECT rect;
-            if (GetClientRect(hwindow, &rect)) {
-                emit_resized(rect.right, rect.bottom);
+            if (GetClientRect(m_window, &rect)) {
+                resized(rect.right, rect.bottom);
             }
         }
 
         virtual void do_minimize() final
         {
-            ShowWindow(hwindow, SW_MINIMIZE);
+            ShowWindow(m_window, SW_MINIMIZE);
         }
 
         virtual void do_toggle_fullscreen() final
         {
-            SetWindowLong(hwindow, GWL_STYLE, style[m_state]);
-            SetWindowLong(hwindow, GWL_EXSTYLE, extended_style[m_state]);
-            SetWindowPos(hwindow, HWND_TOP, m_geometry[m_state].x, m_geometry[m_state].y, m_geometry[m_state].width, m_geometry[m_state].height, SWP_FRAMECHANGED);
+            SetWindowLong(m_window, GWL_STYLE, m_style[m_state]);
+            SetWindowLong(m_window, GWL_EXSTYLE, m_extended_style[m_state]);
+            SetWindowPos(m_window, HWND_TOP, m_geometry[m_state].x, m_geometry[m_state].y, m_geometry[m_state].width, m_geometry[m_state].height, SWP_FRAMECHANGED);
         }
 
         virtual void do_pump() final
@@ -203,26 +203,26 @@ namespace cursedearth
 
         bool close_handler(WPARAM, LPARAM)
         {
-            emit_closed();
+            closed();
             // suppress the WM_CLOSE message to prevent the OS from automatically destroying the window
             return true;
         }
 
         bool entersizemove_handler(WPARAM, LPARAM)
         {
-            in_sizemove = true;
+            m_in_sizemove = true;
             return false;
         }
 
         bool exitsizemove_handler(WPARAM, LPARAM)
         {
-            in_sizemove = false;
+            m_in_sizemove = false;
             return false;
         }
 
         bool windowposchanged_handler(WPARAM, LPARAM lparam)
         {
-            if (in_sizemove) {
+            if (m_in_sizemove) {
                 WINDOWPOS* wp = reinterpret_cast<WINDOWPOS*>(lparam);
                 if (!(SWP_NOMOVE & wp->flags)) {
                     m_geometry[m_state].x = wp->x;
@@ -239,7 +239,7 @@ namespace cursedearth
         bool size_handler(WPARAM wparam, LPARAM lparam)
         {
             if (SIZE_MINIMIZED != wparam) {
-                emit_resized(LOWORD(lparam), HIWORD(lparam));
+                resized(LOWORD(lparam), HIWORD(lparam));
             }
             return false;
         }
@@ -343,7 +343,7 @@ namespace cursedearth
 
         bool mousewheel_handler(WPARAM wparam, LPARAM lparam)
         {
-            if (cursor_inside) {
+            if (m_cursor_inside) {
                 return button_handler(wparam, lparam, (GET_WHEEL_DELTA_WPARAM(wparam) < 0 ?
                     input_button_t::mb_wheeldown : input_button_t::mb_wheelup), true);
             }
@@ -354,14 +354,14 @@ namespace cursedearth
         {
             m_input_context->pointer_position.x = GET_X_LPARAM(lparam);
             m_input_context->pointer_position.y = GET_Y_LPARAM(lparam);
-            cursor_inside = true;
+            m_cursor_inside = true;
             return false;
         }
 
         bool mouseleave_handler(WPARAM, LPARAM)
         {
             m_input_context->pointer_position = CE_VEC2_ZERO;
-            cursor_inside = false;
+            m_cursor_inside = false;
             return false;
         }
 
@@ -371,38 +371,37 @@ namespace cursedearth
             m_input_context->pointer_offset.y = GET_Y_LPARAM(lparam) - m_input_context->pointer_position.y;
             m_input_context->pointer_position.x = GET_X_LPARAM(lparam);
             m_input_context->pointer_position.y = GET_Y_LPARAM(lparam);
-            if (!cursor_inside) {
-                TRACKMOUSEEVENT event = { sizeof(TRACKMOUSEEVENT), TME_HOVER | TME_LEAVE, hwindow, 1 };
+            if (!m_cursor_inside) {
+                TRACKMOUSEEVENT event = { sizeof(TRACKMOUSEEVENT), TME_HOVER | TME_LEAVE, m_window, 1 };
                 TrackMouseEvent(&event);
             }
 
             return false;
         }
 
-        static LRESULT CALLBACK handler(HWND hwindow, UINT message, WPARAM wparam, LPARAM lparam)
+        static LRESULT CALLBACK handler(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
         {
             if (message < WM_USER) {
-                if (window_t* window = reinterpret_cast<window_t*>(GetWindowLongPtr(hwindow, GWLP_USERDATA))) {
-                    if ((window->*window->handlers[message])(wparam, lparam)) {
+                if (ms_window_t* ms_window = reinterpret_cast<ms_window_t*>(GetWindowLongPtr(window, GWLP_USERDATA))) {
+                    if ((ms_window->*ms_window->m_handlers[message])(wparam, lparam)) {
                         return 0;
                     }
                 }
             }
-            return DefWindowProc(hwindow, message, wparam, lparam);
+            return DefWindowProc(window, message, wparam, lparam);
         }
 
     private:
-        DWORD style[state_count];
-        DWORD extended_style[state_count];
-        //bool (*handlers[WM_USER])(WPARAM, LPARAM);
-        bool (window_t::*handlers[WM_USER])(WPARAM, LPARAM);
-        bool in_sizemove;
-        bool cursor_inside;
-        HWND hwindow;
+        DWORD m_style[state_count];
+        DWORD m_extended_style[state_count];
+        bool (ms_window_t::*m_handlers[WM_USER])(WPARAM, LPARAM);
+        bool m_in_sizemove = false;
+        bool m_cursor_inside = true;
+        HWND m_window;
     };
 
-    render_window_ptr_t make_render_window(const std::string& title)
+    render_window_ptr_t make_render_window(const std::string& title, const input_context_ptr_t& input_context)
     {
-        return std::make_shared<window_t>(title);
+        return make_unique<ms_window_t>(title, input_context);
     }
 }
