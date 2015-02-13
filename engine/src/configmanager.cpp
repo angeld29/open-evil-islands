@@ -27,7 +27,6 @@
 #include <boost/filesystem.hpp>
 
 #include "alloc.hpp"
-#include "str.hpp"
 #include "logging.hpp"
 #include "optionmanager.hpp"
 #include "resourcemanager.hpp"

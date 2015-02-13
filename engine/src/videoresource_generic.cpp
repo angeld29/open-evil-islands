@@ -37,7 +37,6 @@ extern "C"
 }
 
 #include "alloc.hpp"
-#include "str.hpp"
 #include "logging.hpp"
 #include "bink.hpp"
 #include "videoresource.hpp"

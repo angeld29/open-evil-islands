@@ -24,7 +24,6 @@
 #include <boost/filesystem.hpp>
 
 #include "alloc.hpp"
-#include "str.hpp"
 #include "logging.hpp"
 #include "resfile.hpp"
 #include "optionmanager.hpp"

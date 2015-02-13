@@ -21,7 +21,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include "str.hpp"
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "configfile.hpp"

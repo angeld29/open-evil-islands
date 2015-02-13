@@ -22,7 +22,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "str.hpp"
 #include "alloc.hpp"
 #include "fighelpers.hpp"
 #include "fignode.hpp"

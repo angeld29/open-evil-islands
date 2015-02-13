@@ -24,7 +24,6 @@
 #include <algorithm>
 
 #include "alloc.hpp"
-#include "str.hpp"
 #include "logging.hpp"
 #include "memfile.hpp"
 #include "mobfile.hpp"

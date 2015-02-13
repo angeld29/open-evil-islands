@@ -96,7 +96,6 @@ engine/include/soundobject.hpp
 engine/include/soundresource.hpp
 engine/include/soundsystem.hpp
 engine/include/sphere.hpp
-engine/include/str.hpp
 engine/include/string.hpp
 engine/include/systemevent.hpp
 engine/include/systeminfo.hpp
@@ -224,7 +223,6 @@ engine/src/soundsystem_generic.cpp
 engine/src/soundsystem_linux.cpp
 engine/src/soundsystem_windows.cpp
 engine/src/sphere.cpp
-engine/src/str.cpp
 engine/src/string.cpp
 engine/src/systemevent.cpp
 engine/src/systeminfo_generic.cpp

@@ -26,7 +26,6 @@
 #include <boost/algorithm/string.hpp>
 
 #include "alloc.hpp"
-#include "str.hpp"
 #include "logging.hpp"
 #include "byteorder.hpp"
 #include "resfile.hpp"

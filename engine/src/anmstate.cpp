@@ -23,7 +23,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "str.hpp"
 #include "alloc.hpp"
 #include "anmstate.hpp"
 

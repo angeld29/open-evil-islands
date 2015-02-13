@@ -25,7 +25,6 @@
 
 #include <argtable2.h>
 
-#include "str.hpp"
 #include "alloc.hpp"
 #include "optparse.hpp"
 
