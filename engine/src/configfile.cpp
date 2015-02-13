@@ -28,6 +28,48 @@
 
 namespace cursedearth
 {
+    char* ce_strleft(char* dst, const char* src, size_t n)
+    {
+        n = std::min(n, strlen(src));
+        strncpy(dst, src, n);
+        dst[n] = '\0';
+        return dst;
+    }
+
+    char* ce_strright(char* dst, const char* src, size_t n)
+    {
+        size_t len = strlen(src);
+        return strcpy(dst, src + len - std::min(n, len));
+    }
+
+    char* ce_strmid(char* dst, const char* src, size_t pos, size_t n)
+    {
+        size_t len = strlen(src);
+        if (pos > len) {
+            return NULL;
+        }
+        n = std::min(n, len - pos);
+        strncpy(dst, src + pos, n);
+        dst[n] = '\0';
+        return dst;
+    }
+
+    char* ce_strtrim(char* dst, const char* src)
+    {
+        size_t len = strlen(src);
+        if (0 != len) {
+            size_t first, last;
+            for (first = 0; first < len && isspace(src[first]); ++first) {
+            }
+            for (last = len - 1; last > 0 && isspace(src[last]); --last) {
+            }
+            len = first <= last ? last - first + 1 : 0;
+            strncpy(dst, src + first, len);
+        }
+        dst[len] = '\0';
+        return dst;
+    }
+
     bool ce_config_file_parse(ce_config_file* config_file, const char* path, FILE* file)
     {
         enum {

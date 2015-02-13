@@ -104,6 +104,33 @@ namespace cursedearth
         }
     };
 
+    char* ce_strsep(char** sp, const char* delim)
+    {
+        char* s = *sp;
+        if (NULL == s) {
+            return NULL;
+        }
+        char* p = s + strcspn(s, delim);
+        if (*p) {
+            *p++ = '\0';
+            *sp = p;
+        } else {
+            *sp = NULL;
+        }
+        return s;
+    }
+
+    size_t ce_strlcpy(char* dst, const char* src, size_t size)
+    {
+        size_t srclen = strlen(src);
+        if (0 != size) {
+            size = --size < srclen ? size : srclen;
+            strncpy(dst, src, size);
+            dst[size] = '\0';
+        }
+        return srclen;
+    }
+
     bool ce_config_manager_read_light(color_t section[24], const char* section_name, ce_config_file* config_file)
     {
         for (size_t i = 0; i < 24; ++i) {
@@ -159,6 +186,16 @@ namespace cursedearth
                 ce_logging_error("config manager: could not read light configuration");
             }
         }
+    }
+
+    char* ce_strlwr(char* dst, const char* src)
+    {
+        char* p = dst;
+        while (*src) {
+            *p++ = tolower(*src++);
+        }
+        *p = '\0';
+        return dst;
     }
 
     void ce_config_manager_init_movies(void)

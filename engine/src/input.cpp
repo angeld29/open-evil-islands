@@ -19,7 +19,6 @@
  */
 
 #include <limits>
-#include <unordered_map>
 
 #include <boost/algorithm/string.hpp>
 

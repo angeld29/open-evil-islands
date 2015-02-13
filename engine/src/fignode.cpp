@@ -20,6 +20,8 @@
 
 #include <cstdio>
 
+#include <boost/algorithm/string.hpp>
+
 #include "str.hpp"
 #include "alloc.hpp"
 #include "fighelpers.hpp"
@@ -46,7 +48,7 @@ namespace cursedearth
             } // else ok, there is no animation for this node
         }
 
-        while (lnkfile->link_index < lnkfile->link_count && 0 == ce_strcasecmp(fignode->name->str, lnkfile->links[lnkfile->link_index].parent_name->str)) {
+        while (lnkfile->link_index < lnkfile->link_count && boost::algorithm::iequals(fignode->name->str, lnkfile->links[lnkfile->link_index].parent_name->str)) {
             ce_vector_push_back(fignode->childs, ce_fignode_new(mod_res_file, bon_res_file, anm_res_files, lnkfile));
         }
 

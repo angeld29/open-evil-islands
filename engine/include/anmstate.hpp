@@ -21,6 +21,8 @@
 #ifndef CE_ANMSTATE_HPP
 #define CE_ANMSTATE_HPP
 
+#include <string>
+
 #include "vector.hpp"
 #include "anmfile.hpp"
 
@@ -35,12 +37,12 @@ namespace cursedearth
         float coef;
     } ce_anmstate;
 
-    ce_anmstate* ce_anmstate_new(void);
+    ce_anmstate* ce_anmstate_new();
     void ce_anmstate_del(ce_anmstate* anmstate);
 
     void ce_anmstate_advance(ce_anmstate* anmstate, float distance);
 
-    bool ce_anmstate_play_animation(ce_anmstate* anmstate, ce_vector* anmfiles, const char* name);
+    bool ce_anmstate_play_animation(ce_anmstate* anmstate, ce_vector* anmfiles, const std::string& name);
     void ce_anmstate_stop_animation(ce_anmstate* anmstate);
 }
 

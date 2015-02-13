@@ -20,6 +20,7 @@
 
 #include <vector>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 
 #include "alloc.hpp"
@@ -133,7 +134,7 @@ namespace cursedearth
         // find in cache
         for (size_t i = 0; i < ce_figure_manager->figprotos->count; ++i) {
             ce_figproto* figproto = (ce_figproto*)ce_figure_manager->figprotos->items[i];
-            if (0 == ce_strcasecmp(base_name.c_str(), figproto->name->str)) {
+            if (boost::algorithm::iequals(base_name, figproto->name->str)) {
                 return figproto;
             }
         }
@@ -159,7 +160,7 @@ namespace cursedearth
 
         for (size_t i = 0; i < ce_figure_manager->figmeshes->count; ++i) {
             ce_figmesh* figmesh = (ce_figmesh*)ce_figure_manager->figmeshes->items[i];
-            if (0 == ce_strcasecmp(base_name.c_str(), figmesh->figproto->name->str) && ce_complection_equal(complection, &figmesh->complection)) {
+            if (boost::algorithm::iequals(base_name, figmesh->figproto->name->str) && ce_complection_equal(complection, &figmesh->complection)) {
                 return figmesh;
             }
         }

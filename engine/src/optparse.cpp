@@ -74,6 +74,16 @@ namespace cursedearth
         return false;
     }
 
+    char* ce_strupr(char* dst, const char* src)
+    {
+        char* p = dst;
+        while (*src) {
+            *p++ = toupper(*src++);
+        }
+        *p = '\0';
+        return dst;
+    }
+
     void ce_optparse_add(const ce_optparse_ptr_t& optparse, const char* name, ce_type type,
                             const void* value, bool required, const char* shortopt,
                             const char* longopt, const char* glossary)

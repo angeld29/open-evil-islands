@@ -53,6 +53,37 @@ namespace cursedearth
         }
     }
 
+    size_t ce_strlcat(char* dst, const char* src, size_t size)
+    {
+        char* d = dst;
+        const char* s = src;
+        size_t n = size;
+        size_t dlen;
+
+        // find the end of dst and adjust bytes left but don't go past end
+        while (n-- != 0 && *d) {
+            ++d;
+        }
+
+        dlen = d - dst;
+        n = size - dlen;
+
+        if (0 == n) {
+            return dlen + strlen(s);
+        }
+
+        while (*s) {
+            if (1 != n) {
+                *d++ = *s;
+                --n;
+            }
+            ++s;
+        }
+        *d = '\0';
+
+        return dlen + (s - src); // count does not include NULL
+    }
+
     ce_shader* ce_shader_manager_get(const char* resource_paths[])
     {
         size_t name_length = 0;

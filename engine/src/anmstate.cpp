@@ -21,13 +21,15 @@
 #include <cassert>
 #include <cmath>
 
+#include <boost/algorithm/string.hpp>
+
 #include "str.hpp"
 #include "alloc.hpp"
 #include "anmstate.hpp"
 
 namespace cursedearth
 {
-    ce_anmstate* ce_anmstate_new(void)
+    ce_anmstate* ce_anmstate_new()
     {
         ce_anmstate* anmstate = (ce_anmstate*)ce_alloc(sizeof(ce_anmstate));
         anmstate->anmfile = NULL;
@@ -57,11 +59,11 @@ namespace cursedearth
         }
     }
 
-    bool ce_anmstate_play_animation(ce_anmstate* anmstate, ce_vector* anmfiles, const char* name)
+    bool ce_anmstate_play_animation(ce_anmstate* anmstate, ce_vector* anmfiles, const std::string& name)
     {
         for (size_t i = 0; i < anmfiles->count; ++i) {
             ce_anmfile* anmfile = (ce_anmfile*)anmfiles->items[i];
-            if (0 == ce_strcasecmp(name, anmfile->name->str)) {
+            if (boost::algorithm::iequals(name, anmfile->name->str)) {
                 assert(anmfile->rotation_frame_count == anmfile->translation_frame_count);
                 anmstate->anmfile = anmfile;
                 anmstate->frame_count = anmfile->rotation_frame_count;

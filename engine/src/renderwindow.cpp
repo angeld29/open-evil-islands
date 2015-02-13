@@ -82,7 +82,6 @@ namespace cursedearth
             ce_displaymng_exit(m_display_manager);
         }
         do_toggle_fullscreen();
-
     }
 
     void render_window_t::pump()

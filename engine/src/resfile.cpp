@@ -23,6 +23,8 @@
 #include <cstring>
 #include <cctype>
 
+#include <boost/algorithm/string.hpp>
+
 #include "alloc.hpp"
 #include "str.hpp"
 #include "logging.hpp"
@@ -108,7 +110,7 @@ namespace cursedearth
         int index = ce_res_name_hash(name.c_str(), res_file->node_count);
         for (const ce_res_node* node; index >= 0; index = node->next_index) {
             node = res_file->nodes + index;
-            if (0 == ce_strcasecmp(name.c_str(), node->name->str)) {
+            if (boost::algorithm::iequals(name, node->name->str)) {
                 break;
             }
         }

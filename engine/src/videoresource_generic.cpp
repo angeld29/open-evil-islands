@@ -28,7 +28,6 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
-#include <vector>
 
 #include <theora/theoradec.h>
 
@@ -181,9 +180,7 @@ namespace cursedearth
             ce_logging_debug("theora: theora comment header:");
             for (int i = 0; i < theora->comment.comments; ++i) {
                 if (theora->comment.user_comments[i]) {
-                    std::vector<char> buffer(theora->comment.comment_lengths[i] + 1);
-                    ce_strlcpy(buffer.data(), theora->comment.user_comments[i], buffer.size());
-                    ce_logging_debug("theora: %s", buffer.data());
+                    ce_logging_debug("theora: %s", theora->comment.user_comments[i]);
                 }
             }
         }
