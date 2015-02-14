@@ -21,12 +21,7 @@
 #ifndef CE_INPUT_HPP
 #define CE_INPUT_HPP
 
-#include <memory>
-#include <string>
-#include <vector>
-
-#include <boost/noncopyable.hpp>
-
+#include "commonheaders.hpp"
 #include "vector2.hpp"
 
 namespace cursedearth
@@ -75,7 +70,7 @@ namespace cursedearth
 
     // Level 1: events
 
-    class input_event_t: boost::noncopyable
+    class input_event_t: untransferable_t
     {
     public:
         virtual ~input_event_t() = default;
@@ -91,7 +86,7 @@ namespace cursedearth
     typedef std::shared_ptr<input_event_t> input_event_ptr_t;
     typedef std::shared_ptr<const input_event_t> input_event_const_ptr_t;
 
-    class input_supply_t final: boost::noncopyable
+    class input_supply_t final: untransferable_t
     {
         static const unsigned int s_default_delay = 450; // delay in milliseconds
         static const unsigned int s_default_rate = 10;   // rate in triggers per second

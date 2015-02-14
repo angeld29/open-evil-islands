@@ -22,9 +22,10 @@
 #define CE_COMMONHEADERS_HPP
 
 #include "makeunique.hpp"
-#include "concurrency.hpp"
-#include "singleton.hpp"
+#include "untransferable.hpp"
 #include "utility.hpp"
+#include "singleton.hpp"
+#include "concurrency.hpp"
 #include "exception.hpp"
 #include "logging.hpp"
 

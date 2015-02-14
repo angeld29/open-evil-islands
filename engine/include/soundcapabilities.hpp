@@ -25,19 +25,11 @@
 
 namespace cursedearth
 {
-    struct sound_native_capabilities_t
+    struct sound_capabilities_t
     {
         static const size_t bits_per_sample = 16;
         static const size_t samples_per_second = 44100;
         static const size_t channel_count = 2;
-    };
-
-    struct sound_capabilities_t
-    {
-        static const size_t samples_in_block = 1024;
-        static const size_t block_count = 32;
-        static const size_t max_sample_size = 64;
-        static const size_t max_block_size = max_sample_size * samples_in_block;
     };
 }
 

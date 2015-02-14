@@ -48,7 +48,7 @@ namespace cursedearth
         const char* choose_device()
         {
             const char* device = "default";
-            switch (static_cast<int>(sound_native_capabilities_t::channel_count)) {
+            switch (static_cast<int>(m_format.channel_count)) {
             case 1:
             case 2:
                 break;
@@ -61,7 +61,7 @@ namespace cursedearth
         snd_pcm_format_t choose_format()
         {
             snd_pcm_format_t format = SND_PCM_FORMAT_UNKNOWN;
-            switch (static_cast<int>(sound_native_capabilities_t::bits_per_sample)) {
+            switch (static_cast<int>(m_format.bits_per_sample)) {
             case 8:
                 format = SND_PCM_FORMAT_S8;
                 break;
@@ -116,21 +116,21 @@ namespace cursedearth
             }
 
             // set the count of channels
-            code = snd_pcm_hw_params_set_channels(m_handle.get(), hwparams, sound_native_capabilities_t::channel_count);
+            code = snd_pcm_hw_params_set_channels(m_handle.get(), hwparams, m_format.channel_count);
             if (code < 0) {
-                throw game_error("alsa", "channels count (%1%) not available for playbacks", (int)sound_native_capabilities_t::channel_count);
+                throw game_error("alsa", "channels count (%1%) not available for playbacks", m_format.channel_count);
             }
 
-            unsigned int samples_per_second = sound_native_capabilities_t::samples_per_second;
+            unsigned int samples_per_second = m_format.samples_per_second;
 
             // set the stream rate
             code = snd_pcm_hw_params_set_rate_near(m_handle.get(), hwparams, &samples_per_second, &dir);
             if (code < 0) {
-                throw game_error("alsa", "sample rate %1% Hz not available for playback", (int)sound_native_capabilities_t::samples_per_second);
+                throw game_error("alsa", "sample rate %1% Hz not available for playback", m_format.samples_per_second);
             }
 
-            if (sound_native_capabilities_t::samples_per_second != samples_per_second) {
-                ce_logging_warning("alsa: sample rate %d Hz not supported by the implementation/hardware, using %u Hz", sound_native_capabilities_t::samples_per_second, samples_per_second);
+            if (m_format.samples_per_second != samples_per_second) {
+                ce_logging_warning("alsa: sample rate %d Hz not supported by the implementation/hardware, using %u Hz", m_format.samples_per_second, samples_per_second);
             }
 
             // ring buffer length in us
@@ -231,7 +231,7 @@ namespace cursedearth
 
         virtual void write(const sound_block_ptr_t& block) final
         {
-            auto data = block->read_all();
+            auto data = block->read_raw();
             for (size_t sample_count = data.second / block->format().sample_size; sample_count > 0; ) {
                 int code = snd_pcm_writei(m_handle.get(), data.first, sample_count);
                 if (code < 0) {

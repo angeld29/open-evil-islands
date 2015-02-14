@@ -25,7 +25,7 @@ namespace cursedearth
 {
     sound_system_t::sound_system_t():
         singleton_t<sound_system_t>(this),
-        m_format(make_native_format()),
+        m_format(make_default_format()),
         m_buffer(std::make_shared<sound_buffer_t>(m_format)),
         m_device(option_manager_t::instance()->disable_sound() ? make_null_sound_device(m_format) : make_sound_device(m_format)),
         m_thread([this]{execute();})

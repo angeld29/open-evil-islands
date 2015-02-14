@@ -25,8 +25,6 @@
 #include <thread>
 #include <memory>
 
-#include <boost/noncopyable.hpp>
-
 #include "concurrency.hpp"
 #include "mmpfile.hpp"
 #include "texture.hpp"

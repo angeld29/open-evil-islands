@@ -21,13 +21,11 @@
 #ifndef CE_TIMER_HPP
 #define CE_TIMER_HPP
 
-#include <memory>
-
-#include <boost/noncopyable.hpp>
+#include "commonheaders.hpp"
 
 namespace cursedearth
 {
-    class timer_t: boost::noncopyable
+    class timer_t: untransferable_t
     {
     public:
         virtual ~timer_t() = default;

@@ -25,6 +25,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <limits>
 #include <stdexcept>
 #include <memory>
 #include <atomic>

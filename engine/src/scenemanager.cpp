@@ -48,7 +48,7 @@ namespace cursedearth
         m_camera(ce_camera_new()),
         m_renderqueue(ce_renderqueue_new()),
         m_thread_id(ce_thread_self()),
-        m_fps(std::make_shared<fps_t>()),
+        m_fps(make_fps()),
         m_font(ce_font_new("fonts/evilislands.ttf", 24)),
         m_scenenode(ce_scenenode_new(NULL)),
         m_terrain(NULL),

@@ -21,14 +21,11 @@
 #ifndef CE_FPS_HPP
 #define CE_FPS_HPP
 
-#include <memory>
-#include <string>
-
-#include <boost/noncopyable.hpp>
+#include "commonheaders.hpp"
 
 namespace cursedearth
 {
-    class fps_t final: boost::noncopyable
+    class fps_t final: untransferable_t
     {
     public:
         fps_t();
@@ -44,6 +41,8 @@ namespace cursedearth
     };
 
     typedef std::shared_ptr<fps_t> fps_ptr_t;
+
+    fps_ptr_t make_fps();
 }
 
 #endif

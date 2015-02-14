@@ -21,7 +21,6 @@
 #ifndef CE_THIRDPARTYHEADERS_HPP
 #define CE_THIRDPARTYHEADERS_HPP
 
-#include <boost/noncopyable.hpp>
 #include <boost/format.hpp>
 
 #endif

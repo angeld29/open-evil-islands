@@ -18,38 +18,37 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDBUFFER_HPP
-#define CE_SOUNDBUFFER_HPP
-
-#include "ringbuffer.hpp"
-#include "soundblock.hpp"
+#ifndef CE_UNTRANSFERABLE_HPP
+#define CE_UNTRANSFERABLE_HPP
 
 namespace cursedearth
 {
-    class sound_buffer_t final: boost::noncopyable
+    class uncopyable_t
     {
-    public:
-        explicit sound_buffer_t(const sound_format_t&);
+    protected:
+        uncopyable_t() = default;
+        ~uncopyable_t() = default;
 
-        const sound_format_t& format() const { return m_format; }
-
-        void push(const sound_block_ptr_t&);
-        sound_block_ptr_t pop();
-
-        bool try_read_one_sample(uint8_t[sound_options_t::max_sample_size]);
-
-        sound_block_ptr_t acquire();
-        void release(const sound_block_ptr_t&);
-
-    private:
-        const sound_format_t m_format;
-        sound_block_ptr_t m_current_block;
-        std::mutex m_mutex;
-        std::vector<sound_block_ptr_t> m_blocks;
-        ring_buffer_t<sound_block_ptr_t, sound_options_t::block_count> m_buffer;
+        uncopyable_t(const uncopyable_t&) = delete;
+        uncopyable_t& operator=(const uncopyable_t&) = delete;
     };
 
-    typedef std::shared_ptr<sound_buffer_t> sound_buffer_ptr_t;
+    class unmovable_t
+    {
+    protected:
+        unmovable_t() = default;
+        ~unmovable_t() = default;
+
+        unmovable_t(unmovable_t&&) = delete;
+        unmovable_t& operator=(unmovable_t&&) = delete;
+    };
+
+    class untransferable_t: uncopyable_t, unmovable_t
+    {
+    protected:
+        untransferable_t() = default;
+        ~untransferable_t() = default;
+    };
 }
 
 #endif

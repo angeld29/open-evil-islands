@@ -25,8 +25,6 @@
 #include <thread>
 #include <memory>
 
-#include <boost/noncopyable.hpp>
-
 #include "soundresource.hpp"
 
 namespace cursedearth

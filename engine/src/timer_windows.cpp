@@ -18,10 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <windows.h>
-
-#include "logging.hpp"
 #include "timer.hpp"
+
+#include <windows.h>
 
 namespace cursedearth
 {

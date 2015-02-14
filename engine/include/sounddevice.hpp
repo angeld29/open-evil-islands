@@ -25,7 +25,7 @@
 
 namespace cursedearth
 {
-    class sound_device_t: boost::noncopyable
+    class sound_device_t: untransferable_t
     {
     public:
         explicit sound_device_t(const sound_format_t& format): m_format(format) {}

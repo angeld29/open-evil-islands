@@ -22,12 +22,12 @@
 #define CE_SINGLETON_HPP
 
 #include "standardheaders.hpp"
-#include "thirdpartyheaders.hpp"
+#include "untransferable.hpp"
 
 namespace cursedearth
 {
     template <typename T>
-    class singleton_t: boost::noncopyable
+    class singleton_t: untransferable_t
     {
     protected:
         explicit singleton_t(T* instance);

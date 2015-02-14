@@ -23,6 +23,7 @@
 
 #include "standardheaders.hpp"
 #include "thirdpartyheaders.hpp"
+#include "untransferable.hpp"
 
 namespace cursedearth
 {
@@ -123,7 +124,7 @@ namespace cursedearth
     /**
      * @brief the semaphore class provides a general counting semaphore
      */
-    class semaphore_t: boost::noncopyable
+    class semaphore_t: untransferable_t
     {
     public:
         explicit semaphore_t(size_t n);

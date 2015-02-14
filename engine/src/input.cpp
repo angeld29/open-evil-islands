@@ -18,13 +18,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <limits>
+#include "input.hpp"
 
 #include <boost/algorithm/string.hpp>
-
-#include "exception.hpp"
-#include "logging.hpp"
-#include "input.hpp"
 
 namespace cursedearth
 {

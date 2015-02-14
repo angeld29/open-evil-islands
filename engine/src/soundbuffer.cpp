@@ -40,7 +40,7 @@ namespace cursedearth
         return std::move(m_current_block);
     }
 
-    bool sound_buffer_t::try_read_one_sample(uint8_t data[sound_capabilities_t::max_sample_size])
+    bool sound_buffer_t::try_read_one_sample(uint8_t data[sound_options_t::max_sample_size])
     {
         if (!m_current_block) {
             if (!m_buffer.pop(m_current_block, false)) {

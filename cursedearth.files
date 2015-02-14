@@ -96,6 +96,7 @@ engine/include/soundinstance.hpp
 engine/include/soundmanager.hpp
 engine/include/soundmixer.hpp
 engine/include/soundobject.hpp
+engine/include/soundoptions.hpp
 engine/include/soundresource.hpp
 engine/include/soundsystem.hpp
 engine/include/sphere.hpp
@@ -111,6 +112,7 @@ engine/include/threadpool.hpp
 engine/include/timer.hpp
 engine/include/transform.hpp
 engine/include/triangle.hpp
+engine/include/untransferable.hpp
 engine/include/utility.hpp
 engine/include/value.hpp
 engine/include/vector.hpp

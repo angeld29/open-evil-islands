@@ -36,4 +36,9 @@ namespace cursedearth
             m_time = 0.0f;
         }
     }
+
+    fps_ptr_t make_fps()
+    {
+        return std::make_shared<fps_t>();
+    }
 }

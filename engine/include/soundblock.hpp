@@ -25,7 +25,7 @@
 
 namespace cursedearth
 {
-    class sound_block_t final: boost::noncopyable
+    class sound_block_t final: untransferable_t
     {
     public:
         explicit sound_block_t(const sound_format_t&);
@@ -35,7 +35,7 @@ namespace cursedearth
         size_t write(const uint8_t*, size_t);
         size_t read(uint8_t*, size_t);
 
-        std::pair<const uint8_t*, size_t> read_all();
+        std::pair<const uint8_t*, size_t> read_raw();
 
         void reset();
 

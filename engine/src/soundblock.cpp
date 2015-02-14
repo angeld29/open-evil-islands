@@ -24,7 +24,7 @@ namespace cursedearth
 {
     sound_block_t::sound_block_t(const sound_format_t& format):
         m_format(format),
-        m_capacity(m_format.sample_size * sound_capabilities_t::samples_in_block),
+        m_capacity(m_format.sample_size * sound_options_t::samples_in_block),
         m_data(make_unique<uint8_t[]>(m_capacity))
     {
     }
@@ -49,7 +49,7 @@ namespace cursedearth
         return size;
     }
 
-    std::pair<const uint8_t*, size_t> sound_block_t::read_all()
+    std::pair<const uint8_t*, size_t> sound_block_t::read_raw()
     {
         assert(m_read_position <= m_write_position);
         auto pair = std::make_pair(m_data.get() + m_read_position, m_write_position - m_read_position);
