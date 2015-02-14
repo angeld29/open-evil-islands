@@ -15,7 +15,7 @@ engine/include/camfile.hpp
 engine/include/color.hpp
 engine/include/commonheaders.hpp
 engine/include/complection.hpp
-engine/include/concurrency.hpp
+engine/include/thread.hpp
 engine/include/configfile.hpp
 engine/include/configmanager.hpp
 engine/include/display.hpp
@@ -150,7 +150,7 @@ engine/src/camera.cpp
 engine/src/camfile.cpp
 engine/src/color.cpp
 engine/src/complection.cpp
-engine/src/concurrency.cpp
+engine/src/thread.cpp
 engine/src/configfile.cpp
 engine/src/configmanager.cpp
 engine/src/display.cpp
