@@ -18,16 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string>
+#include "commonheaders.hpp"
+#include "avcodec.hpp"
 
 extern "C"
 {
 #include <libavcodec/avcodec.h>
 }
-
-#include "concurrency.hpp"
-#include "logging.hpp"
-#include "avcodec.hpp"
 
 namespace cursedearth
 {

@@ -21,6 +21,7 @@
 #ifndef CE_TERRAIN_HPP
 #define CE_TERRAIN_HPP
 
+#include "thread.hpp"
 #include "vector3.hpp"
 #include "quaternion.hpp"
 #include "vector.hpp"
@@ -30,7 +31,6 @@
 #include "material.hpp"
 #include "scenenode.hpp"
 #include "renderqueue.hpp"
-#include "concurrency.hpp"
 
 namespace cursedearth
 {

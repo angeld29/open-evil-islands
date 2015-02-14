@@ -18,11 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_CONCURRENCY_HPP
-#define CE_CONCURRENCY_HPP
+#ifndef CE_THREAD_HPP
+#define CE_THREAD_HPP
 
-#include "logging.hpp"
 #include "untransferable.hpp"
+#include "logging.hpp"
 
 namespace cursedearth
 {
@@ -127,15 +127,6 @@ namespace cursedearth
 
     void ce_mutex_lock(ce_mutex* mutex);
     void ce_mutex_unlock(ce_mutex* mutex);
-
-    typedef struct ce_wait_condition ce_wait_condition;
-
-    ce_wait_condition* ce_wait_condition_new(void);
-    void ce_wait_condition_del(ce_wait_condition* wait_condition);
-
-    void ce_wait_condition_wake_one(ce_wait_condition* wait_condition);
-    void ce_wait_condition_wake_all(ce_wait_condition* wait_condition);
-    void ce_wait_condition_wait(ce_wait_condition* wait_condition, ce_mutex* mutex);
 }
 
 #endif

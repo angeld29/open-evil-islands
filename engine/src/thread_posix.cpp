@@ -27,8 +27,7 @@
 #include <pthread.h>
 
 #include "alloc.hpp"
-#include "logging.hpp"
-#include "concurrency.hpp"
+#include "thread.hpp"
 
 namespace cursedearth
 {
@@ -115,76 +114,5 @@ namespace cursedearth
     void ce_mutex_unlock(ce_mutex* mutex)
     {
         pthread_mutex_unlock(&mutex->handle);
-    }
-
-    struct ce_wait_condition {
-        int waiter_count;
-        int wakeup_count;
-        pthread_mutex_t mutex;
-        pthread_cond_t cond;
-    };
-
-    ce_wait_condition* ce_wait_condition_new(void)
-    {
-        ce_wait_condition* wait_condition = (ce_wait_condition*)ce_alloc_zero(sizeof(ce_wait_condition));
-        wait_condition->waiter_count = 0;
-        wait_condition->wakeup_count = 0;
-        pthread_mutex_init(&wait_condition->mutex, NULL);
-        pthread_cond_init(&wait_condition->cond, NULL);
-        return wait_condition;
-    }
-
-    void ce_wait_condition_del(ce_wait_condition* wait_condition)
-    {
-        if (NULL != wait_condition) {
-            pthread_cond_destroy(&wait_condition->cond);
-            pthread_mutex_destroy(&wait_condition->mutex);
-            ce_free(wait_condition, sizeof(ce_wait_condition));
-        }
-    }
-
-    void ce_wait_condition_wake_one(ce_wait_condition* wait_condition)
-    {
-        pthread_mutex_lock(&wait_condition->mutex);
-        wait_condition->wakeup_count = std::min(wait_condition->wakeup_count + 1, wait_condition->waiter_count);
-        pthread_cond_signal(&wait_condition->cond);
-        pthread_mutex_unlock(&wait_condition->mutex);
-    }
-
-    void ce_wait_condition_wake_all(ce_wait_condition* wait_condition)
-    {
-        pthread_mutex_lock(&wait_condition->mutex);
-        wait_condition->wakeup_count = wait_condition->waiter_count;
-        pthread_cond_broadcast(&wait_condition->cond);
-        pthread_mutex_unlock(&wait_condition->mutex);
-    }
-
-    void ce_wait_condition_wait(ce_wait_condition* wait_condition, ce_mutex* mutex)
-    {
-        pthread_mutex_lock(&wait_condition->mutex);
-        ++wait_condition->waiter_count;
-
-        ce_mutex_unlock(mutex);
-
-        int code;
-        do {
-            code = pthread_cond_wait(&wait_condition->cond, &wait_condition->mutex);
-            // many vendors warn of spurious wakeups from pthread_cond_wait,
-            // even though POSIX doesn't allow for it...
-        } while (0 == code && 0 == wait_condition->wakeup_count);
-
-        assert(wait_condition->waiter_count > 0 && "internal error");
-        --wait_condition->waiter_count;
-
-        if (0 == code) {
-            assert(wait_condition->wakeup_count > 0 && "internal error");
-            --wait_condition->wakeup_count;
-        } else {
-            ce_logging_error("thread: pthread_cond_wait failed");
-        }
-
-        pthread_mutex_unlock(&wait_condition->mutex);
-
-        ce_mutex_lock(mutex);
     }
 }

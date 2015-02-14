@@ -27,6 +27,6 @@
 #include "singleton.hpp"
 #include "exception.hpp"
 #include "logging.hpp"
-#include "concurrency.hpp"
+#include "thread.hpp"
 
 #endif

@@ -21,7 +21,6 @@
 #ifndef CE_SINGLETON_HPP
 #define CE_SINGLETON_HPP
 
-#include "standardheaders.hpp"
 #include "untransferable.hpp"
 
 namespace cursedearth

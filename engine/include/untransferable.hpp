@@ -21,6 +21,8 @@
 #ifndef CE_UNTRANSFERABLE_HPP
 #define CE_UNTRANSFERABLE_HPP
 
+#include "standardheaders.hpp"
+
 namespace cursedearth
 {
     class uncopyable_t

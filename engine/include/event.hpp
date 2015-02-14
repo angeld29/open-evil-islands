@@ -21,7 +21,7 @@
 #ifndef CE_EVENT_HPP
 #define CE_EVENT_HPP
 
-#include "concurrency.hpp"
+#include "thread.hpp"
 #include "vector.hpp"
 #include "timer.hpp"
 

@@ -21,11 +21,7 @@
 #ifndef CE_VIDEOINSTANCE_HPP
 #define CE_VIDEOINSTANCE_HPP
 
-#include <atomic>
-#include <thread>
-#include <memory>
-
-#include "concurrency.hpp"
+#include "commonheaders.hpp"
 #include "semaphore.hpp"
 #include "mmpfile.hpp"
 #include "texture.hpp"
