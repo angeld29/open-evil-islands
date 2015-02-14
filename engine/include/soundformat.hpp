@@ -21,7 +21,6 @@
 #ifndef CE_SOUNDFORMAT_HPP
 #define CE_SOUNDFORMAT_HPP
 
-#include "common.hpp"
 #include "soundcapabilities.hpp"
 
 namespace cursedearth
@@ -46,9 +45,9 @@ namespace cursedearth
                lhs.channel_count      == rhs.channel_count;
     }
 
-    inline sound_format_t make_default_format()
+    inline sound_format_t make_native_format()
     {
-        return sound_format_t(SOUND_CAPABILITY_BITS_PER_SAMPLE, SOUND_CAPABILITY_SAMPLES_PER_SECOND, SOUND_CAPABILITY_CHANNEL_COUNT);
+        return sound_format_t(sound_native_capabilities_t::bits_per_sample, sound_native_capabilities_t::samples_per_second, sound_native_capabilities_t::channel_count);
     }
 }
 

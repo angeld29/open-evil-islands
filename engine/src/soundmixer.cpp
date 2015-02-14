@@ -81,14 +81,14 @@ namespace cursedearth
 
     void sound_mixer_t::execute()
     {
-        uint8_t array[SOUND_CAPABILITY_MAX_BLOCK_SIZE];
-        uint8_t native_sample[SOUND_CAPABILITY_MAX_SAMPLE_SIZE];
-        uint8_t foreign_sample[SOUND_CAPABILITY_MAX_SAMPLE_SIZE];
+        uint8_t array[sound_capabilities_t::max_block_size];
+        uint8_t native_sample[sound_capabilities_t::max_sample_size];
+        uint8_t foreign_sample[sound_capabilities_t::max_sample_size];
 
         while (!m_done) {
             uint8_t* data = array;
             sound_block_ptr_t block = sound_system_t::instance()->map();
-            for (size_t i = 0; i < SOUND_CAPABILITY_SAMPLES_IN_BLOCK; ++i, data += block->format().sample_size) {
+            for (size_t i = 0; i < sound_capabilities_t::samples_in_block; ++i, data += block->format().sample_size) {
                 memset(data, 0, block->format().sample_size);
                 std::lock_guard<std::mutex> lock(m_mutex); std::ignore = lock;
                 for (const auto& buffer: m_buffers) {
@@ -98,7 +98,7 @@ namespace cursedearth
                     }
                 }
             }
-            block->write(array, block->format().sample_size * SOUND_CAPABILITY_SAMPLES_IN_BLOCK);
+            block->write(array, block->format().sample_size * sound_capabilities_t::samples_in_block);
             sound_system_t::instance()->unmap(block);
         }
     }

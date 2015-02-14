@@ -52,7 +52,7 @@ namespace cursedearth
     snd_pcm_format_t ce_alsa_choose_format()
     {
         snd_pcm_format_t format = SND_PCM_FORMAT_UNKNOWN;
-        switch (static_cast<int>(SOUND_CAPABILITY_BITS_PER_SAMPLE)) {
+        switch (static_cast<int>(sound_native_capabilities_t::bits_per_sample)) {
         case 8:
             format = SND_PCM_FORMAT_S8;
             break;
@@ -74,7 +74,7 @@ namespace cursedearth
     const char* ce_alsa_choose_device()
     {
         const char* device = "default";
-        switch (static_cast<int>(SOUND_CAPABILITY_CHANNEL_COUNT)) {
+        switch (static_cast<int>(sound_native_capabilities_t::channel_count)) {
         case 1:
         case 2:
             break;
@@ -126,23 +126,23 @@ namespace cursedearth
         }
 
         // set the count of channels
-        code = snd_pcm_hw_params_set_channels(alsa->handle, hwparams, SOUND_CAPABILITY_CHANNEL_COUNT);
+        code = snd_pcm_hw_params_set_channels(alsa->handle, hwparams, sound_native_capabilities_t::channel_count);
         if (code < 0) {
-            ce_logging_error("alsa: channels count (%u) not available for playbacks", SOUND_CAPABILITY_CHANNEL_COUNT);
+            ce_logging_error("alsa: channels count (%u) not available for playbacks", sound_native_capabilities_t::channel_count);
             return code;
         }
 
-        unsigned int samples_per_second = SOUND_CAPABILITY_SAMPLES_PER_SECOND;
+        unsigned int samples_per_second = sound_native_capabilities_t::samples_per_second;
 
         // set the stream rate
         code = snd_pcm_hw_params_set_rate_near(alsa->handle, hwparams, &samples_per_second, &dir);
         if (code < 0) {
-            ce_logging_error("alsa: sample rate %u Hz not available for playback", SOUND_CAPABILITY_SAMPLES_PER_SECOND);
+            ce_logging_error("alsa: sample rate %u Hz not available for playback", sound_native_capabilities_t::samples_per_second);
             return code;
         }
 
-        if (SOUND_CAPABILITY_SAMPLES_PER_SECOND != samples_per_second) {
-            ce_logging_warning("alsa: sample rate %d Hz not supported by the implementation/hardware, using %u Hz", SOUND_CAPABILITY_SAMPLES_PER_SECOND, samples_per_second);
+        if (sound_native_capabilities_t::samples_per_second != samples_per_second) {
+            ce_logging_warning("alsa: sample rate %d Hz not supported by the implementation/hardware, using %u Hz", sound_native_capabilities_t::samples_per_second, samples_per_second);
         }
 
         // ring buffer length in us

@@ -21,17 +21,23 @@
 #ifndef CE_SOUNDCAPABILITIES_HPP
 #define CE_SOUNDCAPABILITIES_HPP
 
+#include "common.hpp"
+
 namespace cursedearth
 {
-    enum sound_capabilities_t {
-        SOUND_CAPABILITY_BITS_PER_SAMPLE = 16,
-        SOUND_CAPABILITY_SAMPLES_PER_SECOND = 44100,
-        SOUND_CAPABILITY_CHANNEL_COUNT = 2,
-        SOUND_CAPABILITY_SAMPLE_SIZE = SOUND_CAPABILITY_CHANNEL_COUNT * (SOUND_CAPABILITY_BITS_PER_SAMPLE / 8),
-        SOUND_CAPABILITY_SAMPLES_IN_BLOCK = 1024,
-        SOUND_CAPABILITY_BLOCK_COUNT = 32,
-        SOUND_CAPABILITY_MAX_SAMPLE_SIZE = 8 * (64 / 8),
-        SOUND_CAPABILITY_MAX_BLOCK_SIZE = SOUND_CAPABILITY_MAX_SAMPLE_SIZE * SOUND_CAPABILITY_SAMPLES_IN_BLOCK
+    struct sound_native_capabilities_t
+    {
+        static const size_t bits_per_sample = 16;
+        static const size_t samples_per_second = 44100;
+        static const size_t channel_count = 2;
+    };
+
+    struct sound_capabilities_t
+    {
+        static const size_t samples_in_block = 1024;
+        static const size_t block_count = 32;
+        static const size_t max_sample_size = 64;
+        static const size_t max_block_size = max_sample_size * samples_in_block;
     };
 }
 

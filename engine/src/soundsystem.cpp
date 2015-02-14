@@ -69,7 +69,7 @@ namespace cursedearth
 
     sound_system_t::sound_system_t():
         singleton_t<sound_system_t>(this),
-        m_buffer(std::make_shared<sound_buffer_t>(make_default_format())),
+        m_buffer(std::make_shared<sound_buffer_t>(make_native_format())),
         m_done(false)
     {
         if (!ce_sound_system_ctor(option_manager_t::instance()->disable_sound() ? ce_sound_system_null() : ce_sound_system_platform())) {
