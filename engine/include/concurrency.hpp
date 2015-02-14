@@ -29,8 +29,6 @@
 #include <future>
 #include <chrono>
 
-#include <cassert>
-
 #include <boost/noncopyable.hpp>
 
 namespace cursedearth
@@ -113,10 +111,16 @@ namespace cursedearth
             m_flag = promise.get_future().get();
         }
 
+        ~interruptible_thread_t()
+        {
+            interrupt();
+            join();
+        }
+
         bool joinable() const { return m_thread.joinable(); }
         void join() { m_thread.join(); }
         void detach() { m_thread.detach(); }
-        void interrupt() { assert(m_flag); *m_flag = true; }
+        void interrupt() { *m_flag = true; }
 
     private:
         std::thread m_thread;

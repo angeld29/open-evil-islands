@@ -222,6 +222,7 @@ engine/src/soundobject.cpp
 engine/src/soundresource.cpp
 engine/src/soundresource_generic.cpp
 engine/src/soundsystem.cpp
+engine/src/sounddevice.cpp
 engine/src/sounddevice_generic.cpp
 engine/src/sounddevice_linux.cpp
 engine/src/sounddevice_windows.cpp

@@ -37,9 +37,20 @@ namespace cursedearth
         const sound_format_t m_format;
     };
 
+    class null_sound_device_t final: public sound_device_t
+    {
+    public:
+        explicit null_sound_device_t(const sound_format_t&);
+
+        virtual void write(const sound_block_ptr_t&) final;
+    };
+
     typedef std::shared_ptr<sound_device_t> sound_device_ptr_t;
 
-    sound_device_ptr_t make_sound_device();
+    sound_device_ptr_t make_sound_device(const sound_format_t&);
+    sound_device_ptr_t make_null_sound_device(const sound_format_t&);
+
+
 }
 
 #endif

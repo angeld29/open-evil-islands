@@ -97,9 +97,9 @@ namespace cursedearth
             }
         }
 
-        sound_block_ptr_t block = buffer->acquire_block();
+        sound_block_ptr_t block = buffer->acquire();
         size_t size = block->write(resource->output_buffer + resource->output_buffer_pos, resource->output_buffer_size);
-        buffer->write(block);
+        buffer->push(block);
 
         resource->output_buffer_pos += size;
         resource->output_buffer_size -= size;

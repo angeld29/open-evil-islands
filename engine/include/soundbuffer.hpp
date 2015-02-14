@@ -33,19 +33,19 @@ namespace cursedearth
 
         const sound_format_t& format() const { return m_format; }
 
-        void write(const sound_block_ptr_t&);
-        sound_block_ptr_t read();
+        void push(const sound_block_ptr_t&);
+        sound_block_ptr_t pop();
 
         bool try_read_one_sample(uint8_t[sound_capabilities_t::max_sample_size]);
 
-        sound_block_ptr_t acquire_block();
-        void release_block(const sound_block_ptr_t&);
+        sound_block_ptr_t acquire();
+        void release(const sound_block_ptr_t&);
 
     private:
         const sound_format_t m_format;
         sound_block_ptr_t m_current_block;
-        std::mutex m_cache_mutex;
-        std::vector<sound_block_ptr_t> m_block_cache;
+        std::mutex m_mutex;
+        std::vector<sound_block_ptr_t> m_blocks;
         ring_buffer_t<sound_block_ptr_t, sound_capabilities_t::block_count> m_buffer;
     };
 

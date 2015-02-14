@@ -18,37 +18,23 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDSYSTEM_HPP
-#define CE_SOUNDSYSTEM_HPP
-
-#include "soundbuffer.hpp"
 #include "sounddevice.hpp"
 
 namespace cursedearth
 {
-    class sound_system_t final: public singleton_t<sound_system_t>
+    null_sound_device_t::null_sound_device_t(const sound_format_t& format):
+        sound_device_t(format)
     {
-    public:
-        sound_system_t();
+        ce_logging_info("sound device: using null output");
+    }
 
-        const sound_format_t& format() const { return m_format; }
+    void null_sound_device_t::write(const sound_block_ptr_t&)
+    {
+        // TODO: sleep?
+    }
 
-        sound_block_ptr_t map();
-        void unmap(const sound_block_ptr_t&);
-
-    private:
-        void execute();
-
-    private:
-        const sound_format_t m_format;
-        sound_buffer_ptr_t m_buffer;
-        sound_device_ptr_t m_device;
-        interruptible_thread_t m_thread;
-    };
-
-    typedef std::unique_ptr<sound_system_t> sound_system_ptr_t;
-
-    sound_system_ptr_t make_sound_system();
+    sound_device_ptr_t make_null_sound_device(const sound_format_t& format)
+    {
+        return std::make_shared<null_sound_device_t>(format);
+    }
 }
-
-#endif

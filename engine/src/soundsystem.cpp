@@ -23,48 +23,31 @@
 
 namespace cursedearth
 {
-    bool ce_sound_system_null_ctor()
-    {
-        ce_logging_info("sound system: using null output");
-        return true;
-    }
-
-    bool ce_sound_system_null_write(const sound_block_ptr_t&)
-    {
-        return true;
-    }
-
     sound_system_t::sound_system_t():
         singleton_t<sound_system_t>(this),
         m_format(make_native_format()),
         m_buffer(std::make_shared<sound_buffer_t>(m_format)),
+        m_device(option_manager_t::instance()->disable_sound() ? make_null_sound_device(m_format) : make_sound_device(m_format)),
         m_thread([this]{execute();})
-    {
-    }
-
-    sound_system_t::~sound_system_t()
-    {
-        m_thread.interrupt();
-        m_thread.join();
-    }
+    {}
 
     sound_block_ptr_t sound_system_t::map()
     {
-        return m_buffer->acquire_block();
+        return m_buffer->acquire();
     }
 
     void sound_system_t::unmap(const sound_block_ptr_t& block)
     {
-        m_buffer->write(block);
+        m_buffer->push(block);
     }
 
     void sound_system_t::execute()
     {
         try {
             while (true) {
-                sound_block_ptr_t block = m_buffer->read();
-                write(block);
-                m_buffer->release_block(block);
+                sound_block_ptr_t block = m_buffer->pop();
+                m_device->write(block);
+                m_buffer->release(block);
             }
         } catch (const thread_interrupted_t&) {
             ce_logging_info("sound system: interrupted");
@@ -73,5 +56,10 @@ namespace cursedearth
         } catch (...) {
             ce_logging_fatal("sound system: unknown error");
         }
+    }
+
+    sound_system_ptr_t make_sound_system()
+    {
+        return make_unique<sound_system_t>();
     }
 }

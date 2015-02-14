@@ -27,12 +27,12 @@ namespace cursedearth
     {
     }
 
-    void sound_buffer_t::write(const sound_block_ptr_t& block)
+    void sound_buffer_t::push(const sound_block_ptr_t& block)
     {
         m_buffer.push(block);
     }
 
-    sound_block_ptr_t sound_buffer_t::read()
+    sound_block_ptr_t sound_buffer_t::pop()
     {
         if (!m_current_block) {
             m_buffer.pop(m_current_block);
@@ -50,7 +50,7 @@ namespace cursedearth
 
         const size_t size = m_current_block->read(data, m_format.sample_size);
         if (0 == size) {
-            release_block(sound_block_ptr_t(std::move(m_current_block)));
+            release(sound_block_ptr_t(std::move(m_current_block)));
             return try_read_one_sample(data);
         }
 
@@ -58,27 +58,27 @@ namespace cursedearth
         return true;
     }
 
-    sound_block_ptr_t sound_buffer_t::acquire_block()
+    sound_block_ptr_t sound_buffer_t::acquire()
     {
-        std::lock_guard<std::mutex> lock(m_cache_mutex);
+        std::lock_guard<std::mutex> lock(m_mutex);
         std::ignore = lock;
 
-        if (m_block_cache.empty()) {
+        if (m_blocks.empty()) {
             return std::make_shared<sound_block_t>(m_format);
         }
 
-        sound_block_ptr_t block = m_block_cache.back();
-        m_block_cache.pop_back();
+        sound_block_ptr_t block = m_blocks.back();
+        m_blocks.pop_back();
 
         block->reset();
         return std::move(block);
     }
 
-    void sound_buffer_t::release_block(const sound_block_ptr_t& block)
+    void sound_buffer_t::release(const sound_block_ptr_t& block)
     {
         assert(m_format == block->format());
-        std::lock_guard<std::mutex> lock(m_cache_mutex);
+        std::lock_guard<std::mutex> lock(m_mutex);
         std::ignore = lock;
-        m_block_cache.push_back(block);
+        m_blocks.push_back(block);
     }
 }

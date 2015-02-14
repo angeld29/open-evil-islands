@@ -18,7 +18,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "soundsystem.hpp"
+#include "sounddevice.hpp"
 
 #include <windows.h>
 #include <mmsystem.h>

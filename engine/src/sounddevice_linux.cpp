@@ -18,13 +18,13 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "soundsystem.hpp"
+#include "sounddevice.hpp"
 
 #include <alsa/asoundlib.h>
 
 namespace cursedearth
 {
-    class alsa_t final: public sound_system_t
+    class alsa_device_t final: public sound_device_t
     {
         static void error_handler(const char* file, int line, const char* function, int code, const char* format, ...)
         {
@@ -255,7 +255,8 @@ namespace cursedearth
         std::unique_ptr<snd_pcm_t, snd_pcm_dtor_t> m_handle;
 
     public:
-        alsa_t()
+        explicit alsa_device_t(const sound_format_t& format):
+            sound_device_t(format)
         {
             ce_logging_info("sound system: using ALSA (Advanced Linux Sound Architecture)");
             snd_lib_error_set_handler(error_handler);
@@ -277,8 +278,8 @@ namespace cursedearth
         }
     };
 
-    sound_system_ptr_t make_sound_system()
+    sound_device_ptr_t make_sound_device(const sound_format_t& format)
     {
-        return make_unique<alsa_t>();
+        return std::make_shared<alsa_device_t>(format);
     }
 }

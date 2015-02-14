@@ -18,12 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "soundsystem.hpp"
+#include "sounddevice.hpp"
 
 namespace cursedearth
 {
-    ce_sound_system_vtable ce_sound_system_platform()
+    sound_device_ptr_t make_sound_device(const sound_format_t& format)
     {
-        return ce_sound_system_null();
+        return make_null_sound_device(format);
     }
 }
