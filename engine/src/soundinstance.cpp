@@ -30,7 +30,7 @@ namespace cursedearth
         m_state(SOUND_INSTANCE_STATE_STOPPED),
         m_time(0.0f),
         m_done(false),
-        m_thread(std::bind(&sound_instance_t::execute, this))
+        m_thread([this]{execute();})
     {
     }
 

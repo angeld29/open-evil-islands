@@ -97,9 +97,9 @@ namespace cursedearth
             }
         }
 
-        assert(0 == resource->output_buffer_size % buffer->format().sample_size);
-        size_t size = std::min(resource->output_buffer_size, buffer->format().sample_size * SOUND_CAPABILITY_SAMPLES_IN_BLOCK);
-        buffer->push(resource->output_buffer + resource->output_buffer_pos, size / buffer->format().sample_size);
+        sound_block_ptr_t block = buffer->acquire_block();
+        size_t size = block->write(resource->output_buffer + resource->output_buffer_pos, resource->output_buffer_size);
+        buffer->write(block);
 
         resource->output_buffer_pos += size;
         resource->output_buffer_size -= size;

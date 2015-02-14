@@ -13,6 +13,7 @@ engine/include/byteorder.hpp
 engine/include/camera.hpp
 engine/include/camfile.hpp
 engine/include/color.hpp
+engine/include/common.hpp
 engine/include/complection.hpp
 engine/include/concurrency.hpp
 engine/include/configfile.hpp
@@ -86,6 +87,7 @@ engine/include/segment.hpp
 engine/include/shader.hpp
 engine/include/shadermanager.hpp
 engine/include/singleton.hpp
+engine/include/soundblock.hpp
 engine/include/soundbuffer.hpp
 engine/include/soundcapabilities.hpp
 engine/include/soundformat.hpp
@@ -205,12 +207,12 @@ engine/src/renderwindow_x11.cpp
 engine/src/resball.cpp
 engine/src/resfile.cpp
 engine/src/resourcemanager.cpp
-engine/src/ringbuffer.cpp
 engine/src/root.cpp
 engine/src/scenemanager.cpp
 engine/src/scenenode.cpp
 engine/src/shader_opengl.cpp
 engine/src/shadermanager.cpp
+engine/src/soundblock.cpp
 engine/src/soundbuffer.cpp
 engine/src/soundinstance.cpp
 engine/src/soundmanager.cpp

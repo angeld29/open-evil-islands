@@ -22,12 +22,9 @@
 #define CE_SINGLETON_HPP
 
 #include <cassert>
-#include <memory>
+#include <atomic>
 
 #include <boost/noncopyable.hpp>
-
-#include "makeunique.hpp"
-#include "concurrency.hpp"
 
 namespace cursedearth
 {

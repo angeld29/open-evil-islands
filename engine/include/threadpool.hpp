@@ -21,10 +21,7 @@
 #ifndef CE_THREADPOOL_HPP
 #define CE_THREADPOOL_HPP
 
-#include <functional>
-#include <vector>
-
-#include "singleton.hpp"
+#include "common.hpp"
 
 namespace cursedearth
 {

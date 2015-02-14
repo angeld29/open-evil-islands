@@ -50,7 +50,7 @@ namespace cursedearth
             m_ycbcr_frames[i] = ce_mmpfile_new(resource->width, resource->height, 1, CE_MMPFILE_FORMAT_YCBCR, 0);
         }
 
-        m_thread = std::thread(std::bind(&video_instance_t::execute, this));
+        m_thread = std::thread([this]{execute();});
     }
 
     video_instance_t::~video_instance_t()

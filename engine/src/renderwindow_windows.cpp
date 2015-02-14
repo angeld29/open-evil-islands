@@ -18,14 +18,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <windows.h>
-#include <windowsx.h>
-
-#include "exception.hpp"
-#include "logging.hpp"
+#include "renderwindow.hpp"
 #include "display_windows.hpp"
 #include "graphicscontext_windows.hpp"
-#include "renderwindow.hpp"
+
+#include <windows.h>
+#include <windowsx.h>
 
 namespace cursedearth
 {

@@ -18,19 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cassert>
-#include <cstring>
+#include "renderwindow.hpp"
+#include "display_x11.hpp"
+#include "graphicscontext_x11.hpp"
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
-
-#include "exception.hpp"
-#include "logging.hpp"
-#include "display_x11.hpp"
-#include "graphicscontext_x11.hpp"
-#include "renderwindow.hpp"
 
 namespace cursedearth
 {

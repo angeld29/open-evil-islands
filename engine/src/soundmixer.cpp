@@ -18,21 +18,15 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cassert>
-#include <cstring>
-#include <algorithm>
-
-#include "utility.hpp"
-#include "logging.hpp"
-#include "soundsystem.hpp"
 #include "soundmixer.hpp"
+#include "soundsystem.hpp"
 
 namespace cursedearth
 {
     sound_mixer_t::sound_mixer_t():
         singleton_t<sound_mixer_t>(this),
         m_done(false),
-        m_thread(std::bind(&sound_mixer_t::execute, this))
+        m_thread([this]{execute();})
     {
     }
 
@@ -49,60 +43,63 @@ namespace cursedearth
     {
         sound_buffer_ptr_t buffer = std::make_shared<sound_buffer_t>(format);
         std::lock_guard<std::mutex> lock(m_mutex);
+        std::ignore = lock;
         m_buffers.push_back(buffer);
         return buffer;
     }
 
-    void convert_sample_s16(int16_t* sample, const int16_t* other, const sound_format_t& format)
+    void convert_sample_s16_s16(int16_t* native, const int16_t* foreign, const sound_format_t& native_format, const sound_format_t& foreign_format)
     {
-        for (size_t i = 0; i < SOUND_CAPABILITY_CHANNEL_COUNT; ++i) {
-            sample[i] = (0 == i || i < format.channel_count) ? other[i] : sample[i - 1];
+        for (size_t i = 0; i < native_format.channel_count; ++i) {
+            native[i] = (0 == i || i < foreign_format.channel_count) ? foreign[i] : native[i - 1];
         }
     }
 
-    void convert_sample(void* sample, const void* other, const sound_format_t& format)
+    void convert_sample(void* native, const void* foreign, const sound_format_t& native_format, const sound_format_t& foreign_format)
     {
-        switch (format.bits_per_sample) {
-        case 16:
-            convert_sample_s16(static_cast<int16_t*>(sample), static_cast<const int16_t*>(other), format);
-            break;
-        default:
+        if (16 != native_format.bits_per_sample || 16 != foreign_format.bits_per_sample) {
             assert(false && "not implemented");
         }
+        convert_sample_s16_s16(static_cast<int16_t*>(native), static_cast<const int16_t*>(foreign), native_format, foreign_format);
     }
 
-    void mix_sample_s16(int16_t* sample, const int16_t* other)
+    void mix_sample_s16(int16_t* sample, const int16_t* other, const sound_format_t& format)
     {
-        for (size_t i = 0; i < SOUND_CAPABILITY_CHANNEL_COUNT; ++i) {
+        for (size_t i = 0; i < format.channel_count; ++i) {
             int32_t value = static_cast<int32_t>(sample[i]) + static_cast<int32_t>(other[i]);
             sample[i] = clamp(value, std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max());
         }
     }
 
-    void mix_sample(void* sample, const void* other)
+    void mix_sample(void* sample, const void* other, const sound_format_t& format)
     {
-        mix_sample_s16(static_cast<int16_t*>(sample), static_cast<const int16_t*>(other));
+        if (16 != format.bits_per_sample) {
+            assert(false && "not implemented");
+        }
+        mix_sample_s16(static_cast<int16_t*>(sample), static_cast<const int16_t*>(other), format);
     }
 
     void sound_mixer_t::execute()
     {
-        uint8_t block[SOUND_CAPABILITY_BLOCK_SIZE];
-        uint8_t native_sample[SOUND_CAPABILITY_SAMPLE_SIZE];
+        uint8_t array[SOUND_CAPABILITY_MAX_BLOCK_SIZE];
+        uint8_t native_sample[SOUND_CAPABILITY_MAX_SAMPLE_SIZE];
         uint8_t foreign_sample[SOUND_CAPABILITY_MAX_SAMPLE_SIZE];
 
         while (!m_done) {
-            uint8_t* data = block;
-            for (size_t i = 0; i < SOUND_CAPABILITY_SAMPLES_IN_BLOCK; ++i, data += SOUND_CAPABILITY_SAMPLE_SIZE) {
-                memset(data, 0, SOUND_CAPABILITY_SAMPLE_SIZE);
-                std::lock_guard<std::mutex> lock(m_mutex);
+            uint8_t* data = array;
+            sound_block_ptr_t block = sound_system_t::instance()->map();
+            for (size_t i = 0; i < SOUND_CAPABILITY_SAMPLES_IN_BLOCK; ++i, data += block->format().sample_size) {
+                memset(data, 0, block->format().sample_size);
+                std::lock_guard<std::mutex> lock(m_mutex); std::ignore = lock;
                 for (const auto& buffer: m_buffers) {
-                    if (buffer->pop(foreign_sample, false)) {
-                        convert_sample(native_sample, foreign_sample, buffer->format());
-                        mix_sample(data, native_sample);
+                    if (buffer->try_read_one_sample(foreign_sample)) {
+                        convert_sample(native_sample, foreign_sample, block->format(), buffer->format());
+                        mix_sample(data, native_sample, buffer->format());
                     }
                 }
             }
-            sound_system_t::instance()->write(block);
+            block->write(array, block->format().sample_size * SOUND_CAPABILITY_SAMPLES_IN_BLOCK);
+            sound_system_t::instance()->unmap(block);
         }
     }
 

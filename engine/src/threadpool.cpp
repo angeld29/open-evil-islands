@@ -18,7 +18,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "logging.hpp"
 #include "threadpool.hpp"
 
 namespace cursedearth
@@ -30,7 +29,7 @@ namespace cursedearth
         m_threads(m_idle_thread_count)
     {
         for (auto& thread: m_threads) {
-            thread = std::thread(std::bind(&thread_pool_t::execute, this));
+            thread = std::thread([this]{execute();});
         }
         // TODO: std::thread::hardware_concurrency()
         ce_logging_info("thread pool: using up to %u threads", m_threads.size());

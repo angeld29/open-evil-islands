@@ -30,23 +30,23 @@ namespace cursedearth
     class game_error: public std::runtime_error
     {
         template<typename T>
-        void apply_cascade(boost::format& format, const T& arg)
+        void apply_cascade(boost::format& format, T arg)
         {
             format % arg;
         }
 
         template<typename T, typename... Args>
-        void apply_cascade(boost::format& format, const T& arg, Args... args)
+        void apply_cascade(boost::format& format, T arg, Args&&... args)
         {
             format % arg;
-            apply_cascade(format, args...);
+            apply_cascade(format, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        boost::format make_format(const std::string& message, Args... args)
+        boost::format make_format(const std::string& message, Args&&... args)
         {
             boost::format format(message);
-            apply_cascade(format, args...);
+            apply_cascade(format, std::forward<Args>(args)...);
             return format;
         }
 
@@ -54,12 +54,12 @@ namespace cursedearth
         game_error(const std::string& token, const std::string& message):
             std::runtime_error(token + ": " + message) {}
 
-        game_error(const std::string& token, const boost::format& message):
-            game_error(token, str(message)) {}
+        game_error(const std::string& token, const boost::format& format):
+            game_error(token, str(format)) {}
 
         template <typename... Args>
-        game_error(const std::string& token, const std::string& message, Args... args):
-            game_error(token, make_format(message, args...)) {}
+        game_error(const std::string& token, const std::string& message, Args&&... args):
+            game_error(token, make_format(message, std::forward<Args>(args)...)) {}
     };
 }
 

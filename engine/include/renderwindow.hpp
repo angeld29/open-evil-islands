@@ -21,16 +21,14 @@
 #ifndef CE_RENDERWINDOW_HPP
 #define CE_RENDERWINDOW_HPP
 
-#include <memory>
-#include <string>
-#include <unordered_map>
-
-#include <boost/signals2.hpp>
-
-#include "singleton.hpp"
+#include "common.hpp"
 #include "input.hpp"
 #include "display.hpp"
 #include "graphicscontext.hpp"
+
+#include <unordered_map>
+
+#include <boost/signals2.hpp>
 
 namespace cursedearth
 {

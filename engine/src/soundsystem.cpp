@@ -33,7 +33,7 @@ namespace cursedearth
         return true;
     }
 
-    bool ce_sound_system_null_write(const void*)
+    bool ce_sound_system_null_write(const sound_block_ptr_t&)
     {
         return true;
     }
@@ -69,13 +69,13 @@ namespace cursedearth
 
     sound_system_t::sound_system_t():
         singleton_t<sound_system_t>(this),
-        m_buffer(std::make_shared<sound_buffer_t>(sound_format_t(SOUND_CAPABILITY_BITS_PER_SAMPLE, SOUND_CAPABILITY_SAMPLES_PER_SECOND, SOUND_CAPABILITY_CHANNEL_COUNT))),
+        m_buffer(std::make_shared<sound_buffer_t>(make_default_format())),
         m_done(false)
     {
         if (!ce_sound_system_ctor(option_manager_t::instance()->disable_sound() ? ce_sound_system_null() : ce_sound_system_platform())) {
             ce_sound_system_ctor(ce_sound_system_null());
         }
-        m_thread = std::thread(std::bind(&sound_system_t::execute, this));
+        m_thread = std::thread([this]{execute();});
     }
 
     sound_system_t::~sound_system_t()
@@ -85,19 +85,24 @@ namespace cursedearth
         ce_sound_system_dtor();
     }
 
-    void sound_system_t::write(void* block)
+    sound_block_ptr_t sound_system_t::map()
     {
-        m_buffer->push(block, SOUND_CAPABILITY_SAMPLES_IN_BLOCK, true);
+        return m_buffer->acquire_block();
+    }
+
+    void sound_system_t::unmap(const sound_block_ptr_t& block)
+    {
+        m_buffer->write(block);
     }
 
     void sound_system_t::execute()
     {
-        uint8_t block[SOUND_CAPABILITY_BLOCK_SIZE];
         while (!m_done) {
-            m_buffer->pop(block, SOUND_CAPABILITY_SAMPLES_IN_BLOCK, true);
+            sound_block_ptr_t block = m_buffer->read();
             if (!(*vtable.write)(block)) {
                 ce_logging_critical("sound system: could not write block");
             }
+            m_buffer->release_block(block);
         }
     }
 

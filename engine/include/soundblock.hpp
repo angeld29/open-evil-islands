@@ -18,38 +18,35 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDBUFFER_HPP
-#define CE_SOUNDBUFFER_HPP
+#ifndef CE_SOUNDBLOCK_HPP
+#define CE_SOUNDBLOCK_HPP
 
-#include "ringbuffer.hpp"
-#include "soundblock.hpp"
+#include "soundformat.hpp"
 
 namespace cursedearth
 {
-    class sound_buffer_t final: boost::noncopyable
+    class sound_block_t final: boost::noncopyable
     {
     public:
-        explicit sound_buffer_t(const sound_format_t&);
+        explicit sound_block_t(const sound_format_t&);
 
         const sound_format_t& format() const { return m_format; }
 
-        void write(const sound_block_ptr_t&);
-        sound_block_ptr_t read();
+        size_t write(const uint8_t*, size_t);
+        size_t read(uint8_t*, size_t);
 
-        bool try_read_one_sample(uint8_t[SOUND_CAPABILITY_MAX_SAMPLE_SIZE]);
+        std::pair<const uint8_t*, size_t> read_all();
 
-        sound_block_ptr_t acquire_block();
-        void release_block(const sound_block_ptr_t&);
+        void reset();
 
     private:
         const sound_format_t m_format;
-        sound_block_ptr_t m_current_block;
-        std::mutex m_mutex; // only for cache
-        std::vector<sound_block_ptr_t> m_blocks;
-        ring_buffer_t<sound_block_ptr_t, SOUND_CAPABILITY_BLOCK_COUNT> m_buffer;
+        const size_t m_capacity;
+        size_t m_write_position = 0, m_read_position = 0;
+        std::unique_ptr<uint8_t[]> m_data;
     };
 
-    typedef std::shared_ptr<sound_buffer_t> sound_buffer_ptr_t;
+    typedef std::shared_ptr<sound_block_t> sound_block_ptr_t;
 }
 
 #endif

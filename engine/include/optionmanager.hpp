@@ -21,12 +21,10 @@
 #ifndef CE_OPTIONMANAGER_HPP
 #define CE_OPTIONMANAGER_HPP
 
-#include <memory>
+#include "common.hpp"
+#include "optparse.hpp"
 
 #include <boost/filesystem/path.hpp>
-
-#include "singleton.hpp"
-#include "optparse.hpp"
 
 namespace cursedearth
 {

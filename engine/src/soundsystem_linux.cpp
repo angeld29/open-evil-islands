@@ -301,12 +301,12 @@ namespace cursedearth
         return code;
     }
 
-    bool ce_alsa_write(const void* block)
+    bool ce_alsa_write(const sound_block_ptr_t& block)
     {
         ce_alsa* alsa = (ce_alsa*)sound_system_t::instance()->impl;
-        const uint8_t* data = static_cast<const uint8_t*>(block);
-        for (size_t sample_count = SOUND_CAPABILITY_SAMPLES_IN_BLOCK; sample_count > 0; ) {
-            int code = snd_pcm_writei(alsa->handle, data, sample_count);
+        auto data = block->read_all();
+        for (size_t sample_count = data.second / block->format().sample_size; sample_count > 0; ) {
+            int code = snd_pcm_writei(alsa->handle, data.first, sample_count);
             if (code < 0) {
                 code = ce_alsa_recovery(code);
                 if (code < 0) {
@@ -314,7 +314,7 @@ namespace cursedearth
                     return false;
                 }
             } else {
-                data += code * SOUND_CAPABILITY_SAMPLE_SIZE;
+                data.first += code * block->format().sample_size;
                 sample_count -= code;
             }
         }

@@ -18,10 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <algorithm>
-
-#include "optionmanager.hpp"
 #include "renderwindow.hpp"
+#include "optionmanager.hpp"
 
 namespace cursedearth
 {

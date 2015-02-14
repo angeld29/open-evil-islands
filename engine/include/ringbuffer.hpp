@@ -21,61 +21,105 @@
 #ifndef CE_RINGBUFFER_HPP
 #define CE_RINGBUFFER_HPP
 
-#include <memory>
+#include "common.hpp"
 
-#include <boost/noncopyable.hpp>
-
-#include "concurrency.hpp"
+#include <boost/lockfree/spsc_queue.hpp>
 
 namespace cursedearth
 {
     /**
      * @brief Single-Producer/Single-Consumer Queue
      */
+    template <typename T, size_t n>
     class ring_buffer_t final: boost::noncopyable
     {
+        struct holder_t
+        {
+            semaphore_t* for_release;
+
+            holder_t(semaphore_t* for_acquire, semaphore_t* for_release):
+                for_release(for_release)
+            {
+                ce_semaphore_acquire(for_acquire);
+            }
+
+            ~holder_t()
+            {
+                ce_semaphore_release(for_release);
+            }
+        };
+
     public:
-        explicit ring_buffer_t(size_t capacity);
-        ~ring_buffer_t();
+        ring_buffer_t():
+            m_free_items(ce_semaphore_new(n)),
+            m_used_items(ce_semaphore_new(0))
+        {
+        }
+
+        ~ring_buffer_t()
+        {
+            ce_semaphore_del(m_used_items);
+            ce_semaphore_del(m_free_items);
+        }
 
         /**
-         * @brief get write space to write data
-         * @return number of bytes that can be pushed to the ring buffer
+         * @brief get write space to write elements
+         * @return number of elements that can be pushed to the ring buffer
          */
-        size_t write_available() const { return ce_semaphore_available(m_free_data); }
+        size_t write_available() const { return ce_semaphore_available(m_free_items); }
 
         /**
-         * @brief get number of bytes that are available for read
-         * @return number of available bytes that can be popped from the ring buffer
+         * @brief get number of elements that are available for read
+         * @return number of available elements that can be popped from the ring buffer
          */
-        size_t read_available() const { return ce_semaphore_available(m_used_data); }
+        size_t read_available() const { return ce_semaphore_available(m_used_items); }
 
         /**
-         * @brief pushes as many bytes from the array as there is space
-         * @param wait if true, blocks until more space is available
-         * @return number of pushed bytes
+         * @brief pushes element to the ringbuffer
+         * @param wait blocks until more space is available
+         * @return true if the push operation is successful, null otherwise
          */
-        size_t push(const void*, size_t, bool wait = true);
+        bool push(const T& item, bool wait = true)
+        {
+            if (0 == write_available() && !wait) {
+                return false;
+            }
+
+            holder_t holder(m_free_items, m_used_items);
+            std::ignore = holder;
+
+            bool ok = m_items.push(item);
+            std::ignore = ok;
+            assert(ok);
+
+            return true;
+        }
 
         /**
-         * @brief pops a maximum of size bytes from ring buffer
-         * @param wait if true, blocks until new data is available
-         * @return number of popped bytes
+         * @brief pops element from ringbuffer
+         * @param wait blocks until new element is available
+         * @return true if the pop operation is successful, null otherwise
          */
-        size_t pop(void*, size_t, bool wait = true);
+        bool pop(T& item, bool wait = true)
+        {
+            if (0 == read_available() && !wait) {
+                return false;
+            }
 
-        void write(const void*, size_t);
-        void read(void*, size_t);
+            holder_t holder(m_used_items, m_free_items);
+            std::ignore = holder;
+
+            bool ok = m_items.pop(item);
+            std::ignore = ok;
+            assert(ok);
+
+            return true;
+        }
 
     private:
-        const size_t m_capacity;
-        semaphore_t* m_free_data;
-        semaphore_t* m_used_data;
-        size_t m_start = 0, m_end = 0;
-        std::unique_ptr<uint8_t[]> m_data;
+        semaphore_t *m_free_items, *m_used_items;
+        boost::lockfree::spsc_queue<T, boost::lockfree::capacity<n>> m_items;
     };
-
-    typedef std::shared_ptr<ring_buffer_t> ring_buffer_ptr_t;
 }
 
 #endif

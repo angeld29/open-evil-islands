@@ -85,8 +85,8 @@ namespace cursedearth
 
     size_t ce_semaphore_available(const semaphore_t* semaphore);
 
-    void ce_semaphore_acquire(semaphore_t* semaphore, size_t n);
-    void ce_semaphore_release(semaphore_t* semaphore, size_t n);
+    void ce_semaphore_acquire(semaphore_t* semaphore, size_t n = 1);
+    void ce_semaphore_release(semaphore_t* semaphore, size_t n = 1);
 
     bool ce_semaphore_try_acquire(semaphore_t* semaphore, size_t n);
 }

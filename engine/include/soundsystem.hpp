@@ -30,7 +30,7 @@ namespace cursedearth
         size_t size;
         bool (*ctor)(void);
         void (*dtor)(void);
-        bool (*write)(const void* block);
+        bool (*write)(const sound_block_ptr_t&);
     } ce_sound_system_vtable;
 
     class sound_system_t final: public singleton_t<sound_system_t>
@@ -39,7 +39,8 @@ namespace cursedearth
         sound_system_t();
         ~sound_system_t();
 
-        void write(void* block);
+        sound_block_ptr_t map();
+        void unmap(const sound_block_ptr_t&);
 
     private:
         void execute();

@@ -18,56 +18,70 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "logging.hpp"
 #include "soundbuffer.hpp"
 
 namespace cursedearth
 {
     sound_buffer_t::sound_buffer_t(const sound_format_t& format):
-        m_format(format),
-        m_buffer(format.sample_size * SOUND_CAPABILITY_SAMPLES_IN_BLOCK * SOUND_CAPABILITY_BLOCK_COUNT)
+        m_format(format)
     {
     }
 
-    bool sound_buffer_t::push(const void* array, bool wait)
+    void sound_buffer_t::write(const sound_block_ptr_t& block)
     {
-        const size_t available = m_buffer.write_available();
-        if (available < m_format.sample_size && !wait) {
-            return false;
+        m_buffer.push(block);
+    }
+
+    sound_block_ptr_t sound_buffer_t::read()
+    {
+        if (!m_current_block) {
+            m_buffer.pop(m_current_block);
         }
-        m_buffer.write(array, m_format.sample_size);
+        sound_block_ptr_t block = m_current_block;
+        m_current_block.reset();
+        return block;
+    }
+
+    bool sound_buffer_t::try_read_one_sample(uint8_t data[SOUND_CAPABILITY_MAX_SAMPLE_SIZE])
+    {
+        if (!m_current_block) {
+            if (!m_buffer.pop(m_current_block, false)) {
+                return false;
+            }
+        }
+
+        const size_t size = m_current_block->read(data, m_format.sample_size);
+        if (0 == size) {
+            release_block(m_current_block);
+            m_current_block.reset();
+            return try_read_one_sample(data);
+        }
+
+        assert(size == m_format.sample_size);
         return true;
     }
 
-    size_t sound_buffer_t::push(const void* array, size_t n, bool wait)
+    sound_block_ptr_t sound_buffer_t::acquire_block()
     {
-        const size_t available = m_buffer.write_available();
-        size_t size = m_format.sample_size * n;
-        if (available < size && !wait) {
-            size = available - (available % m_format.sample_size);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        std::ignore = lock;
+
+        if (m_blocks.empty()) {
+            return std::make_shared<sound_block_t>(m_format);
         }
-        m_buffer.write(array, size);
-        return size;
+
+        sound_block_ptr_t block = m_blocks.back();
+        m_blocks.pop_back();
+
+        block->reset();
+        return block;
     }
 
-    bool sound_buffer_t::pop(void* array, bool wait)
+    void sound_buffer_t::release_block(const sound_block_ptr_t& block)
     {
-        const size_t available = m_buffer.read_available();
-        if (available < m_format.sample_size && !wait) {
-            return false;
-        }
-        m_buffer.read(array, m_format.sample_size);
-        return true;
-    }
-
-    size_t sound_buffer_t::pop(void* array, size_t n, bool wait)
-    {
-        const size_t available = m_buffer.read_available();
-        size_t size = m_format.sample_size * n;
-        if (available < size && !wait) {
-            size = available - (available % m_format.sample_size);
-        }
-        m_buffer.read(array, size);
-        return size;
+        assert(m_format == block->format());
+        std::lock_guard<std::mutex> lock(m_mutex);
+        std::ignore = lock;
+        m_blocks.push_back(block);
     }
 }
