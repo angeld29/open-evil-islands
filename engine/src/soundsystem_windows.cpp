@@ -18,15 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cassert>
-#include <cstdio>
+#include "soundsystem.hpp"
 
 #include <windows.h>
 #include <mmsystem.h>
 #include <mmreg.h>
-
-#include "logging.hpp"
-#include "soundsystem.hpp"
 
 namespace cursedearth
 {

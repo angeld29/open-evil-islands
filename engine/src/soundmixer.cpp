@@ -90,7 +90,8 @@ namespace cursedearth
             sound_block_ptr_t block = sound_system_t::instance()->map();
             for (size_t i = 0; i < sound_capabilities_t::samples_in_block; ++i, data += block->format().sample_size) {
                 memset(data, 0, block->format().sample_size);
-                std::lock_guard<std::mutex> lock(m_mutex); std::ignore = lock;
+                std::lock_guard<std::mutex> lock(m_mutex);
+                std::ignore = lock;
                 for (const auto& buffer: m_buffers) {
                     if (buffer->try_read_one_sample(foreign_sample)) {
                         convert_sample(native_sample, foreign_sample, block->format(), buffer->format());

@@ -30,13 +30,6 @@
 
 namespace cursedearth
 {
-    size_t online_cpu_count()
-    {
-        SYSTEM_INFO info;
-        GetSystemInfo(&info);
-        return std::max<size_t>(1, info.dwNumberOfProcessors);
-    }
-
     ce_thread_id ce_thread_self(void)
     {
         return static_cast<ce_thread_id>(GetCurrentThreadId());

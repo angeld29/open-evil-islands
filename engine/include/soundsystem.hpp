@@ -21,23 +21,17 @@
 #ifndef CE_SOUNDSYSTEM_HPP
 #define CE_SOUNDSYSTEM_HPP
 
-#include "singleton.hpp"
 #include "soundbuffer.hpp"
 
 namespace cursedearth
 {
-    typedef struct {
-        size_t size;
-        bool (*ctor)(void);
-        void (*dtor)(void);
-        bool (*write)(const sound_block_ptr_t&);
-    } ce_sound_system_vtable;
-
     class sound_system_t final: public singleton_t<sound_system_t>
     {
     public:
         sound_system_t();
-        ~sound_system_t();
+        virtual ~sound_system_t();
+
+        const sound_format_t& format() const { return m_format; }
 
         sound_block_ptr_t map();
         void unmap(const sound_block_ptr_t&);
@@ -45,22 +39,17 @@ namespace cursedearth
     private:
         void execute();
 
-    private:
-        sound_buffer_ptr_t m_buffer;
-        std::atomic<bool> m_done;
-        std::thread m_thread;
+        virtual void write(const sound_block_ptr_t&) = 0;
 
-    public:
-        ce_sound_system_vtable vtable;
-        void* impl;
+    private:
+        const sound_format_t m_format;
+        sound_buffer_ptr_t m_buffer;
+        interruptible_thread_t m_thread;
     };
 
     typedef std::unique_ptr<sound_system_t> sound_system_ptr_t;
 
     sound_system_ptr_t make_sound_system();
-
-    ce_sound_system_vtable ce_sound_system_platform(void);
-    ce_sound_system_vtable ce_sound_system_null(void);
 }
 
 #endif

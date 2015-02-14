@@ -24,14 +24,13 @@ namespace cursedearth
 {
     thread_pool_t::thread_pool_t():
         singleton_t<thread_pool_t>(this),
-        m_idle_thread_count(online_cpu_count()),
+        m_idle_thread_count(std::max<size_t>(1, std::thread::hardware_concurrency())),
         m_done(false),
         m_threads(m_idle_thread_count)
     {
         for (auto& thread: m_threads) {
             thread = std::thread([this]{execute();});
         }
-        // TODO: std::thread::hardware_concurrency()
         ce_logging_info("thread pool: using up to %u threads", m_threads.size());
     }
 

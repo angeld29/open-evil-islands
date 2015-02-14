@@ -23,60 +23,38 @@
 
 namespace cursedearth
 {
-    semaphore_t* ce_semaphore_new(size_t n)
-    {
-        semaphore_t* semaphore = (semaphore_t*)ce_alloc_zero(sizeof(semaphore_t));
-        semaphore->available = n;
-        semaphore->mutex = ce_mutex_new();
-        semaphore->wait_condition = ce_wait_condition_new();
-        return semaphore;
-    }
+    thread_local interrupt_thread_flag_t g_interrupt_thread_flag;
 
-    void ce_semaphore_del(semaphore_t* semaphore)
+    semaphore_t::semaphore_t(size_t n):
+        m_available(n)
+    {}
+
+    void semaphore_t::acquire(size_t n)
     {
-        if (NULL != semaphore) {
-            ce_wait_condition_del(semaphore->wait_condition);
-            ce_mutex_del(semaphore->mutex);
-            ce_free(semaphore, sizeof(semaphore_t));
+        std::unique_lock<std::mutex> lock(m_mutex);
+        while (n > m_available && m_condition_variable.wait_for(lock, std::chrono::milliseconds(1)) == std::cv_status::timeout) {
+            interruption_point();
         }
+        m_available -= n;
     }
 
-    size_t ce_semaphore_available(const semaphore_t* semaphore)
+    void semaphore_t::release(size_t n)
     {
-        ce_mutex_lock(semaphore->mutex);
-        size_t n = semaphore->available;
-        ce_mutex_unlock(semaphore->mutex);
-        return n;
+        m_available += n;
+        m_condition_variable.notify_all();
     }
 
-    void ce_semaphore_acquire(semaphore_t* semaphore, size_t n)
+    bool semaphore_t::try_acquire(size_t n)
     {
-        ce_mutex_lock(semaphore->mutex);
-        while (n > semaphore->available) {
-            ce_wait_condition_wait(semaphore->wait_condition, semaphore->mutex);
+        if (n > m_available) {
+            return false;
         }
-        semaphore->available -= n;
-        ce_mutex_unlock(semaphore->mutex);
+        m_available -= n;
+        return true;
     }
 
-    void ce_semaphore_release(semaphore_t* semaphore, size_t n)
+    semaphore_ptr_t make_semaphore(size_t n)
     {
-        ce_mutex_lock(semaphore->mutex);
-        semaphore->available += n;
-        ce_wait_condition_wake_all(semaphore->wait_condition);
-        ce_mutex_unlock(semaphore->mutex);
-    }
-
-    bool ce_semaphore_try_acquire(semaphore_t* semaphore, size_t n)
-    {
-        ce_mutex_lock(semaphore->mutex);
-        bool result = true;
-        if (n > semaphore->available) {
-            result = false;
-        } else {
-            semaphore->available -= n;
-        }
-        ce_mutex_unlock(semaphore->mutex);
-        return result;
+        return std::make_shared<semaphore_t>(n);
     }
 }

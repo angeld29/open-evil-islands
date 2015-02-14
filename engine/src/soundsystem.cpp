@@ -18,12 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <functional>
-
-#include "alloc.hpp"
-#include "logging.hpp"
-#include "optionmanager.hpp"
 #include "soundsystem.hpp"
+#include "optionmanager.hpp"
 
 namespace cursedearth
 {
@@ -38,51 +34,18 @@ namespace cursedearth
         return true;
     }
 
-    ce_sound_system_vtable ce_sound_system_null()
-    {
-        ce_sound_system_vtable vt = { 0, ce_sound_system_null_ctor, NULL, ce_sound_system_null_write };
-        return vt;
-    }
-
-    void ce_sound_system_dtor()
-    {
-        if (NULL != sound_system_t::instance()) {
-            if (NULL != sound_system_t::instance()->vtable.dtor) {
-                (*sound_system_t::instance()->vtable.dtor)();
-            }
-            ce_free(sound_system_t::instance()->impl, sound_system_t::instance()->vtable.size);
-        }
-    }
-
-    bool ce_sound_system_ctor(ce_sound_system_vtable vtable)
-    {
-        sound_system_t::instance()->impl = ce_alloc_zero(vtable.size);
-        sound_system_t::instance()->vtable = vtable;
-
-        if (!(*vtable.ctor)()) {
-            ce_sound_system_dtor();
-            return false;
-        }
-
-        return true;
-    }
-
     sound_system_t::sound_system_t():
         singleton_t<sound_system_t>(this),
-        m_buffer(std::make_shared<sound_buffer_t>(make_native_format())),
-        m_done(false)
+        m_format(make_native_format()),
+        m_buffer(std::make_shared<sound_buffer_t>(m_format)),
+        m_thread([this]{execute();})
     {
-        if (!ce_sound_system_ctor(option_manager_t::instance()->disable_sound() ? ce_sound_system_null() : ce_sound_system_platform())) {
-            ce_sound_system_ctor(ce_sound_system_null());
-        }
-        m_thread = std::thread([this]{execute();});
     }
 
     sound_system_t::~sound_system_t()
     {
-        m_done = true;
+        m_thread.interrupt();
         m_thread.join();
-        ce_sound_system_dtor();
     }
 
     sound_block_ptr_t sound_system_t::map()
@@ -97,17 +60,18 @@ namespace cursedearth
 
     void sound_system_t::execute()
     {
-        while (!m_done) {
-            sound_block_ptr_t block = m_buffer->read();
-            if (!(*vtable.write)(block)) {
-                ce_logging_critical("sound system: could not write block");
+        try {
+            while (true) {
+                sound_block_ptr_t block = m_buffer->read();
+                write(block);
+                m_buffer->release_block(block);
             }
-            m_buffer->release_block(block);
+        } catch (const thread_interrupted_t&) {
+            ce_logging_info("sound system: interrupted");
+        } catch (const std::exception& error) {
+            ce_logging_fatal("sound system: %s", error.what());
+        } catch (...) {
+            ce_logging_fatal("sound system: unknown error");
         }
-    }
-
-    sound_system_ptr_t make_sound_system()
-    {
-        return make_unique<sound_system_t>();
     }
 }

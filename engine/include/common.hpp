@@ -21,8 +21,6 @@
 #ifndef CE_COMMON_HPP
 #define CE_COMMON_HPP
 
-#include <cstddef>
-#include <cstdint>
 #include <memory>
 #include <numeric>
 #include <algorithm>

@@ -34,8 +34,8 @@ namespace cursedearth
         m_texture(ce_texture_new("frame", NULL)),
         m_material(ce_material_new()),
         m_rgba_frame(ce_mmpfile_new(resource->width, resource->height, 1, CE_MMPFILE_FORMAT_R8G8B8A8, 0)),
-        m_prepared_frames(ce_semaphore_new(0)),
-        m_unprepared_frames(ce_semaphore_new(s_cache_size)),
+        m_prepared_frames(make_semaphore(0)),
+        m_unprepared_frames(make_semaphore(s_cache_size)),
         m_done(false)
     {
         const char* shaders[] = { "shaders/ycbcr2rgba.vert", "shaders/ycbcr2rgba.frag", NULL };
@@ -56,10 +56,8 @@ namespace cursedearth
     video_instance_t::~video_instance_t()
     {
         m_done = true;
-        ce_semaphore_release(m_unprepared_frames, 1);
+        m_unprepared_frames->release();
         m_thread.join();
-        ce_semaphore_del(m_unprepared_frames);
-        ce_semaphore_del(m_prepared_frames);
         for (size_t i = 0; i < s_cache_size; ++i) {
             ce_mmpfile_del(m_ycbcr_frames[i]);
         }
@@ -138,9 +136,9 @@ namespace cursedearth
         const int desired_frame = m_resource->fps * m_play_time;
 
         // if sound or time far away
-        while (m_frame < desired_frame && ce_semaphore_try_acquire(m_prepared_frames, 1)) {
+        while (m_frame < desired_frame && m_prepared_frames->try_acquire()) {
             // skip frames to reach desired frame
-            if (++m_frame == desired_frame || /* or use the closest frame */ 0 == ce_semaphore_available(m_prepared_frames)) {
+            if (++m_frame == desired_frame || /* or use the closest frame */ 0 == m_prepared_frames->available()) {
                 ce_mmpfile* ycbcr_frame = m_ycbcr_frames[m_frame % s_cache_size];
 
                 if (NULL != m_material->shader) {
@@ -166,19 +164,19 @@ namespace cursedearth
                 ce_texture_replace(m_texture, m_rgba_frame);
                 acquired = true;
             }
-            ce_semaphore_release(m_unprepared_frames, 1);
+            m_unprepared_frames->release();
         }
 
         // TODO: think again how to hold last frame
-        if (state_t::stopping == m_state && !acquired && 0 == ce_semaphore_available(m_prepared_frames)) {
+        if (state_t::stopping == m_state && !acquired && 0 == m_prepared_frames->available()) {
             m_state = state_t::stopped;
         }
     }
 
     void video_instance_t::execute()
     {
-        for (size_t i = ce_semaphore_available(m_prepared_frames); !m_done; ++i) {
-            ce_semaphore_acquire(m_unprepared_frames, 1);
+        for (size_t i = m_prepared_frames->available(); !m_done; ++i) {
+            m_unprepared_frames->acquire();
 
             if (!ce_video_resource_read(m_resource)) {
                 m_state = state_t::stopping;
@@ -205,7 +203,7 @@ namespace cursedearth
                 memcpy(cr_data + h * (ycbcr->crop_rectangle.width / 2), ycbcr->planes[2].data + cr_offset + h * ycbcr->planes[2].stride, ycbcr->crop_rectangle.width / 2);
             }
 
-            ce_semaphore_release(m_prepared_frames, 1);
+            m_prepared_frames->release();
         }
     }
 }

@@ -21,15 +21,20 @@
 #ifndef CE_CONCURRENCY_HPP
 #define CE_CONCURRENCY_HPP
 
+#include <memory>
 #include <atomic>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <future>
+#include <chrono>
+
+#include <cassert>
+
+#include <boost/noncopyable.hpp>
 
 namespace cursedearth
 {
-    size_t online_cpu_count();
-
     typedef unsigned long int ce_thread_id;
 
     struct ce_thread;
@@ -71,24 +76,77 @@ namespace cursedearth
     void ce_once_exec(ce_once* once, void (*proc)(), void* arg);
 
     /**
-     * @brief The semaphore class provides a general counting semaphore.
+     * @brief interruptible thread
      */
-    struct semaphore_t
+    class thread_interrupted_t {};
+
+    extern thread_local class interrupt_thread_flag_t
     {
-        size_t available;
-        ce_mutex* mutex;
-        ce_wait_condition* wait_condition;
+    public:
+        interrupt_thread_flag_t(): m_flag(false) {}
+
+        void operator =(bool flag) { m_flag = flag; }
+        explicit operator bool() const { return m_flag; }
+
+    private:
+        std::atomic<bool> m_flag;
+    } g_interrupt_thread_flag;
+
+    inline void interruption_point()
+    {
+        if (g_interrupt_thread_flag) {
+            throw thread_interrupted_t();
+        }
+    }
+
+    class interruptible_thread_t
+    {
+    public:
+        template <typename F>
+        interruptible_thread_t(F f)
+        {
+            std::promise<interrupt_thread_flag_t*> promise;
+            m_thread = std::thread([f, &promise] {
+                promise.set_value(&g_interrupt_thread_flag);
+                f();
+            });
+            m_flag = promise.get_future().get();
+        }
+
+        bool joinable() const { return m_thread.joinable(); }
+        void join() { m_thread.join(); }
+        void detach() { m_thread.detach(); }
+        void interrupt() { assert(m_flag); *m_flag = true; }
+
+    private:
+        std::thread m_thread;
+        interrupt_thread_flag_t* m_flag;
     };
 
-    semaphore_t* ce_semaphore_new(size_t n);
-    void ce_semaphore_del(semaphore_t* semaphore);
+    /**
+     * @brief the semaphore class provides a general counting semaphore
+     */
+    class semaphore_t: boost::noncopyable
+    {
+    public:
+        explicit semaphore_t(size_t n);
 
-    size_t ce_semaphore_available(const semaphore_t* semaphore);
+        size_t available() const { return m_available; }
 
-    void ce_semaphore_acquire(semaphore_t* semaphore, size_t n = 1);
-    void ce_semaphore_release(semaphore_t* semaphore, size_t n = 1);
+        void acquire(size_t n = 1);
+        void release(size_t n = 1);
 
-    bool ce_semaphore_try_acquire(semaphore_t* semaphore, size_t n);
+        bool try_acquire(size_t n = 1);
+
+    private:
+        std::atomic<size_t> m_available;
+        std::mutex m_mutex;
+        std::condition_variable m_condition_variable;
+    };
+
+    typedef std::shared_ptr<semaphore_t> semaphore_ptr_t;
+
+    semaphore_ptr_t make_semaphore(size_t n);
 }
 
 #endif

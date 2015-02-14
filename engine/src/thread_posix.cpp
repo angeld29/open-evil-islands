@@ -30,25 +30,8 @@
 #include "logging.hpp"
 #include "concurrency.hpp"
 
-#ifndef _SC_NPROCESSORS_ONLN
-#ifdef _SC_NPROC_ONLN
-#define _SC_NPROCESSORS_ONLN _SC_NPROC_ONLN
-#elif defined _SC_CRAY_NCPU
-#define _SC_NPROCESSORS_ONLN _SC_CRAY_NCPU
-#endif
-#endif
-
 namespace cursedearth
 {
-    size_t online_cpu_count()
-    {
-#ifdef _SC_NPROCESSORS_ONLN
-        return std::max<size_t>(1, sysconf(_SC_NPROCESSORS_ONLN));
-#else
-        return 1;
-#endif
-    }
-
     ce_thread_id ce_thread_self(void)
     {
         return pthread_self();

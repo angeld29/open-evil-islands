@@ -33,46 +33,38 @@ namespace cursedearth
     template <typename T, size_t n>
     class ring_buffer_t final: boost::noncopyable
     {
-        struct holder_t
+        struct acquire_in_ctor_release_in_dtor_t
         {
-            semaphore_t* for_release;
+            semaphore_ptr_t for_release;
 
-            holder_t(semaphore_t* for_acquire, semaphore_t* for_release):
+            acquire_in_ctor_release_in_dtor_t(const semaphore_ptr_t& for_acquire, const semaphore_ptr_t& for_release):
                 for_release(for_release)
             {
-                ce_semaphore_acquire(for_acquire);
+                for_acquire->acquire();
             }
 
-            ~holder_t()
+            ~acquire_in_ctor_release_in_dtor_t()
             {
-                ce_semaphore_release(for_release);
+                for_release->release();
             }
         };
 
     public:
         ring_buffer_t():
-            m_free_items(ce_semaphore_new(n)),
-            m_used_items(ce_semaphore_new(0))
-        {
-        }
-
-        ~ring_buffer_t()
-        {
-            ce_semaphore_del(m_used_items);
-            ce_semaphore_del(m_free_items);
-        }
+            m_free_items(make_semaphore(n)),
+            m_used_items(make_semaphore(0)) {}
 
         /**
          * @brief get write space to write elements
          * @return number of elements that can be pushed to the ring buffer
          */
-        size_t write_available() const { return ce_semaphore_available(m_free_items); }
+        size_t write_available() const { return m_free_items->available(); }
 
         /**
          * @brief get number of elements that are available for read
          * @return number of available elements that can be popped from the ring buffer
          */
-        size_t read_available() const { return ce_semaphore_available(m_used_items); }
+        size_t read_available() const { return m_used_items->available(); }
 
         /**
          * @brief pushes element to the ringbuffer
@@ -85,8 +77,8 @@ namespace cursedearth
                 return false;
             }
 
-            holder_t holder(m_free_items, m_used_items);
-            std::ignore = holder;
+            acquire_in_ctor_release_in_dtor_t helper(m_free_items, m_used_items);
+            std::ignore = helper;
 
             bool ok = m_items.push(item);
             std::ignore = ok;
@@ -106,8 +98,8 @@ namespace cursedearth
                 return false;
             }
 
-            holder_t holder(m_used_items, m_free_items);
-            std::ignore = holder;
+            acquire_in_ctor_release_in_dtor_t helper(m_used_items, m_free_items);
+            std::ignore = helper;
 
             bool ok = m_items.pop(item);
             std::ignore = ok;
@@ -117,7 +109,7 @@ namespace cursedearth
         }
 
     private:
-        semaphore_t *m_free_items, *m_used_items;
+        semaphore_ptr_t m_free_items, m_used_items;
         boost::lockfree::spsc_queue<T, boost::lockfree::capacity<n>> m_items;
     };
 }

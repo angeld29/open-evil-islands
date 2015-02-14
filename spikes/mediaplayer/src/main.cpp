@@ -141,6 +141,8 @@ int main(int argc, char* argv[])
         return root.exec();
     } catch (const std::exception& error) {
         ce_logging_fatal("media player: %s", error.what());
+    } catch (...) {
+        ce_logging_fatal("media player: unknown error");
     }
     return EXIT_FAILURE;
 }
