@@ -90,6 +90,7 @@ engine/include/singleton.hpp
 engine/include/soundblock.hpp
 engine/include/soundbuffer.hpp
 engine/include/soundcapabilities.hpp
+engine/include/sounddevice.hpp
 engine/include/soundformat.hpp
 engine/include/soundinstance.hpp
 engine/include/soundmanager.hpp
@@ -221,9 +222,9 @@ engine/src/soundobject.cpp
 engine/src/soundresource.cpp
 engine/src/soundresource_generic.cpp
 engine/src/soundsystem.cpp
-engine/src/soundsystem_generic.cpp
-engine/src/soundsystem_linux.cpp
-engine/src/soundsystem_windows.cpp
+engine/src/sounddevice_generic.cpp
+engine/src/sounddevice_linux.cpp
+engine/src/sounddevice_windows.cpp
 engine/src/sphere.cpp
 engine/src/string.cpp
 engine/src/systemevent.cpp
