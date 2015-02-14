@@ -21,10 +21,8 @@
 #ifndef CE_SINGLETON_HPP
 #define CE_SINGLETON_HPP
 
-#include <cassert>
-#include <atomic>
-
-#include <boost/noncopyable.hpp>
+#include "standardheaders.hpp"
+#include "thirdpartyheaders.hpp"
 
 namespace cursedearth
 {

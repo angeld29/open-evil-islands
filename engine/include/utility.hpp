@@ -21,8 +21,7 @@
 #ifndef CE_UTILITY_HPP
 #define CE_UTILITY_HPP
 
-#include <cstddef>
-#include <cstdint>
+#include "standardheaders.hpp"
 
 namespace cursedearth
 {

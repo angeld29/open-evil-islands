@@ -21,15 +21,8 @@
 #ifndef CE_CONCURRENCY_HPP
 #define CE_CONCURRENCY_HPP
 
-#include <memory>
-#include <atomic>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <future>
-#include <chrono>
-
-#include <boost/noncopyable.hpp>
+#include "standardheaders.hpp"
+#include "thirdpartyheaders.hpp"
 
 namespace cursedearth
 {

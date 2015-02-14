@@ -13,7 +13,7 @@ engine/include/byteorder.hpp
 engine/include/camera.hpp
 engine/include/camfile.hpp
 engine/include/color.hpp
-engine/include/common.hpp
+engine/include/commonheaders.hpp
 engine/include/complection.hpp
 engine/include/concurrency.hpp
 engine/include/configfile.hpp
@@ -99,12 +99,14 @@ engine/include/soundobject.hpp
 engine/include/soundresource.hpp
 engine/include/soundsystem.hpp
 engine/include/sphere.hpp
+engine/include/standardheaders.hpp
 engine/include/string.hpp
 engine/include/systemevent.hpp
 engine/include/systeminfo.hpp
 engine/include/terrain.hpp
 engine/include/texture.hpp
 engine/include/texturemanager.hpp
+engine/include/thirdpartyheaders.hpp
 engine/include/threadpool.hpp
 engine/include/timer.hpp
 engine/include/transform.hpp

@@ -21,7 +21,7 @@
 #ifndef CE_RENDERWINDOW_HPP
 #define CE_RENDERWINDOW_HPP
 
-#include "common.hpp"
+#include "commonheaders.hpp"
 #include "input.hpp"
 #include "display.hpp"
 #include "graphicscontext.hpp"

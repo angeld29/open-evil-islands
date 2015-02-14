@@ -21,7 +21,7 @@
 #ifndef CE_OPTIONMANAGER_HPP
 #define CE_OPTIONMANAGER_HPP
 
-#include "common.hpp"
+#include "commonheaders.hpp"
 #include "optparse.hpp"
 
 #include <boost/filesystem/path.hpp>

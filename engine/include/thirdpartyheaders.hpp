@@ -18,24 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_COMMON_HPP
-#define CE_COMMON_HPP
+#ifndef CE_THIRDPARTYHEADERS_HPP
+#define CE_THIRDPARTYHEADERS_HPP
 
-#include <memory>
-#include <numeric>
-#include <algorithm>
-#include <functional>
-#include <utility>
-#include <tuple>
-#include <string>
-#include <vector>
-#include <list>
-
-#include "makeunique.hpp"
-#include "concurrency.hpp"
-#include "singleton.hpp"
-#include "utility.hpp"
-#include "exception.hpp"
-#include "logging.hpp"
+#include <boost/noncopyable.hpp>
+#include <boost/format.hpp>
 
 #endif

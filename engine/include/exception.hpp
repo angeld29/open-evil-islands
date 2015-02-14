@@ -21,9 +21,8 @@
 #ifndef CE_EXCEPTION_HPP
 #define CE_EXCEPTION_HPP
 
-#include <stdexcept>
-
-#include <boost/format.hpp>
+#include "standardheaders.hpp"
+#include "thirdpartyheaders.hpp"
 
 namespace cursedearth
 {

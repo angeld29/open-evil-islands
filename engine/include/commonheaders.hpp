@@ -18,36 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDMIXER_HPP
-#define CE_SOUNDMIXER_HPP
+#ifndef CE_COMMONHEADERS_HPP
+#define CE_COMMONHEADERS_HPP
 
-#include "soundbuffer.hpp"
-
-#include <list>
-
-namespace cursedearth
-{
-    class sound_mixer_t final: public singleton_t<sound_mixer_t>
-    {
-    public:
-        sound_mixer_t();
-        ~sound_mixer_t();
-
-        sound_buffer_ptr_t make_buffer(const sound_format_t&);
-
-    private:
-        void execute();
-
-    private:
-        std::list<sound_buffer_ptr_t> m_buffers;
-        std::atomic<bool> m_done;
-        std::thread m_thread;
-        std::mutex m_mutex;
-    };
-
-    typedef std::unique_ptr<sound_mixer_t> sound_mixer_ptr_t;
-
-    sound_mixer_ptr_t make_sound_mixer();
-}
+#include "makeunique.hpp"
+#include "concurrency.hpp"
+#include "singleton.hpp"
+#include "utility.hpp"
+#include "exception.hpp"
+#include "logging.hpp"
 
 #endif
