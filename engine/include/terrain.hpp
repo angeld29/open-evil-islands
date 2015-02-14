@@ -30,6 +30,7 @@
 #include "material.hpp"
 #include "scenenode.hpp"
 #include "renderqueue.hpp"
+#include "concurrency.hpp"
 
 namespace cursedearth
 {
@@ -58,7 +59,7 @@ namespace cursedearth
         ce_rendergroup* rendergroups[CE_MPRFILE_MATERIAL_COUNT];
         ce_vector* tile_mmpfiles;
         ce_vector* tile_textures;
-        ce_once* tile_once;
+        std::once_flag* tile_once;
         ce_vector* sectors;
         ce_scenenode* scenenode;
     };

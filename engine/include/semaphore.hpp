@@ -18,35 +18,37 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDMIXER_HPP
-#define CE_SOUNDMIXER_HPP
+#ifndef CE_SEMAPHORE_HPP
+#define CE_SEMAPHORE_HPP
 
-#include "soundbuffer.hpp"
-
-#include <list>
+#include "commonheaders.hpp"
 
 namespace cursedearth
 {
-    class sound_mixer_t final: public singleton_t<sound_mixer_t>
+    /**
+     * @brief the semaphore class provides a general counting semaphore
+     */
+    class semaphore_t: untransferable_t
     {
     public:
-        sound_mixer_t();
-        ~sound_mixer_t();
+        explicit semaphore_t(size_t n);
 
-        sound_buffer_ptr_t make_buffer(const sound_format_t&);
+        size_t available() const { return m_available; }
+
+        void acquire(size_t n = 1);
+        void release(size_t n = 1);
+
+        bool try_acquire(size_t n = 1);
 
     private:
-        void execute();
-
-    private:
-        std::list<sound_buffer_ptr_t> m_buffers;
+        std::atomic<size_t> m_available;
         std::mutex m_mutex;
-        thread_t m_thread;
+        std::condition_variable m_condition_variable;
     };
 
-    typedef std::unique_ptr<sound_mixer_t> sound_mixer_ptr_t;
+    typedef std::shared_ptr<semaphore_t> semaphore_ptr_t;
 
-    sound_mixer_ptr_t make_sound_mixer();
+    semaphore_ptr_t make_semaphore(size_t n);
 }
 
 #endif

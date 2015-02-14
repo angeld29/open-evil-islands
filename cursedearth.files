@@ -84,6 +84,7 @@ engine/include/root.hpp
 engine/include/scenemanager.hpp
 engine/include/scenenode.hpp
 engine/include/segment.hpp
+engine/include/semaphore.hpp
 engine/include/shader.hpp
 engine/include/shadermanager.hpp
 engine/include/singleton.hpp
@@ -215,6 +216,7 @@ engine/src/resourcemanager.cpp
 engine/src/root.cpp
 engine/src/scenemanager.cpp
 engine/src/scenenode.cpp
+engine/src/semaphore.cpp
 engine/src/shader_opengl.cpp
 engine/src/shadermanager.cpp
 engine/src/soundblock.cpp

@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "concurrency.hpp"
+#include "semaphore.hpp"
 #include "mmpfile.hpp"
 #include "texture.hpp"
 #include "material.hpp"

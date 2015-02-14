@@ -18,35 +18,41 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_SOUNDMIXER_HPP
-#define CE_SOUNDMIXER_HPP
-
-#include "soundbuffer.hpp"
-
-#include <list>
+#include "semaphore.hpp"
 
 namespace cursedearth
 {
-    class sound_mixer_t final: public singleton_t<sound_mixer_t>
+    semaphore_t::semaphore_t(size_t n):
+        m_available(n)
     {
-    public:
-        sound_mixer_t();
-        ~sound_mixer_t();
+    }
 
-        sound_buffer_ptr_t make_buffer(const sound_format_t&);
+    void semaphore_t::acquire(size_t n)
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        while (n > m_available && m_condition_variable.wait_for(lock, std::chrono::milliseconds(1)) == std::cv_status::timeout) {
+            interruption_point();
+        }
+        m_available -= n;
+    }
 
-    private:
-        void execute();
+    void semaphore_t::release(size_t n)
+    {
+        m_available += n;
+        m_condition_variable.notify_all();
+    }
 
-    private:
-        std::list<sound_buffer_ptr_t> m_buffers;
-        std::mutex m_mutex;
-        thread_t m_thread;
-    };
+    bool semaphore_t::try_acquire(size_t n)
+    {
+        if (n > m_available) {
+            return false;
+        }
+        m_available -= n;
+        return true;
+    }
 
-    typedef std::unique_ptr<sound_mixer_t> sound_mixer_ptr_t;
-
-    sound_mixer_ptr_t make_sound_mixer();
+    semaphore_ptr_t make_semaphore(size_t n)
+    {
+        return std::make_shared<semaphore_t>(n);
+    }
 }
-
-#endif

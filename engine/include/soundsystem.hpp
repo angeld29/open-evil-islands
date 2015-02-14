@@ -43,7 +43,7 @@ namespace cursedearth
         const sound_format_t m_format;
         sound_buffer_ptr_t m_buffer;
         sound_device_ptr_t m_device;
-        interruptible_thread_t m_thread;
+        thread_t m_thread;
     };
 
     typedef std::unique_ptr<sound_system_t> sound_system_ptr_t;

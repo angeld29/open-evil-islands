@@ -187,42 +187,4 @@ namespace cursedearth
 
         ce_mutex_lock(mutex);
     }
-
-    struct ce_once {
-        pthread_once_t handle;
-    };
-
-    ce_once* ce_once_new(void)
-    {
-        ce_once* once = (ce_once*)ce_alloc_zero(sizeof(ce_once));
-        once->handle = PTHREAD_ONCE_INIT;
-        return once;
-    }
-
-    void ce_once_del(ce_once* once)
-    {
-        ce_free(once, sizeof(ce_once));
-    }
-
-    pthread_once_t ce_once_once = PTHREAD_ONCE_INIT;
-    pthread_key_t ce_once_key;
-
-    void ce_once_key_init()
-    {
-        pthread_key_create(&ce_once_key, NULL);
-    }
-
-    void ce_once_wrap(void)
-    {
-        routine_t* routine = (routine_t*)pthread_getspecific(ce_once_key);
-        (*routine->proc)(routine->arg);
-    }
-
-    void ce_once_exec(ce_once* once, void (*proc)(), void* arg)
-    {
-        pthread_once(&ce_once_once, ce_once_key_init);
-        routine_t routine = { (void(*)(void*))proc, arg };
-        pthread_setspecific(ce_once_key, &routine);
-        pthread_once(&once->handle, ce_once_wrap);
-    }
 }

@@ -18,25 +18,23 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "logging.hpp"
-#include "soundmixer.hpp"
 #include "soundinstance.hpp"
+#include "soundmixer.hpp"
 
 namespace cursedearth
 {
     sound_instance_t::sound_instance_t(ce_sound_resource* resource):
-        m_resource(resource),
-        m_buffer(sound_mixer_t::instance()->make_buffer(resource->sound_format)),
         m_state(SOUND_INSTANCE_STATE_STOPPED),
         m_time(0.0f),
-        m_done(false),
-        m_thread([this]{execute();})
+        m_resource(resource),
+        m_buffer(sound_mixer_t::instance()->make_buffer(resource->sound_format)),
+        m_thread("sound instance", [this]{execute();})
     {
     }
 
     sound_instance_t::~sound_instance_t()
     {
-        m_done = true;
+        m_thread.interrupt();
         m_thread.join();
         ce_sound_resource_del(m_resource);
     }
@@ -61,7 +59,7 @@ namespace cursedearth
 
     void sound_instance_t::execute()
     {
-        while (!m_done) {
+        while (true) {
             switch (m_state) {
             case SOUND_INSTANCE_STATE_PLAYING:
                 execute_playing();

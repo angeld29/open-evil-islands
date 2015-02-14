@@ -25,8 +25,8 @@
 #include "untransferable.hpp"
 #include "utility.hpp"
 #include "singleton.hpp"
-#include "concurrency.hpp"
 #include "exception.hpp"
 #include "logging.hpp"
+#include "concurrency.hpp"
 
 #endif

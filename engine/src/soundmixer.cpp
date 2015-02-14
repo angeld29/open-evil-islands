@@ -25,15 +25,12 @@ namespace cursedearth
 {
     sound_mixer_t::sound_mixer_t():
         singleton_t<sound_mixer_t>(this),
-        m_done(false),
-        m_thread([this]{execute();})
+        m_thread("sound mixer", [this]{execute();})
     {
     }
 
     sound_mixer_t::~sound_mixer_t()
     {
-        m_done = true;
-        m_thread.join();
         if (!m_buffers.empty()) {
             ce_logging_warning("sound mixer: some buffers have not been unregistered");
         }
@@ -83,20 +80,20 @@ namespace cursedearth
         uint8_t array[sound_options_t::max_block_size];
         uint8_t native_sample[sound_options_t::max_sample_size];
         uint8_t foreign_sample[sound_options_t::max_sample_size];
-
-        while (!m_done) {
+        while (true) {
             uint8_t* data = array;
-            sound_block_ptr_t block = sound_system_t::instance()->map();
-            for (size_t i = 0; i < sound_options_t::samples_in_block; ++i, data += block->format().sample_size) {
-                memset(data, 0, block->format().sample_size);
+            for (size_t i = 0; i < sound_options_t::samples_in_block; ++i, data += sound_system_t::instance()->format().sample_size) {
+                std::fill_n(data, sound_system_t::instance()->format().sample_size, 0);
                 std::lock_guard<std::mutex> lock(m_mutex); std::ignore = lock;
                 for (const auto& buffer: m_buffers) {
                     if (buffer->try_read_one_sample(foreign_sample)) {
-                        convert_sample(native_sample, foreign_sample, block->format(), buffer->format());
+                        convert_sample(native_sample, foreign_sample, sound_system_t::instance()->format(), buffer->format());
                         mix_sample(data, native_sample, buffer->format());
                     }
                 }
+                interruption_point();
             }
+            sound_block_ptr_t block = sound_system_t::instance()->map();
             block->write(array, block->format().sample_size * sound_options_t::samples_in_block);
             sound_system_t::instance()->unmap(block);
         }

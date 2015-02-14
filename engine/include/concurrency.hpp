@@ -21,12 +21,92 @@
 #ifndef CE_CONCURRENCY_HPP
 #define CE_CONCURRENCY_HPP
 
-#include "standardheaders.hpp"
-#include "thirdpartyheaders.hpp"
+#include "logging.hpp"
 #include "untransferable.hpp"
 
 namespace cursedearth
 {
+    /**
+     * @brief thread with interruption support
+     */
+    class thread_interrupted_t {};
+
+    extern thread_local class thread_interrupt_flag_t
+    {
+    public:
+        thread_interrupt_flag_t(): m_flag(false) {}
+
+        void operator =(bool flag) { m_flag = flag; }
+        explicit operator bool() const { return m_flag; }
+
+    private:
+        std::atomic<bool> m_flag;
+    } g_thread_interrupt_flag;
+
+    inline void interruption_point()
+    {
+        if (g_thread_interrupt_flag) {
+            throw thread_interrupted_t();
+        }
+    }
+
+    class thread_t: untransferable_t
+    {
+        struct wrap_t
+        {
+            std::string token;
+            std::function<void ()> function;
+
+            wrap_t(const std::string& token, const std::function<void ()>& function): token(token), function(function) {}
+
+            void operator ()() const
+            {
+                try {
+                    function();
+                } catch (const thread_interrupted_t&) {
+                    ce_logging_debug("%s: interrupted", token.c_str());
+                } catch (const std::exception& error) {
+                    ce_logging_fatal("%s: %s", token.c_str(), error.what());
+                } catch (...) {
+                    ce_logging_fatal("%s: unknown error", token.c_str());
+                }
+            }
+        };
+
+    public:
+        template <typename function_t>
+        thread_t(function_t function)
+        {
+            std::promise<thread_interrupt_flag_t*> promise;
+            m_thread = std::thread([function, &promise] {
+                promise.set_value(&g_thread_interrupt_flag);
+                function();
+            });
+            m_flag = promise.get_future().get();
+        }
+
+        template <typename function_t>
+        thread_t(const std::string& token, function_t function):
+            thread_t(wrap_t(token, function)) {}
+
+        ~thread_t()
+        {
+            interrupt();
+            if (joinable()) {
+                join();
+            }
+        }
+
+        bool joinable() const { return m_thread.joinable(); }
+        void join() { m_thread.join(); }
+        void detach() { m_thread.detach(); }
+        void interrupt() { *m_flag = true; }
+
+    private:
+        std::thread m_thread;
+        thread_interrupt_flag_t* m_flag;
+    };
+
     typedef unsigned long int ce_thread_id;
 
     struct ce_thread;
@@ -56,95 +136,6 @@ namespace cursedearth
     void ce_wait_condition_wake_one(ce_wait_condition* wait_condition);
     void ce_wait_condition_wake_all(ce_wait_condition* wait_condition);
     void ce_wait_condition_wait(ce_wait_condition* wait_condition, ce_mutex* mutex);
-
-    /**
-     * @brief The once struct provides an once-only initialization.
-     */
-    typedef struct ce_once ce_once;
-
-    ce_once* ce_once_new(void);
-    void ce_once_del(ce_once* once);
-
-    void ce_once_exec(ce_once* once, void (*proc)(), void* arg);
-
-    /**
-     * @brief interruptible thread
-     */
-    class thread_interrupted_t {};
-
-    extern thread_local class interrupt_thread_flag_t
-    {
-    public:
-        interrupt_thread_flag_t(): m_flag(false) {}
-
-        void operator =(bool flag) { m_flag = flag; }
-        explicit operator bool() const { return m_flag; }
-
-    private:
-        std::atomic<bool> m_flag;
-    } g_interrupt_thread_flag;
-
-    inline void interruption_point()
-    {
-        if (g_interrupt_thread_flag) {
-            throw thread_interrupted_t();
-        }
-    }
-
-    class interruptible_thread_t
-    {
-    public:
-        template <typename F>
-        interruptible_thread_t(F f)
-        {
-            std::promise<interrupt_thread_flag_t*> promise;
-            m_thread = std::thread([f, &promise] {
-                promise.set_value(&g_interrupt_thread_flag);
-                f();
-            });
-            m_flag = promise.get_future().get();
-        }
-
-        ~interruptible_thread_t()
-        {
-            interrupt();
-            join();
-        }
-
-        bool joinable() const { return m_thread.joinable(); }
-        void join() { m_thread.join(); }
-        void detach() { m_thread.detach(); }
-        void interrupt() { *m_flag = true; }
-
-    private:
-        std::thread m_thread;
-        interrupt_thread_flag_t* m_flag;
-    };
-
-    /**
-     * @brief the semaphore class provides a general counting semaphore
-     */
-    class semaphore_t: untransferable_t
-    {
-    public:
-        explicit semaphore_t(size_t n);
-
-        size_t available() const { return m_available; }
-
-        void acquire(size_t n = 1);
-        void release(size_t n = 1);
-
-        bool try_acquire(size_t n = 1);
-
-    private:
-        std::atomic<size_t> m_available;
-        std::mutex m_mutex;
-        std::condition_variable m_condition_variable;
-    };
-
-    typedef std::shared_ptr<semaphore_t> semaphore_ptr_t;
-
-    semaphore_ptr_t make_semaphore(size_t n);
 }
 
 #endif

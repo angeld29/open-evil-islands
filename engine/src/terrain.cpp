@@ -65,7 +65,7 @@ namespace cursedearth
             sector->texture = ce_texture_add_ref(ce_texture_manager_get("default0"));
 
             // tile textures are necessary for geometry creation
-            ce_once_exec(sector->terrain->tile_once, (void(*)())ce_terrain_load_tile_textures, sector->terrain);
+            std::call_once(*sector->terrain->tile_once, ce_terrain_load_tile_textures, sector->terrain);
         } else {
             sector->texture = ce_texture_new(sector->name->str, sector->mmpfile);
 
@@ -111,7 +111,7 @@ namespace cursedearth
                 ce_mmpfile_del(sector->mmpfile);
 
                 // lazy loading tile mmp files
-                ce_once_exec(sector->terrain->tile_once, (void(*)())ce_terrain_load_tile_mmpfiles, sector->terrain);
+                std::call_once(*sector->terrain->tile_once, ce_terrain_load_tile_mmpfiles, sector->terrain);
 
                 sector->mmpfile = ce_mpr_generate_texture(sector->terrain->mprfile, sector->terrain->tile_mmpfiles, sector->x, sector->z, sector->water);
 
@@ -171,7 +171,7 @@ namespace cursedearth
         terrain->rendergroups[CE_MPRFILE_MATERIAL_WATER] = ce_renderqueue_get(renderqueue, 100, terrain->materials[CE_MPRFILE_MATERIAL_WATER]);
         terrain->tile_mmpfiles = ce_vector_new_reserved(mprfile->texture_count);
         terrain->tile_textures = ce_vector_new_reserved(mprfile->texture_count);
-        terrain->tile_once = ce_once_new();
+        terrain->tile_once = new std::once_flag;
         terrain->sectors = ce_vector_new_reserved(2 * mprfile->sector_x_count * mprfile->sector_z_count);
         terrain->scenenode = ce_scenenode_new(scenenode);
         terrain->scenenode->position = *position;
@@ -207,7 +207,7 @@ namespace cursedearth
             ce_scenenode_del(terrain->scenenode);
             ce_vector_for_each(terrain->sectors, (void(*)(void*))ce_terrain_sector_del);
             ce_vector_del(terrain->sectors);
-            ce_once_del(terrain->tile_once);
+            delete terrain->tile_once;
             ce_vector_for_each(terrain->tile_textures, (void(*)(void*))ce_texture_del);
             ce_vector_del(terrain->tile_textures);
             ce_vector_for_each(terrain->tile_mmpfiles, (void(*)(void*))ce_mmpfile_del);

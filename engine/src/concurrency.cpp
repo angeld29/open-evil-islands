@@ -18,43 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "alloc.hpp"
 #include "concurrency.hpp"
 
 namespace cursedearth
 {
-    thread_local interrupt_thread_flag_t g_interrupt_thread_flag;
-
-    semaphore_t::semaphore_t(size_t n):
-        m_available(n)
-    {}
-
-    void semaphore_t::acquire(size_t n)
-    {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        while (n > m_available && m_condition_variable.wait_for(lock, std::chrono::milliseconds(1)) == std::cv_status::timeout) {
-            interruption_point();
-        }
-        m_available -= n;
-    }
-
-    void semaphore_t::release(size_t n)
-    {
-        m_available += n;
-        m_condition_variable.notify_all();
-    }
-
-    bool semaphore_t::try_acquire(size_t n)
-    {
-        if (n > m_available) {
-            return false;
-        }
-        m_available -= n;
-        return true;
-    }
-
-    semaphore_ptr_t make_semaphore(size_t n)
-    {
-        return std::make_shared<semaphore_t>(n);
-    }
+    thread_local thread_interrupt_flag_t g_thread_interrupt_flag;
 }

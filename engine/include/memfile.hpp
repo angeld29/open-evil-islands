@@ -21,8 +21,7 @@
 #ifndef CE_MEMFILE_HPP
 #define CE_MEMFILE_HPP
 
-#include <boost/filesystem/path.hpp>
-
+#include "commonheaders.hpp"
 #include "byteorder.hpp"
 
 namespace cursedearth

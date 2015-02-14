@@ -21,10 +21,6 @@
 #ifndef CE_SOUNDINSTANCE_HPP
 #define CE_SOUNDINSTANCE_HPP
 
-#include <atomic>
-#include <thread>
-#include <memory>
-
 #include "soundresource.hpp"
 
 namespace cursedearth
@@ -52,12 +48,11 @@ namespace cursedearth
         void execute();
 
     private:
-        ce_sound_resource* m_resource;
-        sound_buffer_ptr_t m_buffer;
         std::atomic<sound_instance_state_t> m_state;
         std::atomic<float> m_time;
-        std::atomic<bool> m_done;
-        std::thread m_thread;
+        ce_sound_resource* m_resource;
+        sound_buffer_ptr_t m_buffer;
+        thread_t m_thread;
     };
 
     typedef std::shared_ptr<sound_instance_t> sound_instance_ptr_t;

@@ -21,7 +21,7 @@
 #ifndef CE_RINGBUFFER_HPP
 #define CE_RINGBUFFER_HPP
 
-#include "commonheaders.hpp"
+#include "semaphore.hpp"
 
 #include <boost/lockfree/spsc_queue.hpp>
 

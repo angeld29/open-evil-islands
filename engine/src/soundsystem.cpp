@@ -28,8 +28,9 @@ namespace cursedearth
         m_format(make_default_format()),
         m_buffer(std::make_shared<sound_buffer_t>(m_format)),
         m_device(option_manager_t::instance()->disable_sound() ? make_null_sound_device(m_format) : make_sound_device(m_format)),
-        m_thread([this]{execute();})
-    {}
+        m_thread("sound system", [this]{execute();})
+    {
+    }
 
     sound_block_ptr_t sound_system_t::map()
     {
@@ -43,18 +44,10 @@ namespace cursedearth
 
     void sound_system_t::execute()
     {
-        try {
-            while (true) {
-                sound_block_ptr_t block = m_buffer->pop();
-                m_device->write(block);
-                m_buffer->release(block);
-            }
-        } catch (const thread_interrupted_t&) {
-            ce_logging_info("sound system: interrupted");
-        } catch (const std::exception& error) {
-            ce_logging_fatal("sound system: %s", error.what());
-        } catch (...) {
-            ce_logging_fatal("sound system: unknown error");
+        while (true) {
+            sound_block_ptr_t block = m_buffer->pop();
+            m_device->write(block);
+            m_buffer->release(block);
         }
     }
 

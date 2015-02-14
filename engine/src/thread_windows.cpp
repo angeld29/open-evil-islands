@@ -249,39 +249,4 @@ namespace cursedearth
 
         LeaveCriticalSection(&wait_condition->mutex);
     }
-
-    struct ce_once
-    {
-        bool inited;
-        CRITICAL_SECTION mutex;
-    };
-
-    ce_once* ce_once_new(void)
-    {
-        ce_once* once = (ce_once*)ce_alloc_zero(sizeof(ce_once));
-        InitializeCriticalSection(&once->mutex);
-        return once;
-    }
-
-    void ce_once_del(ce_once* once)
-    {
-        if (NULL != once) {
-            DeleteCriticalSection(&once->mutex);
-            ce_free(once, sizeof(ce_once));
-        }
-    }
-
-    void ce_once_exec(ce_once* once, void (*proc)(), void* arg)
-    {
-        // double-checked locking
-        // another solution ?
-        if (!once->inited) {
-            EnterCriticalSection(&once->mutex);
-            if (!once->inited) {
-                ((void (*)(void*))(*proc))(arg);
-                once->inited = true;
-            }
-            LeaveCriticalSection(&once->mutex);
-        }
-    }
 }
