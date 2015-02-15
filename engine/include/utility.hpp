@@ -22,6 +22,7 @@
 #define CE_UTILITY_HPP
 
 #include "standardheaders.hpp"
+#include "thirdpartyheaders.hpp"
 
 namespace cursedearth
 {

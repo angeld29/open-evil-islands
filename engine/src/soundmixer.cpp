@@ -39,7 +39,8 @@ namespace cursedearth
     sound_buffer_ptr_t sound_mixer_t::make_buffer(const sound_format_t& format)
     {
         sound_buffer_ptr_t buffer = std::make_shared<sound_buffer_t>(format);
-        std::lock_guard<std::mutex> lock(m_mutex); std::ignore = lock;
+        std::lock_guard<std::mutex> lock(m_mutex);
+        std::ignore = lock;
         m_buffers.push_back(buffer);
         return buffer;
     }
@@ -84,7 +85,8 @@ namespace cursedearth
             uint8_t* data = array;
             for (size_t i = 0; i < sound_options_t::samples_in_block; ++i, data += sound_system_t::instance()->format().sample_size) {
                 std::fill_n(data, sound_system_t::instance()->format().sample_size, 0);
-                std::lock_guard<std::mutex> lock(m_mutex); std::ignore = lock;
+                std::lock_guard<std::mutex> lock(m_mutex);
+                std::ignore = lock;
                 for (const auto& buffer: m_buffers) {
                     if (buffer->try_read_one_sample(foreign_sample)) {
                         convert_sample(native_sample, foreign_sample, sound_system_t::instance()->format(), buffer->format());

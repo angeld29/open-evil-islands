@@ -29,21 +29,26 @@ namespace cursedearth
 
     void semaphore_t::acquire(size_t n)
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        while (n > m_available && m_condition_variable.wait_for(lock, std::chrono::milliseconds(1)) == std::cv_status::timeout) {
-            interruption_point();
+        interruption_point();
+        custom_lock<std::mutex> lock(m_condition_variable, m_mutex);
+        while (n > m_available) {
+            m_condition_variable.wait(lock);
         }
         m_available -= n;
     }
 
     void semaphore_t::release(size_t n)
     {
+        interruption_point();
         m_available += n;
+        custom_lock<std::mutex> lock(m_condition_variable, m_mutex);
+        std::ignore = lock;
         m_condition_variable.notify_all();
     }
 
     bool semaphore_t::try_acquire(size_t n)
     {
+        interruption_point();
         if (n > m_available) {
             return false;
         }

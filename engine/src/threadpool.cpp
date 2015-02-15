@@ -29,17 +29,22 @@ namespace cursedearth
         m_threads(m_idle_thread_count)
     {
         for (auto& thread: m_threads) {
-            thread = std::thread([this]{execute();});
+            thread = thread_t("thread pool", [this]{execute();});
         }
         ce_logging_info("thread pool: using up to %u threads", m_threads.size());
     }
 
     thread_pool_t::~thread_pool_t()
     {
-        m_done = true;
-        m_idle.notify_all();
+        {
+            m_done = true;
+            std::unique_lock<std::mutex> lock(m_mutex);
+            std::ignore = lock;
+            m_idle.notify_all();
+        }
 
         for (auto& thread: m_threads) {
+            thread.interrupt();
             thread.join();
         }
 

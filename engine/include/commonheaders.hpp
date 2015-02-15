@@ -28,5 +28,7 @@
 #include "exception.hpp"
 #include "logging.hpp"
 #include "thread.hpp"
+#include "conditionvariable.hpp"
+#include "customlock.hpp"
 
 #endif

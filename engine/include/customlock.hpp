@@ -18,39 +18,40 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_UNTRANSFERABLE_HPP
-#define CE_UNTRANSFERABLE_HPP
+#ifndef CE_CUSTOMLOCK_HPP
+#define CE_CUSTOMLOCK_HPP
 
-#include "standardheaders.hpp"
-#include "thirdpartyheaders.hpp"
+#include "threadflag.hpp"
 
 namespace cursedearth
 {
-    class uncopyable_t
+    template <typename lockable_t>
+    class custom_lock: untransferable_t
     {
-    protected:
-        uncopyable_t() = default;
-        ~uncopyable_t() = default;
+    public:
+        custom_lock(condition_variable_t& condition, lockable_t& lockable):
+            m_lockable(lockable)
+        {
+            g_thread_flag.set_condition_variable(condition);
+        }
 
-        uncopyable_t(const uncopyable_t&) = delete;
-        uncopyable_t& operator =(const uncopyable_t&) = delete;
-    };
+        ~custom_lock()
+        {
+            g_thread_flag.reset_condition_variable();
+        }
 
-    class unmovable_t
-    {
-    protected:
-        unmovable_t() = default;
-        ~unmovable_t() = default;
+        void lock()
+        {
+            g_thread_flag.lock(m_lockable);
+        }
 
-        unmovable_t(unmovable_t&&) = delete;
-        unmovable_t& operator =(unmovable_t&&) = delete;
-    };
+        void unlock()
+        {
+            g_thread_flag.unlock(m_lockable);
+        }
 
-    class untransferable_t: uncopyable_t, unmovable_t
-    {
-    protected:
-        untransferable_t() = default;
-        ~untransferable_t() = default;
+    private:
+        lockable_t& m_lockable;
     };
 }
 

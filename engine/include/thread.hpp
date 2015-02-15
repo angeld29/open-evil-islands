@@ -26,36 +26,22 @@
 
 namespace cursedearth
 {
+    class thread_flag_t;
+    extern thread_local thread_flag_t g_thread_flag;
+
+    class thread_interrupted_t {};
+
+    void interruption_point();
+
     /**
      * @brief thread with interruption support
      */
-    class thread_interrupted_t {};
-
-    extern thread_local class thread_interrupt_flag_t
-    {
-    public:
-        thread_interrupt_flag_t(): m_flag(false) {}
-
-        void operator =(bool flag) { m_flag = flag; }
-        explicit operator bool() const { return m_flag; }
-
-    private:
-        std::atomic<bool> m_flag;
-    } g_thread_interrupt_flag;
-
-    inline void interruption_point()
-    {
-        if (g_thread_interrupt_flag) {
-            throw thread_interrupted_t();
-        }
-    }
-
-    class thread_t: untransferable_t
+    class thread_t: uncopyable_t
     {
         struct wrap_t
         {
-            std::string token;
-            std::function<void ()> function;
+            const std::string token;
+            const std::function<void ()> function;
 
             wrap_t(const std::string& token, const std::function<void ()>& function): token(token), function(function) {}
 
@@ -73,38 +59,54 @@ namespace cursedearth
             }
         };
 
-    public:
         template <typename function_t>
         thread_t(function_t function)
         {
-            std::promise<thread_interrupt_flag_t*> promise;
+            std::promise<thread_flag_t*> promise;
             m_thread = std::thread([function, &promise] {
-                promise.set_value(&g_thread_interrupt_flag);
+                promise.set_value(&g_thread_flag);
                 function();
             });
             m_flag = promise.get_future().get();
         }
 
+    public:
+        thread_t(): m_flag(nullptr) {}
+
         template <typename function_t>
         thread_t(const std::string& token, function_t function):
             thread_t(wrap_t(token, function)) {}
 
+        thread_t(thread_t&& other) { swap(other); }
+
         ~thread_t()
         {
             interrupt();
-            if (joinable()) {
-                join();
-            }
+            join();
+        }
+
+        thread_t& operator =(thread_t&& other)
+        {
+            assert(!joinable());
+            assert(!m_flag);
+            swap(other);
+            return *this;
+        }
+
+        void swap(thread_t& other)
+        {
+            m_thread.swap(other.m_thread);
+            m_flag = other.m_flag;
         }
 
         bool joinable() const { return m_thread.joinable(); }
-        void join() { m_thread.join(); }
+        void join() { if (joinable()) m_thread.join(); }
         void detach() { m_thread.detach(); }
-        void interrupt() { *m_flag = true; }
+        void interrupt();
 
     private:
         std::thread m_thread;
-        thread_interrupt_flag_t* m_flag;
+        thread_flag_t* m_flag;
     };
 
     typedef unsigned long int ce_thread_id;

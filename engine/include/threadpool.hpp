@@ -26,9 +26,9 @@
 namespace cursedearth
 {
     /**
-     * @brief The thread pool class manages a collection of threads.
-     *        It's a thread pool pattern implementation.
-     *        All functions are thread-safe.
+     * @brief the thread pool class manages a collection of threads
+     *        it's a thread pool pattern implementation
+     *        all functions are thread-safe
      */
     class thread_pool_t final: public singleton_t<thread_pool_t>
     {
@@ -54,7 +54,7 @@ namespace cursedearth
         std::condition_variable m_wait_one;
         std::condition_variable m_wait_all;
         std::vector<task_t> m_tasks;
-        std::vector<std::thread> m_threads;
+        std::vector<thread_t> m_threads;
     };
 
     typedef std::unique_ptr<thread_pool_t> thread_pool_ptr_t;

@@ -19,8 +19,23 @@
  */
 
 #include "thread.hpp"
+#include "threadflag.hpp"
 
 namespace cursedearth
 {
-    thread_local thread_interrupt_flag_t g_thread_interrupt_flag;
+    thread_local thread_flag_t g_thread_flag;
+
+    void interruption_point()
+    {
+        if (g_thread_flag) {
+            throw thread_interrupted_t();
+        }
+    }
+
+    void thread_t::interrupt()
+    {
+        if (m_flag) {
+            *m_flag = true;
+        }
+    }
 }

@@ -18,39 +18,29 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_UNTRANSFERABLE_HPP
-#define CE_UNTRANSFERABLE_HPP
+#ifndef CE_CONDITIONVARIABLE_HPP
+#define CE_CONDITIONVARIABLE_HPP
 
-#include "standardheaders.hpp"
-#include "thirdpartyheaders.hpp"
+#include "thread.hpp"
 
 namespace cursedearth
 {
-    class uncopyable_t
+    class condition_variable_t: untransferable_t
     {
-    protected:
-        uncopyable_t() = default;
-        ~uncopyable_t() = default;
+    public:
+        template <class lock_t>
+        void wait(lock_t& lock)
+        {
+            interruption_point();
+            m_condition_variable.wait(lock);
+            interruption_point();
+        }
 
-        uncopyable_t(const uncopyable_t&) = delete;
-        uncopyable_t& operator =(const uncopyable_t&) = delete;
-    };
+        void notify_one() { m_condition_variable.notify_one(); }
+        void notify_all() { m_condition_variable.notify_all(); }
 
-    class unmovable_t
-    {
-    protected:
-        unmovable_t() = default;
-        ~unmovable_t() = default;
-
-        unmovable_t(unmovable_t&&) = delete;
-        unmovable_t& operator =(unmovable_t&&) = delete;
-    };
-
-    class untransferable_t: uncopyable_t, unmovable_t
-    {
-    protected:
-        untransferable_t() = default;
-        ~untransferable_t() = default;
+    private:
+        std::condition_variable_any m_condition_variable;
     };
 }
 

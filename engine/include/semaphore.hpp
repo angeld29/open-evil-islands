@@ -43,7 +43,7 @@ namespace cursedearth
     private:
         std::atomic<size_t> m_available;
         std::mutex m_mutex;
-        std::condition_variable m_condition_variable;
+        condition_variable_t m_condition_variable;
     };
 
     typedef std::shared_ptr<semaphore_t> semaphore_ptr_t;
