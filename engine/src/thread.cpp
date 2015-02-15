@@ -20,10 +20,14 @@
 
 #include "thread.hpp"
 #include "threadflag.hpp"
+#include "threadlock.hpp"
 
 namespace cursedearth
 {
     thread_local thread_flag_t g_thread_flag;
+
+    thread_local std::atomic<bool> thread_lock_t::s_nested_guard;
+    thread_local std::thread::id thread_lock_t::s_thread_id;
 
     void interruption_point()
     {

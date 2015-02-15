@@ -45,7 +45,7 @@ namespace cursedearth
     void thread_pool_t::execute()
     {
         while (true) {
-            thread_lock_t<std::mutex> lock(m_mutex, m_idle);
+            thread_lock_t lock(m_mutex, m_idle);
             if (m_tasks.empty()) {
                 m_idle->wait(lock);
             } else {

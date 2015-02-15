@@ -26,42 +26,56 @@
 namespace cursedearth
 {
     /**
-     * @brief custom lock for condition variable with interruption support
+     * @brief custom lock with interruption support
      */
-    template <class lockable_t>
     class thread_lock_t: untransferable_t
     {
     public:
-        thread_lock_t(lockable_t& lockable, const condition_variable_ptr_t& condition_variable):
+        thread_lock_t(std::mutex& mutex, const condition_variable_ptr_t& condition_variable):
             m_owns(false),
-            m_lockable(lockable)
+            m_mutex(mutex)
         {
-            g_thread_flag.lock_and_set_condition_variable(lockable, condition_variable);
+            g_thread_flag.lock_and_set_condition_variable(mutex, condition_variable);
             m_owns = true;
+
+            assert(!s_nested_guard && "nested locks are not supported");
+            s_nested_guard = true;
+
+            s_thread_id = std::this_thread::get_id();
         }
 
         ~thread_lock_t()
         {
+            assert(s_nested_guard);
+            assert(std::this_thread::get_id() == s_thread_id);
             if (m_owns) {
                 unlock();
             }
+            s_nested_guard = false;
         }
 
         void lock()
         {
-            g_thread_flag.lock(m_lockable);
+            assert(s_nested_guard);
+            assert(std::this_thread::get_id() == s_thread_id);
+            g_thread_flag.lock(m_mutex);
             m_owns = true;
         }
 
         void unlock()
         {
-            g_thread_flag.unlock(m_lockable);
+            assert(s_nested_guard);
+            assert(std::this_thread::get_id() == s_thread_id);
+            g_thread_flag.unlock(m_mutex);
             m_owns = false;
         }
 
     private:
+        static thread_local std::atomic<bool> s_nested_guard;
+        static thread_local std::thread::id s_thread_id;
+
         std::atomic<bool> m_owns;
-        lockable_t& m_lockable;
+        std::mutex& m_mutex;
     };
 }
 
