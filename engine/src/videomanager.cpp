@@ -18,14 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <vector>
+#include "videomanager.hpp"
+#include "optionmanager.hpp"
 
 #include <boost/filesystem.hpp>
-
-#include "exception.hpp"
-#include "logging.hpp"
-#include "optionmanager.hpp"
-#include "videomanager.hpp"
 
 namespace cursedearth
 {

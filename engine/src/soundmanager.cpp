@@ -18,13 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <boost/filesystem.hpp>
-
-#include "logging.hpp"
-#include "resfile.hpp"
-#include "resball.hpp"
-#include "optionmanager.hpp"
 #include "soundmanager.hpp"
+#include "optionmanager.hpp"
+#include "resball.hpp"
+
+#include <boost/filesystem.hpp>
 
 namespace cursedearth
 {
@@ -139,10 +137,5 @@ namespace cursedearth
 
         m_instances.insert({ object, instance });
         return object;
-    }
-
-    sound_manager_ptr_t make_sound_manager()
-    {
-        return make_unique<sound_manager_t>();
     }
 }

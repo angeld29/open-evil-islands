@@ -31,7 +31,7 @@ namespace cursedearth
         SOUND_INSTANCE_STATE_PLAYING
     };
 
-    class sound_instance_t final: boost::noncopyable
+    class sound_instance_t final: untransferable_t
     {
     public:
         explicit sound_instance_t(ce_sound_resource*);

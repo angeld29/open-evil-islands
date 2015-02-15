@@ -23,7 +23,8 @@
 namespace cursedearth
 {
     sound_buffer_t::sound_buffer_t(const sound_format_t& format):
-        m_format(format)
+        m_format(format),
+        m_buffer(sound_options_t::block_count)
     {
     }
 

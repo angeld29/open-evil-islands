@@ -21,17 +21,16 @@
 #ifndef CE_VIDEOINSTANCE_HPP
 #define CE_VIDEOINSTANCE_HPP
 
-#include "commonheaders.hpp"
 #include "semaphore.hpp"
-#include "mmpfile.hpp"
 #include "texture.hpp"
 #include "material.hpp"
 #include "soundobject.hpp"
 #include "videoresource.hpp"
+#include "videobuffer.hpp"
 
 namespace cursedearth
 {
-    class video_instance_t final: boost::noncopyable
+    class video_instance_t final: untransferable_t
     {
         enum class state_t {
             stopped,
@@ -68,11 +67,8 @@ namespace cursedearth
         ce_texture* m_texture;
         ce_material* m_material;
         ce_mmpfile* m_rgba_frame;
-        ce_mmpfile* m_ycbcr_frames[s_cache_size];
-        semaphore_ptr_t m_prepared_frames;
-        semaphore_ptr_t m_unprepared_frames;
-        std::atomic<bool> m_done;
-        std::thread m_thread;
+        video_buffer_ptr_t m_buffer;
+        thread_t m_thread;
     };
 
     typedef std::shared_ptr<video_instance_t> video_instance_ptr_t;

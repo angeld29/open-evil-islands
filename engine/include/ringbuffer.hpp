@@ -30,8 +30,8 @@ namespace cursedearth
     /**
      * @brief Single-Producer/Single-Consumer Queue
      */
-    template <typename T, size_t n>
-    class ring_buffer_t final: boost::noncopyable
+    template <typename T>
+    class ring_buffer_t final: untransferable_t
     {
         struct acquire_in_ctor_release_in_dtor_t
         {
@@ -50,9 +50,12 @@ namespace cursedearth
         };
 
     public:
-        ring_buffer_t():
+        explicit ring_buffer_t(size_t n):
             m_free_items(make_semaphore(n)),
-            m_used_items(make_semaphore(0)) {}
+            m_used_items(make_semaphore(0)),
+            m_items(n)
+        {
+        }
 
         /**
          * @brief get write space to write elements
@@ -110,7 +113,7 @@ namespace cursedearth
 
     private:
         semaphore_ptr_t m_free_items, m_used_items;
-        boost::lockfree::spsc_queue<T, boost::lockfree::capacity<n>> m_items;
+        boost::lockfree::spsc_queue<T> m_items;
     };
 }
 

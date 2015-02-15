@@ -18,13 +18,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstring>
-#include <functional>
-
-#include "logging.hpp"
-#include "rendersystem.hpp"
-#include "shadermanager.hpp"
 #include "videoinstance.hpp"
+#include "shadermanager.hpp"
+#include "rendersystem.hpp"
 
 namespace cursedearth
 {
@@ -34,33 +30,20 @@ namespace cursedearth
         m_texture(ce_texture_new("frame", NULL)),
         m_material(ce_material_new()),
         m_rgba_frame(ce_mmpfile_new(resource->width, resource->height, 1, CE_MMPFILE_FORMAT_R8G8B8A8, 0)),
-        m_prepared_frames(make_semaphore(0)),
-        m_unprepared_frames(make_semaphore(s_cache_size)),
-        m_done(false)
+        m_buffer(make_video_buffer()),
+        m_thread("video instance", [this]{execute();})
     {
         const char* shaders[] = { "shaders/ycbcr2rgba.vert", "shaders/ycbcr2rgba.frag", NULL };
         m_material->mode = CE_MATERIAL_MODE_REPLACE;
         m_material->shader = ce_shader_manager_get(shaders);
-
         if (NULL != m_material->shader) {
             ce_shader_add_ref(m_material->shader);
         }
-
-        for (size_t i = 0; i < s_cache_size; ++i) {
-            m_ycbcr_frames[i] = ce_mmpfile_new(resource->width, resource->height, 1, CE_MMPFILE_FORMAT_YCBCR, 0);
-        }
-
-        m_thread = std::thread([this]{execute();});
     }
 
     video_instance_t::~video_instance_t()
     {
-        m_done = true;
-        m_unprepared_frames->release();
-        m_thread.join();
-        for (size_t i = 0; i < s_cache_size; ++i) {
-            ce_mmpfile_del(m_ycbcr_frames[i]);
-        }
+        m_thread.temp();
         ce_mmpfile_del(m_rgba_frame);
         ce_material_del(m_material);
         ce_texture_del(m_texture);
@@ -134,13 +117,12 @@ namespace cursedearth
     {
         bool acquired = false;
         const int desired_frame = m_resource->fps * m_play_time;
+        mmpfile_ptr_t ycbcr_frame;
 
         // if sound or time far away
-        while (m_frame < desired_frame && m_prepared_frames->try_acquire()) {
+        while (m_frame < desired_frame && m_buffer->try_pop(ycbcr_frame)) {
             // skip frames to reach desired frame
-            if (++m_frame == desired_frame || /* or use the closest frame */ 0 == m_prepared_frames->available()) {
-                ce_mmpfile* ycbcr_frame = m_ycbcr_frames[m_frame % s_cache_size];
-
+            if (++m_frame == desired_frame || /* or use the closest frame */ 0 == m_buffer->read_available()) {
                 if (NULL != m_material->shader) {
                     const uint8_t* y_data = static_cast<const uint8_t*>(ycbcr_frame->texels);
                     const uint8_t* cb_data = y_data + ycbcr_frame->width * ycbcr_frame->height;
@@ -158,32 +140,30 @@ namespace cursedearth
                         }
                     }
                 } else {
-                    ce_mmpfile_convert2(ycbcr_frame, m_rgba_frame);
+                    ce_mmpfile_convert2(ycbcr_frame.get(), m_rgba_frame);
                 }
 
                 ce_texture_replace(m_texture, m_rgba_frame);
                 acquired = true;
             }
-            m_unprepared_frames->release();
+            m_buffer->release_to_cache(ycbcr_frame);
         }
 
         // TODO: think again how to hold last frame
-        if (state_t::stopping == m_state && !acquired && 0 == m_prepared_frames->available()) {
+        if (state_t::stopping == m_state && !acquired && 0 == m_buffer->read_available()) {
             m_state = state_t::stopped;
         }
     }
 
     void video_instance_t::execute()
     {
-        for (size_t i = m_prepared_frames->available(); !m_done; ++i) {
-            m_unprepared_frames->acquire();
-
+        while (true) {
             if (!ce_video_resource_read(m_resource)) {
                 m_state = state_t::stopping;
                 break;
             }
 
-            ce_mmpfile* ycbcr_frame = m_ycbcr_frames[i % s_cache_size];
+            mmpfile_ptr_t ycbcr_frame = m_buffer->acquire_from_cache(m_resource->width, m_resource->height);
             ycbcr_t* ycbcr = &m_resource->ycbcr;
 
             uint8_t* y_data = static_cast<uint8_t*>(ycbcr_frame->texels);
@@ -203,7 +183,7 @@ namespace cursedearth
                 memcpy(cr_data + h * (ycbcr->crop_rectangle.width / 2), ycbcr->planes[2].data + cr_offset + h * ycbcr->planes[2].stride, ycbcr->crop_rectangle.width / 2);
             }
 
-            m_prepared_frames->release();
+            m_buffer->push(ycbcr_frame);
         }
     }
 }

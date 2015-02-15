@@ -21,12 +21,10 @@
 #ifndef CE_VIDEOMANAGER_HPP
 #define CE_VIDEOMANAGER_HPP
 
-#include <string>
-#include <unordered_map>
-
-#include "singleton.hpp"
 #include "videoinstance.hpp"
 #include "videoobject.hpp"
+
+#include <unordered_map>
 
 namespace cursedearth
 {

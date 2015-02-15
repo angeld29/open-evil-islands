@@ -56,7 +56,8 @@ namespace cursedearth
     /**
      * @brief doc/formats/mmp.txt
      */
-    typedef struct {
+    struct ce_mmpfile
+    {
         // standard EI header
         uint32_t width, height, mipmap_count;
         ce_mmpfile_format format;
@@ -72,7 +73,7 @@ namespace cursedearth
         // private data
         size_t size;
         void* data;
-    } ce_mmpfile;
+    };
 
     size_t ce_mmpfile_storage_size(unsigned int width, unsigned int height, unsigned int mipmap_count, ce_mmpfile_format format);
 
@@ -85,6 +86,16 @@ namespace cursedearth
     void ce_mmpfile_save(const ce_mmpfile* mmpfile, const boost::filesystem::path&);
     void ce_mmpfile_convert(ce_mmpfile* mmpfile, ce_mmpfile_format format);
     void ce_mmpfile_convert2(ce_mmpfile* mmpfile, ce_mmpfile* other);
+
+    struct mmpfile_dtor_t
+    {
+        void operator ()(ce_mmpfile* mmpfile)
+        {
+            ce_mmpfile_del(mmpfile);
+        }
+    };
+
+    typedef std::shared_ptr<ce_mmpfile> mmpfile_ptr_t;
 }
 
 #endif

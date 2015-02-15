@@ -21,14 +21,12 @@
 #ifndef CE_SOUNDMANAGER_HPP
 #define CE_SOUNDMANAGER_HPP
 
-#include <string>
-#include <vector>
-#include <unordered_map>
-
-#include "singleton.hpp"
-#include "resfile.hpp"
+#include "commonheaders.hpp"
 #include "soundinstance.hpp"
 #include "soundobject.hpp"
+#include "resfile.hpp"
+
+#include <unordered_map>
 
 namespace cursedearth
 {
@@ -55,7 +53,10 @@ namespace cursedearth
 
     typedef std::unique_ptr<sound_manager_t> sound_manager_ptr_t;
 
-    sound_manager_ptr_t make_sound_manager();
+    inline sound_manager_ptr_t make_sound_manager()
+    {
+        return make_unique<sound_manager_t>();
+    }
 }
 
 #endif

@@ -21,7 +21,7 @@
 #ifndef CE_SOUNDOBJECT_HPP
 #define CE_SOUNDOBJECT_HPP
 
-#include <string>
+#include "commonheaders.hpp"
 
 namespace cursedearth
 {

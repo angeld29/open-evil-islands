@@ -123,9 +123,11 @@ engine/include/vector.hpp
 engine/include/vector2.hpp
 engine/include/vector3.hpp
 engine/include/vector4.hpp
+engine/include/videobuffer.hpp
 engine/include/videoinstance.hpp
 engine/include/videomanager.hpp
 engine/include/videoobject.hpp
+engine/include/videooptions.hpp
 engine/include/videoresource.hpp
 engine/include/viewport.hpp
 engine/include/wave.hpp

@@ -18,11 +18,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-
-#include "alloc.hpp"
-#include "logging.hpp"
 #include "videoresource.hpp"
+#include "alloc.hpp"
 
 namespace cursedearth
 {
