@@ -33,7 +33,7 @@ namespace cursedearth
     {
         assert(0 == size % m_format.sample_size);
         assert(m_write_position <= m_capacity);
-        size = std::min(size, m_capacity - m_write_position);
+        size = std::min(size, write_size());
         std::copy_n(data, size, m_data.get() + m_write_position);
         m_write_position += size;
         return size;
@@ -43,7 +43,7 @@ namespace cursedearth
     {
         assert(0 == size % m_format.sample_size);
         assert(m_read_position <= m_write_position);
-        size = std::min(size, m_write_position - m_read_position);
+        size = std::min(size, read_size());
         std::copy_n(m_data.get() + m_read_position, size, data);
         m_read_position += size;
         return size;
@@ -52,7 +52,7 @@ namespace cursedearth
     std::pair<const uint8_t*, size_t> sound_block_t::read_raw()
     {
         assert(m_read_position <= m_write_position);
-        auto pair = std::make_pair(m_data.get() + m_read_position, m_write_position - m_read_position);
+        auto pair = std::make_pair(m_data.get() + m_read_position, read_size());
         m_read_position = m_write_position;
         return std::move(pair);
     }

@@ -33,6 +33,13 @@ namespace cursedearth
 
         const sound_format_t& format() const { return m_format; }
 
+        bool sleeping() const { return m_sleeping; }
+        void sleep() { m_sleeping = true; }
+        void wakeup() { m_sleeping = false; }
+
+        size_t granule_position() const { return m_granule_position; }
+        void reset_granule_position() { m_granule_position = 0; }
+
         void push(const sound_block_ptr_t&);
         sound_block_ptr_t pop();
 
@@ -43,6 +50,8 @@ namespace cursedearth
 
     private:
         const sound_format_t m_format;
+        std::atomic<bool> m_sleeping;
+        std::atomic<size_t> m_granule_position;
         sound_block_ptr_t m_current_block;
         std::mutex m_mutex;
         std::vector<sound_block_ptr_t> m_blocks;

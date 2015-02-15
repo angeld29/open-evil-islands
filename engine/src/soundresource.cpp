@@ -68,8 +68,6 @@ namespace cursedearth
             return NULL;
         }
 
-        sound_resource->bytes_per_second_inv = 1.0f / sound_resource->sound_format.bytes_per_second;
-
         ce_logging_debug("sound resource: %s, audio is %u bits per sample, %u Hz, %u channel(s)",
             sound_probe.name, sound_resource->sound_format.bits_per_sample, sound_resource->sound_format.samples_per_second, sound_resource->sound_format.channel_count);
 
@@ -104,15 +102,11 @@ namespace cursedearth
         resource->output_buffer_pos += size;
         resource->output_buffer_size -= size;
 
-        resource->granule_pos += size;
-        resource->time = resource->granule_pos * resource->bytes_per_second_inv;
         return true;
     }
 
     bool ce_sound_resource_reset(ce_sound_resource* resource)
     {
-        resource->time = 0.0f;
-        resource->granule_pos = 0;
         resource->output_buffer_size = 0;
         resource->output_buffer_pos = 0;
         ce_mem_file_rewind(resource->mem_file);

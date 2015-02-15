@@ -51,8 +51,6 @@ namespace cursedearth
 
     struct ce_sound_resource {
         sound_format_t sound_format;
-        float time, bytes_per_second_inv;
-        size_t granule_pos;
         size_t input_buffer_capacity;
         size_t output_buffer_capacity;
         size_t output_buffer_size;

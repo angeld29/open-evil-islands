@@ -25,9 +25,10 @@ namespace cursedearth
 {
     sound_instance_t::sound_instance_t(ce_sound_resource* resource):
         m_state(SOUND_INSTANCE_STATE_STOPPED),
-        m_time(0.0f),
+        m_bytes_per_second_inv(1.0f / resource->sound_format.bytes_per_second),
         m_resource(resource),
         m_buffer(sound_mixer_t::instance()->make_buffer(resource->sound_format)),
+        m_pause_condition(make_condition_variable()),
         m_thread("sound instance", [this]{execute();})
     {
     }
@@ -38,36 +39,44 @@ namespace cursedearth
         ce_sound_resource_del(m_resource);
     }
 
-    void sound_instance_t::advance(float)
-    {
-    }
-
     void sound_instance_t::change_state(sound_instance_state_t state)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        std::ignore = lock;
         m_state = state;
+        if (SOUND_INSTANCE_STATE_PLAYING == state) {
+            m_timestamp = std::chrono::steady_clock::now();
+        }
+        m_pause_condition->notify_all();
     }
 
-    void sound_instance_t::execute_playing()
+    void sound_instance_t::pause()
     {
-        if (ce_sound_resource_read(m_resource, m_buffer)) {
-            m_time = m_resource->time;
-        } else {
-            change_state(SOUND_INSTANCE_STATE_STOPPED);
-        }
+        m_buffer->sleep();
+        thread_lock_t lock(m_mutex, m_pause_condition);
+        m_pause_condition->wait(lock);
+        m_buffer->wakeup();
     }
 
     void sound_instance_t::execute()
     {
+        pause();
         while (true) {
             switch (m_state) {
             case SOUND_INSTANCE_STATE_PLAYING:
-                execute_playing();
+                if (!ce_sound_resource_read(m_resource, m_buffer)) {
+                    change_state(SOUND_INSTANCE_STATE_STOPPED);
+                }
                 break;
+
             case SOUND_INSTANCE_STATE_PAUSED:
+                pause();
                 break;
+
             case SOUND_INSTANCE_STATE_STOPPED:
-                m_time = 0.0f;
                 ce_sound_resource_reset(m_resource);
+                m_buffer->reset_granule_position();
+                pause();
                 break;
             }
         }

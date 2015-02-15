@@ -32,6 +32,9 @@ namespace cursedearth
 
         const sound_format_t& format() const { return m_format; }
 
+        size_t write_size() const { return m_capacity - m_write_position; }
+        size_t read_size() const { return m_write_position - m_read_position; }
+
         size_t write(const uint8_t*, size_t);
         size_t read(uint8_t*, size_t);
 

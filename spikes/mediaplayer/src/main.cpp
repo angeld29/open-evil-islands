@@ -87,6 +87,8 @@ namespace cursedearth
                 if (sound_object_is_valid(m_sound_object)) {
                     if (sound_object_is_stopped(m_sound_object)) {
                         text = str(boost::format("Track `%1%' stopped") % m_track);
+                    } else if (sound_object_is_paused(m_sound_object)) {
+                        text = str(boost::format("Track `%1%' paused") % m_track);
                     } else {
                         text = str(boost::format("Playing track `%1%'") % m_track);
                     }

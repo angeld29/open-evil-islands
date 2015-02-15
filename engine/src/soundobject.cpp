@@ -49,6 +49,11 @@ namespace cursedearth
         return SOUND_INSTANCE_STATE_STOPPED == get_sound_object_state(sound_object);
     }
 
+    bool sound_object_is_paused(sound_object_t sound_object)
+    {
+        return SOUND_INSTANCE_STATE_PAUSED == get_sound_object_state(sound_object);
+    }
+
     void play_sound_object(sound_object_t sound_object)
     {
         if (sound_instance_ptr_t sound_instance = sound_manager_t::instance()->find_instance(sound_object)) {

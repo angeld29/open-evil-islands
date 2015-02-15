@@ -88,7 +88,7 @@ namespace cursedearth
                 std::lock_guard<std::mutex> lock(m_mutex);
                 std::ignore = lock;
                 for (const auto& buffer: m_buffers) {
-                    if (buffer->try_read_one_sample(foreign_sample)) {
+                    if (!buffer->sleeping() && buffer->try_read_one_sample(foreign_sample)) {
                         convert_sample(native_sample, foreign_sample, sound_system_t::instance()->format(), buffer->format());
                         mix_sample(data, native_sample, buffer->format());
                     }

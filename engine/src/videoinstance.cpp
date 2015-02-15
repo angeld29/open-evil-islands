@@ -60,12 +60,7 @@ namespace cursedearth
         if (sound_object_is_valid(m_object)) {
             // synchronization with sound
             float sound_time = get_sound_object_time(m_object);
-            if (m_sync_time != sound_time) {
-                m_sync_time = sound_time;
-                m_play_time = sound_time;
-            } else {
-                m_play_time += elapsed;
-            }
+            m_play_time = sound_time;
         } else {
             m_play_time += elapsed;
         }

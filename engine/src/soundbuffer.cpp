@@ -24,6 +24,8 @@ namespace cursedearth
 {
     sound_buffer_t::sound_buffer_t(const sound_format_t& format):
         m_format(format),
+        m_sleeping(false),
+        m_granule_position(0),
         m_buffer(sound_options_t::block_count)
     {
     }
@@ -38,6 +40,7 @@ namespace cursedearth
         if (!m_current_block) {
             m_buffer.pop(m_current_block);
         }
+        m_granule_position += m_current_block->read_size();
         return std::move(m_current_block);
     }
 
@@ -56,6 +59,8 @@ namespace cursedearth
         }
 
         assert(size == m_format.sample_size);
+        m_granule_position += size;
+
         return true;
     }
 

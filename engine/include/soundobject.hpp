@@ -35,6 +35,7 @@ namespace cursedearth
     void sound_object_advance(sound_object_t, float elapsed);
 
     bool sound_object_is_stopped(sound_object_t);
+    bool sound_object_is_paused(sound_object_t);
     void play_sound_object(sound_object_t);
     void pause_sound_object(sound_object_t);
     void stop_sound_object(sound_object_t);

@@ -62,8 +62,9 @@ namespace cursedearth
         const sound_object_t m_object;
         ce_video_resource* m_resource;
         state_t m_state = state_t::stopped;
+        std::chrono::steady_clock::time_point m_timestamp;
         int m_frame = -1;
-        float m_play_time = 0.0f, m_sync_time = 0.0f; // playing/synchronization time in seconds
+        float m_play_time = 0.0f;
         ce_texture* m_texture;
         ce_material* m_material;
         ce_mmpfile* m_rgba_frame;
