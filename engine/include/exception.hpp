@@ -34,18 +34,18 @@ namespace cursedearth
             format % arg;
         }
 
-        template<typename T, typename... Args>
-        void apply_cascade(boost::format& format, T arg, Args&&... args)
+        template<typename T, typename... A>
+        void apply_cascade(boost::format& format, T arg, A&&... args)
         {
             format % arg;
-            apply_cascade(format, std::forward<Args>(args)...);
+            apply_cascade(format, std::forward<A>(args)...);
         }
 
-        template <typename... Args>
-        boost::format make_format(const std::string& message, Args&&... args)
+        template <typename... A>
+        boost::format make_format(const std::string& message, A&&... args)
         {
             boost::format format(message);
-            apply_cascade(format, std::forward<Args>(args)...);
+            apply_cascade(format, std::forward<A>(args)...);
             return format;
         }
 
@@ -56,9 +56,9 @@ namespace cursedearth
         game_error(const std::string& token, const boost::format& format):
             game_error(token, str(format)) {}
 
-        template <typename... Args>
-        game_error(const std::string& token, const std::string& message, Args&&... args):
-            game_error(token, make_format(message, std::forward<Args>(args)...)) {}
+        template <typename... A>
+        game_error(const std::string& token, const std::string& message, A&&... args):
+            game_error(token, make_format(message, std::forward<A>(args)...)) {}
     };
 }
 

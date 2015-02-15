@@ -36,7 +36,7 @@ namespace cursedearth
     /**
      * @brief thread with interruption support
      */
-    class thread_t: uncopyable_t
+    class thread_t: untransferable_t
     {
         struct wrap_t
         {
@@ -71,13 +71,9 @@ namespace cursedearth
         }
 
     public:
-        thread_t(): m_flag(nullptr) {}
-
         template <typename function_t>
         thread_t(const std::string& token, function_t function):
             thread_t(wrap_t(token, function)) {}
-
-        thread_t(thread_t&& other) { swap(other); }
 
         ~thread_t()
         {
@@ -85,30 +81,23 @@ namespace cursedearth
             join();
         }
 
-        thread_t& operator =(thread_t&& other)
-        {
-            assert(!joinable());
-            assert(!m_flag);
-            swap(other);
-            return *this;
-        }
-
-        void swap(thread_t& other)
-        {
-            m_thread.swap(other.m_thread);
-            m_flag = other.m_flag;
-        }
+        void interrupt();
+        void join() { if (m_thread.joinable()) m_thread.join(); }
 
         std::thread::id id() const { return m_thread.get_id(); }
-        bool joinable() const { return m_thread.joinable(); }
-        void join() { if (joinable()) m_thread.join(); }
-        void detach() { m_thread.detach(); }
-        void interrupt();
 
     private:
         std::thread m_thread;
-        thread_flag_t* m_flag;
+        thread_flag_t* m_flag = nullptr;
     };
+
+    typedef std::shared_ptr<thread_t> thread_ptr_t;
+
+    template <typename... A>
+    inline thread_ptr_t make_thread(A&&... args)
+    {
+        return std::make_shared<thread_t>(std::forward<A>(args)...);
+    }
 
     typedef unsigned long int ce_thread_id;
 

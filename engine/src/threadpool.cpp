@@ -28,7 +28,7 @@ namespace cursedearth
         m_threads(m_idle_thread_count)
     {
         for (auto& thread: m_threads) {
-            thread = thread_t("thread pool", [this]{execute();});
+            thread = make_thread("thread pool", [this]{execute();});
         }
         ce_logging_info("thread pool: using up to %u threads", m_threads.size());
     }
