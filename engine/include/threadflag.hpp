@@ -25,6 +25,9 @@
 
 namespace cursedearth
 {
+    /**
+     * @brief flag for thread interruption
+     */
     extern thread_local class thread_flag_t: untransferable_t
     {
     public:

@@ -31,7 +31,7 @@ namespace cursedearth
     void semaphore_t::acquire(size_t n)
     {
         interruption_point();
-        custom_lock<std::mutex> lock(m_mutex, m_condition_variable);
+        thread_lock_t<std::mutex> lock(m_mutex, m_condition_variable);
         while (n > m_available) {
             m_condition_variable->wait(lock);
         }

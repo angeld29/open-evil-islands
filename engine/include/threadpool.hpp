@@ -36,7 +36,6 @@ namespace cursedearth
 
     public:
         thread_pool_t();
-        ~thread_pool_t();
 
         void enqueue(const task_t&);
 

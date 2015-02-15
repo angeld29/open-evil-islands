@@ -18,18 +18,21 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CE_CUSTOMLOCK_HPP
-#define CE_CUSTOMLOCK_HPP
+#ifndef CE_THREADLOCK_HPP
+#define CE_THREADLOCK_HPP
 
 #include "threadflag.hpp"
 
 namespace cursedearth
 {
+    /**
+     * @brief custom lock for condition variable with interruption support
+     */
     template <class lockable_t>
-    class custom_lock: untransferable_t
+    class thread_lock_t: untransferable_t
     {
     public:
-        custom_lock(lockable_t& lockable, const condition_variable_ptr_t& condition_variable):
+        thread_lock_t(lockable_t& lockable, const condition_variable_ptr_t& condition_variable):
             m_owns(false),
             m_lockable(lockable)
         {
@@ -37,7 +40,7 @@ namespace cursedearth
             m_owns = true;
         }
 
-        ~custom_lock()
+        ~thread_lock_t()
         {
             if (m_owns) {
                 unlock();

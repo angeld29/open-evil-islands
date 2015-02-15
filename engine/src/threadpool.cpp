@@ -34,15 +34,6 @@ namespace cursedearth
         ce_logging_info("thread pool: using up to %u threads", m_threads.size());
     }
 
-    thread_pool_t::~thread_pool_t()
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        std::ignore = lock;
-        if (!m_tasks.empty()) {
-            ce_logging_warning("thread pool: pool is being destroyed while queue is not empty");
-        }
-    }
-
     void thread_pool_t::enqueue(const task_t& task)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
@@ -53,8 +44,8 @@ namespace cursedearth
 
     void thread_pool_t::execute()
     {
-        custom_lock<std::mutex> lock(m_mutex, m_idle);
         while (true) {
+            thread_lock_t<std::mutex> lock(m_mutex, m_idle);
             if (m_tasks.empty()) {
                 m_idle->wait(lock);
             } else {
@@ -66,6 +57,7 @@ namespace cursedearth
                 lock.lock();
                 ++m_idle_thread_count;
             }
+            interruption_point();
         }
     }
 

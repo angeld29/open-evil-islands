@@ -29,7 +29,7 @@
 #include "logging.hpp"
 #include "thread.hpp"
 #include "threadflag.hpp"
-#include "customlock.hpp"
+#include "threadlock.hpp"
 #include "conditionvariable.hpp"
 
 #endif
