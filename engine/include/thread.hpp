@@ -99,6 +99,7 @@ namespace cursedearth
             m_flag = other.m_flag;
         }
 
+        std::thread::id id() const { return m_thread.get_id(); }
         bool joinable() const { return m_thread.joinable(); }
         void join() { if (joinable()) m_thread.join(); }
         void detach() { m_thread.detach(); }

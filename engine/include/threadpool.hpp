@@ -40,19 +40,13 @@ namespace cursedearth
 
         void enqueue(const task_t&);
 
-        void wait_one();
-        void wait_all();
-
     private:
         void execute();
 
     private:
         size_t m_idle_thread_count;
-        std::atomic<bool> m_done;
         std::mutex m_mutex;
-        std::condition_variable m_idle;
-        std::condition_variable m_wait_one;
-        std::condition_variable m_wait_all;
+        condition_variable_t m_idle;
         std::vector<task_t> m_tasks;
         std::vector<thread_t> m_threads;
     };

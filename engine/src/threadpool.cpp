@@ -25,7 +25,6 @@ namespace cursedearth
     thread_pool_t::thread_pool_t():
         singleton_t<thread_pool_t>(this),
         m_idle_thread_count(std::max<size_t>(1, std::thread::hardware_concurrency())),
-        m_done(false),
         m_threads(m_idle_thread_count)
     {
         for (auto& thread: m_threads) {
@@ -36,18 +35,8 @@ namespace cursedearth
 
     thread_pool_t::~thread_pool_t()
     {
-        {
-            m_done = true;
-            std::unique_lock<std::mutex> lock(m_mutex);
-            std::ignore = lock;
-            m_idle.notify_all();
-        }
-
-        for (auto& thread: m_threads) {
-            thread.interrupt();
-            thread.join();
-        }
-
+        std::lock_guard<std::mutex> lock(m_mutex);
+        std::ignore = lock;
         if (!m_tasks.empty()) {
             ce_logging_warning("thread pool: pool is being destroyed while queue is not empty");
         }
@@ -55,47 +44,29 @@ namespace cursedearth
 
     void thread_pool_t::enqueue(const task_t& task)
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        std::ignore = lock;
         m_tasks.push_back(task);
         m_idle.notify_one();
     }
 
-    void thread_pool_t::wait_one()
-    {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        if (!m_tasks.empty() || m_idle_thread_count != m_threads.size()) {
-            m_wait_one.wait(lock);
-        }
-    }
-
-    void thread_pool_t::wait_all()
-    {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        if (!m_tasks.empty() || m_idle_thread_count != m_threads.size()) {
-            m_wait_all.wait(lock);
-        }
-    }
-
     void thread_pool_t::execute()
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        while (!m_done) {
+        custom_lock<std::mutex> lock(m_idle, m_mutex);
+        while (true) {
+            //lock.unlock();
+            //lock.lock();
+            //throw game_error("thread pool", "break");
             if (m_tasks.empty()) {
-                if (m_idle_thread_count == m_threads.size()) {
-                    m_wait_all.notify_all();
-                }
                 m_idle.wait(lock);
             } else {
                 task_t task = m_tasks.back();
                 m_tasks.pop_back();
                 --m_idle_thread_count;
-
                 lock.unlock();
                 task();
                 lock.lock();
-
                 ++m_idle_thread_count;
-                m_wait_one.notify_all();
             }
         }
     }

@@ -41,7 +41,7 @@ namespace cursedearth
     {
         interruption_point();
         m_available += n;
-        custom_lock<std::mutex> lock(m_condition_variable, m_mutex);
+        std::lock_guard<std::mutex> lock(m_mutex);
         std::ignore = lock;
         m_condition_variable.notify_all();
     }

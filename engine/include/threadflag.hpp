@@ -44,7 +44,6 @@ namespace cursedearth
 
         void set_condition_variable(condition_variable_t& condition_variable)
         {
-            m_mutex.lock();
             assert(!m_condition_variable);
             m_condition_variable = &condition_variable;
         }
@@ -53,17 +52,16 @@ namespace cursedearth
         {
             assert(m_condition_variable);
             m_condition_variable = nullptr;
-            m_mutex.unlock();
         }
 
         template <typename lockable_t>
-        void lock(lockable_t& lockable)
+        void lock_together(lockable_t& lockable)
         {
             std::lock(m_mutex, lockable);
         }
 
         template <typename lockable_t>
-        void unlock(lockable_t& lockable)
+        void unlock_together(lockable_t& lockable)
         {
             lockable.unlock();
             m_mutex.unlock();
