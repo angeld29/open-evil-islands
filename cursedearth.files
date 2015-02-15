@@ -18,7 +18,7 @@ engine/include/complection.hpp
 engine/include/conditionvariable.hpp
 engine/include/configfile.hpp
 engine/include/configmanager.hpp
-engine/include/customlock.hpp
+engine/include/threadlock.hpp
 engine/include/display.hpp
 engine/include/display_windows.hpp
 engine/include/display_x11.hpp
