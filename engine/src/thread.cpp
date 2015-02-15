@@ -32,10 +32,11 @@ namespace cursedearth
         }
     }
 
-    void thread_t::interrupt()
+    void thread_t::do_interrupt()
     {
         if (m_flag) {
             *m_flag = true;
+            m_flag = nullptr;
         }
     }
 }

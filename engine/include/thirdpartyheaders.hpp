@@ -22,6 +22,7 @@
 #define CE_THIRDPARTYHEADERS_HPP
 
 #include <boost/format.hpp>
+#include <boost/signals2.hpp>
 #include <boost/filesystem/path.hpp>
 
 #endif

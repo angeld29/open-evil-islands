@@ -42,6 +42,14 @@ namespace cursedearth
     private:
         std::condition_variable_any m_condition_variable;
     };
+
+    typedef std::shared_ptr<condition_variable_t> condition_variable_ptr_t;
+    typedef std::weak_ptr<condition_variable_t> condition_variable_weak_ptr_t;
+
+    inline condition_variable_ptr_t make_condition_variable()
+    {
+        return std::make_shared<condition_variable_t>();
+    }
 }
 
 #endif

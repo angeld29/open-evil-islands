@@ -34,8 +34,7 @@ namespace cursedearth
 
     sound_instance_t::~sound_instance_t()
     {
-        m_thread.interrupt();
-        m_thread.join();
+        m_thread.temp();
         ce_sound_resource_del(m_resource);
     }
 

@@ -28,7 +28,8 @@
 #include "exception.hpp"
 #include "logging.hpp"
 #include "thread.hpp"
-#include "conditionvariable.hpp"
+#include "threadflag.hpp"
 #include "customlock.hpp"
+#include "conditionvariable.hpp"
 
 #endif

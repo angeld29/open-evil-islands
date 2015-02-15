@@ -28,8 +28,6 @@
 
 #include <unordered_map>
 
-#include <boost/signals2.hpp>
-
 namespace cursedearth
 {
     class render_window_t: public singleton_t<render_window_t>

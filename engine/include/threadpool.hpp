@@ -46,7 +46,7 @@ namespace cursedearth
     private:
         size_t m_idle_thread_count;
         std::mutex m_mutex;
-        condition_variable_t m_idle;
+        condition_variable_ptr_t m_idle;
         std::vector<task_t> m_tasks;
         std::vector<thread_ptr_t> m_threads;
     };

@@ -25,6 +25,7 @@ namespace cursedearth
     thread_pool_t::thread_pool_t():
         singleton_t<thread_pool_t>(this),
         m_idle_thread_count(std::max<size_t>(1, std::thread::hardware_concurrency())),
+        m_idle(make_condition_variable()),
         m_threads(m_idle_thread_count)
     {
         for (auto& thread: m_threads) {
@@ -47,18 +48,15 @@ namespace cursedearth
         std::lock_guard<std::mutex> lock(m_mutex);
         std::ignore = lock;
         m_tasks.push_back(task);
-        m_idle.notify_one();
+        m_idle->notify_one();
     }
 
     void thread_pool_t::execute()
     {
-        custom_lock<std::mutex> lock(m_idle, m_mutex);
+        custom_lock<std::mutex> lock(m_mutex, m_idle);
         while (true) {
-            //lock.unlock();
-            //lock.lock();
-            //throw game_error("thread pool", "break");
             if (m_tasks.empty()) {
-                m_idle.wait(lock);
+                m_idle->wait(lock);
             } else {
                 task_t task = m_tasks.back();
                 m_tasks.pop_back();

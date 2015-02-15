@@ -25,21 +25,20 @@
 
 namespace cursedearth
 {
-    template <typename lockable_t>
+    template <class lockable_t>
     class custom_lock: untransferable_t
     {
     public:
-        custom_lock(condition_variable_t& condition, lockable_t& lockable):
+        custom_lock(lockable_t& lockable, const condition_variable_ptr_t& condition_variable):
             m_owns(false),
             m_lockable(lockable)
         {
-            lock();
-            g_thread_flag.set_condition_variable(condition);
+            g_thread_flag.lock_and_set_condition_variable(lockable, condition_variable);
+            m_owns = true;
         }
 
         ~custom_lock()
         {
-            g_thread_flag.reset_condition_variable();
             if (m_owns) {
                 unlock();
             }
@@ -47,13 +46,13 @@ namespace cursedearth
 
         void lock()
         {
-            g_thread_flag.lock_together(m_lockable);
+            g_thread_flag.lock(m_lockable);
             m_owns = true;
         }
 
         void unlock()
         {
-            g_thread_flag.unlock_together(m_lockable);
+            g_thread_flag.unlock(m_lockable);
             m_owns = false;
         }
 

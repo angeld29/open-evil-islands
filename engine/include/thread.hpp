@@ -59,15 +59,25 @@ namespace cursedearth
             }
         };
 
+        typedef boost::signals2::signal<void ()> interrupt_t;
+        typedef std::shared_ptr<interrupt_t> interrupt_ptr_t;
+
+        // access only through signal (because of threads)
+        void do_interrupt();
+
         template <typename function_t>
         thread_t(function_t function)
         {
             std::promise<thread_flag_t*> promise;
-            m_thread = std::thread([function, &promise] {
+            interrupt_ptr_t interrupt = std::make_shared<interrupt_t>();
+            interrupt->connect([this]{do_interrupt();});
+            m_thread = std::thread([function, &promise, interrupt] {
                 promise.set_value(&g_thread_flag);
                 function();
+                (*interrupt)(); // clear flag: thread_local storage will be destroyed!
             });
             m_flag = promise.get_future().get();
+            m_interrupt = interrupt;
         }
 
     public:
@@ -77,18 +87,18 @@ namespace cursedearth
 
         ~thread_t()
         {
-            interrupt();
-            join();
+            (*m_interrupt)();
+            if (m_thread.joinable()) {
+                m_thread.join();
+            }
         }
 
-        void interrupt();
-        void join() { if (m_thread.joinable()) m_thread.join(); }
-
-        std::thread::id id() const { return m_thread.get_id(); }
+        void temp() { (*m_interrupt)(); if (m_thread.joinable()) m_thread.join(); }
 
     private:
         std::thread m_thread;
-        thread_flag_t* m_flag = nullptr;
+        std::atomic<thread_flag_t*> m_flag;
+        interrupt_ptr_t m_interrupt;
     };
 
     typedef std::shared_ptr<thread_t> thread_ptr_t;

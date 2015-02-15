@@ -23,16 +23,17 @@
 namespace cursedearth
 {
     semaphore_t::semaphore_t(size_t n):
-        m_available(n)
+        m_available(n),
+        m_condition_variable(make_condition_variable())
     {
     }
 
     void semaphore_t::acquire(size_t n)
     {
         interruption_point();
-        custom_lock<std::mutex> lock(m_condition_variable, m_mutex);
+        custom_lock<std::mutex> lock(m_mutex, m_condition_variable);
         while (n > m_available) {
-            m_condition_variable.wait(lock);
+            m_condition_variable->wait(lock);
         }
         m_available -= n;
     }
@@ -43,7 +44,7 @@ namespace cursedearth
         m_available += n;
         std::lock_guard<std::mutex> lock(m_mutex);
         std::ignore = lock;
-        m_condition_variable.notify_all();
+        m_condition_variable->notify_all();
     }
 
     bool semaphore_t::try_acquire(size_t n)

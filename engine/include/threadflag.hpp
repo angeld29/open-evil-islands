@@ -35,33 +35,27 @@ namespace cursedearth
         void operator =(bool flag)
         {
             m_flag = flag;
-            std::lock_guard<std::mutex> lock(m_mutex);
-            std::ignore = lock;
-            if (m_condition_variable) {
-                m_condition_variable->notify_all();
+            if (condition_variable_ptr_t condition_variable = m_condition_variable.lock()) {
+                condition_variable->notify_all();
             }
         }
 
-        void set_condition_variable(condition_variable_t& condition_variable)
+        // remains unlocked if an exception occurred
+        template <typename lockable_t>
+        void lock_and_set_condition_variable(lockable_t& lockable, const condition_variable_ptr_t& condition_variable)
         {
-            assert(!m_condition_variable);
-            m_condition_variable = &condition_variable;
-        }
-
-        void reset_condition_variable()
-        {
-            assert(m_condition_variable);
-            m_condition_variable = nullptr;
+            lock(lockable);
+            m_condition_variable = condition_variable; // noexcept
         }
 
         template <typename lockable_t>
-        void lock_together(lockable_t& lockable)
+        void lock(lockable_t& lockable)
         {
             std::lock(m_mutex, lockable);
         }
 
         template <typename lockable_t>
-        void unlock_together(lockable_t& lockable)
+        void unlock(lockable_t& lockable)
         {
             lockable.unlock();
             m_mutex.unlock();
@@ -70,7 +64,7 @@ namespace cursedearth
     private:
         std::atomic<bool> m_flag;
         std::mutex m_mutex;
-        condition_variable_t* m_condition_variable = nullptr;
+        condition_variable_weak_ptr_t m_condition_variable;
     } g_thread_flag;
 }
 
