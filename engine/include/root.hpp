@@ -23,7 +23,6 @@
 
 #include "timer.hpp"
 #include "input.hpp"
-#include "systemevent.hpp"
 #include "optionmanager.hpp"
 #include "renderwindow.hpp"
 #include "soundsystem.hpp"
@@ -42,10 +41,6 @@ namespace cursedearth
         ~root_t();
 
         int exec();
-
-    private:
-        static void system_event_handler(ce_system_event_type);
-        static void renderwindow_closed(void*);
 
     public:
         float animation_fps = 15.0f;

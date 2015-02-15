@@ -18,27 +18,33 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cassert>
+#include "systemevent.hpp"
+
 #include <csignal>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-#include "systemevent.hpp"
-
 namespace cursedearth
 {
-    void (*ce_system_event_handler)(ce_system_event_type type);
+    std::vector<system_event_handler_t> g_system_event_handlers;
 
-    void ce_system_event_signal_handler(int type)
+    void emit_signal(system_event_type_t type)
+    {
+        for (const auto& handler: g_system_event_handlers) {
+            handler(type);
+        }
+    }
+
+    void signal_handler(int type)
     {
         switch (type) {
         case SIGINT:
-            ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_INT);
+            emit_signal(system_event_type_t::interrupt);
             break;
         case SIGTERM:
-            ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_TERM);
+            emit_signal(system_event_type_t::terminate);
             break;
         default:
             assert(false);
@@ -46,23 +52,23 @@ namespace cursedearth
     }
 
 #ifdef _WIN32
-    BOOL CALLBACK ce_system_event_console_handler(DWORD type)
+    BOOL CALLBACK console_handler(DWORD type)
     {
         switch (type) {
         case CTRL_C_EVENT:
-            ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_CTRLC);
+            emit_signal(system_event_type_t::ctrlc);
             break;
         case CTRL_BREAK_EVENT:
-            ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_CTRLBREAK);
+            emit_signal(system_event_type_t::ctrlbreak);
             break;
         case CTRL_CLOSE_EVENT:
-            ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_CLOSE);
+            emit_signal(system_event_type_t::close);
             break;
         case CTRL_LOGOFF_EVENT:
-            ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_LOGOFF);
+            emit_signal(system_event_type_t::logoff);
             break;
         case CTRL_SHUTDOWN_EVENT:
-            ce_system_event_handler(CE_SYSTEM_EVENT_TYPE_SHUTDOWN);
+            emit_signal(system_event_type_t::shutdown);
             break;
         default:
             assert(false);
@@ -71,16 +77,15 @@ namespace cursedearth
     }
 #endif
 
-    void ce_system_event_register(void (*handler)(ce_system_event_type type))
+    void add_system_event_handler(const system_event_handler_t& handler)
     {
-        assert(nullptr == ce_system_event_handler && "only one handler supported");
-        ce_system_event_handler = handler;
+        g_system_event_handlers.push_back(handler);
 
-        signal(SIGINT, ce_system_event_signal_handler);
-        signal(SIGTERM, ce_system_event_signal_handler);
+        signal(SIGINT, signal_handler);
+        signal(SIGTERM, signal_handler);
 
 #ifdef _WIN32
-        SetConsoleCtrlHandler(ce_system_event_console_handler, TRUE);
+        SetConsoleCtrlHandler(console_handler, TRUE);
 #endif
     }
 }

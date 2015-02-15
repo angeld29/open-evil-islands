@@ -22,6 +22,7 @@
 #include "logging.hpp"
 #include "event.hpp"
 #include "systeminfo.hpp"
+#include "systemevent.hpp"
 #include "resourcemanager.hpp"
 #include "configmanager.hpp"
 #include "rendersystem.hpp"
@@ -114,7 +115,35 @@ namespace cursedearth
             m_scene_manager->resize(width, height);
         });
 
-        ce_system_event_register(system_event_handler);
+        add_system_event_handler([this] (system_event_type_t type) {
+            switch (type) {
+            case system_event_type_t::interrupt:
+                ce_logging_warning("root: interruption event received");
+                break;
+            case system_event_type_t::terminate:
+                ce_logging_warning("root: termination event received");
+                break;
+            case system_event_type_t::ctrlc:
+                ce_logging_warning("root: ctrl+c event received");
+                break;
+            case system_event_type_t::ctrlbreak:
+                ce_logging_warning("root: ctrl+break event received");
+                break;
+            case system_event_type_t::close:
+                ce_logging_warning("root: close event received");
+                break;
+            case system_event_type_t::logoff:
+                ce_logging_warning("root: logoff event received");
+                break;
+            case system_event_type_t::shutdown:
+                ce_logging_warning("root: shutdown event received");
+                break;
+            default:
+                ce_logging_warning("root: unknown event received");
+                assert(false);
+            }
+            m_done = true;
+        });
     }
 
     root_t::~root_t()
@@ -175,39 +204,7 @@ namespace cursedearth
             m_render_window->swap();
         }
 
-        return EXIT_SUCCESS;
-    }
-
-    void root_t::system_event_handler(ce_system_event_type type)
-    {
-        switch (type) {
-        case CE_SYSTEM_EVENT_TYPE_INT:
-            ce_logging_warning("root: interactive attention event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_TERM:
-            ce_logging_warning("root: termination event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_CTRLC:
-            ce_logging_warning("root: ctrl+c event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_CTRLBREAK:
-            ce_logging_warning("root: ctrl+break event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_CLOSE:
-            ce_logging_warning("root: close event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_LOGOFF:
-            ce_logging_warning("root: logoff event received");
-            break;
-        case CE_SYSTEM_EVENT_TYPE_SHUTDOWN:
-            ce_logging_warning("root: shutdown event received");
-            break;
-        default:
-            ce_logging_critical("root: unknown event received");
-            assert(false);
-        }
-
         ce_logging_info("root: exiting sanely...");
-        root_t::instance()->m_done = true;
+        return EXIT_SUCCESS;
     }
 }

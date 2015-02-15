@@ -21,20 +21,24 @@
 #ifndef CE_SYSTEMEVENT_HPP
 #define CE_SYSTEMEVENT_HPP
 
+#include "commonheaders.hpp"
+
 namespace cursedearth
 {
-    typedef enum {
-        CE_SYSTEM_EVENT_TYPE_INT,
-        CE_SYSTEM_EVENT_TYPE_TERM,
-        CE_SYSTEM_EVENT_TYPE_CTRLC,
-        CE_SYSTEM_EVENT_TYPE_CTRLBREAK,
-        CE_SYSTEM_EVENT_TYPE_CLOSE,
-        CE_SYSTEM_EVENT_TYPE_LOGOFF,
-        CE_SYSTEM_EVENT_TYPE_SHUTDOWN,
-        CE_SYSTEM_EVENT_TYPE_COUNT
-    } ce_system_event_type;
+    enum class system_event_type_t
+    {
+        interrupt,
+        terminate,
+        ctrlc,
+        ctrlbreak,
+        close,
+        logoff,
+        shutdown
+    };
 
-    void ce_system_event_register(void (*handler)(ce_system_event_type type));
+    typedef std::function<void (system_event_type_t)> system_event_handler_t;
+
+    void add_system_event_handler(const system_event_handler_t&);
 }
 
 #endif
