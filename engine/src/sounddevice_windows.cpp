@@ -26,163 +26,162 @@
 
 namespace cursedearth
 {
-    enum {
-        SOUND_CAPABILITY_HEADER_COUNT = 8,
-    };
-
-    typedef struct {
-        WAVEHDR waveheader;
-        char data[SOUND_CAPABILITY_BLOCK_SIZE];
-    } ce_wmm_header;
-
-    typedef struct {
-        HANDLE event;
-        WAVEFORMATEXTENSIBLE waveformat;
-        HWAVEOUT waveout;
-        ce_wmm_header headers[SOUND_CAPABILITY_HEADER_COUNT];
-    } ce_wmm;
-
-    void ce_wmm_error(MMRESULT code, const char* message)
+    class wmm_device_t final: public sound_device_t
     {
-        char buffer[MAXERRORLENGTH];
-        if (MMSYSERR_NOERROR == waveOutGetErrorText(code, buffer, sizeof(buffer))) {
-            ce_logging_error("wmm: %s", buffer);
-        }
-        if (NULL != message) {
-            ce_logging_error("wmm: %s", message);
-        }
-    }
-
-    void CALLBACK ce_wmm_proc(HWAVEOUT, UINT message, DWORD_PTR instance, DWORD_PTR /*param1*/, DWORD_PTR /*param2*/)
-    {
-        if (WOM_DONE == message) {
-            ce_wmm* wmm = (ce_wmm*)instance;
-            SetEvent(wmm->event);
-        }
-    }
-
-    bool ce_wmm_ctor()
-    {
-        ce_wmm* wmm = (ce_wmm*)sound_system_t::instance()->impl;
-        MMRESULT code = MMSYSERR_NOERROR;
-
-        ce_logging_info("sound system: using Windows Waveform-Audio Interface");
-
-        wmm->event = CreateEvent(NULL, TRUE, FALSE, NULL);
-        if (NULL == wmm->event) {
-            ce_logging_error("wmm: CreateEvent failed");
-            return false;
+        static void error_handler(MMRESULT code)
+        {
+            char buffer[MAXERRORLENGTH];
+            if (MMSYSERR_NOERROR == waveOutGetErrorText(code, buffer, sizeof(buffer))) {
+                ce_logging_error("wmm: %s", buffer);
+            }
         }
 
-        assert(SOUND_CAPABILITY_CHANNEL_COUNT <= 2 && "only mono and stereo output implemented");
+        struct header_t
+        {
+            WAVEHDR waveheader;
+            uint8_t data[sound_options_t::max_block_size];
+        };
 
-        wmm->waveformat.Format.wFormatTag = WAVE_FORMAT_PCM;
-        wmm->waveformat.Format.nChannels = SOUND_CAPABILITY_CHANNEL_COUNT;
-        wmm->waveformat.Format.nSamplesPerSec = SOUND_CAPABILITY_SAMPLES_PER_SECOND;
-        wmm->waveformat.Format.wBitsPerSample  = SOUND_CAPABILITY_BITS_PER_SAMPLE;
-        wmm->waveformat.Format.nBlockAlign = SOUND_CAPABILITY_SAMPLE_SIZE;
-        wmm->waveformat.Format.nAvgBytesPerSec = SOUND_CAPABILITY_SAMPLES_PER_SECOND * SOUND_CAPABILITY_SAMPLE_SIZE;
+        static const size_t s_header_count = 8;
 
-        code = waveOutOpen(&wmm->waveout, WAVE_MAPPER, &wmm->waveformat.Format,
-            (DWORD_PTR)ce_wmm_proc, (DWORD_PTR)wmm, CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
-        if (MMSYSERR_NOERROR != code) {
-            ce_wmm_error(code, "waveOutOpen failed");
-            return false;
+        struct handle_dtor_t
+        {
+            void operator ()(PHANDLE handle)
+            {
+                CloseHandle(*handle);
+            }
+        };
+
+        struct hwaveout_dtor_t
+        {
+            void operator ()(LPHWAVEOUT hwo)
+            {
+                MMRESULT code = waveOutClose(*hwo);
+                if (MMSYSERR_NOERROR != code) {
+                    error_handler(code);
+                }
+            }
+        };
+
+        WAVEFORMATEXTENSIBLE m_waveformat;
+        header_t m_headers[s_header_count];
+        HANDLE m_event;
+        HWAVEOUT m_waveout;
+        std::unique_ptr<HANDLE, handle_dtor_t> m_event_holder;
+        std::unique_ptr<HWAVEOUT, hwaveout_dtor_t> m_waveout_holder;
+
+        static void CALLBACK callback(HWAVEOUT, UINT message, DWORD_PTR instance, DWORD_PTR, DWORD_PTR)
+        {
+            if (WOM_DONE == message) {
+                wmm_device_t* device = reinterpret_cast<wmm_device_t*>(instance);
+                SetEvent(device->m_event);
+            }
         }
 
-        for (size_t i = 0; i < SOUND_CAPABILITY_HEADER_COUNT; ++i) {
-            wmm->headers[i].waveheader.lpData = wmm->headers[i].data;
-            wmm->headers[i].waveheader.dwBufferLength = SOUND_CAPABILITY_BLOCK_SIZE;
-            wmm->headers[i].waveheader.dwUser = (DWORD_PTR)&wmm->headers[i];
-            wmm->headers[i].waveheader.dwFlags = WHDR_DONE;
+        header_t* find()
+        {
+            for (size_t i = 0; i < s_header_count; ++i) {
+                if (m_headers[i].waveheader.dwFlags & WHDR_DONE) {
+                    return &m_headers[i];
+                }
+            }
+            return NULL;
         }
 
-        return true;
-    }
+        virtual void write(const sound_block_ptr_t& block)
+        {
+            ResetEvent(m_event);
 
-    void ce_wmm_dtor()
-    {
-        ce_wmm* wmm = (ce_wmm*)sound_system_t::instance()->impl;
-        MMRESULT code = MMSYSERR_NOERROR;
-
-        if (NULL != wmm->waveout) {
-            code = waveOutReset(wmm->waveout);
-            if (MMSYSERR_NOERROR != code) {
-                ce_wmm_error(code, "waveOutReset failed");
+            header_t* header = NULL;
+            while (NULL == (header = find())) {
+                if (WAIT_OBJECT_0 != WaitForSingleObject(m_event, INFINITE)) {
+                    throw game_error("wmm", "WaitForSingleObject failed");
+                }
             }
 
-            for (size_t i = 0; i < SOUND_CAPABILITY_HEADER_COUNT; ++i) {
-                if (wmm->headers[i].waveheader.dwFlags & WHDR_PREPARED) {
-                    code = waveOutUnprepareHeader(wmm->waveout, &wmm->headers[i].waveheader, sizeof(WAVEHDR));
+            MMRESULT code = MMSYSERR_NOERROR;
+            if (header->waveheader.dwFlags & WHDR_PREPARED) {
+                code = waveOutUnprepareHeader(m_waveout, &header->waveheader, sizeof(WAVEHDR));
+            }
+
+            if (MMSYSERR_NOERROR == code) {
+                auto data = block->read_raw();
+                std::copy_n(data.first, data.second, header->data);
+                header->waveheader.dwBufferLength = data.second;
+                code = waveOutPrepareHeader(m_waveout, &header->waveheader, sizeof(WAVEHDR));
+                if (MMSYSERR_NOERROR == code) {
+                    code = waveOutWrite(m_waveout, &header->waveheader, sizeof(WAVEHDR));
+                    if (MMSYSERR_NOERROR == code) {
+                        // unbelievable! :)
+                    } else {
+                        error_handler(code);
+                        throw game_error("wmm", "waveOutWrite failed");
+                    }
+                } else {
+                    error_handler(code);
+                    throw game_error("wmm", "waveOutPrepareHeader failed");
+                }
+            } else {
+                error_handler(code);
+                throw game_error("wmm", "waveOutUnprepareHeader failed");
+            }
+        }
+
+    public:
+        explicit wmm_device_t(const sound_format_t& format):
+            sound_device_t(format)
+        {
+            ce_logging_info("sound system: using Windows Waveform-Audio Interface");
+            assert(format.channel_count <= 2 && "only mono and stereo output implemented");
+
+            m_waveformat.Format.wFormatTag = WAVE_FORMAT_PCM;
+            m_waveformat.Format.nChannels = format.channel_count;
+            m_waveformat.Format.nSamplesPerSec = format.samples_per_second;
+            m_waveformat.Format.wBitsPerSample  = format.bits_per_sample;
+            m_waveformat.Format.nBlockAlign = format.sample_size;
+            m_waveformat.Format.nAvgBytesPerSec = format.bytes_per_second;
+
+            for (size_t i = 0; i < s_header_count; ++i) {
+                m_headers[i].waveheader.lpData = reinterpret_cast<LPSTR>(m_headers[i].data);
+                m_headers[i].waveheader.dwUser = reinterpret_cast<DWORD_PTR>(&m_headers[i]);
+                m_headers[i].waveheader.dwFlags = WHDR_DONE;
+            }
+
+            m_event = CreateEvent(NULL, TRUE, FALSE, NULL);
+            if (!m_event) {
+                throw game_error("wmm", "CreateEvent failed");
+            }
+            m_event_holder.reset(&m_event);
+
+            MMRESULT code = waveOutOpen(&m_waveout, WAVE_MAPPER, &m_waveformat.Format,
+                reinterpret_cast<DWORD_PTR>(callback), reinterpret_cast<DWORD_PTR>(this), CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
+            if (MMSYSERR_NOERROR != code) {
+                error_handler(code);
+                throw game_error("wmm", "waveOutOpen failed");
+            }
+            m_waveout_holder.reset(&m_waveout);
+        }
+
+        virtual ~wmm_device_t()
+        {
+            MMRESULT code = waveOutReset(m_waveout);
+            if (MMSYSERR_NOERROR != code) {
+                error_handler(code);
+            }
+
+            for (size_t i = 0; i < s_header_count; ++i) {
+                if (m_headers[i].waveheader.dwFlags & WHDR_PREPARED) {
+                    code = waveOutUnprepareHeader(m_waveout, &m_headers[i].waveheader, sizeof(WAVEHDR));
                     if (MMSYSERR_NOERROR != code) {
-                        ce_wmm_error(code, "waveOutUnprepareHeader failed");
+                        error_handler(code);
                     }
                 }
             }
-
-            code = waveOutClose(wmm->waveout);
-            if (MMSYSERR_NOERROR != code) {
-                ce_wmm_error(code, "waveOutClose failed");
-            }
         }
+    };
 
-        if (NULL != wmm->event) {
-            CloseHandle(wmm->event);
-        }
-    }
-
-    inline ce_wmm_header* ce_wmm_find(ce_wmm* wmm)
+    sound_device_ptr_t make_sound_device(const sound_format_t& format)
     {
-        for (size_t i = 0; i < SOUND_CAPABILITY_HEADER_COUNT; ++i) {
-            if (wmm->headers[i].waveheader.dwFlags & WHDR_DONE) {
-                return &wmm->headers[i];
-            }
-        }
-        return NULL;
-    }
-
-    bool ce_wmm_write(const void* block)
-    {
-        ce_wmm* wmm = (ce_wmm*)sound_system_t::instance()->impl;
-        ce_wmm_header* header = NULL;
-        MMRESULT code = MMSYSERR_NOERROR;
-
-        ResetEvent(wmm->event);
-
-        while (NULL == (header = ce_wmm_find(wmm))) {
-            if (WAIT_OBJECT_0 != WaitForSingleObject(wmm->event, INFINITE)) {
-                ce_logging_error("wmm: WaitForSingleObject failed");
-                return false;
-            }
-        }
-
-        if (header->waveheader.dwFlags & WHDR_PREPARED) {
-            code = waveOutUnprepareHeader(wmm->waveout, &header->waveheader, sizeof(WAVEHDR));
-        }
-
-        if (MMSYSERR_NOERROR == code) {
-            memcpy(header->data, block, SOUND_CAPABILITY_BLOCK_SIZE);
-            code = waveOutPrepareHeader(wmm->waveout, &header->waveheader, sizeof(WAVEHDR));
-            if (MMSYSERR_NOERROR == code) {
-                code = waveOutWrite(wmm->waveout, &header->waveheader, sizeof(WAVEHDR));
-                if (MMSYSERR_NOERROR == code) {
-                    // unbelievable! :)
-                } else {
-                    ce_wmm_error(code, "waveOutWrite failed");
-                }
-            } else {
-                ce_wmm_error(code, "waveOutPrepareHeader failed");
-            }
-        } else {
-            ce_wmm_error(code, "waveOutUnprepareHeader failed");
-        }
-
-        return MMSYSERR_NOERROR == code;
-    }
-
-    ce_sound_system_vtable ce_sound_system_platform(void)
-    {
-        ce_sound_system_vtable vt = { sizeof(ce_wmm), ce_wmm_ctor, ce_wmm_dtor, ce_wmm_write };
-        return vt;
+        return std::make_shared<wmm_device_t>(format);
     }
 }

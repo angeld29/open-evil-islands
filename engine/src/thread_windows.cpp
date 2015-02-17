@@ -26,7 +26,7 @@
 #include "alloc.hpp"
 #include "logging.hpp"
 #include "vector.hpp"
-#include "concurrency.hpp"
+#include "thread.hpp"
 
 namespace cursedearth
 {

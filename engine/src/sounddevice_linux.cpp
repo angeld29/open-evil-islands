@@ -35,6 +35,17 @@ namespace cursedearth
             va_end(args);
         }
 
+        struct snd_pcm_dtor_t
+        {
+            void operator ()(snd_pcm_t* pcm) const
+            {
+                snd_pcm_drain(pcm);
+                snd_pcm_close(pcm);
+            }
+        };
+
+        std::unique_ptr<snd_pcm_t, snd_pcm_dtor_t> m_handle;
+
         void debug_dump()
         {
             snd_output_t* output;
@@ -242,17 +253,6 @@ namespace cursedearth
                 }
             }
         }
-
-        struct snd_pcm_dtor_t
-        {
-            void operator ()(snd_pcm_t* pcm) const
-            {
-                snd_pcm_drain(pcm);
-                snd_pcm_close(pcm);
-            }
-        };
-
-        std::unique_ptr<snd_pcm_t, snd_pcm_dtor_t> m_handle;
 
     public:
         explicit alsa_device_t(const sound_format_t& format):
