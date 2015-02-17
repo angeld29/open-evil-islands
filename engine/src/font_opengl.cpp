@@ -167,13 +167,11 @@ namespace cursedearth
             glTranslatef(font->widths[ch], 0.0f, 0.0f);
             glEndList();
 
-            for (int row = 0; row < face->glyph->bitmap.rows; ++row) {
-                for (int pixel = 0; pixel < face->glyph->bitmap.width; ++pixel) {
+            for (int row = 0; row < static_cast<int>(face->glyph->bitmap.rows); ++row) {
+                for (int pixel = 0; pixel < static_cast<int>(face->glyph->bitmap.width); ++pixel) {
                     // set pixel at position to intensity (0-255) at the position
-                    image[(x + face->glyph->bitmap_left + pixel) +
-                        (y - face->glyph->bitmap_top + row) * image_width] =
-                            face->glyph->bitmap.buffer[pixel +
-                            row * face->glyph->bitmap.pitch];
+                    image[(x + face->glyph->bitmap_left + pixel) + (y - face->glyph->bitmap_top + row) * image_width] =
+                        face->glyph->bitmap.buffer[pixel + row * face->glyph->bitmap.pitch];
                 }
             }
 
