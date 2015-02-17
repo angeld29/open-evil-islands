@@ -2,6 +2,9 @@
 # enable debug
 RELEASE = no
 
+# turn on build system debug messages
+LOGGING_LEVEL = debug
+
 # for mp32oga target
 MP3_PATH = /path/to/evilislands/Stream
 OGA_PATH = /path/to/cursedearth/Stream
@@ -27,5 +30,8 @@ ADDITIONAL_LIBRARY_PATHS = c:\argtable\lib;c:\glew\lib
 ADDITIONAL_INCLUDE_PATHS = c:\include
 ADDITIONAL_LIBRARY_PATHS = c:\lib
 
-ADDITIONAL_DEFINES = CE_SOME_DEFINE_1;CE_SOME_DEFINE_2
+ADDITIONAL_DEFINES = SOME_DEFINE_1;SOME_DEFINE_2
 ADDITIONAL_LIBS = some_lib_1;some_lib_2
+
+# propagate additional PATH values (useful for mingw, for example)
+PATH = c:\msys64\mingw64\bin

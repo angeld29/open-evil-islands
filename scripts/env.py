@@ -123,8 +123,15 @@ def create_environment():
         datefmt="%a, %d %b %Y %H:%M:%S",
     )
 
-    env["CE_GENERIC_BIT"] = True
+    env.PrependENVPath(
+        "PATH", path_list_builder("CE", "PATH"),
+    )
 
+    env.PrependENVPath(
+        "PATH", path_list_builder(env["HOST"], "PATH"),
+    )
+
+    env["CE_GENERIC_BIT"] = True
     env["BUILD_MODE"] = "release" if env["RELEASE"] else "debug"
     env["GEN_PATH"] = os.path.join("$HOST", "$BUILD_MODE")
 

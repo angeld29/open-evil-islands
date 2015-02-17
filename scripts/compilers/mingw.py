@@ -29,12 +29,3 @@ def configure(env):
     SCons.Tool.Tool("mingw")(env)
 
     gcc.configure(env)
-
-    env.AppendUnique(
-        CPPFLAGS=["-march=i486"],  # i386 is no longer supported
-    )
-
-    env.AppendUnique(
-        CPPFLAGS=["-mthreads"],  # specifies that MinGW-specific
-        LINKFLAGS=["-mthreads"], # thread support is to be used
-    )
