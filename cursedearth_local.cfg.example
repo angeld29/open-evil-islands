@@ -21,7 +21,7 @@ OGV_PATH = /path/to/cursedearth/Movies
 OGV_VIDEO_BITRATE = 5000
 OGV_AUDIO_BITRATE = 128
 
-[x86-windows-mingw]
+[x86-64-windows-mingw]
 # argtable and GLEW
 ADDITIONAL_INCLUDE_PATHS = c:\argtable\include;c:\glew\include
 ADDITIONAL_LIBRARY_PATHS = c:\argtable\lib;c:\glew\lib

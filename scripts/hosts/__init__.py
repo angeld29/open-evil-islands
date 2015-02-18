@@ -30,12 +30,13 @@ hosts = {
     "ppc-linux-gnu": ppclinuxgnu,
     "x86-linux-gnu": x86linuxgnu,
     "x86-linux-mingw": x86linuxmingw,
-    "x86-windows-mingw": x86windowsmingw,
+    "x86-32-windows-mingw": x86windowsmingw,
+    "x86-64-windows-mingw": x86windowsmingw,
 }
 
 # SCons PLATFORM -> HOST
 defaults = {
     "darwin": "darwin",
     "posix": "x86-linux-gnu",
-    "win32": "x86-windows-mingw",
+    "win32": "x86-64-windows-mingw",
 }
