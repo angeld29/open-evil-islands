@@ -1,41 +1,60 @@
+zlib-1.2.8:
+make -fwin32/Makefile.gcc
+make install -fwin32/Makefile.gcc DESTDIR=/usr/local/ INCLUDE_PATH=include/ LIBRARY_PATH=lib/ BINARY_PATH=bin/
+
+bzip2-1.0.6:
+Makefile: remove chmod a+x $(PREFIX)/bin/*
+
 argtable2-13:
-./configure --build=x86_64-pc-mingw32 --enable-shared=no
+./configure --build=x86_64-w64-mingw32 --enable-shared=no
+./configure --build=i686-w64-mingw32 --enable-shared=no
 
 libmad-0.15.1b:
-./configure --build=x86_64-pc-mingw32 --enable-shared=no --enable-speed --disable-aso --disable-debugging
+./configure --build=x86_64-w64-mingw32 --enable-shared=no --enable-speed --disable-aso --disable-debugging
+./configure --build=i686-w64-mingw32 --enable-shared=no --enable-speed --disable-aso --disable-debugging
 Makefile: remove -fforce-mem
 
 libogg-1.3.2:
-./configure --build=x86_64-pc-mingw32 --enable-shared=no
+./configure --build=x86_64-w64-mingw32 --enable-shared=no
+./configure --build=i686-w64-mingw32 --enable-shared=no
 
 libvorbis-1.3.4:
-./configure --build=x86_64-pc-mingw32 --enable-shared=no --with-ogg=/usr/local
+./configure --build=x86_64-w64-mingw32 --enable-shared=no --with-ogg=/usr/local
+./configure --build=i686-w64-mingw32 --enable-shared=no --with-ogg=/usr/local
 
 flac-1.3.1:
-./configure --build=x86_64-pc-mingw32 --enable-shared=no --disable-asm-optimizations --disable-sse --disable-altivec --disable-doxygen-docs --disable-xmms-plugin --with-ogg=/usr/local
+./configure --build=x86_64-w64-mingw32 --enable-shared=no --disable-asm-optimizations --disable-sse --disable-altivec --disable-doxygen-docs --disable-xmms-plugin --with-ogg=/usr/local
+./configure --build=i686-w64-mingw32 --enable-shared=no --disable-asm-optimizations --disable-sse --disable-altivec --disable-doxygen-docs --disable-xmms-plugin --with-ogg=/usr/local
 
 libtheora-1.1.1:
-./configure --build=x86_64-pc-mingw32 --enable-shared=no --disable-asm --disable-sdltest --disable-encode --disable-examples --wth-ogg=/usr/local --with-vorbis=/usr/local
+./configure --build=x86_64-w64-mingw32 --enable-shared=no --disable-asm --disable-sdltest --disable-encode --disable-examples --with-ogg=/usr/local --with-vorbis=/usr/local
+./configure --build=i686-w64-mingw32 --enable-shared=no --disable-asm --disable-sdltest --disable-encode --disable-examples --with-ogg=/usr/local --with-vorbis=/usr/local
 
 libpng-1.6.16:
-./configure --build=x86_64-pc-mingw32 --enable-shared=no
+./configure --build=x86_64-w64-mingw32 --enable-shared=no --with-zlib-prefix=/usr/local
+./configure --build=i686-w64-mingw32 --enable-shared=no --with-zlib-prefix=/usr/local
 
 freetype-2.5.5:
-./configure --build=x86_64-pc-mingw32 --enable-shared=no --with-png=yes LIBPNG_CFLAGS=-I/usr/local/include LIBPNG_LIBS=-L/usr/local/lib
+./configure --build=x86_64-w64-mingw32 --enable-shared=no --with-zlib=yes --with-bzip2=yes --with-png=yes ZLIB_CFLAGS=-I/usr/local/include ZLIB_LIBS=-L/usr/local/lib BZIP2_CFLAGS=-I/usr/local/include BZIP2_LIBS=-L/usr/local/lib LIBPNG_CFLAGS=-I/usr/local/include LIBPNG_LIBS=-L/usr/local/lib
+./configure --build=i686-w64-mingw32 --enable-shared=no --with-zlib=yes --with-bzip2=yes --with-png=yes ZLIB_CFLAGS=-I/usr/local/include ZLIB_LIBS=-L/usr/local/lib BZIP2_CFLAGS=-I/usr/local/include BZIP2_LIBS=-L/usr/local/lib LIBPNG_CFLAGS=-I/usr/local/include LIBPNG_LIBS=-L/usr/local/lib
+
+ffmpeg-0.8.15:
+./configure --prefix=/usr/local/ --enable-static --disable-shared --enable-gpl --enable-version3 --disable-doc --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver --disable-avdevice --disable-avformat --disable-swscale --disable-postproc --disable-avfilter --disable-network --disable-asm --disable-yasm --disable-debug --disable-everything --enable-decoder=binkaudio_rdft --enable-decoder=bink
+--enable-cross-compile --cross-prefix=i586-mingw32msvc- --target-os=mingw32 --arch=i586
 
 squish-1.11:
 Makefile: fix install: include/ lib/
 
 glew-1.12.0:
-fix Makefile: /usr/local
-fix Makefile.linux-mingw64
+Makefile.linux-mingw64
+NAME  := glew
+HOST  := x86_64-w64-mingw32
+HOST  := i686-w64-mingw32
+LD    := ld
 LDFLAGS.EXTRA = -Lc:\msys64\mingw64\x86_64-w64-mingw32\lib
+LDFLAGS.EXTRA = -Lc:\msys64\mingw32\i686-w64-mingw32\lib
 make SYSTEM=linux-mingw64
 manual install: pkgconfig\glewmx.pc include lib
-
-ffmpeg-0.8.15:
-./configure --prefix=/usr/local/ --enable-static --disable-shared --enable-gpl --enable-version3 --disable-doc --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver --disable-avdevice --disable-avformat --disable-swscale --disable-postproc --disable-avfilter --disable-network --disable-asm --disable-yasm --disable-debug --disable-everything --enable-decoder=binkaudio_rdft --enable-decoder=bink
---enable-cross-compile --cross-prefix=i586-mingw32msvc- --target-os=mingw32 --arch=i586
 
 boost_1_57_0:
 set path=c:\msys64\mingw64\bin;%path%
