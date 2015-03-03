@@ -25,6 +25,8 @@
 #include "vector.hpp"
 #include "timer.hpp"
 
+#include <atomic>
+
 namespace cursedearth
 {
     typedef struct ce_event {

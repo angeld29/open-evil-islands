@@ -32,6 +32,8 @@
 #include "scenenode.hpp"
 #include "renderqueue.hpp"
 
+#include <mutex>
+
 namespace cursedearth
 {
     typedef struct ce_terrain ce_terrain;

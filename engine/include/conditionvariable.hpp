@@ -23,6 +23,8 @@
 
 #include "thread.hpp"
 
+#include <condition_variable>
+
 namespace cursedearth
 {
     class condition_variable_t: untransferable_t

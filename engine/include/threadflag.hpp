@@ -23,6 +23,8 @@
 
 #include "conditionvariable.hpp"
 
+#include <atomic>
+
 namespace cursedearth
 {
     /**
@@ -43,14 +45,6 @@ namespace cursedearth
             }
         }
 
-        // remains unlocked if an exception occurred
-        template <typename lockable_t>
-        void lock_and_set_condition_variable(lockable_t& lockable, const condition_variable_ptr_t& condition_variable)
-        {
-            lock(lockable);
-            m_condition_variable = condition_variable; // noexcept
-        }
-
         template <typename lockable_t>
         void lock(lockable_t& lockable)
         {
@@ -62,6 +56,20 @@ namespace cursedearth
         {
             lockable.unlock();
             m_mutex.unlock();
+        }
+
+        // remains unlocked if an exception occurred
+        template <typename lockable_t>
+        void lock_and_set_cv(lockable_t& lockable, const condition_variable_ptr_t& condition_variable)
+        {
+            lock(lockable);
+            m_condition_variable = condition_variable; // noexcept
+        }
+
+        void reset_cv()
+        {
+            m_condition_variable.reset();
+            m_condition_variable = condition_variable_weak_ptr_t();
         }
 
     private:

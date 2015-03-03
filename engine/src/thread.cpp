@@ -19,7 +19,6 @@
  */
 
 #include "thread.hpp"
-#include "threadflag.hpp"
 #include "threadlock.hpp"
 
 namespace cursedearth
@@ -36,11 +35,14 @@ namespace cursedearth
         }
     }
 
-    void thread_t::do_interrupt()
+    void thread_t::do_interrupt(thread_flag_t* flag, bool value)
     {
         if (m_flag) {
-            *m_flag = true;
-            m_flag = nullptr;
+            *m_flag = value;
+        }
+        m_flag = flag;
+        if (m_flag) {
+            *m_flag = value;
         }
     }
 }

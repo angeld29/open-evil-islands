@@ -35,7 +35,7 @@ namespace cursedearth
             m_owns(false),
             m_mutex(mutex)
         {
-            g_thread_flag.lock_and_set_condition_variable(mutex, condition_variable);
+            g_thread_flag.lock_and_set_cv(mutex, condition_variable);
             m_owns = true;
 
             assert(!s_nested_guard && "nested locks are not supported");
@@ -48,6 +48,7 @@ namespace cursedearth
         {
             assert(s_nested_guard);
             assert(std::this_thread::get_id() == s_thread_id);
+            g_thread_flag.reset_cv();
             if (m_owns) {
                 unlock();
             }

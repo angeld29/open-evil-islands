@@ -23,6 +23,8 @@
 
 #include "conditionvariable.hpp"
 
+#include <atomic>
+
 namespace cursedearth
 {
     /**

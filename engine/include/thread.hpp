@@ -25,7 +25,6 @@
 #include "logging.hpp"
 
 #include <thread>
-#include <future>
 
 #include <boost/signals2.hpp>
 
@@ -57,33 +56,34 @@ namespace cursedearth
                 } catch (const thread_interrupted_t&) {
                     ce_logging_debug("%s: interrupted", token.c_str());
                 } catch (const std::exception& error) {
-                    ce_logging_fatal("%s: %s", token.c_str(), error.what());
+                    ce_logging_critical("%s: %s", token.c_str(), error.what());
                 } catch (...) {
-                    ce_logging_fatal("%s: unknown error", token.c_str());
+                    ce_logging_critical("%s: unknown error", token.c_str());
                 }
             }
         };
 
-        typedef boost::signals2::signal<void ()> interrupt_t;
+        typedef boost::signals2::signal<void (thread_flag_t*, bool)> interrupt_t;
         typedef std::shared_ptr<interrupt_t> interrupt_ptr_t;
 
-        // access only through signal (because of threads)
-        void do_interrupt();
+        // access only through signal interrupt_t
+        void do_interrupt(thread_flag_t*, bool);
+
+        interrupt_ptr_t make_interrupt()
+        {
+            interrupt_ptr_t interrupt = std::make_shared<interrupt_t>();
+            interrupt->connect([this](thread_flag_t* flag, bool value){do_interrupt(flag, value);});
+            return interrupt;
+        }
 
         template <typename function_t>
-        thread_t(function_t function)
-        {
-            std::promise<thread_flag_t*> promise;
-            interrupt_ptr_t interrupt = std::make_shared<interrupt_t>();
-            interrupt->connect([this]{do_interrupt();});
-            m_thread = std::thread([function, &promise, interrupt] {
-                promise.set_value(&g_thread_flag);
+        thread_t(function_t function):
+            m_interrupt(make_interrupt()),
+            m_thread([function, this]{
+                (*m_interrupt)(&g_thread_flag, false);
                 function();
-                (*interrupt)(); // clear flag: thread_local storage will be destroyed!
-            });
-            m_flag = promise.get_future().get();
-            m_interrupt = interrupt;
-        }
+                (*m_interrupt)(nullptr, true); // clear flag: thread_local storage will be destroyed!
+            }) {}
 
     public:
         template <typename function_t>
@@ -92,18 +92,18 @@ namespace cursedearth
 
         ~thread_t()
         {
-            (*m_interrupt)();
+            (*m_interrupt)(nullptr, true);
             if (m_thread.joinable()) {
                 m_thread.join();
             }
         }
 
-        void temp() { (*m_interrupt)(); if (m_thread.joinable()) m_thread.join(); }
+        void temp() { (*m_interrupt)(nullptr, true); if (m_thread.joinable()) m_thread.join(); }
 
     private:
-        std::thread m_thread;
-        std::atomic<thread_flag_t*> m_flag;
+        thread_flag_t* m_flag = nullptr;
         interrupt_ptr_t m_interrupt;
+        std::thread m_thread;
     };
 
     typedef std::shared_ptr<thread_t> thread_ptr_t;
