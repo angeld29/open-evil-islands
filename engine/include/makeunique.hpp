@@ -21,8 +21,7 @@
 #ifndef CE_MAKEUNIQUE_HPP
 #define CE_MAKEUNIQUE_HPP
 
-#include "standardheaders.hpp"
-#include "thirdpartyheaders.hpp"
+#include <memory>
 
 #if __cplusplus >= 201402L
 #error std::make_unique is available now

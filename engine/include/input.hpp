@@ -21,8 +21,11 @@
 #ifndef CE_INPUT_HPP
 #define CE_INPUT_HPP
 
-#include "commonheaders.hpp"
+#include "untransferable.hpp"
 #include "vector2.hpp"
+
+#include <memory>
+#include <vector>
 
 namespace cursedearth
 {

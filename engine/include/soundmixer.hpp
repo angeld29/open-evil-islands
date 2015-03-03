@@ -21,6 +21,8 @@
 #ifndef CE_SOUNDMIXER_HPP
 #define CE_SOUNDMIXER_HPP
 
+#include "makeunique.hpp"
+#include "singleton.hpp"
 #include "soundbuffer.hpp"
 
 #include <list>
@@ -46,7 +48,10 @@ namespace cursedearth
 
     typedef std::unique_ptr<sound_mixer_t> sound_mixer_ptr_t;
 
-    sound_mixer_ptr_t make_sound_mixer();
+    inline sound_mixer_ptr_t make_sound_mixer()
+    {
+        return make_unique<sound_mixer_t>();
+    }
 }
 
 #endif

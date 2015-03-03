@@ -19,6 +19,7 @@
  */
 
 #include "timer.hpp"
+#include "logging.hpp"
 
 #include <windows.h>
 

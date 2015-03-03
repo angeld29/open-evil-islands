@@ -21,7 +21,10 @@
 #ifndef CE_FPS_HPP
 #define CE_FPS_HPP
 
-#include "commonheaders.hpp"
+#include "untransferable.hpp"
+
+#include <memory>
+#include <string>
 
 namespace cursedearth
 {

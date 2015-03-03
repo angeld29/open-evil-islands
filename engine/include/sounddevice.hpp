@@ -21,6 +21,7 @@
 #ifndef CE_SOUNDDEVICE_HPP
 #define CE_SOUNDDEVICE_HPP
 
+#include "makeunique.hpp"
 #include "soundblock.hpp"
 
 namespace cursedearth
@@ -48,9 +49,11 @@ namespace cursedearth
     typedef std::shared_ptr<sound_device_t> sound_device_ptr_t;
 
     sound_device_ptr_t make_sound_device(const sound_format_t&);
-    sound_device_ptr_t make_null_sound_device(const sound_format_t&);
 
-
+    inline sound_device_ptr_t make_null_sound_device(const sound_format_t& format)
+    {
+        return std::make_shared<null_sound_device_t>(format);
+    }
 }
 
 #endif

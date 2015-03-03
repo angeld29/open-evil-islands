@@ -19,6 +19,7 @@
  */
 
 #include "sounddevice.hpp"
+#include "logging.hpp"
 
 namespace cursedearth
 {
@@ -31,10 +32,5 @@ namespace cursedearth
     void null_sound_device_t::write(const sound_block_ptr_t&)
     {
         // TODO: sleep?
-    }
-
-    sound_device_ptr_t make_null_sound_device(const sound_format_t& format)
-    {
-        return std::make_shared<null_sound_device_t>(format);
     }
 }

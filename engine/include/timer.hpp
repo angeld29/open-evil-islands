@@ -21,7 +21,9 @@
 #ifndef CE_TIMER_HPP
 #define CE_TIMER_HPP
 
-#include "commonheaders.hpp"
+#include "untransferable.hpp"
+
+#include <memory>
 
 namespace cursedearth
 {

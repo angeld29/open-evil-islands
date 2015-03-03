@@ -21,7 +21,7 @@
 #ifndef CE_SYSTEMEVENT_HPP
 #define CE_SYSTEMEVENT_HPP
 
-#include "commonheaders.hpp"
+#include <functional>
 
 namespace cursedearth
 {

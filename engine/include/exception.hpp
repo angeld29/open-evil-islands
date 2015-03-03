@@ -21,20 +21,21 @@
 #ifndef CE_EXCEPTION_HPP
 #define CE_EXCEPTION_HPP
 
-#include "standardheaders.hpp"
-#include "thirdpartyheaders.hpp"
+#include <stdexcept>
+
+#include <boost/format.hpp>
 
 namespace cursedearth
 {
     class game_error: public std::runtime_error
     {
-        template<typename T>
+        template <typename T>
         void apply_cascade(boost::format& format, T arg)
         {
             format % arg;
         }
 
-        template<typename T, typename... A>
+        template <typename T, typename... A>
         void apply_cascade(boost::format& format, T arg, A&&... args)
         {
             format % arg;

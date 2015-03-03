@@ -19,6 +19,10 @@
  */
 
 #include "sounddevice.hpp"
+#include "logging.hpp"
+#include "exception.hpp"
+
+#include <algorithm>
 
 #include <windows.h>
 #include <mmsystem.h>

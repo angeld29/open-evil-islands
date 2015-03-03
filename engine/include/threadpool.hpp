@@ -21,7 +21,9 @@
 #ifndef CE_THREADPOOL_HPP
 #define CE_THREADPOOL_HPP
 
-#include "commonheaders.hpp"
+#include "makeunique.hpp"
+#include "singleton.hpp"
+#include "conditionvariable.hpp"
 
 namespace cursedearth
 {
@@ -52,7 +54,10 @@ namespace cursedearth
 
     typedef std::unique_ptr<thread_pool_t> thread_pool_ptr_t;
 
-    thread_pool_ptr_t make_thread_pool();
+    inline thread_pool_ptr_t make_thread_pool()
+    {
+        return make_unique<thread_pool_t>();
+    }
 }
 
 #endif

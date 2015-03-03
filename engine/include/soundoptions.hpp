@@ -21,8 +21,6 @@
 #ifndef CE_SOUNDOPTIONS_HPP
 #define CE_SOUNDOPTIONS_HPP
 
-#include "commonheaders.hpp"
-
 namespace cursedearth
 {
     struct sound_options_t

@@ -20,6 +20,7 @@
 
 #include "soundinstance.hpp"
 #include "soundmixer.hpp"
+#include "threadlock.hpp"
 
 namespace cursedearth
 {

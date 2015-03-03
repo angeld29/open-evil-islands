@@ -20,6 +20,7 @@
 
 #include "soundmixer.hpp"
 #include "soundsystem.hpp"
+#include "utility.hpp"
 
 namespace cursedearth
 {
@@ -99,10 +100,5 @@ namespace cursedearth
             block->write(array, block->format().sample_size * sound_options_t::samples_in_block);
             sound_system_t::instance()->unmap(block);
         }
-    }
-
-    sound_mixer_ptr_t make_sound_mixer()
-    {
-        return make_unique<sound_mixer_t>();
     }
 }

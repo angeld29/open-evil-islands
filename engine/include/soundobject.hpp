@@ -21,8 +21,6 @@
 #ifndef CE_SOUNDOBJECT_HPP
 #define CE_SOUNDOBJECT_HPP
 
-#include "commonheaders.hpp"
-
 namespace cursedearth
 {
     typedef unsigned long sound_object_t;

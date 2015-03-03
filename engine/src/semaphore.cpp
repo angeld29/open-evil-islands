@@ -19,6 +19,7 @@
  */
 
 #include "semaphore.hpp"
+#include "threadlock.hpp"
 
 namespace cursedearth
 {

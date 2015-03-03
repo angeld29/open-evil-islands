@@ -18,8 +18,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "commonheaders.hpp"
 #include "avcodec.hpp"
+#include "logging.hpp"
+
+#include <mutex>
 
 extern "C"
 {

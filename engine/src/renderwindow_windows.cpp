@@ -21,6 +21,8 @@
 #include "renderwindow.hpp"
 #include "display_windows.hpp"
 #include "graphicscontext_windows.hpp"
+#include "exception.hpp"
+#include "makeunique.hpp"
 
 #include <windows.h>
 #include <windowsx.h>

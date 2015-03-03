@@ -23,6 +23,9 @@
 
 #include "untransferable.hpp"
 
+#include <cassert>
+#include <atomic>
+
 namespace cursedearth
 {
     template <typename T>

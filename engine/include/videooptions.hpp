@@ -21,8 +21,6 @@
 #ifndef CE_VIDEOOPTIONS_HPP
 #define CE_VIDEOOPTIONS_HPP
 
-#include "commonheaders.hpp"
-
 namespace cursedearth
 {
     struct video_options_t

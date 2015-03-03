@@ -21,7 +21,7 @@
 #ifndef CE_SEMAPHORE_HPP
 #define CE_SEMAPHORE_HPP
 
-#include "commonheaders.hpp"
+#include "conditionvariable.hpp"
 
 namespace cursedearth
 {

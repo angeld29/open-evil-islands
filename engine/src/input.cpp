@@ -19,6 +19,7 @@
  */
 
 #include "input.hpp"
+#include "exception.hpp"
 
 #include <boost/algorithm/string.hpp>
 

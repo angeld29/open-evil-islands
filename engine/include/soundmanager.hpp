@@ -21,7 +21,8 @@
 #ifndef CE_SOUNDMANAGER_HPP
 #define CE_SOUNDMANAGER_HPP
 
-#include "commonheaders.hpp"
+#include "makeunique.hpp"
+#include "singleton.hpp"
 #include "soundinstance.hpp"
 #include "soundobject.hpp"
 #include "resfile.hpp"

@@ -24,6 +24,11 @@
 #include "untransferable.hpp"
 #include "logging.hpp"
 
+#include <thread>
+#include <future>
+
+#include <boost/signals2.hpp>
+
 namespace cursedearth
 {
     class thread_flag_t;

@@ -21,6 +21,8 @@
 #ifndef CE_SOUNDSYSTEM_HPP
 #define CE_SOUNDSYSTEM_HPP
 
+#include "makeunique.hpp"
+#include "singleton.hpp"
 #include "soundbuffer.hpp"
 #include "sounddevice.hpp"
 
@@ -48,7 +50,10 @@ namespace cursedearth
 
     typedef std::unique_ptr<sound_system_t> sound_system_ptr_t;
 
-    sound_system_ptr_t make_sound_system();
+    inline sound_system_ptr_t make_sound_system()
+    {
+        return make_unique<sound_system_t>();
+    }
 }
 
 #endif

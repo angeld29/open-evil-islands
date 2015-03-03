@@ -21,6 +21,8 @@
 #ifndef CE_VIDEOMANAGER_HPP
 #define CE_VIDEOMANAGER_HPP
 
+#include "makeunique.hpp"
+#include "singleton.hpp"
 #include "videoinstance.hpp"
 #include "videoobject.hpp"
 
@@ -49,7 +51,10 @@ namespace cursedearth
 
     typedef std::unique_ptr<video_manager_t> video_manager_ptr_t;
 
-    video_manager_ptr_t make_video_manager();
+    inline video_manager_ptr_t make_video_manager()
+    {
+        return make_unique<video_manager_t>();
+    }
 }
 
 #endif

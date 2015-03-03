@@ -21,7 +21,12 @@
 #ifndef CE_SOUNDBLOCK_HPP
 #define CE_SOUNDBLOCK_HPP
 
+#include "untransferable.hpp"
 #include "soundformat.hpp"
+
+#include <cstdint>
+#include <memory>
+#include <utility>
 
 namespace cursedearth
 {

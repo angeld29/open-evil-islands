@@ -19,6 +19,7 @@
  */
 
 #include "threadpool.hpp"
+#include "threadlock.hpp"
 
 namespace cursedearth
 {
@@ -59,10 +60,5 @@ namespace cursedearth
             }
             interruption_point();
         }
-    }
-
-    thread_pool_ptr_t make_thread_pool()
-    {
-        return make_unique<thread_pool_t>();
     }
 }

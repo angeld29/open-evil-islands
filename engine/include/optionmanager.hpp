@@ -21,7 +21,8 @@
 #ifndef CE_OPTIONMANAGER_HPP
 #define CE_OPTIONMANAGER_HPP
 
-#include "commonheaders.hpp"
+#include "makeunique.hpp"
+#include "singleton.hpp"
 #include "optparse.hpp"
 
 #include <boost/filesystem/path.hpp>
@@ -75,7 +76,10 @@ namespace cursedearth
 
     typedef std::unique_ptr<option_manager_t> option_manager_ptr_t;
 
-    option_manager_ptr_t make_option_manager(const ce_optparse_ptr_t&);
+    inline option_manager_ptr_t make_option_manager(const ce_optparse_ptr_t& parser)
+    {
+        return make_unique<option_manager_t>(parser);
+    }
 }
 
 #endif

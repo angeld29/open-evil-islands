@@ -21,7 +21,7 @@
 #ifndef CE_SOUNDCAPABILITIES_HPP
 #define CE_SOUNDCAPABILITIES_HPP
 
-#include "commonheaders.hpp"
+#include <cstddef>
 
 namespace cursedearth
 {

@@ -19,6 +19,10 @@
  */
 
 #include "soundblock.hpp"
+#include "makeunique.hpp"
+
+#include <cassert>
+#include <algorithm>
 
 namespace cursedearth
 {

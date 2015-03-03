@@ -23,8 +23,7 @@
 
 #include <cstdarg>
 
-#include "standardheaders.hpp"
-#include "thirdpartyheaders.hpp"
+#include <boost/format.hpp>
 
 #define CE_LOGGING_DEF_PROC_VA(name, level) \
 inline void ce_logging_##name##_va(const char* format, va_list args) \
