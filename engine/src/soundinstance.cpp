@@ -44,9 +44,6 @@ namespace cursedearth
         std::lock_guard<std::mutex> lock(m_mutex);
         std::ignore = lock;
         m_state = state;
-        if (SOUND_INSTANCE_STATE_PLAYING == state) {
-            m_timestamp = std::chrono::steady_clock::now();
-        }
         m_pause_condition->notify_all();
     }
 

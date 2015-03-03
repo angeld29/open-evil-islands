@@ -27,8 +27,8 @@ namespace cursedearth
 {
     struct sound_options_t
     {
-        static const size_t samples_in_block = 32;
-        static const size_t block_count = 256;
+        static const size_t samples_in_block = 1024;
+        static const size_t block_count = 16;
         static const size_t max_sample_size = 64;
         static const size_t max_block_size = max_sample_size * samples_in_block;
     };

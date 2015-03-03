@@ -39,8 +39,6 @@ namespace cursedearth
             playing
         };
 
-        static const size_t s_cache_size = 8;
-
     public:
         video_instance_t(sound_object_t, ce_video_resource*);
         ~video_instance_t();
@@ -62,7 +60,6 @@ namespace cursedearth
         const sound_object_t m_object;
         ce_video_resource* m_resource;
         state_t m_state = state_t::stopped;
-        std::chrono::steady_clock::time_point m_timestamp;
         int m_frame = -1;
         float m_play_time = 0.0f;
         ce_texture* m_texture;

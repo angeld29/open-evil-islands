@@ -40,7 +40,6 @@ namespace cursedearth
         sound_instance_state_t state() const { return m_state; }
         void change_state(sound_instance_state_t);
 
-        const std::chrono::steady_clock::time_point& timestamp() const { return m_timestamp; }
         float time() const { return m_buffer->granule_position() * m_bytes_per_second_inv; }
 
         void advance(float) {}
@@ -52,7 +51,6 @@ namespace cursedearth
     private:
         std::atomic<sound_instance_state_t> m_state;
         const float m_bytes_per_second_inv;
-        std::chrono::steady_clock::time_point m_timestamp;
         ce_sound_resource* m_resource;
         sound_buffer_ptr_t m_buffer;
         std::mutex m_mutex;

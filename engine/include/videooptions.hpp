@@ -27,7 +27,7 @@ namespace cursedearth
 {
     struct video_options_t
     {
-        static const size_t frame_count = 256;
+        static const size_t frame_count = 32;
     };
 }
 
