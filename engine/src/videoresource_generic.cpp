@@ -430,7 +430,7 @@ namespace cursedearth
             return false;
         }
 
-        if (NULL == (bink->context = avcodec_alloc_context())) {
+        if (NULL == (bink->context = avcodec_alloc_context3(NULL))) {
             ce_logging_error("bink: could not allocate context");
             return false;
         }

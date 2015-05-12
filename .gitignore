@@ -1,0 +1,16 @@
+**/build
+**/bin
+*.dblite
+**/*.pyc
+**/*.sublime-project
+**/*.sublime-workspace
+cursedearth_local.cfg
+**/Makefile*
+engine/CE.ini
+engine/CE.zpi
+engine/CE.zwi
+engine/engine.ALEKS-IDEA.Aleks.pui
+engine/engine.prj
+engine/lib/
+engine/tags
+tools/resfileviewer/ui_mainwindow.h

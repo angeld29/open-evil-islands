@@ -40,6 +40,8 @@
 #include <FLAC/stream_decoder.h>
 #include <mad.h>
 
+#define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000 //Aleks
+
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -825,7 +827,7 @@ namespace cursedearth
             return false;
         }
 
-        if (NULL == (bink->context = avcodec_alloc_context())) {
+        if (NULL == (bink->context = avcodec_alloc_context3(NULL))) {
             ce_logging_error("bink: could not allocate context");
             return false;
         }

@@ -42,8 +42,8 @@
 #include <QMenu>
 #include <QFileDialog>
 
-#include <cealloc.h>
-#include <ceresfile.h>
+#include "../../../../engine/include/alloc.hpp"
+#include "../../../../engine/include/resfile.hpp"
 
 #include "gui/treewidget.hpp"
 

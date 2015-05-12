@@ -78,7 +78,7 @@ namespace cursedearth
     {
         av_lockmgr_register(avcodec_lock);
         av_log_set_callback(avcodec_log);
-        avcodec_init();
+        //avcodec_init();
         avcodec_register_all();
     }
 
