@@ -1,0 +1,1459 @@
+// susl_canyon_of_death - Каньон Смерти. Игровая зона. Рабочая версия.
+////////////////////////////////////////////
+// Переменные
+////////////////////////////////////////////
+GlobalVars (
+  NULL : object,
+  VSS#i#val : object,
+  i : object,
+  Heroes : group,
+  Vorota1 : object,    //SevKrepost
+  Vorota2 : object,    //UjnKrepost
+  Obelisk1 : object,   //////////
+  Obelisk2 : object,   //Magic obelisks
+  Obelisk3 : object,   //////////
+  Flammer1 : object,   //Факельщик
+  Strajnik1 : object,  //Ох-ранник :) встающий
+  Strajnik2 : object,  //Ох-ранник :) встающий
+  Rebel : object,      //Раб - unactive
+  Spider1 : object,    //Паук в первом каньоне
+  Spider2 : object,    //Первый паук во втором каньоне
+  Spider3 : object,    //Второй паук во втором каньоне
+  Rat1 : object,       //Крыса из сундука во втором каньоне
+  Chest1 : object,     //Сундук в первом каньоне
+  Chest2 : object,     //Сундук во втором каньоне
+  Rad : float,         //Fakels power - unactive
+  IN : float,          //IsNight
+  IDRange : float,     //АйДи для цикла, про пауков например
+  R1 : float,          //Степень готовности мага для действия
+  Lamp1 : float,   //Факелs 
+  Lamp2 : float,    //...
+  Lamp3 : float,    //...
+  Lamp4 : float,    //...
+  Lamp5 : float,    //...
+  Lamp6 : float,    //...
+  Lamp7 : float,    //...
+  Lamp8 : float,    //...
+  Lamp9 : float,    //...
+  Lamp10 : float,   //...
+  Lamp11 : float,   //...
+  Lamp12 : float,   //...
+  Lamp13 : float,   //...
+  Lamp14 : float,   //...
+  Lamp15 : float,   //...
+  Lamp16 : float,   //...
+  Lamp17 : float,   //...
+  Lamp18 : float,   //...
+  Lamp19 : float,    //Факелs
+  
+  //Объекты...
+  Kardaur_Sunduk : object,     //Сундук Кардаура
+  
+  //Юниты...
+  Lodochnik : object         //А он все скррипелллл.... и воооот так улыыбалссааа :).
+
+)
+////////////////////////////////////////////
+// Объявления скриптов
+////////////////////////////////////////////
+
+DeclareScript DebugScript (this : object)                                //Ок
+DeclareScript DoNameObjects (this : object)                              //Ок
+DeclareScript SetDefZoneVars (this : object)                             //Ок
+DeclareScript PlayerIsGod_CHECK (this : object)                          //Ок
+DeclareScript PlayerIsGod_CHECK_2 (this : object)                        //Ок
+DeclareScript AllAlly_CHECK (this : object)                              //Ок
+DeclareScript AllAlly_CHECK_2 (this : object)                            //Ок
+DeclareScript ujn_krepost_enable (this:object)                           //Ок
+DeclareScript sev_krepost_enable (this:object)                           //Ок
+DeclareScript Vorota_CHECK (this:object, area1 : float)                  //Ок
+DeclareScript Obelisk1_CHECK (this:object)                               //Ок
+DeclareScript Obelisk2_CHECK (this:object)                               //Ок
+DeclareScript Obelisk3_CHECK (this:object)                               //Ок
+DeclareScript Flammer1_INIT (this:object)                                //Ок
+DeclareScript Flammer1_CHECK (this:object)                               //Ок
+DeclareScript Spell_Teleport (this:object,x1:float,y1:float)             //Ок
+DeclareScript LightOn (this:object,lid:float,lx:float,ly:float,lz:float) //Ок
+DeclareScript LightOff (this:object,lid:float,lx:float,ly:float)         //Ок
+DeclareScript Dialog_Guard(this:object,that:object)                      //Ок
+DeclareScript Trap_RunToPoint(this:object,that:object,x1:float,y1:float) //---
+DeclareScript Trap_SetPet(this:object,that:object,x1:float,y1:float)     //Ок
+DeclareScript Chest_CHECK(this:object,money:float)                       //Ок
+DeclareScript Spiders_INIT(this:object)                                  //Ок
+DeclareScript Spiders_CHECK(this:object)                                 //Ок
+
+//Система управления доступом к точкам перехода
+DeclareScript dostup_susl_close_hadobjs ( this : object )  //Закрыть проходы на хадаганерские объекты.
+DeclareScript dostup_susl_open_hadobjs ( this : object )  //Открыть проходы на хадаганерские объекты.
+DeclareScript dostup_susl_hadobjs_check1 ( this : object )  //Проверялка для хадаганерских объектов.
+DeclareScript dostup_susl_hadobjs_check2 ( this : object )  //Проверялка для хадаганерских объектов.
+DeclareScript first_time_on_allod ( this : object )  //Если перс прибыл с другого аллода.
+
+//Сюжетно...
+
+//q6
+DeclareScript q6_finish ( this : object )  //Добрались до каньона
+//q8
+DeclareScript lodochnik_operation ( this : object )  //Начало операциии...
+DeclareScript sunduk_blocker ( this : object )  //Блокер сундука...
+DeclareScript q8_infa ( this : object )  //Игрок подошел к печке...
+DeclareScript q8_tovari ( this : object )  //Игрок нашел товары...
+DeclareScript q8_oblutali ( this : object )  //Игрок слутал товары...
+DeclareScript q8_finish ( this : object )  //Игрок удрал к лодочнику...
+DeclareScript q8_night ( this : object )  //Фиксить время на ночь при активном квесте...
+
+////////////////////////////////////////////
+// Скрипты глобальные для зоны
+////////////////////////////////////////////
+
+Script DebugScript
+//Отладочный скрипт - для проверки того, что скрипт зоны работает.
+(
+  if
+  (
+  )
+  then
+  (
+    KillScript(  )
+    SendStringEvent( 0, "tutorial DebugMessage" )
+  )
+)
+
+Script DoNameObjects
+//Этот скрипт привязывает идешники объектов к переменным - объектам.
+(
+  if
+  (  
+  )
+  then
+  (
+    KillScript(  )
+    Vorota1   = GetObjectById("338776") //Ворота южной крепости
+    Vorota2   = GetObjectById("338794") //Ворота северной крепости
+    Obelisk1  = GetObjectById("338769") //Обелиск с усилением
+    Obelisk2  = GetObjectById("338770") //Обелиск с лечением
+    Obelisk3  = GetObjectById("338771") //Обелиск с воровскими спеллами
+    Flammer1  = GetObjectById("914707") //Маг-поджигатель
+    Strajnik1 = GetObjectById("338829") //Новобранец
+    Spider1   = GetObjectById("338800") //Паук в западном ущелье
+    Spider2   = GetObjectById("338812") //Паук в западном отнорке восточного ущелья
+    Spider3   = GetObjectById("338811") //Паук в восточном отнорке восточного ущелья
+    Rat1      = GetObjectById("338788") //Сундучная крыска
+    Chest1    = GetObjectById("43397")  //Сундучок с сокровищем - 1000 монет!!!
+    Chest2    = GetObjectById("43398")  //Сундучок с крысой
+    
+    Kardaur_Sunduk = GetObjectById("12025360")  //Сундук Кардаура
+    
+    Lodochnik = GetObjectById("12025364")
+    
+    Lamp1  = 10001    //Факел z=18.67  Свет z=17.347
+    Lamp2  = 10002    //Факел z=18.67  Свет z=17.08
+    Lamp3  = 10003    //Факел z=18.72  Свет z=17.35
+    Lamp4  = 10004    //Факел z=18.668 Свет z=17.347
+    Lamp5  = 10005    //Факел z=19.068 Свет z=17.347
+    Lamp6  = 10006    //Факел z=18.768 Свет z=17.347
+    Lamp7  = 10007    //Факел z=18.72  Свет z=17.361
+    Lamp8  = 10008    //Факел z=18.87  Свет z=17.347
+    Lamp9  = 10009    //Факел z=18.47  Свет z=17.442
+    Lamp10 = 10010    //Факел z=18.72  Свет z=17.347
+    Lamp11 = 10011    //Факел z=18.72  Свет z=17.347
+    Lamp12 = 10012    //Факел z=18.72  Свет z=17.347
+    Lamp13 = 10013    //Факел z=18.72  Свет z=17.412
+    Lamp14 = 10014    //Факел z=18.77  Свет z=17.347
+    Lamp15 = 10015    //Факел z=18.62  Свет z=17.367
+    Lamp16 = 10016    //Факел z=18.67  Свет z=17.347
+    Lamp17 = 10017    //Факел z=18.72  Свет z=17.101
+    Lamp18 = 10018    //Факел z=18.62  Свет z=17.592
+    Lamp19 = 10019    //Факел z=18.47  Свет z=17.347
+    R1 = 1
+    //Light=RGB(0.945,0.808,0.337)R=2.0
+  )
+)
+
+Script SetDefZoneVars
+//Этот скрипт выставляет умолчальные значение переменных при входе именно в эту зону
+(
+  if
+  (
+    
+  )
+  then
+  (
+    KillScript(  )  //Убить скрипт чтоб больше не выполнялся
+    //SendStringEvent( 0, "tutorial DebugMessage" )  //дебаг-мессага
+    GSSetVar(0,"Really_PlayerIsGod",0)  //гадcтво игрока
+    GSSetVar(0,"Really_AllAlly",0)  //Нейтральность
+
+    //Создание областей на зоне...
+    AddRoundToArea( 1, 79, 148, 8 )   //Зона, открывающая Южную Крепость(в том числе и ворота)
+    AddRoundToArea( 2, 209, 319, 8 )   //Зона, открывающая Серверную Крепость(в том числе и ворота)
+
+    //Отключение рук с ворот...
+    EnableLever(Vorota1,0)
+    EnableLever(Vorota2,0)
+  )
+)
+
+Script PlayerIsGod_CHECK
+//Переключает состояние гадмода в соотв. с переменной.
+(
+  if
+  (
+    IsEqual(GSGetVar(0,"PlayerIsGod" ),Not(GSGetVar(0,"Really_PlayerIsGod")))   //Если переменные несовпадают.
+  )
+  then
+  (
+    GSSetVar(0,"Really_PlayerIsGod",GSGetVar(0,"PlayerIsGod"))   //"Совпадить" переменные
+    PlayerIsGod_CHECK_2 (NULL)  //Собсно выставить гадмод
+  )
+)
+
+Script PlayerIsGod_CHECK_2
+//Вложенный скрипт.
+//Вызывается из PlayerIsGod_CHECK
+//В соответствии с переменной выставляет гадмод.
+(
+  if
+  (
+    IsEqual(GSGetVar(0,"PlayerIsGod"),1)   //Надо быть гадом.
+  )
+  then
+  (
+    KillScript( )
+    GodMode(0,2)
+  )
+  if
+  (
+    IsEqual(GSGetVar(0,"PlayerIsGod"),0)   //Не гады мы :).
+  )
+  then
+  (
+    KillScript( )
+    GodMode(0,0)
+  )
+)
+
+Script AllAlly_CHECK
+//Переключает состояние нейтральности в соотв. с переменной.
+(
+  if
+  (
+    IsEqual(GSGetVar(0,"AllAlly" ),Not(GSGetVar(0,"Really_AllAlly")))   //Если переменные несовпадают.
+  )
+  then
+  (
+    GSSetVar(0,"Really_AllAlly",GSGetVar(0,"AllAlly"))   //"Совпадить" переменные
+    AllAlly_CHECK_2 (NULL)  //Собсно выставить гадмод
+  )
+)
+
+Script AllAlly_CHECK_2
+//Вложенный скрипт.
+//Вызывается из AllAlly_CHECK
+//В соответствии с переменной выставляет нейтральность.
+(
+  if
+  (
+    IsEqual(GSGetVar(0,"AllAlly"),1)   //Нейтрал.
+  )
+  then
+  (
+    KillScript( )
+    For(i,Heroes)   //Всех хероесов - переместить в 20 дипгруппу - нейтральны всем
+    (
+      SetPlayer(i,20)
+      //SendStringEvent( 0, "tutorial DebugMessage" )
+    )
+  )
+  if
+  (
+    IsEqual(GSGetVar(0,"AllAlly"),0)   //Игрок :).
+  )
+  then
+  (
+    KillScript( )
+    For(i,Heroes)   //Всех хероесов - вернуть в 0 дипгруппу - группу игрока
+    (
+      SetPlayer(i,0)
+    )
+  )
+)
+
+////////////////////////////////////////////
+// Скрипты добавляющие зоны на глоб мапу
+//    при подходе к зонам перехода.
+////////////////////////////////////////////
+
+Script ujn_krepost_enable
+//Открывает зону Южная Крепость
+(
+  if
+  (
+    Any(i,Heroes,IsInArea(1,GetX(i),GetY(i)))
+    IsEqual(GSGetVar(0,"z.susl_canyon_of_death_ujn_krepost"),0)
+  )
+  then
+  (
+    KillScript( )
+    //DebugScript(NULL)
+    gssetvar(0,"z.susl_canyon_of_death_ujn_krepost",2)
+  )
+)
+
+Script sev_krepost_enable
+//Открывает зону Северная Крепость
+(
+  if
+  (
+    Any(i,Heroes,IsInArea(2,GetX(i),GetY(i)))
+    IsEqual(GSGetVar(0,"z.susl_canyon_of_death_sev_krepost"),0)
+  )
+  then
+  (
+    KillScript( )
+    //DebugScript(NULL)
+    gssetvar(0,"z.susl_canyon_of_death_sev_krepost",2)
+  )
+)
+
+////////////////////////////////////////////
+// Скрипты управления механизмами зоны
+////////////////////////////////////////////
+
+Script Vorota_CHECK
+//Этот скрипт управляет воротами крепости: открытие и закрытие при виде перса :)
+(
+   if
+   (
+     IsEqual(GetLeverState(this),0)          //Если ворота закрыты
+     Any(i,Heroes,IsInArea(area1,GetX(i),GetY(i)))  //Если перс близко
+   )
+   then
+   (
+     SwitchLeverState(this,1) 
+     ConsoleString("Vorota otkrilis")
+   )
+
+   if
+   (
+     IsEqual(GetLeverState(this),1)               //Если ворота открыты
+     Every(i,Heroes,Not(IsInArea(area1,GetX(i),GetY(i))))  //Если перс не близко
+   )
+   then
+   (
+     SwitchLeverState(this,0) 
+     ConsoleString("Vorota zakrilis")
+   )
+)
+
+Script Flammer1_INIT
+//Этот скрипт заставляет юного боевого мага успокоиться
+(
+   if
+   (
+   )
+   then
+   (
+     KillScript()
+     SetCP(this,227,322,0)         //Поставим его на место
+     UMPlayer(this)                //Успокаиваем :)
+     IN = Add(IsGreater(GetWorldTime(),20.0),IsLess(GetWorldTime(),8.0))
+     //Создаём ему "плацдарм для работы" - факелы
+     CreateParticleSource(Lamp1,202.108,320.609,Mul(18.67,IN),0.5,"campfire")
+     CreateParticleSource(Lamp2,203.911,314.683,Mul(18.67,IN),0.5,"campfire")
+     CreateParticleSource(Lamp3,175.777,65.06,Mul(18.72,IN),0.5,"campfire")
+     CreateParticleSource(Lamp4,171.51,69.463,Mul(18.67,IN),0.5,"campfire")
+     CreateParticleSource(Lamp5,175.199,88.536,Mul(19.068,IN),0.5,"campfire")
+     CreateParticleSource(Lamp6,170.677,84.297,Mul(18.768,IN),0.5,"campfire")
+     CreateParticleSource(Lamp7,213.947,295.039,Mul(18.72,IN),0.5,"campfire")
+     CreateParticleSource(Lamp8,244.817,297.329,Mul(18.87,IN),0.5,"campfire")
+     CreateParticleSource(Lamp9,166.317,307.993,Mul(18.47,IN),0.5,"campfire")
+     CreateParticleSource(Lamp10,159.894,297.769,Mul(18.72,IN),0.5,"campfire")
+     CreateParticleSource(Lamp11,75.105,129.729,Mul(18.72,IN),0.5,"campfire")
+     CreateParticleSource(Lamp12,70.064,133.307,Mul(18.72,IN),0.5,"campfire")
+     CreateParticleSource(Lamp13,121.161,100.881,Mul(18.72,IN),0.5,"campfire")
+     CreateParticleSource(Lamp14,116.44,104.887,Mul(18.77,IN),0.5,"campfire")
+     CreateParticleSource(Lamp15,82.803,151.369,Mul(18.62,IN),0.5,"campfire")
+     CreateParticleSource(Lamp16,76.636,151.332,Mul(18.67,IN),0.5,"campfire")
+     CreateParticleSource(Lamp17,54.24,125.898,Mul(18.72,IN),0.5,"campfire")
+     CreateParticleSource(Lamp18,219.848,161.979,Mul(18.62,IN),0.5,"campfire")
+     CreateParticleSource(Lamp19,236.869,143.172,Mul(18.47,IN),0.5,"campfire")
+     CreatePointLight(Lamp1,202.108,320.609,Mul(17.35,IN),2,0.945,0.808,0.337) 
+     //Конец :) Ууф, ну и на**здился же я с ними! 
+     //Spell_Teleport(GetLeader(),190,315)//Тест!
+     Flammer1_CHECK(this)              //Get started!!!
+   )
+)
+
+Script Flammer1_CHECK
+//Этот скрипт заставляет юного боевого мага выполнять небоевую работу :)
+(
+   if
+   (
+      Not(IsAlive(this))
+   )
+   then
+   (
+      KillScript()  
+   )
+
+   if
+   (
+      IsAlive(this)
+      IsGreater(GetWorldTime(),20.0)
+      IsLess(GetWorldTime(),20.1)
+   )  
+   then
+   (
+      KillScript()
+      Sleep(15)
+      Spell_Teleport(this,203,317)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp1,202.108,320.609,18.67)//Поджигаем лампочку1
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp2,203.911,314.683,18.67)//Поджигаем лампочку2
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,173,67)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp3,175.777,65.06,18.72)//Поджигаем лампочку3
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp4,171.51,69.463,18.668)//Поджигаем лампочку4
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,173,86)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp5,175.199,88.536,19.068)//Поджигаем лампочку5
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp6,170.677,84.297,18.768)//Поджигаем лампочку6
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,230,296)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp7,213.947,295.039,18.72)//Поджигаем лампочку7
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp8,244.817,297.329,18.87)//Поджигаем лампочку8
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,163,302)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp9,166.317,307.993,18.47)//Поджигаем лампочку9
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp10,159.894,297.769,18.72)//Поджигаем лампочку10
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,73,131)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp11,75.105,129.729,18.72)//Поджигаем лампочку11
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp12,70.064,133.307,18.72)//Поджигаем лампочку12
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,119,102)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp13,121.161,100.881,18.72)//Поджигаем лампочку13
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp14,116.44,104.887,18.77)//Поджигаем лампочку14
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,79,151)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp15,82.803,151.369,18.62)//Поджигаем лампочку15
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp16,76.636,151.332,18.67)//Поджигаем лампочку16
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,60,125)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp17,54.24,125.898,18.72)//Поджигаем лампочку17
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,225,162)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp18,219.848,161.979,18.62)//Поджигаем лампочку18
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,240,140)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOn(this,Lamp19,236.869,143.172,18.47)//Поджигаем лампочку19
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,227,322)//Телепортируем нашего пиромана домой
+      Sleep(5)
+      SleepUntil(R1)
+      Rest(this)
+      Flammer1_CHECK(this)      
+   )
+
+   if
+   (
+      IsAlive(this)
+      IsGreater(GetWorldTime(),8.0)
+      IsLess(GetWorldTime(),8.1)
+   )  
+   then
+   (
+      KillScript()
+      Spell_Teleport(this,203,317)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp1,202.108,320.609)//Тушим лампочку1
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp2,203.911,314.683)//Тушим лампочку2
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,173,67)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp3,175.777,65.06)//Тушим лампочку3
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp4,171.51,69.463)//Тушим лампочку4
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,173,86)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp5,175.199,88.536)//Тушим лампочку5
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp6,170.677,84.297)//Тушим лампочку6
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,230,296)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp7,213.947,295.039)//Тушим лампочку7
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp8,244.817,297.329)//Тушим лампочку8
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,163,302)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp9,166.317,307.993)//Тушим лампочку9
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp10,159.894,297.769)//Тушим лампочку10
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,73,131)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp11,75.105,129.729)//Тушим лампочку11
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp12,70.064,133.307)//Тушим лампочку12
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,119,102)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp13,121.161,100.881)//Тушим лампочку13
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp14,116.44,104.887)//Тушим лампочку14
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,79,151)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp15,82.803,151.369)//Тушим лампочку15
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp16,76.636,151.332)//Тушим лампочку16
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,60,125)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp17,54.24,125.898)//Тушим лампочку17
+      Sleep(5)
+      SleepUntil(R1)
+
+      Spell_Teleport(this,225,162)//Телепортируем нашего пиромана на место работы
+      Sleep(5)
+      SleepUntil(R1)
+
+      LightOff(this,Lamp18,219.848,161.979)//Тушим лампочку18
+      SleepUntil(R1)
+
+      Spell_Teleport(this,240,140)//Телепортируем нашего пиромана на место работы
+      SleepUntil(R1)
+
+      LightOff(this,Lamp19,236.869,143.172)//Тушим лампочку19
+      SleepUntil(R1)
+
+      Spell_Teleport(this,227,322)//Телепортируем нашего пиромана домой
+      SleepUntil(R1)
+      Rest(this)
+      Flammer1_CHECK(this)      
+   )
+)
+
+Script Spell_Teleport
+//Скрипт имитирует использование заклинания Телепорт
+(
+   if
+   (
+      IsAlive(this)
+   )
+   then
+   (
+      R1 = 0
+      KillScript()
+      ConsoleString("Teleportirovali objekt scriptom Spell_Teleport")  //Comment
+      Sleep(5)
+      RotateTo(this,x1,y1)
+      SleepUntilIdle(this)
+      Sleep(5)
+      PlayAnimation(this,"ucast01")
+      SleepUntilIdle(this)
+      Sleep(15)
+      CastSpellPoint("teleport",GetX(this),GetY(this),x1,y1)
+      Sleep(30)
+      SetCP(this,x1,y1,0)
+      Sleep(45)
+      R1 = 1
+   )
+)
+
+Script LightOn
+//Скрипт "включает" свет
+(
+   if
+   (
+      IsAlive(this)      
+   )
+   then
+   (
+      R1 = 0
+      KillScript()
+      Sleep(5)
+      UMClear(this)
+      Sleep(5)
+      //DebugScript(NULL)
+      MoveToPoint(this,Add(lx,1),Add(ly,1))
+      SleepUntilIdle(this)
+      Sleep(5)
+      RotateTo(this,lx,ly)
+      SleepUntilIdle(this)
+      Sleep(5)
+      PlayAnimation(this,"ucast03")
+      Sleep(30)
+      CreateParticleSource(0,lx,ly,lz,1,"fireblast")
+      Sleep(5)
+      CreateParticleSource(lid,lx,ly,lz,0.5,"campfire")
+      CreatePointLight(Mul(lid,10),lx,ly,lz,5,250,200,100)
+      Sleep(45)
+      R1 = 1
+   )
+)
+
+Script LightOff
+//Скрипт "выключает" свет
+(
+   if
+   (
+      IsAlive(this)      
+   )
+   then
+   (
+      R1=0
+      KillScript()
+      Sleep(5)
+      UMClear(this) 
+      Sleep(5)
+      //DebugScript(NULL)
+      MoveToPoint(this,Add(lx,1),Add(ly,1))
+      SleepUntilIdle(this)
+      Sleep(5)
+      RotateTo(this,lx,ly)
+      SleepUntilIdle(this)
+      Sleep(5)
+      PlayAnimation(this,"ucast03")
+      Sleep(45)
+      CastSpellPoint("acid_column",0,0,lx,ly)
+      Sleep(5)
+      DeleteParticleSource(lid)
+      DeletePointLight(Mul(lid,10))
+      Sleep(55)
+      R1 = 1
+   )
+)
+Script Obelisk1_CHECK
+//Работает магический обелискъ 
+(
+   if
+   (
+      IsEqual(GetLeverState(Obelisk1),1)
+   )
+   then
+   (
+      KillScript()
+      EnableLever(Obelisk1,0)
+      For(i,Heroes)
+      (        
+          CastSpellUnit("strength{d2}",GetX(Obelisk1),GetY(Obelisk1),i)
+      )
+      Sleep(1000)
+      SwitchLeverState(Obelisk1,0)  
+      EnableLever(Obelisk1,1)
+      Obelisk1_CHECK(NULL)
+   )
+)
+
+Script Obelisk2_CHECK
+//Работает магический обелискъ 
+(
+   if
+   (
+      IsEqual(GetLeverState(Obelisk2),1)
+   )
+   then
+   (
+      KillScript()
+      EnableLever(Obelisk2,0)
+      For(i,Heroes)
+      (
+          CastSpellUnit("healing{ee5}",GetX(Obelisk2),GetY(Obelisk2),i)
+      )
+      Sleep(200)
+      SwitchLeverState(Obelisk2,0)  
+      EnableLever(Obelisk2,1)
+      Obelisk2_CHECK(NULL)
+   )
+)
+
+Script Obelisk3_CHECK
+//Работает магический обелискъ 
+(
+   if
+   (
+      IsEqual(GetLeverState(Obelisk3),1)
+   )
+   then
+   (
+      KillScript()
+      EnableLever(Obelisk3,0)
+      For(i,Heroes)
+      (
+          CastSpellUnit("infravision{d2}",GetX(Obelisk3),GetY(Obelisk3),i)
+          CastSpellUnit("eagle_sight{d2}",GetX(Obelisk3),GetY(Obelisk3),i)
+          CastSpellUnit("invisibility{d2}",GetX(Obelisk3),GetY(Obelisk3),i)
+          CastSpellUnit("silence{d2}",GetX(Obelisk3),GetY(Obelisk3),i)
+      )
+      Sleep(1500)
+      SwitchLeverState(Obelisk3,0)  
+      EnableLever(Obelisk3,1)
+      Obelisk3_CHECK(NULL)
+   )
+)
+
+Script Dialog_Guard
+//Если охранник увидел главного героя - спросит пароль :)
+(
+   if
+   (
+      GroupHas(UnitSee(this),that)
+      IsEnemy(this,GetPlayer(that))
+   )
+   then
+   (
+      KillScript()
+      BlockUnit(this,1)
+      RotateTo(this,GetX(that),GetY(that))
+      BlockUnit(that,1)
+      RotateTo(that,GetX(this),GetY(this))
+      Sleep(10)
+      CreateFX(GetX(this),GetY(this),GetZ(this),150,100,"Acks\HGNBF\agress\3.wav")
+      Sleep(10)
+      BlockUnit(that,0)
+      BlockUnit(this,0)
+      Attack(this,that)
+      Attack(that,this)
+   )
+   if
+   (
+      GroupHas(UnitSee(this),that)
+      Not(IsEnemy(this,GetPlayer(that)))
+   )
+   then
+   (
+      KillScript()
+      BlockUnit(this,1)
+      RotateTo(this,GetX(that),GetY(that))
+      BlockUnit(that,1)
+      RotateTo(that,GetX(this),GetY(this))
+      Sleep(10)
+      CreateFX(GetX(this),GetY(this),GetZ(this),150,100,"Acks\HGNBF\suspect\4.wav")
+      Sleep(50)
+      CreateFX(GetX(that),GetY(that),GetZ(that),150,100,"Acks\HH\Scenario\183.wav")
+      Sleep(50)
+      CreateFX(GetX(this),GetY(this),GetZ(this),150,100,"Acks\HGNBF\agress\2.wav")
+      Sleep(30)
+      SetDiplomacy(GetPlayer(that),GetPlayer(this),-1)
+      BlockUnit(that,0)
+      BlockUnit(this,0)
+      Attack(this,that)
+      Attack(that,this)
+   )
+)
+
+Script Trap_RunToPoint
+//Этот скрипт заставляет существо this агрессивно бежать в указанную точку :)
+(
+   if
+   (
+      IsEqual(GetLeverState(that),1)
+   )
+   then
+   (
+      KillScript()
+      UMClear(this)          //Спокойненько...
+      MoveToPoint(this,x1,y1)//...вооот сюда..
+      Run(this)              //...побежали.
+      
+   )
+)
+
+Script Chest_CHECK
+//Скрипт проверяет открытость сундука, и выдаёт деньги в зависимости от неё.
+(
+   if
+   (
+      IsEqual(GetLeverState(this),1)
+   )
+   then
+   (
+      KillScript()       //Чур меня!!!   :)))
+      Sleep(10)
+      SwitchLeverState(this,0)
+      EnableLever(this,0)//Единовременная....
+      GiveMoney(0,money) //...выплата премии.
+   )
+)
+
+Script Trap_SetPet
+//Вывешивает нам на голову милую зверушку :)
+(
+   if
+   (
+      IsEqual(GetLeverState(that),1)
+   )
+   then
+   (
+      KillScript()
+      ResetTarget(this)
+      SetCP(this,x1,y1,0)//Появилась...
+      Guard(this,x1,y1,4)//И принялась охранять сундук от всего что движется и находится на расстоянии менее 4 метров
+      UMStandard(this)
+   )
+)
+
+Script Spiders_INIT
+//Этот скрипт прикрепляет каждому пауку разумное отношение к опасности - не лезть под танк!
+(
+   if
+   (
+   )
+   then
+   (
+      KillScript()
+      Spiders_CHECK(GetObject(411866))
+      Spiders_CHECK(GetObject(338781))
+      Spiders_CHECK(GetObject(338787))
+      Spiders_CHECK(GetObject(338783))
+      Spiders_CHECK(GetObject(338784))
+      Spiders_CHECK(GetObject(338785))
+      Spiders_CHECK(GetObject(338786))
+      Spiders_CHECK(GetObject(338800))
+      Spiders_CHECK(GetObject(338801))
+      Spiders_CHECK(GetObject(338810))
+      Spiders_CHECK(GetObject(338811))
+      Spiders_CHECK(GetObject(338812))
+      Spiders_CHECK(GetObject(338813))
+      Spiders_CHECK(GetObject(338817))
+      Spiders_CHECK(GetObject(338818))
+      Spiders_CHECK(GetObject(338819))
+      Spiders_CHECK(GetObject(338824))
+      Spiders_CHECK(GetObject(338825))
+   )
+)
+
+Script Spiders_CHECK
+//Устанавливает поведение паучков в зависимости от вашей "накачанности"
+(
+   if
+   (
+      Not(IsAlive(this))//Паук сдох - 
+   )
+   then
+   (
+      KillScript()      // - освобождаем память от скрипта
+   )
+   
+   if
+   (
+      Any(i,Heroes,Mul(GroupHas(UnitSee(this),i),IsGreater(HP(i),Div(HP(this),2))))
+   )
+   then
+   (
+      KillScript()
+      //DebugScript(NULL)
+      Run(this)
+      UMClear(this)
+      UMFear(this,1)   //Паук пугается!
+      ConsoleString("Pauk v uzhase!")
+      Sleep(200)
+      Spiders_CHECK(this)   
+      /////////////////////////////////////////////////////////////////////////
+      //Если паук видит кого-то из героев, и этот кто-то имеет больше жизней, 
+      //чем половина его жизней(в данный момент), то он испугивается, и убегает 
+      //от "кого-то" подальше - где благополучно обо всём и забывает :)
+      //---Отвечаю на вопрос: "зачем"?---
+      //Имхо в каньоне смерти охранники запугали, вот зверьё и стало шакалить - 
+      // - не лезть на сильного.  
+      //////////////////////////////////////////////////////////////////////////
+   )
+   if
+   (
+      Any(i,Heroes,Mul(GroupHas(UnitSee(this),i),IsLess(HP(i),Div(HP(this),2))))
+//    IsLess(DistanceUnitUnit(this,i),10)
+//То же самое, но тут герой слабее
+   )
+   then
+   (
+      KillScript()
+      UMAggression(this) //Паук нападает!
+      //ConsoleString("Pauk vas neboitsa!")
+      Spiders_CHECK(this)     
+   )
+
+   if
+   (
+//    Every(i,Heroes,Not(GroupHas(UnitSee(this),i)))
+      Every(i,Heroes,IsGreater(DistanceUnitUnit(this,i),10))
+//Не видит никого из героев
+   )
+   then
+   (
+      KillScript()
+      UMClear(this)      //Забыл
+      UMStandard(this)   //Озлился
+      Spiders_CHECK(this) //И по новой шакалить :)
+   )
+)
+
+///////////////////////////////////////////////////////////////
+//       Система управления доступом к точкам перехода       //
+///////////////////////////////////////////////////////////////
+
+Script dostup_susl_close_hadobjs
+//Закрыть проходы на хадаганерские объекты.
+(
+  if
+  (
+    //Вызов
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("Closing hadobjs...")
+    GSSetVar(0,"z.susl_canyon_of_death_to_susl_canyon_of_death_ujn_krepost",1)
+    GSSetVar(0,"z.susl_canyon_of_death_to_susl_canyon_of_death_sev_krepost",1)
+    GSSetVar(0,"z.susl_necrodesert_to_susl_necrodesert_necro_n1",1)
+    GSSetVar(0,"z.susl_necrodesert_to_susl_necrodesert_necro_n2",1)
+    GSSetVar(0,"z.susl_necrodesert_to_susl_necrodesert_necro_n3",1)
+    ConsoleString("Done %).")
+  )
+)
+
+Script dostup_susl_open_hadobjs
+//Открыть проходы на хадаганерские объекты.
+(
+  if
+  (
+    //Вызов
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("Opening hadobjs")
+    GSSetVar(0,"z.susl_canyon_of_death_to_susl_canyon_of_death_ujn_krepost",2)
+    GSSetVar(0,"z.susl_canyon_of_death_to_susl_canyon_of_death_sev_krepost",2)
+    GSSetVar(0,"z.susl_necrodesert_to_susl_necrodesert_necro_n1",2)
+    GSSetVar(0,"z.susl_necrodesert_to_susl_necrodesert_necro_n2",2)
+    GSSetVar(0,"z.susl_necrodesert_to_susl_necrodesert_necro_n3",2)
+    ConsoleString("Done %).")
+  )
+)
+
+Script dostup_susl_hadobjs_check1
+//Проверялка для хадаганерских объектов.
+(
+  //Вызов
+  if
+  (
+    IsEqual(GSGetVar(0,"dostup_susl_hadaganobjs_crim"),0)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("Executing dostup_susl_hadobjs_check2")
+    dostup_susl_hadobjs_check2(NULL)
+  )
+  if
+  (
+    IsEqual(GSGetVar(0,"dostup_susl_hadaganobjs_crim"),1)
+    IsEqual(GSGetVar(0,"Hadagan_IsCriminal"),1)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("You are criminal! Can't enter to Hadagan objects")
+    dostup_susl_close_hadobjs(NULL)
+  )
+  if
+  (
+    IsEqual(GSGetVar(0,"dostup_susl_hadaganobjs_crim"),1)
+    IsEqual(GSGetVar(0,"Hadagan_IsCriminal"),0)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("Executing dostup_susl_hadobjs_check2")
+    dostup_susl_hadobjs_check2(NULL)
+  )
+)
+
+Script dostup_susl_hadobjs_check2
+//Проверялка для хадаганерских объектов.
+(
+  //Вызов
+  if
+  (
+    IsEqual(GSGetVar(0,"dostup_susl_hadaganobjs_illegal"),0)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("Hm... All ok. Now you are welcome at Hadagan objects!")
+    dostup_susl_open_hadobjs(NULL)
+  )
+  if
+  (
+    IsEqual(GSGetVar(0,"dostup_susl_hadaganobjs_illegal"),1)
+    IsEqual(GSGetVar(0,"Hadagan_IsLegal"),0)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("You are illegal! Can't enter to Hadagan objects")
+    dostup_susl_close_hadobjs(NULL)
+  )
+  if
+  (
+    IsEqual(GSGetVar(0,"dostup_susl_hadaganobjs_illegal"),1)
+    IsEqual(GSGetVar(0,"Hadagan_IsLegal"),1)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("Hm... All ok. Now you are welcome at Hadagan objects!")
+    dostup_susl_open_hadobjs(NULL)
+  )
+)
+
+Script first_time_on_allod
+//Если перс прибыл с другого аллода.
+(
+  if
+  (
+    IsEqual(GSGetVar(0,"Party_OnSusla"),0)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("Welcome to Suslanger!!!")
+    GSSetVar(0,"Party_OnSusla",1)
+    GSSetVar(0,"Party_OnGipat",0)
+    GSSetVar(0,"Party_OnIngos",0)
+    GSSetVar(0,"Party_OnJigran",0)
+
+    //И вызвать чекалку.
+    dostup_susl_hadobjs_check1(NULL)
+    //А также подновить скрипт.
+    first_time_on_allod(NULL)
+  )
+)
+
+////////////////////////
+//        q6          //
+////////////////////////
+
+Script q6_finish
+//Добрались до каньона
+(
+  if
+  (
+    IsEqual(GSGetVar(0,"q.SuslPrtlGip.q6_dobratsa_do_kaniona"),1)
+    IsEqual(GSGetVar(0,"q.SuslPrtlGip.q6_dobratsa_do_kaniona.2"),1)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("q6_finish")
+
+    //Выполнить квест...
+    GSSetVar(0,"q.SuslPrtlGip.q6_dobratsa_do_kaniona.2",2)
+    GSSetVar(0,"q.SuslPrtlGip.q6_dobratsa_do_kaniona",2)
+    QuestComplete(0,"q6_dobratsa_do_kaniona")
+  )
+)
+
+////////////////////////
+//        q8          //
+////////////////////////
+
+Script lodochnik_operation
+//Начало операциии...
+(
+  if
+  (
+    IsEqual(GSGetVar(0,"sc_susl_ujn_krep_lodochnik_operation"),1)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("lodochnik_operation")
+
+    SetCP(Lodochnik,185.994,89.798,0)
+    UMGuard(Lodochnik,185.994,89.798,0)
+    Sleep(5)
+    //Отметить что начало операции обработано...
+    GSSetVar(0,"sc_susl_ujn_krep_lodochnik_operation",0)
+    //Проиграть диалог...
+    SendStringEvent( 0, "tutorial gzb6_q8_lodochnik1" )
+    Sleep(10)
+    
+  )
+)
+
+Script sunduk_blocker
+//Блокер сундука...
+(
+  if
+  (
+    IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari"),1)
+    Not(IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari.3"),2))
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("sunduk_blocker - unblock")
+
+    //Разблокировать сундук Кардаура
+    EnableLever(Kardaur_Sunduk,1)
+  )
+  if
+  (
+    IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari"),1)
+    IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari.3"),2)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("sunduk_blocker - block1")
+
+    //Заблокировать сундук Кардаура
+    EnableLever(Kardaur_Sunduk,0)
+  )
+  if
+  (
+    Not(IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari"),1))
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("sunduk_blocker - block2")
+
+    //Заблокировать сундук Кардаура
+    EnableLever(Kardaur_Sunduk,0)
+  )
+)
+
+Script q8_infa
+//Игрок подошел к печке...
+(
+  if
+  (
+     IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari"),1)
+     IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari.1"),1)
+     IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari.2"),0)
+     GroupHas(UnitSee(GetLeader()),GetObjectByID("12025361"))
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("q8_infa")
+
+    //Проиграть диалог...
+    SendStringEvent( 0, "tutorial gzb6_q8_nalo_scr1" )
+    SendStringEvent( 0, "tutorial gzb6_q8_nalo_scr2" )
+    SendStringEvent( 0, "tutorial gzb6_q8_nalo_scr3" )
+    SendStringEvent( 0, "tutorial gzb6_q8_nalo_scr4" )
+    Sleep(10)
+    //Выпонить и выдать подзадание...
+    GSSetVar(0,"q.susl_canyon_of_death.q8_tovari.1",2)
+    GSSetVar(0,"q.susl_canyon_of_death.q8_tovari.2",1)
+
+  )
+)
+
+Script q8_tovari
+//Игрок нашел товары...
+(
+  if
+  (
+     IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari"),1)
+     IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari.2"),1)
+     IsLess(DistanceUnitPoint(GetLeader(),GetX(Kardaur_Sunduk),GetY(Kardaur_Sunduk)),1.8)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("q8_tovari - see")
+
+    //Выпонить и выдать подзадание...
+    GSSetVar(0,"q.susl_canyon_of_death.q8_tovari.2",2)
+    GSSetVar(0,"q.susl_canyon_of_death.q8_tovari.3",1)
+
+  )
+)
+
+Script q8_oblutali
+//Игрок слутал товары...
+(
+  if
+  (
+     IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari"),1)
+     IsEqual(GetLeverState(Kardaur_Sunduk),1)  //Сундук открыт...
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("q8_oblutali")
+
+    Sleep(35)
+    SwitchLeverState(Kardaur_Sunduk,0)
+    EnableLever(Kardaur_Sunduk,0)
+    //Выпонить и выдать подзадание...
+    GSSetVar(0,"q.susl_canyon_of_death.q8_tovari.3",2)
+    GSSetVar(0,"q.susl_canyon_of_death.q8_tovari.4",1)
+  )
+)
+
+Script q8_finish
+//Игрок удрал к лодочнику...
+(
+  if
+  (
+     IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari"),1)
+     IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari.4"),1)
+     IsEqual(GSGetVar(0,"game_is_techdemo"),0)       //Не демка...
+     IsLess(DistanceUnitUnit(GetLeader(),Lodochnik),3)  //Вернулся....
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("q8_finish")
+
+    //Проиграть диалог...
+    SendStringEvent( 0, "tutorial gzb6_q8_lodochnik2" )
+    Sleep(10)
+    //Выполнить квест
+    GSSetVar(0,"q.susl_canyon_of_death.q8_tovari.4",2)
+    GSSetVar(0,"q.susl_canyon_of_death.q8_tovari",2)
+    QuestComplete(0,"q8_tovari")
+    //Чуть подождать...
+    Sleep(100)
+    //Домой...
+    LeaveToZone(0,"susl_prtlgip_dock",0)
+  )
+  if
+  (
+     IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari"),1)
+     IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari.4"),1)
+     IsEqual(GSGetVar(0,"game_is_techdemo"),1)       //Демка...
+     IsLess(DistanceUnitUnit(GetLeader(),Lodochnik),3)  //Вернулся....
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("q8_finish")
+
+    //Проиграть диалог...
+    SendStringEvent( 0, "tutorial gzb6_q8_lodochnik2" )
+    Sleep(10)
+    //Выполнить квест
+    GSSetVar(0,"q.susl_canyon_of_death.q8_tovari.4",2)
+    GSSetVar(0,"q.susl_canyon_of_death.q8_tovari",2)
+    QuestComplete(0,"q8_tovari")
+    //Чуть подождать...
+    Sleep(100)
+    //Закончить демку...
+    SendStringEvent( 0, "tutorial msg_endofdemo" )
+    Sleep(10)
+    LeaveToZone( 0, "EndofGame", 0 )
+  )
+)
+
+Script q8_night
+//Фиксить время на ночь при активном квесте...
+(
+  if
+  (
+     IsEqual(GSGetVar(0,"q.susl_canyon_of_death.q8_tovari"),1)
+  )
+  then
+  (
+    KillScript(  )
+    ConsoleString("q8_night")
+
+    FixWorldTime(0)
+    //А еще - Кардаура отправлять на караул :).
+    SetCP(GetObjectByID("12025366"),92,135,0)
+    UMGuard(GetObjectByID("12025366"),92,135,5)
+  )
+)
+
+////////////////////////////////////////////
+// WorldScript
+////////////////////////////////////////////
+WorldScript
+(
+  Sleep( 2 )  //Чуть подождать чтоб не сглючило
+  ConsoleString("Nachalo scriptov zoni Susl_canyon_of_death aka Kanyon Smerti :)")//Comment
+  //Глобальные скрипты зоны...
+  //DebugScript(NULL)  //Если надо проверить, работает ли скрипт - раскомментируйте.
+  DoNameObjects(NULL)  //Привязать идешники объектов к именным объектам
+  SetDefZoneVars(NULL) //Выставить умолчальные для зоны переменые.
+  Sleep( 10 ) //Чтобы другие скрипты не начали выполняться
+  PlayerIsGod_CHECK(NULL)  //Запустить проверяльщик и переключатель гадмода
+  AllAlly_CHECK(NULL)      //Запустить проверяльщик и переключатель нейтральности
+
+  //Скрипты добавляющие зоны на глоб мапу при подходе к зонам перехода.
+  ujn_krepost_enable(NULL)//Открываем южную крепость
+  sev_krepost_enable(NULL)//--||-- серверную --||-- :)
+
+  //Скрипты управления механизмами в зоне...
+  Vorota_CHECK(Vorota1,1)     //Следим за воротами в ЮК
+  Vorota_CHECK(Vorota2,2)     //Следим за воротами в CК
+  Flammer1_INIT(Flammer1)     //Факельщик
+  Obelisk1_CHECK(NULL)    //Обелиск с Усилением
+  Obelisk2_CHECK(NULL)    //Обелиск с лечением
+  Obelisk3_CHECK(NULL)    //Обелиск с воровскими заклами
+  Dialog_Guard(Strajnik1,GetLeader())      //Это простой прикол - неактивен :(
+  Trap_RunToPoint(Spider1,Chest1,076,251)  //
+  Trap_RunToPoint(Spider2,Chest2,254,112)  //Паучки бегутъ :)(неактивно)
+  Trap_RunToPoint(Spider3,Chest2,274,115)  //
+//  Trap_SetPet(Spider1,Chest1,076,251)      //
+//  Trap_SetPet(Spider2,Chest2,254,112)      //НЕ хотят ПО ХОРОШЕМУ - будет ПО ПЛОХОМУ :(
+//  Trap_SetPet(Spider3,Chest2,274,115)      //
+  Trap_SetPet(Rat1,Chest2,252,48)          //Крыса
+  Chest_CHECK(Chest1,1000)                 //Денежки
+  Chest_CHECK(Chest2,2000)                 //Денежки
+  Spiders_INIT(NULL)                       //Паучья радость
+  first_time_on_allod(NULL)    //Проверка прибытия на аллод.
+  
+  //Сюжетно
+  
+  //q6
+  q6_finish(NULL)
+  
+  //q8
+  lodochnik_operation(NULL)
+  sunduk_blocker(NULL)
+  q8_infa(NULL)
+  q8_tovari(NULL)
+  q8_oblutali(NULL)
+  q8_finish(NULL)
+  q8_night(NULL)
+)
