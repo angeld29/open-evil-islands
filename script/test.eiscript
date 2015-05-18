@@ -83,7 +83,7 @@ DeclareScript Spiders_INIT(this:object)                                  //Ок
 DeclareScript Spiders_CHECK(this:object)                                 //Ок
 
 //Система управления доступом к точкам перехода
-DeclareScript dostup_susl_close_hadobjs ( this : object )  //Закрыть проходы на хадаганерские объекты.
+DeclareScript dostup_susl_close_hadobjs (this : object )  //Закрыть проходы на хадаганерские объекты.
 DeclareScript dostup_susl_open_hadobjs ( this : object )  //Открыть проходы на хадаганерские объекты.
 DeclareScript dostup_susl_hadobjs_check1 ( this : object )  //Проверялка для хадаганерских объектов.
 DeclareScript dostup_susl_hadobjs_check2 ( this : object )  //Проверялка для хадаганерских объектов.

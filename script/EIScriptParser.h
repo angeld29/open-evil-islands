@@ -1,16 +1,17 @@
 #pragma once
 
+#include "EIScriptDriver.h"
+    
 namespace EIScript {
 	class Parser {
 		public:
-			Parser() : parser(scanner) {}
+			Parser(Driver& driver) : parser(driver) {}
 		
 			int parse() {
 				return parser.parse();
 			}
 		
 		private:
-			EIScript::FlexScanner scanner;
 			EIScript::BisonParser parser;
 	};
 }

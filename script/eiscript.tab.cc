@@ -45,14 +45,17 @@
 #line 46 "eiscript.tab.cc"
 /* Unqualified %code blocks.  */
 /* Line 286 of lalr1.cc  */
-#line 22 "eiscript.y"
+#line 26 "eiscript.y"
 
-	// Prototype for the yylex function
-	static int yylex(EIScript::BisonParser::semantic_type * yylval, EIScript::FlexScanner &scanner);
+    #include "EIScriptDriver.h"
+    #include "EIScriptScanner.h"
+    
+    #undef yylex
+    #define yylex driver.lexer->yylex
 
 
 /* Line 286 of lalr1.cc  */
-#line 56 "eiscript.tab.cc"
+#line 59 "eiscript.tab.cc"
 
 
 # ifndef YY_NULL
@@ -148,16 +151,54 @@ do {					\
 #line 4 "eiscript.y"
 namespace EIScript {
 /* Line 353 of lalr1.cc  */
-#line 152 "eiscript.tab.cc"
+#line 155 "eiscript.tab.cc"
+
+  /* Return YYSTR after stripping away unnecessary quotes and
+     backslashes, so that it's suitable for yyerror.  The heuristic is
+     that double-quoting is unnecessary unless the string contains an
+     apostrophe, a comma, or backslash (other than backslash-backslash).
+     YYSTR is taken from yytname.  */
+  std::string
+  BisonParser::yytnamerr_ (const char *yystr)
+  {
+    if (*yystr == '"')
+      {
+        std::string yyr = "";
+        char const *yyp = yystr;
+
+        for (;;)
+          switch (*++yyp)
+            {
+            case '\'':
+            case ',':
+              goto do_not_strip_quotes;
+
+            case '\\':
+              if (*++yyp != '\\')
+                goto do_not_strip_quotes;
+              /* Fall through.  */
+            default:
+              yyr += *yyp;
+              break;
+
+            case '"':
+              return yyr;
+            }
+      do_not_strip_quotes: ;
+      }
+
+    return yystr;
+  }
+
 
   /// Build a parser object.
-  BisonParser::BisonParser (EIScript::FlexScanner &scanner_yyarg)
+  BisonParser::BisonParser (class Driver& driver_yyarg)
     :
 #if YYDEBUG
       yydebug_ (false),
       yycdebug_ (&std::cerr),
 #endif
-      scanner (scanner_yyarg)
+      driver (driver_yyarg)
   {
   }
 
@@ -303,6 +344,16 @@ namespace EIScript {
     YYCDEBUG << "Starting parse" << std::endl;
 
 
+/* User initialization code.  */
+/* Line 545 of lalr1.cc  */
+#line 9 "eiscript.y"
+{
+  // Initialize the initial location.
+  yylloc.begin.filename = yylloc.end.filename = &driver.streamname;
+}
+/* Line 545 of lalr1.cc  */
+#line 356 "eiscript.tab.cc"
+
     /* Initialize the stacks.  The initial state will be pushed in
        yynewstate, since the latter expects the semantical and the
        location values to have been already stored, initialize these
@@ -336,7 +387,7 @@ namespace EIScript {
     if (yychar == yyempty_)
       {
         YYCDEBUG << "Reading a token: ";
-        yychar = yylex (&yylval, scanner);
+        yychar = yylex (&yylval, &yylloc);
       }
 
     /* Convert token to internal form.  */
@@ -421,43 +472,43 @@ namespace EIScript {
       {
           case 2:
 /* Line 670 of lalr1.cc  */
-#line 41 "eiscript.y"
+#line 48 "eiscript.y"
     { std::cout<<"Program accepted."; return 0; }
     break;
 
   case 10:
 /* Line 670 of lalr1.cc  */
-#line 57 "eiscript.y"
+#line 64 "eiscript.y"
     { std::cout<<"Worldscript."<<std::endl; }
     break;
 
   case 14:
 /* Line 670 of lalr1.cc  */
-#line 64 "eiscript.y"
+#line 71 "eiscript.y"
     { std::cout<<"Declared global variable "<<*(yysemantic_stack_[(3) - (1)].sVal)<<" of type "<<(yysemantic_stack_[(3) - (3)].tVal)<<std::endl; }
     break;
 
   case 15:
 /* Line 670 of lalr1.cc  */
-#line 67 "eiscript.y"
+#line 74 "eiscript.y"
     { std::cout<<"Declared script "<<*(yysemantic_stack_[(3) - (2)].sVal)<<std::endl; }
     break;
 
   case 16:
 /* Line 670 of lalr1.cc  */
-#line 70 "eiscript.y"
+#line 77 "eiscript.y"
     { std::cout<<"Implemented script "<<*(yysemantic_stack_[(5) - (2)].sVal)<<std::endl; }
     break;
 
   case 56:
 /* Line 670 of lalr1.cc  */
-#line 147 "eiscript.y"
+#line 154 "eiscript.y"
     { (yyval.sVal) = (yysemantic_stack_[(1) - (1)].sVal); }
     break;
 
 
 /* Line 670 of lalr1.cc  */
-#line 461 "eiscript.tab.cc"
+#line 512 "eiscript.tab.cc"
       default:
         break;
       }
@@ -661,9 +712,97 @@ namespace EIScript {
 
   // Generate an error message.
   std::string
-  BisonParser::yysyntax_error_ (int, int)
+  BisonParser::yysyntax_error_ (int yystate, int yytoken)
   {
-    return YY_("syntax error");
+    std::string yyres;
+    // Number of reported tokens (one for the "unexpected", one per
+    // "expected").
+    size_t yycount = 0;
+    // Its maximum.
+    enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
+    // Arguments of yyformat.
+    char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
+
+    /* There are many possibilities here to consider:
+       - If this state is a consistent state with a default action, then
+         the only way this function was invoked is if the default action
+         is an error action.  In that case, don't check for expected
+         tokens because there are none.
+       - The only way there can be no lookahead present (in yytoken) is
+         if this state is a consistent state with a default action.
+         Thus, detecting the absence of a lookahead is sufficient to
+         determine that there is no unexpected or expected token to
+         report.  In that case, just report a simple "syntax error".
+       - Don't assume there isn't a lookahead just because this state is
+         a consistent state with a default action.  There might have
+         been a previous inconsistent state, consistent state with a
+         non-default action, or user semantic action that manipulated
+         yychar.
+       - Of course, the expected token list depends on states to have
+         correct lookahead information, and it depends on the parser not
+         to perform extra reductions after fetching a lookahead from the
+         scanner and before detecting a syntax error.  Thus, state
+         merging (from LALR or IELR) and default reductions corrupt the
+         expected token list.  However, the list is correct for
+         canonical LR with one exception: it will still contain any
+         token that will not be accepted due to an error action in a
+         later state.
+    */
+    if (yytoken != yyempty_)
+      {
+        yyarg[yycount++] = yytname_[yytoken];
+        int yyn = yypact_[yystate];
+        if (!yy_pact_value_is_default_ (yyn))
+          {
+            /* Start YYX at -YYN if negative to avoid negative indexes in
+               YYCHECK.  In other words, skip the first -YYN actions for
+               this state because they are default actions.  */
+            int yyxbegin = yyn < 0 ? -yyn : 0;
+            /* Stay within bounds of both yycheck and yytname.  */
+            int yychecklim = yylast_ - yyn + 1;
+            int yyxend = yychecklim < yyntokens_ ? yychecklim : yyntokens_;
+            for (int yyx = yyxbegin; yyx < yyxend; ++yyx)
+              if (yycheck_[yyx + yyn] == yyx && yyx != yyterror_
+                  && !yy_table_value_is_error_ (yytable_[yyx + yyn]))
+                {
+                  if (yycount == YYERROR_VERBOSE_ARGS_MAXIMUM)
+                    {
+                      yycount = 1;
+                      break;
+                    }
+                  else
+                    yyarg[yycount++] = yytname_[yyx];
+                }
+          }
+      }
+
+    char const* yyformat = YY_NULL;
+    switch (yycount)
+      {
+#define YYCASE_(N, S)                         \
+        case N:                               \
+          yyformat = S;                       \
+        break
+        YYCASE_(0, YY_("syntax error"));
+        YYCASE_(1, YY_("syntax error, unexpected %s"));
+        YYCASE_(2, YY_("syntax error, unexpected %s, expecting %s"));
+        YYCASE_(3, YY_("syntax error, unexpected %s, expecting %s or %s"));
+        YYCASE_(4, YY_("syntax error, unexpected %s, expecting %s or %s or %s"));
+        YYCASE_(5, YY_("syntax error, unexpected %s, expecting %s or %s or %s or %s"));
+#undef YYCASE_
+      }
+
+    // Argument number.
+    size_t yyi = 0;
+    for (char const* yyp = yyformat; *yyp; ++yyp)
+      if (yyp[0] == '%' && yyp[1] == 's' && yyi < yycount)
+        {
+          yyres += yytnamerr_ (yyarg[yyi++]);
+          ++yyp;
+        }
+      else
+        yyres += *yyp;
+    return yyres;
   }
 
 
@@ -811,7 +950,7 @@ namespace EIScript {
        3,     2,     1,     1,     1,     1,     1
   };
 
-#if YYDEBUG
+
   /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
      First, the terminals, then, starting at \a yyntokens_, nonterminals.  */
   const char*
@@ -830,7 +969,7 @@ namespace EIScript {
   "float_expression", "assignment", "function_call", "type", "ident", YY_NULL
   };
 
-
+#if YYDEBUG
   /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
   const BisonParser::rhs_number_type
   BisonParser::yyrhs_[] =
@@ -871,12 +1010,12 @@ namespace EIScript {
   const unsigned char
   BisonParser::yyrline_[] =
   {
-         0,    41,    41,    44,    47,    48,    49,    52,    53,    54,
-      57,    59,    60,    61,    64,    67,    70,    73,    74,    77,
-      80,    83,    84,    85,    88,    91,    92,    93,    94,    95,
-      96,    97,   100,   102,   105,   106,   109,   112,   115,   116,
-     117,   120,   123,   124,   125,   126,   127,   130,   131,   132,
-     135,   138,   141,   142,   143,   144,   147
+         0,    48,    48,    51,    54,    55,    56,    59,    60,    61,
+      64,    66,    67,    68,    71,    74,    77,    80,    81,    84,
+      87,    90,    91,    92,    95,    98,    99,   100,   101,   102,
+     103,   104,   107,   109,   112,   113,   116,   119,   122,   123,
+     124,   127,   130,   131,   132,   133,   134,   137,   138,   139,
+     142,   145,   148,   149,   150,   151,   154
   };
 
   // Print the state stack on the debug stream.
@@ -967,20 +1106,13 @@ namespace EIScript {
 #line 4 "eiscript.y"
 } // EIScript
 /* Line 1141 of lalr1.cc  */
-#line 971 "eiscript.tab.cc"
+#line 1110 "eiscript.tab.cc"
 /* Line 1142 of lalr1.cc  */
-#line 150 "eiscript.y"
+#line 157 "eiscript.y"
 
 
 // We have to implement the error function
 void EIScript::BisonParser::error(const EIScript::BisonParser::location_type &loc, const std::string &msg) {
 	std::cerr << "Error: " << msg << std::endl;
 	std::cerr << "Location: " << loc << std::endl;
-}
-
-// Now that we have the Parser declared, we can declare the Scanner and implement
-// the yylex function
-#include "EIScriptScanner.h"
-static int yylex(EIScript::BisonParser::semantic_type * yylval, EIScript::FlexScanner &scanner) {
-	return scanner.yylex(yylval);
 }

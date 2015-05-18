@@ -3,25 +3,32 @@
 %defines
 %define namespace "EIScript"
 %define parser_class_name "BisonParser"
-%parse-param { EIScript::FlexScanner &scanner }
-%lex-param   { EIScript::FlexScanner &scanner }
+%parse-param { class Driver& driver }
+%locations
+%initial-action
+{
+  // Initialize the initial location.
+  @$.begin.filename = @$.end.filename = &driver.streamname;
+};
+
+//disable in release
+%debug
+/* verbose error messages */
+%error-verbose
 
 %code requires {
     #include <iostream>
     #include <string>
     #include "eiscript_base.h"
-    #include "eiscript.h"
-
-	// Forward-declare the Scanner class; the Parser needs to be assigned a 
-	// Scanner, but the Scanner can't be declared without the Parser
-	namespace EIScript {
-		class FlexScanner;
-	}
+    #include "EIScriptContext.h"
 }
 
 %code {
-	// Prototype for the yylex function
-	static int yylex(EIScript::BisonParser::semantic_type * yylval, EIScript::FlexScanner &scanner);
+    #include "EIScriptDriver.h"
+    #include "EIScriptScanner.h"
+    
+    #undef yylex
+    #define yylex driver.lexer->yylex
 }
 
 %union {
@@ -33,8 +40,8 @@
 %token <tVal> FLOAT STRING OBJECT GROUP
 %token <fVal> FLOATNUMBER
 %token <sVal> CHARACTER_STRING /* unfinished */ GLOBALVARS DECLARESCRIPT SCRIPT IF THEN WORLDSCRIPT IDENTIFIER FOR
-%type <sVal> ident
-%type <tVal> type
+%type  <sVal> ident
+%type  <tVal> type
 
 %%
 
@@ -153,11 +160,4 @@ ident : IDENTIFIER { $$ = $1; }
 void EIScript::BisonParser::error(const EIScript::BisonParser::location_type &loc, const std::string &msg) {
 	std::cerr << "Error: " << msg << std::endl;
 	std::cerr << "Location: " << loc << std::endl;
-}
-
-// Now that we have the Parser declared, we can declare the Scanner and implement
-// the yylex function
-#include "EIScriptScanner.h"
-static int yylex(EIScript::BisonParser::semantic_type * yylval, EIScript::FlexScanner &scanner) {
-	return scanner.yylex(yylval);
 }

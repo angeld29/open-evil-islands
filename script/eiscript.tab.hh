@@ -42,22 +42,16 @@
 
 /* "%code requires" blocks.  */
 /* Line 33 of lalr1.cc  */
-#line 9 "eiscript.y"
+#line 19 "eiscript.y"
 
     #include <iostream>
     #include <string>
     #include "eiscript_base.h"
-    #include "eiscript.h"
-
-	// Forward-declare the Scanner class; the Parser needs to be assigned a 
-	// Scanner, but the Scanner can't be declared without the Parser
-	namespace EIScript {
-		class FlexScanner;
-	}
+    #include "EIScriptContext.h"
 
 
 /* Line 33 of lalr1.cc  */
-#line 61 "eiscript.tab.hh"
+#line 55 "eiscript.tab.hh"
 
 
 #include <string>
@@ -67,14 +61,14 @@
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 
 /* Line 33 of lalr1.cc  */
 #line 4 "eiscript.y"
 namespace EIScript {
 /* Line 33 of lalr1.cc  */
-#line 78 "eiscript.tab.hh"
+#line 72 "eiscript.tab.hh"
 
   /// A Bison parser.
   class BisonParser
@@ -85,7 +79,7 @@ namespace EIScript {
     union semantic_type
     {
 /* Line 33 of lalr1.cc  */
-#line 27 "eiscript.y"
+#line 34 "eiscript.y"
 
     Type tVal;
     float fVal;
@@ -93,7 +87,7 @@ namespace EIScript {
 
 
 /* Line 33 of lalr1.cc  */
-#line 97 "eiscript.tab.hh"
+#line 91 "eiscript.tab.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -126,7 +120,7 @@ namespace EIScript {
     typedef token::yytokentype token_type;
 
     /// Build a parser object.
-    BisonParser (EIScript::FlexScanner &scanner_yyarg);
+    BisonParser (class Driver& driver_yyarg);
     virtual ~BisonParser ();
 
     /// Parse.
@@ -233,10 +227,13 @@ namespace EIScript {
     /// For a rule, its RHS length.
     static const unsigned char yyr2_[]; 
 
-#if YYDEBUG
+    /// Convert the symbol name \a n to a form suitable for a diagnostic.
+    static std::string yytnamerr_ (const char *n);
+
+
     /// For a symbol, its name in clear.
     static const char* const yytname_[];
-
+#if YYDEBUG
     /// A type to store symbol numbers and -1.
     typedef signed char rhs_number_type;
     /// A `-1'-separated list of the rules' RHS.
@@ -288,13 +285,13 @@ namespace EIScript {
     static const token_number_type yyundef_token_;
 
     /* User arguments.  */
-    EIScript::FlexScanner &scanner;
+    class Driver& driver;
   };
 /* Line 33 of lalr1.cc  */
 #line 4 "eiscript.y"
 } // EIScript
 /* Line 33 of lalr1.cc  */
-#line 298 "eiscript.tab.hh"
+#line 295 "eiscript.tab.hh"
 
 
 
