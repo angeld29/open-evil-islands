@@ -11,14 +11,9 @@ namespace EIScript
     class EIScriptContext
     {
     public:
-        void clear_script()
-        {
-        }
+        void clear_script();
 
-        void addFunction(FunctionDeclaration* function)
-        {
-            functions.insert(std::make_pair(function->id.name, function));
-        }
+        void addFunction(FunctionDeclaration* function);
 
     protected:
         EIScriptContext* parent;

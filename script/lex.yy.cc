@@ -1,5 +1,6 @@
+#line 2 "lex.yy.cc"
 
-#line 3 "lex.yy.cc"
+#line 4 "lex.yy.cc"
 
 #define  YY_INT_ALIGNED short int
 
@@ -474,16 +475,14 @@ static yyconst flex_int16_t yy_chk[142] =
 #line 2 "eiscript.l"
     #include <iostream>
     #include <cstdlib>
-    #include "eiscript_base.h"
-    #include "EIScriptContext.h"
     #include "eiscript.tab.hh"
     #include "EIScriptScanner.h"
 
     void commenteof();
     int line_no = 1;
-#line 16 "eiscript.l"
+#line 14 "eiscript.l"
 #define YY_USER_ACTION  yylloc->columns(yyleng);
-#line 487 "lex.yy.cc"
+#line 486 "lex.yy.cc"
 
 #define INITIAL 0
 
@@ -583,7 +582,7 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 46 "eiscript.l"
+#line 44 "eiscript.l"
 
 
 
@@ -591,7 +590,7 @@ YY_DECL
     yylloc->step();
 
 
-#line 595 "lex.yy.cc"
+#line 594 "lex.yy.cc"
 
 	if ( !(yy_init) )
 		{
@@ -676,85 +675,85 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 53 "eiscript.l"
+#line 51 "eiscript.l"
 { yylval->tVal = Type::Float; return(EIScript::BisonParser::token::FLOAT); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 54 "eiscript.l"
+#line 52 "eiscript.l"
 { yylval->tVal = Type::String; return(EIScript::BisonParser::token::STRING); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 55 "eiscript.l"
+#line 53 "eiscript.l"
 { yylval->tVal = Type::Object; return(EIScript::BisonParser::token::OBJECT); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 56 "eiscript.l"
+#line 54 "eiscript.l"
 { yylval->tVal = Type::Group; return(EIScript::BisonParser::token::GROUP); }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 57 "eiscript.l"
+#line 55 "eiscript.l"
 { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::GLOBALVARS); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 58 "eiscript.l"
+#line 56 "eiscript.l"
 { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::DECLARESCRIPT); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 59 "eiscript.l"
+#line 57 "eiscript.l"
 { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::SCRIPT); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 60 "eiscript.l"
+#line 58 "eiscript.l"
 { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::IF); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 61 "eiscript.l"
+#line 59 "eiscript.l"
 { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::THEN); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 62 "eiscript.l"
+#line 60 "eiscript.l"
 { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::FOR); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 63 "eiscript.l"
+#line 61 "eiscript.l"
 { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::WORLDSCRIPT); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 64 "eiscript.l"
+#line 62 "eiscript.l"
 { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::IDENTIFIER); }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 65 "eiscript.l"
+#line 63 "eiscript.l"
 { yylval->fVal = std::atof(yytext); return(EIScript::BisonParser::token::FLOATNUMBER); }
 	YY_BREAK
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 66 "eiscript.l"
+#line 64 "eiscript.l"
 { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::CHARACTER_STRING); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 68 "eiscript.l"
+#line 66 "eiscript.l"
 {
             return *yytext;
         }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 73 "eiscript.l"
+#line 71 "eiscript.l"
 { 
           register int c;
           while ((c = yyinput()))
@@ -772,7 +771,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 88 "eiscript.l"
+#line 86 "eiscript.l"
 {
     yylloc->step();
 }
@@ -780,7 +779,7 @@ YY_RULE_SETUP
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 92 "eiscript.l"
+#line 90 "eiscript.l"
 {
     yylloc->lines(yyleng); 
     yylloc->step();
@@ -788,17 +787,17 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 97 "eiscript.l"
+#line 95 "eiscript.l"
 { 
           std::cerr<<"'"<<*yytext<<"' "<<"illegal character at line "<<line_no<<std::endl;
       }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 101 "eiscript.l"
+#line 99 "eiscript.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 802 "lex.yy.cc"
+#line 801 "lex.yy.cc"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1696,7 +1695,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 100 "eiscript.l"
+#line 98 "eiscript.l"
 
 
 

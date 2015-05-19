@@ -8,7 +8,7 @@
 namespace EIScript
 {
 
-    Driver::Driver(class ScriptContext& _script_context)
+    Driver::Driver(class EIScriptContext& _script_context)
         : trace_scanning(false)
         , trace_parsing(false)
         , script_context(_script_context)

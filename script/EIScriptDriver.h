@@ -22,10 +22,10 @@ public:
 
     /** Reference to the script context filled during parsing of the
      * expressions. */
-    class ScriptContext& script_context;
+    class EIScriptContext& script_context;
 
     /// construct a new parser driver context
-    Driver(class ScriptContext& script_context);
+    Driver(class EIScriptContext& script_context);
 
     /// enable debug output in the flex scanner
     bool trace_scanning;

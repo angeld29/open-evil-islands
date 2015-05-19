@@ -1,8 +1,6 @@
 %{
     #include <iostream>
     #include <cstdlib>
-    #include "eiscript_base.h"
-    #include "EIScriptContext.h"
     #include "eiscript.tab.hh"
     #include "EIScriptScanner.h"
 

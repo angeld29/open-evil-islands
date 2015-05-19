@@ -6,12 +6,10 @@
 #include "EIScriptDriver.h"
 #include "EIScriptContext.h"
 
-#include "ScriptContext.hpp" //debug
-
 // Entry Point
 int main(int argc, char* argv[])
 {
-    EIScript::ScriptContext script_context;
+    EIScript::EIScriptContext script_context;
     EIScript::Driver driver(script_context);
 
     for(int ai = 1; ai < argc; ++ai) {
