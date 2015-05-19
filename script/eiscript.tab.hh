@@ -84,10 +84,14 @@ namespace EIScript {
     Type tVal;
     float fVal;
     std::string* sVal;
+    Identifier* identifierVal;
+    VariableDeclaration* varDeclarationVal;
+    VariableList* variableListVal;   
+    FunctionDeclaration* funcDeclarationVal;
 
 
 /* Line 33 of lalr1.cc  */
-#line 91 "eiscript.tab.hh"
+#line 95 "eiscript.tab.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -291,7 +295,7 @@ namespace EIScript {
 #line 4 "eiscript.y"
 } // EIScript
 /* Line 33 of lalr1.cc  */
-#line 295 "eiscript.tab.hh"
+#line 299 "eiscript.tab.hh"
 
 
 

@@ -3,15 +3,10 @@
 #include "EIScriptDriver.h"
     
 namespace EIScript {
-	class Parser {
+
+	class Parser : public BisonParser {
+        friend class Driver;
 		public:
-			Parser(Driver& driver) : parser(driver) {}
-		
-			int parse() {
-				return parser.parse();
-			}
-		
-		private:
-			EIScript::BisonParser parser;
+			Parser(Driver& driver) : BisonParser(driver) {}
 	};
 }

@@ -20,20 +20,24 @@ public:
      * parser to the scanner. */
     class FlexScanner* lexer;
 
-    /** Reference to the script context filled during parsing of the
-     * expressions. */
-    class EIScriptContext& script_context;
+    /** Reference to the script context filled during parsing */
+    class EIScriptContext* script_context;
+
+    /// construct a new parser driver
+    Driver(class EIScriptContext* script_context);
 
     /// construct a new parser driver context
-    Driver(class EIScriptContext& script_context);
-
+    Driver(class EIScriptContext* script_context, bool trace_scanning, bool trace_parsing, bool standard_trace_parsing);
+    
     /// enable debug output in the flex scanner
     bool trace_scanning;
 
-    /// enable debug output in the bison parser
-    //NYE
+    /// enable my debug output in the bison parser
     bool trace_parsing;
 
+    /// enable standard debug output in the bison parser
+    bool standard_trace_parsing;
+    
     /// stream name (file or input stream) used for error messages.
     std::string streamname;
 

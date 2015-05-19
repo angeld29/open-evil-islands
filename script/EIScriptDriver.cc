@@ -8,10 +8,19 @@
 namespace EIScript
 {
 
-    Driver::Driver(class EIScriptContext& _script_context)
-        : trace_scanning(false)
+    Driver::Driver(class EIScriptContext* _script_context)
+        : script_context(_script_context)
+        , trace_scanning(false)
         , trace_parsing(false)
-        , script_context(_script_context)
+        , standard_trace_parsing(false)
+    {
+    }
+
+    Driver::Driver(class EIScriptContext* _script_context, bool trace_scanning, bool trace_parsing, bool standard_trace_parsing)
+        : script_context(_script_context)
+        , trace_scanning(trace_scanning)
+        , trace_parsing(trace_parsing)
+        , standard_trace_parsing(standard_trace_parsing)
     {
     }
 
@@ -24,7 +33,10 @@ namespace EIScript
         this->lexer = &scanner;
 
         Parser parser(*this);
-        //parser.set_debug_level(trace_parsing);
+        if(standard_trace_parsing) {
+            parser.set_debug_level(trace_parsing);
+            parser.set_debug_stream(std::cerr);
+        }
         return (parser.parse() == 0);
     }
 
@@ -36,6 +48,8 @@ namespace EIScript
         return parse_stream(in, filename);
     }
 
+    //TODO perhaps move error reporting here?
+    //TODO add a trace function with customizable output stream?
     void Driver::error(const class location& l, const std::string& m)
     {
         std::cerr << l << ": " << m << std::endl;
