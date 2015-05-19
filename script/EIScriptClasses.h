@@ -17,7 +17,7 @@ typedef std::vector<Statement*> StatementList;
 typedef std::vector<Expression*> ExpressionList;
 typedef std::vector<VariableDeclaration*> VariableList;
 
-enum class Type { Float, String, Object, Group };
+enum class Type { Float, String, Object, Group. None };
 
 inline
 std::ostream& operator<<(std::ostream& out, const Type& value){
@@ -28,18 +28,14 @@ std::ostream& operator<<(std::ostream& out, const Type& value){
         INSERT_ELEMENT(Type::String);     
         INSERT_ELEMENT(Type::Object);             
         INSERT_ELEMENT(Type::Group);             
+        INSERT_ELEMENT(Type::None);             
 #undef INSERT_ELEMENT
     }   
 
     return out << strings[value];
 }
 
-class Node {
-public:
-    virtual ~Node() {}
-};
-
-class Expression : public Node {
+class Expression {
 };
 
 class FloatExpr : public Expression {
@@ -50,52 +46,52 @@ public:
 
 class StringExpr : public Expression {
 public:
-    std::string value;
-    StringExpr(const std::string& value) : value(value) { }
+    std::string* value;
+    StringExpr(std::string* value) : value(value) { }
 };
 
 class Identifier : public Expression {
 public:
-    std::string name;
-    Identifier(const std::string& name) : name(name) { }
+    std::string* name;
+    Identifier(std::string* name) : name(name) { }
 };
 
 class FunctionCall : public Expression {
 public:
-    const Identifier& id;
-    ExpressionList arguments;
-    FunctionCall(const Identifier& id, ExpressionList& arguments) :
+    const FunctionDeclaration* id;
+    ExpressionList* arguments;
+    FunctionCall(const FunctionDeclaration* id, ExpressionList* arguments) :
         id(id), arguments(arguments) { }
-    FunctionCall(const Identifier& id) : id(id) { }
+    FunctionCall(const FunctionDeclaration* id) : id(id) { }
 };
 
 
 class Assignment : public Expression {
 public:
-    Identifier& lhs;
-    Expression& rhs;
-    Assignment(Identifier& lhs, Expression& rhs) : 
+    Identifier* lhs;
+    Expression* rhs;
+    Assignment(Identifier* lhs, Expression* rhs) : 
         lhs(lhs), rhs(rhs) { }
 };
 
-class VariableDeclaration : public Node {
+class VariableDeclaration {
 public:
-    const Identifier& type;
-    Identifier& id;
-    Expression *assignmentExpr;
-    VariableDeclaration(const Identifier& type, Identifier& id) :
+    const Type type;
+    Identifier* id;
+    Expression* assignedExpr;
+    VariableDeclaration(const Type type, Identifier* id) :
         type(type), id(id) { }
-    VariableDeclaration(const Identifier& type, Identifier& id, Expression *assignmentExpr) :
-        type(type), id(id), assignmentExpr(assignmentExpr) { }
+    VariableDeclaration(const Type type, Identifier* id, Expression* assignedExpr) :
+        type(type), id(id), assignedExpr(assignedExpr) { }
 };
 
-class FunctionDeclaration : public Node {
+class FunctionDeclaration {
 public:
     const Type type;
     const Type returnType;
-    const Identifier& id;
-    VariableList arguments;
-    FunctionDeclaration(const Type type, const Type returnType, Identifier& id, 
-            const VariableList& arguments) :
+    const Identifier* id;
+    VariableList* arguments;
+    FunctionDeclaration(const Type type, const Type returnType, const Identifier* id, 
+            VariableList* arguments) :
         type(type), returnType(returnType), id(id), arguments(arguments) { }
 };

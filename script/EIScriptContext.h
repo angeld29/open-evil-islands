@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "eiscript_base.h"
+#include "EIScriptClasses.h"
 #include "boost/unordered_map.hpp"
 #include <string>
 

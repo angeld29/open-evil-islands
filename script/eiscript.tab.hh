@@ -46,7 +46,7 @@
 
     #include <iostream>
     #include <string>
-    #include "eiscript_base.h"
+    #include "EIScriptClasses.h"
     #include "EIScriptContext.h"
 
 

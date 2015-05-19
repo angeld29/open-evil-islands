@@ -19,7 +19,7 @@
 %code requires {
     #include <iostream>
     #include <string>
-    #include "eiscript_base.h"
+    #include "EIScriptClasses.h"
     #include "EIScriptContext.h"
 }
 
@@ -88,8 +88,8 @@ script_if_block : IF '(' if_conjunction ')'
           ;
           
 if_conjunction : /* empty */
-          | float_expression /* restrict to 0 or 1? */
-          | if_conjunction float_expression
+          | function_call  /* check for float return type?*/ /* restrict to 0 or 1? */
+          | if_conjunction function_call
           ;
           
 script_then_block : THEN '(' script_then_body ')'
@@ -133,11 +133,6 @@ expression : FLOATNUMBER
           | assignment
           | function_call /* check for non-void return type?*/
           ;
-          
-float_expression : FLOATNUMBER
-          | ident /* check for float type?*/
-          | function_call /* check for float return type?*/
-          ;
 
 assignment : ident '=' expression
           ;
@@ -145,13 +140,13 @@ assignment : ident '=' expression
 function_call : ident params /* function or script */ /* validate? */
           ;
           
-type : FLOAT  /*{ $$ = $1; }*/
+type : FLOAT
           | STRING
           | OBJECT
           | GROUP
           ;
           
-ident : IDENTIFIER { $$ = $1; }
+ident : IDENTIFIER
           ;
           
 %%
