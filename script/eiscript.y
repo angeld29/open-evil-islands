@@ -50,7 +50,6 @@
 %type  <variableListVal> formal_params formal_parameter_list
 %type  <funcDeclarationVal> script_declaration
 
-
 %%
 
 eiscript  : globalVars declarations scripts worldscript { std::cout<<"Program accepted."; return 0; }
@@ -70,7 +69,7 @@ scripts : /* empty */
           ;
 
 worldscript: WORLDSCRIPT '(' script_then_body ')'   {
-                                                        if(driver.trace_parsing){
+                                                        if(driver.trace_parsing) {
                                                             std::cout<<"Worldscript."<<std::endl;
                                                         } 
                                                     }
@@ -81,7 +80,7 @@ globalVarsDefs : /* empty */
           ;
 
 globalVarDef : ident ':' type   { 
-                                    if(driver.script_context->variableDefined($1)){
+                                    if(driver.script_context->variableDefined($1)) {
                                         error(yylocation_stack_[0], std::string("Duplicate variable definition: ") + *($1->name));
                                         return 1;
                                     }
@@ -93,25 +92,34 @@ globalVarDef : ident ':' type   {
           ;
           
 script_declaration : DECLARESCRIPT ident formal_params      { 
-                                                                if(driver.script_context->scriptDefined($2)){
+                                                                if(driver.script_context->scriptDefined($2)) {
                                                                     error(yylocation_stack_[0], std::string("Duplicate script definition: ") + *($2->name));
                                                                     return 1;
                                                                 }
                                                                 $$ = new FunctionDeclaration(Type::None, $2, $3);
-                                                                if(driver.script_context->functionDefined($2)){
+                                                                if(driver.script_context->functionDefined($2)) {
                                                                     error(yylocation_stack_[0], std::string("Possibly overshadowing  definition: script ") + *($2->name));
                                                                 }                          
-                                                                if(driver.trace_parsing){
+                                                                if(driver.trace_parsing) {
                                                                     std::cout<<"Declared script "<<*($2->name)<<std::endl;
                                                                 }
                                                             }
           ;
      
-script_implementation : SCRIPT ident '(' script_body ')'    { 
-                                                                if(driver.trace_parsing){
-                                                                    std::cout<<"Implemented script "<<*($2->name)<<std::endl; 
-                                                                }
-                                                            }
+script_implementation : SCRIPT ident '('    { 
+                                                FunctionDeclaration* scriptDeclaration = driver.script_context->getScript($2);
+                                                if(!scriptDeclaration) {
+                                                    error(yylocation_stack_[0], std::string("Found implementation for an undefined script: ") + *($2->name));
+                                                    return 1;
+                                                }
+                                                driver.push_context(driver.script_context->extendedContext(scriptDeclaration->arguments));
+                                            } 
+                         script_body ')'    { 
+                                                driver.pop_context();
+                                                if(driver.trace_parsing) {
+                                                    std::cout<<"Implemented script "<<*($2->name)<<std::endl; 
+                                                }
+                                            }
           ;
           
 script_body : script_block
@@ -173,7 +181,7 @@ expression : FLOATNUMBER
           ;
 
 variable : ident    { 
-                        if(!driver.script_context->variableDefined($1)){
+                        if(!driver.script_context->variableDefined($1)) {
                             error(yylocation_stack_[0], std::string("Variable ") + *($1->name) + std::string(" is not defined."));
                             if(driver.trace_parsing){
                                 driver.script_context->dumpVariables(std::cerr);

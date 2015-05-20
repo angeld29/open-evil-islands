@@ -5,88 +5,13 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "EIScriptClassesBase.h"
 #include "position.hh"
 
 /* Scripts use the same FunctionDeclaration class for simplicity,
  * since the only distinction is the absence of a return type. */
 namespace EIScript
 {
-    class Expression;
-    class VariableDeclaration;
-    class FunctionDeclaration;
-
-    typedef std::vector<Expression*> ExpressionList;
-    typedef std::vector<VariableDeclaration*> VariableList;
-
-    enum class Type { Float, String, Object, Group, None };
-
-    inline std::ostream& operator<<(std::ostream& out, const Type& value)
-    {
-        static std::map<Type, std::string> strings;
-        if(strings.size() == 0) {
-#define INSERT_ELEMENT(p) strings[p] = #p
-            INSERT_ELEMENT(Type::Float);
-            INSERT_ELEMENT(Type::String);
-            INSERT_ELEMENT(Type::Object);
-            INSERT_ELEMENT(Type::Group);
-            INSERT_ELEMENT(Type::None);
-#undef INSERT_ELEMENT
-        }
-
-        return out << strings[value];
-    }
-
-    class Expression
-    {
-
-    public:
-        virtual Type getType() = 0;
-        virtual ~Expression();
-    };
-
-    class FloatConstant : public Expression
-    {
-    public:
-        double value;
-        FloatConstant(double value)
-            : value(value) {
-        }
-
-        virtual Type getType() {
-            return Type::Float;
-        }
-    };
-
-    class StringConstant : public Expression
-    {
-    public:
-        std::string* value;
-        StringConstant(std::string* value)
-            : value(value) {
-        }
-
-        virtual Type getType() {
-            return Type::String;
-        }
-
-        ~StringConstant() {
-            delete value;
-        }
-    };
-
-    class Identifier /* : public Expression */ // an identifier by itself is not an expression, I think
-    {
-    public:
-        std::string* name;
-        Identifier(std::string* name)
-            : name(name) {
-        }
-
-        ~Identifier() {
-            delete name;
-        }
-    };
-
     class Assignment : public Expression
     {
     public:

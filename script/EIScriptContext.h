@@ -24,6 +24,9 @@ public:
         variables.insert(parent->variables.cbegin(), parent->variables.cend());
     }
     
+    EIScriptContext* getParentContext();
+    EIScriptContext* extendedContext(VariableList* new_vars);
+    
     void clear_script();
 
     void addFunction(FunctionDeclaration* function);
@@ -32,7 +35,11 @@ public:
     
     bool functionDefined(Identifier* ident);
     bool scriptDefined(Identifier* ident);
-    bool variableDefined(Identifier* ident);
+    bool variableDefined(Identifier* ident);    
+    
+    FunctionDeclaration* getFunction(Identifier* ident);
+    FunctionDeclaration* getScript(Identifier* ident);
+    VariableDeclaration* getVariable(Identifier* ident);
 
     void setWorldscript(FunctionDeclaration* worldscript)
     {

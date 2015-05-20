@@ -59,4 +59,25 @@ namespace EIScript
     {
         std::cerr << m << std::endl;
     }
+
+    void Driver::push_context(EIScriptContext* context)
+    {
+        if(context->getParentContext() != script_context) {
+            std::cerr << "Tried to replace parent context." << std::endl;
+        } else {
+            script_context = context;
+        }
+    }
+
+    void Driver::pop_context()
+    {
+        if(script_context->getParentContext() == nullptr) {
+            std::cerr << "Tried to pop parent context." << std::endl;
+        } else {
+            EIScriptContext* previous = script_context;
+            script_context = script_context->getParentContext();
+            delete previous;
+        }
+    }
+
 }
