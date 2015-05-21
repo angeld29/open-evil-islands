@@ -26,6 +26,10 @@ namespace EIScript
             return Type::None;
         }
 
+        virtual void apply(EIScriptContext* context) { 
+            
+        }
+
         ~Assignment() {
             delete rhs;
         }

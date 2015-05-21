@@ -1,6 +1,8 @@
 #ifndef EI_SCRIPT_CLASSES_BASE
 #define EI_SCRIPT_CLASSES_BASE
 
+#include "EIScriptContext.h"
+
 namespace EIScript
 {
     class Expression;
@@ -34,6 +36,7 @@ namespace EIScript
     public:
         virtual Type getType() = 0;
         virtual ~Expression();
+        virtual void apply(EIScriptContext* context) = 0;
     };
 
     class FloatValue : public Expression
@@ -47,6 +50,8 @@ namespace EIScript
         virtual Type getType() {
             return Type::Float;
         }
+        
+        virtual void apply(EIScriptContext* context) { }
     };
 
     class StringValue : public Expression
@@ -60,6 +65,8 @@ namespace EIScript
         virtual Type getType() {
             return Type::String;
         }
+        
+        virtual void apply(EIScriptContext* context) { }
 
         ~StringValue() {
             delete value;
@@ -77,6 +84,8 @@ namespace EIScript
         virtual Type getType() {
             return Type::Object;
         }
+        
+        virtual void apply(EIScriptContext* context) { }
     };
 
     class GroupValue : public Expression
@@ -90,6 +99,8 @@ namespace EIScript
         virtual Type getType() {
             return Type::Group;
         }
+        
+        virtual void apply(EIScriptContext* context) { }
     };
 
     class Identifier /* : public Expression */ // an identifier by itself is not an expression, I think
