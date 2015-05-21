@@ -38,7 +38,7 @@
     Identifier* identifierVal;
     VariableDeclaration* varDeclarationVal;
     VariableList* variableListVal;   
-    FunctionDeclaration* funcDeclarationVal;
+    ScriptDeclaration* scriptDeclarationVal;
 }
 
 %token <tVal> FLOAT STRING OBJECT GROUP
@@ -48,7 +48,7 @@
 %type  <identifierVal> ident
 %type  <varDeclarationVal> globalVarDef formal_parameter
 %type  <variableListVal> formal_params formal_parameter_list
-%type  <funcDeclarationVal> script_declaration
+%type  <scriptDeclarationVal> script_declaration
 
 %%
 
@@ -96,7 +96,7 @@ script_declaration : DECLARESCRIPT ident formal_params      {
                                                                     error(yylocation_stack_[0], std::string("Duplicate script definition: ") + *($2->name));
                                                                     return 1;
                                                                 }
-                                                                $$ = new FunctionDeclaration(Type::None, $2, $3);
+                                                                $$ = new ScriptDeclaration($2, $3);
                                                                 if(driver.script_context->functionDefined($2)) {
                                                                     error(yylocation_stack_[0], std::string("Possibly overshadowing  definition: script ") + *($2->name));
                                                                 }                          
@@ -107,7 +107,7 @@ script_declaration : DECLARESCRIPT ident formal_params      {
           ;
      
 script_implementation : SCRIPT ident '('    { 
-                                                FunctionDeclaration* scriptDeclaration = driver.script_context->getScript($2);
+                                                ScriptDeclaration* scriptDeclaration = driver.script_context->getScript($2);
                                                 if(!scriptDeclaration) {
                                                     error(yylocation_stack_[0], std::string("Found implementation for an undefined script: ") + *($2->name));
                                                     return 1;

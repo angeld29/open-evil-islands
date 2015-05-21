@@ -472,27 +472,27 @@ namespace EIScript {
       {
           case 2:
 /* Line 670 of lalr1.cc  */
-#line 56 "eiscript.y"
+#line 55 "eiscript.y"
     { std::cout<<"Program accepted."; return 0; }
     break;
 
   case 5:
 /* Line 670 of lalr1.cc  */
-#line 63 "eiscript.y"
-    { driver.script_context->addScript((yysemantic_stack_[(1) - (1)].funcDeclarationVal)); }
+#line 62 "eiscript.y"
+    { driver.script_context->addScript((yysemantic_stack_[(1) - (1)].scriptDeclarationVal)); }
     break;
 
   case 6:
 /* Line 670 of lalr1.cc  */
-#line 64 "eiscript.y"
-    { driver.script_context->addScript((yysemantic_stack_[(2) - (2)].funcDeclarationVal)); }
+#line 63 "eiscript.y"
+    { driver.script_context->addScript((yysemantic_stack_[(2) - (2)].scriptDeclarationVal)); }
     break;
 
   case 10:
 /* Line 670 of lalr1.cc  */
-#line 72 "eiscript.y"
+#line 71 "eiscript.y"
     {
-                                                        if(driver.trace_parsing){
+                                                        if(driver.trace_parsing) {
                                                             std::cout<<"Worldscript."<<std::endl;
                                                         } 
                                                     }
@@ -500,21 +500,21 @@ namespace EIScript {
 
   case 12:
 /* Line 670 of lalr1.cc  */
-#line 79 "eiscript.y"
+#line 78 "eiscript.y"
     { driver.script_context->addVariable((yysemantic_stack_[(1) - (1)].varDeclarationVal)); }
     break;
 
   case 13:
 /* Line 670 of lalr1.cc  */
-#line 80 "eiscript.y"
+#line 79 "eiscript.y"
     { driver.script_context->addVariable((yysemantic_stack_[(3) - (3)].varDeclarationVal)); }
     break;
 
   case 14:
 /* Line 670 of lalr1.cc  */
-#line 83 "eiscript.y"
+#line 82 "eiscript.y"
     { 
-                                    if(driver.script_context->variableDefined((yysemantic_stack_[(3) - (1)].identifierVal))){
+                                    if(driver.script_context->variableDefined((yysemantic_stack_[(3) - (1)].identifierVal))) {
                                         error(yylocation_stack_[0], std::string("Duplicate variable definition: ") + *((yysemantic_stack_[(3) - (1)].identifierVal)->name));
                                         return 1;
                                     }
@@ -527,17 +527,17 @@ namespace EIScript {
 
   case 15:
 /* Line 670 of lalr1.cc  */
-#line 95 "eiscript.y"
+#line 94 "eiscript.y"
     { 
-                                                                if(driver.script_context->scriptDefined((yysemantic_stack_[(3) - (2)].identifierVal))){
+                                                                if(driver.script_context->scriptDefined((yysemantic_stack_[(3) - (2)].identifierVal))) {
                                                                     error(yylocation_stack_[0], std::string("Duplicate script definition: ") + *((yysemantic_stack_[(3) - (2)].identifierVal)->name));
                                                                     return 1;
                                                                 }
-                                                                (yyval.funcDeclarationVal) = new FunctionDeclaration(Type::None, (yysemantic_stack_[(3) - (2)].identifierVal), (yysemantic_stack_[(3) - (3)].variableListVal));
-                                                                if(driver.script_context->functionDefined((yysemantic_stack_[(3) - (2)].identifierVal))){
+                                                                (yyval.scriptDeclarationVal) = new ScriptDeclaration((yysemantic_stack_[(3) - (2)].identifierVal), (yysemantic_stack_[(3) - (3)].variableListVal));
+                                                                if(driver.script_context->functionDefined((yysemantic_stack_[(3) - (2)].identifierVal))) {
                                                                     error(yylocation_stack_[0], std::string("Possibly overshadowing  definition: script ") + *((yysemantic_stack_[(3) - (2)].identifierVal)->name));
                                                                 }                          
-                                                                if(driver.trace_parsing){
+                                                                if(driver.trace_parsing) {
                                                                     std::cout<<"Declared script "<<*((yysemantic_stack_[(3) - (2)].identifierVal)->name)<<std::endl;
                                                                 }
                                                             }
@@ -545,67 +545,63 @@ namespace EIScript {
 
   case 16:
 /* Line 670 of lalr1.cc  */
-#line 110 "eiscript.y"
+#line 109 "eiscript.y"
     { 
-                                                FunctionDeclaration* scriptDeclaration = driver.script_context->getScript((yysemantic_stack_[(3) - (2)].identifierVal));
-                                                if(!scriptDeclaration){
+                                                ScriptDeclaration* scriptDeclaration = driver.script_context->getScript((yysemantic_stack_[(3) - (2)].identifierVal));
+                                                if(!scriptDeclaration) {
                                                     error(yylocation_stack_[0], std::string("Found implementation for an undefined script: ") + *((yysemantic_stack_[(3) - (2)].identifierVal)->name));
                                                     return 1;
                                                 }
                                                 driver.push_context(driver.script_context->extendedContext(scriptDeclaration->arguments));
-                                                std::cerr<<"Pushed:"<<std::endl;
-                                                driver.script_context->dumpVariables(std::cerr);
                                             }
     break;
 
   case 17:
 /* Line 670 of lalr1.cc  */
-#line 120 "eiscript.y"
+#line 117 "eiscript.y"
     { 
                                                 driver.pop_context();
-                                                std::cerr<<"Popped:"<<std::endl;
-                                                driver.script_context->dumpVariables(std::cerr);
-                                                if(driver.trace_parsing){
-                                                std::cout<<"Implemented script "<<*((yysemantic_stack_[(6) - (2)].identifierVal)->name)<<std::endl; 
+                                                if(driver.trace_parsing) {
+                                                    std::cout<<"Implemented script "<<*((yysemantic_stack_[(6) - (2)].identifierVal)->name)<<std::endl; 
                                                 }
                                             }
     break;
 
   case 34:
 /* Line 670 of lalr1.cc  */
-#line 159 "eiscript.y"
+#line 154 "eiscript.y"
     { (yyval.variableListVal) = (yysemantic_stack_[(3) - (2)].variableListVal); }
     break;
 
   case 35:
 /* Line 670 of lalr1.cc  */
-#line 162 "eiscript.y"
+#line 157 "eiscript.y"
     { (yyval.variableListVal) = (yysemantic_stack_[(3) - (1)].variableListVal); (yyval.variableListVal)->push_back((yysemantic_stack_[(3) - (3)].varDeclarationVal)); }
     break;
 
   case 36:
 /* Line 670 of lalr1.cc  */
-#line 163 "eiscript.y"
+#line 158 "eiscript.y"
     { (yyval.variableListVal) = new VariableList{(yysemantic_stack_[(1) - (1)].varDeclarationVal)}; }
     break;
 
   case 37:
 /* Line 670 of lalr1.cc  */
-#line 164 "eiscript.y"
+#line 159 "eiscript.y"
     { (yyval.variableListVal) = nullptr; }
     break;
 
   case 38:
 /* Line 670 of lalr1.cc  */
-#line 167 "eiscript.y"
+#line 162 "eiscript.y"
     { (yyval.varDeclarationVal) = new VariableDeclaration((yysemantic_stack_[(3) - (3)].tVal), (yysemantic_stack_[(3) - (1)].identifierVal)); }
     break;
 
   case 49:
 /* Line 670 of lalr1.cc  */
-#line 188 "eiscript.y"
+#line 183 "eiscript.y"
     { 
-                        if(!driver.script_context->variableDefined((yysemantic_stack_[(1) - (1)].identifierVal))){
+                        if(!driver.script_context->variableDefined((yysemantic_stack_[(1) - (1)].identifierVal))) {
                             error(yylocation_stack_[0], std::string("Variable ") + *((yysemantic_stack_[(1) - (1)].identifierVal)->name) + std::string(" is not defined."));
                             if(driver.trace_parsing){
                                 driver.script_context->dumpVariables(std::cerr);
@@ -617,13 +613,13 @@ namespace EIScript {
 
   case 56:
 /* Line 670 of lalr1.cc  */
-#line 211 "eiscript.y"
+#line 206 "eiscript.y"
     { (yyval.identifierVal) = new Identifier((yysemantic_stack_[(1) - (1)].sVal)); }
     break;
 
 
 /* Line 670 of lalr1.cc  */
-#line 627 "eiscript.tab.cc"
+#line 623 "eiscript.tab.cc"
       default:
         break;
       }
@@ -1122,12 +1118,12 @@ namespace EIScript {
   const unsigned char
   BisonParser::yyrline_[] =
   {
-         0,    56,    56,    59,    62,    63,    64,    67,    68,    69,
-      72,    78,    79,    80,    83,    95,   110,   110,   130,   131,
-     134,   137,   140,   141,   142,   145,   148,   149,   150,   151,
-     152,   153,   154,   157,   159,   162,   163,   164,   167,   170,
-     173,   174,   175,   178,   181,   182,   183,   184,   185,   188,
-     199,   202,   205,   206,   207,   208,   211
+         0,    55,    55,    58,    61,    62,    63,    66,    67,    68,
+      71,    77,    78,    79,    82,    94,   109,   109,   125,   126,
+     129,   132,   135,   136,   137,   140,   143,   144,   145,   146,
+     147,   148,   149,   152,   154,   157,   158,   159,   162,   165,
+     168,   169,   170,   173,   176,   177,   178,   179,   180,   183,
+     194,   197,   200,   201,   202,   203,   206
   };
 
   // Print the state stack on the debug stream.
@@ -1218,9 +1214,9 @@ namespace EIScript {
 #line 4 "eiscript.y"
 } // EIScript
 /* Line 1141 of lalr1.cc  */
-#line 1222 "eiscript.tab.cc"
+#line 1218 "eiscript.tab.cc"
 /* Line 1142 of lalr1.cc  */
-#line 214 "eiscript.y"
+#line 209 "eiscript.y"
 
 
 // We have to implement the error function

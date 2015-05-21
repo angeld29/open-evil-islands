@@ -23,13 +23,7 @@ namespace EIScript
     {
     }
 
-    void EIScriptContext::addFunction(FunctionDeclaration* function)
-    {
-        functions.insert(std::make_pair(*function->id->name, function));
-        // functions.emplace(function->id->name, function);
-    }
-
-    void EIScriptContext::addScript(FunctionDeclaration* script)
+    void EIScriptContext::addScript(ScriptDeclaration* script)
     {
         scripts.insert(std::make_pair(*script->id->name, script));
         // scripts.emplace(script->id->name, script);
@@ -44,7 +38,7 @@ namespace EIScript
 
     bool EIScriptContext::functionDefined(Identifier* ident)
     {
-        return functions.find(*(ident->name)) != functions.end();
+        return ai_director->functionDefined(*ident->name);
     }
 
     bool EIScriptContext::scriptDefined(Identifier* ident)
@@ -59,10 +53,10 @@ namespace EIScript
 
     FunctionDeclaration* EIScriptContext::getFunction(Identifier* ident)
     {
-        return functions[*ident->name];
+        return ai_director->getFunction(*ident->name);
     }
 
-    FunctionDeclaration* EIScriptContext::getScript(Identifier* ident)
+    ScriptDeclaration* EIScriptContext::getScript(Identifier* ident)
     {
         return scripts[*ident->name];
     }
@@ -72,12 +66,9 @@ namespace EIScript
         return variables[*ident->name];
     }
 
-
     void EIScriptContext::dumpFunctions(std::ostream& str)
     {
-        for(auto& pair : functions) {
-            str << "Function " << pair.first << " : " << pair.second << std::endl;
-        }
+        ai_director->dumpFunctions(str);
     }
 
     void EIScriptContext::dumpScripts(std::ostream& str)

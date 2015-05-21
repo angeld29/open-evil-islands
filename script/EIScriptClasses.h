@@ -1,15 +1,9 @@
 
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
 #include "EIScriptClassesBase.h"
 #include "position.hh"
 
-/* Scripts use the same FunctionDeclaration class for simplicity,
- * since the only distinction is the absence of a return type. */
 namespace EIScript
 {
     class Assignment : public Expression
@@ -18,17 +12,14 @@ namespace EIScript
         Identifier* lhs;
         Expression* rhs;
         Assignment(Identifier* lhs, Expression* rhs)
-            : lhs(lhs)
+            : Expression(Type::None)
+            , lhs(lhs)
             , rhs(rhs) {
         }
 
-        virtual Type getType() {
-            return Type::None;
-        }
+        //void apply(EIScriptContext* context) {
 
-        virtual void apply(EIScriptContext* context) { 
-            
-        }
+        //}
 
         ~Assignment() {
             delete rhs;
@@ -40,64 +31,82 @@ namespace EIScript
     public:
         const Type type;
         Identifier* id;
-        Expression* assignedExpr;
-
         position* defined_at;
 
-        VariableDeclaration(const Type type, Identifier* id)
+        VariableDeclaration(Type type, Identifier* id)
             : type(type)
             , id(id) {
-        }
-        VariableDeclaration(const Type type, Identifier* id, Expression* assignedExpr)
-            : type(type)
-            , id(id)
-            , assignedExpr(assignedExpr) {
         }
 
         ~VariableDeclaration() {
             delete id; //?
-            delete assignedExpr;
         }
     };
 
-    class FunctionDeclaration
+    class BaseSubRoutine
     {
     public:
-        const Type returnType;
         const Identifier* id;
         VariableList* arguments;
 
-        FunctionDeclaration(const Type returnType, const Identifier* id, VariableList* arguments)
-            : returnType(returnType)
-            , id(id)
+        BaseSubRoutine(const Identifier* id, VariableList* arguments)
+            : id(id)
             , arguments(arguments) {
         }
 
-        ~FunctionDeclaration() {
+        virtual ~BaseSubRoutine() {
             delete id; //?
             delete arguments;
         }
     };
 
-    class FunctionCall : public Expression
+    class FunctionDeclaration : public BaseSubRoutine
+    {
+    public:
+        const Type returnType;
+
+        FunctionDeclaration(Type returnType, const Identifier* id, VariableList* arguments)
+            : BaseSubRoutine(id, arguments)
+            , returnType(returnType) {
+        }
+    };
+    
+    class ScriptDeclaration : public BaseSubRoutine
+    {
+    public:
+        ScriptDeclaration(const Identifier* id, VariableList* arguments)
+            : BaseSubRoutine(id, arguments) {
+        }
+    };
+
+    template<typename T>
+    class FunctionCall : public ValuedExpression<T>
     {
     public:
         const FunctionDeclaration* func;
         ExpressionList* arguments;
+
         FunctionCall(const FunctionDeclaration* func, ExpressionList* arguments)
-            : func(func)
+            : ValuedExpression<T>(initIrrelevantValue(), func->returnType)
+            , func(func)
             , arguments(arguments) {
         }
+
         FunctionCall(const FunctionDeclaration* func)
-            : func(func) {
+            : ValuedExpression<T>(initIrrelevantValue(), func->returnType)
+            , func(func) {
         }
 
-        virtual Type getType() {
-            return func->returnType;
-        }
+        //virtual T getValue() {
+        //    return value;
+        //}
 
         ~FunctionCall() {
             delete arguments;
+        }
+    protected:
+        T initIrrelevantValue() {
+            return *(new T());
         }
     };
 }

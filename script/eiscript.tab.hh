@@ -87,7 +87,7 @@ namespace EIScript {
     Identifier* identifierVal;
     VariableDeclaration* varDeclarationVal;
     VariableList* variableListVal;   
-    FunctionDeclaration* funcDeclarationVal;
+    ScriptDeclaration* scriptDeclarationVal;
 
 
 /* Line 33 of lalr1.cc  */

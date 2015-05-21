@@ -1,12 +1,16 @@
 #ifndef EI_SCRIPT_CLASSES_BASE
 #define EI_SCRIPT_CLASSES_BASE
 
-#include "EIScriptContext.h"
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
 
 namespace EIScript
 {
     class Expression;
     class VariableDeclaration;
+    class ScriptDeclaration;
     class FunctionDeclaration;
 
     typedef std::vector<Expression*> ExpressionList;
@@ -32,75 +36,70 @@ namespace EIScript
 
     class Expression
     {
-
     public:
-        virtual Type getType() = 0;
+        Type getType() {
+            return type;
+        }
         virtual ~Expression();
-        virtual void apply(EIScriptContext* context) = 0;
+    protected:
+        const Type type;
+        Expression(Type type)
+            : type(type) {
+        }
     };
 
-    class FloatValue : public Expression
+    template<typename T>
+    class ValuedExpression : public Expression
+    {
+
+    public:
+        T value;
+        virtual T getValue() {
+            return value;
+        }
+        virtual ~ValuedExpression();
+    protected:
+        ValuedExpression(T value, Type type)
+            : Expression(type)
+            , value(value) {
+        }
+    };
+
+    class FloatValue : public ValuedExpression<double>
     {
     public:
-        double value;
         FloatValue(double value)
-            : value(value) {
+            : ValuedExpression(value, Type::Float) {
         }
-
-        virtual Type getType() {
-            return Type::Float;
-        }
-        
-        virtual void apply(EIScriptContext* context) { }
     };
 
-    class StringValue : public Expression
+    class StringValue : public ValuedExpression<std::string*>
     {
     public:
-        std::string* value;
         StringValue(std::string* value)
-            : value(value) {
-        }
-
-        virtual Type getType() {
-            return Type::String;
+            : ValuedExpression(value, Type::String) {
         }
         
-        virtual void apply(EIScriptContext* context) { }
-
         ~StringValue() {
             delete value;
         }
     };
 
-    class ObjectValue : public Expression
+
+    class ObjectValue : public ValuedExpression<int>
     {
     public:
-        int object_index;
-        ObjectValue(int object_index)
-            : object_index(object_index) {
+        ObjectValue(double value)
+            : ValuedExpression(value, Type::Object) {
         }
-
-        virtual Type getType() {
-            return Type::Object;
-        }
-        
-        virtual void apply(EIScriptContext* context) { }
-    };
-
-    class GroupValue : public Expression
+    };    
+    
+    class GroupValue : public ValuedExpression<int>
     {
     public:
-        int group_index;
-        GroupValue(int group_index)
-            : group_index(group_index) {
+        GroupValue(double value)
+            : ValuedExpression(value, Type::Group) {
         }
-
-        virtual Type getType() {
-            return Type::Group;
-        }
-        
-        virtual void apply(EIScriptContext* context) { }
     };
 
     class Identifier /* : public Expression */ // an identifier by itself is not an expression, I think

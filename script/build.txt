@@ -1,3 +1,0 @@
-win_bison -d --language=C++ eiscript.y
-win_flex eiscript.l
-g++ -std=c++11 eiscript.tab.cc lex.yy.cc Main.cpp EIScriptDriver.cc ScriptContext.cpp  -oeiscript.exe -IC:\tools\boost_compiled\include\boost-1_58 -IC:\Users\Aleks\Downloads\win_flex_bison-latest 
