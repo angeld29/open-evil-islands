@@ -111,7 +111,7 @@ namespace EIScript
         }
     };
 
-    class Identifier /* : public Expression */ // an identifier by itself is not an expression, I think
+    class Identifier
     {
     public:
         std::string* name;

@@ -1,12 +1,18 @@
 
 #pragma once
 
+#include <tuple>
+#include <utility>
+
 #include "EIScriptClassesBase.h"
 #include "position.hh"
 #include "exception.hh"
 
 namespace EIScript
 {
+    typedef tuple<ExpressionList*, ExpressionList*> ScriptBlock;
+    typedef std::vector<ScriptBlock*> ScriptBody;
+
     class Assignment : public Expression
     {
     public:
@@ -82,6 +88,17 @@ namespace EIScript
         ScriptDeclaration(const Identifier* id, VariableList* arguments)
             : BaseSubRoutine(id, arguments) {
         }
+
+        void setScriptBody(ScriptBody* body) {
+            this->body = body;
+        }
+
+//        void addScriptBlock(ScriptBlock* block){
+//            body.push_back(block);
+//        }
+
+    protected:
+        ScriptBody* body;
     };
 
     class FunctionCall : public Expression
@@ -102,7 +119,7 @@ namespace EIScript
         }
 
         virtual Expression* resolve(EIScriptContext* context);
-        
+
         ~FunctionCall() {
             delete arguments;
         }
