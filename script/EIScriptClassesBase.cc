@@ -3,14 +3,6 @@
 namespace EIScript
 {
 
-EIScriptClassesBase::EIScriptClassesBase()
-{
-}
-
-EIScriptClassesBase::~EIScriptClassesBase()
-{
-}
-
 
 }
 

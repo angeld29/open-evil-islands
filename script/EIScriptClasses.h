@@ -3,6 +3,7 @@
 
 #include "EIScriptClassesBase.h"
 #include "position.hh"
+#include "exception.hh"
 
 namespace EIScript
 {
@@ -17,12 +18,10 @@ namespace EIScript
             , rhs(rhs) {
         }
 
-        //void apply(EIScriptContext* context) {
-
-        //}
+        virtual Expression* resolve(EIScriptContext* context);
 
         ~Assignment() {
-            delete rhs;
+            //delete rhs;
         }
     };
 
@@ -30,17 +29,34 @@ namespace EIScript
     {
     public:
         const Type type;
-        Identifier* id;
-        position* defined_at;
 
         VariableDeclaration(Type type, Identifier* id)
             : type(type)
             , id(id) {
         }
 
+        Expression* getValue() {
+            return value;
+        }
+
+        void setValue(Expression* e) {
+            if(e->getType() != type) {
+                throw Exception::InvalidAction(
+                    "wrong variable type: " + typeToString(e->getType()),
+                    "variable " + *(id->name) + " of type " + typeToString(type)
+                );
+            } else {
+                value = e;
+            }
+        }
+
         ~VariableDeclaration() {
             delete id; //?
         }
+    protected:
+        Identifier* id;
+        Expression* value;
+        position* defined_at;
     };
 
     class BaseSubRoutine
@@ -60,17 +76,6 @@ namespace EIScript
         }
     };
 
-    class FunctionDeclaration : public BaseSubRoutine
-    {
-    public:
-        const Type returnType;
-
-        FunctionDeclaration(Type returnType, const Identifier* id, VariableList* arguments)
-            : BaseSubRoutine(id, arguments)
-            , returnType(returnType) {
-        }
-    };
-    
     class ScriptDeclaration : public BaseSubRoutine
     {
     public:
@@ -79,34 +84,28 @@ namespace EIScript
         }
     };
 
-    template<typename T>
-    class FunctionCall : public ValuedExpression<T>
+    class FunctionCall : public Expression
     {
     public:
-        const FunctionDeclaration* func;
+        const std::string* functionName;
         ExpressionList* arguments;
 
-        FunctionCall(const FunctionDeclaration* func, ExpressionList* arguments)
-            : ValuedExpression<T>(initIrrelevantValue(), func->returnType)
+        FunctionCall(const std::string* functionName, ExpressionList* arguments, const Type type)
+            : Expression(type)
             , func(func)
             , arguments(arguments) {
         }
 
         FunctionCall(const FunctionDeclaration* func)
-            : ValuedExpression<T>(initIrrelevantValue(), func->returnType)
+            : Expression(const Type type)
             , func(func) {
         }
 
-        //virtual T getValue() {
-        //    return value;
-        //}
-
+        virtual Expression* resolve(EIScriptContext* context);
+        
         ~FunctionCall() {
             delete arguments;
         }
     protected:
-        T initIrrelevantValue() {
-            return *(new T());
-        }
     };
 }

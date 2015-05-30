@@ -7,10 +7,9 @@
 #include "EIScriptDriver.h"
 #include "EIScriptContext.h"
 
-// Entry Point
 int main(int argc, char* argv[])
 {
-    EIScript::EIScriptContext* script_context = new EIScript::EIScriptContext(new cursedearth::AIDirector());
+    EIScript::EIScriptContext* script_context = new EIScript::EIScriptContext(new cursedearth::AIDirector<>());
     EIScript::Driver driver(script_context, false, true, false);
 
     for(int ai = 1; ai < argc; ++ai) {

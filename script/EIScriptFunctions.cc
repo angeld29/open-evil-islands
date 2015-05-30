@@ -5,25 +5,16 @@ namespace cursedearth
 
     EIScriptFunctions::EIScriptFunctions()
     {
+        initFunctions();
     }
 
     EIScriptFunctions::~EIScriptFunctions()
     {
     }
 
-    void EIScriptFunctions::addFunction(FunctionDeclaration* function)
-    {
-        functions.insert(std::make_pair(*function->id->name, function));
-    }
-
     bool EIScriptFunctions::functionDefined(std::string* function_name)
     {
         return functions.find(*function_name) != functions.end();
-    }
-
-    FunctionDeclaration* EIScriptFunctions::getFunction(std::string* function_name)
-    {
-        return functions[*function_name];
     }
 
     void EIScriptFunctions::dumpFunctions(std::ostream& str)
@@ -33,5 +24,9 @@ namespace cursedearth
         }
     }
 
+    void EIScriptFunctions::initFunctions()
+    {
+        //functions[""]
+    }
 
 }

@@ -15,14 +15,22 @@ namespace cursedearth
         AIDirector() {
             functions_impl = new ScriptFunctions();
         }
-        ~AIDirector();
+        ~AIDirector() {
+            delete functions_impl;
+        }
+
+        inline EIScript::Expression* call(std::string* function_name, EIScript::ExpressionList* arguments) {
+            return nullptr;
+        }
         
-        EIScript::Expression* call(std::string* function_name, EIScript::ExpressionList* arguments);
-        void addFunction(EIScript::FunctionDeclaration* function);
-        bool functionDefined(std::string* function_name);
-        EIScript::FunctionDeclaration* getFunction(std::string* function_name);
-        void dumpFunctions(std::ostream& str);
-        
+        inline bool functionDefined(std::string* function_name) {
+            return functions_impl->functionDefined(function_name);
+        }
+
+        inline void dumpFunctions(std::ostream& str) {
+            functions_impl->dumpFunctions(str);
+        }
+
     protected:
         ScriptFunctions* functions_impl;
     };

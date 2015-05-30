@@ -12,12 +12,11 @@ namespace EIScript
         EIScriptContext* extended = new EIScriptContext(this);
         if(new_vars) {
             for(auto& var : *new_vars) {
-                extended->addVariable(var);
+                extended->addLocalVariable(var);
             }
         }
         return extended;
     }
-
 
     void EIScriptContext::clear_script()
     {
@@ -25,45 +24,84 @@ namespace EIScript
 
     void EIScriptContext::addScript(ScriptDeclaration* script)
     {
-        scripts.insert(std::make_pair(*script->id->name, script));
-        // scripts.emplace(script->id->name, script);
+        if(parent == nullptr) {
+            scripts.insert(std::make_pair(*script->id->name, script));
+        } else {
+            throw EIScript::Exception::InvalidAction("cannot add script", "non-root script context");
+        }
     }
 
-    void EIScriptContext::addVariable(VariableDeclaration* variable)
+    void EIScriptContext::addGlobalVariable(VariableDeclaration* variable)
     {
-        variables.insert(std::make_pair(*variable->id->name, variable));
-        // variables.emplace(variable->id->name, variable);
+        globals.insert(std::make_pair(*variable->id->name, variable));
+    }
+
+    void EIScriptContext::addLocalVariable(VariableDeclaration* variable)
+    {
+        locals.insert(std::make_pair(*variable->id->name, variable));
     }
 
 
     bool EIScriptContext::functionDefined(Identifier* ident)
     {
-        return ai_director->functionDefined(*ident->name);
+        return ai_director->functionDefined(ident->name);
     }
 
     bool EIScriptContext::scriptDefined(Identifier* ident)
     {
-        return scripts.find(*(ident->name)) != scripts.end();
+        if(parent == nullptr) {
+            return scripts.find(*(ident->name)) != scripts.end();
+        } else {
+            return parent->scriptDefined(ident);
+        }
     }
 
     bool EIScriptContext::variableDefined(Identifier* ident)
     {
-        return variables.find(*(ident->name)) != variables.end();
-    }
-
-    FunctionDeclaration* EIScriptContext::getFunction(Identifier* ident)
-    {
-        return ai_director->getFunction(*ident->name);
+        if(locals.find(*(ident->name)) != locals.end()) {
+            return true;
+        } else {
+            if(globals.find(*(ident->name)) != globals.end()) {
+                return true;
+            } else if(parent != nullptr) {
+                return parent->variableDefined(ident);
+            } else {
+                return false;
+            }
+        }
     }
 
     ScriptDeclaration* EIScriptContext::getScript(Identifier* ident)
     {
-        return scripts[*ident->name];
+        if(parent == nullptr) {
+            return scripts[*ident->name];
+        } else {
+            return parent->getScript(ident);
+        }
     }
 
     VariableDeclaration* EIScriptContext::getVariable(Identifier* ident)
     {
-        return variables[*ident->name];
+        VariableDeclaration* local = locals[*ident->name];
+        if(!local) {
+            VariableDeclaration* global = globals[*ident->name];
+            if(!global) {
+                if(parent != nullptr) {
+                    return parent->getVariable(ident);
+                } else {
+                    return nullptr;
+                }
+            } else {
+                return global;
+            }
+        } else {
+            return local;
+        }
+    }
+
+    Expression* EIScriptContext::call(std::string* function_name, ExpressionList* arguments)
+    {
+        return ai_director->call(function_name, arguments);
     }
 
     void EIScriptContext::dumpFunctions(std::ostream& str)
@@ -73,15 +111,26 @@ namespace EIScript
 
     void EIScriptContext::dumpScripts(std::ostream& str)
     {
-        for(auto& pair : scripts) {
-            str << "Script " << pair.first << " : " << pair.second << std::endl;
+        if(parent == nullptr) {
+            for(auto& pair : scripts) {
+                str << "Script " << pair.first << " : " << pair.second << std::endl;
+            }
+        } else {
+            return parent->dumpScripts(str);
         }
+
     }
 
     void EIScriptContext::dumpVariables(std::ostream& str)
     {
-        for(auto& pair : variables) {
-            str << "Variable " << pair.first << " : " << pair.second << std::endl;
+        for(auto& pair : globals) {
+            str << "Global variable " << pair.first << " : " << pair.second << std::endl;
+        }
+        for(auto& pair : locals) {
+            str << "Local variable " << pair.first << " : " << pair.second << std::endl;
+        }
+        if(parent != nullptr) {
+            parent->dumpVariables(str);
         }
     }
 }

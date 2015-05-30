@@ -5,24 +5,24 @@
 #include <boost/unordered_map.hpp>
 #include "AIDirector.h"
 #include "EIScriptClassesBase.h"
-#include "EIScriptClasses.h"
+#include "exception.hh"
 
 namespace EIScript
 {
+    class VariableDeclaration;
+    class ScriptDeclaration;
 
     class EIScriptContext
     {
     public:
-        EIScriptContext(cursedearth::AIDirector* ai_director) {
-            this->parent = nullptr;
-            this->ai_director = ai_director;
+        EIScriptContext(cursedearth::AIDirector<>* ai_director)
+            : parent(nullptr)
+            , ai_director(ai_director) {
         }
 
-        EIScriptContext(EIScriptContext* parent, cursedearth::AIDirector* ai_director)
-            : EIScriptContext(ai_director) {
-            this->parent = parent;
-            scripts.insert(parent->scripts.cbegin(), parent->scripts.cend());
-            variables.insert(parent->variables.cbegin(), parent->variables.cend());
+        EIScriptContext(EIScriptContext* parent)
+            : EIScriptContext(parent->ai_director)
+            , parent(parent) {
         }
 
         EIScriptContext* getParentContext();
@@ -31,15 +31,17 @@ namespace EIScript
         void clear_script();
 
         void addScript(ScriptDeclaration* script);
-        void addVariable(VariableDeclaration* variable);
+        void addGlobalVariable(VariableDeclaration* variable);
+        void addLocalVariable(VariableDeclaration* variable);
 
         bool functionDefined(Identifier* ident);
         bool scriptDefined(Identifier* ident);
         bool variableDefined(Identifier* ident);
 
-        FunctionDeclaration* getFunction(Identifier* ident);
         ScriptDeclaration* getScript(Identifier* ident);
         VariableDeclaration* getVariable(Identifier* ident);
+
+        Expression* call(std::string* function_name, ExpressionList* arguments);
 
         void setWorldscript(ScriptDeclaration* worldscript) {
             this->worldscript = worldscript;
@@ -51,9 +53,10 @@ namespace EIScript
 
     protected:
         EIScriptContext* parent;
-        cursedearth::AIDirector* ai_director;
+        cursedearth::AIDirector<>* ai_director;
         boost::unordered_map<std::string, ScriptDeclaration*> scripts;
-        boost::unordered_map<std::string, VariableDeclaration*> variables;
+        boost::unordered_map<std::string, VariableDeclaration*> globals;
+        boost::unordered_map<std::string, VariableDeclaration*> locals;
         ScriptDeclaration* worldscript;
     };
 }

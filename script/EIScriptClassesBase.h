@@ -12,13 +12,14 @@ namespace EIScript
     class VariableDeclaration;
     class ScriptDeclaration;
     class FunctionDeclaration;
+    class EIScriptContext;
 
     typedef std::vector<Expression*> ExpressionList;
     typedef std::vector<VariableDeclaration*> VariableList;
 
     enum class Type { Float, String, Object, Group, None };
 
-    inline std::ostream& operator<<(std::ostream& out, const Type& value)
+    inline std::string typeToString(const Type& value)
     {
         static std::map<Type, std::string> strings;
         if(strings.size() == 0) {
@@ -30,8 +31,12 @@ namespace EIScript
             INSERT_ELEMENT(Type::None);
 #undef INSERT_ELEMENT
         }
+        return strings[value];
+    }
 
-        return out << strings[value];
+    inline std::ostream& operator<<(std::ostream& out, const Type& value)
+    {
+        return out << typeToString(value);
     }
 
     class Expression
@@ -40,7 +45,12 @@ namespace EIScript
         Type getType() {
             return type;
         }
-        virtual ~Expression();
+        
+        virtual Expression* resolve(EIScriptContext* context){
+            return this;
+        }
+        
+        virtual ~Expression() {};
     protected:
         const Type type;
         Expression(Type type)
@@ -54,10 +64,10 @@ namespace EIScript
 
     public:
         T value;
-        virtual T getValue() {
+        virtual T {
             return value;
         }
-        virtual ~ValuedExpression();
+        virtual ~ValuedExpression() {};
     protected:
         ValuedExpression(T value, Type type)
             : Expression(type)
@@ -79,25 +89,24 @@ namespace EIScript
         StringValue(std::string* value)
             : ValuedExpression(value, Type::String) {
         }
-        
+
         ~StringValue() {
             delete value;
         }
     };
 
-
     class ObjectValue : public ValuedExpression<int>
     {
     public:
-        ObjectValue(double value)
+        ObjectValue(int value)
             : ValuedExpression(value, Type::Object) {
         }
-    };    
-    
+    };
+
     class GroupValue : public ValuedExpression<int>
     {
     public:
-        GroupValue(double value)
+        GroupValue(int value)
             : ValuedExpression(value, Type::Group) {
         }
     };

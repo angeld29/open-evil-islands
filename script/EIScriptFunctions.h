@@ -1,8 +1,10 @@
 #ifndef EI_SCRIPT_FUNCTIONS
 #define EI_SCRIPT_FUNCTIONS
 
+#include <string>
 #include <boost/unordered_map.hpp>
 #include "EIScriptClassesBase.h"
+#include "function.hh"
 
 namespace cursedearth
 {
@@ -13,12 +15,13 @@ namespace cursedearth
         EIScriptFunctions();
         ~EIScriptFunctions();
         
-        void addFunction(EIScript::FunctionDeclaration* function);
         bool functionDefined(std::string* function_name);
-        EIScript::FunctionDeclaration* getFunction(std::string* function_name);
+        void dumpFunctions(std::ostream& str);
         
     protected:
-        boost::unordered_map<std::string, FunctionDeclaration*> functions;
+        boost::unordered_map<std::string, EIScript::FunctionDeclaration*> functions;
+        
+        void initFunctions();
     };
 
 }

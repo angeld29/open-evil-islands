@@ -176,7 +176,7 @@ actual_parameter : expression
 expression : FLOATNUMBER
           | CHARACTER_STRING
           | variable 
-          | assignment
+//          | assignment
           | function_call /* check for non-void return type?*/
           ;
 
