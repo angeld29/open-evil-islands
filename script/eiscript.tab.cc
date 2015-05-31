@@ -730,24 +730,33 @@ namespace EIScript {
   case 48:
 /* Line 670 of lalr1.cc  */
 #line 212 "eiscript.y"
-    { (yyval.expressionVal) = nullptr; }
+    { 
+                                                if(driver.script_context->functionDefined((yysemantic_stack_[(2) - (1)].identifierVal))){
+                                                    (yyval.expressionVal) = new FunctionCall((yysemantic_stack_[(2) - (1)].identifierVal), (yysemantic_stack_[(2) - (2)].expressionList), Type::None); /* WIP */ 
+                                                } else if (driver.script_context->scriptDefined((yysemantic_stack_[(2) - (1)].identifierVal))){
+                                                    (yyval.expressionVal) = new ScriptCall((yysemantic_stack_[(2) - (1)].identifierVal), (yysemantic_stack_[(2) - (2)].expressionList)); /* WIP */
+                                                } else {
+                                                    (yyval.expressionVal) = nullptr;
+                                                    std::cerr<<"Unknown function: "<<*(yysemantic_stack_[(2) - (1)].identifierVal)->name<<" was called"<<std::endl; /* WIP */
+                                                }
+                                            }
     break;
 
   case 49:
 /* Line 670 of lalr1.cc  */
-#line 215 "eiscript.y"
+#line 224 "eiscript.y"
     { (yyval.expressionVal) = new Assignment((yysemantic_stack_[(3) - (1)].identifierVal), (yysemantic_stack_[(3) - (3)].expressionVal)); }
     break;
 
   case 54:
 /* Line 670 of lalr1.cc  */
-#line 224 "eiscript.y"
+#line 233 "eiscript.y"
     { (yyval.identifierVal) = new Identifier((yysemantic_stack_[(1) - (1)].sVal)); }
     break;
 
 
 /* Line 670 of lalr1.cc  */
-#line 751 "eiscript.tab.cc"
+#line 760 "eiscript.tab.cc"
       default:
         break;
       }
@@ -1250,8 +1259,8 @@ namespace EIScript {
       80,    90,    91,    92,    95,   107,   122,   122,   140,   141,
      144,   147,   150,   151,   152,   155,   158,   159,   160,   163,
      164,   165,   168,   170,   173,   174,   175,   178,   181,   184,
-     185,   186,   189,   192,   193,   194,   195,   198,   212,   215,
-     218,   219,   220,   221,   224
+     185,   186,   189,   192,   193,   194,   195,   198,   212,   224,
+     227,   228,   229,   230,   233
   };
 
   // Print the state stack on the debug stream.
@@ -1342,9 +1351,9 @@ namespace EIScript {
 #line 4 "eiscript.y"
 } // EIScript
 /* Line 1141 of lalr1.cc  */
-#line 1346 "eiscript.tab.cc"
+#line 1355 "eiscript.tab.cc"
 /* Line 1142 of lalr1.cc  */
-#line 227 "eiscript.y"
+#line 236 "eiscript.y"
 
 
 // We have to implement the error function

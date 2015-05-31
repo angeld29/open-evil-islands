@@ -55,8 +55,8 @@
 %type  <varDeclarationVal> globalVarDef formal_parameter
 %type  <variableListVal> formal_params formal_parameter_list
 %type  <scriptDeclarationVal> script_declaration
-%type  <scriptBlock> script_block
 %type  <scriptBody> script_body
+%type  <scriptBlock> script_block
 %type  <expressionList> script_if_block if_conjunction script_then_block script_then_body params actual_parameter_list
 
 %%
@@ -209,7 +209,16 @@ variable : ident                            {
                                             }
          ;
 
-function_call : ident params                { $$ = nullptr; } /* NIY */ /* function or script */ /* validate? */
+function_call : ident params                { 
+                                                if(driver.script_context->functionDefined($1)){
+                                                    $$ = new FunctionCall($1, $2, Type::None); /* WIP */ 
+                                                } else if (driver.script_context->scriptDefined($1)){
+                                                    $$ = new ScriptCall($1, $2); /* WIP */
+                                                } else {
+                                                    $$ = nullptr;
+                                                    std::cerr<<"Unknown function: "<<*$1->name<<" was called"<<std::endl; /* WIP */
+                                                }
+                                            } /* WIP */ /* function or script */ /* validate? */
           ;
           
 assignment : ident '=' expression           { $$ = new Assignment($1, $3); }

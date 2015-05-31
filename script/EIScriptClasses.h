@@ -13,6 +13,49 @@ namespace EIScript
     typedef std::tuple<ExpressionList*, ExpressionList*> ScriptBlock;
     typedef std::vector<ScriptBlock*> ScriptBody;
 
+    /* -------------------------------------------------- */
+    inline std::ostream& operator<<(std::ostream& out, Expression& value)
+    {
+        value.log(out);
+        return out;
+    }
+
+    inline std::ostream& operator<<(std::ostream& out, ExpressionList& value)
+    {
+        for(auto ptr : value) {
+            if(ptr) {
+                out<<*ptr<<std::endl;
+            }
+        }
+        return out;
+    }
+
+    inline std::ostream& operator<<(std::ostream& out, ScriptBlock& value)
+    {
+        auto if_block = std::get<0>(value);
+        if(if_block) {
+            out<<"IF"<<std::endl;
+            out<<*if_block;
+        }
+        auto then_block = std::get<1>(value);
+        if(then_block) {
+            out<<"THEN"<<std::endl;
+            out<<*then_block;
+        }
+        return out;
+    }
+
+    inline std::ostream& operator<<(std::ostream& out, ScriptBody& value)
+    {
+        for(auto ptr : value) {
+            if(ptr) {
+                out<<*(dynamic_cast<ScriptBlock*>(ptr));
+            }
+        }
+        return out;
+    }
+    /* -------------------------------------------------- */
+
     class Assignment : public Expression
     {
     public:
@@ -23,6 +66,8 @@ namespace EIScript
         }
 
         virtual Expression* resolve(EIScriptContext* context);
+
+        virtual void log(std::ostream& out);
 
         ~Assignment() {
             //delete rhs;
@@ -81,6 +126,8 @@ namespace EIScript
 
         virtual Expression* resolve(EIScriptContext* context);
 
+        virtual void log(std::ostream& out) ;
+
     private:
         const Identifier* id;
     };
@@ -97,9 +144,13 @@ namespace EIScript
         std::string* getName() {
             return id->name;
         }
-        
-        VariableList* getArguments(){
+
+        VariableList* getArguments() {
             return arguments;
+        }
+
+        ScriptBody* getScriptBody() {
+            return body;
         }
 
         void setScriptBody(ScriptBody* body) {
@@ -141,6 +192,8 @@ namespace EIScript
 
         virtual Expression* resolve(EIScriptContext* context);
 
+        virtual void log(std::ostream& out) ;
+
         ~FunctionCall() {
             for(auto ptr : *arguments) {
                 delete ptr;
@@ -166,5 +219,9 @@ namespace EIScript
         }
 
         virtual Expression* resolve(EIScriptContext* context);
+
+        virtual void log(std::ostream& out);
+
     };
+
 }

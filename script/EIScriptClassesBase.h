@@ -49,6 +49,8 @@ namespace EIScript
         virtual Expression* resolve(EIScriptContext*) {
             return this;
         }
+        
+        virtual void log(std::ostream& out) = 0;
 
         virtual ~Expression() {};
     protected:
@@ -67,6 +69,11 @@ namespace EIScript
         virtual T getValue() {
             return value;
         }
+        
+        virtual void log(std::ostream& out) {
+            out<<value;
+        }
+        
         virtual ~ValuedExpression() {};
     protected:
         ValuedExpression(T value, Type type)

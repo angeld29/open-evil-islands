@@ -6,6 +6,8 @@
 #include "EIScriptParser.h"
 #include "EIScriptDriver.h"
 #include "EIScriptContext.h"
+#include "EIScriptClasses.h"
+
 
 int main(int argc, char* argv[])
 {
@@ -28,6 +30,7 @@ int main(int argc, char* argv[])
                 return 0;
             }
             driver.parse_stream(infile, argv[ai]);
+            std::cout<<std::endl<<*(script_context->getWorldscript()->getScriptBody())<<std::endl;
         }
     }
 
