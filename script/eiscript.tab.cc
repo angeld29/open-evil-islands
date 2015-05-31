@@ -472,26 +472,29 @@ namespace EIScript {
       {
           case 2:
 /* Line 670 of lalr1.cc  */
-#line 55 "eiscript.y"
+#line 64 "eiscript.y"
     { std::cout<<"Program accepted."; return 0; }
     break;
 
   case 5:
 /* Line 670 of lalr1.cc  */
-#line 62 "eiscript.y"
+#line 71 "eiscript.y"
     { driver.script_context->addScript((yysemantic_stack_[(1) - (1)].scriptDeclarationVal)); }
     break;
 
   case 6:
 /* Line 670 of lalr1.cc  */
-#line 63 "eiscript.y"
+#line 72 "eiscript.y"
     { driver.script_context->addScript((yysemantic_stack_[(2) - (2)].scriptDeclarationVal)); }
     break;
 
   case 10:
 /* Line 670 of lalr1.cc  */
-#line 71 "eiscript.y"
+#line 80 "eiscript.y"
     {
+                                                        ScriptDeclaration* worldscript = new ScriptDeclaration(new Identifier(new std::string("WorldScript")), nullptr); //yeek
+                                                        worldscript->setScriptBody(new ScriptBody{new ScriptBlock{nullptr, (yysemantic_stack_[(4) - (3)].expressionList)}});
+                                                        driver.script_context->setWorldscript(worldscript);
                                                         if(driver.trace_parsing) {
                                                             std::cout<<"Worldscript."<<std::endl;
                                                         } 
@@ -500,34 +503,34 @@ namespace EIScript {
 
   case 12:
 /* Line 670 of lalr1.cc  */
-#line 78 "eiscript.y"
-    { driver.script_context->addVariable((yysemantic_stack_[(1) - (1)].varDeclarationVal)); }
+#line 91 "eiscript.y"
+    { driver.script_context->addGlobalVariable((yysemantic_stack_[(1) - (1)].varDeclarationVal)); }
     break;
 
   case 13:
 /* Line 670 of lalr1.cc  */
-#line 79 "eiscript.y"
-    { driver.script_context->addVariable((yysemantic_stack_[(3) - (3)].varDeclarationVal)); }
+#line 92 "eiscript.y"
+    { driver.script_context->addGlobalVariable((yysemantic_stack_[(3) - (3)].varDeclarationVal)); }
     break;
 
   case 14:
 /* Line 670 of lalr1.cc  */
-#line 82 "eiscript.y"
+#line 95 "eiscript.y"
     { 
-                                    if(driver.script_context->variableDefined((yysemantic_stack_[(3) - (1)].identifierVal))) {
-                                        error(yylocation_stack_[0], std::string("Duplicate variable definition: ") + *((yysemantic_stack_[(3) - (1)].identifierVal)->name));
-                                        return 1;
-                                    }
-                                    (yyval.varDeclarationVal) = new VariableDeclaration((yysemantic_stack_[(3) - (3)].tVal), (yysemantic_stack_[(3) - (1)].identifierVal));
-                                    if(driver.trace_parsing){
-                                        std::cout<<"Declared global variable "<<*((yysemantic_stack_[(3) - (1)].identifierVal)->name)<<" of type "<<(yysemantic_stack_[(3) - (3)].tVal)<<std::endl;
-                                    }
-                                }
+                                                if(driver.script_context->variableDefined((yysemantic_stack_[(3) - (1)].identifierVal))) {
+                                                    error(yylocation_stack_[0], std::string("Duplicate variable definition: ") + *((yysemantic_stack_[(3) - (1)].identifierVal)->name));
+                                                    return 1;
+                                                }
+                                                (yyval.varDeclarationVal) = new VariableDeclaration((yysemantic_stack_[(3) - (3)].tVal), (yysemantic_stack_[(3) - (1)].identifierVal));
+                                                if(driver.trace_parsing){
+                                                    std::cout<<"Declared global variable "<<*((yysemantic_stack_[(3) - (1)].identifierVal)->name)<<" of type "<<(yysemantic_stack_[(3) - (3)].tVal)<<std::endl;
+                                                }
+                                            }
     break;
 
   case 15:
 /* Line 670 of lalr1.cc  */
-#line 94 "eiscript.y"
+#line 107 "eiscript.y"
     { 
                                                                 if(driver.script_context->scriptDefined((yysemantic_stack_[(3) - (2)].identifierVal))) {
                                                                     error(yylocation_stack_[0], std::string("Duplicate script definition: ") + *((yysemantic_stack_[(3) - (2)].identifierVal)->name));
@@ -545,81 +548,206 @@ namespace EIScript {
 
   case 16:
 /* Line 670 of lalr1.cc  */
-#line 109 "eiscript.y"
+#line 122 "eiscript.y"
     { 
                                                 ScriptDeclaration* scriptDeclaration = driver.script_context->getScript((yysemantic_stack_[(3) - (2)].identifierVal));
                                                 if(!scriptDeclaration) {
                                                     error(yylocation_stack_[0], std::string("Found implementation for an undefined script: ") + *((yysemantic_stack_[(3) - (2)].identifierVal)->name));
                                                     return 1;
                                                 }
-                                                driver.push_context(driver.script_context->extendedContext(scriptDeclaration->arguments));
+                                                driver.push_context(driver.script_context->extendedContext(scriptDeclaration->getArguments()));
                                             }
     break;
 
   case 17:
 /* Line 670 of lalr1.cc  */
-#line 117 "eiscript.y"
+#line 130 "eiscript.y"
     { 
                                                 driver.pop_context();
+                                                ScriptDeclaration* scriptDeclaration = driver.script_context->getScript((yysemantic_stack_[(6) - (2)].identifierVal));
+                                                scriptDeclaration->setScriptBody((yysemantic_stack_[(6) - (5)].scriptBody));
                                                 if(driver.trace_parsing) {
                                                     std::cout<<"Implemented script "<<*((yysemantic_stack_[(6) - (2)].identifierVal)->name)<<std::endl; 
                                                 }
                                             }
     break;
 
+  case 18:
+/* Line 670 of lalr1.cc  */
+#line 140 "eiscript.y"
+    { (yyval.scriptBody) = new ScriptBody{(yysemantic_stack_[(1) - (1)].scriptBlock)}; }
+    break;
+
+  case 19:
+/* Line 670 of lalr1.cc  */
+#line 141 "eiscript.y"
+    { (yyval.scriptBody) = (yysemantic_stack_[(2) - (1)].scriptBody); (yyval.scriptBody)->push_back((yysemantic_stack_[(2) - (2)].scriptBlock)); }
+    break;
+
+  case 20:
+/* Line 670 of lalr1.cc  */
+#line 144 "eiscript.y"
+    { (yyval.scriptBlock) = new ScriptBlock{(yysemantic_stack_[(2) - (1)].expressionList), (yysemantic_stack_[(2) - (2)].expressionList)}; }
+    break;
+
+  case 21:
+/* Line 670 of lalr1.cc  */
+#line 147 "eiscript.y"
+    { (yyval.expressionList) = (yysemantic_stack_[(4) - (3)].expressionList); }
+    break;
+
+  case 22:
+/* Line 670 of lalr1.cc  */
+#line 150 "eiscript.y"
+    { (yyval.expressionList) = new ExpressionList(); }
+    break;
+
+  case 23:
+/* Line 670 of lalr1.cc  */
+#line 151 "eiscript.y"
+    { (yyval.expressionList) = new ExpressionList{(yysemantic_stack_[(1) - (1)].expressionVal)}; }
+    break;
+
+  case 24:
+/* Line 670 of lalr1.cc  */
+#line 152 "eiscript.y"
+    { (yyval.expressionList) = (yysemantic_stack_[(2) - (1)].expressionList); (yyval.expressionList)->push_back((yysemantic_stack_[(2) - (2)].expressionVal)); }
+    break;
+
+  case 25:
+/* Line 670 of lalr1.cc  */
+#line 155 "eiscript.y"
+    { (yyval.expressionList) = (yysemantic_stack_[(4) - (3)].expressionList); }
+    break;
+
+  case 26:
+/* Line 670 of lalr1.cc  */
+#line 158 "eiscript.y"
+    { (yyval.expressionList) = new ExpressionList(); }
+    break;
+
+  case 27:
+/* Line 670 of lalr1.cc  */
+#line 159 "eiscript.y"
+    { (yyval.expressionList) = new ExpressionList{(yysemantic_stack_[(1) - (1)].expressionVal)}; }
+    break;
+
+  case 28:
+/* Line 670 of lalr1.cc  */
+#line 160 "eiscript.y"
+    { (yyval.expressionList) = (yysemantic_stack_[(2) - (1)].expressionList); (yyval.expressionList)->push_back((yysemantic_stack_[(2) - (2)].expressionVal)); }
+    break;
+
+  case 32:
+/* Line 670 of lalr1.cc  */
+#line 168 "eiscript.y"
+    { (yyval.expressionVal) = nullptr; }
+    break;
+
+  case 33:
+/* Line 670 of lalr1.cc  */
+#line 170 "eiscript.y"
+    { (yyval.variableListVal) = (yysemantic_stack_[(3) - (2)].variableListVal); }
+    break;
+
   case 34:
 /* Line 670 of lalr1.cc  */
-#line 154 "eiscript.y"
-    { (yyval.variableListVal) = (yysemantic_stack_[(3) - (2)].variableListVal); }
+#line 173 "eiscript.y"
+    { (yyval.variableListVal) = (yysemantic_stack_[(3) - (1)].variableListVal); (yyval.variableListVal)->push_back((yysemantic_stack_[(3) - (3)].varDeclarationVal)); }
     break;
 
   case 35:
 /* Line 670 of lalr1.cc  */
-#line 157 "eiscript.y"
-    { (yyval.variableListVal) = (yysemantic_stack_[(3) - (1)].variableListVal); (yyval.variableListVal)->push_back((yysemantic_stack_[(3) - (3)].varDeclarationVal)); }
+#line 174 "eiscript.y"
+    { (yyval.variableListVal) = new VariableList{(yysemantic_stack_[(1) - (1)].varDeclarationVal)}; }
     break;
 
   case 36:
 /* Line 670 of lalr1.cc  */
-#line 158 "eiscript.y"
-    { (yyval.variableListVal) = new VariableList{(yysemantic_stack_[(1) - (1)].varDeclarationVal)}; }
+#line 175 "eiscript.y"
+    { (yyval.variableListVal) = new VariableList(); }
     break;
 
   case 37:
 /* Line 670 of lalr1.cc  */
-#line 159 "eiscript.y"
-    { (yyval.variableListVal) = nullptr; }
+#line 178 "eiscript.y"
+    { (yyval.varDeclarationVal) = new VariableDeclaration((yysemantic_stack_[(3) - (3)].tVal), (yysemantic_stack_[(3) - (1)].identifierVal)); }
     break;
 
   case 38:
 /* Line 670 of lalr1.cc  */
-#line 162 "eiscript.y"
-    { (yyval.varDeclarationVal) = new VariableDeclaration((yysemantic_stack_[(3) - (3)].tVal), (yysemantic_stack_[(3) - (1)].identifierVal)); }
+#line 181 "eiscript.y"
+    { (yyval.expressionList) = (yysemantic_stack_[(3) - (2)].expressionList); }
+    break;
+
+  case 39:
+/* Line 670 of lalr1.cc  */
+#line 184 "eiscript.y"
+    { (yyval.expressionList) = (yysemantic_stack_[(3) - (1)].expressionList); (yyval.expressionList)->push_back((yysemantic_stack_[(3) - (3)].expressionVal)); }
+    break;
+
+  case 40:
+/* Line 670 of lalr1.cc  */
+#line 185 "eiscript.y"
+    { (yyval.expressionList) = new ExpressionList{(yysemantic_stack_[(1) - (1)].expressionVal)}; }
+    break;
+
+  case 41:
+/* Line 670 of lalr1.cc  */
+#line 186 "eiscript.y"
+    { (yyval.expressionList) = new ExpressionList(); }
+    break;
+
+  case 43:
+/* Line 670 of lalr1.cc  */
+#line 192 "eiscript.y"
+    { (yyval.expressionVal) = new FloatValue((yysemantic_stack_[(1) - (1)].fVal)); }
+    break;
+
+  case 44:
+/* Line 670 of lalr1.cc  */
+#line 193 "eiscript.y"
+    { (yyval.expressionVal) = new StringValue((yysemantic_stack_[(1) - (1)].sVal)); }
+    break;
+
+  case 47:
+/* Line 670 of lalr1.cc  */
+#line 198 "eiscript.y"
+    { 
+                                                VariableDeclaration* decl = driver.script_context->getVariable((yysemantic_stack_[(1) - (1)].identifierVal));
+                                                if(!decl) {
+                                                    error(yylocation_stack_[0], std::string("Variable ") + *((yysemantic_stack_[(1) - (1)].identifierVal)->name) + std::string(" is not defined."));
+                                                    if(driver.trace_parsing){
+                                                        driver.script_context->dumpVariables(std::cerr);
+                                                    }
+                                                    return 1;
+                                                } else {
+                                                    (yyval.expressionVal) = new VariableAccess((yysemantic_stack_[(1) - (1)].identifierVal), decl->type);
+                                                }
+                                            }
+    break;
+
+  case 48:
+/* Line 670 of lalr1.cc  */
+#line 212 "eiscript.y"
+    { (yyval.expressionVal) = nullptr; }
     break;
 
   case 49:
 /* Line 670 of lalr1.cc  */
-#line 183 "eiscript.y"
-    { 
-                        if(!driver.script_context->variableDefined((yysemantic_stack_[(1) - (1)].identifierVal))) {
-                            error(yylocation_stack_[0], std::string("Variable ") + *((yysemantic_stack_[(1) - (1)].identifierVal)->name) + std::string(" is not defined."));
-                            if(driver.trace_parsing){
-                                driver.script_context->dumpVariables(std::cerr);
-                            }
-                            return 1;
-                        }
-                    }
+#line 215 "eiscript.y"
+    { (yyval.expressionVal) = new Assignment((yysemantic_stack_[(3) - (1)].identifierVal), (yysemantic_stack_[(3) - (3)].expressionVal)); }
     break;
 
-  case 56:
+  case 54:
 /* Line 670 of lalr1.cc  */
-#line 206 "eiscript.y"
+#line 224 "eiscript.y"
     { (yyval.identifierVal) = new Identifier((yysemantic_stack_[(1) - (1)].sVal)); }
     break;
 
 
 /* Line 670 of lalr1.cc  */
-#line 623 "eiscript.tab.cc"
+#line 751 "eiscript.tab.cc"
       default:
         break;
       }
@@ -919,20 +1047,20 @@ namespace EIScript {
 
   /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
      STATE-NUM.  */
-  const signed char BisonParser::yypact_ninf_ = -81;
+  const signed char BisonParser::yypact_ninf_ = -75;
   const signed char
   BisonParser::yypact_[] =
   {
-        23,    -8,    37,     8,    26,   -81,    26,    15,   -81,   -81,
-      49,   -81,    29,    35,    26,     0,   -81,   -81,   -81,    26,
-      25,    26,   -81,    42,    48,   -81,   -81,   -81,   -81,   -81,
-     -81,   -81,   -81,    51,   -81,    34,   -81,    56,   -81,    26,
-      25,    33,    60,    18,   -81,   -81,   -81,   -13,   -81,   -81,
-      62,     9,   -81,    50,    26,   -81,   -81,   -81,   -81,    -2,
-      -2,   -81,    26,   -81,   -81,    64,   -81,    54,   -81,   -81,
-      57,   -81,   -81,   -81,   -81,   -81,   -13,   -81,    28,   -81,
-      65,    56,    26,   -81,    -2,   -81,   -81,    24,    66,   -81,
-     -81,    68,    56,    46,   -81
+        22,    17,    32,    38,    35,   -75,    35,    36,   -75,   -75,
+      29,   -75,    41,    39,    35,    21,   -75,   -75,   -75,    35,
+      26,    35,   -75,    43,    45,   -75,   -75,   -75,   -75,   -75,
+     -75,   -75,   -75,    34,   -75,    44,   -75,     3,   -75,    35,
+      26,    57,    48,     5,   -75,   -75,   -75,   -75,    -8,   -75,
+     -75,    49,     1,   -75,    60,    35,   -75,   -75,    30,    30,
+     -75,    35,   -75,   -75,    51,   -75,    50,   -75,   -75,    40,
+     -75,   -75,   -75,   -75,    53,   -75,    -7,   -75,    53,     3,
+      35,   -75,    30,   -75,   -75,    13,    55,   -75,   -75,    54,
+       3,    15,   -75
   };
 
   /* YYDEFACT[S] -- default reduction number in state S.  Performed when
@@ -941,25 +1069,26 @@ namespace EIScript {
   const unsigned char
   BisonParser::yydefact_[] =
   {
-         0,     0,     0,     4,    11,     1,     0,     7,     5,    56,
+         0,     0,     0,     4,    11,     1,     0,     7,     5,    54,
        0,    12,     0,     0,     0,     0,     6,     8,     3,     0,
-       0,    37,    15,     0,     0,     2,     9,    13,    52,    53,
-      54,    55,    14,     0,    36,     0,    16,    26,    34,     0,
-       0,     0,     0,     0,    29,    28,    27,     0,    35,    38,
-       0,     0,    18,     0,     0,    10,    32,    31,    30,    42,
-       0,    51,    22,    17,    19,     0,    20,     0,    44,    45,
-       0,    41,    43,    46,    47,    48,    49,    50,     0,    23,
-       0,    26,     0,    39,     0,    21,    24,     0,     0,    40,
-      25,     0,    26,     0,    33
+       0,    36,    15,     0,     0,     2,     9,    13,    50,    51,
+      52,    53,    14,     0,    35,     0,    16,    26,    33,     0,
+       0,     0,     0,     0,    27,    31,    29,    30,     0,    34,
+      37,     0,     0,    18,     0,     0,    10,    28,    41,     0,
+      48,    22,    17,    19,     0,    20,     0,    43,    44,     0,
+      40,    42,    45,    46,    47,    49,     0,    23,     0,    26,
+       0,    38,     0,    21,    24,     0,     0,    39,    25,     0,
+      26,     0,    32
   };
 
   /* YYPGOTO[NTERM-NUM].  */
   const signed char
   BisonParser::yypgoto_[] =
   {
-       -81,   -81,   -81,   -81,   -81,   -81,   -81,    67,    76,    72,
-     -81,   -81,    38,   -81,   -81,   -81,   -80,   -27,   -81,   -81,
-      52,   -81,   -81,     4,    30,   -81,   -36,   -40,    53,    -4
+       -75,   -75,   -75,   -75,   -75,   -75,   -75,    56,    67,    62,
+     -75,   -75,    27,   -75,   -75,   -75,   -74,   -42,   -75,   -75,
+     -75,    42,   -75,   -75,    -2,    23,   -75,   -55,   -75,    46,
+      -4
   };
 
   /* YYDEFGOTO[NTERM-NUM].  */
@@ -967,8 +1096,9 @@ namespace EIScript {
   BisonParser::yydefgoto_[] =
   {
         -1,     2,     3,     7,    15,    25,    10,    11,     8,    17,
-      41,    51,    52,    53,    78,    66,    43,    44,    22,    33,
-      34,    61,    70,    71,    72,    73,    45,    46,    32,    47
+      41,    52,    53,    54,    76,    65,    43,    44,    45,    22,
+      33,    34,    60,    69,    70,    71,    72,    46,    47,    32,
+      48
   };
 
   /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -978,32 +1108,30 @@ namespace EIScript {
   const unsigned char
   BisonParser::yytable_[] =
   {
-        12,    87,    13,    58,    59,    68,    69,    57,    60,     4,
-      23,    14,    93,     9,    24,    12,    56,    35,     6,    75,
-      75,    50,    79,    74,    74,     6,    14,    63,    28,    29,
-      30,    31,     1,     9,    42,    35,    55,     5,    86,     9,
-      42,     9,    90,     9,    75,    50,    85,    58,    74,    20,
-      67,    57,    21,    58,    40,    76,    76,    57,    80,    36,
-      56,     9,    42,    65,    94,    37,    56,    18,    19,    38,
-      39,     9,    42,    82,    80,    83,    84,    54,    88,    62,
-      76,    81,    59,    16,    91,    92,    27,    26,    89,    64,
-      77,    48,     0,    49
+        12,    57,    13,    73,    73,    85,    77,    51,     9,    58,
+      23,    83,    42,    59,    42,    12,    91,    35,     9,    62,
+       9,    84,    42,    56,    42,     1,    14,    73,     9,    24,
+       9,    88,     5,    92,     4,    35,    28,    29,    30,    31,
+       6,    14,     6,    57,    67,     9,    68,    18,    19,    57,
+       9,    66,    38,    39,    74,    74,    21,    78,    81,    82,
+      36,    20,    37,    51,    40,    55,    61,    64,    79,    80,
+      58,    90,    78,    89,    16,    27,    86,    26,    74,    63,
+      87,    49,    75,     0,     0,     0,    50
   };
 
   /* YYCHECK.  */
   const signed char
   BisonParser::yycheck_[] =
   {
-         4,    81,     6,    43,    17,     7,     8,    43,    21,    17,
-      14,    11,    92,    15,    14,    19,    43,    21,    10,    59,
-      60,    12,    62,    59,    60,    10,    11,    18,     3,     4,
-       5,     6,     9,    15,    16,    39,    18,     0,    78,    15,
-      16,    15,    18,    15,    84,    12,    18,    87,    84,    20,
-      54,    87,    17,    93,    20,    59,    60,    93,    62,    17,
-      87,    15,    16,    13,    18,    17,    93,    18,    19,    18,
-      19,    15,    16,    19,    78,    18,    19,    17,    82,    17,
-      84,    17,    17,     7,    18,    17,    19,    15,    84,    51,
-      60,    39,    -1,    40
+         4,    43,     6,    58,    59,    79,    61,     6,    15,    17,
+      14,    18,     9,    21,     9,    19,    90,    21,    15,    18,
+      15,    76,     9,    18,     9,     3,     5,    82,    15,     8,
+      15,    18,     0,    18,    17,    39,    10,    11,    12,    13,
+       4,     5,     4,    85,    14,    15,    16,    18,    19,    91,
+      15,    55,    18,    19,    58,    59,    17,    61,    18,    19,
+      17,    20,    17,     6,    20,    17,    17,     7,    17,    19,
+      17,    17,    76,    18,     7,    19,    80,    15,    82,    52,
+      82,    39,    59,    -1,    -1,    -1,    40
   };
 
   /* STOS_[STATE-NUM] -- The (internal number of the) accessing
@@ -1011,16 +1139,16 @@ namespace EIScript {
   const unsigned char
   BisonParser::yystos_[] =
   {
-         0,     9,    23,    24,    17,     0,    10,    25,    30,    15,
-      28,    29,    51,    51,    11,    26,    30,    31,    18,    19,
-      20,    17,    40,    51,    14,    27,    31,    29,     3,     4,
-       5,     6,    50,    41,    42,    51,    17,    17,    18,    19,
-      20,    32,    16,    38,    39,    48,    49,    51,    42,    50,
-      12,    33,    34,    35,    17,    18,    39,    48,    49,    17,
-      21,    43,    17,    18,    34,    13,    37,    51,     7,     8,
-      44,    45,    46,    47,    48,    49,    51,    46,    36,    49,
-      51,    17,    19,    18,    19,    18,    49,    38,    51,    45,
-      18,    18,    17,    38,    18
+         0,     3,    23,    24,    17,     0,     4,    25,    30,    15,
+      28,    29,    52,    52,     5,    26,    30,    31,    18,    19,
+      20,    17,    41,    52,     8,    27,    31,    29,    10,    11,
+      12,    13,    51,    42,    43,    52,    17,    17,    18,    19,
+      20,    32,     9,    38,    39,    40,    49,    50,    52,    43,
+      51,     6,    33,    34,    35,    17,    18,    39,    17,    21,
+      44,    17,    18,    34,     7,    37,    52,    14,    16,    45,
+      46,    47,    48,    49,    52,    47,    36,    49,    52,    17,
+      19,    18,    19,    18,    49,    38,    52,    46,    18,    18,
+      17,    38,    18
   };
 
 #if YYDEBUG
@@ -1041,10 +1169,10 @@ namespace EIScript {
   {
          0,    22,    23,    24,    25,    25,    25,    26,    26,    26,
       27,    28,    28,    28,    29,    30,    32,    31,    33,    33,
-      34,    35,    36,    36,    36,    37,    38,    38,    38,    38,
-      38,    38,    38,    39,    40,    41,    41,    41,    42,    43,
-      44,    44,    44,    45,    46,    46,    46,    46,    46,    47,
-      48,    49,    50,    50,    50,    50,    51
+      34,    35,    36,    36,    36,    37,    38,    38,    38,    39,
+      39,    39,    40,    41,    42,    42,    42,    43,    44,    45,
+      45,    45,    46,    47,    47,    47,    47,    48,    49,    50,
+      51,    51,    51,    51,    52
   };
 
   /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
@@ -1053,10 +1181,10 @@ namespace EIScript {
   {
          0,     2,     4,     4,     0,     1,     2,     0,     1,     2,
        4,     0,     1,     3,     3,     3,     0,     6,     1,     2,
-       2,     4,     0,     1,     2,     4,     0,     1,     1,     1,
-       2,     2,     2,     9,     3,     3,     1,     0,     3,     3,
-       3,     1,     0,     1,     1,     1,     1,     1,     1,     1,
-       3,     2,     1,     1,     1,     1,     1
+       2,     4,     0,     1,     2,     4,     0,     1,     2,     1,
+       1,     1,     9,     3,     3,     1,     0,     3,     3,     3,
+       1,     0,     1,     1,     1,     1,     1,     1,     2,     3,
+       1,     1,     1,     1,     1
   };
 
 
@@ -1065,17 +1193,17 @@ namespace EIScript {
   const char*
   const BisonParser::yytname_[] =
   {
-    "$end", "error", "$undefined", "FLOAT", "STRING", "OBJECT", "GROUP",
-  "FLOATNUMBER", "CHARACTER_STRING", "GLOBALVARS", "DECLARESCRIPT",
-  "SCRIPT", "IF", "THEN", "WORLDSCRIPT", "IDENTIFIER", "FOR", "'('", "')'",
-  "','", "':'", "'='", "$accept", "eiscript", "globalVars", "declarations",
+    "$end", "error", "$undefined", "GLOBALVARS", "DECLARESCRIPT", "SCRIPT",
+  "IF", "THEN", "WORLDSCRIPT", "FOR", "FLOAT", "STRING", "OBJECT", "GROUP",
+  "FLOATNUMBER", "IDENTIFIER", "CHARACTER_STRING", "'('", "')'", "','",
+  "':'", "'='", "$accept", "eiscript", "globalVars", "declarations",
   "scripts", "worldscript", "globalVarsDefs", "globalVarDef",
   "script_declaration", "script_implementation", "$@1", "script_body",
   "script_block", "script_if_block", "if_conjunction", "script_then_block",
-  "script_then_body", "for_block", "formal_params",
+  "script_then_body", "script_expression", "for_block", "formal_params",
   "formal_parameter_list", "formal_parameter", "params",
   "actual_parameter_list", "actual_parameter", "expression", "variable",
-  "assignment", "function_call", "type", "ident", YY_NULL
+  "function_call", "assignment", "type", "ident", YY_NULL
   };
 
 #if YYDEBUG
@@ -1083,22 +1211,22 @@ namespace EIScript {
   const BisonParser::rhs_number_type
   BisonParser::yyrhs_[] =
   {
-        23,     0,    -1,    24,    25,    26,    27,    -1,     9,    17,
+        23,     0,    -1,    24,    25,    26,    27,    -1,     3,    17,
       28,    18,    -1,    -1,    30,    -1,    25,    30,    -1,    -1,
-      31,    -1,    26,    31,    -1,    14,    17,    38,    18,    -1,
-      -1,    29,    -1,    28,    19,    29,    -1,    51,    20,    50,
-      -1,    10,    51,    40,    -1,    -1,    11,    51,    17,    32,
+      31,    -1,    26,    31,    -1,     8,    17,    38,    18,    -1,
+      -1,    29,    -1,    28,    19,    29,    -1,    52,    20,    51,
+      -1,     4,    52,    41,    -1,    -1,     5,    52,    17,    32,
       33,    18,    -1,    34,    -1,    33,    34,    -1,    35,    37,
-      -1,    12,    17,    36,    18,    -1,    -1,    49,    -1,    36,
-      49,    -1,    13,    17,    38,    18,    -1,    -1,    49,    -1,
-      48,    -1,    39,    -1,    38,    49,    -1,    38,    48,    -1,
-      38,    39,    -1,    16,    17,    51,    19,    51,    18,    17,
-      38,    18,    -1,    17,    41,    18,    -1,    41,    19,    42,
-      -1,    42,    -1,    -1,    51,    20,    50,    -1,    17,    44,
-      18,    -1,    44,    19,    45,    -1,    45,    -1,    -1,    46,
-      -1,     7,    -1,     8,    -1,    47,    -1,    48,    -1,    49,
-      -1,    51,    -1,    51,    21,    46,    -1,    51,    43,    -1,
-       3,    -1,     4,    -1,     5,    -1,     6,    -1,    15,    -1
+      -1,     6,    17,    36,    18,    -1,    -1,    49,    -1,    36,
+      49,    -1,     7,    17,    38,    18,    -1,    -1,    39,    -1,
+      38,    39,    -1,    49,    -1,    50,    -1,    40,    -1,     9,
+      17,    52,    19,    52,    18,    17,    38,    18,    -1,    17,
+      42,    18,    -1,    42,    19,    43,    -1,    43,    -1,    -1,
+      52,    20,    51,    -1,    17,    45,    18,    -1,    45,    19,
+      46,    -1,    46,    -1,    -1,    47,    -1,    14,    -1,    16,
+      -1,    48,    -1,    49,    -1,    52,    -1,    52,    44,    -1,
+      52,    21,    47,    -1,    10,    -1,    11,    -1,    12,    -1,
+      13,    -1,    15,    -1
   };
 
   /* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
@@ -1108,22 +1236,22 @@ namespace EIScript {
   {
          0,     0,     3,     8,    13,    14,    16,    19,    20,    22,
       25,    30,    31,    33,    37,    41,    45,    46,    53,    55,
-      58,    61,    66,    67,    69,    72,    77,    78,    80,    82,
-      84,    87,    90,    93,   103,   107,   111,   113,   114,   118,
-     122,   126,   128,   129,   131,   133,   135,   137,   139,   141,
-     143,   147,   150,   152,   154,   156,   158
+      58,    61,    66,    67,    69,    72,    77,    78,    80,    83,
+      85,    87,    89,    99,   103,   107,   109,   110,   114,   118,
+     122,   124,   125,   127,   129,   131,   133,   135,   137,   140,
+     144,   146,   148,   150,   152
   };
 
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
   const unsigned char
   BisonParser::yyrline_[] =
   {
-         0,    55,    55,    58,    61,    62,    63,    66,    67,    68,
-      71,    77,    78,    79,    82,    94,   109,   109,   125,   126,
-     129,   132,   135,   136,   137,   140,   143,   144,   145,   146,
-     147,   148,   149,   152,   154,   157,   158,   159,   162,   165,
-     168,   169,   170,   173,   176,   177,   178,   179,   180,   183,
-     194,   197,   200,   201,   202,   203,   206
+         0,    64,    64,    67,    70,    71,    72,    75,    76,    77,
+      80,    90,    91,    92,    95,   107,   122,   122,   140,   141,
+     144,   147,   150,   151,   152,   155,   158,   159,   160,   163,
+     164,   165,   168,   170,   173,   174,   175,   178,   181,   184,
+     185,   186,   189,   192,   193,   194,   195,   198,   212,   215,
+     218,   219,   220,   221,   224
   };
 
   // Print the state stack on the debug stream.
@@ -1199,8 +1327,8 @@ namespace EIScript {
   }
 
   const int BisonParser::yyeof_ = 0;
-  const int BisonParser::yylast_ = 93;
-  const int BisonParser::yynnts_ = 30;
+  const int BisonParser::yylast_ = 86;
+  const int BisonParser::yynnts_ = 31;
   const int BisonParser::yyempty_ = -2;
   const int BisonParser::yyfinal_ = 5;
   const int BisonParser::yyterror_ = 1;
@@ -1214,9 +1342,9 @@ namespace EIScript {
 #line 4 "eiscript.y"
 } // EIScript
 /* Line 1141 of lalr1.cc  */
-#line 1218 "eiscript.tab.cc"
+#line 1346 "eiscript.tab.cc"
 /* Line 1142 of lalr1.cc  */
-#line 209 "eiscript.y"
+#line 227 "eiscript.y"
 
 
 // We have to implement the error function

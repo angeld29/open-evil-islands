@@ -46,11 +46,12 @@
 }
 
 %token GLOBALVARS DECLARESCRIPT SCRIPT IF THEN WORLDSCRIPT FOR
-%token <tVal> FLOAT STRING OBJECT GROUP type
+%token <tVal> FLOAT STRING OBJECT GROUP
 %token <fVal> FLOATNUMBER
 %token <sVal> IDENTIFIER CHARACTER_STRING
+%type  <tVal> type
 %type  <identifierVal> ident
-%type  <expressionVal> script_expression actual_parameter expression assignment function_call 
+%type  <expressionVal> script_expression actual_parameter expression variable assignment function_call for_block
 %type  <varDeclarationVal> globalVarDef formal_parameter
 %type  <variableListVal> formal_params formal_parameter_list
 %type  <scriptDeclarationVal> script_declaration
@@ -77,17 +78,21 @@ scripts : /* empty */
           ;
 
 worldscript: WORLDSCRIPT '(' script_then_body ')'   {
+                                                        ScriptDeclaration* worldscript = new ScriptDeclaration(new Identifier(new std::string("WorldScript")), nullptr); //yeek
+                                                        worldscript->setScriptBody(new ScriptBody{new ScriptBlock{nullptr, $3}});
+                                                        driver.script_context->setWorldscript(worldscript);
                                                         if(driver.trace_parsing) {
                                                             std::cout<<"Worldscript."<<std::endl;
                                                         } 
                                                     }
+          ;
 
 globalVarsDefs : /* empty */ 
           | globalVarDef                    { driver.script_context->addGlobalVariable($1); }
           | globalVarsDefs ',' globalVarDef { driver.script_context->addGlobalVariable($3); }
           ;
 
- globalVarDef : ident ':' type              { 
+globalVarDef : ident ':' type               { 
                                                 if(driver.script_context->variableDefined($1)) {
                                                     error(yylocation_stack_[0], std::string("Duplicate variable definition: ") + *($1->name));
                                                     return 1;
@@ -120,11 +125,12 @@ script_implementation : SCRIPT ident '('    {
                                                     error(yylocation_stack_[0], std::string("Found implementation for an undefined script: ") + *($2->name));
                                                     return 1;
                                                 }
-                                                driver.push_context(driver.script_context->extendedContext(scriptDeclaration->arguments));
+                                                driver.push_context(driver.script_context->extendedContext(scriptDeclaration->getArguments()));
                                             } 
                          script_body ')'    { 
                                                 driver.pop_context();
-                                                scriptDeclaration->setScriptBody($5); //is this valid, or should I look it up again?
+                                                ScriptDeclaration* scriptDeclaration = driver.script_context->getScript($2);
+                                                scriptDeclaration->setScriptBody($5);
                                                 if(driver.trace_parsing) {
                                                     std::cout<<"Implemented script "<<*($2->name)<<std::endl; 
                                                 }
@@ -135,21 +141,21 @@ script_body : script_block                  { $$ = new ScriptBody{$1}; }
           | script_body script_block        { $$ = $1; $$->push_back($2); }
           ;
         
-script_block : script_if_block script_then_block { $$ = new ScriptBlock($1, $2); }
+script_block : script_if_block script_then_block { $$ = new ScriptBlock{$1, $2}; }
           ;
           
-script_if_block : IF '(' if_conjunction ')' { $$ = $3 }
+script_if_block : IF '(' if_conjunction ')' { $$ = $3; }
           ;
           
-if_conjunction : /* empty */
+if_conjunction : /* empty */                { $$ = new ExpressionList(); }
           | function_call                   { $$ = new ExpressionList{$1}; } /* check for float return type?*/ /* restrict to 0 or 1? */
-          | if_conjunction function_call    { $$ = new $1; $$->push_back($2); }
+          | if_conjunction function_call    { $$ = $1; $$->push_back($2); }
           ;
           
-script_then_block : THEN '(' script_then_body ')' { $$ = $3 }
+script_then_block : THEN '(' script_then_body ')' { $$ = $3; }
           ;
           
-script_then_body : /* empty */
+script_then_body : /* empty */              { $$ = new ExpressionList(); }
           | script_expression               { $$ = new ExpressionList{$1}; }
           | script_then_body script_expression { $$ = $1; $$->push_back($2); }
           ;
@@ -159,14 +165,14 @@ script_expression : function_call
           | for_block
           ;
 
-for_block : FOR '(' ident ',' ident ')' '(' script_then_body ')'
+for_block : FOR '(' ident ',' ident ')' '(' script_then_body ')' { $$ = nullptr; } /* NIY */
 
 formal_params : '(' formal_parameter_list ')' { $$ = $2; }
           ;
           
 formal_parameter_list : formal_parameter_list ',' formal_parameter { $$ = $1; $$->push_back($3); }
           | formal_parameter                { $$ = new VariableList{$1}; }
-          | /* empty */                     { $$ = nullptr; }
+          | /* empty */                     { $$ = new VariableList(); }
           ;
 
 formal_parameter : ident ':' type           { $$ = new VariableDeclaration($3, $1); }
@@ -177,34 +183,37 @@ params : '(' actual_parameter_list ')'      { $$ = $2; }
           
 actual_parameter_list : actual_parameter_list ',' actual_parameter { $$ = $1; $$->push_back($3); }
           | actual_parameter                { $$ = new ExpressionList{$1}; }
-          | /* empty */
+          | /* empty */                     { $$ = new ExpressionList(); }
           ;
 
 actual_parameter : expression
           ;
           
+expression : FLOATNUMBER                    { $$ = new FloatValue($1); }
+          | CHARACTER_STRING                { $$ = new StringValue($1); }
+          | variable                        
+          | function_call /* check for non-void return type?*/
+          ;
+
 variable : ident                            { 
-                                                if(!driver.script_context->variableDefined($1)) {
+                                                VariableDeclaration* decl = driver.script_context->getVariable($1);
+                                                if(!decl) {
                                                     error(yylocation_stack_[0], std::string("Variable ") + *($1->name) + std::string(" is not defined."));
                                                     if(driver.trace_parsing){
                                                         driver.script_context->dumpVariables(std::cerr);
                                                     }
                                                     return 1;
+                                                } else {
+                                                    $$ = new VariableAccess($1, decl->type);
                                                 }
                                             }
          ;
 
-assignment : ident '=' expression           { $$ = new Assignment($1, $3); }
+function_call : ident params                { $$ = nullptr; } /* NIY */ /* function or script */ /* validate? */
           ;
           
-expression : FLOATNUMBER                    { $$ = new FloatValue($1); }
-          | CHARACTER_STRING                { $$ = new StringValue($1); }
-          | variable 
-          | function_call /* check for non-void return type?*/
-          ;
-
-function_call : ident params /* function or script */ /* validate? */
-          ;
+assignment : ident '=' expression           { $$ = new Assignment($1, $3); }
+          ;          
           
 type : FLOAT
           | STRING

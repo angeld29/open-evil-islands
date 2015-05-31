@@ -10,14 +10,12 @@
 
 namespace EIScript
 {
-    typedef tuple<ExpressionList*, ExpressionList*> ScriptBlock;
+    typedef std::tuple<ExpressionList*, ExpressionList*> ScriptBlock;
     typedef std::vector<ScriptBlock*> ScriptBody;
 
     class Assignment : public Expression
     {
     public:
-        Identifier* lhs;
-        Expression* rhs;
         Assignment(Identifier* lhs, Expression* rhs)
             : Expression(Type::None)
             , lhs(lhs)
@@ -29,6 +27,9 @@ namespace EIScript
         ~Assignment() {
             //delete rhs;
         }
+    private:
+        Identifier* lhs;
+        Expression* rhs;
     };
 
     class VariableDeclaration
@@ -39,6 +40,10 @@ namespace EIScript
         VariableDeclaration(Type type, Identifier* id)
             : type(type)
             , id(id) {
+        }
+
+        std::string* getName() {
+            return id->name;
         }
 
         Expression* getValue() {
@@ -59,34 +64,42 @@ namespace EIScript
         ~VariableDeclaration() {
             delete id; //?
         }
-    protected:
+    private:
         Identifier* id;
         Expression* value;
         position* defined_at;
     };
 
-    class BaseSubRoutine
+    class VariableAccess : public Expression
     {
     public:
-        const Identifier* id;
-        VariableList* arguments;
 
-        BaseSubRoutine(const Identifier* id, VariableList* arguments)
+        VariableAccess(const Identifier* id, const Type type)
+            : Expression(type)
+            , id(id) {
+        }
+
+        virtual Expression* resolve(EIScriptContext* context);
+
+    private:
+        const Identifier* id;
+    };
+
+    class ScriptDeclaration
+    {
+    public:
+
+        ScriptDeclaration(const Identifier* id, VariableList* arguments)
             : id(id)
             , arguments(arguments) {
         }
 
-        virtual ~BaseSubRoutine() {
-            delete id; //?
-            delete arguments;
+        std::string* getName() {
+            return id->name;
         }
-    };
-
-    class ScriptDeclaration : public BaseSubRoutine
-    {
-    public:
-        ScriptDeclaration(const Identifier* id, VariableList* arguments)
-            : BaseSubRoutine(id, arguments) {
+        
+        VariableList* getArguments(){
+            return arguments;
         }
 
         void setScriptBody(ScriptBody* body) {
@@ -97,32 +110,61 @@ namespace EIScript
 //            body.push_back(block);
 //        }
 
-    protected:
+        virtual ~ScriptDeclaration() {
+            delete id; //?
+            for(auto ptr : *arguments) {
+                delete ptr;
+            }
+            delete arguments;
+        }
+
+    private:
+        const Identifier* id;
+        VariableList* arguments;
         ScriptBody* body;
     };
 
     class FunctionCall : public Expression
     {
     public:
-        const std::string* functionName;
-        ExpressionList* arguments;
 
-        FunctionCall(const std::string* functionName, ExpressionList* arguments, const Type type)
+        FunctionCall(const Identifier* functionName, ExpressionList* arguments, const Type type)
             : Expression(type)
-            , func(func)
+            , functionName(functionName)
             , arguments(arguments) {
         }
 
-        FunctionCall(const FunctionDeclaration* func)
-            : Expression(const Type type)
-            , func(func) {
+        FunctionCall(const Identifier* functionName, const Type type)
+            : Expression(type)
+            , functionName(functionName) {
         }
 
         virtual Expression* resolve(EIScriptContext* context);
 
         ~FunctionCall() {
+            for(auto ptr : *arguments) {
+                delete ptr;
+            }
             delete arguments;
         }
+
     protected:
+        const Identifier* functionName;
+        ExpressionList* arguments;
+    };
+
+    class ScriptCall : public FunctionCall
+    {
+    public:
+
+        ScriptCall(const Identifier* functionName, ExpressionList* arguments)
+            : FunctionCall(functionName, arguments, Type::None) {
+        }
+
+        ScriptCall(const Identifier* functionName)
+            : FunctionCall(functionName, Type::None) {
+        }
+
+        virtual Expression* resolve(EIScriptContext* context);
     };
 }

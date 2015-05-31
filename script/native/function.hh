@@ -11,8 +11,8 @@ namespace EIScript
 {
 
     struct parametersPack {
-        Expression*&    _return;
-        std::vector<Expression*>    _arguments;
+        Expression*& _return;
+        std::vector<Expression*> _arguments;
     };
 
     namespace Function
@@ -23,15 +23,17 @@ namespace EIScript
 
         public:
             std::string name;
-            
+            const EIScript::Type type;
+
             virtual void call(EIScript::parametersPack& pack) = 0;
             virtual void operator()(EIScript::parametersPack& pack) {
                 call(pack);
             }
 
         public:
-            AbstractFunction(const std::string& name):
-                name(name) {}
+            AbstractFunction(const std::string& name, const EIScript::Type type)
+                : name(name)
+                , type(type) {}
             virtual ~AbstractFunction() {}
 
         };
@@ -51,8 +53,10 @@ namespace EIScript
                 pack._return = Unpacker::applyFunction(pack._arguments, fn);
             }
             Function(const std::string& name,
+                     const EIScript::Type type,
                      Return(*_fn)(Arguments...))
-                : AbstractFunction(name), fn(_fn) {}
+                : AbstractFunction(name, type)
+                , fn(_fn) {}
         };
 
         template <typename Return, typename... Arguments>
@@ -70,8 +74,10 @@ namespace EIScript
                 pack._return = Unpacker::applyFunction(pack._arguments, fn);
             }
             Function(const std::string& name,
+                     const EIScript::Type type,
                      Return* (*_fn)(Arguments...))
-                : AbstractFunction(name), fn(_fn) {}
+                : AbstractFunction(name, type)
+                , fn(_fn) {}
         };
 
         template <typename... Arguments>
@@ -88,14 +94,16 @@ namespace EIScript
                 Unpacker::applyFunction(pack._arguments, fn);
             }
             Function(const std::string& name,
+                     const EIScript::Type type,
                      void (*_fn)(Arguments...))
-                : AbstractFunction(name), fn(_fn) {}
+                : AbstractFunction(name, type)
+                , fn(_fn) {}
         };
 
         template<typename Return, typename... Arguments>
-        AbstractFunction loadFunction(const std::string& name, Return(*m)(Arguments...))
+        AbstractFunction* loadFunction(const std::string& name, const EIScript::Type type, Return(*m)(Arguments...))
         {
-            return new Function<Return, Arguments...>(name, m);
+            return new Function<Return, Arguments...>(name, type, m);
         }
 
     };

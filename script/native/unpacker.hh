@@ -5,6 +5,7 @@
 #include <string>
 
 #include "EIScriptClassesBase.h"
+#include "helper.hh"
 #include "exception.hh"
 
 namespace EIScript
@@ -20,7 +21,7 @@ namespace EIScript
                 ValuedExpression<arg>* _l =
                     dynamic_cast< ValuedExpression<arg>* >(l);
                 if(!_l) {
-                   throw EIScript::Exception::InvalidParameter(Helper::getTypeName<arg>(), l->getName());
+                   throw EIScript::Exception::InvalidParameter(Helper::getTypeName<arg>(), ""); //l->getName());
                 }
                 return (_l->getValue());
             }
@@ -32,7 +33,7 @@ namespace EIScript
                 ValuedExpression<arg>* _l =
                     dynamic_cast< ValuedExpression<arg>* >(l);
                 if(!_l)
-                    throw EIScript::Exception::InvalidParameter(Helper::getTypeName<arg&>(), l->getName());
+                    throw EIScript::Exception::InvalidParameter(Helper::getTypeName<arg&>(), ""); //l->getName());
                 return (_l->getValue());
             }
         };

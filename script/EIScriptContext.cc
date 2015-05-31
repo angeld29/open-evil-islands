@@ -1,4 +1,5 @@
 #include "EIScriptContext.h"
+#include "EIScriptClasses.h"
 
 namespace EIScript
 {
@@ -25,7 +26,7 @@ namespace EIScript
     void EIScriptContext::addScript(ScriptDeclaration* script)
     {
         if(parent == nullptr) {
-            scripts.insert(std::make_pair(*script->id->name, script));
+            scripts.insert(std::make_pair(*script->getName(), script));
         } else {
             throw EIScript::Exception::InvalidAction("cannot add script", "non-root script context");
         }
@@ -33,12 +34,12 @@ namespace EIScript
 
     void EIScriptContext::addGlobalVariable(VariableDeclaration* variable)
     {
-        globals.insert(std::make_pair(*variable->id->name, variable));
+        globals.insert(std::make_pair(*variable->getName(), variable));
     }
 
     void EIScriptContext::addLocalVariable(VariableDeclaration* variable)
     {
-        locals.insert(std::make_pair(*variable->id->name, variable));
+        locals.insert(std::make_pair(*variable->getName(), variable));
     }
 
 
@@ -71,6 +72,11 @@ namespace EIScript
         }
     }
 
+    Type EIScriptContext::getFunctionType(Identifier* ident)
+    {
+        return ai_director->getFunctionType(ident->name);
+    }
+
     ScriptDeclaration* EIScriptContext::getScript(Identifier* ident)
     {
         if(parent == nullptr) {
@@ -80,7 +86,7 @@ namespace EIScript
         }
     }
 
-    VariableDeclaration* EIScriptContext::getVariable(Identifier* ident)
+    VariableDeclaration* EIScriptContext::getVariable(const Identifier* ident)
     {
         VariableDeclaration* local = locals[*ident->name];
         if(!local) {
@@ -102,6 +108,11 @@ namespace EIScript
     Expression* EIScriptContext::call(std::string* function_name, ExpressionList* arguments)
     {
         return ai_director->call(function_name, arguments);
+    }
+
+    void EIScriptContext::callScript(std::string* function_name, ExpressionList* arguments)
+    {
+        std::cout<<"Called script "<<*function_name<<std::endl;
     }
 
     void EIScriptContext::dumpFunctions(std::ostream& str)

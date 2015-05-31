@@ -26,6 +26,10 @@ namespace cursedearth
         inline bool functionDefined(std::string* function_name) {
             return functions_impl->functionDefined(function_name);
         }
+        
+        inline EIScript::Type getFunctionType(std::string* function_name){
+            return functions_impl->getFunctionType(function_name);
+        }
 
         inline void dumpFunctions(std::ostream& str) {
             functions_impl->dumpFunctions(str);

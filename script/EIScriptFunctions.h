@@ -11,16 +11,18 @@ namespace cursedearth
 
     class EIScriptFunctions
     {
+        typedef typename EIScript::Function::AbstractFunction func;
     public:
         EIScriptFunctions();
         ~EIScriptFunctions();
-        
+
         bool functionDefined(std::string* function_name);
+        EIScript::Type getFunctionType(std::string* function_name);
         void dumpFunctions(std::ostream& str);
-        
+
     protected:
-        boost::unordered_map<std::string, EIScript::FunctionDeclaration*> functions;
-        
+        boost::unordered_map<std::string, func*> functions;
+
         void initFunctions();
     };
 

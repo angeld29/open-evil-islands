@@ -21,8 +21,8 @@ namespace EIScript
         }
 
         EIScriptContext(EIScriptContext* parent)
-            : EIScriptContext(parent->ai_director)
-            , parent(parent) {
+            : parent(parent)
+            , ai_director(parent->ai_director) {
         }
 
         EIScriptContext* getParentContext();
@@ -38,10 +38,12 @@ namespace EIScript
         bool scriptDefined(Identifier* ident);
         bool variableDefined(Identifier* ident);
 
+        Type getFunctionType(Identifier* ident); 
         ScriptDeclaration* getScript(Identifier* ident);
-        VariableDeclaration* getVariable(Identifier* ident);
+        VariableDeclaration* getVariable(const Identifier* ident);
 
         Expression* call(std::string* function_name, ExpressionList* arguments);
+        void callScript(std::string* function_name, ExpressionList* arguments);
 
         void setWorldscript(ScriptDeclaration* worldscript) {
             this->worldscript = worldscript;

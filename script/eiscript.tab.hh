@@ -82,16 +82,20 @@ namespace EIScript {
 #line 34 "eiscript.y"
 
     Type tVal;
-    float fVal;
+    double fVal;
     std::string* sVal;
     Identifier* identifierVal;
+    Expression* expressionVal;
     VariableDeclaration* varDeclarationVal;
     VariableList* variableListVal;   
     ScriptDeclaration* scriptDeclarationVal;
+    ScriptBlock* scriptBlock;
+    ScriptBody* scriptBody;
+    ExpressionList* expressionList;
 
 
 /* Line 33 of lalr1.cc  */
-#line 95 "eiscript.tab.hh"
+#line 99 "eiscript.tab.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -103,20 +107,20 @@ namespace EIScript {
     {
       /* Tokens.  */
    enum yytokentype {
-     FLOAT = 258,
-     STRING = 259,
-     OBJECT = 260,
-     GROUP = 261,
-     FLOATNUMBER = 262,
-     CHARACTER_STRING = 263,
-     GLOBALVARS = 264,
-     DECLARESCRIPT = 265,
-     SCRIPT = 266,
-     IF = 267,
-     THEN = 268,
-     WORLDSCRIPT = 269,
+     GLOBALVARS = 258,
+     DECLARESCRIPT = 259,
+     SCRIPT = 260,
+     IF = 261,
+     THEN = 262,
+     WORLDSCRIPT = 263,
+     FOR = 264,
+     FLOAT = 265,
+     STRING = 266,
+     OBJECT = 267,
+     GROUP = 268,
+     FLOATNUMBER = 269,
      IDENTIFIER = 270,
-     FOR = 271
+     CHARACTER_STRING = 271
    };
 
     };
@@ -295,7 +299,7 @@ namespace EIScript {
 #line 4 "eiscript.y"
 } // EIScript
 /* Line 33 of lalr1.cc  */
-#line 299 "eiscript.tab.hh"
+#line 303 "eiscript.tab.hh"
 
 
 

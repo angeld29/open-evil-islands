@@ -45,11 +45,11 @@ namespace EIScript
         Type getType() {
             return type;
         }
-        
-        virtual Expression* resolve(EIScriptContext* context){
+
+        virtual Expression* resolve(EIScriptContext*) {
             return this;
         }
-        
+
         virtual ~Expression() {};
     protected:
         const Type type;
@@ -64,7 +64,7 @@ namespace EIScript
 
     public:
         T value;
-        virtual T {
+        virtual T getValue() {
             return value;
         }
         virtual ~ValuedExpression() {};
