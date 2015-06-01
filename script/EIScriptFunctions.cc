@@ -1,10 +1,49 @@
 #include "EIScriptFunctions.h"
 #include "exception.hh"
 
-namespace cursedearth
+namespace EIScript
 {
 
-    EIScriptFunctions::EIScriptFunctions()
+    namespace EIStdlib
+    {
+        double Add(double x, double y)
+        {
+            return x + y;
+        }
+
+        double Sub(double x, double y)
+        {
+            return x - y;
+        }
+
+        double Mul(double x, double y)
+        {
+            return x * y;
+        }
+
+        double Div(double x, double y)
+        {
+            return x / y;
+        }
+
+        double IsEqual(double x, double y)
+        {
+            return x == y ? 1 : 0; //TODO epsilon-based comparison needed?
+        }
+
+        double IsGreater(double x, double y)
+        {
+            return x > y ? 1 : 0;
+        }
+
+        double IsLess(double x, double y)
+        {
+            return x < y ? 1 : 0;
+        }
+    }
+
+    EIScriptFunctions::EIScriptFunctions(cursedearth::AIDirector<>* ai_director)
+        : cursedearth::EIScriptFunctionsBase(ai_director)
     {
         initFunctions();
     }
@@ -13,6 +52,12 @@ namespace cursedearth
     {
     }
 
+    EIScript::Expression* EIScriptFunctions::call(std::string* function_name, ExpressionList* arguments)
+    {
+        return nullptr;
+    }
+
+
     bool EIScriptFunctions::functionDefined(std::string* function_name)
     {
         return functions.find(*function_name) != functions.end();
@@ -20,7 +65,7 @@ namespace cursedearth
 
     EIScript::Type EIScriptFunctions::getFunctionType(std::string* function_name)
     {
-        func* f = functions[*function_name];
+        FunctionType* f = functions[*function_name];
         if(!f) {
             throw EIScript::Exception::InvalidAction("Function " + *function_name + " is not defined", "EIScriptFunctions");
         } else {
@@ -38,7 +83,16 @@ namespace cursedearth
 
     void EIScriptFunctions::initFunctions()
     {
-        //functions[""]
+        using namespace EIStdlib;
+#define REGISTER_BY_NAME(name, type) functions[#name] = Function::loadFunction(#name, type, name)
+        REGISTER_BY_NAME(Add, Type::Float);
+        REGISTER_BY_NAME(Sub, Type::Float);
+        REGISTER_BY_NAME(Mul, Type::Float);
+        REGISTER_BY_NAME(Div, Type::Float);
+        REGISTER_BY_NAME(IsEqual, Type::Float);
+        REGISTER_BY_NAME(IsGreater, Type::Float);
+        REGISTER_BY_NAME(IsLess, Type::Float);
+#undef REGISTER_BY_NAME
     }
 
 }

@@ -50,7 +50,7 @@ namespace EIScript
                 else
                     throw EIScript::Exception::TooManyParameters(Helper::getTypeName<Return(*)(Arguments...)>(), this->name);
 
-                pack._return = Unpacker::applyFunction(pack._arguments, fn);
+                pack._return = Helper::wrapper<Return>::wrap(Unpacker::applyFunction(pack._arguments, fn), type);
             }
             Function(const std::string& name,
                      const EIScript::Type type,
@@ -71,7 +71,7 @@ namespace EIScript
                 else
                     throw EIScript::Exception::TooManyParameters(Helper::getTypeName<Return(*)(Arguments...)>(), this->name);
 
-                pack._return = Unpacker::applyFunction(pack._arguments, fn);
+                pack._return = Helper::wrapper<Return*>::wrap(Unpacker::applyFunction(pack._arguments, fn), type);
             }
             Function(const std::string& name,
                      const EIScript::Type type,

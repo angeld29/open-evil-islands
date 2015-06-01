@@ -2,25 +2,26 @@
 #define AI_DIRECTOR
 
 #include <string>
-#include "EIScriptFunctions.h"
 #include "EIScriptClassesBase.h"
+#include "EIScriptFunctionsBase.h"
+#include "EIScriptFunctions.h"
 
 namespace cursedearth
 {
 
-    template<class ScriptFunctions = EIScriptFunctions>
+    template<class ScriptFunctions> // = typename EIScript::EIScriptFunctions>
     class AIDirector
     {
     public:
         AIDirector() {
-            functions_impl = new ScriptFunctions();
+            functions_impl = new ScriptFunctions(this);
         }
         ~AIDirector() {
             delete functions_impl;
         }
 
         inline EIScript::Expression* call(std::string* function_name, EIScript::ExpressionList* arguments) {
-            return nullptr;
+            return functions_impl->call(function_name, arguments);
         }
         
         inline bool functionDefined(std::string* function_name) {
@@ -36,7 +37,7 @@ namespace cursedearth
         }
 
     protected:
-        ScriptFunctions* functions_impl;
+        EIScriptFunctionsBase* functions_impl;
     };
 
 }

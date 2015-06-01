@@ -11,7 +11,6 @@ namespace EIScript
     class Expression;
     class VariableDeclaration;
     class ScriptDeclaration;
-    class FunctionDeclaration;
     class EIScriptContext;
 
     typedef std::vector<Expression*> ExpressionList;

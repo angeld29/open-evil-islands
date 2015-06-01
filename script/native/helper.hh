@@ -2,6 +2,9 @@
 #define HELPER_H__
 
 #include <type_traits>
+#include <string>
+
+#include "EIScriptClassesBase.h"
 
 namespace EIScript
 {
@@ -69,6 +72,41 @@ namespace EIScript
                         + (std::is_integral<type>::value == true)
                         + (std::is_same<type, std::string>::value == false)
                        );
+            }
+        };
+
+        template<typename T>
+        struct wrapper {
+            static Expression* wrap(T, Type) {
+                throw Exception::InvalidAction("cannot wrap type" + getTypeName<T>(), "EIScript::Helper");
+            }
+        };
+
+        template<>
+        struct wrapper<double> {
+            static Expression* wrap(double value, Type) {
+                return new FloatValue(value);
+            }
+        };
+
+        template<>
+        struct wrapper<std::string*> {
+            static Expression* wrap(std::string* value, Type) {
+                return new StringValue(value);
+            }
+        };
+
+        template<>
+        struct wrapper<int> {
+            static Expression* wrap(int value, Type type) {
+                switch(type) {
+                case Type::Group:
+                    return new GroupValue(value);
+                case Type::Object:
+                    return new ObjectValue(value);
+                default:
+                    throw Exception::InvalidAction("cannot cast returned int to type" + typeToString(type), "EIScript::Helper");
+                }
             }
         };
 

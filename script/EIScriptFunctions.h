@@ -4,24 +4,28 @@
 #include <string>
 #include <boost/unordered_map.hpp>
 #include "EIScriptClassesBase.h"
+#include "EIScriptFunctionsBase.h"
 #include "function.hh"
 
-namespace cursedearth
+namespace EIScript
 {
 
-    class EIScriptFunctions
+    class EIScriptFunctions : public cursedearth::EIScriptFunctionsBase
     {
-        typedef typename EIScript::Function::AbstractFunction func;
+        typedef typename Function::AbstractFunction FunctionType;
     public:
-        EIScriptFunctions();
+        EIScriptFunctions(cursedearth::AIDirector<>* ai_director);
+            
         ~EIScriptFunctions();
 
-        bool functionDefined(std::string* function_name);
-        EIScript::Type getFunctionType(std::string* function_name);
-        void dumpFunctions(std::ostream& str);
+        virtual Expression* call(std::string* function_name, ExpressionList* arguments);
+        
+        virtual bool functionDefined(std::string* function_name);
+        virtual Type getFunctionType(std::string* function_name);
+        virtual void dumpFunctions(std::ostream& str);
 
     protected:
-        boost::unordered_map<std::string, func*> functions;
+        boost::unordered_map<std::string, FunctionType*> functions;
 
         void initFunctions();
     };

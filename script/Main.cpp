@@ -6,7 +6,6 @@
 #include "EIScriptParser.h"
 #include "EIScriptDriver.h"
 #include "EIScriptContext.h"
-#include "EIScriptClasses.h"
 
 
 int main(int argc, char* argv[])

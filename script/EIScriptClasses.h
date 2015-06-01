@@ -33,13 +33,13 @@ namespace EIScript
     inline std::ostream& operator<<(std::ostream& out, ScriptBlock& value)
     {
         auto if_block = std::get<0>(value);
+        out<<"IF"<<std::endl;
         if(if_block) {
-            out<<"IF"<<std::endl;
             out<<*if_block;
         }
         auto then_block = std::get<1>(value);
+        out<<"THEN"<<std::endl;
         if(then_block) {
-            out<<"THEN"<<std::endl;
             out<<*then_block;
         }
         return out;
@@ -49,7 +49,7 @@ namespace EIScript
     {
         for(auto ptr : value) {
             if(ptr) {
-                out<<*(dynamic_cast<ScriptBlock*>(ptr));
+                out<<*ptr;
             }
         }
         return out;
