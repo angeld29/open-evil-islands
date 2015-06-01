@@ -42,8 +42,8 @@ namespace EIScript
         ScriptDeclaration* getScript(Identifier* ident);
         VariableDeclaration* getVariable(const Identifier* ident);
 
-        Expression* call(std::string* function_name, ExpressionList* arguments);
-        void callScript(std::string* function_name, ExpressionList* arguments);
+        Expression* callFunction(std::string* function_name, ExpressionList* arguments);
+        void callScript(Identifier* function_name, ExpressionList* arguments);
 
 
         ScriptDeclaration* getWorldscript() {

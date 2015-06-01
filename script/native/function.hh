@@ -11,8 +11,11 @@ namespace EIScript
 {
 
     struct parametersPack {
-        Expression*& _return;
-        std::vector<Expression*> _arguments;
+        Expression* _return;
+        std::vector<Expression*>& _arguments;
+
+        parametersPack(std::vector<Expression*>& _arguments)
+            : _arguments(_arguments) {}
     };
 
     namespace Function
@@ -47,7 +50,7 @@ namespace EIScript
             virtual void call(EIScript::parametersPack& pack) {
                 if(pack._arguments.size() < sizeof...(Arguments))
                     throw EIScript::Exception::MissingParameters(Helper::getTypeName<Return(*)(Arguments...)>(), this->name);
-                else
+                else if (pack._arguments.size() > sizeof...(Arguments))
                     throw EIScript::Exception::TooManyParameters(Helper::getTypeName<Return(*)(Arguments...)>(), this->name);
 
                 pack._return = Helper::wrapper<Return>::wrap(Unpacker::applyFunction(pack._arguments, fn), type);
@@ -68,7 +71,7 @@ namespace EIScript
             virtual void call(EIScript::parametersPack& pack) {
                 if(pack._arguments.size() < sizeof...(Arguments))
                     throw EIScript::Exception::MissingParameters(Helper::getTypeName<Return(*)(Arguments...)>(), this->name);
-                else
+                else if (pack._arguments.size() > sizeof...(Arguments))
                     throw EIScript::Exception::TooManyParameters(Helper::getTypeName<Return(*)(Arguments...)>(), this->name);
 
                 pack._return = Helper::wrapper<Return*>::wrap(Unpacker::applyFunction(pack._arguments, fn), type);
@@ -89,7 +92,7 @@ namespace EIScript
             virtual void call(EIScript::parametersPack& pack) {
                 if(pack._arguments.size() < sizeof...(Arguments))
                     throw EIScript::Exception::MissingParameters(Helper::getTypeName<void (*)(Arguments...)>(), this->name);
-                else
+                else if (pack._arguments.size() > sizeof...(Arguments))
                     throw EIScript::Exception::TooManyParameters(Helper::getTypeName<void (*)(Arguments...)>(), this->name);
                 Unpacker::applyFunction(pack._arguments, fn);
             }

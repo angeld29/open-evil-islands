@@ -14,3 +14,4 @@ engine/engine.prj
 engine/lib/
 engine/tags
 tools/resfileviewer/ui_mainwindow.h
+.gitattributes

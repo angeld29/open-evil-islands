@@ -96,6 +96,11 @@ namespace EIScript
         }
 
         void setValue(Expression* e) {
+            if(!e) {
+                value = e;
+                std::cout<<"Assigned nullptr to "<<*(id->name)<<std::endl;
+                return;
+            }
             if(e->getType() != type) {
                 throw Exception::InvalidAction(
                     "wrong variable type: " + typeToString(e->getType()),
@@ -136,13 +141,19 @@ namespace EIScript
     {
     public:
 
-        ScriptDeclaration(const Identifier* id, VariableList* arguments)
+        ScriptDeclaration(Identifier* id, VariableList* arguments)
             : id(id)
             , arguments(arguments) {
         }
 
+        //TODO decide which one to keep
         std::string* getName() {
             return id->name;
+        }
+
+        //TODO decide which one to keep
+        Identifier* getId() {
+            return id;
         }
 
         VariableList* getArguments() {
@@ -170,7 +181,8 @@ namespace EIScript
         }
 
     private:
-        const Identifier* id;
+        //TODO figure out const correctness
+        Identifier* id; //const Identifier...
         VariableList* arguments;
         ScriptBody* body;
     };
@@ -179,13 +191,13 @@ namespace EIScript
     {
     public:
 
-        FunctionCall(const Identifier* functionName, ExpressionList* arguments, const Type type)
+        FunctionCall(Identifier* functionName, ExpressionList* arguments, const Type type)
             : Expression(type)
             , functionName(functionName)
             , arguments(arguments) {
         }
 
-        FunctionCall(const Identifier* functionName, const Type type)
+        FunctionCall(Identifier* functionName, const Type type)
             : Expression(type)
             , functionName(functionName) {
         }
@@ -202,7 +214,7 @@ namespace EIScript
         }
 
     protected:
-        const Identifier* functionName;
+        Identifier* functionName;
         ExpressionList* arguments;
     };
 
@@ -210,11 +222,11 @@ namespace EIScript
     {
     public:
 
-        ScriptCall(const Identifier* functionName, ExpressionList* arguments)
+        ScriptCall(Identifier* functionName, ExpressionList* arguments)
             : FunctionCall(functionName, arguments, Type::None) {
         }
 
-        ScriptCall(const Identifier* functionName)
+        ScriptCall(Identifier* functionName)
             : FunctionCall(functionName, Type::None) {
         }
 

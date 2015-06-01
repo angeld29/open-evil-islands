@@ -17,12 +17,14 @@ namespace EIScript
 
     Expression* FunctionCall::resolve(EIScriptContext* context)
     {
-        return context->call(functionName->name, arguments);
+        Expression* result = context->callFunction(functionName->name, arguments);
+        std::cout<<"Function "<<*(functionName->name)<<" result: "<<*result;
+        return result;
     }
 
     Expression* ScriptCall::resolve(EIScriptContext* context)
     {
-        context->callScript(functionName->name, arguments);
+        context->callScript(functionName, arguments);
         return nullptr;
     }
 

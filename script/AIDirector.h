@@ -20,7 +20,7 @@ namespace cursedearth
             delete functions_impl;
         }
 
-        inline EIScript::Expression* call(std::string* function_name, EIScript::ExpressionList* arguments) {
+        inline EIScript::Expression* call(std::string* function_name, EIScript::ExpressionList& arguments) {
             return functions_impl->call(function_name, arguments);
         }
         

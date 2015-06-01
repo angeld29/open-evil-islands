@@ -105,14 +105,63 @@ namespace EIScript
         }
     }
 
-    Expression* EIScriptContext::call(std::string* function_name, ExpressionList* arguments)
+    Expression* EIScriptContext::callFunction(std::string* function_name, ExpressionList* arguments)
     {
-        return ai_director->call(function_name, arguments);
+        ExpressionList resolved_arguments(*arguments); //TODO is this even acceptable?
+        std::transform(
+            resolved_arguments.begin(), resolved_arguments.end(), resolved_arguments.begin(),
+        [this](Expression* e) { if(e) return e->resolve(this); else return e; }
+        );
+        return ai_director->call(function_name, resolved_arguments);
     }
 
-    void EIScriptContext::callScript(std::string* function_name, ExpressionList* arguments)
+    /* DEBUG */
+
+    std::ostream& operator << (std::ostream& os, std::nullptr_t)
     {
-        std::cout<<"Called script "<<*function_name<<std::endl;
+        return os << "nullptr";
+    }
+
+    /* END DEBUG */
+
+    void EIScriptContext::callScript(Identifier* function_name, ExpressionList* arguments)
+    {
+        std::cout<<"Called script "<<*(function_name->name)<<std::endl;
+        /* HEAVY WIP --- also ideally should be done through a ScriptExecutor of sime sorts */
+        ScriptDeclaration* script = getScript(function_name);
+        if(!script && function_name == getWorldscript()->getId()) {
+            script = getWorldscript();
+        }
+
+        for(auto block : *(script->getScriptBody())) {
+            auto if_block = std::get<0>(*block);
+            auto then_block = std::get<1>(*block);
+
+            std::cout<<"IF in "<<*(function_name->name)<<std::endl;
+            if(if_block) {
+                for(auto predicate : *(if_block)) {
+                    if(predicate) {
+                        std::cout<<predicate->resolve(this)<<std::endl;
+                    } else {
+                        std::cout<<"nulltpr in if"<<std::endl;
+                    }
+                }
+            } else {
+                std::cout<<"empty"<<std::endl;
+            }
+            std::cout<<"THEN in "<<*(function_name->name)<<std::endl;
+            if(then_block) {
+                for(auto expression : *(then_block)) {
+                    if(expression) {
+                        std::cout<<expression->resolve(this)<<std::endl;
+                    } else {
+                        std::cout<<"nulltpr in then"<<std::endl;
+                    }
+                }
+            } else {
+                std::cout<<"empty (somehow)"<<std::endl;
+            }
+        }
     }
 
     void EIScriptContext::dumpFunctions(std::ostream& str)

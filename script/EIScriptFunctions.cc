@@ -42,7 +42,7 @@ namespace EIScript
         }
     }
 
-    EIScriptFunctions::EIScriptFunctions(cursedearth::AIDirector<EIScriptFunctions>* ai_director)
+    EIScriptFunctions::EIScriptFunctions(DirectorType* ai_director)
         : cursedearth::EIScriptFunctionsBase<EIScriptFunctions>(ai_director)
     {
         initFunctions();
@@ -52,11 +52,18 @@ namespace EIScript
     {
     }
 
-    EIScript::Expression* EIScriptFunctions::call(std::string* function_name, ExpressionList* arguments)
+    EIScript::Expression* EIScriptFunctions::call(std::string* function_name, ExpressionList& arguments)
     {
-        return nullptr;
+        FunctionType* f = functions[*function_name];
+        if(!f) {
+            std::cerr<<"[EIScriptFunctions] Called unknown function: "<<*function_name<<std::endl;
+            return nullptr;
+        } else {
+            parametersPack pack(arguments); //TODO does this make a copy?
+            f->call(pack);
+            return pack._return;
+        }
     }
-
 
     bool EIScriptFunctions::functionDefined(std::string* function_name)
     {
@@ -73,11 +80,10 @@ namespace EIScript
         }
     }
 
-
     void EIScriptFunctions::dumpFunctions(std::ostream& str)
     {
         for(auto& pair : functions) {
-            str << "Function " << pair.first << " : " << pair.second << std::endl;
+            str << "[EIScriptFunctions] Function " << pair.first << " : " << pair.second << std::endl;
         }
     }
 

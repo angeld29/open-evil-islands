@@ -27,7 +27,7 @@ namespace cursedearth
             
         virtual ~EIScriptFunctionsBase() {}
 
-        virtual EIScript::Expression* call(std::string* function_name, EIScript::ExpressionList* arguments) = 0;
+        virtual EIScript::Expression* call(std::string* function_name, EIScript::ExpressionList& arguments) = 0;
 
         virtual bool functionDefined(std::string* function_name) = 0;
         virtual EIScript::Type getFunctionType(std::string* function_name) = 0;
