@@ -42,8 +42,8 @@ namespace EIScript
         }
     }
 
-    EIScriptFunctions::EIScriptFunctions(cursedearth::AIDirector<>* ai_director)
-        : cursedearth::EIScriptFunctionsBase(ai_director)
+    EIScriptFunctions::EIScriptFunctions(cursedearth::AIDirector<EIScriptFunctions>* ai_director)
+        : cursedearth::EIScriptFunctionsBase<EIScriptFunctions>(ai_director)
     {
         initFunctions();
     }

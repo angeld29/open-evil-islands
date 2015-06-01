@@ -10,11 +10,11 @@
 namespace EIScript
 {
 
-    class EIScriptFunctions : public cursedearth::EIScriptFunctionsBase
+    class EIScriptFunctions : public cursedearth::EIScriptFunctionsBase<EIScriptFunctions>
     {
         typedef typename Function::AbstractFunction FunctionType;
     public:
-        EIScriptFunctions(cursedearth::AIDirector<>* ai_director);
+        EIScriptFunctions(cursedearth::AIDirector<EIScriptFunctions>* ai_director);
             
         ~EIScriptFunctions();
 

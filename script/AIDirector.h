@@ -37,7 +37,7 @@ namespace cursedearth
         }
 
     protected:
-        EIScriptFunctionsBase* functions_impl;
+        EIScriptFunctionsBase<ScriptFunctions>* functions_impl;
     };
 
 }

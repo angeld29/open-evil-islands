@@ -17,11 +17,12 @@ namespace cursedearth
     template<class ScriptFunctions = typename EIScript::EIScriptFunctions>
     class AIDirector;
 
-    //TODO this AIDirector usage does not allow to use a different functions implementations, rewrite
+    //TODO is this ok?
+    template<class T> 
     class EIScriptFunctionsBase
     {
     public:
-        EIScriptFunctionsBase(AIDirector<>* ai_director)
+        EIScriptFunctionsBase(AIDirector<T>* ai_director)
             : ai_director(ai_director) {}
             
         virtual ~EIScriptFunctionsBase() {}
@@ -32,7 +33,7 @@ namespace cursedearth
         virtual EIScript::Type getFunctionType(std::string* function_name) = 0;
         virtual void dumpFunctions(std::ostream& str) = 0;
     protected:
-        AIDirector<>* ai_director;
+        AIDirector<T>* ai_director;
     };
 
 }
