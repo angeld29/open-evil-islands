@@ -6,7 +6,8 @@
 #include "EIScriptClassesBase.h"
 #include "function.hh"
 
-namespace EIScript{
+namespace EIScript
+{
     class EIScriptFunctions;
 }
 
@@ -18,13 +19,17 @@ namespace cursedearth
     class AIDirector;
 
     //TODO is this ok?
-    template<class T> 
+    template<class T>
     class EIScriptFunctionsBase
     {
+    protected:
+        typedef typename cursedearth::AIDirector<T> DirectorType;
+        DirectorType* ai_director;
+
     public:
-        EIScriptFunctionsBase(AIDirector<T>* ai_director)
+        EIScriptFunctionsBase(DirectorType* ai_director)
             : ai_director(ai_director) {}
-            
+
         virtual ~EIScriptFunctionsBase() {}
 
         virtual EIScript::Expression* call(std::string* function_name, EIScript::ExpressionList& arguments) = 0;
@@ -32,8 +37,7 @@ namespace cursedearth
         virtual bool functionDefined(std::string* function_name) = 0;
         virtual EIScript::Type getFunctionType(std::string* function_name) = 0;
         virtual void dumpFunctions(std::ostream& str) = 0;
-    protected:
-        AIDirector<T>* ai_director;
+
     };
 
 }

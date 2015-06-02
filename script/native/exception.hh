@@ -66,7 +66,7 @@ namespace EIScript
         protected:
             virtual const std::string causedBy() { return "Too Many arguments, prototype is " + prototype; }
         };
-    };
-};
+    }
+}
 
 #endif

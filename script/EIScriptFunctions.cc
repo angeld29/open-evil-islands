@@ -1,4 +1,5 @@
 #include "EIScriptFunctions.h"
+#include "AIDirector.h"
 #include "exception.hh"
 
 namespace EIScript
@@ -99,6 +100,13 @@ namespace EIScript
         REGISTER_BY_NAME(IsGreater, Type::Float);
         REGISTER_BY_NAME(IsLess, Type::Float);
 #undef REGISTER_BY_NAME
+#define REGISTER_METHOD_BY_NAME(name, type, object, object_type) \
+    functions[#name] = Function::loadMethod(#name, type, object, &object_type::name)
+        REGISTER_METHOD_BY_NAME(GSSetVar, Type::None, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GSSetVarMax, Type::None, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GSGetVar, Type::Float, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GSDelVar, Type::None, ai_director, DirectorType);
+#undef REGISTER_METHOD_BY_NAME
     }
 
 }

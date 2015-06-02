@@ -6,6 +6,7 @@
 #include "AIDirector.h"
 #include "EIScriptClassesBase.h"
 #include "exception.hh"
+#include "util.h"
 
 namespace EIScript
 {

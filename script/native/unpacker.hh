@@ -21,7 +21,7 @@ namespace EIScript
                 ValuedExpression<arg>* _l =
                     dynamic_cast< ValuedExpression<arg>* >(l);
                 if(!_l) {
-                   throw EIScript::Exception::InvalidParameter(Helper::getTypeName<arg>(), ""); //l->getName());
+                    throw EIScript::Exception::InvalidParameter(Helper::getTypeName<arg>(), ""); //l->getName());
                 }
                 return (_l->getValue());
             }
@@ -73,6 +73,18 @@ namespace EIScript
                          ::get(parameters[N-1]),
                          args...));
             }
+
+            template <typename ReturnType, typename Object, typename... Arguments, typename ...final>
+            static ReturnType applyMethod(std::vector<Expression*> parameters,
+                                          Object*	_this,
+                                          ReturnType(Object::*fn)(Arguments...),
+                                          final&&... args) {
+                return (unfolder<N - 1>::applyMethod
+                        (parameters, _this, fn,
+                         Converter::convertExpression< typename parametersType<N - 1, Arguments...>::type >
+                         ::get(parameters[N-1]),
+                         args...));
+            }
         };
 
         template<>
@@ -83,6 +95,14 @@ namespace EIScript
                                         final&&... args) {
                 return (fn(args...));
             }
+
+            template <typename ReturnType, typename Object, typename ...Arguments, typename ...final>
+            static ReturnType applyMethod(std::vector<Expression*>,
+                                           Object*	_this,
+                                           ReturnType(Object::*fn)(Arguments...),
+                                           final&&... args) {
+                return ((_this->*fn)(args...));
+            }
         };
 
 
@@ -92,7 +112,16 @@ namespace EIScript
         {
             return (unfolder<sizeof...(Arguments)>::applyFunc(args, fn));
         }
-    };
-};
+
+        template <typename Object, typename ReturnType, typename ...Arguments>
+        ReturnType applyMethod(std::vector<Expression*> args,
+                                Object* _this,
+                                ReturnType(Object::*fn)(Arguments...))
+        {
+            return (unfolder<sizeof...(Arguments)>::applyMethod(args, _this, fn));
+        }
+
+    }
+}
 
 #endif

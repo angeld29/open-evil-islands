@@ -2,15 +2,17 @@
 #define AI_DIRECTOR
 
 #include <string>
+#include <boost/unordered_map.hpp>
 #include "EIScriptClassesBase.h"
 #include "EIScriptFunctionsBase.h"
 #include "EIScriptFunctions.h"
+#include "ScriptAccessible.hh"
 
 namespace cursedearth
 {
 
     template<class ScriptFunctions> // = typename EIScript::EIScriptFunctions>
-    class AIDirector
+    class AIDirector : public EIScript::ScriptAccessible
     {
     public:
         AIDirector() {
@@ -35,9 +37,15 @@ namespace cursedearth
         inline void dumpFunctions(std::ostream& str) {
             functions_impl->dumpFunctions(str);
         }
+        
+        void GSSetVar(double player, std::string* variable, double value);
+        void GSSetVarMax(double player, std::string* variable, double value);
+        double GSGetVar(double player, std::string* variable);
+        void GSDelVar(double player, std::string* variable);
 
     protected:
         EIScriptFunctionsBase<ScriptFunctions>* functions_impl;
+        boost::unordered_map<std::string, double> gs_vars; // Why gs_vars? GSSetVar? What is GS?
     };
 
 }

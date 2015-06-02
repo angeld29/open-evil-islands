@@ -110,7 +110,7 @@ namespace EIScript
             }
         };
 
-    };
-};
+    }
+}
 
 #endif
