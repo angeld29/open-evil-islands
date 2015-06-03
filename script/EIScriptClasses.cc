@@ -18,7 +18,14 @@ namespace EIScript
     Expression* FunctionCall::resolve(EIScriptContext* context)
     {
         Expression* result = context->callFunction(functionName->name, arguments);
-        std::cout<<"Function "<<*(functionName->name)<<" result: "<<*result;
+        if(context->getVerboseExecution()) {
+            std::cout<<"Function "<<*(functionName->name)<<" result: ";
+            if(result) {
+                std::cout<<*result<<std::endl;
+            } else {
+                std::cout<<"nullptr"<<std::endl;
+            }
+        }
         return result;
     }
 

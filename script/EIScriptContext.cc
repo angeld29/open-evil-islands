@@ -8,11 +8,11 @@ namespace EIScript
         return parent;
     }
 
-    EIScriptContext* EIScriptContext::extendedContext(VariableList* new_vars)
+    EIScriptContext* EIScriptContext::extendedContext(VariableList* local_vars)
     {
         EIScriptContext* extended = new EIScriptContext(this);
-        if(new_vars) {
-            for(auto& var : *new_vars) {
+        if(local_vars) {
+            for(auto& var : *local_vars) {
                 extended->addLocalVariable(var);
             }
         }
@@ -126,8 +126,10 @@ namespace EIScript
 
     void EIScriptContext::callScript(Identifier* function_name, ExpressionList* arguments)
     {
-        std::cout<<"Called script "<<*(function_name->name)<<std::endl;
-        /* HEAVY WIP --- also ideally should be done through a ScriptExecutor of sime sorts */
+        if(verbose_execution) {
+            std::cout<<"Called script "<<*(function_name->name)<<std::endl;
+        }
+        /* HEAVY WIP --- also ideally should be done through a ScriptExecutor of some sorts */
         ScriptDeclaration* script = getScript(function_name);
         if(!script && function_name == getWorldscript()->getId()) {
             script = getWorldscript();

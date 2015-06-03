@@ -5,25 +5,34 @@
 #include <boost/unordered_map.hpp>
 #include "AIDirector.h"
 #include "EIScriptClassesBase.h"
+#include "EIScriptExecutorBase.h"
+#include "EIScriptExecutor.h"
 #include "exception.hh"
 #include "util.h"
+#include "log.h"
 
 namespace EIScript
 {
     class VariableDeclaration;
     class ScriptDeclaration;
 
+    // TODO figure out AIDirector template arguments
+    template<class ScriptExecutor = EIScriptExecutor>
     class EIScriptContext
     {
     public:
         EIScriptContext(cursedearth::AIDirector<>* ai_director)
             : parent(nullptr)
-            , ai_director(ai_director) {
+            , ai_director(ai_director)
+            , script_executor(new ScriptExecutor())
+            , verbose_execution(true) {
         }
 
         EIScriptContext(EIScriptContext* parent)
             : parent(parent)
-            , ai_director(parent->ai_director) {
+            , ai_director(parent->ai_director)
+            , script_executor(parent->script_executor)
+            , verbose_execution(parent->verbose_execution) {
         }
 
         EIScriptContext* getParentContext();
@@ -46,11 +55,10 @@ namespace EIScript
         Expression* callFunction(std::string* function_name, ExpressionList* arguments);
         void callScript(Identifier* function_name, ExpressionList* arguments);
 
-
         ScriptDeclaration* getWorldscript() {
             return worldscript;
         }
-        
+
         void setWorldscript(ScriptDeclaration* worldscript) {
             this->worldscript = worldscript;
         }
@@ -59,12 +67,30 @@ namespace EIScript
         void dumpScripts(std::ostream& str);
         void dumpVariables(std::ostream& str);
 
+        void setVerboseExecution(bool verbose) {
+            verbose_execution = verbose;
+        }
+
+        inline bool getVerboseExecution() {
+            return verbose_execution;
+        }
+
+        ~EIScriptContext() {
+            if(!parent) {
+                delete script_executor;
+                delete worldscript;
+            }
+        }
+
     protected:
         EIScriptContext* parent;
         cursedearth::AIDirector<>* ai_director;
+        EIScriptExecutorBase* script_executor;
         boost::unordered_map<std::string, ScriptDeclaration*> scripts;
         boost::unordered_map<std::string, VariableDeclaration*> globals;
         boost::unordered_map<std::string, VariableDeclaration*> locals;
         ScriptDeclaration* worldscript;
+
+        bool verbose_execution;
     };
 }

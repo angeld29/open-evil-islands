@@ -97,6 +97,7 @@ namespace EIScript
                 else if(pack._arguments.size() > sizeof...(Arguments))
                     throw Exception::TooManyParameters(Helper::getTypeName<void (*)(Arguments...)>(), this->name);
                 Unpacker::applyFunction(pack._arguments, fn);
+                pack._return = nullptr;
             }
             Function(const std::string& name,
                      const Type type,
@@ -118,7 +119,7 @@ namespace EIScript
         {
         private:
             Return(Object::*fn)(Arguments...);
-            Object* _this; //TODO actually const? //TODO via parameter pack?
+            Object* _this; //TODO actually const? //TODO via parameter pack? (to allow for object selection)
         public:
             virtual void call(EIScript::parametersPack& pack) {
                 if(pack._arguments.size() < sizeof...(Arguments))
@@ -172,6 +173,7 @@ namespace EIScript
                 else if(pack._arguments.size() > sizeof...(Arguments))
                     throw Exception::TooManyParameters(Helper::getTypeName<void (*)(Arguments...)>(), this->name);
                 Unpacker::applyMethod(pack._arguments, _this, fn);
+                pack._return = nullptr;
             }
             Method(const std::string& name,
                    const Type type,
