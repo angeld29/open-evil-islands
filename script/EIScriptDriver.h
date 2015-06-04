@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "EIScriptClassesBase.h" // TODO is this acceptable?
+
 namespace EIScript
 {
 
@@ -22,13 +24,13 @@ namespace EIScript
         class FlexScanner* lexer;
 
         /** Reference to the script context filled during parsing */
-        class EIScriptContext* script_context;
+        ScriptContext* script_context;
 
         /// construct a new parser driver
-        Driver(class EIScriptContext* script_context);
+        Driver(ScriptContext* script_context);
 
         /// construct a new parser driver context
-        Driver(class EIScriptContext* script_context, bool trace_scanning, bool trace_parsing, bool standard_trace_parsing);
+        Driver(ScriptContext* script_context, bool trace_scanning, bool trace_parsing, bool standard_trace_parsing);
 
         /// enable debug output in the flex scanner
         bool trace_scanning;
@@ -69,7 +71,7 @@ namespace EIScript
         void error(const std::string& m);
 
     protected:
-        void push_context(EIScriptContext* context);
+        void push_context(ScriptContext* context);
         void pop_context();
     };
 }

@@ -7,13 +7,13 @@
 namespace EIScript
 {
 
-    class EIScriptExecutor : public EIScriptExecutorBase
+    class EIScriptExecutor : public EIScriptExecutorBase<EIScriptExecutor>
     {
     public:
         EIScriptExecutor() {}
         virtual ~EIScriptExecutor() {}
 
-        virtual void execute(ScriptDeclaration* script, ExpressionList* arguments);
+        virtual void execute(ScriptContext* script_context, ScriptDeclaration* script, ExpressionList* arguments);
     };
 
 }

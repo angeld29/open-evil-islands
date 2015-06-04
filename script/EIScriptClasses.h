@@ -65,7 +65,7 @@ namespace EIScript
             , rhs(rhs) {
         }
 
-        virtual Expression* resolve(EIScriptContext* context);
+        virtual Expression* resolve(ScriptContext* context);
 
         virtual void log(std::ostream& out);
 
@@ -129,7 +129,7 @@ namespace EIScript
             , id(id) {
         }
 
-        virtual Expression* resolve(EIScriptContext* context);
+        virtual Expression* resolve(ScriptContext* context);
 
         virtual void log(std::ostream& out) ;
 
@@ -202,7 +202,7 @@ namespace EIScript
             , functionName(functionName) {
         }
 
-        virtual Expression* resolve(EIScriptContext* context);
+        virtual Expression* resolve(ScriptContext* context);
 
         virtual void log(std::ostream& out) ;
 
@@ -230,7 +230,7 @@ namespace EIScript
             : FunctionCall(functionName, Type::None) {
         }
 
-        virtual Expression* resolve(EIScriptContext* context);
+        virtual Expression* resolve(ScriptContext* context);
 
         virtual void log(std::ostream& out);
 

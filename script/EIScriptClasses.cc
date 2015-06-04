@@ -4,18 +4,18 @@
 namespace EIScript
 {
 
-    Expression* Assignment::resolve(EIScriptContext* context)
+    Expression* Assignment::resolve(ScriptContext* context)
     {
         context->getVariable(lhs)->setValue(rhs);
         return nullptr;
     }
 
-    Expression* VariableAccess::resolve(EIScriptContext* context)
+    Expression* VariableAccess::resolve(ScriptContext* context)
     {
         return context->getVariable(id)->getValue();
     }
 
-    Expression* FunctionCall::resolve(EIScriptContext* context)
+    Expression* FunctionCall::resolve(ScriptContext* context)
     {
         Expression* result = context->callFunction(functionName->name, arguments);
         if(context->getVerboseExecution()) {
@@ -29,7 +29,7 @@ namespace EIScript
         return result;
     }
 
-    Expression* ScriptCall::resolve(EIScriptContext* context)
+    Expression* ScriptCall::resolve(ScriptContext* context)
     {
         context->callScript(functionName, arguments);
         return nullptr;

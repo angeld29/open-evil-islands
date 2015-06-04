@@ -17,7 +17,7 @@ namespace EIScript
     class ScriptDeclaration;
 
     // TODO figure out AIDirector template arguments
-    template<class ScriptExecutor = EIScriptExecutor>
+    template<class ScriptExecutor>
     class EIScriptContext
     {
     public:
@@ -83,9 +83,9 @@ namespace EIScript
         }
 
     protected:
-        EIScriptContext* parent;
+        EIScriptContext<ScriptExecutor>* parent;
         cursedearth::AIDirector<>* ai_director;
-        EIScriptExecutorBase* script_executor;
+        EIScriptExecutorBase<ScriptExecutor>* script_executor;
         boost::unordered_map<std::string, ScriptDeclaration*> scripts;
         boost::unordered_map<std::string, VariableDeclaration*> globals;
         boost::unordered_map<std::string, VariableDeclaration*> locals;

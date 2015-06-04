@@ -11,8 +11,11 @@ namespace EIScript
     class Expression;
     class VariableDeclaration;
     class ScriptDeclaration;
+    class EIScriptExecutor;
+    template<class ScriptExecutor = EIScriptExecutor>
     class EIScriptContext;
-
+    
+    typedef EIScriptContext<> ScriptContext;
     typedef std::vector<Expression*> ExpressionList;
     typedef std::vector<VariableDeclaration*> VariableList;
 
@@ -45,7 +48,7 @@ namespace EIScript
             return type;
         }
 
-        virtual Expression* resolve(EIScriptContext*) {
+        virtual Expression* resolve(ScriptContext*) {
             return this;
         }
         

@@ -7,13 +7,16 @@
 namespace EIScript
 {
 
+    template<typename T>
     class EIScriptExecutorBase
     {
+    protected:
+        typedef EIScriptContext<T> ScriptContext;
     public:
         EIScriptExecutorBase() {}
         virtual ~EIScriptExecutorBase() {}
         
-        virtual void execute(ScriptDeclaration* script, ExpressionList* arguments) = 0;
+        virtual void execute(ScriptContext* script_context, ScriptDeclaration* script, ExpressionList* arguments) = 0;
     };
 
 }
