@@ -7,6 +7,7 @@
 namespace EIScript
 {
 
+    // TODO keep the context here
     template<typename T>
     class EIScriptExecutorBase
     {
@@ -16,7 +17,8 @@ namespace EIScript
         EIScriptExecutorBase() {}
         virtual ~EIScriptExecutorBase() {}
         
-        virtual void execute(ScriptContext* script_context, ScriptDeclaration* script, ExpressionList* arguments) = 0;
+        virtual void advance(ScriptContext* script_context) = 0;
+        virtual void execute(ScriptDeclaration* script, ExpressionList* arguments) = 0;
     };
 
 }

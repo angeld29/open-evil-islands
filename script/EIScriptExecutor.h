@@ -1,6 +1,8 @@
 #ifndef EI_SCRIPT_EXECUTOR
 #define EI_SCRIPT_EXECUTOR
 
+#include <queue>
+#include <tuple>
 #include "EIScriptExecutorBase.h"
 #include "log.h"
 
@@ -13,7 +15,13 @@ namespace EIScript
         EIScriptExecutor() {}
         virtual ~EIScriptExecutor() {}
 
-        virtual void execute(ScriptContext* script_context, ScriptDeclaration* script, ExpressionList* arguments);
+        virtual void advance(ScriptContext* script_context);
+        virtual void execute(ScriptDeclaration* script, ExpressionList* arguments);
+    protected:
+        typedef std::tuple<ScriptDeclaration*, ExpressionList*> QueueEntry;
+        std::queue<QueueEntry> script_queue;
+        
+        void doExecuteScript(ScriptContext* script_context, ScriptDeclaration* script, ExpressionList* arguments);
     };
 
 }

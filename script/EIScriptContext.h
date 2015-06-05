@@ -75,6 +75,11 @@ namespace EIScript
             return verbose_execution;
         }
 
+        //TODO temporary
+        inline void advance() {
+            script_executor->advance(this);
+        }
+
         ~EIScriptContext() {
             if(!parent) {
                 delete script_executor;
@@ -85,6 +90,7 @@ namespace EIScript
     protected:
         EIScriptContext<ScriptExecutor>* parent;
         cursedearth::AIDirector<>* ai_director;
+        // TODO extract
         EIScriptExecutorBase<ScriptExecutor>* script_executor;
         boost::unordered_map<std::string, ScriptDeclaration*> scripts;
         boost::unordered_map<std::string, VariableDeclaration*> globals;

@@ -29,10 +29,13 @@ int main(int argc, char* argv[])
                 return 0;
             }
             driver.parse_stream(infile, argv[ai]);
-            
+
             // DEBUG
             std::cout<<std::endl<<*(script_context->getWorldscript()->getScriptBody())<<std::endl;
             script_context->callScript(script_context->getWorldscript()->getId(), nullptr);
+            while(true) {
+                script_context->advance();
+            }
         }
     }
 

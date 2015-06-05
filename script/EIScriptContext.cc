@@ -140,14 +140,12 @@ namespace EIScript
     template<class T>
     void EIScriptContext<T>::callScript(Identifier* function_name, ExpressionList* arguments)
     {
-
-        /* HEAVY WIP --- also ideally should be done through a ScriptExecutor of some sorts */
         ScriptDeclaration* script = getScript(function_name);
         if(!script && function_name == getWorldscript()->getId()) {
             script = getWorldscript();
         }
 
-        script_executor->execute(this, script, arguments);
+        script_executor->execute(script, arguments);
     }
 
     template<class T>

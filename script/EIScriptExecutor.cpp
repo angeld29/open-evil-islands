@@ -2,8 +2,19 @@
 
 namespace EIScript
 {
+    void EIScriptExecutor::advance(ScriptContext* script_context)
+    {
+        QueueEntry& entry = script_queue.front();
+        doExecuteScript(script_context, std::get<0>(entry), std::get<1>(entry));
+        script_queue.pop();
+    }
 
-    void EIScriptExecutor::execute(ScriptContext* script_context, ScriptDeclaration* script, ExpressionList* arguments)
+    void EIScriptExecutor::execute(ScriptDeclaration* script, ExpressionList* arguments)
+    {
+        script_queue.emplace(script, arguments);
+    }
+
+    void EIScriptExecutor::doExecuteScript(ScriptContext* script_context, ScriptDeclaration* script, ExpressionList* arguments)
     {
         Identifier* function_name = script->getId();
         for(auto block : *(script->getScriptBody())) {
@@ -36,6 +47,5 @@ namespace EIScript
             }
         }
     }
-
 
 }
