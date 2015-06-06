@@ -1,24 +1,24 @@
 #include "EIScriptClasses.h"
-#include "EIScriptContext.h"
+#include "EIScriptExecutor.h"
 
 namespace EIScript
 {
 
-    Expression* Assignment::resolve(ScriptContext* context)
+    Expression* Assignment::resolve(EIScriptExecutor* executor)
     {
-        context->getVariable(lhs)->setValue(rhs);
+        executor->getVariable(lhs)->setValue(rhs);
         return nullptr;
     }
 
-    Expression* VariableAccess::resolve(ScriptContext* context)
+    Expression* VariableAccess::resolve(EIScriptExecutor* executor)
     {
-        return context->getVariable(id)->getValue();
+        return executor->getVariable(id)->getValue();
     }
 
-    Expression* FunctionCall::resolve(ScriptContext* context)
+    Expression* FunctionCall::resolve(EIScriptExecutor* executor)
     {
-        Expression* result = context->callFunction(functionName->name, arguments);
-        if(context->getVerboseExecution()) {
+        Expression* result = executor->callFunction(functionName->name, arguments);
+        if(executor->getVerboseExecution()) {
             std::cout<<"Function "<<*(functionName->name)<<" result: ";
             if(result) {
                 std::cout<<*result<<std::endl;
@@ -29,9 +29,9 @@ namespace EIScript
         return result;
     }
 
-    Expression* ScriptCall::resolve(ScriptContext* context)
+    Expression* ScriptCall::resolve(EIScriptExecutor* executor)
     {
-        context->callScript(functionName, arguments);
+        executor->callScript(functionName, arguments);
         return nullptr;
     }
 

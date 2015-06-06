@@ -21,6 +21,7 @@
     #include <string>
     #include "EIScriptClasses.h"
     #include "EIScriptContext.h"
+    #include "EIScriptExecutor.h"
 }
 
 %code {
@@ -110,7 +111,7 @@ script_declaration : DECLARESCRIPT ident formal_params      {
                                                                     return 1;
                                                                 }
                                                                 $$ = new ScriptDeclaration($2, $3);
-                                                                if(driver.script_context->functionDefined($2)) {
+                                                                if(driver.script_executor->functionDefined($2)) {
                                                                     error(yylocation_stack_[0], std::string("Possibly overshadowing  definition: script ") + *($2->name));
                                                                 }                          
                                                                 if(driver.trace_parsing) {
@@ -210,7 +211,7 @@ variable : ident                            {
          ;
 
 function_call : ident params                { 
-                                                if(driver.script_context->functionDefined($1)){
+                                                if(driver.script_executor->functionDefined($1)){
                                                     $$ = new FunctionCall($1, $2, Type::None); /* WIP */ 
                                                 } else if (driver.script_context->scriptDefined($1)){
                                                     $$ = new ScriptCall($1, $2); /* WIP */

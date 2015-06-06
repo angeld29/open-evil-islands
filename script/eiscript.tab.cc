@@ -45,7 +45,7 @@
 #line 46 "eiscript.tab.cc"
 /* Unqualified %code blocks.  */
 /* Line 286 of lalr1.cc  */
-#line 26 "eiscript.y"
+#line 27 "eiscript.y"
 
     #include "EIScriptDriver.h"
     #include "EIScriptScanner.h"
@@ -472,25 +472,25 @@ namespace EIScript {
       {
           case 2:
 /* Line 670 of lalr1.cc  */
-#line 64 "eiscript.y"
+#line 65 "eiscript.y"
     { std::cout<<"Program accepted."; return 0; }
     break;
 
   case 5:
 /* Line 670 of lalr1.cc  */
-#line 71 "eiscript.y"
+#line 72 "eiscript.y"
     { driver.script_context->addScript((yysemantic_stack_[(1) - (1)].scriptDeclarationVal)); }
     break;
 
   case 6:
 /* Line 670 of lalr1.cc  */
-#line 72 "eiscript.y"
+#line 73 "eiscript.y"
     { driver.script_context->addScript((yysemantic_stack_[(2) - (2)].scriptDeclarationVal)); }
     break;
 
   case 10:
 /* Line 670 of lalr1.cc  */
-#line 80 "eiscript.y"
+#line 81 "eiscript.y"
     {
                                                         ScriptDeclaration* worldscript = new ScriptDeclaration(new Identifier(new std::string("WorldScript")), nullptr); //yeek
                                                         worldscript->setScriptBody(new ScriptBody{new ScriptBlock{nullptr, (yysemantic_stack_[(4) - (3)].expressionList)}});
@@ -503,19 +503,19 @@ namespace EIScript {
 
   case 12:
 /* Line 670 of lalr1.cc  */
-#line 91 "eiscript.y"
+#line 92 "eiscript.y"
     { driver.script_context->addGlobalVariable((yysemantic_stack_[(1) - (1)].varDeclarationVal)); }
     break;
 
   case 13:
 /* Line 670 of lalr1.cc  */
-#line 92 "eiscript.y"
+#line 93 "eiscript.y"
     { driver.script_context->addGlobalVariable((yysemantic_stack_[(3) - (3)].varDeclarationVal)); }
     break;
 
   case 14:
 /* Line 670 of lalr1.cc  */
-#line 95 "eiscript.y"
+#line 96 "eiscript.y"
     { 
                                                 if(driver.script_context->variableDefined((yysemantic_stack_[(3) - (1)].identifierVal))) {
                                                     error(yylocation_stack_[0], std::string("Duplicate variable definition: ") + *((yysemantic_stack_[(3) - (1)].identifierVal)->name));
@@ -530,14 +530,14 @@ namespace EIScript {
 
   case 15:
 /* Line 670 of lalr1.cc  */
-#line 107 "eiscript.y"
+#line 108 "eiscript.y"
     { 
                                                                 if(driver.script_context->scriptDefined((yysemantic_stack_[(3) - (2)].identifierVal))) {
                                                                     error(yylocation_stack_[0], std::string("Duplicate script definition: ") + *((yysemantic_stack_[(3) - (2)].identifierVal)->name));
                                                                     return 1;
                                                                 }
                                                                 (yyval.scriptDeclarationVal) = new ScriptDeclaration((yysemantic_stack_[(3) - (2)].identifierVal), (yysemantic_stack_[(3) - (3)].variableListVal));
-                                                                if(driver.script_context->functionDefined((yysemantic_stack_[(3) - (2)].identifierVal))) {
+                                                                if(driver.script_executor->functionDefined((yysemantic_stack_[(3) - (2)].identifierVal))) {
                                                                     error(yylocation_stack_[0], std::string("Possibly overshadowing  definition: script ") + *((yysemantic_stack_[(3) - (2)].identifierVal)->name));
                                                                 }                          
                                                                 if(driver.trace_parsing) {
@@ -548,7 +548,7 @@ namespace EIScript {
 
   case 16:
 /* Line 670 of lalr1.cc  */
-#line 122 "eiscript.y"
+#line 123 "eiscript.y"
     { 
                                                 ScriptDeclaration* scriptDeclaration = driver.script_context->getScript((yysemantic_stack_[(3) - (2)].identifierVal));
                                                 if(!scriptDeclaration) {
@@ -561,7 +561,7 @@ namespace EIScript {
 
   case 17:
 /* Line 670 of lalr1.cc  */
-#line 130 "eiscript.y"
+#line 131 "eiscript.y"
     { 
                                                 driver.pop_context();
                                                 ScriptDeclaration* scriptDeclaration = driver.script_context->getScript((yysemantic_stack_[(6) - (2)].identifierVal));
@@ -574,145 +574,145 @@ namespace EIScript {
 
   case 18:
 /* Line 670 of lalr1.cc  */
-#line 140 "eiscript.y"
+#line 141 "eiscript.y"
     { (yyval.scriptBody) = new ScriptBody{(yysemantic_stack_[(1) - (1)].scriptBlock)}; }
     break;
 
   case 19:
 /* Line 670 of lalr1.cc  */
-#line 141 "eiscript.y"
+#line 142 "eiscript.y"
     { (yyval.scriptBody) = (yysemantic_stack_[(2) - (1)].scriptBody); (yyval.scriptBody)->push_back((yysemantic_stack_[(2) - (2)].scriptBlock)); }
     break;
 
   case 20:
 /* Line 670 of lalr1.cc  */
-#line 144 "eiscript.y"
+#line 145 "eiscript.y"
     { (yyval.scriptBlock) = new ScriptBlock{(yysemantic_stack_[(2) - (1)].expressionList), (yysemantic_stack_[(2) - (2)].expressionList)}; }
     break;
 
   case 21:
 /* Line 670 of lalr1.cc  */
-#line 147 "eiscript.y"
+#line 148 "eiscript.y"
     { (yyval.expressionList) = (yysemantic_stack_[(4) - (3)].expressionList); }
     break;
 
   case 22:
 /* Line 670 of lalr1.cc  */
-#line 150 "eiscript.y"
+#line 151 "eiscript.y"
     { (yyval.expressionList) = new ExpressionList(); }
     break;
 
   case 23:
 /* Line 670 of lalr1.cc  */
-#line 151 "eiscript.y"
+#line 152 "eiscript.y"
     { (yyval.expressionList) = new ExpressionList{(yysemantic_stack_[(1) - (1)].expressionVal)}; }
     break;
 
   case 24:
 /* Line 670 of lalr1.cc  */
-#line 152 "eiscript.y"
+#line 153 "eiscript.y"
     { (yyval.expressionList) = (yysemantic_stack_[(2) - (1)].expressionList); (yyval.expressionList)->push_back((yysemantic_stack_[(2) - (2)].expressionVal)); }
     break;
 
   case 25:
 /* Line 670 of lalr1.cc  */
-#line 155 "eiscript.y"
+#line 156 "eiscript.y"
     { (yyval.expressionList) = (yysemantic_stack_[(4) - (3)].expressionList); }
     break;
 
   case 26:
 /* Line 670 of lalr1.cc  */
-#line 158 "eiscript.y"
+#line 159 "eiscript.y"
     { (yyval.expressionList) = new ExpressionList(); }
     break;
 
   case 27:
 /* Line 670 of lalr1.cc  */
-#line 159 "eiscript.y"
+#line 160 "eiscript.y"
     { (yyval.expressionList) = new ExpressionList{(yysemantic_stack_[(1) - (1)].expressionVal)}; }
     break;
 
   case 28:
 /* Line 670 of lalr1.cc  */
-#line 160 "eiscript.y"
+#line 161 "eiscript.y"
     { (yyval.expressionList) = (yysemantic_stack_[(2) - (1)].expressionList); (yyval.expressionList)->push_back((yysemantic_stack_[(2) - (2)].expressionVal)); }
     break;
 
   case 32:
 /* Line 670 of lalr1.cc  */
-#line 168 "eiscript.y"
+#line 169 "eiscript.y"
     { (yyval.expressionVal) = nullptr; }
     break;
 
   case 33:
 /* Line 670 of lalr1.cc  */
-#line 170 "eiscript.y"
+#line 171 "eiscript.y"
     { (yyval.variableListVal) = (yysemantic_stack_[(3) - (2)].variableListVal); }
     break;
 
   case 34:
 /* Line 670 of lalr1.cc  */
-#line 173 "eiscript.y"
+#line 174 "eiscript.y"
     { (yyval.variableListVal) = (yysemantic_stack_[(3) - (1)].variableListVal); (yyval.variableListVal)->push_back((yysemantic_stack_[(3) - (3)].varDeclarationVal)); }
     break;
 
   case 35:
 /* Line 670 of lalr1.cc  */
-#line 174 "eiscript.y"
+#line 175 "eiscript.y"
     { (yyval.variableListVal) = new VariableList{(yysemantic_stack_[(1) - (1)].varDeclarationVal)}; }
     break;
 
   case 36:
 /* Line 670 of lalr1.cc  */
-#line 175 "eiscript.y"
+#line 176 "eiscript.y"
     { (yyval.variableListVal) = new VariableList(); }
     break;
 
   case 37:
 /* Line 670 of lalr1.cc  */
-#line 178 "eiscript.y"
+#line 179 "eiscript.y"
     { (yyval.varDeclarationVal) = new VariableDeclaration((yysemantic_stack_[(3) - (3)].tVal), (yysemantic_stack_[(3) - (1)].identifierVal)); }
     break;
 
   case 38:
 /* Line 670 of lalr1.cc  */
-#line 181 "eiscript.y"
+#line 182 "eiscript.y"
     { (yyval.expressionList) = (yysemantic_stack_[(3) - (2)].expressionList); }
     break;
 
   case 39:
 /* Line 670 of lalr1.cc  */
-#line 184 "eiscript.y"
+#line 185 "eiscript.y"
     { (yyval.expressionList) = (yysemantic_stack_[(3) - (1)].expressionList); (yyval.expressionList)->push_back((yysemantic_stack_[(3) - (3)].expressionVal)); }
     break;
 
   case 40:
 /* Line 670 of lalr1.cc  */
-#line 185 "eiscript.y"
+#line 186 "eiscript.y"
     { (yyval.expressionList) = new ExpressionList{(yysemantic_stack_[(1) - (1)].expressionVal)}; }
     break;
 
   case 41:
 /* Line 670 of lalr1.cc  */
-#line 186 "eiscript.y"
+#line 187 "eiscript.y"
     { (yyval.expressionList) = new ExpressionList(); }
     break;
 
   case 43:
 /* Line 670 of lalr1.cc  */
-#line 192 "eiscript.y"
+#line 193 "eiscript.y"
     { (yyval.expressionVal) = new FloatValue((yysemantic_stack_[(1) - (1)].fVal)); }
     break;
 
   case 44:
 /* Line 670 of lalr1.cc  */
-#line 193 "eiscript.y"
+#line 194 "eiscript.y"
     { (yyval.expressionVal) = new StringValue((yysemantic_stack_[(1) - (1)].sVal)); }
     break;
 
   case 47:
 /* Line 670 of lalr1.cc  */
-#line 198 "eiscript.y"
+#line 199 "eiscript.y"
     { 
                                                 VariableDeclaration* decl = driver.script_context->getVariable((yysemantic_stack_[(1) - (1)].identifierVal));
                                                 if(!decl) {
@@ -729,9 +729,9 @@ namespace EIScript {
 
   case 48:
 /* Line 670 of lalr1.cc  */
-#line 212 "eiscript.y"
+#line 213 "eiscript.y"
     { 
-                                                if(driver.script_context->functionDefined((yysemantic_stack_[(2) - (1)].identifierVal))){
+                                                if(driver.script_executor->functionDefined((yysemantic_stack_[(2) - (1)].identifierVal))){
                                                     (yyval.expressionVal) = new FunctionCall((yysemantic_stack_[(2) - (1)].identifierVal), (yysemantic_stack_[(2) - (2)].expressionList), Type::None); /* WIP */ 
                                                 } else if (driver.script_context->scriptDefined((yysemantic_stack_[(2) - (1)].identifierVal))){
                                                     (yyval.expressionVal) = new ScriptCall((yysemantic_stack_[(2) - (1)].identifierVal), (yysemantic_stack_[(2) - (2)].expressionList)); /* WIP */
@@ -744,13 +744,13 @@ namespace EIScript {
 
   case 49:
 /* Line 670 of lalr1.cc  */
-#line 224 "eiscript.y"
+#line 225 "eiscript.y"
     { (yyval.expressionVal) = new Assignment((yysemantic_stack_[(3) - (1)].identifierVal), (yysemantic_stack_[(3) - (3)].expressionVal)); }
     break;
 
   case 54:
 /* Line 670 of lalr1.cc  */
-#line 233 "eiscript.y"
+#line 234 "eiscript.y"
     { (yyval.identifierVal) = new Identifier((yysemantic_stack_[(1) - (1)].sVal)); }
     break;
 
@@ -1255,12 +1255,12 @@ namespace EIScript {
   const unsigned char
   BisonParser::yyrline_[] =
   {
-         0,    64,    64,    67,    70,    71,    72,    75,    76,    77,
-      80,    90,    91,    92,    95,   107,   122,   122,   140,   141,
-     144,   147,   150,   151,   152,   155,   158,   159,   160,   163,
-     164,   165,   168,   170,   173,   174,   175,   178,   181,   184,
-     185,   186,   189,   192,   193,   194,   195,   198,   212,   224,
-     227,   228,   229,   230,   233
+         0,    65,    65,    68,    71,    72,    73,    76,    77,    78,
+      81,    91,    92,    93,    96,   108,   123,   123,   141,   142,
+     145,   148,   151,   152,   153,   156,   159,   160,   161,   164,
+     165,   166,   169,   171,   174,   175,   176,   179,   182,   185,
+     186,   187,   190,   193,   194,   195,   196,   199,   213,   225,
+     228,   229,   230,   231,   234
   };
 
   // Print the state stack on the debug stream.
@@ -1353,7 +1353,7 @@ namespace EIScript {
 /* Line 1141 of lalr1.cc  */
 #line 1355 "eiscript.tab.cc"
 /* Line 1142 of lalr1.cc  */
-#line 236 "eiscript.y"
+#line 237 "eiscript.y"
 
 
 // We have to implement the error function

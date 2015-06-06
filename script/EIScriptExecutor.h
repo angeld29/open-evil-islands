@@ -3,25 +3,54 @@
 
 #include <queue>
 #include <tuple>
-#include "EIScriptExecutorBase.h"
+
+#include "EIScriptContext.h"
+#include "EIScriptFunctions.h"
+#include "exception.hh"
 #include "log.h"
 
 namespace EIScript
 {
 
-    class EIScriptExecutor : public EIScriptExecutorBase<EIScriptExecutor>
+    class EIScriptExecutorImpl;
+
+    class EIScriptExecutor
     {
     public:
-        EIScriptExecutor() {}
-        virtual ~EIScriptExecutor() {}
+        EIScriptExecutor(EIScriptContext* script_context, EIScriptFunctionsBase* functions_impl);
+        ~EIScriptExecutor();
 
-        virtual void advance(ScriptContext* script_context);
-        virtual void execute(ScriptDeclaration* script, ExpressionList* arguments);
-    protected:
-        typedef std::tuple<ScriptDeclaration*, ExpressionList*> QueueEntry;
-        std::queue<QueueEntry> script_queue;
-        
-        void doExecuteScript(ScriptContext* script_context, ScriptDeclaration* script, ExpressionList* arguments);
+        void advance() ;
+        void callScript(Identifier* function_name, ExpressionList* arguments);
+        Expression* callFunction(std::string* function_name, ExpressionList* arguments);
+        void setVerboseExecution(bool verbose);
+        bool getVerboseExecution();
+
+        VariableDeclaration* getVariable(const Identifier* ident) {
+            return script_context->getVariable(ident);
+        }
+
+        bool functionDefined(Identifier* function_name) {
+            return functions_impl->functionDefined(function_name->name);
+        }
+
+        bool functionDefined(std::string* function_name) {
+            return functions_impl->functionDefined(function_name);
+        }
+
+        Type getFunctionType(std::string* function_name) {
+            return functions_impl->getFunctionType(function_name);
+        }
+
+        void dumpFunctions(std::ostream& str) {
+            functions_impl->dumpFunctions(str);
+        }
+
+    private:
+        // all this decoupling thing may just turn out to be bullshit, we'll see. Should be easy to get rid of, if need be
+        EIScriptExecutorImpl* executor_impl;
+        EIScriptFunctionsBase* functions_impl;
+        EIScriptContext* script_context;
     };
 
 }

@@ -3,27 +3,18 @@
 
 #include <string>
 #include <boost/unordered_map.hpp>
+
+#include "AIDirector.h"
 #include "EIScriptClassesBase.h"
 #include "function.hh"
 
 namespace EIScript
 {
-    class EIScriptFunctions;
-}
 
-namespace cursedearth
-{
-
-    //TODO refactor, unfuck
-    template<class ScriptFunctions = typename EIScript::EIScriptFunctions>
-    class AIDirector;
-
-    //TODO is this ok?
-    template<class T>
     class EIScriptFunctionsBase
     {
     protected:
-        typedef typename cursedearth::AIDirector<T> DirectorType;
+        typedef typename cursedearth::AIDirector DirectorType;
         DirectorType* ai_director;
 
     public:

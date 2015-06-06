@@ -6,12 +6,17 @@
 #include "EIScriptParser.h"
 #include "EIScriptDriver.h"
 #include "EIScriptContext.h"
+#include "EIScriptFunctions.h"
+#include "EIScriptExecutor.h"
 
 
 int main(int argc, char* argv[])
 {
-    EIScript::ScriptContext* script_context = new EIScript::ScriptContext(new cursedearth::AIDirector<>());
-    EIScript::Driver driver(script_context, false, true, false);
+    cursedearth::AIDirector* ai_director = new cursedearth::AIDirector();
+    EIScript::EIScriptContext* script_context = new EIScript::EIScriptContext();
+    EIScript::EIScriptFunctions* script_functions = new EIScript::EIScriptFunctions(ai_director);
+    EIScript::EIScriptExecutor* script_executor = new EIScript::EIScriptExecutor(script_context, script_functions);
+    EIScript::Driver driver(script_context, script_executor, false, true, false);
 
     for(int ai = 1; ai < argc; ++ai) {
         if(argv[ai] == std::string("-p")) {
@@ -32,9 +37,9 @@ int main(int argc, char* argv[])
 
             // DEBUG
             std::cout<<std::endl<<*(script_context->getWorldscript()->getScriptBody())<<std::endl;
-            script_context->callScript(script_context->getWorldscript()->getId(), nullptr);
+            script_executor->callScript(script_context->getWorldscript()->getId(), nullptr);
             while(true) {
-                script_context->advance();
+                script_executor->advance();
             }
         }
     }

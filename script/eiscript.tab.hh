@@ -48,10 +48,11 @@
     #include <string>
     #include "EIScriptClasses.h"
     #include "EIScriptContext.h"
+    #include "EIScriptExecutor.h"
 
 
 /* Line 33 of lalr1.cc  */
-#line 55 "eiscript.tab.hh"
+#line 56 "eiscript.tab.hh"
 
 
 #include <string>
@@ -68,7 +69,7 @@
 #line 4 "eiscript.y"
 namespace EIScript {
 /* Line 33 of lalr1.cc  */
-#line 72 "eiscript.tab.hh"
+#line 73 "eiscript.tab.hh"
 
   /// A Bison parser.
   class BisonParser
@@ -79,7 +80,7 @@ namespace EIScript {
     union semantic_type
     {
 /* Line 33 of lalr1.cc  */
-#line 34 "eiscript.y"
+#line 35 "eiscript.y"
 
     Type tVal;
     double fVal;
@@ -95,7 +96,7 @@ namespace EIScript {
 
 
 /* Line 33 of lalr1.cc  */
-#line 99 "eiscript.tab.hh"
+#line 100 "eiscript.tab.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -299,7 +300,7 @@ namespace EIScript {
 #line 4 "eiscript.y"
 } // EIScript
 /* Line 33 of lalr1.cc  */
-#line 303 "eiscript.tab.hh"
+#line 304 "eiscript.tab.hh"
 
 
 

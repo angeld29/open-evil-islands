@@ -8,16 +8,18 @@
 namespace EIScript
 {
 
-    Driver::Driver(ScriptContext* _script_context)
+    Driver::Driver(EIScriptContext* _script_context, EIScriptExecutor* script_executor)
         : script_context(_script_context)
+        , script_executor(script_executor)
         , trace_scanning(false)
         , trace_parsing(false)
         , standard_trace_parsing(false)
     {
     }
-
-    Driver::Driver(ScriptContext* _script_context, bool trace_scanning, bool trace_parsing, bool standard_trace_parsing)
+ 
+    Driver::Driver(EIScriptContext* _script_context, EIScriptExecutor* script_executor, bool trace_scanning, bool trace_parsing, bool standard_trace_parsing)
         : script_context(_script_context)
+        , script_executor(script_executor)
         , trace_scanning(trace_scanning)
         , trace_parsing(trace_parsing)
         , standard_trace_parsing(standard_trace_parsing)
@@ -60,7 +62,7 @@ namespace EIScript
         std::cerr << m << std::endl;
     }
 
-    void Driver::push_context(ScriptContext* context)
+    void Driver::push_context(EIScriptContext* context)
     {
         if(context->getParentContext() != script_context) {
             std::cerr << "Tried to replace parent context." << std::endl;
@@ -74,7 +76,7 @@ namespace EIScript
         if(script_context->getParentContext() == nullptr) {
             std::cerr << "Tried to pop parent context." << std::endl;
         } else {
-            ScriptContext* previous = script_context;
+            EIScriptContext* previous = script_context;
             script_context = script_context->getParentContext();
             delete previous;
         }

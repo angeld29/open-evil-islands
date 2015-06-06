@@ -4,16 +4,37 @@
 namespace EIScript
 {
 
-    template<class T>
-    EIScriptContext<T>* EIScriptContext<T>::getParentContext()
+    EIScriptContext::EIScriptContext()
+        : parent(nullptr) { }
+
+    EIScriptContext::EIScriptContext(EIScriptContext* parent)
+        : parent(parent) { }
+
+    EIScriptContext::~EIScriptContext()
+    {
+        if(!parent) {
+            delete worldscript;
+        }
+    }
+    
+    ScriptDeclaration* EIScriptContext::getWorldscript()
+    {
+        return worldscript;
+    }
+
+    void EIScriptContext::setWorldscript(ScriptDeclaration* worldscript)
+    {
+        this->worldscript = worldscript;
+    }
+
+    EIScriptContext* EIScriptContext::getParentContext()
     {
         return parent;
     }
 
-    template<class T>
-    EIScriptContext<T>* EIScriptContext<T>::extendedContext(VariableList* local_vars)
+    EIScriptContext* EIScriptContext::extendedContext(VariableList* local_vars)
     {
-        EIScriptContext<T>* extended = new EIScriptContext<T>(this);
+        EIScriptContext* extended = new EIScriptContext(this);
         if(local_vars) {
             for(auto& var : *local_vars) {
                 extended->addLocalVariable(var);
@@ -22,13 +43,11 @@ namespace EIScript
         return extended;
     }
 
-    template<class T>
-    void EIScriptContext<T>::clear_script()
+    void EIScriptContext::clear_script()
     {
     }
 
-    template<class T>
-    void EIScriptContext<T>::addScript(ScriptDeclaration* script)
+    void EIScriptContext::addScript(ScriptDeclaration* script)
     {
         if(parent == nullptr) {
             scripts.insert(std::make_pair(*script->getName(), script));
@@ -37,26 +56,17 @@ namespace EIScript
         }
     }
 
-    template<class T>
-    void EIScriptContext<T>::addGlobalVariable(VariableDeclaration* variable)
+    void EIScriptContext::addGlobalVariable(VariableDeclaration* variable)
     {
         globals.insert(std::make_pair(*variable->getName(), variable));
     }
 
-    template<class T>
-    void EIScriptContext<T>::addLocalVariable(VariableDeclaration* variable)
+    void EIScriptContext::addLocalVariable(VariableDeclaration* variable)
     {
         locals.insert(std::make_pair(*variable->getName(), variable));
     }
 
-    template<class T>
-    bool EIScriptContext<T>::functionDefined(Identifier* ident)
-    {
-        return ai_director->functionDefined(ident->name);
-    }
-
-    template<class T>
-    bool EIScriptContext<T>::scriptDefined(Identifier* ident)
+    bool EIScriptContext::scriptDefined(Identifier* ident)
     {
         if(parent == nullptr) {
             return scripts.find(*(ident->name)) != scripts.end();
@@ -65,8 +75,7 @@ namespace EIScript
         }
     }
 
-    template<class T>
-    bool EIScriptContext<T>::variableDefined(Identifier* ident)
+    bool EIScriptContext::variableDefined(Identifier* ident)
     {
         if(locals.find(*(ident->name)) != locals.end()) {
             return true;
@@ -81,14 +90,7 @@ namespace EIScript
         }
     }
 
-    template<class T>
-    Type EIScriptContext<T>::getFunctionType(Identifier* ident)
-    {
-        return ai_director->getFunctionType(ident->name);
-    }
-
-    template<class T>
-    ScriptDeclaration* EIScriptContext<T>::getScript(Identifier* ident)
+    ScriptDeclaration* EIScriptContext::getScript(Identifier* ident)
     {
         if(parent == nullptr) {
             return scripts[*ident->name];
@@ -97,8 +99,7 @@ namespace EIScript
         }
     }
 
-    template<class T>
-    VariableDeclaration* EIScriptContext<T>::getVariable(const Identifier* ident)
+    VariableDeclaration* EIScriptContext::getVariable(const Identifier* ident)
     {
         VariableDeclaration* local = locals[*ident->name];
         if(!local) {
@@ -117,45 +118,7 @@ namespace EIScript
         }
     }
 
-    template<class T>
-    Expression* EIScriptContext<T>::callFunction(std::string* function_name, ExpressionList* arguments)
-    {
-        ExpressionList resolved_arguments(*arguments); //TODO is this even acceptable?
-        std::transform(
-            resolved_arguments.begin(), resolved_arguments.end(), resolved_arguments.begin(),
-        [this](Expression* e) { if(e) return e->resolve(this); else return e; }
-        );
-        return ai_director->call(function_name, resolved_arguments);
-    }
-
-    /* DEBUG */
-
-    std::ostream& operator << (std::ostream& os, std::nullptr_t)
-    {
-        return os << "nullptr";
-    }
-
-    /* END DEBUG */
-
-    template<class T>
-    void EIScriptContext<T>::callScript(Identifier* function_name, ExpressionList* arguments)
-    {
-        ScriptDeclaration* script = getScript(function_name);
-        if(!script && function_name == getWorldscript()->getId()) {
-            script = getWorldscript();
-        }
-
-        script_executor->execute(script, arguments);
-    }
-
-    template<class T>
-    void EIScriptContext<T>::dumpFunctions(std::ostream& str)
-    {
-        ai_director->dumpFunctions(str);
-    }
-
-    template<class T>
-    void EIScriptContext<T>::dumpScripts(std::ostream& str)
+    void EIScriptContext::dumpScripts(std::ostream& str)
     {
         if(parent == nullptr) {
             for(auto& pair : scripts) {
@@ -167,8 +130,7 @@ namespace EIScript
 
     }
 
-    template<class T>
-    void EIScriptContext<T>::dumpVariables(std::ostream& str)
+    void EIScriptContext::dumpVariables(std::ostream& str)
     {
         for(auto& pair : globals) {
             str << "Global variable " << pair.first << " : " << pair.second << std::endl;
@@ -181,5 +143,4 @@ namespace EIScript
         }
     }
 
-    template class EIScriptContext<>;
 }

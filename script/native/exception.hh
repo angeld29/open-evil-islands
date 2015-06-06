@@ -52,7 +52,6 @@ namespace EIScript
             virtual const std::string causedBy() { return "Not enough arguments"; }
         };
 
-
         class TooManyParameters : public InvalidAction
         {
         private:

@@ -24,13 +24,15 @@ namespace EIScript
         class FlexScanner* lexer;
 
         /** Reference to the script context filled during parsing */
-        ScriptContext* script_context;
+        class EIScriptContext* script_context;        
+        /** Reference to the script functions implementation */
+        EIScriptExecutor* script_executor;
 
         /// construct a new parser driver
-        Driver(ScriptContext* script_context);
+        Driver(EIScriptContext* script_context, EIScriptExecutor* script_executor);
 
         /// construct a new parser driver context
-        Driver(ScriptContext* script_context, bool trace_scanning, bool trace_parsing, bool standard_trace_parsing);
+        Driver(EIScriptContext* script_context, EIScriptExecutor* script_executor, bool trace_scanning, bool trace_parsing, bool standard_trace_parsing);
 
         /// enable debug output in the flex scanner
         bool trace_scanning;
@@ -71,7 +73,7 @@ namespace EIScript
         void error(const std::string& m);
 
     protected:
-        void push_context(ScriptContext* context);
+        void push_context(EIScriptContext* context);
         void pop_context();
     };
 }

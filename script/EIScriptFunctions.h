@@ -11,7 +11,7 @@
 namespace EIScript
 {
 
-    class EIScriptFunctions : public cursedearth::EIScriptFunctionsBase<EIScriptFunctions>
+    class EIScriptFunctions : public EIScriptFunctionsBase
     {
         typedef typename Function::AbstractFunction FunctionType;
     public:
