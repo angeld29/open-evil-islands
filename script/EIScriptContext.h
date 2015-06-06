@@ -34,7 +34,9 @@ namespace EIScript
         bool variableDefined(Identifier* ident);
 
         ScriptDeclaration* getScript(Identifier* ident);
+        ScriptDeclaration* getScript(std::string* script_name);
         VariableDeclaration* getVariable(const Identifier* ident);
+        VariableDeclaration* getVariable(std::string* var_name);
         
         ScriptDeclaration* getWorldscript();
         void setWorldscript(ScriptDeclaration* worldscript);
@@ -44,9 +46,9 @@ namespace EIScript
 
     protected:
         EIScriptContext* parent;
-        boost::unordered_map<std::string, ScriptDeclaration*> scripts;
-        boost::unordered_map<std::string, VariableDeclaration*> globals;
-        boost::unordered_map<std::string, VariableDeclaration*> locals;
+        boost::unordered_map<std::string, ScriptDeclaration*, CaseInsensitiveHash, CaseInsensitiveEqual> scripts;
+        boost::unordered_map<std::string, VariableDeclaration*, CaseInsensitiveHash, CaseInsensitiveEqual> globals;
+        boost::unordered_map<std::string, VariableDeclaration*, CaseInsensitiveHash, CaseInsensitiveEqual> locals;
         ScriptDeclaration* worldscript;
     };
 }

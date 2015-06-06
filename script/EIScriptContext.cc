@@ -92,21 +92,32 @@ namespace EIScript
 
     ScriptDeclaration* EIScriptContext::getScript(Identifier* ident)
     {
+        return getScript(ident->name);
+    }
+
+    ScriptDeclaration* EIScriptContext::getScript(std::string* script_name)
+    {
         if(parent == nullptr) {
-            return scripts[*ident->name];
+            return scripts[*script_name];
         } else {
-            return parent->getScript(ident);
+            return parent->getScript(script_name);
         }
     }
 
     VariableDeclaration* EIScriptContext::getVariable(const Identifier* ident)
     {
-        VariableDeclaration* local = locals[*ident->name];
+        return getVariable(ident->name);
+    }
+    
+    VariableDeclaration* EIScriptContext::getVariable(std::string* var_name)
+    {
+        // TODO rewrite?
+        VariableDeclaration* local = locals[*var_name];
         if(!local) {
-            VariableDeclaration* global = globals[*ident->name];
+            VariableDeclaration* global = globals[*var_name];
             if(!global) {
                 if(parent != nullptr) {
-                    return parent->getVariable(ident);
+                    return parent->getVariable(var_name);
                 } else {
                     return nullptr;
                 }

@@ -22,7 +22,34 @@ namespace EIScript
         EIScriptFunctionsBase* functions_impl;
         bool verbose_execution;
 
+        void push_context(ScriptDeclaration* scriptDeclaration, ExpressionList* arguments) {
+            ExpressionList resolved_arguments = resolveArguments(arguments);
+            script_context = script_context->extendedContext(scriptDeclaration->getArguments());
+            for(int i = 0; i < scriptDeclaration->getArguments()->size(); i++){
+                scriptDeclaration->getArguments()
+            }
+        }
 
+        void pop_context() {
+            if(script_context->getParentContext() == nullptr) {
+                std::cerr << "Tried to pop parent context." << std::endl;
+            } else {
+                EIScriptContext* previous = script_context;
+                script_context = script_context->getParentContext();
+                delete previous;
+            }
+        }
+        
+        ExpressionList& resolveArguments(ExpressionList* arguments){
+            ExpressionList resolved_arguments(*arguments); //TODO is this even acceptable?
+            auto& parent_val = parent;
+            std::transform(
+                resolved_arguments.begin(), resolved_arguments.end(), resolved_arguments.begin(),
+            [parent_val](Expression* e) { if(e) return e->resolve(parent_val); else return e; }
+            );
+            return resolved_arguments;
+        }
+        
     public:
         EIScriptExecutorImpl(EIScriptExecutor* parent, EIScriptContext* script_context, EIScriptFunctionsBase* functions_impl)
             : parent(parent)
@@ -37,12 +64,7 @@ namespace EIScript
 
         // TODO FIXME XXX I could move this to EIScriptExecutor, but the parent is still required for expression resolution in callScript -> something better?
         inline Expression* callFunction(std::string* function_name, ExpressionList* arguments) {
-            ExpressionList resolved_arguments(*arguments); //TODO is this even acceptable?
-            auto& parent_val = parent;
-            std::transform(
-                resolved_arguments.begin(), resolved_arguments.end(), resolved_arguments.begin(),
-            [parent_val](Expression* e) { if(e) return e->resolve(parent_val); else return e; }
-            );
+            ExpressionList resolved_arguments = resolveArguments(arguments);
             return functions_impl->call(function_name, resolved_arguments);
         }
 
@@ -59,6 +81,7 @@ namespace EIScript
         }
 
         void executeScript(ScriptDeclaration* script, ExpressionList* arguments) {
+            push_context(script, arguments);
             Identifier* function_name = script->getId();
             for(auto block : *(script->getScriptBody())) {
                 auto if_block = std::get<0>(*block);
