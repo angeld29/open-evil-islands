@@ -21,6 +21,7 @@ namespace EIScript
         ~EIScriptExecutor();
 
         void advance() ;
+        //TODO handle no args
         void callScript(Identifier* function_name, ExpressionList* arguments);
         Expression* callFunction(std::string* function_name, ExpressionList* arguments);
         void setVerboseExecution(bool verbose);

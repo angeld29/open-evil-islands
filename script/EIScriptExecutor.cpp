@@ -23,10 +23,20 @@ namespace EIScript
         bool verbose_execution;
 
         void push_context(ScriptDeclaration* scriptDeclaration, ExpressionList* arguments) {
-            ExpressionList resolved_arguments = resolveArguments(arguments);
-            script_context = script_context->extendedContext(scriptDeclaration->getArguments());
-            for(int i = 0; i < scriptDeclaration->getArguments()->size(); i++){
-                scriptDeclaration->getArguments()
+            if(arguments) {
+                ExpressionList resolved_arguments = resolveArguments(arguments);
+
+                script_context = script_context->extendedContext(scriptDeclaration->getArguments());
+
+                for(unsigned int i = 0; i < scriptDeclaration->getArguments()->size(); i++) {
+                    if(resolved_arguments[i]) {
+                        std::string* var_name = (*scriptDeclaration->getArguments())[i]->getName();
+                        script_context->getVariable(var_name)->setValue(resolved_arguments[i]);
+                    }
+                    // TODO delete resolved expressions on pop
+                }
+            } else {
+                script_context = script_context->extendedContext(scriptDeclaration->getArguments());
             }
         }
 
@@ -39,8 +49,8 @@ namespace EIScript
                 delete previous;
             }
         }
-        
-        ExpressionList& resolveArguments(ExpressionList* arguments){
+
+        ExpressionList resolveArguments(ExpressionList* arguments) {
             ExpressionList resolved_arguments(*arguments); //TODO is this even acceptable?
             auto& parent_val = parent;
             std::transform(
@@ -49,7 +59,40 @@ namespace EIScript
             );
             return resolved_arguments;
         }
-        
+
+        void doExecuteScript(ScriptDeclaration* script) {
+            Identifier* function_name = script->getId();
+            for(auto block : *(script->getScriptBody())) {
+                auto if_block = std::get<0>(*block);
+                auto then_block = std::get<1>(*block);
+
+                std::cout<<"IF in "<<*(function_name->name)<<std::endl;
+                if(if_block) {
+                    for(auto predicate : *(if_block)) {
+                        if(predicate) {
+                            std::cout<<predicate->resolve(parent)<<std::endl;
+                        } else {
+                            std::cout<<"nulltpr in if"<<std::endl;
+                        }
+                    }
+                } else {
+                    std::cout<<"empty"<<std::endl;
+                }
+                std::cout<<"THEN in "<<*(function_name->name)<<std::endl;
+                if(then_block) {
+                    for(auto expression : *(then_block)) {
+                        if(expression) {
+                            std::cout<<expression->resolve(parent)<<std::endl;
+                        } else {
+                            std::cout<<"nulltpr in then"<<std::endl;
+                        }
+                    }
+                } else {
+                    std::cout<<"empty (somehow)"<<std::endl;
+                }
+            }
+        }
+
     public:
         EIScriptExecutorImpl(EIScriptExecutor* parent, EIScriptContext* script_context, EIScriptFunctionsBase* functions_impl)
             : parent(parent)
@@ -82,36 +125,8 @@ namespace EIScript
 
         void executeScript(ScriptDeclaration* script, ExpressionList* arguments) {
             push_context(script, arguments);
-            Identifier* function_name = script->getId();
-            for(auto block : *(script->getScriptBody())) {
-                auto if_block = std::get<0>(*block);
-                auto then_block = std::get<1>(*block);
-
-                std::cout<<"IF in "<<*(function_name->name)<<std::endl;
-                if(if_block) {
-                    for(auto predicate : *(if_block)) {
-                        if(predicate) {
-                            std::cout<<predicate->resolve(parent)<<std::endl;
-                        } else {
-                            std::cout<<"nulltpr in if"<<std::endl;
-                        }
-                    }
-                } else {
-                    std::cout<<"empty"<<std::endl;
-                }
-                std::cout<<"THEN in "<<*(function_name->name)<<std::endl;
-                if(then_block) {
-                    for(auto expression : *(then_block)) {
-                        if(expression) {
-                            std::cout<<expression->resolve(parent)<<std::endl;
-                        } else {
-                            std::cout<<"nulltpr in then"<<std::endl;
-                        }
-                    }
-                } else {
-                    std::cout<<"empty (somehow)"<<std::endl;
-                }
-            }
+            doExecuteScript(script);
+            pop_context();
         }
 
         void setVerboseExecution(bool verbose) {

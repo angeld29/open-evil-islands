@@ -23,6 +23,7 @@ namespace EIScript
 
         virtual ~EIScriptFunctionsBase() {}
 
+        //TODO handle no args
         virtual EIScript::Expression* call(std::string* function_name, EIScript::ExpressionList& arguments) = 0;
 
         virtual bool functionDefined(std::string* function_name) = 0;

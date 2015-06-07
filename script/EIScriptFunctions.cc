@@ -29,7 +29,7 @@ namespace EIScript
 
         double IsEqual(double x, double y)
         {
-            return x == y ? 1 : 0; //TODO epsilon-based comparison needed?
+            return cursedearth::doubleEqual(x, y) ? 1 : -1; // proper?
         }
 
         double IsGreater(double x, double y)
@@ -106,6 +106,8 @@ namespace EIScript
         REGISTER_METHOD_BY_NAME(GSSetVarMax, Type::None, ai_director, DirectorType);
         REGISTER_METHOD_BY_NAME(GSGetVar, Type::Float, ai_director, DirectorType);
         REGISTER_METHOD_BY_NAME(GSDelVar, Type::None, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GetDiplomacy, Type::Float, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(SetDiplomacy, Type::None, ai_director, DirectorType);
 #undef REGISTER_METHOD_BY_NAME
     }
 

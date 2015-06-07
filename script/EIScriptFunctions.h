@@ -7,6 +7,7 @@
 #include "EIScriptFunctionsBase.h"
 #include "function.hh"
 #include "util.h"
+#include "utility.hpp"
 
 namespace EIScript
 {
