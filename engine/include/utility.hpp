@@ -37,6 +37,8 @@ namespace cursedearth
     extern const float g_epsilon_e5;
     extern const float g_epsilon_e6;
 
+    extern const double d_epsilon_e3;
+
     extern const float g_deg2rad;
     extern const float g_rad2deg;
 
@@ -87,6 +89,11 @@ namespace cursedearth
         value |= (value >> 16);
         value |= (value >> 32);
         return value + 1;
+    }
+
+    inline double doubleEqual(double a, double b, double tolerance = g_epsilon_e3)
+    {
+        return relative_difference(a, b) <= tolerance;
     }
 }
 

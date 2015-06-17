@@ -34,11 +34,13 @@ Export("env")
 
 engine = Alias("engine", SConscript(dirs="engine"))
 spikes = Alias("spikes", SConscript(dirs="spikes"))
+script = Alias("script", SConscript(dirs="script"))
 
 Depends(spikes, engine)
+Depends(script, engine)
 Default(spikes)
 
-targets = [engine, spikes]
+targets = [engine, spikes, script]
 
 if "mp32oga" in COMMAND_LINE_TARGETS:
     targets.append(Alias("mp32oga", SConscript("Mp32Oga.SConscript")))

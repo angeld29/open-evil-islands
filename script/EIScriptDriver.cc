@@ -16,7 +16,7 @@ namespace EIScript
         , standard_trace_parsing(false)
     {
     }
- 
+
     Driver::Driver(EIScriptContext* _script_context, EIScriptExecutor* script_executor, bool trace_scanning, bool trace_parsing, bool standard_trace_parsing)
         : script_context(_script_context)
         , script_executor(script_executor)

@@ -36,6 +36,8 @@ namespace cursedearth
     const float g_epsilon_e5 = 1e-5f;
     const float g_epsilon_e6 = 1e-6f;
 
+    const double d_epsilon_e3 = 1e-3;
+
     const float g_deg2rad = 0.01745329f;
     const float g_rad2deg = 57.2957795f;
 
@@ -44,5 +46,11 @@ namespace cursedearth
     {
         const float value = std::max(std::abs(a), std::abs(b));
         return 0.0f == value ? 0.0f : std::abs(a - b) / value;
+    }
+    
+    double relative_difference(double a, double b)
+    {
+        const double value = std::max(std::abs(a), std::abs(b));
+        return 0.0 == value ? 0.0 : std::abs(a - b) / value;
     }
 }

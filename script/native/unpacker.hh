@@ -38,7 +38,7 @@ namespace EIScript
             }
         };
 
-    };
+    }
 
     namespace Unpacker
     {
