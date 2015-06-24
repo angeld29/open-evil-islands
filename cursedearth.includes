@@ -14,3 +14,5 @@ tools/resfileviewer
 tools/resfileviewer/src/gui
 tools/resfileviewer/src
 spikes/mediaplayer/src
+script/src
+script/include

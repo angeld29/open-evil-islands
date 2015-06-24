@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 
 #  This file is part of Cursed Earth.
 #
@@ -29,21 +29,25 @@ Import("env")
 env = env.Clone()
 
 env.PrependUnique(
-    CPPPATH=[os.path.join("#engine", "include"), "native", ".", os.path.join("build", "$GEN_PATH")],
+    CPPPATH=[os.path.join("#engine", "include"), "native", "include", ".", os.path.join("build", "$GEN_PATH")],
     LIBPATH=[os.path.join("#engine", "lib", "$GEN_PATH")],
     LIBS=["engine"],
 )
+
+# TODO proper build
 env['ENV']['PATH'] = os.environ['PATH']
 
-env.VariantDir(os.path.join("build", "$GEN_PATH"), ".", duplicate=False)
+env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
 
 sources = [os.path.join("build", "$GEN_PATH", "eiscript.tab.cc"),
     os.path.join("build", "$GEN_PATH", "lex.yy.cc"),
     [os.path.join("build", "$GEN_PATH", node.name) for node in
-    utils.filter_sources(env, env.Glob("*.cc"))]]
+    utils.filter_sources(env, env.Glob(os.path.join("src", "*.cc")))]]
 
-yaccTarget = env.Command(os.path.join("build", "$GEN_PATH", "eiscript.tab.cc"), 'eiscript.y', "win_bison -o $TARGET -d --language=C++ $SOURCE")
-lexTarget = env.Command(os.path.join("build", "$GEN_PATH", "lex.yy.cc"), 'eiscript.l', "win_flex -o $TARGET $SOURCE")
+
+# TODO proper build
+yaccTarget = env.Command(os.path.join("build", "$GEN_PATH", "eiscript.tab.cc"), os.path.join("src",'eiscript.y'), "win_bison -o $TARGET -d --language=C++ $SOURCE")
+lexTarget = env.Command(os.path.join("build", "$GEN_PATH", "lex.yy.cc"), os.path.join("src",'eiscript.l'), "win_flex -o $TARGET $SOURCE")
 executable = env.Program(os.path.join("build", "eiscript"), sources)
 
 Depends(lexTarget, yaccTarget)
