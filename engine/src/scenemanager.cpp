@@ -135,6 +135,24 @@ namespace cursedearth
                 deg2rad(ycoef * m_input_supply->pointer_offset().y));
         }
 
+
+        // Aleks // TODO move to aitestrange
+        size_t completed_job_count = ce_mob_loader->completed_job_count;
+        size_t queued_job_count = ce_mob_loader->queued_job_count;
+
+        if (NULL != m_terrain && once && completed_job_count >= queued_job_count) {
+            once = false;
+            ce_logging_debug("test entities count: %d", ce_figure_manager->entities->count);
+            for (size_t i = 0; i < ce_figure_manager->entities->count; ++i) {
+                ce_figentity* figentity = (ce_figentity*) ce_figure_manager->entities->items[i];
+                ce_figentity_fix_height(figentity,
+                    ce_mpr_get_height(m_terrain->mprfile, &figentity->position));
+                ce_scenenode_attach_child(ce_terrain_find_scenenode(m_terrain,
+                    figentity->position.x, figentity->position.z), figentity->scenenode);
+            }
+        }
+        // /Aleks
+
         do_advance(elapsed);
     }
 

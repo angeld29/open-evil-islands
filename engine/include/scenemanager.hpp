@@ -65,6 +65,8 @@ namespace cursedearth
         ce_renderqueue* m_renderqueue;
 
     private:
+        // remove
+        bool once = true;
         const ce_thread_id m_thread_id;
         bool m_show_bboxes = false;
         bool m_comprehensive_bbox_only = true;

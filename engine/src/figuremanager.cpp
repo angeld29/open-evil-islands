@@ -138,6 +138,8 @@ namespace cursedearth
             }
         }
 
+        // ce_logging_info("proto name: %s, base name: %s", name.c_str(), base_name.c_str());
+
         std::string file_name = name + ce_figure_exts[0];
         for (size_t i = 0; i < ce_figure_manager->res_files->count; ++i) {
             ce_res_file* res_file = (ce_res_file*)ce_figure_manager->res_files->items[i];

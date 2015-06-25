@@ -146,6 +146,10 @@ namespace cursedearth
         ce_quat_copy(&figentity->orientation, orientation);
 
         for (size_t i = 0; NULL != textures[i]; ++i) {
+            // skipping unspecified textures
+//            if(textures[i] == NULL || strcmp(textures[i], "") == 0){ // TODO should do this?
+//                continue;
+//            }
             ce_vector_push_back(figentity->textures, ce_texture_manager_get(textures[i]));
             if (NULL == figentity->textures->items[i]) {
                 figentity->textures->items[i] = ce_texture_manager_get("default0");
