@@ -16,3 +16,9 @@ tools/resfileviewer/src
 spikes/mediaplayer/src
 script/src
 script/include
+spikes/aidesigner/src
+engine/ai/include
+engine/ai/src
+script/build/x86-windows-mingw-64bit/debug
+engine/ai/native
+engine/ai

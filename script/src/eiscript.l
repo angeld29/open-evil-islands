@@ -1,8 +1,8 @@
 %{
     #include <iostream>
     #include <cstdlib>
-    #include "eiscript.tab.hh"
-    #include "EIScriptScanner.h"
+    #include "eiscript.tab.hpp"
+    #include "EIScriptScanner.hpp"
 
     void commenteof();
     int line_no = 1;

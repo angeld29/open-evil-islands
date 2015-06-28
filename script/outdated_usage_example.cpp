@@ -1,13 +1,13 @@
 #include <iostream>
 #include <fstream>
 
-#include "AIDirector.h"
-#include "EIScriptScanner.h"
-#include "EIScriptParser.h"
-#include "EIScriptDriver.h"
-#include "EIScriptContext.h"
-#include "EIScriptFunctions.h"
-#include "EIScriptExecutor.h"
+#include "AIDirector.hpp"
+#include "EIScriptScanner.hpp"
+#include "EIScriptParser.hpp"
+#include "EIScriptDriver.hpp"
+#include "EIScriptContext.hpp"
+#include "EIScriptFunctions.hpp"
+#include "EIScriptExecutor.hpp"
 
 
 int main(int argc, char* argv[])

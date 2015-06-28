@@ -19,14 +19,14 @@
 %code requires {
     #include <iostream>
     #include <string>
-    #include "EIScriptClasses.h"
-    #include "EIScriptContext.h"
-    #include "EIScriptExecutor.h"
+    #include "EIScriptClasses.hpp"
+    #include "EIScriptContext.hpp"
+    #include "EIScriptExecutor.hpp"
 }
 
 %code {
-    #include "EIScriptDriver.h"
-    #include "EIScriptScanner.h"
+    #include "EIScriptDriver.hpp"
+    #include "EIScriptScanner.hpp"
     
     #undef yylex
     #define yylex driver.lexer->yylex

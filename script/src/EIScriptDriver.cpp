@@ -1,9 +1,9 @@
 #include <fstream>
 #include <sstream>
 
-#include "EIScriptDriver.h"
-#include "EIScriptScanner.h"
-#include "EIScriptParser.h"
+#include "EIScriptDriver.hpp"
+#include "EIScriptScanner.hpp"
+#include "EIScriptParser.hpp"
 
 namespace EIScript
 {

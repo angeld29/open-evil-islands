@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EIScriptDriver.h"
+#include "EIScriptDriver.hpp"
     
 namespace EIScript {
 

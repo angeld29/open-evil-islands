@@ -29,9 +29,10 @@ Import("env")
 env = env.Clone()
 
 env.PrependUnique(
-    CPPPATH=[os.path.join("#engine", "include"), "native", "include", ".", os.path.join("build", "$GEN_PATH")],
-    LIBPATH=[os.path.join("#engine", "lib", "$GEN_PATH")],
-    LIBS=["engine"],
+    CPPPATH=[os.path.join("#engine", "include"), "include", ".", os.path.join("build", "$GEN_PATH")],
+    #CPPPATH=[os.path.join("#engine", "include"), "native", "include", ".", os.path.join("build", "$GEN_PATH")],
+    #LIBPATH=[os.path.join("#engine", "lib", "$GEN_PATH")],
+    #LIBS=["engine"],
 )
 
 # TODO proper build
@@ -39,20 +40,22 @@ env['ENV']['PATH'] = os.environ['PATH']
 
 env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
 
-sources = [os.path.join("build", "$GEN_PATH", "eiscript.tab.cc"),
-    os.path.join("build", "$GEN_PATH", "lex.yy.cc"),
+sources = [os.path.join("build", "$GEN_PATH", "eiscript.tab.cpp"),
+    os.path.join("build", "$GEN_PATH", "lex.yy.cpp"),
     [os.path.join("build", "$GEN_PATH", node.name) for node in
-    utils.filter_sources(env, env.Glob(os.path.join("src", "*.cc")))]]
+    utils.filter_sources(env, env.Glob(os.path.join("src", "*.cpp")))]]
 
 
 # TODO proper build
-yaccTarget = env.Command(os.path.join("build", "$GEN_PATH", "eiscript.tab.cc"), os.path.join("src",'eiscript.y'), "win_bison -o $TARGET -d --language=C++ $SOURCE")
-lexTarget = env.Command(os.path.join("build", "$GEN_PATH", "lex.yy.cc"), os.path.join("src",'eiscript.l'), "win_flex -o $TARGET $SOURCE")
-executable = env.Program(os.path.join("build", "eiscript"), sources)
+yaccTarget = env.Command(os.path.join("build", "$GEN_PATH", "eiscript.tab.cpp"), os.path.join("src",'eiscript.y'), "win_bison -o $TARGET -d --language=C++ $SOURCE")
+lexTarget = env.Command(os.path.join("build", "$GEN_PATH", "lex.yy.cpp"), os.path.join("src",'eiscript.l'), "win_flex -o $TARGET $SOURCE")
+library = env.Library(os.path.join("lib", "$GEN_PATH", "eiscript"), sources)
 
 Depends(lexTarget, yaccTarget)
-Depends(executable, lexTarget)
+Depends(library, lexTarget)
 
-targets = [yaccTarget, lexTarget, executable]
+targets = [env.Command(os.path.join("lib", SCons.Util.adjustixes("eiscript",
+    env.subst("$LIBPREFIX"), env.subst("$LIBSUFFIX"))), library,
+    Copy("$TARGET", "$SOURCE"))]
 
 Return("targets")

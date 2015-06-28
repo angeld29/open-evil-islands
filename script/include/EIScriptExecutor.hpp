@@ -4,15 +4,12 @@
 #include <queue>
 #include <tuple>
 
-#include "EIScriptContext.h"
-#include "EIScriptFunctions.h"
-#include "exception.hh"
-#include "log.h"
+#include "EIScriptContext.hpp"
+#include "EIScriptFunctionsBase.hpp"
+#include "scriptexception.hpp"
 
 namespace EIScript
 {
-
-    class EIScriptExecutorImpl;
 
     class EIScriptExecutor
     {
@@ -20,7 +17,8 @@ namespace EIScript
         EIScriptExecutor(EIScriptContext* script_context, EIScriptFunctionsBase* functions_impl);
         ~EIScriptExecutor();
 
-        void advance() ;
+        void advance(float elapsed) ;
+
         //TODO handle no args
         void callScript(Identifier* function_name, ExpressionList* arguments);
         Expression* callFunction(std::string* function_name, ExpressionList* arguments);
@@ -48,10 +46,17 @@ namespace EIScript
         }
 
     private:
-        // all this decoupling thing may just turn out to be bullshit, we'll see. Should be easy to get rid of, if need be
-        EIScriptExecutorImpl* executor_impl;
+        typedef std::tuple<ScriptDeclaration*, ExpressionList*> QueueEntry;
+        std::queue<QueueEntry> script_queue;
+        bool verbose_execution;
         EIScriptFunctionsBase* functions_impl;
         EIScriptContext* script_context;
+
+        void executeScript(ScriptDeclaration* script, ExpressionList* arguments);
+        void doExecuteScript(ScriptDeclaration* script);
+        void push_context(ScriptDeclaration* scriptDeclaration, ExpressionList* arguments);
+        void pop_context();
+        ExpressionList resolveArguments(ExpressionList* arguments);
     };
 
 }

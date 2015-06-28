@@ -4,10 +4,10 @@
 #include <vector>
 #include <type_traits>
 
-#include "EIScriptClassesBase.h"
-#include "ScriptAccessible.hh"
-#include "exception.hh"
-#include "unpacker.hh"
+#include "EIScriptClassesBase.hpp"
+#include "ScriptAccessible.hpp"
+#include "scriptexception.hpp"
+#include "unpacker.hpp"
 
 namespace EIScript
 {

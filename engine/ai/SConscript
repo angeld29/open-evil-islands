@@ -27,27 +27,22 @@ import utils
 
 Import("env")
 
-env = env.Clone(
-    tools=["rc"],
-    RCROOTPATH="res",
-    RCBUILDPATH="build",
-    RCBUILDOBJPATH=os.path.join("build", "$GEN_PATH"),
-)
-
 env.PrependUnique(
-    CPPPATH=["include"],
+    CPPPATH=["include", "native",
+    os.path.join("#engine", "include"),
+    os.path.join("#script", "include")]
 )
 
 env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
 
 sources = [os.path.join("build", "$GEN_PATH", node.name) for node in
-    utils.filter_sources(env, env.Glob(os.path.join("src", "*.cpp")))] + \
-    env.Glob(os.path.join("res", "resource.cerc"))
+    utils.filter_sources(env, env.Glob(os.path.join("src", "*.cpp")))]
 
-ai = SConscript(dirs="ai")
-lib = env.Library(os.path.join("lib", "$GEN_PATH", "engine"), sources + ai)
+lib = env.Library(os.path.join("lib", "$GEN_PATH", "ai"), sources) # does this need to be a library?
+# I mostly wanted to separate my code from the rest of the engine, because I find include and sources dirs
+# with 30+ files unmanageable and hard to understand and keep track of
 
-targets = [env.Command(os.path.join("lib", SCons.Util.adjustixes("engine",
+targets = [env.Command(os.path.join("lib", SCons.Util.adjustixes("ai",
     env.subst("$LIBPREFIX"), env.subst("$LIBSUFFIX"))), lib,
     Copy("$TARGET", "$SOURCE"))]
 

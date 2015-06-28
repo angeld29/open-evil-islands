@@ -4,9 +4,9 @@
 #include <vector>
 #include <string>
 
-#include "EIScriptClassesBase.h"
-#include "helper.hh"
-#include "exception.hh"
+#include "EIScriptClassesBase.hpp"
+#include "helper.hpp"
+#include "scriptexception.hpp"
 
 namespace EIScript
 {

@@ -7,8 +7,8 @@
 #include <boost/unordered_map.hpp>
 
 #include "utility.hpp"
-#include "ScriptAccessible.hh"
-#include "exception.hh"
+#include "ScriptAccessible.hpp"
+#include "scriptexception.hpp"
 
 namespace cursedearth
 {
@@ -19,6 +19,8 @@ namespace cursedearth
         AIDirector();
         ~AIDirector();
 
+        void advance(float elapsed);
+
         void GSSetVar(double player, std::string* variable, double value);
         void GSSetVarMax(double player, std::string* variable, double value);
         double GSGetVar(double player, std::string* variable);
@@ -28,9 +30,14 @@ namespace cursedearth
 
     protected:
         const int n_players = 32;
-        boost::unordered_map<std::string, double> gs_vars; // Why gs_vars? GSSetVar? What is GS?
+        boost::unordered_map<std::string, double> gs_vars; // Why gs_vars? GSSetVar? What is GS? Who is the Milkman?
         short int ai_diplomacy[32][32]; // because of dumb
         std::string tag = "[AIDirector]";
+
+        EIScript::EIScriptContext* script_context;
+        EIScript::EIScriptFunctions* script_functions;
+        EIScript::EIScriptExecutor* script_executor;
+        EIScript::Driver& driver;
     };
 
 }

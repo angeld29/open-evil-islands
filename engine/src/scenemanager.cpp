@@ -136,7 +136,7 @@ namespace cursedearth
         }
 
 
-        // Aleks // TODO move to aitestrange
+        // Aleks // TODO move to aidesigner
         size_t completed_job_count = ce_mob_loader->completed_job_count;
         size_t queued_job_count = ce_mob_loader->queued_job_count;
 

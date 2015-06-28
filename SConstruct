@@ -36,8 +36,8 @@ engine = Alias("engine", SConscript(dirs="engine"))
 spikes = Alias("spikes", SConscript(dirs="spikes"))
 script = Alias("script", SConscript(dirs="script"))
 
+Depends(engine, script)
 Depends(spikes, engine)
-Depends(script, engine)
 Default(spikes)
 
 targets = [engine, spikes, script]

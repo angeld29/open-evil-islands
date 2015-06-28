@@ -4,9 +4,9 @@
 #include <tuple>
 #include <utility>
 
-#include "EIScriptClassesBase.h"
+#include "EIScriptClassesBase.hpp"
 #include "position.hh"
-#include "exception.hh"
+#include "scriptexception.hpp"
 
 namespace EIScript
 {

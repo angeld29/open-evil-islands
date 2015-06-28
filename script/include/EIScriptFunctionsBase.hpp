@@ -4,9 +4,11 @@
 #include <string>
 #include <boost/unordered_map.hpp>
 
-#include "AIDirector.h"
-#include "EIScriptClassesBase.h"
-#include "function.hh"
+#include "EIScriptClassesBase.hpp"
+
+namespace cursedearth {
+    class AIDirector;
+}
 
 namespace EIScript
 {

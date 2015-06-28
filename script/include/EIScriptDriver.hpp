@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "EIScriptClassesBase.h" // TODO is this acceptable?
+#include "EIScriptClassesBase.hpp" // TODO is this acceptable?
 
 namespace EIScript
 {

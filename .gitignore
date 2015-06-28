@@ -11,7 +11,7 @@ engine/CE.zpi
 engine/CE.zwi
 engine/engine.ALEKS-IDEA.Aleks.pui
 engine/engine.prj
-engine/lib/
+**/lib/
 engine/tags
 tools/resfileviewer/ui_mainwindow.h
 .gitattributes

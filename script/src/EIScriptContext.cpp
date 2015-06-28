@@ -1,5 +1,5 @@
-#include "EIScriptContext.h"
-#include "EIScriptClasses.h"
+#include "EIScriptContext.hpp"
+#include "EIScriptClasses.hpp"
 
 namespace EIScript
 {

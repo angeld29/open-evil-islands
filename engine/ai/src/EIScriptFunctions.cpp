@@ -1,6 +1,6 @@
-#include "EIScriptFunctions.h"
-#include "AIDirector.h"
-#include "exception.hh"
+#include "EIScriptFunctions.hpp"
+#include "AIDirector.hpp"
+#include "exception.hpp"
 
 namespace EIScript
 {

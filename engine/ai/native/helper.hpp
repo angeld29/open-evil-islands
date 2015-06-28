@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <string>
 
-#include "EIScriptClassesBase.h"
+#include "EIScriptClassesBase.hpp"
 
 namespace EIScript
 {

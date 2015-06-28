@@ -3,11 +3,10 @@
 
 #include <string>
 #include <boost/unordered_map.hpp>
-#include "EIScriptClassesBase.h"
-#include "EIScriptClasses.h"
-#include "exception.hh"
-#include "util.h"
-#include "log.h"
+#include "EIScriptClassesBase.hpp"
+#include "EIScriptClasses.hpp"
+#include "scriptexception.hpp"
+#include "util.hpp"
 
 namespace EIScript
 {

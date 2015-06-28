@@ -13,7 +13,7 @@
     )
 
 // Include Bison for types / tokens
-#include "eiscript.tab.hh"
+#include "eiscript.tab.hpp"
 
 namespace EIScript
 {

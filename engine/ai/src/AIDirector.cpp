@@ -1,16 +1,26 @@
-#include "AIDirector.h"
+#include "AIDirector.hpp"
 
 namespace cursedearth
 {
 
     AIDirector::AIDirector()
+        : script_context(new EIScript::EIScriptContext())
+        , script_functions(new EIScript::EIScriptFunctions(this))
+        , script_executor(new EIScript::EIScriptExecutor(script_context, script_functions))
+        , driver(script_context, script_executor, false, true, false)
     {
         std::memset(ai_diplomacy, 0, sizeof(ai_diplomacy[0][0]) * n_players * n_players);
     }
 
     AIDirector::~AIDirector()
     {
+        delete script_executor;
+        delete script_functions;
+        delete script_context;
+    }
 
+    void AIDirector::advance(float elapsed){
+        script_executor->advance(elapsed);
     }
 
     void AIDirector::GSSetVar(double player, std::string* variable, double value)
