@@ -17,7 +17,7 @@ namespace EIScript
         EIScriptExecutor(EIScriptContext* script_context, EIScriptFunctionsBase* functions_impl);
         ~EIScriptExecutor();
 
-        void advance(float elapsed) ;
+        void advance(float elapsed);
 
         //TODO handle no args
         void callScript(Identifier* function_name, ExpressionList* arguments);

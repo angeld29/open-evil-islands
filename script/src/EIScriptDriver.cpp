@@ -26,13 +26,22 @@ namespace EIScript
     {
     }
 
+    Driver::~Driver()
+    {
+        if(lexer) {
+            delete lexer;
+        }
+    }
+
     bool Driver::parse_stream(std::istream& in, const std::string& sname)
     {
         streamname = sname;
 
-        FlexScanner scanner(&in);
-        scanner.set_debug(trace_scanning);
-        this->lexer = &scanner;
+        if(!lexer) {
+            FlexScanner* scanner = new FlexScanner(&in);
+            this->lexer = scanner;
+        }
+        lexer->set_debug(trace_scanning);
 
         Parser parser(*this);
         if(standard_trace_parsing) {

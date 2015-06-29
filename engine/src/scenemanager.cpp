@@ -43,7 +43,8 @@ namespace cursedearth
         ce_figproto_accept_renderqueue(figproto, scenemng->m_renderqueue);
     }
 
-    scene_manager_t::scene_manager_t(const input_context_const_ptr_t& input_context):
+    scene_manager_t::scene_manager_t(const input_context_const_ptr_t& input_context,
+                                     const AIDirectorConstPointerType& ai_director):
         singleton_t<scene_manager_t>(this),
         m_camera(ce_camera_new()),
         m_renderqueue(ce_renderqueue_new()),
@@ -53,6 +54,7 @@ namespace cursedearth
         m_scenenode(ce_scenenode_new(NULL)),
         m_terrain(NULL),
         m_input_supply(std::make_shared<input_supply_t>(input_context)),
+        m_ai_director(ai_director),
         m_toggle_bbox_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_b))),
         m_skip_logo_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space))),
         m_pause_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space))),
@@ -134,24 +136,6 @@ namespace cursedearth
                 deg2rad(xcoef * m_input_supply->pointer_offset().x),
                 deg2rad(ycoef * m_input_supply->pointer_offset().y));
         }
-
-
-        // Aleks // TODO move to aidesigner
-        size_t completed_job_count = ce_mob_loader->completed_job_count;
-        size_t queued_job_count = ce_mob_loader->queued_job_count;
-
-        if (NULL != m_terrain && once && completed_job_count >= queued_job_count) {
-            once = false;
-            ce_logging_debug("test entities count: %d", ce_figure_manager->entities->count);
-            for (size_t i = 0; i < ce_figure_manager->entities->count; ++i) {
-                ce_figentity* figentity = (ce_figentity*) ce_figure_manager->entities->items[i];
-                ce_figentity_fix_height(figentity,
-                    ce_mpr_get_height(m_terrain->mprfile, &figentity->position));
-                ce_scenenode_attach_child(ce_terrain_find_scenenode(m_terrain,
-                    figentity->position.x, figentity->position.z), figentity->scenenode);
-            }
-        }
-        // /Aleks
 
         do_advance(elapsed);
     }

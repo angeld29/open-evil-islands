@@ -28,11 +28,13 @@ namespace EIScript
         /** Reference to the script functions implementation */
         EIScriptExecutor* script_executor;
 
-        /// construct a new parser driver
+        /// construct a new parser driver with default parameters
         Driver(EIScriptContext* script_context, EIScriptExecutor* script_executor);
 
-        /// construct a new parser driver context
+        /// construct a new parser driver
         Driver(EIScriptContext* script_context, EIScriptExecutor* script_executor, bool trace_scanning, bool trace_parsing, bool standard_trace_parsing);
+
+        ~Driver();
 
         /// enable debug output in the flex scanner
         bool trace_scanning;

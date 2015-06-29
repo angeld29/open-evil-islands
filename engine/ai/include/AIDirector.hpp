@@ -3,11 +3,18 @@
 
 #include <cstring>
 #include <string>
+#include <sstream>
 #include <cmath>
+#include <memory>
 #include <boost/unordered_map.hpp>
 
 #include "utility.hpp"
+#include "string.hpp"
 #include "ScriptAccessible.hpp"
+#include "EIScriptContext.hpp"
+#include "EIScriptFunctions.hpp"
+#include "EIScriptExecutor.hpp"
+#include "EIScriptDriver.hpp"
 #include "scriptexception.hpp"
 
 namespace cursedearth
@@ -18,6 +25,8 @@ namespace cursedearth
     public:
         AIDirector();
         ~AIDirector();
+
+        void parseScript(ce_string* script, std::string& mob_name);
 
         void advance(float elapsed);
 
@@ -37,8 +46,11 @@ namespace cursedearth
         EIScript::EIScriptContext* script_context;
         EIScript::EIScriptFunctions* script_functions;
         EIScript::EIScriptExecutor* script_executor;
-        EIScript::Driver& driver;
+        EIScript::Driver* driver;
     };
+
+    typedef std::shared_ptr<AIDirector> AIDirectorPointerType;
+    typedef std::shared_ptr<const AIDirector> AIDirectorConstPointerType;
 
 }
 

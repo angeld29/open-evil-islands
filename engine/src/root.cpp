@@ -45,7 +45,8 @@ namespace cursedearth
         m_input_supply(std::make_shared<input_supply_t>(m_input_context)),
         m_exit_event(m_input_supply->push(input_button_t::kb_escape)),
         m_minimize_fullscreen_event(m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Tab, RAlt+Tab, LMeta, RMeta"))),
-        m_toggle_fullscreen_event(m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Enter, RAlt+Enter")))
+        m_toggle_fullscreen_event(m_input_supply->single_front(shortcut(m_input_supply, "LAlt+Enter, RAlt+Enter"))),
+        m_ai_director(std::make_shared<AIDirector>())
     {
         if (!ce_optparse_parse(option_parser, argc, argv)) {
             throw game_error("root", "option parser failed");
@@ -108,7 +109,7 @@ namespace cursedearth
 
         ce_figure_manager_init();
         m_thread_pool = make_thread_pool();
-        m_scene_manager = make_scene_manager(m_input_context, option_parser);
+        m_scene_manager = make_scene_manager(m_input_context, m_ai_director, option_parser);
 
         m_render_window->closed.connect([this] { m_done = true; });
         m_render_window->resized.connect([this] (size_t width, size_t height) {
@@ -167,6 +168,7 @@ namespace cursedearth
         ce_config_manager_term();
         ce_resource_manager_term();
         m_option_manager.reset();
+        m_ai_director.reset();
     }
 
     int root_t::exec()

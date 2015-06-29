@@ -7,7 +7,7 @@ namespace cursedearth
         : script_context(new EIScript::EIScriptContext())
         , script_functions(new EIScript::EIScriptFunctions(this))
         , script_executor(new EIScript::EIScriptExecutor(script_context, script_functions))
-        , driver(script_context, script_executor, false, true, false)
+        , driver(new EIScript::Driver(script_context, script_executor, false, true, false))
     {
         std::memset(ai_diplomacy, 0, sizeof(ai_diplomacy[0][0]) * n_players * n_players);
     }
@@ -17,6 +17,12 @@ namespace cursedearth
         delete script_executor;
         delete script_functions;
         delete script_context;
+        delete driver;
+    }
+
+    void AIDirector::parseScript(ce_string* script, std::string& mob_name){
+        std::istringstream script_stream(script->str);
+        driver->parse_stream(script_stream, mob_name);
     }
 
     void AIDirector::advance(float elapsed){
@@ -25,6 +31,7 @@ namespace cursedearth
 
     void AIDirector::GSSetVar(double player, std::string* variable, double value)
     {
+        gs_vars[std::to_string(player) + *variable] = value;
     }
 
     void AIDirector::GSSetVarMax(double player, std::string* variable, double value)
@@ -33,7 +40,7 @@ namespace cursedearth
 
     double AIDirector::GSGetVar(double player, std::string* variable)
     {
-        return 1;
+        return gs_vars[std::to_string(player) + *variable];
     }
 
     void AIDirector::GSDelVar(double player, std::string* variable)

@@ -40,7 +40,7 @@ namespace EIScript
         script_queue.emplace(script, arguments);
     }
 
-    inline Expression* EIScriptExecutor::callFunction(std::string* function_name, ExpressionList* arguments) {
+    Expression* EIScriptExecutor::callFunction(std::string* function_name, ExpressionList* arguments) {
         ExpressionList resolved_arguments = resolveArguments(arguments);
         return functions_impl->call(function_name, resolved_arguments);
     }
@@ -49,7 +49,7 @@ namespace EIScript
         verbose_execution = verbose;
     }
 
-    inline bool EIScriptExecutor::getVerboseExecution() {
+    bool EIScriptExecutor::getVerboseExecution() {
         return verbose_execution;
     }
 

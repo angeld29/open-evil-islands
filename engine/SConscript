@@ -35,7 +35,11 @@ env = env.Clone(
 )
 
 env.PrependUnique(
-    CPPPATH=["include"],
+    CPPPATH=["include",
+    os.path.join("ai", "include"),
+    os.path.join("ai", "native"),
+    os.path.join("#script", "include"), #TODO wrong/bad?
+    os.path.join("#script", "build", "$GEN_PATH")], #TODO wrong/bad?]
 )
 
 env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
@@ -44,7 +48,10 @@ sources = [os.path.join("build", "$GEN_PATH", node.name) for node in
     utils.filter_sources(env, env.Glob(os.path.join("src", "*.cpp")))] + \
     env.Glob(os.path.join("res", "resource.cerc"))
 
-ai = SConscript(dirs="ai")
+# TODO build ai in the build directory instead of the source directory
+ai = utils.filter_sources(env, env.Glob(os.path.join("ai", "src", "*.cpp")))
+# ai = [os.path.join("build", "$GEN_PATH", node.name) for node in # does not work
+#        utils.filter_sources(env, env.Glob(os.path.join("ai", "src", "*.cpp")))]
 lib = env.Library(os.path.join("lib", "$GEN_PATH", "engine"), sources + ai)
 
 targets = [env.Command(os.path.join("lib", SCons.Util.adjustixes("engine",

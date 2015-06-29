@@ -31,6 +31,7 @@
 #include "videomanager.hpp"
 #include "threadpool.hpp"
 #include "scenemanager.hpp"
+#include "AIDirector.hpp"
 
 namespace cursedearth
 {
@@ -61,6 +62,7 @@ namespace cursedearth
         video_manager_ptr_t m_video_manager;
         thread_pool_ptr_t m_thread_pool;
         scene_manager_ptr_t m_scene_manager;
+        AIDirectorPointerType m_ai_director;
     };
 }
 

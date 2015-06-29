@@ -2,6 +2,7 @@
 /usr/local/ffmpeg-0.8.15/include
 c:\msys64\usr\local\include
 c:\msys64\usr\local\include\freetype2
+C:\tools\boost_compiled\include\boost-1_58
 engine/include
 spikes/mapviewer/src
 script

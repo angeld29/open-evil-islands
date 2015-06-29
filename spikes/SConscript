@@ -30,9 +30,14 @@ Import("env")
 env = env.Clone()
 
 env.PrependUnique(
-    CPPPATH=[os.path.join("#engine", "include")],
-    LIBPATH=[os.path.join("#engine", "lib", "$GEN_PATH")],
-    LIBS=["engine"],
+    CPPPATH=[os.path.join("#engine", "include"),
+        os.path.join("#engine", "ai", "include"), #TODO wrong/bad?
+        os.path.join("#engine", "ai", "native"), #TODO wrong/bad?
+        os.path.join("#script", "include"), #TODO wrong/bad?
+        os.path.join("#script", "build", "$GEN_PATH")], #TODO wrong/bad?
+    LIBPATH=[os.path.join("#engine", "lib", "$GEN_PATH"),
+        os.path.join("#script", "lib", "$GEN_PATH")],
+    LIBS=["engine", "eiscript"],
 )
 
 version_re = re.compile(r"^\s*(\d+)\.(\d+)\.(\d+)\s*$")

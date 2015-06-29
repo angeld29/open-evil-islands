@@ -1,4 +1,5 @@
 **/build
+**/*.o
 **/bin
 *.dblite
 **/*.pyc

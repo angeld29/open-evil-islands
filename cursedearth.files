@@ -715,4 +715,3 @@ engine/ai/native/ScriptAccessible.hpp
 engine/ai/native/scriptexception.hpp
 engine/ai/native/unpacker.hpp
 script/include/scriptexception.hpp
-engine/ai/SConscript
