@@ -59,8 +59,6 @@ namespace cursedearth
 
     void ce_terrain_sector_react(ce_event* event)
     {
-        ce_logging_debug("Reacting to terrain sector");
-
         ce_terrain_sector* sector = (ce_terrain_sector*)((ce_event_ptr*)event->impl)->ptr;
 
         if (option_manager_t::instance()->terrain_tiling()) {

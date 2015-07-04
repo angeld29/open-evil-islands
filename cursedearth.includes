@@ -23,3 +23,4 @@ engine/ai/src
 script/build/x86-windows-mingw-64bit/debug
 engine/ai/native
 engine/ai
+spikes/scriptrunner/src

@@ -29,6 +29,7 @@
 #include "threadpool.hpp"
 #include "rendersystem.hpp"
 #include "figuremanager.hpp"
+#include "scenemanager.hpp"
 #include "mobmanager.hpp"
 #include "mobloader.hpp"
 
@@ -56,7 +57,12 @@ namespace cursedearth
             ce_logging_info("mob task: done loading `%s'", mob_task->name->str);
 
             ce_vector_remove_all(ce_mob_loader->mob_tasks, mob_task);
-            ce_mob_task_del(mob_task);
+            // ce_mob_task_del(mob_task); // Aleks
+
+            // Aleks
+            scene_manager_t* scene_manager = scene_manager_t::instance();
+            scene_manager->on_mob_loaded(mob_task->mob_file);
+            // Aleks
 
             if (++ce_mob_loader->completed_job_count == ce_mob_loader->queued_job_count) {
                 // do not accumulate counters

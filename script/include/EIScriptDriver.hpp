@@ -21,7 +21,7 @@ namespace EIScript
     public:
         /** Pointer to the current lexer instance, this is used to connect the
          * parser to the scanner. */
-        class FlexScanner* lexer;
+        class FlexScanner* lexer = nullptr;
 
         /** Reference to the script context filled during parsing */
         class EIScriptContext* script_context;        

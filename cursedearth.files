@@ -715,3 +715,9 @@ engine/ai/native/ScriptAccessible.hpp
 engine/ai/native/scriptexception.hpp
 engine/ai/native/unpacker.hpp
 script/include/scriptexception.hpp
+script/include/ScriptAccessible.hpp
+spikes/aidesigner/src/main.cpp
+spikes/figureviewer/src/main.cpp
+spikes/mapviewer/src/main.cpp
+spikes/mediaplayer/src/main.cpp
+spikes/scriptrunner/src/main.cpp

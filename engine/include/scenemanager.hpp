@@ -32,6 +32,7 @@
 #include "scenenode.hpp"
 #include "renderqueue.hpp"
 #include "figuremanager.hpp"
+#include "mobfile.hpp"
 #include "AIDirector.hpp"
 
 namespace cursedearth
@@ -39,13 +40,15 @@ namespace cursedearth
     class scene_manager_t: public singleton_t<scene_manager_t>
     {
     public:
-        explicit scene_manager_t(const input_context_const_ptr_t&, const AIDirectorConstPointerType&);
+        explicit scene_manager_t(const input_context_const_ptr_t&, const AIDirectorPointerType&);
         virtual ~scene_manager_t();
 
         void resize(size_t width, size_t height);
 
         void advance(float elapsed);
         void render();
+
+        void on_mob_loaded(ce_mob_file* mob_file);
 
     protected:
         void load_mpr(const std::string& name);
@@ -54,7 +57,7 @@ namespace cursedearth
         void add_node(ce_scenenode*);
 
         const viewport_t& get_viewport() const { return m_viewport; }
-        const AIDirectorConstPointerType&  get_ai_director() const { return m_ai_director; }
+        const AIDirectorPointerType&  get_ai_director() const { return m_ai_director; }
         ce_terrain* get_terrain() const { return m_terrain; }
         ce_font* get_font() { return m_font; }
 
@@ -89,13 +92,13 @@ namespace cursedearth
         input_event_const_ptr_t m_zoom_in_event;
         input_event_const_ptr_t m_zoom_out_event;
         input_event_const_ptr_t m_rotate_on_event;
-        AIDirectorConstPointerType m_ai_director;
+        AIDirectorPointerType m_ai_director;
         ce_figure_manager_listener m_figure_manager_listener;
     };
 
     typedef std::unique_ptr<scene_manager_t> scene_manager_ptr_t;
 
-    scene_manager_ptr_t make_scene_manager(const input_context_const_ptr_t&, const AIDirectorConstPointerType&, const ce_optparse_ptr_t&);
+    scene_manager_ptr_t make_scene_manager(const input_context_const_ptr_t&, const AIDirectorPointerType&, const ce_optparse_ptr_t&);
 }
 
 #endif

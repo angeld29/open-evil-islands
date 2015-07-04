@@ -212,7 +212,7 @@ variable : ident                            {
 
 function_call : ident params                { 
                                                 if(driver.script_executor->functionDefined($1)){
-                                                    $$ = new FunctionCall($1, $2, Type::None); /* WIP */ 
+                                                    $$ = new FunctionCall($1, $2, Type::Void); /* WIP */ 
                                                 } else if (driver.script_context->scriptDefined($1)){
                                                     $$ = new ScriptCall($1, $2); /* WIP */
                                                 } else {

@@ -22,8 +22,11 @@ namespace EIScript
         //TODO handle no args
         void callScript(Identifier* function_name, ExpressionList* arguments);
         Expression* callFunction(std::string* function_name, ExpressionList* arguments);
+
         void setVerboseExecution(bool verbose);
         bool getVerboseExecution();
+
+        bool queueIsEmpty();
 
         VariableDeclaration* getVariable(const Identifier* ident) {
             return script_context->getVariable(ident);

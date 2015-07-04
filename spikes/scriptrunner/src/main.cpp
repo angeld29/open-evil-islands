@@ -13,18 +13,14 @@
 int main(int argc, char* argv[])
 {
     cursedearth::AIDirector* ai_director = new cursedearth::AIDirector();
-    EIScript::EIScriptContext* script_context = new EIScript::EIScriptContext();
-    EIScript::EIScriptFunctions* script_functions = new EIScript::EIScriptFunctions(ai_director);
-    EIScript::EIScriptExecutor* script_executor = new EIScript::EIScriptExecutor(script_context, script_functions);
-    EIScript::Driver driver(script_context, script_executor, false, true, false);
 
     for(int ai = 1; ai < argc; ++ai) {
         if(argv[ai] == std::string("-p")) {
-            driver.trace_parsing = true;
+            ai_director->setMyTraceParsing(true);
         } else if(argv[ai] == std::string("-sp")) {
-            driver.standard_trace_parsing = true;
+            ai_director->setTraceParsing(true);
         } else if(argv[ai] == std::string("-s")) {
-            driver.trace_scanning = true;
+            ai_director->setTraceScanning(true);
         } else {
             // read a script file
 
@@ -33,13 +29,11 @@ int main(int argc, char* argv[])
                 std::cerr << "Could not open file: " << argv[ai] << std::endl;
                 return 0;
             }
-            driver.parse_stream(infile, argv[ai]);
+            ai_director->parseStream(infile, argv[ai]);
 
-            // DEBUG
-            std::cout<<std::endl<<*(script_context->getWorldscript()->getScriptBody())<<std::endl;
-            script_executor->callScript(script_context->getWorldscript()->getId(), nullptr);
+            ai_director->startExecution();
             while(true) {
-                script_executor->advance();
+                ai_director->advance(0);
             }
         }
     }

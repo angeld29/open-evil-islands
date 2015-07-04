@@ -6,23 +6,12 @@
 
 #include "EIScriptClassesBase.hpp"
 
-namespace cursedearth {
-    class AIDirector;
-}
-
 namespace EIScript
 {
-
     class EIScriptFunctionsBase
     {
-    protected:
-        typedef typename cursedearth::AIDirector DirectorType;
-        DirectorType* ai_director;
-
     public:
-        EIScriptFunctionsBase(DirectorType* ai_director)
-            : ai_director(ai_director) {}
-
+        EIScriptFunctionsBase() {}
         virtual ~EIScriptFunctionsBase() {}
 
         //TODO handle no args

@@ -1,5 +1,4 @@
 #include "EIScriptExecutor.hpp"
-#include "logging.hpp"
 
 namespace EIScript
 {
@@ -51,6 +50,11 @@ namespace EIScript
 
     bool EIScriptExecutor::getVerboseExecution() {
         return verbose_execution;
+    }
+
+    bool EIScriptExecutor::queueIsEmpty()
+    {
+        return script_queue.empty();
     }
 
     void EIScriptExecutor::executeScript(ScriptDeclaration* script, ExpressionList* arguments) {
@@ -112,7 +116,7 @@ namespace EIScript
 
     void EIScriptExecutor::pop_context() {
         if(script_context->getParentContext() == nullptr) {
-           cursedearth::ce_logging_error("Tried to pop parent context.");
+           std::cerr<<"Tried to pop parent context.";
         } else {
             EIScriptContext* previous = script_context;
             script_context = script_context->getParentContext();
@@ -125,7 +129,7 @@ namespace EIScript
         ExpressionList resolved_arguments(*arguments); //TODO is this even acceptable?
         std::transform(
             resolved_arguments.begin(), resolved_arguments.end(), resolved_arguments.begin(),
-        [this](Expression* e) { if(e) return e->resolve(this); else return e; }
+        [this](Expression* e) -> Expression* { if(e) { return e->resolve(this); } else return nullptr; }
         );
         return resolved_arguments;
     }

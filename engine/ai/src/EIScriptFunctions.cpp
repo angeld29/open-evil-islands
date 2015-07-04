@@ -5,6 +5,7 @@
 namespace EIScript
 {
 
+    // TODO extract to EIScriptFunctionsBase
     namespace EIStdlib
     {
         double Add(double x, double y)
@@ -41,10 +42,14 @@ namespace EIScript
         {
             return x < y ? 1 : 0;
         }
+
+        void KillScript(){
+            // do nothing, this is done automatically regardless of the call
+        }
     }
 
     EIScriptFunctions::EIScriptFunctions(DirectorType* ai_director)
-        : EIScriptFunctionsBase(ai_director)
+        : ai_director(ai_director)
     {
         initFunctions();
     }
@@ -99,15 +104,16 @@ namespace EIScript
         REGISTER_BY_NAME(IsEqual, Type::Float);
         REGISTER_BY_NAME(IsGreater, Type::Float);
         REGISTER_BY_NAME(IsLess, Type::Float);
+        REGISTER_BY_NAME(KillScript, Type::Void);
 #undef REGISTER_BY_NAME
 #define REGISTER_METHOD_BY_NAME(name, type, object, object_type) \
     functions[#name] = Function::loadMethod(#name, type, object, &object_type::name)
-        REGISTER_METHOD_BY_NAME(GSSetVar, Type::None, ai_director, DirectorType);
-        REGISTER_METHOD_BY_NAME(GSSetVarMax, Type::None, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GSSetVar, Type::Void, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GSSetVarMax, Type::Void, ai_director, DirectorType);
         REGISTER_METHOD_BY_NAME(GSGetVar, Type::Float, ai_director, DirectorType);
-        REGISTER_METHOD_BY_NAME(GSDelVar, Type::None, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GSDelVar, Type::Void, ai_director, DirectorType);
         REGISTER_METHOD_BY_NAME(GetDiplomacy, Type::Float, ai_director, DirectorType);
-        REGISTER_METHOD_BY_NAME(SetDiplomacy, Type::None, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(SetDiplomacy, Type::Void, ai_director, DirectorType);
 #undef REGISTER_METHOD_BY_NAME
     }
 

@@ -1,4 +1,5 @@
 #include "AIDirector.hpp"
+#include "logging.hpp"
 
 namespace cursedearth
 {
@@ -20,9 +21,30 @@ namespace cursedearth
         delete driver;
     }
 
-    void AIDirector::parseScript(ce_string* script, std::string& mob_name){
+    bool AIDirector::parseScript(ce_string* script, ce_string* mob_name){
+        ce_logging_debug("Parsing mob %s", mob_name);
+        std::string name(mob_name->str ? mob_name->str : "unknown mob" );
         std::istringstream script_stream(script->str);
-        driver->parse_stream(script_stream, mob_name);
+        return driver->parse_stream(script_stream, name);
+    }
+
+    bool AIDirector::parseStream(std::istream& in, const std::string& sname)
+    {
+        return driver->parse_stream(in, sname);
+    }
+
+    bool AIDirector::parseFile(const std::string& filename)
+    {
+        return driver->parse_file(filename);
+    }
+
+    void AIDirector::startExecution()
+    {
+        if(script_executor->queueIsEmpty()) {
+            script_executor->callScript(script_context->getWorldscript()->getId(), nullptr);
+        } else {
+            ce_logging_error("Tried to initiate script execution when the script queue was already non-empty.");
+        }
     }
 
     void AIDirector::advance(float elapsed){
@@ -77,6 +99,22 @@ namespace cursedearth
         } else {
             ai_diplomacy[one][two] = val;
         }
+    }
+
+
+    void AIDirector::setMyTraceParsing(bool trace_parsing)
+    {
+        driver->trace_parsing = trace_parsing;
+    }
+
+    void AIDirector::setTraceParsing(bool trace_parsing)
+    {
+        driver->standard_trace_parsing = trace_parsing;
+    }
+
+    void AIDirector::setTraceScanning(bool trace_scanning)
+    {
+        driver->trace_scanning = trace_scanning;
     }
 
 }

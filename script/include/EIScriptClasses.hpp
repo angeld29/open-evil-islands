@@ -60,7 +60,7 @@ namespace EIScript
     {
     public:
         Assignment(Identifier* lhs, Expression* rhs)
-            : Expression(Type::None)
+            : Expression(Type::Void)
             , lhs(lhs)
             , rhs(rhs) {
         }
@@ -116,7 +116,7 @@ namespace EIScript
         }
     private:
         Identifier* id;
-        Expression* value;
+        Expression* value = nullptr;
         position* defined_at;
     };
 
@@ -223,11 +223,11 @@ namespace EIScript
     public:
 
         ScriptCall(Identifier* functionName, ExpressionList* arguments)
-            : FunctionCall(functionName, arguments, Type::None) {
+            : FunctionCall(functionName, arguments, Type::Void) {
         }
 
         ScriptCall(Identifier* functionName)
-            : FunctionCall(functionName, Type::None) {
+            : FunctionCall(functionName, Type::Void) {
         }
 
         virtual Expression* resolve(EIScriptExecutor* executor);

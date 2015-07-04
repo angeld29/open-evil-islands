@@ -44,7 +44,7 @@ namespace cursedearth
     }
 
     scene_manager_t::scene_manager_t(const input_context_const_ptr_t& input_context,
-                                     const AIDirectorConstPointerType& ai_director):
+                                     const AIDirectorPointerType& ai_director):
         singleton_t<scene_manager_t>(this),
         m_camera(ce_camera_new()),
         m_renderqueue(ce_renderqueue_new()),
@@ -185,6 +185,12 @@ namespace cursedearth
         ce_font_render(m_font, m_viewport.width - ce_font_get_width(m_font, m_engine_text) - 10, 10, CE_COLOR_RED, m_engine_text);
 
         ce_render_system_end_render();
+    }
+
+    void scene_manager_t::on_mob_loaded(ce_mob_file* mob_file){
+        if(m_ai_director) {
+            m_ai_director->parseScript(mob_file->script, mob_file->name);
+        }
     }
 
     void scene_manager_t::load_mpr(const std::string& name)

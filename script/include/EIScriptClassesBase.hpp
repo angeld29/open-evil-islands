@@ -16,7 +16,7 @@ namespace EIScript
     typedef std::vector<Expression*> ExpressionList;
     typedef std::vector<VariableDeclaration*> VariableList;
 
-    enum class Type { Float, String, Object, Group, None };
+    enum class Type { Float, String, Object, Group, Void };
 
     inline std::string typeToString(const Type& value)
     {
@@ -27,7 +27,7 @@ namespace EIScript
             INSERT_ELEMENT(Type::String);
             INSERT_ELEMENT(Type::Object);
             INSERT_ELEMENT(Type::Group);
-            INSERT_ELEMENT(Type::None);
+            INSERT_ELEMENT(Type::Void);
 #undef INSERT_ELEMENT
         }
         return strings[value];
@@ -51,7 +51,7 @@ namespace EIScript
 
         virtual void log(std::ostream& out) = 0;
 
-        virtual ~Expression() {};
+        virtual ~Expression() {}
     protected:
         const Type type;
         Expression(Type type)
@@ -73,7 +73,7 @@ namespace EIScript
             out<<value;
         }
 
-        virtual ~ValuedExpression() {};
+        virtual ~ValuedExpression() {}
     protected:
         ValuedExpression(T value, Type type)
             : Expression(type)

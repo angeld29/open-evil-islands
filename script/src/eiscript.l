@@ -59,7 +59,7 @@ Z [zZ]
 {T}{H}{E}{N}                             { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::THEN); }
 {F}{O}{R}                                { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::FOR); }
 {W}{O}{R}{L}{D}{S}{C}{R}{I}{P}{T}        { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::WORLDSCRIPT); }
-[#a-zA-Z]([#_a-zA-Z0-9])*                { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::IDENTIFIER); }
+[#a-zA-Z]([#_a-zA-Z0-9-])*               { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::IDENTIFIER); }
 -?[0-9][0-9]*|[0-9]+"."[0-9]+            { yylval->fVal = std::atof(yytext); return(EIScript::BisonParser::token::FLOATNUMBER); }
 \"[^"]*\"                                { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::CHARACTER_STRING); }
 

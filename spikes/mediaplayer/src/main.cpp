@@ -30,7 +30,7 @@ namespace cursedearth
     {
     public:
         media_player_t(const input_context_const_ptr_t& input_context, const ce_optparse_ptr_t& option_parser):
-            scene_manager_t(input_context),
+            scene_manager_t(input_context, nullptr),
             m_input_supply(std::make_shared<input_supply_t>(input_context)),
             m_pause_event(m_input_supply->single_front(m_input_supply->push(input_button_t::kb_space)))
         {
@@ -118,7 +118,7 @@ namespace cursedearth
     };
 
     scene_manager_ptr_t make_scene_manager(const input_context_const_ptr_t& input_context,
-                                           const AIDirectorConstPointerType&,
+                                           const AIDirectorPointerType&,
                                            const ce_optparse_ptr_t& option_parser)
     {
         return make_unique<media_player_t>(input_context, option_parser);

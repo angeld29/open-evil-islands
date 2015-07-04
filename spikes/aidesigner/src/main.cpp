@@ -31,7 +31,7 @@ namespace cursedearth
     {
     public:
         ai_designer_t(const input_context_const_ptr_t& input_context,
-                      const AIDirectorConstPointerType& ai_director,
+                      const AIDirectorPointerType& ai_director,
                       const ce_optparse_ptr_t& option_parser):
             scene_manager_t(input_context, ai_director),
             m_input_supply(std::make_shared<input_supply_t>(input_context)),
@@ -130,7 +130,7 @@ namespace cursedearth
     };
 
     scene_manager_ptr_t make_scene_manager(const input_context_const_ptr_t& input_context,
-                                           const AIDirectorConstPointerType& ai_director,
+                                           const AIDirectorPointerType& ai_director,
                                            const ce_optparse_ptr_t& option_parser)
     {
         return make_unique<ai_designer_t>(input_context, ai_director, option_parser);
