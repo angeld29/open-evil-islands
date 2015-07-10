@@ -69,6 +69,11 @@ namespace cursedearth
         ce_vector_del(parts);
     }
 
+    static mob_object* mob_object::allocate_mob_object()
+    {
+        return new mob_object();
+    }
+
     mob_unit::~mob_unit()
     {
         ce_vector_for_each(logics, (void(*)(void*))mob_unit_logic_del);
@@ -95,6 +100,29 @@ namespace cursedearth
             delete area;
         }
         ce_string_del(spell);
+    }
+
+    mob_file::mob_file(const boost::filesystem::path& path)
+    {
+        ce_mem_file* mem_file = ce_mem_file_new_path(path);
+        if (NULL == mem_file) {
+            throw std::invalid_argument("Could not open mob file.");
+        }
+
+        name = ce_string_new_str(path.filename().string().c_str());
+        block_loop(mem_file, ce_mem_file_size(mem_file));
+
+        ce_mem_file_del(mem_file);
+    }
+
+    mob_file::~mob_file()
+    {
+        if (NULL != objects) {
+            ce_vector_for_each(objects, (void(*)(void*))ce_mob_object_del);
+        }
+        ce_vector_del(objects);
+        ce_string_del(script);
+        ce_string_del(name);
     }
 
     void mob_file::decrypt_script(char* data, size_t size, uint32_t key)
@@ -156,110 +184,109 @@ namespace cursedearth
 
     void mob_file::block_object_object(ce_mem_file* mem_file, size_t size)
     {
-        ce_mob_object_vtable vt = { 0, NULL };
-        ce_vector_push_back(mob_file->objects, ce_mob_object_new(vt));
-        mob_file_block_loop(mem_file, size);
+        ce_vector_push_back(objects, mob_object::allocate_mob_object());
+        block_loop(mem_file, size);
     }
 
     void mob_file::block_object_object_parts(ce_mem_file* mem_file, size_t size)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
         CE_MOB_READ_VECTOR_OF_STRINGS(object->parts);
     }
 
     void mob_file::block_object_object_owner(ce_mem_file* mem_file, size_t)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
         object->owner = ce_mem_file_read_u8(mem_file);
     }
 
     void mob_file::block_object_object_id(ce_mem_file* mem_file, size_t)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
         object->id = ce_mem_file_read_u32le(mem_file);
     }
 
     void mob_file::block_object_object_type(ce_mem_file* mem_file, size_t)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
         object->type = ce_mem_file_read_u32le(mem_file);
     }
 
     void mob_file::block_object_object_name(ce_mem_file* mem_file, size_t size)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
-        object->name = ce_mob_read_string(mem_file, size);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
+        object->name = read_string(mem_file, size);
     }
 
     void mob_file::block_object_object_model_name(ce_mem_file* mem_file, size_t size)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
-        object->model_name = ce_mob_read_string(mem_file, size);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
+        object->model_name = read_string(mem_file, size);
     }
 
     void mob_file::block_object_object_parent_name(ce_mem_file* mem_file, size_t size)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
-        object->parent_name = ce_mob_read_string(mem_file, size);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
+        object->parent_name = read_string(mem_file, size);
     }
 
     void mob_file::block_object_object_primary_texture(ce_mem_file* mem_file, size_t size)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
-        object->primary_texture = ce_mob_read_string(mem_file, size);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
+        object->primary_texture = read_string(mem_file, size);
     }
 
     void mob_file::block_object_object_secondary_texture(ce_mem_file* mem_file, size_t size)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
-        object->secondary_texture = ce_mob_read_string(mem_file, size);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
+        object->secondary_texture = read_string(mem_file, size);
     }
 
     void mob_file::block_object_object_comment(ce_mem_file* mem_file, size_t size)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
-        object->comment = ce_mob_read_string(mem_file, size);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
+        object->comment = read_string(mem_file, size);
     }
 
     void mob_file::block_object_object_position(ce_mem_file* mem_file, size_t)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
         ce_mem_file_read(mem_file, object->position, sizeof(float), 3);
     }
 
     void mob_file::block_object_object_rotation(ce_mem_file* mem_file, size_t)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
         ce_mem_file_read(mem_file, object->rotation, sizeof(float), 4);
     }
 
     void mob_file::block_object_object_quest(ce_mem_file* mem_file, size_t)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
         object->quest = ce_mem_file_read_u8(mem_file);
     }
 
     void mob_file::block_object_object_shadow(ce_mem_file* mem_file, size_t)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
         object->shadow = ce_mem_file_read_u8(mem_file);
     }
 
     void mob_file::block_object_object_parent_id(ce_mem_file* mem_file, size_t)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
         object->parent_id = ce_mem_file_read_u32le(mem_file);
     }
 
     void mob_file::block_object_object_quest_info(ce_mem_file* mem_file, size_t size)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
-        object->quest_info = ce_mob_read_string(mem_file, size);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
+        object->quest_info = read_string(mem_file, size);
     }
 
     void mob_file::block_object_object_complection(ce_mem_file* mem_file, size_t)
     {
-        mob_object* object = (mob_object*)ce_vector_back(mob_file->objects);
+        mob_object* object = (mob_object*)ce_vector_back(objects);
         ce_mem_file_read(mem_file, object->complection, sizeof(float), 3);
     }
 
@@ -268,7 +295,7 @@ namespace cursedearth
     void mob_file::block_object_unit(ce_mem_file* mem_file, size_t size)
     {
         ce_mob_object_vtable vt = { sizeof(ce_mob_unit), ce_mob_unit_dtor };
-        ce_vector_push_back(mob_file->objects, ce_mob_object_new(vt));
+        ce_vector_push_back(objects, ce_mob_object_new(vt));
         block_loop(mem_file, size);
     }
 
@@ -281,7 +308,7 @@ namespace cursedearth
     void mob_file::block_object_unit_name(ce_mem_file* mem_file, size_t size)
     {
         CE_MOB_UNIT_CAST(mob_file);
-        mob_unit->name = ce_mob_read_string(mem_file, size);
+        mob_unit->name = read_string(mem_file, size);
     }
 
     void mob_file::block_object_unit_armors(ce_mem_file* mem_file, size_t size)
@@ -402,7 +429,7 @@ namespace cursedearth
     void mob_file::block_object_lever(ce_mem_file* mem_file, size_t size)
     {
         ce_mob_object_vtable vt = { sizeof(ce_mob_lever), NULL };
-        ce_vector_push_back(mob_file->objects, ce_mob_object_new(vt));
+        ce_vector_push_back(objects, ce_mob_object_new(vt));
         block_loop(mem_file, size);
     }
 
@@ -447,7 +474,7 @@ namespace cursedearth
     void mob_file::block_object_trap(ce_mem_file* mem_file, size_t size)
     {
         ce_mob_object_vtable vt = { sizeof(ce_mob_trap), ce_mob_trap_dtor };
-        ce_vector_push_back(mob_file->objects, ce_mob_object_new(vt));
+        ce_vector_push_back(objects, ce_mob_object_new(vt));
         block_loop(mem_file, size);
     }
 
@@ -460,7 +487,7 @@ namespace cursedearth
     void mob_file::block_object_trap_spell(ce_mem_file* mem_file, size_t size)
     {
         CE_MOB_TRAP_CAST(mob_file);
-        mob_trap->spell = ce_mob_read_string(mem_file, size);
+        mob_trap->spell = read_string(mem_file, size);
     }
 
     void mob_file::block_object_trap_cast_interval(ce_mem_file* mem_file, size_t)
@@ -495,16 +522,6 @@ namespace cursedearth
         mob_trap->target->size = size;
         mob_trap->target->count = count;
         ce_mem_file_read(mem_file, mob_trap->target->values, 1, size);
-    }
-
-    block_callback mob_file::choose_callback(uint32_t type)
-    {
-        for (size_t i = 0; i < sizeof(block_pairs) / sizeof(block_pairs[0]); ++i) {
-            if (block_pairs[i].type == type) {
-                return block_pairs[i].callback;
-            }
-        }
-        return &mob_file::block_unknown;
     }
 
     void mob_file::block_loop(ce_mem_file* mem_file, size_t size)
@@ -607,26 +624,14 @@ namespace cursedearth
         }
     }
 
-    mob_file::mob_file(const boost::filesystem::path& path)
+    block_callback mob_file::choose_callback(uint32_t type)
     {
-        ce_mem_file* mem_file = ce_mem_file_new_path(path);
-        if (NULL == mem_file) {
-            throw std::invalid_argument("Could not open mob file.");
+        for (size_t i = 0; i < sizeof(block_pairs) / sizeof(block_pairs[0]); ++i) {
+            if (block_pairs[i].type == type) {
+                return block_pairs[i].callback;
+            }
         }
-
-        name = ce_string_new_str(path.filename().string().c_str());
-        block_loop(mem_file, ce_mem_file_size(mem_file));
-
-        ce_mem_file_del(mem_file);
+        return &mob_file::block_unknown;
     }
 
-    mob_file::~mob_file()
-    {
-        if (NULL != objects) {
-            ce_vector_for_each(objects, (void(*)(void*))ce_mob_object_del);
-        }
-        ce_vector_del(objects);
-        ce_string_del(script);
-        ce_string_del(name);
-    }
 }

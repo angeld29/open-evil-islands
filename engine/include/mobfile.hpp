@@ -38,6 +38,8 @@ namespace cursedearth
     public:
         virtual ~mob_object();
 
+        static mob_object* allocate_mob_object();
+
     protected:
         uint8_t owner, quest, shadow;
         uint32_t type, id, parent_id;
@@ -162,6 +164,74 @@ namespace cursedearth
         void block_zonal(ce_mem_file* mem_file, size_t size);
         void block_text(ce_mem_file* mem_file, size_t size);
         void block_object(ce_mem_file* mem_file, size_t size);
+
+        // object
+
+        void block_object_object(ce_mem_file* mem_file, size_t size);
+        void block_object_object_parts(ce_mem_file* mem_file, size_t size);
+        void block_object_object_owner(ce_mem_file* mem_file, size_t);
+        void block_object_object_id(ce_mem_file* mem_file, size_t);
+        void block_object_object_type(ce_mem_file* mem_file, size_t);
+        void block_object_object_name(ce_mem_file* mem_file, size_t size);
+        void block_object_object_model_name(ce_mem_file* mem_file, size_t size);
+        void block_object_object_parent_name(ce_mem_file* mem_file, size_t size);
+        void block_object_object_primary_texture(ce_mem_file* mem_file, size_t size);
+        void block_object_object_secondary_texture(ce_mem_file* mem_file, size_t size);
+        void block_object_object_comment(ce_mem_file* mem_file, size_t size);
+        void block_object_object_position(ce_mem_file* mem_file, size_t);
+        void block_object_object_rotation(ce_mem_file* mem_file, size_t);
+        void block_object_object_quest(ce_mem_file* mem_file, size_t);
+        void block_object_object_shadow(ce_mem_file* mem_file, size_t);
+        void block_object_object_parent_id(ce_mem_file* mem_file, size_t);
+        void block_object_object_quest_info(ce_mem_file* mem_file, size_t size);
+        void block_object_object_complection(ce_mem_file* mem_file, size_t);
+
+        // unit
+
+        void block_object_unit(ce_mem_file* mem_file, size_t size);
+        void block_object_unit_need_import(ce_mem_file* mem_file, size_t);
+        void block_object_unit_name(ce_mem_file* mem_file, size_t size);
+        void block_object_unit_armors(ce_mem_file* mem_file, size_t size);
+        void block_object_unit_weapons(ce_mem_file* mem_file, size_t size);
+        void block_object_unit_spells(ce_mem_file* mem_file, size_t size);
+        void block_object_unit_quick_items(ce_mem_file* mem_file, size_t size);
+        void block_object_unit_quest_items(ce_mem_file* mem_file, size_t size);
+        void block_object_unit_stats(ce_mem_file* mem_file, size_t size);
+
+        // unit logic
+
+        void block_object_unit_logic(ce_mem_file* mem_file, size_t size);
+        void block_object_unit_logic_alarm_condition(ce_mem_file* mem_file, size_t);
+        void block_object_unit_logic_help(ce_mem_file* mem_file, size_t);
+        void block_object_unit_logic_cyclic(ce_mem_file* mem_file, size_t);
+        void block_object_unit_logic_aggression_mode(ce_mem_file* mem_file, size_t);
+        void block_object_unit_logic_always_active(ce_mem_file* mem_file, size_t);
+        void block_object_unit_logic_model(ce_mem_file* mem_file, size_t);
+        void block_object_unit_logic_guard_radius(ce_mem_file* mem_file, size_t);
+        void block_object_unit_logic_wait(ce_mem_file* mem_file, size_t);
+        void block_object_unit_logic_guard_position(ce_mem_file* mem_file, size_t);
+        void block_object_unit_logic_use(ce_mem_file* mem_file, size_t);
+        void block_object_unit_logic_nalarm(ce_mem_file* mem_file, size_t);
+
+        // lever
+
+        void block_object_lever(ce_mem_file* mem_file, size_t size);
+        void block_object_lever_stats(ce_mem_file* mem_file, size_t);
+        void block_object_lever_state(ce_mem_file* mem_file, size_t);
+        void block_object_lever_state_count(ce_mem_file* mem_file, size_t);
+        void block_object_lever_cyclic(ce_mem_file* mem_file, size_t);
+        void block_object_lever_door(ce_mem_file* mem_file, size_t);
+        void block_object_lever_recalc_graph(ce_mem_file* mem_file, size_t);
+
+        // trap
+
+        void block_object_trap(ce_mem_file* mem_file, size_t size);
+        void block_object_trap_diplomacy(ce_mem_file* mem_file, size_t);
+        void block_object_trap_spell(ce_mem_file* mem_file, size_t size);
+        void block_object_trap_cast_interval(ce_mem_file* mem_file, size_t);
+        void block_object_trap_cast_once(ce_mem_file* mem_file, size_t);
+        void block_object_trap_area(ce_mem_file* mem_file, size_t size);
+        void block_object_trap_target(ce_mem_file* mem_file, size_t size);
 
         block_callback choose_callback(uint32_t type);
 
