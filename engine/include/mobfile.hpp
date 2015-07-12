@@ -25,8 +25,8 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include "vector.hpp"
-#include "string.hpp"
+#include <vector>
+#include <string.hpp>
 #include "memfile.hpp"
 
 namespace cursedearth
@@ -36,17 +36,16 @@ namespace cursedearth
         friend class mob_file;
 
     public:
+        mob_object() {}
         virtual ~mob_object();
 
-        static mob_object* allocate_mob_object();
-
-    protected:
+    public: // TODO protected?
         uint8_t owner, quest, shadow;
         uint32_t type, id, parent_id;
         float position[3];
         float rotation[4];
         float complection[3];
-        ce_vector* parts;
+        std::vector<ce_string*>* parts = nullptr;
         ce_string* name;
         ce_string* model_name;
         ce_string* parent_name;
@@ -59,6 +58,9 @@ namespace cursedearth
 
     class mob_unit_logic : public mob_object {
         friend class mob_file;
+
+    public:
+        mob_unit_logic() {}
 
     private:
         uint8_t alarm_condition;
@@ -76,22 +78,26 @@ namespace cursedearth
         friend class mob_file;
 
     public:
+        mob_unit() {}
         virtual ~mob_unit();
 
     private:
         uint8_t need_import;
         ce_string* name;
-        ce_vector* armors;
-        ce_vector* weapons;
-        ce_vector* spells;
-        ce_vector* quick_items;
-        ce_vector* quest_items;
-        ce_vector* logics;
+        std::vector<ce_string*>* armors = nullptr;
+        std::vector<ce_string*>* weapons = nullptr;
+        std::vector<ce_string*>* spells = nullptr;
+        std::vector<ce_string*>* quick_items = nullptr;
+        std::vector<ce_string*>* quest_items = nullptr;
+        std::vector<mob_unit_logic*>* logics = nullptr;
 
     };
 
     class mob_lever : public mob_object {
         friend class mob_file;
+
+    public:
+        mob_lever() {}
 
     private:
         uint32_t stats[3];
@@ -104,7 +110,7 @@ namespace cursedearth
         friend class mob_file;
 
     public:
-        virtual ~mob_trap_area();
+        mob_trap_area() {}
 
     private:
         size_t size;
@@ -116,7 +122,7 @@ namespace cursedearth
         friend class mob_file;
 
     public:
-        virtual ~mob_trap_target();
+        mob_trap_target() {}
 
     private:
         size_t size;
@@ -128,6 +134,7 @@ namespace cursedearth
         friend class mob_file;
 
     public:
+        mob_trap() {}
         virtual ~mob_trap();
 
     private:
@@ -147,12 +154,16 @@ namespace cursedearth
         mob_file(const boost::filesystem::path&);
         ~mob_file();
 
+        ce_string* get_name();
+        ce_string* get_script();
+        std::vector<mob_object*>* get_objects();
+
     private:
         typedef void (mob_file::*block_callback)(ce_mem_file*, size_t);
 
         ce_string* name;
         ce_string* script;
-        ce_vector* objects;
+        std::vector<mob_object*>* objects;
 
         void decrypt_script(char* data, size_t size, uint32_t key);
         ce_string* read_string(ce_mem_file* mem_file, size_t size);
@@ -241,7 +252,7 @@ namespace cursedearth
             block_callback callback;
         } block_pair;
 
-        const block_pair block_pairs[] = {
+        const block_pair block_pairs[58] = {
             {0xa000, &mob_file::block_main},
             {0xd000, &mob_file::block_quest},
             {0xc000, &mob_file::block_zonal},

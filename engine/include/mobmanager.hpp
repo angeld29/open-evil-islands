@@ -34,7 +34,7 @@ namespace cursedearth
     void ce_mob_manager_init(void);
     void ce_mob_manager_term(void);
 
-    ce_mob_file* ce_mob_manager_open(const std::string& name);
+    mob_file* ce_mob_manager_open(const std::string& name);
 }
 
 #endif

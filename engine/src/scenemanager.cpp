@@ -187,9 +187,9 @@ namespace cursedearth
         ce_render_system_end_render();
     }
 
-    void scene_manager_t::on_mob_loaded(ce_mob_file* mob_file){
+    void scene_manager_t::on_mob_loaded(mob_file* mob_file){
         if(m_ai_director) {
-            m_ai_director->parseScript(mob_file->script, mob_file->name);
+            m_ai_director->parseScript(mob_file->get_script(), mob_file->get_name());
         }
     }
 

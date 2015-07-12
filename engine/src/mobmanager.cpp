@@ -67,11 +67,11 @@ namespace cursedearth
         return fs::path();
     }
 
-    ce_mob_file* ce_mob_manager_open(const std::string& name)
+    mob_file* ce_mob_manager_open(const std::string& name)
     {
         fs::path path = find_mob_resource(name);
         if (!path.empty()) {
-            return ce_mob_file_open(path);
+            return new mob_file(path);
         }
         return NULL;
     }

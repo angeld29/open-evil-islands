@@ -48,7 +48,7 @@ namespace cursedearth
         void advance(float elapsed);
         void render();
 
-        void on_mob_loaded(ce_mob_file* mob_file);
+        void on_mob_loaded(mob_file* mob_file);
 
     protected:
         void load_mpr(const std::string& name);

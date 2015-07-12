@@ -61,7 +61,7 @@ namespace cursedearth
 
             // Aleks
             scene_manager_t* scene_manager = scene_manager_t::instance();
-            scene_manager->on_mob_loaded(mob_task->mob_file);
+            scene_manager->on_mob_loaded(mob_task->task_mob_file);
             // Aleks
 
             if (++ce_mob_loader->completed_job_count == ce_mob_loader->queued_job_count) {
@@ -74,19 +74,19 @@ namespace cursedearth
 
     void ce_mob_task_exec(ce_mob_task* mob_task)
     {
-        mob_task->mob_file = ce_mob_manager_open(mob_task->name->str);
-        if (NULL == mob_task->mob_file) {
+        mob_task->task_mob_file = ce_mob_manager_open(mob_task->name->str);
+        if (NULL == mob_task->task_mob_file) {
             ce_logging_error("mob task: could not load `%s'", mob_task->name->str);
             return;
         }
 
-        mob_task->posted_event_count = mob_task->mob_file->objects->count;
+        mob_task->posted_event_count = mob_task->task_mob_file->get_objects()->size();
 
         ce_logging_info("mob task: loading `%s'...", mob_task->name->str);
         ce_logging_info("mob task: posting %zu events...", mob_task->posted_event_count);
 
-        for (size_t i = 0; i < mob_task->mob_file->objects->count; ++i) {
-            ce_mob_object* mob_object = (ce_mob_object*)mob_task->mob_file->objects->items[i];
+        for (size_t i = 0; i < mob_task->task_mob_file->get_objects()->size(); ++i) {
+            mob_object* mob_object = (*mob_task->task_mob_file->get_objects())[i];
             ce_event* event = ce_event_new(ce_mob_object_event_react, sizeof(ce_mob_object_event));
             ce_mob_object_event* mob_object_event = (ce_mob_object_event*)event->impl;
 
@@ -106,8 +106,8 @@ namespace cursedearth
 
             ce_complection_init_array(&mob_object_event->complection, mob_object->complection);
 
-            for (size_t j = 0; j < mob_object->parts->count; ++j) {
-                ce_string* part = (ce_string*)mob_object->parts->items[j];
+            for (size_t j = 0; j < mob_object->parts->size(); ++j) {
+                ce_string* part = (*mob_object->parts)[j];
                 mob_object_event->parts[j] = part->str;
             }
 
@@ -129,7 +129,7 @@ namespace cursedearth
     void ce_mob_task_del(ce_mob_task* mob_task)
     {
         if (NULL != mob_task) {
-            ce_mob_file_close(mob_task->mob_file);
+            delete mob_task->task_mob_file;
             ce_string_del(mob_task->name);
             ce_free(mob_task, sizeof(ce_mob_task));
         }

@@ -32,7 +32,7 @@ namespace cursedearth
         size_t processed_event_count;
         size_t posted_event_count;
         ce_string* name;
-        ce_mob_file* mob_file;
+        mob_file* task_mob_file;
     } ce_mob_task;
 
     ce_mob_task* ce_mob_task_new(const char* name);
