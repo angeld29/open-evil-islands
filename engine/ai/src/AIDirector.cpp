@@ -11,14 +11,25 @@ namespace cursedearth
         , driver(new EIScript::Driver(script_context, script_executor, false, true, false))
     {
         std::memset(ai_diplomacy, 0, sizeof(ai_diplomacy[0][0]) * n_players * n_players);
+        gs_vars = new std::map<std::string, double>();
+        map_objects = new std::map<uint32_t, mob_object*>();
     }
 
     AIDirector::~AIDirector()
     {
+        delete gs_vars;
+        delete map_objects;
         delete script_executor;
         delete script_functions;
         delete script_context;
         delete driver;
+    }
+
+    void AIDirector::acceptMob(mob_file* mob_file)
+    {
+        for(auto& object : *(mob_file->objects)){
+            map_objects[object->id] = object;
+        }
     }
 
     bool AIDirector::parseScript(ce_string* script, ce_string* mob_name){
@@ -101,6 +112,31 @@ namespace cursedearth
         }
     }
 
+    double AIDirector::GetLeverState(EIScript::ScriptObject* object)
+    {
+        mob_lever* lever = dynamic_cast<mob_lever*>(object);
+        if(!lever) {
+            throw EIScript::Exception::InvalidAction("Not a lever."); // TODO proper
+        } else {
+            return lever->state;
+        }
+    }
+
+    EIScript::ScriptObject* AIDirector::GetObject(double id)
+    {
+        uint32_t uint_id = id; // TODO proper
+        return map_objects[uint_id];
+    }
+
+    EIScript::ScriptObject* AIDirector::GetObjectById(std::string* id)
+    {
+        // TODO
+    }
+
+    EIScript::ScriptObject* AIDirector::GetObjectByName(std::string* name)
+    {
+        // TODO
+    }
 
     void AIDirector::setMyTraceParsing(bool trace_parsing)
     {

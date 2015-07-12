@@ -28,11 +28,12 @@
 #include <vector>
 #include <string.hpp>
 #include "memfile.hpp"
+#include "ScriptObject.hpp"
 
 namespace cursedearth
 {
 
-    class mob_object {
+    class mob_object : public EIScript::ScriptObject {
         friend class mob_file;
 
     public:

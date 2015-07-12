@@ -6,6 +6,8 @@
 #include <vector>
 #include <map>
 
+#include "ScriptObject.hpp"
+
 namespace EIScript
 {
     class Expression;
@@ -101,10 +103,10 @@ namespace EIScript
         }
     };
 
-    class ObjectValue : public ValuedExpression<int>
+    class ObjectValue : public ValuedExpression<ScriptObject*>
     {
     public:
-        ObjectValue(int value)
+        ObjectValue(ScriptObject* value)
             : ValuedExpression(value, Type::Object) {
         }
     };

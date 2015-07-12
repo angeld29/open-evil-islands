@@ -1,5 +1,5 @@
-#ifndef SCRIPTACCESSIBLE_H
-#define SCRIPTACCESSIBLE_H
+#ifndef SCRIPT_ACCESSIBLE_H
+#define SCRIPT_ACCESSIBLE_H
 
 namespace EIScript
 {
@@ -16,4 +16,4 @@ namespace EIScript
     };
     
 }
-#endif // SCRIPTACCESSIBLE_H
+#endif // SCRIPT_ACCESSIBLE_H

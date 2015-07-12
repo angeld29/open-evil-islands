@@ -6,12 +6,13 @@
 #include <sstream>
 #include <cmath>
 #include <memory>
-#include <boost/unordered_map.hpp>
+#include <map>
 
 #include "utility.hpp"
 #include "string.hpp"
 #include "mobfile.hpp"
 #include "ScriptAccessible.hpp"
+#include "ScriptObject.hpp"
 #include "EIScriptContext.hpp"
 #include "EIScriptFunctions.hpp"
 #include "EIScriptExecutor.hpp"
@@ -27,6 +28,7 @@ namespace cursedearth
         AIDirector();
         ~AIDirector();
 
+        void acceptMob(mob_file* mob_file);
         bool parseScript(ce_string* script, ce_string* mob_name);
         bool parseStream(std::istream& in, const std::string& sname = "stream input");
         bool parseFile(const std::string& filename);
@@ -34,22 +36,31 @@ namespace cursedearth
         void startExecution();
         void advance(float elapsed);
 
+        void setMyTraceParsing(bool trace_parsing);
+        void setTraceParsing(bool trace_parsing);
+        void setTraceScanning(bool trace_scanning);
+
+        // script functions
+
         void GSSetVar(double player, std::string* variable, double value);
         void GSSetVarMax(double player, std::string* variable, double value);
         double GSGetVar(double player, std::string* variable);
         void GSDelVar(double player, std::string* variable);
         double GetDiplomacy(double player_one, double player_two);
         void SetDiplomacy(double player_one, double player_two, double value);
-
-        void setMyTraceParsing(bool trace_parsing);
-        void setTraceParsing(bool trace_parsing);
-        void setTraceScanning(bool trace_scanning);
+        double GetLeverState(EIScript::ScriptObject* object);
+        EIScript::ScriptObject* GetObject(double id);
+        EIScript::ScriptObject* GetObjectById(std::string* id);
+        EIScript::ScriptObject* GetObjectByName(std::string* name);
 
     protected:
-        const int n_players = 32;
-        boost::unordered_map<std::string, double> gs_vars; // Why gs_vars? GSSetVar? What is GS? Who is the Milkman?
-        short int ai_diplomacy[32][32]; // because of dumb
         std::string tag = "[AIDirector]";
+
+        std::map<std::string, double>* gs_vars; // Why gs_vars? GSSetVar? What is GS? Who is the Milkman?
+        std::map<uint32_t, mob_object*>* map_objects;
+
+        const int n_players = 32;
+        short int ai_diplomacy[32][32];
 
         EIScript::EIScriptContext* script_context;
         EIScript::EIScriptFunctionsBase* script_functions;

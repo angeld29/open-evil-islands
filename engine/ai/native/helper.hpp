@@ -110,6 +110,13 @@ namespace EIScript
             }
         };
 
+        template<>
+        struct wrapper<ScriptObject*> {
+             static Expression* wrap(ScriptObject* value, Type type) {
+                 return new ObjectValue(value);
+             }
+        };
+
     }
 }
 

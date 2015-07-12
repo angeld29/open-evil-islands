@@ -721,3 +721,4 @@ spikes/figureviewer/src/main.cpp
 spikes/mapviewer/src/main.cpp
 spikes/mediaplayer/src/main.cpp
 spikes/scriptrunner/src/main.cpp
+script/include/ScriptObject.hpp

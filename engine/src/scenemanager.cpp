@@ -189,6 +189,7 @@ namespace cursedearth
 
     void scene_manager_t::on_mob_loaded(mob_file* mob_file){
         if(m_ai_director) {
+            m_ai_director->acceptMob(mob_file);
             m_ai_director->parseScript(mob_file->get_script(), mob_file->get_name());
         }
     }
