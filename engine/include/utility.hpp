@@ -23,6 +23,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
+#include <sstream>
 
 namespace cursedearth
 {
@@ -94,6 +96,14 @@ namespace cursedearth
     inline double doubleEqual(double a, double b, double tolerance = g_epsilon_e3)
     {
         return relative_difference(a, b) <= tolerance;
+    }
+
+    inline uint32_t string2uint32(std::string* string) // apparently this is the proper way in C++?
+    {
+        std::istringstream reader(*string);
+        uint32_t value;
+        reader >> value;
+        return value;
     }
 }
 

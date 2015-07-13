@@ -43,7 +43,8 @@ namespace EIScript
             return x < y ? 1 : 0;
         }
 
-        void KillScript(){
+        void KillScript()
+        {
             // do nothing, this is done automatically regardless of the call
         }
     }
@@ -114,6 +115,11 @@ namespace EIScript
         REGISTER_METHOD_BY_NAME(GSDelVar, Type::Void, ai_director, DirectorType);
         REGISTER_METHOD_BY_NAME(GetDiplomacy, Type::Float, ai_director, DirectorType);
         REGISTER_METHOD_BY_NAME(SetDiplomacy, Type::Void, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GetLeverState, Type::Float, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GetLeader, Type::Object, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GetObject, Type::Object, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GetObjectById, Type::Object, ai_director, DirectorType);
+        REGISTER_METHOD_BY_NAME(GetObjectByName, Type::Object, ai_director, DirectorType);
 #undef REGISTER_METHOD_BY_NAME
     }
 

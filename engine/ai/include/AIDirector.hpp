@@ -10,8 +10,10 @@
 
 #include "utility.hpp"
 #include "string.hpp"
+#include "mobobjects.hpp"
 #include "mobfile.hpp"
 #include "ScriptAccessible.hpp"
+#include "Player.hpp"
 #include "ScriptObject.hpp"
 #include "EIScriptContext.hpp"
 #include "EIScriptFunctions.hpp"
@@ -49,6 +51,7 @@ namespace cursedearth
         double GetDiplomacy(double player_one, double player_two);
         void SetDiplomacy(double player_one, double player_two, double value);
         double GetLeverState(EIScript::ScriptObject* object);
+        EIScript::ScriptObject* GetLeader();
         EIScript::ScriptObject* GetObject(double id);
         EIScript::ScriptObject* GetObjectById(std::string* id);
         EIScript::ScriptObject* GetObjectByName(std::string* name);
@@ -66,6 +69,8 @@ namespace cursedearth
         EIScript::EIScriptFunctionsBase* script_functions;
         EIScript::EIScriptExecutor* script_executor;
         EIScript::Driver* driver;
+
+        Player* player;
     };
 
     typedef std::shared_ptr<AIDirector> AIDirectorPointerType;

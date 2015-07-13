@@ -141,7 +141,7 @@ namespace EIScript
         class Method<Object, Return*, Arguments...> : public AbstractFunction
         {
         private:
-            Return(Object::*fn)(Arguments...); //TODO shouldn't it be Return* here?
+            Return*(Object::*fn)(Arguments...);
             Object* _this;
         public:
             virtual void call(EIScript::parametersPack& pack) {

@@ -6,7 +6,11 @@ namespace EIScript
 
     Expression* Assignment::resolve(EIScriptExecutor* executor)
     {
-        executor->getVariable(lhs)->setValue(rhs);
+        if(rhs) {
+            executor->getVariable(lhs)->setValue(rhs->resolve(executor));
+        } else {
+            executor->getVariable(lhs)->setValue(nullptr);
+        }
         return nullptr;
     }
 

@@ -99,14 +99,7 @@ namespace EIScript
         template<>
         struct wrapper<int> {
             static Expression* wrap(int value, Type type) {
-                switch(type) {
-                case Type::Group:
-                    return new GroupValue(value);
-                case Type::Object:
-                    return new ObjectValue(value);
-                default:
-                    throw Exception::InvalidAction("cannot cast returned int to type" + typeToString(type), "EIScript::Helper");
-                }
+                return new GroupValue(value);
             }
         };
 

@@ -722,3 +722,7 @@ spikes/mapviewer/src/main.cpp
 spikes/mediaplayer/src/main.cpp
 spikes/scriptrunner/src/main.cpp
 script/include/ScriptObject.hpp
+engine/include/mobobjects.hpp
+engine/src/mobobjects.cpp
+engine/ai/include/Player.hpp
+engine/ai/src/Player.cpp

@@ -61,7 +61,7 @@ Z [zZ]
 {W}{O}{R}{L}{D}{S}{C}{R}{I}{P}{T}        { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::WORLDSCRIPT); }
 [#a-zA-Z]([#_a-zA-Z0-9-])*               { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::IDENTIFIER); }
 -?[0-9][0-9]*|[0-9]+"."[0-9]+            { yylval->fVal = std::atof(yytext); return(EIScript::BisonParser::token::FLOATNUMBER); }
-\"[^"]*\"                                { yylval->sVal = new std::string(yytext, yyleng); return(EIScript::BisonParser::token::CHARACTER_STRING); }
+\"[^"]*\"                                { if(yyleng > 2) { yylval->sVal = new std::string(yytext+1, yyleng-2); } else { yylval->sVal = new std::string(); } return(EIScript::BisonParser::token::CHARACTER_STRING); }
 
 [=(){},:] {
             return *yytext;

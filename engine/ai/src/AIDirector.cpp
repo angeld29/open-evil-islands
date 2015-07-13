@@ -1,6 +1,8 @@
 #include "AIDirector.hpp"
 #include "logging.hpp"
 
+#include <algorithm>
+
 namespace cursedearth
 {
 
@@ -9,6 +11,7 @@ namespace cursedearth
         , script_functions(new EIScript::EIScriptFunctions(this))
         , script_executor(new EIScript::EIScriptExecutor(script_context, script_functions))
         , driver(new EIScript::Driver(script_context, script_executor, false, true, false))
+        , player(new Player())
     {
         std::memset(ai_diplomacy, 0, sizeof(ai_diplomacy[0][0]) * n_players * n_players);
         gs_vars = new std::map<std::string, double>();
@@ -27,8 +30,8 @@ namespace cursedearth
 
     void AIDirector::acceptMob(mob_file* mob_file)
     {
-        for(auto& object : *(mob_file->objects)){
-            map_objects[object->id] = object;
+        for(auto& object : *(mob_file->get_objects())){
+            (*map_objects)[object->id] = object;
         }
     }
 
@@ -64,7 +67,7 @@ namespace cursedearth
 
     void AIDirector::GSSetVar(double player, std::string* variable, double value)
     {
-        gs_vars[std::to_string(player) + *variable] = value;
+        (*gs_vars)[std::to_string(player) + *variable] = value;
     }
 
     void AIDirector::GSSetVarMax(double player, std::string* variable, double value)
@@ -73,7 +76,7 @@ namespace cursedearth
 
     double AIDirector::GSGetVar(double player, std::string* variable)
     {
-        return gs_vars[std::to_string(player) + *variable];
+        return (*gs_vars)[std::to_string(player) + *variable];
     }
 
     void AIDirector::GSDelVar(double player, std::string* variable)
@@ -116,26 +119,44 @@ namespace cursedearth
     {
         mob_lever* lever = dynamic_cast<mob_lever*>(object);
         if(!lever) {
-            throw EIScript::Exception::InvalidAction("Not a lever."); // TODO proper
+            throw EIScript::Exception::InvalidAction("Not a lever.", tag); // TODO proper
         } else {
-            return lever->state;
+            return lever->get_state();
         }
+    }
+
+    EIScript::ScriptObject* AIDirector::GetLeader()
+    {
+        return player;
     }
 
     EIScript::ScriptObject* AIDirector::GetObject(double id)
     {
         uint32_t uint_id = id; // TODO proper
-        return map_objects[uint_id];
+        return (*map_objects)[uint_id];
     }
 
     EIScript::ScriptObject* AIDirector::GetObjectById(std::string* id)
     {
-        // TODO
+       uint32_t uint_id = string2uint32(id);
+       return (*map_objects)[uint_id];
     }
 
     EIScript::ScriptObject* AIDirector::GetObjectByName(std::string* name)
     {
-        // TODO
+        auto entry = std::find_if(
+                    map_objects->begin(),
+                    map_objects->end(),
+                    [name](const std::pair<const uint32_t, cursedearth::mob_object*>& arg)
+                    {
+                        return strcmp(arg.second->name->str, name->c_str()) == 0;
+                    }
+        );
+        if(entry != map_objects->end()){
+            return entry->second;
+        } else {
+            throw EIScript::Exception::InvalidParameter("Could not find object with name: " + *name, tag);
+        }
     }
 
     void AIDirector::setMyTraceParsing(bool trace_parsing)
