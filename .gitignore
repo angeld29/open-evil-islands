@@ -1,2 +1,7 @@
+bin
+lib
+build
 cursedearth_local.cfg
+.sconsign.dblite
+*.pyc
 *.cmd
