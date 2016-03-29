@@ -1,7 +1,6 @@
-bin
-lib
 build
-cursedearth_local.cfg
 .sconsign.dblite
+*_local.cfg
+*.pro.user
 *.pyc
 *.cmd
