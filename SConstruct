@@ -19,16 +19,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-EnsurePythonVersion(2, 7)
-EnsureSConsVersion(2, 3)
-
 import site
+site.addsitedir("escons")
 
-site.addsitedir("scripts")
-
-import env as env_module
-
-env = env_module.create_environment()
+import environment
+env = environment.create_env("open-evil-islands")
 
 Export("env")
 
@@ -36,14 +31,5 @@ engine = Alias("engine", SConscript(dirs="engine"))
 spikes = Alias("spikes", SConscript(dirs="spikes"))
 
 Depends(spikes, engine)
-Default(spikes)
 
-targets = [engine, spikes]
-
-if "mp32oga" in COMMAND_LINE_TARGETS:
-    targets.append(Alias("mp32oga", SConscript("Mp32Oga.SConscript")))
-
-if "bik2ogv" in COMMAND_LINE_TARGETS:
-    targets.append(Alias("bik2ogv", SConscript("Bik2Ogv.SConscript")))
-
-Alias("all", targets)
+Default(Alias("all", [engine, spikes]))
