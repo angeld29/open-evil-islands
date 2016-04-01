@@ -1,0 +1,3 @@
+[submodule "escons"]
+	path = escons
+	url = https://gitlab.com/ykurganov/escons.git
