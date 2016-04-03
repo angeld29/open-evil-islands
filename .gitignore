@@ -1,6 +1,6 @@
 build
 .sconsign.dblite
 *_local.cfg
-*.creator.user
+*.pro.user
 *.pyc
 *.cmd
