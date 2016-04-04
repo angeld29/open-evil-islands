@@ -1,37 +1,33 @@
-[CE]
-# enable debug
-RELEASE = no
+# This file is part of Open Evil Islands.
+#
+# Open Evil Islands is an open source, cross-platform port of the original Evil Islands from Nival.
+# Copyright (C) 2009-2016 Yanis Kurganov <yanis.kurganov@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# turn on build system debug messages
+[CE]
+RELEASE = no
 LOGGING_LEVEL = debug
 
-# for mp32oga target
-MP3_PATH = /path/to/evilislands/Stream
-OGA_PATH = /path/to/cursedearth/Stream
-
-# mp32oga optional
-MP3_CODEC = madplay
-OGA_QUALITY = 4
-
-# for bik2ogv target
-BIK_PATH = /path/to/evilislands/Movies
-OGV_PATH = /path/to/cursedearth/Movies
-
-# bik2ogv optional
-OGV_VIDEO_BITRATE = 5000
-OGV_AUDIO_BITRATE = 128
-
 [x86-windows-mingw-64bit]
-# argtable and GLEW
 ADDITIONAL_INCLUDE_PATHS = c:\argtable\include;c:\glew\include
 ADDITIONAL_LIBRARY_PATHS = c:\argtable\lib;c:\glew\lib
 
-# or all in one
 ADDITIONAL_INCLUDE_PATHS = c:\include
 ADDITIONAL_LIBRARY_PATHS = c:\lib
 
 ADDITIONAL_DEFINES = SOME_DEFINE_1;SOME_DEFINE_2
 ADDITIONAL_LIBS = some_lib_1;some_lib_2
 
-# propagate additional PATH values (useful for mingw, for example)
 PATH = c:\msys64\mingw64\bin
