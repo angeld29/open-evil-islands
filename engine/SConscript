@@ -18,35 +18,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-
-import SCons
-
 import utils
+import os
 
 Import("env")
 
 env = env.Clone(
     tools=["rc"],
-    RCROOTPATH="res",
-    RCBUILDPATH="build",
-    RCBUILDOBJPATH=os.path.join("build", "$GEN_PATH"),
+    RCBUILDPATH="$ESCONS_BUILD_PATH",
+    RCBUILDOBJPATH=os.path.join("$ESCONS_OBJECTS_BUILD_PATH"),
 )
 
-env.PrependUnique(
-    CPPPATH=["include"],
-)
+env.VariantDir(os.path.join("$ESCONS_OBJECTS_BUILD_PATH", "engine"), "sources", duplicate=False)
 
-env.VariantDir(os.path.join("build", "$GEN_PATH"), "src", duplicate=False)
+sources = [os.path.join("$ESCONS_OBJECTS_BUILD_PATH", "engine", node.name) for node in utils.filter_sources(env, env.Glob(os.path.join("sources", "*.cpp")))]
+resources = env.Glob(os.path.join("resources", "resource.cerc"))
 
-sources = [os.path.join("build", "$GEN_PATH", node.name) for node in
-    utils.filter_sources(env, env.Glob(os.path.join("src", "*.cpp")))] + \
-    env.Glob(os.path.join("res", "resource.cerc"))
-
-lib = env.Library(os.path.join("lib", "$GEN_PATH", "engine"), sources)
-
-targets = [env.Command(os.path.join("lib", SCons.Util.adjustixes("engine",
-    env.subst("$LIBPREFIX"), env.subst("$LIBSUFFIX"))), lib,
-    Copy("$TARGET", "$SOURCE"))]
+targets = [env.Library(os.path.join("$ESCONS_LIBRARY_BUILD_PATH", "engine"), sources + resources)]
 
 Return("targets")

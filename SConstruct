@@ -21,14 +21,15 @@
 import site
 site.addsitedir("escons")
 
-import environment
-env = environment.create_env("open-evil-islands")
+import escons
+env = escons.create_env("open-evil-islands")
 
 Export("env")
 
 engine = Alias("engine", SConscript(dirs="engine"))
-spikes = Alias("spikes", SConscript(dirs="spikes"))
+#spikes = Alias("spikes", SConscript(dirs="spikes"))
 
-Depends(spikes, engine)
+#Depends(spikes, engine)
 
-Default(Alias("all", [engine, spikes]))
+#Default(Alias("all", [engine, spikes]))
+Default(Alias("all", engine))
