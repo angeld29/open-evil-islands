@@ -19,7 +19,7 @@
 TEMPLATE = app
 TARGET = open-evil-islands
 
-INCLUDEPATH =
+INCLUDEPATH = engine/headers
 
 HEADERS = \
     engine/headers/aabb.hpp \
