@@ -19,6 +19,9 @@
  */
 
 #include "renderwindow.hpp"
+#include "makeunique.hpp"
+#include "exception.hpp"
+#include "logging.hpp"
 #include "display_x11.hpp"
 #include "graphicscontext_x11.hpp"
 

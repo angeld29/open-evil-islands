@@ -19,6 +19,8 @@
  */
 
 #include "sounddevice.hpp"
+#include "exception.hpp"
+#include "logging.hpp"
 
 #include <alsa/asoundlib.h>
 
