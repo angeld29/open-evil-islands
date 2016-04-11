@@ -42,7 +42,7 @@ ffmpeg-0.8.15:
 ./configure --prefix=/usr/local/ --enable-static --disable-shared --enable-gpl --enable-version3 --disable-doc --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver --disable-avdevice --disable-avformat --disable-swscale --disable-postproc --disable-avfilter --disable-network --disable-asm --disable-yasm --disable-debug --disable-everything --enable-decoder=binkaudio_rdft --enable-decoder=bink
 --enable-cross-compile --cross-prefix=i586-mingw32msvc- --target-os=mingw32 --arch=i586
 
-squish-1.11:
+squish-1.13:
 Makefile: fix install: include/ lib/
 
 glew-1.12.0:
