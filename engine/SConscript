@@ -24,15 +24,15 @@ import os
 Import("env")
 
 env = env.Clone(
-    tools=["rc"],
-    RCBUILDPATH="$ESCONS_BUILD_PATH",
-    RCBUILDOBJPATH=os.path.join("$ESCONS_OBJECTS_BUILD_PATH"),
+    tools=["res"],
+    RES_OBJECT_BUILD_PATH="$ENGINE_OBJECT_BUILD_PATH",
+    ENGINE_OBJECT_BUILD_PATH=os.path.join("$ESCONS_OBJECT_BUILD_PATH", "engine"),
 )
 
-env.VariantDir(os.path.join("$ESCONS_OBJECTS_BUILD_PATH", "engine"), "sources", duplicate=False)
+env.VariantDir("$ENGINE_OBJECT_BUILD_PATH", "sources", duplicate=False)
 
-sources = [os.path.join("$ESCONS_OBJECTS_BUILD_PATH", "engine", node.name) for node in utils.filter_sources(env, env.Glob(os.path.join("sources", "*.cpp")))]
-resources = env.Glob(os.path.join("resources", "resource.cerc"))
+sources = [os.path.join("$ENGINE_OBJECT_BUILD_PATH", node.name) for node in utils.filter_sources(env, env.Glob(os.path.join("sources", "*.cpp")))]
+resources = [os.path.join("resources", "resource.res"), os.path.join("resources", "resource.rc")]
 
 targets = [env.Library(os.path.join("$ESCONS_LIBRARY_BUILD_PATH", "engine"), sources + resources)]
 

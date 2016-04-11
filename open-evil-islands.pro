@@ -19,7 +19,7 @@
 TEMPLATE = app
 TARGET = open-evil-islands
 
-INCLUDEPATH = engine/headers
+INCLUDEPATH = engine/headers build/resources
 
 HEADERS = \
     engine/headers/aabb.hpp \
@@ -99,7 +99,6 @@ HEADERS = \
     engine/headers/renderwindow.hpp \
     engine/headers/resball.hpp \
     engine/headers/resfile.hpp \
-    engine/headers/resourcedata.hpp \
     engine/headers/resourcemanager.hpp \
     engine/headers/ringbuffer.hpp \
     engine/headers/root.hpp \
@@ -283,6 +282,9 @@ SOURCES = \
     spikes/figureviewer/main.cpp \
     spikes/mapviewer/main.cpp \
     spikes/mediaplayer/main.cpp
+
+HEADERS += build/resources/resource.hpp
+SOURCES += build/resources/resource.cpp
 
 DISTFILES += \
     engine/SConscript \

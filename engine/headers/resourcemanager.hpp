@@ -23,8 +23,8 @@
 
 #include <string>
 
+#include "resource.hpp"
 #include "string.hpp"
-#include "resourcedata.hpp"
 #include "resfile.hpp"
 
 namespace cursedearth
