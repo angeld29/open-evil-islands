@@ -26,41 +26,40 @@ Import("env")
 
 env = env.Clone()
 
-env.PrependUnique(
-    CPPPATH=[os.path.join("#engine", "include")],
-    LIBPATH=[os.path.join("#engine", "lib", "$GEN_PATH")],
-    LIBS=["engine"],
-)
-
 version_re = re.compile(r"^\s*(\d+)\.(\d+)\.(\d+)\s*$")
 
-def make_target(name):
-    spike_env = env.Clone()
-    spike_env.VariantDir(os.path.join(name, "build", "$GEN_PATH"), os.path.join(name, "src"), duplicate=False)
+def make_target(dir):
+    spike_env = env.Clone(
+        SPIKE_OBJECT_BUILD_PATH=os.path.join("$ESCONS_OBJECT_BUILD_PATH", dir.name),
+    )
+    spike_env.VariantDir("$SPIKE_OBJECT_BUILD_PATH", dir, duplicate=False)
     spike_version_major = "0"
     spike_version_minor = "0"
     spike_version_patch = "0"
-    version_file = spike_env.File(os.path.join(name, "VERSION"))
+    version_file = spike_env.File(os.path.join(dir.name, "VERSION"))
     if version_file.exists():
         version = version_re.match(version_file.get_contents())
         if version is None:
-            logging.warning("spike '%s': 'VERSION' file format was not recognized (hint: <major>.<minor>.<patch>)", name)
+            logging.warning("spike '{0}': 'VERSION' file format was not recognized (hint: <major>.<minor>.<patch>)".format(dir.name))
         else:
             spike_version_major = version.group(1)
             spike_version_minor = version.group(2)
             spike_version_patch = version.group(3)
     spike_env.AppendUnique(
-        CPPDEFINES=["CE_SPIKE_VERSION_MAJOR=" + spike_version_major,
-                    "CE_SPIKE_VERSION_MINOR=" + spike_version_minor,
-                    "CE_SPIKE_VERSION_PATCH=" + spike_version_patch],
+        CPPDEFINES=[
+            "CE_SPIKE_VERSION_MAJOR=" + spike_version_major,
+            "CE_SPIKE_VERSION_MINOR=" + spike_version_minor,
+            "CE_SPIKE_VERSION_PATCH=" + spike_version_patch
+        ],
     )
-    return spike_env.Alias(name, spike_env.Command(os.path.join(name, "bin",
-        SCons.Util.adjustixes(name, spike_env.subst("$PROGPREFIX"),
-        spike_env.subst("$PROGSUFFIX"))), spike_env.Program(os.path.join(name,
-        "bin", "$GEN_PATH", name), [os.path.join(name, "build", "$GEN_PATH",
-        node.name) for node in spike_env.Glob(os.path.join(name, "src", "*.cpp"))]),
-        Copy("$TARGET", "$SOURCE")))
+    return spike_env.Alias(
+        dir.name,
+        spike_env.Program(
+            os.path.join("$ESCONS_BINARY_BUILD_PATH", dir.name),
+            [os.path.join("$SPIKE_OBJECT_BUILD_PATH", node.name) for node in dir.glob("*.cpp")]
+        )
+    )
 
-targets = [make_target(name) for name in os.listdir(".") if os.path.isdir(name)]
+targets = [make_target(dir) for dir in env.Glob("*") if isinstance(dir, SCons.Node.FS.Dir)]
 
 Return("targets")
