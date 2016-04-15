@@ -18,36 +18,16 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MAINWINDOW_HPP
-#define MAINWINDOW_HPP
+#include "mainwindow.hpp"
 
-#include <QSharedPointer>
-#include <QMainWindow>
+#include <QApplication>
 
-#include "gui/treewidget.hpp"
-
-namespace Ui
+int main(int argc, char* argv[])
 {
-    class MainWindow;
+    QApplication application(argc, argv);
+
+    ResfileViewer::MainWindow main_window;
+    main_window.show();
+
+    return application.exec();
 }
-
-namespace ResfileViewer
-{
-    class MainWindow: public QMainWindow
-    {
-        Q_OBJECT
-
-    public:
-        MainWindow();
-        ~MainWindow();
-
-    private Q_SLOTS:
-        void open_files();
-
-    private:
-        QSharedPointer<Ui::MainWindow> ui;
-        TreeWidget tree_widget;
-    };
-}
-
-#endif /* MAINWINDOW_HPP */

@@ -18,18 +18,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import site
-site.addsitedir("escons")
+import os
 
-import escons
-env = escons.create_env("open-evil-islands")
+Import("env")
 
-Export("env")
+env = env.Clone(
+    REG2INI_OBJECT_BUILD_PATH=os.path.join("$ESCONS_OBJECT_BUILD_PATH", "reg2ini"),
+)
 
-engine = Alias("engine", SConscript(dirs="engine"))
-spikes = Alias("spikes", SConscript(dirs="spikes"))
-tools = Alias("tools", SConscript(dirs="tools"))
+env.VariantDir("$REG2INI_OBJECT_BUILD_PATH", ".", duplicate=False)
 
-Depends(spikes, engine)
+targets = [
+    env.Program(
+        os.path.join("$ESCONS_BINARY_BUILD_PATH", "reg2ini"),
+        os.path.join("$REG2INI_OBJECT_BUILD_PATH", "main.c")
+    )
+]
 
-Default(Alias("all", [engine, spikes, tools]))
+Return("targets")

@@ -21,6 +21,9 @@ RELEASE = no
 LOGGING_LEVEL = debug
 HOST = windows-mingw-x64
 
+[QT]
+PATH = /home/user/.qt5.5.1/5.5/gcc_64
+
 [windows-mingw-x86]
 BINARY_PATHS = c:\Bin\MSYS2\mingw32\bin
 INCLUDE_PATHS = c:\Bin\MSYS2\usr\local\include;c:\Bin\MSYS2\usr\local\include\freetype2

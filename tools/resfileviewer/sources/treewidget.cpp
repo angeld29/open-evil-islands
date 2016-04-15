@@ -18,6 +18,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "treewidget.hpp"
+
+//#include <cealloc.h>
+//#include <ceresfile.h>
+
 #include <algorithm>
 #include <functional>
 #include <iterator>
@@ -41,11 +46,6 @@
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <QFileDialog>
-
-#include <cealloc.h>
-#include <ceresfile.h>
-
-#include "gui/treewidget.hpp"
 
 namespace
 {
@@ -117,9 +117,7 @@ namespace ResfileViewer
     {
         QList<QUrl> urls = event->mimeData()->urls();
         QStringList paths;
-        std::transform(urls.constBegin(), urls.constEnd(),
-                       std::back_inserter(paths),
-                       std::mem_fun_ref(&QUrl::toLocalFile));
+        std::transform(urls.constBegin(), urls.constEnd(), std::back_inserter(paths), std::mem_fun_ref(&QUrl::toLocalFile));
         add_files(paths);
     }
 
@@ -189,8 +187,7 @@ namespace
         } else {
             /*QString res_name = QFileInfo(resfile_name(res.get())).baseName();
             QString node_name(resfile_node_name(index, res.get()));
-            QString node_path = path + '/' + res_name + '/' +
-                                node_name.replace('\\', '/');
+            QString node_path = path + '/' + res_name + '/' + node_name.replace('\\', '/');
             QVector<char> buffer(resfile_node_size(index, res.get()));
             if (0 == resfile_node_data(buffer.data(), index, res.get())) {
                 QDir().mkpath(QFileInfo(node_path).path());

@@ -150,7 +150,9 @@ HEADERS = \
     engine/headers/videoresource.hpp \
     engine/headers/viewport.hpp \
     engine/headers/wave.hpp \
-    engine/headers/ycbcr.hpp
+    engine/headers/ycbcr.hpp \
+    tools/resfileviewer/sources/mainwindow.hpp \
+    tools/resfileviewer/sources/treewidget.hpp
 
 SOURCES = \
     engine/sources/aabb.cpp \
@@ -281,7 +283,11 @@ SOURCES = \
     engine/sources/wave.cpp \
     spikes/figureviewer/main.cpp \
     spikes/mapviewer/main.cpp \
-    spikes/mediaplayer/main.cpp
+    spikes/mediaplayer/main.cpp \
+    tools/reg2ini/reg2ini.c \
+    tools/resfileviewer/sources/main.cpp \
+    tools/resfileviewer/sources/mainwindow.cpp \
+    tools/resfileviewer/sources/treewidget.cpp
 
 HEADERS += build/resources/resource.hpp
 SOURCES += build/resources/resource.cpp
@@ -289,6 +295,9 @@ SOURCES += build/resources/resource.cpp
 DISTFILES += \
     engine/SConscript \
     spikes/SConscript \
+    tools/SConscript \
+    tools/reg2ini/SConscript \
+    tools/resfileviewer/SConscript \
     SConstruct \
     open-evil-islands.cfg \
     open-evil-islands_local.cfg \

@@ -18,14 +18,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "mainwindow.hpp"
+
+#include "ui_mainwindow.h"
+
 #include <QtGlobal>
 #include <QString>
 #include <QStringList>
 #include <QFileDialog>
-
-#include "ui_mainwindow.h"
-
-#include "gui/mainwindow.hpp"
 
 namespace ResfileViewer
 {

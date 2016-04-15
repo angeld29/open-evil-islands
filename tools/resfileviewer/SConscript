@@ -18,18 +18,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import site
-site.addsitedir("escons")
+import os
 
-import escons
-env = escons.create_env("open-evil-islands")
+Import("env")
 
-Export("env")
+env = env.Clone(
+    tools=["qt"],
+    RESFILEVIEWER_OBJECT_BUILD_PATH=os.path.join("$ESCONS_OBJECT_BUILD_PATH", "resfileviewer"),
+)
 
-engine = Alias("engine", SConscript(dirs="engine"))
-spikes = Alias("spikes", SConscript(dirs="spikes"))
-tools = Alias("tools", SConscript(dirs="tools"))
+env.VariantDir("$RESFILEVIEWER_OBJECT_BUILD_PATH", "sources", duplicate=False)
 
-Depends(spikes, engine)
+sources = [os.path.join("$RESFILEVIEWER_OBJECT_BUILD_PATH", node.name) for node in env.Glob(os.path.join("sources", "*.cpp"))]
+forms = env.Glob(os.path.join("forms", "*.ui"))
 
-Default(Alias("all", [engine, spikes, tools]))
+targets = [
+    env.Program(
+        os.path.join("$ESCONS_BINARY_BUILD_PATH", "resfileviewer"),
+        sources + forms
+    )
+]
+
+Return("targets")

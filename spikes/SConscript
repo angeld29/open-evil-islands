@@ -49,7 +49,7 @@ def make_target(dir):
         CPPDEFINES=[
             "CE_SPIKE_VERSION_MAJOR=" + spike_version_major,
             "CE_SPIKE_VERSION_MINOR=" + spike_version_minor,
-            "CE_SPIKE_VERSION_PATCH=" + spike_version_patch
+            "CE_SPIKE_VERSION_PATCH=" + spike_version_patch,
         ],
     )
     return spike_env.Alias(

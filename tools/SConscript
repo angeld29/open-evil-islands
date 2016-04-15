@@ -18,18 +18,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import site
-site.addsitedir("escons")
+Import("env")
 
-import escons
-env = escons.create_env("open-evil-islands")
+env = env.Clone()
 
-Export("env")
+targets = [
+    env.Alias("reg2ini", env.SConscript(dirs="reg2ini")),
+    env.Alias("resfileviewer", env.SConscript(dirs="resfileviewer")),
+]
 
-engine = Alias("engine", SConscript(dirs="engine"))
-spikes = Alias("spikes", SConscript(dirs="spikes"))
-tools = Alias("tools", SConscript(dirs="tools"))
-
-Depends(spikes, engine)
-
-Default(Alias("all", [engine, spikes, tools]))
+Return("targets")
