@@ -16,10 +16,8 @@
 ; You should have received a copy of the GNU General Public License
 ; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-; exclude yourself
+; Lines that start with ';' are comments.
+; Files to exclude:
+
 resource.res
-
-; exclude MS Windows resource file
-resource.rc
-
 readme.txt

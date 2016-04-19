@@ -24,12 +24,15 @@ import SCons
 
 Import("env")
 
-env = env.Clone()
+env = env.Clone(
+    tools=["sign"],
+)
 
-version_re = re.compile(r"^\s*(\d+)\.(\d+)\.(\d+)\s*$")
+version_re = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 
 def make_target(dir):
     spike_env = env.Clone(
+        RC_OBJECT_BUILD_PATH="$SPIKE_OBJECT_BUILD_PATH",
         SPIKE_OBJECT_BUILD_PATH=os.path.join("$ESCONS_OBJECT_BUILD_PATH", dir.name),
     )
     spike_env.VariantDir("$SPIKE_OBJECT_BUILD_PATH", dir, duplicate=False)
@@ -40,7 +43,7 @@ def make_target(dir):
     if version_file.exists():
         version = version_re.match(version_file.get_contents())
         if version is None:
-            logging.warning("spike '{0}': 'VERSION' file format was not recognized (hint: <major>.<minor>.<patch>)".format(dir.name))
+            utils.interrupt(spike_env, "{0}: couldn't recognize 'VERSION' file format (hint: <major>.<minor>.<patch>)".format(dir.name))
         else:
             spike_version_major = version.group(1)
             spike_version_minor = version.group(2)
@@ -49,14 +52,17 @@ def make_target(dir):
         CPPDEFINES=[
             "CE_SPIKE_VERSION_MAJOR=" + spike_version_major,
             "CE_SPIKE_VERSION_MINOR=" + spike_version_minor,
-            "CE_SPIKE_VERSION_PATCH=" + spike_version_patch
+            "CE_SPIKE_VERSION_PATCH=" + spike_version_patch,
         ],
     )
     return spike_env.Alias(
         dir.name,
-        spike_env.Program(
+        spike_env.Sign(
             os.path.join("$ESCONS_BINARY_BUILD_PATH", dir.name),
-            [os.path.join("$SPIKE_OBJECT_BUILD_PATH", node.name) for node in dir.glob("*.cpp")]
+            spike_env.Program(
+                os.path.join("$ESCONS_BINARY_BUILD_PATH", dir.name + "-unsigned"),
+                [os.path.join("$SPIKE_OBJECT_BUILD_PATH", node.name) for node in dir.glob("*.cpp")] + dir.glob("resource.rc")
+            )
         )
     )
 
