@@ -23,13 +23,18 @@ HOST = windows-mingw-x64
 
 [QT]
 PATH = /home/user/.qt5.5.1/5.5/gcc_64
+PATH = c:\Bin\Qt\Qt5.4.1\5.4\mingw491_32
+
+[SIGNTOOL]
+CERTIFICATE = certificate.pfx
+PASSWORD = qwerty
 
 [windows-mingw-x86]
-BINARY_PATHS = c:\Bin\MSYS2\mingw32\bin
+BINARY_PATHS = c:\Bin\MSYS2\mingw32\bin;c:\Program Files (x86)\Windows Kits\8.1\bin\x86
 INCLUDE_PATHS = c:\Bin\MSYS2\usr\local\include;c:\Bin\MSYS2\usr\local\include\freetype2
 LIBRARY_PATHS = c:\Bin\MSYS2\usr\local\lib32;c:\Bin\MSYS2\usr\local\lib32\boost
 
 [windows-mingw-x64]
-BINARY_PATHS = c:\Bin\MSYS2\mingw64\bin
+BINARY_PATHS = c:\Bin\MSYS2\mingw64\bin;c:\Program Files (x86)\Windows Kits\8.1\bin\x64
 INCLUDE_PATHS = c:\Bin\MSYS2\usr\local\include;c:\Bin\MSYS2\usr\local\include\freetype2
 LIBRARY_PATHS = c:\Bin\MSYS2\usr\local\lib64;c:\Bin\MSYS2\usr\local\lib64\boost
