@@ -49,7 +49,7 @@
 
 namespace
 {
-    typedef boost::shared_ptr<ce_res_file> ResfilePtr;
+    typedef boost::shared_ptr<int> ResfilePtr;
 
     class ResfileItem: public QTreeWidgetItem
     {
@@ -84,19 +84,16 @@ namespace ResfileViewer
         setSelectionMode(QAbstractItemView::ExtendedSelection);
 
         setHeaderLabels(QStringList("Name") << tr("Size") << tr("Modified"));
-
-        ce_alloc_init();
     }
 
-    void TreeWidget::add_files(const QStringList& paths)
+    void TreeWidget::add_files(const QStringList& /*paths*/)
     {
-        Q_FOREACH(const QString& path, paths) {
-            ResfilePtr res(ce_res_file_new_path(
-                qPrintable(path)), ce_res_file_del);
+        /*Q_FOREACH(const QString& path, paths) {
+            ResfilePtr res(ce_res_file_new_path(qPrintable(path)), ce_res_file_del);
             if (res) {
                 addTopLevelItem(new ResfileItem(res));
             }
-        }
+        }*/
     }
 
     void TreeWidget::dragEnterEvent(QDragEnterEvent* event)
@@ -156,16 +153,16 @@ namespace
         index(index)
     {
         if (-1 == index) {
-            QString name(res->name->str);
+            /*QString name(res->name->str);
 
             setText(ColumnName, name);
             setToolTip(ColumnName, name);
 
             for (unsigned int count = res->node_count, index = 0; index < count; ++index) {
                 addChild(new ResfileItem(res, index));
-            }
+            }*/
         } else {
-            QString name(ce_res_file_node_name(res.get(), index));
+            /*QString name(ce_res_file_node_name(res.get(), index));
             QString size(QString::number(ce_res_file_node_size(res.get(), index)));
             QString modified(QDateTime::fromTime_t(ce_res_file_node_modified(res.get(), index)).toString("dd.MM.yyyy hh:mm:ss"));
 
@@ -174,7 +171,7 @@ namespace
             setText(ColumnSize, size);
             setToolTip(ColumnSize, size);
             setText(ColumnModified, modified);
-            setToolTip(ColumnModified, modified);
+            setToolTip(ColumnModified, modified);*/
         }
     }
 

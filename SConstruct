@@ -28,7 +28,7 @@ Export("env")
 
 engine = Alias("engine", SConscript(dirs="engine"))
 spikes = Alias("spikes", SConscript(dirs="spikes"))
-tools = Alias("tools", SConscript(dirs="tools"))
+tools = []#Alias("tools", SConscript(dirs="tools"))
 
 Depends(spikes, engine)
 
