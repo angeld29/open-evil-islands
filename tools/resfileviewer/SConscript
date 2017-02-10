@@ -23,8 +23,8 @@ import os
 Import("env")
 
 env = env.Clone(
-    tools=["qt"],
-    RESFILEVIEWER_OBJECT_BUILD_PATH=os.path.join("$ESCONS_OBJECT_BUILD_PATH", "resfileviewer"),
+    tools=["qt", "sign"],
+    RESFILEVIEWER_OBJECT_BUILD_PATH=os.path.join("$SCONSX_OBJECT_BUILD_PATH", "resfileviewer"),
 )
 
 env.VariantDir("$RESFILEVIEWER_OBJECT_BUILD_PATH", "sources", duplicate=False)
@@ -33,9 +33,12 @@ sources = [os.path.join("$RESFILEVIEWER_OBJECT_BUILD_PATH", node.name) for node 
 forms = env.Glob(os.path.join("forms", "*.ui"))
 
 targets = [
-    env.Program(
-        os.path.join("$ESCONS_BINARY_BUILD_PATH", "resfileviewer"),
-        sources + forms
+    env.Sign(
+        os.path.join("$SCONSX_BINARY_BUILD_PATH", "resfileviewer"),
+        env.Program(
+            os.path.join("$SCONSX_BINARY_BUILD_PATH", "resfileviewer-unsigned"),
+            sources + forms
+        )
     )
 ]
 

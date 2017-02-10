@@ -19,6 +19,8 @@
 TEMPLATE = app
 TARGET = open-evil-islands
 
+CONFIG += c++11 no_keywords
+
 INCLUDEPATH = engine/headers build/resources
 
 HEADERS = \

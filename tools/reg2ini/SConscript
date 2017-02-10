@@ -19,19 +19,22 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
-
 Import("env")
 
 env = env.Clone(
-    REG2INI_OBJECT_BUILD_PATH=os.path.join("$ESCONS_OBJECT_BUILD_PATH", "reg2ini"),
+    tools=["sign"],
+    REG2INI_OBJECT_BUILD_PATH=os.path.join("$SCONSX_OBJECT_BUILD_PATH", "reg2ini"),
 )
 
 env.VariantDir("$REG2INI_OBJECT_BUILD_PATH", ".", duplicate=False)
 
 targets = [
-    env.Program(
-        os.path.join("$ESCONS_BINARY_BUILD_PATH", "reg2ini"),
-        os.path.join("$REG2INI_OBJECT_BUILD_PATH", "main.c")
+    env.Sign(
+        os.path.join("$SCONSX_BINARY_BUILD_PATH", "reg2ini"),
+        env.Program(
+            os.path.join("$SCONSX_BINARY_BUILD_PATH", "reg2ini-unsigned"),
+            os.path.join("$REG2INI_OBJECT_BUILD_PATH", "main.c")
+        )
     )
 ]
 

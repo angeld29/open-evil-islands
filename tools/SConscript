@@ -24,7 +24,7 @@ env = env.Clone()
 
 targets = [
     env.Alias("reg2ini", env.SConscript(dirs="reg2ini")),
-    env.Alias("resfileviewer", env.SConscript(dirs="resfileviewer")),
+    #env.Alias("resfileviewer", env.SConscript(dirs="resfileviewer")),
 ]
 
 Return("targets")
