@@ -3,7 +3,7 @@
 # This file is part of Open Evil Islands.
 #
 # Open Evil Islands is an open source, cross-platform port of the original Evil Islands from Nival.
-# Copyright (C) 2009-2016 Yanis Kurganov <yanis.kurganov@gmail.com>
+# Copyright (C) 2009-2017 Yanis Kurganov <yanis.kurganov@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,46 +22,47 @@ import utils, os, re, SCons
 Import("env")
 
 env = env.Clone(
-    tools=["sign"],
+    tools=["rcx", "sign"]
 )
 
-version_re = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
+env.PrependUnique(
+    CPPPATH=os.path.join("#", "engine", "headers")
+)
 
-def make_target(dir):
-    spike_env = env.Clone(
-        SPIKE_OBJECT_BUILD_PATH=os.path.join("$SCONSX_OBJECT_BUILD_PATH", dir.name),
+version_re = re.compile(r"^(\d+)\.(\d+)$")
+
+def make_target(env, dir):
+    env = env.Clone(
+        SPIKE_OBJECT_BUILD_PATH=os.path.join("$SCONSX_OBJECT_BUILD_PATH", dir.name)
     )
-    spike_env.VariantDir("$SPIKE_OBJECT_BUILD_PATH", dir, duplicate=False)
+    env.VariantDir("$SPIKE_OBJECT_BUILD_PATH", dir, duplicate=False)
     spike_version_major = "0"
     spike_version_minor = "0"
-    spike_version_patch = "0"
-    version_file = spike_env.File(os.path.join(dir.name, "VERSION"))
+    version_file = env.File(os.path.join(dir.name, "VERSION"))
     if version_file.exists():
         version = version_re.match(version_file.get_contents())
         if version is None:
-            utils.interrupt(spike_env, "{0}: couldn't recognize 'VERSION' file format (hint: <major>.<minor>.<patch>)".format(dir.name))
+            utils.interrupt(env, "{0}: couldn't recognize 'VERSION' file format (hint: <major>.<minor>)".format(dir.name))
         else:
             spike_version_major = version.group(1)
             spike_version_minor = version.group(2)
-            spike_version_patch = version.group(3)
-    spike_env.AppendUnique(
+    env.AppendUnique(
         CPPDEFINES=[
             "CE_SPIKE_VERSION_MAJOR=" + spike_version_major,
             "CE_SPIKE_VERSION_MINOR=" + spike_version_minor,
-            "CE_SPIKE_VERSION_PATCH=" + spike_version_patch,
-        ],
+        ]
     )
-    return spike_env.Alias(
+    return env.Alias(
         dir.name,
-        spike_env.Sign(
+        env.Sign(
             os.path.join("$SCONSX_BINARY_BUILD_PATH", dir.name),
-            spike_env.Program(
+            env.Program(
                 os.path.join("$SCONSX_BINARY_BUILD_PATH", dir.name + "-unsigned"),
-                [os.path.join("$SPIKE_OBJECT_BUILD_PATH", node.name) for node in dir.glob("*.cpp")] + dir.glob("resource.rcx")
+                [os.path.join("$SPIKE_OBJECT_BUILD_PATH", node.name) for node in dir.glob("*.cpp")] + dir.glob("resource.TODO")
             )
         )
     )
 
-targets = [make_target(dir) for dir in env.Glob("*") if isinstance(dir, SCons.Node.FS.Dir)]
+targets = [make_target(env, dir) for dir in env.Glob("*") if isinstance(dir, SCons.Node.FS.Dir)]
 
 Return("targets")

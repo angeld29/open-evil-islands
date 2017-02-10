@@ -3,7 +3,7 @@
 # This file is part of Open Evil Islands.
 #
 # Open Evil Islands is an open source, cross-platform port of the original Evil Islands from Nival.
-# Copyright (C) 2009-2016 Yanis Kurganov <yanis.kurganov@gmail.com>
+# Copyright (C) 2009-2017 Yanis Kurganov <yanis.kurganov@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,10 +26,4 @@ env = sconsx.create_env("open-evil-islands")
 
 Export("env")
 
-engine = Alias("engine", SConscript(dirs="engine"))
-spikes = Alias("spikes", SConscript(dirs="spikes"))
-tools = Alias("tools", SConscript(dirs="tools"))
-
-Depends(spikes, engine)
-
-Default(Alias("all", [engine, spikes, tools]))
+Default(Alias("all", SConscript(dirs=".")))

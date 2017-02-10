@@ -2,7 +2,7 @@
  *  This file is part of Cursed Earth.
  *
  *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
+ *  Copyright (C) 2009-2017 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
         ce_optparse_add(option_parser, "help", CE_TYPE_BOOL, NULL, false, "h", "help", "display this help and exit");
         ce_optparse_add(option_parser, "version", CE_TYPE_BOOL, NULL, false, "v", "version", "display version information and exit");
 
-        ce_optparse_set_standard_properties(option_parser, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, CE_SPIKE_VERSION_PATCH,
+        ce_optparse_set_standard_properties(option_parser, CE_SPIKE_VERSION_MAJOR, CE_SPIKE_VERSION_MINOR, 0,
             "Cursed Earth: Media Player", "This program is part of Cursed Earth spikes.\nMedia Player - play Evil Islands sounds and videos.");
 
         ce_optparse_add(option_parser, "only_sound", CE_TYPE_BOOL, NULL, false, NULL, "only-sound", "do not try to play video");

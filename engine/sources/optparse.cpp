@@ -2,7 +2,7 @@
  *  This file is part of Cursed Earth.
  *
  *  Cursed Earth is an open source, cross-platform port of Evil Islands.
- *  Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>
+ *  Copyright (C) 2009-2017 Yanis Kurganov <ykurganov@users.sourceforge.net>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -241,7 +241,7 @@ namespace cursedearth
     void ce_optparse_usage(const ce_optparse_ptr_t& optparse, void* argtable[], const char* progname)
     {
         fprintf(stderr, "Cursed Earth is an open source, cross-platform port of Evil Islands.\n"
-                        "Copyright (C) 2009-2015 Yanis Kurganov <ykurganov@users.sourceforge.net>\n\n");
+                        "Copyright (C) 2009-2017 Yanis Kurganov <ykurganov@users.sourceforge.net>\n\n");
 
         if (!ce_string_empty(optparse->brief)) {
             fprintf(stderr, "%s\n\n", optparse->brief->str);

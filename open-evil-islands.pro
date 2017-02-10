@@ -1,7 +1,7 @@
 # This file is part of Open Evil Islands.
 #
 # Open Evil Islands is an open source, cross-platform port of the original Evil Islands from Nival.
-# Copyright (C) 2009-2016 Yanis Kurganov <yanis.kurganov@gmail.com>
+# Copyright (C) 2009-2017 Yanis Kurganov <yanis.kurganov@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -286,7 +286,7 @@ SOURCES = \
     spikes/figureviewer/main.cpp \
     spikes/mapviewer/main.cpp \
     spikes/mediaplayer/main.cpp \
-    tools/reg2ini/reg2ini.c \
+    tools/reg2ini/main.c \
     tools/resfileviewer/sources/main.cpp \
     tools/resfileviewer/sources/mainwindow.cpp \
     tools/resfileviewer/sources/treewidget.cpp
@@ -300,11 +300,16 @@ DISTFILES += \
     README \
     THANKS \
     SConstruct \
+    SConscript \
     engine/SConscript \
     spikes/SConscript \
     tools/SConscript \
     tools/reg2ini/SConscript \
     tools/resfileviewer/SConscript \
+    engine/resources/resource.res \
+    spikes/figureviewer/resource.rcx \
+    spikes/mapviewer/resource.rcx \
+    spikes/mediaplayer/resource.rcx \
     open-evil-islands.cfg \
     open-evil-islands.cfg.user \
     open-evil-islands.cfg.user.example

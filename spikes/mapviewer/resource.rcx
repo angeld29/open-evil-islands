@@ -2,7 +2,7 @@
  * This file is part of Open Evil Islands.
  *
  * Open Evil Islands is an open source, cross-platform port of the original Evil Islands from Nival.
- * Copyright (C) 2009-2016 Yanis Kurganov <yanis.kurganov@gmail.com>
+ * Copyright (C) 2009-2017 Yanis Kurganov <yanis.kurganov@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +21,10 @@
 #include <winver.h>
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION    3,0,0,0
-PRODUCTVERSION 3,0,0,0
-FILEOS         VOS_NT
-FILETYPE       VFT_APP
+FILEVERSION     CE_SPIKE_VERSION_MAJOR,CE_SPIKE_VERSION_MINOR,0,0
+PRODUCTVERSION  CE_SPIKE_VERSION_MAJOR,CE_SPIKE_VERSION_MINOR,0,0
+FILEOS          VOS_NT
+FILETYPE        VFT_APP
 {
     BLOCK "StringFileInfo"
     {
@@ -33,12 +33,12 @@ FILETYPE       VFT_APP
             VALUE "Comments",         "https://gitlab.com/ykurganov/open-evil-islands"
             VALUE "CompanyName",      "Yanis Kurganov"
             VALUE "FileDescription",  "Open Evil Islands is an open source, cross-platform port of the original Evil Islands from Nival"
-            VALUE "FileVersion",      "3.0"
+            VALUE "FileVersion",      SCONSX_VERSION_STR
             VALUE "InternalName",     "open-evil-islands"
-            VALUE "LegalCopyright",   "(C) 2009-2016 Yanis Kurganov <yanis.kurganov@gmail.com>"
+            VALUE "LegalCopyright",   "(C) 2009-2017 Yanis Kurganov <yanis.kurganov@gmail.com>"
             VALUE "OriginalFilename", "open-evil-islands.exe"
             VALUE "ProductName",      "Open Evil Islands"
-            VALUE "ProductVersion",   "3.0"
+            VALUE "ProductVersion",   SCONSX_VERSION_STR
         }
     }
 

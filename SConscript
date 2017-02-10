@@ -18,27 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import utils, os
-Import("env")
+engine = Alias("engine", SConscript(dirs="engine"))
+spikes = Alias("spikes", SConscript(dirs="spikes"))
+tools = Alias("tools", SConscript(dirs="tools"))
 
-env = env.Clone(
-    tools=["res"],
-)
+Depends(spikes, engine)
 
-env.PrependUnique(
-    CPPPATH="headers",
-)
-
-env.VariantDir("$SCONSX_OBJECT_BUILD_PATH", "sources", duplicate=False)
-
-sources = [os.path.join("$SCONSX_OBJECT_BUILD_PATH", node.name) for node in utils.filter_sources(env, env.Glob(os.path.join("sources", "*.cpp")))]
-resources = env.Glob(os.path.join("resources", "*.res"))
-
-targets = [
-    env.Library(
-        os.path.join("$SCONSX_LIBRARY_BUILD_PATH", "engine"),
-        sources + resources
-    )
-]
+targets = [engine, spikes, tools]
 
 Return("targets")

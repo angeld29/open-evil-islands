@@ -1,7 +1,7 @@
 # This file is part of Open Evil Islands.
 #
 # Open Evil Islands is an open source, cross-platform port of the original Evil Islands from Nival.
-# Copyright (C) 2009-2016 Yanis Kurganov <yanis.kurganov@gmail.com>
+# Copyright (C) 2009-2017 Yanis Kurganov <yanis.kurganov@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@ LOGGING_LEVEL = debug
 HOST = windows-mingw-x64
 
 [QT]
-PATH = /home/user/.qt5.5.1/5.5/gcc_64
-PATH = c:\Bin\Qt\Qt5.4.1\5.4\mingw491_32
+PATH = /home/user/.qt/5.8/gcc_64
+PATH = c:\Bin\Qt\5.8\mingw53_32
 
 [SIGNTOOL]
 CERTIFICATE = certificate.pfx
