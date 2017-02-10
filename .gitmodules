@@ -1,0 +1,3 @@
+[submodule "sconsx"]
+	path = sconsx
+	url = https://gitlab.com/ykurganov/sconsx.git
