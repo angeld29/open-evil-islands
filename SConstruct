@@ -19,10 +19,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import site
-site.addsitedir("escons")
+site.addsitedir("sconsx")
 
-import escons
-env = escons.create_env("open-evil-islands")
+import sconsx
+env = sconsx.create_env("open-evil-islands")
 
 Export("env")
 

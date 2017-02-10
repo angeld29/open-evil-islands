@@ -293,12 +293,16 @@ HEADERS += build/resources/resource.hpp
 SOURCES += build/resources/resource.cpp
 
 DISTFILES += \
+    AUTHORS \
+    LICENSE \
+    README \
+    THANKS \
+    SConstruct \
     engine/SConscript \
     spikes/SConscript \
     tools/SConscript \
     tools/reg2ini/SConscript \
     tools/resfileviewer/SConscript \
-    SConstruct \
     open-evil-islands.cfg \
-    open-evil-islands_local.cfg \
-    open-evil-islands.cfg.example
+    open-evil-islands.cfg.user \
+    open-evil-islands.cfg.user.example
