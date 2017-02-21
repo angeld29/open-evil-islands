@@ -1,2 +1,0 @@
-*.py; *.frag; *.vert; *.rc; *.cerc; *.cfg; *.cfg.example; *.SConscript; SConscript; SConstruct
-PATH=c:\Program Files\Python27;${PATH}

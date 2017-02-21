@@ -1,0 +1,49 @@
+Настройка проекта в Windows
+===========================
+
+1. Установка MSYS2.
+
+http://www.msys2.org
+
+2. Установка компилятора MinGW.
+
+pacman -S mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain
+
+3. Установка зависимостей.
+
+libmad 0.15.1b
+pacman -S mingw-w64-i686-libmad mingw-w64-x86_64-libmad
+
+libogg 1.3.2
+pacman -S mingw-w64-i686-libogg mingw-w64-x86_64-libogg
+
+libvorbis 1.3.5
+pacman -S mingw-w64-i686-libvorbis mingw-w64-x86_64-libvorbis
+
+flac 1.3.2
+pacman -S mingw-w64-i686-flac mingw-w64-x86_64-flac
+
+libpng 1.6.28
+pacman -S mingw-w64-i686-libpng mingw-w64-x86_64-libpng
+
+libtheora 1.1.1
+pacman -S mingw-w64-i686-libtheora mingw-w64-x86_64-libtheora
+
+freetype 2.7.1
+pacman -S mingw-w64-i686-freetype mingw-w64-x86_64-freetype
+
+ffmpeg 3.2.2
+pacman -S mingw-w64-i686-ffmpeg mingw-w64-x86_64-ffmpeg
+
+libsquish 1.14
+pacman -S mingw-w64-i686-libsquish mingw-w64-x86_64-libsquish
+
+glew 2.0.0
+pacman -S mingw-w64-i686-glew mingw-w64-x86_64-glew
+
+boost 1.63.0
+pacman -S mingw-w64-i686-boost mingw-w64-x86_64-boost
+
+ffmpeg-0.8.15:
+./configure --prefix=/usr/local/ --enable-static --disable-shared --enable-gpl --enable-version3 --disable-doc --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver --disable-avdevice --disable-avformat --disable-swscale --disable-postproc --disable-avfilter --disable-network --disable-asm --disable-yasm --disable-debug --disable-everything --enable-decoder=binkaudio_rdft --enable-decoder=bink
+--enable-cross-compile --cross-prefix=i586-mingw32msvc- --target-os=mingw32 --arch=i586
