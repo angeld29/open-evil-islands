@@ -1,6 +1,6 @@
-build
-.sconsign.dblite
-*.cfg.user
-*.pro.user
+/build
+/.sconsign.dblite
+/*.cfg.user
+/*.pro.user
+/*.cmd
 *.pyc
-*.cmd
